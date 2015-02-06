@@ -2,18 +2,17 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
 	"net/http"
 )
 
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/", HomeHandler)
-	http.Handle("/", r)
+	r := NewRouter()
+	r.HandleFunc("", HomeHandler)
+	r.HandleFunc("auth:login", LoginHandler)
 	log.Println("Listening...")
-	http.ListenAndServe(":3000", nil)
+	http.ListenAndServe(":3000", r)
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {

@@ -26,7 +26,10 @@ func TestHomeHandler(t *testing.T) {
 	}
 }
 
-func TestAuthHandler(t *testing.T) {
+func TestAuthRouter(t *testing.T) {
+	r := NewRouter()
+	r.HandleFunc("auth:login", LoginHandler)
+
 	var authJson = `{
 	"action": "auth:login",
 	"api_key": "oursky",
@@ -41,11 +44,11 @@ func TestAuthHandler(t *testing.T) {
 	)
 	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
-	LoginHandler(resp, req)
+	r.ServeHTTP(resp, req)
 
 	var result ResponseJson
 	if err := json.Unmarshal(resp.Body.Bytes(), &result); err != nil {
-		t.Errorf("Repsonse is not a valid json: %v", err.Error())
+		t.Errorf("Repsonse is not a valid json: %v, %v", err.Error(), resp.Body)
 	}
 	if result.UserId != "rickmak-oursky" {
 		t.Errorf("UserId mismatch, expecting `rickmak-oursky`, got %v", result.UserId)
