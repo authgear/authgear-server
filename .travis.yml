@@ -11,3 +11,6 @@ before_install:
 script:
   - golint ./...
   - go test -cover ./...
+
+notifications:
+  slack: oursky:PxqsclRADehuWEs51vpgxeUh
