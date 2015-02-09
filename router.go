@@ -37,7 +37,6 @@ func NewRouter() *Router {
 	return &Router{actions: make(map[string]actionHandler)}
 }
 
-
 // HandleFunc to register action to handle mapping
 func (r *Router) HandleFunc(action string, handle func(http.ResponseWriter, *http.Request)) {
 	var actionHandler actionHandler
