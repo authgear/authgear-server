@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -27,8 +27,6 @@ func TestHomeHandler(t *testing.T) {
 }
 
 func TestAuthRouter(t *testing.T) {
-	r := NewRouter()
-	r.HandleFunc("auth:login", LoginHandler)
 
 	var authJSON = `{
 	"action": "auth:login",
@@ -44,7 +42,7 @@ func TestAuthRouter(t *testing.T) {
 	)
 	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
-	r.ServeHTTP(resp, req)
+	LoginHandler(resp, req)
 
 	var result responseJSON
 	if err := json.Unmarshal(resp.Body.Bytes(), &result); err != nil {
