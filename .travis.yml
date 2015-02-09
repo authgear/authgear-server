@@ -3,5 +3,11 @@ language: go
 go:
   - 1.4
   - tip
-script: go test ./...
 
+before_install:
+  - go get code.google.com/p/go.tools/cmd/cover
+  - go get github.com/golang/lint/golint
+
+script:
+  - golint ./...
+  - go test -cover ./...
