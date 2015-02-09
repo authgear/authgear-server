@@ -9,8 +9,8 @@ import (
 
 func main() {
 	r := NewRouter()
-	r.HandleFunc("", handlers.HomeHandler)
-	r.HandleFunc("auth:login", handlers.LoginHandler)
+	r.Map("", handlers.HomeHandler)
+	r.Map("auth:login", handlers.LoginHandler)
 	log.Println("Listening...")
 	http.ListenAndServe(":3000", r)
 }
