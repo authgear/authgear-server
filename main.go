@@ -15,27 +15,27 @@ func main() {
 	http.ListenAndServe(":3000", r)
 }
 
+// HomeHandler temp landing. FIXME
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello Developer"))
 }
 
-type RequestJson struct {
-	Action   interface{} `json:"action"`
-	ApiKey   interface{} `json:"api_key"`
+type loginJSON struct {
 	Email    interface{} `json:"email"`
 	Password interface{} `json:"password"`
 }
 
-type ResponseJson struct {
-	UserId      interface{} `json:"user_id"`
+type responseJSON struct {
+	UserID      interface{} `json:"user_id"`
 	AccessToken interface{} `json:"access_token,omitempty"`
 }
 
+// LoginHandler is dummy implementation on handling login
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var (
 		httpStatus = http.StatusOK
-		reqJson    RequestJson
-		respJson   ResponseJson
+		reqJSON    loginJSON
+		respJSON   responseJSON
 		errString  string
 	)
 	defer func() {
@@ -44,14 +44,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	body, _ := ioutil.ReadAll(r.Body)
-	if err := json.Unmarshal(body, &reqJson); err != nil {
+	if err := json.Unmarshal(body, &reqJSON); err != nil {
 		httpStatus = http.StatusBadRequest
 		errString = err.Error()
 		return
 	}
 
-	respJson.UserId = "rickmak-oursky"
-	b, err := json.Marshal(respJson)
+	respJSON.UserID = "rickmak-oursky"
+	b, err := json.Marshal(respJSON)
 	if err != nil {
 		httpStatus = http.StatusBadRequest
 		errString = err.Error()

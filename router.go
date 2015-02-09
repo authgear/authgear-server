@@ -7,29 +7,40 @@ import (
 	"net/http"
 )
 
+// Router to dispatch HTTP request to respective handler
 type Router struct {
-	actions map[string]ActionHandler
+	actions map[string]actionHandler
 }
 
-type ActionHandler struct {
+type actionHandler struct {
 	Action  string
 	Handler http.Handler
 }
 
 type bodyReader struct {
-    *bytes.Buffer
+	*bytes.Buffer
 }
 
 func (m bodyReader) Close() error {
 	return nil
 }
 
-func NewRouter() *Router {
-	return &Router{actions: make(map[string]ActionHandler)}
+type requestJSON struct {
+	Action   interface{} `json:"action"`
+	APIKey   interface{} `json:"api_key"`
+	Email    interface{} `json:"email"`
+	Password interface{} `json:"password"`
 }
 
+// NewRouter is factory for Router
+func NewRouter() *Router {
+	return &Router{actions: make(map[string]actionHandler)}
+}
+
+
+// HandleFunc to register action to handle mapping
 func (r *Router) HandleFunc(action string, handle func(http.ResponseWriter, *http.Request)) {
-	var actionHandler ActionHandler
+	var actionHandler actionHandler
 	actionHandler.Action = action
 	actionHandler.Handler = http.HandlerFunc(handle)
 	r.actions[action] = actionHandler
@@ -38,7 +49,7 @@ func (r *Router) HandleFunc(action string, handle func(http.ResponseWriter, *htt
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
 		httpStatus = http.StatusOK
-		reqJson    RequestJson
+		reqJSON    requestJSON
 		errString  string
 	)
 	defer func() {
@@ -48,12 +59,12 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}()
 	body, _ := ioutil.ReadAll(req.Body)
 	nextBody := bodyReader{bytes.NewBuffer(body)}
-	if err := json.Unmarshal(body, &reqJson); err != nil {
+	if err := json.Unmarshal(body, &reqJSON); err != nil {
 		httpStatus = http.StatusBadRequest
 		errString = err.Error()
 		return
 	}
-	actionHandler, ok := r.actions[reqJson.Action.(string)]
+	actionHandler, ok := r.actions[reqJSON.Action.(string)]
 	if ok {
 		req.Body = nextBody
 		actionHandler.Handler.ServeHTTP(w, req)
