@@ -2,18 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
-	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 )
 
 func TestHomeHandler(t *testing.T) {
-	req, _ := http.NewRequest(
-		"GET",
-		"http://example.com/",
-		nil,
-	)
+	req := &loginJSON{}
 	resp := httptest.NewRecorder()
 
 	HomeHandler(resp, req)
@@ -26,21 +20,10 @@ func TestHomeHandler(t *testing.T) {
 	}
 }
 
-func TestAuthRouter(t *testing.T) {
+func TestLoginHandler(t *testing.T) {
 
-	var authJSON = `{
-	"action": "auth:login",
-	"api_key": "oursky",
-	"email": "rickmak@gmail.com",
-	"password": "validpassword"
-}`
+	req := &loginJSON{}
 
-	req, _ := http.NewRequest(
-		"POST",
-		"http://ourd.dev/api/v1",
-		strings.NewReader(authJSON),
-	)
-	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
 	LoginHandler(resp, req)
 

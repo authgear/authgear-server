@@ -1,10 +1,8 @@
 package handlers
 
-import (
-	"net/http"
-)
+import ()
 
 // HomeHandler temp landing. FIXME
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello Developer"))
+func HomeHandler(response Responser, playload Payloader) {
+	response.Write([]byte("Hello Developer"))
 }

@@ -1,11 +1,23 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/oursky/ourd/handlers"
 )
+
+type requestPayload struct {
+	Action   string `json:"action"`
+	APIKey   string `json:"api_key"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+func (p *requestPayload) RouteAction() string {
+	return p.Action
+}
 
 // Router to dispatch HTTP request to respective handler
 type Router struct {
@@ -14,22 +26,7 @@ type Router struct {
 
 type actionHandler struct {
 	Action  string
-	Handler http.Handler
-}
-
-type bodyReader struct {
-	*bytes.Buffer
-}
-
-func (m bodyReader) Close() error {
-	return nil
-}
-
-type requestJSON struct {
-	Action   interface{} `json:"action"`
-	APIKey   interface{} `json:"api_key"`
-	Email    interface{} `json:"email"`
-	Password interface{} `json:"password"`
+	Handler func(response handlers.Responser, payload handlers.Payloader)
 }
 
 // NewRouter is factory for Router
@@ -38,17 +35,17 @@ func NewRouter() *Router {
 }
 
 // Map to register action to handle mapping
-func (r *Router) Map(action string, handle func(http.ResponseWriter, *http.Request)) {
+func (r *Router) Map(action string, handle func(handlers.Responser, handlers.Payloader)) {
 	var actionHandler actionHandler
 	actionHandler.Action = action
-	actionHandler.Handler = http.HandlerFunc(handle)
+	actionHandler.Handler = handle
 	r.actions[action] = actionHandler
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
 		httpStatus = http.StatusOK
-		reqJSON    requestJSON
+		reqJSON    requestPayload
 		errString  string
 	)
 	defer func() {
@@ -57,16 +54,14 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}()
 	body, _ := ioutil.ReadAll(req.Body)
-	nextBody := bodyReader{bytes.NewBuffer(body)}
 	if err := json.Unmarshal(body, &reqJSON); err != nil {
 		httpStatus = http.StatusBadRequest
 		errString = err.Error()
 		return
 	}
-	actionHandler, ok := r.actions[reqJSON.Action.(string)]
+	actionHandler, ok := r.actions[reqJSON.Action]
 	if ok {
-		req.Body = nextBody
-		actionHandler.Handler.ServeHTTP(w, req)
+		actionHandler.Handler(w, &reqJSON)
 	} else {
 		w.Write([]byte("Unmatched Route"))
 	}

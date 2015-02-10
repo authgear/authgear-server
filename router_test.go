@@ -5,14 +5,16 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/oursky/ourd/handlers"
 )
 
 type MockHander struct {
 	outputs string
 }
 
-func (m *MockHander) handle(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(m.outputs))
+func (m *MockHander) handle(r handlers.Responser, p handlers.Payloader) {
+	r.Write([]byte(m.outputs))
 }
 
 func TestRouterMap(t *testing.T) {
