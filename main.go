@@ -10,6 +10,7 @@ import (
 func main() {
 	r := NewRouter()
 	r.Map("", handlers.HomeHandler)
+	r.Map("auth:signup", handlers.SignupHandler)
 	r.Map("auth:login", handlers.LoginHandler)
 	log.Println("Listening...")
 	http.ListenAndServe(":3000", r)

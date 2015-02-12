@@ -13,7 +13,7 @@ type MockHander struct {
 	outputs string
 }
 
-func (m *MockHander) handle(r handlers.Responser, p handlers.Payloader) {
+func (m *MockHander) handle(r handlers.Responser, p handlers.Payload) {
 	r.Write([]byte(m.outputs))
 }
 

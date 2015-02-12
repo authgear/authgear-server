@@ -8,17 +8,6 @@ import (
 	"github.com/oursky/ourd/handlers"
 )
 
-type requestPayload struct {
-	Action   string `json:"action"`
-	APIKey   string `json:"api_key"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-func (p *requestPayload) RouteAction() string {
-	return p.Action
-}
-
 // Router to dispatch HTTP request to respective handler
 type Router struct {
 	actions map[string]actionHandler
@@ -26,7 +15,7 @@ type Router struct {
 
 type actionHandler struct {
 	Action  string
-	Handler func(response handlers.Responser, payload handlers.Payloader)
+	Handler func(response handlers.Responser, payload handlers.Payload)
 }
 
 // NewRouter is factory for Router
@@ -35,7 +24,7 @@ func NewRouter() *Router {
 }
 
 // Map to register action to handle mapping
-func (r *Router) Map(action string, handle func(handlers.Responser, handlers.Payloader)) {
+func (r *Router) Map(action string, handle func(handlers.Responser, handlers.Payload)) {
 	var actionHandler actionHandler
 	actionHandler.Action = action
 	actionHandler.Handler = handle
@@ -45,7 +34,7 @@ func (r *Router) Map(action string, handle func(handlers.Responser, handlers.Pay
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
 		httpStatus = http.StatusOK
-		reqJSON    requestPayload
+		reqJSON    interface{}
 		errString  string
 	)
 	defer func() {
@@ -59,9 +48,13 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		errString = err.Error()
 		return
 	}
-	actionHandler, ok := r.actions[reqJSON.Action]
+	payload := handlers.Payload{
+		reqJSON.(map[string]interface{}),
+		body,
+	}
+	actionHandler, ok := r.actions[payload.RouteAction()]
 	if ok {
-		actionHandler.Handler(w, &reqJSON)
+		actionHandler.Handler(w, payload)
 	} else {
 		w.Write([]byte("Unmatched Route"))
 	}

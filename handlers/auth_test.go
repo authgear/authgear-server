@@ -7,7 +7,7 @@ import (
 )
 
 func TestHomeHandler(t *testing.T) {
-	req := &loginJSON{}
+	req := Payload{}
 	resp := httptest.NewRecorder()
 
 	HomeHandler(resp, req)
@@ -22,12 +22,15 @@ func TestHomeHandler(t *testing.T) {
 
 func TestLoginHandler(t *testing.T) {
 
-	req := &loginJSON{}
+	req := Payload{
+		Data: make(map[string]interface{}),
+	}
+	req.Data["email"] = "rick.mak@gmail.com"
 
 	resp := httptest.NewRecorder()
 	LoginHandler(resp, req)
 
-	var result responseJSON
+	var result authResponse
 	if err := json.Unmarshal(resp.Body.Bytes(), &result); err != nil {
 		t.Errorf("Repsonse is not a valid json: %v, %v", err.Error(), resp.Body)
 	}
