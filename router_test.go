@@ -10,16 +10,23 @@ import (
 )
 
 type MockHander struct {
-	outputs string
+	outputs handlers.Response
 }
 
-func (m *MockHander) handle(r handlers.Responser, p handlers.Payload) {
-	r.Write([]byte(m.outputs))
+func (m *MockHander) handle(p handlers.Payload) handlers.Response {
+	return m.outputs
 }
 
 func TestRouterMap(t *testing.T) {
+	mockResp := handlers.Response{}
+	type exampleResp struct {
+		Username string `json:"username"`
+	}
+	mockResp.Result = exampleResp{
+		Username: "example",
+	}
 	mockHander := MockHander{
-		outputs: "outputs",
+		outputs: mockResp,
 	}
 	r := NewRouter()
 	r.Map("mock:map", mockHander.handle)
@@ -36,14 +43,14 @@ func TestRouterMap(t *testing.T) {
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
 
-	if resp.Body.String() != "outputs" {
-		t.Errorf("Simple map failed")
+	if resp.Body.String() != "{\"result\":{\"username\":\"example\"}}" {
+		t.Errorf("Simple map failed %v", resp.Body.String())
 	}
 }
 
 func TestRouterMapMissing(t *testing.T) {
 	mockHander := MockHander{
-		outputs: "outputs",
+		outputs: handlers.Response{},
 	}
 	r := NewRouter()
 	r.Map("mock:map", mockHander.handle)

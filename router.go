@@ -15,7 +15,7 @@ type Router struct {
 
 type actionHandler struct {
 	Action  string
-	Handler func(response handlers.Responser, payload handlers.Payload)
+	Handler func(payload handlers.Payload) handlers.Response
 }
 
 // NewRouter is factory for Router
@@ -24,7 +24,7 @@ func NewRouter() *Router {
 }
 
 // Map to register action to handle mapping
-func (r *Router) Map(action string, handle func(handlers.Responser, handlers.Payload)) {
+func (r *Router) Map(action string, handle func(handlers.Payload) handlers.Response) {
 	var actionHandler actionHandler
 	actionHandler.Action = action
 	actionHandler.Handler = handle
@@ -49,12 +49,17 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	payload := handlers.Payload{
+		make(map[string]interface{}),
 		reqJSON.(map[string]interface{}),
-		body,
 	}
 	actionHandler, ok := r.actions[payload.RouteAction()]
 	if ok {
-		actionHandler.Handler(w, payload)
+		resp := actionHandler.Handler(payload)
+		b, err := json.Marshal(resp)
+		if err != nil {
+			panic("Response Error: " + err.Error())
+		}
+		w.Write(b)
 	} else {
 		w.Write([]byte("Unmatched Route"))
 	}

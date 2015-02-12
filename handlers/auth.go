@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 )
 
@@ -11,8 +10,8 @@ type authResponse struct {
 }
 
 type signupPayload struct {
+	Meta map[string]interface{}
 	Data map[string]interface{}
-	Raw []byte
 }
 
 func (p *signupPayload) RouteAction() string {
@@ -38,29 +37,21 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func SignupHandler(response Responser, playload Payload) {
+func SignupHandler(playload Payload) Response {
 	var (
-		resp authResponse
+		resp     authResponse
+		response Response
 	)
-	defer func() {
-		if e := recover(); e != nil {
-			log.Println("Error ", e)
-			response.Write([]byte(e.(string)))
-		}
-	}()
-
+	log.Println("SignupHandler")
 	resp.UserID = "rickmak-oursky"
 	resp.AccessToken = "validToken"
-	b, err := json.Marshal(resp)
-	if err != nil {
-		panic("Response Error: " + err.Error())
-	}
-	response.Write(b)
+	response.Result = resp
+	return response
 }
 
 type loginPayload struct {
+	Meta map[string]interface{}
 	Data map[string]interface{}
-	Raw []byte
 }
 
 func (p *loginPayload) RouteAction() string {
@@ -86,27 +77,19 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func LoginHandler(response Responser, playload Payload) {
+func LoginHandler(playload Payload) Response {
 	var (
-		resp authResponse
-		p    loginPayload
+		response Response
+		resp     authResponse
+		p        loginPayload
 	)
-	defer func() {
-		if e := recover(); e != nil {
-			log.Println("Error ", e)
-			response.Write([]byte(e.(string)))
-		}
-	}()
-
+	log.Println("LoginHandler")
 	p = loginPayload(playload)
 	if p.Email() != "rick.mak@gmail.com" {
 		panic("User Not exist")
 	}
 	resp.UserID = "rickmak-oursky"
 	resp.AccessToken = "validToken"
-	b, err := json.Marshal(resp)
-	if err != nil {
-		panic("Response Error: " + err.Error())
-	}
-	response.Write(b)
+	response.Result = resp
+	return response
 }
