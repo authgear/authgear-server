@@ -20,43 +20,32 @@ const privateDBKey = "_private"
 
 // fileConn implements oddb.Conn interface
 type fileConn struct {
-	dir string
+	Dir      string
+	AppName  string
+	publicDB oddb.Database
 }
 
 // Open returns a new connection to fs implementation
-func Open(dir string) (oddb.Conn, error) {
-	return &fileConn{dir}, nil
+func Open(appName, dir string) (oddb.Conn, error) {
+	containerPath := filepath.Join(dir, appName)
+	publicDBPath := filepath.Join(containerPath, publicDBKey)
+	return &fileConn{
+		Dir:      containerPath,
+		AppName:  appName,
+		publicDB: newDatabase(publicDBPath, publicDBKey),
+	}, nil
 }
 
-func (conn fileConn) Container(key string) (oddb.Container, error) {
-	containerPath := filepath.Join(conn.dir, key)
-	return newContainer(containerPath, key), nil
-}
 func (conn fileConn) Close() error {
 	return nil
 }
 
-type fileContainer struct {
-	Dir      string
-	Key      string
-	publicDB oddb.Database
+func (conn fileConn) PublicDB() oddb.Database {
+	return conn.publicDB
 }
 
-func newContainer(dir string, key string) *fileContainer {
-	publicDBPath := filepath.Join(dir, publicDBKey)
-	return &fileContainer{
-		Dir:      dir,
-		Key:      key,
-		publicDB: newDatabase(publicDBPath, publicDBKey),
-	}
-}
-
-func (container fileContainer) PublicDB() oddb.Database {
-	return container.publicDB
-}
-
-func (container fileContainer) PrivateDB(userKey string) oddb.Database {
-	dbPath := filepath.Join(container.Dir, userKey)
+func (conn fileConn) PrivateDB(userKey string) oddb.Database {
+	dbPath := filepath.Join(conn.Dir, userKey)
 	return newDatabase(dbPath, privateDBKey)
 }
 

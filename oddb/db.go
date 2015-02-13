@@ -29,9 +29,9 @@ func unregisterAllDrivers() {
 
 // Open returns an implementation of Conn to use w.r.t implName.
 // optionString is passed to the driver and is implementation specific.
-func Open(implName string, optionString string) (Conn, error) {
+func Open(implName string, appName string, optionString string) (Conn, error) {
 	if driver, ok := drivers[implName]; ok {
-		return driver.Open(optionString)
+		return driver.Open(appName, optionString)
 	}
 	return nil, fmt.Errorf("Implementation not registered: %v", implName)
 }
