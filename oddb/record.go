@@ -10,8 +10,9 @@ type Data map[string]interface{}
 
 // Record is the primary entity of storage in Ourd.
 type Record struct {
-	Key string
-	Data
+	Type string `json:"_type"`
+	Key  string `json:"_id"`
+	Data `json:"data"`
 }
 
 // A Datetime represent an instance in time.
