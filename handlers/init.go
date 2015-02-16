@@ -15,6 +15,8 @@ func (p *Payload) RouteAction() string {
 
 // Response is interface for handler to write response to router
 type Response struct {
-	Meta   map[string]interface{} `json:"-"`
-	Result interface{}            `json:"result"`
+	Meta       map[string]interface{} `json:"-"`
+	Result     interface{}            `json:"result"`
+	RequestID  string                 `json:"request_id,omitempty"`
+	DatabaseID string                 `json:"database_id,omitempty"`
 }
