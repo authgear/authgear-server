@@ -6,8 +6,9 @@ import (
 
 func TestHomeHandler(t *testing.T) {
 	req := Payload{}
+	resp := Response{}
 
-	resp := HomeHandler(req)
+	HomeHandler(&req, &resp)
 	var s statusResponse
 
 	switch pt := resp.Result.(type) {
@@ -28,8 +29,9 @@ func TestLoginHandler(t *testing.T) {
 		Data: make(map[string]interface{}),
 	}
 	req.Data["email"] = "rick.mak@gmail.com"
+	resp := Response{}
 
-	resp := LoginHandler(req)
+	LoginHandler(&req, &resp)
 	var s authResponse
 
 	switch pt := resp.Result.(type) {

@@ -37,16 +37,15 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func SignupHandler(playload Payload) Response {
+func SignupHandler(playload *Payload, response *Response) {
 	var (
-		resp     authResponse
-		response Response
+		resp authResponse
 	)
 	log.Println("SignupHandler")
 	resp.UserID = "rickmak-oursky"
 	resp.AccessToken = "validToken"
 	response.Result = resp
-	return response
+	return
 }
 
 type loginPayload struct {
@@ -77,19 +76,17 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func LoginHandler(playload Payload) Response {
+func LoginHandler(playload *Payload, response *Response) {
 	var (
-		response Response
-		resp     authResponse
-		p        loginPayload
+		resp authResponse
 	)
 	log.Println("LoginHandler")
-	p = loginPayload(playload)
+	p := loginPayload(*playload)
 	if p.Email() != "rick.mak@gmail.com" {
 		panic("User Not exist")
 	}
 	resp.UserID = "rickmak-oursky"
 	resp.AccessToken = "validToken"
 	response.Result = resp
-	return response
+	return
 }

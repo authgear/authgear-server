@@ -13,7 +13,7 @@ func (p *Payload) RouteAction() string {
 	return p.Data["action"].(string)
 }
 
-// Responser is interface for handler to write response to router
+// Response is interface for handler to write response to router
 type Response struct {
 	Meta   map[string]interface{} `json:"-"`
 	Result interface{}            `json:"result"`

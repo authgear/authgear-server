@@ -7,12 +7,11 @@ type statusResponse struct {
 }
 
 // HomeHandler temp landing. FIXME
-func HomeHandler(playload Payload) Response {
+func HomeHandler(playload *Payload, response *Response) {
 	var (
-		response Response
-		rep      statusResponse
+		rep statusResponse
 	)
 	rep.Status = "OK"
 	response.Result = rep
-	return response
+	return
 }

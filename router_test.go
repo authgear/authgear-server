@@ -13,8 +13,9 @@ type MockHander struct {
 	outputs handlers.Response
 }
 
-func (m *MockHander) handle(p handlers.Payload) handlers.Response {
-	return m.outputs
+func (m *MockHander) handle(p *handlers.Payload, r *handlers.Response) {
+	r.Result = m.outputs.Result
+	return
 }
 
 func TestRouterMap(t *testing.T) {

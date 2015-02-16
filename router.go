@@ -15,7 +15,7 @@ type Router struct {
 
 type actionHandler struct {
 	Action  string
-	Handler func(payload handlers.Payload) handlers.Response
+	Handler func(*handlers.Payload, *handlers.Response)
 }
 
 // NewRouter is factory for Router
@@ -24,7 +24,7 @@ func NewRouter() *Router {
 }
 
 // Map to register action to handle mapping
-func (r *Router) Map(action string, handle func(handlers.Payload) handlers.Response) {
+func (r *Router) Map(action string, handle func(*handlers.Payload, *handlers.Response)) {
 	var actionHandler actionHandler
 	actionHandler.Action = action
 	actionHandler.Handler = handle
@@ -54,7 +54,8 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	actionHandler, ok := r.actions[payload.RouteAction()]
 	if ok {
-		resp := actionHandler.Handler(payload)
+		var resp handlers.Response
+		actionHandler.Handler(&payload, &resp)
 		b, err := json.Marshal(resp)
 		if err != nil {
 			panic("Response Error: " + err.Error())
