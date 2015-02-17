@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+	"errors"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -11,12 +13,15 @@ import (
 // Router to dispatch HTTP request to respective handler
 type Router struct {
 	actions map[string]actionHandler
+	preprocessor []processor
 }
 
 type actionHandler struct {
 	Action  string
 	Handler func(*handlers.Payload, *handlers.Response)
 }
+
+type processor func(*handlers.Payload, *handlers.Response) (int, error)
 
 // NewRouter is factory for Router
 func NewRouter() *Router {
@@ -31,6 +36,11 @@ func (r *Router) Map(action string, handle func(*handlers.Payload, *handlers.Res
 	r.actions[action] = actionHandler
 }
 
+// Preprocess register a processor func to be called before the actual hanlder
+func (r *Router) Preprocess(p processor) {
+	r.preprocessor = append(r.preprocessor, p)
+}
+
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
 		httpStatus = http.StatusOK
@@ -39,6 +49,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	)
 	defer func() {
 		if httpStatus != http.StatusOK {
+			w.WriteHeader(httpStatus)
 			w.Write([]byte(errString))
 		}
 	}()
@@ -55,6 +66,13 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	actionHandler, ok := r.actions[payload.RouteAction()]
 	if ok {
 		var resp handlers.Response
+		for _, p := range r.preprocessor {
+			if s, err := p(&payload, &resp); err != nil {
+				httpStatus = s
+				errString = err.Error()
+				return
+			}
+		}
 		actionHandler.Handler(&payload, &resp)
 		b, err := json.Marshal(resp)
 		if err != nil {
@@ -62,6 +80,26 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 		w.Write(b)
 	} else {
-		w.Write([]byte("Unmatched Route"))
+		httpStatus = http.StatusNotFound
+		errString = "Unmatched Route"
+		return
 	}
 }
+
+// CheckAuth will check on the AccessToken, attach DB/RequestID to the response
+// This is a no-op if the request action belong to "auth:" group
+func CheckAuth(payload *handlers.Payload, response *handlers.Response) (status int, err error) {
+	log.Println("CheckAuth")
+	if (payload.IsAuth()) {
+		log.Println("CheckAuth -> IsAuth")
+		return http.StatusOK, nil
+	}
+	token := payload.AccessToken()
+	if (token == "validToken") {
+		log.Println("CheckAuth -> validToken, ", token)
+		return http.StatusOK, nil
+	}
+	log.Println("CheckAuth -> inValidToken, ", token)
+	return http.StatusUnauthorized, errors.New("Unauthorized request")
+}
+
