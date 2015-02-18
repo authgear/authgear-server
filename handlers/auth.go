@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"github.com/oursky/ourd/oddb"
+	"github.com/twinj/uuid"
 	"log"
 )
 
@@ -42,6 +44,22 @@ func SignupHandler(playload *Payload, response *Response) {
 		resp authResponse
 	)
 	log.Println("SignupHandler")
+	var p = signupPayload{
+		Meta: playload.Meta,
+		Data: playload.Data,
+	}
+	// TODO: check user not exist already
+	data := make(map[string]interface{})
+	data["email"] = p.Email()
+	// TODO: hash the password
+	data["password"] = p.Password()
+	u := uuid.NewV4()
+	user := oddb.Record{
+		"user",
+		"user:" + uuid.Formatter(u, uuid.Clean),
+		data,
+	}
+	playload.DBConn.PublicDB().Save(&user)
 	resp.UserID = "rickmak-oursky"
 	resp.AccessToken = "validToken"
 	response.Result = resp

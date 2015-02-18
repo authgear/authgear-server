@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
-	"errors"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/oursky/ourd/handlers"
@@ -13,7 +13,7 @@ import (
 
 // Router to dispatch HTTP request to respective handler
 type Router struct {
-	actions map[string]actionHandler
+	actions      map[string]actionHandler
 	preprocessor []processor
 }
 
@@ -92,12 +92,12 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // This is a no-op if the request action belong to "auth:" group
 func CheckAuth(payload *handlers.Payload, response *handlers.Response) (status int, err error) {
 	log.Println("CheckAuth")
-	if (payload.IsAuth()) {
+	if payload.IsAuth() {
 		log.Println("CheckAuth -> IsAuth")
 		return http.StatusOK, nil
 	}
 	token := payload.AccessToken()
-	if (token == "validToken") {
+	if token == "validToken" {
 		log.Println("CheckAuth -> validToken, ", token)
 		return http.StatusOK, nil
 	}
@@ -108,7 +108,7 @@ func CheckAuth(payload *handlers.Payload, response *handlers.Response) (status i
 // AssignDBConn will assign the DBConn to the payload
 func AssignDBConn(payload *handlers.Payload, response *handlers.Response) (status int, err error) {
 	log.Println("GetDB Conn")
-	c, err := oddb.Open("fs", "com.oursky", "data")
+	c, err := oddb.Open("fs", "_", "data")
 	if err != nil {
 		return http.StatusServiceUnavailable, err
 	}
@@ -116,4 +116,3 @@ func AssignDBConn(payload *handlers.Payload, response *handlers.Response) (statu
 	log.Println("GetDB Conn OK")
 	return http.StatusOK, nil
 }
-
