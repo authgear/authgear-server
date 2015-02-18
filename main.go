@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/oursky/ourd/handlers"
+	_ "github.com/oursky/ourd/oddb/fs"
 )
 
 func main() {
@@ -17,6 +18,7 @@ func main() {
 	r.Map("record:save", handlers.RecordSaveHandler)
 	r.Map("record:delete", handlers.RecordDeleteHandler)
 	r.Preprocess(CheckAuth)
+	r.Preprocess(AssignDBConn)
 	log.Println("Listening...")
 	http.ListenAndServe(":3000", r)
 }

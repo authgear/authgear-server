@@ -81,7 +81,10 @@ func LoginHandler(playload *Payload, response *Response) {
 		resp authResponse
 	)
 	log.Println("LoginHandler")
-	p := loginPayload(*playload)
+	var p = loginPayload{
+		Meta: playload.Meta,
+		Data: playload.Data,
+	}
 	if p.Email() != "rick.mak@gmail.com" {
 		panic("User Not exist")
 	}

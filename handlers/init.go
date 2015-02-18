@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/oursky/ourd/oddb"
 	"log"
 )
 
@@ -9,7 +10,8 @@ type Payload struct {
 	// Map of params such as Auth, TimeSteam, version
 	Meta map[string]interface{}
 	// Map of action payload
-	Data map[string]interface{}
+	Data   map[string]interface{}
+	DBConn oddb.Conn
 }
 
 // RouteAction must exist for every request
