@@ -28,7 +28,10 @@ func unregisterAllDrivers() {
 }
 
 // Open returns an implementation of Conn to use w.r.t implName.
+//
 // optionString is passed to the driver and is implementation specific.
+// For example, in a SQL implementation it will be something
+// like "sql://localhost/db0"
 func Open(implName string, appName string, optionString string) (Conn, error) {
 	if driver, ok := drivers[implName]; ok {
 		return driver.Open(appName, optionString)
