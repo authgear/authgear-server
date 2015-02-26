@@ -15,6 +15,8 @@ import (
 	"github.com/oursky/ourd/oddb"
 )
 
+const userDBKey = "_user"
+
 const publicDBKey = "_public"
 const privateDBKey = "_private"
 
@@ -22,16 +24,19 @@ const privateDBKey = "_private"
 type fileConn struct {
 	Dir      string
 	AppName  string
+	userDB   userDatabase
 	publicDB oddb.Database
 }
 
 // Open returns a new connection to fs implementation
 func Open(appName, dir string) (oddb.Conn, error) {
 	containerPath := filepath.Join(dir, appName)
+	userDBPath := filepath.Join(containerPath, userDBKey)
 	publicDBPath := filepath.Join(containerPath, publicDBKey)
 	return &fileConn{
 		Dir:      containerPath,
 		AppName:  appName,
+		userDB:   newUserDatabase(userDBPath),
 		publicDB: newDatabase(publicDBPath, publicDBKey),
 	}, nil
 }
@@ -41,19 +46,19 @@ func (conn fileConn) Close() error {
 }
 
 func (conn fileConn) CreateUser(info *oddb.UserInfo) error {
-	return nil
+	return conn.userDB.Create(info)
 }
 
 func (conn fileConn) GetUser(id string, info *oddb.UserInfo) error {
-	return nil
+	return conn.userDB.Get(id, info)
 }
 
 func (conn fileConn) UpdateUser(info *oddb.UserInfo) error {
-	return nil
+	return conn.userDB.Update(info)
 }
 
 func (conn fileConn) DeleteUser(id string) error {
-	return nil
+	return conn.userDB.Delete(id)
 }
 
 func (conn fileConn) PublicDB() oddb.Database {
