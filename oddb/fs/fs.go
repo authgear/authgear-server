@@ -40,6 +40,22 @@ func (conn fileConn) Close() error {
 	return nil
 }
 
+func (conn fileConn) CreateUser(info *oddb.UserInfo) error {
+	return nil
+}
+
+func (conn fileConn) GetUser(id string, info *oddb.UserInfo) error {
+	return nil
+}
+
+func (conn fileConn) UpdateUser(info *oddb.UserInfo) error {
+	return nil
+}
+
+func (conn fileConn) DeleteUser(id string) error {
+	return nil
+}
+
 func (conn fileConn) PublicDB() oddb.Database {
 	return conn.publicDB
 }
