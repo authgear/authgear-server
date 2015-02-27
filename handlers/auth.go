@@ -21,11 +21,21 @@ func (p *signupPayload) RouteAction() string {
 }
 
 func (p *signupPayload) Email() string {
-	return p.Data["email"].(string)
+	email, _ := p.Data["email"]
+	emailStr, _ := email.(string)
+	return emailStr
 }
 
 func (p *signupPayload) Password() string {
-	return p.Data["password"].(string)
+	password, _ := p.Data["password"]
+	passwordStr, _ := password.(string)
+	return passwordStr
+}
+
+func (p *signupPayload) UserID() string {
+	userID, _ := p.Data["user_id"]
+	userIDStr, _ := userID.(string)
+	return userIDStr
 }
 
 /*
