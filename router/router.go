@@ -1,4 +1,4 @@
-package main
+package router
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 // Router to dispatch HTTP request to respective handler
 type Router struct {
 	actions      map[string]actionHandler
-	preprocessor []processor
+	preprocessor []Processor
 }
 
 type actionHandler struct {
@@ -22,7 +22,8 @@ type actionHandler struct {
 	Handler func(*handlers.Payload, *handlers.Response)
 }
 
-type processor func(*handlers.Payload, *handlers.Response) (int, error)
+// Processor specifies the function signature for a Preprocessor
+type Processor func(*handlers.Payload, *handlers.Response) (int, error)
 
 // NewRouter is factory for Router
 func NewRouter() *Router {
@@ -37,8 +38,8 @@ func (r *Router) Map(action string, handle func(*handlers.Payload, *handlers.Res
 	r.actions[action] = actionHandler
 }
 
-// Preprocess register a processor func to be called before the actual hanlder
-func (r *Router) Preprocess(p processor) {
+// Preprocess register a Processor func to be called before the actual hanlder
+func (r *Router) Preprocess(p Processor) {
 	r.preprocessor = append(r.preprocessor, p)
 }
 
