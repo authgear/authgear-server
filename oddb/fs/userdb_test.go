@@ -21,25 +21,19 @@ func sampleUserInfo() oddb.UserInfo {
 }
 
 func tempDir() string {
-	dir, err := ioutil.TempDir(os.TempDir(), "oddb.userdb.test")
+	dir, err := ioutil.TempDir("", "oddb.userdb.test")
 	if err != nil {
-		panic(err)
-	}
-
-	return dir
-}
-
-func preparedTempDir() string {
-	dir := tempDir()
-	if err := os.MkdirAll(dir, 0755); err != nil {
 		panic(err)
 	}
 	return dir
 }
 
 func TestCreate(t *testing.T) {
+	dir := tempDir()
+	defer os.RemoveAll(dir)
+
 	info := sampleUserInfo()
-	db := newUserDatabase(tempDir())
+	db := newUserDatabase(dir)
 
 	err := db.Create(&info)
 	if err != nil {
@@ -59,7 +53,7 @@ func TestGet(t *testing.T) {
 		Email: "john.doe@example.com",
 	}
 
-	dir := preparedTempDir()
+	dir := tempDir()
 	defer os.RemoveAll(dir)
 
 	err := ioutil.WriteFile(filepath.Join(dir, "alreadyexistid"), []byte(userInfoString), 0666)
@@ -80,7 +74,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetNotExist(t *testing.T) {
-	dir := preparedTempDir()
+	dir := tempDir()
 	defer os.RemoveAll(dir)
 
 	db := newUserDatabase(dir)
@@ -100,7 +94,7 @@ func TestUpdate(t *testing.T) {
 	const updatedUserInfo = `{"id":"alreadyexistid","email":"jane.doe@example.com","password":"cGFzc3dvcmQ="}
 `
 
-	dir := preparedTempDir()
+	dir := tempDir()
 	defer os.RemoveAll(dir)
 
 	infoPath := filepath.Join(dir, "alreadyexistid")
@@ -124,7 +118,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestUpdateNotExist(t *testing.T) {
-	dir := preparedTempDir()
+	dir := tempDir()
 	defer os.RemoveAll(dir)
 
 	info := oddb.UserInfo{ID: "notexistid"}
@@ -138,7 +132,7 @@ func TestUpdateNotExist(t *testing.T) {
 func TestDelete(t *testing.T) {
 	const userInfoID = "alreadyexistid"
 
-	dir := preparedTempDir()
+	dir := tempDir()
 	defer os.RemoveAll(dir)
 
 	filePath := filepath.Join(dir, userInfoID)
@@ -165,7 +159,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestDeleteNotExist(t *testing.T) {
-	dir := preparedTempDir()
+	dir := tempDir()
 	defer os.RemoveAll(dir)
 
 	db := newUserDatabase(dir)
