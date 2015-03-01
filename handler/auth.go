@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	_ "log"
 	"time"
 
 	"github.com/oursky/ourd/auth"
@@ -36,6 +36,7 @@ func (au *Authentication) LoginHandler() func(*router.Payload, *router.Response)
 
 type authResponse struct {
 	UserID      string `json:"user_id,omitempty"`
+	Email       string `json:"email,omitempty"`
 	AccessToken string `json:"access_token,omitempty"`
 }
 
@@ -124,6 +125,7 @@ func SignupHandler(payload *router.Payload, response *router.Response, store Tok
 
 	response.Result = authResponse{
 		UserID:      info.ID,
+		Email:       info.Email,
 		AccessToken: token.AccessToken,
 	}
 }
@@ -137,9 +139,9 @@ func (p *loginPayload) RouteAction() string {
 	return "auth:login"
 }
 
-func (p *loginPayload) Email() string {
-	email, _ := p.Data["email"].(string)
-	return email
+func (p *loginPayload) UserID() string {
+	userID, _ := p.Data["user_id"].(string)
+	return userID
 }
 
 func (p *loginPayload) Password() string {
@@ -153,25 +155,37 @@ curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
     "action": "auth:login",
-    "email": "rick.mak@gmail.com",
+    "user_id": "rick.mak@gmail.com",
     "password": "123456"
 }
 EOF
 */
 func LoginHandler(payload *router.Payload, response *router.Response, store TokenStore) {
-	var (
-		resp authResponse
-	)
-	log.Println("LoginHandler")
-	var p = loginPayload{
+	p := loginPayload{
 		Meta: payload.Meta,
 		Data: payload.Data,
 	}
-	if p.Email() != "rick.mak@gmail.com" {
-		panic("User Not exist")
+
+	info := oddb.UserInfo{}
+	if err := payload.DBConn.GetUser(p.UserID(), &info); err != nil {
+		if err == oddb.ErrUserNotFound {
+			response.Result = NewError(102, "Cannot find User with the specified ID")
+		} else {
+			// TODO: more error handling here if necessary
+			response.Result = NewError(1, "Unknown error occurred.")
+		}
+		return
 	}
-	resp.UserID = "rickmak-oursky"
-	resp.AccessToken = "validToken"
-	response.Result = resp
-	return
+
+	// generate access-token
+	token := auth.NewToken(info.ID, time.Time{})
+	if err := store.Put(&token); err != nil {
+		panic(err)
+	}
+
+	response.Result = authResponse{
+		UserID:      info.ID,
+		Email:       info.Email,
+		AccessToken: token.AccessToken,
+	}
 }
