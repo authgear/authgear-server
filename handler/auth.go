@@ -49,21 +49,18 @@ func (p *signupPayload) RouteAction() string {
 }
 
 func (p *signupPayload) Email() string {
-	email, _ := p.Data["email"]
-	emailStr, _ := email.(string)
-	return emailStr
+	email, _ := p.Data["email"].(string)
+	return email
 }
 
 func (p *signupPayload) Password() string {
-	password, _ := p.Data["password"]
-	passwordStr, _ := password.(string)
-	return passwordStr
+	password, _ := p.Data["password"].(string)
+	return password
 }
 
 func (p *signupPayload) UserID() string {
-	userID, _ := p.Data["user_id"]
-	userIDStr, _ := userID.(string)
-	return userIDStr
+	userID, _ := p.Data["user_id"].(string)
+	return userID
 }
 
 func (p *signupPayload) IsAnonymous() bool {
@@ -141,11 +138,13 @@ func (p *loginPayload) RouteAction() string {
 }
 
 func (p *loginPayload) Email() string {
-	return p.Data["email"].(string)
+	email, _ := p.Data["email"].(string)
+	return email
 }
 
 func (p *loginPayload) Password() string {
-	return p.Data["password"].(string)
+	password, _ := p.Data["password"].(string)
+	return password
 }
 
 /*
