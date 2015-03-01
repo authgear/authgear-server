@@ -17,7 +17,8 @@ type Payload struct {
 
 // RouteAction must exist for every request
 func (p *Payload) RouteAction() string {
-	return p.Data["action"].(string)
+	actionStr, _ := p.Data["action"].(string)
+	return actionStr
 }
 
 // IsAuth tell the middleware is this payload is an auth request
