@@ -4,20 +4,20 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/oursky/ourd/handlers"
+	"github.com/oursky/ourd/handler"
 	_ "github.com/oursky/ourd/oddb/fs"
 	"github.com/oursky/ourd/router"
 )
 
 func main() {
 	r := router.NewRouter()
-	r.Map("", handlers.HomeHandler)
-	r.Map("auth:signup", handlers.SignupHandler)
-	r.Map("auth:login", handlers.LoginHandler)
-	r.Map("record:fetch", handlers.RecordFetchHandler)
-	r.Map("record:query", handlers.RecordQueryHandler)
-	r.Map("record:save", handlers.RecordSaveHandler)
-	r.Map("record:delete", handlers.RecordDeleteHandler)
+	r.Map("", handler.HomeHandler)
+	r.Map("auth:signup", handler.SignupHandler)
+	r.Map("auth:login", handler.LoginHandler)
+	r.Map("record:fetch", handler.RecordFetchHandler)
+	r.Map("record:query", handler.RecordQueryHandler)
+	r.Map("record:save", handler.RecordSaveHandler)
+	r.Map("record:delete", handler.RecordDeleteHandler)
 	r.Preprocess(router.CheckAuth)
 	r.Preprocess(router.AssignDBConn)
 	log.Println("Listening...")
