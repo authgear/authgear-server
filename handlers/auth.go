@@ -1,9 +1,11 @@
 package handlers
 
 import (
-	"github.com/oursky/ourd/oddb"
-	"github.com/twinj/uuid"
 	"log"
+
+	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/router"
+	"github.com/twinj/uuid"
 )
 
 type authResponse struct {
@@ -49,7 +51,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func SignupHandler(playload *Payload, response *Response) {
+func SignupHandler(playload *router.Payload, response *router.Response) {
 	var (
 		resp authResponse
 	)
@@ -104,7 +106,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func LoginHandler(playload *Payload, response *Response) {
+func LoginHandler(playload *router.Payload, response *router.Response) {
 	var (
 		resp authResponse
 	)

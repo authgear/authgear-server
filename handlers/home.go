@@ -1,13 +1,15 @@
 package handlers
 
-import ()
+import (
+	"github.com/oursky/ourd/router"
+)
 
 type statusResponse struct {
 	Status string `json:"status,omitempty"`
 }
 
 // HomeHandler temp landing. FIXME
-func HomeHandler(playload *Payload, response *Response) {
+func HomeHandler(playload *router.Payload, response *router.Response) {
 	var (
 		rep statusResponse
 	)

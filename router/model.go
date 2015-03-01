@@ -1,8 +1,9 @@
-package handlers
+package router
 
 import (
-	"github.com/oursky/ourd/oddb"
 	"log"
+
+	"github.com/oursky/ourd/oddb"
 )
 
 // Payload is for passing payload to the actual handler

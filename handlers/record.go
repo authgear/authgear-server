@@ -1,8 +1,10 @@
 package handlers
 
 import (
-	"github.com/oursky/ourd/oddb"
 	"log"
+
+	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/router"
 )
 
 /*
@@ -16,7 +18,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordSaveHandler(payload *Payload, response *Response) {
+func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	log.Println("RecordSaveHandler")
 	return
 }
@@ -33,7 +35,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordFetchHandler(payload *Payload, response *Response) {
+func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	var (
 		records []oddb.Record
 	)
@@ -57,7 +59,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordQueryHandler(payload *Payload, response *Response) {
+func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	log.Println("RecordQueryHandler")
 	return
 }
@@ -73,7 +75,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordDeleteHandler(payload *Payload, response *Response) {
+func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 	log.Println("RecordDeleteHandler")
 	return
 }

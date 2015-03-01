@@ -5,21 +5,19 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/oursky/ourd/handlers"
 )
 
 type MockHander struct {
-	outputs handlers.Response
+	outputs Response
 }
 
-func (m *MockHander) handle(p *handlers.Payload, r *handlers.Response) {
+func (m *MockHander) handle(p *Payload, r *Response) {
 	r.Result = m.outputs.Result
 	return
 }
 
 func TestRouterMap(t *testing.T) {
-	mockResp := handlers.Response{}
+	mockResp := Response{}
 	type exampleResp struct {
 		Username string `json:"username"`
 	}
@@ -51,7 +49,7 @@ func TestRouterMap(t *testing.T) {
 
 func TestRouterMapMissing(t *testing.T) {
 	mockHander := MockHander{
-		outputs: handlers.Response{},
+		outputs: Response{},
 	}
 	r := NewRouter()
 	r.Map("mock:map", mockHander.handle)
@@ -74,7 +72,7 @@ func TestRouterMapMissing(t *testing.T) {
 }
 
 func TestRouterCheckAuth(t *testing.T) {
-	mockResp := handlers.Response{}
+	mockResp := Response{}
 	type exampleResp struct {
 		Auth string `json:"auth"`
 	}

@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"testing"
+
+	"github.com/oursky/ourd/router"
 )
 
 func TestHomeHandler(t *testing.T) {
-	req := Payload{}
-	resp := Response{}
+	req := router.Payload{}
+	resp := router.Response{}
 
 	HomeHandler(&req, &resp)
 	var s statusResponse
@@ -25,11 +27,11 @@ func TestHomeHandler(t *testing.T) {
 
 func TestLoginHandler(t *testing.T) {
 
-	req := Payload{
+	req := router.Payload{
 		Data: make(map[string]interface{}),
 	}
 	req.Data["email"] = "rick.mak@gmail.com"
-	resp := Response{}
+	resp := router.Response{}
 
 	LoginHandler(&req, &resp)
 	var s authResponse

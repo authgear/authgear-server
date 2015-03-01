@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/oursky/ourd/handlers"
 	"github.com/oursky/ourd/oddb"
 )
 
@@ -19,11 +18,11 @@ type Router struct {
 
 type actionHandler struct {
 	Action  string
-	Handler func(*handlers.Payload, *handlers.Response)
+	Handler func(*Payload, *Response)
 }
 
 // Processor specifies the function signature for a Preprocessor
-type Processor func(*handlers.Payload, *handlers.Response) (int, error)
+type Processor func(*Payload, *Response) (int, error)
 
 // NewRouter is factory for Router
 func NewRouter() *Router {
@@ -31,7 +30,7 @@ func NewRouter() *Router {
 }
 
 // Map to register action to handle mapping
-func (r *Router) Map(action string, handle func(*handlers.Payload, *handlers.Response)) {
+func (r *Router) Map(action string, handle func(*Payload, *Response)) {
 	var actionHandler actionHandler
 	actionHandler.Action = action
 	actionHandler.Handler = handle
@@ -61,14 +60,14 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		errString = err.Error()
 		return
 	}
-	payload := handlers.Payload{
+	payload := Payload{
 		make(map[string]interface{}),
 		reqJSON.(map[string]interface{}),
 		nil,
 	}
 	actionHandler, ok := r.actions[payload.RouteAction()]
 	if ok {
-		var resp handlers.Response
+		var resp Response
 		for _, p := range r.preprocessor {
 			if s, err := p(&payload, &resp); err != nil {
 				httpStatus = s
@@ -91,7 +90,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 // CheckAuth will check on the AccessToken, attach DB/RequestID to the response
 // This is a no-op if the request action belong to "auth:" group
-func CheckAuth(payload *handlers.Payload, response *handlers.Response) (status int, err error) {
+func CheckAuth(payload *Payload, response *Response) (status int, err error) {
 	log.Println("CheckAuth")
 	if payload.IsAuth() {
 		log.Println("CheckAuth -> IsAuth")
@@ -107,7 +106,7 @@ func CheckAuth(payload *handlers.Payload, response *handlers.Response) (status i
 }
 
 // AssignDBConn will assign the DBConn to the payload
-func AssignDBConn(payload *handlers.Payload, response *handlers.Response) (status int, err error) {
+func AssignDBConn(payload *Payload, response *Response) (status int, err error) {
 	log.Println("GetDB Conn")
 	c, err := oddb.Open("fs", "_", "data")
 	if err != nil {
