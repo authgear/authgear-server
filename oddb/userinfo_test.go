@@ -8,9 +8,10 @@ import (
 )
 
 func TestNewUserInfo(t *testing.T) {
-	info := NewUserInfo("john.doe@example.com", "secret")
-	if info.ID == "" {
-		t.Fatalf("got info.ID = %v, want \"\"", info.ID)
+	info := NewUserInfo("userinfoid", "john.doe@example.com", "secret")
+
+	if info.ID != "userinfoid" {
+		t.Fatalf("got info.ID = %v, want userinfoid", info.ID)
 	}
 
 	if info.Email != "john.doe@example.com" {
@@ -19,6 +20,37 @@ func TestNewUserInfo(t *testing.T) {
 
 	if bytes.Equal(info.HashedPassword, nil) {
 		t.Fatalf("got info.HashPassword = %v, want non-empty value", info.HashedPassword)
+	}
+}
+
+func TestNewUserInfoWithEmptyID(t *testing.T) {
+	info := NewUserInfo("", "jane.doe@example.com", "anothersecret")
+
+	if info.ID == "" {
+		t.Fatalf("got empty info.ID, want non-empty string")
+	}
+
+	if info.Email != "jane.doe@example.com" {
+		t.Fatalf("got info.Email = %v, want jane.doe@example.com", info.Email)
+	}
+
+	if bytes.Equal(info.HashedPassword, nil) {
+		t.Fatalf("got info.HashPassword = %v, want non-empty value", info.HashedPassword)
+	}
+}
+
+func TestNewAnonymousUserInfo(t *testing.T) {
+	info := NewAnonymousUserInfo()
+	if info.ID == "" {
+		t.Fatalf("got info.ID = %v, want \"\"", info.ID)
+	}
+
+	if info.Email != "" {
+		t.Fatalf("got info.Email = %v, want empty string", info.Email)
+	}
+
+	if len(info.HashedPassword) != 0 {
+		t.Fatalf("got info.HashPassword = %v, want zero-length bytes", info.HashedPassword)
 	}
 }
 

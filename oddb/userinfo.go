@@ -22,21 +22,33 @@ type AuthInfo map[string]interface{}
 // UserInfo contains a user's information for authentication purpose
 type UserInfo struct {
 	ID             string   `json:"id"`
-	Email          string   `json:"email"`
+	Email          string   `json:"email,omitempty"`
 	HashedPassword []byte   `json:"password"`
 	Auth           AuthInfo `json:"auth,omitempty"` // auth data for alternative methods
 }
 
 // NewUserInfo returns a new UserInfo with specified email and
 // password with generated UUID4 ID
-func NewUserInfo(email string, password string) UserInfo {
+func NewUserInfo(id, email, password string) UserInfo {
+	if id == "" {
+		id = uuid.NewV4().String()
+	}
+
 	info := UserInfo{
-		ID:    uuid.NewV4().String(),
+		ID:    id,
 		Email: email,
 	}
 	info.SetPassword(password)
 
 	return info
+}
+
+// NewAnonymousUserInfo returns an anonymous UserInfo, which has
+// no Email and Password.
+func NewAnonymousUserInfo() UserInfo {
+	return UserInfo{
+		ID: uuid.NewV4().String(),
+	}
 }
 
 // SetPassword sets the HashedPassword with the password specified
