@@ -172,8 +172,13 @@ func LoginHandler(payload *router.Payload, response *router.Response, store Toke
 			response.Result = NewError(102, "Cannot find User with the specified ID")
 		} else {
 			// TODO: more error handling here if necessary
-			response.Result = NewError(1, "Unknown error occurred.")
+			response.Result = NewError(1, "Unknown error")
 		}
+		return
+	}
+
+	if !info.IsSamePassword(p.Password()) {
+		response.Result = NewError(103, "Invalid login information")
 		return
 	}
 

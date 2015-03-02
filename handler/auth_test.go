@@ -187,6 +187,39 @@ func TestLoginHandler(t *testing.T) {
 	}
 }
 
+func TestLoginHandlerWrongPassword(t *testing.T) {
+	dir := tempDir()
+	defer os.RemoveAll(dir)
+
+	conn, err := fs.Open("com.oursky.ourd.handler.auth", dir)
+	if err != nil {
+		panic(err)
+	}
+
+	userinfo := oddb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
+	conn.CreateUser(&userinfo)
+
+	req := router.Payload{
+		Data: map[string]interface{}{
+			"user_id":  "userinfoid",
+			"password": "wrongsecret",
+		},
+		DBConn: conn,
+	}
+	resp := router.Response{}
+	tokenStore := singleTokenStore{}
+	LoginHandler(&req, &resp, &tokenStore)
+
+	errorResponse, ok := resp.Result.(genericError)
+	if !ok {
+		t.Fatalf("got type = %v, want type genericError", reflect.TypeOf(resp.Result))
+	}
+
+	if errorResponse.Code != 103 {
+		t.Fatalf("got errorResponse.Code = %v, want 103", errorResponse.Code)
+	}
+}
+
 func TestLoginHandlerNotFound(t *testing.T) {
 	dir := tempDir()
 	defer os.RemoveAll(dir)
