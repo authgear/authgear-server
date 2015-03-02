@@ -215,8 +215,8 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 		t.Fatalf("got type = %v, want type genericError", reflect.TypeOf(resp.Result))
 	}
 
-	if errorResponse.Code != 103 {
-		t.Fatalf("got errorResponse.Code = %v, want 103", errorResponse.Code)
+	if errorResponse.Code != 201 {
+		t.Fatalf("got errorResponse.Code = %v, want 201", errorResponse.Code)
 	}
 }
 

@@ -109,10 +109,10 @@ func SignupHandler(payload *router.Payload, response *router.Response, store Tok
 
 	if err := payload.DBConn.CreateUser(&info); err != nil {
 		if err == oddb.ErrUserDuplicated {
-			response.Result = NewError(101, "User with the same ID already existed")
+			response.Result = NewError(UserIDDuplicatedErr, "User with the same ID already existed")
 		} else {
 			// TODO: more error handling here if necessary
-			response.Result = NewError(1, "Unknown error occurred.")
+			response.Result = NewError(UnknownErr, "Unknown error occurred.")
 		}
 		return
 	}
@@ -169,16 +169,16 @@ func LoginHandler(payload *router.Payload, response *router.Response, store Toke
 	info := oddb.UserInfo{}
 	if err := payload.DBConn.GetUser(p.UserID(), &info); err != nil {
 		if err == oddb.ErrUserNotFound {
-			response.Result = NewError(102, "Cannot find User with the specified ID")
+			response.Result = NewError(UserIDNotFoundErr, "Cannot find User with the specified ID")
 		} else {
 			// TODO: more error handling here if necessary
-			response.Result = NewError(1, "Unknown error")
+			response.Result = NewError(UnknownErr, "Unknown error")
 		}
 		return
 	}
 
 	if !info.IsSamePassword(p.Password()) {
-		response.Result = NewError(103, "Invalid login information")
+		response.Result = NewError(RequestInvalidErr, "Invalid login information")
 		return
 	}
 
