@@ -178,7 +178,7 @@ func LoginHandler(payload *router.Payload, response *router.Response, store Toke
 	}
 
 	if !info.IsSamePassword(p.Password()) {
-		response.Result = NewError(RequestInvalidErr, "Invalid login information")
+		response.Result = NewError(AuthenticationInfoIncorrectErr, "Invalid login information")
 		return
 	}
 

@@ -12,6 +12,7 @@ const (
 	_ ErrCode = 100 + iota
 	UserIDDuplicatedErr
 	UserIDNotFoundErr
+	AuthenticationInfoIncorrectErr
 )
 
 // ErrCode signifying invalid request
