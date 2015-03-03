@@ -16,6 +16,8 @@ type Router struct {
 	preprocessor []Processor
 }
 
+type Handler func(*Payload, *Response)
+
 type actionHandler struct {
 	Action  string
 	Handler func(*Payload, *Response)

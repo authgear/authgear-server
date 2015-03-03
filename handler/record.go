@@ -3,9 +3,101 @@ package handler
 import (
 	"log"
 
+	"github.com/oursky/ourd/auth"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/router"
 )
+
+// RecordHandler declares the interface of a handler that works with records
+type RecordHandler func(*recordPayload, *router.Response, oddb.Database)
+
+// RecordService provides a collection of handlers to
+// handle oddb.Record related operations on an oddb.Database.
+type RecordService struct {
+	auth.TokenStore
+}
+
+// injectRecordHandler returns a router.Handler that has a proper
+// public / private database injected into RecordHandler according to
+// the payload
+func (s RecordService) injectRecordHandler(recordHandler RecordHandler) router.Handler {
+	return func(rpayload *router.Payload, response *router.Response) {
+		payload := newRecordPayload(rpayload)
+
+		if !payload.IsValidDB() {
+			response.Result = NewError(MissingDatabaseIDErr, "Invalid Database ID")
+			return
+		}
+
+		var db oddb.Database
+		token := auth.Token{}
+		if payload.IsPublicDB() {
+			if !payload.IsReadOnly() {
+				if err := s.TokenStore.Get(payload.AccessToken(), &token); err != nil {
+					response.Result = NewError(InvalidAccessTokenErr, "Invalid access token")
+					return
+				}
+			}
+			db = payload.DBConn.PublicDB()
+		} else { // if a request doesn't ask for public DB, then it is private DB
+			if err := s.TokenStore.Get(payload.AccessToken(), &token); err != nil {
+				response.Result = NewError(InvalidAccessTokenErr, "Invalid access token")
+				return
+			}
+
+			db = payload.DBConn.PrivateDB(token.UserInfoID)
+		}
+
+		recordHandler(&payload, response, db)
+	}
+}
+
+// RecordFetchHandler returns a router.Handler that fetches a record.
+func (s RecordService) RecordFetchHandler() router.Handler {
+	return s.injectRecordHandler(RecordSaveHandler)
+}
+
+// RecordSaveHandler returns a router.Handler that saves a record.
+func (s RecordService) RecordSaveHandler() router.Handler {
+	return s.injectRecordHandler(RecordSaveHandler)
+}
+
+// RecordDeleteHandler returns a router.Handler that deletes a record.
+func (s RecordService) RecordDeleteHandler() router.Handler {
+	return s.injectRecordHandler(RecordSaveHandler)
+}
+
+// RecordQueryHandler returns a router.Handler that queries records.
+func (s RecordService) RecordQueryHandler() router.Handler {
+	return s.injectRecordHandler(RecordSaveHandler)
+}
+
+// recordPayload is the input parameter in RecordHandler
+type recordPayload struct {
+	*router.Payload
+	DatabaseID string
+}
+
+func newRecordPayload(payload *router.Payload) recordPayload {
+	databaseID, _ := payload.Data["database_id"].(string)
+	return recordPayload{
+		Payload:    payload,
+		DatabaseID: databaseID,
+	}
+}
+
+func (p recordPayload) IsValidDB() bool {
+	return p.DatabaseID == "_public" || p.DatabaseID == "_private"
+}
+
+func (p recordPayload) IsPublicDB() bool {
+	return p.DatabaseID == "_public"
+}
+
+func (p recordPayload) IsReadOnly() bool {
+	action := p.RouteAction()
+	return action == "record:fetch" || action == "record:query"
+}
 
 /*
 RecordSaveHandler is dummy implementation on save/modify Records
@@ -18,7 +110,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordSaveHandler(payload *router.Payload, response *router.Response) {
+func RecordSaveHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
 	log.Println("RecordSaveHandler")
 	return
 }
@@ -35,7 +127,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordFetchHandler(payload *router.Payload, response *router.Response) {
+func RecordFetchHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
 	var (
 		records []oddb.Record
 	)
@@ -59,7 +151,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordQueryHandler(payload *router.Payload, response *router.Response) {
+func RecordQueryHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
 	log.Println("RecordQueryHandler")
 	return
 }
@@ -75,7 +167,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
+func RecordDeleteHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
 	log.Println("RecordDeleteHandler")
 	return
 }

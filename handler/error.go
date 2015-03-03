@@ -13,6 +13,7 @@ const (
 	UserIDDuplicatedErr
 	UserIDNotFoundErr
 	AuthenticationInfoIncorrectErr
+	InvalidAccessTokenErr
 )
 
 // ErrCode signifying invalid request
