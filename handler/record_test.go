@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"encoding/json"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -84,6 +86,69 @@ func TestRecordPayloadIsReadOnly(t *testing.T) {
 		if isReadonly != tt.result {
 			t.Errorf("got {action: %#v}.IsReadOnly() = %v, want %v", tt.action, isReadonly, tt.result)
 		}
+	}
+}
+
+func TestTransportRecordMarshalJSON(t *testing.T) {
+	r := transportRecord{
+		Key:  "recordkey",
+		Type: "recordtype",
+		Data: map[string]interface{}{
+			"stringkey": "stringvalue",
+			"numkey":    1,
+			"boolkey":   true,
+		},
+	}
+
+	expectedMap := map[string]interface{}{
+		"_id":       "recordkey",
+		"_type":     "recordtype",
+		"stringkey": "stringvalue",
+		// NOTE(limouren): json unmarshal numbers to float64
+		"numkey":  float64(1),
+		"boolkey": true,
+	}
+
+	jsonBytes, err := json.Marshal(r)
+	if err != nil {
+		panic(err)
+	}
+
+	// there is no guarantee key ordering in marshalled json,
+	// so we compare the unmarshalled map
+	marshalledMap := map[string]interface{}{}
+	json.Unmarshal(jsonBytes, &marshalledMap)
+
+	if !reflect.DeepEqual(marshalledMap, expectedMap) {
+		t.Fatalf("got marshalledMap = %#v, expect %#v", marshalledMap, expectedMap)
+	}
+}
+
+func TestTransportRecordUnmarshalJSON(t *testing.T) {
+	jsonBytes := []byte(`{
+		"_id": "recordkey",
+		"_type": "recordtype",
+		"stringkey": "stringvalue",
+		"numkey": 1,
+		"boolkey": true}`)
+
+	expectedRecord := transportRecord{
+		Key:  "recordkey",
+		Type: "recordtype",
+		Data: map[string]interface{}{
+			"stringkey": "stringvalue",
+			"numkey":    float64(1),
+			"boolkey":   true,
+		},
+	}
+
+	unmarshalledRecord := transportRecord{}
+	if err := json.Unmarshal(jsonBytes, &unmarshalledRecord); err != nil {
+		panic(err)
+	}
+
+	if !reflect.DeepEqual(unmarshalledRecord, expectedRecord) {
+		t.Fatalf("got unmarshalledRecord = %#v, expect %#v", unmarshalledRecord, expectedRecord)
 	}
 }
 

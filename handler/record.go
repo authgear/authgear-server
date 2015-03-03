@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"errors"
 	"log"
 
 	"github.com/oursky/ourd/auth"
@@ -97,6 +99,54 @@ func (p recordPayload) IsPublicDB() bool {
 func (p recordPayload) IsReadOnly() bool {
 	action := p.RouteAction()
 	return action == "record:fetch" || action == "record:query"
+}
+
+// transportRecord override JSON serialization and deserialization of
+// oddb.Record
+type transportRecord oddb.Record
+
+func (r transportRecord) MarshalJSON() ([]byte, error) {
+	// NOTE(limouren): if there is a better way to shallow copy a map,
+	// do let me know
+	object := map[string]interface{}{}
+	for k, v := range r.Data {
+		object[k] = v
+	}
+	object["_id"] = r.Key
+	object["_type"] = r.Type
+
+	return json.Marshal(object)
+}
+
+func (r *transportRecord) UnmarshalJSON(data []byte) error {
+	object := map[string]interface{}{}
+	err := json.Unmarshal(data, &object)
+
+	if err != nil {
+		return err
+	}
+
+	return r.InitFromMap(object)
+}
+
+func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
+	id, ok := m["_id"].(string)
+	if !ok {
+		return errors.New(`record/json: required field "_id" not found`)
+	}
+	r.Key = id
+	delete(m, "_id")
+
+	t, ok := m["_type"].(string)
+	if !ok {
+		return errors.New(`record/json: required field "_type" not found`)
+	}
+	r.Type = t
+	delete(m, "_type")
+
+	r.Data = m
+
+	return nil
 }
 
 /*
