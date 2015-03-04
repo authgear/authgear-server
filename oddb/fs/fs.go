@@ -123,6 +123,9 @@ func (db fileDatabase) Delete(key string) error {
 func (db fileDatabase) Query(query string, args ...interface{}) (oddb.Rows, error) {
 	const grepFmt = "grep -he \"{\\\"_type\\\":\\\"%v\\\"\" %v"
 
+	if err := os.MkdirAll(db.Dir, 0755); err != nil {
+		return &memoryRows{0, []oddb.Record{}}, err
+	}
 	grep := fmt.Sprintf(grepFmt, args[0], filepath.Join(db.Dir, "*"))
 
 	var outbuf bytes.Buffer
