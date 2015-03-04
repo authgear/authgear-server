@@ -29,7 +29,6 @@ func main() {
 	r.Map("record:query", recordService.RecordQueryHandler())
 	r.Map("record:save", recordService.RecordSaveHandler())
 	r.Map("record:delete", recordService.RecordDeleteHandler())
-	r.Preprocess(router.CheckAuth)
 	r.Preprocess(router.AssignDBConn)
 	log.Println("Listening...")
 	http.ListenAndServe(":3000", r)
