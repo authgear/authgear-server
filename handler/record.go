@@ -56,7 +56,7 @@ func (s RecordService) injectRecordHandler(recordHandler RecordHandler) router.H
 
 // RecordFetchHandler returns a router.Handler that fetches a record.
 func (s RecordService) RecordFetchHandler() router.Handler {
-	return s.injectRecordHandler(RecordSaveHandler)
+	return s.injectRecordHandler(RecordFetchHandler)
 }
 
 // RecordSaveHandler returns a router.Handler that saves a record.
@@ -66,12 +66,12 @@ func (s RecordService) RecordSaveHandler() router.Handler {
 
 // RecordDeleteHandler returns a router.Handler that deletes a record.
 func (s RecordService) RecordDeleteHandler() router.Handler {
-	return s.injectRecordHandler(RecordSaveHandler)
+	return s.injectRecordHandler(RecordDeleteHandler)
 }
 
 // RecordQueryHandler returns a router.Handler that queries records.
 func (s RecordService) RecordQueryHandler() router.Handler {
-	return s.injectRecordHandler(RecordSaveHandler)
+	return s.injectRecordHandler(RecordQueryHandler)
 }
 
 // recordPayload is the input parameter in RecordHandler
