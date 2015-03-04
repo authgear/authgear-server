@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 
 	"github.com/oursky/ourd/auth"
@@ -228,8 +229,36 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 func RecordQueryHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
-	log.Println("RecordQueryHandler")
-	return
+	recordType, _ := payload.Data["record_type"].(string)
+	if recordType == "" {
+		response.Result = NewError(RequestInvalidErr, "recordType cannot be empty")
+		return
+	}
+
+	results, err := db.Query("", recordType)
+	if err != nil {
+		response.Result = NewError(UnknownErr, "failed to open database")
+		return
+	}
+	defer results.Close()
+
+	records := []transportRecord{}
+	record := oddb.Record{}
+
+	// needs a better abstraction here
+	err = results.Next(&record)
+	for err != nil {
+		records = append(records, transportRecord(record))
+		err = results.Next(&record)
+	}
+
+	// query failed
+	if err != io.EOF {
+		response.Result = NewError(UnknownErr, "failed to query records")
+		return
+	}
+
+	response.Result = records
 }
 
 /*
