@@ -161,8 +161,34 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 func RecordSaveHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
-	log.Println("RecordSaveHandler")
-	return
+	recordMaps, ok := payload.Data["records"].([]map[string]interface{})
+	if !ok {
+		response.Result = NewError(RequestInvalidErr, "invalid request: expected list of records")
+		return
+	}
+
+	length := len(recordMaps)
+
+	records := make([]transportRecord, length, length)
+	results := make([]interface{}, length, length)
+	for i := range records {
+		if err := records[i].InitFromMap(recordMaps[i]); err != nil {
+			results[i] = NewError(RequestInvalidErr, "invalid request: "+err.Error())
+		}
+	}
+
+	for i := range records {
+		_, fail := results[i].(error)
+		if !fail {
+			if err := db.Save((*oddb.Record)(&records[i])); err != nil {
+				results[i] = NewError(PersistentStorageErr, "persistent error: failed to save record")
+			} else {
+				results[i] = records[i]
+			}
+		}
+	}
+
+	response.Result = results
 }
 
 /*

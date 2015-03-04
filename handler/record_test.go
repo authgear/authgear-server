@@ -245,3 +245,89 @@ func TestInjectRecordHandler(t *testing.T) {
 		}
 	}
 }
+
+func TestRecordSaveHandler(t *testing.T) {
+	payload := recordPayload{
+		Payload: &router.Payload{
+			Data: map[string]interface{}{
+				"action": "record:save",
+				"records": []map[string]interface{}{
+					map[string]interface{}{
+						"_id":   "id1",
+						"_type": "type1",
+						"k1":    "v1",
+						"k2":    "v2",
+					},
+					map[string]interface{}{
+						"_id":   "id2",
+						"_type": "type2",
+						"k3":    "v3",
+						"k4":    "v4",
+					},
+				},
+			},
+		},
+	}
+
+	dir := tempDir()
+	defer os.RemoveAll(dir)
+
+	conn, err := fs.Open("com.oursky.oddb.test", dir)
+	if err != nil {
+		panic(err)
+	}
+
+	db := conn.PublicDB()
+
+	response := router.Response{}
+	RecordSaveHandler(&payload, &response, db)
+
+	// check for DB persistences
+
+	record1 := oddb.Record{}
+	if err := db.Get("id1", &record1); err != nil {
+		t.Fatalf("got err = %v, want err = nil", err)
+	}
+
+	expectedRecord1 := oddb.Record{
+		Type: "type1",
+		Key:  "id1",
+		Data: map[string]interface{}{
+			"k1": "v1",
+			"k2": "v2",
+		},
+	}
+
+	if !reflect.DeepEqual(record1, expectedRecord1) {
+		t.Errorf("got record1 = %#v, want %#v", record1, expectedRecord1)
+	}
+
+	record2 := oddb.Record{}
+	if err := db.Get("id2", &record2); err != nil {
+		t.Fatalf("got err = %v, want err = nil", err)
+	}
+
+	expectedRecord2 := oddb.Record{
+		Type: "type2",
+		Key:  "id2",
+		Data: map[string]interface{}{
+			"k3": "v3",
+			"k4": "v4",
+		},
+	}
+
+	if !reflect.DeepEqual(record2, expectedRecord2) {
+		t.Errorf("got record2 = %#v, want %#v", record2, expectedRecord2)
+	}
+
+	// check for Response
+
+	expectedResult := []interface{}{
+		transportRecord(expectedRecord1),
+		transportRecord(expectedRecord2),
+	}
+
+	if !reflect.DeepEqual(response.Result, expectedResult) {
+		t.Fatalf("got response.Result = %#v, want %#v", response.Result, expectedResult)
+	}
+}

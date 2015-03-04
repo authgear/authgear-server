@@ -1,5 +1,7 @@
 package handler
 
+import "fmt"
+
 // ErrCode is error code being assigned to router.Payload when
 // Handler signifies an error
 type ErrCode int
@@ -23,6 +25,12 @@ const (
 	MissingDatabaseIDErr
 )
 
+// ErrCode signifying internal error
+const (
+	_ ErrCode = 300 + iota
+	PersistentStorageErr
+)
+
 // genericError is the simpliest form of error that contains
 // an code and error message.
 //
@@ -37,4 +45,8 @@ type genericError struct {
 // NewError creates an error to be returned as Response's result
 func NewError(code ErrCode, message string) interface{} {
 	return genericError{code, message}
+}
+
+func (err *genericError) Error() string {
+	return fmt.Sprintf("%v: %v", err.Code, err.Message)
 }
