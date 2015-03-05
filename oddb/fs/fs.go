@@ -141,13 +141,15 @@ func (db fileDatabase) Query(query string, args ...interface{}) (oddb.Rows, erro
 			// on UNIX-like system
 			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
 				if status.ExitStatus() == 1 {
+					log.Println("ExitStatus", 1)
 					// grep has a exit status of 1 if it finds nothing
 					// See: http://www.gnu.org/software/grep/manual/html_node/Exit-Status.html
 					return &memoryRows{0, []oddb.Record{}}, nil
 				}
 			}
 		}
-		log.Fatalf("Failed to grep: %v\nStderr: %v", err.Error(), errbuf.String())
+		log.Printf("Failed to grep: %v\nStderr: %v", err.Error(), errbuf.String())
+		return &memoryRows{0, []oddb.Record{}}, err
 	}
 
 	records := []oddb.Record{}

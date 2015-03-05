@@ -247,7 +247,7 @@ func RecordQueryHandler(payload *recordPayload, response *router.Response, db od
 
 	// needs a better abstraction here
 	err = results.Next(&record)
-	for err != nil {
+	for err == nil {
 		records = append(records, transportRecord(record))
 		err = results.Next(&record)
 	}
