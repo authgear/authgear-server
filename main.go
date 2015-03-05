@@ -20,7 +20,7 @@ func main() {
 	}
 
 	fileTokenStorePreprocessor := tokenStorePreprocessor{
-		TokenStore: auth.FileStore("data/token"),
+		TokenStore: auth.FileStore("data/token").Init(),
 	}
 
 	authPreprocessors := []router.Processor{

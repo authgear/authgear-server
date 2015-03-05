@@ -61,6 +61,17 @@ type TokenStore interface {
 // stored in a separate file.
 type FileStore string
 
+// Init MkAllDirs the FileStore directory and return itself.
+//
+// It panics when it fails to create the directory.
+func (f FileStore) Init() FileStore {
+	err := os.MkdirAll(string(f), 0755)
+	if err != nil {
+		panic("FileStore.init: " + err.Error())
+	}
+	return f
+}
+
 // Get tries to read the specified access token from file and
 // writes to the supplied Token.
 //
