@@ -251,7 +251,7 @@ func TestRecordSaveHandler(t *testing.T) {
 		Payload: &router.Payload{
 			Data: map[string]interface{}{
 				"action": "record:save",
-				"records": []map[string]interface{}{
+				"records": []interface{}{
 					map[string]interface{}{
 						"_id":   "id1",
 						"_type": "type1",

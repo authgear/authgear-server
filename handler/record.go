@@ -153,16 +153,21 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 /*
 RecordSaveHandler is dummy implementation on save/modify Records
 curl -X POST -H "Content-Type: application/json" \
-  -d @- http://localhost:3000/ <<EOF
+  -d @- http://192.168.1.89/ <<EOF
 {
     "action": "record:save",
     "access_token": "validToken",
-    "database_id": "private"
+    "database_id": "private",
+    "records": [{
+        "_id": "EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
+        "_type": "note",
+        "content": "ewdsa"
+    }]
 }
 EOF
 */
 func RecordSaveHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
-	recordMaps, ok := payload.Data["records"].([]map[string]interface{})
+	recordMaps, ok := payload.Data["records"].([]interface{})
 	if !ok {
 		response.Result = NewError(RequestInvalidErr, "invalid request: expected list of records")
 		return
@@ -173,7 +178,8 @@ func RecordSaveHandler(payload *recordPayload, response *router.Response, db odd
 	records := make([]transportRecord, length, length)
 	results := make([]interface{}, length, length)
 	for i := range records {
-		if err := records[i].InitFromMap(recordMaps[i]); err != nil {
+		r := recordMaps[i].(map[string]interface{})
+		if err := records[i].InitFromMap(r); err != nil {
 			results[i] = NewError(RequestInvalidErr, "invalid request: "+err.Error())
 		}
 	}
