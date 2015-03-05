@@ -267,18 +267,48 @@ func RecordQueryHandler(payload *recordPayload, response *router.Response, db od
 	response.Result = records
 }
 
+type deleteResponse struct {
+	ID   string `json:"_id,omitempty"`
+	Type string `json:"_type,omitempty"`
+	Code string `json:"_code,omitempty"`
+}
+
 /*
 RecordDeleteHandler is dummy implementation on delete Records
 curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
-    "action": "redord:delete",
+    "action": "record:delete",
     "access_token": "validToken",
-    "database_id": "private"
+    "database_id": "_private",
+    "ids": ["EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8"]
 }
 EOF
 */
 func RecordDeleteHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
+	recordIDs, ok := payload.Data["ids"].([]interface{})
+	if !ok {
+		response.Result = NewError(RequestInvalidErr, "invalid request: expected list of ids")
+		return
+	}
+	results := []deleteResponse{}
+	for i := range recordIDs {
+		ID, ok := recordIDs[i].(string)
+		if !ok {
+			results = append(results, deleteResponse{
+				ID,
+				"_error",
+				"ID_FORMAT_ERROR", // FIXME: Dummy
+			})
+		} else if err := db.Delete(ID); err != nil {
+			results = append(results, deleteResponse{
+				ID,
+				"_error",
+				"NOT_FOUND", // FIXME: Dummy
+			})
+		}
+	}
+	response.Result = results
 	log.Println("RecordDeleteHandler")
 	return
 }
