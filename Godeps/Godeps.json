@@ -5,6 +5,14 @@
 		{
 			"ImportPath": "github.com/twinj/uuid",
 			"Rev": "4d772442af203e27723acc7d1eea6c93cd319c57"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "1351f936d976c60a0a48d728281922cf63eafb8d"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "1351f936d976c60a0a48d728281922cf63eafb8d"
 		}
 	]
 }
