@@ -149,7 +149,7 @@ func (db fileDatabase) Query(query string, args ...interface{}) (oddb.Rows, erro
 			}
 		}
 		log.Printf("Failed to grep: %v\nStderr: %v", err.Error(), errbuf.String())
-		return &memoryRows{0, []oddb.Record{}}, err
+		return &memoryRows{0, []oddb.Record{}}, nil
 	}
 
 	records := []oddb.Record{}
