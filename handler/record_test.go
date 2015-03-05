@@ -5,89 +5,12 @@ import (
 	"os"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/oursky/ourd/auth"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/fs"
 	"github.com/oursky/ourd/router"
 )
-
-func TestNewRecordPayload(t *testing.T) {
-	rpayload := router.Payload{
-		Data: map[string]interface{}{
-			"database_id": "somedbid",
-		},
-	}
-
-	payload := newRecordPayload(&rpayload)
-
-	if payload.Payload != &rpayload {
-		t.Errorf("got payload = %v, want %v", payload.Payload, rpayload)
-	}
-
-	if payload.DatabaseID != "somedbid" {
-		t.Errorf("got DatabaseID = %v, want somedbid", payload.DatabaseID)
-	}
-}
-
-func TestRecordPayloadIsValidDB(t *testing.T) {
-	payload := recordPayload{}
-
-	payload.DatabaseID = "_public"
-	if !payload.IsValidDB() {
-		t.Error("got IsValidDB() = false, want true")
-	}
-
-	payload.DatabaseID = "_private"
-	if !payload.IsValidDB() {
-		t.Error("got IsValidDB() = false, want true")
-	}
-
-	payload.DatabaseID = "invaliddbid"
-	if payload.IsValidDB() {
-		t.Error("got IsValidDB() = true, want false")
-	}
-
-}
-
-func TestRecordPayloadIsPublicDB(t *testing.T) {
-	payload := recordPayload{}
-
-	payload.DatabaseID = "_public"
-	if !payload.IsPublicDB() {
-		t.Error("got IsPublicDB() = false, want true")
-	}
-
-	payload.DatabaseID = "_private"
-	if payload.IsPublicDB() {
-		t.Error("got IsPublicDB() = true, want false")
-	}
-}
-
-func TestRecordPayloadIsReadOnly(t *testing.T) {
-	readonlytests := []struct {
-		action string
-		result bool
-	}{
-		{"record:save", false},
-		{"record:fetch", true},
-		{"record:query", true},
-		{"record:delete", false},
-	}
-
-	payload := recordPayload{
-		Payload: &router.Payload{Data: map[string]interface{}{}},
-	}
-
-	for _, tt := range readonlytests {
-		payload.Payload.Data["action"] = tt.action
-		isReadonly := payload.IsReadOnly()
-		if isReadonly != tt.result {
-			t.Errorf("got {action: %#v}.IsReadOnly() = %v, want %v", tt.action, isReadonly, tt.result)
-		}
-	}
-}
 
 func TestTransportRecordMarshalJSON(t *testing.T) {
 	r := transportRecord{
@@ -186,89 +109,7 @@ func (store *errStore) Put(token *auth.Token) error {
 	return (*auth.TokenNotFoundError)(store)
 }
 
-func TestInjectRecordHandler(t *testing.T) {
-	validTokenStore := &trueStore{
-		AccessToken: "recordaccesstoken",
-		ExpiredAt:   time.Now().Add(24 * time.Hour),
-		UserInfoID:  "recorduserinfoid",
-	}
-
-	notfoundTokenStore := &errStore{}
-
-	dbinjecttests := []struct {
-		action     string
-		dbID       string
-		tokenStore auth.TokenStore
-		called     bool
-		resultCode int
-	}{
-		{"record:fetch", "_public", validTokenStore, true, 0},
-		{"record:query", "_public", notfoundTokenStore, true, 0},
-		{"record:save", "_public", validTokenStore, true, 0},
-		{"record:delete", "_public", notfoundTokenStore, false, 104},
-		{"record:save", "invaliddbid", notfoundTokenStore, false, 202},
-		{"record:fetch", "_private", validTokenStore, true, 0},
-		{"record:query", "_private", notfoundTokenStore, false, 104},
-		{"record:save", "_private", validTokenStore, true, 0},
-		{"record:delete", "_private", notfoundTokenStore, false, 104},
-	}
-
-	dir := tempDir()
-	defer os.RemoveAll(dir)
-
-	conn, err := fs.Open("com.oursky.oddb.test", dir)
-	if err != nil {
-		panic(err)
-	}
-
-	recordService := RecordService{}
-	rpayload := router.Payload{
-		Data:   map[string]interface{}{},
-		DBConn: conn,
-	}
-
-	for i, tt := range dbinjecttests {
-		called := false
-		response := router.Response{}
-		rpayload.Data["action"] = tt.action
-		rpayload.Data["database_id"] = tt.dbID
-
-		recordService.TokenStore = tt.tokenStore
-		recordService.injectRecordHandler(((*calledHandler)(&called)).SetCalled)(&rpayload, &response)
-
-		if called != tt.called {
-			t.Errorf("row %v: got called = %v, want %v", i, called, tt.called)
-		}
-
-		if !called && response.Result.(genericError).Code != ErrCode(tt.resultCode) {
-			t.Errorf("row %v: got response.Result.(genericError).Code = %v, want %v", i, response.Result.(genericError).Code, tt.resultCode)
-		}
-	}
-}
-
 func TestRecordSaveHandler(t *testing.T) {
-	payload := recordPayload{
-		Payload: &router.Payload{
-			Data: map[string]interface{}{
-				"action": "record:save",
-				"records": []interface{}{
-					map[string]interface{}{
-						"_id":   "id1",
-						"_type": "type1",
-						"k1":    "v1",
-						"k2":    "v2",
-					},
-					map[string]interface{}{
-						"_id":   "id2",
-						"_type": "type2",
-						"k3":    "v3",
-						"k4":    "v4",
-					},
-				},
-			},
-		},
-	}
-
 	dir := tempDir()
 	defer os.RemoveAll(dir)
 
@@ -279,8 +120,29 @@ func TestRecordSaveHandler(t *testing.T) {
 
 	db := conn.PublicDB()
 
+	payload := router.Payload{
+		Data: map[string]interface{}{
+			"action": "record:save",
+			"records": []interface{}{
+				map[string]interface{}{
+					"_id":   "id1",
+					"_type": "type1",
+					"k1":    "v1",
+					"k2":    "v2",
+				},
+				map[string]interface{}{
+					"_id":   "id2",
+					"_type": "type2",
+					"k3":    "v3",
+					"k4":    "v4",
+				},
+			},
+		},
+		Database: db,
+	}
+
 	response := router.Response{}
-	RecordSaveHandler(&payload, &response, db)
+	RecordSaveHandler(&payload, &response)
 
 	// check for DB persistences
 

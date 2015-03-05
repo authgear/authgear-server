@@ -6,30 +6,45 @@ import (
 
 	"github.com/oursky/ourd/auth"
 	"github.com/oursky/ourd/handler"
+	"github.com/oursky/ourd/oddb"
 	_ "github.com/oursky/ourd/oddb/fs"
 	"github.com/oursky/ourd/router"
 )
 
 func main() {
-	tokenStore := auth.FileStore("data/token")
-
-	authenticator := handler.Authentication{
-		TokenStore: tokenStore,
+	fileSystemConnPreprocessor := connPreprocessor{
+		DBOpener: oddb.Open,
+		DBImpl:   "fs",
+		AppName:  "_",
+		Option:   "data",
 	}
 
-	recordService := handler.RecordService{
-		TokenStore: tokenStore,
+	fileTokenStorePreprocessor := tokenStorePreprocessor{
+		TokenStore: auth.FileStore("data/token"),
+	}
+
+	authPreprocessors := []router.Processor{
+		fileSystemConnPreprocessor.Preprocess,
+		fileTokenStorePreprocessor.Preprocess,
+	}
+	recordPreprocessors := []router.Processor{
+		fileSystemConnPreprocessor.Preprocess,
+		fileTokenStorePreprocessor.Preprocess,
+		authenticateUser,
+		injectDatabase,
 	}
 
 	r := router.NewRouter()
 	r.Map("", handler.HomeHandler)
-	r.Map("auth:signup", authenticator.SignupHandler())
-	r.Map("auth:login", authenticator.LoginHandler())
-	r.Map("record:fetch", recordService.RecordFetchHandler())
-	r.Map("record:query", recordService.RecordQueryHandler())
-	r.Map("record:save", recordService.RecordSaveHandler())
-	r.Map("record:delete", recordService.RecordDeleteHandler())
-	r.Preprocess(router.AssignDBConn)
+
+	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
+	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
+
+	r.Map("record:fetch", handler.RecordFetchHandler, recordPreprocessors...)
+	r.Map("record:query", handler.RecordQueryHandler, recordPreprocessors...)
+	r.Map("record:save", handler.RecordSaveHandler, recordPreprocessors...)
+	r.Map("record:delete", handler.RecordDeleteHandler, recordPreprocessors...)
+
 	log.Println("Listening...")
 	http.ListenAndServe(":3000", r)
 }

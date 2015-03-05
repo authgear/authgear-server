@@ -3,6 +3,7 @@ package router
 import (
 	"log"
 
+	"github.com/oursky/ourd/auth"
 	"github.com/oursky/ourd/oddb"
 )
 
@@ -13,6 +14,9 @@ type Payload struct {
 	// Map of action payload
 	Data   map[string]interface{}
 	DBConn oddb.Conn
+	oddb.Database
+	auth.TokenStore
+	*oddb.UserInfo
 }
 
 // RouteAction must exist for every request

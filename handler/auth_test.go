@@ -64,17 +64,18 @@ func TestSignupHandler(t *testing.T) {
 		panic(err)
 	}
 
+	tokenStore := singleTokenStore{}
 	req := router.Payload{
 		Data: map[string]interface{}{
 			"user_id":  "userinfoid",
 			"email":    "john.doe@example.com",
 			"password": "secret",
 		},
-		DBConn: conn,
+		DBConn:     conn,
+		TokenStore: &tokenStore,
 	}
 	resp := router.Response{}
-	tokenStore := singleTokenStore{}
-	SignupHandler(&req, &resp, &tokenStore)
+	SignupHandler(&req, &resp)
 
 	authResp, ok := resp.Result.(authResponse)
 	if !ok {
@@ -115,17 +116,18 @@ func TestSignupHandlerDuplicated(t *testing.T) {
 	userinfo := oddb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
 	conn.CreateUser(&userinfo)
 
+	tokenStore := singleTokenStore{}
 	req := router.Payload{
 		Data: map[string]interface{}{
 			"user_id":  "userinfoid",
 			"email":    "john.doe@example.com",
 			"password": "secret",
 		},
-		DBConn: conn,
+		DBConn:     conn,
+		TokenStore: &tokenStore,
 	}
 	resp := router.Response{}
-	tokenStore := singleTokenStore{}
-	SignupHandler(&req, &resp, &tokenStore)
+	SignupHandler(&req, &resp)
 
 	errorResponse, ok := resp.Result.(genericError)
 	if !ok {
@@ -149,16 +151,17 @@ func TestLoginHandler(t *testing.T) {
 	userinfo := oddb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
 	conn.CreateUser(&userinfo)
 
+	tokenStore := singleTokenStore{}
 	req := router.Payload{
 		Data: map[string]interface{}{
 			"user_id":  "userinfoid",
 			"password": "secret",
 		},
-		DBConn: conn,
+		DBConn:     conn,
+		TokenStore: &tokenStore,
 	}
 	resp := router.Response{}
-	tokenStore := singleTokenStore{}
-	LoginHandler(&req, &resp, &tokenStore)
+	LoginHandler(&req, &resp)
 
 	authResp, ok := resp.Result.(authResponse)
 	if !ok {
@@ -199,16 +202,17 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 	userinfo := oddb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
 	conn.CreateUser(&userinfo)
 
+	tokenStore := singleTokenStore{}
 	req := router.Payload{
 		Data: map[string]interface{}{
 			"user_id":  "userinfoid",
 			"password": "wrongsecret",
 		},
-		DBConn: conn,
+		DBConn:     conn,
+		TokenStore: &tokenStore,
 	}
 	resp := router.Response{}
-	tokenStore := singleTokenStore{}
-	LoginHandler(&req, &resp, &tokenStore)
+	LoginHandler(&req, &resp)
 
 	errorResponse, ok := resp.Result.(genericError)
 	if !ok {
@@ -229,16 +233,17 @@ func TestLoginHandlerNotFound(t *testing.T) {
 		panic(err)
 	}
 
+	tokenStore := singleTokenStore{}
 	req := router.Payload{
 		Data: map[string]interface{}{
 			"user_id":  "userinfoid",
 			"password": "secret",
 		},
-		DBConn: conn,
+		DBConn:     conn,
+		TokenStore: &tokenStore,
 	}
 	resp := router.Response{}
-	tokenStore := singleTokenStore{}
-	LoginHandler(&req, &resp, &tokenStore)
+	LoginHandler(&req, &resp)
 
 	errorResponse, ok := resp.Result.(genericError)
 	if !ok {

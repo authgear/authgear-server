@@ -6,100 +6,15 @@ import (
 	"io"
 	"log"
 
-	"github.com/oursky/ourd/auth"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/router"
 )
 
-// RecordHandler declares the interface of a handler that works with records
-type RecordHandler func(*recordPayload, *router.Response, oddb.Database)
-
-// RecordService provides a collection of handlers to
-// handle oddb.Record related operations on an oddb.Database.
-type RecordService struct {
-	auth.TokenStore
-}
-
-// injectRecordHandler returns a router.Handler that has a proper
-// public / private database injected into RecordHandler according to
-// the payload
-func (s RecordService) injectRecordHandler(recordHandler RecordHandler) router.Handler {
-	return func(rpayload *router.Payload, response *router.Response) {
-		payload := newRecordPayload(rpayload)
-
-		if !payload.IsValidDB() {
-			response.Result = NewError(MissingDatabaseIDErr, "Invalid Database ID")
-			return
-		}
-
-		var db oddb.Database
-		token := auth.Token{}
-		if payload.IsPublicDB() {
-			if !payload.IsReadOnly() {
-				if err := s.TokenStore.Get(payload.AccessToken(), &token); err != nil {
-					response.Result = NewError(InvalidAccessTokenErr, "Invalid access token")
-					return
-				}
-			}
-			db = payload.DBConn.PublicDB()
-		} else { // if a request doesn't ask for public DB, then it is private DB
-			if err := s.TokenStore.Get(payload.AccessToken(), &token); err != nil {
-				response.Result = NewError(InvalidAccessTokenErr, "Invalid access token")
-				return
-			}
-
-			db = payload.DBConn.PrivateDB(token.UserInfoID)
-		}
-
-		recordHandler(&payload, response, db)
-	}
-}
-
-// RecordFetchHandler returns a router.Handler that fetches a record.
-func (s RecordService) RecordFetchHandler() router.Handler {
-	return s.injectRecordHandler(RecordFetchHandler)
-}
-
-// RecordSaveHandler returns a router.Handler that saves a record.
-func (s RecordService) RecordSaveHandler() router.Handler {
-	return s.injectRecordHandler(RecordSaveHandler)
-}
-
-// RecordDeleteHandler returns a router.Handler that deletes a record.
-func (s RecordService) RecordDeleteHandler() router.Handler {
-	return s.injectRecordHandler(RecordDeleteHandler)
-}
-
-// RecordQueryHandler returns a router.Handler that queries records.
-func (s RecordService) RecordQueryHandler() router.Handler {
-	return s.injectRecordHandler(RecordQueryHandler)
-}
-
 // recordPayload is the input parameter in RecordHandler
-type recordPayload struct {
-	*router.Payload
-	DatabaseID string
-}
+type recordPayload router.Payload
 
-func newRecordPayload(payload *router.Payload) recordPayload {
-	databaseID, _ := payload.Data["database_id"].(string)
-	return recordPayload{
-		Payload:    payload,
-		DatabaseID: databaseID,
-	}
-}
-
-func (p recordPayload) IsValidDB() bool {
-	return p.DatabaseID == "_public" || p.DatabaseID == "_private"
-}
-
-func (p recordPayload) IsPublicDB() bool {
-	return p.DatabaseID == "_public"
-}
-
-func (p recordPayload) IsReadOnly() bool {
-	action := p.RouteAction()
-	return action == "record:fetch" || action == "record:query"
+func (p *recordPayload) IsWriteAllowed() bool {
+	return p.UserInfo == nil
 }
 
 // transportRecord override JSON serialization and deserialization of
@@ -166,7 +81,13 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordSaveHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
+func RecordSaveHandler(payload *router.Payload, response *router.Response) {
+	if (*recordPayload)(payload).IsWriteAllowed() {
+		response.Result = NewError(RequestInvalidErr, "invalid request: write is not allowed")
+		return
+	}
+
+	db := payload.Database
 	recordMaps, ok := payload.Data["records"].([]interface{})
 	if !ok {
 		response.Result = NewError(RequestInvalidErr, "invalid request: expected list of records")
@@ -210,7 +131,7 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordFetchHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
+func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	var (
 		records []oddb.Record
 	)
@@ -234,7 +155,9 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordQueryHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
+func RecordQueryHandler(payload *router.Payload, response *router.Response) {
+	db := payload.Database
+
 	recordType, _ := payload.Data["record_type"].(string)
 	if recordType == "" {
 		response.Result = NewError(RequestInvalidErr, "recordType cannot be empty")
@@ -285,7 +208,14 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordDeleteHandler(payload *recordPayload, response *router.Response, db oddb.Database) {
+func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
+	if (*recordPayload)(payload).IsWriteAllowed() {
+		response.Result = NewError(RequestInvalidErr, "invalid request: write is not allowed")
+		return
+	}
+
+	db := payload.Database
+
 	recordIDs, ok := payload.Data["ids"].([]interface{})
 	if !ok {
 		response.Result = NewError(RequestInvalidErr, "invalid request: expected list of ids")

@@ -9,31 +9,6 @@ import (
 	"github.com/oursky/ourd/router"
 )
 
-// TokenStore is the interface for access and storage of access token.
-type TokenStore auth.TokenStore
-
-// Authentication generates handlers used for authentication purposes.
-//
-// Authentication relies on a TokenStore to get and set access token
-// of users.
-type Authentication struct {
-	TokenStore
-}
-
-// SignupHandler returns a handler to sign up user using own TokenStore
-func (au *Authentication) SignupHandler() func(*router.Payload, *router.Response) {
-	return func(payload *router.Payload, response *router.Response) {
-		SignupHandler(payload, response, au.TokenStore)
-	}
-}
-
-// LoginHandler returns a handler to log user in using own TokenStore
-func (au *Authentication) LoginHandler() func(*router.Payload, *router.Response) {
-	return func(payload *router.Payload, response *router.Response) {
-		LoginHandler(payload, response, au.TokenStore)
-	}
-}
-
 type authResponse struct {
 	UserID      string `json:"user_id,omitempty"`
 	Email       string `json:"email,omitempty"`
@@ -90,7 +65,9 @@ func (p *signupPayload) IsAnonymous() bool {
 //	    "password": "123456"
 //	}
 //	EOF
-func SignupHandler(payload *router.Payload, response *router.Response, store TokenStore) {
+func SignupHandler(payload *router.Payload, response *router.Response) {
+	store := payload.TokenStore
+
 	p := signupPayload{
 		Meta: payload.Meta,
 		Data: payload.Data,
@@ -160,7 +137,9 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func LoginHandler(payload *router.Payload, response *router.Response, store TokenStore) {
+func LoginHandler(payload *router.Payload, response *router.Response) {
+	store := payload.TokenStore
+
 	p := loginPayload{
 		Meta: payload.Meta,
 		Data: payload.Data,
