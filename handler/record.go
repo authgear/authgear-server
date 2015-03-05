@@ -7,6 +7,7 @@ import (
 	"log"
 
 	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
 
@@ -83,14 +84,14 @@ EOF
 */
 func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	if (*recordPayload)(payload).IsWriteAllowed() {
-		response.Result = NewError(RequestInvalidErr, "invalid request: write is not allowed")
+		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: write is not allowed")
 		return
 	}
 
 	db := payload.Database
 	recordMaps, ok := payload.Data["records"].([]interface{})
 	if !ok {
-		response.Result = NewError(RequestInvalidErr, "invalid request: expected list of records")
+		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: expected list of records")
 		return
 	}
 
@@ -101,7 +102,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	for i := range records {
 		r := recordMaps[i].(map[string]interface{})
 		if err := records[i].InitFromMap(r); err != nil {
-			results[i] = NewError(RequestInvalidErr, "invalid request: "+err.Error())
+			results[i] = oderr.New(oderr.RequestInvalidErr, "invalid request: "+err.Error())
 		}
 	}
 
@@ -109,7 +110,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		_, fail := results[i].(error)
 		if !fail {
 			if err := db.Save((*oddb.Record)(&records[i])); err != nil {
-				results[i] = NewError(PersistentStorageErr, "persistent error: failed to save record")
+				results[i] = oderr.New(oderr.PersistentStorageErr, "persistent error: failed to save record")
 			} else {
 				results[i] = records[i]
 			}
@@ -160,13 +161,13 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 
 	recordType, _ := payload.Data["record_type"].(string)
 	if recordType == "" {
-		response.Result = NewError(RequestInvalidErr, "recordType cannot be empty")
+		response.Result = oderr.New(oderr.RequestInvalidErr, "recordType cannot be empty")
 		return
 	}
 
 	results, err := db.Query("", recordType)
 	if err != nil {
-		response.Result = NewError(UnknownErr, "failed to open database")
+		response.Result = oderr.New(oderr.UnknownErr, "failed to open database")
 		return
 	}
 	defer results.Close()
@@ -183,7 +184,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 
 	// query failed
 	if err != io.EOF {
-		response.Result = NewError(UnknownErr, "failed to query records")
+		response.Result = oderr.New(oderr.UnknownErr, "failed to query records")
 		return
 	}
 
@@ -210,7 +211,7 @@ EOF
 */
 func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 	if (*recordPayload)(payload).IsWriteAllowed() {
-		response.Result = NewError(RequestInvalidErr, "invalid request: write is not allowed")
+		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: write is not allowed")
 		return
 	}
 
@@ -218,7 +219,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 
 	recordIDs, ok := payload.Data["ids"].([]interface{})
 	if !ok {
-		response.Result = NewError(RequestInvalidErr, "invalid request: expected list of ids")
+		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: expected list of ids")
 		return
 	}
 	results := []deleteResponse{}

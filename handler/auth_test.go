@@ -9,6 +9,7 @@ import (
 	"github.com/oursky/ourd/auth"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/fs"
+	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
 
@@ -129,13 +130,13 @@ func TestSignupHandlerDuplicated(t *testing.T) {
 	resp := router.Response{}
 	SignupHandler(&req, &resp)
 
-	errorResponse, ok := resp.Result.(genericError)
+	errorResponse, ok := resp.Result.(oderr.Error)
 	if !ok {
-		t.Fatalf("got type = %v, want type genericError", reflect.TypeOf(resp.Result))
+		t.Fatalf("got type = %v, want type oderr.Error", reflect.TypeOf(resp.Result))
 	}
 
-	if errorResponse.Code != 101 {
-		t.Fatalf("got errorResponse.Code = %v, want 101", errorResponse.Code)
+	if errorResponse.Code() != 101 {
+		t.Fatalf("got errorResponse.Code() = %v, want 101", errorResponse.Code())
 	}
 }
 
@@ -214,13 +215,13 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 	resp := router.Response{}
 	LoginHandler(&req, &resp)
 
-	errorResponse, ok := resp.Result.(genericError)
+	errorResponse, ok := resp.Result.(oderr.Error)
 	if !ok {
-		t.Fatalf("got type = %v, want type genericError", reflect.TypeOf(resp.Result))
+		t.Fatalf("got type = %v, want type oderr.Error", reflect.TypeOf(resp.Result))
 	}
 
-	if errorResponse.Code != 103 {
-		t.Fatalf("got errorResponse.Code = %v, want 103", errorResponse.Code)
+	if errorResponse.Code() != 103 {
+		t.Fatalf("got errorResponse.Code() = %v, want 103", errorResponse.Code())
 	}
 }
 
@@ -245,12 +246,12 @@ func TestLoginHandlerNotFound(t *testing.T) {
 	resp := router.Response{}
 	LoginHandler(&req, &resp)
 
-	errorResponse, ok := resp.Result.(genericError)
+	errorResponse, ok := resp.Result.(oderr.Error)
 	if !ok {
-		t.Fatalf("got type = %v, want type genericError", reflect.TypeOf(resp.Result))
+		t.Fatalf("got type = %v, want type oderr.Error", reflect.TypeOf(resp.Result))
 	}
 
-	if errorResponse.Code != 102 {
-		t.Fatalf("got errorResponse.Code = %v, want 102", errorResponse.Code)
+	if errorResponse.Code() != 102 {
+		t.Fatalf("got errorResponse.Code() = %v, want 102", errorResponse.Code())
 	}
 }

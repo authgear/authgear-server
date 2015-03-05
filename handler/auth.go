@@ -1,11 +1,11 @@
 package handler
 
 import (
-	_ "log"
 	"time"
 
 	"github.com/oursky/ourd/auth"
 	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
 
@@ -86,10 +86,10 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 
 	if err := payload.DBConn.CreateUser(&info); err != nil {
 		if err == oddb.ErrUserDuplicated {
-			response.Result = NewError(UserIDDuplicatedErr, "User with the same ID already existed")
+			response.Result = oderr.New(oderr.UserIDDuplicatedErr, "User with the same ID already existed")
 		} else {
 			// TODO: more error handling here if necessary
-			response.Result = NewError(UnknownErr, "Unknown error occurred.")
+			response.Result = oderr.New(oderr.UnknownErr, "Unknown error occurred.")
 		}
 		return
 	}
@@ -148,16 +148,16 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 	info := oddb.UserInfo{}
 	if err := payload.DBConn.GetUser(p.UserID(), &info); err != nil {
 		if err == oddb.ErrUserNotFound {
-			response.Result = NewError(UserIDNotFoundErr, "Cannot find User with the specified ID")
+			response.Result = oderr.New(oderr.UserIDNotFoundErr, "Cannot find User with the specified ID")
 		} else {
 			// TODO: more error handling here if necessary
-			response.Result = NewError(UnknownErr, "Unknown error")
+			response.Result = oderr.New(oderr.UnknownErr, "Unknown error")
 		}
 		return
 	}
 
 	if !info.IsSamePassword(p.Password()) {
-		response.Result = NewError(AuthenticationInfoIncorrectErr, "Invalid login information")
+		response.Result = oderr.New(oderr.AuthenticationInfoIncorrectErr, "Invalid login information")
 		return
 	}
 

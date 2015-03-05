@@ -139,6 +139,7 @@ func TestRecordSaveHandler(t *testing.T) {
 			},
 		},
 		Database: db,
+		UserInfo: &oddb.UserInfo{},
 	}
 
 	response := router.Response{}
