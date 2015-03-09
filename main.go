@@ -23,23 +23,22 @@ func main() {
 		TokenStore: auth.FileStore("data/token").Init(),
 	}
 
+	r := router.NewRouter()
+	r.Map("", handler.HomeHandler)
+
 	authPreprocessors := []router.Processor{
 		fileSystemConnPreprocessor.Preprocess,
 		fileTokenStorePreprocessor.Preprocess,
 	}
+	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
+	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
+
 	recordPreprocessors := []router.Processor{
 		fileSystemConnPreprocessor.Preprocess,
 		fileTokenStorePreprocessor.Preprocess,
 		authenticateUser,
 		injectDatabase,
 	}
-
-	r := router.NewRouter()
-	r.Map("", handler.HomeHandler)
-
-	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
-	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
-
 	r.Map("record:fetch", handler.RecordFetchHandler, recordPreprocessors...)
 	r.Map("record:query", handler.RecordQueryHandler, recordPreprocessors...)
 	r.Map("record:save", handler.RecordSaveHandler, recordPreprocessors...)
