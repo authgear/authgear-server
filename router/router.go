@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/oursky/ourd/oderr"
 )
 
 // Handler specifies the function signature of a request handler function
@@ -69,6 +71,19 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		for _, p := range pipeline.Preprocessors {
 			if s, err := p(&payload, &resp); err != nil {
 				httpStatus = s
+
+				if mwErr, ok := err.(oderr.Error); ok {
+					b, err := json.Marshal(struct {
+						Code    oderr.ErrCode `json:"code"`
+						Message string        `json:"message"`
+					}{mwErr.Code(), mwErr.Message()})
+
+					if err == nil {
+						errString = string(b)
+						return
+					}
+				}
+
 				errString = err.Error()
 				return
 			}

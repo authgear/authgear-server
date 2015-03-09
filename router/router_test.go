@@ -1,10 +1,15 @@
 package router
 
 import (
+	. "github.com/smartystreets/goconvey/convey"
+	"testing"
+
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
-	"testing"
+
+	"github.com/oursky/ourd/oderr"
 )
 
 type MockHander struct {
@@ -69,6 +74,80 @@ func TestRouterMapMissing(t *testing.T) {
 	if resp.Body.String() != "Unmatched Route" {
 		t.Fatalf("Empty route should not mappped")
 	}
+}
+
+type getPreprocessor struct {
+	Status int
+	Err    error
+}
+
+func (p *getPreprocessor) Preprocess(payload *Payload, response *Response) (int, error) {
+	return p.Status, p.Err
+}
+
+func TestPreprocess(t *testing.T) {
+	r := NewRouter()
+	mockHandler := MockHander{outputs: Response{
+		Result: "ok",
+	}}
+	mockPreprocessor := getPreprocessor{}
+
+	r.Map("mock:preprocess", mockHandler.handle, mockPreprocessor.Preprocess)
+
+	Convey("Given a router with a preprocessor", t, func() {
+		req, _ := http.NewRequest(
+			"POST",
+			"http://ourd.dev/api/v1",
+			strings.NewReader(`{"action": "mock:preprocess"}`),
+		)
+		req.Header.Set("Content-Type", "application/json")
+		resp := httptest.NewRecorder()
+
+		Convey("When preprocessor lets go", func() {
+			mockPreprocessor.Status = http.StatusOK
+			mockPreprocessor.Err = nil
+
+			r.ServeHTTP(resp, req)
+
+			Convey("it returns ok", func() {
+				So(resp.Body.String(), ShouldEqual, `{"result":"ok"}`)
+			})
+
+			Convey("it has status code = 200", func() {
+				So(resp.Code, ShouldEqual, http.StatusOK)
+			})
+		})
+
+		Convey("When preprocessor gives an err", func() {
+			mockPreprocessor.Status = http.StatusInternalServerError
+			mockPreprocessor.Err = errors.New("err")
+
+			r.ServeHTTP(resp, req)
+
+			Convey("it has \"err\" as body", func() {
+				So(resp.Body.String(), ShouldEqual, "err")
+			})
+
+			Convey("it has status code = 500", func() {
+				So(resp.Code, ShouldEqual, http.StatusInternalServerError)
+			})
+		})
+
+		Convey("When preprocessor gives an oderr preprocessor", func() {
+			mockPreprocessor.Status = http.StatusInternalServerError
+			mockPreprocessor.Err = oderr.New(123, "oderr")
+
+			r.ServeHTTP(resp, req)
+
+			Convey("it has \"err\" as body", func() {
+				So(resp.Body.String(), ShouldEqual, `{"code":123,"message":"oderr"}`)
+			})
+
+			Convey("it has status code = 500", func() {
+				So(resp.Code, ShouldEqual, http.StatusInternalServerError)
+			})
+		})
+	})
 }
 
 // TODO(limouren): fix this test case
