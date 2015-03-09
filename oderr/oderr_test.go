@@ -3,6 +3,8 @@ package oderr
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	"fmt"
 )
 
 func TestNewError(t *testing.T) {
@@ -19,6 +21,10 @@ func TestNewError(t *testing.T) {
 
 		Convey("Error()s in format {code}: {message}", func() {
 			So(err.Error(), ShouldEqual, "1: some message")
+		})
+
+		Convey("has format {code}: {message} when being written", func() {
+			So(fmt.Sprintf("%v", err), ShouldEqual, "1: some message")
 		})
 	})
 }
