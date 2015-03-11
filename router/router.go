@@ -3,7 +3,6 @@ package router
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -27,7 +26,7 @@ type Router struct {
 }
 
 // Processor specifies the function signature for a Preprocessor
-type Processor func(*Payload, *Response) (int, error)
+type Processor func(*Payload, *Response) int
 
 // NewRouter is factory for Router
 func NewRouter() *Router {
@@ -47,57 +46,43 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
 		httpStatus = http.StatusOK
 		reqJSON    map[string]interface{}
-		errString  string
+		resp       Response
 	)
 	defer func() {
-		if httpStatus != http.StatusOK {
-			w.WriteHeader(httpStatus)
-			w.Write([]byte(errString))
+		w.WriteHeader(httpStatus)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			panic(err)
 		}
 	}()
-	body, _ := ioutil.ReadAll(req.Body)
-	if err := json.Unmarshal(body, &reqJSON); err != nil {
+
+	if err := json.NewDecoder(req.Body).Decode(&reqJSON); err != nil {
 		httpStatus = http.StatusBadRequest
-		errString = err.Error()
+		resp.Err = oderr.NewFmt(oderr.RequestInvalidErr, err.Error())
 		return
 	}
+
 	payload := Payload{
 		Meta: map[string]interface{}{},
 		Data: reqJSON,
 	}
-	pipeline, ok := r.actions[payload.RouteAction()]
-	if ok {
-		var resp Response
+
+	if pipeline, ok := r.actions[payload.RouteAction()]; ok {
 		for _, p := range pipeline.Preprocessors {
-			if s, err := p(&payload, &resp); err != nil {
-				httpStatus = s
-
-				if mwErr, ok := err.(oderr.Error); ok {
-					b, err := json.Marshal(struct {
-						Code    oderr.ErrCode `json:"code"`
-						Message string        `json:"message"`
-					}{mwErr.Code(), mwErr.Message()})
-
-					if err == nil {
-						errString = string(b)
-						return
-					}
+			httpStatus = p(&payload, &resp)
+			if resp.Err != nil {
+				if httpStatus == 200 {
+					httpStatus = 500
 				}
-
-				errString = err.Error()
+				if _, ok := resp.Err.(oderr.Error); !ok {
+					resp.Err = oderr.New(oderr.UnknownErr, resp.Err.Error())
+				}
 				return
 			}
 		}
 		pipeline.Handler(&payload, &resp)
-		b, err := json.Marshal(resp)
-		if err != nil {
-			panic("Response Error: " + err.Error())
-		}
-		w.Write(b)
 	} else {
 		httpStatus = http.StatusNotFound
-		errString = "Unmatched Route"
-		return
+		resp.Err = oderr.New(oderr.RequestInvalidErr, "Unmatched Route")
 	}
 }
 

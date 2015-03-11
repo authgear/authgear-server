@@ -47,7 +47,7 @@ func TestRouterMap(t *testing.T) {
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
 
-	if resp.Body.String() != "{\"result\":{\"username\":\"example\"}}" {
+	if resp.Body.String() != "{\"result\":{\"username\":\"example\"}}\n" {
 		t.Fatalf("Simple map failed %v", resp.Body.String())
 	}
 }
@@ -71,8 +71,9 @@ func TestRouterMapMissing(t *testing.T) {
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
 
-	if resp.Body.String() != "Unmatched Route" {
-		t.Fatalf("Empty route should not mappped")
+	expectedBody := "{\"error\":{\"code\":201,\"message\":\"Unmatched Route\"}}\n"
+	if resp.Body.String() != expectedBody {
+		t.Fatalf("want resp.Body.String() = %#v, got %#v", expectedBody, resp.Body.String())
 	}
 }
 
@@ -81,8 +82,9 @@ type getPreprocessor struct {
 	Err    error
 }
 
-func (p *getPreprocessor) Preprocess(payload *Payload, response *Response) (int, error) {
-	return p.Status, p.Err
+func (p *getPreprocessor) Preprocess(payload *Payload, response *Response) int {
+	response.Err = p.Err
+	return p.Status
 }
 
 func TestPreprocess(t *testing.T) {
@@ -110,7 +112,7 @@ func TestPreprocess(t *testing.T) {
 			r.ServeHTTP(resp, req)
 
 			Convey("it returns ok", func() {
-				So(resp.Body.String(), ShouldEqual, `{"result":"ok"}`)
+				So(resp.Body.String(), ShouldEqual, "{\"result\":\"ok\"}\n")
 			})
 
 			Convey("it has status code = 200", func() {
@@ -125,7 +127,7 @@ func TestPreprocess(t *testing.T) {
 			r.ServeHTTP(resp, req)
 
 			Convey("it has \"err\" as body", func() {
-				So(resp.Body.String(), ShouldEqual, "err")
+				So(resp.Body.String(), ShouldEqual, "{\"error\":{\"code\":1,\"message\":\"err\"}}\n")
 			})
 
 			Convey("it has status code = 500", func() {
@@ -140,7 +142,7 @@ func TestPreprocess(t *testing.T) {
 			r.ServeHTTP(resp, req)
 
 			Convey("it has \"err\" as body", func() {
-				So(resp.Body.String(), ShouldEqual, `{"code":123,"message":"oderr"}`)
+				So(resp.Body.String(), ShouldEqual, "{\"error\":{\"code\":123,\"message\":\"oderr\"}}\n")
 			})
 
 			Convey("it has status code = 500", func() {

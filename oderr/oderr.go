@@ -1,7 +1,10 @@
 // Package oderr contains information of errors used in ourd.
 package oderr
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // ErrCode is error code being assigned to router.Payload when
 // Handler signifies an error
@@ -37,6 +40,7 @@ type Error interface {
 	Code() ErrCode
 	Message() string
 	error
+	json.Marshaler
 }
 
 // genericError is an intuitive implementation of Error that contains
@@ -66,4 +70,11 @@ func (e *genericError) Message() string {
 
 func (e *genericError) Error() string {
 	return fmt.Sprintf("%v: %v", e.code, e.message)
+}
+
+func (e *genericError) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Code    ErrCode `json:"code"`
+		Message string  `json:"message"`
+	}{e.Code(), e.Message()})
 }

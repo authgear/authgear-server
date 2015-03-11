@@ -12,10 +12,10 @@ type Payload struct {
 	// Map of params such as Auth, TimeSteam, version
 	Meta map[string]interface{}
 	// Map of action payload
-	Data   map[string]interface{}
-	DBConn oddb.Conn
-	oddb.Database
+	Data       map[string]interface{}
 	TokenStore authtoken.Store
+	DBConn     oddb.Conn
+	oddb.Database
 	*oddb.UserInfo
 }
 
@@ -52,7 +52,8 @@ func (p *Payload) AccessToken() string {
 // Response is interface for handler to write response to router
 type Response struct {
 	Meta       map[string]interface{} `json:"-"`
-	Result     interface{}            `json:"result"`
+	Result     interface{}            `json:"result,omitempty"`
+	Err        error                  `json:"error,omitempty"`
 	RequestID  string                 `json:"request_id,omitempty"`
 	DatabaseID string                 `json:"database_id,omitempty"`
 }
