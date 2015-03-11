@@ -61,7 +61,7 @@ type Database interface {
 
 	// Query executes the supplied query against the Database and returns
 	// an Rows to iterate the results.
-	Query(query string, args ...interface{}) (Rows, error)
+	Query(query *Query) (Rows, error)
 }
 
 // Rows is a cursor returned by execution of a query.
