@@ -25,7 +25,10 @@ func main() {
 	configPath := os.Args[1]
 
 	config := Configuration{}
-	ReadFileInto(&config, configPath)
+	if err := ReadFileInto(&config, configPath); err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
 	fileSystemConnPreprocessor := connPreprocessor{
 		DBOpener: oddb.Open,

@@ -20,10 +20,6 @@ type Configuration struct {
 }
 
 // ReadFileInto reads a configuration from file specified by path
-func ReadFileInto(config *Configuration, path string) {
-	if err := gcfg.ReadFileInto(config, path); err != nil {
-		// it is certainly an fatal error if we cannot read the config file
-		// into Configuration, so panic here
-		panic(err)
-	}
+func ReadFileInto(config *Configuration, path string) error {
+	return gcfg.ReadFileInto(config, path)
 }
