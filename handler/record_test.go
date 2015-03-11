@@ -1,14 +1,17 @@
 package handler
 
 import (
+	. "github.com/smartystreets/goconvey/convey"
+	"testing"
+
 	"encoding/json"
 	"os"
 	"reflect"
-	"testing"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/fs"
+	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
 
@@ -193,4 +196,85 @@ func TestRecordSaveHandler(t *testing.T) {
 	if !reflect.DeepEqual(response.Result, expectedResult) {
 		t.Fatalf("got response.Result = %#v, want %#v", response.Result, expectedResult)
 	}
+}
+
+type mapDB struct {
+	Map map[string]oddb.Record
+	oddb.Database
+}
+
+func (db mapDB) Get(key string, record *oddb.Record) error {
+	r, ok := db.Map[key]
+	if !ok {
+		return oddb.ErrRecordNotFound
+	}
+
+	*record = r
+
+	return nil
+}
+
+func TestRecordFetch(t *testing.T) {
+	record1 := oddb.Record{Key: "1", Type: "record"}
+	record2 := oddb.Record{Key: "2", Type: "record"}
+	db := mapDB{
+		Map: map[string]oddb.Record{
+			"1": record1,
+			"2": record2,
+		},
+	}
+
+	Convey("Given a Database", t, func() {
+		Convey("records can be fetched", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"ids": []interface{}{"1", "2"},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordFetchHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(response.Result, ShouldResemble, []interface{}{record1, record2})
+		})
+
+		Convey("returns error in a list when non-exist records are fetched", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"ids": []interface{}{"1", "not-exist", "2"},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordFetchHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(response.Result, ShouldResemble, []interface{}{
+				record1,
+				idResponseItem{ID: "not-exist", Type: "_error", Code: "NOT_FOUND"},
+				record2,
+			})
+		})
+
+		Convey("returns error when non-string ids is supplied", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"ids": []interface{}{1, 2, 3},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordFetchHandler(&payload, &response)
+
+			So(response.Result, ShouldBeNil)
+			So(response.Err, ShouldResemble, oderr.New(
+				oderr.RequestInvalidErr,
+				"invalid request: expect list of ids",
+			))
+		})
+	})
 }

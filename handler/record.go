@@ -66,6 +66,13 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 	return nil
 }
 
+// idResponseItem encapsulates an item in a list of Record ID as response.
+type idResponseItem struct {
+	ID   string `json:"_id,omitempty"`
+	Type string `json:"_type,omitempty"`
+	Code string `json:"_code,omitempty"`
+}
+
 /*
 RecordSaveHandler is dummy implementation on save/modify Records
 curl -X POST -H "Content-Type: application/json" \
@@ -133,16 +140,49 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 func RecordFetchHandler(payload *router.Payload, response *router.Response) {
-	var (
-		records []oddb.Record
-	)
-	records = append(records, oddb.Record{
-		Type: "abc",
-		Key:  "abc:uuid",
-	})
-	log.Println("RecordFetchHandler")
-	response.Result = records
-	return
+	interfaces, ok := payload.Data["ids"].([]interface{})
+	if !ok {
+		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: expect list of ids")
+		return
+	}
+
+	length := len(interfaces)
+	recordIDs := make([]string, length, length)
+	for i, it := range interfaces {
+		recordID, ok := it.(string)
+		if !ok {
+			response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: expect list of ids")
+			return
+		}
+
+		recordIDs[i] = recordID
+	}
+
+	db := payload.Database
+
+	results := make([]interface{}, length, length)
+	for i, recordID := range recordIDs {
+		record := oddb.Record{}
+		if err := db.Get(recordID, &record); err != nil {
+			if err == oddb.ErrRecordNotFound {
+				results[i] = idResponseItem{
+					ID:   recordID,
+					Type: "_error",
+					Code: "NOT_FOUND",
+				}
+			} else {
+				results[i] = idResponseItem{
+					ID:   recordID,
+					Type: "_error",
+					Code: "UNKNOWN_ERR",
+				}
+			}
+		} else {
+			results[i] = record
+		}
+	}
+
+	response.Result = results
 }
 
 func sortFromRaw(rawSort []interface{}, sort *oddb.Sort) {
@@ -261,12 +301,6 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	response.Result = records
 }
 
-type deleteResponse struct {
-	ID   string `json:"_id,omitempty"`
-	Type string `json:"_type,omitempty"`
-	Code string `json:"_code,omitempty"`
-}
-
 /*
 RecordDeleteHandler is dummy implementation on delete Records
 curl -X POST -H "Content-Type: application/json" \
@@ -289,20 +323,20 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 
 	recordIDs, ok := payload.Data["ids"].([]interface{})
 	if !ok {
-		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: expected list of ids")
+		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: expect list of ids")
 		return
 	}
-	results := []deleteResponse{}
+	results := []idResponseItem{}
 	for i := range recordIDs {
 		ID, ok := recordIDs[i].(string)
 		if !ok {
-			results = append(results, deleteResponse{
+			results = append(results, idResponseItem{
 				ID,
 				"_error",
 				"ID_FORMAT_ERROR", // FIXME: Dummy
 			})
 		} else if err := db.Delete(ID); err != nil {
-			results = append(results, deleteResponse{
+			results = append(results, idResponseItem{
 				ID,
 				"_error",
 				"NOT_FOUND", // FIXME: Dummy

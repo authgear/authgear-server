@@ -92,6 +92,9 @@ func (db fileDatabase) ID() string {
 func (db fileDatabase) Get(key string, record *oddb.Record) error {
 	file, err := os.Open(filepath.Join(db.Dir, key))
 	if err != nil {
+		if os.IsNotExist(err) {
+			return oddb.ErrRecordNotFound
+		}
 		return err
 	}
 
