@@ -4,12 +4,15 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"syscall"
 
 	"github.com/oursky/ourd/oddb"
@@ -115,18 +118,104 @@ func (db fileDatabase) Delete(key string) error {
 	return os.Remove(filepath.Join(db.Dir, key))
 }
 
+type recordSorter struct {
+	records []oddb.Record
+	by      func(r1, r2 *oddb.Record) bool
+}
+
+func (s *recordSorter) Len() int {
+	return len(s.records)
+}
+
+func (s *recordSorter) Swap(i, j int) {
+	s.records[i], s.records[j] = s.records[j], s.records[i]
+}
+
+func (s *recordSorter) Less(i, j int) bool {
+	less := s.by(&s.records[i], &s.records[j])
+	// log.Printf("%v < %v => %v", s.records[i], s.records[j], less)
+	return less
+	// return s.by(&s.records[i], &s.records[j])
+}
+
+func (s *recordSorter) Sort() {
+	sort.Sort(s)
+}
+
+func newRecordSorter(records []oddb.Record, sortinfo oddb.Sort) *recordSorter {
+	var by func(r1, r2 *oddb.Record) bool
+
+	field := sortinfo.KeyPath
+
+	switch sortinfo.Order {
+	default:
+		by = func(r1, r2 *oddb.Record) bool {
+			return reflectLess(r1.Get(field), r2.Get(field))
+		}
+	case oddb.Desc:
+		by = func(r1, r2 *oddb.Record) bool {
+			return !reflectLess(r1.Get(field), r2.Get(field))
+		}
+	}
+
+	return &recordSorter{
+		records: records,
+		by:      by,
+	}
+}
+
+// reflectLess determines whether i1 should have order less than i2.
+// This func doesn't deal with pointers
+func reflectLess(i1, i2 interface{}) bool {
+	if i1 == nil && i2 == nil {
+		return true
+	}
+	if i1 == nil {
+		return true
+	}
+	if i2 == nil {
+		return false
+	}
+
+	v1 := reflect.ValueOf(i1)
+	v2 := reflect.ValueOf(i2)
+
+	if v1.Kind() != v2.Kind() {
+		return fmt.Sprint(i1) < fmt.Sprint(i2)
+	}
+
+	switch v1.Kind() {
+	case reflect.Bool:
+		b1, b2 := i1.(bool), i2.(bool)
+		if b1 && !b2 { // treating bool as number, then only [1, 0] returns false
+			return false
+		}
+		return true
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v1.Int() < v2.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return v1.Uint() < v2.Uint()
+	case reflect.Float32, reflect.Float64:
+		return v1.Float() < v2.Float()
+	case reflect.String:
+		return v1.String() < v2.String()
+	default:
+		return fmt.Sprint(i1) < fmt.Sprint(i2)
+	}
+}
+
 // Query performs a query on the current Database.
 //
 // FIXME: Curent implementation is not complete. It assumes the first
 // argument being the type of Record and always returns a Rows that
 // iterates over all records of that type.
-func (db fileDatabase) Query(query string, args ...interface{}) (oddb.Rows, error) {
+func (db fileDatabase) Query(query *oddb.Query) (oddb.Rows, error) {
 	const grepFmt = "grep -he \"{\\\"_type\\\":\\\"%v\\\"\" %v"
 
 	if err := os.MkdirAll(db.Dir, 0755); err != nil {
 		return &memoryRows{0, []oddb.Record{}}, err
 	}
-	grep := fmt.Sprintf(grepFmt, args[0], filepath.Join(db.Dir, "*"))
+	grep := fmt.Sprintf(grepFmt, query.Type, filepath.Join(db.Dir, "*"))
 
 	var outbuf bytes.Buffer
 	var errbuf bytes.Buffer
@@ -160,6 +249,14 @@ func (db fileDatabase) Query(query string, args ...interface{}) (oddb.Rows, erro
 			return nil, err
 		}
 		records = append(records, record)
+	}
+
+	if len(query.Sorts) > 0 {
+		if len(query.Sorts) > 1 {
+			return nil, errors.New("multiple sort order is not supported")
+		}
+
+		newRecordSorter(records, query.Sorts[0]).Sort()
 	}
 
 	return &memoryRows{0, records}, nil
