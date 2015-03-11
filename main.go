@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler"
@@ -11,9 +13,19 @@ import (
 	"github.com/oursky/ourd/router"
 )
 
+func usage() {
+	fmt.Println("Usage: ourd [<config file>]")
+}
+
 func main() {
+	if len(os.Args) < 2 {
+		usage()
+		return
+	}
+	configPath := os.Args[1]
+
 	config := Configuration{}
-	ReadFileInto(&config, "development.ini")
+	ReadFileInto(&config, configPath)
 
 	fileSystemConnPreprocessor := connPreprocessor{
 		DBOpener: oddb.Open,
