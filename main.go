@@ -12,15 +12,18 @@ import (
 )
 
 func main() {
+	config := Configuration{}
+	ReadFileInto(&config, "development.ini")
+
 	fileSystemConnPreprocessor := connPreprocessor{
 		DBOpener: oddb.Open,
-		DBImpl:   "fs",
-		AppName:  "_",
-		Option:   "data",
+		DBImpl:   config.DB.ImplName,
+		AppName:  config.DB.AppName,
+		Option:   config.DB.Option,
 	}
 
 	fileTokenStorePreprocessor := tokenStorePreprocessor{
-		Store: authtoken.FileStore("data/token").Init(),
+		Store: authtoken.FileStore(config.TokenStore.Path).Init(),
 	}
 
 	r := router.NewRouter()
@@ -44,6 +47,6 @@ func main() {
 	r.Map("record:save", handler.RecordSaveHandler, recordPreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordPreprocessors...)
 
-	log.Println("Listening...")
-	http.ListenAndServe(":3000", r)
+	log.Printf("Listening on %v...", config.HTTP.Host)
+	http.ListenAndServe(config.HTTP.Host, r)
 }
