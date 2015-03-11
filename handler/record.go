@@ -145,6 +145,72 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	return
 }
 
+func sortFromRaw(rawSort []interface{}, sort *oddb.Sort) {
+	keyPath, _ := rawSort[0].(string)
+	if keyPath == "" {
+		panic(oderr.New(oderr.RequestInvalidErr, "missing key path in sort descriptor"))
+	}
+
+	orderStr, _ := rawSort[1].(string)
+	if orderStr == "" {
+		panic(oderr.New(oderr.RequestInvalidErr, "missing sort order in sort descriptor"))
+	}
+
+	var sortOrder oddb.SortOrder
+	switch orderStr {
+	case "asc":
+		sortOrder = oddb.Asc
+	case "desc":
+		sortOrder = oddb.Desc
+	default:
+		panic(oderr.NewFmt(oderr.RequestInvalidErr, "unknown sort order: %v", orderStr))
+	}
+
+	sort.KeyPath = keyPath
+	sort.Order = sortOrder
+}
+
+func sortsFromRaw(rawSorts []interface{}) []oddb.Sort {
+	length := len(rawSorts)
+	sorts := make([]oddb.Sort, length, length)
+
+	for i := range rawSorts {
+		sortFromRaw(rawSorts[i].([]interface{}), &sorts[i])
+	}
+
+	return sorts
+}
+
+func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Error) {
+	defer func() {
+		// use panic to escape from inner error
+		if r := recover(); r != nil {
+			if queryErr, ok := r.(oderr.Error); ok {
+				err = queryErr
+			}
+
+			log.Printf("panic recovered while constructing query: %v", r)
+			err = oderr.New(oderr.RequestInvalidErr, "error occurred while constructing query")
+		}
+	}()
+
+	recordType, _ := payload.Data["record_type"].(string)
+	if recordType == "" {
+		return oderr.New(oderr.RequestInvalidErr, "recordType cannot be empty")
+	}
+	query.Type = recordType
+
+	if rawSorts, ok := payload.Data["order"]; ok {
+		if rawSorts, ok := rawSorts.([]interface{}); ok {
+			query.Sorts = sortsFromRaw(rawSorts)
+		} else {
+			return oderr.New(oderr.RequestInvalidErr, "order has to be an array")
+		}
+	}
+
+	return nil
+}
+
 /*
 RecordQueryHandler is dummy implementation on fetching Records
 curl -X POST -H "Content-Type: application/json" \
@@ -152,20 +218,24 @@ curl -X POST -H "Content-Type: application/json" \
 {
     "action": "record:query",
     "access_token": "validToken",
-    "database_id": "private"
+    "database_id": "private",
+    "record_type": "note",
+    "order": [
+        ["key", "asc"]
+    ]
 }
 EOF
 */
 func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	db := payload.Database
 
-	recordType, _ := payload.Data["record_type"].(string)
-	if recordType == "" {
-		response.Result = oderr.New(oderr.RequestInvalidErr, "recordType cannot be empty")
+	query := oddb.Query{}
+	if err := queryFromPayload(payload, &query); err != nil {
+		response.Result = err
 		return
 	}
 
-	results, err := db.Query("", recordType)
+	results, err := db.Query(&query)
 	if err != nil {
 		response.Result = oderr.New(oderr.UnknownErr, "failed to open database")
 		return
