@@ -46,9 +46,14 @@ type genericError struct {
 	message string
 }
 
-// New creates an error to be returned as Response's result
+// New creates an Error to be returned as Response's result
 func New(code ErrCode, message string) Error {
 	return &genericError{code, message}
+}
+
+// NewFmt creates an Error with the specified fmt and args
+func NewFmt(code ErrCode, format string, args ...interface{}) Error {
+	return New(code, fmt.Sprintf(format, args...))
 }
 
 func (e *genericError) Code() ErrCode {

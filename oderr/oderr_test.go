@@ -28,3 +28,17 @@ func TestNewError(t *testing.T) {
 		})
 	})
 }
+
+func TestNewFmtError(t *testing.T) {
+	Convey("NewFmt", t, func() {
+		err := NewFmt(2, "obj1: %v, obj2: %v", "string", 0)
+
+		Convey("creates err with correct code", func() {
+			So(err.Code(), ShouldEqual, 2)
+		})
+
+		Convey("creates err with correct message", func() {
+			So(err.Message(), ShouldEqual, "obj1: string, obj2: 0")
+		})
+	})
+}
