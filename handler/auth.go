@@ -3,7 +3,7 @@ package handler
 import (
 	"time"
 
-	"github.com/oursky/ourd/auth"
+	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
@@ -95,7 +95,7 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	// generate access-token
-	token := auth.NewToken(info.ID, time.Time{})
+	token := authtoken.New(info.ID, time.Time{})
 	if err := store.Put(&token); err != nil {
 		panic(err)
 	}
@@ -162,7 +162,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	// generate access-token
-	token := auth.NewToken(info.ID, time.Time{})
+	token := authtoken.New(info.ID, time.Time{})
 	if err := store.Put(&token); err != nil {
 		panic(err)
 	}

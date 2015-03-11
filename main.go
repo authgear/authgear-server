@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/oursky/ourd/auth"
+	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler"
 	"github.com/oursky/ourd/oddb"
 	_ "github.com/oursky/ourd/oddb/fs"
@@ -20,7 +20,7 @@ func main() {
 	}
 
 	fileTokenStorePreprocessor := tokenStorePreprocessor{
-		TokenStore: auth.FileStore("data/token").Init(),
+		Store: authtoken.FileStore("data/token").Init(),
 	}
 
 	r := router.NewRouter()

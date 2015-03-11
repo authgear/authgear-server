@@ -3,7 +3,7 @@ package router
 import (
 	"log"
 
-	"github.com/oursky/ourd/auth"
+	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 )
 
@@ -15,7 +15,7 @@ type Payload struct {
 	Data   map[string]interface{}
 	DBConn oddb.Conn
 	oddb.Database
-	auth.TokenStore
+	TokenStore authtoken.Store
 	*oddb.UserInfo
 }
 

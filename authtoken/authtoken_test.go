@@ -1,4 +1,4 @@
-package auth
+package authtoken
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ func tempDir() string {
 }
 
 func TestNewToken(t *testing.T) {
-	token := NewToken("46709394", time.Time{})
+	token := New("46709394", time.Time{})
 
 	if token.UserInfoID != "46709394" {
 		t.Fatalf("got token.UserInfoID = %v, want 46709394", token)
@@ -36,7 +36,7 @@ func TestNewToken(t *testing.T) {
 func TestNewTokenWithExpiry(t *testing.T) {
 	expiredAt := time.Unix(0, 1)
 
-	token := NewToken("46709394", expiredAt)
+	token := New("46709394", expiredAt)
 
 	if !token.ExpiredAt.Equal(expiredAt) {
 		t.Fatalf("got token.ExpiredAt = %v, want %v", token.ExpiredAt, expiredAt)

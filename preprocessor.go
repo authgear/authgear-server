@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/oursky/ourd/auth"
+	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/router"
 )
@@ -32,11 +32,11 @@ func (p connPreprocessor) Preprocess(payload *router.Payload, response *router.R
 }
 
 type tokenStorePreprocessor struct {
-	auth.TokenStore
+	authtoken.Store
 }
 
 func (p tokenStorePreprocessor) Preprocess(payload *router.Payload, response *router.Response) (int, error) {
-	payload.TokenStore = p.TokenStore
+	payload.TokenStore = p.Store
 	return http.StatusOK, nil
 }
 
@@ -47,7 +47,7 @@ func authenticateUser(payload *router.Payload, response *router.Response) (int, 
 	}
 
 	store := payload.TokenStore
-	token := auth.Token{}
+	token := authtoken.Token{}
 
 	if err := store.Get(tokenString, &token); err != nil {
 		return http.StatusUnauthorized, err

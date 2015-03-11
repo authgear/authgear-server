@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/oursky/ourd/auth"
+	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/fs"
 	"github.com/oursky/ourd/router"
@@ -86,27 +86,27 @@ func (h *calledHandler) SetCalled(p *recordPayload, r *router.Response, db oddb.
 // a separate package
 
 // trueStore is a TokenStore that always noop on Put and assign itself on Get
-type trueStore auth.Token
+type trueStore authtoken.Token
 
-func (store *trueStore) Get(id string, token *auth.Token) error {
-	*token = auth.Token(*store)
+func (store *trueStore) Get(id string, token *authtoken.Token) error {
+	*token = authtoken.Token(*store)
 	return nil
 }
 
-func (store *trueStore) Put(token *auth.Token) error {
+func (store *trueStore) Put(token *authtoken.Token) error {
 	return nil
 }
 
 // errStore is a TokenStore that always noop and returns itself as error
 // on both Get and Put
-type errStore auth.TokenNotFoundError
+type errStore authtoken.NotFoundError
 
-func (store *errStore) Get(id string, token *auth.Token) error {
-	return (*auth.TokenNotFoundError)(store)
+func (store *errStore) Get(id string, token *authtoken.Token) error {
+	return (*authtoken.NotFoundError)(store)
 }
 
-func (store *errStore) Put(token *auth.Token) error {
-	return (*auth.TokenNotFoundError)(store)
+func (store *errStore) Put(token *authtoken.Token) error {
+	return (*authtoken.NotFoundError)(store)
 }
 
 func TestRecordSaveHandler(t *testing.T) {

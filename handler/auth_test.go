@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/oursky/ourd/auth"
+	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/fs"
 	"github.com/oursky/ourd/oderr"
@@ -22,14 +22,14 @@ func tempDir() string {
 }
 
 // singleTokenStore implementassigns to and returns itself.
-type singleTokenStore auth.Token
+type singleTokenStore authtoken.Token
 
-func (s *singleTokenStore) Get(accessToken string, token *auth.Token) error {
-	*token = auth.Token(*s)
+func (s *singleTokenStore) Get(accessToken string, token *authtoken.Token) error {
+	*token = authtoken.Token(*s)
 	return nil
 }
 
-func (s *singleTokenStore) Put(token *auth.Token) error {
+func (s *singleTokenStore) Put(token *authtoken.Token) error {
 	*s = singleTokenStore(*token)
 	return nil
 }
@@ -95,7 +95,7 @@ func TestSignupHandler(t *testing.T) {
 		t.Fatal("got authResp.AccessToken, want non-empty value")
 	}
 
-	token := auth.Token(tokenStore)
+	token := authtoken.Token(tokenStore)
 	if token.UserInfoID != "userinfoid" {
 		t.Fatalf("got token.UserInfoID = %v, want userinfoid", token.UserInfoID)
 	}
@@ -181,7 +181,7 @@ func TestLoginHandler(t *testing.T) {
 		t.Fatal("got authResp.AccessToken, want non-empty value")
 	}
 
-	token := auth.Token(tokenStore)
+	token := authtoken.Token(tokenStore)
 	if token.UserInfoID != "userinfoid" {
 		t.Fatalf("got token.UserInfoID = %v, want userinfoid", token.UserInfoID)
 	}

@@ -1,4 +1,4 @@
-package auth
+package authtoken
 
 import (
 	"encoding/json"
@@ -17,10 +17,10 @@ type Token struct {
 	UserInfoID  string    `json:"userInfoID"`
 }
 
-// NewToken creates a new Token ready for use given a userInfoID and
+// New creates a new Token ready for use given a userInfoID and
 // expiredAt date. If expiredAt is passed an empty Time, it
 // will be set to 30 days from now.
-func NewToken(userInfoID string, expiredAt time.Time) Token {
+func New(userInfoID string, expiredAt time.Time) Token {
 	if expiredAt.IsZero() {
 		expiredAt = time.Now().Add(24 * 30 * time.Hour)
 	}
@@ -39,19 +39,19 @@ func (t *Token) IsExpired() bool {
 	return t.ExpiredAt.Before(time.Now())
 }
 
-// TokenNotFoundError is the error returned by Get if a TokenStore
+// NotFoundError is the error returned by Get if a TokenStore
 // cannot find the requested token or the fetched token is expired.
-type TokenNotFoundError struct {
+type NotFoundError struct {
 	AccessToken string
 	Err         error
 }
 
-func (e *TokenNotFoundError) Error() string {
+func (e *NotFoundError) Error() string {
 	return fmt.Sprintf("get %v: %v", e.AccessToken, e.Err)
 }
 
-// TokenStore represents a persistent storage for Token.
-type TokenStore interface {
+// Store represents a persistent storage for Token.
+type Store interface {
 	Get(accessToken string, token *Token) error
 	Put(token *Token) error
 }
@@ -75,7 +75,7 @@ func (f FileStore) Init() FileStore {
 // Get tries to read the specified access token from file and
 // writes to the supplied Token.
 //
-// Get returns an TokenNotFoundError if no such access token exists or
+// Get returns an NotFoundError if no such access token exists or
 // such access token is expired. In the latter case the expired
 // access token is still written onto the supplied Token.
 func (f FileStore) Get(accessToken string, token *Token) error {
@@ -83,17 +83,17 @@ func (f FileStore) Get(accessToken string, token *Token) error {
 
 	file, err := os.Open(tokenPath)
 	if err != nil {
-		return &TokenNotFoundError{accessToken, err}
+		return &NotFoundError{accessToken, err}
 	}
 	defer file.Close()
 
 	if err := json.NewDecoder(file).Decode(token); err != nil {
-		return &TokenNotFoundError{accessToken, err}
+		return &NotFoundError{accessToken, err}
 	}
 
 	if token.IsExpired() {
 		os.Remove(tokenPath)
-		return &TokenNotFoundError{accessToken, fmt.Errorf("token expired at %v", token.ExpiredAt)}
+		return &NotFoundError{accessToken, fmt.Errorf("token expired at %v", token.ExpiredAt)}
 	}
 
 	return nil
@@ -104,12 +104,12 @@ func (f FileStore) Get(accessToken string, token *Token) error {
 func (f FileStore) Put(token *Token) error {
 	file, err := os.Create(filepath.Join(string(f), token.AccessToken))
 	if err != nil {
-		return &TokenNotFoundError{token.AccessToken, err}
+		return &NotFoundError{token.AccessToken, err}
 	}
 	defer file.Close()
 
 	if err := json.NewEncoder(file).Encode(token); err != nil {
-		return &TokenNotFoundError{token.AccessToken, err}
+		return &NotFoundError{token.AccessToken, err}
 	}
 
 	return nil
