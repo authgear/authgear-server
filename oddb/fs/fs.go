@@ -212,11 +212,11 @@ func reflectLess(i1, i2 interface{}) bool {
 // FIXME: Curent implementation is not complete. It assumes the first
 // argument being the type of Record and always returns a Rows that
 // iterates over all records of that type.
-func (db fileDatabase) Query(query *oddb.Query) (oddb.Rows, error) {
+func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 	const grepFmt = "grep -he \"{\\\"_type\\\":\\\"%v\\\"\" %v"
 
 	if err := os.MkdirAll(db.Dir, 0755); err != nil {
-		return &memoryRows{0, []oddb.Record{}}, err
+		return oddb.NewRows(&memoryRows{0, []oddb.Record{}}), err
 	}
 	grep := fmt.Sprintf(grepFmt, query.Type, filepath.Join(db.Dir, "*"))
 
@@ -236,12 +236,12 @@ func (db fileDatabase) Query(query *oddb.Query) (oddb.Rows, error) {
 					log.Println("ExitStatus", 1)
 					// grep has a exit status of 1 if it finds nothing
 					// See: http://www.gnu.org/software/grep/manual/html_node/Exit-Status.html
-					return &memoryRows{0, []oddb.Record{}}, nil
+					return oddb.NewRows(&memoryRows{0, []oddb.Record{}}), nil
 				}
 			}
 		}
 		log.Printf("Failed to grep: %v\nStderr: %v", err.Error(), errbuf.String())
-		return &memoryRows{0, []oddb.Record{}}, nil
+		return oddb.NewRows(&memoryRows{0, []oddb.Record{}}), nil
 	}
 
 	records := []oddb.Record{}
@@ -262,7 +262,7 @@ func (db fileDatabase) Query(query *oddb.Query) (oddb.Rows, error) {
 		newRecordSorter(records, query.Sorts[0]).Sort()
 	}
 
-	return &memoryRows{0, records}, nil
+	return oddb.NewRows(&memoryRows{0, records}), nil
 }
 
 func (db fileDatabase) recordPath(record *oddb.Record) string {

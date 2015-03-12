@@ -4,7 +4,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
-	"io"
 	"io/ioutil"
 	"os"
 
@@ -20,20 +19,17 @@ func tempdir() string {
 	return dir
 }
 
-func transformRows(rows oddb.Rows, err error) ([]oddb.Record, error) {
+func transformRows(rows *oddb.Rows, err error) ([]oddb.Record, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	record := oddb.Record{}
 	records := []oddb.Record{}
-	err = rows.Next(&record)
-	for err == nil {
-		records = append(records, record)
-		err = rows.Next(&record)
+	for rows.Scan() {
+		records = append(records, rows.Record())
 	}
 
-	if err != io.EOF {
+	if err := rows.Err(); err != nil {
 		panic(err)
 	}
 

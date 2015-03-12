@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"io"
 	"log"
 
 	"github.com/oursky/ourd/oddb"
@@ -283,17 +282,11 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	defer results.Close()
 
 	records := []transportRecord{}
-	record := oddb.Record{}
-
-	// needs a better abstraction here
-	err = results.Next(&record)
-	for err == nil {
-		records = append(records, transportRecord(record))
-		err = results.Next(&record)
+	for results.Scan() {
+		records = append(records, transportRecord(results.Record()))
 	}
 
-	// query failed
-	if err != io.EOF {
+	if err != nil {
 		response.Result = oderr.New(oderr.UnknownErr, "failed to query records")
 		return
 	}
