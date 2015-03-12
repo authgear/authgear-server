@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/twinj/uuid"
+	"github.com/oursky/ourd/uuid"
 )
 
 // Token is an expiry access token associated to a UserInfo.
@@ -28,7 +28,7 @@ func New(userInfoID string, expiredAt time.Time) Token {
 	return Token{
 		// NOTE(limouren): I am not sure if it is good to use UUID
 		// as access token.
-		AccessToken: uuid.NewV4().String(),
+		AccessToken: uuid.New(),
 		ExpiredAt:   expiredAt,
 		UserInfoID:  userInfoID,
 	}

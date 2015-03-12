@@ -1,7 +1,7 @@
 package oddb
 
 import (
-	"github.com/twinj/uuid"
+	"github.com/oursky/ourd/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,7 +31,7 @@ type UserInfo struct {
 // password with generated UUID4 ID
 func NewUserInfo(id, email, password string) UserInfo {
 	if id == "" {
-		id = uuid.NewV4().String()
+		id = uuid.New()
 	}
 
 	info := UserInfo{
@@ -47,7 +47,7 @@ func NewUserInfo(id, email, password string) UserInfo {
 // no Email and Password.
 func NewAnonymousUserInfo() UserInfo {
 	return UserInfo{
-		ID: uuid.NewV4().String(),
+		ID: uuid.New(),
 	}
 }
 
