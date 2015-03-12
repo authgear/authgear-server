@@ -3,6 +3,7 @@ package router
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 	"net/http"
 
@@ -56,9 +57,13 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}()
 
 	if err := json.NewDecoder(req.Body).Decode(&reqJSON); err != nil {
-		httpStatus = http.StatusBadRequest
-		resp.Err = oderr.NewFmt(oderr.RequestInvalidErr, err.Error())
-		return
+		if err == io.EOF {
+			reqJSON = map[string]interface{}{}
+		} else {
+			httpStatus = http.StatusBadRequest
+			resp.Err = oderr.NewFmt(oderr.RequestInvalidErr, err.Error())
+			return
+		}
 	}
 
 	payload := Payload{
