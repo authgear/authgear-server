@@ -45,6 +45,10 @@ type Database interface {
 	// Query executes the supplied query against the Database and returns
 	// an Rows to iterate the results.
 	Query(query *Query) (*Rows, error)
+
+	GetSubscription(key string, subscription *Subscription) error
+	SaveSubscription(subscription *Subscription) error
+	DeleteSubscription(key string) error
 }
 
 // Rows implements a scanner-like interface for easy iteration on a

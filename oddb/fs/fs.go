@@ -74,14 +74,16 @@ func (conn fileConn) PrivateDB(userKey string) oddb.Database {
 }
 
 type fileDatabase struct {
-	Dir string
-	Key string
+	Dir       string
+	Key       string
+	subscriDB subscriptionDB
 }
 
 func newDatabase(dir string, key string) *fileDatabase {
 	return &fileDatabase{
-		Dir: dir,
-		Key: key,
+		Dir:       dir,
+		Key:       key,
+		subscriDB: newSubscriptionDB(filepath.Join(dir, "_subscription")),
 	}
 }
 
@@ -263,6 +265,18 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 	}
 
 	return oddb.NewRows(&memoryRows{0, records}), nil
+}
+
+func (db fileDatabase) GetSubscription(key string, subscription *oddb.Subscription) error {
+	return db.subscriDB.Get(key, subscription)
+}
+
+func (db fileDatabase) SaveSubscription(subscription *oddb.Subscription) error {
+	return db.subscriDB.Save(subscription)
+}
+
+func (db fileDatabase) DeleteSubscription(key string) error {
+	return db.subscriDB.Delete(key)
 }
 
 func (db fileDatabase) recordPath(record *oddb.Record) string {

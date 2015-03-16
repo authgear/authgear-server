@@ -26,7 +26,7 @@ type Predicate struct {
 // Query specifies the type, predicate and sorting order of Database
 // query.
 type Query struct {
-	Type string
-	Predicate
-	Sorts []Sort
+	Type      string `json:"record_type"`
+	Predicate `json:"predicate,omitempty"`
+	Sorts     []Sort `json:"order,omitempty"`
 }
