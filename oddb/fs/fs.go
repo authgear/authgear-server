@@ -23,6 +23,8 @@ const userDBKey = "_user"
 const publicDBKey = "_public"
 const privateDBKey = "_private"
 
+var dbHookFuncs []oddb.DBHookFunc
+
 // fileConn implements oddb.Conn interface
 type fileConn struct {
 	Dir      string
@@ -36,41 +38,48 @@ func Open(appName, dir string) (oddb.Conn, error) {
 	containerPath := filepath.Join(dir, appName)
 	userDBPath := filepath.Join(containerPath, userDBKey)
 	publicDBPath := filepath.Join(containerPath, publicDBKey)
-	return &fileConn{
+
+	conn := &fileConn{
 		Dir:      containerPath,
 		AppName:  appName,
 		userDB:   newUserDatabase(userDBPath),
 		publicDB: newDatabase(publicDBPath, publicDBKey),
-	}, nil
+	}
+
+	return conn, nil
 }
 
-func (conn fileConn) Close() error {
+func (conn *fileConn) Close() error {
 	return nil
 }
 
-func (conn fileConn) CreateUser(info *oddb.UserInfo) error {
+func (conn *fileConn) CreateUser(info *oddb.UserInfo) error {
 	return conn.userDB.Create(info)
 }
 
-func (conn fileConn) GetUser(id string, info *oddb.UserInfo) error {
+func (conn *fileConn) GetUser(id string, info *oddb.UserInfo) error {
 	return conn.userDB.Get(id, info)
 }
 
-func (conn fileConn) UpdateUser(info *oddb.UserInfo) error {
+func (conn *fileConn) UpdateUser(info *oddb.UserInfo) error {
 	return conn.userDB.Update(info)
 }
 
-func (conn fileConn) DeleteUser(id string) error {
+func (conn *fileConn) DeleteUser(id string) error {
 	return conn.userDB.Delete(id)
 }
 
-func (conn fileConn) PublicDB() oddb.Database {
+func (conn *fileConn) PublicDB() oddb.Database {
 	return conn.publicDB
 }
 
-func (conn fileConn) PrivateDB(userKey string) oddb.Database {
+func (conn *fileConn) PrivateDB(userKey string) oddb.Database {
 	dbPath := filepath.Join(conn.Dir, userKey)
 	return newDatabase(dbPath, privateDBKey)
+}
+
+func (conn *fileConn) AddDBRecordHook(hookFunc oddb.DBHookFunc) {
+	dbHookFuncs = append(dbHookFuncs, hookFunc)
 }
 
 type fileDatabase struct {
@@ -85,6 +94,19 @@ func newDatabase(dir string, key string) *fileDatabase {
 		Key:       key,
 		subscriDB: newSubscriptionDB(filepath.Join(dir, "_subscription")),
 	}
+}
+
+// convenient method to execute hooks if err is nil
+func (db fileDatabase) executeHook(record *oddb.Record, event oddb.RecordHookEvent, err error) error {
+	if err != nil {
+		return err
+	}
+
+	for _, hookFunc := range dbHookFuncs {
+		go hookFunc(db, record, event)
+	}
+
+	return nil
 }
 
 func (db fileDatabase) ID() string {
@@ -110,17 +132,27 @@ func (db fileDatabase) Save(record *oddb.Record) error {
 		return err
 	}
 
+	event := recordEventByPath(filePath)
+
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err
 	}
 
 	jsonEncoder := json.NewEncoder(file)
-	return jsonEncoder.Encode(record)
+	err = jsonEncoder.Encode(record)
+
+	return db.executeHook(record, event, err)
 }
 
 func (db fileDatabase) Delete(key string) error {
-	return os.Remove(filepath.Join(db.Dir, key))
+	record := oddb.Record{}
+	if err := db.Get(key, &record); err != nil {
+		return err
+	}
+
+	err := os.Remove(filepath.Join(db.Dir, key))
+	return db.executeHook(&record, oddb.RecordDeleted, err)
 }
 
 type recordSorter struct {
@@ -277,6 +309,10 @@ func (db fileDatabase) SaveSubscription(subscription *oddb.Subscription) error {
 
 func (db fileDatabase) DeleteSubscription(key string) error {
 	return db.subscriDB.Delete(key)
+}
+
+func (db fileDatabase) GetMatchingSubscription(record *oddb.Record) []oddb.Subscription {
+	return db.subscriDB.GetMatchingSubscription(record)
 }
 
 func (db fileDatabase) recordPath(record *oddb.Record) string {

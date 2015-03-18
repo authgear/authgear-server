@@ -13,6 +13,9 @@ var ErrUserDuplicated = errors.New("oddb: duplicated UserInfo ID")
 // in the current container
 var ErrUserNotFound = errors.New("oddb: UserInfo ID not found")
 
+// DBHookFunc specifies the interface of a database hook function
+type DBHookFunc func(Database, *Record, RecordHookEvent)
+
 // Conn encapsulates the interface of an Ourd connection to a container.
 type Conn interface {
 	// CRUD of UserInfo, smell like a bad design to attach these onto
@@ -43,6 +46,8 @@ type Conn interface {
 
 	PublicDB() Database
 	PrivateDB(userKey string) Database
+
+	AddDBRecordHook(hook DBHookFunc)
 
 	Close() error
 }
