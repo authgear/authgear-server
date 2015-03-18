@@ -11,6 +11,7 @@ import (
 	"github.com/oursky/ourd/oddb"
 	_ "github.com/oursky/ourd/oddb/fs"
 	"github.com/oursky/ourd/router"
+	"github.com/oursky/ourd/subscription"
 )
 
 func usage() {
@@ -29,6 +30,11 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
+
+	subscriptionService := &subscription.Service{
+		ConnOpener: func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.DB.AppName, config.DB.Option) },
+	}
+	subscriptionService.Init()
 
 	fileSystemConnPreprocessor := connPreprocessor{
 		DBOpener: oddb.Open,
@@ -61,6 +67,8 @@ func main() {
 	r.Map("record:query", handler.RecordQueryHandler, recordPreprocessors...)
 	r.Map("record:save", handler.RecordSaveHandler, recordPreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordPreprocessors...)
+
+	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordPreprocessors...)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	http.ListenAndServe(config.HTTP.Host, r)
