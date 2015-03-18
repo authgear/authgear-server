@@ -1,5 +1,11 @@
 package oddb
 
+import "errors"
+
+// ErrSubscriptionNotFound is returned from GetSubscription or
+// DeleteSubscription when the specific subscription cannot be found.
+var ErrSubscriptionNotFound = errors.New("oddb: Subscription ID not found")
+
 // Subscription represents a device's subscription of notification
 // triggered by changes of results from a query.
 type Subscription struct {

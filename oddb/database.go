@@ -46,6 +46,7 @@ type Database interface {
 	// an Rows to iterate the results.
 	Query(query *Query) (*Rows, error)
 
+	GetMatchingSubscription(record *Record) []Subscription
 	GetSubscription(key string, subscription *Subscription) error
 	SaveSubscription(subscription *Subscription) error
 	DeleteSubscription(key string) error
