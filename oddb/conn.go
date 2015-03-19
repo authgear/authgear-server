@@ -13,6 +13,10 @@ var ErrUserDuplicated = errors.New("oddb: duplicated UserInfo ID")
 // in the current container
 var ErrUserNotFound = errors.New("oddb: UserInfo ID not found")
 
+// ErrDeviceNotFound is returned by Conn.GetDevice when the supplied
+// device ID is not found in the current container
+var ErrDeviceNotFound = errors.New("oddb: Device ID not found")
+
 // DBHookFunc specifies the interface of a database hook function
 type DBHookFunc func(Database, *Record, RecordHookEvent)
 
@@ -43,6 +47,10 @@ type Conn interface {
 	// DeleteUser returns ErrUserNotFound if such UserInfo does not
 	// exist in the container.
 	DeleteUser(id string) error
+
+	GetDevice(id string, device *Device) error
+	SaveDevice(device *Device) error
+	DeleteDevice(id string) error
 
 	PublicDB() Database
 	PrivateDB(userKey string) Database

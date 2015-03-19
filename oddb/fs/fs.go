@@ -30,6 +30,7 @@ type fileConn struct {
 	Dir      string
 	AppName  string
 	userDB   userDatabase
+	deviceDB *deviceDatabase
 	publicDB oddb.Database
 }
 
@@ -37,12 +38,14 @@ type fileConn struct {
 func Open(appName, dir string) (oddb.Conn, error) {
 	containerPath := filepath.Join(dir, appName)
 	userDBPath := filepath.Join(containerPath, userDBKey)
+	deviceDBPath := filepath.Join(containerPath, "_device")
 	publicDBPath := filepath.Join(containerPath, publicDBKey)
 
 	conn := &fileConn{
 		Dir:      containerPath,
 		AppName:  appName,
 		userDB:   newUserDatabase(userDBPath),
+		deviceDB: newDeviceDatabase(deviceDBPath),
 		publicDB: newDatabase(publicDBPath, publicDBKey),
 	}
 
@@ -67,6 +70,18 @@ func (conn *fileConn) UpdateUser(info *oddb.UserInfo) error {
 
 func (conn *fileConn) DeleteUser(id string) error {
 	return conn.userDB.Delete(id)
+}
+
+func (conn *fileConn) GetDevice(id string, device *oddb.Device) error {
+	return conn.deviceDB.Get(id, device)
+}
+
+func (conn *fileConn) SaveDevice(device *oddb.Device) error {
+	return conn.deviceDB.Save(device)
+}
+
+func (conn *fileConn) DeleteDevice(id string) error {
+	return conn.deviceDB.Delete(id)
 }
 
 func (conn *fileConn) PublicDB() oddb.Database {

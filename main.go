@@ -68,6 +68,13 @@ func main() {
 	r.Map("record:save", handler.RecordSaveHandler, recordPreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordPreprocessors...)
 
+	r.Map("device:register",
+		handler.DeviceRegisterHandler,
+		fileSystemConnPreprocessor.Preprocess,
+		fileTokenStorePreprocessor.Preprocess,
+		authenticateUser,
+	)
+
 	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordPreprocessors...)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
