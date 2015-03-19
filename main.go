@@ -6,10 +6,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/anachronistic/apns"
+
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler"
 	"github.com/oursky/ourd/oddb"
 	_ "github.com/oursky/ourd/oddb/fs"
+	"github.com/oursky/ourd/push"
 	"github.com/oursky/ourd/router"
 	"github.com/oursky/ourd/subscription"
 )
@@ -31,10 +34,16 @@ func main() {
 		return
 	}
 
-	subscriptionService := &subscription.Service{
-		ConnOpener: func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.DB.AppName, config.DB.Option) },
+	if config.Subscription.Enabled {
+		pushSender := &push.APNSPusher{
+			Client: apns.NewClient(config.APNS.Gateway, config.APNS.CertPath, config.APNS.KeyPath),
+		}
+		subscriptionService := &subscription.Service{
+			ConnOpener:         func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.DB.AppName, config.DB.Option) },
+			NotificationSender: pushSender,
+		}
+		subscriptionService.Init()
 	}
-	subscriptionService.Init()
 
 	fileSystemConnPreprocessor := connPreprocessor{
 		DBOpener: oddb.Open,

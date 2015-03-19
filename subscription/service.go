@@ -4,12 +4,14 @@ import (
 	"log"
 
 	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/push"
 )
 
 // Service is responsible to send push notification to device whenever
 // a record has been modified in db.
 type Service struct {
-	ConnOpener func() (oddb.Conn, error)
+	ConnOpener         func() (oddb.Conn, error)
+	NotificationSender push.Sender
 }
 
 // Init initializes the record change detection at startup time.

@@ -17,6 +17,14 @@ type Configuration struct {
 	TokenStore struct {
 		Path string `gcfg:"path"`
 	} `gcfg:"token-store"`
+	Subscription struct {
+		Enabled bool
+	}
+	APNS struct {
+		Gateway  string
+		CertPath string `gcfg:"cert-path"`
+		KeyPath  string `gcfg:"key-path"`
+	}
 }
 
 // ReadFileInto reads a configuration from file specified by path
