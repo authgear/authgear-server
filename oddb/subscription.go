@@ -9,10 +9,11 @@ var ErrSubscriptionNotFound = errors.New("oddb: Subscription ID not found")
 // Subscription represents a device's subscription of notification
 // triggered by changes of results from a query.
 type Subscription struct {
-	ID               string
-	Type             string
-	NotificationInfo `json:"notification_info,omitempty"`
-	Query
+	ID               string           `json:"id"`
+	Type             string           `json:"type"`
+	DeviceID         string           `json:"device_id"`
+	NotificationInfo NotificationInfo `json:"notification_info,omitempty"`
+	Query            Query            `json:"query"`
 }
 
 // NotificationInfo describes how server should send a notification
