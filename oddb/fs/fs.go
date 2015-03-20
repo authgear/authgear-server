@@ -46,8 +46,8 @@ func Open(appName, dir string) (oddb.Conn, error) {
 		AppName:  appName,
 		userDB:   newUserDatabase(userDBPath),
 		deviceDB: newDeviceDatabase(deviceDBPath),
-		publicDB: newDatabase(publicDBPath, publicDBKey),
 	}
+	conn.publicDB = newDatabase(conn, publicDBPath, publicDBKey)
 
 	return conn, nil
 }
@@ -90,7 +90,7 @@ func (conn *fileConn) PublicDB() oddb.Database {
 
 func (conn *fileConn) PrivateDB(userKey string) oddb.Database {
 	dbPath := filepath.Join(conn.Dir, userKey)
-	return newDatabase(dbPath, privateDBKey)
+	return newDatabase(conn, dbPath, privateDBKey)
 }
 
 func (conn *fileConn) AddDBRecordHook(hookFunc oddb.DBHookFunc) {
@@ -98,13 +98,15 @@ func (conn *fileConn) AddDBRecordHook(hookFunc oddb.DBHookFunc) {
 }
 
 type fileDatabase struct {
+	conn      *fileConn
 	Dir       string
 	Key       string
 	subscriDB subscriptionDB
 }
 
-func newDatabase(dir string, key string) *fileDatabase {
+func newDatabase(conn *fileConn, dir string, key string) *fileDatabase {
 	return &fileDatabase{
+		conn:      conn,
 		Dir:       dir,
 		Key:       key,
 		subscriDB: newSubscriptionDB(filepath.Join(dir, "_subscription")),
@@ -122,6 +124,10 @@ func (db fileDatabase) executeHook(record *oddb.Record, event oddb.RecordHookEve
 	}
 
 	return nil
+}
+
+func (db fileDatabase) Conn() oddb.Conn {
+	return db.conn
 }
 
 func (db fileDatabase) ID() string {

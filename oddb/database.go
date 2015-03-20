@@ -15,6 +15,10 @@ var ErrRecordNotFound = errors.New("oddb: Record not found for the specified key
 // TODO: We might need to define standard errors for common failures
 // of database operations like ErrRecordNotFound
 type Database interface {
+
+	// Conn returns the parent Conn of the Database
+	Conn() Conn
+
 	// ID returns the identifier of the Database.
 	ID() string
 

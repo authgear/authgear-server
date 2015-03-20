@@ -1,5 +1,14 @@
 package push
 
+// EmptyMapper is a Mapper which always returns a empty map.
+const EmptyMapper = emptyMapper(0)
+
+type emptyMapper int
+
+func (m emptyMapper) Map() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
 // Mapper defines a single method Map()
 type Mapper interface {
 	// Implementor of Map should return a string-interface map which

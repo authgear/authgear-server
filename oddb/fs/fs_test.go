@@ -39,7 +39,7 @@ func transformRows(rows *oddb.Rows, err error) ([]oddb.Record, error) {
 func TestQuerySort(t *testing.T) {
 	dir := tempdir()
 	defer os.RemoveAll(dir)
-	db := newDatabase(dir, "query.sort")
+	db := newDatabase(nil, dir, "query.sort")
 
 	record1 := oddb.Record{Type: "record", Key: "1", Data: oddb.Data{"string": "A", "int": float64(2)}}
 	record2 := oddb.Record{Type: "record", Key: "2", Data: oddb.Data{"string": "B", "int": float64(0)}}

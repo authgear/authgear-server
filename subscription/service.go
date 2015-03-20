@@ -38,7 +38,22 @@ func (s *Service) HandleRecordHook(db oddb.Database, record *oddb.Record, event 
 
 func (s *Service) handleRecordHook(db oddb.Database, record *oddb.Record) {
 	subscriptions := db.GetMatchingSubscription(record)
+
+	device := oddb.Device{}
 	for _, subscription := range subscriptions {
 		log.Printf("Got a matching subscription:\n%#v\n", subscription)
+
+		conn := db.Conn()
+		if err := conn.GetDevice(subscription.DeviceID, &device); err != nil {
+			log.Panicf("Failed to get device with id = %v: %v", subscription.DeviceID, err)
+		}
+
+		err := s.NotificationSender.Send(
+			push.EmptyMapper,
+			device.Token,
+		)
+		if err != nil {
+			log.Printf("Failed to send notification: %v\n", err)
+		}
 	}
 }
