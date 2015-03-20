@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"github.com/oursky/ourd/oderr"
 	"log"
 	"net/http"
 
@@ -9,6 +10,20 @@ import (
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/router"
 )
+
+type apiKeyValidatonPreprocessor struct {
+	Key string
+}
+
+func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	apiKey := payload.APIKey()
+	if apiKey != p.Key {
+		response.Err = oderr.NewFmt(oderr.CannotVerifyAPIKey, "Cannot verify api key: %v", apiKey)
+		return http.StatusUnauthorized
+	}
+
+	return http.StatusOK
+}
 
 type connPreprocessor struct {
 	DBOpener func(string, string, string) (oddb.Conn, error)

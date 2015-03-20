@@ -25,6 +25,12 @@ func (p *Payload) RouteAction() string {
 	return actionStr
 }
 
+// APIKey returns the api key in the request.
+func (p *Payload) APIKey() string {
+	key, _ := p.Data["api_key"].(string)
+	return key
+}
+
 // IsAuth tell the middleware is this payload is an auth request
 func (p *Payload) IsAuth() bool {
 	defer func() {

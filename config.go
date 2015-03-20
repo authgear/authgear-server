@@ -9,9 +9,12 @@ type Configuration struct {
 	HTTP struct {
 		Host string
 	}
+	App struct {
+		Name   string
+		APIKey string `gcfg:"api-key"`
+	}
 	DB struct {
 		ImplName string `gcfg:"implementation"`
-		AppName  string `gcfg:"app-name"`
 		Option   string
 	}
 	TokenStore struct {

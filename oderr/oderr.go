@@ -20,6 +20,7 @@ const (
 	UserIDNotFoundErr
 	AuthenticationInfoIncorrectErr
 	InvalidAccessTokenErr
+	CannotVerifyAPIKey
 )
 
 // ErrCode signifying invalid request

@@ -39,16 +39,20 @@ func main() {
 			Client: apns.NewClient(config.APNS.Gateway, config.APNS.CertPath, config.APNS.KeyPath),
 		}
 		subscriptionService := &subscription.Service{
-			ConnOpener:         func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.DB.AppName, config.DB.Option) },
+			ConnOpener:         func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) },
 			NotificationSender: pushSender,
 		}
 		subscriptionService.Init()
 	}
 
+	naiveAPIKeyPreprocessor := apiKeyValidatonPreprocessor{
+		Key: config.App.APIKey,
+	}
+
 	fileSystemConnPreprocessor := connPreprocessor{
 		DBOpener: oddb.Open,
 		DBImpl:   config.DB.ImplName,
-		AppName:  config.DB.AppName,
+		AppName:  config.App.Name,
 		Option:   config.DB.Option,
 	}
 
@@ -60,6 +64,7 @@ func main() {
 	r.Map("", handler.HomeHandler)
 
 	authPreprocessors := []router.Processor{
+		naiveAPIKeyPreprocessor.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		fileTokenStorePreprocessor.Preprocess,
 	}
@@ -67,6 +72,7 @@ func main() {
 	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
 
 	recordPreprocessors := []router.Processor{
+		naiveAPIKeyPreprocessor.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		fileTokenStorePreprocessor.Preprocess,
 		authenticateUser,
@@ -79,11 +85,13 @@ func main() {
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,
+		naiveAPIKeyPreprocessor.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		fileTokenStorePreprocessor.Preprocess,
 		authenticateUser,
 	)
 
+	// subscription shares the same set of preprocessor as record at the moment
 	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordPreprocessors...)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
