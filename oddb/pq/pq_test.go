@@ -1,6 +1,7 @@
 package pq
 
 import (
+	"database/sql"
 	_ "github.com/lib/pq"
 	"github.com/oursky/ourd/oddb"
 	. "github.com/smartystreets/goconvey/convey"
@@ -56,6 +57,37 @@ func TestInsert(t *testing.T) {
 		Reset(func() {
 			_, err := db.(*database).DBMap.Exec("TRUNCATE app_com_oursky_ourd.note")
 			So(err, ShouldBeNil)
+		})
+	})
+}
+
+func TestDelete(t *testing.T) {
+	Convey("Database", t, func() {
+		conn := getTestConn(t)
+		db := conn.PublicDB()
+
+		record := oddb.Record{
+			Key:  "someid",
+			Type: "note",
+			Data: map[string]interface{}{
+				"content": "some content",
+			},
+		}
+
+		Convey("deletes existing record", func() {
+			err := db.Save(&record)
+			So(err, ShouldBeNil)
+
+			err = db.Delete("someid")
+			So(err, ShouldBeNil)
+
+			err = db.(*database).DBMap.Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid'").Scan((*string)(nil))
+			So(err, ShouldEqual, sql.ErrNoRows)
+		})
+
+		Convey("returns ErrRecordNotFound when record to delete doesn't exist", func() {
+			err := db.Delete("notexistid")
+			So(err, ShouldEqual, oddb.ErrRecordNotFound)
 		})
 	})
 }

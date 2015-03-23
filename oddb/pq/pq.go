@@ -144,7 +144,36 @@ CREATE TABLE IF NOT EXISTS %v.note (
 	return err
 }
 
-func (db *database) Delete(key string) error { return nil }
+func (db *database) Delete(key string) error {
+	query := psql.Delete(db.schemaName()+".note").Where("_id = ?", key)
+	sql, args, err := query.ToSql()
+	if err != nil {
+		panic(err)
+	}
+
+	log.WithFields(log.Fields{
+		"sql":  sql,
+		"args": args,
+	}).Debug("Executing SQL")
+
+	result, err := db.DBMap.Exec(sql, args...)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return oddb.ErrRecordNotFound
+	} else if rowsAffected > 1 {
+		return fmt.Errorf("%v rows deleted, want 1", rowsAffected)
+	}
+
+	return err
+}
 
 func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) { return &oddb.Rows{}, nil }
 func (db *database) GetMatchingSubscription(record *oddb.Record) []oddb.Subscription {
