@@ -9,18 +9,26 @@ import (
 	"testing"
 )
 
-func getTestConn(t *testing.T) oddb.Conn {
-	conn, err := Open("com.oursky.ourd", "dbname=ourd_test sslmode=disable")
+func getTestConn(t *testing.T) *conn {
+	c, err := Open("com.oursky.ourd", "dbname=ourd_test sslmode=disable")
 	if err != nil {
 		t.Fatal(err)
 	}
-	return conn
+	return c.(*conn)
+}
+
+func cleanupDB(t *testing.T, c *conn) {
+	_, err := c.DBMap.Db.Exec("DROP SCHEMA app_com_oursky_ourd CASCADE")
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestInsert(t *testing.T) {
+	var c *conn
 	Convey("Database", t, func() {
-		conn := getTestConn(t)
-		db := conn.PublicDB()
+		c = getTestConn(t)
+		db := c.PublicDB()
 
 		record := oddb.Record{
 			Key:  "someid",
@@ -59,12 +67,15 @@ func TestInsert(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
+
+	cleanupDB(t, c)
 }
 
 func TestDelete(t *testing.T) {
+	var c *conn
 	Convey("Database", t, func() {
-		conn := getTestConn(t)
-		db := conn.PublicDB()
+		c = getTestConn(t)
+		db := c.PublicDB()
 
 		record := oddb.Record{
 			Key:  "someid",
@@ -90,4 +101,6 @@ func TestDelete(t *testing.T) {
 			So(err, ShouldEqual, oddb.ErrRecordNotFound)
 		})
 	})
+
+	cleanupDB(t, c)
 }
