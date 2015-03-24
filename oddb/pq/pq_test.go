@@ -31,8 +31,9 @@ func TestUserCRUD(t *testing.T) {
 		c = getTestConn(t)
 
 		userinfo := oddb.UserInfo{
-			ID:    "userid",
-			Email: "john.doe@example.com",
+			ID:             "userid",
+			Email:          "john.doe@example.com",
+			HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
 			Auth: oddb.AuthInfo{
 				"authproto": map[string]interface{}{
 					"string": "string",
@@ -47,12 +48,14 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			email := ""
+			password := []byte{}
 			auth := authInfoValue{}
-			err = c.DBMap.Db.QueryRow("SELECT email, auth FROM app_com_oursky_ourd._user WHERE id = 'userid'").
-				Scan(&email, &auth)
+			err = c.DBMap.Db.QueryRow("SELECT email, password, auth FROM app_com_oursky_ourd._user WHERE id = 'userid'").
+				Scan(&email, &password, &auth)
 			So(err, ShouldBeNil)
 
 			So(email, ShouldEqual, "john.doe@example.com")
+			So(password, ShouldResemble, []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"))
 			So(auth, ShouldResemble, authInfoValue{
 				"authproto": map[string]interface{}{
 					"string": "string",
