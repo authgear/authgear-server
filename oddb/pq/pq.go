@@ -33,7 +33,7 @@ func isUniqueViolated(err error) bool {
 	return false
 }
 
-type dbUser struct {
+type userInfo struct {
 	ID             string        `db:"id"`
 	Email          string        `db:"email"`
 	HashedPassword []byte        `db:"password"`
@@ -102,12 +102,38 @@ CREATE TABLE IF NOT EXISTS %v._user (
 	return err
 }
 
-func (c *conn) GetUser(id string, userinfo *oddb.UserInfo) error { return nil }
-func (c *conn) UpdateUser(userinfo *oddb.UserInfo) error         { return nil }
-func (c *conn) DeleteUser(id string) error                       { return nil }
-func (c *conn) GetDevice(id string, device *oddb.Device) error   { return nil }
-func (c *conn) SaveDevice(device *oddb.Device) error             { return nil }
-func (c *conn) DeleteDevice(id string) error                     { return nil }
+func (c *conn) GetUser(id string, userinfo *oddb.UserInfo) error {
+	selectSql, args, err := psql.Select("email", "password", "auth").
+		From(c.tableName("_user")).
+		Where("id = ?", id).
+		ToSql()
+	if err != nil {
+		panic(err)
+	}
+
+	email, password, auth := "", []byte{}, authInfoValue{}
+	err = c.DBMap.Db.QueryRow(selectSql, args...).Scan(
+		&email,
+		&password,
+		&auth,
+	)
+	if err == sql.ErrNoRows {
+		return oddb.ErrUserNotFound
+	}
+
+	userinfo.ID = id
+	userinfo.Email = email
+	userinfo.HashedPassword = password
+	userinfo.Auth = oddb.AuthInfo(auth)
+
+	return err
+}
+
+func (c *conn) UpdateUser(userinfo *oddb.UserInfo) error       { return nil }
+func (c *conn) DeleteUser(id string) error                     { return nil }
+func (c *conn) GetDevice(id string, device *oddb.Device) error { return nil }
+func (c *conn) SaveDevice(device *oddb.Device) error           { return nil }
+func (c *conn) DeleteDevice(id string) error                   { return nil }
 
 func (c *conn) PublicDB() oddb.Database {
 	return &database{
@@ -128,6 +154,10 @@ func (c *conn) Close() error                         { return nil }
 
 func (c *conn) schemaName() string {
 	return "app_" + toLowerAndUnderscore(c.appName)
+}
+
+func (c *conn) tableName(table string) string {
+	return c.schemaName() + "." + table
 }
 
 type database struct {
@@ -258,6 +288,11 @@ func (db *database) DeleteSubscription(key string) error                        
 // schemaName is a convenient method to access parent conn's schemaName
 func (db *database) schemaName() string {
 	return db.c.schemaName()
+}
+
+// tableName is a convenient method to access parent conn's schemaName
+func (db *database) tableName(table string) string {
+	return db.c.tableName(table)
 }
 
 // Open returns a new connection to postgresql implementation

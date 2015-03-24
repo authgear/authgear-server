@@ -65,12 +65,28 @@ func TestUserCRUD(t *testing.T) {
 			})
 		})
 
-		Convey("return ErrUserDuplicated when user to create already exists", func() {
+		Convey("returns ErrUserDuplicated when user to create already exists", func() {
 			err := c.CreateUser(&userinfo)
 			So(err, ShouldBeNil)
 
 			err = c.CreateUser(&userinfo)
 			So(err, ShouldEqual, oddb.ErrUserDuplicated)
+		})
+
+		Convey("gets an existing User", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			fetcheduserinfo := oddb.UserInfo{}
+			err = c.GetUser("userid", &fetcheduserinfo)
+			So(err, ShouldBeNil)
+
+			So(fetcheduserinfo, ShouldResemble, userinfo)
+		})
+
+		Convey("returns ErrUserNotFound when the user does not exist", func() {
+			err := c.GetUser("userid", (*oddb.UserInfo)(nil))
+			So(err, ShouldEqual, oddb.ErrUserNotFound)
 		})
 
 		Reset(func() {
