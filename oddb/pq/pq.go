@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS %v._user (
 		panic(err)
 	}
 
-	sql, args, err := psql.Insert(c.schemaName()+"._user").
+	sql, args, err := psql.Insert(c.tableName("_user")).
 		Columns("id", "email", "password", "auth").
 		Values(userinfo.ID, userinfo.Email, userinfo.HashedPassword, authInfoValue(userinfo.Auth)).
 		ToSql()
@@ -169,11 +169,14 @@ func (db *database) Conn() oddb.Conn { return db.c }
 func (db *database) ID() string      { return "" }
 
 func (db *database) Get(key string, record *oddb.Record) error {
-	const SelectFmt = `SELECT * FROM %v.note WHERE _id = $1`
+	sql, args, err := sq.Select("*").From(db.tableName("note")).Where("_id = ?", key).ToSql()
+	if err != nil {
+		panic(err)
+	}
 
 	m := map[string]interface{}{}
-	err := db.DBMap.Get(&m, fmt.Sprintf(SelectFmt, db.schemaName()), key)
-	if err != nil {
+
+	if err := db.DBMap.Dbx.Get(&m, sql, args...); err != nil {
 		return fmt.Errorf("get %v: %v", key, err)
 	}
 
@@ -206,7 +209,7 @@ CREATE TABLE IF NOT EXISTS %v.note (
 		return fmt.Errorf("failed to create table: %v", err)
 	}
 
-	tablename := db.schemaName() + ".note"
+	tablename := db.tableName("note")
 
 	data := map[string]interface{}{}
 	data["_id"] = record.Key
@@ -247,7 +250,7 @@ CREATE TABLE IF NOT EXISTS %v.note (
 }
 
 func (db *database) Delete(key string) error {
-	query := psql.Delete(db.schemaName()+".note").Where("_id = ?", key)
+	query := psql.Delete(db.tableName("note")).Where("_id = ?", key)
 	sql, args, err := query.ToSql()
 	if err != nil {
 		panic(err)
@@ -290,7 +293,7 @@ func (db *database) schemaName() string {
 	return db.c.schemaName()
 }
 
-// tableName is a convenient method to access parent conn's schemaName
+// tableName is a convenient method to access parent conn's tableName
 func (db *database) tableName(table string) string {
 	return db.c.tableName(table)
 }
