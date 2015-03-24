@@ -7,12 +7,43 @@
 			"Rev": "c2d3050044d05357eaf6c3547249ba57c5e235cb"
 		},
 		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.7.1",
+			"Rev": "3fc34d061b9c78a70db853c7cb6b0576b6d4f32d"
+		},
+		{
 			"ImportPath": "github.com/anachronistic/apns",
 			"Rev": "f90152b7e0ae845938ce1258d90072fd116131ac"
 		},
 		{
+			"ImportPath": "github.com/jmoiron/modl",
+			"Rev": "b0cda508e4027c836cf78bd482a3edd0458b6d2f"
+		},
+		{
+			"ImportPath": "github.com/jmoiron/sqlx",
+			"Comment": "sqlx-v1.0-67-g69738bd",
+			"Rev": "69738bd209812c5a381786011aff17944a384554"
+		},
+		{
+			"ImportPath": "github.com/lann/builder",
+			"Rev": "c603884a2c1fcf331c71940f3227a8111d29f3ba"
+		},
+		{
+			"ImportPath": "github.com/lann/squirrel",
+			"Rev": "e13dbacee404686afd0acf2d44b8d34869605e03"
+		},
+		{
+			"ImportPath": "github.com/lib/pq",
+			"Comment": "go1.0-cutoff-29-g30ed220",
+			"Rev": "30ed2200d7ec99cf17272292f1d4b7b0bd7165db"
+		},
+		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
 			"Rev": "442e588f213303bec7936deba67901f8fc8f18b1"
+		},
+		{
+			"ImportPath": "github.com/mndrix/ps",
+			"Rev": "33ddf69629c1bcea76b04f4a4e9e00e4cce82eb6"
 		},
 		{
 			"ImportPath": "github.com/stretchr/objx",
