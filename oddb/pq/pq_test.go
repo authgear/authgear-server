@@ -138,6 +138,26 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldEqual, oddb.ErrUserNotFound)
 		})
 
+		Convey("deletes only the desired user", func() {
+			userinfo.ID = "1"
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			userinfo.ID = "2"
+			err = c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			count := 0
+			c.DBMap.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._user").Scan(&count)
+			So(count, ShouldEqual, 2)
+
+			err = c.DeleteUser("2")
+			So(err, ShouldBeNil)
+
+			c.DBMap.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._user").Scan(&count)
+			So(count, ShouldEqual, 1)
+		})
+
 		Reset(func() {
 			_, err := c.DBMap.Db.Exec("TRUNCATE app_com_oursky_ourd._user")
 			So(err, ShouldBeNil)
