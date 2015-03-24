@@ -129,7 +129,34 @@ func (c *conn) GetUser(id string, userinfo *oddb.UserInfo) error {
 	return err
 }
 
-func (c *conn) UpdateUser(userinfo *oddb.UserInfo) error       { return nil }
+func (c *conn) UpdateUser(userinfo *oddb.UserInfo) error {
+	updateSql, args, err := psql.Update(c.tableName("_user")).
+		Set("email", userinfo.Email).
+		Set("password", userinfo.HashedPassword).
+		Set("auth", authInfoValue(userinfo.Auth)).
+		Where("id = ?", userinfo.ID).
+		ToSql()
+	if err != nil {
+		panic(err)
+	}
+
+	result, err := c.DBMap.Db.Exec(updateSql, args...)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return oddb.ErrUserNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+	}
+
+	return nil
+}
+
 func (c *conn) DeleteUser(id string) error                     { return nil }
 func (c *conn) GetDevice(id string, device *oddb.Device) error { return nil }
 func (c *conn) SaveDevice(device *oddb.Device) error           { return nil }

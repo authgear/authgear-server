@@ -89,6 +89,37 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldEqual, oddb.ErrUserNotFound)
 		})
 
+		Convey("updates a user", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			userinfo.Email = "jane.doe@example.com"
+
+			err = c.UpdateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			updateduserinfo := userInfo{}
+			err = c.DBMap.Dbx.Get(&updateduserinfo, "SELECT id, email, password, auth FROM app_com_oursky_ourd._user WHERE id = $1", "userid")
+			So(err, ShouldBeNil)
+			So(updateduserinfo, ShouldResemble, userInfo{
+				ID:             "userid",
+				Email:          "jane.doe@example.com",
+				HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
+				Auth: authInfoValue{
+					"authproto": map[string]interface{}{
+						"string": "string",
+						"bool":   true,
+						"number": float64(1),
+					},
+				},
+			})
+		})
+
+		Convey("return ErrUserNotFound when the user to update does not exist", func() {
+			err := c.UpdateUser(&userinfo)
+			So(err, ShouldEqual, oddb.ErrUserNotFound)
+		})
+
 		Reset(func() {
 			_, err := c.DBMap.Db.Exec("TRUNCATE app_com_oursky_ourd._user")
 			So(err, ShouldBeNil)
