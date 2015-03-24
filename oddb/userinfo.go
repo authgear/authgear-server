@@ -17,7 +17,7 @@ import (
 //       "facebookID": "46709394"
 //     }
 //   }
-type AuthInfo map[string]interface{}
+type AuthInfo map[string]map[string]interface{}
 
 // UserInfo contains a user's information for authentication purpose
 type UserInfo struct {

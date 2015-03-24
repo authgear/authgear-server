@@ -24,6 +24,61 @@ func cleanupDB(t *testing.T, c *conn) {
 	}
 }
 
+func TestUserCRUD(t *testing.T) {
+	var c *conn
+
+	Convey("Conn", t, func() {
+		c = getTestConn(t)
+
+		userinfo := oddb.UserInfo{
+			ID:    "userid",
+			Email: "john.doe@example.com",
+			Auth: oddb.AuthInfo{
+				"authproto": map[string]interface{}{
+					"string": "string",
+					"bool":   true,
+					"number": float64(1),
+				},
+			},
+		}
+
+		Convey("creates user", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			email := ""
+			auth := authInfoValue{}
+			err = c.DBMap.Db.QueryRow("SELECT email, auth FROM app_com_oursky_ourd._user WHERE id = 'userid'").
+				Scan(&email, &auth)
+			So(err, ShouldBeNil)
+
+			So(email, ShouldEqual, "john.doe@example.com")
+			So(auth, ShouldResemble, authInfoValue{
+				"authproto": map[string]interface{}{
+					"string": "string",
+					"bool":   true,
+					"number": float64(1),
+				},
+			})
+		})
+
+		Convey("return ErrUserDuplicated when user to create already exists", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			err = c.CreateUser(&userinfo)
+			So(err, ShouldEqual, oddb.ErrUserDuplicated)
+		})
+
+		Reset(func() {
+			_, err := c.DBMap.Db.Exec("TRUNCATE app_com_oursky_ourd._user")
+			So(err, ShouldBeNil)
+		})
+	})
+
+	cleanupDB(t, c)
+}
+
 func TestInsert(t *testing.T) {
 	var c *conn
 	Convey("Database", t, func() {

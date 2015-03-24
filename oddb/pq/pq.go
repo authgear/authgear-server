@@ -1,7 +1,10 @@
 package pq
 
 import (
+	"bytes"
 	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
@@ -22,12 +25,83 @@ func toLowerAndUnderscore(s string) string {
 	return underscoreRe.ReplaceAllLiteralString(strings.ToLower(s), "_")
 }
 
+func isUniqueViolated(err error) bool {
+	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+		return true
+	}
+
+	return false
+}
+
+type dbUser struct {
+	ID             string        `db:"id"`
+	Email          string        `db:"email"`
+	HashedPassword []byte        `db:"password"`
+	Auth           authInfoValue `db:"auth"`
+}
+
+// authInfoValue implements sql.Valuer and sql.Scanner s.t.
+// oddb.AuthInfo can be saved into and recovered from postgresql
+type authInfoValue oddb.AuthInfo
+
+func (auth authInfoValue) Value() (driver.Value, error) {
+	b := bytes.Buffer{}
+	if err := json.NewEncoder(&b).Encode(auth); err != nil {
+		return nil, err
+	}
+
+	return b.Bytes(), nil
+}
+
+func (auth *authInfoValue) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		fmt.Errorf("oddb: unsupported Scan pair: %T -> %T", value, auth)
+	}
+
+	return json.Unmarshal(b, auth)
+}
+
 type conn struct {
 	DBMap   *modl.DbMap
 	appName string
 }
 
-func (c *conn) CreateUser(userinfo *oddb.UserInfo) error         { return nil }
+func (c *conn) CreateUser(userinfo *oddb.UserInfo) error {
+	const CreateUserTableFmt = `
+CREATE TABLE IF NOT EXISTS %v._user (
+	id varchar(255) PRIMARY KEY,
+	email varchar(255),
+	password varchar(255),
+	auth json
+);
+`
+
+	_, err := c.DBMap.Db.Exec(fmt.Sprintf(CreateUserTableFmt, c.schemaName()))
+	if err != nil {
+		panic(err)
+	}
+
+	sql, args, err := psql.Insert(c.schemaName()+"._user").
+		Columns("id", "email", "password", "auth").
+		Values(userinfo.ID, userinfo.Email, userinfo.HashedPassword, authInfoValue(userinfo.Auth)).
+		ToSql()
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = c.DBMap.Db.Exec(sql, args...)
+	if isUniqueViolated(err) {
+		return oddb.ErrUserDuplicated
+	}
+
+	return err
+}
+
 func (c *conn) GetUser(id string, userinfo *oddb.UserInfo) error { return nil }
 func (c *conn) UpdateUser(userinfo *oddb.UserInfo) error         { return nil }
 func (c *conn) DeleteUser(id string) error                       { return nil }
@@ -123,9 +197,7 @@ CREATE TABLE IF NOT EXISTS %v.note (
 
 	_, err = db.DBMap.Exec(sql, args...)
 
-	pqErr, ok := err.(*pq.Error)
-	// if duplicated insert
-	if ok && pqErr.Code == "23505" {
+	if isUniqueViolated(err) {
 		update := psql.Update(tablename).Where("_id = ?", record.Key).SetMap(sq.Eq(record.Data))
 
 		sql, args, err = update.ToSql()
@@ -217,4 +289,6 @@ func init() {
 var (
 	_ oddb.Conn     = &conn{}
 	_ oddb.Database = &database{}
+
+	_ driver.Valuer = authInfoValue{}
 )
