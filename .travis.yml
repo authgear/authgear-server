@@ -4,11 +4,17 @@ go:
   - 1.4
   - tip
 
+addons:
+  postgresql: "9.4"
+
 before_install:
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/golang/lint/golint
   - go get github.com/smartystreets/goconvey/convey
   - go get github.com/smartystreets/assertions
+
+before_script:
+  - psql -c 'CREATE DATABASE ourd_test;' -U postgres
 
 script:
   - golint ./...
