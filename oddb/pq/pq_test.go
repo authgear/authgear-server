@@ -115,8 +115,26 @@ func TestUserCRUD(t *testing.T) {
 			})
 		})
 
-		Convey("return ErrUserNotFound when the user to update does not exist", func() {
+		Convey("returns ErrUserNotFound when the user to update does not exist", func() {
 			err := c.UpdateUser(&userinfo)
+			So(err, ShouldEqual, oddb.ErrUserNotFound)
+		})
+
+		Convey("deletes an existing user", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			err = c.DeleteUser("userid")
+			So(err, ShouldBeNil)
+
+			placeholder := []byte{}
+			err = c.DBMap.Db.QueryRow("SELECT false FROM app_com_oursky_ourd._user WHERE id = $1", "userid").Scan(&placeholder)
+			So(err, ShouldEqual, sql.ErrNoRows)
+			So(placeholder, ShouldBeEmpty)
+		})
+
+		Convey("returns ErrUserNotFound when the user to delete does not exist", func() {
+			err := c.DeleteUser("notexistid")
 			So(err, ShouldEqual, oddb.ErrUserNotFound)
 		})
 
