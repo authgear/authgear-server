@@ -12,6 +12,7 @@ import (
 	"github.com/oursky/ourd/handler"
 	"github.com/oursky/ourd/oddb"
 	_ "github.com/oursky/ourd/oddb/fs"
+	_ "github.com/oursky/ourd/oddb/pq"
 	"github.com/oursky/ourd/push"
 	"github.com/oursky/ourd/router"
 	"github.com/oursky/ourd/subscription"
