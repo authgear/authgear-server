@@ -27,8 +27,7 @@ func TestTransportRecordMarshalJSON(t *testing.T) {
 	}
 
 	expectedMap := map[string]interface{}{
-		"_id":       "recordkey",
-		"_type":     "recordtype",
+		"_id":       "recordtype/recordkey",
 		"stringkey": "stringvalue",
 		// NOTE(limouren): json unmarshal numbers to float64
 		"numkey":  float64(1),
@@ -52,8 +51,7 @@ func TestTransportRecordMarshalJSON(t *testing.T) {
 
 func TestTransportRecordUnmarshalJSON(t *testing.T) {
 	jsonBytes := []byte(`{
-		"_id": "recordkey",
-		"_type": "recordtype",
+		"_id": "recordtype/recordkey",
 		"stringkey": "stringvalue",
 		"numkey": 1,
 		"boolkey": true}`)
@@ -128,16 +126,14 @@ func TestRecordSaveHandler(t *testing.T) {
 			"action": "record:save",
 			"records": []interface{}{
 				map[string]interface{}{
-					"_id":   "id1",
-					"_type": "type1",
-					"k1":    "v1",
-					"k2":    "v2",
+					"_id": "type1/id1",
+					"k1":  "v1",
+					"k2":  "v2",
 				},
 				map[string]interface{}{
-					"_id":   "id2",
-					"_type": "type2",
-					"k3":    "v3",
-					"k4":    "v4",
+					"_id": "type2/id2",
+					"k3":  "v3",
+					"k4":  "v4",
 				},
 			},
 		},
@@ -228,7 +224,7 @@ func TestRecordFetch(t *testing.T) {
 		Convey("records can be fetched", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
-					"ids": []interface{}{"1", "2"},
+					"ids": []interface{}{"type/1", "type/2"},
 				},
 				Database: db,
 			}
@@ -243,7 +239,7 @@ func TestRecordFetch(t *testing.T) {
 		Convey("returns error in a list when non-exist records are fetched", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
-					"ids": []interface{}{"1", "not-exist", "2"},
+					"ids": []interface{}{"type/1", "type/not-exist", "type/2"},
 				},
 				Database: db,
 			}

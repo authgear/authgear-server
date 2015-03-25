@@ -3,7 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
@@ -28,8 +30,7 @@ func (r transportRecord) MarshalJSON() ([]byte, error) {
 	for k, v := range r.Data {
 		object[k] = v
 	}
-	object["_id"] = r.Key
-	object["_type"] = r.Type
+	object["_id"] = r.Type + "/" + r.Key
 
 	return json.Marshal(object)
 }
@@ -46,20 +47,21 @@ func (r *transportRecord) UnmarshalJSON(data []byte) error {
 }
 
 func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
-	id, ok := m["_id"].(string)
+	rawID, ok := m["_id"].(string)
 	if !ok {
 		return errors.New(`record/json: required field "_id" not found`)
 	}
-	r.Key = id
 	delete(m, "_id")
 
-	t, ok := m["_type"].(string)
-	if !ok {
-		return errors.New(`record/json: required field "_type" not found`)
+	ss := strings.SplitN(rawID, "/", 2)
+	if len(ss) == 1 {
+		return fmt.Errorf(`record/json: "_id" should be of format '{type}/{id}', got %#v`, rawID)
 	}
-	r.Type = t
-	delete(m, "_type")
 
+	recordType, id := ss[0], ss[1]
+
+	r.Key = id
+	r.Type = recordType
 	r.Data = m
 
 	return nil
@@ -148,13 +150,19 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	length := len(interfaces)
 	recordIDs := make([]string, length, length)
 	for i, it := range interfaces {
-		recordID, ok := it.(string)
+		rawID, ok := it.(string)
 		if !ok {
 			response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: expect list of ids")
 			return
 		}
 
-		recordIDs[i] = recordID
+		ss := strings.SplitN(rawID, "/", 2)
+		if len(ss) == 1 {
+			response.Err = oderr.NewFmt(oderr.RequestInvalidErr, "invalid id format: %v", rawID)
+			return
+		}
+
+		recordIDs[i] = ss[1]
 	}
 
 	db := payload.Database
