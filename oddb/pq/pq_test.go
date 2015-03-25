@@ -186,7 +186,7 @@ func TestInsert(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var content string
-			err = db.(*database).Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid'").Scan(&content)
+			err = db.(*database).Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").Scan(&content)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "some content")
 		})
@@ -200,7 +200,7 @@ func TestInsert(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var content string
-			err = db.(*database).Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid'").Scan(&content)
+			err = db.(*database).Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").Scan(&content)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "more content")
 		})
@@ -218,7 +218,7 @@ func TestDelete(t *testing.T) {
 	var c *conn
 	Convey("Database", t, func() {
 		c = getTestConn(t)
-		db := c.PublicDB()
+		db := c.PrivateDB("userid")
 
 		record := oddb.Record{
 			Key:  "someid",
@@ -235,13 +235,30 @@ func TestDelete(t *testing.T) {
 			err = db.Delete("someid")
 			So(err, ShouldBeNil)
 
-			err = db.(*database).Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid'").Scan((*string)(nil))
+			err = db.(*database).Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid' AND _user_id = 'userid'").Scan((*string)(nil))
 			So(err, ShouldEqual, sql.ErrNoRows)
 		})
 
 		Convey("returns ErrRecordNotFound when record to delete doesn't exist", func() {
 			err := db.Delete("notexistid")
 			So(err, ShouldEqual, oddb.ErrRecordNotFound)
+		})
+
+		Convey("deletes only record of the current user", func() {
+			err := db.Save(&record)
+			So(err, ShouldBeNil)
+
+			otherDB := c.PrivateDB("otheruserid")
+			err = otherDB.Save(&record)
+			So(err, ShouldBeNil)
+
+			err = db.Delete("someid")
+			So(err, ShouldBeNil)
+
+			count := 0
+			err = c.Db.Get(&count, "SELECT COUNT(*) FROM app_com_oursky_ourd.note WHERE _id = 'someid' AND _user_id = 'otheruserid'")
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 1)
 		})
 	})
 

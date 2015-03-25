@@ -195,8 +195,9 @@ func (c *conn) PublicDB() oddb.Database {
 
 func (c *conn) PrivateDB(userKey string) oddb.Database {
 	return &database{
-		Db: c.Db,
-		c:  c,
+		Db:     c.Db,
+		c:      c,
+		userID: userKey,
 	}
 }
 
@@ -212,15 +213,18 @@ func (c *conn) tableName(table string) string {
 }
 
 type database struct {
-	Db *sqlx.DB
-	c  *conn
+	Db     *sqlx.DB
+	c      *conn
+	userID string
 }
 
 func (db *database) Conn() oddb.Conn { return db.c }
 func (db *database) ID() string      { return "" }
 
 func (db *database) Get(key string, record *oddb.Record) error {
-	sql, args, err := sq.Select("*").From(db.tableName("note")).Where("_id = ?", key).ToSql()
+	sql, args, err := sq.Select("*").From(db.tableName("note")).
+		Where("_id = ? AND _user_id = ?", key, db.userID).
+		ToSql()
 	if err != nil {
 		panic(err)
 	}
@@ -244,12 +248,15 @@ func (db *database) Get(key string, record *oddb.Record) error {
 func (db *database) Save(record *oddb.Record) error {
 	const CreateTableFmt = `
 CREATE TABLE IF NOT EXISTS %v.note (
-	_id varchar(255) PRIMARY KEY,
+	_id varchar(255),
+	_user_id varchar(255),
 	content text,
 	createdDateTime timestamp,
 	lastModified timestamp,
-	noteOrder integer
-)`
+	noteOrder integer,
+	PRIMARY KEY(_id, _user_id)
+);
+`
 
 	if record.Type != "note" {
 		return errors.New("only record type 'note' is supported for now")
@@ -264,6 +271,7 @@ CREATE TABLE IF NOT EXISTS %v.note (
 
 	data := map[string]interface{}{}
 	data["_id"] = record.Key
+	data["_user_id"] = db.userID
 	for key, value := range record.Data {
 		data[key] = value
 	}
@@ -301,8 +309,9 @@ CREATE TABLE IF NOT EXISTS %v.note (
 }
 
 func (db *database) Delete(key string) error {
-	query := psql.Delete(db.tableName("note")).Where("_id = ?", key)
-	sql, args, err := query.ToSql()
+	sql, args, err := psql.Delete(db.tableName("note")).
+		Where("_id = ? AND _user_id = ?", key, db.userID).
+		ToSql()
 	if err != nil {
 		panic(err)
 	}
