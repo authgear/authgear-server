@@ -10,7 +10,7 @@ import (
 )
 
 func getTestConn(t *testing.T) *conn {
-	c, err := Open("com.oursky.ourd", "dbname=ourd_test sslmode=disable")
+	c, err := Open("com.oursky.ourd", "host=127.0.0.1 dbname=ourd_test sslmode=disable")
 	if err != nil {
 		t.Fatal(err)
 	}
