@@ -6,7 +6,9 @@ Dependencies
 ============
 1. go v1.4
 2. https://github.com/tools/godep is used for managing go lib
-3. PostgreSQL 9.4
+3. PostgreSQL if you are using pq implementation of oddb:
+   * Minimum version: 9.3
+   * Recommended version: 9.4
 
 Test
 ====
