@@ -10,13 +10,29 @@ Dependencies
    * Minimum version: 9.3
    * Recommended version: 9.4
 
+
+Development
+===========
+$ `go build && ./ourd development.ini`
+
+config.ini can be provided in args or os ENV `OD_CONFIG`.
+
+Suggested to use [fresh](https://github.com/pilu/fresh) for local development
+
+$ `OD_CONFIG=development.ini fresh`
+
 Test
 ====
 You may refer to .travis.yml
 
+#### Prepare the testing DB
 1. Create test DB `ourd_test` on local PostgreSQL
-1. `go test github.com/oursky/ourd/...`
+1. Test case assume the 127.0.0.1 have access to ourd_test, please add following to pg_hba.conf
 
-For local development, you are suggested to open GoConvey.
+> host    all             all             127.0.0.1/32            trust
+
+run `go test github.com/oursky/ourd/...`
+
+For local development, you are suggested to open GoConvey to keep track of testing status.
+
 refs: https://github.com/smartystreets/goconvey
-

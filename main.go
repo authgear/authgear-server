@@ -23,11 +23,16 @@ func usage() {
 }
 
 func main() {
+	var configPath string
 	if len(os.Args) < 2 {
-		usage()
-		return
+		configPath = os.Getenv("OD_CONFIG")
+		if configPath == "" {
+			usage()
+			return
+		}
+	} else {
+		configPath = os.Args[1]
 	}
-	configPath := os.Args[1]
 
 	config := Configuration{}
 	if err := ReadFileInto(&config, configPath); err != nil {
@@ -96,5 +101,8 @@ func main() {
 	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordPreprocessors...)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
-	http.ListenAndServe(config.HTTP.Host, r)
+	err := http.ListenAndServe(config.HTTP.Host, r)
+	if err != nil {
+		log.Printf("Failed: %v", err)
+	}
 }
