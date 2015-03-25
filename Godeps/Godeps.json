@@ -16,10 +16,6 @@
 			"Rev": "f90152b7e0ae845938ce1258d90072fd116131ac"
 		},
 		{
-			"ImportPath": "github.com/jmoiron/modl",
-			"Rev": "b0cda508e4027c836cf78bd482a3edd0458b6d2f"
-		},
-		{
 			"ImportPath": "github.com/jmoiron/sqlx",
 			"Comment": "sqlx-v1.0-67-g69738bd",
 			"Rev": "69738bd209812c5a381786011aff17944a384554"

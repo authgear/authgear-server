@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/jmoiron/modl"
+	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"regexp"
 	"strings"
@@ -67,7 +67,7 @@ func (auth *authInfoValue) Scan(value interface{}) error {
 }
 
 type conn struct {
-	DBMap   *modl.DbMap
+	Db      *sqlx.DB
 	appName string
 }
 
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS %v._user (
 );
 `
 
-	_, err := c.DBMap.Db.Exec(fmt.Sprintf(CreateUserTableFmt, c.schemaName()))
+	_, err := c.Db.Exec(fmt.Sprintf(CreateUserTableFmt, c.schemaName()))
 	if err != nil {
 		panic(err)
 	}
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS %v._user (
 		panic(err)
 	}
 
-	_, err = c.DBMap.Db.Exec(sql, args...)
+	_, err = c.Db.Exec(sql, args...)
 	if isUniqueViolated(err) {
 		return oddb.ErrUserDuplicated
 	}
@@ -112,7 +112,7 @@ func (c *conn) GetUser(id string, userinfo *oddb.UserInfo) error {
 	}
 
 	email, password, auth := "", []byte{}, authInfoValue{}
-	err = c.DBMap.Db.QueryRow(selectSql, args...).Scan(
+	err = c.Db.QueryRow(selectSql, args...).Scan(
 		&email,
 		&password,
 		&auth,
@@ -140,7 +140,7 @@ func (c *conn) UpdateUser(userinfo *oddb.UserInfo) error {
 		panic(err)
 	}
 
-	result, err := c.DBMap.Db.Exec(updateSql, args...)
+	result, err := c.Db.Exec(updateSql, args...)
 	if err != nil {
 		return err
 	}
@@ -165,7 +165,7 @@ func (c *conn) DeleteUser(id string) error {
 		panic(err)
 	}
 
-	result, err := c.DBMap.Db.Exec(query, args...)
+	result, err := c.Db.Exec(query, args...)
 	if err != nil {
 		return err
 	}
@@ -188,15 +188,15 @@ func (c *conn) DeleteDevice(id string) error                   { return nil }
 
 func (c *conn) PublicDB() oddb.Database {
 	return &database{
-		DBMap: c.DBMap,
-		c:     c,
+		Db: c.Db,
+		c:  c,
 	}
 }
 
 func (c *conn) PrivateDB(userKey string) oddb.Database {
 	return &database{
-		DBMap: c.DBMap,
-		c:     c,
+		Db: c.Db,
+		c:  c,
 	}
 }
 
@@ -212,8 +212,8 @@ func (c *conn) tableName(table string) string {
 }
 
 type database struct {
-	DBMap *modl.DbMap
-	c     *conn
+	Db *sqlx.DB
+	c  *conn
 }
 
 func (db *database) Conn() oddb.Conn { return db.c }
@@ -227,7 +227,7 @@ func (db *database) Get(key string, record *oddb.Record) error {
 
 	m := map[string]interface{}{}
 
-	if err := db.DBMap.Dbx.Get(&m, sql, args...); err != nil {
+	if err := db.Db.Get(&m, sql, args...); err != nil {
 		return fmt.Errorf("get %v: %v", key, err)
 	}
 
@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS %v.note (
 	}
 
 	createTableStmt := fmt.Sprintf(CreateTableFmt, db.schemaName())
-	if _, err := db.DBMap.Exec(createTableStmt); err != nil {
+	if _, err := db.Db.Exec(createTableStmt); err != nil {
 		return fmt.Errorf("failed to create table: %v", err)
 	}
 
@@ -279,7 +279,7 @@ CREATE TABLE IF NOT EXISTS %v.note (
 		"args": args,
 	}).Debug("Inserting record")
 
-	_, err = db.DBMap.Exec(sql, args...)
+	_, err = db.Db.Exec(sql, args...)
 
 	if isUniqueViolated(err) {
 		update := psql.Update(tablename).Where("_id = ?", record.Key).SetMap(sq.Eq(record.Data))
@@ -294,7 +294,7 @@ CREATE TABLE IF NOT EXISTS %v.note (
 			"args": args,
 		}).Debug("Updating record")
 
-		_, err = db.DBMap.Exec(sql, args...)
+		_, err = db.Db.Exec(sql, args...)
 	}
 
 	return err
@@ -312,7 +312,7 @@ func (db *database) Delete(key string) error {
 		"args": args,
 	}).Debug("Executing SQL")
 
-	result, err := db.DBMap.Exec(sql, args...)
+	result, err := db.Db.Exec(sql, args...)
 	if err != nil {
 		return err
 	}
@@ -353,12 +353,10 @@ func (db *database) tableName(table string) string {
 func Open(appName, connString string) (oddb.Conn, error) {
 	const CreateSchemaFmt = `CREATE SCHEMA IF NOT EXISTS %v`
 
-	db, err := sql.Open("postgres", connString)
+	db, err := sqlx.Open("postgres", connString)
 	if err != nil {
 		return nil, err
 	}
-
-	dbmap := modl.NewDbMap(db, modl.PostgresDialect{})
 
 	stmt := fmt.Sprintf(CreateSchemaFmt, toLowerAndUnderscore("app_"+appName))
 	if _, err := db.Exec(stmt); err != nil {
@@ -366,7 +364,7 @@ func Open(appName, connString string) (oddb.Conn, error) {
 	}
 
 	return &conn{
-		DBMap:   dbmap,
+		Db:      db,
 		appName: appName,
 	}, nil
 }

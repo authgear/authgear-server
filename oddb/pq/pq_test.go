@@ -18,7 +18,7 @@ func getTestConn(t *testing.T) *conn {
 }
 
 func cleanupDB(t *testing.T, c *conn) {
-	_, err := c.DBMap.Db.Exec("DROP SCHEMA app_com_oursky_ourd CASCADE")
+	_, err := c.Db.Exec("DROP SCHEMA app_com_oursky_ourd CASCADE")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func TestUserCRUD(t *testing.T) {
 			email := ""
 			password := []byte{}
 			auth := authInfoValue{}
-			err = c.DBMap.Db.QueryRow("SELECT email, password, auth FROM app_com_oursky_ourd._user WHERE id = 'userid'").
+			err = c.Db.QueryRow("SELECT email, password, auth FROM app_com_oursky_ourd._user WHERE id = 'userid'").
 				Scan(&email, &password, &auth)
 			So(err, ShouldBeNil)
 
@@ -99,7 +99,7 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			updateduserinfo := userInfo{}
-			err = c.DBMap.Dbx.Get(&updateduserinfo, "SELECT id, email, password, auth FROM app_com_oursky_ourd._user WHERE id = $1", "userid")
+			err = c.Db.Get(&updateduserinfo, "SELECT id, email, password, auth FROM app_com_oursky_ourd._user WHERE id = $1", "userid")
 			So(err, ShouldBeNil)
 			So(updateduserinfo, ShouldResemble, userInfo{
 				ID:             "userid",
@@ -128,7 +128,7 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			placeholder := []byte{}
-			err = c.DBMap.Db.QueryRow("SELECT false FROM app_com_oursky_ourd._user WHERE id = $1", "userid").Scan(&placeholder)
+			err = c.Db.QueryRow("SELECT false FROM app_com_oursky_ourd._user WHERE id = $1", "userid").Scan(&placeholder)
 			So(err, ShouldEqual, sql.ErrNoRows)
 			So(placeholder, ShouldBeEmpty)
 		})
@@ -148,18 +148,18 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			count := 0
-			c.DBMap.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._user").Scan(&count)
+			c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._user").Scan(&count)
 			So(count, ShouldEqual, 2)
 
 			err = c.DeleteUser("2")
 			So(err, ShouldBeNil)
 
-			c.DBMap.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._user").Scan(&count)
+			c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._user").Scan(&count)
 			So(count, ShouldEqual, 1)
 		})
 
 		Reset(func() {
-			_, err := c.DBMap.Db.Exec("TRUNCATE app_com_oursky_ourd._user")
+			_, err := c.Db.Exec("TRUNCATE app_com_oursky_ourd._user")
 			So(err, ShouldBeNil)
 		})
 	})
@@ -186,7 +186,7 @@ func TestInsert(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var content string
-			err = db.(*database).DBMap.Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid'").Scan(&content)
+			err = db.(*database).Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid'").Scan(&content)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "some content")
 		})
@@ -200,13 +200,13 @@ func TestInsert(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var content string
-			err = db.(*database).DBMap.Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid'").Scan(&content)
+			err = db.(*database).Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid'").Scan(&content)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "more content")
 		})
 
 		Reset(func() {
-			_, err := db.(*database).DBMap.Exec("TRUNCATE app_com_oursky_ourd.note")
+			_, err := db.(*database).Db.Exec("TRUNCATE app_com_oursky_ourd.note")
 			So(err, ShouldBeNil)
 		})
 	})
@@ -235,7 +235,7 @@ func TestDelete(t *testing.T) {
 			err = db.Delete("someid")
 			So(err, ShouldBeNil)
 
-			err = db.(*database).DBMap.Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid'").Scan((*string)(nil))
+			err = db.(*database).Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid'").Scan((*string)(nil))
 			So(err, ShouldEqual, sql.ErrNoRows)
 		})
 
