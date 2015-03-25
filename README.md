@@ -6,7 +6,15 @@ Dependencies
 ============
 1. go v1.4
 2. https://github.com/tools/godep is used for managing go lib
+3. PostgreSQL 9.4
 
 Test
 ====
-`go test github.com/oursky/ourd/...`
+You may refer to .travis.yml
+
+1. Create test DB `ourd_test` on local PostgreSQL
+1. `go test github.com/oursky/ourd/...`
+
+For local development, you are suggested to open GoConvey.
+refs: https://github.com/smartystreets/goconvey
+
