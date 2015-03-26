@@ -16,8 +16,9 @@ type authResponse struct {
 }
 
 type signupPayload struct {
-	Meta map[string]interface{}
-	Data map[string]interface{}
+	AppName string
+	Meta    map[string]interface{}
+	Data    map[string]interface{}
 }
 
 func (p *signupPayload) RouteAction() string {
@@ -69,8 +70,9 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 	store := payload.TokenStore
 
 	p := signupPayload{
-		Meta: payload.Meta,
-		Data: payload.Data,
+		AppName: payload.AppName,
+		Meta:    payload.Meta,
+		Data:    payload.Data,
 	}
 
 	info := oddb.UserInfo{}
@@ -95,7 +97,7 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	// generate access-token
-	token := authtoken.New(info.ID, time.Time{})
+	token := authtoken.New(p.AppName, info.ID, time.Time{})
 	if err := store.Put(&token); err != nil {
 		panic(err)
 	}
@@ -108,8 +110,9 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 }
 
 type loginPayload struct {
-	Meta map[string]interface{}
-	Data map[string]interface{}
+	AppName string
+	Meta    map[string]interface{}
+	Data    map[string]interface{}
 }
 
 func (p *loginPayload) RouteAction() string {
@@ -141,8 +144,9 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 	store := payload.TokenStore
 
 	p := loginPayload{
-		Meta: payload.Meta,
-		Data: payload.Data,
+		AppName: payload.AppName,
+		Meta:    payload.Meta,
+		Data:    payload.Data,
 	}
 
 	info := oddb.UserInfo{}
@@ -162,7 +166,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	// generate access-token
-	token := authtoken.New(info.ID, time.Time{})
+	token := authtoken.New(p.AppName, info.ID, time.Time{})
 	if err := store.Put(&token); err != nil {
 		panic(err)
 	}

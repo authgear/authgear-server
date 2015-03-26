@@ -14,9 +14,10 @@ type Payload struct {
 	// Map of action payload
 	Data       map[string]interface{}
 	TokenStore authtoken.Store
+	AppName    string
 	DBConn     oddb.Conn
-	oddb.Database
-	*oddb.UserInfo
+	Database   oddb.Database
+	UserInfo   *oddb.UserInfo
 }
 
 // RouteAction must exist for every request

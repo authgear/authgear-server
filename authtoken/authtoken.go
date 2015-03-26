@@ -14,13 +14,14 @@ import (
 type Token struct {
 	AccessToken string    `json:"accessToken"`
 	ExpiredAt   time.Time `json:"expiredAt"`
+	AppName     string    `json:"appName"`
 	UserInfoID  string    `json:"userInfoID"`
 }
 
 // New creates a new Token ready for use given a userInfoID and
 // expiredAt date. If expiredAt is passed an empty Time, it
 // will be set to 30 days from now.
-func New(userInfoID string, expiredAt time.Time) Token {
+func New(appName string, userInfoID string, expiredAt time.Time) Token {
 	if expiredAt.IsZero() {
 		expiredAt = time.Now().Add(24 * 30 * time.Hour)
 	}
@@ -30,6 +31,7 @@ func New(userInfoID string, expiredAt time.Time) Token {
 		// as access token.
 		AccessToken: uuid.New(),
 		ExpiredAt:   expiredAt,
+		AppName:     appName,
 		UserInfoID:  userInfoID,
 	}
 }

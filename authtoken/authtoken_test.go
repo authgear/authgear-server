@@ -18,14 +18,18 @@ func tempDir() string {
 }
 
 func TestNewToken(t *testing.T) {
-	token := New("46709394", time.Time{})
+	token := New("com.oursky.ourd", "46709394", time.Time{})
+
+	if token.AppName != "com.oursky.ourd" {
+		t.Fatalf("got token.AppName = %v, want com.oursky.ourd", token.AppName)
+	}
 
 	if token.UserInfoID != "46709394" {
-		t.Fatalf("got token.UserInfoID = %v, want 46709394", token)
+		t.Fatalf("got token.UserInfoID = %v, want 46709394", token.UserInfoID)
 	}
 
 	if token.AccessToken == "" {
-		t.Fatalf("got token = %v, want non-empty AccessToken value", token)
+		t.Fatal("got empty token, want non-empty AccessToken value")
 	}
 
 	if token.ExpiredAt.IsZero() {
@@ -36,7 +40,7 @@ func TestNewToken(t *testing.T) {
 func TestNewTokenWithExpiry(t *testing.T) {
 	expiredAt := time.Unix(0, 1)
 
-	token := New("46709394", expiredAt)
+	token := New("com.oursky.ourd", "46709394", expiredAt)
 
 	if !token.ExpiredAt.Equal(expiredAt) {
 		t.Fatalf("got token.ExpiredAt = %v, want %v", token.ExpiredAt, expiredAt)
@@ -66,11 +70,12 @@ func TestEmptyTokenIsExpired(t *testing.T) {
 }
 
 func TestFileStorePut(t *testing.T) {
-	const savedFileContent = `{"accessToken":"sometoken","expiredAt":"1970-01-01T00:00:01Z","userInfoID":"someuserinfoid"}
+	const savedFileContent = `{"accessToken":"sometoken","expiredAt":"1970-01-01T00:00:01Z","appName":"com.oursky.ourd","userInfoID":"someuserinfoid"}
 `
 	token := Token{
 		AccessToken: "sometoken",
 		ExpiredAt:   time.Unix(1, 0).UTC(),
+		AppName:     "com.oursky.ourd",
 		UserInfoID:  "someuserinfoid",
 	}
 
