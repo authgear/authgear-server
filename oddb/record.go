@@ -55,11 +55,6 @@ func (r *Record) Set(key string, i interface{}) {
 	}
 }
 
-type Ref struct {
-	Key  string
-	Type string
-}
-
 // A Datetime represent an instance in time.
 // Internally it is an alias of time.Time with custom (Un)Marshalling Logic.
 type Datetime time.Time
