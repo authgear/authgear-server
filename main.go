@@ -60,7 +60,8 @@ func main() {
 	log.SetLevel(logLv)
 
 	naiveAPIKeyPreprocessor := apiKeyValidatonPreprocessor{
-		Key: config.App.APIKey,
+		Key:     config.App.APIKey,
+		AppName: config.App.Name,
 	}
 
 	fileSystemConnPreprocessor := connPreprocessor{

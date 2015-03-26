@@ -12,7 +12,8 @@ import (
 )
 
 type apiKeyValidatonPreprocessor struct {
-	Key string
+	Key     string
+	AppName string
 }
 
 func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
@@ -22,6 +23,8 @@ func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, respons
 		response.Err = oderr.NewFmt(oderr.CannotVerifyAPIKey, "Cannot verify api key: %v", apiKey)
 		return http.StatusUnauthorized
 	}
+
+	payload.AppName = p.AppName
 
 	return http.StatusOK
 }
