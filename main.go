@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"net/http"
 	"os"
 
@@ -50,6 +50,14 @@ func main() {
 		}
 		subscriptionService.Init()
 	}
+
+	// Setup Logging
+	log.SetOutput(os.Stderr)
+	logLv, logE := log.ParseLevel(config.LOG.Level)
+	if logE != nil {
+		logLv = log.DebugLevel
+	}
+	log.SetLevel(logLv)
 
 	naiveAPIKeyPreprocessor := apiKeyValidatonPreprocessor{
 		Key: config.App.APIKey,

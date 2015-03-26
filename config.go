@@ -28,6 +28,9 @@ type Configuration struct {
 		CertPath string `gcfg:"cert-path"`
 		KeyPath  string `gcfg:"key-path"`
 	}
+	LOG struct {
+		Level string
+	}
 }
 
 // ReadFileInto reads a configuration from file specified by path

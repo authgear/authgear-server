@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"github.com/oursky/ourd/oderr"
-	"log"
 	"net/http"
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
@@ -18,6 +18,7 @@ type apiKeyValidatonPreprocessor struct {
 func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
 	apiKey := payload.APIKey()
 	if apiKey != p.Key {
+		log.Debugf("Invalid APIKEY: %v", apiKey)
 		response.Err = oderr.NewFmt(oderr.CannotVerifyAPIKey, "Cannot verify api key: %v", apiKey)
 		return http.StatusUnauthorized
 	}
@@ -33,7 +34,7 @@ type connPreprocessor struct {
 }
 
 func (p connPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	log.Println("GetDB Conn")
+	log.Debugf("GetDB Conn")
 
 	conn, err := p.DBOpener(p.DBImpl, p.AppName, p.Option)
 	if err != nil {
@@ -42,7 +43,7 @@ func (p connPreprocessor) Preprocess(payload *router.Payload, response *router.R
 	}
 	payload.DBConn = conn
 
-	log.Println("Get DB OK")
+	log.Debugf("Get DB OK")
 
 	return http.StatusOK
 }
