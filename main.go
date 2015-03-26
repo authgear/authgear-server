@@ -67,7 +67,6 @@ func main() {
 	fileSystemConnPreprocessor := connPreprocessor{
 		DBOpener: oddb.Open,
 		DBImpl:   config.DB.ImplName,
-		AppName:  config.App.Name,
 		Option:   config.DB.Option,
 	}
 
@@ -87,10 +86,10 @@ func main() {
 	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
 
 	recordPreprocessors := []router.Processor{
-		naiveAPIKeyPreprocessor.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
 		fileTokenStorePreprocessor.Preprocess,
 		authenticateUser,
+		fileSystemConnPreprocessor.Preprocess,
+		injectUserIfPresent,
 		injectDatabase,
 	}
 	r.Map("record:fetch", handler.RecordFetchHandler, recordPreprocessors...)
@@ -100,10 +99,10 @@ func main() {
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,
-		naiveAPIKeyPreprocessor.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
 		fileTokenStorePreprocessor.Preprocess,
 		authenticateUser,
+		fileSystemConnPreprocessor.Preprocess,
+		injectUserIfPresent,
 	)
 
 	// subscription shares the same set of preprocessor as record at the moment

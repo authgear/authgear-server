@@ -2,9 +2,9 @@ package main
 
 import (
 	"errors"
+	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/ourd/oderr"
 	"net/http"
-	log "github.com/Sirupsen/logrus"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
@@ -32,14 +32,13 @@ func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, respons
 type connPreprocessor struct {
 	DBOpener func(string, string, string) (oddb.Conn, error)
 	DBImpl   string
-	AppName  string
 	Option   string
 }
 
 func (p connPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	log.Debugf("GetDB Conn")
+	log.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, payload.AppName, p.Option)
 
-	conn, err := p.DBOpener(p.DBImpl, p.AppName, p.Option)
+	conn, err := p.DBOpener(p.DBImpl, payload.AppName, p.Option)
 	if err != nil {
 		response.Err = err
 		return http.StatusServiceUnavailable
@@ -74,15 +73,26 @@ func authenticateUser(payload *router.Payload, response *router.Response) int {
 		return http.StatusUnauthorized
 	}
 
+	payload.AppName = token.AppName
+	payload.UserInfoID = token.UserInfoID
+
+	return http.StatusOK
+}
+
+func injectUserIfPresent(payload *router.Payload, response *router.Response) int {
+	if payload.UserInfoID == "" {
+		log.Debugln("injectUser: empty UserInfoID, skipping")
+		return http.StatusOK
+	}
+
 	conn := payload.DBConn
 	userinfo := oddb.UserInfo{}
-	if err := conn.GetUser(token.UserInfoID, &userinfo); err != nil {
-		// we got a valid access token but cannot find the user specified
-		// there must be data inconsistency.
-		log.Printf("Cannot find UserInfo via connection specified in Token = %#v", token)
+	if err := conn.GetUser(payload.UserInfoID, &userinfo); err != nil {
+		log.Errorf("Cannot find UserInfo.ID = %#v\n", payload.UserInfoID)
 		response.Err = err
 		return http.StatusInternalServerError
 	}
+
 	payload.UserInfo = &userinfo
 
 	return http.StatusOK

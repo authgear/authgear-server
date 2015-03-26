@@ -15,6 +15,7 @@ type Payload struct {
 	Data       map[string]interface{}
 	TokenStore authtoken.Store
 	AppName    string
+	UserInfoID string
 	DBConn     oddb.Conn
 	Database   oddb.Database
 	UserInfo   *oddb.UserInfo
