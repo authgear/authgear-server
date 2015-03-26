@@ -17,6 +17,10 @@ type apiKeyValidatonPreprocessor struct {
 }
 
 func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	if p.AppName != "" {
+		return http.StatusOK
+	}
+
 	apiKey := payload.APIKey()
 	if apiKey != p.Key {
 		log.Debugf("Invalid APIKEY: %v", apiKey)
@@ -59,22 +63,37 @@ func (p tokenStorePreprocessor) Preprocess(payload *router.Payload, response *ro
 	return http.StatusOK
 }
 
-func authenticateUser(payload *router.Payload, response *router.Response) int {
+// UserAuthenticator provides preprocess method to authenicate a user
+// with access token or non-login user without api key.
+type userAuthenticator struct {
+	// These two fields are for non-login user
+	APIKey  string
+	AppName string
+}
+
+func (author *userAuthenticator) Preprocess(payload *router.Payload, response *router.Response) int {
 	tokenString := payload.AccessToken()
-	if tokenString == "" { // no access token, leave it unauthenticated
-		return http.StatusOK
+	if tokenString == "" {
+		apiKey := payload.APIKey()
+		if apiKey != author.APIKey {
+			log.Debugf("Invalid APIKEY: %v", apiKey)
+			response.Err = oderr.NewFmt(oderr.CannotVerifyAPIKey, "Cannot verify api key: %v", apiKey)
+			return http.StatusUnauthorized
+		}
+
+		payload.AppName = author.AppName
+	} else {
+		store := payload.TokenStore
+		token := authtoken.Token{}
+
+		if err := store.Get(tokenString, &token); err != nil {
+			response.Err = err
+			return http.StatusUnauthorized
+		}
+
+		payload.AppName = token.AppName
+		payload.UserInfoID = token.UserInfoID
 	}
-
-	store := payload.TokenStore
-	token := authtoken.Token{}
-
-	if err := store.Get(tokenString, &token); err != nil {
-		response.Err = err
-		return http.StatusUnauthorized
-	}
-
-	payload.AppName = token.AppName
-	payload.UserInfoID = token.UserInfoID
 
 	return http.StatusOK
 }

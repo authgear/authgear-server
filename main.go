@@ -64,14 +64,19 @@ func main() {
 		AppName: config.App.Name,
 	}
 
+	fileTokenStorePreprocessor := tokenStorePreprocessor{
+		Store: authtoken.FileStore(config.TokenStore.Path).Init(),
+	}
+
+	authenticator := userAuthenticator{
+		APIKey:  config.App.APIKey,
+		AppName: config.App.Name,
+	}
+
 	fileSystemConnPreprocessor := connPreprocessor{
 		DBOpener: oddb.Open,
 		DBImpl:   config.DB.ImplName,
 		Option:   config.DB.Option,
-	}
-
-	fileTokenStorePreprocessor := tokenStorePreprocessor{
-		Store: authtoken.FileStore(config.TokenStore.Path).Init(),
 	}
 
 	r := router.NewRouter()
@@ -87,7 +92,7 @@ func main() {
 
 	recordPreprocessors := []router.Processor{
 		fileTokenStorePreprocessor.Preprocess,
-		authenticateUser,
+		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
@@ -100,7 +105,7 @@ func main() {
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,
 		fileTokenStorePreprocessor.Preprocess,
-		authenticateUser,
+		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		injectUserIfPresent,
 	)
