@@ -31,6 +31,7 @@ func (r transportRecord) MarshalJSON() ([]byte, error) {
 		object[k] = v
 	}
 	object["_id"] = r.Type + "/" + r.Key
+	object["_type"] = r.Type
 
 	return json.Marshal(object)
 }

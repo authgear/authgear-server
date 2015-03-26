@@ -28,6 +28,7 @@ func TestTransportRecordMarshalJSON(t *testing.T) {
 
 	expectedMap := map[string]interface{}{
 		"_id":       "recordtype/recordkey",
+		"_type":     "recordtype",
 		"stringkey": "stringvalue",
 		// NOTE(limouren): json unmarshal numbers to float64
 		"numkey":  float64(1),
