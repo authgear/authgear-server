@@ -1,11 +1,14 @@
 package authtoken
 
 import (
-	"bytes"
+	"fmt"
+	. "github.com/smartystreets/goconvey/convey"
 	"io/ioutil"
+	"testing"
+
+	"bytes"
 	"os"
 	"path/filepath"
-	"testing"
 	"time"
 )
 
@@ -101,4 +104,69 @@ func TestFileStorePut(t *testing.T) {
 	if !bytes.Equal(fileBytes, []byte(savedFileContent)) {
 		t.Fatalf("got file content = %#v, want %#v", string(fileBytes), savedFileContent)
 	}
+}
+
+func TestFileStoreGet(t *testing.T) {
+	Convey("FileStore", t, func() {
+		dir := tempDir()
+		store := FileStore(dir)
+		token := Token{}
+
+		Convey("gets an non-expired file token", func() {
+			tomorrow := time.Now().AddDate(0, 0, 1)
+			tokenString := fmt.Sprintf(`
+{
+	"accessToken": "sometoken",
+	"expiredAt": "%v",
+	"appName": "com.oursky.ourd",
+	"userInfoID": "someuserinfoid"
+}
+			`, tomorrow.Format(time.RFC3339Nano))
+
+			err := ioutil.WriteFile(filepath.Join(dir, "sometoken"), []byte(tokenString), 0644)
+			So(err, ShouldBeNil)
+
+			err = store.Get("sometoken", &token)
+			So(err, ShouldBeNil)
+
+			So(token, ShouldResemble, Token{
+				AccessToken: "sometoken",
+				ExpiredAt:   tomorrow,
+				AppName:     "com.oursky.ourd",
+				UserInfoID:  "someuserinfoid",
+			})
+		})
+
+		Convey("returns an NotFoundError when the token to get is expired", func() {
+			yesterday := time.Now().AddDate(0, 0, -1)
+			tokenString := fmt.Sprintf(`
+{
+	"accessToken": "sometoken",
+	"expiredAt": "%v",
+	"appName": "com.oursky.ourd",
+	"userInfoID": "someuserinfoid"
+}
+			`, yesterday.Format(time.RFC3339Nano))
+
+			err := ioutil.WriteFile(filepath.Join(dir, "sometoken"), []byte(tokenString), 0644)
+			So(err, ShouldBeNil)
+
+			err = store.Get("sometoken", &token)
+			So(err, ShouldHaveSameTypeAs, &NotFoundError{})
+
+			Convey("and deletes the token file", func() {
+				_, err := os.Stat(filepath.Join(dir, "sometoken"))
+				So(os.IsNotExist(err), ShouldBeTrue)
+			})
+		})
+
+		Convey("returns a NotFoundError when the token to get does not existed", func() {
+			err := store.Get("notexisttoken", &token)
+			So(err, ShouldHaveSameTypeAs, &NotFoundError{})
+		})
+
+		Reset(func() {
+			os.RemoveAll(dir)
+		})
+	})
 }
