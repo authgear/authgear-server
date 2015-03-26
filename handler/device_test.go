@@ -101,7 +101,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Result.(oderr.Error)
+			err := resp.Err.(oderr.Error)
 			So(err.Code(), ShouldEqual, oderr.RequestInvalidErr)
 		})
 
@@ -113,7 +113,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Result.(oderr.Error)
+			err := resp.Err.(oderr.Error)
 			So(err.Code(), ShouldEqual, oderr.RequestInvalidErr)
 		})
 
@@ -124,7 +124,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Result.(oderr.Error)
+			err := resp.Err.(oderr.Error)
 			So(err.Code(), ShouldEqual, oderr.RequestInvalidErr)
 		})
 
@@ -139,7 +139,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Result.(oderr.Error)
+			err := resp.Err.(oderr.Error)
 			So(err.Code(), ShouldEqual, oderr.RequestInvalidErr)
 		})
 	})

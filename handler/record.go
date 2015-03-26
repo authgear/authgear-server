@@ -93,14 +93,14 @@ EOF
 */
 func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	if (*recordPayload)(payload).IsWriteAllowed() {
-		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: write is not allowed")
+		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: write is not allowed")
 		return
 	}
 
 	db := payload.Database
 	recordMaps, ok := payload.Data["records"].([]interface{})
 	if !ok {
-		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: expected list of records")
+		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: expected list of records")
 		return
 	}
 
@@ -279,13 +279,13 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 
 	query := oddb.Query{}
 	if err := queryFromPayload(payload, &query); err != nil {
-		response.Result = err
+		response.Err = err
 		return
 	}
 
 	results, err := db.Query(&query)
 	if err != nil {
-		response.Result = oderr.New(oderr.UnknownErr, "failed to open database")
+		response.Err = oderr.New(oderr.UnknownErr, "failed to open database")
 		return
 	}
 	defer results.Close()
@@ -296,7 +296,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if err != nil {
-		response.Result = oderr.New(oderr.UnknownErr, "failed to query records")
+		response.Err = oderr.New(oderr.UnknownErr, "failed to query records")
 		return
 	}
 
@@ -317,7 +317,7 @@ EOF
 */
 func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 	if (*recordPayload)(payload).IsWriteAllowed() {
-		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: write is not allowed")
+		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: write is not allowed")
 		return
 	}
 
@@ -325,7 +325,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 
 	recordIDs, ok := payload.Data["ids"].([]interface{})
 	if !ok {
-		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: expect list of ids")
+		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: expect list of ids")
 		return
 	}
 	results := []idResponseItem{}

@@ -88,10 +88,10 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 
 	if err := payload.DBConn.CreateUser(&info); err != nil {
 		if err == oddb.ErrUserDuplicated {
-			response.Result = oderr.New(oderr.UserIDDuplicatedErr, "User with the same ID already existed")
+			response.Err = oderr.New(oderr.UserIDDuplicatedErr, "User with the same ID already existed")
 		} else {
 			// TODO: more error handling here if necessary
-			response.Result = oderr.New(oderr.UnknownErr, "Unknown error occurred.")
+			response.Err = oderr.New(oderr.UnknownErr, "Unknown error occurred.")
 		}
 		return
 	}
@@ -152,16 +152,16 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 	info := oddb.UserInfo{}
 	if err := payload.DBConn.GetUser(p.UserID(), &info); err != nil {
 		if err == oddb.ErrUserNotFound {
-			response.Result = oderr.New(oderr.UserIDNotFoundErr, "Cannot find User with the specified ID")
+			response.Err = oderr.New(oderr.UserIDNotFoundErr, "Cannot find User with the specified ID")
 		} else {
 			// TODO: more error handling here if necessary
-			response.Result = oderr.New(oderr.UnknownErr, "Unknown error")
+			response.Err = oderr.New(oderr.UnknownErr, "Unknown error")
 		}
 		return
 	}
 
 	if !info.IsSamePassword(p.Password()) {
-		response.Result = oderr.New(oderr.AuthenticationInfoIncorrectErr, "Invalid login information")
+		response.Err = oderr.New(oderr.AuthenticationInfoIncorrectErr, "Invalid login information")
 		return
 	}
 

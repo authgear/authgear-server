@@ -3,7 +3,6 @@ package handler
 import (
 	"io/ioutil"
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/oursky/ourd/authtoken"
@@ -80,7 +79,7 @@ func TestSignupHandler(t *testing.T) {
 
 	authResp, ok := resp.Result.(authResponse)
 	if !ok {
-		t.Fatalf("got type = %v, want type authResponse", reflect.TypeOf(resp.Result))
+		t.Fatalf("got type = %T, want type authResponse", resp.Result)
 	}
 
 	if authResp.UserID != "userinfoid" {
@@ -130,9 +129,9 @@ func TestSignupHandlerDuplicated(t *testing.T) {
 	resp := router.Response{}
 	SignupHandler(&req, &resp)
 
-	errorResponse, ok := resp.Result.(oderr.Error)
+	errorResponse, ok := resp.Err.(oderr.Error)
 	if !ok {
-		t.Fatalf("got type = %v, want type oderr.Error", reflect.TypeOf(resp.Result))
+		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
 	}
 
 	if errorResponse.Code() != 101 {
@@ -166,7 +165,7 @@ func TestLoginHandler(t *testing.T) {
 
 	authResp, ok := resp.Result.(authResponse)
 	if !ok {
-		t.Fatalf("got type = %v, want type authResponse", reflect.TypeOf(resp.Result))
+		t.Fatalf("got type = %T, want type authResponse", resp.Result)
 	}
 
 	if authResp.UserID != "userinfoid" {
@@ -215,9 +214,9 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 	resp := router.Response{}
 	LoginHandler(&req, &resp)
 
-	errorResponse, ok := resp.Result.(oderr.Error)
+	errorResponse, ok := resp.Err.(oderr.Error)
 	if !ok {
-		t.Fatalf("got type = %v, want type oderr.Error", reflect.TypeOf(resp.Result))
+		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
 	}
 
 	if errorResponse.Code() != 103 {
@@ -246,9 +245,9 @@ func TestLoginHandlerNotFound(t *testing.T) {
 	resp := router.Response{}
 	LoginHandler(&req, &resp)
 
-	errorResponse, ok := resp.Result.(oderr.Error)
+	errorResponse, ok := resp.Err.(oderr.Error)
 	if !ok {
-		t.Fatalf("got type = %v, want type oderr.Error", reflect.TypeOf(resp.Result))
+		t.Fatalf("got type = %v, want type oderr.Error", resp.Err)
 	}
 
 	if errorResponse.Code() != 102 {

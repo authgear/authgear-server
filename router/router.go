@@ -50,7 +50,11 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		resp       Response
 	)
 	defer func() {
-		w.WriteHeader(httpStatus)
+		if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
+			w.WriteHeader(http.StatusBadRequest)
+		} else {
+			w.WriteHeader(httpStatus)
+		}
 		if err := json.NewEncoder(w).Encode(resp); err != nil {
 			panic(err)
 		}

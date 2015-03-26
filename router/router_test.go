@@ -21,6 +21,14 @@ func (m *MockHander) handle(p *Payload, r *Response) {
 	return
 }
 
+type ErrHandler struct {
+	Err error
+}
+
+func (h *ErrHandler) handle(p *Payload, r *Response) {
+	r.Err = h.Err
+}
+
 func TestRouterMap(t *testing.T) {
 	mockResp := Response{}
 	type exampleResp struct {
@@ -85,6 +93,32 @@ type getPreprocessor struct {
 func (p *getPreprocessor) Preprocess(payload *Payload, response *Response) int {
 	response.Err = p.Err
 	return p.Status
+}
+
+func TestErrorHandler(t *testing.T) {
+	Convey("Router", t, func() {
+		r := NewRouter()
+
+		Convey("returns 400 if handler sets Response.Err", func() {
+			errHandler := &ErrHandler{
+				Err: errors.New("some error"),
+			}
+			r.Map("mock:handler", errHandler.handle)
+
+			req, _ := http.NewRequest(
+				"POST",
+				"http://ourd.dev/api/v1",
+				strings.NewReader(`{"action": "mock:handler"}`),
+			)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp := httptest.NewRecorder()
+
+			r.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, http.StatusBadRequest)
+		})
+	})
 }
 
 func TestPreprocess(t *testing.T) {

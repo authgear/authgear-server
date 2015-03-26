@@ -67,11 +67,11 @@ type DeviceReigsterResult struct {
 func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) {
 	payload := deviceRegisterPayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: "+err.Error())
+		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: "+err.Error())
 		return
 	}
 	if err := payload.Validate(); err != nil {
-		response.Result = oderr.New(oderr.RequestInvalidErr, "invalid request: "+err.Error())
+		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: "+err.Error())
 		return
 	}
 
@@ -89,7 +89,7 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 			} else {
 				errToReturn = oderr.NewFmt(oderr.PersistentStorageErr, "persistent error: failed to fetch device: %v", deviceID)
 			}
-			response.Result = errToReturn
+			response.Err = errToReturn
 			return
 		}
 	}
@@ -101,7 +101,7 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 	device.UserInfoID = userinfoID
 
 	if err := conn.SaveDevice(&device); err != nil {
-		response.Result = oderr.New(oderr.PersistentStorageErr, "persistent error: failed to save device")
+		response.Err = oderr.New(oderr.PersistentStorageErr, "persistent error: failed to save device")
 	} else {
 		response.Result = DeviceReigsterResult{device.ID}
 	}
