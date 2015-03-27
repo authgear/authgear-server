@@ -114,19 +114,15 @@ func TestFileStoreGet(t *testing.T) {
 
 		Convey("gets an non-expired file token", func() {
 			tomorrow := time.Now().AddDate(0, 0, 1)
-			tokenString := fmt.Sprintf(`
-{
-	"accessToken": "sometoken",
-	"expiredAt": "%v",
-	"appName": "com.oursky.ourd",
-	"userInfoID": "someuserinfoid"
-}
-			`, tomorrow.Format(time.RFC3339Nano))
 
-			err := ioutil.WriteFile(filepath.Join(dir, "sometoken"), []byte(tokenString), 0644)
-			So(err, ShouldBeNil)
+			store.Put(&Token{
+				AccessToken: "sometoken",
+				ExpiredAt: tomorrow,
+				AppName: "com.oursky.ourd",
+				UserInfoID: "someuserinfoid",
+			})
 
-			err = store.Get("sometoken", &token)
+			err := store.Get("sometoken", &token)
 			So(err, ShouldBeNil)
 
 			So(token, ShouldResemble, Token{
