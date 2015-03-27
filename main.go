@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/anachronistic/apns"
 
@@ -17,6 +20,18 @@ import (
 	"github.com/oursky/ourd/router"
 	"github.com/oursky/ourd/subscription"
 )
+
+func logMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		body, _ := ioutil.ReadAll(r.Body)
+		log.Debugf("------ Request: ------\n%v\n", body)
+		r.Body = bufio.NewReader(body)
+
+		next.ServeHTTP(w, r)
+		// log.Debugf("------ Response: ------\n%v\n", w)
+	})
+}
 
 func usage() {
 	fmt.Println("Usage: ourd [<config file>]")
@@ -114,7 +129,7 @@ func main() {
 	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordPreprocessors...)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
-	err := http.ListenAndServe(config.HTTP.Host, r)
+	err := http.ListenAndServe(config.HTTP.Host, logMiddleware(r))
 	if err != nil {
 		log.Printf("Failed: %v", err)
 	}
