@@ -73,11 +73,11 @@ func TestEmptyTokenIsExpired(t *testing.T) {
 }
 
 func TestFileStorePut(t *testing.T) {
-	const savedFileContent = `{"accessToken":"sometoken","expiredAt":"1970-01-01T00:00:01Z","appName":"com.oursky.ourd","userInfoID":"someuserinfoid"}
+	const savedFileContent = `{"accessToken":"sometoken","expiredAt":1000000001,"appName":"com.oursky.ourd","userInfoID":"someuserinfoid"}
 `
 	token := Token{
 		AccessToken: "sometoken",
-		ExpiredAt:   time.Unix(1, 0).UTC(),
+		ExpiredAt:   time.Unix(1, 1).UTC(),
 		AppName:     "com.oursky.ourd",
 		UserInfoID:  "someuserinfoid",
 	}
@@ -115,12 +115,12 @@ func TestFileStoreGet(t *testing.T) {
 		Convey("gets an non-expired file token", func() {
 			tomorrow := time.Now().AddDate(0, 0, 1)
 
-			store.Put(&Token{
+			So(store.Put(&Token{
 				AccessToken: "sometoken",
-				ExpiredAt: tomorrow,
-				AppName: "com.oursky.ourd",
-				UserInfoID: "someuserinfoid",
-			})
+				ExpiredAt:   tomorrow,
+				AppName:     "com.oursky.ourd",
+				UserInfoID:  "someuserinfoid",
+			}), ShouldBeNil)
 
 			err := store.Get("sometoken", &token)
 			So(err, ShouldBeNil)
@@ -138,11 +138,11 @@ func TestFileStoreGet(t *testing.T) {
 			tokenString := fmt.Sprintf(`
 {
 	"accessToken": "sometoken",
-	"expiredAt": "%v",
+	"expiredAt": %v,
 	"appName": "com.oursky.ourd",
 	"userInfoID": "someuserinfoid"
 }
-			`, yesterday.Format(time.RFC3339Nano))
+			`, yesterday.UnixNano())
 
 			err := ioutil.WriteFile(filepath.Join(dir, "sometoken"), []byte(tokenString), 0644)
 			So(err, ShouldBeNil)
@@ -162,7 +162,7 @@ func TestFileStoreGet(t *testing.T) {
 		})
 
 		Reset(func() {
-			os.RemoveAll(dir)
+			//os.RemoveAll(dir)
 		})
 	})
 }

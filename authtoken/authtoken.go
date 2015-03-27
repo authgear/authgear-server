@@ -18,6 +18,50 @@ type Token struct {
 	UserInfoID  string    `json:"userInfoID"`
 }
 
+func (t Token) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&jsonToken{
+		t.AccessToken,
+		jsonStamp(t.ExpiredAt),
+		t.AppName,
+		t.UserInfoID,
+	})
+}
+
+func (t *Token) UnmarshalJSON(data []byte) (err error) {
+	token := jsonToken{}
+	if err := json.Unmarshal(data, &token); err != nil {
+		return err
+	}
+	t.AccessToken = token.AccessToken
+	t.ExpiredAt = time.Time(token.ExpiredAt)
+	t.AppName = token.AppName
+	t.UserInfoID = token.UserInfoID
+	return nil
+}
+
+type jsonToken struct {
+	AccessToken string    `json:"accessToken"`
+	ExpiredAt   jsonStamp `json:"expiredAt"`
+	AppName     string    `json:"appName"`
+	UserInfoID  string    `json:"userInfoID"`
+}
+
+type jsonStamp time.Time
+
+func (t jsonStamp) MarshalJSON() ([]byte, error) {
+	tt := time.Time(t)
+	return json.Marshal(tt.UnixNano())
+}
+
+func (t *jsonStamp) UnmarshalJSON(data []byte) (err error) {
+	var i int64
+	if err := json.Unmarshal(data, &i); err != nil {
+		return err
+	}
+	*t = jsonStamp(time.Unix(0, i))
+	return nil
+}
+
 // New creates a new Token ready for use given a userInfoID and
 // expiredAt date. If expiredAt is passed an empty Time, it
 // will be set to 30 days from now.
