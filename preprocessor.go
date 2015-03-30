@@ -17,10 +17,6 @@ type apiKeyValidatonPreprocessor struct {
 }
 
 func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	if p.AppName != "" {
-		return http.StatusOK
-	}
-
 	apiKey := payload.APIKey()
 	if apiKey != p.Key {
 		log.Debugf("Invalid APIKEY: %v", apiKey)
