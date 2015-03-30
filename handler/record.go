@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	log "github.com/Sirupsen/logrus"
 	"strings"
 
 	"github.com/oursky/ourd/oddb"
@@ -193,15 +193,30 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	response.Result = results
 }
 
-func sortFromRaw(rawSort []interface{}, sort *oddb.Sort) {
-	keyPath, _ := rawSort[0].(string)
-	if keyPath == "" {
-		panic(oderr.New(oderr.RequestInvalidErr, "missing key path in sort descriptor"))
+func keyPathFromRaw(rawKeyPath map[string]interface{}) string {
+	mapType := rawKeyPath["$type"]
+	if mapType != "keypath" {
+		panic(fmt.Errorf("got key path's type %v, want \"keypath\"", mapType))
 	}
+
+	keypath := rawKeyPath["$val"].(string)
+	if keypath == "" {
+		panic("empty key path value")
+	}
+
+	return keypath
+}
+
+func sortFromRaw(rawSort []interface{}, sort *oddb.Sort) {
+	keyPathMap, _ := rawSort[0].(map[string]interface{})
+	if len(keyPathMap) == 0 {
+		panic(errors.New("empty key path in sort descriptor"))
+	}
+	keyPath := keyPathFromRaw(keyPathMap)
 
 	orderStr, _ := rawSort[1].(string)
 	if orderStr == "" {
-		panic(oderr.New(oderr.RequestInvalidErr, "missing sort order in sort descriptor"))
+		panic(errors.New("empty sort order in sort descriptor"))
 	}
 
 	var sortOrder oddb.SortOrder
@@ -211,7 +226,7 @@ func sortFromRaw(rawSort []interface{}, sort *oddb.Sort) {
 	case "desc":
 		sortOrder = oddb.Desc
 	default:
-		panic(oderr.NewFmt(oderr.RequestInvalidErr, "unknown sort order: %v", orderStr))
+		panic(fmt.Errorf("unknown sort order: %v", orderStr))
 	}
 
 	sort.KeyPath = keyPath
@@ -223,7 +238,11 @@ func sortsFromRaw(rawSorts []interface{}) []oddb.Sort {
 	sorts := make([]oddb.Sort, length, length)
 
 	for i := range rawSorts {
-		sortFromRaw(rawSorts[i].([]interface{}), &sorts[i])
+		sortSlice, _ := rawSorts[i].([]interface{})
+		if len(sortSlice) != 2 {
+			panic(fmt.Errorf("got len(sort descriptor) = %v, want 2", len(sortSlice)))
+		}
+		sortFromRaw(sortSlice, &sorts[i])
 	}
 
 	return sorts
@@ -233,12 +252,13 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 	defer func() {
 		// use panic to escape from inner error
 		if r := recover(); r != nil {
-			if queryErr, ok := r.(oderr.Error); ok {
-				err = queryErr
+			if queryErr, ok := r.(error); ok {
+				log.WithField("payload", payload).Debugln("failed to construct query")
+				err = oderr.NewFmt(oderr.RequestInvalidErr, "failed to construct query: %v", queryErr.Error())
+			} else {
+				log.WithField("recovered", r).Errorln("panic recovered while constructing query")
+				err = oderr.New(oderr.RequestInvalidErr, "error occurred while constructing query")
 			}
-
-			log.Printf("panic recovered while constructing query: %v", r)
-			err = oderr.New(oderr.RequestInvalidErr, "error occurred while constructing query")
 		}
 	}()
 
@@ -248,7 +268,7 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 	}
 	query.Type = recordType
 
-	if rawSorts, ok := payload.Data["order"]; ok {
+	if rawSorts, ok := payload.Data["sort"]; ok {
 		if rawSorts, ok := rawSorts.([]interface{}); ok {
 			query.Sorts = sortsFromRaw(rawSorts)
 		} else {
@@ -257,6 +277,10 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 	}
 
 	return nil
+}
+
+type tQuery struct {
+	Type string ``
 }
 
 /*
@@ -268,8 +292,8 @@ curl -X POST -H "Content-Type: application/json" \
     "access_token": "validToken",
     "database_id": "private",
     "record_type": "note",
-    "order": [
-        ["key", "asc"]
+    "sort": [
+        [{"$val": "noteOrder", "$type": "desc"}, "asc"]
     ]
 }
 EOF
