@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -191,9 +191,7 @@ func (s *recordSorter) Swap(i, j int) {
 
 func (s *recordSorter) Less(i, j int) bool {
 	less := s.by(&s.records[i], &s.records[j])
-	// log.Printf("%v < %v => %v", s.records[i], s.records[j], less)
 	return less
-	// return s.by(&s.records[i], &s.records[j])
 }
 
 func (s *recordSorter) Sort() {
@@ -287,15 +285,20 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 			// NOTE: this cast is platform depedent and is only tested
 			// on UNIX-like system
 			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-				if status.ExitStatus() == 1 {
-					log.Println("ExitStatus", 1)
-					// grep has a exit status of 1 if it finds nothing
-					// See: http://www.gnu.org/software/grep/manual/html_node/Exit-Status.html
-					return oddb.NewRows(&memoryRows{0, []oddb.Record{}}), nil
-				}
+				// grep has a exit status of 1 if it finds nothing
+				// See: http://www.gnu.org/software/grep/manual/html_node/Exit-Status.html
+				log.WithFields(log.Fields{
+					"ExitStatus": status.ExitStatus(),
+				}).Infoln("grep returns non-zero exit status")
 			}
 		}
-		log.Printf("Failed to grep: %v\nStderr: %v", err.Error(), errbuf.String())
+
+		log.WithFields(log.Fields{
+			"err":    err.Error(),
+			"stderr": errbuf.String(),
+			"path":   db.Dir,
+		}).Infoln("Failed to grep")
+
 		return oddb.NewRows(&memoryRows{0, []oddb.Record{}}), nil
 	}
 
