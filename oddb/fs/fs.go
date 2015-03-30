@@ -36,6 +36,10 @@ type fileConn struct {
 
 // Open returns a new connection to fs implementation
 func Open(appName, dir string) (oddb.Conn, error) {
+	if appName == "" {
+		return nil, errors.New("fs: appName cannot be empty")
+	}
+
 	containerPath := filepath.Join(dir, appName)
 	userDBPath := filepath.Join(containerPath, userDBKey)
 	deviceDBPath := filepath.Join(containerPath, "_device")
