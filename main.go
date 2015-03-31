@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -17,6 +20,66 @@ import (
 	"github.com/oursky/ourd/router"
 	"github.com/oursky/ourd/subscription"
 )
+
+type fakeReadCloser struct {
+	io.Reader
+}
+
+func (rc fakeReadCloser) Close() error {
+	return nil
+}
+
+type responseLogger struct {
+	w      http.ResponseWriter
+	status int
+	size   int
+	b      bytes.Buffer
+}
+
+func (l *responseLogger) Header() http.Header {
+	return l.w.Header()
+}
+
+func (l *responseLogger) Write(b []byte) (int, error) {
+	if l.status == 0 {
+		// The status will be StatusOK if WriteHeader has not been called yet
+		l.status = http.StatusOK
+	}
+	l.b.Write(b)
+	size, err := l.w.Write(b)
+	l.size += size
+	return size, err
+}
+
+func (l *responseLogger) WriteHeader(s int) {
+	l.w.WriteHeader(s)
+	l.status = s
+}
+
+func (l *responseLogger) Status() int {
+	return l.status
+}
+
+func (l *responseLogger) Size() int {
+	return l.size
+}
+
+func (l *responseLogger) String() string {
+	return l.b.String()
+}
+
+func logMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		body, _ := ioutil.ReadAll(r.Body)
+		log.Debugf("------ Request: ------\n%v", string(body))
+		r.Body = fakeReadCloser{bytes.NewReader(body)}
+
+		rlogger := &responseLogger{w: w}
+		next.ServeHTTP(rlogger, r)
+		log.Debugf("------ Response: ------\n%v", rlogger.String())
+	})
+}
 
 func usage() {
 	fmt.Println("Usage: ourd [<config file>]")
@@ -114,7 +177,7 @@ func main() {
 	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordPreprocessors...)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
-	err := http.ListenAndServe(config.HTTP.Host, r)
+	err := http.ListenAndServe(config.HTTP.Host, logMiddleware(r))
 	if err != nil {
 		log.Printf("Failed: %v", err)
 	}
