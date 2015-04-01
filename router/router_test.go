@@ -79,7 +79,8 @@ func TestRouterMapMissing(t *testing.T) {
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
 
-	expectedBody := "{\"error\":{\"code\":201,\"message\":\"Unmatched Route\"}}\n"
+	expectedBody := `{"error":{"type":"RequestInvalid","code":101,"message":"route unmatched"}}
+`
 	if resp.Body.String() != expectedBody {
 		t.Fatalf("want resp.Body.String() = %#v, got %#v", expectedBody, resp.Body.String())
 	}
@@ -161,7 +162,8 @@ func TestPreprocess(t *testing.T) {
 			r.ServeHTTP(resp, req)
 
 			Convey("it has \"err\" as body", func() {
-				So(resp.Body.String(), ShouldEqual, "{\"error\":{\"code\":1,\"message\":\"err\"}}\n")
+				So(resp.Body.String(), ShouldEqual, `{"error":{"type":"UnknownError","code":1,"message":"err"}}
+`)
 			})
 
 			Convey("it has status code = 500", func() {
@@ -171,12 +173,13 @@ func TestPreprocess(t *testing.T) {
 
 		Convey("When preprocessor gives an oderr preprocessor", func() {
 			mockPreprocessor.Status = http.StatusInternalServerError
-			mockPreprocessor.Err = oderr.New(123, "oderr")
+			mockPreprocessor.Err = oderr.NewUnknownErr(errors.New("oderr"))
 
 			r.ServeHTTP(resp, req)
 
 			Convey("it has \"err\" as body", func() {
-				So(resp.Body.String(), ShouldEqual, "{\"error\":{\"code\":123,\"message\":\"oderr\"}}\n")
+				So(resp.Body.String(), ShouldEqual, `{"error":{"type":"UnknownError","code":1,"message":"oderr"}}
+`)
 			})
 
 			Convey("it has status code = 500", func() {

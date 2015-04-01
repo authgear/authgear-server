@@ -6,9 +6,6 @@ import (
 	"fmt"
 )
 
-// ErrUnknown signifies a unknown error
-var ErrUnknown = newError("UnknownError", 1, "an unknown error is occurred")
-
 // Various errors emitted by Ourd handlers
 var (
 	ErrAuthFailure = newError("AuthenticationFailed", 101, "authentication failed")
@@ -90,9 +87,19 @@ func newDuplicatedErr(code uint, message string) Error {
 	return newError("ResourceDuplicated", code, message)
 }
 
+// NewUnknownErr returns a new UnknownError
+func NewUnknownErr(err error) Error {
+	return newError("UnknownError", 1, err.Error())
+}
+
 // NewRequestInvalidErr returns a new RequestInvalid Error
 func NewRequestInvalidErr(err error) Error {
 	return newError("RequestInvalid", 101, err.Error())
+}
+
+// NewRequestJSONInvalidErr returns new RequestJSONInvalid Error
+func NewRequestJSONInvalidErr(err error) Error {
+	return newError("RequestInvalid", 102, err.Error())
 }
 
 // NewResourceFetchFailureErr returns a new ResourceFetchFailure Error
@@ -156,7 +163,9 @@ func (e *genericError) Error() string {
 
 func (e *genericError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Code    uint   `json:"code"`
-		Message string `json:"message"`
-	}{e.Code(), e.Message()})
+		Type    string                 `json:"type"`
+		Code    uint                   `json:"code"`
+		Message string                 `json:"message"`
+		Info    map[string]interface{} `json:"info,omitempty"`
+	}{e.Type(), e.Code(), e.Message(), e.Info()})
 }

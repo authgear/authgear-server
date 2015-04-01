@@ -65,7 +65,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			reqJSON = map[string]interface{}{}
 		} else {
 			httpStatus = http.StatusBadRequest
-			resp.Err = oderr.NewFmt(oderr.RequestInvalidErr, err.Error())
+			resp.Err = oderr.NewRequestJSONInvalidErr(err)
 			return
 		}
 	}
@@ -83,7 +83,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 					httpStatus = 500
 				}
 				if _, ok := resp.Err.(oderr.Error); !ok {
-					resp.Err = oderr.New(oderr.UnknownErr, resp.Err.Error())
+					resp.Err = oderr.NewUnknownErr(resp.Err)
 				}
 				return
 			}
@@ -91,7 +91,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		pipeline.Handler(&payload, &resp)
 	} else {
 		httpStatus = http.StatusNotFound
-		resp.Err = oderr.New(oderr.RequestInvalidErr, "Unmatched Route")
+		resp.Err = oderr.NewRequestInvalidErr(errors.New("route unmatched"))
 	}
 }
 
