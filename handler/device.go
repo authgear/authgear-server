@@ -67,11 +67,11 @@ type DeviceReigsterResult struct {
 func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) {
 	payload := deviceRegisterPayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: "+err.Error())
+		response.Err = oderr.NewRequestInvalidErr(err)
 		return
 	}
 	if err := payload.Validate(); err != nil {
-		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: "+err.Error())
+		response.Err = oderr.NewRequestInvalidErr(err)
 		return
 	}
 
@@ -85,9 +85,9 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 		if err := conn.GetDevice(deviceID, &device); err != nil {
 			var errToReturn oderr.Error
 			if err == oddb.ErrDeviceNotFound {
-				errToReturn = oderr.New(oderr.RequestInvalidErr, "invalid request: updating device does not exist")
+				errToReturn = oderr.ErrDeviceNotFound
 			} else {
-				errToReturn = oderr.NewFmt(oderr.PersistentStorageErr, "persistent error: failed to fetch device: %v", deviceID)
+				errToReturn = oderr.NewResourceFetchFailureErr("device", deviceID)
 			}
 			response.Err = errToReturn
 			return
@@ -101,7 +101,7 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 	device.UserInfoID = userinfoID
 
 	if err := conn.SaveDevice(&device); err != nil {
-		response.Err = oderr.New(oderr.PersistentStorageErr, "persistent error: failed to save device")
+		response.Err = oderr.NewResourceSaveFailureErrWithStringID("device", deviceID)
 	} else {
 		response.Result = DeviceReigsterResult{device.ID}
 	}

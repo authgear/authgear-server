@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
@@ -102,7 +103,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			DeviceRegisterHandler(&payload, &resp)
 
 			err := resp.Err.(oderr.Error)
-			So(err.Code(), ShouldEqual, oderr.RequestInvalidErr)
+			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("empty device type")))
 		})
 
 		Convey("complains on invalid device type", func() {
@@ -114,7 +115,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			DeviceRegisterHandler(&payload, &resp)
 
 			err := resp.Err.(oderr.Error)
-			So(err.Code(), ShouldEqual, oderr.RequestInvalidErr)
+			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("unknown device type = invalidtype")))
 		})
 
 		Convey("complains on empty device token", func() {
@@ -125,7 +126,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			DeviceRegisterHandler(&payload, &resp)
 
 			err := resp.Err.(oderr.Error)
-			So(err.Code(), ShouldEqual, oderr.RequestInvalidErr)
+			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("empty device token")))
 		})
 
 		Convey("complains on non-existed update", func() {
@@ -140,7 +141,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			DeviceRegisterHandler(&payload, &resp)
 
 			err := resp.Err.(oderr.Error)
-			So(err.Code(), ShouldEqual, oderr.RequestInvalidErr)
+			So(err, ShouldEqual, oderr.ErrDeviceNotFound)
 		})
 	})
 }

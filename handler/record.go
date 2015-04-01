@@ -93,14 +93,14 @@ EOF
 */
 func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	if (*recordPayload)(payload).IsWriteAllowed() {
-		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: write is not allowed")
+		response.Err = oderr.ErrWriteDenied
 		return
 	}
 
 	db := payload.Database
 	recordMaps, ok := payload.Data["records"].([]interface{})
 	if !ok {
-		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: expected list of records")
+		response.Err = oderr.NewRequestInvalidErr(errors.New("expected list of record"))
 		return
 	}
 
@@ -144,7 +144,7 @@ EOF
 func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	interfaces, ok := payload.Data["ids"].([]interface{})
 	if !ok {
-		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: expect list of ids")
+		response.Err = oderr.NewRequestInvalidErr(errors.New("expected list of id"))
 		return
 	}
 
@@ -153,13 +153,13 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	for i, it := range interfaces {
 		rawID, ok := it.(string)
 		if !ok {
-			response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: expect list of ids")
+			response.Err = oderr.NewRequestInvalidErr(errors.New("expected string id"))
 			return
 		}
 
 		ss := strings.SplitN(rawID, "/", 2)
 		if len(ss) == 1 {
-			response.Err = oderr.NewFmt(oderr.RequestInvalidErr, "invalid id format: %v", rawID)
+			response.Err = oderr.NewRequestInvalidErr(fmt.Errorf("invalid id format: %v", rawID))
 			return
 		}
 
@@ -201,7 +201,7 @@ func keyPathFromRaw(rawKeyPath map[string]interface{}) string {
 
 	keypath := rawKeyPath["$val"].(string)
 	if keypath == "" {
-		panic("empty key path value")
+		panic(errors.New("empty key path value"))
 	}
 
 	return keypath
@@ -279,10 +279,6 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 	return nil
 }
 
-type tQuery struct {
-	Type string ``
-}
-
 /*
 RecordQueryHandler is dummy implementation on fetching Records
 curl -X POST -H "Content-Type: application/json" \
@@ -309,7 +305,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 
 	results, err := db.Query(&query)
 	if err != nil {
-		response.Err = oderr.New(oderr.UnknownErr, "failed to open database")
+		response.Err = oderr.ErrDatabaseOpenFailed
 		return
 	}
 	defer results.Close()
@@ -320,7 +316,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if err != nil {
-		response.Err = oderr.New(oderr.UnknownErr, "failed to query records")
+		response.Err = oderr.ErrDatabaseQueryFailed
 		return
 	}
 
@@ -341,7 +337,7 @@ EOF
 */
 func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 	if (*recordPayload)(payload).IsWriteAllowed() {
-		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: write is not allowed")
+		response.Err = oderr.ErrWriteDenied
 		return
 	}
 
@@ -349,7 +345,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 
 	recordIDs, ok := payload.Data["ids"].([]interface{})
 	if !ok {
-		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: expect list of ids")
+		response.Err = oderr.NewRequestInvalidErr(errors.New("expected list of id"))
 		return
 	}
 	results := []idResponseItem{}

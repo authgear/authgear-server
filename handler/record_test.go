@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"encoding/json"
+	"errors"
 	"os"
 	"reflect"
 
@@ -268,10 +269,7 @@ func TestRecordFetch(t *testing.T) {
 			RecordFetchHandler(&payload, &response)
 
 			So(response.Result, ShouldBeNil)
-			So(response.Err, ShouldResemble, oderr.New(
-				oderr.RequestInvalidErr,
-				"invalid request: expect list of ids",
-			))
+			So(response.Err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("expected string id")))
 		})
 	})
 }

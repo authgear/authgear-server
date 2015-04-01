@@ -219,8 +219,8 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
 	}
 
-	if errorResponse.Code() != 103 {
-		t.Fatalf("got errorResponse.Code() = %v, want 103", errorResponse.Code())
+	if errorResponse != oderr.ErrAuthFailure {
+		t.Fatalf("got resp.Err = %v, want ErrAuthFailure", errorResponse)
 	}
 }
 
@@ -247,10 +247,10 @@ func TestLoginHandlerNotFound(t *testing.T) {
 
 	errorResponse, ok := resp.Err.(oderr.Error)
 	if !ok {
-		t.Fatalf("got type = %v, want type oderr.Error", resp.Err)
+		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
 	}
 
-	if errorResponse.Code() != 102 {
-		t.Fatalf("got errorResponse.Code() = %v, want 102", errorResponse.Code())
+	if errorResponse != oderr.ErrUserNotFound {
+		t.Fatalf("got resp.Err = %v, want ErrUserNotFound", errorResponse)
 	}
 }

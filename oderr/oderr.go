@@ -6,9 +6,28 @@ import (
 	"fmt"
 )
 
+// ErrUnknown signifies a unknown error
+var ErrUnknown = newError("UnknownError", 1, "an unknown error is occurred")
+
+// Various errors emitted by Ourd handlers
+var (
+	ErrAuthFailure = newError("AuthenticationFailed", 101, "authentication failed")
+
+	ErrWriteDenied = newError("PermissionDenied", 101, "write is not allowed")
+
+	ErrDatabaseOpenFailed  = newError("DatabaseError", 101, "failed to open database")
+	ErrDatabaseQueryFailed = newError("DatabaseError", 102, "failed to query record")
+
+	ErrUserNotFound   = newNotFoundErr(101, "user not found")
+	ErrDeviceNotFound = newNotFoundErr(102, "device not found")
+	ErrRecordNotFound = newNotFoundErr(103, "record not found")
+
+	ErrUserDuplicated = newDuplicatedErr(101, "user duplicated")
+)
+
 // ErrCode is error code being assigned to router.Payload when
 // Handler signifies an error
-type ErrCode int
+type ErrCode uint
 
 // UnknownErr represents an unknown error
 const UnknownErr ErrCode = 1
@@ -38,8 +57,10 @@ const (
 
 // Error specifies the interfaces required by an error in ourd
 type Error interface {
-	Code() ErrCode
+	Type() string
+	Code() uint
 	Message() string
+	Info() map[string]interface{}
 	error
 	json.Marshaler
 }
@@ -47,13 +68,65 @@ type Error interface {
 // genericError is an intuitive implementation of Error that contains
 // an code and error message.
 type genericError struct {
-	code    ErrCode
+	t       string
+	code    uint
 	message string
+	info    map[string]interface{}
+}
+
+func newError(t string, code uint, message string) Error {
+	return &genericError{
+		t:       t,
+		code:    code,
+		message: message,
+	}
+}
+
+func newNotFoundErr(code uint, message string) Error {
+	return newError("ResourceNotFound", code, message)
+}
+
+func newDuplicatedErr(code uint, message string) Error {
+	return newError("ResourceDuplicated", code, message)
+}
+
+// NewRequestInvalidErr returns a new RequestInvalid Error
+func NewRequestInvalidErr(err error) Error {
+	return newError("RequestInvalid", 101, err.Error())
+}
+
+// NewResourceFetchFailureErr returns a new ResourceFetchFailure Error
+func NewResourceFetchFailureErr(kind string, id interface{}) Error {
+	return newError("ResourceFetchFailure", 101, fmt.Sprintf("failed to fetch %v id = %v", kind, id))
+}
+
+func newResourceSaveFailureErr(kind string, id interface{}) Error {
+	var message string
+	if id != nil {
+		message = fmt.Sprintf("failed to save %v id = %v", kind, id)
+	} else {
+		message = "failed to save " + kind
+	}
+
+	return newError("ResourceSaveFailure", 101, message)
+}
+
+// NewResourceSaveFailureErrWithStringID returns a new ResourceSaveFailure Error
+// with the specified kind and string id in the error message
+func NewResourceSaveFailureErrWithStringID(kind string, id string) Error {
+	var iID interface{}
+	if id != "" {
+		iID = id
+	}
+	return newResourceSaveFailureErr(kind, iID)
 }
 
 // New creates an Error to be returned as Response's result
 func New(code ErrCode, message string) Error {
-	return &genericError{code, message}
+	return &genericError{
+		code:    uint(code),
+		message: message,
+	}
 }
 
 // NewFmt creates an Error with the specified fmt and args
@@ -61,12 +134,20 @@ func NewFmt(code ErrCode, format string, args ...interface{}) Error {
 	return New(code, fmt.Sprintf(format, args...))
 }
 
-func (e *genericError) Code() ErrCode {
+func (e *genericError) Type() string {
+	return e.t
+}
+
+func (e *genericError) Code() uint {
 	return e.code
 }
 
 func (e *genericError) Message() string {
 	return e.message
+}
+
+func (e *genericError) Info() map[string]interface{} {
+	return e.info
 }
 
 func (e *genericError) Error() string {
@@ -75,7 +156,7 @@ func (e *genericError) Error() string {
 
 func (e *genericError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Code    ErrCode `json:"code"`
-		Message string  `json:"message"`
+		Code    uint   `json:"code"`
+		Message string `json:"message"`
 	}{e.Code(), e.Message()})
 }

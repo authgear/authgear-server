@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"errors"
+
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/oursky/ourd/oddb"
@@ -24,12 +26,12 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 		panic(err)
 	}
 	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = oderr.New(oderr.RequestInvalidErr, "invalid request: "+err.Error())
+		response.Err = oderr.NewRequestInvalidErr(err)
 	}
 
 	subscriptions := payload.Subscriptions
 	if len(subscriptions) == 0 {
-		response.Err = oderr.New(oderr.RequestInvalidErr, "empty subsciptions")
+		response.Err = oderr.NewRequestInvalidErr(errors.New("empty subsciptions"))
 		return
 	}
 
