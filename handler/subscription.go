@@ -52,7 +52,7 @@ func (item subscriptionItem) MarshalJSON() ([]byte, error) {
 		buf.Write([]byte(`subscription",`))
 		i = item.subscription
 	} else {
-		return nil, errors.New("inconsistent state: both err and subscription is nil")
+		panic("inconsistent state: both err and subscription is nil")
 	}
 
 	bodyBytes, err := json.Marshal(i)

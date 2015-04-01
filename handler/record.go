@@ -100,7 +100,7 @@ func (item responseItem) MarshalJSON() ([]byte, error) {
 		buf.Write([]byte(`record",`))
 		i = item.record
 	} else {
-		return nil, errors.New("inconsistent state: both err and record is nil")
+		panic("inconsistent state: both err and record is nil")
 	}
 
 	bodyBytes, err := json.Marshal(i)
