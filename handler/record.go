@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,17 +24,13 @@ func (p *recordPayload) IsWriteAllowed() bool {
 // oddb.Record
 type transportRecord oddb.Record
 
-func (r transportRecord) MarshalJSON() ([]byte, error) {
-	// NOTE(limouren): if there is a better way to shallow copy a map,
-	// do let me know
-	object := map[string]interface{}{}
-	for k, v := range r.Data {
-		object[k] = v
-	}
-	object["_id"] = r.Type + "/" + r.Key
-	object["_type"] = r.Type
+func (r transportRecord) ID() string {
+	return r.Type + "/" + r.Key
+}
 
-	return json.Marshal(object)
+func (r transportRecord) MarshalJSON() ([]byte, error) {
+	// NOTE(limouren): marshalling of type/key is delegated to responseItem
+	return json.Marshal(r.Data)
 }
 
 func (r *transportRecord) UnmarshalJSON(data []byte) error {
@@ -68,11 +65,56 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 	return nil
 }
 
-// idResponseItem encapsulates an item in a list of Record ID as response.
-type idResponseItem struct {
-	ID   string `json:"_id,omitempty"`
-	Type string `json:"_type,omitempty"`
-	Code string `json:"_code,omitempty"`
+type responseItem struct {
+	id     string
+	record *transportRecord
+	err    oderr.Error
+}
+
+func newResponseItem(record *transportRecord) responseItem {
+	return responseItem{
+		id:     record.ID(),
+		record: record,
+	}
+}
+
+func newResponseItemErr(id string, err oderr.Error) responseItem {
+	return responseItem{
+		id:  id,
+		err: err,
+	}
+}
+
+func (item responseItem) MarshalJSON() ([]byte, error) {
+	var (
+		buf bytes.Buffer
+		i   interface{}
+	)
+	buf.Write([]byte(`{"_id":"`))
+	buf.WriteString(item.id)
+	buf.Write([]byte(`","_type":"`))
+	if item.err != nil {
+		buf.Write([]byte(`error",`))
+		i = item.err
+	} else if item.record != nil {
+		buf.Write([]byte(`record",`))
+		i = item.record
+	} else {
+		return nil, errors.New("inconsistent state: both err and record is nil")
+	}
+
+	bodyBytes, err := json.Marshal(i)
+	if err != nil {
+		return nil, err
+	}
+
+	if bodyBytes[0] != '{' {
+		return nil, fmt.Errorf("first char of embedded json != {: %v", string(bodyBytes))
+	} else if bodyBytes[len(bodyBytes)-1] != '}' {
+		return nil, fmt.Errorf("last char of embedded json != }: %v", string(bodyBytes))
+	}
+	buf.Write(bodyBytes[1:])
+	return buf.Bytes(), nil
 }
 
 /*
@@ -107,22 +149,19 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	length := len(recordMaps)
 
 	records := make([]transportRecord, length, length)
-	results := make([]interface{}, length, length)
+	results := make([]responseItem, length, length)
 	for i := range records {
 		r := recordMaps[i].(map[string]interface{})
 		if err := records[i].InitFromMap(r); err != nil {
-			results[i] = oderr.New(oderr.RequestInvalidErr, "invalid request: "+err.Error())
-		}
-	}
-
-	for i := range records {
-		_, fail := results[i].(error)
-		if !fail {
-			if err := db.Save((*oddb.Record)(&records[i])); err != nil {
-				results[i] = oderr.New(oderr.PersistentStorageErr, "persistent error: failed to save record")
-			} else {
-				results[i] = records[i]
-			}
+			response.Err = oderr.NewRequestInvalidErr(err)
+			return
+		} else if err := db.Save((*oddb.Record)(&records[i])); err != nil {
+			results[i] = newResponseItemErr(
+				records[i].ID(),
+				oderr.NewResourceSaveFailureErrWithStringID("record", records[i].ID()),
+			)
+		} else {
+			results[i] = newResponseItem(&records[i])
 		}
 	}
 
@@ -149,7 +188,7 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	length := len(interfaces)
-	recordIDs := make([]string, length, length)
+	recordIDs := make([]compRecordID, length, length)
 	for i, it := range interfaces {
 		rawID, ok := it.(string)
 		if !ok {
@@ -163,30 +202,28 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 			return
 		}
 
-		recordIDs[i] = ss[1]
+		recordIDs[i] = compRecordID{ss[0], ss[1]}
 	}
 
 	db := payload.Database
 
-	results := make([]interface{}, length, length)
+	results := make([]responseItem, length, length)
 	for i, recordID := range recordIDs {
-		record := oddb.Record{}
-		if err := db.Get(recordID, &record); err != nil {
+		record := transportRecord{}
+		if err := db.Get(recordID.id, (*oddb.Record)(&record)); err != nil {
 			if err == oddb.ErrRecordNotFound {
-				results[i] = idResponseItem{
-					ID:   recordID,
-					Type: "_error",
-					Code: "NOT_FOUND",
-				}
+				results[i] = newResponseItemErr(
+					recordID.ID(),
+					oderr.ErrRecordNotFound,
+				)
 			} else {
-				results[i] = idResponseItem{
-					ID:   recordID,
-					Type: "_error",
-					Code: "UNKNOWN_ERR",
-				}
+				results[i] = newResponseItemErr(
+					recordID.ID(),
+					oderr.NewResourceFetchFailureErr("record", recordID.ID()),
+				)
 			}
 		} else {
-			results[i] = record
+			results[i] = newResponseItem(&record)
 		}
 	}
 
@@ -343,29 +380,59 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 
 	db := payload.Database
 
-	recordIDs, ok := payload.Data["ids"].([]interface{})
+	interfaces, ok := payload.Data["ids"].([]interface{})
 	if !ok {
 		response.Err = oderr.NewRequestInvalidErr(errors.New("expected list of id"))
 		return
 	}
-	results := []idResponseItem{}
-	for i := range recordIDs {
-		ID, ok := recordIDs[i].(string)
+
+	length := len(interfaces)
+	recordIDs := make([]compRecordID, length, length)
+	for i, it := range interfaces {
+		rawID, ok := it.(string)
 		if !ok {
-			results = append(results, idResponseItem{
-				ID,
-				"_error",
-				"ID_FORMAT_ERROR", // FIXME: Dummy
-			})
-		} else if err := db.Delete(ID); err != nil {
-			results = append(results, idResponseItem{
-				ID,
-				"_error",
-				"NOT_FOUND", // FIXME: Dummy
-			})
+			response.Err = oderr.NewRequestInvalidErr(errors.New("expected string id"))
+			return
+		}
+
+		ss := strings.SplitN(rawID, "/", 2)
+		if len(ss) == 1 {
+			response.Err = oderr.NewRequestInvalidErr(fmt.Errorf("invalid id format: %v", rawID))
+			return
+		}
+
+		recordIDs[i] = compRecordID{ss[0], ss[1]}
+	}
+
+	results := []responseItem{}
+	for i, recordID := range recordIDs {
+		record := transportRecord{}
+		if err := db.Get(recordID.id, (*oddb.Record)(&record)); err != nil {
+			if err == oddb.ErrRecordNotFound {
+				results[i] = newResponseItemErr(
+					recordID.ID(),
+					oderr.ErrRecordNotFound,
+				)
+			} else {
+				results[i] = newResponseItemErr(
+					record.ID(),
+					oderr.NewResourceDeleteFailureErrWithStringID("record", record.ID()),
+				)
+			}
+		} else {
+			results[i] = newResponseItem(&record)
 		}
 	}
+
 	response.Result = results
-	log.Println("RecordDeleteHandler")
 	return
+}
+
+type compRecordID struct {
+	kind string
+	id   string
+}
+
+func (rid compRecordID) ID() string {
+	return rid.kind + "/" + rid.id
 }

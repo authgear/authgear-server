@@ -128,6 +128,26 @@ func NewResourceSaveFailureErrWithStringID(kind string, id string) Error {
 	return newResourceSaveFailureErr(kind, iID)
 }
 
+func newResourceDeleteFailureErr(kind string, id interface{}) Error {
+	var message string
+	if id != nil {
+		message = fmt.Sprintf("failed to delete %v id = %v", kind, id)
+	} else {
+		message = "failed to delete " + kind
+	}
+
+	return newError("ResourceDeleteFailure", 101, message)
+}
+
+// NewResourceDeleteFailureErrWithStringID returns a new ResourceDeleteFailure Error
+func NewResourceDeleteFailureErrWithStringID(kind string, id string) Error {
+	var iID interface{}
+	if id != "" {
+		iID = id
+	}
+	return newResourceDeleteFailureErr(kind, iID)
+}
+
 // New creates an Error to be returned as Response's result
 func New(code ErrCode, message string) Error {
 	return &genericError{

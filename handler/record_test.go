@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
@@ -28,8 +29,6 @@ func TestTransportRecordMarshalJSON(t *testing.T) {
 	}
 
 	expectedMap := map[string]interface{}{
-		"_id":       "recordtype/recordkey",
-		"_type":     "recordtype",
 		"stringkey": "stringvalue",
 		// NOTE(limouren): json unmarshal numbers to float64
 		"numkey":  float64(1),
@@ -75,6 +74,38 @@ func TestTransportRecordUnmarshalJSON(t *testing.T) {
 
 	if !reflect.DeepEqual(unmarshalledRecord, expectedRecord) {
 		t.Fatalf("got unmarshalledRecord = %#v, expect %#v", unmarshalledRecord, expectedRecord)
+	}
+}
+
+func TestResponseItemMarshal(t *testing.T) {
+	record := transportRecord{
+		Key:  "recordkey",
+		Type: "recordtype",
+		Data: map[string]interface{}{"key": "value"},
+	}
+
+	item := newResponseItem(&record)
+	expectedJSON := []byte(`{"_id":"recordtype/recordkey","_type":"record","key":"value"}`)
+
+	marshalledItem, err := json.Marshal(item)
+	if err != nil {
+		panic(err)
+	}
+
+	if !bytes.Equal(marshalledItem, expectedJSON) {
+		t.Errorf("got marshalledItem = %s, want %s", marshalledItem, expectedJSON)
+	}
+
+	item = newResponseItemErr("recordtype/errorkey", oderr.NewUnknownErr(errors.New("a refreshing error")))
+	expectedJSON = []byte(`{"_id":"recordtype/errorkey","_type":"error","type":"UnknownError","code":1,"message":"a refreshing error"}`)
+
+	marshalledItem, err = json.Marshal(item)
+	if err != nil {
+		panic(err)
+	}
+
+	if !bytes.Equal(marshalledItem, expectedJSON) {
+		t.Errorf("got marshalledItem = %s, want %s", marshalledItem, expectedJSON)
 	}
 }
 
@@ -186,9 +217,9 @@ func TestRecordSaveHandler(t *testing.T) {
 
 	// check for Response
 
-	expectedResult := []interface{}{
-		transportRecord(expectedRecord1),
-		transportRecord(expectedRecord2),
+	expectedResult := []responseItem{
+		newResponseItem((*transportRecord)(&expectedRecord1)),
+		newResponseItem((*transportRecord)(&expectedRecord2)),
 	}
 
 	if !reflect.DeepEqual(response.Result, expectedResult) {
@@ -213,12 +244,12 @@ func (db mapDB) Get(key string, record *oddb.Record) error {
 }
 
 func TestRecordFetch(t *testing.T) {
-	record1 := oddb.Record{Key: "1", Type: "record"}
-	record2 := oddb.Record{Key: "2", Type: "record"}
+	record1 := transportRecord{Key: "1", Type: "record"}
+	record2 := transportRecord{Key: "2", Type: "record"}
 	db := mapDB{
 		Map: map[string]oddb.Record{
-			"1": record1,
-			"2": record2,
+			"1": oddb.Record(record1),
+			"2": oddb.Record(record2),
 		},
 	}
 
@@ -235,7 +266,10 @@ func TestRecordFetch(t *testing.T) {
 			RecordFetchHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(response.Result, ShouldResemble, []interface{}{record1, record2})
+			So(response.Result, ShouldResemble, []responseItem{
+				newResponseItem(&record1),
+				newResponseItem(&record2),
+			})
 		})
 
 		Convey("returns error in a list when non-exist records are fetched", func() {
@@ -250,10 +284,10 @@ func TestRecordFetch(t *testing.T) {
 			RecordFetchHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(response.Result, ShouldResemble, []interface{}{
-				record1,
-				idResponseItem{ID: "not-exist", Type: "_error", Code: "NOT_FOUND"},
-				record2,
+			So(response.Result, ShouldResemble, []responseItem{
+				newResponseItem(&record1),
+				newResponseItemErr("type/not-exist", oderr.ErrRecordNotFound),
+				newResponseItem(&record2),
 			})
 		})
 
