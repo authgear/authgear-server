@@ -50,28 +50,29 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 			}
 			SubscriptionSaveHandler(&payload, &response)
 
-			So(response.Result, ShouldResemble, []interface{}{
-				oddb.Subscription{
-					ID:   "subscription_id",
-					Type: "query",
-					NotificationInfo: oddb.NotificationInfo{
-						APS: oddb.APSSetting{
-							Alert: oddb.AppleAlert{
-								Body:                  "BODY_TEXT",
-								LocalizationKey:       "LOC_KEY",
-								LocalizationArgs:      []string{"LOC_ARGS"},
-								LaunchImage:           "LAUNCH_IMAGE",
-								ActionLocalizationKey: "ACTION_LOC_KEY",
-							},
-							SoundName:                  "SOUND_NAME",
-							ShouldBadge:                true,
-							ShouldSendContentAvailable: true,
+			expectedSubscription := oddb.Subscription{
+				ID:   "subscription_id",
+				Type: "query",
+				NotificationInfo: oddb.NotificationInfo{
+					APS: oddb.APSSetting{
+						Alert: oddb.AppleAlert{
+							Body:                  "BODY_TEXT",
+							LocalizationKey:       "LOC_KEY",
+							LocalizationArgs:      []string{"LOC_ARGS"},
+							LaunchImage:           "LAUNCH_IMAGE",
+							ActionLocalizationKey: "ACTION_LOC_KEY",
 						},
-					},
-					Query: oddb.Query{
-						Type: "RECORD_TYPE",
+						SoundName:                  "SOUND_NAME",
+						ShouldBadge:                true,
+						ShouldSendContentAvailable: true,
 					},
 				},
+				Query: oddb.Query{
+					Type: "RECORD_TYPE",
+				},
+			}
+			So(response.Result, ShouldResemble, []interface{}{
+				newSubscriptionResponseItem(&expectedSubscription),
 			})
 		})
 	})

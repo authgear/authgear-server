@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -12,6 +15,58 @@ import (
 
 type subscriptionPayload struct {
 	Subscriptions []oddb.Subscription
+}
+
+type subscriptionItem struct {
+	id           string
+	subscription *oddb.Subscription
+	err          oderr.Error
+}
+
+func newSubscriptionResponseItem(subscription *oddb.Subscription) subscriptionItem {
+	return subscriptionItem{
+		id:           subscription.ID,
+		subscription: subscription,
+	}
+}
+
+func newSubscriptionResponseItemErr(id string, err oderr.Error) subscriptionItem {
+	return subscriptionItem{
+		id:  id,
+		err: err,
+	}
+}
+
+func (item subscriptionItem) MarshalJSON() ([]byte, error) {
+	var (
+		buf bytes.Buffer
+		i   interface{}
+	)
+	buf.Write([]byte(`{"_id":"`))
+	buf.WriteString(item.id)
+	buf.Write([]byte(`","_type":"`))
+	if item.err != nil {
+		buf.Write([]byte(`error",`))
+		i = item.err
+	} else if item.subscription != nil {
+		buf.Write([]byte(`subscription",`))
+		i = item.subscription
+	} else {
+		return nil, errors.New("inconsistent state: both err and subscription is nil")
+	}
+
+	bodyBytes, err := json.Marshal(i)
+	if err != nil {
+		return nil, err
+	}
+
+	if bodyBytes[0] != '{' {
+		return nil, fmt.Errorf("first char of embedded json != {: %v", string(bodyBytes))
+	} else if bodyBytes[len(bodyBytes)-1] != '}' {
+		return nil, fmt.Errorf("last char of embedded json != }: %v", string(bodyBytes))
+	}
+	buf.Write(bodyBytes[1:])
+	return buf.Bytes(), nil
 }
 
 // SubscriptionSaveHandler saves one or more subscriptions associate with
@@ -39,9 +94,12 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 	results := make([]interface{}, len(subscriptions), len(subscriptions))
 	for i := range subscriptions {
 		if err := db.SaveSubscription(&subscriptions[i]); err != nil {
-			results[i] = oderr.New(oderr.PersistentStorageErr, "persistent: failed to save subscription")
+			results[i] = newSubscriptionResponseItemErr(
+				subscriptions[i].ID,
+				oderr.NewResourceSaveFailureErrWithStringID("subscription", subscriptions[i].ID),
+			)
 		} else {
-			results[i] = subscriptions[i]
+			results[i] = newSubscriptionResponseItem(&subscriptions[i])
 		}
 	}
 
