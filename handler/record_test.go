@@ -5,6 +5,7 @@ import (
 	"github.com/oursky/ourd/oddb/oddbtest"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+	"time"
 
 	"encoding/json"
 	"errors"
@@ -205,13 +206,21 @@ func TestRecordSaveHandler(t *testing.T) {
 		})
 
 		Convey("Removes reversed key on save", func() {
+			expectedRecord := oddb.Record{
+				Type: "type1",
+				Key:  "id1",
+				Data: map[string]interface{}{
+					"floatkey": float64(1),
+				},
+			}
+
 			payload := router.Payload{
 				Data: map[string]interface{}{
 					"action": "record:save",
 					"records": []interface{}{
 						map[string]interface{}{
 							"_id":           "type1/id1",
-							"intkey":        1,
+							"floatkey":      float64(1),
 							"_reserved_key": "reserved_value",
 						},
 					},
@@ -222,16 +231,60 @@ func TestRecordSaveHandler(t *testing.T) {
 
 			RecordSaveHandler(&payload, &response)
 
+			So(response.Err, ShouldBeNil)
+			So(response.Result, ShouldResemble, []responseItem{
+				newResponseItem((*transportRecord)(&expectedRecord)),
+			})
+
 			record := oddb.Record{}
 			err := db.Get("id1", &record)
 			So(err, ShouldBeNil)
-			So(record, ShouldResemble, oddb.Record{
+			So(record, ShouldResemble, expectedRecord)
+		})
+	})
+}
+
+func TestRecordSaveDataType(t *testing.T) {
+	Convey("RecordSaveHandler", t, func() {
+		db := oddbtest.NewMapDB()
+		response := router.Response{}
+
+		Convey("Parses date", func() {
+			expectedRecord := oddb.Record{
 				Type: "type1",
 				Key:  "id1",
 				Data: map[string]interface{}{
-					"intkey": 1,
+					"date_value": time.Date(2015, 4, 10, 9, 35, 20, 0, time.UTC),
 				},
+			}
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"action": "record:save",
+					"records": []interface{}{
+						map[string]interface{}{
+							"_id": "type1/id1",
+							"date_value": map[string]interface{}{
+								"$type": "date",
+								"$date": "2015-04-10T17:35:20+08:00",
+							},
+						},
+					},
+				},
+				Database: db,
+				UserInfo: &oddb.UserInfo{},
+			}
+
+			RecordSaveHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(response.Result, ShouldResemble, []responseItem{
+				newResponseItem((*transportRecord)(&expectedRecord)),
 			})
+
+			record := oddb.Record{}
+			err := db.Get("id1", &record)
+			So(err, ShouldBeNil)
+			So(record, ShouldResemble, expectedRecord)
 		})
 	})
 }

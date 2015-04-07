@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"runtime"
 	"strings"
+	"time"
 
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
@@ -49,7 +51,6 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 	if !ok {
 		return errors.New(`record/json: required field "_id" not found`)
 	}
-	delete(m, "_id")
 
 	ss := strings.SplitN(rawID, "/", 2)
 	if len(ss) == 1 {
@@ -58,18 +59,107 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 
 	recordType, id := ss[0], ss[1]
 
-	// remove reserved keys
+	r.Key = id
+	r.Type = recordType
+
+	purgeReservedKey(m)
+	data, err := walkData(m)
+	if err != nil {
+		return err
+	}
+	r.Data = data
+
+	return nil
+}
+
+func purgeReservedKey(m map[string]interface{}) {
 	for key := range m {
 		if key[0] == '_' {
 			delete(m, key)
 		}
 	}
+}
 
-	r.Key = id
-	r.Type = recordType
-	r.Data = m
+func walkData(m map[string]interface{}) (mapReturned map[string]interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if _, ok := r.(runtime.Error); ok {
+				panic(r)
+			}
+			err = r.(error)
+		}
+	}()
 
-	return nil
+	return walkMap(m), err
+}
+
+func walkMap(m map[string]interface{}) map[string]interface{} {
+	for key, value := range m {
+		m[key] = parseInterface(value)
+	}
+
+	return m
+}
+
+func walkSlice(items []interface{}) []interface{} {
+	for i, item := range items {
+		items[i] = parseInterface(item)
+	}
+
+	return items
+}
+
+func parseInterface(i interface{}) interface{} {
+	switch value := i.(type) {
+	default:
+		// considered a bug if this line is reached
+		panic(fmt.Errorf("unsupported value = %T", value))
+	case nil, bool, float64, string:
+		// the set of value that json unmarshaller returns
+		// http://golang.org/pkg/encoding/json/#Unmarshal
+		return value
+	case map[string]interface{}:
+		kindi, typed := value["$type"]
+		if !typed {
+			// regular dictionary, go deeper
+			return walkMap(value)
+		}
+
+		kind, ok := kindi.(string)
+		if !ok {
+			panic(fmt.Errorf(`got "$type"'s type = %T, want string`, kindi))
+		}
+
+		switch kind {
+		case "keypath":
+			panic(fmt.Errorf("unsupported $type of persistence = %s", kind))
+		case "ref", "geo", "blob":
+			panic(fmt.Errorf("unimplemented $type = %s", kind))
+		case "date":
+			return parseDate(value)
+		default:
+			panic(fmt.Errorf("unknown $type = %s", kind))
+		}
+	case []interface{}:
+		return walkSlice(value)
+	}
+}
+
+func parseDate(m map[string]interface{}) time.Time {
+	datei, ok := m["$date"]
+	if !ok {
+		panic(errors.New("missing compulsory field $date"))
+	}
+	dateStr, ok := datei.(string)
+	if !ok {
+		panic(fmt.Errorf("got type($date) = %T, want string", datei))
+	}
+	dt, err := time.Parse(time.RFC3339Nano, dateStr)
+	if err != nil {
+		panic(fmt.Errorf("failed to parse $date = %#v", dateStr))
+	}
+
+	return dt.In(time.UTC)
 }
 
 type responseItem struct {
