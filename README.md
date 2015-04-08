@@ -36,3 +36,9 @@ run `go test github.com/oursky/ourd/...`
 For local development, you are suggested to open GoConvey to keep track of testing status.
 
 refs: https://github.com/smartystreets/goconvey
+
+Deploy to heroku
+================
+On `.ini`,
+  - [http]host should left empty for using $PORT on heroku deployment
+  - [db]option should left empty for usign $DATABASE_URL on heroku deployment

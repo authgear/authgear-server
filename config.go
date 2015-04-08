@@ -2,6 +2,7 @@ package main
 
 import (
 	"code.google.com/p/gcfg"
+	"os"
 )
 
 // Configuration is Ourd's configuration
@@ -35,5 +36,18 @@ type Configuration struct {
 
 // ReadFileInto reads a configuration from file specified by path
 func ReadFileInto(config *Configuration, path string) error {
-	return gcfg.ReadFileInto(config, path)
+	if err := gcfg.ReadFileInto(config, path); err != nil {
+		return err
+	}
+	if config.HTTP.Host == "" {
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "3000"
+		}
+		config.HTTP.Host = ":" + port
+	}
+	if config.DB.ImplName == "pq" && config.DB.Option == "" {
+		config.DB.Option = os.Getenv("DATABASE_URL")
+	}
+	return nil
 }
