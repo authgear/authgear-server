@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS %v.note (
 	content text,
 	createdDateTime timestamp,
 	lastModified timestamp,
-	noteOrder integer,
+	noteOrder double precision,
 	PRIMARY KEY(_id, _user_id)
 );
 `
