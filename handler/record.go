@@ -359,9 +359,10 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	}
 	defer results.Close()
 
-	records := []transportRecord{}
+	records := []responseItem{}
 	for results.Scan() {
-		records = append(records, transportRecord(results.Record()))
+		record := transportRecord(results.Record())
+		records = append(records, newResponseItem(&record))
 	}
 
 	if err != nil {
