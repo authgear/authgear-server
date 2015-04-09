@@ -24,6 +24,20 @@ func cleanupDB(t *testing.T, c *conn) {
 	}
 }
 
+func exhaustRows(rows *oddb.Rows, errin error) (records []oddb.Record, err error) {
+	if errin != nil {
+		err = errin
+		return
+	}
+
+	for rows.Scan() {
+		records = append(records, rows.Record())
+	}
+
+	err = rows.Err()
+	return
+}
+
 func TestUserCRUD(t *testing.T) {
 	var c *conn
 
@@ -263,4 +277,96 @@ func TestDelete(t *testing.T) {
 	})
 
 	cleanupDB(t, c)
+}
+
+func TestQuery(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+
+		// fixture
+		record1 := oddb.Record{
+			Key:  "id1",
+			Type: "note",
+			Data: map[string]interface{}{
+				"noteOrder": float64(1),
+			},
+		}
+		record2 := oddb.Record{
+			Key:  "id2",
+			Type: "note",
+			Data: map[string]interface{}{
+				"noteOrder": float64(2),
+			},
+		}
+		record3 := oddb.Record{
+			Key:  "id3",
+			Type: "note",
+			Data: map[string]interface{}{
+				"noteOrder": float64(3),
+			},
+		}
+
+		db := c.PrivateDB("userid")
+		err := db.Save(&record2)
+		So(err, ShouldBeNil)
+		err = db.Save(&record1)
+		So(err, ShouldBeNil)
+		err = db.Save(&record3)
+		So(err, ShouldBeNil)
+
+		Convey("queries records", func() {
+			query := oddb.Query{
+				Type: "note",
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, record2)
+			So(records[1], ShouldResemble, record1)
+			So(records[2], ShouldResemble, record3)
+			So(len(records), ShouldEqual, 3)
+		})
+
+		Convey("sorts queried records ascendingly", func() {
+			query := oddb.Query{
+				Type: "note",
+				Sorts: []oddb.Sort{
+					oddb.Sort{
+						KeyPath: "noteOrder",
+						Order:   oddb.Ascending,
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{
+				record1,
+				record2,
+				record3,
+			})
+		})
+
+		Convey("sorts queried records descendingly", func() {
+			query := oddb.Query{
+				Type: "note",
+				Sorts: []oddb.Sort{
+					oddb.Sort{
+						KeyPath: "noteOrder",
+						Order:   oddb.Descending,
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{
+				record3,
+				record2,
+				record1,
+			})
+		})
+
+		cleanupDB(t, c)
+	})
 }

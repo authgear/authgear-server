@@ -10,6 +10,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
+	"io"
 	"regexp"
 	"strings"
 
@@ -340,7 +341,89 @@ func (db *database) Delete(key string) error {
 	return err
 }
 
-func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) { return &oddb.Rows{}, nil }
+func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
+	if query.Type != "note" {
+		return nil, errors.New("only record type 'note' is supported for now")
+	}
+
+	q := psql.Select("_id", "content", "noteorder").
+		From(db.tableName("note")).
+		Where("_user_id = ?", db.userID)
+	for _, sort := range query.Sorts {
+		switch sort.Order {
+		default:
+			return nil, fmt.Errorf("unknown sort order = %v", sort.Order)
+		case oddb.Asc:
+			q = q.OrderBy(sort.KeyPath + " ASC")
+		case oddb.Desc:
+			q = q.OrderBy(sort.KeyPath + " DESC")
+		}
+	}
+
+	sql, args, err := q.ToSql()
+	if err != nil {
+		panic(err)
+	}
+
+	log.WithFields(log.Fields{
+		"sql":  sql,
+		"args": args,
+	}).Debugln("Querying record")
+
+	rows, err := db.Db.Queryx(sql, args...)
+	return newRows(rows, err)
+}
+
+type rowsIter struct {
+	rows *sqlx.Rows
+}
+
+func (rowsi rowsIter) Close() error {
+	return rowsi.rows.Close()
+}
+
+func (rowsi rowsIter) Next(record *oddb.Record) error {
+	if rowsi.rows.Next() {
+		var (
+			id, content sql.NullString
+			noteOrder   sql.NullFloat64
+		)
+
+		err := rowsi.rows.Scan(&id, &content, &noteOrder)
+		if err != nil {
+			return err
+		}
+
+		if id.String == "" {
+			return errors.New("got empty compulsory field '_id'")
+		}
+
+		record.Type = "note"
+		record.Key = id.String
+		record.Data = map[string]interface{}{}
+		if content.Valid {
+			record.Data["content"] = content.String
+		}
+		if noteOrder.Valid {
+			record.Data["noteOrder"] = noteOrder.Float64
+		}
+
+		return nil
+	} else if rowsi.rows.Err() != nil {
+		return rowsi.rows.Err()
+	} else {
+		return io.EOF
+	}
+}
+
+func newRows(rows *sqlx.Rows, err error) (*oddb.Rows, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	return oddb.NewRows(rowsIter{rows}), nil
+}
+
 func (db *database) GetMatchingSubscription(record *oddb.Record) []oddb.Subscription {
 	return []oddb.Subscription{}
 }
