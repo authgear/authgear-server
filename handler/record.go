@@ -58,6 +58,13 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 
 	recordType, id := ss[0], ss[1]
 
+	// remove reserved keys
+	for key := range m {
+		if key[0] == '_' {
+			delete(m, key)
+		}
+	}
+
 	r.Key = id
 	r.Type = recordType
 	r.Data = m
@@ -156,6 +163,11 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 			response.Err = oderr.NewRequestInvalidErr(err)
 			return
 		} else if err := db.Save((*oddb.Record)(&records[i])); err != nil {
+			log.WithFields(log.Fields{
+				"record": &records[i],
+				"err":    err,
+			}).Debugln("Failed to save record")
+
 			results[i] = newResponseItemErr(
 				records[i].ID(),
 				oderr.NewResourceSaveFailureErrWithStringID("record", records[i].ID()),
