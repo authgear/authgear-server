@@ -203,6 +203,36 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(record1, ShouldResemble, expectedRecord1)
 			So(record2, ShouldResemble, expectedRecord2)
 		})
+
+		Convey("Removes reversed key on save", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"action": "record:save",
+					"records": []interface{}{
+						map[string]interface{}{
+							"_id":           "type1/id1",
+							"intkey":        1,
+							"_reserved_key": "reserved_value",
+						},
+					},
+				},
+				Database: db,
+				UserInfo: &oddb.UserInfo{},
+			}
+
+			RecordSaveHandler(&payload, &response)
+
+			record := oddb.Record{}
+			err := db.Get("id1", &record)
+			So(err, ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
+				Type: "type1",
+				Key:  "id1",
+				Data: map[string]interface{}{
+					"intkey": 1,
+				},
+			})
+		})
 	})
 }
 
