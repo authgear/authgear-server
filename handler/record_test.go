@@ -2,17 +2,16 @@ package handler
 
 import (
 	"bytes"
+	"github.com/oursky/ourd/oddb/oddbtest"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
 	"encoding/json"
 	"errors"
-	"os"
 	"reflect"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oddb/fs"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
@@ -144,87 +143,67 @@ func (store *errStore) Put(token *authtoken.Token) error {
 }
 
 func TestRecordSaveHandler(t *testing.T) {
-	dir := tempDir()
-	defer os.RemoveAll(dir)
+	Convey("RecordSaveHandler", t, func() {
+		db := oddbtest.NewMapDB()
+		response := router.Response{}
 
-	conn, err := fs.Open("com.oursky.oddb.test", dir)
-	if err != nil {
-		panic(err)
-	}
-
-	db := conn.PublicDB()
-
-	payload := router.Payload{
-		Data: map[string]interface{}{
-			"action": "record:save",
-			"records": []interface{}{
-				map[string]interface{}{
-					"_id": "type1/id1",
-					"k1":  "v1",
-					"k2":  "v2",
+		Convey("Saves multiple records", func() {
+			expectedRecord1 := oddb.Record{
+				Type: "type1",
+				Key:  "id1",
+				Data: map[string]interface{}{
+					"k1": "v1",
+					"k2": "v2",
 				},
-				map[string]interface{}{
-					"_id": "type2/id2",
-					"k3":  "v3",
-					"k4":  "v4",
+			}
+			expectedRecord2 := oddb.Record{
+				Type: "type2",
+				Key:  "id2",
+				Data: map[string]interface{}{
+					"k3": "v3",
+					"k4": "v4",
 				},
-			},
-		},
-		Database: db,
-		UserInfo: &oddb.UserInfo{},
-	}
+			}
 
-	response := router.Response{}
-	RecordSaveHandler(&payload, &response)
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"action": "record:save",
+					"records": []interface{}{
+						map[string]interface{}{
+							"_id": "type1/id1",
+							"k1":  "v1",
+							"k2":  "v2",
+						},
+						map[string]interface{}{
+							"_id": "type2/id2",
+							"k3":  "v3",
+							"k4":  "v4",
+						},
+					},
+				},
+				Database: db,
+				UserInfo: &oddb.UserInfo{},
+			}
 
-	// check for DB persistences
+			RecordSaveHandler(&payload, &response)
 
-	record1 := oddb.Record{}
-	if err := db.Get("id1", &record1); err != nil {
-		t.Fatalf("got err = %v, want err = nil", err)
-	}
+			So(response.Result, ShouldResemble, []responseItem{
+				newResponseItem((*transportRecord)(&expectedRecord1)),
+				newResponseItem((*transportRecord)(&expectedRecord2)),
+			})
 
-	expectedRecord1 := oddb.Record{
-		Type: "type1",
-		Key:  "id1",
-		Data: map[string]interface{}{
-			"k1": "v1",
-			"k2": "v2",
-		},
-	}
+			record1 := oddb.Record{}
+			record2 := oddb.Record{}
 
-	if !reflect.DeepEqual(record1, expectedRecord1) {
-		t.Errorf("got record1 = %#v, want %#v", record1, expectedRecord1)
-	}
+			err := db.Get("id1", &record1)
+			So(err, ShouldBeNil)
+			err = db.Get("id2", &record2)
+			So(err, ShouldBeNil)
 
-	record2 := oddb.Record{}
-	if err := db.Get("id2", &record2); err != nil {
-		t.Fatalf("got err = %v, want err = nil", err)
-	}
-
-	expectedRecord2 := oddb.Record{
-		Type: "type2",
-		Key:  "id2",
-		Data: map[string]interface{}{
-			"k3": "v3",
-			"k4": "v4",
-		},
-	}
-
-	if !reflect.DeepEqual(record2, expectedRecord2) {
-		t.Errorf("got record2 = %#v, want %#v", record2, expectedRecord2)
-	}
-
-	// check for Response
-
-	expectedResult := []responseItem{
-		newResponseItem((*transportRecord)(&expectedRecord1)),
-		newResponseItem((*transportRecord)(&expectedRecord2)),
-	}
-
-	if !reflect.DeepEqual(response.Result, expectedResult) {
-		t.Fatalf("got response.Result = %#v, want %#v", response.Result, expectedResult)
-	}
+			So(record1, ShouldResemble, expectedRecord1)
+			So(record2, ShouldResemble, expectedRecord2)
+		})
+	})
 }
 
 type mapDB struct {
