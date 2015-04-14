@@ -13,6 +13,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/lib/pq"
 	"github.com/oursky/ourd/oddb"
@@ -213,6 +214,35 @@ func (c *conn) tableName(table string) string {
 	return c.schemaName() + "." + table
 }
 
+// Different data types in Postgres
+// NOTE(limouren): varchar is missing because text can replace them,
+// see the docs here: http://www.postgresql.org/docs/9.4/static/datatype-character.html
+const (
+	TypeString    = "text"
+	TypeTimestamp = "timestamp without time zone"
+	TypeNumber    = "double precision"
+)
+
+func createTableStmt(tableName string, typemap map[string]string) string {
+	buf := bytes.Buffer{}
+	buf.Write([]byte("CREATE TABLE "))
+	buf.WriteString(tableName)
+	buf.Write([]byte("(_id text, _user_id text,"))
+
+	for column, dataType := range typemap {
+		buf.WriteByte('"')
+		buf.WriteString(column)
+		buf.WriteByte('"')
+		buf.WriteByte(' ')
+		buf.WriteString(dataType)
+		buf.WriteByte(',')
+	}
+
+	buf.Write([]byte("PRIMARY KEY(_id, _user_id));"))
+
+	return buf.String()
+}
+
 type database struct {
 	Db     *sqlx.DB
 	c      *conn
@@ -247,34 +277,36 @@ func (db *database) Get(key string, record *oddb.Record) error {
 
 // Save attempts to do a upsert
 func (db *database) Save(record *oddb.Record) error {
-	const CreateTableFmt = `
-CREATE TABLE IF NOT EXISTS %v.note (
-	_id varchar(255),
-	_user_id varchar(255),
-	content text,
-	createdDateTime timestamp,
-	lastModified timestamp,
-	noteOrder double precision,
-	PRIMARY KEY(_id, _user_id)
-);
-`
-
-	if record.Type != "note" {
-		return errors.New("only record type 'note' is supported for now")
+	if record.Key == "" {
+		return errors.New("db.save: got empty record id")
+	}
+	if record.Type == "" {
+		return fmt.Errorf("db.save %s: got empty record type", record.Key)
 	}
 
-	createTableStmt := fmt.Sprintf(CreateTableFmt, db.schemaName())
-	if _, err := db.Db.Exec(createTableStmt); err != nil {
-		return fmt.Errorf("failed to create table: %v", err)
+	tablename := db.tableName(record.Type)
+	typemap := deriveColumnTypes(record.Data)
+
+	remotetypemap, err := db.remoteColumnTypes(record.Type)
+	if err != nil {
+		return err
 	}
 
-	tablename := db.tableName("note")
+	if len(remotetypemap) == 0 {
+		stmt := createTableStmt(tablename, typemap)
+
+		if _, err := db.Db.Exec(stmt); err != nil {
+			return fmt.Errorf("failed to create table: %v", err)
+		}
+	} else {
+		// TODO(limouren): check diff and alter table here
+	}
 
 	data := map[string]interface{}{}
 	data["_id"] = record.Key
 	data["_user_id"] = db.userID
 	for key, value := range record.Data {
-		data[key] = value
+		data[`"`+key+`"`] = value
 	}
 	insert := psql.Insert(tablename).SetMap(sq.Eq(data))
 
@@ -342,21 +374,27 @@ func (db *database) Delete(key string) error {
 }
 
 func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
-	if query.Type != "note" {
-		return nil, errors.New("only record type 'note' is supported for now")
+	if query.Type == "" {
+		return nil, errors.New("got empty query type")
 	}
 
-	q := psql.Select("_id", "content", "noteorder").
-		From(db.tableName("note")).
-		Where("_user_id = ?", db.userID)
+	typemap, err := db.remoteColumnTypes(query.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	// remove _user_id, we won't need it in the result set
+	delete(typemap, "_user_id")
+	q := db.selectQuery(query.Type, typemap)
 	for _, sort := range query.Sorts {
 		switch sort.Order {
 		default:
 			return nil, fmt.Errorf("unknown sort order = %v", sort.Order)
+		// NOTE(limouren): better to verify KeyPath as well
 		case oddb.Asc:
-			q = q.OrderBy(sort.KeyPath + " ASC")
+			q = q.OrderBy(`"` + sort.KeyPath + `"` + " ASC")
 		case oddb.Desc:
-			q = q.OrderBy(sort.KeyPath + " DESC")
+			q = q.OrderBy(`"` + sort.KeyPath + `"` + " DESC")
 		}
 	}
 
@@ -371,11 +409,13 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 	}).Debugln("Querying record")
 
 	rows, err := db.Db.Queryx(sql, args...)
-	return newRows(rows, err)
+	return newRows(query.Type, typemap, rows, err)
 }
 
 type rowsIter struct {
-	rows *sqlx.Rows
+	recordtype string
+	typemap    map[string]string
+	rows       *sqlx.Rows
 }
 
 func (rowsi rowsIter) Close() error {
@@ -384,28 +424,57 @@ func (rowsi rowsIter) Close() error {
 
 func (rowsi rowsIter) Next(record *oddb.Record) error {
 	if rowsi.rows.Next() {
-		var (
-			id, content sql.NullString
-			noteOrder   sql.NullFloat64
-		)
-
-		err := rowsi.rows.Scan(&id, &content, &noteOrder)
+		columns, err := rowsi.rows.Columns()
 		if err != nil {
 			return err
 		}
 
-		if id.String == "" {
-			return errors.New("got empty compulsory field '_id'")
+		values := make([]interface{}, 0, len(columns))
+		for _, column := range columns {
+			dataType, ok := rowsi.typemap[column]
+			if !ok {
+				return fmt.Errorf("received unknown column = %s", column)
+			}
+			switch dataType {
+			default:
+				return fmt.Errorf("received unknown data type = %s for column = %s", dataType, column)
+			case TypeNumber:
+				var number sql.NullFloat64
+				values = append(values, &number)
+			case TypeString:
+				var str sql.NullString
+				values = append(values, &str)
+			case TypeTimestamp:
+				var ts pq.NullTime
+				values = append(values, &ts)
+			}
 		}
 
-		record.Type = "note"
-		record.Key = id.String
-		record.Data = map[string]interface{}{}
-		if content.Valid {
-			record.Data["content"] = content.String
+		if err := rowsi.rows.Scan(values...); err != nil {
+			return err
 		}
-		if noteOrder.Valid {
-			record.Data["noteOrder"] = noteOrder.Float64
+
+		record.Type = rowsi.recordtype
+		record.Data = map[string]interface{}{}
+
+		for i, column := range columns {
+			value := values[i]
+			switch svalue := value.(type) {
+			default:
+				return fmt.Errorf("received unexpected scanned type = %T for column = %s", value, column)
+			case *sql.NullFloat64:
+				if svalue.Valid {
+					record.Set(column, svalue.Float64)
+				}
+			case *sql.NullString:
+				if svalue.Valid {
+					record.Set(column, svalue.String)
+				}
+			case *pq.NullTime:
+				if svalue.Valid {
+					record.Set(column, svalue.Time)
+				}
+			}
 		}
 
 		return nil
@@ -416,12 +485,12 @@ func (rowsi rowsIter) Next(record *oddb.Record) error {
 	}
 }
 
-func newRows(rows *sqlx.Rows, err error) (*oddb.Rows, error) {
+func newRows(recordtype string, typemap map[string]string, rows *sqlx.Rows, err error) (*oddb.Rows, error) {
 	if err != nil {
 		return nil, err
 	}
 
-	return oddb.NewRows(rowsIter{rows}), nil
+	return oddb.NewRows(rowsIter{recordtype, typemap, rows}), nil
 }
 
 func (db *database) GetMatchingSubscription(record *oddb.Record) []oddb.Subscription {
@@ -439,6 +508,103 @@ func (db *database) schemaName() string {
 // tableName is a convenient method to access parent conn's tableName
 func (db *database) tableName(table string) string {
 	return db.c.tableName(table)
+}
+
+func (db *database) selectQuery(recordType string, typemap map[string]string) sq.SelectBuilder {
+	columns := make([]string, 0, len(typemap))
+	for column := range typemap {
+		columns = append(columns, column)
+	}
+
+	q := psql.Select()
+	for column := range typemap {
+		q = q.Column(`"` + column + `"`)
+	}
+
+	q = q.From(db.tableName(recordType)).
+		Where("_user_id = ?", db.userID)
+
+	return q
+}
+
+func (db *database) remoteColumnTypes(recordType string) (map[string]string, error) {
+	sql, args, err := psql.Select("column_name", "data_type").
+		From("information_schema.columns").
+		Where("table_schema = ? AND table_name = ?", db.schemaName(), recordType).ToSql()
+	if err != nil {
+		panic(err)
+	}
+
+	log.WithFields(log.Fields{
+		"sql":  sql,
+		"args": args,
+	}).Debugln("Querying columns schema")
+
+	rows, err := db.Db.Query(sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	typemap := map[string]string{}
+
+	var columnName, dataType string
+	for rows.Next() {
+		if err := rows.Scan(&columnName, &dataType); err != nil {
+			return nil, err
+		}
+
+		switch dataType {
+		default:
+			return nil, fmt.Errorf("received unknown data type = %s for column = %s", dataType, columnName)
+		case TypeString, TypeNumber, TypeTimestamp:
+			// do nothing
+		}
+
+		typemap[columnName] = dataType
+	}
+
+	return typemap, nil
+}
+
+func deriveColumnTypes(m map[string]interface{}) map[string]string {
+	typemap := map[string]string{}
+	for key, value := range m {
+		switch value.(type) {
+		default:
+			log.WithFields(log.Fields{
+				"key":   key,
+				"value": value,
+			}).Panicf("got unrecgonized type = %T", value)
+		case float64:
+			typemap[key] = TypeNumber
+		case string:
+			typemap[key] = TypeString
+		case time.Time:
+			typemap[key] = TypeTimestamp
+		}
+	}
+
+	return typemap
+}
+
+func createTableStmt(tableName string, typemap map[string]string) string {
+	buf := bytes.Buffer{}
+	buf.Write([]byte("CREATE TABLE "))
+	buf.WriteString(tableName)
+	buf.Write([]byte("(_id text, _user_id text,"))
+
+	for column, dataType := range typemap {
+		buf.WriteByte('"')
+		buf.WriteString(column)
+		buf.WriteByte('"')
+		buf.WriteByte(' ')
+		buf.WriteString(dataType)
+		buf.WriteByte(',')
+	}
+
+	buf.Write([]byte("PRIMARY KEY(_id, _user_id));"))
+
+	return buf.String()
 }
 
 // Open returns a new connection to postgresql implementation

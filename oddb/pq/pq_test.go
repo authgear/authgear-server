@@ -5,6 +5,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/oursky/ourd/oddb"
 	. "github.com/smartystreets/goconvey/convey"
+	"time"
 
 	"testing"
 )
@@ -181,7 +182,7 @@ func TestUserCRUD(t *testing.T) {
 	cleanupDB(t, c)
 }
 
-func TestInsert(t *testing.T) {
+func TestSave(t *testing.T) {
 	var c *conn
 	Convey("Database", t, func() {
 		c = getTestConn(t)
@@ -191,7 +192,9 @@ func TestInsert(t *testing.T) {
 			Key:  "someid",
 			Type: "note",
 			Data: map[string]interface{}{
-				"content": "some content",
+				"content":   "some content",
+				"number":    float64(1),
+				"timestamp": time.Date(1988, 2, 6, 1, 1, 1, 1, time.UTC),
 			},
 		}
 
@@ -199,10 +202,18 @@ func TestInsert(t *testing.T) {
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
 
-			var content string
-			err = db.(*database).Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").Scan(&content)
+			var (
+				content   string
+				number    float64
+				timestamp time.Time
+			)
+			err = db.(*database).Db.
+				QueryRow("SELECT content, number, timestamp FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").
+				Scan(&content, &number, &timestamp)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "some content")
+			So(number, ShouldEqual, float64(1))
+			So(timestamp.In(time.UTC), ShouldResemble, time.Date(1988, 2, 6, 1, 1, 1, 0, time.UTC))
 		})
 
 		Convey("updates record if it already exists", func() {
