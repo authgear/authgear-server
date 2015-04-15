@@ -9,6 +9,20 @@ import (
 // cannot find the Record by the specified key
 var ErrRecordNotFound = errors.New("oddb: Record not found for the specified key")
 
+// EmptyRows is a convenient variable that acts as an empty Rows.
+// Useful for oddb implementators and testing.
+var EmptyRows = NewRows(emptyRowsIter(0))
+
+type emptyRowsIter int
+
+func (rs emptyRowsIter) Close() error {
+	return nil
+}
+
+func (rs emptyRowsIter) Next(record *Record) error {
+	return io.EOF
+}
+
 // Database represents a collection of record (either public or private)
 // in a container.
 //

@@ -289,9 +289,19 @@ func TestRecordSaveDataType(t *testing.T) {
 	})
 }
 
+type queryDatabase struct {
+	lastquery *oddb.Query
+	oddb.Database
+}
+
+func (db *queryDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
+	db.lastquery = query
+	return oddb.EmptyRows, nil
+}
+
 func TestRecordQuery(t *testing.T) {
 	Convey("Given a Database", t, func() {
-		db := oddbtest.NewMapDB()
+		db := &queryDatabase{}
 		Convey("records query with type", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
@@ -304,10 +314,8 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(db.LastQuery, ShouldResemble, oddb.Query{
-				"note",
-				oddb.Predicate{},
-				nil,
+			So(db.lastquery, ShouldResemble, &oddb.Query{
+				Type: "note",
 			})
 		})
 		Convey("records query with sort", func() {
@@ -331,10 +339,9 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(db.LastQuery, ShouldResemble, oddb.Query{
-				"note",
-				oddb.Predicate{},
-				[]oddb.Sort{
+			So(db.lastquery, ShouldResemble, &oddb.Query{
+				Type: "note",
+				Sorts: []oddb.Sort{
 					oddb.Sort{
 						KeyPath: "noteOrder",
 						Order:   oddb.Desc,

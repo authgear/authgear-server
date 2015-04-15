@@ -14,7 +14,6 @@ type SubscriptionMap map[string]oddb.Subscription
 type MapDB struct {
 	RecordMap       RecordMap
 	SubscriptionMap SubscriptionMap
-	LastQuery       oddb.Query
 	oddb.Database
 }
 
@@ -58,10 +57,9 @@ func (db *MapDB) Delete(key string) error {
 	return nil
 }
 
-// Query always return empty Rows, the it will just expose the query for test eval
+// Query is not implemented.
 func (db *MapDB) Query(query *oddb.Query) (*oddb.Rows, error) {
-	db.LastQuery = *query
-	return oddb.NewRows(&oddb.MemoryRows{0, []oddb.Record{}}), nil
+	panic("oddbtest: MapDB.Query not supported")
 }
 
 // GetSubscription return a Subscription from SubscriptionMap.
