@@ -289,31 +289,12 @@ func TestRecordSaveDataType(t *testing.T) {
 	})
 }
 
-type mapDB struct {
-	Map map[string]oddb.Record
-	oddb.Database
-}
-
-func (db mapDB) Get(key string, record *oddb.Record) error {
-	r, ok := db.Map[key]
-	if !ok {
-		return oddb.ErrRecordNotFound
-	}
-
-	*record = r
-
-	return nil
-}
-
 func TestRecordFetch(t *testing.T) {
-	record1 := transportRecord{Key: "1", Type: "record"}
-	record2 := transportRecord{Key: "2", Type: "record"}
-	db := mapDB{
-		Map: map[string]oddb.Record{
-			"1": oddb.Record(record1),
-			"2": oddb.Record(record2),
-		},
-	}
+	record1 := oddb.Record{Key: "1", Type: "record"}
+	record2 := oddb.Record{Key: "2", Type: "record"}
+	db := oddbtest.NewMapDB()
+	db.Save(&record1)
+	db.Save(&record2)
 
 	Convey("Given a Database", t, func() {
 		Convey("records can be fetched", func() {
@@ -329,8 +310,8 @@ func TestRecordFetch(t *testing.T) {
 
 			So(response.Err, ShouldBeNil)
 			So(response.Result, ShouldResemble, []responseItem{
-				newResponseItem(&record1),
-				newResponseItem(&record2),
+				newResponseItem((*transportRecord)(&record1)),
+				newResponseItem((*transportRecord)(&record2)),
 			})
 		})
 
@@ -347,9 +328,9 @@ func TestRecordFetch(t *testing.T) {
 
 			So(response.Err, ShouldBeNil)
 			So(response.Result, ShouldResemble, []responseItem{
-				newResponseItem(&record1),
+				newResponseItem((*transportRecord)(&record1)),
 				newResponseItemErr("type/not-exist", oderr.ErrRecordNotFound),
-				newResponseItem(&record2),
+				newResponseItem((*transportRecord)(&record2)),
 			})
 		})
 
