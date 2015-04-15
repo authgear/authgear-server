@@ -223,26 +223,6 @@ const (
 	TypeNumber    = "double precision"
 )
 
-func createTableStmt(tableName string, typemap map[string]string) string {
-	buf := bytes.Buffer{}
-	buf.Write([]byte("CREATE TABLE "))
-	buf.WriteString(tableName)
-	buf.Write([]byte("(_id text, _user_id text,"))
-
-	for column, dataType := range typemap {
-		buf.WriteByte('"')
-		buf.WriteString(column)
-		buf.WriteByte('"')
-		buf.WriteByte(' ')
-		buf.WriteString(dataType)
-		buf.WriteByte(',')
-	}
-
-	buf.Write([]byte("PRIMARY KEY(_id, _user_id));"))
-
-	return buf.String()
-}
-
 type database struct {
 	Db     *sqlx.DB
 	c      *conn
