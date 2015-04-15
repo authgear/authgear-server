@@ -302,7 +302,7 @@ func (db *queryDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 func TestRecordQuery(t *testing.T) {
 	Convey("Given a Database", t, func() {
 		db := &queryDatabase{}
-		Convey("records query with type", func() {
+		Convey("Queries records with type", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
 					"record_type": "note",
@@ -318,7 +318,7 @@ func TestRecordQuery(t *testing.T) {
 				Type: "note",
 			})
 		})
-		Convey("records query with sort", func() {
+		Convey("Queries records with sorting", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
 					"record_type": "note",
