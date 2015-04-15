@@ -28,9 +28,19 @@ const (
 	TypeNumber    = "double precision"
 )
 
+func nilOrEmpty(s string) interface{} {
+	if s == "" {
+		return nil
+	}
+
+	return s
+}
+
 func (db *database) Get(key string, record *oddb.Record) error {
-	sql, args, err := sq.Select("*").From(db.tableName("note")).
-		Where("_id = ? AND _user_id = ?", key, db.userID).
+	sql, args, err := psql.Select("*").From("note").
+		Where(sq.Eq{
+		"_id":      key,
+		"_user_id": nilOrEmpty(db.userID)}).
 		ToSql()
 	if err != nil {
 		panic(err)
@@ -38,11 +48,14 @@ func (db *database) Get(key string, record *oddb.Record) error {
 
 	m := map[string]interface{}{}
 
-	if err := db.Db.Get(&m, sql, args...); err != nil {
+	if err := db.Db.Get(&m, sql, args...); isUndefinedTable(err) {
+		return oddb.ErrRecordNotFound
+	} else if err != nil {
 		return fmt.Errorf("get %v: %v", key, err)
 	}
 
 	delete(m, "_id")
+	delete(m, "_user_id")
 
 	record.Key = key
 	record.Type = "note"
@@ -131,19 +144,40 @@ func (db *database) Delete(key string) error {
 	}).Debug("Executing SQL")
 
 	result, err := db.Db.Exec(sql, args...)
-	if err != nil {
-		return err
+	if isUndefinedTable(err) {
+		return oddb.ErrRecordNotFound
+	} else if err != nil {
+		log.WithFields(log.Fields{
+			"key":  key,
+			"sql":  sql,
+			"args": args,
+			"err":  err,
+		}).Errorf("Failed to execute delete record statement")
+		return fmt.Errorf("delete %s: failed to delete record", key)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return err
+		log.WithFields(log.Fields{
+			"key":  key,
+			"sql":  sql,
+			"args": args,
+			"err":  err,
+		}).Errorln("Failed to fetch rowsAffected")
+		return fmt.Errorf("delete %s: failed to retrieve deletion status", key)
 	}
 
 	if rowsAffected == 0 {
 		return oddb.ErrRecordNotFound
 	} else if rowsAffected > 1 {
-		return fmt.Errorf("%v rows deleted, want 1", rowsAffected)
+		log.WithFields(log.Fields{
+			"key":          key,
+			"sql":          sql,
+			"args":         args,
+			"rowsAffected": rowsAffected,
+			"err":          err,
+		}).Errorln("Unexpected rows deleted")
+		return fmt.Errorf("delete %s: got %v rows deleted, want 1", key, rowsAffected)
 	}
 
 	return err
@@ -157,6 +191,10 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 	typemap, err := db.remoteColumnTypes(query.Type)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(typemap) == 0 { // record type has not been created
+		return oddb.EmptyRows, nil
 	}
 
 	// remove _user_id, we won't need it in the result set

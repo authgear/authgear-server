@@ -380,4 +380,35 @@ func TestQuery(t *testing.T) {
 
 		cleanupDB(t, c)
 	})
+
+	Convey("Empty Database", t, func() {
+		c := getTestConn(t)
+		db := c.PublicDB()
+
+		Convey("gets nothing", func() {
+			record := oddb.Record{}
+
+			err := db.Get("notexistid", &record)
+
+			So(err, ShouldEqual, oddb.ErrRecordNotFound)
+		})
+
+		Convey("deletes nothing", func() {
+			err := db.Delete("notexistid")
+			So(err, ShouldEqual, oddb.ErrRecordNotFound)
+		})
+
+		Convey("queries nothing", func() {
+			query := oddb.Query{
+				Type: "notexisttype",
+			}
+
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldBeEmpty)
+		})
+
+		cleanupDB(t, c)
+	})
 }

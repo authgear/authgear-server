@@ -31,6 +31,15 @@ func isUniqueViolated(err error) bool {
 	return false
 }
 
+func isUndefinedTable(err error) bool {
+	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "42P01" {
+		return true
+	}
+
+	return false
+
+}
+
 type userInfo struct {
 	ID             string        `db:"id"`
 	Email          string        `db:"email"`
