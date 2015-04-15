@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -273,7 +272,7 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 	const grepFmt = "grep -he \"{\\\"_type\\\":\\\"%v\\\"\" %v"
 
 	if err := os.MkdirAll(db.Dir, 0755); err != nil {
-		return oddb.NewRows(&memoryRows{0, []oddb.Record{}}), err
+		return oddb.NewRows(&oddb.MemoryRows{0, []oddb.Record{}}), err
 	}
 	grep := fmt.Sprintf(grepFmt, query.Type, filepath.Join(db.Dir, "*"))
 
@@ -303,7 +302,7 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 			"path":   db.Dir,
 		}).Infoln("Failed to grep")
 
-		return oddb.NewRows(&memoryRows{0, []oddb.Record{}}), nil
+		return oddb.NewRows(&oddb.MemoryRows{0, []oddb.Record{}}), nil
 	}
 
 	records := []oddb.Record{}
@@ -324,7 +323,7 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 		newRecordSorter(records, query.Sorts[0]).Sort()
 	}
 
-	return oddb.NewRows(&memoryRows{0, records}), nil
+	return oddb.NewRows(&oddb.MemoryRows{0, records}), nil
 }
 
 func (db fileDatabase) GetSubscription(key string, subscription *oddb.Subscription) error {
@@ -345,25 +344,6 @@ func (db fileDatabase) GetMatchingSubscription(record *oddb.Record) []oddb.Subsc
 
 func (db fileDatabase) recordPath(record *oddb.Record) string {
 	return filepath.Join(db.Dir, record.Key)
-}
-
-type memoryRows struct {
-	currentRowIndex int
-	records         []oddb.Record
-}
-
-func (rs *memoryRows) Close() error {
-	return nil
-}
-
-func (rs *memoryRows) Next(record *oddb.Record) error {
-	if rs.currentRowIndex >= len(rs.records) {
-		return io.EOF
-	}
-
-	*record = rs.records[rs.currentRowIndex]
-	rs.currentRowIndex = rs.currentRowIndex + 1
-	return nil
 }
 
 func init() {

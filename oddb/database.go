@@ -133,3 +133,24 @@ type RowsIter interface {
 	// Next should return io.EOF when there are no more rows
 	Next(record *Record) error
 }
+
+// MemoryRows is a native implementation of RowIter.
+// Can be used in test or simple back-end(fs) not support cursor.
+type MemoryRows struct {
+	CurrentRowIndex int
+	Records         []Record
+}
+
+func (rs *MemoryRows) Close() error {
+	return nil
+}
+
+func (rs *MemoryRows) Next(record *Record) error {
+	if rs.CurrentRowIndex >= len(rs.Records) {
+		return io.EOF
+	}
+
+	*record = rs.Records[rs.CurrentRowIndex]
+	rs.CurrentRowIndex = rs.CurrentRowIndex + 1
+	return nil
+}
