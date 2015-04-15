@@ -2,13 +2,23 @@ package pq
 
 import (
 	"database/sql"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 	"github.com/oursky/ourd/oddb"
 	. "github.com/smartystreets/goconvey/convey"
 	"time"
 
 	"testing"
 )
+
+// NOTE(limouren): postgresql uses this error to signify a non-exist
+// schema
+func isInvalidSchemaName(err error) bool {
+	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "3F000" {
+		return true
+	}
+
+	return false
+}
 
 func getTestConn(t *testing.T) *conn {
 	c, err := Open("com.oursky.ourd", "host=127.0.0.1 dbname=ourd_test sslmode=disable")
@@ -20,7 +30,7 @@ func getTestConn(t *testing.T) *conn {
 
 func cleanupDB(t *testing.T, c *conn) {
 	_, err := c.Db.Exec("DROP SCHEMA app_com_oursky_ourd CASCADE")
-	if err != nil {
+	if err != nil && !isInvalidSchemaName(err) {
 		t.Fatal(err)
 	}
 }
@@ -381,32 +391,43 @@ func TestQuery(t *testing.T) {
 		cleanupDB(t, c)
 	})
 
-	Convey("Empty Database", t, func() {
+	Convey("Empty Conn", t, func() {
 		c := getTestConn(t)
-		db := c.PublicDB()
 
-		Convey("gets nothing", func() {
-			record := oddb.Record{}
-
-			err := db.Get("notexistid", &record)
-
-			So(err, ShouldEqual, oddb.ErrRecordNotFound)
+		Convey("gets no users", func() {
+			userinfo := oddb.UserInfo{}
+			err := c.GetUser("notexistuserid", &userinfo)
+			So(err, ShouldEqual, oddb.ErrUserNotFound)
 		})
 
-		Convey("deletes nothing", func() {
-			err := db.Delete("notexistid")
-			So(err, ShouldEqual, oddb.ErrRecordNotFound)
-		})
+		Convey("Empty Database", func() {
+			db := c.PublicDB()
 
-		Convey("queries nothing", func() {
-			query := oddb.Query{
-				Type: "notexisttype",
-			}
+			Convey("gets nothing", func() {
+				record := oddb.Record{}
 
-			records, err := exhaustRows(db.Query(&query))
+				err := db.Get("notexistid", &record)
 
-			So(err, ShouldBeNil)
-			So(records, ShouldBeEmpty)
+				So(err, ShouldEqual, oddb.ErrRecordNotFound)
+			})
+
+			Convey("deletes nothing", func() {
+				err := db.Delete("notexistid")
+				So(err, ShouldEqual, oddb.ErrRecordNotFound)
+			})
+
+			Convey("queries nothing", func() {
+				query := oddb.Query{
+					Type: "notexisttype",
+				}
+
+				records, err := exhaustRows(db.Query(&query))
+
+				So(err, ShouldBeNil)
+				So(records, ShouldBeEmpty)
+			})
+
+			cleanupDB(t, c)
 		})
 
 		cleanupDB(t, c)

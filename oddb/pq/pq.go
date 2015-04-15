@@ -124,7 +124,7 @@ func (c *conn) GetUser(id string, userinfo *oddb.UserInfo) error {
 		&password,
 		&auth,
 	)
-	if err == sql.ErrNoRows {
+	if isUndefinedTable(err) || err == sql.ErrNoRows {
 		return oddb.ErrUserNotFound
 	}
 
