@@ -289,6 +289,62 @@ func TestRecordSaveDataType(t *testing.T) {
 	})
 }
 
+func TestRecordQuery(t *testing.T) {
+	Convey("Given a Database", t, func() {
+		db := oddbtest.NewMapDB()
+		Convey("records query with type", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.LastQuery, ShouldResemble, oddb.Query{
+				"note",
+				oddb.Predicate{},
+				nil,
+			})
+		})
+		Convey("records query with sort", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+					"sort": []interface{}{
+						[]interface{}{
+							map[string]interface{}{
+								"$type": "keypath",
+								"$val":  "noteOrder",
+							},
+							"desc",
+						},
+					},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.LastQuery, ShouldResemble, oddb.Query{
+				"note",
+				oddb.Predicate{},
+				[]oddb.Sort{
+					oddb.Sort{
+						KeyPath: "noteOrder",
+						Order:   oddb.Desc,
+					},
+				},
+			})
+		})
+	})
+}
+
 func TestRecordFetch(t *testing.T) {
 	record1 := oddb.Record{Key: "1", Type: "record"}
 	record2 := oddb.Record{Key: "2", Type: "record"}
