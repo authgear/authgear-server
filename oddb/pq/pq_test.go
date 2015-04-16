@@ -400,6 +400,19 @@ func TestQuery(t *testing.T) {
 			So(err, ShouldEqual, oddb.ErrUserNotFound)
 		})
 
+		Convey("updates no users", func() {
+			userinfo := oddb.UserInfo{
+				ID: "notexistuserid",
+			}
+			err := c.UpdateUser(&userinfo)
+			So(err, ShouldEqual, oddb.ErrUserNotFound)
+		})
+
+		Convey("deletes no users", func() {
+			err := c.DeleteUser("notexistuserid")
+			So(err, ShouldEqual, oddb.ErrUserNotFound)
+		})
+
 		Convey("Empty Database", func() {
 			db := c.PublicDB()
 

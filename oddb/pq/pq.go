@@ -79,20 +79,6 @@ type conn struct {
 }
 
 func (c *conn) CreateUser(userinfo *oddb.UserInfo) error {
-	const CreateUserTableFmt = `
-CREATE TABLE IF NOT EXISTS %v._user (
-	id varchar(255) PRIMARY KEY,
-	email varchar(255),
-	password varchar(255),
-	auth json
-);
-`
-
-	_, err := c.Db.Exec(fmt.Sprintf(CreateUserTableFmt, c.schemaName()))
-	if err != nil {
-		panic(err)
-	}
-
 	sql, args, err := psql.Insert(c.tableName("_user")).
 		Columns("id", "email", "password", "auth").
 		Values(userinfo.ID, userinfo.Email, userinfo.HashedPassword, authInfoValue(userinfo.Auth)).
@@ -124,7 +110,7 @@ func (c *conn) GetUser(id string, userinfo *oddb.UserInfo) error {
 		&password,
 		&auth,
 	)
-	if isUndefinedTable(err) || err == sql.ErrNoRows {
+	if err == sql.ErrNoRows {
 		return oddb.ErrUserNotFound
 	}
 
@@ -247,15 +233,12 @@ func (db *database) tableName(table string) string {
 
 // Open returns a new connection to postgresql implementation
 func Open(appName, connString string) (oddb.Conn, error) {
-	const CreateSchemaFmt = `CREATE SCHEMA IF NOT EXISTS %v`
-
 	db, err := sqlx.Open("postgres", connString)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open connection: %s", err)
 	}
 
-	stmt := fmt.Sprintf(CreateSchemaFmt, toLowerAndUnderscore("app_"+appName))
-	if _, err := db.Exec(stmt); err != nil {
+	if err := initAppDB(db, appName); err != nil {
 		return nil, err
 	}
 
@@ -263,6 +246,32 @@ func Open(appName, connString string) (oddb.Conn, error) {
 		Db:      db,
 		appName: appName,
 	}, nil
+}
+
+func initAppDB(db *sqlx.DB, appName string) error {
+	const CreateSchemaFmt = `CREATE SCHEMA IF NOT EXISTS %v;`
+	const CreateUserTableFmt = `
+CREATE TABLE IF NOT EXISTS %v._user (
+	id varchar(255) PRIMARY KEY,
+	email varchar(255),
+	password varchar(255),
+	auth json
+);
+`
+
+	schemaName := "app_" + toLowerAndUnderscore(appName)
+
+	createSchemaStmt := fmt.Sprintf(CreateSchemaFmt, schemaName)
+	if _, err := db.Exec(createSchemaStmt); err != nil {
+		return fmt.Errorf("failed to create schema: %s", err)
+	}
+
+	createUserTableStmt := fmt.Sprintf(CreateUserTableFmt, schemaName)
+	if _, err := db.Exec(createUserTableStmt); err != nil {
+		return fmt.Errorf("failed to create user table: %s", err)
+	}
+
+	return nil
 }
 
 func init() {
