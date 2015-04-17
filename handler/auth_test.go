@@ -1,13 +1,12 @@
 package handler
 
 import (
+	"github.com/oursky/ourd/oddb/oddbtest"
 	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oddb/fs"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
@@ -56,13 +55,7 @@ func TestHomeHandler(t *testing.T) {
 }
 
 func TestSignupHandler(t *testing.T) {
-	dir := tempDir()
-	defer os.RemoveAll(dir)
-
-	conn, err := fs.Open("com.oursky.ourd.handler.auth", dir)
-	if err != nil {
-		panic(err)
-	}
+	conn := oddbtest.NewMapConn()
 
 	tokenStore := singleTokenStore{}
 	req := router.Payload{
@@ -105,13 +98,7 @@ func TestSignupHandler(t *testing.T) {
 }
 
 func TestSignupHandlerDuplicated(t *testing.T) {
-	dir := tempDir()
-	defer os.RemoveAll(dir)
-
-	conn, err := fs.Open("com.oursky.ourd.handler.auth", dir)
-	if err != nil {
-		panic(err)
-	}
+	conn := oddbtest.NewMapConn()
 
 	userinfo := oddb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
 	conn.CreateUser(&userinfo)
@@ -140,13 +127,7 @@ func TestSignupHandlerDuplicated(t *testing.T) {
 }
 
 func TestLoginHandler(t *testing.T) {
-	dir := tempDir()
-	defer os.RemoveAll(dir)
-
-	conn, err := fs.Open("com.oursky.ourd.handler.auth", dir)
-	if err != nil {
-		panic(err)
-	}
+	conn := oddbtest.NewMapConn()
 
 	userinfo := oddb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
 	conn.CreateUser(&userinfo)
@@ -191,13 +172,7 @@ func TestLoginHandler(t *testing.T) {
 }
 
 func TestLoginHandlerWrongPassword(t *testing.T) {
-	dir := tempDir()
-	defer os.RemoveAll(dir)
-
-	conn, err := fs.Open("com.oursky.ourd.handler.auth", dir)
-	if err != nil {
-		panic(err)
-	}
+	conn := oddbtest.NewMapConn()
 
 	userinfo := oddb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
 	conn.CreateUser(&userinfo)
@@ -225,13 +200,7 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 }
 
 func TestLoginHandlerNotFound(t *testing.T) {
-	dir := tempDir()
-	defer os.RemoveAll(dir)
-
-	conn, err := fs.Open("com.oursky.ourd.handler.auth", dir)
-	if err != nil {
-		panic(err)
-	}
+	conn := oddbtest.NewMapConn()
 
 	tokenStore := singleTokenStore{}
 	req := router.Payload{

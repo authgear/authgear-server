@@ -4,6 +4,95 @@ import (
 	"github.com/oursky/ourd/oddb"
 )
 
+// MapConn is a naive memory implementation of oddb.Conn
+type MapConn struct {
+	UserMap map[string]oddb.UserInfo
+}
+
+// NewMapConn returns a new MapConn.
+func NewMapConn() *MapConn {
+	return &MapConn{
+		UserMap: map[string]oddb.UserInfo{},
+	}
+}
+
+// CreateUser creates a UserInfo in UserMap.
+func (conn *MapConn) CreateUser(userinfo *oddb.UserInfo) error {
+	if _, existed := conn.UserMap[userinfo.ID]; existed {
+		return oddb.ErrUserDuplicated
+	}
+
+	conn.UserMap[userinfo.ID] = *userinfo
+	return nil
+}
+
+// GetUser returns a UserInfo in UserMap.
+func (conn *MapConn) GetUser(id string, userinfo *oddb.UserInfo) error {
+	u, ok := conn.UserMap[id]
+	if !ok {
+		return oddb.ErrUserNotFound
+	}
+
+	*userinfo = u
+	return nil
+}
+
+// UpdateUser updates an existing UserInfo in UserMap.
+func (conn *MapConn) UpdateUser(userinfo *oddb.UserInfo) error {
+	if _, ok := conn.UserMap[userinfo.ID]; !ok {
+		return oddb.ErrUserNotFound
+	}
+
+	conn.UserMap[userinfo.ID] = *userinfo
+	return nil
+}
+
+// DeleteUser remove an existing in UserMap.
+func (conn *MapConn) DeleteUser(id string) error {
+	if _, ok := conn.UserMap[id]; !ok {
+		return oddb.ErrUserNotFound
+	}
+
+	delete(conn.UserMap, id)
+	return nil
+}
+
+// GetDevice is not implemented.
+func (conn *MapConn) GetDevice(id string, device *oddb.Device) error {
+	panic("not implemented")
+}
+
+// SaveDevice is not implemented.
+func (conn *MapConn) SaveDevice(device *oddb.Device) error {
+	panic("not implemented")
+}
+
+// DeleteDevice is not implemented.
+func (conn *MapConn) DeleteDevice(id string) error {
+	panic("not implemented")
+}
+
+// PublicDB is not implemented.
+func (conn *MapConn) PublicDB() oddb.Database {
+	panic("not implemented")
+}
+
+// PrivateDB is not implemented.
+func (conn *MapConn) PrivateDB(userKey string) oddb.Database {
+	panic("not implemented")
+}
+
+// AddDBRecordHook is not implemented.
+func (conn *MapConn) AddDBRecordHook(hook oddb.DBHookFunc) {
+	panic("not implemented")
+}
+
+// Close does nothing.
+func (conn *MapConn) Close() error {
+	// do nothing
+	return nil
+}
+
 // RecordMap is a string=>Record map
 type RecordMap map[string]oddb.Record
 
@@ -17,7 +106,7 @@ type MapDB struct {
 	oddb.Database
 }
 
-// NewMapDB returns new new MapDB ready for use.
+// NewMapDB returns a new MapDB ready for use.
 func NewMapDB() *MapDB {
 	return &MapDB{
 		RecordMap:       RecordMap{},
@@ -88,4 +177,7 @@ func (db *MapDB) DeleteSubscription(key string) error {
 	return nil
 }
 
-var _ oddb.Database = NewMapDB()
+var (
+	_ oddb.Conn     = NewMapConn()
+	_ oddb.Database = NewMapDB()
+)
