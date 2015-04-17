@@ -83,7 +83,16 @@ func (author *userAuthenticator) Preprocess(payload *router.Payload, response *r
 		token := authtoken.Token{}
 
 		if err := store.Get(tokenString, &token); err != nil {
-			response.Err = err
+			if _, ok := err.(*authtoken.NotFoundError); ok {
+				log.WithFields(log.Fields{
+					"token": tokenString,
+					"err":   err,
+				}).Infoln("Token not found")
+
+				response.Err = oderr.ErrAuthFailure
+			} else {
+				response.Err = err
+			}
 			return http.StatusUnauthorized
 		}
 
