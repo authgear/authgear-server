@@ -43,7 +43,7 @@ type Database interface {
 	// the supplied key does not exist in the Database.
 	// It also returns error if the underlying implementation
 	// failed to read the Record.
-	Get(key string, record *Record) error
+	Get(id RecordID, record *Record) error
 
 	// Save updates the supplied Record in the Database if Record with
 	// the same key exists, else such Record is created.
@@ -58,7 +58,7 @@ type Database interface {
 	// the supplied key does not exist in the Database.
 	// It also returns an error if the underlying implementation
 	// failed to remove the Record.
-	Delete(key string) error
+	Delete(id RecordID) error
 
 	// Query executes the supplied query against the Database and returns
 	// an Rows to iterate the results.

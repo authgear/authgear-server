@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
 	"sort"
 	"syscall"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/oursky/ourd/oddb"
 )
@@ -137,8 +138,8 @@ func (db fileDatabase) ID() string {
 	return db.Key
 }
 
-func (db fileDatabase) Get(key string, record *oddb.Record) error {
-	file, err := os.Open(filepath.Join(db.Dir, key))
+func (db fileDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
+	file, err := os.Open(db.recordPath(id))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return oddb.ErrRecordNotFound
@@ -151,8 +152,8 @@ func (db fileDatabase) Get(key string, record *oddb.Record) error {
 }
 
 func (db fileDatabase) Save(record *oddb.Record) error {
-	filePath := db.recordPath(record)
-	if err := os.MkdirAll(db.Dir, 0755); err != nil {
+	filePath := db.recordPath(record.ID)
+	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
 		return err
 	}
 
@@ -169,13 +170,13 @@ func (db fileDatabase) Save(record *oddb.Record) error {
 	return db.executeHook(record, event, err)
 }
 
-func (db fileDatabase) Delete(key string) error {
+func (db fileDatabase) Delete(id oddb.RecordID) error {
 	record := oddb.Record{}
-	if err := db.Get(key, &record); err != nil {
-		return err
+	err := os.Remove(db.recordPath(id))
+	if os.IsNotExist(err) {
+		err = oddb.ErrRecordNotFound
 	}
 
-	err := os.Remove(filepath.Join(db.Dir, key))
 	return db.executeHook(&record, oddb.RecordDeleted, err)
 }
 
@@ -269,17 +270,10 @@ func reflectLess(i1, i2 interface{}) bool {
 // argument being the type of Record and always returns a Rows that
 // iterates over all records of that type.
 func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
-	const grepFmt = "grep -he \"{\\\"_type\\\":\\\"%v\\\"\" %v"
-
-	if err := os.MkdirAll(db.Dir, 0755); err != nil {
-		return oddb.NewRows(&oddb.MemoryRows{0, []oddb.Record{}}), err
-	}
-	grep := fmt.Sprintf(grepFmt, query.Type, filepath.Join(db.Dir, "*"))
-
 	var outbuf bytes.Buffer
 	var errbuf bytes.Buffer
 
-	cmd := exec.Command("sh", "-c", grep)
+	cmd := exec.Command("sh", "-c", "cat "+filepath.Join(db.Dir, query.Type, "*"))
 	cmd.Stdout = &outbuf
 	cmd.Stdin = &errbuf
 
@@ -288,11 +282,12 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 			// NOTE: this cast is platform depedent and is only tested
 			// on UNIX-like system
 			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
-				// grep has a exit status of 1 if it finds nothing
-				// See: http://www.gnu.org/software/grep/manual/html_node/Exit-Status.html
-				log.WithFields(log.Fields{
-					"ExitStatus": status.ExitStatus(),
-				}).Infoln("grep returns non-zero exit status")
+				// cat has a exit status of 1 if directory not found
+				if status.ExitStatus() != 1 {
+					log.WithFields(log.Fields{
+						"ExitStatus": status.ExitStatus(),
+					}).Panicln("unexpected exit status")
+				}
 			}
 		}
 
@@ -300,9 +295,9 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 			"err":    err.Error(),
 			"stderr": errbuf.String(),
 			"path":   db.Dir,
-		}).Infoln("Failed to grep")
+		}).Infoln("Failed to execute cat")
 
-		return oddb.NewRows(&oddb.MemoryRows{0, []oddb.Record{}}), nil
+		return oddb.EmptyRows, nil
 	}
 
 	records := []oddb.Record{}
@@ -317,13 +312,13 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 
 	if len(query.Sorts) > 0 {
 		if len(query.Sorts) > 1 {
-			return nil, errors.New("multiple sort order is not supported")
+			return nil, errors.New("multiple sort orders not supported")
 		}
 
 		newRecordSorter(records, query.Sorts[0]).Sort()
 	}
 
-	return oddb.NewRows(&oddb.MemoryRows{0, records}), nil
+	return oddb.NewRows(&oddb.MemoryRows{Records: records}), nil
 }
 
 func (db fileDatabase) GetSubscription(key string, subscription *oddb.Subscription) error {
@@ -342,8 +337,8 @@ func (db fileDatabase) GetMatchingSubscription(record *oddb.Record) []oddb.Subsc
 	return db.subscriDB.GetMatchingSubscription(record)
 }
 
-func (db fileDatabase) recordPath(record *oddb.Record) string {
-	return filepath.Join(db.Dir, record.Key)
+func (db fileDatabase) recordPath(id oddb.RecordID) string {
+	return filepath.Join(db.Dir, id.Type, id.Key)
 }
 
 func init() {

@@ -26,10 +26,6 @@ func (p *recordPayload) IsWriteAllowed() bool {
 // oddb.Record
 type transportRecord oddb.Record
 
-func (r transportRecord) ID() string {
-	return r.Type + "/" + r.Key
-}
-
 func (r transportRecord) MarshalJSON() ([]byte, error) {
 	// NOTE(limouren): marshalling of type/key is delegated to responseItem
 	return json.Marshal(r.Data)
@@ -59,8 +55,8 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 
 	recordType, id := ss[0], ss[1]
 
-	r.Key = id
-	r.Type = recordType
+	r.ID.Key = id
+	r.ID.Type = recordType
 
 	purgeReservedKey(m)
 	data, err := walkData(m)
@@ -170,7 +166,7 @@ type responseItem struct {
 
 func newResponseItem(record *transportRecord) responseItem {
 	return responseItem{
-		id:     record.ID(),
+		id:     record.ID.String(),
 		record: record,
 	}
 }
@@ -259,8 +255,8 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 			}).Debugln("Failed to save record")
 
 			results[i] = newResponseItemErr(
-				records[i].ID(),
-				oderr.NewResourceSaveFailureErrWithStringID("record", records[i].ID()),
+				records[i].ID.String(),
+				oderr.NewResourceSaveFailureErrWithStringID("record", records[i].ID.String()),
 			)
 		} else {
 			results[i] = newResponseItem(&records[i])
@@ -290,7 +286,7 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	length := len(interfaces)
-	recordIDs := make([]compRecordID, length, length)
+	recordIDs := make([]oddb.RecordID, length, length)
 	for i, it := range interfaces {
 		rawID, ok := it.(string)
 		if !ok {
@@ -304,7 +300,8 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 			return
 		}
 
-		recordIDs[i] = compRecordID{ss[0], ss[1]}
+		recordIDs[i].Type = ss[0]
+		recordIDs[i].Key = ss[1]
 	}
 
 	db := payload.Database
@@ -312,16 +309,16 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	results := make([]responseItem, length, length)
 	for i, recordID := range recordIDs {
 		record := transportRecord{}
-		if err := db.Get(recordID.id, (*oddb.Record)(&record)); err != nil {
+		if err := db.Get(recordID, (*oddb.Record)(&record)); err != nil {
 			if err == oddb.ErrRecordNotFound {
 				results[i] = newResponseItemErr(
-					recordID.ID(),
+					recordID.String(),
 					oderr.ErrRecordNotFound,
 				)
 			} else {
 				results[i] = newResponseItemErr(
-					recordID.ID(),
-					oderr.NewResourceFetchFailureErr("record", recordID.ID()),
+					recordID.String(),
+					oderr.NewResourceFetchFailureErr("record", recordID.String()),
 				)
 			}
 		} else {
@@ -490,7 +487,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	length := len(interfaces)
-	recordIDs := make([]compRecordID, length, length)
+	recordIDs := make([]oddb.RecordID, length, length)
 	for i, it := range interfaces {
 		rawID, ok := it.(string)
 		if !ok {
@@ -504,22 +501,23 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 			return
 		}
 
-		recordIDs[i] = compRecordID{ss[0], ss[1]}
+		recordIDs[i].Type = ss[0]
+		recordIDs[i].Key = ss[1]
 	}
 
 	results := []responseItem{}
 	for i, recordID := range recordIDs {
 		record := transportRecord{}
-		if err := db.Get(recordID.id, (*oddb.Record)(&record)); err != nil {
+		if err := db.Get(recordID, (*oddb.Record)(&record)); err != nil {
 			if err == oddb.ErrRecordNotFound {
 				results[i] = newResponseItemErr(
-					recordID.ID(),
+					recordID.String(),
 					oderr.ErrRecordNotFound,
 				)
 			} else {
 				results[i] = newResponseItemErr(
-					record.ID(),
-					oderr.NewResourceDeleteFailureErrWithStringID("record", record.ID()),
+					record.ID.String(),
+					oderr.NewResourceDeleteFailureErrWithStringID("record", record.ID.String()),
 				)
 			}
 		} else {

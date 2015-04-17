@@ -8,5 +8,5 @@ type queryMatcher oddb.Query
 
 func (q *queryMatcher) match(record *oddb.Record) bool {
 	// currently, fs implement only matches record type
-	return record.Type == q.Type
+	return record.ID.Type == q.Type
 }

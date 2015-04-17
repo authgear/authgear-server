@@ -19,8 +19,7 @@ import (
 
 func TestTransportRecordMarshalJSON(t *testing.T) {
 	r := transportRecord{
-		Key:  "recordkey",
-		Type: "recordtype",
+		ID: oddb.RecordID{Key: "recordkey", Type: "recordtype"},
 		Data: map[string]interface{}{
 			"stringkey": "stringvalue",
 			"numkey":    1,
@@ -58,8 +57,7 @@ func TestTransportRecordUnmarshalJSON(t *testing.T) {
 		"boolkey": true}`)
 
 	expectedRecord := transportRecord{
-		Key:  "recordkey",
-		Type: "recordtype",
+		ID: oddb.RecordID{Key: "recordkey", Type: "recordtype"},
 		Data: map[string]interface{}{
 			"stringkey": "stringvalue",
 			"numkey":    float64(1),
@@ -79,8 +77,7 @@ func TestTransportRecordUnmarshalJSON(t *testing.T) {
 
 func TestResponseItemMarshal(t *testing.T) {
 	record := transportRecord{
-		Key:  "recordkey",
-		Type: "recordtype",
+		ID:   oddb.RecordID{Key: "recordkey", Type: "recordtype"},
 		Data: map[string]interface{}{"key": "value"},
 	}
 
@@ -150,16 +147,14 @@ func TestRecordSaveHandler(t *testing.T) {
 
 		Convey("Saves multiple records", func() {
 			expectedRecord1 := oddb.Record{
-				Type: "type1",
-				Key:  "id1",
+				ID: oddb.RecordID{Type: "type1", Key: "id1"},
 				Data: map[string]interface{}{
 					"k1": "v1",
 					"k2": "v2",
 				},
 			}
 			expectedRecord2 := oddb.Record{
-				Type: "type2",
-				Key:  "id2",
+				ID: oddb.RecordID{Type: "type2", Key: "id2"},
 				Data: map[string]interface{}{
 					"k3": "v3",
 					"k4": "v4",
@@ -196,9 +191,9 @@ func TestRecordSaveHandler(t *testing.T) {
 			record1 := oddb.Record{}
 			record2 := oddb.Record{}
 
-			err := db.Get("id1", &record1)
+			err := db.Get(oddb.RecordID{Type: "type1", Key: "id1"}, &record1)
 			So(err, ShouldBeNil)
-			err = db.Get("id2", &record2)
+			err = db.Get(oddb.RecordID{Type: "type2", Key: "id2"}, &record2)
 			So(err, ShouldBeNil)
 
 			So(record1, ShouldResemble, expectedRecord1)
@@ -207,8 +202,7 @@ func TestRecordSaveHandler(t *testing.T) {
 
 		Convey("Removes reversed key on save", func() {
 			expectedRecord := oddb.Record{
-				Type: "type1",
-				Key:  "id1",
+				ID: oddb.RecordID{Type: "type1", Key: "id1"},
 				Data: map[string]interface{}{
 					"floatkey": float64(1),
 				},
@@ -237,7 +231,7 @@ func TestRecordSaveHandler(t *testing.T) {
 			})
 
 			record := oddb.Record{}
-			err := db.Get("id1", &record)
+			err := db.Get(oddb.RecordID{Type: "type1", Key: "id1"}, &record)
 			So(err, ShouldBeNil)
 			So(record, ShouldResemble, expectedRecord)
 		})
@@ -251,8 +245,7 @@ func TestRecordSaveDataType(t *testing.T) {
 
 		Convey("Parses date", func() {
 			expectedRecord := oddb.Record{
-				Type: "type1",
-				Key:  "id1",
+				ID: oddb.RecordID{Type: "type1", Key: "id1"},
 				Data: map[string]interface{}{
 					"date_value": time.Date(2015, 4, 10, 9, 35, 20, 0, time.UTC),
 				},
@@ -282,7 +275,7 @@ func TestRecordSaveDataType(t *testing.T) {
 			})
 
 			record := oddb.Record{}
-			err := db.Get("id1", &record)
+			err := db.Get(oddb.RecordID{Type: "type1", Key: "id1"}, &record)
 			So(err, ShouldBeNil)
 			So(record, ShouldResemble, expectedRecord)
 		})
@@ -353,8 +346,8 @@ func TestRecordQuery(t *testing.T) {
 }
 
 func TestRecordFetch(t *testing.T) {
-	record1 := oddb.Record{Key: "1", Type: "record"}
-	record2 := oddb.Record{Key: "2", Type: "record"}
+	record1 := oddb.Record{ID: oddb.RecordID{Type: "type", Key: "1"}}
+	record2 := oddb.Record{ID: oddb.RecordID{Type: "type", Key: "2"}}
 	db := oddbtest.NewMapDB()
 	db.Save(&record1)
 	db.Save(&record2)

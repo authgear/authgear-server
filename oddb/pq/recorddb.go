@@ -36,10 +36,10 @@ func nilOrEmpty(s string) interface{} {
 	return s
 }
 
-func (db *database) Get(key string, record *oddb.Record) error {
+func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
 	sql, args, err := psql.Select("*").From("note").
 		Where(sq.Eq{
-		"_id":      key,
+		"_id":      id.Key,
 		"_user_id": nilOrEmpty(db.userID)}).
 		ToSql()
 	if err != nil {
@@ -51,14 +51,13 @@ func (db *database) Get(key string, record *oddb.Record) error {
 	if err := db.Db.Get(&m, sql, args...); isUndefinedTable(err) {
 		return oddb.ErrRecordNotFound
 	} else if err != nil {
-		return fmt.Errorf("get %v: %v", key, err)
+		return fmt.Errorf("get %v: %v", id, err)
 	}
 
 	delete(m, "_id")
 	delete(m, "_user_id")
 
-	record.Key = key
-	record.Type = "note"
+	record.ID = id
 	record.Data = m
 
 	return nil
@@ -66,17 +65,17 @@ func (db *database) Get(key string, record *oddb.Record) error {
 
 // Save attempts to do a upsert
 func (db *database) Save(record *oddb.Record) error {
-	if record.Key == "" {
+	if record.ID.Key == "" {
 		return errors.New("db.save: got empty record id")
 	}
-	if record.Type == "" {
-		return fmt.Errorf("db.save %s: got empty record type", record.Key)
+	if record.ID.Type == "" {
+		return fmt.Errorf("db.save %s: got empty record type", record.ID.Key)
 	}
 
-	tablename := db.tableName(record.Type)
+	tablename := db.tableName(record.ID.Type)
 	typemap := deriveColumnTypes(record.Data)
 
-	remotetypemap, err := db.remoteColumnTypes(record.Type)
+	remotetypemap, err := db.remoteColumnTypes(record.ID.Type)
 	if err != nil {
 		return err
 	}
@@ -92,7 +91,7 @@ func (db *database) Save(record *oddb.Record) error {
 	}
 
 	data := map[string]interface{}{}
-	data["_id"] = record.Key
+	data["_id"] = record.ID.Key
 	data["_user_id"] = db.userID
 	for key, value := range record.Data {
 		data[`"`+key+`"`] = value
@@ -112,7 +111,7 @@ func (db *database) Save(record *oddb.Record) error {
 	_, err = db.Db.Exec(sql, args...)
 
 	if isUniqueViolated(err) {
-		update := psql.Update(tablename).Where("_id = ?", record.Key).SetMap(sq.Eq(record.Data))
+		update := psql.Update(tablename).Where("_id = ?", record.ID.Key).SetMap(sq.Eq(record.Data))
 
 		sql, args, err = update.ToSql()
 		if err != nil {
@@ -130,9 +129,9 @@ func (db *database) Save(record *oddb.Record) error {
 	return err
 }
 
-func (db *database) Delete(key string) error {
+func (db *database) Delete(id oddb.RecordID) error {
 	sql, args, err := psql.Delete(db.tableName("note")).
-		Where("_id = ? AND _user_id = ?", key, db.userID).
+		Where("_id = ? AND _user_id = ?", id.Key, db.userID).
 		ToSql()
 	if err != nil {
 		panic(err)
@@ -148,36 +147,36 @@ func (db *database) Delete(key string) error {
 		return oddb.ErrRecordNotFound
 	} else if err != nil {
 		log.WithFields(log.Fields{
-			"key":  key,
+			"id":   id,
 			"sql":  sql,
 			"args": args,
 			"err":  err,
 		}).Errorf("Failed to execute delete record statement")
-		return fmt.Errorf("delete %s: failed to delete record", key)
+		return fmt.Errorf("delete %s: failed to delete record", id)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		log.WithFields(log.Fields{
-			"key":  key,
+			"id":   id,
 			"sql":  sql,
 			"args": args,
 			"err":  err,
 		}).Errorln("Failed to fetch rowsAffected")
-		return fmt.Errorf("delete %s: failed to retrieve deletion status", key)
+		return fmt.Errorf("delete %s: failed to retrieve deletion status", id)
 	}
 
 	if rowsAffected == 0 {
 		return oddb.ErrRecordNotFound
 	} else if rowsAffected > 1 {
 		log.WithFields(log.Fields{
-			"key":          key,
+			"id":           id,
 			"sql":          sql,
 			"args":         args,
 			"rowsAffected": rowsAffected,
 			"err":          err,
 		}).Errorln("Unexpected rows deleted")
-		return fmt.Errorf("delete %s: got %v rows deleted, want 1", key, rowsAffected)
+		return fmt.Errorf("delete %s: got %v rows deleted, want 1", id, rowsAffected)
 	}
 
 	return err
@@ -277,7 +276,7 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		return err
 	}
 
-	record.Type = rs.recordType
+	record.ID.Type = rs.recordType
 	record.Data = map[string]interface{}{}
 
 	for i, column := range rs.columns {

@@ -2,10 +2,10 @@ package fs
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
-	"testing"
-
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"testing"
 
 	"github.com/oursky/ourd/oddb"
 )
@@ -17,6 +17,15 @@ func tempdir() string {
 	}
 
 	return dir
+}
+
+func getDatabase(name string) (dir string, db *fileDatabase) {
+	if name == "" {
+		name = "fs-test"
+	}
+	dir = tempDir()
+	db = newDatabase(nil, dir, name)
+	return
 }
 
 func transformRows(rows *oddb.Rows, err error) ([]oddb.Record, error) {
@@ -36,14 +45,50 @@ func transformRows(rows *oddb.Rows, err error) ([]oddb.Record, error) {
 	return records, nil
 }
 
-func TestQuerySort(t *testing.T) {
-	dir := tempdir()
-	defer os.RemoveAll(dir)
-	db := newDatabase(nil, dir, "query.sort")
+func TestSave(t *testing.T) {
+	Convey("A Database", t, func() {
+		dir, db := getDatabase("fs.save")
 
-	record1 := oddb.Record{Type: "record", Key: "1", Data: oddb.Data{"string": "A", "int": float64(2)}}
-	record2 := oddb.Record{Type: "record", Key: "2", Data: oddb.Data{"string": "B", "int": float64(0)}}
-	record3 := oddb.Record{Type: "record", Key: "3", Data: oddb.Data{"string": "C", "int": float64(1)}}
+		Convey("saves record correctly", func() {
+			const expectedFileContent = `{"_id":"note/someid","data":{"bool":true,"number":1,"string":"string"}}
+`
+			record := oddb.Record{
+				ID: oddb.RecordID{Type: "note", Key: "someid"},
+				Data: oddb.Data{
+					"string": "string",
+					"number": float64(1),
+					"bool":   true,
+				},
+			}
+			err := db.Save(&record)
+			So(err, ShouldBeNil)
+
+			contentBytes, err := ioutil.ReadFile(filepath.Join(dir, "note", "someid"))
+			So(err, ShouldBeNil)
+
+			content := string(contentBytes)
+			So(content, ShouldEqual, expectedFileContent)
+		})
+
+		Reset(func() {
+			os.RemoveAll(dir)
+		})
+	})
+}
+
+func TestQuerySort(t *testing.T) {
+	dir, db := getDatabase("fs.query.sort")
+	defer os.RemoveAll(dir)
+
+	record1 := oddb.Record{
+		ID:   oddb.RecordID{Type: "record", Key: "1"},
+		Data: oddb.Data{"string": "A", "int": float64(2)}}
+	record2 := oddb.Record{
+		ID:   oddb.RecordID{Type: "record", Key: "2"},
+		Data: oddb.Data{"string": "B", "int": float64(0)}}
+	record3 := oddb.Record{
+		ID:   oddb.RecordID{Type: "record", Key: "3"},
+		Data: oddb.Data{"string": "C", "int": float64(1)}}
 
 	for _, record := range []oddb.Record{record1, record2, record3} {
 		if err := db.Save(&record); err != nil {

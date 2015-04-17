@@ -199,8 +199,10 @@ func TestSave(t *testing.T) {
 		db := c.PublicDB()
 
 		record := oddb.Record{
-			Key:  "someid",
-			Type: "note",
+			ID: oddb.RecordID{
+				Type: "note",
+				Key:  "someid",
+			},
 			Data: map[string]interface{}{
 				"content":   "some content",
 				"number":    float64(1),
@@ -256,8 +258,10 @@ func TestDelete(t *testing.T) {
 		db := c.PrivateDB("userid")
 
 		record := oddb.Record{
-			Key:  "someid",
-			Type: "note",
+			ID: oddb.RecordID{
+				Key:  "someid",
+				Type: "note",
+			},
 			Data: map[string]interface{}{
 				"content": "some content",
 			},
@@ -267,7 +271,7 @@ func TestDelete(t *testing.T) {
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
 
-			err = db.Delete("someid")
+			err = db.Delete(oddb.RecordID{"note", "someid"})
 			So(err, ShouldBeNil)
 
 			err = db.(*database).Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid' AND _user_id = 'userid'").Scan((*string)(nil))
@@ -275,7 +279,7 @@ func TestDelete(t *testing.T) {
 		})
 
 		Convey("returns ErrRecordNotFound when record to delete doesn't exist", func() {
-			err := db.Delete("notexistid")
+			err := db.Delete(oddb.RecordID{"note", "notexistid"})
 			So(err, ShouldEqual, oddb.ErrRecordNotFound)
 		})
 
@@ -287,7 +291,7 @@ func TestDelete(t *testing.T) {
 			err = otherDB.Save(&record)
 			So(err, ShouldBeNil)
 
-			err = db.Delete("someid")
+			err = db.Delete(oddb.RecordID{"note", "someid"})
 			So(err, ShouldBeNil)
 
 			count := 0
@@ -306,22 +310,28 @@ func TestQuery(t *testing.T) {
 
 		// fixture
 		record1 := oddb.Record{
-			Key:  "id1",
-			Type: "note",
+			ID: oddb.RecordID{
+				Key:  "id1",
+				Type: "note",
+			},
 			Data: map[string]interface{}{
 				"noteOrder": float64(1),
 			},
 		}
 		record2 := oddb.Record{
-			Key:  "id2",
-			Type: "note",
+			ID: oddb.RecordID{
+				Key:  "id2",
+				Type: "note",
+			},
 			Data: map[string]interface{}{
 				"noteOrder": float64(2),
 			},
 		}
 		record3 := oddb.Record{
-			Key:  "id3",
-			Type: "note",
+			ID: oddb.RecordID{
+				Key:  "id3",
+				Type: "note",
+			},
 			Data: map[string]interface{}{
 				"noteOrder": float64(3),
 			},
@@ -419,13 +429,13 @@ func TestQuery(t *testing.T) {
 			Convey("gets nothing", func() {
 				record := oddb.Record{}
 
-				err := db.Get("notexistid", &record)
+				err := db.Get(oddb.RecordID{"type", "notexistid"}, &record)
 
 				So(err, ShouldEqual, oddb.ErrRecordNotFound)
 			})
 
 			Convey("deletes nothing", func() {
-				err := db.Delete("notexistid")
+				err := db.Delete(oddb.RecordID{"type", "notexistid"})
 				So(err, ShouldEqual, oddb.ErrRecordNotFound)
 			})
 

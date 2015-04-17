@@ -1,19 +1,50 @@
 package oddb
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 )
+
+// RecordID identifies an unique record in a Database
+type RecordID struct {
+	Type string
+	Key  string
+}
+
+// String implements the fmt.Stringer interface.
+func (id RecordID) String() string {
+	return id.Type + "/" + id.Key
+}
+
+// MarshalText implements the encoding.TextUnmarshaler interface.
+func (id RecordID) MarshalText() ([]byte, error) {
+	return []byte(id.Type + "/" + id.Key), nil
+}
+
+// UnmarshalText implements the encoding.TextMarshaler interface.
+func (id *RecordID) UnmarshalText(data []byte) error {
+	splited := bytes.SplitN(data, []byte("/"), 2)
+
+	if len(splited) < 2 {
+		return errors.New("invalid record id")
+	}
+
+	id.Type = string(splited[0])
+	id.Key = string(splited[1])
+
+	return nil
+}
 
 // A Data represents a key-value object used for storing ODRecord.
 type Data map[string]interface{}
 
 // Record is the primary entity of storage in Ourd.
 type Record struct {
-	Type string `json:"_type"`
-	Key  string `json:"_id"`
-	Data `json:"data"`
+	ID   RecordID `json:"_id"`
+	Data Data     `json:"data"`
 }
 
 // Get returns the value specified by key. If no value is associated
@@ -25,9 +56,9 @@ func (r *Record) Get(key string) interface{} {
 	if key[0] == '_' {
 		switch key {
 		case "_type":
-			return r.Type
+			return r.ID.Type
 		case "_id":
-			return r.Key
+			return r.ID.Key
 		default:
 			return nil
 		}
@@ -44,9 +75,9 @@ func (r *Record) Set(key string, i interface{}) {
 	if key[0] == '_' {
 		switch key {
 		case "_type":
-			r.Type = i.(string)
+			r.ID.Type = i.(string)
 		case "_id":
-			r.Key = i.(string)
+			r.ID.Key = i.(string)
 		default:
 			panic(fmt.Sprintf("unknown reserved key: %v", key))
 		}

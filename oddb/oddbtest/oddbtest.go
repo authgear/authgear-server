@@ -31,8 +31,8 @@ func (db *MapDB) ID() string {
 }
 
 // Get returns a Record from RecordMap.
-func (db *MapDB) Get(key string, record *oddb.Record) error {
-	r, ok := db.RecordMap[key]
+func (db *MapDB) Get(id oddb.RecordID, record *oddb.Record) error {
+	r, ok := db.RecordMap[id.String()]
 	if !ok {
 		return oddb.ErrRecordNotFound
 	}
@@ -43,17 +43,17 @@ func (db *MapDB) Get(key string, record *oddb.Record) error {
 
 // Save assigns Record to RecordMap.
 func (db *MapDB) Save(record *oddb.Record) error {
-	db.RecordMap[record.Key] = *record
+	db.RecordMap[record.ID.String()] = *record
 	return nil
 }
 
 // Delete remove the specified key from RecordMap.
-func (db *MapDB) Delete(key string) error {
-	_, ok := db.RecordMap[key]
+func (db *MapDB) Delete(id oddb.RecordID) error {
+	_, ok := db.RecordMap[id.String()]
 	if !ok {
 		return oddb.ErrRecordNotFound
 	}
-	delete(db.RecordMap, key)
+	delete(db.RecordMap, id.String())
 	return nil
 }
 
@@ -87,3 +87,5 @@ func (db *MapDB) DeleteSubscription(key string) error {
 	delete(db.SubscriptionMap, key)
 	return nil
 }
+
+var _ oddb.Database = NewMapDB()
