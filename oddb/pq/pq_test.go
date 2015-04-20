@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"database/sql"
+	log "github.com/Sirupsen/logrus"
 	"time"
 
 	"github.com/lib/pq"
@@ -33,6 +34,38 @@ func cleanupDB(t *testing.T, c *conn) {
 	_, err := c.Db.Exec("DROP SCHEMA app_com_oursky_ourd CASCADE")
 	if err != nil && !isInvalidSchemaName(err) {
 		t.Fatal(err)
+	}
+}
+
+type execor interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
+func insertRow(db execor, query string, args ...interface{}) {
+	result, err := db.Exec(query, args...)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"query": query,
+			"args":  args,
+			"err":   err,
+		}).Panicln("failed to execute insert")
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		log.WithFields(log.Fields{
+			"query": query,
+			"args":  args,
+			"err":   err,
+		}).Panicln("failed to fetch RowsAffected")
+	}
+
+	if n != 1 {
+		log.WithFields(log.Fields{
+			"query": query,
+			"args":  args,
+			"n":     n,
+		}).Panicln("rows affected != 1")
 	}
 }
 
@@ -262,6 +295,45 @@ func TestExtend(t *testing.T) {
 
 		Reset(func() {
 			cleanupDB(t, c)
+		})
+	})
+}
+
+func TestGet(t *testing.T) {
+	SkipConvey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c)
+		db := c.PrivateDB("getuser")
+		So(db.Extend("record", oddb.RecordSchema{
+			"string":   oddb.TypeString,
+			"number":   oddb.TypeNumber,
+			"datetime": oddb.TypeDateTime,
+			"boolean":  oddb.TypeBoolean,
+		}), ShouldBeNil)
+
+		insertRow(c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
+			`(_user_id, _id, "string", "number", "datetime", "boolean") `+
+			`VALUES ('getuser', 'id', 'string', 1, '1988-02-06', TRUE)`)
+
+		Convey("gets an existing record from database", func() {
+			record := oddb.Record{}
+			err := db.Get(oddb.NewRecordID("record", "id"), &record)
+			So(err, ShouldBeNil)
+
+			So(record, ShouldResemble, oddb.Record{
+				ID: oddb.NewRecordID("record", "id"),
+				Data: map[string]interface{}{
+					"string":   "string",
+					"number":   float64(1),
+					"datetime": time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC),
+				},
+			})
+		})
+
+		Convey("errors if gets a non-existing record", func() {
+			record := oddb.Record{}
+			err := db.Get(oddb.NewRecordID("record", "notexistid"), &record)
+			So(err, ShouldBeNil, oddb.ErrRecordNotFound)
 		})
 	})
 }

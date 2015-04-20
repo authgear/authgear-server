@@ -37,29 +37,31 @@ func nilOrEmpty(s string) interface{} {
 }
 
 func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
-	sql, args, err := psql.Select("*").From("note").
-		Where(sq.Eq{
-		"_id":      id.Key,
-		"_user_id": nilOrEmpty(db.userID)}).
-		ToSql()
+	typemap, err := db.remoteColumnTypes(id.Type)
+	if err != nil {
+		return err
+	}
+
+	if len(typemap) == 0 { // record type has not been created
+		return oddb.ErrRecordNotFound
+	}
+
+	// remove _user_id, we won't need it in the result set
+	delete(typemap, "_user_id")
+	sql, args, err := db.selectQuery(id.Type, typemap).ToSql()
 	if err != nil {
 		panic(err)
 	}
 
-	m := map[string]interface{}{}
+	log.WithFields(log.Fields{
+		"sql":  sql,
+		"args": args,
+	}).Debugln("Getting record")
 
-	if err := db.Db.Get(&m, sql, args...); isUndefinedTable(err) {
-		return oddb.ErrRecordNotFound
-	} else if err != nil {
-		return fmt.Errorf("get %v: %v", id, err)
+	row := db.Db.QueryRowx(sql, args...)
+	if err := newRecordScanner(id.Type, typemap, row).Scan(record); err != nil {
+		return err
 	}
-
-	delete(m, "_id")
-	delete(m, "_user_id")
-
-	record.ID = id
-	record.Data = m
-
 	return nil
 }
 
@@ -224,9 +226,9 @@ type recordScanner struct {
 	err        error
 }
 
-func newRecordScanner(recordType string, typemap oddb.RecordSchema, cs columnsScanner) recordScanner {
+func newRecordScanner(recordType string, typemap oddb.RecordSchema, cs columnsScanner) *recordScanner {
 	columns, err := cs.Columns()
-	return recordScanner{recordType, typemap, cs, columns, err}
+	return &recordScanner{recordType, typemap, cs, columns, err}
 }
 
 func (rs *recordScanner) Scan(record *oddb.Record) error {
@@ -295,7 +297,7 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 
 type rowsIter struct {
 	rows *sqlx.Rows
-	rs   recordScanner
+	rs   *recordScanner
 }
 
 func (rowsi rowsIter) Close() error {
