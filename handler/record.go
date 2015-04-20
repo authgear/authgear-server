@@ -242,19 +242,11 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	length := len(recordMaps)
 
 	items := make([]recordSaveItem, 0, length)
-	var recordType string
 	for _, recordMapI := range recordMaps {
 		item := newRecordSaveItem(recordMapI)
 
 		if err := (*transportRecord)(&item.record).InitFromMap(item.m); err != nil {
 			item.err = oderr.NewRequestInvalidErr(err)
-		}
-
-		// FIXME(limouren): temporary disallow save of different types
-		if recordType == "" {
-			recordType = item.record.ID.Type
-		} else if recordType != item.record.ID.Type {
-			panic("temp: multiple recordType found in the same request")
 		}
 
 		items = append(items, item)
@@ -277,7 +269,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 			log.WithFields(log.Fields{
 				"record": record,
 				"err":    err,
-			}).Debugln("Failed to save record")
+			}).Debugln("failed to save record")
 
 			result = newResponseItemErr(
 				record.ID.String(),
@@ -308,19 +300,32 @@ func newRecordSaveItem(mapI interface{}) recordSaveItem {
 }
 
 func extendRecordSchema(db oddb.Database, items []recordSaveItem) error {
-	merger := newSchemaMerger()
+	recordSchemaMergerMap := map[string]schemaMerger{}
 	for i := range items {
+		recordType := items[i].record.ID.Type
+		merger, ok := recordSchemaMergerMap[recordType]
+		if !ok {
+			merger = newSchemaMerger()
+			recordSchemaMergerMap[recordType] = merger
+		}
+
 		if !items[i].Err() {
 			merger.Extend(deriveRecordSchema(items[i].record.Data))
 		}
 	}
 
-	schema, err := merger.Schema()
-	if err != nil {
-		return err
+	for recordType, merger := range recordSchemaMergerMap {
+		schema, err := merger.Schema()
+		if err != nil {
+			return err
+		}
+
+		if err = db.Extend(recordType, schema); err != nil {
+			return err
+		}
 	}
 
-	return db.Extend(schema)
+	return nil
 }
 
 type schemaMerger struct {
@@ -336,6 +341,7 @@ func (m *schemaMerger) Extend(schema oddb.RecordSchema) {
 	if m.err != nil {
 		return
 	}
+
 	for key, dataType := range schema {
 		if originalType, ok := m.finalSchema[key]; ok {
 			if originalType != dataType {
@@ -343,6 +349,8 @@ func (m *schemaMerger) Extend(schema oddb.RecordSchema) {
 				return
 			}
 		}
+
+		m.finalSchema[key] = dataType
 	}
 }
 
