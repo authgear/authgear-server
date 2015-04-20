@@ -64,6 +64,13 @@ type Database interface {
 	// an Rows to iterate the results.
 	Query(query *Query) (*Rows, error)
 
+	// Extend extends the Database record schema such that a record
+	// arrived subsequently with that schema can be saved
+	//
+	// Extend returns an error if the specified schema conflicts with
+	// existing schem in the Database
+	Extend(recordType string, schema RecordSchema) error
+
 	GetMatchingSubscription(record *Record) []Subscription
 	GetSubscription(key string, subscription *Subscription) error
 	SaveSubscription(subscription *Subscription) error

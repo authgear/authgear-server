@@ -1,13 +1,14 @@
 package pq
 
 import (
-	"database/sql"
-	"github.com/lib/pq"
-	"github.com/oursky/ourd/oddb"
 	. "github.com/smartystreets/goconvey/convey"
+	"testing"
+
+	"database/sql"
 	"time"
 
-	"testing"
+	"github.com/lib/pq"
+	"github.com/oursky/ourd/oddb"
 )
 
 // NOTE(limouren): postgresql uses this error to signify a non-exist
@@ -192,11 +193,49 @@ func TestUserCRUD(t *testing.T) {
 	cleanupDB(t, c)
 }
 
+func TestExtend(t *testing.T) {
+	Convey("Extend", t, func() {
+		c := getTestConn(t)
+		db := c.PublicDB()
+
+		Convey("creates table if not exist", func() {
+			err := db.Extend("note", oddb.RecordSchema{
+				"content":   oddb.TypeString,
+				"noteOrder": oddb.TypeNumber,
+				"createdAt": oddb.TypeDateTime,
+			})
+			So(err, ShouldBeNil)
+
+			// verify with an insert
+			result, err := c.Db.Exec(
+				`INSERT INTO app_com_oursky_ourd."note" ` +
+					`(_id, _user_id, "content", "noteOrder", "createdAt") ` +
+					`VALUES (1, 1, 'some content', 2, '1988-02-06')`)
+			So(err, ShouldBeNil)
+
+			i, err := result.RowsAffected()
+			So(err, ShouldBeNil)
+			So(i, ShouldEqual, 1)
+		})
+
+		Reset(func() {
+			cleanupDB(t, c)
+		})
+	})
+}
+
 func TestSave(t *testing.T) {
 	var c *conn
 	Convey("Database", t, func() {
 		c = getTestConn(t)
+		defer cleanupDB(t, c)
+
 		db := c.PublicDB()
+		So(db.Extend("note", oddb.RecordSchema{
+			"content":   oddb.TypeString,
+			"number":    oddb.TypeNumber,
+			"timestamp": oddb.TypeDateTime,
+		}), ShouldBeNil)
 
 		record := oddb.Record{
 			ID: oddb.RecordID{
@@ -241,14 +280,7 @@ func TestSave(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "more content")
 		})
-
-		Reset(func() {
-			_, err := db.(*database).Db.Exec("TRUNCATE app_com_oursky_ourd.note")
-			So(err, ShouldBeNil)
-		})
 	})
-
-	cleanupDB(t, c)
 }
 
 func TestDelete(t *testing.T) {
@@ -256,6 +288,10 @@ func TestDelete(t *testing.T) {
 	Convey("Database", t, func() {
 		c = getTestConn(t)
 		db := c.PrivateDB("userid")
+
+		So(db.Extend("note", oddb.RecordSchema{
+			"content": oddb.TypeString,
+		}), ShouldBeNil)
 
 		record := oddb.Record{
 			ID: oddb.RecordID{
@@ -299,9 +335,9 @@ func TestDelete(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 1)
 		})
-	})
 
-	cleanupDB(t, c)
+		cleanupDB(t, c)
+	})
 }
 
 func TestQuery(t *testing.T) {
@@ -338,6 +374,10 @@ func TestQuery(t *testing.T) {
 		}
 
 		db := c.PrivateDB("userid")
+		So(db.Extend("note", oddb.RecordSchema{
+			"noteOrder": oddb.TypeNumber,
+		}), ShouldBeNil)
+
 		err := db.Save(&record2)
 		So(err, ShouldBeNil)
 		err = db.Save(&record1)

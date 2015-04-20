@@ -151,6 +151,12 @@ func (db *MapDB) Query(query *oddb.Query) (*oddb.Rows, error) {
 	panic("oddbtest: MapDB.Query not supported")
 }
 
+// Extend does nothing.
+func (db *MapDB) Extend(recordType string, schema oddb.RecordSchema) error {
+	// do nothing
+	return nil
+}
+
 // GetSubscription return a Subscription from SubscriptionMap.
 func (db *MapDB) GetSubscription(key string, subscription *oddb.Subscription) error {
 	s, ok := db.SubscriptionMap[key]

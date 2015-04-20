@@ -241,29 +241,138 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 
 	length := len(recordMaps)
 
-	records := make([]transportRecord, length, length)
-	results := make([]responseItem, length, length)
-	for i := range records {
-		r := recordMaps[i].(map[string]interface{})
-		if err := records[i].InitFromMap(r); err != nil {
-			response.Err = oderr.NewRequestInvalidErr(err)
-			return
-		} else if err := db.Save((*oddb.Record)(&records[i])); err != nil {
+	items := make([]recordSaveItem, 0, length)
+	var recordType string
+	for _, recordMapI := range recordMaps {
+		item := newRecordSaveItem(recordMapI)
+
+		if err := (*transportRecord)(&item.record).InitFromMap(item.m); err != nil {
+			item.err = oderr.NewRequestInvalidErr(err)
+		}
+
+		// FIXME(limouren): temporary disallow save of different types
+		if recordType == "" {
+			recordType = item.record.ID.Type
+		} else if recordType != item.record.ID.Type {
+			panic("temp: multiple recordType found in the same request")
+		}
+
+		items = append(items, item)
+	}
+
+	if err := extendRecordSchema(db, items); err != nil {
+		response.Err = oderr.ErrDatabaseSchemaMigrationFailed
+		return
+	}
+
+	results := make([]responseItem, 0, length)
+	for i := range items {
+		item := &items[i]
+		record := &item.record
+
+		var result responseItem
+		if item.Err() {
+			result = newResponseItemErr(item.record.ID.String(), item.err)
+		} else if err := db.Save(record); err != nil {
 			log.WithFields(log.Fields{
-				"record": &records[i],
+				"record": record,
 				"err":    err,
 			}).Debugln("Failed to save record")
 
-			results[i] = newResponseItemErr(
-				records[i].ID.String(),
-				oderr.NewResourceSaveFailureErrWithStringID("record", records[i].ID.String()),
+			result = newResponseItemErr(
+				record.ID.String(),
+				oderr.NewResourceSaveFailureErrWithStringID("record", record.ID.String()),
 			)
 		} else {
-			results[i] = newResponseItem(&records[i])
+			result = newResponseItem((*transportRecord)(record))
 		}
+
+		results = append(results, result)
 	}
 
 	response.Result = results
+}
+
+type recordSaveItem struct {
+	m      map[string]interface{}
+	record oddb.Record
+	err    oderr.Error
+}
+
+func (item *recordSaveItem) Err() bool {
+	return item.err != nil
+}
+
+func newRecordSaveItem(mapI interface{}) recordSaveItem {
+	return recordSaveItem{m: mapI.(map[string]interface{})}
+}
+
+func extendRecordSchema(db oddb.Database, items []recordSaveItem) error {
+	merger := newSchemaMerger()
+	for i := range items {
+		if !items[i].Err() {
+			merger.Extend(deriveRecordSchema(items[i].record.Data))
+		}
+	}
+
+	schema, err := merger.Schema()
+	if err != nil {
+		return err
+	}
+
+	return db.Extend(schema)
+}
+
+type schemaMerger struct {
+	finalSchema oddb.RecordSchema
+	err         error
+}
+
+func newSchemaMerger() schemaMerger {
+	return schemaMerger{finalSchema: oddb.RecordSchema{}}
+}
+
+func (m *schemaMerger) Extend(schema oddb.RecordSchema) {
+	if m.err != nil {
+		return
+	}
+	for key, dataType := range schema {
+		if originalType, ok := m.finalSchema[key]; ok {
+			if originalType != dataType {
+				m.err = fmt.Errorf("type conflict on column = %s, %v -> %v", key, originalType, dataType)
+				return
+			}
+		}
+	}
+}
+
+func (m schemaMerger) Schema() (oddb.RecordSchema, error) {
+	return m.finalSchema, m.err
+}
+
+func deriveRecordSchema(m oddb.Data) oddb.RecordSchema {
+	schema := oddb.RecordSchema{}
+	for key, value := range m {
+		switch value.(type) {
+		default:
+			log.WithFields(log.Fields{
+				"key":   key,
+				"value": value,
+			}).Panicf("got unrecgonized type = %T", value)
+		case float64:
+			schema[key] = oddb.TypeNumber
+		case string:
+			schema[key] = oddb.TypeString
+		case time.Time:
+			schema[key] = oddb.TypeDateTime
+		case bool:
+			schema[key] = oddb.TypeBoolean
+		case map[string]interface{}, []interface{}:
+			schema[key] = oddb.TypeJSON
+		}
+	}
+
+	return schema
 }
 
 /*

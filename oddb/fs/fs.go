@@ -321,6 +321,11 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 	return oddb.NewRows(&oddb.MemoryRows{Records: records}), nil
 }
 
+func (db fileDatabase) Extend(recordType string, schema oddb.RecordSchema) error {
+	// do nothing
+	return nil
+}
+
 func (db fileDatabase) GetSubscription(key string, subscription *oddb.Subscription) error {
 	return db.subscriDB.Get(key, subscription)
 }

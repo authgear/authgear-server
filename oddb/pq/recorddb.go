@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
@@ -73,22 +72,6 @@ func (db *database) Save(record *oddb.Record) error {
 	}
 
 	tablename := db.tableName(record.ID.Type)
-	typemap := deriveColumnTypes(record.Data)
-
-	remotetypemap, err := db.remoteColumnTypes(record.ID.Type)
-	if err != nil {
-		return err
-	}
-
-	if len(remotetypemap) == 0 {
-		stmt := createTableStmt(tablename, typemap)
-
-		if _, err := db.Db.Exec(stmt); err != nil {
-			return fmt.Errorf("failed to create table: %v", err)
-		}
-	} else {
-		// TODO(limouren): check diff and alter table here
-	}
 
 	data := map[string]interface{}{}
 	data["_id"] = record.ID.Key
@@ -234,13 +217,13 @@ type columnsScanner interface {
 
 type recordScanner struct {
 	recordType string
-	typemap    map[string]string
+	typemap    oddb.RecordSchema
 	cs         columnsScanner
 	columns    []string
 	err        error
 }
 
-func newRecordScanner(recordType string, typemap map[string]string, cs columnsScanner) recordScanner {
+func newRecordScanner(recordType string, typemap oddb.RecordSchema, cs columnsScanner) recordScanner {
 	columns, err := cs.Columns()
 	return recordScanner{recordType, typemap, cs, columns, err}
 }
@@ -258,14 +241,14 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		}
 		switch dataType {
 		default:
-			return fmt.Errorf("received unknown data type = %s for column = %s", dataType, column)
-		case TypeNumber:
+			return fmt.Errorf("received unknown data type = %v for column = %s", dataType, column)
+		case oddb.TypeNumber:
 			var number sql.NullFloat64
 			values = append(values, &number)
-		case TypeString:
+		case oddb.TypeString:
 			var str sql.NullString
 			values = append(values, &str)
-		case TypeTimestamp:
+		case oddb.TypeDateTime:
 			var ts pq.NullTime
 			values = append(values, &ts)
 		}
@@ -321,7 +304,7 @@ func (rowsi rowsIter) Next(record *oddb.Record) error {
 	}
 }
 
-func newRows(recordType string, typemap map[string]string, rows *sqlx.Rows, err error) (*oddb.Rows, error) {
+func newRows(recordType string, typemap oddb.RecordSchema, rows *sqlx.Rows, err error) (*oddb.Rows, error) {
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +312,7 @@ func newRows(recordType string, typemap map[string]string, rows *sqlx.Rows, err 
 	return oddb.NewRows(rowsIter{rows, rs}), nil
 }
 
-func (db *database) selectQuery(recordType string, typemap map[string]string) sq.SelectBuilder {
+func (db *database) selectQuery(recordType string, typemap oddb.RecordSchema) sq.SelectBuilder {
 	columns := make([]string, 0, len(typemap))
 	for column := range typemap {
 		columns = append(columns, column)
@@ -346,7 +329,7 @@ func (db *database) selectQuery(recordType string, typemap map[string]string) sq
 	return q
 }
 
-func (db *database) remoteColumnTypes(recordType string) (map[string]string, error) {
+func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, error) {
 	sql, args, err := psql.Select("column_name", "data_type").
 		From("information_schema.columns").
 		Where("table_schema = ? AND table_name = ?", db.schemaName(), recordType).ToSql()
@@ -364,19 +347,24 @@ func (db *database) remoteColumnTypes(recordType string) (map[string]string, err
 		return nil, err
 	}
 
-	typemap := map[string]string{}
+	typemap := oddb.RecordSchema{}
 
-	var columnName, dataType string
+	var columnName, pqType string
 	for rows.Next() {
-		if err := rows.Scan(&columnName, &dataType); err != nil {
+		if err := rows.Scan(&columnName, &pqType); err != nil {
 			return nil, err
 		}
 
-		switch dataType {
+		var dataType oddb.DataType
+		switch pqType {
 		default:
-			return nil, fmt.Errorf("received unknown data type = %s for column = %s", dataType, columnName)
-		case TypeString, TypeNumber, TypeTimestamp:
-			// do nothing
+			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
+		case TypeString:
+			dataType = oddb.TypeString
+		case TypeNumber:
+			dataType = oddb.TypeNumber
+		case TypeTimestamp:
+			dataType = oddb.TypeDateTime
 		}
 
 		typemap[columnName] = dataType
@@ -385,28 +373,26 @@ func (db *database) remoteColumnTypes(recordType string) (map[string]string, err
 	return typemap, nil
 }
 
-func deriveColumnTypes(m map[string]interface{}) map[string]string {
-	typemap := map[string]string{}
-	for key, value := range m {
-		switch value.(type) {
-		default:
-			log.WithFields(log.Fields{
-				"key":   key,
-				"value": value,
-			}).Panicf("got unrecgonized type = %T", value)
-		case float64:
-			typemap[key] = TypeNumber
-		case string:
-			typemap[key] = TypeString
-		case time.Time:
-			typemap[key] = TypeTimestamp
-		}
+func (db *database) Extend(recordType string, schema oddb.RecordSchema) error {
+	remoteschema, err := db.remoteColumnTypes(recordType)
+	if err != nil {
+		return err
 	}
 
-	return typemap
+	if len(remoteschema) == 0 {
+		stmt := createTableStmt(db.tableName(recordType), schema)
+
+		if _, err := db.Db.Exec(stmt); err != nil {
+			return fmt.Errorf("failed to create table: %v", err)
+		}
+	} else {
+		// TODO(limouren): check diff and alter table here
+	}
+
+	return nil
 }
 
-func createTableStmt(tableName string, typemap map[string]string) string {
+func createTableStmt(tableName string, typemap oddb.RecordSchema) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("CREATE TABLE "))
 	buf.WriteString(tableName)
@@ -417,7 +403,20 @@ func createTableStmt(tableName string, typemap map[string]string) string {
 		buf.WriteString(column)
 		buf.WriteByte('"')
 		buf.WriteByte(' ')
-		buf.WriteString(dataType)
+
+		var pqType string
+		switch dataType {
+		default:
+			log.Panicf("Unsupported dataType = %s", dataType)
+		case oddb.TypeString:
+			pqType = TypeString
+		case oddb.TypeNumber:
+			pqType = TypeNumber
+		case oddb.TypeDateTime:
+			pqType = TypeTimestamp
+		}
+		buf.WriteString(pqType)
+
 		buf.WriteByte(',')
 	}
 

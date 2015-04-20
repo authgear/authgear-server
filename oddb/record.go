@@ -112,3 +112,21 @@ func (dt *Datetime) UnmarshalJSON(data []byte) (err error) {
 	*dt = tdt.Datetime
 	return nil
 }
+
+// DataType defines the type of data that can saved into an oddb database
+type DataType uint
+
+// List of persistable data types in oddb
+const (
+	TypeString DataType = iota + 1
+	TypeNumber
+	TypeBoolean
+	TypeJSON
+	TypeReference // not implemented
+	TypeLocation  // not implemented
+	TypeDateTime
+	TypeData // not implemented
+)
+
+// RecordSchema is a mapping of record key to its value's data type
+type RecordSchema map[string]DataType

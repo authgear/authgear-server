@@ -12,8 +12,9 @@ var (
 
 	ErrWriteDenied = newError("PermissionDenied", 101, "write is not allowed")
 
-	ErrDatabaseOpenFailed  = newError("DatabaseError", 101, "failed to open database")
-	ErrDatabaseQueryFailed = newError("DatabaseError", 102, "failed to query record")
+	ErrDatabaseOpenFailed            = newError("DatabaseError", 101, "failed to open database")
+	ErrDatabaseQueryFailed           = newError("DatabaseError", 102, "failed to query record")
+	ErrDatabaseSchemaMigrationFailed = newError("DatabaseError", 103, "failed to migrate record schema")
 
 	ErrUserNotFound   = newNotFoundErr(101, "user not found")
 	ErrDeviceNotFound = newNotFoundErr(102, "device not found")
