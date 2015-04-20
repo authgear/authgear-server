@@ -218,6 +218,48 @@ func TestExtend(t *testing.T) {
 			So(i, ShouldEqual, 1)
 		})
 
+		Convey("adds new column if table already exist", func() {
+			err := db.Extend("note", oddb.RecordSchema{
+				"content":   oddb.TypeString,
+				"noteOrder": oddb.TypeNumber,
+				"createdAt": oddb.TypeDateTime,
+			})
+			So(err, ShouldBeNil)
+
+			err = db.Extend("note", oddb.RecordSchema{
+				"createdAt": oddb.TypeDateTime,
+				"dirty":     oddb.TypeNumber,
+			})
+			So(err, ShouldBeNil)
+
+			// verify with an insert
+			result, err := c.Db.Exec(
+				`INSERT INTO app_com_oursky_ourd."note" ` +
+					`(_id, _user_id, "content", "noteOrder", "createdAt", "dirty") ` +
+					`VALUES (1, 1, 'some content', 2, '1988-02-06', 1)`)
+			So(err, ShouldBeNil)
+
+			i, err := result.RowsAffected()
+			So(err, ShouldBeNil)
+			So(i, ShouldEqual, 1)
+		})
+
+		Convey("errors if conflict with existing column type", func() {
+			err := db.Extend("note", oddb.RecordSchema{
+				"content":   oddb.TypeString,
+				"noteOrder": oddb.TypeNumber,
+				"createdAt": oddb.TypeDateTime,
+			})
+			So(err, ShouldBeNil)
+
+			err = db.Extend("note", oddb.RecordSchema{
+				"content":   oddb.TypeNumber,
+				"createdAt": oddb.TypeDateTime,
+				"dirty":     oddb.TypeNumber,
+			})
+			So(err.Error(), ShouldEqual, "conflicting dataType 1 => 2")
+		})
+
 		Reset(func() {
 			cleanupDB(t, c)
 		})

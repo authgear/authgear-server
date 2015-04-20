@@ -382,45 +382,86 @@ func (db *database) Extend(recordType string, schema oddb.RecordSchema) error {
 	if len(remoteschema) == 0 {
 		stmt := createTableStmt(db.tableName(recordType), schema)
 
+		log.WithField("stmt", stmt).Debugln("Creating table")
 		if _, err := db.Db.Exec(stmt); err != nil {
-			return fmt.Errorf("failed to create table: %v", err)
+			return fmt.Errorf("failed to create table: %s", err)
 		}
 	} else {
-		// TODO(limouren): check diff and alter table here
+		updatingSchema := oddb.RecordSchema{}
+		for key, dataType := range schema {
+			remoteDataType, ok := remoteschema[key]
+			if !ok {
+				updatingSchema[key] = dataType
+			} else if remoteDataType != dataType {
+				return fmt.Errorf("conflicting dataType %v => %v", remoteDataType, dataType)
+			}
+
+			// same data type, do nothing
+		}
+
+		if len(updatingSchema) > 0 {
+			stmt := addColumnStmt(db.tableName(recordType), updatingSchema)
+
+			log.WithField("stmt", stmt).Debugln("Adding columns to table")
+			if _, err := db.Db.Exec(stmt); err != nil {
+				return fmt.Errorf("failed to alter table: %s", err)
+			}
+		}
 	}
 
 	return nil
 }
 
-func createTableStmt(tableName string, typemap oddb.RecordSchema) string {
+func createTableStmt(tableName string, schema oddb.RecordSchema) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("CREATE TABLE "))
 	buf.WriteString(tableName)
 	buf.Write([]byte("(_id text, _user_id text,"))
 
-	for column, dataType := range typemap {
+	for recordType, dataType := range schema {
 		buf.WriteByte('"')
-		buf.WriteString(column)
+		buf.WriteString(recordType)
 		buf.WriteByte('"')
 		buf.WriteByte(' ')
-
-		var pqType string
-		switch dataType {
-		default:
-			log.Panicf("Unsupported dataType = %s", dataType)
-		case oddb.TypeString:
-			pqType = TypeString
-		case oddb.TypeNumber:
-			pqType = TypeNumber
-		case oddb.TypeDateTime:
-			pqType = TypeTimestamp
-		}
-		buf.WriteString(pqType)
-
+		buf.WriteString(pqDataType(dataType))
 		buf.WriteByte(',')
 	}
 
 	buf.Write([]byte("PRIMARY KEY(_id, _user_id));"))
 
 	return buf.String()
+}
+
+func addColumnStmt(tableName string, schema oddb.RecordSchema) string {
+	buf := bytes.Buffer{}
+	buf.Write([]byte("ALTER TABLE "))
+	buf.WriteString(tableName)
+	buf.WriteByte(' ')
+	for recordType, dataType := range schema {
+		buf.Write([]byte("ADD "))
+		buf.WriteByte('"')
+		buf.WriteString(recordType)
+		buf.WriteByte('"')
+		buf.WriteByte(' ')
+		buf.WriteString(pqDataType(dataType))
+		buf.WriteByte(',')
+	}
+
+	// remote the last ','
+	buf.Truncate(buf.Len() - 1)
+
+	return buf.String()
+}
+
+func pqDataType(dataType oddb.DataType) string {
+	switch dataType {
+	default:
+		panic(fmt.Sprintf("Unsupported dataType = %s", dataType))
+	case oddb.TypeString:
+		return TypeString
+	case oddb.TypeNumber:
+		return TypeNumber
+	case oddb.TypeDateTime:
+		return TypeTimestamp
+	}
 }
