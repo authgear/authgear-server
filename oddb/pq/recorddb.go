@@ -18,13 +18,14 @@ import (
 // This file implements Record related operations of the
 // oddb/pq implementation.
 
-// Different data types that can be saved in record
+// Different data types that can be saved in and loaded from postgreSQL
 // NOTE(limouren): varchar is missing because text can replace them,
 // see the docs here: http://www.postgresql.org/docs/9.4/static/datatype-character.html
 const (
 	TypeString    = "text"
-	TypeTimestamp = "timestamp without time zone"
 	TypeNumber    = "double precision"
+	TypeBoolean   = "boolean"
+	TypeTimestamp = "timestamp without time zone"
 )
 
 func nilOrEmpty(s string) interface{} {
@@ -251,6 +252,9 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case oddb.TypeDateTime:
 			var ts pq.NullTime
 			values = append(values, &ts)
+		case oddb.TypeBoolean:
+			var boolean sql.NullBool
+			values = append(values, &boolean)
 		}
 	}
 
@@ -278,6 +282,10 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case *pq.NullTime:
 			if svalue.Valid {
 				record.Set(column, svalue.Time)
+			}
+		case *sql.NullBool:
+			if svalue.Valid {
+				record.Set(column, svalue.Bool)
 			}
 		}
 	}
@@ -463,5 +471,7 @@ func pqDataType(dataType oddb.DataType) string {
 		return TypeNumber
 	case oddb.TypeDateTime:
 		return TypeTimestamp
+	case oddb.TypeBoolean:
+		return TypeBoolean
 	}
 }

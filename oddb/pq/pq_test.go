@@ -228,7 +228,7 @@ func TestExtend(t *testing.T) {
 
 			err = db.Extend("note", oddb.RecordSchema{
 				"createdAt": oddb.TypeDateTime,
-				"dirty":     oddb.TypeNumber,
+				"dirty":     oddb.TypeBoolean,
 			})
 			So(err, ShouldBeNil)
 
@@ -236,7 +236,7 @@ func TestExtend(t *testing.T) {
 			result, err := c.Db.Exec(
 				`INSERT INTO app_com_oursky_ourd."note" ` +
 					`(_id, _user_id, "content", "noteOrder", "createdAt", "dirty") ` +
-					`VALUES (1, 1, 'some content', 2, '1988-02-06', 1)`)
+					`VALUES (1, 1, 'some content', 2, '1988-02-06', TRUE)`)
 			So(err, ShouldBeNil)
 
 			i, err := result.RowsAffected()
