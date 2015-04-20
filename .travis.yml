@@ -12,6 +12,7 @@ before_install:
   - go get github.com/golang/lint/golint
   - go get github.com/smartystreets/goconvey/convey
   - go get github.com/smartystreets/assertions
+  - go get golang.org/x/tools/cmd/stringer
 
 before_script:
   - psql -c 'CREATE DATABASE ourd_test;' -U postgres
