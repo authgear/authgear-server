@@ -106,6 +106,34 @@ func TestResponseItemMarshal(t *testing.T) {
 	}
 }
 
+func TestResponseItemMarshalEmpty(t *testing.T) {
+	record := transportRecord{
+		ID: oddb.RecordID{Key: "recordkey", Type: "recordtype"},
+	}
+	item := newResponseItem(&record)
+	expectedJSON := []byte(`{"_id":"recordtype/recordkey","_type":"record"}`)
+
+	marshalled, err := json.Marshal(&item)
+	if err != nil {
+		panic(err)
+	}
+
+	if !bytes.Equal(marshalled, expectedJSON) {
+		t.Errorf("got marshalled = %s, want %s", marshalled, expectedJSON)
+	}
+
+	record.Data = map[string]interface{}{}
+	marshalled, err = json.Marshal(&item)
+	if err != nil {
+		panic(err)
+	}
+
+	if !bytes.Equal(marshalled, expectedJSON) {
+		t.Errorf("got marshalled = %s, want %s", marshalled, expectedJSON)
+	}
+
+}
+
 // recordHandlerParam holds the parameters being passed to a RecordHandler
 type calledHandler bool
 

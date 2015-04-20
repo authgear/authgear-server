@@ -28,6 +28,9 @@ type transportRecord oddb.Record
 
 func (r transportRecord) MarshalJSON() ([]byte, error) {
 	// NOTE(limouren): marshalling of type/key is delegated to responseItem
+	if r.Data == nil {
+		return []byte("{}"), nil
+	}
 	return json.Marshal(r.Data)
 }
 
@@ -187,10 +190,10 @@ func (item responseItem) MarshalJSON() ([]byte, error) {
 	buf.WriteString(item.id)
 	buf.Write([]byte(`","_type":"`))
 	if item.err != nil {
-		buf.Write([]byte(`error",`))
+		buf.Write([]byte(`error"`))
 		i = item.err
 	} else if item.record != nil {
-		buf.Write([]byte(`record",`))
+		buf.Write([]byte(`record"`))
 		i = item.record
 	} else {
 		panic("inconsistent state: both err and record is nil")
@@ -201,12 +204,18 @@ func (item responseItem) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	if bodyBytes[0] != '{' {
-		return nil, fmt.Errorf("first char of embedded json != {: %v", string(bodyBytes))
-	} else if bodyBytes[len(bodyBytes)-1] != '}' {
-		return nil, fmt.Errorf("last char of embedded json != }: %v", string(bodyBytes))
+	if len(bodyBytes) > 2 {
+		if bodyBytes[0] != '{' {
+			return nil, fmt.Errorf("first char of embedded json != {: %v", string(bodyBytes))
+		} else if bodyBytes[len(bodyBytes)-1] != '}' {
+			return nil, fmt.Errorf("last char of embedded json != }: %v", string(bodyBytes))
+		}
+		buf.WriteByte(',')
+		buf.Write(bodyBytes[1:])
+	} else {
+		buf.WriteByte('}')
 	}
-	buf.Write(bodyBytes[1:])
+
 	return buf.Bytes(), nil
 }
 
