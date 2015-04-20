@@ -53,7 +53,7 @@ func TestSave(t *testing.T) {
 			const expectedFileContent = `{"_id":"note/someid","data":{"bool":true,"number":1,"string":"string"}}
 `
 			record := oddb.Record{
-				ID: oddb.RecordID{Type: "note", Key: "someid"},
+				ID: oddb.NewRecordID("note", "someid"),
 				Data: oddb.Data{
 					"string": "string",
 					"number": float64(1),
@@ -81,13 +81,13 @@ func TestQuerySort(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	record1 := oddb.Record{
-		ID:   oddb.RecordID{Type: "record", Key: "1"},
+		ID:   oddb.NewRecordID("record", "1"),
 		Data: oddb.Data{"string": "A", "int": float64(2)}}
 	record2 := oddb.Record{
-		ID:   oddb.RecordID{Type: "record", Key: "2"},
+		ID:   oddb.NewRecordID("record", "2"),
 		Data: oddb.Data{"string": "B", "int": float64(0)}}
 	record3 := oddb.Record{
-		ID:   oddb.RecordID{Type: "record", Key: "3"},
+		ID:   oddb.NewRecordID("record", "3"),
 		Data: oddb.Data{"string": "C", "int": float64(1)}}
 
 	for _, record := range []oddb.Record{record1, record2, record3} {

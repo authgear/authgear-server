@@ -14,6 +14,11 @@ type RecordID struct {
 	Key  string
 }
 
+// NewRecordID returns a new RecordID
+func NewRecordID(recordType string, id string) RecordID {
+	return RecordID{recordType, id}
+}
+
 // String implements the fmt.Stringer interface.
 func (id RecordID) String() string {
 	return id.Type + "/" + id.Key
