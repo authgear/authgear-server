@@ -2,3 +2,5 @@
 /.vagrant
 data
 
+# go generated sources
+*_string.go

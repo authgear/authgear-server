@@ -15,6 +15,7 @@ before_install:
 
 before_script:
   - psql -c 'CREATE DATABASE ourd_test;' -U postgres
+  - go generate ./...
 
 script:
   - golint ./...

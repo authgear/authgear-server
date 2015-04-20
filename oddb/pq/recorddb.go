@@ -393,7 +393,7 @@ func (db *database) Extend(recordType string, schema oddb.RecordSchema) error {
 			if !ok {
 				updatingSchema[key] = dataType
 			} else if remoteDataType != dataType {
-				return fmt.Errorf("conflicting dataType %v => %v", remoteDataType, dataType)
+				return fmt.Errorf("conflicting dataType %s => %s", remoteDataType, dataType)
 			}
 
 			// same data type, do nothing

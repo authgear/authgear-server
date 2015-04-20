@@ -13,6 +13,7 @@ Dependencies
 
 Development
 ===========
+$ `go generate github.com/oursky/ourd/oddb/...`
 $ `go build && ./ourd development.ini`
 
 config.ini can be provided in args or os ENV `OD_CONFIG`.

@@ -345,7 +345,7 @@ func (m *schemaMerger) Extend(schema oddb.RecordSchema) {
 	for key, dataType := range schema {
 		if originalType, ok := m.finalSchema[key]; ok {
 			if originalType != dataType {
-				m.err = fmt.Errorf("type conflict on column = %s, %v -> %v", key, originalType, dataType)
+				m.err = fmt.Errorf("type conflict on column = %s, %s -> %s", key, originalType, dataType)
 				return
 			}
 		}

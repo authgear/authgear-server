@@ -114,6 +114,7 @@ func (dt *Datetime) UnmarshalJSON(data []byte) (err error) {
 }
 
 // DataType defines the type of data that can saved into an oddb database
+//go:generate stringer -type=DataType
 type DataType uint
 
 // List of persistable data types in oddb

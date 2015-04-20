@@ -257,7 +257,7 @@ func TestExtend(t *testing.T) {
 				"createdAt": oddb.TypeDateTime,
 				"dirty":     oddb.TypeNumber,
 			})
-			So(err.Error(), ShouldEqual, "conflicting dataType 1 => 2")
+			So(err.Error(), ShouldEqual, "conflicting dataType TypeString => TypeNumber")
 		})
 
 		Reset(func() {
