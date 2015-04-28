@@ -46,8 +46,6 @@ func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
 		return oddb.ErrRecordNotFound
 	}
 
-	// remove _user_id, we won't need it in the result set
-	delete(typemap, "_user_id")
 	sql, args, err := db.selectQuery(id.Type, typemap).ToSql()
 	if err != nil {
 		panic(err)
@@ -111,6 +109,8 @@ func (db *database) Save(record *oddb.Record) error {
 
 		_, err = db.Db.Exec(sql, args...)
 	}
+
+	record.UserID = db.userID
 
 	return err
 }
@@ -182,8 +182,6 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 		return oddb.EmptyRows, nil
 	}
 
-	// remove _user_id, we won't need it in the result set
-	delete(typemap, "_user_id")
 	q := db.selectQuery(query.Type, typemap)
 	for _, sort := range query.Sorts {
 		switch sort.Order {

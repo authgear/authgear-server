@@ -19,12 +19,12 @@ func tempdir() string {
 	return dir
 }
 
-func getDatabase(name string) (dir string, db *fileDatabase) {
+func getDatabase(name string, userID string) (dir string, db *fileDatabase) {
 	if name == "" {
 		name = "fs-test"
 	}
 	dir = tempDir()
-	db = newDatabase(nil, dir, name)
+	db = newDatabase(nil, dir, name, userID)
 	return
 }
 
@@ -47,7 +47,7 @@ func transformRows(rows *oddb.Rows, err error) ([]oddb.Record, error) {
 
 func TestSave(t *testing.T) {
 	Convey("A Database", t, func() {
-		dir, db := getDatabase("fs.save")
+		dir, db := getDatabase("fs.save", "someuserid")
 
 		Convey("saves record correctly", func() {
 			const expectedFileContent = `{"_id":"note/someid","data":{"bool":true,"number":1,"string":"string"}}
@@ -62,6 +62,7 @@ func TestSave(t *testing.T) {
 			}
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
+			So(record.UserID, ShouldEqual, "someuserid")
 
 			contentBytes, err := ioutil.ReadFile(filepath.Join(dir, "note", "someid"))
 			So(err, ShouldBeNil)
@@ -77,7 +78,7 @@ func TestSave(t *testing.T) {
 }
 
 func TestQuerySort(t *testing.T) {
-	dir, db := getDatabase("fs.query.sort")
+	dir, db := getDatabase("fs.query.sort", "")
 	defer os.RemoveAll(dir)
 
 	record1 := oddb.Record{

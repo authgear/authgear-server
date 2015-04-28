@@ -48,8 +48,9 @@ type Data map[string]interface{}
 
 // Record is the primary entity of storage in Ourd.
 type Record struct {
-	ID   RecordID `json:"_id"`
-	Data Data     `json:"data"`
+	ID     RecordID `json:"_id"`
+	Data   Data     `json:"data"`
+	UserID string   `json:"-"` // the owner's ID
 }
 
 // Get returns the value specified by key. If no value is associated
@@ -64,6 +65,8 @@ func (r *Record) Get(key string) interface{} {
 			return r.ID.Type
 		case "_id":
 			return r.ID.Key
+		case "_user_id":
+			return r.UserID
 		default:
 			return nil
 		}
@@ -83,6 +86,8 @@ func (r *Record) Set(key string, i interface{}) {
 			r.ID.Type = i.(string)
 		case "_id":
 			r.ID.Key = i.(string)
+		case "_user_id":
+			r.UserID = i.(string)
 		default:
 			panic(fmt.Sprintf("unknown reserved key: %v", key))
 		}

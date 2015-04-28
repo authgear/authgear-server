@@ -51,7 +51,7 @@ func Open(appName, dir string) (oddb.Conn, error) {
 		userDB:   newUserDatabase(userDBPath),
 		deviceDB: newDeviceDatabase(deviceDBPath),
 	}
-	conn.publicDB = newDatabase(conn, publicDBPath, publicDBKey)
+	conn.publicDB = newDatabase(conn, publicDBPath, publicDBKey, "")
 
 	return conn, nil
 }
@@ -94,7 +94,7 @@ func (conn *fileConn) PublicDB() oddb.Database {
 
 func (conn *fileConn) PrivateDB(userKey string) oddb.Database {
 	dbPath := filepath.Join(conn.Dir, userKey)
-	return newDatabase(conn, dbPath, privateDBKey)
+	return newDatabase(conn, dbPath, privateDBKey, userKey)
 }
 
 func (conn *fileConn) AddDBRecordHook(hookFunc oddb.DBHookFunc) {
@@ -105,14 +105,16 @@ type fileDatabase struct {
 	conn      *fileConn
 	Dir       string
 	Key       string
+	UserID    string
 	subscriDB subscriptionDB
 }
 
-func newDatabase(conn *fileConn, dir string, key string) *fileDatabase {
+func newDatabase(conn *fileConn, dir string, key string, userID string) *fileDatabase {
 	return &fileDatabase{
 		conn:      conn,
 		Dir:       dir,
 		Key:       key,
+		UserID:    userID,
 		subscriDB: newSubscriptionDB(filepath.Join(dir, "_subscription")),
 	}
 }
@@ -147,8 +149,12 @@ func (db fileDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
 		return err
 	}
 
-	jsonDecoder := json.NewDecoder(file)
-	return jsonDecoder.Decode(record)
+	if err := json.NewDecoder(file).Decode(record); err != nil {
+		return err
+	}
+
+	record.UserID = db.UserID
+	return nil
 }
 
 func (db fileDatabase) Save(record *oddb.Record) error {
@@ -164,8 +170,11 @@ func (db fileDatabase) Save(record *oddb.Record) error {
 		return err
 	}
 
-	jsonEncoder := json.NewEncoder(file)
-	err = jsonEncoder.Encode(record)
+	if err := json.NewEncoder(file).Encode(record); err != nil {
+		return err
+	}
+
+	record.UserID = db.UserID
 
 	return db.executeHook(record, event, err)
 }
@@ -307,6 +316,7 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 		if err := json.Unmarshal(scanner.Bytes(), &record); err != nil {
 			return nil, err
 		}
+		record.UserID = db.UserID
 		records = append(records, record)
 	}
 

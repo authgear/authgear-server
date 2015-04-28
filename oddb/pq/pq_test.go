@@ -327,6 +327,7 @@ func TestGet(t *testing.T) {
 					"number":   float64(1),
 					"datetime": time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC),
 				},
+				UserID: "getuser",
 			})
 		})
 
@@ -363,6 +364,7 @@ func TestSave(t *testing.T) {
 		Convey("creates record if it doesn't exist", func() {
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
+			So(record.UserID, ShouldEqual, "")
 
 			var (
 				content   string
@@ -380,6 +382,7 @@ func TestSave(t *testing.T) {
 		Convey("updates record if it already exists", func() {
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
+			So(record.UserID, ShouldEqual, "")
 
 			record.Set("content", "more content")
 			err = db.Save(&record)
@@ -390,6 +393,19 @@ func TestSave(t *testing.T) {
 				Scan(&content)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "more content")
+		})
+
+		Convey("ignore Record.UserID when saving", func() {
+			record.UserID = "someuserid"
+			err := db.Save(&record)
+			So(err, ShouldBeNil)
+			So(record.UserID, ShouldEqual, "")
+
+			var count int
+			err = c.Db.QueryRowx("SELECT count(*) FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = 'someuserid'").
+				Scan(&count)
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 0)
 		})
 
 		Convey("REGRESSION: update record with attribute having capital letters", func() {
