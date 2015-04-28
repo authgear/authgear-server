@@ -82,8 +82,8 @@ func (conn *MapConn) PrivateDB(userKey string) oddb.Database {
 	panic("not implemented")
 }
 
-// AddDBRecordHook is not implemented.
-func (conn *MapConn) AddDBRecordHook(hook oddb.DBHookFunc) {
+// Subscribe is not implemented.
+func (conn *MapConn) Subscribe(recordEventChan chan oddb.RecordEvent) error {
 	panic("not implemented")
 }
 

@@ -55,7 +55,31 @@ type Conn interface {
 	PublicDB() Database
 	PrivateDB(userKey string) Database
 
-	AddDBRecordHook(hook DBHookFunc)
+	// Subscribe registers the specified recordEventChan to receive
+	// RecordEvent from the Conn implementation
+	Subscribe(recordEventChan chan RecordEvent) error
 
 	Close() error
+}
+
+// RecordHookEvent indicates the type of record event that triggered
+// the hook
+type RecordHookEvent int
+
+// See the definition of RecordHookEvent
+const (
+	RecordCreated RecordHookEvent = iota + 1
+	RecordUpdated
+	RecordDeleted
+)
+
+// RecordEvent describes a change event on Record which is either
+// Created, Updated or Deleted.
+//
+// For RecordCreated or RecordUpdated event, Record is the newly
+// created / updated Record. For RecordDeleted, Record is the Record
+// being deleted.
+type RecordEvent struct {
+	Record *Record
+	Event  RecordHookEvent
 }

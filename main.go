@@ -111,7 +111,7 @@ func main() {
 			ConnOpener:         func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) },
 			NotificationSender: pushSender,
 		}
-		subscriptionService.Init()
+		subscriptionService.Init().Listen()
 	}
 
 	// Setup Logging

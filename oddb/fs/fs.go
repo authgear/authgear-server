@@ -97,8 +97,8 @@ func (conn *fileConn) PrivateDB(userKey string) oddb.Database {
 	return newDatabase(conn, dbPath, privateDBKey, userKey)
 }
 
-func (conn *fileConn) AddDBRecordHook(hookFunc oddb.DBHookFunc) {
-	dbHookFuncs = append(dbHookFuncs, hookFunc)
+func (conn *fileConn) Subscribe(recordEventChan chan oddb.RecordEvent) error {
+	return nil
 }
 
 type fileDatabase struct {

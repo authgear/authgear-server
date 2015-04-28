@@ -80,6 +80,7 @@ func (auth *authInfoValue) Scan(value interface{}) error {
 type conn struct {
 	Db      *sqlx.DB
 	appName string
+	option  string
 }
 
 func (c *conn) CreateUser(userinfo *oddb.UserInfo) error {
@@ -198,7 +199,6 @@ func (c *conn) PrivateDB(userKey string) oddb.Database {
 	}
 }
 
-func (c *conn) AddDBRecordHook(hook oddb.DBHookFunc) {}
 func (c *conn) Close() error { return nil }
 
 func (c *conn) schemaName() string {
@@ -219,8 +219,9 @@ func (db *database) Conn() oddb.Conn { return db.c }
 func (db *database) ID() string      { return "" }
 
 func (db *database) GetMatchingSubscription(record *oddb.Record) []oddb.Subscription {
-	return []oddb.Subscription{}
+	return nil
 }
+
 func (db *database) GetSubscription(key string, subscription *oddb.Subscription) error { return nil }
 func (db *database) SaveSubscription(subscription *oddb.Subscription) error            { return nil }
 func (db *database) DeleteSubscription(key string) error                               { return nil }
@@ -243,7 +244,7 @@ func Open(appName, connString string) (oddb.Conn, error) {
 	}
 
 	// TODO: it might be desirable to init DB in start-up time.
-	initDBOnce.Do(func() { mustInitDB(connString, db) })
+	initDBOnce.Do(func() { mustInitDB(db) })
 
 	if err := initAppDB(db, appName); err != nil {
 		return nil, err
@@ -252,11 +253,12 @@ func Open(appName, connString string) (oddb.Conn, error) {
 	return &conn{
 		Db:      db,
 		appName: appName,
+		option:  connString,
 	}, nil
 }
 
 // mustInitDB initialize database objects shared across all schemata.
-func mustInitDB(option string, db *sqlx.DB) {
+func mustInitDB(db *sqlx.DB) {
 	const CreatePendingNotificationTableStmt = `CREATE TABLE IF NOT EXISTS pending_notification (
 	id SERIAL NOT NULL PRIMARY KEY,
 	op text NOT NULL,

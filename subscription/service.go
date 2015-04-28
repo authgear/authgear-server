@@ -1,7 +1,7 @@
 package subscription
 
 import (
-	"log"
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/push"
@@ -12,6 +12,7 @@ import (
 type Service struct {
 	ConnOpener         func() (oddb.Conn, error)
 	NotificationSender push.Sender
+	recordEventChan    chan oddb.RecordEvent
 }
 
 // Init initializes the record change detection at startup time.
@@ -20,20 +21,41 @@ func (s *Service) Init() *Service {
 	if err != nil {
 		log.Panicf("Failed to obtain connection: %v", err)
 	}
-	conn.AddDBRecordHook(s.HandleRecordHook)
+
+	s.recordEventChan = make(chan oddb.RecordEvent)
+	conn.Subscribe(s.recordEventChan)
+
 	return s
 }
 
-// HandleRecordHook provides a hook as the entry point for record change
-// detection for oddb implementation that has no native support of
-// record change listener.
-func (s *Service) HandleRecordHook(db oddb.Database, record *oddb.Record, event oddb.RecordHookEvent) {
-	switch event {
-	case oddb.RecordCreated, oddb.RecordUpdated, oddb.RecordDeleted:
-		s.handleRecordHook(db, record)
-	default:
-		log.Panicf("Unrecgonized event: %v", event)
+// Listen listens for Conn record event
+func (s *Service) Listen() {
+	for {
+		event := <-s.recordEventChan
+		switch event.Event {
+		case oddb.RecordCreated, oddb.RecordUpdated, oddb.RecordDeleted:
+			conn, err := s.ConnOpener()
+			if err != nil {
+				log.WithFields(log.Fields{
+					"event": event,
+					"err":   err,
+				}).Errorln("subscription/service: failed to open conn")
+				continue
+			}
+			db := getDB(conn, event.Record)
+			s.handleRecordHook(db, event.Record)
+		default:
+			log.Panicf("Unrecgonized event: %v", event)
+		}
 	}
+}
+
+func getDB(conn oddb.Conn, record *oddb.Record) oddb.Database {
+	if record.UserID == "" {
+		return conn.PublicDB()
+	}
+
+	return conn.PrivateDB(record.UserID)
 }
 
 func (s *Service) handleRecordHook(db oddb.Database, record *oddb.Record) {
