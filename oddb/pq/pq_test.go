@@ -369,8 +369,7 @@ func TestSave(t *testing.T) {
 				number    float64
 				timestamp time.Time
 			)
-			err = db.(*database).Db.
-				QueryRow("SELECT content, number, timestamp FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").
+			err = c.Db.QueryRow("SELECT content, number, timestamp FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").
 				Scan(&content, &number, &timestamp)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "some content")
@@ -387,9 +386,34 @@ func TestSave(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var content string
-			err = db.(*database).Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").Scan(&content)
+			err = c.Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").
+				Scan(&content)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "more content")
+		})
+
+		Convey("REGRESSION: update record with attribute having capital letters", func() {
+			So(db.Extend("note", oddb.RecordSchema{
+				"noteOrder": oddb.TypeNumber,
+			}), ShouldBeNil)
+
+			record = oddb.Record{
+				ID: oddb.NewRecordID("note", "1"),
+				Data: map[string]interface{}{
+					"noteOrder": 1,
+				},
+			}
+
+			ShouldBeNil(db.Save(&record))
+
+			record.Data["noteOrder"] = 2
+			ShouldBeNil(db.Save(&record))
+
+			var noteOrder int
+			err := c.Db.QueryRow(`SELECT "noteOrder" FROM app_com_oursky_ourd.note WHERE _id = '1' and _user_id = ''`).
+				Scan(&noteOrder)
+			So(err, ShouldBeNil)
+			So(noteOrder, ShouldEqual, 2)
 		})
 	})
 }

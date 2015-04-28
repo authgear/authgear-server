@@ -97,7 +97,7 @@ func (db *database) Save(record *oddb.Record) error {
 	_, err = db.Db.Exec(sql, args...)
 
 	if isUniqueViolated(err) {
-		update := psql.Update(tablename).Where("_id = ?", record.ID.Key).SetMap(sq.Eq(record.Data))
+		update := psql.Update(tablename).Where("_id = ?", record.ID.Key).SetMap(sq.Eq(data))
 
 		sql, args, err = update.ToSql()
 		if err != nil {
