@@ -25,6 +25,7 @@ const (
 	TypeString    = "text"
 	TypeNumber    = "double precision"
 	TypeBoolean   = "boolean"
+	TypeJSON      = "jsonb"
 	TypeTimestamp = "timestamp without time zone"
 )
 
@@ -87,11 +88,7 @@ func (db *database) Save(record *oddb.Record) error {
 		panic(err)
 	}
 
-	log.WithFields(log.Fields{
-		"sql":  sql,
-		"args": args,
-	}).Debug("Inserting record")
-
+	logAction := "insert"
 	_, err = db.Db.Exec(sql, args...)
 
 	if isUniqueViolated(err) {
@@ -102,12 +99,16 @@ func (db *database) Save(record *oddb.Record) error {
 			panic(err)
 		}
 
+		logAction = "update"
+		_, err = db.Db.Exec(sql, args...)
+	}
+
+	if err != nil {
 		log.WithFields(log.Fields{
 			"sql":  sql,
 			"args": args,
-		}).Debug("Updating record")
-
-		_, err = db.Db.Exec(sql, args...)
+			"err":  err,
+		}).Debugf("Failed to %s record", logAction)
 	}
 
 	record.UserID = db.userID
@@ -388,10 +389,7 @@ func (db *database) Extend(recordType string, schema oddb.RecordSchema) error {
 	}
 
 	if len(remoteschema) == 0 {
-		stmt := createTableStmt(db.tableName(recordType), schema)
-
-		log.WithField("stmt", stmt).Debugln("Creating table")
-		if _, err := db.Db.Exec(stmt); err != nil {
+		if err := db.createTable(recordType, schema); err != nil {
 			return fmt.Errorf("failed to create table: %s", err)
 		}
 	} else {
@@ -418,6 +416,27 @@ func (db *database) Extend(recordType string, schema oddb.RecordSchema) error {
 	}
 
 	return nil
+}
+
+func (db *database) createTable(recordType string, schema oddb.RecordSchema) (err error) {
+	tablename := db.tableName(recordType)
+
+	stmt := createTableStmt(tablename, schema)
+	log.WithField("stmt", stmt).Debugln("Creating table")
+	_, err = db.Db.Exec(stmt)
+	if err != nil {
+		return err
+	}
+
+	const CreateTriggerStmtFmt = `CREATE TRIGGER trigger_notify_record_change
+	AFTER INSERT OR UPDATE OR DELETE ON %s FOR EACH ROW
+	EXECUTE PROCEDURE public.notify_record_change();
+`
+	stmt = fmt.Sprintf(CreateTriggerStmtFmt, tablename)
+	log.WithField("stmt", stmt).Debugln("Creating trigger")
+	_, err = db.Db.Exec(stmt)
+
+	return err
 }
 
 func createTableStmt(tableName string, schema oddb.RecordSchema) string {

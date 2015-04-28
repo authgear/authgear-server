@@ -6,18 +6,22 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/jmoiron/sqlx"
-	sq "github.com/lann/squirrel"
 	"regexp"
 	"strings"
+	"sync"
 
+	"github.com/jmoiron/sqlx"
+	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
+
 	"github.com/oursky/ourd/oddb"
 )
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 var underscoreRe = regexp.MustCompile(`[.:]`)
+
+var initDBOnce sync.Once
 
 func toLowerAndUnderscore(s string) string {
 	return underscoreRe.ReplaceAllLiteralString(strings.ToLower(s), "_")
@@ -195,7 +199,7 @@ func (c *conn) PrivateDB(userKey string) oddb.Database {
 }
 
 func (c *conn) AddDBRecordHook(hook oddb.DBHookFunc) {}
-func (c *conn) Close() error                         { return nil }
+func (c *conn) Close() error { return nil }
 
 func (c *conn) schemaName() string {
 	return "app_" + toLowerAndUnderscore(c.appName)
@@ -238,6 +242,9 @@ func Open(appName, connString string) (oddb.Conn, error) {
 		return nil, fmt.Errorf("failed to open connection: %s", err)
 	}
 
+	// TODO: it might be desirable to init DB in start-up time.
+	initDBOnce.Do(func() { mustInitDB(connString, db) })
+
 	if err := initAppDB(db, appName); err != nil {
 		return nil, err
 	}
@@ -246,6 +253,39 @@ func Open(appName, connString string) (oddb.Conn, error) {
 		Db:      db,
 		appName: appName,
 	}, nil
+}
+
+// mustInitDB initialize database objects shared across all schemata.
+func mustInitDB(option string, db *sqlx.DB) {
+	const CreatePendingNotificationTableStmt = `CREATE TABLE IF NOT EXISTS pending_notification (
+	id SERIAL NOT NULL PRIMARY KEY,
+	op text NOT NULL,
+	appname text NOT NULL,
+	recordtype text NOT NULL,
+	record jsonb NOT NULL
+);
+`
+	const CreateNotificationTriggerFuncStmt = `CREATE OR REPLACE FUNCTION public.notify_record_change() RETURNS TRIGGER AS $$
+	DECLARE
+		affected_record RECORD;
+		inserted_id integer;
+	BEGIN
+		IF (TG_OP = 'DELETE') THEN
+			affected_record := OLD;
+		ELSE
+			affected_record := NEW;
+		END IF;
+		INSERT INTO pending_notification (op, appname, recordtype, record)
+			VALUES (TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME, row_to_json(affected_record)::jsonb)
+			RETURNING id INTO inserted_id;
+		PERFORM pg_notify('record_change', inserted_id::TEXT);
+		RETURN affected_record;
+	END;
+$$ LANGUAGE plpgsql;
+`
+
+	db.MustExec(CreatePendingNotificationTableStmt)
+	db.MustExec(CreateNotificationTriggerFuncStmt)
 }
 
 func initAppDB(db *sqlx.DB, appName string) error {
