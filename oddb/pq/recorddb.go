@@ -65,14 +65,10 @@ func (db *database) Save(record *oddb.Record) error {
 		return fmt.Errorf("db.save %s: got empty record type", record.ID.Key)
 	}
 
-	data := map[string]interface{}{}
-	for key, value := range record.Data {
-		data[key] = value
-	}
-	data["_id"] = record.ID.Key
-	data["_user_id"] = db.userID
-
-	sql, args := upsertQuery(db.tableName(record.ID.Type), []string{"_id", "_user_id"}, data)
+	sql, args := upsertQuery(db.tableName(record.ID.Type), map[string]interface{}{
+		"_id":      record.ID.Key,
+		"_user_id": db.userID,
+	}, record.Data)
 
 	_, err := db.Db.Exec(sql, args...)
 	if err != nil {

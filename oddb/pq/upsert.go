@@ -3,29 +3,27 @@ package pq
 import (
 	"bytes"
 	"strconv"
-
-	log "github.com/Sirupsen/logrus"
 )
 
 // Let table = 'schema.device_table',
 //     pks = ['id1', 'id2'],
-//     data = {'id1': '1', 'id2': '2', type': 'ios', 'token': 'sometoken', 'userid': 'someuserid'}
+//     data = {'type': 'ios', 'token': 'sometoken', 'userid': 'someuserid'}
 //
 // upsertQuery generates a query for upsert in the following format:
 //
 //	WITH updated AS (
 //		UPDATE schema.device_table
-//			SET ("id1", "id2", "type", "token", "user_id") =
-//			($3, $4, $5, $6, $7)
+//			SET ("type", "token", "user_id") =
+//			($3, $4, $5)
 //			WHERE "id1" = $1 AND "id2" = $2
 //			RETURNING *
 //		)
 //	INSERT schema.device_table
 //		("id1", "id2", "type", "token", "user_id")
-//		SELECT $3, $4, $5, $6, $7
+//		SELECT $1, $2, $3, $4, $5
 //		WHERE NOT EXISTS (SELECT * FROM updated);
 //
-// And args = ['1', '2', '1', '2', 'ios', 'sometoken', 'someuserid']
+// And args = ['1', '2', 'ios', 'sometoken', 'someuserid']
 //
 // This approach uses CTE to do an INSERT after UPDATE in one query,
 // hoping that the time gap between the UPDATE and INSERT is short
@@ -39,25 +37,12 @@ import (
 // More on UPSERT: https://wiki.postgresql.org/wiki/UPSERT#PostgreSQL_.28today.29
 //
 // [1]: http://www.postgresql.org/docs/9.4/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE
-func upsertQuery(table string, pks []string, data map[string]interface{}) (sql string, args []interface{}) {
-	// derive primary keys' data
-	pkArgs := make([]interface{}, len(pks), len(pks))
-	for i := range pks {
-		value, ok := data[pks[i]]
-		if !ok {
-			log.WithFields(log.Fields{
-				"table": table,
-				"pks":   pks,
-				"pk":    pks[i],
-				"data":  data,
-			}).Panicln("oddb/pq: primary key not found in data map")
-		}
-		pkArgs[i] = value
-	}
-
+func upsertQuery(table string, pkData map[string]interface{}, data map[string]interface{}) (sql string, args []interface{}) {
 	// extract columns values pair
+	pks, pkArgs := extractKeyAndValue(pkData)
 	columns, args := extractKeyAndValue(data)
 
+	// generate WITH UPDATE
 	b := bytes.Buffer{}
 	b.Write([]byte(`WITH updated AS (UPDATE `))
 	b.WriteString(table)
@@ -90,11 +75,12 @@ func upsertQuery(table string, pks []string, data map[string]interface{}) (sql s
 	}
 	b.Truncate(b.Len() - 5)
 
+	// generate INSERT
 	b.Write([]byte(` RETURNING *) INSERT INTO `))
 	b.WriteString(table)
 	b.WriteByte('(')
 
-	for _, column := range columns {
+	for _, column := range append(pks, columns...) {
 		b.WriteByte('"')
 		b.WriteString(column)
 		b.Write([]byte(`",`))
@@ -103,7 +89,7 @@ func upsertQuery(table string, pks []string, data map[string]interface{}) (sql s
 
 	b.Write([]byte(`) SELECT `))
 
-	for i := len(pks); i < len(pks)+len(columns); i++ {
+	for i := 0; i < len(pks)+len(columns); i++ {
 		b.WriteByte('$')
 		b.WriteString(strconv.Itoa(i + 1))
 		b.WriteByte(',')

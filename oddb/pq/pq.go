@@ -205,12 +205,14 @@ func (c *conn) SaveDevice(device *oddb.Device) error {
 		return errors.New("invalid device: empty id or token or type or user id")
 	}
 
-	sql, args := upsertQuery(c.tableName("_device"), []string{"id"}, map[string]interface{}{
-		"id":      device.ID,
+	pkData := map[string]interface{}{"id": device.ID}
+	data := map[string]interface{}{
 		"type":    device.Type,
 		"token":   device.Token,
 		"user_id": device.UserInfoID,
-	})
+	}
+
+	sql, args := upsertQuery(c.tableName("_device"), pkData, data)
 	_, err := c.Db.Exec(sql, args...)
 
 	return err
