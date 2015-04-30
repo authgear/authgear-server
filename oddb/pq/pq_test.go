@@ -1,11 +1,11 @@
 package pq
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"database/sql"
-	log "github.com/Sirupsen/logrus"
 	"time"
 
 	"github.com/lib/pq"
@@ -37,35 +37,30 @@ func cleanupDB(t *testing.T, c *conn) {
 	}
 }
 
+func addUser(t *testing.T, c *conn, userid string) {
+	_, err := c.Db.Exec("INSERT INTO app_com_oursky_ourd._user (id, password) VALUES ($1, 'somepassword')", userid)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type execor interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 }
 
-func insertRow(db execor, query string, args ...interface{}) {
+func insertRow(t *testing.T, db execor, query string, args ...interface{}) {
 	result, err := db.Exec(query, args...)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"query": query,
-			"args":  args,
-			"err":   err,
-		}).Panicln("failed to execute insert")
+		t.Fatal(err)
 	}
 
 	n, err := result.RowsAffected()
 	if err != nil {
-		log.WithFields(log.Fields{
-			"query": query,
-			"args":  args,
-			"err":   err,
-		}).Panicln("failed to fetch RowsAffected")
+		t.Fatal(err)
 	}
 
 	if n != 1 {
-		log.WithFields(log.Fields{
-			"query": query,
-			"args":  args,
-			"n":     n,
-		}).Panicln("rows affected != 1")
+		t.Fatalf("got rows affected = %v, want 1", n)
 	}
 }
 
@@ -217,13 +212,143 @@ func TestUserCRUD(t *testing.T) {
 			So(count, ShouldEqual, 1)
 		})
 
-		Reset(func() {
-			_, err := c.Db.Exec("TRUNCATE app_com_oursky_ourd._user")
-			So(err, ShouldBeNil)
-		})
+		cleanupDB(t, c)
 	})
+}
 
-	cleanupDB(t, c)
+func TestDevice(t *testing.T) {
+	Convey("Conn", t, func() {
+		c := getTestConn(t)
+		addUser(t, c, "userid")
+
+		Convey("gets an existing Device", func() {
+			device := oddb.Device{
+				ID:         "deviceid",
+				Type:       "ios",
+				Token:      "devicetoken",
+				UserInfoID: "userid",
+			}
+			So(c.SaveDevice(&device), ShouldBeNil)
+
+			device = oddb.Device{}
+			err := c.GetDevice("deviceid", &device)
+			So(err, ShouldBeNil)
+			So(device, ShouldResemble, oddb.Device{
+				ID:         "deviceid",
+				Type:       "ios",
+				Token:      "devicetoken",
+				UserInfoID: "userid",
+			})
+		})
+
+		Convey("creates a new Device", func() {
+			device := oddb.Device{
+				ID:         "deviceid",
+				Type:       "ios",
+				Token:      "devicetoken",
+				UserInfoID: "userid",
+			}
+
+			err := c.SaveDevice(&device)
+			So(err, ShouldBeNil)
+
+			var deviceType, token, userInfoID string
+			err = c.Db.QueryRow("SELECT type, token, user_id FROM app_com_oursky_ourd._device WHERE id = 'deviceid'").
+				Scan(&deviceType, &token, &userInfoID)
+			So(err, ShouldBeNil)
+			So(deviceType, ShouldEqual, "ios")
+			So(token, ShouldEqual, "devicetoken")
+			So(userInfoID, ShouldEqual, "userid")
+		})
+
+		Convey("updates an existing Device", func() {
+			device := oddb.Device{
+				ID:         "deviceid",
+				Type:       "ios",
+				Token:      "devicetoken",
+				UserInfoID: "userid",
+			}
+
+			err := c.SaveDevice(&device)
+			So(err, ShouldBeNil)
+
+			device.Token = "anotherdevicetoken"
+			err = c.SaveDevice(&device)
+
+			So(err, ShouldBeNil)
+			var deviceType, token, userInfoID string
+			err = c.Db.QueryRow("SELECT type, token, user_id FROM app_com_oursky_ourd._device WHERE id = 'deviceid'").
+				Scan(&deviceType, &token, &userInfoID)
+			So(err, ShouldBeNil)
+			So(deviceType, ShouldEqual, "ios")
+			So(token, ShouldEqual, "anotherdevicetoken")
+			So(userInfoID, ShouldEqual, "userid")
+		})
+
+		Convey("cannot save Device without id", func() {
+			device := oddb.Device{
+				Type:       "ios",
+				Token:      "devicetoken",
+				UserInfoID: "userid",
+			}
+
+			err := c.SaveDevice(&device)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("cannot save Device without type", func() {
+			device := oddb.Device{
+				ID:         "deviceid",
+				Token:      "devicetoken",
+				UserInfoID: "userid",
+			}
+
+			err := c.SaveDevice(&device)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("cannot save Device without token", func() {
+			device := oddb.Device{
+				ID:         "deviceid",
+				Type:       "ios",
+				UserInfoID: "userid",
+			}
+
+			err := c.SaveDevice(&device)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("cannot save Device without user id", func() {
+			device := oddb.Device{
+				ID:    "deviceid",
+				Type:  "ios",
+				Token: "devicetoken",
+			}
+
+			err := c.SaveDevice(&device)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("deletes an existing record", func() {
+			device := oddb.Device{
+				ID:         "deviceid",
+				Type:       "ios",
+				Token:      "devicetoken",
+				UserInfoID: "userid",
+			}
+			So(c.SaveDevice(&device), ShouldBeNil)
+
+			err := c.DeleteDevice("deviceid")
+			So(err, ShouldBeNil)
+
+			var count int
+			err = c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._device WHERE id = 'deviceid'").Scan(&count)
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 0)
+		})
+
+		cleanupDB(t, c)
+	})
 }
 
 func TestExtend(t *testing.T) {
@@ -311,7 +436,7 @@ func TestGet(t *testing.T) {
 			"boolean":  oddb.TypeBoolean,
 		}), ShouldBeNil)
 
-		insertRow(c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
+		insertRow(t, c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
 			`(_user_id, _id, "string", "number", "datetime", "boolean") `+
 			`VALUES ('getuser', 'id', 'string', 1, '1988-02-06', TRUE)`)
 
@@ -602,6 +727,17 @@ func TestQuery(t *testing.T) {
 			So(err, ShouldEqual, oddb.ErrUserNotFound)
 		})
 
+		Convey("gets no devices", func() {
+			device := oddb.Device{}
+			err := c.GetDevice("notexistdeviceid", &device)
+			So(err, ShouldEqual, oddb.ErrDeviceNotFound)
+		})
+
+		Convey("deletes no devices", func() {
+			err := c.DeleteDevice("notexistdeviceid")
+			So(err, ShouldEqual, oddb.ErrDeviceNotFound)
+		})
+
 		Convey("Empty Database", func() {
 			db := c.PublicDB()
 
@@ -628,8 +764,6 @@ func TestQuery(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(records, ShouldBeEmpty)
 			})
-
-			cleanupDB(t, c)
 		})
 
 		cleanupDB(t, c)

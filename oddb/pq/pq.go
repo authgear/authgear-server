@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -180,9 +181,71 @@ func (c *conn) DeleteUser(id string) error {
 	return nil
 }
 
-func (c *conn) GetDevice(id string, device *oddb.Device) error { return nil }
-func (c *conn) SaveDevice(device *oddb.Device) error           { return nil }
-func (c *conn) DeleteDevice(id string) error                   { return nil }
+func (c *conn) GetDevice(id string, device *oddb.Device) error {
+	err := psql.Select("type", "token", "user_id").
+		From(c.tableName("_device")).
+		Where("id = ?", id).
+		RunWith(c.Db.DB).
+		QueryRow().
+		Scan(&device.Type, &device.Token, &device.UserInfoID)
+
+	if err == sql.ErrNoRows {
+		return oddb.ErrDeviceNotFound
+	} else if err != nil {
+		return err
+	}
+
+	device.ID = id
+
+	return nil
+}
+
+func (c *conn) SaveDevice(device *oddb.Device) error {
+	const UpsertFmt = `
+WITH updated AS (
+	UPDATE %[1]v._device
+		SET (id, type, token, user_id) =
+		($1, $2, $3, $4)
+		RETURNING *
+	)
+INSERT INTO %[1]v._device
+	(id, type, token, user_id)
+	SELECT $1, $2, $3, $4
+	WHERE NOT EXISTS (SELECT * FROM updated);
+`
+
+	if device.ID == "" || device.Token == "" || device.Type == "" || device.UserInfoID == "" {
+		return errors.New("invalid device: empty id or token or type or user id")
+	}
+
+	upsertStmt := fmt.Sprintf(UpsertFmt, c.schemaName())
+	_, err := c.Db.Exec(upsertStmt, device.ID, device.Type, device.Token, device.UserInfoID)
+
+	return err
+}
+
+func (c *conn) DeleteDevice(id string) error {
+	result, err := psql.Delete(c.tableName("_device")).
+		Where("id = ?", id).
+		RunWith(c.Db.DB).
+		Exec()
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return oddb.ErrDeviceNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+	}
+
+	return nil
+}
 
 func (c *conn) PublicDB() oddb.Database {
 	return &database{
@@ -300,6 +363,14 @@ CREATE TABLE IF NOT EXISTS %v._user (
 	auth json
 );
 `
+	const CreateDeviceTableFmt = `CREATE TABLE IF NOT EXISTS %[1]v._device (
+	id text PRIMARY KEY,
+	type text NOT NULL,
+	token text NOT NULL,
+	user_id text REFERENCES %[1]v._user (id) NOT NULL,
+	UNIQUE (type, token, user_id)
+);
+`
 
 	schemaName := "app_" + toLowerAndUnderscore(appName)
 
@@ -311,6 +382,11 @@ CREATE TABLE IF NOT EXISTS %v._user (
 	createUserTableStmt := fmt.Sprintf(CreateUserTableFmt, schemaName)
 	if _, err := db.Exec(createUserTableStmt); err != nil {
 		return fmt.Errorf("failed to create user table: %s", err)
+	}
+
+	createDeviceTableStmt := fmt.Sprintf(CreateDeviceTableFmt, schemaName)
+	if _, err := db.Exec(createDeviceTableStmt); err != nil {
+		return fmt.Errorf("failed to create device table: %s", err)
 	}
 
 	return nil
