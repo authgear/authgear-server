@@ -29,14 +29,6 @@ const (
 	TypeTimestamp = "timestamp without time zone"
 )
 
-func nilOrEmpty(s string) interface{} {
-	if s == "" {
-		return nil
-	}
-
-	return s
-}
-
 func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
 	typemap, err := db.remoteColumnTypes(id.Type)
 	if err != nil {
@@ -73,47 +65,28 @@ func (db *database) Save(record *oddb.Record) error {
 		return fmt.Errorf("db.save %s: got empty record type", record.ID.Key)
 	}
 
-	tablename := db.tableName(record.ID.Type)
-
 	data := map[string]interface{}{}
+	for key, value := range record.Data {
+		data[key] = value
+	}
 	data["_id"] = record.ID.Key
 	data["_user_id"] = db.userID
-	for key, value := range record.Data {
-		data[`"`+key+`"`] = value
-	}
-	insert := psql.Insert(tablename).SetMap(sq.Eq(data))
 
-	sql, args, err := insert.ToSql()
-	if err != nil {
-		panic(err)
-	}
+	sql, args := upsertQuery(db.tableName(record.ID.Type), []string{"_id", "_user_id"}, data)
 
-	logAction := "insert"
-	_, err = db.Db.Exec(sql, args...)
-
-	if isUniqueViolated(err) {
-		update := psql.Update(tablename).Where("_id = ?", record.ID.Key).SetMap(sq.Eq(data))
-
-		sql, args, err = update.ToSql()
-		if err != nil {
-			panic(err)
-		}
-
-		logAction = "update"
-		_, err = db.Db.Exec(sql, args...)
-	}
-
+	_, err := db.Db.Exec(sql, args...)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"sql":  sql,
 			"args": args,
 			"err":  err,
-		}).Debugf("Failed to %s record", logAction)
+		}).Debugln("Failed to save record")
+
+		return err
 	}
 
 	record.UserID = db.userID
-
-	return err
+	return nil
 }
 
 func (db *database) Delete(id oddb.RecordID) error {

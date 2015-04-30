@@ -201,25 +201,17 @@ func (c *conn) GetDevice(id string, device *oddb.Device) error {
 }
 
 func (c *conn) SaveDevice(device *oddb.Device) error {
-	const UpsertFmt = `
-WITH updated AS (
-	UPDATE %[1]v._device
-		SET (id, type, token, user_id) =
-		($1, $2, $3, $4)
-		RETURNING *
-	)
-INSERT INTO %[1]v._device
-	(id, type, token, user_id)
-	SELECT $1, $2, $3, $4
-	WHERE NOT EXISTS (SELECT * FROM updated);
-`
-
 	if device.ID == "" || device.Token == "" || device.Type == "" || device.UserInfoID == "" {
 		return errors.New("invalid device: empty id or token or type or user id")
 	}
 
-	upsertStmt := fmt.Sprintf(UpsertFmt, c.schemaName())
-	_, err := c.Db.Exec(upsertStmt, device.ID, device.Type, device.Token, device.UserInfoID)
+	sql, args := upsertQuery(c.tableName("_device"), []string{"id"}, map[string]interface{}{
+		"id":      device.ID,
+		"type":    device.Type,
+		"token":   device.Token,
+		"user_id": device.UserInfoID,
+	})
+	_, err := c.Db.Exec(sql, args...)
 
 	return err
 }
