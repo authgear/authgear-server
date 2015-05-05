@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/oursky/ourd/oddb"
@@ -87,6 +88,12 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 			if err == oddb.ErrDeviceNotFound {
 				errToReturn = oderr.ErrDeviceNotFound
 			} else {
+				log.WithFields(log.Fields{
+					"deviceID": deviceID,
+					"device":   device,
+					"err":      err,
+				}).Errorln("Failed to get device")
+
 				errToReturn = oderr.NewResourceFetchFailureErr("device", deviceID)
 			}
 			response.Err = errToReturn
@@ -101,6 +108,12 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 	device.UserInfoID = userinfoID
 
 	if err := conn.SaveDevice(&device); err != nil {
+		log.WithFields(log.Fields{
+			"deviceID": deviceID,
+			"device":   device,
+			"err":      err,
+		}).Errorln("Failed to save device")
+
 		response.Err = oderr.NewResourceSaveFailureErrWithStringID("device", deviceID)
 	} else {
 		response.Result = DeviceReigsterResult{device.ID}
