@@ -48,6 +48,21 @@ func TestSubscriptionCRUD(t *testing.T) {
 			Query:            query,
 		}
 
+		Convey("get an existing subscription", func() {
+			So(db.SaveSubscription(&subscription), ShouldBeNil)
+
+			resultSubscription := oddb.Subscription{}
+			err := db.GetSubscription("subscriptionid", &resultSubscription)
+			So(err, ShouldBeNil)
+			So(subscription, ShouldResemble, resultSubscription)
+		})
+
+		Convey("returns ErrSubscriptionNotFound while trying to get a non-existing subscription ", func() {
+			resultSubscription := oddb.Subscription{}
+			err := db.GetSubscription("notexistsubscriptionid", &resultSubscription)
+			So(err, ShouldEqual, oddb.ErrSubscriptionNotFound)
+		})
+
 		Convey("create new subscription", func() {
 			err := db.SaveSubscription(&subscription)
 			So(err, ShouldBeNil)

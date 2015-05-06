@@ -1,6 +1,7 @@
 package pq
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
@@ -59,7 +60,28 @@ func (query *queryValue) Scan(value interface{}) error {
 	return json.Unmarshal(b, query)
 }
 
-func (db *database) GetSubscription(key string, subscription *oddb.Subscription) error { return nil }
+func (db *database) GetSubscription(key string, subscription *oddb.Subscription) error {
+	err := psql.Select("device_id", "type", "notification_info", "query").
+		From(db.tableName("_subscription")).
+		Where("id = ? and user_id = ?", key, db.userID).
+		RunWith(db.Db.DB).
+		QueryRow().
+		Scan(
+		&subscription.DeviceID,
+		&subscription.Type,
+		(*notificationInfoValue)(&subscription.NotificationInfo),
+		(*queryValue)(&subscription.Query))
+
+	if err == sql.ErrNoRows {
+		return oddb.ErrSubscriptionNotFound
+	} else if err != nil {
+		return err
+	}
+
+	subscription.ID = key
+
+	return nil
+}
 
 func (db *database) SaveSubscription(subscription *oddb.Subscription) error {
 	if subscription.ID == "" {
