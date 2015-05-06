@@ -119,6 +119,27 @@ func (db *database) SaveSubscription(subscription *oddb.Subscription) error {
 	return err
 }
 
-func (db *database) DeleteSubscription(key string) error { return nil }
+func (db *database) DeleteSubscription(key string) error {
+	result, err := psql.Delete(db.tableName("_subscription")).
+		Where("id = ? AND user_id = ?", key, db.userID).
+		RunWith(db.Db.DB).
+		Exec()
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return oddb.ErrSubscriptionNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+	}
+
+	return nil
+}
 
 func (db *database) GetMatchingSubscription(record *oddb.Record) []oddb.Subscription { return nil }

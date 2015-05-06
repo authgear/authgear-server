@@ -140,6 +140,27 @@ func TestSubscriptionCRUD(t *testing.T) {
 			So(err, ShouldEqual, oddb.ErrDeviceNotFound)
 		})
 
+		Convey("delets an existing subscription", func() {
+			So(db.SaveSubscription(&subscription), ShouldBeNil)
+
+			err := db.DeleteSubscription("subscriptionid")
+			So(err, ShouldBeNil)
+
+			var count int
+			err = c.Db.QueryRow(
+				`SELECT COUNT(*) FROM app_com_oursky_ourd._subscription
+				WHERE id = $1 AND user_id = $2`,
+				"subscriptionid", "userid").
+				Scan(&count)
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 0)
+		})
+
+		Convey("returns ErrSubscriptionNotFound while deleting a non-exist subscription", func() {
+			err := db.DeleteSubscription("notexistsubscriptionid")
+			So(err, ShouldEqual, oddb.ErrSubscriptionNotFound)
+		})
+
 		cleanupDB(t, c)
 	})
 }
