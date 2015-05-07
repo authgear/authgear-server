@@ -142,4 +142,4 @@ func (db *database) DeleteSubscription(key string) error {
 	return nil
 }
 
-func (db *database) GetMatchingSubscription(record *oddb.Record) []oddb.Subscription { return nil }
+func (db *database) GetMatchingSubscriptions(record *oddb.Record) (subscriptions []oddb.Subscription) {

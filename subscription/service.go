@@ -59,7 +59,7 @@ func getDB(conn oddb.Conn, record *oddb.Record) oddb.Database {
 }
 
 func (s *Service) handleRecordHook(db oddb.Database, record *oddb.Record) {
-	subscriptions := db.GetMatchingSubscription(record)
+	subscriptions := db.GetMatchingSubscriptions(record)
 
 	device := oddb.Device{}
 	for _, subscription := range subscriptions {

@@ -54,7 +54,7 @@ func (db subscriptionDB) Delete(key string) error {
 	return nil
 }
 
-func (db subscriptionDB) GetMatchingSubscription(record *oddb.Record) []oddb.Subscription {
+func (db subscriptionDB) GetMatchingSubscriptions(record *oddb.Record) []oddb.Subscription {
 	subscriptions := []oddb.Subscription{}
 
 	err := db.walk(func(subscription *oddb.Subscription) {

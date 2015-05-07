@@ -348,8 +348,8 @@ func (db fileDatabase) DeleteSubscription(key string) error {
 	return db.subscriDB.Delete(key)
 }
 
-func (db fileDatabase) GetMatchingSubscription(record *oddb.Record) []oddb.Subscription {
-	return db.subscriDB.GetMatchingSubscription(record)
+func (db fileDatabase) GetMatchingSubscriptions(record *oddb.Record) []oddb.Subscription {
+	return db.subscriDB.GetMatchingSubscriptions(record)
 }
 
 func (db fileDatabase) recordPath(id oddb.RecordID) string {
