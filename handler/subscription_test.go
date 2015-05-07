@@ -22,6 +22,7 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 		Convey("smoke test", func() {
 			if err := json.Unmarshal([]byte(`
 {
+	"device_id": "somedeviceid",
 	"Subscriptions": [{
 		"id": "subscription_id",
 		"notification_info": {
@@ -51,8 +52,9 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 			SubscriptionSaveHandler(&payload, &response)
 
 			expectedSubscription := oddb.Subscription{
-				ID:   "subscription_id",
-				Type: "query",
+				ID:       "subscription_id",
+				DeviceID: "somedeviceid",
+				Type:     "query",
 				NotificationInfo: oddb.NotificationInfo{
 					APS: oddb.APSSetting{
 						Alert: oddb.AppleAlert{

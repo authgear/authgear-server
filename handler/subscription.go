@@ -14,7 +14,8 @@ import (
 )
 
 type subscriptionPayload struct {
-	Subscriptions []oddb.Subscription
+	DeviceID      string              `json:"device_id"`
+	Subscriptions []oddb.Subscription `json:"subscriptions"`
 }
 
 type subscriptionItem struct {
@@ -88,6 +89,15 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 	if len(subscriptions) == 0 {
 		response.Err = oderr.NewRequestInvalidErr(errors.New("empty subsciptions"))
 		return
+	}
+
+	if payload.DeviceID == "" {
+		response.Err = oderr.NewRequestInvalidErr(errors.New("empty device_id"))
+		return
+	}
+
+	for i := range subscriptions {
+		subscriptions[i].DeviceID = payload.DeviceID
 	}
 
 	db := rpayload.Database
