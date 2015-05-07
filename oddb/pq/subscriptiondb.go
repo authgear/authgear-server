@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/lib/pq"
 
 	"github.com/oursky/ourd/oddb"
@@ -143,3 +144,46 @@ func (db *database) DeleteSubscription(key string) error {
 }
 
 func (db *database) GetMatchingSubscriptions(record *oddb.Record) (subscriptions []oddb.Subscription) {
+	sql, args, err := psql.Select("id", "device_id", "type", "notification_info", "query").
+		From(db.tableName("_subscription")).
+		Where(`user_id = ? AND query @> ?::jsonb`, db.userID, fmt.Sprintf(`{"record_type":"%s"}`, record.ID.Type)).
+		ToSql()
+
+	if err != nil {
+		panic(err)
+	}
+
+	rows, err := db.Db.Query(sql, args...)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"sql":    sql,
+			"args":   args,
+			"record": record,
+			"userID": db.userID,
+			"err":    err,
+		}).Errorln("failed to select subscriptions")
+
+		return nil
+	}
+
+	var s oddb.Subscription
+	for rows.Next() {
+		err := rows.Scan(&s.ID, &s.DeviceID, &s.Type, (*notificationInfoValue)(&s.NotificationInfo), (*queryValue)(&s.Query))
+		if err != nil {
+			log.WithField("err", err).Errorln("failed to scan a subscription row, skipping...")
+			continue
+		}
+
+		subscriptions = append(subscriptions, s)
+	}
+
+	if rows.Err() != nil {
+		log.WithFields(log.Fields{
+			"record": record,
+			"userID": db.userID,
+			"err":    rows.Err(),
+		}).Errorln("failed to get matching subscriptions")
+	}
+
+	return subscriptions
+}
