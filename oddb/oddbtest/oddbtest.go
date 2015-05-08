@@ -161,7 +161,7 @@ func (db *MapDB) Extend(recordType string, schema oddb.RecordSchema) error {
 func (db *MapDB) GetSubscription(key string, subscription *oddb.Subscription) error {
 	s, ok := db.SubscriptionMap[key]
 	if !ok {
-		return oddb.ErrRecordNotFound
+		return oddb.ErrSubscriptionNotFound
 	}
 	*subscription = s
 	return nil
@@ -177,7 +177,7 @@ func (db *MapDB) SaveSubscription(subscription *oddb.Subscription) error {
 func (db *MapDB) DeleteSubscription(key string) error {
 	_, ok := db.SubscriptionMap[key]
 	if !ok {
-		return oddb.ErrRecordNotFound
+		return oddb.ErrSubscriptionNotFound
 	}
 	delete(db.SubscriptionMap, key)
 	return nil
