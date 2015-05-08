@@ -9,6 +9,74 @@ import (
 	"github.com/oursky/ourd/router"
 )
 
+func newFetchSubscription(id string) oddb.Subscription {
+	return oddb.Subscription{
+		ID:       id,
+		Type:     "query",
+		DeviceID: "deviceid",
+		Query: oddb.Query{
+			Type: "recordtype",
+		},
+	}
+}
+
+func TestSubscriptionFetchHandler(t *testing.T) {
+	Convey("SubscriptionFetchHandler", t, func() {
+		sub0 := newFetchSubscription("0")
+		sub1 := newFetchSubscription("1")
+
+		db := oddbtest.NewMapDB()
+		db.SaveSubscription(&sub0)
+		db.SaveSubscription(&sub1)
+
+		r := newSingleRouteRouter(SubscriptionFetchHandler, func(p *router.Payload) {
+			p.Database = db
+		})
+
+		Convey("fetchs multiple subscriptions", func() {
+			resp := r.POST(`{"subscription_ids": ["0", "1"]}`)
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
+	"result": [
+		{
+			"id": "0",
+			"type": "query",
+			"device_id": "deviceid",
+			"query": {"record_type": "recordtype"}
+		},
+		{
+			"id": "1",
+			"type": "query",
+			"device_id": "deviceid",
+			"query": {"record_type": "recordtype"}
+		}
+	]
+}`)
+		})
+
+		Convey("fetchs not existed subscriptions", func() {
+			resp := r.POST(`{"subscription_ids": ["notexistid"]}`)
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
+	"result": [{
+		"_id": "notexistid",
+		"_type": "error",
+		"message": "cannot find subscription \"notexistid\"",
+		"type": "ResourceNotFound",
+		"code": 101,
+		"info": {"id": "notexistid"}
+	}]
+}`)
+		})
+
+		Convey("fetchs without subscription_ids", func() {
+			resp := r.POST(`{}`)
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{"result": []}`)
+		})
+	})
+}
+
 func TestSubscriptionSaveHandler(t *testing.T) {
 	Convey("SubscriptionSaveHandler", t, func() {
 		db := oddbtest.NewMapDB()
