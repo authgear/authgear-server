@@ -84,7 +84,7 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 			p.Database = db
 		})
 
-		Convey("smoke test", func() {
+		Convey("saves one subscription", func() {
 			resp := r.POST(`
 {
 	"device_id": "somedeviceid",
@@ -112,13 +112,8 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 }`)
 
 			So(resp.Code, ShouldEqual, 200)
-			// FIXME(limouren): The following JSON output is wrong by duplicating
-			// subscription id in "_id" and "id"
-			So(resp.Body.Bytes(), shouldEqualJSON, `
-{
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
 	"result": [{
-		"_id": "subscription_id",
-		"_type": "subscription",
 		"id": "subscription_id",
 		"device_id": "somedeviceid",
 		"notification_info": {
@@ -166,6 +161,88 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 					Type: "RECORD_TYPE",
 				},
 			})
+		})
+
+		Convey("saves two subscriptions", func() {
+			resp := r.POST(`
+{
+	"device_id": "somedeviceid",
+	"subscriptions": [{
+		"id": "sub0",
+		"type": "query",
+		"query": {
+			"record_type": "recordtype0"
+		}
+	}, {
+		"id": "sub1",
+		"type": "query",
+		"query": {
+			"record_type": "recordtype1"
+		}
+	}]
+}`)
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
+	"result": [{
+		"id": "sub0",
+		"device_id": "somedeviceid",
+		"type": "query",
+		"query": {
+			"record_type": "recordtype0"
+		}
+	}, {
+		"id": "sub1",
+		"device_id": "somedeviceid",
+		"type": "query",
+		"query": {
+			"record_type": "recordtype1"
+		}
+	}]
+}`)
+
+			var sub0, sub1 oddb.Subscription
+			So(db.GetSubscription("sub0", &sub0), ShouldBeNil)
+			So(db.GetSubscription("sub1", &sub1), ShouldBeNil)
+
+			So(sub0, ShouldResemble, oddb.Subscription{
+				ID:       "sub0",
+				DeviceID: "somedeviceid",
+				Type:     "query",
+				Query: oddb.Query{
+					Type: "recordtype0",
+				},
+			})
+			So(sub1, ShouldResemble, oddb.Subscription{
+				ID:       "sub1",
+				DeviceID: "somedeviceid",
+				Type:     "query",
+				Query: oddb.Query{
+					Type: "recordtype1",
+				},
+			})
+		})
+
+		Convey("errors without device_id", func() {
+			resp := r.POST(`
+{
+	"subscriptions": [{
+		"id": "subscription_id",
+		"type": "query",
+		"query": {
+			"record_type": "RECORD_TYPE"
+		}
+	}]
+}`)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{"error":{"code":101,"message":"empty device_id","type":"RequestInvalid"}}`)
+		})
+
+		Convey("errors without subscriptions", func() {
+			resp := r.POST(`{"device_id":"somedeviceid"}`)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{"error":{"code":101,"message":"empty subscriptions","type":"RequestInvalid"}}`)
 		})
 	})
 }
