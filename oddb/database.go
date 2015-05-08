@@ -71,10 +71,11 @@ type Database interface {
 	// existing schem in the Database
 	Extend(recordType string, schema RecordSchema) error
 
-	GetMatchingSubscriptions(record *Record) []Subscription
 	GetSubscription(key string, subscription *Subscription) error
 	SaveSubscription(subscription *Subscription) error
 	DeleteSubscription(key string) error
+	GetSubscriptionsByDeviceID(deviceID string) []Subscription
+	GetMatchingSubscriptions(record *Record) []Subscription
 }
 
 // Rows implements a scanner-like interface for easy iteration on a

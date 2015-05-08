@@ -352,6 +352,10 @@ func (db fileDatabase) GetMatchingSubscriptions(record *oddb.Record) []oddb.Subs
 	return db.subscriDB.GetMatchingSubscriptions(record)
 }
 
+func (db fileDatabase) GetSubscriptionsByDeviceID(deviceID string) []oddb.Subscription {
+	return db.subscriDB.GetSubscriptionsByDeviceID(deviceID)
+}
+
 func (db fileDatabase) recordPath(id oddb.RecordID) string {
 	return filepath.Join(db.Dir, id.Type, id.Key)
 }
