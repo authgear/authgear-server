@@ -4,7 +4,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
-	"encoding/json"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/oddbtest"
 	"github.com/oursky/ourd/router"
@@ -13,17 +12,15 @@ import (
 func TestSubscriptionSaveHandler(t *testing.T) {
 	Convey("SubscriptionSaveHandler", t, func() {
 		db := oddbtest.NewMapDB()
-		payload := router.Payload{
-			Data:     map[string]interface{}{},
-			Database: db,
-		}
-		response := router.Response{}
+		r := newSingleRouteRouter(SubscriptionSaveHandler, func(p *router.Payload) {
+			p.Database = db
+		})
 
 		Convey("smoke test", func() {
-			if err := json.Unmarshal([]byte(`
+			resp := r.POST(`
 {
 	"device_id": "somedeviceid",
-	"Subscriptions": [{
+	"subscriptions": [{
 		"id": "subscription_id",
 		"notification_info": {
 			"aps": {
@@ -41,23 +38,51 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 		},
 		"type": "query",
 		"query": {
-			"record_type": "RECORD_TYPE",
-			"predicate": {}
+			"record_type": "RECORD_TYPE"
 		}
 	}]
-}
-			`), &payload.Data); err != nil {
-				panic(err)
-			}
-			SubscriptionSaveHandler(&payload, &response)
+}`)
 
-			expectedSubscription := oddb.Subscription{
+			So(resp.Code, ShouldEqual, 200)
+			// FIXME(limouren): The following JSON output is wrong by duplicating
+			// subscription id in "_id" and "id"
+			So(resp.Body.Bytes(), shouldEqualJSON, `
+{
+	"result": [{
+		"_id": "subscription_id",
+		"_type": "subscription",
+		"id": "subscription_id",
+		"device_id": "somedeviceid",
+		"notification_info": {
+			"aps": {
+				"alert": {
+					"body": "BODY_TEXT",
+					"action-loc-key": "ACTION_LOC_KEY",
+					"loc-key": "LOC_KEY",
+					"loc-args": ["LOC_ARGS"],
+					"launch-image": "LAUNCH_IMAGE"
+				},
+				"sound": "SOUND_NAME",
+				"should-badge": true,
+				"should-send-content-available": true
+			}
+		},
+		"type": "query",
+		"query": {
+			"record_type": "RECORD_TYPE"
+		}
+	}]
+}`)
+
+			actualSubscription := oddb.Subscription{}
+			So(db.GetSubscription("subscription_id", &actualSubscription), ShouldBeNil)
+			So(actualSubscription, ShouldResemble, oddb.Subscription{
 				ID:       "subscription_id",
 				DeviceID: "somedeviceid",
 				Type:     "query",
-				NotificationInfo: oddb.NotificationInfo{
+				NotificationInfo: &oddb.NotificationInfo{
 					APS: oddb.APSSetting{
-						Alert: oddb.AppleAlert{
+						Alert: &oddb.AppleAlert{
 							Body:                  "BODY_TEXT",
 							LocalizationKey:       "LOC_KEY",
 							LocalizationArgs:      []string{"LOC_ARGS"},
@@ -72,9 +97,6 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 				Query: oddb.Query{
 					Type: "RECORD_TYPE",
 				},
-			}
-			So(response.Result, ShouldResemble, []interface{}{
-				newSubscriptionResponseItem(&expectedSubscription),
 			})
 		})
 	})
