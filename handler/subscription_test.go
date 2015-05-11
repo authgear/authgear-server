@@ -77,6 +77,69 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 	})
 }
 
+type fetchallDB struct {
+	subscriptions []oddb.Subscription
+	lastDeviceID  string
+	oddb.Database
+}
+
+func newFetchallDB(subscriptions ...oddb.Subscription) *fetchallDB {
+	return &fetchallDB{subscriptions: subscriptions}
+}
+
+func (db *fetchallDB) GetSubscriptionsByDeviceID(deviceID string) []oddb.Subscription {
+	db.lastDeviceID = deviceID
+	return db.subscriptions
+}
+
+func TestSubscriptionFetchAllHandler(t *testing.T) {
+	Convey("SubscriptionFetchAllHandler", t, func() {
+		subscriptions := []oddb.Subscription{
+			newFetchSubscription("0"),
+			newFetchSubscription("1"),
+			newFetchSubscription("2"),
+		}
+		db := newFetchallDB(subscriptions...)
+
+		r := newSingleRouteRouter(SubscriptionFetchAllHandler, func(p *router.Payload) {
+			p.Database = db
+		})
+
+		Convey("fetches all subscriptions", func() {
+			resp := r.POST(`{
+	"device_id": "deviceid"
+}`)
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
+	"result": [{
+		"id": "0",
+		"type": "query",
+		"device_id": "deviceid",
+		"query": {"record_type": "recordtype"}
+	}, {
+		"id": "1",
+		"type": "query",
+		"device_id": "deviceid",
+		"query": {"record_type": "recordtype"}
+	}, {
+		"id": "2",
+		"type": "query",
+		"device_id": "deviceid",
+		"query": {"record_type": "recordtype"}
+	}]
+}`)
+
+			So(db.lastDeviceID, ShouldEqual, "deviceid")
+		})
+
+		Convey("errors with empty device id", func() {
+			resp := r.POST(`{}`)
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{"error": {"code": 101, "message": "empty device id", "type": "RequestInvalid"}}`)
+		})
+	})
+}
+
 func TestSubscriptionSaveHandler(t *testing.T) {
 	Convey("SubscriptionSaveHandler", t, func() {
 		db := oddbtest.NewMapDB()

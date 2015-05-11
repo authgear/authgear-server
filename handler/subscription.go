@@ -58,7 +58,7 @@ func (e *errorWithID) MarshalJSON() ([]byte, error) {
 	}{e.id, "error", message, t, code, info})
 }
 
-// SubscriptionFetchHandler fetchs subscriptions from the specified Database.
+// SubscriptionFetchHandler fetches subscriptions from the specified Database.
 //
 // Example curl:
 //	curl -X POST -H "Content-Type: application/json" \
@@ -107,6 +107,41 @@ func SubscriptionFetchHandler(rpayload *router.Payload, response *router.Respons
 	}
 
 	response.Result = results
+}
+
+// SubscriptionFetchAllHandler fetches all subscriptions of a device
+//
+//	curl -X POST -H "Content-Type: application/json" \
+//	  -d @- http://localhost:3000/ <<EOF
+//	{
+//	    "action": "subscription:fetch_all",
+//	    "access_token": "ACCESS_TOKEN",
+//	    "database_id": "_private",
+//	    "device_id": "DEVICE_ID",
+//	}
+//	EOF
+func SubscriptionFetchAllHandler(rpayload *router.Payload, response *router.Response) {
+	var payload struct {
+		DeviceID string `json:"device_id"`
+	}
+	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:  &payload,
+		TagName: "json",
+	})
+	if err != nil {
+		panic(err)
+	}
+	if err := mapDecoder.Decode(rpayload.Data); err != nil {
+		response.Err = oderr.NewRequestInvalidErr(err)
+		return
+	}
+
+	if payload.DeviceID == "" {
+		response.Err = oderr.NewRequestInvalidErr(errors.New("empty device id"))
+		return
+	}
+
+	response.Result = rpayload.Database.GetSubscriptionsByDeviceID(payload.DeviceID)
 }
 
 // SubscriptionSaveHandler saves one or more subscriptions associate with
