@@ -246,3 +246,50 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 		})
 	})
 }
+
+func TestSubscriptionDeleteHandler(t *testing.T) {
+	Convey("SubscriptionFetchHandler", t, func() {
+		sub0 := newFetchSubscription("0")
+		sub1 := newFetchSubscription("1")
+
+		db := oddbtest.NewMapDB()
+		db.SaveSubscription(&sub0)
+		db.SaveSubscription(&sub1)
+
+		r := newSingleRouteRouter(SubscriptionDeleteHandler, func(p *router.Payload) {
+			p.Database = db
+		})
+
+		Convey("deletes multiple subscriptions", func() {
+			resp := r.POST(`{"subscription_ids": ["0", "1"]}`)
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
+	"result": [
+		{"id": "0"},
+		{"id": "1"}
+	]
+}`)
+		})
+
+		Convey("deletes not existed subscriptions", func() {
+			resp := r.POST(`{"subscription_ids": ["notexistid"]}`)
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
+	"result": [{
+		"_id": "notexistid",
+		"_type": "error",
+		"message": "cannot find subscription \"notexistid\"",
+		"type": "ResourceNotFound",
+		"code": 101,
+		"info": {"id": "notexistid"}
+	}]
+}`)
+		})
+
+		Convey("deletes without subscription_ids", func() {
+			resp := r.POST(`{}`)
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{"result": []}`)
+		})
+	})
+}

@@ -192,3 +192,53 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 
 	response.Result = results
 }
+
+// SubscriptionDeleteHandler deletes subscriptions from the specified Database.
+//
+// Example curl:
+//	curl -X POST -H "Content-Type: application/json" \
+//	  -d @- http://localhost:3000/ <<EOF
+//	{
+//	    "action": "subscription:delete",
+//	    "access_token": "ACCESS_TOKEN",
+//	    "database_id": "_private",
+//	    "subscription_ids": ["SUBSCRIPTION_ID"]
+//	}
+//	EOF
+func SubscriptionDeleteHandler(rpayload *router.Payload, response *router.Response) {
+	payload := subscriptionIDsPayload{}
+	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:  &payload,
+		TagName: "json",
+	})
+	if err != nil {
+		panic(err)
+	}
+	if err := mapDecoder.Decode(rpayload.Data); err != nil {
+		response.Err = oderr.NewRequestInvalidErr(err)
+		return
+	}
+
+	if len(payload.SubscriptionIDs) == 0 {
+		response.Result = []interface{}{}
+		return
+	}
+
+	db := rpayload.Database
+	results := make([]interface{}, 0, len(payload.SubscriptionIDs))
+	for _, id := range payload.SubscriptionIDs {
+		var item interface{}
+
+		if err := db.DeleteSubscription(id); err != nil {
+			item = newErrorWithID(id, err)
+		} else {
+			item = struct {
+				ID string `json:"id"`
+			}{id}
+		}
+
+		results = append(results, item)
+	}
+
+	response.Result = results
+}
