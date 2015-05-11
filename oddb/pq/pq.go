@@ -275,14 +275,6 @@ type database struct {
 func (db *database) Conn() oddb.Conn { return db.c }
 func (db *database) ID() string      { return "" }
 
-func (db *database) GetMatchingSubscription(record *oddb.Record) []oddb.Subscription {
-	return nil
-}
-
-func (db *database) GetSubscription(key string, subscription *oddb.Subscription) error { return nil }
-func (db *database) SaveSubscription(subscription *oddb.Subscription) error            { return nil }
-func (db *database) DeleteSubscription(key string) error                               { return nil }
-
 // schemaName is a convenient method to access parent conn's schemaName
 func (db *database) schemaName() string {
 	return db.c.schemaName()
@@ -357,12 +349,24 @@ CREATE TABLE IF NOT EXISTS %v._user (
 	auth json
 );
 `
-	const CreateDeviceTableFmt = `CREATE TABLE IF NOT EXISTS %[1]v._device (
+	const CreateDeviceTableFmt = `
+CREATE TABLE IF NOT EXISTS %[1]v._device (
 	id text PRIMARY KEY,
+	user_id text REFERENCES %[1]v._user (id),
 	type text NOT NULL,
 	token text NOT NULL,
-	user_id text REFERENCES %[1]v._user (id) NOT NULL,
-	UNIQUE (type, token, user_id)
+	UNIQUE (user_id, type, token)
+);
+`
+	const CreateSubscriptionTableFmt = `
+CREATE TABLE IF NOT EXISTS %[1]v._subscription (
+	id text NOT NULL,
+	user_id text NOT NULL,
+	device_id text REFERENCES %[1]v._device (id) NOT NULL,
+	type text NOT NULL,
+	notification_info jsonb,
+	query jsonb,
+	PRIMARY KEY(user_id, id)
 );
 `
 
@@ -381,6 +385,11 @@ CREATE TABLE IF NOT EXISTS %v._user (
 	createDeviceTableStmt := fmt.Sprintf(CreateDeviceTableFmt, schemaName)
 	if _, err := db.Exec(createDeviceTableStmt); err != nil {
 		return fmt.Errorf("failed to create device table: %s", err)
+	}
+
+	createSubscriptionTableSmt := fmt.Sprintf(CreateSubscriptionTableFmt, schemaName)
+	if _, err := db.Exec(createSubscriptionTableSmt); err != nil {
+		return fmt.Errorf("failed to create subscription table: %s", err)
 	}
 
 	return nil
