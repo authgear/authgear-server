@@ -71,7 +71,7 @@ type Database interface {
 	// existing schem in the Database
 	Extend(recordType string, schema RecordSchema) error
 
-	GetMatchingSubscription(record *Record) []Subscription
+	GetMatchingSubscriptions(record *Record) []Subscription
 	GetSubscription(key string, subscription *Subscription) error
 	SaveSubscription(subscription *Subscription) error
 	DeleteSubscription(key string) error

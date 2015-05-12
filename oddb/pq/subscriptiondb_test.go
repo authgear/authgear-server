@@ -1,17 +1,30 @@
 package pq
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
-	"testing"
-
+	"bytes"
 	"github.com/oursky/ourd/oddb"
+	. "github.com/smartystreets/goconvey/convey"
+	"math/rand"
+	"testing"
 )
 
 func addDevice(t *testing.T, c *conn, userID string, deviceID string) {
-	_, err := c.Db.Exec("INSERT INTO app_com_oursky_ourd._device (id, user_id, type, token) VALUES ($1, $2, '', '')", deviceID, userID)
+	_, err := c.Db.Exec("INSERT INTO app_com_oursky_ourd._device (id, user_id, type, token) VALUES ($1, $2, '', $3)", deviceID, userID, randHex(64))
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func randHex(n int) string {
+	const hexStr = "0123456789abcef"
+	buf := bytes.Buffer{}
+	buf.Grow(n)
+
+	for i := 0; i < n; i++ {
+		buf.WriteByte(hexStr[rand.Intn(len(hexStr))])
+	}
+
+	return buf.String()
 }
 
 func TestSubscriptionCRUD(t *testing.T) {
@@ -163,4 +176,51 @@ func TestSubscriptionCRUD(t *testing.T) {
 
 		cleanupDB(t, c)
 	})
+}
+
+func TestMatchingSubscriptions(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		db := c.PublicDB()
+
+		// fixture
+		addUser(t, c, "userid")
+		addDevice(t, c, "userid", "device0")
+		addDevice(t, c, "userid", "device1")
+
+		sub00 := subscriptionForTest("device0", "00", "type0")
+		sub01 := subscriptionForTest("device0", "01", "type0")
+		sub10 := subscriptionForTest("device1", "10", "type0")
+		sub11 := subscriptionForTest("device1", "11", "type1")
+
+		So(db.SaveSubscription(&sub00), ShouldBeNil)
+		So(db.SaveSubscription(&sub01), ShouldBeNil)
+		So(db.SaveSubscription(&sub10), ShouldBeNil)
+		So(db.SaveSubscription(&sub11), ShouldBeNil)
+
+		Convey("fetch matching subscription for a record", func() {
+			record := oddb.Record{ID: oddb.NewRecordID("type0", "recordid")}
+			subscriptions := db.GetMatchingSubscriptions(&record)
+			So(subscriptions, ShouldResemble, []oddb.Subscription{sub00, sub01, sub10})
+		})
+
+		Convey("fetch no subscription for a not matching record", func() {
+			record := oddb.Record{ID: oddb.NewRecordID("notexisttype", "recordid")}
+			subscriptions := db.GetMatchingSubscriptions(&record)
+			So(subscriptions, ShouldBeEmpty)
+		})
+
+		cleanupDB(t, c)
+	})
+}
+
+func subscriptionForTest(deviceID, id, queryRecordType string) oddb.Subscription {
+	return oddb.Subscription{
+		ID:       id,
+		Type:     "query",
+		DeviceID: deviceID,
+		Query: oddb.Query{
+			Type: queryRecordType,
+		},
+	}
 }
