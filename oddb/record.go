@@ -104,11 +104,15 @@ const (
 	TypeNumber
 	TypeBoolean
 	TypeJSON
-	TypeReference // not implemented
-	TypeLocation  // not implemented
+	TypeReference
+	TypeLocation // not implemented
 	TypeDateTime
 	TypeData // not implemented
 )
 
-// RecordSchema is a mapping of record key to its value's data type
-type RecordSchema map[string]DataType
+type Schema struct {
+	Type DataType
+}
+
+// RecordSchema is a mapping of record key to its value's data type or reference
+type RecordSchema map[string]Schema

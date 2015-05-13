@@ -206,13 +206,13 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 
 	values := make([]interface{}, 0, len(rs.columns))
 	for _, column := range rs.columns {
-		dataType, ok := rs.typemap[column]
+		schema, ok := rs.typemap[column]
 		if !ok {
 			return fmt.Errorf("received unknown column = %s", column)
 		}
-		switch dataType {
+		switch schema.Type {
 		default:
-			return fmt.Errorf("received unknown data type = %v for column = %s", dataType, column)
+			return fmt.Errorf("received unknown data type = %v for column = %s", schema.Type, column)
 		case oddb.TypeNumber:
 			var number sql.NullFloat64
 			values = append(values, &number)
@@ -333,42 +333,42 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 			return nil, err
 		}
 
-		var dataType oddb.DataType
+		schema := oddb.Schema{}
 		switch pqType {
 		default:
 			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
 		case TypeString:
-			dataType = oddb.TypeString
+			schema.Type = oddb.TypeString
 		case TypeNumber:
-			dataType = oddb.TypeNumber
+			schema.Type = oddb.TypeNumber
 		case TypeTimestamp:
-			dataType = oddb.TypeDateTime
+			schema.Type = oddb.TypeDateTime
 		}
 
-		typemap[columnName] = dataType
+		typemap[columnName] = schema
 	}
 
 	return typemap, nil
 }
 
-func (db *database) Extend(recordType string, schema oddb.RecordSchema) error {
-	remoteschema, err := db.remoteColumnTypes(recordType)
+func (db *database) Extend(recordType string, recordSchema oddb.RecordSchema) error {
+	remoteRecordSchema, err := db.remoteColumnTypes(recordType)
 	if err != nil {
 		return err
 	}
 
-	if len(remoteschema) == 0 {
-		if err := db.createTable(recordType, schema); err != nil {
+	if len(remoteRecordSchema) == 0 {
+		if err := db.createTable(recordType, recordSchema); err != nil {
 			return fmt.Errorf("failed to create table: %s", err)
 		}
 	} else {
 		updatingSchema := oddb.RecordSchema{}
-		for key, dataType := range schema {
-			remoteDataType, ok := remoteschema[key]
+		for key, schema := range recordSchema {
+			remoteSchema, ok := remoteRecordSchema[key]
 			if !ok {
-				updatingSchema[key] = dataType
-			} else if remoteDataType != dataType {
-				return fmt.Errorf("conflicting dataType %s => %s", remoteDataType, dataType)
+				updatingSchema[key] = oddb.Schema{schema.Type}
+			} else if remoteSchema.Type != schema.Type {
+				return fmt.Errorf("conflicting schema %s => %s", remoteSchema, schema)
 			}
 
 			// same data type, do nothing
@@ -408,18 +408,18 @@ func (db *database) createTable(recordType string, schema oddb.RecordSchema) (er
 	return err
 }
 
-func createTableStmt(tableName string, schema oddb.RecordSchema) string {
+func createTableStmt(tableName string, recordSchema oddb.RecordSchema) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("CREATE TABLE "))
 	buf.WriteString(tableName)
 	buf.Write([]byte("(_id text, _user_id text,"))
 
-	for recordType, dataType := range schema {
+	for recordType, schema := range recordSchema {
 		buf.WriteByte('"')
 		buf.WriteString(recordType)
 		buf.WriteByte('"')
 		buf.WriteByte(' ')
-		buf.WriteString(pqDataType(dataType))
+		buf.WriteString(pqDataType(schema.Type))
 		buf.WriteByte(',')
 	}
 
@@ -428,18 +428,18 @@ func createTableStmt(tableName string, schema oddb.RecordSchema) string {
 	return buf.String()
 }
 
-func addColumnStmt(tableName string, schema oddb.RecordSchema) string {
+func addColumnStmt(tableName string, recordSchema oddb.RecordSchema) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("ALTER TABLE "))
 	buf.WriteString(tableName)
 	buf.WriteByte(' ')
-	for recordType, dataType := range schema {
+	for recordType, schema := range recordSchema {
 		buf.Write([]byte("ADD "))
 		buf.WriteByte('"')
 		buf.WriteString(recordType)
 		buf.WriteByte('"')
 		buf.WriteByte(' ')
-		buf.WriteString(pqDataType(dataType))
+		buf.WriteString(pqDataType(schema.Type))
 		buf.WriteByte(',')
 	}
 
