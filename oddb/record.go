@@ -41,6 +41,20 @@ func (id *RecordID) UnmarshalText(data []byte) error {
 	return nil
 }
 
+type Reference struct {
+	ID RecordID
+}
+
+func NewReference(recordType string, id string) Reference {
+	return Reference{
+		NewRecordID(recordType, id),
+	}
+}
+
+func (reference *Reference) Type() string {
+	return reference.ID.Type
+}
+
 // A Data represents a key-value object used for storing ODRecord.
 type Data map[string]interface{}
 
@@ -111,7 +125,8 @@ const (
 )
 
 type Schema struct {
-	Type DataType
+	Type          DataType
+	ReferenceType string
 }
 
 // RecordSchema is a mapping of record key to its value's data type or reference

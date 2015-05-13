@@ -307,6 +307,22 @@ func (db *database) selectQuery(recordType string, typemap oddb.RecordSchema) sq
 	return q
 }
 
+// SELECT column_name, data_type FROM information_schema.columns
+// WHERE table_schema = 'app__' AND table_name = 'note';
+// Example for fk
+// SELECT
+//     tc.table_name, kcu.column_name,
+//     ccu.table_name AS foreign_table_name,
+//     ccu.column_name AS foreign_column_name
+// FROM
+//     information_schema.table_constraints AS tc
+//     JOIN information_schema.key_column_usage
+//         AS kcu ON tc.constraint_name = kcu.constraint_name
+//     JOIN information_schema.constraint_column_usage
+//         AS ccu ON ccu.constraint_name = tc.constraint_name
+// WHERE constraint_type = 'FOREIGN KEY'
+// AND tc.table_schema = 'app__'
+// AND tc.table_name = 'note';
 func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, error) {
 	sql, args, err := psql.Select("column_name", "data_type").
 		From("information_schema.columns").
@@ -348,6 +364,36 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 		typemap[columnName] = schema
 	}
 
+	// FOREIGN KEY, assumeing we can only reference _id i.e. "ccu.column_name" = _id
+	sql, args, err = psql.Select("kcu.column_name", "ccu.table_name").
+		From("information_schema.table_constraints AS tc").
+		Join("information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name").
+		Join("information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name").
+		Where("constraint_type = 'FOREIGN KEY' AND tc.table_schema = ? AND tc.table_name = ?", db.schemaName(), recordType).ToSql()
+	if err != nil {
+		panic(err)
+	}
+	log.WithFields(log.Fields{
+		"sql":  sql,
+		"args": args,
+	}).Debugln("Querying columns referencing schema")
+	refs, err := db.Db.Query(sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	var refType, cName string
+	for refs.Next() {
+		if err := refs.Scan(&cName, &refType); err != nil {
+			log.Debugf("err %v", err)
+			return nil, err
+		}
+		typemap[cName] = oddb.Schema{
+			Type:          oddb.TypeReference,
+			ReferenceType: recordType,
+		}
+		log.Debugln(cName)
+		log.Debugln(typemap[cName])
+	}
 	return typemap, nil
 }
 
@@ -358,39 +404,38 @@ func (db *database) Extend(recordType string, recordSchema oddb.RecordSchema) er
 	}
 
 	if len(remoteRecordSchema) == 0 {
-		if err := db.createTable(recordType, recordSchema); err != nil {
+		if err := db.createTable(recordType); err != nil {
 			return fmt.Errorf("failed to create table: %s", err)
 		}
-	} else {
-		updatingSchema := oddb.RecordSchema{}
-		for key, schema := range recordSchema {
-			remoteSchema, ok := remoteRecordSchema[key]
-			if !ok {
-				updatingSchema[key] = oddb.Schema{schema.Type}
-			} else if remoteSchema.Type != schema.Type {
-				return fmt.Errorf("conflicting schema %s => %s", remoteSchema, schema)
-			}
-
-			// same data type, do nothing
+	}
+	updatingSchema := oddb.RecordSchema{}
+	for key, schema := range recordSchema {
+		remoteSchema, ok := remoteRecordSchema[key]
+		if !ok {
+			updatingSchema[key] = schema
+		} else if remoteSchema.Type != schema.Type {
+			return fmt.Errorf("conflicting schema %s => %s", remoteSchema, schema)
 		}
 
-		if len(updatingSchema) > 0 {
-			stmt := addColumnStmt(db.tableName(recordType), updatingSchema)
+		// same data type, do nothing
+	}
 
-			log.WithField("stmt", stmt).Debugln("Adding columns to table")
-			if _, err := db.Db.Exec(stmt); err != nil {
-				return fmt.Errorf("failed to alter table: %s", err)
-			}
+	if len(updatingSchema) > 0 {
+		stmt := db.addColumnStmt(recordType, updatingSchema)
+
+		log.WithField("stmt", stmt).Debugln("Adding columns to table")
+		if _, err := db.Db.Exec(stmt); err != nil {
+			return fmt.Errorf("failed to alter table: %s", err)
 		}
 	}
 
 	return nil
 }
 
-func (db *database) createTable(recordType string, schema oddb.RecordSchema) (err error) {
+func (db *database) createTable(recordType string) (err error) {
 	tablename := db.tableName(recordType)
 
-	stmt := createTableStmt(tablename, schema)
+	stmt := createTableStmt(tablename)
 	log.WithField("stmt", stmt).Debugln("Creating table")
 	_, err = db.Db.Exec(stmt)
 	if err != nil {
@@ -408,39 +453,47 @@ func (db *database) createTable(recordType string, schema oddb.RecordSchema) (er
 	return err
 }
 
-func createTableStmt(tableName string, recordSchema oddb.RecordSchema) string {
+func createTableStmt(tableName string) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("CREATE TABLE "))
 	buf.WriteString(tableName)
 	buf.Write([]byte("(_id text, _user_id text,"))
-
-	for recordType, schema := range recordSchema {
-		buf.WriteByte('"')
-		buf.WriteString(recordType)
-		buf.WriteByte('"')
-		buf.WriteByte(' ')
-		buf.WriteString(pqDataType(schema.Type))
-		buf.WriteByte(',')
-	}
-
 	buf.Write([]byte("PRIMARY KEY(_id, _user_id), UNIQUE (_id));"))
 
 	return buf.String()
 }
 
-func addColumnStmt(tableName string, recordSchema oddb.RecordSchema) string {
+// ALTER TABLE app__.note add collection text;
+// ALTER TABLE app__.note
+// ADD CONSTRAINT fk_note_collection_collection
+// FOREIGN KEY (collection)
+// REFERENCES app__.collection(_id);
+func (db *database) addColumnStmt(recordType string, recordSchema oddb.RecordSchema) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("ALTER TABLE "))
-	buf.WriteString(tableName)
+	buf.WriteString(db.tableName(recordType))
 	buf.WriteByte(' ')
-	for recordType, schema := range recordSchema {
+	for column, schema := range recordSchema {
 		buf.Write([]byte("ADD "))
 		buf.WriteByte('"')
-		buf.WriteString(recordType)
+		buf.WriteString(column)
 		buf.WriteByte('"')
 		buf.WriteByte(' ')
 		buf.WriteString(pqDataType(schema.Type))
 		buf.WriteByte(',')
+		if schema.Type == oddb.TypeReference {
+			buf.WriteString("ADD CONSTRAINT fk_")
+			buf.WriteString(recordType)
+			buf.WriteString("_")
+			buf.WriteString(column)
+			buf.WriteString("_")
+			buf.WriteString(schema.ReferenceType)
+			buf.WriteString(" FOREIGN KEY (")
+			buf.WriteString(column)
+			buf.WriteString(") REFERENCES ")
+			buf.WriteString(db.tableName(schema.ReferenceType))
+			buf.WriteString("(_id),")
+		}
 	}
 
 	// remote the last ','
@@ -453,6 +506,8 @@ func pqDataType(dataType oddb.DataType) string {
 	switch dataType {
 	default:
 		panic(fmt.Sprintf("Unsupported dataType = %s", dataType))
+	case oddb.TypeReference:
+		return TypeString
 	case oddb.TypeString:
 		return TypeString
 	case oddb.TypeNumber:

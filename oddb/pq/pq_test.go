@@ -376,6 +376,31 @@ func TestExtend(t *testing.T) {
 			So(i, ShouldEqual, 1)
 		})
 
+		Convey("creates table with reference", func() {
+			err := db.Extend("collection", oddb.RecordSchema{
+				"name": oddb.Schema{Type: oddb.TypeString},
+			})
+			So(err, ShouldBeNil)
+			err = db.Extend("note", oddb.RecordSchema{
+				"content": oddb.Schema{Type: oddb.TypeString},
+				"collection": oddb.Schema{
+					Type:          oddb.TypeReference,
+					ReferenceType: "collection",
+				},
+			})
+			So(err, ShouldBeNil)
+		})
+		Convey("error if creates table with reference not exist", func() {
+			err := db.Extend("note", oddb.RecordSchema{
+				"content": oddb.Schema{Type: oddb.TypeString},
+				"tag": oddb.Schema{
+					Type:          oddb.TypeReference,
+					ReferenceType: "tag",
+				},
+			})
+			So(err, ShouldNotBeNil)
+		})
+
 		Convey("adds new column if table already exist", func() {
 			err := db.Extend("note", oddb.RecordSchema{
 				"content":   oddb.Schema{Type: oddb.TypeString},
@@ -415,7 +440,7 @@ func TestExtend(t *testing.T) {
 				"createdAt": oddb.Schema{Type: oddb.TypeDateTime},
 				"dirty":     oddb.Schema{Type: oddb.TypeNumber},
 			})
-			So(err.Error(), ShouldEqual, "conflicting schema {TypeString} => {TypeNumber}")
+			So(err.Error(), ShouldEqual, "conflicting schema {TypeString } => {TypeNumber }")
 		})
 
 		Reset(func() {
