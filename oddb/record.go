@@ -2,6 +2,7 @@ package oddb
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -42,7 +43,17 @@ func (id *RecordID) UnmarshalText(data []byte) error {
 }
 
 type Reference struct {
-	ID RecordID
+	ID RecordID `json:"_id"`
+}
+
+func (ref Reference) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type string   `json:"$type"`
+		ID   RecordID `json:"$id"`
+	}{
+		"ref",
+		ref.ID,
+	})
 }
 
 func NewReference(recordType string, id string) Reference {

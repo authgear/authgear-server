@@ -149,8 +149,10 @@ func parseInterface(i interface{}) interface{} {
 		switch kind {
 		case "keypath":
 			panic(fmt.Errorf("unsupported $type of persistence = %s", kind))
-		case "ref", "geo", "blob":
+		case "geo", "blob":
 			panic(fmt.Errorf("unimplemented $type = %s", kind))
+		case "ref":
+			return parseRef(value)
 		case "date":
 			return parseDate(value)
 		default:
@@ -176,6 +178,22 @@ func parseDate(m map[string]interface{}) time.Time {
 	}
 
 	return dt.In(time.UTC)
+}
+
+func parseRef(m map[string]interface{}) oddb.Reference {
+	idi, ok := m["$id"]
+	if !ok {
+		panic(errors.New("referencing without $id"))
+	}
+	id, ok := idi.(string)
+	if !ok {
+		panic(fmt.Errorf("got reference type($id) = %T, want string", idi))
+	}
+	ss := strings.SplitN(id, "/", 2)
+	if len(ss) == 1 {
+		panic(fmt.Errorf(`ref: "_id" should be of format '{type}/{id}', got %#v`, id))
+	}
+	return oddb.NewReference(ss[0], ss[1])
 }
 
 type responseItem struct {
@@ -251,6 +269,29 @@ curl -X POST -H "Content-Type: application/json" \
     }]
 }
 EOF
+
+Save with reference
+curl -X POST -H "Content-Type: application/json" \
+  -d @- http://192.168.1.89/ <<EOF
+{
+  "action": "record:save",
+  "database_id": "_private",
+  "access_token": "986bee3b-8dd9-45c2-b40c-8b6ef274cf12",
+  "records": [
+    {
+      "collection": {
+        "$type": "ref",
+        "$id": "collection/10"
+      },
+      "noteOrder": 1,
+      "content": "hi",
+      "_id": "note/71BAE736-E9C5-43CB-ADD1-D8633B80CAFA",
+      "_type": "record"
+    }
+  ]
+}
+EOF
+
 */
 func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	db := payload.Database
@@ -274,6 +315,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if err := extendRecordSchema(db, items); err != nil {
+		log.Debugln(err)
 		response.Err = oderr.ErrDatabaseSchemaMigrationFailed
 		return
 	}
@@ -470,6 +512,10 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 					oderr.ErrRecordNotFound,
 				)
 			} else {
+				log.WithFields(log.Fields{
+					"recordID": recordID,
+					"err":      err,
+				}).Errorln("Failed to fetch record")
 				results[i] = newResponseItemErr(
 					recordID.String(),
 					oderr.NewResourceFetchFailureErr("record", recordID.String()),

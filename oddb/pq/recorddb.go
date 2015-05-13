@@ -3,6 +3,7 @@ package pq
 import (
 	"bytes"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"io"
@@ -28,6 +29,12 @@ const (
 	TypeJSON      = "jsonb"
 	TypeTimestamp = "timestamp without time zone"
 )
+
+type referenceValue oddb.Reference
+
+func (ref referenceValue) Value() (driver.Value, error) {
+	return ref.ID.Key, nil
+}
 
 func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
 	typemap, err := db.remoteColumnTypes(id.Type)
@@ -68,7 +75,7 @@ func (db *database) Save(record *oddb.Record) error {
 	sql, args := upsertQuery(db.tableName(record.ID.Type), map[string]interface{}{
 		"_id":      record.ID.Key,
 		"_user_id": db.userID,
-	}, record.Data)
+	}, convert(record.Data))
 
 	_, err := db.Db.Exec(sql, args...)
 	if err != nil {
@@ -83,6 +90,18 @@ func (db *database) Save(record *oddb.Record) error {
 
 	record.UserID = db.userID
 	return nil
+}
+
+func convert(r map[string]interface{}) map[string]interface{} {
+	m := map[string]interface{}{}
+	for key, value := range r {
+		if ref, ok := value.(oddb.Reference); ok {
+			m[key] = referenceValue(ref)
+		} else {
+			m[key] = value
+		}
+	}
+	return m
 }
 
 func (db *database) Delete(id oddb.RecordID) error {
@@ -216,7 +235,7 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case oddb.TypeNumber:
 			var number sql.NullFloat64
 			values = append(values, &number)
-		case oddb.TypeString:
+		case oddb.TypeString, oddb.TypeReference:
 			var str sql.NullString
 			values = append(values, &str)
 		case oddb.TypeDateTime:
@@ -247,7 +266,12 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 			}
 		case *sql.NullString:
 			if svalue.Valid {
-				record.Set(column, svalue.String)
+				schema := rs.typemap[column]
+				if schema.Type == oddb.TypeReference {
+					record.Set(column, oddb.NewReference(schema.ReferenceType, svalue.String))
+				} else {
+					record.Set(column, svalue.String)
+				}
 			}
 		case *pq.NullTime:
 			if svalue.Valid {
@@ -381,16 +405,16 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 	if err != nil {
 		return nil, err
 	}
-	var refType, cName string
+	var cName string
 	for refs.Next() {
-		if err := refs.Scan(&cName, &refType); err != nil {
+		s := oddb.Schema{
+			Type: oddb.TypeReference,
+		}
+		if err := refs.Scan(&cName, &s.ReferenceType); err != nil {
 			log.Debugf("err %v", err)
 			return nil, err
 		}
-		typemap[cName] = oddb.Schema{
-			Type:          oddb.TypeReference,
-			ReferenceType: recordType,
-		}
+		typemap[cName] = s
 		log.Debugln(cName)
 		log.Debugln(typemap[cName])
 	}
