@@ -423,7 +423,7 @@ func createTableStmt(tableName string, schema oddb.RecordSchema) string {
 		buf.WriteByte(',')
 	}
 
-	buf.Write([]byte("PRIMARY KEY(_id, _user_id));"))
+	buf.Write([]byte("PRIMARY KEY(_id, _user_id), UNIQUE (_id));"))
 
 	return buf.String()
 }

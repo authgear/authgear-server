@@ -520,6 +520,16 @@ func TestSave(t *testing.T) {
 			So(content, ShouldEqual, "more content")
 		})
 
+		Convey("error if saving with recordid already taken by other user", func() {
+			ownerDB := c.PrivateDB("ownerid")
+			err := ownerDB.Save(&record)
+			So(err, ShouldBeNil)
+			otherDB := c.PrivateDB("otheruserid")
+			err = otherDB.Save(&record)
+			// FIXME: Wrap me with oddb.ErrXXX
+			So(err, ShouldNotBeNil)
+		})
+
 		Convey("ignore Record.UserID when saving", func() {
 			record.UserID = "someuserid"
 			err := db.Save(&record)
@@ -592,21 +602,12 @@ func TestDelete(t *testing.T) {
 			So(err, ShouldEqual, oddb.ErrRecordNotFound)
 		})
 
-		Convey("deletes only record of the current user", func() {
+		Convey("return ErrRecordNotFound when deleting other user record", func() {
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
-
 			otherDB := c.PrivateDB("otheruserid")
-			err = otherDB.Save(&record)
-			So(err, ShouldBeNil)
-
-			err = db.Delete(oddb.NewRecordID("note", "someid"))
-			So(err, ShouldBeNil)
-
-			count := 0
-			err = c.Db.Get(&count, "SELECT COUNT(*) FROM app_com_oursky_ourd.note WHERE _id = 'someid' AND _user_id = 'otheruserid'")
-			So(err, ShouldBeNil)
-			So(count, ShouldEqual, 1)
+			err = otherDB.Delete(oddb.NewRecordID("note", "someid"))
+			So(err, ShouldEqual, oddb.ErrRecordNotFound)
 		})
 
 		cleanupDB(t, c)
