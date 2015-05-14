@@ -71,11 +71,14 @@ func (db *database) Save(record *oddb.Record) error {
 	if record.ID.Type == "" {
 		return fmt.Errorf("db.save %s: got empty record type", record.ID.Key)
 	}
+	if record.OwnerID == "" {
+		return fmt.Errorf("db.save %s: got empty OwnerID", record.ID.Key)
+	}
 
 	sql, args := upsertQuery(db.tableName(record.ID.Type), map[string]interface{}{
 		"_id":          record.ID.Key,
 		"_database_id": db.userID,
-	}, convert(record.Data), []string{})
+	}, convert(record), []string{"_owner_id"})
 
 	_, err := db.Db.Exec(sql, args...)
 	if err != nil {
@@ -92,15 +95,16 @@ func (db *database) Save(record *oddb.Record) error {
 	return nil
 }
 
-func convert(r map[string]interface{}) map[string]interface{} {
+func convert(r *oddb.Record) map[string]interface{} {
 	m := map[string]interface{}{}
-	for key, value := range r {
+	for key, value := range r.Data {
 		if ref, ok := value.(oddb.Reference); ok {
 			m[key] = referenceValue(ref)
 		} else {
 			m[key] = value
 		}
 	}
+	m["_owner_id"] = r.OwnerID
 	return m
 }
 
@@ -481,8 +485,8 @@ func createTableStmt(tableName string) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("CREATE TABLE "))
 	buf.WriteString(tableName)
-	buf.Write([]byte("(_id text, _database_id text,"))
-	buf.Write([]byte("PRIMARY KEY(_id, _database_id), UNIQUE (_id));"))
+	buf.Write([]byte("(_id text, _database_id text, _owner_id text,"))
+	buf.Write([]byte("PRIMARY KEY(_id, _database_id, _owner_id), UNIQUE (_id));"))
 
 	return buf.String()
 }

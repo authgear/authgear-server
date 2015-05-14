@@ -74,6 +74,7 @@ type Record struct {
 	ID         RecordID `json:"_id"`
 	Data       Data     `json:"data"`
 	DatabaseID string   `json:"-"` // empty for public database
+	OwnerID    string   `json:"-"`
 }
 
 // Get returns the value specified by key. If no value is associated
@@ -90,6 +91,8 @@ func (r *Record) Get(key string) interface{} {
 			return r.ID.Key
 		case "_database_id":
 			return r.DatabaseID
+		case "_owner_id":
+			return r.OwnerID
 		default:
 			return nil
 		}
@@ -111,6 +114,8 @@ func (r *Record) Set(key string, i interface{}) {
 			r.ID.Key = i.(string)
 		case "_database_id":
 			r.DatabaseID = i.(string)
+		case "_owner_id":
+			r.OwnerID = i.(string)
 		default:
 			panic(fmt.Sprintf("unknown reserved key: %v", key))
 		}
