@@ -146,3 +146,12 @@ func injectDatabase(payload *router.Payload, response *router.Response) int {
 
 	return http.StatusOK
 }
+
+func requireUserForWrite(payload *router.Payload, response *router.Response) int {
+	if payload.UserInfo == nil {
+		response.Err = oderr.ErrWriteDenied
+		return http.StatusUnauthorized
+	}
+
+	return http.StatusOK
+}

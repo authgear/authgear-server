@@ -153,17 +153,25 @@ func main() {
 	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
 	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
 
-	recordPreprocessors := []router.Processor{
+	recordReadPreprocessors := []router.Processor{
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 	}
-	r.Map("record:fetch", handler.RecordFetchHandler, recordPreprocessors...)
-	r.Map("record:query", handler.RecordQueryHandler, recordPreprocessors...)
-	r.Map("record:save", handler.RecordSaveHandler, recordPreprocessors...)
-	r.Map("record:delete", handler.RecordDeleteHandler, recordPreprocessors...)
+	recordWritePreprocessors := []router.Processor{
+		fileTokenStorePreprocessor.Preprocess,
+		authenticator.Preprocess,
+		fileSystemConnPreprocessor.Preprocess,
+		injectUserIfPresent,
+		injectDatabase,
+		requireUserForWrite,
+	}
+	r.Map("record:fetch", handler.RecordFetchHandler, recordReadPreprocessors...)
+	r.Map("record:query", handler.RecordQueryHandler, recordReadPreprocessors...)
+	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
+	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,
@@ -173,10 +181,10 @@ func main() {
 		injectUserIfPresent,
 	)
 
-	// subscription shares the same set of preprocessor as record at the moment
-	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, recordPreprocessors...)
-	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordPreprocessors...)
-	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, recordPreprocessors...)
+	// subscription shares the same set of preprocessor as record read at the moment
+	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, recordReadPreprocessors...)
+	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordReadPreprocessors...)
+	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, recordReadPreprocessors...)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, logMiddleware(r))

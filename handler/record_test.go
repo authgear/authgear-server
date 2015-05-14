@@ -134,13 +134,6 @@ func TestResponseItemMarshalEmpty(t *testing.T) {
 
 }
 
-// recordHandlerParam holds the parameters being passed to a RecordHandler
-type calledHandler bool
-
-func (h *calledHandler) SetCalled(p *recordPayload, r *router.Response, db oddb.Database) {
-	*h = true
-}
-
 // TODO(limouren): refactor TokenStores commonly used in testing to
 // a separate package
 
@@ -269,43 +262,34 @@ func TestRecordSaveHandler(t *testing.T) {
 func TestRecordSaveDataType(t *testing.T) {
 	Convey("RecordSaveHandler", t, func() {
 		db := oddbtest.NewMapDB()
-		response := router.Response{}
+		r := newSingleRouteRouter(RecordSaveHandler, func(p *router.Payload) {
+			p.Database = db
+		})
 
 		Convey("Parses date", func() {
-			expectedRecord := oddb.Record{
+			resp := r.POST(`{
+	"records": [{
+		"_id": "type1/id1",
+		"date_value": {"$type": "date", "$date": "2015-04-10T17:35:20+08:00"}
+	}]
+}`)
+
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
+	"result": [{
+		"_id": "type1/id1",
+		"_type": "record",
+		"date_value": {"$type": "date", "$date": "2015-04-10T09:35:20Z"}
+	}]
+}`)
+
+			record := oddb.Record{}
+			So(db.Get(oddb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
 				ID: oddb.NewRecordID("type1", "id1"),
 				Data: map[string]interface{}{
 					"date_value": time.Date(2015, 4, 10, 9, 35, 20, 0, time.UTC),
 				},
-			}
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"action": "record:save",
-					"records": []interface{}{
-						map[string]interface{}{
-							"_id": "type1/id1",
-							"date_value": map[string]interface{}{
-								"$type": "date",
-								"$date": "2015-04-10T17:35:20+08:00",
-							},
-						},
-					},
-				},
-				Database: db,
-				UserInfo: &oddb.UserInfo{},
-			}
-
-			RecordSaveHandler(&payload, &response)
-
-			So(response.Err, ShouldBeNil)
-			So(response.Result, ShouldResemble, []responseItem{
-				newResponseItem((*transportRecord)(&expectedRecord)),
 			})
-
-			record := oddb.Record{}
-			err := db.Get(oddb.NewRecordID("type1", "id1"), &record)
-			So(err, ShouldBeNil)
-			So(record, ShouldResemble, expectedRecord)
 		})
 	})
 }

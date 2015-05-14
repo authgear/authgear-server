@@ -15,13 +15,6 @@ import (
 	"github.com/oursky/ourd/router"
 )
 
-// recordPayload is the input parameter in RecordHandler
-type recordPayload router.Payload
-
-func (p *recordPayload) IsWriteAllowed() bool {
-	return p.UserInfo == nil
-}
-
 // transportRecord override JSON serialization and deserialization of
 // oddb.Record
 type transportRecord oddb.Record
@@ -31,7 +24,31 @@ func (r transportRecord) MarshalJSON() ([]byte, error) {
 	if r.Data == nil {
 		return []byte("{}"), nil
 	}
-	return json.Marshal(r.Data)
+	return json.Marshal(transportData(r.Data))
+}
+
+type transportData map[string]interface{}
+
+func (data transportData) MarshalJSON() ([]byte, error) {
+	m := map[string]interface{}{}
+	for key, value := range data {
+		switch v := value.(type) {
+		case time.Time:
+			m[key] = transportDate(v)
+		default:
+			m[key] = v
+		}
+	}
+	return json.Marshal(m)
+}
+
+type transportDate time.Time
+
+func (date transportDate) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type string    `json:"$type"`
+		Date time.Time `json:"$date"`
+	}{"date", time.Time(date)})
 }
 
 func (r *transportRecord) UnmarshalJSON(data []byte) error {
@@ -236,11 +253,6 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 func RecordSaveHandler(payload *router.Payload, response *router.Response) {
-	if (*recordPayload)(payload).IsWriteAllowed() {
-		response.Err = oderr.ErrWriteDenied
-		return
-	}
-
 	db := payload.Database
 	recordMaps, ok := payload.Data["records"].([]interface{})
 	if !ok {
@@ -599,11 +611,6 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
-	if (*recordPayload)(payload).IsWriteAllowed() {
-		response.Err = oderr.ErrWriteDenied
-		return
-	}
-
 	db := payload.Database
 
 	interfaces, ok := payload.Data["ids"].([]interface{})

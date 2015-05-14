@@ -2,10 +2,8 @@ package oddb
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 )
 
 // RecordID identifies an unique record in a Database
@@ -94,33 +92,6 @@ func (r *Record) Set(key string, i interface{}) {
 	} else {
 		r.Data[key] = i
 	}
-}
-
-// A Datetime represent an instance in time.
-// Internally it is an alias of time.Time with custom (Un)Marshalling Logic.
-type Datetime time.Time
-
-type transportDatetime struct {
-	Type     string `json:"$type"`
-	Datetime `json:"$date"`
-}
-
-// MarshalJSON implements the json.Marshaler interface.
-func (dt Datetime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(transportDatetime{
-		Type:     "date",
-		Datetime: dt,
-	})
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface.
-func (dt *Datetime) UnmarshalJSON(data []byte) (err error) {
-	tdt := transportDatetime{}
-	if err := json.Unmarshal(data, &tdt); err != nil {
-		return err
-	}
-	*dt = tdt.Datetime
-	return nil
 }
 
 // DataType defines the type of data that can saved into an oddb database
