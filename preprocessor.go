@@ -72,8 +72,14 @@ func (author *userAuthenticator) Preprocess(payload *router.Payload, response *r
 	if tokenString == "" {
 		apiKey := payload.APIKey()
 		if apiKey != author.APIKey {
-			log.Debugf("Invalid APIKEY: %v", apiKey)
-			response.Err = oderr.NewFmt(oderr.CannotVerifyAPIKey, "Cannot verify api key: %v", apiKey)
+			if author.APIKey != "" && apiKey == "" {
+				// if a non-empty api key is set and we received empty
+				// api key and access token, then client request
+				// has no authentication information
+				response.Err = oderr.NewFmt(oderr.AuthenticationInfoIncorrectErr, "Both api key and access token are empty")
+			} else {
+				response.Err = oderr.NewFmt(oderr.CannotVerifyAPIKey, "Cannot verify api key: `%v`", apiKey)
+			}
 			return http.StatusUnauthorized
 		}
 
