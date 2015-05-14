@@ -65,14 +65,14 @@ func TestSubscriptionCRUD(t *testing.T) {
 			So(db.SaveSubscription(&subscription), ShouldBeNil)
 
 			resultSubscription := oddb.Subscription{}
-			err := db.GetSubscription("subscriptionid", &resultSubscription)
+			err := db.GetSubscription("subscriptionid", "deviceid", &resultSubscription)
 			So(err, ShouldBeNil)
 			So(subscription, ShouldResemble, resultSubscription)
 		})
 
 		Convey("returns ErrSubscriptionNotFound while trying to get a non-existing subscription ", func() {
 			resultSubscription := oddb.Subscription{}
-			err := db.GetSubscription("notexistsubscriptionid", &resultSubscription)
+			err := db.GetSubscription("notexistsubscriptionid", "deviceid", &resultSubscription)
 			So(err, ShouldEqual, oddb.ErrSubscriptionNotFound)
 		})
 
@@ -123,6 +123,17 @@ func TestSubscriptionCRUD(t *testing.T) {
 			So(resultQuery, ShouldResemble, query)
 		})
 
+		Convey("save subscription with the same name in the same database with dfference device id", func() {
+			addDevice(t, c, "userid", "device0")
+			addDevice(t, c, "userid", "device1")
+
+			subscription.DeviceID = "device0"
+			So(db.SaveSubscription(&subscription), ShouldBeNil)
+
+			subscription.DeviceID = "device1"
+			So(db.SaveSubscription(&subscription), ShouldBeNil)
+		})
+
 		Convey("cannot save subscription with empty id", func() {
 			subscription.ID = ""
 			err := db.SaveSubscription(&subscription)
@@ -156,7 +167,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 		Convey("delets an existing subscription", func() {
 			So(db.SaveSubscription(&subscription), ShouldBeNil)
 
-			err := db.DeleteSubscription("subscriptionid")
+			err := db.DeleteSubscription("subscriptionid", "deviceid")
 			So(err, ShouldBeNil)
 
 			var count int
@@ -170,7 +181,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 		})
 
 		Convey("returns ErrSubscriptionNotFound while deleting a non-exist subscription", func() {
-			err := db.DeleteSubscription("notexistsubscriptionid")
+			err := db.DeleteSubscription("notexistsubscriptionid", "deviceid")
 			So(err, ShouldEqual, oddb.ErrSubscriptionNotFound)
 		})
 

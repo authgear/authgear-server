@@ -33,8 +33,8 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 			p.Database = db
 		})
 
-		Convey("fetchs multiple subscriptions", func() {
-			resp := r.POST(`{"subscription_ids": ["0", "1"]}`)
+		Convey("fetches multiple subscriptions", func() {
+			resp := r.POST(`{"device_id": "deviceid", "subscription_ids": ["0", "1"]}`)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), shouldEqualJSON, `{
 	"result": [
@@ -54,8 +54,8 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 }`)
 		})
 
-		Convey("fetchs not existed subscriptions", func() {
-			resp := r.POST(`{"subscription_ids": ["notexistid"]}`)
+		Convey("fetches not existed subscriptions", func() {
+			resp := r.POST(`{"device_id": "deviceid", "subscription_ids": ["notexistid"]}`)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), shouldEqualJSON, `{
 	"result": [{
@@ -69,10 +69,16 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 }`)
 		})
 
-		Convey("fetchs without subscription_ids", func() {
+		Convey("fetches without device_id", func() {
 			resp := r.POST(`{}`)
-			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{"error":{"type":"RequestInvalid","code":101,"message":"empty device_id"}}`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+
+		Convey("fetches without subscription_ids", func() {
+			resp := r.POST(`{"device_id": "deviceid"}`)
 			So(resp.Body.Bytes(), shouldEqualJSON, `{"result": []}`)
+			So(resp.Code, ShouldEqual, 200)
 		})
 	})
 }
@@ -138,7 +144,7 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 }`)
 
 			actualSubscription := oddb.Subscription{}
-			So(db.GetSubscription("subscription_id", &actualSubscription), ShouldBeNil)
+			So(db.GetSubscription("subscription_id", "somedeviceid", &actualSubscription), ShouldBeNil)
 			So(actualSubscription, ShouldResemble, oddb.Subscription{
 				ID:       "subscription_id",
 				DeviceID: "somedeviceid",
@@ -201,8 +207,8 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 }`)
 
 			var sub0, sub1 oddb.Subscription
-			So(db.GetSubscription("sub0", &sub0), ShouldBeNil)
-			So(db.GetSubscription("sub1", &sub1), ShouldBeNil)
+			So(db.GetSubscription("sub0", "somedeviceid", &sub0), ShouldBeNil)
+			So(db.GetSubscription("sub1", "somedeviceid", &sub1), ShouldBeNil)
 
 			So(sub0, ShouldResemble, oddb.Subscription{
 				ID:       "sub0",
@@ -261,7 +267,7 @@ func TestSubscriptionDeleteHandler(t *testing.T) {
 		})
 
 		Convey("deletes multiple subscriptions", func() {
-			resp := r.POST(`{"subscription_ids": ["0", "1"]}`)
+			resp := r.POST(`{"device_id": "deviceid", "subscription_ids": ["0", "1"]}`)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), shouldEqualJSON, `{
 	"result": [
@@ -272,7 +278,7 @@ func TestSubscriptionDeleteHandler(t *testing.T) {
 		})
 
 		Convey("deletes not existed subscriptions", func() {
-			resp := r.POST(`{"subscription_ids": ["notexistid"]}`)
+			resp := r.POST(`{"device_id": "deviceid", "subscription_ids": ["notexistid"]}`)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), shouldEqualJSON, `{
 	"result": [{
@@ -286,8 +292,14 @@ func TestSubscriptionDeleteHandler(t *testing.T) {
 }`)
 		})
 
-		Convey("deletes without subscription_ids", func() {
+		Convey("deletes without device_id", func() {
 			resp := r.POST(`{}`)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{"error":{"type":"RequestInvalid","code":101,"message":"empty device_id"}}`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+
+		Convey("deletes without subscription_ids", func() {
+			resp := r.POST(`{"device_id": "deviceid"}`)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), shouldEqualJSON, `{"result": []}`)
 		})

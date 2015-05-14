@@ -72,15 +72,14 @@ func (query *queryValue) Scan(value interface{}) error {
 	return json.Unmarshal(b, query)
 }
 
-func (db *database) GetSubscription(key string, subscription *oddb.Subscription) error {
+func (db *database) GetSubscription(key string, deviceID string, subscription *oddb.Subscription) error {
 	nullinfo := nullNotificationInfo{}
-	err := psql.Select("device_id", "type", "notification_info", "query").
+	err := psql.Select("type", "notification_info", "query").
 		From(db.tableName("_subscription")).
-		Where("id = ? and user_id = ?", key, db.userID).
+		Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key).
 		RunWith(db.Db.DB).
 		QueryRow().
 		Scan(
-		&subscription.DeviceID,
 		&subscription.Type,
 		&nullinfo,
 		(*queryValue)(&subscription.Query))
@@ -96,6 +95,7 @@ func (db *database) GetSubscription(key string, subscription *oddb.Subscription)
 	} else {
 		subscription.NotificationInfo = nil
 	}
+	subscription.DeviceID = deviceID
 	subscription.ID = key
 
 	return nil
@@ -121,12 +121,12 @@ func (db *database) SaveSubscription(subscription *oddb.Subscription) error {
 	}
 
 	pkData := map[string]interface{}{
-		"id":      subscription.ID,
-		"user_id": db.userID,
+		"id":        subscription.ID,
+		"user_id":   db.userID,
+		"device_id": subscription.DeviceID,
 	}
 
 	data := map[string]interface{}{
-		"device_id":         subscription.DeviceID,
 		"type":              subscription.Type,
 		"notification_info": nullinfo,
 		"query":             queryValue(subscription.Query),
@@ -142,9 +142,9 @@ func (db *database) SaveSubscription(subscription *oddb.Subscription) error {
 	return err
 }
 
-func (db *database) DeleteSubscription(key string) error {
+func (db *database) DeleteSubscription(key string, deviceID string) error {
 	result, err := psql.Delete(db.tableName("_subscription")).
-		Where("id = ? AND user_id = ?", key, db.userID).
+		Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key).
 		RunWith(db.Db.DB).
 		Exec()
 

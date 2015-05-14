@@ -158,8 +158,8 @@ func (db *MapDB) Extend(recordType string, schema oddb.RecordSchema) error {
 }
 
 // GetSubscription return a Subscription from SubscriptionMap.
-func (db *MapDB) GetSubscription(key string, subscription *oddb.Subscription) error {
-	s, ok := db.SubscriptionMap[key]
+func (db *MapDB) GetSubscription(name string, deviceID string, subscription *oddb.Subscription) error {
+	s, ok := db.SubscriptionMap[deviceID+"/"+name]
 	if !ok {
 		return oddb.ErrSubscriptionNotFound
 	}
@@ -169,12 +169,13 @@ func (db *MapDB) GetSubscription(key string, subscription *oddb.Subscription) er
 
 // SaveSubscription assigns to SubscriptionMap.
 func (db *MapDB) SaveSubscription(subscription *oddb.Subscription) error {
-	db.SubscriptionMap[subscription.ID] = *subscription
+	db.SubscriptionMap[subscription.DeviceID+"/"+subscription.ID] = *subscription
 	return nil
 }
 
 // DeleteSubscription deletes the specified key from SubscriptionMap.
-func (db *MapDB) DeleteSubscription(key string) error {
+func (db *MapDB) DeleteSubscription(name string, deviceID string) error {
+	key := deviceID + "/" + name
 	_, ok := db.SubscriptionMap[key]
 	if !ok {
 		return oddb.ErrSubscriptionNotFound

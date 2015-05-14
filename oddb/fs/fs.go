@@ -336,7 +336,7 @@ func (db fileDatabase) Extend(recordType string, schema oddb.RecordSchema) error
 	return nil
 }
 
-func (db fileDatabase) GetSubscription(key string, subscription *oddb.Subscription) error {
+func (db fileDatabase) GetSubscription(key string, deviceID string, subscription *oddb.Subscription) error {
 	return db.subscriDB.Get(key, subscription)
 }
 
@@ -344,7 +344,7 @@ func (db fileDatabase) SaveSubscription(subscription *oddb.Subscription) error {
 	return db.subscriDB.Save(subscription)
 }
 
-func (db fileDatabase) DeleteSubscription(key string) error {
+func (db fileDatabase) DeleteSubscription(key string, deviceID string) error {
 	return db.subscriDB.Delete(key)
 }
 

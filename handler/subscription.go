@@ -13,6 +13,7 @@ import (
 )
 
 type subscriptionIDsPayload struct {
+	DeviceID        string   `json:"device_id"`
 	SubscriptionIDs []string `json:"subscription_ids"`
 }
 
@@ -85,6 +86,11 @@ func SubscriptionFetchHandler(rpayload *router.Payload, response *router.Respons
 		return
 	}
 
+	if payload.DeviceID == "" {
+		response.Err = oderr.NewRequestInvalidErr(errors.New("empty device_id"))
+		return
+	}
+
 	if len(payload.SubscriptionIDs) == 0 {
 		response.Result = []interface{}{}
 		return
@@ -96,7 +102,7 @@ func SubscriptionFetchHandler(rpayload *router.Payload, response *router.Respons
 		var item interface{}
 
 		subscription := oddb.Subscription{}
-		if err := db.GetSubscription(id, &subscription); err != nil {
+		if err := db.GetSubscription(id, payload.DeviceID, &subscription); err != nil {
 			// handle err here
 			item = newErrorWithID(id, err)
 		} else {
@@ -219,6 +225,11 @@ func SubscriptionDeleteHandler(rpayload *router.Payload, response *router.Respon
 		return
 	}
 
+	if payload.DeviceID == "" {
+		response.Err = oderr.NewRequestInvalidErr(errors.New("empty device_id"))
+		return
+	}
+
 	if len(payload.SubscriptionIDs) == 0 {
 		response.Result = []interface{}{}
 		return
@@ -229,7 +240,7 @@ func SubscriptionDeleteHandler(rpayload *router.Payload, response *router.Respon
 	for _, id := range payload.SubscriptionIDs {
 		var item interface{}
 
-		if err := db.DeleteSubscription(id); err != nil {
+		if err := db.DeleteSubscription(id, payload.DeviceID); err != nil {
 			item = newErrorWithID(id, err)
 		} else {
 			item = struct {

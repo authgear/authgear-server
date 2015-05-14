@@ -72,9 +72,9 @@ type Database interface {
 	Extend(recordType string, schema RecordSchema) error
 
 	GetMatchingSubscriptions(record *Record) []Subscription
-	GetSubscription(key string, subscription *Subscription) error
+	GetSubscription(key string, deviceID string, subscription *Subscription) error
 	SaveSubscription(subscription *Subscription) error
-	DeleteSubscription(key string) error
+	DeleteSubscription(key string, deviceID string) error
 }
 
 // Rows implements a scanner-like interface for easy iteration on a

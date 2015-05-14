@@ -366,7 +366,7 @@ CREATE TABLE IF NOT EXISTS %[1]v._subscription (
 	type text NOT NULL,
 	notification_info jsonb,
 	query jsonb,
-	PRIMARY KEY(user_id, id)
+	PRIMARY KEY(user_id, device_id, id)
 );
 `
 
