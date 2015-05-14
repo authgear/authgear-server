@@ -119,6 +119,15 @@ func (r *Record) Set(key string, i interface{}) {
 	}
 }
 
+// RecordSchema is a mapping of record key to its value's data type or reference
+type RecordSchema map[string]FieldType
+
+// FieldType represents the kind of data living within a field of a RecordSchema.
+type FieldType struct {
+	Type          DataType
+	ReferenceType string // used only by TypeReference
+}
+
 // DataType defines the type of data that can saved into an oddb database
 //go:generate stringer -type=DataType
 type DataType uint
@@ -134,11 +143,3 @@ const (
 	TypeDateTime
 	TypeData // not implemented
 )
-
-type Schema struct {
-	Type          DataType
-	ReferenceType string
-}
-
-// RecordSchema is a mapping of record key to its value's data type or reference
-type RecordSchema map[string]Schema

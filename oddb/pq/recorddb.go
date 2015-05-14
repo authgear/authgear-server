@@ -373,7 +373,7 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 			return nil, err
 		}
 
-		schema := oddb.Schema{}
+		schema := oddb.FieldType{}
 		switch pqType {
 		default:
 			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
@@ -407,7 +407,7 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 	}
 	var cName string
 	for refs.Next() {
-		s := oddb.Schema{
+		s := oddb.FieldType{
 			Type: oddb.TypeReference,
 		}
 		if err := refs.Scan(&cName, &s.ReferenceType); err != nil {

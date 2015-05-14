@@ -431,29 +431,29 @@ func deriveRecordSchema(m oddb.Data) oddb.RecordSchema {
 				"value": value,
 			}).Panicf("got unrecgonized type = %T", value)
 		case float64:
-			schema[key] = oddb.Schema{
+			schema[key] = oddb.FieldType{
 				Type: oddb.TypeNumber,
 			}
 		case string:
-			schema[key] = oddb.Schema{
+			schema[key] = oddb.FieldType{
 				Type: oddb.TypeString,
 			}
 		case time.Time:
-			schema[key] = oddb.Schema{
+			schema[key] = oddb.FieldType{
 				Type: oddb.TypeDateTime,
 			}
 		case bool:
-			schema[key] = oddb.Schema{
+			schema[key] = oddb.FieldType{
 				Type: oddb.TypeBoolean,
 			}
 		case oddb.Reference:
 			v := value.(oddb.Reference)
-			schema[key] = oddb.Schema{
+			schema[key] = oddb.FieldType{
 				Type:          oddb.TypeReference,
 				ReferenceType: v.Type(),
 			}
 		case map[string]interface{}, []interface{}:
-			schema[key] = oddb.Schema{
+			schema[key] = oddb.FieldType{
 				Type: oddb.TypeJSON,
 			}
 		}

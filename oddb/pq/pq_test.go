@@ -358,9 +358,9 @@ func TestExtend(t *testing.T) {
 
 		Convey("creates table if not exist", func() {
 			err := db.Extend("note", oddb.RecordSchema{
-				"content":   oddb.Schema{Type: oddb.TypeString},
-				"noteOrder": oddb.Schema{Type: oddb.TypeNumber},
-				"createdAt": oddb.Schema{Type: oddb.TypeDateTime},
+				"content":   oddb.FieldType{Type: oddb.TypeString},
+				"noteOrder": oddb.FieldType{Type: oddb.TypeNumber},
+				"createdAt": oddb.FieldType{Type: oddb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
 
@@ -378,12 +378,12 @@ func TestExtend(t *testing.T) {
 
 		Convey("creates table with reference", func() {
 			err := db.Extend("collection", oddb.RecordSchema{
-				"name": oddb.Schema{Type: oddb.TypeString},
+				"name": oddb.FieldType{Type: oddb.TypeString},
 			})
 			So(err, ShouldBeNil)
 			err = db.Extend("note", oddb.RecordSchema{
-				"content": oddb.Schema{Type: oddb.TypeString},
-				"collection": oddb.Schema{
+				"content": oddb.FieldType{Type: oddb.TypeString},
+				"collection": oddb.FieldType{
 					Type:          oddb.TypeReference,
 					ReferenceType: "collection",
 				},
@@ -392,8 +392,8 @@ func TestExtend(t *testing.T) {
 		})
 		Convey("error if creates table with reference not exist", func() {
 			err := db.Extend("note", oddb.RecordSchema{
-				"content": oddb.Schema{Type: oddb.TypeString},
-				"tag": oddb.Schema{
+				"content": oddb.FieldType{Type: oddb.TypeString},
+				"tag": oddb.FieldType{
 					Type:          oddb.TypeReference,
 					ReferenceType: "tag",
 				},
@@ -403,15 +403,15 @@ func TestExtend(t *testing.T) {
 
 		Convey("adds new column if table already exist", func() {
 			err := db.Extend("note", oddb.RecordSchema{
-				"content":   oddb.Schema{Type: oddb.TypeString},
-				"noteOrder": oddb.Schema{Type: oddb.TypeNumber},
-				"createdAt": oddb.Schema{Type: oddb.TypeDateTime},
+				"content":   oddb.FieldType{Type: oddb.TypeString},
+				"noteOrder": oddb.FieldType{Type: oddb.TypeNumber},
+				"createdAt": oddb.FieldType{Type: oddb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
 
 			err = db.Extend("note", oddb.RecordSchema{
-				"createdAt": oddb.Schema{Type: oddb.TypeDateTime},
-				"dirty":     oddb.Schema{Type: oddb.TypeBoolean},
+				"createdAt": oddb.FieldType{Type: oddb.TypeDateTime},
+				"dirty":     oddb.FieldType{Type: oddb.TypeBoolean},
 			})
 			So(err, ShouldBeNil)
 
@@ -429,16 +429,16 @@ func TestExtend(t *testing.T) {
 
 		Convey("errors if conflict with existing column type", func() {
 			err := db.Extend("note", oddb.RecordSchema{
-				"content":   oddb.Schema{Type: oddb.TypeString},
-				"noteOrder": oddb.Schema{Type: oddb.TypeNumber},
-				"createdAt": oddb.Schema{Type: oddb.TypeDateTime},
+				"content":   oddb.FieldType{Type: oddb.TypeString},
+				"noteOrder": oddb.FieldType{Type: oddb.TypeNumber},
+				"createdAt": oddb.FieldType{Type: oddb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
 
 			err = db.Extend("note", oddb.RecordSchema{
-				"content":   oddb.Schema{Type: oddb.TypeNumber},
-				"createdAt": oddb.Schema{Type: oddb.TypeDateTime},
-				"dirty":     oddb.Schema{Type: oddb.TypeNumber},
+				"content":   oddb.FieldType{Type: oddb.TypeNumber},
+				"createdAt": oddb.FieldType{Type: oddb.TypeDateTime},
+				"dirty":     oddb.FieldType{Type: oddb.TypeNumber},
 			})
 			So(err.Error(), ShouldEqual, "conflicting schema {TypeString } => {TypeNumber }")
 		})
@@ -455,10 +455,10 @@ func TestGet(t *testing.T) {
 		defer cleanupDB(t, c)
 		db := c.PrivateDB("getuser")
 		So(db.Extend("record", oddb.RecordSchema{
-			"string":   oddb.Schema{Type: oddb.TypeString},
-			"number":   oddb.Schema{Type: oddb.TypeNumber},
-			"datetime": oddb.Schema{Type: oddb.TypeDateTime},
-			"boolean":  oddb.Schema{Type: oddb.TypeBoolean},
+			"string":   oddb.FieldType{Type: oddb.TypeString},
+			"number":   oddb.FieldType{Type: oddb.TypeNumber},
+			"datetime": oddb.FieldType{Type: oddb.TypeDateTime},
+			"boolean":  oddb.FieldType{Type: oddb.TypeBoolean},
 		}), ShouldBeNil)
 
 		insertRow(t, c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
@@ -497,9 +497,9 @@ func TestSave(t *testing.T) {
 
 		db := c.PublicDB()
 		So(db.Extend("note", oddb.RecordSchema{
-			"content":   oddb.Schema{Type: oddb.TypeString},
-			"number":    oddb.Schema{Type: oddb.TypeNumber},
-			"timestamp": oddb.Schema{Type: oddb.TypeDateTime},
+			"content":   oddb.FieldType{Type: oddb.TypeString},
+			"number":    oddb.FieldType{Type: oddb.TypeNumber},
+			"timestamp": oddb.FieldType{Type: oddb.TypeDateTime},
 		}), ShouldBeNil)
 
 		record := oddb.Record{
@@ -570,7 +570,7 @@ func TestSave(t *testing.T) {
 
 		Convey("REGRESSION: update record with attribute having capital letters", func() {
 			So(db.Extend("note", oddb.RecordSchema{
-				"noteOrder": oddb.Schema{Type: oddb.TypeNumber},
+				"noteOrder": oddb.FieldType{Type: oddb.TypeNumber},
 			}), ShouldBeNil)
 
 			record = oddb.Record{
@@ -601,7 +601,7 @@ func TestDelete(t *testing.T) {
 		db := c.PrivateDB("userid")
 
 		So(db.Extend("note", oddb.RecordSchema{
-			"content": oddb.Schema{Type: oddb.TypeString},
+			"content": oddb.FieldType{Type: oddb.TypeString},
 		}), ShouldBeNil)
 
 		record := oddb.Record{
@@ -665,7 +665,7 @@ func TestQuery(t *testing.T) {
 
 		db := c.PrivateDB("userid")
 		So(db.Extend("note", oddb.RecordSchema{
-			"noteOrder": oddb.Schema{Type: oddb.TypeNumber},
+			"noteOrder": oddb.FieldType{Type: oddb.TypeNumber},
 		}), ShouldBeNil)
 
 		err := db.Save(&record2)
