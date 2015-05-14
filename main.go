@@ -174,7 +174,9 @@ func main() {
 	)
 
 	// subscription shares the same set of preprocessor as record at the moment
+	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, recordPreprocessors...)
 	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordPreprocessors...)
+	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, recordPreprocessors...)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, logMiddleware(r))

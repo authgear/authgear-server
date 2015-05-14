@@ -38,7 +38,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 
 		notificationInfo := oddb.NotificationInfo{
 			APS: oddb.APSSetting{
-				Alert: oddb.AppleAlert{
+				Alert: &oddb.AppleAlert{
 					Body:                  "somebody",
 					LocalizationKey:       "somelocalizationkey",
 					LocalizationArgs:      []string{"arg0", "arg1"},
@@ -57,7 +57,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 			ID:               "subscriptionid",
 			Type:             "query",
 			DeviceID:         "deviceid",
-			NotificationInfo: notificationInfo,
+			NotificationInfo: &notificationInfo,
 			Query:            query,
 		}
 
@@ -82,18 +82,18 @@ func TestSubscriptionCRUD(t *testing.T) {
 
 			var (
 				deviceID, queryType    string
-				resultNotificationInfo oddb.NotificationInfo
+				resultNotificationInfo nullNotificationInfo
 				resultQuery            oddb.Query
 			)
 			err = c.Db.QueryRow(`
 				SELECT device_id, type, notification_info, query FROM app_com_oursky_ourd._subscription
 				WHERE id = $1 AND user_id = $2`, "subscriptionid", "userid").
-				Scan(&deviceID, &queryType, (*notificationInfoValue)(&resultNotificationInfo), (*queryValue)(&resultQuery))
+				Scan(&deviceID, &queryType, &resultNotificationInfo, (*queryValue)(&resultQuery))
 			So(err, ShouldBeNil)
 
 			So(deviceID, ShouldEqual, "deviceid")
 			So(queryType, ShouldEqual, "query")
-			So(resultNotificationInfo, ShouldResemble, notificationInfo)
+			So(resultNotificationInfo.NotificationInfo, ShouldResemble, notificationInfo)
 			So(resultQuery, ShouldResemble, query)
 		})
 
@@ -106,18 +106,18 @@ func TestSubscriptionCRUD(t *testing.T) {
 
 			var (
 				deviceID, queryType    string
-				resultNotificationInfo oddb.NotificationInfo
+				resultNotificationInfo nullNotificationInfo
 				resultQuery            oddb.Query
 			)
 			err = c.Db.QueryRow(`
 				SELECT device_id, type, notification_info, query FROM app_com_oursky_ourd._subscription
 				WHERE id = $1 AND user_id = $2`, "subscriptionid", "userid").
-				Scan(&deviceID, &queryType, (*notificationInfoValue)(&resultNotificationInfo), (*queryValue)(&resultQuery))
+				Scan(&deviceID, &queryType, &resultNotificationInfo, (*queryValue)(&resultQuery))
 			So(err, ShouldBeNil)
 
 			So(deviceID, ShouldEqual, "deviceid")
 			So(queryType, ShouldEqual, "query")
-			So(resultNotificationInfo, ShouldResemble, notificationInfo)
+			So(resultNotificationInfo.NotificationInfo, ShouldResemble, notificationInfo)
 
 			query.Type = "otherrecordtype"
 			So(resultQuery, ShouldResemble, query)

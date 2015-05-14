@@ -9,11 +9,11 @@ var ErrSubscriptionNotFound = errors.New("oddb: Subscription ID not found")
 // Subscription represents a device's subscription of notification
 // triggered by changes of results from a query.
 type Subscription struct {
-	ID               string           `json:"id"`
-	Type             string           `json:"type"`
-	DeviceID         string           `json:"device_id"`
-	NotificationInfo NotificationInfo `json:"notification_info,omitempty"`
-	Query            Query            `json:"query"`
+	ID               string            `json:"id"`
+	Type             string            `json:"type"`
+	DeviceID         string            `json:"device_id"`
+	NotificationInfo *NotificationInfo `json:"notification_info,omitempty"`
+	Query            Query             `json:"query"`
 }
 
 // NotificationInfo describes how server should send a notification
@@ -25,10 +25,10 @@ type NotificationInfo struct {
 // APSSetting describes how server should send a notification to a
 // targeted device via Apple Push Service.
 type APSSetting struct {
-	Alert                      AppleAlert `json:"alert,omitempty"`
-	SoundName                  string     `json:"sound,omitempty"`
-	ShouldBadge                bool       `json:"should-badge,omitempty"`
-	ShouldSendContentAvailable bool       `json:"should-send-content-available,omitempty"`
+	Alert                      *AppleAlert `json:"alert,omitempty"`
+	SoundName                  string      `json:"sound,omitempty"`
+	ShouldBadge                bool        `json:"should-badge,omitempty"`
+	ShouldSendContentAvailable bool        `json:"should-send-content-available,omitempty"`
 }
 
 // AppleAlert describes how a remote notification behaves and shows
