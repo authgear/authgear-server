@@ -2,6 +2,7 @@ package oddb
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -39,6 +40,30 @@ func (id *RecordID) UnmarshalText(data []byte) error {
 	id.Key = string(splited[1])
 
 	return nil
+}
+
+type Reference struct {
+	ID RecordID `json:"_id"`
+}
+
+func (ref Reference) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type string   `json:"$type"`
+		ID   RecordID `json:"$id"`
+	}{
+		"ref",
+		ref.ID,
+	})
+}
+
+func NewReference(recordType string, id string) Reference {
+	return Reference{
+		NewRecordID(recordType, id),
+	}
+}
+
+func (reference *Reference) Type() string {
+	return reference.ID.Type
 }
 
 // A Data represents a key-value object used for storing ODRecord.
@@ -94,6 +119,15 @@ func (r *Record) Set(key string, i interface{}) {
 	}
 }
 
+// RecordSchema is a mapping of record key to its value's data type or reference
+type RecordSchema map[string]FieldType
+
+// FieldType represents the kind of data living within a field of a RecordSchema.
+type FieldType struct {
+	Type          DataType
+	ReferenceType string // used only by TypeReference
+}
+
 // DataType defines the type of data that can saved into an oddb database
 //go:generate stringer -type=DataType
 type DataType uint
@@ -104,11 +138,8 @@ const (
 	TypeNumber
 	TypeBoolean
 	TypeJSON
-	TypeReference // not implemented
-	TypeLocation  // not implemented
+	TypeReference
+	TypeLocation // not implemented
 	TypeDateTime
 	TypeData // not implemented
 )
-
-// RecordSchema is a mapping of record key to its value's data type
-type RecordSchema map[string]DataType

@@ -291,6 +291,33 @@ func TestRecordSaveDataType(t *testing.T) {
 				},
 			})
 		})
+
+		Convey("Parses Reference", func() {
+			resp := r.POST(`{
+	"records": [{
+		"_id": "type1/id1",
+		"ref": {"$type": "ref", "$id": "type2/id2"}
+	}]
+}`)
+
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
+	"result": [{
+		"_id": "type1/id1",
+		"_type": "record",
+		"ref": {"$type": "ref", "$id": "type2/id2"}
+	}]
+}`)
+
+			record := oddb.Record{}
+			So(db.Get(oddb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
+				ID: oddb.NewRecordID("type1", "id1"),
+				Data: map[string]interface{}{
+					"ref": oddb.NewReference("type2", "id2"),
+				},
+			})
+
+		})
 	})
 }
 
