@@ -51,11 +51,11 @@ func (s *Service) Listen() {
 }
 
 func getDB(conn oddb.Conn, record *oddb.Record) oddb.Database {
-	if record.UserID == "" {
+	if record.DatabaseID == "" {
 		return conn.PublicDB()
 	}
 
-	return conn.PrivateDB(record.UserID)
+	return conn.PrivateDB(record.DatabaseID)
 }
 
 func (s *Service) handleRecordHook(db oddb.Database, record *oddb.Record) {

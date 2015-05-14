@@ -62,7 +62,7 @@ func TestSave(t *testing.T) {
 			}
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
-			So(record.UserID, ShouldEqual, "someuserid")
+			So(record.DatabaseID, ShouldEqual, "someuserid")
 
 			contentBytes, err := ioutil.ReadFile(filepath.Join(dir, "note", "someid"))
 			So(err, ShouldBeNil)

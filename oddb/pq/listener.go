@@ -208,10 +208,10 @@ func parseRecordData(data []byte, record *oddb.Record) error {
 	}
 
 	recordID, _ := recordData["_id"].(string)
-	rawUserID, _ := recordData["_user_id"].(string)
+	rawDatabaseID, _ := recordData["_database_id"].(string)
 
-	if recordID == "" || rawUserID == "" {
-		return errors.New(`missing key "_id" or "_user_id"`)
+	if recordID == "" || rawDatabaseID == "" {
+		return errors.New(`missing key "_id" or "_database_id"`)
 	}
 
 	for key := range recordData {
@@ -222,7 +222,7 @@ func parseRecordData(data []byte, record *oddb.Record) error {
 
 	record.ID.Key = recordID
 	record.Data = recordData
-	record.UserID = rawUserID
+	record.DatabaseID = rawDatabaseID
 
 	return nil
 }

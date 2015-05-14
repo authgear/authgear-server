@@ -73,8 +73,8 @@ func (db *database) Save(record *oddb.Record) error {
 	}
 
 	sql, args := upsertQuery(db.tableName(record.ID.Type), map[string]interface{}{
-		"_id":      record.ID.Key,
-		"_user_id": db.userID,
+		"_id":          record.ID.Key,
+		"_database_id": db.userID,
 	}, convert(record.Data))
 
 	_, err := db.Db.Exec(sql, args...)
@@ -88,7 +88,7 @@ func (db *database) Save(record *oddb.Record) error {
 		return err
 	}
 
-	record.UserID = db.userID
+	record.DatabaseID = db.userID
 	return nil
 }
 
@@ -106,7 +106,7 @@ func convert(r map[string]interface{}) map[string]interface{} {
 
 func (db *database) Delete(id oddb.RecordID) error {
 	sql, args, err := psql.Delete(db.tableName("note")).
-		Where("_id = ? AND _user_id = ?", id.Key, db.userID).
+		Where("_id = ? AND _database_id = ?", id.Key, db.userID).
 		ToSql()
 	if err != nil {
 		panic(err)
@@ -326,7 +326,7 @@ func (db *database) selectQuery(recordType string, typemap oddb.RecordSchema) sq
 	}
 
 	q = q.From(db.tableName(recordType)).
-		Where("_user_id = ?", db.userID)
+		Where("_database_id = ?", db.userID)
 
 	return q
 }
@@ -481,8 +481,8 @@ func createTableStmt(tableName string) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("CREATE TABLE "))
 	buf.WriteString(tableName)
-	buf.Write([]byte("(_id text, _user_id text,"))
-	buf.Write([]byte("PRIMARY KEY(_id, _user_id), UNIQUE (_id));"))
+	buf.Write([]byte("(_id text, _database_id text,"))
+	buf.Write([]byte("PRIMARY KEY(_id, _database_id), UNIQUE (_id));"))
 
 	return buf.String()
 }

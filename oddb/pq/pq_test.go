@@ -367,7 +367,7 @@ func TestExtend(t *testing.T) {
 			// verify with an insert
 			result, err := c.Db.Exec(
 				`INSERT INTO app_com_oursky_ourd."note" ` +
-					`(_id, _user_id, "content", "noteOrder", "createdAt") ` +
+					`(_id, _database_id, "content", "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 'some content', 2, '1988-02-06')`)
 			So(err, ShouldBeNil)
 
@@ -418,7 +418,7 @@ func TestExtend(t *testing.T) {
 			// verify with an insert
 			result, err := c.Db.Exec(
 				`INSERT INTO app_com_oursky_ourd."note" ` +
-					`(_id, _user_id, "content", "noteOrder", "createdAt", "dirty") ` +
+					`(_id, _database_id, "content", "noteOrder", "createdAt", "dirty") ` +
 					`VALUES (1, 1, 'some content', 2, '1988-02-06', TRUE)`)
 			So(err, ShouldBeNil)
 
@@ -462,7 +462,7 @@ func TestGet(t *testing.T) {
 		}), ShouldBeNil)
 
 		insertRow(t, c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
-			`(_user_id, _id, "string", "number", "datetime", "boolean") `+
+			`(_database_id, _id, "string", "number", "datetime", "boolean") `+
 			`VALUES ('getuser', 'id', 'string', 1, '1988-02-06', TRUE)`)
 
 		Convey("gets an existing record from database", func() {
@@ -477,7 +477,7 @@ func TestGet(t *testing.T) {
 					"number":   float64(1),
 					"datetime": time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC),
 				},
-				UserID: "getuser",
+				DatabaseID: "getuser",
 			})
 		})
 
@@ -514,14 +514,14 @@ func TestSave(t *testing.T) {
 		Convey("creates record if it doesn't exist", func() {
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
-			So(record.UserID, ShouldEqual, "")
+			So(record.DatabaseID, ShouldEqual, "")
 
 			var (
 				content   string
 				number    float64
 				timestamp time.Time
 			)
-			err = c.Db.QueryRow("SELECT content, number, timestamp FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").
+			err = c.Db.QueryRow("SELECT content, number, timestamp FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = ''").
 				Scan(&content, &number, &timestamp)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "some content")
@@ -532,14 +532,14 @@ func TestSave(t *testing.T) {
 		Convey("updates record if it already exists", func() {
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
-			So(record.UserID, ShouldEqual, "")
+			So(record.DatabaseID, ShouldEqual, "")
 
 			record.Set("content", "more content")
 			err = db.Save(&record)
 			So(err, ShouldBeNil)
 
 			var content string
-			err = c.Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").
+			err = c.Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = ''").
 				Scan(&content)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "more content")
@@ -555,14 +555,14 @@ func TestSave(t *testing.T) {
 			So(err, ShouldNotBeNil)
 		})
 
-		Convey("ignore Record.UserID when saving", func() {
-			record.UserID = "someuserid"
+		Convey("ignore Record.DatabaseID when saving", func() {
+			record.DatabaseID = "someuserid"
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
-			So(record.UserID, ShouldEqual, "")
+			So(record.DatabaseID, ShouldEqual, "")
 
 			var count int
-			err = c.Db.QueryRowx("SELECT count(*) FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = 'someuserid'").
+			err = c.Db.QueryRowx("SELECT count(*) FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = 'someuserid'").
 				Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
@@ -586,7 +586,7 @@ func TestSave(t *testing.T) {
 			ShouldBeNil(db.Save(&record))
 
 			var noteOrder int
-			err := c.Db.QueryRow(`SELECT "noteOrder" FROM app_com_oursky_ourd.note WHERE _id = '1' and _user_id = ''`).
+			err := c.Db.QueryRow(`SELECT "noteOrder" FROM app_com_oursky_ourd.note WHERE _id = '1' and _database_id = ''`).
 				Scan(&noteOrder)
 			So(err, ShouldBeNil)
 			So(noteOrder, ShouldEqual, 2)
@@ -618,7 +618,7 @@ func TestDelete(t *testing.T) {
 			err = db.Delete(oddb.NewRecordID("note", "someid"))
 			So(err, ShouldBeNil)
 
-			err = db.(*database).Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid' AND _user_id = 'userid'").Scan((*string)(nil))
+			err = db.(*database).Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid' AND _database_id = 'userid'").Scan((*string)(nil))
 			So(err, ShouldEqual, sql.ErrNoRows)
 		})
 
