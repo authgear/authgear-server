@@ -212,7 +212,7 @@ func (c *conn) SaveDevice(device *oddb.Device) error {
 		"user_id": device.UserInfoID,
 	}
 
-	sql, args := upsertQuery(c.tableName("_device"), pkData, data)
+	sql, args := upsertQuery(c.tableName("_device"), pkData, data, []string{})
 	_, err := c.Db.Exec(sql, args...)
 
 	return err

@@ -153,7 +153,7 @@ func (db fileDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
 		return err
 	}
 
-	record.UserID = db.UserID
+	record.DatabaseID = db.UserID
 	return nil
 }
 
@@ -174,7 +174,7 @@ func (db fileDatabase) Save(record *oddb.Record) error {
 		return err
 	}
 
-	record.UserID = db.UserID
+	record.DatabaseID = db.UserID
 
 	return db.executeHook(record, event, err)
 }
@@ -316,7 +316,7 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 		if err := json.Unmarshal(scanner.Bytes(), &record); err != nil {
 			return nil, err
 		}
-		record.UserID = db.UserID
+		record.DatabaseID = db.UserID
 		records = append(records, record)
 	}
 

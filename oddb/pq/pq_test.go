@@ -367,8 +367,8 @@ func TestExtend(t *testing.T) {
 			// verify with an insert
 			result, err := c.Db.Exec(
 				`INSERT INTO app_com_oursky_ourd."note" ` +
-					`(_id, _user_id, "content", "noteOrder", "createdAt") ` +
-					`VALUES (1, 1, 'some content', 2, '1988-02-06')`)
+					`(_id, _database_id, _owner_id, "content", "noteOrder", "createdAt") ` +
+					`VALUES (1, 1, 1, 'some content', 2, '1988-02-06')`)
 			So(err, ShouldBeNil)
 
 			i, err := result.RowsAffected()
@@ -418,8 +418,8 @@ func TestExtend(t *testing.T) {
 			// verify with an insert
 			result, err := c.Db.Exec(
 				`INSERT INTO app_com_oursky_ourd."note" ` +
-					`(_id, _user_id, "content", "noteOrder", "createdAt", "dirty") ` +
-					`VALUES (1, 1, 'some content', 2, '1988-02-06', TRUE)`)
+					`(_id, _database_id, _owner_id, "content", "noteOrder", "createdAt", "dirty") ` +
+					`VALUES (1, 1, 1, 'some content', 2, '1988-02-06', TRUE)`)
 			So(err, ShouldBeNil)
 
 			i, err := result.RowsAffected()
@@ -462,8 +462,8 @@ func TestGet(t *testing.T) {
 		}), ShouldBeNil)
 
 		insertRow(t, c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
-			`(_user_id, _id, "string", "number", "datetime", "boolean") `+
-			`VALUES ('getuser', 'id', 'string', 1, '1988-02-06', TRUE)`)
+			`(_database_id, _id, _owner_id, "string", "number", "datetime", "boolean") `+
+			`VALUES ('getuser', 'id', 'getuser', 'string', 1, '1988-02-06', TRUE)`)
 
 		Convey("gets an existing record from database", func() {
 			record := oddb.Record{}
@@ -477,7 +477,7 @@ func TestGet(t *testing.T) {
 					"number":   float64(1),
 					"datetime": time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC),
 				},
-				UserID: "getuser",
+				DatabaseID: "getuser",
 			})
 		})
 
@@ -503,7 +503,8 @@ func TestSave(t *testing.T) {
 		}), ShouldBeNil)
 
 		record := oddb.Record{
-			ID: oddb.NewRecordID("note", "someid"),
+			ID:      oddb.NewRecordID("note", "someid"),
+			OwnerID: "user_id",
 			Data: map[string]interface{}{
 				"content":   "some content",
 				"number":    float64(1),
@@ -514,32 +515,34 @@ func TestSave(t *testing.T) {
 		Convey("creates record if it doesn't exist", func() {
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
-			So(record.UserID, ShouldEqual, "")
+			So(record.DatabaseID, ShouldEqual, "")
 
 			var (
 				content   string
 				number    float64
 				timestamp time.Time
+				ownerID   string
 			)
-			err = c.Db.QueryRow("SELECT content, number, timestamp FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").
-				Scan(&content, &number, &timestamp)
+			err = c.Db.QueryRow("SELECT content, number, timestamp, _owner_id FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = ''").
+				Scan(&content, &number, &timestamp, &ownerID)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "some content")
 			So(number, ShouldEqual, float64(1))
 			So(timestamp.In(time.UTC), ShouldResemble, time.Date(1988, 2, 6, 1, 1, 1, 0, time.UTC))
+			So(ownerID, ShouldEqual, "user_id")
 		})
 
 		Convey("updates record if it already exists", func() {
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
-			So(record.UserID, ShouldEqual, "")
+			So(record.DatabaseID, ShouldEqual, "")
 
 			record.Set("content", "more content")
 			err = db.Save(&record)
 			So(err, ShouldBeNil)
 
 			var content string
-			err = c.Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = ''").
+			err = c.Db.QueryRow("SELECT content FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = ''").
 				Scan(&content)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "more content")
@@ -555,14 +558,14 @@ func TestSave(t *testing.T) {
 			So(err, ShouldNotBeNil)
 		})
 
-		Convey("ignore Record.UserID when saving", func() {
-			record.UserID = "someuserid"
+		Convey("ignore Record.DatabaseID when saving", func() {
+			record.DatabaseID = "someuserid"
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
-			So(record.UserID, ShouldEqual, "")
+			So(record.DatabaseID, ShouldEqual, "")
 
 			var count int
-			err = c.Db.QueryRowx("SELECT count(*) FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _user_id = 'someuserid'").
+			err = c.Db.QueryRowx("SELECT count(*) FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = 'someuserid'").
 				Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
@@ -574,7 +577,8 @@ func TestSave(t *testing.T) {
 			}), ShouldBeNil)
 
 			record = oddb.Record{
-				ID: oddb.NewRecordID("note", "1"),
+				ID:      oddb.NewRecordID("note", "1"),
+				OwnerID: "user_id",
 				Data: map[string]interface{}{
 					"noteOrder": 1,
 				},
@@ -586,10 +590,29 @@ func TestSave(t *testing.T) {
 			ShouldBeNil(db.Save(&record))
 
 			var noteOrder int
-			err := c.Db.QueryRow(`SELECT "noteOrder" FROM app_com_oursky_ourd.note WHERE _id = '1' and _user_id = ''`).
+			err := c.Db.QueryRow(`SELECT "noteOrder" FROM app_com_oursky_ourd.note WHERE _id = '1' and _database_id = ''`).
 				Scan(&noteOrder)
 			So(err, ShouldBeNil)
 			So(noteOrder, ShouldEqual, 2)
+		})
+
+		Convey("errors if OwnerID not set", func() {
+			record.OwnerID = ""
+			err := db.Save(&record)
+			So(err.Error(), ShouldEndWith, "got empty OwnerID")
+		})
+
+		Convey("ignore OwnerID when update", func() {
+			err := db.Save(&record)
+			So(err, ShouldBeNil)
+
+			record.OwnerID = "user_id2"
+			So(err, ShouldBeNil)
+
+			var ownerID string
+			err = c.Db.QueryRow(`SELECT "_owner_id" FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = ''`).
+				Scan(&ownerID)
+			So(ownerID, ShouldEqual, "user_id")
 		})
 	})
 }
@@ -605,7 +628,8 @@ func TestDelete(t *testing.T) {
 		}), ShouldBeNil)
 
 		record := oddb.Record{
-			ID: oddb.NewRecordID("note", "someid"),
+			ID:      oddb.NewRecordID("note", "someid"),
+			OwnerID: "user_id",
 			Data: map[string]interface{}{
 				"content": "some content",
 			},
@@ -618,7 +642,7 @@ func TestDelete(t *testing.T) {
 			err = db.Delete(oddb.NewRecordID("note", "someid"))
 			So(err, ShouldBeNil)
 
-			err = db.(*database).Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid' AND _user_id = 'userid'").Scan((*string)(nil))
+			err = db.(*database).Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid' AND _database_id = 'userid'").Scan((*string)(nil))
 			So(err, ShouldEqual, sql.ErrNoRows)
 		})
 
@@ -645,19 +669,22 @@ func TestQuery(t *testing.T) {
 
 		// fixture
 		record1 := oddb.Record{
-			ID: oddb.NewRecordID("note", "id1"),
+			ID:      oddb.NewRecordID("note", "id1"),
+			OwnerID: "user_id",
 			Data: map[string]interface{}{
 				"noteOrder": float64(1),
 			},
 		}
 		record2 := oddb.Record{
-			ID: oddb.NewRecordID("note", "id2"),
+			ID:      oddb.NewRecordID("note", "id2"),
+			OwnerID: "user_id",
 			Data: map[string]interface{}{
 				"noteOrder": float64(2),
 			},
 		}
 		record3 := oddb.Record{
-			ID: oddb.NewRecordID("note", "id3"),
+			ID:      oddb.NewRecordID("note", "id3"),
+			OwnerID: "user_id",
 			Data: map[string]interface{}{
 				"noteOrder": float64(3),
 			},

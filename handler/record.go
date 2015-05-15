@@ -324,6 +324,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	for i := range items {
 		item := &items[i]
 		record := &item.record
+		record.OwnerID = payload.UserInfoID
 
 		var result responseItem
 		if item.Err() {

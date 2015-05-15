@@ -37,10 +37,11 @@ import (
 // More on UPSERT: https://wiki.postgresql.org/wiki/UPSERT#PostgreSQL_.28today.29
 //
 // [1]: http://www.postgresql.org/docs/9.4/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE
-func upsertQuery(table string, pkData map[string]interface{}, data map[string]interface{}) (sql string, args []interface{}) {
+func upsertQuery(table string, pkData map[string]interface{}, data map[string]interface{}, updateIgnore []string) (sql string, args []interface{}) {
 	// extract columns values pair
 	pks, pkArgs := extractKeyAndValue(pkData)
 	columns, args := extractKeyAndValue(data)
+	ignoreIndex := findIgnoreIndex(columns, updateIgnore)
 
 	// generate WITH UPDATE
 	b := bytes.Buffer{}
@@ -48,7 +49,10 @@ func upsertQuery(table string, pkData map[string]interface{}, data map[string]in
 	b.WriteString(table)
 	b.Write([]byte(` SET(`))
 
-	for _, column := range columns {
+	for i, column := range columns {
+		if ignoreIndex[i] {
+			continue
+		}
 		b.WriteByte('"')
 		b.WriteString(column)
 		b.Write([]byte(`",`))
@@ -58,6 +62,9 @@ func upsertQuery(table string, pkData map[string]interface{}, data map[string]in
 	b.Write([]byte(`)=(`))
 
 	for i := len(pks); i < len(pks)+len(columns); i++ {
+		if ignoreIndex[i-len(pks)] {
+			continue
+		}
 		b.WriteByte('$')
 		b.WriteString(strconv.Itoa(i + 1))
 		b.WriteByte(',')
@@ -110,6 +117,19 @@ func extractKeyAndValue(data map[string]interface{}) (keys []string, values []in
 		keys[i] = key
 		values[i] = value
 		i++
+	}
+
+	return
+}
+
+func findIgnoreIndex(columns []string, ignoreColumns []string) (ignoreIndex []bool) {
+	ignoreIndex = make([]bool, len(columns), len(columns))
+
+	for i, column := range columns {
+		for _, ignored := range ignoreColumns {
+			ignoreIndex[i] = (column == ignored)
+			break
+		}
 	}
 
 	return
