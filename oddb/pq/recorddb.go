@@ -75,7 +75,7 @@ func (db *database) Save(record *oddb.Record) error {
 	sql, args := upsertQuery(db.tableName(record.ID.Type), map[string]interface{}{
 		"_id":          record.ID.Key,
 		"_database_id": db.userID,
-	}, convert(record.Data))
+	}, convert(record.Data), []string{})
 
 	_, err := db.Db.Exec(sql, args...)
 	if err != nil {
