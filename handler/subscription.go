@@ -117,7 +117,7 @@ func SubscriptionFetchHandler(rpayload *router.Payload, response *router.Respons
 //	    "action": "subscription:fetch_all",
 //	    "access_token": "ACCESS_TOKEN",
 //	    "database_id": "_private",
-//	    "device_id": "DEVICE_ID",
+//	    "device_id": "DEVICE_ID"
 //	}
 //	EOF
 func SubscriptionFetchAllHandler(rpayload *router.Payload, response *router.Response) {

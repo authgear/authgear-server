@@ -182,6 +182,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 		return nil
 	}
 
+	subscriptions = []oddb.Subscription{}
 	var s oddb.Subscription
 	for rows.Next() {
 		var nullinfo nullNotificationInfo
@@ -216,6 +217,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 		return nil
 	}
 
+	log.Debug(subscriptions)
 	return subscriptions
 }
 
