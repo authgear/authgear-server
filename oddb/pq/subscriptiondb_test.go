@@ -225,6 +225,47 @@ func TestMatchingSubscriptions(t *testing.T) {
 	})
 }
 
+func TestGetSubscriptionsByDeviceID(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c)
+
+		db := c.PublicDB()
+
+		// fixture
+		addUser(t, c, "userid")
+		addDevice(t, c, "userid", "device0")
+		addDevice(t, c, "userid", "device1")
+		addDevice(t, c, "userid", "device2")
+
+		sub00 := subscriptionForTest("device0", "00", "type0")
+		sub01 := subscriptionForTest("device0", "01", "type1")
+		sub10 := subscriptionForTest("device1", "10", "type0")
+
+		So(db.SaveSubscription(&sub00), ShouldBeNil)
+		So(db.SaveSubscription(&sub01), ShouldBeNil)
+		So(db.SaveSubscription(&sub10), ShouldBeNil)
+
+		Convey("fetches subscriptions by device_id", func() {
+			subscriptions := db.GetSubscriptionsByDeviceID("device0")
+			So(subscriptions, ShouldResemble, []oddb.Subscription{
+				sub00,
+				sub01,
+			})
+		})
+
+		Convey("fetches no subscriptions by device_id", func() {
+			subscriptions := db.GetSubscriptionsByDeviceID("device2")
+			So(subscriptions, ShouldBeEmpty)
+		})
+
+		Convey("fetches no subscriptions by non-exist device_id", func() {
+			subscriptions := db.GetSubscriptionsByDeviceID("notexistdeviceid")
+			So(subscriptions, ShouldBeEmpty)
+		})
+	})
+}
+
 func subscriptionForTest(deviceID, id, queryRecordType string) oddb.Subscription {
 	return oddb.Subscription{
 		ID:       id,

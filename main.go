@@ -182,6 +182,7 @@ func main() {
 	)
 
 	// subscription shares the same set of preprocessor as record read at the moment
+	r.Map("subscription:fetch_all", handler.SubscriptionFetchAllHandler, recordReadPreprocessors...)
 	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, recordReadPreprocessors...)
 	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordReadPreprocessors...)
 	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, recordReadPreprocessors...)

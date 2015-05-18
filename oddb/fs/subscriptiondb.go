@@ -70,6 +70,22 @@ func (db subscriptionDB) GetMatchingSubscriptions(record *oddb.Record) []oddb.Su
 	return subscriptions
 }
 
+func (db subscriptionDB) GetSubscriptionsByDeviceID(deviceID string) []oddb.Subscription {
+	subscriptions := []oddb.Subscription{}
+
+	err := db.walk(func(subscription *oddb.Subscription) {
+		if subscription.DeviceID == deviceID {
+			subscriptions = append(subscriptions, *subscription)
+		}
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return subscriptions
+}
+
 type walkFunc func(subscription *oddb.Subscription)
 
 func (db subscriptionDB) walk(walkerfunc walkFunc) error {

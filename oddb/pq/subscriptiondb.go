@@ -165,6 +165,62 @@ func (db *database) DeleteSubscription(key string, deviceID string) error {
 	return nil
 }
 
+func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions []oddb.Subscription) {
+	rows, err := psql.Select("id", "type", "notification_info", "query").
+		From(db.tableName("_subscription")).
+		Where(`user_id = ? AND device_id = ?`, db.userID, deviceID).
+		RunWith(db.Db.DB).
+		Query()
+
+	if err != nil {
+		log.WithFields(log.Fields{
+			"user_id":  db.userID,
+			"deviceID": deviceID,
+			"err":      err,
+		}).Errorln("failed to query subscriptions by device id")
+
+		return nil
+	}
+
+	subscriptions = []oddb.Subscription{}
+	var s oddb.Subscription
+	for rows.Next() {
+		var nullinfo nullNotificationInfo
+		err := rows.Scan(&s.ID, &s.Type, &nullinfo, (*queryValue)(&s.Query))
+		if err != nil {
+			log.WithFields(log.Fields{
+				"userID":   db.userID,
+				"deviceID": deviceID,
+				"err":      err,
+			}).Errorln("failed to scan a subscription row by device id, skipping...")
+
+			continue
+		}
+
+		if nullinfo.Valid {
+			s.NotificationInfo = &nullinfo.NotificationInfo
+		} else {
+			s.NotificationInfo = nil
+		}
+		s.DeviceID = deviceID
+
+		subscriptions = append(subscriptions, s)
+	}
+
+	if rows.Err() != nil {
+		log.WithFields(log.Fields{
+			"userID":   db.userID,
+			"deviceID": deviceID,
+			"err":      rows.Err(),
+		}).Errorln("failed to scan subscriptions by device id")
+
+		return nil
+	}
+
+	log.Debug(subscriptions)
+	return subscriptions
+}
+
 func (db *database) GetMatchingSubscriptions(record *oddb.Record) (subscriptions []oddb.Subscription) {
 	sql, args, err := psql.Select("id", "device_id", "type", "notification_info", "query").
 		From(db.tableName("_subscription")).
@@ -202,6 +258,7 @@ func (db *database) GetMatchingSubscriptions(record *oddb.Record) (subscriptions
 		} else {
 			s.NotificationInfo = nil
 		}
+
 		subscriptions = append(subscriptions, s)
 	}
 
@@ -210,7 +267,9 @@ func (db *database) GetMatchingSubscriptions(record *oddb.Record) (subscriptions
 			"record": record,
 			"userID": db.userID,
 			"err":    rows.Err(),
-		}).Errorln("failed to get matching subscriptions")
+		}).Errorln("failed to scan matching subscriptions")
+
+		return nil
 	}
 
 	return subscriptions
