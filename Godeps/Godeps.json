@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/oursky/ourd",
-	"GoVersion": "go1.4",
+	"GoVersion": "go1.4.2",
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/gcfg",
@@ -10,10 +10,6 @@
 			"ImportPath": "github.com/Sirupsen/logrus",
 			"Comment": "v0.7.1",
 			"Rev": "3fc34d061b9c78a70db853c7cb6b0576b6d4f32d"
-		},
-		{
-			"ImportPath": "github.com/anachronistic/apns",
-			"Rev": "f90152b7e0ae845938ce1258d90072fd116131ac"
 		},
 		{
 			"ImportPath": "github.com/jmoiron/sqlx",
@@ -42,16 +38,8 @@
 			"Rev": "33ddf69629c1bcea76b04f4a4e9e00e4cce82eb6"
 		},
 		{
-			"ImportPath": "github.com/stretchr/objx",
-			"Rev": "cbeaeb16a013161a98496fad62933b1d21786672"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/assert",
-			"Rev": "e4ec8152c15fc46bd5056ce65997a07c7d415325"
-		},
-		{
-			"ImportPath": "github.com/stretchr/testify/mock",
-			"Rev": "e4ec8152c15fc46bd5056ce65997a07c7d415325"
+			"ImportPath": "github.com/timehop/apns",
+			"Rev": "135f56759da5d4da98054f1819bd2b3c1d1a51b0"
 		},
 		{
 			"ImportPath": "github.com/twinj/uuid",

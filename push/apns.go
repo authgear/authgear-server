@@ -1,40 +1,59 @@
 package push
 
 import (
-	"github.com/anachronistic/apns"
-	"log"
+	log "github.com/Sirupsen/logrus"
+	"github.com/timehop/apns"
 )
 
 // APNSPusher pushes notification via apns
 type APNSPusher struct {
 	// we are directly coupling on apns as it seems redundant to duplicate
 	// all the payload and client logic and interfaces.
-	Client apns.APNSClient
+	Client apns.Client
+}
+
+// NewAPNSPusher returns a new APNSPusher for use
+func NewAPNSPusher(gateway string, certPath string, keyPath string) (*APNSPusher, error) {
+	client, err := apns.NewClientWithFiles(gateway, certPath, keyPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &APNSPusher{Client: client}, nil
+}
+
+// Init set up the notification error channel
+func (pusher *APNSPusher) Init() error {
+	go func() {
+		for result := range pusher.Client.FailedNotifs {
+			log.Errorf("Failed to send notification = %s: %v", result.Notif.ID, result.Err)
+		}
+	}()
+
+	return nil
 }
 
 // Send sends a notification to the device identified by the
 // specified deviceToken
 func (pusher *APNSPusher) Send(m Mapper, deviceToken string) error {
 	payload := apns.NewPayload()
-	payload.ContentAvailable = 1
-
-	notification := apns.NewPushNotification()
-	notification.DeviceToken = deviceToken
-
-	// the use of Set instead of AddPayload is intentional to avoid
-	// badge being reset. See the following link for details:
-	//	https://github.com/anachronistic/apns/blob/master/push_notification.go#L94
-	notification.Set("aps", payload)
+	payload.APS.ContentAvailable = 1
 
 	customMap := m.Map()
 	for key, value := range customMap {
-		notification.Set(key, value)
+		if err := payload.SetCustomValue(key, value); err != nil {
+			log.Errorf("Failed to set key = %v, value = %v", key, value)
+		}
 	}
 
-	resp := pusher.Client.Send(notification)
-	if !resp.Success {
-		log.Printf("Failed to send Push Notification: %v\nPayload:\n%#v\n\n", resp.Error, notification)
-		return resp.Error
+	notification := apns.NewNotification()
+	notification.Payload = payload
+	notification.DeviceToken = deviceToken
+	notification.Priority = apns.PriorityImmediate
+
+	if err := pusher.Client.Send(notification); err != nil {
+		log.Printf("Failed to send Push Notification: %v", err)
+		return err
 	}
 
 	return nil

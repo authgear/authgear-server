@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/anachronistic/apns"
-
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler"
 	"github.com/oursky/ourd/oddb"
@@ -104,8 +102,12 @@ func main() {
 	}
 
 	if config.Subscription.Enabled {
-		pushSender := &push.APNSPusher{
-			Client: apns.NewClient(config.APNS.Gateway, config.APNS.CertPath, config.APNS.KeyPath),
+		pushSender, err := push.NewAPNSPusher(config.APNS.Gateway, config.APNS.CertPath, config.APNS.KeyPath)
+		if err != nil {
+			log.Fatalf("Failed to set up push sender: %v", err)
+		}
+		if err := pushSender.Init(); err != nil {
+			log.Fatalf("Failed to init push sender: %v", err)
 		}
 		subscriptionService := &subscription.Service{
 			ConnOpener:         func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) },
