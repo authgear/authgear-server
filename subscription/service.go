@@ -70,8 +70,14 @@ func (s *Service) handleRecordHook(db oddb.Database, record *oddb.Record) {
 			log.Panicf("Failed to get device with id = %v: %v", subscription.DeviceID, err)
 		}
 
+		customMap := map[string]interface{}{
+			"_ourd": map[string]interface{}{
+				"subscription-id": subscription.ID,
+			},
+		}
+
 		err := s.NotificationSender.Send(
-			push.EmptyMapper,
+			push.MapMapper(customMap),
 			device.Token,
 		)
 		if err != nil {
