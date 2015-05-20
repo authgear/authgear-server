@@ -76,7 +76,7 @@ func (conn *fileConn) DeleteUser(id string) error {
 	return conn.userDB.Delete(id)
 }
 
-func (conn *fileConn) QueryRelation(user string, name string) []oddb.UserInfo {
+func (conn *fileConn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
 	panic("not implemented")
 }
 

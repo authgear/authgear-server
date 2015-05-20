@@ -30,6 +30,12 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 		return oderr.NewRequestInvalidErr(
 			errors.New("Only friend and follow relation is supported"))
 	}
+	if result.Direction != "" {
+		if result.Direction != "active" && result.Direction != "passive" && result.Direction != "mutual" {
+			return oderr.NewRequestInvalidErr(
+				errors.New("Only active, passive and mutual direction is supported"))
+		}
+	}
 	for i, s := range result.Target {
 		log.Debug(s)
 		ss := strings.SplitN(s, "/", 2)
@@ -69,7 +75,9 @@ func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 		response.Err = err
 		return
 	}
-	response.Result = payload.Target
+	result := rpayload.DBConn.QueryRelation(
+		rpayload.UserInfoID, payload.Name, payload.Direction)
+	response.Result = result
 }
 
 // RelationAddHandler add current user relation

@@ -190,9 +190,54 @@ func (c *conn) DeleteUser(id string) error {
 	return nil
 }
 
-func (c *conn) QueryRelation(user string, name string) []oddb.UserInfo {
-	// TODO: Implement me
-	return []oddb.UserInfo{}
+func (c *conn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
+	log.Debugf("Query Relation: %v, %v", user, name)
+	tName := "_" + name
+	var (
+		selectSql string
+		args      []interface{}
+		err       error
+	)
+	if direction == "active" {
+		selectSql, args, err = psql.Select("u.id", "u.email").
+			From(c.tableName("_user")+" AS u").
+			Join(c.tableName(tName)+" AS relation on relation.right_id = u.id").
+			Where("relation.left_id = ?", user).
+			ToSql()
+	} else {
+		selectSql, args, err = psql.Select("u.id", "u.email").
+			From(c.tableName("_user")+" AS u").
+			Join(c.tableName(tName)+" AS relation on relation.left_id = u.id").
+			Where("relation.right_id = ?", user).
+			ToSql()
+	}
+	if err != nil {
+		panic(err)
+	}
+	rows, err := c.Db.Query(selectSql, args...)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"sql":  selectSql,
+			"args": args,
+			"err":  err,
+		}).Debugln("Failed to query relation")
+		panic(err)
+	}
+	defer rows.Close()
+	results := []oddb.UserInfo{}
+	for rows.Next() {
+		var id string
+		var email string
+		if err := rows.Scan(&id, &email); err != nil {
+			panic(err)
+		}
+		userInfo := oddb.UserInfo{
+			ID:    id,
+			Email: email,
+		}
+		results = append(results, userInfo)
+	}
+	return results
 }
 
 func (c *conn) AddRelation(user string, name string, targetUser string) error {

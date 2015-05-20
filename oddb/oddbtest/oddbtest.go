@@ -57,7 +57,7 @@ func (conn *MapConn) DeleteUser(id string) error {
 	return nil
 }
 
-func (conn *MapConn) QueryRelation(user string, name string) []oddb.UserInfo {
+func (conn *MapConn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
 	panic("not implemented")
 }
 

@@ -47,7 +47,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	const userInfoString = `{"id":"alreadyexistid","email":"john.doe@example.com"}`
+	const userInfoString = `{"_id":"alreadyexistid","email":"john.doe@example.com"}`
 	expectedUserInfo := oddb.UserInfo{
 		ID:    "alreadyexistid",
 		Email: "john.doe@example.com",
@@ -84,14 +84,14 @@ func TestGetNotExist(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	const userInfoString = `{"id":"alreadyexistid","email":"john.doe@example.com"}`
+	const userInfoString = `{"_id":"alreadyexistid","email":"john.doe@example.com"}`
 	userInfoToUpdate := oddb.UserInfo{
 		ID:             "alreadyexistid",
 		Email:          "jane.doe@example.com",
 		HashedPassword: []byte("password"),
 	}
 	// NOTE: JSONEncoder writes a newline at the end
-	const updatedUserInfo = `{"id":"alreadyexistid","email":"jane.doe@example.com","password":"cGFzc3dvcmQ="}
+	const updatedUserInfo = `{"_id":"alreadyexistid","email":"jane.doe@example.com","password":"cGFzc3dvcmQ="}
 `
 
 	dir := tempDir()

@@ -17,7 +17,7 @@ type testRelationConn struct {
 	oddb.Conn
 }
 
-func (conn *testRelationConn) QueryRelation(user string, name string) []oddb.UserInfo {
+func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
 	panic("not implemented")
 }
 
