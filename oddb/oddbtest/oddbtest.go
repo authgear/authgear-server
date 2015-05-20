@@ -57,6 +57,18 @@ func (conn *MapConn) DeleteUser(id string) error {
 	return nil
 }
 
+func (conn *MapConn) QueryRelation(user string, name string) []oddb.UserInfo {
+	panic("not implemented")
+}
+
+func (conn *MapConn) AddRelation(user string, name string, targetUser string) error {
+	panic("not implemented")
+}
+
+func (conn *MapConn) RemoveRelation(user string, name string, targetUser string) error {
+	panic("not implemented")
+}
+
 // GetDevice is not implemented.
 func (conn *MapConn) GetDevice(id string, device *oddb.Device) error {
 	panic("not implemented")
