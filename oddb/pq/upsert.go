@@ -18,9 +18,21 @@ import (
 //			WHERE "id1" = $1 AND "id2" = $2
 //			RETURNING *
 //		)
-//	INSERT schema.device_table
+//	INSERT INTO schema.device_table
 //		("id1", "id2", "type", "token", "user_id")
 //		SELECT $1, $2, $3, $4, $5
+//		WHERE NOT EXISTS (SELECT * FROM updated);
+//
+// And args = ['1', '2', 'ios', 'sometoken', 'someuserid']
+//
+// For empty data, following will be generated
+//	WITH updated AS (
+//		SELECT "id1", "id2" FROM schema.device_table
+//		WHERE "id1" = $1 AND "id2" = $2
+//	)
+//	INSERT INTO schema.device_table
+//		("id1", "id2")
+//		SELECT $1, $2
 //		WHERE NOT EXISTS (SELECT * FROM updated);
 //
 // And args = ['1', '2', 'ios', 'sometoken', 'someuserid']
@@ -43,47 +55,71 @@ func upsertQuery(table string, pkData map[string]interface{}, data map[string]in
 	columns, args := extractKeyAndValue(data)
 	ignoreIndex := findIgnoreIndex(columns, updateIgnore)
 
-	// generate WITH UPDATE
 	b := bytes.Buffer{}
-	b.Write([]byte(`WITH updated AS (UPDATE `))
-	b.WriteString(table)
-	b.Write([]byte(` SET(`))
+	if len(columns) > 0 {
+		// Generate with UPDATE
+		b.Write([]byte(`WITH updated AS (UPDATE `))
+		b.WriteString(table)
+		b.Write([]byte(` SET(`))
 
-	for i, column := range columns {
-		if ignoreIndex[i] {
-			continue
+		for i, column := range columns {
+			if ignoreIndex[i] {
+				continue
+			}
+			b.WriteByte('"')
+			b.WriteString(column)
+			b.Write([]byte(`",`))
 		}
-		b.WriteByte('"')
-		b.WriteString(column)
-		b.Write([]byte(`",`))
-	}
-	b.Truncate(b.Len() - 1)
+		b.Truncate(b.Len() - 1)
 
-	b.Write([]byte(`)=(`))
+		b.Write([]byte(`)=(`))
 
-	for i := len(pks); i < len(pks)+len(columns); i++ {
-		if ignoreIndex[i-len(pks)] {
-			continue
+		for i := len(pks); i < len(pks)+len(columns); i++ {
+			if ignoreIndex[i-len(pks)] {
+				continue
+			}
+			b.WriteByte('$')
+			b.WriteString(strconv.Itoa(i + 1))
+			b.WriteByte(',')
 		}
-		b.WriteByte('$')
-		b.WriteString(strconv.Itoa(i + 1))
-		b.WriteByte(',')
-	}
-	b.Truncate(b.Len() - 1)
+		b.Truncate(b.Len() - 1)
 
-	b.Write([]byte(`) WHERE `))
+		b.Write([]byte(`) WHERE `))
 
-	for i, pk := range pks {
-		b.WriteByte('"')
-		b.WriteString(pk)
-		b.Write([]byte(`" = $`))
-		b.WriteString(strconv.Itoa(i + 1))
-		b.Write([]byte(` AND `))
+		for i, pk := range pks {
+			b.WriteByte('"')
+			b.WriteString(pk)
+			b.Write([]byte(`" = $`))
+			b.WriteString(strconv.Itoa(i + 1))
+			b.Write([]byte(` AND `))
+		}
+		b.Truncate(b.Len() - 5)
+		b.Write([]byte(` RETURNING *) `))
+	} else {
+		// Generate with SELECT
+		b.Write([]byte(`WITH updated AS (SELECT `))
+		for _, pk := range pks {
+			b.WriteByte('"')
+			b.WriteString(pk)
+			b.Write([]byte(`",`))
+		}
+		b.Truncate(b.Len() - 1)
+		b.Write([]byte(` FROM `))
+		b.WriteString(table)
+		b.Write([]byte(` WHERE `))
+		for i, pk := range pks {
+			b.WriteByte('"')
+			b.WriteString(pk)
+			b.Write([]byte(`" = $`))
+			b.WriteString(strconv.Itoa(i + 1))
+			b.Write([]byte(` AND `))
+		}
+		b.Truncate(b.Len() - 5)
+		b.Write([]byte(`) `))
 	}
-	b.Truncate(b.Len() - 5)
 
 	// generate INSERT
-	b.Write([]byte(` RETURNING *) INSERT INTO `))
+	b.Write([]byte(`INSERT INTO `))
 	b.WriteString(table)
 	b.WriteByte('(')
 
