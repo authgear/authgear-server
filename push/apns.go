@@ -5,11 +5,17 @@ import (
 	"github.com/timehop/apns"
 )
 
+// private interface s.t. we can mock apns.Client in test
+type apnsSender interface {
+	Send(n apns.Notification) error
+	FailedNotifs() chan apns.NotificationResult
+}
+
 // APNSPusher pushes notification via apns
 type APNSPusher struct {
 	// we are directly coupling on apns as it seems redundant to duplicate
 	// all the payload and client logic and interfaces.
-	Client apns.Client
+	Client apnsSender
 }
 
 // NewAPNSPusher returns a new APNSPusher for use
@@ -19,13 +25,13 @@ func NewAPNSPusher(gateway string, certPath string, keyPath string) (*APNSPusher
 		return nil, err
 	}
 
-	return &APNSPusher{Client: client}, nil
+	return &APNSPusher{Client: wrappedClient{client}}, nil
 }
 
 // Init set up the notification error channel
 func (pusher *APNSPusher) Init() error {
 	go func() {
-		for result := range pusher.Client.FailedNotifs {
+		for result := range pusher.Client.FailedNotifs() {
 			log.Errorf("Failed to send notification = %s: %v", result.Notif.ID, result.Err)
 		}
 	}()
@@ -57,4 +63,17 @@ func (pusher *APNSPusher) Send(m Mapper, deviceToken string) error {
 	}
 
 	return nil
+}
+
+// wrapper of apns.Client which implement apnsSender
+type wrappedClient struct {
+	ci apns.Client
+}
+
+func (c wrappedClient) Send(n apns.Notification) error {
+	return c.ci.Send(n)
+}
+
+func (c wrappedClient) FailedNotifs() chan apns.NotificationResult {
+	return c.ci.FailedNotifs
 }

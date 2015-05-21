@@ -1,24 +1,27 @@
 package push
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
-	"testing"
-
-	// "log"
+	"encoding/json"
 	"errors"
-
-	"github.com/anachronistic/apns"
+	. "github.com/oursky/ourd/ourtest"
+	. "github.com/smartystreets/goconvey/convey"
+	"github.com/timehop/apns"
+	"testing"
 )
 
 type naiveClient struct {
-	pn   *apns.PushNotification
-	resp *apns.PushNotificationResponse
-	apns.Client
+	failedNotifs     chan apns.NotificationResult
+	lastnotification apns.Notification
+	returnerr        error
 }
 
-func (c *naiveClient) Send(pn *apns.PushNotification) *apns.PushNotificationResponse {
-	c.pn = pn
-	return c.resp
+func (c *naiveClient) Send(n apns.Notification) error {
+	c.lastnotification = n
+	return c.returnerr
+}
+
+func (c *naiveClient) FailedNotifs() chan apns.NotificationResult {
+	return c.failedNotifs
 }
 
 func TestSend(t *testing.T) {
@@ -29,10 +32,6 @@ func TestSend(t *testing.T) {
 		}
 
 		Convey("pushes notification", func() {
-			client.resp = &apns.PushNotificationResponse{
-				Success: true,
-			}
-
 			customMap := MapMapper{
 				"string":  "value",
 				"integer": 1,
@@ -45,24 +44,24 @@ func TestSend(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			pn := client.pn
-			So(pn.Get("aps"), ShouldResemble, &apns.Payload{
-				ContentAvailable: 1,
-			})
-			So(pn.DeviceToken, ShouldEqual, "deviceToken")
-			So(pn.Get("string"), ShouldEqual, "value")
-			So(pn.Get("integer"), ShouldEqual, 1)
-			So(pn.Get("nested"), ShouldResemble, map[string]interface{}{
-				"should": "correct",
-			})
+			n := client.lastnotification
+			So(n.DeviceToken, ShouldEqual, "deviceToken")
+
+			payloadJSON, _ := json.Marshal(&n.Payload)
+			So(payloadJSON, ShouldEqualJSON, `{
+	"aps": {
+		"content-available": 1
+	},
+	"string": "value",
+	"integer": 1,
+	"nested": {
+		"should": "correct"
+	}
+}`)
 		})
 
 		Convey("returns error returned from Client.Send", func() {
-			client.resp = &apns.PushNotificationResponse{
-				Success: false,
-				Error:   errors.New("apns_test: some error"),
-			}
-
+			client.returnerr = errors.New("apns_test: some error")
 			err := pusher.Send(MapMapper{}, "deviceToken")
 			So(err, ShouldResemble, errors.New("apns_test: some error"))
 		})
