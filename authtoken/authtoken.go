@@ -100,6 +100,7 @@ func (e *NotFoundError) Error() string {
 type Store interface {
 	Get(accessToken string, token *Token) error
 	Put(token *Token) error
+	Delete(accessToken string) error
 }
 
 // FileStore implements TokenStore by saving users' Token under
@@ -156,6 +157,18 @@ func (f FileStore) Put(token *Token) error {
 
 	if err := json.NewEncoder(file).Encode(token); err != nil {
 		return &NotFoundError{token.AccessToken, err}
+	}
+
+	return nil
+}
+
+// Delete removes the access token from the file store.
+//
+// Delete return an error if the token cannot removed. It is NOT
+// not an error if the token does not exist at deletion time.
+func (f FileStore) Delete(accessToken string) error {
+	if err := os.Remove(filepath.Join(string(f), accessToken)); err != nil && !os.IsNotExist(err) {
+		return err
 	}
 
 	return nil

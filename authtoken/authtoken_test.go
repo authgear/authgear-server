@@ -4,6 +4,7 @@ import (
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"io/ioutil"
+	"log"
 	"testing"
 
 	"bytes"
@@ -109,6 +110,8 @@ func TestFileStorePut(t *testing.T) {
 func TestFileStoreGet(t *testing.T) {
 	Convey("FileStore", t, func() {
 		dir := tempDir()
+		defer os.RemoveAll(dir)
+
 		store := FileStore(dir)
 		token := Token{}
 
@@ -160,9 +163,37 @@ func TestFileStoreGet(t *testing.T) {
 			err := store.Get("notexisttoken", &token)
 			So(err, ShouldHaveSameTypeAs, &NotFoundError{})
 		})
+	})
+}
 
-		Reset(func() {
-			//os.RemoveAll(dir)
+func TestFileStoreDelete(t *testing.T) {
+	Convey("FileStore", t, func() {
+		dir := tempDir()
+		// defer os.RemoveAll(dir)
+		store := FileStore(dir)
+
+		Convey("delete an existing token", func() {
+			accessTokenPath := filepath.Join(dir, "accesstoken")
+			log.Println(accessTokenPath)
+
+			So(ioutil.WriteFile(accessTokenPath, []byte(`{}`), 0644), ShouldBeNil)
+			So(exists(accessTokenPath), ShouldBeTrue)
+
+			err := store.Delete("accesstoken")
+			So(err, ShouldBeNil)
+
+			So(exists(accessTokenPath), ShouldBeFalse)
+		})
+
+		Convey("delete an not existing token", func() {
+			err := store.Delete("notexistaccesstoken")
+			So(err, ShouldBeNil)
 		})
 	})
+}
+
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
+
 }
