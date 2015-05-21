@@ -701,28 +701,32 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 		recordIDs[i].Key = ss[1]
 	}
 
-	results := []responseItem{}
-	for i, recordID := range recordIDs {
-		record := transportRecord{}
-		if err := db.Get(recordID, (*oddb.Record)(&record)); err != nil {
+	results := make([]interface{}, 0, length)
+	for _, recordID := range recordIDs {
+		var item interface{}
+		if err := db.Delete(recordID); err != nil {
 			if err == oddb.ErrRecordNotFound {
-				results[i] = newResponseItemErr(
+				item = newResponseItemErr(
 					recordID.String(),
 					oderr.ErrRecordNotFound,
 				)
 			} else {
-				results[i] = newResponseItemErr(
-					record.ID.String(),
-					oderr.NewResourceDeleteFailureErrWithStringID("record", record.ID.String()),
+				item = newResponseItemErr(
+					recordID.String(),
+					oderr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
 				)
 			}
 		} else {
-			results[i] = newResponseItem(&record)
+			item = struct {
+				ID   oddb.RecordID `json:"_id"`
+				Type string        `json:"_type"`
+			}{recordID, "record"}
 		}
+
+		results = append(results, item)
 	}
 
 	response.Result = results
-	return
 }
 
 type compRecordID struct {

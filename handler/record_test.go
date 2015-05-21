@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"github.com/oursky/ourd/oddb/oddbtest"
+	"github.com/oursky/ourd/router"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
@@ -14,8 +15,51 @@ import (
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/router"
 )
+
+func TestRecordDeleteHandler(t *testing.T) {
+	Convey("RecordDeleteHandler", t, func() {
+		note0 := oddb.Record{
+			ID: oddb.NewRecordID("note", "0"),
+		}
+		note1 := oddb.Record{
+			ID: oddb.NewRecordID("note", "1"),
+		}
+
+		db := oddbtest.NewMapDB()
+		So(db.Save(&note0), ShouldBeNil)
+		So(db.Save(&note1), ShouldBeNil)
+
+		router := newSingleRouteRouter(RecordDeleteHandler, func(p *router.Payload) {
+			p.Database = db
+		})
+
+		Convey("deletes existing records", func() {
+			resp := router.POST(`{
+	"ids": ["note/0", "note/1"]
+}`)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
+	"result": [
+		{"_id": "note/0", "_type": "record"},
+		{"_id": "note/1", "_type": "record"}
+	]
+}`)
+		})
+
+		Convey("returns error when record doesn't exist", func() {
+			resp := router.POST(`{
+	"ids": ["note/0", "note/notexistid"]
+}`)
+			So(resp.Body.Bytes(), shouldEqualJSON, `{
+	"result": [
+		{"_id": "note/0", "_type": "record"},
+		{"_id": "note/notexistid", "_type": "error", "code": 103, "message": "record not found", "type": "ResourceNotFound"}
+	]
+}`)
+
+		})
+	})
+}
 
 func TestTransportRecordMarshalJSON(t *testing.T) {
 	r := transportRecord{
