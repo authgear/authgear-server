@@ -1,6 +1,7 @@
 package handler
 
 import (
+	. "github.com/oursky/ourd/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
@@ -36,7 +37,7 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 		Convey("fetches multiple subscriptions", func() {
 			resp := r.POST(`{"device_id": "deviceid", "subscription_ids": ["0", "1"]}`)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
 		{
 			"id": "0",
@@ -57,7 +58,7 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 		Convey("fetches not existed subscriptions", func() {
 			resp := r.POST(`{"device_id": "deviceid", "subscription_ids": ["notexistid"]}`)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"_id": "notexistid",
 		"_type": "error",
@@ -71,13 +72,13 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 
 		Convey("fetches without device_id", func() {
 			resp := r.POST(`{}`)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{"error":{"type":"RequestInvalid","code":101,"message":"empty device_id"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"type":"RequestInvalid","code":101,"message":"empty device_id"}}`)
 			So(resp.Code, ShouldEqual, 400)
 		})
 
 		Convey("fetches without subscription_ids", func() {
 			resp := r.POST(`{"device_id": "deviceid"}`)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{"result": []}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"result": []}`)
 			So(resp.Code, ShouldEqual, 200)
 		})
 	})
@@ -116,7 +117,7 @@ func TestSubscriptionFetchAllHandler(t *testing.T) {
 	"device_id": "deviceid"
 }`)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"id": "0",
 		"type": "query",
@@ -141,7 +142,7 @@ func TestSubscriptionFetchAllHandler(t *testing.T) {
 		Convey("errors with empty device id", func() {
 			resp := r.POST(`{}`)
 			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{"error": {"code": 101, "message": "empty device id", "type": "RequestInvalid"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error": {"code": 101, "message": "empty device id", "type": "RequestInvalid"}}`)
 		})
 	})
 }
@@ -181,7 +182,7 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 }`)
 
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"id": "subscription_id",
 		"device_id": "somedeviceid",
@@ -251,7 +252,7 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 	}]
 }`)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"id": "sub0",
 		"device_id": "somedeviceid",
@@ -304,14 +305,14 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 }`)
 
 			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{"error":{"code":101,"message":"empty device_id","type":"RequestInvalid"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"code":101,"message":"empty device_id","type":"RequestInvalid"}}`)
 		})
 
 		Convey("errors without subscriptions", func() {
 			resp := r.POST(`{"device_id":"somedeviceid"}`)
 
 			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{"error":{"code":101,"message":"empty subscriptions","type":"RequestInvalid"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"code":101,"message":"empty subscriptions","type":"RequestInvalid"}}`)
 		})
 	})
 }
@@ -332,7 +333,7 @@ func TestSubscriptionDeleteHandler(t *testing.T) {
 		Convey("deletes multiple subscriptions", func() {
 			resp := r.POST(`{"device_id": "deviceid", "subscription_ids": ["0", "1"]}`)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
 		{"id": "0"},
 		{"id": "1"}
@@ -343,7 +344,7 @@ func TestSubscriptionDeleteHandler(t *testing.T) {
 		Convey("deletes not existed subscriptions", func() {
 			resp := r.POST(`{"device_id": "deviceid", "subscription_ids": ["notexistid"]}`)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"_id": "notexistid",
 		"_type": "error",
@@ -357,14 +358,14 @@ func TestSubscriptionDeleteHandler(t *testing.T) {
 
 		Convey("deletes without device_id", func() {
 			resp := r.POST(`{}`)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{"error":{"type":"RequestInvalid","code":101,"message":"empty device_id"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"type":"RequestInvalid","code":101,"message":"empty device_id"}}`)
 			So(resp.Code, ShouldEqual, 400)
 		})
 
 		Convey("deletes without subscription_ids", func() {
 			resp := r.POST(`{"device_id": "deviceid"}`)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{"result": []}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"result": []}`)
 		})
 	})
 }

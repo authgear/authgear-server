@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"github.com/oursky/ourd/oddb/oddbtest"
+	. "github.com/oursky/ourd/ourtest"
 	"github.com/oursky/ourd/router"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
@@ -38,7 +39,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 			resp := router.POST(`{
 	"ids": ["note/0", "note/1"]
 }`)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
 		{"_id": "note/0", "_type": "record"},
 		{"_id": "note/1", "_type": "record"}
@@ -50,7 +51,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 			resp := router.POST(`{
 	"ids": ["note/0", "note/notexistid"]
 }`)
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
 		{"_id": "note/0", "_type": "record"},
 		{"_id": "note/notexistid", "_type": "error", "code": 103, "message": "record not found", "type": "ResourceNotFound"}
@@ -318,7 +319,7 @@ func TestRecordSaveDataType(t *testing.T) {
 	}]
 }`)
 
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"_id": "type1/id1",
 		"_type": "record",
@@ -344,7 +345,7 @@ func TestRecordSaveDataType(t *testing.T) {
 	}]
 }`)
 
-			So(resp.Body.Bytes(), shouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"_id": "type1/id1",
 		"_type": "record",
