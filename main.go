@@ -154,6 +154,10 @@ func main() {
 	}
 	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
 	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
+	r.Map("auth:logout", handler.LogoutHandler,
+		fileTokenStorePreprocessor.Preprocess,
+		authenticator.Preprocess,
+	)
 
 	recordReadPreprocessors := []router.Processor{
 		fileTokenStorePreprocessor.Preprocess,

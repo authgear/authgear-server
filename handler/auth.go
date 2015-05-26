@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"time"
 
 	"github.com/oursky/ourd/authtoken"
@@ -174,5 +175,17 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 		UserID:      info.ID,
 		Email:       info.Email,
 		AccessToken: token.AccessToken,
+	}
+}
+
+// LogoutHandler receives an access token and invalidates it
+func LogoutHandler(payload *router.Payload, response *router.Response) {
+	store := payload.TokenStore
+	accessToken := payload.AccessToken()
+
+	if err := store.Delete(accessToken); err != nil {
+		if _, notfound := err.(*authtoken.NotFoundError); !notfound {
+			response.Err = oderr.NewUnknownErr(err)
+		}
 	}
 }
