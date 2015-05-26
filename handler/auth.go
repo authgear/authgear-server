@@ -42,7 +42,7 @@ func (p *signupPayload) UserID() string {
 }
 
 func (p *signupPayload) IsAnonymous() bool {
-	return p.UserID() == ""
+	return p.Email() == "" && p.Password() == "" && p.UserID() == ""
 }
 
 // SignupHandler creates an UserInfo with the supplied information.
@@ -84,6 +84,10 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 		email := p.Email()
 		password := p.Password()
 
+		if userID == "" || email == "" || password == "" {
+			response.Err = oderr.NewRequestInvalidErr(errors.New("empty user_id, email or password"))
+			return
+		}
 		info = oddb.NewUserInfo(userID, email, password)
 	}
 

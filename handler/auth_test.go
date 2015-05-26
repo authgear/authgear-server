@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/oddbtest"
@@ -228,6 +229,90 @@ func TestLoginHandlerNotFound(t *testing.T) {
 	if errorResponse != oderr.ErrUserNotFound {
 		t.Fatalf("got resp.Err = %v, want ErrUserNotFound", errorResponse)
 	}
+}
+
+type singleUserConn struct {
+	userinfo *oddb.UserInfo
+	oddb.Conn
+}
+
+func (conn *singleUserConn) CreateUser(userinfo *oddb.UserInfo) error {
+	conn.userinfo = userinfo
+	return nil
+}
+
+func TestSignupHandlerAsAnonymous(t *testing.T) {
+	Convey("SignupHandler", t, func() {
+		tokenStore := singleTokenStore{}
+		conn := singleUserConn{}
+
+		r := newSingleRouteRouter(SignupHandler, func(p *router.Payload) {
+			p.TokenStore = &tokenStore
+			p.DBConn = &conn
+		})
+
+		Convey("signs up anonymously", func() {
+			resp := r.POST(`{}`)
+
+			token := authtoken.Token(tokenStore)
+			userinfo := conn.userinfo
+
+			So(token.AccessToken, ShouldNotBeBlank)
+			So(conn.userinfo.ID, ShouldNotBeBlank)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+	"result": {
+		"user_id": "%v",
+		"access_token": "%v"
+	}
+}`, userinfo.ID, token.AccessToken))
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("errors when user id is missing", func() {
+			resp := r.POST(`{
+				"email": "john.doe@example.com",
+				"password": "iamyourfather"
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 101,
+		"type": "RequestInvalid",
+		"message": "empty user_id, email or password"
+	}
+}`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+
+		Convey("errors when email is missing", func() {
+			resp := r.POST(`{
+				"userid": "someuserid",
+				"password": "iamyourfather"
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 101,
+		"type": "RequestInvalid",
+		"message": "empty user_id, email or password"
+	}
+}`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+
+		Convey("errors when password is missing", func() {
+			resp := r.POST(`{
+				"userid": "someuserid",
+				"email": "john.doe@example.com"
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 101,
+		"type": "RequestInvalid",
+		"message": "empty user_id, email or password"
+	}
+}`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+	})
 }
 
 type deleteTokenStore struct {
