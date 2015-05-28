@@ -48,7 +48,13 @@ func ReadFileInto(config *Configuration, path string) error {
 		}
 		config.HTTP.Host = ":" + port
 	}
-	if config.DB.ImplName == "pq" && config.DB.Option == "" {
+
+	dbImplName := os.Getenv("DB_IMPL_NAME")
+	if dbImplName != "" {
+		config.DB.ImplName = dbImplName
+	}
+
+	if config.DB.ImplName == "pq" && os.Getenv("DATABASE_URL") != "" {
 		config.DB.Option = os.Getenv("DATABASE_URL")
 	}
 
