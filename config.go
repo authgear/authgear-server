@@ -26,6 +26,8 @@ type Configuration struct {
 	}
 	APNS struct {
 		Gateway  string
+		Cert     string
+		Key      string
 		CertPath string `gcfg:"cert-path"`
 		KeyPath  string `gcfg:"key-path"`
 	}
@@ -49,5 +51,17 @@ func ReadFileInto(config *Configuration, path string) error {
 	if config.DB.ImplName == "pq" && config.DB.Option == "" {
 		config.DB.Option = os.Getenv("DATABASE_URL")
 	}
+
+	shouldEnableSubscription := os.Getenv("ENABLE_SUBSCRIPTION")
+	if shouldEnableSubscription != "" {
+		config.Subscription.Enabled = shouldEnableSubscription == "1"
+	}
+
+	cert, key := os.Getenv("APNS_CERTIFICATE"), os.Getenv("APNS_PRIVATE_KEY")
+	if cert != "" && key != "" {
+		config.APNS.Cert = cert
+		config.APNS.Key = key
+	}
+
 	return nil
 }
