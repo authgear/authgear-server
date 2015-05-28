@@ -52,6 +52,11 @@ func ReadFileInto(config *Configuration, path string) error {
 		config.DB.Option = os.Getenv("DATABASE_URL")
 	}
 
+	shouldEnableSubscription := os.Getenv("ENABLE_SUBSCRIPTION")
+	if shouldEnableSubscription != "" {
+		config.Subscription.Enabled = shouldEnableSubscription == "1"
+	}
+
 	cert, key := os.Getenv("APNS_CERTIFICATE"), os.Getenv("APNS_PRIVATE_KEY")
 	if cert != "" && key != "" {
 		config.APNS.Cert = cert
