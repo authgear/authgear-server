@@ -1,14 +1,17 @@
 package handler
 
 import (
-	"github.com/oursky/ourd/oddb/oddbtest"
-	"io/ioutil"
-	"testing"
-
+	"errors"
+	"fmt"
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/oddb/oddbtest"
 	"github.com/oursky/ourd/oderr"
+	. "github.com/oursky/ourd/ourtest"
 	"github.com/oursky/ourd/router"
+	. "github.com/smartystreets/goconvey/convey"
+	"io/ioutil"
+	"testing"
 )
 
 func tempDir() string {
@@ -30,6 +33,10 @@ func (s *singleTokenStore) Get(accessToken string, token *authtoken.Token) error
 func (s *singleTokenStore) Put(token *authtoken.Token) error {
 	*s = singleTokenStore(*token)
 	return nil
+}
+
+func (s *singleTokenStore) Delete(accessToken string) error {
+	panic("Thou shalt not call Delete")
 }
 
 // Seems like a memory imlementation of oddb will make tests
@@ -222,4 +229,153 @@ func TestLoginHandlerNotFound(t *testing.T) {
 	if errorResponse != oderr.ErrUserNotFound {
 		t.Fatalf("got resp.Err = %v, want ErrUserNotFound", errorResponse)
 	}
+}
+
+type singleUserConn struct {
+	userinfo *oddb.UserInfo
+	oddb.Conn
+}
+
+func (conn *singleUserConn) CreateUser(userinfo *oddb.UserInfo) error {
+	conn.userinfo = userinfo
+	return nil
+}
+
+func TestSignupHandlerAsAnonymous(t *testing.T) {
+	Convey("SignupHandler", t, func() {
+		tokenStore := singleTokenStore{}
+		conn := singleUserConn{}
+
+		r := newSingleRouteRouter(SignupHandler, func(p *router.Payload) {
+			p.TokenStore = &tokenStore
+			p.DBConn = &conn
+		})
+
+		Convey("signs up anonymously", func() {
+			resp := r.POST(`{}`)
+
+			token := authtoken.Token(tokenStore)
+			userinfo := conn.userinfo
+
+			So(token.AccessToken, ShouldNotBeBlank)
+			So(conn.userinfo.ID, ShouldNotBeBlank)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+	"result": {
+		"user_id": "%v",
+		"access_token": "%v"
+	}
+}`, userinfo.ID, token.AccessToken))
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("errors when user id is missing", func() {
+			resp := r.POST(`{
+				"email": "john.doe@example.com",
+				"password": "iamyourfather"
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 101,
+		"type": "RequestInvalid",
+		"message": "empty user_id, email or password"
+	}
+}`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+
+		Convey("errors when email is missing", func() {
+			resp := r.POST(`{
+				"userid": "someuserid",
+				"password": "iamyourfather"
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 101,
+		"type": "RequestInvalid",
+		"message": "empty user_id, email or password"
+	}
+}`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+
+		Convey("errors when password is missing", func() {
+			resp := r.POST(`{
+				"userid": "someuserid",
+				"email": "john.doe@example.com"
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 101,
+		"type": "RequestInvalid",
+		"message": "empty user_id, email or password"
+	}
+}`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+	})
+}
+
+type deleteTokenStore struct {
+	deletedAccessToken string
+	errToReturn        error
+}
+
+func (store *deleteTokenStore) Get(accessToken string, token *authtoken.Token) error {
+	panic("Thou shalt not call Get")
+}
+
+func (store *deleteTokenStore) Put(token *authtoken.Token) error {
+	panic("Thou shalt not call Put")
+}
+
+func (store *deleteTokenStore) Delete(accessToken string) error {
+	store.deletedAccessToken = accessToken
+	return store.errToReturn
+}
+
+func TestLogoutHandler(t *testing.T) {
+	Convey("LogoutHandler", t, func() {
+		tokenStore := &deleteTokenStore{}
+		conn := oddbtest.NewMapConn()
+
+		r := newSingleRouteRouter(LogoutHandler, func(p *router.Payload) {
+			p.TokenStore = tokenStore
+			p.DBConn = conn
+		})
+
+		Convey("deletes existing access token", func() {
+			resp := r.POST(`{
+	"access_token": "someaccesstoken"
+}`)
+			So(tokenStore.deletedAccessToken, ShouldEqual, "someaccesstoken")
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("deletes non-existing access token without error", func() {
+			tokenStore.errToReturn = &authtoken.NotFoundError{}
+			resp := r.POST(`{
+	"access_token": "notexistaccesstoken"
+}`)
+			So(tokenStore.deletedAccessToken, ShouldEqual, "notexistaccesstoken")
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("fails to delete due to unknown error", func() {
+			tokenStore.errToReturn = errors.New("some interesting error")
+			resp := r.POST(`{
+	"access_token": "someaccesstoken"
+}`)
+			So(tokenStore.deletedAccessToken, ShouldEqual, "someaccesstoken")
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 1,
+		"type": "UnknownError",
+		"message": "some interesting error"
+	}
+}`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+	})
 }
