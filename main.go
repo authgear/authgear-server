@@ -102,13 +102,23 @@ func main() {
 	}
 
 	if config.Subscription.Enabled {
-		pushSender, err := push.NewAPNSPusher(config.APNS.Gateway, config.APNS.CertPath, config.APNS.KeyPath)
+		var (
+			pushSender *push.APNSPusher
+			err        error
+		)
+		if config.APNS.Cert != "" && config.APNS.Key != "" {
+			pushSender, err = push.NewAPNSPusher(config.APNS.Gateway, config.APNS.Cert, config.APNS.Key)
+		} else {
+			pushSender, err = push.NewAPNSPusherFromFiles(config.APNS.Gateway, config.APNS.CertPath, config.APNS.KeyPath)
+		}
 		if err != nil {
 			log.Fatalf("Failed to set up push sender: %v", err)
 		}
+
 		if err := pushSender.Init(); err != nil {
 			log.Fatalf("Failed to init push sender: %v", err)
 		}
+
 		subscriptionService := &subscription.Service{
 			ConnOpener:         func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) },
 			NotificationSender: pushSender,

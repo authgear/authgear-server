@@ -18,8 +18,20 @@ type APNSPusher struct {
 	Client apnsSender
 }
 
-// NewAPNSPusher returns a new APNSPusher for use
-func NewAPNSPusher(gateway string, certPath string, keyPath string) (*APNSPusher, error) {
+// NewAPNSPusher returns a new APNSPusher from content of certificate
+// and private key as string
+func NewAPNSPusher(gateway string, cert string, key string) (*APNSPusher, error) {
+	client, err := apns.NewClient(gateway, cert, key)
+	if err != nil {
+		return nil, err
+	}
+
+	return &APNSPusher{Client: wrappedClient{client}}, nil
+}
+
+// NewAPNSPusherFromFiles returns a new APNSPusher from certificate and
+// private key file
+func NewAPNSPusherFromFiles(gateway string, certPath string, keyPath string) (*APNSPusher, error) {
 	client, err := apns.NewClientWithFiles(gateway, certPath, keyPath)
 	if err != nil {
 		return nil, err
