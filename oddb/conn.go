@@ -48,6 +48,10 @@ type Conn interface {
 	// exist in the container.
 	DeleteUser(id string) error
 
+	QueryRelation(user string, name string, direction string) []UserInfo
+	AddRelation(user string, name string, targetUser string) error
+	RemoveRelation(user string, name string, targetUser string) error
+
 	GetDevice(id string, device *Device) error
 	SaveDevice(device *Device) error
 	DeleteDevice(id string) error

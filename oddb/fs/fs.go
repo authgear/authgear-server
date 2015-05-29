@@ -76,6 +76,18 @@ func (conn *fileConn) DeleteUser(id string) error {
 	return conn.userDB.Delete(id)
 }
 
+func (conn *fileConn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
+	panic("not implemented")
+}
+
+func (conn *fileConn) AddRelation(user string, name string, targetUser string) error {
+	panic("not implemented")
+}
+
+func (conn *fileConn) RemoveRelation(user string, name string, targetUser string) error {
+	panic("not implemented")
+}
+
 func (conn *fileConn) GetDevice(id string, device *oddb.Device) error {
 	return conn.deviceDB.Get(id, device)
 }

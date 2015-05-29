@@ -204,6 +204,11 @@ func main() {
 	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordReadPreprocessors...)
 	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, recordReadPreprocessors...)
 
+	// relation shares the same setof preprocessor
+	r.Map("relation:query", handler.RelationQueryHandler, recordReadPreprocessors...)
+	r.Map("relation:add", handler.RelationAddHandler, recordReadPreprocessors...)
+	r.Map("relation:remove", handler.RelationRemoveHandler, recordReadPreprocessors...)
+
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, logMiddleware(r))
 	if err != nil {

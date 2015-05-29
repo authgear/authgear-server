@@ -21,9 +21,9 @@ type AuthInfo map[string]map[string]interface{}
 
 // UserInfo contains a user's information for authentication purpose
 type UserInfo struct {
-	ID             string   `json:"id"`
+	ID             string   `json:"_id"`
 	Email          string   `json:"email,omitempty"`
-	HashedPassword []byte   `json:"password"`
+	HashedPassword []byte   `json:"password,omitempty"`
 	Auth           AuthInfo `json:"auth,omitempty"` // auth data for alternative methods
 }
 

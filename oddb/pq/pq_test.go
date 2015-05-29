@@ -216,6 +216,41 @@ func TestUserCRUD(t *testing.T) {
 	})
 }
 
+func TestRelation(t *testing.T) {
+	Convey("Conn", t, func() {
+		c := getTestConn(t)
+		addUser(t, c, "userid")
+		addUser(t, c, "friendid")
+
+		Convey("add relation", func() {
+			err := c.AddRelation("userid", "friend", "friendid")
+			So(err, ShouldBeNil)
+		})
+
+		Convey("add a user not exist relation", func() {
+			err := c.AddRelation("userid", "friend", "non-exist")
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual, "userID not exist")
+		})
+
+		Convey("remove non-exist relation", func() {
+			err := c.RemoveRelation("userid", "friend", "friendid")
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldEqual,
+				"friend relation not exist {userid} => {friendid}")
+		})
+
+		Convey("remove relation", func() {
+			err := c.AddRelation("userid", "friend", "friendid")
+			So(err, ShouldBeNil)
+			err = c.RemoveRelation("userid", "friend", "friendid")
+			So(err, ShouldBeNil)
+		})
+
+		cleanupDB(t, c)
+	})
+}
+
 func TestDevice(t *testing.T) {
 	Convey("Conn", t, func() {
 		c := getTestConn(t)

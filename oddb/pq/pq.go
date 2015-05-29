@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
@@ -26,6 +27,14 @@ var initDBOnce sync.Once
 
 func toLowerAndUnderscore(s string) string {
 	return underscoreRe.ReplaceAllLiteralString(strings.ToLower(s), "_")
+}
+
+func isForienKeyViolated(err error) bool {
+	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23503" {
+		return true
+	}
+
+	return false
 }
 
 func isUniqueViolated(err error) bool {
@@ -178,6 +187,101 @@ func (c *conn) DeleteUser(id string) error {
 		panic(fmt.Errorf("want 1 rows deleted, got %v", rowsAffected))
 	}
 
+	return nil
+}
+
+func (c *conn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
+	log.Debugf("Query Relation: %v, %v", user, name)
+	tName := "_" + name
+	var (
+		selectSql string
+		args      []interface{}
+		err       error
+	)
+	if direction == "active" {
+		selectSql, args, err = psql.Select("u.id", "u.email").
+			From(c.tableName("_user")+" AS u").
+			Join(c.tableName(tName)+" AS relation on relation.right_id = u.id").
+			Where("relation.left_id = ?", user).
+			ToSql()
+	} else {
+		selectSql, args, err = psql.Select("u.id", "u.email").
+			From(c.tableName("_user")+" AS u").
+			Join(c.tableName(tName)+" AS relation on relation.left_id = u.id").
+			Where("relation.right_id = ?", user).
+			ToSql()
+	}
+	if err != nil {
+		panic(err)
+	}
+	rows, err := c.Db.Query(selectSql, args...)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"sql":  selectSql,
+			"args": args,
+			"err":  err,
+		}).Debugln("Failed to query relation")
+		panic(err)
+	}
+	defer rows.Close()
+	results := []oddb.UserInfo{}
+	for rows.Next() {
+		var id string
+		var email string
+		if err := rows.Scan(&id, &email); err != nil {
+			panic(err)
+		}
+		userInfo := oddb.UserInfo{
+			ID:    id,
+			Email: email,
+		}
+		results = append(results, userInfo)
+	}
+	return results
+}
+
+func (c *conn) AddRelation(user string, name string, targetUser string) error {
+	tName := "_" + name
+	ralationPair := map[string]interface{}{
+		"left_id":  user,
+		"right_id": targetUser,
+	}
+	sql, args := upsertQuery(c.tableName(tName), ralationPair, nil, []string{})
+	_, err := c.Db.Exec(sql, args...)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"sql":  sql,
+			"args": args,
+			"err":  err,
+		}).Debugln("Failed to add relation")
+		if isForienKeyViolated(err) {
+			return fmt.Errorf("userID not exist")
+		}
+	}
+
+	return err
+}
+
+func (c *conn) RemoveRelation(user string, name string, targetUser string) error {
+	log.Debug("Remove Relation", user, name, targetUser)
+	tName := "_" + name
+	result, err := psql.Delete(c.tableName(tName)).
+		Where("left_id = ? AND right_id = ?", user, targetUser).
+		RunWith(c.Db.DB).
+		Exec()
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return fmt.Errorf("%v relation not exist {%v} => {%v}",
+			name, user, targetUser)
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+	}
 	return nil
 }
 
@@ -370,6 +474,19 @@ CREATE TABLE IF NOT EXISTS %[1]v._subscription (
 );
 `
 
+	const CreateRelationTableFmt = `
+CREATE TABLE IF NOT EXISTS %[1]v._friend (
+	left_id text NOT NULL,
+	right_id text REFERENCES %[1]v._user (id) NOT NULL,
+	PRIMARY KEY(left_id, right_id)
+);
+CREATE TABLE IF NOT EXISTS %[1]v._follow (
+	left_id text NOT NULL,
+	right_id text REFERENCES %[1]v._user (id) NOT NULL,
+	PRIMARY KEY(left_id, right_id)
+);
+`
+
 	schemaName := "app_" + toLowerAndUnderscore(appName)
 
 	createSchemaStmt := fmt.Sprintf(CreateSchemaFmt, schemaName)
@@ -390,6 +507,11 @@ CREATE TABLE IF NOT EXISTS %[1]v._subscription (
 	createSubscriptionTableSmt := fmt.Sprintf(CreateSubscriptionTableFmt, schemaName)
 	if _, err := db.Exec(createSubscriptionTableSmt); err != nil {
 		return fmt.Errorf("failed to create subscription table: %s", err)
+	}
+
+	createRelationTableSmt := fmt.Sprintf(CreateRelationTableFmt, schemaName)
+	if _, err := db.Exec(createRelationTableSmt); err != nil {
+		return fmt.Errorf("failed to create relation table: %s", err)
 	}
 
 	return nil
