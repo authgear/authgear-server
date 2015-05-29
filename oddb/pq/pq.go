@@ -399,7 +399,7 @@ func Open(appName, connString string) (oddb.Conn, error) {
 	)
 
 	dbsMutex.RLock()
-	db, ok := dbs[appName]
+	db, ok := dbs[connString]
 	dbsMutex.RUnlock()
 
 	if ok {
@@ -407,18 +407,12 @@ func Open(appName, connString string) (oddb.Conn, error) {
 	}
 
 	dbsMutex.Lock()
-	db, ok = dbs[appName]
+	db, ok = dbs[connString]
 	if !ok {
 		db, err = sqlx.Open("postgres", connString)
-		if err == nil {
-			if err = initAppDB(db, appName); err != nil {
-				db.Close()
-				db = nil
-			}
-		}
 		if db != nil {
 			db.SetMaxOpenConns(10)
-			dbs[appName] = db
+			dbs[connString] = db
 		}
 	}
 	dbsMutex.Unlock()
@@ -430,6 +424,10 @@ DB_OBTAINED:
 
 	// TODO: it might be desirable to init DB in start-up time.
 	initDBOnce.Do(func() { mustInitDB(db) })
+
+	if err := initAppDB(db, appName); err != nil {
+		return nil, fmt.Errorf("failed to init db: %s", err)
+	}
 
 	return &conn{
 		Db:      db,
