@@ -24,6 +24,8 @@ var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 var underscoreRe = regexp.MustCompile(`[.:]`)
 
 var initDBOnce sync.Once
+var dbs = map[string]*sqlx.DB{}
+var dbsMutex sync.RWMutex
 
 func toLowerAndUnderscore(s string) string {
 	return underscoreRe.ReplaceAllLiteralString(strings.ToLower(s), "_")
@@ -391,17 +393,43 @@ func (db *database) tableName(table string) string {
 
 // Open returns a new connection to postgresql implementation
 func Open(appName, connString string) (oddb.Conn, error) {
-	db, err := sqlx.Open("postgres", connString)
+	var (
+		db  *sqlx.DB
+		err error
+	)
+
+	dbsMutex.RLock()
+	db, ok := dbs[appName]
+	dbsMutex.RUnlock()
+
+	if ok {
+		goto DB_OBTAINED
+	}
+
+	dbsMutex.Lock()
+	db, ok = dbs[appName]
+	if !ok {
+		db, err = sqlx.Open("postgres", connString)
+		if err == nil {
+			if err = initAppDB(db, appName); err != nil {
+				db.Close()
+				db = nil
+			}
+		}
+		if db != nil {
+			db.SetMaxOpenConns(10)
+			dbs[appName] = db
+		}
+	}
+	dbsMutex.Unlock()
+
+DB_OBTAINED:
 	if err != nil {
 		return nil, fmt.Errorf("failed to open connection: %s", err)
 	}
 
 	// TODO: it might be desirable to init DB in start-up time.
 	initDBOnce.Do(func() { mustInitDB(db) })
-
-	if err := initAppDB(db, appName); err != nil {
-		return nil, err
-	}
 
 	return &conn{
 		Db:      db,
