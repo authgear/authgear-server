@@ -169,6 +169,37 @@ func TestUserCRUD(t *testing.T) {
 			})
 		})
 
+		Convey("query for empty", func() {
+			userinfo.Email = ""
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			emails := []string{""}
+			results, err := c.QueryUser(emails)
+			So(err, ShouldBeNil)
+			So(len(results), ShouldEqual, 0)
+		})
+
+		Convey("query for users", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			userinfo.Email = "jane.doe@example.com"
+			userinfo.ID = "userid2"
+			So(c.CreateUser(&userinfo), ShouldBeNil)
+
+			emails := []string{"john.doe@example.com", "jane.doe@example.com"}
+			results, err := c.QueryUser(emails)
+			So(err, ShouldBeNil)
+
+			userids := []string{}
+			for _, userinfo := range results {
+				userids = append(userids, userinfo.ID)
+			}
+			So(userids, ShouldContain, "userid")
+			So(userids, ShouldContain, "userid2")
+		})
+
 		Convey("returns ErrUserNotFound when the user to update does not exist", func() {
 			err := c.UpdateUser(&userinfo)
 			So(err, ShouldEqual, oddb.ErrUserNotFound)
@@ -800,6 +831,13 @@ func TestQuery(t *testing.T) {
 			userinfo := oddb.UserInfo{}
 			err := c.GetUser("notexistuserid", &userinfo)
 			So(err, ShouldEqual, oddb.ErrUserNotFound)
+		})
+
+		Convey("query no users", func() {
+			emails := []string{"user@example.com"}
+			result, err := c.QueryUser(emails)
+			So(err, ShouldBeNil)
+			So(len(result), ShouldEqual, 0)
 		})
 
 		Convey("updates no users", func() {
