@@ -49,6 +49,11 @@ func ReadFileInto(config *Configuration, path string) error {
 		config.HTTP.Host = ":" + port
 	}
 
+	appAPIKey := os.Getenv("API_KEY")
+	if appAPIKey != "" {
+		config.App.APIKey = appAPIKey
+	}
+
 	dbImplName := os.Getenv("DB_IMPL_NAME")
 	if dbImplName != "" {
 		config.DB.ImplName = dbImplName
