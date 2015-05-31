@@ -10,6 +10,10 @@ type queryPayload struct {
 	Emails []string `json:"emails"`
 }
 
+type updatePayload struct {
+	Email string `json:"email"`
+}
+
 func UserQueryHandler(payload *router.Payload, response *router.Response) {
 	qp := queryPayload{}
 	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
@@ -43,5 +47,30 @@ func UserQueryHandler(payload *router.Payload, response *router.Response) {
 		}
 	}
 	response.Result = results
+	return
+}
+
+func UserUpdateHandler(payload *router.Payload, response *router.Response) {
+	p := updatePayload{}
+	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:  &p,
+		TagName: "json",
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	if err := mapDecoder.Decode(payload.Data); err != nil {
+		response.Err = oderr.NewRequestInvalidErr(err)
+		return
+	}
+
+	payload.UserInfo.Email = p.Email
+
+	if err := payload.DBConn.UpdateUser(payload.UserInfo); err != nil {
+		response.Err = err
+		return
+	}
+
 	return
 }

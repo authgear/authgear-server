@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/oursky/ourd/oddb/oddbtest"
 	. "github.com/oursky/ourd/ourtest"
 	"github.com/oursky/ourd/router"
 	. "github.com/smartystreets/goconvey/convey"
@@ -71,6 +72,32 @@ func TestUserQueryHandler(t *testing.T) {
 		{"id": "user1", "type": "user", "data": {"id": "user1", "email": "jane.doe@example.com"}}
 	]
 }`)
+		})
+	})
+}
+
+func TestUserUpdateHandler(t *testing.T) {
+	Convey("UserUpdateHandler", t, func() {
+		conn := oddbtest.NewMapConn()
+		userInfo := oddb.UserInfo{
+			ID:             "user0",
+			Email:          "john.doe@example.com",
+			HashedPassword: []byte("password"),
+		}
+		conn.CreateUser(&userInfo)
+
+		router := newSingleRouteRouter(UserUpdateHandler, func(p *router.Payload) {
+			p.DBConn = conn
+			p.UserInfo = &userInfo
+		})
+
+		Convey("update email", func() {
+			resp := router.POST(`{"email": "peter.doe@example.com"}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
+
+			newUserInfo := oddb.UserInfo{}
+			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
+			So(newUserInfo.Email, ShouldEqual, "peter.doe@example.com")
 		})
 	})
 }
