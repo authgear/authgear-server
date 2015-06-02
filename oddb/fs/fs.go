@@ -73,7 +73,7 @@ func (conn *fileConn) UpdateUser(info *oddb.UserInfo) error {
 }
 
 func (conn *fileConn) QueryUser(emails []string) ([]oddb.UserInfo, error) {
-	return nil, oddb.ErrUserNotFound
+	return conn.userDB.Query(emails)
 }
 
 func (conn *fileConn) DeleteUser(id string) error {

@@ -31,7 +31,7 @@ func UserQueryHandler(payload *router.Payload, response *router.Response) {
 
 	userinfos, err := payload.DBConn.QueryUser(qp.Emails)
 	if err != nil {
-		response.Err = err
+		response.Err = oderr.NewUnknownErr(err)
 		return
 	}
 
@@ -47,7 +47,6 @@ func UserQueryHandler(payload *router.Payload, response *router.Response) {
 		}
 	}
 	response.Result = results
-	return
 }
 
 func UserUpdateHandler(payload *router.Payload, response *router.Response) {
@@ -68,9 +67,7 @@ func UserUpdateHandler(payload *router.Payload, response *router.Response) {
 	payload.UserInfo.Email = p.Email
 
 	if err := payload.DBConn.UpdateUser(payload.UserInfo); err != nil {
-		response.Err = err
+		response.Err = oderr.NewUnknownErr(err)
 		return
 	}
-
-	return
 }

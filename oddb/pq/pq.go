@@ -179,7 +179,7 @@ func (c *conn) QueryUser(emails []string) ([]oddb.UserInfo, error) {
 		results = append(results, userinfo)
 	}
 	if err == sql.ErrNoRows {
-		return nil, oddb.ErrUserNotFound
+		return nil, nil
 	}
 
 	return results, nil
