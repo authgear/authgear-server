@@ -2,6 +2,7 @@ package fs
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -48,9 +49,49 @@ func (db userDatabase) Update(info *oddb.UserInfo) error {
 	return notfoundErrFromPathError(err)
 }
 
+func (db userDatabase) Query(emails []string) ([]oddb.UserInfo, error) {
+	userinfos := []oddb.UserInfo{}
+
+	err := db.walk(func(userinfo *oddb.UserInfo) {
+		for _, needle := range emails {
+			if needle == userinfo.Email && needle != "" {
+				userinfos = append(userinfos, *userinfo)
+			}
+		}
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return userinfos, nil
+}
+
 func (db userDatabase) Delete(id string) error {
 	err := os.Remove(filepath.Join(db.Dir, id))
 	return notfoundErrFromPathError(err)
+}
+
+type userDatabaseWalkFunc func(userinfo *oddb.UserInfo)
+
+func (db userDatabase) walk(walkerfunc userDatabaseWalkFunc) error {
+	fileinfos, err := ioutil.ReadDir(db.Dir)
+	if err != nil {
+		return err
+	}
+
+	userinfo := oddb.UserInfo{}
+	for _, fileinfo := range fileinfos {
+		if !fileinfo.IsDir() && fileinfo.Name()[0] != '.' {
+			if err := db.Get(fileinfo.Name(), &userinfo); err != nil {
+				panic(err)
+			}
+
+			walkerfunc(&userinfo)
+		}
+	}
+
+	return nil
 }
 
 func writeUserInfo(dir string, info *oddb.UserInfo, flag int) error {

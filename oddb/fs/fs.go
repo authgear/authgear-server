@@ -72,6 +72,10 @@ func (conn *fileConn) UpdateUser(info *oddb.UserInfo) error {
 	return conn.userDB.Update(info)
 }
 
+func (conn *fileConn) QueryUser(emails []string) ([]oddb.UserInfo, error) {
+	return conn.userDB.Query(emails)
+}
+
 func (conn *fileConn) DeleteUser(id string) error {
 	return conn.userDB.Delete(id)
 }

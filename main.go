@@ -209,6 +209,24 @@ func main() {
 	r.Map("relation:add", handler.RelationAddHandler, recordReadPreprocessors...)
 	r.Map("relation:remove", handler.RelationRemoveHandler, recordReadPreprocessors...)
 
+	userReadPreprocessors := []router.Processor{
+		fileTokenStorePreprocessor.Preprocess,
+		authenticator.Preprocess,
+		fileSystemConnPreprocessor.Preprocess,
+		injectUserIfPresent,
+		injectDatabase,
+	}
+	userWritePreprocessors := []router.Processor{
+		fileTokenStorePreprocessor.Preprocess,
+		authenticator.Preprocess,
+		fileSystemConnPreprocessor.Preprocess,
+		injectUserIfPresent,
+		injectDatabase,
+		requireUserForWrite,
+	}
+	r.Map("user:query", handler.UserQueryHandler, userReadPreprocessors...)
+	r.Map("user:update", handler.UserUpdateHandler, userWritePreprocessors...)
+
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, logMiddleware(r))
 	if err != nil {

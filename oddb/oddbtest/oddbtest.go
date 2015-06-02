@@ -37,6 +37,10 @@ func (conn *MapConn) GetUser(id string, userinfo *oddb.UserInfo) error {
 	return nil
 }
 
+func (conn *MapConn) QueryUser(emails []string) ([]oddb.UserInfo, error) {
+	panic("not implemented")
+}
+
 // UpdateUser updates an existing UserInfo in UserMap.
 func (conn *MapConn) UpdateUser(userinfo *oddb.UserInfo) error {
 	if _, ok := conn.UserMap[userinfo.ID]; !ok {

@@ -42,6 +42,9 @@ type Conn interface {
 	// exist in the container.
 	UpdateUser(userinfo *UserInfo) error
 
+	// QueryUser queries for UserInfo matching one of the specified emails.
+	QueryUser(emails []string) ([]UserInfo, error)
+
 	// DeleteUser removes UserInfo with the supplied ID in the container.
 	//
 	// DeleteUser returns ErrUserNotFound if such UserInfo does not

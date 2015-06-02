@@ -139,6 +139,52 @@ func (c *conn) GetUser(id string, userinfo *oddb.UserInfo) error {
 	return err
 }
 
+func (c *conn) QueryUser(emails []string) ([]oddb.UserInfo, error) {
+
+	emailargs := make([]interface{}, len(emails))
+	for i, v := range emails {
+		emailargs[i] = interface{}(v)
+	}
+
+	selectSql, args, err := psql.Select("id", "email", "password", "auth").
+		From(c.tableName("_user")).
+		Where("email IN ("+sq.Placeholders(len(emailargs))+") AND email IS NOT NULL AND email != ''", emailargs...).
+		ToSql()
+	if err != nil {
+		panic(err)
+	}
+
+	rows, err := c.Db.Query(selectSql, args...)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"sql":  selectSql,
+			"args": args,
+			"err":  err,
+		}).Debugln("Failed to query user table")
+		panic(err)
+	}
+	defer rows.Close()
+	results := []oddb.UserInfo{}
+	for rows.Next() {
+		id, email, password, auth := "", "", []byte{}, authInfoValue{}
+		if err := rows.Scan(&id, &email, &password, &auth); err != nil {
+			panic(err)
+		}
+
+		userinfo := oddb.UserInfo{}
+		userinfo.ID = id
+		userinfo.Email = email
+		userinfo.HashedPassword = password
+		userinfo.Auth = oddb.AuthInfo(auth)
+		results = append(results, userinfo)
+	}
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	return results, nil
+}
+
 func (c *conn) UpdateUser(userinfo *oddb.UserInfo) error {
 	updateSql, args, err := psql.Update(c.tableName("_user")).
 		Set("email", userinfo.Email).

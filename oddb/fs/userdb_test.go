@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/oursky/ourd/oddb"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func sampleUserInfo() oddb.UserInfo {
@@ -81,6 +82,47 @@ func TestGetNotExist(t *testing.T) {
 	if err := db.Get("notexistid", &oddb.UserInfo{}); err != oddb.ErrUserNotFound {
 		t.Fatalf("got err = %v, want oddb.ErrUserNotFound", err)
 	}
+}
+
+func TestQuery(t *testing.T) {
+	Convey("Database", t, func() {
+		dir := tempDir()
+		defer os.RemoveAll(dir)
+
+		db := newUserDatabase(dir)
+		user0 := oddb.UserInfo{
+			ID:             "user0",
+			Email:          "john.doe@example.com",
+			HashedPassword: []byte("password"),
+		}
+		db.Create(&user0)
+		user1 := oddb.UserInfo{
+			ID:             "user1",
+			Email:          "jane.doe@example.com",
+			HashedPassword: []byte("password"),
+		}
+		db.Create(&user1)
+
+		Convey("query emails", func() {
+			emails := []string{"john.doe@example.com", "jane.doe@example.com"}
+			userinfos, err := db.Query(emails)
+			So(err, ShouldBeNil)
+
+			userids := []string{}
+			for _, userinfo := range userinfos {
+				userids = append(userids, userinfo.ID)
+			}
+			So(userids, ShouldContain, "user0")
+			So(userids, ShouldContain, "user1")
+		})
+
+		Convey("query non-existent email", func() {
+			emails := []string{"janedoe@example.com"}
+			userinfos, err := db.Query(emails)
+			So(err, ShouldBeNil)
+			So(len(userinfos), ShouldEqual, 0)
+		})
+	})
 }
 
 func TestUpdate(t *testing.T) {
