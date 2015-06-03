@@ -70,6 +70,9 @@ func TestTransportRecordMarshalJSON(t *testing.T) {
 			"numkey":    1,
 			"boolkey":   true,
 		},
+		ACL: oddb.NewRecordACL([]oddb.RecordACLEntry{
+			oddb.NewRecordACLEntryDirect("USER", "read"),
+		}),
 	}
 
 	expectedMap := map[string]interface{}{
@@ -77,6 +80,12 @@ func TestTransportRecordMarshalJSON(t *testing.T) {
 		// NOTE(limouren): json unmarshal numbers to float64
 		"numkey":  float64(1),
 		"boolkey": true,
+		"_access": []interface{}{
+			map[string]interface{}{
+				"relation": "$direct",
+				"level":    "read",
+				"user_id":  "USER",
+			}},
 	}
 
 	jsonBytes, err := json.Marshal(r)
@@ -124,10 +133,14 @@ func TestResponseItemMarshal(t *testing.T) {
 	record := transportRecord{
 		ID:   oddb.NewRecordID("recordtype", "recordkey"),
 		Data: map[string]interface{}{"key": "value"},
+		ACL: oddb.NewRecordACL([]oddb.RecordACLEntry{
+			oddb.NewRecordACLEntryDirect("USER", "read"),
+			oddb.NewRecordACLEntryRelation("friend", "write"),
+		}),
 	}
 
 	item := newResponseItem(&record)
-	expectedJSON := []byte(`{"_id":"recordtype/recordkey","_type":"record","key":"value"}`)
+	expectedJSON := []byte(`{"_id":"recordtype/recordkey","_type":"record","_access":[{"relation":"$direct","level":"read","user_id":"USER"},{"relation":"friend","level":"write"}],"key":"value"}`)
 
 	marshalledItem, err := json.Marshal(item)
 	if err != nil {
@@ -156,7 +169,7 @@ func TestResponseItemMarshalEmpty(t *testing.T) {
 		ID: oddb.NewRecordID("recordtype", "recordkey"),
 	}
 	item := newResponseItem(&record)
-	expectedJSON := []byte(`{"_id":"recordtype/recordkey","_type":"record"}`)
+	expectedJSON := []byte(`{"_id":"recordtype/recordkey","_type":"record","_access":null}`)
 
 	marshalled, err := json.Marshal(&item)
 	if err != nil {
@@ -323,6 +336,7 @@ func TestRecordSaveDataType(t *testing.T) {
 	"result": [{
 		"_id": "type1/id1",
 		"_type": "record",
+		"_access": null,
 		"date_value": {"$type": "date", "$date": "2015-04-10T09:35:20Z"}
 	}]
 }`)
@@ -349,6 +363,7 @@ func TestRecordSaveDataType(t *testing.T) {
 	"result": [{
 		"_id": "type1/id1",
 		"_type": "record",
+		"_access": null,
 		"ref": {"$type": "ref", "$id": "type2/id2"}
 	}]
 }`)

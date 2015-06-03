@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -239,7 +240,7 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case oddb.TypeNumber:
 			var number sql.NullFloat64
 			values = append(values, &number)
-		case oddb.TypeString, oddb.TypeReference:
+		case oddb.TypeString, oddb.TypeReference, oddb.TypeACL:
 			var str sql.NullString
 			values = append(values, &str)
 		case oddb.TypeDateTime:
@@ -273,6 +274,10 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 				schema := rs.typemap[column]
 				if schema.Type == oddb.TypeReference {
 					record.Set(column, oddb.NewReference(schema.ReferenceType, svalue.String))
+				} else if schema.Type == oddb.TypeACL {
+					acl := oddb.RecordACL{}
+					json.Unmarshal([]byte(svalue.String), &acl)
+					record.Set(column, acl)
 				} else {
 					record.Set(column, svalue.String)
 				}
@@ -387,6 +392,12 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 			schema.Type = oddb.TypeNumber
 		case TypeTimestamp:
 			schema.Type = oddb.TypeDateTime
+		case TypeJSON:
+			if columnName == "_acl" {
+				schema.Type = oddb.TypeACL
+			} else {
+				schema.Type = oddb.TypeJSON
+			}
 		}
 
 		typemap[columnName] = schema
@@ -485,7 +496,7 @@ func createTableStmt(tableName string) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("CREATE TABLE "))
 	buf.WriteString(tableName)
-	buf.Write([]byte("(_id text, _database_id text, _owner_id text,"))
+	buf.Write([]byte("(_id text, _database_id text, _owner_id text, _acl jsonb,"))
 	buf.Write([]byte("PRIMARY KEY(_id, _database_id, _owner_id), UNIQUE (_id));"))
 
 	return buf.String()

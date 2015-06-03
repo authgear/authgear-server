@@ -42,6 +42,68 @@ func (id *RecordID) UnmarshalText(data []byte) error {
 	return nil
 }
 
+// RecordACLEntry grants access to a record by relation or by user_id
+type RecordACLEntry struct {
+	Relation string `json:"relation"`
+	Level    string `json:"level"`
+	UserID   string `json:"user_id,omitempty"`
+}
+
+// Initialize RecordACLEntry from a map of access control definition
+func (entry *RecordACLEntry) InitFromMap(m map[string]interface{}) error {
+	entry.Relation, _ = m["relation"].(string)
+	if entry.Relation == "" {
+		return errors.New("missing relation field")
+	}
+
+	entry.Level, _ = m["level"].(string)
+	if entry.Level == "" {
+		return errors.New("missing level field")
+	}
+
+	entry.UserID, _ = m["user_id"].(string)
+	if entry.Relation == "" {
+		return errors.New("missing user_id field")
+	}
+
+	return nil
+}
+
+// Returns a RecordACLEntry for a relation
+func NewRecordACLEntryRelation(relation string, level string) RecordACLEntry {
+	return RecordACLEntry{relation, level, ""}
+}
+
+// Returns a RecordACLEntry for a specific user
+func NewRecordACLEntryDirect(user_id string, level string) RecordACLEntry {
+	return RecordACLEntry{"$direct", level, user_id}
+}
+
+// RecordACL is a list of ACL entries defining access control for a record
+type RecordACL []RecordACLEntry
+
+func (acl *RecordACL) InitFromArray(l []interface{}) error {
+	for i, v := range l {
+		entry := RecordACLEntry{}
+		if err := entry.InitFromMap(v.(map[string]interface{})); err != nil {
+			return fmt.Errorf(`invalid access entry at %d: %v`, i, err)
+		}
+		entries := (*[]RecordACLEntry)(acl)
+		*entries = append(*entries, entry)
+	}
+
+	return nil
+}
+
+// NewRecordACL returns a new RecordACL
+func NewRecordACL(entries []RecordACLEntry) RecordACL {
+	acl := make(RecordACL, len(entries))
+	for i, v := range entries {
+		acl[i] = v
+	}
+	return acl
+}
+
 type Reference struct {
 	ID RecordID `json:"_id"`
 }
@@ -71,10 +133,11 @@ type Data map[string]interface{}
 
 // Record is the primary entity of storage in Ourd.
 type Record struct {
-	ID         RecordID `json:"_id"`
-	Data       Data     `json:"data"`
-	DatabaseID string   `json:"-"` // empty for public database
-	OwnerID    string   `json:"-"`
+	ID         RecordID  `json:"_id"`
+	Data       Data      `json:"data"`
+	DatabaseID string    `json:"-"` // empty for public database
+	OwnerID    string    `json:"-"`
+	ACL        RecordACL `json:"_access"`
 }
 
 // Get returns the value specified by key. If no value is associated
@@ -93,6 +156,8 @@ func (r *Record) Get(key string) interface{} {
 			return r.DatabaseID
 		case "_owner_id":
 			return r.OwnerID
+		case "_acl":
+			return r.ACL
 		default:
 			return nil
 		}
@@ -116,6 +181,8 @@ func (r *Record) Set(key string, i interface{}) {
 			r.DatabaseID = i.(string)
 		case "_owner_id":
 			r.OwnerID = i.(string)
+		case "_acl":
+			r.ACL = i.(RecordACL)
 		default:
 			panic(fmt.Sprintf("unknown reserved key: %v", key))
 		}
@@ -147,4 +214,5 @@ const (
 	TypeLocation // not implemented
 	TypeDateTime
 	TypeData // not implemented
+	TypeACL
 )
