@@ -209,97 +209,52 @@ func (store *errStore) Put(token *authtoken.Token) error {
 func TestRecordSaveHandler(t *testing.T) {
 	Convey("RecordSaveHandler", t, func() {
 		db := oddbtest.NewMapDB()
-		response := router.Response{}
-
-		Convey("Saves multiple records", func() {
-			expectedRecord1 := oddb.Record{
-				ID: oddb.NewRecordID("type1", "id1"),
-				Data: map[string]interface{}{
-					"k1": "v1",
-					"k2": "v2",
-				},
-			}
-			expectedRecord2 := oddb.Record{
-				ID: oddb.NewRecordID("type2", "id2"),
-				Data: map[string]interface{}{
-					"k3": "v3",
-					"k4": "v4",
-				},
-			}
-
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"action": "record:save",
-					"records": []interface{}{
-						map[string]interface{}{
-							"_id": "type1/id1",
-							"k1":  "v1",
-							"k2":  "v2",
-						},
-						map[string]interface{}{
-							"_id": "type2/id2",
-							"k3":  "v3",
-							"k4":  "v4",
-						},
-					},
-				},
-				Database: db,
-				UserInfo: &oddb.UserInfo{},
-			}
-
-			RecordSaveHandler(&payload, &response)
-
-			So(response.Result, ShouldResemble, []responseItem{
-				newResponseItem((*transportRecord)(&expectedRecord1)),
-				newResponseItem((*transportRecord)(&expectedRecord2)),
-			})
-
-			record1 := oddb.Record{}
-			record2 := oddb.Record{}
-
-			err := db.Get(oddb.NewRecordID("type1", "id1"), &record1)
-			So(err, ShouldBeNil)
-			err = db.Get(oddb.NewRecordID("type2", "id2"), &record2)
-			So(err, ShouldBeNil)
-
-			So(record1, ShouldResemble, expectedRecord1)
-			So(record2, ShouldResemble, expectedRecord2)
+		r := newSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+			payload.Database = db
 		})
 
-		Convey("Removes reversed key on save", func() {
-			expectedRecord := oddb.Record{
-				ID: oddb.NewRecordID("type1", "id1"),
-				Data: map[string]interface{}{
-					"floatkey": float64(1),
-				},
-			}
+		Convey("Saves multiple records", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "type1/id1",
+					"k1": "v1",
+					"k2": "v2"
+				}, {
+					"_id": "type2/id2",
+					"k3": "v3",
+					"k4": "v4"
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "type1/id1",
+					"_type": "record",
+					"k1": "v1",
+					"k2": "v2"
+				}, {
+					"_id": "type2/id2",
+					"_type": "record",
+					"k3": "v3",
+					"k4": "v4"
+				}]
+			}`)
+		})
 
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"action": "record:save",
-					"records": []interface{}{
-						map[string]interface{}{
-							"_id":           "type1/id1",
-							"floatkey":      float64(1),
-							"_reserved_key": "reserved_value",
-						},
-					},
-				},
-				Database: db,
-				UserInfo: &oddb.UserInfo{},
-			}
-
-			RecordSaveHandler(&payload, &response)
-
-			So(response.Err, ShouldBeNil)
-			So(response.Result, ShouldResemble, []responseItem{
-				newResponseItem((*transportRecord)(&expectedRecord)),
-			})
-
-			record := oddb.Record{}
-			err := db.Get(oddb.NewRecordID("type1", "id1"), &record)
-			So(err, ShouldBeNil)
-			So(record, ShouldResemble, expectedRecord)
+		Convey("Removes reserved keys on save", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "type1/id1",
+					"floatkey": 1,
+					"_reserved_key": "reserved_value"
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "type1/id1",
+					"_type": "record",
+					"floatkey": 1
+				}]
+			}`)
 		})
 	})
 }
