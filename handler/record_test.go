@@ -256,6 +256,27 @@ func TestRecordSaveHandler(t *testing.T) {
 				}]
 			}`)
 		})
+
+		Convey("Returns error if _id is missing or malformated", func() {
+			resp := r.POST(`{
+				"records": [{
+				}, {
+					"_id": "invalidkey"
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_type": "error",
+					"type": "RequestInvalid",
+					"code": 101,
+					"message": "record: required field \"_id\" not found"
+				},{
+					"_type": "error",
+					"type": "RequestInvalid",
+					"code": 101,
+					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\""
+			}]}`)
+		})
 	})
 }
 

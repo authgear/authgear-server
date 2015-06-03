@@ -65,12 +65,12 @@ func (r *transportRecord) UnmarshalJSON(data []byte) error {
 func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 	rawID, ok := m["_id"].(string)
 	if !ok {
-		return errors.New(`record/json: required field "_id" not found`)
+		return errors.New(`record: required field "_id" not found`)
 	}
 
 	ss := strings.SplitN(rawID, "/", 2)
 	if len(ss) == 1 {
-		return fmt.Errorf(`record/json: "_id" should be of format '{type}/{id}', got %#v`, rawID)
+		return fmt.Errorf(`record: "_id" should be of format '{type}/{id}', got %#v`, rawID)
 	}
 
 	recordType, id := ss[0], ss[1]
@@ -221,9 +221,14 @@ func (item responseItem) MarshalJSON() ([]byte, error) {
 		buf bytes.Buffer
 		i   interface{}
 	)
-	buf.Write([]byte(`{"_id":"`))
-	buf.WriteString(item.id)
-	buf.Write([]byte(`","_type":"`))
+	if item.id != "" {
+		buf.Write([]byte(`{"_id":"`))
+		buf.WriteString(item.id)
+		buf.Write([]byte(`",`))
+	} else {
+		buf.WriteRune('{')
+	}
+	buf.Write([]byte(`"_type":"`))
 	if item.err != nil {
 		buf.Write([]byte(`error"`))
 		i = item.err
@@ -328,7 +333,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 
 		var result responseItem
 		if item.Err() {
-			result = newResponseItemErr(item.record.ID.String(), item.err)
+			result = newResponseItemErr("", item.err)
 		} else if err := db.Save(record); err != nil {
 			log.WithFields(log.Fields{
 				"record": record,
