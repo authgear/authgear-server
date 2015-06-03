@@ -371,6 +371,9 @@ func newRecordSaveItem(mapI interface{}) recordSaveItem {
 func extendRecordSchema(db oddb.Database, items []recordSaveItem) error {
 	recordSchemaMergerMap := map[string]schemaMerger{}
 	for i := range items {
+		if items[i].Err() {
+			continue
+		}
 		recordType := items[i].record.ID.Type
 		merger, ok := recordSchemaMergerMap[recordType]
 		if !ok {

@@ -277,6 +277,27 @@ func TestRecordSaveHandler(t *testing.T) {
 					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\""
 			}]}`)
 		})
+
+		Convey("REGRESSION #119: Returns record invalid error if _id is missing or malformated", func() {
+			resp := r.POST(`{
+				"records": [{
+				}, {
+					"_id": "invalidkey"
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_type": "error",
+					"type": "RequestInvalid",
+					"code": 101,
+					"message": "record: required field \"_id\" not found"
+				},{
+					"_type": "error",
+					"type": "RequestInvalid",
+					"code": 101,
+					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\""
+			}]}`)
+		})
 	})
 }
 
@@ -338,6 +359,35 @@ func TestRecordSaveDataType(t *testing.T) {
 				},
 			})
 
+		})
+	})
+}
+
+type noExtendDatabase struct {
+	calledExtend bool
+	oddb.Database
+}
+
+func (db *noExtendDatabase) Extend(recordType string, schema oddb.RecordSchema) error {
+	db.calledExtend = true
+	return errors.New("You shalt not call Extend")
+}
+
+func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
+	Convey("RecordSaveHandler", t, func() {
+		noExtendDB := &noExtendDatabase{}
+		r := newSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+			payload.Database = noExtendDB
+		})
+
+		Convey("REGRESSION #119: Database.Extend should be called when all record are invalid", func() {
+			r.POST(`{
+				"records": [{
+				}, {
+					"_id": "invalidkey"
+				}]
+			}`)
+			So(noExtendDB.calledExtend, ShouldBeFalse)
 		})
 	})
 }
