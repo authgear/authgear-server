@@ -262,14 +262,13 @@ func (item responseItem) MarshalJSON() ([]byte, error) {
 /*
 RecordSaveHandler is dummy implementation on save/modify Records
 curl -X POST -H "Content-Type: application/json" \
-  -d @- http://192.168.1.89/ <<EOF
+  -d @- http://localhost:3000/ <<EOF
 {
     "action": "record:save",
     "access_token": "validToken",
-    "database_id": "private",
+    "database_id": "_private",
     "records": [{
-        "_id": "EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
-        "_type": "note",
+        "_id": "note/EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
         "content": "ewdsa"
     }]
 }
@@ -277,7 +276,7 @@ EOF
 
 Save with reference
 curl -X POST -H "Content-Type: application/json" \
-  -d @- http://192.168.1.89/ <<EOF
+  -d @- http://localhost:3000/ <<EOF
 {
   "action": "record:save",
   "database_id": "_private",
@@ -478,8 +477,8 @@ curl -X POST -H "Content-Type: application/json" \
 {
     "action": "record:fetch",
     "access_token": "validToken",
-    "database_id": "private",
-    "ids": ["1004", "1005"]
+    "database_id": "_private",
+    "ids": ["note/1004", "note/1005"]
 }
 EOF
 */
@@ -631,7 +630,7 @@ curl -X POST -H "Content-Type: application/json" \
 {
     "action": "record:query",
     "access_token": "validToken",
-    "database_id": "private",
+    "database_id": "_private",
     "record_type": "note",
     "sort": [
         [{"$val": "noteOrder", "$type": "desc"}, "asc"]
@@ -677,7 +676,7 @@ curl -X POST -H "Content-Type: application/json" \
     "action": "record:delete",
     "access_token": "validToken",
     "database_id": "_private",
-    "ids": ["EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8"]
+    "ids": ["note/EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8"]
 }
 EOF
 */
