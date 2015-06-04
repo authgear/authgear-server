@@ -20,11 +20,17 @@ import (
 type transportRecord oddb.Record
 
 func (r transportRecord) MarshalJSON() ([]byte, error) {
+	m := map[string]interface{}{}
+
 	// NOTE(limouren): marshalling of type/key is delegated to responseItem
-	if r.Data == nil {
-		return []byte("{}"), nil
+	if r.OwnerID != "" {
+		m["_ownerID"] = r.OwnerID
 	}
-	return json.Marshal(transportData(r.Data))
+
+	for key, value := range r.Data {
+		m[key] = value
+	}
+	return json.Marshal(transportData(m))
 }
 
 type transportData map[string]interface{}

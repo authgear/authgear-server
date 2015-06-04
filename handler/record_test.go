@@ -399,3 +399,87 @@ func TestRecordQuery(t *testing.T) {
 		})
 	})
 }
+
+// a very naive Database that alway returns the single record set onto it
+type singleRecordDatabase struct {
+	record oddb.Record
+	oddb.Database
+}
+
+func (db *singleRecordDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
+	*record = db.record
+	return nil
+}
+
+func (db *singleRecordDatabase) Save(record *oddb.Record) error {
+	*record = db.record
+	return nil
+}
+
+func (db *singleRecordDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
+	return oddb.NewRows(oddb.NewMemoryRows([]oddb.Record{db.record})), nil
+}
+
+func (db *singleRecordDatabase) Extend(recordType string, schema oddb.RecordSchema) error {
+	return nil
+}
+
+func TestRecordOwnerIDSerialization(t *testing.T) {
+	Convey("Given a record with owner id in DB", t, func() {
+		record := oddb.Record{
+			ID:      oddb.NewRecordID("type", "id"),
+			OwnerID: "ownerID",
+		}
+		db := &singleRecordDatabase{
+			record: record,
+		}
+
+		injectDBFunc := func(payload *router.Payload) {
+			payload.Database = db
+		}
+
+		Convey("fetched record serializes owner id correctly", func() {
+			resp := newSingleRouteRouter(RecordFetchHandler, injectDBFunc).POST(`{
+				"ids": ["do/notCare"]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "type/id",
+					"_type": "record",
+					"_ownerID": "ownerID"
+				}]
+			}`)
+		})
+
+		Convey("saved record serializes owner id correctly", func() {
+			resp := newSingleRouteRouter(RecordSaveHandler, injectDBFunc).POST(`{
+				"records": [{
+					"_id": "do/notCare"
+				}]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "type/id",
+					"_type": "record",
+					"_ownerID": "ownerID"
+				}]
+			}`)
+		})
+
+		Convey("queried record serializes owner id correctly", func() {
+			resp := newSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+				"record_type": "doNotCare"
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "type/id",
+					"_type": "record",
+					"_ownerID": "ownerID"
+				}]
+			}`)
+		})
+	})
+}

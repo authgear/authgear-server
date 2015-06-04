@@ -163,6 +163,10 @@ type MemoryRows struct {
 	Records         []Record
 }
 
+func NewMemoryRows(records []Record) *MemoryRows {
+	return &MemoryRows{0, records}
+}
+
 func (rs *MemoryRows) Close() error {
 	return nil
 }
