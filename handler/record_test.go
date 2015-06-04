@@ -1,22 +1,84 @@
 package handler
 
 import (
-	"bytes"
+	"errors"
+	"github.com/oursky/ourd/authtoken"
+	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/oddbtest"
 	. "github.com/oursky/ourd/ourtest"
 	"github.com/oursky/ourd/router"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
-
-	"encoding/json"
-	"errors"
-	"reflect"
-
-	"github.com/oursky/ourd/authtoken"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oderr"
 )
+
+func TestRecordFetch(t *testing.T) {
+	Convey("FetchRecordHandler", t, func() {
+		record1 := oddb.Record{ID: oddb.NewRecordID("type", "1")}
+		record2 := oddb.Record{ID: oddb.NewRecordID("type", "2")}
+		db := oddbtest.NewMapDB()
+		So(db.Save(&record1), ShouldBeNil)
+		So(db.Save(&record2), ShouldBeNil)
+
+		r := newSingleRouteRouter(RecordFetchHandler, func(payload *router.Payload) {
+			payload.Database = db
+		})
+
+		Convey("fetches multiple records", func() {
+			resp := r.POST(`{
+				"ids": ["type/1", "type/2"]
+				}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "type/1",
+					"_type": "record"
+				}, {
+					"_id": "type/2",
+					"_type": "record"
+				}]
+			}`)
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("returns error in a list when non-exist records are fetched", func() {
+			resp := r.POST(`{
+				"ids": ["type/1", "type/not-exist", "type/2"]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "type/1",
+					"_type": "record"
+				}, {
+					"_id": "type/not-exist",
+					"_type": "error",
+					"type": "ResourceNotFound",
+					"code": 103,
+					"message": "record not found"
+				}, {
+					"_id": "type/2",
+					"_type": "record"
+				}]
+			}`)
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("returns error when non-string ids is supplied", func() {
+			resp := r.POST(`{
+				"ids": [1, 2, 3]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error":{
+					"code": 101,
+					"type": "RequestInvalid",
+					"message": "expected string id"
+				}
+			}`)
+		})
+	})
+}
 
 func TestRecordDeleteHandler(t *testing.T) {
 	Convey("RecordDeleteHandler", t, func() {
@@ -60,123 +122,6 @@ func TestRecordDeleteHandler(t *testing.T) {
 
 		})
 	})
-}
-
-func TestTransportRecordMarshalJSON(t *testing.T) {
-	r := transportRecord{
-		ID: oddb.NewRecordID("recordkey", "recordtype"),
-		Data: map[string]interface{}{
-			"stringkey": "stringvalue",
-			"numkey":    1,
-			"boolkey":   true,
-		},
-	}
-
-	expectedMap := map[string]interface{}{
-		"stringkey": "stringvalue",
-		// NOTE(limouren): json unmarshal numbers to float64
-		"numkey":  float64(1),
-		"boolkey": true,
-	}
-
-	jsonBytes, err := json.Marshal(r)
-	if err != nil {
-		panic(err)
-	}
-
-	// there is no guarantee key ordering in marshalled json,
-	// so we compare the unmarshalled map
-	marshalledMap := map[string]interface{}{}
-	json.Unmarshal(jsonBytes, &marshalledMap)
-
-	if !reflect.DeepEqual(marshalledMap, expectedMap) {
-		t.Fatalf("got marshalledMap = %#v, expect %#v", marshalledMap, expectedMap)
-	}
-}
-
-func TestTransportRecordUnmarshalJSON(t *testing.T) {
-	jsonBytes := []byte(`{
-		"_id": "recordtype/recordkey",
-		"stringkey": "stringvalue",
-		"numkey": 1,
-		"boolkey": true}`)
-
-	expectedRecord := transportRecord{
-		ID: oddb.NewRecordID("recordtype", "recordkey"),
-		Data: map[string]interface{}{
-			"stringkey": "stringvalue",
-			"numkey":    float64(1),
-			"boolkey":   true,
-		},
-	}
-
-	unmarshalledRecord := transportRecord{}
-	if err := json.Unmarshal(jsonBytes, &unmarshalledRecord); err != nil {
-		panic(err)
-	}
-
-	if !reflect.DeepEqual(unmarshalledRecord, expectedRecord) {
-		t.Fatalf("got unmarshalledRecord = %#v, expect %#v", unmarshalledRecord, expectedRecord)
-	}
-}
-
-func TestResponseItemMarshal(t *testing.T) {
-	record := transportRecord{
-		ID:   oddb.NewRecordID("recordtype", "recordkey"),
-		Data: map[string]interface{}{"key": "value"},
-	}
-
-	item := newResponseItem(&record)
-	expectedJSON := []byte(`{"_id":"recordtype/recordkey","_type":"record","key":"value"}`)
-
-	marshalledItem, err := json.Marshal(item)
-	if err != nil {
-		panic(err)
-	}
-
-	if !bytes.Equal(marshalledItem, expectedJSON) {
-		t.Errorf("got marshalledItem = %s, want %s", marshalledItem, expectedJSON)
-	}
-
-	item = newResponseItemErr("recordtype/errorkey", oderr.NewUnknownErr(errors.New("a refreshing error")))
-	expectedJSON = []byte(`{"_id":"recordtype/errorkey","_type":"error","type":"UnknownError","code":1,"message":"a refreshing error"}`)
-
-	marshalledItem, err = json.Marshal(item)
-	if err != nil {
-		panic(err)
-	}
-
-	if !bytes.Equal(marshalledItem, expectedJSON) {
-		t.Errorf("got marshalledItem = %s, want %s", marshalledItem, expectedJSON)
-	}
-}
-
-func TestResponseItemMarshalEmpty(t *testing.T) {
-	record := transportRecord{
-		ID: oddb.NewRecordID("recordtype", "recordkey"),
-	}
-	item := newResponseItem(&record)
-	expectedJSON := []byte(`{"_id":"recordtype/recordkey","_type":"record"}`)
-
-	marshalled, err := json.Marshal(&item)
-	if err != nil {
-		panic(err)
-	}
-
-	if !bytes.Equal(marshalled, expectedJSON) {
-		t.Errorf("got marshalled = %s, want %s", marshalled, expectedJSON)
-	}
-
-	record.Data = map[string]interface{}{}
-	marshalled, err = json.Marshal(&item)
-	if err != nil {
-		panic(err)
-	}
-
-	if !bytes.Equal(marshalled, expectedJSON) {
-		t.Errorf("got marshalled = %s, want %s", marshalled, expectedJSON)
-	}
-
 }
 
 // TODO(limouren): refactor TokenStores commonly used in testing to
@@ -451,68 +396,6 @@ func TestRecordQuery(t *testing.T) {
 					},
 				},
 			})
-		})
-	})
-}
-
-func TestRecordFetch(t *testing.T) {
-	record1 := oddb.Record{ID: oddb.NewRecordID("type", "1")}
-	record2 := oddb.Record{ID: oddb.NewRecordID("type", "2")}
-	db := oddbtest.NewMapDB()
-	db.Save(&record1)
-	db.Save(&record2)
-
-	Convey("Given a Database", t, func() {
-		Convey("records can be fetched", func() {
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"ids": []interface{}{"type/1", "type/2"},
-				},
-				Database: db,
-			}
-			response := router.Response{}
-
-			RecordFetchHandler(&payload, &response)
-
-			So(response.Err, ShouldBeNil)
-			So(response.Result, ShouldResemble, []responseItem{
-				newResponseItem((*transportRecord)(&record1)),
-				newResponseItem((*transportRecord)(&record2)),
-			})
-		})
-
-		Convey("returns error in a list when non-exist records are fetched", func() {
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"ids": []interface{}{"type/1", "type/not-exist", "type/2"},
-				},
-				Database: db,
-			}
-			response := router.Response{}
-
-			RecordFetchHandler(&payload, &response)
-
-			So(response.Err, ShouldBeNil)
-			So(response.Result, ShouldResemble, []responseItem{
-				newResponseItem((*transportRecord)(&record1)),
-				newResponseItemErr("type/not-exist", oderr.ErrRecordNotFound),
-				newResponseItem((*transportRecord)(&record2)),
-			})
-		})
-
-		Convey("returns error when non-string ids is supplied", func() {
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"ids": []interface{}{1, 2, 3},
-				},
-				Database: db,
-			}
-			response := router.Response{}
-
-			RecordFetchHandler(&payload, &response)
-
-			So(response.Result, ShouldBeNil)
-			So(response.Err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("expected string id")))
 		})
 	})
 }
