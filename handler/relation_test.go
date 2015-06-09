@@ -42,7 +42,7 @@ func TestRelationQueryHandler(t *testing.T) {
 			resp := r.POST(`{
     "name": "friend",
     "targets": [
-        "user/some-friend"
+        "some-friend"
     ]
 }`)
 
@@ -50,26 +50,8 @@ func TestRelationQueryHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
     "result": [{
-        "_id": "user/some-friend"
+        "id": "some-friend"
     }]
-}`)
-		})
-
-		Convey("add new relation with mal-format userid", func() {
-			resp := r.POST(`{
-    "name": "friend",
-    "targets": [
-        "I am Wrong"
-    ]
-}`)
-
-			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-    "error": {
-        "type": "RequestInvalid",
-        "code": 101,
-        "message": "\"targets\" should be of format 'user/{id}', got \"I am Wrong\""
-    }
 }`)
 		})
 	})
@@ -84,7 +66,7 @@ func TestRelationQueryHandler(t *testing.T) {
 			resp := r.POST(`{
     "name": "friend",
     "targets": [
-        "user/old-friend"
+        "old-friend"
     ]
 }`)
 
@@ -92,7 +74,7 @@ func TestRelationQueryHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
     "result": [{
-        "_id": "user/old-friend"
+        "id": "old-friend"
     }]
 }`)
 		})

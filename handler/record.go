@@ -65,12 +65,12 @@ func (r *transportRecord) UnmarshalJSON(data []byte) error {
 func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 	rawID, ok := m["_id"].(string)
 	if !ok {
-		return errors.New(`record/json: required field "_id" not found`)
+		return errors.New(`record: required field "_id" not found`)
 	}
 
 	ss := strings.SplitN(rawID, "/", 2)
 	if len(ss) == 1 {
-		return fmt.Errorf(`record/json: "_id" should be of format '{type}/{id}', got %#v`, rawID)
+		return fmt.Errorf(`record: "_id" should be of format '{type}/{id}', got %#v`, rawID)
 	}
 
 	recordType, id := ss[0], ss[1]
@@ -221,9 +221,14 @@ func (item responseItem) MarshalJSON() ([]byte, error) {
 		buf bytes.Buffer
 		i   interface{}
 	)
-	buf.Write([]byte(`{"_id":"`))
-	buf.WriteString(item.id)
-	buf.Write([]byte(`","_type":"`))
+	if item.id != "" {
+		buf.Write([]byte(`{"_id":"`))
+		buf.WriteString(item.id)
+		buf.Write([]byte(`",`))
+	} else {
+		buf.WriteRune('{')
+	}
+	buf.Write([]byte(`"_type":"`))
 	if item.err != nil {
 		buf.Write([]byte(`error"`))
 		i = item.err
@@ -257,14 +262,13 @@ func (item responseItem) MarshalJSON() ([]byte, error) {
 /*
 RecordSaveHandler is dummy implementation on save/modify Records
 curl -X POST -H "Content-Type: application/json" \
-  -d @- http://192.168.1.89/ <<EOF
+  -d @- http://localhost:3000/ <<EOF
 {
     "action": "record:save",
     "access_token": "validToken",
-    "database_id": "private",
+    "database_id": "_private",
     "records": [{
-        "_id": "EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
-        "_type": "note",
+        "_id": "note/EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
         "content": "ewdsa"
     }]
 }
@@ -272,7 +276,7 @@ EOF
 
 Save with reference
 curl -X POST -H "Content-Type: application/json" \
-  -d @- http://192.168.1.89/ <<EOF
+  -d @- http://localhost:3000/ <<EOF
 {
   "action": "record:save",
   "database_id": "_private",
@@ -328,7 +332,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 
 		var result responseItem
 		if item.Err() {
-			result = newResponseItemErr(item.record.ID.String(), item.err)
+			result = newResponseItemErr("", item.err)
 		} else if err := db.Save(record); err != nil {
 			log.WithFields(log.Fields{
 				"record": record,
@@ -366,6 +370,9 @@ func newRecordSaveItem(mapI interface{}) recordSaveItem {
 func extendRecordSchema(db oddb.Database, items []recordSaveItem) error {
 	recordSchemaMergerMap := map[string]schemaMerger{}
 	for i := range items {
+		if items[i].Err() {
+			continue
+		}
 		recordType := items[i].record.ID.Type
 		merger, ok := recordSchemaMergerMap[recordType]
 		if !ok {
@@ -470,8 +477,8 @@ curl -X POST -H "Content-Type: application/json" \
 {
     "action": "record:fetch",
     "access_token": "validToken",
-    "database_id": "private",
-    "ids": ["1004", "1005"]
+    "database_id": "_private",
+    "ids": ["note/1004", "note/1005"]
 }
 EOF
 */
@@ -623,7 +630,7 @@ curl -X POST -H "Content-Type: application/json" \
 {
     "action": "record:query",
     "access_token": "validToken",
-    "database_id": "private",
+    "database_id": "_private",
     "record_type": "note",
     "sort": [
         [{"$val": "noteOrder", "$type": "desc"}, "asc"]
@@ -669,7 +676,7 @@ curl -X POST -H "Content-Type: application/json" \
     "action": "record:delete",
     "access_token": "validToken",
     "database_id": "_private",
-    "ids": ["EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8"]
+    "ids": ["note/EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8"]
 }
 EOF
 */

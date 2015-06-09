@@ -2,9 +2,7 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"strings"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -36,27 +34,8 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 				errors.New("Only active, passive and mutual direction is supported"))
 		}
 	}
-	for i, s := range result.Target {
-		log.Debug(s)
-		ss := strings.SplitN(s, "/", 2)
-		if len(ss) == 1 {
-			return oderr.NewRequestInvalidErr(fmt.Errorf(
-				`"targets" should be of format 'user/{id}', got %#v`, s))
-		}
-		if ss[0] != "user" {
-			return oderr.NewRequestInvalidErr(fmt.Errorf(
-				`"targets" should be of format 'user/{id}', got %#v`, s))
-		}
-		result.Target[i] = ss[1]
-	}
 	return nil
 }
-
-// DeviceReigsterResult is the result put onto response.Result on
-// successful call of DeviceRegisterHandler
-// type DeviceReigsterResult struct {
-// 	ID string `json:"id"`
-// }
 
 // RelationQueryHandler query user from current users' relation
 // curl -X POST -H "Content-Type: application/json" \
@@ -64,7 +43,7 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 // {
 //     "action": "relation:query",
 //     "access_token": "ACCESS_TOKEN",
-//     "type": "follow",
+//     "name": "follow",
 //     "direction": "active"
 // }
 // EOF
@@ -77,7 +56,15 @@ func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 	}
 	result := rpayload.DBConn.QueryRelation(
 		rpayload.UserInfoID, payload.Name, payload.Direction)
-	response.Result = result
+	resultList := make([]interface{}, 0, len(result))
+	for _, userinfo := range result {
+		resultList = append(resultList, struct {
+			ID   string      `json:"id"`
+			Type string      `json:"type"`
+			Data interface{} `json:"data"`
+		}{userinfo.ID, "user", userinfo})
+	}
+	response.Result = resultList
 }
 
 // RelationAddHandler add current user relation
@@ -86,10 +73,10 @@ func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 // {
 //     "action": "relation:add",
 //     "access_token": "ACCESS_TOKEN",
-//     "type": "follow",
+//     "name": "follow",
 //     "targets": [
-//         "user/1001",
-//         "user/1002"
+//         "1001",
+//         "1002"
 //     ]
 // }
 // EOF
@@ -98,12 +85,16 @@ func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 //     "request_id": "REQUEST_ID",
 //     "result": [
 //         {
-//             "_id": "user/1001",
+//             "id": "1001",
 //         },
 //         {
-//             "_id": "user/1002",
-//             "_type": "error",
-//             "message": "cannot find user"
+//             "id": "1002",
+//             "type": "error",
+//             "data": {
+//                 "type": "ResourceFetchFailure",
+//                 "code": 101,
+//                 "message": "failed to fetch user id = 1002"
+//             }
 //         }
 //     ]
 // }
@@ -114,7 +105,7 @@ func RelationAddHandler(rpayload *router.Payload, response *router.Response) {
 		response.Err = err
 		return
 	}
-	results := []interface{}{}
+	results := make([]interface{}, 0, len(payload.Target))
 	for s := range payload.Target {
 		target := payload.Target[s]
 		err := rpayload.DBConn.AddRelation(rpayload.UserInfoID, payload.Name, target)
@@ -123,15 +114,15 @@ func RelationAddHandler(rpayload *router.Payload, response *router.Response) {
 				"target": target,
 				"err":    err,
 			}).Debugln("failed to add relation")
-			results = append(results, map[string]interface{}{
-				"_id":     target,
-				"_type":   "error",
-				"message": err.Error(),
-			})
+			results = append(results, struct {
+				ID   string      `json:"id"`
+				Type string      `json:"type"`
+				Data oderr.Error `json:"data"`
+			}{target, "error", oderr.NewResourceFetchFailureErr("user", target)})
 		} else {
 			results = append(results, struct {
-				ID string `json:"_id"`
-			}{"user/" + target})
+				ID string `json:"id"`
+			}{target})
 		}
 	}
 	response.Result = results
@@ -143,10 +134,10 @@ func RelationAddHandler(rpayload *router.Payload, response *router.Response) {
 // {
 //     "action": "relation:remove",
 //     "access_token": "ACCESS_TOKEN",
-//     "type": "follow",
+//     "name": "follow",
 //     "targets": [
-//         "user/1001",
-//         "user/1002"
+//         "1001",
+//         "1002"
 //     ]
 // }
 // EOF
@@ -157,7 +148,7 @@ func RelationRemoveHandler(rpayload *router.Payload, response *router.Response) 
 		response.Err = err
 		return
 	}
-	results := []interface{}{}
+	results := make([]interface{}, 0, len(payload.Target))
 	for s := range payload.Target {
 		target := payload.Target[s]
 		err := rpayload.DBConn.RemoveRelation(rpayload.UserInfoID, payload.Name, target)
@@ -166,15 +157,15 @@ func RelationRemoveHandler(rpayload *router.Payload, response *router.Response) 
 				"target": target,
 				"err":    err,
 			}).Debugln("failed to remmove user")
-			results = append(results, map[string]interface{}{
-				"_id":     target,
-				"_type":   "error",
-				"message": err.Error(),
-			})
+			results = append(results, struct {
+				ID   string      `json:"id"`
+				Type string      `json:"type"`
+				Data interface{} `json:"data"`
+			}{target, "error", err})
 		} else {
 			results = append(results, struct {
-				ID string `json:"_id"`
-			}{"user/" + target})
+				ID string `json:"id"`
+			}{target})
 		}
 	}
 	response.Result = results
