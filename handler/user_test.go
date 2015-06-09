@@ -57,7 +57,7 @@ func TestUserQueryHandler(t *testing.T) {
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
-		{"id": "user0", "type": "user", "data": {"id": "user0", "email": "john.doe@example.com"}}
+		{"id": "user0", "type": "user", "data": {"_id": "user0", "email": "john.doe@example.com"}}
 	]
 }`)
 		})
@@ -68,8 +68,8 @@ func TestUserQueryHandler(t *testing.T) {
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
-		{"id": "user0", "type": "user", "data": {"id": "user0", "email": "john.doe@example.com"}},
-		{"id": "user1", "type": "user", "data": {"id": "user1", "email": "jane.doe@example.com"}}
+		{"id": "user0", "type": "user", "data": {"_id": "user0", "email": "john.doe@example.com"}},
+		{"id": "user1", "type": "user", "data": {"_id": "user1", "email": "jane.doe@example.com"}}
 	]
 }`)
 		})

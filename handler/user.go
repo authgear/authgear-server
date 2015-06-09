@@ -41,7 +41,7 @@ func UserQueryHandler(payload *router.Payload, response *router.Response) {
 			"id":   userinfo.ID,
 			"type": "user",
 			"data": struct {
-				ID    string `json:"id"`
+				ID    string `json:"_id"`
 				Email string `json:"email"`
 			}{userinfo.ID, userinfo.Email},
 		}
