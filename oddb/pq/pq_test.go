@@ -1,6 +1,7 @@
 package pq
 
 import (
+	"os"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -23,7 +24,14 @@ func isInvalidSchemaName(err error) bool {
 }
 
 func getTestConn(t *testing.T) *conn {
-	c, err := Open("com.oursky.ourd", "host=127.0.0.1 dbname=ourd_test sslmode=disable")
+	defaultTo := func(envvar string, value string) {
+		if os.Getenv(envvar) == "" {
+			os.Setenv(envvar, value)
+		}
+	}
+	defaultTo("PGDATABASE", "ourd_test")
+	defaultTo("PGSSLMODE", "disable")
+	c, err := Open("com.oursky.ourd", "")
 	if err != nil {
 		t.Fatal(err)
 	}
