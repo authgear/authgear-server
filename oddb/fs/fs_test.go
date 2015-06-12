@@ -50,7 +50,7 @@ func TestSave(t *testing.T) {
 		dir, db := getDatabase("fs.save", "someuserid")
 
 		Convey("saves record correctly", func() {
-			const expectedFileContent = `{"_id":"note/someid","data":{"bool":true,"number":1,"string":"string"}}
+			const expectedFileContent = `{"_id":"note/someid","data":{"bool":true,"number":1,"string":"string"},"_access":[{"relation":"friend","level":"read"}]}
 `
 			record := oddb.Record{
 				ID: oddb.NewRecordID("note", "someid"),
@@ -59,6 +59,9 @@ func TestSave(t *testing.T) {
 					"number": float64(1),
 					"bool":   true,
 				},
+				ACL: oddb.NewRecordACL([]oddb.RecordACLEntry{
+					oddb.NewRecordACLEntryRelation("friend", oddb.ReadLevel),
+				}),
 			}
 			err := db.Save(&record)
 			So(err, ShouldBeNil)

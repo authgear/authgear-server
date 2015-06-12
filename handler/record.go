@@ -21,10 +21,14 @@ type transportRecord oddb.Record
 
 func (r transportRecord) MarshalJSON() ([]byte, error) {
 	// NOTE(limouren): marshalling of type/key is delegated to responseItem
-	if r.Data == nil {
-		return []byte("{}"), nil
+	rData := map[string]interface{}{}
+
+	for k, v := range r.Data {
+		rData[k] = v
 	}
-	return json.Marshal(transportData(r.Data))
+	rData["_access"] = r.ACL
+
+	return json.Marshal(transportData(rData))
 }
 
 type transportData map[string]interface{}
@@ -77,6 +81,15 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 
 	r.ID.Key = id
 	r.ID.Type = recordType
+
+	aclData, ok := m["_access"]
+	if ok {
+		acl := oddb.RecordACL{}
+		if err := acl.InitFromArray(aclData.([]interface{})); err != nil {
+			return fmt.Errorf(`record/json: %v`, err)
+		}
+		r.ACL = acl
+	}
 
 	purgeReservedKey(m)
 	data, err := walkData(m)
@@ -269,7 +282,11 @@ curl -X POST -H "Content-Type: application/json" \
     "database_id": "_private",
     "records": [{
         "_id": "note/EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
-        "content": "ewdsa"
+        "content": "ewdsa",
+        "_access": [{
+            "relation": "friend",
+            "level": "write"
+        }]
     }]
 }
 EOF

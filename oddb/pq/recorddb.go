@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -34,6 +35,12 @@ type referenceValue oddb.Reference
 
 func (ref referenceValue) Value() (driver.Value, error) {
 	return ref.ID.Key, nil
+}
+
+type aclValue oddb.RecordACL
+
+func (acl aclValue) Value() (driver.Value, error) {
+	return json.Marshal(acl)
 }
 
 func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
@@ -105,6 +112,7 @@ func convert(r *oddb.Record) map[string]interface{} {
 		}
 	}
 	m["_owner_id"] = r.OwnerID
+	m["_access"] = aclValue(r.ACL)
 	return m
 }
 
@@ -239,7 +247,7 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case oddb.TypeNumber:
 			var number sql.NullFloat64
 			values = append(values, &number)
-		case oddb.TypeString, oddb.TypeReference:
+		case oddb.TypeString, oddb.TypeReference, oddb.TypeACL:
 			var str sql.NullString
 			values = append(values, &str)
 		case oddb.TypeDateTime:
@@ -273,6 +281,10 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 				schema := rs.typemap[column]
 				if schema.Type == oddb.TypeReference {
 					record.Set(column, oddb.NewReference(schema.ReferenceType, svalue.String))
+				} else if schema.Type == oddb.TypeACL {
+					acl := oddb.RecordACL{}
+					json.Unmarshal([]byte(svalue.String), &acl)
+					record.Set(column, acl)
 				} else {
 					record.Set(column, svalue.String)
 				}
@@ -387,6 +399,12 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 			schema.Type = oddb.TypeNumber
 		case TypeTimestamp:
 			schema.Type = oddb.TypeDateTime
+		case TypeJSON:
+			if columnName == "_access" {
+				schema.Type = oddb.TypeACL
+			} else {
+				schema.Type = oddb.TypeJSON
+			}
 		}
 
 		typemap[columnName] = schema
@@ -485,7 +503,7 @@ func createTableStmt(tableName string) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("CREATE TABLE "))
 	buf.WriteString(tableName)
-	buf.Write([]byte("(_id text, _database_id text, _owner_id text,"))
+	buf.Write([]byte("(_id text, _database_id text, _owner_id text, _access jsonb,"))
 	buf.Write([]byte("PRIMARY KEY(_id, _database_id, _owner_id), UNIQUE (_id));"))
 
 	return buf.String()
