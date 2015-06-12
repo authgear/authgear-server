@@ -37,6 +37,12 @@ func (ref referenceValue) Value() (driver.Value, error) {
 	return ref.ID.Key, nil
 }
 
+type aclValue oddb.RecordACL
+
+func (acl aclValue) Value() (driver.Value, error) {
+	return json.Marshal(acl)
+}
+
 func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
 	typemap, err := db.remoteColumnTypes(id.Type)
 	if err != nil {
@@ -106,6 +112,7 @@ func convert(r *oddb.Record) map[string]interface{} {
 		}
 	}
 	m["_owner_id"] = r.OwnerID
+	m["_access"] = aclValue(r.ACL)
 	return m
 }
 
@@ -393,7 +400,7 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 		case TypeTimestamp:
 			schema.Type = oddb.TypeDateTime
 		case TypeJSON:
-			if columnName == "_acl" {
+			if columnName == "_access" {
 				schema.Type = oddb.TypeACL
 			} else {
 				schema.Type = oddb.TypeJSON
@@ -496,7 +503,7 @@ func createTableStmt(tableName string) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("CREATE TABLE "))
 	buf.WriteString(tableName)
-	buf.Write([]byte("(_id text, _database_id text, _owner_id text, _acl jsonb,"))
+	buf.Write([]byte("(_id text, _database_id text, _owner_id text, _access jsonb,"))
 	buf.Write([]byte("PRIMARY KEY(_id, _database_id, _owner_id), UNIQUE (_id));"))
 
 	return buf.String()

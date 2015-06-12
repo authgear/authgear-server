@@ -60,7 +60,7 @@ func TestSave(t *testing.T) {
 					"bool":   true,
 				},
 				ACL: oddb.NewRecordACL([]oddb.RecordACLEntry{
-					oddb.NewRecordACLEntryRelation("friend", "read"),
+					oddb.NewRecordACLEntryRelation("friend", oddb.ReadLevel),
 				}),
 			}
 			err := db.Save(&record)

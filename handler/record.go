@@ -82,7 +82,7 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 	r.ID.Key = id
 	r.ID.Type = recordType
 
-	aclData, ok := m["access"]
+	aclData, ok := m["_access"]
 	if ok {
 		acl := oddb.RecordACL{}
 		if err := acl.InitFromArray(aclData.([]interface{})); err != nil {
@@ -276,9 +276,12 @@ curl -X POST -H "Content-Type: application/json" \
     "access_token": "validToken",
     "database_id": "private",
     "records": [{
-        "_id": "EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
-        "_type": "note",
-        "content": "ewdsa"
+        "_id": "note/EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
+        "content": "ewdsa",
+        "_access": [{
+            "relation": "friend",
+            "level": "write"
+        }]
     }]
 }
 EOF
@@ -396,7 +399,6 @@ func extendRecordSchema(db oddb.Database, items []recordSaveItem) error {
 		if err != nil {
 			return err
 		}
-
 		if err = db.Extend(recordType, schema); err != nil {
 			return err
 		}
@@ -483,7 +485,7 @@ curl -X POST -H "Content-Type: application/json" \
 {
     "action": "record:fetch",
     "access_token": "validToken",
-    "database_id": "private",
+    "database_id": "_private",
     "ids": ["1004", "1005"]
 }
 EOF
@@ -636,7 +638,7 @@ curl -X POST -H "Content-Type: application/json" \
 {
     "action": "record:query",
     "access_token": "validToken",
-    "database_id": "private",
+    "database_id": "_private",
     "record_type": "note",
     "sort": [
         [{"$val": "noteOrder", "$type": "desc"}, "asc"]

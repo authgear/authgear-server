@@ -71,7 +71,7 @@ func TestTransportRecordMarshalJSON(t *testing.T) {
 			"boolkey":   true,
 		},
 		ACL: oddb.NewRecordACL([]oddb.RecordACLEntry{
-			oddb.NewRecordACLEntryDirect("USER", "read"),
+			oddb.NewRecordACLEntryDirect("USER", oddb.ReadLevel),
 		}),
 	}
 
@@ -134,8 +134,8 @@ func TestResponseItemMarshal(t *testing.T) {
 		ID:   oddb.NewRecordID("recordtype", "recordkey"),
 		Data: map[string]interface{}{"key": "value"},
 		ACL: oddb.NewRecordACL([]oddb.RecordACLEntry{
-			oddb.NewRecordACLEntryDirect("USER", "read"),
-			oddb.NewRecordACLEntryRelation("friend", "write"),
+			oddb.NewRecordACLEntryDirect("USER", oddb.ReadLevel),
+			oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
 		}),
 	}
 

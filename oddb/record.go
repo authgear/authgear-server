@@ -44,10 +44,19 @@ func (id *RecordID) UnmarshalText(data []byte) error {
 
 // RecordACLEntry grants access to a record by relation or by user_id
 type RecordACLEntry struct {
-	Relation string `json:"relation"`
-	Level    string `json:"level"`
-	UserID   string `json:"user_id,omitempty"`
+	Relation string   `json:"relation"`
+	Level    ACLLevel `json:"level"`
+	UserID   string   `json:"user_id,omitempty"`
 }
+
+// ACLLevel represent the operation a user granted on a resource
+type ACLLevel string
+
+// ReadLevel and WriteLevel is self-explanatory
+const (
+	ReadLevel  ACLLevel = "read"
+	WriteLevel          = "write"
+)
 
 // Initialize RecordACLEntry from a map of access control definition
 func (entry *RecordACLEntry) InitFromMap(m map[string]interface{}) error {
@@ -56,8 +65,13 @@ func (entry *RecordACLEntry) InitFromMap(m map[string]interface{}) error {
 		return errors.New("missing relation field")
 	}
 
-	entry.Level, _ = m["level"].(string)
-	if entry.Level == "" {
+	level, _ := m["level"].(string)
+	switch level {
+	case "read":
+		entry.Level = ReadLevel
+	case "write":
+		entry.Level = WriteLevel
+	default:
 		return errors.New("missing level field")
 	}
 
@@ -69,13 +83,13 @@ func (entry *RecordACLEntry) InitFromMap(m map[string]interface{}) error {
 	return nil
 }
 
-// Returns a RecordACLEntry for a relation
-func NewRecordACLEntryRelation(relation string, level string) RecordACLEntry {
+// RecordACLEntry returns an ACE on relation
+func NewRecordACLEntryRelation(relation string, level ACLLevel) RecordACLEntry {
 	return RecordACLEntry{relation, level, ""}
 }
 
-// Returns a RecordACLEntry for a specific user
-func NewRecordACLEntryDirect(user_id string, level string) RecordACLEntry {
+// RecordACLEntry returns an ACE for a specific user
+func NewRecordACLEntryDirect(user_id string, level ACLLevel) RecordACLEntry {
 	return RecordACLEntry{"$direct", level, user_id}
 }
 
@@ -156,7 +170,7 @@ func (r *Record) Get(key string) interface{} {
 			return r.DatabaseID
 		case "_owner_id":
 			return r.OwnerID
-		case "_acl":
+		case "_access":
 			return r.ACL
 		default:
 			return nil
@@ -181,7 +195,7 @@ func (r *Record) Set(key string, i interface{}) {
 			r.DatabaseID = i.(string)
 		case "_owner_id":
 			r.OwnerID = i.(string)
-		case "_acl":
+		case "_access":
 			r.ACL = i.(RecordACL)
 		default:
 			panic(fmt.Sprintf("unknown reserved key: %v", key))
