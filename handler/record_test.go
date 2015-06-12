@@ -1,21 +1,15 @@
 package handler
 
 import (
-	"bytes"
+	"errors"
+	"github.com/oursky/ourd/authtoken"
+	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/oddbtest"
 	. "github.com/oursky/ourd/ourtest"
 	"github.com/oursky/ourd/router"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
-
-	"encoding/json"
-	"errors"
-	"reflect"
-
-	"github.com/oursky/ourd/authtoken"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oderr"
 )
 
 func TestRecordDeleteHandler(t *testing.T) {
@@ -61,139 +55,6 @@ func TestRecordDeleteHandler(t *testing.T) {
 		})
 	})
 }
-
-func TestTransportRecordMarshalJSON(t *testing.T) {
-	r := transportRecord{
-		ID: oddb.NewRecordID("recordkey", "recordtype"),
-		Data: map[string]interface{}{
-			"stringkey": "stringvalue",
-			"numkey":    1,
-			"boolkey":   true,
-		},
-		ACL: oddb.NewRecordACL([]oddb.RecordACLEntry{
-			oddb.NewRecordACLEntryDirect("USER", oddb.ReadLevel),
-		}),
-	}
-
-	expectedMap := map[string]interface{}{
-		"stringkey": "stringvalue",
-		// NOTE(limouren): json unmarshal numbers to float64
-		"numkey":  float64(1),
-		"boolkey": true,
-		"_access": []interface{}{
-			map[string]interface{}{
-				"relation": "$direct",
-				"level":    "read",
-				"user_id":  "USER",
-			}},
-	}
-
-	jsonBytes, err := json.Marshal(r)
-	if err != nil {
-		panic(err)
-	}
-
-	// there is no guarantee key ordering in marshalled json,
-	// so we compare the unmarshalled map
-	marshalledMap := map[string]interface{}{}
-	json.Unmarshal(jsonBytes, &marshalledMap)
-
-	if !reflect.DeepEqual(marshalledMap, expectedMap) {
-		t.Fatalf("got marshalledMap = %#v, expect %#v", marshalledMap, expectedMap)
-	}
-}
-
-func TestTransportRecordUnmarshalJSON(t *testing.T) {
-	jsonBytes := []byte(`{
-		"_id": "recordtype/recordkey",
-		"stringkey": "stringvalue",
-		"numkey": 1,
-		"boolkey": true}`)
-
-	expectedRecord := transportRecord{
-		ID: oddb.NewRecordID("recordtype", "recordkey"),
-		Data: map[string]interface{}{
-			"stringkey": "stringvalue",
-			"numkey":    float64(1),
-			"boolkey":   true,
-		},
-	}
-
-	unmarshalledRecord := transportRecord{}
-	if err := json.Unmarshal(jsonBytes, &unmarshalledRecord); err != nil {
-		panic(err)
-	}
-
-	if !reflect.DeepEqual(unmarshalledRecord, expectedRecord) {
-		t.Fatalf("got unmarshalledRecord = %#v, expect %#v", unmarshalledRecord, expectedRecord)
-	}
-}
-
-func TestResponseItemMarshal(t *testing.T) {
-	record := transportRecord{
-		ID:   oddb.NewRecordID("recordtype", "recordkey"),
-		Data: map[string]interface{}{"key": "value"},
-		ACL: oddb.NewRecordACL([]oddb.RecordACLEntry{
-			oddb.NewRecordACLEntryDirect("USER", oddb.ReadLevel),
-			oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
-		}),
-	}
-
-	item := newResponseItem(&record)
-	expectedJSON := []byte(`{"_id":"recordtype/recordkey","_type":"record","_access":[{"relation":"$direct","level":"read","user_id":"USER"},{"relation":"friend","level":"write"}],"key":"value"}`)
-
-	marshalledItem, err := json.Marshal(item)
-	if err != nil {
-		panic(err)
-	}
-
-	if !bytes.Equal(marshalledItem, expectedJSON) {
-		t.Errorf("got marshalledItem = %s, want %s", marshalledItem, expectedJSON)
-	}
-
-	item = newResponseItemErr("recordtype/errorkey", oderr.NewUnknownErr(errors.New("a refreshing error")))
-	expectedJSON = []byte(`{"_id":"recordtype/errorkey","_type":"error","type":"UnknownError","code":1,"message":"a refreshing error"}`)
-
-	marshalledItem, err = json.Marshal(item)
-	if err != nil {
-		panic(err)
-	}
-
-	if !bytes.Equal(marshalledItem, expectedJSON) {
-		t.Errorf("got marshalledItem = %s, want %s", marshalledItem, expectedJSON)
-	}
-}
-
-func TestResponseItemMarshalEmpty(t *testing.T) {
-	record := transportRecord{
-		ID: oddb.NewRecordID("recordtype", "recordkey"),
-	}
-	item := newResponseItem(&record)
-	expectedJSON := []byte(`{"_id":"recordtype/recordkey","_type":"record","_access":null}`)
-
-	marshalled, err := json.Marshal(&item)
-	if err != nil {
-		panic(err)
-	}
-
-	if !bytes.Equal(marshalled, expectedJSON) {
-		t.Errorf("got marshalled = %s, want %s", marshalled, expectedJSON)
-	}
-
-	record.Data = map[string]interface{}{}
-	marshalled, err = json.Marshal(&item)
-	if err != nil {
-		panic(err)
-	}
-
-	if !bytes.Equal(marshalled, expectedJSON) {
-		t.Errorf("got marshalled = %s, want %s", marshalled, expectedJSON)
-	}
-
-}
-
-// TODO(limouren): refactor TokenStores commonly used in testing to
-// a separate package
 
 // trueStore is a TokenStore that always noop on Put and assign itself on Get
 type trueStore authtoken.Token
@@ -473,64 +334,89 @@ func TestRecordQuery(t *testing.T) {
 	})
 }
 
-func TestRecordFetch(t *testing.T) {
-	record1 := oddb.Record{ID: oddb.NewRecordID("type", "1")}
-	record2 := oddb.Record{ID: oddb.NewRecordID("type", "2")}
-	db := oddbtest.NewMapDB()
-	db.Save(&record1)
-	db.Save(&record2)
+// a very naive Database that alway returns the single record set onto it
+type singleRecordDatabase struct {
+	record oddb.Record
+	oddb.Database
+}
 
-	Convey("Given a Database", t, func() {
-		Convey("records can be fetched", func() {
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"ids": []interface{}{"type/1", "type/2"},
-				},
-				Database: db,
-			}
-			response := router.Response{}
+func (db *singleRecordDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
+	*record = db.record
+	return nil
+}
 
-			RecordFetchHandler(&payload, &response)
+func (db *singleRecordDatabase) Save(record *oddb.Record) error {
+	*record = db.record
+	return nil
+}
 
-			So(response.Err, ShouldBeNil)
-			So(response.Result, ShouldResemble, []responseItem{
-				newResponseItem((*transportRecord)(&record1)),
-				newResponseItem((*transportRecord)(&record2)),
-			})
+func (db *singleRecordDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
+	return oddb.NewRows(oddb.NewMemoryRows([]oddb.Record{db.record})), nil
+}
+
+func (db *singleRecordDatabase) Extend(recordType string, schema oddb.RecordSchema) error {
+	return nil
+}
+
+func TestRecordOwnerIDSerialization(t *testing.T) {
+	Convey("Given a record with owner id in DB", t, func() {
+		record := oddb.Record{
+			ID:      oddb.NewRecordID("type", "id"),
+			OwnerID: "ownerID",
+		}
+		db := &singleRecordDatabase{
+			record: record,
+		}
+
+		injectDBFunc := func(payload *router.Payload) {
+			payload.Database = db
+		}
+
+		Convey("fetched record serializes owner id correctly", func() {
+			resp := newSingleRouteRouter(RecordFetchHandler, injectDBFunc).POST(`{
+				"ids": ["do/notCare"]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "type/id",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID"
+				}]
+			}`)
 		})
 
-		Convey("returns error in a list when non-exist records are fetched", func() {
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"ids": []interface{}{"type/1", "type/not-exist", "type/2"},
-				},
-				Database: db,
-			}
-			response := router.Response{}
+		Convey("saved record serializes owner id correctly", func() {
+			resp := newSingleRouteRouter(RecordSaveHandler, injectDBFunc).POST(`{
+				"records": [{
+					"_id": "do/notCare"
+				}]
+			}`)
 
-			RecordFetchHandler(&payload, &response)
-
-			So(response.Err, ShouldBeNil)
-			So(response.Result, ShouldResemble, []responseItem{
-				newResponseItem((*transportRecord)(&record1)),
-				newResponseItemErr("type/not-exist", oderr.ErrRecordNotFound),
-				newResponseItem((*transportRecord)(&record2)),
-			})
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "type/id",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID"
+				}]
+			}`)
 		})
 
-		Convey("returns error when non-string ids is supplied", func() {
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"ids": []interface{}{1, 2, 3},
-				},
-				Database: db,
-			}
-			response := router.Response{}
+		Convey("queried record serializes owner id correctly", func() {
+			resp := newSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+				"record_type": "doNotCare"
+			}`)
 
-			RecordFetchHandler(&payload, &response)
-
-			So(response.Result, ShouldBeNil)
-			So(response.Err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("expected string id")))
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "type/id",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID"
+				}]
+			}`)
 		})
 	})
 }

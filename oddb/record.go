@@ -150,7 +150,7 @@ type Record struct {
 	ID         RecordID  `json:"_id"`
 	Data       Data      `json:"data"`
 	DatabaseID string    `json:"-"` // empty for public database
-	OwnerID    string    `json:"-"`
+	OwnerID    string    `json:"_ownerID,omitempty"`
 	ACL        RecordACL `json:"_access"`
 }
 

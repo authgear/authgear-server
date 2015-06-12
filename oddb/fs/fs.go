@@ -344,7 +344,7 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 		newRecordSorter(records, query.Sorts[0]).Sort()
 	}
 
-	return oddb.NewRows(&oddb.MemoryRows{Records: records}), nil
+	return oddb.NewRows(oddb.NewMemoryRows(records)), nil
 }
 
 func (db fileDatabase) Extend(recordType string, schema oddb.RecordSchema) error {
