@@ -25,6 +25,8 @@ notifications:
   slack: oursky:PxqsclRADehuWEs51vpgxeUh
 
 before_deploy:
+  # Need to remove `.a` files because of go version mismatch between Travis
+  # and Heroku. Using `git clean` to remove all other ignored files as well.
   - pushd Godeps/_workspace; git clean -d -f -x; popd
 
 deploy:
