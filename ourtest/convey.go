@@ -25,19 +25,19 @@ func ShouldEqualJSON(actual interface{}, expected ...interface{}) string {
 		return fmt.Sprintf("%[1]v is %[1]T, not []byte or string", expected[0])
 	}
 
-	actualMap, expectedMap := map[string]interface{}{}, map[string]interface{}{}
+	var actualJSON, expectedJSON interface{}
 
-	if err := json.Unmarshal(actualBytes, &actualMap); err != nil {
+	if err := json.Unmarshal(actualBytes, &actualJSON); err != nil {
 		return fmt.Sprintf("invalid JSON of L.H.S.: %v; actual = \n%v", err, actual)
 	}
 
-	if err := json.Unmarshal(expectedBytes, &expectedMap); err != nil {
+	if err := json.Unmarshal(expectedBytes, &expectedJSON); err != nil {
 		return fmt.Sprintf("invalid JSON of R.H.S.: %v; expected = \n%v", err, expected[0])
 	}
 
-	if !reflect.DeepEqual(actualMap, expectedMap) {
+	if !reflect.DeepEqual(actualJSON, expectedJSON) {
 		return fmt.Sprintf(`Expected: '%s'
-Actual:   '%s'`, prettyPrintJSONMap(expectedMap), prettyPrintJSONMap(actualMap))
+Actual:   '%s'`, prettyPrintJSONMap(expectedJSON), prettyPrintJSONMap(actualJSON))
 	}
 
 	return ""
@@ -54,7 +54,7 @@ func interfaceToByteSlice(i interface{}) ([]byte, error) {
 	return nil, errors.New("cannot convert")
 }
 
-func prettyPrintJSONMap(m map[string]interface{}) []byte {
-	b, _ := json.Marshal(&m)
+func prettyPrintJSONMap(i interface{}) []byte {
+	b, _ := json.Marshal(&i)
 	return b
 }
