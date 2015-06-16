@@ -562,5 +562,7 @@ func pqDataType(dataType oddb.DataType) string {
 		return TypeTimestamp
 	case oddb.TypeBoolean:
 		return TypeBoolean
+	case oddb.TypeJSON:
+		return TypeJSON
 	}
 }

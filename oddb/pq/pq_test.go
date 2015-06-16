@@ -450,6 +450,23 @@ func TestExtend(t *testing.T) {
 			So(i, ShouldEqual, 1)
 		})
 
+		Convey("creates table with JSON field", func() {
+			err := db.Extend("note", oddb.RecordSchema{
+				"tags": oddb.FieldType{Type: oddb.TypeJSON},
+			})
+			So(err, ShouldBeNil)
+
+			result, err := c.Db.Exec(
+				`INSERT INTO app_com_oursky_ourd."note" ` +
+					`(_id, _database_id, _owner_id, "tags") ` +
+					`VALUES (1, 1, 1, '["tag0", "tag1"]')`)
+			So(err, ShouldBeNil)
+
+			i, err := result.RowsAffected()
+			So(err, ShouldBeNil)
+			So(i, ShouldEqual, 1)
+		})
+
 		Convey("creates table with reference", func() {
 			err := db.Extend("collection", oddb.RecordSchema{
 				"name": oddb.FieldType{Type: oddb.TypeString},
