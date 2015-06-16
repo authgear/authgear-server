@@ -37,6 +37,18 @@ func (ref referenceValue) Value() (driver.Value, error) {
 	return ref.ID.Key, nil
 }
 
+type jsonSliceValue []interface{}
+
+func (s jsonSliceValue) Value() (driver.Value, error) {
+	return json.Marshal([]interface{}(s))
+}
+
+type jsonMapValue map[string]interface{}
+
+func (m jsonMapValue) Value() (driver.Value, error) {
+	return json.Marshal(map[string]interface{}(m))
+}
+
 type aclValue oddb.RecordACL
 
 func (acl aclValue) Value() (driver.Value, error) {
@@ -104,11 +116,16 @@ func (db *database) Save(record *oddb.Record) error {
 
 func convert(r *oddb.Record) map[string]interface{} {
 	m := map[string]interface{}{}
-	for key, value := range r.Data {
-		if ref, ok := value.(oddb.Reference); ok {
-			m[key] = referenceValue(ref)
-		} else {
-			m[key] = value
+	for key, rawValue := range r.Data {
+		switch value := rawValue.(type) {
+		default:
+			m[key] = rawValue
+		case []interface{}:
+			m[key] = jsonSliceValue(value)
+		case map[string]interface{}:
+			m[key] = jsonMapValue(value)
+		case oddb.Reference:
+			m[key] = referenceValue(value)
 		}
 	}
 	m["_owner_id"] = r.OwnerID

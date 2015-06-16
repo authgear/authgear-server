@@ -11,6 +11,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/oursky/ourd/oddb"
+	. "github.com/oursky/ourd/ourtest"
 )
 
 // NOTE(limouren): postgresql uses this error to signify a non-exist
@@ -612,14 +613,18 @@ func TestSave(t *testing.T) {
 				content   string
 				number    float64
 				timestamp time.Time
+				jsonText  []byte
 				ownerID   string
 			)
-			err = c.Db.QueryRow("SELECT content, number, timestamp, _owner_id FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = ''").
-				Scan(&content, &number, &timestamp, &ownerID)
+			err = c.Db.QueryRow(
+				"SELECT content, number, timestamp, jsonfield, _owner_id "+
+					"FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = ''").
+				Scan(&content, &number, &timestamp, &jsonText, &ownerID)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "some content")
 			So(number, ShouldEqual, float64(1))
 			So(timestamp.In(time.UTC), ShouldResemble, time.Date(1988, 2, 6, 1, 1, 1, 0, time.UTC))
+			So(jsonText, ShouldEqualJSON, `["tag0", "tag1"]`)
 			So(ownerID, ShouldEqual, "user_id")
 		})
 
@@ -704,6 +709,59 @@ func TestSave(t *testing.T) {
 			err = c.Db.QueryRow(`SELECT "_owner_id" FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = ''`).
 				Scan(&ownerID)
 			So(ownerID, ShouldEqual, "user_id")
+		})
+	})
+}
+
+func TestJSON(t *testing.T) {
+	var c *conn
+	Convey("Database", t, func() {
+		c = getTestConn(t)
+		defer cleanupDB(t, c)
+
+		db := c.PublicDB()
+		So(db.Extend("note", oddb.RecordSchema{
+			"jsonfield": oddb.FieldType{Type: oddb.TypeJSON},
+		}), ShouldBeNil)
+
+		Convey("saves record field with array", func() {
+			record := oddb.Record{
+				ID:      oddb.NewRecordID("note", "1"),
+				OwnerID: "user_id",
+				Data: map[string]interface{}{
+					"jsonfield": []interface{}{0.0, "string", true},
+				},
+			}
+
+			So(db.Save(&record), ShouldBeNil)
+
+			var jsonBytes []byte
+			err := c.Db.QueryRow(`SELECT jsonfield FROM app_com_oursky_ourd.note WHERE _id = '1' and _database_id = ''`).
+				Scan(&jsonBytes)
+			So(err, ShouldBeNil)
+			So(jsonBytes, ShouldEqualJSON, `[0, "string", true]`)
+		})
+
+		Convey("saves record field with dictionary", func() {
+			record := oddb.Record{
+				ID:      oddb.NewRecordID("note", "1"),
+				OwnerID: "user_id",
+				Data: map[string]interface{}{
+					"jsonfield": map[string]interface{}{
+						"number": 1.0,
+						"string": "",
+						"bool":   false,
+					},
+				},
+			}
+
+			So(db.Save(&record), ShouldBeNil)
+
+			var jsonBytes []byte
+			err := c.Db.QueryRow(`SELECT jsonfield FROM app_com_oursky_ourd.note WHERE _id = '1' and _database_id = ''`).
+				Scan(&jsonBytes)
+			So(err, ShouldBeNil)
+			So(jsonBytes, ShouldEqualJSON, `{"number": 1, "string": "", "bool": false}`)
 		})
 	})
 }
