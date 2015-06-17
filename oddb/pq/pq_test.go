@@ -92,6 +92,7 @@ func TestUserCRUD(t *testing.T) {
 
 	Convey("Conn", t, func() {
 		c = getTestConn(t)
+		defer cleanupDB(t, c)
 
 		userinfo := oddb.UserInfo{
 			ID:             "userid",
@@ -251,14 +252,14 @@ func TestUserCRUD(t *testing.T) {
 			c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._user").Scan(&count)
 			So(count, ShouldEqual, 1)
 		})
-
-		cleanupDB(t, c)
 	})
 }
 
 func TestRelation(t *testing.T) {
 	Convey("Conn", t, func() {
 		c := getTestConn(t)
+		defer cleanupDB(t, c)
+
 		addUser(t, c, "userid")
 		addUser(t, c, "friendid")
 
@@ -286,14 +287,14 @@ func TestRelation(t *testing.T) {
 			err = c.RemoveRelation("userid", "friend", "friendid")
 			So(err, ShouldBeNil)
 		})
-
-		cleanupDB(t, c)
 	})
 }
 
 func TestDevice(t *testing.T) {
 	Convey("Conn", t, func() {
 		c := getTestConn(t)
+		defer cleanupDB(t, c)
+
 		addUser(t, c, "userid")
 
 		Convey("gets an existing Device", func() {
@@ -421,14 +422,14 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
 		})
-
-		cleanupDB(t, c)
 	})
 }
 
 func TestExtend(t *testing.T) {
 	Convey("Extend", t, func() {
 		c := getTestConn(t)
+		defer cleanupDB(t, c)
+
 		db := c.PublicDB()
 
 		Convey("creates table if not exist", func() {
@@ -534,10 +535,6 @@ func TestExtend(t *testing.T) {
 			})
 			So(err.Error(), ShouldEqual, "conflicting schema {TypeString } => {TypeNumber }")
 		})
-
-		Reset(func() {
-			cleanupDB(t, c)
-		})
 	})
 }
 
@@ -545,6 +542,7 @@ func TestGet(t *testing.T) {
 	SkipConvey("Database", t, func() {
 		c := getTestConn(t)
 		defer cleanupDB(t, c)
+
 		db := c.PrivateDB("getuser")
 		So(db.Extend("record", oddb.RecordSchema{
 			"string":   oddb.FieldType{Type: oddb.TypeString},
@@ -795,6 +793,8 @@ func TestDelete(t *testing.T) {
 	var c *conn
 	Convey("Database", t, func() {
 		c = getTestConn(t)
+		defer cleanupDB(t, c)
+
 		db := c.PrivateDB("userid")
 
 		So(db.Extend("note", oddb.RecordSchema{
@@ -832,14 +832,13 @@ func TestDelete(t *testing.T) {
 			err = otherDB.Delete(oddb.NewRecordID("note", "someid"))
 			So(err, ShouldEqual, oddb.ErrRecordNotFound)
 		})
-
-		cleanupDB(t, c)
 	})
 }
 
 func TestQuery(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
+		defer cleanupDB(t, c)
 
 		// fixture
 		record1 := oddb.Record{
@@ -928,12 +927,11 @@ func TestQuery(t *testing.T) {
 				record1,
 			})
 		})
-
-		cleanupDB(t, c)
 	})
 
 	Convey("Empty Conn", t, func() {
 		c := getTestConn(t)
+		defer cleanupDB(t, c)
 
 		Convey("gets no users", func() {
 			userinfo := oddb.UserInfo{}
@@ -999,7 +997,5 @@ func TestQuery(t *testing.T) {
 				So(records, ShouldBeEmpty)
 			})
 		})
-
-		cleanupDB(t, c)
 	})
 }
