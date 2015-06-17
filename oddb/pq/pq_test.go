@@ -613,18 +613,16 @@ func TestSave(t *testing.T) {
 				content   string
 				number    float64
 				timestamp time.Time
-				jsonText  []byte
 				ownerID   string
 			)
 			err = c.Db.QueryRow(
-				"SELECT content, number, timestamp, jsonfield, _owner_id "+
+				"SELECT content, number, timestamp, _owner_id "+
 					"FROM app_com_oursky_ourd.note WHERE _id = 'someid' and _database_id = ''").
-				Scan(&content, &number, &timestamp, &jsonText, &ownerID)
+				Scan(&content, &number, &timestamp, &ownerID)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "some content")
 			So(number, ShouldEqual, float64(1))
 			So(timestamp.In(time.UTC), ShouldResemble, time.Date(1988, 2, 6, 1, 1, 1, 0, time.UTC))
-			So(jsonText, ShouldEqualJSON, `["tag0", "tag1"]`)
 			So(ownerID, ShouldEqual, "user_id")
 		})
 
@@ -714,15 +712,42 @@ func TestSave(t *testing.T) {
 }
 
 func TestJSON(t *testing.T) {
-	var c *conn
 	Convey("Database", t, func() {
-		c = getTestConn(t)
+		c := getTestConn(t)
 		defer cleanupDB(t, c)
 
 		db := c.PublicDB()
 		So(db.Extend("note", oddb.RecordSchema{
 			"jsonfield": oddb.FieldType{Type: oddb.TypeJSON},
 		}), ShouldBeNil)
+
+		Convey("fetch record with json field", func() {
+			So(db.Extend("record", oddb.RecordSchema{
+				"array":      oddb.FieldType{Type: oddb.TypeJSON},
+				"dictionary": oddb.FieldType{Type: oddb.TypeJSON},
+			}), ShouldBeNil)
+
+			insertRow(t, c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
+				`(_database_id, _id, _owner_id, "array", "dictionary") `+
+				`VALUES ('', 'id', 'owner_id', '[1, "string", true]', '{"number": 0, "string": "value", "bool": false}')`)
+
+			var record oddb.Record
+			err := db.Get(oddb.NewRecordID("record", "id"), &record)
+			So(err, ShouldBeNil)
+
+			So(record, ShouldResemble, oddb.Record{
+				ID:      oddb.NewRecordID("record", "id"),
+				OwnerID: "owner_id",
+				Data: map[string]interface{}{
+					"array": []interface{}{float64(1), "string", true},
+					"dictionary": map[string]interface{}{
+						"number": float64(0),
+						"string": "value",
+						"bool":   false,
+					},
+				},
+			})
+		})
 
 		Convey("saves record field with array", func() {
 			record := oddb.Record{
@@ -748,7 +773,7 @@ func TestJSON(t *testing.T) {
 				OwnerID: "user_id",
 				Data: map[string]interface{}{
 					"jsonfield": map[string]interface{}{
-						"number": 1.0,
+						"number": float64(1),
 						"string": "",
 						"bool":   false,
 					},

@@ -31,6 +31,25 @@ const (
 	TypeTimestamp = "timestamp without time zone"
 )
 
+type nullJSON struct {
+	JSON  interface{}
+	Valid bool
+}
+
+func (nj *nullJSON) Scan(value interface{}) error {
+	data, ok := value.([]byte)
+	if value == nil || !ok {
+		nj.JSON = nil
+		nj.Valid = false
+		return nil
+	}
+
+	err := json.Unmarshal(data, &nj.JSON)
+	nj.Valid = err == nil
+
+	return err
+}
+
 type referenceValue oddb.Reference
 
 func (ref referenceValue) Value() (driver.Value, error) {
@@ -273,6 +292,9 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case oddb.TypeBoolean:
 			var boolean sql.NullBool
 			values = append(values, &boolean)
+		case oddb.TypeJSON:
+			var j nullJSON
+			values = append(values, &j)
 		}
 	}
 
@@ -313,6 +335,10 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case *sql.NullBool:
 			if svalue.Valid {
 				record.Set(column, svalue.Bool)
+			}
+		case *nullJSON:
+			if svalue.Valid {
+				record.Set(column, svalue.JSON)
 			}
 		}
 	}
