@@ -2,14 +2,15 @@ package handler
 
 import (
 	"errors"
+	"testing"
+	"time"
+
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/oddbtest"
 	. "github.com/oursky/ourd/ourtest"
 	"github.com/oursky/ourd/router"
 	. "github.com/smartystreets/goconvey/convey"
-	"testing"
-	"time"
 )
 
 func TestRecordDeleteHandler(t *testing.T) {
@@ -174,6 +175,23 @@ func TestRecordSaveHandler(t *testing.T) {
 					"code": 101,
 					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\""
 			}]}`)
+		})
+
+		Convey("REGRESSION #140: Save record correctly when record._access is null", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "type/id",
+					"_access": null
+				}]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_type": "record",
+					"_id": "type/id",
+					"_access": null
+				}]
+			}`)
 		})
 	})
 }

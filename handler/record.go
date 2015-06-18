@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"runtime"
 	"strings"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
@@ -65,7 +66,15 @@ func (r *transportRecord) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	return r.InitFromMap(object)
+	return r.InitFromJSON(object)
+}
+
+func (r *transportRecord) InitFromJSON(i interface{}) error {
+	if m, ok := i.(map[string]interface{}); ok {
+		return r.InitFromMap(m)
+	}
+
+	return fmt.Errorf("record: want a dictionary, got %T", i)
 }
 
 func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
@@ -87,7 +96,7 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 	aclData, ok := m["_access"]
 	if ok {
 		acl := oddb.RecordACL{}
-		if err := acl.InitFromArray(aclData.([]interface{})); err != nil {
+		if err := acl.InitFromJSON(aclData); err != nil {
 			return fmt.Errorf(`record/json: %v`, err)
 		}
 		r.ACL = acl
@@ -330,7 +339,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	for _, recordMapI := range recordMaps {
 		item := newRecordSaveItem(recordMapI)
 
-		if err := (*transportRecord)(&item.record).InitFromMap(item.m); err != nil {
+		if err := (*transportRecord)(&item.record).InitFromJSON(item.m); err != nil {
 			item.err = oderr.NewRequestInvalidErr(err)
 		}
 

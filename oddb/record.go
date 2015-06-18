@@ -58,8 +58,14 @@ const (
 	WriteLevel          = "write"
 )
 
-// Initialize RecordACLEntry from a map of access control definition
-func (entry *RecordACLEntry) InitFromMap(m map[string]interface{}) error {
+// InitFromJSON initializes a RecordACLEntry from a unmarshalled JSON of
+// access control definition
+func (entry *RecordACLEntry) InitFromJSON(i interface{}) error {
+	m, ok := i.(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("want a dictionary, got a %T", i)
+	}
+
 	entry.Relation, _ = m["relation"].(string)
 	if entry.Relation == "" {
 		return errors.New("missing relation field")
@@ -96,10 +102,21 @@ func NewRecordACLEntryDirect(user_id string, level ACLLevel) RecordACLEntry {
 // RecordACL is a list of ACL entries defining access control for a record
 type RecordACL []RecordACLEntry
 
-func (acl *RecordACL) InitFromArray(l []interface{}) error {
+// InitFromJSON initializes a RecordACL
+func (acl *RecordACL) InitFromJSON(i interface{}) error {
+	if i == nil {
+		*acl = nil
+		return nil
+	}
+
+	l, ok := i.([]interface{})
+	if !ok {
+		return fmt.Errorf("want an array, got %T", i)
+	}
+
 	for i, v := range l {
 		entry := RecordACLEntry{}
-		if err := entry.InitFromMap(v.(map[string]interface{})); err != nil {
+		if err := entry.InitFromJSON(v); err != nil {
 			return fmt.Errorf(`invalid access entry at %d: %v`, i, err)
 		}
 		entries := (*[]RecordACLEntry)(acl)
