@@ -31,10 +31,41 @@ const (
 	TypeTimestamp = "timestamp without time zone"
 )
 
+type nullJSON struct {
+	JSON  interface{}
+	Valid bool
+}
+
+func (nj *nullJSON) Scan(value interface{}) error {
+	data, ok := value.([]byte)
+	if value == nil || !ok {
+		nj.JSON = nil
+		nj.Valid = false
+		return nil
+	}
+
+	err := json.Unmarshal(data, &nj.JSON)
+	nj.Valid = err == nil
+
+	return err
+}
+
 type referenceValue oddb.Reference
 
 func (ref referenceValue) Value() (driver.Value, error) {
 	return ref.ID.Key, nil
+}
+
+type jsonSliceValue []interface{}
+
+func (s jsonSliceValue) Value() (driver.Value, error) {
+	return json.Marshal([]interface{}(s))
+}
+
+type jsonMapValue map[string]interface{}
+
+func (m jsonMapValue) Value() (driver.Value, error) {
+	return json.Marshal(map[string]interface{}(m))
 }
 
 type aclValue oddb.RecordACL
@@ -104,11 +135,16 @@ func (db *database) Save(record *oddb.Record) error {
 
 func convert(r *oddb.Record) map[string]interface{} {
 	m := map[string]interface{}{}
-	for key, value := range r.Data {
-		if ref, ok := value.(oddb.Reference); ok {
-			m[key] = referenceValue(ref)
-		} else {
-			m[key] = value
+	for key, rawValue := range r.Data {
+		switch value := rawValue.(type) {
+		default:
+			m[key] = rawValue
+		case []interface{}:
+			m[key] = jsonSliceValue(value)
+		case map[string]interface{}:
+			m[key] = jsonMapValue(value)
+		case oddb.Reference:
+			m[key] = referenceValue(value)
 		}
 	}
 	m["_owner_id"] = r.OwnerID
@@ -256,6 +292,9 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case oddb.TypeBoolean:
 			var boolean sql.NullBool
 			values = append(values, &boolean)
+		case oddb.TypeJSON:
+			var j nullJSON
+			values = append(values, &j)
 		}
 	}
 
@@ -296,6 +335,10 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case *sql.NullBool:
 			if svalue.Valid {
 				record.Set(column, svalue.Bool)
+			}
+		case *nullJSON:
+			if svalue.Valid {
+				record.Set(column, svalue.JSON)
 			}
 		}
 	}
@@ -562,5 +605,7 @@ func pqDataType(dataType oddb.DataType) string {
 		return TypeTimestamp
 	case oddb.TypeBoolean:
 		return TypeBoolean
+	case oddb.TypeJSON:
+		return TypeJSON
 	}
 }

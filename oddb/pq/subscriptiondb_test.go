@@ -2,10 +2,11 @@ package pq
 
 import (
 	"bytes"
-	"github.com/oursky/ourd/oddb"
-	. "github.com/smartystreets/goconvey/convey"
 	"math/rand"
 	"testing"
+
+	"github.com/oursky/ourd/oddb"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func addDevice(t *testing.T, c *conn, userID string, deviceID string) {
@@ -30,6 +31,8 @@ func randHex(n int) string {
 func TestSubscriptionCRUD(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
+		defer cleanupDB(t, c)
+
 		db := c.PrivateDB("userid")
 
 		// fixture
@@ -184,14 +187,14 @@ func TestSubscriptionCRUD(t *testing.T) {
 			err := db.DeleteSubscription("notexistsubscriptionid", "deviceid")
 			So(err, ShouldEqual, oddb.ErrSubscriptionNotFound)
 		})
-
-		cleanupDB(t, c)
 	})
 }
 
 func TestMatchingSubscriptions(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
+		defer cleanupDB(t, c)
+
 		db := c.PublicDB()
 
 		// fixture
@@ -220,8 +223,6 @@ func TestMatchingSubscriptions(t *testing.T) {
 			subscriptions := db.GetMatchingSubscriptions(&record)
 			So(subscriptions, ShouldBeEmpty)
 		})
-
-		cleanupDB(t, c)
 	})
 }
 
