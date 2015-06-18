@@ -153,7 +153,7 @@ func convert(r *oddb.Record) map[string]interface{} {
 }
 
 func (db *database) Delete(id oddb.RecordID) error {
-	sql, args, err := psql.Delete(db.tableName("note")).
+	sql, args, err := psql.Delete(db.tableName(id.Type)).
 		Where("_id = ? AND _database_id = ?", id.Key, db.userID).
 		ToSql()
 	if err != nil {
