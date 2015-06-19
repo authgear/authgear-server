@@ -675,6 +675,10 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
+	if payload.Data["database_id"] == "_public" {
+		query.ReadableBy = payload.UserInfo.ID
+	}
+
 	results, err := db.Query(&query)
 	if err != nil {
 		response.Err = oderr.ErrDatabaseOpenFailed
