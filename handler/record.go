@@ -187,6 +187,32 @@ func parseInterface(i interface{}) interface{} {
 	}
 }
 
+func parseExpression(i interface{}) oddb.Expression {
+	switch value := i.(type) {
+	case map[string]interface{}:
+		kindi, typed := value["$type"]
+		if typed {
+			kind, ok := kindi.(string)
+			if ok && kind == "keypath" {
+				keypath, ok := value["$val"].(string)
+				if !ok {
+					panic("$val is not string")
+				}
+
+				return oddb.Expression{
+					Type:  oddb.KeyPath,
+					Value: keypath,
+				}
+			}
+		}
+	}
+
+	return oddb.Expression{
+		Type:  oddb.Literal,
+		Value: parseInterface(i),
+	}
+}
+
 func parseDate(m map[string]interface{}) time.Time {
 	datei, ok := m["$date"]
 	if !ok {
@@ -620,6 +646,70 @@ func sortsFromRaw(rawSorts []interface{}) []oddb.Sort {
 	return sorts
 }
 
+func predicateOperatorFromString(operatorString string) oddb.Operator {
+	switch operatorString {
+	case "and":
+		return oddb.And
+	case "or":
+		return oddb.Or
+	case "not":
+		return oddb.Not
+	case "eq":
+		return oddb.Equal
+	case "gt":
+		return oddb.GreaterThan
+	case "lt":
+		return oddb.LessThan
+	case "gte":
+		return oddb.GreaterThanOrEqual
+	case "lte":
+		return oddb.LessThanOrEqual
+	case "neq":
+		return oddb.NotEqual
+	}
+	panic(operatorString)
+}
+
+func predicateFromRaw(rawPredicate []interface{}) oddb.Predicate {
+	if len(rawPredicate) < 2 {
+		panic(fmt.Errorf("got len(predicate) = %v, want at least 2", len(rawPredicate)))
+	}
+
+	rawOperator, ok := rawPredicate[0].(string)
+	if !ok {
+		panic("predicate[0] is not string")
+	}
+
+	operator := predicateOperatorFromString(rawOperator)
+	children := make([]interface{}, len(rawPredicate)-1)
+	for i := 1; i < len(rawPredicate); i++ {
+		if operator.IsCompound() {
+			subRawPredicate, ok := rawPredicate[i].([]interface{})
+			if !ok {
+				panic(fmt.Errorf("got non-dict in subpredicate at %v", i-1))
+			}
+			children[i-1] = predicateFromRaw(subRawPredicate)
+		} else {
+			expr := parseExpression(rawPredicate[i])
+			if expr.Type == oddb.KeyPath && strings.Contains(expr.Value.(string), ".") {
+
+				panic(fmt.Errorf("Key path `%s` is not supported.", expr.Value))
+			}
+			children[i-1] = expr
+		}
+	}
+
+	if operator.IsBinary() && len(children) != 2 {
+		panic(fmt.Errorf("Expected number of expressions be 2, got %v", len(children)))
+	}
+
+	predicate := oddb.Predicate{
+		Operator: operator,
+		Children: children,
+	}
+	return predicate
+}
+
 func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Error) {
 	defer func() {
 		// use panic to escape from inner error
@@ -639,6 +729,12 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 		return oderr.New(oderr.RequestInvalidErr, "recordType cannot be empty")
 	}
 	query.Type = recordType
+
+	predicateRaw, ok := payload.Data["predicate"].([]interface{})
+	if ok {
+		predicate := predicateFromRaw(predicateRaw)
+		query.Predicate = &predicate
+	}
 
 	if rawSorts, ok := payload.Data["sort"]; ok {
 		if rawSorts, ok := rawSorts.([]interface{}); ok {
