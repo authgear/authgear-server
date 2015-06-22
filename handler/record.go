@@ -187,29 +187,35 @@ func parseInterface(i interface{}) interface{} {
 	}
 }
 
-func parseExpression(i interface{}) oddb.Expression {
+func parseKeyPath(i interface{}) (keypath string, err error) {
 	switch value := i.(type) {
 	case map[string]interface{}:
 		kindi, typed := value["$type"]
 		if typed {
 			kind, ok := kindi.(string)
 			if ok && kind == "keypath" {
-				keypath, ok := value["$val"].(string)
-				if !ok {
-					panic("$val is not string")
-				}
-
-				return oddb.Expression{
-					Type:  oddb.KeyPath,
-					Value: keypath,
-				}
+				keypath, ok = value["$val"].(string)
+				return
 			}
 		}
 	}
 
-	return oddb.Expression{
-		Type:  oddb.Literal,
-		Value: parseInterface(i),
+	err = errors.New("not a keypath")
+	return
+}
+
+func parseExpression(i interface{}) oddb.Expression {
+	if keypath, err := parseKeyPath(i); err == nil {
+		return oddb.Expression{
+			Type:  oddb.KeyPath,
+			Value: keypath,
+		}
+	} else {
+
+		return oddb.Expression{
+			Type:  oddb.Literal,
+			Value: parseInterface(i),
+		}
 	}
 }
 
@@ -775,6 +781,22 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		query.ReadableBy = payload.UserInfo.ID
 	}
 
+	eagerKeys := []string{}
+	if keyPaths, ok := payload.Data["eager"].([]interface{}); ok {
+		for _, keyPathRaw := range keyPaths {
+			if keypath, err := parseKeyPath(keyPathRaw); err == nil {
+				if strings.Contains(keypath, ".") {
+					response.Err = oderr.NewRequestInvalidErr(errors.New("multi level eager loading not supported"))
+					return
+				}
+				eagerKeys = append(eagerKeys, keypath)
+			} else {
+				response.Err = oderr.NewRequestInvalidErr(errors.New("invalid key path format"))
+				return
+			}
+		}
+	}
+
 	results, err := db.Query(&query)
 	if err != nil {
 		response.Err = oderr.ErrDatabaseOpenFailed
@@ -783,8 +805,14 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	defer results.Close()
 
 	records := []responseItem{}
+	eagerLoadIDs := []oddb.RecordID{}
 	for results.Scan() {
 		record := transportRecord(results.Record())
+		for _, eagerKey := range eagerKeys {
+			if ref, ok := record.Data[eagerKey].(oddb.Reference); ok {
+				eagerLoadIDs = append(eagerLoadIDs, ref.ID)
+			}
+		}
 		records = append(records, newResponseItem(&record))
 	}
 
@@ -793,7 +821,25 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
+	eagerRecords := []responseItem{}
+	for _, rid := range eagerLoadIDs {
+		record := transportRecord{}
+		if err := db.Get(rid, (*oddb.Record)(&record)); err == nil {
+			eagerRecords = append(eagerRecords, newResponseItem(&record))
+		} else {
+			log.WithFields(log.Fields{
+				"ID":  rid,
+				"err": err,
+			}).Debugln("Unable to eager load record.")
+		}
+	}
+
 	response.Result = records
+	if len(eagerKeys) > 0 {
+		response.OtherResult = map[string]interface{}{
+			"eager_load": eagerRecords,
+		}
+	}
 }
 
 /*

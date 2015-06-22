@@ -517,3 +517,74 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		})
 	})
 }
+
+// a very naive Database that alway returns the single record set onto it
+type referencedRecordDatabase struct {
+	note     oddb.Record
+	category oddb.Record
+	oddb.Database
+}
+
+func (db *referencedRecordDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
+	switch id.String() {
+	case "note/note1":
+		*record = db.note
+	case "category/important":
+		*record = db.category
+	}
+	return nil
+}
+
+func (db *referencedRecordDatabase) Save(record *oddb.Record) error {
+	return nil
+}
+
+func (db *referencedRecordDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
+	return oddb.NewRows(oddb.NewMemoryRows([]oddb.Record{db.note})), nil
+}
+
+func (db *referencedRecordDatabase) Extend(recordType string, schema oddb.RecordSchema) error {
+	return nil
+}
+
+func TestRecordQueryWithEagerLoad(t *testing.T) {
+	Convey("Given a referenced record in DB", t, func() {
+		db := &referencedRecordDatabase{
+			note: oddb.Record{
+				ID:      oddb.NewRecordID("note", "note1"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"category": oddb.NewReference("category", "important"),
+				},
+			},
+			category: oddb.Record{
+				ID:      oddb.NewRecordID("category", "important"),
+				OwnerID: "ownerID",
+			},
+		}
+
+		injectDBFunc := func(payload *router.Payload) {
+			payload.Database = db
+		}
+
+		Convey("query record with eager load", func() {
+			resp := newSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+				"record_type": "note",
+				"eager": [{"$type": "keypath", "$val": "category"}]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note1",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID",
+					"category": {"$id":"category/important","$type":"ref"}
+				}],
+				"other_result": {"eager_load":[
+				{"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID"}
+				]}
+			}`)
+		})
+	})
+}
