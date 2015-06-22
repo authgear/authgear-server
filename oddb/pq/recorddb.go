@@ -235,9 +235,9 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 	if query.ReadableBy != "" {
 		// FIXME: Serialize the json instead of building manually
 		q = q.Where(
-			`_access @> '[{"user_id":"`+query.ReadableBy+`"}]' OR `+
+			`(_access @> '[{"user_id":"`+query.ReadableBy+`"}]' OR `+
 				`_access IS NULL OR `+
-				`_owner_id = ?`, query.ReadableBy)
+				`_owner_id = ?)`, query.ReadableBy)
 	}
 
 	sql, args, err := q.ToSql()
