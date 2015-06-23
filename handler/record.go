@@ -196,7 +196,7 @@ func parseExpression(i interface{}) oddb.Expression {
 			if ok && kind == "keypath" {
 				keypath, ok := value["$val"].(string)
 				if !ok {
-					panic("$val is not string")
+					panic(errors.New("$val is not string"))
 				}
 
 				return oddb.Expression{
@@ -286,7 +286,7 @@ func (item responseItem) MarshalJSON() ([]byte, error) {
 		buf.Write([]byte(`record"`))
 		i = item.record
 	} else {
-		panic("inconsistent state: both err and record is nil")
+		panic(errors.New("inconsistent state: both err and record is nil"))
 	}
 
 	bodyBytes, err := json.Marshal(i)
@@ -666,8 +666,9 @@ func predicateOperatorFromString(operatorString string) oddb.Operator {
 		return oddb.LessThanOrEqual
 	case "neq":
 		return oddb.NotEqual
+	default:
+		panic(fmt.Errorf("unrecognized operator = %s", operatorString))
 	}
-	panic(operatorString)
 }
 
 func predicateFromRaw(rawPredicate []interface{}) oddb.Predicate {
@@ -677,7 +678,7 @@ func predicateFromRaw(rawPredicate []interface{}) oddb.Predicate {
 
 	rawOperator, ok := rawPredicate[0].(string)
 	if !ok {
-		panic("predicate[0] is not string")
+		panic(fmt.Errorf("got predicate[0]'s type = %T, want string", rawPredicate[0]))
 	}
 
 	operator := predicateOperatorFromString(rawOperator)
