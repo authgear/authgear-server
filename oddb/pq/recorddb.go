@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
@@ -205,6 +206,108 @@ func (db *database) Delete(id oddb.RecordID) error {
 	return err
 }
 
+type compoundPredicateSqlizer struct {
+	oddb.Predicate
+}
+
+type comparisonPredicateSqlizer struct {
+	oddb.Predicate
+}
+
+func newPredicateSqlizer(predicate oddb.Predicate) sq.Sqlizer {
+	if predicate.Operator.IsCompound() {
+		return &compoundPredicateSqlizer{predicate}
+	} else {
+		return &comparisonPredicateSqlizer{predicate}
+	}
+}
+
+func (p *compoundPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
+	switch p.Operator {
+	default:
+		err = fmt.Errorf("Compound operator `%v` is not supported.", p.Operator)
+		return
+	case oddb.And:
+		and := make(sq.And, len(p.Children))
+		for i, child := range p.Children {
+			and[i] = newPredicateSqlizer(child.(oddb.Predicate))
+		}
+		return and.ToSql()
+	case oddb.Or:
+		or := make(sq.Or, len(p.Children))
+		for i, child := range p.Children {
+			or[i] = newPredicateSqlizer(child.(oddb.Predicate))
+		}
+		return or.ToSql()
+	case oddb.Not:
+		pred := p.Children[0].(oddb.Predicate)
+		sql, args, err = newPredicateSqlizer(pred).ToSql()
+		sql = fmt.Sprintf("NOT (%s)", sql)
+		return
+	}
+}
+
+func toSqlOperand(expr oddb.Expression) (sql string, arg interface{}) {
+	if expr.Type == oddb.KeyPath {
+		sql = strconv.Quote(expr.Value.(string))
+		arg = nil
+	} else {
+		sql = "?"
+		switch svalue := expr.Value.(type) {
+		case oddb.Reference:
+			arg = svalue.ID.Key
+		default:
+			arg = svalue
+		}
+	}
+	return
+}
+
+func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
+	args = make([]interface{}, 0, 1)
+	if p.Operator.IsBinary() {
+		var buffer bytes.Buffer
+		lhs := p.Children[0].(oddb.Expression)
+		rhs := p.Children[1].(oddb.Expression)
+
+		sqlOperand, arg := toSqlOperand(lhs)
+		buffer.WriteString(sqlOperand)
+		if arg != nil {
+			args = append(args, arg)
+		}
+
+		switch p.Operator {
+		default:
+			err = fmt.Errorf("Comparison operator `%v` is not supported.", p.Operator)
+			return
+		case oddb.Equal:
+			buffer.WriteString(`=`)
+		case oddb.GreaterThan:
+			buffer.WriteString(`>`)
+		case oddb.LessThan:
+			buffer.WriteString(`<`)
+		case oddb.GreaterThanOrEqual:
+			buffer.WriteString(`>=`)
+		case oddb.LessThanOrEqual:
+			buffer.WriteString(`<=`)
+		case oddb.NotEqual:
+			buffer.WriteString(`<>`)
+		}
+
+		sqlOperand, arg = toSqlOperand(rhs)
+		buffer.WriteString(sqlOperand)
+		if arg != nil {
+			args = append(args, arg)
+		}
+
+		sql = buffer.String()
+		return
+	} else {
+		err = fmt.Errorf("Comparison operator `%v` is not supported.", p.Operator)
+		return
+	}
+}
+
 func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 	if query.Type == "" {
 		return nil, errors.New("got empty query type")
@@ -220,6 +323,11 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 	}
 
 	q := db.selectQuery(query.Type, typemap)
+
+	if p := query.Predicate; p != nil {
+		q = q.Where(newPredicateSqlizer(*p))
+	}
+
 	for _, sort := range query.Sorts {
 		switch sort.Order {
 		default:
@@ -235,9 +343,9 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 	if query.ReadableBy != "" {
 		// FIXME: Serialize the json instead of building manually
 		q = q.Where(
-			`_access @> '[{"user_id":"`+query.ReadableBy+`"}]' OR `+
+			`(_access @> '[{"user_id":"`+query.ReadableBy+`"}]' OR `+
 				`_access IS NULL OR `+
-				`_owner_id = ?`, query.ReadableBy)
+				`_owner_id = ?)`, query.ReadableBy)
 	}
 
 	sql, args, err := q.ToSql()

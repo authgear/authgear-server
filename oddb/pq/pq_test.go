@@ -927,6 +927,152 @@ func TestQuery(t *testing.T) {
 				record1,
 			})
 		})
+
+		Convey("query records by note order", func() {
+			query := oddb.Query{
+				Type: "note",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.Equal,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: "noteOrder",
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: 1,
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, record1)
+			So(len(records), ShouldEqual, 1)
+		})
+
+		Convey("query records by note order using or predicate", func() {
+			keyPathExpr := oddb.Expression{
+				Type:  oddb.KeyPath,
+				Value: "noteOrder",
+			}
+			value1 := oddb.Expression{
+				Type:  oddb.Literal,
+				Value: 2,
+			}
+			value2 := oddb.Expression{
+				Type:  oddb.Literal,
+				Value: 3,
+			}
+			query := oddb.Query{
+				Type: "note",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.Or,
+					Children: []interface{}{
+						oddb.Predicate{
+							Operator: oddb.Equal,
+							Children: []interface{}{keyPathExpr, value1},
+						},
+						oddb.Predicate{
+							Operator: oddb.Equal,
+							Children: []interface{}{keyPathExpr, value2},
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, record2)
+			So(records[1], ShouldResemble, record3)
+			So(len(records), ShouldEqual, 2)
+		})
+	})
+
+	Convey("Database with reference", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c)
+
+		// fixture
+		record1 := oddb.Record{
+			ID:      oddb.NewRecordID("note", "id1"),
+			OwnerID: "user_id",
+			Data: map[string]interface{}{
+				"noteOrder": float64(1),
+			},
+		}
+		record2 := oddb.Record{
+			ID:      oddb.NewRecordID("note", "id2"),
+			OwnerID: "user_id",
+			Data: map[string]interface{}{
+				"noteOrder": float64(2),
+				"category":  oddb.NewReference("category", "important"),
+			},
+		}
+		record3 := oddb.Record{
+			ID:      oddb.NewRecordID("note", "id3"),
+			OwnerID: "user_id",
+			Data: map[string]interface{}{
+				"noteOrder": float64(3),
+				"category":  oddb.NewReference("category", "funny"),
+			},
+		}
+		category1 := oddb.Record{
+			ID:      oddb.NewRecordID("category", "important"),
+			OwnerID: "user_id",
+			Data:    map[string]interface{}{},
+		}
+		category2 := oddb.Record{
+			ID:      oddb.NewRecordID("category", "funny"),
+			OwnerID: "user_id",
+			Data:    map[string]interface{}{},
+		}
+
+		db := c.PrivateDB("userid")
+		So(db.Extend("category", oddb.RecordSchema{}), ShouldBeNil)
+		So(db.Extend("note", oddb.RecordSchema{
+			"noteOrder": oddb.FieldType{Type: oddb.TypeNumber},
+			"category": oddb.FieldType{
+				Type:          oddb.TypeReference,
+				ReferenceType: "category",
+			},
+		}), ShouldBeNil)
+
+		err := db.Save(&category1)
+		So(err, ShouldBeNil)
+		err = db.Save(&category2)
+		So(err, ShouldBeNil)
+		err = db.Save(&record2)
+		So(err, ShouldBeNil)
+		err = db.Save(&record1)
+		So(err, ShouldBeNil)
+		err = db.Save(&record3)
+		So(err, ShouldBeNil)
+
+		Convey("query records by reference", func() {
+			query := oddb.Query{
+				Type: "note",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.Equal,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: "category",
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: oddb.NewReference("category", "important"),
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, record2)
+			So(len(records), ShouldEqual, 1)
+		})
 	})
 
 	Convey("Empty Conn", t, func() {

@@ -349,6 +349,85 @@ func TestRecordQuery(t *testing.T) {
 				},
 			})
 		})
+		Convey("Queries records with predicate", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+					"predicate": []interface{}{
+						"eq",
+						map[string]interface{}{
+							"$type": "keypath",
+							"$val":  "noteOrder",
+						},
+						float64(1),
+					},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(*db.lastquery.Predicate, ShouldResemble, oddb.Predicate{
+				Operator: oddb.Equal,
+				Children: []interface{}{
+					oddb.Expression{oddb.KeyPath, "noteOrder"},
+					oddb.Expression{oddb.Literal, float64(1)},
+				},
+			})
+		})
+		Convey("Queries records with complex predicate", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+					"predicate": []interface{}{
+						"and",
+						[]interface{}{
+							"eq",
+							map[string]interface{}{
+								"$type": "keypath",
+								"$val":  "content",
+							},
+							"text",
+						},
+						[]interface{}{
+							"gt",
+							map[string]interface{}{
+								"$type": "keypath",
+								"$val":  "noteOrder",
+							},
+							float64(1),
+						},
+					},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(*db.lastquery.Predicate, ShouldResemble, oddb.Predicate{
+				Operator: oddb.And,
+				Children: []interface{}{
+					oddb.Predicate{
+						Operator: oddb.Equal,
+						Children: []interface{}{
+							oddb.Expression{oddb.KeyPath, "content"},
+							oddb.Expression{oddb.Literal, "text"},
+						},
+					},
+					oddb.Predicate{
+						Operator: oddb.GreaterThan,
+						Children: []interface{}{
+							oddb.Expression{oddb.KeyPath, "noteOrder"},
+							oddb.Expression{oddb.Literal, float64(1)},
+						},
+					},
+				},
+			})
+		})
 	})
 }
 
