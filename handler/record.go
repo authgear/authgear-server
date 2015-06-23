@@ -210,12 +210,11 @@ func parseExpression(i interface{}) oddb.Expression {
 			Type:  oddb.KeyPath,
 			Value: keypath,
 		}
-	} else {
+	}
 
-		return oddb.Expression{
-			Type:  oddb.Literal,
-			Value: parseInterface(i),
-		}
+	return oddb.Expression{
+		Type:  oddb.Literal,
+		Value: parseInterface(i),
 	}
 }
 
