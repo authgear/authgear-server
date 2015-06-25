@@ -76,12 +76,15 @@ func (s *Service) handleRecordHook(db oddb.Database, record *oddb.Record) {
 			},
 		}
 
+		log.Infof("Sending notification to device token = %s", device.Token)
 		err := s.NotificationSender.Send(
 			push.MapMapper(customMap),
 			device.Token,
 		)
 		if err != nil {
 			log.Printf("Failed to send notification: %v\n", err)
+		} else {
+			log.Infof("Sent notification to device token = %s", device.Token)
 		}
 	}
 }
