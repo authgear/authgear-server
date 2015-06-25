@@ -26,7 +26,7 @@ func NewAPNSPusher(gateway string, cert string, key string) (*APNSPusher, error)
 		return nil, err
 	}
 
-	return &APNSPusher{Client: wrappedClient{client}}, nil
+	return &APNSPusher{Client: &wrappedClient{&client}}, nil
 }
 
 // NewAPNSPusherFromFiles returns a new APNSPusher from certificate and
@@ -37,7 +37,7 @@ func NewAPNSPusherFromFiles(gateway string, certPath string, keyPath string) (*A
 		return nil, err
 	}
 
-	return &APNSPusher{Client: wrappedClient{client}}, nil
+	return &APNSPusher{Client: &wrappedClient{&client}}, nil
 }
 
 // Init set up the notification error channel
@@ -70,7 +70,7 @@ func (pusher *APNSPusher) Send(m Mapper, deviceToken string) error {
 	notification.Priority = apns.PriorityImmediate
 
 	if err := pusher.Client.Send(notification); err != nil {
-		log.Printf("Failed to send Push Notification: %v", err)
+		log.Errorf("Failed to send Push Notification: %v", err)
 		return err
 	}
 
@@ -79,13 +79,13 @@ func (pusher *APNSPusher) Send(m Mapper, deviceToken string) error {
 
 // wrapper of apns.Client which implement apnsSender
 type wrappedClient struct {
-	ci apns.Client
+	ci *apns.Client
 }
 
-func (c wrappedClient) Send(n apns.Notification) error {
+func (c *wrappedClient) Send(n apns.Notification) error {
 	return c.ci.Send(n)
 }
 
-func (c wrappedClient) FailedNotifs() chan apns.NotificationResult {
+func (c *wrappedClient) FailedNotifs() chan apns.NotificationResult {
 	return c.ci.FailedNotifs
 }
