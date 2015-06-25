@@ -70,6 +70,11 @@ func ReadFileInto(config *Configuration, path string) error {
 		config.Subscription.Enabled = shouldEnableSubscription == "1"
 	}
 
+	env := os.Getenv("APNS_ENV")
+	if env != "" {
+		config.APNS.Env = env
+	}
+
 	cert, key := os.Getenv("APNS_CERTIFICATE"), os.Getenv("APNS_PRIVATE_KEY")
 	if cert != "" {
 		config.APNS.Cert = cert
