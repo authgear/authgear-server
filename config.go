@@ -1,8 +1,10 @@
 package main
 
 import (
-	"code.google.com/p/gcfg"
+	"io/ioutil"
 	"os"
+
+	"code.google.com/p/gcfg"
 )
 
 // Configuration is Ourd's configuration
@@ -25,7 +27,7 @@ type Configuration struct {
 		Enabled bool
 	}
 	APNS struct {
-		Gateway  string
+		Env      string
 		Cert     string
 		Key      string
 		CertPath string `gcfg:"cert-path"`
@@ -69,9 +71,27 @@ func ReadFileInto(config *Configuration, path string) error {
 	}
 
 	cert, key := os.Getenv("APNS_CERTIFICATE"), os.Getenv("APNS_PRIVATE_KEY")
-	if cert != "" && key != "" {
+	if cert != "" {
 		config.APNS.Cert = cert
+	}
+	if key != "" {
 		config.APNS.Key = key
+	}
+
+	if config.APNS.Cert == "" && config.APNS.CertPath != "" {
+		certPEMBlock, err := ioutil.ReadFile(config.APNS.CertPath)
+		if err != nil {
+			return err
+		}
+		config.APNS.Cert = string(certPEMBlock)
+	}
+
+	if config.APNS.Key == "" && config.APNS.KeyPath != "" {
+		keyPEMBlock, err := ioutil.ReadFile(config.APNS.KeyPath)
+		if err != nil {
+			return err
+		}
+		config.APNS.Key = string(keyPEMBlock)
 	}
 
 	return nil

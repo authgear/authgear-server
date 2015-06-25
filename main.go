@@ -3,11 +3,12 @@ package main
 import (
 	"bytes"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler"
@@ -102,15 +103,18 @@ func main() {
 	}
 
 	if config.Subscription.Enabled {
-		var (
-			pushSender *push.APNSPusher
-			err        error
-		)
-		if config.APNS.Cert != "" && config.APNS.Key != "" {
-			pushSender, err = push.NewAPNSPusher(config.APNS.Gateway, config.APNS.Cert, config.APNS.Key)
-		} else {
-			pushSender, err = push.NewAPNSPusherFromFiles(config.APNS.Gateway, config.APNS.CertPath, config.APNS.KeyPath)
+		var gateway string
+		switch config.APNS.Env {
+		case "sandbox":
+			gateway = "gateway.sandbox.push.apple.com:2195"
+		case "production":
+			gateway = "gateway.push.apple.com:2195"
+		default:
+			fmt.Println("config: apns.env can only be sandbox or production")
+			return
 		}
+
+		pushSender, err := push.NewAPNSPusher(gateway, config.APNS.Cert, config.APNS.Key)
 		if err != nil {
 			log.Fatalf("Failed to set up push sender: %v", err)
 		}
