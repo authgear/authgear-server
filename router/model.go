@@ -1,7 +1,9 @@
 package router
 
 import (
+	"encoding/json"
 	"log"
+	"net/http"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
@@ -12,7 +14,9 @@ type Payload struct {
 	// Map of params such as Auth, TimeSteam, version
 	Meta map[string]interface{}
 	// Map of action payload
-	Data       map[string]interface{}
+	Data map[string]interface{}
+	// URL parameters
+	Params     []string
 	TokenStore authtoken.Store
 	AppName    string
 	UserInfoID string
@@ -65,4 +69,14 @@ type Response struct {
 	RequestID   string                 `json:"request_id,omitempty"`
 	DatabaseID  string                 `json:"database_id,omitempty"`
 	OtherResult interface{}            `json:"other_result,omitempty"`
+	written     bool
+	writer      http.ResponseWriter
+}
+
+// WriteEntity writes a value as response to a request. Currently it only
+// writes JSON response.
+func (resp *Response) WriteEntity(i interface{}) error {
+	resp.written = true
+	// hard code JSON write at the moment
+	return json.NewEncoder(resp.writer).Encode(i)
 }
