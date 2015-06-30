@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -22,14 +21,6 @@ import (
 	"github.com/oursky/ourd/router"
 	"github.com/oursky/ourd/subscription"
 )
-
-type fakeReadCloser struct {
-	io.Reader
-}
-
-func (rc fakeReadCloser) Close() error {
-	return nil
-}
 
 type responseLogger struct {
 	w      http.ResponseWriter
@@ -72,14 +63,30 @@ func (l *responseLogger) String() string {
 
 func logMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Debugln("------ Header: ------")
+		for key, value := range r.Header {
+			log.Debugf("%s: %v", key, value)
+		}
 
 		body, _ := ioutil.ReadAll(r.Body)
-		log.Debugf("------ Request: ------\n%v", string(body))
-		r.Body = fakeReadCloser{bytes.NewReader(body)}
+		r.Body = ioutil.NopCloser(bytes.NewReader(body))
+
+		log.Debugln("------ Request: ------")
+		if r.Header.Get("Content-Type") == "" || r.Header.Get("Content-Type") == "application/json" {
+			log.Debugln(string(body))
+		} else {
+			log.Debugf("%d bytes of body", len(body))
+		}
 
 		rlogger := &responseLogger{w: w}
 		next.ServeHTTP(rlogger, r)
-		log.Debugf("------ Response: ------\n%v", rlogger.String())
+
+		log.Debugln("------ Response: ------")
+		if w.Header().Get("Content-Type") == "" || w.Header().Get("Content-Type") == "application/json" {
+			log.Debugln(rlogger.String())
+		} else {
+			log.Debugf("%d bytes of body", len(rlogger.String()))
+		}
 	})
 }
 
