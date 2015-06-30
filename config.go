@@ -23,6 +23,11 @@ type Configuration struct {
 	TokenStore struct {
 		Path string `gcfg:"path"`
 	} `gcfg:"token-store"`
+	AssetStore struct {
+		AccessToken string `gcfg:"access-key"`
+		SecretToken string `gcfg:"secret-key"`
+		Bucket      string `gcfg:"bucket"`
+	} `gcfg:"asset-store"`
 	Subscription struct {
 		Enabled bool
 	}

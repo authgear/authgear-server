@@ -2,9 +2,11 @@ package main
 
 import (
 	"errors"
-	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oderr"
 	"net/http"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/oursky/ourd/asset"
+	"github.com/oursky/ourd/oderr"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
@@ -125,6 +127,15 @@ func injectUserIfPresent(payload *router.Payload, response *router.Response) int
 
 	payload.UserInfo = &userinfo
 
+	return http.StatusOK
+}
+
+type assetStorePreprocessor struct {
+	Store asset.Store
+}
+
+func (p assetStorePreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	payload.AssetStore = p.Store
 	return http.StatusOK
 }
 

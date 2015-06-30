@@ -10,6 +10,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
+	"github.com/oursky/ourd/asset"
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler"
 	"github.com/oursky/ourd/oddb"
@@ -150,6 +151,14 @@ func main() {
 		Store: authtoken.FileStore(config.TokenStore.Path).Init(),
 	}
 
+	s3AssetStorePreprocessor := assetStorePreprocessor{
+		Store: asset.NewS3Store(
+			config.AssetStore.AccessToken,
+			config.AssetStore.SecretToken,
+			config.AssetStore.Bucket,
+		),
+	}
+
 	authenticator := userAuthenticator{
 		APIKey:  config.App.APIKey,
 		AppName: config.App.Name,
@@ -195,6 +204,14 @@ func main() {
 	r.Map("record:query", handler.RecordQueryHandler, recordReadPreprocessors...)
 	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
+
+	fileUploadPreprocessors := []router.Processor{
+		fileTokenStorePreprocessor.Preprocess,
+		authenticator.Preprocess,
+		fileSystemConnPreprocessor.Preprocess,
+		s3AssetStorePreprocessor.Preprocess,
+	}
+	r.Handle(`files/(.+)`, handler.AssetUploadURLHandler, fileUploadPreprocessors...)
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,

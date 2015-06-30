@@ -52,6 +52,16 @@
 		{
 			"ImportPath": "golang.org/x/crypto/blowfish",
 			"Rev": "1351f936d976c60a0a48d728281922cf63eafb8d"
+		},
+		{
+			"ImportPath": "gopkg.in/amz.v1/aws",
+			"Comment": "v1.0",
+			"Rev": "ad23e96a31d28364dc0290f44b1a922aba379e18"
+		},
+		{
+			"ImportPath": "gopkg.in/amz.v1/s3",
+			"Comment": "v1.0",
+			"Rev": "ad23e96a31d28364dc0290f44b1a922aba379e18"
 		}
 	]
 }

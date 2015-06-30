@@ -80,6 +80,10 @@ func (conn *fileConn) DeleteUser(id string) error {
 	return conn.userDB.Delete(id)
 }
 
+func (conn *fileConn) SaveAsset(assert *oddb.Asset) error {
+	panic("not implemented")
+}
+
 func (conn *fileConn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
 	panic("not implemented")
 }

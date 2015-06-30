@@ -1,8 +1,6 @@
 package oddb
 
-import (
-	"errors"
-)
+import "errors"
 
 // ErrUserDuplicated is returned by Conn.CreateUser when
 // the UserInfo to be created has the same ID in the current container
@@ -50,6 +48,10 @@ type Conn interface {
 	// DeleteUser returns ErrUserNotFound if such UserInfo does not
 	// exist in the container.
 	DeleteUser(id string) error
+
+	// SaveAsset saves an Asset information into a container to
+	// be referenced by records.
+	SaveAsset(asset *Asset) error
 
 	QueryRelation(user string, name string, direction string) []UserInfo
 	AddRelation(user string, name string, targetUser string) error

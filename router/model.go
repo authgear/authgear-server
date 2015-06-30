@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/oursky/ourd/asset"
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 )
@@ -18,11 +19,15 @@ type Payload struct {
 	// URL parameters
 	Params     []string
 	TokenStore authtoken.Store
+	AssetStore asset.Store
 	AppName    string
 	UserInfoID string
 	DBConn     oddb.Conn
 	Database   oddb.Database
 	UserInfo   *oddb.UserInfo
+	// the raw http.Request of this payload
+	// Think twice before accessing it
+	Req *http.Request
 }
 
 // RouteAction must exist for every request
