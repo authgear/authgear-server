@@ -476,6 +476,17 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
+		Convey("creates table with multiple assets", func() {
+			err := db.Extend("note", oddb.RecordSchema{
+				"image0": oddb.FieldType{Type: oddb.TypeAsset},
+			})
+			So(err, ShouldBeNil)
+			err = db.Extend("note", oddb.RecordSchema{
+				"image1": oddb.FieldType{Type: oddb.TypeAsset},
+			})
+			So(err, ShouldBeNil)
+		})
+
 		Convey("creates table with reference", func() {
 			err := db.Extend("collection", oddb.RecordSchema{
 				"name": oddb.FieldType{Type: oddb.TypeString},
@@ -793,6 +804,45 @@ func TestJSON(t *testing.T) {
 				Scan(&jsonBytes)
 			So(err, ShouldBeNil)
 			So(jsonBytes, ShouldEqualJSON, `{"number": 1, "string": "", "bool": false}`)
+		})
+	})
+}
+
+func TestRecordAssetField(t *testing.T) {
+	Convey("Record Asset", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c)
+
+		So(c.SaveAsset(&oddb.Asset{
+			Name:        "picture.png",
+			ContentType: "image/png",
+		}), ShouldBeNil)
+
+		db := c.PublicDB()
+		So(db.Extend("note", oddb.RecordSchema{
+			"image": oddb.FieldType{Type: oddb.TypeAsset},
+		}), ShouldBeNil)
+
+		Convey("can be associated", func() {
+			err := db.Save(&oddb.Record{
+				ID: oddb.NewRecordID("note", "id"),
+				Data: map[string]interface{}{
+					"image": oddb.Asset{Name: "picture.png"},
+				},
+				OwnerID: "user_id",
+			})
+			So(err, ShouldBeNil)
+		})
+
+		Convey("errors when associated with non-existing asset", func() {
+			err := db.Save(&oddb.Record{
+				ID: oddb.NewRecordID("note", "id"),
+				Data: map[string]interface{}{
+					"image": oddb.Asset{Name: "notexist.png"},
+				},
+				OwnerID: "user_id",
+			})
+			So(err, ShouldNotBeNil)
 		})
 	})
 }

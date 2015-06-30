@@ -51,6 +51,37 @@ func (nj *nullJSON) Scan(value interface{}) error {
 	return err
 }
 
+type assetValue oddb.Asset
+
+func (asset assetValue) Value() (driver.Value, error) {
+	return asset.Name, nil
+}
+
+type nullAsset struct {
+	Asset oddb.Asset
+	Valid bool
+}
+
+func (na *nullAsset) Scan(value interface{}) error {
+	if value == nil {
+		na.Asset = oddb.Asset{}
+		na.Valid = false
+		return nil
+	}
+
+	assetName, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("failed to scan Asset: got type(value) = %T, expect string", value)
+	}
+
+	na.Asset = oddb.Asset{
+		Name: assetName,
+	}
+	na.Valid = true
+
+	return nil
+}
+
 type referenceValue oddb.Reference
 
 func (ref referenceValue) Value() (driver.Value, error) {
@@ -144,6 +175,8 @@ func convert(r *oddb.Record) map[string]interface{} {
 			m[key] = jsonSliceValue(value)
 		case map[string]interface{}:
 			m[key] = jsonMapValue(value)
+		case oddb.Asset:
+			m[key] = assetValue(value)
 		case oddb.Reference:
 			m[key] = referenceValue(value)
 		}
@@ -408,6 +441,9 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case oddb.TypeBoolean:
 			var boolean sql.NullBool
 			values = append(values, &boolean)
+		case oddb.TypeAsset:
+			var asset nullAsset
+			values = append(values, &asset)
 		case oddb.TypeJSON:
 			var j nullJSON
 			values = append(values, &j)
@@ -451,6 +487,10 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case *sql.NullBool:
 			if svalue.Valid {
 				record.Set(column, svalue.Bool)
+			}
+		case *nullAsset:
+			if svalue.Valid {
+				record.Set(column, svalue.Asset)
 			}
 		case *nullJSON:
 			if svalue.Valid {
