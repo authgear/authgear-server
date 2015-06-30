@@ -469,6 +469,13 @@ func TestExtend(t *testing.T) {
 			So(i, ShouldEqual, 1)
 		})
 
+		Convey("creates table with asset", func() {
+			err := db.Extend("note", oddb.RecordSchema{
+				"image": oddb.FieldType{Type: oddb.TypeAsset},
+			})
+			So(err, ShouldBeNil)
+		})
+
 		Convey("creates table with reference", func() {
 			err := db.Extend("collection", oddb.RecordSchema{
 				"name": oddb.FieldType{Type: oddb.TypeString},
@@ -483,6 +490,7 @@ func TestExtend(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 		})
+
 		Convey("error if creates table with reference not exist", func() {
 			err := db.Extend("note", oddb.RecordSchema{
 				"content": oddb.FieldType{Type: oddb.TypeString},

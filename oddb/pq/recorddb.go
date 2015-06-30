@@ -686,18 +686,11 @@ func (db *database) addColumnStmt(recordType string, recordSchema oddb.RecordSch
 		buf.WriteByte(' ')
 		buf.WriteString(pqDataType(schema.Type))
 		buf.WriteByte(',')
-		if schema.Type == oddb.TypeReference {
-			buf.WriteString("ADD CONSTRAINT fk_")
-			buf.WriteString(recordType)
-			buf.WriteString("_")
-			buf.WriteString(column)
-			buf.WriteString("_")
-			buf.WriteString(schema.ReferenceType)
-			buf.WriteString(" FOREIGN KEY (")
-			buf.WriteString(column)
-			buf.WriteString(") REFERENCES ")
-			buf.WriteString(db.tableName(schema.ReferenceType))
-			buf.WriteString("(_id),")
+		switch schema.Type {
+		case oddb.TypeAsset:
+			db.writeForeignKeyConstraint(&buf, column, "_asset", "id")
+		case oddb.TypeReference:
+			db.writeForeignKeyConstraint(&buf, column, schema.ReferenceType, "_id")
 		}
 	}
 
@@ -707,13 +700,27 @@ func (db *database) addColumnStmt(recordType string, recordSchema oddb.RecordSch
 	return buf.String()
 }
 
+func (db *database) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, referent, remoteCol string) {
+	buf.Write([]byte("ADD CONSTRAINT fk_"))
+	buf.WriteString(localCol)
+	buf.Write([]byte("_"))
+	buf.WriteString(referent)
+	buf.Write([]byte("_"))
+	buf.WriteString(remoteCol)
+	buf.Write([]byte(` FOREIGN KEY ("`))
+	buf.WriteString(localCol)
+	buf.Write([]byte(`") REFERENCES `))
+	buf.WriteString(db.tableName(referent))
+	buf.Write([]byte(` ("`))
+	buf.WriteString(remoteCol)
+	buf.Write([]byte(`"),`))
+}
+
 func pqDataType(dataType oddb.DataType) string {
 	switch dataType {
 	default:
 		panic(fmt.Sprintf("Unsupported dataType = %s", dataType))
-	case oddb.TypeReference:
-		return TypeString
-	case oddb.TypeString:
+	case oddb.TypeString, oddb.TypeAsset, oddb.TypeReference:
 		return TypeString
 	case oddb.TypeNumber:
 		return TypeNumber
