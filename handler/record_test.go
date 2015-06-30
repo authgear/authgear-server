@@ -2,6 +2,8 @@ package handler
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"testing"
 	"time"
 
@@ -539,6 +541,53 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID"
+				}]
+			}`)
+		})
+	})
+}
+
+type urlOnlyAssetStore struct{}
+
+func (s *urlOnlyAssetStore) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
+	panic("not implementated")
+}
+
+func (s *urlOnlyAssetStore) SignedURL(name string, expiredAt time.Time) string {
+	return fmt.Sprintf("http://ourd.test/asset/%s?expiredAt=1997-07-01T00:00:00", name)
+}
+
+func TestRecordAssetSerialization(t *testing.T) {
+	Convey("RecordAssetSerialization", t, func() {
+		db := oddbtest.NewMapDB()
+		db.Save(&oddb.Record{
+			ID: oddb.NewRecordID("record", "id"),
+			Data: map[string]interface{}{
+				"asset": oddb.Asset{Name: "asset-name"},
+			},
+		})
+
+		assetStore := &urlOnlyAssetStore{}
+
+		r := handlertest.NewSingleRouteRouter(RecordFetchHandler, func(p *router.Payload) {
+			p.Database = db
+			p.AssetStore = assetStore
+		})
+
+		Convey("serialize with $url", func() {
+			resp := r.POST(`{
+				"ids": ["record/id"]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "record/id",
+					"_type": "record",
+					"_access": null,
+					"asset": {
+						"$type": "asset",
+						"$name": "asset-name",
+						"$url": "http://ourd.test/asset/asset-name?expiredAt=1997-07-01T00:00:00"
+					}
 				}]
 			}`)
 		})

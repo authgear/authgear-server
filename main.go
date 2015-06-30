@@ -196,6 +196,7 @@ func main() {
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
+		s3AssetStorePreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 	}
@@ -203,6 +204,7 @@ func main() {
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
+		s3AssetStorePreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 		requireUserForWrite,
