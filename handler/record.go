@@ -34,30 +34,6 @@ func (r transportRecord) MarshalJSON() ([]byte, error) {
 	return json.Marshal(transportData(m))
 }
 
-type transportData map[string]interface{}
-
-func (data transportData) MarshalJSON() ([]byte, error) {
-	m := map[string]interface{}{}
-	for key, value := range data {
-		switch v := value.(type) {
-		case time.Time:
-			m[key] = transportDate(v)
-		default:
-			m[key] = v
-		}
-	}
-	return json.Marshal(m)
-}
-
-type transportDate time.Time
-
-func (date transportDate) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Type string    `json:"$type"`
-		Date time.Time `json:"$date"`
-	}{"date", time.Time(date)})
-}
-
 func (r *transportRecord) UnmarshalJSON(data []byte) error {
 	object := map[string]interface{}{}
 	err := json.Unmarshal(data, &object)
@@ -110,6 +86,41 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 	r.Data = data
 
 	return nil
+}
+
+type transportData map[string]interface{}
+
+func (data transportData) MarshalJSON() ([]byte, error) {
+	m := map[string]interface{}{}
+	for key, value := range data {
+		switch v := value.(type) {
+		case time.Time:
+			m[key] = transportDate(v)
+		case oddb.Asset:
+			m[key] = transportAsset(v)
+		default:
+			m[key] = v
+		}
+	}
+	return json.Marshal(m)
+}
+
+type transportDate time.Time
+
+func (date transportDate) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type string    `json:"$type"`
+		Date time.Time `json:"$date"`
+	}{"date", time.Time(date)})
+}
+
+type transportAsset oddb.Asset
+
+func (asset transportAsset) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type string `json:"$type"`
+		Name string `json:"$name"`
+	}{"asset", asset.Name})
 }
 
 func purgeReservedKey(m map[string]interface{}) {
@@ -175,6 +186,8 @@ func parseInterface(i interface{}) interface{} {
 			panic(fmt.Errorf("unsupported $type of persistence = %s", kind))
 		case "geo", "blob":
 			panic(fmt.Errorf("unimplemented $type = %s", kind))
+		case "asset":
+			return parseAsset(value)
 		case "ref":
 			return parseRef(value)
 		case "date":
@@ -233,6 +246,24 @@ func parseDate(m map[string]interface{}) time.Time {
 	}
 
 	return dt.In(time.UTC)
+}
+
+func parseAsset(m map[string]interface{}) oddb.Asset {
+	namei, ok := m["$name"]
+	if !ok {
+		panic(errors.New("missing compulsory field $name"))
+	}
+	name, ok := namei.(string)
+	if !ok {
+		panic(fmt.Errorf("got type($name) = %T, want string", namei))
+	}
+	if name == "" {
+		panic(errors.New("asset's $name should not be empty"))
+	}
+
+	return oddb.Asset{
+		Name: name,
+	}
 }
 
 func parseRef(m map[string]interface{}) oddb.Reference {
@@ -512,6 +543,10 @@ func deriveRecordSchema(m oddb.Data) oddb.RecordSchema {
 		case bool:
 			schema[key] = oddb.FieldType{
 				Type: oddb.TypeBoolean,
+			}
+		case oddb.Asset:
+			schema[key] = oddb.FieldType{
+				Type: oddb.TypeAsset,
 			}
 		case oddb.Reference:
 			v := value.(oddb.Reference)

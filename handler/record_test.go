@@ -231,6 +231,33 @@ func TestRecordSaveDataType(t *testing.T) {
 			})
 		})
 
+		Convey("Parses Asset", func() {
+			resp := r.POST(`{
+	"records": [{
+		"_id": "type1/id1",
+		"asset": {"$type": "asset", "$name": "asset-name"}
+	}]
+}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": [{
+		"_id": "type1/id1",
+		"_type": "record",
+		"_access": null,
+		"asset": {"$type": "asset", "$name": "asset-name"}
+	}]
+}`)
+
+			record := oddb.Record{}
+			So(db.Get(oddb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
+				ID: oddb.NewRecordID("type1", "id1"),
+				Data: map[string]interface{}{
+					"asset": oddb.Asset{Name: "asset-name"},
+				},
+			})
+		})
+
 		Convey("Parses Reference", func() {
 			resp := r.POST(`{
 	"records": [{
@@ -256,7 +283,6 @@ func TestRecordSaveDataType(t *testing.T) {
 					"ref": oddb.NewReference("type2", "id2"),
 				},
 			})
-
 		})
 	})
 }

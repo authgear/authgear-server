@@ -249,6 +249,6 @@ const (
 	TypeReference
 	TypeLocation // not implemented
 	TypeDateTime
-	TypeData // not implemented
+	TypeAsset
 	TypeACL
 )
