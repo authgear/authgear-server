@@ -549,8 +549,12 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 
 type urlOnlyAssetStore struct{}
 
+func (s *urlOnlyAssetStore) GetFileReader(name string) (io.ReadCloser, error) {
+	panic("not implemented")
+}
+
 func (s *urlOnlyAssetStore) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
-	panic("not implementated")
+	panic("not implemented")
 }
 
 func (s *urlOnlyAssetStore) SignedURL(name string, expiredAt time.Time) string {

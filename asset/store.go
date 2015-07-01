@@ -13,6 +13,7 @@ import (
 
 // Store specify the interfaces of an asset store
 type Store interface {
+	GetFileReader(name string) (io.ReadCloser, error)
 	PutFileReader(name string, src io.Reader, length int64, contentType string) error
 }
 
@@ -29,6 +30,11 @@ type FileStore struct {
 
 func NewFileStore(dir string) *FileStore {
 	return &FileStore{dir}
+}
+
+func (s *FileStore) GetFileReader(name string) (io.ReadCloser, error) {
+	path := filepath.Join(s.dir, name)
+	return os.Open(path)
 }
 
 // PutFileReader stores a file from reader onto file system
@@ -73,6 +79,10 @@ func NewS3Store(accessKey, secretKey, bucket string) *S3Store {
 		// FIXME(limouren): auto detect aws region
 		bucket: s3.New(auth, aws.APNortheast).Bucket(bucket),
 	}
+}
+
+func (s *S3Store) GetFileReader(name string) (io.ReadCloser, error) {
+	return s.bucket.GetReader(name)
 }
 
 // PutFileReader uploads a file to s3 with content from io.Reader

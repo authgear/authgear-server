@@ -78,6 +78,18 @@ type Response struct {
 	writer      http.ResponseWriter
 }
 
+// Header returns the header map being written before return a response.
+// Mutating the map after calling WriteEntity has no effects.
+func (resp *Response) Header() http.Header {
+	return resp.writer.Header()
+}
+
+// Write writes raw bytes as response to a request.
+func (resp *Response) Write(b []byte) (int, error) {
+	resp.written = true
+	return resp.writer.Write(b)
+}
+
 // WriteEntity writes a value as response to a request. Currently it only
 // writes JSON response.
 func (resp *Response) WriteEntity(i interface{}) error {

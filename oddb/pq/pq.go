@@ -288,6 +288,29 @@ func (c *conn) QueryRelation(user string, name string, direction string) []oddb.
 	return results
 }
 
+func (c *conn) GetAsset(name string, asset *oddb.Asset) error {
+	selectSql, args, err := psql.Select("content_type").
+		From(c.tableName("_asset")).
+		Where("id = ?", name).
+		ToSql()
+	if err != nil {
+		panic(err)
+	}
+
+	var contentType string
+	err = c.Db.QueryRow(selectSql, args...).Scan(
+		&contentType,
+	)
+	if err == sql.ErrNoRows {
+		return errors.New("asset not found")
+	}
+
+	asset.Name = name
+	asset.ContentType = contentType
+
+	return err
+}
+
 func (c *conn) SaveAsset(asset *oddb.Asset) error {
 	pkData := map[string]interface{}{
 		"id": asset.Name,

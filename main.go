@@ -181,6 +181,7 @@ func main() {
 	}
 
 	fileSystemConnPreprocessor := connPreprocessor{
+		AppName:  config.App.Name,
 		DBOpener: oddb.Open,
 		DBImpl:   config.DB.ImplName,
 		Option:   config.DB.Option,
@@ -223,13 +224,18 @@ func main() {
 	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
 
-	fileUploadPreprocessors := []router.Processor{
+	assetGetPreprocessors := []router.Processor{
+		fileSystemConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+	}
+	assetUploadPreprocessors := []router.Processor{
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
 	}
-	r.PUT(`files/(.+)`, handler.AssetUploadURLHandler, fileUploadPreprocessors...)
+	r.GET(`files/(.+)`, handler.AssetGetURLHandler, assetGetPreprocessors...)
+	r.PUT(`files/(.+)`, handler.AssetUploadURLHandler, assetUploadPreprocessors...)
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,

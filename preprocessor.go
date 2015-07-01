@@ -32,15 +32,16 @@ func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, respons
 }
 
 type connPreprocessor struct {
+	AppName  string
 	DBOpener func(string, string, string) (oddb.Conn, error)
 	DBImpl   string
 	Option   string
 }
 
 func (p connPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	log.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, payload.AppName, p.Option)
+	log.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, p.AppName, p.Option)
 
-	conn, err := p.DBOpener(p.DBImpl, payload.AppName, p.Option)
+	conn, err := p.DBOpener(p.DBImpl, p.AppName, p.Option)
 	if err != nil {
 		response.Err = err
 		return http.StatusServiceUnavailable

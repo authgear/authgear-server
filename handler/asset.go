@@ -15,6 +15,37 @@ import (
 	"github.com/oursky/ourd/uuid"
 )
 
+func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
+	fileName := payload.Params[0]
+
+	conn := payload.DBConn
+	asset := oddb.Asset{}
+	if err := conn.GetAsset(fileName, &asset); err != nil {
+		log.Errorf("Failed to get asset: %v", err)
+
+		response.Err = oderr.NewResourceFetchFailureErr("asset", fileName)
+		return
+	}
+
+	response.Header().Set("Content-Type", asset.ContentType)
+
+	store := payload.AssetStore
+	reader, err := store.GetFileReader(fileName)
+	if err != nil {
+		log.Errorf("Failed to get file reader: %v", err)
+
+		response.Err = oderr.NewResourceFetchFailureErr("asset", fileName)
+		return
+	}
+	defer reader.Close()
+
+	if _, err := io.Copy(response, reader); err != nil {
+		// there is nothing we can do if error occurred after started
+		// writing a response. Log.
+		log.Fatalf("Error writing file to response: %v", err)
+	}
+}
+
 // AssetUploadURLHandler receives and persists a file to be associated by Record.
 //
 // Example curl:

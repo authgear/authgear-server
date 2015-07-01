@@ -80,6 +80,10 @@ func (conn *fileConn) DeleteUser(id string) error {
 	return conn.userDB.Delete(id)
 }
 
+func (conn *fileConn) GetAsset(name string, asset *oddb.Asset) error {
+	panic("not implemented")
+}
+
 func (conn *fileConn) SaveAsset(assert *oddb.Asset) error {
 	panic("not implemented")
 }
