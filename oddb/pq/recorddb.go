@@ -626,18 +626,22 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 	if err != nil {
 		return nil, err
 	}
-	var cName string
+
 	for refs.Next() {
-		s := oddb.FieldType{
-			Type: oddb.TypeReference,
-		}
-		if err := refs.Scan(&cName, &s.ReferenceType); err != nil {
+		s := oddb.FieldType{}
+		var localColumn, referencedTable string
+		if err := refs.Scan(&localColumn, &referencedTable); err != nil {
 			log.Debugf("err %v", err)
 			return nil, err
 		}
-		typemap[cName] = s
-		log.Debugln(cName)
-		log.Debugln(typemap[cName])
+		switch referencedTable {
+		case "_asset":
+			s.Type = oddb.TypeAsset
+		default:
+			s.Type = oddb.TypeReference
+			s.ReferenceType = referencedTable
+		}
+		typemap[localColumn] = s
 	}
 	return typemap, nil
 }
