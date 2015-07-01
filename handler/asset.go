@@ -7,8 +7,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
+	ourAsset "github.com/oursky/ourd/asset"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
@@ -16,7 +19,41 @@ import (
 )
 
 func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
+	payload.Req.ParseForm()
+
+	// check whether the request if expired
+
+	expiredAtUnix, err := strconv.ParseInt(payload.Req.Form.Get("expiredAt"), 10, 64)
+	if err != nil {
+		response.Err = oderr.NewRequestInvalidErr(errors.New("expect expiredAt to be an integer"))
+		return
+	}
+	expiredAt := time.Unix(expiredAtUnix, 0)
+	if time.Now().After(expiredAt) {
+		response.Err = oderr.NewRequestInvalidErr(errors.New("Access denied"))
+		return
+	}
+
+	// check the signature of the URL
+
 	fileName := payload.Params[0]
+	signature := payload.Req.Form.Get("signature")
+
+	signatureParser := payload.AssetStore.(ourAsset.SignatureParser)
+	valid, err := signatureParser.ParseSignature(signature, fileName, expiredAt)
+	if err != nil {
+		log.Errorf("Failed to parse signature: %v", err)
+
+		response.Err = oderr.NewRequestInvalidErr(errors.New("Access denied"))
+		return
+	}
+
+	if !valid {
+		response.Err = oderr.NewRequestInvalidErr(errors.New("Invalid signature"))
+		return
+	}
+
+	// everything's right, proceed with the request
 
 	conn := payload.DBConn
 	asset := oddb.Asset{}

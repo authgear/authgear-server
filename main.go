@@ -163,7 +163,10 @@ func main() {
 	default:
 		panic("unrecgonized asset store implementation: " + config.AssetStore.ImplName)
 	case "fs":
-		store = asset.NewFileStore(config.AssetStore.Path)
+		store = asset.NewFileStore(
+			config.AssetStore.Path,
+			config.AssetURLSigner.URLPrefix,
+			config.AssetURLSigner.Secret)
 	case "s3":
 		store = asset.NewS3Store(
 			config.AssetStore.AccessToken,

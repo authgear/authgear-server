@@ -30,6 +30,10 @@ type Configuration struct {
 		SecretToken string `gcfg:"secret-key"`
 		Bucket      string
 	} `gcfg:"asset-store"`
+	AssetURLSigner struct {
+		URLPrefix string `gcfg:"url-prefix"`
+		Secret    string
+	} `gcfg:"asset-url-signer"`
 	Subscription struct {
 		Enabled bool
 	}
