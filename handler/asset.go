@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/ourd/oddb"
@@ -27,7 +28,10 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 		fileName, contentType string
 	)
 
-	fileName = fmt.Sprintf("%s-%s", uuid.New(), payload.Params[0])
+	dir, file := filepath.Split(payload.Params[0])
+	file = fmt.Sprintf("%s-%s", uuid.New(), file)
+
+	fileName = filepath.Join(dir, file)
 	contentType = payload.Req.Header.Get("Content-Type")
 
 	if contentType == "" {

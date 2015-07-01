@@ -158,12 +158,21 @@ func main() {
 		Store: authtoken.FileStore(config.TokenStore.Path).Init(),
 	}
 
-	s3AssetStorePreprocessor := assetStorePreprocessor{
-		Store: asset.NewS3Store(
+	var store asset.Store
+	switch config.AssetStore.ImplName {
+	default:
+		panic("unrecgonized asset store implementation: " + config.AssetStore.ImplName)
+	case "fs":
+		store = asset.NewFileStore(config.AssetStore.Path)
+	case "s3":
+		store = asset.NewS3Store(
 			config.AssetStore.AccessToken,
 			config.AssetStore.SecretToken,
 			config.AssetStore.Bucket,
-		),
+		)
+	}
+	assetStorePreprocessor := assetStorePreprocessor{
+		Store: store,
 	}
 
 	authenticator := userAuthenticator{
@@ -196,7 +205,7 @@ func main() {
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
-		s3AssetStorePreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 	}
@@ -204,7 +213,7 @@ func main() {
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
-		s3AssetStorePreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 		requireUserForWrite,
@@ -218,7 +227,7 @@ func main() {
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
-		s3AssetStorePreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
 	}
 	r.Handle(`files/(.+)`, handler.AssetUploadURLHandler, fileUploadPreprocessors...)
 

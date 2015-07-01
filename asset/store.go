@@ -1,7 +1,10 @@
 package asset
 
 import (
+	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"time"
 
 	"gopkg.in/amz.v1/aws"
@@ -11,10 +14,48 @@ import (
 // Store specify the interfaces of an asset store
 type Store interface {
 	PutFileReader(name string, src io.Reader, length int64, contentType string) error
+}
 
+type URLSigner interface {
 	// SignedURL returns a signed url with access to the named file. The link
 	// should expires itself after expiredAt
 	SignedURL(name string, expiredAt time.Time) string
+}
+
+// FileStore implements Store by storing files on file system
+type FileStore struct {
+	dir string
+}
+
+func NewFileStore(dir string) *FileStore {
+	return &FileStore{dir}
+}
+
+// PutFileReader stores a file from reader onto file system
+func (s *FileStore) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
+	path := filepath.Join(s.dir, name)
+
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	written, err := io.Copy(f, src)
+	if err != nil {
+		return err
+	}
+
+	if written != length {
+		return fmt.Errorf("got written %d bytes, expect %d", written, length)
+	}
+
+	return nil
 }
 
 // S3Store implements Store by storing files on S3

@@ -35,11 +35,11 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 		case time.Time:
 			m[key] = transportDate(v)
 		case oddb.Asset:
-			// TODO: refactor out this if. We know we are not being
+			// TODO: refactor out this if. We know whether we are
 			// injected an asset store at the start of handler
 			var url string
-			if s.AssetStore != nil {
-				url = s.AssetStore.SignedURL(v.Name, time.Now().Add(15*time.Minute))
+			if signer, ok := s.AssetStore.(asset.URLSigner); ok {
+				url = signer.SignedURL(v.Name, time.Now().Add(15*time.Minute))
 			} else {
 				url = ""
 			}
