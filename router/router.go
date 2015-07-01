@@ -34,8 +34,8 @@ type pathRoute struct {
 
 // Router to dispatch HTTP request to respective handler
 type Router struct {
-	paths   []pathRoute
-	actions map[string]pipeline
+	methodPaths map[string][]pathRoute
+	actions     map[string]pipeline
 }
 
 // Processor specifies the function signature for a Preprocessor
@@ -43,17 +43,35 @@ type Processor func(*Payload, *Response) int
 
 // NewRouter is factory for Router
 func NewRouter() *Router {
-	return &Router{actions: make(map[string]pipeline)}
+	return &Router{
+		map[string][]pathRoute{},
+		map[string]pipeline{},
+	}
 }
 
-// Handle registers a handler by requests URL's path. Pattern is a regexp
-// that defines a match.
-func (r *Router) Handle(pattern string, handler Handler, preprocessors ...Processor) {
-	r.paths = append(r.paths, pathRoute{
+// Handle registers a handler matched by a request's method and URL's path.
+// Pattern is a regexp that defines a matched URL.
+func (r *Router) Handle(method string, pattern string, handler Handler, preprocessors ...Processor) {
+	r.methodPaths[method] = append(r.methodPaths[method], pathRoute{
 		Regexp:        regexp.MustCompile(`\A/` + pattern + `\z`),
 		Preprocessors: preprocessors,
 		Handler:       handler,
 	})
+}
+
+// GET register a URL handler by method GET
+func (r *Router) GET(pattern string, handler Handler, preprocessors ...Processor) {
+	r.Handle("GET", pattern, handler, preprocessors...)
+}
+
+// POST register a URL handler by method POST
+func (r *Router) POST(pattern string, handler Handler, preprocessors ...Processor) {
+	r.Handle("POST", pattern, handler, preprocessors...)
+}
+
+// PUT register a URL handler by method PUT
+func (r *Router) PUT(pattern string, handler Handler, preprocessors ...Processor) {
+	r.Handle("PUT", pattern, handler, preprocessors...)
 }
 
 // Map to register action to handle mapping
@@ -95,7 +113,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// match by URL first
 	matched := false
-	for _, pathRoute := range r.paths {
+	for _, pathRoute := range r.methodPaths[req.Method] {
 		indices := pathRoute.Regexp.FindAllStringSubmatchIndex(req.URL.Path, -1)
 		if len(indices) > 0 {
 			matched = true

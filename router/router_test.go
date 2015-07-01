@@ -194,7 +194,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		r := NewRouter()
 
 		Convey("matches simple url", func() {
-			r.Handle("endpoint", func(payload *Payload, resp *Response) {
+			r.POST("endpoint", func(payload *Payload, resp *Response) {
 				resp.WriteEntity(struct {
 					Status string `json:"status"`
 				}{"ok"})
@@ -207,7 +207,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		})
 
 		Convey("doesn't match midway", func() {
-			r.Handle("endpoint", func(p *Payload, resp *Response) {
+			r.POST("endpoint", func(p *Payload, resp *Response) {
 				t.Fatal("I shall not be called")
 			})
 
@@ -225,7 +225,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		})
 
 		Convey("matches url with parameters", func() {
-			r.Handle(`(?:entity|model)/([0-9a-zA-Z\-_]+)`, func(p *Payload, resp *Response) {
+			r.POST(`(?:entity|model)/([0-9a-zA-Z\-_]+)`, func(p *Payload, resp *Response) {
 				resp.WriteEntity(p.Params)
 			})
 
@@ -237,7 +237,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		})
 
 		Convey("help url handler fill in payload from Header", func() {
-			r.Handle("endpoint", func(p *Payload, resp *Response) {
+			r.POST("endpoint", func(p *Payload, resp *Response) {
 				resp.WriteEntity(struct {
 					APIKey      string `json:"api-key"`
 					AccessToken string `json:"access-token"`

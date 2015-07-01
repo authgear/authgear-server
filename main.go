@@ -229,7 +229,7 @@ func main() {
 		fileSystemConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
 	}
-	r.Handle(`files/(.+)`, handler.AssetUploadURLHandler, fileUploadPreprocessors...)
+	r.PUT(`files/(.+)`, handler.AssetUploadURLHandler, fileUploadPreprocessors...)
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,
