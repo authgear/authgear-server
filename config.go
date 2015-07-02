@@ -36,6 +36,11 @@ type Configuration struct {
 	LOG struct {
 		Level string
 	}
+	Plugin map[string]*struct {
+		Transport string
+		Path      string
+		Args      []string
+	}
 }
 
 // ReadFileInto reads a configuration from file specified by path
