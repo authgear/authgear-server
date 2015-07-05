@@ -2,12 +2,13 @@ package main
 
 import (
 	"errors"
-	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oderr"
 	"net/http"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/ourd/authtoken"
+	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
 
@@ -47,6 +48,15 @@ func (p connPreprocessor) Preprocess(payload *router.Payload, response *router.R
 
 	log.Debugf("Get DB OK")
 
+	return http.StatusOK
+}
+
+type hookRegistryPreprocessor struct {
+	Registry *hook.Registry
+}
+
+func (p hookRegistryPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	payload.HookRegistry = p.Registry
 	return http.StatusOK
 }
 

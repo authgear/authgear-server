@@ -2,23 +2,35 @@ package router
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/oursky/ourd/authtoken"
+	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 )
 
 // Payload is for passing payload to the actual handler
 type Payload struct {
+	// the raw http.Request of this payload
+	// Think twice before accessing it
+	Req *http.Request
+	// URL parameters
+	Params []string
+
 	// Map of params such as Auth, TimeSteam, version
 	Meta map[string]interface{}
 	// Map of action payload
-	Data       map[string]interface{}
-	TokenStore authtoken.Store
+	Data map[string]interface{}
+
+	TokenStore   authtoken.Store
+	HookRegistry *hook.Registry
+
 	AppName    string
 	UserInfoID string
-	DBConn     oddb.Conn
-	Database   oddb.Database
 	UserInfo   *oddb.UserInfo
+
+	DBConn   oddb.Conn
+	Database oddb.Database
 }
 
 // RouteAction must exist for every request
