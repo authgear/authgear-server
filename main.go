@@ -15,6 +15,8 @@ import (
 	"github.com/oursky/ourd/oddb"
 	_ "github.com/oursky/ourd/oddb/fs"
 	_ "github.com/oursky/ourd/oddb/pq"
+	"github.com/oursky/ourd/plugin"
+	_ "github.com/oursky/ourd/plugin/exec"
 	"github.com/oursky/ourd/push"
 	"github.com/oursky/ourd/router"
 	"github.com/oursky/ourd/subscription"
@@ -230,6 +232,17 @@ func main() {
 	}
 	r.Map("user:query", handler.UserQueryHandler, userReadPreprocessors...)
 	r.Map("user:update", handler.UserUpdateHandler, userWritePreprocessors...)
+
+	plugins := []plugin.Plugin{}
+	for _, pluginConfig := range config.Plugin {
+		p := plugin.NewPlugin(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)
+
+		plugins = append(plugins, p)
+	}
+
+	for _, plug := range plugins {
+		plug.Init(r)
+	}
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, logMiddleware(r))
