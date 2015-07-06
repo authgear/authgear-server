@@ -248,7 +248,7 @@ func main() {
 	}
 
 	for _, plug := range plugins {
-		plug.Init(r)
+		plug.Init(r, hookRegistry)
 	}
 
 	log.Printf("Listening on %v...", config.HTTP.Host)

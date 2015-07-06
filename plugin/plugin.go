@@ -3,6 +3,8 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/router"
 )
 
@@ -65,11 +67,24 @@ func NewPlugin(name string, path string, args []string) Plugin {
 }
 
 // Init instantiates a plugin. This sets up hooks and handlers.
-func (p *Plugin) Init(r *router.Router) {
+func (p *Plugin) Init(r *router.Router, registry *hook.Registry) {
 	regInfo := p.getRegistrationInfo()
 
-	// Initialize lambdas
-	for _, lambdaName := range regInfo.Lambdas {
+	p.initLambda(r, regInfo.Lambdas)
+	p.initHook(registry, regInfo.Hooks)
+}
+
+func (p *Plugin) initLambda(r *router.Router, lambdaNames []string) {
+	for _, lambdaName := range lambdaNames {
 		r.Map(lambdaName, CreateLambdaHandler(p, lambdaName))
+	}
+}
+
+func (p *Plugin) initHook(registry *hook.Registry, hookInfos []pluginHookInfo) {
+	for _, hookInfo := range hookInfos {
+		kind := hook.Kind(hookInfo.Trigger)
+		recordType := hookInfo.Type
+
+		registry.Register(kind, recordType, CreateHookFunc(p, hookInfo))
 	}
 }
