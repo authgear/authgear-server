@@ -3,7 +3,6 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/ourd/router"
 )
 
@@ -71,6 +70,6 @@ func (p *Plugin) Init(r *router.Router) {
 
 	// Initialize lambdas
 	for _, lambdaName := range regInfo.Lambdas {
-		log.Printf("Will register lambda %v...", lambdaName)
+		r.Map(lambdaName, CreateLambdaHandler(p, lambdaName))
 	}
 }

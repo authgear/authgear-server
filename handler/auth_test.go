@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/oursky/ourd/authtoken"
+	"github.com/oursky/ourd/handler/handlertest"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/oddbtest"
 	"github.com/oursky/ourd/oderr"
@@ -246,7 +247,7 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 		tokenStore := singleTokenStore{}
 		conn := singleUserConn{}
 
-		r := newSingleRouteRouter(SignupHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(SignupHandler, func(p *router.Payload) {
 			p.TokenStore = &tokenStore
 			p.DBConn = &conn
 		})
@@ -338,7 +339,7 @@ func TestLogoutHandler(t *testing.T) {
 		tokenStore := &deleteTokenStore{}
 		conn := oddbtest.NewMapConn()
 
-		r := newSingleRouteRouter(LogoutHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(LogoutHandler, func(p *router.Payload) {
 			p.TokenStore = tokenStore
 			p.DBConn = conn
 		})

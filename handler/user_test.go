@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/oursky/ourd/handler/handlertest"
 	"github.com/oursky/ourd/oddb/oddbtest"
 	. "github.com/oursky/ourd/ourtest"
 	"github.com/oursky/ourd/router"
@@ -37,7 +38,7 @@ func (userconn queryUserConn) QueryUser(emails []string) ([]oddb.UserInfo, error
 
 func TestUserQueryHandler(t *testing.T) {
 	Convey("UserQueryHandler", t, func() {
-		router := newSingleRouteRouter(UserQueryHandler, func(p *router.Payload) {
+		router := handlertest.NewSingleRouteRouter(UserQueryHandler, func(p *router.Payload) {
 			p.DBConn = queryUserConn{}
 		})
 
@@ -86,7 +87,7 @@ func TestUserUpdateHandler(t *testing.T) {
 		}
 		conn.CreateUser(&userInfo)
 
-		router := newSingleRouteRouter(UserUpdateHandler, func(p *router.Payload) {
+		router := handlertest.NewSingleRouteRouter(UserUpdateHandler, func(p *router.Payload) {
 			p.DBConn = conn
 			p.UserInfo = &userInfo
 		})

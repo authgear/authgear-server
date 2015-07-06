@@ -5,6 +5,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
+	"github.com/oursky/ourd/handler/handlertest"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/router"
 )
@@ -34,7 +35,7 @@ func (conn *testRelationConn) RemoveRelation(user string, name string, targetUse
 func TestRelationQueryHandler(t *testing.T) {
 	Convey("RelationAddHandler", t, func() {
 		conn := testRelationConn{}
-		r := newSingleRouteRouter(RelationAddHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(RelationAddHandler, func(p *router.Payload) {
 			p.DBConn = &conn
 		})
 
@@ -58,7 +59,7 @@ func TestRelationQueryHandler(t *testing.T) {
 
 	Convey("RelationRemoveHandler", t, func() {
 		conn := testRelationConn{}
-		r := newSingleRouteRouter(RelationRemoveHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(RelationRemoveHandler, func(p *router.Payload) {
 			p.DBConn = &conn
 		})
 

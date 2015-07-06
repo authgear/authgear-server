@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/oursky/ourd/authtoken"
+	"github.com/oursky/ourd/handler/handlertest"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/oddbtest"
 	. "github.com/oursky/ourd/ourtest"
@@ -26,7 +27,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 		So(db.Save(&note0), ShouldBeNil)
 		So(db.Save(&note1), ShouldBeNil)
 
-		router := newSingleRouteRouter(RecordDeleteHandler, func(p *router.Payload) {
+		router := handlertest.NewSingleRouteRouter(RecordDeleteHandler, func(p *router.Payload) {
 			p.Database = db
 		})
 
@@ -84,7 +85,7 @@ func (store *errStore) Put(token *authtoken.Token) error {
 func TestRecordSaveHandler(t *testing.T) {
 	Convey("RecordSaveHandler", t, func() {
 		db := oddbtest.NewMapDB()
-		r := newSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
 			payload.Database = db
 		})
 
@@ -199,7 +200,7 @@ func TestRecordSaveHandler(t *testing.T) {
 func TestRecordSaveDataType(t *testing.T) {
 	Convey("RecordSaveHandler", t, func() {
 		db := oddbtest.NewMapDB()
-		r := newSingleRouteRouter(RecordSaveHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(p *router.Payload) {
 			p.Database = db
 		})
 
@@ -273,7 +274,7 @@ func (db *noExtendDatabase) Extend(recordType string, schema oddb.RecordSchema) 
 func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
 	Convey("RecordSaveHandler", t, func() {
 		noExtendDB := &noExtendDatabase{}
-		r := newSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
 			payload.Database = noExtendDB
 		})
 
@@ -470,7 +471,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		}
 
 		Convey("fetched record serializes owner id correctly", func() {
-			resp := newSingleRouteRouter(RecordFetchHandler, injectDBFunc).POST(`{
+			resp := handlertest.NewSingleRouteRouter(RecordFetchHandler, injectDBFunc).POST(`{
 				"ids": ["do/notCare"]
 			}`)
 
@@ -485,7 +486,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		})
 
 		Convey("saved record serializes owner id correctly", func() {
-			resp := newSingleRouteRouter(RecordSaveHandler, injectDBFunc).POST(`{
+			resp := handlertest.NewSingleRouteRouter(RecordSaveHandler, injectDBFunc).POST(`{
 				"records": [{
 					"_id": "do/notCare"
 				}]
@@ -502,7 +503,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		})
 
 		Convey("queried record serializes owner id correctly", func() {
-			resp := newSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+			resp := handlertest.NewSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
 				"record_type": "doNotCare"
 			}`)
 
@@ -568,7 +569,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 		}
 
 		Convey("query record with eager load", func() {
-			resp := newSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+			resp := handlertest.NewSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
 				"record_type": "note",
 				"eager": [{"$type": "keypath", "$val": "category"}]
 			}`)
