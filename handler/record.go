@@ -10,7 +10,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-
+	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
@@ -383,6 +383,20 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
+	var saveFunc func(record *oddb.Record) error
+	if payload.HookRegistry != nil {
+		saveFunc = func(record *oddb.Record) error {
+			payload.HookRegistry.ExecuteHooks(hook.BeforeSave, record)
+			err := db.Save(record)
+			if err == nil {
+				payload.HookRegistry.ExecuteHooks(hook.AfterSave, record)
+			}
+			return err
+		}
+	} else {
+		saveFunc = db.Save
+	}
+
 	results := make([]responseItem, 0, length)
 	for i := range items {
 		item := &items[i]
@@ -392,7 +406,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		var result responseItem
 		if item.Err() {
 			result = newResponseItemErr("", item.err)
-		} else if err := db.Save(record); err != nil {
+		} else if err := saveFunc(record); err != nil {
 			log.WithFields(log.Fields{
 				"record": record,
 				"err":    err,
@@ -882,26 +896,51 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 		recordIDs[i].Key = ss[1]
 	}
 
+	var deleteFunc func(oddb.RecordID, *oddb.Record) error
+	if payload.HookRegistry != nil {
+		deleteFunc = func(recordID oddb.RecordID, record *oddb.Record) error {
+			payload.HookRegistry.ExecuteHooks(hook.BeforeDelete, record)
+			err := db.Delete(recordID)
+			if err == nil {
+				payload.HookRegistry.ExecuteHooks(hook.AfterDelete, record)
+			}
+			return err
+		}
+	} else {
+		deleteFunc = func(recordID oddb.RecordID, record *oddb.Record) error {
+			return db.Delete(recordID)
+		}
+	}
+
 	results := make([]interface{}, 0, length)
 	for _, recordID := range recordIDs {
-		var item interface{}
-		if err := db.Delete(recordID); err != nil {
-			if err == oddb.ErrRecordNotFound {
-				item = newResponseItemErr(
-					recordID.String(),
-					oderr.ErrRecordNotFound,
-				)
-			} else {
-				item = newResponseItemErr(
-					recordID.String(),
-					oderr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
-				)
-			}
-		} else {
+		var (
+			err    error
+			item   interface{}
+			record oddb.Record
+		)
+
+		err = db.Get(recordID, &record)
+
+		if err == nil {
+			err = deleteFunc(recordID, &record)
+		}
+
+		if err == nil {
 			item = struct {
 				ID   oddb.RecordID `json:"_id"`
 				Type string        `json:"_type"`
 			}{recordID, "record"}
+		} else if err == oddb.ErrRecordNotFound {
+			item = newResponseItemErr(
+				recordID.String(),
+				oderr.ErrRecordNotFound,
+			)
+		} else {
+			item = newResponseItemErr(
+				recordID.String(),
+				oderr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
+			)
 		}
 
 		results = append(results, item)

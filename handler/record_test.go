@@ -2,11 +2,13 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler/handlertest"
+	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/oddbtest"
 	. "github.com/oursky/ourd/ourtest"
@@ -587,5 +589,100 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				]}
 			}`)
 		})
+	})
+}
+
+type stackingHook struct {
+	records []*oddb.Record
+}
+
+func (p *stackingHook) Func(record *oddb.Record) error {
+	p.records = append(p.records, record)
+	return nil
+}
+
+type erroneousDB struct {
+	oddb.Database
+}
+
+func (db erroneousDB) Extend(string, oddb.RecordSchema) error {
+	return nil
+}
+
+func (db erroneousDB) Get(oddb.RecordID, *oddb.Record) error {
+	return errors.New("erroneous save")
+}
+
+func (db erroneousDB) Save(*oddb.Record) error {
+	return errors.New("erroneous save")
+}
+
+func TestHookExecution(t *testing.T) {
+	Convey("Record(Save|Delete)Handler", t, func() {
+		handlerTests := []struct {
+			kind             string
+			handler          func(*router.Payload, *router.Response)
+			beforeActionKind hook.Kind
+			afterActionKind  hook.Kind
+			reqBody          string
+		}{
+			{
+				"Save",
+				RecordSaveHandler,
+				hook.BeforeSave,
+				hook.AfterSave,
+				`{"records": [{"_id": "record/id"}]}`,
+			},
+			{
+				"Delete",
+				RecordDeleteHandler,
+				hook.BeforeDelete,
+				hook.AfterDelete,
+				`{"ids": ["record/id"]}`,
+			},
+		}
+
+		record := &oddb.Record{
+			ID: oddb.NewRecordID("record", "id"),
+		}
+
+		registry := hook.NewRegistry()
+		beforeHook := stackingHook{}
+		afterHook := stackingHook{}
+
+		for _, test := range handlerTests {
+			testName := fmt.Sprintf("executes Before%[1]s and After%[1]s action hooks", test.kind)
+			Convey(testName, func() {
+				registry.Register(test.beforeActionKind, "record", beforeHook.Func)
+				registry.Register(test.afterActionKind, "record", afterHook.Func)
+
+				db := oddbtest.NewMapDB()
+				So(db.Save(record), ShouldBeNil)
+
+				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
+					p.Database = db
+					p.HookRegistry = registry
+				})
+
+				r.POST(test.reqBody)
+
+				So(len(beforeHook.records), ShouldEqual, 1)
+				So(beforeHook.records[0].ID, ShouldResemble, record.ID)
+				So(len(afterHook.records), ShouldEqual, 1)
+				So(afterHook.records[0].ID, ShouldResemble, record.ID)
+			})
+
+			testName = fmt.Sprintf("doesn't execute After%[1]s hooks if db.%[1]s returns an error", test.kind)
+			Convey(testName, func() {
+				registry.Register(test.afterActionKind, "record", afterHook.Func)
+				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
+					p.Database = erroneousDB{}
+					p.HookRegistry = registry
+				})
+
+				r.POST(test.reqBody)
+				So(afterHook.records, ShouldBeEmpty)
+			})
+		}
 	})
 }
