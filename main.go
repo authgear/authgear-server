@@ -63,6 +63,8 @@ func (l *responseLogger) String() string {
 
 func logMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Debugf("%v %v", r.Method, r.RequestURI)
+
 		log.Debugln("------ Header: ------")
 		for key, value := range r.Header {
 			log.Debugf("%s: %v", key, value)
