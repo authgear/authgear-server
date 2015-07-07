@@ -816,6 +816,7 @@ func TestRecordAssetField(t *testing.T) {
 		So(c.SaveAsset(&oddb.Asset{
 			Name:        "picture.png",
 			ContentType: "image/png",
+			Size:        1,
 		}), ShouldBeNil)
 
 		db := c.PublicDB()

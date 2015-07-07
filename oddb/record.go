@@ -138,6 +138,7 @@ func NewRecordACL(entries []RecordACLEntry) RecordACL {
 type Asset struct {
 	Name        string
 	ContentType string
+	Size        int64
 }
 
 type Reference struct {

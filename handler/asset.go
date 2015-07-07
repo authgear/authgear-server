@@ -65,6 +65,7 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	response.Header().Set("Content-Type", asset.ContentType)
+	response.Header().Set("Content-Length", strconv.FormatInt(asset.Size, 10))
 
 	store := payload.AssetStore
 	reader, err := store.GetFileReader(fileName)
@@ -130,6 +131,7 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 	asset := oddb.Asset{
 		Name:        fileName,
 		ContentType: contentType,
+		Size:        written,
 	}
 
 	conn := payload.DBConn

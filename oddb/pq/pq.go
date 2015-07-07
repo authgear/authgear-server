@@ -289,7 +289,7 @@ func (c *conn) QueryRelation(user string, name string, direction string) []oddb.
 }
 
 func (c *conn) GetAsset(name string, asset *oddb.Asset) error {
-	selectSql, args, err := psql.Select("content_type").
+	selectSql, args, err := psql.Select("content_type", "size").
 		From(c.tableName("_asset")).
 		Where("id = ?", name).
 		ToSql()
@@ -297,9 +297,13 @@ func (c *conn) GetAsset(name string, asset *oddb.Asset) error {
 		panic(err)
 	}
 
-	var contentType string
+	var (
+		contentType string
+		size        int64
+	)
 	err = c.Db.QueryRow(selectSql, args...).Scan(
 		&contentType,
+		&size,
 	)
 	if err == sql.ErrNoRows {
 		return errors.New("asset not found")
@@ -307,6 +311,7 @@ func (c *conn) GetAsset(name string, asset *oddb.Asset) error {
 
 	asset.Name = name
 	asset.ContentType = contentType
+	asset.Size = size
 
 	return err
 }
@@ -317,6 +322,7 @@ func (c *conn) SaveAsset(asset *oddb.Asset) error {
 	}
 	data := map[string]interface{}{
 		"content_type": asset.ContentType,
+		"size":         asset.Size,
 	}
 	sql, args := upsertQuery(c.tableName("_asset"), pkData, data, []string{})
 	_, err := c.Db.Exec(sql, args...)
@@ -571,7 +577,8 @@ CREATE TABLE IF NOT EXISTS %v._user (
 	const CreateAssetTableFmt = `
 CREATE TABLE IF NOT EXISTS %v._asset (
 	id text PRIMARY KEY,
-	content_type text
+	content_type text,
+	size bigint
 );
 `
 	const CreateDeviceTableFmt = `
