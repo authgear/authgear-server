@@ -120,6 +120,35 @@ func TestRecordSaveHandler(t *testing.T) {
 			}`)
 		})
 
+		Convey("Update existing record", func() {
+			record := oddb.Record{
+				ID: oddb.NewRecordID("record", "id"),
+				Data: map[string]interface{}{
+					"existing": "YES",
+					"old":      true,
+				},
+			}
+			So(db.Save(&record), ShouldBeNil)
+
+			resp := r.POST(`{
+				"records": [{
+					"_id": "record/id",
+					"old": false,
+					"new": 1
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "record/id",
+					"_type": "record",
+					"_access": null,
+					"existing": "YES",
+					"old": false,
+					"new": 1
+				}]
+			}`)
+		})
+
 		Convey("Removes reserved keys on save", func() {
 			resp := r.POST(`{
 				"records": [{
@@ -490,7 +519,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		Convey("saved record serializes owner id correctly", func() {
 			resp := handlertest.NewSingleRouteRouter(RecordSaveHandler, injectDBFunc).POST(`{
 				"records": [{
-					"_id": "do/notCare"
+					"_id": "type/id"
 				}]
 			}`)
 
@@ -686,25 +715,58 @@ func TestHookExecution(t *testing.T) {
 		}
 	})
 
-	Convey("record is not saved if BeforeSave's hook returns an error", t, func() {
+	Convey("HookRegistry", t, func() {
 		registry := hook.NewRegistry()
-		registry.Register(hook.BeforeSave, "record", func(*oddb.Record) error {
-			return errors.New("no hooks for you!")
-		})
-
 		db := oddbtest.NewMapDB()
 		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(p *router.Payload) {
 			p.Database = db
 			p.HookRegistry = registry
 		})
 
-		r.POST(`{
-			"records": [{
-				"_id": "record/id"
-			}]
-		}`)
+		Convey("record is not saved if BeforeSave's hook returns an error", func() {
+			registry.Register(hook.BeforeSave, "record", func(*oddb.Record) error {
+				return errors.New("no hooks for you!")
+			})
+			r.POST(`{
+				"records": [{
+					"_id": "record/id"
+				}]
+			}`)
 
-		var record oddb.Record
-		So(db.Get(oddb.NewRecordID("record", "id"), &record), ShouldEqual, oddb.ErrRecordNotFound)
+			var record oddb.Record
+			So(db.Get(oddb.NewRecordID("record", "id"), &record), ShouldEqual, oddb.ErrRecordNotFound)
+		})
+
+		Convey("BeforeSave should be fed fully fetched record", func() {
+			existingRecord := oddb.Record{
+				ID: oddb.NewRecordID("record", "id"),
+				Data: map[string]interface{}{
+					"old": true,
+				},
+			}
+			So(db.Save(&existingRecord), ShouldBeNil)
+
+			called := false
+			registry.Register(hook.BeforeSave, "record", func(record *oddb.Record) error {
+				called = true
+				So(*record, ShouldResemble, oddb.Record{
+					ID: oddb.NewRecordID("record", "id"),
+					Data: map[string]interface{}{
+						"old": true,
+						"new": true,
+					},
+				})
+				return nil
+			})
+
+			r.POST(`{
+				"records": [{
+					"_id": "record/id",
+					"new": true
+				}]
+			}`)
+
+			So(called, ShouldBeTrue)
+		})
 	})
 }

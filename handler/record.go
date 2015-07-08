@@ -383,25 +383,6 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	var saveFunc func(record *oddb.Record) error
-	if payload.HookRegistry != nil {
-		saveFunc = func(record *oddb.Record) error {
-			if err := payload.HookRegistry.ExecuteHooks(hook.BeforeSave, record); err != nil {
-				return err
-			}
-
-			if err := db.Save(record); err != nil {
-				return err
-			}
-
-			payload.HookRegistry.ExecuteHooks(hook.AfterSave, record)
-
-			return nil
-		}
-	} else {
-		saveFunc = db.Save
-	}
-
 	results := make([]responseItem, 0, length)
 	for i := range items {
 		item := &items[i]
@@ -411,24 +392,109 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		var result responseItem
 		if item.Err() {
 			result = newResponseItemErr("", item.err)
-		} else if err := saveFunc(record); err != nil {
-			log.WithFields(log.Fields{
-				"record": record,
-				"err":    err,
-			}).Debugln("failed to save record")
-
-			result = newResponseItemErr(
-				record.ID.String(),
-				oderr.NewResourceSaveFailureErrWithStringID("record", record.ID.String()),
-			)
 		} else {
-			result = newResponseItem((*transportRecord)(record))
+			// NOTE(limouren): everything in this else should properly live
+			// in an abstraction between handler and oddb
+			var (
+				origRecord oddb.Record
+				err        error
+			)
+
+			err = db.Get(record.ID, &origRecord)
+			if err == oddb.ErrRecordNotFound {
+				// no existing record, db.Save will create a new one
+				// does not treat as error here
+				err = nil
+			}
+
+			var fetchedRecord oddb.Record
+			if err == nil {
+				copyRecord(&fetchedRecord, &origRecord)
+				mergeRecord(&fetchedRecord, record)
+				if payload.HookRegistry != nil {
+					err = payload.HookRegistry.ExecuteHooks(hook.BeforeSave, &fetchedRecord)
+				}
+			}
+
+			var deltaRecord oddb.Record
+			if err == nil {
+				deriveDeltaRecord(&deltaRecord, &origRecord, &fetchedRecord)
+				err = db.Save(&deltaRecord)
+			}
+
+			if err == nil {
+				if payload.HookRegistry != nil {
+					payload.HookRegistry.ExecuteHooks(hook.AfterSave, &fetchedRecord)
+				}
+
+				result = newResponseItem((*transportRecord)(&fetchedRecord))
+			} else {
+				log.WithFields(log.Fields{
+					"record": deltaRecord,
+					"err":    err,
+				}).Debugln("failed to save record")
+
+				result = newResponseItemErr(
+					deltaRecord.ID.String(),
+					oderr.NewResourceSaveFailureErrWithStringID("record", deltaRecord.ID.String()),
+				)
+			}
 		}
 
 		results = append(results, result)
 	}
 
 	response.Result = results
+}
+
+func copyRecord(dst, src *oddb.Record) {
+	*dst = *src
+
+	dst.Data = map[string]interface{}{}
+	for key, value := range src.Data {
+		dst.Data[key] = value
+	}
+}
+
+func mergeRecord(dst, src *oddb.Record) {
+	dst.ID = src.ID
+	dst.ACL = src.ACL
+
+	if src.DatabaseID != "" {
+		dst.DatabaseID = src.DatabaseID
+	}
+	if src.OwnerID != "" {
+		dst.OwnerID = src.OwnerID
+	}
+
+	if dst.Data == nil {
+		dst.Data = map[string]interface{}{}
+	}
+
+	for key, value := range src.Data {
+		dst.Data[key] = value
+	}
+}
+
+// Derive fields in delta which is either new or different from base, and
+// write them in dst.
+//
+// It is the caller's reponsibility to ensure that base and delta identify
+// the same record
+func deriveDeltaRecord(dst, base, delta *oddb.Record) {
+	dst.ID = delta.ID
+	dst.ACL = delta.ACL
+
+	dst.Data = map[string]interface{}{}
+	for key, value := range delta.Data {
+		if baseValue, ok := base.Data[key]; ok {
+			if value != baseValue {
+				dst.Data[key] = value
+			}
+		} else {
+			dst.Data[key] = value
+		}
+	}
 }
 
 type recordSaveItem struct {
