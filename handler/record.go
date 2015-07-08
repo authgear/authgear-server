@@ -386,12 +386,17 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	var saveFunc func(record *oddb.Record) error
 	if payload.HookRegistry != nil {
 		saveFunc = func(record *oddb.Record) error {
-			payload.HookRegistry.ExecuteHooks(hook.BeforeSave, record)
-			err := db.Save(record)
-			if err == nil {
-				payload.HookRegistry.ExecuteHooks(hook.AfterSave, record)
+			if err := payload.HookRegistry.ExecuteHooks(hook.BeforeSave, record); err != nil {
+				return err
 			}
-			return err
+
+			if err := db.Save(record); err != nil {
+				return err
+			}
+
+			payload.HookRegistry.ExecuteHooks(hook.AfterSave, record)
+
+			return nil
 		}
 	} else {
 		saveFunc = db.Save
