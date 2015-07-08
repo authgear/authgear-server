@@ -6,8 +6,11 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -17,6 +20,16 @@ import (
 	"github.com/oursky/ourd/router"
 	"github.com/oursky/ourd/uuid"
 )
+
+var sanitizedPathRe *regexp.Regexp
+
+func init() {
+	sanitizedPathRe = regexp.MustCompile(`\A[/.]+`)
+}
+
+func clean(p string) string {
+	return strings.Replace(sanitizedPathRe.ReplaceAllString(path.Clean(p), ""), "..", "", -1)
+}
 
 func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 	payload.Req.ParseForm()
@@ -36,7 +49,7 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 
 	// check the signature of the URL
 
-	fileName := payload.Params[0]
+	fileName := clean(payload.Params[0])
 	signature := payload.Req.Form.Get("signature")
 
 	signatureParser := payload.AssetStore.(ourAsset.SignatureParser)
@@ -97,7 +110,9 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 		fileName, contentType string
 	)
 
-	dir, file := filepath.Split(payload.Params[0])
+	fileName = clean(payload.Params[0])
+
+	dir, file := filepath.Split(fileName)
 	file = fmt.Sprintf("%s-%s", uuid.New(), file)
 
 	fileName = filepath.Join(dir, file)
