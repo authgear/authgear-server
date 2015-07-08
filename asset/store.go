@@ -94,7 +94,7 @@ func (s *FileStore) SignedURL(name string, expiredAt time.Time) string {
 	base64Encoder.Write(h.Sum(nil))
 
 	return fmt.Sprintf(
-		"%s/%s?expiredAt=%s%%26signature=%s",
+		"%s/%s?expiredAt=%s&signature=%s",
 		s.prefix, name, expiredAtStr, buf.String(),
 	)
 }
