@@ -170,11 +170,16 @@ func main() {
 			config.AssetURLSigner.URLPrefix,
 			config.AssetURLSigner.Secret)
 	case "s3":
-		store = asset.NewS3Store(
+		s3Store, err := asset.NewS3Store(
 			config.AssetStore.AccessToken,
 			config.AssetStore.SecretToken,
+			config.AssetStore.Reigon,
 			config.AssetStore.Bucket,
 		)
+		if err != nil {
+			panic("failed to initialize asset.S3Store: " + err.Error())
+		}
+		store = s3Store
 	}
 	assetStorePreprocessor := assetStorePreprocessor{
 		Store: store,

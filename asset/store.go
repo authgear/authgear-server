@@ -121,15 +121,20 @@ type S3Store struct {
 }
 
 // NewS3Store returns a new S3Store
-func NewS3Store(accessKey, secretKey, bucket string) *S3Store {
+func NewS3Store(accessKey, secretKey, reigonName, bucket string) (*S3Store, error) {
 	auth := aws.Auth{
 		AccessKey: accessKey,
 		SecretKey: secretKey,
 	}
-	return &S3Store{
-		// FIXME(limouren): auto detect aws region
-		bucket: s3.New(auth, aws.APNortheast).Bucket(bucket),
+
+	reigon, ok := aws.Regions[reigonName]
+	if !ok {
+		return nil, fmt.Errorf("unrecgonized reigon name = %v", reigonName)
 	}
+
+	return &S3Store{
+		bucket: s3.New(auth, reigon).Bucket(bucket),
+	}, nil
 }
 
 func (s *S3Store) GetFileReader(name string) (io.ReadCloser, error) {

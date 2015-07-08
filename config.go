@@ -24,10 +24,15 @@ type Configuration struct {
 		Path string `gcfg:"path"`
 	} `gcfg:"token-store"`
 	AssetStore struct {
-		ImplName    string `gcfg:"implementation"`
-		Path        string
+		ImplName string `gcfg:"implementation"`
+
+		// followings only used when ImplName = fs
+		Path string
+
+		// followings only used when ImplName = s3
 		AccessToken string `gcfg:"access-key"`
 		SecretToken string `gcfg:"secret-key"`
+		Reigon      string
 		Bucket      string
 	} `gcfg:"asset-store"`
 	AssetURLSigner struct {
