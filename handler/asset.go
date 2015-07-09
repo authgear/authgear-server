@@ -21,11 +21,13 @@ import (
 	"github.com/oursky/ourd/uuid"
 )
 
-var sanitizedPathRe *regexp.Regexp
+var (
+	uuidNew = uuid.New
+	timeNow = time.Now
+)
 
-func init() {
-	sanitizedPathRe = regexp.MustCompile(`\A[/.]+`)
-}
+// used to clean file path
+var sanitizedPathRe = regexp.MustCompile(`\A[/.]+`)
 
 func clean(p string) string {
 	return strings.Replace(sanitizedPathRe.ReplaceAllString(path.Clean(p), ""), "..", "", -1)
@@ -42,7 +44,7 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 	expiredAt := time.Unix(expiredAtUnix, 0)
-	if time.Now().After(expiredAt) {
+	if timeNow().After(expiredAt) {
 		response.Err = oderr.NewRequestInvalidErr(errors.New("Access denied"))
 		return
 	}
@@ -113,7 +115,7 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 	fileName = clean(payload.Params[0])
 
 	dir, file := filepath.Split(fileName)
-	file = fmt.Sprintf("%s-%s", uuid.New(), file)
+	file = fmt.Sprintf("%s-%s", uuidNew(), file)
 
 	fileName = filepath.Join(dir, file)
 	contentType = payload.Req.Header.Get("Content-Type")
@@ -135,6 +137,7 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 
 	if written == 0 {
 		response.Err = oderr.NewRequestInvalidErr(errors.New("Zero-byte content"))
+		return
 	}
 
 	assetStore := payload.AssetStore
