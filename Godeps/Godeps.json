@@ -38,6 +38,10 @@
 			"Rev": "33ddf69629c1bcea76b04f4a4e9e00e4cce82eb6"
 		},
 		{
+			"ImportPath": "github.com/robfig/cron",
+			"Rev": "67823cd24dece1b04cced3a0a0b3ca2bc84d875e"
+		},
+		{
 			"ImportPath": "github.com/timehop/apns",
 			"Rev": "135f56759da5d4da98054f1819bd2b3c1d1a51b0"
 		},
@@ -52,6 +56,10 @@
 		{
 			"ImportPath": "golang.org/x/crypto/blowfish",
 			"Rev": "1351f936d976c60a0a48d728281922cf63eafb8d"
+		},
+		{
+			"ImportPath": "github.com/robfig/cron",
+			"Rev": "67823cd24dece1b04cced3a0a0b3ca2bc84d875e"
 		}
 	]
 }
