@@ -484,6 +484,7 @@ func mergeRecord(dst, src *oddb.Record) {
 func deriveDeltaRecord(dst, base, delta *oddb.Record) {
 	dst.ID = delta.ID
 	dst.ACL = delta.ACL
+	dst.OwnerID = delta.OwnerID
 
 	dst.Data = map[string]interface{}{}
 	for key, value := range delta.Data {
