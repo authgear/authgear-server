@@ -1,8 +1,11 @@
 package router
 
 import (
+	"encoding/json"
 	"log"
+	"net/http"
 
+	"github.com/oursky/ourd/asset"
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 )
@@ -12,13 +15,19 @@ type Payload struct {
 	// Map of params such as Auth, TimeSteam, version
 	Meta map[string]interface{}
 	// Map of action payload
-	Data       map[string]interface{}
+	Data map[string]interface{}
+	// URL parameters
+	Params     []string
 	TokenStore authtoken.Store
+	AssetStore asset.Store
 	AppName    string
 	UserInfoID string
 	DBConn     oddb.Conn
 	Database   oddb.Database
 	UserInfo   *oddb.UserInfo
+	// the raw http.Request of this payload
+	// Think twice before accessing it
+	Req *http.Request
 }
 
 // RouteAction must exist for every request
@@ -65,4 +74,26 @@ type Response struct {
 	RequestID   string                 `json:"request_id,omitempty"`
 	DatabaseID  string                 `json:"database_id,omitempty"`
 	OtherResult interface{}            `json:"other_result,omitempty"`
+	written     bool
+	writer      http.ResponseWriter
+}
+
+// Header returns the header map being written before return a response.
+// Mutating the map after calling WriteEntity has no effects.
+func (resp *Response) Header() http.Header {
+	return resp.writer.Header()
+}
+
+// Write writes raw bytes as response to a request.
+func (resp *Response) Write(b []byte) (int, error) {
+	resp.written = true
+	return resp.writer.Write(b)
+}
+
+// WriteEntity writes a value as response to a request. Currently it only
+// writes JSON response.
+func (resp *Response) WriteEntity(i interface{}) error {
+	resp.written = true
+	// hard code JSON write at the moment
+	return json.NewEncoder(resp.writer).Encode(i)
 }

@@ -51,6 +51,37 @@ func (nj *nullJSON) Scan(value interface{}) error {
 	return err
 }
 
+type assetValue oddb.Asset
+
+func (asset assetValue) Value() (driver.Value, error) {
+	return asset.Name, nil
+}
+
+type nullAsset struct {
+	Asset oddb.Asset
+	Valid bool
+}
+
+func (na *nullAsset) Scan(value interface{}) error {
+	if value == nil {
+		na.Asset = oddb.Asset{}
+		na.Valid = false
+		return nil
+	}
+
+	assetName, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("failed to scan Asset: got type(value) = %T, expect string", value)
+	}
+
+	na.Asset = oddb.Asset{
+		Name: assetName,
+	}
+	na.Valid = true
+
+	return nil
+}
+
 type referenceValue oddb.Reference
 
 func (ref referenceValue) Value() (driver.Value, error) {
@@ -144,6 +175,8 @@ func convert(r *oddb.Record) map[string]interface{} {
 			m[key] = jsonSliceValue(value)
 		case map[string]interface{}:
 			m[key] = jsonMapValue(value)
+		case oddb.Asset:
+			m[key] = assetValue(value)
 		case oddb.Reference:
 			m[key] = referenceValue(value)
 		}
@@ -408,6 +441,9 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case oddb.TypeBoolean:
 			var boolean sql.NullBool
 			values = append(values, &boolean)
+		case oddb.TypeAsset:
+			var asset nullAsset
+			values = append(values, &asset)
 		case oddb.TypeJSON:
 			var j nullJSON
 			values = append(values, &j)
@@ -451,6 +487,10 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case *sql.NullBool:
 			if svalue.Valid {
 				record.Set(column, svalue.Bool)
+			}
+		case *nullAsset:
+			if svalue.Valid {
+				record.Set(column, svalue.Asset)
 			}
 		case *nullJSON:
 			if svalue.Valid {
@@ -586,18 +626,22 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 	if err != nil {
 		return nil, err
 	}
-	var cName string
+
 	for refs.Next() {
-		s := oddb.FieldType{
-			Type: oddb.TypeReference,
-		}
-		if err := refs.Scan(&cName, &s.ReferenceType); err != nil {
+		s := oddb.FieldType{}
+		var localColumn, referencedTable string
+		if err := refs.Scan(&localColumn, &referencedTable); err != nil {
 			log.Debugf("err %v", err)
 			return nil, err
 		}
-		typemap[cName] = s
-		log.Debugln(cName)
-		log.Debugln(typemap[cName])
+		switch referencedTable {
+		case "_asset":
+			s.Type = oddb.TypeAsset
+		default:
+			s.Type = oddb.TypeReference
+			s.ReferenceType = referencedTable
+		}
+		typemap[localColumn] = s
 	}
 	return typemap, nil
 }
@@ -686,18 +730,11 @@ func (db *database) addColumnStmt(recordType string, recordSchema oddb.RecordSch
 		buf.WriteByte(' ')
 		buf.WriteString(pqDataType(schema.Type))
 		buf.WriteByte(',')
-		if schema.Type == oddb.TypeReference {
-			buf.WriteString("ADD CONSTRAINT fk_")
-			buf.WriteString(recordType)
-			buf.WriteString("_")
-			buf.WriteString(column)
-			buf.WriteString("_")
-			buf.WriteString(schema.ReferenceType)
-			buf.WriteString(" FOREIGN KEY (")
-			buf.WriteString(column)
-			buf.WriteString(") REFERENCES ")
-			buf.WriteString(db.tableName(schema.ReferenceType))
-			buf.WriteString("(_id),")
+		switch schema.Type {
+		case oddb.TypeAsset:
+			db.writeForeignKeyConstraint(&buf, column, "_asset", "id")
+		case oddb.TypeReference:
+			db.writeForeignKeyConstraint(&buf, column, schema.ReferenceType, "_id")
 		}
 	}
 
@@ -707,13 +744,27 @@ func (db *database) addColumnStmt(recordType string, recordSchema oddb.RecordSch
 	return buf.String()
 }
 
+func (db *database) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, referent, remoteCol string) {
+	buf.Write([]byte("ADD CONSTRAINT fk_"))
+	buf.WriteString(localCol)
+	buf.Write([]byte("_"))
+	buf.WriteString(referent)
+	buf.Write([]byte("_"))
+	buf.WriteString(remoteCol)
+	buf.Write([]byte(` FOREIGN KEY ("`))
+	buf.WriteString(localCol)
+	buf.Write([]byte(`") REFERENCES `))
+	buf.WriteString(db.tableName(referent))
+	buf.Write([]byte(` ("`))
+	buf.WriteString(remoteCol)
+	buf.Write([]byte(`"),`))
+}
+
 func pqDataType(dataType oddb.DataType) string {
 	switch dataType {
 	default:
 		panic(fmt.Sprintf("Unsupported dataType = %s", dataType))
-	case oddb.TypeReference:
-		return TypeString
-	case oddb.TypeString:
+	case oddb.TypeString, oddb.TypeAsset, oddb.TypeReference:
 		return TypeString
 	case oddb.TypeNumber:
 		return TypeNumber

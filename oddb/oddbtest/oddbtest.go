@@ -61,6 +61,14 @@ func (conn *MapConn) DeleteUser(id string) error {
 	return nil
 }
 
+func (conn *MapConn) GetAsset(name string, asset *oddb.Asset) error {
+	panic("not implemented")
+}
+
+func (conn *MapConn) SaveAsset(asset *oddb.Asset) error {
+	panic("not implemented")
+}
+
 func (conn *MapConn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
 	panic("not implemented")
 }

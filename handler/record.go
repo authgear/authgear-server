@@ -11,52 +11,59 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
+	"github.com/oursky/ourd/asset"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
 
-// transportRecord override JSON serialization and deserialization of
-// oddb.Record
-type transportRecord oddb.Record
+type serializedRecord struct {
+	Record     *oddb.Record
+	AssetStore asset.Store
+}
 
-func (r transportRecord) MarshalJSON() ([]byte, error) {
+func newSerializedRecord(record *oddb.Record, assetStore asset.Store) serializedRecord {
+	return serializedRecord{record, assetStore}
+}
+
+func (s serializedRecord) MarshalJSON() ([]byte, error) {
+	r := s.Record
+
 	m := map[string]interface{}{}
+	for key, value := range r.Data {
+		switch v := value.(type) {
+		case time.Time:
+			m[key] = transportDate(v)
+		case oddb.Asset:
+			// TODO: refactor out this if. We know whether we are
+			// injected an asset store at the start of handler
+			var url string
+			if signer, ok := s.AssetStore.(asset.URLSigner); ok {
+				url = signer.SignedURL(v.Name, time.Now().Add(15*time.Minute))
+			} else {
+				url = ""
+			}
+			m[key] = struct {
+				Type string `json:"$type"`
+				Name string `json:"$name"`
+				URL  string `json:"$url,omitempty"`
+			}{"asset", v.Name, url}
+		default:
+			m[key] = v
+		}
+	}
 
 	if r.OwnerID != "" {
 		m["_ownerID"] = r.OwnerID
 	}
 	m["_access"] = r.ACL
 
-	for key, value := range r.Data {
-		m[key] = value
-	}
-	return json.Marshal(transportData(m))
-}
-
-type transportData map[string]interface{}
-
-func (data transportData) MarshalJSON() ([]byte, error) {
-	m := map[string]interface{}{}
-	for key, value := range data {
-		switch v := value.(type) {
-		case time.Time:
-			m[key] = transportDate(v)
-		default:
-			m[key] = v
-		}
-	}
 	return json.Marshal(m)
 }
 
-type transportDate time.Time
-
-func (date transportDate) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Type string    `json:"$type"`
-		Date time.Time `json:"$date"`
-	}{"date", time.Time(date)})
-}
+// transportRecord override JSON serialization and deserialization of
+// oddb.Record
+type transportRecord oddb.Record
 
 func (r *transportRecord) UnmarshalJSON(data []byte) error {
 	object := map[string]interface{}{}
@@ -110,6 +117,24 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 	r.Data = data
 
 	return nil
+}
+
+type transportDate time.Time
+
+func (date transportDate) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type string    `json:"$type"`
+		Date time.Time `json:"$date"`
+	}{"date", time.Time(date)})
+}
+
+type transportAsset oddb.Asset
+
+func (asset transportAsset) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type string `json:"$type"`
+		Name string `json:"$name"`
+	}{"asset", asset.Name})
 }
 
 func purgeReservedKey(m map[string]interface{}) {
@@ -175,6 +200,8 @@ func parseInterface(i interface{}) interface{} {
 			panic(fmt.Errorf("unsupported $type of persistence = %s", kind))
 		case "geo", "blob":
 			panic(fmt.Errorf("unimplemented $type = %s", kind))
+		case "asset":
+			return parseAsset(value)
 		case "ref":
 			return parseRef(value)
 		case "date":
@@ -235,6 +262,24 @@ func parseDate(m map[string]interface{}) time.Time {
 	return dt.In(time.UTC)
 }
 
+func parseAsset(m map[string]interface{}) oddb.Asset {
+	namei, ok := m["$name"]
+	if !ok {
+		panic(errors.New("missing compulsory field $name"))
+	}
+	name, ok := namei.(string)
+	if !ok {
+		panic(fmt.Errorf("got type($name) = %T, want string", namei))
+	}
+	if name == "" {
+		panic(errors.New("asset's $name should not be empty"))
+	}
+
+	return oddb.Asset{
+		Name: name,
+	}
+}
+
 func parseRef(m map[string]interface{}) oddb.Reference {
 	idi, ok := m["$id"]
 	if !ok {
@@ -253,13 +298,13 @@ func parseRef(m map[string]interface{}) oddb.Reference {
 
 type responseItem struct {
 	id     string
-	record *transportRecord
+	record serializedRecord
 	err    oderr.Error
 }
 
-func newResponseItem(record *transportRecord) responseItem {
+func newResponseItem(record serializedRecord) responseItem {
 	return responseItem{
-		id:     record.ID.String(),
+		id:     record.Record.ID.String(),
 		record: record,
 	}
 }
@@ -287,7 +332,7 @@ func (item responseItem) MarshalJSON() ([]byte, error) {
 	if item.err != nil {
 		buf.Write([]byte(`error"`))
 		i = item.err
-	} else if item.record != nil {
+	} else if item.record.Record != nil {
 		buf.Write([]byte(`record"`))
 		i = item.record
 	} else {
@@ -403,7 +448,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 				oderr.NewResourceSaveFailureErrWithStringID("record", record.ID.String()),
 			)
 		} else {
-			result = newResponseItem((*transportRecord)(record))
+			result = newResponseItem(newSerializedRecord(record, payload.AssetStore))
 		}
 
 		results = append(results, result)
@@ -513,6 +558,10 @@ func deriveRecordSchema(m oddb.Data) oddb.RecordSchema {
 			schema[key] = oddb.FieldType{
 				Type: oddb.TypeBoolean,
 			}
+		case oddb.Asset:
+			schema[key] = oddb.FieldType{
+				Type: oddb.TypeAsset,
+			}
 		case oddb.Reference:
 			v := value.(oddb.Reference)
 			schema[key] = oddb.FieldType{
@@ -571,8 +620,8 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 
 	results := make([]responseItem, length, length)
 	for i, recordID := range recordIDs {
-		record := transportRecord{}
-		if err := db.Get(recordID, (*oddb.Record)(&record)); err != nil {
+		record := oddb.Record{}
+		if err := db.Get(recordID, &record); err != nil {
 			if err == oddb.ErrRecordNotFound {
 				results[i] = newResponseItemErr(
 					recordID.String(),
@@ -589,7 +638,7 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 				)
 			}
 		} else {
-			results[i] = newResponseItem(&record)
+			results[i] = newResponseItem(newSerializedRecord(&record, payload.AssetStore))
 		}
 	}
 
@@ -807,13 +856,13 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	records := []responseItem{}
 	eagerLoadIDs := []oddb.RecordID{}
 	for results.Scan() {
-		record := transportRecord(results.Record())
+		record := results.Record()
 		for _, eagerKey := range eagerKeys {
 			if ref, ok := record.Data[eagerKey].(oddb.Reference); ok {
 				eagerLoadIDs = append(eagerLoadIDs, ref.ID)
 			}
 		}
-		records = append(records, newResponseItem(&record))
+		records = append(records, newResponseItem(newSerializedRecord(&record, payload.AssetStore)))
 	}
 
 	if err != nil {
@@ -823,9 +872,9 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 
 	eagerRecords := []responseItem{}
 	for _, rid := range eagerLoadIDs {
-		record := transportRecord{}
-		if err := db.Get(rid, (*oddb.Record)(&record)); err == nil {
-			eagerRecords = append(eagerRecords, newResponseItem(&record))
+		record := oddb.Record{}
+		if err := db.Get(rid, &record); err == nil {
+			eagerRecords = append(eagerRecords, newResponseItem(newSerializedRecord(&record, payload.AssetStore)))
 		} else {
 			log.WithFields(log.Fields{
 				"ID":  rid,

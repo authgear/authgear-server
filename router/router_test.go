@@ -1,15 +1,15 @@
 package router
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
-	"testing"
-
 	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"testing"
 
 	"github.com/oursky/ourd/oderr"
+	. "github.com/oursky/ourd/ourtest"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 type MockHander struct {
@@ -185,6 +185,76 @@ func TestPreprocess(t *testing.T) {
 			Convey("it has status code = 500", func() {
 				So(resp.Code, ShouldEqual, http.StatusInternalServerError)
 			})
+		})
+	})
+}
+
+func TestRouterMatchByURL(t *testing.T) {
+	Convey("Router", t, func() {
+		r := NewRouter()
+
+		Convey("matches simple url", func() {
+			r.POST("endpoint", func(payload *Payload, resp *Response) {
+				resp.WriteEntity(struct {
+					Status string `json:"status"`
+				}{"ok"})
+			})
+
+			req, _ := http.NewRequest("POST", "http://ourd.test/endpoint", nil)
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+			So(w.Body.Bytes(), ShouldEqualJSON, `{"status": "ok"}`)
+		})
+
+		Convey("doesn't match midway", func() {
+			r.POST("endpoint", func(p *Payload, resp *Response) {
+				t.Fatal("I shall not be called")
+			})
+
+			req, _ := http.NewRequest("POST", "http://ourd.test/eendpoint", nil)
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+			So(w.Code, ShouldEqual, 404)
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"error":{
+					"type": "RequestInvalid",
+					"code": 101,
+					"message": "route unmatched"
+				}
+			}`)
+		})
+
+		Convey("matches url with parameters", func() {
+			r.POST(`(?:entity|model)/([0-9a-zA-Z\-_]+)`, func(p *Payload, resp *Response) {
+				resp.WriteEntity(p.Params)
+			})
+
+			req, _ := http.NewRequest("POST", `http://ourd.test/model/Zz0-_`, nil)
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			So(w.Body.Bytes(), ShouldEqualJSON, `["Zz0-_"]`)
+		})
+
+		Convey("help url handler fill in payload from Header", func() {
+			r.POST("endpoint", func(p *Payload, resp *Response) {
+				resp.WriteEntity(struct {
+					APIKey      string `json:"api-key"`
+					AccessToken string `json:"access-token"`
+				}{p.APIKey(), p.AccessToken()})
+			})
+
+			req, _ := http.NewRequest("POST", `http://ourd.test/endpoint`, nil)
+			req.Header.Add("X-Ourd-API-Key", "someapikey")
+			req.Header.Add("X-Ourd-Access-Token", "someaccesstoken")
+
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			So(w.Body.Bytes(), ShouldEqualJSON, `{
+				"api-key": "someapikey",
+				"access-token": "someaccesstoken"
+			}`)
 		})
 	})
 }

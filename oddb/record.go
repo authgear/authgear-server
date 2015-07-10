@@ -135,6 +135,12 @@ func NewRecordACL(entries []RecordACLEntry) RecordACL {
 	return acl
 }
 
+type Asset struct {
+	Name        string
+	ContentType string
+	Size        int64
+}
+
 type Reference struct {
 	ID RecordID `json:"_id"`
 }
@@ -244,6 +250,6 @@ const (
 	TypeReference
 	TypeLocation // not implemented
 	TypeDateTime
-	TypeData // not implemented
+	TypeAsset
 	TypeACL
 )

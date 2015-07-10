@@ -2,9 +2,11 @@ package main
 
 import (
 	"errors"
-	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oderr"
 	"net/http"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/oursky/ourd/asset"
+	"github.com/oursky/ourd/oderr"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
@@ -30,15 +32,16 @@ func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, respons
 }
 
 type connPreprocessor struct {
+	AppName  string
 	DBOpener func(string, string, string) (oddb.Conn, error)
 	DBImpl   string
 	Option   string
 }
 
 func (p connPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	log.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, payload.AppName, p.Option)
+	log.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, p.AppName, p.Option)
 
-	conn, err := p.DBOpener(p.DBImpl, payload.AppName, p.Option)
+	conn, err := p.DBOpener(p.DBImpl, p.AppName, p.Option)
 	if err != nil {
 		response.Err = err
 		return http.StatusServiceUnavailable
@@ -125,6 +128,15 @@ func injectUserIfPresent(payload *router.Payload, response *router.Response) int
 
 	payload.UserInfo = &userinfo
 
+	return http.StatusOK
+}
+
+type assetStorePreprocessor struct {
+	Store asset.Store
+}
+
+func (p assetStorePreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	payload.AssetStore = p.Store
 	return http.StatusOK
 }
 

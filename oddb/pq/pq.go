@@ -288,6 +288,55 @@ func (c *conn) QueryRelation(user string, name string, direction string) []oddb.
 	return results
 }
 
+func (c *conn) GetAsset(name string, asset *oddb.Asset) error {
+	selectSql, args, err := psql.Select("content_type", "size").
+		From(c.tableName("_asset")).
+		Where("id = ?", name).
+		ToSql()
+	if err != nil {
+		panic(err)
+	}
+
+	var (
+		contentType string
+		size        int64
+	)
+	err = c.Db.QueryRow(selectSql, args...).Scan(
+		&contentType,
+		&size,
+	)
+	if err == sql.ErrNoRows {
+		return errors.New("asset not found")
+	}
+
+	asset.Name = name
+	asset.ContentType = contentType
+	asset.Size = size
+
+	return err
+}
+
+func (c *conn) SaveAsset(asset *oddb.Asset) error {
+	pkData := map[string]interface{}{
+		"id": asset.Name,
+	}
+	data := map[string]interface{}{
+		"content_type": asset.ContentType,
+		"size":         asset.Size,
+	}
+	sql, args := upsertQuery(c.tableName("_asset"), pkData, data, []string{})
+	_, err := c.Db.Exec(sql, args...)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"sql":  sql,
+			"args": args,
+			"err":  err,
+		}).Debugln("Failed to add asset")
+	}
+
+	return err
+}
+
 func (c *conn) AddRelation(user string, name string, targetUser string) error {
 	tName := "_" + name
 	ralationPair := map[string]interface{}{
@@ -525,6 +574,13 @@ CREATE TABLE IF NOT EXISTS %v._user (
 	auth json
 );
 `
+	const CreateAssetTableFmt = `
+CREATE TABLE IF NOT EXISTS %v._asset (
+	id text PRIMARY KEY,
+	content_type text,
+	size bigint
+);
+`
 	const CreateDeviceTableFmt = `
 CREATE TABLE IF NOT EXISTS %[1]v._device (
 	id text PRIMARY KEY,
@@ -569,6 +625,11 @@ CREATE TABLE IF NOT EXISTS %[1]v._follow (
 	createUserTableStmt := fmt.Sprintf(CreateUserTableFmt, schemaName)
 	if _, err := db.Exec(createUserTableStmt); err != nil {
 		return fmt.Errorf("failed to create user table: %s", err)
+	}
+
+	createAssetTableStmt := fmt.Sprintf(CreateAssetTableFmt, schemaName)
+	if _, err := db.Exec(createAssetTableStmt); err != nil {
+		return fmt.Errorf("failed to create asset table: %s", err)
 	}
 
 	createDeviceTableStmt := fmt.Sprintf(CreateDeviceTableFmt, schemaName)

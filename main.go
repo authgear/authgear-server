@@ -3,13 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 
 	log "github.com/Sirupsen/logrus"
 
+	"github.com/oursky/ourd/asset"
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler"
 	"github.com/oursky/ourd/oddb"
@@ -21,14 +21,6 @@ import (
 	"github.com/oursky/ourd/router"
 	"github.com/oursky/ourd/subscription"
 )
-
-type fakeReadCloser struct {
-	io.Reader
-}
-
-func (rc fakeReadCloser) Close() error {
-	return nil
-}
 
 type responseLogger struct {
 	w      http.ResponseWriter
@@ -71,14 +63,32 @@ func (l *responseLogger) String() string {
 
 func logMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Debugf("%v %v", r.Method, r.RequestURI)
+
+		log.Debugln("------ Header: ------")
+		for key, value := range r.Header {
+			log.Debugf("%s: %v", key, value)
+		}
 
 		body, _ := ioutil.ReadAll(r.Body)
-		log.Debugf("------ Request: ------\n%v", string(body))
-		r.Body = fakeReadCloser{bytes.NewReader(body)}
+		r.Body = ioutil.NopCloser(bytes.NewReader(body))
+
+		log.Debugln("------ Request: ------")
+		if r.Header.Get("Content-Type") == "" || r.Header.Get("Content-Type") == "application/json" {
+			log.Debugln(string(body))
+		} else {
+			log.Debugf("%d bytes of body", len(body))
+		}
 
 		rlogger := &responseLogger{w: w}
 		next.ServeHTTP(rlogger, r)
-		log.Debugf("------ Response: ------\n%v", rlogger.String())
+
+		log.Debugln("------ Response: ------")
+		if w.Header().Get("Content-Type") == "" || w.Header().Get("Content-Type") == "application/json" {
+			log.Debugln(rlogger.String())
+		} else {
+			log.Debugf("%d bytes of body", len(rlogger.String()))
+		}
 	})
 }
 
@@ -150,12 +160,38 @@ func main() {
 		Store: authtoken.FileStore(config.TokenStore.Path).Init(),
 	}
 
+	var store asset.Store
+	switch config.AssetStore.ImplName {
+	default:
+		panic("unrecgonized asset store implementation: " + config.AssetStore.ImplName)
+	case "fs":
+		store = asset.NewFileStore(
+			config.AssetStore.Path,
+			config.AssetURLSigner.URLPrefix,
+			config.AssetURLSigner.Secret)
+	case "s3":
+		s3Store, err := asset.NewS3Store(
+			config.AssetStore.AccessToken,
+			config.AssetStore.SecretToken,
+			config.AssetStore.Reigon,
+			config.AssetStore.Bucket,
+		)
+		if err != nil {
+			panic("failed to initialize asset.S3Store: " + err.Error())
+		}
+		store = s3Store
+	}
+	assetStorePreprocessor := assetStorePreprocessor{
+		Store: store,
+	}
+
 	authenticator := userAuthenticator{
 		APIKey:  config.App.APIKey,
 		AppName: config.App.Name,
 	}
 
 	fileSystemConnPreprocessor := connPreprocessor{
+		AppName:  config.App.Name,
 		DBOpener: oddb.Open,
 		DBImpl:   config.DB.ImplName,
 		Option:   config.DB.Option,
@@ -180,6 +216,7 @@ func main() {
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 	}
@@ -187,6 +224,7 @@ func main() {
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 		requireUserForWrite,
@@ -195,6 +233,19 @@ func main() {
 	r.Map("record:query", handler.RecordQueryHandler, recordReadPreprocessors...)
 	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
+
+	assetGetPreprocessors := []router.Processor{
+		fileSystemConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+	}
+	assetUploadPreprocessors := []router.Processor{
+		fileTokenStorePreprocessor.Preprocess,
+		authenticator.Preprocess,
+		fileSystemConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+	}
+	r.GET(`files/(.+)`, handler.AssetGetURLHandler, assetGetPreprocessors...)
+	r.PUT(`files/(.+)`, handler.AssetUploadURLHandler, assetUploadPreprocessors...)
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,
