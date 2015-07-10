@@ -95,6 +95,11 @@ func (p execTransport) RunHook(recordType string, trigger string, in []byte) (ou
 	return
 }
 
+func (p execTransport) RunTimer(name string, in []byte) (out []byte, err error) {
+	out, err = p.run([]string{"timer", name}, in)
+	return
+}
+
 type execTransportFactory struct {
 }
 

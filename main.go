@@ -8,6 +8,7 @@ import (
 	"os"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/robfig/cron"
 
 	"github.com/oursky/ourd/asset"
 	"github.com/oursky/ourd/authtoken"
@@ -291,9 +292,11 @@ func main() {
 		plugins = append(plugins, p)
 	}
 
+	c := cron.New()
 	for _, plug := range plugins {
-		plug.Init(r)
+		plug.Init(r, c)
 	}
+	c.Start()
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, logMiddleware(r))

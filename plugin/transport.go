@@ -7,6 +7,7 @@ type Transport interface {
 	RunLambda(name string, in []byte) ([]byte, error)
 	RunHandler(name string, in []byte) ([]byte, error)
 	RunHook(recordType string, trigger string, in []byte) ([]byte, error)
+	RunTimer(name string, n []byte) ([]byte, error)
 }
 
 // A TransportFactory is a generic interface to instantiates different
@@ -31,6 +32,10 @@ func (t nullTransport) RunHandler(name string, in []byte) (out []byte, err error
 	return
 }
 func (t nullTransport) RunHook(recordType string, trigger string, in []byte) (out []byte, err error) {
+	out = in
+	return
+}
+func (t nullTransport) RunTimer(name string, in []byte) (out []byte, err error) {
 	out = in
 	return
 }

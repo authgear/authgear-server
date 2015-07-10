@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/oursky/ourd/router"
+	"github.com/robfig/cron"
 )
 
 // Plugin represents a collection of handlers, hooks and lambda functions
@@ -22,16 +23,22 @@ type pluginHookInfo struct {
 	Type    string `json:"type"`
 }
 
+type timerInfo struct {
+	Name string `json:"name"`
+	Spec string `json:"spec"`
+}
+
 type registrationInfo struct {
 	Handlers map[string]pluginHandlerInfo `json:"handler"`
 	Hooks    []pluginHookInfo             `json:"hook"`
 	Lambdas  []string                     `json:"op"`
+	Timers   []timerInfo                  `json:"timer"`
 }
 
 func (p *Plugin) getRegistrationInfo() registrationInfo {
 	outBytes, err := p.transport.RunInit()
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Unable to get registration info from plugin. Error: %v", err))
 	}
 
 	regInfo := registrationInfo{}
@@ -65,11 +72,19 @@ func NewPlugin(name string, path string, args []string) Plugin {
 }
 
 // Init instantiates a plugin. This sets up hooks and handlers.
-func (p *Plugin) Init(r *router.Router) {
+func (p *Plugin) Init(r *router.Router, c *cron.Cron) {
 	regInfo := p.getRegistrationInfo()
 
 	// Initialize lambdas
 	for _, lambdaName := range regInfo.Lambdas {
 		r.Map(lambdaName, CreateLambdaHandler(p, lambdaName))
+	}
+
+	// Initialize timers
+	for _, timerInfo := range regInfo.Timers {
+		timerName := timerInfo.Name
+		c.AddFunc(timerInfo.Spec, func() {
+			p.transport.RunTimer(timerName, []byte{})
+		})
 	}
 }
