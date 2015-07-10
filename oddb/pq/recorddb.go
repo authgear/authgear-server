@@ -85,18 +85,20 @@ func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
 		return oddb.ErrRecordNotFound
 	}
 
-	sql, args, err := db.selectQuery(id.Type, typemap).Where("_id = ?", id.Key).ToSql()
+	sqlStmt, args, err := db.selectQuery(id.Type, typemap).Where("_id = ?", id.Key).ToSql()
 	if err != nil {
 		panic(err)
 	}
 
 	log.WithFields(log.Fields{
-		"sql":  sql,
+		"sql":  sqlStmt,
 		"args": args,
 	}).Debugln("Getting record")
 
-	row := db.Db.QueryRowx(sql, args...)
-	if err := newRecordScanner(id.Type, typemap, row).Scan(record); err != nil {
+	row := db.Db.QueryRowx(sqlStmt, args...)
+	if err := newRecordScanner(id.Type, typemap, row).Scan(record); err == sql.ErrNoRows {
+		return oddb.ErrRecordNotFound
+	} else if err != nil {
 		return err
 	}
 	return nil
