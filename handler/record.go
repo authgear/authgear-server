@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"runtime"
 	"strings"
 	"time"
@@ -489,7 +490,8 @@ func deriveDeltaRecord(dst, base, delta *oddb.Record) {
 	dst.Data = map[string]interface{}{}
 	for key, value := range delta.Data {
 		if baseValue, ok := base.Data[key]; ok {
-			if value != baseValue {
+			// TODO(limouren): might want comparison that performs better
+			if !reflect.DeepEqual(value, baseValue) {
 				dst.Data[key] = value
 			}
 		} else {
