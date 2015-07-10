@@ -85,7 +85,7 @@ func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
 		return oddb.ErrRecordNotFound
 	}
 
-	sql, args, err := db.selectQuery(id.Type, typemap).ToSql()
+	sql, args, err := db.selectQuery(id.Type, typemap).Where("_id = ?", id.Key).ToSql()
 	if err != nil {
 		panic(err)
 	}

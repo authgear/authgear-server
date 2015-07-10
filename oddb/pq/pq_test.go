@@ -563,15 +563,15 @@ func TestGet(t *testing.T) {
 			err := db.Get(oddb.NewRecordID("record", "id1"), &record)
 			So(err, ShouldBeNil)
 
-			So(record, ShouldResemble, oddb.Record{
-				ID: oddb.NewRecordID("record", "id1"),
-				Data: map[string]interface{}{
-					"string":   "string",
-					"number":   float64(1),
-					"datetime": time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC),
-				},
-				DatabaseID: "getuser",
-			})
+			So(record.ID, ShouldResemble, oddb.NewRecordID("record", "id1"))
+			So(record.Data["string"], ShouldEqual, "string")
+			So(record.Data["number"], ShouldEqual, 1)
+			So(record.Data["boolean"], ShouldEqual, true)
+
+			dt, _ := record.Data["datetime"].(time.Time)
+			So(dt.Unix(), ShouldEqual, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC).Unix())
+
+			So(record.DatabaseID, ShouldEqual, "getuser")
 		})
 
 		Convey("errors if gets a non-existing record", func() {
