@@ -12,6 +12,7 @@ before_install:
   - go get github.com/smartystreets/goconvey/convey
   - go get github.com/smartystreets/assertions
   - go get golang.org/x/tools/cmd/stringer
+  - go get github.com/rickmak/gocyclo
 
 before_script:
   - psql -c 'CREATE DATABASE ourd_test;' -U postgres
@@ -20,6 +21,8 @@ before_script:
 script:
   - golint ./...
   - go test -cover ./...
+  ## FIXME to lower the limit by skipping some special file
+  - gocyclo -skip-godeps -over 28 -avg .
 
 notifications:
   slack: oursky:PxqsclRADehuWEs51vpgxeUh
