@@ -558,6 +558,8 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 			schema.Type = oddb.TypeNumber
 		case TypeTimestamp:
 			schema.Type = oddb.TypeDateTime
+		case TypeBoolean:
+			schema.Type = oddb.TypeBoolean
 		case TypeJSON:
 			if columnName == "_access" {
 				schema.Type = oddb.TypeACL
