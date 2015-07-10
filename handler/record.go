@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"runtime"
 	"strings"
 	"time"
@@ -12,6 +13,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/oursky/ourd/asset"
+	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
@@ -437,24 +439,112 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		var result responseItem
 		if item.Err() {
 			result = newResponseItemErr("", item.err)
-		} else if err := db.Save(record); err != nil {
-			log.WithFields(log.Fields{
-				"record": record,
-				"err":    err,
-			}).Debugln("failed to save record")
-
-			result = newResponseItemErr(
-				record.ID.String(),
-				oderr.NewResourceSaveFailureErrWithStringID("record", record.ID.String()),
-			)
 		} else {
-			result = newResponseItem(newSerializedRecord(record, payload.AssetStore))
+			// NOTE(limouren): everything in this else should properly live
+			// in an abstraction between handler and oddb
+			var (
+				origRecord oddb.Record
+				err        error
+			)
+
+			err = db.Get(record.ID, &origRecord)
+			if err == oddb.ErrRecordNotFound {
+				// no existing record, db.Save will create a new one
+				// does not treat as error here
+				err = nil
+			}
+
+			var fetchedRecord oddb.Record
+			if err == nil {
+				copyRecord(&fetchedRecord, &origRecord)
+				mergeRecord(&fetchedRecord, record)
+				if payload.HookRegistry != nil {
+					err = payload.HookRegistry.ExecuteHooks(hook.BeforeSave, &fetchedRecord)
+				}
+			}
+
+			var deltaRecord oddb.Record
+			if err == nil {
+				deriveDeltaRecord(&deltaRecord, &origRecord, &fetchedRecord)
+				err = db.Save(&deltaRecord)
+			}
+
+			if err == nil {
+				if payload.HookRegistry != nil {
+					payload.HookRegistry.ExecuteHooks(hook.AfterSave, &fetchedRecord)
+				}
+
+				result = newResponseItem(newSerializedRecord(&fetchedRecord, payload.AssetStore))
+
+			} else {
+				log.WithFields(log.Fields{
+					"record": deltaRecord,
+					"err":    err,
+				}).Debugln("failed to save record")
+
+				result = newResponseItemErr(
+					deltaRecord.ID.String(),
+					oderr.NewResourceSaveFailureErrWithStringID("record", deltaRecord.ID.String()),
+				)
+			}
 		}
 
 		results = append(results, result)
 	}
 
 	response.Result = results
+}
+
+func copyRecord(dst, src *oddb.Record) {
+	*dst = *src
+
+	dst.Data = map[string]interface{}{}
+	for key, value := range src.Data {
+		dst.Data[key] = value
+	}
+}
+
+func mergeRecord(dst, src *oddb.Record) {
+	dst.ID = src.ID
+	dst.ACL = src.ACL
+
+	if src.DatabaseID != "" {
+		dst.DatabaseID = src.DatabaseID
+	}
+	if src.OwnerID != "" {
+		dst.OwnerID = src.OwnerID
+	}
+
+	if dst.Data == nil {
+		dst.Data = map[string]interface{}{}
+	}
+
+	for key, value := range src.Data {
+		dst.Data[key] = value
+	}
+}
+
+// Derive fields in delta which is either new or different from base, and
+// write them in dst.
+//
+// It is the caller's reponsibility to ensure that base and delta identify
+// the same record
+func deriveDeltaRecord(dst, base, delta *oddb.Record) {
+	dst.ID = delta.ID
+	dst.ACL = delta.ACL
+	dst.OwnerID = delta.OwnerID
+
+	dst.Data = map[string]interface{}{}
+	for key, value := range delta.Data {
+		if baseValue, ok := base.Data[key]; ok {
+			// TODO(limouren): might want comparison that performs better
+			if !reflect.DeepEqual(value, baseValue) {
+				dst.Data[key] = value
+			}
+		} else {
+			dst.Data[key] = value
+		}
+	}
 }
 
 type recordSaveItem struct {
@@ -931,26 +1021,51 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 		recordIDs[i].Key = ss[1]
 	}
 
+	var deleteFunc func(oddb.RecordID, *oddb.Record) error
+	if payload.HookRegistry != nil {
+		deleteFunc = func(recordID oddb.RecordID, record *oddb.Record) error {
+			payload.HookRegistry.ExecuteHooks(hook.BeforeDelete, record)
+			err := db.Delete(recordID)
+			if err == nil {
+				payload.HookRegistry.ExecuteHooks(hook.AfterDelete, record)
+			}
+			return err
+		}
+	} else {
+		deleteFunc = func(recordID oddb.RecordID, record *oddb.Record) error {
+			return db.Delete(recordID)
+		}
+	}
+
 	results := make([]interface{}, 0, length)
 	for _, recordID := range recordIDs {
-		var item interface{}
-		if err := db.Delete(recordID); err != nil {
-			if err == oddb.ErrRecordNotFound {
-				item = newResponseItemErr(
-					recordID.String(),
-					oderr.ErrRecordNotFound,
-				)
-			} else {
-				item = newResponseItemErr(
-					recordID.String(),
-					oderr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
-				)
-			}
-		} else {
+		var (
+			err    error
+			item   interface{}
+			record oddb.Record
+		)
+
+		err = db.Get(recordID, &record)
+
+		if err == nil {
+			err = deleteFunc(recordID, &record)
+		}
+
+		if err == nil {
 			item = struct {
 				ID   oddb.RecordID `json:"_id"`
 				Type string        `json:"_type"`
 			}{recordID, "record"}
+		} else if err == oddb.ErrRecordNotFound {
+			item = newResponseItemErr(
+				recordID.String(),
+				oderr.ErrRecordNotFound,
+			)
+		} else {
+			item = newResponseItemErr(
+				recordID.String(),
+				oderr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
+			)
 		}
 
 		results = append(results, item)

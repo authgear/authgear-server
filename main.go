@@ -13,6 +13,7 @@ import (
 	"github.com/oursky/ourd/asset"
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler"
+	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 	_ "github.com/oursky/ourd/oddb/fs"
 	_ "github.com/oursky/ourd/oddb/pq"
@@ -213,6 +214,11 @@ func main() {
 		authenticator.Preprocess,
 	)
 
+	hookRegistry := hook.NewRegistry()
+	hookRegistryPreprocessor := hookRegistryPreprocessor{
+		Registry: hookRegistry,
+	}
+
 	recordReadPreprocessors := []router.Processor{
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
@@ -222,6 +228,7 @@ func main() {
 		injectDatabase,
 	}
 	recordWritePreprocessors := []router.Processor{
+		hookRegistryPreprocessor.Preprocess,
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
@@ -294,7 +301,7 @@ func main() {
 
 	c := cron.New()
 	for _, plug := range plugins {
-		plug.Init(r, c)
+		plug.Init(r, hookRegistry, c)
 	}
 	c.Start()
 

@@ -116,18 +116,20 @@ func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
 		return oddb.ErrRecordNotFound
 	}
 
-	sql, args, err := db.selectQuery(id.Type, typemap).ToSql()
+	sqlStmt, args, err := db.selectQuery(id.Type, typemap).Where("_id = ?", id.Key).ToSql()
 	if err != nil {
 		panic(err)
 	}
 
 	log.WithFields(log.Fields{
-		"sql":  sql,
+		"sql":  sqlStmt,
 		"args": args,
 	}).Debugln("Getting record")
 
-	row := db.Db.QueryRowx(sql, args...)
-	if err := newRecordScanner(id.Type, typemap, row).Scan(record); err != nil {
+	row := db.Db.QueryRowx(sqlStmt, args...)
+	if err := newRecordScanner(id.Type, typemap, row).Scan(record); err == sql.ErrNoRows {
+		return oddb.ErrRecordNotFound
+	} else if err != nil {
 		return err
 	}
 	return nil
@@ -598,6 +600,8 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 			schema.Type = oddb.TypeNumber
 		case TypeTimestamp:
 			schema.Type = oddb.TypeDateTime
+		case TypeBoolean:
+			schema.Type = oddb.TypeBoolean
 		case TypeJSON:
 			if columnName == "_access" {
 				schema.Type = oddb.TypeACL

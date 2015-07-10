@@ -3,6 +3,8 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/router"
 	"github.com/robfig/cron"
 )
@@ -72,16 +74,31 @@ func NewPlugin(name string, path string, args []string) Plugin {
 }
 
 // Init instantiates a plugin. This sets up hooks and handlers.
-func (p *Plugin) Init(r *router.Router, c *cron.Cron) {
+func (p *Plugin) Init(r *router.Router, registry *hook.Registry, c *cron.Cron) {
 	regInfo := p.getRegistrationInfo()
 
-	// Initialize lambdas
-	for _, lambdaName := range regInfo.Lambdas {
+	p.initLambda(r, regInfo.Lambdas)
+	p.initHook(registry, regInfo.Hooks)
+	p.initTimer(c, regInfo.Timers)
+}
+
+func (p *Plugin) initLambda(r *router.Router, lambdaNames []string) {
+	for _, lambdaName := range lambdaNames {
 		r.Map(lambdaName, CreateLambdaHandler(p, lambdaName))
 	}
+}
 
-	// Initialize timers
-	for _, timerInfo := range regInfo.Timers {
+func (p *Plugin) initHook(registry *hook.Registry, hookInfos []pluginHookInfo) {
+	for _, hookInfo := range hookInfos {
+		kind := hook.Kind(hookInfo.Trigger)
+		recordType := hookInfo.Type
+
+		registry.Register(kind, recordType, CreateHookFunc(p, hookInfo))
+	}
+}
+
+func (p *Plugin) initTimer(c *cron.Cron, timerInfos []timerInfo) {
+	for _, timerInfo := range timerInfos {
 		timerName := timerInfo.Name
 		c.AddFunc(timerInfo.Spec, func() {
 			p.transport.RunTimer(timerName, []byte{})

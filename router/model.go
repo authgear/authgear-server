@@ -7,27 +7,33 @@ import (
 
 	"github.com/oursky/ourd/asset"
 	"github.com/oursky/ourd/authtoken"
+	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 )
 
 // Payload is for passing payload to the actual handler
 type Payload struct {
+	// the raw http.Request of this payload
+	// Think twice before accessing it
+	Req *http.Request
+	// URL parameters
+	Params []string
+
 	// Map of params such as Auth, TimeSteam, version
 	Meta map[string]interface{}
 	// Map of action payload
 	Data map[string]interface{}
-	// URL parameters
-	Params     []string
-	TokenStore authtoken.Store
-	AssetStore asset.Store
+
+	TokenStore   authtoken.Store
+	AssetStore   asset.Store
+	HookRegistry *hook.Registry
+
 	AppName    string
 	UserInfoID string
-	DBConn     oddb.Conn
-	Database   oddb.Database
 	UserInfo   *oddb.UserInfo
-	// the raw http.Request of this payload
-	// Think twice before accessing it
-	Req *http.Request
+
+	DBConn   oddb.Conn
+	Database oddb.Database
 }
 
 // RouteAction must exist for every request

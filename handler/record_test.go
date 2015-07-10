@@ -9,6 +9,7 @@ import (
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler/handlertest"
+	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/oddbtest"
 	. "github.com/oursky/ourd/ourtest"
@@ -116,6 +117,35 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_access":null,
 					"k3": "v3",
 					"k4": "v4"
+				}]
+			}`)
+		})
+
+		Convey("Update existing record", func() {
+			record := oddb.Record{
+				ID: oddb.NewRecordID("record", "id"),
+				Data: map[string]interface{}{
+					"existing": "YES",
+					"old":      true,
+				},
+			}
+			So(db.Save(&record), ShouldBeNil)
+
+			resp := r.POST(`{
+				"records": [{
+					"_id": "record/id",
+					"old": false,
+					"new": 1
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "record/id",
+					"_type": "record",
+					"_access": null,
+					"existing": "YES",
+					"old": false,
+					"new": 1
 				}]
 			}`)
 		})
@@ -516,7 +546,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		Convey("saved record serializes owner id correctly", func() {
 			resp := handlertest.NewSingleRouteRouter(RecordSaveHandler, injectDBFunc).POST(`{
 				"records": [{
-					"_id": "do/notCare"
+					"_id": "type/id"
 				}]
 			}`)
 
@@ -665,6 +695,156 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				{"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID"}
 				]}
 			}`)
+		})
+	})
+}
+
+type stackingHook struct {
+	records []*oddb.Record
+}
+
+func (p *stackingHook) Func(record *oddb.Record) error {
+	p.records = append(p.records, record)
+	return nil
+}
+
+type erroneousDB struct {
+	oddb.Database
+}
+
+func (db erroneousDB) Extend(string, oddb.RecordSchema) error {
+	return nil
+}
+
+func (db erroneousDB) Get(oddb.RecordID, *oddb.Record) error {
+	return errors.New("erroneous save")
+}
+
+func (db erroneousDB) Save(*oddb.Record) error {
+	return errors.New("erroneous save")
+}
+
+func TestHookExecution(t *testing.T) {
+	Convey("Record(Save|Delete)Handler", t, func() {
+		handlerTests := []struct {
+			kind             string
+			handler          func(*router.Payload, *router.Response)
+			beforeActionKind hook.Kind
+			afterActionKind  hook.Kind
+			reqBody          string
+		}{
+			{
+				"Save",
+				RecordSaveHandler,
+				hook.BeforeSave,
+				hook.AfterSave,
+				`{"records": [{"_id": "record/id"}]}`,
+			},
+			{
+				"Delete",
+				RecordDeleteHandler,
+				hook.BeforeDelete,
+				hook.AfterDelete,
+				`{"ids": ["record/id"]}`,
+			},
+		}
+
+		record := &oddb.Record{
+			ID: oddb.NewRecordID("record", "id"),
+		}
+
+		registry := hook.NewRegistry()
+		beforeHook := stackingHook{}
+		afterHook := stackingHook{}
+
+		for _, test := range handlerTests {
+			testName := fmt.Sprintf("executes Before%[1]s and After%[1]s action hooks", test.kind)
+			Convey(testName, func() {
+				registry.Register(test.beforeActionKind, "record", beforeHook.Func)
+				registry.Register(test.afterActionKind, "record", afterHook.Func)
+
+				db := oddbtest.NewMapDB()
+				So(db.Save(record), ShouldBeNil)
+
+				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
+					p.Database = db
+					p.HookRegistry = registry
+				})
+
+				r.POST(test.reqBody)
+
+				So(len(beforeHook.records), ShouldEqual, 1)
+				So(beforeHook.records[0].ID, ShouldResemble, record.ID)
+				So(len(afterHook.records), ShouldEqual, 1)
+				So(afterHook.records[0].ID, ShouldResemble, record.ID)
+			})
+
+			testName = fmt.Sprintf("doesn't execute After%[1]s hooks if db.%[1]s returns an error", test.kind)
+			Convey(testName, func() {
+				registry.Register(test.afterActionKind, "record", afterHook.Func)
+				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
+					p.Database = erroneousDB{}
+					p.HookRegistry = registry
+				})
+
+				r.POST(test.reqBody)
+				So(afterHook.records, ShouldBeEmpty)
+			})
+		}
+	})
+
+	Convey("HookRegistry", t, func() {
+		registry := hook.NewRegistry()
+		db := oddbtest.NewMapDB()
+		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(p *router.Payload) {
+			p.Database = db
+			p.HookRegistry = registry
+		})
+
+		Convey("record is not saved if BeforeSave's hook returns an error", func() {
+			registry.Register(hook.BeforeSave, "record", func(*oddb.Record) error {
+				return errors.New("no hooks for you!")
+			})
+			r.POST(`{
+				"records": [{
+					"_id": "record/id"
+				}]
+			}`)
+
+			var record oddb.Record
+			So(db.Get(oddb.NewRecordID("record", "id"), &record), ShouldEqual, oddb.ErrRecordNotFound)
+		})
+
+		Convey("BeforeSave should be fed fully fetched record", func() {
+			existingRecord := oddb.Record{
+				ID: oddb.NewRecordID("record", "id"),
+				Data: map[string]interface{}{
+					"old": true,
+				},
+			}
+			So(db.Save(&existingRecord), ShouldBeNil)
+
+			called := false
+			registry.Register(hook.BeforeSave, "record", func(record *oddb.Record) error {
+				called = true
+				So(*record, ShouldResemble, oddb.Record{
+					ID: oddb.NewRecordID("record", "id"),
+					Data: map[string]interface{}{
+						"old": true,
+						"new": true,
+					},
+				})
+				return nil
+			})
+
+			r.POST(`{
+				"records": [{
+					"_id": "record/id",
+					"new": true
+				}]
+			}`)
+
+			So(called, ShouldBeTrue)
 		})
 	})
 }
