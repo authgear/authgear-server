@@ -539,7 +539,7 @@ func TestExtend(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	SkipConvey("Database", t, func() {
+	Convey("Database", t, func() {
 		c := getTestConn(t)
 		defer cleanupDB(t, c)
 
@@ -553,15 +553,18 @@ func TestGet(t *testing.T) {
 
 		insertRow(t, c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
 			`(_database_id, _id, _owner_id, "string", "number", "datetime", "boolean") `+
-			`VALUES ('getuser', 'id', 'getuser', 'string', 1, '1988-02-06', TRUE)`)
+			`VALUES ('getuser', 'id0', 'getuser', 'string', 1, '1988-02-06', TRUE)`)
+		insertRow(t, c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
+			`(_database_id, _id, _owner_id, "string", "number", "datetime", "boolean") `+
+			`VALUES ('getuser', 'id1', 'getuser', 'string', 1, '1988-02-06', TRUE)`)
 
 		Convey("gets an existing record from database", func() {
 			record := oddb.Record{}
-			err := db.Get(oddb.NewRecordID("record", "id"), &record)
+			err := db.Get(oddb.NewRecordID("record", "id1"), &record)
 			So(err, ShouldBeNil)
 
 			So(record, ShouldResemble, oddb.Record{
-				ID: oddb.NewRecordID("record", "id"),
+				ID: oddb.NewRecordID("record", "id1"),
 				Data: map[string]interface{}{
 					"string":   "string",
 					"number":   float64(1),
@@ -574,7 +577,7 @@ func TestGet(t *testing.T) {
 		Convey("errors if gets a non-existing record", func() {
 			record := oddb.Record{}
 			err := db.Get(oddb.NewRecordID("record", "notexistid"), &record)
-			So(err, ShouldBeNil, oddb.ErrRecordNotFound)
+			So(err, ShouldEqual, oddb.ErrRecordNotFound)
 		})
 	})
 }
