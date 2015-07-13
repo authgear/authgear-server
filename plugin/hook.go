@@ -18,7 +18,7 @@ func CreateHookFunc(p *Plugin, hookInfo pluginHookInfo) hook.Func {
 		}
 
 		out, err := p.transport.RunHook(hookInfo.Type, hookInfo.Trigger, b)
-		log.Infof("Executed a hook with result: %s", out)
+		log.Debugf("Executed a hook with result: %s", out)
 		return err
 	}
 	if hookInfo.Async {

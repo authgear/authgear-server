@@ -3,6 +3,9 @@ package exec
 import (
 	"bufio"
 	"fmt"
+
+	log "github.com/Sirupsen/logrus"
+
 	odplugin "github.com/oursky/ourd/plugin"
 	osexec "os/exec"
 )
@@ -71,6 +74,7 @@ func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
 	cmd := osexec.Command(p.Path, finalArgs...)
 
 	out, err = startCommand(cmd, in)
+	log.Debugf("Called process %s %s %s", p.Path, finalArgs, in)
 	return
 }
 

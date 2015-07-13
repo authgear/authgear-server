@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/ourd/hook"
+
 	"github.com/oursky/ourd/router"
 	"github.com/robfig/cron"
 )
@@ -77,6 +79,10 @@ func NewPlugin(name string, path string, args []string) Plugin {
 func (p *Plugin) Init(r *router.Router, registry *hook.Registry, c *cron.Cron) {
 	regInfo := p.getRegistrationInfo()
 
+	log.WithFields(log.Fields{
+		"regInfo":   regInfo,
+		"transport": p.transport,
+	}).Debugln("Got configuration from pligin, registering")
 	p.initLambda(r, regInfo.Lambdas)
 	p.initHook(registry, regInfo.Hooks)
 	p.initTimer(c, regInfo.Timers)
@@ -101,7 +107,8 @@ func (p *Plugin) initTimer(c *cron.Cron, timerInfos []timerInfo) {
 	for _, timerInfo := range timerInfos {
 		timerName := timerInfo.Name
 		c.AddFunc(timerInfo.Spec, func() {
-			p.transport.RunTimer(timerName, []byte{})
+			output, _ := p.transport.RunTimer(timerName, []byte{})
+			log.Debugf("Executed a timer{%v} with result: %s", timerName, output)
 		})
 	}
 }

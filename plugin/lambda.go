@@ -2,6 +2,9 @@ package plugin
 
 import (
 	"encoding/json"
+
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
@@ -26,6 +29,12 @@ func lambdaHandler(p *Plugin, l string, payload *router.Payload, response *route
 		response.Err = oderr.NewUnknownErr(err)
 		return
 	}
+	log.WithFields(log.Fields{
+		"name":   l,
+		"input":  payload.Data,
+		"result": result,
+		"err":    err,
+	}).Debugf("Executed a lambda with result")
 
 	response.Result = result
 }
