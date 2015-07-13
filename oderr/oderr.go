@@ -8,7 +8,8 @@ import (
 
 // Various errors emitted by Ourd handlers
 var (
-	ErrAuthFailure = newError("AuthenticationFailed", 101, "authentication failed")
+	ErrAuthFailure  = newError("AuthenticationError", 101, "authentication failed")
+	ErrInvalidLogin = newError("AuthenticationError", 102, "invalid authentication information")
 
 	ErrWriteDenied = newError("PermissionDenied", 101, "write is not allowed")
 
