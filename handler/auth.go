@@ -165,7 +165,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if !info.IsSamePassword(p.Password()) {
-		response.Err = oderr.ErrAuthFailure
+		response.Err = oderr.ErrInvalidLogin
 		return
 	}
 

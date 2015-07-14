@@ -3,6 +3,9 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"testing"
+
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler/handlertest"
 	"github.com/oursky/ourd/oddb"
@@ -11,8 +14,6 @@ import (
 	. "github.com/oursky/ourd/ourtest"
 	"github.com/oursky/ourd/router"
 	. "github.com/smartystreets/goconvey/convey"
-	"io/ioutil"
-	"testing"
 )
 
 func tempDir() string {
@@ -202,8 +203,8 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
 	}
 
-	if errorResponse != oderr.ErrAuthFailure {
-		t.Fatalf("got resp.Err = %v, want ErrAuthFailure", errorResponse)
+	if errorResponse != oderr.ErrInvalidLogin {
+		t.Fatalf("got resp.Err = %v, want ErrInvalidLogin", errorResponse)
 	}
 }
 
