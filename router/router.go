@@ -6,10 +6,10 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"regexp"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/ourd/oderr"
 )
 
@@ -88,6 +88,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		httpStatus = http.StatusOK
 		resp       Response
 	)
+
 	resp.writer = w
 	defer func() {
 		if !resp.written {
@@ -105,50 +106,29 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
 		handler       Handler
 		preprocessors []Processor
-		payload       Payload
+		payload       *Payload
 	)
-	payload.Req = req
-	payload.Meta = map[string]interface{}{}
-	payload.Data = map[string]interface{}{}
 
-	// match by URL first
-	matched := false
-	for _, pathRoute := range r.methodPaths[req.Method] {
-		indices := pathRoute.Regexp.FindAllStringSubmatchIndex(req.URL.Path, -1)
-		if len(indices) > 0 {
-			matched = true
-			handler = pathRoute.Handler
-			preprocessors = pathRoute.Preprocessors
+	handler, preprocessors, payload = r.matchRawHandler(req)
 
-			submatches := submatchesFromIndices(req.URL.Path, indices)
-			payload.Params = submatches
-			fillPayloadByRequest(&payload, req)
-			break
-		}
-	}
-
-	if !matched {
-		// match by JSON body then
-		reqBody := req.Body
-		if reqBody == nil {
-			reqBody = ioutil.NopCloser(bytes.NewReader(nil))
-		}
-		if err := json.NewDecoder(reqBody).Decode(&payload.Data); err != nil && err != io.EOF {
+	if handler == nil {
+		var err error
+		payload, err = newPayloadForJSONHandler(req)
+		if err != nil {
 			httpStatus = http.StatusBadRequest
 			resp.Err = oderr.NewRequestJSONInvalidErr(err)
 			return
 		}
 
-		if pipeline, ok := r.actions[payload.RouteAction()]; ok {
-			matched = true
-			handler = pipeline.Handler
-			preprocessors = pipeline.Preprocessors
-		}
+		handler, preprocessors = r.matchJSONHandler(payload)
 	}
 
-	if matched {
+	if handler == nil {
+		httpStatus = http.StatusNotFound
+		resp.Err = oderr.NewRequestInvalidErr(errors.New("route unmatched"))
+	} else {
 		for _, p := range preprocessors {
-			httpStatus = p(&payload, &resp)
+			httpStatus = p(payload, &resp)
 			if resp.Err != nil {
 				if httpStatus == 200 {
 					httpStatus = 500
@@ -159,11 +139,67 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 		}
-		handler(&payload, &resp)
-	} else {
-		httpStatus = http.StatusNotFound
-		resp.Err = oderr.NewRequestInvalidErr(errors.New("route unmatched"))
+		handler(payload, &resp)
 	}
+}
+
+func (r *Router) matchRawHandler(req *http.Request) (h Handler, pp []Processor, p *Payload) {
+	for _, pathRoute := range r.methodPaths[req.Method] {
+		indices := pathRoute.Regexp.FindAllStringSubmatchIndex(req.URL.Path, -1)
+		if len(indices) > 0 {
+			h = pathRoute.Handler
+			pp = pathRoute.Preprocessors
+			p = newPayloadForRawHandler(req, indices)
+			break
+		}
+	}
+	return
+}
+
+func (r *Router) matchJSONHandler(p *Payload) (h Handler, pp []Processor) {
+	if pipeline, ok := r.actions[p.RouteAction()]; ok {
+		h = pipeline.Handler
+		pp = pipeline.Preprocessors
+	}
+	return
+}
+
+func newPayloadForRawHandler(req *http.Request, paramIndices [][]int) (p *Payload) {
+	p = &Payload{
+		Req:    req,
+		Params: submatchesFromIndices(req.URL.Path, paramIndices),
+		Meta:   map[string]interface{}{},
+		Data:   map[string]interface{}{},
+	}
+
+	if apiKey := req.Header.Get("X-Ourd-API-Key"); apiKey != "" {
+		p.Data["api_key"] = apiKey
+	}
+	if accessToken := req.Header.Get("X-Ourd-Access-Token"); accessToken != "" {
+		p.Data["access_token"] = accessToken
+	}
+
+	return
+}
+
+func newPayloadForJSONHandler(req *http.Request) (p *Payload, err error) {
+	reqBody := req.Body
+	if reqBody == nil {
+		reqBody = ioutil.NopCloser(bytes.NewReader(nil))
+	}
+
+	data := map[string]interface{}{}
+	if jsonErr := json.NewDecoder(reqBody).Decode(&data); jsonErr != nil && jsonErr != io.EOF {
+		err = jsonErr
+		return
+	}
+
+	p = &Payload{
+		Data: data,
+		Meta: map[string]interface{}{},
+	}
+
+	return
 }
 
 func submatchesFromIndices(s string, indices [][]int) (submatches []string) {
