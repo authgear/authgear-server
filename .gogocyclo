@@ -1,0 +1,4 @@
+[gogocyclo]
+ignores = `main`.*
+ignores = `pq`.(*recordScanner).Scan
+ignores = `pq`.(*database).remoteColumnTypes

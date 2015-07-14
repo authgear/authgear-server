@@ -13,16 +13,16 @@ before_install:
   - go get github.com/smartystreets/assertions
   - go get golang.org/x/tools/cmd/stringer
   - go get github.com/rickmak/gocyclo
+  - go get github.com/oursky/gogocyclo
 
 before_script:
   - psql -c 'CREATE DATABASE ourd_test;' -U postgres
-  - go generate ./...
 
 script:
   - golint ./...
+  - gocyclo -skip-godeps -over 15 . | gogocyclo
+  - go generate ./...
   - go test -cover ./...
-  ## FIXME to lower the limit by skipping some special file
-  - gocyclo -skip-godeps -over 28 -avg .
 
 notifications:
   slack: oursky:PxqsclRADehuWEs51vpgxeUh
