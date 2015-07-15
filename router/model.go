@@ -36,6 +36,14 @@ type Payload struct {
 	Database oddb.Database
 }
 
+func (p *Payload) NewPayload(req *http.Request) *Payload {
+	return &Payload{
+		Req:  req,
+		Meta: map[string]interface{}{},
+		Data: map[string]interface{}{},
+	}
+}
+
 // RouteAction must exist for every request
 func (p *Payload) RouteAction() string {
 	actionStr, _ := p.Data["action"].(string)
