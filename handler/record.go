@@ -461,12 +461,16 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 				if payload.HookRegistry != nil {
 					err = payload.HookRegistry.ExecuteHooks(hook.BeforeSave, &fetchedRecord)
 				}
+			} else {
+				fetchedRecord = origRecord
 			}
 
 			var deltaRecord oddb.Record
 			if err == nil {
 				deriveDeltaRecord(&deltaRecord, &origRecord, &fetchedRecord)
 				err = db.Save(&deltaRecord)
+			} else {
+				deltaRecord = fetchedRecord
 			}
 
 			if err == nil {
@@ -475,7 +479,6 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 				}
 
 				result = newResponseItem(newSerializedRecord(&fetchedRecord, payload.AssetStore))
-
 			} else {
 				log.WithFields(log.Fields{
 					"record": deltaRecord,
