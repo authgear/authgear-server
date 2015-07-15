@@ -6,7 +6,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/ourd/hook"
-
 	"github.com/oursky/ourd/router"
 	"github.com/robfig/cron"
 )

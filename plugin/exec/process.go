@@ -2,15 +2,16 @@ package exec
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	osexec "os/exec"
 
 	log "github.com/Sirupsen/logrus"
-
+	"github.com/oursky/ourd/oddb"
 	odplugin "github.com/oursky/ourd/plugin"
-	osexec "os/exec"
 )
 
-func startCommand(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
+var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return
@@ -73,9 +74,10 @@ func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
 
 	cmd := osexec.Command(p.Path, finalArgs...)
 
+	log.Debugf("Calling %s %s with     : %s", cmd.Path, cmd.Args, in)
 	out, err = startCommand(cmd, in)
-	log.Debugf("Called process %s %s %s", p.Path, finalArgs, in)
-	return
+	log.Debugf("Called  %s %s returning: %s", cmd.Path, cmd.Args, out)
+	return out, err
 }
 
 func (p execTransport) RunInit() (out []byte, err error) {
@@ -93,10 +95,23 @@ func (p execTransport) RunHandler(name string, in []byte) (out []byte, err error
 	return
 }
 
-func (p execTransport) RunHook(recordType string, trigger string, in []byte) (out []byte, err error) {
+func (p execTransport) RunHook(recordType string, trigger string, record *oddb.Record) (*oddb.Record, error) {
+	in, err := json.Marshal(record)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal record: %v", err)
+	}
+
 	hookName := fmt.Sprintf("%v:%v", recordType, trigger)
-	out, err = p.run([]string{"hook", hookName}, in)
-	return
+	out, err := p.run([]string{"hook", hookName}, in)
+	if err != nil {
+		return nil, fmt.Errorf("run %s: %v", hookName, err)
+	}
+
+	var recordout oddb.Record
+	if err := json.Unmarshal(out, &recordout); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal record: %v", err)
+	}
+	return &recordout, nil
 }
 
 func (p execTransport) RunTimer(name string, in []byte) (out []byte, err error) {

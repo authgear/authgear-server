@@ -1,8 +1,13 @@
 package exec
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
+	"errors"
+	"os/exec"
 	"testing"
+
+	"github.com/oursky/ourd/oddb"
+	. "github.com/oursky/ourd/ourtest"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestRun(t *testing.T) {
@@ -29,12 +34,6 @@ func TestRun(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, "handler hello:world")
 		})
-
-		Convey("hook", func() {
-			out, err := transport.RunHook("note", "beforeSave", []byte{})
-			So(err, ShouldBeNil)
-			So(string(out), ShouldEqual, "hook note:beforeSave")
-		})
 	})
 
 	Convey("test stdin", t, func() {
@@ -60,11 +59,121 @@ func TestRun(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, "hello world")
 		})
+	})
 
-		Convey("hook", func() {
-			out, err := transport.RunHook("note", "beforeSave", []byte("hello world"))
+	Convey("test hook", t, func() {
+		transport := execTransport{
+			Path: "/never/invoked",
+			Args: nil,
+		}
+
+		// expect child test case to override startCommand
+		// save the original and defer setting it back
+		originalCommand := startCommand
+		defer func() {
+			startCommand = originalCommand
+		}()
+
+		recordin := oddb.Record{
+			ID:      oddb.NewRecordID("note", "id"),
+			OwnerID: "john.doe@example.com",
+			ACL: oddb.RecordACL{
+				oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
+			},
+			Data: map[string]interface{}{
+				"content":   "some note content",
+				"noteOrder": float64(1),
+				"tags":      []interface{}{"test", "unimportant"},
+			},
+		}
+
+		Convey("executes beforeSave correctly", func() {
+			called := false
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				called = true
+				So(cmd.Path, ShouldEqual, "/never/invoked")
+				So(cmd.Args, ShouldResemble, []string{"/never/invoked", "hook", "note:beforeSave"})
+				So(in, ShouldEqualJSON, `{
+					"_id": "note/id",
+					"_ownerID": "john.doe@example.com",
+					"_access": [
+						{
+							"relation": "friend",
+							"level": "write"
+						}
+					],
+					"data": {
+						"content": "some note content",
+						"noteOrder": 1,
+						"tags": ["test", "unimportant"]
+					}
+				}`)
+
+				return []byte(`{
+					"_id": "note/id",
+					"_ownerID": "john.doe@example.com",
+					"_access": [
+						{
+							"relation": "friend",
+							"level": "write"
+						}
+					],
+					"data": {
+						"content": "content has been modified",
+						"noteOrder": 1,
+						"tags": ["test", "unimportant"]
+					}
+				}`), nil
+			}
+
+			recordout, err := transport.RunHook("note", "beforeSave", &recordin)
 			So(err, ShouldBeNil)
-			So(string(out), ShouldEqual, "hello world")
+			So(called, ShouldBeTrue)
+
+			So(recordin, ShouldResemble, oddb.Record{
+				ID:      oddb.NewRecordID("note", "id"),
+				OwnerID: "john.doe@example.com",
+				ACL: oddb.RecordACL{
+					oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
+				},
+				Data: map[string]interface{}{
+					"content":   "some note content",
+					"noteOrder": float64(1),
+					"tags":      []interface{}{"test", "unimportant"},
+				},
+			})
+			So(*recordout, ShouldResemble, oddb.Record{
+				ID:      oddb.NewRecordID("note", "id"),
+				OwnerID: "john.doe@example.com",
+				ACL: oddb.RecordACL{
+					oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
+				},
+				Data: map[string]interface{}{
+					"content":   "content has been modified",
+					"noteOrder": float64(1),
+					"tags":      []interface{}{"test", "unimportant"},
+				},
+			})
+		})
+
+		Convey("returns err if command failed", func() {
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				return nil, errors.New("worrying error")
+			}
+
+			recordout, err := transport.RunHook("note", "afterSave", &recordin)
+			So(err.Error(), ShouldEqual, "run note:afterSave: worrying error")
+			So(recordout, ShouldBeNil)
+		})
+
+		Convey("returns err if command returns invalid response", func() {
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				return []byte("I am not a json"), nil
+			}
+
+			recordout, err := transport.RunHook("note", "afterSave", &recordin)
+			So(err.Error(), ShouldEqual, "failed to unmarshal record: invalid character 'I' looking for beginning of value")
+			So(recordout, ShouldBeNil)
 		})
 	})
 
