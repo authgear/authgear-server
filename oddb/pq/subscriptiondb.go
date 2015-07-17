@@ -129,11 +129,19 @@ func (db *database) SaveSubscription(subscription *oddb.Subscription) error {
 		"query":             queryValue(subscription.Query),
 	}
 
-	sql, args := upsertQuery(db.tableName("_subscription"), pkData, data, []string{})
-	_, err := db.Db.Exec(sql, args...)
+	builder := upsertQuery(db.tableName("_subscription"), pkData, data)
 
+	_, err := execWith(db.Db, builder)
 	if isDeviceNotFound(err) {
 		return oddb.ErrDeviceNotFound
+	} else if err != nil {
+		sql, args, _ := builder.ToSql()
+		log.WithFields(log.Fields{
+			"sql":          sql,
+			"args":         args,
+			"err":          err,
+			"subscription": subscription,
+		}).Errorln("Failed to save subscription")
 	}
 
 	return err

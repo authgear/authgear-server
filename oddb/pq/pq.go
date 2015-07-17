@@ -324,9 +324,10 @@ func (c *conn) SaveAsset(asset *oddb.Asset) error {
 		"content_type": asset.ContentType,
 		"size":         asset.Size,
 	}
-	sql, args := upsertQuery(c.tableName("_asset"), pkData, data, []string{})
-	_, err := c.Db.Exec(sql, args...)
+	upsert := upsertQuery(c.tableName("_asset"), pkData, data)
+	_, err := execWith(c.Db, upsert)
 	if err != nil {
+		sql, args, _ := upsert.ToSql()
 		log.WithFields(log.Fields{
 			"sql":  sql,
 			"args": args,
@@ -343,9 +344,11 @@ func (c *conn) AddRelation(user string, name string, targetUser string) error {
 		"left_id":  user,
 		"right_id": targetUser,
 	}
-	sql, args := upsertQuery(c.tableName(tName), ralationPair, nil, []string{})
-	_, err := c.Db.Exec(sql, args...)
+
+	upsert := upsertQuery(c.tableName(tName), ralationPair, nil)
+	_, err := execWith(c.Db, upsert)
 	if err != nil {
+		sql, args, _ := upsert.ToSql()
 		log.WithFields(log.Fields{
 			"sql":  sql,
 			"args": args,
@@ -412,8 +415,17 @@ func (c *conn) SaveDevice(device *oddb.Device) error {
 		"user_id": device.UserInfoID,
 	}
 
-	sql, args := upsertQuery(c.tableName("_device"), pkData, data, []string{})
-	_, err := c.Db.Exec(sql, args...)
+	upsert := upsertQuery(c.tableName("_device"), pkData, data)
+	_, err := execWith(c.Db, upsert)
+	if err != nil {
+		sql, args, _ := upsert.ToSql()
+		log.WithFields(log.Fields{
+			"sql":    sql,
+			"args":   args,
+			"err":    err,
+			"device": device,
+		}).Errorln("Failed to save device")
+	}
 
 	return err
 }

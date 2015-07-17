@@ -147,13 +147,16 @@ func (db *database) Save(record *oddb.Record) error {
 		return fmt.Errorf("db.save %s: got empty OwnerID", record.ID.Key)
 	}
 
-	sql, args := upsertQuery(db.tableName(record.ID.Type), map[string]interface{}{
+	pkData := map[string]interface{}{
 		"_id":          record.ID.Key,
 		"_database_id": db.userID,
-	}, convert(record), []string{"_owner_id"})
+	}
+	upsert := upsertQuery(db.tableName(record.ID.Type), pkData, convert(record)).
+		IgnoreKeyOnUpdate("_owner_id")
 
-	_, err := db.Db.Exec(sql, args...)
+	_, err := execWith(db.Db, upsert)
 	if err != nil {
+		sql, args, _ := upsert.ToSql()
 		log.WithFields(log.Fields{
 			"sql":  sql,
 			"args": args,
@@ -202,12 +205,13 @@ func (db *database) Delete(id oddb.RecordID) error {
 			"sql":  sql,
 			"args": args,
 			"err":  err,
-		}).Errorf("Failed to execute delete record statement")
+		}).Errorln("Failed to execute delete record statement")
 		return fmt.Errorf("delete %s: failed to delete record", id)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
 			"id":   id,
 			"sql":  sql,
@@ -220,6 +224,7 @@ func (db *database) Delete(id oddb.RecordID) error {
 	if rowsAffected == 0 {
 		return oddb.ErrRecordNotFound
 	} else if rowsAffected > 1 {
+		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
 			"id":           id,
 			"sql":          sql,
