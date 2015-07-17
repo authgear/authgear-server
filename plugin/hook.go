@@ -1,9 +1,6 @@
 package plugin
 
 import (
-	"encoding/json"
-
-	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 )
@@ -12,17 +9,15 @@ import (
 // plugin
 func CreateHookFunc(p *Plugin, hookInfo pluginHookInfo) hook.Func {
 	hookFunc := func(record *oddb.Record) error {
-		b, err := json.Marshal(record)
-		if err != nil {
-			panic("failed to marshal record: " + err.Error())
+		recordout, err := p.transport.RunHook(hookInfo.Type, hookInfo.Trigger, record)
+		if err == nil && hookInfo.Trigger == string(hook.BeforeSave) && !hookInfo.Async {
+			*record = *recordout
 		}
-
-		out, err := p.transport.RunHook(hookInfo.Type, hookInfo.Trigger, b)
-		log.Debugf("Executed a hook with result: %s", out)
 		return err
 	}
 	if hookInfo.Async {
 		return func(record *oddb.Record) error {
+			// TODO(limouren): think of a way to test this go routine
 			go hookFunc(record)
 			return nil
 		}
