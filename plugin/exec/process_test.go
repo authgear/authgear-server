@@ -17,22 +17,34 @@ func TestRun(t *testing.T) {
 			Args: []string{},
 		}
 
+		originalCommand := startCommand
+		defer func() {
+			startCommand = originalCommand
+		}()
+
 		Convey("init", func() {
 			out, err := transport.RunInit()
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, "init")
 		})
 
+		startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+			out, err = originalCommand(cmd, in)
+			out = append([]byte(`{"result":"`), out...)
+			out = append(out, []byte(`"}`)...)
+			return
+		}
+
 		Convey("op", func() {
 			out, err := transport.RunLambda("hello:world", []byte{})
 			So(err, ShouldBeNil)
-			So(string(out), ShouldEqual, "op hello:world")
+			So(string(out), ShouldEqual, `"op hello:world"`)
 		})
 
 		Convey("handler", func() {
 			out, err := transport.RunHandler("hello:world", []byte{})
 			So(err, ShouldBeNil)
-			So(string(out), ShouldEqual, "handler hello:world")
+			So(string(out), ShouldEqual, `"handler hello:world"`)
 		})
 	})
 
@@ -49,15 +61,15 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("op", func() {
-			out, err := transport.RunLambda("hello:world", []byte("hello world"))
+			out, err := transport.RunLambda("hello:world", []byte(`{"result": "hello world"}`))
 			So(err, ShouldBeNil)
-			So(string(out), ShouldEqual, "hello world")
+			So(string(out), ShouldEqual, `"hello world"`)
 		})
 
 		Convey("handler", func() {
-			out, err := transport.RunHandler("hello:world", []byte("hello world"))
+			out, err := transport.RunHandler("hello:world", []byte(`{"result": "hello world"}`))
 			So(err, ShouldBeNil)
-			So(string(out), ShouldEqual, "hello world")
+			So(string(out), ShouldEqual, `"hello world"`)
 		})
 	})
 
@@ -110,18 +122,20 @@ func TestRun(t *testing.T) {
 				}`)
 
 				return []byte(`{
-					"_id": "note/id",
-					"_ownerID": "john.doe@example.com",
-					"_access": [
-						{
-							"relation": "friend",
-							"level": "write"
+					"result": {
+						"_id": "note/id",
+						"_ownerID": "john.doe@example.com",
+						"_access": [
+							{
+								"relation": "friend",
+								"level": "write"
+							}
+						],
+						"data": {
+							"content": "content has been modified",
+							"noteOrder": 1,
+							"tags": ["test", "unimportant"]
 						}
-					],
-					"data": {
-						"content": "content has been modified",
-						"noteOrder": 1,
-						"tags": ["test", "unimportant"]
 					}
 				}`), nil
 			}
@@ -172,7 +186,26 @@ func TestRun(t *testing.T) {
 			}
 
 			recordout, err := transport.RunHook("note", "afterSave", &recordin)
-			So(err.Error(), ShouldEqual, "failed to unmarshal record: invalid character 'I' looking for beginning of value")
+			So(err.Error(), ShouldEqual, "run note:afterSave: failed to parse response: invalid character 'I' looking for beginning of value")
+			So(recordout, ShouldBeNil)
+		})
+
+		Convey("returns err if commands returns with inner error", func() {
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				return []byte(`{
+					"result": {
+						"ignore": "me"
+					},
+					"error": {
+						"name": "StrongError",
+						"desc": "Too strong to lift a feather"
+					}
+				}`), nil
+			}
+
+			recordout, err := transport.RunHook("note", "afterSave", &recordin)
+			So(err.Error(), ShouldEqual, `run note:afterSave: StrongError
+Too strong to lift a feather`)
 			So(recordout, ShouldBeNil)
 		})
 	})

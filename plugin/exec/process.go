@@ -58,6 +58,17 @@ var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 	return
 }
 
+// execError is error resulted from application logic of plugin (e.g.
+// an exception thrown within a lambda function)
+type execError struct {
+	Name        string `json:"name"`
+	Description string `json:"desc"`
+}
+
+func (err *execError) Error() string {
+	return err.Name + "\n" + err.Description
+}
+
 type execTransport struct {
 	Path string
 	Args []string
@@ -77,7 +88,36 @@ func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
 	log.Debugf("Calling %s %s with     : %s", cmd.Path, cmd.Args, in)
 	out, err = startCommand(cmd, in)
 	log.Debugf("Called  %s %s returning: %s", cmd.Path, cmd.Args, out)
-	return out, err
+
+	return
+}
+
+// runProc unwrap inner error returned from run
+func (p *execTransport) runProc(args []string, in []byte) (out []byte, err error) {
+	var data []byte
+	data, err = p.run(args, in)
+	if err != nil {
+		return
+	}
+
+	var resp struct {
+		Result json.RawMessage `json:"result"`
+		Err    *execError      `json:"error"`
+	}
+
+	jsonErr := json.Unmarshal(data, &resp)
+	if jsonErr != nil {
+		err = fmt.Errorf("failed to parse response: %v", jsonErr)
+		return
+	}
+
+	if resp.Err != nil {
+		err = resp.Err
+		return
+	}
+
+	out = resp.Result
+	return
 }
 
 func (p execTransport) RunInit() (out []byte, err error) {
@@ -86,12 +126,12 @@ func (p execTransport) RunInit() (out []byte, err error) {
 }
 
 func (p execTransport) RunLambda(name string, in []byte) (out []byte, err error) {
-	out, err = p.run([]string{"op", name}, in)
+	out, err = p.runProc([]string{"op", name}, in)
 	return
 }
 
 func (p execTransport) RunHandler(name string, in []byte) (out []byte, err error) {
-	out, err = p.run([]string{"handler", name}, in)
+	out, err = p.runProc([]string{"handler", name}, in)
 	return
 }
 
@@ -102,20 +142,21 @@ func (p execTransport) RunHook(recordType string, trigger string, record *oddb.R
 	}
 
 	hookName := fmt.Sprintf("%v:%v", recordType, trigger)
-	out, err := p.run([]string{"hook", hookName}, in)
+	out, err := p.runProc([]string{"hook", hookName}, in)
 	if err != nil {
 		return nil, fmt.Errorf("run %s: %v", hookName, err)
 	}
 
 	var recordout oddb.Record
 	if err := json.Unmarshal(out, &recordout); err != nil {
+		log.WithField("data", out).Error("failed to unmarshal record")
 		return nil, fmt.Errorf("failed to unmarshal record: %v", err)
 	}
 	return &recordout, nil
 }
 
 func (p execTransport) RunTimer(name string, in []byte) (out []byte, err error) {
-	out, err = p.run([]string{"timer", name}, in)
+	out, err = p.runProc([]string{"timer", name}, in)
 	return
 }
 
