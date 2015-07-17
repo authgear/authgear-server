@@ -360,12 +360,12 @@ func (c *conn) AddRelation(user string, name string, targetUser string) error {
 }
 
 func (c *conn) RemoveRelation(user string, name string, targetUser string) error {
-	log.Debug("Remove Relation", user, name, targetUser)
 	tName := "_" + name
-	result, err := psql.Delete(c.tableName(tName)).
-		Where("left_id = ? AND right_id = ?", user, targetUser).
-		RunWith(c.Db.DB).
-		Exec()
+
+	builder := psql.Delete(c.tableName(tName)).
+		Where("left_id = ? AND right_id = ?", user, targetUser)
+	result, err := execWith(c.Db, builder)
+
 	if err != nil {
 		return err
 	}
@@ -383,11 +383,10 @@ func (c *conn) RemoveRelation(user string, name string, targetUser string) error
 }
 
 func (c *conn) GetDevice(id string, device *oddb.Device) error {
-	err := psql.Select("type", "token", "user_id").
+	builder := psql.Select("type", "token", "user_id").
 		From(c.tableName("_device")).
-		Where("id = ?", id).
-		RunWith(c.Db.DB).
-		QueryRow().
+		Where("id = ?", id)
+	err := queryRowWith(c.Db, builder).
 		Scan(&device.Type, &device.Token, &device.UserInfoID)
 
 	if err == sql.ErrNoRows {
@@ -420,10 +419,9 @@ func (c *conn) SaveDevice(device *oddb.Device) error {
 }
 
 func (c *conn) DeleteDevice(id string) error {
-	result, err := psql.Delete(c.tableName("_device")).
-		Where("id = ?", id).
-		RunWith(c.Db.DB).
-		Exec()
+	builder := psql.Delete(c.tableName("_device")).
+		Where("id = ?", id)
+	result, err := execWith(c.Db, builder)
 
 	if err != nil {
 		return err
@@ -648,6 +646,32 @@ CREATE TABLE IF NOT EXISTS %[1]v._follow (
 	}
 
 	return nil
+}
+
+type sqlizer sq.Sqlizer
+
+func execWith(db *sqlx.DB, sqlizeri sqlizer) (sql.Result, error) {
+	sql, args, err := sqlizeri.ToSql()
+	if err != nil {
+		panic(err)
+	}
+	return db.Exec(sql, args...)
+}
+
+func queryWith(db *sqlx.DB, sqlizeri sqlizer) (*sqlx.Rows, error) {
+	sql, args, err := sqlizeri.ToSql()
+	if err != nil {
+		panic(err)
+	}
+	return db.Queryx(sql, args...)
+}
+
+func queryRowWith(db *sqlx.DB, sqlizeri sqlizer) *sqlx.Row {
+	sql, args, err := sqlizeri.ToSql()
+	if err != nil {
+		panic(err)
+	}
+	return db.QueryRowx(sql, args...)
 }
 
 func init() {
