@@ -878,7 +878,7 @@ func TestDelete(t *testing.T) {
 			err = db.Delete(oddb.NewRecordID("note", "someid"))
 			So(err, ShouldBeNil)
 
-			err = db.(*database).Db.QueryRow("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid' AND _database_id = 'userid'").Scan((*string)(nil))
+			err = db.(*database).Db.QueryRowx("SELECT * FROM app_com_oursky_ourd.note WHERE _id = 'someid' AND _database_id = 'userid'").Scan((*string)(nil))
 			So(err, ShouldEqual, sql.ErrNoRows)
 		})
 

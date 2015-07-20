@@ -477,10 +477,17 @@ func (c *conn) tableName(table string) string {
 	return c.schemaName() + "." + table
 }
 
+type queryxRunner interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
+	QueryRowx(query string, args ...interface{}) *sqlx.Row
+}
+
 type database struct {
-	Db     *sqlx.DB
+	Db     queryxRunner
 	c      *conn
 	userID string
+	txDone bool
 }
 
 func (db *database) Conn() oddb.Conn { return db.c }
@@ -662,7 +669,7 @@ CREATE TABLE IF NOT EXISTS %[1]v._follow (
 
 type sqlizer sq.Sqlizer
 
-func execWith(db *sqlx.DB, sqlizeri sqlizer) (sql.Result, error) {
+func execWith(db queryxRunner, sqlizeri sqlizer) (sql.Result, error) {
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		panic(err)
@@ -670,7 +677,7 @@ func execWith(db *sqlx.DB, sqlizeri sqlizer) (sql.Result, error) {
 	return db.Exec(sql, args...)
 }
 
-func queryWith(db *sqlx.DB, sqlizeri sqlizer) (*sqlx.Rows, error) {
+func queryWith(db queryxRunner, sqlizeri sqlizer) (*sqlx.Rows, error) {
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		panic(err)
@@ -678,7 +685,7 @@ func queryWith(db *sqlx.DB, sqlizeri sqlizer) (*sqlx.Rows, error) {
 	return db.Queryx(sql, args...)
 }
 
-func queryRowWith(db *sqlx.DB, sqlizeri sqlizer) *sqlx.Row {
+func queryRowWith(db queryxRunner, sqlizeri sqlizer) *sqlx.Row {
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		panic(err)
