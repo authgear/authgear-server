@@ -51,6 +51,14 @@ func NewAnonymousUserInfo() UserInfo {
 	}
 }
 
+// NewProvidedAuthUserInfo returns an UserInfo provided by a AuthProvider,
+// which has no Email and Password.
+func NewProvidedAuthUserInfo(providerName string, principalID string) UserInfo {
+	return UserInfo{
+		ID: providerName + ":" + principalID,
+	}
+}
+
 // SetPassword sets the HashedPassword with the password specified
 func (info *UserInfo) SetPassword(password string) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)

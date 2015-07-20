@@ -11,6 +11,7 @@ import (
 	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
+	"github.com/oursky/ourd/provider"
 	"github.com/oursky/ourd/router"
 )
 
@@ -60,6 +61,15 @@ type hookRegistryPreprocessor struct {
 
 func (p hookRegistryPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
 	payload.HookRegistry = p.Registry
+	return http.StatusOK
+}
+
+type providerRegistryPreprocessor struct {
+	Registry *provider.Registry
+}
+
+func (p providerRegistryPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	payload.ProviderRegistry = p.Registry
 	return http.StatusOK
 }
 

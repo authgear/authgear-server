@@ -160,6 +160,11 @@ func (p execTransport) RunTimer(name string, in []byte) (out []byte, err error) 
 	return
 }
 
+func (p execTransport) RunProvider(providerID string, action string, in []byte) (out []byte, err error) {
+	out, err = p.run([]string{"provider", providerID, action}, in)
+	return
+}
+
 type execTransportFactory struct {
 }
 

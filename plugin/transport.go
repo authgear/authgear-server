@@ -17,6 +17,7 @@ type Transport interface {
 	// in any of its memebers with the record being passed in.
 	RunHook(recordType string, trigger string, record *oddb.Record) (*oddb.Record, error)
 	RunTimer(name string, n []byte) ([]byte, error)
+	RunProvider(name string, action string, n []byte) ([]byte, error)
 }
 
 // A TransportFactory is a generic interface to instantiates different
@@ -44,6 +45,11 @@ func (t nullTransport) RunHook(recordType string, trigger string, reocrd *oddb.R
 	return
 }
 func (t nullTransport) RunTimer(name string, in []byte) (out []byte, err error) {
+	out = in
+	return
+}
+
+func (t nullTransport) RunProvider(name string, action string, in []byte) (out []byte, err error) {
 	out = in
 	return
 }

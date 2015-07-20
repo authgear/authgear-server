@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
+
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
@@ -42,7 +44,17 @@ func (p *signupPayload) UserID() string {
 }
 
 func (p *signupPayload) IsAnonymous() bool {
-	return p.Email() == "" && p.Password() == "" && p.UserID() == ""
+	return p.Email() == "" && p.Password() == "" && p.UserID() == "" && p.Provider() == ""
+}
+
+func (p *signupPayload) Provider() string {
+	provider, _ := p.Data["provider"].(string)
+	return provider
+}
+
+func (p *signupPayload) AuthData() map[string]interface{} {
+	authData, _ := p.Data["auth_data"].(map[string]interface{})
+	return authData
 }
 
 // SignupHandler creates an UserInfo with the supplied information.
@@ -79,6 +91,21 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 	info := oddb.UserInfo{}
 	if p.IsAnonymous() {
 		info = oddb.NewAnonymousUserInfo()
+	} else if p.Provider() != "" {
+		// Get AuthProvider and authenticates the user
+		log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
+		authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
+		principalID, authData, err := authProvider.Login(p.AuthData())
+		if err != nil {
+			response.Err = oderr.ErrAuthFailure
+			return
+		}
+		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
+
+		// Create new user info and set updated auth data
+		info = oddb.NewProvidedAuthUserInfo(p.Provider(), principalID)
+		info.Auth = make(map[string]map[string]interface{})
+		info.Auth[p.Provider()] = authData
 	} else {
 		userID := p.UserID()
 		email := p.Email()
@@ -123,6 +150,16 @@ func (p *loginPayload) RouteAction() string {
 	return "auth:login"
 }
 
+func (p *loginPayload) Provider() string {
+	provider, _ := p.Data["provider"].(string)
+	return provider
+}
+
+func (p *loginPayload) AuthData() map[string]interface{} {
+	authData, _ := p.Data["auth_data"].(map[string]interface{})
+	return authData
+}
+
 func (p *loginPayload) UserID() string {
 	userID, _ := p.Data["user_id"].(string)
 	return userID
@@ -154,19 +191,43 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	info := oddb.UserInfo{}
-	if err := payload.DBConn.GetUser(p.UserID(), &info); err != nil {
-		if err == oddb.ErrUserNotFound {
-			response.Err = oderr.ErrUserNotFound
-		} else {
-			// TODO: more error handling here if necessary
-			response.Err = oderr.NewResourceFetchFailureErr("user", p.UserID())
-		}
-		return
-	}
 
-	if !info.IsSamePassword(p.Password()) {
-		response.Err = oderr.ErrInvalidLogin
-		return
+	if p.Provider() != "" {
+		// Get AuthProvider and authenticates the user
+		log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
+		authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
+		principalID, _, err := authProvider.Login(p.AuthData())
+		if err != nil {
+			response.Err = oderr.ErrAuthFailure
+			return
+		}
+		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
+
+		info = oddb.NewProvidedAuthUserInfo(p.Provider(), principalID)
+		if err := payload.DBConn.GetUser(info.ID, &info); err != nil {
+			if err == oddb.ErrUserNotFound {
+				response.Err = oderr.ErrUserNotFound
+			} else {
+				// TODO: more error handling here if necessary
+				response.Err = oderr.NewResourceFetchFailureErr("user", p.UserID())
+			}
+			return
+		}
+	} else {
+		if err := payload.DBConn.GetUser(p.UserID(), &info); err != nil {
+			if err == oddb.ErrUserNotFound {
+				response.Err = oderr.ErrUserNotFound
+			} else {
+				// TODO: more error handling here if necessary
+				response.Err = oderr.NewResourceFetchFailureErr("user", p.UserID())
+			}
+			return
+		}
+
+		if !info.IsSamePassword(p.Password()) {
+			response.Err = oderr.ErrInvalidLogin
+			return
+		}
 	}
 
 	// generate access-token

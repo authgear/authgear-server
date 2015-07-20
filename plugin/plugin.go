@@ -6,6 +6,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/ourd/hook"
+	"github.com/oursky/ourd/provider"
 	"github.com/oursky/ourd/router"
 	"github.com/robfig/cron"
 )
@@ -31,11 +32,17 @@ type timerInfo struct {
 	Spec string `json:"spec"`
 }
 
+type providerInfo struct {
+	Type string `json:"type"`
+	Name string `json:"id"`
+}
+
 type registrationInfo struct {
-	Handlers map[string]pluginHandlerInfo `json:"handler"`
-	Hooks    []pluginHookInfo             `json:"hook"`
-	Lambdas  []string                     `json:"op"`
-	Timers   []timerInfo                  `json:"timer"`
+	Handlers  map[string]pluginHandlerInfo `json:"handler"`
+	Hooks     []pluginHookInfo             `json:"hook"`
+	Lambdas   []string                     `json:"op"`
+	Timers    []timerInfo                  `json:"timer"`
+	Providers []providerInfo               `json:"provider"`
 }
 
 func (p *Plugin) getRegistrationInfo() registrationInfo {
@@ -74,17 +81,26 @@ func NewPlugin(name string, path string, args []string) Plugin {
 	return p
 }
 
+// InitContext contains reference to structs that will be initialized by plugin.
+type InitContext struct {
+	Router           *router.Router
+	HookRegistry     *hook.Registry
+	ProviderRegistry *provider.Registry
+	Scheduler        *cron.Cron
+}
+
 // Init instantiates a plugin. This sets up hooks and handlers.
-func (p *Plugin) Init(r *router.Router, registry *hook.Registry, c *cron.Cron) {
+func (p *Plugin) Init(context *InitContext) {
 	regInfo := p.getRegistrationInfo()
 
 	log.WithFields(log.Fields{
 		"regInfo":   regInfo,
 		"transport": p.transport,
 	}).Debugln("Got configuration from pligin, registering")
-	p.initLambda(r, regInfo.Lambdas)
-	p.initHook(registry, regInfo.Hooks)
-	p.initTimer(c, regInfo.Timers)
+	p.initLambda(context.Router, regInfo.Lambdas)
+	p.initHook(context.HookRegistry, regInfo.Hooks)
+	p.initTimer(context.Scheduler, regInfo.Timers)
+	p.initProvider(context.ProviderRegistry, regInfo.Providers)
 }
 
 func (p *Plugin) initLambda(r *router.Router, lambdaNames []string) {
@@ -109,5 +125,12 @@ func (p *Plugin) initTimer(c *cron.Cron, timerInfos []timerInfo) {
 			output, _ := p.transport.RunTimer(timerName, []byte{})
 			log.Debugf("Executed a timer{%v} with result: %s", timerName, output)
 		})
+	}
+}
+
+func (p *Plugin) initProvider(registry *provider.Registry, providerInfos []providerInfo) {
+	for _, providerInfo := range providerInfos {
+		provider := NewAuthProvider(providerInfo.Name, p)
+		registry.RegisterAuthProvider(providerInfo.Name, provider)
 	}
 }

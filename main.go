@@ -19,6 +19,7 @@ import (
 	_ "github.com/oursky/ourd/oddb/pq"
 	"github.com/oursky/ourd/plugin"
 	_ "github.com/oursky/ourd/plugin/exec"
+	"github.com/oursky/ourd/provider"
 	"github.com/oursky/ourd/push"
 	"github.com/oursky/ourd/router"
 	"github.com/oursky/ourd/subscription"
@@ -202,16 +203,23 @@ func main() {
 	r := router.NewRouter()
 	r.Map("", handler.HomeHandler)
 
+	providerRegistry := provider.NewRegistry()
+	providerRegistryPreprocessor := providerRegistryPreprocessor{
+		Registry: providerRegistry,
+	}
+
 	authPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		fileTokenStorePreprocessor.Preprocess,
+		providerRegistryPreprocessor.Preprocess,
 	}
 	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
 	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
 	r.Map("auth:logout", handler.LogoutHandler,
 		fileTokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
+		providerRegistryPreprocessor.Preprocess,
 	)
 
 	hookRegistry := hook.NewRegistry()
@@ -300,8 +308,15 @@ func main() {
 	}
 
 	c := cron.New()
+	initContext := plugin.InitContext{
+		Router:           r,
+		HookRegistry:     hookRegistry,
+		ProviderRegistry: providerRegistry,
+		Scheduler:        c,
+	}
+
 	for _, plug := range plugins {
-		plug.Init(r, hookRegistry, c)
+		plug.Init(&initContext)
 	}
 	c.Start()
 

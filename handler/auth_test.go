@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -12,6 +13,7 @@ import (
 	"github.com/oursky/ourd/oddb/oddbtest"
 	"github.com/oursky/ourd/oderr"
 	. "github.com/oursky/ourd/ourtest"
+	"github.com/oursky/ourd/provider"
 	"github.com/oursky/ourd/router"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -312,6 +314,54 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 		"message": "empty user_id, email or password"
 	}
 }`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+	})
+}
+
+func TestSignupHandlerWithProvider(t *testing.T) {
+	Convey("SignupHandler", t, func() {
+		tokenStore := singleTokenStore{}
+		conn := singleUserConn{}
+		providerRegistry := provider.NewRegistry()
+		providerRegistry.RegisterAuthProvider("com.example", handlertest.NewSingleUserAuthProvider("com.example", "johndoe"))
+
+		r := handlertest.NewSingleRouteRouter(SignupHandler, func(p *router.Payload) {
+			p.TokenStore = &tokenStore
+			p.DBConn = &conn
+			p.ProviderRegistry = providerRegistry
+		})
+
+		Convey("signs up with user", func() {
+			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
+
+			token := authtoken.Token(tokenStore)
+			userinfo := conn.userinfo
+
+			So(token.AccessToken, ShouldNotBeBlank)
+			So(conn.userinfo.ID, ShouldEqual, "com.example:johndoe")
+			authData := conn.userinfo.Auth["com.example"]
+			authDataJSON, _ := json.Marshal(&authData)
+			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+	"result": {
+		"user_id": "%v",
+		"access_token": "%v"
+	}
+}`, userinfo.ID, token.AccessToken))
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("signs up with incorrect user", func() {
+			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "janedoe"}}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+	"error": {
+		"code": 101,
+		"type": "AuthenticationError",
+		"message": "authentication failed"
+	}
+}`))
 			So(resp.Code, ShouldEqual, 400)
 		})
 	})

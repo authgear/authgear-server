@@ -9,6 +9,7 @@ import (
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/provider"
 )
 
 // Payload is for passing payload to the actual handler
@@ -24,9 +25,10 @@ type Payload struct {
 	// Map of action payload
 	Data map[string]interface{}
 
-	TokenStore   authtoken.Store
-	AssetStore   asset.Store
-	HookRegistry *hook.Registry
+	TokenStore       authtoken.Store
+	AssetStore       asset.Store
+	HookRegistry     *hook.Registry
+	ProviderRegistry *provider.Registry
 
 	AppName    string
 	UserInfoID string

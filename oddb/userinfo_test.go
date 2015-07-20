@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -52,6 +53,14 @@ func TestNewAnonymousUserInfo(t *testing.T) {
 	if len(info.HashedPassword) != 0 {
 		t.Fatalf("got info.HashPassword = %v, want zero-length bytes", info.HashedPassword)
 	}
+}
+
+func TestNewProvidedAuthUserInfo(t *testing.T) {
+	Convey("Test Provied Auth", t, func() {
+		info := NewProvidedAuthUserInfo("com.example", "johndoe")
+		So(info.ID, ShouldEqual, "com.example:johndoe")
+		So(len(info.HashedPassword), ShouldEqual, 0)
+	})
 }
 
 func TestSetPassword(t *testing.T) {
