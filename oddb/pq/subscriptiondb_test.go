@@ -31,7 +31,7 @@ func randHex(n int) string {
 func TestSubscriptionCRUD(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		db := c.PrivateDB("userid")
 
@@ -193,7 +193,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 func TestMatchingSubscriptions(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		db := c.PublicDB()
 
@@ -229,7 +229,7 @@ func TestMatchingSubscriptions(t *testing.T) {
 func TestGetSubscriptionsByDeviceID(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		db := c.PublicDB()
 

@@ -39,8 +39,8 @@ func getTestConn(t *testing.T) *conn {
 	return c.(*conn)
 }
 
-func cleanupDB(t *testing.T, c *conn) {
-	_, err := c.Db.Exec("DROP SCHEMA app_com_oursky_ourd CASCADE")
+func cleanupDB(t *testing.T, execori execor) {
+	_, err := execori.Exec("DROP SCHEMA app_com_oursky_ourd CASCADE")
 	if err != nil && !isInvalidSchemaName(err) {
 		t.Fatal(err)
 	}
@@ -92,7 +92,7 @@ func TestUserCRUD(t *testing.T) {
 
 	Convey("Conn", t, func() {
 		c = getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		userinfo := oddb.UserInfo{
 			ID:             "userid",
@@ -258,7 +258,7 @@ func TestUserCRUD(t *testing.T) {
 func TestRelation(t *testing.T) {
 	Convey("Conn", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		addUser(t, c, "userid")
 		addUser(t, c, "friendid")
@@ -293,7 +293,7 @@ func TestRelation(t *testing.T) {
 func TestDevice(t *testing.T) {
 	Convey("Conn", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		addUser(t, c, "userid")
 
@@ -428,7 +428,7 @@ func TestDevice(t *testing.T) {
 func TestExtend(t *testing.T) {
 	Convey("Extend", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		db := c.PublicDB()
 
@@ -560,7 +560,7 @@ func TestExtend(t *testing.T) {
 func TestGet(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		db := c.PrivateDB("getuser")
 		So(db.Extend("record", oddb.RecordSchema{
@@ -605,7 +605,7 @@ func TestSave(t *testing.T) {
 	var c *conn
 	Convey("Database", t, func() {
 		c = getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		db := c.PublicDB()
 		So(db.Extend("note", oddb.RecordSchema{
@@ -734,7 +734,7 @@ func TestSave(t *testing.T) {
 func TestJSON(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		db := c.PublicDB()
 		So(db.Extend("note", oddb.RecordSchema{
@@ -814,7 +814,7 @@ func TestJSON(t *testing.T) {
 func TestRecordAssetField(t *testing.T) {
 	Convey("Record Asset", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		So(c.SaveAsset(&oddb.Asset{
 			Name:        "picture.png",
@@ -855,7 +855,7 @@ func TestDelete(t *testing.T) {
 	var c *conn
 	Convey("Database", t, func() {
 		c = getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		db := c.PrivateDB("userid")
 
@@ -900,7 +900,7 @@ func TestDelete(t *testing.T) {
 func TestQuery(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		// fixture
 		record1 := oddb.Record{
@@ -1054,7 +1054,7 @@ func TestQuery(t *testing.T) {
 
 	Convey("Database with reference", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		// fixture
 		record1 := oddb.Record{
@@ -1139,7 +1139,7 @@ func TestQuery(t *testing.T) {
 
 	Convey("Empty Conn", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c)
+		defer cleanupDB(t, c.Db)
 
 		Convey("gets no users", func() {
 			userinfo := oddb.UserInfo{}
