@@ -411,91 +411,124 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	length := len(recordMaps)
+	// slice to keep the order of incoming record id / error during parsing
+	incomingRecordItems := make([]interface{}, 0, len(recordMaps))
 
-	items := make([]recordSaveItem, 0, length)
-	for _, recordMapI := range recordMaps {
-		item := newRecordSaveItem(recordMapI)
+	// valid records that throughout the handler
+	records := []*oddb.Record{}
 
-		if err := (*transportRecord)(&item.record).InitFromJSON(item.m); err != nil {
-			item.err = oderr.NewRequestInvalidErr(err)
+	for _, recordMap := range recordMaps {
+		var record oddb.Record
+		if err := (*transportRecord)(&record).InitFromJSON(recordMap); err != nil {
+			incomingRecordItems = append(incomingRecordItems, err)
+		} else {
+			incomingRecordItems = append(incomingRecordItems, record.ID)
+			records = append(records, &record)
 		}
-
-		items = append(items, item)
 	}
 
-	if err := extendRecordSchema(db, items); err != nil {
+	// keep the error produced for a recordID throughout the handler
+	recordIDErrMap := map[oddb.RecordID]error{}
+	originalRecordMap := map[oddb.RecordID]*oddb.Record{}
+
+	// fetch records
+	records = executeRecordFunc(records, recordIDErrMap, func(record *oddb.Record) (err error) {
+		record.OwnerID = payload.UserInfoID
+		var dbRecord oddb.Record
+		err = db.Get(record.ID, &dbRecord)
+		if err == oddb.ErrRecordNotFound {
+			originalRecordMap[record.ID] = &oddb.Record{}
+			return nil
+		}
+
+		var origRecord oddb.Record
+		copyRecord(&origRecord, &dbRecord)
+		originalRecordMap[origRecord.ID] = &origRecord
+
+		mergeRecord(&dbRecord, record)
+		*record = dbRecord
+		return
+	})
+
+	// execute before save hooks
+	if payload.HookRegistry != nil {
+		records = executeRecordFunc(records, recordIDErrMap, func(record *oddb.Record) (err error) {
+			err = payload.HookRegistry.ExecuteHooks(hook.BeforeSave, record)
+			return
+		})
+	}
+
+	// derive and extend record schema
+	if err := extendRecordSchema(db, records); err != nil {
 		log.Debugln(err)
 		response.Err = oderr.ErrDatabaseSchemaMigrationFailed
 		return
 	}
 
-	results := make([]responseItem, 0, length)
-	for i := range items {
-		item := &items[i]
-		record := &item.record
-		record.OwnerID = payload.UserInfoID
+	// save records
+	records = executeRecordFunc(records, recordIDErrMap, func(record *oddb.Record) (err error) {
+		var deltaRecord oddb.Record
+		originalRecord, ok := originalRecordMap[record.ID]
+		if !ok {
+			panic(fmt.Sprintf("original record not found; recordID = %s", record.ID))
+		}
+		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
+		err = db.Save(&deltaRecord)
+		return
+	})
+
+	// execute after save hooks
+	if payload.HookRegistry != nil {
+		records = executeRecordFunc(records, recordIDErrMap, func(record *oddb.Record) (err error) {
+			payload.HookRegistry.ExecuteHooks(hook.AfterSave, record)
+			return
+		})
+	}
+
+	currRecordIdx := 0
+	results := make([]responseItem, 0, len(incomingRecordItems))
+	for _, itemi := range incomingRecordItems {
 		var result responseItem
-		if item.Err() {
-			result = newResponseItemErr("", item.err)
-		} else {
-			// NOTE(limouren): everything in this else should properly live
-			// in an abstraction between handler and oddb
-			var (
-				origRecord oddb.Record
-				err        error
-			)
 
-			err = db.Get(record.ID, &origRecord)
-			if err == oddb.ErrRecordNotFound {
-				// no existing record, db.Save will create a new one
-				// does not treat as error here
-				err = nil
-			}
-
-			var fetchedRecord oddb.Record
-			if err == nil {
-				copyRecord(&fetchedRecord, &origRecord)
-				mergeRecord(&fetchedRecord, record)
-				if payload.HookRegistry != nil {
-					err = payload.HookRegistry.ExecuteHooks(hook.BeforeSave, &fetchedRecord)
-				}
-			} else {
-				fetchedRecord = origRecord
-			}
-
-			var deltaRecord oddb.Record
-			if err == nil {
-				deriveDeltaRecord(&deltaRecord, &origRecord, &fetchedRecord)
-				err = db.Save(&deltaRecord)
-			} else {
-				deltaRecord = fetchedRecord
-			}
-
-			if err == nil {
-				if payload.HookRegistry != nil {
-					payload.HookRegistry.ExecuteHooks(hook.AfterSave, &fetchedRecord)
-				}
-
-				result = newResponseItem(newSerializedRecord(&fetchedRecord, payload.AssetStore))
-			} else {
+		switch item := itemi.(type) {
+		case error:
+			result = newResponseItemErr("", oderr.NewRequestInvalidErr(item))
+		case oddb.RecordID:
+			if err, ok := recordIDErrMap[item]; ok {
 				log.WithFields(log.Fields{
-					"record": deltaRecord,
-					"err":    err,
+					"recordID": item,
+					"err":      err,
 				}).Debugln("failed to save record")
 
-				result = newResponseItemErr(
-					deltaRecord.ID.String(),
-					oderr.NewResourceSaveFailureErrWithStringID("record", deltaRecord.ID.String()),
-				)
+				result = newResponseItemErr(item.String(), oderr.NewResourceSaveFailureErrWithStringID("record", item.String()))
+			} else {
+				record := records[currRecordIdx]
+				currRecordIdx++
+				result = newResponseItem(newSerializedRecord(record, payload.AssetStore))
 			}
+		default:
+			panic(fmt.Sprintf("unknown type of incoming item: %T", itemi))
 		}
 
 		results = append(results, result)
 	}
 
 	response.Result = results
+}
+
+type recordFunc func(*oddb.Record) error
+
+func executeRecordFunc(recordsIn []*oddb.Record, errMap map[oddb.RecordID]error, rFunc recordFunc) (recordsOut []*oddb.Record) {
+	for _, record := range recordsIn {
+		if err := rFunc(record); err != nil {
+			errMap[record.ID] = err
+		} else {
+			recordsOut = append(recordsOut, record)
+		}
+	}
+
+	return
 }
 
 func copyRecord(dst, src *oddb.Record) {
@@ -550,36 +583,17 @@ func deriveDeltaRecord(dst, base, delta *oddb.Record) {
 	}
 }
 
-type recordSaveItem struct {
-	m      map[string]interface{}
-	record oddb.Record
-	err    oderr.Error
-}
-
-func (item *recordSaveItem) Err() bool {
-	return item.err != nil
-}
-
-func newRecordSaveItem(mapI interface{}) recordSaveItem {
-	return recordSaveItem{m: mapI.(map[string]interface{})}
-}
-
-func extendRecordSchema(db oddb.Database, items []recordSaveItem) error {
+func extendRecordSchema(db oddb.Database, records []*oddb.Record) error {
 	recordSchemaMergerMap := map[string]schemaMerger{}
-	for i := range items {
-		if items[i].Err() {
-			continue
-		}
-		recordType := items[i].record.ID.Type
+	for _, record := range records {
+		recordType := record.ID.Type
 		merger, ok := recordSchemaMergerMap[recordType]
 		if !ok {
 			merger = newSchemaMerger()
 			recordSchemaMergerMap[recordType] = merger
 		}
 
-		if !items[i].Err() {
-			merger.Extend(deriveRecordSchema(items[i].record.Data))
-		}
+		merger.Extend(deriveRecordSchema(record.Data))
 	}
 
 	for recordType, merger := range recordSchemaMergerMap {
