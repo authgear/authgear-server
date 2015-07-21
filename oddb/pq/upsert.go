@@ -49,17 +49,44 @@ import (
 // More on UPSERT: https://wiki.postgresql.org/wiki/UPSERT#PostgreSQL_.28today.29
 //
 // [1]: http://www.postgresql.org/docs/9.4/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE
-func upsertQuery(table string, pkData map[string]interface{}, data map[string]interface{}, updateIgnore []string) (sql string, args []interface{}) {
+type upsertQueryBuilder struct {
+	table          string
+	pkData         map[string]interface{}
+	data           map[string]interface{}
+	updateIngnores []string
+}
+
+// TODO(limouren): we can support a better fluent builder like this
+//
+//	upsert := upsertQuery(tableName).
+//		WithKey("composite0", "0").WithKey("composite1", "1").
+//		Set("string", "s").
+//		Set("int", 1).
+//		OnUpdate(func(upsert *upsertBuilder) {
+//			upsert.Unset("deleteme")
+//		})
+//
+func upsertQuery(table string, pkData, data map[string]interface{}) *upsertQueryBuilder {
+	return &upsertQueryBuilder{table, pkData, data, nil}
+}
+
+func (upsert *upsertQueryBuilder) IgnoreKeyOnUpdate(ignore string) *upsertQueryBuilder {
+	upsert.updateIngnores = append(upsert.updateIngnores, ignore)
+	return upsert
+}
+
+// err always returns nil
+func (upsert *upsertQueryBuilder) ToSql() (sql string, args []interface{}, err error) {
 	// extract columns values pair
-	pks, pkArgs := extractKeyAndValue(pkData)
-	columns, args := extractKeyAndValue(data)
-	ignoreIndex := findIgnoreIndex(columns, updateIgnore)
+	pks, pkArgs := extractKeyAndValue(upsert.pkData)
+	columns, args := extractKeyAndValue(upsert.data)
+	ignoreIndex := findIgnoreIndex(columns, upsert.updateIngnores)
 
 	b := bytes.Buffer{}
 	if len(columns) > 0 {
 		// Generate with UPDATE
 		b.Write([]byte(`WITH updated AS (UPDATE `))
-		b.WriteString(table)
+		b.WriteString(upsert.table)
 		b.Write([]byte(` SET(`))
 
 		for i, column := range columns {
@@ -105,7 +132,7 @@ func upsertQuery(table string, pkData map[string]interface{}, data map[string]in
 		}
 		b.Truncate(b.Len() - 1)
 		b.Write([]byte(` FROM `))
-		b.WriteString(table)
+		b.WriteString(upsert.table)
 		b.Write([]byte(` WHERE `))
 		for i, pk := range pks {
 			b.WriteByte('"')
@@ -120,7 +147,7 @@ func upsertQuery(table string, pkData map[string]interface{}, data map[string]in
 
 	// generate INSERT
 	b.Write([]byte(`INSERT INTO `))
-	b.WriteString(table)
+	b.WriteString(upsert.table)
 	b.WriteByte('(')
 
 	for _, column := range append(pks, columns...) {
@@ -141,7 +168,7 @@ func upsertQuery(table string, pkData map[string]interface{}, data map[string]in
 
 	b.Write([]byte(` WHERE NOT EXISTS (SELECT * FROM updated);`))
 
-	return b.String(), append(pkArgs, args...)
+	return b.String(), append(pkArgs, args...), nil
 }
 
 func extractKeyAndValue(data map[string]interface{}) (keys []string, values []interface{}) {
@@ -170,3 +197,5 @@ func findIgnoreIndex(columns []string, ignoreColumns []string) (ignoreIndex []bo
 
 	return
 }
+
+var _ sqlizer = &upsertQueryBuilder{}

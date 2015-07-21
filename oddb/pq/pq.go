@@ -324,9 +324,10 @@ func (c *conn) SaveAsset(asset *oddb.Asset) error {
 		"content_type": asset.ContentType,
 		"size":         asset.Size,
 	}
-	sql, args := upsertQuery(c.tableName("_asset"), pkData, data, []string{})
-	_, err := c.Db.Exec(sql, args...)
+	upsert := upsertQuery(c.tableName("_asset"), pkData, data)
+	_, err := execWith(c.Db, upsert)
 	if err != nil {
+		sql, args, _ := upsert.ToSql()
 		log.WithFields(log.Fields{
 			"sql":  sql,
 			"args": args,
@@ -343,9 +344,11 @@ func (c *conn) AddRelation(user string, name string, targetUser string) error {
 		"left_id":  user,
 		"right_id": targetUser,
 	}
-	sql, args := upsertQuery(c.tableName(tName), ralationPair, nil, []string{})
-	_, err := c.Db.Exec(sql, args...)
+
+	upsert := upsertQuery(c.tableName(tName), ralationPair, nil)
+	_, err := execWith(c.Db, upsert)
 	if err != nil {
+		sql, args, _ := upsert.ToSql()
 		log.WithFields(log.Fields{
 			"sql":  sql,
 			"args": args,
@@ -360,12 +363,12 @@ func (c *conn) AddRelation(user string, name string, targetUser string) error {
 }
 
 func (c *conn) RemoveRelation(user string, name string, targetUser string) error {
-	log.Debug("Remove Relation", user, name, targetUser)
 	tName := "_" + name
-	result, err := psql.Delete(c.tableName(tName)).
-		Where("left_id = ? AND right_id = ?", user, targetUser).
-		RunWith(c.Db.DB).
-		Exec()
+
+	builder := psql.Delete(c.tableName(tName)).
+		Where("left_id = ? AND right_id = ?", user, targetUser)
+	result, err := execWith(c.Db, builder)
+
 	if err != nil {
 		return err
 	}
@@ -383,11 +386,10 @@ func (c *conn) RemoveRelation(user string, name string, targetUser string) error
 }
 
 func (c *conn) GetDevice(id string, device *oddb.Device) error {
-	err := psql.Select("type", "token", "user_id").
+	builder := psql.Select("type", "token", "user_id").
 		From(c.tableName("_device")).
-		Where("id = ?", id).
-		RunWith(c.Db.DB).
-		QueryRow().
+		Where("id = ?", id)
+	err := queryRowWith(c.Db, builder).
 		Scan(&device.Type, &device.Token, &device.UserInfoID)
 
 	if err == sql.ErrNoRows {
@@ -413,17 +415,25 @@ func (c *conn) SaveDevice(device *oddb.Device) error {
 		"user_id": device.UserInfoID,
 	}
 
-	sql, args := upsertQuery(c.tableName("_device"), pkData, data, []string{})
-	_, err := c.Db.Exec(sql, args...)
+	upsert := upsertQuery(c.tableName("_device"), pkData, data)
+	_, err := execWith(c.Db, upsert)
+	if err != nil {
+		sql, args, _ := upsert.ToSql()
+		log.WithFields(log.Fields{
+			"sql":    sql,
+			"args":   args,
+			"err":    err,
+			"device": device,
+		}).Errorln("Failed to save device")
+	}
 
 	return err
 }
 
 func (c *conn) DeleteDevice(id string) error {
-	result, err := psql.Delete(c.tableName("_device")).
-		Where("id = ?", id).
-		RunWith(c.Db.DB).
-		Exec()
+	builder := psql.Delete(c.tableName("_device")).
+		Where("id = ?", id)
+	result, err := execWith(c.Db, builder)
 
 	if err != nil {
 		return err
@@ -467,10 +477,17 @@ func (c *conn) tableName(table string) string {
 	return c.schemaName() + "." + table
 }
 
+type queryxRunner interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
+	QueryRowx(query string, args ...interface{}) *sqlx.Row
+}
+
 type database struct {
-	Db     *sqlx.DB
+	Db     queryxRunner
 	c      *conn
 	userID string
+	txDone bool
 }
 
 func (db *database) Conn() oddb.Conn { return db.c }
@@ -648,6 +665,32 @@ CREATE TABLE IF NOT EXISTS %[1]v._follow (
 	}
 
 	return nil
+}
+
+type sqlizer sq.Sqlizer
+
+func execWith(db queryxRunner, sqlizeri sqlizer) (sql.Result, error) {
+	sql, args, err := sqlizeri.ToSql()
+	if err != nil {
+		panic(err)
+	}
+	return db.Exec(sql, args...)
+}
+
+func queryWith(db queryxRunner, sqlizeri sqlizer) (*sqlx.Rows, error) {
+	sql, args, err := sqlizeri.ToSql()
+	if err != nil {
+		panic(err)
+	}
+	return db.Queryx(sql, args...)
+}
+
+func queryRowWith(db queryxRunner, sqlizeri sqlizer) *sqlx.Row {
+	sql, args, err := sqlizeri.ToSql()
+	if err != nil {
+		panic(err)
+	}
+	return db.QueryRowx(sql, args...)
 }
 
 func init() {

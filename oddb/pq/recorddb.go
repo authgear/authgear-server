@@ -147,13 +147,16 @@ func (db *database) Save(record *oddb.Record) error {
 		return fmt.Errorf("db.save %s: got empty OwnerID", record.ID.Key)
 	}
 
-	sql, args := upsertQuery(db.tableName(record.ID.Type), map[string]interface{}{
+	pkData := map[string]interface{}{
 		"_id":          record.ID.Key,
 		"_database_id": db.userID,
-	}, convert(record), []string{"_owner_id"})
+	}
+	upsert := upsertQuery(db.tableName(record.ID.Type), pkData, convert(record)).
+		IgnoreKeyOnUpdate("_owner_id")
 
-	_, err := db.Db.Exec(sql, args...)
+	_, err := execWith(db.Db, upsert)
 	if err != nil {
+		sql, args, _ := upsert.ToSql()
 		log.WithFields(log.Fields{
 			"sql":  sql,
 			"args": args,
@@ -189,33 +192,26 @@ func convert(r *oddb.Record) map[string]interface{} {
 }
 
 func (db *database) Delete(id oddb.RecordID) error {
-	sql, args, err := psql.Delete(db.tableName(id.Type)).
-		Where("_id = ? AND _database_id = ?", id.Key, db.userID).
-		ToSql()
-	if err != nil {
-		panic(err)
-	}
+	builder := psql.Delete(db.tableName(id.Type)).
+		Where("_id = ? AND _database_id = ?", id.Key, db.userID)
 
-	log.WithFields(log.Fields{
-		"sql":  sql,
-		"args": args,
-	}).Debug("Executing SQL")
-
-	result, err := db.Db.Exec(sql, args...)
+	result, err := execWith(db.Db, builder)
 	if isUndefinedTable(err) {
 		return oddb.ErrRecordNotFound
 	} else if err != nil {
+		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
 			"id":   id,
 			"sql":  sql,
 			"args": args,
 			"err":  err,
-		}).Errorf("Failed to execute delete record statement")
+		}).Errorln("Failed to execute delete record statement")
 		return fmt.Errorf("delete %s: failed to delete record", id)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
 			"id":   id,
 			"sql":  sql,
@@ -228,6 +224,7 @@ func (db *database) Delete(id oddb.RecordID) error {
 	if rowsAffected == 0 {
 		return oddb.ErrRecordNotFound
 	} else if rowsAffected > 1 {
+		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
 			"id":           id,
 			"sql":          sql,
@@ -383,17 +380,7 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 				`_owner_id = ?)`, query.ReadableBy)
 	}
 
-	sql, args, err := q.ToSql()
-	if err != nil {
-		panic(err)
-	}
-
-	log.WithFields(log.Fields{
-		"sql":  sql,
-		"args": args,
-	}).Debugln("Querying record")
-
-	rows, err := db.Db.Queryx(sql, args...)
+	rows, err := queryWith(db.Db, q)
 	return newRows(query.Type, typemap, rows, err)
 }
 
@@ -565,20 +552,18 @@ func (db *database) selectQuery(recordType string, typemap oddb.RecordSchema) sq
 // AND tc.table_schema = 'app__'
 // AND tc.table_name = 'note';
 func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, error) {
-	sql, args, err := psql.Select("column_name", "data_type").
+	builder := psql.Select("column_name", "data_type").
 		From("information_schema.columns").
-		Where("table_schema = ? AND table_name = ?", db.schemaName(), recordType).ToSql()
-	if err != nil {
-		panic(err)
-	}
+		Where("table_schema = ? AND table_name = ?", db.schemaName(), recordType)
 
-	log.WithFields(log.Fields{
-		"sql":  sql,
-		"args": args,
-	}).Debugln("Querying columns schema")
-
-	rows, err := db.Db.Query(sql, args...)
+	rows, err := queryWith(db.Db, builder)
 	if err != nil {
+		sql, args, _ := builder.ToSql()
+		log.WithFields(log.Fields{
+			"recordType": recordType,
+			"sql":        sql,
+			"args":       args,
+		}).Errorln("Failed to query column's information schema")
 		return nil, err
 	}
 
@@ -614,20 +599,22 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 	}
 
 	// FOREIGN KEY, assumeing we can only reference _id i.e. "ccu.column_name" = _id
-	sql, args, err = psql.Select("kcu.column_name", "ccu.table_name").
+	builder = psql.Select("kcu.column_name", "ccu.table_name").
 		From("information_schema.table_constraints AS tc").
 		Join("information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name").
 		Join("information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name").
-		Where("constraint_type = 'FOREIGN KEY' AND tc.table_schema = ? AND tc.table_name = ?", db.schemaName(), recordType).ToSql()
+		Where("constraint_type = 'FOREIGN KEY' AND tc.table_schema = ? AND tc.table_name = ?", db.schemaName(), recordType)
+
+	refs, err := queryWith(db.Db, builder)
 	if err != nil {
-		panic(err)
-	}
-	log.WithFields(log.Fields{
-		"sql":  sql,
-		"args": args,
-	}).Debugln("Querying columns referencing schema")
-	refs, err := db.Db.Query(sql, args...)
-	if err != nil {
+		sql, args, _ := builder.ToSql()
+		log.WithFields(log.Fields{
+			"recordType": recordType,
+			"sql":        sql,
+			"args":       args,
+			"err":        err,
+		}).Errorln("Failed to query foreign key information schema")
+
 		return nil, err
 	}
 

@@ -74,15 +74,12 @@ func (query *queryValue) Scan(value interface{}) error {
 
 func (db *database) GetSubscription(key string, deviceID string, subscription *oddb.Subscription) error {
 	nullinfo := nullNotificationInfo{}
-	err := psql.Select("type", "notification_info", "query").
+
+	builder := psql.Select("type", "notification_info", "query").
 		From(db.tableName("_subscription")).
-		Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key).
-		RunWith(db.Db.DB).
-		QueryRow().
-		Scan(
-		&subscription.Type,
-		&nullinfo,
-		(*queryValue)(&subscription.Query))
+		Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key)
+	err := queryRowWith(db.Db, builder).
+		Scan(&subscription.Type, &nullinfo, (*queryValue)(&subscription.Query))
 
 	if err == sql.ErrNoRows {
 		return oddb.ErrSubscriptionNotFound
@@ -132,21 +129,30 @@ func (db *database) SaveSubscription(subscription *oddb.Subscription) error {
 		"query":             queryValue(subscription.Query),
 	}
 
-	sql, args := upsertQuery(db.tableName("_subscription"), pkData, data, []string{})
-	_, err := db.Db.Exec(sql, args...)
+	builder := upsertQuery(db.tableName("_subscription"), pkData, data)
 
+	_, err := execWith(db.Db, builder)
 	if isDeviceNotFound(err) {
 		return oddb.ErrDeviceNotFound
+	} else if err != nil {
+		sql, args, _ := builder.ToSql()
+		log.WithFields(log.Fields{
+			"sql":          sql,
+			"args":         args,
+			"err":          err,
+			"subscription": subscription,
+		}).Errorln("Failed to save subscription")
 	}
 
 	return err
 }
 
 func (db *database) DeleteSubscription(key string, deviceID string) error {
-	result, err := psql.Delete(db.tableName("_subscription")).
-		Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key).
-		RunWith(db.Db.DB).
-		Exec()
+	result, err := execWith(
+		db.Db,
+		psql.Delete(db.tableName("_subscription")).
+			Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key),
+	)
 
 	if err != nil {
 		return err
@@ -166,11 +172,12 @@ func (db *database) DeleteSubscription(key string, deviceID string) error {
 }
 
 func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions []oddb.Subscription) {
-	rows, err := psql.Select("id", "type", "notification_info", "query").
-		From(db.tableName("_subscription")).
-		Where(`user_id = ? AND device_id = ?`, db.userID, deviceID).
-		RunWith(db.Db.DB).
-		Query()
+	rows, err := queryWith(
+		db.Db,
+		psql.Select("id", "type", "notification_info", "query").
+			From(db.tableName("_subscription")).
+			Where(`user_id = ? AND device_id = ?`, db.userID, deviceID),
+	)
 
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -222,17 +229,13 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 }
 
 func (db *database) GetMatchingSubscriptions(record *oddb.Record) (subscriptions []oddb.Subscription) {
-	sql, args, err := psql.Select("id", "device_id", "type", "notification_info", "query").
+	builder := psql.Select("id", "device_id", "type", "notification_info", "query").
 		From(db.tableName("_subscription")).
-		Where(`user_id = ? AND query @> ?::jsonb`, db.userID, fmt.Sprintf(`{"record_type":"%s"}`, record.ID.Type)).
-		ToSql()
+		Where(`user_id = ? AND query @> ?::jsonb`, db.userID, fmt.Sprintf(`{"record_type":"%s"}`, record.ID.Type))
 
+	rows, err := queryWith(db.Db, builder)
 	if err != nil {
-		panic(err)
-	}
-
-	rows, err := db.Db.Query(sql, args...)
-	if err != nil {
+		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
 			"sql":    sql,
 			"args":   args,

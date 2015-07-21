@@ -23,11 +23,12 @@ func (rs emptyRowsIter) Next(record *Record) error {
 	return io.EOF
 }
 
+var ErrDatabaseTxDidBegin = errors.New("oddb: a transaction has already begun")
+var ErrDatabaseTxDidNotBegin = errors.New("oddb: a transaction has not begun")
+var ErrDatabaseTxDone = errors.New("oddb: Database's transaction has already commited or rolled back")
+
 // Database represents a collection of record (either public or private)
 // in a container.
-//
-// TODO: We might need to define standard errors for common failures
-// of database operations like ErrRecordNotFound
 type Database interface {
 
 	// Conn returns the parent Conn of the Database
@@ -76,6 +77,27 @@ type Database interface {
 	DeleteSubscription(key string, deviceID string) error
 	GetSubscriptionsByDeviceID(deviceID string) []Subscription
 	GetMatchingSubscriptions(record *Record) []Subscription
+}
+
+// TxDatabase defines the methods for a Database that supports
+// transaction.
+//
+// A Begin'ed transaction must end with a call to Commit or Rollback. After
+// that, all opertions on Database will return ErrDatabaseTxDone.
+//
+// NOTE(limouren): The interface is not Database specific, but currently only
+// Database supports it.
+type TxDatabase interface {
+	// Begin opens a transaction for the current Database.
+	//
+	// Calling Begin on an already Begin'ed Database returns ErrDatabaseTxDidBegin.
+	Begin() error
+
+	// Commit saves all the changes made to Database after Begin atomically.
+	Commit() error
+
+	// Rollbacks discards all the changes made to Database after Begin.
+	Rollback() error
 }
 
 // Rows implements a scanner-like interface for easy iteration on a
