@@ -9,7 +9,7 @@ This file is collection of commands regarding deployment
 
 env.user = 'ourd'
 env.roledefs.update({
-    'edge': ['ourd.pandawork.com'], #54.159.147.211
+    'pandawork': ['ourd.pandawork.com'], #54.159.147.211
 })
 
 print(env.host)
