@@ -848,3 +848,185 @@ func TestHookExecution(t *testing.T) {
 		})
 	})
 }
+
+// mockTxDB implements and records TxDatabase's methods and delegates other
+// calls to underlying Database
+type mockTxDatabase struct {
+	DidBegin, DidCommit, DidRollback bool
+	oddb.Database
+}
+
+func newMockTxDatabase(backingDB oddb.Database) *mockTxDatabase {
+	return &mockTxDatabase{Database: backingDB}
+}
+
+func (db *mockTxDatabase) Begin() error {
+	db.DidBegin = true
+	return nil
+}
+
+func (db *mockTxDatabase) Commit() error {
+	db.DidCommit = true
+	return nil
+}
+
+func (db *mockTxDatabase) Rollback() error {
+	db.DidRollback = true
+	return nil
+}
+
+var _ oddb.TxDatabase = &mockTxDatabase{}
+
+type filterFuncDef func(op string, recordID oddb.RecordID, record *oddb.Record) error
+
+// selectiveDatabase filter Get, Save and Delete by executing filterFunc
+// if filterFunc return nil, the operation is delegated to underlying Database
+// otherwise, the error is returned directly
+type selectiveDatabase struct {
+	filterFunc filterFuncDef
+	oddb.Database
+}
+
+func newSelectiveDatabase(backingDB oddb.Database) *selectiveDatabase {
+	return &selectiveDatabase{
+		Database: backingDB,
+	}
+}
+
+func (db *selectiveDatabase) SetFilter(filterFunc filterFuncDef) {
+	db.filterFunc = filterFunc
+}
+
+func (db *selectiveDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
+	if err := db.filterFunc("GET", id, nil); err != nil {
+		return err
+	}
+
+	return db.Database.Get(id, record)
+}
+
+func (db *selectiveDatabase) Save(record *oddb.Record) error {
+	if err := db.filterFunc("SAVE", record.ID, record); err != nil {
+		return err
+	}
+
+	return db.Database.Save(record)
+}
+
+func (db *selectiveDatabase) Delete(id oddb.RecordID) error {
+	if err := db.filterFunc("DELETE", id, nil); err != nil {
+		return err
+	}
+
+	return db.Database.Delete(id)
+}
+
+func (db *selectiveDatabase) Begin() error {
+	return db.Database.(oddb.TxDatabase).Begin()
+}
+
+func (db *selectiveDatabase) Commit() error {
+	return db.Database.(oddb.TxDatabase).Commit()
+}
+
+func (db *selectiveDatabase) Rollback() error {
+	return db.Database.(oddb.TxDatabase).Rollback()
+}
+
+func TestAtomicSave(t *testing.T) {
+	Convey("Atomic Operation", t, func() {
+		backingDB := oddbtest.NewMapDB()
+		txDB := newMockTxDatabase(backingDB)
+		db := newSelectiveDatabase(txDB)
+
+		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+			payload.Database = db
+		})
+
+		Convey("rolls back RecordSaveHandler on error", func() {
+			db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
+				if op == "SAVE" && recordID.Key == "1" {
+					return errors.New("Original Sin")
+				}
+				return nil
+			})
+
+			resp := r.POST(`{
+				"records": [{
+					"_id": "note/0",
+					"_type": "record"
+				},
+				{
+					"_id": "note/1",
+					"_type": "record"
+				},
+				{
+					"_id": "note/2",
+					"_type": "record"
+				}],
+				"atomic": true
+			}`)
+
+			So(resp.Body.String(), ShouldEqualJSON, `{
+				"error": {
+					"type": "DatabaseError",
+					"code": 666,
+					"message": "Atomic Operation rolled back due to one or more errors",
+					"info": {
+						"note/1": "Original Sin"
+					}
+				}
+			}`)
+
+			So(txDB.DidBegin, ShouldBeTrue)
+			So(txDB.DidCommit, ShouldBeFalse)
+			So(txDB.DidRollback, ShouldBeTrue)
+		})
+
+		Convey("commit changes when there are no errors", func() {
+			db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
+				return nil
+			})
+
+			resp := r.POST(`{
+				"records": [{
+					"_id": "note/0",
+					"_type": "record"
+				},
+				{
+					"_id": "note/1",
+					"_type": "record"
+				}],
+				"atomic": true
+			}`)
+
+			So(resp.Body.String(), ShouldEqualJSON, `{
+				"result": [{
+						"_id": "note/0",
+						"_type": "record",
+						"_access": null
+					}, {
+						"_id": "note/1",
+						"_type": "record",
+						"_access": null
+					}]
+			}`)
+
+			var record oddb.Record
+			So(backingDB.Get(oddb.NewRecordID("note", "0"), &record), ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
+				ID:   oddb.NewRecordID("note", "0"),
+				Data: map[string]interface{}{},
+			})
+			So(backingDB.Get(oddb.NewRecordID("note", "1"), &record), ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
+				ID:   oddb.NewRecordID("note", "1"),
+				Data: map[string]interface{}{},
+			})
+
+			So(txDB.DidBegin, ShouldBeTrue)
+			So(txDB.DidCommit, ShouldBeTrue)
+			So(txDB.DidRollback, ShouldBeFalse)
+		})
+	})
+}

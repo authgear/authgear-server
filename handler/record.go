@@ -401,10 +401,14 @@ curl -X POST -H "Content-Type: application/json" \
   ]
 }
 EOF
-
 */
 func RecordSaveHandler(payload *router.Payload, response *router.Response) {
-	db := payload.Database
+	var (
+		records []*oddb.Record
+		atomic  bool
+	)
+	atomic, _ = payload.Data["atomic"].(bool)
+
 	recordMaps, ok := payload.Data["records"].([]interface{})
 	if !ok {
 		response.Err = oderr.NewRequestInvalidErr(errors.New("expected list of record"))
@@ -413,9 +417,6 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 
 	// slice to keep the order of incoming record id / error during parsing
 	incomingRecordItems := make([]interface{}, 0, len(recordMaps))
-
-	// valid records that throughout the handler
-	records := []*oddb.Record{}
 
 	for _, recordMap := range recordMaps {
 		var record oddb.Record
@@ -427,13 +428,119 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		}
 	}
 
-	// keep the error produced for a recordID throughout the handler
-	recordIDErrMap := map[oddb.RecordID]error{}
-	originalRecordMap := map[oddb.RecordID]*oddb.Record{}
+	req := recordSaveRequest{
+		Db:           payload.Database,
+		HookRegistry: payload.HookRegistry,
+		UserInfoID:   payload.UserInfoID,
+		Records:      records,
+		Atomic:       atomic,
+	}
+	resp := recordSaveResponse{
+		ErrMap: map[oddb.RecordID]error{},
+	}
+
+	var saveFunc func(*recordSaveRequest, *recordSaveResponse) error
+	if atomic {
+		saveFunc = func(req *recordSaveRequest, resp *recordSaveResponse) (err error) {
+			txDB, ok := req.Db.(oddb.TxDatabase)
+			if !ok {
+				err = oderr.ErrDatabaseTxNotSupported
+				return
+			}
+
+			err = withTransaction(txDB, func() error {
+				return recordSaveHandler(req, resp)
+			})
+
+			if len(resp.ErrMap) > 0 {
+				err = oderr.NewAtomicOperationFailedErr(resp.ErrMap)
+			} else if err != nil {
+				err = oderr.NewAtomicOperationFailedErrWithCause(err)
+			}
+			return
+		}
+	} else {
+		saveFunc = recordSaveHandler
+	}
+
+	if err := saveFunc(&req, &resp); err != nil {
+		log.Debugf("Failed to save records: %v", err)
+
+		response.Err = err
+		return
+	}
+
+	currRecordIdx := 0
+	results := make([]responseItem, 0, len(incomingRecordItems))
+	for _, itemi := range incomingRecordItems {
+		var result responseItem
+
+		switch item := itemi.(type) {
+		case error:
+			result = newResponseItemErr("", oderr.NewRequestInvalidErr(item))
+		case oddb.RecordID:
+			if err, ok := resp.ErrMap[item]; ok {
+				log.WithFields(log.Fields{
+					"recordID": item,
+					"err":      err,
+				}).Debugln("failed to save record")
+
+				result = newResponseItemErr(item.String(), oderr.NewResourceSaveFailureErrWithStringID("record", item.String()))
+			} else {
+				record := resp.SavedRecords[currRecordIdx]
+				currRecordIdx++
+				result = newResponseItem(newSerializedRecord(record, payload.AssetStore))
+			}
+		default:
+			panic(fmt.Sprintf("unknown type of incoming item: %T", itemi))
+		}
+
+		results = append(results, result)
+	}
+
+	response.Result = results
+}
+
+func withTransaction(txDB oddb.TxDatabase, do func() error) (err error) {
+	err = txDB.Begin()
+	if err != nil {
+		return
+	}
+
+	err = do()
+	if err != nil {
+		if rbErr := txDB.Rollback(); rbErr != nil {
+			log.Errorf("Failed to rollback: %v", rbErr)
+		}
+
+	} else {
+		err = txDB.Commit()
+	}
+
+	return
+}
+
+type recordSaveRequest struct {
+	Db           oddb.Database
+	HookRegistry *hook.Registry
+	UserInfoID   string
+	Records      []*oddb.Record
+	Atomic       bool
+}
+
+type recordSaveResponse struct {
+	SavedRecords []*oddb.Record
+	ErrMap       map[oddb.RecordID]error
+}
+
+func recordSaveHandler(req *recordSaveRequest, resp *recordSaveResponse) error {
+	db := req.Db
+	records := req.Records
 
 	// fetch records
-	records = executeRecordFunc(records, recordIDErrMap, func(record *oddb.Record) (err error) {
-		record.OwnerID = payload.UserInfoID
+	originalRecordMap := map[oddb.RecordID]*oddb.Record{}
+	records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+		record.OwnerID = req.UserInfoID
 		var dbRecord oddb.Record
 		err = db.Get(record.ID, &dbRecord)
 		if err == oddb.ErrRecordNotFound {
@@ -451,22 +558,20 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	})
 
 	// execute before save hooks
-	if payload.HookRegistry != nil {
-		records = executeRecordFunc(records, recordIDErrMap, func(record *oddb.Record) (err error) {
-			err = payload.HookRegistry.ExecuteHooks(hook.BeforeSave, record)
+	if req.HookRegistry != nil {
+		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+			err = req.HookRegistry.ExecuteHooks(hook.BeforeSave, record)
 			return
 		})
 	}
 
 	// derive and extend record schema
 	if err := extendRecordSchema(db, records); err != nil {
-		log.Debugln(err)
-		response.Err = oderr.ErrDatabaseSchemaMigrationFailed
-		return
+		return oderr.ErrDatabaseSchemaMigrationFailed
 	}
 
 	// save records
-	records = executeRecordFunc(records, recordIDErrMap, func(record *oddb.Record) (err error) {
+	records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
 		var deltaRecord oddb.Record
 		originalRecord, ok := originalRecordMap[record.ID]
 		if !ok {
@@ -478,43 +583,20 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		return
 	})
 
+	if req.Atomic && len(resp.ErrMap) > 0 {
+		return errors.New("atomic operation failed")
+	}
+
 	// execute after save hooks
-	if payload.HookRegistry != nil {
-		records = executeRecordFunc(records, recordIDErrMap, func(record *oddb.Record) (err error) {
-			payload.HookRegistry.ExecuteHooks(hook.AfterSave, record)
+	if req.HookRegistry != nil {
+		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+			req.HookRegistry.ExecuteHooks(hook.AfterSave, record)
 			return
 		})
 	}
 
-	currRecordIdx := 0
-	results := make([]responseItem, 0, len(incomingRecordItems))
-	for _, itemi := range incomingRecordItems {
-		var result responseItem
-
-		switch item := itemi.(type) {
-		case error:
-			result = newResponseItemErr("", oderr.NewRequestInvalidErr(item))
-		case oddb.RecordID:
-			if err, ok := recordIDErrMap[item]; ok {
-				log.WithFields(log.Fields{
-					"recordID": item,
-					"err":      err,
-				}).Debugln("failed to save record")
-
-				result = newResponseItemErr(item.String(), oderr.NewResourceSaveFailureErrWithStringID("record", item.String()))
-			} else {
-				record := records[currRecordIdx]
-				currRecordIdx++
-				result = newResponseItem(newSerializedRecord(record, payload.AssetStore))
-			}
-		default:
-			panic(fmt.Sprintf("unknown type of incoming item: %T", itemi))
-		}
-
-		results = append(results, result)
-	}
-
-	response.Result = results
+	resp.SavedRecords = records
+	return nil
 }
 
 type recordFunc func(*oddb.Record) error
