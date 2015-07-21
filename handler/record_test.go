@@ -933,100 +933,183 @@ func (db *selectiveDatabase) Rollback() error {
 	return db.Database.(oddb.TxDatabase).Rollback()
 }
 
-func TestAtomicSave(t *testing.T) {
+func TestAtomicOperation(t *testing.T) {
 	Convey("Atomic Operation", t, func() {
 		backingDB := oddbtest.NewMapDB()
 		txDB := newMockTxDatabase(backingDB)
 		db := newSelectiveDatabase(txDB)
 
-		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
-			payload.Database = db
-		})
-
-		Convey("rolls back RecordSaveHandler on error", func() {
-			db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
-				if op == "SAVE" && recordID.Key == "1" {
-					return errors.New("Original Sin")
-				}
-				return nil
+		Convey("for RecordSaveHandler", func() {
+			r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+				payload.Database = db
 			})
 
-			resp := r.POST(`{
-				"records": [{
-					"_id": "note/0",
-					"_type": "record"
-				},
-				{
-					"_id": "note/1",
-					"_type": "record"
-				},
-				{
-					"_id": "note/2",
-					"_type": "record"
-				}],
-				"atomic": true
-			}`)
-
-			So(resp.Body.String(), ShouldEqualJSON, `{
-				"error": {
-					"type": "DatabaseError",
-					"code": 666,
-					"message": "Atomic Operation rolled back due to one or more errors",
-					"info": {
-						"note/1": "Original Sin"
+			Convey("rolls back saved records on error", func() {
+				db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
+					if op == "SAVE" && recordID.Key == "1" {
+						return errors.New("Original Sin")
 					}
-				}
-			}`)
+					return nil
+				})
 
-			So(txDB.DidBegin, ShouldBeTrue)
-			So(txDB.DidCommit, ShouldBeFalse)
-			So(txDB.DidRollback, ShouldBeTrue)
+				resp := r.POST(`{
+					"records": [{
+						"_id": "note/0",
+						"_type": "record"
+					},
+					{
+						"_id": "note/1",
+						"_type": "record"
+					},
+					{
+						"_id": "note/2",
+						"_type": "record"
+					}],
+					"atomic": true
+				}`)
+
+				So(resp.Body.String(), ShouldEqualJSON, `{
+					"error": {
+						"type": "DatabaseError",
+						"code": 666,
+						"message": "Atomic Operation rolled back due to one or more errors",
+						"info": {
+							"note/1": "Original Sin"
+						}
+					}
+				}`)
+
+				So(txDB.DidBegin, ShouldBeTrue)
+				So(txDB.DidCommit, ShouldBeFalse)
+				So(txDB.DidRollback, ShouldBeTrue)
+			})
+
+			Convey("commit saved records when there are no errors", func() {
+				db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
+					return nil
+				})
+
+				resp := r.POST(`{
+					"records": [{
+						"_id": "note/0",
+						"_type": "record"
+					},
+					{
+						"_id": "note/1",
+						"_type": "record"
+					}],
+					"atomic": true
+				}`)
+
+				So(resp.Body.String(), ShouldEqualJSON, `{
+					"result": [{
+							"_id": "note/0",
+							"_type": "record",
+							"_access": null
+						}, {
+							"_id": "note/1",
+							"_type": "record",
+							"_access": null
+						}]
+				}`)
+
+				var record oddb.Record
+				So(backingDB.Get(oddb.NewRecordID("note", "0"), &record), ShouldBeNil)
+				So(record, ShouldResemble, oddb.Record{
+					ID:   oddb.NewRecordID("note", "0"),
+					Data: map[string]interface{}{},
+				})
+				So(backingDB.Get(oddb.NewRecordID("note", "1"), &record), ShouldBeNil)
+				So(record, ShouldResemble, oddb.Record{
+					ID:   oddb.NewRecordID("note", "1"),
+					Data: map[string]interface{}{},
+				})
+
+				So(txDB.DidBegin, ShouldBeTrue)
+				So(txDB.DidCommit, ShouldBeTrue)
+				So(txDB.DidRollback, ShouldBeFalse)
+			})
 		})
 
-		Convey("commit changes when there are no errors", func() {
-			db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
-				return nil
+		Convey("for RecordDeleteHandler", func() {
+			So(backingDB.Save(&oddb.Record{
+				ID: oddb.NewRecordID("note", "0"),
+			}), ShouldBeNil)
+			So(backingDB.Save(&oddb.Record{
+				ID: oddb.NewRecordID("note", "1"),
+			}), ShouldBeNil)
+			So(backingDB.Save(&oddb.Record{
+				ID: oddb.NewRecordID("note", "2"),
+			}), ShouldBeNil)
+
+			r := handlertest.NewSingleRouteRouter(RecordDeleteHandler, func(payload *router.Payload) {
+				payload.Database = db
 			})
 
-			resp := r.POST(`{
-				"records": [{
-					"_id": "note/0",
-					"_type": "record"
-				},
-				{
-					"_id": "note/1",
-					"_type": "record"
-				}],
-				"atomic": true
-			}`)
+			Convey("rolls back deleted records on error", func() {
+				db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
+					if op == "DELETE" && recordID.Key == "1" {
+						return errors.New("Original Sin")
+					}
+					return nil
+				})
 
-			So(resp.Body.String(), ShouldEqualJSON, `{
-				"result": [{
-						"_id": "note/0",
-						"_type": "record",
-						"_access": null
-					}, {
-						"_id": "note/1",
-						"_type": "record",
-						"_access": null
-					}]
-			}`)
+				resp := r.POST(`{
+					"ids": [
+						"note/0",
+						"note/1",
+						"note/2"
+					],
+					"atomic": true
+				}`)
 
-			var record oddb.Record
-			So(backingDB.Get(oddb.NewRecordID("note", "0"), &record), ShouldBeNil)
-			So(record, ShouldResemble, oddb.Record{
-				ID:   oddb.NewRecordID("note", "0"),
-				Data: map[string]interface{}{},
-			})
-			So(backingDB.Get(oddb.NewRecordID("note", "1"), &record), ShouldBeNil)
-			So(record, ShouldResemble, oddb.Record{
-				ID:   oddb.NewRecordID("note", "1"),
-				Data: map[string]interface{}{},
+				So(resp.Body.String(), ShouldEqualJSON, `{
+					"error": {
+						"type": "DatabaseError",
+						"code": 666,
+						"message": "Atomic Operation rolled back due to one or more errors",
+						"info": {
+							"note/1": "Original Sin"
+						}
+					}
+				}`)
+
+				So(txDB.DidBegin, ShouldBeTrue)
+				So(txDB.DidCommit, ShouldBeFalse)
+				So(txDB.DidRollback, ShouldBeTrue)
 			})
 
-			So(txDB.DidBegin, ShouldBeTrue)
-			So(txDB.DidCommit, ShouldBeTrue)
-			So(txDB.DidRollback, ShouldBeFalse)
+			Convey("commits deleted records", func() {
+				db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
+					return nil
+				})
+
+				resp := r.POST(`{
+					"ids": [
+						"note/0",
+						"note/1",
+						"note/2"
+					],
+					"atomic": true
+				}`)
+
+				So(resp.Body.String(), ShouldEqualJSON, `{
+					"result": [
+						{"_type": "record", "_id": "note/0"},
+						{"_type": "record", "_id": "note/1"},
+						{"_type": "record", "_id": "note/2"}
+					]
+				}`)
+
+				var record oddb.Record
+				So(backingDB.Get(oddb.NewRecordID("record", "0"), &record), ShouldEqual, oddb.ErrRecordNotFound)
+				So(backingDB.Get(oddb.NewRecordID("record", "1"), &record), ShouldEqual, oddb.ErrRecordNotFound)
+				So(backingDB.Get(oddb.NewRecordID("record", "2"), &record), ShouldEqual, oddb.ErrRecordNotFound)
+
+				So(txDB.DidBegin, ShouldBeTrue)
+				So(txDB.DidCommit, ShouldBeTrue)
+				So(txDB.DidRollback, ShouldBeFalse)
+			})
 		})
 	})
 }

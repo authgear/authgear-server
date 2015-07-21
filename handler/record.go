@@ -428,37 +428,20 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		}
 	}
 
-	req := recordSaveRequest{
-		Db:           payload.Database,
-		HookRegistry: payload.HookRegistry,
-		UserInfoID:   payload.UserInfoID,
-		Records:      records,
-		Atomic:       atomic,
+	req := recordModifyRequest{
+		Db:            payload.Database,
+		HookRegistry:  payload.HookRegistry,
+		UserInfoID:    payload.UserInfoID,
+		RecordsToSave: records,
+		Atomic:        atomic,
 	}
-	resp := recordSaveResponse{
+	resp := recordModifyResponse{
 		ErrMap: map[oddb.RecordID]error{},
 	}
 
-	var saveFunc func(*recordSaveRequest, *recordSaveResponse) error
+	var saveFunc recordModifyFunc
 	if atomic {
-		saveFunc = func(req *recordSaveRequest, resp *recordSaveResponse) (err error) {
-			txDB, ok := req.Db.(oddb.TxDatabase)
-			if !ok {
-				err = oderr.ErrDatabaseTxNotSupported
-				return
-			}
-
-			err = withTransaction(txDB, func() error {
-				return recordSaveHandler(req, resp)
-			})
-
-			if len(resp.ErrMap) > 0 {
-				err = oderr.NewAtomicOperationFailedErr(resp.ErrMap)
-			} else if err != nil {
-				err = oderr.NewAtomicOperationFailedErrWithCause(err)
-			}
-			return
-		}
+		saveFunc = atomicModifyFunc(&req, &resp, recordSaveHandler)
 	} else {
 		saveFunc = recordSaveHandler
 	}
@@ -501,6 +484,29 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	response.Result = results
 }
 
+type recordModifyFunc func(*recordModifyRequest, *recordModifyResponse) error
+
+func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFunc recordModifyFunc) recordModifyFunc {
+	return func(req *recordModifyRequest, resp *recordModifyResponse) (err error) {
+		txDB, ok := req.Db.(oddb.TxDatabase)
+		if !ok {
+			err = oderr.ErrDatabaseTxNotSupported
+			return
+		}
+
+		err = withTransaction(txDB, func() error {
+			return mFunc(req, resp)
+		})
+
+		if len(resp.ErrMap) > 0 {
+			err = oderr.NewAtomicOperationFailedErr(resp.ErrMap)
+		} else if err != nil {
+			err = oderr.NewAtomicOperationFailedErrWithCause(err)
+		}
+		return
+	}
+}
+
 func withTransaction(txDB oddb.TxDatabase, do func() error) (err error) {
 	err = txDB.Begin()
 	if err != nil {
@@ -520,22 +526,28 @@ func withTransaction(txDB oddb.TxDatabase, do func() error) (err error) {
 	return
 }
 
-type recordSaveRequest struct {
+type recordModifyRequest struct {
 	Db           oddb.Database
 	HookRegistry *hook.Registry
-	UserInfoID   string
-	Records      []*oddb.Record
 	Atomic       bool
+
+	// Save only
+	RecordsToSave []*oddb.Record
+	UserInfoID    string
+
+	// Delete Only
+	RecordIDsToDelete []oddb.RecordID
 }
 
-type recordSaveResponse struct {
-	SavedRecords []*oddb.Record
-	ErrMap       map[oddb.RecordID]error
+type recordModifyResponse struct {
+	ErrMap           map[oddb.RecordID]error
+	SavedRecords     []*oddb.Record
+	DeletedRecordIDs []oddb.RecordID
 }
 
-func recordSaveHandler(req *recordSaveRequest, resp *recordSaveResponse) error {
+func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) error {
 	db := req.Db
-	records := req.Records
+	records := req.RecordsToSave
 
 	// fetch records
 	originalRecordMap := map[oddb.RecordID]*oddb.Record{}
@@ -1093,7 +1105,7 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
-	db := payload.Database
+	atomic, _ := payload.Data["atomic"].(bool)
 
 	interfaces, ok := payload.Data["ids"].([]interface{})
 	if !ok {
@@ -1120,57 +1132,104 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 		recordIDs[i].Key = ss[1]
 	}
 
-	var deleteFunc func(oddb.RecordID, *oddb.Record) error
-	if payload.HookRegistry != nil {
-		deleteFunc = func(recordID oddb.RecordID, record *oddb.Record) error {
-			payload.HookRegistry.ExecuteHooks(hook.BeforeDelete, record)
-			err := db.Delete(recordID)
-			if err == nil {
-				payload.HookRegistry.ExecuteHooks(hook.AfterDelete, record)
-			}
-			return err
-		}
+	req := recordModifyRequest{
+		Db:                payload.Database,
+		HookRegistry:      payload.HookRegistry,
+		RecordIDsToDelete: recordIDs,
+		Atomic:            atomic,
+	}
+	resp := recordModifyResponse{
+		ErrMap: map[oddb.RecordID]error{},
+	}
+
+	var deleteFunc recordModifyFunc
+	if atomic {
+		deleteFunc = atomicModifyFunc(&req, &resp, recordDeleteHandler)
 	} else {
-		deleteFunc = func(recordID oddb.RecordID, record *oddb.Record) error {
-			return db.Delete(recordID)
-		}
+		deleteFunc = recordDeleteHandler
+	}
+
+	if err := deleteFunc(&req, &resp); err != nil {
+		log.Debugf("Failed to delete records: %v", err)
+
+		response.Err = err
+		return
 	}
 
 	results := make([]interface{}, 0, length)
 	for _, recordID := range recordIDs {
-		var (
-			err    error
-			item   interface{}
-			record oddb.Record
-		)
+		var result interface{}
 
-		err = db.Get(recordID, &record)
+		if err, ok := resp.ErrMap[recordID]; ok {
+			if err == oddb.ErrRecordNotFound {
+				result = newResponseItemErr(
+					recordID.String(),
+					oderr.ErrRecordNotFound,
+				)
+			} else {
+				log.WithFields(log.Fields{
+					"recordID": recordID,
+					"err":      err,
+				}).Debugln("failed to delete record")
 
-		if err == nil {
-			err = deleteFunc(recordID, &record)
-		}
-
-		if err == nil {
-			item = struct {
+				result = newResponseItemErr(
+					recordID.String(),
+					oderr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
+				)
+			}
+		} else {
+			result = struct {
 				ID   oddb.RecordID `json:"_id"`
 				Type string        `json:"_type"`
 			}{recordID, "record"}
-		} else if err == oddb.ErrRecordNotFound {
-			item = newResponseItemErr(
-				recordID.String(),
-				oderr.ErrRecordNotFound,
-			)
-		} else {
-			item = newResponseItemErr(
-				recordID.String(),
-				oderr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
-			)
 		}
 
-		results = append(results, item)
+		results = append(results, result)
 	}
 
 	response.Result = results
+}
+
+func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) error {
+	db := req.Db
+	recordIDs := req.RecordIDsToDelete
+
+	var records []*oddb.Record
+	for _, recordID := range recordIDs {
+		var record oddb.Record
+		if err := db.Get(recordID, &record); err != nil {
+			resp.ErrMap[recordID] = err
+		} else {
+			records = append(records, &record)
+		}
+	}
+
+	if req.HookRegistry != nil {
+		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+			err = req.HookRegistry.ExecuteHooks(hook.BeforeDelete, record)
+			return
+		})
+	}
+
+	records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+		return db.Delete(record.ID)
+	})
+
+	if req.Atomic && len(resp.ErrMap) > 0 {
+		return errors.New("atomic operation failed")
+	}
+
+	if req.HookRegistry != nil {
+		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+			req.HookRegistry.ExecuteHooks(hook.AfterDelete, record)
+			return
+		})
+	}
+
+	for _, record := range records {
+		resp.DeletedRecordIDs = append(resp.DeletedRecordIDs, record.ID)
+	}
+	return nil
 }
 
 type compRecordID struct {
