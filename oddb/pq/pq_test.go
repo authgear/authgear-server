@@ -99,7 +99,7 @@ func TestUserCRUD(t *testing.T) {
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
 			Auth: oddb.AuthInfo{
-				"authproto": map[string]interface{}{
+				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
 					"bool":   true,
 					"number": float64(1),
@@ -121,7 +121,7 @@ func TestUserCRUD(t *testing.T) {
 			So(email, ShouldEqual, "john.doe@example.com")
 			So(password, ShouldResemble, []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"))
 			So(auth, ShouldResemble, authInfoValue{
-				"authproto": map[string]interface{}{
+				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
 					"bool":   true,
 					"number": float64(1),
@@ -148,8 +148,24 @@ func TestUserCRUD(t *testing.T) {
 			So(fetcheduserinfo, ShouldResemble, userinfo)
 		})
 
+		Convey("gets an existing User by principal", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			fetcheduserinfo := oddb.UserInfo{}
+			err = c.GetUserByPrincipalID("com.example:johndoe", &fetcheduserinfo)
+			So(err, ShouldBeNil)
+
+			So(fetcheduserinfo, ShouldResemble, userinfo)
+		})
+
 		Convey("returns ErrUserNotFound when the user does not exist", func() {
 			err := c.GetUser("userid", (*oddb.UserInfo)(nil))
+			So(err, ShouldEqual, oddb.ErrUserNotFound)
+		})
+
+		Convey("returns ErrUserNotFound when the user does not exist by principal", func() {
+			err := c.GetUserByPrincipalID("com.example:janedoe", (*oddb.UserInfo)(nil))
 			So(err, ShouldEqual, oddb.ErrUserNotFound)
 		})
 
@@ -170,7 +186,7 @@ func TestUserCRUD(t *testing.T) {
 				Email:          "jane.doe@example.com",
 				HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
 				Auth: authInfoValue{
-					"authproto": map[string]interface{}{
+					"com.example:johndoe": map[string]interface{}{
 						"string": "string",
 						"bool":   true,
 						"number": float64(1),
@@ -1144,6 +1160,12 @@ func TestQuery(t *testing.T) {
 		Convey("gets no users", func() {
 			userinfo := oddb.UserInfo{}
 			err := c.GetUser("notexistuserid", &userinfo)
+			So(err, ShouldEqual, oddb.ErrUserNotFound)
+		})
+
+		Convey("gets no users with principal", func() {
+			userinfo := oddb.UserInfo{}
+			err := c.GetUserByPrincipalID("com.example:johndoe", &userinfo)
 			So(err, ShouldEqual, oddb.ErrUserNotFound)
 		})
 

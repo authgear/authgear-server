@@ -37,6 +37,17 @@ func (conn *MapConn) GetUser(id string, userinfo *oddb.UserInfo) error {
 	return nil
 }
 
+func (conn *MapConn) GetUserByPrincipalID(principalID string, userinfo *oddb.UserInfo) error {
+	for _, u := range conn.UserMap {
+		if _, ok := u.Auth[principalID]; ok {
+			*userinfo = u
+			return nil
+		}
+	}
+
+	return oddb.ErrUserNotFound
+}
+
 func (conn *MapConn) QueryUser(emails []string) ([]oddb.UserInfo, error) {
 	panic("not implemented")
 }

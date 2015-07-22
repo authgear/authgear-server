@@ -34,6 +34,16 @@ type Conn interface {
 	// for the supplied ID.
 	GetUser(id string, userinfo *UserInfo) error
 
+	// GetUserByPrincipalID fetches the UserInfo with supplied principal ID in the
+	// container and fills in the supplied UserInfo with the result.
+	//
+	// Principal ID is an ID of an authenticated principal with such
+	// authentication provided by AuthProvider.
+	//
+	// GetUserByPrincipalID returns ErrUserNotFound if no UserInfo exists
+	// for the supplied principal ID.
+	GetUserByPrincipalID(principalID string, userinfo *UserInfo) error
+
 	// UpdateUser updates an existing UserInfo matched by the ID field.
 	//
 	// UpdateUser returns ErrUserNotFound if such UserInfo does not

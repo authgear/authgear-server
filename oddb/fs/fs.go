@@ -68,6 +68,10 @@ func (conn *fileConn) GetUser(id string, info *oddb.UserInfo) error {
 	return conn.userDB.Get(id, info)
 }
 
+func (conn *fileConn) GetUserByPrincipalID(principalID string, info *oddb.UserInfo) error {
+	panic("not implemented")
+}
+
 func (conn *fileConn) UpdateUser(info *oddb.UserInfo) error {
 	return conn.userDB.Update(info)
 }

@@ -139,6 +139,34 @@ func (c *conn) GetUser(id string, userinfo *oddb.UserInfo) error {
 	return err
 }
 
+func (c *conn) GetUserByPrincipalID(principalID string, userinfo *oddb.UserInfo) error {
+	selectSql, args, err := psql.Select("id", "email", "password", "auth").
+		From(c.tableName("_user")).
+		Where("jsonb_exists(auth, ?)", principalID).
+		ToSql()
+	if err != nil {
+		panic(err)
+	}
+
+	id, email, password, auth := "", "", []byte{}, authInfoValue{}
+	err = c.Db.QueryRow(selectSql, args...).Scan(
+		&id,
+		&email,
+		&password,
+		&auth,
+	)
+	if err == sql.ErrNoRows {
+		return oddb.ErrUserNotFound
+	}
+
+	userinfo.ID = id
+	userinfo.Email = email
+	userinfo.HashedPassword = password
+	userinfo.Auth = oddb.AuthInfo(auth)
+
+	return err
+}
+
 func (c *conn) QueryUser(emails []string) ([]oddb.UserInfo, error) {
 
 	emailargs := make([]interface{}, len(emails))
@@ -588,7 +616,7 @@ CREATE TABLE IF NOT EXISTS %v._user (
 	id varchar(255) PRIMARY KEY,
 	email varchar(255),
 	password varchar(255),
-	auth json
+	auth jsonb
 );
 `
 	const CreateAssetTableFmt = `

@@ -56,9 +56,14 @@ func TestNewAnonymousUserInfo(t *testing.T) {
 }
 
 func TestNewProvidedAuthUserInfo(t *testing.T) {
+	k := "com.example:johndoe"
+	v := map[string]interface{}{
+		"hello": "world",
+	}
+
 	Convey("Test Provied Auth", t, func() {
-		info := NewProvidedAuthUserInfo("com.example", "johndoe")
-		So(info.ID, ShouldEqual, "com.example:johndoe")
+		info := NewProvidedAuthUserInfo(k, v)
+		So(info.Auth[k], ShouldResemble, v)
 		So(len(info.HashedPassword), ShouldEqual, 0)
 	})
 }
@@ -78,4 +83,38 @@ func TestIsSamePassword(t *testing.T) {
 	if !info.IsSamePassword("secret") {
 		t.Fatalf("got UserInfo.HashedPassword = %v, want a hashed \"secret\"", info.HashedPassword)
 	}
+}
+
+func TestGetSetProvidedAuthData(t *testing.T) {
+	Convey("Test Get/Set Provided Auth Data", t, func() {
+		k := "com.example:johndoe"
+		v := map[string]interface{}{
+			"hello": "world",
+		}
+
+		Convey("Test Set Provided Auth", func() {
+			info := UserInfo{}
+			info.SetProvidedAuthData(k, v)
+
+			So(info.Auth[k], ShouldResemble, v)
+		})
+
+		Convey("Test nonexistent Get Provided Auth", func() {
+			info := UserInfo{
+				Auth: AuthInfo{},
+			}
+
+			So(info.GetProvidedAuthData(k), ShouldBeNil)
+		})
+
+		Convey("Test Get Provided Auth", func() {
+			info := UserInfo{
+				Auth: AuthInfo(map[string]map[string]interface{}{
+					k: v,
+				}),
+			}
+
+			So(info.GetProvidedAuthData(k), ShouldResemble, v)
+		})
+	})
 }
