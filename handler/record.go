@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"runtime"
 	"strings"
 	"time"
 
@@ -15,6 +14,7 @@ import (
 	"github.com/oursky/ourd/asset"
 	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/oddb/oddbconv"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
@@ -35,7 +35,9 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 	for key, value := range r.Data {
 		switch v := value.(type) {
 		case time.Time:
-			m[key] = transportDate(v)
+			m[key] = oddbconv.ToMap(oddbconv.MapTime(v))
+		case oddb.Reference:
+			m[key] = oddbconv.ToMap(oddbconv.MapReference(v))
 		case oddb.Asset:
 			// TODO: refactor out this if. We know whether we are
 			// injected an asset store at the start of handler
@@ -80,13 +82,13 @@ func (r *transportRecord) UnmarshalJSON(data []byte) error {
 
 func (r *transportRecord) InitFromJSON(i interface{}) error {
 	if m, ok := i.(map[string]interface{}); ok {
-		return r.InitFromMap(m)
+		return r.FromMap(m)
 	}
 
 	return fmt.Errorf("record: want a dictionary, got %T", i)
 }
 
-func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
+func (r *transportRecord) FromMap(m map[string]interface{}) error {
 	rawID, ok := m["_id"].(string)
 	if !ok {
 		return errors.New(`record: required field "_id" not found`)
@@ -112,31 +114,13 @@ func (r *transportRecord) InitFromMap(m map[string]interface{}) error {
 	}
 
 	purgeReservedKey(m)
-	data, err := walkData(m)
-	if err != nil {
+	data := map[string]interface{}{}
+	if err := (*oddbconv.MapData)(&data).FromMap(m); err != nil {
 		return err
 	}
 	r.Data = data
 
 	return nil
-}
-
-type transportDate time.Time
-
-func (date transportDate) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Type string    `json:"$type"`
-		Date time.Time `json:"$date"`
-	}{"date", time.Time(date)})
-}
-
-type transportAsset oddb.Asset
-
-func (asset transportAsset) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Type string `json:"$type"`
-		Name string `json:"$name"`
-	}{"asset", asset.Name})
 }
 
 func purgeReservedKey(m map[string]interface{}) {
@@ -147,155 +131,18 @@ func purgeReservedKey(m map[string]interface{}) {
 	}
 }
 
-func walkData(m map[string]interface{}) (mapReturned map[string]interface{}, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			if _, ok := r.(runtime.Error); ok {
-				panic(r)
-			}
-			err = r.(error)
-		}
-	}()
+type jsonData map[string]interface{}
 
-	return walkMap(m), err
-}
-
-func walkMap(m map[string]interface{}) map[string]interface{} {
-	for key, value := range m {
-		m[key] = parseInterface(value)
-	}
-
-	return m
-}
-
-func walkSlice(items []interface{}) []interface{} {
-	for i, item := range items {
-		items[i] = parseInterface(item)
-	}
-
-	return items
-}
-
-func parseInterface(i interface{}) interface{} {
-	switch value := i.(type) {
-	default:
-		// considered a bug if this line is reached
-		panic(fmt.Errorf("unsupported value = %T", value))
-	case nil, bool, float64, string:
-		// the set of value that json unmarshaller returns
-		// http://golang.org/pkg/encoding/json/#Unmarshal
-		return value
-	case map[string]interface{}:
-		kindi, typed := value["$type"]
-		if !typed {
-			// regular dictionary, go deeper
-			return walkMap(value)
-		}
-
-		kind, ok := kindi.(string)
-		if !ok {
-			panic(fmt.Errorf(`got "$type"'s type = %T, want string`, kindi))
-		}
-
-		switch kind {
-		case "keypath":
-			panic(fmt.Errorf("unsupported $type of persistence = %s", kind))
-		case "geo", "blob":
-			panic(fmt.Errorf("unimplemented $type = %s", kind))
-		case "asset":
-			return parseAsset(value)
-		case "ref":
-			return parseRef(value)
-		case "date":
-			return parseDate(value)
-		default:
-			panic(fmt.Errorf("unknown $type = %s", kind))
-		}
-	case []interface{}:
-		return walkSlice(value)
-	}
-}
-
-func parseKeyPath(i interface{}) (keypath string, err error) {
-	switch value := i.(type) {
-	case map[string]interface{}:
-		kindi, typed := value["$type"]
-		if typed {
-			kind, ok := kindi.(string)
-			if ok && kind == "keypath" {
-				keypath, ok = value["$val"].(string)
-				return
-			}
+func (data jsonData) ToMap(m map[string]interface{}) {
+	for key, value := range data {
+		if mapper, ok := value.(oddbconv.ToMapper); ok {
+			valueMap := map[string]interface{}{}
+			mapper.ToMap(valueMap)
+			m[key] = valueMap
+		} else {
+			m[key] = value
 		}
 	}
-
-	err = errors.New("not a keypath")
-	return
-}
-
-func parseExpression(i interface{}) oddb.Expression {
-	if keypath, err := parseKeyPath(i); err == nil {
-		return oddb.Expression{
-			Type:  oddb.KeyPath,
-			Value: keypath,
-		}
-	}
-
-	return oddb.Expression{
-		Type:  oddb.Literal,
-		Value: parseInterface(i),
-	}
-}
-
-func parseDate(m map[string]interface{}) time.Time {
-	datei, ok := m["$date"]
-	if !ok {
-		panic(errors.New("missing compulsory field $date"))
-	}
-	dateStr, ok := datei.(string)
-	if !ok {
-		panic(fmt.Errorf("got type($date) = %T, want string", datei))
-	}
-	dt, err := time.Parse(time.RFC3339Nano, dateStr)
-	if err != nil {
-		panic(fmt.Errorf("failed to parse $date = %#v", dateStr))
-	}
-
-	return dt.In(time.UTC)
-}
-
-func parseAsset(m map[string]interface{}) oddb.Asset {
-	namei, ok := m["$name"]
-	if !ok {
-		panic(errors.New("missing compulsory field $name"))
-	}
-	name, ok := namei.(string)
-	if !ok {
-		panic(fmt.Errorf("got type($name) = %T, want string", namei))
-	}
-	if name == "" {
-		panic(errors.New("asset's $name should not be empty"))
-	}
-
-	return oddb.Asset{
-		Name: name,
-	}
-}
-
-func parseRef(m map[string]interface{}) oddb.Reference {
-	idi, ok := m["$id"]
-	if !ok {
-		panic(errors.New("referencing without $id"))
-	}
-	id, ok := idi.(string)
-	if !ok {
-		panic(fmt.Errorf("got reference type($id) = %T, want string", idi))
-	}
-	ss := strings.SplitN(id, "/", 2)
-	if len(ss) == 1 {
-		panic(fmt.Errorf(`ref: "_id" should be of format '{type}/{id}', got %#v`, id))
-	}
-	return oddb.NewReference(ss[0], ss[1])
 }
 
 type responseItem struct {
@@ -964,6 +811,37 @@ func predicateFromRaw(rawPredicate []interface{}) oddb.Predicate {
 		Children: children,
 	}
 	return predicate
+}
+
+func parseExpression(i interface{}) oddb.Expression {
+	if keypath, err := parseKeyPath(i); err == nil {
+		return oddb.Expression{
+			Type:  oddb.KeyPath,
+			Value: keypath,
+		}
+	}
+
+	return oddb.Expression{
+		Type:  oddb.Literal,
+		Value: oddbconv.ParseInterface(i),
+	}
+}
+
+func parseKeyPath(i interface{}) (keypath string, err error) {
+	switch value := i.(type) {
+	case map[string]interface{}:
+		kindi, typed := value["$type"]
+		if typed {
+			kind, ok := kindi.(string)
+			if ok && kind == "keypath" {
+				keypath, ok = value["$val"].(string)
+				return
+			}
+		}
+	}
+
+	err = errors.New("not a keypath")
+	return
 }
 
 func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Error) {
