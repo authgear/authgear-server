@@ -4,3 +4,7 @@ data
 
 # go generated sources
 *_string.go
+
+# Fabric
+fabfile.pyc
+
