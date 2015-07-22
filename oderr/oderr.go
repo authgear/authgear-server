@@ -4,6 +4,8 @@ package oderr
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/oursky/ourd/oddb"
 )
 
 // Various errors emitted by Ourd handlers
@@ -16,6 +18,7 @@ var (
 	ErrDatabaseOpenFailed            = newError("DatabaseError", 101, "failed to open database")
 	ErrDatabaseQueryFailed           = newError("DatabaseError", 102, "failed to query record")
 	ErrDatabaseSchemaMigrationFailed = newError("DatabaseError", 103, "failed to migrate record schema")
+	ErrDatabaseTxNotSupported        = newError("DatabaseError", 660, "database impl does not support transaction")
 
 	ErrUserNotFound   = newNotFoundErr(101, "user not found")
 	ErrDeviceNotFound = newNotFoundErr(102, "device not found")
@@ -148,6 +151,36 @@ func NewResourceDeleteFailureErrWithStringID(kind string, id string) Error {
 		iID = id
 	}
 	return newResourceDeleteFailureErr(kind, iID)
+}
+
+// NewAtomicOperationFailed return a new DatabaseError to be returned
+// when atomic operation (like record save/delete) failed due to
+// one of the sub-operation failed
+func NewAtomicOperationFailedErr(errMap map[oddb.RecordID]error) Error {
+	info := map[string]interface{}{}
+	for recordID, err := range errMap {
+		info[recordID.String()] = err.Error()
+	}
+
+	return &genericError{
+		t:       "DatabaseError",
+		code:    666,
+		message: "Atomic Operation rolled back due to one or more errors",
+		info:    info,
+	}
+}
+
+// NewAtomicOperationFailedErrWithCause return a new DatabaseError to be returned
+// when atomic operation (like record save/delete) failed due to
+// a global operation failed
+func NewAtomicOperationFailedErrWithCause(err error) Error {
+	return &genericError{
+		t:       "DatabaseError",
+		code:    667,
+		message: "Atomic Operation rolled back due to an error",
+		info:    map[string]interface{}{"innerError": err},
+	}
+
 }
 
 // New creates an Error to be returned as Response's result
