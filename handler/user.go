@@ -115,10 +115,6 @@ func UserLinkHandler(payload *router.Payload, response *router.Response) {
 
 	payload.UserInfo.SetProvidedAuthData(principalID, authData)
 
-	log.WithFields(log.Fields{
-		"info": info,
-	}).Errorln("failed to query subscriptions by device id")
-
 	if err := payload.DBConn.UpdateUser(payload.UserInfo); err != nil {
 		response.Err = oderr.NewUnknownErr(err)
 		return
