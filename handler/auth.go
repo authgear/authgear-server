@@ -103,9 +103,7 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
 
 		// Create new user info and set updated auth data
-		info = oddb.NewProvidedAuthUserInfo(p.Provider(), principalID)
-		info.Auth = make(map[string]map[string]interface{})
-		info.Auth[p.Provider()] = authData
+		info = oddb.NewProvidedAuthUserInfo(principalID, authData)
 	} else {
 		userID := p.UserID()
 		email := p.Email()
@@ -203,8 +201,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 		}
 		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
 
-		info = oddb.NewProvidedAuthUserInfo(p.Provider(), principalID)
-		if err := payload.DBConn.GetUser(info.ID, &info); err != nil {
+		if err := payload.DBConn.GetUserByPrincipalID(principalID, &info); err != nil {
 			if err == oddb.ErrUserNotFound {
 				response.Err = oderr.ErrUserNotFound
 			} else {

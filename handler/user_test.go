@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/provider"
 )
 
 type queryUserConn struct {
@@ -99,6 +100,37 @@ func TestUserUpdateHandler(t *testing.T) {
 			newUserInfo := oddb.UserInfo{}
 			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
 			So(newUserInfo.Email, ShouldEqual, "peter.doe@example.com")
+		})
+	})
+}
+
+func TestUserLinkHandler(t *testing.T) {
+	Convey("UserLinkHandler", t, func() {
+		conn := oddbtest.NewMapConn()
+		userInfo := oddb.UserInfo{
+			ID:             "user0",
+			Email:          "john.doe@example.com",
+			HashedPassword: []byte("password"),
+		}
+		conn.CreateUser(&userInfo)
+
+		providerRegistry := provider.NewRegistry()
+		providerRegistry.RegisterAuthProvider("com.example", handlertest.NewSingleUserAuthProvider("com.example", "johndoe"))
+		r := handlertest.NewSingleRouteRouter(UserLinkHandler, func(p *router.Payload) {
+			p.DBConn = conn
+			p.UserInfo = &userInfo
+			p.ProviderRegistry = providerRegistry
+		})
+
+		Convey("link account", func() {
+			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
+
+			newUserInfo := oddb.UserInfo{}
+			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
+			So(newUserInfo.Auth["com.example:johndoe"], ShouldResemble, map[string]interface{}{
+				"name": "johndoe",
+			})
 		})
 	})
 }

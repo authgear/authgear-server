@@ -339,8 +339,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			userinfo := conn.userinfo
 
 			So(token.AccessToken, ShouldNotBeBlank)
-			So(conn.userinfo.ID, ShouldEqual, "com.example:johndoe")
-			authData := conn.userinfo.Auth["com.example"]
+			authData := conn.userinfo.Auth["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{

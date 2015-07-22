@@ -40,7 +40,7 @@ func (p *AuthProvider) Login(authData map[string]interface{}) (principalID strin
 		return
 	}
 
-	principalID = response.PrincipalID
+	principalID = p.Name + ":" + response.PrincipalID
 	newAuthData = response.AuthData
 	return
 }

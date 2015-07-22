@@ -299,6 +299,15 @@ func main() {
 	}
 	r.Map("user:query", handler.UserQueryHandler, userReadPreprocessors...)
 	r.Map("user:update", handler.UserUpdateHandler, userWritePreprocessors...)
+	r.Map("user:link", handler.UserLinkHandler,
+		fileTokenStorePreprocessor.Preprocess,
+		authenticator.Preprocess,
+		fileSystemConnPreprocessor.Preprocess,
+		providerRegistryPreprocessor.Preprocess,
+		injectUserIfPresent,
+		injectDatabase,
+		requireUserForWrite,
+	)
 
 	plugins := []plugin.Plugin{}
 	for _, pluginConfig := range config.Plugin {
