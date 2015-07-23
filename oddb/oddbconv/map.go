@@ -104,6 +104,12 @@ func (asset *MapAsset) FromMap(m map[string]interface{}) error {
 	return nil
 }
 
+// ToMap implements ToMapper
+func (asset MapAsset) ToMap(m map[string]interface{}) {
+	m["$type"] = "asset"
+	m["$name"] = asset.Name
+}
+
 // MapReference is oddb.Reference that can be converted from and to a map.
 type MapReference oddb.Reference
 
