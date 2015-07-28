@@ -307,10 +307,14 @@ func (e *mapExtractor) DoMap(key string, doFunc func(map[string]interface{}) err
 
 func (e *mapExtractor) DoSlice(key string, doFunc func([]interface{}) error) {
 	e.Do(key, func(i interface{}) error {
-		if slice, ok := i.([]interface{}); ok {
+		switch slice := i.(type) {
+		case []interface{}:
 			return doFunc(slice)
+		case nil:
+			return doFunc(nil)
+		default:
+			return fmt.Errorf("key %s is of type %T, not []interface{}", key, i)
 		}
-		return fmt.Errorf("key %s is of type %T, not map[string]interface{}", key, i)
 	})
 }
 

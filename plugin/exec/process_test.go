@@ -206,6 +206,37 @@ func TestRun(t *testing.T) {
 			So(dateout == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
 		})
 
+		Convey("parses null ACL correctly", func() {
+			recordin := oddb.Record{
+				ID:      oddb.NewRecordID("note", "id"),
+				OwnerID: "john.doe@example.com",
+				ACL:     nil,
+				Data:    map[string]interface{}{},
+			}
+
+			called := false
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				called = true
+				So(string(in), ShouldEqualJSON, `{
+					"_id": "note/id",
+					"_ownerID": "john.doe@example.com",
+					"_access": null
+				}`)
+				return []byte(`{
+					"result": {
+						"_id": "note/id",
+						"_ownerID": "john.doe@example.com",
+						"_access": null
+					}
+				}`), nil
+			}
+
+			recordout, err := transport.RunHook("note", "beforeSave", &recordin)
+			So(err, ShouldBeNil)
+			So(called, ShouldBeTrue)
+			So(*recordout, ShouldResemble, recordin)
+		})
+
 		Convey("returns err if command failed", func() {
 			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
 				return nil, errors.New("worrying error")
