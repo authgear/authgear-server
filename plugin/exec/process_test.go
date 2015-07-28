@@ -91,6 +91,7 @@ func TestRun(t *testing.T) {
 			OwnerID: "john.doe@example.com",
 			ACL: oddb.RecordACL{
 				oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
+				oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
 			},
 			Data: map[string]interface{}{
 				"content":   "some note content",
@@ -108,12 +109,14 @@ func TestRun(t *testing.T) {
 				So(in, ShouldEqualJSON, `{
 					"_id": "note/id",
 					"_ownerID": "john.doe@example.com",
-					"_access": [
-						{
-							"relation": "friend",
-							"level": "write"
-						}
-					],
+					"_access": [{
+						"relation": "friend",
+						"level": "write"
+					}, {
+						"relation": "$direct",
+						"level": "read",
+						"user_id": "user_id"
+					}],
 					"data": {
 						"content": "some note content",
 						"noteOrder": 1,
@@ -125,12 +128,14 @@ func TestRun(t *testing.T) {
 					"result": {
 						"_id": "note/id",
 						"_ownerID": "john.doe@example.com",
-						"_access": [
-							{
-								"relation": "friend",
-								"level": "write"
-							}
-						],
+						"_access": [{
+							"relation": "friend",
+							"level": "write"
+						}, {
+							"relation": "$direct",
+							"level": "read",
+							"user_id": "user_id"
+						}],
 						"data": {
 							"content": "content has been modified",
 							"noteOrder": 1,
@@ -149,6 +154,7 @@ func TestRun(t *testing.T) {
 				OwnerID: "john.doe@example.com",
 				ACL: oddb.RecordACL{
 					oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
+					oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
 				},
 				Data: map[string]interface{}{
 					"content":   "some note content",
@@ -161,6 +167,7 @@ func TestRun(t *testing.T) {
 				OwnerID: "john.doe@example.com",
 				ACL: oddb.RecordACL{
 					oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
+					oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
 				},
 				Data: map[string]interface{}{
 					"content":   "content has been modified",
