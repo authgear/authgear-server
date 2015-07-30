@@ -163,9 +163,30 @@ func (p execTransport) RunTimer(name string, in []byte) (out []byte, err error) 
 	return
 }
 
-func (p execTransport) RunProvider(providerID string, action string, in []byte) (out []byte, err error) {
-	out, err = p.run([]string{"provider", providerID, action}, in)
-	return
+func (p execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.AuthResponse, error) {
+	req := map[string]interface{}{
+		"auth_data": request.AuthData,
+	}
+
+	in, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal auth request: %v", err)
+	}
+
+	out, err := p.runProc([]string{"provider", request.ProviderName, request.Action}, in)
+	if err != nil {
+		name := fmt.Sprintf("%v:%v", request.ProviderName, request.Action)
+		return nil, fmt.Errorf("run %s: %v", name, err)
+	}
+
+	resp := odplugin.AuthResponse{}
+
+	err = json.Unmarshal(out, &resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse response: %v", err)
+	}
+
+	return &resp, nil
 }
 
 type execTransportFactory struct {

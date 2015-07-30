@@ -8,6 +8,7 @@ import (
 
 	"github.com/oursky/ourd/oddb"
 	. "github.com/oursky/ourd/ourtest"
+	odplugin "github.com/oursky/ourd/plugin"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -313,6 +314,66 @@ Too strong to lift a feather`)
 
 			_, err := transport.RunInit()
 			So(err, ShouldNotBeNil)
+		})
+	})
+
+	Convey("test provider", t, func() {
+		transport := execTransport{
+			Path: "/never/invoked",
+			Args: nil,
+		}
+
+		// expect child test case to override startCommand
+		// save the original and defer setting it back
+		originalCommand := startCommand
+		defer func() {
+			startCommand = originalCommand
+		}()
+
+		Convey("executes provider passing auth data", func() {
+			called := false
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				called = true
+				So(cmd.Path, ShouldEqual, "/never/invoked")
+				So(cmd.Args, ShouldResemble, []string{"/never/invoked", "provider", "com.example", "login"})
+				So(in, ShouldEqualJSON, `{
+					"auth_data": {"password": "secret"}
+				}`)
+
+				return []byte(`{
+					"result": {
+						"principal_id": "johndoe",
+						"auth_data": {"token": "A_TOKEN"}
+					}
+				}`), nil
+			}
+
+			authData := map[string]interface{}{
+				"password": "secret",
+			}
+			req := odplugin.AuthRequest{"com.example", "login", authData}
+
+			resp, err := transport.RunProvider(&req)
+			So(err, ShouldBeNil)
+			So(called, ShouldBeTrue)
+			So(resp.PrincipalID, ShouldEqual, "johndoe")
+			So(resp.AuthData, ShouldResemble, map[string]interface{}{
+				"token": "A_TOKEN",
+			})
+
+		})
+
+		Convey("executes provider passing error", func() {
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				return nil, errors.New("worrying error")
+			}
+
+			authData := map[string]interface{}{}
+			req := odplugin.AuthRequest{"com.example", "login", authData}
+
+			resp, err := transport.RunProvider(&req)
+			So(err.Error(), ShouldEqual, "run com.example:login: worrying error")
+			So(resp, ShouldBeNil)
 		})
 	})
 }
