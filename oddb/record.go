@@ -65,37 +65,47 @@ func (entry *RecordACLEntry) InitFromJSON(i interface{}) error {
 		return fmt.Errorf("want a dictionary, got a %T", i)
 	}
 
-	entry.Relation, _ = m["relation"].(string)
-	if entry.Relation == "" {
-		return errors.New("missing relation field")
-	}
-
 	level, _ := m["level"].(string)
+	var entryLevel ACLLevel
 	switch level {
 	case "read":
-		entry.Level = ReadLevel
+		entryLevel = ReadLevel
 	case "write":
-		entry.Level = WriteLevel
+		entryLevel = WriteLevel
+	case "":
+		return errors.New("empty level")
 	default:
-		return errors.New("missing level field")
+		return fmt.Errorf("unknown level = %s", level)
 	}
 
-	entry.UserID, _ = m["user_id"].(string)
-	if entry.Relation == "" {
-		return errors.New("missing user_id field")
+	relation, _ := m["relation"].(string)
+	if relation == "" {
+		return errors.New("empty relation")
 	}
+
+	var userID string
+	if relation == "$direct" {
+		userID, _ = m["user_id"].(string)
+		if userID == "" {
+			return errors.New(`empty user_id when relation = "$direct"`)
+		}
+	}
+
+	entry.Level = entryLevel
+	entry.Relation = relation
+	entry.UserID = userID
 
 	return nil
 }
 
-// RecordACLEntry returns an ACE on relation
+// NewRecordACLEntryRelation returns an ACE on relation
 func NewRecordACLEntryRelation(relation string, level ACLLevel) RecordACLEntry {
 	return RecordACLEntry{relation, level, ""}
 }
 
-// RecordACLEntry returns an ACE for a specific user
-func NewRecordACLEntryDirect(user_id string, level ACLLevel) RecordACLEntry {
-	return RecordACLEntry{"$direct", level, user_id}
+// NewRecordACLEntryDirect returns an ACE for a specific user
+func NewRecordACLEntryDirect(userID string, level ACLLevel) RecordACLEntry {
+	return RecordACLEntry{"$direct", level, userID}
 }
 
 // RecordACL is a list of ACL entries defining access control for a record
