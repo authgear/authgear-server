@@ -19,6 +19,7 @@ import (
 	_ "github.com/oursky/ourd/oddb/pq"
 	"github.com/oursky/ourd/plugin"
 	_ "github.com/oursky/ourd/plugin/exec"
+	_ "github.com/oursky/ourd/plugin/zmq"
 	"github.com/oursky/ourd/provider"
 	"github.com/oursky/ourd/push"
 	"github.com/oursky/ourd/router"

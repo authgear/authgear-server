@@ -9,7 +9,8 @@ Dependencies
 3. PostgreSQL if you are using pq implementation of oddb:
    * Minimum version: 9.3
    * Recommended version: 9.4
-
+4. zmq is used for connecting plugin
+   * brew install libsodium zeromq czmq
 
 Development
 ===========
