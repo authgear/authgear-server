@@ -2,7 +2,6 @@ package oddb
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -142,17 +141,7 @@ type Asset struct {
 }
 
 type Reference struct {
-	ID RecordID `json:"_id"`
-}
-
-func (ref Reference) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Type string   `json:"$type"`
-		ID   RecordID `json:"$id"`
-	}{
-		"ref",
-		ref.ID,
-	})
+	ID RecordID
 }
 
 func NewReference(recordType string, id string) Reference {

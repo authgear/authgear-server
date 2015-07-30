@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os/exec"
 	"testing"
+	"time"
 
 	"github.com/oursky/ourd/oddb"
 	. "github.com/oursky/ourd/ourtest"
@@ -96,6 +97,9 @@ func TestRun(t *testing.T) {
 				"content":   "some note content",
 				"noteOrder": float64(1),
 				"tags":      []interface{}{"test", "unimportant"},
+				"date":      time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC),
+				"ref":       oddb.NewReference("category", "1"),
+				"asset":     oddb.Asset{Name: "asset-name"},
 			},
 		}
 
@@ -114,10 +118,20 @@ func TestRun(t *testing.T) {
 							"level": "write"
 						}
 					],
-					"data": {
-						"content": "some note content",
-						"noteOrder": 1,
-						"tags": ["test", "unimportant"]
+					"content": "some note content",
+					"noteOrder": 1,
+					"tags": ["test", "unimportant"],
+					"date": {
+						"$type": "date",
+						"$date": "2017-07-23T19:30:24Z"
+					},
+					"ref": {
+						"$type": "ref",
+						"$id": "category/1"
+					},
+					"asset":{
+						"$type": "asset",
+						"$name": "asset-name"
 					}
 				}`)
 
@@ -131,10 +145,20 @@ func TestRun(t *testing.T) {
 								"level": "write"
 							}
 						],
-						"data": {
-							"content": "content has been modified",
-							"noteOrder": 1,
-							"tags": ["test", "unimportant"]
+						"content": "content has been modified",
+						"noteOrder": 1,
+						"tags": ["test", "unimportant"],
+						"date": {
+							"$type": "date",
+							"$date": "2017-07-23T19:30:24Z"
+						},
+						"ref": {
+							"$type": "ref",
+							"$id": "category/1"
+						},
+						"asset":{
+							"$type": "asset",
+							"$name": "asset-name"
 						}
 					}
 				}`), nil
@@ -144,6 +168,8 @@ func TestRun(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 
+			datein := recordin.Data["date"].(time.Time)
+			delete(recordin.Data, "date")
 			So(recordin, ShouldResemble, oddb.Record{
 				ID:      oddb.NewRecordID("note", "id"),
 				OwnerID: "john.doe@example.com",
@@ -154,8 +180,15 @@ func TestRun(t *testing.T) {
 					"content":   "some note content",
 					"noteOrder": float64(1),
 					"tags":      []interface{}{"test", "unimportant"},
+					"ref":       oddb.NewReference("category", "1"),
+					"asset":     oddb.Asset{Name: "asset-name"},
 				},
 			})
+			// GoConvey's bug, ShouldEqual and ShouldResemble doesn't work on time.Time
+			So(datein == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
+
+			dateout := recordout.Data["date"].(time.Time)
+			delete(recordout.Data, "date")
 			So(*recordout, ShouldResemble, oddb.Record{
 				ID:      oddb.NewRecordID("note", "id"),
 				OwnerID: "john.doe@example.com",
@@ -166,8 +199,42 @@ func TestRun(t *testing.T) {
 					"content":   "content has been modified",
 					"noteOrder": float64(1),
 					"tags":      []interface{}{"test", "unimportant"},
+					"ref":       oddb.NewReference("category", "1"),
+					"asset":     oddb.Asset{Name: "asset-name"},
 				},
 			})
+			So(dateout == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
+		})
+
+		Convey("parses null ACL correctly", func() {
+			recordin := oddb.Record{
+				ID:      oddb.NewRecordID("note", "id"),
+				OwnerID: "john.doe@example.com",
+				ACL:     nil,
+				Data:    map[string]interface{}{},
+			}
+
+			called := false
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				called = true
+				So(string(in), ShouldEqualJSON, `{
+					"_id": "note/id",
+					"_ownerID": "john.doe@example.com",
+					"_access": null
+				}`)
+				return []byte(`{
+					"result": {
+						"_id": "note/id",
+						"_ownerID": "john.doe@example.com",
+						"_access": null
+					}
+				}`), nil
+			}
+
+			recordout, err := transport.RunHook("note", "beforeSave", &recordin)
+			So(err, ShouldBeNil)
+			So(called, ShouldBeTrue)
+			So(*recordout, ShouldResemble, recordin)
 		})
 
 		Convey("returns err if command failed", func() {
