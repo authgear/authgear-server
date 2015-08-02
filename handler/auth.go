@@ -194,7 +194,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 		// Get AuthProvider and authenticates the user
 		log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
 		authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
-		principalID, _, err := authProvider.Login(p.AuthData())
+		principalID, authData, err := authProvider.Login(p.AuthData())
 		if err != nil {
 			response.Err = oderr.ErrAuthFailure
 			return
@@ -202,13 +202,28 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
 
 		if err := payload.DBConn.GetUserByPrincipalID(principalID, &info); err != nil {
-			if err == oddb.ErrUserNotFound {
-				response.Err = oderr.ErrUserNotFound
-			} else {
+			// Create user if and only if no user found with the same principal
+			if err != oddb.ErrUserNotFound {
 				// TODO: more error handling here if necessary
 				response.Err = oderr.NewResourceFetchFailureErr("user", p.UserID())
+				return
 			}
-			return
+
+			info = oddb.NewProvidedAuthUserInfo(principalID, authData)
+			if err = payload.DBConn.CreateUser(&info); err != nil {
+				if err == oddb.ErrUserDuplicated {
+					response.Err = oderr.ErrUserDuplicated
+				} else {
+					response.Err = oderr.NewResourceSaveFailureErrWithStringID("user", p.UserID())
+				}
+				return
+			}
+		} else {
+			info.SetProvidedAuthData(principalID, authData)
+			if err := payload.DBConn.UpdateUser(&info); err != nil {
+				response.Err = oderr.NewUnknownErr(err)
+				return
+			}
 		}
 	} else {
 		if err := payload.DBConn.GetUser(p.UserID(), &info); err != nil {
