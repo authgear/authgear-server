@@ -109,8 +109,11 @@ func UserLinkHandler(payload *router.Payload, response *router.Response) {
 		response.Err = oderr.NewResourceFetchFailureErr("user", p.UserID())
 		return
 	} else if err == nil && info.ID != payload.UserInfo.ID {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("already associated with another user"))
-		return
+		info.RemoveProvidedAuthData(principalID)
+		if err := payload.DBConn.UpdateUser(&info); err != nil {
+			response.Err = oderr.NewUnknownErr(err)
+			return
+		}
 	}
 
 	payload.UserInfo.SetProvidedAuthData(principalID, authData)
