@@ -7,6 +7,13 @@ machine:
     - ln -s $HOME/.go_project/src/github.com/oursky/ourd .
 
 dependencies:
+  pre:
+    - git clone git://github.com/jedisct1/libsodium.git
+    - ( cd libsodium; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
+    - git clone git://github.com/zeromq/libzmq.git
+    - ( cd libzmq; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
+    - git clone git://github.com/zeromq/czmq.git
+    - ( cd czmq; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
   post:
     - >
       go get golang.org/x/tools/cmd/cover \

@@ -7,6 +7,12 @@ addons:
   postgresql: "9.4"
 
 before_install:
+  - git clone git://github.com/jedisct1/libsodium.git
+  - ( cd libsodium; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
+  - git clone git://github.com/zeromq/libzmq.git
+  - ( cd libzmq; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
+  - git clone git://github.com/zeromq/czmq.git
+  - ( cd czmq; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/golang/lint/golint
   - go get github.com/smartystreets/goconvey/convey
