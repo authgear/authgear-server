@@ -113,9 +113,19 @@ func TestUserLinkHandler(t *testing.T) {
 			HashedPassword: []byte("password"),
 		}
 		conn.CreateUser(&userInfo)
+		userInfo2 := oddb.UserInfo{
+			ID:             "user1",
+			Email:          "john.doe@example.org",
+			HashedPassword: []byte("password"),
+			Auth: oddb.AuthInfo{
+				"org.example:johndoe": map[string]interface{}{},
+			},
+		}
+		conn.CreateUser(&userInfo2)
 
 		providerRegistry := provider.NewRegistry()
 		providerRegistry.RegisterAuthProvider("com.example", handlertest.NewSingleUserAuthProvider("com.example", "johndoe"))
+		providerRegistry.RegisterAuthProvider("org.example", handlertest.NewSingleUserAuthProvider("org.example", "johndoe"))
 		r := handlertest.NewSingleRouteRouter(UserLinkHandler, func(p *router.Payload) {
 			p.DBConn = conn
 			p.UserInfo = &userInfo
@@ -131,6 +141,20 @@ func TestUserLinkHandler(t *testing.T) {
 			So(newUserInfo.Auth["com.example:johndoe"], ShouldResemble, map[string]interface{}{
 				"name": "johndoe",
 			})
+		})
+
+		Convey("link account and unlink old", func() {
+			resp := r.POST(`{"provider": "org.example", "auth_data": {"name": "johndoe"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
+
+			newUserInfo := oddb.UserInfo{}
+			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
+			So(newUserInfo.Auth["org.example:johndoe"], ShouldResemble, map[string]interface{}{
+				"name": "johndoe",
+			})
+			So(conn.GetUser("user1", &newUserInfo), ShouldBeNil)
+			_, err := newUserInfo.Auth["org.example:johndoe"]
+			So(err, ShouldNotBeNil)
 		})
 	})
 }

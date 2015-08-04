@@ -2,6 +2,19 @@ package plugin
 
 import "github.com/oursky/ourd/oddb"
 
+// AuthRequest is sent by Ourd to plugin which contains data for authentication
+type AuthRequest struct {
+	ProviderName string
+	Action       string
+	AuthData     map[string]interface{}
+}
+
+// AuthResponse is sent by plugin to Ourd which contains authenticated data
+type AuthResponse struct {
+	PrincipalID string                 `json:"principal_id"`
+	AuthData    map[string]interface{} `json:"auth_data"`
+}
+
 // A Transport represents the interface of data transfer between ourd
 // and remote process.
 type Transport interface {
@@ -17,7 +30,9 @@ type Transport interface {
 	// in any of its memebers with the record being passed in.
 	RunHook(recordType string, trigger string, record *oddb.Record) (*oddb.Record, error)
 	RunTimer(name string, n []byte) ([]byte, error)
-	RunProvider(name string, action string, n []byte) ([]byte, error)
+
+	// RunProvider runs the auth provider with the specified AuthRequest.
+	RunProvider(request *AuthRequest) (*AuthResponse, error)
 }
 
 // A TransportFactory is a generic interface to instantiates different
@@ -49,8 +64,10 @@ func (t nullTransport) RunTimer(name string, in []byte) (out []byte, err error) 
 	return
 }
 
-func (t nullTransport) RunProvider(name string, action string, in []byte) (out []byte, err error) {
-	out = in
+func (t nullTransport) RunProvider(request *AuthRequest) (response *AuthResponse, err error) {
+	response = &AuthResponse{
+		AuthData: request.AuthData,
+	}
 	return
 }
 

@@ -97,3 +97,10 @@ func (info *UserInfo) GetProvidedAuthData(principalID string) map[string]interfa
 	value, _ := info.Auth[principalID]
 	return value
 }
+
+// RemoveProvidedAuthData remove the auth data for the specified principal.
+func (info *UserInfo) RemoveProvidedAuthData(principalID string) {
+	if info.Auth != nil {
+		delete(info.Auth, principalID)
+	}
+}

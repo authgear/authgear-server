@@ -235,14 +235,95 @@ func TestLoginHandlerNotFound(t *testing.T) {
 	}
 }
 
+func TestLoginHandlerWithProvider(t *testing.T) {
+	Convey("LoginHandler", t, func() {
+		tokenStore := singleTokenStore{}
+		conn := singleUserConn{}
+		providerRegistry := provider.NewRegistry()
+		providerRegistry.RegisterAuthProvider("com.example", handlertest.NewSingleUserAuthProvider("com.example", "johndoe"))
+
+		r := handlertest.NewSingleRouteRouter(LoginHandler, func(p *router.Payload) {
+			p.TokenStore = &tokenStore
+			p.DBConn = &conn
+			p.ProviderRegistry = providerRegistry
+		})
+
+		Convey("login in existing", func() {
+			userinfo := oddb.NewProvidedAuthUserInfo("com.example:johndoe", map[string]interface{}{"name": "boo"})
+			conn.userinfo = &userinfo
+			defer func() {
+				conn.userinfo = nil
+			}()
+
+			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
+
+			token := authtoken.Token(tokenStore)
+			So(token.AccessToken, ShouldNotBeBlank)
+			So(conn.userinfo, ShouldNotBeNil)
+			authData := conn.userinfo.Auth["com.example:johndoe"]
+			authDataJSON, _ := json.Marshal(&authData)
+			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+	"result": {
+		"user_id": "%v",
+		"access_token": "%v"
+	}
+}`, userinfo.ID, token.AccessToken))
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("login in and create", func() {
+			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
+
+			token := authtoken.Token(tokenStore)
+			userinfo := conn.userinfo
+
+			So(token.AccessToken, ShouldNotBeBlank)
+			So(conn.userinfo, ShouldNotBeNil)
+			authData := conn.userinfo.Auth["com.example:johndoe"]
+			authDataJSON, _ := json.Marshal(&authData)
+			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+	"result": {
+		"user_id": "%v",
+		"access_token": "%v"
+	}
+}`, userinfo.ID, token.AccessToken))
+			So(resp.Code, ShouldEqual, 200)
+		})
+	})
+}
+
 type singleUserConn struct {
 	userinfo *oddb.UserInfo
 	oddb.Conn
 }
 
+func (conn *singleUserConn) UpdateUser(userinfo *oddb.UserInfo) error {
+	if conn.userinfo != nil && conn.userinfo.ID == userinfo.ID {
+		conn.userinfo = userinfo
+		return nil
+	} else {
+		return oddb.ErrUserNotFound
+	}
+}
+
 func (conn *singleUserConn) CreateUser(userinfo *oddb.UserInfo) error {
-	conn.userinfo = userinfo
-	return nil
+	if conn.userinfo == nil {
+		conn.userinfo = userinfo
+		return nil
+	} else {
+		return oddb.ErrUserDuplicated
+	}
+}
+
+func (conn *singleUserConn) GetUserByPrincipalID(principalID string, userinfo *oddb.UserInfo) error {
+	if conn.userinfo == nil {
+		return oddb.ErrUserNotFound
+	} else {
+		*userinfo = *conn.userinfo
+		return nil
+	}
 }
 
 func TestSignupHandlerAsAnonymous(t *testing.T) {

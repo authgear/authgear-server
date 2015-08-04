@@ -116,5 +116,17 @@ func TestGetSetProvidedAuthData(t *testing.T) {
 
 			So(info.GetProvidedAuthData(k), ShouldResemble, v)
 		})
+
+		Convey("Test Remove Provided Auth", func() {
+			info := UserInfo{
+				Auth: AuthInfo(map[string]map[string]interface{}{
+					k: v,
+				}),
+			}
+
+			info.RemoveProvidedAuthData(k)
+			v, _ = info.Auth[k]
+			So(v, ShouldBeNil)
+		})
 	})
 }
