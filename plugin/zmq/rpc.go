@@ -38,6 +38,17 @@ func newHookRequest(trigger string, record *oddb.Record) *request {
 	return &request{Kind: "hook", Name: trigger, Param: (*common.JSONRecord)(record)}
 }
 
+func newAuthRequest(authReq *odplugin.AuthRequest) *request {
+	return &request{
+		Kind: "provider",
+		Name: authReq.ProviderName,
+		Param: struct {
+			Action   string                 `json:"action"`
+			AuthData map[string]interface{} `json:"auth_data"`
+		}{authReq.Action, authReq.AuthData},
+	}
+}
+
 // TODO(limouren): reduce copying of this method
 func (req *request) MarshalJSON() ([]byte, error) {
 	if rawParam, ok := req.Param.(json.RawMessage); ok {
@@ -96,8 +107,15 @@ func (p zmqTransport) RunTimer(name string, in []byte) (out []byte, err error) {
 	return
 }
 
-func (p zmqTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.AuthResponse, error) {
-	panic("Thou shalt not call me")
+func (p zmqTransport) RunProvider(request *odplugin.AuthRequest) (resp *odplugin.AuthResponse, err error) {
+	req := newAuthRequest(request)
+	out, err := p.rpc(req)
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(out, &resp)
+	return
 }
 
 func (p *zmqTransport) rpc(req *request) (out []byte, err error) {

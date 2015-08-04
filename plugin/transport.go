@@ -65,6 +65,9 @@ func (t nullTransport) RunTimer(name string, in []byte) (out []byte, err error) 
 }
 
 func (t nullTransport) RunProvider(request *AuthRequest) (response *AuthResponse, err error) {
+	if request.AuthData == nil {
+		request.AuthData = map[string]interface{}{}
+	}
 	response = &AuthResponse{
 		AuthData: request.AuthData,
 	}
