@@ -1,4 +1,19 @@
-FROM golang:onbuild
+FROM golang:1.4.2
+
+RUN \
+    apt-get update && \
+    apt-get install --no-install-recommends -y libtool automake pkg-config libsodium-dev libzmq3-dev && \
+    git clone git://github.com/zeromq/czmq.git && \
+    ( cd czmq; ./autogen.sh; ./configure; make check; make install; ldconfig ) && \
+    rm -rf czmq && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /go/src/app
+WORKDIR /go/src/app
+
+COPY . /go/src/app
+RUN go-wrapper download
+RUN go-wrapper install
 
 RUN \
     go get golang.org/x/tools/cmd/cover && \
@@ -11,4 +26,4 @@ RUN \
 
 EXPOSE 3000
 
-
+CMD ["go-wrapper", "run"]
