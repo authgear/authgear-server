@@ -181,7 +181,7 @@ type zmqTransportFactory struct {
 }
 
 func (f zmqTransportFactory) Open(name string, args []string) (transport odplugin.Transport) {
-	const internalAddrFmt = `ipc://%s.ipc`
+	const internalAddrFmt = `inproc://%s`
 
 	internalAddr := fmt.Sprintf(internalAddrFmt, name)
 	externalAddr := args[0]
