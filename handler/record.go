@@ -405,7 +405,6 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 		var dbRecord oddb.Record
 		err = db.Get(record.ID, &dbRecord)
 		if err == oddb.ErrRecordNotFound {
-			originalRecordMap[record.ID] = &oddb.Record{}
 			return nil
 		}
 
@@ -436,7 +435,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 		var deltaRecord oddb.Record
 		originalRecord, ok := originalRecordMap[record.ID]
 		if !ok {
-			panic(fmt.Sprintf("original record not found; recordID = %s", record.ID))
+			originalRecord = &oddb.Record{}
 		}
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
