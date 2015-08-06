@@ -8,11 +8,13 @@ import (
 )
 
 type stackingHook struct {
-	records []*oddb.Record
+	records         []*oddb.Record
+	originalRecords []*oddb.Record
 }
 
-func (p *stackingHook) Func(record *oddb.Record) error {
+func (p *stackingHook) Func(record *oddb.Record, originalRecord *oddb.Record) error {
 	p.records = append(p.records, record)
+	p.originalRecords = append(p.originalRecords, originalRecord)
 	return nil
 }
 
@@ -36,34 +38,49 @@ func TestHookRegistry(t *testing.T) {
 				ID: oddb.NewRecordID("record", "id"),
 			}
 
+			originalRecord := &oddb.Record{
+				ID: record.ID,
+				Data: oddb.Data{
+					"value": "old",
+				},
+			}
+
 			Convey("for beforeSave", func() {
-				registry.ExecuteHooks(BeforeSave, record)
+				registry.ExecuteHooks(BeforeSave, record, originalRecord)
 				So(beforeSave.records, ShouldResemble, []*oddb.Record{record})
+				So(beforeSave.originalRecords, ShouldResemble, []*oddb.Record{originalRecord})
 				So(afterSave.records, ShouldBeEmpty)
+				So(afterSave.originalRecords, ShouldBeEmpty)
 				So(beforeDelete.records, ShouldBeEmpty)
 				So(afterDelete.records, ShouldBeEmpty)
 			})
 
 			Convey("for afterSave", func() {
-				registry.ExecuteHooks(AfterSave, record)
+				registry.ExecuteHooks(AfterSave, record, originalRecord)
 				So(beforeSave.records, ShouldBeEmpty)
+				So(beforeSave.originalRecords, ShouldBeEmpty)
 				So(afterSave.records, ShouldResemble, []*oddb.Record{record})
+				So(afterSave.originalRecords, ShouldResemble, []*oddb.Record{originalRecord})
 				So(beforeDelete.records, ShouldBeEmpty)
 				So(afterDelete.records, ShouldBeEmpty)
 			})
 
 			Convey("for beforeDelete", func() {
-				registry.ExecuteHooks(BeforeDelete, record)
+				registry.ExecuteHooks(BeforeDelete, record, originalRecord)
 				So(beforeSave.records, ShouldBeEmpty)
+				So(beforeSave.originalRecords, ShouldBeEmpty)
 				So(afterSave.records, ShouldBeEmpty)
+				So(afterSave.originalRecords, ShouldBeEmpty)
 				So(beforeDelete.records, ShouldResemble, []*oddb.Record{record})
 				So(afterDelete.records, ShouldBeEmpty)
 			})
 
 			Convey("for afterDelete", func() {
-				registry.ExecuteHooks(AfterDelete, record)
+				registry.ExecuteHooks(AfterDelete, record, originalRecord)
 				So(beforeSave.records, ShouldBeEmpty)
+				So(beforeSave.originalRecords, ShouldBeEmpty)
 				So(afterSave.records, ShouldBeEmpty)
+				So(afterSave.originalRecords, ShouldBeEmpty)
 				So(beforeDelete.records, ShouldBeEmpty)
 				So(afterDelete.records, ShouldResemble, []*oddb.Record{record})
 			})
@@ -78,10 +95,18 @@ func TestHookRegistry(t *testing.T) {
 			record := &oddb.Record{
 				ID: oddb.NewRecordID("note", "id"),
 			}
-			registry.ExecuteHooks(AfterSave, record)
+			originalRecord := &oddb.Record{
+				ID: record.ID,
+				Data: oddb.Data{
+					"value": "old",
+				},
+			}
+			registry.ExecuteHooks(AfterSave, record, originalRecord)
 
 			So(hook1.records, ShouldResemble, []*oddb.Record{record})
 			So(hook2.records, ShouldResemble, []*oddb.Record{record})
+			So(hook1.originalRecords, ShouldResemble, []*oddb.Record{originalRecord})
+			So(hook2.originalRecords, ShouldResemble, []*oddb.Record{originalRecord})
 		})
 
 		Convey("executes no hooks", func() {
@@ -89,13 +114,13 @@ func TestHookRegistry(t *testing.T) {
 				ID: oddb.NewRecordID("record", "id"),
 			}
 			So(func() {
-				registry.ExecuteHooks(BeforeDelete, record)
+				registry.ExecuteHooks(BeforeDelete, record, nil)
 			}, ShouldNotPanic)
 		})
 
 		Convey("panics executing nil record", func() {
 			So(func() {
-				registry.ExecuteHooks(AfterDelete, nil)
+				registry.ExecuteHooks(AfterDelete, nil, nil)
 			}, ShouldPanic)
 		})
 	})

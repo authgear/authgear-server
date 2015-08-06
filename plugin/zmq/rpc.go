@@ -24,6 +24,11 @@ type request struct {
 	Param interface{}
 }
 
+type hookRequest struct {
+	Record   interface{} `json:"record"`
+	Original interface{} `json:"original"`
+}
+
 // type-safe constructors for request.Param assignment
 
 func newLambdaRequest(name string, args json.RawMessage) *request {
@@ -34,8 +39,12 @@ func newHandlerRequest(name string, input json.RawMessage) *request {
 	return &request{Kind: "handler", Name: name, Param: input}
 }
 
-func newHookRequest(trigger string, record *oddb.Record) *request {
-	return &request{Kind: "hook", Name: trigger, Param: (*common.JSONRecord)(record)}
+func newHookRequest(trigger string, record *oddb.Record, originalRecord *oddb.Record) *request {
+	param := hookRequest{
+		Record:   (*common.JSONRecord)(record),
+		Original: (*common.JSONRecord)(originalRecord),
+	}
+	return &request{Kind: "hook", Name: trigger, Param: param}
 }
 
 func newAuthRequest(authReq *odplugin.AuthRequest) *request {
@@ -85,8 +94,8 @@ func (p zmqTransport) RunHandler(name string, in []byte) (out []byte, err error)
 	return
 }
 
-func (p zmqTransport) RunHook(recordType string, trigger string, record *oddb.Record) (*oddb.Record, error) {
-	out, err := p.rpc(newHookRequest(trigger, record))
+func (p zmqTransport) RunHook(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
+	out, err := p.rpc(newHookRequest(trigger, record, originalRecord))
 	if err != nil {
 		return nil, err
 	}

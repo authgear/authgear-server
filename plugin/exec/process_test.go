@@ -105,6 +105,21 @@ func TestRun(t *testing.T) {
 			},
 		}
 
+		recordold := oddb.Record{
+			ID:      oddb.NewRecordID("note", "id"),
+			OwnerID: "john.doe@example.com",
+			ACL: oddb.RecordACL{
+				oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
+				oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
+			},
+			Data: map[string]interface{}{
+				"content":   "original content",
+				"noteOrder": float64(1),
+				"tags":      []interface{}{},
+				"date":      time.Date(2017, 7, 21, 19, 30, 24, 0, time.UTC),
+			},
+		}
+
 		Convey("executes beforeSave correctly", func() {
 			called := false
 			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
@@ -112,31 +127,52 @@ func TestRun(t *testing.T) {
 				So(cmd.Path, ShouldEqual, "/never/invoked")
 				So(cmd.Args, ShouldResemble, []string{"/never/invoked", "hook", "note:beforeSave"})
 				So(in, ShouldEqualJSON, `{
-					"_id": "note/id",
-					"_ownerID": "john.doe@example.com",
-					"content": "some note content",
-					"noteOrder": 1,
-					"tags": ["test", "unimportant"],
-					"date": {
-						"$type": "date",
-						"$date": "2017-07-23T19:30:24Z"
+					"record": {
+						"_id": "note/id",
+						"_ownerID": "john.doe@example.com",
+						"content": "some note content",
+						"noteOrder": 1,
+						"tags": ["test", "unimportant"],
+						"date": {
+							"$type": "date",
+							"$date": "2017-07-23T19:30:24Z"
+						},
+						"ref": {
+							"$type": "ref",
+							"$id": "category/1"
+						},
+						"asset":{
+							"$type": "asset",
+							"$name": "asset-name"
+						},
+						"_access": [{
+							"relation": "friend",
+							"level": "write"
+						}, {
+							"relation": "$direct",
+							"level": "read",
+							"user_id": "user_id"
+						}]
 					},
-					"ref": {
-						"$type": "ref",
-						"$id": "category/1"
-					},
-					"asset":{
-						"$type": "asset",
-						"$name": "asset-name"
-					},
-					"_access": [{
-						"relation": "friend",
-						"level": "write"
-					}, {
-						"relation": "$direct",
-						"level": "read",
-						"user_id": "user_id"
-					}]
+					"original": {
+						"_id": "note/id",
+						"_ownerID": "john.doe@example.com",
+						"content": "original content",
+						"noteOrder": 1,
+						"tags": [],
+						"date": {
+							"$type": "date",
+							"$date": "2017-07-21T19:30:24Z"
+						},
+						"_access": [{
+							"relation": "friend",
+							"level": "write"
+						}, {
+							"relation": "$direct",
+							"level": "read",
+							"user_id": "user_id"
+						}]
+					}
 				}`)
 
 				return []byte(`{
@@ -170,7 +206,119 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook("note", "beforeSave", &recordin)
+			recordout, err := transport.RunHook("note", "beforeSave", &recordin, &recordold)
+			So(err, ShouldBeNil)
+			So(called, ShouldBeTrue)
+
+			datein := recordin.Data["date"].(time.Time)
+			delete(recordin.Data, "date")
+			So(recordin, ShouldResemble, oddb.Record{
+				ID:      oddb.NewRecordID("note", "id"),
+				OwnerID: "john.doe@example.com",
+				ACL: oddb.RecordACL{
+					oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
+					oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
+				},
+				Data: map[string]interface{}{
+					"content":   "some note content",
+					"noteOrder": float64(1),
+					"tags":      []interface{}{"test", "unimportant"},
+					"ref":       oddb.NewReference("category", "1"),
+					"asset":     oddb.Asset{Name: "asset-name"},
+				},
+			})
+			// GoConvey's bug, ShouldEqual and ShouldResemble doesn't work on time.Time
+			So(datein == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
+
+			dateout := recordout.Data["date"].(time.Time)
+			delete(recordout.Data, "date")
+			So(*recordout, ShouldResemble, oddb.Record{
+				ID:      oddb.NewRecordID("note", "id"),
+				OwnerID: "john.doe@example.com",
+				ACL: oddb.RecordACL{
+					oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
+					oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
+				},
+				Data: map[string]interface{}{
+					"content":   "content has been modified",
+					"noteOrder": float64(1),
+					"tags":      []interface{}{"test", "unimportant"},
+					"ref":       oddb.NewReference("category", "1"),
+					"asset":     oddb.Asset{Name: "asset-name"},
+				},
+			})
+			So(dateout == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
+		})
+
+		Convey("executes beforeSave with original", func() {
+			called := false
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				called = true
+				So(cmd.Path, ShouldEqual, "/never/invoked")
+				So(cmd.Args, ShouldResemble, []string{"/never/invoked", "hook", "note:beforeSave"})
+				So(in, ShouldEqualJSON, `{
+					"record": {
+						"_id": "note/id",
+						"_ownerID": "john.doe@example.com",
+						"content": "some note content",
+						"noteOrder": 1,
+						"tags": ["test", "unimportant"],
+						"date": {
+							"$type": "date",
+							"$date": "2017-07-23T19:30:24Z"
+						},
+						"ref": {
+							"$type": "ref",
+							"$id": "category/1"
+						},
+						"asset":{
+							"$type": "asset",
+							"$name": "asset-name"
+						},
+						"_access": [{
+							"relation": "friend",
+							"level": "write"
+						}, {
+							"relation": "$direct",
+							"level": "read",
+							"user_id": "user_id"
+						}]
+					},
+					"original": null
+				}`)
+
+				return []byte(`{
+					"result": {
+						"_id": "note/id",
+						"_ownerID": "john.doe@example.com",
+						"content": "content has been modified",
+						"noteOrder": 1,
+						"tags": ["test", "unimportant"],
+						"date": {
+							"$type": "date",
+							"$date": "2017-07-23T19:30:24Z"
+						},
+						"ref": {
+							"$type": "ref",
+							"$id": "category/1"
+						},
+						"asset":{
+							"$type": "asset",
+							"$name": "asset-name"
+						},
+						"_access": [{
+							"relation": "friend",
+							"level": "write"
+						}, {
+							"relation": "$direct",
+							"level": "read",
+							"user_id": "user_id"
+						}]
+					}
+				}`), nil
+			}
+
+			recordout, err := transport.RunHook("note", "beforeSave", &recordin, nil)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 
@@ -226,9 +374,12 @@ func TestRun(t *testing.T) {
 			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
 				called = true
 				So(string(in), ShouldEqualJSON, `{
-					"_id": "note/id",
-					"_ownerID": "john.doe@example.com",
-					"_access": null
+					"record": {
+						"_id": "note/id",
+						"_ownerID": "john.doe@example.com",
+						"_access": null
+					},
+					"original": null
 				}`)
 				return []byte(`{
 					"result": {
@@ -239,7 +390,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook("note", "beforeSave", &recordin)
+			recordout, err := transport.RunHook("note", "beforeSave", &recordin, nil)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 			So(*recordout, ShouldResemble, recordin)
@@ -250,7 +401,7 @@ func TestRun(t *testing.T) {
 				return nil, errors.New("worrying error")
 			}
 
-			recordout, err := transport.RunHook("note", "afterSave", &recordin)
+			recordout, err := transport.RunHook("note", "afterSave", &recordin, nil)
 			So(err.Error(), ShouldEqual, "run note:afterSave: worrying error")
 			So(recordout, ShouldBeNil)
 		})
@@ -260,7 +411,7 @@ func TestRun(t *testing.T) {
 				return []byte("I am not a json"), nil
 			}
 
-			recordout, err := transport.RunHook("note", "afterSave", &recordin)
+			recordout, err := transport.RunHook("note", "afterSave", &recordin, nil)
 			So(err.Error(), ShouldEqual, "run note:afterSave: failed to parse response: invalid character 'I' looking for beginning of value")
 			So(recordout, ShouldBeNil)
 		})
@@ -278,7 +429,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook("note", "afterSave", &recordin)
+			recordout, err := transport.RunHook("note", "afterSave", &recordin, nil)
 			So(err.Error(), ShouldEqual, `run note:afterSave: StrongError
 Too strong to lift a feather`)
 			So(recordout, ShouldBeNil)

@@ -420,7 +420,8 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	// execute before save hooks
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-			err = req.HookRegistry.ExecuteHooks(hook.BeforeSave, record)
+			originalRecord, _ := originalRecordMap[record.ID]
+			err = req.HookRegistry.ExecuteHooks(hook.BeforeSave, record, originalRecord)
 			return
 		})
 	}
@@ -450,7 +451,8 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	// execute after save hooks
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-			req.HookRegistry.ExecuteHooks(hook.AfterSave, record)
+			originalRecord, _ := originalRecordMap[record.ID]
+			req.HookRegistry.ExecuteHooks(hook.AfterSave, record, originalRecord)
 			return
 		})
 	}
@@ -1089,7 +1091,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) e
 
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-			err = req.HookRegistry.ExecuteHooks(hook.BeforeDelete, record)
+			err = req.HookRegistry.ExecuteHooks(hook.BeforeDelete, record, nil)
 			return
 		})
 	}
@@ -1104,7 +1106,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) e
 
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-			req.HookRegistry.ExecuteHooks(hook.AfterDelete, record)
+			req.HookRegistry.ExecuteHooks(hook.AfterDelete, record, nil)
 			return
 		})
 	}

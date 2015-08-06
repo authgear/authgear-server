@@ -10,12 +10,12 @@ import (
 )
 
 type hookOnlyTransport struct {
-	RunHookFunc func(string, string, *oddb.Record) (*oddb.Record, error)
+	RunHookFunc func(string, string, *oddb.Record, *oddb.Record) (*oddb.Record, error)
 	Transport
 }
 
-func (t *hookOnlyTransport) RunHook(recordType string, trigger string, record *oddb.Record) (*oddb.Record, error) {
-	return t.RunHookFunc(recordType, trigger, record)
+func (t *hookOnlyTransport) RunHook(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
+	return t.RunHookFunc(recordType, trigger, record, originalRecord)
 }
 
 func TestCreateHookFunc(t *testing.T) {
@@ -26,6 +26,9 @@ func TestCreateHookFunc(t *testing.T) {
 		recordin := oddb.Record{
 			ID: oddb.NewRecordID("note", "id"),
 		}
+		originalRecord := oddb.Record{
+			ID: recordin.ID,
+		}
 
 		Convey("synced before save", func() {
 			hookFunc := CreateHookFunc(&plugin, pluginHookInfo{
@@ -35,7 +38,7 @@ func TestCreateHookFunc(t *testing.T) {
 			})
 
 			called := false
-			transport.RunHookFunc = func(recordType string, trigger string, record *oddb.Record) (*oddb.Record, error) {
+			transport.RunHookFunc = func(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
 				called = true
 				So(recordType, ShouldEqual, "note")
 				So(trigger, ShouldEqual, "beforeSave")
@@ -46,7 +49,7 @@ func TestCreateHookFunc(t *testing.T) {
 				return &oddb.Record{ID: oddb.NewRecordID("note", "modifiedid")}, nil
 			}
 
-			err := hookFunc(&recordin)
+			err := hookFunc(&recordin, &originalRecord)
 			So(called, ShouldBeTrue)
 			So(err, ShouldBeNil)
 			So(recordin, ShouldResemble, oddb.Record{
@@ -61,11 +64,11 @@ func TestCreateHookFunc(t *testing.T) {
 				Type:    "note",
 			})
 
-			transport.RunHookFunc = func(recordType string, trigger string, record *oddb.Record) (*oddb.Record, error) {
+			transport.RunHookFunc = func(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
 				return nil, errors.New("exit status 1")
 			}
 
-			err := hookFunc(&recordin)
+			err := hookFunc(&recordin, &originalRecord)
 			So(err.Error(), ShouldEqual, "exit status 1")
 			So(recordin, ShouldResemble, oddb.Record{
 				ID: oddb.NewRecordID("note", "id"),
@@ -80,7 +83,7 @@ func TestCreateHookFunc(t *testing.T) {
 			})
 
 			called := false
-			transport.RunHookFunc = func(recordType string, trigger string, record *oddb.Record) (*oddb.Record, error) {
+			transport.RunHookFunc = func(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
 				called = true
 				So(recordType, ShouldEqual, "note")
 				So(trigger, ShouldEqual, "afterSave")
@@ -91,7 +94,7 @@ func TestCreateHookFunc(t *testing.T) {
 				return &oddb.Record{ID: oddb.NewRecordID("note", "modifiedid")}, nil
 			}
 
-			err := hookFunc(&recordin)
+			err := hookFunc(&recordin, &originalRecord)
 			So(called, ShouldBeTrue)
 			So(err, ShouldBeNil)
 			So(recordin, ShouldResemble, oddb.Record{
