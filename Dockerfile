@@ -12,6 +12,10 @@ RUN mkdir -p /go/src/app
 WORKDIR /go/src/app
 
 COPY . /go/src/app
+
+RUN go get github.com/tools/godep
+RUN $GOPATH/bin/godep restore
+
 RUN go-wrapper download
 RUN go-wrapper install
 
