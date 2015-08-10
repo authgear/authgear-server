@@ -535,9 +535,9 @@ func (db *database) selectQuery(recordType string, typemap oddb.RecordSchema) sq
 	return q
 }
 
-// SELECT column_name, data_type FROM information_schema.columns
-// WHERE table_schema = 'app__' AND table_name = 'note';
-// Example for fk
+// STEP 1 & 2 are obtained by reverse engineering psql \d with -E option
+//
+// STEP 3: example of getting foreign keys
 // SELECT
 //     tc.table_name, kcu.column_name,
 //     ccu.table_name AS foreign_table_name,
@@ -552,18 +552,43 @@ func (db *database) selectQuery(recordType string, typemap oddb.RecordSchema) sq
 // AND tc.table_schema = 'app__'
 // AND tc.table_name = 'note';
 func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, error) {
-	builder := psql.Select("column_name", "data_type").
-		From("information_schema.columns").
-		Where("table_schema = ? AND table_name = ?", db.schemaName(), recordType)
+	// STEP 1: Get the oid of the current table
+	var oid int
+	err := db.Db.QueryRowx(`
+SELECT c.oid
+FROM pg_catalog.pg_class c
+     LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+WHERE c.relname = $1
+  AND n.nspname = $2`,
+		recordType, db.schemaName()).Scan(&oid)
 
-	rows, err := queryWith(db.Db, builder)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
 	if err != nil {
-		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
+			"schemaName": db.schemaName(),
 			"recordType": recordType,
-			"sql":        sql,
-			"args":       args,
-		}).Errorln("Failed to query column's information schema")
+			"err":        err,
+		}).Errorln("Failed to query oid of table")
+		return nil, err
+	}
+
+	// STEP 2: Get column name and data type
+	rows, err := db.Db.Queryx(`
+SELECT a.attname,
+  pg_catalog.format_type(a.atttypid, a.atttypmod)
+FROM pg_catalog.pg_attribute a
+WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
+		oid)
+
+	if err != nil {
+		log.WithFields(log.Fields{
+			"schemaName": db.schemaName(),
+			"recordType": recordType,
+			"oid":        oid,
+			"err":        err,
+		}).Errorln("Failed to query column and data type")
 		return nil, err
 	}
 
@@ -598,8 +623,8 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 		typemap[columnName] = schema
 	}
 
-	// FOREIGN KEY, assumeing we can only reference _id i.e. "ccu.column_name" = _id
-	builder = psql.Select("kcu.column_name", "ccu.table_name").
+	// STEP 3: FOREIGN KEY, assumeing we can only reference _id i.e. "ccu.column_name" = _id
+	builder := psql.Select("kcu.column_name", "ccu.table_name").
 		From("information_schema.table_constraints AS tc").
 		Join("information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name").
 		Join("information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name").
@@ -607,11 +632,9 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 
 	refs, err := queryWith(db.Db, builder)
 	if err != nil {
-		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
+			"schemaName": db.schemaName(),
 			"recordType": recordType,
-			"sql":        sql,
-			"args":       args,
 			"err":        err,
 		}).Errorln("Failed to query foreign key information schema")
 
