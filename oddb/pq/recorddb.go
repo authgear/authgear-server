@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,8 +15,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
-
 	"github.com/oursky/ourd/oddb"
+	"github.com/paulmach/go.geo"
 )
 
 // This file implements Record related operations of the
@@ -30,6 +31,7 @@ const (
 	TypeBoolean   = "boolean"
 	TypeJSON      = "jsonb"
 	TypeTimestamp = "timestamp without time zone"
+	TypeLocation  = "geometry(Point)"
 )
 
 type nullJSON struct {
@@ -82,6 +84,36 @@ func (na *nullAsset) Scan(value interface{}) error {
 	return nil
 }
 
+type nullLocation struct {
+	Location oddb.Location
+	Valid    bool
+}
+
+func (nl *nullLocation) Scan(value interface{}) error {
+	if value == nil {
+		nl.Location = oddb.Location{}
+		nl.Valid = false
+		return nil
+	}
+
+	src, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to scan Location: got type(value) = %T, expect []byte", value)
+	}
+
+	// TODO(limouren): instead of decoding a str-encoded hex, we should utilize
+	// ST_AsBinary to perform the SELECT
+	decoded := make([]byte, hex.DecodedLen(len(src)))
+	_, err := hex.Decode(decoded, src)
+	if err != nil {
+		return fmt.Errorf("failed to scan Location: malformed wkb")
+	}
+
+	err = (*geo.Point)(&nl.Location).Scan(decoded)
+	nl.Valid = err == nil
+	return err
+}
+
 type referenceValue oddb.Reference
 
 func (ref referenceValue) Value() (driver.Value, error) {
@@ -104,6 +136,12 @@ type aclValue oddb.RecordACL
 
 func (acl aclValue) Value() (driver.Value, error) {
 	return json.Marshal(acl)
+}
+
+type locationValue oddb.Location
+
+func (loc *locationValue) Value() (driver.Value, error) {
+	return (*geo.Point)(loc).ToWKT(), nil
 }
 
 func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
@@ -174,8 +212,6 @@ func convert(r *oddb.Record) map[string]interface{} {
 	m := map[string]interface{}{}
 	for key, rawValue := range r.Data {
 		switch value := rawValue.(type) {
-		default:
-			m[key] = rawValue
 		case []interface{}:
 			m[key] = jsonSliceValue(value)
 		case map[string]interface{}:
@@ -184,6 +220,10 @@ func convert(r *oddb.Record) map[string]interface{} {
 			m[key] = assetValue(value)
 		case oddb.Reference:
 			m[key] = referenceValue(value)
+		case *oddb.Location:
+			m[key] = (*locationValue)(value)
+		default:
+			m[key] = rawValue
 		}
 	}
 	m["_owner_id"] = r.OwnerID
@@ -416,8 +456,6 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 			return fmt.Errorf("received unknown column = %s", column)
 		}
 		switch schema.Type {
-		default:
-			return fmt.Errorf("received unknown data type = %v for column = %s", schema.Type, column)
 		case oddb.TypeNumber:
 			var number sql.NullFloat64
 			values = append(values, &number)
@@ -436,6 +474,11 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case oddb.TypeJSON:
 			var j nullJSON
 			values = append(values, &j)
+		case oddb.TypeLocation:
+			var l nullLocation
+			values = append(values, &l)
+		default:
+			return fmt.Errorf("received unknown data type = %v for column = %s", schema.Type, column)
 		}
 	}
 
@@ -484,6 +527,10 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case *nullJSON:
 			if svalue.Valid {
 				record.Set(column, svalue.JSON)
+			}
+		case *nullLocation:
+			if svalue.Valid {
+				record.Set(column, &svalue.Location)
 			}
 		}
 	}
@@ -602,8 +649,6 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 
 		schema := oddb.FieldType{}
 		switch pqType {
-		default:
-			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
 		case TypeString:
 			schema.Type = oddb.TypeString
 		case TypeNumber:
@@ -618,6 +663,10 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 			} else {
 				schema.Type = oddb.TypeJSON
 			}
+		case TypeLocation:
+			schema.Type = oddb.TypeLocation
+		default:
+			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
 		}
 
 		typemap[columnName] = schema
@@ -788,5 +837,7 @@ func pqDataType(dataType oddb.DataType) string {
 		return TypeBoolean
 	case oddb.TypeJSON:
 		return TypeJSON
+	case oddb.TypeLocation:
+		return TypeLocation
 	}
 }
