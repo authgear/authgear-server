@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"database/sql/driver"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,8 +15,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
-
 	"github.com/oursky/ourd/oddb"
+	"github.com/paulmach/go.geo"
 )
 
 // This file implements Record related operations of the
@@ -30,6 +31,7 @@ const (
 	TypeBoolean   = "boolean"
 	TypeJSON      = "jsonb"
 	TypeTimestamp = "timestamp without time zone"
+	TypeLocation  = "geometry(Point)"
 )
 
 type nullJSON struct {
@@ -82,6 +84,36 @@ func (na *nullAsset) Scan(value interface{}) error {
 	return nil
 }
 
+type nullLocation struct {
+	Location oddb.Location
+	Valid    bool
+}
+
+func (nl *nullLocation) Scan(value interface{}) error {
+	if value == nil {
+		nl.Location = oddb.Location{}
+		nl.Valid = false
+		return nil
+	}
+
+	src, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to scan Location: got type(value) = %T, expect []byte", value)
+	}
+
+	// TODO(limouren): instead of decoding a str-encoded hex, we should utilize
+	// ST_AsBinary to perform the SELECT
+	decoded := make([]byte, hex.DecodedLen(len(src)))
+	_, err := hex.Decode(decoded, src)
+	if err != nil {
+		return fmt.Errorf("failed to scan Location: malformed wkb")
+	}
+
+	err = (*geo.Point)(&nl.Location).Scan(decoded)
+	nl.Valid = err == nil
+	return err
+}
+
 type referenceValue oddb.Reference
 
 func (ref referenceValue) Value() (driver.Value, error) {
@@ -104,6 +136,12 @@ type aclValue oddb.RecordACL
 
 func (acl aclValue) Value() (driver.Value, error) {
 	return json.Marshal(acl)
+}
+
+type locationValue oddb.Location
+
+func (loc *locationValue) Value() (driver.Value, error) {
+	return (*geo.Point)(loc).ToWKT(), nil
 }
 
 func (db *database) Get(id oddb.RecordID, record *oddb.Record) error {
@@ -174,8 +212,6 @@ func convert(r *oddb.Record) map[string]interface{} {
 	m := map[string]interface{}{}
 	for key, rawValue := range r.Data {
 		switch value := rawValue.(type) {
-		default:
-			m[key] = rawValue
 		case []interface{}:
 			m[key] = jsonSliceValue(value)
 		case map[string]interface{}:
@@ -184,6 +220,10 @@ func convert(r *oddb.Record) map[string]interface{} {
 			m[key] = assetValue(value)
 		case oddb.Reference:
 			m[key] = referenceValue(value)
+		case *oddb.Location:
+			m[key] = (*locationValue)(value)
+		default:
+			m[key] = rawValue
 		}
 	}
 	m["_owner_id"] = r.OwnerID
@@ -416,8 +456,6 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 			return fmt.Errorf("received unknown column = %s", column)
 		}
 		switch schema.Type {
-		default:
-			return fmt.Errorf("received unknown data type = %v for column = %s", schema.Type, column)
 		case oddb.TypeNumber:
 			var number sql.NullFloat64
 			values = append(values, &number)
@@ -436,6 +474,11 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case oddb.TypeJSON:
 			var j nullJSON
 			values = append(values, &j)
+		case oddb.TypeLocation:
+			var l nullLocation
+			values = append(values, &l)
+		default:
+			return fmt.Errorf("received unknown data type = %v for column = %s", schema.Type, column)
 		}
 	}
 
@@ -484,6 +527,10 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 		case *nullJSON:
 			if svalue.Valid {
 				record.Set(column, svalue.JSON)
+			}
+		case *nullLocation:
+			if svalue.Valid {
+				record.Set(column, &svalue.Location)
 			}
 		}
 	}
@@ -535,9 +582,9 @@ func (db *database) selectQuery(recordType string, typemap oddb.RecordSchema) sq
 	return q
 }
 
-// SELECT column_name, data_type FROM information_schema.columns
-// WHERE table_schema = 'app__' AND table_name = 'note';
-// Example for fk
+// STEP 1 & 2 are obtained by reverse engineering psql \d with -E option
+//
+// STEP 3: example of getting foreign keys
 // SELECT
 //     tc.table_name, kcu.column_name,
 //     ccu.table_name AS foreign_table_name,
@@ -552,18 +599,43 @@ func (db *database) selectQuery(recordType string, typemap oddb.RecordSchema) sq
 // AND tc.table_schema = 'app__'
 // AND tc.table_name = 'note';
 func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, error) {
-	builder := psql.Select("column_name", "data_type").
-		From("information_schema.columns").
-		Where("table_schema = ? AND table_name = ?", db.schemaName(), recordType)
+	// STEP 1: Get the oid of the current table
+	var oid int
+	err := db.Db.QueryRowx(`
+SELECT c.oid
+FROM pg_catalog.pg_class c
+     LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+WHERE c.relname = $1
+  AND n.nspname = $2`,
+		recordType, db.schemaName()).Scan(&oid)
 
-	rows, err := queryWith(db.Db, builder)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
 	if err != nil {
-		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
+			"schemaName": db.schemaName(),
 			"recordType": recordType,
-			"sql":        sql,
-			"args":       args,
-		}).Errorln("Failed to query column's information schema")
+			"err":        err,
+		}).Errorln("Failed to query oid of table")
+		return nil, err
+	}
+
+	// STEP 2: Get column name and data type
+	rows, err := db.Db.Queryx(`
+SELECT a.attname,
+  pg_catalog.format_type(a.atttypid, a.atttypmod)
+FROM pg_catalog.pg_attribute a
+WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
+		oid)
+
+	if err != nil {
+		log.WithFields(log.Fields{
+			"schemaName": db.schemaName(),
+			"recordType": recordType,
+			"oid":        oid,
+			"err":        err,
+		}).Errorln("Failed to query column and data type")
 		return nil, err
 	}
 
@@ -577,8 +649,6 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 
 		schema := oddb.FieldType{}
 		switch pqType {
-		default:
-			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
 		case TypeString:
 			schema.Type = oddb.TypeString
 		case TypeNumber:
@@ -593,13 +663,17 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 			} else {
 				schema.Type = oddb.TypeJSON
 			}
+		case TypeLocation:
+			schema.Type = oddb.TypeLocation
+		default:
+			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
 		}
 
 		typemap[columnName] = schema
 	}
 
-	// FOREIGN KEY, assumeing we can only reference _id i.e. "ccu.column_name" = _id
-	builder = psql.Select("kcu.column_name", "ccu.table_name").
+	// STEP 3: FOREIGN KEY, assumeing we can only reference _id i.e. "ccu.column_name" = _id
+	builder := psql.Select("kcu.column_name", "ccu.table_name").
 		From("information_schema.table_constraints AS tc").
 		Join("information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name").
 		Join("information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name").
@@ -607,11 +681,9 @@ func (db *database) remoteColumnTypes(recordType string) (oddb.RecordSchema, err
 
 	refs, err := queryWith(db.Db, builder)
 	if err != nil {
-		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
+			"schemaName": db.schemaName(),
 			"recordType": recordType,
-			"sql":        sql,
-			"args":       args,
 			"err":        err,
 		}).Errorln("Failed to query foreign key information schema")
 
@@ -765,5 +837,7 @@ func pqDataType(dataType oddb.DataType) string {
 		return TypeBoolean
 	case oddb.TypeJSON:
 		return TypeJSON
+	case oddb.TypeLocation:
+		return TypeLocation
 	}
 }

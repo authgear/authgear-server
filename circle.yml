@@ -36,3 +36,4 @@ test:
 database:
   post:
     - psql -c 'CREATE DATABASE ourd_test;' -U ubuntu
+    - psql -c 'CREATE EXTENSION postgis;' -U postgres -d ourd_test

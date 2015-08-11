@@ -164,6 +164,43 @@ func (reference *Reference) Type() string {
 	return reference.ID.Type
 }
 
+// Location represent a point of geometry.
+//
+// It being an array of two floats is intended to provide no-copy conversion
+// between paulmach/go.geo.Point.
+type Location [2]float64
+
+// NewLocation returns a new Location
+func NewLocation(lng, lat float64) *Location {
+	return &Location{lng, lat}
+}
+
+// Lng returns the longitude
+func (loc *Location) Lng() float64 {
+	return loc[0]
+}
+
+// SetLng sets the longitude
+func (loc *Location) SetLng(lng float64) {
+	loc[0] = lng
+}
+
+// Lat returns the Latitude
+func (loc *Location) Lat() float64 {
+	return loc[1]
+}
+
+// SetLat sets the Latitude
+func (loc *Location) SetLat(lat float64) {
+	loc[1] = lat
+}
+
+// String returns a human-readable representation of this Location.
+// Coincidentally it is in WKT.
+func (loc Location) String() string {
+	return fmt.Sprintf("POINT(%g %g)", loc[0], loc[1])
+}
+
 // A Data represents a key-value object used for storing ODRecord.
 type Data map[string]interface{}
 
@@ -247,7 +284,7 @@ const (
 	TypeBoolean
 	TypeJSON
 	TypeReference
-	TypeLocation // not implemented
+	TypeLocation
 	TypeDateTime
 	TypeAsset
 	TypeACL

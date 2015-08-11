@@ -65,3 +65,27 @@ Let's say we are running ourd under the user account named `oduser`
     ourd      | goconvey | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
     ```
 8. Done!
+
+## PostGIS
+
+Ourd uses PostGIS extension to handle geometry stroage and query.
+
+*To install:*
+
+### Mac OS X
+
+```shell
+$ brew install postgis
+```
+
+### Deb
+
+```shell
+$ sudo apt-get postgis-2.1
+```
+
+*To Enable:*
+
+```shell
+$ psql -c 'CREATE EXTENSION postgis;' -d ourd
+```

@@ -518,6 +518,13 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
+		Convey("creates table with location", func() {
+			err := db.Extend("photo", oddb.RecordSchema{
+				"location": oddb.FieldType{Type: oddb.TypeLocation},
+			})
+			So(err, ShouldBeNil)
+		})
+
 		Convey("error if creates table with reference not exist", func() {
 			err := db.Extend("note", oddb.RecordSchema{
 				"content": oddb.FieldType{Type: oddb.TypeString},
@@ -863,6 +870,41 @@ func TestRecordAssetField(t *testing.T) {
 				OwnerID: "user_id",
 			})
 			So(err, ShouldNotBeNil)
+		})
+	})
+}
+
+func TestRecordLocationField(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		db := c.PublicDB()
+		So(db.Extend("photo", oddb.RecordSchema{
+			"location": oddb.FieldType{Type: oddb.TypeLocation},
+		}), ShouldBeNil)
+
+		Convey("saves & load location field", func() {
+			err := db.Save(&oddb.Record{
+				ID: oddb.NewRecordID("photo", "1"),
+				Data: map[string]interface{}{
+					"location": oddb.NewLocation(1, 2),
+				},
+				OwnerID: "userid",
+			})
+
+			So(err, ShouldBeNil)
+
+			record := oddb.Record{}
+			err = db.Get(oddb.NewRecordID("photo", "1"), &record)
+			So(err, ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
+				ID: oddb.NewRecordID("photo", "1"),
+				Data: map[string]interface{}{
+					"location": oddb.NewLocation(1, 2),
+				},
+				OwnerID: "userid",
+			})
 		})
 	})
 }

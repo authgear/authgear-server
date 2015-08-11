@@ -316,6 +316,33 @@ func TestRecordSaveDataType(t *testing.T) {
 				},
 			})
 		})
+
+		Convey("Parses Location", func() {
+			resp := r.POST(`{
+	"records": [{
+		"_id": "type1/id1",
+		"geo": {"$type": "geo", "$lng": 1, "$lat": 2}
+	}]
+}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": [{
+		"_id": "type1/id1",
+		"_type": "record",
+		"_access": null,
+		"geo": {"$type": "geo", "$lng": 1, "$lat": 2}
+	}]
+}`)
+
+			record := oddb.Record{}
+			So(db.Get(oddb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
+				ID: oddb.NewRecordID("type1", "id1"),
+				Data: map[string]interface{}{
+					"geo": oddb.NewLocation(1, 2),
+				},
+			})
+		})
 	})
 }
 

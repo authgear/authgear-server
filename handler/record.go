@@ -38,6 +38,8 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 			m[key] = oddbconv.ToMap(oddbconv.MapTime(v))
 		case oddb.Reference:
 			m[key] = oddbconv.ToMap(oddbconv.MapReference(v))
+		case *oddb.Location:
+			m[key] = oddbconv.ToMap((*oddbconv.MapLocation)(v))
 		case oddb.Asset:
 			// TODO: refactor out this if. We know whether we are
 			// injected an asset store at the start of handler
@@ -615,6 +617,10 @@ func deriveRecordSchema(m oddb.Data) oddb.RecordSchema {
 			schema[key] = oddb.FieldType{
 				Type:          oddb.TypeReference,
 				ReferenceType: v.Type(),
+			}
+		case *oddb.Location:
+			schema[key] = oddb.FieldType{
+				Type: oddb.TypeLocation,
 			}
 		case map[string]interface{}, []interface{}:
 			schema[key] = oddb.FieldType{

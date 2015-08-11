@@ -139,6 +139,46 @@ func (ref MapReference) ToMap(m map[string]interface{}) {
 	m["$id"] = ref.ID
 }
 
+// MapLocation is oddb.Location that can be converted from and to a map.
+type MapLocation oddb.Location
+
+// FromMap implements FromMapper
+func (loc *MapLocation) FromMap(m map[string]interface{}) error {
+	getFloat := func(m map[string]interface{}, key string) (float64, error) {
+		i, ok := m[key]
+		if !ok {
+			return 0, fmt.Errorf("missing compulsory field %s", key)
+		}
+
+		f, ok := i.(float64)
+		if !ok {
+			return 0, fmt.Errorf("got type(%s) = %T, want number", key, i)
+		}
+
+		return f, nil
+	}
+
+	lng, err := getFloat(m, "$lng")
+	if err != nil {
+		return err
+	}
+
+	lat, err := getFloat(m, "$lat")
+	if err != nil {
+		return err
+	}
+
+	*loc = MapLocation{lng, lat}
+	return nil
+}
+
+// ToMap implements ToMapper
+func (loc *MapLocation) ToMap(m map[string]interface{}) {
+	m["$type"] = "geo"
+	m["$lng"] = loc[0]
+	m["$lat"] = loc[1]
+}
+
 func walkData(m map[string]interface{}) (mapReturned map[string]interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -197,7 +237,7 @@ func ParseInterface(i interface{}) interface{} {
 		switch kind {
 		case "keypath":
 			panic(fmt.Errorf("unsupported $type of persistence = %s", kind))
-		case "geo", "blob":
+		case "blob":
 			panic(fmt.Errorf("unimplemented $type = %s", kind))
 		case "asset":
 			var asset oddb.Asset
@@ -211,6 +251,10 @@ func ParseInterface(i interface{}) interface{} {
 			var t time.Time
 			mapFromOrPanic((*MapTime)(&t), value)
 			return t
+		case "geo":
+			var loc oddb.Location
+			mapFromOrPanic((*MapLocation)(&loc), value)
+			return &loc
 		default:
 			panic(fmt.Errorf("unknown $type = %s", kind))
 		}

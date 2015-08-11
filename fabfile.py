@@ -53,7 +53,9 @@ def start_db():
     run('''docker run --name ourpg \
 -v /home/ourd/pgdata:/var/lib/postgresql/data \
 -p 5432:5432 \
--d postgres''')
+-d mdillon/postgis:9.4''')
+    run('''docker exec -it ourpg \
+psql -U postgres --dbname postgres --command 'CREATE EXTENSION postgis;' ''')
 
 
 def start_nginx():
