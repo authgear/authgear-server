@@ -23,6 +23,7 @@ before_install:
 
 before_script:
   - psql -c 'CREATE DATABASE ourd_test;' -U postgres
+  - psql -c 'CREATE EXTENSION postgis;' -U postgres -d ourd_test
 
 script:
   - golint ./...

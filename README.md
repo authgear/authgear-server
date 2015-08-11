@@ -29,6 +29,10 @@ You may refer to .travis.yml
 
 #### Prepare the testing DB
 1. Create test DB `ourd_test` on local PostgreSQL
+1. Enable PostGIS on `ourd_test`.
+   ```shell
+   $ psql -c 'CREATE EXTENSION postgis;' -d ourd_test
+   ```
 1. Test case assume the 127.0.0.1 have access to ourd_test, please add following to pg_hba.conf
 
 > host    all             all             127.0.0.1/32            trust
