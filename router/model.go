@@ -10,6 +10,7 @@ import (
 	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/provider"
+	"github.com/oursky/ourd/push"
 )
 
 // Payload is for passing payload to the actual handler
@@ -36,6 +37,8 @@ type Payload struct {
 
 	DBConn   oddb.Conn
 	Database oddb.Database
+
+	NotificationSender *push.APNSPusher
 }
 
 func (p *Payload) NewPayload(req *http.Request) *Payload {

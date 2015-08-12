@@ -119,6 +119,10 @@ func main() {
 		return
 	}
 
+	notificationPreprocessor := notificationPreprocessor{
+		NotificationSender: nil,
+	}
+
 	if config.Subscription.Enabled {
 		var gateway string
 		switch config.APNS.Env {
@@ -146,6 +150,8 @@ func main() {
 		}
 		go subscriptionService.Init().Listen()
 		log.Infoln("Subscription Service listening...")
+
+		notificationPreprocessor.NotificationSender = pushSender
 	}
 
 	// Setup Logging
@@ -310,6 +316,16 @@ func main() {
 		injectDatabase,
 		requireUserForWrite,
 	)
+
+	notificationPreprocessors := []router.Processor{
+		naiveAPIKeyPreprocessor.Preprocess,
+		fileSystemConnPreprocessor.Preprocess,
+		injectDatabase,
+		notificationPreprocessor.Preprocess,
+	}
+
+	r.Map("push:user", handler.PushToUserHandler, notificationPreprocessors...)
+	r.Map("push:device", handler.PushToDeviceHandler, notificationPreprocessors...)
 
 	plugins := []plugin.Plugin{}
 	for _, pluginConfig := range config.Plugin {
