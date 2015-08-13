@@ -97,6 +97,11 @@ func (conn *MapConn) GetDevice(id string, device *oddb.Device) error {
 	panic("not implemented")
 }
 
+// QueryDevicesByUser is not implemented.
+func (conn *MapConn) QueryDevicesByUser(user string) ([]oddb.Device, error) {
+	panic("not implemented")
+}
+
 // SaveDevice is not implemented.
 func (conn *MapConn) SaveDevice(device *oddb.Device) error {
 	panic("not implemented")

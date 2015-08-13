@@ -108,6 +108,10 @@ func (conn *fileConn) GetDevice(id string, device *oddb.Device) error {
 	return conn.deviceDB.Get(id, device)
 }
 
+func (conn *fileConn) QueryDevicesByUser(user string) ([]oddb.Device, error) {
+	return conn.deviceDB.Query(user)
+}
+
 func (conn *fileConn) SaveDevice(device *oddb.Device) error {
 	return conn.deviceDB.Save(device)
 }

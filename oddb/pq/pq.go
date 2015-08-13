@@ -431,6 +431,35 @@ func (c *conn) GetDevice(id string, device *oddb.Device) error {
 	return nil
 }
 
+func (c *conn) QueryDevicesByUser(user string) ([]oddb.Device, error) {
+	builder := psql.Select("id", "type", "token", "user_id").
+		From(c.tableName("_device")).
+		Where("user_id = ?", user)
+
+	rows, err := queryWith(c.Db, builder)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"sql": builder,
+			"err": err,
+		}).Debugln("Failed to query device table")
+		panic(err)
+	}
+	defer rows.Close()
+	results := []oddb.Device{}
+	for rows.Next() {
+		device := oddb.Device{}
+		if err := rows.Scan(&device.ID, &device.Type, &device.Token, &device.UserInfoID); err != nil {
+			panic(err)
+		}
+		results = append(results, device)
+	}
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	return results, nil
+}
+
 func (c *conn) SaveDevice(device *oddb.Device) error {
 	if device.ID == "" || device.Token == "" || device.Type == "" || device.UserInfoID == "" {
 		return errors.New("invalid device: empty id or token or type or user id")

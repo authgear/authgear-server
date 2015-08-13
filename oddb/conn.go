@@ -71,6 +71,10 @@ type Conn interface {
 	RemoveRelation(user string, name string, targetUser string) error
 
 	GetDevice(id string, device *Device) error
+
+	// QueryDevicesByUser queries the Device database which are registered
+	// by the specified user.
+	QueryDevicesByUser(user string) ([]Device, error)
 	SaveDevice(device *Device) error
 	DeleteDevice(id string) error
 
