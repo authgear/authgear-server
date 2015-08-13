@@ -71,6 +71,9 @@ func (s *Service) handleRecordHook(db oddb.Database, record *oddb.Record) {
 		}
 
 		customMap := map[string]interface{}{
+			"aps": map[string]interface{}{
+				"content_available": 1,
+			},
 			"_ourd": map[string]interface{}{
 				"subscription-id": subscription.ID,
 			},
