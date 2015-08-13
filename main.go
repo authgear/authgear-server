@@ -21,6 +21,7 @@ import (
 	_ "github.com/oursky/ourd/plugin/exec"
 	_ "github.com/oursky/ourd/plugin/zmq"
 	"github.com/oursky/ourd/provider"
+	"github.com/oursky/ourd/pubsub"
 	"github.com/oursky/ourd/push"
 	"github.com/oursky/ourd/router"
 	"github.com/oursky/ourd/subscription"
@@ -330,8 +331,12 @@ func main() {
 	}
 	c.Start()
 
+	pubsub := pubsub.NewWsPubsub()
+
 	log.Printf("Listening on %v...", config.HTTP.Host)
-	err := http.ListenAndServe(config.HTTP.Host, logMiddleware(r))
+	http.Handle("/", logMiddleware(r))
+	http.HandleFunc("/pubsub", pubsub.Handle)
+	err := http.ListenAndServe(config.HTTP.Host, nil)
 	if err != nil {
 		log.Printf("Failed: %v", err)
 	}
