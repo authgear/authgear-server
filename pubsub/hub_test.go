@@ -2,7 +2,9 @@ package pubsub
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestNormalSubscription(t *testing.T) {
@@ -35,31 +37,65 @@ func TestNormalSubscription(t *testing.T) {
 			conn := connection{
 				Send: make(chan Parcel),
 			}
+			wg := sync.WaitGroup{}
+			wg.Add(1)
 			go func() {
-				recv := <-conn.Send
-				c.So(recv.Channel, ShouldEqual, "first")
-				c.So(recv.Data, ShouldResemble, []byte("1"))
-				recv2 := <-conn.Send
-				c.So(recv2.Channel, ShouldEqual, "second")
-				c.So(recv2.Data, ShouldEqual, []byte("2"))
-				hub.stop <- 1
+				hub.Subscribe <- Parcel{
+					Channel:    "first",
+					Connection: &conn,
+				}
+				hub.Subscribe <- Parcel{
+					Channel:    "second",
+					Connection: &conn,
+				}
+				wg.Done()
 			}()
-			hub.Subscribe <- Parcel{
-				Channel:    "first",
-				Connection: &conn,
-			}
-			hub.Subscribe <- Parcel{
-				Channel:    "second",
-				Connection: &conn,
-			}
+			wg.Wait()
 			hub.Broadcast <- Parcel{
 				Channel: "first",
 				Data:    []byte("1"),
 			}
+			recv := <-conn.Send
+			c.So(recv.Channel, ShouldEqual, "first")
+			c.So(recv.Data, ShouldResemble, []byte("1"))
 			hub.Broadcast <- Parcel{
 				Channel: "second",
 				Data:    []byte("2"),
 			}
+			recv2 := <-conn.Send
+			c.So(recv2.Channel, ShouldEqual, "second")
+			c.So(recv2.Data, ShouldResemble, []byte("2"))
+			hub.stop <- 1
+		})
+
+		Convey("Received broadcast message time out", func(c C) {
+			hub := NewHub()
+			hub.timeout = 0
+			go hub.run()
+			conn := connection{
+				Send: make(chan Parcel),
+			}
+			wg := sync.WaitGroup{}
+			wg.Add(1)
+			go func() {
+				hub.Subscribe <- Parcel{
+					Channel:    "first",
+					Connection: &conn,
+				}
+				wg.Done()
+			}()
+			wg.Wait()
+			hub.Broadcast <- Parcel{
+				Channel: "first",
+				Data:    []byte("1"),
+			}
+			time.Sleep(1 * time.Second)
+			select {
+			case <-conn.Send:
+				t.Fatalf("Message should be time out!")
+			default:
+			}
+			hub.stop <- 1
 		})
 	})
 }
