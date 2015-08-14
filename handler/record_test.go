@@ -881,6 +881,30 @@ func TestHookExecution(t *testing.T) {
 
 			So(called, ShouldBeTrue)
 		})
+
+		Convey("BeforeSave should set originalRecord as nil for new record", func() {
+			called := false
+			registry.Register(hook.BeforeSave, "record", func(record *oddb.Record, originalRecord *oddb.Record) error {
+				called = true
+				So(*record, ShouldResemble, oddb.Record{
+					ID: oddb.NewRecordID("record", "id"),
+					Data: map[string]interface{}{
+						"new": true,
+					},
+				})
+				So(originalRecord, ShouldBeNil)
+				return nil
+			})
+
+			r.POST(`{
+				"records": [{
+					"_id": "record/id",
+					"new": true
+				}]
+			}`)
+
+			So(called, ShouldBeTrue)
+		})
 	})
 }
 
