@@ -405,7 +405,6 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 		var dbRecord oddb.Record
 		err = db.Get(record.ID, &dbRecord)
 		if err == oddb.ErrRecordNotFound {
-			originalRecordMap[record.ID] = &oddb.Record{}
 			return nil
 		}
 
@@ -421,7 +420,8 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	// execute before save hooks
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-			err = req.HookRegistry.ExecuteHooks(hook.BeforeSave, record)
+			originalRecord, _ := originalRecordMap[record.ID]
+			err = req.HookRegistry.ExecuteHooks(hook.BeforeSave, record, originalRecord)
 			return
 		})
 	}
@@ -436,7 +436,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 		var deltaRecord oddb.Record
 		originalRecord, ok := originalRecordMap[record.ID]
 		if !ok {
-			panic(fmt.Sprintf("original record not found; recordID = %s", record.ID))
+			originalRecord = &oddb.Record{}
 		}
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
@@ -451,7 +451,8 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	// execute after save hooks
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-			req.HookRegistry.ExecuteHooks(hook.AfterSave, record)
+			originalRecord, _ := originalRecordMap[record.ID]
+			req.HookRegistry.ExecuteHooks(hook.AfterSave, record, originalRecord)
 			return
 		})
 	}
@@ -1090,7 +1091,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) e
 
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-			err = req.HookRegistry.ExecuteHooks(hook.BeforeDelete, record)
+			err = req.HookRegistry.ExecuteHooks(hook.BeforeDelete, record, nil)
 			return
 		})
 	}
@@ -1105,7 +1106,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) e
 
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-			req.HookRegistry.ExecuteHooks(hook.AfterDelete, record)
+			req.HookRegistry.ExecuteHooks(hook.AfterDelete, record, nil)
 			return
 		})
 	}

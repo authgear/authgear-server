@@ -727,11 +727,13 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 }
 
 type stackingHook struct {
-	records []*oddb.Record
+	records         []*oddb.Record
+	originalRecords []*oddb.Record
 }
 
-func (p *stackingHook) Func(record *oddb.Record) error {
+func (p *stackingHook) Func(record *oddb.Record, originalRecord *oddb.Record) error {
 	p.records = append(p.records, record)
+	p.originalRecords = append(p.originalRecords, originalRecord)
 	return nil
 }
 
@@ -829,7 +831,7 @@ func TestHookExecution(t *testing.T) {
 		})
 
 		Convey("record is not saved if BeforeSave's hook returns an error", func() {
-			registry.Register(hook.BeforeSave, "record", func(*oddb.Record) error {
+			registry.Register(hook.BeforeSave, "record", func(*oddb.Record, *oddb.Record) error {
 				return errors.New("no hooks for you!")
 			})
 			r.POST(`{
@@ -852,7 +854,7 @@ func TestHookExecution(t *testing.T) {
 			So(db.Save(&existingRecord), ShouldBeNil)
 
 			called := false
-			registry.Register(hook.BeforeSave, "record", func(record *oddb.Record) error {
+			registry.Register(hook.BeforeSave, "record", func(record *oddb.Record, originalRecord *oddb.Record) error {
 				called = true
 				So(*record, ShouldResemble, oddb.Record{
 					ID: oddb.NewRecordID("record", "id"),
@@ -861,6 +863,36 @@ func TestHookExecution(t *testing.T) {
 						"new": true,
 					},
 				})
+				So(*originalRecord, ShouldResemble, oddb.Record{
+					ID: oddb.NewRecordID("record", "id"),
+					Data: map[string]interface{}{
+						"old": true,
+					},
+				})
+				return nil
+			})
+
+			r.POST(`{
+				"records": [{
+					"_id": "record/id",
+					"new": true
+				}]
+			}`)
+
+			So(called, ShouldBeTrue)
+		})
+
+		Convey("BeforeSave should set originalRecord as nil for new record", func() {
+			called := false
+			registry.Register(hook.BeforeSave, "record", func(record *oddb.Record, originalRecord *oddb.Record) error {
+				called = true
+				So(*record, ShouldResemble, oddb.Record{
+					ID: oddb.NewRecordID("record", "id"),
+					Data: map[string]interface{}{
+						"new": true,
+					},
+				})
+				So(originalRecord, ShouldBeNil)
 				return nil
 			})
 

@@ -28,7 +28,7 @@ type Transport interface {
 	// A oddb.Record is returned as a result of invocation. Such record must be
 	// a newly allocated instance, and may not share any reference type values
 	// in any of its memebers with the record being passed in.
-	RunHook(recordType string, trigger string, record *oddb.Record) (*oddb.Record, error)
+	RunHook(recordType string, trigger string, record *oddb.Record, oldRecord *oddb.Record) (*oddb.Record, error)
 	RunTimer(name string, n []byte) ([]byte, error)
 
 	// RunProvider runs the auth provider with the specified AuthRequest.
@@ -56,7 +56,7 @@ func (t nullTransport) RunHandler(name string, in []byte) (out []byte, err error
 	out = in
 	return
 }
-func (t nullTransport) RunHook(recordType string, trigger string, reocrd *oddb.Record) (record *oddb.Record, err error) {
+func (t nullTransport) RunHook(recordType string, trigger string, reocrd *oddb.Record, oldRecord *oddb.Record) (record *oddb.Record, err error) {
 	return
 }
 func (t nullTransport) RunTimer(name string, in []byte) (out []byte, err error) {

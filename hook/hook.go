@@ -20,7 +20,7 @@ const (
 // Func defines the interface of a function that can be hooked.
 //
 // The supplied record is fully fetched for all four kind of hooks.
-type Func func(*oddb.Record) error
+type Func func(*oddb.Record, *oddb.Record) error
 
 type recordTypeHookMap map[string][]Func
 
@@ -65,14 +65,14 @@ func (r *Registry) Register(kind Kind, recordType string, hook Func) error {
 //
 // If one of the hooks returns an error, it halts execution of other hooks and
 // return sthat error untouched.
-func (r *Registry) ExecuteHooks(kind Kind, record *oddb.Record) error {
+func (r *Registry) ExecuteHooks(kind Kind, record *oddb.Record, oldRecord *oddb.Record) error {
 	recordTypeHookMap, err := r.recordTypeHookMap(kind)
 	if err != nil {
 		return err
 	}
 
 	for _, hook := range recordTypeHookMap[record.ID.Type] {
-		if err := hook(record); err != nil {
+		if err := hook(record, oldRecord); err != nil {
 			return err
 		}
 	}

@@ -125,8 +125,12 @@ func (p execTransport) RunHandler(name string, in []byte) (out []byte, err error
 	return
 }
 
-func (p execTransport) RunHook(recordType string, trigger string, record *oddb.Record) (*oddb.Record, error) {
-	in, err := json.Marshal((*common.JSONRecord)(record))
+func (p execTransport) RunHook(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
+	param := map[string]interface{}{
+		"record":   (*common.JSONRecord)(record),
+		"original": (*common.JSONRecord)(originalRecord),
+	}
+	in, err := json.Marshal(param)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal record: %v", err)
 	}
