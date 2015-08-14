@@ -12,6 +12,9 @@ import (
 	"github.com/oursky/ourd/provider"
 )
 
+// Handler specifies the function signature of a request handler function
+type Handler func(*Payload, *Response)
+
 // Payload is for passing payload to the actual handler
 type Payload struct {
 	// the raw http.Request of this payload

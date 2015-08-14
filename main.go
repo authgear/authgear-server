@@ -147,6 +147,21 @@ func main() {
 		Option:   config.DB.Option,
 	}
 
+	assetGetPreprocessors := []router.Processor{
+		fileSystemConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+	}
+	assetUploadPreprocessors := []router.Processor{
+		fileTokenStorePreprocessor.Preprocess,
+		authenticator.Preprocess,
+		fileSystemConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+	}
+	fileGateway := router.NewGateway(`files/(.+)`)
+	fileGateway.GET(handler.AssetGetURLHandler, assetGetPreprocessors...)
+	fileGateway.PUT(handler.AssetUploadURLHandler, assetUploadPreprocessors...)
+	http.Handle("/files", logMiddleware(fileGateway))
+
 	r := router.NewRouter()
 	r.Map("", handler.HomeHandler)
 
@@ -196,19 +211,6 @@ func main() {
 	r.Map("record:query", handler.RecordQueryHandler, recordReadPreprocessors...)
 	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
-
-	assetGetPreprocessors := []router.Processor{
-		fileSystemConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
-	}
-	assetUploadPreprocessors := []router.Processor{
-		fileTokenStorePreprocessor.Preprocess,
-		authenticator.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
-	}
-	r.GET(`files/(.+)`, handler.AssetGetURLHandler, assetGetPreprocessors...)
-	r.PUT(`files/(.+)`, handler.AssetUploadURLHandler, assetUploadPreprocessors...)
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,

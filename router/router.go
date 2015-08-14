@@ -7,14 +7,10 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"regexp"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/ourd/oderr"
 )
-
-// Handler specifies the function signature of a request handler function
-type Handler func(*Payload, *Response)
 
 // pipeline encapsulates a transformation which a request will come throught
 // from preprocessors to the actual handler. (and postprocessor later)
@@ -24,18 +20,9 @@ type pipeline struct {
 	Handler
 }
 
-// pathRoute is the path matching version of pipeline. Instead of storing the action
-// to match, it stores a regexp to match against request URL.
-type pathRoute struct {
-	Regexp        *regexp.Regexp
-	Preprocessors []Processor
-	Handler
-}
-
 // Router to dispatch HTTP request to respective handler
 type Router struct {
-	methodPaths map[string][]pathRoute
-	actions     map[string]pipeline
+	actions map[string]pipeline
 }
 
 // Processor specifies the function signature for a Preprocessor
@@ -44,34 +31,8 @@ type Processor func(*Payload, *Response) int
 // NewRouter is factory for Router
 func NewRouter() *Router {
 	return &Router{
-		map[string][]pathRoute{},
 		map[string]pipeline{},
 	}
-}
-
-// Handle registers a handler matched by a request's method and URL's path.
-// Pattern is a regexp that defines a matched URL.
-func (r *Router) Handle(method string, pattern string, handler Handler, preprocessors ...Processor) {
-	r.methodPaths[method] = append(r.methodPaths[method], pathRoute{
-		Regexp:        regexp.MustCompile(`\A/` + pattern + `\z`),
-		Preprocessors: preprocessors,
-		Handler:       handler,
-	})
-}
-
-// GET register a URL handler by method GET
-func (r *Router) GET(pattern string, handler Handler, preprocessors ...Processor) {
-	r.Handle("GET", pattern, handler, preprocessors...)
-}
-
-// POST register a URL handler by method POST
-func (r *Router) POST(pattern string, handler Handler, preprocessors ...Processor) {
-	r.Handle("POST", pattern, handler, preprocessors...)
-}
-
-// PUT register a URL handler by method PUT
-func (r *Router) PUT(pattern string, handler Handler, preprocessors ...Processor) {
-	r.Handle("PUT", pattern, handler, preprocessors...)
 }
 
 // Map to register action to handle mapping
@@ -85,8 +46,11 @@ func (r *Router) Map(action string, handler Handler, preprocessors ...Processor)
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
-		httpStatus = http.StatusOK
-		resp       Response
+		httpStatus    = http.StatusOK
+		resp          Response
+		handler       Handler
+		preprocessors []Processor
+		payload       *Payload
 	)
 
 	resp.writer = w
@@ -103,25 +67,15 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}()
 
-	var (
-		handler       Handler
-		preprocessors []Processor
-		payload       *Payload
-	)
-
-	handler, preprocessors, payload = r.matchRawHandler(req)
-
-	if handler == nil {
-		var err error
-		payload, err = newPayloadForJSONHandler(req)
-		if err != nil {
-			httpStatus = http.StatusBadRequest
-			resp.Err = oderr.NewRequestJSONInvalidErr(err)
-			return
-		}
-
-		handler, preprocessors = r.matchJSONHandler(payload)
+	var err error
+	payload, err = newPayloadForJSONHandler(req)
+	if err != nil {
+		httpStatus = http.StatusBadRequest
+		resp.Err = oderr.NewRequestJSONInvalidErr(err)
+		return
 	}
+
+	handler, preprocessors = r.matchJSONHandler(payload)
 
 	if handler == nil {
 		httpStatus = http.StatusNotFound
@@ -143,42 +97,11 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (r *Router) matchRawHandler(req *http.Request) (h Handler, pp []Processor, p *Payload) {
-	for _, pathRoute := range r.methodPaths[req.Method] {
-		indices := pathRoute.Regexp.FindAllStringSubmatchIndex(req.URL.Path, -1)
-		if len(indices) > 0 {
-			h = pathRoute.Handler
-			pp = pathRoute.Preprocessors
-			p = newPayloadForRawHandler(req, indices)
-			break
-		}
-	}
-	return
-}
-
 func (r *Router) matchJSONHandler(p *Payload) (h Handler, pp []Processor) {
 	if pipeline, ok := r.actions[p.RouteAction()]; ok {
 		h = pipeline.Handler
 		pp = pipeline.Preprocessors
 	}
-	return
-}
-
-func newPayloadForRawHandler(req *http.Request, paramIndices [][]int) (p *Payload) {
-	p = &Payload{
-		Req:    req,
-		Params: submatchesFromIndices(req.URL.Path, paramIndices),
-		Meta:   map[string]interface{}{},
-		Data:   map[string]interface{}{},
-	}
-
-	if apiKey := req.Header.Get("X-Ourd-API-Key"); apiKey != "" {
-		p.Data["api_key"] = apiKey
-	}
-	if accessToken := req.Header.Get("X-Ourd-Access-Token"); accessToken != "" {
-		p.Data["access_token"] = accessToken
-	}
-
 	return
 }
 
@@ -200,27 +123,6 @@ func newPayloadForJSONHandler(req *http.Request) (p *Payload, err error) {
 	}
 
 	return
-}
-
-func submatchesFromIndices(s string, indices [][]int) (submatches []string) {
-	submatches = make([]string, 0, len(indices))
-	for _, pairs := range indices {
-		for i := 2; i < len(pairs); i += 2 {
-			submatches = append(submatches, s[pairs[i]:pairs[i+1]])
-		}
-	}
-	return
-}
-
-func fillPayloadByRequest(payload *Payload, req *http.Request) error {
-	if apiKey := req.Header.Get("X-Ourd-API-Key"); apiKey != "" {
-		payload.Data["api_key"] = apiKey
-	}
-	if accessToken := req.Header.Get("X-Ourd-Access-Token"); accessToken != "" {
-		payload.Data["access_token"] = accessToken
-	}
-
-	return nil
 }
 
 // CheckAuth will check on the AccessToken, attach DB/RequestID to the response
