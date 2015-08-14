@@ -1,6 +1,9 @@
 {
 	"ImportPath": "github.com/oursky/ourd",
 	"GoVersion": "go1.4.2",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/gcfg",
@@ -26,8 +29,8 @@
 		},
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Comment": "go1.0-cutoff-29-g30ed220",
-			"Rev": "30ed2200d7ec99cf17272292f1d4b7b0bd7165db"
+			"Comment": "go1.0-cutoff-59-gb269bd0",
+			"Rev": "b269bd035a727d6c1081f76e7a239a1b00674c40"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
