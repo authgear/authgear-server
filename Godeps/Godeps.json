@@ -11,17 +11,21 @@
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.7.1",
-			"Rev": "3fc34d061b9c78a70db853c7cb6b0576b6d4f32d"
+			"Comment": "v0.8.6-7-g9c060de",
+			"Rev": "9c060de643590dae45da9d7c26276463bfc46fa0"
 		},
 		{
 			"ImportPath": "github.com/jmoiron/sqlx",
-			"Comment": "sqlx-v1.0-67-g69738bd",
-			"Rev": "69738bd209812c5a381786011aff17944a384554"
+			"Comment": "sqlx-v1.1-42-g344b1e9",
+			"Rev": "344b1e96d6e410a093b7bce40287731a49e253f6"
 		},
 		{
 			"ImportPath": "github.com/lann/builder",
-			"Rev": "c603884a2c1fcf331c71940f3227a8111d29f3ba"
+			"Rev": "f22ce00fd9394014049dad11c244859432bd6820"
+		},
+		{
+			"ImportPath": "github.com/lann/ps",
+			"Rev": "62de8c46ede02a7675c4c79c84883eb164cb71e3"
 		},
 		{
 			"ImportPath": "github.com/lann/squirrel",
@@ -34,7 +38,7 @@
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
-			"Rev": "442e588f213303bec7936deba67901f8fc8f18b1"
+			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
 		},
 		{
 			"ImportPath": "github.com/mndrix/ps",
@@ -42,27 +46,28 @@
 		},
 		{
 			"ImportPath": "github.com/robfig/cron",
+			"Comment": "v1-2-g67823cd",
 			"Rev": "67823cd24dece1b04cced3a0a0b3ca2bc84d875e"
 		},
 		{
 			"ImportPath": "github.com/timehop/apns",
-			"Rev": "135f56759da5d4da98054f1819bd2b3c1d1a51b0"
+			"Rev": "578d061b6fcb6bf57646ae001b183fcfb89cdbac"
 		},
 		{
 			"ImportPath": "github.com/twinj/uuid",
-			"Rev": "4d772442af203e27723acc7d1eea6c93cd319c57"
+			"Rev": "70cac2bcd273ef6a371bb96cde363d28b68734c3"
 		},
 		{
 			"ImportPath": "github.com/zeromq/goczmq",
-			"Rev": "b9cddd3313b6ef7a70a1a8f04c170185a9751d3b"
+			"Rev": "55b3baf4cf82cc150e64ad1209adf1b6ee987d2c"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/bcrypt",
-			"Rev": "1351f936d976c60a0a48d728281922cf63eafb8d"
+			"Rev": "173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/blowfish",
-			"Rev": "1351f936d976c60a0a48d728281922cf63eafb8d"
+			"Rev": "173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd"
 		},
 		{
 			"ImportPath": "gopkg.in/amz.v1/aws",
