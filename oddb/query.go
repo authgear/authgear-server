@@ -65,6 +65,7 @@ type ExpressionType int
 const (
 	Literal ExpressionType = iota
 	KeyPath
+	Function
 )
 
 // An Expression represents value to be compared against.
@@ -87,4 +88,26 @@ type Query struct {
 	Predicate  *Predicate `json:"predicate,omitempty"`
 	Sorts      []Sort     `json:"order,omitempty"`
 	ReadableBy string     `json:"readable_by,omitempty"`
+}
+
+// Func is a marker interface to denote a type being a function in oddb.
+//
+// oddb's function receives zero or more arguments and returns a DataType
+// as a result. Result data type is currently omitted in this interface since
+// ourd doesn't use it internally yet. In the future it can be utilized to
+// provide more extensive type checking at handler level.
+type Func interface {
+	Args() []interface{}
+}
+
+// DistanceFunc represents a function that calculates distance between
+// a user supplied location and a Record's field
+type DistanceFunc struct {
+	Field    string
+	Location *Location
+}
+
+// Args implements the Func interface
+func (f *DistanceFunc) Args() []interface{} {
+	return []interface{}{f.Field, f.Location}
 }
