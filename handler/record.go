@@ -970,7 +970,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 
 	results, err := db.Query(&query)
 	if err != nil {
-		response.Err = oderr.ErrDatabaseOpenFailed
+		response.Err = oderr.NewUnknownErr(err)
 		return
 	}
 	defer results.Close()
