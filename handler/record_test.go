@@ -388,6 +388,7 @@ func (db *queryDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 func TestRecordQuery(t *testing.T) {
 	Convey("Given a Database", t, func() {
 		db := &queryDatabase{}
+
 		Convey("Queries records with type", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
@@ -404,6 +405,7 @@ func TestRecordQuery(t *testing.T) {
 				Type: "note",
 			})
 		})
+
 		Convey("Queries records with sorting", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
@@ -435,6 +437,7 @@ func TestRecordQuery(t *testing.T) {
 				},
 			})
 		})
+
 		Convey("Queries records with predicate", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
@@ -463,6 +466,7 @@ func TestRecordQuery(t *testing.T) {
 				},
 			})
 		})
+
 		Convey("Queries records with complex predicate", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
@@ -511,6 +515,50 @@ func TestRecordQuery(t *testing.T) {
 							oddb.Expression{oddb.Literal, float64(1)},
 						},
 					},
+				},
+			})
+		})
+
+		Convey("Queries records by distance func", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+					"predicate": []interface{}{
+						"lte",
+						[]interface{}{
+							"func",
+							"distance",
+							map[string]interface{}{
+								"$type": "keypath",
+								"$val":  "location",
+							},
+							map[string]interface{}{
+								"$type": "geo",
+								"$lng":  float64(1),
+								"$lat":  float64(2),
+							},
+						},
+						float64(500),
+					},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(*db.lastquery.Predicate, ShouldResemble, oddb.Predicate{
+				Operator: oddb.LessThanOrEqual,
+				Children: []interface{}{
+					oddb.Expression{
+						oddb.Function,
+						&oddb.DistanceFunc{
+							Field:    "location",
+							Location: oddb.NewLocation(1, 2),
+						},
+					},
+					oddb.Expression{oddb.Literal, float64(500)},
 				},
 			})
 		})

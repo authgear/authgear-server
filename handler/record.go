@@ -821,10 +821,21 @@ func predicateFromRaw(rawPredicate []interface{}) oddb.Predicate {
 }
 
 func parseExpression(i interface{}) oddb.Expression {
-	if keypath, err := parseKeyPath(i); err == nil {
-		return oddb.Expression{
-			Type:  oddb.KeyPath,
-			Value: keypath,
+	switch v := i.(type) {
+	case map[string]interface{}:
+		var keyPath string
+		if err := oddbconv.MapFrom(i, (*oddbconv.MapKeyPath)(&keyPath)); err == nil {
+			return oddb.Expression{
+				Type:  oddb.KeyPath,
+				Value: keyPath,
+			}
+		}
+	case []interface{}:
+		if f, err := parseFunc(v); err == nil {
+			return oddb.Expression{
+				Type:  oddb.Function,
+				Value: f,
+			}
 		}
 	}
 
@@ -834,21 +845,44 @@ func parseExpression(i interface{}) oddb.Expression {
 	}
 }
 
-func parseKeyPath(i interface{}) (keypath string, err error) {
-	switch value := i.(type) {
-	case map[string]interface{}:
-		kindi, typed := value["$type"]
-		if typed {
-			kind, ok := kindi.(string)
-			if ok && kind == "keypath" {
-				keypath, ok = value["$val"].(string)
-				return
-			}
-		}
+func parseFunc(s []interface{}) (f oddb.Func, err error) {
+	keyword, _ := s[0].(string)
+	if keyword != "func" {
+		return nil, errors.New("not a function")
 	}
 
-	err = errors.New("not a keypath")
+	funcName, _ := s[1].(string)
+	switch funcName {
+	case "distance":
+		f, err = parseDistanceFunc(s[2:])
+	case "":
+		return nil, errors.New("empty function name")
+	default:
+		return nil, fmt.Errorf("got unrecgonized function name = %s", funcName)
+	}
+
 	return
+}
+
+func parseDistanceFunc(s []interface{}) (*oddb.DistanceFunc, error) {
+	if len(s) != 2 {
+		return nil, fmt.Errorf("want 2 arguments for distance func, got %d", len(s))
+	}
+
+	var field string
+	if err := oddbconv.MapFrom(s[0], (*oddbconv.MapKeyPath)(&field)); err != nil {
+		return nil, fmt.Errorf("invalid key path: %v", err)
+	}
+
+	var location oddb.Location
+	if err := oddbconv.MapFrom(s[1], (*oddbconv.MapLocation)(&location)); err != nil {
+		return nil, fmt.Errorf("invalid location: %v", err)
+	}
+
+	return &oddb.DistanceFunc{
+		Field:    field,
+		Location: &location,
+	}, nil
 }
 
 func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Error) {
@@ -919,16 +953,18 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	eagerKeys := []string{}
 	if keyPaths, ok := payload.Data["eager"].([]interface{}); ok {
 		for _, keyPathRaw := range keyPaths {
-			if keypath, err := parseKeyPath(keyPathRaw); err == nil {
-				if strings.Contains(keypath, ".") {
-					response.Err = oderr.NewRequestInvalidErr(errors.New("multi level eager loading not supported"))
-					return
-				}
-				eagerKeys = append(eagerKeys, keypath)
-			} else {
+			var keyPath string
+			if err := oddbconv.MapFrom(keyPathRaw, (*oddbconv.MapKeyPath)(&keyPath)); err != nil {
 				response.Err = oderr.NewRequestInvalidErr(errors.New("invalid key path format"))
 				return
 			}
+
+			if strings.Contains(keyPath, ".") {
+				response.Err = oderr.NewRequestInvalidErr(errors.New("multi level eager loading not supported"))
+				return
+			}
+
+			eagerKeys = append(eagerKeys, keyPath)
 		}
 	}
 
