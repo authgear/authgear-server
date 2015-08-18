@@ -18,41 +18,41 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-// a thin wrapper on router.Router with helper methods to invoke request more
+// a thin wrapper on router.Gateway with helper methods to invoke request more
 // easily
-type rawRouter router.Router
+type modGateway router.Gateway
 
-func newRawRouter() *rawRouter {
-	return (*rawRouter)(router.NewRouter())
+func newmodGateway(pattern string) *modGateway {
+	return (*modGateway)(router.NewGateway(pattern))
 }
 
-func (r *rawRouter) Handle(method, pattern string, handler router.Handler, prepareFunc func(*router.Payload)) {
-	(*router.Router)(r).Handle(method, pattern, handler, func(p *router.Payload, _ *router.Response) int {
+func (g *modGateway) Handle(method string, handler router.Handler, prepareFunc func(*router.Payload)) {
+	(*router.Gateway)(g).Handle(method, handler, func(p *router.Payload, _ *router.Response) int {
 		prepareFunc(p)
 		return 200
 	})
 }
 
-func (r *rawRouter) Do(req *http.Request) *httptest.ResponseRecorder {
+func (g *modGateway) Do(req *http.Request) *httptest.ResponseRecorder {
 	resp := httptest.NewRecorder()
-	(*router.Router)(r).ServeHTTP(resp, req)
+	(*router.Gateway)(g).ServeHTTP(resp, req)
 	return resp
 }
 
-func (r *rawRouter) GET(path string) *httptest.ResponseRecorder {
-	return r.makeRequest("GET", path, "")
+func (g *modGateway) GET(path string) *httptest.ResponseRecorder {
+	return g.makeRequest("GET", path, "")
 }
 
-func (r *rawRouter) PUT(path, body string) *httptest.ResponseRecorder {
-	return r.makeRequest("PUT", path, body)
+func (g *modGateway) PUT(path, body string) *httptest.ResponseRecorder {
+	return g.makeRequest("PUT", path, body)
 }
 
-func (r *rawRouter) makeRequest(method, path, body string) *httptest.ResponseRecorder {
+func (g *modGateway) makeRequest(method, path, body string) *httptest.ResponseRecorder {
 	path = "http://ourd.test/" + path
 	req, _ := http.NewRequest(method, path, strings.NewReader(body))
 	resp := httptest.NewRecorder()
 
-	(*router.Router)(r).ServeHTTP(resp, req)
+	(*router.Gateway)(g).ServeHTTP(resp, req)
 	return resp
 }
 
@@ -111,8 +111,8 @@ func TestAssetUploadURLHandler(t *testing.T) {
 		assetConn := &naiveAssetConn{}
 		store := newBufferedStore()
 
-		r := newRawRouter()
-		r.Handle("PUT", "(.+)", AssetUploadURLHandler, func(p *router.Payload) {
+		r := newmodGateway("(.+)")
+		r.Handle("PUT", AssetUploadURLHandler, func(p *router.Payload) {
 			p.DBConn = assetConn
 			p.AssetStore = store
 		})
@@ -202,8 +202,8 @@ func TestAssetGetURLHandler(t *testing.T) {
 		store := newBufferedStore()
 		signparser := newNaiveStoreSignatureParser(store)
 
-		r := newRawRouter()
-		r.Handle("GET", "(.+)", AssetGetURLHandler, func(p *router.Payload) {
+		r := newmodGateway("(.+)")
+		r.Handle("GET", AssetGetURLHandler, func(p *router.Payload) {
 			p.DBConn = assetConn
 			p.AssetStore = signparser
 		})

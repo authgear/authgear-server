@@ -119,42 +119,12 @@ func main() {
 		return
 	}
 
-	if config.Subscription.Enabled {
-		var gateway string
-		switch config.APNS.Env {
-		case "sandbox":
-			gateway = "gateway.sandbox.push.apple.com:2195"
-		case "production":
-			gateway = "gateway.push.apple.com:2195"
-		default:
-			fmt.Println("config: apns.env can only be sandbox or production")
-			return
-		}
-
-		pushSender, err := push.NewAPNSPusher(gateway, config.APNS.Cert, config.APNS.Key)
-		if err != nil {
-			log.Fatalf("Failed to set up push sender: %v", err)
-		}
-
-		if err := pushSender.Init(); err != nil {
-			log.Fatalf("Failed to init push sender: %v", err)
-		}
-
-		subscriptionService := &subscription.Service{
-			ConnOpener:         func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) },
-			NotificationSender: pushSender,
-		}
-		go subscriptionService.Init().Listen()
-		log.Infoln("Subscription Service listening...")
+	initLogger(config)
+	initSubscription(config)
+	store := initAssetStore(config)
+	assetStorePreprocessor := assetStorePreprocessor{
+		Store: store,
 	}
-
-	// Setup Logging
-	log.SetOutput(os.Stderr)
-	logLv, logE := log.ParseLevel(config.LOG.Level)
-	if logE != nil {
-		logLv = log.DebugLevel
-	}
-	log.SetLevel(logLv)
 
 	naiveAPIKeyPreprocessor := apiKeyValidatonPreprocessor{
 		Key:     config.App.APIKey,
@@ -163,31 +133,6 @@ func main() {
 
 	fileTokenStorePreprocessor := tokenStorePreprocessor{
 		Store: authtoken.FileStore(config.TokenStore.Path).Init(),
-	}
-
-	var store asset.Store
-	switch config.AssetStore.ImplName {
-	default:
-		panic("unrecgonized asset store implementation: " + config.AssetStore.ImplName)
-	case "fs":
-		store = asset.NewFileStore(
-			config.AssetStore.Path,
-			config.AssetURLSigner.URLPrefix,
-			config.AssetURLSigner.Secret)
-	case "s3":
-		s3Store, err := asset.NewS3Store(
-			config.AssetStore.AccessToken,
-			config.AssetStore.SecretToken,
-			config.AssetStore.Reigon,
-			config.AssetStore.Bucket,
-		)
-		if err != nil {
-			panic("failed to initialize asset.S3Store: " + err.Error())
-		}
-		store = s3Store
-	}
-	assetStorePreprocessor := assetStorePreprocessor{
-		Store: store,
 	}
 
 	authenticator := userAuthenticator{
@@ -201,6 +146,21 @@ func main() {
 		DBImpl:   config.DB.ImplName,
 		Option:   config.DB.Option,
 	}
+
+	assetGetPreprocessors := []router.Processor{
+		fileSystemConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+	}
+	assetUploadPreprocessors := []router.Processor{
+		fileTokenStorePreprocessor.Preprocess,
+		authenticator.Preprocess,
+		fileSystemConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+	}
+	fileGateway := router.NewGateway(`files/(.+)`)
+	fileGateway.GET(handler.AssetGetURLHandler, assetGetPreprocessors...)
+	fileGateway.PUT(handler.AssetUploadURLHandler, assetUploadPreprocessors...)
+	http.Handle("/files", logMiddleware(fileGateway))
 
 	r := router.NewRouter()
 	r.Map("", handler.HomeHandler)
@@ -251,19 +211,6 @@ func main() {
 	r.Map("record:query", handler.RecordQueryHandler, recordReadPreprocessors...)
 	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
-
-	assetGetPreprocessors := []router.Processor{
-		fileSystemConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
-	}
-	assetUploadPreprocessors := []router.Processor{
-		fileTokenStorePreprocessor.Preprocess,
-		authenticator.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
-	}
-	r.GET(`files/(.+)`, handler.AssetGetURLHandler, assetGetPreprocessors...)
-	r.PUT(`files/(.+)`, handler.AssetUploadURLHandler, assetUploadPreprocessors...)
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,
@@ -340,4 +287,70 @@ func main() {
 	if err != nil {
 		log.Printf("Failed: %v", err)
 	}
+}
+
+func initAssetStore(config Configuration) asset.Store {
+	var store asset.Store
+	switch config.AssetStore.ImplName {
+	default:
+		panic("unrecgonized asset store implementation: " + config.AssetStore.ImplName)
+	case "fs":
+		store = asset.NewFileStore(
+			config.AssetStore.Path,
+			config.AssetURLSigner.URLPrefix,
+			config.AssetURLSigner.Secret)
+	case "s3":
+		s3Store, err := asset.NewS3Store(
+			config.AssetStore.AccessToken,
+			config.AssetStore.SecretToken,
+			config.AssetStore.Reigon,
+			config.AssetStore.Bucket,
+		)
+		if err != nil {
+			panic("failed to initialize asset.S3Store: " + err.Error())
+		}
+		store = s3Store
+	}
+	return store
+}
+
+func initSubscription(config Configuration) {
+	if config.Subscription.Enabled {
+		var gateway string
+		switch config.APNS.Env {
+		case "sandbox":
+			gateway = "gateway.sandbox.push.apple.com:2195"
+		case "production":
+			gateway = "gateway.push.apple.com:2195"
+		default:
+			fmt.Println("config: apns.env can only be sandbox or production")
+			return
+		}
+
+		pushSender, err := push.NewAPNSPusher(gateway, config.APNS.Cert, config.APNS.Key)
+		if err != nil {
+			log.Fatalf("Failed to set up push sender: %v", err)
+		}
+
+		if err := pushSender.Init(); err != nil {
+			log.Fatalf("Failed to init push sender: %v", err)
+		}
+
+		subscriptionService := &subscription.Service{
+			ConnOpener:         func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) },
+			NotificationSender: pushSender,
+		}
+		go subscriptionService.Init().Listen()
+		log.Infoln("Subscription Service listening...")
+	}
+}
+
+func initLogger(config Configuration) {
+	// Setup Logging
+	log.SetOutput(os.Stderr)
+	logLv, logE := log.ParseLevel(config.LOG.Level)
+	if logE != nil {
+		logLv = log.DebugLevel
+	}
+	log.SetLevel(logLv)
 }

@@ -1,4 +1,4 @@
 [gogocyclo]
-ignores = `main`.*
+ignores = `main`.ReadFileInto
 ignores = `pq`.(*recordScanner).Scan
 ignores = `pq`.(*database).remoteColumnTypes
