@@ -1195,6 +1195,93 @@ func TestQuery(t *testing.T) {
 		})
 	})
 
+	Convey("Database with location", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		record0 := oddb.Record{
+			ID:      oddb.NewRecordID("restaurant", "0"),
+			OwnerID: "someuserid",
+			Data: map[string]interface{}{
+				"location": oddb.NewLocation(0, 0),
+			},
+		}
+		record1 := oddb.Record{
+			ID:      oddb.NewRecordID("restaurant", "1"),
+			OwnerID: "someuserid",
+			Data: map[string]interface{}{
+				"location": oddb.NewLocation(1, 0),
+			},
+		}
+		record2 := oddb.Record{
+			ID:      oddb.NewRecordID("restaurant", "2"),
+			OwnerID: "someuserid",
+			Data: map[string]interface{}{
+				"location": oddb.NewLocation(0, 1),
+			},
+		}
+
+		db := c.PublicDB()
+		So(db.Extend("restaurant", oddb.RecordSchema{
+			"location": oddb.FieldType{Type: oddb.TypeLocation},
+		}), ShouldBeNil)
+		So(db.Save(&record0), ShouldBeNil)
+		So(db.Save(&record1), ShouldBeNil)
+		So(db.Save(&record2), ShouldBeNil)
+
+		Convey("query within distance", func() {
+			query := oddb.Query{
+				Type: "restaurant",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.LessThanOrEqual,
+					Children: []interface{}{
+						oddb.Expression{
+							Type: oddb.Function,
+							Value: &oddb.DistanceFunc{
+								Field:    "location",
+								Location: oddb.NewLocation(1, 1),
+							},
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: 157260,
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{record0, record1, record2})
+		})
+
+		Convey("query within distance with func on R.H.S.", func() {
+			query := oddb.Query{
+				Type: "restaurant",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.GreaterThan,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: 157260,
+						},
+						oddb.Expression{
+							Type: oddb.Function,
+							Value: &oddb.DistanceFunc{
+								Field:    "location",
+								Location: oddb.NewLocation(1, 1),
+							},
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{record0, record1, record2})
+		})
+	})
+
 	Convey("Empty Conn", t, func() {
 		c := getTestConn(t)
 		defer cleanupDB(t, c.Db)

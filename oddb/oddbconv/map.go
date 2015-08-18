@@ -10,6 +10,15 @@ import (
 	"github.com/oursky/ourd/oddb"
 )
 
+// MapFrom tries to map a map to a FromMapper
+func MapFrom(i interface{}, fromMapper FromMapper) error {
+	if m, ok := i.(map[string]interface{}); ok {
+		return fromMapper.FromMap(m)
+	}
+
+	return fmt.Errorf("want map, got type = %T", i)
+}
+
 // FromMapper defines whether a type can be converted from a map
 type FromMapper interface {
 	FromMap(m map[string]interface{}) error
@@ -192,6 +201,20 @@ func walkData(m map[string]interface{}) (mapReturned map[string]interface{}, err
 	return walkMap(m), err
 }
 
+// MapKeyPath is string keypath that can be converted from a map
+type MapKeyPath string
+
+// FromMap implements FromMapper
+func (p *MapKeyPath) FromMap(m map[string]interface{}) error {
+	keyPath := m["$val"].(string)
+	if keyPath == "" {
+		return errors.New("empty key path")
+	}
+
+	*p = MapKeyPath(keyPath)
+	return nil
+}
+
 func walkMap(m map[string]interface{}) map[string]interface{} {
 	for key, value := range m {
 		m[key] = ParseInterface(value)
@@ -236,7 +259,9 @@ func ParseInterface(i interface{}) interface{} {
 
 		switch kind {
 		case "keypath":
-			panic(fmt.Errorf("unsupported $type of persistence = %s", kind))
+			var keyPath string
+			mapFromOrPanic((*MapKeyPath)(&keyPath), value)
+			return keyPath
 		case "blob":
 			panic(fmt.Errorf("unimplemented $type = %s", kind))
 		case "asset":

@@ -289,9 +289,9 @@ type comparisonPredicateSqlizer struct {
 func newPredicateSqlizer(predicate oddb.Predicate) sq.Sqlizer {
 	if predicate.Operator.IsCompound() {
 		return &compoundPredicateSqlizer{predicate}
-	} else {
-		return &comparisonPredicateSqlizer{predicate}
 	}
+
+	return &comparisonPredicateSqlizer{predicate}
 }
 
 func (p *compoundPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
@@ -319,34 +319,50 @@ func (p *compoundPredicateSqlizer) ToSql() (sql string, args []interface{}, err 
 	}
 }
 
-func toSqlOperand(expr oddb.Expression) (sql string, arg interface{}) {
-	if expr.Type == oddb.KeyPath {
-		sql = strconv.Quote(expr.Value.(string))
-		arg = nil
-	} else {
-		sql = "?"
-		switch svalue := expr.Value.(type) {
-		case oddb.Reference:
-			arg = svalue.ID.Key
-		default:
-			arg = svalue
-		}
+func toSqlOperand(expr oddb.Expression) (sql string, args []interface{}) {
+	switch expr.Type {
+	case oddb.KeyPath:
+		sql = quotedField(expr.Value.(string))
+	case oddb.Function:
+		sql, args = funcToSqlOperand(expr.Value.(oddb.Func))
+	default:
+		sql, args = literalToSqlOperand(expr.Value)
 	}
 	return
 }
 
+func funcToSqlOperand(fun oddb.Func) (string, []interface{}) {
+	switch f := fun.(type) {
+	case *oddb.DistanceFunc:
+		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))", quotedField(f.Field))
+		args := []interface{}{f.Location.Lng(), f.Location.Lat()}
+		return sql, args
+	default:
+		panic(fmt.Errorf("got unrecgonized oddb.Func = %T", fun))
+	}
+}
+
+func literalToSqlOperand(i interface{}) (string, []interface{}) {
+	switch v := i.(type) {
+	case oddb.Reference:
+		return "?", []interface{}{v.ID.Key}
+	default:
+		return "?", []interface{}{i}
+	}
+}
+
+var quotedField = strconv.Quote
+
 func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
-	args = make([]interface{}, 0, 1)
+	args = []interface{}{}
 	if p.Operator.IsBinary() {
 		var buffer bytes.Buffer
 		lhs := p.Children[0].(oddb.Expression)
 		rhs := p.Children[1].(oddb.Expression)
 
-		sqlOperand, arg := toSqlOperand(lhs)
+		sqlOperand, opArgs := toSqlOperand(lhs)
 		buffer.WriteString(sqlOperand)
-		if arg != nil {
-			args = append(args, arg)
-		}
+		args = append(args, opArgs...)
 
 		switch p.Operator {
 		default:
@@ -366,18 +382,16 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 			buffer.WriteString(`<>`)
 		}
 
-		sqlOperand, arg = toSqlOperand(rhs)
+		sqlOperand, opArgs = toSqlOperand(rhs)
 		buffer.WriteString(sqlOperand)
-		if arg != nil {
-			args = append(args, arg)
-		}
+		args = append(args, opArgs...)
 
 		sql = buffer.String()
-		return
 	} else {
 		err = fmt.Errorf("Comparison operator `%v` is not supported.", p.Operator)
-		return
 	}
+
+	return
 }
 
 func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
