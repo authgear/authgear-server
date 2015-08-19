@@ -135,6 +135,9 @@ func (m jsonMapValue) Value() (driver.Value, error) {
 type aclValue oddb.RecordACL
 
 func (acl aclValue) Value() (driver.Value, error) {
+	if acl == nil {
+		return nil, nil
+	}
 	return json.Marshal(acl)
 }
 

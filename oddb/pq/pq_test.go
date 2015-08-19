@@ -754,6 +754,34 @@ func TestSave(t *testing.T) {
 	})
 }
 
+func TestACL(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		db := c.PublicDB()
+		So(db.Extend("note", nil), ShouldBeNil)
+
+		record := oddb.Record{
+			ID:      oddb.NewRecordID("note", "1"),
+			OwnerID: "someuserid",
+			ACL:     nil,
+		}
+
+		Convey("saves public access correctly", func() {
+			err := db.Save(&record)
+
+			So(err, ShouldBeNil)
+
+			var b []byte
+			err = c.Db.QueryRow(`SELECT _access FROM app_com_oursky_ourd.note WHERE _id = '1'`).
+				Scan(&b)
+			So(err, ShouldBeNil)
+			So(b, ShouldResemble, []byte(nil))
+		})
+	})
+}
+
 func TestJSON(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
