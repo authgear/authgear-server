@@ -120,7 +120,10 @@ func main() {
 	}
 
 	initLogger(config)
-	initSubscription(config)
+	notificationPreprocessor := notificationPreprocessor{
+		NotificationSender: nil,
+	}
+	initSubscription(config, &notificationPreprocessor)
 	store := initAssetStore(config)
 	assetStorePreprocessor := assetStorePreprocessor{
 		Store: store,
@@ -258,6 +261,16 @@ func main() {
 		requireUserForWrite,
 	)
 
+	notificationPreprocessors := []router.Processor{
+		naiveAPIKeyPreprocessor.Preprocess,
+		fileSystemConnPreprocessor.Preprocess,
+		injectDatabase,
+		notificationPreprocessor.Preprocess,
+	}
+
+	r.Map("push:user", handler.PushToUserHandler, notificationPreprocessors...)
+	r.Map("push:device", handler.PushToDeviceHandler, notificationPreprocessors...)
+
 	plugins := []plugin.Plugin{}
 	for _, pluginConfig := range config.Plugin {
 		p := plugin.NewPlugin(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)
@@ -314,7 +327,7 @@ func initAssetStore(config Configuration) asset.Store {
 	return store
 }
 
-func initSubscription(config Configuration) {
+func initSubscription(config Configuration, notificationPreprocessor *notificationPreprocessor) {
 	if config.Subscription.Enabled {
 		var gateway string
 		switch config.APNS.Env {
@@ -342,6 +355,7 @@ func initSubscription(config Configuration) {
 		}
 		go subscriptionService.Init().Listen()
 		log.Infoln("Subscription Service listening...")
+		notificationPreprocessor.NotificationSender = pushSender
 	}
 }
 

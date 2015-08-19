@@ -12,6 +12,7 @@ import (
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/provider"
+	"github.com/oursky/ourd/push"
 	"github.com/oursky/ourd/router"
 )
 
@@ -185,5 +186,19 @@ func requireUserForWrite(payload *router.Payload, response *router.Response) int
 		return http.StatusUnauthorized
 	}
 
+	return http.StatusOK
+}
+
+type notificationPreprocessor struct {
+	NotificationSender *push.APNSPusher
+}
+
+func (p notificationPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	if p.NotificationSender == nil {
+		response.Err = errors.New("Unable to send push notification because APNS is not configured or there was a problem configuring the APNS.\n")
+		return http.StatusInternalServerError
+	}
+
+	payload.NotificationSender = p.NotificationSender
 	return http.StatusOK
 }

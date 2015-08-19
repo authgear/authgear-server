@@ -1,6 +1,8 @@
 package push
 
 import (
+	"encoding/json"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/timehop/apns"
 )
@@ -51,17 +53,68 @@ func (pusher *APNSPusher) Init() error {
 	return nil
 }
 
+func setPayloadAPS(apsMap map[string]interface{}, aps *apns.APS) {
+	for key, value := range apsMap {
+		switch key {
+		case "content-available":
+			switch value := value.(type) {
+			case int:
+				aps.ContentAvailable = value
+			case float64:
+				aps.ContentAvailable = int(value)
+			}
+		case "sound":
+			if sound, ok := value.(string); ok {
+				aps.Sound = sound
+			}
+		case "badge":
+			switch value := value.(type) {
+			case int:
+				aps.Badge = &value
+			case float64:
+				badge := int(value)
+				aps.Badge = &badge
+			}
+		case "alert":
+			if body, ok := value.(string); ok {
+				aps.Alert.Body = body
+			} else if alertMap, ok := value.(map[string]interface{}); ok {
+				jsonbytes, err := json.Marshal(&alertMap)
+				if err != nil {
+					panic("Unable to convert alert to json.")
+				}
+
+				err = json.Unmarshal(jsonbytes, &aps.Alert)
+				if err != nil {
+					panic("Unable to convert json back to Alert struct.")
+				}
+			}
+		}
+	}
+}
+
+func setPayload(m Mapper, p *apns.Payload) {
+	customMap := m.Map()
+	for key, value := range customMap {
+		if key == "aps" {
+			if apsMap, ok := value.(map[string]interface{}); ok {
+				setPayloadAPS(apsMap, &p.APS)
+				log.Errorf("Failed to set key = %v", p.APS.ContentAvailable)
+			} else {
+				log.Errorf("Failed to set key = %v, value = %v", key, value)
+			}
+		} else if err := p.SetCustomValue(key, value); err != nil {
+			log.Errorf("Failed to set key = %v, value = %v", key, value)
+		}
+	}
+}
+
 // Send sends a notification to the device identified by the
 // specified deviceToken
 func (pusher *APNSPusher) Send(m Mapper, deviceToken string) error {
 	payload := apns.NewPayload()
-	payload.APS.ContentAvailable = 1
-
-	customMap := m.Map()
-	for key, value := range customMap {
-		if err := payload.SetCustomValue(key, value); err != nil {
-			log.Errorf("Failed to set key = %v, value = %v", key, value)
-		}
+	if m != nil {
+		setPayload(m, payload)
 	}
 
 	notification := apns.NewNotification()

@@ -10,6 +10,7 @@ import (
 	"github.com/oursky/ourd/hook"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/provider"
+	"github.com/oursky/ourd/push"
 )
 
 // Handler specifies the function signature of a request handler function
@@ -39,6 +40,8 @@ type Payload struct {
 
 	DBConn   oddb.Conn
 	Database oddb.Database
+
+	NotificationSender *push.APNSPusher
 }
 
 func (p *Payload) NewPayload(req *http.Request) *Payload {

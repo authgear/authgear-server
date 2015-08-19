@@ -438,6 +438,30 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
 		})
+
+		Convey("query devices by user", func() {
+			device := oddb.Device{
+				ID:         "device",
+				Type:       "ios",
+				Token:      "devicetoken",
+				UserInfoID: "userid",
+			}
+			So(c.SaveDevice(&device), ShouldBeNil)
+
+			devices, err := c.QueryDevicesByUser("userid")
+			So(err, ShouldBeNil)
+			So(len(devices), ShouldEqual, 1)
+			So(devices[0], ShouldResemble, oddb.Device{
+				ID:         "device",
+				Type:       "ios",
+				Token:      "devicetoken",
+				UserInfoID: "userid",
+			})
+
+			devices, err = c.QueryDevicesByUser("nonexistent")
+			So(err, ShouldBeNil)
+			So(len(devices), ShouldEqual, 0)
+		})
 	})
 }
 
