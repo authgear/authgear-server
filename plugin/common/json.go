@@ -34,6 +34,8 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 			data[key] = (oddbconv.MapAsset)(v)
 		case oddb.Reference:
 			data[key] = (oddbconv.MapReference)(v)
+		case *oddb.Location:
+			data[key] = (*oddbconv.MapLocation)(v)
 		default:
 			data[key] = value
 		}
