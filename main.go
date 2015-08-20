@@ -6,8 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus/hooks/sentry"
 	"github.com/robfig/cron"
 
 	"github.com/oursky/ourd/asset"
@@ -362,9 +364,35 @@ func initSubscription(config Configuration, notificationPreprocessor *notificati
 func initLogger(config Configuration) {
 	// Setup Logging
 	log.SetOutput(os.Stderr)
-	logLv, logE := log.ParseLevel(config.LOG.Level)
-	if logE != nil {
-		logLv = log.DebugLevel
+	level, err := log.ParseLevel(config.LOG.Level)
+	if err != nil {
+		log.Warnf("log: error parsing config: %v", err)
+		log.Warnln("log: fall back to `debug`")
+		level = log.DebugLevel
 	}
-	log.SetLevel(logLv)
+	log.SetLevel(level)
+
+	if config.LogHook.SentryDSN != "" {
+		initSentry(config)
+	}
+}
+
+func initSentry(config Configuration) {
+	var levels []log.Level
+	for _, slevel := range config.LogHook.SentryLevels {
+		if level, err := log.ParseLevel(slevel); err != nil {
+			log.Fatalf("log-hook: error parsing sentry-level: %v", err)
+		} else {
+			levels = append(levels, level)
+		}
+	}
+
+	hook, err := logrus_sentry.NewSentryHook(config.LogHook.SentryDSN, levels)
+	hook.Timeout = 1 * time.Second
+	if err != nil {
+		log.Errorf("Failed to initialize Sentry: %v", err)
+		return
+	}
+	log.Infof("Logging to Sentry: %v", levels)
+	log.AddHook(hook)
 }
