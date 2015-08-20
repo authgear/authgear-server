@@ -64,6 +64,19 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 	}
 	m["_access"] = r.ACL
 
+	transient := map[string]interface{}{}
+	for key, value := range r.Transient {
+		switch v := value.(type) {
+		case oddb.Record:
+			transient[key] = newSerializedRecord(&v, s.AssetStore)
+		default:
+			transient[key] = v
+		}
+	}
+	if len(transient) > 0 {
+		m["_transient"] = transient
+	}
+
 	return json.Marshal(m)
 }
 
@@ -950,21 +963,28 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		query.ReadableBy = payload.UserInfo.ID
 	}
 
-	eagerKeys := []string{}
-	if keyPaths, ok := payload.Data["eager"].([]interface{}); ok {
-		for _, keyPathRaw := range keyPaths {
-			var keyPath string
-			if err := oddbconv.MapFrom(keyPathRaw, (*oddbconv.MapKeyPath)(&keyPath)); err != nil {
-				response.Err = oderr.NewRequestInvalidErr(errors.New("invalid key path format"))
+	var (
+		eagerTransientKey string
+		eagerKeyPath      string
+	)
+
+	if transientIncludes, ok := payload.Data["include"].(map[string]interface{}); ok {
+		for key, value := range transientIncludes {
+			expr := parseExpression(value)
+			switch expr.Type {
+			case oddb.KeyPath:
+				keyPath := expr.Value.(string)
+				if strings.Contains(keyPath, ".") {
+					response.Err = oderr.NewRequestInvalidErr(errors.New("multi level eager loading not supported"))
+					return
+				}
+
+				eagerKeyPath = keyPath
+				eagerTransientKey = key
+			default:
+				response.Err = oderr.NewRequestInvalidErr(errors.New("unexpected data in include key"))
 				return
 			}
-
-			if strings.Contains(keyPath, ".") {
-				response.Err = oderr.NewRequestInvalidErr(errors.New("multi level eager loading not supported"))
-				return
-			}
-
-			eagerKeys = append(eagerKeys, keyPath)
 		}
 	}
 
@@ -975,42 +995,32 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	}
 	defer results.Close()
 
-	records := []responseItem{}
-	eagerLoadIDs := []oddb.RecordID{}
+	records := []oddb.Record{}
 	for results.Scan() {
 		record := results.Record()
-		for _, eagerKey := range eagerKeys {
-			if ref, ok := record.Data[eagerKey].(oddb.Reference); ok {
-				eagerLoadIDs = append(eagerLoadIDs, ref.ID)
+		records = append(records, record)
+	}
+
+	recordsInResponse := []responseItem{}
+	for _, record := range records {
+		if eagerTransientKey != "" {
+			record.Transient = map[string]interface{}{}
+			if ref, ok := record.Data[eagerKeyPath].(oddb.Reference); ok {
+				eagerRecord := oddb.Record{}
+				if err := db.Get(ref.ID, &eagerRecord); err != nil {
+					log.WithFields(log.Fields{
+						"ID":  ref.ID,
+						"err": err,
+					}).Debugln("Unable to eager load record.")
+				}
+				record.Transient[eagerTransientKey] = eagerRecord
 			}
 		}
-		records = append(records, newResponseItem(newSerializedRecord(&record, payload.AssetStore)))
+
+		recordsInResponse = append(recordsInResponse, newResponseItem(newSerializedRecord(&record, payload.AssetStore)))
 	}
 
-	if err != nil {
-		response.Err = oderr.ErrDatabaseQueryFailed
-		return
-	}
-
-	eagerRecords := []responseItem{}
-	for _, rid := range eagerLoadIDs {
-		record := oddb.Record{}
-		if err := db.Get(rid, &record); err == nil {
-			eagerRecords = append(eagerRecords, newResponseItem(newSerializedRecord(&record, payload.AssetStore)))
-		} else {
-			log.WithFields(log.Fields{
-				"ID":  rid,
-				"err": err,
-			}).Debugln("Unable to eager load record.")
-		}
-	}
-
-	response.Result = records
-	if len(eagerKeys) > 0 {
-		response.OtherResult = map[string]interface{}{
-			"eager_load": eagerRecords,
-		}
-	}
+	response.Result = recordsInResponse
 }
 
 /*

@@ -211,6 +211,7 @@ type Record struct {
 	DatabaseID string    `json:"-"` // empty for public database
 	OwnerID    string    `json:"_ownerID,omitempty"`
 	ACL        RecordACL `json:"_access"`
+	Transient  Data      `json:"_transient,omitempty"`
 }
 
 // Get returns the value specified by key. If no value is associated
@@ -231,6 +232,8 @@ func (r *Record) Get(key string) interface{} {
 			return r.OwnerID
 		case "_access":
 			return r.ACL
+		case "_transient":
+			return r.Transient
 		default:
 			return nil
 		}
@@ -256,6 +259,8 @@ func (r *Record) Set(key string, i interface{}) {
 			r.OwnerID = i.(string)
 		case "_access":
 			r.ACL = i.(RecordACL)
+		case "_transient":
+			r.Transient = i.(Data)
 		default:
 			panic(fmt.Sprintf("unknown reserved key: %v", key))
 		}

@@ -90,14 +90,13 @@ func (p *Payload) AccessToken() string {
 
 // Response is interface for handler to write response to router
 type Response struct {
-	Meta        map[string]interface{} `json:"-"`
-	Result      interface{}            `json:"result,omitempty"`
-	Err         error                  `json:"error,omitempty"`
-	RequestID   string                 `json:"request_id,omitempty"`
-	DatabaseID  string                 `json:"database_id,omitempty"`
-	OtherResult interface{}            `json:"other_result,omitempty"`
-	written     bool
-	writer      http.ResponseWriter
+	Meta       map[string]interface{} `json:"-"`
+	Result     interface{}            `json:"result,omitempty"`
+	Err        error                  `json:"error,omitempty"`
+	RequestID  string                 `json:"request_id,omitempty"`
+	DatabaseID string                 `json:"database_id,omitempty"`
+	written    bool
+	writer     http.ResponseWriter
 }
 
 // Header returns the header map being written before return a response.

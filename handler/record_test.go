@@ -745,6 +745,9 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			category: oddb.Record{
 				ID:      oddb.NewRecordID("category", "important"),
 				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"title": "This is important.",
+				},
 			},
 		}
 
@@ -755,7 +758,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 		Convey("query record with eager load", func() {
 			resp := handlertest.NewSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
 				"record_type": "note",
-				"eager": [{"$type": "keypath", "$val": "category"}]
+				"include": {"category": {"$type": "keypath", "$val": "category"}}
 			}`)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -764,11 +767,11 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID",
-					"category": {"$id":"category/important","$type":"ref"}
-				}],
-				"other_result": {"eager_load":[
-				{"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID"}
-				]}
+					"category": {"$id":"category/important","$type":"ref"},
+					"_transient": {
+						"category": {"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID", "title": "This is important."}
+					}
+				}]
 			}`)
 		})
 	})
