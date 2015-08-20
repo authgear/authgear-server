@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -32,6 +31,9 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 	r := s.Record
 
 	m := map[string]interface{}{}
+	m["_id"] = s.Record.ID.String()
+	m["_type"] = "record"
+
 	for key, value := range r.Data {
 		switch v := value.(type) {
 		case time.Time:
@@ -160,67 +162,33 @@ func (data jsonData) ToMap(m map[string]interface{}) {
 	}
 }
 
-type responseItem struct {
-	id     string
-	record serializedRecord
-	err    oderr.Error
+type serializedError struct {
+	id  string
+	err oderr.Error
 }
 
-func newResponseItem(record serializedRecord) responseItem {
-	return responseItem{
-		id:     record.Record.ID.String(),
-		record: record,
-	}
-}
-
-func newResponseItemErr(id string, err oderr.Error) responseItem {
-	return responseItem{
+func newSerializedError(id string, err oderr.Error) serializedError {
+	return serializedError{
 		id:  id,
 		err: err,
 	}
 }
 
-func (item responseItem) MarshalJSON() ([]byte, error) {
-	var (
-		buf bytes.Buffer
-		i   interface{}
-	)
-	if item.id != "" {
-		buf.Write([]byte(`{"_id":"`))
-		buf.WriteString(item.id)
-		buf.Write([]byte(`",`))
-	} else {
-		buf.WriteRune('{')
+func (s serializedError) MarshalJSON() ([]byte, error) {
+	m := map[string]interface{}{
+		"_type":   "error",
+		"type":    s.err.Type(),
+		"code":    s.err.Code(),
+		"message": s.err.Message(),
 	}
-	buf.Write([]byte(`"_type":"`))
-	if item.err != nil {
-		buf.Write([]byte(`error"`))
-		i = item.err
-	} else if item.record.Record != nil {
-		buf.Write([]byte(`record"`))
-		i = item.record
-	} else {
-		panic(errors.New("inconsistent state: both err and record is nil"))
+	if s.id != "" {
+		m["_id"] = s.id
+	}
+	if s.err.Info() != nil {
+		m["info"] = s.err.Info()
 	}
 
-	bodyBytes, err := json.Marshal(i)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(bodyBytes) > 2 {
-		if bodyBytes[0] != '{' {
-			return nil, fmt.Errorf("first char of embedded json != {: %v", string(bodyBytes))
-		} else if bodyBytes[len(bodyBytes)-1] != '}' {
-			return nil, fmt.Errorf("last char of embedded json != }: %v", string(bodyBytes))
-		}
-		buf.WriteByte(',')
-		buf.Write(bodyBytes[1:])
-	} else {
-		buf.WriteByte('}')
-	}
-
-	return buf.Bytes(), nil
+	return json.Marshal(m)
 }
 
 /*
@@ -316,13 +284,13 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	currRecordIdx := 0
-	results := make([]responseItem, 0, len(incomingRecordItems))
+	results := make([]interface{}, 0, len(incomingRecordItems))
 	for _, itemi := range incomingRecordItems {
-		var result responseItem
+		var result interface{}
 
 		switch item := itemi.(type) {
 		case error:
-			result = newResponseItemErr("", oderr.NewRequestInvalidErr(item))
+			result = newSerializedError("", oderr.NewRequestInvalidErr(item))
 		case oddb.RecordID:
 			if err, ok := resp.ErrMap[item]; ok {
 				log.WithFields(log.Fields{
@@ -330,11 +298,11 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 					"err":      err,
 				}).Debugln("failed to save record")
 
-				result = newResponseItemErr(item.String(), oderr.NewResourceSaveFailureErrWithStringID("record", item.String()))
+				result = newSerializedError(item.String(), oderr.NewResourceSaveFailureErrWithStringID("record", item.String()))
 			} else {
 				record := resp.SavedRecords[currRecordIdx]
 				currRecordIdx++
-				result = newResponseItem(newSerializedRecord(record, payload.AssetStore))
+				result = newSerializedRecord(record, payload.AssetStore)
 			}
 		default:
 			panic(fmt.Sprintf("unknown type of incoming item: %T", itemi))
@@ -686,12 +654,12 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 
 	db := payload.Database
 
-	results := make([]responseItem, length, length)
+	results := make([]interface{}, length, length)
 	for i, recordID := range recordIDs {
 		record := oddb.Record{}
 		if err := db.Get(recordID, &record); err != nil {
 			if err == oddb.ErrRecordNotFound {
-				results[i] = newResponseItemErr(
+				results[i] = newSerializedError(
 					recordID.String(),
 					oderr.ErrRecordNotFound,
 				)
@@ -700,13 +668,13 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 					"recordID": recordID,
 					"err":      err,
 				}).Errorln("Failed to fetch record")
-				results[i] = newResponseItemErr(
+				results[i] = newSerializedError(
 					recordID.String(),
 					oderr.NewResourceFetchFailureErr("record", recordID.String()),
 				)
 			}
 		} else {
-			results[i] = newResponseItem(newSerializedRecord(&record, payload.AssetStore))
+			results[i] = newSerializedRecord(&record, payload.AssetStore)
 		}
 	}
 
@@ -1001,8 +969,8 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		records = append(records, record)
 	}
 
-	recordsInResponse := []responseItem{}
-	for _, record := range records {
+	output := make([]interface{}, len(records))
+	for i, record := range records {
 		if eagerTransientKey != "" {
 			record.Transient = map[string]interface{}{}
 			if ref, ok := record.Data[eagerKeyPath].(oddb.Reference); ok {
@@ -1017,10 +985,10 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 			}
 		}
 
-		recordsInResponse = append(recordsInResponse, newResponseItem(newSerializedRecord(&record, payload.AssetStore)))
+		output[i] = newSerializedRecord(&record, payload.AssetStore)
 	}
 
-	response.Result = recordsInResponse
+	response.Result = output
 }
 
 /*
@@ -1093,7 +1061,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 
 		if err, ok := resp.ErrMap[recordID]; ok {
 			if err == oddb.ErrRecordNotFound {
-				result = newResponseItemErr(
+				result = newSerializedError(
 					recordID.String(),
 					oderr.ErrRecordNotFound,
 				)
@@ -1103,7 +1071,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 					"err":      err,
 				}).Debugln("failed to delete record")
 
-				result = newResponseItemErr(
+				result = newSerializedError(
 					recordID.String(),
 					oderr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
 				)
