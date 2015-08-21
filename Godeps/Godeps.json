@@ -15,6 +15,10 @@
 			"Rev": "9c060de643590dae45da9d7c26276463bfc46fa0"
 		},
 		{
+			"ImportPath": "github.com/getsentry/raven-go",
+			"Rev": "74c334d7b8aaa4fd1b4fc6aa428c36fed1699e28"
+		},
+		{
 			"ImportPath": "github.com/gorilla/websocket",
 			"Rev": "b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5"
 		},

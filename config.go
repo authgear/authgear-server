@@ -52,6 +52,10 @@ type Configuration struct {
 	LOG struct {
 		Level string
 	}
+	LogHook struct {
+		SentryDSN   string `gcfg:"sentry-dsn"`
+		SentryLevel string `gcfg:"sentry-level"`
+	} `gcfg:"log-hook"`
 	Plugin map[string]*struct {
 		Transport string
 		Path      string
