@@ -941,6 +941,11 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 			expr := parseExpression(value)
 			switch expr.Type {
 			case oddb.KeyPath:
+				if eagerKeyPath != "" {
+					response.Err = oderr.NewRequestInvalidErr(errors.New("eager loading for multiple keys is not supported"))
+					return
+				}
+
 				keyPath := expr.Value.(string)
 				if strings.Contains(keyPath, ".") {
 					response.Err = oderr.NewRequestInvalidErr(errors.New("multi level eager loading not supported"))

@@ -774,6 +774,24 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				}]
 			}`)
 		})
+
+		Convey("return error if multiple key paths are specified", func() {
+			resp := handlertest.NewSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+				"record_type": "note",
+				"include": {
+					"category": {"$type": "keypath", "$val": "category"},
+					"city": {"$type": "keypath", "$val": "city"}
+				}
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code":101,
+					"message":"eager loading for multiple keys is not supported",
+					"type":"RequestInvalid"
+				}
+			}`)
+		})
 	})
 }
 
