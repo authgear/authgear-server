@@ -974,6 +974,10 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		records = append(records, record)
 	}
 
+	if results.Err() != nil {
+		response.Err = oderr.NewUnknownErr(results.Err())
+		return
+	}
 	output := make([]interface{}, len(records))
 	for i, record := range records {
 		if eagerTransientKey != "" {
