@@ -377,15 +377,33 @@ func initLogger(config Configuration) {
 	}
 }
 
-func initSentry(config Configuration) {
-	var levels []log.Level
-	for _, slevel := range config.LogHook.SentryLevels {
-		if level, err := log.ParseLevel(slevel); err != nil {
-			log.Fatalf("log-hook: error parsing sentry-level: %v", err)
-		} else {
-			levels = append(levels, level)
+func higherLogLevels(minLevel log.Level) []log.Level {
+	levels := []log.Level{
+		log.PanicLevel,
+		log.FatalLevel,
+		log.ErrorLevel,
+		log.WarnLevel,
+		log.InfoLevel,
+		log.DebugLevel,
+	}
+
+	output := make([]log.Level, 0, len(levels))
+	for _, level := range levels {
+		if level <= minLevel {
+			output = append(output, level)
 		}
 	}
+	return output
+}
+
+func initSentry(config Configuration) {
+	level, err := log.ParseLevel(config.LogHook.SentryLevel)
+	if err != nil {
+		log.Fatalf("log-hook: error parsing sentry-level: %v", err)
+		return
+	}
+
+	levels := higherLogLevels(level)
 
 	hook, err := logrus_sentry.NewSentryHook(config.LogHook.SentryDSN, levels)
 	hook.Timeout = 1 * time.Second
