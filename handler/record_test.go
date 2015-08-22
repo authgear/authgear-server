@@ -699,6 +699,54 @@ func TestRecordQuery(t *testing.T) {
 				},
 			})
 		})
+
+		Convey("Return records with desired keys only", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type":  "note",
+					"desired_keys": []interface{}{"location"},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.lastquery.DesiredKeys, ShouldResemble, []string{"location"})
+		})
+
+		Convey("Return records when desired keys is empty", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type":  "note",
+					"desired_keys": []interface{}{},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.lastquery.DesiredKeys, ShouldResemble, []string{})
+		})
+
+		Convey("Return records when desired keys is nil", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type":  "note",
+					"desired_keys": nil,
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.lastquery.DesiredKeys, ShouldBeNil)
+		})
 	})
 }
 

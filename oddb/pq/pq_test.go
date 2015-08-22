@@ -1394,6 +1394,102 @@ func TestQuery(t *testing.T) {
 		})
 	})
 
+	Convey("Database with multiple fields", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		record0 := oddb.Record{
+			ID:      oddb.NewRecordID("restaurant", "0"),
+			OwnerID: "someuserid",
+			Data: map[string]interface{}{
+				"cuisine": "american",
+				"title":   "American Restaurant",
+			},
+		}
+		record1 := oddb.Record{
+			ID:      oddb.NewRecordID("restaurant", "1"),
+			OwnerID: "someuserid",
+			Data: map[string]interface{}{
+				"cuisine": "chinese",
+				"title":   "Chinese Restaurant",
+			},
+		}
+		record2 := oddb.Record{
+			ID:      oddb.NewRecordID("restaurant", "2"),
+			OwnerID: "someuserid",
+			Data: map[string]interface{}{
+				"cuisine": "italian",
+				"title":   "Italian Restaurant",
+			},
+		}
+
+		recordsInDB := []oddb.Record{record0, record1, record2}
+
+		db := c.PublicDB()
+		So(db.Extend("restaurant", oddb.RecordSchema{
+			"title":   oddb.FieldType{Type: oddb.TypeString},
+			"cuisine": oddb.FieldType{Type: oddb.TypeString},
+		}), ShouldBeNil)
+		So(db.Save(&record0), ShouldBeNil)
+		So(db.Save(&record1), ShouldBeNil)
+		So(db.Save(&record2), ShouldBeNil)
+
+		Convey("query with desired keys", func() {
+			query := oddb.Query{
+				Type:        "restaurant",
+				DesiredKeys: []string{"cuisine"},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(len(records), ShouldEqual, 3)
+			for i, record := range records {
+				So(record.Data["title"], ShouldBeNil)
+				So(record.Data["cuisine"], ShouldEqual, recordsInDB[i].Data["cuisine"])
+			}
+		})
+
+		Convey("query with empty desired keys", func() {
+			query := oddb.Query{
+				Type:        "restaurant",
+				DesiredKeys: []string{},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(len(records), ShouldEqual, 3)
+			for _, record := range records {
+				So(record.Data["title"], ShouldBeNil)
+				So(record.Data["cuisine"], ShouldBeNil)
+			}
+		})
+
+		Convey("query with nil desired keys", func() {
+			query := oddb.Query{
+				Type:        "restaurant",
+				DesiredKeys: nil,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(len(records), ShouldEqual, 3)
+			for i, record := range records {
+				So(record.Data["title"], ShouldEqual, recordsInDB[i].Data["title"])
+				So(record.Data["cuisine"], ShouldEqual, recordsInDB[i].Data["cuisine"])
+			}
+		})
+
+		Convey("query with non-recognized desired keys", func() {
+			query := oddb.Query{
+				Type:        "restaurant",
+				DesiredKeys: []string{"pricing"},
+			}
+			_, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldNotBeNil)
+		})
+	})
+
 	Convey("Empty Conn", t, func() {
 		c := getTestConn(t)
 		defer cleanupDB(t, c.Db)

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
@@ -406,6 +407,23 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 
 	if len(typemap) == 0 { // record type has not been created
 		return oddb.EmptyRows, nil
+	}
+
+	if query.DesiredKeys != nil {
+		newtypemap := oddb.RecordSchema{}
+		for _, key := range query.DesiredKeys {
+			columnType, ok := typemap[key]
+			if !ok {
+				return nil, errors.New(fmt.Sprintf(`unexpected key "%s"`, key))
+			}
+			newtypemap[key] = columnType
+		}
+		for key, value := range typemap {
+			if strings.HasPrefix(key, "_") {
+				newtypemap[key] = value
+			}
+		}
+		typemap = newtypemap
 	}
 
 	for key, value := range query.ComputedKeys {

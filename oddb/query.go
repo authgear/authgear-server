@@ -92,6 +92,7 @@ type Query struct {
 	Sorts        []Sort                `json:"order,omitempty"`
 	ReadableBy   string                `json:"readable_by,omitempty"`
 	ComputedKeys map[string]Expression `json:"computed_keys,omitempty"`
+	DesiredKeys  []string              `json:"desired_keys,omitempty"`
 }
 
 // Func is a marker interface to denote a type being a function in oddb.

@@ -907,6 +907,20 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 		}
 	}
 
+	if desiredKeys, ok := payload.Data["desired_keys"]; ok {
+		if desiredKeys, ok := desiredKeys.([]interface{}); ok {
+			query.DesiredKeys = make([]string, len(desiredKeys))
+			for i, key := range desiredKeys {
+				key, ok := key.(string)
+				if !ok {
+					err = oderr.New(oderr.RequestInvalidErr, "unexpected value in desired_keys")
+					return
+				}
+				query.DesiredKeys[i] = key
+			}
+		}
+	}
+
 	return nil
 }
 
