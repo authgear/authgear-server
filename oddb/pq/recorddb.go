@@ -411,6 +411,13 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 		return oddb.EmptyRows, nil
 	}
 
+	for key, value := range query.ComputedKeys {
+		typemap["_transient_"+key] = oddb.FieldType{
+			Type:       oddb.TypeNumber,
+			Expression: &value,
+		}
+	}
+
 	q := db.selectQuery(query.Type, typemap)
 
 	if p := query.Predicate; p != nil {
@@ -589,8 +596,13 @@ func (db *database) selectQuery(recordType string, typemap oddb.RecordSchema) sq
 	}
 
 	q := psql.Select()
-	for column := range typemap {
-		q = q.Column(`"` + column + `"`)
+	for column, fieldType := range typemap {
+		if fieldType.Expression != nil {
+			sqlOperand, opArgs := toSqlOperand(*fieldType.Expression)
+			q = q.Column(sqlOperand+" as "+column, opArgs...)
+		} else {
+			q = q.Column(`"` + column + `"`)
+		}
 	}
 
 	q = q.From(db.tableName(recordType)).
