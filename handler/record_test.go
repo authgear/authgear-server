@@ -562,6 +562,44 @@ func TestRecordQuery(t *testing.T) {
 				},
 			})
 		})
+
+		Convey("Return calculated distance", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+					"include": map[string]interface{}{
+						"distance": []interface{}{
+							"func",
+							"distance",
+							map[string]interface{}{
+								"$type": "keypath",
+								"$val":  "location",
+							},
+							map[string]interface{}{
+								"$type": "geo",
+								"$lng":  float64(1),
+								"$lat":  float64(2),
+							},
+						},
+					},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.lastquery.ComputedKeys, ShouldResemble, map[string]oddb.Expression{
+				"distance": oddb.Expression{
+					oddb.Function,
+					&oddb.DistanceFunc{
+						Field:    "location",
+						Location: oddb.NewLocation(1, 2),
+					},
+				},
+			})
+		})
 	})
 }
 

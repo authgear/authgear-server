@@ -900,6 +900,15 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 		}
 	}
 
+	if transientIncludes, ok := payload.Data["include"]; ok {
+		if transientIncludes, ok := transientIncludes.(map[string]interface{}); ok {
+			query.ComputedKeys = map[string]oddb.Expression{}
+			for key, value := range transientIncludes {
+				query.ComputedKeys[key] = parseExpression(value)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -936,30 +945,21 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		eagerKeyPath      string
 	)
 
-	if transientIncludes, ok := payload.Data["include"].(map[string]interface{}); ok {
-		for key, value := range transientIncludes {
-			expr := parseExpression(value)
-			switch expr.Type {
-			case oddb.KeyPath:
-				if eagerKeyPath != "" {
-					response.Err = oderr.NewRequestInvalidErr(errors.New("eager loading for multiple keys is not supported"))
-					return
-				}
-
-				keyPath := expr.Value.(string)
-				if strings.Contains(keyPath, ".") {
-					response.Err = oderr.NewRequestInvalidErr(errors.New("multi level eager loading not supported"))
-					return
-				}
-
-				eagerKeyPath = keyPath
-				eagerTransientKey = key
-			default:
-				response.Err = oderr.NewRequestInvalidErr(errors.New("unexpected data in include key"))
+	// Handler supports a type of transient field that eager load
+	// a referened record, which is not currently supported by oddb.
+	// This type of expression is taken out of ComputedKeys and
+	// the wanted records are added to the transient field later.
+	for key, value := range query.ComputedKeys {
+		if value.Type == oddb.KeyPath {
+			if eagerTransientKey != "" {
+				response.Err = oderr.NewRequestInvalidErr(errors.New("eager loading for multiple keys is not supported"))
 				return
 			}
+			eagerTransientKey = key
+			eagerKeyPath = value.Value.(string)
 		}
 	}
+	delete(query.ComputedKeys, eagerTransientKey)
 
 	results, err := db.Query(&query)
 	if err != nil {
@@ -974,6 +974,10 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		records = append(records, record)
 	}
 
+	if results.Err() != nil {
+		response.Err = oderr.NewUnknownErr(results.Err())
+		return
+	}
 	output := make([]interface{}, len(records))
 	for i, record := range records {
 		if eagerTransientKey != "" {

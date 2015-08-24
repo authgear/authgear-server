@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // RecordID identifies an unique record in a Database
@@ -235,7 +236,10 @@ func (r *Record) Get(key string) interface{} {
 		case "_transient":
 			return r.Transient
 		default:
-			return nil
+			if strings.HasPrefix(key, "_transient_") {
+				return r.Transient[strings.TrimPrefix(key, "_transient_")]
+			}
+			panic(fmt.Sprintf("unknown reserved key: %v", key))
 		}
 	} else {
 		return r.Data[key]
@@ -262,7 +266,14 @@ func (r *Record) Set(key string, i interface{}) {
 		case "_transient":
 			r.Transient = i.(Data)
 		default:
-			panic(fmt.Sprintf("unknown reserved key: %v", key))
+			if strings.HasPrefix(key, "_transient_") {
+				if r.Transient == nil {
+					r.Transient = Data{}
+				}
+				r.Transient[strings.TrimPrefix(key, "_transient_")] = i
+			} else {
+				panic(fmt.Sprintf("unknown reserved key: %v", key))
+			}
 		}
 	} else {
 		r.Data[key] = i
@@ -275,7 +286,8 @@ type RecordSchema map[string]FieldType
 // FieldType represents the kind of data living within a field of a RecordSchema.
 type FieldType struct {
 	Type          DataType
-	ReferenceType string // used only by TypeReference
+	ReferenceType string      // used only by TypeReference
+	Expression    *Expression // used by Computed Keys
 }
 
 // DataType defines the type of data that can saved into an oddb database

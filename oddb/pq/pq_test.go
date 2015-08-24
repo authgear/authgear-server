@@ -599,7 +599,7 @@ func TestExtend(t *testing.T) {
 				"createdAt": oddb.FieldType{Type: oddb.TypeDateTime},
 				"dirty":     oddb.FieldType{Type: oddb.TypeNumber},
 			})
-			So(err.Error(), ShouldEqual, "conflicting schema {TypeString } => {TypeNumber }")
+			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  %!s(*oddb.Expression=<nil>)} => {TypeNumber  %!s(*oddb.Expression=<nil>)}")
 		})
 	})
 }
@@ -1331,6 +1331,26 @@ func TestQuery(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []oddb.Record{record0, record1, record2})
+		})
+
+		Convey("query with computed distance", func() {
+			query := oddb.Query{
+				Type: "restaurant",
+				ComputedKeys: map[string]oddb.Expression{
+					"distance": oddb.Expression{
+						Type: oddb.Function,
+						Value: &oddb.DistanceFunc{
+							Field:    "location",
+							Location: oddb.NewLocation(1, 1),
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(len(records), ShouldEqual, 3)
+			So(records[0].Transient["distance"], ShouldAlmostEqual, 111178, 1)
 		})
 	})
 
