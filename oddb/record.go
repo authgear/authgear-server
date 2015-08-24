@@ -237,14 +237,9 @@ func (r *Record) Get(key string) interface{} {
 			return r.Transient
 		default:
 			if strings.HasPrefix(key, "_transient_") {
-				if r.Transient == nil {
-					return nil
-				} else {
-					return r.Transient[strings.TrimPrefix(key, "_transient_")]
-				}
-			} else {
-				panic(fmt.Sprintf("unknown reserved key: %v", key))
+				return r.Transient[strings.TrimPrefix(key, "_transient_")]
 			}
+			panic(fmt.Sprintf("unknown reserved key: %v", key))
 		}
 	} else {
 		return r.Data[key]
