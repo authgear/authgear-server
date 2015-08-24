@@ -1,18 +1,8 @@
 package oddb
 
 import (
-	//"errors"
-	//"fmt"
-	//"io"
 	"testing"
-	//"time"
 
-	//"github.com/oursky/ourd/authtoken"
-	//"github.com/oursky/ourd/handler/handlertest"
-	//"github.com/oursky/ourd/hook"
-	//"github.com/oursky/ourd/oddb/oddbtest"
-	//. "github.com/oursky/ourd/ourtest"
-	//"github.com/oursky/ourd/router"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
