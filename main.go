@@ -165,7 +165,7 @@ func main() {
 	fileGateway := router.NewGateway(`files/(.+)`)
 	fileGateway.GET(handler.AssetGetURLHandler, assetGetPreprocessors...)
 	fileGateway.PUT(handler.AssetUploadURLHandler, assetUploadPreprocessors...)
-	http.Handle("/files", logMiddleware(fileGateway))
+	http.Handle("/files/", logMiddleware(fileGateway))
 
 	r := router.NewRouter()
 	r.Map("", handler.HomeHandler)
