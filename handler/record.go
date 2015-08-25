@@ -979,7 +979,8 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 	output := make([]interface{}, len(records))
-	for i, record := range records {
+	for i := range records {
+		record := records[i]
 		if eagerTransientKey != "" {
 			record.Transient = map[string]interface{}{}
 			if ref, ok := record.Data[eagerKeyPath].(oddb.Reference); ok {

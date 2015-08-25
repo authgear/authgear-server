@@ -385,6 +385,61 @@ func (db *queryDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 	return oddb.EmptyRows, nil
 }
 
+type queryResultsDatabase struct {
+	records []oddb.Record
+	oddb.Database
+}
+
+func (db *queryResultsDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
+	return oddb.NewRows(oddb.NewMemoryRows(db.records)), nil
+}
+
+func TestRecordQueryResults(t *testing.T) {
+	Convey("Given a Database with records", t, func() {
+		record0 := oddb.Record{
+			ID: oddb.NewRecordID("note", "0"),
+		}
+		record1 := oddb.Record{
+			ID: oddb.NewRecordID("note", "1"),
+		}
+		record2 := oddb.Record{
+			ID: oddb.NewRecordID("note", "2"),
+		}
+
+		db := &queryResultsDatabase{}
+		db.records = []oddb.Record{record1, record0, record2}
+
+		r := handlertest.NewSingleRouteRouter(RecordQueryHandler, func(p *router.Payload) {
+			p.Database = db
+		})
+
+		Convey("REGRESSION #227: query returns correct results from db", func() {
+			resp := r.POST(`{
+				"record_type": "note"
+			}`)
+
+			So(resp.Body.String(), ShouldEqualJSON, `{
+				"result": [{
+					"_type": "record",
+					"_id": "note/1",
+					"_access": null
+				},
+				{
+					"_type": "record",
+					"_id": "note/0",
+					"_access": null
+				},
+				{
+					"_type": "record",
+					"_id": "note/2",
+					"_access": null
+				}]
+			}`)
+			So(resp.Code, ShouldEqual, 200)
+		})
+	})
+}
+
 func TestRecordQuery(t *testing.T) {
 	Convey("Given a Database", t, func() {
 		db := &queryDatabase{}
