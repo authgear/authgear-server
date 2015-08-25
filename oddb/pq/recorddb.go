@@ -71,13 +71,13 @@ func (na *nullAsset) Scan(value interface{}) error {
 		return nil
 	}
 
-	assetName, ok := value.(string)
+	assetName, ok := value.([]byte)
 	if !ok {
-		return fmt.Errorf("failed to scan Asset: got type(value) = %T, expect string", value)
+		return fmt.Errorf("failed to scan Asset: got type(value) = %T, expect []byte", value)
 	}
 
 	na.Asset = oddb.Asset{
-		Name: assetName,
+		Name: string(assetName),
 	}
 	na.Valid = true
 

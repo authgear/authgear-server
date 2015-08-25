@@ -923,6 +923,27 @@ func TestRecordAssetField(t *testing.T) {
 			})
 			So(err, ShouldNotBeNil)
 		})
+
+		Convey("REGRESSION #229: can be fetched", func() {
+			So(db.Save(&oddb.Record{
+				ID: oddb.NewRecordID("note", "id"),
+				Data: map[string]interface{}{
+					"image": oddb.Asset{Name: "picture.png"},
+				},
+				OwnerID: "user_id",
+			}), ShouldBeNil)
+
+			var record oddb.Record
+			err := db.Get(oddb.NewRecordID("note", "id"), &record)
+			So(err, ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
+				ID: oddb.NewRecordID("note", "id"),
+				Data: map[string]interface{}{
+					"image": oddb.Asset{Name: "picture.png"},
+				},
+				OwnerID: "user_id",
+			})
+		})
 	})
 }
 
