@@ -11,10 +11,13 @@ const (
 	Desc = Descending
 )
 
-// Sort specifies the field and the order to be sorted against a collection of
-// Records returned from a Query.
+// Sort specifies the order of a collection of Records returned from a Query.
+//
+// Record order can be sorted w.r.t. a record field or a value returned
+// from a predefined function.
 type Sort struct {
 	KeyPath string
+	Func    Func
 	Order   SortOrder
 }
 
