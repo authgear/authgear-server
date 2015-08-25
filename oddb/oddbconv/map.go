@@ -206,7 +206,7 @@ type MapKeyPath string
 
 // FromMap implements FromMapper
 func (p *MapKeyPath) FromMap(m map[string]interface{}) error {
-	keyPath := m["$val"].(string)
+	keyPath, _ := m["$val"].(string)
 	if keyPath == "" {
 		return errors.New("empty key path")
 	}
