@@ -1373,6 +1373,25 @@ func TestQuery(t *testing.T) {
 			So(len(records), ShouldEqual, 3)
 			So(records[0].Transient["distance"], ShouldAlmostEqual, 111178, 1)
 		})
+
+		Convey("query records ordered by distance", func() {
+			query := oddb.Query{
+				Type: "restaurant",
+				Sorts: []oddb.Sort{
+					{
+						Func: &oddb.DistanceFunc{
+							Field:    "location",
+							Location: oddb.NewLocation(0, 0),
+						},
+						Order: oddb.Desc,
+					},
+				},
+			}
+
+			records, err := exhaustRows(db.Query(&query))
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{record1, record2, record0})
+		})
 	})
 
 	Convey("Empty Conn", t, func() {

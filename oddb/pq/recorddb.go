@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
@@ -325,7 +324,7 @@ func (p *compoundPredicateSqlizer) ToSql() (sql string, args []interface{}, err 
 func toSqlOperand(expr oddb.Expression) (sql string, args []interface{}) {
 	switch expr.Type {
 	case oddb.KeyPath:
-		sql = quotedField(expr.Value.(string))
+		sql = pq.QuoteIdentifier(expr.Value.(string))
 	case oddb.Function:
 		sql, args = funcToSqlOperand(expr.Value.(oddb.Func))
 	default:
@@ -337,7 +336,7 @@ func toSqlOperand(expr oddb.Expression) (sql string, args []interface{}) {
 func funcToSqlOperand(fun oddb.Func) (string, []interface{}) {
 	switch f := fun.(type) {
 	case *oddb.DistanceFunc:
-		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))", quotedField(f.Field))
+		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))", pq.QuoteIdentifier(f.Field))
 		args := []interface{}{f.Location.Lng(), f.Location.Lat()}
 		return sql, args
 	default:
@@ -353,8 +352,6 @@ func literalToSqlOperand(i interface{}) (string, []interface{}) {
 		return "?", []interface{}{i}
 	}
 }
-
-var quotedField = strconv.Quote
 
 func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	args = []interface{}{}
@@ -425,15 +422,11 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 	}
 
 	for _, sort := range query.Sorts {
-		switch sort.Order {
-		default:
-			return nil, fmt.Errorf("unknown sort order = %v", sort.Order)
-		// NOTE(limouren): better to verify KeyPath as well
-		case oddb.Asc:
-			q = q.OrderBy(`"` + sort.KeyPath + `"` + " ASC")
-		case oddb.Desc:
-			q = q.OrderBy(`"` + sort.KeyPath + `"` + " DESC")
+		orderBy, err := sortOrderBySQL(sort)
+		if err != nil {
+			return nil, err
 		}
+		q = q.OrderBy(orderBy)
 	}
 
 	if query.ReadableBy != "" {
@@ -446,6 +439,57 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 
 	rows, err := queryWith(db.Db, q)
 	return newRows(query.Type, typemap, rows, err)
+}
+
+func sortOrderBySQL(sort oddb.Sort) (string, error) {
+	var expr string
+
+	switch {
+	case sort.KeyPath != "":
+		expr = pq.QuoteIdentifier(sort.KeyPath)
+	case sort.Func != nil:
+		var err error
+		expr, err = funcOrderBySQL(sort.Func)
+		if err != nil {
+			return "", err
+		}
+	default:
+		return "", errors.New("invalid Sort: specify either KeyPath or Func")
+	}
+
+	order, err := sortOrderOrderBySQL(sort.Order)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(expr + " " + order), nil
+}
+
+// due to sq not being able to pass args in OrderBy, we can't re-use funcToSqlOperand
+func funcOrderBySQL(fun oddb.Func) (string, error) {
+	switch f := fun.(type) {
+	case *oddb.DistanceFunc:
+		sql := fmt.Sprintf(
+			"ST_Distance_Sphere(%s, ST_MakePoint(%f, %f))",
+			pq.QuoteIdentifier(f.Field),
+			f.Location.Lng(),
+			f.Location.Lat(),
+		)
+		return sql, nil
+	default:
+		return "", fmt.Errorf("got unrecgonized oddb.Func = %T", fun)
+	}
+}
+
+func sortOrderOrderBySQL(order oddb.SortOrder) (string, error) {
+	switch order {
+	case oddb.Asc:
+		return "ASC", nil
+	case oddb.Desc:
+		return "DESC", nil
+	default:
+		return "", fmt.Errorf("unknown sort order = %v", order)
+	}
 }
 
 // columnsScanner wraps over sqlx.Rows and sqlx.Row to provide

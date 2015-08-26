@@ -493,6 +493,50 @@ func TestRecordQuery(t *testing.T) {
 			})
 		})
 
+		Convey("Queries records with sorting by distance function", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+					"sort": []interface{}{
+						[]interface{}{
+							[]interface{}{
+								"func",
+								"distance",
+								map[string]interface{}{
+									"$type": "keypath",
+									"$val":  "location",
+								},
+								map[string]interface{}{
+									"$type": "geo",
+									"$lng":  float64(1),
+									"$lat":  float64(2),
+								},
+							},
+							"desc",
+						},
+					},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.lastquery, ShouldResemble, &oddb.Query{
+				Type: "note",
+				Sorts: []oddb.Sort{
+					oddb.Sort{
+						Func: &oddb.DistanceFunc{
+							Field:    "location",
+							Location: oddb.NewLocation(1, 2),
+						},
+						Order: oddb.Desc,
+					},
+				},
+			})
+		})
+
 		Convey("Queries records with predicate", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{

@@ -1,13 +1,13 @@
 package fs
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/oursky/ourd/oddb"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func tempdir() string {
@@ -105,7 +105,7 @@ func TestQuerySort(t *testing.T) {
 			query := oddb.Query{
 				Type: "record",
 				Sorts: []oddb.Sort{
-					{"_id", oddb.Asc},
+					{KeyPath: "_id", Order: oddb.Asc},
 				},
 			}
 
@@ -123,7 +123,7 @@ func TestQuerySort(t *testing.T) {
 			query := oddb.Query{
 				Type: "record",
 				Sorts: []oddb.Sort{
-					{"string", oddb.Desc},
+					{KeyPath: "string", Order: oddb.Desc},
 				},
 			}
 
@@ -140,7 +140,7 @@ func TestQuerySort(t *testing.T) {
 			query := oddb.Query{
 				Type: "record",
 				Sorts: []oddb.Sort{
-					{"int", oddb.Asc},
+					{KeyPath: "int", Order: oddb.Asc},
 				},
 			}
 

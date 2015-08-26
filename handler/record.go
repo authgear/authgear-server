@@ -681,33 +681,31 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	response.Result = results
 }
 
-func keyPathFromRaw(rawKeyPath map[string]interface{}) string {
-	mapType := rawKeyPath["$type"]
-	if mapType != "keypath" {
-		panic(fmt.Errorf("got key path's type %v, want \"keypath\"", mapType))
-	}
-
-	keypath := rawKeyPath["$val"].(string)
-	if keypath == "" {
-		panic(errors.New("empty key path value"))
-	}
-
-	return keypath
-}
-
 func sortFromRaw(rawSort []interface{}, sort *oddb.Sort) {
-	keyPathMap, _ := rawSort[0].(map[string]interface{})
-	if len(keyPathMap) == 0 {
-		panic(errors.New("empty key path in sort descriptor"))
+	var (
+		keyPath   string
+		funcExpr  oddb.Func
+		sortOrder oddb.SortOrder
+	)
+	switch v := rawSort[0].(type) {
+	case map[string]interface{}:
+		if err := (*oddbconv.MapKeyPath)(&keyPath).FromMap(v); err != nil {
+			panic(err)
+		}
+	case []interface{}:
+		var err error
+		funcExpr, err = parseFunc(v)
+		if err != nil {
+			panic(err)
+		}
+	default:
+		panic(fmt.Errorf("unexpected type of sort expression = %T", rawSort[0]))
 	}
-	keyPath := keyPathFromRaw(keyPathMap)
 
 	orderStr, _ := rawSort[1].(string)
 	if orderStr == "" {
 		panic(errors.New("empty sort order in sort descriptor"))
 	}
-
-	var sortOrder oddb.SortOrder
 	switch orderStr {
 	case "asc":
 		sortOrder = oddb.Asc
@@ -718,6 +716,7 @@ func sortFromRaw(rawSort []interface{}, sort *oddb.Sort) {
 	}
 
 	sort.KeyPath = keyPath
+	sort.Func = funcExpr
 	sort.Order = sortOrder
 }
 
@@ -879,7 +878,6 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 			}
 		}
 	}()
-
 	recordType, _ := payload.Data["record_type"].(string)
 	if recordType == "" {
 		return oderr.New(oderr.RequestInvalidErr, "recordType cannot be empty")
