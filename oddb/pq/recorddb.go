@@ -455,6 +455,14 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 				`_owner_id = ?)`, query.ReadableBy)
 	}
 
+	if query.Limit > 0 {
+		q = q.Limit(query.Limit)
+	}
+
+	if query.Offset > 0 {
+		q = q.Offset(query.Offset)
+	}
+
 	rows, err := queryWith(db.Db, q)
 	return newRows(query.Type, typemap, rows, err)
 }

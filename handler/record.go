@@ -921,6 +921,17 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 		}
 	}
 
+	if offset, ok := payload.Data["offset"]; ok {
+		if offset, ok := offset.(float64); ok {
+			query.Offset = uint64(offset)
+		}
+	}
+
+	if limit, ok := payload.Data["limit"]; ok {
+		if limit, ok := limit.(float64); ok {
+			query.Limit = uint64(limit)
+		}
+	}
 	return nil
 }
 

@@ -1181,6 +1181,26 @@ func TestQuery(t *testing.T) {
 			So(records[1], ShouldResemble, record3)
 			So(len(records), ShouldEqual, 2)
 		})
+
+		Convey("query records by offset and paging", func() {
+			query := oddb.Query{
+				Type:   "note",
+				Limit:  2,
+				Offset: 1,
+				Sorts: []oddb.Sort{
+					oddb.Sort{
+						KeyPath: "noteOrder",
+						Order:   oddb.Descending,
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, record2)
+			So(records[1], ShouldResemble, record1)
+			So(len(records), ShouldEqual, 2)
+		})
 	})
 
 	Convey("Database with reference", t, func() {
