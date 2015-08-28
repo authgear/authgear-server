@@ -900,12 +900,10 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 		}
 	}
 
-	if transientIncludes, ok := payload.Data["include"]; ok {
-		if transientIncludes, ok := transientIncludes.(map[string]interface{}); ok {
-			query.ComputedKeys = map[string]oddb.Expression{}
-			for key, value := range transientIncludes {
-				query.ComputedKeys[key] = parseExpression(value)
-			}
+	if transientIncludes, ok := payload.Data["include"].(map[string]interface{}); ok {
+		query.ComputedKeys = map[string]oddb.Expression{}
+		for key, value := range transientIncludes {
+			query.ComputedKeys[key] = parseExpression(value)
 		}
 	}
 
@@ -923,16 +921,12 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 		}
 	}
 
-	if offset, ok := payload.Data["offset"]; ok {
-		if offset, ok := offset.(float64); ok {
-			query.Offset = uint64(offset)
-		}
+	if offset, _ := payload.Data["offset"].(float64); offset > 0 {
+		query.Offset = uint64(offset)
 	}
 
-	if limit, ok := payload.Data["limit"]; ok {
-		if limit, ok := limit.(float64); ok {
-			query.Limit = uint64(limit)
-		}
+	if limit, _ := payload.Data["limit"].(float64); limit > 0 {
+		query.Limit = uint64(limit)
 	}
 	return nil
 }
