@@ -1039,6 +1039,7 @@ func TestQuery(t *testing.T) {
 			OwnerID: "user_id",
 			Data: map[string]interface{}{
 				"noteOrder": float64(1),
+				"content":   "Hello World",
 			},
 		}
 		record2 := oddb.Record{
@@ -1046,6 +1047,7 @@ func TestQuery(t *testing.T) {
 			OwnerID: "user_id",
 			Data: map[string]interface{}{
 				"noteOrder": float64(2),
+				"content":   "Bye World",
 			},
 		}
 		record3 := oddb.Record{
@@ -1053,12 +1055,14 @@ func TestQuery(t *testing.T) {
 			OwnerID: "user_id",
 			Data: map[string]interface{}{
 				"noteOrder": float64(3),
+				"content":   "Good Hello",
 			},
 		}
 
 		db := c.PrivateDB("userid")
 		So(db.Extend("note", oddb.RecordSchema{
 			"noteOrder": oddb.FieldType{Type: oddb.TypeNumber},
+			"content":   oddb.FieldType{Type: oddb.TypeString},
 		}), ShouldBeNil)
 
 		err := db.Save(&record2)
@@ -1134,6 +1138,30 @@ func TestQuery(t *testing.T) {
 						oddb.Expression{
 							Type:  oddb.Literal,
 							Value: 1,
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, record1)
+			So(len(records), ShouldEqual, 1)
+		})
+
+		Convey("query records by content matching", func() {
+			query := oddb.Query{
+				Type: "note",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.Like,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: "content",
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: "Hello%",
 						},
 					},
 				},
