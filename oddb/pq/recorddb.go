@@ -412,18 +412,9 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 	}
 
 	if query.DesiredKeys != nil {
-		newtypemap := oddb.RecordSchema{}
-		for _, key := range query.DesiredKeys {
-			columnType, ok := typemap[key]
-			if !ok {
-				return nil, errors.New(fmt.Sprintf(`unexpected key "%s"`, key))
-			}
-			newtypemap[key] = columnType
-		}
-		for key, value := range typemap {
-			if strings.HasPrefix(key, "_") {
-				newtypemap[key] = value
-			}
+		newtypemap, err := whitelistedRecordSchema(typemap, query.DesiredKeys)
+		if err != nil {
+			return nil, err
 		}
 		typemap = newtypemap
 	}
@@ -467,6 +458,25 @@ func (db *database) Query(query *oddb.Query) (*oddb.Rows, error) {
 
 	rows, err := queryWith(db.Db, q)
 	return newRows(query.Type, typemap, rows, err)
+}
+
+func whitelistedRecordSchema(schema oddb.RecordSchema, whitelistKeys []string) (oddb.RecordSchema, error) {
+	wlSchema := oddb.RecordSchema{}
+
+	for _, key := range whitelistKeys {
+		columnType, ok := schema[key]
+		if !ok {
+			return nil, fmt.Errorf(`unexpected key "%s"`, key)
+		}
+		wlSchema[key] = columnType
+	}
+	for key, value := range schema {
+		if strings.HasPrefix(key, "_") {
+			wlSchema[key] = value
+		}
+	}
+
+	return wlSchema, nil
 }
 
 func sortOrderBySQL(sort oddb.Sort) (string, error) {
