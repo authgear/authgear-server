@@ -56,6 +56,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	resp.writer = w
 	defer func() {
 		if !resp.written {
+			resp.Header().Set("Content-Type", "application/json")
 			if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
 				resp.writer.WriteHeader(http.StatusBadRequest)
 			} else {

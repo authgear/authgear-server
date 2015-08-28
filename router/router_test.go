@@ -54,6 +54,9 @@ func TestRouterMap(t *testing.T) {
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
 
+	if resp.Header().Get("Content-Type") != "application/json" {
+		t.Fatalf("Unexpected Content-Type in header %v", resp.Header().Get("Content-Type"))
+	}
 	if resp.Body.String() != "{\"result\":{\"username\":\"example\"}}\n" {
 		t.Fatalf("Simple map failed %v", resp.Body.String())
 	}
