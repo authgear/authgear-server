@@ -747,6 +747,24 @@ func TestRecordQuery(t *testing.T) {
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.DesiredKeys, ShouldBeNil)
 		})
+
+		Convey("Queries records with offset", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+					"limit":       float64(200),
+					"offset":      float64(400),
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.lastquery.Limit, ShouldEqual, 200)
+			So(db.lastquery.Offset, ShouldEqual, 400)
+		})
 	})
 }
 
