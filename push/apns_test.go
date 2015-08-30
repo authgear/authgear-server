@@ -3,10 +3,13 @@ package push
 import (
 	"encoding/json"
 	"errors"
+	"testing"
+	"time"
+
+	"github.com/oursky/ourd/oddb"
 	. "github.com/oursky/ourd/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/timehop/apns"
-	"testing"
 )
 
 type naiveClient struct {
@@ -28,7 +31,7 @@ func TestSend(t *testing.T) {
 	Convey("APNSPusher", t, func() {
 		client := naiveClient{}
 		pusher := APNSPusher{
-			Client: &client,
+			client: &client,
 		}
 
 		Convey("pushes notification", func() {
@@ -103,4 +106,78 @@ func TestSend(t *testing.T) {
 			}`)
 		})
 	})
+}
+
+type deleteCall struct {
+	token string
+	t     time.Time
+}
+
+type mockConn struct {
+	calls []deleteCall
+	err   error
+	oddb.Conn
+}
+
+func (c *mockConn) DeleteDeviceByToken(token string, t time.Time) error {
+	c.calls = append(c.calls, deleteCall{token, t})
+	return c.err
+}
+
+func (c *mockConn) Open() (oddb.Conn, error) {
+	return c, nil
+}
+
+type feedbackChannel chan apns.FeedbackTuple
+
+func (ch feedbackChannel) Receive() <-chan apns.FeedbackTuple {
+	return ch
+}
+
+func TestFeedback(t *testing.T) {
+	Convey("APNSPusher", t, func() {
+		conn := &mockConn{}
+		ch := make(chan apns.FeedbackTuple)
+		pusher := APNSPusher{
+			connOpener: conn.Open,
+			feedback:   feedbackChannel(ch),
+		}
+
+		Convey("receives no feedbacks", func() {
+			close(ch)
+			pusher.recvFeedback()
+			So(conn.calls, ShouldBeEmpty)
+		})
+
+		Convey("receives multiple feedbacks", func() {
+			go func() {
+				ch <- newFeedbackTuple("devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+				ch <- newFeedbackTuple("devicetoken1", time.Date(2046, 1, 2, 15, 4, 5, 0, time.UTC))
+				close(ch)
+			}()
+
+			pusher.recvFeedback()
+			So(conn.calls, ShouldResemble, []deleteCall{
+				{"devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)},
+				{"devicetoken1", time.Date(2046, 1, 2, 15, 4, 5, 0, time.UTC)},
+			})
+		})
+
+		Convey("handles erroneous device delete", func() {
+			go func() {
+				ch <- newFeedbackTuple("devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+				close(ch)
+			}()
+
+			conn.err = errors.New("apns/test: unknown error")
+			pusher.recvFeedback()
+			So(conn.calls, ShouldResemble, []deleteCall{
+				{"devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)},
+			})
+		})
+	})
+}
+
+func newFeedbackTuple(token string, t time.Time) apns.FeedbackTuple {
+	return apns.FeedbackTuple{Timestamp: t, DeviceToken: token}
 }
