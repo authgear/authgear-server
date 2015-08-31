@@ -524,7 +524,28 @@ func (c *conn) DeleteDevice(id string) error {
 }
 
 func (c *conn) DeleteDeviceByToken(token string, t time.Time) error {
-	return errors.New("not implemented")
+	builder := psql.Delete(c.tableName("_device")).
+		Where("token = ?", token)
+	if t != oddb.ZeroTime {
+		builder = builder.Where("last_registered_at < ?", t)
+	}
+	result, err := execWith(c.Db, builder)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return oddb.ErrDeviceNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+	}
+
+	return nil
 }
 
 func (c *conn) PublicDB() oddb.Database {
@@ -682,6 +703,7 @@ CREATE TABLE IF NOT EXISTS %[1]v._device (
 	last_registered_at timestamp without time zone NOT NULL,
 	UNIQUE (user_id, type, token)
 );
+CREATE INDEX ON %[1]v._device (token, last_registered_at);
 `
 	const CreateSubscriptionTableFmt = `
 CREATE TABLE IF NOT EXISTS %[1]v._subscription (

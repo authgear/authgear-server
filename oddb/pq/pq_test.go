@@ -467,6 +467,39 @@ func TestDevice(t *testing.T) {
 			So(count, ShouldEqual, 0)
 		})
 
+		Convey("deletes an existing record by token", func() {
+			device := oddb.Device{
+				ID:               "deviceid",
+				Type:             "ios",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+			So(c.SaveDevice(&device), ShouldBeNil)
+
+			err := c.DeleteDeviceByToken("devicetoken", oddb.ZeroTime)
+			So(err, ShouldBeNil)
+
+			var count int
+			err = c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._device WHERE id = 'deviceid'").Scan(&count)
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 0)
+		})
+
+		Convey("fails to delete an existing record with a later LastRegisteredAt", func() {
+			device := oddb.Device{
+				ID:               "deviceid",
+				Type:             "ios",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+			So(c.SaveDevice(&device), ShouldBeNil)
+
+			err := c.DeleteDeviceByToken("devicetoken", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(err, ShouldEqual, oddb.ErrDeviceNotFound)
+		})
+
 		Convey("query devices by user", func() {
 			device := oddb.Device{
 				ID:               "device",
