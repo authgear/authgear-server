@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"sort"
 	"syscall"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -118,6 +119,10 @@ func (conn *fileConn) SaveDevice(device *oddb.Device) error {
 
 func (conn *fileConn) DeleteDevice(id string) error {
 	return conn.deviceDB.Delete(id)
+}
+
+func (conn *fileConn) DeleteDeviceByToken(token string, t time.Time) error {
+	panic("not implemented")
 }
 
 func (conn *fileConn) PublicDB() oddb.Database {

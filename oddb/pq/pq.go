@@ -523,6 +523,10 @@ func (c *conn) DeleteDevice(id string) error {
 	return nil
 }
 
+func (c *conn) DeleteDeviceByToken(token string, t time.Time) error {
+	return errors.New("not implemented")
+}
+
 func (c *conn) PublicDB() oddb.Database {
 	return &database{
 		Db: c.Db,
