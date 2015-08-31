@@ -213,7 +213,7 @@ func TestAssetGetURLHandler(t *testing.T) {
 				return time.Unix(1436431129, 999)
 			}
 			defer func() {
-				timeNow = time.Now
+				timeNow = timeNowUTC
 			}()
 			signparser.valid = true
 			assetConn.asset = oddb.Asset{
@@ -238,7 +238,7 @@ func TestAssetGetURLHandler(t *testing.T) {
 				return time.Unix(1436431130, 1)
 			}
 			defer func() {
-				timeNow = time.Now
+				timeNow = timeNowUTC
 			}()
 
 			resp := r.GET("assetName?signature=signedSignature&expiredAt=1436431130")
@@ -256,7 +256,7 @@ func TestAssetGetURLHandler(t *testing.T) {
 				return time.Unix(1436431129, 999)
 			}
 			defer func() {
-				timeNow = time.Now
+				timeNow = timeNowUTC
 			}()
 
 			resp := r.GET("assetName?signature=signedSignature&expiredAt=1436431130")

@@ -2,11 +2,13 @@ package handler
 
 import (
 	"errors"
+	"testing"
+	"time"
+
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 	. "github.com/smartystreets/goconvey/convey"
-	"testing"
 )
 
 type naiveConn struct {
@@ -40,6 +42,11 @@ func (conn *naiveConn) DeleteDevice(id string) error {
 
 func TestDeviceRegisterHandler(t *testing.T) {
 	Convey("DeviceRegisterHandler", t, func() {
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = timeNowUTC
+		}()
+
 		conn := naiveConn{}
 		payload := router.Payload{
 			DBConn: &conn,
@@ -60,19 +67,21 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			result := resp.Result.(DeviceReigsterResult)
 			So(result.ID, ShouldNotBeEmpty)
 			So(conn.savedevice, ShouldResemble, &oddb.Device{
-				ID:         result.ID,
-				Type:       "ios",
-				Token:      "some-awesome-token",
-				UserInfoID: "userinfoid",
+				ID:               result.ID,
+				Type:             "ios",
+				Token:            "some-awesome-token",
+				UserInfoID:       "userinfoid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 		})
 
 		Convey("updates old device", func() {
 			olddevice := oddb.Device{
-				ID:         "deviceid",
-				Type:       "android",
-				Token:      "oldtoken",
-				UserInfoID: "olduserinfoid",
+				ID:               "deviceid",
+				Type:             "android",
+				Token:            "oldtoken",
+				UserInfoID:       "olduserinfoid",
+				LastRegisteredAt: time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			conn.getdevice = &olddevice
 
@@ -88,10 +97,11 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			So(result.ID, ShouldEqual, "deviceid")
 			So(conn.getid, ShouldEqual, "deviceid")
 			So(conn.savedevice, ShouldResemble, &oddb.Device{
-				ID:         "deviceid",
-				Type:       "ios",
-				Token:      "newtoken",
-				UserInfoID: "userinfoid",
+				ID:               "deviceid",
+				Type:             "ios",
+				Token:            "newtoken",
+				UserInfoID:       "userinfoid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 		})
 
