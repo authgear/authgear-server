@@ -315,10 +315,11 @@ func TestDevice(t *testing.T) {
 
 		Convey("gets an existing Device", func() {
 			device := oddb.Device{
-				ID:         "deviceid",
-				Type:       "ios",
-				Token:      "devicetoken",
-				UserInfoID: "userid",
+				ID:               "deviceid",
+				Type:             "ios",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
 
@@ -326,62 +327,73 @@ func TestDevice(t *testing.T) {
 			err := c.GetDevice("deviceid", &device)
 			So(err, ShouldBeNil)
 			So(device, ShouldResemble, oddb.Device{
-				ID:         "deviceid",
-				Type:       "ios",
-				Token:      "devicetoken",
-				UserInfoID: "userid",
+				ID:               "deviceid",
+				Type:             "ios",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 		})
 
 		Convey("creates a new Device", func() {
 			device := oddb.Device{
-				ID:         "deviceid",
-				Type:       "ios",
-				Token:      "devicetoken",
-				UserInfoID: "userid",
+				ID:               "deviceid",
+				Type:             "ios",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 
 			err := c.SaveDevice(&device)
 			So(err, ShouldBeNil)
 
-			var deviceType, token, userInfoID string
-			err = c.Db.QueryRow("SELECT type, token, user_id FROM app_com_oursky_ourd._device WHERE id = 'deviceid'").
-				Scan(&deviceType, &token, &userInfoID)
+			var (
+				deviceType, token, userInfoID string
+				lastRegisteredAt              time.Time
+			)
+			err = c.Db.QueryRow("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_ourd._device WHERE id = 'deviceid'").
+				Scan(&deviceType, &token, &userInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
 			So(token, ShouldEqual, "devicetoken")
 			So(userInfoID, ShouldEqual, "userid")
+			So(lastRegisteredAt.Unix(), ShouldEqual, 1136214245)
 		})
 
 		Convey("updates an existing Device", func() {
 			device := oddb.Device{
-				ID:         "deviceid",
-				Type:       "ios",
-				Token:      "devicetoken",
-				UserInfoID: "userid",
+				ID:               "deviceid",
+				Type:             "ios",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 
 			err := c.SaveDevice(&device)
 			So(err, ShouldBeNil)
 
 			device.Token = "anotherdevicetoken"
-			err = c.SaveDevice(&device)
+			So(c.SaveDevice(&device), ShouldBeNil)
 
-			So(err, ShouldBeNil)
-			var deviceType, token, userInfoID string
-			err = c.Db.QueryRow("SELECT type, token, user_id FROM app_com_oursky_ourd._device WHERE id = 'deviceid'").
-				Scan(&deviceType, &token, &userInfoID)
+			var (
+				deviceType, token, userInfoID string
+				lastRegisteredAt              time.Time
+			)
+			err = c.Db.QueryRow("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_ourd._device WHERE id = 'deviceid'").
+				Scan(&deviceType, &token, &userInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
 			So(token, ShouldEqual, "anotherdevicetoken")
 			So(userInfoID, ShouldEqual, "userid")
+			So(lastRegisteredAt.Unix(), ShouldEqual, 1136214245)
 		})
 
 		Convey("cannot save Device without id", func() {
 			device := oddb.Device{
-				Type:       "ios",
-				Token:      "devicetoken",
-				UserInfoID: "userid",
+				Type:             "ios",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 
 			err := c.SaveDevice(&device)
@@ -390,9 +402,10 @@ func TestDevice(t *testing.T) {
 
 		Convey("cannot save Device without type", func() {
 			device := oddb.Device{
-				ID:         "deviceid",
-				Token:      "devicetoken",
-				UserInfoID: "userid",
+				ID:               "deviceid",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 
 			err := c.SaveDevice(&device)
@@ -401,9 +414,10 @@ func TestDevice(t *testing.T) {
 
 		Convey("cannot save Device without token", func() {
 			device := oddb.Device{
-				ID:         "deviceid",
-				Type:       "ios",
-				UserInfoID: "userid",
+				ID:               "deviceid",
+				Type:             "ios",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 
 			err := c.SaveDevice(&device)
@@ -412,9 +426,22 @@ func TestDevice(t *testing.T) {
 
 		Convey("cannot save Device without user id", func() {
 			device := oddb.Device{
-				ID:    "deviceid",
-				Type:  "ios",
-				Token: "devicetoken",
+				ID:               "deviceid",
+				Type:             "ios",
+				Token:            "devicetoken",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+
+			err := c.SaveDevice(&device)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("cannot save Device without last_registered_at", func() {
+			device := oddb.Device{
+				ID:         "deviceid",
+				Type:       "ios",
+				Token:      "devicetoken",
+				UserInfoID: "userid",
 			}
 
 			err := c.SaveDevice(&device)
@@ -423,10 +450,11 @@ func TestDevice(t *testing.T) {
 
 		Convey("deletes an existing record", func() {
 			device := oddb.Device{
-				ID:         "deviceid",
-				Type:       "ios",
-				Token:      "devicetoken",
-				UserInfoID: "userid",
+				ID:               "deviceid",
+				Type:             "ios",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
 
@@ -441,10 +469,11 @@ func TestDevice(t *testing.T) {
 
 		Convey("query devices by user", func() {
 			device := oddb.Device{
-				ID:         "device",
-				Type:       "ios",
-				Token:      "devicetoken",
-				UserInfoID: "userid",
+				ID:               "device",
+				Type:             "ios",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
 
@@ -452,10 +481,11 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(len(devices), ShouldEqual, 1)
 			So(devices[0], ShouldResemble, oddb.Device{
-				ID:         "device",
-				Type:       "ios",
-				Token:      "devicetoken",
-				UserInfoID: "userid",
+				ID:               "device",
+				Type:             "ios",
+				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 
 			devices, err = c.QueryDevicesByUser("nonexistent")

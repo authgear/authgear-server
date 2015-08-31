@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
@@ -414,11 +415,15 @@ func (c *conn) RemoveRelation(user string, name string, targetUser string) error
 }
 
 func (c *conn) GetDevice(id string, device *oddb.Device) error {
-	builder := psql.Select("type", "token", "user_id").
+	builder := psql.Select("type", "token", "user_id", "last_registered_at").
 		From(c.tableName("_device")).
 		Where("id = ?", id)
-	err := queryRowWith(c.Db, builder).
-		Scan(&device.Type, &device.Token, &device.UserInfoID)
+	err := queryRowWith(c.Db, builder).Scan(
+		&device.Type,
+		&device.Token,
+		&device.UserInfoID,
+		&device.LastRegisteredAt,
+	)
 
 	if err == sql.ErrNoRows {
 		return oddb.ErrDeviceNotFound
@@ -426,13 +431,14 @@ func (c *conn) GetDevice(id string, device *oddb.Device) error {
 		return err
 	}
 
+	device.LastRegisteredAt = device.LastRegisteredAt.In(time.UTC)
 	device.ID = id
 
 	return nil
 }
 
 func (c *conn) QueryDevicesByUser(user string) ([]oddb.Device, error) {
-	builder := psql.Select("id", "type", "token", "user_id").
+	builder := psql.Select("id", "type", "token", "user_id", "last_registered_at").
 		From(c.tableName("_device")).
 		Where("user_id = ?", user)
 
@@ -447,11 +453,18 @@ func (c *conn) QueryDevicesByUser(user string) ([]oddb.Device, error) {
 	defer rows.Close()
 	results := []oddb.Device{}
 	for rows.Next() {
-		device := oddb.Device{}
-		if err := rows.Scan(&device.ID, &device.Type, &device.Token, &device.UserInfoID); err != nil {
+		d := oddb.Device{}
+		if err := rows.Scan(
+			&d.ID,
+			&d.Type,
+			&d.Token,
+			&d.UserInfoID,
+			&d.LastRegisteredAt); err != nil {
+
 			panic(err)
 		}
-		results = append(results, device)
+		d.LastRegisteredAt = d.LastRegisteredAt.UTC()
+		results = append(results, d)
 	}
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -461,15 +474,16 @@ func (c *conn) QueryDevicesByUser(user string) ([]oddb.Device, error) {
 }
 
 func (c *conn) SaveDevice(device *oddb.Device) error {
-	if device.ID == "" || device.Token == "" || device.Type == "" || device.UserInfoID == "" {
-		return errors.New("invalid device: empty id or token or type or user id")
+	if device.ID == "" || device.Token == "" || device.Type == "" || device.UserInfoID == "" || device.LastRegisteredAt.IsZero() {
+		return errors.New("invalid device: empty id , token, type, user id, or last registered at")
 	}
 
 	pkData := map[string]interface{}{"id": device.ID}
 	data := map[string]interface{}{
-		"type":    device.Type,
-		"token":   device.Token,
-		"user_id": device.UserInfoID,
+		"type":               device.Type,
+		"token":              device.Token,
+		"user_id":            device.UserInfoID,
+		"last_registered_at": device.LastRegisteredAt.UTC(),
 	}
 
 	upsert := upsertQuery(c.tableName("_device"), pkData, data)
@@ -661,6 +675,7 @@ CREATE TABLE IF NOT EXISTS %[1]v._device (
 	user_id text REFERENCES %[1]v._user (id),
 	type text NOT NULL,
 	token text NOT NULL,
+	last_registered_at timestamp without time zone NOT NULL,
 	UNIQUE (user_id, type, token)
 );
 `
