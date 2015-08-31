@@ -683,7 +683,7 @@ CREATE TABLE IF NOT EXISTS %[1]v._device (
 CREATE TABLE IF NOT EXISTS %[1]v._subscription (
 	id text NOT NULL,
 	user_id text NOT NULL,
-	device_id text REFERENCES %[1]v._device (id) NOT NULL,
+	device_id text REFERENCES %[1]v._device (id) ON DELETE CASCADE NOT NULL,
 	type text NOT NULL,
 	notification_info jsonb,
 	query jsonb,
