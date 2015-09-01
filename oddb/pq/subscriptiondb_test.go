@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/oursky/ourd/oddb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func addDevice(t *testing.T, c *conn, userID string, deviceID string) {
-	_, err := c.Db.Exec("INSERT INTO app_com_oursky_ourd._device (id, user_id, type, token) VALUES ($1, $2, '', $3)", deviceID, userID, randHex(64))
+	_, err := c.Db.Exec("INSERT INTO app_com_oursky_ourd._device (id, user_id, type, token, last_registered_at) VALUES ($1, $2, '', $3, $4)", deviceID, userID, randHex(64), time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
 	if err != nil {
 		t.Fatal(err)
 	}

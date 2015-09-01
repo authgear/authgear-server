@@ -106,6 +106,7 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 	device.Type = payload.Type
 	device.Token = payload.DeviceToken
 	device.UserInfoID = userinfoID
+	device.LastRegisteredAt = timeNow()
 
 	if err := conn.SaveDevice(&device); err != nil {
 		log.WithFields(log.Fields{

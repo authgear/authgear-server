@@ -1,6 +1,8 @@
 package oddbtest
 
 import (
+	"time"
+
 	"github.com/oursky/ourd/oddb"
 )
 
@@ -37,6 +39,7 @@ func (conn *MapConn) GetUser(id string, userinfo *oddb.UserInfo) error {
 	return nil
 }
 
+// GetUserByPrincipalID returns a UserInfo by its principalID.
 func (conn *MapConn) GetUserByPrincipalID(principalID string, userinfo *oddb.UserInfo) error {
 	for _, u := range conn.UserMap {
 		if _, ok := u.Auth[principalID]; ok {
@@ -48,6 +51,7 @@ func (conn *MapConn) GetUserByPrincipalID(principalID string, userinfo *oddb.Use
 	return oddb.ErrUserNotFound
 }
 
+// QueryUser is not implemented.
 func (conn *MapConn) QueryUser(emails []string) ([]oddb.UserInfo, error) {
 	panic("not implemented")
 }
@@ -72,22 +76,27 @@ func (conn *MapConn) DeleteUser(id string) error {
 	return nil
 }
 
+// GetAsset is not implemented.
 func (conn *MapConn) GetAsset(name string, asset *oddb.Asset) error {
 	panic("not implemented")
 }
 
+// SaveAsset is not implemented.
 func (conn *MapConn) SaveAsset(asset *oddb.Asset) error {
 	panic("not implemented")
 }
 
+// QueryRelation is not implemented.
 func (conn *MapConn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
 	panic("not implemented")
 }
 
+// AddRelation is not implemented.
 func (conn *MapConn) AddRelation(user string, name string, targetUser string) error {
 	panic("not implemented")
 }
 
+// RemoveRelation is not implemented.
 func (conn *MapConn) RemoveRelation(user string, name string, targetUser string) error {
 	panic("not implemented")
 }
@@ -109,6 +118,11 @@ func (conn *MapConn) SaveDevice(device *oddb.Device) error {
 
 // DeleteDevice is not implemented.
 func (conn *MapConn) DeleteDevice(id string) error {
+	panic("not implemented")
+}
+
+// DeleteDeviceByToken is not implemented.
+func (conn *MapConn) DeleteDeviceByToken(token string, t time.Time) error {
 	panic("not implemented")
 }
 

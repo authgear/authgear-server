@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
@@ -620,7 +621,7 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 			}
 		case *pq.NullTime:
 			if svalue.Valid {
-				record.Set(column, svalue.Time)
+				record.Set(column, svalue.Time.In(time.UTC))
 			}
 		case *sql.NullBool:
 			if svalue.Valid {

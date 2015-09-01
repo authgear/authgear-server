@@ -2,7 +2,6 @@ package subscription
 
 import (
 	log "github.com/Sirupsen/logrus"
-
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/push"
 )

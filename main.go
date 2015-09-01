@@ -331,18 +331,9 @@ func initAssetStore(config Configuration) asset.Store {
 
 func initSubscription(config Configuration, notificationPreprocessor *notificationPreprocessor) {
 	if config.Subscription.Enabled {
-		var gateway string
-		switch config.APNS.Env {
-		case "sandbox":
-			gateway = "gateway.sandbox.push.apple.com:2195"
-		case "production":
-			gateway = "gateway.push.apple.com:2195"
-		default:
-			fmt.Println("config: apns.env can only be sandbox or production")
-			return
-		}
+		connOpener := func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
 
-		pushSender, err := push.NewAPNSPusher(gateway, config.APNS.Cert, config.APNS.Key)
+		pushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
 		if err != nil {
 			log.Fatalf("Failed to set up push sender: %v", err)
 		}
@@ -350,9 +341,10 @@ func initSubscription(config Configuration, notificationPreprocessor *notificati
 		if err := pushSender.Init(); err != nil {
 			log.Fatalf("Failed to init push sender: %v", err)
 		}
+		go pushSender.RunFeedback()
 
 		subscriptionService := &subscription.Service{
-			ConnOpener:         func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) },
+			ConnOpener:         connOpener,
 			NotificationSender: pushSender,
 		}
 		go subscriptionService.Init().Listen()

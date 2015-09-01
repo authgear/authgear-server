@@ -18,12 +18,6 @@ import (
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
-	"github.com/oursky/ourd/uuid"
-)
-
-var (
-	uuidNew = uuid.New
-	timeNow = time.Now
 )
 
 // used to clean file path
