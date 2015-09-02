@@ -351,11 +351,12 @@ func initSubscription(config Configuration, notificationPreprocessor *notificati
 		go pushSender.RunFeedback()
 
 		subscriptionService := &subscription.Service{
-			ConnOpener:         connOpener,
-			NotificationSender: pushSender,
+			ConnOpener: connOpener,
+			Notifier:   subscription.NewPushNotifier(pushSender),
 		}
-		go subscriptionService.Init().Listen()
 		log.Infoln("Subscription Service listening...")
+		go subscriptionService.Init().Listen()
+
 		notificationPreprocessor.NotificationSender = pushSender
 	}
 }

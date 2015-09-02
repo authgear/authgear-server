@@ -181,7 +181,6 @@ func setPayload(m Mapper, p *apns.Payload) {
 		if key == "aps" {
 			if apsMap, ok := value.(map[string]interface{}); ok {
 				setPayloadAPS(apsMap, &p.APS)
-				log.Errorf("Failed to set key = %v", p.APS.ContentAvailable)
 			} else {
 				log.Errorf("Failed to set key = %v, value = %v", key, value)
 			}
