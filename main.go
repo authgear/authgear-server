@@ -355,7 +355,7 @@ func initSubscription(config Configuration, notificationPreprocessor *notificati
 			Notifier:   subscription.NewPushNotifier(pushSender),
 		}
 		log.Infoln("Subscription Service listening...")
-		go subscriptionService.Init().Listen()
+		go subscriptionService.Run()
 
 		notificationPreprocessor.NotificationSender = pushSender
 	}

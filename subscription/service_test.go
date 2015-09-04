@@ -37,7 +37,8 @@ func TestService(t *testing.T) {
 		conn.EXPECT().Subscribe(gomock.Any()).Do(func(recordEventCh chan oddb.RecordEvent) {
 			chch <- recordEventCh
 		})
-		go service.Init().Listen()
+		go service.Run()
+		defer service.Stop()
 		ch := <-chch
 
 		record := oddb.Record{

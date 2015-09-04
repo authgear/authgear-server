@@ -12,71 +12,75 @@ var timeNow = time.Now
 // Service is responsible to send push notification to device whenever
 // a record has been modified in db.
 type Service struct {
-	ConnOpener      func() (oddb.Conn, error)
-	Notifier        Notifier
-	recordEventChan chan oddb.RecordEvent
+	ConnOpener func() (oddb.Conn, error)
+	Notifier   Notifier
+	stop       chan struct{}
 }
 
-// Init initializes the record change detection at startup time.
-func (s *Service) Init() *Service {
-	conn, err := s.ConnOpener()
-	if err != nil {
-		log.Panicf("Failed to obtain connection: %v", err)
-	}
-
-	s.recordEventChan = make(chan oddb.RecordEvent)
-	conn.Subscribe(s.recordEventChan)
-
-	return s
-}
-
-// Listen listens for Conn record event
-func (s *Service) Listen() {
+// Run listens for Conn record event
+func (s *Service) Run() {
 	// maximum number of events per second
 	const EventCountBits = 16
 	const EventCountMask = 1<<EventCountBits - 1
 
 	var (
 		// number of events processed, reset per second
-		eventCount uint
-		prevUnix   = timeNow().Unix()
+		eventCount    uint
+		prevUnix      = timeNow().Unix()
+		recordEventCh = s.subscribe()
 	)
+	s.stop = make(chan struct{})
+	defer func() { s.stop = nil }()
 
 	for {
-		event := <-s.recordEventChan
-		switch event.Event {
-		case oddb.RecordCreated, oddb.RecordUpdated, oddb.RecordDeleted:
-			conn, err := s.ConnOpener()
-			if err != nil {
-				log.WithFields(log.Fields{
-					"event": event,
-					"err":   err,
-				}).Errorln("subscription/service: failed to open conn")
-				continue
-			}
+		select {
+		case event := <-recordEventCh:
+			switch event.Event {
+			case oddb.RecordCreated, oddb.RecordUpdated, oddb.RecordDeleted:
+				conn, err := s.ConnOpener()
+				if err != nil {
+					log.WithFields(log.Fields{
+						"event": event,
+						"err":   err,
+					}).Errorln("subscription: failed to open conn")
+					continue
+				}
 
-			currUnix := timeNow().Unix()
-			if currUnix != prevUnix {
-				eventCount = 0
-				prevUnix = currUnix
-			}
-			seqNum := uint64(currUnix)<<EventCountBits | uint64(eventCount)&EventCountMask
-			eventCount++
+				currUnix := timeNow().Unix()
+				if currUnix != prevUnix {
+					eventCount = 0
+					prevUnix = currUnix
+				}
+				seqNum := uint64(currUnix)<<EventCountBits | uint64(eventCount)&EventCountMask
+				eventCount++
 
-			db := getDB(conn, event.Record)
-			s.handleRecordHook(db, event, seqNum)
-		default:
-			log.Panicf("Unrecgonized event: %v", event)
+				db := getDB(conn, event.Record)
+				s.handleRecordHook(db, event, seqNum)
+			default:
+				log.Panicf("subscription: unrecgonized event: %v", event)
+			}
+		case <-s.stop:
+			log.Infoln("subscription: stopping the service")
+			break
 		}
 	}
 }
 
-func getDB(conn oddb.Conn, record *oddb.Record) oddb.Database {
-	if record.DatabaseID == "" {
-		return conn.PublicDB()
+// Stop stops the running subscription service
+func (s *Service) Stop() {
+	s.stop <- struct{}{}
+}
+
+func (s *Service) subscribe() chan oddb.RecordEvent {
+	conn, err := s.ConnOpener()
+	if err != nil {
+		log.Panicf("subscription: failed to obtain connection: %v", err)
 	}
 
-	return conn.PrivateDB(record.DatabaseID)
+	ch := make(chan oddb.RecordEvent)
+	conn.Subscribe(ch)
+
+	return ch
 }
 
 func (s *Service) handleRecordHook(db oddb.Database, e oddb.RecordEvent, seqNum uint64) {
@@ -95,4 +99,12 @@ func (s *Service) handleRecordHook(db oddb.Database, e oddb.RecordEvent, seqNum 
 			log.Errorf("subscription: failed to send notice to device id = %s", device.ID)
 		}
 	}
+}
+
+func getDB(conn oddb.Conn, record *oddb.Record) oddb.Database {
+	if record.DatabaseID == "" {
+		return conn.PublicDB()
+	}
+
+	return conn.PrivateDB(record.DatabaseID)
 }
