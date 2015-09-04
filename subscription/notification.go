@@ -8,6 +8,8 @@ import (
 // Notice encapsulates the information sent to subscribers when the content of
 // a subscription has changed.
 type Notice struct {
+	// SeqNum is a strictly increasing number between notice
+	SeqNum         uint64
 	SubscriptionID string
 	Event          oddb.RecordHookEvent
 	Record         *oddb.Record
@@ -35,6 +37,7 @@ func (notifier *pushNotifier) Notify(device oddb.Device, notice Notice) error {
 			"content_available": 1,
 		},
 		"_ourd": map[string]interface{}{
+			"seq-num":         notice.SeqNum,
 			"subscription-id": notice.SubscriptionID,
 		},
 	}

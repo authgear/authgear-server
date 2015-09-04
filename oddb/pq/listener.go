@@ -31,13 +31,13 @@ func (c *conn) Subscribe(recordEventChan chan oddb.RecordEvent) error {
 	return nil
 }
 
-func emit(appName string, record *oddb.Record, event oddb.RecordHookEvent) {
-	channels := appEventChannelsMap[appName]
+func emit(n *notification) {
+	channels := appEventChannelsMap[n.AppName]
 	for _, channel := range channels {
 		go func(ch chan oddb.RecordEvent) {
 			ch <- oddb.RecordEvent{
-				Record: record,
-				Event:  event,
+				Record: &n.Record,
+				Event:  n.ChangeEvent,
 			}
 		}(channel)
 	}
@@ -111,7 +111,7 @@ func (l *recordListener) Listen() {
 				continue
 			}
 
-			emit(n.AppName, &n.Record, n.ChangeEvent)
+			emit(&n)
 
 			l.deleteNotification(pqNotification.Extra)
 		case <-time.After(60 * time.Second):
@@ -176,26 +176,40 @@ func (l *recordListener) deleteNotification(notificationID string) {
 }
 
 func parseNotification(raw *rawNotification, n *notification) error {
-	if err := parseRecordData(raw.Record, &n.Record); err != nil {
+	if err := parseAppName(raw.AppName, &n.AppName); err != nil {
 		return err
 	}
 
-	if !strings.HasPrefix(raw.AppName, "app_") {
-		return fmt.Errorf("Invalid AppName = %v", raw.AppName)
+	if err := parseChangeEvent(raw.Op, &n.ChangeEvent); err != nil {
+		return err
 	}
-	n.AppName = raw.AppName[4:]
 
+	if err := parseRecordData(raw.Record, &n.Record); err != nil {
+		return err
+	}
 	n.Record.ID.Type = raw.RecordType
 
-	switch raw.Op {
+	return nil
+}
+
+func parseAppName(rawAppName string, appName *string) error {
+	if !strings.HasPrefix(rawAppName, "app_") {
+		return fmt.Errorf("Invalid AppName = %v", rawAppName)
+	}
+	*appName = rawAppName[4:]
+	return nil
+}
+
+func parseChangeEvent(rawOp string, changeEvent *oddb.RecordHookEvent) error {
+	switch rawOp {
 	case "INSERT":
-		n.ChangeEvent = oddb.RecordCreated
+		*changeEvent = oddb.RecordCreated
 	case "UPDATE":
-		n.ChangeEvent = oddb.RecordUpdated
+		*changeEvent = oddb.RecordUpdated
 	case "DELETE":
-		n.ChangeEvent = oddb.RecordDeleted
+		*changeEvent = oddb.RecordDeleted
 	default:
-		return fmt.Errorf("Unrecongized Op = %v", raw.Op)
+		return fmt.Errorf("Unrecongized Op = %v", rawOp)
 	}
 
 	return nil
