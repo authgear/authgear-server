@@ -52,14 +52,15 @@ func TestService(t *testing.T) {
 			ID: "deviceid",
 		}
 
-		conn.EXPECT().PublicDB().Return(db)
+		conn.EXPECT().PublicDB().Return(db).AnyTimes()
 		db.EXPECT().GetMatchingSubscriptions(&record).Return([]oddb.Subscription{
 			subscription,
-		})
-		db.EXPECT().Conn().Return(conn)
+		}).AnyTimes()
+		db.EXPECT().Conn().Return(conn).AnyTimes()
 		conn.EXPECT().GetDevice("deviceid", gomock.Any()).
 			SetArg(1, device).
-			Return(nil)
+			Return(nil).
+			AnyTimes()
 
 		Convey("sends notice", func() {
 			var (
@@ -92,6 +93,43 @@ func TestService(t *testing.T) {
 				Event:          oddb.RecordCreated,
 				Record:         &record,
 			})
+		})
+
+		Convey("increments sequence number", func() {
+			var n Notice
+			done := make(chan bool)
+			service.Notifier = notifyFunc(func(device oddb.Device, notice Notice) error {
+				n = notice
+				done <- true
+				return nil
+			})
+
+			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
+			<-done
+			So(n.SeqNum, ShouldEqual, 0x43b940e50000)
+
+			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
+			<-done
+			So(n.SeqNum, ShouldEqual, 0x43b940e50001)
+		})
+
+		Convey("resets sequence number on next second", func() {
+			var n Notice
+			done := make(chan bool)
+			service.Notifier = notifyFunc(func(device oddb.Device, notice Notice) error {
+				n = notice
+				done <- true
+				return nil
+			})
+
+			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
+			<-done
+			So(n.SeqNum, ShouldEqual, 0x43b940e50000)
+
+			timeNow = func() time.Time { return time.Unix(0x43b940e6, 0) }
+			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
+			<-done
+			So(n.SeqNum, ShouldEqual, 0x43b940e60000)
 		})
 	})
 }
