@@ -1,8 +1,10 @@
 package router
 
 import (
+	"bufio"
 	"encoding/json"
 	"log"
+	"net"
 	"net/http"
 
 	"github.com/oursky/ourd/asset"
@@ -96,6 +98,7 @@ type Response struct {
 	RequestID  string                 `json:"request_id,omitempty"`
 	DatabaseID string                 `json:"database_id,omitempty"`
 	written    bool
+	hijacked   bool
 	writer     http.ResponseWriter
 }
 
@@ -103,6 +106,17 @@ type Response struct {
 // Mutating the map after calling WriteEntity has no effects.
 func (resp *Response) Header() http.Header {
 	return resp.writer.Header()
+}
+
+func (resp *Response) WriteHeader(status int) {
+	resp.writer.WriteHeader(status)
+}
+
+func (resp *Response) Hijack() (c net.Conn, w *bufio.ReadWriter, e error) {
+	resp.hijacked = true
+	hijacker := resp.writer.(http.Hijacker)
+	c, w, e = hijacker.Hijack()
+	return
 }
 
 // Write writes raw bytes as response to a request.

@@ -295,9 +295,16 @@ func main() {
 
 	pubsub := pubsub.NewWsPubsub()
 
-	log.Printf("Listening on %v...", config.HTTP.Host)
+	pubsubPreprocessors := []router.Processor{
+		naiveAPIKeyPreprocessor.Preprocess,
+	}
+	pubsubGateway := router.NewGateway(`pubsub`)
+	pubsubGateway.GET(handler.NewPubSubHandler(pubsub), pubsubPreprocessors...)
+	http.Handle("/pubsub", pubsubGateway)
+
 	http.Handle("/", logMiddleware(r))
-	http.HandleFunc("/pubsub", pubsub.Handle)
+
+	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, nil)
 	if err != nil {
 		log.Printf("Failed: %v", err)

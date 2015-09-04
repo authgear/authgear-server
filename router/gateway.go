@@ -64,7 +64,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	)
 	resp.writer = w
 	defer func() {
-		if !resp.written {
+		if !resp.written && !resp.hijacked {
 			if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
 				resp.writer.WriteHeader(http.StatusBadRequest)
 			} else {
