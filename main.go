@@ -125,7 +125,9 @@ func main() {
 	notificationPreprocessor := notificationPreprocessor{
 		NotificationSender: nil,
 	}
-	initSubscription(config, &notificationPreprocessor)
+
+	internalHub := pubsub.NewHub()
+	initSubscription(config, internalHub, &notificationPreprocessor)
 	store := initAssetStore(config)
 	assetStorePreprocessor := assetStorePreprocessor{
 		Store: store,
@@ -293,16 +295,21 @@ func main() {
 	}
 	c.Start()
 
-	pubsub := pubsub.NewWsPubsub()
-
-	pubsubPreprocessors := []router.Processor{
+	pubSubPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 	}
-	pubsubGateway := router.NewGateway(`pubsub`)
-	pubsubGateway.GET(handler.NewPubSubHandler(pubsub), pubsubPreprocessors...)
-	http.Handle("/pubsub", pubsubGateway)
+
+	pubSub := pubsub.NewWsPubsub(nil)
+	pubSubGateway := router.NewGateway(`pubSub`)
+	pubSubGateway.GET(handler.NewPubSubHandler(pubSub), pubSubPreprocessors...)
+
+	internalPubSub := pubsub.NewWsPubsub(internalHub)
+	internalPubSubGateway := router.NewGateway(`internalpubSub`)
+	internalPubSubGateway.GET(handler.NewPubSubHandler(internalPubSub), pubSubPreprocessors...)
 
 	http.Handle("/", logMiddleware(r))
+	http.Handle("/pubsub", pubSubGateway)
+	http.Handle("/_/pubsub", internalPubSubGateway)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, nil)
@@ -336,7 +343,7 @@ func initAssetStore(config Configuration) asset.Store {
 	return store
 }
 
-func initSubscription(config Configuration, notificationPreprocessor *notificationPreprocessor) {
+func initSubscription(config Configuration, hub *pubsub.Hub, notificationPreprocessor *notificationPreprocessor) {
 	if config.Subscription.Enabled {
 		connOpener := func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
 
@@ -350,9 +357,14 @@ func initSubscription(config Configuration, notificationPreprocessor *notificati
 		}
 		go pushSender.RunFeedback()
 
+		notifier := subscription.NewMultiNotifier(
+			subscription.NewPushNotifier(pushSender),
+			subscription.NewHubNotifier(hub),
+		)
+
 		subscriptionService := &subscription.Service{
 			ConnOpener: connOpener,
-			Notifier:   subscription.NewPushNotifier(pushSender),
+			Notifier:   notifier,
 		}
 		log.Infoln("Subscription Service listening...")
 		go subscriptionService.Run()
