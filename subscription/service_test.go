@@ -88,7 +88,7 @@ func TestService(t *testing.T) {
 
 			So(d, ShouldResemble, device)
 			So(n, ShouldResemble, Notice{
-				SeqNum:         0x43b940e50000,
+				SeqNum:         0x43b940e50000000,
 				SubscriptionID: "subscriptionid",
 				Event:          oddb.RecordCreated,
 				Record:         &record,
@@ -106,11 +106,11 @@ func TestService(t *testing.T) {
 
 			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
 			<-done
-			So(n.SeqNum, ShouldEqual, 0x43b940e50000)
+			So(n.SeqNum, ShouldEqual, 0x43b940e50000000)
 
 			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
 			<-done
-			So(n.SeqNum, ShouldEqual, 0x43b940e50001)
+			So(n.SeqNum, ShouldEqual, 0x43b940e50000001)
 		})
 
 		Convey("resets sequence number on next second", func() {
@@ -124,12 +124,12 @@ func TestService(t *testing.T) {
 
 			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
 			<-done
-			So(n.SeqNum, ShouldEqual, 0x43b940e50000)
+			So(n.SeqNum, ShouldEqual, 0x43b940e50000000)
 
 			timeNow = func() time.Time { return time.Unix(0x43b940e6, 0) }
 			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
 			<-done
-			So(n.SeqNum, ShouldEqual, 0x43b940e60000)
+			So(n.SeqNum, ShouldEqual, 0x43b940e60000000)
 		})
 	})
 }

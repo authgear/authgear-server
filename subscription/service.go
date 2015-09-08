@@ -20,7 +20,7 @@ type Service struct {
 // Run listens for Conn record event
 func (s *Service) Run() {
 	// maximum number of events per second
-	const EventCountBits = 16
+	const EventCountBits = 28
 	const EventCountMask = 1<<EventCountBits - 1
 
 	var (
