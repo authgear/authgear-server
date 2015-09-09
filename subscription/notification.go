@@ -100,6 +100,7 @@ func (ns multiNotifier) Notify(device oddb.Device, notice Notice) error {
 			log.WithFields(log.Fields{
 				"device": device,
 				"notice": notice,
+				"err":    err,
 			}).Errorf("multi-notifier: failed to send notice")
 		}
 	}
