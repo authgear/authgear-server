@@ -42,7 +42,7 @@ func (s *Service) Run() {
 					log.WithFields(log.Fields{
 						"event": event,
 						"err":   err,
-					}).Errorln("subscription: failed to open conn")
+					}).Errorln("subscription: failed to open oddb.Conn")
 					continue
 				}
 
