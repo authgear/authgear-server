@@ -1,6 +1,7 @@
 /tmp
 /.vagrant
 data
+/.env
 
 # go generated sources
 *_string.go
@@ -8,3 +9,5 @@ data
 # Fabric
 fabfile.pyc
 
+# python
+__pycache__
