@@ -39,10 +39,8 @@ type Configuration struct {
 		URLPrefix string `gcfg:"url-prefix"`
 		Secret    string
 	} `gcfg:"asset-url-signer"`
-	Subscription struct {
-		Enabled bool
-	}
 	APNS struct {
+		Enable   bool
 		Env      string
 		Cert     string
 		Key      string
@@ -90,9 +88,9 @@ func ReadFileInto(config *Configuration, path string) error {
 		config.DB.Option = os.Getenv("DATABASE_URL")
 	}
 
-	shouldEnableSubscription := os.Getenv("ENABLE_SUBSCRIPTION")
-	if shouldEnableSubscription != "" {
-		config.Subscription.Enabled = shouldEnableSubscription == "1"
+	shouldEnableAPNS := os.Getenv("APNS_ENABLE")
+	if shouldEnableAPNS != "" {
+		config.APNS.Enable = shouldEnableAPNS == "1"
 	}
 
 	env := os.Getenv("APNS_ENV")

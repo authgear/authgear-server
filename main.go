@@ -122,12 +122,27 @@ func main() {
 	}
 
 	initLogger(config)
-	notificationPreprocessor := notificationPreprocessor{
-		NotificationSender: nil,
+
+	connOpener := func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
+
+	var apnsPushSender *push.APNSPusher
+	if config.APNS.Enable {
+		var err error
+		apnsPushSender, err = push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
+		if err != nil {
+			log.Fatalf("Failed to set up push sender: %v", err)
+		}
+		go apnsPushSender.Run()
+		go apnsPushSender.RunFeedback()
 	}
 
 	internalHub := pubsub.NewHub()
-	initSubscription(config, internalHub, &notificationPreprocessor)
+	initSubscription(config, connOpener, internalHub, apnsPushSender)
+
+	notificationPreprocessor := notificationPreprocessor{
+		NotificationSender: apnsPushSender,
+	}
+
 	store := initAssetStore(config)
 	assetStorePreprocessor := assetStorePreprocessor{
 		Store: store,
@@ -343,34 +358,18 @@ func initAssetStore(config Configuration) asset.Store {
 	return store
 }
 
-func initSubscription(config Configuration, hub *pubsub.Hub, notificationPreprocessor *notificationPreprocessor) {
-	if config.Subscription.Enabled {
-		connOpener := func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
-
-		pushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
-		if err != nil {
-			log.Fatalf("Failed to set up push sender: %v", err)
-		}
-
-		if err := pushSender.Init(); err != nil {
-			log.Fatalf("Failed to init push sender: %v", err)
-		}
-		go pushSender.RunFeedback()
-
-		notifier := subscription.NewMultiNotifier(
-			subscription.NewPushNotifier(pushSender),
-			subscription.NewHubNotifier(hub),
-		)
-
-		subscriptionService := &subscription.Service{
-			ConnOpener: connOpener,
-			Notifier:   notifier,
-		}
-		log.Infoln("Subscription Service listening...")
-		go subscriptionService.Run()
-
-		notificationPreprocessor.NotificationSender = pushSender
+func initSubscription(config Configuration, connOpener func() (oddb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
+	notifiers := []subscription.Notifier{subscription.NewHubNotifier(hub)}
+	if pushSender != nil {
+		notifiers = append(notifiers, subscription.NewPushNotifier(pushSender))
 	}
+
+	subscriptionService := &subscription.Service{
+		ConnOpener: connOpener,
+		Notifier:   subscription.NewMultiNotifier(notifiers...),
+	}
+	log.Infoln("Subscription Service listening...")
+	go subscriptionService.Run()
 }
 
 func initLogger(config Configuration) {

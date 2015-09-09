@@ -74,15 +74,11 @@ func NewAPNSPusher(connOpener func() (oddb.Conn, error), gwType GatewayType, cer
 	}, nil
 }
 
-// Init set up the notification error channel
-func (pusher *APNSPusher) Init() error {
-	go func() {
-		for result := range pusher.client.FailedNotifs() {
-			log.Errorf("Failed to send notification = %s: %v", result.Notif.ID, result.Err)
-		}
-	}()
-
-	return nil
+// Run listens to the notification error channel
+func (pusher *APNSPusher) Run() {
+	for result := range pusher.client.FailedNotifs() {
+		log.Errorf("Failed to send notification = %s: %v", result.Notif.ID, result.Err)
+	}
 }
 
 // RunFeedback kicks start receiving from the Feedback Service.

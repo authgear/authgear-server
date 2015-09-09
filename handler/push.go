@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
-
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/push"
@@ -43,7 +43,7 @@ func (p *pushToUserPayload) Validate() error {
 	return nil
 }
 
-var sendPushNotification = func(sender *push.APNSPusher, device *oddb.Device, m push.Mapper) {
+var sendPushNotification = func(sender push.Sender, device *oddb.Device, m push.Mapper) {
 	go func() {
 		log.Debugf("Sending notification to device token = %s", device.Token)
 		err := sender.Send(m, device.Token)
