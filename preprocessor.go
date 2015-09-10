@@ -190,7 +190,7 @@ func requireUserForWrite(payload *router.Payload, response *router.Response) int
 }
 
 type notificationPreprocessor struct {
-	NotificationSender *push.APNSPusher
+	NotificationSender push.Sender
 }
 
 func (p notificationPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {

@@ -2,10 +2,10 @@ package pubsub
 
 import (
 	"encoding/json"
+	"net/http"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
-	"net/http"
 )
 
 type connection struct {
@@ -29,17 +29,19 @@ type WsPubSub struct {
 }
 
 // NewWsPubsub is factory for WsPubSub
-func NewWsPubsub() *WsPubSub {
-	h := NewHub()
+func NewWsPubsub(hub *Hub) *WsPubSub {
+	if hub == nil {
+		hub = NewHub()
+	}
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
 	ws := WsPubSub{
 		upgrader,
-		h,
+		hub,
 	}
-	go h.run()
+	go hub.run()
 	return &ws
 }
 

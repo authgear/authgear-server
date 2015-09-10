@@ -122,10 +122,27 @@ func main() {
 	}
 
 	initLogger(config)
-	notificationPreprocessor := notificationPreprocessor{
-		NotificationSender: nil,
+
+	connOpener := func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
+
+	var pushSender push.Sender
+	if config.APNS.Enable {
+		apnsPushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
+		if err != nil {
+			log.Fatalf("Failed to set up push sender: %v", err)
+		}
+		go apnsPushSender.Run()
+		go apnsPushSender.RunFeedback()
+		pushSender = apnsPushSender
 	}
-	initSubscription(config, &notificationPreprocessor)
+
+	internalHub := pubsub.NewHub()
+	initSubscription(config, connOpener, internalHub, pushSender)
+
+	notificationPreprocessor := notificationPreprocessor{
+		NotificationSender: pushSender,
+	}
+
 	store := initAssetStore(config)
 	assetStorePreprocessor := assetStorePreprocessor{
 		Store: store,
@@ -293,16 +310,21 @@ func main() {
 	}
 	c.Start()
 
-	pubsub := pubsub.NewWsPubsub()
-
-	pubsubPreprocessors := []router.Processor{
+	pubSubPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 	}
-	pubsubGateway := router.NewGateway(`pubsub`)
-	pubsubGateway.GET(handler.NewPubSubHandler(pubsub), pubsubPreprocessors...)
-	http.Handle("/pubsub", pubsubGateway)
+
+	pubSub := pubsub.NewWsPubsub(nil)
+	pubSubGateway := router.NewGateway(`pubSub`)
+	pubSubGateway.GET(handler.NewPubSubHandler(pubSub), pubSubPreprocessors...)
+
+	internalPubSub := pubsub.NewWsPubsub(internalHub)
+	internalPubSubGateway := router.NewGateway(`internalpubSub`)
+	internalPubSubGateway.GET(handler.NewPubSubHandler(internalPubSub), pubSubPreprocessors...)
 
 	http.Handle("/", logMiddleware(r))
+	http.Handle("/pubsub", pubSubGateway)
+	http.Handle("/_/pubsub", internalPubSubGateway)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, nil)
@@ -336,28 +358,18 @@ func initAssetStore(config Configuration) asset.Store {
 	return store
 }
 
-func initSubscription(config Configuration, notificationPreprocessor *notificationPreprocessor) {
-	if config.Subscription.Enabled {
-		connOpener := func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
-
-		pushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
-		if err != nil {
-			log.Fatalf("Failed to set up push sender: %v", err)
-		}
-
-		if err := pushSender.Init(); err != nil {
-			log.Fatalf("Failed to init push sender: %v", err)
-		}
-		go pushSender.RunFeedback()
-
-		subscriptionService := &subscription.Service{
-			ConnOpener:         connOpener,
-			NotificationSender: pushSender,
-		}
-		go subscriptionService.Init().Listen()
-		log.Infoln("Subscription Service listening...")
-		notificationPreprocessor.NotificationSender = pushSender
+func initSubscription(config Configuration, connOpener func() (oddb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
+	notifiers := []subscription.Notifier{subscription.NewHubNotifier(hub)}
+	if pushSender != nil {
+		notifiers = append(notifiers, subscription.NewPushNotifier(pushSender))
 	}
+
+	subscriptionService := &subscription.Service{
+		ConnOpener: connOpener,
+		Notifier:   subscription.NewMultiNotifier(notifiers...),
+	}
+	log.Infoln("Subscription Service listening...")
+	go subscriptionService.Run()
 }
 
 func initLogger(config Configuration) {

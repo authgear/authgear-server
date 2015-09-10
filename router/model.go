@@ -43,7 +43,7 @@ type Payload struct {
 	DBConn   oddb.Conn
 	Database oddb.Database
 
-	NotificationSender *push.APNSPusher
+	NotificationSender push.Sender
 }
 
 func (p *Payload) NewPayload(req *http.Request) *Payload {

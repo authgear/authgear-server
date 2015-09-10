@@ -27,9 +27,5 @@ func (m MapMapper) Map() map[string]interface{} {
 
 // Sender defines the methods that a push service should support.
 type Sender interface {
-	// Init is guaranteed to be called before any Sends and is
-	// designed for implementations to execute any prepration needed
-	// to set up itself.
-	Init() error
 	Send(m Mapper, deviceToken string) error
 }

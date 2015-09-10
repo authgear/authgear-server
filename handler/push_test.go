@@ -1,10 +1,11 @@
 package handler
 
 import (
+	"testing"
+
 	"github.com/oursky/ourd/handler/handlertest"
 	. "github.com/oursky/ourd/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
-	"testing"
 
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/push"
@@ -34,7 +35,7 @@ func TestPushToDevice(t *testing.T) {
 
 		Convey("push to single device", func() {
 			called := false
-			sendPushNotification = func(sender *push.APNSPusher, device *oddb.Device, m push.Mapper) {
+			sendPushNotification = func(sender push.Sender, device *oddb.Device, m push.Mapper) {
 				So(device, ShouldResemble, &testdevice)
 				So(m.Map(), ShouldResemble, map[string]interface{}{
 					"aps": map[string]interface{}{
@@ -66,7 +67,7 @@ func TestPushToDevice(t *testing.T) {
 
 		Convey("push to non-existent device", func() {
 			called := false
-			sendPushNotification = func(sender *push.APNSPusher, device *oddb.Device, m push.Mapper) {
+			sendPushNotification = func(sender push.Sender, device *oddb.Device, m push.Mapper) {
 				called = true
 			}
 			resp := r.POST(`{
@@ -131,7 +132,7 @@ func TestPushToUser(t *testing.T) {
 
 		Convey("push to single user", func() {
 			sentDevices := make([]oddb.Device, 0)
-			sendPushNotification = func(sender *push.APNSPusher, device *oddb.Device, m push.Mapper) {
+			sendPushNotification = func(sender push.Sender, device *oddb.Device, m push.Mapper) {
 				So(m.Map(), ShouldResemble, map[string]interface{}{
 					"aps": map[string]interface{}{
 						"alert": "This is a message.",
@@ -163,7 +164,7 @@ func TestPushToUser(t *testing.T) {
 
 		Convey("push to non-existent user", func() {
 			called := false
-			sendPushNotification = func(sender *push.APNSPusher, device *oddb.Device, m push.Mapper) {
+			sendPushNotification = func(sender push.Sender, device *oddb.Device, m push.Mapper) {
 				called = true
 			}
 			resp := r.POST(`{
