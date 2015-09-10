@@ -125,22 +125,22 @@ func main() {
 
 	connOpener := func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
 
-	var apnsPushSender *push.APNSPusher
+	var pushSender push.Sender
 	if config.APNS.Enable {
-		var err error
-		apnsPushSender, err = push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
+		apnsPushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
 		if err != nil {
 			log.Fatalf("Failed to set up push sender: %v", err)
 		}
 		go apnsPushSender.Run()
 		go apnsPushSender.RunFeedback()
+		pushSender = apnsPushSender
 	}
 
 	internalHub := pubsub.NewHub()
-	initSubscription(config, connOpener, internalHub, apnsPushSender)
+	initSubscription(config, connOpener, internalHub, pushSender)
 
 	notificationPreprocessor := notificationPreprocessor{
-		NotificationSender: apnsPushSender,
+		NotificationSender: pushSender,
 	}
 
 	store := initAssetStore(config)
