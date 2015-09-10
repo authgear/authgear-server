@@ -1,15 +1,54 @@
 from __future__ import with_statement
-from alembic import context
-from sqlalchemy import engine_from_config, pool
+
 from logging.config import fileConfig
+import io
+
+from alembic import context
+import psycopg2.extensions
+from sqlalchemy import create_engine, pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
-fileConfig(config.config_file_name)
+# Set up logger, content presented here is copied from
+# the auto-generated alembic.ini
+fileConfig(io.StringIO("""
+# Logging configuration
+[loggers]
+keys = root,sqlalchemy,alembic
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = WARN
+handlers = console
+qualname =
+
+[logger_sqlalchemy]
+level = WARN
+handlers =
+qualname = sqlalchemy.engine
+
+[logger_alembic]
+level = INFO
+handlers =
+qualname = alembic
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[formatter_generic]
+format = %(levelname)-5.5s [%(name)s] %(message)s
+datefmt = %H:%M:%S
+"""))
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -50,19 +89,63 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix='sqlalchemy.',
+    url = config.get_section('db')['option']
+    connectable = create_engine(
+        url,
         poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
+        appname = config.get_section('app').get('name')
+        if not appname:
+            raise ValueError('Empty app.name')
+
+        schema = app_schema(appname)
+        schema_existed = connection.execute(
+            'SELECT EXISTS(SELECT 1 FROM information_schema.schemata '
+            'WHERE schema_name = %s)', schema).scalar()
+        if not schema_existed:
+            print('Creating schema', schema)
+            connection.execute('CREATE SCHEMA %s', Identifier(schema))
+
+        connection.execute('SET search_path TO %s, public', Identifier(schema))
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata
         )
 
+        prepare_context(context)
+
         with context.begin_transaction():
             context.run_migrations()
+
+
+# prepare the alembic context with reusable functions in migration
+# not sure it's the right way to do it though
+def prepare_context(context):
+    context.Identifier = Identifier
+
+
+def app_schema(appname):
+    return 'app_' + appname.lower().replace('.', '_')
+
+
+class Identifier(str):
+    pass
+
+
+class IdentifierAdapter:
+
+    def __init__(self, s):
+        self.s = s
+
+    def prepare(self, conn):
+        self.conn = conn
+
+    def getquoted(self):
+        return '"%s"' % self.s.replace('"', '""')
+
+psycopg2.extensions.register_adapter(Identifier, IdentifierAdapter)
 
 if context.is_offline_mode():
     run_migrations_offline()
