@@ -681,17 +681,17 @@ func initAppDB(db *sqlx.DB, appName string) error {
 	const CreateSchemaFmt = `CREATE SCHEMA IF NOT EXISTS %v;`
 	const CreateUserTableFmt = `
 CREATE TABLE IF NOT EXISTS %v._user (
-	id varchar(255) PRIMARY KEY,
-	email varchar(255),
-	password varchar(255),
+	id text PRIMARY KEY,
+	email text,
+	password text,
 	auth jsonb
 );
 `
 	const CreateAssetTableFmt = `
 CREATE TABLE IF NOT EXISTS %v._asset (
 	id text PRIMARY KEY,
-	content_type text,
-	size bigint
+	content_type text NOT NULL,
+	size bigint NOT NULL
 );
 `
 	const CreateDeviceTableFmt = `
