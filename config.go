@@ -59,6 +59,11 @@ type Configuration struct {
 		Path      string
 		Args      []string
 	}
+	// the alembic section here is to make the config be parsed correctly
+	// the values should not be used
+	UselessAlembic struct {
+		ScriptLocation string `gcfg:"script_location"`
+	} `gcfg:"alembic"`
 }
 
 // ReadFileInto reads a configuration from file specified by path
