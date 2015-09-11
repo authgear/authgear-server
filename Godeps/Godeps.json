@@ -6,10 +6,6 @@
 	],
 	"Deps": [
 		{
-			"ImportPath": "code.google.com/p/gcfg",
-			"Rev": "c2d3050044d05357eaf6c3547249ba57c5e235cb"
-		},
-		{
 			"ImportPath": "github.com/Sirupsen/logrus",
 			"Comment": "v0.8.6-7-g9c060de",
 			"Rev": "9c060de643590dae45da9d7c26276463bfc46fa0"
@@ -51,6 +47,10 @@
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
 			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
+		},
+		{
+			"ImportPath": "github.com/oursky/gcfg",
+			"Rev": "470af63814edc0383eb58366b33f995b2f9bb932"
 		},
 		{
 			"ImportPath": "github.com/paulmach/go.geo",

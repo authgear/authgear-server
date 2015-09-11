@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"code.google.com/p/gcfg"
+	"github.com/oursky/gcfg"
 )
 
 // Configuration is Ourd's configuration
