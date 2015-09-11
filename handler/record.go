@@ -886,10 +886,13 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 	}
 	query.Type = recordType
 
-	predicateRaw, ok := payload.Data["predicate"].([]interface{})
-	if ok {
-		predicate := predicateFromRaw(predicateRaw)
-		query.Predicate = &predicate
+	if predicateRaw, ok := payload.Data["predicate"]; ok {
+		if predicateRaw, ok := predicateRaw.([]interface{}); ok {
+			predicate := predicateFromRaw(predicateRaw)
+			query.Predicate = &predicate
+		} else {
+			return oderr.New(oderr.RequestInvalidErr, "predicate has to be an array")
+		}
 	}
 
 	if rawSorts, ok := payload.Data["sort"]; ok {
