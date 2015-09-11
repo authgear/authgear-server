@@ -110,8 +110,9 @@ def run_migrations_online():
         connection.execute('SET search_path TO %s, public', Identifier(schema))
 
         context.configure(
+            version_table='_version',
             connection=connection,
-            target_metadata=target_metadata
+            target_metadata=target_metadata,
         )
 
         prepare_context(context)

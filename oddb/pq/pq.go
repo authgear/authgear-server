@@ -650,12 +650,12 @@ func mustInitDB(db *sqlx.DB, appName string) {
 
 	tx.MustExec(fmt.Sprintf(`
 		CREATE SCHEMA IF NOT EXISTS %[1]s;
-		CREATE TABLE IF NOT EXISTS %[1]s.alembic_version (
+		CREATE TABLE IF NOT EXISTS %[1]s._version (
 			version_num character varying(32) NOT NULL
 		);`, schema))
 
 	var versionNum string
-	err := tx.QueryRowx(fmt.Sprintf("SELECT version_num FROM %s.alembic_version", schema)).
+	err := tx.QueryRowx(fmt.Sprintf("SELECT version_num FROM %s._version", schema)).
 		Scan(&versionNum)
 
 	if err != nil && err != sql.ErrNoRows {
@@ -766,7 +766,7 @@ CREATE OR REPLACE FUNCTION public.notify_record_change() RETURNS TRIGGER AS $$
 	END;
 $$ LANGUAGE plpgsql;
 
-INSERT INTO {{.Schema}}.alembic_version (version_num) VALUES('{{.VersionNum}}');
+INSERT INTO {{.Schema}}._version (version_num) VALUES('{{.VersionNum}}');
 
 CREATE TABLE {{.Schema}}._user (
 	id text PRIMARY KEY,
