@@ -886,22 +886,16 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 	}
 	query.Type = recordType
 
-	if predicateRaw, ok := payload.Data["predicate"]; ok {
-		if predicateRaw, ok := predicateRaw.([]interface{}); ok {
-			predicate := predicateFromRaw(predicateRaw)
-			query.Predicate = &predicate
-		} else {
-			return oderr.New(oderr.RequestInvalidErr, "predicate has to be an array")
-		}
-	}
+	mustDoSlice(payload.Data, "predicate", func(rawPredicate []interface{}) error {
+		predicate := predicateFromRaw(rawPredicate)
+		query.Predicate = &predicate
+		return nil
+	})
 
-	if rawSorts, ok := payload.Data["sort"]; ok {
-		if rawSorts, ok := rawSorts.([]interface{}); ok {
-			query.Sorts = sortsFromRaw(rawSorts)
-		} else {
-			return oderr.New(oderr.RequestInvalidErr, "order has to be an array")
-		}
-	}
+	mustDoSlice(payload.Data, "sort", func(rawSorts []interface{}) error {
+		query.Sorts = sortsFromRaw(rawSorts)
+		return nil
+	})
 
 	if transientIncludes, ok := payload.Data["include"].(map[string]interface{}); ok {
 		query.ComputedKeys = map[string]oddb.Expression{}
@@ -910,19 +904,17 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 		}
 	}
 
-	if desiredKeys, ok := payload.Data["desired_keys"]; ok {
-		if desiredKeys, ok := desiredKeys.([]interface{}); ok {
-			query.DesiredKeys = make([]string, len(desiredKeys))
-			for i, key := range desiredKeys {
-				key, ok := key.(string)
-				if !ok {
-					err = oderr.New(oderr.RequestInvalidErr, "unexpected value in desired_keys")
-					return
-				}
-				query.DesiredKeys[i] = key
+	mustDoSlice(payload.Data, "desired_keys", func(desiredKeys []interface{}) error {
+		query.DesiredKeys = make([]string, len(desiredKeys))
+		for i, key := range desiredKeys {
+			key, ok := key.(string)
+			if !ok {
+				return oderr.New(oderr.RequestInvalidErr, "unexpected value in desired_keys")
 			}
+			query.DesiredKeys[i] = key
 		}
-	}
+		return nil
+	})
 
 	if offset, _ := payload.Data["offset"].(float64); offset > 0 {
 		query.Offset = uint64(offset)
@@ -1163,11 +1155,18 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) e
 	return nil
 }
 
-type compRecordID struct {
-	kind string
-	id   string
-}
-
-func (rid compRecordID) ID() string {
-	return rid.kind + "/" + rid.id
+// execute do when if the value of key in m is []interface{}. If value exists
+// for key but its type is not []interface{} or do returns an error, it panics.
+func mustDoSlice(m map[string]interface{}, key string, do func(value []interface{}) error) {
+	vi, ok := m[key]
+	if ok && vi != nil {
+		v, ok := vi.([]interface{})
+		if ok {
+			if err := do(v); err != nil {
+				panic(err)
+			}
+		} else {
+			panic(fmt.Errorf("%#s has to be an array", key))
+		}
+	}
 }
