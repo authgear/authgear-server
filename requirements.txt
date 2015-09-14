@@ -1,0 +1,5 @@
+Mako==1.0.2
+MarkupSafe==0.23
+SQLAlchemy==1.0.8
+alembic==0.8.2
+python-editor==0.4
