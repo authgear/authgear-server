@@ -24,6 +24,9 @@ const userDBKey = "_user"
 const publicDBKey = "_public"
 const privateDBKey = "_private"
 
+// the number returned by t.Unix() when t is an empty time
+const zeroUnix = -62135596800
+
 var dbHookFuncs []oddb.DBHookFunc
 
 // fileConn implements oddb.Conn interface
@@ -190,6 +193,12 @@ func (db fileDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
 		return err
 	}
 
+	if record.CreatedAt.Unix() == zeroUnix {
+		record.CreatedAt = time.Time{}
+	}
+	if record.UpdatedAt.Unix() == zeroUnix {
+		record.UpdatedAt = time.Time{}
+	}
 	record.DatabaseID = db.UserID
 	return nil
 }
@@ -354,6 +363,13 @@ func (db fileDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
 			return nil, err
 		}
 		record.DatabaseID = db.UserID
+		fmt.Printf("record.CreatedAt.Unix() = %v\n", record.CreatedAt.Unix())
+		if record.CreatedAt.Unix() == zeroUnix {
+			record.CreatedAt = time.Time{}
+		}
+		if record.UpdatedAt.Unix() == zeroUnix {
+			record.UpdatedAt = time.Time{}
+		}
 		records = append(records, record)
 	}
 

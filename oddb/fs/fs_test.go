@@ -5,8 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/oursky/ourd/oddb"
+	. "github.com/oursky/ourd/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -53,15 +55,20 @@ func TestSave(t *testing.T) {
 			const expectedFileContent = `{"ID":"note/someid","Data":{"bool":true,"number":1,"string":"string"},"OwnerID":"","ACL":[{"relation":"friend","level":"read"}]}
 `
 			record := oddb.Record{
-				ID: oddb.NewRecordID("note", "someid"),
+				ID:        oddb.NewRecordID("note", "someid"),
+				OwnerID:   "owner",
+				CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				CreatorID: "creator",
+				UpdatedAt: time.Date(2007, 1, 2, 15, 4, 5, 0, time.UTC),
+				UpdaterID: "updater",
+				ACL: oddb.NewRecordACL([]oddb.RecordACLEntry{
+					oddb.NewRecordACLEntryRelation("friend", oddb.ReadLevel),
+				}),
 				Data: oddb.Data{
 					"string": "string",
 					"number": float64(1),
 					"bool":   true,
 				},
-				ACL: oddb.NewRecordACL([]oddb.RecordACLEntry{
-					oddb.NewRecordACLEntryRelation("friend", oddb.ReadLevel),
-				}),
 			}
 			err := db.Save(&record)
 			So(err, ShouldBeNil)
@@ -71,7 +78,25 @@ func TestSave(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			content := string(contentBytes)
-			So(content, ShouldEqual, expectedFileContent)
+			So(content, ShouldEqualJSON, `{
+				"ID": "note/someid",
+				"OwnerID": "owner",
+				"CreatedAt": "2006-01-02T15:04:05Z",
+				"CreatorID": "creator",
+				"UpdatedAt": "2007-01-02T15:04:05Z",
+				"UpdaterID": "updater",
+				"ACL": [
+					{
+						"relation": "friend",
+						"level": "read"
+					}
+				],
+				"Data": {
+					"bool": true,
+					"number": 1,
+					"string": "string"
+				}
+			}`)
 		})
 
 		Reset(func() {

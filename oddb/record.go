@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // RecordID identifies an unique record in a Database
@@ -208,10 +209,14 @@ type Data map[string]interface{}
 // Record is the primary entity of storage in Ourd.
 type Record struct {
 	ID         RecordID
-	Data       Data
 	DatabaseID string `json:"-"`
 	OwnerID    string
+	CreatedAt  time.Time
+	CreatorID  string
+	UpdatedAt  time.Time
+	UpdaterID  string
 	ACL        RecordACL
+	Data       Data
 	Transient  Data `json:"-"`
 }
 
