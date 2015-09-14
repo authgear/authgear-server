@@ -24,7 +24,6 @@ var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 var underscoreRe = regexp.MustCompile(`[.:]`)
 
-var initDBOnce sync.Once
 var dbs = map[string]*sqlx.DB{}
 var dbsMutex sync.RWMutex
 
@@ -630,8 +629,9 @@ DB_OBTAINED:
 		return nil, fmt.Errorf("failed to open connection: %s", err)
 	}
 
-	// TODO: it might be desirable to init DB in start-up time.
-	initDBOnce.Do(func() { mustInitDB(db, appName) })
+	if err := mustInitDB(db, appName); err != nil {
+		return nil, err
+	}
 
 	return &conn{
 		Db:      db,
@@ -641,39 +641,42 @@ DB_OBTAINED:
 }
 
 // mustInitDB initialize database objects for an application.
-func mustInitDB(db *sqlx.DB, appName string) {
+func mustInitDB(db *sqlx.DB, appName string) error {
 	schema := pq.QuoteIdentifier("app_" + toLowerAndUnderscore(appName))
 
-	// begin transactional DDL
-	tx := db.MustBegin()
-	defer tx.Rollback()
-
-	tx.MustExec(fmt.Sprintf(`
-		CREATE SCHEMA IF NOT EXISTS %[1]s;
-		CREATE TABLE IF NOT EXISTS %[1]s._version (
-			version_num character varying(32) NOT NULL
-		);`, schema))
-
 	var versionNum string
-	err := tx.QueryRowx(fmt.Sprintf("SELECT version_num FROM %s._version", schema)).
+	err := db.QueryRowx(fmt.Sprintf("SELECT version_num FROM %s._version", schema)).
 		Scan(&versionNum)
 
-	if err != nil && err != sql.ErrNoRows {
-		log.Errorf("err = %#v", err)
-		panic(fmt.Sprintf("oddb/pq: unrecgonized error while querying db version_num = %v", err))
+	if err == sql.ErrNoRows || isUndefinedTable(err) {
+		// ignore the err here; they are unimportant
+		// do nothing
+	} else if err != nil {
+		return fmt.Errorf("oddb/pq: unrecgonized error while querying db version_num = %v", err)
 	}
 
-	if versionNum == "" {
+	// begin transactional DDL
+	tx, err := db.Beginx()
+	if err != nil {
+		return fmt.Errorf("oddb/pq: failed to begin transaction for DDL: %v", err)
+	}
+	defer tx.Rollback()
+
+	if versionNum == dbVersionNum {
+		return nil
+	} else if versionNum == "" {
 		if err := initSchema(tx, schema); err != nil {
-			panic(err)
+			return fmt.Errorf("oddb/pq: failed to init database: %v", err)
 		}
-	} else if versionNum != dbVersionNum {
-		panic(fmt.Sprintf("got version_num = %s, want %s", versionNum, dbVersionNum))
+	} else {
+		return fmt.Errorf("oddb/pq: got version_num = %s, want %s", versionNum, dbVersionNum)
 	}
 
 	if err := tx.Commit(); err != nil {
-		panic(err)
+		return fmt.Errorf("oddb/pq: failed to commit DDL: %v", err)
 	}
+
+	return nil
 }
 
 func initSchema(tx *sqlx.Tx, schema string) error {
@@ -741,6 +744,7 @@ var createAppSchemaStmtTmpl *template.Template
 
 const dbVersionNum = "48b961caa"
 const createAppSchemaStmtTmplText = `
+CREATE SCHEMA IF NOT EXISTS {{.Schema}};
 CREATE TABLE IF NOT EXISTS public.pending_notification (
 	id SERIAL NOT NULL PRIMARY KEY,
 	op text NOT NULL,
@@ -766,6 +770,9 @@ CREATE OR REPLACE FUNCTION public.notify_record_change() RETURNS TRIGGER AS $$
 	END;
 $$ LANGUAGE plpgsql;
 
+CREATE TABLE IF NOT EXISTS {{.Schema}}._version (
+	version_num character varying(32) NOT NULL
+);
 INSERT INTO {{.Schema}}._version (version_num) VALUES('{{.VersionNum}}');
 
 CREATE TABLE {{.Schema}}._user (
