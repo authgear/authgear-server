@@ -10,13 +10,13 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"text/template"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
-
 	"github.com/oursky/ourd/oddb"
 )
 
@@ -24,7 +24,6 @@ var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 var underscoreRe = regexp.MustCompile(`[.:]`)
 
-var initDBOnce sync.Once
 var dbs = map[string]*sqlx.DB{}
 var dbsMutex sync.RWMutex
 
@@ -630,11 +629,8 @@ DB_OBTAINED:
 		return nil, fmt.Errorf("failed to open connection: %s", err)
 	}
 
-	// TODO: it might be desirable to init DB in start-up time.
-	initDBOnce.Do(func() { mustInitDB(db) })
-
-	if err := initAppDB(db, appName); err != nil {
-		return nil, fmt.Errorf("failed to init db: %s", err)
+	if err := mustInitDB(db, appName); err != nil {
+		return nil, err
 	}
 
 	return &conn{
@@ -644,125 +640,66 @@ DB_OBTAINED:
 	}, nil
 }
 
-// mustInitDB initialize database objects shared across all schemata.
-func mustInitDB(db *sqlx.DB) {
-	const CreatePendingNotificationTableStmt = `CREATE TABLE IF NOT EXISTS pending_notification (
-	id SERIAL NOT NULL PRIMARY KEY,
-	op text NOT NULL,
-	appname text NOT NULL,
-	recordtype text NOT NULL,
-	record jsonb NOT NULL
-);
-`
-	const CreateNotificationTriggerFuncStmt = `CREATE OR REPLACE FUNCTION public.notify_record_change() RETURNS TRIGGER AS $$
-	DECLARE
-		affected_record RECORD;
-		inserted_id integer;
-	BEGIN
-		IF (TG_OP = 'DELETE') THEN
-			affected_record := OLD;
-		ELSE
-			affected_record := NEW;
-		END IF;
-		INSERT INTO pending_notification (op, appname, recordtype, record)
-			VALUES (TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME, row_to_json(affected_record)::jsonb)
-			RETURNING id INTO inserted_id;
-		PERFORM pg_notify('record_change', inserted_id::TEXT);
-		RETURN affected_record;
-	END;
-$$ LANGUAGE plpgsql;
-`
+// mustInitDB initialize database objects for an application.
+func mustInitDB(db *sqlx.DB, appName string) error {
+	schema := pq.QuoteIdentifier("app_" + toLowerAndUnderscore(appName))
 
-	db.MustExec(CreatePendingNotificationTableStmt)
-	db.MustExec(CreateNotificationTriggerFuncStmt)
-}
+	var versionNum string
+	err := db.QueryRowx(fmt.Sprintf("SELECT version_num FROM %s._version", schema)).
+		Scan(&versionNum)
 
-func initAppDB(db *sqlx.DB, appName string) error {
-	const CreateSchemaFmt = `CREATE SCHEMA IF NOT EXISTS %v;`
-	const CreateUserTableFmt = `
-CREATE TABLE IF NOT EXISTS %v._user (
-	id varchar(255) PRIMARY KEY,
-	email varchar(255),
-	password varchar(255),
-	auth jsonb
-);
-`
-	const CreateAssetTableFmt = `
-CREATE TABLE IF NOT EXISTS %v._asset (
-	id text PRIMARY KEY,
-	content_type text,
-	size bigint
-);
-`
-	const CreateDeviceTableFmt = `
-CREATE TABLE IF NOT EXISTS %[1]v._device (
-	id text PRIMARY KEY,
-	user_id text REFERENCES %[1]v._user (id),
-	type text NOT NULL,
-	token text NOT NULL,
-	last_registered_at timestamp without time zone NOT NULL,
-	UNIQUE (user_id, type, token)
-);
-CREATE INDEX ON %[1]v._device (token, last_registered_at);
-`
-	const CreateSubscriptionTableFmt = `
-CREATE TABLE IF NOT EXISTS %[1]v._subscription (
-	id text NOT NULL,
-	user_id text NOT NULL,
-	device_id text REFERENCES %[1]v._device (id) ON DELETE CASCADE NOT NULL,
-	type text NOT NULL,
-	notification_info jsonb,
-	query jsonb,
-	PRIMARY KEY(user_id, device_id, id)
-);
-`
-
-	const CreateRelationTableFmt = `
-CREATE TABLE IF NOT EXISTS %[1]v._friend (
-	left_id text NOT NULL,
-	right_id text REFERENCES %[1]v._user (id) NOT NULL,
-	PRIMARY KEY(left_id, right_id)
-);
-CREATE TABLE IF NOT EXISTS %[1]v._follow (
-	left_id text NOT NULL,
-	right_id text REFERENCES %[1]v._user (id) NOT NULL,
-	PRIMARY KEY(left_id, right_id)
-);
-`
-
-	schemaName := "app_" + toLowerAndUnderscore(appName)
-
-	createSchemaStmt := fmt.Sprintf(CreateSchemaFmt, schemaName)
-	if _, err := db.Exec(createSchemaStmt); err != nil {
-		return fmt.Errorf("failed to create schema: %s", err)
+	if err == sql.ErrNoRows || isUndefinedTable(err) {
+		// ignore the err here; they are unimportant
+		// do nothing
+	} else if err != nil {
+		return fmt.Errorf("oddb/pq: unrecgonized error while querying db version_num = %v", err)
 	}
 
-	createUserTableStmt := fmt.Sprintf(CreateUserTableFmt, schemaName)
-	if _, err := db.Exec(createUserTableStmt); err != nil {
-		return fmt.Errorf("failed to create user table: %s", err)
+	// begin transactional DDL
+	tx, err := db.Beginx()
+	if err != nil {
+		return fmt.Errorf("oddb/pq: failed to begin transaction for DDL: %v", err)
+	}
+	defer tx.Rollback()
+
+	if versionNum == dbVersionNum {
+		return nil
+	} else if versionNum == "" {
+		if err := initSchema(tx, schema); err != nil {
+			return fmt.Errorf("oddb/pq: failed to init database: %v", err)
+		}
+	} else {
+		return fmt.Errorf("oddb/pq: got version_num = %s, want %s", versionNum, dbVersionNum)
 	}
 
-	createAssetTableStmt := fmt.Sprintf(CreateAssetTableFmt, schemaName)
-	if _, err := db.Exec(createAssetTableStmt); err != nil {
-		return fmt.Errorf("failed to create asset table: %s", err)
-	}
-
-	createDeviceTableStmt := fmt.Sprintf(CreateDeviceTableFmt, schemaName)
-	if _, err := db.Exec(createDeviceTableStmt); err != nil {
-		return fmt.Errorf("failed to create device table: %s", err)
-	}
-
-	createSubscriptionTableSmt := fmt.Sprintf(CreateSubscriptionTableFmt, schemaName)
-	if _, err := db.Exec(createSubscriptionTableSmt); err != nil {
-		return fmt.Errorf("failed to create subscription table: %s", err)
-	}
-
-	createRelationTableSmt := fmt.Sprintf(CreateRelationTableFmt, schemaName)
-	if _, err := db.Exec(createRelationTableSmt); err != nil {
-		return fmt.Errorf("failed to create relation table: %s", err)
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("oddb/pq: failed to commit DDL: %v", err)
 	}
 
 	return nil
+}
+
+func initSchema(tx *sqlx.Tx, schema string) error {
+	stmt, err := templateExecString(createAppSchemaStmtTmpl, struct {
+		Schema     string
+		VersionNum string
+	}{schema, dbVersionNum})
+
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(stmt)
+	return err
+}
+
+func templateExecString(t *template.Template, i interface{}) (string, error) {
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, i); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
 
 type sqlizer sq.Sqlizer
@@ -792,6 +729,7 @@ func queryRowWith(db queryxRunner, sqlizeri sqlizer) *sqlx.Row {
 }
 
 func init() {
+	createAppSchemaStmtTmpl = template.Must(template.New("createAppSchemaStmtTmpl").Parse(createAppSchemaStmtTmplText))
 	oddb.Register("pq", oddb.DriverFunc(Open))
 }
 
@@ -801,3 +739,79 @@ var (
 
 	_ driver.Valuer = authInfoValue{}
 )
+
+var createAppSchemaStmtTmpl *template.Template
+
+const dbVersionNum = "48b961caa"
+const createAppSchemaStmtTmplText = `
+CREATE SCHEMA IF NOT EXISTS {{.Schema}};
+CREATE TABLE IF NOT EXISTS public.pending_notification (
+	id SERIAL NOT NULL PRIMARY KEY,
+	op text NOT NULL,
+	appname text NOT NULL,
+	recordtype text NOT NULL,
+	record jsonb NOT NULL
+);
+CREATE OR REPLACE FUNCTION public.notify_record_change() RETURNS TRIGGER AS $$
+	DECLARE
+		affected_record RECORD;
+		inserted_id integer;
+	BEGIN
+		IF (TG_OP = 'DELETE') THEN
+			affected_record := OLD;
+		ELSE
+			affected_record := NEW;
+		END IF;
+		INSERT INTO pending_notification (op, appname, recordtype, record)
+			VALUES (TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME, row_to_json(affected_record)::jsonb)
+			RETURNING id INTO inserted_id;
+		PERFORM pg_notify('record_change', inserted_id::TEXT);
+		RETURN affected_record;
+	END;
+$$ LANGUAGE plpgsql;
+
+CREATE TABLE IF NOT EXISTS {{.Schema}}._version (
+	version_num character varying(32) NOT NULL
+);
+INSERT INTO {{.Schema}}._version (version_num) VALUES('{{.VersionNum}}');
+
+CREATE TABLE {{.Schema}}._user (
+	id text PRIMARY KEY,
+	email text,
+	password text,
+	auth jsonb
+);
+CREATE TABLE {{.Schema}}._asset (
+	id text PRIMARY KEY,
+	content_type text NOT NULL,
+	size bigint NOT NULL
+);
+CREATE TABLE {{.Schema}}._device (
+	id text PRIMARY KEY,
+	user_id text REFERENCES {{.Schema}}._user (id),
+	type text NOT NULL,
+	token text NOT NULL,
+	last_registered_at timestamp without time zone NOT NULL,
+	UNIQUE (user_id, type, token)
+);
+CREATE INDEX ON {{.Schema}}._device (token, last_registered_at);
+CREATE TABLE {{.Schema}}._subscription (
+	id text NOT NULL,
+	user_id text NOT NULL,
+	device_id text REFERENCES {{.Schema}}._device (id) ON DELETE CASCADE NOT NULL,
+	type text NOT NULL,
+	notification_info jsonb,
+	query jsonb,
+	PRIMARY KEY(user_id, device_id, id)
+);
+CREATE TABLE {{.Schema}}._friend (
+	left_id text NOT NULL,
+	right_id text REFERENCES {{.Schema}}._user (id) NOT NULL,
+	PRIMARY KEY(left_id, right_id)
+);
+CREATE TABLE {{.Schema}}._follow (
+	left_id text NOT NULL,
+	right_id text REFERENCES {{.Schema}}._user (id) NOT NULL,
+	PRIMARY KEY(left_id, right_id)
+);
+`
