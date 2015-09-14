@@ -148,10 +148,9 @@ func setPayloadAPS(apsMap map[string]interface{}, aps *apns.APS) {
 		case "badge":
 			switch value := value.(type) {
 			case int:
-				aps.Badge = &value
+				aps.Badge.Set(uint(value))
 			case float64:
-				badge := int(value)
-				aps.Badge = &badge
+				aps.Badge.Set(uint(value))
 			}
 		case "alert":
 			if body, ok := value.(string); ok {

@@ -67,7 +67,7 @@
 		},
 		{
 			"ImportPath": "github.com/timehop/apns",
-			"Rev": "578d061b6fcb6bf57646ae001b183fcfb89cdbac"
+			"Rev": "02b971829dfca0436e051a28d60f11ffec5e3516"
 		},
 		{
 			"ImportPath": "github.com/twinj/uuid",
