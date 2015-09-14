@@ -50,7 +50,7 @@ func TestSave(t *testing.T) {
 		dir, db := getDatabase("fs.save", "someuserid")
 
 		Convey("saves record correctly", func() {
-			const expectedFileContent = `{"_id":"note/someid","data":{"bool":true,"number":1,"string":"string"},"_access":[{"relation":"friend","level":"read"}]}
+			const expectedFileContent = `{"ID":"note/someid","Data":{"bool":true,"number":1,"string":"string"},"OwnerID":"","ACL":[{"relation":"friend","level":"read"}]}
 `
 			record := oddb.Record{
 				ID: oddb.NewRecordID("note", "someid"),

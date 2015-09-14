@@ -207,12 +207,12 @@ type Data map[string]interface{}
 
 // Record is the primary entity of storage in Ourd.
 type Record struct {
-	ID         RecordID  `json:"_id"`
-	Data       Data      `json:"data"`
-	DatabaseID string    `json:"-"` // empty for public database
-	OwnerID    string    `json:"_ownerID,omitempty"`
-	ACL        RecordACL `json:"_access"`
-	Transient  Data      `json:"_transient,omitempty"`
+	ID         RecordID
+	Data       Data
+	DatabaseID string `json:"-"`
+	OwnerID    string
+	ACL        RecordACL
+	Transient  Data `json:"-"`
 }
 
 // Get returns the value specified by key. If no value is associated
