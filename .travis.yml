@@ -13,24 +13,24 @@ before_install:
   - ( cd libzmq; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
   - git clone git://github.com/zeromq/czmq.git
   - ( cd czmq; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
-  - go get golang.org/x/tools/cmd/cover
-  - go get github.com/golang/lint/golint
-  - go get github.com/smartystreets/goconvey/convey
-  - go get github.com/smartystreets/assertions
-  - go get golang.org/x/tools/cmd/stringer
-  - go get github.com/rickmak/gocyclo
-  - go get github.com/oursky/gogocyclo
 
 before_script:
   - psql -c 'CREATE DATABASE ourd_test;' -U postgres
   - psql -c 'CREATE EXTENSION postgis;' -U postgres -d ourd_test
+  - >
+    go get golang.org/x/tools/cmd/stringer \
+           golang.org/x/tools/cmd/cover \
+           github.com/golang/lint/golint \
+           github.com/smartystreets/goconvey/convey \
+           github.com/smartystreets/assertions \
+           github.com/rickmak/gocyclo \
+           github.com/oursky/gogocyclo
 
 script:
   - golint ./...
-  - gocyclo -skip-godeps -over 15 . | gogocyclo
   - go generate ./...
+  - gocyclo -skip-godeps -over 15 . | gogocyclo
   - go test -cover ./...
 
 notifications:
   slack: oursky:PxqsclRADehuWEs51vpgxeUh
-
