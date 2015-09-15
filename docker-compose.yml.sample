@@ -1,8 +1,10 @@
 db:
-  # do a "CREATE EXTENSION postgis;" on initial setup
   image: mdillon/postgis:9.4
   volumes:
-  - /usr/local/var/postgres:/var/lib/postgresql/data
+  - ./initdb-postgis.sh:/docker-entrypoint-initdb.d/postgis.sh
+  # NOTE: the following mount is commented out because it fails on Mac OS X.
+  # The error can be fixed by running initdb manually on that directory by the host.
+  # - /usr/local/var/postgres:/var/lib/postgresql/data
   ports:
   - "5432"
 
