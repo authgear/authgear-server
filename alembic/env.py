@@ -124,11 +124,24 @@ def run_migrations_online():
 # prepare the alembic context with reusable functions in migration
 # not sure it's the right way to do it though
 def prepare_context(context):
-    context.Identifier = Identifier
+    context.quotedIdentifier = quotedIdentifier
+    context.record_tablenames = record_tablenames
 
 
 def app_schema(appname):
     return 'app_' + appname.lower().replace('.', '_')
+
+
+def record_tablenames():
+    # migration context
+    mc = context.get_context()
+    conn = mc.connection
+
+    result = conn.execute(
+        "SELECT table_name FROM information_schema.tables \
+         WHERE table_schema = current_schema() \
+         AND table_name NOT LIKE '\\_%%'")
+    return [n for (n, ) in result]
 
 
 class Identifier(str):
@@ -145,6 +158,10 @@ class IdentifierAdapter:
 
     def getquoted(self):
         return '"%s"' % self.s.replace('"', '""')
+
+
+def quotedIdentifier(s):
+    return '"%s"' % s.replace('"', '""')
 
 psycopg2.extensions.register_adapter(Identifier, IdentifierAdapter)
 
