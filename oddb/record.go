@@ -238,6 +238,14 @@ func (r *Record) Get(key string) interface{} {
 			return r.OwnerID
 		case "_access":
 			return r.ACL
+		case "_created_at":
+			return r.CreatedAt
+		case "_created_by":
+			return r.CreatorID
+		case "_updated_at":
+			return r.UpdatedAt
+		case "_updated_by":
+			return r.UpdaterID
 		case "_transient":
 			return r.Transient
 		default:
@@ -268,6 +276,14 @@ func (r *Record) Set(key string, i interface{}) {
 			r.OwnerID = i.(string)
 		case "_access":
 			r.ACL = i.(RecordACL)
+		case "_created_at":
+			r.CreatedAt = i.(time.Time)
+		case "_created_by":
+			r.CreatorID = i.(string)
+		case "_updated_at":
+			r.UpdatedAt = i.(time.Time)
+		case "_updated_by":
+			r.UpdaterID = i.(string)
 		case "_transient":
 			r.Transient = i.(Data)
 		default:

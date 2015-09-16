@@ -194,7 +194,9 @@ func (db *database) Save(record *oddb.Record) error {
 		"_database_id": db.userID,
 	}
 	upsert := upsertQuery(db.tableName(record.ID.Type), pkData, convert(record)).
-		IgnoreKeyOnUpdate("_owner_id")
+		IgnoreKeyOnUpdate("_owner_id").
+		IgnoreKeyOnUpdate("_created_at").
+		IgnoreKeyOnUpdate("_created_by")
 
 	_, err := execWith(db.Db, upsert)
 	if err != nil {
@@ -232,6 +234,10 @@ func convert(r *oddb.Record) map[string]interface{} {
 	}
 	m["_owner_id"] = r.OwnerID
 	m["_access"] = aclValue(r.ACL)
+	m["_created_at"] = r.CreatedAt
+	m["_created_by"] = r.CreatorID
+	m["_updated_at"] = r.UpdatedAt
+	m["_updated_by"] = r.UpdaterID
 	return m
 }
 
@@ -621,7 +627,13 @@ func (rs *recordScanner) Scan(record *oddb.Record) error {
 			}
 		case *pq.NullTime:
 			if svalue.Valid {
-				record.Set(column, svalue.Time.In(time.UTC))
+				// it is to support direct deep-equal of value between
+				// a empty record and a record materialized from the database
+				if svalue.Time.IsZero() {
+					record.Set(column, time.Time{})
+				} else {
+					record.Set(column, svalue.Time.In(time.UTC))
+				}
 			}
 		case *sql.NullBool:
 			if svalue.Valid {
@@ -878,13 +890,20 @@ func (db *database) createTable(recordType string) (err error) {
 }
 
 func createTableStmt(tableName string) string {
-	buf := bytes.Buffer{}
-	buf.Write([]byte("CREATE TABLE "))
-	buf.WriteString(tableName)
-	buf.Write([]byte("(_id text, _database_id text, _owner_id text, _access jsonb,"))
-	buf.Write([]byte("PRIMARY KEY(_id, _database_id, _owner_id), UNIQUE (_id));"))
-
-	return buf.String()
+	return fmt.Sprintf(`
+CREATE TABLE %s (
+	_id text,
+	_database_id text,
+	_owner_id text,
+	_access jsonb,
+	_created_at timestamp without time zone NOT NULL,
+	_created_by text,
+	_updated_at timestamp without time zone NOT NULL,
+	_updated_by text,
+	PRIMARY KEY(_id, _database_id, _owner_id),
+	UNIQUE (_id)
+);
+`, tableName)
 }
 
 // ALTER TABLE app__.note add collection text;

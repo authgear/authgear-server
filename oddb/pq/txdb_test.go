@@ -20,14 +20,14 @@ func TestTxDB(t *testing.T) {
 		}), ShouldBeNil)
 
 		insertRow(t, dbx, `INSERT INTO app_com_oursky_ourd."record" `+
-			`(_database_id, _id, _owner_id, "content") `+
-			`VALUES ('', '1', '', 'original1')`)
+			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content") `+
+			`VALUES ('', '1', '', '0001-01-01 00:00:00', '', '0001-01-01 00:00:00', '', 'original1')`)
 		insertRow(t, dbx, `INSERT INTO app_com_oursky_ourd."record" `+
-			`(_database_id, _id, _owner_id, "content") `+
-			`VALUES ('', '2', '', 'original2')`)
+			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content") `+
+			`VALUES ('', '2', '', '0001-01-01 00:00:00', '', '0001-01-01 00:00:00', '', 'original2')`)
 		insertRow(t, dbx, `INSERT INTO app_com_oursky_ourd."record" `+
-			`(_database_id, _id, _owner_id, "content") `+
-			`VALUES ('', '3', '', 'original3')`)
+			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content") `+
+			`VALUES ('', '3', '', '0001-01-01 00:00:00', '', '0001-01-01 00:00:00', '', 'original3')`)
 
 		Convey("with modification after Begin", func() {
 			err := db.Begin()
