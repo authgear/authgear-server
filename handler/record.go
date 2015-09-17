@@ -34,6 +34,19 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 	m["_id"] = s.Record.ID.String()
 	m["_type"] = "record"
 
+	if !s.Record.CreatedAt.IsZero() {
+		m["_created_at"] = s.Record.CreatedAt
+	}
+	if s.Record.CreatorID != "" {
+		m["_created_by"] = s.Record.CreatorID
+	}
+	if !s.Record.UpdatedAt.IsZero() {
+		m["_updated_at"] = s.Record.UpdatedAt
+	}
+	if s.Record.UpdaterID != "" {
+		m["_updated_by"] = s.Record.UpdaterID
+	}
+
 	for key, value := range r.Data {
 		switch v := value.(type) {
 		case time.Time:
@@ -395,6 +408,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 		mergeRecord(&dbRecord, record)
 		*record = dbRecord
+
 		return
 	})
 
@@ -414,11 +428,20 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 	// save records
 	records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+		now := timeNow()
+
 		var deltaRecord oddb.Record
 		originalRecord, ok := originalRecordMap[record.ID]
 		if !ok {
 			originalRecord = &oddb.Record{}
+
+			record.CreatedAt = now
+			record.CreatorID = req.UserInfoID
 		}
+
+		record.UpdatedAt = now
+		record.UpdaterID = req.UserInfoID
+
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
 		err = db.Save(&deltaRecord)
@@ -494,6 +517,10 @@ func deriveDeltaRecord(dst, base, delta *oddb.Record) {
 	dst.ID = delta.ID
 	dst.ACL = delta.ACL
 	dst.OwnerID = delta.OwnerID
+	dst.CreatedAt = delta.CreatedAt
+	dst.CreatorID = delta.CreatorID
+	dst.UpdatedAt = delta.UpdatedAt
+	dst.UpdaterID = delta.UpdaterID
 
 	dst.Data = map[string]interface{}{}
 	for key, value := range delta.Data {
