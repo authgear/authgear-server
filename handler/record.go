@@ -395,7 +395,6 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	// fetch records
 	originalRecordMap := map[oddb.RecordID]*oddb.Record{}
 	records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-		record.OwnerID = req.UserInfoID
 		var dbRecord oddb.Record
 		err = db.Get(record.ID, &dbRecord)
 		if err == oddb.ErrRecordNotFound {
@@ -435,6 +434,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 		if !ok {
 			originalRecord = &oddb.Record{}
 
+			record.OwnerID = req.UserInfoID
 			record.CreatedAt = now
 			record.CreatorID = req.UserInfoID
 		}
@@ -494,9 +494,6 @@ func mergeRecord(dst, src *oddb.Record) {
 
 	if src.DatabaseID != "" {
 		dst.DatabaseID = src.DatabaseID
-	}
-	if src.OwnerID != "" {
-		dst.OwnerID = src.OwnerID
 	}
 
 	if dst.Data == nil {

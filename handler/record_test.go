@@ -941,7 +941,6 @@ func TestRecordMetaData(t *testing.T) {
 					"_id": "record/id",
 					"_type": "record",
 					"_access": null,
-					"_ownerID": "requestUserID",
 					"_created_at": "2006-01-02T15:04:04Z",
 					"_created_by": "creatorID",
 					"_updated_at": "2006-01-02T15:04:05Z",
@@ -953,7 +952,6 @@ func TestRecordMetaData(t *testing.T) {
 			So(db.Get(oddb.NewRecordID("record", "id"), &record), ShouldBeNil)
 			So(record, ShouldResemble, oddb.Record{
 				ID:        oddb.NewRecordID("record", "id"),
-				OwnerID:   "requestUserID",
 				CreatedAt: time.Date(2006, 1, 2, 15, 4, 4, 0, time.UTC),
 				CreatorID: "creatorID",
 				UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
