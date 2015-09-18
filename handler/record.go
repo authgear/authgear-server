@@ -33,18 +33,22 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 	m := map[string]interface{}{}
 	m["_id"] = s.Record.ID.String()
 	m["_type"] = "record"
+	m["_access"] = r.ACL
 
-	if !s.Record.CreatedAt.IsZero() {
-		m["_created_at"] = s.Record.CreatedAt
+	if r.OwnerID != "" {
+		m["_ownerID"] = r.OwnerID
 	}
-	if s.Record.CreatorID != "" {
-		m["_created_by"] = s.Record.CreatorID
+	if !r.CreatedAt.IsZero() {
+		m["_created_at"] = r.CreatedAt
 	}
-	if !s.Record.UpdatedAt.IsZero() {
-		m["_updated_at"] = s.Record.UpdatedAt
+	if r.CreatorID != "" {
+		m["_created_by"] = r.CreatorID
 	}
-	if s.Record.UpdaterID != "" {
-		m["_updated_by"] = s.Record.UpdaterID
+	if !r.UpdatedAt.IsZero() {
+		m["_updated_at"] = r.UpdatedAt
+	}
+	if r.UpdaterID != "" {
+		m["_updated_by"] = r.UpdaterID
 	}
 
 	for key, value := range r.Data {
@@ -74,25 +78,25 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 		}
 	}
 
-	if r.OwnerID != "" {
-		m["_ownerID"] = r.OwnerID
-	}
-	m["_access"] = r.ACL
-
-	transient := map[string]interface{}{}
-	for key, value := range r.Transient {
-		switch v := value.(type) {
-		case oddb.Record:
-			transient[key] = newSerializedRecord(&v, s.AssetStore)
-		default:
-			transient[key] = v
-		}
-	}
+	transient := s.marshalTransient(r.Transient)
 	if len(transient) > 0 {
 		m["_transient"] = transient
 	}
 
 	return json.Marshal(m)
+}
+
+func (s serializedRecord) marshalTransient(transient map[string]interface{}) map[string]interface{} {
+	m := map[string]interface{}{}
+	for key, value := range transient {
+		switch v := value.(type) {
+		case oddb.Record:
+			m[key] = newSerializedRecord(&v, s.AssetStore)
+		default:
+			m[key] = v
+		}
+	}
+	return m
 }
 
 // transportRecord override JSON serialization and deserialization of
