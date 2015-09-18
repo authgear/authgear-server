@@ -384,6 +384,8 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 			buffer.WriteString(`<>`)
 		case oddb.Like:
 			buffer.WriteString(` LIKE `)
+		case oddb.ILike:
+			buffer.WriteString(` ILIKE `)
 		}
 
 		sqlOperand, opArgs = toSqlOperand(rhs)

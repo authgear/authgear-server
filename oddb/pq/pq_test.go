@@ -1236,6 +1236,30 @@ func TestQuery(t *testing.T) {
 			So(len(records), ShouldEqual, 1)
 		})
 
+		Convey("query records by case insensitive content matching", func() {
+			query := oddb.Query{
+				Type: "note",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.ILike,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: "content",
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: "hello%",
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, record1)
+			So(len(records), ShouldEqual, 1)
+		})
+
 		Convey("query records by note order using or predicate", func() {
 			keyPathExpr := oddb.Expression{
 				Type:  oddb.KeyPath,

@@ -757,6 +757,8 @@ func predicateOperatorFromString(operatorString string) oddb.Operator {
 		return oddb.NotEqual
 	case "like":
 		return oddb.Like
+	case "ilike":
+		return oddb.ILike
 	default:
 		panic(fmt.Errorf("unrecognized operator = %s", operatorString))
 	}

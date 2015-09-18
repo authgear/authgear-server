@@ -38,6 +38,7 @@ const (
 	LessThanOrEqual
 	NotEqual
 	Like
+	ILike
 )
 
 // Checks whether the Operator is a compound operator, meaning the
@@ -57,7 +58,7 @@ func (op Operator) IsBinary() bool {
 	switch op {
 	default:
 		return false
-	case Equal, GreaterThan, LessThan, GreaterThanOrEqual, LessThanOrEqual, NotEqual, Like:
+	case Equal, GreaterThan, LessThan, GreaterThanOrEqual, LessThanOrEqual, NotEqual, Like, ILike:
 		return true
 	}
 }
