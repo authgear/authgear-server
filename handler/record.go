@@ -33,6 +33,23 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 	m := map[string]interface{}{}
 	m["_id"] = s.Record.ID.String()
 	m["_type"] = "record"
+	m["_access"] = r.ACL
+
+	if r.OwnerID != "" {
+		m["_ownerID"] = r.OwnerID
+	}
+	if !r.CreatedAt.IsZero() {
+		m["_created_at"] = r.CreatedAt
+	}
+	if r.CreatorID != "" {
+		m["_created_by"] = r.CreatorID
+	}
+	if !r.UpdatedAt.IsZero() {
+		m["_updated_at"] = r.UpdatedAt
+	}
+	if r.UpdaterID != "" {
+		m["_updated_by"] = r.UpdaterID
+	}
 
 	for key, value := range r.Data {
 		switch v := value.(type) {
@@ -61,25 +78,25 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 		}
 	}
 
-	if r.OwnerID != "" {
-		m["_ownerID"] = r.OwnerID
-	}
-	m["_access"] = r.ACL
-
-	transient := map[string]interface{}{}
-	for key, value := range r.Transient {
-		switch v := value.(type) {
-		case oddb.Record:
-			transient[key] = newSerializedRecord(&v, s.AssetStore)
-		default:
-			transient[key] = v
-		}
-	}
+	transient := s.marshalTransient(r.Transient)
 	if len(transient) > 0 {
 		m["_transient"] = transient
 	}
 
 	return json.Marshal(m)
+}
+
+func (s serializedRecord) marshalTransient(transient map[string]interface{}) map[string]interface{} {
+	m := map[string]interface{}{}
+	for key, value := range transient {
+		switch v := value.(type) {
+		case oddb.Record:
+			m[key] = newSerializedRecord(&v, s.AssetStore)
+		default:
+			m[key] = v
+		}
+	}
+	return m
 }
 
 // transportRecord override JSON serialization and deserialization of
@@ -382,7 +399,6 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	// fetch records
 	originalRecordMap := map[oddb.RecordID]*oddb.Record{}
 	records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-		record.OwnerID = req.UserInfoID
 		var dbRecord oddb.Record
 		err = db.Get(record.ID, &dbRecord)
 		if err == oddb.ErrRecordNotFound {
@@ -395,6 +411,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 		mergeRecord(&dbRecord, record)
 		*record = dbRecord
+
 		return
 	})
 
@@ -414,11 +431,21 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 	// save records
 	records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+		now := timeNow()
+
 		var deltaRecord oddb.Record
 		originalRecord, ok := originalRecordMap[record.ID]
 		if !ok {
 			originalRecord = &oddb.Record{}
+
+			record.OwnerID = req.UserInfoID
+			record.CreatedAt = now
+			record.CreatorID = req.UserInfoID
 		}
+
+		record.UpdatedAt = now
+		record.UpdaterID = req.UserInfoID
+
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
 		err = db.Save(&deltaRecord)
@@ -472,9 +499,6 @@ func mergeRecord(dst, src *oddb.Record) {
 	if src.DatabaseID != "" {
 		dst.DatabaseID = src.DatabaseID
 	}
-	if src.OwnerID != "" {
-		dst.OwnerID = src.OwnerID
-	}
 
 	if dst.Data == nil {
 		dst.Data = map[string]interface{}{}
@@ -494,6 +518,10 @@ func deriveDeltaRecord(dst, base, delta *oddb.Record) {
 	dst.ID = delta.ID
 	dst.ACL = delta.ACL
 	dst.OwnerID = delta.OwnerID
+	dst.CreatedAt = delta.CreatedAt
+	dst.CreatorID = delta.CreatorID
+	dst.UpdatedAt = delta.UpdatedAt
+	dst.UpdaterID = delta.UpdaterID
 
 	dst.Data = map[string]interface{}{}
 	for key, value := range delta.Data {

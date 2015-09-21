@@ -546,8 +546,8 @@ func TestExtend(t *testing.T) {
 			// verify with an insert
 			result, err := c.Db.Exec(
 				`INSERT INTO app_com_oursky_ourd."note" ` +
-					`(_id, _database_id, _owner_id, "content", "noteOrder", "createdAt") ` +
-					`VALUES (1, 1, 1, 'some content', 2, '1988-02-06')`)
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
 			So(err, ShouldBeNil)
 
 			i, err := result.RowsAffected()
@@ -563,8 +563,8 @@ func TestExtend(t *testing.T) {
 
 			result, err := c.Db.Exec(
 				`INSERT INTO app_com_oursky_ourd."note" ` +
-					`(_id, _database_id, _owner_id, "tags") ` +
-					`VALUES (1, 1, 1, '["tag0", "tag1"]')`)
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "tags") ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', '["tag0", "tag1"]')`)
 			So(err, ShouldBeNil)
 
 			i, err := result.RowsAffected()
@@ -640,8 +640,8 @@ func TestExtend(t *testing.T) {
 			// verify with an insert
 			result, err := c.Db.Exec(
 				`INSERT INTO app_com_oursky_ourd."note" ` +
-					`(_id, _database_id, _owner_id, "content", "noteOrder", "createdAt", "dirty") ` +
-					`VALUES (1, 1, 1, 'some content', 2, '1988-02-06', TRUE)`)
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt", "dirty") ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06', TRUE)`)
 			So(err, ShouldBeNil)
 
 			i, err := result.RowsAffected()
@@ -681,11 +681,11 @@ func TestGet(t *testing.T) {
 		}), ShouldBeNil)
 
 		insertRow(t, c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
-			`(_database_id, _id, _owner_id, "string", "number", "datetime", "boolean") `+
-			`VALUES ('getuser', 'id0', 'getuser', 'string', 1, '1988-02-06', TRUE)`)
+			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "string", "number", "datetime", "boolean") `+
+			`VALUES ('getuser', 'id0', 'getuser', '1988-02-06', 'getuser', '1988-02-06', 'getuser', 'string', 1, '1988-02-06', TRUE)`)
 		insertRow(t, c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
-			`(_database_id, _id, _owner_id, "string", "number", "datetime", "boolean") `+
-			`VALUES ('getuser', 'id1', 'getuser', 'string', 1, '1988-02-06', TRUE)`)
+			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "string", "number", "datetime", "boolean") `+
+			`VALUES ('getuser', 'id1', 'getuser', '1988-02-06', 'getuser', '1988-02-06', 'getuser', 'string', 1, '1988-02-06', TRUE)`)
 
 		Convey("gets an existing record from database", func() {
 			record := oddb.Record{}
@@ -693,14 +693,17 @@ func TestGet(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			So(record.ID, ShouldResemble, oddb.NewRecordID("record", "id1"))
+			So(record.DatabaseID, ShouldResemble, "getuser")
+			So(record.OwnerID, ShouldResemble, "getuser")
+			So(record.CreatorID, ShouldResemble, "getuser")
+			So(record.UpdaterID, ShouldResemble, "getuser")
 			So(record.Data["string"], ShouldEqual, "string")
 			So(record.Data["number"], ShouldEqual, 1)
 			So(record.Data["boolean"], ShouldEqual, true)
 
-			dt, _ := record.Data["datetime"].(time.Time)
-			So(dt.Unix(), ShouldEqual, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC).Unix())
-
-			So(record.DatabaseID, ShouldEqual, "getuser")
+			So(record.CreatedAt, ShouldResemble, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC))
+			So(record.UpdatedAt, ShouldResemble, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC))
+			So(record.Data["datetime"].(time.Time), ShouldResemble, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC))
 		})
 
 		Convey("errors if gets a non-existing record", func() {
@@ -725,8 +728,12 @@ func TestSave(t *testing.T) {
 		}), ShouldBeNil)
 
 		record := oddb.Record{
-			ID:      oddb.NewRecordID("note", "someid"),
-			OwnerID: "user_id",
+			ID:        oddb.NewRecordID("note", "someid"),
+			OwnerID:   "user_id",
+			CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			CreatorID: "creator",
+			UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			UpdaterID: "updater",
 			Data: map[string]interface{}{
 				"content":   "some content",
 				"number":    float64(1),
@@ -886,16 +893,15 @@ func TestJSON(t *testing.T) {
 			}), ShouldBeNil)
 
 			insertRow(t, c.Db, `INSERT INTO app_com_oursky_ourd."record" `+
-				`(_database_id, _id, _owner_id, "array", "dictionary") `+
-				`VALUES ('', 'id', 'owner_id', '[1, "string", true]', '{"number": 0, "string": "value", "bool": false}')`)
+				`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "array", "dictionary") `+
+				`VALUES ('', 'id', '', '0001-01-01 00:00:00', '', '0001-01-01 00:00:00', '', '[1, "string", true]', '{"number": 0, "string": "value", "bool": false}')`)
 
 			var record oddb.Record
 			err := db.Get(oddb.NewRecordID("record", "id"), &record)
 			So(err, ShouldBeNil)
 
 			So(record, ShouldResemble, oddb.Record{
-				ID:      oddb.NewRecordID("record", "id"),
-				OwnerID: "owner_id",
+				ID: oddb.NewRecordID("record", "id"),
 				Data: map[string]interface{}{
 					"array": []interface{}{float64(1), "string", true},
 					"dictionary": map[string]interface{}{

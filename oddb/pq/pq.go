@@ -742,7 +742,7 @@ var (
 
 var createAppSchemaStmtTmpl *template.Template
 
-const dbVersionNum = "48b961caa"
+const dbVersionNum = "d2cb54c648"
 const createAppSchemaStmtTmplText = `
 CREATE SCHEMA IF NOT EXISTS {{.Schema}};
 CREATE TABLE IF NOT EXISTS public.pending_notification (

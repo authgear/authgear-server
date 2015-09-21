@@ -48,6 +48,19 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 	m["_ownerID"] = record.OwnerID
 	m["_access"] = record.ACL
 
+	if !record.CreatedAt.IsZero() {
+		m["_created_at"] = record.CreatedAt
+	}
+	if record.CreatorID != "" {
+		m["_created_by"] = record.CreatorID
+	}
+	if !record.UpdatedAt.IsZero() {
+		m["_updated_at"] = record.UpdatedAt
+	}
+	if record.UpdaterID != "" {
+		m["_updated_by"] = record.UpdaterID
+	}
+
 	return json.Marshal(m)
 }
 

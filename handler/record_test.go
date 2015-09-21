@@ -17,6 +17,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var ZeroTime time.Time
+
 func TestRecordDeleteHandler(t *testing.T) {
 	Convey("RecordDeleteHandler", t, func() {
 		note0 := oddb.Record{
@@ -86,6 +88,11 @@ func (store *errStore) Put(token *authtoken.Token) error {
 }
 
 func TestRecordSaveHandler(t *testing.T) {
+	timeNow = func() time.Time { return ZeroTime }
+	defer func() {
+		timeNow = timeNowUTC
+	}()
+
 	Convey("RecordSaveHandler", t, func() {
 		db := oddbtest.NewMapDB()
 		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
@@ -108,13 +115,13 @@ func TestRecordSaveHandler(t *testing.T) {
 				"result": [{
 					"_id": "type1/id1",
 					"_type": "record",
-					"_access":null,
+					"_access": null,
 					"k1": "v1",
 					"k2": "v2"
 				}, {
 					"_id": "type2/id2",
 					"_type": "record",
-					"_access":null,
+					"_access": null,
 					"k3": "v3",
 					"k4": "v4"
 				}]
@@ -230,6 +237,11 @@ func TestRecordSaveHandler(t *testing.T) {
 }
 
 func TestRecordSaveDataType(t *testing.T) {
+	timeNow = func() time.Time { return ZeroTime }
+	defer func() {
+		timeNow = timeNowUTC
+	}()
+
 	Convey("RecordSaveHandler", t, func() {
 		db := oddbtest.NewMapDB()
 		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(p *router.Payload) {
@@ -793,6 +805,11 @@ func (db *singleRecordDatabase) Extend(recordType string, schema oddb.RecordSche
 }
 
 func TestRecordOwnerIDSerialization(t *testing.T) {
+	timeNow = func() time.Time { return ZeroTime }
+	defer func() {
+		timeNow = timeNowUTC
+	}()
+
 	Convey("Given a record with owner id in DB", t, func() {
 		record := oddb.Record{
 			ID:      oddb.NewRecordID("type", "id"),
@@ -851,6 +868,97 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 					"_ownerID": "ownerID"
 				}]
 			}`)
+		})
+	})
+}
+
+func TestRecordMetaData(t *testing.T) {
+	Convey("Record Meta Data", t, func() {
+		db := oddbtest.NewMapDB()
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = timeNowUTC
+		}()
+
+		Convey("on a newly created record", func() {
+			r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+				payload.Database = db
+				payload.UserInfoID = "requestUserID"
+			})
+
+			req := r.POST(`{
+				"records": [{
+					"_id": "record/id"
+				}]
+			}`)
+			So(req.Body.String(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "record/id",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "requestUserID",
+					"_created_at": "2006-01-02T15:04:05Z",
+					"_created_by": "requestUserID",
+					"_updated_at": "2006-01-02T15:04:05Z",
+					"_updated_by": "requestUserID"
+				}]
+			}`)
+
+			record := oddb.Record{}
+			So(db.Get(oddb.NewRecordID("record", "id"), &record), ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
+				ID:        oddb.NewRecordID("record", "id"),
+				OwnerID:   "requestUserID",
+				CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				CreatorID: "requestUserID",
+				UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				UpdaterID: "requestUserID",
+				Data:      oddb.Data{},
+			})
+		})
+
+		Convey("on an existing record", func() {
+			db.Save(&oddb.Record{
+				ID:        oddb.NewRecordID("record", "id"),
+				CreatedAt: time.Date(2006, 1, 2, 15, 4, 4, 0, time.UTC),
+				CreatorID: "creatorID",
+				UpdatedAt: time.Date(2006, 1, 2, 15, 4, 4, 0, time.UTC),
+				UpdaterID: "updaterID",
+			})
+
+			r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+				payload.Database = db
+				payload.UserInfoID = "requestUserID"
+			})
+
+			req := r.POST(`{
+				"records": [{
+					"_id": "record/id"
+				}]
+			}`)
+			So(req.Body.String(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "record/id",
+					"_type": "record",
+					"_access": null,
+					"_created_at": "2006-01-02T15:04:04Z",
+					"_created_by": "creatorID",
+					"_updated_at": "2006-01-02T15:04:05Z",
+					"_updated_by": "requestUserID"
+				}]
+			}`)
+
+			record := oddb.Record{}
+			So(db.Get(oddb.NewRecordID("record", "id"), &record), ShouldBeNil)
+			So(record, ShouldResemble, oddb.Record{
+				ID:        oddb.NewRecordID("record", "id"),
+				CreatedAt: time.Date(2006, 1, 2, 15, 4, 4, 0, time.UTC),
+				CreatorID: "creatorID",
+				UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				UpdaterID: "requestUserID",
+				Data:      oddb.Data{},
+			})
+
 		})
 	})
 }
@@ -1265,6 +1373,11 @@ func (db *selectiveDatabase) Rollback() error {
 }
 
 func TestAtomicOperation(t *testing.T) {
+	timeNow = func() time.Time { return ZeroTime }
+	defer func() {
+		timeNow = timeNowUTC
+	}()
+
 	Convey("Atomic Operation", t, func() {
 		backingDB := oddbtest.NewMapDB()
 		txDB := newMockTxDatabase(backingDB)

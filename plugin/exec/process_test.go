@@ -362,6 +362,49 @@ func TestRun(t *testing.T) {
 			So(dateout == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
 		})
 
+		Convey("serialize meta data correctly", func() {
+			recordin := oddb.Record{
+				ID:        oddb.NewRecordID("note", "id"),
+				OwnerID:   "john.doe@example.com",
+				CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				CreatorID: "creatorID",
+				UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				UpdaterID: "updaterID",
+				Data:      map[string]interface{}{},
+			}
+
+			called := false
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				called = true
+				So(string(in), ShouldEqualJSON, `{
+					"record": {
+						"_id": "note/id",
+						"_ownerID": "john.doe@example.com",
+						"_ownerID": "john.doe@example.com",
+						"_created_at": "2006-01-02T15:04:05Z",
+						"_created_by": "creatorID",
+						"_updated_at": "2006-01-02T15:04:05Z",
+						"_updated_by": "updaterID",
+						"_access": null
+					},
+					"original": null
+				}`)
+				return []byte(`{
+					"result": {
+						"_id": "note/id",
+						"_ownerID": "john.doe@example.com",
+						"_access": null
+					}
+				}`), nil
+			}
+
+			recordout, err := transport.RunHook("note", "beforeSave", &recordin, nil)
+			So(err, ShouldBeNil)
+			So(called, ShouldBeTrue)
+			So(*recordout, ShouldResemble, recordin)
+
+		})
+
 		Convey("parses null ACL correctly", func() {
 			recordin := oddb.Record{
 				ID:      oddb.NewRecordID("note", "id"),

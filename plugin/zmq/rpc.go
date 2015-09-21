@@ -106,6 +106,10 @@ func (p zmqTransport) RunHook(recordType string, trigger string, record *oddb.Re
 		return nil, fmt.Errorf("failed to unmarshal record: %v", err)
 	}
 	recordout.OwnerID = record.OwnerID
+	recordout.CreatedAt = record.CreatedAt
+	recordout.CreatorID = record.CreatorID
+	recordout.UpdatedAt = record.UpdatedAt
+	recordout.UpdaterID = record.UpdaterID
 
 	return &recordout, nil
 }
