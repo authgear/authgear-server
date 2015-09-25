@@ -981,7 +981,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if payload.Data["database_id"] == "_public" {
-		query.ReadableBy = payload.UserInfo.ID
+		query.ReadableBy = payload.UserInfoID
 	}
 
 	var (
