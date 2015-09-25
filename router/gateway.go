@@ -117,7 +117,7 @@ func (g *Gateway) newPayloadForRawHandler(req *http.Request) (p *Payload) {
 		Data:   map[string]interface{}{},
 	}
 
-	if apiKey := req.Header.Get("X-Ourd-API-Key"); apiKey != "" {
+	if apiKey := req.Header.Get("X-Ourd-Api-Key"); apiKey != "" {
 		p.Data["api_key"] = apiKey
 	}
 	if accessToken := req.Header.Get("X-Ourd-Access-Token"); accessToken != "" {
