@@ -555,6 +555,11 @@ func TestExtend(t *testing.T) {
 			So(i, ShouldEqual, 1)
 		})
 
+		Convey("REGRESSION #277: creates table with `:`", func() {
+			err := db.Extend("table:name", nil)
+			So(err, ShouldBeNil)
+		})
+
 		Convey("creates table with JSON field", func() {
 			err := db.Extend("note", oddb.RecordSchema{
 				"tags": oddb.FieldType{Type: oddb.TypeJSON},

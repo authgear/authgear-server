@@ -564,12 +564,15 @@ func (c *conn) PrivateDB(userKey string) oddb.Database {
 
 func (c *conn) Close() error { return nil }
 
+// return the raw unquoted schema name of this app
 func (c *conn) schemaName() string {
 	return "app_" + toLowerAndUnderscore(c.appName)
 }
 
+// return the quoted table name ready to be used as identifier (in the form
+// "schema"."table")
 func (c *conn) tableName(table string) string {
-	return c.schemaName() + "." + table
+	return pq.QuoteIdentifier(c.schemaName()) + "." + pq.QuoteIdentifier(table)
 }
 
 type queryxRunner interface {
