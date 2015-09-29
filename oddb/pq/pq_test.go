@@ -1707,3 +1707,172 @@ func TestQuery(t *testing.T) {
 		})
 	})
 }
+
+func TestMetaDataQuery(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		record0 := oddb.Record{
+			ID:        oddb.NewRecordID("record", "0"),
+			OwnerID:   "ownerID0",
+			CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			CreatorID: "creatorID0",
+			UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			UpdaterID: "updaterID0",
+			Data:      oddb.Data{},
+		}
+		record1 := oddb.Record{
+			ID:        oddb.NewRecordID("record", "1"),
+			OwnerID:   "ownerID1",
+			CreatedAt: time.Date(2006, 1, 2, 15, 4, 6, 0, time.UTC),
+			CreatorID: "creatorID1",
+			UpdatedAt: time.Date(2006, 1, 2, 15, 4, 6, 0, time.UTC),
+			UpdaterID: "updaterID1",
+			Data:      oddb.Data{},
+		}
+
+		db := c.PublicDB()
+		So(db.Extend("record", nil), ShouldBeNil)
+		So(db.Save(&record0), ShouldBeNil)
+		So(db.Save(&record1), ShouldBeNil)
+
+		Convey("queries by record id", func() {
+			query := oddb.Query{
+				Type: "record",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.Equal,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: "_id",
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: oddb.NewReference("record", "0"),
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{record0})
+		})
+
+		Convey("queries by owner id", func() {
+			query := oddb.Query{
+				Type: "record",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.Equal,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: "_owner_id",
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: oddb.NewReference("_user", "ownerID1"),
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{record1})
+		})
+
+		Convey("queries by created at", func() {
+			query := oddb.Query{
+				Type: "record",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.LessThan,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: "_created_at",
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: time.Date(2006, 1, 2, 15, 4, 6, 0, time.UTC),
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{record0})
+		})
+
+		Convey("queries by created by", func() {
+			query := oddb.Query{
+				Type: "record",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.Equal,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: "_created_by",
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: oddb.NewReference("_user", "creatorID0"),
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{record0})
+		})
+
+		Convey("queries by updated at", func() {
+			query := oddb.Query{
+				Type: "record",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.GreaterThan,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: "_updated_at",
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{record1})
+		})
+
+		Convey("queries by updated by", func() {
+			query := oddb.Query{
+				Type: "record",
+				Predicate: &oddb.Predicate{
+					Operator: oddb.Equal,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: "_updated_by",
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: oddb.NewReference("_user", "updaterID1"),
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []oddb.Record{record1})
+		})
+	})
+}
