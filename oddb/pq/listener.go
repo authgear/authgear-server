@@ -120,7 +120,6 @@ func (l *recordListener) Listen() {
 					log.WithField("err", err).Errorln("pq/listener: got an err while pinging connection")
 				}
 			}()
-			log.Infoln("pq/listener: no notification for 60 seconds...")
 		}
 	}
 }
