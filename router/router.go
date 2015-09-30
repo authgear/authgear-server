@@ -123,6 +123,13 @@ func newPayloadForJSONHandler(req *http.Request) (p *Payload, err error) {
 		Meta: map[string]interface{}{},
 	}
 
+	if apiKey := req.Header.Get("X-Ourd-Api-Key"); apiKey != "" {
+		p.Data["api_key"] = apiKey
+	}
+	if accessToken := req.Header.Get("X-Ourd-Access-Token"); accessToken != "" {
+		p.Data["access_token"] = accessToken
+	}
+
 	return
 }
 
