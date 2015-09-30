@@ -89,7 +89,7 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 	if _, err := io.Copy(response, reader); err != nil {
 		// there is nothing we can do if error occurred after started
 		// writing a response. Log.
-		log.Fatalf("Error writing file to response: %v", err)
+		log.Errorf("Error writing file to response: %v", err)
 	}
 }
 
