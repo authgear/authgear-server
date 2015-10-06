@@ -49,10 +49,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 		conn := naiveConn{}
 		payload := router.Payload{
-			DBConn: &conn,
-			UserInfo: &oddb.UserInfo{
-				ID: "userinfoid",
-			},
+			DBConn:     &conn,
+			UserInfoID: "userinfoid",
 		}
 		resp := router.Response{}
 

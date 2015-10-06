@@ -101,7 +101,7 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 		}
 	}
 
-	userinfoID := rpayload.UserInfo.ID
+	userinfoID := rpayload.UserInfoID
 
 	device.Type = payload.Type
 	device.Token = payload.DeviceToken
