@@ -30,7 +30,7 @@ type subscriptionPayload struct {
 
 type jsonSubscription oddb.Subscription
 
-func (s *jsonSubscription) MarshalJSON() ([]byte, error) {
+func (s jsonSubscription) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		ID               string                 `json:"id"`
 		Type             string                 `json:"type"`
@@ -300,7 +300,16 @@ func SubscriptionFetchAllHandler(rpayload *router.Payload, response *router.Resp
 		return
 	}
 
-	response.Result = rpayload.Database.GetSubscriptionsByDeviceID(payload.DeviceID)
+	subscriptions := rpayload.Database.GetSubscriptionsByDeviceID(payload.DeviceID)
+
+	results := []jsonSubscription{}
+	for _, sub := range subscriptions {
+		results = append(results, jsonSubscription(sub))
+	}
+
+	if len(results) > 0 {
+		response.Result = results
+	}
 }
 
 // SubscriptionSaveHandler saves one or more subscriptions associate with
