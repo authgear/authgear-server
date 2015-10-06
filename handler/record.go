@@ -897,12 +897,12 @@ func parseDistanceFunc(s []interface{}) (*oddb.DistanceFunc, error) {
 	}, nil
 }
 
-func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Error) {
+func queryFromRaw(rawQuery map[string]interface{}, query *oddb.Query) (err oderr.Error) {
 	defer func() {
 		// use panic to escape from inner error
 		if r := recover(); r != nil {
 			if queryErr, ok := r.(error); ok {
-				log.WithField("payload", payload).Debugln("failed to construct query")
+				log.WithField("rawQuery", rawQuery).Debugln("failed to construct query")
 				err = oderr.NewFmt(oderr.RequestInvalidErr, "failed to construct query: %v", queryErr.Error())
 			} else {
 				log.WithField("recovered", r).Errorln("panic recovered while constructing query")
@@ -910,31 +910,31 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 			}
 		}
 	}()
-	recordType, _ := payload.Data["record_type"].(string)
+	recordType, _ := rawQuery["record_type"].(string)
 	if recordType == "" {
 		return oderr.New(oderr.RequestInvalidErr, "recordType cannot be empty")
 	}
 	query.Type = recordType
 
-	mustDoSlice(payload.Data, "predicate", func(rawPredicate []interface{}) error {
+	mustDoSlice(rawQuery, "predicate", func(rawPredicate []interface{}) error {
 		predicate := predicateFromRaw(rawPredicate)
 		query.Predicate = &predicate
 		return nil
 	})
 
-	mustDoSlice(payload.Data, "sort", func(rawSorts []interface{}) error {
+	mustDoSlice(rawQuery, "sort", func(rawSorts []interface{}) error {
 		query.Sorts = sortsFromRaw(rawSorts)
 		return nil
 	})
 
-	if transientIncludes, ok := payload.Data["include"].(map[string]interface{}); ok {
+	if transientIncludes, ok := rawQuery["include"].(map[string]interface{}); ok {
 		query.ComputedKeys = map[string]oddb.Expression{}
 		for key, value := range transientIncludes {
 			query.ComputedKeys[key] = parseExpression(value)
 		}
 	}
 
-	mustDoSlice(payload.Data, "desired_keys", func(desiredKeys []interface{}) error {
+	mustDoSlice(rawQuery, "desired_keys", func(desiredKeys []interface{}) error {
 		query.DesiredKeys = make([]string, len(desiredKeys))
 		for i, key := range desiredKeys {
 			key, ok := key.(string)
@@ -946,11 +946,11 @@ func queryFromPayload(payload *router.Payload, query *oddb.Query) (err oderr.Err
 		return nil
 	})
 
-	if offset, _ := payload.Data["offset"].(float64); offset > 0 {
+	if offset, _ := rawQuery["offset"].(float64); offset > 0 {
 		query.Offset = uint64(offset)
 	}
 
-	if limit, _ := payload.Data["limit"].(float64); limit > 0 {
+	if limit, _ := rawQuery["limit"].(float64); limit > 0 {
 		query.Limit = uint64(limit)
 	}
 	return nil
@@ -975,7 +975,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	db := payload.Database
 
 	query := oddb.Query{}
-	if err := queryFromPayload(payload, &query); err != nil {
+	if err := queryFromRaw(payload.Data, &query); err != nil {
 		response.Err = err
 		return
 	}
