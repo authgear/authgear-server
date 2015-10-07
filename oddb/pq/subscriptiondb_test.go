@@ -2,7 +2,6 @@ package pq
 
 import (
 	"bytes"
-	"fmt"
 	"math/rand"
 	"testing"
 	"time"
