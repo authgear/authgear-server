@@ -1,14 +1,14 @@
 package handler
 
 import (
-	. "github.com/oursky/ourd/ourtest"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
 	"github.com/oursky/ourd/handler/handlertest"
 	"github.com/oursky/ourd/oddb"
 	"github.com/oursky/ourd/oddb/oddbtest"
+	. "github.com/oursky/ourd/ourtest"
 	"github.com/oursky/ourd/router"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func newFetchSubscription(id string) oddb.Subscription {
@@ -156,57 +156,72 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 		})
 
 		Convey("saves one subscription", func() {
-			resp := r.POST(`
-{
-	"device_id": "somedeviceid",
-	"subscriptions": [{
-		"id": "subscription_id",
-		"notification_info": {
-			"aps": {
-				"alert": {
-					"body": "BODY_TEXT",
-					"action-loc-key": "ACTION_LOC_KEY",
-					"loc-key": "LOC_KEY",
-					"loc-args": ["LOC_ARGS"],
-					"launch-image": "LAUNCH_IMAGE"
-				},
-				"sound": "SOUND_NAME",
-				"should-badge": true,
-				"should-send-content-available": true
-			}
-		},
-		"type": "query",
-		"query": {
-			"record_type": "RECORD_TYPE"
-		}
-	}]
-}`)
+			resp := r.POST(`{
+				"device_id": "somedeviceid",
+				"subscriptions": [{
+					"id": "subscription_id",
+					"notification_info": {
+						"aps": {
+							"alert": {
+								"body": "BODY_TEXT",
+								"action-loc-key": "ACTION_LOC_KEY",
+								"loc-key": "LOC_KEY",
+								"loc-args": ["LOC_ARGS"],
+								"launch-image": "LAUNCH_IMAGE"
+							},
+							"sound": "SOUND_NAME",
+							"should-badge": true,
+							"should-send-content-available": true
+						}
+					},
+					"type": "query",
+					"query": {
+						"record_type": "RECORD_TYPE",
+						"predicate": [
+							"eq",
+							{
+								"$val": "_id",
+								"$type": "keypath"
+							},
+							"RECORD_ID"
+						]
+					}
+				}]
+			}`)
 
-			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-	"result": [{
-		"id": "subscription_id",
-		"device_id": "somedeviceid",
-		"notification_info": {
-			"aps": {
-				"alert": {
-					"body": "BODY_TEXT",
-					"action-loc-key": "ACTION_LOC_KEY",
-					"loc-key": "LOC_KEY",
-					"loc-args": ["LOC_ARGS"],
-					"launch-image": "LAUNCH_IMAGE"
-				},
-				"sound": "SOUND_NAME",
-				"should-badge": true,
-				"should-send-content-available": true
-			}
-		},
-		"type": "query",
-		"query": {
-			"record_type": "RECORD_TYPE"
-		}
-	}]
-}`)
+				"result": [{
+					"id": "subscription_id",
+					"device_id": "somedeviceid",
+					"notification_info": {
+						"aps": {
+							"alert": {
+								"body": "BODY_TEXT",
+								"action-loc-key": "ACTION_LOC_KEY",
+								"loc-key": "LOC_KEY",
+								"loc-args": ["LOC_ARGS"],
+								"launch-image": "LAUNCH_IMAGE"
+							},
+							"sound": "SOUND_NAME",
+							"should-badge": true,
+							"should-send-content-available": true
+						}
+					},
+					"type": "query",
+					"query": {
+						"record_type": "RECORD_TYPE",
+						"predicate": [
+							"eq",
+							{
+								"$val": "_id",
+								"$type": "keypath"
+							},
+							"RECORD_ID"
+						]
+					}
+				}]
+			}`)
+			So(resp.Code, ShouldEqual, 200)
 
 			actualSubscription := oddb.Subscription{}
 			So(db.GetSubscription("subscription_id", "somedeviceid", &actualSubscription), ShouldBeNil)
@@ -230,6 +245,19 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 				},
 				Query: oddb.Query{
 					Type: "RECORD_TYPE",
+					Predicate: &oddb.Predicate{
+						Operator: oddb.Equal,
+						Children: []interface{}{
+							oddb.Expression{
+								Type:  oddb.KeyPath,
+								Value: "_id",
+							},
+							oddb.Expression{
+								Type:  oddb.Literal,
+								Value: "RECORD_ID",
+							},
+						},
+					},
 				},
 			})
 		})

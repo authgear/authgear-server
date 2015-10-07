@@ -56,6 +56,19 @@ func TestSubscriptionCRUD(t *testing.T) {
 		}
 		query := oddb.Query{
 			Type: "recordtype",
+			Predicate: &oddb.Predicate{
+				Operator: oddb.Equal,
+				Children: []interface{}{
+					oddb.Expression{
+						Type:  oddb.KeyPath,
+						Value: "_id",
+					},
+					oddb.Expression{
+						Type:  oddb.Literal,
+						Value: "RECORD_ID",
+					},
+				},
+			},
 		}
 		subscription := oddb.Subscription{
 			ID:               "subscriptionid",

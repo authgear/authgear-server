@@ -89,14 +89,14 @@ type Predicate struct {
 // query.
 // ReadableBy is a temp solution for ACL before a full predicate implemented.
 type Query struct {
-	Type         string                `json:"record_type"`
-	Predicate    *Predicate            `json:"predicate,omitempty"`
-	Sorts        []Sort                `json:"order,omitempty"`
-	ReadableBy   string                `json:"readable_by,omitempty"`
-	ComputedKeys map[string]Expression `json:"computed_keys,omitempty"`
-	DesiredKeys  []string              `json:"desired_keys,omitempty"`
-	Limit        uint64                `json:"limit,omitempty"`
-	Offset       uint64                `json:"offset,omitempty"`
+	Type         string
+	Predicate    *Predicate
+	Sorts        []Sort
+	ReadableBy   string
+	ComputedKeys map[string]Expression
+	DesiredKeys  []string
+	Limit        uint64
+	Offset       uint64
 }
 
 // Func is a marker interface to denote a type being a function in oddb.

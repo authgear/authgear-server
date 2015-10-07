@@ -215,6 +215,12 @@ func (p *MapKeyPath) FromMap(m map[string]interface{}) error {
 	return nil
 }
 
+// ToMap implements ToMapper
+func (p MapKeyPath) ToMap(m map[string]interface{}) {
+	m["$type"] = "keypath"
+	m["$val"] = string(p)
+}
+
 func walkMap(m map[string]interface{}) map[string]interface{} {
 	for key, value := range m {
 		m[key] = ParseInterface(value)

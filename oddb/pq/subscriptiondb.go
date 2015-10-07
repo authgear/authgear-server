@@ -69,7 +69,66 @@ func (query *queryValue) Scan(value interface{}) error {
 		fmt.Errorf("oddb: unsupported Scan pair: %T -> %T", value, query)
 	}
 
-	return json.Unmarshal(b, query)
+	v := struct {
+		Type         string
+		Predicate    *jsonPredicate
+		Sorts        []oddb.Sort
+		ReadableBy   string
+		ComputedKeys map[string]oddb.Expression
+		DesiredKeys  []string
+		Limit        uint64
+		Offset       uint64
+	}{}
+
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+
+	query.Type = v.Type
+	query.Predicate = (*oddb.Predicate)(v.Predicate)
+	query.Sorts = v.Sorts
+	query.ReadableBy = v.ReadableBy
+	query.ComputedKeys = v.ComputedKeys
+	query.DesiredKeys = v.DesiredKeys
+	query.Limit = v.Limit
+	query.Offset = v.Offset
+
+	return nil
+}
+
+type jsonPredicate oddb.Predicate
+
+func (p *jsonPredicate) UnmarshalJSON(data []byte) error {
+	v := struct {
+		Operator oddb.Operator
+		Children json.RawMessage
+	}{}
+
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+
+	p.Operator = v.Operator
+
+	if v.Operator.IsCompound() {
+		predicates := []oddb.Predicate{}
+		if err := json.Unmarshal(v.Children, &predicates); err != nil {
+			return err
+		}
+		for _, pred := range predicates {
+			p.Children = append(p.Children, pred)
+		}
+	} else {
+		expressions := []oddb.Expression{}
+		if err := json.Unmarshal(v.Children, &expressions); err != nil {
+			return err
+		}
+		for _, expr := range expressions {
+			p.Children = append(p.Children, expr)
+		}
+	}
+
+	return nil
 }
 
 func (db *database) GetSubscription(key string, deviceID string, subscription *oddb.Subscription) error {
@@ -231,7 +290,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 func (db *database) GetMatchingSubscriptions(record *oddb.Record) (subscriptions []oddb.Subscription) {
 	builder := psql.Select("id", "device_id", "type", "notification_info", "query").
 		From(db.tableName("_subscription")).
-		Where(`user_id = ? AND query @> ?::jsonb`, db.userID, fmt.Sprintf(`{"record_type":"%s"}`, record.ID.Type))
+		Where(`user_id = ? AND query @> ?::jsonb`, db.userID, fmt.Sprintf(`{"Type":"%s"}`, record.ID.Type))
 
 	rows, err := queryWith(db.Db, builder)
 	if err != nil {

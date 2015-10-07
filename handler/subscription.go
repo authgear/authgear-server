@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
-
 	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/ourd/oddb/oddbconv"
 	"github.com/oursky/ourd/oderr"
 	"github.com/oursky/ourd/router"
 )
@@ -18,8 +18,161 @@ type subscriptionIDsPayload struct {
 }
 
 type subscriptionPayload struct {
-	DeviceID      string              `json:"device_id"`
-	Subscriptions []oddb.Subscription `json:"subscriptions"`
+	DeviceID      string `json:"device_id"`
+	Subscriptions []struct {
+		ID               string                 `json:"id"`
+		Type             string                 `json:"type"`
+		DeviceID         string                 `json:"device_id"`
+		NotificationInfo *oddb.NotificationInfo `json:"notification_info,omitempty"`
+		Query            map[string]interface{} `json:"query"`
+	} `json:"subscriptions"`
+}
+
+type jsonSubscription oddb.Subscription
+
+func (s jsonSubscription) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		ID               string                 `json:"id"`
+		Type             string                 `json:"type"`
+		DeviceID         string                 `json:"device_id"`
+		NotificationInfo *oddb.NotificationInfo `json:"notification_info,omitempty"`
+		Query            jsonQuery              `json:"query"`
+	}{
+		s.ID,
+		s.Type,
+		s.DeviceID,
+		s.NotificationInfo,
+		jsonQuery(s.Query),
+	})
+}
+
+type jsonQuery oddb.Query
+
+func (q jsonQuery) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Type         string                     `json:"record_type"`
+		Predicate    *jsonPredicate             `json:"predicate,omitempty"`
+		Sorts        []oddb.Sort                `json:"order,omitempty"`
+		ReadableBy   string                     `json:"readable_by,omitempty"`
+		ComputedKeys map[string]oddb.Expression `json:"computed_keys,omitempty"`
+		DesiredKeys  []string                   `json:"desired_keys,omitempty"`
+		Limit        uint64                     `json:"limit,omitempty"`
+		Offset       uint64                     `json:"offset,omitempty"`
+	}{
+		q.Type,
+		(*jsonPredicate)(q.Predicate),
+		q.Sorts,
+		q.ReadableBy,
+		q.ComputedKeys,
+		q.DesiredKeys,
+		q.Limit,
+		q.Offset,
+	})
+}
+
+type jsonPredicate oddb.Predicate
+
+func (p *jsonPredicate) MarshalJSON() ([]byte, error) {
+	var results []interface{}
+	if p.Operator.IsCompound() {
+		results = append(results, opString(p.Operator))
+		for i, child := range p.Children {
+			childPred, ok := child.(oddb.Predicate)
+			if !ok {
+				return nil, fmt.Errorf("got %s.Operand[%d] of type %T, want Predicate",
+					p.Operator, i, child)
+			}
+			results = append(results, jsonPredicate(childPred))
+		}
+	} else {
+		operandLen := 1
+		if p.Operator.IsBinary() {
+			operandLen = 2
+		}
+
+		if operandLen != len(p.Children) {
+			return nil, fmt.Errorf("got len(operand) = %d, want %d", len(p.Children), operandLen)
+		}
+
+		results = append(results, opString(p.Operator))
+		for i := 0; i < operandLen; i++ {
+			child := p.Children[i]
+			childExpr, ok := child.(oddb.Expression)
+			if !ok {
+				return nil, fmt.Errorf("got %s.Operand[%d] of type %T, want Expression",
+					p.Operator, i, child)
+			}
+			results = append(results, jsonExpression(childExpr))
+		}
+	}
+
+	return json.Marshal(results)
+}
+
+type jsonExpression oddb.Expression
+
+func (expr jsonExpression) MarshalJSON() ([]byte, error) {
+	var i interface{}
+	switch expr.Type {
+	case oddb.Literal:
+		switch v := expr.Value.(type) {
+		case oddb.Reference:
+			i = oddbconv.ToMap(oddbconv.MapReference(v))
+		default:
+			i = expr.Value
+		}
+	case oddb.KeyPath:
+		i = oddbconv.ToMap(oddbconv.MapKeyPath(expr.Value.(string)))
+	case oddb.Function:
+		i = funcSlice(expr.Value)
+	default:
+		return nil, fmt.Errorf("unrecgonized ExpressionType = %v", expr.Type)
+	}
+
+	return json.Marshal(i)
+}
+
+func opString(op oddb.Operator) string {
+	switch op {
+	case oddb.And:
+		return "and"
+	case oddb.Or:
+		return "or"
+	case oddb.Not:
+		return "not"
+	case oddb.Equal:
+		return "eq"
+	case oddb.GreaterThan:
+		return "gt"
+	case oddb.LessThan:
+		return "lt"
+	case oddb.GreaterThanOrEqual:
+		return "gte"
+	case oddb.LessThanOrEqual:
+		return "lte"
+	case oddb.NotEqual:
+		return "neq"
+	case oddb.Like:
+		return "like"
+	case oddb.ILike:
+		return "ilike"
+	default:
+		return "UNKNOWN_OPERATOR"
+	}
+}
+
+func funcSlice(i interface{}) []interface{} {
+	switch f := i.(type) {
+	case *oddb.DistanceFunc:
+		return []interface{}{
+			"func",
+			"distance",
+			oddbconv.ToMap(oddbconv.MapKeyPath(f.Field)),
+			oddbconv.ToMap((*oddbconv.MapLocation)(f.Location)),
+		}
+	default:
+		panic(fmt.Errorf("got unrecgonized oddb.Func = %T", i))
+	}
 }
 
 // FIXME(limouren): settle on a way to centralize error creation
@@ -106,7 +259,7 @@ func SubscriptionFetchHandler(rpayload *router.Payload, response *router.Respons
 			// handle err here
 			item = newErrorWithID(id, err)
 		} else {
-			item = subscription
+			item = jsonSubscription(subscription)
 		}
 
 		results = append(results, item)
@@ -147,7 +300,16 @@ func SubscriptionFetchAllHandler(rpayload *router.Payload, response *router.Resp
 		return
 	}
 
-	response.Result = rpayload.Database.GetSubscriptionsByDeviceID(payload.DeviceID)
+	subscriptions := rpayload.Database.GetSubscriptionsByDeviceID(payload.DeviceID)
+
+	results := []jsonSubscription{}
+	for _, sub := range subscriptions {
+		results = append(results, jsonSubscription(sub))
+	}
+
+	if len(results) > 0 {
+		response.Result = results
+	}
 }
 
 // SubscriptionSaveHandler saves one or more subscriptions associate with
@@ -198,10 +360,11 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 	}
 	if err := mapDecoder.Decode(rpayload.Data); err != nil {
 		response.Err = oderr.NewRequestInvalidErr(err)
+		return
 	}
 
-	subscriptions := payload.Subscriptions
-	if len(subscriptions) == 0 {
+	rawSubs := payload.Subscriptions
+	if len(rawSubs) == 0 {
 		response.Err = oderr.NewRequestInvalidErr(errors.New("empty subscriptions"))
 		return
 	}
@@ -211,8 +374,19 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 		return
 	}
 
-	for i := range subscriptions {
-		subscriptions[i].DeviceID = payload.DeviceID
+	subscriptions := make([]oddb.Subscription, len(rawSubs), len(rawSubs))
+	for i, rawSub := range rawSubs {
+		sub := &subscriptions[i]
+		sub.ID = rawSub.ID
+		sub.Type = rawSub.Type
+		sub.DeviceID = rawSub.DeviceID
+		sub.NotificationInfo = rawSub.NotificationInfo
+		sub.DeviceID = payload.DeviceID
+		if err := queryFromRaw(rawSub.Query, &sub.Query); err != nil {
+			response.Err = oderr.NewRequestInvalidErr(fmt.Errorf(
+				"failed to parse subscriptions: %v", err))
+			return
+		}
 	}
 
 	db := rpayload.Database
@@ -226,7 +400,7 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 		if err := db.SaveSubscription(subscription); err != nil {
 			item = newErrorWithID(subscription.ID, err)
 		} else {
-			item = subscription
+			item = (*jsonSubscription)(subscription)
 		}
 		results = append(results, item)
 	}

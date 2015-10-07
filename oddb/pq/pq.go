@@ -473,8 +473,8 @@ func (c *conn) QueryDevicesByUser(user string) ([]oddb.Device, error) {
 }
 
 func (c *conn) SaveDevice(device *oddb.Device) error {
-	if device.ID == "" || device.Token == "" || device.Type == "" || device.UserInfoID == "" || device.LastRegisteredAt.IsZero() {
-		return errors.New("invalid device: empty id , token, type, user id, or last registered at")
+	if device.ID == "" || device.Token == "" || device.Type == "" || device.LastRegisteredAt.IsZero() {
+		return errors.New("invalid device: empty id , token, type, or last registered at")
 	}
 
 	pkData := map[string]interface{}{"id": device.ID}
