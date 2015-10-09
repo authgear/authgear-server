@@ -85,6 +85,30 @@ type Predicate struct {
 	Children []interface{}
 }
 
+// GetSubPredicates returns Predicate.Children as []Predicate.
+//
+// This method is only valid when Operator is either And, Or and Not. Caller
+// is responsible to check for this preconditions. Otherwise the method
+// will panic.
+func (p Predicate) GetSubPredicates() (ps []Predicate) {
+	for _, childPred := range p.Children {
+		ps = append(ps, childPred.(Predicate))
+	}
+	return
+}
+
+// GetExpressions returns Predicate.Children as []Expression.
+//
+// This method is only valid when Operator is binary operator. Caller
+// is responsible to check for this preconditions. Otherwise the method
+// will panic.
+func (p Predicate) GetExpressions() (ps []Expression) {
+	for _, childPred := range p.Children {
+		ps = append(ps, childPred.(Expression))
+	}
+	return
+}
+
 // Query specifies the type, predicate and sorting order of Database
 // query.
 // ReadableBy is a temp solution for ACL before a full predicate implemented.

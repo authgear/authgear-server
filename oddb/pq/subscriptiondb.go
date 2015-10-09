@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/lib/pq"
-
 	"github.com/oursky/ourd/oddb"
 )
 
@@ -324,6 +325,14 @@ func (db *database) GetMatchingSubscriptions(record *oddb.Record) (subscriptions
 		subscriptions = append(subscriptions, s)
 	}
 
+	// filter without allocation
+	matchingSubs := subscriptions[:0]
+	for _, subscription := range subscriptions {
+		if predMatchRecord(subscription.Query.Predicate, record) {
+			matchingSubs = append(matchingSubs, subscription)
+		}
+	}
+
 	if rows.Err() != nil {
 		log.WithFields(log.Fields{
 			"record": record,
@@ -334,5 +343,71 @@ func (db *database) GetMatchingSubscriptions(record *oddb.Record) (subscriptions
 		return nil
 	}
 
-	return subscriptions
+	return matchingSubs
+}
+
+func predMatchRecord(p *oddb.Predicate, record *oddb.Record) (b bool) {
+	if p == nil {
+		return true
+	}
+
+	switch p.Operator {
+	case oddb.And:
+		b = true
+		for _, childPred := range p.GetSubPredicates() {
+			if !predMatchRecord(&childPred, record) {
+				b = false
+				break
+			}
+		}
+	case oddb.Or:
+		for _, childPred := range p.GetSubPredicates() {
+			if predMatchRecord(&childPred, record) {
+				b = true
+				break
+			}
+		}
+	case oddb.Not:
+		b = !predMatchRecord(&p.GetSubPredicates()[0], record)
+	case oddb.Equal:
+		lv, rv := extractBinaryOperands(p.GetExpressions(), record)
+		return reflect.DeepEqual(lv, rv)
+	// case oddb.GreaterThan:
+	// case oddb.LessThan:
+	// case oddb.GreaterThanOrEqual:
+	// case oddb.LessThanOrEqual:
+	case oddb.NotEqual:
+		lv, rv := extractBinaryOperands(p.GetExpressions(), record)
+		return !reflect.DeepEqual(lv, rv)
+	// case oddb.Like:
+	// case oddb.ILike:
+	default:
+		log.Panicf("unknown Predicate.Operator = %v", p.Operator)
+	}
+
+	return
+}
+
+func extractBinaryOperands(exprs []oddb.Expression, record *oddb.Record) (lv interface{}, rv interface{}) {
+	lv = extractValue(exprs[0], record)
+	rv = extractValue(exprs[1], record)
+	return
+}
+
+func extractValue(expr oddb.Expression, record *oddb.Record) interface{} {
+	switch expr.Type {
+	case oddb.Literal:
+		switch expr.Value.(type) {
+		case bool, float64, string, time.Time, *oddb.Location, oddb.Reference:
+			return expr.Value
+		default:
+			panic(fmt.Sprintf("unknown type %[1]T of Expression.Value = %[1]v", expr.Value))
+		}
+	case oddb.KeyPath:
+		return record.Get(expr.Value.(string))
+	case oddb.Function:
+		panic("unsupported type of predicate expression = Function")
+	}
+
+	panic("unreachable code")
 }
