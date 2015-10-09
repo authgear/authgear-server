@@ -23,6 +23,10 @@ type Notice struct {
 // Notifier is the interface implemented by an object that knows how to deliver
 // a Notice to a device.
 type Notifier interface {
+	// CanNotify returns whether the Notifier can send notice to the device.
+	CanNotify(device oddb.Device) bool
+
+	// Notify sends an notice to the device.
 	Notify(device oddb.Device, notice Notice) error
 }
 
@@ -34,6 +38,10 @@ type pushNotifier struct {
 // using the given push.Sender.
 func NewPushNotifier(sender push.Sender) Notifier {
 	return &pushNotifier{sender}
+}
+
+func (notifier *pushNotifier) CanNotify(device oddb.Device) bool {
+	return device.Type == "ios"
 }
 
 func (notifier *pushNotifier) Notify(device oddb.Device, notice Notice) error {
@@ -56,6 +64,10 @@ type hubNotifier pubsub.Hub
 // hub. The notice will be sent via the channel name "_sub_[DEVICE_ID]".
 func NewHubNotifier(hub *pubsub.Hub) Notifier {
 	return (*hubNotifier)(hub)
+}
+
+func (n *hubNotifier) CanNotify(device oddb.Device) bool {
+	return true
 }
 
 func (n *hubNotifier) Notify(device oddb.Device, notice Notice) error {
@@ -82,15 +94,21 @@ func NewMultiNotifier(notifiers ...Notifier) Notifier {
 	return multiNotifier(notifiers)
 }
 
+func (ns multiNotifier) CanNotify(device oddb.Device) bool {
+	return true
+}
+
 func (ns multiNotifier) Notify(device oddb.Device, notice Notice) error {
 	n := len(ns)
 
 	errCh := make(chan error)
 	for _, notifier := range ns {
 		notifier := notifier
-		go func() {
-			errCh <- notifier.Notify(device, notice)
-		}()
+		if notifier.CanNotify(device) {
+			go func() {
+				errCh <- notifier.Notify(device, notice)
+			}()
+		}
 	}
 
 	var lasterr error

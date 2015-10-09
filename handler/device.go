@@ -22,10 +22,10 @@ type deviceRegisterPayload struct {
 func (p *deviceRegisterPayload) Validate() error {
 	if p.Type == "" {
 		return errors.New("empty device type")
-	} else if p.Type != "ios" && p.Type != "android" {
+	} else if p.Type != "ios" && p.Type != "android" && p.Type != "pubsub" {
 		return fmt.Errorf("unknown device type = %v", p.Type)
 	}
-	if p.DeviceToken == "" {
+	if p.DeviceToken == "" && p.Type != "pubsub" {
 		return errors.New("empty device token")
 	}
 

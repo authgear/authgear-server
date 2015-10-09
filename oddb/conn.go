@@ -15,11 +15,11 @@ var ErrUserDuplicated = errors.New("oddb: duplicated UserInfo ID")
 var ErrUserNotFound = errors.New("oddb: UserInfo ID not found")
 
 // ErrDeviceNotFound is returned by Conn.GetDevice, Conn.DeleteDevice and
-// Conn.DeleteDeviceByToken if the desired Device cannot be found
+// Conn.DeleteDeviceByToken, Conn.DeleteDeviceByType, if the desired Device cannot be found
 // in the current container
 var ErrDeviceNotFound = errors.New("oddb: Specific device not found")
 
-// ZeroTime represent a zero time.Time. It is used in DeleteDeviceByToken to
+// ZeroTime represent a zero time.Time. It is used in DeleteDeviceByToken, DeleteDeviceByType to
 // signify a Delete without time constraint.
 var ZeroTime = time.Time{}
 
@@ -91,6 +91,12 @@ type Conn interface {
 	//
 	// If such device does not exist, ErrDeviceNotFound is returned.
 	DeleteDeviceByToken(token string, t time.Time) error
+
+	// DeleteDeviceByType deletes device where its Type == token and
+	// LastRegisteredAt < t. If t == ZeroTime, LastRegisteredAt is not considered.
+	//
+	// If such device does not exist, ErrDeviceNotFound is returned.
+	DeleteDeviceByType(token string, t time.Time) error
 
 	PublicDB() Database
 	PrivateDB(userKey string) Database

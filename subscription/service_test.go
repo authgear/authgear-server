@@ -12,6 +12,10 @@ import (
 
 type notifyFunc func(device oddb.Device, notice Notice) error
 
+func (f notifyFunc) CanNotify(device oddb.Device) bool {
+	return true
+}
+
 func (f notifyFunc) Notify(device oddb.Device, notice Notice) error {
 	return f(device, notice)
 }

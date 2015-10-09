@@ -417,9 +417,11 @@ func (c *conn) GetDevice(id string, device *oddb.Device) error {
 	builder := psql.Select("type", "token", "user_id", "last_registered_at").
 		From(c.tableName("_device")).
 		Where("id = ?", id)
+
+	var nullToken sql.NullString
 	err := queryRowWith(c.Db, builder).Scan(
 		&device.Type,
-		&device.Token,
+		&nullToken,
 		&device.UserInfoID,
 		&device.LastRegisteredAt,
 	)
@@ -429,6 +431,8 @@ func (c *conn) GetDevice(id string, device *oddb.Device) error {
 	} else if err != nil {
 		return err
 	}
+
+	device.Token = nullToken.String
 
 	device.LastRegisteredAt = device.LastRegisteredAt.In(time.UTC)
 	device.ID = id
@@ -473,16 +477,19 @@ func (c *conn) QueryDevicesByUser(user string) ([]oddb.Device, error) {
 }
 
 func (c *conn) SaveDevice(device *oddb.Device) error {
-	if device.ID == "" || device.Token == "" || device.Type == "" || device.LastRegisteredAt.IsZero() {
+	if device.ID == "" || device.Type == "" || device.LastRegisteredAt.IsZero() {
 		return errors.New("invalid device: empty id , token, type, or last registered at")
 	}
 
 	pkData := map[string]interface{}{"id": device.ID}
 	data := map[string]interface{}{
 		"type":               device.Type,
-		"token":              device.Token,
 		"user_id":            device.UserInfoID,
 		"last_registered_at": device.LastRegisteredAt.UTC(),
+	}
+
+	if device.Token != "" {
+		data["token"] = device.Token
 	}
 
 	upsert := upsertQuery(c.tableName("_device"), pkData, data)
@@ -525,6 +532,31 @@ func (c *conn) DeleteDevice(id string) error {
 func (c *conn) DeleteDeviceByToken(token string, t time.Time) error {
 	builder := psql.Delete(c.tableName("_device")).
 		Where("token = ?", token)
+	if t != oddb.ZeroTime {
+		builder = builder.Where("last_registered_at < ?", t)
+	}
+	result, err := execWith(c.Db, builder)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return oddb.ErrDeviceNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+	}
+
+	return nil
+}
+
+func (c *conn) DeleteDeviceByType(deviceType string, t time.Time) error {
+	builder := psql.Delete(c.tableName("_device")).
+		Where("type = ?", deviceType)
 	if t != oddb.ZeroTime {
 		builder = builder.Where("last_registered_at < ?", t)
 	}
@@ -745,7 +777,7 @@ var (
 
 var createAppSchemaStmtTmpl *template.Template
 
-const dbVersionNum = "d2cb54c648"
+const dbVersionNum = "51375067b45"
 const createAppSchemaStmtTmplText = `
 CREATE SCHEMA IF NOT EXISTS {{.Schema}};
 CREATE TABLE IF NOT EXISTS public.pending_notification (
@@ -793,7 +825,7 @@ CREATE TABLE {{.Schema}}._device (
 	id text PRIMARY KEY,
 	user_id text REFERENCES {{.Schema}}._user (id),
 	type text NOT NULL,
-	token text NOT NULL,
+	token text,
 	last_registered_at timestamp without time zone NOT NULL,
 	UNIQUE (user_id, type, token)
 );

@@ -138,6 +138,7 @@ func main() {
 
 	internalHub := pubsub.NewHub()
 	initSubscription(config, connOpener, internalHub, pushSender)
+	initDevice(config, connOpener)
 
 	notificationPreprocessor := notificationPreprocessor{
 		NotificationSender: pushSender,
@@ -356,6 +357,18 @@ func initAssetStore(config Configuration) asset.Store {
 		store = s3Store
 	}
 	return store
+}
+
+func initDevice(config Configuration, connOpener func() (oddb.Conn, error)) {
+	// TODO: Create a device service to check APNs to remove obsolete devices.
+	// The current implementaion deletes pubsub devices if the last registered
+	// time is more than 1 day old.
+	conn, err := connOpener()
+	if err != nil {
+		log.Warnf("Failed to delete outdated devices: %v", err)
+	}
+
+	conn.DeleteDeviceByType("pubsub", time.Now().AddDate(0, 0, -1))
 }
 
 func initSubscription(config Configuration, connOpener func() (oddb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
