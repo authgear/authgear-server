@@ -266,3 +266,94 @@ func LogoutHandler(payload *router.Payload, response *router.Response) {
 		}
 	}
 }
+
+// Define the playload that change password handler will process
+type passwordPayload struct {
+	AppName    string
+	Data       map[string]interface{}
+	UserInfoID string
+}
+
+func (p *passwordPayload) RouteAction() string {
+	return "auth:password"
+}
+
+func (p *passwordPayload) OldPassword() string {
+	oldPassword, _ := p.Data["old_password"].(string)
+	return oldPassword
+}
+
+func (p *passwordPayload) NewPassword() string {
+	password, _ := p.Data["password"].(string)
+	return password
+}
+
+func (p *passwordPayload) Invalidate() bool {
+	invalidate, _ := p.Data["invalidate"].(bool)
+	return invalidate
+}
+
+// SignupHandler creates an UserInfo with the supplied information.
+//
+// SignupHandler receives three parameters:
+//
+// * user_id (string, unique, optional)
+// * email  (string, optional)
+// * password (string, optional)
+//
+// If user_id is not supplied, an anonymous user is created and
+// have user_id auto-generated. SignupHandler writes an error to
+// response.Result if the supplied user_id collides with an existing
+// user_id.
+//
+//	curl -X POST -H "Content-Type: application/json" \
+//	  -d @- http://localhost:3000/ <<EOF
+//	{
+//	    "action": "auth:password",
+//	    "user_id": "rick.mak@gmail.com",
+//	    "old_password": "rick.mak@gmail.com",
+//	    "password": "123456",
+//	    "invalidate": false
+//	}
+//	EOF
+// Response
+// Return userInfoID with new AccessToken if the invalidate is true,
+// return existing access toektn if not invalidate
+func PasswordHandler(payload *router.Payload, response *router.Response) {
+	log.Debugf("changing password")
+	p := passwordPayload{
+		AppName:    payload.AppName,
+		Data:       payload.Data,
+		UserInfoID: payload.UserInfoID,
+	}
+	info := oddb.UserInfo{}
+	if err := payload.DBConn.GetUser(p.UserInfoID, &info); err != nil {
+		if err == oddb.ErrUserNotFound {
+			response.Err = oderr.ErrUserNotFound
+		} else {
+			// TODO: more error handling here if necessary
+			response.Err = oderr.NewResourceFetchFailureErr("user", p.UserInfoID)
+		}
+		return
+	}
+
+	if !info.IsSamePassword(p.OldPassword()) {
+		log.Debug("Incorrecly Old Password")
+		response.Err = oderr.NewUnknownErr(errors.New("Incorrecly Old Password"))
+		return
+	}
+	info.SetPassword(p.NewPassword())
+	if err := payload.DBConn.UpdateUser(&info); err != nil {
+		response.Err = oderr.NewUnknownErr(err)
+		return
+	}
+
+	if p.Invalidate() {
+		log.Warningf("Invalidate is not yet implement")
+		// TODO: invalidate all existing token and generate a new one for response
+	}
+	response.Result = authResponse{
+		UserID:      info.ID,
+		AccessToken: payload.AccessToken(),
+	}
+}

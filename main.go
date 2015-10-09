@@ -205,6 +205,11 @@ func main() {
 		authenticator.Preprocess,
 		providerRegistryPreprocessor.Preprocess,
 	)
+	r.Map("auth:password", handler.PasswordHandler,
+		fileSystemConnPreprocessor.Preprocess,
+		fileTokenStorePreprocessor.Preprocess,
+		authenticator.Preprocess,
+	)
 
 	hookRegistry := hook.NewRegistry()
 	hookRegistryPreprocessor := hookRegistryPreprocessor{
