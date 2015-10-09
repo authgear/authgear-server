@@ -111,12 +111,12 @@ func (p *jsonPredicate) UnmarshalJSON(data []byte) error {
 	p.Operator = v.Operator
 
 	if v.Operator.IsCompound() {
-		predicates := []oddb.Predicate{}
+		predicates := []jsonPredicate{}
 		if err := json.Unmarshal(v.Children, &predicates); err != nil {
 			return err
 		}
 		for _, pred := range predicates {
-			p.Children = append(p.Children, pred)
+			p.Children = append(p.Children, oddb.Predicate(pred))
 		}
 	} else {
 		expressions := []oddb.Expression{}
