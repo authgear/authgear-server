@@ -293,32 +293,32 @@ func (p *passwordPayload) Invalidate() bool {
 	return invalidate
 }
 
-// SignupHandler creates an UserInfo with the supplied information.
+// PasswordHandler change the current user password
 //
-// SignupHandler receives three parameters:
+// PasswordHandler receives three parameters:
 //
-// * user_id (string, unique, optional)
-// * email  (string, optional)
-// * password (string, optional)
+// * old_password (string, required)
+// * password (string, required)
 //
-// If user_id is not supplied, an anonymous user is created and
-// have user_id auto-generated. SignupHandler writes an error to
-// response.Result if the supplied user_id collides with an existing
-// user_id.
+// If user is not logged in, an 404 not found will return.
 //
+//  Current implementation
 //	curl -X POST -H "Content-Type: application/json" \
 //	  -d @- http://localhost:3000/ <<EOF
 //	{
 //	    "action": "auth:password",
-//	    "user_id": "rick.mak@gmail.com",
 //	    "old_password": "rick.mak@gmail.com",
-//	    "password": "123456",
-//	    "invalidate": false
+//	    "password": "123456"
 //	}
 //	EOF
 // Response
-// Return userInfoID with new AccessToken if the invalidate is true,
 // return existing access toektn if not invalidate
+//
+// TODO:
+// Input accept `user_id` and `invalidate`.
+// If `user_id` is supplied, will check authorization policy and see if existing
+// accept `invalidate` and invaldate all existing access token.
+// Return userInfoID with new AccessToken if the invalidate is true
 func PasswordHandler(payload *router.Payload, response *router.Response) {
 	log.Debugf("changing password")
 	p := passwordPayload{
