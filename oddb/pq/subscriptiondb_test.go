@@ -237,6 +237,105 @@ func TestMatchingSubscriptions(t *testing.T) {
 			subscriptions := db.GetMatchingSubscriptions(&record)
 			So(subscriptions, ShouldBeEmpty)
 		})
+
+		Convey("match subscription with predicate eq", func() {
+			record := oddb.Record{ID: oddb.NewRecordID("record", "id")}
+			subeq := subscriptionForTest("device0", "eq", "record")
+			subeq.Query.Predicate = &oddb.Predicate{
+				Operator: oddb.Equal,
+				Children: []interface{}{
+					oddb.Expression{
+						Type:  oddb.Literal,
+						Value: "id",
+					},
+					oddb.Expression{
+						Type:  oddb.KeyPath,
+						Value: "_id",
+					},
+				},
+			}
+			So(db.SaveSubscription(&subeq), ShouldBeNil)
+
+			subscriptions := db.GetMatchingSubscriptions(&record)
+			So(subscriptions, ShouldResemble, []oddb.Subscription{subeq})
+		})
+
+		Convey("match subscription with compound predicates", func() {
+			binaryPred := func(op oddb.Operator, k string, v interface{}) oddb.Predicate {
+				return oddb.Predicate{
+					Operator: oddb.Equal,
+					Children: []interface{}{
+						oddb.Expression{
+							Type:  oddb.KeyPath,
+							Value: k,
+						},
+						oddb.Expression{
+							Type:  oddb.Literal,
+							Value: v,
+						},
+					},
+				}
+			}
+
+			record := oddb.Record{ID: oddb.NewRecordID("record", "id")}
+
+			suband := subscriptionForTest("device0", "and", "record")
+			suband.Query.Predicate = &oddb.Predicate{
+				Operator: oddb.And,
+				Children: []interface{}{
+					binaryPred(oddb.Equal, "falsy", false),
+					binaryPred(oddb.Equal, "truthy", true),
+				},
+			}
+			So(db.SaveSubscription(&suband), ShouldBeNil)
+
+			subor := subscriptionForTest("device0", "or", "record")
+			subor.Query.Predicate = &oddb.Predicate{
+				Operator: oddb.Or,
+				Children: []interface{}{
+					binaryPred(oddb.Equal, "truthy", false),
+					binaryPred(oddb.Equal, "falsy", false),
+				},
+			}
+			So(db.SaveSubscription(&subor), ShouldBeNil)
+
+			subnot := subscriptionForTest("device0", "not", "record")
+			subnot.Query.Predicate = &oddb.Predicate{
+				Operator: oddb.Not,
+				Children: []interface{}{
+					binaryPred(oddb.Equal, "truthy", false),
+				},
+			}
+			So(db.SaveSubscription(&subnot), ShouldBeNil)
+
+			record.Data = map[string]interface{}{
+				"truthy": true,
+				"falsy":  false,
+			}
+			subscriptions := db.GetMatchingSubscriptions(&record)
+			So(subscriptions, ShouldResemble, []oddb.Subscription{suband, subor, subnot})
+
+			record.Data = map[string]interface{}{
+				"truthy": false,
+				"falsy":  true,
+			}
+			subscriptions = db.GetMatchingSubscriptions(&record)
+			So(subscriptions, ShouldResemble, []oddb.Subscription{subor})
+
+			record.Data = map[string]interface{}{
+				"truthy": true,
+				"falsy":  true,
+			}
+			subscriptions = db.GetMatchingSubscriptions(&record)
+			So(subscriptions, ShouldResemble, []oddb.Subscription{subnot})
+
+			record.Data = map[string]interface{}{
+				"truthy": false,
+				"falsy":  false,
+			}
+			subscriptions = db.GetMatchingSubscriptions(&record)
+			So(subscriptions, ShouldResemble, []oddb.Subscription{subor})
+		})
 	})
 }
 
