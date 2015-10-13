@@ -36,6 +36,10 @@ func NewWsPubsub(hub *Hub) *WsPubSub {
 	upgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
+		CheckOrigin: func(r *http.Request) bool {
+			// allow all connections
+			return true
+		},
 	}
 	ws := WsPubSub{
 		upgrader,
