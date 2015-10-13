@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"testing"
+	"time"
 
 	"github.com/oursky/ourd/authtoken"
 	"github.com/oursky/ourd/handler/handlertest"
@@ -317,6 +318,15 @@ func (conn *singleUserConn) CreateUser(userinfo *oddb.UserInfo) error {
 	}
 }
 
+func (conn *singleUserConn) GetUser(id string, userinfo *oddb.UserInfo) error {
+	if conn.userinfo == nil {
+		return oddb.ErrUserNotFound
+	} else {
+		*userinfo = *conn.userinfo
+		return nil
+	}
+}
+
 func (conn *singleUserConn) GetUserByPrincipalID(principalID string, userinfo *oddb.UserInfo) error {
 	if conn.userinfo == nil {
 		return oddb.ErrUserNotFound
@@ -509,5 +519,39 @@ func TestLogoutHandler(t *testing.T) {
 }`)
 			So(resp.Code, ShouldEqual, 400)
 		})
+	})
+}
+
+func TestPasswordHandlerWithProvider(t *testing.T) {
+	Convey("PasswordHandler", t, func() {
+		conn := singleUserConn{}
+		userinfo := oddb.NewUserInfo("lord-of-skygear", "limouren@skygear.io", "chima")
+		conn.CreateUser(&userinfo)
+		tokenStore := singleTokenStore{}
+		token := authtoken.New("_", userinfo.ID, time.Time{})
+		tokenStore.Put(&token)
+
+		r := handlertest.NewSingleRouteRouter(PasswordHandler, func(p *router.Payload) {
+			p.TokenStore = &tokenStore
+			p.DBConn = &conn
+		})
+
+		Convey("change password success", func() {
+			resp := r.POST(fmt.Sprintf(`{
+	"access_token": "%s",
+	"user_id": "lord-of-skygear",
+	"old_password": "chima",
+	"password": "faseng"
+}`, token.AccessToken))
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+	"result": {
+		"user_id": "lord-of-skygear",
+		"access_token": "%s"
+	}
+}`, token.AccessToken))
+			So(resp.Code, ShouldEqual, 200)
+		})
+
 	})
 }
