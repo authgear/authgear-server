@@ -478,7 +478,7 @@ func (c *conn) QueryDevicesByUser(user string) ([]oddb.Device, error) {
 
 func (c *conn) SaveDevice(device *oddb.Device) error {
 	if device.ID == "" || device.Type == "" || device.LastRegisteredAt.IsZero() {
-		return errors.New("invalid device: empty id , token, type, or last registered at")
+		return errors.New("invalid device: empty id, type, or last registered at")
 	}
 
 	pkData := map[string]interface{}{"id": device.ID}
@@ -554,9 +554,9 @@ func (c *conn) DeleteDeviceByToken(token string, t time.Time) error {
 	return nil
 }
 
-func (c *conn) DeleteDeviceByType(deviceType string, t time.Time) error {
+func (c *conn) DeleteEmptyDeviceByTime(t time.Time) error {
 	builder := psql.Delete(c.tableName("_device")).
-		Where("type = ?", deviceType)
+		Where("token IS NULL")
 	if t != oddb.ZeroTime {
 		builder = builder.Where("last_registered_at < ?", t)
 	}

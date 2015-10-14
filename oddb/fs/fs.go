@@ -128,7 +128,7 @@ func (conn *fileConn) DeleteDeviceByToken(token string, t time.Time) error {
 	panic("not implemented")
 }
 
-func (conn *fileConn) DeleteDeviceByType(deviceType string, t time.Time) error {
+func (conn *fileConn) DeleteEmptyDeviceByTime(t time.Time) error {
 	panic("not implemented")
 }
 

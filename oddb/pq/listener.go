@@ -20,8 +20,9 @@ var appEventChannelsMap map[string][]chan oddb.RecordEvent
 
 // Assume all app resist on one Database
 func (c *conn) Subscribe(recordEventChan chan oddb.RecordEvent) error {
-	channels := appEventChannelsMap[c.appName]
-	appEventChannelsMap[c.appName] = append(channels, recordEventChan)
+	appName := toLowerAndUnderscore(c.appName)
+	channels := appEventChannelsMap[appName]
+	appEventChannelsMap[appName] = append(channels, recordEventChan)
 
 	// TODO(limouren): Seems a start-up time config would be better?
 	subscribeListenOnce.Do(func() {

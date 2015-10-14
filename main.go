@@ -373,7 +373,7 @@ func initDevice(config Configuration, connOpener func() (oddb.Conn, error)) {
 		log.Warnf("Failed to delete outdated devices: %v", err)
 	}
 
-	conn.DeleteDeviceByType("pubsub", time.Now().AddDate(0, 0, -1))
+	conn.DeleteEmptyDeviceByTime(time.Now().AddDate(0, 0, -1))
 }
 
 func initSubscription(config Configuration, connOpener func() (oddb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {

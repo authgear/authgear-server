@@ -4,9 +4,10 @@
 package mock_oddb
 
 import (
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	oddb "github.com/oursky/ourd/oddb"
-	time "time"
 )
 
 // Mock of Conn interface
@@ -80,14 +81,14 @@ func (_mr *_MockConnRecorder) DeleteDeviceByToken(arg0, arg1 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteDeviceByToken", arg0, arg1)
 }
 
-func (_m *MockConn) DeleteDeviceByType(_param0 string, _param1 time.Time) error {
-	ret := _m.ctrl.Call(_m, "DeleteDeviceByType", _param0, _param1)
+func (_m *MockConn) DeleteEmptyDeviceByTime(_param0 time.Time) error {
+	ret := _m.ctrl.Call(_m, "DeleteEmptyDeviceByTime", _param0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockConnRecorder) DeleteDeviceByType(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteDeviceByType", arg0, arg1)
+func (_mr *_MockConnRecorder) DeleteEmptyDeviceByTime(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteEmptyDeviceByTime", arg0)
 }
 
 func (_m *MockConn) DeleteUser(_param0 string) error {
