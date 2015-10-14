@@ -554,9 +554,9 @@ func (c *conn) DeleteDeviceByToken(token string, t time.Time) error {
 	return nil
 }
 
-func (c *conn) DeleteDeviceByType(deviceType string, t time.Time) error {
+func (c *conn) DeleteEmptyDeviceByTime(t time.Time) error {
 	builder := psql.Delete(c.tableName("_device")).
-		Where("type = ?", deviceType)
+		Where("token IS NULL")
 	if t != oddb.ZeroTime {
 		builder = builder.Where("last_registered_at < ?", t)
 	}

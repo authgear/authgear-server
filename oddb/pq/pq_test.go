@@ -500,23 +500,58 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldEqual, oddb.ErrDeviceNotFound)
 		})
 
-		Convey("deletes an existing record by type", func() {
-			device := oddb.Device{
-				ID:               "deviceid",
+		Convey("deletes existing empty records", func() {
+			device0 := oddb.Device{
+				ID:               "deviceid0",
 				Type:             "ios",
-				Token:            "devicetoken",
+				Token:            "",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
-			So(c.SaveDevice(&device), ShouldBeNil)
+			device1 := oddb.Device{
+				ID:               "deviceid1",
+				Type:             "ios",
+				Token:            "DEVICE_TOKEN",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+			So(c.SaveDevice(&device0), ShouldBeNil)
+			So(c.SaveDevice(&device1), ShouldBeNil)
 
-			err := c.DeleteDeviceByType("ios", oddb.ZeroTime)
+			err := c.DeleteEmptyDeviceByTime(oddb.ZeroTime)
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._device WHERE id = 'deviceid'").Scan(&count)
+			err = c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_ourd._device").Scan(&count)
 			So(err, ShouldBeNil)
-			So(count, ShouldEqual, 0)
+			So(count, ShouldEqual, 1)
+		})
+
+		Convey("deletes existing empty records before a date", func() {
+			device0 := oddb.Device{
+				ID:               "deviceid0",
+				Type:             "ios",
+				Token:            "",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 4, 59, time.UTC),
+			}
+			device1 := oddb.Device{
+				ID:               "deviceid1",
+				Type:             "ios",
+				Token:            "DEVICE_TOKEN",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+			So(c.SaveDevice(&device0), ShouldBeNil)
+			So(c.SaveDevice(&device1), ShouldBeNil)
+
+			err := c.DeleteEmptyDeviceByTime(time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(err, ShouldBeNil)
+
+			device := oddb.Device{}
+			So(c.GetDevice("deviceid0", &device), ShouldEqual, oddb.ErrDeviceNotFound)
+			So(c.GetDevice("deviceid1", &device), ShouldBeNil)
+			So(device, ShouldResemble, device1)
 		})
 
 		Convey("fails to delete an existing record by type with a later LastRegisteredAt", func() {
@@ -529,7 +564,7 @@ func TestDevice(t *testing.T) {
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
 
-			err := c.DeleteDeviceByType("ios", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			err := c.DeleteEmptyDeviceByTime(time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
 			So(err, ShouldEqual, oddb.ErrDeviceNotFound)
 		})
 
