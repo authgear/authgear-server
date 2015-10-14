@@ -126,15 +126,22 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("unknown device type = invalidtype")))
 		})
 
-		Convey("complains on empty device token", func() {
+		Convey("does not complain on empty device token", func() {
 			payload.Data = map[string]interface{}{
 				"type": "android",
 			}
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Err.(oderr.Error)
-			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("empty device token")))
+			result := resp.Result.(DeviceReigsterResult)
+			So(result.ID, ShouldNotBeEmpty)
+			So(conn.savedevice, ShouldResemble, &oddb.Device{
+				ID:               result.ID,
+				Type:             "android",
+				Token:            "",
+				UserInfoID:       "userinfoid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			})
 		})
 
 		Convey("complains on non-existed update", func() {
@@ -163,24 +170,6 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			err := resp.Err.(oderr.Error)
 			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("unknown device type = unknown-type")))
-		})
-
-		Convey("no complain on empty device token for pubsub", func() {
-			payload.Data = map[string]interface{}{
-				"type": "pubsub",
-			}
-
-			DeviceRegisterHandler(&payload, &resp)
-
-			result := resp.Result.(DeviceReigsterResult)
-			So(result.ID, ShouldNotBeEmpty)
-			So(conn.savedevice, ShouldResemble, &oddb.Device{
-				ID:               result.ID,
-				Type:             "pubsub",
-				Token:            "",
-				UserInfoID:       "userinfoid",
-				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
-			})
 		})
 	})
 }
