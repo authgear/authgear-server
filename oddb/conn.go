@@ -14,13 +14,13 @@ var ErrUserDuplicated = errors.New("oddb: duplicated UserInfo ID")
 // in the current container
 var ErrUserNotFound = errors.New("oddb: UserInfo ID not found")
 
-// ErrDeviceNotFound is returned by Conn.GetDevice, Conn.DeleteDevice and
-// Conn.DeleteDeviceByToken, Conn.DeleteDeviceByType, if the desired Device cannot be found
-// in the current container
+// ErrDeviceNotFound is returned by Conn.GetDevice, Conn.DeleteDevice,
+// Conn.DeleteDeviceByToken and Conn.DeleteDeviceByType, if the desired Device
+// cannot be found in the current container
 var ErrDeviceNotFound = errors.New("oddb: Specific device not found")
 
-// ZeroTime represent a zero time.Time. It is used in DeleteDeviceByToken, DeleteDeviceByType to
-// signify a Delete without time constraint.
+// ZeroTime represent a zero time.Time. It is used in DeleteDeviceByToken and
+// DeleteDeviceByType to signify a Delete without time constraint.
 var ZeroTime = time.Time{}
 
 // DBHookFunc specifies the interface of a database hook function
