@@ -224,8 +224,8 @@ func parseRecordData(data []byte, record *oddb.Record) error {
 	rawDatabaseID, _ := recordData["_database_id"].(string)
 	rawOwnerID, _ := recordData["_owner_id"].(string)
 
-	if recordID == "" || rawDatabaseID == "" || rawOwnerID == "" {
-		return errors.New(`missing key "_id", "_database_id" or "_owner_id"`)
+	if recordID == "" || rawOwnerID == "" {
+		return errors.New(`missing key "_id" or "_owner_id"`)
 	}
 
 	for key := range recordData {
