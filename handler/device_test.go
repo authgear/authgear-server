@@ -151,5 +151,36 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			err := resp.Err.(oderr.Error)
 			So(err, ShouldEqual, oderr.ErrDeviceNotFound)
 		})
+
+		Convey("complains on unknown device type", func() {
+			conn.geterr = oddb.ErrDeviceNotFound
+
+			payload.Data = map[string]interface{}{
+				"type": "unknown-type",
+			}
+
+			DeviceRegisterHandler(&payload, &resp)
+
+			err := resp.Err.(oderr.Error)
+			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("unknown device type = unknown-type")))
+		})
+
+		Convey("no complain on empty device token for pubsub", func() {
+			payload.Data = map[string]interface{}{
+				"type": "pubsub",
+			}
+
+			DeviceRegisterHandler(&payload, &resp)
+
+			result := resp.Result.(DeviceReigsterResult)
+			So(result.ID, ShouldNotBeEmpty)
+			So(conn.savedevice, ShouldResemble, &oddb.Device{
+				ID:               result.ID,
+				Type:             "pubsub",
+				Token:            "",
+				UserInfoID:       "userinfoid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			})
+		})
 	})
 }

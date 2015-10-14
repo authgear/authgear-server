@@ -128,6 +128,10 @@ func (conn *fileConn) DeleteDeviceByToken(token string, t time.Time) error {
 	panic("not implemented")
 }
 
+func (conn *fileConn) DeleteDeviceByType(deviceType string, t time.Time) error {
+	panic("not implemented")
+}
+
 func (conn *fileConn) PublicDB() oddb.Database {
 	return conn.publicDB
 }

@@ -126,6 +126,11 @@ func (conn *MapConn) DeleteDeviceByToken(token string, t time.Time) error {
 	panic("not implemented")
 }
 
+// DeleteDeviceByType is not implemented.
+func (conn *MapConn) DeleteDeviceByType(deviceType string, t time.Time) error {
+	panic("not implemented")
+}
+
 // PublicDB is not implemented.
 func (conn *MapConn) PublicDB() oddb.Database {
 	panic("not implemented")
