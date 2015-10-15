@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oddb"
-	odplugin "github.com/oursky/ourd/plugin"
-	"github.com/oursky/ourd/plugin/common"
+	odplugin "github.com/oursky/skygear/plugin"
+	"github.com/oursky/skygear/plugin/common"
+	"github.com/oursky/skygear/skydb"
 	"github.com/zeromq/goczmq"
 )
 
@@ -39,7 +39,7 @@ func newHandlerRequest(name string, input json.RawMessage) *request {
 	return &request{Kind: "handler", Name: name, Param: input}
 }
 
-func newHookRequest(trigger string, record *oddb.Record, originalRecord *oddb.Record) *request {
+func newHookRequest(trigger string, record *skydb.Record, originalRecord *skydb.Record) *request {
 	param := hookRequest{
 		Record:   (*common.JSONRecord)(record),
 		Original: (*common.JSONRecord)(originalRecord),
@@ -94,13 +94,13 @@ func (p zmqTransport) RunHandler(name string, in []byte) (out []byte, err error)
 	return
 }
 
-func (p zmqTransport) RunHook(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
+func (p zmqTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 	out, err := p.rpc(newHookRequest(trigger, record, originalRecord))
 	if err != nil {
 		return nil, err
 	}
 
-	var recordout oddb.Record
+	var recordout skydb.Record
 	if err := json.Unmarshal(out, (*common.JSONRecord)(&recordout)); err != nil {
 		log.WithField("data", string(out)).Error("failed to unmarshal record")
 		return nil, fmt.Errorf("failed to unmarshal record: %v", err)

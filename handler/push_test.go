@@ -3,25 +3,25 @@ package handler
 import (
 	"testing"
 
-	"github.com/oursky/ourd/handler/handlertest"
-	. "github.com/oursky/ourd/ourtest"
+	"github.com/oursky/skygear/handler/handlertest"
+	. "github.com/oursky/skygear/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/push"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/push"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 )
 
 func TestPushToDevice(t *testing.T) {
 	Convey("push to device", t, func() {
-		testdevice := oddb.Device{
+		testdevice := skydb.Device{
 			ID:         "device",
 			Type:       "ios",
 			Token:      "token",
 			UserInfoID: "userid",
 		}
 		conn := simpleDeviceConn{
-			devices: []oddb.Device{testdevice},
+			devices: []skydb.Device{testdevice},
 		}
 
 		r := handlertest.NewSingleRouteRouter(PushToDeviceHandler, func(p *router.Payload) {
@@ -35,7 +35,7 @@ func TestPushToDevice(t *testing.T) {
 
 		Convey("push to single device", func() {
 			called := false
-			sendPushNotification = func(sender push.Sender, device *oddb.Device, m push.Mapper) {
+			sendPushNotification = func(sender push.Sender, device *skydb.Device, m push.Mapper) {
 				So(device, ShouldResemble, &testdevice)
 				So(m.Map(), ShouldResemble, map[string]interface{}{
 					"aps": map[string]interface{}{
@@ -67,7 +67,7 @@ func TestPushToDevice(t *testing.T) {
 
 		Convey("push to non-existent device", func() {
 			called := false
-			sendPushNotification = func(sender push.Sender, device *oddb.Device, m push.Mapper) {
+			sendPushNotification = func(sender push.Sender, device *skydb.Device, m push.Mapper) {
 				called = true
 			}
 			resp := r.POST(`{
@@ -99,26 +99,26 @@ func TestPushToDevice(t *testing.T) {
 
 func TestPushToUser(t *testing.T) {
 	Convey("push to user", t, func() {
-		testdevice1 := oddb.Device{
+		testdevice1 := skydb.Device{
 			ID:         "device1",
 			Type:       "ios",
 			Token:      "token",
 			UserInfoID: "johndoe",
 		}
-		testdevice2 := oddb.Device{
+		testdevice2 := skydb.Device{
 			ID:         "device2",
 			Type:       "ios",
 			Token:      "token",
 			UserInfoID: "johndoe",
 		}
-		testdevice3 := oddb.Device{
+		testdevice3 := skydb.Device{
 			ID:         "device2",
 			Type:       "ios",
 			Token:      "token",
 			UserInfoID: "janedoe",
 		}
 		conn := simpleDeviceConn{
-			devices: []oddb.Device{testdevice1, testdevice2, testdevice3},
+			devices: []skydb.Device{testdevice1, testdevice2, testdevice3},
 		}
 
 		r := handlertest.NewSingleRouteRouter(PushToUserHandler, func(p *router.Payload) {
@@ -131,8 +131,8 @@ func TestPushToUser(t *testing.T) {
 		}()
 
 		Convey("push to single user", func() {
-			sentDevices := make([]oddb.Device, 0)
-			sendPushNotification = func(sender push.Sender, device *oddb.Device, m push.Mapper) {
+			sentDevices := make([]skydb.Device, 0)
+			sendPushNotification = func(sender push.Sender, device *skydb.Device, m push.Mapper) {
 				So(m.Map(), ShouldResemble, map[string]interface{}{
 					"aps": map[string]interface{}{
 						"alert": "This is a message.",
@@ -164,7 +164,7 @@ func TestPushToUser(t *testing.T) {
 
 		Convey("push to non-existent user", func() {
 			called := false
-			sendPushNotification = func(sender push.Sender, device *oddb.Device, m push.Mapper) {
+			sendPushNotification = func(sender push.Sender, device *skydb.Device, m push.Mapper) {
 				called = true
 			}
 			resp := r.POST(`{
@@ -195,29 +195,29 @@ func TestPushToUser(t *testing.T) {
 }
 
 type simpleDeviceConn struct {
-	devices []oddb.Device
-	oddb.Conn
+	devices []skydb.Device
+	skydb.Conn
 }
 
-func (conn *simpleDeviceConn) GetDevice(id string, device *oddb.Device) error {
+func (conn *simpleDeviceConn) GetDevice(id string, device *skydb.Device) error {
 	for _, prospectiveDevice := range conn.devices {
 		if prospectiveDevice.ID == id {
 			*device = prospectiveDevice
 			return nil
 		}
 	}
-	return oddb.ErrDeviceNotFound
+	return skydb.ErrDeviceNotFound
 }
 
-func (conn *simpleDeviceConn) QueryDevicesByUser(user string) ([]oddb.Device, error) {
-	result := make([]oddb.Device, 0)
+func (conn *simpleDeviceConn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
+	result := make([]skydb.Device, 0)
 	for _, prospectiveDevice := range conn.devices {
 		if prospectiveDevice.UserInfoID == user {
 			result = append(result, prospectiveDevice)
 		}
 	}
 	if len(result) == 0 {
-		return nil, oddb.ErrUserNotFound
+		return nil, skydb.ErrUserNotFound
 	} else {
 		return result, nil
 	}

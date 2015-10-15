@@ -1,2 +1,2 @@
-web: ourd development.ini
+web: skygear development.ini
 

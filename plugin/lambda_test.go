@@ -1,13 +1,13 @@
 package plugin
 
 import (
-	. "github.com/oursky/ourd/ourtest"
+	. "github.com/oursky/skygear/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
 	"fmt"
-	"github.com/oursky/ourd/handler/handlertest"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/handler/handlertest"
+	"github.com/oursky/skygear/router"
 )
 
 type fakeTransport struct {

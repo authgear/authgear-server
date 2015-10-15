@@ -5,24 +5,24 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 type naiveConn struct {
 	getid      string
 	deleteid   string
-	getdevice  *oddb.Device
-	savedevice *oddb.Device
+	getdevice  *skydb.Device
+	savedevice *skydb.Device
 	geterr     error
 	saveerr    error
 	deleteerr  error
-	oddb.Conn
+	skydb.Conn
 }
 
-func (conn *naiveConn) GetDevice(id string, device *oddb.Device) error {
+func (conn *naiveConn) GetDevice(id string, device *skydb.Device) error {
 	conn.getid = id
 	if conn.geterr == nil {
 		*device = *conn.getdevice
@@ -30,7 +30,7 @@ func (conn *naiveConn) GetDevice(id string, device *oddb.Device) error {
 	return conn.geterr
 }
 
-func (conn *naiveConn) SaveDevice(device *oddb.Device) error {
+func (conn *naiveConn) SaveDevice(device *skydb.Device) error {
 	conn.savedevice = device
 	return conn.saveerr
 }
@@ -64,7 +64,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			result := resp.Result.(DeviceReigsterResult)
 			So(result.ID, ShouldNotBeEmpty)
-			So(conn.savedevice, ShouldResemble, &oddb.Device{
+			So(conn.savedevice, ShouldResemble, &skydb.Device{
 				ID:               result.ID,
 				Type:             "ios",
 				Token:            "some-awesome-token",
@@ -74,7 +74,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 		})
 
 		Convey("updates old device", func() {
-			olddevice := oddb.Device{
+			olddevice := skydb.Device{
 				ID:               "deviceid",
 				Type:             "android",
 				Token:            "oldtoken",
@@ -94,7 +94,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			result := resp.Result.(DeviceReigsterResult)
 			So(result.ID, ShouldEqual, "deviceid")
 			So(conn.getid, ShouldEqual, "deviceid")
-			So(conn.savedevice, ShouldResemble, &oddb.Device{
+			So(conn.savedevice, ShouldResemble, &skydb.Device{
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "newtoken",
@@ -110,8 +110,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Err.(oderr.Error)
-			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("empty device type")))
+			err := resp.Err.(skyerr.Error)
+			So(err, ShouldResemble, skyerr.NewRequestInvalidErr(errors.New("empty device type")))
 		})
 
 		Convey("complains on invalid device type", func() {
@@ -122,23 +122,30 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Err.(oderr.Error)
-			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("unknown device type = invalidtype")))
+			err := resp.Err.(skyerr.Error)
+			So(err, ShouldResemble, skyerr.NewRequestInvalidErr(errors.New("unknown device type = invalidtype")))
 		})
 
-		Convey("complains on empty device token", func() {
+		Convey("does not complain on empty device token", func() {
 			payload.Data = map[string]interface{}{
 				"type": "android",
 			}
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Err.(oderr.Error)
-			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("empty device token")))
+			result := resp.Result.(DeviceReigsterResult)
+			So(result.ID, ShouldNotBeEmpty)
+			So(conn.savedevice, ShouldResemble, &skydb.Device{
+				ID:               result.ID,
+				Type:             "android",
+				Token:            "",
+				UserInfoID:       "userinfoid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			})
 		})
 
 		Convey("complains on non-existed update", func() {
-			conn.geterr = oddb.ErrDeviceNotFound
+			conn.geterr = skydb.ErrDeviceNotFound
 
 			payload.Data = map[string]interface{}{
 				"id":           "deviceid",
@@ -148,12 +155,12 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Err.(oderr.Error)
-			So(err, ShouldEqual, oderr.ErrDeviceNotFound)
+			err := resp.Err.(skyerr.Error)
+			So(err, ShouldEqual, skyerr.ErrDeviceNotFound)
 		})
 
 		Convey("complains on unknown device type", func() {
-			conn.geterr = oddb.ErrDeviceNotFound
+			conn.geterr = skydb.ErrDeviceNotFound
 
 			payload.Data = map[string]interface{}{
 				"type": "unknown-type",
@@ -161,26 +168,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Err.(oderr.Error)
-			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("unknown device type = unknown-type")))
-		})
-
-		Convey("no complain on empty device token for pubsub", func() {
-			payload.Data = map[string]interface{}{
-				"type": "pubsub",
-			}
-
-			DeviceRegisterHandler(&payload, &resp)
-
-			result := resp.Result.(DeviceReigsterResult)
-			So(result.ID, ShouldNotBeEmpty)
-			So(conn.savedevice, ShouldResemble, &oddb.Device{
-				ID:               result.ID,
-				Type:             "pubsub",
-				Token:            "",
-				UserInfoID:       "userinfoid",
-				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
-			})
+			err := resp.Err.(skyerr.Error)
+			So(err, ShouldResemble, skyerr.NewRequestInvalidErr(errors.New("unknown device type = unknown-type")))
 		})
 	})
 }

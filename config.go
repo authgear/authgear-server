@@ -7,7 +7,7 @@ import (
 	"github.com/oursky/gcfg"
 )
 
-// Configuration is Ourd's configuration
+// Configuration is Skygear's configuration
 type Configuration struct {
 	HTTP struct {
 		Host string

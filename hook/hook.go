@@ -3,13 +3,13 @@ package hook
 import (
 	"fmt"
 
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/skydb"
 )
 
-// Kind defines when a hook should be executed on mutation of oddb.Record.
+// Kind defines when a hook should be executed on mutation of skydb.Record.
 type Kind string
 
-// The four kind of hooks provided by Ourd.
+// The four kind of hooks provided by Skygear.
 const (
 	BeforeSave   Kind = "beforeSave"
 	AfterSave         = "afterSave"
@@ -20,7 +20,7 @@ const (
 // Func defines the interface of a function that can be hooked.
 //
 // The supplied record is fully fetched for all four kind of hooks.
-type Func func(*oddb.Record, *oddb.Record) error
+type Func func(*skydb.Record, *skydb.Record) error
 
 type recordTypeHookMap map[string][]Func
 
@@ -65,7 +65,7 @@ func (r *Registry) Register(kind Kind, recordType string, hook Func) error {
 //
 // If one of the hooks returns an error, it halts execution of other hooks and
 // return sthat error untouched.
-func (r *Registry) ExecuteHooks(kind Kind, record *oddb.Record, oldRecord *oddb.Record) error {
+func (r *Registry) ExecuteHooks(kind Kind, record *skydb.Record, oldRecord *skydb.Record) error {
 	recordTypeHookMap, err := r.recordTypeHookMap(kind)
 	if err != nil {
 		return err

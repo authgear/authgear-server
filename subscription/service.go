@@ -4,7 +4,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/skydb"
 )
 
 var timeNow = time.Now
@@ -12,7 +12,7 @@ var timeNow = time.Now
 // Service is responsible to send push notification to device whenever
 // a record has been modified in db.
 type Service struct {
-	ConnOpener func() (oddb.Conn, error)
+	ConnOpener func() (skydb.Conn, error)
 	Notifier   Notifier
 	stop       chan struct{}
 }
@@ -36,13 +36,13 @@ func (s *Service) Run() {
 		select {
 		case event := <-recordEventCh:
 			switch event.Event {
-			case oddb.RecordCreated, oddb.RecordUpdated, oddb.RecordDeleted:
+			case skydb.RecordCreated, skydb.RecordUpdated, skydb.RecordDeleted:
 				conn, err := s.ConnOpener()
 				if err != nil {
 					log.WithFields(log.Fields{
 						"event": event,
 						"err":   err,
-					}).Errorln("subscription: failed to open oddb.Conn")
+					}).Errorln("subscription: failed to open skydb.Conn")
 					continue
 				}
 
@@ -71,21 +71,21 @@ func (s *Service) Stop() {
 	s.stop <- struct{}{}
 }
 
-func (s *Service) subscribe() chan oddb.RecordEvent {
+func (s *Service) subscribe() chan skydb.RecordEvent {
 	conn, err := s.ConnOpener()
 	if err != nil {
 		log.Panicf("subscription: failed to obtain connection: %v", err)
 	}
 
-	ch := make(chan oddb.RecordEvent)
+	ch := make(chan skydb.RecordEvent)
 	conn.Subscribe(ch)
 
 	return ch
 }
 
-func (s *Service) handleRecordHook(db oddb.Database, e oddb.RecordEvent, seqNum uint64) {
+func (s *Service) handleRecordHook(db skydb.Database, e skydb.RecordEvent, seqNum uint64) {
 	subscriptions := db.GetMatchingSubscriptions(e.Record)
-	device := oddb.Device{}
+	device := skydb.Device{}
 	for _, subscription := range subscriptions {
 		log.Printf("subscription: got a matching sub id = %s", subscription.ID)
 
@@ -101,7 +101,7 @@ func (s *Service) handleRecordHook(db oddb.Database, e oddb.RecordEvent, seqNum 
 	}
 }
 
-func getDB(conn oddb.Conn, record *oddb.Record) oddb.Database {
+func getDB(conn skydb.Conn, record *skydb.Record) skydb.Database {
 	if record.DatabaseID == "" {
 		return conn.PublicDB()
 	}

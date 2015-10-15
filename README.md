@@ -1,6 +1,6 @@
 Welcome to the Oursky Deployment Project
 
-[![Build Status](https://magnum.travis-ci.com/oursky/ourd.svg?token=TS65G314JpxpG31zryWn)](https://magnum.travis-ci.com/oursky/ourd)
+[![Build Status](https://magnum.travis-ci.com/oursky/skygear.svg?token=TS65G314JpxpG31zryWn)](https://magnum.travis-ci.com/oursky/skygear)
 
 Dependencies
 ============
@@ -14,8 +14,8 @@ Dependencies
 
 Development
 ===========
-$ `go generate github.com/oursky/ourd/oddb/...`
-$ `go build && ./ourd development.ini`
+$ `go generate github.com/oursky/skygear/oddb/...`
+$ `go build && ./skygear development.ini`
 
 config.ini can be provided in args or os ENV `OD_CONFIG`.
 
@@ -28,16 +28,16 @@ Test
 You may refer to .travis.yml
 
 #### Prepare the testing DB
-1. Create test DB `ourd_test` on local PostgreSQL
-1. Enable PostGIS on `ourd_test`.
+1. Create test DB `skygear_test` on local PostgreSQL
+1. Enable PostGIS on `skygear_test`.
    ```shell
-   $ psql -c 'CREATE EXTENSION postgis;' -d ourd_test
+   $ psql -c 'CREATE EXTENSION postgis;' -d skygear_test
    ```
-1. Test case assume the 127.0.0.1 have access to ourd_test, please add following to pg_hba.conf
+1. Test case assume the 127.0.0.1 have access to skygear_test, please add following to pg_hba.conf
 
 > host    all             all             127.0.0.1/32            trust
 
-run `go test github.com/oursky/ourd/...`
+run `go test github.com/oursky/skygear/...`
 
 For local development, you are suggested to open GoConvey to keep track of testing status.
 

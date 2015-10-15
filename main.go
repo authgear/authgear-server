@@ -12,21 +12,21 @@ import (
 	"github.com/Sirupsen/logrus/hooks/sentry"
 	"github.com/robfig/cron"
 
-	"github.com/oursky/ourd/asset"
-	"github.com/oursky/ourd/authtoken"
-	"github.com/oursky/ourd/handler"
-	"github.com/oursky/ourd/hook"
-	"github.com/oursky/ourd/oddb"
-	_ "github.com/oursky/ourd/oddb/fs"
-	_ "github.com/oursky/ourd/oddb/pq"
-	"github.com/oursky/ourd/plugin"
-	_ "github.com/oursky/ourd/plugin/exec"
-	_ "github.com/oursky/ourd/plugin/zmq"
-	"github.com/oursky/ourd/provider"
-	"github.com/oursky/ourd/pubsub"
-	"github.com/oursky/ourd/push"
-	"github.com/oursky/ourd/router"
-	"github.com/oursky/ourd/subscription"
+	"github.com/oursky/skygear/asset"
+	"github.com/oursky/skygear/authtoken"
+	"github.com/oursky/skygear/handler"
+	"github.com/oursky/skygear/hook"
+	"github.com/oursky/skygear/plugin"
+	_ "github.com/oursky/skygear/plugin/exec"
+	_ "github.com/oursky/skygear/plugin/zmq"
+	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/pubsub"
+	"github.com/oursky/skygear/push"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	_ "github.com/oursky/skygear/skydb/fs"
+	_ "github.com/oursky/skygear/skydb/pq"
+	"github.com/oursky/skygear/subscription"
 )
 
 type responseLogger struct {
@@ -100,7 +100,7 @@ func logMiddleware(next http.Handler) http.Handler {
 }
 
 func usage() {
-	fmt.Println("Usage: ourd [<config file>]")
+	fmt.Println("Usage: skygear [<config file>]")
 }
 
 func main() {
@@ -123,7 +123,7 @@ func main() {
 
 	initLogger(config)
 
-	connOpener := func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
+	connOpener := func() (skydb.Conn, error) { return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
 
 	var pushSender push.Sender
 	if config.APNS.Enable {
@@ -165,7 +165,7 @@ func main() {
 
 	fileSystemConnPreprocessor := connPreprocessor{
 		AppName:  config.App.Name,
-		DBOpener: oddb.Open,
+		DBOpener: skydb.Open,
 		DBImpl:   config.DB.ImplName,
 		Option:   config.DB.Option,
 	}
@@ -364,7 +364,7 @@ func initAssetStore(config Configuration) asset.Store {
 	return store
 }
 
-func initDevice(config Configuration, connOpener func() (oddb.Conn, error)) {
+func initDevice(config Configuration, connOpener func() (skydb.Conn, error)) {
 	// TODO: Create a device service to check APNs to remove obsolete devices.
 	// The current implementaion deletes pubsub devices if the last registered
 	// time is more than 1 day old.
@@ -373,10 +373,10 @@ func initDevice(config Configuration, connOpener func() (oddb.Conn, error)) {
 		log.Warnf("Failed to delete outdated devices: %v", err)
 	}
 
-	conn.DeleteDeviceByType("pubsub", time.Now().AddDate(0, 0, -1))
+	conn.DeleteEmptyDeviceByTime(time.Now().AddDate(0, 0, -1))
 }
 
-func initSubscription(config Configuration, connOpener func() (oddb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
+func initSubscription(config Configuration, connOpener func() (skydb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
 	notifiers := []subscription.Notifier{subscription.NewHubNotifier(hub)}
 	if pushSender != nil {
 		notifiers = append(notifiers, subscription.NewPushNotifier(pushSender))

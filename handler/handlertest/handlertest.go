@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/router"
 )
 
 // SingleRouteRouter is a router that only serves with a single handler,

@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oursky/ourd/asset"
-	"github.com/oursky/ourd/oddb"
-	. "github.com/oursky/ourd/ourtest"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/asset"
+	. "github.com/oursky/skygear/ourtest"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -48,7 +48,7 @@ func (g *modGateway) PUT(path, body string) *httptest.ResponseRecorder {
 }
 
 func (g *modGateway) makeRequest(method, path, body string) *httptest.ResponseRecorder {
-	path = "http://ourd.test/" + path
+	path = "http://skygear.test/" + path
 	req, _ := http.NewRequest(method, path, strings.NewReader(body))
 	resp := httptest.NewRecorder()
 
@@ -57,16 +57,16 @@ func (g *modGateway) makeRequest(method, path, body string) *httptest.ResponseRe
 }
 
 type naiveAssetConn struct {
-	asset oddb.Asset
-	oddb.Conn
+	asset skydb.Asset
+	skydb.Conn
 }
 
-func (c *naiveAssetConn) GetAsset(name string, asset *oddb.Asset) error {
+func (c *naiveAssetConn) GetAsset(name string, asset *skydb.Asset) error {
 	*asset = c.asset
 	return nil
 }
 
-func (c *naiveAssetConn) SaveAsset(asset *oddb.Asset) error {
+func (c *naiveAssetConn) SaveAsset(asset *skydb.Asset) error {
 	c.asset = *asset
 	return nil
 }
@@ -122,13 +122,13 @@ func TestAssetUploadURLHandler(t *testing.T) {
 				return "f28c4037-uuid-4d0a-94d6-2206ab371d6c"
 			}
 
-			req, _ := http.NewRequest("PUT", "http://ourd.test/asset", strings.NewReader(``))
+			req, _ := http.NewRequest("PUT", "http://skygear.test/asset", strings.NewReader(``))
 			req.Header.Set("Content-Type", "plain/text")
 			req.Body = ioutil.NopCloser(strings.NewReader(`I am a boy`))
 
 			resp := r.Do(req)
 
-			So(assetConn.asset, ShouldResemble, oddb.Asset{
+			So(assetConn.asset, ShouldResemble, skydb.Asset{
 				Name:        "f28c4037-uuid-4d0a-94d6-2206ab371d6c-asset",
 				ContentType: "plain/text",
 				Size:        10,
@@ -159,7 +159,7 @@ func TestAssetUploadURLHandler(t *testing.T) {
 		})
 
 		Convey("errors reading zero-byte body", func() {
-			req, _ := http.NewRequest("PUT", "http://ourd.test/asset", strings.NewReader(``))
+			req, _ := http.NewRequest("PUT", "http://skygear.test/asset", strings.NewReader(``))
 			req.Header.Set("Content-Type", "plain/text")
 			resp := r.Do(req)
 
@@ -216,7 +216,7 @@ func TestAssetGetURLHandler(t *testing.T) {
 				timeNow = timeNowUTC
 			}()
 			signparser.valid = true
-			assetConn.asset = oddb.Asset{
+			assetConn.asset = skydb.Asset{
 				Name:        "assetName",
 				ContentType: "plain/text",
 				Size:        10,

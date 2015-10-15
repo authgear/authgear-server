@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/oursky/ourd/oderr"
+	"github.com/oursky/skygear/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -47,7 +47,7 @@ func TestRouterMap(t *testing.T) {
 
 	req, _ := http.NewRequest(
 		"POST",
-		"http://ourd.dev/api/v1",
+		"http://skygear.dev/api/v1",
 		strings.NewReader(mockJSON),
 	)
 	req.Header.Set("Content-Type", "application/json")
@@ -74,7 +74,7 @@ func TestRouterMapMissing(t *testing.T) {
 
 	req, _ := http.NewRequest(
 		"POST",
-		"http://ourd.dev/api/v1",
+		"http://skygear.dev/api/v1",
 		strings.NewReader(mockJSON),
 	)
 	req.Header.Set("Content-Type", "application/json")
@@ -110,7 +110,7 @@ func TestErrorHandler(t *testing.T) {
 
 			req, _ := http.NewRequest(
 				"POST",
-				"http://ourd.dev/api/v1",
+				"http://skygear.dev/api/v1",
 				strings.NewReader(`{"action": "mock:handler"}`),
 			)
 			req.Header.Set("Content-Type", "application/json")
@@ -136,7 +136,7 @@ func TestPreprocess(t *testing.T) {
 	Convey("Given a router with a preprocessor", t, func() {
 		req, _ := http.NewRequest(
 			"POST",
-			"http://ourd.dev/api/v1",
+			"http://skygear.dev/api/v1",
 			strings.NewReader(`{"action": "mock:preprocess"}`),
 		)
 		req.Header.Set("Content-Type", "application/json")
@@ -173,14 +173,14 @@ func TestPreprocess(t *testing.T) {
 			})
 		})
 
-		Convey("When preprocessor gives an oderr preprocessor", func() {
+		Convey("When preprocessor gives an skyerr preprocessor", func() {
 			mockPreprocessor.Status = http.StatusInternalServerError
-			mockPreprocessor.Err = oderr.NewUnknownErr(errors.New("oderr"))
+			mockPreprocessor.Err = skyerr.NewUnknownErr(errors.New("skyerr"))
 
 			r.ServeHTTP(resp, req)
 
 			Convey("it has \"err\" as body", func() {
-				So(resp.Body.String(), ShouldEqual, `{"error":{"type":"UnknownError","code":1,"message":"oderr"}}
+				So(resp.Body.String(), ShouldEqual, `{"error":{"type":"UnknownError","code":1,"message":"skyerr"}}
 `)
 			})
 
@@ -215,7 +215,7 @@ func TestPreprocess(t *testing.T) {
 
 // 	req, _ := http.NewRequest(
 // 		"POST",
-// 		"http://ourd.dev/api/v1",
+// 		"http://skygear.dev/api/v1",
 // 		strings.NewReader(mockJSON),
 // 	)
 // 	req.Header.Set("Content-Type", "application/json")
@@ -234,7 +234,7 @@ func TestPreprocess(t *testing.T) {
 
 // 	req2, _ := http.NewRequest(
 // 		"POST",
-// 		"http://ourd.dev/api/v1",
+// 		"http://skygear.dev/api/v1",
 // 		strings.NewReader(mockJSON2),
 // 	)
 // 	req2.Header.Set("Content-Type", "application/json")

@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/hook"
-	"github.com/oursky/ourd/provider"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/hook"
+	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/router"
 	"github.com/robfig/cron"
 )
 
 // Plugin represents a collection of handlers, hooks and lambda functions
-// that extends or modifies functionality provided by ourd.
+// that extends or modifies functionality provided by skygear.
 type Plugin struct {
 	transport Transport
 }

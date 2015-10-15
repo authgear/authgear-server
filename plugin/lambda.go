@@ -5,28 +5,28 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyerr"
 )
 
 // Executes lambda function implemented by the plugin.
 func lambdaHandler(p *Plugin, l string, payload *router.Payload, response *router.Response) {
 	inbytes, err := json.Marshal(payload.Data)
 	if err != nil {
-		response.Err = oderr.NewUnknownErr(err)
+		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 
 	outbytes, err := p.transport.RunLambda(l, inbytes)
 	if err != nil {
-		response.Err = oderr.NewUnknownErr(err)
+		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 
 	result := map[string]interface{}{}
 	err = json.Unmarshal(outbytes, &result)
 	if err != nil {
-		response.Err = oderr.NewUnknownErr(err)
+		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 	log.WithFields(log.Fields{

@@ -1,13 +1,13 @@
 package handler
 
 import (
-	. "github.com/oursky/ourd/ourtest"
+	. "github.com/oursky/skygear/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
-	"github.com/oursky/ourd/handler/handlertest"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/handler/handlertest"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 )
 
 type testRelationConn struct {
@@ -15,10 +15,10 @@ type testRelationConn struct {
 	removeID  string
 	addErr    error
 	removeErr error
-	oddb.Conn
+	skydb.Conn
 }
 
-func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
+func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
 	panic("not implemented")
 }
 

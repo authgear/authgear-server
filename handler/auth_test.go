@@ -8,19 +8,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oursky/ourd/authtoken"
-	"github.com/oursky/ourd/handler/handlertest"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oddb/oddbtest"
-	"github.com/oursky/ourd/oderr"
-	. "github.com/oursky/ourd/ourtest"
-	"github.com/oursky/ourd/provider"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/authtoken"
+	"github.com/oursky/skygear/handler/handlertest"
+	. "github.com/oursky/skygear/ourtest"
+	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skydbtest"
+	"github.com/oursky/skygear/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func tempDir() string {
-	dir, err := ioutil.TempDir("", "ourd.oddb.handler.auth.test")
+	dir, err := ioutil.TempDir("", "skygear.skydb.handler.auth.test")
 	if err != nil {
 		panic(err)
 	}
@@ -44,7 +44,7 @@ func (s *singleTokenStore) Delete(accessToken string) error {
 	panic("Thou shalt not call Delete")
 }
 
-// Seems like a memory imlementation of oddb will make tests
+// Seems like a memory imlementation of skydb will make tests
 // faster and easier
 
 func TestHomeHandler(t *testing.T) {
@@ -67,7 +67,7 @@ func TestHomeHandler(t *testing.T) {
 }
 
 func TestSignupHandler(t *testing.T) {
-	conn := oddbtest.NewMapConn()
+	conn := skydbtest.NewMapConn()
 
 	tokenStore := singleTokenStore{}
 	req := router.Payload{
@@ -110,9 +110,9 @@ func TestSignupHandler(t *testing.T) {
 }
 
 func TestSignupHandlerDuplicated(t *testing.T) {
-	conn := oddbtest.NewMapConn()
+	conn := skydbtest.NewMapConn()
 
-	userinfo := oddb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
+	userinfo := skydb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
 	conn.CreateUser(&userinfo)
 
 	tokenStore := singleTokenStore{}
@@ -128,9 +128,9 @@ func TestSignupHandlerDuplicated(t *testing.T) {
 	resp := router.Response{}
 	SignupHandler(&req, &resp)
 
-	errorResponse, ok := resp.Err.(oderr.Error)
+	errorResponse, ok := resp.Err.(skyerr.Error)
 	if !ok {
-		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
+		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
 	}
 
 	if errorResponse.Code() != 101 {
@@ -139,9 +139,9 @@ func TestSignupHandlerDuplicated(t *testing.T) {
 }
 
 func TestLoginHandler(t *testing.T) {
-	conn := oddbtest.NewMapConn()
+	conn := skydbtest.NewMapConn()
 
-	userinfo := oddb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
+	userinfo := skydb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
 	conn.CreateUser(&userinfo)
 
 	tokenStore := singleTokenStore{}
@@ -184,9 +184,9 @@ func TestLoginHandler(t *testing.T) {
 }
 
 func TestLoginHandlerWrongPassword(t *testing.T) {
-	conn := oddbtest.NewMapConn()
+	conn := skydbtest.NewMapConn()
 
-	userinfo := oddb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
+	userinfo := skydb.NewUserInfo("userinfoid", "john.doe@example.com", "secret")
 	conn.CreateUser(&userinfo)
 
 	tokenStore := singleTokenStore{}
@@ -201,18 +201,18 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 	resp := router.Response{}
 	LoginHandler(&req, &resp)
 
-	errorResponse, ok := resp.Err.(oderr.Error)
+	errorResponse, ok := resp.Err.(skyerr.Error)
 	if !ok {
-		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
+		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
 	}
 
-	if errorResponse != oderr.ErrInvalidLogin {
+	if errorResponse != skyerr.ErrInvalidLogin {
 		t.Fatalf("got resp.Err = %v, want ErrInvalidLogin", errorResponse)
 	}
 }
 
 func TestLoginHandlerNotFound(t *testing.T) {
-	conn := oddbtest.NewMapConn()
+	conn := skydbtest.NewMapConn()
 
 	tokenStore := singleTokenStore{}
 	req := router.Payload{
@@ -226,12 +226,12 @@ func TestLoginHandlerNotFound(t *testing.T) {
 	resp := router.Response{}
 	LoginHandler(&req, &resp)
 
-	errorResponse, ok := resp.Err.(oderr.Error)
+	errorResponse, ok := resp.Err.(skyerr.Error)
 	if !ok {
-		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
+		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
 	}
 
-	if errorResponse != oderr.ErrUserNotFound {
+	if errorResponse != skyerr.ErrUserNotFound {
 		t.Fatalf("got resp.Err = %v, want ErrUserNotFound", errorResponse)
 	}
 }
@@ -250,7 +250,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("login in existing", func() {
-			userinfo := oddb.NewProvidedAuthUserInfo("com.example:johndoe", map[string]interface{}{"name": "boo"})
+			userinfo := skydb.NewProvidedAuthUserInfo("com.example:johndoe", map[string]interface{}{"name": "boo"})
 			conn.userinfo = &userinfo
 			defer func() {
 				conn.userinfo = nil
@@ -296,40 +296,40 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 }
 
 type singleUserConn struct {
-	userinfo *oddb.UserInfo
-	oddb.Conn
+	userinfo *skydb.UserInfo
+	skydb.Conn
 }
 
-func (conn *singleUserConn) UpdateUser(userinfo *oddb.UserInfo) error {
+func (conn *singleUserConn) UpdateUser(userinfo *skydb.UserInfo) error {
 	if conn.userinfo != nil && conn.userinfo.ID == userinfo.ID {
 		conn.userinfo = userinfo
 		return nil
 	} else {
-		return oddb.ErrUserNotFound
+		return skydb.ErrUserNotFound
 	}
 }
 
-func (conn *singleUserConn) CreateUser(userinfo *oddb.UserInfo) error {
+func (conn *singleUserConn) CreateUser(userinfo *skydb.UserInfo) error {
 	if conn.userinfo == nil {
 		conn.userinfo = userinfo
 		return nil
 	} else {
-		return oddb.ErrUserDuplicated
+		return skydb.ErrUserDuplicated
 	}
 }
 
-func (conn *singleUserConn) GetUser(id string, userinfo *oddb.UserInfo) error {
+func (conn *singleUserConn) GetUser(id string, userinfo *skydb.UserInfo) error {
 	if conn.userinfo == nil {
-		return oddb.ErrUserNotFound
+		return skydb.ErrUserNotFound
 	} else {
 		*userinfo = *conn.userinfo
 		return nil
 	}
 }
 
-func (conn *singleUserConn) GetUserByPrincipalID(principalID string, userinfo *oddb.UserInfo) error {
+func (conn *singleUserConn) GetUserByPrincipalID(principalID string, userinfo *skydb.UserInfo) error {
 	if conn.userinfo == nil {
-		return oddb.ErrUserNotFound
+		return skydb.ErrUserNotFound
 	} else {
 		*userinfo = *conn.userinfo
 		return nil
@@ -478,7 +478,7 @@ func (store *deleteTokenStore) Delete(accessToken string) error {
 func TestLogoutHandler(t *testing.T) {
 	Convey("LogoutHandler", t, func() {
 		tokenStore := &deleteTokenStore{}
-		conn := oddbtest.NewMapConn()
+		conn := skydbtest.NewMapConn()
 
 		r := handlertest.NewSingleRouteRouter(LogoutHandler, func(p *router.Payload) {
 			p.TokenStore = tokenStore
@@ -525,7 +525,7 @@ func TestLogoutHandler(t *testing.T) {
 func TestPasswordHandlerWithProvider(t *testing.T) {
 	Convey("PasswordHandler", t, func() {
 		conn := singleUserConn{}
-		userinfo := oddb.NewUserInfo("lord-of-skygear", "limouren@skygear.io", "chima")
+		userinfo := skydb.NewUserInfo("lord-of-skygear", "limouren@skygear.io", "chima")
 		conn.CreateUser(&userinfo)
 		tokenStore := singleTokenStore{}
 		token := authtoken.New("_", userinfo.ID, time.Time{})

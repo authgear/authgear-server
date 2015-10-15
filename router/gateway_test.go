@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	. "github.com/oursky/ourd/ourtest"
+	. "github.com/oursky/skygear/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -20,7 +20,7 @@ func TestRouterMatchByURL(t *testing.T) {
 				}{"ok"})
 			})
 
-			req, _ := http.NewRequest("POST", "http://ourd.test/endpoint", nil)
+			req, _ := http.NewRequest("POST", "http://skygear.test/endpoint", nil)
 			w := httptest.NewRecorder()
 			g.ServeHTTP(w, req)
 			So(w.Body.Bytes(), ShouldEqualJSON, `{"status": "ok"}`)
@@ -32,7 +32,7 @@ func TestRouterMatchByURL(t *testing.T) {
 				resp.WriteEntity(p.Params)
 			})
 
-			req, _ := http.NewRequest("POST", `http://ourd.test/model/Zz0-_`, nil)
+			req, _ := http.NewRequest("POST", `http://skygear.test/model/Zz0-_`, nil)
 			w := httptest.NewRecorder()
 			g.ServeHTTP(w, req)
 
@@ -48,7 +48,7 @@ func TestRouterMatchByURL(t *testing.T) {
 				}{p.APIKey(), p.AccessToken()})
 			})
 
-			req, _ := http.NewRequest("POST", `http://ourd.test/endpoint`, nil)
+			req, _ := http.NewRequest("POST", `http://skygear.test/endpoint`, nil)
 			req.Header.Add("X-Ourd-API-Key", "someapikey")
 			req.Header.Add("X-Ourd-Access-Token", "someaccesstoken")
 

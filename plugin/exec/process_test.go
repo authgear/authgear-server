@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oursky/ourd/oddb"
-	. "github.com/oursky/ourd/ourtest"
-	odplugin "github.com/oursky/ourd/plugin"
+	. "github.com/oursky/skygear/ourtest"
+	odplugin "github.com/oursky/skygear/plugin"
+	"github.com/oursky/skygear/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -88,29 +88,29 @@ func TestRun(t *testing.T) {
 			startCommand = originalCommand
 		}()
 
-		recordin := oddb.Record{
-			ID:      oddb.NewRecordID("note", "id"),
+		recordin := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id"),
 			OwnerID: "john.doe@example.com",
-			ACL: oddb.RecordACL{
-				oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
-				oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
+			ACL: skydb.RecordACL{
+				skydb.NewRecordACLEntryRelation("friend", skydb.WriteLevel),
+				skydb.NewRecordACLEntryDirect("user_id", skydb.ReadLevel),
 			},
 			Data: map[string]interface{}{
 				"content":   "some note content",
 				"noteOrder": float64(1),
 				"tags":      []interface{}{"test", "unimportant"},
 				"date":      time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC),
-				"ref":       oddb.NewReference("category", "1"),
-				"asset":     oddb.Asset{Name: "asset-name"},
+				"ref":       skydb.NewReference("category", "1"),
+				"asset":     skydb.Asset{Name: "asset-name"},
 			},
 		}
 
-		recordold := oddb.Record{
-			ID:      oddb.NewRecordID("note", "id"),
+		recordold := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id"),
 			OwnerID: "john.doe@example.com",
-			ACL: oddb.RecordACL{
-				oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
-				oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
+			ACL: skydb.RecordACL{
+				skydb.NewRecordACLEntryRelation("friend", skydb.WriteLevel),
+				skydb.NewRecordACLEntryDirect("user_id", skydb.ReadLevel),
 			},
 			Data: map[string]interface{}{
 				"content":   "original content",
@@ -212,19 +212,19 @@ func TestRun(t *testing.T) {
 
 			datein := recordin.Data["date"].(time.Time)
 			delete(recordin.Data, "date")
-			So(recordin, ShouldResemble, oddb.Record{
-				ID:      oddb.NewRecordID("note", "id"),
+			So(recordin, ShouldResemble, skydb.Record{
+				ID:      skydb.NewRecordID("note", "id"),
 				OwnerID: "john.doe@example.com",
-				ACL: oddb.RecordACL{
-					oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
-					oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
+				ACL: skydb.RecordACL{
+					skydb.NewRecordACLEntryRelation("friend", skydb.WriteLevel),
+					skydb.NewRecordACLEntryDirect("user_id", skydb.ReadLevel),
 				},
 				Data: map[string]interface{}{
 					"content":   "some note content",
 					"noteOrder": float64(1),
 					"tags":      []interface{}{"test", "unimportant"},
-					"ref":       oddb.NewReference("category", "1"),
-					"asset":     oddb.Asset{Name: "asset-name"},
+					"ref":       skydb.NewReference("category", "1"),
+					"asset":     skydb.Asset{Name: "asset-name"},
 				},
 			})
 			// GoConvey's bug, ShouldEqual and ShouldResemble doesn't work on time.Time
@@ -232,19 +232,19 @@ func TestRun(t *testing.T) {
 
 			dateout := recordout.Data["date"].(time.Time)
 			delete(recordout.Data, "date")
-			So(*recordout, ShouldResemble, oddb.Record{
-				ID:      oddb.NewRecordID("note", "id"),
+			So(*recordout, ShouldResemble, skydb.Record{
+				ID:      skydb.NewRecordID("note", "id"),
 				OwnerID: "john.doe@example.com",
-				ACL: oddb.RecordACL{
-					oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
-					oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
+				ACL: skydb.RecordACL{
+					skydb.NewRecordACLEntryRelation("friend", skydb.WriteLevel),
+					skydb.NewRecordACLEntryDirect("user_id", skydb.ReadLevel),
 				},
 				Data: map[string]interface{}{
 					"content":   "content has been modified",
 					"noteOrder": float64(1),
 					"tags":      []interface{}{"test", "unimportant"},
-					"ref":       oddb.NewReference("category", "1"),
-					"asset":     oddb.Asset{Name: "asset-name"},
+					"ref":       skydb.NewReference("category", "1"),
+					"asset":     skydb.Asset{Name: "asset-name"},
 				},
 			})
 			So(dateout == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
@@ -324,19 +324,19 @@ func TestRun(t *testing.T) {
 
 			datein := recordin.Data["date"].(time.Time)
 			delete(recordin.Data, "date")
-			So(recordin, ShouldResemble, oddb.Record{
-				ID:      oddb.NewRecordID("note", "id"),
+			So(recordin, ShouldResemble, skydb.Record{
+				ID:      skydb.NewRecordID("note", "id"),
 				OwnerID: "john.doe@example.com",
-				ACL: oddb.RecordACL{
-					oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
-					oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
+				ACL: skydb.RecordACL{
+					skydb.NewRecordACLEntryRelation("friend", skydb.WriteLevel),
+					skydb.NewRecordACLEntryDirect("user_id", skydb.ReadLevel),
 				},
 				Data: map[string]interface{}{
 					"content":   "some note content",
 					"noteOrder": float64(1),
 					"tags":      []interface{}{"test", "unimportant"},
-					"ref":       oddb.NewReference("category", "1"),
-					"asset":     oddb.Asset{Name: "asset-name"},
+					"ref":       skydb.NewReference("category", "1"),
+					"asset":     skydb.Asset{Name: "asset-name"},
 				},
 			})
 			// GoConvey's bug, ShouldEqual and ShouldResemble doesn't work on time.Time
@@ -344,27 +344,27 @@ func TestRun(t *testing.T) {
 
 			dateout := recordout.Data["date"].(time.Time)
 			delete(recordout.Data, "date")
-			So(*recordout, ShouldResemble, oddb.Record{
-				ID:      oddb.NewRecordID("note", "id"),
+			So(*recordout, ShouldResemble, skydb.Record{
+				ID:      skydb.NewRecordID("note", "id"),
 				OwnerID: "john.doe@example.com",
-				ACL: oddb.RecordACL{
-					oddb.NewRecordACLEntryRelation("friend", oddb.WriteLevel),
-					oddb.NewRecordACLEntryDirect("user_id", oddb.ReadLevel),
+				ACL: skydb.RecordACL{
+					skydb.NewRecordACLEntryRelation("friend", skydb.WriteLevel),
+					skydb.NewRecordACLEntryDirect("user_id", skydb.ReadLevel),
 				},
 				Data: map[string]interface{}{
 					"content":   "content has been modified",
 					"noteOrder": float64(1),
 					"tags":      []interface{}{"test", "unimportant"},
-					"ref":       oddb.NewReference("category", "1"),
-					"asset":     oddb.Asset{Name: "asset-name"},
+					"ref":       skydb.NewReference("category", "1"),
+					"asset":     skydb.Asset{Name: "asset-name"},
 				},
 			})
 			So(dateout == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
 		})
 
 		Convey("serialize meta data correctly", func() {
-			recordin := oddb.Record{
-				ID:        oddb.NewRecordID("note", "id"),
+			recordin := skydb.Record{
+				ID:        skydb.NewRecordID("note", "id"),
 				OwnerID:   "john.doe@example.com",
 				CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 				CreatorID: "creatorID",
@@ -406,8 +406,8 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("parses null ACL correctly", func() {
-			recordin := oddb.Record{
-				ID:      oddb.NewRecordID("note", "id"),
+			recordin := skydb.Record{
+				ID:      skydb.NewRecordID("note", "id"),
 				OwnerID: "john.doe@example.com",
 				ACL:     nil,
 				Data:    map[string]interface{}{},

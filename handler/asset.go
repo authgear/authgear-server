@@ -14,10 +14,10 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	ourAsset "github.com/oursky/ourd/asset"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/router"
+	ourAsset "github.com/oursky/skygear/asset"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skyerr"
 )
 
 // used to clean file path
@@ -34,12 +34,12 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 
 	expiredAtUnix, err := strconv.ParseInt(payload.Req.Form.Get("expiredAt"), 10, 64)
 	if err != nil {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("expect expiredAt to be an integer"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("expect expiredAt to be an integer"))
 		return
 	}
 	expiredAt := time.Unix(expiredAtUnix, 0)
 	if timeNow().After(expiredAt) {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("Access denied"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("Access denied"))
 		return
 	}
 
@@ -53,23 +53,23 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 	if err != nil {
 		log.Errorf("Failed to parse signature: %v", err)
 
-		response.Err = oderr.NewRequestInvalidErr(errors.New("Access denied"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("Access denied"))
 		return
 	}
 
 	if !valid {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("Invalid signature"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("Invalid signature"))
 		return
 	}
 
 	// everything's right, proceed with the request
 
 	conn := payload.DBConn
-	asset := oddb.Asset{}
+	asset := skydb.Asset{}
 	if err := conn.GetAsset(fileName, &asset); err != nil {
 		log.Errorf("Failed to get asset: %v", err)
 
-		response.Err = oderr.NewResourceFetchFailureErr("asset", fileName)
+		response.Err = skyerr.NewResourceFetchFailureErr("asset", fileName)
 		return
 	}
 
@@ -81,7 +81,7 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 	if err != nil {
 		log.Errorf("Failed to get file reader: %v", err)
 
-		response.Err = oderr.NewResourceFetchFailureErr("asset", fileName)
+		response.Err = skyerr.NewResourceFetchFailureErr("asset", fileName)
 		return
 	}
 	defer reader.Close()
@@ -115,13 +115,13 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 	contentType = payload.Req.Header.Get("Content-Type")
 
 	if contentType == "" {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("Content-Type cannot be empty"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("Content-Type cannot be empty"))
 		return
 	}
 
 	written, tempFile, err := copyToTempFile(payload.Req.Body)
 	if err != nil {
-		response.Err = oderr.NewUnknownErr(err)
+		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 	defer func() {
@@ -130,17 +130,17 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 	}()
 
 	if written == 0 {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("Zero-byte content"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("Zero-byte content"))
 		return
 	}
 
 	assetStore := payload.AssetStore
 	if err := assetStore.PutFileReader(fileName, tempFile, written, contentType); err != nil {
-		response.Err = oderr.NewUnknownErr(err)
+		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 
-	asset := oddb.Asset{
+	asset := skydb.Asset{
 		Name:        fileName,
 		ContentType: contentType,
 		Size:        written,
@@ -148,7 +148,7 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 
 	conn := payload.DBConn
 	if err := conn.SaveAsset(&asset); err != nil {
-		response.Err = oderr.NewResourceSaveFailureErrWithStringID("asset", asset.Name)
+		response.Err = skyerr.NewResourceSaveFailureErrWithStringID("asset", asset.Name)
 		return
 	}
 

@@ -7,10 +7,10 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/router"
-	"github.com/oursky/ourd/uuid"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skyerr"
+	"github.com/oursky/skygear/uuid"
 )
 
 type deviceRegisterPayload struct {
@@ -22,11 +22,8 @@ type deviceRegisterPayload struct {
 func (p *deviceRegisterPayload) Validate() error {
 	if p.Type == "" {
 		return errors.New("empty device type")
-	} else if p.Type != "ios" && p.Type != "android" && p.Type != "pubsub" {
+	} else if p.Type != "ios" && p.Type != "android" {
 		return fmt.Errorf("unknown device type = %v", p.Type)
-	}
-	if p.DeviceToken == "" && p.Type != "pubsub" {
-		return errors.New("empty device token")
 	}
 
 	return nil
@@ -68,25 +65,25 @@ type DeviceReigsterResult struct {
 func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) {
 	payload := deviceRegisterPayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 	if err := payload.Validate(); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 
 	conn := rpayload.DBConn
 
-	device := oddb.Device{}
+	device := skydb.Device{}
 	deviceID := payload.ID
 	if deviceID == "" { // new device
 		device.ID = uuid.New()
 	} else { // update device
 		if err := conn.GetDevice(deviceID, &device); err != nil {
-			var errToReturn oderr.Error
-			if err == oddb.ErrDeviceNotFound {
-				errToReturn = oderr.ErrDeviceNotFound
+			var errToReturn skyerr.Error
+			if err == skydb.ErrDeviceNotFound {
+				errToReturn = skyerr.ErrDeviceNotFound
 			} else {
 				log.WithFields(log.Fields{
 					"deviceID": deviceID,
@@ -94,7 +91,7 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 					"err":      err,
 				}).Errorln("Failed to get device")
 
-				errToReturn = oderr.NewResourceFetchFailureErr("device", deviceID)
+				errToReturn = skyerr.NewResourceFetchFailureErr("device", deviceID)
 			}
 			response.Err = errToReturn
 			return
@@ -115,7 +112,7 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 			"err":      err,
 		}).Errorln("Failed to save device")
 
-		response.Err = oderr.NewResourceSaveFailureErrWithStringID("device", deviceID)
+		response.Err = skyerr.NewResourceSaveFailureErrWithStringID("device", deviceID)
 	} else {
 		response.Result = DeviceReigsterResult{device.ID}
 	}

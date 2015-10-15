@@ -7,9 +7,9 @@ import (
 	osexec "os/exec"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oddb"
-	odplugin "github.com/oursky/ourd/plugin"
-	"github.com/oursky/ourd/plugin/common"
+	odplugin "github.com/oursky/skygear/plugin"
+	"github.com/oursky/skygear/plugin/common"
+	"github.com/oursky/skygear/skydb"
 )
 
 var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
@@ -125,7 +125,7 @@ func (p execTransport) RunHandler(name string, in []byte) (out []byte, err error
 	return
 }
 
-func (p execTransport) RunHook(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
+func (p execTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 	param := map[string]interface{}{
 		"record":   (*common.JSONRecord)(record),
 		"original": (*common.JSONRecord)(originalRecord),
@@ -141,7 +141,7 @@ func (p execTransport) RunHook(recordType string, trigger string, record *oddb.R
 		return nil, fmt.Errorf("run %s: %v", hookName, err)
 	}
 
-	var recordout oddb.Record
+	var recordout skydb.Record
 	if err := json.Unmarshal(out, (*common.JSONRecord)(&recordout)); err != nil {
 		log.WithField("data", string(out)).Error("failed to unmarshal record")
 		return nil, fmt.Errorf("failed to unmarshal record: %v", err)

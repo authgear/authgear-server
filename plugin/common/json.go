@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oddb/oddbconv"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skydbconv"
 )
 
 // ExecError is error resulted from application logic of plugin (e.g.
@@ -20,8 +20,8 @@ func (err *ExecError) Error() string {
 	return err.Name + "\n" + err.Description
 }
 
-// JSONRecord defines a common serialization format for oddb.Record
-type JSONRecord oddb.Record
+// JSONRecord defines a common serialization format for skydb.Record
+type JSONRecord skydb.Record
 
 // MarshalJSON implements json.Marshaler
 func (record *JSONRecord) MarshalJSON() ([]byte, error) {
@@ -29,20 +29,20 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 	for key, value := range record.Data {
 		switch v := value.(type) {
 		case time.Time:
-			data[key] = (oddbconv.MapTime)(v)
-		case oddb.Asset:
-			data[key] = (oddbconv.MapAsset)(v)
-		case oddb.Reference:
-			data[key] = (oddbconv.MapReference)(v)
-		case *oddb.Location:
-			data[key] = (*oddbconv.MapLocation)(v)
+			data[key] = (skydbconv.MapTime)(v)
+		case skydb.Asset:
+			data[key] = (skydbconv.MapAsset)(v)
+		case skydb.Reference:
+			data[key] = (skydbconv.MapReference)(v)
+		case *skydb.Location:
+			data[key] = (*skydbconv.MapLocation)(v)
 		default:
 			data[key] = value
 		}
 	}
 
 	m := map[string]interface{}{}
-	oddbconv.MapData(data).ToMap(m)
+	skydbconv.MapData(data).ToMap(m)
 
 	m["_id"] = record.ID
 	m["_ownerID"] = record.OwnerID
@@ -72,8 +72,8 @@ func (record *JSONRecord) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	var (
-		id      oddb.RecordID
-		acl     oddb.RecordACL
+		id      skydb.RecordID
+		acl     skydb.RecordACL
 		dataMap map[string]interface{}
 	)
 
@@ -89,7 +89,7 @@ func (record *JSONRecord) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	m = sanitizedDataMap(m)
-	if err := (*oddbconv.MapData)(&dataMap).FromMap(m); err != nil {
+	if err := (*skydbconv.MapData)(&dataMap).FromMap(m); err != nil {
 		return err
 	}
 

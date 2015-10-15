@@ -8,29 +8,29 @@ db:
   ports:
   - "5432"
 
-ourd:
-  image: oursky/ourd:master
+skygear:
+  image: oursky/skygear:master
   ports:
   - "3000:3000"
   - "5555"
   volumes:
   - ./development.ini:/go/src/app/config.ini
-  - ./data:/var/lib/ourd/data
+  - ./data:/var/lib/skygear/data
   links:
   - db
-  command: sh -c "PGHOST=db PGPORT=$DB_PORT_5432_TCP_PORT $GOPATH/bin/ourd config.ini"
+  command: sh -c "PGHOST=db PGPORT=$DB_PORT_5432_TCP_PORT $GOPATH/bin/skygear config.ini"
   environment:
     DATABASE_URL: dbname=postgres sslmode=disable
     PGUSER: postgres
 
 # sample python plugin configuration
-# pyourd:
-#   image: oursky/pyourd:onbuild
+# py-skygear:
+#   image: oursky/py-skygear:onbuild
 #   links:
-#   - ourd
+#   - skygear
 #   - db
 #   # mount your python sources here
 #   volumes:
 #   - ./python/plugin.py:/usr/src/app/plugin.py
-#   # run the mounted python entrypoint via pyourd here
-#   command: sh -c "pyourd plugin.py --ourd-address=tcp://ourd:$OURD_PORT_5555_TCP_PORT"
+#   # run the mounted python entrypoint via pyskygear here
+#   command: sh -c "py-skygear plugin.py --skygear-address=tcp://skygear:$OURD_PORT_5555_TCP_PORT"

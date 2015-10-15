@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oursky/ourd/authtoken"
-	"github.com/oursky/ourd/handler/handlertest"
-	"github.com/oursky/ourd/hook"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oddb/oddbtest"
-	. "github.com/oursky/ourd/ourtest"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/authtoken"
+	"github.com/oursky/skygear/handler/handlertest"
+	"github.com/oursky/skygear/hook"
+	. "github.com/oursky/skygear/ourtest"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skydbtest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -21,14 +21,14 @@ var ZeroTime time.Time
 
 func TestRecordDeleteHandler(t *testing.T) {
 	Convey("RecordDeleteHandler", t, func() {
-		note0 := oddb.Record{
-			ID: oddb.NewRecordID("note", "0"),
+		note0 := skydb.Record{
+			ID: skydb.NewRecordID("note", "0"),
 		}
-		note1 := oddb.Record{
-			ID: oddb.NewRecordID("note", "1"),
+		note1 := skydb.Record{
+			ID: skydb.NewRecordID("note", "1"),
 		}
 
-		db := oddbtest.NewMapDB()
+		db := skydbtest.NewMapDB()
 		So(db.Save(&note0), ShouldBeNil)
 		So(db.Save(&note1), ShouldBeNil)
 
@@ -94,7 +94,7 @@ func TestRecordSaveHandler(t *testing.T) {
 	}()
 
 	Convey("RecordSaveHandler", t, func() {
-		db := oddbtest.NewMapDB()
+		db := skydbtest.NewMapDB()
 		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
 			payload.Database = db
 		})
@@ -129,8 +129,8 @@ func TestRecordSaveHandler(t *testing.T) {
 		})
 
 		Convey("Update existing record", func() {
-			record := oddb.Record{
-				ID: oddb.NewRecordID("record", "id"),
+			record := skydb.Record{
+				ID: skydb.NewRecordID("record", "id"),
 				Data: map[string]interface{}{
 					"existing": "YES",
 					"old":      true,
@@ -243,7 +243,7 @@ func TestRecordSaveDataType(t *testing.T) {
 	}()
 
 	Convey("RecordSaveHandler", t, func() {
-		db := oddbtest.NewMapDB()
+		db := skydbtest.NewMapDB()
 		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(p *router.Payload) {
 			p.Database = db
 		})
@@ -265,10 +265,10 @@ func TestRecordSaveDataType(t *testing.T) {
 	}]
 }`)
 
-			record := oddb.Record{}
-			So(db.Get(oddb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
-			So(record, ShouldResemble, oddb.Record{
-				ID: oddb.NewRecordID("type1", "id1"),
+			record := skydb.Record{}
+			So(db.Get(skydb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
+			So(record, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("type1", "id1"),
 				Data: map[string]interface{}{
 					"date_value": time.Date(2015, 4, 10, 9, 35, 20, 0, time.UTC),
 				},
@@ -292,12 +292,12 @@ func TestRecordSaveDataType(t *testing.T) {
 	}]
 }`)
 
-			record := oddb.Record{}
-			So(db.Get(oddb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
-			So(record, ShouldResemble, oddb.Record{
-				ID: oddb.NewRecordID("type1", "id1"),
+			record := skydb.Record{}
+			So(db.Get(skydb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
+			So(record, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("type1", "id1"),
 				Data: map[string]interface{}{
-					"asset": oddb.Asset{Name: "asset-name"},
+					"asset": skydb.Asset{Name: "asset-name"},
 				},
 			})
 		})
@@ -319,12 +319,12 @@ func TestRecordSaveDataType(t *testing.T) {
 	}]
 }`)
 
-			record := oddb.Record{}
-			So(db.Get(oddb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
-			So(record, ShouldResemble, oddb.Record{
-				ID: oddb.NewRecordID("type1", "id1"),
+			record := skydb.Record{}
+			So(db.Get(skydb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
+			So(record, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("type1", "id1"),
 				Data: map[string]interface{}{
-					"ref": oddb.NewReference("type2", "id2"),
+					"ref": skydb.NewReference("type2", "id2"),
 				},
 			})
 		})
@@ -346,12 +346,12 @@ func TestRecordSaveDataType(t *testing.T) {
 	}]
 }`)
 
-			record := oddb.Record{}
-			So(db.Get(oddb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
-			So(record, ShouldResemble, oddb.Record{
-				ID: oddb.NewRecordID("type1", "id1"),
+			record := skydb.Record{}
+			So(db.Get(skydb.NewRecordID("type1", "id1"), &record), ShouldBeNil)
+			So(record, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("type1", "id1"),
 				Data: map[string]interface{}{
-					"geo": oddb.NewLocation(1, 2),
+					"geo": skydb.NewLocation(1, 2),
 				},
 			})
 		})
@@ -360,10 +360,10 @@ func TestRecordSaveDataType(t *testing.T) {
 
 type noExtendDatabase struct {
 	calledExtend bool
-	oddb.Database
+	skydb.Database
 }
 
-func (db *noExtendDatabase) Extend(recordType string, schema oddb.RecordSchema) error {
+func (db *noExtendDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
 	db.calledExtend = true
 	return errors.New("You shalt not call Extend")
 }
@@ -388,38 +388,38 @@ func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
 }
 
 type queryDatabase struct {
-	lastquery *oddb.Query
-	oddb.Database
+	lastquery *skydb.Query
+	skydb.Database
 }
 
-func (db *queryDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
+func (db *queryDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 	db.lastquery = query
-	return oddb.EmptyRows, nil
+	return skydb.EmptyRows, nil
 }
 
 type queryResultsDatabase struct {
-	records []oddb.Record
-	oddb.Database
+	records []skydb.Record
+	skydb.Database
 }
 
-func (db *queryResultsDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
-	return oddb.NewRows(oddb.NewMemoryRows(db.records)), nil
+func (db *queryResultsDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+	return skydb.NewRows(skydb.NewMemoryRows(db.records)), nil
 }
 
 func TestRecordQueryResults(t *testing.T) {
 	Convey("Given a Database with records", t, func() {
-		record0 := oddb.Record{
-			ID: oddb.NewRecordID("note", "0"),
+		record0 := skydb.Record{
+			ID: skydb.NewRecordID("note", "0"),
 		}
-		record1 := oddb.Record{
-			ID: oddb.NewRecordID("note", "1"),
+		record1 := skydb.Record{
+			ID: skydb.NewRecordID("note", "1"),
 		}
-		record2 := oddb.Record{
-			ID: oddb.NewRecordID("note", "2"),
+		record2 := skydb.Record{
+			ID: skydb.NewRecordID("note", "2"),
 		}
 
 		db := &queryResultsDatabase{}
-		db.records = []oddb.Record{record1, record0, record2}
+		db.records = []skydb.Record{record1, record0, record2}
 
 		r := handlertest.NewSingleRouteRouter(RecordQueryHandler, func(p *router.Payload) {
 			p.Database = db
@@ -468,7 +468,7 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(db.lastquery, ShouldResemble, &oddb.Query{
+			So(db.lastquery, ShouldResemble, &skydb.Query{
 				Type: "note",
 			})
 		})
@@ -494,12 +494,12 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(db.lastquery, ShouldResemble, &oddb.Query{
+			So(db.lastquery, ShouldResemble, &skydb.Query{
 				Type: "note",
-				Sorts: []oddb.Sort{
-					oddb.Sort{
+				Sorts: []skydb.Sort{
+					skydb.Sort{
 						KeyPath: "noteOrder",
-						Order:   oddb.Desc,
+						Order:   skydb.Desc,
 					},
 				},
 			})
@@ -535,15 +535,15 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(db.lastquery, ShouldResemble, &oddb.Query{
+			So(db.lastquery, ShouldResemble, &skydb.Query{
 				Type: "note",
-				Sorts: []oddb.Sort{
-					oddb.Sort{
-						Func: &oddb.DistanceFunc{
+				Sorts: []skydb.Sort{
+					skydb.Sort{
+						Func: &skydb.DistanceFunc{
 							Field:    "location",
-							Location: oddb.NewLocation(1, 2),
+							Location: skydb.NewLocation(1, 2),
 						},
-						Order: oddb.Desc,
+						Order: skydb.Desc,
 					},
 				},
 			})
@@ -569,11 +569,11 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(*db.lastquery.Predicate, ShouldResemble, oddb.Predicate{
-				Operator: oddb.Equal,
+			So(*db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
+				Operator: skydb.Equal,
 				Children: []interface{}{
-					oddb.Expression{oddb.KeyPath, "noteOrder"},
-					oddb.Expression{oddb.Literal, float64(1)},
+					skydb.Expression{skydb.KeyPath, "noteOrder"},
+					skydb.Expression{skydb.Literal, float64(1)},
 				},
 			})
 		})
@@ -609,21 +609,21 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(*db.lastquery.Predicate, ShouldResemble, oddb.Predicate{
-				Operator: oddb.And,
+			So(*db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
+				Operator: skydb.And,
 				Children: []interface{}{
-					oddb.Predicate{
-						Operator: oddb.Equal,
+					skydb.Predicate{
+						Operator: skydb.Equal,
 						Children: []interface{}{
-							oddb.Expression{oddb.KeyPath, "content"},
-							oddb.Expression{oddb.Literal, "text"},
+							skydb.Expression{skydb.KeyPath, "content"},
+							skydb.Expression{skydb.Literal, "text"},
 						},
 					},
-					oddb.Predicate{
-						Operator: oddb.GreaterThan,
+					skydb.Predicate{
+						Operator: skydb.GreaterThan,
 						Children: []interface{}{
-							oddb.Expression{oddb.KeyPath, "noteOrder"},
-							oddb.Expression{oddb.Literal, float64(1)},
+							skydb.Expression{skydb.KeyPath, "noteOrder"},
+							skydb.Expression{skydb.Literal, float64(1)},
 						},
 					},
 				},
@@ -659,17 +659,17 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(*db.lastquery.Predicate, ShouldResemble, oddb.Predicate{
-				Operator: oddb.LessThanOrEqual,
+			So(*db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
+				Operator: skydb.LessThanOrEqual,
 				Children: []interface{}{
-					oddb.Expression{
-						oddb.Function,
-						&oddb.DistanceFunc{
+					skydb.Expression{
+						skydb.Function,
+						&skydb.DistanceFunc{
 							Field:    "location",
-							Location: oddb.NewLocation(1, 2),
+							Location: skydb.NewLocation(1, 2),
 						},
 					},
-					oddb.Expression{oddb.Literal, float64(500)},
+					skydb.Expression{skydb.Literal, float64(500)},
 				},
 			})
 		})
@@ -701,12 +701,12 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(db.lastquery.ComputedKeys, ShouldResemble, map[string]oddb.Expression{
-				"distance": oddb.Expression{
-					oddb.Function,
-					&oddb.DistanceFunc{
+			So(db.lastquery.ComputedKeys, ShouldResemble, map[string]skydb.Expression{
+				"distance": skydb.Expression{
+					skydb.Function,
+					&skydb.DistanceFunc{
 						Field:    "location",
-						Location: oddb.NewLocation(1, 2),
+						Location: skydb.NewLocation(1, 2),
 					},
 				},
 			})
@@ -782,25 +782,25 @@ func TestRecordQuery(t *testing.T) {
 
 // a very naive Database that alway returns the single record set onto it
 type singleRecordDatabase struct {
-	record oddb.Record
-	oddb.Database
+	record skydb.Record
+	skydb.Database
 }
 
-func (db *singleRecordDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
+func (db *singleRecordDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
 	*record = db.record
 	return nil
 }
 
-func (db *singleRecordDatabase) Save(record *oddb.Record) error {
+func (db *singleRecordDatabase) Save(record *skydb.Record) error {
 	*record = db.record
 	return nil
 }
 
-func (db *singleRecordDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
-	return oddb.NewRows(oddb.NewMemoryRows([]oddb.Record{db.record})), nil
+func (db *singleRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+	return skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{db.record})), nil
 }
 
-func (db *singleRecordDatabase) Extend(recordType string, schema oddb.RecordSchema) error {
+func (db *singleRecordDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
 	return nil
 }
 
@@ -811,8 +811,8 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 	}()
 
 	Convey("Given a record with owner id in DB", t, func() {
-		record := oddb.Record{
-			ID:      oddb.NewRecordID("type", "id"),
+		record := skydb.Record{
+			ID:      skydb.NewRecordID("type", "id"),
 			OwnerID: "ownerID",
 		}
 		db := &singleRecordDatabase{
@@ -874,7 +874,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 
 func TestRecordMetaData(t *testing.T) {
 	Convey("Record Meta Data", t, func() {
-		db := oddbtest.NewMapDB()
+		db := skydbtest.NewMapDB()
 		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 		defer func() {
 			timeNow = timeNowUTC
@@ -904,22 +904,22 @@ func TestRecordMetaData(t *testing.T) {
 				}]
 			}`)
 
-			record := oddb.Record{}
-			So(db.Get(oddb.NewRecordID("record", "id"), &record), ShouldBeNil)
-			So(record, ShouldResemble, oddb.Record{
-				ID:        oddb.NewRecordID("record", "id"),
+			record := skydb.Record{}
+			So(db.Get(skydb.NewRecordID("record", "id"), &record), ShouldBeNil)
+			So(record, ShouldResemble, skydb.Record{
+				ID:        skydb.NewRecordID("record", "id"),
 				OwnerID:   "requestUserID",
 				CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 				CreatorID: "requestUserID",
 				UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 				UpdaterID: "requestUserID",
-				Data:      oddb.Data{},
+				Data:      skydb.Data{},
 			})
 		})
 
 		Convey("on an existing record", func() {
-			db.Save(&oddb.Record{
-				ID:        oddb.NewRecordID("record", "id"),
+			db.Save(&skydb.Record{
+				ID:        skydb.NewRecordID("record", "id"),
 				CreatedAt: time.Date(2006, 1, 2, 15, 4, 4, 0, time.UTC),
 				CreatorID: "creatorID",
 				UpdatedAt: time.Date(2006, 1, 2, 15, 4, 4, 0, time.UTC),
@@ -948,15 +948,15 @@ func TestRecordMetaData(t *testing.T) {
 				}]
 			}`)
 
-			record := oddb.Record{}
-			So(db.Get(oddb.NewRecordID("record", "id"), &record), ShouldBeNil)
-			So(record, ShouldResemble, oddb.Record{
-				ID:        oddb.NewRecordID("record", "id"),
+			record := skydb.Record{}
+			So(db.Get(skydb.NewRecordID("record", "id"), &record), ShouldBeNil)
+			So(record, ShouldResemble, skydb.Record{
+				ID:        skydb.NewRecordID("record", "id"),
 				CreatedAt: time.Date(2006, 1, 2, 15, 4, 4, 0, time.UTC),
 				CreatorID: "creatorID",
 				UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 				UpdaterID: "requestUserID",
-				Data:      oddb.Data{},
+				Data:      skydb.Data{},
 			})
 
 		})
@@ -974,16 +974,16 @@ func (s *urlOnlyAssetStore) PutFileReader(name string, src io.Reader, length int
 }
 
 func (s *urlOnlyAssetStore) SignedURL(name string, expiredAt time.Time) string {
-	return fmt.Sprintf("http://ourd.test/asset/%s?expiredAt=1997-07-01T00:00:00", name)
+	return fmt.Sprintf("http://skygear.test/asset/%s?expiredAt=1997-07-01T00:00:00", name)
 }
 
 func TestRecordAssetSerialization(t *testing.T) {
 	Convey("RecordAssetSerialization", t, func() {
-		db := oddbtest.NewMapDB()
-		db.Save(&oddb.Record{
-			ID: oddb.NewRecordID("record", "id"),
+		db := skydbtest.NewMapDB()
+		db.Save(&skydb.Record{
+			ID: skydb.NewRecordID("record", "id"),
 			Data: map[string]interface{}{
-				"asset": oddb.Asset{Name: "asset-name"},
+				"asset": skydb.Asset{Name: "asset-name"},
 			},
 		})
 
@@ -1006,7 +1006,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 					"asset": {
 						"$type": "asset",
 						"$name": "asset-name",
-						"$url": "http://ourd.test/asset/asset-name?expiredAt=1997-07-01T00:00:00"
+						"$url": "http://skygear.test/asset/asset-name?expiredAt=1997-07-01T00:00:00"
 					}
 				}]
 			}`)
@@ -1016,12 +1016,12 @@ func TestRecordAssetSerialization(t *testing.T) {
 
 // a very naive Database that alway returns the single record set onto it
 type referencedRecordDatabase struct {
-	note     oddb.Record
-	category oddb.Record
-	oddb.Database
+	note     skydb.Record
+	category skydb.Record
+	skydb.Database
 }
 
-func (db *referencedRecordDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
+func (db *referencedRecordDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
 	switch id.String() {
 	case "note/note1":
 		*record = db.note
@@ -1031,30 +1031,30 @@ func (db *referencedRecordDatabase) Get(id oddb.RecordID, record *oddb.Record) e
 	return nil
 }
 
-func (db *referencedRecordDatabase) Save(record *oddb.Record) error {
+func (db *referencedRecordDatabase) Save(record *skydb.Record) error {
 	return nil
 }
 
-func (db *referencedRecordDatabase) Query(query *oddb.Query) (*oddb.Rows, error) {
-	return oddb.NewRows(oddb.NewMemoryRows([]oddb.Record{db.note})), nil
+func (db *referencedRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+	return skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{db.note})), nil
 }
 
-func (db *referencedRecordDatabase) Extend(recordType string, schema oddb.RecordSchema) error {
+func (db *referencedRecordDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
 	return nil
 }
 
 func TestRecordQueryWithEagerLoad(t *testing.T) {
 	Convey("Given a referenced record in DB", t, func() {
 		db := &referencedRecordDatabase{
-			note: oddb.Record{
-				ID:      oddb.NewRecordID("note", "note1"),
+			note: skydb.Record{
+				ID:      skydb.NewRecordID("note", "note1"),
 				OwnerID: "ownerID",
 				Data: map[string]interface{}{
-					"category": oddb.NewReference("category", "important"),
+					"category": skydb.NewReference("category", "important"),
 				},
 			},
-			category: oddb.Record{
-				ID:      oddb.NewRecordID("category", "important"),
+			category: skydb.Record{
+				ID:      skydb.NewRecordID("category", "important"),
 				OwnerID: "ownerID",
 				Data: map[string]interface{}{
 					"title": "This is important.",
@@ -1107,29 +1107,29 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 }
 
 type stackingHook struct {
-	records         []*oddb.Record
-	originalRecords []*oddb.Record
+	records         []*skydb.Record
+	originalRecords []*skydb.Record
 }
 
-func (p *stackingHook) Func(record *oddb.Record, originalRecord *oddb.Record) error {
+func (p *stackingHook) Func(record *skydb.Record, originalRecord *skydb.Record) error {
 	p.records = append(p.records, record)
 	p.originalRecords = append(p.originalRecords, originalRecord)
 	return nil
 }
 
 type erroneousDB struct {
-	oddb.Database
+	skydb.Database
 }
 
-func (db erroneousDB) Extend(string, oddb.RecordSchema) error {
+func (db erroneousDB) Extend(string, skydb.RecordSchema) error {
 	return nil
 }
 
-func (db erroneousDB) Get(oddb.RecordID, *oddb.Record) error {
+func (db erroneousDB) Get(skydb.RecordID, *skydb.Record) error {
 	return errors.New("erroneous save")
 }
 
-func (db erroneousDB) Save(*oddb.Record) error {
+func (db erroneousDB) Save(*skydb.Record) error {
 	return errors.New("erroneous save")
 }
 
@@ -1158,8 +1158,8 @@ func TestHookExecution(t *testing.T) {
 			},
 		}
 
-		record := &oddb.Record{
-			ID: oddb.NewRecordID("record", "id"),
+		record := &skydb.Record{
+			ID: skydb.NewRecordID("record", "id"),
 		}
 
 		registry := hook.NewRegistry()
@@ -1172,7 +1172,7 @@ func TestHookExecution(t *testing.T) {
 				registry.Register(test.beforeActionKind, "record", beforeHook.Func)
 				registry.Register(test.afterActionKind, "record", afterHook.Func)
 
-				db := oddbtest.NewMapDB()
+				db := skydbtest.NewMapDB()
 				So(db.Save(record), ShouldBeNil)
 
 				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
@@ -1204,14 +1204,14 @@ func TestHookExecution(t *testing.T) {
 
 	Convey("HookRegistry", t, func() {
 		registry := hook.NewRegistry()
-		db := oddbtest.NewMapDB()
+		db := skydbtest.NewMapDB()
 		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(p *router.Payload) {
 			p.Database = db
 			p.HookRegistry = registry
 		})
 
 		Convey("record is not saved if BeforeSave's hook returns an error", func() {
-			registry.Register(hook.BeforeSave, "record", func(*oddb.Record, *oddb.Record) error {
+			registry.Register(hook.BeforeSave, "record", func(*skydb.Record, *skydb.Record) error {
 				return errors.New("no hooks for you!")
 			})
 			r.POST(`{
@@ -1220,13 +1220,13 @@ func TestHookExecution(t *testing.T) {
 				}]
 			}`)
 
-			var record oddb.Record
-			So(db.Get(oddb.NewRecordID("record", "id"), &record), ShouldEqual, oddb.ErrRecordNotFound)
+			var record skydb.Record
+			So(db.Get(skydb.NewRecordID("record", "id"), &record), ShouldEqual, skydb.ErrRecordNotFound)
 		})
 
 		Convey("BeforeSave should be fed fully fetched record", func() {
-			existingRecord := oddb.Record{
-				ID: oddb.NewRecordID("record", "id"),
+			existingRecord := skydb.Record{
+				ID: skydb.NewRecordID("record", "id"),
 				Data: map[string]interface{}{
 					"old": true,
 				},
@@ -1234,17 +1234,17 @@ func TestHookExecution(t *testing.T) {
 			So(db.Save(&existingRecord), ShouldBeNil)
 
 			called := false
-			registry.Register(hook.BeforeSave, "record", func(record *oddb.Record, originalRecord *oddb.Record) error {
+			registry.Register(hook.BeforeSave, "record", func(record *skydb.Record, originalRecord *skydb.Record) error {
 				called = true
-				So(*record, ShouldResemble, oddb.Record{
-					ID: oddb.NewRecordID("record", "id"),
+				So(*record, ShouldResemble, skydb.Record{
+					ID: skydb.NewRecordID("record", "id"),
 					Data: map[string]interface{}{
 						"old": true,
 						"new": true,
 					},
 				})
-				So(*originalRecord, ShouldResemble, oddb.Record{
-					ID: oddb.NewRecordID("record", "id"),
+				So(*originalRecord, ShouldResemble, skydb.Record{
+					ID: skydb.NewRecordID("record", "id"),
 					Data: map[string]interface{}{
 						"old": true,
 					},
@@ -1264,10 +1264,10 @@ func TestHookExecution(t *testing.T) {
 
 		Convey("BeforeSave should set originalRecord as nil for new record", func() {
 			called := false
-			registry.Register(hook.BeforeSave, "record", func(record *oddb.Record, originalRecord *oddb.Record) error {
+			registry.Register(hook.BeforeSave, "record", func(record *skydb.Record, originalRecord *skydb.Record) error {
 				called = true
-				So(*record, ShouldResemble, oddb.Record{
-					ID: oddb.NewRecordID("record", "id"),
+				So(*record, ShouldResemble, skydb.Record{
+					ID: skydb.NewRecordID("record", "id"),
 					Data: map[string]interface{}{
 						"new": true,
 					},
@@ -1292,10 +1292,10 @@ func TestHookExecution(t *testing.T) {
 // calls to underlying Database
 type mockTxDatabase struct {
 	DidBegin, DidCommit, DidRollback bool
-	oddb.Database
+	skydb.Database
 }
 
-func newMockTxDatabase(backingDB oddb.Database) *mockTxDatabase {
+func newMockTxDatabase(backingDB skydb.Database) *mockTxDatabase {
 	return &mockTxDatabase{Database: backingDB}
 }
 
@@ -1314,19 +1314,19 @@ func (db *mockTxDatabase) Rollback() error {
 	return nil
 }
 
-var _ oddb.TxDatabase = &mockTxDatabase{}
+var _ skydb.TxDatabase = &mockTxDatabase{}
 
-type filterFuncDef func(op string, recordID oddb.RecordID, record *oddb.Record) error
+type filterFuncDef func(op string, recordID skydb.RecordID, record *skydb.Record) error
 
 // selectiveDatabase filter Get, Save and Delete by executing filterFunc
 // if filterFunc return nil, the operation is delegated to underlying Database
 // otherwise, the error is returned directly
 type selectiveDatabase struct {
 	filterFunc filterFuncDef
-	oddb.Database
+	skydb.Database
 }
 
-func newSelectiveDatabase(backingDB oddb.Database) *selectiveDatabase {
+func newSelectiveDatabase(backingDB skydb.Database) *selectiveDatabase {
 	return &selectiveDatabase{
 		Database: backingDB,
 	}
@@ -1336,7 +1336,7 @@ func (db *selectiveDatabase) SetFilter(filterFunc filterFuncDef) {
 	db.filterFunc = filterFunc
 }
 
-func (db *selectiveDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
+func (db *selectiveDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
 	if err := db.filterFunc("GET", id, nil); err != nil {
 		return err
 	}
@@ -1344,7 +1344,7 @@ func (db *selectiveDatabase) Get(id oddb.RecordID, record *oddb.Record) error {
 	return db.Database.Get(id, record)
 }
 
-func (db *selectiveDatabase) Save(record *oddb.Record) error {
+func (db *selectiveDatabase) Save(record *skydb.Record) error {
 	if err := db.filterFunc("SAVE", record.ID, record); err != nil {
 		return err
 	}
@@ -1352,7 +1352,7 @@ func (db *selectiveDatabase) Save(record *oddb.Record) error {
 	return db.Database.Save(record)
 }
 
-func (db *selectiveDatabase) Delete(id oddb.RecordID) error {
+func (db *selectiveDatabase) Delete(id skydb.RecordID) error {
 	if err := db.filterFunc("DELETE", id, nil); err != nil {
 		return err
 	}
@@ -1361,15 +1361,15 @@ func (db *selectiveDatabase) Delete(id oddb.RecordID) error {
 }
 
 func (db *selectiveDatabase) Begin() error {
-	return db.Database.(oddb.TxDatabase).Begin()
+	return db.Database.(skydb.TxDatabase).Begin()
 }
 
 func (db *selectiveDatabase) Commit() error {
-	return db.Database.(oddb.TxDatabase).Commit()
+	return db.Database.(skydb.TxDatabase).Commit()
 }
 
 func (db *selectiveDatabase) Rollback() error {
-	return db.Database.(oddb.TxDatabase).Rollback()
+	return db.Database.(skydb.TxDatabase).Rollback()
 }
 
 func TestAtomicOperation(t *testing.T) {
@@ -1379,7 +1379,7 @@ func TestAtomicOperation(t *testing.T) {
 	}()
 
 	Convey("Atomic Operation", t, func() {
-		backingDB := oddbtest.NewMapDB()
+		backingDB := skydbtest.NewMapDB()
 		txDB := newMockTxDatabase(backingDB)
 		db := newSelectiveDatabase(txDB)
 
@@ -1389,7 +1389,7 @@ func TestAtomicOperation(t *testing.T) {
 			})
 
 			Convey("rolls back saved records on error", func() {
-				db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
+				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) error {
 					if op == "SAVE" && recordID.Key == "1" {
 						return errors.New("Original Sin")
 					}
@@ -1429,7 +1429,7 @@ func TestAtomicOperation(t *testing.T) {
 			})
 
 			Convey("commit saved records when there are no errors", func() {
-				db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
+				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) error {
 					return nil
 				})
 
@@ -1457,15 +1457,15 @@ func TestAtomicOperation(t *testing.T) {
 						}]
 				}`)
 
-				var record oddb.Record
-				So(backingDB.Get(oddb.NewRecordID("note", "0"), &record), ShouldBeNil)
-				So(record, ShouldResemble, oddb.Record{
-					ID:   oddb.NewRecordID("note", "0"),
+				var record skydb.Record
+				So(backingDB.Get(skydb.NewRecordID("note", "0"), &record), ShouldBeNil)
+				So(record, ShouldResemble, skydb.Record{
+					ID:   skydb.NewRecordID("note", "0"),
 					Data: map[string]interface{}{},
 				})
-				So(backingDB.Get(oddb.NewRecordID("note", "1"), &record), ShouldBeNil)
-				So(record, ShouldResemble, oddb.Record{
-					ID:   oddb.NewRecordID("note", "1"),
+				So(backingDB.Get(skydb.NewRecordID("note", "1"), &record), ShouldBeNil)
+				So(record, ShouldResemble, skydb.Record{
+					ID:   skydb.NewRecordID("note", "1"),
 					Data: map[string]interface{}{},
 				})
 
@@ -1476,14 +1476,14 @@ func TestAtomicOperation(t *testing.T) {
 		})
 
 		Convey("for RecordDeleteHandler", func() {
-			So(backingDB.Save(&oddb.Record{
-				ID: oddb.NewRecordID("note", "0"),
+			So(backingDB.Save(&skydb.Record{
+				ID: skydb.NewRecordID("note", "0"),
 			}), ShouldBeNil)
-			So(backingDB.Save(&oddb.Record{
-				ID: oddb.NewRecordID("note", "1"),
+			So(backingDB.Save(&skydb.Record{
+				ID: skydb.NewRecordID("note", "1"),
 			}), ShouldBeNil)
-			So(backingDB.Save(&oddb.Record{
-				ID: oddb.NewRecordID("note", "2"),
+			So(backingDB.Save(&skydb.Record{
+				ID: skydb.NewRecordID("note", "2"),
 			}), ShouldBeNil)
 
 			r := handlertest.NewSingleRouteRouter(RecordDeleteHandler, func(payload *router.Payload) {
@@ -1491,7 +1491,7 @@ func TestAtomicOperation(t *testing.T) {
 			})
 
 			Convey("rolls back deleted records on error", func() {
-				db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
+				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) error {
 					if op == "DELETE" && recordID.Key == "1" {
 						return errors.New("Original Sin")
 					}
@@ -1524,7 +1524,7 @@ func TestAtomicOperation(t *testing.T) {
 			})
 
 			Convey("commits deleted records", func() {
-				db.SetFilter(func(op string, recordID oddb.RecordID, record *oddb.Record) error {
+				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) error {
 					return nil
 				})
 
@@ -1545,10 +1545,10 @@ func TestAtomicOperation(t *testing.T) {
 					]
 				}`)
 
-				var record oddb.Record
-				So(backingDB.Get(oddb.NewRecordID("record", "0"), &record), ShouldEqual, oddb.ErrRecordNotFound)
-				So(backingDB.Get(oddb.NewRecordID("record", "1"), &record), ShouldEqual, oddb.ErrRecordNotFound)
-				So(backingDB.Get(oddb.NewRecordID("record", "2"), &record), ShouldEqual, oddb.ErrRecordNotFound)
+				var record skydb.Record
+				So(backingDB.Get(skydb.NewRecordID("record", "0"), &record), ShouldEqual, skydb.ErrRecordNotFound)
+				So(backingDB.Get(skydb.NewRecordID("record", "1"), &record), ShouldEqual, skydb.ErrRecordNotFound)
+				So(backingDB.Get(skydb.NewRecordID("record", "2"), &record), ShouldEqual, skydb.ErrRecordNotFound)
 
 				So(txDB.DidBegin, ShouldBeTrue)
 				So(txDB.DidCommit, ShouldBeTrue)

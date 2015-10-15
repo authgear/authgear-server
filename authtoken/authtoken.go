@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/oursky/ourd/uuid"
+	"github.com/oursky/skygear/uuid"
 )
 
 // Token is an expiry access token associated to a UserInfo.

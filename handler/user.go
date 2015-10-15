@@ -5,9 +5,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skyerr"
 )
 
 type queryPayload struct {
@@ -29,13 +29,13 @@ func UserQueryHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if err := mapDecoder.Decode(payload.Data); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 
 	userinfos, err := payload.DBConn.QueryUser(qp.Emails)
 	if err != nil {
-		response.Err = oderr.NewUnknownErr(err)
+		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 
@@ -64,14 +64,14 @@ func UserUpdateHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if err := mapDecoder.Decode(payload.Data); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 
 	payload.UserInfo.Email = p.Email
 
 	if err := payload.DBConn.UpdateUser(payload.UserInfo); err != nil {
-		response.Err = oderr.NewUnknownErr(err)
+		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 }
@@ -86,32 +86,32 @@ func UserLinkHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if p.Provider() == "" {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("empty provider"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty provider"))
 		return
 	}
 
-	info := oddb.UserInfo{}
+	info := skydb.UserInfo{}
 
 	// Get AuthProvider and authenticates the user
 	log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
 	authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
 	principalID, authData, err := authProvider.Login(p.AuthData())
 	if err != nil {
-		response.Err = oderr.ErrAuthFailure
+		response.Err = skyerr.ErrAuthFailure
 		return
 	}
 	log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
 
 	err = payload.DBConn.GetUserByPrincipalID(principalID, &info)
 
-	if err != nil && err != oddb.ErrUserNotFound {
+	if err != nil && err != skydb.ErrUserNotFound {
 		// TODO: more error handling here if necessary
-		response.Err = oderr.NewResourceFetchFailureErr("user", p.UserID())
+		response.Err = skyerr.NewResourceFetchFailureErr("user", p.UserID())
 		return
 	} else if err == nil && info.ID != payload.UserInfo.ID {
 		info.RemoveProvidedAuthData(principalID)
 		if err := payload.DBConn.UpdateUser(&info); err != nil {
-			response.Err = oderr.NewUnknownErr(err)
+			response.Err = skyerr.NewUnknownErr(err)
 			return
 		}
 	}
@@ -119,7 +119,7 @@ func UserLinkHandler(payload *router.Payload, response *router.Response) {
 	payload.UserInfo.SetProvidedAuthData(principalID, authData)
 
 	if err := payload.DBConn.UpdateUser(payload.UserInfo); err != nil {
-		response.Err = oderr.NewUnknownErr(err)
+		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 }

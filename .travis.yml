@@ -15,8 +15,8 @@ before_install:
   - ( cd czmq; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
 
 before_script:
-  - psql -c 'CREATE DATABASE ourd_test;' -U postgres
-  - psql -c 'CREATE EXTENSION postgis;' -U postgres -d ourd_test
+  - psql -c 'CREATE DATABASE skygear_test;' -U postgres
+  - psql -c 'CREATE EXTENSION postgis;' -U postgres -d skygear_test
   - >
     go get golang.org/x/tools/cmd/stringer \
            golang.org/x/tools/cmd/cover \
