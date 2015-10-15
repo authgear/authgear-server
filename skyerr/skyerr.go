@@ -1,5 +1,5 @@
-// Package oderr contains information of errors used in ourd.
-package oderr
+// Package skyerr contains information of errors used in ourd.
+package skyerr
 
 import (
 	"encoding/json"

@@ -1,4 +1,4 @@
-package oderr
+package skyerr
 
 import (
 	. "github.com/smartystreets/goconvey/convey"

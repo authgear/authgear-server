@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/oursky/skygear/oderr"
+	"github.com/oursky/skygear/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -173,14 +173,14 @@ func TestPreprocess(t *testing.T) {
 			})
 		})
 
-		Convey("When preprocessor gives an oderr preprocessor", func() {
+		Convey("When preprocessor gives an skyerr preprocessor", func() {
 			mockPreprocessor.Status = http.StatusInternalServerError
-			mockPreprocessor.Err = oderr.NewUnknownErr(errors.New("oderr"))
+			mockPreprocessor.Err = skyerr.NewUnknownErr(errors.New("skyerr"))
 
 			r.ServeHTTP(resp, req)
 
 			Convey("it has \"err\" as body", func() {
-				So(resp.Body.String(), ShouldEqual, `{"error":{"type":"UnknownError","code":1,"message":"oderr"}}
+				So(resp.Body.String(), ShouldEqual, `{"error":{"type":"UnknownError","code":1,"message":"skyerr"}}
 `)
 			})
 

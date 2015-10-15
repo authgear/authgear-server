@@ -6,8 +6,8 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/oursky/skygear/oderr"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyerr"
 )
 
 type relationPayload struct {
@@ -22,15 +22,15 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 		TagName: "json",
 	})
 	if err := mapDecoder.Decode(data); err != nil {
-		return oderr.NewRequestJSONInvalidErr(err)
+		return skyerr.NewRequestJSONInvalidErr(err)
 	}
 	if result.Name != "friend" && result.Name != "follow" {
-		return oderr.NewRequestInvalidErr(
+		return skyerr.NewRequestInvalidErr(
 			errors.New("Only friend and follow relation is supported"))
 	}
 	if result.Direction != "" {
 		if result.Direction != "active" && result.Direction != "passive" && result.Direction != "mutual" {
-			return oderr.NewRequestInvalidErr(
+			return skyerr.NewRequestInvalidErr(
 				errors.New("Only active, passive and mutual direction is supported"))
 		}
 	}
@@ -115,10 +115,10 @@ func RelationAddHandler(rpayload *router.Payload, response *router.Response) {
 				"err":    err,
 			}).Debugln("failed to add relation")
 			results = append(results, struct {
-				ID   string      `json:"id"`
-				Type string      `json:"type"`
-				Data oderr.Error `json:"data"`
-			}{target, "error", oderr.NewResourceFetchFailureErr("user", target)})
+				ID   string       `json:"id"`
+				Type string       `json:"type"`
+				Data skyerr.Error `json:"data"`
+			}{target, "error", skyerr.NewResourceFetchFailureErr("user", target)})
 		} else {
 			results = append(results, struct {
 				ID string `json:"id"`

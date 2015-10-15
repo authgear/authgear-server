@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/oursky/skygear/oddb"
-	"github.com/oursky/skygear/oderr"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -110,8 +110,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Err.(oderr.Error)
-			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("empty device type")))
+			err := resp.Err.(skyerr.Error)
+			So(err, ShouldResemble, skyerr.NewRequestInvalidErr(errors.New("empty device type")))
 		})
 
 		Convey("complains on invalid device type", func() {
@@ -122,8 +122,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Err.(oderr.Error)
-			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("unknown device type = invalidtype")))
+			err := resp.Err.(skyerr.Error)
+			So(err, ShouldResemble, skyerr.NewRequestInvalidErr(errors.New("unknown device type = invalidtype")))
 		})
 
 		Convey("does not complain on empty device token", func() {
@@ -155,8 +155,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Err.(oderr.Error)
-			So(err, ShouldEqual, oderr.ErrDeviceNotFound)
+			err := resp.Err.(skyerr.Error)
+			So(err, ShouldEqual, skyerr.ErrDeviceNotFound)
 		})
 
 		Convey("complains on unknown device type", func() {
@@ -168,8 +168,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			DeviceRegisterHandler(&payload, &resp)
 
-			err := resp.Err.(oderr.Error)
-			So(err, ShouldResemble, oderr.NewRequestInvalidErr(errors.New("unknown device type = unknown-type")))
+			err := resp.Err.(skyerr.Error)
+			So(err, ShouldResemble, skyerr.NewRequestInvalidErr(errors.New("unknown device type = unknown-type")))
 		})
 	})
 }

@@ -10,10 +10,10 @@ import (
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/hook"
 	"github.com/oursky/skygear/oddb"
-	"github.com/oursky/skygear/oderr"
 	"github.com/oursky/skygear/provider"
 	"github.com/oursky/skygear/push"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyerr"
 )
 
 type apiKeyValidatonPreprocessor struct {
@@ -25,7 +25,7 @@ func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, respons
 	apiKey := payload.APIKey()
 	if apiKey != p.Key {
 		log.Debugf("Invalid APIKEY: %v", apiKey)
-		response.Err = oderr.NewFmt(oderr.CannotVerifyAPIKey, "Cannot verify api key: %v", apiKey)
+		response.Err = skyerr.NewFmt(skyerr.CannotVerifyAPIKey, "Cannot verify api key: %v", apiKey)
 		return http.StatusUnauthorized
 	}
 
@@ -100,9 +100,9 @@ func (author *userAuthenticator) Preprocess(payload *router.Payload, response *r
 				// if a non-empty api key is set and we received empty
 				// api key and access token, then client request
 				// has no authentication information
-				response.Err = oderr.NewFmt(oderr.AuthenticationInfoIncorrectErr, "Both api key and access token are empty")
+				response.Err = skyerr.NewFmt(skyerr.AuthenticationInfoIncorrectErr, "Both api key and access token are empty")
 			} else {
-				response.Err = oderr.NewFmt(oderr.CannotVerifyAPIKey, "Cannot verify api key: `%v`", apiKey)
+				response.Err = skyerr.NewFmt(skyerr.CannotVerifyAPIKey, "Cannot verify api key: `%v`", apiKey)
 			}
 			return http.StatusUnauthorized
 		}
@@ -119,7 +119,7 @@ func (author *userAuthenticator) Preprocess(payload *router.Payload, response *r
 					"err":   err,
 				}).Infoln("Token not found")
 
-				response.Err = oderr.ErrAuthFailure
+				response.Err = skyerr.ErrAuthFailure
 			} else {
 				response.Err = err
 			}
@@ -182,7 +182,7 @@ func injectDatabase(payload *router.Payload, response *router.Response) int {
 
 func requireUserForWrite(payload *router.Payload, response *router.Response) int {
 	if payload.UserInfo == nil {
-		response.Err = oderr.ErrWriteDenied
+		response.Err = skyerr.ErrWriteDenied
 		return http.StatusUnauthorized
 	}
 

@@ -12,10 +12,10 @@ import (
 	"github.com/oursky/skygear/handler/handlertest"
 	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/oddb/oddbtest"
-	"github.com/oursky/skygear/oderr"
 	. "github.com/oursky/skygear/ourtest"
 	"github.com/oursky/skygear/provider"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -128,9 +128,9 @@ func TestSignupHandlerDuplicated(t *testing.T) {
 	resp := router.Response{}
 	SignupHandler(&req, &resp)
 
-	errorResponse, ok := resp.Err.(oderr.Error)
+	errorResponse, ok := resp.Err.(skyerr.Error)
 	if !ok {
-		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
+		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
 	}
 
 	if errorResponse.Code() != 101 {
@@ -201,12 +201,12 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 	resp := router.Response{}
 	LoginHandler(&req, &resp)
 
-	errorResponse, ok := resp.Err.(oderr.Error)
+	errorResponse, ok := resp.Err.(skyerr.Error)
 	if !ok {
-		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
+		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
 	}
 
-	if errorResponse != oderr.ErrInvalidLogin {
+	if errorResponse != skyerr.ErrInvalidLogin {
 		t.Fatalf("got resp.Err = %v, want ErrInvalidLogin", errorResponse)
 	}
 }
@@ -226,12 +226,12 @@ func TestLoginHandlerNotFound(t *testing.T) {
 	resp := router.Response{}
 	LoginHandler(&req, &resp)
 
-	errorResponse, ok := resp.Err.(oderr.Error)
+	errorResponse, ok := resp.Err.(skyerr.Error)
 	if !ok {
-		t.Fatalf("got type = %T, want type oderr.Error", resp.Err)
+		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
 	}
 
-	if errorResponse != oderr.ErrUserNotFound {
+	if errorResponse != skyerr.ErrUserNotFound {
 		t.Fatalf("got resp.Err = %v, want ErrUserNotFound", errorResponse)
 	}
 }

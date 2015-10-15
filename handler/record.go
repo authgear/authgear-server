@@ -14,8 +14,8 @@ import (
 	"github.com/oursky/skygear/hook"
 	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/oddb/oddbconv"
-	"github.com/oursky/skygear/oderr"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyerr"
 )
 
 type serializedRecord struct {
@@ -181,10 +181,10 @@ func (data jsonData) ToMap(m map[string]interface{}) {
 
 type serializedError struct {
 	id  string
-	err oderr.Error
+	err skyerr.Error
 }
 
-func newSerializedError(id string, err oderr.Error) serializedError {
+func newSerializedError(id string, err skyerr.Error) serializedError {
 	return serializedError{
 		id:  id,
 		err: err,
@@ -258,7 +258,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 
 	recordMaps, ok := payload.Data["records"].([]interface{})
 	if !ok {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("expected list of record"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("expected list of record"))
 		return
 	}
 
@@ -307,7 +307,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 
 		switch item := itemi.(type) {
 		case error:
-			result = newSerializedError("", oderr.NewRequestInvalidErr(item))
+			result = newSerializedError("", skyerr.NewRequestInvalidErr(item))
 		case oddb.RecordID:
 			if err, ok := resp.ErrMap[item]; ok {
 				log.WithFields(log.Fields{
@@ -315,7 +315,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 					"err":      err,
 				}).Debugln("failed to save record")
 
-				result = newSerializedError(item.String(), oderr.NewResourceSaveFailureErrWithStringID("record", item.String()))
+				result = newSerializedError(item.String(), skyerr.NewResourceSaveFailureErrWithStringID("record", item.String()))
 			} else {
 				record := resp.SavedRecords[currRecordIdx]
 				currRecordIdx++
@@ -337,7 +337,7 @@ func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFun
 	return func(req *recordModifyRequest, resp *recordModifyResponse) (err error) {
 		txDB, ok := req.Db.(oddb.TxDatabase)
 		if !ok {
-			err = oderr.ErrDatabaseTxNotSupported
+			err = skyerr.ErrDatabaseTxNotSupported
 			return
 		}
 
@@ -346,9 +346,9 @@ func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFun
 		})
 
 		if len(resp.ErrMap) > 0 {
-			err = oderr.NewAtomicOperationFailedErr(resp.ErrMap)
+			err = skyerr.NewAtomicOperationFailedErr(resp.ErrMap)
 		} else if err != nil {
-			err = oderr.NewAtomicOperationFailedErrWithCause(err)
+			err = skyerr.NewAtomicOperationFailedErrWithCause(err)
 		}
 		return
 	}
@@ -426,7 +426,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 	// derive and extend record schema
 	if err := extendRecordSchema(db, records); err != nil {
-		return oderr.ErrDatabaseSchemaMigrationFailed
+		return skyerr.ErrDatabaseSchemaMigrationFailed
 	}
 
 	// save records
@@ -657,7 +657,7 @@ EOF
 func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	interfaces, ok := payload.Data["ids"].([]interface{})
 	if !ok {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("expected list of id"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("expected list of id"))
 		return
 	}
 
@@ -666,13 +666,13 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	for i, it := range interfaces {
 		rawID, ok := it.(string)
 		if !ok {
-			response.Err = oderr.NewRequestInvalidErr(errors.New("expected string id"))
+			response.Err = skyerr.NewRequestInvalidErr(errors.New("expected string id"))
 			return
 		}
 
 		ss := strings.SplitN(rawID, "/", 2)
 		if len(ss) == 1 {
-			response.Err = oderr.NewRequestInvalidErr(fmt.Errorf("invalid id format: %v", rawID))
+			response.Err = skyerr.NewRequestInvalidErr(fmt.Errorf("invalid id format: %v", rawID))
 			return
 		}
 
@@ -689,7 +689,7 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 			if err == oddb.ErrRecordNotFound {
 				results[i] = newSerializedError(
 					recordID.String(),
-					oderr.ErrRecordNotFound,
+					skyerr.ErrRecordNotFound,
 				)
 			} else {
 				log.WithFields(log.Fields{
@@ -698,7 +698,7 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 				}).Errorln("Failed to fetch record")
 				results[i] = newSerializedError(
 					recordID.String(),
-					oderr.NewResourceFetchFailureErr("record", recordID.String()),
+					skyerr.NewResourceFetchFailureErr("record", recordID.String()),
 				)
 			}
 		} else {
@@ -897,22 +897,22 @@ func parseDistanceFunc(s []interface{}) (*oddb.DistanceFunc, error) {
 	}, nil
 }
 
-func queryFromRaw(rawQuery map[string]interface{}, query *oddb.Query) (err oderr.Error) {
+func queryFromRaw(rawQuery map[string]interface{}, query *oddb.Query) (err skyerr.Error) {
 	defer func() {
 		// use panic to escape from inner error
 		if r := recover(); r != nil {
 			if queryErr, ok := r.(error); ok {
 				log.WithField("rawQuery", rawQuery).Debugln("failed to construct query")
-				err = oderr.NewFmt(oderr.RequestInvalidErr, "failed to construct query: %v", queryErr.Error())
+				err = skyerr.NewFmt(skyerr.RequestInvalidErr, "failed to construct query: %v", queryErr.Error())
 			} else {
 				log.WithField("recovered", r).Errorln("panic recovered while constructing query")
-				err = oderr.New(oderr.RequestInvalidErr, "error occurred while constructing query")
+				err = skyerr.New(skyerr.RequestInvalidErr, "error occurred while constructing query")
 			}
 		}
 	}()
 	recordType, _ := rawQuery["record_type"].(string)
 	if recordType == "" {
-		return oderr.New(oderr.RequestInvalidErr, "recordType cannot be empty")
+		return skyerr.New(skyerr.RequestInvalidErr, "recordType cannot be empty")
 	}
 	query.Type = recordType
 
@@ -939,7 +939,7 @@ func queryFromRaw(rawQuery map[string]interface{}, query *oddb.Query) (err oderr
 		for i, key := range desiredKeys {
 			key, ok := key.(string)
 			if !ok {
-				return oderr.New(oderr.RequestInvalidErr, "unexpected value in desired_keys")
+				return skyerr.New(skyerr.RequestInvalidErr, "unexpected value in desired_keys")
 			}
 			query.DesiredKeys[i] = key
 		}
@@ -996,7 +996,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	for key, value := range query.ComputedKeys {
 		if value.Type == oddb.KeyPath {
 			if eagerTransientKey != "" {
-				response.Err = oderr.NewRequestInvalidErr(errors.New("eager loading for multiple keys is not supported"))
+				response.Err = skyerr.NewRequestInvalidErr(errors.New("eager loading for multiple keys is not supported"))
 				return
 			}
 			eagerTransientKey = key
@@ -1007,7 +1007,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 
 	results, err := db.Query(&query)
 	if err != nil {
-		response.Err = oderr.NewUnknownErr(err)
+		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 	defer results.Close()
@@ -1019,7 +1019,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if results.Err() != nil {
-		response.Err = oderr.NewUnknownErr(results.Err())
+		response.Err = skyerr.NewUnknownErr(results.Err())
 		return
 	}
 	output := make([]interface{}, len(records))
@@ -1062,7 +1062,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 
 	interfaces, ok := payload.Data["ids"].([]interface{})
 	if !ok {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("expected list of id"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("expected list of id"))
 		return
 	}
 
@@ -1071,13 +1071,13 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 	for i, it := range interfaces {
 		rawID, ok := it.(string)
 		if !ok {
-			response.Err = oderr.NewRequestInvalidErr(errors.New("expected string id"))
+			response.Err = skyerr.NewRequestInvalidErr(errors.New("expected string id"))
 			return
 		}
 
 		ss := strings.SplitN(rawID, "/", 2)
 		if len(ss) == 1 {
-			response.Err = oderr.NewRequestInvalidErr(fmt.Errorf("invalid id format: %v", rawID))
+			response.Err = skyerr.NewRequestInvalidErr(fmt.Errorf("invalid id format: %v", rawID))
 			return
 		}
 
@@ -1117,7 +1117,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 			if err == oddb.ErrRecordNotFound {
 				result = newSerializedError(
 					recordID.String(),
-					oderr.ErrRecordNotFound,
+					skyerr.ErrRecordNotFound,
 				)
 			} else {
 				log.WithFields(log.Fields{
@@ -1127,7 +1127,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 
 				result = newSerializedError(
 					recordID.String(),
-					oderr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
+					skyerr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
 				)
 			}
 		} else {

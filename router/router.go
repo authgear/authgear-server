@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/skygear/oderr"
+	"github.com/oursky/skygear/skyerr"
 )
 
 // pipeline encapsulates a transformation which a request will come throught
@@ -72,7 +72,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	payload, err = newPayloadForJSONHandler(req)
 	if err != nil {
 		httpStatus = http.StatusBadRequest
-		resp.Err = oderr.NewRequestJSONInvalidErr(err)
+		resp.Err = skyerr.NewRequestJSONInvalidErr(err)
 		return
 	}
 
@@ -80,7 +80,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if handler == nil {
 		httpStatus = http.StatusNotFound
-		resp.Err = oderr.NewRequestInvalidErr(errors.New("route unmatched"))
+		resp.Err = skyerr.NewRequestInvalidErr(errors.New("route unmatched"))
 	} else {
 		for _, p := range preprocessors {
 			httpStatus = p(payload, &resp)
@@ -88,8 +88,8 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				if httpStatus == 200 {
 					httpStatus = 500
 				}
-				if _, ok := resp.Err.(oderr.Error); !ok {
-					resp.Err = oderr.NewUnknownErr(resp.Err)
+				if _, ok := resp.Err.(skyerr.Error); !ok {
+					resp.Err = skyerr.NewUnknownErr(resp.Err)
 				}
 				return
 			}

@@ -8,8 +8,8 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/oddb/oddbconv"
-	"github.com/oursky/skygear/oderr"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyerr"
 )
 
 type subscriptionIDsPayload struct {
@@ -235,12 +235,12 @@ func SubscriptionFetchHandler(rpayload *router.Payload, response *router.Respons
 		panic(err)
 	}
 	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 
 	if payload.DeviceID == "" {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("empty device_id"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty device_id"))
 		return
 	}
 
@@ -291,12 +291,12 @@ func SubscriptionFetchAllHandler(rpayload *router.Payload, response *router.Resp
 		panic(err)
 	}
 	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 
 	if payload.DeviceID == "" {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("empty device id"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty device id"))
 		return
 	}
 
@@ -359,18 +359,18 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 		panic(err)
 	}
 	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 
 	rawSubs := payload.Subscriptions
 	if len(rawSubs) == 0 {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("empty subscriptions"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty subscriptions"))
 		return
 	}
 
 	if payload.DeviceID == "" {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("empty device_id"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty device_id"))
 		return
 	}
 
@@ -383,7 +383,7 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 		sub.NotificationInfo = rawSub.NotificationInfo
 		sub.DeviceID = payload.DeviceID
 		if err := queryFromRaw(rawSub.Query, &sub.Query); err != nil {
-			response.Err = oderr.NewRequestInvalidErr(fmt.Errorf(
+			response.Err = skyerr.NewRequestInvalidErr(fmt.Errorf(
 				"failed to parse subscriptions: %v", err))
 			return
 		}
@@ -430,12 +430,12 @@ func SubscriptionDeleteHandler(rpayload *router.Payload, response *router.Respon
 		panic(err)
 	}
 	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 
 	if payload.DeviceID == "" {
-		response.Err = oderr.NewRequestInvalidErr(errors.New("empty device_id"))
+		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty device_id"))
 		return
 	}
 

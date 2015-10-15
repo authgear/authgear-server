@@ -8,9 +8,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 	"github.com/oursky/skygear/oddb"
-	"github.com/oursky/skygear/oderr"
 	"github.com/oursky/skygear/push"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyerr"
 )
 
 type pushToDevicePayload struct {
@@ -102,11 +102,11 @@ func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
 func PushToUserHandler(rpayload *router.Payload, response *router.Response) {
 	payload := pushToUserPayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 	if err := payload.Validate(); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 
@@ -130,11 +130,11 @@ func PushToUserHandler(rpayload *router.Payload, response *router.Response) {
 func PushToDeviceHandler(rpayload *router.Payload, response *router.Response) {
 	payload := pushToDevicePayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 	if err := payload.Validate(); err != nil {
-		response.Err = oderr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewRequestInvalidErr(err)
 		return
 	}
 

@@ -8,8 +8,8 @@ import (
 
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/oddb"
-	"github.com/oursky/skygear/oderr"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyerr"
 )
 
 type authResponse struct {
@@ -97,7 +97,7 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 		authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
 		principalID, authData, err := authProvider.Login(p.AuthData())
 		if err != nil {
-			response.Err = oderr.ErrAuthFailure
+			response.Err = skyerr.ErrAuthFailure
 			return
 		}
 		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
@@ -110,7 +110,7 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 		password := p.Password()
 
 		if userID == "" || email == "" || password == "" {
-			response.Err = oderr.NewRequestInvalidErr(errors.New("empty user_id, email or password"))
+			response.Err = skyerr.NewRequestInvalidErr(errors.New("empty user_id, email or password"))
 			return
 		}
 		info = oddb.NewUserInfo(userID, email, password)
@@ -118,9 +118,9 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 
 	if err := payload.DBConn.CreateUser(&info); err != nil {
 		if err == oddb.ErrUserDuplicated {
-			response.Err = oderr.ErrUserDuplicated
+			response.Err = skyerr.ErrUserDuplicated
 		} else {
-			response.Err = oderr.NewResourceSaveFailureErrWithStringID("user", p.UserID())
+			response.Err = skyerr.NewResourceSaveFailureErrWithStringID("user", p.UserID())
 		}
 		return
 	}
@@ -196,7 +196,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 		authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
 		principalID, authData, err := authProvider.Login(p.AuthData())
 		if err != nil {
-			response.Err = oderr.ErrAuthFailure
+			response.Err = skyerr.ErrAuthFailure
 			return
 		}
 		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
@@ -205,39 +205,39 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 			// Create user if and only if no user found with the same principal
 			if err != oddb.ErrUserNotFound {
 				// TODO: more error handling here if necessary
-				response.Err = oderr.NewResourceFetchFailureErr("user", p.UserID())
+				response.Err = skyerr.NewResourceFetchFailureErr("user", p.UserID())
 				return
 			}
 
 			info = oddb.NewProvidedAuthUserInfo(principalID, authData)
 			if err = payload.DBConn.CreateUser(&info); err != nil {
 				if err == oddb.ErrUserDuplicated {
-					response.Err = oderr.ErrUserDuplicated
+					response.Err = skyerr.ErrUserDuplicated
 				} else {
-					response.Err = oderr.NewResourceSaveFailureErrWithStringID("user", p.UserID())
+					response.Err = skyerr.NewResourceSaveFailureErrWithStringID("user", p.UserID())
 				}
 				return
 			}
 		} else {
 			info.SetProvidedAuthData(principalID, authData)
 			if err := payload.DBConn.UpdateUser(&info); err != nil {
-				response.Err = oderr.NewUnknownErr(err)
+				response.Err = skyerr.NewUnknownErr(err)
 				return
 			}
 		}
 	} else {
 		if err := payload.DBConn.GetUser(p.UserID(), &info); err != nil {
 			if err == oddb.ErrUserNotFound {
-				response.Err = oderr.ErrUserNotFound
+				response.Err = skyerr.ErrUserNotFound
 			} else {
 				// TODO: more error handling here if necessary
-				response.Err = oderr.NewResourceFetchFailureErr("user", p.UserID())
+				response.Err = skyerr.NewResourceFetchFailureErr("user", p.UserID())
 			}
 			return
 		}
 
 		if !info.IsSamePassword(p.Password()) {
-			response.Err = oderr.ErrInvalidLogin
+			response.Err = skyerr.ErrInvalidLogin
 			return
 		}
 	}
@@ -262,7 +262,7 @@ func LogoutHandler(payload *router.Payload, response *router.Response) {
 
 	if err := store.Delete(accessToken); err != nil {
 		if _, notfound := err.(*authtoken.NotFoundError); !notfound {
-			response.Err = oderr.NewUnknownErr(err)
+			response.Err = skyerr.NewUnknownErr(err)
 		}
 	}
 }
@@ -329,22 +329,22 @@ func PasswordHandler(payload *router.Payload, response *router.Response) {
 	info := oddb.UserInfo{}
 	if err := payload.DBConn.GetUser(p.UserInfoID, &info); err != nil {
 		if err == oddb.ErrUserNotFound {
-			response.Err = oderr.ErrUserNotFound
+			response.Err = skyerr.ErrUserNotFound
 		} else {
 			// TODO: more error handling here if necessary
-			response.Err = oderr.NewResourceFetchFailureErr("user", p.UserInfoID)
+			response.Err = skyerr.NewResourceFetchFailureErr("user", p.UserInfoID)
 		}
 		return
 	}
 
 	if !info.IsSamePassword(p.OldPassword()) {
 		log.Debug("Incorrecly Old Password")
-		response.Err = oderr.NewUnknownErr(errors.New("Incorrecly Old Password"))
+		response.Err = skyerr.NewUnknownErr(errors.New("Incorrecly Old Password"))
 		return
 	}
 	info.SetPassword(p.NewPassword())
 	if err := payload.DBConn.UpdateUser(&info); err != nil {
-		response.Err = oderr.NewUnknownErr(err)
+		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 
