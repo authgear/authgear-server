@@ -572,8 +572,6 @@ func (c *conn) DeleteEmptyDeviceByTime(t time.Time) error {
 	}
 	if rowsAffected == 0 {
 		return skydb.ErrDeviceNotFound
-	} else if rowsAffected > 1 {
-		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
 	}
 
 	return nil

@@ -1,17 +1,15 @@
 package pq
 
 import (
+	"database/sql"
 	"os"
 	"testing"
-
-	. "github.com/smartystreets/goconvey/convey"
-
-	"database/sql"
 	"time"
 
 	"github.com/lib/pq"
 	. "github.com/oursky/skygear/ourtest"
 	"github.com/oursky/skygear/skydb"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 // NOTE(limouren): postgresql uses this error to signify a non-exist
@@ -504,19 +502,27 @@ func TestDevice(t *testing.T) {
 			device0 := skydb.Device{
 				ID:               "deviceid0",
 				Type:             "ios",
-				Token:            "",
+				Token:            "DEVICE_TOKEN",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			device1 := skydb.Device{
 				ID:               "deviceid1",
 				Type:             "ios",
-				Token:            "DEVICE_TOKEN",
+				Token:            "",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+			device2 := skydb.Device{
+				ID:               "deviceid2",
+				Type:             "ios",
+				Token:            "",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device0), ShouldBeNil)
 			So(c.SaveDevice(&device1), ShouldBeNil)
+			So(c.SaveDevice(&device2), ShouldBeNil)
 
 			err := c.DeleteEmptyDeviceByTime(skydb.ZeroTime)
 			So(err, ShouldBeNil)
