@@ -1,6 +1,6 @@
 package plugin
 
-import "github.com/oursky/ourd/oddb"
+import "github.com/oursky/skygear/oddb"
 
 // AuthRequest is sent by Ourd to plugin which contains data for authentication
 type AuthRequest struct {

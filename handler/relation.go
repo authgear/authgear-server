@@ -6,8 +6,8 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/oderr"
+	"github.com/oursky/skygear/router"
 )
 
 type relationPayload struct {

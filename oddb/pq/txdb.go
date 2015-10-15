@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 func (db *database) Begin() (err error) {

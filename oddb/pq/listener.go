@@ -12,7 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 var subscribeListenOnce sync.Once

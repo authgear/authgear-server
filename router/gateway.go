@@ -5,7 +5,7 @@ import (
 	"regexp"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oderr"
+	"github.com/oursky/skygear/oderr"
 )
 
 // pathRoute is the path matching version of pipeline. Instead of storing the action

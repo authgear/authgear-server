@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 // Various errors emitted by Ourd handlers

@@ -16,7 +16,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 const userDBKey = "_user"

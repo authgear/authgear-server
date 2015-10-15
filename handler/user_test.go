@@ -1,15 +1,15 @@
 package handler
 
 import (
-	"github.com/oursky/ourd/handler/handlertest"
-	"github.com/oursky/ourd/oddb/oddbtest"
-	. "github.com/oursky/ourd/ourtest"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/handler/handlertest"
+	"github.com/oursky/skygear/oddb/oddbtest"
+	. "github.com/oursky/skygear/ourtest"
+	"github.com/oursky/skygear/router"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/provider"
+	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/provider"
 )
 
 type queryUserConn struct {

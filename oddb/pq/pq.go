@@ -17,7 +17,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)

@@ -6,14 +6,14 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/oursky/ourd/asset"
-	"github.com/oursky/ourd/authtoken"
-	"github.com/oursky/ourd/hook"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/provider"
-	"github.com/oursky/ourd/push"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/asset"
+	"github.com/oursky/skygear/authtoken"
+	"github.com/oursky/skygear/hook"
+	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/oderr"
+	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/push"
+	"github.com/oursky/skygear/router"
 )
 
 type apiKeyValidatonPreprocessor struct {

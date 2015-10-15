@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oddb/oddbconv"
+	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/oddb/oddbconv"
 )
 
 // ExecError is error resulted from application logic of plugin (e.g.

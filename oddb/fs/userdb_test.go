@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

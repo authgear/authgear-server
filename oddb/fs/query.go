@@ -1,7 +1,7 @@
 package fs
 
 import (
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 type queryMatcher oddb.Query

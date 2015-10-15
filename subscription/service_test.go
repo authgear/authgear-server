@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oddb/mock_oddb"
+	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/oddb/mock_oddb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

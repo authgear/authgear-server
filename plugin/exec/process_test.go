@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oursky/ourd/oddb"
-	. "github.com/oursky/ourd/ourtest"
-	odplugin "github.com/oursky/ourd/plugin"
+	"github.com/oursky/skygear/oddb"
+	. "github.com/oursky/skygear/ourtest"
+	odplugin "github.com/oursky/skygear/plugin"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

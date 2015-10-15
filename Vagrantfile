@@ -42,20 +42,20 @@ cd /vagrant
 go get github.com/tools/godep
 go get github.com/smartystreets/goconvey/convey
 go get github.com/pilu/fresh
-godep go install github.com/oursky/ourd/...
+godep go install github.com/oursky/skygear/...
 
 echo "   done."
 
 echo "Performing tests..."
 
-godep go test github.com/oursky/ourd/...
+godep go test github.com/oursky/skygear/...
 
 EOF
 
 Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty64"
   config.vm.provision "shell", inline: $script, privileged: false
-  config.vm.synced_folder ".", "/vagrant/src/github.com/oursky/ourd"
+  config.vm.synced_folder ".", "/vagrant/src/github.com/oursky/skygear"
   config.vm.synced_folder "Godeps", "/vagrant/Godeps"
   config.vm.network "forwarded_port", guest: 5432, host: 5432
   config.vm.network "forwarded_port", guest: 3000, host: 3000

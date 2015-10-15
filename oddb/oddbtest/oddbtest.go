@@ -3,7 +3,7 @@ package oddbtest
 import (
 	"time"
 
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 // MapConn is a naive memory implementation of oddb.Conn

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 // MapFrom tries to map a map to a FromMapper

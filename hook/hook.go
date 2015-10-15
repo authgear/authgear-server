@@ -3,7 +3,7 @@ package hook
 import (
 	"fmt"
 
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 // Kind defines when a hook should be executed on mutation of oddb.Record.

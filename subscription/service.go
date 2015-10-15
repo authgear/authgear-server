@@ -4,7 +4,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 var timeNow = time.Now

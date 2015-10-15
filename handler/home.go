@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/router"
 )
 
 type statusResponse struct {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/pubsub"
-	"github.com/oursky/ourd/push"
+	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/pubsub"
+	"github.com/oursky/skygear/push"
 )
 
 // Notice encapsulates the information sent to subscribers when the content of

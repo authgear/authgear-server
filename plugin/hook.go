@@ -1,8 +1,8 @@
 package plugin
 
 import (
-	"github.com/oursky/ourd/hook"
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/hook"
+	"github.com/oursky/skygear/oddb"
 )
 
 // CreateHookFunc returns a hook.HookFunc that run the hook registered by a

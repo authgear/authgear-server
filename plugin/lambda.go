@@ -5,8 +5,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/oderr"
+	"github.com/oursky/skygear/router"
 )
 
 // Executes lambda function implemented by the plugin.

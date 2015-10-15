@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oursky/ourd/asset"
-	"github.com/oursky/ourd/oddb"
-	. "github.com/oursky/ourd/ourtest"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/asset"
+	"github.com/oursky/skygear/oddb"
+	. "github.com/oursky/skygear/ourtest"
+	"github.com/oursky/skygear/router"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

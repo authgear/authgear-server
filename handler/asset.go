@@ -14,10 +14,10 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	ourAsset "github.com/oursky/ourd/asset"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/router"
+	ourAsset "github.com/oursky/skygear/asset"
+	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/oderr"
+	"github.com/oursky/skygear/router"
 )
 
 // used to clean file path

@@ -7,9 +7,9 @@ import (
 	osexec "os/exec"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oddb"
-	odplugin "github.com/oursky/ourd/plugin"
-	"github.com/oursky/ourd/plugin/common"
+	"github.com/oursky/skygear/oddb"
+	odplugin "github.com/oursky/skygear/plugin"
+	"github.com/oursky/skygear/plugin/common"
 )
 
 var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {

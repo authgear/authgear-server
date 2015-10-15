@@ -1,7 +1,7 @@
 package oddb
 
 import (
-	"github.com/oursky/ourd/uuid"
+	"github.com/oursky/skygear/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 

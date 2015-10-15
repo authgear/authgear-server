@@ -7,10 +7,10 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/push"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/oderr"
+	"github.com/oursky/skygear/push"
+	"github.com/oursky/skygear/router"
 )
 
 type pushToDevicePayload struct {

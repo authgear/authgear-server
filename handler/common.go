@@ -3,7 +3,7 @@ package handler
 import (
 	"time"
 
-	"github.com/oursky/ourd/uuid"
+	"github.com/oursky/skygear/uuid"
 )
 
 var (

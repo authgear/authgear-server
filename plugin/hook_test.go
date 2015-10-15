@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/oursky/ourd/hook"
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/hook"
+	"github.com/oursky/skygear/oddb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

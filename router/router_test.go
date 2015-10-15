@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/oursky/ourd/oderr"
+	"github.com/oursky/skygear/oderr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

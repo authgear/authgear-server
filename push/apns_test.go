@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oursky/ourd/oddb"
-	. "github.com/oursky/ourd/ourtest"
+	"github.com/oursky/skygear/oddb"
+	. "github.com/oursky/skygear/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/timehop/apns"
 )

@@ -3,7 +3,7 @@ package fs
 import (
 	"os"
 
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 func recordEventByPath(path string) oddb.RecordHookEvent {

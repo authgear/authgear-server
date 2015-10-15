@@ -14,7 +14,7 @@ Dependencies
 
 Development
 ===========
-$ `go generate github.com/oursky/ourd/oddb/...`
+$ `go generate github.com/oursky/skygear/oddb/...`
 $ `go build && ./ourd development.ini`
 
 config.ini can be provided in args or os ENV `OD_CONFIG`.
@@ -37,7 +37,7 @@ You may refer to .travis.yml
 
 > host    all             all             127.0.0.1/32            trust
 
-run `go test github.com/oursky/ourd/...`
+run `go test github.com/oursky/skygear/...`
 
 For local development, you are suggested to open GoConvey to keep track of testing status.
 

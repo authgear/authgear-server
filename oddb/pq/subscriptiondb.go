@@ -11,7 +11,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/lib/pq"
-	"github.com/oursky/ourd/oddb"
+	"github.com/oursky/skygear/oddb"
 )
 
 func isDeviceNotFound(err error) bool {

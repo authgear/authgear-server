@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/ourd/oderr"
+	"github.com/oursky/skygear/oderr"
 )
 
 // pipeline encapsulates a transformation which a request will come throught

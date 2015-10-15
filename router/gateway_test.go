@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	. "github.com/oursky/ourd/ourtest"
+	. "github.com/oursky/skygear/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

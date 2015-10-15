@@ -10,12 +10,12 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/oursky/ourd/asset"
-	"github.com/oursky/ourd/hook"
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/oddb/oddbconv"
-	"github.com/oursky/ourd/oderr"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/asset"
+	"github.com/oursky/skygear/hook"
+	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/oddb/oddbconv"
+	"github.com/oursky/skygear/oderr"
+	"github.com/oursky/skygear/router"
 )
 
 type serializedRecord struct {

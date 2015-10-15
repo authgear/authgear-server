@@ -3,13 +3,13 @@ package handler
 import (
 	"testing"
 
-	"github.com/oursky/ourd/handler/handlertest"
-	. "github.com/oursky/ourd/ourtest"
+	"github.com/oursky/skygear/handler/handlertest"
+	. "github.com/oursky/skygear/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/oursky/ourd/oddb"
-	"github.com/oursky/ourd/push"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/push"
+	"github.com/oursky/skygear/router"
 )
 
 func TestPushToDevice(t *testing.T) {

@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/oursky/ourd/pubsub"
-	"github.com/oursky/ourd/router"
+	"github.com/oursky/skygear/pubsub"
+	"github.com/oursky/skygear/router"
 )
 
 func NewPubSubHandler(ws *pubsub.WsPubSub) router.Handler {
