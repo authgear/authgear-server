@@ -206,7 +206,7 @@ func (loc Location) String() string {
 // A Data represents a key-value object used for storing ODRecord.
 type Data map[string]interface{}
 
-// Record is the primary entity of storage in Ourd.
+// Record is the primary entity of storage in Skygear.
 type Record struct {
 	ID         RecordID
 	DatabaseID string `json:"-"`

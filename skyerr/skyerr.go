@@ -8,7 +8,7 @@ import (
 	"github.com/oursky/skygear/skydb"
 )
 
-// Various errors emitted by Ourd handlers
+// Various errors emitted by Skygear handlers
 var (
 	ErrAuthFailure  = newError("AuthenticationError", 101, "authentication failed")
 	ErrInvalidLogin = newError("AuthenticationError", 102, "invalid authentication information")

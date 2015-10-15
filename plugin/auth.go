@@ -2,7 +2,7 @@ package plugin
 
 import ()
 
-// AuthProvider is implemented by plugin to provider user authentication functionality to Ourd.
+// AuthProvider is implemented by plugin to provider user authentication functionality to Skygear.
 type AuthProvider struct {
 	Name   string
 	plugin *Plugin

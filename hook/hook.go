@@ -9,7 +9,7 @@ import (
 // Kind defines when a hook should be executed on mutation of skydb.Record.
 type Kind string
 
-// The four kind of hooks provided by Ourd.
+// The four kind of hooks provided by Skygear.
 const (
 	BeforeSave   Kind = "beforeSave"
 	AfterSave         = "afterSave"

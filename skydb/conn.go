@@ -26,7 +26,7 @@ var ZeroTime = time.Time{}
 // DBHookFunc specifies the interface of a database hook function
 type DBHookFunc func(Database, *Record, RecordHookEvent)
 
-// Conn encapsulates the interface of an Ourd connection to a container.
+// Conn encapsulates the interface of an Skygear connection to a container.
 type Conn interface {
 	// CRUD of UserInfo, smell like a bad design to attach these onto
 	// a Conn, but looks very convenient to user.

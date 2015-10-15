@@ -6,7 +6,7 @@ import (
 
 var drivers = map[string]Driver{}
 
-// Register makes an Ourd database driver available
+// Register makes an Skygear database driver available
 // with the given name.
 //
 // Register panics if it is called with a nil driver or
