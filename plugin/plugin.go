@@ -12,7 +12,7 @@ import (
 )
 
 // Plugin represents a collection of handlers, hooks and lambda functions
-// that extends or modifies functionality provided by ourd.
+// that extends or modifies functionality provided by skygear.
 type Plugin struct {
 	transport Transport
 }

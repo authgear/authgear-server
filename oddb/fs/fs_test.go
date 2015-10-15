@@ -13,7 +13,7 @@ import (
 )
 
 func tempdir() string {
-	dir, err := ioutil.TempDir("", "com.oursky.ourd.oddb.fs")
+	dir, err := ioutil.TempDir("", "com.oursky.skygear.oddb.fs")
 	if err != nil {
 		panic(err)
 	}

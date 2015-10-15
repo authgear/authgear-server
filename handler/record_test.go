@@ -974,7 +974,7 @@ func (s *urlOnlyAssetStore) PutFileReader(name string, src io.Reader, length int
 }
 
 func (s *urlOnlyAssetStore) SignedURL(name string, expiredAt time.Time) string {
-	return fmt.Sprintf("http://ourd.test/asset/%s?expiredAt=1997-07-01T00:00:00", name)
+	return fmt.Sprintf("http://skygear.test/asset/%s?expiredAt=1997-07-01T00:00:00", name)
 }
 
 func TestRecordAssetSerialization(t *testing.T) {
@@ -1006,7 +1006,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 					"asset": {
 						"$type": "asset",
 						"$name": "asset-name",
-						"$url": "http://ourd.test/asset/asset-name?expiredAt=1997-07-01T00:00:00"
+						"$url": "http://skygear.test/asset/asset-name?expiredAt=1997-07-01T00:00:00"
 					}
 				}]
 			}`)

@@ -19,13 +19,13 @@ func TestTxDB(t *testing.T) {
 			"content": oddb.FieldType{Type: oddb.TypeString},
 		}), ShouldBeNil)
 
-		insertRow(t, dbx, `INSERT INTO app_com_oursky_ourd."record" `+
+		insertRow(t, dbx, `INSERT INTO app_com_oursky_skygear."record" `+
 			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content") `+
 			`VALUES ('', '1', '', '0001-01-01 00:00:00', '', '0001-01-01 00:00:00', '', 'original1')`)
-		insertRow(t, dbx, `INSERT INTO app_com_oursky_ourd."record" `+
+		insertRow(t, dbx, `INSERT INTO app_com_oursky_skygear."record" `+
 			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content") `+
 			`VALUES ('', '2', '', '0001-01-01 00:00:00', '', '0001-01-01 00:00:00', '', 'original2')`)
-		insertRow(t, dbx, `INSERT INTO app_com_oursky_ourd."record" `+
+		insertRow(t, dbx, `INSERT INTO app_com_oursky_skygear."record" `+
 			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content") `+
 			`VALUES ('', '3', '', '0001-01-01 00:00:00', '', '0001-01-01 00:00:00', '', 'original3')`)
 
@@ -55,17 +55,17 @@ func TestTxDB(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				var content string
-				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_ourd."record" WHERE _id = '0'`).
+				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_skygear."record" WHERE _id = '0'`).
 					Scan(&content)
 				So(err, ShouldBeNil)
 				So(content, ShouldEqual, "new0")
 
-				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_ourd."record" WHERE _id = '1'`).
+				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_skygear."record" WHERE _id = '1'`).
 					Scan(&content)
 				So(err, ShouldBeNil)
 				So(content, ShouldEqual, "new1")
 
-				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_ourd."record" WHERE _id = '2'`).
+				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_skygear."record" WHERE _id = '2'`).
 					Scan(&content)
 				So(err, ShouldEqual, sql.ErrNoRows)
 			})
@@ -75,16 +75,16 @@ func TestTxDB(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				var content string
-				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_ourd."record" WHERE _id = '0'`).
+				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_skygear."record" WHERE _id = '0'`).
 					Scan(&content)
 				So(err, ShouldEqual, sql.ErrNoRows)
 
-				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_ourd."record" WHERE _id = '1'`).
+				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_skygear."record" WHERE _id = '1'`).
 					Scan(&content)
 				So(err, ShouldBeNil)
 				So(content, ShouldEqual, "original1")
 
-				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_ourd."record" WHERE _id = '2'`).
+				err = dbx.QueryRowx(`SELECT content FROM app_com_oursky_skygear."record" WHERE _id = '2'`).
 					Scan(&content)
 				So(err, ShouldBeNil)
 				So(content, ShouldEqual, "original2")

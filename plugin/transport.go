@@ -15,7 +15,7 @@ type AuthResponse struct {
 	AuthData    map[string]interface{} `json:"auth_data"`
 }
 
-// A Transport represents the interface of data transfer between ourd
+// A Transport represents the interface of data transfer between skygear
 // and remote process.
 type Transport interface {
 	RunInit() ([]byte, error)

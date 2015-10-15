@@ -49,7 +49,7 @@ func (notifier *pushNotifier) Notify(device oddb.Device, notice Notice) error {
 		"aps": map[string]interface{}{
 			"content_available": 1,
 		},
-		"_ourd": map[string]interface{}{
+		"_skygear": map[string]interface{}{
 			"seq-num":         notice.SeqNum,
 			"subscription-id": notice.SubscriptionID,
 		},

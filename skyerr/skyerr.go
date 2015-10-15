@@ -1,4 +1,4 @@
-// Package skyerr contains information of errors used in ourd.
+// Package skyerr contains information of errors used in skygear.
 package skyerr
 
 import (
@@ -57,7 +57,7 @@ const (
 	PersistentStorageErr
 )
 
-// Error specifies the interfaces required by an error in ourd
+// Error specifies the interfaces required by an error in skygear
 type Error interface {
 	Type() string
 	Code() uint

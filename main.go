@@ -100,7 +100,7 @@ func logMiddleware(next http.Handler) http.Handler {
 }
 
 func usage() {
-	fmt.Println("Usage: ourd [<config file>]")
+	fmt.Println("Usage: skygear [<config file>]")
 }
 
 func main() {

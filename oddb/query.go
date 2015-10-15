@@ -127,7 +127,7 @@ type Query struct {
 //
 // oddb's function receives zero or more arguments and returns a DataType
 // as a result. Result data type is currently omitted in this interface since
-// ourd doesn't use it internally yet. In the future it can be utilized to
+// skygear doesn't use it internally yet. In the future it can be utilized to
 // provide more extensive type checking at handler level.
 type Func interface {
 	Args() []interface{}

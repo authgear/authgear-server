@@ -48,7 +48,7 @@ func (g *modGateway) PUT(path, body string) *httptest.ResponseRecorder {
 }
 
 func (g *modGateway) makeRequest(method, path, body string) *httptest.ResponseRecorder {
-	path = "http://ourd.test/" + path
+	path = "http://skygear.test/" + path
 	req, _ := http.NewRequest(method, path, strings.NewReader(body))
 	resp := httptest.NewRecorder()
 
@@ -122,7 +122,7 @@ func TestAssetUploadURLHandler(t *testing.T) {
 				return "f28c4037-uuid-4d0a-94d6-2206ab371d6c"
 			}
 
-			req, _ := http.NewRequest("PUT", "http://ourd.test/asset", strings.NewReader(``))
+			req, _ := http.NewRequest("PUT", "http://skygear.test/asset", strings.NewReader(``))
 			req.Header.Set("Content-Type", "plain/text")
 			req.Body = ioutil.NopCloser(strings.NewReader(`I am a boy`))
 
@@ -159,7 +159,7 @@ func TestAssetUploadURLHandler(t *testing.T) {
 		})
 
 		Convey("errors reading zero-byte body", func() {
-			req, _ := http.NewRequest("PUT", "http://ourd.test/asset", strings.NewReader(``))
+			req, _ := http.NewRequest("PUT", "http://skygear.test/asset", strings.NewReader(``))
 			req.Header.Set("Content-Type", "plain/text")
 			resp := r.Do(req)
 
