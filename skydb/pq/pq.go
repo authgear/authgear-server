@@ -554,7 +554,7 @@ func (c *conn) DeleteDeviceByToken(token string, t time.Time) error {
 	return nil
 }
 
-func (c *conn) DeleteEmptyDeviceByTime(t time.Time) error {
+func (c *conn) DeleteEmptyDevicesByTime(t time.Time) error {
 	builder := psql.Delete(c.tableName("_device")).
 		Where("token IS NULL")
 	if t != skydb.ZeroTime {

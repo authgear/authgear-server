@@ -373,7 +373,7 @@ func initDevice(config Configuration, connOpener func() (skydb.Conn, error)) {
 		log.Warnf("Failed to delete outdated devices: %v", err)
 	}
 
-	conn.DeleteEmptyDeviceByTime(time.Now().AddDate(0, 0, -1))
+	conn.DeleteEmptyDevicesByTime(time.Now().AddDate(0, 0, -1))
 }
 
 func initSubscription(config Configuration, connOpener func() (skydb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
