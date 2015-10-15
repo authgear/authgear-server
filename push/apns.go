@@ -6,7 +6,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/skydb"
 	"github.com/timehop/apns"
 )
 
@@ -32,8 +32,8 @@ type feedbackReceiver interface {
 
 // APNSPusher pushes notification via apns
 type APNSPusher struct {
-	// Function to obtain a oddb connection
-	connOpener func() (oddb.Conn, error)
+	// Function to obtain a skydb connection
+	connOpener func() (skydb.Conn, error)
 
 	// we are directly coupling on apns as it seems redundant to duplicate
 	// all the payload and client logic and interfaces.
@@ -44,7 +44,7 @@ type APNSPusher struct {
 
 // NewAPNSPusher returns a new APNSPusher from content of certificate
 // and private key as string
-func NewAPNSPusher(connOpener func() (oddb.Conn, error), gwType GatewayType, cert string, key string) (*APNSPusher, error) {
+func NewAPNSPusher(connOpener func() (skydb.Conn, error), gwType GatewayType, cert string, key string) (*APNSPusher, error) {
 	var gateway, fbGateway string
 	switch gwType {
 	case Sandbox:
@@ -107,7 +107,7 @@ func (pusher *APNSPusher) RunFeedback() {
 func (pusher *APNSPusher) recvFeedback() {
 	conn, err := pusher.connOpener()
 	if err != nil {
-		log.Errorf("apns/fb: failed to open oddb.Conn, abort feedback retrival: %v\n", err)
+		log.Errorf("apns/fb: failed to open skydb.Conn, abort feedback retrival: %v\n", err)
 		return
 	}
 

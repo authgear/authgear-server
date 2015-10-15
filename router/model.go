@@ -10,9 +10,9 @@ import (
 	"github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/hook"
-	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/provider"
 	"github.com/oursky/skygear/push"
+	"github.com/oursky/skygear/skydb"
 )
 
 // Handler specifies the function signature of a request handler function
@@ -38,10 +38,10 @@ type Payload struct {
 
 	AppName    string
 	UserInfoID string
-	UserInfo   *oddb.UserInfo
+	UserInfo   *skydb.UserInfo
 
-	DBConn   oddb.Conn
-	Database oddb.Database
+	DBConn   skydb.Conn
+	Database skydb.Database
 
 	NotificationSender push.Sender
 }

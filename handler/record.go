@@ -12,18 +12,18 @@ import (
 
 	"github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/hook"
-	"github.com/oursky/skygear/oddb"
-	"github.com/oursky/skygear/oddb/oddbconv"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skydbconv"
 	"github.com/oursky/skygear/skyerr"
 )
 
 type serializedRecord struct {
-	Record     *oddb.Record
+	Record     *skydb.Record
 	AssetStore asset.Store
 }
 
-func newSerializedRecord(record *oddb.Record, assetStore asset.Store) serializedRecord {
+func newSerializedRecord(record *skydb.Record, assetStore asset.Store) serializedRecord {
 	return serializedRecord{record, assetStore}
 }
 
@@ -54,12 +54,12 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 	for key, value := range r.Data {
 		switch v := value.(type) {
 		case time.Time:
-			m[key] = oddbconv.ToMap(oddbconv.MapTime(v))
-		case oddb.Reference:
-			m[key] = oddbconv.ToMap(oddbconv.MapReference(v))
-		case *oddb.Location:
-			m[key] = oddbconv.ToMap((*oddbconv.MapLocation)(v))
-		case oddb.Asset:
+			m[key] = skydbconv.ToMap(skydbconv.MapTime(v))
+		case skydb.Reference:
+			m[key] = skydbconv.ToMap(skydbconv.MapReference(v))
+		case *skydb.Location:
+			m[key] = skydbconv.ToMap((*skydbconv.MapLocation)(v))
+		case skydb.Asset:
 			// TODO: refactor out this if. We know whether we are
 			// injected an asset store at the start of handler
 			var url string
@@ -90,7 +90,7 @@ func (s serializedRecord) marshalTransient(transient map[string]interface{}) map
 	m := map[string]interface{}{}
 	for key, value := range transient {
 		switch v := value.(type) {
-		case oddb.Record:
+		case skydb.Record:
 			m[key] = newSerializedRecord(&v, s.AssetStore)
 		default:
 			m[key] = v
@@ -100,8 +100,8 @@ func (s serializedRecord) marshalTransient(transient map[string]interface{}) map
 }
 
 // transportRecord override JSON serialization and deserialization of
-// oddb.Record
-type transportRecord oddb.Record
+// skydb.Record
+type transportRecord skydb.Record
 
 func (r *transportRecord) UnmarshalJSON(data []byte) error {
 	object := map[string]interface{}{}
@@ -140,7 +140,7 @@ func (r *transportRecord) FromMap(m map[string]interface{}) error {
 
 	aclData, ok := m["_access"]
 	if ok {
-		acl := oddb.RecordACL{}
+		acl := skydb.RecordACL{}
 		if err := acl.InitFromJSON(aclData); err != nil {
 			return fmt.Errorf(`record/json: %v`, err)
 		}
@@ -149,7 +149,7 @@ func (r *transportRecord) FromMap(m map[string]interface{}) error {
 
 	purgeReservedKey(m)
 	data := map[string]interface{}{}
-	if err := (*oddbconv.MapData)(&data).FromMap(m); err != nil {
+	if err := (*skydbconv.MapData)(&data).FromMap(m); err != nil {
 		return err
 	}
 	r.Data = data
@@ -169,7 +169,7 @@ type jsonData map[string]interface{}
 
 func (data jsonData) ToMap(m map[string]interface{}) {
 	for key, value := range data {
-		if mapper, ok := value.(oddbconv.ToMapper); ok {
+		if mapper, ok := value.(skydbconv.ToMapper); ok {
 			valueMap := map[string]interface{}{}
 			mapper.ToMap(valueMap)
 			m[key] = valueMap
@@ -251,7 +251,7 @@ EOF
 */
 func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	var (
-		records []*oddb.Record
+		records []*skydb.Record
 		atomic  bool
 	)
 	atomic, _ = payload.Data["atomic"].(bool)
@@ -266,7 +266,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	incomingRecordItems := make([]interface{}, 0, len(recordMaps))
 
 	for _, recordMap := range recordMaps {
-		var record oddb.Record
+		var record skydb.Record
 		if err := (*transportRecord)(&record).InitFromJSON(recordMap); err != nil {
 			incomingRecordItems = append(incomingRecordItems, err)
 		} else {
@@ -283,7 +283,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		Atomic:        atomic,
 	}
 	resp := recordModifyResponse{
-		ErrMap: map[oddb.RecordID]error{},
+		ErrMap: map[skydb.RecordID]error{},
 	}
 
 	var saveFunc recordModifyFunc
@@ -308,7 +308,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		switch item := itemi.(type) {
 		case error:
 			result = newSerializedError("", skyerr.NewRequestInvalidErr(item))
-		case oddb.RecordID:
+		case skydb.RecordID:
 			if err, ok := resp.ErrMap[item]; ok {
 				log.WithFields(log.Fields{
 					"recordID": item,
@@ -335,7 +335,7 @@ type recordModifyFunc func(*recordModifyRequest, *recordModifyResponse) error
 
 func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFunc recordModifyFunc) recordModifyFunc {
 	return func(req *recordModifyRequest, resp *recordModifyResponse) (err error) {
-		txDB, ok := req.Db.(oddb.TxDatabase)
+		txDB, ok := req.Db.(skydb.TxDatabase)
 		if !ok {
 			err = skyerr.ErrDatabaseTxNotSupported
 			return
@@ -354,7 +354,7 @@ func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFun
 	}
 }
 
-func withTransaction(txDB oddb.TxDatabase, do func() error) (err error) {
+func withTransaction(txDB skydb.TxDatabase, do func() error) (err error) {
 	err = txDB.Begin()
 	if err != nil {
 		return
@@ -374,22 +374,22 @@ func withTransaction(txDB oddb.TxDatabase, do func() error) (err error) {
 }
 
 type recordModifyRequest struct {
-	Db           oddb.Database
+	Db           skydb.Database
 	HookRegistry *hook.Registry
 	Atomic       bool
 
 	// Save only
-	RecordsToSave []*oddb.Record
+	RecordsToSave []*skydb.Record
 	UserInfoID    string
 
 	// Delete Only
-	RecordIDsToDelete []oddb.RecordID
+	RecordIDsToDelete []skydb.RecordID
 }
 
 type recordModifyResponse struct {
-	ErrMap           map[oddb.RecordID]error
-	SavedRecords     []*oddb.Record
-	DeletedRecordIDs []oddb.RecordID
+	ErrMap           map[skydb.RecordID]error
+	SavedRecords     []*skydb.Record
+	DeletedRecordIDs []skydb.RecordID
 }
 
 func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) error {
@@ -397,15 +397,15 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	records := req.RecordsToSave
 
 	// fetch records
-	originalRecordMap := map[oddb.RecordID]*oddb.Record{}
-	records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
-		var dbRecord oddb.Record
+	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
+	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
+		var dbRecord skydb.Record
 		err = db.Get(record.ID, &dbRecord)
-		if err == oddb.ErrRecordNotFound {
+		if err == skydb.ErrRecordNotFound {
 			return nil
 		}
 
-		var origRecord oddb.Record
+		var origRecord skydb.Record
 		copyRecord(&origRecord, &dbRecord)
 		originalRecordMap[origRecord.ID] = &origRecord
 
@@ -417,7 +417,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 	// execute before save hooks
 	if req.HookRegistry != nil {
-		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
 			originalRecord, _ := originalRecordMap[record.ID]
 			err = req.HookRegistry.ExecuteHooks(hook.BeforeSave, record, originalRecord)
 			return
@@ -430,13 +430,13 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	}
 
 	// save records
-	records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
 		now := timeNow()
 
-		var deltaRecord oddb.Record
+		var deltaRecord skydb.Record
 		originalRecord, ok := originalRecordMap[record.ID]
 		if !ok {
-			originalRecord = &oddb.Record{}
+			originalRecord = &skydb.Record{}
 
 			record.OwnerID = req.UserInfoID
 			record.CreatedAt = now
@@ -458,7 +458,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 	// execute after save hooks
 	if req.HookRegistry != nil {
-		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
 			originalRecord, _ := originalRecordMap[record.ID]
 			req.HookRegistry.ExecuteHooks(hook.AfterSave, record, originalRecord)
 			return
@@ -469,9 +469,9 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	return nil
 }
 
-type recordFunc func(*oddb.Record) error
+type recordFunc func(*skydb.Record) error
 
-func executeRecordFunc(recordsIn []*oddb.Record, errMap map[oddb.RecordID]error, rFunc recordFunc) (recordsOut []*oddb.Record) {
+func executeRecordFunc(recordsIn []*skydb.Record, errMap map[skydb.RecordID]error, rFunc recordFunc) (recordsOut []*skydb.Record) {
 	for _, record := range recordsIn {
 		if err := rFunc(record); err != nil {
 			errMap[record.ID] = err
@@ -483,7 +483,7 @@ func executeRecordFunc(recordsIn []*oddb.Record, errMap map[oddb.RecordID]error,
 	return
 }
 
-func copyRecord(dst, src *oddb.Record) {
+func copyRecord(dst, src *skydb.Record) {
 	*dst = *src
 
 	dst.Data = map[string]interface{}{}
@@ -492,7 +492,7 @@ func copyRecord(dst, src *oddb.Record) {
 	}
 }
 
-func mergeRecord(dst, src *oddb.Record) {
+func mergeRecord(dst, src *skydb.Record) {
 	dst.ID = src.ID
 	dst.ACL = src.ACL
 
@@ -514,7 +514,7 @@ func mergeRecord(dst, src *oddb.Record) {
 //
 // It is the caller's reponsibility to ensure that base and delta identify
 // the same record
-func deriveDeltaRecord(dst, base, delta *oddb.Record) {
+func deriveDeltaRecord(dst, base, delta *skydb.Record) {
 	dst.ID = delta.ID
 	dst.ACL = delta.ACL
 	dst.OwnerID = delta.OwnerID
@@ -536,7 +536,7 @@ func deriveDeltaRecord(dst, base, delta *oddb.Record) {
 	}
 }
 
-func extendRecordSchema(db oddb.Database, records []*oddb.Record) error {
+func extendRecordSchema(db skydb.Database, records []*skydb.Record) error {
 	recordSchemaMergerMap := map[string]schemaMerger{}
 	for _, record := range records {
 		recordType := record.ID.Type
@@ -564,15 +564,15 @@ func extendRecordSchema(db oddb.Database, records []*oddb.Record) error {
 }
 
 type schemaMerger struct {
-	finalSchema oddb.RecordSchema
+	finalSchema skydb.RecordSchema
 	err         error
 }
 
 func newSchemaMerger() schemaMerger {
-	return schemaMerger{finalSchema: oddb.RecordSchema{}}
+	return schemaMerger{finalSchema: skydb.RecordSchema{}}
 }
 
-func (m *schemaMerger) Extend(schema oddb.RecordSchema) {
+func (m *schemaMerger) Extend(schema skydb.RecordSchema) {
 	if m.err != nil {
 		return
 	}
@@ -589,12 +589,12 @@ func (m *schemaMerger) Extend(schema oddb.RecordSchema) {
 	}
 }
 
-func (m schemaMerger) Schema() (oddb.RecordSchema, error) {
+func (m schemaMerger) Schema() (skydb.RecordSchema, error) {
 	return m.finalSchema, m.err
 }
 
-func deriveRecordSchema(m oddb.Data) oddb.RecordSchema {
-	schema := oddb.RecordSchema{}
+func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
+	schema := skydb.RecordSchema{}
 	for key, value := range m {
 		switch value.(type) {
 		default:
@@ -603,38 +603,38 @@ func deriveRecordSchema(m oddb.Data) oddb.RecordSchema {
 				"value": value,
 			}).Panicf("got unrecgonized type = %T", value)
 		case float64:
-			schema[key] = oddb.FieldType{
-				Type: oddb.TypeNumber,
+			schema[key] = skydb.FieldType{
+				Type: skydb.TypeNumber,
 			}
 		case string:
-			schema[key] = oddb.FieldType{
-				Type: oddb.TypeString,
+			schema[key] = skydb.FieldType{
+				Type: skydb.TypeString,
 			}
 		case time.Time:
-			schema[key] = oddb.FieldType{
-				Type: oddb.TypeDateTime,
+			schema[key] = skydb.FieldType{
+				Type: skydb.TypeDateTime,
 			}
 		case bool:
-			schema[key] = oddb.FieldType{
-				Type: oddb.TypeBoolean,
+			schema[key] = skydb.FieldType{
+				Type: skydb.TypeBoolean,
 			}
-		case oddb.Asset:
-			schema[key] = oddb.FieldType{
-				Type: oddb.TypeAsset,
+		case skydb.Asset:
+			schema[key] = skydb.FieldType{
+				Type: skydb.TypeAsset,
 			}
-		case oddb.Reference:
-			v := value.(oddb.Reference)
-			schema[key] = oddb.FieldType{
-				Type:          oddb.TypeReference,
+		case skydb.Reference:
+			v := value.(skydb.Reference)
+			schema[key] = skydb.FieldType{
+				Type:          skydb.TypeReference,
 				ReferenceType: v.Type(),
 			}
-		case *oddb.Location:
-			schema[key] = oddb.FieldType{
-				Type: oddb.TypeLocation,
+		case *skydb.Location:
+			schema[key] = skydb.FieldType{
+				Type: skydb.TypeLocation,
 			}
 		case map[string]interface{}, []interface{}:
-			schema[key] = oddb.FieldType{
-				Type: oddb.TypeJSON,
+			schema[key] = skydb.FieldType{
+				Type: skydb.TypeJSON,
 			}
 		}
 	}
@@ -662,7 +662,7 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	length := len(interfaces)
-	recordIDs := make([]oddb.RecordID, length, length)
+	recordIDs := make([]skydb.RecordID, length, length)
 	for i, it := range interfaces {
 		rawID, ok := it.(string)
 		if !ok {
@@ -684,9 +684,9 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 
 	results := make([]interface{}, length, length)
 	for i, recordID := range recordIDs {
-		record := oddb.Record{}
+		record := skydb.Record{}
 		if err := db.Get(recordID, &record); err != nil {
-			if err == oddb.ErrRecordNotFound {
+			if err == skydb.ErrRecordNotFound {
 				results[i] = newSerializedError(
 					recordID.String(),
 					skyerr.ErrRecordNotFound,
@@ -709,15 +709,15 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	response.Result = results
 }
 
-func sortFromRaw(rawSort []interface{}, sort *oddb.Sort) {
+func sortFromRaw(rawSort []interface{}, sort *skydb.Sort) {
 	var (
 		keyPath   string
-		funcExpr  oddb.Func
-		sortOrder oddb.SortOrder
+		funcExpr  skydb.Func
+		sortOrder skydb.SortOrder
 	)
 	switch v := rawSort[0].(type) {
 	case map[string]interface{}:
-		if err := (*oddbconv.MapKeyPath)(&keyPath).FromMap(v); err != nil {
+		if err := (*skydbconv.MapKeyPath)(&keyPath).FromMap(v); err != nil {
 			panic(err)
 		}
 	case []interface{}:
@@ -736,9 +736,9 @@ func sortFromRaw(rawSort []interface{}, sort *oddb.Sort) {
 	}
 	switch orderStr {
 	case "asc":
-		sortOrder = oddb.Asc
+		sortOrder = skydb.Asc
 	case "desc":
-		sortOrder = oddb.Desc
+		sortOrder = skydb.Desc
 	default:
 		panic(fmt.Errorf("unknown sort order: %v", orderStr))
 	}
@@ -748,9 +748,9 @@ func sortFromRaw(rawSort []interface{}, sort *oddb.Sort) {
 	sort.Order = sortOrder
 }
 
-func sortsFromRaw(rawSorts []interface{}) []oddb.Sort {
+func sortsFromRaw(rawSorts []interface{}) []skydb.Sort {
 	length := len(rawSorts)
-	sorts := make([]oddb.Sort, length, length)
+	sorts := make([]skydb.Sort, length, length)
 
 	for i := range rawSorts {
 		sortSlice, _ := rawSorts[i].([]interface{})
@@ -763,36 +763,36 @@ func sortsFromRaw(rawSorts []interface{}) []oddb.Sort {
 	return sorts
 }
 
-func predicateOperatorFromString(operatorString string) oddb.Operator {
+func predicateOperatorFromString(operatorString string) skydb.Operator {
 	switch operatorString {
 	case "and":
-		return oddb.And
+		return skydb.And
 	case "or":
-		return oddb.Or
+		return skydb.Or
 	case "not":
-		return oddb.Not
+		return skydb.Not
 	case "eq":
-		return oddb.Equal
+		return skydb.Equal
 	case "gt":
-		return oddb.GreaterThan
+		return skydb.GreaterThan
 	case "lt":
-		return oddb.LessThan
+		return skydb.LessThan
 	case "gte":
-		return oddb.GreaterThanOrEqual
+		return skydb.GreaterThanOrEqual
 	case "lte":
-		return oddb.LessThanOrEqual
+		return skydb.LessThanOrEqual
 	case "neq":
-		return oddb.NotEqual
+		return skydb.NotEqual
 	case "like":
-		return oddb.Like
+		return skydb.Like
 	case "ilike":
-		return oddb.ILike
+		return skydb.ILike
 	default:
 		panic(fmt.Errorf("unrecognized operator = %s", operatorString))
 	}
 }
 
-func predicateFromRaw(rawPredicate []interface{}) oddb.Predicate {
+func predicateFromRaw(rawPredicate []interface{}) skydb.Predicate {
 	if len(rawPredicate) < 2 {
 		panic(fmt.Errorf("got len(predicate) = %v, want at least 2", len(rawPredicate)))
 	}
@@ -813,7 +813,7 @@ func predicateFromRaw(rawPredicate []interface{}) oddb.Predicate {
 			children[i-1] = predicateFromRaw(subRawPredicate)
 		} else {
 			expr := parseExpression(rawPredicate[i])
-			if expr.Type == oddb.KeyPath && strings.Contains(expr.Value.(string), ".") {
+			if expr.Type == skydb.KeyPath && strings.Contains(expr.Value.(string), ".") {
 
 				panic(fmt.Errorf("Key path `%s` is not supported.", expr.Value))
 			}
@@ -825,39 +825,39 @@ func predicateFromRaw(rawPredicate []interface{}) oddb.Predicate {
 		panic(fmt.Errorf("Expected number of expressions be 2, got %v", len(children)))
 	}
 
-	predicate := oddb.Predicate{
+	predicate := skydb.Predicate{
 		Operator: operator,
 		Children: children,
 	}
 	return predicate
 }
 
-func parseExpression(i interface{}) oddb.Expression {
+func parseExpression(i interface{}) skydb.Expression {
 	switch v := i.(type) {
 	case map[string]interface{}:
 		var keyPath string
-		if err := oddbconv.MapFrom(i, (*oddbconv.MapKeyPath)(&keyPath)); err == nil {
-			return oddb.Expression{
-				Type:  oddb.KeyPath,
+		if err := skydbconv.MapFrom(i, (*skydbconv.MapKeyPath)(&keyPath)); err == nil {
+			return skydb.Expression{
+				Type:  skydb.KeyPath,
 				Value: keyPath,
 			}
 		}
 	case []interface{}:
 		if f, err := parseFunc(v); err == nil {
-			return oddb.Expression{
-				Type:  oddb.Function,
+			return skydb.Expression{
+				Type:  skydb.Function,
 				Value: f,
 			}
 		}
 	}
 
-	return oddb.Expression{
-		Type:  oddb.Literal,
-		Value: oddbconv.ParseInterface(i),
+	return skydb.Expression{
+		Type:  skydb.Literal,
+		Value: skydbconv.ParseInterface(i),
 	}
 }
 
-func parseFunc(s []interface{}) (f oddb.Func, err error) {
+func parseFunc(s []interface{}) (f skydb.Func, err error) {
 	keyword, _ := s[0].(string)
 	if keyword != "func" {
 		return nil, errors.New("not a function")
@@ -876,28 +876,28 @@ func parseFunc(s []interface{}) (f oddb.Func, err error) {
 	return
 }
 
-func parseDistanceFunc(s []interface{}) (*oddb.DistanceFunc, error) {
+func parseDistanceFunc(s []interface{}) (*skydb.DistanceFunc, error) {
 	if len(s) != 2 {
 		return nil, fmt.Errorf("want 2 arguments for distance func, got %d", len(s))
 	}
 
 	var field string
-	if err := oddbconv.MapFrom(s[0], (*oddbconv.MapKeyPath)(&field)); err != nil {
+	if err := skydbconv.MapFrom(s[0], (*skydbconv.MapKeyPath)(&field)); err != nil {
 		return nil, fmt.Errorf("invalid key path: %v", err)
 	}
 
-	var location oddb.Location
-	if err := oddbconv.MapFrom(s[1], (*oddbconv.MapLocation)(&location)); err != nil {
+	var location skydb.Location
+	if err := skydbconv.MapFrom(s[1], (*skydbconv.MapLocation)(&location)); err != nil {
 		return nil, fmt.Errorf("invalid location: %v", err)
 	}
 
-	return &oddb.DistanceFunc{
+	return &skydb.DistanceFunc{
 		Field:    field,
 		Location: &location,
 	}, nil
 }
 
-func queryFromRaw(rawQuery map[string]interface{}, query *oddb.Query) (err skyerr.Error) {
+func queryFromRaw(rawQuery map[string]interface{}, query *skydb.Query) (err skyerr.Error) {
 	defer func() {
 		// use panic to escape from inner error
 		if r := recover(); r != nil {
@@ -928,7 +928,7 @@ func queryFromRaw(rawQuery map[string]interface{}, query *oddb.Query) (err skyer
 	})
 
 	if transientIncludes, ok := rawQuery["include"].(map[string]interface{}); ok {
-		query.ComputedKeys = map[string]oddb.Expression{}
+		query.ComputedKeys = map[string]skydb.Expression{}
 		for key, value := range transientIncludes {
 			query.ComputedKeys[key] = parseExpression(value)
 		}
@@ -974,7 +974,7 @@ EOF
 func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	db := payload.Database
 
-	query := oddb.Query{}
+	query := skydb.Query{}
 	if err := queryFromRaw(payload.Data, &query); err != nil {
 		response.Err = err
 		return
@@ -990,11 +990,11 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	)
 
 	// Handler supports a type of transient field that eager load
-	// a referened record, which is not currently supported by oddb.
+	// a referened record, which is not currently supported by skydb.
 	// This type of expression is taken out of ComputedKeys and
 	// the wanted records are added to the transient field later.
 	for key, value := range query.ComputedKeys {
-		if value.Type == oddb.KeyPath {
+		if value.Type == skydb.KeyPath {
 			if eagerTransientKey != "" {
 				response.Err = skyerr.NewRequestInvalidErr(errors.New("eager loading for multiple keys is not supported"))
 				return
@@ -1012,7 +1012,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	}
 	defer results.Close()
 
-	records := []oddb.Record{}
+	records := []skydb.Record{}
 	for results.Scan() {
 		record := results.Record()
 		records = append(records, record)
@@ -1027,8 +1027,8 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		record := records[i]
 		if eagerTransientKey != "" {
 			record.Transient = map[string]interface{}{}
-			if ref, ok := record.Data[eagerKeyPath].(oddb.Reference); ok {
-				eagerRecord := oddb.Record{}
+			if ref, ok := record.Data[eagerKeyPath].(skydb.Reference); ok {
+				eagerRecord := skydb.Record{}
 				if err := db.Get(ref.ID, &eagerRecord); err != nil {
 					log.WithFields(log.Fields{
 						"ID":  ref.ID,
@@ -1067,7 +1067,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	length := len(interfaces)
-	recordIDs := make([]oddb.RecordID, length, length)
+	recordIDs := make([]skydb.RecordID, length, length)
 	for i, it := range interfaces {
 		rawID, ok := it.(string)
 		if !ok {
@@ -1092,7 +1092,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 		Atomic:            atomic,
 	}
 	resp := recordModifyResponse{
-		ErrMap: map[oddb.RecordID]error{},
+		ErrMap: map[skydb.RecordID]error{},
 	}
 
 	var deleteFunc recordModifyFunc
@@ -1114,7 +1114,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 		var result interface{}
 
 		if err, ok := resp.ErrMap[recordID]; ok {
-			if err == oddb.ErrRecordNotFound {
+			if err == skydb.ErrRecordNotFound {
 				result = newSerializedError(
 					recordID.String(),
 					skyerr.ErrRecordNotFound,
@@ -1132,8 +1132,8 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 			}
 		} else {
 			result = struct {
-				ID   oddb.RecordID `json:"_id"`
-				Type string        `json:"_type"`
+				ID   skydb.RecordID `json:"_id"`
+				Type string         `json:"_type"`
 			}{recordID, "record"}
 		}
 
@@ -1147,9 +1147,9 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) e
 	db := req.Db
 	recordIDs := req.RecordIDsToDelete
 
-	var records []*oddb.Record
+	var records []*skydb.Record
 	for _, recordID := range recordIDs {
-		var record oddb.Record
+		var record skydb.Record
 		if err := db.Get(recordID, &record); err != nil {
 			resp.ErrMap[recordID] = err
 		} else {
@@ -1158,13 +1158,13 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) e
 	}
 
 	if req.HookRegistry != nil {
-		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
 			err = req.HookRegistry.ExecuteHooks(hook.BeforeDelete, record, nil)
 			return
 		})
 	}
 
-	records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
 		return db.Delete(record.ID)
 	})
 
@@ -1173,7 +1173,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) e
 	}
 
 	if req.HookRegistry != nil {
-		records = executeRecordFunc(records, resp.ErrMap, func(record *oddb.Record) (err error) {
+		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
 			req.HookRegistry.ExecuteHooks(hook.AfterDelete, record, nil)
 			return
 		})

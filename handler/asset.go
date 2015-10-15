@@ -15,8 +15,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	ourAsset "github.com/oursky/skygear/asset"
-	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -65,7 +65,7 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 	// everything's right, proceed with the request
 
 	conn := payload.DBConn
-	asset := oddb.Asset{}
+	asset := skydb.Asset{}
 	if err := conn.GetAsset(fileName, &asset); err != nil {
 		log.Errorf("Failed to get asset: %v", err)
 
@@ -140,7 +140,7 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	asset := oddb.Asset{
+	asset := skydb.Asset{
 		Name:        fileName,
 		ContentType: contentType,
 		Size:        written,

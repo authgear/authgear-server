@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/skydb"
 )
 
 // Various errors emitted by Ourd handlers
@@ -156,7 +156,7 @@ func NewResourceDeleteFailureErrWithStringID(kind string, id string) Error {
 // NewAtomicOperationFailed return a new DatabaseError to be returned
 // when atomic operation (like record save/delete) failed due to
 // one of the sub-operation failed
-func NewAtomicOperationFailedErr(errMap map[oddb.RecordID]error) Error {
+func NewAtomicOperationFailedErr(errMap map[skydb.RecordID]error) Error {
 	info := map[string]interface{}{}
 	for recordID, err := range errMap {
 		info[recordID.String()] = err.Error()

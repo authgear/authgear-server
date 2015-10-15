@@ -7,9 +7,9 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
-	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/push"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -43,7 +43,7 @@ func (p *pushToUserPayload) Validate() error {
 	return nil
 }
 
-var sendPushNotification = func(sender push.Sender, device *oddb.Device, m push.Mapper) {
+var sendPushNotification = func(sender push.Sender, device *skydb.Device, m push.Mapper) {
 	go func() {
 		log.Debugf("Sending notification to device token = %s", device.Token)
 		err := sender.Send(m, device.Token)
@@ -68,12 +68,12 @@ func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
 		code    uint
 		info    map[string]interface{}
 	)
-	if e.err != nil && *e.err == oddb.ErrDeviceNotFound {
+	if e.err != nil && *e.err == skydb.ErrDeviceNotFound {
 		message = fmt.Sprintf(`cannot find device "%s"`, e.id)
 		t = "ResourceNotFound"
 		code = 101
 		info = map[string]interface{}{"id": e.id}
-	} else if e.err != nil && *e.err == oddb.ErrUserNotFound {
+	} else if e.err != nil && *e.err == skydb.ErrUserNotFound {
 		message = fmt.Sprintf(`cannot find user "%s"`, e.id)
 		t = "ResourceNotFound"
 		code = 101
@@ -141,7 +141,7 @@ func PushToDeviceHandler(rpayload *router.Payload, response *router.Response) {
 	conn := rpayload.DBConn
 	resultItems := make([]sendPushResponseItem, len(payload.DeviceIDs))
 	for i, deviceID := range payload.DeviceIDs {
-		device := oddb.Device{}
+		device := skydb.Device{}
 		resultItems[i].id = deviceID
 		if err := conn.GetDevice(deviceID, &device); err != nil {
 			resultItems[i].err = &err

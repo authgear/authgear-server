@@ -7,8 +7,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
 	"github.com/oursky/skygear/uuid"
 )
@@ -75,14 +75,14 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 
 	conn := rpayload.DBConn
 
-	device := oddb.Device{}
+	device := skydb.Device{}
 	deviceID := payload.ID
 	if deviceID == "" { // new device
 		device.ID = uuid.New()
 	} else { // update device
 		if err := conn.GetDevice(deviceID, &device); err != nil {
 			var errToReturn skyerr.Error
-			if err == oddb.ErrDeviceNotFound {
+			if err == skydb.ErrDeviceNotFound {
 				errToReturn = skyerr.ErrDeviceNotFound
 			} else {
 				log.WithFields(log.Fields{

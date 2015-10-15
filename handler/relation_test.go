@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/oursky/skygear/handler/handlertest"
-	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 )
 
 type testRelationConn struct {
@@ -15,10 +15,10 @@ type testRelationConn struct {
 	removeID  string
 	addErr    error
 	removeErr error
-	oddb.Conn
+	skydb.Conn
 }
 
-func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []oddb.UserInfo {
+func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
 	panic("not implemented")
 }
 

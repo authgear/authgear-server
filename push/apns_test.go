@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oursky/skygear/oddb"
 	. "github.com/oursky/skygear/ourtest"
+	"github.com/oursky/skygear/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/timehop/apns"
 )
@@ -116,7 +116,7 @@ type deleteCall struct {
 type mockConn struct {
 	calls []deleteCall
 	err   error
-	oddb.Conn
+	skydb.Conn
 }
 
 func (c *mockConn) DeleteDeviceByToken(token string, t time.Time) error {
@@ -124,7 +124,7 @@ func (c *mockConn) DeleteDeviceByToken(token string, t time.Time) error {
 	return c.err
 }
 
-func (c *mockConn) Open() (oddb.Conn, error) {
+func (c *mockConn) Open() (skydb.Conn, error) {
 	return c, nil
 }
 

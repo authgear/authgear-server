@@ -5,16 +5,16 @@ import (
 	"testing"
 
 	"github.com/oursky/skygear/hook"
-	"github.com/oursky/skygear/oddb"
+	"github.com/oursky/skygear/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 type hookOnlyTransport struct {
-	RunHookFunc func(string, string, *oddb.Record, *oddb.Record) (*oddb.Record, error)
+	RunHookFunc func(string, string, *skydb.Record, *skydb.Record) (*skydb.Record, error)
 	Transport
 }
 
-func (t *hookOnlyTransport) RunHook(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
+func (t *hookOnlyTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 	return t.RunHookFunc(recordType, trigger, record, originalRecord)
 }
 
@@ -23,10 +23,10 @@ func TestCreateHookFunc(t *testing.T) {
 		transport := &hookOnlyTransport{}
 		plugin := Plugin{transport: transport}
 
-		recordin := oddb.Record{
-			ID: oddb.NewRecordID("note", "id"),
+		recordin := skydb.Record{
+			ID: skydb.NewRecordID("note", "id"),
 		}
-		originalRecord := oddb.Record{
+		originalRecord := skydb.Record{
 			ID: recordin.ID,
 		}
 
@@ -38,22 +38,22 @@ func TestCreateHookFunc(t *testing.T) {
 			})
 
 			called := false
-			transport.RunHookFunc = func(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
+			transport.RunHookFunc = func(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 				called = true
 				So(recordType, ShouldEqual, "note")
 				So(trigger, ShouldEqual, "beforeSave")
-				So(*record, ShouldResemble, oddb.Record{
-					ID: oddb.NewRecordID("note", "id"),
+				So(*record, ShouldResemble, skydb.Record{
+					ID: skydb.NewRecordID("note", "id"),
 				})
 
-				return &oddb.Record{ID: oddb.NewRecordID("note", "modifiedid")}, nil
+				return &skydb.Record{ID: skydb.NewRecordID("note", "modifiedid")}, nil
 			}
 
 			err := hookFunc(&recordin, &originalRecord)
 			So(called, ShouldBeTrue)
 			So(err, ShouldBeNil)
-			So(recordin, ShouldResemble, oddb.Record{
-				ID: oddb.NewRecordID("note", "modifiedid"),
+			So(recordin, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("note", "modifiedid"),
 			})
 		})
 
@@ -64,14 +64,14 @@ func TestCreateHookFunc(t *testing.T) {
 				Type:    "note",
 			})
 
-			transport.RunHookFunc = func(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
+			transport.RunHookFunc = func(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 				return nil, errors.New("exit status 1")
 			}
 
 			err := hookFunc(&recordin, &originalRecord)
 			So(err.Error(), ShouldEqual, "exit status 1")
-			So(recordin, ShouldResemble, oddb.Record{
-				ID: oddb.NewRecordID("note", "id"),
+			So(recordin, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("note", "id"),
 			})
 		})
 
@@ -83,22 +83,22 @@ func TestCreateHookFunc(t *testing.T) {
 			})
 
 			called := false
-			transport.RunHookFunc = func(recordType string, trigger string, record *oddb.Record, originalRecord *oddb.Record) (*oddb.Record, error) {
+			transport.RunHookFunc = func(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 				called = true
 				So(recordType, ShouldEqual, "note")
 				So(trigger, ShouldEqual, "afterSave")
-				So(*record, ShouldResemble, oddb.Record{
-					ID: oddb.NewRecordID("note", "id"),
+				So(*record, ShouldResemble, skydb.Record{
+					ID: skydb.NewRecordID("note", "id"),
 				})
 
-				return &oddb.Record{ID: oddb.NewRecordID("note", "modifiedid")}, nil
+				return &skydb.Record{ID: skydb.NewRecordID("note", "modifiedid")}, nil
 			}
 
 			err := hookFunc(&recordin, &originalRecord)
 			So(called, ShouldBeTrue)
 			So(err, ShouldBeNil)
-			So(recordin, ShouldResemble, oddb.Record{
-				ID: oddb.NewRecordID("note", "id"),
+			So(recordin, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("note", "id"),
 			})
 		})
 	})

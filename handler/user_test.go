@@ -2,32 +2,32 @@ package handler
 
 import (
 	"github.com/oursky/skygear/handler/handlertest"
-	"github.com/oursky/skygear/oddb/oddbtest"
 	. "github.com/oursky/skygear/ourtest"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb/skydbtest"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
-	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/skydb"
 )
 
 type queryUserConn struct {
-	oddb.Conn
+	skydb.Conn
 }
 
-func (userconn queryUserConn) QueryUser(emails []string) ([]oddb.UserInfo, error) {
-	results := []oddb.UserInfo{}
+func (userconn queryUserConn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
+	results := []skydb.UserInfo{}
 	for _, email := range emails {
 		if email == "john.doe@example.com" {
-			results = append(results, oddb.UserInfo{
+			results = append(results, skydb.UserInfo{
 				ID:             "user0",
 				Email:          "john.doe@example.com",
 				HashedPassword: []byte("password"),
 			})
 		}
 		if email == "jane.doe@example.com" {
-			results = append(results, oddb.UserInfo{
+			results = append(results, skydb.UserInfo{
 				ID:             "user1",
 				Email:          "jane.doe@example.com",
 				HashedPassword: []byte("password"),
@@ -80,8 +80,8 @@ func TestUserQueryHandler(t *testing.T) {
 
 func TestUserUpdateHandler(t *testing.T) {
 	Convey("UserUpdateHandler", t, func() {
-		conn := oddbtest.NewMapConn()
-		userInfo := oddb.UserInfo{
+		conn := skydbtest.NewMapConn()
+		userInfo := skydb.UserInfo{
 			ID:             "user0",
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("password"),
@@ -97,7 +97,7 @@ func TestUserUpdateHandler(t *testing.T) {
 			resp := router.POST(`{"email": "peter.doe@example.com"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
 
-			newUserInfo := oddb.UserInfo{}
+			newUserInfo := skydb.UserInfo{}
 			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
 			So(newUserInfo.Email, ShouldEqual, "peter.doe@example.com")
 		})
@@ -106,18 +106,18 @@ func TestUserUpdateHandler(t *testing.T) {
 
 func TestUserLinkHandler(t *testing.T) {
 	Convey("UserLinkHandler", t, func() {
-		conn := oddbtest.NewMapConn()
-		userInfo := oddb.UserInfo{
+		conn := skydbtest.NewMapConn()
+		userInfo := skydb.UserInfo{
 			ID:             "user0",
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("password"),
 		}
 		conn.CreateUser(&userInfo)
-		userInfo2 := oddb.UserInfo{
+		userInfo2 := skydb.UserInfo{
 			ID:             "user1",
 			Email:          "john.doe@example.org",
 			HashedPassword: []byte("password"),
-			Auth: oddb.AuthInfo{
+			Auth: skydb.AuthInfo{
 				"org.example:johndoe": map[string]interface{}{},
 			},
 		}
@@ -136,7 +136,7 @@ func TestUserLinkHandler(t *testing.T) {
 			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
 
-			newUserInfo := oddb.UserInfo{}
+			newUserInfo := skydb.UserInfo{}
 			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
 			So(newUserInfo.Auth["com.example:johndoe"], ShouldResemble, map[string]interface{}{
 				"name": "johndoe",
@@ -147,7 +147,7 @@ func TestUserLinkHandler(t *testing.T) {
 			resp := r.POST(`{"provider": "org.example", "auth_data": {"name": "johndoe"}}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
 
-			newUserInfo := oddb.UserInfo{}
+			newUserInfo := skydb.UserInfo{}
 			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
 			So(newUserInfo.Auth["org.example:johndoe"], ShouldResemble, map[string]interface{}{
 				"name": "johndoe",

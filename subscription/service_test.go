@@ -5,18 +5,18 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/oursky/skygear/oddb"
-	"github.com/oursky/skygear/oddb/mock_oddb"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/mock_skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type notifyFunc func(device oddb.Device, notice Notice) error
+type notifyFunc func(device skydb.Device, notice Notice) error
 
-func (f notifyFunc) CanNotify(device oddb.Device) bool {
+func (f notifyFunc) CanNotify(device skydb.Device) bool {
 	return true
 }
 
-func (f notifyFunc) Notify(device oddb.Device, notice Notice) error {
+func (f notifyFunc) Notify(device skydb.Device, notice Notice) error {
 	return f(device, notice)
 }
 
@@ -30,34 +30,34 @@ func TestService(t *testing.T) {
 			timeNow = time.Now
 		}()
 
-		conn := mock_oddb.NewMockConn(ctrl)
-		db := mock_oddb.NewMockDatabase(ctrl)
+		conn := mock_skydb.NewMockConn(ctrl)
+		db := mock_skydb.NewMockDatabase(ctrl)
 
 		service := &Service{
-			ConnOpener: func() (oddb.Conn, error) { return conn, nil },
+			ConnOpener: func() (skydb.Conn, error) { return conn, nil },
 		}
 
-		chch := make(chan chan oddb.RecordEvent, 1)
-		conn.EXPECT().Subscribe(gomock.Any()).Do(func(recordEventCh chan oddb.RecordEvent) {
+		chch := make(chan chan skydb.RecordEvent, 1)
+		conn.EXPECT().Subscribe(gomock.Any()).Do(func(recordEventCh chan skydb.RecordEvent) {
 			chch <- recordEventCh
 		})
 		go service.Run()
 		defer service.Stop()
 		ch := <-chch
 
-		record := oddb.Record{
-			ID: oddb.NewRecordID("record", "0"),
+		record := skydb.Record{
+			ID: skydb.NewRecordID("record", "0"),
 		}
-		subscription := oddb.Subscription{
+		subscription := skydb.Subscription{
 			ID:       "subscriptionid",
 			DeviceID: "deviceid",
 		}
-		device := oddb.Device{
+		device := skydb.Device{
 			ID: "deviceid",
 		}
 
 		conn.EXPECT().PublicDB().Return(db).AnyTimes()
-		db.EXPECT().GetMatchingSubscriptions(&record).Return([]oddb.Subscription{
+		db.EXPECT().GetMatchingSubscriptions(&record).Return([]skydb.Subscription{
 			subscription,
 		}).AnyTimes()
 		db.EXPECT().Conn().Return(conn).AnyTimes()
@@ -68,20 +68,20 @@ func TestService(t *testing.T) {
 
 		Convey("sends notice", func() {
 			var (
-				d oddb.Device
+				d skydb.Device
 				n Notice
 			)
 			done := make(chan bool)
-			service.Notifier = notifyFunc(func(device oddb.Device, notice Notice) error {
+			service.Notifier = notifyFunc(func(device skydb.Device, notice Notice) error {
 				d = device
 				n = notice
 				done <- true
 				return nil
 			})
 
-			ch <- oddb.RecordEvent{
+			ch <- skydb.RecordEvent{
 				Record: &record,
-				Event:  oddb.RecordCreated,
+				Event:  skydb.RecordCreated,
 			}
 
 			select {
@@ -94,7 +94,7 @@ func TestService(t *testing.T) {
 			So(n, ShouldResemble, Notice{
 				SeqNum:         0x43b940e50000000,
 				SubscriptionID: "subscriptionid",
-				Event:          oddb.RecordCreated,
+				Event:          skydb.RecordCreated,
 				Record:         &record,
 			})
 		})
@@ -102,17 +102,17 @@ func TestService(t *testing.T) {
 		Convey("increments sequence number", func() {
 			var n Notice
 			done := make(chan bool)
-			service.Notifier = notifyFunc(func(device oddb.Device, notice Notice) error {
+			service.Notifier = notifyFunc(func(device skydb.Device, notice Notice) error {
 				n = notice
 				done <- true
 				return nil
 			})
 
-			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
+			ch <- skydb.RecordEvent{Record: &record, Event: skydb.RecordCreated}
 			<-done
 			So(n.SeqNum, ShouldEqual, 0x43b940e50000000)
 
-			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
+			ch <- skydb.RecordEvent{Record: &record, Event: skydb.RecordCreated}
 			<-done
 			So(n.SeqNum, ShouldEqual, 0x43b940e50000001)
 		})
@@ -120,18 +120,18 @@ func TestService(t *testing.T) {
 		Convey("resets sequence number on next second", func() {
 			var n Notice
 			done := make(chan bool)
-			service.Notifier = notifyFunc(func(device oddb.Device, notice Notice) error {
+			service.Notifier = notifyFunc(func(device skydb.Device, notice Notice) error {
 				n = notice
 				done <- true
 				return nil
 			})
 
-			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
+			ch <- skydb.RecordEvent{Record: &record, Event: skydb.RecordCreated}
 			<-done
 			So(n.SeqNum, ShouldEqual, 0x43b940e50000000)
 
 			timeNow = func() time.Time { return time.Unix(0x43b940e6, 0) }
-			ch <- oddb.RecordEvent{Record: &record, Event: oddb.RecordCreated}
+			ch <- skydb.RecordEvent{Record: &record, Event: skydb.RecordCreated}
 			<-done
 			So(n.SeqNum, ShouldEqual, 0x43b940e60000000)
 		})

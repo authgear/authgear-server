@@ -16,9 +16,6 @@ import (
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/handler"
 	"github.com/oursky/skygear/hook"
-	"github.com/oursky/skygear/oddb"
-	_ "github.com/oursky/skygear/oddb/fs"
-	_ "github.com/oursky/skygear/oddb/pq"
 	"github.com/oursky/skygear/plugin"
 	_ "github.com/oursky/skygear/plugin/exec"
 	_ "github.com/oursky/skygear/plugin/zmq"
@@ -26,6 +23,9 @@ import (
 	"github.com/oursky/skygear/pubsub"
 	"github.com/oursky/skygear/push"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	_ "github.com/oursky/skygear/skydb/fs"
+	_ "github.com/oursky/skygear/skydb/pq"
 	"github.com/oursky/skygear/subscription"
 )
 
@@ -123,7 +123,7 @@ func main() {
 
 	initLogger(config)
 
-	connOpener := func() (oddb.Conn, error) { return oddb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
+	connOpener := func() (skydb.Conn, error) { return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
 
 	var pushSender push.Sender
 	if config.APNS.Enable {
@@ -165,7 +165,7 @@ func main() {
 
 	fileSystemConnPreprocessor := connPreprocessor{
 		AppName:  config.App.Name,
-		DBOpener: oddb.Open,
+		DBOpener: skydb.Open,
 		DBImpl:   config.DB.ImplName,
 		Option:   config.DB.Option,
 	}
@@ -364,7 +364,7 @@ func initAssetStore(config Configuration) asset.Store {
 	return store
 }
 
-func initDevice(config Configuration, connOpener func() (oddb.Conn, error)) {
+func initDevice(config Configuration, connOpener func() (skydb.Conn, error)) {
 	// TODO: Create a device service to check APNs to remove obsolete devices.
 	// The current implementaion deletes pubsub devices if the last registered
 	// time is more than 1 day old.
@@ -376,7 +376,7 @@ func initDevice(config Configuration, connOpener func() (oddb.Conn, error)) {
 	conn.DeleteEmptyDeviceByTime(time.Now().AddDate(0, 0, -1))
 }
 
-func initSubscription(config Configuration, connOpener func() (oddb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
+func initSubscription(config Configuration, connOpener func() (skydb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
 	notifiers := []subscription.Notifier{subscription.NewHubNotifier(hub)}
 	if pushSender != nil {
 		notifiers = append(notifiers, subscription.NewPushNotifier(pushSender))

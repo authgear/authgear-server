@@ -9,10 +9,10 @@ import (
 	"github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/hook"
-	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/provider"
 	"github.com/oursky/skygear/push"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -36,7 +36,7 @@ func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, respons
 
 type connPreprocessor struct {
 	AppName  string
-	DBOpener func(string, string, string) (oddb.Conn, error)
+	DBOpener func(string, string, string) (skydb.Conn, error)
 	DBImpl   string
 	Option   string
 }
@@ -140,7 +140,7 @@ func injectUserIfPresent(payload *router.Payload, response *router.Response) int
 	}
 
 	conn := payload.DBConn
-	userinfo := oddb.UserInfo{}
+	userinfo := skydb.UserInfo{}
 	if err := conn.GetUser(payload.UserInfoID, &userinfo); err != nil {
 		log.Errorf("Cannot find UserInfo.ID = %#v\n", payload.UserInfoID)
 		response.Err = err

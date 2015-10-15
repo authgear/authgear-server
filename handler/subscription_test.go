@@ -4,19 +4,19 @@ import (
 	"testing"
 
 	"github.com/oursky/skygear/handler/handlertest"
-	"github.com/oursky/skygear/oddb"
-	"github.com/oursky/skygear/oddb/oddbtest"
 	. "github.com/oursky/skygear/ourtest"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skydbtest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newFetchSubscription(id string) oddb.Subscription {
-	return oddb.Subscription{
+func newFetchSubscription(id string) skydb.Subscription {
+	return skydb.Subscription{
 		ID:       id,
 		Type:     "query",
 		DeviceID: "deviceid",
-		Query: oddb.Query{
+		Query: skydb.Query{
 			Type: "recordtype",
 		},
 	}
@@ -27,7 +27,7 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 		sub0 := newFetchSubscription("0")
 		sub1 := newFetchSubscription("1")
 
-		db := oddbtest.NewMapDB()
+		db := skydbtest.NewMapDB()
 		db.SaveSubscription(&sub0)
 		db.SaveSubscription(&sub1)
 
@@ -86,23 +86,23 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 }
 
 type fetchallDB struct {
-	subscriptions []oddb.Subscription
+	subscriptions []skydb.Subscription
 	lastDeviceID  string
-	oddb.Database
+	skydb.Database
 }
 
-func newFetchallDB(subscriptions ...oddb.Subscription) *fetchallDB {
+func newFetchallDB(subscriptions ...skydb.Subscription) *fetchallDB {
 	return &fetchallDB{subscriptions: subscriptions}
 }
 
-func (db *fetchallDB) GetSubscriptionsByDeviceID(deviceID string) []oddb.Subscription {
+func (db *fetchallDB) GetSubscriptionsByDeviceID(deviceID string) []skydb.Subscription {
 	db.lastDeviceID = deviceID
 	return db.subscriptions
 }
 
 func TestSubscriptionFetchAllHandler(t *testing.T) {
 	Convey("SubscriptionFetchAllHandler", t, func() {
-		subscriptions := []oddb.Subscription{
+		subscriptions := []skydb.Subscription{
 			newFetchSubscription("0"),
 			newFetchSubscription("1"),
 			newFetchSubscription("2"),
@@ -150,7 +150,7 @@ func TestSubscriptionFetchAllHandler(t *testing.T) {
 
 func TestSubscriptionSaveHandler(t *testing.T) {
 	Convey("SubscriptionSaveHandler", t, func() {
-		db := oddbtest.NewMapDB()
+		db := skydbtest.NewMapDB()
 		r := handlertest.NewSingleRouteRouter(SubscriptionSaveHandler, func(p *router.Payload) {
 			p.Database = db
 		})
@@ -223,15 +223,15 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 			}`)
 			So(resp.Code, ShouldEqual, 200)
 
-			actualSubscription := oddb.Subscription{}
+			actualSubscription := skydb.Subscription{}
 			So(db.GetSubscription("subscription_id", "somedeviceid", &actualSubscription), ShouldBeNil)
-			So(actualSubscription, ShouldResemble, oddb.Subscription{
+			So(actualSubscription, ShouldResemble, skydb.Subscription{
 				ID:       "subscription_id",
 				DeviceID: "somedeviceid",
 				Type:     "query",
-				NotificationInfo: &oddb.NotificationInfo{
-					APS: oddb.APSSetting{
-						Alert: &oddb.AppleAlert{
+				NotificationInfo: &skydb.NotificationInfo{
+					APS: skydb.APSSetting{
+						Alert: &skydb.AppleAlert{
 							Body:                  "BODY_TEXT",
 							LocalizationKey:       "LOC_KEY",
 							LocalizationArgs:      []string{"LOC_ARGS"},
@@ -243,17 +243,17 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 						ShouldSendContentAvailable: true,
 					},
 				},
-				Query: oddb.Query{
+				Query: skydb.Query{
 					Type: "RECORD_TYPE",
-					Predicate: &oddb.Predicate{
-						Operator: oddb.Equal,
+					Predicate: &skydb.Predicate{
+						Operator: skydb.Equal,
 						Children: []interface{}{
-							oddb.Expression{
-								Type:  oddb.KeyPath,
+							skydb.Expression{
+								Type:  skydb.KeyPath,
 								Value: "_id",
 							},
-							oddb.Expression{
-								Type:  oddb.Literal,
+							skydb.Expression{
+								Type:  skydb.Literal,
 								Value: "RECORD_ID",
 							},
 						},
@@ -299,23 +299,23 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 	}]
 }`)
 
-			var sub0, sub1 oddb.Subscription
+			var sub0, sub1 skydb.Subscription
 			So(db.GetSubscription("sub0", "somedeviceid", &sub0), ShouldBeNil)
 			So(db.GetSubscription("sub1", "somedeviceid", &sub1), ShouldBeNil)
 
-			So(sub0, ShouldResemble, oddb.Subscription{
+			So(sub0, ShouldResemble, skydb.Subscription{
 				ID:       "sub0",
 				DeviceID: "somedeviceid",
 				Type:     "query",
-				Query: oddb.Query{
+				Query: skydb.Query{
 					Type: "recordtype0",
 				},
 			})
-			So(sub1, ShouldResemble, oddb.Subscription{
+			So(sub1, ShouldResemble, skydb.Subscription{
 				ID:       "sub1",
 				DeviceID: "somedeviceid",
 				Type:     "query",
-				Query: oddb.Query{
+				Query: skydb.Query{
 					Type: "recordtype1",
 				},
 			})
@@ -351,7 +351,7 @@ func TestSubscriptionDeleteHandler(t *testing.T) {
 		sub0 := newFetchSubscription("0")
 		sub1 := newFetchSubscription("1")
 
-		db := oddbtest.NewMapDB()
+		db := skydbtest.NewMapDB()
 		db.SaveSubscription(&sub0)
 		db.SaveSubscription(&sub1)
 

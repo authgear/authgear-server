@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/oursky/skygear/oddb"
-	"github.com/oursky/skygear/oddb/oddbconv"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skydbconv"
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -20,23 +20,23 @@ type subscriptionIDsPayload struct {
 type subscriptionPayload struct {
 	DeviceID      string `json:"device_id"`
 	Subscriptions []struct {
-		ID               string                 `json:"id"`
-		Type             string                 `json:"type"`
-		DeviceID         string                 `json:"device_id"`
-		NotificationInfo *oddb.NotificationInfo `json:"notification_info,omitempty"`
-		Query            map[string]interface{} `json:"query"`
+		ID               string                  `json:"id"`
+		Type             string                  `json:"type"`
+		DeviceID         string                  `json:"device_id"`
+		NotificationInfo *skydb.NotificationInfo `json:"notification_info,omitempty"`
+		Query            map[string]interface{}  `json:"query"`
 	} `json:"subscriptions"`
 }
 
-type jsonSubscription oddb.Subscription
+type jsonSubscription skydb.Subscription
 
 func (s jsonSubscription) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		ID               string                 `json:"id"`
-		Type             string                 `json:"type"`
-		DeviceID         string                 `json:"device_id"`
-		NotificationInfo *oddb.NotificationInfo `json:"notification_info,omitempty"`
-		Query            jsonQuery              `json:"query"`
+		ID               string                  `json:"id"`
+		Type             string                  `json:"type"`
+		DeviceID         string                  `json:"device_id"`
+		NotificationInfo *skydb.NotificationInfo `json:"notification_info,omitempty"`
+		Query            jsonQuery               `json:"query"`
 	}{
 		s.ID,
 		s.Type,
@@ -46,18 +46,18 @@ func (s jsonSubscription) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type jsonQuery oddb.Query
+type jsonQuery skydb.Query
 
 func (q jsonQuery) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Type         string                     `json:"record_type"`
-		Predicate    *jsonPredicate             `json:"predicate,omitempty"`
-		Sorts        []oddb.Sort                `json:"order,omitempty"`
-		ReadableBy   string                     `json:"readable_by,omitempty"`
-		ComputedKeys map[string]oddb.Expression `json:"computed_keys,omitempty"`
-		DesiredKeys  []string                   `json:"desired_keys,omitempty"`
-		Limit        uint64                     `json:"limit,omitempty"`
-		Offset       uint64                     `json:"offset,omitempty"`
+		Type         string                      `json:"record_type"`
+		Predicate    *jsonPredicate              `json:"predicate,omitempty"`
+		Sorts        []skydb.Sort                `json:"order,omitempty"`
+		ReadableBy   string                      `json:"readable_by,omitempty"`
+		ComputedKeys map[string]skydb.Expression `json:"computed_keys,omitempty"`
+		DesiredKeys  []string                    `json:"desired_keys,omitempty"`
+		Limit        uint64                      `json:"limit,omitempty"`
+		Offset       uint64                      `json:"offset,omitempty"`
 	}{
 		q.Type,
 		(*jsonPredicate)(q.Predicate),
@@ -70,14 +70,14 @@ func (q jsonQuery) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type jsonPredicate oddb.Predicate
+type jsonPredicate skydb.Predicate
 
 func (p *jsonPredicate) MarshalJSON() ([]byte, error) {
 	var results []interface{}
 	if p.Operator.IsCompound() {
 		results = append(results, opString(p.Operator))
 		for i, child := range p.Children {
-			childPred, ok := child.(oddb.Predicate)
+			childPred, ok := child.(skydb.Predicate)
 			if !ok {
 				return nil, fmt.Errorf("got %s.Operand[%d] of type %T, want Predicate",
 					p.Operator, i, child)
@@ -97,7 +97,7 @@ func (p *jsonPredicate) MarshalJSON() ([]byte, error) {
 		results = append(results, opString(p.Operator))
 		for i := 0; i < operandLen; i++ {
 			child := p.Children[i]
-			childExpr, ok := child.(oddb.Expression)
+			childExpr, ok := child.(skydb.Expression)
 			if !ok {
 				return nil, fmt.Errorf("got %s.Operand[%d] of type %T, want Expression",
 					p.Operator, i, child)
@@ -109,21 +109,21 @@ func (p *jsonPredicate) MarshalJSON() ([]byte, error) {
 	return json.Marshal(results)
 }
 
-type jsonExpression oddb.Expression
+type jsonExpression skydb.Expression
 
 func (expr jsonExpression) MarshalJSON() ([]byte, error) {
 	var i interface{}
 	switch expr.Type {
-	case oddb.Literal:
+	case skydb.Literal:
 		switch v := expr.Value.(type) {
-		case oddb.Reference:
-			i = oddbconv.ToMap(oddbconv.MapReference(v))
+		case skydb.Reference:
+			i = skydbconv.ToMap(skydbconv.MapReference(v))
 		default:
 			i = expr.Value
 		}
-	case oddb.KeyPath:
-		i = oddbconv.ToMap(oddbconv.MapKeyPath(expr.Value.(string)))
-	case oddb.Function:
+	case skydb.KeyPath:
+		i = skydbconv.ToMap(skydbconv.MapKeyPath(expr.Value.(string)))
+	case skydb.Function:
 		i = funcSlice(expr.Value)
 	default:
 		return nil, fmt.Errorf("unrecgonized ExpressionType = %v", expr.Type)
@@ -132,29 +132,29 @@ func (expr jsonExpression) MarshalJSON() ([]byte, error) {
 	return json.Marshal(i)
 }
 
-func opString(op oddb.Operator) string {
+func opString(op skydb.Operator) string {
 	switch op {
-	case oddb.And:
+	case skydb.And:
 		return "and"
-	case oddb.Or:
+	case skydb.Or:
 		return "or"
-	case oddb.Not:
+	case skydb.Not:
 		return "not"
-	case oddb.Equal:
+	case skydb.Equal:
 		return "eq"
-	case oddb.GreaterThan:
+	case skydb.GreaterThan:
 		return "gt"
-	case oddb.LessThan:
+	case skydb.LessThan:
 		return "lt"
-	case oddb.GreaterThanOrEqual:
+	case skydb.GreaterThanOrEqual:
 		return "gte"
-	case oddb.LessThanOrEqual:
+	case skydb.LessThanOrEqual:
 		return "lte"
-	case oddb.NotEqual:
+	case skydb.NotEqual:
 		return "neq"
-	case oddb.Like:
+	case skydb.Like:
 		return "like"
-	case oddb.ILike:
+	case skydb.ILike:
 		return "ilike"
 	default:
 		return "UNKNOWN_OPERATOR"
@@ -163,15 +163,15 @@ func opString(op oddb.Operator) string {
 
 func funcSlice(i interface{}) []interface{} {
 	switch f := i.(type) {
-	case *oddb.DistanceFunc:
+	case *skydb.DistanceFunc:
 		return []interface{}{
 			"func",
 			"distance",
-			oddbconv.ToMap(oddbconv.MapKeyPath(f.Field)),
-			oddbconv.ToMap((*oddbconv.MapLocation)(f.Location)),
+			skydbconv.ToMap(skydbconv.MapKeyPath(f.Field)),
+			skydbconv.ToMap((*skydbconv.MapLocation)(f.Location)),
 		}
 	default:
-		panic(fmt.Errorf("got unrecgonized oddb.Func = %T", i))
+		panic(fmt.Errorf("got unrecgonized skydb.Func = %T", i))
 	}
 }
 
@@ -192,7 +192,7 @@ func (e *errorWithID) MarshalJSON() ([]byte, error) {
 		code    uint
 		info    map[string]interface{}
 	)
-	if e.err == oddb.ErrSubscriptionNotFound {
+	if e.err == skydb.ErrSubscriptionNotFound {
 		message = fmt.Sprintf(`cannot find subscription "%s"`, e.id)
 		t = "ResourceNotFound"
 		code = 101
@@ -254,7 +254,7 @@ func SubscriptionFetchHandler(rpayload *router.Payload, response *router.Respons
 	for _, id := range payload.SubscriptionIDs {
 		var item interface{}
 
-		subscription := oddb.Subscription{}
+		subscription := skydb.Subscription{}
 		if err := db.GetSubscription(id, payload.DeviceID, &subscription); err != nil {
 			// handle err here
 			item = newErrorWithID(id, err)
@@ -374,7 +374,7 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 		return
 	}
 
-	subscriptions := make([]oddb.Subscription, len(rawSubs), len(rawSubs))
+	subscriptions := make([]skydb.Subscription, len(rawSubs), len(rawSubs))
 	for i, rawSub := range rawSubs {
 		sub := &subscriptions[i]
 		sub.ID = rawSub.ID
@@ -392,7 +392,7 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 	db := rpayload.Database
 	results := make([]interface{}, 0, len(subscriptions))
 	var (
-		subscription *oddb.Subscription
+		subscription *skydb.Subscription
 		item         interface{}
 	)
 	for i := range subscriptions {

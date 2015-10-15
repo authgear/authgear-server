@@ -5,8 +5,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/oursky/skygear/oddb"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -90,7 +90,7 @@ func UserLinkHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	info := oddb.UserInfo{}
+	info := skydb.UserInfo{}
 
 	// Get AuthProvider and authenticates the user
 	log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
@@ -104,7 +104,7 @@ func UserLinkHandler(payload *router.Payload, response *router.Response) {
 
 	err = payload.DBConn.GetUserByPrincipalID(principalID, &info)
 
-	if err != nil && err != oddb.ErrUserNotFound {
+	if err != nil && err != skydb.ErrUserNotFound {
 		// TODO: more error handling here if necessary
 		response.Err = skyerr.NewResourceFetchFailureErr("user", p.UserID())
 		return

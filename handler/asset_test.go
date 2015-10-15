@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/oursky/skygear/asset"
-	"github.com/oursky/skygear/oddb"
 	. "github.com/oursky/skygear/ourtest"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -57,16 +57,16 @@ func (g *modGateway) makeRequest(method, path, body string) *httptest.ResponseRe
 }
 
 type naiveAssetConn struct {
-	asset oddb.Asset
-	oddb.Conn
+	asset skydb.Asset
+	skydb.Conn
 }
 
-func (c *naiveAssetConn) GetAsset(name string, asset *oddb.Asset) error {
+func (c *naiveAssetConn) GetAsset(name string, asset *skydb.Asset) error {
 	*asset = c.asset
 	return nil
 }
 
-func (c *naiveAssetConn) SaveAsset(asset *oddb.Asset) error {
+func (c *naiveAssetConn) SaveAsset(asset *skydb.Asset) error {
 	c.asset = *asset
 	return nil
 }
@@ -128,7 +128,7 @@ func TestAssetUploadURLHandler(t *testing.T) {
 
 			resp := r.Do(req)
 
-			So(assetConn.asset, ShouldResemble, oddb.Asset{
+			So(assetConn.asset, ShouldResemble, skydb.Asset{
 				Name:        "f28c4037-uuid-4d0a-94d6-2206ab371d6c-asset",
 				ContentType: "plain/text",
 				Size:        10,
@@ -216,7 +216,7 @@ func TestAssetGetURLHandler(t *testing.T) {
 				timeNow = timeNowUTC
 			}()
 			signparser.valid = true
-			assetConn.asset = oddb.Asset{
+			assetConn.asset = skydb.Asset{
 				Name:        "assetName",
 				ContentType: "plain/text",
 				Size:        10,

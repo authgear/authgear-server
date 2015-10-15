@@ -14,7 +14,7 @@ import (
 )
 
 func tempDir() string {
-	dir, err := ioutil.TempDir("", "oddb.auth.test")
+	dir, err := ioutil.TempDir("", "skydb.auth.test")
 	if err != nil {
 		panic(err)
 	}
