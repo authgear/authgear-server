@@ -81,14 +81,14 @@ func (_mr *_MockConnRecorder) DeleteDeviceByToken(arg0, arg1 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteDeviceByToken", arg0, arg1)
 }
 
-func (_m *MockConn) DeleteEmptyDeviceByTime(_param0 time.Time) error {
-	ret := _m.ctrl.Call(_m, "DeleteEmptyDeviceByTime", _param0)
+func (_m *MockConn) DeleteEmptyDevicesByTime(_param0 time.Time) error {
+	ret := _m.ctrl.Call(_m, "DeleteEmptyDevicesByTime", _param0)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockConnRecorder) DeleteEmptyDeviceByTime(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteEmptyDeviceByTime", arg0)
+func (_mr *_MockConnRecorder) DeleteEmptyDevicesByTime(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteEmptyDevicesByTime", arg0)
 }
 
 func (_m *MockConn) DeleteUser(_param0 string) error {

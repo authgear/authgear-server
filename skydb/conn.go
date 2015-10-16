@@ -15,12 +15,12 @@ var ErrUserDuplicated = errors.New("skydb: duplicated UserInfo ID")
 var ErrUserNotFound = errors.New("skydb: UserInfo ID not found")
 
 // ErrDeviceNotFound is returned by Conn.GetDevice, Conn.DeleteDevice,
-// Conn.DeleteDeviceByToken and Conn.DeleteEmptyDeviceByTime, if the desired Device
+// Conn.DeleteDeviceByToken and Conn.DeleteEmptyDevicesByTime, if the desired Device
 // cannot be found in the current container
 var ErrDeviceNotFound = errors.New("skydb: Specific device not found")
 
 // ZeroTime represent a zero time.Time. It is used in DeleteDeviceByToken and
-// DeleteEmptyDeviceByTime to signify a Delete without time constraint.
+// DeleteEmptyDevicesByTime to signify a Delete without time constraint.
 var ZeroTime = time.Time{}
 
 // DBHookFunc specifies the interface of a database hook function
@@ -92,11 +92,11 @@ type Conn interface {
 	// If such device does not exist, ErrDeviceNotFound is returned.
 	DeleteDeviceByToken(token string, t time.Time) error
 
-	// DeleteEmptyDeviceByTime deletes device where Token is empty and
+	// DeleteEmptyDevicesByTime deletes device where Token is empty and
 	// LastRegisteredAt < t. If t == ZeroTime, LastRegisteredAt is not considered.
 	//
 	// If such device does not exist, ErrDeviceNotFound is returned.
-	DeleteEmptyDeviceByTime(t time.Time) error
+	DeleteEmptyDevicesByTime(t time.Time) error
 
 	PublicDB() Database
 	PrivateDB(userKey string) Database
