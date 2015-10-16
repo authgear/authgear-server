@@ -18,7 +18,7 @@ skygear:
   - ./data:/var/lib/skygear/data
   links:
   - db
-  command: sh -c "PGHOST=db PGPORT=$DB_PORT_5432_TCP_PORT $GOPATH/bin/skygear config.ini"
+  command: sh -c 'PGHOST=db PGPORT=$DB_PORT_5432_TCP_PORT $GOPATH/bin/skygear config.ini'
   environment:
     DATABASE_URL: dbname=postgres sslmode=disable
     PGUSER: postgres
@@ -33,4 +33,4 @@ skygear:
 #   volumes:
 #   - ./python/plugin.py:/usr/src/app/plugin.py
 #   # run the mounted python entrypoint via pyskygear here
-#   command: sh -c "py-skygear plugin.py --skygear-address=tcp://skygear:$OURD_PORT_5555_TCP_PORT"
+#   command: sh -c 'py-skygear plugin.py --skygear-address=tcp://skygear:$OURD_PORT_5555_TCP_PORT'
