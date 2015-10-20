@@ -50,7 +50,7 @@ func TestRouterMatchByURL(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", `http://skygear.test/endpoint`, nil)
 			req.Header.Add("X-Skygear-API-Key", "someapikey")
-			req.Header.Add("X-SkygearAccess-Token", "someaccesstoken")
+			req.Header.Add("X-Skygear-Access-Token", "someaccesstoken")
 
 			w := httptest.NewRecorder()
 			g.ServeHTTP(w, req)

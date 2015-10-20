@@ -117,10 +117,10 @@ func (g *Gateway) newPayloadForRawHandler(req *http.Request) (p *Payload) {
 		Data:   map[string]interface{}{},
 	}
 
-	if apiKey := req.Header.Get("X-SkygearApi-Key"); apiKey != "" {
+	if apiKey := req.Header.Get("X-Skygear-Api-Key"); apiKey != "" {
 		p.Data["api_key"] = apiKey
 	}
-	if accessToken := req.Header.Get("X-SkygearAccess-Token"); accessToken != "" {
+	if accessToken := req.Header.Get("X-Skygear-Access-Token"); accessToken != "" {
 		p.Data["access_token"] = accessToken
 	}
 
