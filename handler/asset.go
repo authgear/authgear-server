@@ -97,7 +97,7 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 //
 // Example curl:
 //	curl -XPUT \
-//		-H 'X-Ourd-API-Key: apiKey' \
+//		-H 'X-Skygear-API-Key: apiKey' \
 //		-H 'Content-Type: text/plain' \
 //		--data-binary '@file.txt' \
 //		http://localhost:3000/files/filename
