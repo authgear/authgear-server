@@ -920,9 +920,7 @@ func (db *database) addColumnStmt(recordType string, recordSchema skydb.RecordSc
 	buf.WriteByte(' ')
 	for column, schema := range recordSchema {
 		buf.Write([]byte("ADD "))
-		buf.WriteByte('"')
-		buf.WriteString(column)
-		buf.WriteByte('"')
+		buf.WriteString(pq.QuoteIdentifier(column))
 		buf.WriteByte(' ')
 		buf.WriteString(pqDataType(schema.Type))
 		buf.WriteByte(',')
@@ -941,19 +939,15 @@ func (db *database) addColumnStmt(recordType string, recordSchema skydb.RecordSc
 }
 
 func (db *database) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, referent, remoteCol string) {
-	buf.Write([]byte("ADD CONSTRAINT fk_"))
-	buf.WriteString(localCol)
-	buf.Write([]byte("_"))
-	buf.WriteString(referent)
-	buf.Write([]byte("_"))
-	buf.WriteString(remoteCol)
-	buf.Write([]byte(` FOREIGN KEY ("`))
-	buf.WriteString(localCol)
-	buf.Write([]byte(`") REFERENCES `))
+	buf.Write([]byte(`ADD CONSTRAINT `))
+	buf.WriteString(pq.QuoteIdentifier(fmt.Sprintf(`fk_%s_%s_%s`, localCol, referent, remoteCol)))
+	buf.Write([]byte(` FOREIGN KEY (`))
+	buf.WriteString(pq.QuoteIdentifier(localCol))
+	buf.Write([]byte(`) REFERENCES `))
 	buf.WriteString(db.tableName(referent))
-	buf.Write([]byte(` ("`))
-	buf.WriteString(remoteCol)
-	buf.Write([]byte(`"),`))
+	buf.Write([]byte(` (`))
+	buf.WriteString(pq.QuoteIdentifier(remoteCol))
+	buf.Write([]byte(`),`))
 }
 
 func pqDataType(dataType skydb.DataType) string {

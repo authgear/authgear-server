@@ -684,6 +684,21 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
+		Convey("REGRESSION #318: creates table with `:` with reference", func() {
+			err := db.Extend("colon:fever", skydb.RecordSchema{
+				"name": skydb.FieldType{Type: skydb.TypeString},
+			})
+			So(err, ShouldBeNil)
+			err = db.Extend("note", skydb.RecordSchema{
+				"content": skydb.FieldType{Type: skydb.TypeString},
+				"colon:fever": skydb.FieldType{
+					Type:          skydb.TypeReference,
+					ReferenceType: "colon:fever",
+				},
+			})
+			So(err, ShouldBeNil)
+		})
+
 		Convey("creates table with location", func() {
 			err := db.Extend("photo", skydb.RecordSchema{
 				"location": skydb.FieldType{Type: skydb.TypeLocation},
