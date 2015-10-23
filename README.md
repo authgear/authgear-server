@@ -6,7 +6,7 @@ Dependencies
 ============
 1. go v1.4
 2. https://github.com/tools/godep is used for managing go lib
-3. PostgreSQL if you are using pq implementation of oddb:
+3. PostgreSQL if you are using pq implementation of skydb:
    * Minimum version: 9.3
    * Recommended version: 9.4
 4. zmq is used for connecting plugin
@@ -14,7 +14,7 @@ Dependencies
 
 Development
 ===========
-$ `go generate github.com/oursky/skygear/oddb/...`
+$ `go generate github.com/oursky/skygear/skydb/...`
 $ `go build && ./skygear development.ini`
 
 config.ini can be provided in args or os ENV `OD_CONFIG`.

@@ -26,7 +26,7 @@ The following examples assumed you had Homebrew and (homebrew-services|https://g
      limouren  | limouren | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
     ```
 * Now create a new database for Ourd
-  * `createdb ourd`
+  * `createdb skygear`
 * Done!
 
 ### Ubuntu
@@ -49,20 +49,20 @@ See (Apt|https://wiki.postgresql.org/wiki/Apt) in the Postgresql's wiki for more
 
 After postgresql installed:
 
-Let's say we are running ourd under the user account named `oduser`
+Let's say we are running skygear under the user account named `oduser`
 
 1. `sudo su postgres`
 2. `createuser --superuser oduser`
 3. `exit`
 4. `sudo su oduser`
 4. `createdb`; stop psql from complaining
-5. `createdb ourd`
+5. `createdb skygear`
 6. `psql`
 7. `\l`; verify that the database is created correctly
    ```
       Name    |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges
    -----------+----------+----------+-------------+-------------+-----------------------
-    ourd      | goconvey | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+    skygear      | goconvey | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
     ```
 8. Done!
 
@@ -87,5 +87,5 @@ $ sudo apt-get postgis-2.1
 *To Enable:*
 
 ```shell
-$ psql -c 'CREATE EXTENSION postgis;' -d ourd
+$ psql -c 'CREATE EXTENSION postgis;' -d skygear
 ```
