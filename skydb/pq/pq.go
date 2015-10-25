@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"sync"
 	"text/template"
 	"time"
 
@@ -23,9 +22,6 @@ import (
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 var underscoreRe = regexp.MustCompile(`[.:]`)
-
-var dbs = map[string]*sqlx.DB{}
-var dbsMutex sync.RWMutex
 
 func toLowerAndUnderscore(s string) string {
 	return underscoreRe.ReplaceAllLiteralString(strings.ToLower(s), "_")
@@ -633,36 +629,8 @@ func (db *database) tableName(table string) string {
 
 // Open returns a new connection to postgresql implementation
 func Open(appName, connString string) (skydb.Conn, error) {
-	var (
-		db  *sqlx.DB
-		err error
-	)
-
-	dbsMutex.RLock()
-	db, ok := dbs[connString]
-	dbsMutex.RUnlock()
-
-	if ok {
-		goto DB_OBTAINED
-	}
-
-	dbsMutex.Lock()
-	db, ok = dbs[connString]
-	if !ok {
-		db, err = sqlx.Open("postgres", connString)
-		if db != nil {
-			db.SetMaxOpenConns(10)
-			dbs[connString] = db
-		}
-	}
-	dbsMutex.Unlock()
-
-DB_OBTAINED:
+	db, err := getDB(appName, connString)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open connection: %s", err)
-	}
-
-	if err := mustInitDB(db, appName); err != nil {
 		return nil, err
 	}
 
@@ -671,6 +639,53 @@ DB_OBTAINED:
 		appName: appName,
 		option:  connString,
 	}, nil
+}
+
+type getDBReq struct {
+	appName    string
+	connString string
+	done       chan getDBResp
+}
+
+type getDBResp struct {
+	db  *sqlx.DB
+	err error
+}
+
+var dbs = map[string]*sqlx.DB{}
+var getDBChan = make(chan getDBReq)
+
+func getDB(appName, connString string) (*sqlx.DB, error) {
+	ch := make(chan getDBResp)
+	getDBChan <- getDBReq{appName, connString, ch}
+	resp := <-ch
+	return resp.db, resp.err
+}
+
+// goroutine that initialize the database for use
+func dbInitializer() {
+	for {
+		req := <-getDBChan
+		db, ok := dbs[req.connString]
+		if !ok {
+			var err error
+			db, err = sqlx.Open("postgres", req.connString)
+			if err != nil {
+				req.done <- getDBResp{nil, fmt.Errorf("failed to open connection: %s", err)}
+				continue
+			}
+
+			db.SetMaxOpenConns(10)
+			dbs[req.connString] = db
+		}
+
+		if err := mustInitDB(db, req.appName); err != nil {
+			req.done <- getDBResp{nil, fmt.Errorf("failed to open connection: %s", err)}
+			continue
+		}
+
+		req.done <- getDBResp{db, nil}
+	}
 }
 
 // mustInitDB initialize database objects for an application.
@@ -764,6 +779,7 @@ func queryRowWith(db queryxRunner, sqlizeri sqlizer) *sqlx.Row {
 func init() {
 	createAppSchemaStmtTmpl = template.Must(template.New("createAppSchemaStmtTmpl").Parse(createAppSchemaStmtTmplText))
 	skydb.Register("pq", skydb.DriverFunc(Open))
+	go dbInitializer()
 }
 
 var (
