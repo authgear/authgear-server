@@ -124,6 +124,11 @@ func main() {
 	initLogger(config)
 
 	connOpener := func() (skydb.Conn, error) { return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
+	conn, connError := connOpener()
+	if connError != nil {
+		log.Fatalf("Failed to start skygear: %v", connError)
+	}
+	conn.Close()
 
 	var pushSender push.Sender
 	if config.APNS.Enable {
