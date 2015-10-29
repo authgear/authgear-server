@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"regexp"
 	"strings"
 	"text/template"
@@ -50,6 +51,11 @@ func isUndefinedTable(err error) bool {
 
 	return false
 
+}
+
+func isNetworkError(err error) bool {
+	_, ok := err.(*net.OpError)
+	return ok
 }
 
 type userInfo struct {
@@ -699,6 +705,8 @@ func mustInitDB(db *sqlx.DB, appName string) error {
 	if err == sql.ErrNoRows || isUndefinedTable(err) {
 		// ignore the err here; they are unimportant
 		// do nothing
+	} else if isNetworkError(err) {
+		return fmt.Errorf("skydb/pq: unable to connect to database because of a network error = %v", err)
 	} else if err != nil {
 		return fmt.Errorf("skydb/pq: unrecgonized error while querying db version_num = %v", err)
 	}
