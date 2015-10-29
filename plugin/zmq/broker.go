@@ -1,82 +1,190 @@
 package zmq
 
 import (
+	"bytes"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/zeromq/goczmq"
 )
 
-// Broker handles the exchange of messages between frontend and backend socket.
+const (
+	HeartbeatInterval = time.Second
+	HeartbeatLiveness = 3
+
+	Ready     = "\001"
+	Heartbeat = "\002"
+)
+
+// Broker implements the Paranoid Pirate queue described in the zguide:
+// http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
 //
 // NOTE(limouren): it might make a good interface
 type Broker struct {
 	// NOTE: goroutines are caller of plugin, so frontend is Go side,
 	// backend is plugin side
-	frontend, backend *goczmq.Sock
-	poller            *goczmq.Poller
+	frontendAddr, backendAddr string
 }
 
 // NewBroker returns a new *Broker.
 func NewBroker(frontendAddr, backendAddr string) (*Broker, error) {
-	frontend, err := goczmq.NewRouter(frontendAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	backend := goczmq.NewSock(goczmq.Dealer)
-	_, err = backend.Bind(backendAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	poller, err := goczmq.NewPoller(frontend, backend)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Broker{frontend, backend, poller}, nil
+	return &Broker{frontendAddr, backendAddr}, nil
 }
 
 // Run kicks start the Broker and listens for requests. It blocks function
 // execution.
 func (lb *Broker) Run() {
+	frontend, backend := mustInitEndpoints(lb.frontendAddr, lb.backendAddr)
+	backendPoller, bothPoller := mustInitPollers(frontend, backend)
+
+	workers := workerQueue{}
+	heartbeatAt := time.Now().Add(HeartbeatInterval)
 	for {
-		sock := lb.poller.Wait(-1)
+		var sock *goczmq.Sock
+		if workers.Len() == 0 {
+			sock = backendPoller.Wait(heartbeatIntervalMS)
+		} else {
+			sock = bothPoller.Wait(heartbeatIntervalMS)
+		}
+
 		switch sock {
-		case lb.frontend:
-			lb.handleFrontendMsg()
-		case lb.backend:
-			lb.handleBackendMsg()
+		case backend:
+			frames, err := backend.RecvMessage()
+			if err != nil {
+				panic(err)
+			}
+
+			address := frames[0]
+			workers.Ready(newWorker(address))
+
+			msg := frames[1:]
+			if len(msg) == 1 {
+				switch status := string(msg[0]); status {
+				case Ready:
+					log.Infof("zmq/broker: ready worker = %s", address)
+				case Heartbeat:
+					// do nothing
+				default:
+					log.Errorf("zmq/broker: invalid message from worker = %s: %s", address, msg)
+				}
+			} else {
+				frontend.SendMessage(msg)
+				log.Debugf("zmq/broker: backend => frontend: %#x, %s\n", msg[0], msg)
+			}
+		case frontend:
+			frames, err := frontend.RecvMessage()
+			if err != nil {
+				panic(err)
+			}
+
+			frames = append([][]byte{workers.Next()}, frames...)
+			backend.SendMessage(frames)
+			log.Debugf("zmq/broker: frontend => backend: %#x, %s\n", frames[0], frames)
 		case nil:
-			// it probably won't happen as we wait for poller forever
-			log.Warnln("zmq/broker: received nil socket, ignoring")
+			// do nothing
 		default:
 			panic("zmq/broker: received unknown socket")
 		}
+
+		if heartbeatAt.Before(time.Now()) {
+			for _, worker := range workers {
+				msg := [][]byte{worker.address, []byte(Heartbeat)}
+				backend.SendMessage(msg)
+			}
+			heartbeatAt = time.Now().Add(HeartbeatInterval)
+		}
+
+		workers.Purge()
 	}
 }
 
-// Destroy cleans up resources allocated by the Broker.
-func (lb *Broker) Destroy() {
-	lb.frontend.Destroy()
-	lb.backend.Destroy()
-}
-
-func (lb *Broker) handleFrontendMsg() {
-	msg, err := lb.frontend.RecvMessage()
+func mustInitEndpoints(frontendAddr, backendAddr string) (*goczmq.Sock, *goczmq.Sock) {
+	frontend, err := goczmq.NewRouter(frontendAddr)
 	if err != nil {
 		panic(err)
 	}
 
-	lb.backend.SendMessage(msg)
-	log.Debugf("zmq/broker: frontend => backend: %#x, %s\n", msg[0], msg)
-}
-
-func (lb *Broker) handleBackendMsg() {
-	msg, err := lb.backend.RecvMessage()
+	backend, err := goczmq.NewRouter(backendAddr)
 	if err != nil {
 		panic(err)
 	}
 
-	lb.frontend.SendMessage(msg)
-	log.Debugf("zmq/broker:  backend => frontend: %#x, %s\n", msg[0], msg)
+	return frontend, backend
+}
+
+func mustInitPollers(frontend, backend *goczmq.Sock) (*goczmq.Poller, *goczmq.Poller) {
+	backendPoller, err := goczmq.NewPoller(backend)
+	if err != nil {
+		panic(err)
+	}
+
+	bothPoller, err := goczmq.NewPoller(frontend, backend)
+	if err != nil {
+		panic(err)
+	}
+
+	return backendPoller, bothPoller
+}
+
+var heartbeatIntervalMS int = int(HeartbeatInterval.Seconds() * 1000)
+
+type pworker struct {
+	address []byte
+	expiry  time.Time
+}
+
+func newWorker(address []byte) pworker {
+	return pworker{
+		address,
+		time.Now().Add(HeartbeatLiveness * HeartbeatInterval),
+	}
+}
+
+type workerQueue []pworker
+
+func (q workerQueue) Len() int {
+	return len(q)
+}
+
+func (q *workerQueue) Next() []byte {
+	workers := *q
+	worker := workers[len(workers)-1]
+	*q = workers[:len(workers)-1]
+	return worker.address
+}
+
+func (q *workerQueue) Ready(worker pworker) {
+	workers := *q
+	if len(workers) == 0 {
+		*q = append(workers, worker)
+		return
+	}
+
+	var (
+		i int
+		w pworker
+	)
+	for i, w = range workers {
+		if bytes.Equal(w.address, worker.address) {
+			break
+		}
+	}
+	*q = append(append(workers[:i], workers[i+1:]...), worker)
+}
+
+func (q *workerQueue) Purge() {
+	workers := *q
+
+	now := time.Now()
+	var (
+		i int
+		w pworker
+	)
+	for i, w = range workers {
+		if w.expiry.After(now) {
+			break
+		}
+		*q = workers[i+1:]
+		log.Infof("zmq/broker: disconnected worker = %s", w.address)
+	}
 }
