@@ -1,18 +1,28 @@
 language: go
 
+sudo: false
+
 go:
   - 1.4
 
 addons:
   postgresql: "9.4"
 
+cache:
+  directories:
+    - $HOME/.cache/local
+
 before_install:
-  - git clone git://github.com/jedisct1/libsodium.git
-  - ( cd libsodium; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
-  - git clone git://github.com/zeromq/libzmq.git
-  - ( cd libzmq; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
-  - git clone git://github.com/zeromq/czmq.git
-  - ( cd czmq; ./autogen.sh; ./configure; make check; sudo make install; sudo ldconfig )
+  - export LD_INSTALL_PREFIX=$HOME/.cache/local
+  - export LD_LIBRARY_PATH=$LD_INSTALL_PREFIX/lib:$LD_LIBRARY_PATH
+  - export LIBRARY_PATH=$LD_INSTALL_PREFIX/lib:$LIBRARY_PATH
+  - export PKG_CONFIG_PATH=$LD_INSTALL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH
+  - mkdir -p $LD_INSTALL_PREFIX/src
+  - pushd $LD_INSTALL_PREFIX/src
+  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/jedisct1/libsodium.git
+  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/libzmq.git
+  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/czmq.git
+  - popd
 
 before_script:
   - psql -c 'CREATE DATABASE skygear_test;' -U postgres
