@@ -8,13 +8,17 @@ import (
 
 // MapConn is a naive memory implementation of skydb.Conn
 type MapConn struct {
-	UserMap map[string]skydb.UserInfo
+	UserMap     map[string]skydb.UserInfo
+	usernameMap map[string]skydb.UserInfo
+	emailMap    map[string]skydb.UserInfo
 }
 
 // NewMapConn returns a new MapConn.
 func NewMapConn() *MapConn {
 	return &MapConn{
-		UserMap: map[string]skydb.UserInfo{},
+		UserMap:     map[string]skydb.UserInfo{},
+		usernameMap: map[string]skydb.UserInfo{},
+		emailMap:    map[string]skydb.UserInfo{},
 	}
 }
 
@@ -23,14 +27,47 @@ func (conn *MapConn) CreateUser(userinfo *skydb.UserInfo) error {
 	if _, existed := conn.UserMap[userinfo.ID]; existed {
 		return skydb.ErrUserDuplicated
 	}
+	if _, existed := conn.usernameMap[userinfo.Username]; existed {
+		return skydb.ErrUserDuplicated
+	}
+	if _, existed := conn.emailMap[userinfo.Email]; existed {
+		return skydb.ErrUserDuplicated
+	}
 
 	conn.UserMap[userinfo.ID] = *userinfo
+	conn.usernameMap[userinfo.Username] = *userinfo
+	conn.emailMap[userinfo.Email] = *userinfo
 	return nil
 }
 
 // GetUser returns a UserInfo in UserMap.
 func (conn *MapConn) GetUser(id string, userinfo *skydb.UserInfo) error {
 	u, ok := conn.UserMap[id]
+	if !ok {
+		return skydb.ErrUserNotFound
+	}
+
+	*userinfo = u
+	return nil
+}
+
+// GetUser returns a UserInfo in UserMap.
+func (conn *MapConn) GetUserByUsernameEmail(username string, email string, userinfo *skydb.UserInfo) error {
+	var (
+		u  skydb.UserInfo
+		ok bool
+	)
+	if email == "" {
+		u, ok = conn.usernameMap[username]
+	} else if username == "" {
+		u, ok = conn.emailMap[email]
+	} else {
+		u, ok = conn.usernameMap[username]
+		if u.Email != email {
+			ok = false
+		}
+	}
+
 	if !ok {
 		return skydb.ErrUserNotFound
 	}

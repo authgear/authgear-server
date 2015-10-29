@@ -106,7 +106,7 @@ func UserLinkHandler(payload *router.Payload, response *router.Response) {
 
 	if err != nil && err != skydb.ErrUserNotFound {
 		// TODO: more error handling here if necessary
-		response.Err = skyerr.NewResourceFetchFailureErr("user", p.UserID())
+		response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username())
 		return
 	} else if err == nil && info.ID != payload.UserInfo.ID {
 		info.RemoveProvidedAuthData(principalID)

@@ -6,8 +6,8 @@ import (
 )
 
 // ErrUserDuplicated is returned by Conn.CreateUser when
-// the UserInfo to be created has the same ID in the current container
-var ErrUserDuplicated = errors.New("skydb: duplicated UserInfo ID")
+// the UserInfo to be created has the same ID/username in the current container
+var ErrUserDuplicated = errors.New("skydb: duplicated UserID or Username")
 
 // ErrUserNotFound is returned by Conn.GetUser, Conn.UpdateUser and
 // Conn.DeleteUser when the UserInfo's ID is not found
@@ -41,6 +41,10 @@ type Conn interface {
 	// GetUser returns ErrUserNotFound if no UserInfo exists
 	// for the supplied ID.
 	GetUser(id string, userinfo *UserInfo) error
+
+	// GetUserByUsernameEmail fetch the UserInfo with supplied username or email,
+	//
+	GetUserByUsernameEmail(username string, email string, userinfo *UserInfo) error
 
 	// GetUserByPrincipalID fetches the UserInfo with supplied principal ID in the
 	// container and fills in the supplied UserInfo with the result.

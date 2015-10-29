@@ -11,7 +11,7 @@ import (
 func TestNewUserInfo(t *testing.T) {
 	info := NewUserInfo("userinfoid", "john.doe@example.com", "secret")
 
-	if info.ID != "userinfoid" {
+	if info.Username != "userinfoid" {
 		t.Fatalf("got info.ID = %v, want userinfoid", info.ID)
 	}
 

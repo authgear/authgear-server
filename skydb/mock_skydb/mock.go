@@ -4,10 +4,9 @@
 package mock_skydb
 
 import (
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	skydb "github.com/oursky/skygear/skydb"
+	time "time"
 )
 
 // Mock of Conn interface
@@ -139,6 +138,16 @@ func (_m *MockConn) GetUserByPrincipalID(_param0 string, _param1 *skydb.UserInfo
 
 func (_mr *_MockConnRecorder) GetUserByPrincipalID(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUserByPrincipalID", arg0, arg1)
+}
+
+func (_m *MockConn) GetUserByUsernameEmail(_param0 string, _param1 string, _param2 *skydb.UserInfo) error {
+	ret := _m.ctrl.Call(_m, "GetUserByUsernameEmail", _param0, _param1, _param2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockConnRecorder) GetUserByUsernameEmail(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUserByUsernameEmail", arg0, arg1, arg2)
 }
 
 func (_m *MockConn) PrivateDB(_param0 string) skydb.Database {

@@ -72,6 +72,10 @@ func (conn *fileConn) GetUser(id string, info *skydb.UserInfo) error {
 	return conn.userDB.Get(id, info)
 }
 
+func (conn *fileConn) GetUserByUsernameEmail(username string, email string, userinfo *skydb.UserInfo) error {
+	panic("not implemented")
+}
+
 func (conn *fileConn) GetUserByPrincipalID(principalID string, info *skydb.UserInfo) error {
 	panic("not implemented")
 }
