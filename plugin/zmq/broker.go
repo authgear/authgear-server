@@ -14,10 +14,15 @@ const (
 
 	Ready     = "\001"
 	Heartbeat = "\002"
+	Shutdown  = "\003"
 )
 
 // Broker implements the Paranoid Pirate queue described in the zguide:
 // http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
+// with the addition of:
+//
+// 1. Shutdown signal, which signifies a normal termination of worker to provide
+//    a fast path of worker removal
 //
 // NOTE(limouren): it might make a good interface
 type Broker struct {
@@ -64,6 +69,9 @@ func (lb *Broker) Run() {
 					log.Infof("zmq/broker: ready worker = %s", address)
 				case Heartbeat:
 					// do nothing
+				case Shutdown:
+					workers.Remove(address)
+					log.Infof("zmq/broker: shutdown of worker = %s", address)
 				default:
 					log.Errorf("zmq/broker: invalid message from worker = %s: %s", address, msg)
 				}
@@ -176,15 +184,22 @@ func (q *workerQueue) Purge() {
 	workers := *q
 
 	now := time.Now()
-	var (
-		i int
-		w pworker
-	)
-	for i, w = range workers {
+	for i, w := range workers {
 		if w.expiry.After(now) {
 			break
 		}
 		*q = workers[i+1:]
 		log.Infof("zmq/broker: disconnected worker = %s", w.address)
+	}
+}
+
+func (q *workerQueue) Remove(address []byte) {
+	workers := *q
+
+	for i, w := range workers {
+		if bytes.Equal(w.address, address) {
+			*q = append(workers[:i], workers[i+1:]...)
+			break
+		}
 	}
 }
