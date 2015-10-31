@@ -1360,6 +1360,37 @@ func TestQuery(t *testing.T) {
 			So(len(records), ShouldEqual, 1)
 		})
 
+		Convey("query records by check array members", func() {
+			query := skydb.Query{
+				Type: "note",
+				Predicate: &skydb.Predicate{
+					Operator: skydb.In,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "content",
+						},
+						skydb.Expression{
+							Type:  skydb.Literal,
+							Value: []interface{}{"Bye World", "Good Hello", "Anything"},
+						},
+					},
+				},
+				Sorts: []skydb.Sort{
+					skydb.Sort{
+						KeyPath: "noteOrder",
+						Order:   skydb.Descending,
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, record3)
+			So(records[1], ShouldResemble, record2)
+			So(len(records), ShouldEqual, 2)
+		})
+
 		Convey("query records by note order using or predicate", func() {
 			keyPathExpr := skydb.Expression{
 				Type:  skydb.KeyPath,
