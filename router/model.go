@@ -93,6 +93,7 @@ func (p *Payload) AccessToken() string {
 // Response is interface for handler to write response to router
 type Response struct {
 	Meta       map[string]interface{} `json:"-"`
+	Info       interface{}            `json:"info,omitempty"`
 	Result     interface{}            `json:"result,omitempty"`
 	Err        error                  `json:"error,omitempty"`
 	RequestID  string                 `json:"request_id,omitempty"`

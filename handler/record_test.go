@@ -392,6 +392,11 @@ type queryDatabase struct {
 	skydb.Database
 }
 
+func (db *queryDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+	db.lastquery = query
+	return 0, nil
+}
+
 func (db *queryDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 	db.lastquery = query
 	return skydb.EmptyRows, nil
@@ -400,6 +405,10 @@ func (db *queryDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 type queryResultsDatabase struct {
 	records []skydb.Record
 	skydb.Database
+}
+
+func (db *queryResultsDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+	return uint64(len(db.records)), nil
 }
 
 func (db *queryResultsDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
@@ -778,6 +787,22 @@ func TestRecordQuery(t *testing.T) {
 			So(*db.lastquery.Limit, ShouldEqual, 200)
 			So(db.lastquery.Offset, ShouldEqual, 400)
 		})
+
+		Convey("Queries records with count", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+					"count":       true,
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.lastquery.GetCount, ShouldBeTrue)
+		})
 	})
 }
 
@@ -795,6 +820,10 @@ func (db *singleRecordDatabase) Get(id skydb.RecordID, record *skydb.Record) err
 func (db *singleRecordDatabase) Save(record *skydb.Record) error {
 	*record = db.record
 	return nil
+}
+
+func (db *singleRecordDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+	return uint64(1), nil
 }
 
 func (db *singleRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
@@ -1036,6 +1065,10 @@ func (db *referencedRecordDatabase) Save(record *skydb.Record) error {
 	return nil
 }
 
+func (db *referencedRecordDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+	return uint64(1), nil
+}
+
 func (db *referencedRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{db.note})), nil
 }
@@ -1103,6 +1136,57 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 					"type":"RequestInvalid"
 				}
 			}`)
+		})
+	})
+}
+
+func TestRecordQueryWithCount(t *testing.T) {
+	Convey("Given a Database with records", t, func() {
+		record0 := skydb.Record{
+			ID: skydb.NewRecordID("note", "0"),
+		}
+		record1 := skydb.Record{
+			ID: skydb.NewRecordID("note", "1"),
+		}
+		record2 := skydb.Record{
+			ID: skydb.NewRecordID("note", "2"),
+		}
+
+		db := &queryResultsDatabase{}
+		db.records = []skydb.Record{record1, record0, record2}
+
+		r := handlertest.NewSingleRouteRouter(RecordQueryHandler, func(p *router.Payload) {
+			p.Database = db
+		})
+
+		Convey("get count of records", func() {
+			resp := r.POST(`{
+				"record_type": "note",
+				"count": true
+			}`)
+
+			So(resp.Body.String(), ShouldEqualJSON, `{
+				"info": {
+					"count": 3
+				},
+				"result": [{
+					"_type": "record",
+					"_id": "note/1",
+					"_access": null
+				},
+				{
+					"_type": "record",
+					"_id": "note/0",
+					"_access": null
+				},
+				{
+					"_type": "record",
+					"_id": "note/2",
+					"_access": null
+				}
+				]
+			}`)
+			So(resp.Code, ShouldEqual, 200)
 		})
 	})
 }
