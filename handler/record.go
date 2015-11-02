@@ -845,10 +845,12 @@ func parseExpression(i interface{}) skydb.Expression {
 			}
 		}
 	case []interface{}:
-		if f, err := parseFunc(v); err == nil {
-			return skydb.Expression{
-				Type:  skydb.Function,
-				Value: f,
+		if len(v) > 0 {
+			if f, err := parseFunc(v); err == nil {
+				return skydb.Expression{
+					Type:  skydb.Function,
+					Value: f,
+				}
 			}
 		}
 	}
