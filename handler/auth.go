@@ -14,6 +14,7 @@ import (
 
 type authResponse struct {
 	UserID      string `json:"user_id,omitempty"`
+	Username    string `json:"username,omitempty"`
 	Email       string `json:"email,omitempty"`
 	AccessToken string `json:"access_token,omitempty"`
 }
@@ -28,6 +29,11 @@ func (p *signupPayload) RouteAction() string {
 	return "auth:signup"
 }
 
+func (p *signupPayload) Username() string {
+	username, _ := p.Data["username"].(string)
+	return username
+}
+
 func (p *signupPayload) Email() string {
 	email, _ := p.Data["email"].(string)
 	return email
@@ -38,13 +44,8 @@ func (p *signupPayload) Password() string {
 	return password
 }
 
-func (p *signupPayload) UserID() string {
-	userID, _ := p.Data["user_id"].(string)
-	return userID
-}
-
 func (p *signupPayload) IsAnonymous() bool {
-	return p.Email() == "" && p.Password() == "" && p.UserID() == "" && p.Provider() == ""
+	return p.Email() == "" && p.Password() == "" && p.Username() == "" && p.Provider() == ""
 }
 
 func (p *signupPayload) Provider() string {
@@ -61,20 +62,20 @@ func (p *signupPayload) AuthData() map[string]interface{} {
 //
 // SignupHandler receives three parameters:
 //
-// * user_id (string, unique, optional)
-// * email  (string, optional)
+// * username (string, unique, optional)
+// * email  (string, unqiue, optional)
 // * password (string, optional)
 //
-// If user_id is not supplied, an anonymous user is created and
+// If both username and email is not supplied, an anonymous user is created and
 // have user_id auto-generated. SignupHandler writes an error to
-// response.Result if the supplied user_id collides with an existing
-// user_id.
+// response.Result if the supplied username or email collides with an existing
+// username.
 //
 //	curl -X POST -H "Content-Type: application/json" \
 //	  -d @- http://localhost:3000/ <<EOF
 //	{
 //	    "action": "auth:signup",
-//	    "user_id": "rick.mak@gmail.com",
+//	    "username": "rickmak",
 //	    "email": "rick.mak@gmail.com",
 //	    "password": "123456"
 //	}
@@ -105,22 +106,23 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 		// Create new user info and set updated auth data
 		info = skydb.NewProvidedAuthUserInfo(principalID, authData)
 	} else {
-		userID := p.UserID()
+		username := p.Username()
 		email := p.Email()
 		password := p.Password()
+		unIdentified := username == "" && email == ""
 
-		if userID == "" || email == "" || password == "" {
-			response.Err = skyerr.NewRequestInvalidErr(errors.New("empty user_id, email or password"))
+		if unIdentified || password == "" {
+			response.Err = skyerr.NewRequestInvalidErr(errors.New("empty identifier(username, email) or password"))
 			return
 		}
-		info = skydb.NewUserInfo(userID, email, password)
+		info = skydb.NewUserInfo(username, email, password)
 	}
 
 	if err := payload.DBConn.CreateUser(&info); err != nil {
 		if err == skydb.ErrUserDuplicated {
 			response.Err = skyerr.ErrUserDuplicated
 		} else {
-			response.Err = skyerr.NewResourceSaveFailureErrWithStringID("user", p.UserID())
+			response.Err = skyerr.NewResourceSaveFailureErrWithStringID("user", p.Username())
 		}
 		return
 	}
@@ -133,6 +135,7 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 
 	response.Result = authResponse{
 		UserID:      info.ID,
+		Username:    info.Username,
 		Email:       info.Email,
 		AccessToken: token.AccessToken,
 	}
@@ -158,9 +161,14 @@ func (p *loginPayload) AuthData() map[string]interface{} {
 	return authData
 }
 
-func (p *loginPayload) UserID() string {
-	userID, _ := p.Data["user_id"].(string)
-	return userID
+func (p *loginPayload) Username() string {
+	username, _ := p.Data["username"].(string)
+	return username
+}
+
+func (p *loginPayload) Email() string {
+	email, _ := p.Data["email"].(string)
+	return email
 }
 
 func (p *loginPayload) Password() string {
@@ -169,12 +177,16 @@ func (p *loginPayload) Password() string {
 }
 
 /*
-LoginHandler is dummy implementation on handling login
+LoginHandler authenticate user with password
+
+The user can be either identified by username or password.
+
 curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
     "action": "auth:login",
-    "user_id": "rick.mak@gmail.com",
+    "username": "rickmak",
+    "email": "rick.mak@gmail.com",
     "password": "123456"
 }
 EOF
@@ -205,7 +217,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 			// Create user if and only if no user found with the same principal
 			if err != skydb.ErrUserNotFound {
 				// TODO: more error handling here if necessary
-				response.Err = skyerr.NewResourceFetchFailureErr("user", p.UserID())
+				response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username())
 				return
 			}
 
@@ -214,7 +226,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 				if err == skydb.ErrUserDuplicated {
 					response.Err = skyerr.ErrUserDuplicated
 				} else {
-					response.Err = skyerr.NewResourceSaveFailureErrWithStringID("user", p.UserID())
+					response.Err = skyerr.NewResourceSaveFailureErrWithStringID("user", p.Username())
 				}
 				return
 			}
@@ -226,12 +238,12 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 			}
 		}
 	} else {
-		if err := payload.DBConn.GetUser(p.UserID(), &info); err != nil {
+		if err := payload.DBConn.GetUserByUsernameEmail(p.Username(), p.Email(), &info); err != nil {
 			if err == skydb.ErrUserNotFound {
 				response.Err = skyerr.ErrUserNotFound
 			} else {
 				// TODO: more error handling here if necessary
-				response.Err = skyerr.NewResourceFetchFailureErr("user", p.UserID())
+				response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username())
 			}
 			return
 		}
@@ -250,6 +262,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 
 	response.Result = authResponse{
 		UserID:      info.ID,
+		Username:    info.Username,
 		Email:       info.Email,
 		AccessToken: token.AccessToken,
 	}

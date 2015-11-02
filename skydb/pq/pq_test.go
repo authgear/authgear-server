@@ -94,6 +94,7 @@ func TestUserCRUD(t *testing.T) {
 
 		userinfo := skydb.UserInfo{
 			ID:             "userid",
+			Username:       "john.doe",
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
 			Auth: skydb.AuthInfo{
@@ -132,6 +133,28 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			err = c.CreateUser(&userinfo)
+			So(err, ShouldEqual, skydb.ErrUserDuplicated)
+		})
+
+		Convey("returns ErrUserDuplicated when user with same username", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			err = c.CreateUser(&skydb.UserInfo{
+				Username:       "john.doe",
+				HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
+			})
+			So(err, ShouldEqual, skydb.ErrUserDuplicated)
+		})
+
+		Convey("returns ErrUserDuplicated when user with same email", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			err = c.CreateUser(&skydb.UserInfo{
+				Email:          "john.doe@example.com",
+				HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
+			})
 			So(err, ShouldEqual, skydb.ErrUserDuplicated)
 		})
 
@@ -208,6 +231,7 @@ func TestUserCRUD(t *testing.T) {
 			err := c.CreateUser(&userinfo)
 			So(err, ShouldBeNil)
 
+			userinfo.Username = "jane.doe"
 			userinfo.Email = "jane.doe@example.com"
 			userinfo.ID = "userid2"
 			So(c.CreateUser(&userinfo), ShouldBeNil)
@@ -249,10 +273,14 @@ func TestUserCRUD(t *testing.T) {
 
 		Convey("deletes only the desired user", func() {
 			userinfo.ID = "1"
+			userinfo.Username = "user1"
+			userinfo.Email = "user1@skygear.com"
 			err := c.CreateUser(&userinfo)
 			So(err, ShouldBeNil)
 
 			userinfo.ID = "2"
+			userinfo.Username = "user2"
+			userinfo.Email = "user2@skygear.com"
 			err = c.CreateUser(&userinfo)
 			So(err, ShouldBeNil)
 

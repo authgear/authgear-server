@@ -109,12 +109,14 @@ func TestUserLinkHandler(t *testing.T) {
 		conn := skydbtest.NewMapConn()
 		userInfo := skydb.UserInfo{
 			ID:             "user0",
+			Username:       "username0",
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("password"),
 		}
 		conn.CreateUser(&userInfo)
 		userInfo2 := skydb.UserInfo{
 			ID:             "user1",
+			Username:       "username1",
 			Email:          "john.doe@example.org",
 			HashedPassword: []byte("password"),
 			Auth: skydb.AuthInfo{
