@@ -356,11 +356,19 @@ func literalToSqlOperand(literal interface{}) (string, []interface{}) {
 	// Array detection is borrowed from squirrel's expr.go
 	switch literalValue := literal.(type) {
 	case []interface{}:
-		args := make([]interface{}, len(literalValue))
-		for i, val := range literalValue {
-			args[i] = literalToSqlValue(val)
+		argCount := len(literalValue)
+		if argCount > 0 {
+			args := make([]interface{}, len(literalValue))
+			for i, val := range literalValue {
+				args[i] = literalToSqlValue(val)
+			}
+			return "(" + sq.Placeholders(len(literalValue)) + ")", args
+		} else {
+			// NOTE(limouren): trick to make `field IN (...)` work for empty list
+			// NULL field won't match the condition since NULL == NULL is falsy,
+			// which renders `field IN(NULL)` equivalent to FALSE
+			return "(NULL)", nil
 		}
-		return "(" + sq.Placeholders(len(literalValue)) + ")", args
 	default:
 		return sq.Placeholders(1), []interface{}{literalToSqlValue(literal)}
 	}
