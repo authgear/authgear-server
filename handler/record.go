@@ -787,6 +787,8 @@ func predicateOperatorFromString(operatorString string) skydb.Operator {
 		return skydb.Like
 	case "ilike":
 		return skydb.ILike
+	case "in":
+		return skydb.In
 	default:
 		panic(fmt.Errorf("unrecognized operator = %s", operatorString))
 	}
@@ -918,6 +920,9 @@ func queryFromRaw(rawQuery map[string]interface{}, query *skydb.Query) (err skye
 
 	mustDoSlice(rawQuery, "predicate", func(rawPredicate []interface{}) error {
 		predicate := predicateFromRaw(rawPredicate)
+		if err := predicate.Validate(); err != nil {
+			return skyerr.NewRequestInvalidErr(fmt.Errorf("invalid predicate: %v", err))
+		}
 		query.Predicate = &predicate
 		return nil
 	})

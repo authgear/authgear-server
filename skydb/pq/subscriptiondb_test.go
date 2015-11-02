@@ -390,3 +390,48 @@ func subscriptionForTest(deviceID, id, queryRecordType string) skydb.Subscriptio
 		},
 	}
 }
+
+func TestPredicateMatchRecord(t *testing.T) {
+	Convey("Records", t, func() {
+		record1 := skydb.Record{ID: skydb.NewRecordID("record", "id")}
+		record1.Data = map[string]interface{}{
+			"category": "recipe",
+		}
+		Convey("Match record with predicate in", func() {
+
+			predicate := skydb.Predicate{
+				Operator: skydb.In,
+				Children: []interface{}{
+					skydb.Expression{
+						Type:  skydb.KeyPath,
+						Value: "category",
+					},
+					skydb.Expression{
+						Type:  skydb.Literal,
+						Value: []interface{}{"recipe", "fiction"},
+					},
+				},
+			}
+
+			So(predMatchRecord(&predicate, &record1), ShouldBeTrue)
+		})
+
+		Convey("Not match record with predicate in", func() {
+			predicate := skydb.Predicate{
+				Operator: skydb.In,
+				Children: []interface{}{
+					skydb.Expression{
+						Type:  skydb.KeyPath,
+						Value: "category",
+					},
+					skydb.Expression{
+						Type:  skydb.Literal,
+						Value: []interface{}{"utility", "fiction"},
+					},
+				},
+			}
+
+			So(predMatchRecord(&predicate, &record1), ShouldBeFalse)
+		})
+	})
+}

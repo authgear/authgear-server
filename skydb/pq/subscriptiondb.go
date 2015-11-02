@@ -379,6 +379,14 @@ func predMatchRecord(p *skydb.Predicate, record *skydb.Record) (b bool) {
 	case skydb.NotEqual:
 		lv, rv := extractBinaryOperands(p.GetExpressions(), record)
 		return !reflect.DeepEqual(lv, rv)
+	case skydb.In:
+		lv, rv := extractBinaryOperands(p.GetExpressions(), record)
+		haystack, ok := rv.([]interface{})
+		if !ok {
+			log.Panicf("unknown value in right hand side of `In` operand = %v", rv)
+		}
+
+		return deepEqualIn(lv, haystack)
 	// case skydb.Like:
 	// case skydb.ILike:
 	default:
@@ -398,7 +406,7 @@ func extractValue(expr skydb.Expression, record *skydb.Record) interface{} {
 	switch expr.Type {
 	case skydb.Literal:
 		switch expr.Value.(type) {
-		case bool, float64, string, time.Time, *skydb.Location, skydb.Reference:
+		case bool, float64, string, time.Time, *skydb.Location, skydb.Reference, []interface{}:
 			return expr.Value
 		default:
 			panic(fmt.Sprintf("unknown type %[1]T of Expression.Value = %[1]v", expr.Value))
@@ -410,4 +418,13 @@ func extractValue(expr skydb.Expression, record *skydb.Record) interface{} {
 	}
 
 	panic("unreachable code")
+}
+
+func deepEqualIn(needle interface{}, haystack []interface{}) bool {
+	for _, hay := range haystack {
+		if reflect.DeepEqual(needle, hay) {
+			return true
+		}
+	}
+	return false
 }

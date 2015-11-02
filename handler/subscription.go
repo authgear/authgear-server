@@ -156,6 +156,8 @@ func opString(op skydb.Operator) string {
 		return "like"
 	case skydb.ILike:
 		return "ilike"
+	case skydb.In:
+		return "in"
 	default:
 		return "UNKNOWN_OPERATOR"
 	}

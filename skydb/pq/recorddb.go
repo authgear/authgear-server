@@ -352,12 +352,26 @@ func funcToSqlOperand(fun skydb.Func) (string, []interface{}) {
 	}
 }
 
-func literalToSqlOperand(i interface{}) (string, []interface{}) {
-	switch v := i.(type) {
-	case skydb.Reference:
-		return "?", []interface{}{v.ID.Key}
+func literalToSqlOperand(literal interface{}) (string, []interface{}) {
+	// Array detection is borrowed from squirrel's expr.go
+	switch literalValue := literal.(type) {
+	case []interface{}:
+		args := make([]interface{}, len(literalValue))
+		for i, val := range literalValue {
+			args[i] = literalToSqlValue(val)
+		}
+		return "(" + sq.Placeholders(len(literalValue)) + ")", args
 	default:
-		return "?", []interface{}{i}
+		return sq.Placeholders(1), []interface{}{literalToSqlValue(literal)}
+	}
+}
+
+func literalToSqlValue(value interface{}) interface{} {
+	switch v := value.(type) {
+	case skydb.Reference:
+		return v.ID.Key
+	default:
+		return value
 	}
 }
 
@@ -392,6 +406,8 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 			buffer.WriteString(` LIKE `)
 		case skydb.ILike:
 			buffer.WriteString(` ILIKE `)
+		case skydb.In:
+			buffer.WriteString(` IN `)
 		}
 
 		sqlOperand, opArgs = toSqlOperand(rhs)

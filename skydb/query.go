@@ -1,5 +1,7 @@
 package skydb
 
+import "fmt"
+
 // SortOrder denotes an the order of Records returned from a Query.
 type SortOrder int
 
@@ -39,6 +41,7 @@ const (
 	NotEqual
 	Like
 	ILike
+	In
 )
 
 // Checks whether the Operator is a compound operator, meaning the
@@ -58,7 +61,7 @@ func (op Operator) IsBinary() bool {
 	switch op {
 	default:
 		return false
-	case Equal, GreaterThan, LessThan, GreaterThanOrEqual, LessThanOrEqual, NotEqual, Like, ILike:
+	case Equal, GreaterThan, LessThan, GreaterThanOrEqual, LessThanOrEqual, NotEqual, Like, ILike, In:
 		return true
 	}
 }
@@ -83,6 +86,53 @@ type Expression struct {
 type Predicate struct {
 	Operator Operator
 	Children []interface{}
+}
+
+// Validate returns an Error if a Predicate is invalid.
+//
+// If a Predicate is validated without error, nil is returned.
+func (p Predicate) Validate() error {
+	if p.Operator.IsBinary() && len(p.Children) != 2 {
+		return fmt.Errorf("Unexpected number of operands. Expected: 2. Got: %d", len(p.Children))
+	}
+
+	if p.Operator.IsCompound() {
+		for _, child := range p.Children {
+			predicate, ok := child.(Predicate)
+			if !ok {
+				return fmt.Errorf("Operand of a compound operator must be predicate.")
+			}
+
+			if err := predicate.Validate(); err != nil {
+				return err
+			}
+		}
+	} else {
+		for _, child := range p.Children {
+			_, ok := child.(Expression)
+			if !ok {
+				return fmt.Errorf("Operand of a simple operator must be expression.")
+			}
+		}
+	}
+
+	switch p.Operator {
+	case In:
+		lhs := p.Children[0].(Expression)
+		if lhs.Type != KeyPath {
+			return fmt.Errorf("Left operand for `IN` must be a key path.")
+		}
+
+		rhs := p.Children[1].(Expression)
+		if rhs.Type != Literal {
+			return fmt.Errorf("Right operand for `IN` must be a literal.")
+		}
+
+		if _, ok := rhs.Value.([]interface{}); !ok {
+			return fmt.Errorf("Right operand must be an array.")
+		}
+	}
+	return nil
 }
 
 // GetSubPredicates returns Predicate.Children as []Predicate.
