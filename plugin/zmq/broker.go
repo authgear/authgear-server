@@ -64,17 +64,8 @@ func (lb *Broker) Run() {
 
 			msg := frames[1:]
 			if len(msg) == 1 {
-				switch status := string(msg[0]); status {
-				case Ready:
-					log.Infof("zmq/broker: ready worker = %s", address)
-				case Heartbeat:
-					// do nothing
-				case Shutdown:
-					workers.Remove(address)
-					log.Infof("zmq/broker: shutdown of worker = %s", address)
-				default:
-					log.Errorf("zmq/broker: invalid message from worker = %s: %s", address, msg)
-				}
+				status := string(msg[0])
+				handleWorkerStatus(&workers, address, status)
 			} else {
 				frontend.SendMessage(msg)
 				log.Debugf("zmq/broker: backend => frontend: %#x, %s\n", msg[0], msg)
@@ -132,6 +123,20 @@ func mustInitPollers(frontend, backend *goczmq.Sock) (*goczmq.Poller, *goczmq.Po
 	}
 
 	return backendPoller, bothPoller
+}
+
+func handleWorkerStatus(workers *workerQueue, address []byte, status string) {
+	switch status {
+	case Ready:
+		log.Infof("zmq/broker: ready worker = %s", address)
+	case Heartbeat:
+		// do nothing
+	case Shutdown:
+		workers.Remove(address)
+		log.Infof("zmq/broker: shutdown of worker = %s", address)
+	default:
+		log.Errorf("zmq/broker: invalid status from worker = %s: %s", address, status)
+	}
 }
 
 var heartbeatIntervalMS int = int(HeartbeatInterval.Seconds() * 1000)
