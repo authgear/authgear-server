@@ -168,10 +168,6 @@ func (q *workerQueue) Next() []byte {
 
 func (q *workerQueue) Ready(worker pworker) {
 	workers := *q
-	if len(workers) == 0 {
-		*q = append(workers, worker)
-		return
-	}
 
 	var (
 		i int
@@ -179,10 +175,11 @@ func (q *workerQueue) Ready(worker pworker) {
 	)
 	for i, w = range workers {
 		if bytes.Equal(w.address, worker.address) {
-			break
+			*q = append(append(workers[:i], workers[i+1:]...), worker)
+			return
 		}
 	}
-	*q = append(append(workers[:i], workers[i+1:]...), worker)
+	*q = append(workers, worker)
 }
 
 func (q *workerQueue) Purge() {
