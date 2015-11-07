@@ -2,6 +2,7 @@ package pq
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -1983,6 +1984,106 @@ func TestQueryCount(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
+		})
+	})
+}
+
+func TestAggregateQuery(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		// fixture
+		db := c.PrivateDB("userid")
+		So(db.Extend("note", skydb.RecordSchema{
+			"category": skydb.FieldType{Type: skydb.TypeString},
+		}), ShouldBeNil)
+
+		categories := []string{"funny", "funny", "serious"}
+		dbRecords := []skydb.Record{}
+
+		for i, category := range categories {
+			record := skydb.Record{
+				ID:      skydb.NewRecordID("note", fmt.Sprintf("id%d", i)),
+				OwnerID: "user_id",
+				Data: map[string]interface{}{
+					"category": category,
+				},
+			}
+			err := db.Save(&record)
+			dbRecords = append(dbRecords, record)
+			So(err, ShouldBeNil)
+		}
+
+		equalCategoryPredicate := func(category string) *skydb.Predicate {
+			return &skydb.Predicate{
+				Operator: skydb.Equal,
+				Children: []interface{}{
+					skydb.Expression{
+						Type:  skydb.KeyPath,
+						Value: "category",
+					},
+					skydb.Expression{
+						Type:  skydb.Literal,
+						Value: category,
+					},
+				},
+			}
+		}
+
+		Convey("queries records", func() {
+			query := skydb.Query{
+				Type:      "note",
+				Predicate: equalCategoryPredicate("funny"),
+				GetCount:  true,
+			}
+			rows, err := db.Query(&query)
+			records, err := exhaustRows(rows, err)
+
+			So(err, ShouldBeNil)
+			So(len(records), ShouldEqual, 2)
+			So(records[0], ShouldResemble, dbRecords[0])
+			So(records[1], ShouldResemble, dbRecords[1])
+
+			recordCount := rows.OverallRecordCount()
+			So(recordCount, ShouldNotBeNil)
+			So(*recordCount, ShouldEqual, 2)
+		})
+
+		Convey("queries no records", func() {
+			query := skydb.Query{
+				Type:      "note",
+				Predicate: equalCategoryPredicate("interesting"),
+				GetCount:  true,
+			}
+			rows, err := db.Query(&query)
+			records, err := exhaustRows(rows, err)
+
+			So(err, ShouldBeNil)
+			So(len(records), ShouldEqual, 0)
+
+			recordCount := rows.OverallRecordCount()
+			So(recordCount, ShouldBeNil)
+		})
+
+		Convey("queries records with limit", func() {
+			query := skydb.Query{
+				Type:      "note",
+				Predicate: equalCategoryPredicate("funny"),
+				GetCount:  true,
+				Limit:     new(uint64),
+			}
+			*query.Limit = 1
+			rows, err := db.Query(&query)
+			records, err := exhaustRows(rows, err)
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, dbRecords[0])
+			So(len(records), ShouldEqual, 1)
+
+			recordCount := rows.OverallRecordCount()
+			So(recordCount, ShouldNotBeNil)
+			So(*recordCount, ShouldEqual, 2)
 		})
 	})
 }

@@ -349,7 +349,11 @@ func funcToSqlOperand(fun skydb.Func) (string, []interface{}) {
 		return sql, args
 	case *skydb.CountFunc:
 		var sql string
-		sql = fmt.Sprintf("COUNT(*)")
+		if f.OverallRecords {
+			sql = fmt.Sprintf("COUNT(*) OVER()")
+		} else {
+			sql = fmt.Sprintf("COUNT(*)")
+		}
 		args := []interface{}{}
 		return sql, args
 	default:
@@ -464,6 +468,18 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 		}
 	}
 
+	if query.GetCount {
+		typemap["_record_count"] = skydb.FieldType{
+			Type: skydb.TypeNumber,
+			Expression: &skydb.Expression{
+				Type: skydb.Function,
+				Value: &skydb.CountFunc{
+					OverallRecords: true,
+				},
+			},
+		}
+	}
+
 	q := db.selectQuery(query.Type, typemap)
 
 	if p := query.Predicate; p != nil {
@@ -512,8 +528,10 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 		"_record_count": skydb.FieldType{
 			Type: skydb.TypeNumber,
 			Expression: &skydb.Expression{
-				Type:  skydb.Function,
-				Value: &skydb.CountFunc{},
+				Type: skydb.Function,
+				Value: &skydb.CountFunc{
+					OverallRecords: false,
+				},
 			},
 		},
 	}
@@ -629,16 +647,17 @@ type columnsScanner interface {
 }
 
 type recordScanner struct {
-	recordType string
-	typemap    skydb.RecordSchema
-	cs         columnsScanner
-	columns    []string
-	err        error
+	recordType  string
+	typemap     skydb.RecordSchema
+	cs          columnsScanner
+	columns     []string
+	err         error
+	recordCount *uint64
 }
 
 func newRecordScanner(recordType string, typemap skydb.RecordSchema, cs columnsScanner) *recordScanner {
 	columns, err := cs.Columns()
-	return &recordScanner{recordType, typemap, cs, columns, err}
+	return &recordScanner{recordType, typemap, cs, columns, err, nil}
 }
 
 func (rs *recordScanner) Scan(record *skydb.Record) error {
@@ -689,6 +708,18 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 
 	for i, column := range rs.columns {
 		value := values[i]
+
+		if column == "_record_count" {
+			svalue, ok := value.(*sql.NullFloat64)
+			if !ok || !svalue.Valid {
+				panic("Unexpected missing column or column is null for _record_count.")
+			}
+
+			rs.recordCount = new(uint64)
+			*rs.recordCount = uint64(svalue.Float64)
+			continue
+		}
+
 		switch svalue := value.(type) {
 		default:
 			return fmt.Errorf("received unexpected scanned type = %T for column = %s", value, column)
@@ -758,6 +789,10 @@ func (rowsi rowsIter) Next(record *skydb.Record) error {
 	} else {
 		return io.EOF
 	}
+}
+
+func (rowsi rowsIter) OverallRecordCount() *uint64 {
+	return rowsi.rs.recordCount
 }
 
 func newRows(recordType string, typemap skydb.RecordSchema, rows *sqlx.Rows, err error) (*skydb.Rows, error) {

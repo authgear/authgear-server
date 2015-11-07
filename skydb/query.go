@@ -199,6 +199,7 @@ func (f *DistanceFunc) Args() []interface{} {
 // CountFunc represents a function that count number of rows matching
 // a query
 type CountFunc struct {
+	OverallRecords bool
 }
 
 // Args implements the Func interface
