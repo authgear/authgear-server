@@ -392,6 +392,10 @@ func (db fileDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows(records)), nil
 }
 
+func (db fileDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+	panic("not implemented")
+}
+
 func (db fileDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
 	// do nothing
 	return nil

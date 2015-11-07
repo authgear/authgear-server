@@ -347,6 +347,11 @@ func funcToSqlOperand(fun skydb.Func) (string, []interface{}) {
 		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))", pq.QuoteIdentifier(f.Field))
 		args := []interface{}{f.Location.Lng(), f.Location.Lat()}
 		return sql, args
+	case *skydb.CountFunc:
+		var sql string
+		sql = fmt.Sprintf("COUNT(*)")
+		args := []interface{}{}
+		return sql, args
 	default:
 		panic(fmt.Errorf("got unrecgonized skydb.Func = %T", fun))
 	}
@@ -491,6 +496,59 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 
 	rows, err := queryWith(db.Db, q)
 	return newRows(query.Type, typemap, rows, err)
+}
+
+func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
+	if query.Type == "" {
+		return 0, errors.New("got empty query type")
+	}
+
+	typemap, err := db.remoteColumnTypes(query.Type)
+	if err != nil || len(typemap) == 0 { // error or record type has not been created
+		return 0, err
+	}
+
+	typemap = skydb.RecordSchema{
+		"_record_count": skydb.FieldType{
+			Type: skydb.TypeNumber,
+			Expression: &skydb.Expression{
+				Type:  skydb.Function,
+				Value: &skydb.CountFunc{},
+			},
+		},
+	}
+
+	q := db.selectQuery(query.Type, typemap)
+
+	if p := query.Predicate; p != nil {
+		q = q.Where(newPredicateSqlizer(*p))
+	}
+
+	if query.ReadableBy != "" {
+		// FIXME: Serialize the json instead of building manually
+		q = q.Where(
+			`(_access @> '[{"user_id":"`+query.ReadableBy+`"}]' OR `+
+				`_access IS NULL OR `+
+				`_owner_id = ?)`, query.ReadableBy)
+	}
+
+	rows, err := queryWith(db.Db, q)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		panic("Unexpected zero rows returned for aggregate count function.")
+	}
+
+	var recordCount uint64
+	err = rows.Scan(&recordCount)
+	if err != nil {
+		return 0, err
+	}
+
+	return recordCount, nil
 }
 
 func whitelistedRecordSchema(schema skydb.RecordSchema, whitelistKeys []string) (skydb.RecordSchema, error) {

@@ -169,6 +169,7 @@ type Query struct {
 	ReadableBy   string
 	ComputedKeys map[string]Expression
 	DesiredKeys  []string
+	GetCount     bool
 	Limit        *uint64
 	Offset       uint64
 }
@@ -193,4 +194,14 @@ type DistanceFunc struct {
 // Args implements the Func interface
 func (f *DistanceFunc) Args() []interface{} {
 	return []interface{}{f.Field, f.Location}
+}
+
+// CountFunc represents a function that count number of rows matching
+// a query
+type CountFunc struct {
+}
+
+// Args implements the Func interface
+func (f *CountFunc) Args() []interface{} {
+	return []interface{}{}
 }

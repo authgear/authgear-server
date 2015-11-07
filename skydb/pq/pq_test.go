@@ -1885,6 +1885,108 @@ func TestQuery(t *testing.T) {
 	})
 }
 
+func TestQueryCount(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		// fixture
+		record1 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id1"),
+			OwnerID: "user_id",
+			Data: map[string]interface{}{
+				"noteOrder": float64(1),
+				"content":   "Hello World",
+			},
+		}
+		record2 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id2"),
+			OwnerID: "user_id",
+			Data: map[string]interface{}{
+				"noteOrder": float64(2),
+				"content":   "Bye World",
+			},
+		}
+		record3 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id3"),
+			OwnerID: "user_id",
+			Data: map[string]interface{}{
+				"noteOrder": float64(3),
+				"content":   "Good Hello",
+			},
+		}
+
+		db := c.PrivateDB("userid")
+		So(db.Extend("note", skydb.RecordSchema{
+			"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
+			"content":   skydb.FieldType{Type: skydb.TypeString},
+		}), ShouldBeNil)
+
+		err := db.Save(&record2)
+		So(err, ShouldBeNil)
+		err = db.Save(&record1)
+		So(err, ShouldBeNil)
+		err = db.Save(&record3)
+		So(err, ShouldBeNil)
+
+		Convey("count records", func() {
+			query := skydb.Query{
+				Type: "note",
+			}
+			count, err := db.QueryCount(&query)
+
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 3)
+		})
+
+		Convey("count records by content matching", func() {
+			query := skydb.Query{
+				Type: "note",
+				Predicate: &skydb.Predicate{
+					Operator: skydb.Like,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "content",
+						},
+						skydb.Expression{
+							Type:  skydb.Literal,
+							Value: "Hello%",
+						},
+					},
+				},
+			}
+			count, err := db.QueryCount(&query)
+
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 1)
+		})
+
+		Convey("count records by content with none matching", func() {
+			query := skydb.Query{
+				Type: "note",
+				Predicate: &skydb.Predicate{
+					Operator: skydb.Like,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "content",
+						},
+						skydb.Expression{
+							Type:  skydb.Literal,
+							Value: "Not Exist",
+						},
+					},
+				},
+			}
+			count, err := db.QueryCount(&query)
+
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 0)
+		})
+	})
+}
+
 func TestMetaDataQuery(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
