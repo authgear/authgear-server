@@ -481,8 +481,8 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 				`_owner_id = ?)`, query.ReadableBy)
 	}
 
-	if query.Limit > 0 {
-		q = q.Limit(query.Limit)
+	if query.Limit != nil {
+		q = q.Limit(*query.Limit)
 	}
 
 	if query.Offset > 0 {

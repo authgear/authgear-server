@@ -774,7 +774,8 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(db.lastquery.Limit, ShouldEqual, 200)
+			So(db.lastquery.Limit, ShouldNotBeNil)
+			So(*db.lastquery.Limit, ShouldEqual, 200)
 			So(db.lastquery.Offset, ShouldEqual, 400)
 		})
 	})

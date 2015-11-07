@@ -1482,7 +1482,7 @@ func TestQuery(t *testing.T) {
 		Convey("query records by offset and paging", func() {
 			query := skydb.Query{
 				Type:   "note",
-				Limit:  2,
+				Limit:  new(uint64),
 				Offset: 1,
 				Sorts: []skydb.Sort{
 					skydb.Sort{
@@ -1491,6 +1491,7 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
+			*query.Limit = 2
 			records, err := exhaustRows(db.Query(&query))
 
 			So(err, ShouldBeNil)

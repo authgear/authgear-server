@@ -169,7 +169,7 @@ type Query struct {
 	ReadableBy   string
 	ComputedKeys map[string]Expression
 	DesiredKeys  []string
-	Limit        uint64
+	Limit        *uint64
 	Offset       uint64
 }
 

@@ -957,8 +957,9 @@ func queryFromRaw(rawQuery map[string]interface{}, query *skydb.Query) (err skye
 		query.Offset = uint64(offset)
 	}
 
-	if limit, _ := rawQuery["limit"].(float64); limit > 0 {
-		query.Limit = uint64(limit)
+	if limit, ok := rawQuery["limit"].(float64); ok {
+		query.Limit = new(uint64)
+		*query.Limit = uint64(limit)
 	}
 	return nil
 }
