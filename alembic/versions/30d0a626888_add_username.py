@@ -17,6 +17,12 @@ import sqlalchemy as sa
 
 
 def upgrade():
+    """
+    SQL That equal to the following
+    ALTER TABLE app_name._user ADD COLUMN username varchar(255);
+    ALTER TABLE app_name._user ADD CONSTRAINT '_user_email_key' UNIQUE('email');
+    UPDATE app_name._version set version_num = '30d0a626888;
+    """
     op.add_column('_user', sa.Column('username', sa.Unicode(255), unique=True))
     op.create_unique_constraint(
         '_user_email_key', '_user', ['email'])
