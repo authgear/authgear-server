@@ -56,7 +56,7 @@ func (q jsonQuery) MarshalJSON() ([]byte, error) {
 		ReadableBy   string                      `json:"readable_by,omitempty"`
 		ComputedKeys map[string]skydb.Expression `json:"computed_keys,omitempty"`
 		DesiredKeys  []string                    `json:"desired_keys,omitempty"`
-		Limit        uint64                      `json:"limit,omitempty"`
+		Limit        *uint64                     `json:"limit,omitempty"`
 		Offset       uint64                      `json:"offset,omitempty"`
 	}{
 		q.Type,

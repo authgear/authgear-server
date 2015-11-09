@@ -23,6 +23,10 @@ func (rs emptyRowsIter) Next(record *Record) error {
 	return io.EOF
 }
 
+func (rs emptyRowsIter) OverallRecordCount() *uint64 {
+	return nil
+}
+
 var ErrDatabaseTxDidBegin = errors.New("skydb: a transaction has already begun")
 var ErrDatabaseTxDidNotBegin = errors.New("skydb: a transaction has not begun")
 var ErrDatabaseTxDone = errors.New("skydb: Database's transaction has already commited or rolled back")
@@ -65,6 +69,10 @@ type Database interface {
 	// an Rows to iterate the results.
 	Query(query *Query) (*Rows, error)
 
+	// QueryCount executes the supplied query against the Database and returns
+	// the number of records matching the query's predicate.
+	QueryCount(query *Query) (uint64, error)
+
 	// Extend extends the Database record schema such that a record
 	// arrived subsequently with that schema can be saved
 	//
@@ -103,11 +111,12 @@ type TxDatabase interface {
 // Rows implements a scanner-like interface for easy iteration on a
 // result set returned from a query
 type Rows struct {
-	iter    RowsIter
-	lasterr error
-	closed  bool
-	record  Record
-	nexted  bool
+	iter        RowsIter
+	lasterr     error
+	closed      bool
+	record      Record
+	nexted      bool
+	recordCount *uint64
 }
 
 // NewRows creates a new Rows.
@@ -155,6 +164,12 @@ func (r *Rows) Record() Record {
 	return r.record
 }
 
+// OverallRecordCount returns the number of matching records in the database
+// if this resultset contains any rows.
+func (r *Rows) OverallRecordCount() *uint64 {
+	return r.iter.OverallRecordCount()
+}
+
 // Err returns the last error encountered during Scan.
 //
 // NOTE: It is not an error if the underlying result set is exhausted.
@@ -176,6 +191,8 @@ type RowsIter interface {
 	//
 	// Next should return io.EOF when there are no more rows
 	Next(record *Record) error
+
+	OverallRecordCount() *uint64
 }
 
 // MemoryRows is a native implementation of RowIter.
@@ -201,4 +218,12 @@ func (rs *MemoryRows) Next(record *Record) error {
 	*record = rs.Records[rs.CurrentRowIndex]
 	rs.CurrentRowIndex = rs.CurrentRowIndex + 1
 	return nil
+}
+
+func (rs *MemoryRows) OverallRecordCount() *uint64 {
+	result := uint64(len(rs.Records))
+	if result == 0 {
+		return nil
+	}
+	return &result
 }

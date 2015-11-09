@@ -374,6 +374,17 @@ func (_mr *_MockDatabaseRecorder) Query(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Query", arg0)
 }
 
+func (_m *MockDatabase) QueryCount(_param0 *skydb.Query) (uint64, error) {
+	ret := _m.ctrl.Call(_m, "QueryCount", _param0)
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockDatabaseRecorder) QueryCount(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "QueryCount", arg0)
+}
+
 func (_m *MockDatabase) Save(_param0 *skydb.Record) error {
 	ret := _m.ctrl.Call(_m, "Save", _param0)
 	ret0, _ := ret[0].(error)

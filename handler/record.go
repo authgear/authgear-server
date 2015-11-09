@@ -953,14 +953,47 @@ func queryFromRaw(rawQuery map[string]interface{}, query *skydb.Query) (err skye
 		return nil
 	})
 
+	if getCount, ok := rawQuery["count"].(bool); ok {
+		query.GetCount = getCount
+	}
+
 	if offset, _ := rawQuery["offset"].(float64); offset > 0 {
 		query.Offset = uint64(offset)
 	}
 
-	if limit, _ := rawQuery["limit"].(float64); limit > 0 {
-		query.Limit = uint64(limit)
+	if limit, ok := rawQuery["limit"].(float64); ok {
+		query.Limit = new(uint64)
+		*query.Limit = uint64(limit)
 	}
 	return nil
+}
+
+func getRecordCount(db skydb.Database, query *skydb.Query, results *skydb.Rows) (uint64, error) {
+	if results != nil {
+		recordCount := results.OverallRecordCount()
+		if recordCount != nil {
+			return *recordCount, nil
+		}
+	}
+
+	recordCount, err := db.QueryCount(query)
+	if err != nil {
+		return 0, err
+	}
+
+	return recordCount, nil
+}
+
+func queryResultInfo(db skydb.Database, query *skydb.Query, results *skydb.Rows) (map[string]interface{}, error) {
+	resultInfo := map[string]interface{}{}
+	if query.GetCount {
+		recordCount, err := getRecordCount(db, query, results)
+		if err != nil {
+			return nil, err
+		}
+		resultInfo["count"] = recordCount
+	}
+	return resultInfo, nil
 }
 
 /*
@@ -1050,6 +1083,15 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	response.Result = output
+
+	resultInfo, err := queryResultInfo(db, &query, results)
+	if err != nil {
+		response.Err = skyerr.NewUnknownErr(err)
+		return
+	}
+	if len(resultInfo) > 0 {
+		response.Info = resultInfo
+	}
 }
 
 /*

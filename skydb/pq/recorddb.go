@@ -347,6 +347,15 @@ func funcToSqlOperand(fun skydb.Func) (string, []interface{}) {
 		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))", pq.QuoteIdentifier(f.Field))
 		args := []interface{}{f.Location.Lng(), f.Location.Lat()}
 		return sql, args
+	case *skydb.CountFunc:
+		var sql string
+		if f.OverallRecords {
+			sql = fmt.Sprintf("COUNT(*) OVER()")
+		} else {
+			sql = fmt.Sprintf("COUNT(*)")
+		}
+		args := []interface{}{}
+		return sql, args
 	default:
 		panic(fmt.Errorf("got unrecgonized skydb.Func = %T", fun))
 	}
@@ -459,6 +468,18 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 		}
 	}
 
+	if query.GetCount {
+		typemap["_record_count"] = skydb.FieldType{
+			Type: skydb.TypeNumber,
+			Expression: &skydb.Expression{
+				Type: skydb.Function,
+				Value: &skydb.CountFunc{
+					OverallRecords: true,
+				},
+			},
+		}
+	}
+
 	q := db.selectQuery(query.Type, typemap)
 
 	if p := query.Predicate; p != nil {
@@ -481,8 +502,8 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 				`_owner_id = ?)`, query.ReadableBy)
 	}
 
-	if query.Limit > 0 {
-		q = q.Limit(query.Limit)
+	if query.Limit != nil {
+		q = q.Limit(*query.Limit)
 	}
 
 	if query.Offset > 0 {
@@ -491,6 +512,61 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 
 	rows, err := queryWith(db.Db, q)
 	return newRows(query.Type, typemap, rows, err)
+}
+
+func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
+	if query.Type == "" {
+		return 0, errors.New("got empty query type")
+	}
+
+	typemap, err := db.remoteColumnTypes(query.Type)
+	if err != nil || len(typemap) == 0 { // error or record type has not been created
+		return 0, err
+	}
+
+	typemap = skydb.RecordSchema{
+		"_record_count": skydb.FieldType{
+			Type: skydb.TypeNumber,
+			Expression: &skydb.Expression{
+				Type: skydb.Function,
+				Value: &skydb.CountFunc{
+					OverallRecords: false,
+				},
+			},
+		},
+	}
+
+	q := db.selectQuery(query.Type, typemap)
+
+	if p := query.Predicate; p != nil {
+		q = q.Where(newPredicateSqlizer(*p))
+	}
+
+	if query.ReadableBy != "" {
+		// FIXME: Serialize the json instead of building manually
+		q = q.Where(
+			`(_access @> '[{"user_id":"`+query.ReadableBy+`"}]' OR `+
+				`_access IS NULL OR `+
+				`_owner_id = ?)`, query.ReadableBy)
+	}
+
+	rows, err := queryWith(db.Db, q)
+	if err != nil {
+		return 0, err
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		panic("Unexpected zero rows returned for aggregate count function.")
+	}
+
+	var recordCount uint64
+	err = rows.Scan(&recordCount)
+	if err != nil {
+		return 0, err
+	}
+
+	return recordCount, nil
 }
 
 func whitelistedRecordSchema(schema skydb.RecordSchema, whitelistKeys []string) (skydb.RecordSchema, error) {
@@ -571,16 +647,17 @@ type columnsScanner interface {
 }
 
 type recordScanner struct {
-	recordType string
-	typemap    skydb.RecordSchema
-	cs         columnsScanner
-	columns    []string
-	err        error
+	recordType  string
+	typemap     skydb.RecordSchema
+	cs          columnsScanner
+	columns     []string
+	err         error
+	recordCount *uint64
 }
 
 func newRecordScanner(recordType string, typemap skydb.RecordSchema, cs columnsScanner) *recordScanner {
 	columns, err := cs.Columns()
-	return &recordScanner{recordType, typemap, cs, columns, err}
+	return &recordScanner{recordType, typemap, cs, columns, err, nil}
 }
 
 func (rs *recordScanner) Scan(record *skydb.Record) error {
@@ -631,6 +708,18 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 
 	for i, column := range rs.columns {
 		value := values[i]
+
+		if column == "_record_count" {
+			svalue, ok := value.(*sql.NullFloat64)
+			if !ok || !svalue.Valid {
+				panic("Unexpected missing column or column is null for _record_count.")
+			}
+
+			rs.recordCount = new(uint64)
+			*rs.recordCount = uint64(svalue.Float64)
+			continue
+		}
+
 		switch svalue := value.(type) {
 		default:
 			return fmt.Errorf("received unexpected scanned type = %T for column = %s", value, column)
@@ -700,6 +789,10 @@ func (rowsi rowsIter) Next(record *skydb.Record) error {
 	} else {
 		return io.EOF
 	}
+}
+
+func (rowsi rowsIter) OverallRecordCount() *uint64 {
+	return rowsi.rs.recordCount
 }
 
 func newRows(recordType string, typemap skydb.RecordSchema, rows *sqlx.Rows, err error) (*skydb.Rows, error) {

@@ -77,7 +77,7 @@ func (query *queryValue) Scan(value interface{}) error {
 		ReadableBy   string
 		ComputedKeys map[string]skydb.Expression
 		DesiredKeys  []string
-		Limit        uint64
+		Limit        *uint64
 		Offset       uint64
 	}{}
 
