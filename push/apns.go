@@ -186,8 +186,8 @@ func setPayload(m Mapper, p *apns.Payload) {
 }
 
 // Send sends a notification to the device identified by the
-// specified deviceToken
-func (pusher *APNSPusher) Send(m Mapper, deviceToken string) error {
+// specified device
+func (pusher *APNSPusher) Send(m Mapper, device *skydb.Device) error {
 	payload := apns.NewPayload()
 	if m != nil {
 		setPayload(m, payload)
@@ -195,7 +195,7 @@ func (pusher *APNSPusher) Send(m Mapper, deviceToken string) error {
 
 	notification := apns.NewNotification()
 	notification.Payload = payload
-	notification.DeviceToken = deviceToken
+	notification.DeviceToken = device.Token
 	notification.Priority = apns.PriorityImmediate
 
 	if err := pusher.client.Send(notification); err != nil {

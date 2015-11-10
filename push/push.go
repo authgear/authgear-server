@@ -1,5 +1,7 @@
 package push
 
+import "github.com/oursky/skygear/skydb"
+
 // EmptyMapper is a Mapper which always returns a empty map.
 const EmptyMapper = emptyMapper(0)
 
@@ -27,5 +29,5 @@ func (m MapMapper) Map() map[string]interface{} {
 
 // Sender defines the methods that a push service should support.
 type Sender interface {
-	Send(m Mapper, deviceToken string) error
+	Send(m Mapper, device *skydb.Device) error
 }

@@ -33,6 +33,9 @@ func TestSend(t *testing.T) {
 		pusher := APNSPusher{
 			client: &client,
 		}
+		device := skydb.Device{
+			Token: "deviceToken",
+		}
 
 		Convey("pushes notification", func() {
 			customMap := MapMapper{
@@ -49,7 +52,7 @@ func TestSend(t *testing.T) {
 				},
 			}
 
-			err := pusher.Send(customMap, "deviceToken")
+			err := pusher.Send(customMap, &device)
 
 			So(err, ShouldBeNil)
 
@@ -74,7 +77,7 @@ func TestSend(t *testing.T) {
 
 		Convey("returns error returned from Client.Send", func() {
 			client.returnerr = errors.New("apns_test: some error")
-			err := pusher.Send(MapMapper{}, "deviceToken")
+			err := pusher.Send(MapMapper{}, &device)
 			So(err, ShouldResemble, errors.New("apns_test: some error"))
 		})
 
@@ -88,7 +91,7 @@ func TestSend(t *testing.T) {
 				},
 			}
 
-			err := pusher.Send(customMap, "deviceToken")
+			err := pusher.Send(customMap, &device)
 
 			So(err, ShouldBeNil)
 

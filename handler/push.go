@@ -46,7 +46,7 @@ func (p *pushToUserPayload) Validate() error {
 var sendPushNotification = func(sender push.Sender, device *skydb.Device, m push.Mapper) {
 	go func() {
 		log.Debugf("Sending notification to device token = %s", device.Token)
-		err := sender.Send(m, device.Token)
+		err := sender.Send(m, device)
 
 		if err != nil {
 			log.Warnf("Failed to send notification: %v\n", err)
