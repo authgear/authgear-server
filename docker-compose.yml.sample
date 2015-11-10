@@ -1,3 +1,5 @@
+# This example is suggested for skygear developer, for normal usage. Please 
+# refer to doc site.
 db:
   image: mdillon/postgis:9.4
   volumes:
@@ -14,14 +16,14 @@ skygear:
   - "3000:3000"
   - "5555"
   volumes:
-  - ./development.ini:/go/src/app/config.ini
+  - ./development.ini:/go/src/app/development.ini
   - ./data:/var/lib/skygear/data
   links:
   - db
-  command: sh -c 'PGHOST=db PGPORT=$DB_PORT_5432_TCP_PORT $GOPATH/bin/skygear config.ini'
+  command: skygear development.ini
   environment:
-    DATABASE_URL: dbname=postgres sslmode=disable
-    PGUSER: postgres
+    DATABASE_URL: postgres://postgres:@db/postgres?sslmode=disable
+    DB_IMPL_NAME: pq
 
 # sample python plugin configuration
 # py-skygear:
