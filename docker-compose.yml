@@ -1,0 +1,49 @@
+# docker-compose.yml for Skygear
+#
+# If you need to override parts of this file, please create
+# `docker-compose.override.yml` in the same directory of this file and
+# specify overrided attributes.
+# See also: https://docs.docker.com/compose/extends/
+# (requires docker-compose 0.5 or above)
+
+# The volume container for database
+# This container provides persistent storage for the `db` container. To
+# remove this storage, run `docker-compose rm db_data`.
+db_data:
+  image: mdillon/postgis:9.4
+  command: /bin/true
+
+# The database container
+db:
+  image: mdillon/postgis:9.4
+  volumes_from:
+  - db_data
+  ports:
+  - "5432:5432"
+
+# The volume container for skygear
+# This container provides persistent storage for the `app` container. To
+# remove this storage, run `docker-compose rm app_data`.
+app_data:
+  image: oursky/skygear:latest
+  command: /bin/true
+
+# The Skygear container
+app:
+  image: oursky/skygear:latest
+  ports:
+  - "3000:3000" # Skygear API Endpoint (HTTP)
+  - "5555:5555" # Skygear Plugin Endpoint (ZMQ)
+  volumes_from:
+  - app_data
+  links:
+  - db
+  command: skygear development.ini
+  environment:
+    # `db` in the following string should match the name of the database
+    # container above.
+    DATABASE_URL: postgresql://postgres:@db/postgres?sslmode=disable
+    DB_IMPL_NAME: pq
+    API_KEY: changeme
+    PGHOST: db
+    PGUSER: postgres
