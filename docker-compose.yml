@@ -35,6 +35,8 @@ app:
   - "3000:3000" # Skygear API Endpoint (HTTP)
   - "5555:5555" # Skygear Plugin Endpoint (ZMQ)
   volumes_from:
+  # Uncomment the following line to override the default configuration file.
+  #- ./development.ini:/go/src/app/development.ini
   - app_data
   links:
   - db
