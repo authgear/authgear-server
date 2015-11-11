@@ -27,7 +27,7 @@ func (c *naiveClient) FailedNotifs() chan apns.NotificationResult {
 	return c.failedNotifs
 }
 
-func TestSend(t *testing.T) {
+func TestAPNSSend(t *testing.T) {
 	Convey("APNSPusher", t, func() {
 		client := naiveClient{}
 		pusher := APNSPusher{
@@ -139,7 +139,7 @@ func (ch feedbackChannel) Receive() <-chan apns.FeedbackTuple {
 	return ch
 }
 
-func TestFeedback(t *testing.T) {
+func TestAPNSFeedback(t *testing.T) {
 	Convey("APNSPusher", t, func() {
 		conn := &mockConn{}
 		ch := make(chan apns.FeedbackTuple)

@@ -130,16 +130,7 @@ func main() {
 	}
 	conn.Close()
 
-	var pushSender push.Sender
-	if config.APNS.Enable {
-		apnsPushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
-		if err != nil {
-			log.Fatalf("Failed to set up push sender: %v", err)
-		}
-		go apnsPushSender.Run()
-		go apnsPushSender.RunFeedback()
-		pushSender = apnsPushSender
-	}
+	pushSender := initPushSender(config, connOpener)
 
 	internalHub := pubsub.NewHub()
 	initSubscription(config, connOpener, internalHub, pushSender)
@@ -379,6 +370,36 @@ func initDevice(config Configuration, connOpener func() (skydb.Conn, error)) {
 	}
 
 	conn.DeleteEmptyDevicesByTime(time.Now().AddDate(0, 0, -1))
+}
+
+func initPushSender(config Configuration, connOpener func() (skydb.Conn, error)) push.Sender {
+	routeSender := push.NewRouteSender()
+	if config.APNS.Enable {
+		routeSender.Route("aps", initAPNSPusher(config, connOpener))
+	}
+	if config.GCM.Enable {
+		routeSender.Route("gcm", initGCMPusher(config))
+	}
+
+	if routeSender.Len() == 0 {
+		return nil
+	}
+	return routeSender
+}
+
+func initAPNSPusher(config Configuration, connOpener func() (skydb.Conn, error)) *push.APNSPusher {
+	apnsPushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
+	if err != nil {
+		log.Fatalf("Failed to set up push sender: %v", err)
+	}
+	go apnsPushSender.Run()
+	go apnsPushSender.RunFeedback()
+
+	return apnsPushSender
+}
+
+func initGCMPusher(config Configuration) *push.GCMPusher {
+	return &push.GCMPusher{APIKey: config.GCM.APIKey}
 }
 
 func initSubscription(config Configuration, connOpener func() (skydb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {

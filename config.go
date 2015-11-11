@@ -47,6 +47,10 @@ type Configuration struct {
 		CertPath string `gcfg:"cert-path"`
 		KeyPath  string `gcfg:"key-path"`
 	}
+	GCM struct {
+		Enable bool
+		APIKey string `gcfg:"api-key"`
+	}
 	LOG struct {
 		Level string
 	}
