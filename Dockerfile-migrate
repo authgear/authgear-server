@@ -3,10 +3,10 @@ FROM python:3.5.0
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-COPY alembic /usr/src/app/alembic
 COPY requirements.txt /usr/src/app/
 COPY development.ini /usr/src/app/development.ini
 RUN pip install --no-cache-dir -r requirements.txt
+COPY alembic /usr/src/app/alembic
 
 ENTRYPOINT ["alembic"]
 CMD ["-c", "development.ini", "upgrade", "head"]
