@@ -172,15 +172,20 @@ func setPayloadAPS(apsMap map[string]interface{}, aps *apns.APS) {
 
 func setPayload(m Mapper, p *apns.Payload) {
 	customMap := m.Map()
-	for key, value := range customMap {
-		if key == "aps" {
-			if apsMap, ok := value.(map[string]interface{}); ok {
-				setPayloadAPS(apsMap, &p.APS)
-			} else {
-				log.Errorf("Failed to set key = %v, value = %v", key, value)
+
+	if apsValue, ok := customMap["aps"]; ok {
+		if apsMap, ok := apsValue.(map[string]interface{}); ok {
+			setPayloadAPS(apsMap, &p.APS)
+		} else {
+			log.Errorf("Want aps.(type) be map[string]interface{}, got %T", apsValue)
+		}
+	}
+
+	if dataMap, ok := customMap["data"].(map[string]interface{}); ok {
+		for key, value := range dataMap {
+			if err := p.SetCustomValue(key, value); err != nil {
+				log.Errorf("Failed to set data[%v] = %v", key, value)
 			}
-		} else if err := p.SetCustomValue(key, value); err != nil {
-			log.Errorf("Failed to set key = %v, value = %v", key, value)
 		}
 	}
 }
@@ -199,7 +204,7 @@ func (pusher *APNSPusher) Send(m Mapper, device *skydb.Device) error {
 	notification.Priority = apns.PriorityImmediate
 
 	if err := pusher.client.Send(notification); err != nil {
-		log.Errorf("Failed to send Push Notification: %v", err)
+		log.Errorf("Failed to send APNS Notification: %v", err)
 		return err
 	}
 

@@ -45,10 +45,12 @@ func TestSend(t *testing.T) {
 					"badge":             5,
 					"alert":             "This is a message.",
 				},
-				"string":  "value",
-				"integer": 1,
-				"nested": map[string]interface{}{
-					"should": "correct",
+				"data": map[string]interface{}{
+					"string":  "value",
+					"integer": 1,
+					"nested": map[string]interface{}{
+						"should": "correct",
+					},
 				},
 			}
 
