@@ -2,10 +2,11 @@ package authtoken
 
 import (
 	"fmt"
-	. "github.com/smartystreets/goconvey/convey"
 	"io/ioutil"
 	"log"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 
 	"bytes"
 	"os"
@@ -188,6 +189,12 @@ func TestFileStoreDelete(t *testing.T) {
 		Convey("delete an not existing token", func() {
 			err := store.Delete("notexistaccesstoken")
 			So(err, ShouldBeNil)
+		})
+
+		Convey("delete an empty token", func() {
+			err := store.Delete("")
+			So(err, ShouldHaveSameTypeAs, &NotFoundError{})
+			So(err.Error(), ShouldEqual, `get "": empty access token`)
 		})
 	})
 }

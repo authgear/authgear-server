@@ -2,6 +2,7 @@ package authtoken
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -93,7 +94,7 @@ type NotFoundError struct {
 }
 
 func (e *NotFoundError) Error() string {
-	return fmt.Sprintf("get %v: %v", e.AccessToken, e.Err)
+	return fmt.Sprintf("get %#v: %v", e.AccessToken, e.Err)
 }
 
 // Store represents a persistent storage for Token.
@@ -167,6 +168,9 @@ func (f FileStore) Put(token *Token) error {
 // Delete return an error if the token cannot removed. It is NOT
 // not an error if the token does not exist at deletion time.
 func (f FileStore) Delete(accessToken string) error {
+	if accessToken == "" {
+		return &NotFoundError{accessToken, errors.New("empty access token")}
+	}
 	if err := os.Remove(filepath.Join(string(f), accessToken)); err != nil && !os.IsNotExist(err) {
 		return err
 	}
