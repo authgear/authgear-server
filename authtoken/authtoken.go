@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/oursky/skygear/uuid"
@@ -127,7 +128,10 @@ func (f FileStore) Init() FileStore {
 // such access token is expired. In the latter case the expired
 // access token is still written onto the supplied Token.
 func (f FileStore) Get(accessToken string, token *Token) error {
-	tokenPath := filepath.Join(string(f), accessToken)
+	tokenPath, err := safeJoin(string(f), accessToken)
+	if err != nil {
+		return &NotFoundError{accessToken, err}
+	}
 
 	file, err := os.Open(tokenPath)
 	if err != nil {
@@ -150,7 +154,12 @@ func (f FileStore) Get(accessToken string, token *Token) error {
 // Put writes the specified token into a file and overwrites existing
 // Token if any.
 func (f FileStore) Put(token *Token) error {
-	file, err := os.Create(filepath.Join(string(f), token.AccessToken))
+	path, err := safeJoin(string(f), token.AccessToken)
+	if err != nil {
+		return &NotFoundError{token.AccessToken, err}
+	}
+
+	file, err := os.Create(path)
 	if err != nil {
 		return &NotFoundError{token.AccessToken, err}
 	}
@@ -171,9 +180,27 @@ func (f FileStore) Delete(accessToken string) error {
 	if accessToken == "" {
 		return &NotFoundError{accessToken, errors.New("empty access token")}
 	}
-	if err := os.Remove(filepath.Join(string(f), accessToken)); err != nil && !os.IsNotExist(err) {
+
+	path, err := safeJoin(string(f), accessToken)
+	if err != nil {
+		return &NotFoundError{accessToken, err}
+	}
+
+	if err = os.Remove(path); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
 	return nil
+}
+
+var errInvalidToken = errors.New("invalid access token")
+
+// join that ensures the result path is sitll within dir
+func safeJoin(dir, base string) (string, error) {
+	p := filepath.Join(dir, base)
+	if !strings.HasPrefix(p, dir) {
+		return "", errInvalidToken
+	}
+
+	return p, nil
 }
