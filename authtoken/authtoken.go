@@ -2,6 +2,7 @@ package authtoken
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -93,7 +94,7 @@ type NotFoundError struct {
 }
 
 func (e *NotFoundError) Error() string {
-	return fmt.Sprintf("get %v: %v", e.AccessToken, e.Err)
+	return fmt.Sprintf("get %#v: %v", e.AccessToken, e.Err)
 }
 
 // Store represents a persistent storage for Token.
@@ -126,6 +127,10 @@ func (f FileStore) Init() FileStore {
 // such access token is expired. In the latter case the expired
 // access token is still written onto the supplied Token.
 func (f FileStore) Get(accessToken string, token *Token) error {
+	if err := validateToken(accessToken); err != nil {
+		return &NotFoundError{accessToken, err}
+	}
+
 	tokenPath := filepath.Join(string(f), accessToken)
 
 	file, err := os.Open(tokenPath)
@@ -149,6 +154,10 @@ func (f FileStore) Get(accessToken string, token *Token) error {
 // Put writes the specified token into a file and overwrites existing
 // Token if any.
 func (f FileStore) Put(token *Token) error {
+	if err := validateToken(token.AccessToken); err != nil {
+		return &NotFoundError{token.AccessToken, err}
+	}
+
 	file, err := os.Create(filepath.Join(string(f), token.AccessToken))
 	if err != nil {
 		return &NotFoundError{token.AccessToken, err}
@@ -167,9 +176,23 @@ func (f FileStore) Put(token *Token) error {
 // Delete return an error if the token cannot removed. It is NOT
 // not an error if the token does not exist at deletion time.
 func (f FileStore) Delete(accessToken string) error {
+	if err := validateToken(accessToken); err != nil {
+		return &NotFoundError{accessToken, err}
+	}
+
 	if err := os.Remove(filepath.Join(string(f), accessToken)); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
+	return nil
+}
+
+var errInvalidToken = errors.New("invalid access token")
+
+func validateToken(base string) error {
+	b := filepath.Base(base)
+	if b != base || b == "." || b == "/" {
+		return errInvalidToken
+	}
 	return nil
 }

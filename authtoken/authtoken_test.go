@@ -2,10 +2,11 @@ package authtoken
 
 import (
 	"fmt"
-	. "github.com/smartystreets/goconvey/convey"
 	"io/ioutil"
 	"log"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 
 	"bytes"
 	"os"
@@ -166,6 +167,49 @@ func TestFileStoreGet(t *testing.T) {
 	})
 }
 
+func TestFileStoreEscape(t *testing.T) {
+	Convey("FileStore", t, func() {
+		tDir := tempDir()
+		defer os.RemoveAll(tDir)
+
+		dir := filepath.Join(tDir, "inner")
+		mdErr := os.Mkdir(dir, 0755)
+		So(mdErr, ShouldBeNil)
+
+		store := FileStore(dir)
+		token := Token{}
+
+		Convey("Get not escaping dir", func() {
+			outterFilepath := filepath.Join(tDir, "outerfile")
+			err := ioutil.WriteFile(outterFilepath, []byte(`{}`), 0644)
+			So(err, ShouldBeNil)
+
+			err = store.Get("../outerfile", &token)
+			So(err.Error(), ShouldEqual, `get "../outerfile": invalid access token`)
+		})
+
+		Convey("Put not escaping dir", func() {
+			token := Token{
+				AccessToken: "../outerfile",
+				ExpiredAt:   time.Unix(1, 1).UTC(),
+				AppName:     "com.oursky.skygear",
+				UserInfoID:  "someuserinfoid",
+			}
+			err := store.Put(&token)
+			So(err.Error(), ShouldEqual, `get "../outerfile": invalid access token`)
+		})
+
+		Convey("Delete not escaping dir", func() {
+			outterFilepath := filepath.Join(tDir, "outerfile")
+			err := ioutil.WriteFile(outterFilepath, []byte(`{}`), 0644)
+			So(err, ShouldBeNil)
+
+			err = store.Delete("../outerfile")
+			So(err.Error(), ShouldEqual, `get "../outerfile": invalid access token`)
+		})
+	})
+}
+
 func TestFileStoreDelete(t *testing.T) {
 	Convey("FileStore", t, func() {
 		dir := tempDir()
@@ -188,6 +232,12 @@ func TestFileStoreDelete(t *testing.T) {
 		Convey("delete an not existing token", func() {
 			err := store.Delete("notexistaccesstoken")
 			So(err, ShouldBeNil)
+		})
+
+		Convey("delete an empty token", func() {
+			err := store.Delete("")
+			So(err, ShouldHaveSameTypeAs, &NotFoundError{})
+			So(err.Error(), ShouldEqual, `get "": invalid access token`)
 		})
 	})
 }
