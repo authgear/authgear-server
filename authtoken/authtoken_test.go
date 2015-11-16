@@ -237,7 +237,7 @@ func TestFileStoreDelete(t *testing.T) {
 		Convey("delete an empty token", func() {
 			err := store.Delete("")
 			So(err, ShouldHaveSameTypeAs, &NotFoundError{})
-			So(err.Error(), ShouldEqual, `get "": empty access token`)
+			So(err.Error(), ShouldEqual, `get "": invalid access token`)
 		})
 	})
 }
