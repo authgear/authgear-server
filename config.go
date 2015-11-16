@@ -1,8 +1,11 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 
 	"github.com/oursky/gcfg"
 )
@@ -82,6 +85,17 @@ func ReadFileInto(config *Configuration, path string) error {
 	appAPIKey := os.Getenv("API_KEY")
 	if appAPIKey != "" {
 		config.App.APIKey = appAPIKey
+	}
+
+	appName := os.Getenv("APP_NAME")
+	if appName != "" {
+		config.App.Name = appName
+	}
+	if config.App.Name == "" {
+		return errors.New("app name is not set")
+	}
+	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(config.App.Name) {
+		return fmt.Errorf("app name '%s' contains invalid characters other than alphanumberics or underscores", config.App.Name)
 	}
 
 	dbImplName := os.Getenv("DB_IMPL_NAME")
