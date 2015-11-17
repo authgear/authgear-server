@@ -11,10 +11,13 @@ RUN \
 RUN mkdir -p /go/src/app
 WORKDIR /go/src/app
 
-COPY . /go/src/app
-
+# Copy a minimal set of files to restore Go dependencies to get advantage
+# of Docker build cache
 RUN go get github.com/tools/godep
+COPY Godeps /go/src/app/Godeps
 RUN $GOPATH/bin/godep restore
+
+COPY . /go/src/app
 
 RUN go-wrapper download
 RUN go-wrapper install
