@@ -19,7 +19,7 @@ type testRelationConn struct {
 }
 
 func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
-	panic("not implemented")
+	return []skydb.UserInfo{}
 }
 
 func (conn *testRelationConn) AddRelation(user string, name string, targetUser string) error {
@@ -32,7 +32,7 @@ func (conn *testRelationConn) RemoveRelation(user string, name string, targetUse
 	return nil
 }
 
-func TestRelationQueryHandler(t *testing.T) {
+func TestRelationHandler(t *testing.T) {
 	Convey("RelationAddHandler", t, func() {
 		conn := testRelationConn{}
 		r := handlertest.NewSingleRouteRouter(RelationAddHandler, func(p *router.Payload) {
@@ -53,6 +53,40 @@ func TestRelationQueryHandler(t *testing.T) {
     "result": [{
         "id": "some-friend"
     }]
+}`)
+		})
+	})
+
+	Convey("RelationQueryHandler", t, func() {
+		conn := testRelationConn{}
+		r := handlertest.NewSingleRouteRouter(RelationQueryHandler, func(p *router.Payload) {
+			p.DBConn = &conn
+		})
+
+		Convey("query outward relation", func() {
+			resp := r.POST(`{
+    "name": "follow",
+    "direction": "outward"
+}`)
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+    "result": []
+}`)
+		})
+
+		Convey("query relation with wrong direction", func() {
+			resp := r.POST(`{
+    "name": "follow",
+    "direction": "bidirection"
+}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+    "error": {
+        "code": 101,
+        "message": "Only outward, inward and mutual direction is supported",
+        "type": "RequestInvalid"
+    }
 }`)
 		})
 	})
