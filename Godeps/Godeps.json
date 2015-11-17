@@ -1,9 +1,6 @@
 {
 	"ImportPath": "github.com/oursky/skygear",
-	"GoVersion": "go1.4.2",
-	"Packages": [
-		"./..."
-	],
+	"GoVersion": "go1.5.1",
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
@@ -15,6 +12,10 @@
 			"Rev": "74c334d7b8aaa4fd1b4fc6aa428c36fed1699e28"
 		},
 		{
+			"ImportPath": "github.com/google/go-gcm",
+			"Rev": "423613e2e8f11e71023c75ae2dd7e27105326cbf"
+		},
+		{
 			"ImportPath": "github.com/gorilla/websocket",
 			"Rev": "b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5"
 		},
@@ -24,8 +25,8 @@
 			"Rev": "344b1e96d6e410a093b7bce40287731a49e253f6"
 		},
 		{
-			"ImportPath": "github.com/jtolds/gls",
-			"Rev": "9a4a02dbe491bef4bab3c24fd9f3087d6c4c6690"
+			"ImportPath": "github.com/jpillora/backoff",
+			"Rev": "2ff7c4694083b5dbd71b21fd7cb7577477a74b31"
 		},
 		{
 			"ImportPath": "github.com/lann/builder",
@@ -45,6 +46,10 @@
 			"Rev": "b269bd035a727d6c1081f76e7a239a1b00674c40"
 		},
 		{
+			"ImportPath": "github.com/mattn/go-xmpp",
+			"Rev": "d86062634d19b6ac3e601f0d2b875879bb6b9569"
+		},
+		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
 			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
 		},
@@ -59,6 +64,10 @@
 		{
 			"ImportPath": "github.com/paulmach/go.geojson",
 			"Rev": "6bb595384bbe8e2f960c3a1df0e4e66c9da3e884"
+		},
+		{
+			"ImportPath": "github.com/pborman/uuid",
+			"Rev": "cccd189d45f7ac3368a0d127efb7f4d08ae0b655"
 		},
 		{
 			"ImportPath": "github.com/robfig/cron",

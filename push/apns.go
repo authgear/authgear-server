@@ -2,6 +2,7 @@ package push
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -170,36 +171,45 @@ func setPayloadAPS(apsMap map[string]interface{}, aps *apns.APS) {
 	}
 }
 
-func setPayload(m Mapper, p *apns.Payload) {
-	customMap := m.Map()
-	for key, value := range customMap {
-		if key == "aps" {
-			if apsMap, ok := value.(map[string]interface{}); ok {
-				setPayloadAPS(apsMap, &p.APS)
-			} else {
-				log.Errorf("Failed to set key = %v, value = %v", key, value)
-			}
-		} else if err := p.SetCustomValue(key, value); err != nil {
-			log.Errorf("Failed to set key = %v, value = %v", key, value)
+func setPayload(m map[string]interface{}, p *apns.Payload) {
+	if apsValue, ok := m["aps"]; ok {
+		if apsMap, ok := apsValue.(map[string]interface{}); ok {
+			setPayloadAPS(apsMap, &p.APS)
+		} else {
+			log.Errorf("Want aps.(type) be map[string]interface{}, got %T", apsValue)
+		}
+		delete(m, "aps")
+	}
+
+	// set custom values
+	for key, value := range m {
+		if err := p.SetCustomValue(key, value); err != nil {
+			log.Errorf("Failed to set data[%v] = %v", key, value)
 		}
 	}
 }
 
 // Send sends a notification to the device identified by the
-// specified deviceToken
-func (pusher *APNSPusher) Send(m Mapper, deviceToken string) error {
-	payload := apns.NewPayload()
-	if m != nil {
-		setPayload(m, payload)
+// specified device
+func (pusher *APNSPusher) Send(m Mapper, device *skydb.Device) error {
+	if m == nil {
+		return nil
 	}
+	apnsMap, ok := m.Map()["apns"].(map[string]interface{})
+	if !ok {
+		return errors.New("push/apns: payload has no apns dictionary")
+	}
+
+	payload := apns.NewPayload()
+	setPayload(apnsMap, payload)
 
 	notification := apns.NewNotification()
 	notification.Payload = payload
-	notification.DeviceToken = deviceToken
+	notification.DeviceToken = device.Token
 	notification.Priority = apns.PriorityImmediate
 
 	if err := pusher.client.Send(notification); err != nil {
-		log.Errorf("Failed to send Push Notification: %v", err)
+		log.Errorf("Failed to send APNS Notification: %v", err)
 		return err
 	}
 

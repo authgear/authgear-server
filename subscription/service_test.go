@@ -10,13 +10,13 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type notifyFunc func(device skydb.Device, notice Notice) error
+type notifyFunc func(device *skydb.Device, notice Notice) error
 
-func (f notifyFunc) CanNotify(device skydb.Device) bool {
+func (f notifyFunc) CanNotify(device *skydb.Device) bool {
 	return true
 }
 
-func (f notifyFunc) Notify(device skydb.Device, notice Notice) error {
+func (f notifyFunc) Notify(device *skydb.Device, notice Notice) error {
 	return f(device, notice)
 }
 
@@ -72,8 +72,8 @@ func TestService(t *testing.T) {
 				n Notice
 			)
 			done := make(chan bool)
-			service.Notifier = notifyFunc(func(device skydb.Device, notice Notice) error {
-				d = device
+			service.Notifier = notifyFunc(func(device *skydb.Device, notice Notice) error {
+				d = *device
 				n = notice
 				done <- true
 				return nil
@@ -102,7 +102,7 @@ func TestService(t *testing.T) {
 		Convey("increments sequence number", func() {
 			var n Notice
 			done := make(chan bool)
-			service.Notifier = notifyFunc(func(device skydb.Device, notice Notice) error {
+			service.Notifier = notifyFunc(func(device *skydb.Device, notice Notice) error {
 				n = notice
 				done <- true
 				return nil
@@ -120,7 +120,7 @@ func TestService(t *testing.T) {
 		Convey("resets sequence number on next second", func() {
 			var n Notice
 			done := make(chan bool)
-			service.Notifier = notifyFunc(func(device skydb.Device, notice Notice) error {
+			service.Notifier = notifyFunc(func(device *skydb.Device, notice Notice) error {
 				n = notice
 				done <- true
 				return nil

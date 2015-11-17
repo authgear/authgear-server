@@ -27,29 +27,34 @@ func (c *naiveClient) FailedNotifs() chan apns.NotificationResult {
 	return c.failedNotifs
 }
 
-func TestSend(t *testing.T) {
+func TestAPNSSend(t *testing.T) {
 	Convey("APNSPusher", t, func() {
 		client := naiveClient{}
 		pusher := APNSPusher{
 			client: &client,
 		}
+		device := skydb.Device{
+			Token: "deviceToken",
+		}
 
 		Convey("pushes notification", func() {
 			customMap := MapMapper{
-				"aps": map[string]interface{}{
-					"content-available": 1,
-					"sound":             "sosumi.mp3",
-					"badge":             5,
-					"alert":             "This is a message.",
-				},
-				"string":  "value",
-				"integer": 1,
-				"nested": map[string]interface{}{
-					"should": "correct",
+				"apns": map[string]interface{}{
+					"aps": map[string]interface{}{
+						"content-available": 1,
+						"sound":             "sosumi.mp3",
+						"badge":             5,
+						"alert":             "This is a message.",
+					},
+					"string":  "value",
+					"integer": 1,
+					"nested": map[string]interface{}{
+						"should": "correct",
+					},
 				},
 			}
 
-			err := pusher.Send(customMap, "deviceToken")
+			err := pusher.Send(customMap, &device)
 
 			So(err, ShouldBeNil)
 
@@ -58,37 +63,46 @@ func TestSend(t *testing.T) {
 
 			payloadJSON, _ := json.Marshal(&n.Payload)
 			So(payloadJSON, ShouldEqualJSON, `{
-	"aps": {
-		"content-available": 1,
-		"sound": "sosumi.mp3",
-		"badge": 5,
-		"alert": "This is a message."
-	},
-	"string": "value",
-	"integer": 1,
-	"nested": {
-		"should": "correct"
-	}
-}`)
+				"aps": {
+					"content-available": 1,
+					"sound": "sosumi.mp3",
+					"badge": 5,
+					"alert": "This is a message."
+				},
+				"string": "value",
+				"integer": 1,
+				"nested": {
+					"should": "correct"
+				}
+			}`)
+		})
+
+		Convey("returns error when missing apns dictionary", func() {
+			err := pusher.Send(EmptyMapper, &device)
+			So(err, ShouldResemble, errors.New("push/apns: payload has no apns dictionary"))
 		})
 
 		Convey("returns error returned from Client.Send", func() {
 			client.returnerr = errors.New("apns_test: some error")
-			err := pusher.Send(MapMapper{}, "deviceToken")
+			err := pusher.Send(MapMapper{
+				"apns": map[string]interface{}{},
+			}, &device)
 			So(err, ShouldResemble, errors.New("apns_test: some error"))
 		})
 
 		Convey("pushes with custom alert", func() {
 			customMap := MapMapper{
-				"aps": map[string]interface{}{
-					"alert": map[string]interface{}{
-						"body":           "Acme message received from Johnny Appleseed",
-						"action-loc-key": "VIEW",
+				"apns": map[string]interface{}{
+					"aps": map[string]interface{}{
+						"alert": map[string]interface{}{
+							"body":           "Acme message received from Johnny Appleseed",
+							"action-loc-key": "VIEW",
+						},
 					},
 				},
 			}
 
-			err := pusher.Send(customMap, "deviceToken")
+			err := pusher.Send(customMap, &device)
 
 			So(err, ShouldBeNil)
 
@@ -134,7 +148,7 @@ func (ch feedbackChannel) Receive() <-chan apns.FeedbackTuple {
 	return ch
 }
 
-func TestFeedback(t *testing.T) {
+func TestAPNSFeedback(t *testing.T) {
 	Convey("APNSPusher", t, func() {
 		conn := &mockConn{}
 		ch := make(chan apns.FeedbackTuple)
