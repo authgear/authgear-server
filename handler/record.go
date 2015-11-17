@@ -602,6 +602,8 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 				"key":   key,
 				"value": value,
 			}).Panicf("got unrecgonized type = %T", value)
+		case nil:
+			// do nothing
 		case float64:
 			schema[key] = skydb.FieldType{
 				Type: skydb.TypeNumber,
