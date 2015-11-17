@@ -42,12 +42,12 @@ func TestGCMSend(t *testing.T) {
 						"sound": "default",
 						"badge": "5",
 					},
-				},
-				"data": map[string]interface{}{
-					"string":  "value",
-					"integer": 1,
-					"nested": map[string]interface{}{
-						"should": "correct",
+					"data": map[string]interface{}{
+						"string":  "value",
+						"integer": 1,
+						"nested": map[string]interface{}{
+							"should": "correct",
+						},
 					},
 				},
 			}, &device)

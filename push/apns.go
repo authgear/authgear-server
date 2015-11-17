@@ -2,6 +2,7 @@ package push
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -170,22 +171,20 @@ func setPayloadAPS(apsMap map[string]interface{}, aps *apns.APS) {
 	}
 }
 
-func setPayload(m Mapper, p *apns.Payload) {
-	customMap := m.Map()
-
-	if apsValue, ok := customMap["aps"]; ok {
+func setPayload(m map[string]interface{}, p *apns.Payload) {
+	if apsValue, ok := m["aps"]; ok {
 		if apsMap, ok := apsValue.(map[string]interface{}); ok {
 			setPayloadAPS(apsMap, &p.APS)
 		} else {
 			log.Errorf("Want aps.(type) be map[string]interface{}, got %T", apsValue)
 		}
+		delete(m, "aps")
 	}
 
-	if dataMap, ok := customMap["data"].(map[string]interface{}); ok {
-		for key, value := range dataMap {
-			if err := p.SetCustomValue(key, value); err != nil {
-				log.Errorf("Failed to set data[%v] = %v", key, value)
-			}
+	// set custom values
+	for key, value := range m {
+		if err := p.SetCustomValue(key, value); err != nil {
+			log.Errorf("Failed to set data[%v] = %v", key, value)
 		}
 	}
 }
@@ -193,10 +192,16 @@ func setPayload(m Mapper, p *apns.Payload) {
 // Send sends a notification to the device identified by the
 // specified device
 func (pusher *APNSPusher) Send(m Mapper, device *skydb.Device) error {
-	payload := apns.NewPayload()
-	if m != nil {
-		setPayload(m, payload)
+	if m == nil {
+		return nil
 	}
+	apnsMap, ok := m.Map()["apns"].(map[string]interface{})
+	if !ok {
+		return errors.New("push/apns: payload has no apns dictionary")
+	}
+
+	payload := apns.NewPayload()
+	setPayload(apnsMap, payload)
 
 	notification := apns.NewNotification()
 	notification.Payload = payload

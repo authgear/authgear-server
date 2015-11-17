@@ -39,13 +39,13 @@ func TestAPNSSend(t *testing.T) {
 
 		Convey("pushes notification", func() {
 			customMap := MapMapper{
-				"aps": map[string]interface{}{
-					"content-available": 1,
-					"sound":             "sosumi.mp3",
-					"badge":             5,
-					"alert":             "This is a message.",
-				},
-				"data": map[string]interface{}{
+				"apns": map[string]interface{}{
+					"aps": map[string]interface{}{
+						"content-available": 1,
+						"sound":             "sosumi.mp3",
+						"badge":             5,
+						"alert":             "This is a message.",
+					},
 					"string":  "value",
 					"integer": 1,
 					"nested": map[string]interface{}{
@@ -63,32 +63,41 @@ func TestAPNSSend(t *testing.T) {
 
 			payloadJSON, _ := json.Marshal(&n.Payload)
 			So(payloadJSON, ShouldEqualJSON, `{
-	"aps": {
-		"content-available": 1,
-		"sound": "sosumi.mp3",
-		"badge": 5,
-		"alert": "This is a message."
-	},
-	"string": "value",
-	"integer": 1,
-	"nested": {
-		"should": "correct"
-	}
-}`)
+				"aps": {
+					"content-available": 1,
+					"sound": "sosumi.mp3",
+					"badge": 5,
+					"alert": "This is a message."
+				},
+				"string": "value",
+				"integer": 1,
+				"nested": {
+					"should": "correct"
+				}
+			}`)
+		})
+
+		Convey("returns error when missing apns dictionary", func() {
+			err := pusher.Send(EmptyMapper, &device)
+			So(err, ShouldResemble, errors.New("push/apns: payload has no apns dictionary"))
 		})
 
 		Convey("returns error returned from Client.Send", func() {
 			client.returnerr = errors.New("apns_test: some error")
-			err := pusher.Send(MapMapper{}, &device)
+			err := pusher.Send(MapMapper{
+				"apns": map[string]interface{}{},
+			}, &device)
 			So(err, ShouldResemble, errors.New("apns_test: some error"))
 		})
 
 		Convey("pushes with custom alert", func() {
 			customMap := MapMapper{
-				"aps": map[string]interface{}{
-					"alert": map[string]interface{}{
-						"body":           "Acme message received from Johnny Appleseed",
-						"action-loc-key": "VIEW",
+				"apns": map[string]interface{}{
+					"aps": map[string]interface{}{
+						"alert": map[string]interface{}{
+							"body":           "Acme message received from Johnny Appleseed",
+							"action-loc-key": "VIEW",
+						},
 					},
 				},
 			}

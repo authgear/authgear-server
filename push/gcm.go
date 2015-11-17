@@ -55,9 +55,5 @@ func mapGCMMessage(mapper Mapper, msg *gcm.HttpMessage) error {
 		}
 	}
 
-	if dataMap, ok := m["data"].(map[string]interface{}); ok {
-		msg.Data = dataMap
-	}
-
 	return nil
 }
