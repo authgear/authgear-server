@@ -10,9 +10,11 @@ addons:
 
 cache:
   directories:
-    - $HOME/.cache/local
+    - $HOME/.cache
+    - Godeps/_workspace
 
 before_install:
+  - mkdir -p $HOME/.cache/local
   - export LD_INSTALL_PREFIX=$HOME/.cache/local
   - export LD_LIBRARY_PATH=$LD_INSTALL_PREFIX/lib:$LD_LIBRARY_PATH
   - export LIBRARY_PATH=$LD_INSTALL_PREFIX/lib:$LIBRARY_PATH
@@ -23,6 +25,7 @@ before_install:
   - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/libzmq.git
   - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/czmq.git
   - popd
+  - ./scripts/if-differ.sh Godeps/Godeps.json $HOME/.cache/Godeps.json rm -rf Godeps/_workspace
 
 before_script:
   - psql -c 'CREATE DATABASE skygear_test;' -U postgres
