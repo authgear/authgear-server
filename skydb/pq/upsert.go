@@ -21,11 +21,16 @@ WITH updated AS (
 		FROM {{.Table}}
 		WHERE {{range $i, $_ := .Keys}}{{if $i}} AND {{end}}{{quoted .}} = ${{addOne $i}}{{end}}
 	{{end}}
-)
-INSERT INTO {{.Table}}
-	({{template "commaSeparatedList" .InsertCols}})
+), inserted AS (
+	INSERT INTO {{.Table}}
+		({{template "commaSeparatedList" .InsertCols}})
 	SELECT {{placeholderList 0 (len .InsertCols)}}
-	WHERE NOT EXISTS (SELECT * FROM updated);
+	WHERE NOT EXISTS (SELECT * FROM updated)
+	RETURNING *
+)
+SELECT * FROM updated
+UNION ALL
+SELECT * FROM inserted;
 `
 
 var funcMap = template.FuncMap{

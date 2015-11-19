@@ -203,6 +203,10 @@ func (loc Location) String() string {
 	return fmt.Sprintf("POINT(%g %g)", loc[0], loc[1])
 }
 
+// Sequence is a bogus data type for creating a sequence field
+// via JIT schema migration
+type Sequence struct{}
+
 // A Data represents a key-value object used for storing ODRecord.
 type Data map[string]interface{}
 
@@ -326,4 +330,6 @@ const (
 	TypeDateTime
 	TypeAsset
 	TypeACL
+	TypeInteger
+	TypeSequence
 )

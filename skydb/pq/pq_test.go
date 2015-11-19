@@ -735,6 +735,13 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
+		Convey("creates table with sequence", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"order": skydb.FieldType{Type: skydb.TypeSequence},
+			})
+			So(err, ShouldBeNil)
+		})
+
 		Convey("error if creates table with reference not exist", func() {
 			err := db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
@@ -1167,6 +1174,50 @@ func TestRecordLocationField(t *testing.T) {
 				ID: skydb.NewRecordID("photo", "1"),
 				Data: map[string]interface{}{
 					"location": skydb.NewLocation(1, 2),
+				},
+				OwnerID: "userid",
+			})
+		})
+	})
+}
+
+func TestRecordSequenceField(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		db := c.PublicDB()
+		So(db.Extend("note", skydb.RecordSchema{
+			"seq": skydb.FieldType{Type: skydb.TypeSequence},
+		}), ShouldBeNil)
+
+		Convey("saves & load sequence field", func() {
+			record := skydb.Record{
+				ID:      skydb.NewRecordID("note", "1"),
+				OwnerID: "userid",
+			}
+
+			err := db.Save(&record)
+			So(err, ShouldBeNil)
+			So(record, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("note", "1"),
+				Data: map[string]interface{}{
+					"seq": int64(1),
+				},
+				OwnerID: "userid",
+			})
+
+			record = skydb.Record{
+				ID:      skydb.NewRecordID("note", "2"),
+				OwnerID: "userid",
+			}
+
+			err = db.Save(&record)
+			So(err, ShouldBeNil)
+			So(record, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("note", "2"),
+				Data: map[string]interface{}{
+					"seq": int64(2),
 				},
 				OwnerID: "userid",
 			})
