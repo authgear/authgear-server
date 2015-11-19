@@ -44,7 +44,7 @@ const (
 	In
 )
 
-// Checks whether the Operator is a compound operator, meaning the
+// IsCompound checks whether the Operator is a compound operator, meaning the
 // operator combine the results of other subpredicates.
 func (op Operator) IsCompound() bool {
 	switch op {
@@ -55,7 +55,7 @@ func (op Operator) IsCompound() bool {
 	}
 }
 
-// Checks whether the Operator determines the result of a predicate
+// IsBinary checks whether the Operator determines the result of a predicate
 // by comparing two subexpressions.
 func (op Operator) IsBinary() bool {
 	switch op {
@@ -66,7 +66,7 @@ func (op Operator) IsBinary() bool {
 	}
 }
 
-// Returns the type of an Expression.
+// ExpressionType is the type of an Expression.
 type ExpressionType int
 
 // A list of ExpressionTypes.

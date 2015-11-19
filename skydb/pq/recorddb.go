@@ -329,19 +329,19 @@ func (p *compoundPredicateSqlizer) ToSql() (sql string, args []interface{}, err 
 	}
 }
 
-func toSqlOperand(expr skydb.Expression) (sql string, args []interface{}) {
+func toSQLOperand(expr skydb.Expression) (sql string, args []interface{}) {
 	switch expr.Type {
 	case skydb.KeyPath:
 		sql = pq.QuoteIdentifier(expr.Value.(string))
 	case skydb.Function:
-		sql, args = funcToSqlOperand(expr.Value.(skydb.Func))
+		sql, args = funcToSQLOperand(expr.Value.(skydb.Func))
 	default:
-		sql, args = literalToSqlOperand(expr.Value)
+		sql, args = literalToSQLOperand(expr.Value)
 	}
 	return
 }
 
-func funcToSqlOperand(fun skydb.Func) (string, []interface{}) {
+func funcToSQLOperand(fun skydb.Func) (string, []interface{}) {
 	switch f := fun.(type) {
 	case *skydb.DistanceFunc:
 		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))", pq.QuoteIdentifier(f.Field))
@@ -361,7 +361,7 @@ func funcToSqlOperand(fun skydb.Func) (string, []interface{}) {
 	}
 }
 
-func literalToSqlOperand(literal interface{}) (string, []interface{}) {
+func literalToSQLOperand(literal interface{}) (string, []interface{}) {
 	// Array detection is borrowed from squirrel's expr.go
 	switch literalValue := literal.(type) {
 	case []interface{}:
@@ -369,21 +369,21 @@ func literalToSqlOperand(literal interface{}) (string, []interface{}) {
 		if argCount > 0 {
 			args := make([]interface{}, len(literalValue))
 			for i, val := range literalValue {
-				args[i] = literalToSqlValue(val)
+				args[i] = literalToSQLValue(val)
 			}
 			return "(" + sq.Placeholders(len(literalValue)) + ")", args
-		} else {
-			// NOTE(limouren): trick to make `field IN (...)` work for empty list
-			// NULL field won't match the condition since NULL == NULL is falsy,
-			// which renders `field IN(NULL)` equivalent to FALSE
-			return "(NULL)", nil
 		}
+
+		// NOTE(limouren): trick to make `field IN (...)` work for empty list
+		// NULL field won't match the condition since NULL == NULL is falsy,
+		// which renders `field IN(NULL)` equivalent to FALSE
+		return "(NULL)", nil
 	default:
-		return sq.Placeholders(1), []interface{}{literalToSqlValue(literal)}
+		return sq.Placeholders(1), []interface{}{literalToSQLValue(literal)}
 	}
 }
 
-func literalToSqlValue(value interface{}) interface{} {
+func literalToSQLValue(value interface{}) interface{} {
 	switch v := value.(type) {
 	case skydb.Reference:
 		return v.ID.Key
@@ -399,7 +399,7 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 		lhs := p.Children[0].(skydb.Expression)
 		rhs := p.Children[1].(skydb.Expression)
 
-		sqlOperand, opArgs := toSqlOperand(lhs)
+		sqlOperand, opArgs := toSQLOperand(lhs)
 		buffer.WriteString(sqlOperand)
 		args = append(args, opArgs...)
 
@@ -427,7 +427,7 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 			buffer.WriteString(` IN `)
 		}
 
-		sqlOperand, opArgs = toSqlOperand(rhs)
+		sqlOperand, opArgs = toSQLOperand(rhs)
 		buffer.WriteString(sqlOperand)
 		args = append(args, opArgs...)
 
@@ -612,7 +612,7 @@ func sortOrderBySQL(sort skydb.Sort) (string, error) {
 	return fmt.Sprintf(expr + " " + order), nil
 }
 
-// due to sq not being able to pass args in OrderBy, we can't re-use funcToSqlOperand
+// due to sq not being able to pass args in OrderBy, we can't re-use funcToSQLOperand
 func funcOrderBySQL(fun skydb.Func) (string, error) {
 	switch f := fun.(type) {
 	case *skydb.DistanceFunc:
@@ -812,7 +812,7 @@ func (db *database) selectQuery(recordType string, typemap skydb.RecordSchema) s
 	q := psql.Select()
 	for column, fieldType := range typemap {
 		if fieldType.Expression != nil {
-			sqlOperand, opArgs := toSqlOperand(*fieldType.Expression)
+			sqlOperand, opArgs := toSQLOperand(*fieldType.Expression)
 			q = q.Column(sqlOperand+" as "+column, opArgs...)
 		} else {
 			q = q.Column(`"` + column + `"`)

@@ -40,7 +40,7 @@ before_script:
            github.com/oursky/gogocyclo
 
 script:
-  - golint ./... | grep -v -f .golint.exclude
+  - golint ./... | grep -v -f .golint.exclude; test $? -eq 1
   - go generate ./...
   - gocyclo -skip-godeps -over 15 . | gogocyclo
   - go test -cover ./...

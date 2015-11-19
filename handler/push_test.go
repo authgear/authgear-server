@@ -131,7 +131,7 @@ func TestPushToUser(t *testing.T) {
 		}()
 
 		Convey("push to single user", func() {
-			sentDevices := make([]skydb.Device, 0)
+			var sentDevices []skydb.Device
 			sendPushNotification = func(sender push.Sender, device *skydb.Device, m push.Mapper) {
 				So(m.Map(), ShouldResemble, map[string]interface{}{
 					"aps": map[string]interface{}{
@@ -210,7 +210,7 @@ func (conn *simpleDeviceConn) GetDevice(id string, device *skydb.Device) error {
 }
 
 func (conn *simpleDeviceConn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
-	result := make([]skydb.Device, 0)
+	var result []skydb.Device
 	for _, prospectiveDevice := range conn.devices {
 		if prospectiveDevice.UserInfoID == user {
 			result = append(result, prospectiveDevice)
@@ -218,7 +218,6 @@ func (conn *simpleDeviceConn) QueryDevicesByUser(user string) ([]skydb.Device, e
 	}
 	if len(result) == 0 {
 		return nil, skydb.ErrUserNotFound
-	} else {
-		return result, nil
 	}
+	return result, nil
 }

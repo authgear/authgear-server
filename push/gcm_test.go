@@ -22,13 +22,13 @@ func TestGCMSend(t *testing.T) {
 			apiKey     string
 			gcmMessage gcm.HttpMessage
 		)
-		gcmSendHttp = func(k string, m gcm.HttpMessage) (*gcm.HttpResponse, error) {
+		gcmSendHTTP = func(k string, m gcm.HttpMessage) (*gcm.HttpResponse, error) {
 			apiKey = k
 			gcmMessage = m
 			return &gcm.HttpResponse{}, nil
 		}
 		defer func() {
-			gcmSendHttp = gcm.SendHttp
+			gcmSendHTTP = gcm.SendHttp
 		}()
 
 		Convey("sends notification", func() {
@@ -75,7 +75,7 @@ func TestGCMSend(t *testing.T) {
 		})
 
 		Convey("propagates error from gcm.SendHttp", func() {
-			gcmSendHttp = func(string, gcm.HttpMessage) (*gcm.HttpResponse, error) {
+			gcmSendHTTP = func(string, gcm.HttpMessage) (*gcm.HttpResponse, error) {
 				return nil, errors.New("gcm_test: some error")
 			}
 

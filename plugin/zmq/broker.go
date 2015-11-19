@@ -9,12 +9,25 @@ import (
 )
 
 const (
+	// HeartbeatInterval is the interval that broker and worker send
+	// heartbeats to each other.
 	HeartbeatInterval = time.Second
+	// HeartbeatLiveness defines the liveness of each heartbeat. Generally
+	// it should be >= 3, otherwise workers will keep being discarded and
+	// reconnecting.
 	HeartbeatLiveness = 3
+)
 
-	Ready     = "\001"
+const (
+	// Ready is sent by worker to signal broker that it is ready to receive
+	// jobs.
+	Ready = "\001"
+	// Heartbeat is sent by both broker and worker to signal a heartbeat.
 	Heartbeat = "\002"
-	Shutdown  = "\003"
+	// Shutdown is sent by worker while being killed (probably by CTRL C).
+	// It is an addition to original PPP to shorten the time needed for
+	// broker to detect a normal shutdown of worker.
+	Shutdown = "\003"
 )
 
 // Broker implements the Paranoid Pirate queue described in the zguide:
@@ -139,7 +152,7 @@ func handleWorkerStatus(workers *workerQueue, address []byte, status string) {
 	}
 }
 
-var heartbeatIntervalMS int = int(HeartbeatInterval.Seconds() * 1000)
+var heartbeatIntervalMS = int(HeartbeatInterval.Seconds() * 1000)
 
 type pworker struct {
 	address []byte

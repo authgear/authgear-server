@@ -333,36 +333,32 @@ func (conn *singleUserConn) UpdateUser(userinfo *skydb.UserInfo) error {
 	if conn.userinfo != nil && conn.userinfo.ID == userinfo.ID {
 		conn.userinfo = userinfo
 		return nil
-	} else {
-		return skydb.ErrUserNotFound
 	}
+	return skydb.ErrUserNotFound
 }
 
 func (conn *singleUserConn) CreateUser(userinfo *skydb.UserInfo) error {
 	if conn.userinfo == nil {
 		conn.userinfo = userinfo
 		return nil
-	} else {
-		return skydb.ErrUserDuplicated
 	}
+	return skydb.ErrUserDuplicated
 }
 
 func (conn *singleUserConn) GetUser(id string, userinfo *skydb.UserInfo) error {
-	if conn.userinfo == nil {
-		return skydb.ErrUserNotFound
-	} else {
+	if conn.userinfo != nil {
 		*userinfo = *conn.userinfo
 		return nil
 	}
+	return skydb.ErrUserNotFound
 }
 
 func (conn *singleUserConn) GetUserByPrincipalID(principalID string, userinfo *skydb.UserInfo) error {
-	if conn.userinfo == nil {
-		return skydb.ErrUserNotFound
-	} else {
+	if conn.userinfo != nil {
 		*userinfo = *conn.userinfo
 		return nil
 	}
+	return skydb.ErrUserNotFound
 }
 
 func TestSignupHandlerAsAnonymous(t *testing.T) {
