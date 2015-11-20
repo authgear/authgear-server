@@ -100,7 +100,7 @@ type conn struct {
 func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
 	var (
 		username *string
-		email *string
+		email    *string
 	)
 	if userinfo.Username != "" {
 		username = &userinfo.Username
@@ -140,9 +140,9 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
 
 func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error {
 	var (
-		id string
+		id       string
 		username sql.NullString
-		email sql.NullString
+		email    sql.NullString
 	)
 	password, auth := []byte{}, authInfoValue{}
 	err := scanner.Scan(
@@ -273,7 +273,7 @@ func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
 func (c *conn) UpdateUser(userinfo *skydb.UserInfo) error {
 	var (
 		username *string
-		email *string
+		email    *string
 	)
 	if userinfo.Username != "" {
 		username = &userinfo.Username
@@ -346,7 +346,7 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 		args      []interface{}
 		err       error
 	)
-	if direction == "active" {
+	if direction == "outward" {
 		selectSql, args, err = psql.Select("u.id", "u.username", "u.email").
 			From(c.tableName("_user")+" AS u").
 			Join(c.tableName(tName)+" AS relation on relation.right_id = u.id").
