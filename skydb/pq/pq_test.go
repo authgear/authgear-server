@@ -1235,6 +1235,41 @@ func TestRecordSequenceField(t *testing.T) {
 				OwnerID: "userid",
 			})
 		})
+
+		Convey("updates sequence field manually", func() {
+			record := skydb.Record{
+				ID:      skydb.NewRecordID("note", "1"),
+				OwnerID: "userid",
+			}
+
+			So(db.Save(&record), ShouldBeNil)
+			So(record.Data["seq"], ShouldEqual, 1)
+
+			record.Data["seq"] = 10
+			So(db.Save(&record), ShouldBeNil)
+
+			So(record, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("note", "1"),
+				Data: map[string]interface{}{
+					"seq": int64(10),
+				},
+				OwnerID: "userid",
+			})
+
+			// next record should's seq value should be 11
+			record = skydb.Record{
+				ID:      skydb.NewRecordID("note", "2"),
+				OwnerID: "userid",
+			}
+			So(db.Save(&record), ShouldBeNil)
+			So(record, ShouldResemble, skydb.Record{
+				ID: skydb.NewRecordID("note", "2"),
+				Data: map[string]interface{}{
+					"seq": int64(11),
+				},
+				OwnerID: "userid",
+			})
+		})
 	})
 }
 

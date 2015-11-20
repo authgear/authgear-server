@@ -205,6 +205,10 @@ func (db *database) Save(record *skydb.Record) error {
 		return err
 	}
 
+	if err := db.preSave(typemap, record); err != nil {
+		return err
+	}
+
 	row := queryRowWith(db.Db, upsert)
 	if err = newRecordScanner(record.ID.Type, typemap, row).Scan(record); err != nil {
 		sql, args, _ := upsert.ToSql()
@@ -218,6 +222,23 @@ func (db *database) Save(record *skydb.Record) error {
 	}
 
 	record.DatabaseID = db.userID
+	return nil
+}
+
+func (db *database) preSave(schema skydb.RecordSchema, record *skydb.Record) error {
+	const SetSequenceMaxValue = `SELECT setval($1, GREATEST(max(%v), $2)) FROM %v;`
+
+	for key, value := range record.Data {
+		// we are setting a sequence field
+		if schema[key].Type == skydb.TypeInteger {
+			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), db.tableName(record.ID.Type))
+			seqName := db.tableName(fmt.Sprintf(`%v_%v_seq`, record.ID.Type, key))
+			if _, err := db.Db.Exec(selectSQL, seqName, value); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -1033,6 +1054,11 @@ func isConflict(from, to skydb.FieldType) bool {
 	// currently integer can only be created by sequence,
 	// so there are no conflicts
 	if from.Type == skydb.TypeInteger && to.Type == skydb.TypeSequence {
+		return false
+	}
+
+	// for manual assignment of sequence
+	if from.Type == skydb.TypeInteger && to.Type == skydb.TypeNumber {
 		return false
 	}
 
