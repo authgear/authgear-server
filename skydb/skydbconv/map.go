@@ -286,6 +286,8 @@ func ParseInterface(i interface{}) interface{} {
 			var loc skydb.Location
 			mapFromOrPanic((*MapLocation)(&loc), value)
 			return &loc
+		case "seq":
+			return skydb.Sequence{}
 		default:
 			panic(fmt.Errorf("unknown $type = %s", kind))
 		}
