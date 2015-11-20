@@ -41,7 +41,7 @@ type SingleUserAuthProvider struct {
 	principalName string
 }
 
-// Creates a new instance of SingleUserAuthProvider.
+// NewSingleUserAuthProvider creates a new instance of SingleUserAuthProvider.
 func NewSingleUserAuthProvider(providerName string, principalName string) *SingleUserAuthProvider {
 	return &SingleUserAuthProvider{providerName, principalName}
 }

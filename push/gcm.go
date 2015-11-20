@@ -7,7 +7,7 @@ import (
 	"github.com/oursky/skygear/skydb"
 )
 
-var gcmSendHttp = gcm.SendHttp
+var gcmSendHTTP = gcm.SendHttp
 
 // GCMPusher sends push notifications via GCM.
 type GCMPusher struct {
@@ -28,7 +28,7 @@ func (p *GCMPusher) Send(m Mapper, device *skydb.Device) error {
 
 	// NOTE(limouren): might need to check repsonse for deleted / invalid
 	// device here
-	if _, err := gcmSendHttp(p.APIKey, message); err != nil {
+	if _, err := gcmSendHTTP(p.APIKey, message); err != nil {
 		log.Errorf("Failed to send GCM Notification: %v", err)
 		return err
 	}

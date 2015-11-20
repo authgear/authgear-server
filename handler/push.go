@@ -92,11 +92,10 @@ func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
 			Code     uint                   `json:"code"`
 			Info     map[string]interface{} `json:"info,omitempty"`
 		}{e.id, "error", message, t, code, info})
-	} else {
-		return json.Marshal(&struct {
-			ID string `json:"_id"`
-		}{e.id})
 	}
+	return json.Marshal(&struct {
+		ID string `json:"_id"`
+	}{e.id})
 }
 
 func PushToUserHandler(rpayload *router.Payload, response *router.Response) {

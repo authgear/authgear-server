@@ -1297,7 +1297,7 @@ func TestHookExecution(t *testing.T) {
 
 		Convey("record is not saved if BeforeSave's hook returns an error", func() {
 			registry.Register(hook.BeforeSave, "record", func(*skydb.Record, *skydb.Record) error {
-				return errors.New("no hooks for you!")
+				return errors.New("no hooks for you")
 			})
 			r.POST(`{
 				"records": [{

@@ -170,35 +170,35 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 
 func (c *conn) GetUser(id string, userinfo *skydb.UserInfo) error {
 	log.Warnf(id)
-	selectSql, args, err := psql.Select("id", "username", "email", "password", "auth").
+	selectSQL, args, err := psql.Select("id", "username", "email", "password", "auth").
 		From(c.tableName("_user")).
 		Where("id = ?", id).
 		ToSql()
 	if err != nil {
 		panic(err)
 	}
-	scanner := c.Db.QueryRow(selectSql, args...)
+	scanner := c.Db.QueryRow(selectSQL, args...)
 	return c.doScanUser(userinfo, scanner)
 }
 
 func (c *conn) GetUserByUsernameEmail(username string, email string, userinfo *skydb.UserInfo) error {
 	var (
-		selectSql string
+		selectSQL string
 		args      []interface{}
 		err       error
 	)
 	if email == "" {
-		selectSql, args, err = psql.Select("id", "username", "email", "password", "auth").
+		selectSQL, args, err = psql.Select("id", "username", "email", "password", "auth").
 			From(c.tableName("_user")).
 			Where("username = ?", username).
 			ToSql()
 	} else if username == "" {
-		selectSql, args, err = psql.Select("id", "username", "email", "password", "auth").
+		selectSQL, args, err = psql.Select("id", "username", "email", "password", "auth").
 			From(c.tableName("_user")).
 			Where("email = ?", email).
 			ToSql()
 	} else {
-		selectSql, args, err = psql.Select("id", "username", "email", "password", "auth").
+		selectSQL, args, err = psql.Select("id", "username", "email", "password", "auth").
 			From(c.tableName("_user")).
 			Where("username = ? AND email = ?", username, email).
 			ToSql()
@@ -206,19 +206,19 @@ func (c *conn) GetUserByUsernameEmail(username string, email string, userinfo *s
 	if err != nil {
 		panic(err)
 	}
-	scanner := c.Db.QueryRow(selectSql, args...)
+	scanner := c.Db.QueryRow(selectSQL, args...)
 	return c.doScanUser(userinfo, scanner)
 }
 
 func (c *conn) GetUserByPrincipalID(principalID string, userinfo *skydb.UserInfo) error {
-	selectSql, args, err := psql.Select("id", "username", "email", "password", "auth").
+	selectSQL, args, err := psql.Select("id", "username", "email", "password", "auth").
 		From(c.tableName("_user")).
 		Where("jsonb_exists(auth, ?)", principalID).
 		ToSql()
 	if err != nil {
 		panic(err)
 	}
-	scanner := c.Db.QueryRow(selectSql, args...)
+	scanner := c.Db.QueryRow(selectSQL, args...)
 	return c.doScanUser(userinfo, scanner)
 }
 
@@ -229,7 +229,7 @@ func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
 		emailargs[i] = interface{}(v)
 	}
 
-	selectSql, args, err := psql.Select("id", "username", "email", "password", "auth").
+	selectSQL, args, err := psql.Select("id", "username", "email", "password", "auth").
 		From(c.tableName("_user")).
 		Where("email IN ("+sq.Placeholders(len(emailargs))+") AND email IS NOT NULL AND email != ''", emailargs...).
 		ToSql()
@@ -237,10 +237,10 @@ func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
 		panic(err)
 	}
 
-	rows, err := c.Db.Query(selectSql, args...)
+	rows, err := c.Db.Query(selectSQL, args...)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"sql":  selectSql,
+			"sql":  selectSQL,
 			"args": args,
 			"err":  err,
 		}).Debugln("Failed to query user table")
@@ -285,7 +285,7 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) error {
 	} else {
 		email = nil
 	}
-	updateSql, args, err := psql.Update(c.tableName("_user")).
+	updateSQL, args, err := psql.Update(c.tableName("_user")).
 		Set("username", username).
 		Set("email", email).
 		Set("password", userinfo.HashedPassword).
@@ -296,7 +296,7 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) error {
 		panic(err)
 	}
 
-	result, err := c.Db.Exec(updateSql, args...)
+	result, err := c.Db.Exec(updateSQL, args...)
 	if err != nil {
 		return err
 	}
@@ -342,18 +342,18 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 	log.Debugf("Query Relation: %v, %v", user, name)
 	tName := "_" + name
 	var (
-		selectSql string
+		selectSQL string
 		args      []interface{}
 		err       error
 	)
 	if direction == "active" {
-		selectSql, args, err = psql.Select("u.id", "u.username", "u.email").
+		selectSQL, args, err = psql.Select("u.id", "u.username", "u.email").
 			From(c.tableName("_user")+" AS u").
 			Join(c.tableName(tName)+" AS relation on relation.right_id = u.id").
 			Where("relation.left_id = ?", user).
 			ToSql()
 	} else {
-		selectSql, args, err = psql.Select("u.id", "u.username", "u.email").
+		selectSQL, args, err = psql.Select("u.id", "u.username", "u.email").
 			From(c.tableName("_user")+" AS u").
 			Join(c.tableName(tName)+" AS relation on relation.left_id = u.id").
 			Where("relation.right_id = ?", user).
@@ -362,10 +362,10 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 	if err != nil {
 		panic(err)
 	}
-	rows, err := c.Db.Query(selectSql, args...)
+	rows, err := c.Db.Query(selectSQL, args...)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"sql":  selectSql,
+			"sql":  selectSQL,
 			"args": args,
 			"err":  err,
 		}).Debugln("Failed to query relation")
@@ -388,7 +388,7 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 }
 
 func (c *conn) GetAsset(name string, asset *skydb.Asset) error {
-	selectSql, args, err := psql.Select("content_type", "size").
+	selectSQL, args, err := psql.Select("content_type", "size").
 		From(c.tableName("_asset")).
 		Where("id = ?", name).
 		ToSql()
@@ -400,7 +400,7 @@ func (c *conn) GetAsset(name string, asset *skydb.Asset) error {
 		contentType string
 		size        int64
 	)
-	err = c.Db.QueryRow(selectSql, args...).Scan(
+	err = c.Db.QueryRow(selectSQL, args...).Scan(
 		&contentType,
 		&size,
 	)

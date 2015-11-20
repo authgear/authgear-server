@@ -1,1 +1,5 @@
 ^skydb/mock_skydb/mock.go
+^skydb/datatype_string.go
+^skydb/operator_string.go
+should have comment or be unexported$
+method ToSql should be ToSQL$

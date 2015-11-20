@@ -51,7 +51,7 @@ func (conn *MapConn) GetUser(id string, userinfo *skydb.UserInfo) error {
 	return nil
 }
 
-// GetUser returns a UserInfo in UserMap.
+// GetUserByUsernameEmail returns a UserInfo in UserMap by email address.
 func (conn *MapConn) GetUserByUsernameEmail(username string, email string, userinfo *skydb.UserInfo) error {
 	var (
 		u  skydb.UserInfo

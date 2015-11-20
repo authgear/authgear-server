@@ -153,7 +153,7 @@ func NewResourceDeleteFailureErrWithStringID(kind string, id string) Error {
 	return newResourceDeleteFailureErr(kind, iID)
 }
 
-// NewAtomicOperationFailed return a new DatabaseError to be returned
+// NewAtomicOperationFailedErr return a new DatabaseError to be returned
 // when atomic operation (like record save/delete) failed due to
 // one of the sub-operation failed
 func NewAtomicOperationFailedErr(errMap map[skydb.RecordID]error) Error {
