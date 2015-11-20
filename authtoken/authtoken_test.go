@@ -12,6 +12,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	redis "github.com/garyburd/redigo/redis"
 )
 
 func tempDir() string {
@@ -246,4 +248,168 @@ func exists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
 
+}
+
+func tempRedisStore() RedisStore {
+	return RedisStore{"tcp", "127.0.0.1:6379"}
+}
+
+func (r *RedisStore) clearRedisStore() {
+	c, _ := redis.Dial(r.network, r.address)
+	defer c.Close()
+
+	c.Do("FLUSHALL")
+}
+
+func TestRedisStoreGet(t *testing.T) {
+	Convey("RedisStore", t, func() {
+		r := tempRedisStore()
+		defer r.clearRedisStore()
+
+		Convey("Get Non-Expired Token", func() {
+			tokenName := "someToken"
+			tomorrow := time.Now().AddDate(0, 0, 1).UTC()
+			token := Token{
+				AccessToken: tokenName,
+				ExpiredAt:   tomorrow,
+				AppName:     "com.oursky.skygear",
+				UserInfoID:  "someuserinfoid",
+			}
+			err := r.Put(&token)
+			So(err, ShouldBeNil)
+
+			result := Token{}
+			err = r.Get(tokenName, &result)
+			So(err, ShouldBeNil)
+			So(result, ShouldResemble, token)
+		})
+
+		Convey("Get Expired Token", func() {
+			tokenName := "expiredToken"
+			yesterday := time.Now().AddDate(0, 0, -1).UTC()
+			token := Token{
+				AccessToken: tokenName,
+				ExpiredAt:   yesterday,
+				AppName:     "com.oursky.skygear",
+				UserInfoID:  "someuserinfoid",
+			}
+			err := r.Put(&token)
+			So(err, ShouldBeNil)
+
+			result := Token{}
+			err = r.Get(tokenName, &result)
+			So(err, ShouldHaveSameTypeAs, &NotFoundError{})
+		})
+
+		Convey("Get Updated Token", func() {
+			tokenName := "updatedToken"
+			tomorrow := time.Now().AddDate(0, 0, 1).UTC()
+			token := Token{
+				AccessToken: tokenName,
+				ExpiredAt:   tomorrow,
+				AppName:     "com.oursky.skygear",
+				UserInfoID:  "someuserinfoid",
+			}
+			err := r.Put(&token)
+			So(err, ShouldBeNil)
+
+			result := Token{}
+			err = r.Get(tokenName, &result)
+			So(err, ShouldBeNil)
+			So(result, ShouldResemble, token)
+
+			Convey("update to future", func() {
+				future := time.Now().AddDate(0, 0, 10).UTC()
+				token := Token{
+					AccessToken: tokenName,
+					ExpiredAt:   future,
+					AppName:     "com.oursky.skygear",
+					UserInfoID:  "someuserinfoid",
+				}
+				err := r.Put(&token)
+				So(err, ShouldBeNil)
+
+				result := Token{}
+				err = r.Get(tokenName, &result)
+				So(err, ShouldBeNil)
+				So(result, ShouldResemble, token)
+			})
+
+			Convey("update to the past", func() {
+				past := time.Now().AddDate(0, 0, -10).UTC()
+				token := Token{
+					AccessToken: tokenName,
+					ExpiredAt:   past,
+					AppName:     "com.oursky.skygear",
+					UserInfoID:  "someuserinfoid",
+				}
+				err := r.Put(&token)
+				So(err, ShouldBeNil)
+
+				result := Token{}
+				err = r.Get(tokenName, &result)
+				So(err, ShouldHaveSameTypeAs, &NotFoundError{})
+			})
+		})
+
+		Convey("Get Nonexistent Token", func() {
+			tokenName := "nonexistentToken"
+
+			result := Token{}
+			err := r.Get(tokenName, &result)
+			So(err, ShouldHaveSameTypeAs, &NotFoundError{})
+		})
+	})
+}
+
+func TestRedisStorePut(t *testing.T) {
+	Convey("RedisStore", t, func() {
+		tokenName := ""
+		r := tempRedisStore()
+		defer r.clearRedisStore()
+
+		tomorrow := time.Now().AddDate(0, 0, 1).UTC()
+		token := Token{
+			AccessToken: tokenName,
+			ExpiredAt:   tomorrow,
+			AppName:     "com.oursky.skygear",
+			UserInfoID:  "someuserinfoid",
+		}
+
+		err := r.Put(&token)
+		So(err, ShouldBeNil)
+	})
+}
+
+func TestRedisStoreDelete(t *testing.T) {
+	Convey("RedisStore", t, func() {
+		r := tempRedisStore()
+		defer r.clearRedisStore()
+
+		Convey("Delete existing token", func() {
+			tokenName := "someToken"
+			tomorrow := time.Now().AddDate(0, 0, 1).UTC()
+			token := Token{
+				AccessToken: tokenName,
+				ExpiredAt:   tomorrow,
+				AppName:     "com.oursky.skygear",
+				UserInfoID:  "someuserinfoid",
+			}
+			err := r.Put(&token)
+			So(err, ShouldBeNil)
+
+			err = r.Delete(tokenName)
+			So(err, ShouldBeNil)
+
+			result := Token{}
+			err = r.Get(tokenName, &result)
+			So(err, ShouldHaveSameTypeAs, &NotFoundError{})
+		})
+
+		Convey("Delete nonexistent token", func() {
+			tokenName := "nonexistentToken"
+			err := r.Delete(tokenName)
+			So(err, ShouldBeNil)
+		})
+	})
 }
