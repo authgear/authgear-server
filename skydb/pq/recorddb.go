@@ -296,11 +296,18 @@ type comparisonPredicateSqlizer struct {
 	skydb.Predicate
 }
 
+type containsComparisonPredicateSqlizer struct {
+	skydb.Predicate
+}
+
 func newPredicateSqlizer(predicate skydb.Predicate) sq.Sqlizer {
 	if predicate.Operator.IsCompound() {
 		return &compoundPredicateSqlizer{predicate}
 	}
 
+	if predicate.Operator == skydb.In {
+		return &containsComparisonPredicateSqlizer{predicate}
+	}
 	return &comparisonPredicateSqlizer{predicate}
 }
 
@@ -392,6 +399,46 @@ func literalToSQLValue(value interface{}) interface{} {
 	}
 }
 
+func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
+	var buffer bytes.Buffer
+	lhs := p.Children[0].(skydb.Expression)
+	rhs := p.Children[1].(skydb.Expression)
+
+	if lhs.Type == skydb.Literal && rhs.Type == skydb.KeyPath {
+		buffer.WriteString(`jsonb_exists(`)
+
+		sqlOperand, opArgs := toSQLOperand(rhs)
+		buffer.WriteString(sqlOperand)
+		args = append(args, opArgs...)
+
+		buffer.WriteString(`, `)
+
+		sqlOperand, opArgs = toSQLOperand(lhs)
+		buffer.WriteString(sqlOperand)
+		args = append(args, opArgs...)
+
+		buffer.WriteString(`)`)
+
+		sql = buffer.String()
+		return
+	} else if lhs.Type == skydb.KeyPath && rhs.Type == skydb.Literal {
+		sqlOperand, opArgs := toSQLOperand(lhs)
+		buffer.WriteString(sqlOperand)
+		args = append(args, opArgs...)
+
+		buffer.WriteString(` IN `)
+
+		sqlOperand, opArgs = toSQLOperand(rhs)
+		buffer.WriteString(sqlOperand)
+		args = append(args, opArgs...)
+
+		sql = buffer.String()
+		return
+	} else {
+		panic("malformed query")
+	}
+}
+
 func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	args = []interface{}{}
 	if p.Operator.IsBinary() {
@@ -423,8 +470,6 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 			buffer.WriteString(` LIKE `)
 		case skydb.ILike:
 			buffer.WriteString(` ILIKE `)
-		case skydb.In:
-			buffer.WriteString(` IN `)
 		}
 
 		sqlOperand, opArgs = toSQLOperand(rhs)

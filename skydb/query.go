@@ -1,6 +1,9 @@
 package skydb
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // SortOrder denotes an the order of Records returned from a Query.
 type SortOrder int
@@ -119,17 +122,17 @@ func (p Predicate) Validate() error {
 	switch p.Operator {
 	case In:
 		lhs := p.Children[0].(Expression)
-		if lhs.Type != KeyPath {
-			return fmt.Errorf("Left operand for `IN` must be a key path.")
-		}
-
 		rhs := p.Children[1].(Expression)
-		if rhs.Type != Literal {
-			return fmt.Errorf("Right operand for `IN` must be a literal.")
-		}
-
-		if _, ok := rhs.Value.([]interface{}); !ok {
-			return fmt.Errorf("Right operand must be an array.")
+		if lhs.Type == Literal && rhs.Type == KeyPath {
+			if _, ok := lhs.Value.(string); !ok {
+				return errors.New(`left operand of "IN" must be a string if comparing with a keypath`)
+			}
+		} else if lhs.Type == KeyPath && rhs.Type == Literal {
+			if _, ok := rhs.Value.([]interface{}); !ok {
+				return errors.New(`right operand of "IN" must be an array if comparing with a keypath`)
+			}
+		} else {
+			return errors.New(`unexpected type of operands for "IN" comparison`)
 		}
 	}
 	return nil

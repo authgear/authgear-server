@@ -1809,6 +1809,73 @@ func TestQuery(t *testing.T) {
 		})
 	})
 
+	Convey("Database with JSON", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		// fixture
+		record1 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id1"),
+			OwnerID: "user_id",
+			Data: map[string]interface{}{
+				"primaryTag": "red",
+				"tags":       []interface{}{"red", "green"},
+			},
+		}
+		record2 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id2"),
+			OwnerID: "user_id",
+			Data: map[string]interface{}{
+				"primaryTag": "yellow",
+				"tags":       []interface{}{"red", "green"},
+			},
+		}
+		record3 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id3"),
+			OwnerID: "user_id",
+			Data: map[string]interface{}{
+				"primaryTag": "green",
+				"tags":       []interface{}{"red", "yellow"},
+			},
+		}
+
+		db := c.PrivateDB("userid")
+		So(db.Extend("note", skydb.RecordSchema{
+			"primaryTag": skydb.FieldType{Type: skydb.TypeString},
+			"tags":       skydb.FieldType{Type: skydb.TypeJSON},
+		}), ShouldBeNil)
+
+		err := db.Save(&record2)
+		So(err, ShouldBeNil)
+		err = db.Save(&record1)
+		So(err, ShouldBeNil)
+		err = db.Save(&record3)
+		So(err, ShouldBeNil)
+
+		Convey("query records by literal string in JSON", func() {
+			query := skydb.Query{
+				Type: "note",
+				Predicate: &skydb.Predicate{
+					Operator: skydb.In,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.Literal,
+							Value: "yellow",
+						},
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "tags",
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record3})
+		})
+	})
+
 	Convey("Empty Conn", t, func() {
 		c := getTestConn(t)
 		defer cleanupDB(t, c.Db)
@@ -2253,6 +2320,49 @@ func TestMetaDataQuery(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record1})
+		})
+	})
+}
+
+func TestUnsupportedQuery(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		record0 := skydb.Record{
+			ID:      skydb.NewRecordID("record", "0"),
+			OwnerID: "ownerID0",
+			Data:    skydb.Data{},
+		}
+		record1 := skydb.Record{
+			ID:      skydb.NewRecordID("record", "1"),
+			OwnerID: "ownerID1",
+			Data:    skydb.Data{},
+		}
+
+		db := c.PublicDB()
+		So(db.Extend("record", nil), ShouldBeNil)
+		So(db.Save(&record0), ShouldBeNil)
+		So(db.Save(&record1), ShouldBeNil)
+
+		Convey("both side of IN is keypath", func() {
+			query := skydb.Query{
+				Type: "record",
+				Predicate: &skydb.Predicate{
+					Operator: skydb.In,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "categories",
+						},
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "favoriteCategory",
+						},
+					},
+				},
+			}
+			So(func() { db.Query(&query) }, ShouldPanicWith, "malformed query")
 		})
 	})
 }
