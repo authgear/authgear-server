@@ -331,6 +331,34 @@ func TestRelation(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
+
+	Convey("Conn Query", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		addUser(t, c, "follower")
+		addUser(t, c, "followee")
+		addUser(t, c, "friend1")
+		addUser(t, c, "friend2")
+		c.AddRelation("friend1", "friend", "friend2")
+		c.AddRelation("friend2", "friend", "friend1")
+		c.AddRelation("follower", "follow", "followee")
+
+		Convey("query friend relation", func() {
+			users := c.QueryRelation("friend1", "friend", "")
+			So(len(users), ShouldEqual, 1)
+		})
+
+		Convey("query outward follow relation", func() {
+			users := c.QueryRelation("follower", "follow", "outward")
+			So(len(users), ShouldEqual, 1)
+		})
+
+		Convey("query inward follow relation", func() {
+			users := c.QueryRelation("followee", "follow", "inward")
+			So(len(users), ShouldEqual, 1)
+		})
+	})
 }
 
 func TestDevice(t *testing.T) {
