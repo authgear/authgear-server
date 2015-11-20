@@ -29,9 +29,9 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 			errors.New("Only friend and follow relation is supported"))
 	}
 	if result.Direction != "" {
-		if result.Direction != "active" && result.Direction != "passive" && result.Direction != "mutual" {
+		if result.Direction != "outward" && result.Direction != "inward" && result.Direction != "mutual" {
 			return skyerr.NewRequestInvalidErr(
-				errors.New("Only active, passive and mutual direction is supported"))
+				errors.New("Only outward, inward and mutual direction is supported"))
 		}
 	}
 	return nil
@@ -44,7 +44,7 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 //     "action": "relation:query",
 //     "access_token": "ACCESS_TOKEN",
 //     "name": "follow",
-//     "direction": "active"
+//     "direction": "outward"
 // }
 // EOF
 func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
