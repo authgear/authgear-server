@@ -985,7 +985,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 		remoteSchema, ok := remoteRecordSchema[key]
 		if !ok {
 			updatingSchema[key] = schema
-		} else if remoteSchema.Type != schema.Type {
+		} else if isConflict(remoteSchema, schema) {
 			return fmt.Errorf("conflicting schema %s => %s", remoteSchema, schema)
 		}
 
@@ -1023,6 +1023,20 @@ func (db *database) createTable(recordType string) (err error) {
 	_, err = db.Db.Exec(stmt)
 
 	return err
+}
+
+func isConflict(from, to skydb.FieldType) bool {
+	if from.Type == to.Type {
+		return false
+	}
+
+	// currently integer can only be created by sequence,
+	// so there are no conflicts
+	if from.Type == skydb.TypeInteger && to.Type == skydb.TypeSequence {
+		return false
+	}
+
+	return true
 }
 
 func createTableStmt(tableName string) string {

@@ -742,6 +742,18 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
+		Convey("extend sequence twice", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"order": skydb.FieldType{Type: skydb.TypeSequence},
+			})
+			So(err, ShouldBeNil)
+
+			err = db.Extend("note", skydb.RecordSchema{
+				"order": skydb.FieldType{Type: skydb.TypeSequence},
+			})
+			So(err, ShouldBeNil)
+		})
+
 		Convey("error if creates table with reference not exist", func() {
 			err := db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
@@ -792,6 +804,7 @@ func TestExtend(t *testing.T) {
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 				"dirty":     skydb.FieldType{Type: skydb.TypeNumber},
 			})
+			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  %!s(*skydb.Expression=<nil>)} => {TypeNumber  %!s(*skydb.Expression=<nil>)}")
 		})
 	})
