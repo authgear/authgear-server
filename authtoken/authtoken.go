@@ -202,8 +202,8 @@ func validateToken(base string) error {
 // RedisStore implements TokenStore by saving users' token
 // in a redis server
 type RedisStore struct {
-	network string
-	address string
+	Network string
+	Address string
 }
 
 // RedisToken stores a Token with UnixNano timestamp
@@ -214,7 +214,7 @@ type RedisToken struct {
 	UserInfoID  string `redis:"userInfoID"`
 }
 
-func (t *Token) ToRedisToken() *RedisToken {
+func (t Token) ToRedisToken() *RedisToken {
 	return &RedisToken{
 		t.AccessToken,
 		t.ExpiredAt.UnixNano(),
@@ -223,7 +223,7 @@ func (t *Token) ToRedisToken() *RedisToken {
 	}
 }
 
-func (r *RedisToken) ToToken() *Token {
+func (r RedisToken) ToToken() *Token {
 	return &Token{
 		r.AccessToken,
 		time.Unix(0, r.ExpiredAt).UTC(),
@@ -232,9 +232,9 @@ func (r *RedisToken) ToToken() *Token {
 	}
 }
 
-func (r *RedisStore) Get(accessToken string, token *Token) error {
+func (r RedisStore) Get(accessToken string, token *Token) error {
 	//NOTE: Maybe keep the connection open/use connection pool?
-	c, err := redis.Dial(r.network, r.address)
+	c, err := redis.Dial(r.Network, r.Address)
 	if err != nil {
 		return err
 	}
@@ -258,8 +258,9 @@ func (r *RedisStore) Get(accessToken string, token *Token) error {
 
 	return nil
 }
-func (r *RedisStore) Put(token *Token) error {
-	c, err := redis.Dial(r.network, r.address)
+
+func (r RedisStore) Put(token *Token) error {
+	c, err := redis.Dial(r.Network, r.Address)
 	if err != nil {
 		return err
 	}
@@ -278,8 +279,9 @@ func (r *RedisStore) Put(token *Token) error {
 
 	return nil
 }
-func (r *RedisStore) Delete(accessToken string) error {
-	c, err := redis.Dial(r.network, r.address)
+
+func (r RedisStore) Delete(accessToken string) error {
+	c, err := redis.Dial(r.Network, r.Address)
 	if err != nil {
 		return err
 	}

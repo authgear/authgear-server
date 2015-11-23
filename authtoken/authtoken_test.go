@@ -255,7 +255,7 @@ func tempRedisStore() RedisStore {
 }
 
 func (r *RedisStore) clearRedisStore() {
-	c, _ := redis.Dial(r.network, r.address)
+	c, _ := redis.Dial(r.Network, r.Address)
 	defer c.Close()
 
 	c.Do("FLUSHALL")

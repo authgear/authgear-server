@@ -24,7 +24,8 @@ type Configuration struct {
 		Option   string
 	}
 	TokenStore struct {
-		Path string `gcfg:"path"`
+		ImplName string `gcfg:"implementation"`
+		Path     string `gcfg:"path"`
 	} `gcfg:"token-store"`
 	AssetStore struct {
 		ImplName string `gcfg:"implementation"`
