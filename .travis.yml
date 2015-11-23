@@ -22,9 +22,9 @@ before_install:
   - export PKG_CONFIG_PATH=$LD_INSTALL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH
   - mkdir -p $LD_INSTALL_PREFIX/src
   - pushd $LD_INSTALL_PREFIX/src
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/jedisct1/libsodium.git
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/libzmq.git
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/czmq.git
+  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/jedisct1/libsodium.git 1.0.6
+  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/libzmq.git 7f849b844b0fdd3fb4d458734175043948de8ad7
+  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/czmq.git v3.0.2
   - popd
   - ./scripts/if-differ.sh Godeps/Godeps.json $HOME/.cache/Godeps.json rm -rf Godeps/_workspace
 
