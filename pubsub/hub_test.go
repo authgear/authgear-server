@@ -31,6 +31,33 @@ func TestNormalSubscription(t *testing.T) {
 			}
 		})
 
+		Convey("No receive message after unsubscribe", func(c C) {
+			hub := NewHub()
+			go hub.run()
+			conn := connection{
+				Send: make(chan Parcel),
+			}
+			hub.Subscribe <- Parcel{
+				Channel:    "correct",
+				Connection: &conn,
+			}
+			hub.Unsubscribe <- Parcel{
+				Channel:    "correct",
+				Connection: &conn,
+			}
+			hub.Broadcast <- Parcel{
+				Channel: "correct",
+				Data:    []byte("Hello"),
+			}
+
+			select {
+			case <-conn.Send:
+				t.Fatal("received pubsub message after unsubscribe.")
+			case <-time.After(50 * time.Millisecond):
+				// do nothing
+			}
+		})
+
 		Convey("Subscribe to multiple channel broadcast message", func(c C) {
 			hub := NewHub()
 			go hub.run()
