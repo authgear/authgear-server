@@ -31,6 +31,40 @@ func TestNormalSubscription(t *testing.T) {
 			}
 		})
 
+		Convey("Receive only one message for multiple subscriptions", func(c C) {
+			hub := NewHub()
+			go hub.run()
+			conn := connection{
+				Send: make(chan Parcel),
+			}
+			hub.Subscribe <- Parcel{
+				Channel:    "correct",
+				Connection: &conn,
+			}
+			hub.Subscribe <- Parcel{
+				Channel:    "correct",
+				Connection: &conn,
+			}
+			hub.Broadcast <- Parcel{
+				Channel: "correct",
+				Data:    []byte("Hello"),
+			}
+
+			select {
+			case <-conn.Send:
+				// do nothing
+			case <-time.After(50 * time.Millisecond):
+				t.Fatal("did not receive message after subscription")
+			}
+
+			select {
+			case <-conn.Send:
+				t.Fatal("received more than one message for mulitple subscriptions")
+			case <-time.After(50 * time.Millisecond):
+				// do nothing
+			}
+		})
+
 		Convey("No receive message after unsubscribe", func(c C) {
 			hub := NewHub()
 			go hub.run()
