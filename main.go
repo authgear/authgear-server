@@ -368,11 +368,8 @@ func initTokenStore(config Configuration) authtoken.Store {
 		panic("unrecgonized token store implementation: " + config.TokenStore.ImplName)
 	case "fs":
 		store = authtoken.FileStore(config.TokenStore.Path).Init()
-	case "rd":
-		store = authtoken.RedisStore{
-			"tcp",
-			config.TokenStore.Path,
-		}
+	case "redis":
+		store = authtoken.RedisStore{config.TokenStore.Path}
 	}
 	return store
 }

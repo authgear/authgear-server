@@ -251,14 +251,15 @@ func exists(path string) bool {
 }
 
 func tempRedisStore() RedisStore {
-	return RedisStore{"tcp", "127.0.0.1:6379"}
+	// 15 is the default max DB number of redis
+	return RedisStore{"redis://127.0.0.1:6379/15"}
 }
 
 func (r *RedisStore) clearRedisStore() {
-	c, _ := redis.Dial(r.Network, r.Address)
+	c, _ := redis.DialURL(r.Address)
 	defer c.Close()
 
-	c.Do("FLUSHALL")
+	c.Do("FLUSHDB")
 }
 
 func TestRedisStoreGet(t *testing.T) {

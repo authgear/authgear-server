@@ -202,7 +202,6 @@ func validateToken(base string) error {
 // RedisStore implements TokenStore by saving users' token
 // in a redis server
 type RedisStore struct {
-	Network string
 	Address string
 }
 
@@ -234,7 +233,7 @@ func (r RedisToken) ToToken() *Token {
 
 func (r RedisStore) Get(accessToken string, token *Token) error {
 	//NOTE: Maybe keep the connection open/use connection pool?
-	c, err := redis.Dial(r.Network, r.Address)
+	c, err := redis.DialURL(r.Address)
 	if err != nil {
 		return err
 	}
@@ -260,7 +259,7 @@ func (r RedisStore) Get(accessToken string, token *Token) error {
 }
 
 func (r RedisStore) Put(token *Token) error {
-	c, err := redis.Dial(r.Network, r.Address)
+	c, err := redis.DialURL(r.Address)
 	if err != nil {
 		return err
 	}
@@ -281,7 +280,7 @@ func (r RedisStore) Put(token *Token) error {
 }
 
 func (r RedisStore) Delete(accessToken string) error {
-	c, err := redis.Dial(r.Network, r.Address)
+	c, err := redis.DialURL(r.Address)
 	if err != nil {
 		return err
 	}
