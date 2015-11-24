@@ -2,3 +2,4 @@
 ignores = `main`.ReadFileInto
 ignores = `pq`.(*recordScanner).Scan
 ignores = `pq`.(*database).remoteColumnTypes
+ignores = `skydb`.(Predicate).Validate
