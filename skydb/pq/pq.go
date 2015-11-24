@@ -249,7 +249,11 @@ func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
 	defer rows.Close()
 	results := []skydb.UserInfo{}
 	for rows.Next() {
-		id, username, email := "", "", ""
+		var (
+			id       string
+			username sql.NullString
+			email    sql.NullString
+		)
 		password, auth := []byte{}, authInfoValue{}
 		if err := rows.Scan(&id, &username, &email, &password, &auth); err != nil {
 			panic(err)
@@ -257,8 +261,8 @@ func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
 
 		userinfo := skydb.UserInfo{}
 		userinfo.ID = id
-		userinfo.Username = username
-		userinfo.Email = email
+		userinfo.Username = username.String
+		userinfo.Email = email.String
 		userinfo.HashedPassword = password
 		userinfo.Auth = skydb.AuthInfo(auth)
 		results = append(results, userinfo)
@@ -374,13 +378,18 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 	defer rows.Close()
 	results := []skydb.UserInfo{}
 	for rows.Next() {
-		id, username, email := "", "", ""
+		var (
+			id       string
+			username sql.NullString
+			email    sql.NullString
+		)
 		if err := rows.Scan(&id, &username, &email); err != nil {
 			panic(err)
 		}
 		userInfo := skydb.UserInfo{
-			ID:    id,
-			Email: email,
+			ID:       id,
+			Username: username.String,
+			Email:    email.String,
 		}
 		results = append(results, userInfo)
 	}
