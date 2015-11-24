@@ -3,7 +3,55 @@ package pq
 import (
 	"bytes"
 	"strconv"
+	"text/template"
+
+	"github.com/lib/pq"
 )
+
+const upsertTemplateText = `
+{{define "commaSeparatedList"}}{{range $i, $_ := .}}{{if $i}}, {{end}}{{quoted .}}{{end}}{{end}}
+WITH updated AS (
+	{{if .UpdateCols }}
+		UPDATE {{.Table}}
+		SET ({{template "commaSeparatedList" .UpdateCols}}) = ({{placeholderList (len .Keys) (len .UpdateCols)}})
+		WHERE {{range $i, $_ := .Keys}}{{if $i}} AND {{end}}{{quoted .}} = ${{addOne $i}}{{end}}
+		RETURNING *
+	{{else}}
+		SELECT {{template "commaSeparatedList" .Keys}}
+		FROM {{.Table}}
+		WHERE {{range $i, $_ := .Keys}}{{if $i}} AND {{end}}{{quoted .}} = ${{addOne $i}}{{end}}
+	{{end}}
+), inserted AS (
+	INSERT INTO {{.Table}}
+		({{template "commaSeparatedList" .InsertCols}})
+	SELECT {{placeholderList 0 (len .InsertCols)}}
+	WHERE NOT EXISTS (SELECT * FROM updated)
+	RETURNING *
+)
+SELECT * FROM updated
+UNION ALL
+SELECT * FROM inserted;
+`
+
+var funcMap = template.FuncMap{
+	"addOne": func(n int) int { return n + 1 },
+	"quoted": pq.QuoteIdentifier,
+	"placeholderList": func(i, n int) string {
+		b := bytes.Buffer{}
+		from := i + 1
+		to := from + n - 1
+		for j := from; j <= to; j++ {
+			b.WriteByte('$')
+			b.WriteString(strconv.Itoa(j))
+			if j != to {
+				b.WriteByte(',')
+			}
+		}
+		return b.String()
+	},
+}
+
+var upsertTemplate = template.Must(template.New("upsert").Funcs(funcMap).Parse(upsertTemplateText))
 
 // Let table = 'schema.device_table',
 //     pks = ['id1', 'id2'],
@@ -53,7 +101,7 @@ type upsertQueryBuilder struct {
 	table          string
 	pkData         map[string]interface{}
 	data           map[string]interface{}
-	updateIngnores []string
+	updateIngnores map[string]struct{}
 }
 
 // TODO(limouren): we can support a better fluent builder like this
@@ -67,11 +115,11 @@ type upsertQueryBuilder struct {
 //		})
 //
 func upsertQuery(table string, pkData, data map[string]interface{}) *upsertQueryBuilder {
-	return &upsertQueryBuilder{table, pkData, data, nil}
+	return &upsertQueryBuilder{table, pkData, data, map[string]struct{}{}}
 }
 
-func (upsert *upsertQueryBuilder) IgnoreKeyOnUpdate(ignore string) *upsertQueryBuilder {
-	upsert.updateIngnores = append(upsert.updateIngnores, ignore)
+func (upsert *upsertQueryBuilder) IgnoreKeyOnUpdate(col string) *upsertQueryBuilder {
+	upsert.updateIngnores[col] = struct{}{}
 	return upsert
 }
 
@@ -79,94 +127,26 @@ func (upsert *upsertQueryBuilder) IgnoreKeyOnUpdate(ignore string) *upsertQueryB
 func (upsert *upsertQueryBuilder) ToSql() (sql string, args []interface{}, err error) {
 	// extract columns values pair
 	pks, pkArgs := extractKeyAndValue(upsert.pkData)
-	columns, args := extractKeyAndValue(upsert.data)
-	ignoreIndex := findIgnoreIndex(columns, upsert.updateIngnores)
+	cols, args := extractKeyAndValue(upsert.data)
+
+	cols, args, ignored := sortColsArgs(cols, args, upsert.updateIngnores)
+	updateCols := cols[:len(cols)-ignored]
 
 	b := bytes.Buffer{}
-	if len(columns) > 0 {
-		// Generate with UPDATE
-		b.Write([]byte(`WITH updated AS (UPDATE `))
-		b.WriteString(upsert.table)
-		b.Write([]byte(` SET(`))
-
-		for i, column := range columns {
-			if ignoreIndex[i] {
-				continue
-			}
-			b.WriteByte('"')
-			b.WriteString(column)
-			b.Write([]byte(`",`))
-		}
-		b.Truncate(b.Len() - 1)
-
-		b.Write([]byte(`)=(`))
-
-		for i := len(pks); i < len(pks)+len(columns); i++ {
-			if ignoreIndex[i-len(pks)] {
-				continue
-			}
-			b.WriteByte('$')
-			b.WriteString(strconv.Itoa(i + 1))
-			b.WriteByte(',')
-		}
-		b.Truncate(b.Len() - 1)
-
-		b.Write([]byte(`) WHERE `))
-
-		for i, pk := range pks {
-			b.WriteByte('"')
-			b.WriteString(pk)
-			b.Write([]byte(`" = $`))
-			b.WriteString(strconv.Itoa(i + 1))
-			b.Write([]byte(` AND `))
-		}
-		b.Truncate(b.Len() - 5)
-		b.Write([]byte(` RETURNING *) `))
-	} else {
-		// Generate with SELECT
-		b.Write([]byte(`WITH updated AS (SELECT `))
-		for _, pk := range pks {
-			b.WriteByte('"')
-			b.WriteString(pk)
-			b.Write([]byte(`",`))
-		}
-		b.Truncate(b.Len() - 1)
-		b.Write([]byte(` FROM `))
-		b.WriteString(upsert.table)
-		b.Write([]byte(` WHERE `))
-		for i, pk := range pks {
-			b.WriteByte('"')
-			b.WriteString(pk)
-			b.Write([]byte(`" = $`))
-			b.WriteString(strconv.Itoa(i + 1))
-			b.Write([]byte(` AND `))
-		}
-		b.Truncate(b.Len() - 5)
-		b.Write([]byte(`) `))
+	err = upsertTemplate.Execute(&b, struct {
+		Table      string
+		Keys       []string
+		UpdateCols []string
+		InsertCols []string
+	}{
+		Table:      upsert.table,
+		Keys:       pks,
+		UpdateCols: updateCols,
+		InsertCols: append(pks, cols...),
+	})
+	if err != nil {
+		panic(err)
 	}
-
-	// generate INSERT
-	b.Write([]byte(`INSERT INTO `))
-	b.WriteString(upsert.table)
-	b.WriteByte('(')
-
-	for _, column := range append(pks, columns...) {
-		b.WriteByte('"')
-		b.WriteString(column)
-		b.Write([]byte(`",`))
-	}
-	b.Truncate(b.Len() - 1)
-
-	b.Write([]byte(`) SELECT `))
-
-	for i := 0; i < len(pks)+len(columns); i++ {
-		b.WriteByte('$')
-		b.WriteString(strconv.Itoa(i + 1))
-		b.WriteByte(',')
-	}
-	b.Truncate(b.Len() - 1)
-
-	b.Write([]byte(` WHERE NOT EXISTS (SELECT * FROM updated);`))
 
 	return b.String(), append(pkArgs, args...), nil
 }
@@ -185,17 +165,25 @@ func extractKeyAndValue(data map[string]interface{}) (keys []string, values []in
 	return
 }
 
-func findIgnoreIndex(columns []string, ignoreColumns []string) (ignoreIndex []bool) {
-	ignoreIndex = make([]bool, len(columns), len(columns))
+func sortColsArgs(cols []string, args []interface{}, ignoreCols map[string]struct{}) (sortedCols []string, sortedArgs []interface{}, ignore int) {
+	var (
+		ignored int
+		c, ic   []string
+		a, ia   []interface{}
+	)
 
-	for i, column := range columns {
-		for _, ignored := range ignoreColumns {
-			ignoreIndex[i] = (column == ignored)
-			break
+	for i, col := range cols {
+		if _, ok := ignoreCols[col]; ok {
+			ic = append(ic, col)
+			ia = append(ia, args[i])
+			ignored++
+		} else {
+			c = append(c, col)
+			a = append(a, args[i])
 		}
 	}
 
-	return
+	return append(c, ic...), append(a, ia...), ignored
 }
 
 var _ sqlizer = &upsertQueryBuilder{}

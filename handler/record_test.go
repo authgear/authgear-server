@@ -128,35 +128,6 @@ func TestRecordSaveHandler(t *testing.T) {
 			}`)
 		})
 
-		Convey("Update existing record", func() {
-			record := skydb.Record{
-				ID: skydb.NewRecordID("record", "id"),
-				Data: map[string]interface{}{
-					"existing": "YES",
-					"old":      true,
-				},
-			}
-			So(db.Save(&record), ShouldBeNil)
-
-			resp := r.POST(`{
-				"records": [{
-					"_id": "record/id",
-					"old": false,
-					"new": 1
-				}]
-			}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": [{
-					"_id": "record/id",
-					"_type": "record",
-					"_access": null,
-					"existing": "YES",
-					"old": false,
-					"new": 1
-				}]
-			}`)
-		})
-
 		Convey("Removes reserved keys on save", func() {
 			resp := r.POST(`{
 				"records": [{
@@ -354,6 +325,68 @@ func TestRecordSaveDataType(t *testing.T) {
 					"geo": skydb.NewLocation(1, 2),
 				},
 			})
+		})
+	})
+}
+
+type bogusFieldDatabase struct {
+	SaveFunc func(record *skydb.Record) error
+	skydb.Database
+}
+
+func (db bogusFieldDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
+	return nil
+}
+
+func (db bogusFieldDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
+	return nil
+}
+
+func (db bogusFieldDatabase) Save(record *skydb.Record) error {
+	return db.SaveFunc(record)
+}
+
+func TestRecordSaveBogusField(t *testing.T) {
+	timeNow = func() time.Time {
+		return ZeroTime
+	}
+	defer func() {
+		timeNow = timeNowUTC
+	}()
+
+	Convey("RecordSaveHandler", t, func() {
+		db := bogusFieldDatabase{}
+		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+			payload.Database = db
+		})
+
+		Convey("parse sequence field correctly", func() {
+			db.SaveFunc = func(record *skydb.Record) error {
+				So(record, ShouldResemble, &skydb.Record{
+					ID:   skydb.NewRecordID("record", "id"),
+					Data: skydb.Data{},
+				})
+
+				record.Data["seq"] = int64(1)
+
+				return nil
+			}
+
+			resp := r.POST(`{
+				"records": [{
+					"_id": "record/id",
+					"seq": {"$type": "seq"}
+				}]
+			}`)
+
+			So(resp.Body.String(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "record/id",
+					"_type": "record",
+					"_access": null,
+					"seq": 1
+				}]
+			}`)
 		})
 	})
 }

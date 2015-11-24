@@ -33,6 +33,8 @@ const (
 	TypeJSON      = "jsonb"
 	TypeTimestamp = "timestamp without time zone"
 	TypeLocation  = "geometry(Point)"
+	TypeInteger   = "integer"
+	TypeSerial    = "serial UNIQUE"
 )
 
 type nullJSON struct {
@@ -198,8 +200,17 @@ func (db *database) Save(record *skydb.Record) error {
 		IgnoreKeyOnUpdate("_created_at").
 		IgnoreKeyOnUpdate("_created_by")
 
-	_, err := execWith(db.Db, upsert)
+	typemap, err := db.remoteColumnTypes(record.ID.Type)
 	if err != nil {
+		return err
+	}
+
+	if err := db.preSave(typemap, record); err != nil {
+		return err
+	}
+
+	row := queryRowWith(db.Db, upsert)
+	if err = newRecordScanner(record.ID.Type, typemap, row).Scan(record); err != nil {
 		sql, args, _ := upsert.ToSql()
 		log.WithFields(log.Fields{
 			"sql":  sql,
@@ -211,6 +222,23 @@ func (db *database) Save(record *skydb.Record) error {
 	}
 
 	record.DatabaseID = db.userID
+	return nil
+}
+
+func (db *database) preSave(schema skydb.RecordSchema, record *skydb.Record) error {
+	const SetSequenceMaxValue = `SELECT setval($1, GREATEST(max(%v), $2)) FROM %v;`
+
+	for key, value := range record.Data {
+		// we are setting a sequence field
+		if schema[key].Type == skydb.TypeInteger {
+			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), db.tableName(record.ID.Type))
+			seqName := db.tableName(fmt.Sprintf(`%v_%v_seq`, record.ID.Type, key))
+			if _, err := db.Db.Exec(selectSQL, seqName, value); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -693,6 +721,9 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 		case skydb.TypeLocation:
 			var l nullLocation
 			values = append(values, &l)
+		case skydb.TypeInteger:
+			var i sql.NullInt64
+			values = append(values, &i)
 		default:
 			return fmt.Errorf("received unknown data type = %v for column = %s", schema.Type, column)
 		}
@@ -766,7 +797,12 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 			if svalue.Valid {
 				record.Set(column, &svalue.Location)
 			}
+		case *sql.NullInt64:
+			if svalue.Valid {
+				record.Set(column, svalue.Int64)
+			}
 		}
+
 	}
 
 	return nil
@@ -908,6 +944,8 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 			}
 		case TypeLocation:
 			schema.Type = skydb.TypeLocation
+		case TypeInteger:
+			schema.Type = skydb.TypeInteger
 		default:
 			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
 		}
@@ -968,7 +1006,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 		remoteSchema, ok := remoteRecordSchema[key]
 		if !ok {
 			updatingSchema[key] = schema
-		} else if remoteSchema.Type != schema.Type {
+		} else if isConflict(remoteSchema, schema) {
 			return fmt.Errorf("conflicting schema %s => %s", remoteSchema, schema)
 		}
 
@@ -1006,6 +1044,25 @@ func (db *database) createTable(recordType string) (err error) {
 	_, err = db.Db.Exec(stmt)
 
 	return err
+}
+
+func isConflict(from, to skydb.FieldType) bool {
+	if from.Type == to.Type {
+		return false
+	}
+
+	// currently integer can only be created by sequence,
+	// so there are no conflicts
+	if from.Type == skydb.TypeInteger && to.Type == skydb.TypeSequence {
+		return false
+	}
+
+	// for manual assignment of sequence
+	if from.Type == skydb.TypeInteger && to.Type == skydb.TypeNumber {
+		return false
+	}
+
+	return true
 }
 
 func createTableStmt(tableName string) string {
@@ -1083,5 +1140,7 @@ func pqDataType(dataType skydb.DataType) string {
 		return TypeJSON
 	case skydb.TypeLocation:
 		return TypeLocation
+	case skydb.TypeSequence:
+		return TypeSerial
 	}
 }

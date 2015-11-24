@@ -9,7 +9,6 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-
 	"github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/hook"
 	"github.com/oursky/skygear/router"
@@ -426,7 +425,18 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 	// derive and extend record schema
 	if err := extendRecordSchema(db, records); err != nil {
+		log.WithField("err", err).Errorln("failed to migrate record schema")
 		return skyerr.ErrDatabaseSchemaMigrationFailed
+	}
+
+	// remove bogus field, they are only for schema change
+	for _, r := range records {
+		for k, v := range r.Data {
+			switch v.(type) {
+			case skydb.Sequence:
+				delete(r.Data, k)
+			}
+		}
 	}
 
 	// save records
@@ -449,6 +459,8 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
 		err = db.Save(&deltaRecord)
+		*record = deltaRecord
+
 		return
 	})
 
@@ -633,6 +645,10 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 		case *skydb.Location:
 			schema[key] = skydb.FieldType{
 				Type: skydb.TypeLocation,
+			}
+		case skydb.Sequence:
+			schema[key] = skydb.FieldType{
+				Type: skydb.TypeSequence,
 			}
 		case map[string]interface{}, []interface{}:
 			schema[key] = skydb.FieldType{
