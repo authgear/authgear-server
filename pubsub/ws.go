@@ -113,6 +113,12 @@ func (w *WsPubSub) reader(c *connection) {
 				Connection: c,
 			}
 			c.channels = append(c.channels, payload.Channel)
+		case "unsub":
+			w.hub.Unsubscribe <- Parcel{
+				Channel:    payload.Channel,
+				Connection: c,
+			}
+			c.channels = append(c.channels, payload.Channel)
 		case "pub":
 			w.hub.Broadcast <- Parcel{
 				Channel: payload.Channel,

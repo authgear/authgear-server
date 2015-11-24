@@ -59,6 +59,11 @@ func (h *Hub) timeOut() <-chan time.Time {
 }
 
 func (h *Hub) subscribe(channel string, c *connection) {
+	for _, existing := range h.subscription[channel] {
+		if existing == c {
+			return
+		}
+	}
 	log.Debugf("subscribe %v, %p", channel, c)
 	h.subscription[channel] = append(h.subscription[channel], c)
 }
