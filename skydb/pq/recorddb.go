@@ -906,6 +906,10 @@ func (db *database) selectQuery(recordType string, typemap skydb.RecordSchema) s
 	return q
 }
 
+func (db *database) RecordSchema() map[string]skydb.RecordSchema {
+	return db.c.RecordSchema
+}
+
 // STEP 1 & 2 are obtained by reverse engineering psql \d with -E option
 //
 // STEP 3: example of getting foreign keys
@@ -923,6 +927,16 @@ func (db *database) selectQuery(recordType string, typemap skydb.RecordSchema) s
 // AND tc.table_schema = 'app__'
 // AND tc.table_name = 'note';
 func (db *database) remoteColumnTypes(recordType string) (skydb.RecordSchema, error) {
+	typemap := skydb.RecordSchema{}
+	// STEP 0: Return the cached ColumnType
+	if schema, ok := db.c.RecordSchema[recordType]; ok {
+		return schema, nil
+	}
+	defer func() {
+		db.c.RecordSchema[recordType] = typemap
+		log.Debugf("Cache remoteColumnTypes %s", recordType)
+	}()
+	log.Debugf("Querying remoteColumnTypes %s", recordType)
 	// STEP 1: Get the oid of the current table
 	var oid int
 	err := db.Db.QueryRowx(`
@@ -962,8 +976,6 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		}).Errorln("Failed to query column and data type")
 		return nil, err
 	}
-
-	typemap := skydb.RecordSchema{}
 
 	var columnName, pqType string
 	for rows.Next() {
@@ -1066,7 +1078,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 			return fmt.Errorf("failed to alter table: %s", err)
 		}
 	}
-
+	delete(db.c.RecordSchema, recordType)
 	return nil
 }
 
