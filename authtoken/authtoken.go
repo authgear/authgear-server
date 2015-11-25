@@ -10,7 +10,7 @@ import (
 
 	"github.com/oursky/skygear/uuid"
 
-	redis "github.com/garyburd/redigo/redis"
+	"github.com/garyburd/redigo/redis"
 )
 
 // Token is an expiry access token associated to a UserInfo.
@@ -202,7 +202,28 @@ func validateToken(base string) error {
 // RedisStore implements TokenStore by saving users' token
 // in a redis server
 type RedisStore struct {
-	Address string
+	pool *redis.Pool
+}
+
+func NewRedisStore(address string) *RedisStore {
+	store := RedisStore{}
+
+	store.pool = &redis.Pool{
+		MaxIdle: 50, // NOTE: May make it configurable
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.DialURL(address)
+			if err != nil {
+				return nil, err
+			}
+			return c, err
+		},
+		TestOnBorrow: func(c redis.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
+		},
+	}
+
+	return &store
 }
 
 // RedisToken stores a Token with UnixNano timestamp
@@ -231,10 +252,9 @@ func (r RedisToken) ToToken() *Token {
 	}
 }
 
-func (r RedisStore) Get(accessToken string, token *Token) error {
-	//NOTE: Maybe keep the connection open/use connection pool?
-	c, err := redis.DialURL(r.Address)
-	if err != nil {
+func (r *RedisStore) Get(accessToken string, token *Token) error {
+	c := r.pool.Get()
+	if err := c.Err(); err != nil {
 		return err
 	}
 	defer c.Close()
@@ -258,9 +278,9 @@ func (r RedisStore) Get(accessToken string, token *Token) error {
 	return nil
 }
 
-func (r RedisStore) Put(token *Token) error {
-	c, err := redis.DialURL(r.Address)
-	if err != nil {
+func (r *RedisStore) Put(token *Token) error {
+	c := r.pool.Get()
+	if err := c.Err(); err != nil {
 		return err
 	}
 	defer c.Close()
@@ -271,7 +291,7 @@ func (r RedisStore) Put(token *Token) error {
 	c.Send("MULTI")
 	c.Send("HMSET", tokenArgs...)
 	c.Send("EXPIREAT", token.AccessToken, token.ExpiredAt.Unix())
-	_, err = c.Do("EXEC")
+	_, err := c.Do("EXEC")
 	if err != nil {
 		return err
 	}
@@ -279,14 +299,14 @@ func (r RedisStore) Put(token *Token) error {
 	return nil
 }
 
-func (r RedisStore) Delete(accessToken string) error {
-	c, err := redis.DialURL(r.Address)
-	if err != nil {
+func (r *RedisStore) Delete(accessToken string) error {
+	c := r.pool.Get()
+	if err := c.Err(); err != nil {
 		return err
 	}
 	defer c.Close()
 
-	_, err = c.Do("DEL", accessToken)
+	_, err := c.Do("DEL", accessToken)
 	if err != nil {
 		return err
 	}

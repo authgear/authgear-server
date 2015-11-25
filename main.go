@@ -369,7 +369,7 @@ func initTokenStore(config Configuration) authtoken.Store {
 	case "fs":
 		store = authtoken.FileStore(config.TokenStore.Path).Init()
 	case "redis":
-		store = authtoken.RedisStore{config.TokenStore.Path}
+		store = authtoken.NewRedisStore(config.TokenStore.Path)
 	}
 	return store
 }

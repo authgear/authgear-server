@@ -12,8 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
-	redis "github.com/garyburd/redigo/redis"
 )
 
 func tempDir() string {
@@ -250,13 +248,13 @@ func exists(path string) bool {
 
 }
 
-func tempRedisStore() RedisStore {
+func tempRedisStore() *RedisStore {
 	// 15 is the default max DB number of redis
-	return RedisStore{"redis://127.0.0.1:6379/15"}
+	return NewRedisStore("redis://127.0.0.1:6379/15")
 }
 
 func (r *RedisStore) clearRedisStore() {
-	c, _ := redis.DialURL(r.Address)
+	c := r.pool.Get()
 	defer c.Close()
 
 	c.Do("FLUSHDB")
