@@ -249,8 +249,15 @@ func exists(path string) bool {
 }
 
 func tempRedisStore() *RedisStore {
+	defaultTo := func(envvar string, value string) {
+		if os.Getenv(envvar) == "" {
+			os.Setenv(envvar, value)
+		}
+	}
 	// 15 is the default max DB number of redis
-	return NewRedisStore("redis://127.0.0.1:6379/15")
+	defaultTo("REDISTEST", "redis://127.0.0.1:6379/15")
+
+	return NewRedisStore(os.Getenv("REDISTEST"))
 }
 
 func (r *RedisStore) clearRedisStore() {
