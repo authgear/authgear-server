@@ -2,8 +2,8 @@ FROM golang:1.5.1
 
 RUN \
     apt-get update && \
-    apt-get install --no-install-recommends -y libtool automake pkg-config libsodium-dev libzmq3-dev && \
-    git clone git://github.com/zeromq/czmq.git && \
+    apt-get install --no-install-recommends -y libtool-bin automake pkg-config libsodium-dev libzmq3-dev && \
+    git clone --branch v3.0.2 --depth 1 git://github.com/zeromq/czmq.git && \
     ( cd czmq; ./autogen.sh; ./configure; make check; make install; ldconfig ) && \
     rm -rf czmq && \
     rm -rf /var/lib/apt/lists/*
