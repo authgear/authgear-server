@@ -906,10 +906,6 @@ func (db *database) selectQuery(recordType string, typemap skydb.RecordSchema) s
 	return q
 }
 
-func (db *database) RecordSchema() map[string]skydb.RecordSchema {
-	return db.c.RecordSchema
-}
-
 // STEP 1 & 2 are obtained by reverse engineering psql \d with -E option
 //
 // STEP 3: example of getting foreign keys
