@@ -331,6 +331,7 @@ func TestRecordSaveDataType(t *testing.T) {
 
 type bogusFieldDatabase struct {
 	SaveFunc func(record *skydb.Record) error
+	GetFunc  func(id skydb.RecordID, record *skydb.Record) error
 	skydb.Database
 }
 
@@ -339,7 +340,7 @@ func (db bogusFieldDatabase) Extend(recordType string, schema skydb.RecordSchema
 }
 
 func (db bogusFieldDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
-	return nil
+	return db.GetFunc(id, record)
 }
 
 func (db bogusFieldDatabase) Save(record *skydb.Record) error {
@@ -371,6 +372,9 @@ func TestRecordSaveBogusField(t *testing.T) {
 
 				return nil
 			}
+			db.GetFunc = func(id skydb.RecordID, record *skydb.Record) error {
+				return nil
+			}
 
 			resp := r.POST(`{
 				"records": [{
@@ -385,6 +389,41 @@ func TestRecordSaveBogusField(t *testing.T) {
 					"_type": "record",
 					"_access": null,
 					"seq": 1
+				}]
+			}`)
+		})
+
+		Convey("can save without specifying seq", func() {
+			db.SaveFunc = func(record *skydb.Record) error {
+				So(record, ShouldResemble, &skydb.Record{
+					ID: skydb.NewRecordID("record", "id"),
+					Data: skydb.Data{
+						"seq": int64(1),
+					},
+				})
+				record.Data["seq"] = int64(2)
+				return nil
+			}
+			db.GetFunc = func(id skydb.RecordID, record *skydb.Record) error {
+				So(id, ShouldResemble, skydb.NewRecordID("record", "id"))
+				record.Data = skydb.Data{
+					"seq": int64(1),
+				}
+				return nil
+			}
+
+			resp := r.POST(`{
+				"records": [{
+					"_id": "record/id"
+				}]
+			}`)
+
+			So(resp.Body.String(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "record/id",
+					"_type": "record",
+					"_access": null,
+					"seq": 2
 				}]
 			}`)
 		})
