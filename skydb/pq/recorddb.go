@@ -885,11 +885,6 @@ func newRows(recordType string, typemap skydb.RecordSchema, rows *sqlx.Rows, err
 }
 
 func (db *database) selectQuery(recordType string, typemap skydb.RecordSchema) sq.SelectBuilder {
-	columns := make([]string, 0, len(typemap))
-	for column := range typemap {
-		columns = append(columns, column)
-	}
-
 	q := psql.Select()
 	for column, fieldType := range typemap {
 		if fieldType.Expression != nil {
