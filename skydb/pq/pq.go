@@ -92,9 +92,10 @@ func (auth *authInfoValue) Scan(value interface{}) error {
 }
 
 type conn struct {
-	Db      *sqlx.DB
-	appName string
-	option  string
+	Db           *sqlx.DB
+	RecordSchema map[string]skydb.RecordSchema
+	appName      string
+	option       string
 }
 
 func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
@@ -719,9 +720,10 @@ func Open(appName, connString string) (skydb.Conn, error) {
 	}
 
 	return &conn{
-		Db:      db,
-		appName: appName,
-		option:  connString,
+		Db:           db,
+		RecordSchema: map[string]skydb.RecordSchema{},
+		appName:      appName,
+		option:       connString,
 	}, nil
 }
 

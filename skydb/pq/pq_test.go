@@ -660,6 +660,44 @@ func TestDevice(t *testing.T) {
 }
 
 func TestExtend(t *testing.T) {
+	Convey("remoteColumnTypes", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+		db := c.PublicDB().(*database)
+
+		Convey("return Resemble RecordSchema on second call", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"content": skydb.FieldType{Type: skydb.TypeString},
+			})
+			So(err, ShouldBeNil)
+			schema, _ := db.remoteColumnTypes("note")
+			schema2, _ := db.remoteColumnTypes("note")
+			So(schema, ShouldResemble, schema2)
+		})
+
+		Convey("return cached RecordSchema instance on second call", func() {
+			cachedSchema := skydb.RecordSchema{
+				"cached": skydb.FieldType{Type: skydb.TypeString},
+			}
+			c.RecordSchema["note"] = cachedSchema
+			schema, _ := db.remoteColumnTypes("note")
+			So(schema, ShouldResemble, cachedSchema)
+		})
+
+		Convey("clean the cache of RecordSchema on extend recordType", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"content": skydb.FieldType{Type: skydb.TypeString},
+			})
+			So(err, ShouldBeNil)
+			schema, _ := db.remoteColumnTypes("note")
+			err = db.Extend("note", skydb.RecordSchema{
+				"description": skydb.FieldType{Type: skydb.TypeString},
+			})
+			schema2, _ := db.remoteColumnTypes("note")
+			So(schema, ShouldNotResemble, schema2)
+		})
+	})
+
 	Convey("Extend", t, func() {
 		c := getTestConn(t)
 		defer cleanupDB(t, c.Db)
