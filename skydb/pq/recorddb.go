@@ -316,70 +316,94 @@ func (db *database) Delete(id skydb.RecordID) error {
 	return err
 }
 
-type compoundPredicateSqlizer struct {
-	skydb.Predicate
-}
-
 type comparisonPredicateSqlizer struct {
+	alias string
 	skydb.Predicate
 }
 
 type containsComparisonPredicateSqlizer struct {
+	alias string
 	skydb.Predicate
 }
 
-func newPredicateSqlizer(predicate skydb.Predicate) sq.Sqlizer {
-	if predicate.Operator.IsCompound() {
-		return &compoundPredicateSqlizer{predicate}
-	}
-
-	if predicate.Operator == skydb.In {
-		return &containsComparisonPredicateSqlizer{predicate}
-	}
-	return &comparisonPredicateSqlizer{predicate}
+// predicateSqlizerFactory is a factory for creating sqlizer for predicate
+type predicateSqlizerFactory struct {
+	db           *database
+	primaryTable string
+	joinedTables []joinedTable
 }
 
-func (p *compoundPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
+func (f *predicateSqlizerFactory) newPredicateSqlizer(predicate skydb.Predicate) (sq.Sqlizer, error) {
+	if predicate.Operator == skydb.Functional {
+		return f.newFunctionalPredicateSqlizer(predicate)
+	}
+	if predicate.Operator.IsCompound() {
+		return f.newCompoundPredicateSqlizer(predicate)
+	}
+	if predicate.Operator == skydb.In {
+		return &containsComparisonPredicateSqlizer{f.primaryTable, predicate}, nil
+	}
+	return &comparisonPredicateSqlizer{f.primaryTable, predicate}, nil
+}
+
+func (f *predicateSqlizerFactory) newCompoundPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
 	switch p.Operator {
 	default:
-		err = fmt.Errorf("Compound operator `%v` is not supported.", p.Operator)
-		return
+		err := fmt.Errorf("Compound operator `%v` is not supported.", p.Operator)
+		return nil, err
 	case skydb.And:
 		and := make(sq.And, len(p.Children))
 		for i, child := range p.Children {
-			and[i] = newPredicateSqlizer(child.(skydb.Predicate))
+			sqlizer, err := f.newPredicateSqlizer(child.(skydb.Predicate))
+			if err != nil {
+				return nil, err
+			}
+			and[i] = sqlizer
 		}
-		return and.ToSql()
+		return and, nil
 	case skydb.Or:
 		or := make(sq.Or, len(p.Children))
 		for i, child := range p.Children {
-			or[i] = newPredicateSqlizer(child.(skydb.Predicate))
+			sqlizer, err := f.newPredicateSqlizer(child.(skydb.Predicate))
+			if err != nil {
+				return nil, err
+			}
+			or[i] = sqlizer
 		}
-		return or.ToSql()
+		return or, nil
 	case skydb.Not:
 		pred := p.Children[0].(skydb.Predicate)
-		sql, args, err = newPredicateSqlizer(pred).ToSql()
-		sql = fmt.Sprintf("NOT (%s)", sql)
-		return
+		sqlizer, err := f.newPredicateSqlizer(pred)
+		if err != nil {
+			return nil, err
+		}
+		return NotSqlizer{sqlizer}, nil
 	}
 }
 
-func toSQLOperand(expr skydb.Expression) (sql string, args []interface{}) {
+type expressionSqlizer struct {
+	alias string
+	skydb.Expression
+}
+
+func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	switch expr.Type {
 	case skydb.KeyPath:
-		sql = pq.QuoteIdentifier(expr.Value.(string))
+		sql = fullQuoteIdentifier(expr.alias, expr.Value.(string))
+		args = []interface{}{}
 	case skydb.Function:
-		sql, args = funcToSQLOperand(expr.Value.(skydb.Func))
+		sql, args = funcToSQLOperand(expr.alias, expr.Value.(skydb.Func))
 	default:
 		sql, args = literalToSQLOperand(expr.Value)
 	}
 	return
 }
 
-func funcToSQLOperand(fun skydb.Func) (string, []interface{}) {
+func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
 	switch f := fun.(type) {
 	case *skydb.DistanceFunc:
-		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))", pq.QuoteIdentifier(f.Field))
+		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))",
+			fullQuoteIdentifier(alias, f.Field))
 		args := []interface{}{f.Location.Lng(), f.Location.Lat()}
 		return sql, args
 	case *skydb.CountFunc:
@@ -427,41 +451,153 @@ func literalToSQLValue(value interface{}) interface{} {
 	}
 }
 
+func (f *predicateSqlizerFactory) newFunctionalPredicateSqlizer(predicate skydb.Predicate) (sq.Sqlizer, error) {
+	expr := predicate.Children[0].(skydb.Expression)
+	if expr.Type != skydb.Function {
+		panic("unexpected expression in functional predicate")
+	}
+	switch fn := expr.Value.(type) {
+	case *skydb.UserRelationFunc:
+		table := fn.RelationName
+		direction := fn.RelationDirection
+		if direction == "" {
+			direction = "outward"
+		}
+		primaryColumn := fn.KeyPath
+		if primaryColumn == "_owner" || primaryColumn == "" {
+			primaryColumn = "_owner_id"
+		}
+
+		var outwardAlias, inwardAlias string
+		if direction == "outward" || direction == "mutual" {
+			outwardAlias = f.createLeftJoin(table, primaryColumn, "right_id")
+		}
+		if direction == "inward" || direction == "mutual" {
+			inwardAlias = f.createLeftJoin(table, primaryColumn, "left_id")
+		}
+
+		return userRelationPredicateSqlizer{
+			outwardAlias: outwardAlias,
+			inwardAlias:  inwardAlias,
+			user:         fn.User,
+		}, nil
+	default:
+		panic("the specified function cannot be used as a functional predicate")
+	}
+}
+
+// createLeftJoin create an alias of a table to be joined to the primary table
+// and return the alias for the joined table
+func (f *predicateSqlizerFactory) createLeftJoin(secondaryTable string, primaryColumn string, secondaryColumn string) string {
+	newAlias := joinedTable{secondaryTable, primaryColumn, secondaryColumn}
+	for i, alias := range f.joinedTables {
+		if alias.equal(newAlias) {
+			return fmt.Sprintf("_t%d", i)
+		}
+	}
+
+	f.joinedTables = append(f.joinedTables, newAlias)
+	return fmt.Sprintf("_t%d", len(f.joinedTables)-1)
+}
+
+// addJoinsToSelectBuilder add join clauses to a SelectBuilder
+func (f *predicateSqlizerFactory) addJoinsToSelectBuilder(q sq.SelectBuilder) sq.SelectBuilder {
+	for i, alias := range f.joinedTables {
+		aliasName := fmt.Sprintf("_t%d", i)
+		joinClause := fmt.Sprintf("%s AS %s ON %s = %s",
+			f.db.tableName(alias.secondaryTable), pq.QuoteIdentifier(aliasName),
+			fullQuoteIdentifier(f.primaryTable, alias.primaryColumn),
+			fullQuoteIdentifier(aliasName, alias.secondaryColumn))
+		q = q.LeftJoin(joinClause)
+	}
+
+	if len(f.joinedTables) > 0 {
+		q = q.Distinct()
+	}
+	return q
+}
+
+func newPredicateSqlizerFactory(db *database, primaryTable string) *predicateSqlizerFactory {
+	return &predicateSqlizerFactory{
+		db:           db,
+		primaryTable: primaryTable,
+		joinedTables: []joinedTable{},
+	}
+}
+
+type userRelationPredicateSqlizer struct {
+	outwardAlias string
+	inwardAlias  string
+	user         string
+}
+
+func (p userRelationPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
+	if p.outwardAlias != "" && p.inwardAlias != "" {
+		sql = fmt.Sprintf("%s = %s AND %s = ?",
+			fullQuoteIdentifier(p.outwardAlias, "left_id"),
+			fullQuoteIdentifier(p.inwardAlias, "right_id"),
+			fullQuoteIdentifier(p.outwardAlias, "left_id"))
+	} else if p.outwardAlias != "" {
+		sql = fmt.Sprintf("%s = ?",
+			fullQuoteIdentifier(p.outwardAlias, "left_id"))
+	} else if p.inwardAlias != "" {
+		sql = fmt.Sprintf("%s = ?",
+			fullQuoteIdentifier(p.inwardAlias, "right_id"))
+	} else {
+		panic("unexpected value in sqlizer")
+	}
+	args = []interface{}{p.user}
+	err = nil
+	return
+}
+
 func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	var buffer bytes.Buffer
-	lhs := p.Children[0].(skydb.Expression)
-	rhs := p.Children[1].(skydb.Expression)
+	lhs := expressionSqlizer{p.alias, p.Children[0].(skydb.Expression)}
+	rhs := expressionSqlizer{p.alias, p.Children[1].(skydb.Expression)}
 
 	if lhs.Type == skydb.Literal && rhs.Type == skydb.KeyPath {
 		buffer.WriteString(`jsonb_exists(`)
 
-		sqlOperand, opArgs := toSQLOperand(rhs)
+		sqlOperand, opArgs, err := rhs.ToSql()
+		if err != nil {
+			return "", nil, err
+		}
 		buffer.WriteString(sqlOperand)
 		args = append(args, opArgs...)
 
 		buffer.WriteString(`, `)
 
-		sqlOperand, opArgs = toSQLOperand(lhs)
+		sqlOperand, opArgs, err = lhs.ToSql()
+		if err != nil {
+			return "", nil, err
+		}
 		buffer.WriteString(sqlOperand)
 		args = append(args, opArgs...)
 
 		buffer.WriteString(`)`)
 
 		sql = buffer.String()
-		return
+		return sql, args, err
 	} else if lhs.Type == skydb.KeyPath && rhs.Type == skydb.Literal {
-		sqlOperand, opArgs := toSQLOperand(lhs)
+		sqlOperand, opArgs, err := lhs.ToSql()
+		if err != nil {
+			return "", nil, err
+		}
 		buffer.WriteString(sqlOperand)
 		args = append(args, opArgs...)
 
 		buffer.WriteString(` IN `)
 
-		sqlOperand, opArgs = toSQLOperand(rhs)
+		sqlOperand, opArgs, err = rhs.ToSql()
+		if err != nil {
+			return "", nil, err
+		}
 		buffer.WriteString(sqlOperand)
 		args = append(args, opArgs...)
 
 		sql = buffer.String()
-		return
+		return sql, args, err
 	} else {
 		panic("malformed query")
 	}
@@ -471,17 +607,20 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 	args = []interface{}{}
 	if p.Operator.IsBinary() {
 		var buffer bytes.Buffer
-		lhs := p.Children[0].(skydb.Expression)
-		rhs := p.Children[1].(skydb.Expression)
+		lhs := expressionSqlizer{p.alias, p.Children[0].(skydb.Expression)}
+		rhs := expressionSqlizer{p.alias, p.Children[1].(skydb.Expression)}
 
-		sqlOperand, opArgs := toSQLOperand(lhs)
+		sqlOperand, opArgs, err := lhs.ToSql()
+		if err != nil {
+			return "", nil, err
+		}
 		buffer.WriteString(sqlOperand)
 		args = append(args, opArgs...)
 
 		switch p.Operator {
 		default:
 			err = fmt.Errorf("Comparison operator `%v` is not supported.", p.Operator)
-			return
+			return sql, args, err
 		case skydb.Equal:
 			buffer.WriteString(`=`)
 		case skydb.GreaterThan:
@@ -500,7 +639,10 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 			buffer.WriteString(` ILIKE `)
 		}
 
-		sqlOperand, opArgs = toSQLOperand(rhs)
+		sqlOperand, opArgs, err = rhs.ToSql()
+		if err != nil {
+			return "", nil, err
+		}
 		buffer.WriteString(sqlOperand)
 		args = append(args, opArgs...)
 
@@ -561,11 +703,17 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 	q := db.selectQuery(query.Type, typemap)
 
 	if p := query.Predicate; p != nil {
-		q = q.Where(newPredicateSqlizer(*p))
+		factory := newPredicateSqlizerFactory(db, query.Type)
+		sqlizer, err := factory.newPredicateSqlizer(*p)
+		if err != nil {
+			return nil, err
+		}
+		q = q.Where(sqlizer)
+		q = factory.addJoinsToSelectBuilder(q)
 	}
 
 	for _, sort := range query.Sorts {
-		orderBy, err := sortOrderBySQL(sort)
+		orderBy, err := sortOrderBySQL(query.Type, sort)
 		if err != nil {
 			return nil, err
 		}
@@ -587,6 +735,13 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 	if query.Offset > 0 {
 		q = q.Offset(query.Offset)
 	}
+
+	sql, args, err := q.ToSql()
+	log.WithFields(log.Fields{
+		"sql":  sql,
+		"args": args,
+		"err":  err,
+	}).Infoln("query records")
 
 	rows, err := queryWith(db.Db, q)
 	return newRows(query.Type, typemap, rows, err)
@@ -617,7 +772,13 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 	q := db.selectQuery(query.Type, typemap)
 
 	if p := query.Predicate; p != nil {
-		q = q.Where(newPredicateSqlizer(*p))
+		factory := newPredicateSqlizerFactory(db, query.Type)
+		sqlizer, err := factory.newPredicateSqlizer(*p)
+		if err != nil {
+			return 0, err
+		}
+		q = q.Where(sqlizer)
+		q = factory.addJoinsToSelectBuilder(q)
 	}
 
 	if query.ReadableBy != "" {
@@ -666,15 +827,15 @@ func whitelistedRecordSchema(schema skydb.RecordSchema, whitelistKeys []string) 
 	return wlSchema, nil
 }
 
-func sortOrderBySQL(sort skydb.Sort) (string, error) {
+func sortOrderBySQL(alias string, sort skydb.Sort) (string, error) {
 	var expr string
 
 	switch {
 	case sort.KeyPath != "":
-		expr = pq.QuoteIdentifier(sort.KeyPath)
+		expr = fullQuoteIdentifier(alias, sort.KeyPath)
 	case sort.Func != nil:
 		var err error
-		expr, err = funcOrderBySQL(sort.Func)
+		expr, err = funcOrderBySQL(alias, sort.Func)
 		if err != nil {
 			return "", err
 		}
@@ -691,12 +852,12 @@ func sortOrderBySQL(sort skydb.Sort) (string, error) {
 }
 
 // due to sq not being able to pass args in OrderBy, we can't re-use funcToSQLOperand
-func funcOrderBySQL(fun skydb.Func) (string, error) {
+func funcOrderBySQL(alias string, fun skydb.Func) (string, error) {
 	switch f := fun.(type) {
 	case *skydb.DistanceFunc:
 		sql := fmt.Sprintf(
 			"ST_Distance_Sphere(%s, ST_MakePoint(%f, %f))",
-			pq.QuoteIdentifier(f.Field),
+			fullQuoteIdentifier(alias, f.Field),
 			f.Location.Lng(),
 			f.Location.Lat(),
 		)
@@ -892,12 +1053,17 @@ func newRows(recordType string, typemap skydb.RecordSchema, rows *sqlx.Rows, err
 func (db *database) selectQuery(recordType string, typemap skydb.RecordSchema) sq.SelectBuilder {
 	q := psql.Select()
 	for column, fieldType := range typemap {
-		if fieldType.Expression != nil {
-			sqlOperand, opArgs := toSQLOperand(*fieldType.Expression)
-			q = q.Column(sqlOperand+" as "+column, opArgs...)
-		} else {
-			q = q.Column(`"` + column + `"`)
+		expr := fieldType.Expression
+		if expr == nil {
+			expr = &skydb.Expression{
+				Type:  skydb.KeyPath,
+				Value: column,
+			}
 		}
+
+		e := expressionSqlizer{recordType, *expr}
+		sqlOperand, opArgs, _ := e.ToSql()
+		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
 	}
 
 	q = q.From(db.tableName(recordType)).
@@ -1026,8 +1192,8 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 
 	for refs.Next() {
 		s := skydb.FieldType{}
-		var localColumn, referencedTable string
-		if err := refs.Scan(&localColumn, &referencedTable); err != nil {
+		var primaryColumn, referencedTable string
+		if err := refs.Scan(&primaryColumn, &referencedTable); err != nil {
 			log.Debugf("err %v", err)
 			return nil, err
 		}
@@ -1038,7 +1204,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 			s.Type = skydb.TypeReference
 			s.ReferenceType = referencedTable
 		}
-		typemap[localColumn] = s
+		typemap[primaryColumn] = s
 	}
 	return typemap, nil
 }
@@ -1196,4 +1362,34 @@ func pqDataType(dataType skydb.DataType) string {
 	case skydb.TypeSequence:
 		return TypeSerial
 	}
+}
+
+func fullQuoteIdentifier(aliasName string, columnName string) string {
+	return pq.QuoteIdentifier(aliasName) + "." + pq.QuoteIdentifier(columnName)
+}
+
+// NotSqlizer generates SQL condition that negates a boolean condition
+type NotSqlizer struct {
+	Predicate sq.Sqlizer
+}
+
+// ToSql generates SQL for NotSqlizer
+func (s NotSqlizer) ToSql() (sql string, args []interface{}, err error) {
+	sql, args, err = s.Predicate.ToSql()
+	if err != nil {
+		sql = fmt.Sprintf("NOT (%s)", sql)
+	}
+	return
+}
+
+// joinedTable represents a specification for table join
+type joinedTable struct {
+	secondaryTable  string
+	primaryColumn   string
+	secondaryColumn string
+}
+
+// equal compares whether two specifications of table join are equal
+func (a joinedTable) equal(b joinedTable) bool {
+	return a.secondaryTable == b.secondaryTable && a.primaryColumn == b.primaryColumn && a.secondaryColumn == b.secondaryColumn
 }
