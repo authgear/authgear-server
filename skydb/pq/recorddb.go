@@ -535,6 +535,11 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 	}
 
 	for key, value := range query.ComputedKeys {
+		if value.Type == skydb.KeyPath {
+			// recorddb does not support querying with computed keys
+			continue
+		}
+
 		typemap["_transient_"+key] = skydb.FieldType{
 			Type:       skydb.TypeNumber,
 			Expression: &value,

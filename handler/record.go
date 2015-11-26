@@ -783,27 +783,6 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		query.ReadableBy = payload.UserInfoID
 	}
 
-	var (
-		eagerTransientKey string
-		eagerKeyPath      string
-	)
-
-	// Handler supports a type of transient field that eager load
-	// a referened record, which is not currently supported by skydb.
-	// This type of expression is taken out of ComputedKeys and
-	// the wanted records are added to the transient field later.
-	for key, value := range query.ComputedKeys {
-		if value.Type == skydb.KeyPath {
-			if eagerTransientKey != "" {
-				response.Err = skyerr.NewRequestInvalidErr(errors.New("eager loading for multiple keys is not supported"))
-				return
-			}
-			eagerTransientKey = key
-			eagerKeyPath = value.Value.(string)
-		}
-	}
-	delete(query.ComputedKeys, eagerTransientKey)
-
 	results, err := db.Query(&query)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
@@ -824,18 +803,29 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	output := make([]interface{}, len(records))
 	for i := range records {
 		record := records[i]
-		if eagerTransientKey != "" {
-			record.Transient = map[string]interface{}{}
-			if ref, ok := record.Data[eagerKeyPath].(skydb.Reference); ok {
-				eagerRecord := skydb.Record{}
-				if err := db.Get(ref.ID, &eagerRecord); err != nil {
-					log.WithFields(log.Fields{
-						"ID":  ref.ID,
-						"err": err,
-					}).Debugln("Unable to eager load record.")
-				}
-				record.Transient[eagerTransientKey] = eagerRecord
+
+		for transientKey, transientExpression := range query.ComputedKeys {
+			if transientExpression.Type != skydb.KeyPath {
+				continue
 			}
+
+			keyPath := transientExpression.Value.(string)
+
+			ref, ok := record.Data[keyPath].(skydb.Reference)
+			if !ok {
+				response.Err = skyerr.NewRequestInvalidErr(fmt.Errorf(`type at keypath "%s" is not a reference`, keyPath))
+				continue
+			}
+
+			eagerRecord := skydb.Record{}
+			if err := db.Get(ref.ID, &eagerRecord); err != nil {
+				continue
+			}
+
+			if record.Transient == nil {
+				record.Transient = map[string]interface{}{}
+			}
+			record.Transient[transientKey] = eagerRecord
 		}
 
 		output[i] = newSerializedRecord(&record, payload.AssetStore)
