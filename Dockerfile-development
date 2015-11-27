@@ -34,6 +34,8 @@ RUN \
     golint ./... && \
     go generate ./...
 
+VOLUME /go/src/app/data
+
 EXPOSE 3000
 
 CMD ["go-wrapper", "run"]

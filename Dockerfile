@@ -22,6 +22,8 @@ COPY . /go/src/app
 RUN go-wrapper download
 RUN go-wrapper install
 
+VOLUME /go/src/app/data
+
 EXPOSE 3000
 
 CMD ["go-wrapper", "run"]
