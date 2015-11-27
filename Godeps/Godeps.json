@@ -95,14 +95,12 @@
 			"Rev": "173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd"
 		},
 		{
-			"ImportPath": "gopkg.in/amz.v1/aws",
-			"Comment": "v1.0",
-			"Rev": "ad23e96a31d28364dc0290f44b1a922aba379e18"
+			"ImportPath": "gopkg.in/amz.v3/aws",
+			"Rev": "bff3a097c4108da57bb8cbe3aad2990d74d23676"
 		},
 		{
-			"ImportPath": "gopkg.in/amz.v1/s3",
-			"Comment": "v1.0",
-			"Rev": "ad23e96a31d28364dc0290f44b1a922aba379e18"
+			"ImportPath": "gopkg.in/amz.v3/s3",
+			"Rev": "bff3a097c4108da57bb8cbe3aad2990d74d23676"
 		}
 	]
 }

@@ -62,8 +62,12 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 			// TODO: refactor out this if. We know whether we are
 			// injected an asset store at the start of handler
 			var url string
+			var err error
 			if signer, ok := s.AssetStore.(asset.URLSigner); ok {
-				url = signer.SignedURL(v.Name, time.Now().Add(15*time.Minute))
+				url, err = signer.SignedURL(v.Name, time.Now().Add(15*time.Minute))
+				if err != nil {
+					return nil, err
+				}
 			} else {
 				url = ""
 			}

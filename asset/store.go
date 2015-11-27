@@ -17,8 +17,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"gopkg.in/amz.v1/aws"
-	"gopkg.in/amz.v1/s3"
+	"gopkg.in/amz.v3/aws"
+	"gopkg.in/amz.v3/s3"
 )
 
 // Store specify the interfaces of an asset store
@@ -31,7 +31,7 @@ type Store interface {
 type URLSigner interface {
 	// SignedURL returns a signed url with access to the named file. The link
 	// should expires itself after expiredAt
-	SignedURL(name string, expiredAt time.Time) string
+	SignedURL(name string, expiredAt time.Time) (string, error)
 }
 
 // SignatureParser parses a signed signature string
@@ -82,7 +82,7 @@ func (s *FileStore) PutFileReader(name string, src io.Reader, length int64, cont
 	return nil
 }
 
-func (s *FileStore) SignedURL(name string, expiredAt time.Time) string {
+func (s *FileStore) SignedURL(name string, expiredAt time.Time) (string, error) {
 	expiredAtStr := strconv.FormatInt(expiredAt.Unix(), 10)
 
 	h := hmac.New(sha256.New, []byte(s.secret))
@@ -96,7 +96,7 @@ func (s *FileStore) SignedURL(name string, expiredAt time.Time) string {
 	return fmt.Sprintf(
 		"%s/%s?expiredAt=%s&signature=%s",
 		s.prefix, name, expiredAtStr, buf.String(),
-	)
+	), nil
 }
 
 func (s *FileStore) ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error) {
@@ -121,19 +121,24 @@ type S3Store struct {
 }
 
 // NewS3Store returns a new S3Store
-func NewS3Store(accessKey, secretKey, reigonName, bucket string) (*S3Store, error) {
+func NewS3Store(accessKey, secretKey, regionName, bucketName string) (*S3Store, error) {
 	auth := aws.Auth{
 		AccessKey: accessKey,
 		SecretKey: secretKey,
 	}
 
-	reigon, ok := aws.Regions[reigonName]
+	region, ok := aws.Regions[regionName]
 	if !ok {
-		return nil, fmt.Errorf("unrecgonized reigon name = %v", reigonName)
+		return nil, fmt.Errorf("unrecgonized region name = %v", regionName)
+	}
+
+	bucket, err := s3.New(auth, region).Bucket(bucketName)
+	if err != nil {
+		return nil, err
 	}
 
 	return &S3Store{
-		bucket: s3.New(auth, reigon).Bucket(bucket),
+		bucket: bucket,
 	}, nil
 }
 
@@ -147,6 +152,6 @@ func (s *S3Store) PutFileReader(name string, src io.Reader, length int64, conten
 }
 
 // SignedURL return a signed s3 URL with expiry date
-func (s *S3Store) SignedURL(name string, expiredAt time.Time) string {
-	return s.bucket.SignedURL(name, expiredAt)
+func (s *S3Store) SignedURL(name string, expiredAt time.Time) (string, error) {
+	return s.bucket.SignedURL(name, expiredAt.Sub(time.Now()))
 }
