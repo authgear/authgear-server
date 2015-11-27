@@ -114,9 +114,13 @@ func (asset *MapAsset) FromMap(m map[string]interface{}) error {
 }
 
 // ToMap implements ToMapper
-func (asset MapAsset) ToMap(m map[string]interface{}) {
+func (asset *MapAsset) ToMap(m map[string]interface{}) {
 	m["$type"] = "asset"
 	m["$name"] = asset.Name
+	url := (*skydb.Asset)(asset).SignedURL(time.Now().Add(15 * time.Minute))
+	if url != "" {
+		m["$url"] = url
+	}
 }
 
 // MapReference is skydb.Reference that can be converted from and to a map.
@@ -273,7 +277,7 @@ func ParseInterface(i interface{}) interface{} {
 		case "asset":
 			var asset skydb.Asset
 			mapFromOrPanic((*MapAsset)(&asset), value)
-			return asset
+			return &asset
 		case "ref":
 			var ref skydb.Reference
 			mapFromOrPanic((*MapReference)(&ref), value)

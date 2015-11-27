@@ -63,13 +63,13 @@ func (asset assetValue) Value() (driver.Value, error) {
 }
 
 type nullAsset struct {
-	Asset skydb.Asset
+	Asset *skydb.Asset
 	Valid bool
 }
 
 func (na *nullAsset) Scan(value interface{}) error {
 	if value == nil {
-		na.Asset = skydb.Asset{}
+		na.Asset = &skydb.Asset{}
 		na.Valid = false
 		return nil
 	}
@@ -79,7 +79,7 @@ func (na *nullAsset) Scan(value interface{}) error {
 		return fmt.Errorf("failed to scan Asset: got type(value) = %T, expect []byte", value)
 	}
 
-	na.Asset = skydb.Asset{
+	na.Asset = &skydb.Asset{
 		Name: string(assetName),
 	}
 	na.Valid = true
@@ -250,8 +250,8 @@ func convert(r *skydb.Record) map[string]interface{} {
 			m[key] = jsonSliceValue(value)
 		case map[string]interface{}:
 			m[key] = jsonMapValue(value)
-		case skydb.Asset:
-			m[key] = assetValue(value)
+		case *skydb.Asset:
+			m[key] = assetValue(*value)
 		case skydb.Reference:
 			m[key] = referenceValue(value)
 		case *skydb.Location:
