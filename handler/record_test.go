@@ -268,7 +268,7 @@ func TestRecordSaveDataType(t *testing.T) {
 			So(record, ShouldResemble, skydb.Record{
 				ID: skydb.NewRecordID("type1", "id1"),
 				Data: map[string]interface{}{
-					"asset": skydb.Asset{Name: "asset-name"},
+					"asset": &skydb.Asset{Name: "asset-name"},
 				},
 			})
 		})
@@ -1046,7 +1046,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 		db.Save(&skydb.Record{
 			ID: skydb.NewRecordID("record", "id"),
 			Data: map[string]interface{}{
-				"asset": skydb.Asset{Name: "asset-name"},
+				"asset": &skydb.Asset{Name: "asset-name"},
 			},
 		})
 
