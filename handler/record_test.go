@@ -1120,6 +1120,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 type referencedRecordDatabase struct {
 	note     skydb.Record
 	category skydb.Record
+	city     skydb.Record
 	skydb.Database
 }
 
@@ -1129,6 +1130,8 @@ func (db *referencedRecordDatabase) Get(id skydb.RecordID, record *skydb.Record)
 		*record = db.note
 	case "category/important":
 		*record = db.category
+	case "city/beautiful":
+		*record = db.city
 	}
 	return nil
 }
@@ -1157,6 +1160,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				OwnerID: "ownerID",
 				Data: map[string]interface{}{
 					"category": skydb.NewReference("category", "important"),
+					"city":     skydb.NewReference("city", "beautiful"),
 				},
 			},
 			category: skydb.Record{
@@ -1164,6 +1168,13 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				OwnerID: "ownerID",
 				Data: map[string]interface{}{
 					"title": "This is important.",
+				},
+			},
+			city: skydb.Record{
+				ID:      skydb.NewRecordID("city", "beautiful"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"name": "This is beautiful.",
 				},
 			},
 		}
@@ -1185,6 +1196,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 					"_access": null,
 					"_ownerID": "ownerID",
 					"category": {"$id":"category/important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$type":"ref"},
 					"_transient": {
 						"category": {"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID", "title": "This is important."}
 					}
@@ -1192,7 +1204,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			}`)
 		})
 
-		Convey("return error if multiple key paths are specified", func() {
+		Convey("query record with multiple eager load", func() {
 			resp := handlertest.NewSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
 				"record_type": "note",
 				"include": {
@@ -1202,11 +1214,18 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			}`)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"error": {
-					"code":101,
-					"message":"eager loading for multiple keys is not supported",
-					"type":"RequestInvalid"
-				}
+				"result": [{
+					"_id": "note/note1",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID",
+					"category": {"$id":"category/important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$type":"ref"},
+					"_transient": {
+						"category": {"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID", "title": "This is important."},
+						"city": {"_access":null,"_id":"city/beautiful","_type":"record","_ownerID":"ownerID", "name": "This is beautiful."}
+					}
+				}]
 			}`)
 		})
 	})
