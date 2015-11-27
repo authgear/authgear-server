@@ -68,7 +68,7 @@ func (l *responseLogger) String() string {
 	return l.b.String()
 }
 
-func logMiddleware(next http.Handler) http.Handler {
+func logMiddleware(next http.Handler, skipRequestBody bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Debugf("%v %v", r.Method, r.RequestURI)
 
@@ -81,10 +81,10 @@ func logMiddleware(next http.Handler) http.Handler {
 		r.Body = ioutil.NopCloser(bytes.NewReader(body))
 
 		log.Debugln("------ Request: ------")
-		if r.Header.Get("Content-Type") == "" || r.Header.Get("Content-Type") == "application/json" {
+		if !skipRequestBody && (r.Header.Get("Content-Type") == "" || r.Header.Get("Content-Type") == "application/json") {
 			log.Debugln(string(body))
 		} else {
-			log.Debugf("%d bytes of body", len(body))
+			log.Debugf("%d bytes of request body", len(body))
 		}
 
 		rlogger := &responseLogger{w: w}
@@ -94,7 +94,7 @@ func logMiddleware(next http.Handler) http.Handler {
 		if w.Header().Get("Content-Type") == "" || w.Header().Get("Content-Type") == "application/json" {
 			log.Debugln(rlogger.String())
 		} else {
-			log.Debugf("%d bytes of body", len(rlogger.String()))
+			log.Debugf("%d bytes of response body", len(rlogger.String()))
 		}
 	})
 }
@@ -179,7 +179,7 @@ func main() {
 	fileGateway := router.NewGateway(`files/(.+)`)
 	fileGateway.GET(handler.AssetGetURLHandler, assetGetPreprocessors...)
 	fileGateway.PUT(handler.AssetUploadURLHandler, assetUploadPreprocessors...)
-	http.Handle("/files/", logMiddleware(fileGateway))
+	http.Handle("/files/", logMiddleware(fileGateway, true))
 
 	r := router.NewRouter()
 	r.Map("", handler.HomeHandler)
@@ -324,7 +324,7 @@ func main() {
 	internalPubSubGateway := router.NewGateway(`internalpubSub`)
 	internalPubSubGateway.GET(handler.NewPubSubHandler(internalPubSub), pubSubPreprocessors...)
 
-	http.Handle("/", logMiddleware(r))
+	http.Handle("/", logMiddleware(r, false))
 	http.Handle("/pubsub", pubSubGateway)
 	http.Handle("/_/pubsub", internalPubSubGateway)
 
