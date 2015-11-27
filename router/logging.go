@@ -47,7 +47,7 @@ func (l *responseLogger) String() string {
 	return l.b.String()
 }
 
-func LoggingMiddleware(next http.Handler, skipRequestBody bool) http.Handler {
+func LoggingMiddleware(next http.Handler, skipBody bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Debugf("%v %v", r.Method, r.RequestURI)
 
@@ -60,7 +60,7 @@ func LoggingMiddleware(next http.Handler, skipRequestBody bool) http.Handler {
 		r.Body = ioutil.NopCloser(bytes.NewReader(body))
 
 		log.Debugln("------ Request: ------")
-		if !skipRequestBody && (r.Header.Get("Content-Type") == "" || r.Header.Get("Content-Type") == "application/json") {
+		if !skipBody && (r.Header.Get("Content-Type") == "" || r.Header.Get("Content-Type") == "application/json") {
 			log.Debugln(string(body))
 		} else {
 			log.Debugf("%d bytes of request body", len(body))
@@ -70,7 +70,7 @@ func LoggingMiddleware(next http.Handler, skipRequestBody bool) http.Handler {
 		next.ServeHTTP(rlogger, r)
 
 		log.Debugln("------ Response: ------")
-		if w.Header().Get("Content-Type") == "" || w.Header().Get("Content-Type") == "application/json" {
+		if !skipBody && (w.Header().Get("Content-Type") == "" || w.Header().Get("Content-Type") == "application/json") {
 			log.Debugln(rlogger.String())
 		} else {
 			log.Debugf("%d bytes of response body", len(rlogger.String()))
