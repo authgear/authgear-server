@@ -6,6 +6,7 @@ RUN \
     git clone --branch v3.0.2 --depth 1 git://github.com/zeromq/czmq.git && \
     ( cd czmq; ./autogen.sh; ./configure; make check; make install; ldconfig ) && \
     rm -rf czmq && \
+    apt-get install --no-install-recommends -y net-tools telnet && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /go/src/app
