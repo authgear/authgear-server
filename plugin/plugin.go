@@ -121,10 +121,14 @@ func (p *Plugin) initHook(registry *hook.Registry, hookInfos []pluginHookInfo) {
 func (p *Plugin) initTimer(c *cron.Cron, timerInfos []timerInfo) {
 	for _, timerInfo := range timerInfos {
 		timerName := timerInfo.Name
-		c.AddFunc(timerInfo.Spec, func() {
+		err := c.AddFunc(timerInfo.Spec, func() {
 			output, _ := p.transport.RunTimer(timerName, []byte{})
 			log.Debugf("Executed a timer{%v} with result: %s", timerName, output)
 		})
+
+		if err != nil {
+			panic(fmt.Errorf(`unable to add timer for "%s": %s`, timerName, err))
+		}
 	}
 }
 
