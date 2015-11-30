@@ -101,7 +101,7 @@ func TestRun(t *testing.T) {
 				"tags":      []interface{}{"test", "unimportant"},
 				"date":      time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC),
 				"ref":       skydb.NewReference("category", "1"),
-				"asset":     skydb.Asset{Name: "asset-name"},
+				"asset":     &skydb.Asset{Name: "asset-name"},
 			},
 		}
 
@@ -224,7 +224,7 @@ func TestRun(t *testing.T) {
 					"noteOrder": float64(1),
 					"tags":      []interface{}{"test", "unimportant"},
 					"ref":       skydb.NewReference("category", "1"),
-					"asset":     skydb.Asset{Name: "asset-name"},
+					"asset":     &skydb.Asset{Name: "asset-name"},
 				},
 			})
 			// GoConvey's bug, ShouldEqual and ShouldResemble doesn't work on time.Time
@@ -244,7 +244,7 @@ func TestRun(t *testing.T) {
 					"noteOrder": float64(1),
 					"tags":      []interface{}{"test", "unimportant"},
 					"ref":       skydb.NewReference("category", "1"),
-					"asset":     skydb.Asset{Name: "asset-name"},
+					"asset":     &skydb.Asset{Name: "asset-name"},
 				},
 			})
 			So(dateout == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
@@ -336,7 +336,7 @@ func TestRun(t *testing.T) {
 					"noteOrder": float64(1),
 					"tags":      []interface{}{"test", "unimportant"},
 					"ref":       skydb.NewReference("category", "1"),
-					"asset":     skydb.Asset{Name: "asset-name"},
+					"asset":     &skydb.Asset{Name: "asset-name"},
 				},
 			})
 			// GoConvey's bug, ShouldEqual and ShouldResemble doesn't work on time.Time
@@ -356,7 +356,7 @@ func TestRun(t *testing.T) {
 					"noteOrder": float64(1),
 					"tags":      []interface{}{"test", "unimportant"},
 					"ref":       skydb.NewReference("category", "1"),
-					"asset":     skydb.Asset{Name: "asset-name"},
+					"asset":     &skydb.Asset{Name: "asset-name"},
 				},
 			})
 			So(dateout == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)

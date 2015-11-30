@@ -30,12 +30,12 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 		switch v := value.(type) {
 		case time.Time:
 			data[key] = (skydbconv.MapTime)(v)
-		case skydb.Asset:
-			data[key] = (skydbconv.MapAsset)(v)
 		case skydb.Reference:
 			data[key] = (skydbconv.MapReference)(v)
 		case *skydb.Location:
 			data[key] = (*skydbconv.MapLocation)(v)
+		case *skydb.Asset:
+			data[key] = (*skydbconv.MapAsset)(v)
 		default:
 			data[key] = value
 		}

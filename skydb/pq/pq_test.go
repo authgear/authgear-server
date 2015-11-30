@@ -1184,7 +1184,7 @@ func TestRecordAssetField(t *testing.T) {
 			err := db.Save(&skydb.Record{
 				ID: skydb.NewRecordID("note", "id"),
 				Data: map[string]interface{}{
-					"image": skydb.Asset{Name: "picture.png"},
+					"image": &skydb.Asset{Name: "picture.png"},
 				},
 				OwnerID: "user_id",
 			})
@@ -1195,7 +1195,7 @@ func TestRecordAssetField(t *testing.T) {
 			err := db.Save(&skydb.Record{
 				ID: skydb.NewRecordID("note", "id"),
 				Data: map[string]interface{}{
-					"image": skydb.Asset{Name: "notexist.png"},
+					"image": &skydb.Asset{Name: "notexist.png"},
 				},
 				OwnerID: "user_id",
 			})
@@ -1206,7 +1206,7 @@ func TestRecordAssetField(t *testing.T) {
 			So(db.Save(&skydb.Record{
 				ID: skydb.NewRecordID("note", "id"),
 				Data: map[string]interface{}{
-					"image": skydb.Asset{Name: "picture.png"},
+					"image": &skydb.Asset{Name: "picture.png"},
 				},
 				OwnerID: "user_id",
 			}), ShouldBeNil)
@@ -1217,7 +1217,7 @@ func TestRecordAssetField(t *testing.T) {
 			So(record, ShouldResemble, skydb.Record{
 				ID: skydb.NewRecordID("note", "id"),
 				Data: map[string]interface{}{
-					"image": skydb.Asset{Name: "picture.png"},
+					"image": &skydb.Asset{Name: "picture.png"},
 				},
 				OwnerID: "user_id",
 			})

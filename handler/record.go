@@ -18,12 +18,11 @@ import (
 )
 
 type serializedRecord struct {
-	Record     *skydb.Record
-	AssetStore asset.Store
+	Record *skydb.Record
 }
 
-func newSerializedRecord(record *skydb.Record, assetStore asset.Store) serializedRecord {
-	return serializedRecord{record, assetStore}
+func newSerializedRecord(record *skydb.Record) serializedRecord {
+	return serializedRecord{record}
 }
 
 func (s serializedRecord) MarshalJSON() ([]byte, error) {
@@ -58,24 +57,8 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 			m[key] = skydbconv.ToMap(skydbconv.MapReference(v))
 		case *skydb.Location:
 			m[key] = skydbconv.ToMap((*skydbconv.MapLocation)(v))
-		case skydb.Asset:
-			// TODO: refactor out this if. We know whether we are
-			// injected an asset store at the start of handler
-			var url string
-			var err error
-			if signer, ok := s.AssetStore.(asset.URLSigner); ok {
-				url, err = signer.SignedURL(v.Name, time.Now().Add(15*time.Minute))
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				url = ""
-			}
-			m[key] = struct {
-				Type string `json:"$type"`
-				Name string `json:"$name"`
-				URL  string `json:"$url,omitempty"`
-			}{"asset", v.Name, url}
+		case *skydb.Asset:
+			m[key] = skydbconv.ToMap((*skydbconv.MapAsset)(v))
 		default:
 			m[key] = v
 		}
@@ -94,7 +77,7 @@ func (s serializedRecord) marshalTransient(transient map[string]interface{}) map
 	for key, value := range transient {
 		switch v := value.(type) {
 		case skydb.Record:
-			m[key] = newSerializedRecord(&v, s.AssetStore)
+			m[key] = newSerializedRecord(&v)
 		default:
 			m[key] = v
 		}
@@ -211,6 +194,19 @@ func (s serializedError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
+func injectSigner(record *skydb.Record, store asset.Store) {
+	for _, value := range record.Data {
+		switch v := value.(type) {
+		case *skydb.Asset:
+			if signer, ok := store.(asset.URLSigner); ok {
+				v.Signer = signer
+			} else {
+				log.Warnf("Failed to acqurie asset URLSigner, please check configuration")
+			}
+		}
+	}
+}
+
 /*
 RecordSaveHandler is dummy implementation on save/modify Records
 curl -X POST -H "Content-Type: application/json" \
@@ -280,6 +276,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 
 	req := recordModifyRequest{
 		Db:            payload.Database,
+		AssetStore:    payload.AssetStore,
 		HookRegistry:  payload.HookRegistry,
 		UserInfoID:    payload.UserInfoID,
 		RecordsToSave: records,
@@ -322,7 +319,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 			} else {
 				record := resp.SavedRecords[currRecordIdx]
 				currRecordIdx++
-				result = newSerializedRecord(record, payload.AssetStore)
+				result = newSerializedRecord(record)
 			}
 		default:
 			panic(fmt.Sprintf("unknown type of incoming item: %T", itemi))
@@ -378,6 +375,7 @@ func withTransaction(txDB skydb.TxDatabase, do func() error) (err error) {
 
 type recordModifyRequest struct {
 	Db           skydb.Database
+	AssetStore   asset.Store
 	HookRegistry *hook.Registry
 	Atomic       bool
 
@@ -410,6 +408,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 		var origRecord skydb.Record
 		copyRecord(&origRecord, &dbRecord)
+		injectSigner(&origRecord, req.AssetStore)
 		originalRecordMap[origRecord.ID] = &origRecord
 
 		mergeRecord(&dbRecord, record)
@@ -463,6 +462,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
 		err = db.Save(&deltaRecord)
+		injectSigner(&deltaRecord, req.AssetStore)
 		*record = deltaRecord
 
 		return
@@ -611,6 +611,7 @@ func (m schemaMerger) Schema() (skydb.RecordSchema, error) {
 
 func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 	schema := skydb.RecordSchema{}
+	log.Debugf("%v", m)
 	for key, value := range m {
 		switch value.(type) {
 		default:
@@ -640,7 +641,7 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 			schema[key] = skydb.FieldType{
 				Type: skydb.TypeBoolean,
 			}
-		case skydb.Asset:
+		case *skydb.Asset:
 			schema[key] = skydb.FieldType{
 				Type: skydb.TypeAsset,
 			}
@@ -728,7 +729,8 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 				)
 			}
 		} else {
-			results[i] = newSerializedRecord(&record, payload.AssetStore)
+			injectSigner(&record, payload.AssetStore)
+			results[i] = newSerializedRecord(&record)
 		}
 	}
 
@@ -835,8 +837,8 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 			}
 			record.Transient[transientKey] = eagerRecord
 		}
-
-		output[i] = newSerializedRecord(&record, payload.AssetStore)
+		injectSigner(&record, payload.AssetStore)
+		output[i] = newSerializedRecord(&record)
 	}
 
 	response.Result = output

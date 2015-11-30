@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
+
+	"github.com/oursky/skygear/asset"
 )
 
 // RecordID identifies an unique record in a Database
@@ -150,6 +154,21 @@ type Asset struct {
 	Name        string
 	ContentType string
 	Size        int64
+	Signer      asset.URLSigner
+}
+
+// SignedURL will try to return a signedURL with the injected Signer.
+func (a *Asset) SignedURL(expiredAt time.Time) string {
+	if a.Signer == nil {
+		log.Warnf("Unable to generate signed url of asset because no singer is injected.")
+		return ""
+	}
+
+	url, err := a.Signer.SignedURL(a.Name, expiredAt)
+	if err != nil {
+		log.Warnf("Unable to generate signed url: %v", err)
+	}
+	return url
 }
 
 type Reference struct {
