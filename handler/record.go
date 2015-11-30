@@ -1079,7 +1079,6 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	records := []skydb.Record{}
 	for results.Scan() {
 		record := results.Record()
-		// inject signer
 		records = append(records, record)
 	}
 
