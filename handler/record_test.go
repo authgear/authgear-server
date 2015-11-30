@@ -1229,6 +1229,58 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			}`)
 		})
 	})
+
+	Convey("Given a referenced record with null reference in DB", t, func() {
+		db := &referencedRecordDatabase{
+			note: skydb.Record{
+				ID:      skydb.NewRecordID("note", "note1"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"category": skydb.NewReference("category", "important"),
+					"city":     nil,
+				},
+			},
+			category: skydb.Record{
+				ID:      skydb.NewRecordID("category", "important"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"title": "This is important.",
+				},
+			},
+			city: skydb.Record{
+				ID:      skydb.NewRecordID("city", "beautiful"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"name": "This is beautiful.",
+				},
+			},
+		}
+
+		injectDBFunc := func(payload *router.Payload) {
+			payload.Database = db
+		}
+
+		Convey("query record with eager load", func() {
+			resp := handlertest.NewSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+				"record_type": "note",
+				"include": {"city": {"$type": "keypath", "$val": "city"}}
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note1",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID",
+					"category": {"$id":"category/important","$type":"ref"},
+					"city": null,
+					"_transient": {
+						"city": null
+					}
+				}]
+			}`)
+		})
+	})
 }
 
 func TestRecordQueryWithCount(t *testing.T) {

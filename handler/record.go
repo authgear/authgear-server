@@ -765,6 +765,31 @@ func queryResultInfo(db skydb.Database, query *skydb.Query, results *skydb.Rows)
 	return resultInfo, nil
 }
 
+func loadEagerRecord(db skydb.Database, record *skydb.Record, referenceKeyPath string, transientKey string) (*skydb.Record, error) {
+	if record.Transient == nil {
+		record.Transient = map[string]interface{}{}
+	}
+
+	valueAtKeyPath, ok := record.Data[referenceKeyPath]
+	if !ok || valueAtKeyPath == nil {
+		record.Transient[transientKey] = nil
+		return nil, nil
+	}
+
+	ref, ok := valueAtKeyPath.(skydb.Reference)
+	if !ok {
+		return nil, fmt.Errorf(`value at keypath "%s" is not a reference`, referenceKeyPath)
+	}
+
+	eagerRecord := skydb.Record{}
+	if err := db.Get(ref.ID, &eagerRecord); err != nil {
+		return nil, err
+	}
+
+	record.Transient[transientKey] = eagerRecord
+	return &eagerRecord, nil
+}
+
 /*
 RecordQueryHandler is dummy implementation on fetching Records
 curl -X POST -H "Content-Type: application/json" \
@@ -820,22 +845,10 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 			}
 
 			keyPath := transientExpression.Value.(string)
-
-			ref, ok := record.Data[keyPath].(skydb.Reference)
-			if !ok {
-				response.Err = skyerr.NewRequestInvalidErr(fmt.Errorf(`type at keypath "%s" is not a reference`, keyPath))
-				continue
+			_, err = loadEagerRecord(db, &record, keyPath, transientKey)
+			if err != nil {
+				response.Err = skyerr.NewRequestInvalidErr(nil)
 			}
-
-			eagerRecord := skydb.Record{}
-			if err := db.Get(ref.ID, &eagerRecord); err != nil {
-				continue
-			}
-
-			if record.Transient == nil {
-				record.Transient = map[string]interface{}{}
-			}
-			record.Transient[transientKey] = eagerRecord
 		}
 		injectSigner(&record, payload.AssetStore)
 		output[i] = newSerializedRecord(&record)
