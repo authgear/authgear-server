@@ -45,6 +45,7 @@ const (
 	Like
 	ILike
 	In
+	Functional
 )
 
 // IsCompound checks whether the Operator is a compound operator, meaning the
@@ -98,6 +99,9 @@ func (p Predicate) Validate() error {
 	if p.Operator.IsBinary() && len(p.Children) != 2 {
 		return fmt.Errorf("Unexpected number of operands. Expected: 2. Got: %d", len(p.Children))
 	}
+	if p.Operator == Functional && len(p.Children) != 1 {
+		return fmt.Errorf("Unexpected number of operands. Expected: 1. Got: %d", len(p.Children))
+	}
 
 	if p.Operator.IsCompound() {
 		for _, child := range p.Children {
@@ -134,6 +138,21 @@ func (p Predicate) Validate() error {
 		} else {
 			return errors.New(`unexpected type of operands for "IN" comparison`)
 		}
+	case Functional:
+		expr := p.Children[0].(Expression)
+		if expr.Type != Function {
+			return errors.New(`only functional expression is supported in functional predicate`)
+		}
+
+		switch f := expr.Value.(type) {
+		case *UserRelationFunc:
+			if f.RelationName != "_friend" && f.RelationName != "_follow" {
+				return errors.New(`non implemented relation for user relation predicate`)
+			}
+		default:
+			return errors.New(`unsupported function for functional predicate`)
+		}
+
 	}
 	return nil
 }
@@ -207,5 +226,19 @@ type CountFunc struct {
 
 // Args implements the Func interface
 func (f *CountFunc) Args() []interface{} {
+	return []interface{}{}
+}
+
+// UserRelationFunc represents a function that is used to evaulate
+// whether a record satisfy certain user-based relation
+type UserRelationFunc struct {
+	KeyPath           string
+	RelationName      string
+	RelationDirection string
+	User              string
+}
+
+// Args implements the Func interface
+func (f *UserRelationFunc) Args() []interface{} {
 	return []interface{}{}
 }

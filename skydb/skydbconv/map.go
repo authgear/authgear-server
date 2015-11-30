@@ -225,6 +225,35 @@ func (p MapKeyPath) ToMap(m map[string]interface{}) {
 	m["$val"] = string(p)
 }
 
+// MapRelation is a type specifying a relation between two users, but do not conform to any actual struct in skydb.
+type MapRelation struct {
+	Name      string
+	Direction string
+}
+
+// FromMap implements FromMapper
+func (rel *MapRelation) FromMap(m map[string]interface{}) error {
+	name, _ := m["$name"].(string)
+	if name == "" {
+		return errors.New("empty relation name")
+	}
+
+	direction, _ := m["$direction"].(string)
+	if direction == "" {
+		return errors.New("empty direction")
+	}
+
+	*rel = MapRelation{name, direction}
+	return nil
+}
+
+// ToMap implements ToMapper
+func (rel *MapRelation) ToMap(m map[string]interface{}) {
+	m["$type"] = "relation"
+	m["$name"] = rel.Name
+	m["$direction"] = rel.Direction
+}
+
 func walkMap(m map[string]interface{}) map[string]interface{} {
 	for key, value := range m {
 		m[key] = ParseInterface(value)
@@ -292,6 +321,10 @@ func ParseInterface(i interface{}) interface{} {
 			return &loc
 		case "seq":
 			return skydb.Sequence{}
+		case "relation":
+			var rel MapRelation
+			mapFromOrPanic((*MapRelation)(&rel), value)
+			return &rel
 		default:
 			panic(fmt.Errorf("unknown $type = %s", kind))
 		}
