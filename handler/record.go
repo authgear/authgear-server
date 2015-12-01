@@ -145,7 +145,7 @@ func (r *transportRecord) FromMap(m map[string]interface{}) error {
 
 func purgeReservedKey(m map[string]interface{}) {
 	for key := range m {
-		if key[0] == '_' {
+		if key == "" || key[0] == '_' {
 			delete(m, key)
 		}
 	}

@@ -204,6 +204,23 @@ func TestRecordSaveHandler(t *testing.T) {
 				}]
 			}`)
 		})
+
+		Convey("REGRESSION #333: Save record with empty key be ignored as start with _", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "type/id",
+					"": ""
+				}]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_type": "record",
+					"_id": "type/id",
+					"_access": null
+				}]
+			}`)
+		})
 	})
 }
 
