@@ -78,8 +78,9 @@ func main() {
 		AppName: config.App.Name,
 	}
 
-	fileTokenStorePreprocessor := tokenStorePreprocessor{
-		Store: authtoken.FileStore(config.TokenStore.Path).Init(),
+	tokenStore := authtoken.InitTokenStore(config.TokenStore.ImplName, config.TokenStore.Path)
+	tokenStorePreprocessor := tokenStorePreprocessor{
+		Store: tokenStore,
 	}
 
 	authenticator := userAuthenticator{
@@ -99,7 +100,7 @@ func main() {
 		assetStorePreprocessor.Preprocess,
 	}
 	assetUploadPreprocessors := []router.Processor{
-		fileTokenStorePreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
@@ -120,19 +121,19 @@ func main() {
 	authPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
-		fileTokenStorePreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
 		providerRegistryPreprocessor.Preprocess,
 	}
 	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
 	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
 	r.Map("auth:logout", handler.LogoutHandler,
-		fileTokenStorePreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		providerRegistryPreprocessor.Preprocess,
 	)
 	r.Map("auth:password", handler.PasswordHandler,
 		fileSystemConnPreprocessor.Preprocess,
-		fileTokenStorePreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 	)
 
@@ -142,7 +143,7 @@ func main() {
 	}
 
 	recordReadPreprocessors := []router.Processor{
-		fileTokenStorePreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
@@ -151,7 +152,7 @@ func main() {
 	}
 	recordWritePreprocessors := []router.Processor{
 		hookRegistryPreprocessor.Preprocess,
-		fileTokenStorePreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
@@ -166,7 +167,7 @@ func main() {
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,
-		fileTokenStorePreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		injectUserIfPresent,
@@ -184,14 +185,14 @@ func main() {
 	r.Map("relation:remove", handler.RelationRemoveHandler, recordReadPreprocessors...)
 
 	userReadPreprocessors := []router.Processor{
-		fileTokenStorePreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 	}
 	userWritePreprocessors := []router.Processor{
-		fileTokenStorePreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		injectUserIfPresent,
@@ -201,7 +202,7 @@ func main() {
 	r.Map("user:query", handler.UserQueryHandler, userReadPreprocessors...)
 	r.Map("user:update", handler.UserUpdateHandler, userWritePreprocessors...)
 	r.Map("user:link", handler.UserLinkHandler,
-		fileTokenStorePreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		fileSystemConnPreprocessor.Preprocess,
 		providerRegistryPreprocessor.Preprocess,
