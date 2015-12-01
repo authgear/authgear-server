@@ -150,7 +150,7 @@ func main() {
 		AppName: config.App.Name,
 	}
 
-	tokenStore := initTokenStore(config)
+	tokenStore := authtoken.InitTokenStore(config.TokenStore.ImplName, config.TokenStore.Path)
 	tokenStorePreprocessor := tokenStorePreprocessor{
 		Store: tokenStore,
 	}
@@ -357,19 +357,6 @@ func initAssetStore(config Configuration) asset.Store {
 			panic("failed to initialize asset.S3Store: " + err.Error())
 		}
 		store = s3Store
-	}
-	return store
-}
-
-func initTokenStore(config Configuration) authtoken.Store {
-	var store authtoken.Store
-	switch config.TokenStore.ImplName {
-	default:
-		panic("unrecgonized token store implementation: " + config.TokenStore.ImplName)
-	case "fs":
-		store = authtoken.FileStore(config.TokenStore.Path).Init()
-	case "redis":
-		store = authtoken.NewRedisStore(config.TokenStore.Path)
 	}
 	return store
 }

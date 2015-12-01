@@ -313,3 +313,17 @@ func (r *RedisStore) Delete(accessToken string) error {
 
 	return nil
 }
+
+// InitTokenStore accept a implementation and path string. Return a Store.
+func InitTokenStore(impl string, path string) Store {
+	var store Store
+	switch impl {
+	default:
+		panic("unrecgonized token store implementation: " + impl)
+	case "fs":
+		store = FileStore(path).Init()
+	case "redis":
+		store = NewRedisStore(path)
+	}
+	return store
+}
