@@ -6,9 +6,9 @@
 # See also: https://docs.docker.com/compose/extends/
 # (requires docker-compose 0.5 or above)
 
-# The volume container for database
-# This container provides persistent storage for the `db` container. To
-# remove this storage, run `docker-compose rm db_data`.
+# The `*_data` are data volume containers used to keep persistent data.
+# It is save to delete and recreate non-data-volume containers.
+
 db_data:
   image: mdillon/postgis:9.4
   command: /bin/true
@@ -21,9 +21,15 @@ db:
   ports:
   - "5432:5432"
 
-# The volume container for skygear
-# This container provides persistent storage for the `app` container. To
-# remove this storage, run `docker-compose rm app_data`.
+redis_data:
+  image: redis:3.0
+  command: /bin/true
+
+redis:
+  image: redis:3.0
+  volumes_from:
+  - redis_data
+
 app_data:
   image: oursky/skygear:latest
   command: /bin/true
@@ -40,11 +46,13 @@ app:
   - app_data
   links:
   - db
+  - redis
   command: skygear development.ini
   environment:
     # `db` in the following string should match the name of the database
     # container above.
     DATABASE_URL: postgresql://postgres:@db/postgres?sslmode=disable
+    REDISTEST: redis://redis:6379
     DB_IMPL_NAME: pq
     API_KEY: changeme
     PGHOST: db
