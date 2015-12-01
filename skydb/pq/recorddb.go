@@ -654,20 +654,7 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 	return
 }
 
-func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
-	if query.Type == "" {
-		return nil, errors.New("got empty query type")
-	}
-
-	typemap, err := db.remoteColumnTypes(query.Type)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(typemap) == 0 { // record type has not been created
-		return skydb.EmptyRows, nil
-	}
-
+func updateTypemapForQuery(query *skydb.Query, typemap skydb.RecordSchema) (skydb.RecordSchema, error) {
 	if query.DesiredKeys != nil {
 		newtypemap, err := whitelistedRecordSchema(typemap, query.DesiredKeys)
 		if err != nil {
@@ -698,6 +685,27 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 				},
 			},
 		}
+	}
+	return typemap, nil
+}
+
+func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
+	if query.Type == "" {
+		return nil, errors.New("got empty query type")
+	}
+
+	typemap, err := db.remoteColumnTypes(query.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(typemap) == 0 { // record type has not been created
+		return skydb.EmptyRows, nil
+	}
+
+	typemap, err = updateTypemapForQuery(query, typemap)
+	if err != nil {
+		return nil, err
 	}
 
 	q := db.selectQuery(query.Type, typemap)
