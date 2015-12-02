@@ -397,6 +397,10 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 	return results
 }
 
+func (c *conn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
+	panic("not implemented")
+}
+
 func (c *conn) GetAsset(name string, asset *skydb.Asset) error {
 	selectSQL, args, err := psql.Select("content_type", "size").
 		From(c.tableName("_asset")).

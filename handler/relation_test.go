@@ -32,6 +32,10 @@ func (conn *testRelationConn) RemoveRelation(user string, name string, targetUse
 	return nil
 }
 
+func (conn *testRelationConn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
+	return 0, nil
+}
+
 func TestRelationHandler(t *testing.T) {
 	Convey("RelationAddHandler", t, func() {
 		conn := testRelationConn{}

@@ -191,6 +191,17 @@ func (_mr *_MockConnRecorder) QueryRelation(arg0, arg1, arg2 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "QueryRelation", arg0, arg1, arg2)
 }
 
+func (_m *MockConn) QueryRelationCount(_param0 string, _param1 string, _param2 string) (uint64, error) {
+	ret := _m.ctrl.Call(_m, "QueryRelationCount", _param0, _param1, _param2)
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockConnRecorder) QueryRelationCount(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "QueryRelationCount", arg0, arg1, arg2)
+}
+
 func (_m *MockConn) QueryUser(_param0 []string) ([]skydb.UserInfo, error) {
 	ret := _m.ctrl.Call(_m, "QueryUser", _param0)
 	ret0, _ := ret[0].([]skydb.UserInfo)

@@ -104,6 +104,10 @@ func (conn *fileConn) QueryRelation(user string, name string, direction string) 
 	panic("not implemented")
 }
 
+func (conn *fileConn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
+	panic("not implemented")
+}
+
 func (conn *fileConn) AddRelation(user string, name string, targetUser string) error {
 	panic("not implemented")
 }
