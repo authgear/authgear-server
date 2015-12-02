@@ -398,7 +398,28 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 }
 
 func (c *conn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
-	panic("not implemented")
+	log.Debugf("Query Relation Count: %v, %v, %v", user, name, direction)
+	tName := "_" + name
+	query := psql.Select("COUNT(*)").From(c.tableName(tName))
+	if direction == "outward" {
+		query = query.Where("left_id = ?", user)
+	} else if direction == "inward" {
+		query = query.Where("right_id = ?", user)
+	} else {
+		panic("Mutual query not implemented yet.")
+	}
+	selectSQL, args, err := query.ToSql()
+	var count uint64
+	err = c.Db.Get(&count, selectSQL, args...)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"sql":  selectSQL,
+			"args": args,
+			"err":  err,
+		}).Debugln("Failed to query relation count")
+		panic(err)
+	}
+	return count, err
 }
 
 func (c *conn) GetAsset(name string, asset *skydb.Asset) error {

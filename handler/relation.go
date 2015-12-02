@@ -47,6 +47,33 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 //     "direction": "outward"
 // }
 // EOF
+//
+// {
+//     "request_id": "REQUEST_ID",
+//     "result": [
+//         {
+//             "id": "1001",
+//             "type": "user",
+//             "data": {
+//                 "_id": "1001",
+//                 "username": "user1001",
+//                 "email": "user1001@skygear.io"
+//             }
+//         },
+//         {
+//             "id": "1002",
+//             "type": "error",
+//             "data": {
+//                 "_id": "1002",
+//                 "username": "user1002",
+//                 "email": "user1001@skygear.io"
+//             }
+//         }
+//     ],
+//     "info": {
+//         "count": 2
+//     }
+// }
 func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 	log.Debug("RelationQueryHandler")
 	payload := relationPayload{}
@@ -65,6 +92,19 @@ func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 		}{userinfo.ID, "user", userinfo})
 	}
 	response.Result = resultList
+	count, countErr := rpayload.DBConn.QueryRelationCount(
+		rpayload.UserInfoID, payload.Name, payload.Direction)
+	if countErr != nil {
+		log.WithFields(log.Fields{
+			"err": countErr,
+		}).Warnf("Relation Count Query fails")
+		count = 0
+	}
+	response.Info = struct {
+		Count uint64 `json:"count"`
+	}{
+		count,
+	}
 }
 
 // RelationAddHandler add current user relation

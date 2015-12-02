@@ -11,6 +11,7 @@ import (
 )
 
 type testRelationConn struct {
+	UserInfo  []skydb.UserInfo
 	addedID   string
 	removeID  string
 	addErr    error
@@ -19,7 +20,11 @@ type testRelationConn struct {
 }
 
 func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
-	return []skydb.UserInfo{}
+	if conn.UserInfo == nil {
+		return []skydb.UserInfo{}
+	} else {
+		return conn.UserInfo
+	}
 }
 
 func (conn *testRelationConn) AddRelation(user string, name string, targetUser string) error {
@@ -33,7 +38,12 @@ func (conn *testRelationConn) RemoveRelation(user string, name string, targetUse
 }
 
 func (conn *testRelationConn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
-	return 0, nil
+	if conn.UserInfo == nil {
+		return 0, nil
+	} else {
+		count := uint64(len(conn.UserInfo))
+		return count, nil
+	}
 }
 
 func TestRelationHandler(t *testing.T) {
@@ -75,7 +85,40 @@ func TestRelationHandler(t *testing.T) {
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-    "result": []
+    "result": [],
+    "info": {
+        "count": 0
+    }
+}`)
+		})
+
+		Convey("query inward relation with count", func() {
+			users := []skydb.UserInfo{}
+			users = append(users, skydb.UserInfo{
+				ID:       "101",
+				Username: "user101",
+				Email:    "user101@skygear.io",
+			})
+			conn.UserInfo = users
+			resp := r.POST(`{
+    "name": "follow",
+    "direction": "outward"
+}`)
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+    "result": [{
+        "id": "101",
+        "type": "user",
+        "data":{
+            "_id": "101",
+            "email": "user101@skygear.io",
+            "username": "user101"
+        }
+    }],
+    "info": {
+        "count": 1
+    }
 }`)
 		})
 
