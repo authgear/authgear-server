@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/lib/pq"
@@ -219,60 +218,6 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		typemap[primaryColumn] = s
 	}
 	return typemap, nil
-}
-
-func updateTypemapForQuery(query *skydb.Query, typemap skydb.RecordSchema) (skydb.RecordSchema, error) {
-	if query.DesiredKeys != nil {
-		newtypemap, err := whitelistedRecordSchema(typemap, query.DesiredKeys)
-		if err != nil {
-			return nil, err
-		}
-		typemap = newtypemap
-	}
-
-	for key, value := range query.ComputedKeys {
-		if value.Type == skydb.KeyPath {
-			// recorddb does not support querying with computed keys
-			continue
-		}
-
-		typemap["_transient_"+key] = skydb.FieldType{
-			Type:       skydb.TypeNumber,
-			Expression: &value,
-		}
-	}
-
-	if query.GetCount {
-		typemap["_record_count"] = skydb.FieldType{
-			Type: skydb.TypeNumber,
-			Expression: &skydb.Expression{
-				Type: skydb.Function,
-				Value: &skydb.CountFunc{
-					OverallRecords: true,
-				},
-			},
-		}
-	}
-	return typemap, nil
-}
-
-func whitelistedRecordSchema(schema skydb.RecordSchema, whitelistKeys []string) (skydb.RecordSchema, error) {
-	wlSchema := skydb.RecordSchema{}
-
-	for _, key := range whitelistKeys {
-		columnType, ok := schema[key]
-		if !ok {
-			return nil, fmt.Errorf(`unexpected key "%s"`, key)
-		}
-		wlSchema[key] = columnType
-	}
-	for key, value := range schema {
-		if strings.HasPrefix(key, "_") {
-			wlSchema[key] = value
-		}
-	}
-
-	return wlSchema, nil
 }
 
 func isConflict(from, to skydb.FieldType) bool {
