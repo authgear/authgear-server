@@ -1097,7 +1097,7 @@ func (s *urlOnlyAssetStore) SignedURL(name string, expiredAt time.Time) (string,
 }
 
 func TestRecordAssetSerialization(t *testing.T) {
-	Convey("RecordAssetSerialization", t, func() {
+	Convey("RecordAssetSerialization for fetch", t, func() {
 		db := skydbtest.NewMapDB()
 		db.Save(&skydb.Record{
 			ID: skydb.NewRecordID("record", "id"),
@@ -1116,6 +1116,43 @@ func TestRecordAssetSerialization(t *testing.T) {
 		Convey("serialize with $url", func() {
 			resp := r.POST(`{
 				"ids": ["record/id"]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "record/id",
+					"_type": "record",
+					"_access": null,
+					"asset": {
+						"$type": "asset",
+						"$name": "asset-name",
+						"$url": "http://skygear.test/asset/asset-name?expiredAt=1997-07-01T00:00:00"
+					}
+				}]
+			}`)
+		})
+	})
+
+	Convey("RecordAssetSerialization for query", t, func() {
+		record0 := skydb.Record{
+			ID: skydb.NewRecordID("record", "id"),
+			Data: map[string]interface{}{
+				"asset": &skydb.Asset{Name: "asset-name"},
+			},
+		}
+
+		db := &queryResultsDatabase{}
+		db.records = []skydb.Record{record0}
+
+		assetStore := &urlOnlyAssetStore{}
+
+		r := handlertest.NewSingleRouteRouter(RecordQueryHandler, func(p *router.Payload) {
+			p.Database = db
+			p.AssetStore = assetStore
+		})
+
+		Convey("serialize with $url", func() {
+			resp := r.POST(`{
+				"record_type": "record"
 			}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
