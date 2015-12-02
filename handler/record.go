@@ -809,7 +809,10 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 	db := payload.Database
 
 	query := skydb.Query{}
-	if err := queryFromRaw(payload.Data, &query); err != nil {
+	parser := &QueryParser{
+		UserID: payload.UserInfoID,
+	}
+	if err := parser.queryFromRaw(payload.Data, &query); err != nil {
 		response.Err = err
 		return
 	}

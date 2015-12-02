@@ -384,7 +384,10 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 		sub.DeviceID = rawSub.DeviceID
 		sub.NotificationInfo = rawSub.NotificationInfo
 		sub.DeviceID = payload.DeviceID
-		if err := queryFromRaw(rawSub.Query, &sub.Query); err != nil {
+		parser := &QueryParser{
+			UserID: rpayload.UserInfoID,
+		}
+		if err := parser.queryFromRaw(rawSub.Query, &sub.Query); err != nil {
 			response.Err = skyerr.NewRequestInvalidErr(fmt.Errorf(
 				"failed to parse subscriptions: %v", err))
 			return

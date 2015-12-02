@@ -11,7 +11,12 @@ import (
 	"github.com/oursky/skygear/skyerr"
 )
 
-func sortFromRaw(rawSort []interface{}, sort *skydb.Sort) {
+// QueryParser is a context for parsing raw query to skydb.Query
+type QueryParser struct {
+	UserID string
+}
+
+func (parser *QueryParser) sortFromRaw(rawSort []interface{}, sort *skydb.Sort) {
 	var (
 		keyPath   string
 		funcExpr  skydb.Func
@@ -24,7 +29,7 @@ func sortFromRaw(rawSort []interface{}, sort *skydb.Sort) {
 		}
 	case []interface{}:
 		var err error
-		funcExpr, err = parseFunc(v)
+		funcExpr, err = parser.parseFunc(v)
 		if err != nil {
 			panic(err)
 		}
@@ -50,7 +55,7 @@ func sortFromRaw(rawSort []interface{}, sort *skydb.Sort) {
 	sort.Order = sortOrder
 }
 
-func sortsFromRaw(rawSorts []interface{}) []skydb.Sort {
+func (parser *QueryParser) sortsFromRaw(rawSorts []interface{}) []skydb.Sort {
 	length := len(rawSorts)
 	sorts := make([]skydb.Sort, length, length)
 
@@ -59,13 +64,13 @@ func sortsFromRaw(rawSorts []interface{}) []skydb.Sort {
 		if len(sortSlice) != 2 {
 			panic(fmt.Errorf("got len(sort descriptor) = %v, want 2", len(sortSlice)))
 		}
-		sortFromRaw(sortSlice, &sorts[i])
+		parser.sortFromRaw(sortSlice, &sorts[i])
 	}
 
 	return sorts
 }
 
-func predicateOperatorFromString(operatorString string) skydb.Operator {
+func (parser *QueryParser) predicateOperatorFromString(operatorString string) skydb.Operator {
 	switch operatorString {
 	case "and":
 		return skydb.And
@@ -91,12 +96,14 @@ func predicateOperatorFromString(operatorString string) skydb.Operator {
 		return skydb.ILike
 	case "in":
 		return skydb.In
+	case "func":
+		return skydb.Functional
 	default:
 		panic(fmt.Errorf("unrecognized operator = %s", operatorString))
 	}
 }
 
-func predicateFromRaw(rawPredicate []interface{}) skydb.Predicate {
+func (parser *QueryParser) predicateFromRaw(rawPredicate []interface{}) skydb.Predicate {
 	if len(rawPredicate) < 2 {
 		panic(fmt.Errorf("got len(predicate) = %v, want at least 2", len(rawPredicate)))
 	}
@@ -106,37 +113,39 @@ func predicateFromRaw(rawPredicate []interface{}) skydb.Predicate {
 		panic(fmt.Errorf("got predicate[0]'s type = %T, want string", rawPredicate[0]))
 	}
 
-	operator := predicateOperatorFromString(rawOperator)
-	children := make([]interface{}, len(rawPredicate)-1)
-	for i := 1; i < len(rawPredicate); i++ {
-		if operator.IsCompound() {
+	predicate := skydb.Predicate{
+		Operator: parser.predicateOperatorFromString(rawOperator),
+		Children: make([]interface{}, 0),
+	}
+	if predicate.Operator == skydb.Functional {
+		predicate.Children = append(predicate.Children, parser.parseExpression(rawPredicate))
+	} else if predicate.Operator.IsCompound() {
+		for i := 1; i < len(rawPredicate); i++ {
 			subRawPredicate, ok := rawPredicate[i].([]interface{})
 			if !ok {
 				panic(fmt.Errorf("got non-dict in subpredicate at %v", i-1))
 			}
-			children[i-1] = predicateFromRaw(subRawPredicate)
-		} else {
-			expr := parseExpression(rawPredicate[i])
+			predicate.Children = append(predicate.Children, parser.predicateFromRaw(subRawPredicate))
+		}
+	} else {
+		for i := 1; i < len(rawPredicate); i++ {
+			expr := parser.parseExpression(rawPredicate[i])
 			if expr.Type == skydb.KeyPath && strings.Contains(expr.Value.(string), ".") {
 
 				panic(fmt.Errorf("Key path `%s` is not supported.", expr.Value))
 			}
-			children[i-1] = expr
+			predicate.Children = append(predicate.Children, expr)
 		}
 	}
 
-	if operator.IsBinary() && len(children) != 2 {
-		panic(fmt.Errorf("Expected number of expressions be 2, got %v", len(children)))
+	if predicate.Operator.IsBinary() && len(predicate.Children) != 2 {
+		panic(fmt.Errorf("Expected number of expressions be 2, got %v", len(predicate.Children)))
 	}
 
-	predicate := skydb.Predicate{
-		Operator: operator,
-		Children: children,
-	}
 	return predicate
 }
 
-func parseExpression(i interface{}) skydb.Expression {
+func (parser *QueryParser) parseExpression(i interface{}) skydb.Expression {
 	switch v := i.(type) {
 	case map[string]interface{}:
 		var keyPath string
@@ -148,7 +157,7 @@ func parseExpression(i interface{}) skydb.Expression {
 		}
 	case []interface{}:
 		if len(v) > 0 {
-			if f, err := parseFunc(v); err == nil {
+			if f, err := parser.parseFunc(v); err == nil {
 				return skydb.Expression{
 					Type:  skydb.Function,
 					Value: f,
@@ -163,7 +172,7 @@ func parseExpression(i interface{}) skydb.Expression {
 	}
 }
 
-func parseFunc(s []interface{}) (f skydb.Func, err error) {
+func (parser *QueryParser) parseFunc(s []interface{}) (f skydb.Func, err error) {
 	keyword, _ := s[0].(string)
 	if keyword != "func" {
 		return nil, errors.New("not a function")
@@ -172,7 +181,9 @@ func parseFunc(s []interface{}) (f skydb.Func, err error) {
 	funcName, _ := s[1].(string)
 	switch funcName {
 	case "distance":
-		f, err = parseDistanceFunc(s[2:])
+		f, err = parser.parseDistanceFunc(s[2:])
+	case "userRelation":
+		f, err = parser.parseUserRelationFunc(s[2:])
 	case "":
 		return nil, errors.New("empty function name")
 	default:
@@ -182,7 +193,7 @@ func parseFunc(s []interface{}) (f skydb.Func, err error) {
 	return
 }
 
-func parseDistanceFunc(s []interface{}) (*skydb.DistanceFunc, error) {
+func (parser *QueryParser) parseDistanceFunc(s []interface{}) (*skydb.DistanceFunc, error) {
 	if len(s) != 2 {
 		return nil, fmt.Errorf("want 2 arguments for distance func, got %d", len(s))
 	}
@@ -203,7 +214,31 @@ func parseDistanceFunc(s []interface{}) (*skydb.DistanceFunc, error) {
 	}, nil
 }
 
-func queryFromRaw(rawQuery map[string]interface{}, query *skydb.Query) (err skyerr.Error) {
+func (parser *QueryParser) parseUserRelationFunc(s []interface{}) (*skydb.UserRelationFunc, error) {
+	if len(s) != 2 {
+		return nil, fmt.Errorf("want 2 arguments for user relation func, got %d", len(s))
+	}
+
+	var field string
+	if err := skydbconv.MapFrom(s[0], (*skydbconv.MapKeyPath)(&field)); err != nil {
+		return nil, fmt.Errorf("invalid key path: %v", err)
+	}
+
+	var relation skydbconv.MapRelation
+	if err := skydbconv.MapFrom(s[1], (*skydbconv.MapRelation)(&relation)); err != nil {
+		return nil, fmt.Errorf("invalid relation: %v", err)
+	}
+
+	return &skydb.UserRelationFunc{
+		KeyPath:           field,
+		RelationName:      relation.Name,
+		RelationDirection: relation.Direction,
+		User:              parser.UserID,
+	}, nil
+
+}
+
+func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *skydb.Query) (err skyerr.Error) {
 	defer func() {
 		// use panic to escape from inner error
 		if r := recover(); r != nil {
@@ -223,7 +258,7 @@ func queryFromRaw(rawQuery map[string]interface{}, query *skydb.Query) (err skye
 	query.Type = recordType
 
 	mustDoSlice(rawQuery, "predicate", func(rawPredicate []interface{}) error {
-		predicate := predicateFromRaw(rawPredicate)
+		predicate := parser.predicateFromRaw(rawPredicate)
 		if err := predicate.Validate(); err != nil {
 			return skyerr.NewRequestInvalidErr(fmt.Errorf("invalid predicate: %v", err))
 		}
@@ -232,14 +267,14 @@ func queryFromRaw(rawQuery map[string]interface{}, query *skydb.Query) (err skye
 	})
 
 	mustDoSlice(rawQuery, "sort", func(rawSorts []interface{}) error {
-		query.Sorts = sortsFromRaw(rawSorts)
+		query.Sorts = parser.sortsFromRaw(rawSorts)
 		return nil
 	})
 
 	if transientIncludes, ok := rawQuery["include"].(map[string]interface{}); ok {
 		query.ComputedKeys = map[string]skydb.Expression{}
 		for key, value := range transientIncludes {
-			query.ComputedKeys[key] = parseExpression(value)
+			query.ComputedKeys[key] = parser.parseExpression(value)
 		}
 	}
 
