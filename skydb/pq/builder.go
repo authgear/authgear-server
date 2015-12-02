@@ -399,25 +399,6 @@ func sortOrderOrderBySQL(order skydb.SortOrder) (string, error) {
 	}
 }
 
-func isConflict(from, to skydb.FieldType) bool {
-	if from.Type == to.Type {
-		return false
-	}
-
-	// currently integer can only be created by sequence,
-	// so there are no conflicts
-	if from.Type == skydb.TypeInteger && to.Type == skydb.TypeSequence {
-		return false
-	}
-
-	// for manual assignment of sequence
-	if from.Type == skydb.TypeInteger && to.Type == skydb.TypeNumber {
-		return false
-	}
-
-	return true
-}
-
 func pqDataType(dataType skydb.DataType) string {
 	switch dataType {
 	default:
