@@ -79,6 +79,7 @@ type Conn interface {
 	SaveAsset(asset *Asset) error
 
 	QueryRelation(user string, name string, direction string) []UserInfo
+	QueryRelationCount(user string, name string, direction string) (uint64, error)
 	AddRelation(user string, name string, targetUser string) error
 	RemoveRelation(user string, name string, targetUser string) error
 

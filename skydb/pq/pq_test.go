@@ -307,27 +307,27 @@ func TestRelation(t *testing.T) {
 		addUser(t, c, "friendid")
 
 		Convey("add relation", func() {
-			err := c.AddRelation("userid", "friend", "friendid")
+			err := c.AddRelation("userid", "_friend", "friendid")
 			So(err, ShouldBeNil)
 		})
 
 		Convey("add a user not exist relation", func() {
-			err := c.AddRelation("userid", "friend", "non-exist")
+			err := c.AddRelation("userid", "_friend", "non-exist")
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "userID not exist")
 		})
 
 		Convey("remove non-exist relation", func() {
-			err := c.RemoveRelation("userid", "friend", "friendid")
+			err := c.RemoveRelation("userid", "_friend", "friendid")
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual,
-				"friend relation not exist {userid} => {friendid}")
+				"_friend relation not exist {userid} => {friendid}")
 		})
 
 		Convey("remove relation", func() {
-			err := c.AddRelation("userid", "friend", "friendid")
+			err := c.AddRelation("userid", "_friend", "friendid")
 			So(err, ShouldBeNil)
-			err = c.RemoveRelation("userid", "friend", "friendid")
+			err = c.RemoveRelation("userid", "_friend", "friendid")
 			So(err, ShouldBeNil)
 		})
 	})
@@ -340,22 +340,22 @@ func TestRelation(t *testing.T) {
 		addUser(t, c, "followee")
 		addUser(t, c, "friend1")
 		addUser(t, c, "friend2")
-		c.AddRelation("friend1", "friend", "friend2")
-		c.AddRelation("friend2", "friend", "friend1")
-		c.AddRelation("follower", "follow", "followee")
+		c.AddRelation("friend1", "_friend", "friend2")
+		c.AddRelation("friend2", "_friend", "friend1")
+		c.AddRelation("follower", "_follow", "followee")
 
 		Convey("query friend relation", func() {
-			users := c.QueryRelation("friend1", "friend", "")
+			users := c.QueryRelation("friend1", "_friend", "")
 			So(len(users), ShouldEqual, 1)
 		})
 
 		Convey("query outward follow relation", func() {
-			users := c.QueryRelation("follower", "follow", "outward")
+			users := c.QueryRelation("follower", "_follow", "outward")
 			So(len(users), ShouldEqual, 1)
 		})
 
 		Convey("query inward follow relation", func() {
-			users := c.QueryRelation("followee", "follow", "inward")
+			users := c.QueryRelation("followee", "_follow", "inward")
 			So(len(users), ShouldEqual, 1)
 		})
 	})

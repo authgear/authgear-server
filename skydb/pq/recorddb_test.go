@@ -17,14 +17,14 @@ func TestUserRelationQuery(t *testing.T) {
 		addUser(t, c, "user3") // mutual follower of user1
 		addUser(t, c, "user4") // friend of user1
 		addUser(t, c, "user5") // friend of user4 and followed by user4
-		c.AddRelation("user1", "follow", "user2")
-		c.AddRelation("user1", "follow", "user3")
-		c.AddRelation("user3", "follow", "user1")
-		c.AddRelation("user1", "friend", "user4")
-		c.AddRelation("user4", "friend", "user1")
-		c.AddRelation("user4", "friend", "user5")
-		c.AddRelation("user5", "friend", "user4")
-		c.AddRelation("user4", "follow", "user5")
+		c.AddRelation("user1", "_follow", "user2")
+		c.AddRelation("user1", "_follow", "user3")
+		c.AddRelation("user3", "_follow", "user1")
+		c.AddRelation("user1", "_friend", "user4")
+		c.AddRelation("user4", "_friend", "user1")
+		c.AddRelation("user4", "_friend", "user5")
+		c.AddRelation("user5", "_friend", "user4")
+		c.AddRelation("user4", "_follow", "user5")
 
 		record0 := skydb.Record{
 			ID:      skydb.NewRecordID("record", "0"),

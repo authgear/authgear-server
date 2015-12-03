@@ -128,6 +128,11 @@ func (conn *MapConn) QueryRelation(user string, name string, direction string) [
 	panic("not implemented")
 }
 
+// QueryRelationCount is not implemented.
+func (conn *MapConn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
+	panic("not implemented")
+}
+
 // AddRelation is not implemented.
 func (conn *MapConn) AddRelation(user string, name string, targetUser string) error {
 	panic("not implemented")

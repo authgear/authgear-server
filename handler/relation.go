@@ -24,10 +24,18 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 	if err := mapDecoder.Decode(data); err != nil {
 		return skyerr.NewRequestJSONInvalidErr(err)
 	}
-	if result.Name != "friend" && result.Name != "follow" {
+	relationMap := map[string]string{
+		"friend":  "_friend",
+		"_friend": "_friend",
+		"follow":  "_follow",
+		"_follow": "_follow",
+	}
+	relationName, ok := relationMap[result.Name]
+	if !ok {
 		return skyerr.NewRequestInvalidErr(
 			errors.New("Only friend and follow relation is supported"))
 	}
+	result.Name = relationName
 	if result.Direction != "" {
 		if result.Direction != "outward" && result.Direction != "inward" && result.Direction != "mutual" {
 			return skyerr.NewRequestInvalidErr(
@@ -47,6 +55,33 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 //     "direction": "outward"
 // }
 // EOF
+//
+// {
+//     "request_id": "REQUEST_ID",
+//     "result": [
+//         {
+//             "id": "1001",
+//             "type": "user",
+//             "data": {
+//                 "_id": "1001",
+//                 "username": "user1001",
+//                 "email": "user1001@skygear.io"
+//             }
+//         },
+//         {
+//             "id": "1002",
+//             "type": "error",
+//             "data": {
+//                 "_id": "1002",
+//                 "username": "user1002",
+//                 "email": "user1001@skygear.io"
+//             }
+//         }
+//     ],
+//     "info": {
+//         "count": 2
+//     }
+// }
 func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 	log.Debug("RelationQueryHandler")
 	payload := relationPayload{}
@@ -65,6 +100,19 @@ func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 		}{userinfo.ID, "user", userinfo})
 	}
 	response.Result = resultList
+	count, countErr := rpayload.DBConn.QueryRelationCount(
+		rpayload.UserInfoID, payload.Name, payload.Direction)
+	if countErr != nil {
+		log.WithFields(log.Fields{
+			"err": countErr,
+		}).Warnf("Relation Count Query fails")
+		count = 0
+	}
+	response.Info = struct {
+		Count uint64 `json:"count"`
+	}{
+		count,
+	}
 }
 
 // RelationAddHandler add current user relation
