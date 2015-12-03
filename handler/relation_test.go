@@ -22,9 +22,8 @@ type testRelationConn struct {
 func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
 	if conn.UserInfo == nil {
 		return []skydb.UserInfo{}
-	} else {
-		return conn.UserInfo
 	}
+	return conn.UserInfo
 }
 
 func (conn *testRelationConn) AddRelation(user string, name string, targetUser string) error {
@@ -40,10 +39,9 @@ func (conn *testRelationConn) RemoveRelation(user string, name string, targetUse
 func (conn *testRelationConn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
 	if conn.UserInfo == nil {
 		return 0, nil
-	} else {
-		count := uint64(len(conn.UserInfo))
-		return count, nil
 	}
+	count := uint64(len(conn.UserInfo))
+	return count, nil
 }
 
 func TestRelationHandler(t *testing.T) {
