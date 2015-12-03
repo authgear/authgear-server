@@ -24,10 +24,18 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 	if err := mapDecoder.Decode(data); err != nil {
 		return skyerr.NewRequestJSONInvalidErr(err)
 	}
-	if result.Name != "friend" && result.Name != "follow" {
+	relationMap := map[string]string{
+		"friend":  "_friend",
+		"_friend": "_friend",
+		"follow":  "_follow",
+		"_follow": "_follow",
+	}
+	relationName, ok := relationMap[result.Name]
+	if !ok {
 		return skyerr.NewRequestInvalidErr(
 			errors.New("Only friend and follow relation is supported"))
 	}
+	result.Name = relationName
 	if result.Direction != "" {
 		if result.Direction != "outward" && result.Direction != "inward" && result.Direction != "mutual" {
 			return skyerr.NewRequestInvalidErr(

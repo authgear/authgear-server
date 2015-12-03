@@ -11,15 +11,17 @@ import (
 )
 
 type testRelationConn struct {
-	UserInfo  []skydb.UserInfo
-	addedID   string
-	removeID  string
-	addErr    error
-	removeErr error
+	UserInfo     []skydb.UserInfo
+	RelationName string
+	addedID      string
+	removeID     string
+	addErr       error
+	removeErr    error
 	skydb.Conn
 }
 
 func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
+	conn.RelationName = name
 	if conn.UserInfo == nil {
 		return []skydb.UserInfo{}
 	}
@@ -27,16 +29,19 @@ func (conn *testRelationConn) QueryRelation(user string, name string, direction 
 }
 
 func (conn *testRelationConn) AddRelation(user string, name string, targetUser string) error {
+	conn.RelationName = name
 	conn.addedID = targetUser
 	return nil
 }
 
 func (conn *testRelationConn) RemoveRelation(user string, name string, targetUser string) error {
+	conn.RelationName = name
 	conn.removeID = targetUser
 	return nil
 }
 
 func (conn *testRelationConn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
+	conn.RelationName = name
 	if conn.UserInfo == nil {
 		return 0, nil
 	}
@@ -60,6 +65,7 @@ func TestRelationHandler(t *testing.T) {
 }`)
 
 			So(conn.addedID, ShouldEqual, "some-friend")
+			So(conn.RelationName, ShouldEqual, "_friend")
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
     "result": [{
@@ -116,6 +122,21 @@ func TestRelationHandler(t *testing.T) {
     }],
     "info": {
         "count": 1
+    }
+}`)
+		})
+
+		Convey("query relation with _follow", func() {
+			resp := r.POST(`{
+    "name": "_follow",
+    "direction": "outward"
+}`)
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+    "result": [],
+    "info": {
+        "count": 0
     }
 }`)
 		})

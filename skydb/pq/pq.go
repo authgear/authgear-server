@@ -345,7 +345,6 @@ func (c *conn) DeleteUser(id string) error {
 
 func (c *conn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
 	log.Debugf("Query Relation: %v, %v", user, name)
-	tName := "_" + name
 	var (
 		selectSQL string
 		args      []interface{}
@@ -354,13 +353,13 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 	if direction == "outward" {
 		selectSQL, args, err = psql.Select("u.id", "u.username", "u.email").
 			From(c.tableName("_user")+" AS u").
-			Join(c.tableName(tName)+" AS relation on relation.right_id = u.id").
+			Join(c.tableName(name)+" AS relation on relation.right_id = u.id").
 			Where("relation.left_id = ?", user).
 			ToSql()
 	} else {
 		selectSQL, args, err = psql.Select("u.id", "u.username", "u.email").
 			From(c.tableName("_user")+" AS u").
-			Join(c.tableName(tName)+" AS relation on relation.left_id = u.id").
+			Join(c.tableName(name)+" AS relation on relation.left_id = u.id").
 			Where("relation.right_id = ?", user).
 			ToSql()
 	}
@@ -399,8 +398,7 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 
 func (c *conn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
 	log.Debugf("Query Relation Count: %v, %v, %v", user, name, direction)
-	tName := "_" + name
-	query := psql.Select("COUNT(*)").From(c.tableName(tName))
+	query := psql.Select("COUNT(*)").From(c.tableName(name))
 	if direction == "outward" {
 		query = query.Where("left_id = ?", user)
 	} else if direction == "inward" {
@@ -473,13 +471,12 @@ func (c *conn) SaveAsset(asset *skydb.Asset) error {
 }
 
 func (c *conn) AddRelation(user string, name string, targetUser string) error {
-	tName := "_" + name
 	ralationPair := map[string]interface{}{
 		"left_id":  user,
 		"right_id": targetUser,
 	}
 
-	upsert := upsertQuery(c.tableName(tName), ralationPair, nil)
+	upsert := upsertQuery(c.tableName(name), ralationPair, nil)
 	_, err := execWith(c.Db, upsert)
 	if err != nil {
 		sql, args, _ := upsert.ToSql()
@@ -497,9 +494,7 @@ func (c *conn) AddRelation(user string, name string, targetUser string) error {
 }
 
 func (c *conn) RemoveRelation(user string, name string, targetUser string) error {
-	tName := "_" + name
-
-	builder := psql.Delete(c.tableName(tName)).
+	builder := psql.Delete(c.tableName(name)).
 		Where("left_id = ? AND right_id = ?", user, targetUser)
 	result, err := execWith(c.Db, builder)
 
