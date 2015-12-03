@@ -7,6 +7,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -70,7 +71,7 @@ func relationColander(data map[string]interface{}, result *relationPayload) erro
 //         },
 //         {
 //             "id": "1002",
-//             "type": "error",
+//             "type": "user",
 //             "data": {
 //                 "_id": "1002",
 //                 "username": "user1002",
@@ -134,6 +135,12 @@ func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 //     "result": [
 //         {
 //             "id": "1001",
+//             "type": "user",
+//             "data": {
+//                 "_id": "1001",
+//                 "username": "user1001",
+//                 "email": "user1001@skygear.io"
+//             }
 //         },
 //         {
 //             "id": "1002",
@@ -168,9 +175,14 @@ func RelationAddHandler(rpayload *router.Payload, response *router.Response) {
 				Data skyerr.Error `json:"data"`
 			}{target, "error", skyerr.NewResourceFetchFailureErr("user", target)})
 		} else {
+			userinfo := skydb.UserInfo{}
+			rpayload.DBConn.GetUser(target, &userinfo)
+			userinfo.HashedPassword = []byte{}
 			results = append(results, struct {
-				ID string `json:"id"`
-			}{target})
+				ID   string      `json:"id"`
+				Type string      `json:"type"`
+				Data interface{} `json:"data"`
+			}{target, "user", userinfo})
 		}
 	}
 	response.Result = results

@@ -342,10 +342,11 @@ func TestRelation(t *testing.T) {
 		addUser(t, c, "friend2")
 		c.AddRelation("friend1", "_friend", "friend2")
 		c.AddRelation("friend2", "_friend", "friend1")
+		c.AddRelation("friend1", "_friend", "followee")
 		c.AddRelation("follower", "_follow", "followee")
 
 		Convey("query friend relation", func() {
-			users := c.QueryRelation("friend1", "_friend", "")
+			users := c.QueryRelation("friend1", "_friend", "mutual")
 			So(len(users), ShouldEqual, 1)
 		})
 

@@ -20,6 +20,12 @@ type testRelationConn struct {
 	skydb.Conn
 }
 
+func (conn *testRelationConn) GetUser(id string, userinfo *skydb.UserInfo) error {
+	userinfo.ID = id
+	userinfo.Username = "testRelationConn"
+	return nil
+}
+
 func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
 	conn.RelationName = name
 	if conn.UserInfo == nil {
@@ -69,7 +75,12 @@ func TestRelationHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
     "result": [{
-        "id": "some-friend"
+        "id": "some-friend",
+        "type": "user",
+        "data": {
+            "_id": "some-friend",
+            "username": "testRelationConn"
+        }
     }]
 }`)
 		})
