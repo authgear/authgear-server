@@ -353,26 +353,34 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 	if direction == "outward" {
 		selectSQL, args, err = psql.Select("u.id", "u.username", "u.email").
 			From(c.tableName("_user")+" AS u").
-			Join(c.tableName(name)+" AS relation on relation.right_id = u.id").
+			Join(c.tableName(name)+" AS relation ON relation.right_id = u.id").
 			Where("relation.left_id = ?", user).
+			ToSql()
+	} else if direction == "inward" {
+		selectSQL, args, err = psql.Select("u.id", "u.username", "u.email").
+			From(c.tableName("_user")+" AS u").
+			Join(c.tableName(name)+" AS relation ON relation.left_id = u.id").
+			Where("relation.right_id = ?", user).
 			ToSql()
 	} else {
 		selectSQL, args, err = psql.Select("u.id", "u.username", "u.email").
 			From(c.tableName("_user")+" AS u").
-			Join(c.tableName(name)+" AS relation on relation.left_id = u.id").
-			Where("relation.right_id = ?", user).
+			Join(c.tableName(name)+" AS inward_relation ON inward_relation.left_id = u.id").
+			Join(c.tableName(name)+" AS outward_relation ON outward_relation.right_id = u.id").
+			Where("inward_relation.right_id = ?", user).
+			Where("outward_relation.left_id = ?", user).
 			ToSql()
 	}
+	log.WithFields(log.Fields{
+		"sql":  selectSQL,
+		"args": args,
+		"err":  err,
+	}).Debugln("Generated SQL for query relation")
 	if err != nil {
 		panic(err)
 	}
 	rows, err := c.Db.Query(selectSQL, args...)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"sql":  selectSQL,
-			"args": args,
-			"err":  err,
-		}).Debugln("Failed to query relation")
 		panic(err)
 	}
 	defer rows.Close()
@@ -398,23 +406,26 @@ func (c *conn) QueryRelation(user string, name string, direction string) []skydb
 
 func (c *conn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
 	log.Debugf("Query Relation Count: %v, %v, %v", user, name, direction)
-	query := psql.Select("COUNT(*)").From(c.tableName(name))
+	query := psql.Select("COUNT(*)").From(c.tableName(name) + "AS _primary")
 	if direction == "outward" {
-		query = query.Where("left_id = ?", user)
+		query = query.Where("_primary.left_id = ?", user)
 	} else if direction == "inward" {
-		query = query.Where("right_id = ?", user)
+		query = query.Where("_primary.right_id = ?", user)
 	} else {
-		panic("Mutual query not implemented yet.")
+		query = query.
+			Join(c.tableName(name)+" AS _secondary ON _secondary.left_id = _primary.right_id").
+			Where("_primary.left_id = ?", user).
+			Where("_secondary.right_id = ?", user)
 	}
 	selectSQL, args, err := query.ToSql()
+	log.WithFields(log.Fields{
+		"sql":  selectSQL,
+		"args": args,
+		"err":  err,
+	}).Debugln("Generated SQL for query relation count")
 	var count uint64
 	err = c.Db.Get(&count, selectSQL, args...)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"sql":  selectSQL,
-			"args": args,
-			"err":  err,
-		}).Debugln("Failed to query relation count")
 		panic(err)
 	}
 	return count, err
