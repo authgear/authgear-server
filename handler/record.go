@@ -748,7 +748,7 @@ func eagerIDs(records []skydb.Record, query skydb.Query) map[string][]skydb.Reco
 	}
 
 	for i, record := range records {
-		for keyPath, _ := range eagers {
+		for keyPath := range eagers {
 			valueAtKeyPath, ok := record.Data[keyPath]
 			if !ok || valueAtKeyPath == nil {
 				continue
