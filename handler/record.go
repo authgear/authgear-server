@@ -850,7 +850,9 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 
 			keyPath := transientExpression.Value.(string)
 			eagerRecord, err = loadEagerRecord(db, &record, keyPath, transientKey)
-			injectSigner(eagerRecord, payload.AssetStore)
+			if eagerRecord != nil {
+				injectSigner(eagerRecord, payload.AssetStore)
+			}
 			if err != nil {
 				response.Err = skyerr.NewRequestInvalidErr(nil)
 			}
