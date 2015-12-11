@@ -1,8 +1,10 @@
 package router
 
 import (
+	"bufio"
 	"bytes"
 	"io/ioutil"
+	"net"
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
@@ -45,6 +47,11 @@ func (l *responseLogger) Size() int {
 
 func (l *responseLogger) String() string {
 	return l.b.String()
+}
+
+func (l *responseLogger) Hijack() (c net.Conn, w *bufio.ReadWriter, e error) {
+	hijacker := l.w.(http.Hijacker)
+	return hijacker.Hijack()
 }
 
 func LoggingMiddleware(next http.Handler, skipBody bool) http.Handler {

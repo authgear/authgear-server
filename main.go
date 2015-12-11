@@ -254,8 +254,8 @@ func main() {
 	internalPubSubGateway.GET(handler.NewPubSubHandler(internalPubSub), pubSubPreprocessors...)
 
 	http.Handle("/", router.LoggingMiddleware(r, false))
-	http.Handle("/pubsub", pubSubGateway)
-	http.Handle("/_/pubsub", internalPubSubGateway)
+	http.Handle("/pubsub", router.LoggingMiddleware(pubSubGateway, false))
+	http.Handle("/_/pubsub", router.LoggingMiddleware(internalPubSubGateway, false))
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, nil)
