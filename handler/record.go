@@ -737,6 +737,54 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	response.Result = results
 }
 
+func eagerIDs(records []skydb.Record, query skydb.Query) map[string][]skydb.RecordID {
+	eagers := map[string][]skydb.RecordID{}
+	for _, transientExpression := range query.ComputedKeys {
+		if transientExpression.Type != skydb.KeyPath {
+			continue
+		}
+		keyPath := transientExpression.Value.(string)
+		eagers[keyPath] = make([]skydb.RecordID, len(records))
+	}
+
+	for i, record := range records {
+		for keyPath, _ := range eagers {
+			valueAtKeyPath, ok := record.Data[keyPath]
+			if !ok || valueAtKeyPath == nil {
+				continue
+			}
+			ref, ok := valueAtKeyPath.(skydb.Reference)
+			if !ok {
+				continue
+			}
+			eagers[keyPath][i] = ref.ID
+		}
+	}
+	return eagers
+}
+
+func doQueryEager(db skydb.Database, eagersIDs map[string][]skydb.RecordID) map[string]map[string]*skydb.Record {
+	eagerRecords := map[string]map[string]*skydb.Record{}
+
+	for keyPath, ids := range eagersIDs {
+		log.Debugf("Getting value for keypath %v", keyPath)
+		eagerScanner, err := db.GetByIDs(ids)
+		if err != nil {
+			panic(err)
+		}
+		for eagerScanner.Scan() {
+			er := eagerScanner.Record()
+			if eagerRecords[keyPath] == nil {
+				eagerRecords[keyPath] = map[string]*skydb.Record{}
+			}
+			eagerRecords[keyPath][er.ID.Key] = &er
+		}
+		eagerScanner.Close()
+	}
+
+	return eagerRecords
+}
+
 func getRecordCount(db skydb.Database, query *skydb.Query, results *skydb.Rows) (uint64, error) {
 	if results != nil {
 		recordCount := results.OverallRecordCount()
@@ -763,31 +811,6 @@ func queryResultInfo(db skydb.Database, query *skydb.Query, results *skydb.Rows)
 		resultInfo["count"] = recordCount
 	}
 	return resultInfo, nil
-}
-
-func loadEagerRecord(db skydb.Database, record *skydb.Record, referenceKeyPath string, transientKey string) (*skydb.Record, error) {
-	if record.Transient == nil {
-		record.Transient = map[string]interface{}{}
-	}
-
-	valueAtKeyPath, ok := record.Data[referenceKeyPath]
-	if !ok || valueAtKeyPath == nil {
-		record.Transient[transientKey] = nil
-		return nil, nil
-	}
-
-	ref, ok := valueAtKeyPath.(skydb.Reference)
-	if !ok {
-		return nil, fmt.Errorf(`value at keypath "%s" is not a reference`, referenceKeyPath)
-	}
-
-	eagerRecord := skydb.Record{}
-	if err := db.Get(ref.ID, &eagerRecord); err != nil {
-		return nil, err
-	}
-
-	record.Transient[transientKey] = eagerRecord
-	return &eagerRecord, nil
 }
 
 /*
@@ -838,8 +861,11 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		response.Err = skyerr.NewUnknownErr(results.Err())
 		return
 	}
+
+	eagers := eagerIDs(records, query)
+	eagerRecords := doQueryEager(db, eagers)
+
 	output := make([]interface{}, len(records))
-	var eagerRecord *skydb.Record
 	for i := range records {
 		record := records[i]
 
@@ -849,14 +875,21 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 			}
 
 			keyPath := transientExpression.Value.(string)
-			eagerRecord, err = loadEagerRecord(db, &record, keyPath, transientKey)
-			if eagerRecord != nil {
-				injectSigner(eagerRecord, payload.AssetStore)
-			}
-			if err != nil {
-				response.Err = skyerr.NewRequestInvalidErr(nil)
+			if _, ok := record.Data[keyPath]; ok {
+				if record.Transient == nil {
+					record.Transient = map[string]interface{}{}
+				}
+				id := eagers[keyPath][i]
+				eagerRecord := eagerRecords[keyPath][id.Key]
+				if eagerRecord != nil {
+					injectSigner(eagerRecord, payload.AssetStore)
+					record.Transient[transientKey] = newSerializedRecord(eagerRecord)
+				} else {
+					record.Transient[transientKey] = nil
+				}
 			}
 		}
+
 		injectSigner(&record, payload.AssetStore)
 		output[i] = newSerializedRecord(&record)
 	}

@@ -1190,6 +1190,21 @@ func (db *referencedRecordDatabase) Get(id skydb.RecordID, record *skydb.Record)
 	return nil
 }
 
+func (db *referencedRecordDatabase) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
+	records := []skydb.Record{}
+	for _, id := range ids {
+		switch id.String() {
+		case "note/note1":
+			records = append(records, db.note)
+		case "category/important":
+			records = append(records, db.category)
+		case "city/beautiful":
+			records = append(records, db.city)
+		}
+	}
+	return skydb.NewRows(skydb.NewMemoryRows(records)), nil
+}
+
 func (db *referencedRecordDatabase) Save(record *skydb.Record) error {
 	return nil
 }
