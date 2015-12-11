@@ -839,6 +839,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 	output := make([]interface{}, len(records))
+	var eagerRecord *skydb.Record
 	for i := range records {
 		record := records[i]
 
@@ -848,7 +849,8 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 			}
 
 			keyPath := transientExpression.Value.(string)
-			_, err = loadEagerRecord(db, &record, keyPath, transientKey)
+			eagerRecord, err = loadEagerRecord(db, &record, keyPath, transientKey)
+			injectSigner(eagerRecord, payload.AssetStore)
 			if err != nil {
 				response.Err = skyerr.NewRequestInvalidErr(nil)
 			}
