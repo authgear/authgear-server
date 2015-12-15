@@ -24,7 +24,10 @@ import (
 var sanitizedPathRe = regexp.MustCompile(`\A[/.]+`)
 
 func clean(p string) string {
-	return strings.Replace(sanitizedPathRe.ReplaceAllString(path.Clean(p), ""), "..", "", -1)
+	sanitized := strings.Replace(sanitizedPathRe.ReplaceAllString(path.Clean(p), ""), "..", "", -1)
+	// refs #426: S3 Asset Store is not able to put filename with `+` correctly
+	sanitized = strings.Replace(sanitized, "+", "", -1)
+	return sanitized
 }
 
 func AssetGetURLHandler(payload *router.Payload, response *router.Response) {

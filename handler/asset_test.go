@@ -147,6 +147,33 @@ func TestAssetUploadURLHandler(t *testing.T) {
 			}`)
 		})
 
+		Convey("refs #426 uploads a file with + character", func() {
+			uuidNew = func() string {
+				return "f28c4037-uuid-4d0a-94d6-2206ab371d6c"
+			}
+
+			req, _ := http.NewRequest("PUT", "http://skygear.test/hello+world", strings.NewReader(``))
+			req.Header.Set("Content-Type", "plain/text")
+			req.Body = ioutil.NopCloser(strings.NewReader(`I am a boy`))
+
+			resp := r.Do(req)
+
+			So(assetConn.asset, ShouldResemble, skydb.Asset{
+				Name:        "f28c4037-uuid-4d0a-94d6-2206ab371d6c-helloworld",
+				ContentType: "plain/text",
+				Size:        10,
+			})
+
+			So(store.name, ShouldEqual, "f28c4037-uuid-4d0a-94d6-2206ab371d6c-helloworld")
+
+			So(resp.Body.String(), ShouldEqualJSON, `{
+				"result": {
+					"$type": "asset",
+					"$name": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-helloworld"
+				}
+			}`)
+		})
+
 		Convey("errors missing content-type", func() {
 			resp := r.PUT("asset", ``)
 			So(resp.Body.String(), ShouldEqualJSON, `{
