@@ -2,6 +2,7 @@ package pq
 
 import (
 	"testing"
+	"time"
 
 	"github.com/oursky/skygear/skydb"
 	. "github.com/smartystreets/goconvey/convey"
@@ -237,5 +238,93 @@ func TestUserRelationQuery(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 2)
 		})
+	})
+}
+
+func TestGetByIDs(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupDB(t, c.Db)
+
+		db := c.PrivateDB("getuser")
+		So(db.Extend("record", skydb.RecordSchema{
+			"string": skydb.FieldType{Type: skydb.TypeString},
+		}), ShouldBeNil)
+
+		insertRow(t, c.Db, `INSERT INTO app_com_oursky_skygear."record" `+
+			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "string") `+
+			`VALUES ('getuser', 'id0', 'getuser', '1988-02-06', 'getuser', '1988-02-06', 'getuser', 'string')`)
+		insertRow(t, c.Db, `INSERT INTO app_com_oursky_skygear."record" `+
+			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "string") `+
+			`VALUES ('getuser', 'id1', 'getuser', '1988-02-06', 'getuser', '1988-02-06', 'getuser', 'string')`)
+
+		Convey("get one record", func() {
+			scanner, err := db.GetByIDs([]skydb.RecordID{skydb.NewRecordID("record", "id1")})
+			So(err, ShouldBeNil)
+
+			scanner.Scan()
+			record := scanner.Record()
+
+			So(record.ID, ShouldResemble, skydb.NewRecordID("record", "id1"))
+			So(record.DatabaseID, ShouldResemble, "getuser")
+			So(record.OwnerID, ShouldResemble, "getuser")
+			So(record.CreatorID, ShouldResemble, "getuser")
+			So(record.UpdaterID, ShouldResemble, "getuser")
+			So(record.Data["string"], ShouldEqual, "string")
+
+			So(record.CreatedAt, ShouldResemble, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC))
+			So(record.UpdatedAt, ShouldResemble, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC))
+			noMore := scanner.Scan()
+			So(noMore, ShouldEqual, false)
+		})
+
+		Convey("get one record with duplicated record ID", func() {
+			scanner, err := db.GetByIDs([]skydb.RecordID{
+				skydb.NewRecordID("record", "id1"),
+				skydb.NewRecordID("record", "id1"),
+			})
+			So(err, ShouldBeNil)
+
+			scanner.Scan()
+			record := scanner.Record()
+
+			So(record.ID, ShouldResemble, skydb.NewRecordID("record", "id1"))
+			So(record.DatabaseID, ShouldResemble, "getuser")
+			So(record.OwnerID, ShouldResemble, "getuser")
+			So(record.CreatorID, ShouldResemble, "getuser")
+			So(record.UpdaterID, ShouldResemble, "getuser")
+			So(record.Data["string"], ShouldEqual, "string")
+
+			So(record.CreatedAt, ShouldResemble, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC))
+			So(record.UpdatedAt, ShouldResemble, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC))
+
+			noMore := scanner.Scan()
+			So(noMore, ShouldEqual, false)
+		})
+
+		Convey("get multiple record", func() {
+			scanner, err := db.GetByIDs([]skydb.RecordID{
+				skydb.NewRecordID("record", "id0"),
+				skydb.NewRecordID("record", "id1"),
+			})
+			So(err, ShouldBeNil)
+
+			scanner.Scan()
+			record := scanner.Record()
+
+			scanner.Scan()
+			record2 := scanner.Record()
+			So([]skydb.RecordID{
+				record.ID,
+				record2.ID,
+			}, ShouldResemble, []skydb.RecordID{
+				skydb.NewRecordID("record", "id0"),
+				skydb.NewRecordID("record", "id1"),
+			})
+
+			noMore := scanner.Scan()
+			So(noMore, ShouldEqual, false)
+		})
+
 	})
 }

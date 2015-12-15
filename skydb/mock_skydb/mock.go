@@ -334,6 +334,17 @@ func (_mr *_MockDatabaseRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1)
 }
 
+func (_m *MockDatabase) GetByIDs(_param0 []skydb.RecordID) (*skydb.Rows, error) {
+	ret := _m.ctrl.Call(_m, "GetByIDs", _param0)
+	ret0, _ := ret[0].(*skydb.Rows)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockDatabaseRecorder) GetByIDs(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetByIDs", arg0)
+}
+
 func (_m *MockDatabase) GetMatchingSubscriptions(_param0 *skydb.Record) []skydb.Subscription {
 	ret := _m.ctrl.Call(_m, "GetMatchingSubscriptions", _param0)
 	ret0, _ := ret[0].([]skydb.Subscription)

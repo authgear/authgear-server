@@ -215,6 +215,10 @@ func (db fileDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
 	return nil
 }
 
+func (db fileDatabase) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
+	panic("not implemented")
+}
+
 func (db fileDatabase) Save(record *skydb.Record) error {
 	filePath := db.recordPath(record.ID)
 	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {

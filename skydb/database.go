@@ -49,6 +49,7 @@ type Database interface {
 	// It also returns error if the underlying implementation
 	// failed to read the Record.
 	Get(id RecordID, record *Record) error
+	GetByIDs(ids []RecordID) (*Rows, error)
 
 	// Save updates the supplied Record in the Database if Record with
 	// the same key exists, else such Record is created.

@@ -178,6 +178,49 @@ func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
 	return nil
 }
 
+// GetByIDs using SQL IN cause
+func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("db.GetByIDs received empty array")
+	}
+	id := ids[0]
+	log.Debugf("GetByIDs Type: %s", id.Type)
+	typemap, err := db.remoteColumnTypes(id.Type)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(typemap) == 0 {
+		log.Debugf("Record Type has not been created")
+		return nil, skydb.ErrRecordNotFound
+	}
+
+	idStrs := []interface{}{}
+	for _, recordID := range ids {
+		if recordID.Key != "" {
+			idStrs = append(idStrs, recordID.Key)
+		}
+	}
+	inCause, inArgs := literalToSQLOperand(idStrs)
+
+	query := db.selectQuery(id.Type, typemap).
+		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
+
+	sql, args, err := query.ToSql()
+	log.WithFields(log.Fields{
+		"sql":  sql,
+		"args": args,
+		"err":  err,
+	}).Infoln("Getting records by ID")
+
+	rows, err := db.Db.Queryx(sql, args...)
+	if err != nil {
+		log.Debugf("Getting records by ID failed %v", err)
+		return nil, err
+	}
+	return newRows(id.Type, typemap, rows, err)
+}
+
 // Save attempts to do a upsert
 func (db *database) Save(record *skydb.Record) error {
 	if record.ID.Key == "" {
