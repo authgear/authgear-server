@@ -770,7 +770,9 @@ func doQueryEager(db skydb.Database, eagersIDs map[string][]skydb.RecordID) map[
 		log.Debugf("Getting value for keypath %v", keyPath)
 		eagerScanner, err := db.GetByIDs(ids)
 		if err != nil {
-			panic(err)
+			log.Debugf("No Records found in the eager load key path: %s", keyPath)
+			eagerRecords[keyPath] = map[string]*skydb.Record{}
+			continue
 		}
 		for eagerScanner.Scan() {
 			er := eagerScanner.Record()

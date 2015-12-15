@@ -180,6 +180,9 @@ func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
 
 // GetByIDs using SQL IN cause
 func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("db.GetByIDs received empty array")
+	}
 	id := ids[0]
 	log.Debugf("GetByIDs Type: %s", id.Type)
 	typemap, err := db.remoteColumnTypes(id.Type)
@@ -187,7 +190,8 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 		return nil, err
 	}
 
-	if len(typemap) == 0 { // record type has not been created
+	if len(typemap) == 0 {
+		log.Debugf("Record Type has not been created")
 		return nil, skydb.ErrRecordNotFound
 	}
 
@@ -200,7 +204,7 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 	inCause, inArgs := literalToSQLOperand(idStrs)
 
 	query := db.selectQuery(id.Type, typemap).
-		Where("_id IN "+inCause, inArgs...)
+		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
 
 	sql, args, err := query.ToSql()
 	log.WithFields(log.Fields{
