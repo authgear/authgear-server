@@ -51,7 +51,9 @@ func main() {
 
 	initLogger(config)
 
-	connOpener := func() (skydb.Conn, error) { return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option) }
+	connOpener := func() (skydb.Conn, error) {
+		return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option)
+	}
 	conn, connError := connOpener()
 	if connError != nil {
 		log.Fatalf("Failed to start skygear: %v", connError)
@@ -88,7 +90,7 @@ func main() {
 		AppName: config.App.Name,
 	}
 
-	fileSystemConnPreprocessor := connPreprocessor{
+	dbConnPreprocessor := connPreprocessor{
 		AppName:  config.App.Name,
 		DBOpener: skydb.Open,
 		DBImpl:   config.DB.ImplName,
@@ -96,13 +98,13 @@ func main() {
 	}
 
 	assetGetPreprocessors := []router.Processor{
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
 	}
 	assetUploadPreprocessors := []router.Processor{
 		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
 	}
 	fileGateway := router.NewGateway(`files/(.+)`)
@@ -120,7 +122,7 @@ func main() {
 
 	authPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		tokenStorePreprocessor.Preprocess,
 		providerRegistryPreprocessor.Preprocess,
 	}
@@ -132,7 +134,7 @@ func main() {
 		providerRegistryPreprocessor.Preprocess,
 	)
 	r.Map("auth:password", handler.PasswordHandler,
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 	)
@@ -145,7 +147,7 @@ func main() {
 	recordReadPreprocessors := []router.Processor{
 		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
@@ -154,7 +156,7 @@ func main() {
 		hookRegistryPreprocessor.Preprocess,
 		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
@@ -169,7 +171,7 @@ func main() {
 		handler.DeviceRegisterHandler,
 		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		injectUserIfPresent,
 	)
 
@@ -187,14 +189,14 @@ func main() {
 	userReadPreprocessors := []router.Processor{
 		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 	}
 	userWritePreprocessors := []router.Processor{
 		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 		requireUserForWrite,
@@ -204,7 +206,7 @@ func main() {
 	r.Map("user:link", handler.UserLinkHandler,
 		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		providerRegistryPreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
@@ -213,7 +215,7 @@ func main() {
 
 	notificationPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
-		fileSystemConnPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
 		injectDatabase,
 		notificationPreprocessor.Preprocess,
 	}
