@@ -87,8 +87,9 @@ func (p tokenStorePreprocessor) Preprocess(payload *router.Payload, response *ro
 // with access token or non-login user without api key.
 type userAuthenticator struct {
 	// These two fields are for non-login user
-	APIKey  string
-	AppName string
+	APIKey     string
+	AppName    string
+	TokenStore authtoken.Store
 }
 
 func (author *userAuthenticator) Preprocess(payload *router.Payload, response *router.Response) int {
@@ -109,7 +110,7 @@ func (author *userAuthenticator) Preprocess(payload *router.Payload, response *r
 
 		payload.AppName = author.AppName
 	} else {
-		store := payload.TokenStore
+		store := author.TokenStore
 		token := authtoken.Token{}
 
 		if err := store.Get(tokenString, &token); err != nil {

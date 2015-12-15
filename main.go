@@ -86,8 +86,9 @@ func main() {
 	}
 
 	authenticator := userAuthenticator{
-		APIKey:  config.App.APIKey,
-		AppName: config.App.Name,
+		APIKey:     config.App.APIKey,
+		AppName:    config.App.Name,
+		TokenStore: tokenStore,
 	}
 
 	dbConnPreprocessor := connPreprocessor{
@@ -102,7 +103,6 @@ func main() {
 		assetStorePreprocessor.Preprocess,
 	}
 	assetUploadPreprocessors := []router.Processor{
-		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		dbConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
@@ -129,13 +129,11 @@ func main() {
 	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
 	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
 	r.Map("auth:logout", handler.LogoutHandler,
-		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		providerRegistryPreprocessor.Preprocess,
 	)
 	r.Map("auth:password", handler.PasswordHandler,
 		dbConnPreprocessor.Preprocess,
-		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 	)
 
@@ -145,7 +143,6 @@ func main() {
 	}
 
 	recordReadPreprocessors := []router.Processor{
-		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		dbConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
@@ -154,7 +151,6 @@ func main() {
 	}
 	recordWritePreprocessors := []router.Processor{
 		hookRegistryPreprocessor.Preprocess,
-		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		dbConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
@@ -169,7 +165,6 @@ func main() {
 
 	r.Map("device:register",
 		handler.DeviceRegisterHandler,
-		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		dbConnPreprocessor.Preprocess,
 		injectUserIfPresent,
@@ -187,14 +182,12 @@ func main() {
 	r.Map("relation:remove", handler.RelationRemoveHandler, recordReadPreprocessors...)
 
 	userReadPreprocessors := []router.Processor{
-		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		dbConnPreprocessor.Preprocess,
 		injectUserIfPresent,
 		injectDatabase,
 	}
 	userWritePreprocessors := []router.Processor{
-		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		dbConnPreprocessor.Preprocess,
 		injectUserIfPresent,
@@ -204,7 +197,6 @@ func main() {
 	r.Map("user:query", handler.UserQueryHandler, userReadPreprocessors...)
 	r.Map("user:update", handler.UserUpdateHandler, userWritePreprocessors...)
 	r.Map("user:link", handler.UserLinkHandler,
-		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		dbConnPreprocessor.Preprocess,
 		providerRegistryPreprocessor.Preprocess,
