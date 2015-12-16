@@ -50,16 +50,7 @@ func main() {
 	}
 
 	initLogger(config)
-
-	// Just ping the DB
-	connOpener := func() (skydb.Conn, error) {
-		return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option)
-	}
-	conn, connError := connOpener()
-	if connError != nil {
-		log.Fatalf("Failed to start skygear: %v", connError)
-	}
-	conn.Close()
+	connOpener := ensureDB(config) // Fatal on DB failed
 
 	// Init all the services
 	r := router.NewRouter()
@@ -267,6 +258,18 @@ func main() {
 	if err != nil {
 		log.Printf("Failed: %v", err)
 	}
+}
+
+func ensureDB(config Configuration) func() (skydb.Conn, error) {
+	connOpener := func() (skydb.Conn, error) {
+		return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option)
+	}
+	conn, connError := connOpener()
+	if connError != nil {
+		log.Fatalf("Failed to start skygear: %v", connError)
+	}
+	conn.Close()
+	return connOpener
 }
 
 func initAssetStore(config Configuration) asset.Store {
