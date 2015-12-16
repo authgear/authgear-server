@@ -694,9 +694,10 @@ func updateTypemapForQuery(query *skydb.Query, typemap skydb.RecordSchema) (skyd
 			continue
 		}
 
+		v := value // because value will be overwritten in the next loop
 		typemap["_transient_"+key] = skydb.FieldType{
 			Type:       skydb.TypeNumber,
-			Expression: &value,
+			Expression: &v,
 		}
 	}
 
