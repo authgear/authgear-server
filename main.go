@@ -51,6 +51,7 @@ func main() {
 
 	initLogger(config)
 
+	// Just ping the DB
 	connOpener := func() (skydb.Conn, error) {
 		return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option)
 	}
@@ -60,160 +61,13 @@ func main() {
 	}
 	conn.Close()
 
-	pushSender := initPushSender(config, connOpener)
-
-	internalHub := pubsub.NewHub()
-	initSubscription(config, connOpener, internalHub, pushSender)
-	initDevice(config, connOpener)
-
-	notificationPreprocessor := notificationPreprocessor{
-		NotificationSender: pushSender,
-	}
-
-	store := initAssetStore(config)
-	assetStorePreprocessor := assetStorePreprocessor{
-		Store: store,
-	}
-
-	naiveAPIKeyPreprocessor := apiKeyValidatonPreprocessor{
-		Key:     config.App.APIKey,
-		AppName: config.App.Name,
-	}
-
-	tokenStore := authtoken.InitTokenStore(config.TokenStore.ImplName, config.TokenStore.Path)
-	tokenStorePreprocessor := tokenStorePreprocessor{
-		Store: tokenStore,
-	}
-
-	authenticator := userAuthenticator{
-		APIKey:     config.App.APIKey,
-		AppName:    config.App.Name,
-		TokenStore: tokenStore,
-	}
-
-	dbConnPreprocessor := connPreprocessor{
-		AppName:  config.App.Name,
-		DBOpener: skydb.Open,
-		DBImpl:   config.DB.ImplName,
-		Option:   config.DB.Option,
-	}
-
-	assetGetPreprocessors := []router.Processor{
-		dbConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
-	}
-	assetUploadPreprocessors := []router.Processor{
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
-	}
-	fileGateway := router.NewGateway(`files/(.+)`)
-	fileGateway.GET(handler.AssetGetURLHandler, assetGetPreprocessors...)
-	fileGateway.PUT(handler.AssetUploadURLHandler, assetUploadPreprocessors...)
-	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
-
+	// Init all the services
 	r := router.NewRouter()
-	r.Map("", handler.HomeHandler)
-
+	pushSender := initPushSender(config, connOpener)
+	store := initAssetStore(config)
+	tokenStore := authtoken.InitTokenStore(config.TokenStore.ImplName, config.TokenStore.Path)
 	providerRegistry := provider.NewRegistry()
-	providerRegistryPreprocessor := providerRegistryPreprocessor{
-		Registry: providerRegistry,
-	}
-
-	authPreprocessors := []router.Processor{
-		naiveAPIKeyPreprocessor.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		tokenStorePreprocessor.Preprocess,
-		providerRegistryPreprocessor.Preprocess,
-	}
-	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
-	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
-	r.Map("auth:logout", handler.LogoutHandler,
-		authenticator.Preprocess,
-		providerRegistryPreprocessor.Preprocess,
-	)
-	r.Map("auth:password", handler.PasswordHandler,
-		dbConnPreprocessor.Preprocess,
-		authenticator.Preprocess,
-	)
-
 	hookRegistry := hook.NewRegistry()
-	hookRegistryPreprocessor := hookRegistryPreprocessor{
-		Registry: hookRegistry,
-	}
-
-	recordReadPreprocessors := []router.Processor{
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
-	}
-	recordWritePreprocessors := []router.Processor{
-		hookRegistryPreprocessor.Preprocess,
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
-		requireUserForWrite,
-	}
-	r.Map("record:fetch", handler.RecordFetchHandler, recordReadPreprocessors...)
-	r.Map("record:query", handler.RecordQueryHandler, recordReadPreprocessors...)
-	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
-	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
-
-	r.Map("device:register",
-		handler.DeviceRegisterHandler,
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		injectUserIfPresent,
-	)
-
-	// subscription shares the same set of preprocessor as record read at the moment
-	r.Map("subscription:fetch_all", handler.SubscriptionFetchAllHandler, recordReadPreprocessors...)
-	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, recordReadPreprocessors...)
-	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordReadPreprocessors...)
-	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, recordReadPreprocessors...)
-
-	// relation shares the same setof preprocessor
-	r.Map("relation:query", handler.RelationQueryHandler, recordReadPreprocessors...)
-	r.Map("relation:add", handler.RelationAddHandler, recordReadPreprocessors...)
-	r.Map("relation:remove", handler.RelationRemoveHandler, recordReadPreprocessors...)
-
-	userReadPreprocessors := []router.Processor{
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
-	}
-	userWritePreprocessors := []router.Processor{
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
-		requireUserForWrite,
-	}
-	r.Map("user:query", handler.UserQueryHandler, userReadPreprocessors...)
-	r.Map("user:update", handler.UserUpdateHandler, userWritePreprocessors...)
-	r.Map("user:link", handler.UserLinkHandler,
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		providerRegistryPreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
-		requireUserForWrite,
-	)
-
-	notificationPreprocessors := []router.Processor{
-		naiveAPIKeyPreprocessor.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		injectDatabase,
-		notificationPreprocessor.Preprocess,
-	}
-
-	r.Map("push:user", handler.PushToUserHandler, notificationPreprocessors...)
-	r.Map("push:device", handler.PushToDeviceHandler, notificationPreprocessors...)
 
 	plugins := []plugin.Plugin{}
 	for _, pluginConfig := range config.Plugin {
@@ -235,10 +89,161 @@ func main() {
 	}
 	c.Start()
 
+	internalHub := pubsub.NewHub()
+	initSubscription(config, connOpener, internalHub, pushSender)
+	initDevice(config, connOpener)
+
+	// Preprocessor
+	notificationPreprocessor := notificationPreprocessor{
+		NotificationSender: pushSender,
+	}
+
+	assetStorePreprocessor := assetStorePreprocessor{
+		Store: store,
+	}
+
+	naiveAPIKeyPreprocessor := apiKeyValidatonPreprocessor{
+		Key:     config.App.APIKey,
+		AppName: config.App.Name,
+	}
+
+	tokenStorePreprocessor := tokenStorePreprocessor{
+		Store: tokenStore,
+	}
+
+	authenticator := userAuthenticator{
+		APIKey:     config.App.APIKey,
+		AppName:    config.App.Name,
+		TokenStore: tokenStore,
+	}
+
+	dbConnPreprocessor := connPreprocessor{
+		AppName:  config.App.Name,
+		DBOpener: skydb.Open,
+		DBImpl:   config.DB.ImplName,
+		Option:   config.DB.Option,
+	}
+
+	providerRegistryPreprocessor := providerRegistryPreprocessor{
+		Registry: providerRegistry,
+	}
+
+	hookRegistryPreprocessor := hookRegistryPreprocessor{
+		Registry: hookRegistry,
+	}
+
+	assetGetPreprocessors := []router.Processor{
+		dbConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+	}
+	assetUploadPreprocessors := []router.Processor{
+		authenticator.Preprocess,
+		dbConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+	}
+
+	authPreprocessors := []router.Processor{
+		naiveAPIKeyPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
+		tokenStorePreprocessor.Preprocess,
+		providerRegistryPreprocessor.Preprocess,
+	}
+
+	recordReadPreprocessors := []router.Processor{
+		authenticator.Preprocess,
+		dbConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+		injectUserIfPresent,
+		injectDatabase,
+	}
+	recordWritePreprocessors := []router.Processor{
+		hookRegistryPreprocessor.Preprocess,
+		authenticator.Preprocess,
+		dbConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+		injectUserIfPresent,
+		injectDatabase,
+		requireUserForWrite,
+	}
+
+	userReadPreprocessors := []router.Processor{
+		authenticator.Preprocess,
+		dbConnPreprocessor.Preprocess,
+		injectUserIfPresent,
+		injectDatabase,
+	}
+	userWritePreprocessors := []router.Processor{
+		authenticator.Preprocess,
+		dbConnPreprocessor.Preprocess,
+		injectUserIfPresent,
+		injectDatabase,
+		requireUserForWrite,
+	}
+
+	userLinkPreprocessors := []router.Processor{
+		authenticator.Preprocess,
+		dbConnPreprocessor.Preprocess,
+		providerRegistryPreprocessor.Preprocess,
+		injectUserIfPresent,
+		injectDatabase,
+		requireUserForWrite,
+	}
+
+	notificationPreprocessors := []router.Processor{
+		naiveAPIKeyPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
+		injectDatabase,
+		notificationPreprocessor.Preprocess,
+	}
+
+	devicePreprocessors := []router.Processor{
+		authenticator.Preprocess,
+		dbConnPreprocessor.Preprocess,
+		injectUserIfPresent,
+	}
+
 	pubSubPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 	}
 
+	r.Map("", handler.HomeHandler)
+
+	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
+	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
+	r.Map("auth:logout", handler.LogoutHandler,
+		authenticator.Preprocess,
+		providerRegistryPreprocessor.Preprocess,
+	)
+	r.Map("auth:password", handler.PasswordHandler,
+		dbConnPreprocessor.Preprocess,
+		authenticator.Preprocess,
+	)
+	r.Map("record:fetch", handler.RecordFetchHandler, recordReadPreprocessors...)
+	r.Map("record:query", handler.RecordQueryHandler, recordReadPreprocessors...)
+	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
+	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
+
+	r.Map("device:register", handler.DeviceRegisterHandler, devicePreprocessors...)
+
+	// subscription shares the same set of preprocessor as record read at the moment
+	r.Map("subscription:fetch_all", handler.SubscriptionFetchAllHandler, recordReadPreprocessors...)
+	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, recordReadPreprocessors...)
+	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordReadPreprocessors...)
+	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, recordReadPreprocessors...)
+
+	// relation shares the same setof preprocessor
+	r.Map("relation:query", handler.RelationQueryHandler, recordReadPreprocessors...)
+	r.Map("relation:add", handler.RelationAddHandler, recordReadPreprocessors...)
+	r.Map("relation:remove", handler.RelationRemoveHandler, recordReadPreprocessors...)
+
+	r.Map("user:query", handler.UserQueryHandler, userReadPreprocessors...)
+	r.Map("user:update", handler.UserUpdateHandler, userWritePreprocessors...)
+	r.Map("user:link", handler.UserLinkHandler, userLinkPreprocessors...)
+
+	r.Map("push:user", handler.PushToUserHandler, notificationPreprocessors...)
+	r.Map("push:device", handler.PushToDeviceHandler, notificationPreprocessors...)
+
+	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
 	pubSubGateway := router.NewGateway(`pubSub`)
 	pubSubGateway.GET(handler.NewPubSubHandler(pubSub), pubSubPreprocessors...)
@@ -251,6 +256,12 @@ func main() {
 	http.Handle("/pubsub", router.LoggingMiddleware(pubSubGateway, false))
 	http.Handle("/_/pubsub", router.LoggingMiddleware(internalPubSubGateway, false))
 
+	fileGateway := router.NewGateway(`files/(.+)`)
+	fileGateway.GET(handler.AssetGetURLHandler, assetGetPreprocessors...)
+	fileGateway.PUT(handler.AssetUploadURLHandler, assetUploadPreprocessors...)
+	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
+
+	// Bootstrap finished, binding port.
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, nil)
 	if err != nil {
