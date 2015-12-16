@@ -91,6 +91,9 @@ type InitContext struct {
 
 // Init instantiates a plugin. This sets up hooks and handlers.
 func (p *Plugin) Init(context *InitContext) {
+	log.WithFields(log.Fields{
+		"plugin": p,
+	}).Debugln("Waiting plugin return configuration")
 	regInfo := p.getRegistrationInfo()
 
 	log.WithFields(log.Fields{

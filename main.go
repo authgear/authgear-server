@@ -57,16 +57,9 @@ func main() {
 	pushSender := initPushSender(config, connOpener)
 	store := initAssetStore(config)
 	tokenStore := authtoken.InitTokenStore(config.TokenStore.ImplName, config.TokenStore.Path)
+
 	providerRegistry := provider.NewRegistry()
 	hookRegistry := hook.NewRegistry()
-
-	plugins := []plugin.Plugin{}
-	for _, pluginConfig := range config.Plugin {
-		p := plugin.NewPlugin(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)
-
-		plugins = append(plugins, p)
-	}
-
 	c := cron.New()
 	initContext := plugin.InitContext{
 		Router:           r,
@@ -74,11 +67,8 @@ func main() {
 		ProviderRegistry: providerRegistry,
 		Scheduler:        c,
 	}
-
-	for _, plug := range plugins {
-		plug.Init(&initContext)
-	}
 	c.Start()
+	initPlugin(config, &initContext) // Block until plugin configured
 
 	internalHub := pubsub.NewHub()
 	initSubscription(config, connOpener, internalHub, pushSender)
@@ -351,6 +341,19 @@ func initSubscription(config Configuration, connOpener func() (skydb.Conn, error
 	}
 	log.Infoln("Subscription Service listening...")
 	go subscriptionService.Run()
+}
+
+func initPlugin(config Configuration, initContext *plugin.InitContext) {
+	plugins := []plugin.Plugin{}
+	for _, pluginConfig := range config.Plugin {
+		p := plugin.NewPlugin(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)
+
+		plugins = append(plugins, p)
+	}
+
+	for _, plug := range plugins {
+		plug.Init(initContext)
+	}
 }
 
 func initLogger(config Configuration) {
