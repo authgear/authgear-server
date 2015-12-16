@@ -113,12 +113,15 @@ func main() {
 		Registry: hookRegistry,
 	}
 
-	assetGetPreprocessors := []router.Processor{
+	baseAuthPreprocessors := []router.Processor{
+		authenticator.Preprocess,
 		dbConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
+		injectUserIfPresent,
+		injectDatabase,
 	}
-	assetUploadPreprocessors := []router.Processor{
-		authenticator.Preprocess,
+
+	assetGetPreprocessors := []router.Processor{
 		dbConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
 	}
@@ -130,57 +133,25 @@ func main() {
 		providerRegistryPreprocessor.Preprocess,
 	}
 
-	recordReadPreprocessors := []router.Processor{
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
-	}
-	recordWritePreprocessors := []router.Processor{
+	recordWritePreprocessors := append(baseAuthPreprocessors,
 		hookRegistryPreprocessor.Preprocess,
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
 		requireUserForWrite,
-	}
+	)
 
-	userReadPreprocessors := []router.Processor{
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
-	}
-	userWritePreprocessors := []router.Processor{
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
+	userWritePreprocessors := append(baseAuthPreprocessors,
 		requireUserForWrite,
-	}
+	)
 
-	userLinkPreprocessors := []router.Processor{
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
+	userLinkPreprocessors := append(baseAuthPreprocessors,
 		providerRegistryPreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
 		requireUserForWrite,
-	}
+	)
 
 	notificationPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 		dbConnPreprocessor.Preprocess,
 		injectDatabase,
 		notificationPreprocessor.Preprocess,
-	}
-
-	devicePreprocessors := []router.Processor{
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		injectUserIfPresent,
 	}
 
 	pubSubPreprocessors := []router.Processor{
@@ -195,29 +166,27 @@ func main() {
 		authenticator.Preprocess,
 		providerRegistryPreprocessor.Preprocess,
 	)
-	r.Map("auth:password", handler.PasswordHandler,
-		dbConnPreprocessor.Preprocess,
-		authenticator.Preprocess,
-	)
-	r.Map("record:fetch", handler.RecordFetchHandler, recordReadPreprocessors...)
-	r.Map("record:query", handler.RecordQueryHandler, recordReadPreprocessors...)
-	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
+	r.Map("auth:password", handler.PasswordHandler, baseAuthPreprocessors...)
+
+	r.Map("record:fetch", handler.RecordFetchHandler, baseAuthPreprocessors...)
+	r.Map("record:query", handler.RecordQueryHandler, baseAuthPreprocessors...)
+	r.Map("record:save", handler.RecordSaveHandler, baseAuthPreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
 
-	r.Map("device:register", handler.DeviceRegisterHandler, devicePreprocessors...)
+	r.Map("device:register", handler.DeviceRegisterHandler, baseAuthPreprocessors...)
 
 	// subscription shares the same set of preprocessor as record read at the moment
-	r.Map("subscription:fetch_all", handler.SubscriptionFetchAllHandler, recordReadPreprocessors...)
-	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, recordReadPreprocessors...)
-	r.Map("subscription:save", handler.SubscriptionSaveHandler, recordReadPreprocessors...)
-	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, recordReadPreprocessors...)
+	r.Map("subscription:fetch_all", handler.SubscriptionFetchAllHandler, baseAuthPreprocessors...)
+	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, baseAuthPreprocessors...)
+	r.Map("subscription:save", handler.SubscriptionSaveHandler, baseAuthPreprocessors...)
+	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, baseAuthPreprocessors...)
 
 	// relation shares the same setof preprocessor
-	r.Map("relation:query", handler.RelationQueryHandler, recordReadPreprocessors...)
-	r.Map("relation:add", handler.RelationAddHandler, recordReadPreprocessors...)
-	r.Map("relation:remove", handler.RelationRemoveHandler, recordReadPreprocessors...)
+	r.Map("relation:query", handler.RelationQueryHandler, baseAuthPreprocessors...)
+	r.Map("relation:add", handler.RelationAddHandler, baseAuthPreprocessors...)
+	r.Map("relation:remove", handler.RelationRemoveHandler, baseAuthPreprocessors...)
 
-	r.Map("user:query", handler.UserQueryHandler, userReadPreprocessors...)
+	r.Map("user:query", handler.UserQueryHandler, baseAuthPreprocessors...)
 	r.Map("user:update", handler.UserUpdateHandler, userWritePreprocessors...)
 	r.Map("user:link", handler.UserLinkHandler, userLinkPreprocessors...)
 
@@ -239,7 +208,7 @@ func main() {
 
 	fileGateway := router.NewGateway(`files/(.+)`)
 	fileGateway.GET(handler.AssetGetURLHandler, assetGetPreprocessors...)
-	fileGateway.PUT(handler.AssetUploadURLHandler, assetUploadPreprocessors...)
+	fileGateway.PUT(handler.AssetUploadURLHandler, authPreprocessors...)
 	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
 
 	// Bootstrap finished, binding port.
