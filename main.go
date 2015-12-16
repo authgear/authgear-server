@@ -306,10 +306,14 @@ func initDevice(config Configuration, connOpener func() (skydb.Conn, error)) {
 func initPushSender(config Configuration, connOpener func() (skydb.Conn, error)) push.Sender {
 	routeSender := push.NewRouteSender()
 	if config.APNS.Enable {
-		routeSender.Route("aps", initAPNSPusher(config, connOpener))
+		apns := initAPNSPusher(config, connOpener)
+		routeSender.Route("aps", apns)
+		routeSender.Route("ios", apns)
 	}
 	if config.GCM.Enable {
-		routeSender.Route("gcm", initGCMPusher(config))
+		gcm := initGCMPusher(config)
+		routeSender.Route("gcm", gcm)
+		routeSender.Route("android", gcm)
 	}
 
 	if routeSender.Len() == 0 {
