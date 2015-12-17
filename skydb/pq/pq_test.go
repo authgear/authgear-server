@@ -1856,7 +1856,7 @@ func TestQuery(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(len(records), ShouldEqual, 3)
-			So(records[0].Transient["distance"], ShouldAlmostEqual, 111178, 1)
+			So(records[0].Transient["distance"], ShouldAlmostEqual, 157249, 1)
 		})
 
 		Convey("query records ordered by distance", func() {
