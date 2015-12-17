@@ -147,6 +147,8 @@ func (r *Rows) Scan() bool {
 		return false
 	}
 
+	// Make a new record instead of reusing the same record from previous Scan.
+	r.record = Record{}
 	r.lasterr = r.iter.Next(&r.record)
 	if r.lasterr != nil {
 		r.Close()
