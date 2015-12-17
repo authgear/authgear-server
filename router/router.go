@@ -86,10 +86,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			httpStatus = p(payload, &resp)
 			if resp.Err != nil {
 				if httpStatus == 200 {
-					httpStatus = 500
-				}
-				if _, ok := resp.Err.(skyerr.Error); !ok {
-					resp.Err = skyerr.NewUnknownErr(resp.Err)
+					httpStatus = defaultStatusCode(resp.Err)
 				}
 				return
 			}

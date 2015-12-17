@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/skygear/skyerr"
 )
 
 // pathRoute is the path matching version of pipeline. Instead of storing the action
@@ -86,10 +85,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		httpStatus = p(payload, &resp)
 		if resp.Err != nil {
 			if httpStatus == 200 {
-				httpStatus = 500
-			}
-			if _, ok := resp.Err.(skyerr.Error); !ok {
-				resp.Err = skyerr.NewUnknownErr(resp.Err)
+				httpStatus = defaultStatusCode(resp.Err)
 			}
 			return
 		}
