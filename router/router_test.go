@@ -21,7 +21,7 @@ func (m *MockHander) handle(p *Payload, r *Response) {
 }
 
 type ErrHandler struct {
-	Err error
+	Err skyerr.Error
 }
 
 func (h *ErrHandler) handle(p *Payload, r *Response) {
@@ -81,7 +81,7 @@ func TestRouterMapMissing(t *testing.T) {
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
 
-	expectedBody := `{"error":{"type":"RequestInvalid","code":101,"message":"route unmatched"}}
+	expectedBody := `{"error":{"name":"UndefinedOperation","code":117,"message":"route unmatched"}}
 `
 	if resp.Body.String() != expectedBody {
 		t.Fatalf("want resp.Body.String() = %#v, got %#v", expectedBody, resp.Body.String())
@@ -90,7 +90,7 @@ func TestRouterMapMissing(t *testing.T) {
 
 type getPreprocessor struct {
 	Status int
-	Err    error
+	Err    skyerr.Error
 }
 
 func (p *getPreprocessor) Preprocess(payload *Payload, response *Response) int {
@@ -104,7 +104,7 @@ func TestErrorHandler(t *testing.T) {
 
 		Convey("returns 400 if handler sets Response.Err", func() {
 			errHandler := &ErrHandler{
-				Err: errors.New("some error"),
+				Err: skyerr.NewError(skyerr.UnexpectedError, "some error"),
 			}
 			r.Map("mock:handler", errHandler.handle)
 
@@ -159,12 +159,12 @@ func TestPreprocess(t *testing.T) {
 
 		Convey("When preprocessor gives an err", func() {
 			mockPreprocessor.Status = http.StatusInternalServerError
-			mockPreprocessor.Err = errors.New("err")
+			mockPreprocessor.Err = skyerr.NewError(skyerr.UnexpectedError, "err")
 
 			r.ServeHTTP(resp, req)
 
 			Convey("it has \"err\" as body", func() {
-				So(resp.Body.String(), ShouldEqual, `{"error":{"type":"UnknownError","code":1,"message":"err"}}
+				So(resp.Body.String(), ShouldEqual, `{"error":{"name":"UnexpectedError","code":10000,"message":"err"}}
 `)
 			})
 
@@ -180,7 +180,7 @@ func TestPreprocess(t *testing.T) {
 			r.ServeHTTP(resp, req)
 
 			Convey("it has \"err\" as body", func() {
-				So(resp.Body.String(), ShouldEqual, `{"error":{"type":"UnknownError","code":1,"message":"skyerr"}}
+				So(resp.Body.String(), ShouldEqual, `{"error":{"name":"UnexpectedError","code":10000,"message":"skyerr"}}
 `)
 			})
 

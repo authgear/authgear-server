@@ -62,36 +62,23 @@ type sendPushResponseItem struct {
 }
 
 func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
-	var (
-		message string
-		t       string
-		code    uint
-		info    map[string]interface{}
-	)
+	var err skyerr.Error
 	if e.err != nil && *e.err == skydb.ErrDeviceNotFound {
-		message = fmt.Sprintf(`cannot find device "%s"`, e.id)
-		t = "ResourceNotFound"
-		code = 101
-		info = map[string]interface{}{"id": e.id}
+		err = skyerr.NewErrorWithInfo(skyerr.ResourceNotFound, fmt.Sprintf(`cannot find device "%s"`, e.id), map[string]interface{}{"id": e.id})
 	} else if e.err != nil && *e.err == skydb.ErrUserNotFound {
-		message = fmt.Sprintf(`cannot find user "%s"`, e.id)
-		t = "ResourceNotFound"
-		code = 101
-		info = map[string]interface{}{"id": e.id}
+		err = skyerr.NewErrorWithInfo(skyerr.ResourceNotFound, fmt.Sprintf(`cannot find user "%s"`, e.id), map[string]interface{}{"id": e.id})
 	} else if e.err != nil {
-		message = fmt.Sprintf("unknown error occurred: %v", (*e.err).Error())
-		t = "UnknownError"
-		code = 1
+		err = skyerr.NewError(skyerr.UnexpectedError, fmt.Sprintf("unknown error occurred: %v", (*e.err).Error()))
 	}
 	if e.err != nil {
 		return json.Marshal(&struct {
 			ID       string                 `json:"_id"`
 			ItemType string                 `json:"_type"`
 			Message  string                 `json:"message"`
-			Type     string                 `json:"type"`
-			Code     uint                   `json:"code"`
+			Name     string                 `json:"name"`
+			Code     skyerr.ErrorCode       `json:"code"`
 			Info     map[string]interface{} `json:"info,omitempty"`
-		}{e.id, "error", message, t, code, info})
+		}{e.id, "error", err.Message(), err.Name(), err.Code(), err.Info()})
 	}
 	return json.Marshal(&struct {
 		ID string `json:"_id"`
@@ -101,11 +88,11 @@ func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
 func PushToUserHandler(rpayload *router.Payload, response *router.Response) {
 	payload := pushToUserPayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 	if err := payload.Validate(); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, err.Error())
 		return
 	}
 
@@ -129,11 +116,11 @@ func PushToUserHandler(rpayload *router.Payload, response *router.Response) {
 func PushToDeviceHandler(rpayload *router.Payload, response *router.Response) {
 	payload := pushToDevicePayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 	if err := payload.Validate(); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, err.Error())
 		return
 	}
 

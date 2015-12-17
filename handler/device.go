@@ -65,11 +65,11 @@ type DeviceReigsterResult struct {
 func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) {
 	payload := deviceRegisterPayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 	if err := payload.Validate(); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, err.Error())
 		return
 	}
 
@@ -83,7 +83,7 @@ func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) 
 		if err := conn.GetDevice(deviceID, &device); err != nil {
 			var errToReturn skyerr.Error
 			if err == skydb.ErrDeviceNotFound {
-				errToReturn = skyerr.ErrDeviceNotFound
+				errToReturn = skyerr.NewError(skyerr.ResourceNotFound, "device not found")
 			} else {
 				log.WithFields(log.Fields{
 					"deviceID": deviceID,

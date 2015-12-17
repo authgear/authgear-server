@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
@@ -25,7 +24,7 @@ func (p apiKeyValidatonPreprocessor) Preprocess(payload *router.Payload, respons
 	apiKey := payload.APIKey()
 	if apiKey != p.Key {
 		log.Debugf("Invalid APIKEY: %v", apiKey)
-		response.Err = skyerr.NewFmt(skyerr.CannotVerifyAPIKey, "Cannot verify api key: %v", apiKey)
+		response.Err = skyerr.NewErrorf(skyerr.AccessKeyNotAccepted, "Cannot verify api key: %v", apiKey)
 		return http.StatusUnauthorized
 	}
 
@@ -46,7 +45,7 @@ func (p connPreprocessor) Preprocess(payload *router.Payload, response *router.R
 
 	conn, err := p.DBOpener(p.DBImpl, p.AppName, p.Option)
 	if err != nil {
-		response.Err = err
+		response.Err = skyerr.NewError(skyerr.UnexpectedUnableToOpenDatabase, err.Error())
 		return http.StatusServiceUnavailable
 	}
 	payload.DBConn = conn
@@ -101,9 +100,9 @@ func (author *userAuthenticator) Preprocess(payload *router.Payload, response *r
 				// if a non-empty api key is set and we received empty
 				// api key and access token, then client request
 				// has no authentication information
-				response.Err = skyerr.NewFmt(skyerr.AuthenticationInfoIncorrectErr, "Both api key and access token are empty")
+				response.Err = skyerr.NewErrorf(skyerr.NotAuthenticated, "Both api key and access token are empty")
 			} else {
-				response.Err = skyerr.NewFmt(skyerr.CannotVerifyAPIKey, "Cannot verify api key: `%v`", apiKey)
+				response.Err = skyerr.NewErrorf(skyerr.AccessKeyNotAccepted, "Cannot verify api key: `%v`", apiKey)
 			}
 			return http.StatusUnauthorized
 		}
@@ -120,9 +119,9 @@ func (author *userAuthenticator) Preprocess(payload *router.Payload, response *r
 					"err":   err,
 				}).Infoln("Token not found")
 
-				response.Err = skyerr.ErrAuthFailure
+				response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token expired")
 			} else {
-				response.Err = err
+				response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 			}
 			return http.StatusUnauthorized
 		}
@@ -144,7 +143,7 @@ func injectUserIfPresent(payload *router.Payload, response *router.Response) int
 	userinfo := skydb.UserInfo{}
 	if err := conn.GetUser(payload.UserInfoID, &userinfo); err != nil {
 		log.Errorf("Cannot find UserInfo.ID = %#v\n", payload.UserInfoID)
-		response.Err = err
+		response.Err = skyerr.NewError(skyerr.UnexpectedUserInfoNotFound, err.Error())
 		return http.StatusInternalServerError
 	}
 
@@ -173,7 +172,7 @@ func injectDatabase(payload *router.Payload, response *router.Response) int {
 		if payload.UserInfo != nil {
 			payload.Database = conn.PrivateDB(payload.UserInfo.ID)
 		} else {
-			response.Err = errors.New("Authentication is needed for private DB access")
+			response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed for private DB access")
 			return http.StatusUnauthorized
 		}
 	}
@@ -183,7 +182,7 @@ func injectDatabase(payload *router.Payload, response *router.Response) int {
 
 func requireUserForWrite(payload *router.Payload, response *router.Response) int {
 	if payload.UserInfo == nil {
-		response.Err = skyerr.ErrWriteDenied
+		response.Err = skyerr.NewError(skyerr.PermissionDenied, "write is not allowed")
 		return http.StatusUnauthorized
 	}
 
@@ -196,7 +195,7 @@ type notificationPreprocessor struct {
 
 func (p notificationPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
 	if p.NotificationSender == nil {
-		response.Err = errors.New("Unable to send push notification because APNS is not configured or there was a problem configuring the APNS.\n")
+		response.Err = skyerr.NewError(skyerr.UnexpectedPushNotificationNotConfigured, "Unable to send push notification because APNS is not configured or there was a problem configuring the APNS.\n")
 		return http.StatusInternalServerError
 	}
 

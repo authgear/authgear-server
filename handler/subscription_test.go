@@ -64,8 +64,8 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 		"_id": "notexistid",
 		"_type": "error",
 		"message": "cannot find subscription \"notexistid\"",
-		"type": "ResourceNotFound",
-		"code": 101,
+		"code": 110,
+		"name": "ResourceNotFound",
 		"info": {"id": "notexistid"}
 	}]
 }`)
@@ -73,7 +73,7 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 
 		Convey("fetches without device_id", func() {
 			resp := r.POST(`{}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"type":"RequestInvalid","code":101,"message":"empty device_id"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"code":108,"name":"InvalidArgument","message":"empty device_id"}}`)
 			So(resp.Code, ShouldEqual, 400)
 		})
 
@@ -143,7 +143,7 @@ func TestSubscriptionFetchAllHandler(t *testing.T) {
 		Convey("errors with empty device id", func() {
 			resp := r.POST(`{}`)
 			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error": {"code": 101, "message": "empty device id", "type": "RequestInvalid"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error": {"code": 108, "message": "empty device id", "name": "InvalidArgument"}}`)
 		})
 	})
 }
@@ -334,14 +334,14 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 }`)
 
 			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"code":101,"message":"empty device_id","type":"RequestInvalid"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"code":108,"message":"empty device_id","name":"InvalidArgument"}}`)
 		})
 
 		Convey("errors without subscriptions", func() {
 			resp := r.POST(`{"device_id":"somedeviceid"}`)
 
 			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"code":101,"message":"empty subscriptions","type":"RequestInvalid"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"code":108,"message":"empty subscriptions","name":"InvalidArgument"}}`)
 		})
 	})
 }
@@ -378,8 +378,8 @@ func TestSubscriptionDeleteHandler(t *testing.T) {
 		"_id": "notexistid",
 		"_type": "error",
 		"message": "cannot find subscription \"notexistid\"",
-		"type": "ResourceNotFound",
-		"code": 101,
+		"name": "ResourceNotFound",
+		"code": 110,
 		"info": {"id": "notexistid"}
 	}]
 }`)
@@ -387,7 +387,7 @@ func TestSubscriptionDeleteHandler(t *testing.T) {
 
 		Convey("deletes without device_id", func() {
 			resp := r.POST(`{}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"type":"RequestInvalid","code":101,"message":"empty device_id"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"code":108,"message":"empty device_id","name":"InvalidArgument"}}`)
 			So(resp.Code, ShouldEqual, 400)
 		})
 

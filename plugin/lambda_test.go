@@ -60,7 +60,7 @@ func TestLambdaHandler(t *testing.T) {
 	"args": ["bob"]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-	"error":{"code":1,"message":"an error","type":"UnknownError"}
+	"error":{"code":10000,"message":"an error","name":"UnexpectedError"}
 }`)
 
 		})

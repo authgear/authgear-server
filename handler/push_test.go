@@ -86,8 +86,8 @@ func TestPushToDevice(t *testing.T) {
 		"_id": "nonexistent",
 		"_type": "error",
 		"message": "cannot find device \"nonexistent\"",
-		"type": "ResourceNotFound",
-		"code": 101,
+		"name": "ResourceNotFound",
+		"code": 110,
 		"info": {"id": "nonexistent"}
 	}]
 }`)
@@ -183,8 +183,8 @@ func TestPushToUser(t *testing.T) {
 		"_id": "nonexistent",
 		"_type": "error",
 		"message": "cannot find user \"nonexistent\"",
-		"type": "ResourceNotFound",
-		"code": 101,
+		"name": "ResourceNotFound",
+		"code": 110,
 		"info": {"id": "nonexistent"}
 	}]
 }`)

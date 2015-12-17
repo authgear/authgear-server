@@ -244,23 +244,23 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 		if r := recover(); r != nil {
 			if queryErr, ok := r.(error); ok {
 				log.WithField("rawQuery", rawQuery).Debugln("failed to construct query")
-				err = skyerr.NewFmt(skyerr.RequestInvalidErr, "failed to construct query: %v", queryErr.Error())
+				err = skyerr.NewErrorf(skyerr.InvalidArgument, "failed to construct query: %v", queryErr.Error())
 			} else {
 				log.WithField("recovered", r).Errorln("panic recovered while constructing query")
-				err = skyerr.New(skyerr.RequestInvalidErr, "error occurred while constructing query")
+				err = skyerr.NewError(skyerr.InvalidArgument, "error occurred while constructing query")
 			}
 		}
 	}()
 	recordType, _ := rawQuery["record_type"].(string)
 	if recordType == "" {
-		return skyerr.New(skyerr.RequestInvalidErr, "recordType cannot be empty")
+		return skyerr.NewError(skyerr.InvalidArgument, "recordType cannot be empty")
 	}
 	query.Type = recordType
 
 	mustDoSlice(rawQuery, "predicate", func(rawPredicate []interface{}) error {
 		predicate := parser.predicateFromRaw(rawPredicate)
 		if err := predicate.Validate(); err != nil {
-			return skyerr.NewRequestInvalidErr(fmt.Errorf("invalid predicate: %v", err))
+			return skyerr.NewErrorf(skyerr.InvalidArgument, "invalid predicate: %v", err)
 		}
 		query.Predicate = &predicate
 		return nil
@@ -283,7 +283,7 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 		for i, key := range desiredKeys {
 			key, ok := key.(string)
 			if !ok {
-				return skyerr.New(skyerr.RequestInvalidErr, "unexpected value in desired_keys")
+				return skyerr.NewError(skyerr.InvalidArgument, "unexpected value in desired_keys")
 			}
 			query.DesiredKeys[i] = key
 		}

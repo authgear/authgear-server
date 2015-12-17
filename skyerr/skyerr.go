@@ -4,63 +4,123 @@ package skyerr
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/oursky/skygear/skydb"
 )
 
-// Various errors emitted by Skygear handlers
-var (
-	ErrAuthFailure  = newError("AuthenticationError", 101, "authentication failed")
-	ErrInvalidLogin = newError("AuthenticationError", 102, "invalid authentication information")
+// ErrorCode is an integer representation of an error condition
+// occurred within the system.
+//go:generate stringer -type=ErrorCode
+type ErrorCode int
 
-	ErrWriteDenied = newError("PermissionDenied", 101, "write is not allowed")
-
-	ErrDatabaseOpenFailed            = newError("DatabaseError", 101, "failed to open database")
-	ErrDatabaseQueryFailed           = newError("DatabaseError", 102, "failed to query record")
-	ErrDatabaseSchemaMigrationFailed = newError("DatabaseError", 103, "failed to migrate record schema")
-	ErrDatabaseTxNotSupported        = newError("DatabaseError", 660, "database impl does not support transaction")
-
-	ErrUserNotFound   = newNotFoundErr(101, "user not found")
-	ErrDeviceNotFound = newNotFoundErr(102, "device not found")
-	ErrRecordNotFound = newNotFoundErr(103, "record not found")
-
-	ErrUserDuplicated = newDuplicatedErr(101, "user duplicated")
-)
-
-// ErrCode is error code being assigned to router.Payload when
-// Handler signifies an error
-type ErrCode uint
-
-// UnknownErr represents an unknown error
-const UnknownErr ErrCode = 1
-
-// ErrCode signifying authentication error
+// A list of all expected errors.
+//
+// Naming convention:
+// * Try not to end an error name with "Error"
+// * "NotAccepted" refers to information that seems valid but still not accepted for some reason
+// * "Bad" refers to information that is malformed or in a corrupted format
+// * "Invalid" refers to information that is not correct
 const (
-	_ ErrCode = 100 + iota
-	UserIDDuplicatedErr
-	UserIDNotFoundErr
-	AuthenticationInfoIncorrectErr
-	InvalidAccessTokenErr
-	CannotVerifyAPIKey
+	// NotAuthenticated is for operations that requires authentication
+	// but the request is not properly authenticated.
+	NotAuthenticated ErrorCode = 101 + iota
+
+	// PermissionDenied occurs when the requested resource or operation
+	// exists, but the request is not allowed for some reason.
+	PermissionDenied
+
+	// AccessKeyNotAccepted occurs when the request contains access key
+	// (API key), but the access key is not accepted.
+	AccessKeyNotAccepted
+
+	// AccessTokenNotAccepted occurs when the request contains access token
+	// but the access token is not accepted.
+	AccessTokenNotAccepted
+
+	// InvalidCredentials occurs when the information supplied by a user
+	// to get authenticated is incorrect.
+	InvalidCredentials
+
+	// InvalidSignature is returned by an operation that requires a signature
+	// and the provided signature is not valid.
+	InvalidSignature
+
+	// BadRequest is an error when the server does not understand the request.
+	//
+	// The same error is used for requests that does not conform to HTTP
+	// protocol.
+	// The same error may be used for requests that are missing arguments.
+	BadRequest
+
+	// The server understand the request, but the supplied argument is not valid
+	InvalidArgument
+
+	// Duplicated is an error that occurs when a resource to be saved is
+	// a duplicate of an existing resource
+	Duplicated
+
+	// ResourceNotFound is returned because the requested resource
+	// is not found, and this is unlikely due to a failure.
+	//
+	// The same error is used for operations that require a critical resource
+	// to be available, and that resource is specified in the request.
+	ResourceNotFound
+
+	// NotSupported occurs when the server understands the request,
+	// but the feature is not available due to a known limitation.
+	//
+	// Use this when the feature is not likely to be implemented in the near
+	// future.
+	NotSupported
+
+	// NotImplemented occurs when the server understands the request,
+	// but the feature is not implemented yet.
+	//
+	// Use this when the feature is likely to be implemented in the near
+	// future.
+	NotImplemented
+
+	// ConstraintViolated occurs when a resource cannot be saved because
+	// doing so would violate a constraint.
+	ConstraintViolated
+
+	// IncompatibleSchema occurs if because the saving record is incompatible
+	// with the existing schema.
+	IncompatibleSchema
+
+	// AtomicOperationFailure occurs when a batch operation failed because
+	// it failed partially, and the batch operation is required to be atomic
+	AtomicOperationFailure
+
+	// PartialOperationFailure occurs when a batch operation failed because
+	// it failed partially, and the batch operation is not required to be atomic
+	PartialOperationFailure
+
+	// UndefinedOperation is an operation that is not known to the system
+	UndefinedOperation
+
+	// Error codes for expected error condition should be placed
+	// above this line.
 )
 
-// ErrCode signifying invalid request
+// A list of unexpected errors.
 const (
-	_ ErrCode = 200 + iota
-	RequestInvalidErr
-	MissingDatabaseIDErr
-)
 
-// ErrCode signifying internal error
-const (
-	_ ErrCode = 300 + iota
-	PersistentStorageErr
+	// UnexpectedError is for an error that is not likely to happen or
+	// an error that cannot be classified into any other error type.
+	//
+	// Refrain from using this error code.
+	UnexpectedError ErrorCode = 10000 + iota
+	UnexpectedUserInfoNotFound
+	UnexpectedUnableToOpenDatabase
+	UnexpectedPushNotificationNotConfigured
+
+	// Error codes for unexpected error condition should be placed
+	// above this line.
 )
 
 // Error specifies the interfaces required by an error in skygear
 type Error interface {
-	Type() string
-	Code() uint
+	Name() string
+	Code() ErrorCode
 	Message() string
 	Info() map[string]interface{}
 	error
@@ -70,46 +130,47 @@ type Error interface {
 // genericError is an intuitive implementation of Error that contains
 // an code and error message.
 type genericError struct {
-	t       string
-	code    uint
+	code    ErrorCode
 	message string
 	info    map[string]interface{}
 }
 
-func newError(t string, code uint, message string) Error {
+// NewError returns an error suitable to be returned to the client
+func NewError(code ErrorCode, message string) Error {
+	return NewErrorWithInfo(code, message, nil)
+}
+
+// NewErrorf returns an Error
+func NewErrorf(code ErrorCode, message string, a ...interface{}) Error {
+	return NewError(code, fmt.Sprintf(message, a...))
+}
+
+// NewErrorWithInfo returns an Error
+func NewErrorWithInfo(code ErrorCode, message string, info map[string]interface{}) Error {
 	return &genericError{
-		t:       t,
 		code:    code,
 		message: message,
+		info:    info,
 	}
 }
 
-func newNotFoundErr(code uint, message string) Error {
-	return newError("ResourceNotFound", code, message)
-}
-
-func newDuplicatedErr(code uint, message string) Error {
-	return newError("ResourceDuplicated", code, message)
+func newNotFoundErr(code ErrorCode, message string) Error {
+	return NewError(code, message)
 }
 
 // NewUnknownErr returns a new UnknownError
 func NewUnknownErr(err error) Error {
-	return newError("UnknownError", 1, err.Error())
-}
-
-// NewRequestInvalidErr returns a new RequestInvalid Error
-func NewRequestInvalidErr(err error) Error {
-	return newError("RequestInvalid", 101, err.Error())
+	return NewError(UnexpectedError, err.Error())
 }
 
 // NewRequestJSONInvalidErr returns new RequestJSONInvalid Error
 func NewRequestJSONInvalidErr(err error) Error {
-	return newError("RequestInvalid", 102, err.Error())
+	return NewError(BadRequest, err.Error())
 }
 
 // NewResourceFetchFailureErr returns a new ResourceFetchFailure Error
 func NewResourceFetchFailureErr(kind string, id interface{}) Error {
-	return newError("ResourceFetchFailure", 101, fmt.Sprintf("failed to fetch %v id = %v", kind, id))
+	return NewError(UnexpectedError, fmt.Sprintf("failed to fetch %v id = %v", kind, id))
 }
 
 func newResourceSaveFailureErr(kind string, id interface{}) Error {
@@ -120,7 +181,7 @@ func newResourceSaveFailureErr(kind string, id interface{}) Error {
 		message = "failed to save " + kind
 	}
 
-	return newError("ResourceSaveFailure", 101, message)
+	return NewError(UnexpectedError, message)
 }
 
 // NewResourceSaveFailureErrWithStringID returns a new ResourceSaveFailure Error
@@ -141,7 +202,7 @@ func newResourceDeleteFailureErr(kind string, id interface{}) Error {
 		message = "failed to delete " + kind
 	}
 
-	return newError("ResourceDeleteFailure", 101, message)
+	return NewError(UnexpectedError, message)
 }
 
 // NewResourceDeleteFailureErrWithStringID returns a new ResourceDeleteFailure Error
@@ -153,54 +214,11 @@ func NewResourceDeleteFailureErrWithStringID(kind string, id string) Error {
 	return newResourceDeleteFailureErr(kind, iID)
 }
 
-// NewAtomicOperationFailedErr return a new DatabaseError to be returned
-// when atomic operation (like record save/delete) failed due to
-// one of the sub-operation failed
-func NewAtomicOperationFailedErr(errMap map[skydb.RecordID]error) Error {
-	info := map[string]interface{}{}
-	for recordID, err := range errMap {
-		info[recordID.String()] = err.Error()
-	}
-
-	return &genericError{
-		t:       "DatabaseError",
-		code:    666,
-		message: "Atomic Operation rolled back due to one or more errors",
-		info:    info,
-	}
+func (e *genericError) Name() string {
+	return fmt.Sprintf("%v", e.code)
 }
 
-// NewAtomicOperationFailedErrWithCause return a new DatabaseError to be returned
-// when atomic operation (like record save/delete) failed due to
-// a global operation failed
-func NewAtomicOperationFailedErrWithCause(err error) Error {
-	return &genericError{
-		t:       "DatabaseError",
-		code:    667,
-		message: "Atomic Operation rolled back due to an error",
-		info:    map[string]interface{}{"innerError": err},
-	}
-
-}
-
-// New creates an Error to be returned as Response's result
-func New(code ErrCode, message string) Error {
-	return &genericError{
-		code:    uint(code),
-		message: message,
-	}
-}
-
-// NewFmt creates an Error with the specified fmt and args
-func NewFmt(code ErrCode, format string, args ...interface{}) Error {
-	return New(code, fmt.Sprintf(format, args...))
-}
-
-func (e *genericError) Type() string {
-	return e.t
-}
-
-func (e *genericError) Code() uint {
+func (e *genericError) Code() ErrorCode {
 	return e.code
 }
 
@@ -218,9 +236,9 @@ func (e *genericError) Error() string {
 
 func (e *genericError) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Type    string                 `json:"type"`
-		Code    uint                   `json:"code"`
+		Name    string                 `json:"name"`
+		Code    ErrorCode              `json:"code"`
 		Message string                 `json:"message"`
 		Info    map[string]interface{} `json:"info,omitempty"`
-	}{e.Type(), e.Code(), e.Message(), e.Info()})
+	}{e.Name(), e.Code(), e.Message(), e.Info()})
 }
