@@ -55,7 +55,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
 		{"_id": "note/0", "_type": "record"},
-		{"_id": "note/notexistid", "_type": "error", "code": 103, "message": "record not found", "type": "ResourceNotFound"}
+		{"_id": "note/notexistid", "_type": "error", "code": 110, "message": "record not found", "name": "ResourceNotFound"}
 	]
 }`)
 
@@ -156,13 +156,13 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_type": "error",
-					"type": "RequestInvalid",
-					"code": 101,
+					"name": "InvalidArgument",
+					"code": 108,
 					"message": "record: required field \"_id\" not found"
 				},{
 					"_type": "error",
-					"type": "RequestInvalid",
-					"code": 101,
+					"name": "InvalidArgument",
+					"code": 108,
 					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\""
 			}]}`)
 		})
@@ -177,13 +177,13 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_type": "error",
-					"type": "RequestInvalid",
-					"code": 101,
+					"name": "InvalidArgument",
+					"code": 108,
 					"message": "record: required field \"_id\" not found"
 				},{
 					"_type": "error",
-					"type": "RequestInvalid",
-					"code": 101,
+					"name": "InvalidArgument",
+					"code": 108,
 					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\""
 			}]}`)
 		})
@@ -1711,8 +1711,8 @@ func TestAtomicOperation(t *testing.T) {
 
 				So(resp.Body.String(), ShouldEqualJSON, `{
 					"error": {
-						"type": "DatabaseError",
-						"code": 666,
+						"code": 115,
+						"name": "AtomicOperationFailure",
 						"message": "Atomic Operation rolled back due to one or more errors",
 						"info": {
 							"note/1": "Original Sin"
@@ -1806,8 +1806,8 @@ func TestAtomicOperation(t *testing.T) {
 
 				So(resp.Body.String(), ShouldEqualJSON, `{
 					"error": {
-						"type": "DatabaseError",
-						"code": 666,
+						"code": 115,
+						"name": "AtomicOperationFailure",
 						"message": "Atomic Operation rolled back due to one or more errors",
 						"info": {
 							"note/1": "Original Sin"

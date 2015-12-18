@@ -12,6 +12,7 @@ import (
 	"github.com/oursky/skygear/provider"
 	"github.com/oursky/skygear/push"
 	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skyerr"
 )
 
 // Handler specifies the function signature of a request handler function
@@ -83,7 +84,7 @@ type Response struct {
 	Meta       map[string]interface{} `json:"-"`
 	Info       interface{}            `json:"info,omitempty"`
 	Result     interface{}            `json:"result,omitempty"`
-	Err        error                  `json:"error,omitempty"`
+	Err        skyerr.Error           `json:"error,omitempty"`
 	RequestID  string                 `json:"request_id,omitempty"`
 	DatabaseID string                 `json:"database_id,omitempty"`
 	written    bool

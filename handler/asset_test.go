@@ -178,8 +178,8 @@ func TestAssetUploadURLHandler(t *testing.T) {
 			resp := r.PUT("asset", ``)
 			So(resp.Body.String(), ShouldEqualJSON, `{
 				"error": {
-					"type": "RequestInvalid",
-					"code": 101,
+					"code": 108,
+					"name": "InvalidArgument",
 					"message": "Content-Type cannot be empty"
 				}
 			}`)
@@ -192,8 +192,8 @@ func TestAssetUploadURLHandler(t *testing.T) {
 
 			So(resp.Body.String(), ShouldEqualJSON, `{
 				"error": {
-					"type": "RequestInvalid",
-					"code": 101,
+					"code": 108,
+					"name": "InvalidArgument",
 					"message": "Zero-byte content"
 				}
 			}`)
@@ -271,8 +271,8 @@ func TestAssetGetURLHandler(t *testing.T) {
 			resp := r.GET("assetName?signature=signedSignature&expiredAt=1436431130")
 			So(resp.Body.String(), ShouldEqualJSON, `{
 				"error": {
-					"type": "RequestInvalid",
-					"code": 101,
+					"code": 102,
+					"name": "PermissionDenied",
 					"message": "Access denied"
 				}
 			}`)
@@ -289,8 +289,8 @@ func TestAssetGetURLHandler(t *testing.T) {
 			resp := r.GET("assetName?signature=signedSignature&expiredAt=1436431130")
 			So(resp.Body.String(), ShouldEqualJSON, `{
 				"error": {
-					"type": "RequestInvalid",
-					"code": 101,
+					"code": 106,
+					"name": "InvalidSignature",
 					"message": "Invalid signature"
 				}
 			}`)

@@ -180,7 +180,7 @@ func newSerializedError(id string, err skyerr.Error) serializedError {
 func (s serializedError) MarshalJSON() ([]byte, error) {
 	m := map[string]interface{}{
 		"_type":   "error",
-		"type":    s.err.Type(),
+		"name":    s.err.Name(),
 		"code":    s.err.Code(),
 		"message": s.err.Message(),
 	}
@@ -257,7 +257,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 
 	recordMaps, ok := payload.Data["records"].([]interface{})
 	if !ok {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("expected list of record"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected list of record")
 		return
 	}
 
@@ -283,7 +283,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 		Atomic:        atomic,
 	}
 	resp := recordModifyResponse{
-		ErrMap: map[skydb.RecordID]error{},
+		ErrMap: map[skydb.RecordID]skyerr.Error{},
 	}
 
 	var saveFunc recordModifyFunc
@@ -307,7 +307,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 
 		switch item := itemi.(type) {
 		case error:
-			result = newSerializedError("", skyerr.NewRequestInvalidErr(item))
+			result = newSerializedError("", skyerr.NewError(skyerr.InvalidArgument, item.Error()))
 		case skydb.RecordID:
 			if err, ok := resp.ErrMap[item]; ok {
 				log.WithFields(log.Fields{
@@ -315,7 +315,7 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 					"err":      err,
 				}).Debugln("failed to save record")
 
-				result = newSerializedError(item.String(), skyerr.NewResourceSaveFailureErrWithStringID("record", item.String()))
+				result = newSerializedError(item.String(), err)
 			} else {
 				record := resp.SavedRecords[currRecordIdx]
 				currRecordIdx++
@@ -331,24 +331,34 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 	response.Result = results
 }
 
-type recordModifyFunc func(*recordModifyRequest, *recordModifyResponse) error
+type recordModifyFunc func(*recordModifyRequest, *recordModifyResponse) skyerr.Error
 
 func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFunc recordModifyFunc) recordModifyFunc {
-	return func(req *recordModifyRequest, resp *recordModifyResponse) (err error) {
+	return func(req *recordModifyRequest, resp *recordModifyResponse) (err skyerr.Error) {
 		txDB, ok := req.Db.(skydb.TxDatabase)
 		if !ok {
-			err = skyerr.ErrDatabaseTxNotSupported
+			err = skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
 			return
 		}
 
-		err = withTransaction(txDB, func() error {
+		txErr := withTransaction(txDB, func() error {
 			return mFunc(req, resp)
 		})
 
 		if len(resp.ErrMap) > 0 {
-			err = skyerr.NewAtomicOperationFailedErr(resp.ErrMap)
-		} else if err != nil {
-			err = skyerr.NewAtomicOperationFailedErrWithCause(err)
+			info := map[string]interface{}{}
+			for recordID, err := range resp.ErrMap {
+				info[recordID.String()] = err.Message()
+			}
+
+			return skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
+				"Atomic Operation rolled back due to one or more errors",
+				info)
+		} else if txErr != nil {
+			err = skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
+				"Atomic Operation rolled back due to an error",
+				map[string]interface{}{"innerError": txErr})
+
 		}
 		return
 	}
@@ -388,21 +398,21 @@ type recordModifyRequest struct {
 }
 
 type recordModifyResponse struct {
-	ErrMap           map[skydb.RecordID]error
+	ErrMap           map[skydb.RecordID]skyerr.Error
 	SavedRecords     []*skydb.Record
 	DeletedRecordIDs []skydb.RecordID
 }
 
-func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) error {
+func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) skyerr.Error {
 	db := req.Db
 	records := req.RecordsToSave
 
 	// fetch records
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
-	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
+	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 		var dbRecord skydb.Record
-		err = db.Get(record.ID, &dbRecord)
-		if err == skydb.ErrRecordNotFound {
+		dbErr := db.Get(record.ID, &dbRecord)
+		if dbErr == skydb.ErrRecordNotFound {
 			return nil
 		}
 
@@ -419,9 +429,12 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 	// execute before save hooks
 	if req.HookRegistry != nil {
-		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
+		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 			originalRecord, _ := originalRecordMap[record.ID]
-			err = req.HookRegistry.ExecuteHooks(hook.BeforeSave, record, originalRecord)
+			pluginErr := req.HookRegistry.ExecuteHooks(hook.BeforeSave, record, originalRecord)
+			if pluginErr != nil {
+				err = skyerr.NewError(skyerr.UnexpectedError, pluginErr.Error())
+			}
 			return
 		})
 	}
@@ -429,7 +442,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	// derive and extend record schema
 	if err := extendRecordSchema(db, records); err != nil {
 		log.WithField("err", err).Errorln("failed to migrate record schema")
-		return skyerr.ErrDatabaseSchemaMigrationFailed
+		return skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
 	}
 
 	// remove bogus field, they are only for schema change
@@ -443,7 +456,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	}
 
 	// save records
-	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
+	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 		now := timeNow()
 
 		var deltaRecord skydb.Record
@@ -461,7 +474,9 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
-		err = db.Save(&deltaRecord)
+		if dbErr := db.Save(&deltaRecord); dbErr != nil {
+			err = skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
+		}
 		injectSigner(&deltaRecord, req.AssetStore)
 		*record = deltaRecord
 
@@ -469,14 +484,17 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	})
 
 	if req.Atomic && len(resp.ErrMap) > 0 {
-		return errors.New("atomic operation failed")
+		return skyerr.NewError(skyerr.UnexpectedError, "atomic operation failed")
 	}
 
 	// execute after save hooks
 	if req.HookRegistry != nil {
-		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
+		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 			originalRecord, _ := originalRecordMap[record.ID]
-			req.HookRegistry.ExecuteHooks(hook.AfterSave, record, originalRecord)
+			pluginErr := req.HookRegistry.ExecuteHooks(hook.AfterSave, record, originalRecord)
+			if pluginErr != nil {
+				log.Errorf("Error occurred while executing hooks: %s", pluginErr.Error())
+			}
 			return
 		})
 	}
@@ -485,9 +503,9 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) err
 	return nil
 }
 
-type recordFunc func(*skydb.Record) error
+type recordFunc func(*skydb.Record) skyerr.Error
 
-func executeRecordFunc(recordsIn []*skydb.Record, errMap map[skydb.RecordID]error, rFunc recordFunc) (recordsOut []*skydb.Record) {
+func executeRecordFunc(recordsIn []*skydb.Record, errMap map[skydb.RecordID]skyerr.Error, rFunc recordFunc) (recordsOut []*skydb.Record) {
 	for _, record := range recordsIn {
 		if err := rFunc(record); err != nil {
 			errMap[record.ID] = err
@@ -684,7 +702,7 @@ EOF
 func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	interfaces, ok := payload.Data["ids"].([]interface{})
 	if !ok {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("expected list of id"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected list of id")
 		return
 	}
 
@@ -693,13 +711,13 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 	for i, it := range interfaces {
 		rawID, ok := it.(string)
 		if !ok {
-			response.Err = skyerr.NewRequestInvalidErr(errors.New("expected string id"))
+			response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected string id")
 			return
 		}
 
 		ss := strings.SplitN(rawID, "/", 2)
 		if len(ss) == 1 {
-			response.Err = skyerr.NewRequestInvalidErr(fmt.Errorf("invalid id format: %v", rawID))
+			response.Err = skyerr.NewErrorf(skyerr.InvalidArgument, "invalid id format: %v", rawID)
 			return
 		}
 
@@ -716,7 +734,7 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 			if err == skydb.ErrRecordNotFound {
 				results[i] = newSerializedError(
 					recordID.String(),
-					skyerr.ErrRecordNotFound,
+					skyerr.NewError(skyerr.ResourceNotFound, "record not found"),
 				)
 			} else {
 				log.WithFields(log.Fields{
@@ -925,7 +943,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 
 	interfaces, ok := payload.Data["ids"].([]interface{})
 	if !ok {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("expected list of id"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected list of id")
 		return
 	}
 
@@ -934,13 +952,13 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 	for i, it := range interfaces {
 		rawID, ok := it.(string)
 		if !ok {
-			response.Err = skyerr.NewRequestInvalidErr(errors.New("expected string id"))
+			response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected string id")
 			return
 		}
 
 		ss := strings.SplitN(rawID, "/", 2)
 		if len(ss) == 1 {
-			response.Err = skyerr.NewRequestInvalidErr(fmt.Errorf("invalid id format: %v", rawID))
+			response.Err = skyerr.NewErrorf(skyerr.InvalidArgument, "invalid id format: %v", rawID)
 			return
 		}
 
@@ -955,7 +973,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 		Atomic:            atomic,
 	}
 	resp := recordModifyResponse{
-		ErrMap: map[skydb.RecordID]error{},
+		ErrMap: map[skydb.RecordID]skyerr.Error{},
 	}
 
 	var deleteFunc recordModifyFunc
@@ -977,22 +995,14 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 		var result interface{}
 
 		if err, ok := resp.ErrMap[recordID]; ok {
-			if err == skydb.ErrRecordNotFound {
-				result = newSerializedError(
-					recordID.String(),
-					skyerr.ErrRecordNotFound,
-				)
-			} else {
-				log.WithFields(log.Fields{
-					"recordID": recordID,
-					"err":      err,
-				}).Debugln("failed to delete record")
-
-				result = newSerializedError(
-					recordID.String(),
-					skyerr.NewResourceDeleteFailureErrWithStringID("record", recordID.String()),
-				)
-			}
+			log.WithFields(log.Fields{
+				"recordID": recordID,
+				"err":      err,
+			}).Debugln("failed to delete record")
+			result = newSerializedError(
+				recordID.String(),
+				err,
+			)
 		} else {
 			result = struct {
 				ID   skydb.RecordID `json:"_id"`
@@ -1006,38 +1016,52 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 	response.Result = results
 }
 
-func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) error {
+func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) skyerr.Error {
 	db := req.Db
 	recordIDs := req.RecordIDsToDelete
 
 	var records []*skydb.Record
 	for _, recordID := range recordIDs {
 		var record skydb.Record
-		if err := db.Get(recordID, &record); err != nil {
-			resp.ErrMap[recordID] = err
+		if dbErr := db.Get(recordID, &record); dbErr != nil {
+			if dbErr == skydb.ErrRecordNotFound {
+				resp.ErrMap[recordID] = skyerr.NewError(skyerr.ResourceNotFound, "record not found")
+			} else {
+				resp.ErrMap[recordID] = skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
+			}
 		} else {
 			records = append(records, &record)
 		}
 	}
 
 	if req.HookRegistry != nil {
-		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
-			err = req.HookRegistry.ExecuteHooks(hook.BeforeDelete, record, nil)
+		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
+			pluginErr := req.HookRegistry.ExecuteHooks(hook.BeforeDelete, record, nil)
+			if pluginErr != nil {
+				err = skyerr.NewError(skyerr.UnexpectedError, pluginErr.Error())
+			}
 			return
 		})
 	}
 
-	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
-		return db.Delete(record.ID)
+	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
+
+		if dbErr := db.Delete(record.ID); dbErr != nil {
+			return skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
+		}
+		return nil
 	})
 
 	if req.Atomic && len(resp.ErrMap) > 0 {
-		return errors.New("atomic operation failed")
+		return skyerr.NewError(skyerr.UnexpectedError, "atomic operation failed")
 	}
 
 	if req.HookRegistry != nil {
-		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err error) {
-			req.HookRegistry.ExecuteHooks(hook.AfterDelete, record, nil)
+		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
+			pluginErr := req.HookRegistry.ExecuteHooks(hook.AfterDelete, record, nil)
+			if pluginErr != nil {
+				log.Errorf("Error occurred while executing hooks: %s", pluginErr.Error())
+			}
 			return
 		})
 	}

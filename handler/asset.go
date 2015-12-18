@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -33,16 +32,16 @@ func clean(p string) string {
 func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 	payload.Req.ParseForm()
 
-	// check whether the request if expired
+	// check whether the request is expired
 
 	expiredAtUnix, err := strconv.ParseInt(payload.Req.Form.Get("expiredAt"), 10, 64)
 	if err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("expect expiredAt to be an integer"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "expect expiredAt to be an integer")
 		return
 	}
 	expiredAt := time.Unix(expiredAtUnix, 0)
 	if timeNow().After(expiredAt) {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("Access denied"))
+		response.Err = skyerr.NewError(skyerr.PermissionDenied, "Access denied")
 		return
 	}
 
@@ -56,12 +55,12 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 	if err != nil {
 		log.Errorf("Failed to parse signature: %v", err)
 
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("Access denied"))
+		response.Err = skyerr.NewError(skyerr.PermissionDenied, "Access denied")
 		return
 	}
 
 	if !valid {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("Invalid signature"))
+		response.Err = skyerr.NewError(skyerr.InvalidSignature, "Invalid signature")
 		return
 	}
 
@@ -118,7 +117,7 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 	contentType = payload.Req.Header.Get("Content-Type")
 
 	if contentType == "" {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("Content-Type cannot be empty"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "Content-Type cannot be empty")
 		return
 	}
 
@@ -133,7 +132,7 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 	}()
 
 	if written == 0 {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("Zero-byte content"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "Zero-byte content")
 		return
 	}
 

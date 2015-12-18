@@ -12,6 +12,8 @@ import (
 	"github.com/oursky/skygear/skyerr"
 )
 
+var errUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
+
 type authResponse struct {
 	UserID      string `json:"user_id,omitempty"`
 	Username    string `json:"username,omitempty"`
@@ -98,7 +100,7 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 		authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
 		principalID, authData, err := authProvider.Login(p.AuthData())
 		if err != nil {
-			response.Err = skyerr.ErrAuthFailure
+			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
 			return
 		}
 		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
@@ -112,7 +114,7 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 		unIdentified := username == "" && email == ""
 
 		if unIdentified || password == "" {
-			response.Err = skyerr.NewRequestInvalidErr(errors.New("empty identifier(username, email) or password"))
+			response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty identifier(username, email) or password")
 			return
 		}
 		info = skydb.NewUserInfo(username, email, password)
@@ -120,7 +122,7 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 
 	if err := payload.DBConn.CreateUser(&info); err != nil {
 		if err == skydb.ErrUserDuplicated {
-			response.Err = skyerr.ErrUserDuplicated
+			response.Err = errUserDuplicated
 		} else {
 			response.Err = skyerr.NewResourceSaveFailureErrWithStringID("user", p.Username())
 		}
@@ -208,7 +210,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 		authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
 		principalID, authData, err := authProvider.Login(p.AuthData())
 		if err != nil {
-			response.Err = skyerr.ErrAuthFailure
+			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "invalid authentication information")
 			return
 		}
 		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
@@ -224,7 +226,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 			info = skydb.NewProvidedAuthUserInfo(principalID, authData)
 			if err = payload.DBConn.CreateUser(&info); err != nil {
 				if err == skydb.ErrUserDuplicated {
-					response.Err = skyerr.ErrUserDuplicated
+					response.Err = errUserDuplicated
 				} else {
 					response.Err = skyerr.NewResourceSaveFailureErrWithStringID("user", p.Username())
 				}
@@ -240,7 +242,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 	} else {
 		if err := payload.DBConn.GetUserByUsernameEmail(p.Username(), p.Email(), &info); err != nil {
 			if err == skydb.ErrUserNotFound {
-				response.Err = skyerr.ErrUserNotFound
+				response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			} else {
 				// TODO: more error handling here if necessary
 				response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username())
@@ -249,7 +251,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 		}
 
 		if !info.IsSamePassword(p.Password()) {
-			response.Err = skyerr.ErrInvalidLogin
+			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "username or password incorrect")
 			return
 		}
 	}
@@ -342,7 +344,7 @@ func PasswordHandler(payload *router.Payload, response *router.Response) {
 	info := skydb.UserInfo{}
 	if err := payload.DBConn.GetUser(p.UserInfoID, &info); err != nil {
 		if err == skydb.ErrUserNotFound {
-			response.Err = skyerr.ErrUserNotFound
+			response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		} else {
 			// TODO: more error handling here if necessary
 			response.Err = skyerr.NewResourceFetchFailureErr("user", p.UserInfoID)

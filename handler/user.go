@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/mitchellh/mapstructure"
@@ -29,7 +28,7 @@ func UserQueryHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if err := mapDecoder.Decode(payload.Data); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 
@@ -65,7 +64,7 @@ func UserUpdateHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if err := mapDecoder.Decode(payload.Data); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 
@@ -87,7 +86,7 @@ func UserLinkHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if p.Provider() == "" {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty provider"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty provider")
 		return
 	}
 
@@ -98,7 +97,7 @@ func UserLinkHandler(payload *router.Payload, response *router.Response) {
 	authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
 	principalID, authData, err := authProvider.Login(p.AuthData())
 	if err != nil {
-		response.Err = skyerr.ErrAuthFailure
+		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
 		return
 	}
 	log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())

@@ -133,8 +133,8 @@ func TestSignupHandlerDuplicatedUsername(t *testing.T) {
 		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
 	}
 
-	if errorResponse.Code() != 101 {
-		t.Fatalf("got errorResponse.Code() = %v, want 101", errorResponse.Code())
+	if errorResponse.Code() != 109 {
+		t.Fatalf("got errorResponse.Code() = %v, want 109", errorResponse.Code())
 	}
 }
 
@@ -162,8 +162,8 @@ func TestSignupHandlerDuplicatedEmail(t *testing.T) {
 		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
 	}
 
-	if errorResponse.Code() != 101 {
-		t.Fatalf("got errorResponse.Code() = %v, want 101", errorResponse.Code())
+	if errorResponse.Code() != 109 {
+		t.Fatalf("got errorResponse.Code() = %v, want 109", errorResponse.Code())
 	}
 }
 
@@ -235,8 +235,8 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
 	}
 
-	if errorResponse != skyerr.ErrInvalidLogin {
-		t.Fatalf("got resp.Err = %v, want ErrInvalidLogin", errorResponse)
+	if errorResponse.Code() != 105 {
+		t.Fatalf("got resp.Err.Code() = %v, want 105", errorResponse.Code())
 	}
 }
 
@@ -260,8 +260,8 @@ func TestLoginHandlerNotFound(t *testing.T) {
 		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
 	}
 
-	if errorResponse != skyerr.ErrUserNotFound {
-		t.Fatalf("got resp.Err = %v, want ErrUserNotFound", errorResponse)
+	if errorResponse.Code() != skyerr.ResourceNotFound {
+		t.Fatalf("got resp.Err.Code() = %v, want %v", errorResponse.Code(), skyerr.ResourceNotFound)
 	}
 }
 
@@ -394,8 +394,8 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"error": {
-		"code": 101,
-		"type": "RequestInvalid",
+		"code": 108,
+		"name": "InvalidArgument",
 		"message": "empty identifier(username, email) or password"
 	}
 }`)
@@ -409,8 +409,8 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"error": {
-		"code": 101,
-		"type": "RequestInvalid",
+		"code": 108,
+		"name": "InvalidArgument",
 		"message": "empty identifier(username, email) or password"
 	}
 }`)
@@ -456,9 +456,9 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"error": {
-		"code": 101,
-		"type": "AuthenticationError",
-		"message": "authentication failed"
+		"code": 105,
+		"name": "InvalidCredentials",
+		"message": "unable to login with the given credentials"
 	}
 }`))
 			So(resp.Code, ShouldEqual, 400)
@@ -521,8 +521,8 @@ func TestLogoutHandler(t *testing.T) {
 			So(tokenStore.deletedAccessToken, ShouldEqual, "someaccesstoken")
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"error": {
-		"code": 1,
-		"type": "UnknownError",
+		"code": 10000,
+		"name": "UnexpectedError",
 		"message": "some interesting error"
 	}
 }`)

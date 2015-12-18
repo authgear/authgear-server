@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
@@ -188,30 +187,20 @@ func newErrorWithID(id string, err error) *errorWithID {
 }
 
 func (e *errorWithID) MarshalJSON() ([]byte, error) {
-	var (
-		message string
-		t       string
-		code    uint
-		info    map[string]interface{}
-	)
+	var err skyerr.Error
 	if e.err == skydb.ErrSubscriptionNotFound {
-		message = fmt.Sprintf(`cannot find subscription "%s"`, e.id)
-		t = "ResourceNotFound"
-		code = 101
-		info = map[string]interface{}{"id": e.id}
+		err = skyerr.NewErrorWithInfo(skyerr.ResourceNotFound, fmt.Sprintf(`cannot find subscription "%s"`, e.id), map[string]interface{}{"id": e.id})
 	} else {
-		message = fmt.Sprintf("unknown error occurred: %v", e.err.Error())
-		t = "UnknownError"
-		code = 1
+		err = skyerr.NewError(skyerr.UnexpectedError, fmt.Sprintf("unknown error occurred: %v", e.err.Error()))
 	}
 	return json.Marshal(&struct {
 		ID       string                 `json:"_id"`
 		ItemType string                 `json:"_type"`
 		Message  string                 `json:"message"`
-		Type     string                 `json:"type"`
-		Code     uint                   `json:"code"`
+		Name     string                 `json:"name"`
+		Code     skyerr.ErrorCode       `json:"code"`
 		Info     map[string]interface{} `json:"info,omitempty"`
-	}{e.id, "error", message, t, code, info})
+	}{e.id, "error", err.Message(), err.Name(), err.Code(), err.Info()})
 }
 
 // SubscriptionFetchHandler fetches subscriptions from the specified Database.
@@ -237,12 +226,12 @@ func SubscriptionFetchHandler(rpayload *router.Payload, response *router.Respons
 		panic(err)
 	}
 	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 
 	if payload.DeviceID == "" {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty device_id"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty device_id")
 		return
 	}
 
@@ -293,12 +282,12 @@ func SubscriptionFetchAllHandler(rpayload *router.Payload, response *router.Resp
 		panic(err)
 	}
 	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 
 	if payload.DeviceID == "" {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty device id"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty device id")
 		return
 	}
 
@@ -361,18 +350,18 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 		panic(err)
 	}
 	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 
 	rawSubs := payload.Subscriptions
 	if len(rawSubs) == 0 {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty subscriptions"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty subscriptions")
 		return
 	}
 
 	if payload.DeviceID == "" {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty device_id"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty device_id")
 		return
 	}
 
@@ -388,8 +377,7 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 			UserID: rpayload.UserInfoID,
 		}
 		if err := parser.queryFromRaw(rawSub.Query, &sub.Query); err != nil {
-			response.Err = skyerr.NewRequestInvalidErr(fmt.Errorf(
-				"failed to parse subscriptions: %v", err))
+			response.Err = skyerr.NewErrorf(skyerr.InvalidArgument, "failed to parse subscriptions: %v", err)
 			return
 		}
 	}
@@ -435,12 +423,12 @@ func SubscriptionDeleteHandler(rpayload *router.Payload, response *router.Respon
 		panic(err)
 	}
 	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = skyerr.NewRequestInvalidErr(err)
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 
 	if payload.DeviceID == "" {
-		response.Err = skyerr.NewRequestInvalidErr(errors.New("empty device_id"))
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty device_id")
 		return
 	}
 

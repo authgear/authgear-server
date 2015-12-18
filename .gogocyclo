@@ -4,3 +4,4 @@ ignores = `pq`.(*recordScanner).Scan
 ignores = `pq`.(*database).remoteColumnTypes
 ignores = `skydb`.(Predicate).Validate
 ignores = `skydbconv`.ParseInterface
+ignores = `router`.defaultStatusCode

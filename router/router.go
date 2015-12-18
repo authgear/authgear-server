@@ -80,16 +80,13 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if handler == nil {
 		httpStatus = http.StatusNotFound
-		resp.Err = skyerr.NewRequestInvalidErr(errors.New("route unmatched"))
+		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, "route unmatched")
 	} else {
 		for _, p := range preprocessors {
 			httpStatus = p(payload, &resp)
 			if resp.Err != nil {
 				if httpStatus == 200 {
-					httpStatus = 500
-				}
-				if _, ok := resp.Err.(skyerr.Error); !ok {
-					resp.Err = skyerr.NewUnknownErr(resp.Err)
+					httpStatus = defaultStatusCode(resp.Err)
 				}
 				return
 			}

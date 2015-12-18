@@ -9,10 +9,10 @@ import (
 
 func TestNewError(t *testing.T) {
 	Convey("An Error", t, func() {
-		err := New(1, "some message")
+		err := NewError(10000, "some message")
 
 		Convey("returns code correctly", func() {
-			So(err.Code(), ShouldEqual, 1)
+			So(err.Code(), ShouldEqual, 10000)
 		})
 
 		Convey("returns message correctly", func() {
@@ -20,18 +20,18 @@ func TestNewError(t *testing.T) {
 		})
 
 		Convey("Error()s in format {code}: {message}", func() {
-			So(err.Error(), ShouldEqual, "1: some message")
+			So(err.Error(), ShouldEqual, "UnexpectedError: some message")
 		})
 
 		Convey("has format {code}: {message} when being written", func() {
-			So(fmt.Sprintf("%v", err), ShouldEqual, "1: some message")
+			So(fmt.Sprintf("%v", err), ShouldEqual, "UnexpectedError: some message")
 		})
 	})
 }
 
-func TestNewFmtError(t *testing.T) {
-	Convey("NewFmt", t, func() {
-		err := NewFmt(2, "obj1: %v, obj2: %v", "string", 0)
+func TestNewErrorf(t *testing.T) {
+	Convey("NewErrorf", t, func() {
+		err := NewErrorf(2, "obj1: %v, obj2: %v", "string", 0)
 
 		Convey("creates err with correct code", func() {
 			So(err.Code(), ShouldEqual, 2)
