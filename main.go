@@ -170,7 +170,7 @@ func main() {
 
 	r.Map("record:fetch", handler.RecordFetchHandler, baseAuthPreprocessors...)
 	r.Map("record:query", handler.RecordQueryHandler, baseAuthPreprocessors...)
-	r.Map("record:save", handler.RecordSaveHandler, baseAuthPreprocessors...)
+	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
 
 	r.Map("device:register", handler.DeviceRegisterHandler, baseAuthPreprocessors...)
