@@ -3,7 +3,6 @@ package router
 import (
 	"bufio"
 	"encoding/json"
-	"log"
 	"net"
 	"net/http"
 
@@ -64,17 +63,6 @@ func (p *Payload) RouteAction() string {
 func (p *Payload) APIKey() string {
 	key, _ := p.Data["api_key"].(string)
 	return key
-}
-
-// IsAuth tell the middleware is this payload is an auth request
-func (p *Payload) IsAuth() bool {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("IsAuth recover")
-		}
-		return
-	}()
-	return p.Data["action"].(string)[0:5] == "auth:"
 }
 
 // AccessToken return the user input string
