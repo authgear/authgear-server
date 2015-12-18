@@ -32,8 +32,10 @@ else
     echo "Found repository $REPO_NAME."
     cd $REPO_NAME
     git fetch
-    if [ `git rev-parse HEAD` != `git rev-parse $REFSPEC` ]; then
-        echo "Local hash `git rev-parse HEAD` and Remote hash `git rev-parse $REFSPEC` differ. Rebuilding..."
+    LOCAL_HASH=`git rev-parse HEAD`
+    REMOTE_HASH=`git rev-list -n 1 $REFSPEC` 
+    if [ $LOCAL_HASH != $REMOTE_HASH ]; then
+        echo "Local hash $LOCAL_HASH and remote hash $REMOTE_HASH differ. Rebuilding..."
         git clean -fxd
         git checkout $REFSPEC
         ./autogen.sh
