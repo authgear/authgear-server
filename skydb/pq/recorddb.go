@@ -179,33 +179,37 @@ func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
 }
 
 // GetByIDs using SQL IN cause
+// GetByIDs only support one type of records at a time. If you want to query
+// array of ids belongs to different type, you need to call this method multiple
+// time.
 func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 	if len(ids) == 0 {
 		return nil, errors.New("db.GetByIDs received empty array")
 	}
-	id := ids[0]
-	log.Debugf("GetByIDs Type: %s", id.Type)
-	typemap, err := db.remoteColumnTypes(id.Type)
+	idStrs := []interface{}{}
+	recordType := ""
+	for _, recordID := range ids {
+		if recordID.Key != "" {
+			idStrs = append(idStrs, recordID.Key)
+		}
+		if recordID.Type != "" && recordType == "" {
+			recordType = recordID.Type
+		}
+	}
+
+	log.Debugf("GetByIDs Type: %s", recordType)
+	typemap, err := db.remoteColumnTypes(recordType)
 	if err != nil {
 		return nil, err
 	}
-
 	if len(typemap) == 0 {
 		log.Debugf("Record Type has not been created")
 		return nil, skydb.ErrRecordNotFound
 	}
 
-	idStrs := []interface{}{}
-	for _, recordID := range ids {
-		if recordID.Key != "" {
-			idStrs = append(idStrs, recordID.Key)
-		}
-	}
 	inCause, inArgs := literalToSQLOperand(idStrs)
-
-	query := db.selectQuery(id.Type, typemap).
+	query := db.selectQuery(recordType, typemap).
 		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
-
 	sql, args, err := query.ToSql()
 	log.WithFields(log.Fields{
 		"sql":  sql,
@@ -218,7 +222,7 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 		log.Debugf("Getting records by ID failed %v", err)
 		return nil, err
 	}
-	return newRows(id.Type, typemap, rows, err)
+	return newRows(recordType, typemap, rows, err)
 }
 
 // Save attempts to do a upsert

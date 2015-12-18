@@ -302,6 +302,30 @@ func TestGetByIDs(t *testing.T) {
 			So(noMore, ShouldEqual, false)
 		})
 
+		Convey("get record with one of them is placeholder", func() {
+			scanner, err := db.GetByIDs([]skydb.RecordID{
+				skydb.RecordID{},
+				skydb.NewRecordID("record", "id1"),
+			})
+			So(err, ShouldBeNil)
+
+			scanner.Scan()
+			record := scanner.Record()
+
+			So(record.ID, ShouldResemble, skydb.NewRecordID("record", "id1"))
+			So(record.DatabaseID, ShouldResemble, "getuser")
+			So(record.OwnerID, ShouldResemble, "getuser")
+			So(record.CreatorID, ShouldResemble, "getuser")
+			So(record.UpdaterID, ShouldResemble, "getuser")
+			So(record.Data["string"], ShouldEqual, "string")
+
+			So(record.CreatedAt, ShouldResemble, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC))
+			So(record.UpdatedAt, ShouldResemble, time.Date(1988, 2, 6, 0, 0, 0, 0, time.UTC))
+
+			noMore := scanner.Scan()
+			So(noMore, ShouldEqual, false)
+		})
+
 		Convey("get multiple record", func() {
 			scanner, err := db.GetByIDs([]skydb.RecordID{
 				skydb.NewRecordID("record", "id0"),
