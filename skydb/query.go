@@ -1,8 +1,7 @@
 package skydb
 
 import (
-	"errors"
-	"fmt"
+	"github.com/oursky/skygear/skyerr"
 )
 
 // SortOrder denotes an the order of Records returned from a Query.
@@ -86,6 +85,37 @@ type Expression struct {
 	Value interface{}
 }
 
+func (expr Expression) IsKeyPath() bool {
+	return expr.Type == KeyPath
+}
+
+func (expr Expression) IsLiteralString() bool {
+	if expr.Type != Literal {
+		return false
+	}
+
+	_, ok := expr.Value.(string)
+	return ok
+}
+
+func (expr Expression) IsLiteralArray() bool {
+	if expr.Type != Literal {
+		return false
+	}
+
+	_, ok := expr.Value.([]interface{})
+	return ok
+}
+
+func (expr Expression) IsLiteralMap() bool {
+	if expr.Type != Literal {
+		return false
+	}
+
+	_, ok := expr.Value.(map[string]interface{})
+	return ok
+}
+
 // Predicate is a representation of used in query for filtering records.
 type Predicate struct {
 	Operator Operator
@@ -95,19 +125,22 @@ type Predicate struct {
 // Validate returns an Error if a Predicate is invalid.
 //
 // If a Predicate is validated without error, nil is returned.
-func (p Predicate) Validate() error {
+func (p Predicate) Validate() skyerr.Error {
 	if p.Operator.IsBinary() && len(p.Children) != 2 {
-		return fmt.Errorf("Unexpected number of operands. Expected: 2. Got: %d", len(p.Children))
+		return skyerr.NewErrorf(skyerr.InternalQueryInvalid,
+			"binary predicate must have 2 operands, got %d", len(p.Children))
 	}
 	if p.Operator == Functional && len(p.Children) != 1 {
-		return fmt.Errorf("Unexpected number of operands. Expected: 1. Got: %d", len(p.Children))
+		return skyerr.NewErrorf(skyerr.InternalQueryInvalid,
+			"functional predicate must have 1 operand, got %d", len(p.Children))
 	}
 
 	if p.Operator.IsCompound() {
 		for _, child := range p.Children {
 			predicate, ok := child.(Predicate)
 			if !ok {
-				return fmt.Errorf("Operand of a compound operator must be predicate.")
+				return skyerr.NewError(skyerr.InternalQueryInvalid,
+					"children of compound predicate must be a predicate")
 			}
 
 			if err := predicate.Validate(); err != nil {
@@ -118,7 +151,8 @@ func (p Predicate) Validate() error {
 		for _, child := range p.Children {
 			_, ok := child.(Expression)
 			if !ok {
-				return fmt.Errorf("Operand of a simple operator must be expression.")
+				return skyerr.NewError(skyerr.InternalQueryInvalid,
+					"children of simple predicate must be an expression")
 			}
 		}
 	}
@@ -127,32 +161,37 @@ func (p Predicate) Validate() error {
 	case In:
 		lhs := p.Children[0].(Expression)
 		rhs := p.Children[1].(Expression)
-		if lhs.Type == Literal && rhs.Type == KeyPath {
-			if _, ok := lhs.Value.(string); !ok {
-				return errors.New(`left operand of "IN" must be a string if comparing with a keypath`)
-			}
-		} else if lhs.Type == KeyPath && rhs.Type == Literal {
-			if _, ok := rhs.Value.([]interface{}); !ok {
-				return errors.New(`right operand of "IN" must be an array if comparing with a keypath`)
-			}
-		} else {
-			return errors.New(`unexpected type of operands for "IN" comparison`)
+
+		if lhs.IsKeyPath() == rhs.IsKeyPath() {
+			return skyerr.NewError(skyerr.InternalQueryInvalid,
+				`either one of the operands of "IN" must be key path`)
+		}
+
+		if rhs.IsKeyPath() && !lhs.IsLiteralString() {
+			return skyerr.NewError(skyerr.InternalQueryInvalid,
+				`left operand of "IN" must be a string if comparing with a keypath`)
+		} else if lhs.IsKeyPath() && !rhs.IsLiteralArray() {
+			return skyerr.NewError(skyerr.InternalQueryInvalid,
+				`right operand of "IN" must be an array if comparing with a keypath`)
 		}
 	case Functional:
 		expr := p.Children[0].(Expression)
 		if expr.Type != Function {
-			return errors.New(`only functional expression is supported in functional predicate`)
+			return skyerr.NewError(skyerr.InternalQueryInvalid,
+				`functional predicate must contain functional expression`)
 		}
 
 		switch f := expr.Value.(type) {
 		case *UserRelationFunc:
 			if f.RelationName != "_friend" && f.RelationName != "_follow" {
-				return errors.New(`non implemented relation for user relation predicate`)
+				return skyerr.NewErrorf(skyerr.NotSupported,
+					`user relation predicate with "%d" relation is not supported`,
+					f.RelationName)
 			}
 		default:
-			return errors.New(`unsupported function for functional predicate`)
+			return skyerr.NewError(skyerr.NotSupported,
+				`unsupported function for functional predicate`)
 		}
-
 	}
 	return nil
 }
