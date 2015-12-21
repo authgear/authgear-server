@@ -192,6 +192,27 @@ func (p Predicate) Validate() skyerr.Error {
 			return skyerr.NewError(skyerr.NotSupported,
 				`unsupported function for functional predicate`)
 		}
+	case Equal:
+		lhs := p.Children[0].(Expression)
+		rhs := p.Children[1].(Expression)
+
+		if lhs.IsLiteralMap() {
+			return skyerr.NewErrorf(skyerr.NotSupported,
+				`equal comparison of map "%v" is not supported`,
+				lhs.Value)
+		} else if lhs.IsLiteralArray() {
+			return skyerr.NewErrorf(skyerr.NotSupported,
+				`equal comparison of array "%v" is not supported`,
+				lhs.Value)
+		} else if rhs.IsLiteralMap() {
+			return skyerr.NewErrorf(skyerr.NotSupported,
+				`equal comparison of map "%v" is not supported`,
+				rhs.Value)
+		} else if rhs.IsLiteralArray() {
+			return skyerr.NewErrorf(skyerr.NotSupported,
+				`equal comparison of array "%v" is not supported`,
+				rhs.Value)
+		}
 	}
 	return nil
 }

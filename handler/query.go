@@ -264,8 +264,12 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 	mustDoSlice(rawQuery, "predicate", func(rawPredicate []interface{}) skyerr.Error {
 		predicate := parser.predicateFromRaw(rawPredicate)
 		if err := predicate.Validate(); err != nil {
-			return skyerr.NewErrorf(skyerr.InvalidArgument,
-				"One of the predicate in the specified query is invalid.", err)
+			if err.Code() == skyerr.InternalQueryInvalid {
+				return skyerr.NewInvalidArgument(
+					fmt.Sprintf("query predicate is invalid: %v", err.Message()),
+					[]string{"predicate"})
+			}
+			return err
 		}
 		query.Predicate = &predicate
 		return nil

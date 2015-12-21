@@ -892,6 +892,28 @@ func TestRecordQuery(t *testing.T) {
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.GetCount, ShouldBeTrue)
 		})
+
+		Convey("Propagate invalid query error", func() {
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+					"predicate": []interface{}{
+						"eq",
+						map[string]interface{}{
+							"$type": "keypath",
+							"$val":  "content",
+						},
+						map[string]interface{}{},
+					},
+				},
+				Database: db,
+			}
+			response := router.Response{}
+
+			RecordQueryHandler(&payload, &response)
+
+			So(response.Err, ShouldNotBeNil)
+		})
 	})
 }
 
