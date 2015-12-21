@@ -242,10 +242,14 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 	defer func() {
 		// use panic to escape from inner error
 		if r := recover(); r != nil {
-			if queryErr, ok := r.(error); ok {
+			switch queryErr := r.(type) {
+			case skyerr.Error:
+				err = queryErr.(skyerr.Error)
+				return
+			case error:
 				log.WithField("rawQuery", rawQuery).Debugln("failed to construct query")
 				err = skyerr.NewErrorf(skyerr.InvalidArgument, "failed to construct query: %v", queryErr.Error())
-			} else {
+			default:
 				log.WithField("recovered", r).Errorln("panic recovered while constructing query")
 				err = skyerr.NewError(skyerr.InvalidArgument, "error occurred while constructing query")
 			}
@@ -257,7 +261,7 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 	}
 	query.Type = recordType
 
-	mustDoSlice(rawQuery, "predicate", func(rawPredicate []interface{}) error {
+	mustDoSlice(rawQuery, "predicate", func(rawPredicate []interface{}) skyerr.Error {
 		predicate := parser.predicateFromRaw(rawPredicate)
 		if err := predicate.Validate(); err != nil {
 			return skyerr.NewErrorf(skyerr.InvalidArgument,
@@ -267,7 +271,7 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 		return nil
 	})
 
-	mustDoSlice(rawQuery, "sort", func(rawSorts []interface{}) error {
+	mustDoSlice(rawQuery, "sort", func(rawSorts []interface{}) skyerr.Error {
 		query.Sorts = parser.sortsFromRaw(rawSorts)
 		return nil
 	})
@@ -279,7 +283,7 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 		}
 	}
 
-	mustDoSlice(rawQuery, "desired_keys", func(desiredKeys []interface{}) error {
+	mustDoSlice(rawQuery, "desired_keys", func(desiredKeys []interface{}) skyerr.Error {
 		query.DesiredKeys = make([]string, len(desiredKeys))
 		for i, key := range desiredKeys {
 			key, ok := key.(string)
@@ -308,7 +312,7 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 
 // execute do when if the value of key in m is []interface{}. If value exists
 // for key but its type is not []interface{} or do returns an error, it panics.
-func mustDoSlice(m map[string]interface{}, key string, do func(value []interface{}) error) {
+func mustDoSlice(m map[string]interface{}, key string, do func(value []interface{}) skyerr.Error) {
 	vi, ok := m[key]
 	if ok && vi != nil {
 		v, ok := vi.([]interface{})
@@ -317,7 +321,10 @@ func mustDoSlice(m map[string]interface{}, key string, do func(value []interface
 				panic(err)
 			}
 		} else {
-			panic(fmt.Errorf("%#s has to be an array", key))
+			panic(skyerr.NewInvalidArgument(
+				fmt.Sprintf(`expecting "%#s" to be an array`, key),
+				[]string{key}))
+
 		}
 	}
 }

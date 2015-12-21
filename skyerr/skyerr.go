@@ -155,6 +155,16 @@ func NewErrorWithInfo(code ErrorCode, message string, info map[string]interface{
 	}
 }
 
+func NewInvalidArgument(message string, arguments []string) Error {
+	return &genericError{
+		code:    InvalidArgument,
+		message: message,
+		info: map[string]interface{}{
+			"arguments": arguments,
+		},
+	}
+}
+
 func newNotFoundErr(code ErrorCode, message string) Error {
 	return NewError(code, message)
 }
