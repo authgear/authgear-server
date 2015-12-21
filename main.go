@@ -208,7 +208,7 @@ func main() {
 
 	fileGateway := router.NewGateway(`files/(.+)`)
 	fileGateway.GET(handler.AssetGetURLHandler, assetGetPreprocessors...)
-	fileGateway.PUT(handler.AssetUploadURLHandler, authPreprocessors...)
+	fileGateway.PUT(handler.AssetUploadURLHandler, baseAuthPreprocessors...)
 	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
 
 	// Bootstrap finished, binding port.
