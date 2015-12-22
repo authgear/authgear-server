@@ -29,9 +29,10 @@ type Store interface {
 
 // URLSigner signs a signature and returns a URL accessible to that asset.
 type URLSigner interface {
-	// SignedURL returns a signed url with access to the named file. The link
-	// should expires itself after expiredAt
-	SignedURL(name string, expiredAt time.Time) (string, error)
+	// SignedURL returns a url with access to the named file. If asset
+	// store is private, the returned URL is a signed one, allowing access
+	// to asset for a short period.
+	SignedURL(name string) (string, error)
 	IsSignatureRequired() bool
 }
 
@@ -84,7 +85,12 @@ func (s *FileStore) PutFileReader(name string, src io.Reader, length int64, cont
 	return nil
 }
 
-func (s *FileStore) SignedURL(name string, expiredAt time.Time) (string, error) {
+func (s *FileStore) SignedURL(name string) (string, error) {
+	if !s.IsSignatureRequired() {
+		return fmt.Sprintf("%s/%s", s.prefix, name), nil
+	}
+
+	expiredAt := time.Now().Add(time.Minute * time.Duration(15))
 	expiredAtStr := strconv.FormatInt(expiredAt.Unix(), 10)
 
 	h := hmac.New(sha256.New, []byte(s.secret))
@@ -160,8 +166,11 @@ func (s *S3Store) PutFileReader(name string, src io.Reader, length int64, conten
 }
 
 // SignedURL return a signed s3 URL with expiry date
-func (s *S3Store) SignedURL(name string, expiredAt time.Time) (string, error) {
-	return s.bucket.SignedURL(name, expiredAt.Sub(time.Now()))
+func (s *S3Store) SignedURL(name string) (string, error) {
+	if !s.IsSignatureRequired() {
+		return s.bucket.URL(name), nil
+	}
+	return s.bucket.SignedURL(name, time.Minute*time.Duration(15))
 }
 
 func (s *S3Store) IsSignatureRequired() bool {

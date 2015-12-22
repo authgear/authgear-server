@@ -1114,8 +1114,12 @@ func (s *urlOnlyAssetStore) PutFileReader(name string, src io.Reader, length int
 	panic("not implemented")
 }
 
-func (s *urlOnlyAssetStore) SignedURL(name string, expiredAt time.Time) (string, error) {
+func (s *urlOnlyAssetStore) SignedURL(name string) (string, error) {
 	return fmt.Sprintf("http://skygear.test/asset/%s?expiredAt=1997-07-01T00:00:00", name), nil
+}
+
+func (s *urlOnlyAssetStore) IsSignatureRequired() bool {
+	return true
 }
 
 func TestRecordAssetSerialization(t *testing.T) {
