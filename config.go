@@ -37,7 +37,7 @@ type Configuration struct {
 		// followings only used when ImplName = s3
 		AccessToken string `gcfg:"access-key"`
 		SecretToken string `gcfg:"secret-key"`
-		Reigon      string
+		Region      string
 		Bucket      string
 	} `gcfg:"asset-store"`
 	AssetURLSigner struct {

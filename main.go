@@ -247,7 +247,7 @@ func initAssetStore(config Configuration) asset.Store {
 		s3Store, err := asset.NewS3Store(
 			config.AssetStore.AccessToken,
 			config.AssetStore.SecretToken,
-			config.AssetStore.Reigon,
+			config.AssetStore.Region,
 			config.AssetStore.Bucket,
 			config.AssetStore.Public,
 		)
