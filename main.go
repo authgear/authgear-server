@@ -147,6 +147,14 @@ func main() {
 		requireUserForWrite,
 	)
 
+	devicePreprocessors := append(baseAuthPreprocessors,
+		requireUserForWrite,
+	)
+
+	subscriptionPreprocessors := append(baseAuthPreprocessors,
+		requireUserForWrite,
+	)
+
 	notificationPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 		dbConnPreprocessor.Preprocess,
@@ -173,13 +181,13 @@ func main() {
 	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
 	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
 
-	r.Map("device:register", handler.DeviceRegisterHandler, baseAuthPreprocessors...)
+	r.Map("device:register", handler.DeviceRegisterHandler, devicePreprocessors...)
 
 	// subscription shares the same set of preprocessor as record read at the moment
-	r.Map("subscription:fetch_all", handler.SubscriptionFetchAllHandler, baseAuthPreprocessors...)
-	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, baseAuthPreprocessors...)
-	r.Map("subscription:save", handler.SubscriptionSaveHandler, baseAuthPreprocessors...)
-	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, baseAuthPreprocessors...)
+	r.Map("subscription:fetch_all", handler.SubscriptionFetchAllHandler, subscriptionPreprocessors...)
+	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, subscriptionPreprocessors...)
+	r.Map("subscription:save", handler.SubscriptionSaveHandler, subscriptionPreprocessors...)
+	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, subscriptionPreprocessors...)
 
 	// relation shares the same setof preprocessor
 	r.Map("relation:query", handler.RelationQueryHandler, baseAuthPreprocessors...)
