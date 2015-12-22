@@ -29,6 +29,7 @@ type Configuration struct {
 	} `gcfg:"token-store"`
 	AssetStore struct {
 		ImplName string `gcfg:"implementation"`
+		Public   bool
 
 		// followings only used when ImplName = fs
 		Path string
