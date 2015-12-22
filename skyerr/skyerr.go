@@ -112,6 +112,7 @@ const (
 	UnexpectedUserInfoNotFound
 	UnexpectedUnableToOpenDatabase
 	UnexpectedPushNotificationNotConfigured
+	InternalQueryInvalid
 
 	// Error codes for unexpected error condition should be placed
 	// above this line.
@@ -151,6 +152,16 @@ func NewErrorWithInfo(code ErrorCode, message string, info map[string]interface{
 		code:    code,
 		message: message,
 		info:    info,
+	}
+}
+
+func NewInvalidArgument(message string, arguments []string) Error {
+	return &genericError{
+		code:    InvalidArgument,
+		message: message,
+		info: map[string]interface{}{
+			"arguments": arguments,
+		},
 	}
 }
 

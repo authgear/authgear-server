@@ -7,6 +7,44 @@ import (
 )
 
 func TestMalformedPredicate(t *testing.T) {
+	Convey("Predicate with Equal", t, func() {
+		Convey("comparing array", func() {
+			predicate := Predicate{
+				Operator: Equal,
+				Children: []interface{}{
+					Expression{
+						Type:  KeyPath,
+						Value: "categories",
+					},
+					Expression{
+						Type:  Literal,
+						Value: []interface{}{},
+					},
+				},
+			}
+			err := predicate.Validate()
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("comparing map", func() {
+			predicate := Predicate{
+				Operator: Equal,
+				Children: []interface{}{
+					Expression{
+						Type:  KeyPath,
+						Value: "categories",
+					},
+					Expression{
+						Type:  Literal,
+						Value: map[string]interface{}{},
+					},
+				},
+			}
+			err := predicate.Validate()
+			So(err, ShouldNotBeNil)
+		})
+	})
+
 	Convey("Predicate with IN", t, func() {
 		Convey("keypath operand types", func() {
 			predicate := Predicate{
