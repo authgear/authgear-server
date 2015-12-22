@@ -154,17 +154,18 @@ type Asset struct {
 	Name        string
 	ContentType string
 	Size        int64
+	Public      bool
 	Signer      asset.URLSigner
 }
 
 // SignedURL will try to return a signedURL with the injected Signer.
-func (a *Asset) SignedURL(expiredAt time.Time) string {
+func (a *Asset) SignedURL() string {
 	if a.Signer == nil {
 		log.Warnf("Unable to generate signed url of asset because no singer is injected.")
 		return ""
 	}
 
-	url, err := a.Signer.SignedURL(a.Name, expiredAt)
+	url, err := a.Signer.SignedURL(a.Name)
 	if err != nil {
 		log.Warnf("Unable to generate signed url: %v", err)
 	}

@@ -201,7 +201,7 @@ func injectSigner(record *skydb.Record, store asset.Store) {
 			if signer, ok := store.(asset.URLSigner); ok {
 				v.Signer = signer
 			} else {
-				log.Warnf("Failed to acqurie asset URLSigner, please check configuration")
+				log.Warnf("Failed to acquire asset URLSigner, please check configuration")
 			}
 		}
 	}

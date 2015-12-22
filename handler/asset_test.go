@@ -215,6 +215,14 @@ func newNaiveStoreSignatureParser(assetStore asset.Store) *naiveStoreSignaturePa
 	}
 }
 
+func (p *naiveStoreSignatureParser) SignedURL(name string) (string, error) {
+	panic("this should not be called")
+}
+
+func (p *naiveStoreSignatureParser) IsSignatureRequired() bool {
+	return true
+}
+
 func (p *naiveStoreSignatureParser) ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error) {
 	p.signed = signed
 	p.name = name

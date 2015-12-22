@@ -240,13 +240,16 @@ func initAssetStore(config Configuration) asset.Store {
 		store = asset.NewFileStore(
 			config.AssetStore.Path,
 			config.AssetURLSigner.URLPrefix,
-			config.AssetURLSigner.Secret)
+			config.AssetURLSigner.Secret,
+			config.AssetStore.Public,
+		)
 	case "s3":
 		s3Store, err := asset.NewS3Store(
 			config.AssetStore.AccessToken,
 			config.AssetStore.SecretToken,
-			config.AssetStore.Reigon,
+			config.AssetStore.Region,
 			config.AssetStore.Bucket,
+			config.AssetStore.Public,
 		)
 		if err != nil {
 			panic("failed to initialize asset.S3Store: " + err.Error())

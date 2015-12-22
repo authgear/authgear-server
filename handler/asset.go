@@ -29,39 +29,46 @@ func clean(p string) string {
 	return sanitized
 }
 
-func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
-	payload.Req.ParseForm()
-
+func validateAssetGetRequest(assetStore ourAsset.Store, fileName string, expiredAtUnix int64, signature string) skyerr.Error {
 	// check whether the request is expired
-
-	expiredAtUnix, err := strconv.ParseInt(payload.Req.Form.Get("expiredAt"), 10, 64)
-	if err != nil {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "expect expiredAt to be an integer")
-		return
-	}
 	expiredAt := time.Unix(expiredAtUnix, 0)
 	if timeNow().After(expiredAt) {
-		response.Err = skyerr.NewError(skyerr.PermissionDenied, "Access denied")
-		return
+		return skyerr.NewError(skyerr.PermissionDenied, "Access denied")
 	}
 
 	// check the signature of the URL
-
-	fileName := clean(payload.Params[0])
-	signature := payload.Req.Form.Get("signature")
-
-	signatureParser := payload.AssetStore.(ourAsset.SignatureParser)
+	signatureParser := assetStore.(ourAsset.SignatureParser)
 	valid, err := signatureParser.ParseSignature(signature, fileName, expiredAt)
 	if err != nil {
 		log.Errorf("Failed to parse signature: %v", err)
 
-		response.Err = skyerr.NewError(skyerr.PermissionDenied, "Access denied")
-		return
+		return skyerr.NewError(skyerr.PermissionDenied, "Access denied")
 	}
 
 	if !valid {
-		response.Err = skyerr.NewError(skyerr.InvalidSignature, "Invalid signature")
-		return
+		return skyerr.NewError(skyerr.InvalidSignature, "Invalid signature")
+	}
+	return nil
+}
+
+func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
+	payload.Req.ParseForm()
+
+	store := payload.AssetStore
+	fileName := clean(payload.Params[0])
+	if store.(ourAsset.URLSigner).IsSignatureRequired() {
+		expiredAtUnix, err := strconv.ParseInt(payload.Req.Form.Get("expiredAt"), 10, 64)
+		if err != nil {
+			response.Err = skyerr.NewError(skyerr.InvalidArgument, "expect expiredAt to be an integer")
+			return
+		}
+
+		signature := payload.Req.Form.Get("signature")
+		requestErr := validateAssetGetRequest(payload.AssetStore, fileName, expiredAtUnix, signature)
+		if requestErr != nil {
+			response.Err = requestErr
+			return
+		}
 	}
 
 	// everything's right, proceed with the request
@@ -78,7 +85,6 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 	response.Header().Set("Content-Type", asset.ContentType)
 	response.Header().Set("Content-Length", strconv.FormatInt(asset.Size, 10))
 
-	store := payload.AssetStore
 	reader, err := store.GetFileReader(fileName)
 	if err != nil {
 		log.Errorf("Failed to get file reader: %v", err)

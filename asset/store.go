@@ -29,9 +29,11 @@ type Store interface {
 
 // URLSigner signs a signature and returns a URL accessible to that asset.
 type URLSigner interface {
-	// SignedURL returns a signed url with access to the named file. The link
-	// should expires itself after expiredAt
-	SignedURL(name string, expiredAt time.Time) (string, error)
+	// SignedURL returns a url with access to the named file. If asset
+	// store is private, the returned URL is a signed one, allowing access
+	// to asset for a short period.
+	SignedURL(name string) (string, error)
+	IsSignatureRequired() bool
 }
 
 // SignatureParser parses a signed signature string
@@ -44,10 +46,11 @@ type FileStore struct {
 	dir    string
 	prefix string
 	secret string
+	public bool
 }
 
-func NewFileStore(dir, prefix, secret string) *FileStore {
-	return &FileStore{dir, prefix, secret}
+func NewFileStore(dir, prefix, secret string, public bool) *FileStore {
+	return &FileStore{dir, prefix, secret, public}
 }
 
 func (s *FileStore) GetFileReader(name string) (io.ReadCloser, error) {
@@ -82,7 +85,12 @@ func (s *FileStore) PutFileReader(name string, src io.Reader, length int64, cont
 	return nil
 }
 
-func (s *FileStore) SignedURL(name string, expiredAt time.Time) (string, error) {
+func (s *FileStore) SignedURL(name string) (string, error) {
+	if !s.IsSignatureRequired() {
+		return fmt.Sprintf("%s/%s", s.prefix, name), nil
+	}
+
+	expiredAt := time.Now().Add(time.Minute * time.Duration(15))
 	expiredAtStr := strconv.FormatInt(expiredAt.Unix(), 10)
 
 	h := hmac.New(sha256.New, []byte(s.secret))
@@ -115,13 +123,18 @@ func (s *FileStore) ParseSignature(signed string, name string, expiredAt time.Ti
 	return !hmac.Equal(remoteSignature, h.Sum(nil)), nil
 }
 
+func (s *FileStore) IsSignatureRequired() bool {
+	return !s.public
+}
+
 // S3Store implements Store by storing files on S3
 type S3Store struct {
 	bucket *s3.Bucket
+	public bool
 }
 
 // NewS3Store returns a new S3Store
-func NewS3Store(accessKey, secretKey, regionName, bucketName string) (*S3Store, error) {
+func NewS3Store(accessKey, secretKey, regionName, bucketName string, public bool) (*S3Store, error) {
 	auth := aws.Auth{
 		AccessKey: accessKey,
 		SecretKey: secretKey,
@@ -139,6 +152,7 @@ func NewS3Store(accessKey, secretKey, regionName, bucketName string) (*S3Store, 
 
 	return &S3Store{
 		bucket: bucket,
+		public: public,
 	}, nil
 }
 
@@ -152,6 +166,13 @@ func (s *S3Store) PutFileReader(name string, src io.Reader, length int64, conten
 }
 
 // SignedURL return a signed s3 URL with expiry date
-func (s *S3Store) SignedURL(name string, expiredAt time.Time) (string, error) {
-	return s.bucket.SignedURL(name, expiredAt.Sub(time.Now()))
+func (s *S3Store) SignedURL(name string) (string, error) {
+	if !s.IsSignatureRequired() {
+		return s.bucket.URL(name), nil
+	}
+	return s.bucket.SignedURL(name, time.Minute*time.Duration(15))
+}
+
+func (s *S3Store) IsSignatureRequired() bool {
+	return !s.public
 }
