@@ -104,10 +104,15 @@ func PushToUserHandler(rpayload *router.Payload, response *router.Response) {
 		if err != nil {
 			resultItems[i].err = &err
 		} else {
+			// FIXME: The deduplication should be done at device register.
+			deviceIDs := map[string]bool{}
 			for i := range devices {
 				device := devices[i]
-				pushMap := push.MapMapper(payload.Notification)
-				sendPushNotification(rpayload.NotificationSender, &device, pushMap)
+				if _, ok := deviceIDs[device.Token]; !ok {
+					deviceIDs[device.Token] = true
+					pushMap := push.MapMapper(payload.Notification)
+					sendPushNotification(rpayload.NotificationSender, &device, pushMap)
+				}
 			}
 		}
 	}
