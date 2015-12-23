@@ -51,13 +51,12 @@ func (conn *testRelationConn) QueryRelation(user string, name string, direction 
 	sort.Sort(sortByID(conn.UserInfo))
 	if limit == 0 {
 		return conn.UserInfo[offset:]
-	} else {
-		if offset+limit-1 > uint64(len(conn.UserInfo)) {
-			return conn.UserInfo[offset:]
-		} else {
-			return conn.UserInfo[offset : offset+limit]
-		}
 	}
+
+	if offset+limit-1 > uint64(len(conn.UserInfo)) {
+		return conn.UserInfo[offset:]
+	}
+	return conn.UserInfo[offset : offset+limit]
 }
 
 func (conn *testRelationConn) AddRelation(user string, name string, targetUser string) error {
