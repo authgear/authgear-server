@@ -104,7 +104,8 @@ func PushToUserHandler(rpayload *router.Payload, response *router.Response) {
 		if err != nil {
 			resultItems[i].err = &err
 		} else {
-			for _, device := range devices {
+			for i := range devices {
+				device := devices[i]
 				pushMap := push.MapMapper(payload.Notification)
 				sendPushNotification(rpayload.NotificationSender, &device, pushMap)
 			}
