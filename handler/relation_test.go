@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"sort"
+
 	. "github.com/oursky/skygear/ourtest"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
@@ -26,12 +28,36 @@ func (conn *testRelationConn) GetUser(id string, userinfo *skydb.UserInfo) error
 	return nil
 }
 
-func (conn *testRelationConn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
+type sortByID []skydb.UserInfo
+
+func (a sortByID) Len() int           { return len(a) }
+func (a sortByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a sortByID) Less(i, j int) bool { return a[i].ID < a[j].ID }
+
+func (conn *testRelationConn) QueryRelation(user string, name string, direction string, config ...skydb.QueryConfig) []skydb.UserInfo {
 	conn.RelationName = name
 	if conn.UserInfo == nil {
 		return []skydb.UserInfo{}
 	}
-	return conn.UserInfo
+
+	var limit, offset uint64
+	limit = 0
+	offset = 0
+	if len(config) > 0 {
+		limit = config[0].Limit
+		offset = config[0].Offset
+	}
+
+	sort.Sort(sortByID(conn.UserInfo))
+	if limit == 0 {
+		return conn.UserInfo[offset:]
+	} else {
+		if offset+limit-1 > uint64(len(conn.UserInfo)) {
+			return conn.UserInfo[offset:]
+		} else {
+			return conn.UserInfo[offset : offset+limit]
+		}
+	}
 }
 
 func (conn *testRelationConn) AddRelation(user string, name string, targetUser string) error {
@@ -148,6 +174,68 @@ func TestRelationHandler(t *testing.T) {
     "result": [],
     "info": {
         "count": 0
+    }
+}`)
+		})
+
+		Convey("query relation with pagination", func() {
+			user1 := skydb.UserInfo{
+				ID:       "101",
+				Username: "user101",
+				Email:    "user101@skygear.io",
+			}
+			user2 := skydb.UserInfo{
+				ID:       "102",
+				Username: "user102",
+				Email:    "user102@skygear.io",
+			}
+
+			users := []skydb.UserInfo{}
+			users = append(users, user1)
+			users = append(users, user2)
+			conn.UserInfo = users
+			resp := r.POST(`{
+    "name": "follow",
+    "direction": "outward",
+	"limit": 1
+}`)
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+    "result": [{
+        "id": "101",
+        "type": "user",
+        "data":{
+            "_id": "101",
+            "email": "user101@skygear.io",
+            "username": "user101"
+        }
+    }],
+    "info": {
+        "count": 2
+    }
+}`)
+
+			resp = r.POST(`{
+    "name": "follow",
+    "direction": "outward",
+	"limit": 1,
+	"offset": 1
+}`)
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+    "result": [{
+        "id": "102",
+        "type": "user",
+        "data":{
+            "_id": "102",
+            "email": "user102@skygear.io",
+            "username": "user102"
+        }
+    }],
+    "info": {
+        "count": 2
     }
 }`)
 		})

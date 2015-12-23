@@ -340,14 +340,17 @@ func TestRelation(t *testing.T) {
 		addUser(t, c, "followee")
 		addUser(t, c, "friend1")
 		addUser(t, c, "friend2")
+		addUser(t, c, "friend3")
 		c.AddRelation("friend1", "_friend", "friend2")
+		c.AddRelation("friend1", "_friend", "friend3")
 		c.AddRelation("friend2", "_friend", "friend1")
+		c.AddRelation("friend3", "_friend", "friend1")
 		c.AddRelation("friend1", "_friend", "followee")
 		c.AddRelation("follower", "_follow", "followee")
 
 		Convey("query friend relation", func() {
 			users := c.QueryRelation("friend1", "_friend", "mutual")
-			So(len(users), ShouldEqual, 1)
+			So(len(users), ShouldEqual, 2)
 		})
 
 		Convey("query outward follow relation", func() {
@@ -358,6 +361,21 @@ func TestRelation(t *testing.T) {
 		Convey("query inward follow relation", func() {
 			users := c.QueryRelation("followee", "_follow", "inward")
 			So(len(users), ShouldEqual, 1)
+		})
+
+		Convey("query friend relation with pagination", func() {
+			users := c.QueryRelation("friend1", "_friend", "mutual", skydb.QueryConfig{
+				Limit: 1,
+			})
+			So(len(users), ShouldEqual, 1)
+			So(users[0].ID, ShouldEqual, "friend2")
+
+			users = c.QueryRelation("friend1", "_friend", "mutual", skydb.QueryConfig{
+				Limit:  1,
+				Offset: 1,
+			})
+			So(len(users), ShouldEqual, 1)
+			So(users[0].ID, ShouldEqual, "friend3")
 		})
 	})
 }

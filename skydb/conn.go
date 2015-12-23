@@ -26,6 +26,13 @@ var ZeroTime = time.Time{}
 // DBHookFunc specifies the interface of a database hook function
 type DBHookFunc func(Database, *Record, RecordHookEvent)
 
+// QueryConfig provides optional parameteres for queries.
+// result is unlimited if Limit=0
+type QueryConfig struct {
+	Limit  uint64
+	Offset uint64
+}
+
 // Conn encapsulates the interface of an Skygear connection to a container.
 type Conn interface {
 	// CRUD of UserInfo, smell like a bad design to attach these onto
@@ -78,7 +85,7 @@ type Conn interface {
 	// be referenced by records.
 	SaveAsset(asset *Asset) error
 
-	QueryRelation(user string, name string, direction string) []UserInfo
+	QueryRelation(user string, name string, direction string, config ...QueryConfig) []UserInfo
 	QueryRelationCount(user string, name string, direction string) (uint64, error)
 	AddRelation(user string, name string, targetUser string) error
 	RemoveRelation(user string, name string, targetUser string) error

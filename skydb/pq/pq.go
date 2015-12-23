@@ -343,34 +343,54 @@ func (c *conn) DeleteUser(id string) error {
 	return nil
 }
 
-func (c *conn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
+func (c *conn) QueryRelation(user string, name string, direction string, config ...skydb.QueryConfig) []skydb.UserInfo {
 	log.Debugf("Query Relation: %v, %v", user, name)
 	var (
+		selectBuilder sq.SelectBuilder
+
 		selectSQL string
 		args      []interface{}
 		err       error
+
+		limit  uint64
+		offset uint64
 	)
+
+	// no pagination by default
+	limit = 0
+	offset = 0
+	if len(config) >= 1 {
+		limit = config[0].Limit
+		offset = config[0].Offset
+	}
+
 	if direction == "outward" {
-		selectSQL, args, err = psql.Select("u.id", "u.username", "u.email").
+		selectBuilder = psql.Select("u.id", "u.username", "u.email").
 			From(c.tableName("_user")+" AS u").
 			Join(c.tableName(name)+" AS relation ON relation.right_id = u.id").
-			Where("relation.left_id = ?", user).
-			ToSql()
+			Where("relation.left_id = ?", user)
 	} else if direction == "inward" {
-		selectSQL, args, err = psql.Select("u.id", "u.username", "u.email").
+		selectBuilder = psql.Select("u.id", "u.username", "u.email").
 			From(c.tableName("_user")+" AS u").
 			Join(c.tableName(name)+" AS relation ON relation.left_id = u.id").
-			Where("relation.right_id = ?", user).
-			ToSql()
+			Where("relation.right_id = ?", user)
 	} else {
-		selectSQL, args, err = psql.Select("u.id", "u.username", "u.email").
+		selectBuilder = psql.Select("u.id", "u.username", "u.email").
 			From(c.tableName("_user")+" AS u").
 			Join(c.tableName(name)+" AS inward_relation ON inward_relation.left_id = u.id").
 			Join(c.tableName(name)+" AS outward_relation ON outward_relation.right_id = u.id").
 			Where("inward_relation.right_id = ?", user).
-			Where("outward_relation.left_id = ?", user).
-			ToSql()
+			Where("outward_relation.left_id = ?", user)
 	}
+
+	selectBuilder = selectBuilder.OrderBy("u.id").
+		Offset(offset)
+	if limit != 0 {
+		selectBuilder = selectBuilder.Limit(limit)
+	}
+
+	selectSQL, args, err = selectBuilder.ToSql()
+
 	log.WithFields(log.Fields{
 		"sql":  selectSQL,
 		"args": args,

@@ -124,7 +124,7 @@ func (conn *MapConn) SaveAsset(asset *skydb.Asset) error {
 }
 
 // QueryRelation is not implemented.
-func (conn *MapConn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
+func (conn *MapConn) QueryRelation(user string, name string, direction string, config ...skydb.QueryConfig) []skydb.UserInfo {
 	panic("not implemented")
 }
 
