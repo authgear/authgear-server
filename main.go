@@ -231,12 +231,26 @@ func ensureDB(config Configuration) func() (skydb.Conn, error) {
 	connOpener := func() (skydb.Conn, error) {
 		return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option)
 	}
-	conn, connError := connOpener()
-	if connError != nil {
-		log.Fatalf("Failed to start skygear: %v", connError)
+
+	// Attempt to open connection to database. Retry for a number of
+	// times before giving up.
+	attempt := 0
+	for {
+		conn, connError := connOpener()
+		if connError == nil {
+			conn.Close()
+			return connOpener
+		}
+
+		attempt++
+		log.Errorf("Failed to start skygear: %v", connError)
+		if attempt >= 5 {
+			log.Fatalf("Failed to start skygear because connection to database cannot be opened.")
+		}
+
+		log.Info("Retrying in 1 second...")
+		time.Sleep(time.Second * time.Duration(1))
 	}
-	conn.Close()
-	return connOpener
 }
 
 func initAssetStore(config Configuration) asset.Store {
