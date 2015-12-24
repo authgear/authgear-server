@@ -164,7 +164,7 @@ func opString(op skydb.Operator) string {
 
 func funcSlice(i interface{}) []interface{} {
 	switch f := i.(type) {
-	case *skydb.DistanceFunc:
+	case skydb.DistanceFunc:
 		return []interface{}{
 			"func",
 			"distance",

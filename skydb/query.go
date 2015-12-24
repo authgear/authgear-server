@@ -278,7 +278,7 @@ type DistanceFunc struct {
 }
 
 // Args implements the Func interface
-func (f *DistanceFunc) Args() []interface{} {
+func (f DistanceFunc) Args() []interface{} {
 	return []interface{}{f.Field, f.Location}
 }
 

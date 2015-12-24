@@ -1795,7 +1795,7 @@ func TestQuery(t *testing.T) {
 					Children: []interface{}{
 						skydb.Expression{
 							Type: skydb.Function,
-							Value: &skydb.DistanceFunc{
+							Value: skydb.DistanceFunc{
 								Field:    "location",
 								Location: skydb.NewLocation(1, 1),
 							},
@@ -1825,7 +1825,7 @@ func TestQuery(t *testing.T) {
 						},
 						skydb.Expression{
 							Type: skydb.Function,
-							Value: &skydb.DistanceFunc{
+							Value: skydb.DistanceFunc{
 								Field:    "location",
 								Location: skydb.NewLocation(1, 1),
 							},
@@ -1845,7 +1845,7 @@ func TestQuery(t *testing.T) {
 				ComputedKeys: map[string]skydb.Expression{
 					"distance": skydb.Expression{
 						Type: skydb.Function,
-						Value: &skydb.DistanceFunc{
+						Value: skydb.DistanceFunc{
 							Field:    "location",
 							Location: skydb.NewLocation(1, 1),
 						},
@@ -1864,7 +1864,7 @@ func TestQuery(t *testing.T) {
 				Type: "restaurant",
 				Sorts: []skydb.Sort{
 					{
-						Func: &skydb.DistanceFunc{
+						Func: skydb.DistanceFunc{
 							Field:    "location",
 							Location: skydb.NewLocation(0, 0),
 						},

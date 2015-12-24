@@ -298,7 +298,7 @@ func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err erro
 
 func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
 	switch f := fun.(type) {
-	case *skydb.DistanceFunc:
+	case skydb.DistanceFunc:
 		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))",
 			fullQuoteIdentifier(alias, f.Field))
 		args := []interface{}{f.Location.Lng(), f.Location.Lat()}
@@ -375,7 +375,7 @@ func sortOrderBySQL(alias string, sort skydb.Sort) (string, error) {
 // due to sq not being able to pass args in OrderBy, we can't re-use funcToSQLOperand
 func funcOrderBySQL(alias string, fun skydb.Func) (string, error) {
 	switch f := fun.(type) {
-	case *skydb.DistanceFunc:
+	case skydb.DistanceFunc:
 		sql := fmt.Sprintf(
 			"ST_Distance_Sphere(%s, ST_MakePoint(%f, %f))",
 			fullQuoteIdentifier(alias, f.Field),

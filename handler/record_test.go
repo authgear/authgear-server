@@ -637,7 +637,7 @@ func TestRecordQuery(t *testing.T) {
 				Type: "note",
 				Sorts: []skydb.Sort{
 					skydb.Sort{
-						Func: &skydb.DistanceFunc{
+						Func: skydb.DistanceFunc{
 							Field:    "location",
 							Location: skydb.NewLocation(1, 2),
 						},
@@ -762,7 +762,7 @@ func TestRecordQuery(t *testing.T) {
 				Children: []interface{}{
 					skydb.Expression{
 						skydb.Function,
-						&skydb.DistanceFunc{
+						skydb.DistanceFunc{
 							Field:    "location",
 							Location: skydb.NewLocation(1, 2),
 						},
@@ -802,7 +802,7 @@ func TestRecordQuery(t *testing.T) {
 			So(db.lastquery.ComputedKeys, ShouldResemble, map[string]skydb.Expression{
 				"distance": skydb.Expression{
 					skydb.Function,
-					&skydb.DistanceFunc{
+					skydb.DistanceFunc{
 						Field:    "location",
 						Location: skydb.NewLocation(1, 2),
 					},

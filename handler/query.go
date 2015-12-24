@@ -193,22 +193,23 @@ func (parser *QueryParser) parseFunc(s []interface{}) (f skydb.Func, err error) 
 	return
 }
 
-func (parser *QueryParser) parseDistanceFunc(s []interface{}) (*skydb.DistanceFunc, error) {
+func (parser *QueryParser) parseDistanceFunc(s []interface{}) (skydb.DistanceFunc, error) {
+	emptyDistanceFunc := skydb.DistanceFunc{}
 	if len(s) != 2 {
-		return nil, fmt.Errorf("want 2 arguments for distance func, got %d", len(s))
+		return emptyDistanceFunc, fmt.Errorf("want 2 arguments for distance func, got %d", len(s))
 	}
 
 	var field string
 	if err := skydbconv.MapFrom(s[0], (*skydbconv.MapKeyPath)(&field)); err != nil {
-		return nil, fmt.Errorf("invalid key path: %v", err)
+		return emptyDistanceFunc, fmt.Errorf("invalid key path: %v", err)
 	}
 
 	var location skydb.Location
 	if err := skydbconv.MapFrom(s[1], (*skydbconv.MapLocation)(&location)); err != nil {
-		return nil, fmt.Errorf("invalid location: %v", err)
+		return emptyDistanceFunc, fmt.Errorf("invalid location: %v", err)
 	}
 
-	return &skydb.DistanceFunc{
+	return skydb.DistanceFunc{
 		Field:    field,
 		Location: &location,
 	}, nil
