@@ -102,19 +102,19 @@ func TestPushToUser(t *testing.T) {
 		testdevice1 := skydb.Device{
 			ID:         "device1",
 			Type:       "ios",
-			Token:      "token",
+			Token:      "token1",
 			UserInfoID: "johndoe",
 		}
 		testdevice2 := skydb.Device{
 			ID:         "device2",
 			Type:       "ios",
-			Token:      "token",
+			Token:      "token2",
 			UserInfoID: "johndoe",
 		}
 		testdevice3 := skydb.Device{
 			ID:         "device2",
 			Type:       "ios",
-			Token:      "token",
+			Token:      "token3",
 			UserInfoID: "janedoe",
 		}
 		conn := simpleDeviceConn{
