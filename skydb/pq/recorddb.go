@@ -441,7 +441,7 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 	typemap = skydb.RecordSchema{
 		"_record_count": skydb.FieldType{
 			Type: skydb.TypeNumber,
-			Expression: &skydb.Expression{
+			Expression: skydb.Expression{
 				Type: skydb.Function,
 				Value: &skydb.CountFunc{
 					OverallRecords: false,
@@ -665,14 +665,14 @@ func (db *database) selectQuery(recordType string, typemap skydb.RecordSchema) s
 	q := psql.Select()
 	for column, fieldType := range typemap {
 		expr := fieldType.Expression
-		if expr == nil {
-			expr = &skydb.Expression{
+		if expr.IsEmpty() {
+			expr = skydb.Expression{
 				Type:  skydb.KeyPath,
 				Value: column,
 			}
 		}
 
-		e := expressionSqlizer{recordType, *expr}
+		e := expressionSqlizer{recordType, expr}
 		sqlOperand, opArgs, _ := e.ToSql()
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
 	}
@@ -701,14 +701,14 @@ func updateTypemapForQuery(query *skydb.Query, typemap skydb.RecordSchema) (skyd
 		v := value // because value will be overwritten in the next loop
 		typemap["_transient_"+key] = skydb.FieldType{
 			Type:       skydb.TypeNumber,
-			Expression: &v,
+			Expression: v,
 		}
 	}
 
 	if query.GetCount {
 		typemap["_record_count"] = skydb.FieldType{
 			Type: skydb.TypeNumber,
-			Expression: &skydb.Expression{
+			Expression: skydb.Expression{
 				Type: skydb.Function,
 				Value: &skydb.CountFunc{
 					OverallRecords: true,

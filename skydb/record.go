@@ -331,8 +331,8 @@ type RecordSchema map[string]FieldType
 // FieldType represents the kind of data living within a field of a RecordSchema.
 type FieldType struct {
 	Type          DataType
-	ReferenceType string      // used only by TypeReference
-	Expression    *Expression // used by Computed Keys
+	ReferenceType string     // used only by TypeReference
+	Expression    Expression // used by Computed Keys
 }
 
 // DataType defines the type of data that can saved into an skydb database

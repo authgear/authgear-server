@@ -74,7 +74,7 @@ type ExpressionType int
 
 // A list of ExpressionTypes.
 const (
-	Literal ExpressionType = iota
+	Literal ExpressionType = iota + 1
 	KeyPath
 	Function
 )
@@ -83,6 +83,10 @@ const (
 type Expression struct {
 	Type  ExpressionType
 	Value interface{}
+}
+
+func (expr Expression) IsEmpty() bool {
+	return expr.Type == 0 && expr.Value == nil
 }
 
 func (expr Expression) IsKeyPath() bool {
