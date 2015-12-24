@@ -24,10 +24,10 @@ type Notice struct {
 // a Notice to a device.
 type Notifier interface {
 	// CanNotify returns whether the Notifier can send notice to the device.
-	CanNotify(device *skydb.Device) bool
+	CanNotify(device skydb.Device) bool
 
 	// Notify sends an notice to the device.
-	Notify(device *skydb.Device, notice Notice) error
+	Notify(device skydb.Device, notice Notice) error
 }
 
 type pushNotifier struct {
@@ -40,11 +40,11 @@ func NewPushNotifier(sender push.Sender) Notifier {
 	return &pushNotifier{sender}
 }
 
-func (notifier *pushNotifier) CanNotify(device *skydb.Device) bool {
+func (notifier *pushNotifier) CanNotify(device skydb.Device) bool {
 	return device.Type == "ios"
 }
 
-func (notifier *pushNotifier) Notify(device *skydb.Device, notice Notice) error {
+func (notifier *pushNotifier) Notify(device skydb.Device, notice Notice) error {
 	customMap := map[string]interface{}{
 		"aps": map[string]interface{}{
 			"content_available": 1,
@@ -66,11 +66,11 @@ func NewHubNotifier(hub *pubsub.Hub) Notifier {
 	return (*hubNotifier)(hub)
 }
 
-func (n *hubNotifier) CanNotify(device *skydb.Device) bool {
+func (n *hubNotifier) CanNotify(device skydb.Device) bool {
 	return true
 }
 
-func (n *hubNotifier) Notify(device *skydb.Device, notice Notice) error {
+func (n *hubNotifier) Notify(device skydb.Device, notice Notice) error {
 	data, err := json.Marshal(struct {
 		SeqNum         uint64 `json:"seq-num"`
 		SubscriptionID string `json:"subscription-id"`
@@ -94,11 +94,11 @@ func NewMultiNotifier(notifiers ...Notifier) Notifier {
 	return multiNotifier(notifiers)
 }
 
-func (ns multiNotifier) CanNotify(device *skydb.Device) bool {
+func (ns multiNotifier) CanNotify(device skydb.Device) bool {
 	return true
 }
 
-func (ns multiNotifier) Notify(device *skydb.Device, notice Notice) error {
+func (ns multiNotifier) Notify(device skydb.Device, notice Notice) error {
 	n := len(ns)
 
 	errCh := make(chan error)

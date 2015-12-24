@@ -95,7 +95,7 @@ func (s *Service) handleRecordHook(db skydb.Database, e skydb.RecordEvent, seqNu
 		}
 
 		notice := Notice{seqNum, subscription.ID, e.Event, e.Record}
-		if err := s.Notifier.Notify(&device, notice); err != nil {
+		if err := s.Notifier.Notify(device, notice); err != nil {
 			log.Errorf("subscription: failed to send notice to device id = %s", device.ID)
 		}
 	}

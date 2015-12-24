@@ -191,7 +191,7 @@ func setPayload(m map[string]interface{}, p *apns.Payload) {
 
 // Send sends a notification to the device identified by the
 // specified device
-func (pusher *APNSPusher) Send(m Mapper, device *skydb.Device) error {
+func (pusher *APNSPusher) Send(m Mapper, device skydb.Device) error {
 	if m == nil {
 		return nil
 	}
