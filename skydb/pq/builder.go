@@ -71,7 +71,7 @@ func (f *predicateSqlizerFactory) newFunctionalPredicateSqlizer(predicate skydb.
 		panic("unexpected expression in functional predicate")
 	}
 	switch fn := expr.Value.(type) {
-	case *skydb.UserRelationFunc:
+	case skydb.UserRelationFunc:
 		table := fn.RelationName
 		direction := fn.RelationDirection
 		if direction == "" {
@@ -303,7 +303,7 @@ func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
 			fullQuoteIdentifier(alias, f.Field))
 		args := []interface{}{f.Location.Lng(), f.Location.Lat()}
 		return sql, args
-	case *skydb.CountFunc:
+	case skydb.CountFunc:
 		var sql string
 		if f.OverallRecords {
 			sql = fmt.Sprintf("COUNT(*) OVER()")

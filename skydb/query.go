@@ -186,7 +186,7 @@ func (p Predicate) Validate() skyerr.Error {
 		}
 
 		switch f := expr.Value.(type) {
-		case *UserRelationFunc:
+		case UserRelationFunc:
 			if f.RelationName != "_friend" && f.RelationName != "_follow" {
 				return skyerr.NewErrorf(skyerr.NotSupported,
 					`user relation predicate with "%d" relation is not supported`,
@@ -289,7 +289,7 @@ type CountFunc struct {
 }
 
 // Args implements the Func interface
-func (f *CountFunc) Args() []interface{} {
+func (f CountFunc) Args() []interface{} {
 	return []interface{}{}
 }
 
@@ -303,6 +303,6 @@ type UserRelationFunc struct {
 }
 
 // Args implements the Func interface
-func (f *UserRelationFunc) Args() []interface{} {
+func (f UserRelationFunc) Args() []interface{} {
 	return []interface{}{}
 }

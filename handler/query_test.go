@@ -31,7 +31,7 @@ func TestQueryFromRaw(t *testing.T) {
 					[]interface{}{
 						skydb.Expression{
 							Type:  skydb.Function,
-							Value: &skydb.UserRelationFunc{"assignee", "_follow", "outward", "USER_ID"},
+							Value: skydb.UserRelationFunc{"assignee", "_follow", "outward", "USER_ID"},
 						},
 					},
 				},
@@ -60,7 +60,7 @@ func TestQueryFromRaw(t *testing.T) {
 					[]interface{}{
 						skydb.Expression{
 							Type:  skydb.Function,
-							Value: &skydb.UserRelationFunc{"_owner", "_friend", "mutual", "USER_ID"},
+							Value: skydb.UserRelationFunc{"_owner", "_friend", "mutual", "USER_ID"},
 						},
 					},
 				},

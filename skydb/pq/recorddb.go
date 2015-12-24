@@ -443,7 +443,7 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 			Type: skydb.TypeNumber,
 			Expression: skydb.Expression{
 				Type: skydb.Function,
-				Value: &skydb.CountFunc{
+				Value: skydb.CountFunc{
 					OverallRecords: false,
 				},
 			},
@@ -710,7 +710,7 @@ func updateTypemapForQuery(query *skydb.Query, typemap skydb.RecordSchema) (skyd
 			Type: skydb.TypeNumber,
 			Expression: skydb.Expression{
 				Type: skydb.Function,
-				Value: &skydb.CountFunc{
+				Value: skydb.CountFunc{
 					OverallRecords: true,
 				},
 			},

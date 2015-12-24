@@ -214,22 +214,23 @@ func (parser *QueryParser) parseDistanceFunc(s []interface{}) (*skydb.DistanceFu
 	}, nil
 }
 
-func (parser *QueryParser) parseUserRelationFunc(s []interface{}) (*skydb.UserRelationFunc, error) {
+func (parser *QueryParser) parseUserRelationFunc(s []interface{}) (skydb.UserRelationFunc, error) {
+	emptyUserRelationFunc := skydb.UserRelationFunc{}
 	if len(s) != 2 {
-		return nil, fmt.Errorf("want 2 arguments for user relation func, got %d", len(s))
+		return emptyUserRelationFunc, fmt.Errorf("want 2 arguments for user relation func, got %d", len(s))
 	}
 
 	var field string
 	if err := skydbconv.MapFrom(s[0], (*skydbconv.MapKeyPath)(&field)); err != nil {
-		return nil, fmt.Errorf("invalid key path: %v", err)
+		return emptyUserRelationFunc, fmt.Errorf("invalid key path: %v", err)
 	}
 
 	var relation skydbconv.MapRelation
 	if err := skydbconv.MapFrom(s[1], (*skydbconv.MapRelation)(&relation)); err != nil {
-		return nil, fmt.Errorf("invalid relation: %v", err)
+		return emptyUserRelationFunc, fmt.Errorf("invalid relation: %v", err)
 	}
 
-	return &skydb.UserRelationFunc{
+	return skydb.UserRelationFunc{
 		KeyPath:           field,
 		RelationName:      relation.Name,
 		RelationDirection: relation.Direction,

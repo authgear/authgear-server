@@ -76,7 +76,7 @@ func TestUserRelationQuery(t *testing.T) {
 					Children: []interface{}{
 						skydb.Expression{
 							Type:  skydb.Function,
-							Value: &skydb.UserRelationFunc{"_owner", "_follow", "outward", "user1"},
+							Value: skydb.UserRelationFunc{"_owner", "_follow", "outward", "user1"},
 						},
 					},
 				},
@@ -96,7 +96,7 @@ func TestUserRelationQuery(t *testing.T) {
 					Children: []interface{}{
 						skydb.Expression{
 							Type:  skydb.Function,
-							Value: &skydb.UserRelationFunc{"_owner", "_follow", "inward", "user2"},
+							Value: skydb.UserRelationFunc{"_owner", "_follow", "inward", "user2"},
 						},
 					},
 				},
@@ -119,7 +119,7 @@ func TestUserRelationQuery(t *testing.T) {
 							Children: []interface{}{
 								skydb.Expression{
 									Type:  skydb.Function,
-									Value: &skydb.UserRelationFunc{"_owner", "_follow", "outward", "user1"},
+									Value: skydb.UserRelationFunc{"_owner", "_follow", "outward", "user1"},
 								},
 							},
 						},
@@ -128,7 +128,7 @@ func TestUserRelationQuery(t *testing.T) {
 							Children: []interface{}{
 								skydb.Expression{
 									Type:  skydb.Function,
-									Value: &skydb.UserRelationFunc{"_owner", "_follow", "inward", "user2"},
+									Value: skydb.UserRelationFunc{"_owner", "_follow", "inward", "user2"},
 								},
 							},
 						},
@@ -150,7 +150,7 @@ func TestUserRelationQuery(t *testing.T) {
 					Children: []interface{}{
 						skydb.Expression{
 							Type:  skydb.Function,
-							Value: &skydb.UserRelationFunc{"_owner", "_follow", "mutual", "user1"},
+							Value: skydb.UserRelationFunc{"_owner", "_follow", "mutual", "user1"},
 						},
 					},
 				},
@@ -170,7 +170,7 @@ func TestUserRelationQuery(t *testing.T) {
 					Children: []interface{}{
 						skydb.Expression{
 							Type:  skydb.Function,
-							Value: &skydb.UserRelationFunc{"_owner", "_follow", "mutual", "user2"},
+							Value: skydb.UserRelationFunc{"_owner", "_follow", "mutual", "user2"},
 						},
 					},
 				},
@@ -190,7 +190,7 @@ func TestUserRelationQuery(t *testing.T) {
 					Children: []interface{}{
 						skydb.Expression{
 							Type:  skydb.Function,
-							Value: &skydb.UserRelationFunc{"_owner", "_friend", "mutual", "user1"},
+							Value: skydb.UserRelationFunc{"_owner", "_friend", "mutual", "user1"},
 						},
 					},
 				},
@@ -213,7 +213,7 @@ func TestUserRelationQuery(t *testing.T) {
 							Children: []interface{}{
 								skydb.Expression{
 									Type:  skydb.Function,
-									Value: &skydb.UserRelationFunc{"_owner", "_follow", "outward", "user4"},
+									Value: skydb.UserRelationFunc{"_owner", "_follow", "outward", "user4"},
 								},
 							},
 						},
@@ -222,7 +222,7 @@ func TestUserRelationQuery(t *testing.T) {
 							Children: []interface{}{
 								skydb.Expression{
 									Type:  skydb.Function,
-									Value: &skydb.UserRelationFunc{"_owner", "_friend", "mutual", "user4"},
+									Value: skydb.UserRelationFunc{"_owner", "_friend", "mutual", "user4"},
 								},
 							},
 						},
