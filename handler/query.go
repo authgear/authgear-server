@@ -211,7 +211,7 @@ func (parser *QueryParser) parseDistanceFunc(s []interface{}) (skydb.DistanceFun
 
 	return skydb.DistanceFunc{
 		Field:    field,
-		Location: &location,
+		Location: location,
 	}, nil
 }
 

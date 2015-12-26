@@ -274,7 +274,7 @@ type Func interface {
 // a user supplied location and a Record's field
 type DistanceFunc struct {
 	Field    string
-	Location *Location
+	Location Location
 }
 
 // Args implements the Func interface

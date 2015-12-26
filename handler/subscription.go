@@ -169,7 +169,7 @@ func funcSlice(i interface{}) []interface{} {
 			"func",
 			"distance",
 			skydbconv.ToMap(skydbconv.MapKeyPath(f.Field)),
-			skydbconv.ToMap((*skydbconv.MapLocation)(f.Location)),
+			skydbconv.ToMap(skydbconv.MapLocation(f.Location)),
 		}
 	default:
 		panic(fmt.Errorf("got unrecgonized skydb.Func = %T", i))

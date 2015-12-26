@@ -186,7 +186,7 @@ func (loc *MapLocation) FromMap(m map[string]interface{}) error {
 }
 
 // ToMap implements ToMapper
-func (loc *MapLocation) ToMap(m map[string]interface{}) {
+func (loc MapLocation) ToMap(m map[string]interface{}) {
 	m["$type"] = "geo"
 	m["$lng"] = loc[0]
 	m["$lat"] = loc[1]
@@ -318,7 +318,7 @@ func ParseInterface(i interface{}) interface{} {
 		case "geo":
 			var loc skydb.Location
 			mapFromOrPanic((*MapLocation)(&loc), value)
-			return &loc
+			return loc
 		case "seq":
 			return skydb.Sequence{}
 		case "relation":

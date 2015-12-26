@@ -55,8 +55,8 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 			m[key] = skydbconv.ToMap(skydbconv.MapTime(v))
 		case skydb.Reference:
 			m[key] = skydbconv.ToMap(skydbconv.MapReference(v))
-		case *skydb.Location:
-			m[key] = skydbconv.ToMap((*skydbconv.MapLocation)(v))
+		case skydb.Location:
+			m[key] = skydbconv.ToMap(skydbconv.MapLocation(v))
 		case *skydb.Asset:
 			m[key] = skydbconv.ToMap((*skydbconv.MapAsset)(v))
 		default:
@@ -669,7 +669,7 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 				Type:          skydb.TypeReference,
 				ReferenceType: v.Type(),
 			}
-		case *skydb.Location:
+		case skydb.Location:
 			schema[key] = skydb.FieldType{
 				Type: skydb.TypeLocation,
 			}

@@ -145,8 +145,8 @@ func (acl aclValue) Value() (driver.Value, error) {
 
 type locationValue skydb.Location
 
-func (loc *locationValue) Value() (driver.Value, error) {
-	return (*geo.Point)(loc).ToWKT(), nil
+func (loc locationValue) Value() (driver.Value, error) {
+	return geo.Point(loc).ToWKT(), nil
 }
 
 func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
@@ -300,8 +300,8 @@ func convert(r *skydb.Record) map[string]interface{} {
 			m[key] = assetValue(*value)
 		case skydb.Reference:
 			m[key] = referenceValue(value)
-		case *skydb.Location:
-			m[key] = (*locationValue)(value)
+		case skydb.Location:
+			m[key] = locationValue(value)
 		default:
 			m[key] = rawValue
 		}
@@ -617,7 +617,7 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 			}
 		case *nullLocation:
 			if svalue.Valid {
-				record.Set(column, &svalue.Location)
+				record.Set(column, svalue.Location)
 			}
 		case *sql.NullInt64:
 			if svalue.Valid {
