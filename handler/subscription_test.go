@@ -245,7 +245,7 @@ func TestSubscriptionSaveHandler(t *testing.T) {
 				},
 				Query: skydb.Query{
 					Type: "RECORD_TYPE",
-					Predicate: &skydb.Predicate{
+					Predicate: skydb.Predicate{
 						Operator: skydb.Equal,
 						Children: []interface{}{
 							skydb.Expression{

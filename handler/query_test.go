@@ -26,7 +26,7 @@ func TestQueryFromRaw(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(query, ShouldResemble, skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					skydb.Functional,
 					[]interface{}{
 						skydb.Expression{
@@ -55,7 +55,7 @@ func TestQueryFromRaw(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(query, ShouldResemble, skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					skydb.Functional,
 					[]interface{}{
 						skydb.Expression{

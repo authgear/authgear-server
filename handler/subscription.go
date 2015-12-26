@@ -48,6 +48,10 @@ func (s jsonSubscription) MarshalJSON() ([]byte, error) {
 type jsonQuery skydb.Query
 
 func (q jsonQuery) MarshalJSON() ([]byte, error) {
+	var optionalPredicate *jsonPredicate
+	if !q.Predicate.IsEmpty() {
+		optionalPredicate = (*jsonPredicate)(&q.Predicate)
+	}
 	return json.Marshal(struct {
 		Type         string                      `json:"record_type"`
 		Predicate    *jsonPredicate              `json:"predicate,omitempty"`
@@ -59,7 +63,7 @@ func (q jsonQuery) MarshalJSON() ([]byte, error) {
 		Offset       uint64                      `json:"offset,omitempty"`
 	}{
 		q.Type,
-		(*jsonPredicate)(q.Predicate),
+		optionalPredicate,
 		q.Sorts,
 		q.ReadableBy,
 		q.ComputedKeys,
@@ -72,6 +76,10 @@ func (q jsonQuery) MarshalJSON() ([]byte, error) {
 type jsonPredicate skydb.Predicate
 
 func (p *jsonPredicate) MarshalJSON() ([]byte, error) {
+	if (*skydb.Predicate)(p).IsEmpty() {
+		return []byte{}, nil
+	}
+
 	var results []interface{}
 	if p.Operator.IsCompound() {
 		results = append(results, opString(p.Operator))

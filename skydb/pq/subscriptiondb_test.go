@@ -56,7 +56,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 		}
 		query := skydb.Query{
 			Type: "recordtype",
-			Predicate: &skydb.Predicate{
+			Predicate: skydb.Predicate{
 				Operator: skydb.Equal,
 				Children: []interface{}{
 					skydb.Expression{
@@ -241,7 +241,7 @@ func TestMatchingSubscriptions(t *testing.T) {
 		Convey("match subscription with predicate eq", func() {
 			record := skydb.Record{ID: skydb.NewRecordID("record", "id")}
 			subeq := subscriptionForTest("device0", "eq", "record")
-			subeq.Query.Predicate = &skydb.Predicate{
+			subeq.Query.Predicate = skydb.Predicate{
 				Operator: skydb.Equal,
 				Children: []interface{}{
 					skydb.Expression{
@@ -280,7 +280,7 @@ func TestMatchingSubscriptions(t *testing.T) {
 			record := skydb.Record{ID: skydb.NewRecordID("record", "id")}
 
 			suband := subscriptionForTest("device0", "and", "record")
-			suband.Query.Predicate = &skydb.Predicate{
+			suband.Query.Predicate = skydb.Predicate{
 				Operator: skydb.And,
 				Children: []interface{}{
 					binaryPred(skydb.Equal, "falsy", false),
@@ -290,7 +290,7 @@ func TestMatchingSubscriptions(t *testing.T) {
 			So(db.SaveSubscription(&suband), ShouldBeNil)
 
 			subor := subscriptionForTest("device0", "or", "record")
-			subor.Query.Predicate = &skydb.Predicate{
+			subor.Query.Predicate = skydb.Predicate{
 				Operator: skydb.Or,
 				Children: []interface{}{
 					binaryPred(skydb.Equal, "truthy", false),
@@ -300,7 +300,7 @@ func TestMatchingSubscriptions(t *testing.T) {
 			So(db.SaveSubscription(&subor), ShouldBeNil)
 
 			subnot := subscriptionForTest("device0", "not", "record")
-			subnot.Query.Predicate = &skydb.Predicate{
+			subnot.Query.Predicate = skydb.Predicate{
 				Operator: skydb.Not,
 				Children: []interface{}{
 					binaryPred(skydb.Equal, "truthy", false),

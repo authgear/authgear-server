@@ -18,6 +18,10 @@ type predicateSqlizerFactory struct {
 }
 
 func (f *predicateSqlizerFactory) newPredicateSqlizer(predicate skydb.Predicate) (sq.Sqlizer, error) {
+	if predicate.IsEmpty() {
+		panic("no sqlizer can be created from an empty predicate")
+	}
+
 	if predicate.Operator == skydb.Functional {
 		return f.newFunctionalPredicateSqlizer(predicate)
 	}

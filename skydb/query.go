@@ -126,6 +126,10 @@ type Predicate struct {
 	Children []interface{}
 }
 
+func (p Predicate) IsEmpty() bool {
+	return p.Operator == 0 || p.Children == nil
+}
+
 // Validate returns an Error if a Predicate is invalid.
 //
 // If a Predicate is validated without error, nil is returned.
@@ -250,7 +254,7 @@ func (p Predicate) GetExpressions() (ps []Expression) {
 // ReadableBy is a temp solution for ACL before a full predicate implemented.
 type Query struct {
 	Type         string
-	Predicate    *Predicate
+	Predicate    Predicate
 	Sorts        []Sort
 	ReadableBy   string
 	ComputedKeys map[string]Expression

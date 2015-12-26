@@ -667,7 +667,7 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(*db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
+			So(db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
 				Operator: skydb.Equal,
 				Children: []interface{}{
 					skydb.Expression{skydb.KeyPath, "noteOrder"},
@@ -707,7 +707,7 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(*db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
+			So(db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
 				Operator: skydb.And,
 				Children: []interface{}{
 					skydb.Predicate{
@@ -757,7 +757,7 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(*db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
+			So(db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
 				Operator: skydb.LessThanOrEqual,
 				Children: []interface{}{
 					skydb.Expression{

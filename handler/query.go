@@ -273,7 +273,7 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 			}
 			return err
 		}
-		query.Predicate = &predicate
+		query.Predicate = predicate
 		return nil
 	})
 

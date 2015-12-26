@@ -383,9 +383,9 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 
 	q := db.selectQuery(query.Type, typemap)
 
-	if p := query.Predicate; p != nil {
+	if p := query.Predicate; !p.IsEmpty() {
 		factory := newPredicateSqlizerFactory(db, query.Type)
-		sqlizer, err := factory.newPredicateSqlizer(*p)
+		sqlizer, err := factory.newPredicateSqlizer(p)
 		if err != nil {
 			return nil, err
 		}
@@ -452,9 +452,9 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 
 	q := db.selectQuery(query.Type, typemap)
 
-	if p := query.Predicate; p != nil {
+	if p := query.Predicate; !p.IsEmpty() {
 		factory := newPredicateSqlizerFactory(db, query.Type)
-		sqlizer, err := factory.newPredicateSqlizer(*p)
+		sqlizer, err := factory.newPredicateSqlizer(p)
 		if err != nil {
 			return 0, err
 		}

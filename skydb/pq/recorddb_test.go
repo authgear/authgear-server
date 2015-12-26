@@ -71,7 +71,7 @@ func TestUserRelationQuery(t *testing.T) {
 		Convey("query follow outward", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Functional,
 					Children: []interface{}{
 						skydb.Expression{
@@ -91,7 +91,7 @@ func TestUserRelationQuery(t *testing.T) {
 		Convey("query follow inward", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Functional,
 					Children: []interface{}{
 						skydb.Expression{
@@ -111,7 +111,7 @@ func TestUserRelationQuery(t *testing.T) {
 		Convey("query follow outward OR inward", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Or,
 					Children: []interface{}{
 						skydb.Predicate{
@@ -145,7 +145,7 @@ func TestUserRelationQuery(t *testing.T) {
 		Convey("query follow mutual for user1", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Functional,
 					Children: []interface{}{
 						skydb.Expression{
@@ -165,7 +165,7 @@ func TestUserRelationQuery(t *testing.T) {
 		Convey("query follow mutual for user2", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Functional,
 					Children: []interface{}{
 						skydb.Expression{
@@ -185,7 +185,7 @@ func TestUserRelationQuery(t *testing.T) {
 		Convey("query friend mutual", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Functional,
 					Children: []interface{}{
 						skydb.Expression{
@@ -205,7 +205,7 @@ func TestUserRelationQuery(t *testing.T) {
 		Convey("distinct record satisfying both relations", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Or,
 					Children: []interface{}{
 						skydb.Predicate{
