@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sync"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/skygear/skyerr"
@@ -22,7 +23,10 @@ type pipeline struct {
 
 // Router to dispatch HTTP request to respective handler
 type Router struct {
-	actions map[string]pipeline
+	actions struct {
+		sync.RWMutex
+		m map[string]pipeline
+	}
 }
 
 // Processor specifies the function signature for a Preprocessor
@@ -31,13 +35,20 @@ type Processor func(*Payload, *Response) int
 // NewRouter is factory for Router
 func NewRouter() *Router {
 	return &Router{
-		map[string]pipeline{},
+		struct {
+			sync.RWMutex
+			m map[string]pipeline
+		}{
+			m: map[string]pipeline{},
+		},
 	}
 }
 
 // Map to register action to handle mapping
 func (r *Router) Map(action string, handler Handler, preprocessors ...Processor) {
-	r.actions[action] = pipeline{
+	r.actions.Lock()
+	defer r.actions.Unlock()
+	r.actions.m[action] = pipeline{
 		Action:        action,
 		Preprocessors: preprocessors,
 		Handler:       handler,
@@ -96,7 +107,9 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (r *Router) matchJSONHandler(p *Payload) (h Handler, pp []Processor) {
-	if pipeline, ok := r.actions[p.RouteAction()]; ok {
+	r.actions.RLock()
+	defer r.actions.RUnlock()
+	if pipeline, ok := r.actions.m[p.RouteAction()]; ok {
 		h = pipeline.Handler
 		pp = pipeline.Preprocessors
 	}
