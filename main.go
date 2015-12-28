@@ -210,7 +210,7 @@ func main() {
 	internalPubSubGateway := router.NewGateway(`internalpubSub`)
 	internalPubSubGateway.GET(handler.NewPubSubHandler(internalPubSub), pubSubPreprocessors...)
 
-	http.Handle("/", router.LoggingMiddleware(r, false))
+	http.Handle("/", router.LoggingMiddleware(plugin.AvailabilityMiddleware(r, &initContext), false))
 	http.Handle("/pubsub", router.LoggingMiddleware(pubSubGateway, false))
 	http.Handle("/_/pubsub", router.LoggingMiddleware(internalPubSubGateway, false))
 

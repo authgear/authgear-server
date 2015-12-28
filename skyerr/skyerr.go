@@ -97,6 +97,13 @@ const (
 	// UndefinedOperation is an operation that is not known to the system
 	UndefinedOperation
 
+	// PluginUnavailable occurs when the configured plugin is not available at
+	// the moment
+	PluginUnavailable
+
+	// PluginTimeout occurs when an operation carried by a plugin is timed out
+	PluginTimeout
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )

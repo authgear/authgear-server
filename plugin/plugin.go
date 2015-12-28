@@ -15,6 +15,7 @@ import (
 // that extends or modifies functionality provided by skygear.
 type Plugin struct {
 	transport Transport
+	ready     bool
 }
 
 type pluginHandlerInfo struct {
@@ -102,6 +103,16 @@ func (c *InitContext) InitPlugins() {
 	}
 }
 
+// IsReady returns true if all the configured plugins are available
+func (c *InitContext) IsReady() bool {
+	for _, plug := range c.plugins {
+		if !plug.IsReady() {
+			return false
+		}
+	}
+	return true
+}
+
 // Init instantiates a plugin. This sets up hooks and handlers.
 func (p *Plugin) Init(context *InitContext) {
 	log.WithFields(log.Fields{
@@ -117,6 +128,11 @@ func (p *Plugin) Init(context *InitContext) {
 	p.initHook(context.HookRegistry, regInfo.Hooks)
 	p.initTimer(context.Scheduler, regInfo.Timers)
 	p.initProvider(context.ProviderRegistry, regInfo.Providers)
+	p.ready = true
+}
+
+func (p *Plugin) IsReady() bool {
+	return p.ready
 }
 
 func (p *Plugin) initLambda(r *router.Router, lambdaNames []string) {

@@ -1,6 +1,8 @@
 package router
 
 import (
+	"net/http"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/skygear/skyerr"
 )
@@ -26,6 +28,10 @@ func defaultStatusCode(err skyerr.Error) int {
 	case skyerr.NotSupported:
 	case skyerr.NotImplemented:
 		return 501
+	case skyerr.PluginUnavailable:
+		return http.StatusServiceUnavailable
+	case skyerr.PluginTimeout:
+		return http.StatusGatewayTimeout
 	default:
 		if err.Code() < 10000 {
 			log.Warnf("Error code %d does not have a default status code set. Assumed 500.", err.Code())
