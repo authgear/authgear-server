@@ -83,10 +83,23 @@ func NewPlugin(name string, path string, args []string) Plugin {
 
 // InitContext contains reference to structs that will be initialized by plugin.
 type InitContext struct {
+	plugins          []*Plugin
 	Router           *router.Router
 	HookRegistry     *hook.Registry
 	ProviderRegistry *provider.Registry
 	Scheduler        *cron.Cron
+}
+
+func (c *InitContext) AddPluginConfiguration(name string, path string, args []string) *Plugin {
+	plug := NewPlugin(name, path, args)
+	c.plugins = append(c.plugins, &plug)
+	return &plug
+}
+
+func (c *InitContext) InitPlugins() {
+	for _, plug := range c.plugins {
+		go plug.Init(c)
+	}
 }
 
 // Init instantiates a plugin. This sets up hooks and handlers.
