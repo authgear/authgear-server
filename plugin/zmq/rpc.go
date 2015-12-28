@@ -11,6 +11,8 @@ import (
 	"github.com/zeromq/goczmq"
 )
 
+const initRequestTimeout = 2000
+
 type zmqTransport struct {
 	name   string
 	iaddr  string // the internal addr used by goroutines to make request to plugin
@@ -19,9 +21,10 @@ type zmqTransport struct {
 }
 
 type request struct {
-	Kind  string
-	Name  string
-	Param interface{}
+	Kind    string
+	Name    string
+	Param   interface{}
+	Timeout int // timeout in millisecond
 }
 
 type hookRequest struct {
@@ -79,8 +82,14 @@ func (req *request) MarshalJSON() ([]byte, error) {
 }
 
 func (p zmqTransport) RunInit() (out []byte, err error) {
-	req := request{Kind: "init"}
-	out, err = p.ipc(&req)
+	req := request{Kind: "init", Timeout: initRequestTimeout}
+	for {
+		out, err = p.ipc(&req)
+		if err == nil {
+			break
+		}
+		log.Warn("Unable to send init request to plugin. Retrying...")
+	}
 	return
 }
 
@@ -170,6 +179,9 @@ func (p *zmqTransport) ipc(req *request) (out []byte, err error) {
 	reqSock, err = goczmq.NewReq(p.iaddr)
 	if err != nil {
 		return
+	}
+	if req.Timeout > 0 {
+		reqSock.SetRcvtimeo(req.Timeout)
 	}
 	err = reqSock.SendMessage([][]byte{in})
 	if err != nil {
