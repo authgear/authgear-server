@@ -872,7 +872,7 @@ func TestExtend(t *testing.T) {
 				"dirty":     skydb.FieldType{Type: skydb.TypeNumber},
 			})
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  %!s(*skydb.Expression=<nil>)} => {TypeNumber  %!s(*skydb.Expression=<nil>)}")
+			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  {%!s(skydb.ExpressionType=0) <nil>}} => {TypeNumber  {%!s(skydb.ExpressionType=0) <nil>}}")
 		})
 	})
 }
@@ -1486,7 +1486,7 @@ func TestQuery(t *testing.T) {
 		Convey("query records by note order", func() {
 			query := skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Equal,
 					Children: []interface{}{
 						skydb.Expression{
@@ -1510,7 +1510,7 @@ func TestQuery(t *testing.T) {
 		Convey("query records by content matching", func() {
 			query := skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Like,
 					Children: []interface{}{
 						skydb.Expression{
@@ -1534,7 +1534,7 @@ func TestQuery(t *testing.T) {
 		Convey("query records by case insensitive content matching", func() {
 			query := skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.ILike,
 					Children: []interface{}{
 						skydb.Expression{
@@ -1558,7 +1558,7 @@ func TestQuery(t *testing.T) {
 		Convey("query records by check array members", func() {
 			query := skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.In,
 					Children: []interface{}{
 						skydb.Expression{
@@ -1589,7 +1589,7 @@ func TestQuery(t *testing.T) {
 		Convey("query records by checking empty array", func() {
 			query := skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.In,
 					Children: []interface{}{
 						skydb.Expression{
@@ -1624,7 +1624,7 @@ func TestQuery(t *testing.T) {
 			}
 			query := skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Or,
 					Children: []interface{}{
 						skydb.Predicate{
@@ -1731,7 +1731,7 @@ func TestQuery(t *testing.T) {
 		Convey("query records by reference", func() {
 			query := skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Equal,
 					Children: []interface{}{
 						skydb.Expression{
@@ -1790,12 +1790,12 @@ func TestQuery(t *testing.T) {
 		Convey("query within distance", func() {
 			query := skydb.Query{
 				Type: "restaurant",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.LessThanOrEqual,
 					Children: []interface{}{
 						skydb.Expression{
 							Type: skydb.Function,
-							Value: &skydb.DistanceFunc{
+							Value: skydb.DistanceFunc{
 								Field:    "location",
 								Location: skydb.NewLocation(1, 1),
 							},
@@ -1816,7 +1816,7 @@ func TestQuery(t *testing.T) {
 		Convey("query within distance with func on R.H.S.", func() {
 			query := skydb.Query{
 				Type: "restaurant",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.GreaterThan,
 					Children: []interface{}{
 						skydb.Expression{
@@ -1825,7 +1825,7 @@ func TestQuery(t *testing.T) {
 						},
 						skydb.Expression{
 							Type: skydb.Function,
-							Value: &skydb.DistanceFunc{
+							Value: skydb.DistanceFunc{
 								Field:    "location",
 								Location: skydb.NewLocation(1, 1),
 							},
@@ -1845,7 +1845,7 @@ func TestQuery(t *testing.T) {
 				ComputedKeys: map[string]skydb.Expression{
 					"distance": skydb.Expression{
 						Type: skydb.Function,
-						Value: &skydb.DistanceFunc{
+						Value: skydb.DistanceFunc{
 							Field:    "location",
 							Location: skydb.NewLocation(1, 1),
 						},
@@ -1864,7 +1864,7 @@ func TestQuery(t *testing.T) {
 				Type: "restaurant",
 				Sorts: []skydb.Sort{
 					{
-						Func: &skydb.DistanceFunc{
+						Func: skydb.DistanceFunc{
 							Field:    "location",
 							Location: skydb.NewLocation(0, 0),
 						},
@@ -2021,7 +2021,7 @@ func TestQuery(t *testing.T) {
 		Convey("query records by literal string in JSON", func() {
 			query := skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.In,
 					Children: []interface{}{
 						skydb.Expression{
@@ -2176,7 +2176,7 @@ func TestQueryCount(t *testing.T) {
 		Convey("count records by content matching", func() {
 			query := skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Like,
 					Children: []interface{}{
 						skydb.Expression{
@@ -2199,7 +2199,7 @@ func TestQueryCount(t *testing.T) {
 		Convey("count records by content with none matching", func() {
 			query := skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Like,
 					Children: []interface{}{
 						skydb.Expression{
@@ -2248,8 +2248,8 @@ func TestAggregateQuery(t *testing.T) {
 			So(err, ShouldBeNil)
 		}
 
-		equalCategoryPredicate := func(category string) *skydb.Predicate {
-			return &skydb.Predicate{
+		equalCategoryPredicate := func(category string) skydb.Predicate {
+			return skydb.Predicate{
 				Operator: skydb.Equal,
 				Children: []interface{}{
 					skydb.Expression{
@@ -2353,7 +2353,7 @@ func TestMetaDataQuery(t *testing.T) {
 		Convey("queries by record id", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Equal,
 					Children: []interface{}{
 						skydb.Expression{
@@ -2376,7 +2376,7 @@ func TestMetaDataQuery(t *testing.T) {
 		Convey("queries by owner id", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Equal,
 					Children: []interface{}{
 						skydb.Expression{
@@ -2399,7 +2399,7 @@ func TestMetaDataQuery(t *testing.T) {
 		Convey("queries by created at", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.LessThan,
 					Children: []interface{}{
 						skydb.Expression{
@@ -2422,7 +2422,7 @@ func TestMetaDataQuery(t *testing.T) {
 		Convey("queries by created by", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Equal,
 					Children: []interface{}{
 						skydb.Expression{
@@ -2445,7 +2445,7 @@ func TestMetaDataQuery(t *testing.T) {
 		Convey("queries by updated at", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.GreaterThan,
 					Children: []interface{}{
 						skydb.Expression{
@@ -2468,7 +2468,7 @@ func TestMetaDataQuery(t *testing.T) {
 		Convey("queries by updated by", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.Equal,
 					Children: []interface{}{
 						skydb.Expression{
@@ -2514,7 +2514,7 @@ func TestUnsupportedQuery(t *testing.T) {
 		Convey("both side of IN is keypath", func() {
 			query := skydb.Query{
 				Type: "record",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					Operator: skydb.In,
 					Children: []interface{}{
 						skydb.Expression{

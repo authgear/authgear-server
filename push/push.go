@@ -34,7 +34,7 @@ func (m MapMapper) Map() map[string]interface{} {
 
 // Sender defines the methods that a push service should support.
 type Sender interface {
-	Send(m Mapper, device *skydb.Device) error
+	Send(m Mapper, device skydb.Device) error
 }
 
 // RouteSender routes notifications to registered senders that is capable of
@@ -62,7 +62,7 @@ func (s RouteSender) Len() int {
 }
 
 // Send inspects device and route notification (m) to corresponding sender.
-func (s RouteSender) Send(m Mapper, device *skydb.Device) error {
+func (s RouteSender) Send(m Mapper, device skydb.Device) error {
 	sender, ok := s.senders[device.Type]
 	if !ok {
 		log.WithFields(log.Fields{

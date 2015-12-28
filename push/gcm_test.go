@@ -50,7 +50,7 @@ func TestGCMSend(t *testing.T) {
 						},
 					},
 				},
-			}, &device)
+			}, device)
 
 			So(err, ShouldBeNil)
 			So(apiKey, ShouldEqual, "apiKey")
@@ -79,7 +79,7 @@ func TestGCMSend(t *testing.T) {
 				return nil, errors.New("gcm_test: some error")
 			}
 
-			err := pusher.Send(EmptyMapper, &device)
+			err := pusher.Send(EmptyMapper, device)
 			So(err, ShouldResemble, errors.New("gcm_test: some error"))
 		})
 	})

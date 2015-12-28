@@ -193,28 +193,18 @@ func (reference *Reference) Type() string {
 type Location [2]float64
 
 // NewLocation returns a new Location
-func NewLocation(lng, lat float64) *Location {
-	return &Location{lng, lat}
+func NewLocation(lng, lat float64) Location {
+	return Location{lng, lat}
 }
 
 // Lng returns the longitude
-func (loc *Location) Lng() float64 {
+func (loc Location) Lng() float64 {
 	return loc[0]
 }
 
-// SetLng sets the longitude
-func (loc *Location) SetLng(lng float64) {
-	loc[0] = lng
-}
-
 // Lat returns the Latitude
-func (loc *Location) Lat() float64 {
+func (loc Location) Lat() float64 {
 	return loc[1]
-}
-
-// SetLat sets the Latitude
-func (loc *Location) SetLat(lat float64) {
-	loc[1] = lat
 }
 
 // String returns a human-readable representation of this Location.
@@ -331,8 +321,8 @@ type RecordSchema map[string]FieldType
 // FieldType represents the kind of data living within a field of a RecordSchema.
 type FieldType struct {
 	Type          DataType
-	ReferenceType string      // used only by TypeReference
-	Expression    *Expression // used by Computed Keys
+	ReferenceType string     // used only by TypeReference
+	Expression    Expression // used by Computed Keys
 }
 
 // DataType defines the type of data that can saved into an skydb database

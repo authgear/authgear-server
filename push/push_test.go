@@ -16,13 +16,13 @@ type mockSender struct {
 	err    error
 }
 
-func (s *mockSender) Send(m Mapper, device *skydb.Device) error {
+func (s *mockSender) Send(m Mapper, device skydb.Device) error {
 	if s.err != nil {
 		return s.err
 	}
 
 	s.note = m.Map()
-	s.device = *device
+	s.device = device
 
 	return nil
 }
@@ -51,7 +51,7 @@ func TestRouteSender(t *testing.T) {
 				},
 			}
 
-			err := routeSender.Send(MapMapper(message), &device)
+			err := routeSender.Send(MapMapper(message), device)
 			So(err, ShouldBeNil)
 			So(apnsSender.note, ShouldResemble, message)
 			So(apnsSender.device, ShouldResemble, device)
@@ -62,7 +62,7 @@ func TestRouteSender(t *testing.T) {
 				Type: "sns",
 			}
 
-			err := routeSender.Send(EmptyMapper, &device)
+			err := routeSender.Send(EmptyMapper, device)
 			So(err.Error(), ShouldEqual, "cannot find sender with type = sns")
 		})
 
@@ -72,7 +72,7 @@ func TestRouteSender(t *testing.T) {
 			}
 
 			gcmSender.err = errors.New("mysterious error")
-			err := routeSender.Send(EmptyMapper, &device)
+			err := routeSender.Send(EmptyMapper, device)
 			So(err, ShouldEqual, gcmSender.err)
 		})
 	})

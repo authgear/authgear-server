@@ -15,7 +15,7 @@ type GCMPusher struct {
 }
 
 // Send sends the dictionary represented by m to device.
-func (p *GCMPusher) Send(m Mapper, device *skydb.Device) error {
+func (p *GCMPusher) Send(m Mapper, device skydb.Device) error {
 	message := gcm.HttpMessage{}
 
 	if err := mapGCMMessage(m, &message); err != nil {

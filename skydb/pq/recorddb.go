@@ -2,8 +2,6 @@ package pq
 
 import (
 	"database/sql"
-	"database/sql/driver"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,138 +14,7 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/oursky/skygear/skydb"
-	"github.com/paulmach/go.geo"
 )
-
-// This file implements Record related operations of the
-// skydb/pq implementation.
-
-// Different data types that can be saved in and loaded from postgreSQL
-// NOTE(limouren): varchar is missing because text can replace them,
-// see the docs here: http://www.postgresql.org/docs/9.4/static/datatype-character.html
-const (
-	TypeString    = "text"
-	TypeNumber    = "double precision"
-	TypeBoolean   = "boolean"
-	TypeJSON      = "jsonb"
-	TypeTimestamp = "timestamp without time zone"
-	TypeLocation  = "geometry(Point)"
-	TypeInteger   = "integer"
-	TypeSerial    = "serial UNIQUE"
-)
-
-type nullJSON struct {
-	JSON  interface{}
-	Valid bool
-}
-
-func (nj *nullJSON) Scan(value interface{}) error {
-	data, ok := value.([]byte)
-	if value == nil || !ok {
-		nj.JSON = nil
-		nj.Valid = false
-		return nil
-	}
-
-	err := json.Unmarshal(data, &nj.JSON)
-	nj.Valid = err == nil
-
-	return err
-}
-
-type assetValue skydb.Asset
-
-func (asset assetValue) Value() (driver.Value, error) {
-	return asset.Name, nil
-}
-
-type nullAsset struct {
-	Asset *skydb.Asset
-	Valid bool
-}
-
-func (na *nullAsset) Scan(value interface{}) error {
-	if value == nil {
-		na.Asset = &skydb.Asset{}
-		na.Valid = false
-		return nil
-	}
-
-	assetName, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("failed to scan Asset: got type(value) = %T, expect []byte", value)
-	}
-
-	na.Asset = &skydb.Asset{
-		Name: string(assetName),
-	}
-	na.Valid = true
-
-	return nil
-}
-
-type nullLocation struct {
-	Location skydb.Location
-	Valid    bool
-}
-
-func (nl *nullLocation) Scan(value interface{}) error {
-	if value == nil {
-		nl.Location = skydb.Location{}
-		nl.Valid = false
-		return nil
-	}
-
-	src, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("failed to scan Location: got type(value) = %T, expect []byte", value)
-	}
-
-	// TODO(limouren): instead of decoding a str-encoded hex, we should utilize
-	// ST_AsBinary to perform the SELECT
-	decoded := make([]byte, hex.DecodedLen(len(src)))
-	_, err := hex.Decode(decoded, src)
-	if err != nil {
-		return fmt.Errorf("failed to scan Location: malformed wkb")
-	}
-
-	err = (*geo.Point)(&nl.Location).Scan(decoded)
-	nl.Valid = err == nil
-	return err
-}
-
-type referenceValue skydb.Reference
-
-func (ref referenceValue) Value() (driver.Value, error) {
-	return ref.ID.Key, nil
-}
-
-type jsonSliceValue []interface{}
-
-func (s jsonSliceValue) Value() (driver.Value, error) {
-	return json.Marshal([]interface{}(s))
-}
-
-type jsonMapValue map[string]interface{}
-
-func (m jsonMapValue) Value() (driver.Value, error) {
-	return json.Marshal(map[string]interface{}(m))
-}
-
-type aclValue skydb.RecordACL
-
-func (acl aclValue) Value() (driver.Value, error) {
-	if acl == nil {
-		return nil, nil
-	}
-	return json.Marshal(acl)
-}
-
-type locationValue skydb.Location
-
-func (loc *locationValue) Value() (driver.Value, error) {
-	return (*geo.Point)(loc).ToWKT(), nil
-}
 
 func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
 	typemap, err := db.remoteColumnTypes(id.Type)
@@ -300,8 +167,8 @@ func convert(r *skydb.Record) map[string]interface{} {
 			m[key] = assetValue(*value)
 		case skydb.Reference:
 			m[key] = referenceValue(value)
-		case *skydb.Location:
-			m[key] = (*locationValue)(value)
+		case skydb.Location:
+			m[key] = locationValue(value)
 		default:
 			m[key] = rawValue
 		}
@@ -383,9 +250,9 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 
 	q := db.selectQuery(query.Type, typemap)
 
-	if p := query.Predicate; p != nil {
+	if p := query.Predicate; !p.IsEmpty() {
 		factory := newPredicateSqlizerFactory(db, query.Type)
-		sqlizer, err := factory.newPredicateSqlizer(*p)
+		sqlizer, err := factory.newPredicateSqlizer(p)
 		if err != nil {
 			return nil, err
 		}
@@ -441,9 +308,9 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 	typemap = skydb.RecordSchema{
 		"_record_count": skydb.FieldType{
 			Type: skydb.TypeNumber,
-			Expression: &skydb.Expression{
+			Expression: skydb.Expression{
 				Type: skydb.Function,
-				Value: &skydb.CountFunc{
+				Value: skydb.CountFunc{
 					OverallRecords: false,
 				},
 			},
@@ -452,9 +319,9 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 
 	q := db.selectQuery(query.Type, typemap)
 
-	if p := query.Predicate; p != nil {
+	if p := query.Predicate; !p.IsEmpty() {
 		factory := newPredicateSqlizerFactory(db, query.Type)
-		sqlizer, err := factory.newPredicateSqlizer(*p)
+		sqlizer, err := factory.newPredicateSqlizer(p)
 		if err != nil {
 			return 0, err
 		}
@@ -617,7 +484,7 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 			}
 		case *nullLocation:
 			if svalue.Valid {
-				record.Set(column, &svalue.Location)
+				record.Set(column, svalue.Location)
 			}
 		case *sql.NullInt64:
 			if svalue.Valid {
@@ -665,14 +532,14 @@ func (db *database) selectQuery(recordType string, typemap skydb.RecordSchema) s
 	q := psql.Select()
 	for column, fieldType := range typemap {
 		expr := fieldType.Expression
-		if expr == nil {
-			expr = &skydb.Expression{
+		if expr.IsEmpty() {
+			expr = skydb.Expression{
 				Type:  skydb.KeyPath,
 				Value: column,
 			}
 		}
 
-		e := expressionSqlizer{recordType, *expr}
+		e := expressionSqlizer{recordType, expr}
 		sqlOperand, opArgs, _ := e.ToSql()
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
 	}
@@ -701,16 +568,16 @@ func updateTypemapForQuery(query *skydb.Query, typemap skydb.RecordSchema) (skyd
 		v := value // because value will be overwritten in the next loop
 		typemap["_transient_"+key] = skydb.FieldType{
 			Type:       skydb.TypeNumber,
-			Expression: &v,
+			Expression: v,
 		}
 	}
 
 	if query.GetCount {
 		typemap["_record_count"] = skydb.FieldType{
 			Type: skydb.TypeNumber,
-			Expression: &skydb.Expression{
+			Expression: skydb.Expression{
 				Type: skydb.Function,
-				Value: &skydb.CountFunc{
+				Value: skydb.CountFunc{
 					OverallRecords: true,
 				},
 			},

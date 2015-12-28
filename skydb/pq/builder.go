@@ -18,6 +18,10 @@ type predicateSqlizerFactory struct {
 }
 
 func (f *predicateSqlizerFactory) newPredicateSqlizer(predicate skydb.Predicate) (sq.Sqlizer, error) {
+	if predicate.IsEmpty() {
+		panic("no sqlizer can be created from an empty predicate")
+	}
+
 	if predicate.Operator == skydb.Functional {
 		return f.newFunctionalPredicateSqlizer(predicate)
 	}
@@ -71,7 +75,7 @@ func (f *predicateSqlizerFactory) newFunctionalPredicateSqlizer(predicate skydb.
 		panic("unexpected expression in functional predicate")
 	}
 	switch fn := expr.Value.(type) {
-	case *skydb.UserRelationFunc:
+	case skydb.UserRelationFunc:
 		table := fn.RelationName
 		direction := fn.RelationDirection
 		if direction == "" {
@@ -298,12 +302,12 @@ func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err erro
 
 func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
 	switch f := fun.(type) {
-	case *skydb.DistanceFunc:
+	case skydb.DistanceFunc:
 		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))",
 			fullQuoteIdentifier(alias, f.Field))
 		args := []interface{}{f.Location.Lng(), f.Location.Lat()}
 		return sql, args
-	case *skydb.CountFunc:
+	case skydb.CountFunc:
 		var sql string
 		if f.OverallRecords {
 			sql = fmt.Sprintf("COUNT(*) OVER()")
@@ -375,7 +379,7 @@ func sortOrderBySQL(alias string, sort skydb.Sort) (string, error) {
 // due to sq not being able to pass args in OrderBy, we can't re-use funcToSQLOperand
 func funcOrderBySQL(alias string, fun skydb.Func) (string, error) {
 	switch f := fun.(type) {
-	case *skydb.DistanceFunc:
+	case skydb.DistanceFunc:
 		sql := fmt.Sprintf(
 			"ST_Distance_Sphere(%s, ST_MakePoint(%f, %f))",
 			fullQuoteIdentifier(alias, f.Field),

@@ -193,43 +193,45 @@ func (parser *QueryParser) parseFunc(s []interface{}) (f skydb.Func, err error) 
 	return
 }
 
-func (parser *QueryParser) parseDistanceFunc(s []interface{}) (*skydb.DistanceFunc, error) {
+func (parser *QueryParser) parseDistanceFunc(s []interface{}) (skydb.DistanceFunc, error) {
+	emptyDistanceFunc := skydb.DistanceFunc{}
 	if len(s) != 2 {
-		return nil, fmt.Errorf("want 2 arguments for distance func, got %d", len(s))
+		return emptyDistanceFunc, fmt.Errorf("want 2 arguments for distance func, got %d", len(s))
 	}
 
 	var field string
 	if err := skydbconv.MapFrom(s[0], (*skydbconv.MapKeyPath)(&field)); err != nil {
-		return nil, fmt.Errorf("invalid key path: %v", err)
+		return emptyDistanceFunc, fmt.Errorf("invalid key path: %v", err)
 	}
 
 	var location skydb.Location
 	if err := skydbconv.MapFrom(s[1], (*skydbconv.MapLocation)(&location)); err != nil {
-		return nil, fmt.Errorf("invalid location: %v", err)
+		return emptyDistanceFunc, fmt.Errorf("invalid location: %v", err)
 	}
 
-	return &skydb.DistanceFunc{
+	return skydb.DistanceFunc{
 		Field:    field,
-		Location: &location,
+		Location: location,
 	}, nil
 }
 
-func (parser *QueryParser) parseUserRelationFunc(s []interface{}) (*skydb.UserRelationFunc, error) {
+func (parser *QueryParser) parseUserRelationFunc(s []interface{}) (skydb.UserRelationFunc, error) {
+	emptyUserRelationFunc := skydb.UserRelationFunc{}
 	if len(s) != 2 {
-		return nil, fmt.Errorf("want 2 arguments for user relation func, got %d", len(s))
+		return emptyUserRelationFunc, fmt.Errorf("want 2 arguments for user relation func, got %d", len(s))
 	}
 
 	var field string
 	if err := skydbconv.MapFrom(s[0], (*skydbconv.MapKeyPath)(&field)); err != nil {
-		return nil, fmt.Errorf("invalid key path: %v", err)
+		return emptyUserRelationFunc, fmt.Errorf("invalid key path: %v", err)
 	}
 
 	var relation skydbconv.MapRelation
 	if err := skydbconv.MapFrom(s[1], (*skydbconv.MapRelation)(&relation)); err != nil {
-		return nil, fmt.Errorf("invalid relation: %v", err)
+		return emptyUserRelationFunc, fmt.Errorf("invalid relation: %v", err)
 	}
 
-	return &skydb.UserRelationFunc{
+	return skydb.UserRelationFunc{
 		KeyPath:           field,
 		RelationName:      relation.Name,
 		RelationDirection: relation.Direction,
@@ -271,7 +273,7 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 			}
 			return err
 		}
-		query.Predicate = &predicate
+		query.Predicate = predicate
 		return nil
 	})
 

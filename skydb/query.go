@@ -74,7 +74,7 @@ type ExpressionType int
 
 // A list of ExpressionTypes.
 const (
-	Literal ExpressionType = iota
+	Literal ExpressionType = iota + 1
 	KeyPath
 	Function
 )
@@ -83,6 +83,10 @@ const (
 type Expression struct {
 	Type  ExpressionType
 	Value interface{}
+}
+
+func (expr Expression) IsEmpty() bool {
+	return expr.Type == 0 && expr.Value == nil
 }
 
 func (expr Expression) IsKeyPath() bool {
@@ -120,6 +124,10 @@ func (expr Expression) IsLiteralMap() bool {
 type Predicate struct {
 	Operator Operator
 	Children []interface{}
+}
+
+func (p Predicate) IsEmpty() bool {
+	return p.Operator == 0 || p.Children == nil
 }
 
 // Validate returns an Error if a Predicate is invalid.
@@ -182,7 +190,7 @@ func (p Predicate) Validate() skyerr.Error {
 		}
 
 		switch f := expr.Value.(type) {
-		case *UserRelationFunc:
+		case UserRelationFunc:
 			if f.RelationName != "_friend" && f.RelationName != "_follow" {
 				return skyerr.NewErrorf(skyerr.NotSupported,
 					`user relation predicate with "%d" relation is not supported`,
@@ -246,7 +254,7 @@ func (p Predicate) GetExpressions() (ps []Expression) {
 // ReadableBy is a temp solution for ACL before a full predicate implemented.
 type Query struct {
 	Type         string
-	Predicate    *Predicate
+	Predicate    Predicate
 	Sorts        []Sort
 	ReadableBy   string
 	ComputedKeys map[string]Expression
@@ -270,11 +278,11 @@ type Func interface {
 // a user supplied location and a Record's field
 type DistanceFunc struct {
 	Field    string
-	Location *Location
+	Location Location
 }
 
 // Args implements the Func interface
-func (f *DistanceFunc) Args() []interface{} {
+func (f DistanceFunc) Args() []interface{} {
 	return []interface{}{f.Field, f.Location}
 }
 
@@ -285,7 +293,7 @@ type CountFunc struct {
 }
 
 // Args implements the Func interface
-func (f *CountFunc) Args() []interface{} {
+func (f CountFunc) Args() []interface{} {
 	return []interface{}{}
 }
 
@@ -299,6 +307,6 @@ type UserRelationFunc struct {
 }
 
 // Args implements the Func interface
-func (f *UserRelationFunc) Args() []interface{} {
+func (f UserRelationFunc) Args() []interface{} {
 	return []interface{}{}
 }

@@ -637,7 +637,7 @@ func TestRecordQuery(t *testing.T) {
 				Type: "note",
 				Sorts: []skydb.Sort{
 					skydb.Sort{
-						Func: &skydb.DistanceFunc{
+						Func: skydb.DistanceFunc{
 							Field:    "location",
 							Location: skydb.NewLocation(1, 2),
 						},
@@ -667,7 +667,7 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(*db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
+			So(db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
 				Operator: skydb.Equal,
 				Children: []interface{}{
 					skydb.Expression{skydb.KeyPath, "noteOrder"},
@@ -707,7 +707,7 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(*db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
+			So(db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
 				Operator: skydb.And,
 				Children: []interface{}{
 					skydb.Predicate{
@@ -757,12 +757,12 @@ func TestRecordQuery(t *testing.T) {
 			RecordQueryHandler(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
-			So(*db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
+			So(db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
 				Operator: skydb.LessThanOrEqual,
 				Children: []interface{}{
 					skydb.Expression{
 						skydb.Function,
-						&skydb.DistanceFunc{
+						skydb.DistanceFunc{
 							Field:    "location",
 							Location: skydb.NewLocation(1, 2),
 						},
@@ -802,7 +802,7 @@ func TestRecordQuery(t *testing.T) {
 			So(db.lastquery.ComputedKeys, ShouldResemble, map[string]skydb.Expression{
 				"distance": skydb.Expression{
 					skydb.Function,
-					&skydb.DistanceFunc{
+					skydb.DistanceFunc{
 						Field:    "location",
 						Location: skydb.NewLocation(1, 2),
 					},

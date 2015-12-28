@@ -26,12 +26,12 @@ func TestQueryFromRaw(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(query, ShouldResemble, skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					skydb.Functional,
 					[]interface{}{
 						skydb.Expression{
 							Type:  skydb.Function,
-							Value: &skydb.UserRelationFunc{"assignee", "_follow", "outward", "USER_ID"},
+							Value: skydb.UserRelationFunc{"assignee", "_follow", "outward", "USER_ID"},
 						},
 					},
 				},
@@ -55,12 +55,12 @@ func TestQueryFromRaw(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(query, ShouldResemble, skydb.Query{
 				Type: "note",
-				Predicate: &skydb.Predicate{
+				Predicate: skydb.Predicate{
 					skydb.Functional,
 					[]interface{}{
 						skydb.Expression{
 							Type:  skydb.Function,
-							Value: &skydb.UserRelationFunc{"_owner", "_friend", "mutual", "USER_ID"},
+							Value: skydb.UserRelationFunc{"_owner", "_friend", "mutual", "USER_ID"},
 						},
 					},
 				},

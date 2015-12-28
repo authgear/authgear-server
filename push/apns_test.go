@@ -57,8 +57,8 @@ func TestAPNSSend(t *testing.T) {
 				},
 			}
 
-			So(pusher.Send(customMap, &device), ShouldBeNil)
-			So(pusher.Send(customMap, &secondDevice), ShouldBeNil)
+			So(pusher.Send(customMap, device), ShouldBeNil)
+			So(pusher.Send(customMap, secondDevice), ShouldBeNil)
 			So(len(client.sentNotifications), ShouldEqual, 2)
 			So(client.sentNotifications[0].DeviceToken, ShouldEqual, "deviceToken")
 			So(client.sentNotifications[1].DeviceToken, ShouldEqual, "deviceToken2")
@@ -83,7 +83,7 @@ func TestAPNSSend(t *testing.T) {
 		})
 
 		Convey("returns error when missing apns dictionary", func() {
-			err := pusher.Send(EmptyMapper, &device)
+			err := pusher.Send(EmptyMapper, device)
 			So(err, ShouldResemble, errors.New("push/apns: payload has no apns dictionary"))
 		})
 
@@ -91,7 +91,7 @@ func TestAPNSSend(t *testing.T) {
 			client.returnerr = errors.New("apns_test: some error")
 			err := pusher.Send(MapMapper{
 				"apns": map[string]interface{}{},
-			}, &device)
+			}, device)
 			So(err, ShouldResemble, errors.New("apns_test: some error"))
 		})
 
@@ -107,7 +107,7 @@ func TestAPNSSend(t *testing.T) {
 				},
 			}
 
-			err := pusher.Send(customMap, &device)
+			err := pusher.Send(customMap, device)
 
 			So(err, ShouldBeNil)
 

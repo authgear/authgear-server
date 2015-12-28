@@ -6,6 +6,13 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func TestExpression(t *testing.T) {
+	Convey("is empty", t, func() {
+		expr := Expression{}
+		So(expr.IsEmpty(), ShouldBeTrue)
+	})
+}
+
 func TestMalformedPredicate(t *testing.T) {
 	Convey("Predicate with Equal", t, func() {
 		Convey("comparing array", func() {

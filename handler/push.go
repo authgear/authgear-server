@@ -43,7 +43,7 @@ func (p *pushToUserPayload) Validate() error {
 	return nil
 }
 
-var sendPushNotification = func(sender push.Sender, device *skydb.Device, m push.Mapper) {
+var sendPushNotification = func(sender push.Sender, device skydb.Device, m push.Mapper) {
 	go func() {
 		log.Debugf("Sending notification to device token = %s", device.Token)
 		err := sender.Send(m, device)
@@ -111,7 +111,7 @@ func PushToUserHandler(rpayload *router.Payload, response *router.Response) {
 				if _, ok := deviceIDs[device.Token]; !ok {
 					deviceIDs[device.Token] = true
 					pushMap := push.MapMapper(payload.Notification)
-					sendPushNotification(rpayload.NotificationSender, &device, pushMap)
+					sendPushNotification(rpayload.NotificationSender, device, pushMap)
 				}
 			}
 		}
@@ -139,7 +139,7 @@ func PushToDeviceHandler(rpayload *router.Payload, response *router.Response) {
 			resultItems[i].err = &err
 		} else {
 			pushMap := push.MapMapper(payload.Notification)
-			sendPushNotification(rpayload.NotificationSender, &device, pushMap)
+			sendPushNotification(rpayload.NotificationSender, device, pushMap)
 		}
 	}
 	response.Result = resultItems

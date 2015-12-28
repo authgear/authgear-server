@@ -72,7 +72,7 @@ func (query *queryValue) Scan(value interface{}) error {
 
 	v := struct {
 		Type         string
-		Predicate    *jsonPredicate
+		Predicate    jsonPredicate
 		Sorts        []skydb.Sort
 		ReadableBy   string
 		ComputedKeys map[string]skydb.Expression
@@ -86,7 +86,7 @@ func (query *queryValue) Scan(value interface{}) error {
 	}
 
 	query.Type = v.Type
-	query.Predicate = (*skydb.Predicate)(v.Predicate)
+	query.Predicate = skydb.Predicate(v.Predicate)
 	query.Sorts = v.Sorts
 	query.ReadableBy = v.ReadableBy
 	query.ComputedKeys = v.ComputedKeys
@@ -328,7 +328,7 @@ func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscription
 	// filter without allocation
 	matchingSubs := subscriptions[:0]
 	for _, subscription := range subscriptions {
-		if predMatchRecord(subscription.Query.Predicate, record) {
+		if predMatchRecord(&(subscription.Query.Predicate), record) {
 			matchingSubs = append(matchingSubs, subscription)
 		}
 	}
@@ -347,7 +347,7 @@ func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscription
 }
 
 func predMatchRecord(p *skydb.Predicate, record *skydb.Record) (b bool) {
-	if p == nil {
+	if p == nil || p.IsEmpty() {
 		return true
 	}
 
