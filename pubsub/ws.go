@@ -12,6 +12,7 @@ type connection struct {
 	ws       *websocket.Conn
 	channels []string
 	Send     chan Parcel
+	done     chan bool
 }
 
 type wsPayload struct {
@@ -59,27 +60,34 @@ func (w *WsPubSub) Handle(writer http.ResponseWriter, req *http.Request) {
 	c := &connection{
 		ws:   conn,
 		Send: make(chan Parcel),
+		done: make(chan bool),
 	}
 	go w.writer(c)
 	go w.reader(c)
 }
 
 func (w *WsPubSub) writer(c *connection) {
+writer:
 	for {
-		parcel := <-c.Send
-		log.Debugf("Writing ws %p, %s", c.ws, parcel.Data)
-		d := json.RawMessage(parcel.Data)
-		message, _ := json.Marshal(wsPayload{
-			Channel: parcel.Channel,
-			Data:    &d,
-		})
-		c.ws.WriteMessage(websocket.TextMessage, message)
+		select {
+		case parcel := <-c.Send:
+			log.Debugf("Writing ws %p, %s, %s", c.ws, parcel.Channel, parcel.Data)
+			d := json.RawMessage(parcel.Data)
+			message, _ := json.Marshal(wsPayload{
+				Channel: parcel.Channel,
+				Data:    &d,
+			})
+			c.ws.WriteMessage(websocket.TextMessage, message)
+		case <-c.done:
+			break writer
+		}
 	}
+	log.Debugf("Close ws writer goroutine %p", c.ws)
 }
 
 func (w *WsPubSub) reader(c *connection) {
 	defer func() {
-		log.Debugf("Close ws connection %p", c.ws)
+		log.Debugf("Close ws writer connection %p", c.ws)
 		c.ws.Close()
 		for _, channel := range c.channels {
 			w.hub.Unsubscribe <- Parcel{
@@ -87,6 +95,7 @@ func (w *WsPubSub) reader(c *connection) {
 				Connection: c,
 			}
 		}
+		c.done <- true
 	}()
 	for {
 		log.Debugf("Waiting ws message %p", c.ws)
