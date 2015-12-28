@@ -60,8 +60,10 @@ var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 }
 
 type execTransport struct {
-	Path string
-	Args []string
+	Path        string
+	Args        []string
+	initHandler odplugin.TransportInitHandler
+	state       odplugin.TransportState
 }
 
 func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
@@ -108,6 +110,34 @@ func (p *execTransport) runProc(args []string, in []byte) (out []byte, err error
 
 	out = resp.Result
 	return
+}
+
+func (p *execTransport) State() odplugin.TransportState {
+	return p.state
+}
+
+func (p *execTransport) SetInitHandler(f odplugin.TransportInitHandler) {
+	p.initHandler = f
+}
+
+func (p *execTransport) setState(state odplugin.TransportState) {
+	if state != p.state {
+		oldState := p.state
+		p.state = state
+		log.Infof("Transport state changes from %d to %d.", oldState, p.state)
+	}
+}
+
+func (p *execTransport) RequestInit() {
+	out, err := p.RunInit()
+	if p.initHandler != nil {
+		handlerError := p.initHandler(out, err)
+		if err != nil || handlerError != nil {
+			p.setState(odplugin.TransportStateError)
+			return
+		}
+	}
+	p.setState(odplugin.TransportStateReady)
 }
 
 func (p *execTransport) RunInit() (out []byte, err error) {
@@ -190,9 +220,10 @@ type execTransportFactory struct {
 }
 
 func (f execTransportFactory) Open(path string, args []string) (transport odplugin.Transport) {
-		Path: path,
-		Args: args,
 	transport = &execTransport{
+		Path:  path,
+		Args:  args,
+		state: odplugin.TransportStateUninitialized,
 	}
 	return
 }

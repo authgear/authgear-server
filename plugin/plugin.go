@@ -15,7 +15,6 @@ import (
 // that extends or modifies functionality provided by skygear.
 type Plugin struct {
 	transport Transport
-	ready     bool
 }
 
 type pluginHandlerInfo struct {
@@ -44,19 +43,6 @@ type registrationInfo struct {
 	Lambdas   []string                     `json:"op"`
 	Timers    []timerInfo                  `json:"timer"`
 	Providers []providerInfo               `json:"provider"`
-}
-
-func (p *Plugin) getRegistrationInfo() registrationInfo {
-	outBytes, err := p.transport.RunInit()
-	if err != nil {
-		panic(fmt.Sprintf("Unable to get registration info from plugin. Error: %v", err))
-	}
-
-	regInfo := registrationInfo{}
-	if err := json.Unmarshal(outBytes, &regInfo); err != nil {
-		panic(err)
-	}
-	return regInfo
 }
 
 var transportFactories = map[string]TransportFactory{}
@@ -99,7 +85,7 @@ func (c *InitContext) AddPluginConfiguration(name string, path string, args []st
 
 func (c *InitContext) InitPlugins() {
 	for _, plug := range c.plugins {
-		go plug.Init(c)
+		plug.Init(c)
 	}
 }
 
@@ -115,11 +101,31 @@ func (c *InitContext) IsReady() bool {
 
 // Init instantiates a plugin. This sets up hooks and handlers.
 func (p *Plugin) Init(context *InitContext) {
+	p.transport.SetInitHandler(func(out []byte, err error) error {
+		if err != nil {
+			panic(fmt.Sprintf("Unable to get registration info from plugin. Error: %v", err))
+		}
+
+		regInfo := registrationInfo{}
+		if err := json.Unmarshal(out, &regInfo); err != nil {
+			panic(err)
+		}
+
+		p.processRegistrationInfo(context, regInfo)
+		return nil
+	})
+
 	log.WithFields(log.Fields{
 		"plugin": p,
-	}).Debugln("Waiting plugin return configuration")
-	regInfo := p.getRegistrationInfo()
+	}).Debugln("request plugin to return configuration")
+	go p.transport.RequestInit()
+}
 
+func (p *Plugin) IsReady() bool {
+	return p.transport.State() == TransportStateReady
+}
+
+func (p *Plugin) processRegistrationInfo(context *InitContext, regInfo registrationInfo) {
 	log.WithFields(log.Fields{
 		"regInfo":   regInfo,
 		"transport": p.transport,
@@ -128,16 +134,12 @@ func (p *Plugin) Init(context *InitContext) {
 	p.initHook(context.HookRegistry, regInfo.Hooks)
 	p.initTimer(context.Scheduler, regInfo.Timers)
 	p.initProvider(context.ProviderRegistry, regInfo.Providers)
-	p.ready = true
-}
-
-func (p *Plugin) IsReady() bool {
-	return p.ready
 }
 
 func (p *Plugin) initLambda(r *router.Router, lambdaNames []string) {
 	for _, lambdaName := range lambdaNames {
 		r.Map(lambdaName, CreateLambdaHandler(p, lambdaName))
+		log.Debugf(`Registered lambda "%s" with router.`, lambdaName)
 	}
 }
 

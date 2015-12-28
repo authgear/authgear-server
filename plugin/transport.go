@@ -15,9 +15,35 @@ type AuthResponse struct {
 	AuthData    map[string]interface{} `json:"auth_data"`
 }
 
+// TransportState refers to the operation state of the transport
+type TransportState int
+
+const (
+	// TransportStateUninitialized is the state when the transport has not
+	// been initialized
+	TransportStateUninitialized TransportState = iota
+
+	// TransportStateReady is the state when the transport is ready for
+	// requests
+	TransportStateReady
+
+	// TransportStateWorkerUnavailable is the state when all workers
+	// for the transport is not available
+	TransportStateWorkerUnavailable
+
+	// TransportStateError is the state when an error has occurred
+	// in the transport and it is not able to serve requests
+	TransportStateError
+)
+
+type TransportInitHandler func([]byte, error) error
+
 // A Transport represents the interface of data transfer between skygear
 // and remote process.
 type Transport interface {
+	State() TransportState
+	SetInitHandler(TransportInitHandler)
+	RequestInit()
 	RunInit() ([]byte, error)
 	RunLambda(name string, in []byte) ([]byte, error)
 	RunHandler(name string, in []byte) ([]byte, error)
@@ -42,8 +68,23 @@ type TransportFactory interface {
 }
 
 type nullTransport struct {
+	initHandler TransportInitHandler
 }
 
+func (t *nullTransport) State() TransportState {
+	return TransportStateReady
+}
+
+func (t *nullTransport) SetInitHandler(f TransportInitHandler) {
+	t.initHandler = f
+}
+
+func (t *nullTransport) RequestInit() {
+	if t.initHandler != nil {
+		t.initHandler([]byte{}, nil)
+	}
+	return
+}
 func (t nullTransport) RunInit() (out []byte, err error) {
 	out = []byte{}
 	return
