@@ -48,23 +48,23 @@ func (t nullTransport) RunInit() (out []byte, err error) {
 	out = []byte{}
 	return
 }
-func (t nullTransport) RunLambda(name string, in []byte) (out []byte, err error) {
+func (t *nullTransport) RunLambda(name string, in []byte) (out []byte, err error) {
 	out = in
 	return
 }
-func (t nullTransport) RunHandler(name string, in []byte) (out []byte, err error) {
+func (t *nullTransport) RunHandler(name string, in []byte) (out []byte, err error) {
 	out = in
 	return
 }
-func (t nullTransport) RunHook(recordType string, trigger string, reocrd *skydb.Record, oldRecord *skydb.Record) (record *skydb.Record, err error) {
+func (t *nullTransport) RunHook(recordType string, trigger string, reocrd *skydb.Record, oldRecord *skydb.Record) (record *skydb.Record, err error) {
 	return
 }
-func (t nullTransport) RunTimer(name string, in []byte) (out []byte, err error) {
+func (t *nullTransport) RunTimer(name string, in []byte) (out []byte, err error) {
 	out = in
 	return
 }
 
-func (t nullTransport) RunProvider(request *AuthRequest) (response *AuthResponse, err error) {
+func (t *nullTransport) RunProvider(request *AuthRequest) (response *AuthResponse, err error) {
 	if request.AuthData == nil {
 		request.AuthData = map[string]interface{}{}
 	}
@@ -78,5 +78,5 @@ type nullFactory struct {
 }
 
 func (f nullFactory) Open(path string, args []string) Transport {
-	return nullTransport{}
+	return &nullTransport{}
 }

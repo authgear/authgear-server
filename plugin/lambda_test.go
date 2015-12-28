@@ -16,7 +16,7 @@ type fakeTransport struct {
 	outErr   error
 }
 
-func (t fakeTransport) RunLambda(name string, in []byte) (out []byte, err error) {
+func (t *fakeTransport) RunLambda(name string, in []byte) (out []byte, err error) {
 	if t.outErr == nil {
 		out = t.outBytes
 	} else {
@@ -27,7 +27,7 @@ func (t fakeTransport) RunLambda(name string, in []byte) (out []byte, err error)
 
 func TestLambdaHandler(t *testing.T) {
 	Convey("test args and stdout", t, func() {
-		transport := nullTransport{}
+		transport := &nullTransport{}
 		plugin := Plugin{
 			transport: transport,
 		}
@@ -47,7 +47,7 @@ func TestLambdaHandler(t *testing.T) {
 	})
 
 	Convey("test handle error", t, func() {
-		transport := fakeTransport{}
+		transport := &fakeTransport{}
 		transport.outErr = fmt.Errorf("an error")
 		plugin := Plugin{
 			transport: transport,

@@ -110,22 +110,22 @@ func (p *execTransport) runProc(args []string, in []byte) (out []byte, err error
 	return
 }
 
-func (p execTransport) RunInit() (out []byte, err error) {
+func (p *execTransport) RunInit() (out []byte, err error) {
 	out, err = p.run([]string{"init"}, []byte{})
 	return
 }
 
-func (p execTransport) RunLambda(name string, in []byte) (out []byte, err error) {
+func (p *execTransport) RunLambda(name string, in []byte) (out []byte, err error) {
 	out, err = p.runProc([]string{"op", name}, in)
 	return
 }
 
-func (p execTransport) RunHandler(name string, in []byte) (out []byte, err error) {
+func (p *execTransport) RunHandler(name string, in []byte) (out []byte, err error) {
 	out, err = p.runProc([]string{"handler", name}, in)
 	return
 }
 
-func (p execTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+func (p *execTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 	param := map[string]interface{}{
 		"record":   (*common.JSONRecord)(record),
 		"original": (*common.JSONRecord)(originalRecord),
@@ -155,12 +155,12 @@ func (p execTransport) RunHook(recordType string, trigger string, record *skydb.
 	return &recordout, nil
 }
 
-func (p execTransport) RunTimer(name string, in []byte) (out []byte, err error) {
+func (p *execTransport) RunTimer(name string, in []byte) (out []byte, err error) {
 	out, err = p.runProc([]string{"timer", name}, in)
 	return
 }
 
-func (p execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.AuthResponse, error) {
+func (p *execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.AuthResponse, error) {
 	req := map[string]interface{}{
 		"auth_data": request.AuthData,
 	}
@@ -190,9 +190,9 @@ type execTransportFactory struct {
 }
 
 func (f execTransportFactory) Open(path string, args []string) (transport odplugin.Transport) {
-	transport = execTransport{
 		Path: path,
 		Args: args,
+	transport = &execTransport{
 	}
 	return
 }
