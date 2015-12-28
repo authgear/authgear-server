@@ -178,11 +178,14 @@ func setPayload(m map[string]interface{}, p *apns.Payload) {
 		} else {
 			log.Errorf("Want aps.(type) be map[string]interface{}, got %T", apsValue)
 		}
-		delete(m, "aps")
 	}
 
 	// set custom values
 	for key, value := range m {
+		// the "aps" key is not a custom key
+		if key == "aps" {
+			continue
+		}
 		if err := p.SetCustomValue(key, value); err != nil {
 			log.Errorf("Failed to set data[%v] = %v", key, value)
 		}

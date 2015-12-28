@@ -13,13 +13,13 @@ import (
 )
 
 type naiveClient struct {
-	failedNotifs     chan apns.NotificationResult
-	lastnotification apns.Notification
-	returnerr        error
+	failedNotifs      chan apns.NotificationResult
+	sentNotifications []apns.Notification
+	returnerr         error
 }
 
 func (c *naiveClient) Send(n apns.Notification) error {
-	c.lastnotification = n
+	c.sentNotifications = append(c.sentNotifications, n)
 	return c.returnerr
 }
 
@@ -35,6 +35,9 @@ func TestAPNSSend(t *testing.T) {
 		}
 		device := skydb.Device{
 			Token: "deviceToken",
+		}
+		secondDevice := skydb.Device{
+			Token: "deviceToken2",
 		}
 
 		Convey("pushes notification", func() {
@@ -54,27 +57,29 @@ func TestAPNSSend(t *testing.T) {
 				},
 			}
 
-			err := pusher.Send(customMap, &device)
+			So(pusher.Send(customMap, &device), ShouldBeNil)
+			So(pusher.Send(customMap, &secondDevice), ShouldBeNil)
+			So(len(client.sentNotifications), ShouldEqual, 2)
+			So(client.sentNotifications[0].DeviceToken, ShouldEqual, "deviceToken")
+			So(client.sentNotifications[1].DeviceToken, ShouldEqual, "deviceToken2")
 
-			So(err, ShouldBeNil)
-
-			n := client.lastnotification
-			So(n.DeviceToken, ShouldEqual, "deviceToken")
-
-			payloadJSON, _ := json.Marshal(&n.Payload)
-			So(payloadJSON, ShouldEqualJSON, `{
-				"aps": {
-					"content-available": 1,
-					"sound": "sosumi.mp3",
-					"badge": 5,
-					"alert": "This is a message."
-				},
-				"string": "value",
-				"integer": 1,
-				"nested": {
-					"should": "correct"
-				}
-			}`)
+			for i := range client.sentNotifications {
+				n := client.sentNotifications[i]
+				payloadJSON, _ := json.Marshal(&n.Payload)
+				So(payloadJSON, ShouldEqualJSON, `{
+					"aps": {
+						"content-available": 1,
+						"sound": "sosumi.mp3",
+						"badge": 5,
+						"alert": "This is a message."
+					},
+					"string": "value",
+					"integer": 1,
+					"nested": {
+						"should": "correct"
+					}
+				}`)
+			}
 		})
 
 		Convey("returns error when missing apns dictionary", func() {
@@ -106,7 +111,7 @@ func TestAPNSSend(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			n := client.lastnotification
+			n := client.sentNotifications[0]
 			So(n.DeviceToken, ShouldEqual, "deviceToken")
 
 			payloadJSON, _ := json.Marshal(&n.Payload)
