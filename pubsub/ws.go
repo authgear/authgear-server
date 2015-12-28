@@ -87,7 +87,7 @@ writer:
 
 func (w *WsPubSub) reader(c *connection) {
 	defer func() {
-		log.Debugf("Close ws writer connection %p", c.ws)
+		log.Debugf("Close ws reader connection %p", c.ws)
 		c.ws.Close()
 		for _, channel := range c.channels {
 			w.hub.Unsubscribe <- Parcel{
