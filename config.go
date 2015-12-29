@@ -113,9 +113,20 @@ func ReadFileInto(config *Configuration, path string) error {
 		config.DB.Option = os.Getenv("DATABASE_URL")
 	}
 
+	err := readAPNS(config)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func readAPNS(config *Configuration) error {
 	shouldEnableAPNS := os.Getenv("APNS_ENABLE")
 	if shouldEnableAPNS != "" {
 		config.APNS.Enable = shouldEnableAPNS == "1"
+	}
+	if !config.APNS.Enable {
+		return nil
 	}
 
 	env := os.Getenv("APNS_ENV")
