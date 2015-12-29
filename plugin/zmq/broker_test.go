@@ -47,6 +47,7 @@ func TestBrokerEndToEnd(t *testing.T) {
 	w0 := workerSock(t, "w0", workerAddr)
 	defer w0.Destroy()
 	w0.SendMessage(bytesArray(Ready))
+	<-broker.freshWorkers
 
 	c0 := clientSock(t, "c0", clientAddr)
 	defer c0.Destroy()
@@ -69,6 +70,7 @@ func TestBrokerEndToEnd(t *testing.T) {
 	w1 := workerSock(t, "w1", workerAddr)
 	defer w1.Destroy()
 	w1.SendMessage(bytesArray(Ready))
+	<-broker.freshWorkers
 
 	c1 := clientSock(t, "c1", clientAddr)
 	defer c1.Destroy()

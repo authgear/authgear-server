@@ -100,14 +100,28 @@ func (p *zmqTransport) setState(state odplugin.TransportState) {
 }
 
 func (p *zmqTransport) RequestInit() {
-	out, err := p.RunInit()
-	if p.initHandler != nil {
-		handlerError := p.initHandler(out, err)
-		if err != nil || handlerError != nil {
-			p.setState(odplugin.TransportStateError)
+	for {
+		address := <-p.broker.freshWorkers
+
+		if p.state != odplugin.TransportStateUninitialized {
+			// Although the plugin is only initialized once, we need
+			// to clear the channel buffer so that broker doesn't get stuck
+			continue
 		}
+
+		log.Debugf("zmq transport got fresh worker %s", string(address))
+
+		// TODO: Only send init to the new address. For now, we let
+		// the broker decide.
+		out, err := p.RunInit()
+		if p.initHandler != nil {
+			handlerError := p.initHandler(out, err)
+			if err != nil || handlerError != nil {
+				p.setState(odplugin.TransportStateError)
+			}
+		}
+		p.setState(odplugin.TransportStateReady)
 	}
-	p.setState(odplugin.TransportStateReady)
 }
 
 func (p *zmqTransport) RunInit() (out []byte, err error) {
