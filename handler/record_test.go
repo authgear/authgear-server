@@ -10,7 +10,7 @@ import (
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/handler/handlertest"
 	"github.com/oursky/skygear/hook"
-	. "github.com/oursky/skygear/ourtest"
+	. "github.com/oursky/skygear/skytest"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skydbtest"

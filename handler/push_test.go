@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/oursky/skygear/handler/handlertest"
-	. "github.com/oursky/skygear/ourtest"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/oursky/skygear/push"

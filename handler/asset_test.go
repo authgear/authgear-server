@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/oursky/skygear/asset"
-	. "github.com/oursky/skygear/ourtest"
+	. "github.com/oursky/skygear/skytest"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	. "github.com/smartystreets/goconvey/convey"

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/oursky/skygear/ourtest"
+	. "github.com/oursky/skygear/skytest"
 	odplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/skydb"
 	. "github.com/smartystreets/goconvey/convey"

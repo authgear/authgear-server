@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/oursky/skygear/ourtest"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

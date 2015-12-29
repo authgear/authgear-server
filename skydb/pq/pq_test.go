@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
-	. "github.com/oursky/skygear/ourtest"
+	. "github.com/oursky/skygear/skytest"
 	"github.com/oursky/skygear/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )

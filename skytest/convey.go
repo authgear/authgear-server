@@ -1,4 +1,4 @@
-package ourtest
+package skytest
 
 import (
 	"encoding/json"
