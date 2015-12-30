@@ -28,11 +28,11 @@ func (conn *testRelationConn) GetUser(id string, userinfo *skydb.UserInfo) error
 	return nil
 }
 
-type sortByID []skydb.UserInfo
+type sortableUserInfo []skydb.UserInfo
 
-func (a sortByID) Len() int           { return len(a) }
-func (a sortByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a sortByID) Less(i, j int) bool { return a[i].ID < a[j].ID }
+func (a sortableUserInfo) Len() int           { return len(a) }
+func (a sortableUserInfo) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a sortableUserInfo) Less(i, j int) bool { return a[i].ID < a[j].ID }
 
 func (conn *testRelationConn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.UserInfo {
 	conn.RelationName = name
@@ -40,7 +40,7 @@ func (conn *testRelationConn) QueryRelation(user string, name string, direction 
 		return []skydb.UserInfo{}
 	}
 
-	sort.Sort(sortByID(conn.UserInfo))
+	sort.Sort(sortableUserInfo(conn.UserInfo))
 	if config.Limit == 0 {
 		return conn.UserInfo[config.Offset:]
 	}
