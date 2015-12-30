@@ -343,7 +343,7 @@ func (c *conn) DeleteUser(id string) error {
 	return nil
 }
 
-func (c *conn) QueryRelation(user string, name string, direction string, config ...skydb.QueryConfig) []skydb.UserInfo {
+func (c *conn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.UserInfo {
 	log.Debugf("Query Relation: %v, %v", user, name)
 	var (
 		selectBuilder sq.SelectBuilder
@@ -351,18 +351,7 @@ func (c *conn) QueryRelation(user string, name string, direction string, config 
 		selectSQL string
 		args      []interface{}
 		err       error
-
-		limit  uint64
-		offset uint64
 	)
-
-	// no pagination by default
-	limit = 0
-	offset = 0
-	if len(config) >= 1 {
-		limit = config[0].Limit
-		offset = config[0].Offset
-	}
 
 	if direction == "outward" {
 		selectBuilder = psql.Select("u.id", "u.username", "u.email").
@@ -384,9 +373,9 @@ func (c *conn) QueryRelation(user string, name string, direction string, config 
 	}
 
 	selectBuilder = selectBuilder.OrderBy("u.id").
-		Offset(offset)
-	if limit != 0 {
-		selectBuilder = selectBuilder.Limit(limit)
+		Offset(config.Offset)
+	if config.Limit != 0 {
+		selectBuilder = selectBuilder.Limit(config.Limit)
 	}
 
 	selectSQL, args, err = selectBuilder.ToSql()

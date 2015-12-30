@@ -34,29 +34,21 @@ func (a sortByID) Len() int           { return len(a) }
 func (a sortByID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a sortByID) Less(i, j int) bool { return a[i].ID < a[j].ID }
 
-func (conn *testRelationConn) QueryRelation(user string, name string, direction string, config ...skydb.QueryConfig) []skydb.UserInfo {
+func (conn *testRelationConn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.UserInfo {
 	conn.RelationName = name
 	if conn.UserInfo == nil {
 		return []skydb.UserInfo{}
 	}
 
-	var limit, offset uint64
-	limit = 0
-	offset = 0
-	if len(config) > 0 {
-		limit = config[0].Limit
-		offset = config[0].Offset
-	}
-
 	sort.Sort(sortByID(conn.UserInfo))
-	if limit == 0 {
-		return conn.UserInfo[offset:]
+	if config.Limit == 0 {
+		return conn.UserInfo[config.Offset:]
 	}
 
-	if offset+limit-1 > uint64(len(conn.UserInfo)) {
-		return conn.UserInfo[offset:]
+	if config.Offset+config.Limit-1 > uint64(len(conn.UserInfo)) {
+		return conn.UserInfo[config.Offset:]
 	}
-	return conn.UserInfo[offset : offset+limit]
+	return conn.UserInfo[config.Offset : config.Offset+config.Limit]
 }
 
 func (conn *testRelationConn) AddRelation(user string, name string, targetUser string) error {

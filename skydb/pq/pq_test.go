@@ -349,17 +349,17 @@ func TestRelation(t *testing.T) {
 		c.AddRelation("follower", "_follow", "followee")
 
 		Convey("query friend relation", func() {
-			users := c.QueryRelation("friend1", "_friend", "mutual")
+			users := c.QueryRelation("friend1", "_friend", "mutual", skydb.QueryConfig{})
 			So(len(users), ShouldEqual, 2)
 		})
 
 		Convey("query outward follow relation", func() {
-			users := c.QueryRelation("follower", "_follow", "outward")
+			users := c.QueryRelation("follower", "_follow", "outward", skydb.QueryConfig{})
 			So(len(users), ShouldEqual, 1)
 		})
 
 		Convey("query inward follow relation", func() {
-			users := c.QueryRelation("followee", "_follow", "inward")
+			users := c.QueryRelation("followee", "_follow", "inward", skydb.QueryConfig{})
 			So(len(users), ShouldEqual, 1)
 		})
 
