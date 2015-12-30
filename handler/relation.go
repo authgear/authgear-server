@@ -14,6 +14,9 @@ type relationPayload struct {
 	Name      string   `json:"name"`
 	Direction string   `json:"direction"`
 	Target    []string `json:"targets"`
+
+	Limit  uint64 `json:"limit"`
+	Offset uint64 `json:"offset"`
 }
 
 func relationColander(data map[string]interface{}, result *relationPayload) skyerr.Error {
@@ -51,6 +54,8 @@ func relationColander(data map[string]interface{}, result *relationPayload) skye
 //     "access_token": "ACCESS_TOKEN",
 //     "name": "follow",
 //     "direction": "outward"
+//	   "limit": 2
+//	   "offset": 0
 // }
 // EOF
 //
@@ -88,7 +93,10 @@ func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 		return
 	}
 	result := rpayload.DBConn.QueryRelation(
-		rpayload.UserInfoID, payload.Name, payload.Direction)
+		rpayload.UserInfoID, payload.Name, payload.Direction, skydb.QueryConfig{
+			Limit:  payload.Limit,
+			Offset: payload.Offset,
+		})
 	resultList := make([]interface{}, 0, len(result))
 	for _, userinfo := range result {
 		resultList = append(resultList, struct {

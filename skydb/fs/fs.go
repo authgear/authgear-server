@@ -100,7 +100,7 @@ func (conn *fileConn) SaveAsset(assert *skydb.Asset) error {
 	panic("not implemented")
 }
 
-func (conn *fileConn) QueryRelation(user string, name string, direction string) []skydb.UserInfo {
+func (conn *fileConn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.UserInfo {
 	panic("not implemented")
 }
 
