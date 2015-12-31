@@ -13,9 +13,10 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	ourAsset "github.com/oursky/skygear/asset"
+	skyAsset "github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skydbconv"
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -29,7 +30,7 @@ func clean(p string) string {
 	return sanitized
 }
 
-func validateAssetGetRequest(assetStore ourAsset.Store, fileName string, expiredAtUnix int64, signature string) skyerr.Error {
+func validateAssetGetRequest(assetStore skyAsset.Store, fileName string, expiredAtUnix int64, signature string) skyerr.Error {
 	// check whether the request is expired
 	expiredAt := time.Unix(expiredAtUnix, 0)
 	if timeNow().After(expiredAt) {
@@ -37,7 +38,7 @@ func validateAssetGetRequest(assetStore ourAsset.Store, fileName string, expired
 	}
 
 	// check the signature of the URL
-	signatureParser := assetStore.(ourAsset.SignatureParser)
+	signatureParser := assetStore.(skyAsset.SignatureParser)
 	valid, err := signatureParser.ParseSignature(signature, fileName, expiredAt)
 	if err != nil {
 		log.Errorf("Failed to parse signature: %v", err)
@@ -56,7 +57,7 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 
 	store := payload.AssetStore
 	fileName := clean(payload.Params[0])
-	if store.(ourAsset.URLSigner).IsSignatureRequired() {
+	if store.(skyAsset.URLSigner).IsSignatureRequired() {
 		expiredAtUnix, err := strconv.ParseInt(payload.Req.Form.Get("expiredAt"), 10, 64)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.InvalidArgument, "expect expiredAt to be an integer")
@@ -160,10 +161,14 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	response.Result = struct {
-		Type string `json:"$type"`
-		Name string `json:"$name"`
-	}{"asset", asset.Name}
+	if signer, ok := payload.AssetStore.(skyAsset.URLSigner); ok {
+		asset.Signer = signer
+	} else {
+		log.Warnf("Failed to acquire asset URLSigner, please check configuration")
+		response.Err = skyerr.NewError(skyerr.UnexpectedError, "Failed to sign the url")
+		return
+	}
+	response.Result = skydbconv.ToMap((*skydbconv.MapAsset)(&asset))
 }
 
 func copyToTempFile(src io.Reader) (written int64, tempFile *os.File, err error) {

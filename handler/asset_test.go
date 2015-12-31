@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/oursky/skygear/asset"
-	. "github.com/oursky/skygear/skytest"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -106,6 +106,14 @@ func (store *bufferedAssetStore) PutFileReader(name string, src io.Reader, lengt
 	return nil
 }
 
+func (store *bufferedAssetStore) SignedURL(name string) (string, error) {
+	return name + "?signedurl=true", nil
+}
+
+func (store *bufferedAssetStore) IsSignatureRequired() bool {
+	return false
+}
+
 func TestAssetUploadURLHandler(t *testing.T) {
 	Convey("AssetUploadURLHandler", t, func() {
 		assetConn := &naiveAssetConn{}
@@ -142,7 +150,8 @@ func TestAssetUploadURLHandler(t *testing.T) {
 			So(resp.Body.String(), ShouldEqualJSON, `{
 				"result": {
 					"$type": "asset",
-					"$name": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-asset"
+					"$name": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-asset",
+					"$url": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-asset?signedurl=true"
 				}
 			}`)
 		})
@@ -169,7 +178,8 @@ func TestAssetUploadURLHandler(t *testing.T) {
 			So(resp.Body.String(), ShouldEqualJSON, `{
 				"result": {
 					"$type": "asset",
-					"$name": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-helloworld"
+					"$name": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-helloworld",
+					"$url": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-helloworld?signedurl=true"
 				}
 			}`)
 		})
