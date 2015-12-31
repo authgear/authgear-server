@@ -13,7 +13,7 @@ func TestTxDB(t *testing.T) {
 		c := getTestConn(t)
 		defer cleanupConn(t, c)
 
-		dbx := c.Db
+		dbx := c.Db()
 		db := c.PublicDB().(*database)
 		So(db.Extend("record", skydb.RecordSchema{
 			"content": skydb.FieldType{Type: skydb.TypeString},

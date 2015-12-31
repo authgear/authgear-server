@@ -51,12 +51,78 @@ func (auth *authInfoValue) Scan(value interface{}) error {
 	return json.Unmarshal(b, auth)
 }
 
+// Ext is an interface for both sqlx.DB and sqlx.Tx
+type Ext interface {
+	sqlx.Ext
+	Get(dest interface{}, query string, args ...interface{}) error
+	QueryRow(query string, args ...interface{}) *sql.Row
+}
+
 type conn struct {
-	Db             *sqlx.DB
+	db             *sqlx.DB // database wrapper
+	tx             *sqlx.Tx // transaction wrapper, nil when no transaction
+	txDone         bool     // transaction is done, can only have one tx currently
 	RecordSchema   map[string]skydb.RecordSchema
 	appName        string
 	option         string
 	statementCount uint64
+}
+
+// Db returns the current database wrapper, or a transaction wrapper when
+// a transaction is in effect.
+func (c *conn) Db() Ext {
+	if c.tx != nil {
+		return c.tx
+	}
+	return c.db
+}
+
+// Begin begins a transaction.
+func (c *conn) Begin() (err error) {
+	if c.txDone {
+		return skydb.ErrDatabaseTxDone
+	}
+
+	if c.tx != nil {
+		return skydb.ErrDatabaseTxDidBegin
+	}
+
+	c.tx, err = c.db.Beginx()
+	return
+}
+
+// Commit commits a transaction.
+func (c *conn) Commit() (err error) {
+	if c.txDone {
+		return skydb.ErrDatabaseTxDone
+	}
+
+	if c.tx == nil {
+		return skydb.ErrDatabaseTxDidNotBegin
+	}
+
+	err = c.tx.Commit()
+	if err == nil {
+		c.txDone = true
+	}
+	return
+}
+
+// Rollback rollbacks a transaction.
+func (c *conn) Rollback() (err error) {
+	if c.txDone {
+		return skydb.ErrDatabaseTxDone
+	}
+
+	if c.tx == nil {
+		return skydb.ErrDatabaseTxDidNotBegin
+	}
+
+	err = c.tx.Rollback()
+	if err == nil {
+		c.txDone = true
+	}
+	return
 }
 
 func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
@@ -661,14 +727,12 @@ func (c *conn) DeleteEmptyDevicesByTime(t time.Time) error {
 
 func (c *conn) PublicDB() skydb.Database {
 	return &database{
-		Db: c.Db,
-		c:  c,
+		c: c,
 	}
 }
 
 func (c *conn) PrivateDB(userKey string) skydb.Database {
 	return &database{
-		Db:     c.Db,
 		c:      c,
 		userID: userKey,
 	}
@@ -688,7 +752,6 @@ func (c *conn) tableName(table string) string {
 }
 
 type database struct {
-	Db     queryxRunner
 	c      *conn
 	userID string
 	txDone bool

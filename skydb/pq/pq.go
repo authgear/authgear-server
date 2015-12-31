@@ -63,7 +63,7 @@ func Open(appName, connString string) (skydb.Conn, error) {
 	}
 
 	return &conn{
-		Db:           db,
+		db:           db,
 		RecordSchema: map[string]skydb.RecordSchema{},
 		appName:      appName,
 		option:       connString,

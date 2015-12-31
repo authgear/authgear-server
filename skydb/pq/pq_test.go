@@ -39,7 +39,7 @@ func getTestConn(t *testing.T) *conn {
 }
 
 func cleanupConn(t *testing.T, c *conn) {
-	_, err := c.Db.Exec("DROP SCHEMA app_com_oursky_skygear CASCADE")
+	_, err := c.db.Exec("DROP SCHEMA app_com_oursky_skygear CASCADE")
 	if err != nil && !isInvalidSchemaName(err) {
 		t.Fatal(err)
 	}
