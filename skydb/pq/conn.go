@@ -52,10 +52,11 @@ func (auth *authInfoValue) Scan(value interface{}) error {
 }
 
 type conn struct {
-	Db           *sqlx.DB
-	RecordSchema map[string]skydb.RecordSchema
-	appName      string
-	option       string
+	Db             *sqlx.DB
+	RecordSchema   map[string]skydb.RecordSchema
+	appName        string
+	option         string
+	statementCount uint64
 }
 
 func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
