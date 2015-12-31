@@ -126,6 +126,12 @@ func main() {
 		assetStorePreprocessor.Preprocess,
 	}
 
+	assetPutPreprocessors := []router.Processor{
+		naiveAPIKeyPreprocessor.Preprocess,
+		dbConnPreprocessor.Preprocess,
+		assetStorePreprocessor.Preprocess,
+	}
+
 	authPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 		dbConnPreprocessor.Preprocess,
@@ -216,7 +222,7 @@ func main() {
 
 	fileGateway := router.NewGateway(`files/(.+)`)
 	fileGateway.GET(handler.AssetGetURLHandler, assetGetPreprocessors...)
-	fileGateway.PUT(handler.AssetUploadURLHandler, baseAuthPreprocessors...)
+	fileGateway.PUT(handler.AssetUploadURLHandler, assetPutPreprocessors...)
 	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
 
 	// Bootstrap finished, binding port.
