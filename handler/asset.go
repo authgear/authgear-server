@@ -16,6 +16,7 @@ import (
 	ourAsset "github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skydbconv"
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -160,10 +161,14 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	response.Result = struct {
-		Type string `json:"$type"`
-		Name string `json:"$name"`
-	}{"asset", asset.Name}
+	if signer, ok := payload.AssetStore.(ourAsset.URLSigner); ok {
+		asset.Signer = signer
+	} else {
+		log.Warnf("Failed to acquire asset URLSigner, please check configuration")
+		response.Err = skyerr.NewError(skyerr.UnexpectedError, "Failed to sign the url")
+		return
+	}
+	response.Result = skydbconv.ToMap((*skydbconv.MapAsset)(&asset))
 }
 
 func copyToTempFile(src io.Reader) (written int64, tempFile *os.File, err error) {
