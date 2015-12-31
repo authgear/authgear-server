@@ -7,8 +7,7 @@ import (
 
 	"github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/authtoken"
-	"github.com/oursky/skygear/hook"
-	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/push"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
@@ -56,20 +55,30 @@ func (p connPreprocessor) Preprocess(payload *router.Payload, response *router.R
 }
 
 type hookRegistryPreprocessor struct {
-	Registry *hook.Registry
+	PluginInitContext *plugin.InitContext
 }
 
 func (p hookRegistryPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	payload.HookRegistry = p.Registry
+	if !p.PluginInitContext.IsReady() {
+		log.Errorf("Request cannot be handled because plugins are unavailable at the moment.")
+		response.Err = skyerr.NewError(skyerr.PluginUnavailable, "plugins are unavailable at the moment")
+		return http.StatusServiceUnavailable
+	}
+	payload.HookRegistry = p.PluginInitContext.HookRegistry
 	return http.StatusOK
 }
 
 type providerRegistryPreprocessor struct {
-	Registry *provider.Registry
+	PluginInitContext *plugin.InitContext
 }
 
 func (p providerRegistryPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	payload.ProviderRegistry = p.Registry
+	if !p.PluginInitContext.IsReady() {
+		log.Errorf("Request cannot be handled because plugins are unavailable at the moment.")
+		response.Err = skyerr.NewError(skyerr.PluginUnavailable, "plugins are unavailable at the moment")
+		return http.StatusServiceUnavailable
+	}
+	payload.ProviderRegistry = p.PluginInitContext.ProviderRegistry
 	return http.StatusOK
 }
 
