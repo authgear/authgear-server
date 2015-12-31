@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
-	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/pq/migration"
@@ -157,32 +156,6 @@ func mustInitDB(db *sqlx.DB, appName string) error {
 	}
 
 	return nil
-}
-
-type sqlizer sq.Sqlizer
-
-func execWith(db queryxRunner, sqlizeri sqlizer) (sql.Result, error) {
-	sql, args, err := sqlizeri.ToSql()
-	if err != nil {
-		panic(err)
-	}
-	return db.Exec(sql, args...)
-}
-
-func queryWith(db queryxRunner, sqlizeri sqlizer) (*sqlx.Rows, error) {
-	sql, args, err := sqlizeri.ToSql()
-	if err != nil {
-		panic(err)
-	}
-	return db.Queryx(sql, args...)
-}
-
-func queryRowWith(db queryxRunner, sqlizeri sqlizer) *sqlx.Row {
-	sql, args, err := sqlizeri.ToSql()
-	if err != nil {
-		panic(err)
-	}
-	return db.QueryRowx(sql, args...)
 }
 
 func init() {

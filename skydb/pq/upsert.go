@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"text/template"
 
+	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 )
 
@@ -186,4 +187,4 @@ func sortColsArgs(cols []string, args []interface{}, ignoreCols map[string]struc
 	return append(c, ic...), append(a, ia...), ignored
 }
 
-var _ sqlizer = &upsertQueryBuilder{}
+var _ sq.Sqlizer = &upsertQueryBuilder{}
