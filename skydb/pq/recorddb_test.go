@@ -11,7 +11,7 @@ import (
 func TestUserRelationQuery(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		addUser(t, c, "user1")
 		addUser(t, c, "user2") // followed by user1
@@ -244,17 +244,17 @@ func TestUserRelationQuery(t *testing.T) {
 func TestGetByIDs(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PrivateDB("getuser")
 		So(db.Extend("record", skydb.RecordSchema{
 			"string": skydb.FieldType{Type: skydb.TypeString},
 		}), ShouldBeNil)
 
-		insertRow(t, c.Db, `INSERT INTO app_com_oursky_skygear."record" `+
+		insertRow(t, c.Db(), `INSERT INTO app_com_oursky_skygear."record" `+
 			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "string") `+
 			`VALUES ('getuser', 'id0', 'getuser', '1988-02-06', 'getuser', '1988-02-06', 'getuser', 'string')`)
-		insertRow(t, c.Db, `INSERT INTO app_com_oursky_skygear."record" `+
+		insertRow(t, c.Db(), `INSERT INTO app_com_oursky_skygear."record" `+
 			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "string") `+
 			`VALUES ('getuser', 'id1', 'getuser', '1988-02-06', 'getuser', '1988-02-06', 'getuser', 'string')`)
 

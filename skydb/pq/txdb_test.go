@@ -11,7 +11,7 @@ import (
 func TestTxDB(t *testing.T) {
 	Convey("TxDatabase", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		dbx := c.Db
 		db := c.PublicDB().(*database)
