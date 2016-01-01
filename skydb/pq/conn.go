@@ -141,7 +141,7 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
 		email = nil
 	}
 
-	sql, args, err := psql.Insert(c.tableName("_user")).Columns(
+	builder := psql.Insert(c.tableName("_user")).Columns(
 		"id",
 		"username",
 		"email",
@@ -153,12 +153,9 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
 		email,
 		userinfo.HashedPassword,
 		authInfoValue(userinfo.Auth),
-	).ToSql()
-	if err != nil {
-		panic(err)
-	}
+	)
 
-	_, err = c.Exec(sql, args...)
+	_, err := c.ExecWith(builder)
 	if isUniqueViolated(err) {
 		return skydb.ErrUserDuplicated
 	}
@@ -198,55 +195,37 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 
 func (c *conn) GetUser(id string, userinfo *skydb.UserInfo) error {
 	log.Warnf(id)
-	selectSQL, args, err := psql.Select("id", "username", "email", "password", "auth").
+	builder := psql.Select("id", "username", "email", "password", "auth").
 		From(c.tableName("_user")).
-		Where("id = ?", id).
-		ToSql()
-	if err != nil {
-		panic(err)
-	}
-	scanner := c.QueryRowx(selectSQL, args...)
+		Where("id = ?", id)
+	scanner := c.QueryRowWith(builder)
 	return c.doScanUser(userinfo, scanner)
 }
 
 func (c *conn) GetUserByUsernameEmail(username string, email string, userinfo *skydb.UserInfo) error {
-	var (
-		selectSQL string
-		args      []interface{}
-		err       error
-	)
+	var builder sq.SelectBuilder
 	if email == "" {
-		selectSQL, args, err = psql.Select("id", "username", "email", "password", "auth").
+		builder = psql.Select("id", "username", "email", "password", "auth").
 			From(c.tableName("_user")).
-			Where("username = ?", username).
-			ToSql()
+			Where("username = ?", username)
 	} else if username == "" {
-		selectSQL, args, err = psql.Select("id", "username", "email", "password", "auth").
+		builder = psql.Select("id", "username", "email", "password", "auth").
 			From(c.tableName("_user")).
-			Where("email = ?", email).
-			ToSql()
+			Where("email = ?", email)
 	} else {
-		selectSQL, args, err = psql.Select("id", "username", "email", "password", "auth").
+		builder = psql.Select("id", "username", "email", "password", "auth").
 			From(c.tableName("_user")).
-			Where("username = ? AND email = ?", username, email).
-			ToSql()
+			Where("username = ? AND email = ?", username, email)
 	}
-	if err != nil {
-		panic(err)
-	}
-	scanner := c.QueryRowx(selectSQL, args...)
+	scanner := c.QueryRowWith(builder)
 	return c.doScanUser(userinfo, scanner)
 }
 
 func (c *conn) GetUserByPrincipalID(principalID string, userinfo *skydb.UserInfo) error {
-	selectSQL, args, err := psql.Select("id", "username", "email", "password", "auth").
+	builder := psql.Select("id", "username", "email", "password", "auth").
 		From(c.tableName("_user")).
-		Where("jsonb_exists(auth, ?)", principalID).
-		ToSql()
-	if err != nil {
-		panic(err)
-	}
-	scanner := c.QueryRowx(selectSQL, args...)
+		Where("jsonb_exists(auth, ?)", principalID)
+	scanner := c.QueryRowWith(builder)
 	return c.doScanUser(userinfo, scanner)
 }
 
@@ -257,21 +236,12 @@ func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
 		emailargs[i] = interface{}(v)
 	}
 
-	selectSQL, args, err := psql.Select("id", "username", "email", "password", "auth").
+	builder := psql.Select("id", "username", "email", "password", "auth").
 		From(c.tableName("_user")).
-		Where("email IN ("+sq.Placeholders(len(emailargs))+") AND email IS NOT NULL AND email != ''", emailargs...).
-		ToSql()
-	if err != nil {
-		panic(err)
-	}
+		Where("email IN ("+sq.Placeholders(len(emailargs))+") AND email IS NOT NULL AND email != ''", emailargs...)
 
-	rows, err := c.Query(selectSQL, args...)
+	rows, err := c.QueryWith(builder)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"sql":  selectSQL,
-			"args": args,
-			"err":  err,
-		}).Debugln("Failed to query user table")
 		panic(err)
 	}
 	defer rows.Close()
@@ -317,18 +287,14 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) error {
 	} else {
 		email = nil
 	}
-	updateSQL, args, err := psql.Update(c.tableName("_user")).
+	builder := psql.Update(c.tableName("_user")).
 		Set("username", username).
 		Set("email", email).
 		Set("password", userinfo.HashedPassword).
 		Set("auth", authInfoValue(userinfo.Auth)).
-		Where("id = ?", userinfo.ID).
-		ToSql()
-	if err != nil {
-		panic(err)
-	}
+		Where("id = ?", userinfo.ID)
 
-	result, err := c.Exec(updateSQL, args...)
+	result, err := c.ExecWith(builder)
 	if err != nil {
 		return err
 	}
@@ -346,14 +312,10 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) error {
 }
 
 func (c *conn) DeleteUser(id string) error {
-	query, args, err := psql.Delete(c.tableName("_user")).
-		Where("id = ?", id).
-		ToSql()
-	if err != nil {
-		panic(err)
-	}
+	builder := psql.Delete(c.tableName("_user")).
+		Where("id = ?", id)
 
-	result, err := c.Exec(query, args...)
+	result, err := c.ExecWith(builder)
 	if err != nil {
 		return err
 	}
@@ -372,13 +334,7 @@ func (c *conn) DeleteUser(id string) error {
 
 func (c *conn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.UserInfo {
 	log.Debugf("Query Relation: %v, %v", user, name)
-	var (
-		selectBuilder sq.SelectBuilder
-
-		selectSQL string
-		args      []interface{}
-		err       error
-	)
+	var selectBuilder sq.SelectBuilder
 
 	if direction == "outward" {
 		selectBuilder = psql.Select("u.id", "u.username", "u.email").
@@ -405,17 +361,7 @@ func (c *conn) QueryRelation(user string, name string, direction string, config 
 		selectBuilder = selectBuilder.Limit(config.Limit)
 	}
 
-	selectSQL, args, err = selectBuilder.ToSql()
-
-	log.WithFields(log.Fields{
-		"sql":  selectSQL,
-		"args": args,
-		"err":  err,
-	}).Debugln("Generated SQL for query relation")
-	if err != nil {
-		panic(err)
-	}
-	rows, err := c.Query(selectSQL, args...)
+	rows, err := c.QueryWith(selectBuilder)
 	if err != nil {
 		panic(err)
 	}
@@ -453,14 +399,8 @@ func (c *conn) QueryRelationCount(user string, name string, direction string) (u
 			Where("_primary.left_id = ?", user).
 			Where("_secondary.right_id = ?", user)
 	}
-	selectSQL, args, err := query.ToSql()
-	log.WithFields(log.Fields{
-		"sql":  selectSQL,
-		"args": args,
-		"err":  err,
-	}).Debugln("Generated SQL for query relation count")
 	var count uint64
-	err = c.Get(&count, selectSQL, args...)
+	err := c.GetWith(&count, query)
 	if err != nil {
 		panic(err)
 	}
@@ -468,19 +408,15 @@ func (c *conn) QueryRelationCount(user string, name string, direction string) (u
 }
 
 func (c *conn) GetAsset(name string, asset *skydb.Asset) error {
-	selectSQL, args, err := psql.Select("content_type", "size").
+	builder := psql.Select("content_type", "size").
 		From(c.tableName("_asset")).
-		Where("id = ?", name).
-		ToSql()
-	if err != nil {
-		panic(err)
-	}
+		Where("id = ?", name)
 
 	var (
 		contentType string
 		size        int64
 	)
-	err = c.QueryRowx(selectSQL, args...).Scan(
+	err := c.QueryRowWith(builder).Scan(
 		&contentType,
 		&size,
 	)
@@ -505,15 +441,6 @@ func (c *conn) SaveAsset(asset *skydb.Asset) error {
 	}
 	upsert := upsertQuery(c.tableName("_asset"), pkData, data)
 	_, err := c.ExecWith(upsert)
-	if err != nil {
-		sql, args, _ := upsert.ToSql()
-		log.WithFields(log.Fields{
-			"sql":  sql,
-			"args": args,
-			"err":  err,
-		}).Debugln("Failed to add asset")
-	}
-
 	return err
 }
 
@@ -526,12 +453,6 @@ func (c *conn) AddRelation(user string, name string, targetUser string) error {
 	upsert := upsertQuery(c.tableName(name), ralationPair, nil)
 	_, err := c.ExecWith(upsert)
 	if err != nil {
-		sql, args, _ := upsert.ToSql()
-		log.WithFields(log.Fields{
-			"sql":  sql,
-			"args": args,
-			"err":  err,
-		}).Debugln("Failed to add relation")
 		if isForienKeyViolated(err) {
 			return fmt.Errorf("userID not exist")
 		}
@@ -595,10 +516,6 @@ func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
 
 	rows, err := c.QueryWith(builder)
 	if err != nil {
-		log.WithFields(log.Fields{
-			"sql": builder,
-			"err": err,
-		}).Debugln("Failed to query device table")
 		panic(err)
 	}
 	defer rows.Close()
@@ -642,16 +559,6 @@ func (c *conn) SaveDevice(device *skydb.Device) error {
 
 	upsert := upsertQuery(c.tableName("_device"), pkData, data)
 	_, err := c.ExecWith(upsert)
-	if err != nil {
-		sql, args, _ := upsert.ToSql()
-		log.WithFields(log.Fields{
-			"sql":    sql,
-			"args":   args,
-			"err":    err,
-			"device": device,
-		}).Errorln("Failed to save device")
-	}
-
 	return err
 }
 

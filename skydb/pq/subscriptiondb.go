@@ -194,14 +194,6 @@ func (db *database) SaveSubscription(subscription *skydb.Subscription) error {
 	_, err := db.c.ExecWith(builder)
 	if isDeviceNotFound(err) {
 		return skydb.ErrDeviceNotFound
-	} else if err != nil {
-		sql, args, _ := builder.ToSql()
-		log.WithFields(log.Fields{
-			"sql":          sql,
-			"args":         args,
-			"err":          err,
-			"subscription": subscription,
-		}).Errorln("Failed to save subscription")
 	}
 
 	return err
@@ -293,10 +285,7 @@ func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscription
 
 	rows, err := db.c.QueryWith(builder)
 	if err != nil {
-		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
-			"sql":    sql,
-			"args":   args,
 			"record": record,
 			"userID": db.userID,
 			"err":    err,
