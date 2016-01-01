@@ -37,7 +37,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 		stmt := db.addColumnStmt(recordType, updatingSchema)
 
 		log.WithField("stmt", stmt).Debugln("Adding columns to table")
-		if _, err := db.Db.Exec(stmt); err != nil {
+		if _, err := db.c.Exec(stmt); err != nil {
 			return fmt.Errorf("failed to alter table: %s", err)
 		}
 	}
@@ -50,7 +50,7 @@ func (db *database) createTable(recordType string) (err error) {
 
 	stmt := createTableStmt(tablename)
 	log.WithField("stmt", stmt).Debugln("Creating table")
-	_, err = db.Db.Exec(stmt)
+	_, err = db.c.Exec(stmt)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (db *database) createTable(recordType string) (err error) {
 `
 	stmt = fmt.Sprintf(CreateTriggerStmtFmt, tablename)
 	log.WithField("stmt", stmt).Debugln("Creating trigger")
-	_, err = db.Db.Exec(stmt)
+	_, err = db.c.Exec(stmt)
 
 	return err
 }
@@ -112,7 +112,7 @@ func (db *database) remoteColumnTypes(recordType string) (skydb.RecordSchema, er
 	log.Debugf("Querying remoteColumnTypes %s", recordType)
 	// STEP 1: Get the oid of the current table
 	var oid int
-	err := db.Db.QueryRowx(`
+	err := db.c.QueryRowx(`
 SELECT c.oid
 FROM pg_catalog.pg_class c
      LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
@@ -133,7 +133,7 @@ WHERE c.relname = $1
 	}
 
 	// STEP 2: Get column name and data type
-	rows, err := db.Db.Queryx(`
+	rows, err := db.c.Queryx(`
 SELECT a.attname,
   pg_catalog.format_type(a.atttypid, a.atttypmod)
 FROM pg_catalog.pg_attribute a
@@ -190,7 +190,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		Join("information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name").
 		Where("constraint_type = 'FOREIGN KEY' AND tc.table_schema = ? AND tc.table_name = ?", db.schemaName(), recordType)
 
-	refs, err := queryWith(db.Db, builder)
+	refs, err := db.c.QueryWith(builder)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"schemaName": db.schemaName(),

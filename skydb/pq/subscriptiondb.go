@@ -138,7 +138,7 @@ func (db *database) GetSubscription(key string, deviceID string, subscription *s
 	builder := psql.Select("type", "notification_info", "query").
 		From(db.tableName("_subscription")).
 		Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key)
-	err := queryRowWith(db.Db, builder).
+	err := db.c.QueryRowWith(builder).
 		Scan(&subscription.Type, &nullinfo, (*queryValue)(&subscription.Query))
 
 	if err == sql.ErrNoRows {
@@ -191,7 +191,7 @@ func (db *database) SaveSubscription(subscription *skydb.Subscription) error {
 
 	builder := upsertQuery(db.tableName("_subscription"), pkData, data)
 
-	_, err := execWith(db.Db, builder)
+	_, err := db.c.ExecWith(builder)
 	if isDeviceNotFound(err) {
 		return skydb.ErrDeviceNotFound
 	} else if err != nil {
@@ -208,8 +208,7 @@ func (db *database) SaveSubscription(subscription *skydb.Subscription) error {
 }
 
 func (db *database) DeleteSubscription(key string, deviceID string) error {
-	result, err := execWith(
-		db.Db,
+	result, err := db.c.ExecWith(
 		psql.Delete(db.tableName("_subscription")).
 			Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key),
 	)
@@ -232,8 +231,7 @@ func (db *database) DeleteSubscription(key string, deviceID string) error {
 }
 
 func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions []skydb.Subscription) {
-	rows, err := queryWith(
-		db.Db,
+	rows, err := db.c.QueryWith(
 		psql.Select("id", "type", "notification_info", "query").
 			From(db.tableName("_subscription")).
 			Where(`user_id = ? AND device_id = ?`, db.userID, deviceID),
@@ -293,7 +291,7 @@ func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscription
 		From(db.tableName("_subscription")).
 		Where(`user_id = ? AND query @> ?::jsonb`, db.userID, fmt.Sprintf(`{"Type":"%s"}`, record.ID.Type))
 
-	rows, err := queryWith(db.Db, builder)
+	rows, err := db.c.QueryWith(builder)
 	if err != nil {
 		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{

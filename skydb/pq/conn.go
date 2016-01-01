@@ -92,7 +92,7 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
 		panic(err)
 	}
 
-	_, err = c.Db.Exec(sql, args...)
+	_, err = c.Exec(sql, args...)
 	if isUniqueViolated(err) {
 		return skydb.ErrUserDuplicated
 	}
@@ -139,7 +139,7 @@ func (c *conn) GetUser(id string, userinfo *skydb.UserInfo) error {
 	if err != nil {
 		panic(err)
 	}
-	scanner := c.Db.QueryRow(selectSQL, args...)
+	scanner := c.QueryRowx(selectSQL, args...)
 	return c.doScanUser(userinfo, scanner)
 }
 
@@ -168,7 +168,7 @@ func (c *conn) GetUserByUsernameEmail(username string, email string, userinfo *s
 	if err != nil {
 		panic(err)
 	}
-	scanner := c.Db.QueryRow(selectSQL, args...)
+	scanner := c.QueryRowx(selectSQL, args...)
 	return c.doScanUser(userinfo, scanner)
 }
 
@@ -180,7 +180,7 @@ func (c *conn) GetUserByPrincipalID(principalID string, userinfo *skydb.UserInfo
 	if err != nil {
 		panic(err)
 	}
-	scanner := c.Db.QueryRow(selectSQL, args...)
+	scanner := c.QueryRowx(selectSQL, args...)
 	return c.doScanUser(userinfo, scanner)
 }
 
@@ -199,7 +199,7 @@ func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
 		panic(err)
 	}
 
-	rows, err := c.Db.Query(selectSQL, args...)
+	rows, err := c.Query(selectSQL, args...)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"sql":  selectSQL,
@@ -262,7 +262,7 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) error {
 		panic(err)
 	}
 
-	result, err := c.Db.Exec(updateSQL, args...)
+	result, err := c.Exec(updateSQL, args...)
 	if err != nil {
 		return err
 	}
@@ -287,7 +287,7 @@ func (c *conn) DeleteUser(id string) error {
 		panic(err)
 	}
 
-	result, err := c.Db.Exec(query, args...)
+	result, err := c.Exec(query, args...)
 	if err != nil {
 		return err
 	}
@@ -349,7 +349,7 @@ func (c *conn) QueryRelation(user string, name string, direction string, config 
 	if err != nil {
 		panic(err)
 	}
-	rows, err := c.Db.Query(selectSQL, args...)
+	rows, err := c.Query(selectSQL, args...)
 	if err != nil {
 		panic(err)
 	}
@@ -394,7 +394,7 @@ func (c *conn) QueryRelationCount(user string, name string, direction string) (u
 		"err":  err,
 	}).Debugln("Generated SQL for query relation count")
 	var count uint64
-	err = c.Db.Get(&count, selectSQL, args...)
+	err = c.Get(&count, selectSQL, args...)
 	if err != nil {
 		panic(err)
 	}
@@ -414,7 +414,7 @@ func (c *conn) GetAsset(name string, asset *skydb.Asset) error {
 		contentType string
 		size        int64
 	)
-	err = c.Db.QueryRow(selectSQL, args...).Scan(
+	err = c.QueryRowx(selectSQL, args...).Scan(
 		&contentType,
 		&size,
 	)
@@ -438,7 +438,7 @@ func (c *conn) SaveAsset(asset *skydb.Asset) error {
 		"size":         asset.Size,
 	}
 	upsert := upsertQuery(c.tableName("_asset"), pkData, data)
-	_, err := execWith(c.Db, upsert)
+	_, err := c.ExecWith(upsert)
 	if err != nil {
 		sql, args, _ := upsert.ToSql()
 		log.WithFields(log.Fields{
@@ -458,7 +458,7 @@ func (c *conn) AddRelation(user string, name string, targetUser string) error {
 	}
 
 	upsert := upsertQuery(c.tableName(name), ralationPair, nil)
-	_, err := execWith(c.Db, upsert)
+	_, err := c.ExecWith(upsert)
 	if err != nil {
 		sql, args, _ := upsert.ToSql()
 		log.WithFields(log.Fields{
@@ -477,7 +477,7 @@ func (c *conn) AddRelation(user string, name string, targetUser string) error {
 func (c *conn) RemoveRelation(user string, name string, targetUser string) error {
 	builder := psql.Delete(c.tableName(name)).
 		Where("left_id = ? AND right_id = ?", user, targetUser)
-	result, err := execWith(c.Db, builder)
+	result, err := c.ExecWith(builder)
 
 	if err != nil {
 		return err
@@ -501,7 +501,7 @@ func (c *conn) GetDevice(id string, device *skydb.Device) error {
 		Where("id = ?", id)
 
 	var nullToken sql.NullString
-	err := queryRowWith(c.Db, builder).Scan(
+	err := c.QueryRowWith(builder).Scan(
 		&device.Type,
 		&nullToken,
 		&device.UserInfoID,
@@ -527,7 +527,7 @@ func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
 		From(c.tableName("_device")).
 		Where("user_id = ?", user)
 
-	rows, err := queryWith(c.Db, builder)
+	rows, err := c.QueryWith(builder)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"sql": builder,
@@ -575,7 +575,7 @@ func (c *conn) SaveDevice(device *skydb.Device) error {
 	}
 
 	upsert := upsertQuery(c.tableName("_device"), pkData, data)
-	_, err := execWith(c.Db, upsert)
+	_, err := c.ExecWith(upsert)
 	if err != nil {
 		sql, args, _ := upsert.ToSql()
 		log.WithFields(log.Fields{
@@ -592,7 +592,7 @@ func (c *conn) SaveDevice(device *skydb.Device) error {
 func (c *conn) DeleteDevice(id string) error {
 	builder := psql.Delete(c.tableName("_device")).
 		Where("id = ?", id)
-	result, err := execWith(c.Db, builder)
+	result, err := c.ExecWith(builder)
 
 	if err != nil {
 		return err
@@ -617,7 +617,7 @@ func (c *conn) DeleteDeviceByToken(token string, t time.Time) error {
 	if t != skydb.ZeroTime {
 		builder = builder.Where("last_registered_at < ?", t)
 	}
-	result, err := execWith(c.Db, builder)
+	result, err := c.ExecWith(builder)
 
 	if err != nil {
 		return err
@@ -642,7 +642,7 @@ func (c *conn) DeleteEmptyDevicesByTime(t time.Time) error {
 	if t != skydb.ZeroTime {
 		builder = builder.Where("last_registered_at < ?", t)
 	}
-	result, err := execWith(c.Db, builder)
+	result, err := c.ExecWith(builder)
 
 	if err != nil {
 		return err

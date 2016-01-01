@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/lib/pq"
-	. "github.com/oursky/skygear/skytest"
 	"github.com/oursky/skygear/skydb"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -46,7 +46,7 @@ func cleanupDB(t *testing.T, execori execor) {
 }
 
 func addUser(t *testing.T, c *conn, userid string) {
-	_, err := c.Db.Exec("INSERT INTO app_com_oursky_skygear._user (id, password) VALUES ($1, 'somepassword')", userid)
+	_, err := c.Exec("INSERT INTO app_com_oursky_skygear._user (id, password) VALUES ($1, 'somepassword')", userid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +114,7 @@ func TestUserCRUD(t *testing.T) {
 			email := ""
 			password := []byte{}
 			auth := authInfoValue{}
-			err = c.Db.QueryRow("SELECT email, password, auth FROM app_com_oursky_skygear._user WHERE id = 'userid'").
+			err = c.QueryRowx("SELECT email, password, auth FROM app_com_oursky_skygear._user WHERE id = 'userid'").
 				Scan(&email, &password, &auth)
 			So(err, ShouldBeNil)
 
@@ -201,7 +201,7 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			updateduserinfo := userInfo{}
-			err = c.Db.Get(&updateduserinfo, "SELECT id, email, password, auth FROM app_com_oursky_skygear._user WHERE id = $1", "userid")
+			err = c.Get(&updateduserinfo, "SELECT id, email, password, auth FROM app_com_oursky_skygear._user WHERE id = $1", "userid")
 			So(err, ShouldBeNil)
 			So(updateduserinfo, ShouldResemble, userInfo{
 				ID:             "userid",
@@ -262,7 +262,7 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			placeholder := []byte{}
-			err = c.Db.QueryRow("SELECT false FROM app_com_oursky_skygear._user WHERE id = $1", "userid").Scan(&placeholder)
+			err = c.QueryRowx("SELECT false FROM app_com_oursky_skygear._user WHERE id = $1", "userid").Scan(&placeholder)
 			So(err, ShouldEqual, sql.ErrNoRows)
 			So(placeholder, ShouldBeEmpty)
 		})
@@ -286,13 +286,13 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			count := 0
-			c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
+			c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
 			So(count, ShouldEqual, 2)
 
 			err = c.DeleteUser("2")
 			So(err, ShouldBeNil)
 
-			c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
+			c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
 			So(count, ShouldEqual, 1)
 		})
 	})
@@ -425,7 +425,7 @@ func TestDevice(t *testing.T) {
 				deviceType, token, userInfoID string
 				lastRegisteredAt              time.Time
 			)
-			err = c.Db.QueryRow("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").
+			err = c.QueryRowx("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").
 				Scan(&deviceType, &token, &userInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
@@ -453,7 +453,7 @@ func TestDevice(t *testing.T) {
 				deviceType, token, userInfoID string
 				lastRegisteredAt              time.Time
 			)
-			err = c.Db.QueryRow("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").
+			err = c.QueryRowx("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").
 				Scan(&deviceType, &token, &userInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
@@ -536,7 +536,7 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").Scan(&count)
+			err = c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
 		})
@@ -555,7 +555,7 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").Scan(&count)
+			err = c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
 		})
@@ -604,7 +604,7 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_skygear._device").Scan(&count)
+			err = c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._device").Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 1)
 		})
@@ -732,7 +732,7 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			// verify with an insert
-			result, err := c.Db.Exec(
+			result, err := c.Exec(
 				`INSERT INTO app_com_oursky_skygear."note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
@@ -754,7 +754,7 @@ func TestExtend(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 
-			result, err := c.Db.Exec(
+			result, err := c.Exec(
 				`INSERT INTO app_com_oursky_skygear."note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "tags") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', '["tag0", "tag1"]')`)
@@ -865,7 +865,7 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			// verify with an insert
-			result, err := c.Db.Exec(
+			result, err := c.Exec(
 				`INSERT INTO app_com_oursky_skygear."note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt", "dirty") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06', TRUE)`)
@@ -980,7 +980,7 @@ func TestSave(t *testing.T) {
 				timestamp time.Time
 				ownerID   string
 			)
-			err = c.Db.QueryRow(
+			err = c.QueryRowx(
 				"SELECT content, number, timestamp, _owner_id "+
 					"FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = ''").
 				Scan(&content, &number, &timestamp, &ownerID)
@@ -1001,7 +1001,7 @@ func TestSave(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var content string
-			err = c.Db.QueryRow("SELECT content FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = ''").
+			err = c.QueryRowx("SELECT content FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = ''").
 				Scan(&content)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "more content")
@@ -1024,7 +1024,7 @@ func TestSave(t *testing.T) {
 			So(record.DatabaseID, ShouldEqual, "")
 
 			var count int
-			err = c.Db.QueryRowx("SELECT count(*) FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = 'someuserid'").
+			err = c.QueryRowx("SELECT count(*) FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = 'someuserid'").
 				Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
@@ -1049,7 +1049,7 @@ func TestSave(t *testing.T) {
 			ShouldBeNil(db.Save(&record))
 
 			var noteOrder int
-			err := c.Db.QueryRow(`SELECT "noteOrder" FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
+			err := c.QueryRowx(`SELECT "noteOrder" FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
 				Scan(&noteOrder)
 			So(err, ShouldBeNil)
 			So(noteOrder, ShouldEqual, 2)
@@ -1069,7 +1069,7 @@ func TestSave(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var ownerID string
-			err = c.Db.QueryRow(`SELECT "_owner_id" FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = ''`).
+			err = c.QueryRowx(`SELECT "_owner_id" FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = ''`).
 				Scan(&ownerID)
 			So(ownerID, ShouldEqual, "user_id")
 		})
@@ -1096,7 +1096,7 @@ func TestACL(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var b []byte
-			err = c.Db.QueryRow(`SELECT _access FROM app_com_oursky_skygear.note WHERE _id = '1'`).
+			err = c.QueryRowx(`SELECT _access FROM app_com_oursky_skygear.note WHERE _id = '1'`).
 				Scan(&b)
 			So(err, ShouldBeNil)
 			So(b, ShouldResemble, []byte(nil))
@@ -1153,7 +1153,7 @@ func TestJSON(t *testing.T) {
 			So(db.Save(&record), ShouldBeNil)
 
 			var jsonBytes []byte
-			err := c.Db.QueryRow(`SELECT jsonfield FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
+			err := c.QueryRowx(`SELECT jsonfield FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
 				Scan(&jsonBytes)
 			So(err, ShouldBeNil)
 			So(jsonBytes, ShouldEqualJSON, `[0, "string", true]`)
@@ -1175,7 +1175,7 @@ func TestJSON(t *testing.T) {
 			So(db.Save(&record), ShouldBeNil)
 
 			var jsonBytes []byte
-			err := c.Db.QueryRow(`SELECT jsonfield FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
+			err := c.QueryRowx(`SELECT jsonfield FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
 				Scan(&jsonBytes)
 			So(err, ShouldBeNil)
 			So(jsonBytes, ShouldEqualJSON, `{"number": 1, "string": "", "bool": false}`)
@@ -1385,7 +1385,7 @@ func TestDelete(t *testing.T) {
 			err = db.Delete(skydb.NewRecordID("note", "someid"))
 			So(err, ShouldBeNil)
 
-			err = db.(*database).Db.QueryRowx("SELECT * FROM app_com_oursky_skygear.note WHERE _id = 'someid' AND _database_id = 'userid'").Scan((*string)(nil))
+			err = db.(*database).c.QueryRowx("SELECT * FROM app_com_oursky_skygear.note WHERE _id = 'someid' AND _database_id = 'userid'").Scan((*string)(nil))
 			So(err, ShouldEqual, sql.ErrNoRows)
 		})
 
