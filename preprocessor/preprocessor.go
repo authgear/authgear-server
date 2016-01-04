@@ -34,8 +34,6 @@ func InjectDatabase(payload *router.Payload, response *router.Response) int {
 
 	databaseID, _ := payload.Data["database_id"].(string)
 	switch databaseID {
-	case "_public":
-		payload.Database = conn.PublicDB()
 	case "_private":
 		if payload.UserInfo != nil {
 			payload.Database = conn.PrivateDB(payload.UserInfo.ID)
@@ -43,6 +41,9 @@ func InjectDatabase(payload *router.Payload, response *router.Response) int {
 			response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed for private DB access")
 			return http.StatusUnauthorized
 		}
+	case "_public":
+	default:
+		payload.Database = conn.PublicDB()
 	}
 
 	return http.StatusOK
