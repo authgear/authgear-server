@@ -17,6 +17,7 @@ import (
 	"github.com/oursky/skygear/plugin"
 	_ "github.com/oursky/skygear/plugin/exec"
 	_ "github.com/oursky/skygear/plugin/zmq"
+	pp "github.com/oursky/skygear/preprocessor"
 	"github.com/oursky/skygear/provider"
 	"github.com/oursky/skygear/pubsub"
 	"github.com/oursky/skygear/push"
@@ -75,41 +76,41 @@ func main() {
 	initDevice(config, connOpener)
 
 	// Preprocessor
-	notificationPreprocessor := notificationPreprocessor{
+	notificationPreprocessor := pp.NotificationPreprocessor{
 		NotificationSender: pushSender,
 	}
 
-	assetStorePreprocessor := assetStorePreprocessor{
+	assetStorePreprocessor := pp.AssetStorePreprocessor{
 		Store: store,
 	}
 
-	naiveAPIKeyPreprocessor := apiKeyValidatonPreprocessor{
+	naiveAPIKeyPreprocessor := pp.AccessKeyValidatonPreprocessor{
 		Key:     config.App.APIKey,
 		AppName: config.App.Name,
 	}
 
-	tokenStorePreprocessor := tokenStorePreprocessor{
+	tokenStorePreprocessor := pp.TokenStorePreprocessor{
 		Store: tokenStore,
 	}
 
-	authenticator := userAuthenticator{
+	authenticator := pp.UserAuthenticator{
 		APIKey:     config.App.APIKey,
 		AppName:    config.App.Name,
 		TokenStore: tokenStore,
 	}
 
-	dbConnPreprocessor := connPreprocessor{
+	dbConnPreprocessor := pp.ConnPreprocessor{
 		AppName:  config.App.Name,
 		DBOpener: skydb.Open,
 		DBImpl:   config.DB.ImplName,
 		Option:   config.DB.Option,
 	}
 
-	providerRegistryPreprocessor := providerRegistryPreprocessor{
+	providerRegistryPreprocessor := pp.ProviderRegistryPreprocessor{
 		PluginInitContext: &initContext,
 	}
 
-	hookRegistryPreprocessor := hookRegistryPreprocessor{
+	hookRegistryPreprocessor := pp.HookRegistryPreprocessor{
 		PluginInitContext: &initContext,
 	}
 
@@ -117,8 +118,8 @@ func main() {
 		authenticator.Preprocess,
 		dbConnPreprocessor.Preprocess,
 		assetStorePreprocessor.Preprocess,
-		injectUserIfPresent,
-		injectDatabase,
+		pp.InjectUserIfPresent,
+		pp.InjectDatabase,
 	}
 
 	assetGetPreprocessors := []router.Processor{
@@ -141,30 +142,30 @@ func main() {
 
 	recordWritePreprocessors := append(baseAuthPreprocessors,
 		hookRegistryPreprocessor.Preprocess,
-		requireUserForWrite,
+		pp.RequireUserForWrite,
 	)
 
 	userWritePreprocessors := append(baseAuthPreprocessors,
-		requireUserForWrite,
+		pp.RequireUserForWrite,
 	)
 
 	userLinkPreprocessors := append(baseAuthPreprocessors,
 		providerRegistryPreprocessor.Preprocess,
-		requireUserForWrite,
+		pp.RequireUserForWrite,
 	)
 
 	devicePreprocessors := append(baseAuthPreprocessors,
-		requireUserForWrite,
+		pp.RequireUserForWrite,
 	)
 
 	subscriptionPreprocessors := append(baseAuthPreprocessors,
-		requireUserForWrite,
+		pp.RequireUserForWrite,
 	)
 
 	notificationPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 		dbConnPreprocessor.Preprocess,
-		injectDatabase,
+		pp.InjectDatabase,
 		notificationPreprocessor.Preprocess,
 	}
 
