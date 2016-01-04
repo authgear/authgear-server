@@ -11,7 +11,7 @@ import (
 )
 
 func addDevice(t *testing.T, c *conn, userID string, deviceID string) {
-	_, err := c.Db.Exec("INSERT INTO app_com_oursky_skygear._device (id, user_id, type, token, last_registered_at) VALUES ($1, $2, '', $3, $4)", deviceID, userID, randHex(64), time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+	_, err := c.Exec("INSERT INTO app_com_oursky_skygear._device (id, user_id, type, token, last_registered_at) VALUES ($1, $2, '', $3, $4)", deviceID, userID, randHex(64), time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func randHex(n int) string {
 func TestSubscriptionCRUD(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PrivateDB("userid")
 
@@ -102,7 +102,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 				resultNotificationInfo nullNotificationInfo
 				resultQuery            skydb.Query
 			)
-			err = c.Db.QueryRow(`
+			err = c.QueryRowx(`
 				SELECT device_id, type, notification_info, query FROM app_com_oursky_skygear._subscription
 				WHERE id = $1 AND user_id = $2`, "subscriptionid", "userid").
 				Scan(&deviceID, &queryType, &resultNotificationInfo, (*queryValue)(&resultQuery))
@@ -126,7 +126,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 				resultNotificationInfo nullNotificationInfo
 				resultQuery            skydb.Query
 			)
-			err = c.Db.QueryRow(`
+			err = c.QueryRowx(`
 				SELECT device_id, type, notification_info, query FROM app_com_oursky_skygear._subscription
 				WHERE id = $1 AND user_id = $2`, "subscriptionid", "userid").
 				Scan(&deviceID, &queryType, &resultNotificationInfo, (*queryValue)(&resultQuery))
@@ -188,7 +188,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.Db.QueryRow(
+			err = c.QueryRowx(
 				`SELECT COUNT(*) FROM app_com_oursky_skygear._subscription
 				WHERE id = $1 AND user_id = $2`,
 				"subscriptionid", "userid").
@@ -207,7 +207,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 func TestMatchingSubscriptions(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
 
@@ -342,7 +342,7 @@ func TestMatchingSubscriptions(t *testing.T) {
 func TestGetSubscriptionsByDeviceID(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
 

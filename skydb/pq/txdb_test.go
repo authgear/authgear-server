@@ -11,9 +11,9 @@ import (
 func TestTxDB(t *testing.T) {
 	Convey("TxDatabase", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
-		dbx := c.Db
+		dbx := c.Db()
 		db := c.PublicDB().(*database)
 		So(db.Extend("record", skydb.RecordSchema{
 			"content": skydb.FieldType{Type: skydb.TypeString},

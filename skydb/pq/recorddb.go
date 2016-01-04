@@ -26,17 +26,8 @@ func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
 		return skydb.ErrRecordNotFound
 	}
 
-	sqlStmt, args, err := db.selectQuery(id.Type, typemap).Where("_id = ?", id.Key).ToSql()
-	if err != nil {
-		panic(err)
-	}
-
-	log.WithFields(log.Fields{
-		"sql":  sqlStmt,
-		"args": args,
-	}).Debugln("Getting record")
-
-	row := db.Db.QueryRowx(sqlStmt, args...)
+	builder := db.selectQuery(id.Type, typemap).Where("_id = ?", id.Key)
+	row := db.c.QueryRowWith(builder)
 	if err := newRecordScanner(id.Type, typemap, row).Scan(record); err == sql.ErrNoRows {
 		return skydb.ErrRecordNotFound
 	} else if err != nil {
@@ -77,14 +68,7 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 	inCause, inArgs := literalToSQLOperand(idStrs)
 	query := db.selectQuery(recordType, typemap).
 		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
-	sql, args, err := query.ToSql()
-	log.WithFields(log.Fields{
-		"sql":  sql,
-		"args": args,
-		"err":  err,
-	}).Infoln("Getting records by ID")
-
-	rows, err := db.Db.Queryx(sql, args...)
+	rows, err := db.c.QueryWith(query)
 	if err != nil {
 		log.Debugf("Getting records by ID failed %v", err)
 		return nil, err
@@ -122,15 +106,8 @@ func (db *database) Save(record *skydb.Record) error {
 		return err
 	}
 
-	row := queryRowWith(db.Db, upsert)
+	row := db.c.QueryRowWith(upsert)
 	if err = newRecordScanner(record.ID.Type, typemap, row).Scan(record); err != nil {
-		sql, args, _ := upsert.ToSql()
-		log.WithFields(log.Fields{
-			"sql":  sql,
-			"args": args,
-			"err":  err,
-		}).Debugln("Failed to save record")
-
 		return err
 	}
 
@@ -146,7 +123,7 @@ func (db *database) preSave(schema skydb.RecordSchema, record *skydb.Record) err
 		if schema[key].Type == skydb.TypeInteger {
 			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), db.tableName(record.ID.Type))
 			seqName := db.tableName(fmt.Sprintf(`%v_%v_seq`, record.ID.Type, key))
-			if _, err := db.Db.Exec(selectSQL, seqName, value); err != nil {
+			if _, err := db.c.Exec(selectSQL, seqName, value); err != nil {
 				return err
 			}
 		}
@@ -186,40 +163,23 @@ func (db *database) Delete(id skydb.RecordID) error {
 	builder := psql.Delete(db.tableName(id.Type)).
 		Where("_id = ? AND _database_id = ?", id.Key, db.userID)
 
-	result, err := execWith(db.Db, builder)
+	result, err := db.c.ExecWith(builder)
 	if isUndefinedTable(err) {
 		return skydb.ErrRecordNotFound
 	} else if err != nil {
-		sql, args, _ := builder.ToSql()
-		log.WithFields(log.Fields{
-			"id":   id,
-			"sql":  sql,
-			"args": args,
-			"err":  err,
-		}).Errorln("Failed to execute delete record statement")
 		return fmt.Errorf("delete %s: failed to delete record", id)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		sql, args, _ := builder.ToSql()
-		log.WithFields(log.Fields{
-			"id":   id,
-			"sql":  sql,
-			"args": args,
-			"err":  err,
-		}).Errorln("Failed to fetch rowsAffected")
 		return fmt.Errorf("delete %s: failed to retrieve deletion status", id)
 	}
 
 	if rowsAffected == 0 {
 		return skydb.ErrRecordNotFound
 	} else if rowsAffected > 1 {
-		sql, args, _ := builder.ToSql()
 		log.WithFields(log.Fields{
 			"id":           id,
-			"sql":          sql,
-			"args":         args,
 			"rowsAffected": rowsAffected,
 			"err":          err,
 		}).Errorln("Unexpected rows deleted")
@@ -284,14 +244,7 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 		q = q.Offset(query.Offset)
 	}
 
-	sql, args, err := q.ToSql()
-	log.WithFields(log.Fields{
-		"sql":  sql,
-		"args": args,
-		"err":  err,
-	}).Infoln("query records")
-
-	rows, err := queryWith(db.Db, q)
+	rows, err := db.c.QueryWith(q)
 	return newRows(query.Type, typemap, rows, err)
 }
 
@@ -337,7 +290,7 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 				`_owner_id = ?)`, query.ReadableBy)
 	}
 
-	rows, err := queryWith(db.Db, q)
+	rows, err := db.c.QueryWith(q)
 	if err != nil {
 		return 0, err
 	}

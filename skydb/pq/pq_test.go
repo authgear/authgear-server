@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/lib/pq"
-	. "github.com/oursky/skygear/skytest"
 	"github.com/oursky/skygear/skydb"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -38,15 +38,15 @@ func getTestConn(t *testing.T) *conn {
 	return c.(*conn)
 }
 
-func cleanupDB(t *testing.T, execori execor) {
-	_, err := execori.Exec("DROP SCHEMA app_com_oursky_skygear CASCADE")
+func cleanupConn(t *testing.T, c *conn) {
+	_, err := c.db.Exec("DROP SCHEMA app_com_oursky_skygear CASCADE")
 	if err != nil && !isInvalidSchemaName(err) {
 		t.Fatal(err)
 	}
 }
 
 func addUser(t *testing.T, c *conn, userid string) {
-	_, err := c.Db.Exec("INSERT INTO app_com_oursky_skygear._user (id, password) VALUES ($1, 'somepassword')", userid)
+	_, err := c.Exec("INSERT INTO app_com_oursky_skygear._user (id, password) VALUES ($1, 'somepassword')", userid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func TestUserCRUD(t *testing.T) {
 
 	Convey("Conn", t, func() {
 		c = getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		userinfo := skydb.UserInfo{
 			ID:             "userid",
@@ -114,7 +114,7 @@ func TestUserCRUD(t *testing.T) {
 			email := ""
 			password := []byte{}
 			auth := authInfoValue{}
-			err = c.Db.QueryRow("SELECT email, password, auth FROM app_com_oursky_skygear._user WHERE id = 'userid'").
+			err = c.QueryRowx("SELECT email, password, auth FROM app_com_oursky_skygear._user WHERE id = 'userid'").
 				Scan(&email, &password, &auth)
 			So(err, ShouldBeNil)
 
@@ -201,7 +201,7 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			updateduserinfo := userInfo{}
-			err = c.Db.Get(&updateduserinfo, "SELECT id, email, password, auth FROM app_com_oursky_skygear._user WHERE id = $1", "userid")
+			err = c.Get(&updateduserinfo, "SELECT id, email, password, auth FROM app_com_oursky_skygear._user WHERE id = $1", "userid")
 			So(err, ShouldBeNil)
 			So(updateduserinfo, ShouldResemble, userInfo{
 				ID:             "userid",
@@ -262,7 +262,7 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			placeholder := []byte{}
-			err = c.Db.QueryRow("SELECT false FROM app_com_oursky_skygear._user WHERE id = $1", "userid").Scan(&placeholder)
+			err = c.QueryRowx("SELECT false FROM app_com_oursky_skygear._user WHERE id = $1", "userid").Scan(&placeholder)
 			So(err, ShouldEqual, sql.ErrNoRows)
 			So(placeholder, ShouldBeEmpty)
 		})
@@ -286,13 +286,13 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			count := 0
-			c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
+			c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
 			So(count, ShouldEqual, 2)
 
 			err = c.DeleteUser("2")
 			So(err, ShouldBeNil)
 
-			c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
+			c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
 			So(count, ShouldEqual, 1)
 		})
 	})
@@ -301,7 +301,7 @@ func TestUserCRUD(t *testing.T) {
 func TestRelation(t *testing.T) {
 	Convey("Conn", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		addUser(t, c, "userid")
 		addUser(t, c, "friendid")
@@ -334,7 +334,7 @@ func TestRelation(t *testing.T) {
 
 	Convey("Conn Query", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		addUser(t, c, "follower")
 		addUser(t, c, "followee")
@@ -383,7 +383,7 @@ func TestRelation(t *testing.T) {
 func TestDevice(t *testing.T) {
 	Convey("Conn", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		addUser(t, c, "userid")
 
@@ -425,7 +425,7 @@ func TestDevice(t *testing.T) {
 				deviceType, token, userInfoID string
 				lastRegisteredAt              time.Time
 			)
-			err = c.Db.QueryRow("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").
+			err = c.QueryRowx("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").
 				Scan(&deviceType, &token, &userInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
@@ -453,7 +453,7 @@ func TestDevice(t *testing.T) {
 				deviceType, token, userInfoID string
 				lastRegisteredAt              time.Time
 			)
-			err = c.Db.QueryRow("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").
+			err = c.QueryRowx("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").
 				Scan(&deviceType, &token, &userInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
@@ -536,7 +536,7 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").Scan(&count)
+			err = c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
 		})
@@ -555,7 +555,7 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").Scan(&count)
+			err = c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
 		})
@@ -604,7 +604,7 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.Db.QueryRow("SELECT COUNT(*) FROM app_com_oursky_skygear._device").Scan(&count)
+			err = c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._device").Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 1)
 		})
@@ -681,7 +681,7 @@ func TestDevice(t *testing.T) {
 func TestExtend(t *testing.T) {
 	Convey("remoteColumnTypes", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 		db := c.PublicDB().(*database)
 
 		Convey("return Resemble RecordSchema on second call", func() {
@@ -719,7 +719,7 @@ func TestExtend(t *testing.T) {
 
 	Convey("Extend", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
 
@@ -732,7 +732,7 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			// verify with an insert
-			result, err := c.Db.Exec(
+			result, err := c.Exec(
 				`INSERT INTO app_com_oursky_skygear."note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
@@ -754,7 +754,7 @@ func TestExtend(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 
-			result, err := c.Db.Exec(
+			result, err := c.Exec(
 				`INSERT INTO app_com_oursky_skygear."note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "tags") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', '["tag0", "tag1"]')`)
@@ -865,7 +865,7 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			// verify with an insert
-			result, err := c.Db.Exec(
+			result, err := c.Exec(
 				`INSERT INTO app_com_oursky_skygear."note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt", "dirty") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06', TRUE)`)
@@ -898,7 +898,7 @@ func TestExtend(t *testing.T) {
 func TestGet(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PrivateDB("getuser")
 		So(db.Extend("record", skydb.RecordSchema{
@@ -908,10 +908,10 @@ func TestGet(t *testing.T) {
 			"boolean":  skydb.FieldType{Type: skydb.TypeBoolean},
 		}), ShouldBeNil)
 
-		insertRow(t, c.Db, `INSERT INTO app_com_oursky_skygear."record" `+
+		insertRow(t, c.Db(), `INSERT INTO app_com_oursky_skygear."record" `+
 			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "string", "number", "datetime", "boolean") `+
 			`VALUES ('getuser', 'id0', 'getuser', '1988-02-06', 'getuser', '1988-02-06', 'getuser', 'string', 1, '1988-02-06', TRUE)`)
-		insertRow(t, c.Db, `INSERT INTO app_com_oursky_skygear."record" `+
+		insertRow(t, c.Db(), `INSERT INTO app_com_oursky_skygear."record" `+
 			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "string", "number", "datetime", "boolean") `+
 			`VALUES ('getuser', 'id1', 'getuser', '1988-02-06', 'getuser', '1988-02-06', 'getuser', 'string', 1, '1988-02-06', TRUE)`)
 
@@ -946,7 +946,7 @@ func TestSave(t *testing.T) {
 	var c *conn
 	Convey("Database", t, func() {
 		c = getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
 		So(db.Extend("note", skydb.RecordSchema{
@@ -980,7 +980,7 @@ func TestSave(t *testing.T) {
 				timestamp time.Time
 				ownerID   string
 			)
-			err = c.Db.QueryRow(
+			err = c.QueryRowx(
 				"SELECT content, number, timestamp, _owner_id "+
 					"FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = ''").
 				Scan(&content, &number, &timestamp, &ownerID)
@@ -1001,7 +1001,7 @@ func TestSave(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var content string
-			err = c.Db.QueryRow("SELECT content FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = ''").
+			err = c.QueryRowx("SELECT content FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = ''").
 				Scan(&content)
 			So(err, ShouldBeNil)
 			So(content, ShouldEqual, "more content")
@@ -1024,7 +1024,7 @@ func TestSave(t *testing.T) {
 			So(record.DatabaseID, ShouldEqual, "")
 
 			var count int
-			err = c.Db.QueryRowx("SELECT count(*) FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = 'someuserid'").
+			err = c.QueryRowx("SELECT count(*) FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = 'someuserid'").
 				Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
@@ -1049,7 +1049,7 @@ func TestSave(t *testing.T) {
 			ShouldBeNil(db.Save(&record))
 
 			var noteOrder int
-			err := c.Db.QueryRow(`SELECT "noteOrder" FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
+			err := c.QueryRowx(`SELECT "noteOrder" FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
 				Scan(&noteOrder)
 			So(err, ShouldBeNil)
 			So(noteOrder, ShouldEqual, 2)
@@ -1069,7 +1069,7 @@ func TestSave(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var ownerID string
-			err = c.Db.QueryRow(`SELECT "_owner_id" FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = ''`).
+			err = c.QueryRowx(`SELECT "_owner_id" FROM app_com_oursky_skygear.note WHERE _id = 'someid' and _database_id = ''`).
 				Scan(&ownerID)
 			So(ownerID, ShouldEqual, "user_id")
 		})
@@ -1079,7 +1079,7 @@ func TestSave(t *testing.T) {
 func TestACL(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
 		So(db.Extend("note", nil), ShouldBeNil)
@@ -1096,7 +1096,7 @@ func TestACL(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var b []byte
-			err = c.Db.QueryRow(`SELECT _access FROM app_com_oursky_skygear.note WHERE _id = '1'`).
+			err = c.QueryRowx(`SELECT _access FROM app_com_oursky_skygear.note WHERE _id = '1'`).
 				Scan(&b)
 			So(err, ShouldBeNil)
 			So(b, ShouldResemble, []byte(nil))
@@ -1107,7 +1107,7 @@ func TestACL(t *testing.T) {
 func TestJSON(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
 		So(db.Extend("note", skydb.RecordSchema{
@@ -1120,7 +1120,7 @@ func TestJSON(t *testing.T) {
 				"dictionary": skydb.FieldType{Type: skydb.TypeJSON},
 			}), ShouldBeNil)
 
-			insertRow(t, c.Db, `INSERT INTO app_com_oursky_skygear."record" `+
+			insertRow(t, c.Db(), `INSERT INTO app_com_oursky_skygear."record" `+
 				`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "array", "dictionary") `+
 				`VALUES ('', 'id', '', '0001-01-01 00:00:00', '', '0001-01-01 00:00:00', '', '[1, "string", true]', '{"number": 0, "string": "value", "bool": false}')`)
 
@@ -1153,7 +1153,7 @@ func TestJSON(t *testing.T) {
 			So(db.Save(&record), ShouldBeNil)
 
 			var jsonBytes []byte
-			err := c.Db.QueryRow(`SELECT jsonfield FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
+			err := c.QueryRowx(`SELECT jsonfield FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
 				Scan(&jsonBytes)
 			So(err, ShouldBeNil)
 			So(jsonBytes, ShouldEqualJSON, `[0, "string", true]`)
@@ -1175,7 +1175,7 @@ func TestJSON(t *testing.T) {
 			So(db.Save(&record), ShouldBeNil)
 
 			var jsonBytes []byte
-			err := c.Db.QueryRow(`SELECT jsonfield FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
+			err := c.QueryRowx(`SELECT jsonfield FROM app_com_oursky_skygear.note WHERE _id = '1' and _database_id = ''`).
 				Scan(&jsonBytes)
 			So(err, ShouldBeNil)
 			So(jsonBytes, ShouldEqualJSON, `{"number": 1, "string": "", "bool": false}`)
@@ -1186,7 +1186,7 @@ func TestJSON(t *testing.T) {
 func TestRecordAssetField(t *testing.T) {
 	Convey("Record Asset", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		So(c.SaveAsset(&skydb.Asset{
 			Name:        "picture.png",
@@ -1247,7 +1247,7 @@ func TestRecordAssetField(t *testing.T) {
 func TestRecordLocationField(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
 		So(db.Extend("photo", skydb.RecordSchema{
@@ -1282,7 +1282,7 @@ func TestRecordLocationField(t *testing.T) {
 func TestRecordSequenceField(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
 		So(db.Extend("note", skydb.RecordSchema{
@@ -1362,7 +1362,7 @@ func TestDelete(t *testing.T) {
 	var c *conn
 	Convey("Database", t, func() {
 		c = getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		db := c.PrivateDB("userid")
 
@@ -1385,7 +1385,7 @@ func TestDelete(t *testing.T) {
 			err = db.Delete(skydb.NewRecordID("note", "someid"))
 			So(err, ShouldBeNil)
 
-			err = db.(*database).Db.QueryRowx("SELECT * FROM app_com_oursky_skygear.note WHERE _id = 'someid' AND _database_id = 'userid'").Scan((*string)(nil))
+			err = db.(*database).c.QueryRowx("SELECT * FROM app_com_oursky_skygear.note WHERE _id = 'someid' AND _database_id = 'userid'").Scan((*string)(nil))
 			So(err, ShouldEqual, sql.ErrNoRows)
 		})
 
@@ -1407,7 +1407,7 @@ func TestDelete(t *testing.T) {
 func TestQuery(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		// fixture
 		record1 := skydb.Record{
@@ -1688,7 +1688,7 @@ func TestQuery(t *testing.T) {
 
 	Convey("Database with reference", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		// fixture
 		record1 := skydb.Record{
@@ -1773,7 +1773,7 @@ func TestQuery(t *testing.T) {
 
 	Convey("Database with location", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		record0 := skydb.Record{
 			ID:      skydb.NewRecordID("restaurant", "0"),
@@ -1899,7 +1899,7 @@ func TestQuery(t *testing.T) {
 
 	Convey("Database with multiple fields", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		record0 := skydb.Record{
 			ID:      skydb.NewRecordID("restaurant", "0"),
@@ -1995,7 +1995,7 @@ func TestQuery(t *testing.T) {
 
 	Convey("Database with JSON", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		// fixture
 		record1 := skydb.Record{
@@ -2062,7 +2062,7 @@ func TestQuery(t *testing.T) {
 
 	Convey("Empty Conn", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		Convey("gets no users", func() {
 			userinfo := skydb.UserInfo{}
@@ -2140,7 +2140,7 @@ func TestQuery(t *testing.T) {
 func TestQueryCount(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		// fixture
 		record1 := skydb.Record{
@@ -2242,7 +2242,7 @@ func TestQueryCount(t *testing.T) {
 func TestAggregateQuery(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		// fixture
 		db := c.PrivateDB("userid")
@@ -2342,7 +2342,7 @@ func TestAggregateQuery(t *testing.T) {
 func TestMetaDataQuery(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		record0 := skydb.Record{
 			ID:        skydb.NewRecordID("record", "0"),
@@ -2511,7 +2511,7 @@ func TestMetaDataQuery(t *testing.T) {
 func TestUnsupportedQuery(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
-		defer cleanupDB(t, c.Db)
+		defer cleanupConn(t, c)
 
 		record0 := skydb.Record{
 			ID:      skydb.NewRecordID("record", "0"),
