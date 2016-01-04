@@ -178,6 +178,7 @@ func main() {
 	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
 	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
 	r.Map("auth:logout", handler.LogoutHandler,
+		tokenStorePreprocessor.Preprocess,
 		authenticator.Preprocess,
 		providerRegistryPreprocessor.Preprocess,
 	)
