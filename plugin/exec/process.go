@@ -60,8 +60,10 @@ var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 }
 
 type execTransport struct {
-	Path string
-	Args []string
+	Path        string
+	Args        []string
+	initHandler odplugin.TransportInitHandler
+	state       odplugin.TransportState
 }
 
 func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
@@ -110,22 +112,50 @@ func (p *execTransport) runProc(args []string, in []byte) (out []byte, err error
 	return
 }
 
-func (p execTransport) RunInit() (out []byte, err error) {
+func (p *execTransport) State() odplugin.TransportState {
+	return p.state
+}
+
+func (p *execTransport) SetInitHandler(f odplugin.TransportInitHandler) {
+	p.initHandler = f
+}
+
+func (p *execTransport) setState(state odplugin.TransportState) {
+	if state != p.state {
+		oldState := p.state
+		p.state = state
+		log.Infof("Transport state changes from %d to %d.", oldState, p.state)
+	}
+}
+
+func (p *execTransport) RequestInit() {
+	out, err := p.RunInit()
+	if p.initHandler != nil {
+		handlerError := p.initHandler(out, err)
+		if err != nil || handlerError != nil {
+			p.setState(odplugin.TransportStateError)
+			return
+		}
+	}
+	p.setState(odplugin.TransportStateReady)
+}
+
+func (p *execTransport) RunInit() (out []byte, err error) {
 	out, err = p.run([]string{"init"}, []byte{})
 	return
 }
 
-func (p execTransport) RunLambda(name string, in []byte) (out []byte, err error) {
+func (p *execTransport) RunLambda(name string, in []byte) (out []byte, err error) {
 	out, err = p.runProc([]string{"op", name}, in)
 	return
 }
 
-func (p execTransport) RunHandler(name string, in []byte) (out []byte, err error) {
+func (p *execTransport) RunHandler(name string, in []byte) (out []byte, err error) {
 	out, err = p.runProc([]string{"handler", name}, in)
 	return
 }
 
-func (p execTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+func (p *execTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 	param := map[string]interface{}{
 		"record":   (*common.JSONRecord)(record),
 		"original": (*common.JSONRecord)(originalRecord),
@@ -155,12 +185,12 @@ func (p execTransport) RunHook(recordType string, trigger string, record *skydb.
 	return &recordout, nil
 }
 
-func (p execTransport) RunTimer(name string, in []byte) (out []byte, err error) {
+func (p *execTransport) RunTimer(name string, in []byte) (out []byte, err error) {
 	out, err = p.runProc([]string{"timer", name}, in)
 	return
 }
 
-func (p execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.AuthResponse, error) {
+func (p *execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.AuthResponse, error) {
 	req := map[string]interface{}{
 		"auth_data": request.AuthData,
 	}
@@ -190,9 +220,10 @@ type execTransportFactory struct {
 }
 
 func (f execTransportFactory) Open(path string, args []string) (transport odplugin.Transport) {
-	transport = execTransport{
-		Path: path,
-		Args: args,
+	transport = &execTransport{
+		Path:  path,
+		Args:  args,
+		state: odplugin.TransportStateUninitialized,
 	}
 	return
 }

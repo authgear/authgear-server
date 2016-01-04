@@ -24,7 +24,7 @@ func TestPlugin(t *testing.T) {
 
 		plugin := NewPlugin("null", "/tmp/nonexistent", []string{})
 		So(plugin, ShouldHaveSameTypeAs, Plugin{})
-		So(plugin.transport, ShouldHaveSameTypeAs, nullTransport{})
+		So(plugin.transport, ShouldHaveSameTypeAs, &nullTransport{})
 	})
 
 	Convey("panic unable to register timer", t, func() {

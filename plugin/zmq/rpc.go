@@ -14,10 +14,12 @@ import (
 const initRequestTimeout = 2000
 
 type zmqTransport struct {
-	name   string
-	iaddr  string // the internal addr used by goroutines to make request to plugin
-	eaddr  string // the addr exposed for plugin to connect to with REP.
-	broker *Broker
+	state       odplugin.TransportState
+	name        string
+	iaddr       string // the internal addr used by goroutines to make request to plugin
+	eaddr       string // the addr exposed for plugin to connect to with REP.
+	broker      *Broker
+	initHandler odplugin.TransportInitHandler
 }
 
 type request struct {
@@ -81,7 +83,48 @@ func (req *request) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&paramReq)
 }
 
-func (p zmqTransport) RunInit() (out []byte, err error) {
+func (p *zmqTransport) State() odplugin.TransportState {
+	return p.state
+}
+
+func (p *zmqTransport) SetInitHandler(f odplugin.TransportInitHandler) {
+	p.initHandler = f
+}
+
+func (p *zmqTransport) setState(state odplugin.TransportState) {
+	if state != p.state {
+		oldState := p.state
+		p.state = state
+		log.Infof("Transport state changes from %d to %d.", oldState, p.state)
+	}
+}
+
+func (p *zmqTransport) RequestInit() {
+	for {
+		address := <-p.broker.freshWorkers
+
+		if p.state != odplugin.TransportStateUninitialized {
+			// Although the plugin is only initialized once, we need
+			// to clear the channel buffer so that broker doesn't get stuck
+			continue
+		}
+
+		log.Debugf("zmq transport got fresh worker %s", string(address))
+
+		// TODO: Only send init to the new address. For now, we let
+		// the broker decide.
+		out, err := p.RunInit()
+		if p.initHandler != nil {
+			handlerError := p.initHandler(out, err)
+			if err != nil || handlerError != nil {
+				p.setState(odplugin.TransportStateError)
+			}
+		}
+		p.setState(odplugin.TransportStateReady)
+	}
+}
+
+func (p *zmqTransport) RunInit() (out []byte, err error) {
 	req := request{Kind: "init", Timeout: initRequestTimeout}
 	for {
 		out, err = p.ipc(&req)
@@ -93,17 +136,17 @@ func (p zmqTransport) RunInit() (out []byte, err error) {
 	return
 }
 
-func (p zmqTransport) RunLambda(name string, in []byte) (out []byte, err error) {
+func (p *zmqTransport) RunLambda(name string, in []byte) (out []byte, err error) {
 	out, err = p.rpc(newLambdaRequest(name, in))
 	return
 }
 
-func (p zmqTransport) RunHandler(name string, in []byte) (out []byte, err error) {
+func (p *zmqTransport) RunHandler(name string, in []byte) (out []byte, err error) {
 	out, err = p.rpc(newHandlerRequest(name, in))
 	return
 }
 
-func (p zmqTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+func (p *zmqTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 	out, err := p.rpc(newHookRequest(trigger, record, originalRecord))
 	if err != nil {
 		return nil, err
@@ -123,13 +166,13 @@ func (p zmqTransport) RunHook(recordType string, trigger string, record *skydb.R
 	return &recordout, nil
 }
 
-func (p zmqTransport) RunTimer(name string, in []byte) (out []byte, err error) {
+func (p *zmqTransport) RunTimer(name string, in []byte) (out []byte, err error) {
 	req := request{Kind: "timer", Name: name}
 	out, err = p.rpc(&req)
 	return
 }
 
-func (p zmqTransport) RunProvider(request *odplugin.AuthRequest) (resp *odplugin.AuthResponse, err error) {
+func (p *zmqTransport) RunProvider(request *odplugin.AuthRequest) (resp *odplugin.AuthResponse, err error) {
 	req := newAuthRequest(request)
 	out, err := p.rpc(req)
 	if err != nil {
@@ -217,6 +260,7 @@ func (f zmqTransportFactory) Open(name string, args []string) (transport odplugi
 	}
 
 	p := zmqTransport{
+		state:  odplugin.TransportStateUninitialized,
 		name:   name,
 		iaddr:  internalAddr,
 		eaddr:  externalAddr,
@@ -228,7 +272,7 @@ func (f zmqTransportFactory) Open(name string, args []string) (transport odplugi
 		broker.Run()
 	}()
 
-	return p
+	return &p
 }
 
 func init() {

@@ -14,7 +14,7 @@ import (
 
 func TestRun(t *testing.T) {
 	Convey("test args and stdout", t, func() {
-		transport := execTransport{
+		transport := &execTransport{
 			Path: "/bin/echo",
 			Args: []string{},
 		}
@@ -51,7 +51,7 @@ func TestRun(t *testing.T) {
 	})
 
 	Convey("test stdin", t, func() {
-		transport := execTransport{
+		transport := &execTransport{
 			Path: "/bin/sh",
 			Args: []string{"-c", `"cat"`},
 		}
@@ -76,7 +76,7 @@ func TestRun(t *testing.T) {
 	})
 
 	Convey("test hook", t, func() {
-		transport := execTransport{
+		transport := &execTransport{
 			Path: "/never/invoked",
 			Args: nil,
 		}
@@ -481,7 +481,7 @@ Too strong to lift a feather`)
 
 	Convey("test exec error", t, func() {
 		Convey("file not found", func() {
-			transport := execTransport{
+			transport := &execTransport{
 				Path: "/tmp/nonexistent",
 				Args: []string{},
 			}
@@ -491,7 +491,7 @@ Too strong to lift a feather`)
 		})
 
 		Convey("not executable", func() {
-			transport := execTransport{
+			transport := &execTransport{
 				Path: "/dev/null",
 				Args: []string{},
 			}
@@ -501,7 +501,7 @@ Too strong to lift a feather`)
 		})
 
 		Convey("return false", func() {
-			transport := execTransport{
+			transport := &execTransport{
 				Path: "/bin/false",
 				Args: []string{},
 			}
@@ -512,7 +512,7 @@ Too strong to lift a feather`)
 	})
 
 	Convey("test provider", t, func() {
-		transport := execTransport{
+		transport := &execTransport{
 			Path: "/never/invoked",
 			Args: nil,
 		}
@@ -574,11 +574,11 @@ Too strong to lift a feather`)
 
 func TestFactory(t *testing.T) {
 	Convey("test factory", t, func() {
-		factory := execTransportFactory{}
+		factory := &execTransportFactory{}
 		transport := factory.Open("/bin/echo", []string{"plugin"})
 
-		So(transport, ShouldHaveSameTypeAs, execTransport{})
-		So(transport.(execTransport).Path, ShouldResemble, "/bin/echo")
-		So(transport.(execTransport).Args, ShouldResemble, []string{"plugin"})
+		So(transport, ShouldHaveSameTypeAs, &execTransport{})
+		So(transport.(*execTransport).Path, ShouldResemble, "/bin/echo")
+		So(transport.(*execTransport).Args, ShouldResemble, []string{"plugin"})
 	})
 }

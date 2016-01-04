@@ -42,11 +42,12 @@ type Broker struct {
 	// NOTE: goroutines are caller of plugin, so frontend is Go side,
 	// backend is plugin side
 	frontendAddr, backendAddr string
+	freshWorkers              chan []byte
 }
 
 // NewBroker returns a new *Broker.
 func NewBroker(frontendAddr, backendAddr string) (*Broker, error) {
-	return &Broker{frontendAddr, backendAddr}, nil
+	return &Broker{frontendAddr, backendAddr, make(chan []byte, 1)}, nil
 }
 
 // Run kicks start the Broker and listens for requests. It blocks function
@@ -79,6 +80,9 @@ func (lb *Broker) Run() {
 			if len(msg) == 1 {
 				status := string(msg[0])
 				handleWorkerStatus(&workers, address, status)
+				if status == Ready {
+					lb.freshWorkers <- address
+				}
 			} else {
 				frontend.SendMessage(msg)
 				log.Debugf("zmq/broker: backend => frontend: %#x, %s\n", msg[0], msg)

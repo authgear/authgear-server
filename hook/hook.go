@@ -2,6 +2,7 @@ package hook
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/oursky/skygear/skydb"
 )
@@ -32,6 +33,7 @@ type recordTypeHookMap map[string][]Func
 // In future the registry should hook itself into Record lifecycle and manage
 // hooks executions itself. Such hooking point does not exist at the moment.
 type Registry struct {
+	mutex             sync.RWMutex
 	beforeSaveHooks   recordTypeHookMap
 	afterSaveHooks    recordTypeHookMap
 	beforeDeleteHooks recordTypeHookMap
@@ -41,6 +43,7 @@ type Registry struct {
 // NewRegistry returns a Registry ready for use.
 func NewRegistry() *Registry {
 	return &Registry{
+		sync.RWMutex{},
 		recordTypeHookMap{},
 		recordTypeHookMap{},
 		recordTypeHookMap{},
@@ -51,6 +54,8 @@ func NewRegistry() *Registry {
 // Register adds the specific hook for the supplied recordType to be executed
 // at the moment provided by kind.
 func (r *Registry) Register(kind Kind, recordType string, hook Func) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	recordTypeHookMap, err := r.recordTypeHookMap(kind)
 	if err != nil {
 		return err
@@ -66,12 +71,12 @@ func (r *Registry) Register(kind Kind, recordType string, hook Func) error {
 // If one of the hooks returns an error, it halts execution of other hooks and
 // return sthat error untouched.
 func (r *Registry) ExecuteHooks(kind Kind, record *skydb.Record, oldRecord *skydb.Record) error {
-	recordTypeHookMap, err := r.recordTypeHookMap(kind)
+	hooks, err := r.hooks(kind, record.ID.Type)
 	if err != nil {
 		return err
 	}
 
-	for _, hook := range recordTypeHookMap[record.ID.Type] {
+	for _, hook := range hooks {
 		if err := hook(record, oldRecord); err != nil {
 			return err
 		}
@@ -80,7 +85,24 @@ func (r *Registry) ExecuteHooks(kind Kind, record *skydb.Record, oldRecord *skyd
 	return nil
 }
 
+func (r *Registry) hooks(kind Kind, recordType string) (m []Func, err error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	recordTypeHookMap, err := r.recordTypeHookMap(kind)
+	if err != nil {
+		return nil, err
+	}
+
+	hooks := make([]Func, len(recordTypeHookMap[recordType]))
+	copy(hooks, recordTypeHookMap[recordType])
+	return hooks, nil
+}
+
 func (r *Registry) recordTypeHookMap(kind Kind) (m recordTypeHookMap, err error) {
+	// Note: do not acquire read lock here
+	// acquire lock before calling this function
+
 	switch kind {
 	default:
 		err = fmt.Errorf("unrecgonized kind of hook = %#v", string(kind))

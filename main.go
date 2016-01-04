@@ -106,11 +106,11 @@ func main() {
 	}
 
 	providerRegistryPreprocessor := providerRegistryPreprocessor{
-		Registry: providerRegistry,
+		PluginInitContext: &initContext,
 	}
 
 	hookRegistryPreprocessor := hookRegistryPreprocessor{
-		Registry: hookRegistry,
+		PluginInitContext: &initContext,
 	}
 
 	baseAuthPreprocessors := []router.Processor{
@@ -348,16 +348,11 @@ func initSubscription(config Configuration, connOpener func() (skydb.Conn, error
 }
 
 func initPlugin(config Configuration, initContext *plugin.InitContext) {
-	plugins := []plugin.Plugin{}
 	for _, pluginConfig := range config.Plugin {
-		p := plugin.NewPlugin(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)
-
-		plugins = append(plugins, p)
+		initContext.AddPluginConfiguration(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)
 	}
 
-	for _, plug := range plugins {
-		plug.Init(initContext)
-	}
+	initContext.InitPlugins()
 }
 
 func initLogger(config Configuration) {
