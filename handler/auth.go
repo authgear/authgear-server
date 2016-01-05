@@ -280,6 +280,11 @@ func LogoutHandler(payload *router.Payload, response *router.Response) {
 			response.Err = skyerr.NewUnknownErr(err)
 		}
 	}
+	response.Result = struct {
+		Status string `json:"status,omitempty"`
+	}{
+		"OK",
+	}
 }
 
 // Define the playload that change password handler will process
