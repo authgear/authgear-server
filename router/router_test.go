@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/oursky/skygear/skyerr"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -164,7 +165,7 @@ func TestPreprocess(t *testing.T) {
 			r.ServeHTTP(resp, req)
 
 			Convey("it has \"err\" as body", func() {
-				So(resp.Body.String(), ShouldEqual, `{"error":{"name":"UnexpectedError","code":10000,"message":"err"}}
+				So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"name":"UnexpectedError","code":10000,"message":"err"}}
 `)
 			})
 
@@ -180,7 +181,7 @@ func TestPreprocess(t *testing.T) {
 			r.ServeHTTP(resp, req)
 
 			Convey("it has \"err\" as body", func() {
-				So(resp.Body.String(), ShouldEqual, `{"error":{"name":"UnexpectedError","code":10000,"message":"skyerr"}}
+				So(resp.Body.Bytes(), ShouldEqualJSON, `{"error":{"name":"UnexpectedError","code":10000,"message":"skyerr"}}
 `)
 			})
 
