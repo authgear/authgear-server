@@ -42,6 +42,7 @@ func InjectDatabase(payload *router.Payload, response *router.Response) int {
 			return http.StatusUnauthorized
 		}
 	case "_public":
+		payload.Database = conn.PublicDB()
 	default:
 		payload.Database = conn.PublicDB()
 	}
