@@ -23,7 +23,6 @@ import (
 	"github.com/oursky/skygear/push"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
-	_ "github.com/oursky/skygear/skydb/fs"
 	_ "github.com/oursky/skygear/skydb/pq"
 	"github.com/oursky/skygear/subscription"
 )
