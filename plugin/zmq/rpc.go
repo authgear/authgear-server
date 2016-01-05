@@ -95,7 +95,7 @@ func (p *zmqTransport) setState(state odplugin.TransportState) {
 	if state != p.state {
 		oldState := p.state
 		p.state = state
-		log.Infof("Transport state changes from %d to %d.", oldState, p.state)
+		log.Infof("Transport state changes from %v to %v.", oldState, p.state)
 	}
 }
 
