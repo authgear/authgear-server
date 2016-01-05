@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/oursky/skygear/authtoken"
+	"github.com/oursky/skygear/provider"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
@@ -81,8 +82,13 @@ func (p *signupPayload) AuthData() map[string]interface{} {
 //	    "password": "123456"
 //	}
 //	EOF
-func SignupHandler(payload *router.Payload, response *router.Response) {
-	store := payload.TokenStore
+type SignupHandler struct {
+	TokenStore       authtoken.Store    `inject:"TokenStore"`
+	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
+}
+
+func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
+	store := h.TokenStore
 
 	p := signupPayload{
 		AppName: payload.AppName,
@@ -96,7 +102,7 @@ func SignupHandler(payload *router.Payload, response *router.Response) {
 	} else if p.Provider() != "" {
 		// Get AuthProvider and authenticates the user
 		log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
-		authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
+		authProvider := h.ProviderRegistry.GetAuthProvider(p.Provider())
 		principalID, authData, err := authProvider.Login(p.AuthData())
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
@@ -192,8 +198,16 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func LoginHandler(payload *router.Payload, response *router.Response) {
-	store := payload.TokenStore
+type LoginHandler struct {
+	TokenStore       authtoken.Store    `inject:"TokenStore"`
+	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
+}
+
+func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response) {
+	if h.TokenStore == nil {
+		panic("token store is nil")
+	}
+	store := h.TokenStore
 
 	p := loginPayload{
 		AppName: payload.AppName,
@@ -206,7 +220,7 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 	if p.Provider() != "" {
 		// Get AuthProvider and authenticates the user
 		log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
-		authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
+		authProvider := h.ProviderRegistry.GetAuthProvider(p.Provider())
 		principalID, authData, err := authProvider.Login(p.AuthData())
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "invalid authentication information")
@@ -270,8 +284,12 @@ func LoginHandler(payload *router.Payload, response *router.Response) {
 }
 
 // LogoutHandler receives an access token and invalidates it
-func LogoutHandler(payload *router.Payload, response *router.Response) {
-	store := payload.TokenStore
+type LogoutHandler struct {
+	TokenStore authtoken.Store `inject:"TokenStore"`
+}
+
+func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Response) {
+	store := h.TokenStore
 	accessToken := payload.AccessToken()
 
 	var err error
@@ -344,7 +362,10 @@ func (p *passwordPayload) Invalidate() bool {
 // If `user_id` is supplied, will check authorization policy and see if existing
 // accept `invalidate` and invaldate all existing access token.
 // Return userInfoID with new AccessToken if the invalidate is true
-func PasswordHandler(payload *router.Payload, response *router.Response) {
+type PasswordHandler struct {
+}
+
+func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Response) {
 	log.Debugf("changing password")
 	p := passwordPayload{
 		AppName:    payload.AppName,

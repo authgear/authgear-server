@@ -224,7 +224,10 @@ func (e *errorWithID) MarshalJSON() ([]byte, error) {
 //	    "subscription_ids": ["SUBSCRIPTION_ID"]
 //	}
 //	EOF
-func SubscriptionFetchHandler(rpayload *router.Payload, response *router.Response) {
+type SubscriptionFetchHandler struct {
+}
+
+func (h *SubscriptionFetchHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := subscriptionIDsPayload{}
 	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:  &payload,
@@ -278,7 +281,10 @@ func SubscriptionFetchHandler(rpayload *router.Payload, response *router.Respons
 //	    "device_id": "DEVICE_ID"
 //	}
 //	EOF
-func SubscriptionFetchAllHandler(rpayload *router.Payload, response *router.Response) {
+type SubscriptionFetchAllHandler struct {
+}
+
+func (h *SubscriptionFetchAllHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	var payload struct {
 		DeviceID string `json:"device_id"`
 	}
@@ -348,7 +354,10 @@ func SubscriptionFetchAllHandler(rpayload *router.Payload, response *router.Resp
 //	    ]
 //	}
 //	EOF
-func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response) {
+type SubscriptionSaveHandler struct {
+}
+
+func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := subscriptionPayload{}
 	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:  &payload,
@@ -421,7 +430,10 @@ func SubscriptionSaveHandler(rpayload *router.Payload, response *router.Response
 //	    "subscription_ids": ["SUBSCRIPTION_ID"]
 //	}
 //	EOF
-func SubscriptionDeleteHandler(rpayload *router.Payload, response *router.Response) {
+type SubscriptionDeleteHandler struct {
+}
+
+func (h *SubscriptionDeleteHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := subscriptionIDsPayload{}
 	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:  &payload,

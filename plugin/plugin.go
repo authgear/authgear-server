@@ -138,7 +138,11 @@ func (p *Plugin) processRegistrationInfo(context *InitContext, regInfo registrat
 
 func (p *Plugin) initLambda(r *router.Router, lambdaNames []string) {
 	for _, lambdaName := range lambdaNames {
-		r.Map(lambdaName, CreateLambdaHandler(p, lambdaName))
+		handler := LambdaHandler{
+			Plugin: p,
+			Name:   lambdaName,
+		}
+		r.Map(lambdaName, &handler)
 		log.Debugf(`Registered lambda "%s" with router.`, lambdaName)
 	}
 }

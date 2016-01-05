@@ -8,6 +8,14 @@
 			"Rev": "9c060de643590dae45da9d7c26276463bfc46fa0"
 		},
 		{
+			"ImportPath": "github.com/facebookgo/inject",
+			"Rev": "d5029152fecb2a8e68f7f8eb3c6391fc8ee70496"
+		},
+		{
+			"ImportPath": "github.com/facebookgo/structtag",
+			"Rev": "217e25fb96916cc60332e399c9aa63f5c422ceed"
+		},
+		{
 			"ImportPath": "github.com/garyburd/redigo/internal",
 			"Rev": "6ece6e0a09f28cc399b21550cbf37ab39ba63cce"
 		},

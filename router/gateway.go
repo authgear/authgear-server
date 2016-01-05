@@ -95,7 +95,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	handler(payload, &resp)
+	handler.Handle(payload, &resp)
 }
 
 func (g *Gateway) matchRawHandler(req *http.Request) (h Handler, pp []Processor, p *Payload) {

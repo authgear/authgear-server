@@ -85,7 +85,11 @@ func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
 	}{e.id})
 }
 
-func PushToUserHandler(rpayload *router.Payload, response *router.Response) {
+type PushToUserHandler struct {
+	NotificationSender push.Sender `inject:"PushSender"`
+}
+
+func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := pushToUserPayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
 		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
@@ -111,7 +115,7 @@ func PushToUserHandler(rpayload *router.Payload, response *router.Response) {
 				if _, ok := deviceIDs[device.Token]; !ok {
 					deviceIDs[device.Token] = true
 					pushMap := push.MapMapper(payload.Notification)
-					sendPushNotification(rpayload.NotificationSender, device, pushMap)
+					sendPushNotification(h.NotificationSender, device, pushMap)
 				}
 			}
 		}
@@ -119,7 +123,11 @@ func PushToUserHandler(rpayload *router.Payload, response *router.Response) {
 	response.Result = resultItems
 }
 
-func PushToDeviceHandler(rpayload *router.Payload, response *router.Response) {
+type PushToDeviceHandler struct {
+	NotificationSender push.Sender `inject:"PushSender"`
+}
+
+func (h *PushToDeviceHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := pushToDevicePayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
 		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
@@ -139,7 +147,7 @@ func PushToDeviceHandler(rpayload *router.Payload, response *router.Response) {
 			resultItems[i].err = &err
 		} else {
 			pushMap := push.MapMapper(payload.Notification)
-			sendPushNotification(rpayload.NotificationSender, device, pushMap)
+			sendPushNotification(h.NotificationSender, device, pushMap)
 		}
 	}
 	response.Result = resultItems

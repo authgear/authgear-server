@@ -52,10 +52,14 @@ func validateAssetGetRequest(assetStore skyAsset.Store, fileName string, expired
 	return nil
 }
 
-func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
+type AssetGetURLHandler struct {
+	AssetStore skyAsset.Store `inject:"AssetStore"`
+}
+
+func (h *AssetGetURLHandler) Handle(payload *router.Payload, response *router.Response) {
 	payload.Req.ParseForm()
 
-	store := payload.AssetStore
+	store := h.AssetStore
 	fileName := clean(payload.Params[0])
 	if store.(skyAsset.URLSigner).IsSignatureRequired() {
 		expiredAtUnix, err := strconv.ParseInt(payload.Req.Form.Get("expiredAt"), 10, 64)
@@ -65,7 +69,7 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 		}
 
 		signature := payload.Req.Form.Get("signature")
-		requestErr := validateAssetGetRequest(payload.AssetStore, fileName, expiredAtUnix, signature)
+		requestErr := validateAssetGetRequest(h.AssetStore, fileName, expiredAtUnix, signature)
 		if requestErr != nil {
 			response.Err = requestErr
 			return
@@ -110,7 +114,11 @@ func AssetGetURLHandler(payload *router.Payload, response *router.Response) {
 //		-H 'Content-Type: text/plain' \
 //		--data-binary '@file.txt' \
 //		http://localhost:3000/files/filename
-func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
+type AssetUploadURLHandler struct {
+	AssetStore skyAsset.Store `inject:"AssetStore"`
+}
+
+func (h *AssetUploadURLHandler) Handle(payload *router.Payload, response *router.Response) {
 	var (
 		fileName, contentType string
 	)
@@ -143,7 +151,7 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	assetStore := payload.AssetStore
+	assetStore := h.AssetStore
 	if err := assetStore.PutFileReader(fileName, tempFile, written, contentType); err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
@@ -161,7 +169,7 @@ func AssetUploadURLHandler(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	if signer, ok := payload.AssetStore.(skyAsset.URLSigner); ok {
+	if signer, ok := h.AssetStore.(skyAsset.URLSigner); ok {
 		asset.Signer = signer
 	} else {
 		log.Warnf("Failed to acquire asset URLSigner, please check configuration")

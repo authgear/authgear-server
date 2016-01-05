@@ -13,11 +13,15 @@ type NotificationPreprocessor struct {
 }
 
 func (p NotificationPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	if p.NotificationSender == nil {
-		response.Err = skyerr.NewError(skyerr.UnexpectedPushNotificationNotConfigured, "Unable to send push notification because APNS is not configured or there was a problem configuring the APNS.\n")
+	routeSender, ok := p.NotificationSender.(push.RouteSender)
+	if !ok {
+		response.Err = skyerr.NewError(skyerr.UnexpectedPushNotificationNotConfigured, "Unknown notification sender.")
 		return http.StatusInternalServerError
 	}
 
-	payload.NotificationSender = p.NotificationSender
+	if routeSender.Len() == 0 {
+		response.Err = skyerr.NewError(skyerr.UnexpectedPushNotificationNotConfigured, "Unable to send push notification because APNS is not configured or there was a problem configuring the APNS.\n")
+		return http.StatusInternalServerError
+	}
 	return http.StatusOK
 }

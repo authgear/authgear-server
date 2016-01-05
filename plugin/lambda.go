@@ -9,15 +9,20 @@ import (
 	"github.com/oursky/skygear/skyerr"
 )
 
+type LambdaHandler struct {
+	Plugin *Plugin
+	Name   string
+}
+
 // Executes lambda function implemented by the plugin.
-func lambdaHandler(p *Plugin, l string, payload *router.Payload, response *router.Response) {
+func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Response) {
 	inbytes, err := json.Marshal(payload.Data)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 
-	outbytes, err := p.transport.RunLambda(l, inbytes)
+	outbytes, err := h.Plugin.transport.RunLambda(h.Name, inbytes)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
@@ -30,19 +35,11 @@ func lambdaHandler(p *Plugin, l string, payload *router.Payload, response *route
 		return
 	}
 	log.WithFields(log.Fields{
-		"name":   l,
+		"name":   h.Name,
 		"input":  payload.Data,
 		"result": result,
 		"err":    err,
 	}).Debugf("Executed a lambda with result")
 
 	response.Result = result
-}
-
-// CreateLambdaHandler creates a router.Handler for the specified lambda function
-// implemented by the plugin.
-func CreateLambdaHandler(p *Plugin, l string) router.Handler {
-	return func(payload *router.Payload, response *router.Response) {
-		lambdaHandler(p, l, payload, response)
-	}
 }

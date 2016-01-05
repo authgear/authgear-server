@@ -248,7 +248,12 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordSaveHandler(payload *router.Payload, response *router.Response) {
+type RecordSaveHandler struct {
+	HookRegistry *hook.Registry `inject:"HookRegistry"`
+	AssetStore   asset.Store    `inject:"AssetStore"`
+}
+
+func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Response) {
 	var (
 		records []*skydb.Record
 		atomic  bool
@@ -276,8 +281,8 @@ func RecordSaveHandler(payload *router.Payload, response *router.Response) {
 
 	req := recordModifyRequest{
 		Db:            payload.Database,
-		AssetStore:    payload.AssetStore,
-		HookRegistry:  payload.HookRegistry,
+		AssetStore:    h.AssetStore,
+		HookRegistry:  h.HookRegistry,
 		UserInfoID:    payload.UserInfoID,
 		RecordsToSave: records,
 		Atomic:        atomic,
@@ -699,7 +704,11 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordFetchHandler(payload *router.Payload, response *router.Response) {
+type RecordFetchHandler struct {
+	AssetStore asset.Store `inject:"AssetStore"`
+}
+
+func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Response) {
 	interfaces, ok := payload.Data["ids"].([]interface{})
 	if !ok {
 		response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected list of id")
@@ -747,7 +756,7 @@ func RecordFetchHandler(payload *router.Payload, response *router.Response) {
 				)
 			}
 		} else {
-			injectSigner(&record, payload.AssetStore)
+			injectSigner(&record, h.AssetStore)
 			results[i] = newSerializedRecord(&record)
 		}
 	}
@@ -848,7 +857,11 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordQueryHandler(payload *router.Payload, response *router.Response) {
+type RecordQueryHandler struct {
+	AssetStore asset.Store `inject:"AssetStore"`
+}
+
+func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Response) {
 	db := payload.Database
 
 	query := skydb.Query{}
@@ -902,7 +915,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 				id := eagers[keyPath][i]
 				eagerRecord := eagerRecords[keyPath][id.Key]
 				if eagerRecord != nil {
-					injectSigner(eagerRecord, payload.AssetStore)
+					injectSigner(eagerRecord, h.AssetStore)
 					record.Transient[transientKey] = newSerializedRecord(eagerRecord)
 				} else {
 					record.Transient[transientKey] = nil
@@ -910,7 +923,7 @@ func RecordQueryHandler(payload *router.Payload, response *router.Response) {
 			}
 		}
 
-		injectSigner(&record, payload.AssetStore)
+		injectSigner(&record, h.AssetStore)
 		output[i] = newSerializedRecord(&record)
 	}
 
@@ -938,7 +951,11 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
+type RecordDeleteHandler struct {
+	HookRegistry *hook.Registry `inject:"HookRegistry"`
+}
+
+func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.Response) {
 	atomic, _ := payload.Data["atomic"].(bool)
 
 	interfaces, ok := payload.Data["ids"].([]interface{})
@@ -968,7 +985,7 @@ func RecordDeleteHandler(payload *router.Payload, response *router.Response) {
 
 	req := recordModifyRequest{
 		Db:                payload.Database,
-		HookRegistry:      payload.HookRegistry,
+		HookRegistry:      h.HookRegistry,
 		RecordIDsToDelete: recordIDs,
 		Atomic:            atomic,
 	}

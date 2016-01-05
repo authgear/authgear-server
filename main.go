@@ -8,6 +8,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/Sirupsen/logrus/hooks/sentry"
+	"github.com/facebookgo/inject"
 	"github.com/robfig/cron"
 
 	"github.com/oursky/skygear/asset"
@@ -55,16 +56,14 @@ func main() {
 	// Init all the services
 	r := router.NewRouter()
 	pushSender := initPushSender(config, connOpener)
-	store := initAssetStore(config)
+
 	tokenStore := authtoken.InitTokenStore(config.TokenStore.ImplName, config.TokenStore.Path)
 
-	providerRegistry := provider.NewRegistry()
-	hookRegistry := hook.NewRegistry()
 	c := cron.New()
 	initContext := plugin.InitContext{
 		Router:           r,
-		HookRegistry:     hookRegistry,
-		ProviderRegistry: providerRegistry,
+		HookRegistry:     hook.NewRegistry(),
+		ProviderRegistry: provider.NewRegistry(),
 		Scheduler:        c,
 	}
 	c.Start()
@@ -79,17 +78,9 @@ func main() {
 		NotificationSender: pushSender,
 	}
 
-	assetStorePreprocessor := pp.AssetStorePreprocessor{
-		Store: store,
-	}
-
 	naiveAPIKeyPreprocessor := pp.AccessKeyValidatonPreprocessor{
 		Key:     config.App.APIKey,
 		AppName: config.App.Name,
-	}
-
-	tokenStorePreprocessor := pp.TokenStorePreprocessor{
-		Store: tokenStore,
 	}
 
 	authenticator := pp.UserAuthenticator{
@@ -105,59 +96,36 @@ func main() {
 		Option:   config.DB.Option,
 	}
 
-	providerRegistryPreprocessor := pp.ProviderRegistryPreprocessor{
-		PluginInitContext: &initContext,
-	}
-
-	hookRegistryPreprocessor := pp.HookRegistryPreprocessor{
-		PluginInitContext: &initContext,
-	}
+	pluginReadyPreprocessor := &pp.EnsurePluginReadyPreprocessor{&initContext}
 
 	baseAuthPreprocessors := []router.Processor{
 		authenticator.Preprocess,
 		dbConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
 		pp.InjectUserIfPresent,
 		pp.InjectDatabase,
 	}
 
 	assetGetPreprocessors := []router.Processor{
 		dbConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
 	}
 
 	assetPutPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 		dbConnPreprocessor.Preprocess,
-		assetStorePreprocessor.Preprocess,
 	}
 
 	authPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 		dbConnPreprocessor.Preprocess,
-		tokenStorePreprocessor.Preprocess,
-		providerRegistryPreprocessor.Preprocess,
+		pluginReadyPreprocessor.Preprocess,
 	}
 
 	recordWritePreprocessors := append(baseAuthPreprocessors,
-		hookRegistryPreprocessor.Preprocess,
 		pp.RequireUserForWrite,
+		pluginReadyPreprocessor.Preprocess,
 	)
 
-	userWritePreprocessors := append(baseAuthPreprocessors,
-		pp.RequireUserForWrite,
-	)
-
-	userLinkPreprocessors := append(baseAuthPreprocessors,
-		providerRegistryPreprocessor.Preprocess,
-		pp.RequireUserForWrite,
-	)
-
-	devicePreprocessors := append(baseAuthPreprocessors,
-		pp.RequireUserForWrite,
-	)
-
-	subscriptionPreprocessors := append(baseAuthPreprocessors,
+	requireUserWritePreprocessors := append(baseAuthPreprocessors,
 		pp.RequireUserForWrite,
 	)
 
@@ -172,58 +140,67 @@ func main() {
 		naiveAPIKeyPreprocessor.Preprocess,
 	}
 
-	r.Map("", handler.HomeHandler)
+	r.Map("", &handler.HomeHandler{})
 
-	r.Map("auth:signup", handler.SignupHandler, authPreprocessors...)
-	r.Map("auth:login", handler.LoginHandler, authPreprocessors...)
-	r.Map("auth:logout", handler.LogoutHandler,
-		tokenStorePreprocessor.Preprocess,
-		authenticator.Preprocess,
-		providerRegistryPreprocessor.Preprocess,
+	g := &inject.Graph{}
+	injectErr := g.Provide(
+		&inject.Object{Value: initContext.ProviderRegistry, Complete: true, Name: "ProviderRegistry"},
+		&inject.Object{Value: initContext.HookRegistry, Complete: true, Name: "HookRegistry"},
+		&inject.Object{Value: tokenStore, Complete: true, Name: "TokenStore"},
+		&inject.Object{Value: initAssetStore(config), Complete: true, Name: "AssetStore"},
+		&inject.Object{Value: pushSender, Complete: true, Name: "PushSender"},
 	)
-	r.Map("auth:password", handler.PasswordHandler, baseAuthPreprocessors...)
+	if injectErr != nil {
+		panic(fmt.Sprintf("Unable to set up handler: %v", injectErr))
+	}
 
-	r.Map("record:fetch", handler.RecordFetchHandler, baseAuthPreprocessors...)
-	r.Map("record:query", handler.RecordQueryHandler, baseAuthPreprocessors...)
-	r.Map("record:save", handler.RecordSaveHandler, recordWritePreprocessors...)
-	r.Map("record:delete", handler.RecordDeleteHandler, recordWritePreprocessors...)
+	r.Map("auth:signup", injectedHandler(g, &handler.SignupHandler{}), authPreprocessors...)
+	r.Map("auth:login", injectedHandler(g, &handler.LoginHandler{}), authPreprocessors...)
+	r.Map("auth:logout", injectedHandler(g, &handler.LogoutHandler{}),
+		authenticator.Preprocess,
+		pluginReadyPreprocessor.Preprocess,
+	)
+	r.Map("auth:password", injectedHandler(g, &handler.PasswordHandler{}), baseAuthPreprocessors...)
 
-	r.Map("device:register", handler.DeviceRegisterHandler, devicePreprocessors...)
+	r.Map("record:fetch", injectedHandler(g, &handler.RecordFetchHandler{}), baseAuthPreprocessors...)
+	r.Map("record:query", injectedHandler(g, &handler.RecordQueryHandler{}), baseAuthPreprocessors...)
+	r.Map("record:save", injectedHandler(g, &handler.RecordSaveHandler{}), recordWritePreprocessors...)
+	r.Map("record:delete", injectedHandler(g, &handler.RecordDeleteHandler{}), recordWritePreprocessors...)
+
+	r.Map("device:register", injectedHandler(g, &handler.DeviceRegisterHandler{}), requireUserWritePreprocessors...)
 
 	// subscription shares the same set of preprocessor as record read at the moment
-	r.Map("subscription:fetch_all", handler.SubscriptionFetchAllHandler, subscriptionPreprocessors...)
-	r.Map("subscription:fetch", handler.SubscriptionFetchHandler, subscriptionPreprocessors...)
-	r.Map("subscription:save", handler.SubscriptionSaveHandler, subscriptionPreprocessors...)
-	r.Map("subscription:delete", handler.SubscriptionDeleteHandler, subscriptionPreprocessors...)
+	r.Map("subscription:fetch_all", injectedHandler(g, &handler.SubscriptionFetchAllHandler{}), requireUserWritePreprocessors...)
+	r.Map("subscription:delete", injectedHandler(g, &handler.SubscriptionDeleteHandler{}), requireUserWritePreprocessors...)
 
 	// relation shares the same setof preprocessor
-	r.Map("relation:query", handler.RelationQueryHandler, baseAuthPreprocessors...)
-	r.Map("relation:add", handler.RelationAddHandler, baseAuthPreprocessors...)
-	r.Map("relation:remove", handler.RelationRemoveHandler, baseAuthPreprocessors...)
+	r.Map("relation:query", injectedHandler(g, &handler.RelationQueryHandler{}), baseAuthPreprocessors...)
+	r.Map("relation:add", injectedHandler(g, &handler.RelationAddHandler{}), baseAuthPreprocessors...)
+	r.Map("relation:remove", injectedHandler(g, &handler.RelationRemoveHandler{}), baseAuthPreprocessors...)
 
-	r.Map("user:query", handler.UserQueryHandler, baseAuthPreprocessors...)
-	r.Map("user:update", handler.UserUpdateHandler, userWritePreprocessors...)
-	r.Map("user:link", handler.UserLinkHandler, userLinkPreprocessors...)
+	r.Map("user:query", injectedHandler(g, &handler.UserQueryHandler{}), baseAuthPreprocessors...)
+	r.Map("user:update", injectedHandler(g, &handler.UserUpdateHandler{}), requireUserWritePreprocessors...)
+	r.Map("user:link", injectedHandler(g, &handler.UserLinkHandler{}), requireUserWritePreprocessors...)
 
-	r.Map("push:user", handler.PushToUserHandler, notificationPreprocessors...)
-	r.Map("push:device", handler.PushToDeviceHandler, notificationPreprocessors...)
+	r.Map("push:user", injectedHandler(g, &handler.PushToUserHandler{}), notificationPreprocessors...)
+	r.Map("push:device", injectedHandler(g, &handler.PushToDeviceHandler{}), notificationPreprocessors...)
 
 	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
 	pubSubGateway := router.NewGateway(`pubSub`)
-	pubSubGateway.GET(handler.NewPubSubHandler(pubSub), pubSubPreprocessors...)
+	pubSubGateway.GET(&handler.PubSubHandler{pubSub}, pubSubPreprocessors...)
 
 	internalPubSub := pubsub.NewWsPubsub(internalHub)
 	internalPubSubGateway := router.NewGateway(`internalpubSub`)
-	internalPubSubGateway.GET(handler.NewPubSubHandler(internalPubSub), pubSubPreprocessors...)
+	internalPubSubGateway.GET(&handler.PubSubHandler{internalPubSub}, pubSubPreprocessors...)
 
 	http.Handle("/", router.LoggingMiddleware(r, false))
 	http.Handle("/pubsub", router.LoggingMiddleware(pubSubGateway, false))
 	http.Handle("/_/pubsub", router.LoggingMiddleware(internalPubSubGateway, false))
 
 	fileGateway := router.NewGateway(`files/(.+)`)
-	fileGateway.GET(handler.AssetGetURLHandler, assetGetPreprocessors...)
-	fileGateway.PUT(handler.AssetUploadURLHandler, assetPutPreprocessors...)
+	fileGateway.GET(injectedHandler(g, &handler.AssetGetURLHandler{}), assetGetPreprocessors...)
+	fileGateway.PUT(injectedHandler(g, &handler.AssetUploadURLHandler{}), assetPutPreprocessors...)
 	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
 
 	// Bootstrap finished, binding port.
@@ -232,6 +209,19 @@ func main() {
 	if err != nil {
 		log.Printf("Failed: %v", err)
 	}
+}
+
+func injectedHandler(g *inject.Graph, h router.Handler) router.Handler {
+	err := g.Provide(&inject.Object{Value: h})
+	if err != nil {
+		panic(fmt.Sprintf("Unable to set up handler: %v", err))
+	}
+
+	err = g.Populate()
+	if err != nil {
+		panic(fmt.Sprintf("Unable to set up handler: %v", err))
+	}
+	return h
 }
 
 func ensureDB(config Configuration) func() (skydb.Conn, error) {
@@ -311,10 +301,6 @@ func initPushSender(config Configuration, connOpener func() (skydb.Conn, error))
 		gcm := initGCMPusher(config)
 		routeSender.Route("gcm", gcm)
 		routeSender.Route("android", gcm)
-	}
-
-	if routeSender.Len() == 0 {
-		return nil
 	}
 	return routeSender
 }

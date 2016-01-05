@@ -75,7 +75,7 @@ func (conn *testRelationConn) QueryRelationCount(user string, name string, direc
 func TestRelationHandler(t *testing.T) {
 	Convey("RelationAddHandler", t, func() {
 		conn := testRelationConn{}
-		r := handlertest.NewSingleRouteRouter(RelationAddHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RelationAddHandler{}, func(p *router.Payload) {
 			p.DBConn = &conn
 		})
 
@@ -105,7 +105,7 @@ func TestRelationHandler(t *testing.T) {
 
 	Convey("RelationQueryHandler", t, func() {
 		conn := testRelationConn{}
-		r := handlertest.NewSingleRouteRouter(RelationQueryHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
 			p.DBConn = &conn
 		})
 
@@ -249,7 +249,7 @@ func TestRelationHandler(t *testing.T) {
 
 	Convey("RelationRemoveHandler", t, func() {
 		conn := testRelationConn{}
-		r := handlertest.NewSingleRouteRouter(RelationRemoveHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RelationRemoveHandler{}, func(p *router.Payload) {
 			p.DBConn = &conn
 		})
 

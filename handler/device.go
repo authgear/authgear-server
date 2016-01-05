@@ -62,7 +62,10 @@ type DeviceReigsterResult struct {
 //	}
 //	EOF
 //
-func DeviceRegisterHandler(rpayload *router.Payload, response *router.Response) {
+type DeviceRegisterHandler struct {
+}
+
+func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := deviceRegisterPayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
 		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())

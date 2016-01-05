@@ -24,7 +24,7 @@ func TestPushToDevice(t *testing.T) {
 			devices: []skydb.Device{testdevice},
 		}
 
-		r := handlertest.NewSingleRouteRouter(PushToDeviceHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&PushToDeviceHandler{}, func(p *router.Payload) {
 			p.DBConn = &conn
 		})
 
@@ -121,7 +121,7 @@ func TestPushToUser(t *testing.T) {
 			devices: []skydb.Device{testdevice1, testdevice2, testdevice3},
 		}
 
-		r := handlertest.NewSingleRouteRouter(PushToUserHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&PushToUserHandler{}, func(p *router.Payload) {
 			p.DBConn = &conn
 		})
 

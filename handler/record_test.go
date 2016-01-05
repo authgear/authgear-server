@@ -10,10 +10,10 @@ import (
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/handler/handlertest"
 	"github.com/oursky/skygear/hook"
-	. "github.com/oursky/skygear/skytest"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skydbtest"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -32,7 +32,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 		So(db.Save(&note0), ShouldBeNil)
 		So(db.Save(&note1), ShouldBeNil)
 
-		router := handlertest.NewSingleRouteRouter(RecordDeleteHandler, func(p *router.Payload) {
+		router := handlertest.NewSingleRouteRouter(&RecordDeleteHandler{}, func(p *router.Payload) {
 			p.Database = db
 		})
 
@@ -95,7 +95,7 @@ func TestRecordSaveHandler(t *testing.T) {
 
 	Convey("RecordSaveHandler", t, func() {
 		db := skydbtest.NewMapDB()
-		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.Database = db
 		})
 
@@ -232,7 +232,7 @@ func TestRecordSaveDataType(t *testing.T) {
 
 	Convey("RecordSaveHandler", t, func() {
 		db := skydbtest.NewMapDB()
-		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(p *router.Payload) {
 			p.Database = db
 		})
 
@@ -374,7 +374,7 @@ func TestRecordSaveBogusField(t *testing.T) {
 
 	Convey("RecordSaveHandler", t, func() {
 		db := bogusFieldDatabase{}
-		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.Database = db
 		})
 
@@ -460,7 +460,7 @@ func (db *noExtendDatabase) Extend(recordType string, schema skydb.RecordSchema)
 func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
 	Convey("RecordSaveHandler", t, func() {
 		noExtendDB := &noExtendDatabase{}
-		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.Database = noExtendDB
 		})
 
@@ -519,7 +519,7 @@ func TestRecordQueryResults(t *testing.T) {
 		db := &queryResultsDatabase{}
 		db.records = []skydb.Record{record1, record0, record2}
 
-		r := handlertest.NewSingleRouteRouter(RecordQueryHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
 			p.Database = db
 		})
 
@@ -563,7 +563,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery, ShouldResemble, &skydb.Query{
@@ -589,7 +590,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery, ShouldResemble, &skydb.Query{
@@ -630,7 +632,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery, ShouldResemble, &skydb.Query{
@@ -664,7 +667,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
@@ -704,7 +708,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
@@ -754,7 +759,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.Predicate, ShouldResemble, skydb.Predicate{
@@ -796,7 +802,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.ComputedKeys, ShouldResemble, map[string]skydb.Expression{
@@ -820,7 +827,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.DesiredKeys, ShouldResemble, []string{"location"})
@@ -836,7 +844,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.DesiredKeys, ShouldResemble, []string{})
@@ -852,7 +861,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.DesiredKeys, ShouldBeNil)
@@ -869,7 +879,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.Limit, ShouldNotBeNil)
@@ -887,7 +898,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery.GetCount, ShouldBeTrue)
@@ -910,7 +922,8 @@ func TestRecordQuery(t *testing.T) {
 			}
 			response := router.Response{}
 
-			RecordQueryHandler(&payload, &response)
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
 
 			So(response.Err, ShouldNotBeNil)
 		})
@@ -965,7 +978,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		}
 
 		Convey("fetched record serializes owner id correctly", func() {
-			resp := handlertest.NewSingleRouteRouter(RecordFetchHandler, injectDBFunc).POST(`{
+			resp := handlertest.NewSingleRouteRouter(&RecordFetchHandler{}, injectDBFunc).POST(`{
 				"ids": ["do/notCare"]
 			}`)
 
@@ -980,7 +993,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		})
 
 		Convey("saved record serializes owner id correctly", func() {
-			resp := handlertest.NewSingleRouteRouter(RecordSaveHandler, injectDBFunc).POST(`{
+			resp := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, injectDBFunc).POST(`{
 				"records": [{
 					"_id": "type/id"
 				}]
@@ -997,7 +1010,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		})
 
 		Convey("queried record serializes owner id correctly", func() {
-			resp := handlertest.NewSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+			resp := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, injectDBFunc).POST(`{
 				"record_type": "doNotCare"
 			}`)
 
@@ -1022,7 +1035,7 @@ func TestRecordMetaData(t *testing.T) {
 		}()
 
 		Convey("on a newly created record", func() {
-			r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+			r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 				payload.Database = db
 				payload.UserInfoID = "requestUserID"
 			})
@@ -1067,7 +1080,7 @@ func TestRecordMetaData(t *testing.T) {
 				UpdaterID: "updaterID",
 			})
 
-			r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+			r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 				payload.Database = db
 				payload.UserInfoID = "requestUserID"
 			})
@@ -1134,9 +1147,10 @@ func TestRecordAssetSerialization(t *testing.T) {
 
 		assetStore := &urlOnlyAssetStore{}
 
-		r := handlertest.NewSingleRouteRouter(RecordFetchHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RecordFetchHandler{
+			AssetStore: assetStore,
+		}, func(p *router.Payload) {
 			p.Database = db
-			p.AssetStore = assetStore
 		})
 
 		Convey("serialize with $url", func() {
@@ -1171,9 +1185,10 @@ func TestRecordAssetSerialization(t *testing.T) {
 
 		assetStore := &urlOnlyAssetStore{}
 
-		r := handlertest.NewSingleRouteRouter(RecordQueryHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{
+			AssetStore: assetStore,
+		}, func(p *router.Payload) {
 			p.Database = db
-			p.AssetStore = assetStore
 		})
 
 		Convey("serialize with $url", func() {
@@ -1279,7 +1294,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 		}
 
 		Convey("query record with eager load", func() {
-			resp := handlertest.NewSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+			resp := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, injectDBFunc).POST(`{
 				"record_type": "note",
 				"include": {"category": {"$type": "keypath", "$val": "category"}}
 			}`)
@@ -1300,7 +1315,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 		})
 
 		Convey("query record with multiple eager load", func() {
-			resp := handlertest.NewSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+			resp := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, injectDBFunc).POST(`{
 				"record_type": "note",
 				"include": {
 					"category": {"$type": "keypath", "$val": "category"},
@@ -1356,7 +1371,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 		}
 
 		Convey("query record with eager load", func() {
-			resp := handlertest.NewSingleRouteRouter(RecordQueryHandler, injectDBFunc).POST(`{
+			resp := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, injectDBFunc).POST(`{
 				"record_type": "note",
 				"include": {"city": {"$type": "keypath", "$val": "city"}}
 			}`)
@@ -1393,7 +1408,7 @@ func TestRecordQueryWithCount(t *testing.T) {
 		db := &queryResultsDatabase{}
 		db.records = []skydb.Record{record1, record0, record2}
 
-		r := handlertest.NewSingleRouteRouter(RecordQueryHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
 			p.Database = db
 		})
 
@@ -1458,23 +1473,28 @@ func (db erroneousDB) Save(*skydb.Record) error {
 
 func TestHookExecution(t *testing.T) {
 	Convey("Record(Save|Delete)Handler", t, func() {
+		registry := hook.NewRegistry()
 		handlerTests := []struct {
 			kind             string
-			handler          func(*router.Payload, *router.Response)
+			handler          router.Handler
 			beforeActionKind hook.Kind
 			afterActionKind  hook.Kind
 			reqBody          string
 		}{
 			{
 				"Save",
-				RecordSaveHandler,
+				&RecordSaveHandler{
+					HookRegistry: registry,
+				},
 				hook.BeforeSave,
 				hook.AfterSave,
 				`{"records": [{"_id": "record/id"}]}`,
 			},
 			{
 				"Delete",
-				RecordDeleteHandler,
+				&RecordDeleteHandler{
+					HookRegistry: registry,
+				},
 				hook.BeforeDelete,
 				hook.AfterDelete,
 				`{"ids": ["record/id"]}`,
@@ -1485,7 +1505,6 @@ func TestHookExecution(t *testing.T) {
 			ID: skydb.NewRecordID("record", "id"),
 		}
 
-		registry := hook.NewRegistry()
 		beforeHook := stackingHook{}
 		afterHook := stackingHook{}
 
@@ -1500,7 +1519,6 @@ func TestHookExecution(t *testing.T) {
 
 				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
 					p.Database = db
-					p.HookRegistry = registry
 				})
 
 				r.POST(test.reqBody)
@@ -1516,7 +1534,6 @@ func TestHookExecution(t *testing.T) {
 				registry.Register(test.afterActionKind, "record", afterHook.Func)
 				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
 					p.Database = erroneousDB{}
-					p.HookRegistry = registry
 				})
 
 				r.POST(test.reqBody)
@@ -1528,9 +1545,10 @@ func TestHookExecution(t *testing.T) {
 	Convey("HookRegistry", t, func() {
 		registry := hook.NewRegistry()
 		db := skydbtest.NewMapDB()
-		r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{
+			HookRegistry: registry,
+		}, func(p *router.Payload) {
 			p.Database = db
-			p.HookRegistry = registry
 		})
 
 		Convey("record is not saved if BeforeSave's hook returns an error", func() {
@@ -1707,7 +1725,7 @@ func TestAtomicOperation(t *testing.T) {
 		db := newSelectiveDatabase(txDB)
 
 		Convey("for RecordSaveHandler", func() {
-			r := handlertest.NewSingleRouteRouter(RecordSaveHandler, func(payload *router.Payload) {
+			r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 				payload.Database = db
 			})
 
@@ -1809,7 +1827,7 @@ func TestAtomicOperation(t *testing.T) {
 				ID: skydb.NewRecordID("note", "2"),
 			}), ShouldBeNil)
 
-			r := handlertest.NewSingleRouteRouter(RecordDeleteHandler, func(payload *router.Payload) {
+			r := handlertest.NewSingleRouteRouter(&RecordDeleteHandler{}, func(payload *router.Payload) {
 				payload.Database = db
 			})
 
