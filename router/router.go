@@ -66,10 +66,15 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	resp.writer = w
 	defer func() {
+		if r := recover(); r != nil {
+			resp.Err = errorFromRecoveringPanic(r)
+			log.WithField("recovered", r).Errorln("panic occurred while handling request")
+		}
+
 		if !resp.written {
 			resp.Header().Set("Content-Type", "application/json")
 			if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
-				resp.writer.WriteHeader(http.StatusBadRequest)
+				resp.writer.WriteHeader(defaultStatusCode(resp.Err))
 			} else {
 				resp.writer.WriteHeader(httpStatus)
 			}
@@ -96,7 +101,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		for _, p := range preprocessors {
 			httpStatus = p(payload, &resp)
 			if resp.Err != nil {
-				if httpStatus == 200 {
+				if httpStatus == http.StatusOK {
 					httpStatus = defaultStatusCode(resp.Err)
 				}
 				return
