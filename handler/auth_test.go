@@ -10,12 +10,12 @@ import (
 
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/handler/handlertest"
-	. "github.com/oursky/skygear/skytest"
 	"github.com/oursky/skygear/provider"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skydbtest"
 	"github.com/oursky/skygear/skyerr"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -499,7 +499,9 @@ func TestLogoutHandler(t *testing.T) {
 	"access_token": "someaccesstoken"
 }`)
 			So(tokenStore.deletedAccessToken, ShouldEqual, "someaccesstoken")
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result":{"status":"OK"}
+}`)
 			So(resp.Code, ShouldEqual, 200)
 		})
 
@@ -509,7 +511,9 @@ func TestLogoutHandler(t *testing.T) {
 	"access_token": "notexistaccesstoken"
 }`)
 			So(tokenStore.deletedAccessToken, ShouldEqual, "notexistaccesstoken")
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result":{"status":"OK"}
+}`)
 			So(resp.Code, ShouldEqual, 200)
 		})
 

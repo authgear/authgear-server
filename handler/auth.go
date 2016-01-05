@@ -275,15 +275,21 @@ func LogoutHandler(payload *router.Payload, response *router.Response) {
 	store := payload.TokenStore
 	accessToken := payload.AccessToken()
 
-	if err := store.Delete(accessToken); err != nil {
-		if _, notfound := err.(*authtoken.NotFoundError); !notfound {
-			response.Err = skyerr.NewUnknownErr(err)
+	var err error
+
+	if err = store.Delete(accessToken); err != nil {
+		if _, notfound := err.(*authtoken.NotFoundError); notfound {
+			err = nil
 		}
 	}
-	response.Result = struct {
-		Status string `json:"status,omitempty"`
-	}{
-		"OK",
+	if err != nil {
+		response.Err = skyerr.NewUnknownErr(err)
+	} else {
+		response.Result = struct {
+			Status string `json:"status,omitempty"`
+		}{
+			"OK",
+		}
 	}
 }
 
