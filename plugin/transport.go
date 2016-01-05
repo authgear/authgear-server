@@ -16,6 +16,7 @@ type AuthResponse struct {
 }
 
 // TransportState refers to the operation state of the transport
+//go:generate stringer -type=TransportState
 type TransportState int
 
 const (
