@@ -199,7 +199,7 @@ type RowsIter interface {
 }
 
 // MemoryRows is a native implementation of RowIter.
-// Can be used in test or simple back-end(fs) not support cursor.
+// Can be used in test not support cursor.
 type MemoryRows struct {
 	CurrentRowIndex int
 	Records         []Record
