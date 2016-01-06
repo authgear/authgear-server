@@ -461,7 +461,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 		"message": "unable to login with the given credentials"
 	}
 }`))
-			So(resp.Code, ShouldEqual, 400)
+			So(resp.Code, ShouldEqual, 401)
 		})
 	})
 }
@@ -530,7 +530,7 @@ func TestLogoutHandler(t *testing.T) {
 		"message": "some interesting error"
 	}
 }`)
-			So(resp.Code, ShouldEqual, 400)
+			So(resp.Code, ShouldEqual, 500)
 		})
 	})
 }

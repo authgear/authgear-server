@@ -103,7 +103,7 @@ func TestErrorHandler(t *testing.T) {
 	Convey("Router", t, func() {
 		r := NewRouter()
 
-		Convey("returns 400 if handler sets Response.Err", func() {
+		Convey("returns 500 if handler sets Response.Err with unexpected error", func() {
 			errHandler := &ErrHandler{
 				Err: skyerr.NewError(skyerr.UnexpectedError, "some error"),
 			}
@@ -120,7 +120,7 @@ func TestErrorHandler(t *testing.T) {
 
 			r.ServeHTTP(resp, req)
 
-			So(resp.Code, ShouldEqual, http.StatusBadRequest)
+			So(resp.Code, ShouldEqual, http.StatusInternalServerError)
 		})
 	})
 }
