@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -364,8 +363,8 @@ func PasswordHandler(payload *router.Payload, response *router.Response) {
 	}
 
 	if !info.IsSamePassword(p.OldPassword()) {
-		log.Debug("Incorrecly Old Password")
-		response.Err = skyerr.NewUnknownErr(errors.New("Incorrecly Old Password"))
+		log.Debug("Incorrect old password")
+		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
 		return
 	}
 	info.SetPassword(p.NewPassword())
