@@ -14,7 +14,7 @@ type LambdaHandler struct {
 	Name   string
 }
 
-// Executes lambda function implemented by the plugin.
+// Handle executes lambda function implemented by the plugin.
 func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Response) {
 	inbytes, err := json.Marshal(payload.Data)
 	if err != nil {

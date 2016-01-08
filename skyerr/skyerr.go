@@ -50,7 +50,8 @@ const (
 	// The same error may be used for requests that are missing arguments.
 	BadRequest
 
-	// The server understand the request, but the supplied argument is not valid
+	// InvalidArgument is an error when the server understand the request,
+	// but the supplied argument is not valid
 	InvalidArgument
 
 	// Duplicated is an error that occurs when a resource to be saved is
