@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/oursky/skygear/handler/handlertest"
 	"github.com/oursky/skygear/router"
+	"golang.org/x/net/context"
 )
 
 type fakeTransport struct {
@@ -16,7 +17,8 @@ type fakeTransport struct {
 	outErr   error
 }
 
-func (t *fakeTransport) RunLambda(name string, in []byte) (out []byte, err error) {
+func (t *fakeTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
+	t.lastContext = ctx
 	if t.outErr == nil {
 		out = t.outBytes
 	} else {
@@ -36,6 +38,8 @@ func TestLambdaHandler(t *testing.T) {
 			Name:   "hello:world",
 		}
 		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
+			p.Context = context.Background()
+			p.Context = context.WithValue(p.Context, "hello", "world")
 		})
 
 		Convey("handle", func() {
@@ -45,7 +49,7 @@ func TestLambdaHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": {"args":["bob"]}
 }`)
-
+			So(transport.lastContext.Value("hello"), ShouldEqual, "world")
 		})
 
 	})
@@ -61,6 +65,8 @@ func TestLambdaHandler(t *testing.T) {
 			Name:   "hello:world",
 		}
 		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
+			p.Context = context.Background()
+			p.Context = context.WithValue(p.Context, "hello", "world")
 		})
 
 		Convey("init", func() {
@@ -70,7 +76,7 @@ func TestLambdaHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"error":{"code":10000,"message":"an error","name":"UnexpectedError"}
 }`)
-
+			So(transport.lastContext.Value("hello"), ShouldEqual, "world")
 		})
 
 	})

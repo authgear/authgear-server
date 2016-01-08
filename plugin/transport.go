@@ -1,6 +1,9 @@
 package plugin
 
-import "github.com/oursky/skygear/skydb"
+import (
+	"github.com/oursky/skygear/skydb"
+	"golang.org/x/net/context"
+)
 
 // AuthRequest is sent by Skygear to plugin which contains data for authentication
 type AuthRequest struct {
@@ -46,7 +49,7 @@ type Transport interface {
 	SetInitHandler(TransportInitHandler)
 	RequestInit()
 	RunInit() ([]byte, error)
-	RunLambda(name string, in []byte) ([]byte, error)
+	RunLambda(ctx context.Context, name string, in []byte) ([]byte, error)
 	RunHandler(name string, in []byte) ([]byte, error)
 
 	// RunHook runs the hook specified by recordType and trigger, passing in
@@ -70,6 +73,7 @@ type TransportFactory interface {
 
 type nullTransport struct {
 	initHandler TransportInitHandler
+	lastContext context.Context
 }
 
 func (t *nullTransport) State() TransportState {
@@ -90,8 +94,9 @@ func (t nullTransport) RunInit() (out []byte, err error) {
 	out = []byte{}
 	return
 }
-func (t *nullTransport) RunLambda(name string, in []byte) (out []byte, err error) {
+func (t *nullTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
 	out = in
+	t.lastContext = ctx
 	return
 }
 func (t *nullTransport) RunHandler(name string, in []byte) (out []byte, err error) {
@@ -121,4 +126,16 @@ type nullFactory struct {
 
 func (f nullFactory) Open(path string, args []string) Transport {
 	return &nullTransport{}
+}
+
+// ContextMap returns a map of the user request context.
+func ContextMap(ctx context.Context) map[string]interface{} {
+	if ctx == nil {
+		return map[string]interface{}{}
+	}
+	pluginCtx := map[string]interface{}{}
+	if userID, ok := ctx.Value("UserID").(string); ok {
+		pluginCtx["user_id"] = userID
+	}
+	return pluginCtx
 }

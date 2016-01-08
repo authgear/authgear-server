@@ -40,7 +40,7 @@ type providerInfo struct {
 type registrationInfo struct {
 	Handlers  map[string]pluginHandlerInfo `json:"handler"`
 	Hooks     []pluginHookInfo             `json:"hook"`
-	Lambdas   []string                     `json:"op"`
+	Lambdas   []map[string]interface{}     `json:"op"`
 	Timers    []timerInfo                  `json:"timer"`
 	Providers []providerInfo               `json:"provider"`
 }
@@ -72,7 +72,7 @@ func NewPlugin(name string, path string, args []string) Plugin {
 type InitContext struct {
 	plugins          []*Plugin
 	Router           *router.Router
-	Preprocessors    *router.PreprocessorRegistry
+	Preprocessors    router.PreprocessorRegistry
 	HookRegistry     *hook.Registry
 	ProviderRegistry *provider.Registry
 	Scheduler        *cron.Cron
@@ -131,20 +131,19 @@ func (p *Plugin) processRegistrationInfo(context *InitContext, regInfo registrat
 		"regInfo":   regInfo,
 		"transport": p.transport,
 	}).Debugln("Got configuration from pligin, registering")
-	p.initLambda(context.Router, regInfo.Lambdas)
+	p.initLambda(context.Router, context.Preprocessors, regInfo.Lambdas)
 	p.initHook(context.HookRegistry, regInfo.Hooks)
 	p.initTimer(context.Scheduler, regInfo.Timers)
 	p.initProvider(context.ProviderRegistry, regInfo.Providers)
 }
 
-func (p *Plugin) initLambda(r *router.Router, lambdaNames []string) {
-	for _, lambdaName := range lambdaNames {
-		handler := LambdaHandler{
-			Plugin: p,
-			Name:   lambdaName,
-		}
-		r.Map(lambdaName, &handler)
-		log.Debugf(`Registered lambda "%s" with router.`, lambdaName)
+func (p *Plugin) initLambda(r *router.Router, ppreg router.PreprocessorRegistry, lambdas []map[string]interface{}) {
+	for _, lambda := range lambdas {
+		handler := createLambdaHandler(lambda)
+		handler.Plugin = p
+		preprocessors := createPreprocessorList(ppreg, handler)
+		r.Map(handler.Name, handler, preprocessors...)
+		log.Debugf(`Registered lambda "%s" with router.`, handler.Name)
 	}
 }
 
@@ -175,5 +174,24 @@ func (p *Plugin) initProvider(registry *provider.Registry, providerInfos []provi
 	for _, providerInfo := range providerInfos {
 		provider := NewAuthProvider(providerInfo.Name, p)
 		registry.RegisterAuthProvider(providerInfo.Name, provider)
+	}
+}
+
+func createLambdaHandler(info map[string]interface{}) *LambdaHandler {
+	handler := &LambdaHandler{
+		Name: info["name"].(string),
+	}
+	handler.AccessKeyRequired, _ = info["key_required"].(bool)
+	handler.UserRequired, _ = info["user_required"].(bool)
+	return handler
+}
+
+func createPreprocessorList(reg router.PreprocessorRegistry, handler *LambdaHandler) []router.Processor {
+	if handler.UserRequired {
+		return reg.GetByNames("plugin", "authenticator", "dbconn", "inject_user", "require_user")
+	} else if handler.AccessKeyRequired {
+		return reg.GetByNames("plugin", "authenticator")
+	} else {
+		return reg.GetByNames("plugin")
 	}
 }

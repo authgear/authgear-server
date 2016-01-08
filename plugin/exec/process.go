@@ -10,6 +10,7 @@ import (
 	odplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
 	"github.com/oursky/skygear/skydb"
+	"golang.org/x/net/context"
 )
 
 var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
@@ -145,7 +146,10 @@ func (p *execTransport) RunInit() (out []byte, err error) {
 	return
 }
 
-func (p *execTransport) RunLambda(name string, in []byte) (out []byte, err error) {
+func (p *execTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
+	if ctx != nil {
+		log.Warn("request context is not supported by exec transport")
+	}
 	out, err = p.runProc([]string{"op", name}, in)
 	return
 }

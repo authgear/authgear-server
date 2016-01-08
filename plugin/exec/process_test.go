@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/oursky/skygear/skytest"
 	odplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/skydb"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -38,7 +38,7 @@ func TestRun(t *testing.T) {
 		}
 
 		Convey("op", func() {
-			out, err := transport.RunLambda("hello:world", []byte{})
+			out, err := transport.RunLambda(nil, "hello:world", []byte{})
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"op hello:world"`)
 		})
@@ -63,7 +63,7 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("op", func() {
-			out, err := transport.RunLambda("hello:world", []byte(`{"result": "hello world"}`))
+			out, err := transport.RunLambda(nil, "hello:world", []byte(`{"result": "hello world"}`))
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"hello world"`)
 		})
