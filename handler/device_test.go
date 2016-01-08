@@ -59,7 +59,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				"device_token": "some-awesome-token",
 			}
 
-			DeviceRegisterHandler(&payload, &resp)
+			handler := &DeviceRegisterHandler{}
+			handler.Handle(&payload, &resp)
 
 			result := resp.Result.(DeviceReigsterResult)
 			So(result.ID, ShouldNotBeEmpty)
@@ -88,7 +89,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				"device_token": "newtoken",
 			}
 
-			DeviceRegisterHandler(&payload, &resp)
+			handler := &DeviceRegisterHandler{}
+			handler.Handle(&payload, &resp)
 
 			result := resp.Result.(DeviceReigsterResult)
 			So(result.ID, ShouldEqual, "deviceid")
@@ -107,7 +109,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				"device_token": "token",
 			}
 
-			DeviceRegisterHandler(&payload, &resp)
+			handler := &DeviceRegisterHandler{}
+			handler.Handle(&payload, &resp)
 
 			err := resp.Err.(skyerr.Error)
 			So(err, ShouldResemble, skyerr.NewError(skyerr.InvalidArgument, "empty device type"))
@@ -119,7 +122,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				"device_token": "token",
 			}
 
-			DeviceRegisterHandler(&payload, &resp)
+			handler := &DeviceRegisterHandler{}
+			handler.Handle(&payload, &resp)
 
 			err := resp.Err.(skyerr.Error)
 			So(err, ShouldResemble, skyerr.NewError(skyerr.InvalidArgument, "unknown device type = invalidtype"))
@@ -130,7 +134,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				"type": "android",
 			}
 
-			DeviceRegisterHandler(&payload, &resp)
+			handler := &DeviceRegisterHandler{}
+			handler.Handle(&payload, &resp)
 
 			result := resp.Result.(DeviceReigsterResult)
 			So(result.ID, ShouldNotBeEmpty)
@@ -152,7 +157,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				"device_token": "newtoken",
 			}
 
-			DeviceRegisterHandler(&payload, &resp)
+			handler := &DeviceRegisterHandler{}
+			handler.Handle(&payload, &resp)
 
 			err := resp.Err.(skyerr.Error)
 			So(err, ShouldResemble, skyerr.NewError(skyerr.ResourceNotFound, "device not found"))
@@ -165,7 +171,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				"type": "unknown-type",
 			}
 
-			DeviceRegisterHandler(&payload, &resp)
+			handler := &DeviceRegisterHandler{}
+			handler.Handle(&payload, &resp)
 
 			err := resp.Err.(skyerr.Error)
 			So(err, ShouldResemble, skyerr.NewError(skyerr.InvalidArgument, "unknown device type = unknown-type"))

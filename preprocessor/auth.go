@@ -28,15 +28,6 @@ func (p AccessKeyValidatonPreprocessor) Preprocess(payload *router.Payload, resp
 	return http.StatusOK
 }
 
-type TokenStorePreprocessor struct {
-	authtoken.Store
-}
-
-func (p TokenStorePreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	payload.TokenStore = p.Store
-	return http.StatusOK
-}
-
 // UserAuthenticator provides preprocess method to authenicate a user
 // with access token or non-login user without api key.
 type UserAuthenticator struct {

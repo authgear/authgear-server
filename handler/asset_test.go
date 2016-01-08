@@ -120,9 +120,10 @@ func TestAssetUploadURLHandler(t *testing.T) {
 		store := newBufferedStore()
 
 		r := newmodGateway("(.+)")
-		r.Handle("PUT", AssetUploadURLHandler, func(p *router.Payload) {
+		r.Handle("PUT", &AssetUploadURLHandler{
+			AssetStore: store,
+		}, func(p *router.Payload) {
 			p.DBConn = assetConn
-			p.AssetStore = store
 		})
 
 		Convey("uploads a file", func() {
@@ -248,9 +249,10 @@ func TestAssetGetURLHandler(t *testing.T) {
 		signparser := newNaiveStoreSignatureParser(store)
 
 		r := newmodGateway("(.+)")
-		r.Handle("GET", AssetGetURLHandler, func(p *router.Payload) {
+		r.Handle("GET", &AssetGetURLHandler{
+			AssetStore: signparser,
+		}, func(p *router.Payload) {
 			p.DBConn = assetConn
-			p.AssetStore = signparser
 		})
 
 		Convey("GET a signed URL", func() {

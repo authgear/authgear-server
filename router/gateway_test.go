@@ -15,11 +15,11 @@ func TestRouterMatchByURL(t *testing.T) {
 
 		Convey("matches simple url action", func() {
 			g := NewGateway("endpoint")
-			g.POST(func(payload *Payload, resp *Response) {
+			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
 				resp.WriteEntity(struct {
 					Status string `json:"status"`
 				}{"ok"})
-			})
+			}))
 
 			req, _ := http.NewRequest("POST", "http://skygear.test/endpoint", nil)
 			w := httptest.NewRecorder()
@@ -29,9 +29,9 @@ func TestRouterMatchByURL(t *testing.T) {
 
 		Convey("matches url with parameters", func() {
 			g := NewGateway(`(?:entity|model)/([0-9a-zA-Z\-_]+)`)
-			g.POST(func(p *Payload, resp *Response) {
+			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
 				resp.WriteEntity(p.Params)
-			})
+			}))
 
 			req, _ := http.NewRequest("POST", `http://skygear.test/model/Zz0-_`, nil)
 			w := httptest.NewRecorder()
@@ -42,12 +42,12 @@ func TestRouterMatchByURL(t *testing.T) {
 
 		Convey("help url handler fill in payload from Header", func() {
 			g := NewGateway("endpoint")
-			g.POST(func(p *Payload, resp *Response) {
+			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
 				resp.WriteEntity(struct {
 					APIKey      string `json:"api-key"`
 					AccessToken string `json:"access-token"`
 				}{p.APIKey(), p.AccessToken()})
-			})
+			}))
 
 			req, _ := http.NewRequest("POST", `http://skygear.test/endpoint`, nil)
 			req.Header.Add("X-Skygear-API-Key", "someapikey")
@@ -64,12 +64,12 @@ func TestRouterMatchByURL(t *testing.T) {
 
 		Convey("fill in api key from query string", func() {
 			g := NewGateway("endpoint")
-			g.POST(func(p *Payload, resp *Response) {
+			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
 				resp.WriteEntity(struct {
 					APIKey      string `json:"api-key"`
 					AccessToken string `json:"access-token"`
 				}{p.APIKey(), p.AccessToken()})
-			})
+			}))
 
 			req, _ := http.NewRequest("POST", `http://skygear.test/endpoint?api_key=someapikey&access_token=someaccesstoken`, nil)
 
@@ -84,12 +84,12 @@ func TestRouterMatchByURL(t *testing.T) {
 
 		Convey("fill in api key from url encoded form", func() {
 			g := NewGateway("endpoint")
-			g.POST(func(p *Payload, resp *Response) {
+			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
 				resp.WriteEntity(struct {
 					APIKey      string `json:"api-key"`
 					AccessToken string `json:"access-token"`
 				}{p.APIKey(), p.AccessToken()})
-			})
+			}))
 
 			req, _ := http.NewRequest("POST", `http://skygear.test/endpoint`, strings.NewReader("api_key=someapikey&access_token=someaccesstoken"))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")

@@ -2,13 +2,13 @@ package handler
 
 import (
 	"github.com/oursky/skygear/handler/handlertest"
-	. "github.com/oursky/skygear/skytest"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb/skydbtest"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
-	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/plugin/provider"
 	"github.com/oursky/skygear/skydb"
 )
 
@@ -41,7 +41,7 @@ func (userconn queryUserConn) QueryUser(emails []string) ([]skydb.UserInfo, erro
 
 func TestUserQueryHandler(t *testing.T) {
 	Convey("UserQueryHandler", t, func() {
-		router := handlertest.NewSingleRouteRouter(UserQueryHandler, func(p *router.Payload) {
+		router := handlertest.NewSingleRouteRouter(&UserQueryHandler{}, func(p *router.Payload) {
 			p.DBConn = queryUserConn{}
 		})
 
@@ -105,7 +105,7 @@ func TestUserUpdateHandler(t *testing.T) {
 		}
 		conn.CreateUser(&userInfo)
 
-		router := handlertest.NewSingleRouteRouter(UserUpdateHandler, func(p *router.Payload) {
+		router := handlertest.NewSingleRouteRouter(&UserUpdateHandler{}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.UserInfo = &userInfo
 		})
@@ -145,10 +145,11 @@ func TestUserLinkHandler(t *testing.T) {
 		providerRegistry := provider.NewRegistry()
 		providerRegistry.RegisterAuthProvider("com.example", handlertest.NewSingleUserAuthProvider("com.example", "johndoe"))
 		providerRegistry.RegisterAuthProvider("org.example", handlertest.NewSingleUserAuthProvider("org.example", "johndoe"))
-		r := handlertest.NewSingleRouteRouter(UserLinkHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&UserLinkHandler{
+			ProviderRegistry: providerRegistry,
+		}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.UserInfo = &userInfo
-			p.ProviderRegistry = providerRegistry
 		})
 
 		Convey("link account", func() {

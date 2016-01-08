@@ -31,7 +31,11 @@ func TestLambdaHandler(t *testing.T) {
 		plugin := Plugin{
 			transport: transport,
 		}
-		r := handlertest.NewSingleRouteRouter(CreateLambdaHandler(&plugin, "hello:world"), func(p *router.Payload) {
+		handler := LambdaHandler{
+			Plugin: &plugin,
+			Name:   "hello:world",
+		}
+		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
 		})
 
 		Convey("handle", func() {
@@ -52,7 +56,11 @@ func TestLambdaHandler(t *testing.T) {
 		plugin := Plugin{
 			transport: transport,
 		}
-		r := handlertest.NewSingleRouteRouter(CreateLambdaHandler(&plugin, "hello:world"), func(p *router.Payload) {
+		handler := LambdaHandler{
+			Plugin: &plugin,
+			Name:   "hello:world",
+		}
+		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
 		})
 
 		Convey("init", func() {

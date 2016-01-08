@@ -1,7 +1,7 @@
 package plugin
 
 import (
-	"github.com/oursky/skygear/hook"
+	"github.com/oursky/skygear/plugin/hook"
 	"github.com/oursky/skygear/skydb"
 )
 

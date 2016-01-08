@@ -10,7 +10,7 @@ import (
 
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/handler/handlertest"
-	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/plugin/provider"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skydbtest"
@@ -51,7 +51,8 @@ func TestHomeHandler(t *testing.T) {
 	req := router.Payload{}
 	resp := router.Response{}
 
-	HomeHandler(&req, &resp)
+	handler := &HomeHandler{}
+	handler.Handle(&req, &resp)
 	var s statusResponse
 
 	switch pt := resp.Result.(type) {
@@ -76,11 +77,13 @@ func TestSignupHandler(t *testing.T) {
 			"email":    "john.doe@example.com",
 			"password": "secret",
 		},
-		DBConn:     conn,
-		TokenStore: &tokenStore,
+		DBConn: conn,
 	}
 	resp := router.Response{}
-	SignupHandler(&req, &resp)
+	handler := &SignupHandler{
+		TokenStore: &tokenStore,
+	}
+	handler.Handle(&req, &resp)
 
 	authResp, ok := resp.Result.(authResponse)
 	if !ok {
@@ -122,11 +125,13 @@ func TestSignupHandlerDuplicatedUsername(t *testing.T) {
 			"email":    "john.doe@example.com",
 			"password": "secret",
 		},
-		DBConn:     conn,
-		TokenStore: &tokenStore,
+		DBConn: conn,
 	}
 	resp := router.Response{}
-	SignupHandler(&req, &resp)
+	handler := &SignupHandler{
+		TokenStore: &tokenStore,
+	}
+	handler.Handle(&req, &resp)
 
 	errorResponse, ok := resp.Err.(skyerr.Error)
 	if !ok {
@@ -151,11 +156,13 @@ func TestSignupHandlerDuplicatedEmail(t *testing.T) {
 			"email":    "john.doe@example.com",
 			"password": "secret",
 		},
-		DBConn:     conn,
-		TokenStore: &tokenStore,
+		DBConn: conn,
 	}
 	resp := router.Response{}
-	SignupHandler(&req, &resp)
+	handler := &SignupHandler{
+		TokenStore: &tokenStore,
+	}
+	handler.Handle(&req, &resp)
 
 	errorResponse, ok := resp.Err.(skyerr.Error)
 	if !ok {
@@ -179,11 +186,13 @@ func TestLoginHandler(t *testing.T) {
 			"username": "john.doe",
 			"password": "secret",
 		},
-		DBConn:     conn,
-		TokenStore: &tokenStore,
+		DBConn: conn,
 	}
 	resp := router.Response{}
-	LoginHandler(&req, &resp)
+	handler := &LoginHandler{
+		TokenStore: &tokenStore,
+	}
+	handler.Handle(&req, &resp)
 
 	authResp, ok := resp.Result.(authResponse)
 	if !ok {
@@ -224,11 +233,13 @@ func TestLoginHandlerWrongPassword(t *testing.T) {
 			"username": "john.doe",
 			"password": "wrongsecret",
 		},
-		DBConn:     conn,
-		TokenStore: &tokenStore,
+		DBConn: conn,
 	}
 	resp := router.Response{}
-	LoginHandler(&req, &resp)
+	handler := &LoginHandler{
+		TokenStore: &tokenStore,
+	}
+	handler.Handle(&req, &resp)
 
 	errorResponse, ok := resp.Err.(skyerr.Error)
 	if !ok {
@@ -249,11 +260,13 @@ func TestLoginHandlerNotFound(t *testing.T) {
 			"username": "john.doe",
 			"password": "secret",
 		},
-		DBConn:     conn,
-		TokenStore: &tokenStore,
+		DBConn: conn,
 	}
 	resp := router.Response{}
-	LoginHandler(&req, &resp)
+	handler := &LoginHandler{
+		TokenStore: &tokenStore,
+	}
+	handler.Handle(&req, &resp)
 
 	errorResponse, ok := resp.Err.(skyerr.Error)
 	if !ok {
@@ -272,10 +285,11 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		providerRegistry := provider.NewRegistry()
 		providerRegistry.RegisterAuthProvider("com.example", handlertest.NewSingleUserAuthProvider("com.example", "johndoe"))
 
-		r := handlertest.NewSingleRouteRouter(LoginHandler, func(p *router.Payload) {
-			p.TokenStore = &tokenStore
+		r := handlertest.NewSingleRouteRouter(&LoginHandler{
+			TokenStore:       &tokenStore,
+			ProviderRegistry: providerRegistry,
+		}, func(p *router.Payload) {
 			p.DBConn = &conn
-			p.ProviderRegistry = providerRegistry
 		})
 
 		Convey("login in existing", func() {
@@ -366,8 +380,9 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 		tokenStore := singleTokenStore{}
 		conn := singleUserConn{}
 
-		r := handlertest.NewSingleRouteRouter(SignupHandler, func(p *router.Payload) {
-			p.TokenStore = &tokenStore
+		r := handlertest.NewSingleRouteRouter(&SignupHandler{
+			TokenStore: &tokenStore,
+		}, func(p *router.Payload) {
 			p.DBConn = &conn
 		})
 
@@ -426,10 +441,11 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 		providerRegistry := provider.NewRegistry()
 		providerRegistry.RegisterAuthProvider("com.example", handlertest.NewSingleUserAuthProvider("com.example", "johndoe"))
 
-		r := handlertest.NewSingleRouteRouter(SignupHandler, func(p *router.Payload) {
-			p.TokenStore = &tokenStore
+		r := handlertest.NewSingleRouteRouter(&SignupHandler{
+			TokenStore:       &tokenStore,
+			ProviderRegistry: providerRegistry,
+		}, func(p *router.Payload) {
 			p.DBConn = &conn
-			p.ProviderRegistry = providerRegistry
 		})
 
 		Convey("signs up with user", func() {
@@ -489,8 +505,9 @@ func TestLogoutHandler(t *testing.T) {
 		tokenStore := &deleteTokenStore{}
 		conn := skydbtest.NewMapConn()
 
-		r := handlertest.NewSingleRouteRouter(LogoutHandler, func(p *router.Payload) {
-			p.TokenStore = tokenStore
+		r := handlertest.NewSingleRouteRouter(&LogoutHandler{
+			TokenStore: tokenStore,
+		}, func(p *router.Payload) {
 			p.DBConn = conn
 		})
 
@@ -545,8 +562,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		token := authtoken.New("_", userinfo.ID, time.Time{})
 		tokenStore.Put(&token)
 
-		r := handlertest.NewSingleRouteRouter(PasswordHandler, func(p *router.Payload) {
-			p.TokenStore = &tokenStore
+		r := handlertest.NewSingleRouteRouter(&PasswordHandler{}, func(p *router.Payload) {
 			p.DBConn = &conn
 		})
 

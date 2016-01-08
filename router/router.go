@@ -107,7 +107,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 		}
-		handler(payload, &resp)
+		handler.Handle(payload, &resp)
 	}
 }
 

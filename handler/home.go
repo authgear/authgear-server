@@ -9,7 +9,10 @@ type statusResponse struct {
 }
 
 // HomeHandler temp landing. FIXME
-func HomeHandler(playload *router.Payload, response *router.Response) {
+type HomeHandler struct {
+}
+
+func (h *HomeHandler) Handle(playload *router.Payload, response *router.Response) {
 	var (
 		rep statusResponse
 	)

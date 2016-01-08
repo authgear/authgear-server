@@ -85,7 +85,10 @@ func relationColander(data map[string]interface{}, result *relationPayload) skye
 //         "count": 2
 //     }
 // }
-func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
+type RelationQueryHandler struct {
+}
+
+func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debug("RelationQueryHandler")
 	payload := relationPayload{}
 	if err := relationColander(rpayload.Data, &payload); err != nil {
@@ -158,7 +161,10 @@ func RelationQueryHandler(rpayload *router.Payload, response *router.Response) {
 //         }
 //     ]
 // }
-func RelationAddHandler(rpayload *router.Payload, response *router.Response) {
+type RelationAddHandler struct {
+}
+
+func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debug("RelationAddHandler")
 	payload := relationPayload{}
 	if err := relationColander(rpayload.Data, &payload); err != nil {
@@ -206,7 +212,10 @@ func RelationAddHandler(rpayload *router.Payload, response *router.Response) {
 //     ]
 // }
 // EOF
-func RelationRemoveHandler(rpayload *router.Payload, response *router.Response) {
+type RelationRemoveHandler struct {
+}
+
+func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debug("RelationRemoveHandler")
 	payload := relationPayload{}
 	if err := relationColander(rpayload.Data, &payload); err != nil {

@@ -4,6 +4,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/oursky/skygear/plugin/provider"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
@@ -17,7 +18,10 @@ type updatePayload struct {
 	Email string `json:"email"`
 }
 
-func UserQueryHandler(payload *router.Payload, response *router.Response) {
+type UserQueryHandler struct {
+}
+
+func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Response) {
 	qp := queryPayload{}
 	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:  &qp,
@@ -53,7 +57,10 @@ func UserQueryHandler(payload *router.Payload, response *router.Response) {
 	response.Result = results
 }
 
-func UserUpdateHandler(payload *router.Payload, response *router.Response) {
+type UserUpdateHandler struct {
+}
+
+func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Response) {
 	p := updatePayload{}
 	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		Result:  &p,
@@ -78,7 +85,11 @@ func UserUpdateHandler(payload *router.Payload, response *router.Response) {
 
 // UserLinkHandler lets user associate third-party accounts with the
 // user, with third-party authentication handled by plugin.
-func UserLinkHandler(payload *router.Payload, response *router.Response) {
+type UserLinkHandler struct {
+	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
+}
+
+func (h *UserLinkHandler) Handle(payload *router.Payload, response *router.Response) {
 	p := loginPayload{
 		AppName: payload.AppName,
 		Meta:    payload.Meta,
@@ -94,7 +105,7 @@ func UserLinkHandler(payload *router.Payload, response *router.Response) {
 
 	// Get AuthProvider and authenticates the user
 	log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
-	authProvider := payload.ProviderRegistry.GetAuthProvider(p.Provider())
+	authProvider := h.ProviderRegistry.GetAuthProvider(p.Provider())
 	principalID, authData, err := authProvider.Login(p.AuthData())
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")

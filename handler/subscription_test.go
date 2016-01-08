@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/oursky/skygear/handler/handlertest"
-	. "github.com/oursky/skygear/skytest"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skydbtest"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -31,7 +31,7 @@ func TestSubscriptionFetchHandler(t *testing.T) {
 		db.SaveSubscription(&sub0)
 		db.SaveSubscription(&sub1)
 
-		r := handlertest.NewSingleRouteRouter(SubscriptionFetchHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&SubscriptionFetchHandler{}, func(p *router.Payload) {
 			p.Database = db
 		})
 
@@ -109,7 +109,7 @@ func TestSubscriptionFetchAllHandler(t *testing.T) {
 		}
 		db := newFetchallDB(subscriptions...)
 
-		r := handlertest.NewSingleRouteRouter(SubscriptionFetchAllHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&SubscriptionFetchAllHandler{}, func(p *router.Payload) {
 			p.Database = db
 		})
 
@@ -151,7 +151,7 @@ func TestSubscriptionFetchAllHandler(t *testing.T) {
 func TestSubscriptionSaveHandler(t *testing.T) {
 	Convey("SubscriptionSaveHandler", t, func() {
 		db := skydbtest.NewMapDB()
-		r := handlertest.NewSingleRouteRouter(SubscriptionSaveHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&SubscriptionSaveHandler{}, func(p *router.Payload) {
 			p.Database = db
 		})
 
@@ -355,7 +355,7 @@ func TestSubscriptionDeleteHandler(t *testing.T) {
 		db.SaveSubscription(&sub0)
 		db.SaveSubscription(&sub1)
 
-		r := handlertest.NewSingleRouteRouter(SubscriptionDeleteHandler, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&SubscriptionDeleteHandler{}, func(p *router.Payload) {
 			p.Database = db
 		})
 

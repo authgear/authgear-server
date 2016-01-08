@@ -16,7 +16,7 @@ type MockHander struct {
 	outputs Response
 }
 
-func (m *MockHander) handle(p *Payload, r *Response) {
+func (m *MockHander) Handle(p *Payload, r *Response) {
 	r.Result = m.outputs.Result
 	return
 }
@@ -25,7 +25,7 @@ type ErrHandler struct {
 	Err skyerr.Error
 }
 
-func (h *ErrHandler) handle(p *Payload, r *Response) {
+func (h *ErrHandler) Handle(p *Payload, r *Response) {
 	r.Err = h.Err
 }
 
@@ -41,7 +41,7 @@ func TestRouterMap(t *testing.T) {
 		outputs: mockResp,
 	}
 	r := NewRouter()
-	r.Map("mock:map", mockHander.handle)
+	r.Map("mock:map", &mockHander)
 	var mockJSON = `{
 	"action": "mock:map"
 }`
@@ -68,7 +68,7 @@ func TestRouterMapMissing(t *testing.T) {
 		outputs: Response{},
 	}
 	r := NewRouter()
-	r.Map("mock:map", mockHander.handle)
+	r.Map("mock:map", &mockHander)
 	var mockJSON = `{
 	"action": "missing"
 }`
@@ -107,7 +107,7 @@ func TestErrorHandler(t *testing.T) {
 			errHandler := &ErrHandler{
 				Err: skyerr.NewError(skyerr.UnexpectedError, "some error"),
 			}
-			r.Map("mock:handler", errHandler.handle)
+			r.Map("mock:handler", errHandler)
 
 			req, _ := http.NewRequest(
 				"POST",
@@ -132,7 +132,7 @@ func TestPreprocess(t *testing.T) {
 	}}
 	mockPreprocessor := getPreprocessor{}
 
-	r.Map("mock:preprocess", mockHandler.handle, mockPreprocessor.Preprocess)
+	r.Map("mock:preprocess", &mockHandler, mockPreprocessor.Preprocess)
 
 	Convey("Given a router with a preprocessor", t, func() {
 		req, _ := http.NewRequest(
@@ -205,7 +205,7 @@ func TestPreprocess(t *testing.T) {
 // 		outputs: mockResp,
 // 	}
 // 	r := NewRouter()
-// 	r.Map("mock:map", mockHander.handle)
+// 	r.Map("mock:map", &mockHander)
 // 	r.Preprocess(CheckAuth)
 
 // 	// Positive test

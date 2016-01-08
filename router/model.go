@@ -6,17 +6,29 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/oursky/skygear/asset"
-	"github.com/oursky/skygear/authtoken"
-	"github.com/oursky/skygear/hook"
-	"github.com/oursky/skygear/provider"
-	"github.com/oursky/skygear/push"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
 )
 
-// Handler specifies the function signature of a request handler function
-type Handler func(*Payload, *Response)
+// HandlerFunc specifies the function signature of a request handler function
+type HandlerFunc func(*Payload, *Response)
+
+// Handler specifies the interface of a request handler
+type Handler interface {
+	Handle(*Payload, *Response)
+}
+
+type funcHandler struct {
+	Func HandlerFunc
+}
+
+func (h *funcHandler) Handle(payload *Payload, response *Response) {
+	h.Func(payload, response)
+}
+
+func NewFuncHandler(f HandlerFunc) Handler {
+	return &funcHandler{f}
+}
 
 // Payload is for passing payload to the actual handler
 type Payload struct {
@@ -31,19 +43,12 @@ type Payload struct {
 	// Map of action payload
 	Data map[string]interface{}
 
-	TokenStore       authtoken.Store
-	AssetStore       asset.Store
-	HookRegistry     *hook.Registry
-	ProviderRegistry *provider.Registry
-
 	AppName    string
 	UserInfoID string
 	UserInfo   *skydb.UserInfo
 
 	DBConn   skydb.Conn
 	Database skydb.Database
-
-	NotificationSender push.Sender
 }
 
 func (p *Payload) NewPayload(req *http.Request) *Payload {
