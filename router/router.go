@@ -32,6 +32,23 @@ type Router struct {
 // Processor specifies the function signature for a Preprocessor
 type Processor func(*Payload, *Response) int
 
+// PreprocessorRegistry is holding all preprocessors and their mapping with
+// a string name.
+type PreprocessorRegistry map[string]Processor
+
+// GetByNames returns a list of registered preprocessors by preprocessor names.
+func (r PreprocessorRegistry) GetByNames(names ...string) []Processor {
+	preprocessors := make([]Processor, len(names))
+	for i, name := range names {
+		pp, ok := r[name]
+		if !ok {
+			log.Fatalf("preprocessor %s is not defined", name)
+		}
+		preprocessors[i] = pp
+	}
+	return preprocessors
+}
+
 // NewRouter is factory for Router
 func NewRouter() *Router {
 	return &Router{

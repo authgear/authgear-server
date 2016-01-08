@@ -72,6 +72,7 @@ func NewPlugin(name string, path string, args []string) Plugin {
 type InitContext struct {
 	plugins          []*Plugin
 	Router           *router.Router
+	Preprocessors    *router.PreprocessorRegistry
 	HookRegistry     *hook.Registry
 	ProviderRegistry *provider.Registry
 	Scheduler        *cron.Cron

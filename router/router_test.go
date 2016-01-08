@@ -192,6 +192,24 @@ func TestPreprocess(t *testing.T) {
 	})
 }
 
+func TestPreprocessorRegistry(t *testing.T) {
+	mockPreprocessor := getPreprocessor{}
+
+	Convey("Register preprocessor", t, func() {
+		reg := PreprocessorRegistry{}
+		reg["mock"] = mockPreprocessor.Preprocess
+		So(reg["mock"], ShouldEqual, mockPreprocessor.Preprocess)
+	})
+
+	Convey("Get by names", t, func() {
+		reg := PreprocessorRegistry{}
+		reg["mock"] = mockPreprocessor.Preprocess
+		preprocessors := reg.GetByNames("mock")
+		So(len(preprocessors), ShouldEqual, 1)
+		So(preprocessors[0], ShouldEqual, mockPreprocessor.Preprocess)
+	})
+}
+
 // TODO(limouren): fix this test case
 // func TestRouterCheckAuth(t *testing.T) {
 // 	mockResp := Response{}
