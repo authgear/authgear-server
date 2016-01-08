@@ -10,7 +10,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/skygear/asset"
-	"github.com/oursky/skygear/hook"
+	"github.com/oursky/skygear/plugin/hook"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skydbconv"

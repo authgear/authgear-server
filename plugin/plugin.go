@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/skygear/hook"
-	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/plugin/hook"
+	"github.com/oursky/skygear/plugin/provider"
 	"github.com/oursky/skygear/router"
 	"github.com/robfig/cron"
 )

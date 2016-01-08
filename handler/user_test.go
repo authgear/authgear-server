@@ -8,7 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
-	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/plugin/provider"
 	"github.com/oursky/skygear/skydb"
 )
 

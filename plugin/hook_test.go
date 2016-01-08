@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/oursky/skygear/hook"
+	"github.com/oursky/skygear/plugin/hook"
 	"github.com/oursky/skygear/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )

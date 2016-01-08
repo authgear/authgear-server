@@ -6,7 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/oursky/skygear/authtoken"
-	"github.com/oursky/skygear/provider"
+	"github.com/oursky/skygear/plugin/provider"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
