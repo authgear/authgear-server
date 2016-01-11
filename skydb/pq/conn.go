@@ -66,6 +66,7 @@ type conn struct {
 	appName        string
 	option         string
 	statementCount uint64
+	accessModel    skydb.AccessModel
 }
 
 // Db returns the current database wrapper, or a transaction wrapper when

@@ -16,8 +16,9 @@ type Configuration struct {
 		Host string
 	}
 	App struct {
-		Name   string
-		APIKey string `gcfg:"api-key"`
+		Name          string
+		APIKey        string `gcfg:"api-key"`
+		AccessControl string `gcfg:"access-control"`
 	}
 	DB struct {
 		ImplName string `gcfg:"implementation"`
@@ -102,6 +103,10 @@ func ReadFileInto(config *Configuration, path string) error {
 	}
 	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(config.App.Name) {
 		return fmt.Errorf("app name '%s' contains invalid characters other than alphanumberics or underscores", config.App.Name)
+	}
+
+	if config.App.AccessControl == "" {
+		config.App.AccessControl = "role"
 	}
 
 	dbImplName := os.Getenv("DB_IMPL_NAME")

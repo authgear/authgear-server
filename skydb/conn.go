@@ -120,6 +120,14 @@ type Conn interface {
 	Close() error
 }
 
+// AccessModel indicates the type of access control model while db query.
+type AccessModel int
+
+const (
+	RoleBaseAC AccessModel = iota + 1
+	RelationBaseAC
+)
+
 // RecordHookEvent indicates the type of record event that triggered
 // the hook
 type RecordHookEvent int

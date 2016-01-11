@@ -90,10 +90,11 @@ func main() {
 	}
 
 	dbConnPreprocessor := pp.ConnPreprocessor{
-		AppName:  config.App.Name,
-		DBOpener: skydb.Open,
-		DBImpl:   config.DB.ImplName,
-		Option:   config.DB.Option,
+		AppName:       config.App.Name,
+		AccessControl: config.App.AccessControl,
+		DBOpener:      skydb.Open,
+		DBImpl:        config.DB.ImplName,
+		Option:        config.DB.Option,
 	}
 
 	pluginReadyPreprocessor := &pp.EnsurePluginReadyPreprocessor{&initContext}
@@ -226,7 +227,12 @@ func injectedHandler(g *inject.Graph, h router.Handler) router.Handler {
 
 func ensureDB(config Configuration) func() (skydb.Conn, error) {
 	connOpener := func() (skydb.Conn, error) {
-		return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option)
+		return skydb.Open(
+			config.DB.ImplName,
+			config.App.Name,
+			config.App.AccessControl,
+			config.DB.Option,
+		)
 	}
 
 	// Attempt to open connection to database. Retry for a number of
