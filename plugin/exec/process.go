@@ -159,7 +159,10 @@ func (p *execTransport) RunHandler(name string, in []byte) (out []byte, err erro
 	return
 }
 
-func (p *execTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+func (p *execTransport) RunHook(ctx context.Context, recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+	if ctx != nil {
+		log.Warn("request context is not supported by exec transport")
+	}
 	param := map[string]interface{}{
 		"record":   (*common.JSONRecord)(record),
 		"original": (*common.JSONRecord)(originalRecord),

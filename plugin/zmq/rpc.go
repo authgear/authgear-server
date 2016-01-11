@@ -46,12 +46,12 @@ func newHandlerRequest(name string, input json.RawMessage) *request {
 	return &request{Kind: "handler", Name: name, Param: input}
 }
 
-func newHookRequest(trigger string, record *skydb.Record, originalRecord *skydb.Record) *request {
+func newHookRequest(trigger string, record *skydb.Record, originalRecord *skydb.Record, ctx context.Context) *request {
 	param := hookRequest{
 		Record:   (*common.JSONRecord)(record),
 		Original: (*common.JSONRecord)(originalRecord),
 	}
-	return &request{Kind: "hook", Name: trigger, Param: param}
+	return &request{Kind: "hook", Name: trigger, Param: param, Context: ctx}
 }
 
 func newAuthRequest(authReq *odplugin.AuthRequest) *request {
@@ -151,8 +151,8 @@ func (p *zmqTransport) RunHandler(name string, in []byte) (out []byte, err error
 	return
 }
 
-func (p *zmqTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
-	out, err := p.rpc(newHookRequest(trigger, record, originalRecord))
+func (p *zmqTransport) RunHook(ctx context.Context, recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+	out, err := p.rpc(newHookRequest(trigger, record, originalRecord, ctx))
 	if err != nil {
 		return nil, err
 	}
