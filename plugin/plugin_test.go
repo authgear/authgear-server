@@ -41,3 +41,33 @@ func TestPlugin(t *testing.T) {
 	})
 
 }
+
+func TestLambda(t *testing.T) {
+	Convey("create simple lambda", t, func() {
+		handler := createLambdaHandler(map[string]interface{}{
+			"name": "hello:world",
+		})
+
+		So(handler.Name, ShouldEqual, "hello:world")
+		So(handler.AccessKeyRequired, ShouldBeFalse)
+		So(handler.UserRequired, ShouldBeFalse)
+	})
+
+	Convey("create user required lambda", t, func() {
+		handler := createLambdaHandler(map[string]interface{}{
+			"name":          "hello:world",
+			"user_required": true,
+		})
+
+		So(handler.UserRequired, ShouldBeTrue)
+	})
+
+	Convey("create key required lambda", t, func() {
+		handler := createLambdaHandler(map[string]interface{}{
+			"name":         "hello:world",
+			"key_required": true,
+		})
+
+		So(handler.AccessKeyRequired, ShouldBeTrue)
+	})
+}

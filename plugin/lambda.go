@@ -10,8 +10,10 @@ import (
 )
 
 type LambdaHandler struct {
-	Plugin *Plugin
-	Name   string
+	Plugin            *Plugin
+	Name              string
+	AccessKeyRequired bool
+	UserRequired      bool
 }
 
 // Handle executes lambda function implemented by the plugin.
@@ -22,7 +24,7 @@ func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Respons
 		return
 	}
 
-	outbytes, err := h.Plugin.transport.RunLambda(h.Name, inbytes)
+	outbytes, err := h.Plugin.transport.RunLambda(payload.Context, h.Name, inbytes)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return

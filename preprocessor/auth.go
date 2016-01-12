@@ -8,6 +8,7 @@ import (
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skyerr"
+	"golang.org/x/net/context"
 )
 
 type AccessKeyValidatonPreprocessor struct {
@@ -74,6 +75,7 @@ func (author *UserAuthenticator) Preprocess(payload *router.Payload, response *r
 
 		payload.AppName = token.AppName
 		payload.UserInfoID = token.UserInfoID
+		payload.Context = context.WithValue(payload.Context, "UserID", token.UserInfoID)
 	}
 
 	return http.StatusOK

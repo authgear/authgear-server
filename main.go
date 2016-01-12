@@ -59,9 +59,12 @@ func main() {
 
 	tokenStore := authtoken.InitTokenStore(config.TokenStore.ImplName, config.TokenStore.Path)
 
+	preprocessorRegistry := router.PreprocessorRegistry{}
+
 	c := cron.New()
 	initContext := plugin.InitContext{
 		Router:           r,
+		Preprocessors:    preprocessorRegistry,
 		HookRegistry:     hook.NewRegistry(),
 		ProviderRegistry: provider.NewRegistry(),
 		Scheduler:        c,
@@ -77,17 +80,20 @@ func main() {
 	notificationPreprocessor := pp.NotificationPreprocessor{
 		NotificationSender: pushSender,
 	}
+	preprocessorRegistry["notification"] = notificationPreprocessor.Preprocess
 
 	naiveAPIKeyPreprocessor := pp.AccessKeyValidatonPreprocessor{
 		Key:     config.App.APIKey,
 		AppName: config.App.Name,
 	}
+	preprocessorRegistry["accesskey"] = naiveAPIKeyPreprocessor.Preprocess
 
 	authenticator := pp.UserAuthenticator{
 		APIKey:     config.App.APIKey,
 		AppName:    config.App.Name,
 		TokenStore: tokenStore,
 	}
+	preprocessorRegistry["authenticator"] = authenticator.Preprocess
 
 	dbConnPreprocessor := pp.ConnPreprocessor{
 		AppName:  config.App.Name,
@@ -95,8 +101,12 @@ func main() {
 		DBImpl:   config.DB.ImplName,
 		Option:   config.DB.Option,
 	}
+	preprocessorRegistry["dbconn"] = dbConnPreprocessor.Preprocess
 
 	pluginReadyPreprocessor := &pp.EnsurePluginReadyPreprocessor{&initContext}
+	preprocessorRegistry["plugin"] = pluginReadyPreprocessor.Preprocess
+	preprocessorRegistry["inject_user"] = pp.InjectUserIfPresent
+	preprocessorRegistry["require_user"] = pp.RequireUserForWrite
 
 	baseAuthPreprocessors := []router.Processor{
 		authenticator.Preprocess,

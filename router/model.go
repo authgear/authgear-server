@@ -8,6 +8,7 @@ import (
 
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
+	"golang.org/x/net/context"
 )
 
 // HandlerFunc specifies the function signature of a request handler function
@@ -43,6 +44,8 @@ type Payload struct {
 	// Map of action payload
 	Data map[string]interface{}
 
+	Context context.Context
+
 	AppName    string
 	UserInfoID string
 	UserInfo   *skydb.UserInfo
@@ -53,9 +56,10 @@ type Payload struct {
 
 func (p *Payload) NewPayload(req *http.Request) *Payload {
 	return &Payload{
-		Req:  req,
-		Meta: map[string]interface{}{},
-		Data: map[string]interface{}{},
+		Req:     req,
+		Meta:    map[string]interface{}{},
+		Data:    map[string]interface{}{},
+		Context: context.Background(),
 	}
 }
 

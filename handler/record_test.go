@@ -10,11 +10,13 @@ import (
 	"github.com/oursky/skygear/authtoken"
 	"github.com/oursky/skygear/handler/handlertest"
 	"github.com/oursky/skygear/plugin/hook"
+	"github.com/oursky/skygear/plugin/hook/hooktest"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skydbtest"
 	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/net/context"
 )
 
 var ZeroTime time.Time
@@ -1444,17 +1446,6 @@ func TestRecordQueryWithCount(t *testing.T) {
 	})
 }
 
-type stackingHook struct {
-	records         []*skydb.Record
-	originalRecords []*skydb.Record
-}
-
-func (p *stackingHook) Func(record *skydb.Record, originalRecord *skydb.Record) error {
-	p.records = append(p.records, record)
-	p.originalRecords = append(p.originalRecords, originalRecord)
-	return nil
-}
-
 type erroneousDB struct {
 	skydb.Database
 }
@@ -1505,8 +1496,8 @@ func TestHookExecution(t *testing.T) {
 			ID: skydb.NewRecordID("record", "id"),
 		}
 
-		beforeHook := stackingHook{}
-		afterHook := stackingHook{}
+		beforeHook := hooktest.StackingHook{}
+		afterHook := hooktest.StackingHook{}
 
 		for _, test := range handlerTests {
 			testName := fmt.Sprintf("executes Before%[1]s and After%[1]s action hooks", test.kind)
@@ -1523,10 +1514,10 @@ func TestHookExecution(t *testing.T) {
 
 				r.POST(test.reqBody)
 
-				So(len(beforeHook.records), ShouldEqual, 1)
-				So(beforeHook.records[0].ID, ShouldResemble, record.ID)
-				So(len(afterHook.records), ShouldEqual, 1)
-				So(afterHook.records[0].ID, ShouldResemble, record.ID)
+				So(len(beforeHook.Records), ShouldEqual, 1)
+				So(beforeHook.Records[0].ID, ShouldResemble, record.ID)
+				So(len(afterHook.Records), ShouldEqual, 1)
+				So(afterHook.Records[0].ID, ShouldResemble, record.ID)
 			})
 
 			testName = fmt.Sprintf("doesn't execute After%[1]s hooks if db.%[1]s returns an error", test.kind)
@@ -1537,7 +1528,7 @@ func TestHookExecution(t *testing.T) {
 				})
 
 				r.POST(test.reqBody)
-				So(afterHook.records, ShouldBeEmpty)
+				So(afterHook.Records, ShouldBeEmpty)
 			})
 		}
 	})
@@ -1552,7 +1543,7 @@ func TestHookExecution(t *testing.T) {
 		})
 
 		Convey("record is not saved if BeforeSave's hook returns an error", func() {
-			registry.Register(hook.BeforeSave, "record", func(*skydb.Record, *skydb.Record) error {
+			registry.Register(hook.BeforeSave, "record", func(context.Context, *skydb.Record, *skydb.Record) error {
 				return errors.New("no hooks for you")
 			})
 			r.POST(`{
@@ -1575,7 +1566,7 @@ func TestHookExecution(t *testing.T) {
 			So(db.Save(&existingRecord), ShouldBeNil)
 
 			called := false
-			registry.Register(hook.BeforeSave, "record", func(record *skydb.Record, originalRecord *skydb.Record) error {
+			registry.Register(hook.BeforeSave, "record", func(ctx context.Context, record *skydb.Record, originalRecord *skydb.Record) error {
 				called = true
 				So(*record, ShouldResemble, skydb.Record{
 					ID: skydb.NewRecordID("record", "id"),
@@ -1605,7 +1596,7 @@ func TestHookExecution(t *testing.T) {
 
 		Convey("BeforeSave should set originalRecord as nil for new record", func() {
 			called := false
-			registry.Register(hook.BeforeSave, "record", func(record *skydb.Record, originalRecord *skydb.Record) error {
+			registry.Register(hook.BeforeSave, "record", func(ctx context.Context, record *skydb.Record, originalRecord *skydb.Record) error {
 				called = true
 				So(*record, ShouldResemble, skydb.Record{
 					ID: skydb.NewRecordID("record", "id"),

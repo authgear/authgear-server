@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/oursky/skygear/skydb"
+	"golang.org/x/net/context"
 )
 
 // Kind defines when a hook should be executed on mutation of skydb.Record.
@@ -21,7 +22,7 @@ const (
 // Func defines the interface of a function that can be hooked.
 //
 // The supplied record is fully fetched for all four kind of hooks.
-type Func func(*skydb.Record, *skydb.Record) error
+type Func func(context.Context, *skydb.Record, *skydb.Record) error
 
 type recordTypeHookMap map[string][]Func
 
@@ -70,14 +71,14 @@ func (r *Registry) Register(kind Kind, recordType string, hook Func) error {
 //
 // If one of the hooks returns an error, it halts execution of other hooks and
 // return sthat error untouched.
-func (r *Registry) ExecuteHooks(kind Kind, record *skydb.Record, oldRecord *skydb.Record) error {
+func (r *Registry) ExecuteHooks(ctx context.Context, kind Kind, record *skydb.Record, oldRecord *skydb.Record) error {
 	hooks, err := r.hooks(kind, record.ID.Type)
 	if err != nil {
 		return err
 	}
 
 	for _, hook := range hooks {
-		if err := hook(record, oldRecord); err != nil {
+		if err := hook(ctx, record, oldRecord); err != nil {
 			return err
 		}
 	}

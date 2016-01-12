@@ -15,6 +15,7 @@ import (
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skydbconv"
 	"github.com/oursky/skygear/skyerr"
+	"golang.org/x/net/context"
 )
 
 type serializedRecord struct {
@@ -286,6 +287,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		UserInfoID:    payload.UserInfoID,
 		RecordsToSave: records,
 		Atomic:        atomic,
+		Context:       payload.Context,
 	}
 	resp := recordModifyResponse{
 		ErrMap: map[skydb.RecordID]skyerr.Error{},
@@ -393,6 +395,7 @@ type recordModifyRequest struct {
 	AssetStore   asset.Store
 	HookRegistry *hook.Registry
 	Atomic       bool
+	Context      context.Context
 
 	// Save only
 	RecordsToSave []*skydb.Record
@@ -436,7 +439,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 			originalRecord, _ := originalRecordMap[record.ID]
-			pluginErr := req.HookRegistry.ExecuteHooks(hook.BeforeSave, record, originalRecord)
+			pluginErr := req.HookRegistry.ExecuteHooks(req.Context, hook.BeforeSave, record, originalRecord)
 			if pluginErr != nil {
 				err = skyerr.NewError(skyerr.UnexpectedError, pluginErr.Error())
 			}
@@ -496,7 +499,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 			originalRecord, _ := originalRecordMap[record.ID]
-			pluginErr := req.HookRegistry.ExecuteHooks(hook.AfterSave, record, originalRecord)
+			pluginErr := req.HookRegistry.ExecuteHooks(req.Context, hook.AfterSave, record, originalRecord)
 			if pluginErr != nil {
 				log.Errorf("Error occurred while executing hooks: %s", pluginErr.Error())
 			}
@@ -988,6 +991,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		HookRegistry:      h.HookRegistry,
 		RecordIDsToDelete: recordIDs,
 		Atomic:            atomic,
+		Context:           payload.Context,
 	}
 	resp := recordModifyResponse{
 		ErrMap: map[skydb.RecordID]skyerr.Error{},
@@ -1053,7 +1057,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-			pluginErr := req.HookRegistry.ExecuteHooks(hook.BeforeDelete, record, nil)
+			pluginErr := req.HookRegistry.ExecuteHooks(req.Context, hook.BeforeDelete, record, nil)
 			if pluginErr != nil {
 				err = skyerr.NewError(skyerr.UnexpectedError, pluginErr.Error())
 			}
@@ -1075,7 +1079,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-			pluginErr := req.HookRegistry.ExecuteHooks(hook.AfterDelete, record, nil)
+			pluginErr := req.HookRegistry.ExecuteHooks(req.Context, hook.AfterDelete, record, nil)
 			if pluginErr != nil {
 				log.Errorf("Error occurred while executing hooks: %s", pluginErr.Error())
 			}

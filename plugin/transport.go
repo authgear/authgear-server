@@ -1,6 +1,9 @@
 package plugin
 
-import "github.com/oursky/skygear/skydb"
+import (
+	"github.com/oursky/skygear/skydb"
+	"golang.org/x/net/context"
+)
 
 // AuthRequest is sent by Skygear to plugin which contains data for authentication
 type AuthRequest struct {
@@ -46,7 +49,7 @@ type Transport interface {
 	SetInitHandler(TransportInitHandler)
 	RequestInit()
 	RunInit() ([]byte, error)
-	RunLambda(name string, in []byte) ([]byte, error)
+	RunLambda(ctx context.Context, name string, in []byte) ([]byte, error)
 	RunHandler(name string, in []byte) ([]byte, error)
 
 	// RunHook runs the hook specified by recordType and trigger, passing in
@@ -55,7 +58,7 @@ type Transport interface {
 	// A skydb.Record is returned as a result of invocation. Such record must be
 	// a newly allocated instance, and may not share any reference type values
 	// in any of its memebers with the record being passed in.
-	RunHook(recordType string, trigger string, record *skydb.Record, oldRecord *skydb.Record) (*skydb.Record, error)
+	RunHook(ctx context.Context, recordType string, trigger string, record *skydb.Record, oldRecord *skydb.Record) (*skydb.Record, error)
 	RunTimer(name string, n []byte) ([]byte, error)
 
 	// RunProvider runs the auth provider with the specified AuthRequest.
@@ -70,6 +73,7 @@ type TransportFactory interface {
 
 type nullTransport struct {
 	initHandler TransportInitHandler
+	lastContext context.Context
 }
 
 func (t *nullTransport) State() TransportState {
@@ -90,15 +94,17 @@ func (t nullTransport) RunInit() (out []byte, err error) {
 	out = []byte{}
 	return
 }
-func (t *nullTransport) RunLambda(name string, in []byte) (out []byte, err error) {
+func (t *nullTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
 	out = in
+	t.lastContext = ctx
 	return
 }
 func (t *nullTransport) RunHandler(name string, in []byte) (out []byte, err error) {
 	out = in
 	return
 }
-func (t *nullTransport) RunHook(recordType string, trigger string, reocrd *skydb.Record, oldRecord *skydb.Record) (record *skydb.Record, err error) {
+func (t *nullTransport) RunHook(ctx context.Context, recordType string, trigger string, reocrd *skydb.Record, oldRecord *skydb.Record) (record *skydb.Record, err error) {
+	t.lastContext = ctx
 	return
 }
 func (t *nullTransport) RunTimer(name string, in []byte) (out []byte, err error) {
@@ -121,4 +127,16 @@ type nullFactory struct {
 
 func (f nullFactory) Open(path string, args []string) Transport {
 	return &nullTransport{}
+}
+
+// ContextMap returns a map of the user request context.
+func ContextMap(ctx context.Context) map[string]interface{} {
+	if ctx == nil {
+		return map[string]interface{}{}
+	}
+	pluginCtx := map[string]interface{}{}
+	if userID, ok := ctx.Value("UserID").(string); ok {
+		pluginCtx["user_id"] = userID
+	}
+	return pluginCtx
 }

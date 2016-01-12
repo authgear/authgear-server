@@ -111,6 +111,10 @@
 			"Rev": "173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd"
 		},
 		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "db8e4de5b2d6653f66aea53094624468caad15d2"
+		},
+		{
 			"ImportPath": "gopkg.in/amz.v3/aws",
 			"Rev": "bff3a097c4108da57bb8cbe3aad2990d74d23676"
 		},

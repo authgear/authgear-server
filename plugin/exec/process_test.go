@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/oursky/skygear/skytest"
 	odplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/skydb"
+	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -38,7 +38,7 @@ func TestRun(t *testing.T) {
 		}
 
 		Convey("op", func() {
-			out, err := transport.RunLambda("hello:world", []byte{})
+			out, err := transport.RunLambda(nil, "hello:world", []byte{})
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"op hello:world"`)
 		})
@@ -63,7 +63,7 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("op", func() {
-			out, err := transport.RunLambda("hello:world", []byte(`{"result": "hello world"}`))
+			out, err := transport.RunLambda(nil, "hello:world", []byte(`{"result": "hello world"}`))
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"hello world"`)
 		})
@@ -206,7 +206,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook("note", "beforeSave", &recordin, &recordold)
+			recordout, err := transport.RunHook(nil, "note", "beforeSave", &recordin, &recordold)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 
@@ -318,7 +318,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook("note", "beforeSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note", "beforeSave", &recordin, nil)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 
@@ -398,7 +398,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook("note", "beforeSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note", "beforeSave", &recordin, nil)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 			So(*recordout, ShouldResemble, recordin)
@@ -433,7 +433,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook("note", "beforeSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note", "beforeSave", &recordin, nil)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 			So(*recordout, ShouldResemble, recordin)
@@ -444,7 +444,7 @@ func TestRun(t *testing.T) {
 				return nil, errors.New("worrying error")
 			}
 
-			recordout, err := transport.RunHook("note", "afterSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note", "afterSave", &recordin, nil)
 			So(err.Error(), ShouldEqual, "run note:afterSave: worrying error")
 			So(recordout, ShouldBeNil)
 		})
@@ -454,7 +454,7 @@ func TestRun(t *testing.T) {
 				return []byte("I am not a json"), nil
 			}
 
-			recordout, err := transport.RunHook("note", "afterSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note", "afterSave", &recordin, nil)
 			So(err.Error(), ShouldEqual, "run note:afterSave: failed to parse response: invalid character 'I' looking for beginning of value")
 			So(recordout, ShouldBeNil)
 		})
@@ -472,7 +472,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook("note", "afterSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note", "afterSave", &recordin, nil)
 			So(err.Error(), ShouldEqual, `run note:afterSave: StrongError
 Too strong to lift a feather`)
 			So(recordout, ShouldBeNil)

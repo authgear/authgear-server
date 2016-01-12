@@ -9,6 +9,7 @@ import (
 	"github.com/oursky/skygear/plugin/common"
 	"github.com/oursky/skygear/skydb"
 	"github.com/zeromq/goczmq"
+	"golang.org/x/net/context"
 )
 
 const initRequestTimeout = 2000
@@ -23,6 +24,7 @@ type zmqTransport struct {
 }
 
 type request struct {
+	Context context.Context
 	Kind    string
 	Name    string
 	Param   interface{}
@@ -36,20 +38,20 @@ type hookRequest struct {
 
 // type-safe constructors for request.Param assignment
 
-func newLambdaRequest(name string, args json.RawMessage) *request {
-	return &request{Kind: "op", Name: name, Param: args}
+func newLambdaRequest(ctx context.Context, name string, args json.RawMessage) *request {
+	return &request{Kind: "op", Name: name, Param: args, Context: ctx}
 }
 
 func newHandlerRequest(name string, input json.RawMessage) *request {
 	return &request{Kind: "handler", Name: name, Param: input}
 }
 
-func newHookRequest(trigger string, record *skydb.Record, originalRecord *skydb.Record) *request {
+func newHookRequest(trigger string, record *skydb.Record, originalRecord *skydb.Record, ctx context.Context) *request {
 	param := hookRequest{
 		Record:   (*common.JSONRecord)(record),
 		Original: (*common.JSONRecord)(originalRecord),
 	}
-	return &request{Kind: "hook", Name: trigger, Param: param}
+	return &request{Kind: "hook", Name: trigger, Param: param, Context: ctx}
 }
 
 func newAuthRequest(authReq *odplugin.AuthRequest) *request {
@@ -65,20 +67,23 @@ func newAuthRequest(authReq *odplugin.AuthRequest) *request {
 
 // TODO(limouren): reduce copying of this method
 func (req *request) MarshalJSON() ([]byte, error) {
+	pluginCtx := odplugin.ContextMap(req.Context)
 	if rawParam, ok := req.Param.(json.RawMessage); ok {
 		rawParamReq := struct {
-			Kind  string          `json:"kind"`
-			Name  string          `json:"name,omitempty"`
-			Param json.RawMessage `json:"param,omitempty"`
-		}{req.Kind, req.Name, rawParam}
+			Kind    string                 `json:"kind"`
+			Name    string                 `json:"name,omitempty"`
+			Param   json.RawMessage        `json:"param,omitempty"`
+			Context map[string]interface{} `json:"context,omitempty"`
+		}{req.Kind, req.Name, rawParam, pluginCtx}
 		return json.Marshal(&rawParamReq)
 	}
 
 	paramReq := struct {
-		Kind  string      `json:"kind"`
-		Name  string      `json:"name,omitempty"`
-		Param interface{} `json:"param,omitempty"`
-	}{req.Kind, req.Name, req.Param}
+		Kind    string                 `json:"kind"`
+		Name    string                 `json:"name,omitempty"`
+		Param   interface{}            `json:"param,omitempty"`
+		Context map[string]interface{} `json:"context,omitempty"`
+	}{req.Kind, req.Name, req.Param, pluginCtx}
 
 	return json.Marshal(&paramReq)
 }
@@ -136,8 +141,8 @@ func (p *zmqTransport) RunInit() (out []byte, err error) {
 	return
 }
 
-func (p *zmqTransport) RunLambda(name string, in []byte) (out []byte, err error) {
-	out, err = p.rpc(newLambdaRequest(name, in))
+func (p *zmqTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
+	out, err = p.rpc(newLambdaRequest(ctx, name, in))
 	return
 }
 
@@ -146,8 +151,8 @@ func (p *zmqTransport) RunHandler(name string, in []byte) (out []byte, err error
 	return
 }
 
-func (p *zmqTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
-	out, err := p.rpc(newHookRequest(trigger, record, originalRecord))
+func (p *zmqTransport) RunHook(ctx context.Context, recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+	out, err := p.rpc(newHookRequest(trigger, record, originalRecord, ctx))
 	if err != nil {
 		return nil, err
 	}

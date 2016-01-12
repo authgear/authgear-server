@@ -10,6 +10,7 @@ import (
 	odplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
 	"github.com/oursky/skygear/skydb"
+	"golang.org/x/net/context"
 )
 
 var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
@@ -145,7 +146,10 @@ func (p *execTransport) RunInit() (out []byte, err error) {
 	return
 }
 
-func (p *execTransport) RunLambda(name string, in []byte) (out []byte, err error) {
+func (p *execTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
+	if ctx != nil {
+		log.Warn("request context is not supported by exec transport")
+	}
 	out, err = p.runProc([]string{"op", name}, in)
 	return
 }
@@ -155,7 +159,10 @@ func (p *execTransport) RunHandler(name string, in []byte) (out []byte, err erro
 	return
 }
 
-func (p *execTransport) RunHook(recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+func (p *execTransport) RunHook(ctx context.Context, recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+	if ctx != nil {
+		log.Warn("request context is not supported by exec transport")
+	}
 	param := map[string]interface{}{
 		"record":   (*common.JSONRecord)(record),
 		"original": (*common.JSONRecord)(originalRecord),
