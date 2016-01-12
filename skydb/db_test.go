@@ -37,8 +37,8 @@ func TestOpen(t *testing.T) {
 			if driver.AppName != "com.example.app.test" {
 				t.Fatalf("got driver.AppName = %v, want \"com.example.app.test\"", driver.AppName)
 			}
-			if driver.AccessModel != RoleBaseAC {
-				t.Fatalf("got driver.AccessModel = %v, want \"RoleBaseAC\"", driver.AccessModel)
+			if driver.AccessModel != RoleBasedAccess {
+				t.Fatalf("got driver.AccessModel = %v, want \"RoleBasedAccess\"", driver.AccessModel)
 			}
 			if driver.OptionString != "fakeOption" {
 				t.Fatalf("got driver.OptionString = %v, want \"fakeOption\"", driver.OptionString)

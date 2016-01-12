@@ -61,8 +61,8 @@ func Open(appName string, accessModel skydb.AccessModel, connString string) (sky
 	if err != nil {
 		return nil, err
 	}
-	if accessModel == skydb.RelationBaseAC {
-		return nil, fmt.Errorf("Unsupported AccessModel: RelationBaseAC")
+	if accessModel == skydb.RelationBasedAccess {
+		return nil, fmt.Errorf("Unsupported AccessModel: RelationBasedAccess")
 	}
 
 	return &conn{

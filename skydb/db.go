@@ -28,8 +28,8 @@ func unregisterAllDrivers() {
 }
 
 var accessModelMap = map[string]AccessModel{
-	"role":     RoleBaseAC,
-	"relation": RelationBaseAC,
+	"role":     RoleBasedAccess,
+	"relation": RelationBasedAccess,
 }
 
 // GetAccessModel convert the string config to internal const

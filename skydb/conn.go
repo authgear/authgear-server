@@ -124,12 +124,12 @@ type Conn interface {
 //go:generate stringer -type=AccessModel
 type AccessModel int
 
-// RoleBaseAC is tranditional Access Control
-// RelationBaseAC is Access Control determine by the user-user relation between
-// creator and accessor
+// RoleBasedAccess is tranditional Role based Access Control
+// RelationBasedAccess is Access Control determine by the user-user relation
+// between creator and accessor
 const (
-	RoleBaseAC AccessModel = iota + 1
-	RelationBaseAC
+	RoleBasedAccess AccessModel = iota + 1
+	RelationBasedAccess
 )
 
 // RecordHookEvent indicates the type of record event that triggered
