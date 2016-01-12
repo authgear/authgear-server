@@ -7,6 +7,7 @@ import (
 type fakeConn struct {
 	Conn
 	AppName      string
+	AccessModel  AccessModel
 	OptionString string
 }
 
@@ -14,9 +15,10 @@ type fakeDriver struct {
 	Driver
 }
 
-func (driver fakeDriver) Open(appName, optionString string) (Conn, error) {
+func (driver fakeDriver) Open(appName string, accessModel AccessModel, optionString string) (Conn, error) {
 	return fakeConn{
 		AppName:      appName,
+		AccessModel:  accessModel,
 		OptionString: optionString,
 	}, nil
 }
@@ -26,7 +28,7 @@ func TestOpen(t *testing.T) {
 
 	Register("fakeImpl", fakeDriver{})
 
-	if driver, err := Open("fakeImpl", "com.example.app.test", "fakeOption"); err != nil {
+	if driver, err := Open("fakeImpl", "com.example.app.test", "role", "fakeOption"); err != nil {
 		t.Fatalf("got err: %v, want a driver", err.Error())
 	} else {
 		if driver, ok := driver.(fakeConn); !ok {
@@ -34,6 +36,9 @@ func TestOpen(t *testing.T) {
 		} else {
 			if driver.AppName != "com.example.app.test" {
 				t.Fatalf("got driver.AppName = %v, want \"com.example.app.test\"", driver.AppName)
+			}
+			if driver.AccessModel != RoleBasedAccess {
+				t.Fatalf("got driver.AccessModel = %v, want \"RoleBasedAccess\"", driver.AccessModel)
 			}
 			if driver.OptionString != "fakeOption" {
 				t.Fatalf("got driver.OptionString = %v, want \"fakeOption\"", driver.OptionString)

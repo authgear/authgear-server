@@ -96,10 +96,11 @@ func main() {
 	preprocessorRegistry["authenticator"] = authenticator.Preprocess
 
 	dbConnPreprocessor := pp.ConnPreprocessor{
-		AppName:  config.App.Name,
-		DBOpener: skydb.Open,
-		DBImpl:   config.DB.ImplName,
-		Option:   config.DB.Option,
+		AppName:       config.App.Name,
+		AccessControl: config.App.AccessControl,
+		DBOpener:      skydb.Open,
+		DBImpl:        config.DB.ImplName,
+		Option:        config.DB.Option,
 	}
 	preprocessorRegistry["dbconn"] = dbConnPreprocessor.Preprocess
 
@@ -159,6 +160,11 @@ func main() {
 		&inject.Object{Value: tokenStore, Complete: true, Name: "TokenStore"},
 		&inject.Object{Value: initAssetStore(config), Complete: true, Name: "AssetStore"},
 		&inject.Object{Value: pushSender, Complete: true, Name: "PushSender"},
+		&inject.Object{
+			Value:    skydb.GetAccessModel(config.App.AccessControl),
+			Complete: true,
+			Name:     "AccessModel",
+		},
 	)
 	if injectErr != nil {
 		panic(fmt.Sprintf("Unable to set up handler: %v", injectErr))
@@ -236,7 +242,12 @@ func injectedHandler(g *inject.Graph, h router.Handler) router.Handler {
 
 func ensureDB(config Configuration) func() (skydb.Conn, error) {
 	connOpener := func() (skydb.Conn, error) {
-		return skydb.Open(config.DB.ImplName, config.App.Name, config.DB.Option)
+		return skydb.Open(
+			config.DB.ImplName,
+			config.App.Name,
+			config.App.AccessControl,
+			config.DB.Option,
+		)
 	}
 
 	// Attempt to open connection to database. Retry for a number of

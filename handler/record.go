@@ -250,11 +250,13 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordSaveHandler struct {
-	HookRegistry *hook.Registry `inject:"HookRegistry"`
-	AssetStore   asset.Store    `inject:"AssetStore"`
+	HookRegistry *hook.Registry    `inject:"HookRegistry"`
+	AssetStore   asset.Store       `inject:"AssetStore"`
+	AccessModel  skydb.AccessModel `inject:"AccessModel"`
 }
 
 func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Response) {
+	log.Debugf("Working with accessModel %v", h.AccessModel)
 	var (
 		records []*skydb.Record
 		atomic  bool
@@ -708,7 +710,8 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordFetchHandler struct {
-	AssetStore asset.Store `inject:"AssetStore"`
+	AssetStore  asset.Store       `inject:"AssetStore"`
+	AccessModel skydb.AccessModel `inject:"AccessModel"`
 }
 
 func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -861,7 +864,8 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordQueryHandler struct {
-	AssetStore asset.Store `inject:"AssetStore"`
+	AssetStore  asset.Store       `inject:"AssetStore"`
+	AccessModel skydb.AccessModel `inject:"AccessModel"`
 }
 
 func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -955,7 +959,8 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordDeleteHandler struct {
-	HookRegistry *hook.Registry `inject:"HookRegistry"`
+	HookRegistry *hook.Registry    `inject:"HookRegistry"`
+	AccessModel  skydb.AccessModel `inject:"AccessModel"`
 }
 
 func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.Response) {

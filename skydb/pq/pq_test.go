@@ -31,7 +31,7 @@ func getTestConn(t *testing.T) *conn {
 	}
 	defaultTo("PGDATABASE", "skygear_test")
 	defaultTo("PGSSLMODE", "disable")
-	c, err := Open("com.oursky.skygear", "")
+	c, err := Open("com.oursky.skygear", skydb.RoleBasedAccess, "")
 	if err != nil {
 		t.Fatal(err)
 	}

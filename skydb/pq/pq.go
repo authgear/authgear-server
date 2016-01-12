@@ -56,10 +56,13 @@ type queryxRunner interface {
 }
 
 // Open returns a new connection to postgresql implementation
-func Open(appName, connString string) (skydb.Conn, error) {
+func Open(appName string, accessModel skydb.AccessModel, connString string) (skydb.Conn, error) {
 	db, err := getDB(appName, connString)
 	if err != nil {
 		return nil, err
+	}
+	if accessModel == skydb.RelationBasedAccess {
+		return nil, fmt.Errorf("Unsupported AccessModel: RelationBasedAccess")
 	}
 
 	return &conn{
@@ -67,6 +70,7 @@ func Open(appName, connString string) (skydb.Conn, error) {
 		RecordSchema: map[string]skydb.RecordSchema{},
 		appName:      appName,
 		option:       connString,
+		accessModel:  accessModel,
 	}, nil
 }
 

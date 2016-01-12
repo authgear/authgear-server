@@ -120,6 +120,18 @@ type Conn interface {
 	Close() error
 }
 
+// AccessModel indicates the type of access control model while db query.
+//go:generate stringer -type=AccessModel
+type AccessModel int
+
+// RoleBasedAccess is tranditional Role based Access Control
+// RelationBasedAccess is Access Control determine by the user-user relation
+// between creator and accessor
+const (
+	RoleBasedAccess AccessModel = iota + 1
+	RelationBasedAccess
+)
+
 // RecordHookEvent indicates the type of record event that triggered
 // the hook
 type RecordHookEvent int

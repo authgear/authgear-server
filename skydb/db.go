@@ -27,14 +27,33 @@ func unregisterAllDrivers() {
 	drivers = map[string]Driver{}
 }
 
+var accessModelMap = map[string]AccessModel{
+	"role":     RoleBasedAccess,
+	"relation": RelationBasedAccess,
+}
+
+// GetAccessModel convert the string config to internal const
+func GetAccessModel(accessString string) AccessModel {
+	var (
+		model AccessModel
+		ok    bool
+	)
+	if model, ok = accessModelMap[accessString]; !ok {
+		fmt.Errorf("Received a not supported Access Contol option: %v", accessString)
+	}
+	return model
+}
+
 // Open returns an implementation of Conn to use w.r.t implName.
 //
 // optionString is passed to the driver and is implementation specific.
 // For example, in a SQL implementation it will be something
 // like "sql://localhost/db0"
-func Open(implName string, appName string, optionString string) (Conn, error) {
+func Open(implName string, appName string, accessString string, optionString string) (Conn, error) {
+	accessModel := GetAccessModel(accessString)
 	if driver, ok := drivers[implName]; ok {
-		return driver.Open(appName, optionString)
+		return driver.Open(appName, accessModel, optionString)
 	}
+
 	return nil, fmt.Errorf("Implementation not registered: %v", implName)
 }
