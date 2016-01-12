@@ -88,6 +88,14 @@ func relationColander(data map[string]interface{}, result *relationPayload) skye
 type RelationQueryHandler struct {
 }
 
+func (h *RelationQueryHandler) Setup() {
+	return
+}
+
+func (h *RelationQueryHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debug("RelationQueryHandler")
 	payload := relationPayload{}
@@ -164,6 +172,14 @@ func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router
 type RelationAddHandler struct {
 }
 
+func (h *RelationAddHandler) Setup() {
+	return
+}
+
+func (h *RelationAddHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debug("RelationAddHandler")
 	payload := relationPayload{}
@@ -213,6 +229,14 @@ func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.R
 // }
 // EOF
 type RelationRemoveHandler struct {
+}
+
+func (h *RelationRemoveHandler) Setup() {
+	return
+}
+
+func (h *RelationRemoveHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *router.Response) {

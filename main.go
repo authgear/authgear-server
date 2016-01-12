@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"reflect"
 	"time"
+
+	"github.com/facebookgo/structtag"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/Sirupsen/logrus/hooks/sentry"
@@ -175,36 +178,36 @@ func main() {
 		&preprocessorRegistry,
 	}
 
-	r.Map("auth:signup", injector.injectedHandler(&handler.SignupHandler{}), authPreprocessors...)
-	r.Map("auth:login", injector.injectedHandler(&handler.LoginHandler{}), authPreprocessors...)
-	r.Map("auth:logout", injector.injectedHandler(&handler.LogoutHandler{}),
+	r.Map("auth:signup", injector.inject(&handler.SignupHandler{}), authPreprocessors...)
+	r.Map("auth:login", injector.inject(&handler.LoginHandler{}), authPreprocessors...)
+	r.Map("auth:logout", injector.inject(&handler.LogoutHandler{}),
 		authenticator.Preprocess,
 		pluginReadyPreprocessor.Preprocess,
 	)
-	r.Map("auth:password", injector.injectedHandler(&handler.PasswordHandler{}), baseAuthPreprocessors...)
+	r.Map("auth:password", injector.inject(&handler.PasswordHandler{}), baseAuthPreprocessors...)
 
-	r.Map("record:fetch", injector.injectedHandler(&handler.RecordFetchHandler{}), baseAuthPreprocessors...)
-	r.Map("record:query", injector.injectedHandler(&handler.RecordQueryHandler{}), baseAuthPreprocessors...)
-	r.Map("record:save", injector.injectedHandler(&handler.RecordSaveHandler{}), recordWritePreprocessors...)
-	r.Map("record:delete", injector.injectedHandler(&handler.RecordDeleteHandler{}), recordWritePreprocessors...)
+	r.Map("record:fetch", injector.inject(&handler.RecordFetchHandler{}), baseAuthPreprocessors...)
+	r.Map("record:query", injector.inject(&handler.RecordQueryHandler{}), baseAuthPreprocessors...)
+	r.Map("record:save", injector.inject(&handler.RecordSaveHandler{}), recordWritePreprocessors...)
+	r.Map("record:delete", injector.inject(&handler.RecordDeleteHandler{}), recordWritePreprocessors...)
 
-	r.Map("device:register", injector.injectedHandler(&handler.DeviceRegisterHandler{}), requireUserWritePreprocessors...)
+	r.Map("device:register", injector.inject(&handler.DeviceRegisterHandler{}), requireUserWritePreprocessors...)
 
 	// subscription shares the same set of preprocessor as record read at the moment
-	r.Map("subscription:fetch_all", injector.injectedHandler(&handler.SubscriptionFetchAllHandler{}), requireUserWritePreprocessors...)
-	r.Map("subscription:delete", injector.injectedHandler(&handler.SubscriptionDeleteHandler{}), requireUserWritePreprocessors...)
+	r.Map("subscription:fetch_all", injector.inject(&handler.SubscriptionFetchAllHandler{}), requireUserWritePreprocessors...)
+	r.Map("subscription:delete", injector.inject(&handler.SubscriptionDeleteHandler{}), requireUserWritePreprocessors...)
 
 	// relation shares the same setof preprocessor
-	r.Map("relation:query", injector.injectedHandler(&handler.RelationQueryHandler{}), baseAuthPreprocessors...)
-	r.Map("relation:add", injector.injectedHandler(&handler.RelationAddHandler{}), baseAuthPreprocessors...)
-	r.Map("relation:remove", injector.injectedHandler(&handler.RelationRemoveHandler{}), baseAuthPreprocessors...)
+	r.Map("relation:query", injector.inject(&handler.RelationQueryHandler{}), baseAuthPreprocessors...)
+	r.Map("relation:add", injector.inject(&handler.RelationAddHandler{}), baseAuthPreprocessors...)
+	r.Map("relation:remove", injector.inject(&handler.RelationRemoveHandler{}), baseAuthPreprocessors...)
 
-	r.Map("user:query", injector.injectedHandler(&handler.UserQueryHandler{}), baseAuthPreprocessors...)
-	r.Map("user:update", injector.injectedHandler(&handler.UserUpdateHandler{}), requireUserWritePreprocessors...)
-	r.Map("user:link", injector.injectedHandler(&handler.UserLinkHandler{}), requireUserWritePreprocessors...)
+	r.Map("user:query", injector.inject(&handler.UserQueryHandler{}), baseAuthPreprocessors...)
+	r.Map("user:update", injector.inject(&handler.UserUpdateHandler{}), requireUserWritePreprocessors...)
+	r.Map("user:link", injector.inject(&handler.UserLinkHandler{}), requireUserWritePreprocessors...)
 
-	r.Map("push:user", injector.injectedHandler(&handler.PushToUserHandler{}), notificationPreprocessors...)
-	r.Map("push:device", injector.injectedHandler(&handler.PushToDeviceHandler{}), notificationPreprocessors...)
+	r.Map("push:user", injector.inject(&handler.PushToUserHandler{}), notificationPreprocessors...)
+	r.Map("push:device", injector.inject(&handler.PushToDeviceHandler{}), notificationPreprocessors...)
 
 	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
@@ -220,8 +223,8 @@ func main() {
 	http.Handle("/_/pubsub", router.LoggingMiddleware(internalPubSubGateway, false))
 
 	fileGateway := router.NewGateway(`files/(.+)`)
-	fileGateway.GET(injector.injectedHandler(&handler.AssetGetURLHandler{}), assetGetPreprocessors...)
-	fileGateway.PUT(injector.injectedHandler(&handler.AssetUploadURLHandler{}), assetPutPreprocessors...)
+	fileGateway.GET(injector.inject(&handler.AssetGetURLHandler{}), assetGetPreprocessors...)
+	fileGateway.PUT(injector.inject(&handler.AssetUploadURLHandler{}), assetPutPreprocessors...)
 	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
 
 	// Bootstrap finished, binding port.
@@ -237,7 +240,7 @@ type handlerInjector struct {
 	preprocessor *router.PreprocessorRegistry
 }
 
-func (i *handlerInjector) injectedHandler(h router.Handler) router.Handler {
+func (i *handlerInjector) injectServices(h router.Handler) router.Handler {
 	err := i.g.Provide(&inject.Object{Value: h})
 	if err != nil {
 		panic(fmt.Sprintf("Unable to set up handler: %v", err))
@@ -247,6 +250,31 @@ func (i *handlerInjector) injectedHandler(h router.Handler) router.Handler {
 	if err != nil {
 		panic(fmt.Sprintf("Unable to set up handler: %v", err))
 	}
+	return h
+}
+
+func (i *handlerInjector) injectProcessors(h router.Handler) router.Handler {
+	t := reflect.TypeOf(h)
+	reflectValue := reflect.ValueOf(h)
+	for c := 0; c < t.Elem().NumField(); c++ {
+		fieldTag := t.Elem().Field(c).Tag
+		found, value, err := structtag.Extract("preprocessor", string(fieldTag))
+		if err != nil {
+			panic(fmt.Sprintf("Unable to set up handler: %v", err))
+		}
+		if found {
+			processorField := reflectValue.Elem().Field(c)
+			processor := reflect.ValueOf((*i.preprocessor)[value])
+			processorField.Set(processor)
+		}
+	}
+	return h
+}
+
+func (i *handlerInjector) inject(h router.Handler) router.Handler {
+	i.injectServices(h)
+	i.injectProcessors(h)
+	h.Setup()
 	return h
 }
 

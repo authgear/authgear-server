@@ -89,6 +89,14 @@ type PushToUserHandler struct {
 	NotificationSender push.Sender `inject:"PushSender"`
 }
 
+func (h *PushToUserHandler) Setup() {
+	return
+}
+
+func (h *PushToUserHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := pushToUserPayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
@@ -125,6 +133,14 @@ func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Re
 
 type PushToDeviceHandler struct {
 	NotificationSender push.Sender `inject:"PushSender"`
+}
+
+func (h *PushToDeviceHandler) Setup() {
+	return
+}
+
+func (h *PushToDeviceHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *PushToDeviceHandler) Handle(rpayload *router.Payload, response *router.Response) {

@@ -16,6 +16,14 @@ type LambdaHandler struct {
 	UserRequired      bool
 }
 
+func (h *LambdaHandler) Setup() {
+	return
+}
+
+func (h *LambdaHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 // Handle executes lambda function implemented by the plugin.
 func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Response) {
 	inbytes, err := json.Marshal(payload.Data)

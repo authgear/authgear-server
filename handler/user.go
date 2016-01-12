@@ -21,6 +21,14 @@ type updatePayload struct {
 type UserQueryHandler struct {
 }
 
+func (h *UserQueryHandler) Setup() {
+	return
+}
+
+func (h *UserQueryHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Response) {
 	qp := queryPayload{}
 	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
@@ -60,6 +68,14 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 type UserUpdateHandler struct {
 }
 
+func (h *UserUpdateHandler) Setup() {
+	return
+}
+
+func (h *UserUpdateHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Response) {
 	p := updatePayload{}
 	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
@@ -87,6 +103,14 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 // user, with third-party authentication handled by plugin.
 type UserLinkHandler struct {
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
+}
+
+func (h *UserLinkHandler) Setup() {
+	return
+}
+
+func (h *UserLinkHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *UserLinkHandler) Handle(payload *router.Payload, response *router.Response) {

@@ -65,6 +65,14 @@ type DeviceReigsterResult struct {
 type DeviceRegisterHandler struct {
 }
 
+func (h *DeviceRegisterHandler) Setup() {
+	return
+}
+
+func (h *DeviceRegisterHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := deviceRegisterPayload{}
 	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {

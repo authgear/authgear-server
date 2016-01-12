@@ -255,6 +255,14 @@ type RecordSaveHandler struct {
 	AccessModel  skydb.AccessModel `inject:"AccessModel"`
 }
 
+func (h *RecordSaveHandler) Setup() {
+	return
+}
+
+func (h *RecordSaveHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Response) {
 	log.Debugf("Working with accessModel %v", h.AccessModel)
 	var (
@@ -714,6 +722,14 @@ type RecordFetchHandler struct {
 	AccessModel skydb.AccessModel `inject:"AccessModel"`
 }
 
+func (h *RecordFetchHandler) Setup() {
+	return
+}
+
+func (h *RecordFetchHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Response) {
 	interfaces, ok := payload.Data["ids"].([]interface{})
 	if !ok {
@@ -868,6 +884,14 @@ type RecordQueryHandler struct {
 	AccessModel skydb.AccessModel `inject:"AccessModel"`
 }
 
+func (h *RecordQueryHandler) Setup() {
+	return
+}
+
+func (h *RecordQueryHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Response) {
 	db := payload.Database
 
@@ -961,6 +985,14 @@ EOF
 type RecordDeleteHandler struct {
 	HookRegistry *hook.Registry    `inject:"HookRegistry"`
 	AccessModel  skydb.AccessModel `inject:"AccessModel"`
+}
+
+func (h *RecordDeleteHandler) Setup() {
+	return
+}
+
+func (h *RecordDeleteHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.Response) {

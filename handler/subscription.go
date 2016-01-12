@@ -227,6 +227,14 @@ func (e *errorWithID) MarshalJSON() ([]byte, error) {
 type SubscriptionFetchHandler struct {
 }
 
+func (h *SubscriptionFetchHandler) Setup() {
+	return
+}
+
+func (h *SubscriptionFetchHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *SubscriptionFetchHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := subscriptionIDsPayload{}
 	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
@@ -282,6 +290,14 @@ func (h *SubscriptionFetchHandler) Handle(rpayload *router.Payload, response *ro
 //	}
 //	EOF
 type SubscriptionFetchAllHandler struct {
+}
+
+func (h *SubscriptionFetchAllHandler) Setup() {
+	return
+}
+
+func (h *SubscriptionFetchAllHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *SubscriptionFetchAllHandler) Handle(rpayload *router.Payload, response *router.Response) {
@@ -355,6 +371,14 @@ func (h *SubscriptionFetchAllHandler) Handle(rpayload *router.Payload, response 
 //	}
 //	EOF
 type SubscriptionSaveHandler struct {
+}
+
+func (h *SubscriptionSaveHandler) Setup() {
+	return
+}
+
+func (h *SubscriptionSaveHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *router.Response) {
@@ -431,6 +455,14 @@ func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *rou
 //	}
 //	EOF
 type SubscriptionDeleteHandler struct {
+}
+
+func (h *SubscriptionDeleteHandler) Setup() {
+	return
+}
+
+func (h *SubscriptionDeleteHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *SubscriptionDeleteHandler) Handle(rpayload *router.Payload, response *router.Response) {

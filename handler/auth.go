@@ -87,6 +87,14 @@ type SignupHandler struct {
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
 }
 
+func (h *SignupHandler) Setup() {
+	return
+}
+
+func (h *SignupHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
 	store := h.TokenStore
 
@@ -203,6 +211,14 @@ type LoginHandler struct {
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
 }
 
+func (h *LoginHandler) Setup() {
+	return
+}
+
+func (h *LoginHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response) {
 	if h.TokenStore == nil {
 		panic("token store is nil")
@@ -288,6 +304,14 @@ type LogoutHandler struct {
 	TokenStore authtoken.Store `inject:"TokenStore"`
 }
 
+func (h *LogoutHandler) Setup() {
+	return
+}
+
+func (h *LogoutHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Response) {
 	store := h.TokenStore
 	accessToken := payload.AccessToken()
@@ -363,6 +387,14 @@ func (p *passwordPayload) Invalidate() bool {
 // accept `invalidate` and invaldate all existing access token.
 // Return userInfoID with new AccessToken if the invalidate is true
 type PasswordHandler struct {
+}
+
+func (h *PasswordHandler) Setup() {
+	return
+}
+
+func (h *PasswordHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Response) {

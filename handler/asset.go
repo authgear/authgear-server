@@ -56,6 +56,14 @@ type AssetGetURLHandler struct {
 	AssetStore skyAsset.Store `inject:"AssetStore"`
 }
 
+func (h *AssetGetURLHandler) Setup() {
+	return
+}
+
+func (h *AssetGetURLHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *AssetGetURLHandler) Handle(payload *router.Payload, response *router.Response) {
 	payload.Req.ParseForm()
 
@@ -116,6 +124,14 @@ func (h *AssetGetURLHandler) Handle(payload *router.Payload, response *router.Re
 //		http://localhost:3000/files/filename
 type AssetUploadURLHandler struct {
 	AssetStore skyAsset.Store `inject:"AssetStore"`
+}
+
+func (h *AssetUploadURLHandler) Setup() {
+	return
+}
+
+func (h *AssetUploadURLHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *AssetUploadURLHandler) Handle(payload *router.Payload, response *router.Response) {
