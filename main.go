@@ -150,6 +150,11 @@ func main() {
 		&inject.Object{Value: tokenStore, Complete: true, Name: "TokenStore"},
 		&inject.Object{Value: initAssetStore(config), Complete: true, Name: "AssetStore"},
 		&inject.Object{Value: pushSender, Complete: true, Name: "PushSender"},
+		&inject.Object{
+			Value:    skydb.GetAccessModel(config.App.AccessControl),
+			Complete: true,
+			Name:     "AccessModel",
+		},
 	)
 	if injectErr != nil {
 		panic(fmt.Sprintf("Unable to set up handler: %v", injectErr))

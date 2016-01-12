@@ -121,6 +121,7 @@ type Conn interface {
 }
 
 // AccessModel indicates the type of access control model while db query.
+//go:generate stringer -type=AccessModel
 type AccessModel int
 
 const (
