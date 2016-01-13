@@ -113,15 +113,6 @@ func main() {
 	preprocessorRegistry["require_user"] = pp.RequireUserForWrite
 	preprocessorRegistry["inject_db"] = pp.InjectDatabase
 
-	assetGetPreprocessors := []router.Processor{
-		dbConnPreprocessor.Preprocess,
-	}
-
-	assetPutPreprocessors := []router.Processor{
-		naiveAPIKeyPreprocessor.Preprocess,
-		dbConnPreprocessor.Preprocess,
-	}
-
 	pubSubPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 	}
@@ -192,8 +183,8 @@ func main() {
 	http.Handle("/_/pubsub", router.LoggingMiddleware(internalPubSubGateway, false))
 
 	fileGateway := router.NewGateway(`files/(.+)`)
-	fileGateway.GET(injector.inject(&handler.AssetGetURLHandler{}), assetGetPreprocessors...)
-	fileGateway.PUT(injector.inject(&handler.AssetUploadURLHandler{}), assetPutPreprocessors...)
+	fileGateway.GET(injector.inject(&handler.AssetGetURLHandler{}))
+	fileGateway.PUT(injector.inject(&handler.AssetUploadURLHandler{}))
 	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
 
 	// Bootstrap finished, binding port.

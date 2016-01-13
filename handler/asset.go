@@ -53,15 +53,19 @@ func validateAssetGetRequest(assetStore skyAsset.Store, fileName string, expired
 }
 
 type AssetGetURLHandler struct {
-	AssetStore skyAsset.Store `inject:"AssetStore"`
+	AssetStore    skyAsset.Store   `inject:"AssetStore"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	preprocessors []router.Processor
 }
 
 func (h *AssetGetURLHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.DBConn,
+	}
 }
 
 func (h *AssetGetURLHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *AssetGetURLHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -123,15 +127,21 @@ func (h *AssetGetURLHandler) Handle(payload *router.Payload, response *router.Re
 //		--data-binary '@file.txt' \
 //		http://localhost:3000/files/filename
 type AssetUploadURLHandler struct {
-	AssetStore skyAsset.Store `inject:"AssetStore"`
+	AssetStore    skyAsset.Store   `inject:"AssetStore"`
+	AccessKey     router.Processor `preprocessor:"accesskey"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	preprocessors []router.Processor
 }
 
 func (h *AssetUploadURLHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.AccessKey,
+		h.DBConn,
+	}
 }
 
 func (h *AssetUploadURLHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *AssetUploadURLHandler) Handle(payload *router.Payload, response *router.Response) {
