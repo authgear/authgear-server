@@ -86,15 +86,25 @@ func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
 }
 
 type PushToUserHandler struct {
-	NotificationSender push.Sender `inject:"PushSender"`
+	NotificationSender push.Sender      `inject:"PushSender"`
+	AccessKey          router.Processor `preprocessor:"accesskey"`
+	DBConn             router.Processor `preprocessor:"dbconn"`
+	InjectDB           router.Processor `preprocessor:"inject_db"`
+	Notification       router.Processor `preprocessor:"notification"`
+	preprocessors      []router.Processor
 }
 
 func (h *PushToUserHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.AccessKey,
+		h.DBConn,
+		h.InjectDB,
+		h.Notification,
+	}
 }
 
 func (h *PushToUserHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Response) {
@@ -132,15 +142,25 @@ func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Re
 }
 
 type PushToDeviceHandler struct {
-	NotificationSender push.Sender `inject:"PushSender"`
+	NotificationSender push.Sender      `inject:"PushSender"`
+	AccessKey          router.Processor `preprocessor:"accesskey"`
+	DBConn             router.Processor `preprocessor:"dbconn"`
+	InjectDB           router.Processor `preprocessor:"inject_db"`
+	Notification       router.Processor `preprocessor:"notification"`
+	preprocessors      []router.Processor
 }
 
 func (h *PushToDeviceHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.AccessKey,
+		h.DBConn,
+		h.InjectDB,
+		h.Notification,
+	}
 }
 
 func (h *PushToDeviceHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *PushToDeviceHandler) Handle(rpayload *router.Payload, response *router.Response) {

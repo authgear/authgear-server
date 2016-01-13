@@ -122,13 +122,6 @@ func main() {
 		dbConnPreprocessor.Preprocess,
 	}
 
-	notificationPreprocessors := []router.Processor{
-		naiveAPIKeyPreprocessor.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		pp.InjectDatabase,
-		notificationPreprocessor.Preprocess,
-	}
-
 	pubSubPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 	}
@@ -182,8 +175,8 @@ func main() {
 	r.Map("user:update", injector.inject(&handler.UserUpdateHandler{}))
 	r.Map("user:link", injector.inject(&handler.UserLinkHandler{}))
 
-	r.Map("push:user", injector.inject(&handler.PushToUserHandler{}), notificationPreprocessors...)
-	r.Map("push:device", injector.inject(&handler.PushToDeviceHandler{}), notificationPreprocessors...)
+	r.Map("push:user", injector.inject(&handler.PushToUserHandler{}))
+	r.Map("push:device", injector.inject(&handler.PushToDeviceHandler{}))
 
 	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
