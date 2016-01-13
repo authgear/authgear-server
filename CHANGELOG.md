@@ -1,3 +1,17 @@
+## 0.4.0 (2016-01-13)
+### Features
+
+- Request context is now passed from skygear to plugin. Only lambda and hook
+  are supported #470
+- Lambda function can specify whether authenticated user or access key is
+  required #267
+
+### Other Notes
+
+- Refractor handler as struct and use facebookgo/inject to manage dependency
+  #482
+- Specify access control type through configuration #297
+
 ## 0.3.0 (2016-01-06)
 
 ### Features
