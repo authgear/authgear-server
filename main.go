@@ -111,6 +111,7 @@ func main() {
 	preprocessorRegistry["plugin"] = pluginReadyPreprocessor.Preprocess
 	preprocessorRegistry["inject_user"] = pp.InjectUserIfPresent
 	preprocessorRegistry["require_user"] = pp.RequireUserForWrite
+	preprocessorRegistry["inject_db"] = pp.InjectDatabase
 
 	baseAuthPreprocessors := []router.Processor{
 		authenticator.Preprocess,
@@ -126,12 +127,6 @@ func main() {
 	assetPutPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
 		dbConnPreprocessor.Preprocess,
-	}
-
-	authPreprocessors := []router.Processor{
-		naiveAPIKeyPreprocessor.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		pluginReadyPreprocessor.Preprocess,
 	}
 
 	recordWritePreprocessors := append(baseAuthPreprocessors,
@@ -178,13 +173,10 @@ func main() {
 		&preprocessorRegistry,
 	}
 
-	r.Map("auth:signup", injector.inject(&handler.SignupHandler{}), authPreprocessors...)
-	r.Map("auth:login", injector.inject(&handler.LoginHandler{}), authPreprocessors...)
-	r.Map("auth:logout", injector.inject(&handler.LogoutHandler{}),
-		authenticator.Preprocess,
-		pluginReadyPreprocessor.Preprocess,
-	)
-	r.Map("auth:password", injector.inject(&handler.PasswordHandler{}), baseAuthPreprocessors...)
+	r.Map("auth:signup", injector.inject(&handler.SignupHandler{}))
+	r.Map("auth:login", injector.inject(&handler.LoginHandler{}))
+	r.Map("auth:logout", injector.inject(&handler.LogoutHandler{}))
+	r.Map("auth:password", injector.inject(&handler.PasswordHandler{}))
 
 	r.Map("record:fetch", injector.inject(&handler.RecordFetchHandler{}), baseAuthPreprocessors...)
 	r.Map("record:query", injector.inject(&handler.RecordQueryHandler{}), baseAuthPreprocessors...)
