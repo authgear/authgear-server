@@ -67,7 +67,6 @@ func (r *Router) Map(action string, handler Handler, preprocessors ...Processor)
 	defer r.actions.Unlock()
 	if len(preprocessors) == 0 {
 		preprocessors = handler.GetPreprocessors()
-		log.Debugf("Using handler injected preprocessors %v", preprocessors)
 	}
 	r.actions.m[action] = pipeline{
 		Action:        action,
