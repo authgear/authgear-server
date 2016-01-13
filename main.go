@@ -181,8 +181,8 @@ func main() {
 	r.Map("device:register", injector.inject(&handler.DeviceRegisterHandler{}))
 
 	// subscription shares the same set of preprocessor as record read at the moment
-	r.Map("subscription:fetch_all", injector.inject(&handler.SubscriptionFetchAllHandler{}), requireUserWritePreprocessors...)
-	r.Map("subscription:delete", injector.inject(&handler.SubscriptionDeleteHandler{}), requireUserWritePreprocessors...)
+	r.Map("subscription:fetch_all", injector.inject(&handler.SubscriptionFetchAllHandler{}))
+	r.Map("subscription:delete", injector.inject(&handler.SubscriptionDeleteHandler{}))
 
 	// relation shares the same setof preprocessor
 	r.Map("relation:query", injector.inject(&handler.RelationQueryHandler{}), baseAuthPreprocessors...)
