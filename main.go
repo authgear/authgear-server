@@ -113,10 +113,6 @@ func main() {
 	preprocessorRegistry["require_user"] = pp.RequireUserForWrite
 	preprocessorRegistry["inject_db"] = pp.InjectDatabase
 
-	pubSubPreprocessors := []router.Processor{
-		naiveAPIKeyPreprocessor.Preprocess,
-	}
-
 	r.Map("", &handler.HomeHandler{})
 
 	g := &inject.Graph{}
@@ -172,11 +168,15 @@ func main() {
 	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
 	pubSubGateway := router.NewGateway(`pubSub`)
-	pubSubGateway.GET(&handler.PubSubHandler{pubSub}, pubSubPreprocessors...)
+	pubSubGateway.GET(injector.injectProcessors(&handler.PubSubHandler{
+		WebSocket: pubSub,
+	}))
 
 	internalPubSub := pubsub.NewWsPubsub(internalHub)
 	internalPubSubGateway := router.NewGateway(`internalpubSub`)
-	internalPubSubGateway.GET(&handler.PubSubHandler{internalPubSub}, pubSubPreprocessors...)
+	internalPubSubGateway.GET(injector.injectProcessors(&handler.PubSubHandler{
+		WebSocket: internalPubSub,
+	}))
 
 	http.Handle("/", router.LoggingMiddleware(r, false))
 	http.Handle("/pubsub", router.LoggingMiddleware(pubSubGateway, false))
@@ -228,13 +228,13 @@ func (i *handlerInjector) injectProcessors(h router.Handler) router.Handler {
 			processorField.Set(processor)
 		}
 	}
+	h.Setup()
 	return h
 }
 
 func (i *handlerInjector) inject(h router.Handler) router.Handler {
 	i.injectServices(h)
 	i.injectProcessors(h)
-	h.Setup()
 	return h
 }
 
