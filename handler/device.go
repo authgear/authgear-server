@@ -63,14 +63,26 @@ type DeviceReigsterResult struct {
 //	EOF
 //
 type DeviceRegisterHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	RequireUser   router.Processor `preprocessor:"require_user"`
+	preprocessors []router.Processor
 }
 
 func (h *DeviceRegisterHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+		h.RequireUser,
+	}
 }
 
 func (h *DeviceRegisterHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *router.Response) {

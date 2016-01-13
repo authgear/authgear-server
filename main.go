@@ -178,7 +178,7 @@ func main() {
 	r.Map("record:save", injector.inject(&handler.RecordSaveHandler{}))
 	r.Map("record:delete", injector.inject(&handler.RecordDeleteHandler{}))
 
-	r.Map("device:register", injector.inject(&handler.DeviceRegisterHandler{}), requireUserWritePreprocessors...)
+	r.Map("device:register", injector.inject(&handler.DeviceRegisterHandler{}))
 
 	// subscription shares the same set of preprocessor as record read at the moment
 	r.Map("subscription:fetch_all", injector.inject(&handler.SubscriptionFetchAllHandler{}), requireUserWritePreprocessors...)
