@@ -19,14 +19,24 @@ type updatePayload struct {
 }
 
 type UserQueryHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	preprocessors []router.Processor
 }
 
 func (h *UserQueryHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+	}
 }
 
 func (h *UserQueryHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -66,14 +76,26 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 }
 
 type UserUpdateHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	RequireUser   router.Processor `preprocessor:"require_user"`
+	preprocessors []router.Processor
 }
 
 func (h *UserUpdateHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+		h.RequireUser,
+	}
 }
 
 func (h *UserUpdateHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -103,14 +125,26 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 // user, with third-party authentication handled by plugin.
 type UserLinkHandler struct {
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
+	Authenticator    router.Processor   `preprocessor:"authenticator"`
+	DBConn           router.Processor   `preprocessor:"dbconn"`
+	InjectUser       router.Processor   `preprocessor:"inject_user"`
+	InjectDB         router.Processor   `preprocessor:"inject_db"`
+	RequireUser      router.Processor   `preprocessor:"require_user"`
+	preprocessors    []router.Processor
 }
 
 func (h *UserLinkHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+		h.RequireUser,
+	}
 }
 
 func (h *UserLinkHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *UserLinkHandler) Handle(payload *router.Payload, response *router.Response) {

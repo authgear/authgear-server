@@ -113,13 +113,6 @@ func main() {
 	preprocessorRegistry["require_user"] = pp.RequireUserForWrite
 	preprocessorRegistry["inject_db"] = pp.InjectDatabase
 
-	baseAuthPreprocessors := []router.Processor{
-		authenticator.Preprocess,
-		dbConnPreprocessor.Preprocess,
-		pp.InjectUserIfPresent,
-		pp.InjectDatabase,
-	}
-
 	assetGetPreprocessors := []router.Processor{
 		dbConnPreprocessor.Preprocess,
 	}
@@ -128,10 +121,6 @@ func main() {
 		naiveAPIKeyPreprocessor.Preprocess,
 		dbConnPreprocessor.Preprocess,
 	}
-
-	requireUserWritePreprocessors := append(baseAuthPreprocessors,
-		pp.RequireUserForWrite,
-	)
 
 	notificationPreprocessors := []router.Processor{
 		naiveAPIKeyPreprocessor.Preprocess,
@@ -189,9 +178,9 @@ func main() {
 	r.Map("relation:add", injector.inject(&handler.RelationAddHandler{}))
 	r.Map("relation:remove", injector.inject(&handler.RelationRemoveHandler{}))
 
-	r.Map("user:query", injector.inject(&handler.UserQueryHandler{}), baseAuthPreprocessors...)
-	r.Map("user:update", injector.inject(&handler.UserUpdateHandler{}), requireUserWritePreprocessors...)
-	r.Map("user:link", injector.inject(&handler.UserLinkHandler{}), requireUserWritePreprocessors...)
+	r.Map("user:query", injector.inject(&handler.UserQueryHandler{}))
+	r.Map("user:update", injector.inject(&handler.UserUpdateHandler{}))
+	r.Map("user:link", injector.inject(&handler.UserLinkHandler{}))
 
 	r.Map("push:user", injector.inject(&handler.PushToUserHandler{}), notificationPreprocessors...)
 	r.Map("push:device", injector.inject(&handler.PushToDeviceHandler{}), notificationPreprocessors...)
