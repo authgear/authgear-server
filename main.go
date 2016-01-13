@@ -129,11 +129,6 @@ func main() {
 		dbConnPreprocessor.Preprocess,
 	}
 
-	recordWritePreprocessors := append(baseAuthPreprocessors,
-		pp.RequireUserForWrite,
-		pluginReadyPreprocessor.Preprocess,
-	)
-
 	requireUserWritePreprocessors := append(baseAuthPreprocessors,
 		pp.RequireUserForWrite,
 	)
@@ -178,10 +173,10 @@ func main() {
 	r.Map("auth:logout", injector.inject(&handler.LogoutHandler{}))
 	r.Map("auth:password", injector.inject(&handler.PasswordHandler{}))
 
-	r.Map("record:fetch", injector.inject(&handler.RecordFetchHandler{}), baseAuthPreprocessors...)
-	r.Map("record:query", injector.inject(&handler.RecordQueryHandler{}), baseAuthPreprocessors...)
-	r.Map("record:save", injector.inject(&handler.RecordSaveHandler{}), recordWritePreprocessors...)
-	r.Map("record:delete", injector.inject(&handler.RecordDeleteHandler{}), recordWritePreprocessors...)
+	r.Map("record:fetch", injector.inject(&handler.RecordFetchHandler{}))
+	r.Map("record:query", injector.inject(&handler.RecordQueryHandler{}))
+	r.Map("record:save", injector.inject(&handler.RecordSaveHandler{}))
+	r.Map("record:delete", injector.inject(&handler.RecordDeleteHandler{}))
 
 	r.Map("device:register", injector.inject(&handler.DeviceRegisterHandler{}), requireUserWritePreprocessors...)
 

@@ -250,17 +250,31 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordSaveHandler struct {
-	HookRegistry *hook.Registry    `inject:"HookRegistry"`
-	AssetStore   asset.Store       `inject:"AssetStore"`
-	AccessModel  skydb.AccessModel `inject:"AccessModel"`
+	HookRegistry  *hook.Registry    `inject:"HookRegistry"`
+	AssetStore    asset.Store       `inject:"AssetStore"`
+	AccessModel   skydb.AccessModel `inject:"AccessModel"`
+	Authenticator router.Processor  `preprocessor:"authenticator"`
+	DBConn        router.Processor  `preprocessor:"dbconn"`
+	InjectUser    router.Processor  `preprocessor:"inject_user"`
+	InjectDB      router.Processor  `preprocessor:"inject_db"`
+	RequireUser   router.Processor  `preprocessor:"require_user"`
+	PluginReady   router.Processor  `preprocessor:"plugin"`
+	preprocessors []router.Processor
 }
 
 func (h *RecordSaveHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+		h.RequireUser,
+		h.PluginReady,
+	}
 }
 
 func (h *RecordSaveHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -718,16 +732,26 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordFetchHandler struct {
-	AssetStore  asset.Store       `inject:"AssetStore"`
-	AccessModel skydb.AccessModel `inject:"AccessModel"`
+	AssetStore    asset.Store       `inject:"AssetStore"`
+	AccessModel   skydb.AccessModel `inject:"AccessModel"`
+	Authenticator router.Processor  `preprocessor:"authenticator"`
+	DBConn        router.Processor  `preprocessor:"dbconn"`
+	InjectUser    router.Processor  `preprocessor:"inject_user"`
+	InjectDB      router.Processor  `preprocessor:"inject_db"`
+	preprocessors []router.Processor
 }
 
 func (h *RecordFetchHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+	}
 }
 
 func (h *RecordFetchHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -880,16 +904,26 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordQueryHandler struct {
-	AssetStore  asset.Store       `inject:"AssetStore"`
-	AccessModel skydb.AccessModel `inject:"AccessModel"`
+	AssetStore    asset.Store       `inject:"AssetStore"`
+	AccessModel   skydb.AccessModel `inject:"AccessModel"`
+	Authenticator router.Processor  `preprocessor:"authenticator"`
+	DBConn        router.Processor  `preprocessor:"dbconn"`
+	InjectUser    router.Processor  `preprocessor:"inject_user"`
+	InjectDB      router.Processor  `preprocessor:"inject_db"`
+	preprocessors []router.Processor
 }
 
 func (h *RecordQueryHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+	}
 }
 
 func (h *RecordQueryHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -983,16 +1017,30 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordDeleteHandler struct {
-	HookRegistry *hook.Registry    `inject:"HookRegistry"`
-	AccessModel  skydb.AccessModel `inject:"AccessModel"`
+	HookRegistry  *hook.Registry    `inject:"HookRegistry"`
+	AccessModel   skydb.AccessModel `inject:"AccessModel"`
+	Authenticator router.Processor  `preprocessor:"authenticator"`
+	DBConn        router.Processor  `preprocessor:"dbconn"`
+	InjectUser    router.Processor  `preprocessor:"inject_user"`
+	InjectDB      router.Processor  `preprocessor:"inject_db"`
+	RequireUser   router.Processor  `preprocessor:"require_user"`
+	PluginReady   router.Processor  `preprocessor:"plugin"`
+	preprocessors []router.Processor
 }
 
 func (h *RecordDeleteHandler) Setup() {
-	return
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+		h.RequireUser,
+		h.PluginReady,
+	}
 }
 
 func (h *RecordDeleteHandler) GetPreprocessors() []router.Processor {
-	return nil
+	return h.preprocessors
 }
 
 func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.Response) {
