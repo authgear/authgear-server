@@ -185,9 +185,9 @@ func main() {
 	r.Map("subscription:delete", injector.inject(&handler.SubscriptionDeleteHandler{}))
 
 	// relation shares the same setof preprocessor
-	r.Map("relation:query", injector.inject(&handler.RelationQueryHandler{}), baseAuthPreprocessors...)
-	r.Map("relation:add", injector.inject(&handler.RelationAddHandler{}), baseAuthPreprocessors...)
-	r.Map("relation:remove", injector.inject(&handler.RelationRemoveHandler{}), baseAuthPreprocessors...)
+	r.Map("relation:query", injector.inject(&handler.RelationQueryHandler{}))
+	r.Map("relation:add", injector.inject(&handler.RelationAddHandler{}))
+	r.Map("relation:remove", injector.inject(&handler.RelationRemoveHandler{}))
 
 	r.Map("user:query", injector.inject(&handler.UserQueryHandler{}), baseAuthPreprocessors...)
 	r.Map("user:update", injector.inject(&handler.UserUpdateHandler{}), requireUserWritePreprocessors...)
