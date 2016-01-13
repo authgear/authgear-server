@@ -139,10 +139,9 @@ func (p *Plugin) processRegistrationInfo(context *InitContext, regInfo registrat
 
 func (p *Plugin) initLambda(r *router.Router, ppreg router.PreprocessorRegistry, lambdas []map[string]interface{}) {
 	for _, lambda := range lambdas {
-		handler := createLambdaHandler(lambda)
-		handler.Plugin = p
-		preprocessors := createPreprocessorList(ppreg, handler)
-		r.Map(handler.Name, handler, preprocessors...)
+		handler := NewLambdaHandler(lambda, ppreg, p)
+		handler.Setup()
+		r.Map(handler.Name, handler)
 		log.Debugf(`Registered lambda "%s" with router.`, handler.Name)
 	}
 }
@@ -174,24 +173,5 @@ func (p *Plugin) initProvider(registry *provider.Registry, providerInfos []provi
 	for _, providerInfo := range providerInfos {
 		provider := NewAuthProvider(providerInfo.Name, p)
 		registry.RegisterAuthProvider(providerInfo.Name, provider)
-	}
-}
-
-func createLambdaHandler(info map[string]interface{}) *LambdaHandler {
-	handler := &LambdaHandler{
-		Name: info["name"].(string),
-	}
-	handler.AccessKeyRequired, _ = info["key_required"].(bool)
-	handler.UserRequired, _ = info["user_required"].(bool)
-	return handler
-}
-
-func createPreprocessorList(reg router.PreprocessorRegistry, handler *LambdaHandler) []router.Processor {
-	if handler.UserRequired {
-		return reg.GetByNames("plugin", "authenticator", "dbconn", "inject_user", "require_user")
-	} else if handler.AccessKeyRequired {
-		return reg.GetByNames("plugin", "authenticator")
-	} else {
-		return reg.GetByNames("plugin")
 	}
 }
