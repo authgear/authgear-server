@@ -47,6 +47,9 @@ func (g *Gateway) PUT(handler Handler, preprocessors ...Processor) {
 // Handle registers a handler matched by a request's method and URL's path.
 // Pattern is a regexp that defines a matched URL.
 func (g *Gateway) Handle(method string, handler Handler, preprocessors ...Processor) {
+	if len(preprocessors) == 0 {
+		preprocessors = handler.GetPreprocessors()
+	}
 	g.methodPaths[method] = pathRoute{
 		Preprocessors: preprocessors,
 		Handler:       handler,
