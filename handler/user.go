@@ -15,7 +15,8 @@ type queryPayload struct {
 }
 
 type updatePayload struct {
-	Email string `json:"email"`
+	Email string   `json:"email"`
+	Roles []string `json:"roles"`
 }
 
 type UserQueryHandler struct {
@@ -76,11 +77,12 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 }
 
 type UserUpdateHandler struct {
-	Authenticator router.Processor `preprocessor:"authenticator"`
-	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireUser   router.Processor `preprocessor:"require_user"`
+	AccessModel   skydb.AccessModel `inject:"AccessModel"`
+	Authenticator router.Processor  `preprocessor:"authenticator"`
+	DBConn        router.Processor  `preprocessor:"dbconn"`
+	InjectUser    router.Processor  `preprocessor:"inject_user"`
+	InjectDB      router.Processor  `preprocessor:"inject_db"`
+	RequireUser   router.Processor  `preprocessor:"require_user"`
 	preprocessors []router.Processor
 }
 
@@ -113,21 +115,31 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	payload.UserInfo.Email = p.Email
+	if p.Roles != nil && h.AccessModel != skydb.RoleBasedAccess {
+		response.Err = skyerr.NewError(skyerr.UnexpectedError,
+			"Cannot assign user role on AcceesModel is not RoleBaseAccess")
+		return
+	}
 
 	userinfo := payload.UserInfo
 	userinfo.Email = p.Email
+	userinfo.Roles = p.Roles
 
 	if err := payload.DBConn.UpdateUser(userinfo); err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 	response.Result = struct {
-		ID       string `json:"_id"`
-		Email    string `json:"email"`
-		Username string `json:"username"`
-	}{userinfo.ID, userinfo.Email, userinfo.Username}
-
+		ID       string   `json:"_id"`
+		Email    string   `json:"email"`
+		Username string   `json:"username"`
+		Roles    []string `json:"roles,omitempty"`
+	}{
+		userinfo.ID,
+		userinfo.Email,
+		userinfo.Username,
+		userinfo.Roles,
+	}
 }
 
 // UserLinkHandler lets user associate third-party accounts with the

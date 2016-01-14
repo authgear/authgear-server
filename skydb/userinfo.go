@@ -28,6 +28,7 @@ type UserInfo struct {
 	Username       string   `json:"username,omitempty"`
 	Email          string   `json:"email,omitempty"`
 	HashedPassword []byte   `json:"password,omitempty"`
+	Roles          []string `json:"roles,omitempty"`
 	Auth           AuthInfo `json:"auth,omitempty"` // auth data for alternative methods
 }
 

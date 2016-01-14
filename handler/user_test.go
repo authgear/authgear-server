@@ -106,13 +106,15 @@ func TestUserUpdateHandler(t *testing.T) {
 		}
 		conn.CreateUser(&userInfo)
 
-		router := handlertest.NewSingleRouteRouter(&UserUpdateHandler{}, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
+			AccessModel: skydb.RoleBasedAccess,
+		}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.UserInfo = &userInfo
 		})
 
 		Convey("update email", func() {
-			resp := router.POST(`{"email": "peter.doe@example.com"}`)
+			resp := r.POST(`{"email": "peter.doe@example.com"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": {
 		"_id": "user0",
@@ -124,6 +126,35 @@ func TestUserUpdateHandler(t *testing.T) {
 			newUserInfo := skydb.UserInfo{}
 			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
 			So(newUserInfo.Email, ShouldEqual, "peter.doe@example.com")
+		})
+
+		Convey("update roles", func() {
+			conn := skydbtest.NewMapConn()
+			userInfo := skydb.UserInfo{
+				ID:       "user0",
+				Username: "username0",
+			}
+			conn.CreateUser(&userInfo)
+
+			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
+				AccessModel: skydb.RoleBasedAccess,
+			}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.UserInfo = &userInfo
+			})
+
+			resp := r.POST(`{
+	"username": "username0",
+	"roles": ["admin", "writer"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": {
+		"_id": "user0",
+		"username": "username0",
+		"email": "",
+		"roles": ["admin", "writer"]
+	}
+}`)
 		})
 	})
 }
