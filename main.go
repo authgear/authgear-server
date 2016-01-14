@@ -4,10 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"reflect"
 	"time"
-
-	"github.com/facebookgo/structtag"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/Sirupsen/logrus/hooks/sentry"
@@ -132,49 +129,49 @@ func main() {
 		panic(fmt.Sprintf("Unable to set up handler: %v", injectErr))
 	}
 
-	injector := handlerInjector{
+	injector := router.HandlerInjector{
 		g,
 		&preprocessorRegistry,
 	}
 
-	r.Map("auth:signup", injector.inject(&handler.SignupHandler{}))
-	r.Map("auth:login", injector.inject(&handler.LoginHandler{}))
-	r.Map("auth:logout", injector.inject(&handler.LogoutHandler{}))
-	r.Map("auth:password", injector.inject(&handler.PasswordHandler{}))
+	r.Map("auth:signup", injector.Inject(&handler.SignupHandler{}))
+	r.Map("auth:login", injector.Inject(&handler.LoginHandler{}))
+	r.Map("auth:logout", injector.Inject(&handler.LogoutHandler{}))
+	r.Map("auth:password", injector.Inject(&handler.PasswordHandler{}))
 
-	r.Map("record:fetch", injector.inject(&handler.RecordFetchHandler{}))
-	r.Map("record:query", injector.inject(&handler.RecordQueryHandler{}))
-	r.Map("record:save", injector.inject(&handler.RecordSaveHandler{}))
-	r.Map("record:delete", injector.inject(&handler.RecordDeleteHandler{}))
+	r.Map("record:fetch", injector.Inject(&handler.RecordFetchHandler{}))
+	r.Map("record:query", injector.Inject(&handler.RecordQueryHandler{}))
+	r.Map("record:save", injector.Inject(&handler.RecordSaveHandler{}))
+	r.Map("record:delete", injector.Inject(&handler.RecordDeleteHandler{}))
 
-	r.Map("device:register", injector.inject(&handler.DeviceRegisterHandler{}))
+	r.Map("device:register", injector.Inject(&handler.DeviceRegisterHandler{}))
 
 	// subscription shares the same set of preprocessor as record read at the moment
-	r.Map("subscription:fetch_all", injector.inject(&handler.SubscriptionFetchAllHandler{}))
-	r.Map("subscription:delete", injector.inject(&handler.SubscriptionDeleteHandler{}))
+	r.Map("subscription:fetch_all", injector.Inject(&handler.SubscriptionFetchAllHandler{}))
+	r.Map("subscription:delete", injector.Inject(&handler.SubscriptionDeleteHandler{}))
 
 	// relation shares the same setof preprocessor
-	r.Map("relation:query", injector.inject(&handler.RelationQueryHandler{}))
-	r.Map("relation:add", injector.inject(&handler.RelationAddHandler{}))
-	r.Map("relation:remove", injector.inject(&handler.RelationRemoveHandler{}))
+	r.Map("relation:query", injector.Inject(&handler.RelationQueryHandler{}))
+	r.Map("relation:add", injector.Inject(&handler.RelationAddHandler{}))
+	r.Map("relation:remove", injector.Inject(&handler.RelationRemoveHandler{}))
 
-	r.Map("user:query", injector.inject(&handler.UserQueryHandler{}))
-	r.Map("user:update", injector.inject(&handler.UserUpdateHandler{}))
-	r.Map("user:link", injector.inject(&handler.UserLinkHandler{}))
+	r.Map("user:query", injector.Inject(&handler.UserQueryHandler{}))
+	r.Map("user:update", injector.Inject(&handler.UserUpdateHandler{}))
+	r.Map("user:link", injector.Inject(&handler.UserLinkHandler{}))
 
-	r.Map("push:user", injector.inject(&handler.PushToUserHandler{}))
-	r.Map("push:device", injector.inject(&handler.PushToDeviceHandler{}))
+	r.Map("push:user", injector.Inject(&handler.PushToUserHandler{}))
+	r.Map("push:device", injector.Inject(&handler.PushToDeviceHandler{}))
 
 	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
 	pubSubGateway := router.NewGateway(`pubSub`)
-	pubSubGateway.GET(injector.injectProcessors(&handler.PubSubHandler{
+	pubSubGateway.GET(injector.InjectProcessors(&handler.PubSubHandler{
 		WebSocket: pubSub,
 	}))
 
 	internalPubSub := pubsub.NewWsPubsub(internalHub)
 	internalPubSubGateway := router.NewGateway(`internalpubSub`)
-	internalPubSubGateway.GET(injector.injectProcessors(&handler.PubSubHandler{
+	internalPubSubGateway.GET(injector.InjectProcessors(&handler.PubSubHandler{
 		WebSocket: internalPubSub,
 	}))
 
@@ -183,8 +180,8 @@ func main() {
 	http.Handle("/_/pubsub", router.LoggingMiddleware(internalPubSubGateway, false))
 
 	fileGateway := router.NewGateway(`files/(.+)`)
-	fileGateway.GET(injector.inject(&handler.AssetGetURLHandler{}))
-	fileGateway.PUT(injector.inject(&handler.AssetUploadURLHandler{}))
+	fileGateway.GET(injector.Inject(&handler.AssetGetURLHandler{}))
+	fileGateway.PUT(injector.Inject(&handler.AssetUploadURLHandler{}))
 	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
 
 	// Bootstrap finished, binding port.
@@ -193,49 +190,6 @@ func main() {
 	if err != nil {
 		log.Printf("Failed: %v", err)
 	}
-}
-
-type handlerInjector struct {
-	g            *inject.Graph
-	preprocessor *router.PreprocessorRegistry
-}
-
-func (i *handlerInjector) injectServices(h router.Handler) router.Handler {
-	err := i.g.Provide(&inject.Object{Value: h})
-	if err != nil {
-		panic(fmt.Sprintf("Unable to set up handler: %v", err))
-	}
-
-	err = i.g.Populate()
-	if err != nil {
-		panic(fmt.Sprintf("Unable to set up handler: %v", err))
-	}
-	return h
-}
-
-func (i *handlerInjector) injectProcessors(h router.Handler) router.Handler {
-	t := reflect.TypeOf(h)
-	reflectValue := reflect.ValueOf(h)
-	for c := 0; c < t.Elem().NumField(); c++ {
-		fieldTag := t.Elem().Field(c).Tag
-		found, value, err := structtag.Extract("preprocessor", string(fieldTag))
-		if err != nil {
-			panic(fmt.Sprintf("Unable to set up handler: %v", err))
-		}
-		if found {
-			processorField := reflectValue.Elem().Field(c)
-			processor := reflect.ValueOf((*i.preprocessor)[value])
-			processorField.Set(processor)
-		}
-	}
-	h.Setup()
-	return h
-}
-
-func (i *handlerInjector) inject(h router.Handler) router.Handler {
-	i.injectServices(h)
-	i.injectProcessors(h)
-	return h
 }
 
 func ensureDB(config Configuration) func() (skydb.Conn, error) {
