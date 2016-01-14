@@ -16,6 +16,14 @@ type MockHander struct {
 	outputs Response
 }
 
+func (m *MockHander) Setup() {
+	return
+}
+
+func (m *MockHander) GetPreprocessors() []Processor {
+	return nil
+}
+
 func (m *MockHander) Handle(p *Payload, r *Response) {
 	r.Result = m.outputs.Result
 	return
@@ -23,6 +31,14 @@ func (m *MockHander) Handle(p *Payload, r *Response) {
 
 type ErrHandler struct {
 	Err skyerr.Error
+}
+
+func (h *ErrHandler) Setup() {
+	return
+}
+
+func (h *ErrHandler) GetPreprocessors() []Processor {
+	return nil
 }
 
 func (h *ErrHandler) Handle(p *Payload, r *Response) {

@@ -225,6 +225,26 @@ func (e *errorWithID) MarshalJSON() ([]byte, error) {
 //	}
 //	EOF
 type SubscriptionFetchHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	RequireUser   router.Processor `preprocessor:"require_user"`
+	preprocessors []router.Processor
+}
+
+func (h *SubscriptionFetchHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+		h.RequireUser,
+	}
+}
+
+func (h *SubscriptionFetchHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
 }
 
 func (h *SubscriptionFetchHandler) Handle(rpayload *router.Payload, response *router.Response) {
@@ -282,6 +302,26 @@ func (h *SubscriptionFetchHandler) Handle(rpayload *router.Payload, response *ro
 //	}
 //	EOF
 type SubscriptionFetchAllHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	RequireUser   router.Processor `preprocessor:"require_user"`
+	preprocessors []router.Processor
+}
+
+func (h *SubscriptionFetchAllHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+		h.RequireUser,
+	}
+}
+
+func (h *SubscriptionFetchAllHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
 }
 
 func (h *SubscriptionFetchAllHandler) Handle(rpayload *router.Payload, response *router.Response) {
@@ -355,6 +395,14 @@ func (h *SubscriptionFetchAllHandler) Handle(rpayload *router.Payload, response 
 //	}
 //	EOF
 type SubscriptionSaveHandler struct {
+}
+
+func (h *SubscriptionSaveHandler) Setup() {
+	return
+}
+
+func (h *SubscriptionSaveHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *router.Response) {
@@ -431,6 +479,14 @@ func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *rou
 //	}
 //	EOF
 type SubscriptionDeleteHandler struct {
+}
+
+func (h *SubscriptionDeleteHandler) Setup() {
+	return
+}
+
+func (h *SubscriptionDeleteHandler) GetPreprocessors() []router.Processor {
+	return nil
 }
 
 func (h *SubscriptionDeleteHandler) Handle(rpayload *router.Payload, response *router.Response) {

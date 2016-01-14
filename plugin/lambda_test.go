@@ -27,6 +27,36 @@ func (t *fakeTransport) RunLambda(ctx context.Context, name string, in []byte) (
 	return
 }
 
+func TestLambdaCreation(t *testing.T) {
+	Convey("create simple lambda", t, func() {
+		handler := NewLambdaHandler(map[string]interface{}{
+			"name": "hello:world",
+		}, nil, nil)
+
+		So(handler.Name, ShouldEqual, "hello:world")
+		So(handler.AccessKeyRequired, ShouldBeFalse)
+		So(handler.UserRequired, ShouldBeFalse)
+	})
+
+	Convey("create user required lambda", t, func() {
+		handler := NewLambdaHandler(map[string]interface{}{
+			"name":          "hello:world",
+			"user_required": true,
+		}, nil, nil)
+
+		So(handler.UserRequired, ShouldBeTrue)
+	})
+
+	Convey("create key required lambda", t, func() {
+		handler := NewLambdaHandler(map[string]interface{}{
+			"name":         "hello:world",
+			"key_required": true,
+		}, nil, nil)
+
+		So(handler.AccessKeyRequired, ShouldBeTrue)
+	})
+}
+
 func TestLambdaHandler(t *testing.T) {
 	Convey("test args and stdout", t, func() {
 		transport := &nullTransport{}

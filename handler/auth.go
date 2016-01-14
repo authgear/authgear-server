@@ -73,18 +73,34 @@ func (p *signupPayload) AuthData() map[string]interface{} {
 // response.Result if the supplied username or email collides with an existing
 // username.
 //
-//	curl -X POST -H "Content-Type: application/json" \
-//	  -d @- http://localhost:3000/ <<EOF
-//	{
-//	    "action": "auth:signup",
-//	    "username": "rickmak",
-//	    "email": "rick.mak@gmail.com",
-//	    "password": "123456"
-//	}
-//	EOF
+//  curl -X POST -H "Content-Type: application/json" \
+//    -d @- http://localhost:3000/ <<EOF
+//  {
+//      "action": "auth:signup",
+//      "username": "rickmak",
+//      "email": "rick.mak@gmail.com",
+//      "password": "123456"
+//  }
+//  EOF
 type SignupHandler struct {
 	TokenStore       authtoken.Store    `inject:"TokenStore"`
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
+	AccessKey        router.Processor   `preprocessor:"accesskey"`
+	DBConn           router.Processor   `preprocessor:"dbconn"`
+	PluginReady      router.Processor   `preprocessor:"plugin"`
+	preprocessors    []router.Processor
+}
+
+func (h *SignupHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.AccessKey,
+		h.DBConn,
+		h.PluginReady,
+	}
+}
+
+func (h *SignupHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
 }
 
 func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -201,6 +217,22 @@ EOF
 type LoginHandler struct {
 	TokenStore       authtoken.Store    `inject:"TokenStore"`
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
+	AccessKey        router.Processor   `preprocessor:"accesskey"`
+	DBConn           router.Processor   `preprocessor:"dbconn"`
+	PluginReady      router.Processor   `preprocessor:"plugin"`
+	preprocessors    []router.Processor
+}
+
+func (h *LoginHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.AccessKey,
+		h.DBConn,
+		h.PluginReady,
+	}
+}
+
+func (h *LoginHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
 }
 
 func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -285,7 +317,21 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 
 // LogoutHandler receives an access token and invalidates it
 type LogoutHandler struct {
-	TokenStore authtoken.Store `inject:"TokenStore"`
+	TokenStore    authtoken.Store  `inject:"TokenStore"`
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	PluginReady   router.Processor `preprocessor:"plugin"`
+	preprocessors []router.Processor
+}
+
+func (h *LogoutHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.PluginReady,
+	}
+}
+
+func (h *LogoutHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
 }
 
 func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Response) {
@@ -346,14 +392,14 @@ func (p *passwordPayload) Invalidate() bool {
 // If user is not logged in, an 404 not found will return.
 //
 //  Current implementation
-//	curl -X POST -H "Content-Type: application/json" \
-//	  -d @- http://localhost:3000/ <<EOF
-//	{
-//	    "action": "auth:password",
-//	    "old_password": "rick.mak@gmail.com",
-//	    "password": "123456"
-//	}
-//	EOF
+//  curl -X POST -H "Content-Type: application/json" \
+//    -d @- http://localhost:3000/ <<EOF
+//  {
+//      "action": "auth:password",
+//      "old_password": "rick.mak@gmail.com",
+//      "password": "123456"
+//  }
+//  EOF
 // Response
 // return existing access toektn if not invalidate
 //
@@ -363,6 +409,24 @@ func (p *passwordPayload) Invalidate() bool {
 // accept `invalidate` and invaldate all existing access token.
 // Return userInfoID with new AccessToken if the invalidate is true
 type PasswordHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	preprocessors []router.Processor
+}
+
+func (h *PasswordHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+	}
+}
+
+func (h *PasswordHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
 }
 
 func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Response) {

@@ -86,6 +86,24 @@ func relationColander(data map[string]interface{}, result *relationPayload) skye
 //     }
 // }
 type RelationQueryHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	preprocessors []router.Processor
+}
+
+func (h *RelationQueryHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+	}
+}
+
+func (h *RelationQueryHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
 }
 
 func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router.Response) {
@@ -162,6 +180,24 @@ func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router
 //     ]
 // }
 type RelationAddHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	preprocessors []router.Processor
+}
+
+func (h *RelationAddHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+	}
+}
+
+func (h *RelationAddHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
 }
 
 func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.Response) {
@@ -213,6 +249,24 @@ func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.R
 // }
 // EOF
 type RelationRemoveHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	preprocessors []router.Processor
+}
+
+func (h *RelationRemoveHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+	}
+}
+
+func (h *RelationRemoveHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
 }
 
 func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *router.Response) {

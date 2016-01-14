@@ -16,6 +16,8 @@ type HandlerFunc func(*Payload, *Response)
 
 // Handler specifies the interface of a request handler
 type Handler interface {
+	Setup()
+	GetPreprocessors() []Processor
 	Handle(*Payload, *Response)
 }
 
@@ -23,10 +25,19 @@ type funcHandler struct {
 	Func HandlerFunc
 }
 
+func (h *funcHandler) Setup() {
+	return
+}
+
+func (h *funcHandler) GetPreprocessors() []Processor {
+	return []Processor{}
+}
+
 func (h *funcHandler) Handle(payload *Payload, response *Response) {
 	h.Func(payload, response)
 }
 
+// NewFuncHandler is intend for using in test, not actual code.
 func NewFuncHandler(f HandlerFunc) Handler {
 	return &funcHandler{f}
 }

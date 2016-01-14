@@ -12,6 +12,14 @@ type statusResponse struct {
 type HomeHandler struct {
 }
 
+func (h *HomeHandler) Setup() {
+	return
+}
+
+func (h *HomeHandler) GetPreprocessors() []router.Processor {
+	return nil
+}
+
 func (h *HomeHandler) Handle(playload *router.Payload, response *router.Response) {
 	var (
 		rep statusResponse

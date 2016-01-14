@@ -14,6 +14,35 @@ type LambdaHandler struct {
 	Name              string
 	AccessKeyRequired bool
 	UserRequired      bool
+	PreprocessorList  router.PreprocessorRegistry
+	preprocessors     []router.Processor
+}
+
+func NewLambdaHandler(info map[string]interface{}, ppreg router.PreprocessorRegistry, p *Plugin) *LambdaHandler {
+	handler := &LambdaHandler{
+		Plugin:           p,
+		Name:             info["name"].(string),
+		PreprocessorList: ppreg,
+	}
+	handler.AccessKeyRequired, _ = info["key_required"].(bool)
+	handler.UserRequired, _ = info["user_required"].(bool)
+	return handler
+}
+
+func (h *LambdaHandler) Setup() {
+	if h.UserRequired {
+		h.preprocessors = h.PreprocessorList.GetByNames(
+			"plugin", "authenticator", "dbconn", "inject_user", "require_user")
+	} else if h.AccessKeyRequired {
+		h.preprocessors = h.PreprocessorList.GetByNames(
+			"plugin", "authenticator")
+	} else {
+		h.preprocessors = h.PreprocessorList.GetByNames("plugin")
+	}
+}
+
+func (h *LambdaHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
 }
 
 // Handle executes lambda function implemented by the plugin.
