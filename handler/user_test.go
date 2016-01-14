@@ -100,6 +100,7 @@ func TestUserUpdateHandler(t *testing.T) {
 		conn := skydbtest.NewMapConn()
 		userInfo := skydb.UserInfo{
 			ID:             "user0",
+			Username:       "john.doe",
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("password"),
 		}
@@ -112,7 +113,13 @@ func TestUserUpdateHandler(t *testing.T) {
 
 		Convey("update email", func() {
 			resp := router.POST(`{"email": "peter.doe@example.com"}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": {
+		"_id": "user0",
+		"username": "john.doe",
+		"email": "peter.doe@example.com"
+	}
+}`)
 
 			newUserInfo := skydb.UserInfo{}
 			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)

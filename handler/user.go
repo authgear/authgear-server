@@ -115,10 +115,19 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 
 	payload.UserInfo.Email = p.Email
 
-	if err := payload.DBConn.UpdateUser(payload.UserInfo); err != nil {
+	userinfo := payload.UserInfo
+	userinfo.Email = p.Email
+
+	if err := payload.DBConn.UpdateUser(userinfo); err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
+	response.Result = struct {
+		ID       string `json:"_id"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+	}{userinfo.ID, userinfo.Email, userinfo.Username}
+
 }
 
 // UserLinkHandler lets user associate third-party accounts with the
