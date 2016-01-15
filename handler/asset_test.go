@@ -27,10 +27,7 @@ func newmodGateway(pattern string) *modGateway {
 }
 
 func (g *modGateway) Handle(method string, handler router.Handler, prepareFunc func(*router.Payload)) {
-	(*router.Gateway)(g).Handle(method, handler, func(p *router.Payload, _ *router.Response) int {
-		prepareFunc(p)
-		return 200
-	})
+	(*router.Gateway)(g).Handle(method, handler, mockProcessor{prepareFunc})
 }
 
 func (g *modGateway) Do(req *http.Request) *httptest.ResponseRecorder {
@@ -54,6 +51,15 @@ func (g *modGateway) makeRequest(method, path, body string) *httptest.ResponseRe
 
 	(*router.Gateway)(g).ServeHTTP(resp, req)
 	return resp
+}
+
+type mockProcessor struct {
+	Mockfunc func(*router.Payload)
+}
+
+func (p mockProcessor) Preprocess(payload *router.Payload, _ *router.Response) int {
+	p.Mockfunc(payload)
+	return 200
 }
 
 type naiveAssetConn struct {

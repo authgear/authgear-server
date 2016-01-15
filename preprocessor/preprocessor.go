@@ -10,7 +10,10 @@ import (
 	"github.com/oursky/skygear/skyerr"
 )
 
-func InjectUserIfPresent(payload *router.Payload, response *router.Response) int {
+type InjectUserIfPresent struct {
+}
+
+func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
 	if payload.UserInfoID == "" {
 		log.Debugln("injectUser: empty UserInfoID, skipping")
 		return http.StatusOK
@@ -29,7 +32,10 @@ func InjectUserIfPresent(payload *router.Payload, response *router.Response) int
 	return http.StatusOK
 }
 
-func InjectDatabase(payload *router.Payload, response *router.Response) int {
+type InjectDatabase struct {
+}
+
+func (p InjectDatabase) Preprocess(payload *router.Payload, response *router.Response) int {
 	conn := payload.DBConn
 
 	databaseID, _ := payload.Data["database_id"].(string)
@@ -50,7 +56,10 @@ func InjectDatabase(payload *router.Payload, response *router.Response) int {
 	return http.StatusOK
 }
 
-func RequireUserForWrite(payload *router.Payload, response *router.Response) int {
+type RequireUserForWrite struct {
+}
+
+func (p RequireUserForWrite) Preprocess(payload *router.Payload, response *router.Response) int {
 	if payload.UserInfo == nil {
 		response.Err = skyerr.NewError(skyerr.PermissionDenied, "write is not allowed")
 		return http.StatusUnauthorized

@@ -77,38 +77,29 @@ func main() {
 	initDevice(config, connOpener)
 
 	// Preprocessor
-	notificationPreprocessor := pp.NotificationPreprocessor{
+	preprocessorRegistry["notification"] = &pp.NotificationPreprocessor{
 		NotificationSender: pushSender,
 	}
-	preprocessorRegistry["notification"] = notificationPreprocessor.Preprocess
-
-	naiveAPIKeyPreprocessor := pp.AccessKeyValidatonPreprocessor{
+	preprocessorRegistry["accesskey"] = &pp.AccessKeyValidatonPreprocessor{
 		Key:     config.App.APIKey,
 		AppName: config.App.Name,
 	}
-	preprocessorRegistry["accesskey"] = naiveAPIKeyPreprocessor.Preprocess
-
-	authenticator := pp.UserAuthenticator{
+	preprocessorRegistry["authenticator"] = &pp.UserAuthenticator{
 		APIKey:     config.App.APIKey,
 		AppName:    config.App.Name,
 		TokenStore: tokenStore,
 	}
-	preprocessorRegistry["authenticator"] = authenticator.Preprocess
-
-	dbConnPreprocessor := pp.ConnPreprocessor{
+	preprocessorRegistry["dbconn"] = &pp.ConnPreprocessor{
 		AppName:       config.App.Name,
 		AccessControl: config.App.AccessControl,
 		DBOpener:      skydb.Open,
 		DBImpl:        config.DB.ImplName,
 		Option:        config.DB.Option,
 	}
-	preprocessorRegistry["dbconn"] = dbConnPreprocessor.Preprocess
-
-	pluginReadyPreprocessor := &pp.EnsurePluginReadyPreprocessor{&initContext}
-	preprocessorRegistry["plugin"] = pluginReadyPreprocessor.Preprocess
-	preprocessorRegistry["inject_user"] = pp.InjectUserIfPresent
-	preprocessorRegistry["require_user"] = pp.RequireUserForWrite
-	preprocessorRegistry["inject_db"] = pp.InjectDatabase
+	preprocessorRegistry["plugin"] = &pp.EnsurePluginReadyPreprocessor{&initContext}
+	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
+	preprocessorRegistry["require_user"] = &pp.RequireUserForWrite{}
+	preprocessorRegistry["inject_db"] = &pp.InjectDatabase{}
 
 	r.Map("", &handler.HomeHandler{})
 

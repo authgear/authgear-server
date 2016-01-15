@@ -29,9 +29,6 @@ type Router struct {
 	}
 }
 
-// Processor specifies the function signature for a Preprocessor
-type Processor func(*Payload, *Response) int
-
 // PreprocessorRegistry is holding all preprocessors and their mapping with
 // a string name.
 type PreprocessorRegistry map[string]Processor
@@ -119,7 +116,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, "route unmatched")
 	} else {
 		for _, p := range preprocessors {
-			httpStatus = p(payload, &resp)
+			httpStatus = p.Preprocess(payload, &resp)
 			if resp.Err != nil {
 				if httpStatus == http.StatusOK {
 					httpStatus = defaultStatusCode(resp.Err)
