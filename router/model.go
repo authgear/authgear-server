@@ -21,6 +21,11 @@ type Handler interface {
 	Handle(*Payload, *Response)
 }
 
+// Processor specifies the function signature for a Processor
+type Processor interface {
+	Preprocess(*Payload, *Response) int
+}
+
 type funcHandler struct {
 	Func HandlerFunc
 }

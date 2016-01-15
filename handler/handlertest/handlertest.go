@@ -17,11 +17,17 @@ type SingleRouteRouter router.Router
 // handler as the only route.
 func NewSingleRouteRouter(handler router.Handler, prepareFunc func(*router.Payload)) *SingleRouteRouter {
 	r := router.NewRouter()
-	r.Map("", handler, func(p *router.Payload, _ *router.Response) int {
-		prepareFunc(p)
-		return 200
-	})
+	r.Map("", handler, &FuncProcessor{prepareFunc})
 	return (*SingleRouteRouter)(r)
+}
+
+type FuncProcessor struct {
+	Mockfunc func(*router.Payload)
+}
+
+func (p FuncProcessor) Preprocess(payload *router.Payload, _ *router.Response) int {
+	p.Mockfunc(payload)
+	return http.StatusOK
 }
 
 // POST invoke the only route mapped on the SingleRouteRouter.

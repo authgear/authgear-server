@@ -90,7 +90,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	for _, p := range preprocessors {
-		httpStatus = p(payload, &resp)
+		httpStatus = p.Preprocess(payload, &resp)
 		if resp.Err != nil {
 			if httpStatus == http.StatusOK {
 				httpStatus = defaultStatusCode(resp.Err)

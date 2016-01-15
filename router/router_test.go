@@ -110,7 +110,7 @@ type getPreprocessor struct {
 	Err    skyerr.Error
 }
 
-func (p *getPreprocessor) Preprocess(payload *Payload, response *Response) int {
+func (p getPreprocessor) Preprocess(payload *Payload, response *Response) int {
 	response.Err = p.Err
 	return p.Status
 }
@@ -148,7 +148,7 @@ func TestPreprocess(t *testing.T) {
 	}}
 	mockPreprocessor := getPreprocessor{}
 
-	r.Map("mock:preprocess", &mockHandler, mockPreprocessor.Preprocess)
+	r.Map("mock:preprocess", &mockHandler, &mockPreprocessor)
 
 	Convey("Given a router with a preprocessor", t, func() {
 		req, _ := http.NewRequest(
@@ -209,20 +209,20 @@ func TestPreprocess(t *testing.T) {
 }
 
 func TestPreprocessorRegistry(t *testing.T) {
-	mockPreprocessor := getPreprocessor{}
+	mockPreprocessor := &getPreprocessor{}
 
 	Convey("Register preprocessor", t, func() {
 		reg := PreprocessorRegistry{}
-		reg["mock"] = mockPreprocessor.Preprocess
-		So(reg["mock"], ShouldEqual, mockPreprocessor.Preprocess)
+		reg["mock"] = mockPreprocessor
+		So(reg["mock"], ShouldEqual, mockPreprocessor)
 	})
 
 	Convey("Get by names", t, func() {
 		reg := PreprocessorRegistry{}
-		reg["mock"] = mockPreprocessor.Preprocess
+		reg["mock"] = mockPreprocessor
 		preprocessors := reg.GetByNames("mock")
 		So(len(preprocessors), ShouldEqual, 1)
-		So(preprocessors[0], ShouldEqual, mockPreprocessor.Preprocess)
+		So(preprocessors[0], ShouldEqual, mockPreprocessor)
 	})
 }
 

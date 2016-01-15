@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"runtime/debug"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/oursky/skygear/skyerr"
@@ -42,6 +43,7 @@ func errorFromRecoveringPanic(r interface{}) skyerr.Error {
 	case skyerr.Error:
 		return err
 	case error:
+		log.Errorf("%s", debug.Stack())
 		return skyerr.NewErrorf(skyerr.UnexpectedError, "panic occurred while handling request: %v", err.Error())
 	default:
 		log.Warnf("router: unexpected type when recovering from panic: %v", err)
