@@ -80,6 +80,7 @@ func (c *conn) Db() Ext {
 
 // Begin begins a transaction.
 func (c *conn) Begin() (err error) {
+	log.Debugf("%p: Beginning transaction", c)
 	if c.txDone {
 		return skydb.ErrDatabaseTxDone
 	}
@@ -89,6 +90,7 @@ func (c *conn) Begin() (err error) {
 	}
 
 	c.tx, err = c.db.Beginx()
+	log.Debugf("%p: Done beginning transaction %p", c, c.tx)
 	return
 }
 
@@ -106,6 +108,7 @@ func (c *conn) Commit() (err error) {
 	if err == nil {
 		c.txDone = true
 	}
+	log.Debugf("%p: Committed transaction %p", c, c.tx)
 	return
 }
 
@@ -123,6 +126,7 @@ func (c *conn) Rollback() (err error) {
 	if err == nil {
 		c.txDone = true
 	}
+	log.Debugf("%p: Rolled back transaction %p", c, c.tx)
 	return
 }
 
