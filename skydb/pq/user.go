@@ -9,7 +9,7 @@ import (
 	"github.com/oursky/skygear/skydb"
 )
 
-func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
+func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 	var (
 		username *string
 		email    *string
@@ -25,12 +25,17 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
 		email = nil
 	}
 	log.Debugf("Roles %v", userinfo.Roles)
-	if err := c.ensureRole(userinfo.Roles) ; err != nil {
+	if err := c.ensureRole(userinfo.Roles); err != nil {
 		return err
 	}
 	if err := c.Begin(); err != nil {
 		return err
 	}
+	defer func() {
+		if err != nil {
+			c.Rollback()
+		}
+	}()
 	builder := psql.Insert(c.tableName("_user")).Columns(
 		"id",
 		"username",
@@ -45,20 +50,21 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
 		authInfoValue(userinfo.Auth),
 	)
 
-	_, err := c.ExecWith(builder)
+	_, err = c.ExecWith(builder)
 	if isUniqueViolated(err) {
 		return skydb.ErrUserDuplicated
 	}
 
-	c.UpdateUserRoles(userinfo)
-	if err := c.Commit(); err != nil {
+	if err := c.UpdateUserRoles(userinfo); err != nil {
+		return skydb.ErrRoleUpdatesFailed
+	}
+	if err = c.Commit(); err != nil {
 		return err
 	}
-
 	return err
 }
 
-func (c *conn) UpdateUser(userinfo *skydb.UserInfo) error {
+func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 	var (
 		username *string
 		email    *string
@@ -75,13 +81,18 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) error {
 	}
 
 	log.Debugf("Roles %v", userinfo.Roles)
-	if err := c.ensureRole(userinfo.Roles) ; err != nil {
+	if err = c.ensureRole(userinfo.Roles); err != nil {
 		return err
 	}
 
-	if err := c.Begin(); err != nil {
+	if err = c.Begin(); err != nil {
 		return err
 	}
+	defer func() {
+		if err != nil {
+			c.Rollback()
+		}
+	}()
 	builder := psql.Update(c.tableName("_user")).
 		Set("username", username).
 		Set("email", email).
@@ -103,11 +114,12 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) error {
 		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
 	}
 
-	c.UpdateUserRoles(userinfo)
+	if err := c.UpdateUserRoles(userinfo); err != nil {
+		return skydb.ErrRoleUpdatesFailed
+	}
 	if err := c.Commit(); err != nil {
 		return err
 	}
-
 	return nil
 }
 
