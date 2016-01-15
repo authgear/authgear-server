@@ -27,7 +27,7 @@ type FuncProcessor struct {
 
 func (p FuncProcessor) Preprocess(payload *router.Payload, _ *router.Response) int {
 	p.Mockfunc(payload)
-	return 200
+	return http.StatusOK
 }
 
 // POST invoke the only route mapped on the SingleRouteRouter.

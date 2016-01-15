@@ -59,7 +59,7 @@ type mockProcessor struct {
 
 func (p mockProcessor) Preprocess(payload *router.Payload, _ *router.Response) int {
 	p.Mockfunc(payload)
-	return 200
+	return http.StatusOK
 }
 
 type naiveAssetConn struct {
