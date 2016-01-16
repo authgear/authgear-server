@@ -38,7 +38,7 @@ func TestBrokerEndToEnd(t *testing.T) {
 		clientAddr = "inproc://client.test"
 		workerAddr = "inproc://worker.test"
 	)
-	broker, err := NewBroker(clientAddr, workerAddr)
+	broker, err := NewBroker("", clientAddr, workerAddr)
 	if err != nil {
 		t.Fatalf("Failed to init broker: %v", err)
 	}
