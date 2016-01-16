@@ -284,5 +284,19 @@ func (f zmqTransportFactory) Open(name string, args []string) (transport odplugi
 }
 
 func init() {
+	// A new zmq socket is created here so that a new zmq context is created
+	// for the process.
+	// If the zmq context is not created first, it will be created at the
+	// time when zmq sockets are created, which might cause zsys_init to
+	// fail since it is not thread-safe.
+	// goczmq does not provide function to init context, so we create
+	// a new socket here and throw it away.
+	router, err := goczmq.NewRouter(`inproc://init`)
+	if err != nil {
+		panic("unable to initialize zmq")
+	}
+	defer router.Destroy()
+
+	// Register the zmq transport factory
 	odplugin.RegisterTransport("zmq", zmqTransportFactory{})
 }
