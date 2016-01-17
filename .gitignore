@@ -5,6 +5,7 @@ data
 
 # go generated sources
 *_string.go
+/Godeps/_workspace
 
 # Fabric
 fabfile.pyc
