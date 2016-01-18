@@ -61,16 +61,14 @@ func main() {
 
 	preprocessorRegistry := router.PreprocessorRegistry{}
 
-	c := cron.New()
+	cronjob := cron.New()
 	initContext := plugin.InitContext{
 		Router:           r,
 		Preprocessors:    preprocessorRegistry,
 		HookRegistry:     hook.NewRegistry(),
 		ProviderRegistry: provider.NewRegistry(),
-		Scheduler:        c,
+		Scheduler:        cronjob,
 	}
-	c.Start()
-	initPlugin(config, &initContext) // Block until plugin configured
 
 	internalHub := pubsub.NewHub()
 	initSubscription(config, connOpener, internalHub, pushSender)
@@ -175,7 +173,10 @@ func main() {
 	fileGateway.PUT(injector.Inject(&handler.AssetUploadURLHandler{}))
 	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
 
-	// Bootstrap finished, binding port.
+	// Bootstrap finished, starting services
+	cronjob.Start()
+	initPlugin(config, &initContext)
+
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, nil)
 	if err != nil {
