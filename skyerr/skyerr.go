@@ -163,6 +163,8 @@ func NewErrorWithInfo(code ErrorCode, message string, info map[string]interface{
 	}
 }
 
+// NewInvalidArgument is a convenient function to returns an invalid argument
+// error with a list of arguments that are invalid.
 func NewInvalidArgument(message string, arguments []string) Error {
 	return &genericError{
 		code:    InvalidArgument,
