@@ -39,15 +39,23 @@ const (
 //
 // NOTE(limouren): it might make a good interface
 type Broker struct {
+	name string
 	// NOTE: goroutines are caller of plugin, so frontend is Go side,
 	// backend is plugin side
 	frontendAddr, backendAddr string
 	freshWorkers              chan []byte
+	logger                    *log.Entry
 }
 
 // NewBroker returns a new *Broker.
-func NewBroker(frontendAddr, backendAddr string) (*Broker, error) {
-	return &Broker{frontendAddr, backendAddr, make(chan []byte, 1)}, nil
+func NewBroker(name, frontendAddr, backendAddr string) (*Broker, error) {
+	return &Broker{
+		name:         name,
+		frontendAddr: frontendAddr,
+		backendAddr:  backendAddr,
+		freshWorkers: make(chan []byte, 1),
+		logger:       log.WithFields(log.Fields{"plugin": name}),
+	}, nil
 }
 
 // Run kicks start the Broker and listens for requests. It blocks function
@@ -85,7 +93,7 @@ func (lb *Broker) Run() {
 				}
 			} else {
 				frontend.SendMessage(msg)
-				log.Debugf("zmq/broker: backend => frontend: %#x, %s\n", msg[0], msg)
+				lb.logger.Debugf("zmq/broker: backend => frontend: %#x, %s\n", msg[0], msg)
 			}
 		case frontend:
 			frames, err := frontend.RecvMessage()
@@ -95,7 +103,7 @@ func (lb *Broker) Run() {
 
 			frames = append([][]byte{workers.Next()}, frames...)
 			backend.SendMessage(frames)
-			log.Debugf("zmq/broker: frontend => backend: %#x, %s\n", frames[0], frames)
+			lb.logger.Debugf("zmq/broker: frontend => backend: %#x, %s\n", frames[0], frames)
 		case nil:
 			// do nothing
 		default:

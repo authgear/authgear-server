@@ -21,6 +21,7 @@ type zmqTransport struct {
 	eaddr       string // the addr exposed for plugin to connect to with REP.
 	broker      *Broker
 	initHandler odplugin.TransportInitHandler
+	logger      *log.Entry
 }
 
 type request struct {
@@ -100,7 +101,7 @@ func (p *zmqTransport) setState(state odplugin.TransportState) {
 	if state != p.state {
 		oldState := p.state
 		p.state = state
-		log.Infof("Transport state changes from %v to %v.", oldState, p.state)
+		p.logger.Infof("Transport state changes from %v to %v.", oldState, p.state)
 	}
 }
 
@@ -114,7 +115,7 @@ func (p *zmqTransport) RequestInit() {
 			continue
 		}
 
-		log.Debugf("zmq transport got fresh worker %s", string(address))
+		p.logger.Debugf("zmq transport got fresh worker %s", string(address))
 
 		// TODO: Only send init to the new address. For now, we let
 		// the broker decide.
@@ -136,7 +137,7 @@ func (p *zmqTransport) RunInit() (out []byte, err error) {
 		if err == nil {
 			break
 		}
-		log.Warn("Unable to send init request to plugin. Retrying...")
+		p.logger.WithField("err", err).Warnf(`zmq/rpc: Unable to send init request to plugin "%s". Retrying...`, p.name)
 	}
 	return
 }
@@ -159,7 +160,7 @@ func (p *zmqTransport) RunHook(ctx context.Context, recordType string, trigger s
 
 	var recordout skydb.Record
 	if err := json.Unmarshal(out, (*common.JSONRecord)(&recordout)); err != nil {
-		log.WithField("data", string(out)).Error("failed to unmarshal record")
+		p.logger.WithField("data", string(out)).Error("failed to unmarshal record")
 		return nil, fmt.Errorf("failed to unmarshal record: %v", err)
 	}
 	recordout.OwnerID = record.OwnerID
@@ -259,9 +260,10 @@ func (f zmqTransportFactory) Open(name string, args []string) (transport odplugi
 	internalAddr := fmt.Sprintf(internalAddrFmt, name)
 	externalAddr := args[0]
 
-	broker, err := NewBroker(internalAddr, externalAddr)
+	broker, err := NewBroker(name, internalAddr, externalAddr)
+	logger := log.WithFields(log.Fields{"plugin": name})
 	if err != nil {
-		log.Panicf("Failed to init broker for zmq transport: %v", err)
+		logger.Panicf("Failed to init broker for zmq transport: %v", err)
 	}
 
 	p := zmqTransport{
@@ -270,10 +272,11 @@ func (f zmqTransportFactory) Open(name string, args []string) (transport odplugi
 		iaddr:  internalAddr,
 		eaddr:  externalAddr,
 		broker: broker,
+		logger: logger,
 	}
 
 	go func() {
-		log.Infof("Running zmq broker:\niaddr = %s\neaddr = %s", internalAddr, externalAddr)
+		logger.Infof("Running zmq broker:\niaddr = %s\neaddr = %s", internalAddr, externalAddr)
 		broker.Run()
 	}()
 
@@ -281,5 +284,19 @@ func (f zmqTransportFactory) Open(name string, args []string) (transport odplugi
 }
 
 func init() {
+	// A new zmq socket is created here so that a new zmq context is created
+	// for the process.
+	// If the zmq context is not created first, it will be created at the
+	// time when zmq sockets are created, which might cause zsys_init to
+	// fail since it is not thread-safe.
+	// goczmq does not provide function to init context, so we create
+	// a new socket here and throw it away.
+	router, err := goczmq.NewRouter(`inproc://init`)
+	if err != nil {
+		panic("unable to initialize zmq")
+	}
+	defer router.Destroy()
+
+	// Register the zmq transport factory
 	odplugin.RegisterTransport("zmq", zmqTransportFactory{})
 }
