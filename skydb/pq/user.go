@@ -28,14 +28,6 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 	if err := c.ensureRole(userinfo.Roles); err != nil {
 		return err
 	}
-	if err := c.Begin(); err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			c.Rollback()
-		}
-	}()
 	builder := psql.Insert(c.tableName("_user")).Columns(
 		"id",
 		"username",
@@ -57,9 +49,6 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 
 	if err := c.UpdateUserRoles(userinfo); err != nil {
 		return skydb.ErrRoleUpdatesFailed
-	}
-	if err = c.Commit(); err != nil {
-		return err
 	}
 	return err
 }
@@ -84,15 +73,6 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 	if err = c.ensureRole(userinfo.Roles); err != nil {
 		return err
 	}
-
-	if err = c.Begin(); err != nil {
-		return err
-	}
-	defer func() {
-		if err != nil {
-			c.Rollback()
-		}
-	}()
 	builder := psql.Update(c.tableName("_user")).
 		Set("username", username).
 		Set("email", email).
@@ -116,9 +96,6 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 
 	if err := c.UpdateUserRoles(userinfo); err != nil {
 		return skydb.ErrRoleUpdatesFailed
-	}
-	if err := c.Commit(); err != nil {
-		return err
 	}
 	return nil
 }
