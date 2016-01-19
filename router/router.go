@@ -3,7 +3,6 @@ package router
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -163,19 +162,4 @@ func newPayloadForJSONHandler(req *http.Request) (p *Payload, err error) {
 	}
 
 	return
-}
-
-// CheckAuth will check on the AccessToken, attach DB/RequestID to the response
-// This is a no-op if the request action belong to "auth:" group
-func CheckAuth(payload *Payload, response *Response) (status int, err error) {
-	log.Println("CheckAuth")
-
-	token := payload.AccessToken()
-
-	if token == "validToken" {
-		log.Println("CheckAuth -> validToken, ", token)
-		return http.StatusOK, nil
-	}
-	log.Println("CheckAuth -> inValidToken, ", token)
-	return http.StatusUnauthorized, errors.New("Unauthorized request")
 }
