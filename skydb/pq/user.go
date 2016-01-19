@@ -24,10 +24,7 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 	} else {
 		email = nil
 	}
-	log.Debugf("Roles %v", userinfo.Roles)
-	if err := c.ensureRole(userinfo.Roles); err != nil {
-		return err
-	}
+
 	builder := psql.Insert(c.tableName("_user")).Columns(
 		"id",
 		"username",
@@ -69,10 +66,6 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 		email = nil
 	}
 
-	log.Debugf("Roles %v", userinfo.Roles)
-	if err = c.ensureRole(userinfo.Roles); err != nil {
-		return err
-	}
 	builder := psql.Update(c.tableName("_user")).
 		Set("username", username).
 		Set("email", email).

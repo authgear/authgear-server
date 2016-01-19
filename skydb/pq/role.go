@@ -12,6 +12,9 @@ import (
 
 func (c *conn) UpdateUserRoles(userinfo *skydb.UserInfo) error {
 	log.Debugf("UpdateRoles %v", userinfo)
+	if err := c.ensureRole(userinfo.Roles); err != nil {
+		return err
+	}
 	builder := psql.Delete(c.tableName("_user_role")).Where("user_id = ?", userinfo.ID)
 	_, err := c.ExecWith(builder)
 	if err != nil {
