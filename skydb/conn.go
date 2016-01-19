@@ -14,6 +14,8 @@ var ErrUserDuplicated = errors.New("skydb: duplicated UserID or Username")
 // in the current container
 var ErrUserNotFound = errors.New("skydb: UserInfo ID not found")
 
+var ErrRoleUpdatesFailed = errors.New("skydb: Update of user roles failed")
+
 // ErrDeviceNotFound is returned by Conn.GetDevice, Conn.DeleteDevice,
 // Conn.DeleteDeviceByToken and Conn.DeleteEmptyDevicesByTime, if the desired Device
 // cannot be found in the current container

@@ -9,7 +9,7 @@ import (
 	"github.com/oursky/skygear/skydb"
 )
 
-func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
+func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 	var (
 		username *string
 		email    *string
@@ -39,12 +39,58 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) error {
 		authInfoValue(userinfo.Auth),
 	)
 
-	_, err := c.ExecWith(builder)
+	_, err = c.ExecWith(builder)
 	if isUniqueViolated(err) {
 		return skydb.ErrUserDuplicated
 	}
 
+	if err := c.UpdateUserRoles(userinfo); err != nil {
+		return skydb.ErrRoleUpdatesFailed
+	}
 	return err
+}
+
+func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
+	var (
+		username *string
+		email    *string
+	)
+	if userinfo.Username != "" {
+		username = &userinfo.Username
+	} else {
+		username = nil
+	}
+	if userinfo.Email != "" {
+		email = &userinfo.Email
+	} else {
+		email = nil
+	}
+
+	builder := psql.Update(c.tableName("_user")).
+		Set("username", username).
+		Set("email", email).
+		Set("password", userinfo.HashedPassword).
+		Set("auth", authInfoValue(userinfo.Auth)).
+		Where("id = ?", userinfo.ID)
+
+	result, err := c.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return skydb.ErrUserNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+	}
+
+	if err := c.UpdateUserRoles(userinfo); err != nil {
+		return skydb.ErrRoleUpdatesFailed
+	}
+	return nil
 }
 
 func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error {
@@ -154,45 +200,6 @@ func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
 	}
 
 	return results, nil
-}
-
-func (c *conn) UpdateUser(userinfo *skydb.UserInfo) error {
-	var (
-		username *string
-		email    *string
-	)
-	if userinfo.Username != "" {
-		username = &userinfo.Username
-	} else {
-		username = nil
-	}
-	if userinfo.Email != "" {
-		email = &userinfo.Email
-	} else {
-		email = nil
-	}
-	builder := psql.Update(c.tableName("_user")).
-		Set("username", username).
-		Set("email", email).
-		Set("password", userinfo.HashedPassword).
-		Set("auth", authInfoValue(userinfo.Auth)).
-		Where("id = ?", userinfo.ID)
-
-	result, err := c.ExecWith(builder)
-	if err != nil {
-		return err
-	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return skydb.ErrUserNotFound
-	} else if rowsAffected > 1 {
-		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
-	}
-
-	return nil
 }
 
 func (c *conn) DeleteUser(id string) error {

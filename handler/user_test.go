@@ -100,23 +100,92 @@ func TestUserUpdateHandler(t *testing.T) {
 		conn := skydbtest.NewMapConn()
 		userInfo := skydb.UserInfo{
 			ID:             "user0",
+			Username:       "john.doe",
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("password"),
 		}
 		conn.CreateUser(&userInfo)
 
-		router := handlertest.NewSingleRouteRouter(&UserUpdateHandler{}, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
+			AccessModel: skydb.RoleBasedAccess,
+		}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.UserInfo = &userInfo
 		})
 
 		Convey("update email", func() {
-			resp := router.POST(`{"email": "peter.doe@example.com"}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
+			resp := r.POST(`{"email": "peter.doe@example.com"}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": {
+		"_id": "user0",
+		"username": "john.doe",
+		"email": "peter.doe@example.com"
+	}
+}`)
 
 			newUserInfo := skydb.UserInfo{}
 			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
 			So(newUserInfo.Email, ShouldEqual, "peter.doe@example.com")
+		})
+
+		Convey("update roles", func() {
+			conn := skydbtest.NewMapConn()
+			userInfo := skydb.UserInfo{
+				ID:       "user0",
+				Username: "username0",
+			}
+			conn.CreateUser(&userInfo)
+
+			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
+				AccessModel: skydb.RoleBasedAccess,
+			}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.UserInfo = &userInfo
+			})
+
+			resp := r.POST(`{
+	"username": "username0",
+	"roles": ["admin", "writer"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": {
+		"_id": "user0",
+		"username": "username0",
+		"email": "",
+		"roles": ["admin", "writer"]
+	}
+}`)
+		})
+
+		Convey("update roles at non role base configuration result in error", func() {
+			conn := skydbtest.NewMapConn()
+			userInfo := skydb.UserInfo{
+				ID:       "user0",
+				Username: "username0",
+			}
+			conn.CreateUser(&userInfo)
+
+			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
+				AccessModel: skydb.RelationBasedAccess,
+			}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.UserInfo = &userInfo
+			})
+
+			resp := r.POST(`{
+	"username": "username0",
+	"roles": ["admin", "writer"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 108,
+		"info": {
+			"arguments": ["roles"]
+		},
+		"message": "Cannot assign user role on AcceesModel is not RoleBaseAccess",
+		"name": "InvalidArgument"
+	}
+}`)
 		})
 	})
 }

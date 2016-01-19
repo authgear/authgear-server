@@ -36,7 +36,7 @@ func templateExecString(t *template.Template, i interface{}) (string, error) {
 	return buf.String(), nil
 }
 
-const DbVersionNum = "30d0a626888"
+const DbVersionNum = "41af1c8d394"
 const createAppSchemaStmtTmplText = `
 CREATE SCHEMA IF NOT EXISTS {{.Schema}};
 CREATE TABLE IF NOT EXISTS public.pending_notification (
@@ -78,6 +78,17 @@ CREATE TABLE {{.Schema}}._user (
 	UNIQUE (username),
 	UNIQUE (email)
 );
+
+CREATE TABLE {{.Schema}}._role (
+	id text PRIMARY KEY
+);
+
+CREATE TABLE {{.Schema}}._user_role (
+	user_id text REFERENCES {{.Schema}}._user (id) NOT NULL,
+	role_id text REFERENCES {{.Schema}}._role (id) NOT NULL,
+	PRIMARY KEY (user_id, role_id)
+);
+
 CREATE TABLE {{.Schema}}._asset (
 	id text PRIMARY KEY,
 	content_type text NOT NULL,
