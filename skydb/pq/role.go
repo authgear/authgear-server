@@ -92,6 +92,6 @@ func (c *conn) ensureRole(roles []string) error {
 		return nil
 	}
 	log.Debugf("Diffing the roles not exist in DB")
-	absenceRoles := utils.StrSliceWithout(roles, existedRole)
+	absenceRoles := utils.StringSliceExcept(roles, existedRole)
 	return c.createRoles(absenceRoles)
 }

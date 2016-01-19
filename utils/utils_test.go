@@ -5,10 +5,10 @@ import (
 	"testing"
 )
 
-func TestStrSliceWithout(t *testing.T) {
-	Convey("StrSliceWithout", t, func() {
+func TestStringSliceExcept(t *testing.T) {
+	Convey("StringSliceExcept", t, func() {
 		Convey("return new slice without unwanted items", func() {
-			result := StrSliceWithout([]string{
+			result := StringSliceExcept([]string{
 				"1",
 				"2",
 				"3",
@@ -21,7 +21,7 @@ func TestStrSliceWithout(t *testing.T) {
 		})
 
 		Convey("should return all items if no items is filtered", func() {
-			result := StrSliceWithout([]string{
+			result := StringSliceExcept([]string{
 				"1",
 				"2",
 				"3",
@@ -32,7 +32,7 @@ func TestStrSliceWithout(t *testing.T) {
 		})
 
 		Convey("works with duplicated items to filter", func() {
-			result := StrSliceWithout([]string{
+			result := StringSliceExcept([]string{
 				"1",
 				"2",
 				"3",

@@ -1,10 +1,10 @@
 package utils
 
-func StrSliceWithout(slice []string, without []string) []string {
+func StringSliceExcept(slice []string, except []string) []string {
 	newSlice := []string{}
 
 	for _, c := range slice {
-		if pos := strAt(without, c); pos == -1 {
+		if pos := strAt(except, c); pos == -1 {
 			newSlice = append(newSlice, c)
 		}
 	}
