@@ -156,6 +156,37 @@ func TestUserUpdateHandler(t *testing.T) {
 	}
 }`)
 		})
+
+		Convey("update roles at non role base configuration result in error", func() {
+			conn := skydbtest.NewMapConn()
+			userInfo := skydb.UserInfo{
+				ID:       "user0",
+				Username: "username0",
+			}
+			conn.CreateUser(&userInfo)
+
+			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
+				AccessModel: skydb.RelationBasedAccess,
+			}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.UserInfo = &userInfo
+			})
+
+			resp := r.POST(`{
+	"username": "username0",
+	"roles": ["admin", "writer"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 108,
+		"info": {
+			"arguments": ["roles"]
+		},
+		"message": "Cannot assign user role on AcceesModel is not RoleBaseAccess",
+		"name": "InvalidArgument"
+	}
+}`)
+		})
 	})
 }
 

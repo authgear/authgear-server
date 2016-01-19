@@ -116,8 +116,9 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	if p.Roles != nil && h.AccessModel != skydb.RoleBasedAccess {
-		response.Err = skyerr.NewError(skyerr.UnexpectedError,
-			"Cannot assign user role on AcceesModel is not RoleBaseAccess")
+		response.Err = skyerr.NewInvalidArgument(
+			"Cannot assign user role on AcceesModel is not RoleBaseAccess",
+			[]string{"roles"})
 		return
 	}
 
