@@ -4,8 +4,11 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"golang.org/x/net/context"
 
+	"github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/authtoken"
+	"github.com/oursky/skygear/plugin/hook"
 	"github.com/oursky/skygear/plugin/provider"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
@@ -85,8 +88,11 @@ func (p *signupPayload) AuthData() map[string]interface{} {
 type SignupHandler struct {
 	TokenStore       authtoken.Store    `inject:"TokenStore"`
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
+	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
+	AssetStore       asset.Store        `inject:"AssetStore"`
 	AccessKey        router.Processor   `preprocessor:"accesskey"`
 	DBConn           router.Processor   `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
 	PluginReady      router.Processor   `preprocessor:"plugin"`
 	preprocessors    []router.Processor
 }
@@ -95,6 +101,7 @@ func (h *SignupHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.AccessKey,
 		h.DBConn,
+		h.InjectPublicDB,
 		h.PluginReady,
 	}
 }
@@ -141,12 +148,10 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		info = skydb.NewUserInfo(username, email, password)
 	}
 
-	if err := payload.DBConn.CreateUser(&info); err != nil {
-		if err == skydb.ErrUserDuplicated {
-			response.Err = errUserDuplicated
-		} else {
-			response.Err = skyerr.NewResourceSaveFailureErrWithStringID("user", p.Username())
-		}
+	createContext := createUserWithRecordContext{
+		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
+	}
+	if response.Err = createContext.execute(&info); response.Err != nil {
 		return
 	}
 
@@ -217,8 +222,11 @@ EOF
 type LoginHandler struct {
 	TokenStore       authtoken.Store    `inject:"TokenStore"`
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
+	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
+	AssetStore       asset.Store        `inject:"AssetStore"`
 	AccessKey        router.Processor   `preprocessor:"accesskey"`
 	DBConn           router.Processor   `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
 	PluginReady      router.Processor   `preprocessor:"plugin"`
 	preprocessors    []router.Processor
 }
@@ -227,6 +235,7 @@ func (h *LoginHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.AccessKey,
 		h.DBConn,
+		h.InjectPublicDB,
 		h.PluginReady,
 	}
 }
@@ -269,12 +278,10 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 			}
 
 			info = skydb.NewProvidedAuthUserInfo(principalID, authData)
-			if err = payload.DBConn.CreateUser(&info); err != nil {
-				if err == skydb.ErrUserDuplicated {
-					response.Err = errUserDuplicated
-				} else {
-					response.Err = skyerr.NewResourceSaveFailureErrWithStringID("user", p.Username())
-				}
+			createContext := createUserWithRecordContext{
+				payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
+			}
+			if response.Err = createContext.execute(&info); response.Err != nil {
 				return
 			}
 		} else {
@@ -466,4 +473,63 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		UserID:      info.ID,
 		AccessToken: payload.AccessToken(),
 	}
+}
+
+// createUserWithRecordContext is a context for creating a new user with
+// database record
+type createUserWithRecordContext struct {
+	DBConn       skydb.Conn
+	Database     skydb.Database
+	AssetStore   asset.Store
+	HookRegistry *hook.Registry
+	Context      context.Context
+}
+
+func (ctx *createUserWithRecordContext) execute(info *skydb.UserInfo) skyerr.Error {
+	db := ctx.Database
+	txDB, ok := db.(skydb.TxDatabase)
+	if !ok {
+		return skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
+	}
+
+	txErr := withTransaction(txDB, func() error {
+		if err := ctx.DBConn.CreateUser(info); err != nil {
+			if err == skydb.ErrUserDuplicated {
+				return errUserDuplicated
+			}
+			return skyerr.NewResourceSaveFailureErrWithStringID("user", info.Username)
+		}
+
+		userRecord := skydb.Record{
+			ID: skydb.NewRecordID(db.UserRecordType(), info.ID),
+		}
+
+		recordReq := recordModifyRequest{
+			Db:           db,
+			AssetStore:   ctx.AssetStore,
+			HookRegistry: ctx.HookRegistry,
+			Atomic:       false,
+			Context:      ctx.Context,
+			RecordsToSave: []*skydb.Record{
+				&userRecord,
+			},
+			UserInfoID: info.ID,
+		}
+
+		recordResp := recordModifyResponse{
+			ErrMap: map[skydb.RecordID]skyerr.Error{},
+		}
+
+		return recordSaveHandler(&recordReq, &recordResp)
+	})
+
+	if txErr == nil {
+		return nil
+	}
+
+	if err, ok := txErr.(skyerr.Error); ok {
+		return err
+	}
+
+	return skyerr.NewUnknownErr(txErr)
 }

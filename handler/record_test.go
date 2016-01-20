@@ -1621,34 +1621,6 @@ func TestHookExecution(t *testing.T) {
 	})
 }
 
-// mockTxDB implements and records TxDatabase's methods and delegates other
-// calls to underlying Database
-type mockTxDatabase struct {
-	DidBegin, DidCommit, DidRollback bool
-	skydb.Database
-}
-
-func newMockTxDatabase(backingDB skydb.Database) *mockTxDatabase {
-	return &mockTxDatabase{Database: backingDB}
-}
-
-func (db *mockTxDatabase) Begin() error {
-	db.DidBegin = true
-	return nil
-}
-
-func (db *mockTxDatabase) Commit() error {
-	db.DidCommit = true
-	return nil
-}
-
-func (db *mockTxDatabase) Rollback() error {
-	db.DidRollback = true
-	return nil
-}
-
-var _ skydb.TxDatabase = &mockTxDatabase{}
-
 type filterFuncDef func(op string, recordID skydb.RecordID, record *skydb.Record) skyerr.Error
 
 // selectiveDatabase filter Get, Save and Delete by executing filterFunc
@@ -1713,7 +1685,7 @@ func TestAtomicOperation(t *testing.T) {
 
 	Convey("Atomic Operation", t, func() {
 		backingDB := skydbtest.NewMapDB()
-		txDB := newMockTxDatabase(backingDB)
+		txDB := skydbtest.NewMockTxDatabase(backingDB)
 		db := newSelectiveDatabase(txDB)
 
 		Convey("for RecordSaveHandler", func() {

@@ -289,7 +289,36 @@ func (db *MapDB) DeleteSubscription(name string, deviceID string) error {
 	return nil
 }
 
+// MockTxDatabase implements and records TxDatabase's methods and delegates other
+// calls to underlying Database
+type MockTxDatabase struct {
+	DidBegin, DidCommit, DidRollback bool
+	skydb.Database
+}
+
+func NewMockTxDatabase(backingDB skydb.Database) *MockTxDatabase {
+	return &MockTxDatabase{Database: backingDB}
+}
+
+func (db *MockTxDatabase) Begin() error {
+	db.DidBegin = true
+	return nil
+}
+
+func (db *MockTxDatabase) Commit() error {
+	db.DidCommit = true
+	return nil
+}
+
+func (db *MockTxDatabase) Rollback() error {
+	db.DidRollback = true
+	return nil
+}
+
+var _ skydb.TxDatabase = &MockTxDatabase{}
+
 var (
-	_ skydb.Conn     = NewMapConn()
-	_ skydb.Database = NewMapDB()
+	_ skydb.Conn       = NewMapConn()
+	_ skydb.Database   = NewMapDB()
+	_ skydb.TxDatabase = &MockTxDatabase{}
 )
