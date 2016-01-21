@@ -32,6 +32,8 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 			data[key] = (skydbconv.MapTime)(v)
 		case skydb.Reference:
 			data[key] = (skydbconv.MapReference)(v)
+		case skydb.Location:
+			data[key] = (skydbconv.MapLocation)(v)
 		case *skydb.Location:
 			data[key] = (*skydbconv.MapLocation)(v)
 		case *skydb.Asset:
