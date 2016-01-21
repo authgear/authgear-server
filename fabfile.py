@@ -11,7 +11,10 @@ env.roledefs.update({
     'hub-migrate': ['hub.docker.com'],
 })
 
-# Heaven will execute fab -R hub-migrate deploy:branch_name=master
+config = '/home/faseng/.docker'
+
+# chima auto deploy will trigger Haven to execute:
+# fab -R hub-migrate deploy:branch_name=sha1
 def deploy(branch_name):
     print("Executing on %(host)s as %(user)s" % env)
     if env.host == 'hub.docker.com':
@@ -22,4 +25,4 @@ def deploy(branch_name):
 
 def build_migrate():
     local('docker build -f Dockerfile-migrate -t oursky/skygear-migrate .')
-    local('docker push oursky/skygear-migrate')
+    local('docker --config=%s push oursky/skygear-migrate' % config)
