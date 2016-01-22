@@ -18,74 +18,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type serializedRecord struct {
-	Record *skydb.Record
-}
-
-func newSerializedRecord(record *skydb.Record) serializedRecord {
-	return serializedRecord{record}
-}
-
-func (s serializedRecord) MarshalJSON() ([]byte, error) {
-	r := s.Record
-
-	m := map[string]interface{}{}
-	m["_id"] = s.Record.ID.String()
-	m["_type"] = "record"
-	m["_access"] = r.ACL
-
-	if r.OwnerID != "" {
-		m["_ownerID"] = r.OwnerID
-	}
-	if !r.CreatedAt.IsZero() {
-		m["_created_at"] = r.CreatedAt
-	}
-	if r.CreatorID != "" {
-		m["_created_by"] = r.CreatorID
-	}
-	if !r.UpdatedAt.IsZero() {
-		m["_updated_at"] = r.UpdatedAt
-	}
-	if r.UpdaterID != "" {
-		m["_updated_by"] = r.UpdaterID
-	}
-
-	for key, value := range r.Data {
-		switch v := value.(type) {
-		case time.Time:
-			m[key] = skyconv.ToMap(skyconv.MapTime(v))
-		case skydb.Reference:
-			m[key] = skyconv.ToMap(skyconv.MapReference(v))
-		case skydb.Location:
-			m[key] = skyconv.ToMap(skyconv.MapLocation(v))
-		case *skydb.Asset:
-			m[key] = skyconv.ToMap((*skyconv.MapAsset)(v))
-		default:
-			m[key] = v
-		}
-	}
-
-	transient := s.marshalTransient(r.Transient)
-	if len(transient) > 0 {
-		m["_transient"] = transient
-	}
-
-	return json.Marshal(m)
-}
-
-func (s serializedRecord) marshalTransient(transient map[string]interface{}) map[string]interface{} {
-	m := map[string]interface{}{}
-	for key, value := range transient {
-		switch v := value.(type) {
-		case skydb.Record:
-			m[key] = newSerializedRecord(&v)
-		default:
-			m[key] = v
-		}
-	}
-	return m
-}
-
 // transportRecord override JSON serialization and deserialization of
 // skydb.Record
 type transportRecord skydb.Record
@@ -350,7 +282,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 			} else {
 				record := resp.SavedRecords[currRecordIdx]
 				currRecordIdx++
-				result = newSerializedRecord(record)
+				result = (*skyconv.JSONRecord)(record)
 			}
 		default:
 			panic(fmt.Sprintf("unknown type of incoming item: %T", itemi))
@@ -803,7 +735,7 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 			}
 		} else {
 			injectSigner(&record, h.AssetStore)
-			results[i] = newSerializedRecord(&record)
+			results[i] = (*skyconv.JSONRecord)(&record)
 		}
 	}
 
@@ -981,7 +913,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 				eagerRecord := eagerRecords[keyPath][id.Key]
 				if eagerRecord != nil {
 					injectSigner(eagerRecord, h.AssetStore)
-					record.Transient[transientKey] = newSerializedRecord(eagerRecord)
+					record.Transient[transientKey] = (*skyconv.JSONRecord)(eagerRecord)
 				} else {
 					record.Transient[transientKey] = nil
 				}
@@ -989,7 +921,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		}
 
 		injectSigner(&record, h.AssetStore)
-		output[i] = newSerializedRecord(&record)
+		output[i] = (*skyconv.JSONRecord)(&record)
 	}
 
 	response.Result = output

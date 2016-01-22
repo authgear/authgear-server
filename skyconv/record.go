@@ -34,10 +34,13 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 	m := map[string]interface{}{}
 	MapData(data).ToMap(m)
 
-	m["_id"] = record.ID
-	m["_ownerID"] = record.OwnerID
+	m["_id"] = record.ID.String()
+	m["_type"] = "record"
 	m["_access"] = record.ACL
 
+	if record.OwnerID != "" {
+		m["_ownerID"] = record.OwnerID
+	}
 	if !record.CreatedAt.IsZero() {
 		m["_created_at"] = record.CreatedAt
 	}
@@ -51,7 +54,25 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 		m["_updated_by"] = record.UpdaterID
 	}
 
+	transient := record.marshalTransient(record.Transient)
+	if len(transient) > 0 {
+		m["_transient"] = transient
+	}
+
 	return json.Marshal(m)
+}
+
+func (record *JSONRecord) marshalTransient(transient map[string]interface{}) map[string]interface{} {
+	m := map[string]interface{}{}
+	for key, value := range transient {
+		switch v := value.(type) {
+		case skydb.Record:
+			m[key] = (*JSONRecord)(&v)
+		default:
+			m[key] = v
+		}
+	}
+	return m
 }
 
 // UnmarshalJSON implements json.Unmarshaler
