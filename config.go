@@ -19,6 +19,7 @@ type Configuration struct {
 		Name          string
 		APIKey        string `gcfg:"api-key"`
 		AccessControl string `gcfg:"access-control"`
+		Dev           bool
 	}
 	DB struct {
 		ImplName string `gcfg:"implementation"`
