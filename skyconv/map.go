@@ -1,4 +1,4 @@
-package skydbconv
+package skyconv
 
 import (
 	"errors"

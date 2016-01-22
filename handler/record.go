@@ -12,8 +12,8 @@ import (
 	"github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/plugin/hook"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyconv"
 	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/skydbconv"
 	"github.com/oursky/skygear/skyerr"
 	"golang.org/x/net/context"
 )
@@ -53,13 +53,13 @@ func (s serializedRecord) MarshalJSON() ([]byte, error) {
 	for key, value := range r.Data {
 		switch v := value.(type) {
 		case time.Time:
-			m[key] = skydbconv.ToMap(skydbconv.MapTime(v))
+			m[key] = skyconv.ToMap(skyconv.MapTime(v))
 		case skydb.Reference:
-			m[key] = skydbconv.ToMap(skydbconv.MapReference(v))
+			m[key] = skyconv.ToMap(skyconv.MapReference(v))
 		case skydb.Location:
-			m[key] = skydbconv.ToMap(skydbconv.MapLocation(v))
+			m[key] = skyconv.ToMap(skyconv.MapLocation(v))
 		case *skydb.Asset:
-			m[key] = skydbconv.ToMap((*skydbconv.MapAsset)(v))
+			m[key] = skyconv.ToMap((*skyconv.MapAsset)(v))
 		default:
 			m[key] = v
 		}
@@ -136,7 +136,7 @@ func (r *transportRecord) FromMap(m map[string]interface{}) error {
 
 	purgeReservedKey(m)
 	data := map[string]interface{}{}
-	if err := (*skydbconv.MapData)(&data).FromMap(m); err != nil {
+	if err := (*skyconv.MapData)(&data).FromMap(m); err != nil {
 		return err
 	}
 	r.Data = data
@@ -156,7 +156,7 @@ type jsonData map[string]interface{}
 
 func (data jsonData) ToMap(m map[string]interface{}) {
 	for key, value := range data {
-		if mapper, ok := value.(skydbconv.ToMapper); ok {
+		if mapper, ok := value.(skyconv.ToMapper); ok {
 			valueMap := map[string]interface{}{}
 			mapper.ToMap(valueMap)
 			m[key] = valueMap

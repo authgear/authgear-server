@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/oursky/skygear/skyconv"
 	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/skydbconv"
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -24,7 +24,7 @@ func (parser *QueryParser) sortFromRaw(rawSort []interface{}, sort *skydb.Sort) 
 	)
 	switch v := rawSort[0].(type) {
 	case map[string]interface{}:
-		if err := (*skydbconv.MapKeyPath)(&keyPath).FromMap(v); err != nil {
+		if err := (*skyconv.MapKeyPath)(&keyPath).FromMap(v); err != nil {
 			panic(err)
 		}
 	case []interface{}:
@@ -149,7 +149,7 @@ func (parser *QueryParser) parseExpression(i interface{}) skydb.Expression {
 	switch v := i.(type) {
 	case map[string]interface{}:
 		var keyPath string
-		if err := skydbconv.MapFrom(i, (*skydbconv.MapKeyPath)(&keyPath)); err == nil {
+		if err := skyconv.MapFrom(i, (*skyconv.MapKeyPath)(&keyPath)); err == nil {
 			return skydb.Expression{
 				Type:  skydb.KeyPath,
 				Value: keyPath,
@@ -168,7 +168,7 @@ func (parser *QueryParser) parseExpression(i interface{}) skydb.Expression {
 
 	return skydb.Expression{
 		Type:  skydb.Literal,
-		Value: skydbconv.ParseInterface(i),
+		Value: skyconv.ParseInterface(i),
 	}
 }
 
@@ -200,12 +200,12 @@ func (parser *QueryParser) parseDistanceFunc(s []interface{}) (skydb.DistanceFun
 	}
 
 	var field string
-	if err := skydbconv.MapFrom(s[0], (*skydbconv.MapKeyPath)(&field)); err != nil {
+	if err := skyconv.MapFrom(s[0], (*skyconv.MapKeyPath)(&field)); err != nil {
 		return emptyDistanceFunc, fmt.Errorf("invalid key path: %v", err)
 	}
 
 	var location skydb.Location
-	if err := skydbconv.MapFrom(s[1], (*skydbconv.MapLocation)(&location)); err != nil {
+	if err := skyconv.MapFrom(s[1], (*skyconv.MapLocation)(&location)); err != nil {
 		return emptyDistanceFunc, fmt.Errorf("invalid location: %v", err)
 	}
 
@@ -222,12 +222,12 @@ func (parser *QueryParser) parseUserRelationFunc(s []interface{}) (skydb.UserRel
 	}
 
 	var field string
-	if err := skydbconv.MapFrom(s[0], (*skydbconv.MapKeyPath)(&field)); err != nil {
+	if err := skyconv.MapFrom(s[0], (*skyconv.MapKeyPath)(&field)); err != nil {
 		return emptyUserRelationFunc, fmt.Errorf("invalid key path: %v", err)
 	}
 
-	var relation skydbconv.MapRelation
-	if err := skydbconv.MapFrom(s[1], (*skydbconv.MapRelation)(&relation)); err != nil {
+	var relation skyconv.MapRelation
+	if err := skyconv.MapFrom(s[1], (*skyconv.MapRelation)(&relation)); err != nil {
 		return emptyUserRelationFunc, fmt.Errorf("invalid relation: %v", err)
 	}
 

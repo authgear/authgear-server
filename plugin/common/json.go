@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/oursky/skygear/skyconv"
 	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/skydbconv"
 )
 
 // ExecError is error resulted from application logic of plugin (e.g.
@@ -29,22 +29,22 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 	for key, value := range record.Data {
 		switch v := value.(type) {
 		case time.Time:
-			data[key] = (skydbconv.MapTime)(v)
+			data[key] = (skyconv.MapTime)(v)
 		case skydb.Reference:
-			data[key] = (skydbconv.MapReference)(v)
+			data[key] = (skyconv.MapReference)(v)
 		case skydb.Location:
-			data[key] = (skydbconv.MapLocation)(v)
+			data[key] = (skyconv.MapLocation)(v)
 		case *skydb.Location:
-			data[key] = (*skydbconv.MapLocation)(v)
+			data[key] = (*skyconv.MapLocation)(v)
 		case *skydb.Asset:
-			data[key] = (*skydbconv.MapAsset)(v)
+			data[key] = (*skyconv.MapAsset)(v)
 		default:
 			data[key] = value
 		}
 	}
 
 	m := map[string]interface{}{}
-	skydbconv.MapData(data).ToMap(m)
+	skyconv.MapData(data).ToMap(m)
 
 	m["_id"] = record.ID
 	m["_ownerID"] = record.OwnerID
@@ -91,7 +91,7 @@ func (record *JSONRecord) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	m = sanitizedDataMap(m)
-	if err := (*skydbconv.MapData)(&dataMap).FromMap(m); err != nil {
+	if err := (*skyconv.MapData)(&dataMap).FromMap(m); err != nil {
 		return err
 	}
 
