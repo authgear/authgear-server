@@ -77,6 +77,8 @@ func (f *predicateSqlizerFactory) newFunctionalPredicateSqlizer(predicate skydb.
 	switch fn := expr.Value.(type) {
 	case skydb.UserRelationFunc:
 		return f.newUserRelationFunctionalPredicateSqlizer(fn)
+	case skydb.UserDiscoverFunc:
+		return f.newUserDiscoverFunctionalPredicateSqlizer(fn)
 	default:
 		panic("the specified function cannot be used as a functional predicate")
 	}
@@ -106,6 +108,29 @@ func (f *predicateSqlizerFactory) newUserRelationFunctionalPredicateSqlizer(fn s
 		inwardAlias:  inwardAlias,
 		user:         fn.User,
 	}, nil
+}
+
+func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn skydb.UserDiscoverFunc) (sq.Sqlizer, error) {
+	sqlizers := []sq.Sqlizer{}
+	// Only email is supported at the moment
+	sqlizers = append(sqlizers, &containsComparisonPredicateSqlizer{
+		f.createLeftJoin("_user", "_id", "id"),
+		skydb.Predicate{
+			Operator: skydb.In,
+			Children: []interface{}{
+				skydb.Expression{
+					Type:  skydb.KeyPath,
+					Value: "email",
+				},
+				skydb.Expression{
+					Type:  skydb.Literal,
+					Value: fn.ArgsByName("email"),
+				},
+			},
+		},
+	})
+
+	return sqlizers[0], nil
 }
 
 // createLeftJoin create an alias of a table to be joined to the primary table

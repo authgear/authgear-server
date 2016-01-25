@@ -1,6 +1,8 @@
 package skydb
 
 import (
+	"fmt"
+
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -309,4 +311,32 @@ type UserRelationFunc struct {
 // Args implements the Func interface
 func (f UserRelationFunc) Args() []interface{} {
 	return []interface{}{}
+}
+
+// UserDiscoverFunc searches for user reord having the specified user data, such
+// as email addresses. Can only be used with user record.
+type UserDiscoverFunc struct {
+	Emails []string
+}
+
+// Args implements the Func interface
+func (f UserDiscoverFunc) Args() []interface{} {
+	panic("not supported")
+}
+
+// ArgsByName implements the Func interface
+func (f UserDiscoverFunc) ArgsByName(name string) []interface{} {
+	var data []string
+	switch name {
+	case "email":
+		data = f.Emails
+	default:
+		panic(fmt.Errorf("not supported arg name %s", name))
+	}
+
+	args := make([]interface{}, len(data))
+	for i, email := range data {
+		args[i] = email
+	}
+	return args
 }
