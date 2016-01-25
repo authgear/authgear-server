@@ -76,32 +76,36 @@ func (f *predicateSqlizerFactory) newFunctionalPredicateSqlizer(predicate skydb.
 	}
 	switch fn := expr.Value.(type) {
 	case skydb.UserRelationFunc:
-		table := fn.RelationName
-		direction := fn.RelationDirection
-		if direction == "" {
-			direction = "outward"
-		}
-		primaryColumn := fn.KeyPath
-		if primaryColumn == "_owner" || primaryColumn == "" {
-			primaryColumn = "_owner_id"
-		}
-
-		var outwardAlias, inwardAlias string
-		if direction == "outward" || direction == "mutual" {
-			outwardAlias = f.createLeftJoin(table, primaryColumn, "right_id")
-		}
-		if direction == "inward" || direction == "mutual" {
-			inwardAlias = f.createLeftJoin(table, primaryColumn, "left_id")
-		}
-
-		return userRelationPredicateSqlizer{
-			outwardAlias: outwardAlias,
-			inwardAlias:  inwardAlias,
-			user:         fn.User,
-		}, nil
+		return f.newUserRelationFunctionalPredicateSqlizer(fn)
 	default:
 		panic("the specified function cannot be used as a functional predicate")
 	}
+}
+
+func (f *predicateSqlizerFactory) newUserRelationFunctionalPredicateSqlizer(fn skydb.UserRelationFunc) (sq.Sqlizer, error) {
+	table := fn.RelationName
+	direction := fn.RelationDirection
+	if direction == "" {
+		direction = "outward"
+	}
+	primaryColumn := fn.KeyPath
+	if primaryColumn == "_owner" || primaryColumn == "" {
+		primaryColumn = "_owner_id"
+	}
+
+	var outwardAlias, inwardAlias string
+	if direction == "outward" || direction == "mutual" {
+		outwardAlias = f.createLeftJoin(table, primaryColumn, "right_id")
+	}
+	if direction == "inward" || direction == "mutual" {
+		inwardAlias = f.createLeftJoin(table, primaryColumn, "left_id")
+	}
+
+	return userRelationPredicateSqlizer{
+		outwardAlias: outwardAlias,
+		inwardAlias:  inwardAlias,
+		user:         fn.User,
+	}, nil
 }
 
 // createLeftJoin create an alias of a table to be joined to the primary table
