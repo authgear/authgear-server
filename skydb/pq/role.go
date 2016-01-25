@@ -51,6 +51,39 @@ func (c *conn) batchUserRoleSQL(id string, roles []string) (string, []interface{
 		args[i+1] = roles[i]
 	}
 	return b.String(), args
+
+}
+
+func (c *conn) UpdateAdminRoles(roles []string) error {
+	log.Debugf("UpdateAdminRoles %v", roles)
+	return nil
+}
+
+func (c *conn) SetDefaultRoles(roles []string) error {
+	log.Debugf("SetDefaultRoles %v", roles)
+	c.ensureRole(roles)
+	resetSQL := psql.Update(c.tableName("_role")).
+		Where("by_default = ?", true).Set("by_default", false)
+	_, err := c.ExecWith(resetSQL)
+	if err != nil {
+		return err
+	}
+	if len(roles) == 0 {
+		return nil
+	}
+	roleArgs := make([]interface{}, len(roles))
+	for i, v := range roles {
+		roleArgs[i] = interface{}(v)
+	}
+
+	updateSQL := psql.Update(c.tableName("_role")).
+		Where("id IN ("+sq.Placeholders(len(roles))+")", roleArgs...).
+		Set("by_default", true)
+	_, err = c.ExecWith(updateSQL)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *conn) UpdateUserRoles(userinfo *skydb.UserInfo) error {

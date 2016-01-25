@@ -80,7 +80,8 @@ CREATE TABLE {{.Schema}}._user (
 );
 
 CREATE TABLE {{.Schema}}._role (
-	id text PRIMARY KEY
+	id text PRIMARY KEY,
+	by_default boolean DEFAULT FALSE
 );
 
 CREATE TABLE {{.Schema}}._user_role (

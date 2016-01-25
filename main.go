@@ -99,8 +99,9 @@ func main() {
 	preprocessorRegistry["require_user"] = &pp.RequireUserForWrite{}
 	preprocessorRegistry["inject_db"] = &pp.InjectDatabase{}
 	preprocessorRegistry["inject_public_db"] = &pp.InjectPublicDatabase{}
+	preprocessorRegistry["dev_only"] = &pp.DevOnlyProcessor{config.App.DevMode}
 
-	r.Map("", &handler.HomeHandler{})
+	r.Map("", &handler.HomeHandler{}, preprocessorRegistry["dev_only"])
 
 	g := &inject.Graph{}
 	injectErr := g.Provide(
@@ -148,6 +149,8 @@ func main() {
 	r.Map("user:query", injector.Inject(&handler.UserQueryHandler{}))
 	r.Map("user:update", injector.Inject(&handler.UserUpdateHandler{}))
 	r.Map("user:link", injector.Inject(&handler.UserLinkHandler{}))
+
+	r.Map("role:default", injector.Inject(&handler.RoleDefaultHandler{}))
 
 	r.Map("push:user", injector.Inject(&handler.PushToUserHandler{}))
 	r.Map("push:device", injector.Inject(&handler.PushToDeviceHandler{}))
