@@ -11,7 +11,7 @@ import (
 func TestUserCRUD(t *testing.T) {
 	var c *conn
 
-	Convey("Conn", t, func() {
+	SkipConvey("Conn", t, func() {
 		c = getTestConn(t)
 		defer cleanupConn(t, c)
 

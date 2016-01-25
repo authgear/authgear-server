@@ -9,6 +9,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	odplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
+	"github.com/oursky/skygear/skyconv"
 	"github.com/oursky/skygear/skydb"
 	"golang.org/x/net/context"
 )
@@ -164,8 +165,8 @@ func (p *execTransport) RunHook(ctx context.Context, recordType string, trigger 
 		log.Warn("request context is not supported by exec transport")
 	}
 	param := map[string]interface{}{
-		"record":   (*common.JSONRecord)(record),
-		"original": (*common.JSONRecord)(originalRecord),
+		"record":   (*skyconv.JSONRecord)(record),
+		"original": (*skyconv.JSONRecord)(originalRecord),
 	}
 	in, err := json.Marshal(param)
 	if err != nil {
@@ -179,7 +180,7 @@ func (p *execTransport) RunHook(ctx context.Context, recordType string, trigger 
 	}
 
 	var recordout skydb.Record
-	if err := json.Unmarshal(out, (*common.JSONRecord)(&recordout)); err != nil {
+	if err := json.Unmarshal(out, (*skyconv.JSONRecord)(&recordout)); err != nil {
 		log.WithField("data", string(out)).Error("failed to unmarshal record")
 		return nil, fmt.Errorf("failed to unmarshal record: %v", err)
 	}

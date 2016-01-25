@@ -7,6 +7,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	odplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
+	"github.com/oursky/skygear/skyconv"
 	"github.com/oursky/skygear/skydb"
 	"github.com/zeromq/goczmq"
 	"golang.org/x/net/context"
@@ -49,8 +50,8 @@ func newHandlerRequest(name string, input json.RawMessage) *request {
 
 func newHookRequest(trigger string, record *skydb.Record, originalRecord *skydb.Record, ctx context.Context) *request {
 	param := hookRequest{
-		Record:   (*common.JSONRecord)(record),
-		Original: (*common.JSONRecord)(originalRecord),
+		Record:   (*skyconv.JSONRecord)(record),
+		Original: (*skyconv.JSONRecord)(originalRecord),
 	}
 	return &request{Kind: "hook", Name: trigger, Param: param, Context: ctx}
 }
@@ -159,7 +160,7 @@ func (p *zmqTransport) RunHook(ctx context.Context, recordType string, trigger s
 	}
 
 	var recordout skydb.Record
-	if err := json.Unmarshal(out, (*common.JSONRecord)(&recordout)); err != nil {
+	if err := json.Unmarshal(out, (*skyconv.JSONRecord)(&recordout)); err != nil {
 		p.logger.WithField("data", string(out)).Error("failed to unmarshal record")
 		return nil, fmt.Errorf("failed to unmarshal record: %v", err)
 	}

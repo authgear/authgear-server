@@ -6,8 +6,8 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyconv"
 	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/skydbconv"
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -124,12 +124,12 @@ func (expr jsonExpression) MarshalJSON() ([]byte, error) {
 	case skydb.Literal:
 		switch v := expr.Value.(type) {
 		case skydb.Reference:
-			i = skydbconv.ToMap(skydbconv.MapReference(v))
+			i = skyconv.ToMap(skyconv.MapReference(v))
 		default:
 			i = expr.Value
 		}
 	case skydb.KeyPath:
-		i = skydbconv.ToMap(skydbconv.MapKeyPath(expr.Value.(string)))
+		i = skyconv.ToMap(skyconv.MapKeyPath(expr.Value.(string)))
 	case skydb.Function:
 		i = funcSlice(expr.Value)
 	default:
@@ -176,8 +176,8 @@ func funcSlice(i interface{}) []interface{} {
 		return []interface{}{
 			"func",
 			"distance",
-			skydbconv.ToMap(skydbconv.MapKeyPath(f.Field)),
-			skydbconv.ToMap(skydbconv.MapLocation(f.Location)),
+			skyconv.ToMap(skyconv.MapKeyPath(f.Field)),
+			skyconv.ToMap(skyconv.MapLocation(f.Location)),
 		}
 	default:
 		panic(fmt.Errorf("got unrecgonized skydb.Func = %T", i))

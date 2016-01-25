@@ -129,6 +129,7 @@ func TestRun(t *testing.T) {
 				So(in, ShouldEqualJSON, `{
 					"record": {
 						"_id": "note/id",
+						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"content": "some note content",
 						"noteOrder": 1,
@@ -156,6 +157,7 @@ func TestRun(t *testing.T) {
 					},
 					"original": {
 						"_id": "note/id",
+						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"content": "original content",
 						"noteOrder": 1,
@@ -178,6 +180,7 @@ func TestRun(t *testing.T) {
 				return []byte(`{
 					"result": {
 						"_id": "note/id",
+						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"content": "content has been modified",
 						"noteOrder": 1,
@@ -259,6 +262,7 @@ func TestRun(t *testing.T) {
 				So(in, ShouldEqualJSON, `{
 					"record": {
 						"_id": "note/id",
+						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"content": "some note content",
 						"noteOrder": 1,
@@ -290,6 +294,7 @@ func TestRun(t *testing.T) {
 				return []byte(`{
 					"result": {
 						"_id": "note/id",
+						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"content": "content has been modified",
 						"noteOrder": 1,
@@ -379,6 +384,7 @@ func TestRun(t *testing.T) {
 				So(string(in), ShouldEqualJSON, `{
 					"record": {
 						"_id": "note/id",
+						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"_ownerID": "john.doe@example.com",
 						"_created_at": "2006-01-02T15:04:05Z",
@@ -419,6 +425,7 @@ func TestRun(t *testing.T) {
 				So(string(in), ShouldEqualJSON, `{
 					"record": {
 						"_id": "note/id",
+						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"_access": null
 					},
