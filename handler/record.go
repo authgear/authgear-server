@@ -394,7 +394,11 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	// execute before save hooks
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-			originalRecord, _ := originalRecordMap[record.ID]
+			originalRecord, ok := originalRecordMap[record.ID]
+			if !ok {
+				record.OwnerID = req.UserInfoID
+			}
+
 			pluginErr := req.HookRegistry.ExecuteHooks(req.Context, hook.BeforeSave, record, originalRecord)
 			if pluginErr != nil {
 				err = skyerr.NewError(skyerr.UnexpectedError, pluginErr.Error())
