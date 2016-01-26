@@ -340,3 +340,14 @@ func (f UserDiscoverFunc) ArgsByName(name string) []interface{} {
 	}
 	return args
 }
+
+// UserDataFunc is an expresssion to return an attribute of user info
+// as email addresses. Can only be used with user record.
+type UserDataFunc struct {
+	DataName string
+}
+
+// Args implements the Func interface
+func (f UserDataFunc) Args() []interface{} {
+	return []interface{}{}
+}

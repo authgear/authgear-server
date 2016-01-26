@@ -15,6 +15,7 @@ type predicateSqlizerFactory struct {
 	db           *database
 	primaryTable string
 	joinedTables []joinedTable
+	extraColumns map[string]skydb.FieldType
 }
 
 func (f *predicateSqlizerFactory) newPredicateSqlizer(predicate skydb.Predicate) (sq.Sqlizer, error) {
@@ -130,6 +131,16 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 		},
 	})
 
+	f.addExtraColumn("_transient__email", skydb.TypeString, skydb.Expression{
+		Type:  skydb.Function,
+		Value: skydb.UserDataFunc{"email"},
+	})
+
+	f.addExtraColumn("_transient__username", skydb.TypeString, skydb.Expression{
+		Type:  skydb.Function,
+		Value: skydb.UserDataFunc{"username"},
+	})
+
 	return sqlizers[0], nil
 }
 
@@ -139,18 +150,27 @@ func (f *predicateSqlizerFactory) createLeftJoin(secondaryTable string, primaryC
 	newAlias := joinedTable{secondaryTable, primaryColumn, secondaryColumn}
 	for i, alias := range f.joinedTables {
 		if alias.equal(newAlias) {
-			return fmt.Sprintf("_t%d", i)
+			return f.aliasName(secondaryTable, i)
 		}
 	}
 
 	f.joinedTables = append(f.joinedTables, newAlias)
-	return fmt.Sprintf("_t%d", len(f.joinedTables)-1)
+	return f.aliasName(secondaryTable, len(f.joinedTables)-1)
+}
+
+func (f *predicateSqlizerFactory) aliasName(secondaryTable string, indexInJoinedTables int) string {
+	// The _user table always have the same alias name for
+	// getting user info in user discovery
+	if secondaryTable == "_user" {
+		return "_user"
+	}
+	return fmt.Sprintf("_t%d", indexInJoinedTables)
 }
 
 // addJoinsToSelectBuilder add join clauses to a SelectBuilder
 func (f *predicateSqlizerFactory) addJoinsToSelectBuilder(q sq.SelectBuilder) sq.SelectBuilder {
 	for i, alias := range f.joinedTables {
-		aliasName := fmt.Sprintf("_t%d", i)
+		aliasName := f.aliasName(alias.secondaryTable, i)
 		joinClause := fmt.Sprintf("%s AS %s ON %s = %s",
 			f.db.tableName(alias.secondaryTable), pq.QuoteIdentifier(aliasName),
 			fullQuoteIdentifier(f.primaryTable, alias.primaryColumn),
@@ -162,6 +182,23 @@ func (f *predicateSqlizerFactory) addJoinsToSelectBuilder(q sq.SelectBuilder) sq
 		q = q.Distinct()
 	}
 	return q
+}
+
+func (f *predicateSqlizerFactory) addExtraColumn(key string, fieldType skydb.DataType, expr skydb.Expression) {
+	if f.extraColumns == nil {
+		f.extraColumns = map[string]skydb.FieldType{}
+	}
+	f.extraColumns[key] = skydb.FieldType{
+		Type:       fieldType,
+		Expression: expr,
+	}
+}
+
+func (f *predicateSqlizerFactory) updateTypemap(typemap skydb.RecordSchema) skydb.RecordSchema {
+	for key, field := range f.extraColumns {
+		typemap[key] = field
+	}
+	return typemap
 }
 
 func newPredicateSqlizerFactory(db *database, primaryTable string) *predicateSqlizerFactory {
@@ -345,6 +382,8 @@ func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
 		}
 		args := []interface{}{}
 		return sql, args
+	case skydb.UserDataFunc:
+		return fmt.Sprintf("_user.%s", f.DataName), []interface{}{}
 	default:
 		panic(fmt.Errorf("got unrecgonized skydb.Func = %T", fun))
 	}
