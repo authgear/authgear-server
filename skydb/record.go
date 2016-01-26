@@ -23,6 +23,10 @@ func NewRecordID(recordType string, id string) RecordID {
 	return RecordID{recordType, id}
 }
 
+func NewEmptyRecordID() RecordID {
+	return RecordID{"", ""}
+}
+
 // String implements the fmt.Stringer interface.
 func (id RecordID) String() string {
 	return id.Type + "/" + id.Key
@@ -45,6 +49,11 @@ func (id *RecordID) UnmarshalText(data []byte) error {
 	id.Key = string(splited[1])
 
 	return nil
+}
+
+// IsEmpty returns whether the RecordID is empty.
+func (id *RecordID) IsEmpty() bool {
+	return id.Type == "" && id.Key == ""
 }
 
 // RecordACLEntry grants access to a record by relation or by user_id
@@ -182,8 +191,20 @@ func NewReference(recordType string, id string) Reference {
 	}
 }
 
+// NewEmptyReference returns a reference that is empty
+func NewEmptyReference() Reference {
+	return Reference{
+		NewEmptyRecordID(),
+	}
+}
+
 func (reference *Reference) Type() string {
 	return reference.ID.Type
+}
+
+// IsEmpty returns whether the reference is empty.
+func (reference *Reference) IsEmpty() bool {
+	return reference.ID.IsEmpty()
 }
 
 // Location represent a point of geometry.
@@ -266,7 +287,7 @@ func (r *Record) Get(key string) interface{} {
 			if strings.HasPrefix(key, "_transient_") {
 				return r.Transient[strings.TrimPrefix(key, "_transient_")]
 			}
-			panic(fmt.Sprintf("unknown reserved key: %v", key))
+			return nil
 		}
 	} else {
 		return r.Data[key]

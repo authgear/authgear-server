@@ -150,6 +150,9 @@ func (parser *QueryParser) parseExpression(i interface{}) skydb.Expression {
 	case map[string]interface{}:
 		var keyPath string
 		if err := skyconv.MapFrom(i, (*skyconv.MapKeyPath)(&keyPath)); err == nil {
+			if keyPath == "_owner" {
+				keyPath = "_owner_id"
+			}
 			return skydb.Expression{
 				Type:  skydb.KeyPath,
 				Value: keyPath,

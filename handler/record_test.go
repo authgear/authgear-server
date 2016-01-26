@@ -1219,8 +1219,11 @@ type referencedRecordDatabase struct {
 	note     skydb.Record
 	category skydb.Record
 	city     skydb.Record
+	user     skydb.Record
 	skydb.Database
 }
+
+func (db *referencedRecordDatabase) UserRecordType() string { return "user" }
 
 func (db *referencedRecordDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
 	switch id.String() {
@@ -1230,6 +1233,8 @@ func (db *referencedRecordDatabase) Get(id skydb.RecordID, record *skydb.Record)
 		*record = db.category
 	case "city/beautiful":
 		*record = db.city
+	case "user/ownerID":
+		*record = db.user
 	}
 	return nil
 }
@@ -1244,6 +1249,8 @@ func (db *referencedRecordDatabase) GetByIDs(ids []skydb.RecordID) (*skydb.Rows,
 			records = append(records, db.category)
 		case "city/beautiful":
 			records = append(records, db.city)
+		case "user/ownerID":
+			records = append(records, db.user)
 		}
 	}
 	return skydb.NewRows(skydb.NewMemoryRows(records)), nil
@@ -1288,6 +1295,13 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				OwnerID: "ownerID",
 				Data: map[string]interface{}{
 					"name": "This is beautiful.",
+				},
+			},
+			user: skydb.Record{
+				ID:      skydb.NewRecordID("user", "ownerID"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"name": "Owner",
 				},
 			},
 		}
@@ -1341,6 +1355,28 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				}]
 			}`)
 		})
+
+		Convey("query record with eager load on user", func() {
+			resp := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, injectDBFunc).POST(`{
+				"record_type": "note",
+				"include": {"user": {"$type": "keypath", "$val": "_owner"}}
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note1",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID",
+					"category": {"$id":"category/important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$type":"ref"},
+					"_transient": {
+						"user": {"_access":null,"_id":"user/ownerID","_type":"record","_ownerID":"ownerID", "name": "Owner"}
+					}
+				}]
+			}`)
+		})
+
 	})
 
 	Convey("Given a referenced record with null reference in DB", t, func() {
