@@ -3,6 +3,7 @@ package zmq
 import (
 	"encoding/json"
 	"fmt"
+	"runtime/debug"
 
 	log "github.com/Sirupsen/logrus"
 	odplugin "github.com/oursky/skygear/plugin"
@@ -216,6 +217,14 @@ func (p *zmqTransport) rpc(req *request) (out []byte, err error) {
 }
 
 func (p *zmqTransport) ipc(req *request) (out []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.WithField("recovered", r).
+				Errorln("panic occurred while calling plugin ipc")
+			log.Errorf("%s", debug.Stack())
+			return
+		}
+	}()
 	var (
 		in      []byte
 		reqSock *goczmq.Sock
