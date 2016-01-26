@@ -426,3 +426,13 @@ func (_m *MockDatabase) SaveSubscription(_param0 *skydb.Subscription) error {
 func (_mr *_MockDatabaseRecorder) SaveSubscription(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SaveSubscription", arg0)
 }
+
+func (_m *MockDatabase) UserRecordType() string {
+	ret := _m.ctrl.Call(_m, "UserRecordType")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+func (_mr *_MockDatabaseRecorder) UserRecordType() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UserRecordType")
+}

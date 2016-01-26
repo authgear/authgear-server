@@ -220,6 +220,10 @@ func (db *MapDB) ID() string {
 	return "map-db"
 }
 
+func (db *MapDB) UserRecordType() string {
+	return "user"
+}
+
 // Get returns a Record from RecordMap.
 func (db *MapDB) Get(id skydb.RecordID, record *skydb.Record) error {
 	r, ok := db.RecordMap[id.String()]
