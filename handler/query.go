@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/skygear/skyconv"
 	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skyconv"
 	"github.com/oursky/skygear/skyerr"
 )
 

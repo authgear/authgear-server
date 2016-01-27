@@ -8,8 +8,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	odplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
-	"github.com/oursky/skygear/skyconv"
 	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skyconv"
 	"github.com/zeromq/goczmq"
 	"golang.org/x/net/context"
 )

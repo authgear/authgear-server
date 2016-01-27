@@ -12,8 +12,8 @@ import (
 	"github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/plugin/hook"
 	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skyconv"
 	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skydb/skyconv"
 	"github.com/oursky/skygear/skyerr"
 	"golang.org/x/net/context"
 )
