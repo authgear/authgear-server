@@ -367,6 +367,12 @@ type recordModifyResponse struct {
 	DeletedRecordIDs []skydb.RecordID
 }
 
+// recordSaveHandler iterate the record to perform the following:
+// 1. Query the db for original record
+// 2. Execute before save hooks with original record and new record
+// 3. Clean up some transport only data (sequence for example) away from record
+// 4. Populate meta data and save the record (like updated_at/by)
+// 5. Execute after save hooks with original record and new record
 func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) skyerr.Error {
 	db := req.Db
 	records := req.RecordsToSave
@@ -395,6 +401,9 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 			originalRecord, ok := originalRecordMap[record.ID]
+			// FIXME: Hot-fix for https://github.com/oursky/skygear/issues/528
+			// Defaults for record attributes should be provided
+			// before executing hooks
 			if !ok {
 				record.OwnerID = req.UserInfoID
 			}
