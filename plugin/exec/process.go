@@ -160,7 +160,7 @@ func (p *execTransport) RunHandler(name string, in []byte) (out []byte, err erro
 	return
 }
 
-func (p *execTransport) RunHook(ctx context.Context, recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+func (p *execTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 	if ctx != nil {
 		log.Warn("request context is not supported by exec transport")
 	}
@@ -173,7 +173,6 @@ func (p *execTransport) RunHook(ctx context.Context, recordType string, trigger 
 		return nil, fmt.Errorf("failed to marshal record: %v", err)
 	}
 
-	hookName := fmt.Sprintf("%v:%v", recordType, trigger)
 	out, err := p.runProc([]string{"hook", hookName}, in)
 	if err != nil {
 		return nil, fmt.Errorf("run %s: %v", hookName, err)

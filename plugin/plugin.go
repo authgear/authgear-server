@@ -22,9 +22,10 @@ type pluginHandlerInfo struct {
 }
 
 type pluginHookInfo struct {
-	Async   bool   `json:"async"`
-	Trigger string `json:"trigger"`
-	Type    string `json:"type"`
+	Async   bool   `json:"async"`   // execute hook asynchronously
+	Trigger string `json:"trigger"` // before_save etc.
+	Type    string `json:"type"`    // record type
+	Name    string `json:"name"`    // hook name
 }
 
 type timerInfo struct {

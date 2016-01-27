@@ -125,7 +125,7 @@ func TestRun(t *testing.T) {
 			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
 				called = true
 				So(cmd.Path, ShouldEqual, "/never/invoked")
-				So(cmd.Args, ShouldResemble, []string{"/never/invoked", "hook", "note:beforeSave"})
+				So(cmd.Args, ShouldResemble, []string{"/never/invoked", "hook", "note_beforeSave"})
 				So(in, ShouldEqualJSON, `{
 					"record": {
 						"_id": "note/id",
@@ -209,7 +209,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note", "beforeSave", &recordin, &recordold)
+			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, &recordold)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 
@@ -258,7 +258,7 @@ func TestRun(t *testing.T) {
 			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
 				called = true
 				So(cmd.Path, ShouldEqual, "/never/invoked")
-				So(cmd.Args, ShouldResemble, []string{"/never/invoked", "hook", "note:beforeSave"})
+				So(cmd.Args, ShouldResemble, []string{"/never/invoked", "hook", "note_beforeSave"})
 				So(in, ShouldEqualJSON, `{
 					"record": {
 						"_id": "note/id",
@@ -323,7 +323,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note", "beforeSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 
@@ -404,7 +404,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note", "beforeSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 			So(*recordout, ShouldResemble, recordin)
@@ -440,7 +440,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note", "beforeSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 			So(*recordout, ShouldResemble, recordin)
@@ -451,8 +451,8 @@ func TestRun(t *testing.T) {
 				return nil, errors.New("worrying error")
 			}
 
-			recordout, err := transport.RunHook(nil, "note", "afterSave", &recordin, nil)
-			So(err.Error(), ShouldEqual, "run note:afterSave: worrying error")
+			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil)
+			So(err.Error(), ShouldEqual, "run note_afterSave: worrying error")
 			So(recordout, ShouldBeNil)
 		})
 
@@ -461,8 +461,8 @@ func TestRun(t *testing.T) {
 				return []byte("I am not a json"), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note", "afterSave", &recordin, nil)
-			So(err.Error(), ShouldEqual, "run note:afterSave: failed to parse response: invalid character 'I' looking for beginning of value")
+			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil)
+			So(err.Error(), ShouldEqual, "run note_afterSave: failed to parse response: invalid character 'I' looking for beginning of value")
 			So(recordout, ShouldBeNil)
 		})
 
@@ -479,8 +479,8 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note", "afterSave", &recordin, nil)
-			So(err.Error(), ShouldEqual, `run note:afterSave: StrongError
+			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil)
+			So(err.Error(), ShouldEqual, `run note_afterSave: StrongError
 Too strong to lift a feather`)
 			So(recordout, ShouldBeNil)
 		})

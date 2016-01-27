@@ -11,12 +11,12 @@ import (
 )
 
 type hookOnlyTransport struct {
-	RunHookFunc func(context.Context, string, string, *skydb.Record, *skydb.Record) (*skydb.Record, error)
+	RunHookFunc func(context.Context, string, *skydb.Record, *skydb.Record) (*skydb.Record, error)
 	Transport
 }
 
-func (t *hookOnlyTransport) RunHook(ctx context.Context, recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
-	return t.RunHookFunc(ctx, recordType, trigger, record, originalRecord)
+func (t *hookOnlyTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+	return t.RunHookFunc(ctx, hookName, record, originalRecord)
 }
 
 func TestCreateHookFunc(t *testing.T) {
@@ -36,13 +36,13 @@ func TestCreateHookFunc(t *testing.T) {
 				Async:   false,
 				Trigger: string(hook.BeforeSave),
 				Type:    "note",
+				Name:    "note_beforeSave",
 			})
 
 			called := false
-			transport.RunHookFunc = func(ctx context.Context, recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+			transport.RunHookFunc = func(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 				called = true
-				So(recordType, ShouldEqual, "note")
-				So(trigger, ShouldEqual, "beforeSave")
+				So(hookName, ShouldEqual, "note_beforeSave")
 				So(*record, ShouldResemble, skydb.Record{
 					ID: skydb.NewRecordID("note", "id"),
 				})
@@ -63,9 +63,10 @@ func TestCreateHookFunc(t *testing.T) {
 				Async:   false,
 				Trigger: string(hook.BeforeSave),
 				Type:    "note",
+				Name:    "note_beforeSave",
 			})
 
-			transport.RunHookFunc = func(ctx context.Context, recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+			transport.RunHookFunc = func(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 				return nil, errors.New("exit status 1")
 			}
 
@@ -81,13 +82,13 @@ func TestCreateHookFunc(t *testing.T) {
 				Async:   false,
 				Trigger: string(hook.AfterSave),
 				Type:    "note",
+				Name:    "note_afterSave",
 			})
 
 			called := false
-			transport.RunHookFunc = func(ctx context.Context, recordType string, trigger string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+			transport.RunHookFunc = func(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
 				called = true
-				So(recordType, ShouldEqual, "note")
-				So(trigger, ShouldEqual, "afterSave")
+				So(hookName, ShouldEqual, "note_afterSave")
 				So(*record, ShouldResemble, skydb.Record{
 					ID: skydb.NewRecordID("note", "id"),
 				})
