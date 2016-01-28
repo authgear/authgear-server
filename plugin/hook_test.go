@@ -71,7 +71,7 @@ func TestCreateHookFunc(t *testing.T) {
 			}
 
 			err := hookFunc(nil, &recordin, &originalRecord)
-			So(err.Error(), ShouldEqual, "exit status 1")
+			So(err.Error(), ShouldEqual, "UnexpectedError: exit status 1")
 			So(recordin, ShouldResemble, skydb.Record{
 				ID: skydb.NewRecordID("note", "id"),
 			})

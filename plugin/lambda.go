@@ -55,7 +55,12 @@ func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Respons
 
 	outbytes, err := h.Plugin.transport.RunLambda(payload.Context, h.Name, inbytes)
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		switch e := err.(type) {
+		case skyerr.Error:
+			response.Err = e
+		case error:
+			response.Err = skyerr.NewUnknownErr(err)
+		}
 		return
 	}
 

@@ -14,6 +14,7 @@ import (
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skydbtest"
+	"github.com/oursky/skygear/skyerr"
 	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
@@ -1543,8 +1544,8 @@ func TestHookExecution(t *testing.T) {
 		})
 
 		Convey("record is not saved if BeforeSave's hook returns an error", func() {
-			registry.Register(hook.BeforeSave, "record", func(context.Context, *skydb.Record, *skydb.Record) error {
-				return errors.New("no hooks for you")
+			registry.Register(hook.BeforeSave, "record", func(context.Context, *skydb.Record, *skydb.Record) skyerr.Error {
+				return skyerr.NewError(skyerr.UnexpectedError, "no hooks for you")
 			})
 			r.POST(`{
 				"records": [{
@@ -1566,7 +1567,7 @@ func TestHookExecution(t *testing.T) {
 			So(db.Save(&existingRecord), ShouldBeNil)
 
 			called := false
-			registry.Register(hook.BeforeSave, "record", func(ctx context.Context, record *skydb.Record, originalRecord *skydb.Record) error {
+			registry.Register(hook.BeforeSave, "record", func(ctx context.Context, record *skydb.Record, originalRecord *skydb.Record) skyerr.Error {
 				called = true
 				So(*record, ShouldResemble, skydb.Record{
 					ID: skydb.NewRecordID("record", "id"),
@@ -1596,7 +1597,7 @@ func TestHookExecution(t *testing.T) {
 
 		Convey("BeforeSave should set originalRecord as nil for new record", func() {
 			called := false
-			registry.Register(hook.BeforeSave, "record", func(ctx context.Context, record *skydb.Record, originalRecord *skydb.Record) error {
+			registry.Register(hook.BeforeSave, "record", func(ctx context.Context, record *skydb.Record, originalRecord *skydb.Record) skyerr.Error {
 				called = true
 				So(*record, ShouldResemble, skydb.Record{
 					ID: skydb.NewRecordID("record", "id"),

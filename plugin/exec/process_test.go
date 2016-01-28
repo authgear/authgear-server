@@ -8,6 +8,7 @@ import (
 
 	odplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skyerr"
 	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -452,7 +453,7 @@ func TestRun(t *testing.T) {
 			}
 
 			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil)
-			So(err.Error(), ShouldEqual, "run note_afterSave: worrying error")
+			So(err.Error(), ShouldEqual, "worrying error")
 			So(recordout, ShouldBeNil)
 		})
 
@@ -462,7 +463,7 @@ func TestRun(t *testing.T) {
 			}
 
 			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil)
-			So(err.Error(), ShouldEqual, "run note_afterSave: failed to parse response: invalid character 'I' looking for beginning of value")
+			So(err.Error(), ShouldEqual, "failed to parse response: invalid character 'I' looking for beginning of value")
 			So(recordout, ShouldBeNil)
 		})
 
@@ -473,15 +474,18 @@ func TestRun(t *testing.T) {
 						"ignore": "me"
 					},
 					"error": {
-						"name": "StrongError",
-						"desc": "Too strong to lift a feather"
+						"code": 24601,
+						"message": "Too strong to lift a feather",
+						"info": {}
 					}
 				}`), nil
 			}
 
 			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil)
-			So(err.Error(), ShouldEqual, `run note_afterSave: StrongError
-Too strong to lift a feather`)
+			sError, ok := err.(skyerr.Error)
+			So(ok, ShouldBeTrue)
+			So(sError.Message(), ShouldEqual, `Too strong to lift a feather`)
+			So(sError.Code(), ShouldEqual, 24601)
 			So(recordout, ShouldBeNil)
 		})
 	})
@@ -573,7 +577,7 @@ Too strong to lift a feather`)
 			req := odplugin.AuthRequest{"com.example", "login", authData}
 
 			resp, err := transport.RunProvider(&req)
-			So(err.Error(), ShouldEqual, "run com.example:login: worrying error")
+			So(err.Error(), ShouldEqual, "worrying error")
 			So(resp, ShouldBeNil)
 		})
 	})

@@ -408,10 +408,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 				record.OwnerID = req.UserInfoID
 			}
 
-			pluginErr := req.HookRegistry.ExecuteHooks(req.Context, hook.BeforeSave, record, originalRecord)
-			if pluginErr != nil {
-				err = skyerr.NewError(skyerr.UnexpectedError, pluginErr.Error())
-			}
+			err = req.HookRegistry.ExecuteHooks(req.Context, hook.BeforeSave, record, originalRecord)
 			return
 		})
 	}
@@ -468,9 +465,9 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 			originalRecord, _ := originalRecordMap[record.ID]
-			pluginErr := req.HookRegistry.ExecuteHooks(req.Context, hook.AfterSave, record, originalRecord)
-			if pluginErr != nil {
-				log.Errorf("Error occurred while executing hooks: %s", pluginErr.Error())
+			err = req.HookRegistry.ExecuteHooks(req.Context, hook.AfterSave, record, originalRecord)
+			if err != nil {
+				log.Errorf("Error occurred while executing hooks: %s", err)
 			}
 			return
 		})
@@ -1087,10 +1084,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-			pluginErr := req.HookRegistry.ExecuteHooks(req.Context, hook.BeforeDelete, record, nil)
-			if pluginErr != nil {
-				err = skyerr.NewError(skyerr.UnexpectedError, pluginErr.Error())
-			}
+			err = req.HookRegistry.ExecuteHooks(req.Context, hook.BeforeDelete, record, nil)
 			return
 		})
 	}
@@ -1109,9 +1103,9 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-			pluginErr := req.HookRegistry.ExecuteHooks(req.Context, hook.AfterDelete, record, nil)
-			if pluginErr != nil {
-				log.Errorf("Error occurred while executing hooks: %s", pluginErr.Error())
+			err = req.HookRegistry.ExecuteHooks(req.Context, hook.AfterDelete, record, nil)
+			if err != nil {
+				log.Errorf("Error occurred while executing hooks: %s", err)
 			}
 			return
 		})

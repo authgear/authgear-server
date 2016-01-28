@@ -175,7 +175,7 @@ func (p *execTransport) RunHook(ctx context.Context, hookName string, record *sk
 
 	out, err := p.runProc([]string{"hook", hookName}, in)
 	if err != nil {
-		return nil, fmt.Errorf("run %s: %v", hookName, err)
+		return nil, err
 	}
 
 	var recordout skydb.Record
@@ -209,8 +209,7 @@ func (p *execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.Au
 
 	out, err := p.runProc([]string{"provider", request.ProviderName, request.Action}, in)
 	if err != nil {
-		name := fmt.Sprintf("%v:%v", request.ProviderName, request.Action)
-		return nil, fmt.Errorf("run %s: %v", name, err)
+		return nil, err
 	}
 
 	resp := odplugin.AuthResponse{}
