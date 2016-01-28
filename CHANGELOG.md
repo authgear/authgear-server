@@ -1,3 +1,19 @@
+## 0.4.1 (2016-01-28)
+
+### Features
+
+- Implement updates of user roles via user:update #296, #295
+
+### Bug Fixes
+- Fix serializing a wrong location field to plugin #519
+- Recover from zmq crash and log to errors #527
+- Fix before save hook without ownerID #528
+
+### Other Notes
+- Declare preprocessors by dependency injection #499
+- Make the Processor an interface with Preprocess func #501
+- Unify handler and plugin serialization #519
+
 ## 0.4.0 (2016-01-13)
 ### Features
 
