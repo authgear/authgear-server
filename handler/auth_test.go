@@ -47,26 +47,6 @@ func (s *singleTokenStore) Delete(accessToken string) error {
 // Seems like a memory imlementation of skydb will make tests
 // faster and easier
 
-func TestHomeHandler(t *testing.T) {
-	req := router.Payload{}
-	resp := router.Response{}
-
-	handler := &HomeHandler{}
-	handler.Handle(&req, &resp)
-	var s statusResponse
-
-	switch pt := resp.Result.(type) {
-	default:
-		t.Fatalf("unexpected type %T", pt)
-	case statusResponse:
-		s = resp.Result.(statusResponse)
-	}
-
-	if s.Status != "OK" {
-		t.Fatalf("got response %v, want `OK`", s.Status)
-	}
-}
-
 func TestSignupHandler(t *testing.T) {
 	conn := skydbtest.NewMapConn()
 
