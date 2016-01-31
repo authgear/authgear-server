@@ -45,6 +45,24 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 	return nil
 }
 
+func (db *database) Rename(recordType, oldName, newName string) error {
+	tableName := db.tableName(recordType)
+
+	stmt := fmt.Sprintf("ALTER TABLE %s RENAME %s TO %s", tableName, oldName, newName)
+	if _, err := db.c.Exec(stmt); err != nil {
+		return fmt.Errorf("failed to alter table: %s", err)
+	}
+	return nil
+}
+
+func (db *database) FetchSchema(recordType string) (skydb.RecordSchema, error) {
+	remoteRecordSchema, err := db.remoteColumnTypes(recordType)
+	if err != nil {
+		return nil, err
+	}
+	return remoteRecordSchema, nil
+}
+
 func (db *database) createTable(recordType string) (err error) {
 	tablename := db.tableName(recordType)
 

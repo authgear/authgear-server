@@ -158,6 +158,8 @@ func main() {
 	r.Map("push:user", injector.Inject(&handler.PushToUserHandler{}))
 	r.Map("push:device", injector.Inject(&handler.PushToDeviceHandler{}))
 
+	r.Map("schema:rename", injector.Inject(&handler.SchemaRenameHandler{}))
+
 	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
 	pubSubGateway := router.NewGateway(`pubSub`)

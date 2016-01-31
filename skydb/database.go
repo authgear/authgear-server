@@ -84,6 +84,12 @@ type Database interface {
 	// existing schem in the Database
 	Extend(recordType string, schema RecordSchema) error
 
+	// Rename renames a column of the Database record schema
+	Rename(recordType, oldColumnName, newColumnName string) error
+
+	// FetchSchema returns the record schema of a record type
+	FetchSchema(recordType string) (RecordSchema, error)
+
 	GetSubscription(key string, deviceID string, subscription *Subscription) error
 	SaveSubscription(subscription *Subscription) error
 	DeleteSubscription(key string, deviceID string) error
