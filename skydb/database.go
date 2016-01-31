@@ -84,8 +84,11 @@ type Database interface {
 	// existing schem in the Database
 	Extend(recordType string, schema RecordSchema) error
 
-	// Rename renames a column of the Database record schema
-	Rename(recordType, oldColumnName, newColumnName string) error
+	// RenameSchema renames a column of the Database record schema
+	RenameSchema(recordType, oldColumnName, newColumnName string) error
+
+	// DeleteSchema removes a column of the Database record schema
+	DeleteSchema(recordType, columnName string) error
 
 	// FetchSchema returns the record schema of a record type
 	FetchSchema(recordType string) (RecordSchema, error)
