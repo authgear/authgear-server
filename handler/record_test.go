@@ -1649,7 +1649,7 @@ func (db *mockTxDatabase) Rollback() error {
 
 var _ skydb.TxDatabase = &mockTxDatabase{}
 
-type filterFuncDef func(op string, recordID skydb.RecordID, record *skydb.Record) error
+type filterFuncDef func(op string, recordID skydb.RecordID, record *skydb.Record) skyerr.Error
 
 // selectiveDatabase filter Get, Save and Delete by executing filterFunc
 // if filterFunc return nil, the operation is delegated to underlying Database
@@ -1722,9 +1722,9 @@ func TestAtomicOperation(t *testing.T) {
 			})
 
 			Convey("rolls back saved records on error", func() {
-				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) error {
+				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) skyerr.Error {
 					if op == "SAVE" && recordID.Key == "1" {
-						return errors.New("Original Sin")
+						return skyerr.NewError(skyerr.UnexpectedError, "Original Sin")
 					}
 					return nil
 				})
@@ -1751,7 +1751,11 @@ func TestAtomicOperation(t *testing.T) {
 						"name": "AtomicOperationFailure",
 						"message": "Atomic Operation rolled back due to one or more errors",
 						"info": {
-							"note/1": "Original Sin"
+							"note/1": {
+								"code": 10000,
+								"message": "UnexpectedError: Original Sin",
+								"name": "UnexpectedError"
+							}
 						}
 					}
 				}`)
@@ -1762,7 +1766,7 @@ func TestAtomicOperation(t *testing.T) {
 			})
 
 			Convey("commit saved records when there are no errors", func() {
-				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) error {
+				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) skyerr.Error {
 					return nil
 				})
 
@@ -1824,9 +1828,9 @@ func TestAtomicOperation(t *testing.T) {
 			})
 
 			Convey("rolls back deleted records on error", func() {
-				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) error {
+				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) skyerr.Error {
 					if op == "DELETE" && recordID.Key == "1" {
-						return errors.New("Original Sin")
+						return skyerr.NewError(skyerr.UnexpectedError, "Original Sin")
 					}
 					return nil
 				})
@@ -1846,7 +1850,11 @@ func TestAtomicOperation(t *testing.T) {
 						"name": "AtomicOperationFailure",
 						"message": "Atomic Operation rolled back due to one or more errors",
 						"info": {
-							"note/1": "Original Sin"
+							"note/1": {
+								"code": 10000,
+								"message": "UnexpectedError: Original Sin",
+								"name": "UnexpectedError"
+							}
 						}
 					}
 				}`)
@@ -1857,7 +1865,7 @@ func TestAtomicOperation(t *testing.T) {
 			})
 
 			Convey("commits deleted records", func() {
-				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) error {
+				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) skyerr.Error {
 					return nil
 				})
 

@@ -311,7 +311,7 @@ func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFun
 		if len(resp.ErrMap) > 0 {
 			info := map[string]interface{}{}
 			for recordID, err := range resp.ErrMap {
-				info[recordID.String()] = err.Message()
+				info[recordID.String()] = err
 			}
 
 			return skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
