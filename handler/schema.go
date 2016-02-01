@@ -7,6 +7,35 @@ import (
 	"github.com/oursky/skygear/skyerr"
 )
 
+func prepareSchemaResponse(db skydb.Database) (map[string]map[string]interface{}, error) {
+	results := map[string]map[string]interface{}{
+		"record_types": map[string]interface{}{},
+	}
+	rt := results["record_types"]
+
+	recordTypes, err := db.FetchRecordTypes()
+	if err != nil {
+		return nil, err
+	}
+	for _, recordType := range recordTypes {
+		schema, err := db.FetchSchema(recordType)
+		if err != nil {
+			return nil, err
+		}
+		fields := []map[string]string{}
+		for key, value := range schema {
+			field := map[string]string{"name": key, "type": value.ToSimpleName()}
+			fields = append(fields, field)
+		}
+
+		rt[recordType] = map[string]interface{}{
+			"fields": fields,
+		}
+	}
+
+	return results, nil
+}
+
 // SchemaRenameHandler handles the action of renaming column
 type SchemaRenameHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
@@ -48,24 +77,11 @@ func (h *SchemaRenameHandler) Handle(payload *router.Payload, response *router.R
 		response.Err = skyerr.NewError(skyerr.ResourceNotFound, err.Error())
 		return
 	}
-	schema, err := db.FetchSchema(recordType)
+
+	results, err := prepareSchemaResponse(db)
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
-	}
-	log.Debugf("%+v\n", schema)
-
-	fields := []map[string]string{}
-	for key, value := range schema {
-		field := map[string]string{"name": key, "type": value.Type.String()}
-		fields = append(fields, field)
-	}
-	results := map[string]interface{}{
-		"record_types": map[string]interface{}{
-			recordType: map[string]interface{}{
-				"fields": fields,
-			},
-		},
 	}
 
 	response.Result = results
@@ -111,23 +127,11 @@ func (h *SchemaDeleteHandler) Handle(payload *router.Payload, response *router.R
 		response.Err = skyerr.NewError(skyerr.ResourceNotFound, err.Error())
 		return
 	}
-	schema, err := db.FetchSchema(recordType)
+
+	results, err := prepareSchemaResponse(db)
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
-	}
-
-	fields := []map[string]string{}
-	for key, value := range schema {
-		field := map[string]string{"name": key, "type": value.Type.String()}
-		fields = append(fields, field)
-	}
-	results := map[string]interface{}{
-		"record_types": map[string]interface{}{
-			recordType: map[string]interface{}{
-				"fields": fields,
-			},
-		},
 	}
 
 	response.Result = results
@@ -210,7 +214,6 @@ func (h *SchemaCreateHandler) Handle(payload *router.Payload, response *router.R
 			recordSchema[fieldName] = fieldType
 		}
 
-		log.Debugf("%s\n%+v\n", recordType, recordSchema)
 		err := db.Extend(recordType, recordSchema)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.IncompatibleSchema, err.Error())
@@ -218,30 +221,10 @@ func (h *SchemaCreateHandler) Handle(payload *router.Payload, response *router.R
 		}
 	}
 
-	/*
-		if err := db.DeleteSchema(recordType, columnName); err != nil {
-			response.Err = skyerr.NewError(skyerr.ResourceNotFound, err.Error())
-			return
-		}
-		schema, err := db.FetchSchema(recordType)
-		if err != nil {
-			response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
-			return
-		}
-
-		fields := []map[string]string{}
-		for key, value := range schema {
-			field := map[string]string{"name": key, "type": value.Type.String()}
-			fields = append(fields, field)
-		}
-		results := map[string]interface{}{
-			"record_types": map[string]interface{}{
-				recordType: map[string]interface{}{
-					"fields": fields,
-				},
-			},
-		}
-
-		response.Result = results
-	*/
+	results, err := prepareSchemaResponse(db)
+	if err != nil {
+		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
+		return
+	}
+	response.Result = results
 }

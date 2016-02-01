@@ -93,6 +93,9 @@ type Database interface {
 	// FetchSchema returns the record schema of a record type
 	FetchSchema(recordType string) (RecordSchema, error)
 
+	// FetchRecordTypes returns a list of all existing record type
+	FetchRecordTypes() ([]string, error)
+
 	GetSubscription(key string, deviceID string, subscription *Subscription) error
 	SaveSubscription(subscription *Subscription) error
 	DeleteSubscription(key string, deviceID string) error
