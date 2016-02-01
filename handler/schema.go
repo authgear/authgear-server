@@ -7,6 +7,17 @@ import (
 	"github.com/oursky/skygear/skyerr"
 )
 
+// prepareSchemaResponse fetchs the schema of all record types
+//{
+//    "record_types": {
+//        "note": {
+//            "fields": [
+//                {"name": "content", "type": "string"},
+//                {"name": "noteOrder", "type": "number"}
+//            ]
+//        }
+//    }
+//}
 func prepareSchemaResponse(db skydb.Database) (map[string]map[string]interface{}, error) {
 	results := map[string]map[string]interface{}{
 		"record_types": map[string]interface{}{},
@@ -226,5 +237,43 @@ func (h *SchemaCreateHandler) Handle(payload *router.Payload, response *router.R
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
+	response.Result = results
+}
+
+// SchemaFetchHandler handles the action of returing information of record schema
+type SchemaFetchHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	RequireUser   router.Processor `preprocessor:"require_user"`
+	preprocessors []router.Processor
+}
+
+func (h *SchemaFetchHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+		h.RequireUser,
+	}
+}
+
+func (h *SchemaFetchHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (h *SchemaFetchHandler) Handle(payload *router.Payload, response *router.Response) {
+	log.Debugf("%+v", payload)
+
+	db := payload.Database
+
+	results, err := prepareSchemaResponse(db)
+	if err != nil {
+		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
+		return
+	}
+
 	response.Result = results
 }

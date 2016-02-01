@@ -222,4 +222,206 @@ func TestExtend(t *testing.T) {
 			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  {%!s(skydb.ExpressionType=0) <nil>}} => {TypeNumber  {%!s(skydb.ExpressionType=0) <nil>}}")
 		})
 	})
+
+	Convey("RenameSchema", t, func() {
+		c := getTestConn(t)
+		defer cleanupConn(t, c)
+
+		db := c.PublicDB()
+
+		Convey("rename column normally", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"content":   skydb.FieldType{Type: skydb.TypeString},
+				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
+				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
+			})
+			So(err, ShouldBeNil)
+
+			err = db.RenameSchema("note", "content", "content2")
+			So(err, ShouldBeNil)
+
+			// verify with an insert
+			_, err = c.Exec(
+				`INSERT INTO app_com_oursky_skygear."note" ` +
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
+			So(err, ShouldNotBeNil)
+
+			result, err := c.Exec(
+				`INSERT INTO app_com_oursky_skygear."note" ` +
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content2", "noteOrder", "createdAt") ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
+			So(err, ShouldBeNil)
+
+			i, err := result.RowsAffected()
+			So(err, ShouldBeNil)
+			So(i, ShouldEqual, 1)
+		})
+
+		Convey("rename column with reserved name", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"some":      skydb.FieldType{Type: skydb.TypeString},
+				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
+				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
+			})
+			So(err, ShouldBeNil)
+
+			// "some" is reserved by psql
+			err = db.RenameSchema("note", "some", "content")
+			So(err, ShouldBeNil)
+		})
+
+		Convey("rename unexisting column", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"content":   skydb.FieldType{Type: skydb.TypeString},
+				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
+				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
+			})
+			So(err, ShouldBeNil)
+
+			err = db.RenameSchema("note", "notExist", "content2")
+			So(err, ShouldNotBeNil)
+
+			// schema should remain unchanged
+			result, err := c.Exec(
+				`INSERT INTO app_com_oursky_skygear."note" ` +
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
+			So(err, ShouldBeNil)
+
+			i, err := result.RowsAffected()
+			So(err, ShouldBeNil)
+			So(i, ShouldEqual, 1)
+		})
+
+		Convey("rename to an existing column", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"content":   skydb.FieldType{Type: skydb.TypeString},
+				"content2":  skydb.FieldType{Type: skydb.TypeString},
+				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
+				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
+			})
+			So(err, ShouldBeNil)
+
+			err = db.RenameSchema("note", "content", "content2")
+			So(err, ShouldNotBeNil)
+
+			// schema should remain unchanged
+			result, err := c.Exec(
+				`INSERT INTO app_com_oursky_skygear."note" ` +
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
+			So(err, ShouldBeNil)
+
+			i, err := result.RowsAffected()
+			So(err, ShouldBeNil)
+			So(i, ShouldEqual, 1)
+		})
+
+		Convey("rename unexisting table", func() {
+			err := db.RenameSchema("notExist", "content", "content2")
+			So(err, ShouldNotBeNil)
+		})
+	})
+
+	Convey("DeleteSchema", t, func() {
+		c := getTestConn(t)
+		defer cleanupConn(t, c)
+
+		db := c.PublicDB()
+
+		Convey("delete column normally", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"content":   skydb.FieldType{Type: skydb.TypeString},
+				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
+				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
+			})
+			So(err, ShouldBeNil)
+
+			err = db.DeleteSchema("note", "content")
+			So(err, ShouldBeNil)
+
+			// verify with an insert
+			_, err = c.Exec(
+				`INSERT INTO app_com_oursky_skygear."note" ` +
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
+			So(err, ShouldNotBeNil)
+
+			result, err := c.Exec(
+				`INSERT INTO app_com_oursky_skygear."note" ` +
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "noteOrder", "createdAt") ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 2, '1988-02-06')`)
+			So(err, ShouldBeNil)
+
+			i, err := result.RowsAffected()
+			So(err, ShouldBeNil)
+			So(i, ShouldEqual, 1)
+		})
+
+		Convey("delete column with reserved name", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"some":      skydb.FieldType{Type: skydb.TypeString},
+				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
+				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
+			})
+			So(err, ShouldBeNil)
+
+			// "some" is reserved by psql
+			err = db.DeleteSchema("note", "some")
+			So(err, ShouldBeNil)
+		})
+
+		Convey("delete unexisting column", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"content":   skydb.FieldType{Type: skydb.TypeString},
+				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
+				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
+			})
+			So(err, ShouldBeNil)
+
+			err = db.DeleteSchema("note", "notExist")
+			So(err, ShouldNotBeNil)
+
+			// schema should remain unchanged
+			result, err := c.Exec(
+				`INSERT INTO app_com_oursky_skygear."note" ` +
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
+			So(err, ShouldBeNil)
+
+			i, err := result.RowsAffected()
+			So(err, ShouldBeNil)
+			So(i, ShouldEqual, 1)
+		})
+
+		Convey("delete unexisting table", func() {
+			err := db.DeleteSchema("notExist", "content")
+			So(err, ShouldNotBeNil)
+		})
+	})
+
+	Convey("FetchRecordTypes", t, func() {
+		c := getTestConn(t)
+		defer cleanupConn(t, c)
+
+		db := c.PublicDB()
+
+		Convey("fetch record types", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"content": skydb.FieldType{Type: skydb.TypeString},
+			})
+			So(err, ShouldBeNil)
+			err = db.Extend("note2", skydb.RecordSchema{
+				"content": skydb.FieldType{Type: skydb.TypeString},
+			})
+			So(err, ShouldBeNil)
+
+			recordTypes, err := db.FetchRecordTypes()
+			So(err, ShouldBeNil)
+
+			expected := []string{"note", "note2"}
+			So(recordTypes, ShouldResemble, expected)
+		})
+	})
 }

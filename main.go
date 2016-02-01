@@ -161,6 +161,7 @@ func main() {
 	r.Map("schema:rename", injector.Inject(&handler.SchemaRenameHandler{}))
 	r.Map("schema:delete", injector.Inject(&handler.SchemaDeleteHandler{}))
 	r.Map("schema:create", injector.Inject(&handler.SchemaCreateHandler{}))
+	r.Map("schema:fetch", injector.Inject(&handler.SchemaFetchHandler{}))
 
 	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
