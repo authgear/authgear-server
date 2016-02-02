@@ -113,6 +113,16 @@ func (conn *MapConn) DeleteUser(id string) error {
 	return nil
 }
 
+// SetAdminRoles is not implemented.
+func (conn *MapConn) SetAdminRoles(roles []string) error {
+	panic("not implemented")
+}
+
+// SetDefaultRoles is not implemented.
+func (conn *MapConn) SetDefaultRoles(roles []string) error {
+	panic("not implemented")
+}
+
 // GetAsset is not implemented.
 func (conn *MapConn) GetAsset(name string, asset *skydb.Asset) error {
 	panic("not implemented")
