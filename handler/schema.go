@@ -47,7 +47,21 @@ func prepareSchemaResponse(db skydb.Database) (map[string]map[string]interface{}
 	return results, nil
 }
 
-// SchemaRenameHandler handles the action of renaming column
+/*
+SchemaRenameHandler handles the action of renaming column
+curl -X POST -H "Content-Type: application/json" \
+  -d @- http://localhost:3000/ <<EOF
+{
+	"access_token":"ee41c969-cc1f-422b-985d-ddb2217b90f8",
+	"action":"schema:rename",
+	"database_id":"_public",
+	"record_type":"student",
+	"item_type":"field",
+	"item_name":"score",
+	"new_name":"exam_score"
+}
+EOF
+*/
 type SchemaRenameHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
@@ -98,7 +112,20 @@ func (h *SchemaRenameHandler) Handle(payload *router.Payload, response *router.R
 	response.Result = results
 }
 
-// SchemaDeleteHandler handles the action of deleting column
+/*
+SchemaDeleteHandler handles the action of deleting column
+curl -X POST -H "Content-Type: application/json" \
+  -d @- http://localhost:3000/ <<EOF
+{
+	"access_token":"ee41c969-cc1f-422b-985d-ddb2217b90f8",
+	"action":"schema:delete",
+	"database_id":"_public",
+	"record_type":"student",
+	"item_type":"field",
+	"item_name":"score"
+}
+EOF
+*/
 type SchemaDeleteHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
@@ -148,7 +175,25 @@ func (h *SchemaDeleteHandler) Handle(payload *router.Payload, response *router.R
 	response.Result = results
 }
 
-// SchemaCreateHandler handles the action of creating new columns
+/*
+SchemaCreateHandler handles the action of creating new columns
+curl -X POST -H "Content-Type: application/json" \
+  -d @- http://localhost:3000/ <<EOF
+{
+	"access_token":"ee41c969-cc1f-422b-985d-ddb2217b90f8",
+	"action":"schema:create",
+	"database_id":"_public",
+	"record_types":{
+		"student": {
+			"fields":[
+				{"name": "age", 	"type": "number"},
+				{"name": "nickname" "type": "string"}
+			]
+		}
+	}
+}
+EOF
+*/
 type SchemaCreateHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
@@ -240,7 +285,17 @@ func (h *SchemaCreateHandler) Handle(payload *router.Payload, response *router.R
 	response.Result = results
 }
 
-// SchemaFetchHandler handles the action of returing information of record schema
+/*
+SchemaFetchHandler handles the action of returing information of record schema
+curl -X POST -H "Content-Type: application/json" \
+  -d @- http://localhost:3000/ <<EOF
+{
+	"access_token":"ee41c969-cc1f-422b-985d-ddb2217b90f8",
+	"action":"schema:fetch",
+	"database_id":"_public"
+}
+EOF
+*/
 type SchemaFetchHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
