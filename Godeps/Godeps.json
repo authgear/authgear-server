@@ -100,7 +100,7 @@
 		},
 		{
 			"ImportPath": "github.com/zeromq/goczmq",
-			"Rev": "55b3baf4cf82cc150e64ad1209adf1b6ee987d2c"
+			"Rev": "91476d8f9ec24f1c2b7d35d459a9d2b32376e450"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/bcrypt",
