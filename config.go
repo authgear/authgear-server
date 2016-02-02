@@ -19,6 +19,7 @@ type Configuration struct {
 		Name          string
 		APIKey        string `gcfg:"api-key"`
 		AccessControl string `gcfg:"access-control"`
+		DevMode       bool   `gcfg:"dev-mode"`
 	}
 	DB struct {
 		ImplName string `gcfg:"implementation"`
@@ -107,6 +108,14 @@ func ReadFileInto(config *Configuration, path string) error {
 
 	if config.App.AccessControl == "" {
 		config.App.AccessControl = "role"
+	}
+
+	DevMode := os.Getenv("DEV_MODE")
+	if DevMode == "YES" {
+		config.App.DevMode = true
+	}
+	if DevMode == "NO" {
+		config.App.DevMode = false
 	}
 
 	dbImplName := os.Getenv("DB_IMPL_NAME")
