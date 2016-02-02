@@ -151,6 +151,7 @@ func main() {
 	r.Map("user:link", injector.Inject(&handler.UserLinkHandler{}))
 
 	r.Map("role:default", injector.Inject(&handler.RoleDefaultHandler{}))
+	r.Map("role:admin", injector.Inject(&handler.RoleAdminHandler{}))
 
 	r.Map("push:user", injector.Inject(&handler.PushToUserHandler{}))
 	r.Map("push:device", injector.Inject(&handler.PushToDeviceHandler{}))

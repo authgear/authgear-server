@@ -54,16 +54,21 @@ func (c *conn) batchUserRoleSQL(id string, roles []string) (string, []interface{
 
 }
 
-func (c *conn) UpdateAdminRoles(roles []string) error {
-	log.Debugf("UpdateAdminRoles %v", roles)
-	return nil
+func (c *conn) SetAdminRoles(roles []string) error {
+	log.Debugf("SetAdminRoles %v", roles)
+	c.ensureRole(roles)
+	return c.setRoleType(roles, "is_admin")
 }
 
 func (c *conn) SetDefaultRoles(roles []string) error {
 	log.Debugf("SetDefaultRoles %v", roles)
 	c.ensureRole(roles)
+	return c.setRoleType(roles, "by_default")
+}
+
+func (c *conn) setRoleType(roles []string, col string) error {
 	resetSQL := psql.Update(c.tableName("_role")).
-		Where("by_default = ?", true).Set("by_default", false)
+		Where(col+" = ?", true).Set(col, false)
 	_, err := c.ExecWith(resetSQL)
 	if err != nil {
 		return err
@@ -78,7 +83,7 @@ func (c *conn) SetDefaultRoles(roles []string) error {
 
 	updateSQL := psql.Update(c.tableName("_role")).
 		Where("id IN ("+sq.Placeholders(len(roles))+")", roleArgs...).
-		Set("by_default", true)
+		Set(col, true)
 	_, err = c.ExecWith(updateSQL)
 	if err != nil {
 		return err
