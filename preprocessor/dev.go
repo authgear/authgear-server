@@ -10,11 +10,11 @@ import (
 )
 
 type DevOnlyProcessor struct {
-	Dev bool
+	DevMode bool
 }
 
 func (p DevOnlyProcessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	if !p.Dev {
+	if !p.DevMode {
 		log.Infof("Attempt to access dev only end-point")
 		response.Err = skyerr.NewError(skyerr.PermissionDenied,
 			"Attempt to access dev only end-point")
