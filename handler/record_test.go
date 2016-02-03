@@ -30,10 +30,14 @@ func TestRecordDeleteHandler(t *testing.T) {
 		note1 := skydb.Record{
 			ID: skydb.NewRecordID("note", "1"),
 		}
+		user := skydb.Record{
+			ID: skydb.NewRecordID("user", "0"),
+		}
 
 		db := skydbtest.NewMapDB()
 		So(db.Save(&note0), ShouldBeNil)
 		So(db.Save(&note1), ShouldBeNil)
+		So(db.Save(&user), ShouldBeNil)
 
 		router := handlertest.NewSingleRouteRouter(&RecordDeleteHandler{}, func(p *router.Payload) {
 			p.Database = db
@@ -59,6 +63,18 @@ func TestRecordDeleteHandler(t *testing.T) {
 	"result": [
 		{"_id": "note/0", "_type": "record"},
 		{"_id": "note/notexistid", "_type": "error", "code": 110, "message": "record not found", "name": "ResourceNotFound"}
+	]
+}`)
+
+		})
+
+		Convey("cannot delete user record", func() {
+			resp := router.POST(`{
+	"ids": ["user/0"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": [
+		{"_id":"user/0","_type":"error","code":102,"message":"cannot delete user record","name":"PermissionDenied"}
 	]
 }`)
 

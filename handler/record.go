@@ -1095,6 +1095,11 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 
 	var records []*skydb.Record
 	for _, recordID := range recordIDs {
+		if recordID.Type == db.UserRecordType() {
+			resp.ErrMap[recordID] = skyerr.NewError(skyerr.PermissionDenied, "cannot delete user record")
+			continue
+		}
+
 		var record skydb.Record
 		if dbErr := db.Get(recordID, &record); dbErr != nil {
 			if dbErr == skydb.ErrRecordNotFound {
