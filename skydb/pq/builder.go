@@ -112,6 +112,10 @@ func (f *predicateSqlizerFactory) newUserRelationFunctionalPredicateSqlizer(fn s
 }
 
 func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn skydb.UserDiscoverFunc) (sq.Sqlizer, error) {
+	if f.db.UserRecordType() != f.primaryTable {
+		return nil, fmt.Errorf("user discover predicate can only be used on user record")
+	}
+
 	sqlizers := []sq.Sqlizer{}
 	// Only email is supported at the moment
 	sqlizers = append(sqlizers, &containsComparisonPredicateSqlizer{
