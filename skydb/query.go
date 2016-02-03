@@ -177,65 +177,80 @@ func (p Predicate) validate(parentPredicate *Predicate) skyerr.Error {
 
 	switch p.Operator {
 	case In:
-		lhs := p.Children[0].(Expression)
-		rhs := p.Children[1].(Expression)
-
-		if lhs.IsKeyPath() == rhs.IsKeyPath() {
-			return skyerr.NewError(skyerr.InternalQueryInvalid,
-				`either one of the operands of "IN" must be key path`)
-		}
-
-		if rhs.IsKeyPath() && !lhs.IsLiteralString() {
-			return skyerr.NewError(skyerr.InternalQueryInvalid,
-				`left operand of "IN" must be a string if comparing with a keypath`)
-		} else if lhs.IsKeyPath() && !rhs.IsLiteralArray() {
-			return skyerr.NewError(skyerr.InternalQueryInvalid,
-				`right operand of "IN" must be an array if comparing with a keypath`)
-		}
+		return p.validateInPredicate(parentPredicate)
 	case Functional:
-		expr := p.Children[0].(Expression)
-		if expr.Type != Function {
-			return skyerr.NewError(skyerr.InternalQueryInvalid,
-				`functional predicate must contain functional expression`)
-		}
-
-		switch f := expr.Value.(type) {
-		case UserRelationFunc:
-			if f.RelationName != "_friend" && f.RelationName != "_follow" {
-				return skyerr.NewErrorf(skyerr.NotSupported,
-					`user relation predicate with "%d" relation is not supported`,
-					f.RelationName)
-			}
-		case UserDiscoverFunc:
-			if parentPredicate != nil {
-				return skyerr.NewError(skyerr.NotSupported,
-					`user discover predicate cannot be combined with other predicates`)
-			}
-		default:
-			return skyerr.NewError(skyerr.NotSupported,
-				`unsupported function for functional predicate`)
-		}
+		return p.validateFunctionalPredicate(parentPredicate)
 	case Equal:
-		lhs := p.Children[0].(Expression)
-		rhs := p.Children[1].(Expression)
+		return p.validateEqualPredicate(parentPredicate)
+	}
+	return nil
+}
 
-		if lhs.IsLiteralMap() {
+func (p Predicate) validateInPredicate(parentPredicate *Predicate) skyerr.Error {
+	lhs := p.Children[0].(Expression)
+	rhs := p.Children[1].(Expression)
+
+	if lhs.IsKeyPath() == rhs.IsKeyPath() {
+		return skyerr.NewError(skyerr.InternalQueryInvalid,
+			`either one of the operands of "IN" must be key path`)
+	}
+
+	if rhs.IsKeyPath() && !lhs.IsLiteralString() {
+		return skyerr.NewError(skyerr.InternalQueryInvalid,
+			`left operand of "IN" must be a string if comparing with a keypath`)
+	} else if lhs.IsKeyPath() && !rhs.IsLiteralArray() {
+		return skyerr.NewError(skyerr.InternalQueryInvalid,
+			`right operand of "IN" must be an array if comparing with a keypath`)
+	}
+	return nil
+}
+
+func (p Predicate) validateFunctionalPredicate(parentPredicate *Predicate) skyerr.Error {
+	expr := p.Children[0].(Expression)
+	if expr.Type != Function {
+		return skyerr.NewError(skyerr.InternalQueryInvalid,
+			`functional predicate must contain functional expression`)
+	}
+
+	switch f := expr.Value.(type) {
+	case UserRelationFunc:
+		if f.RelationName != "_friend" && f.RelationName != "_follow" {
 			return skyerr.NewErrorf(skyerr.NotSupported,
-				`equal comparison of map "%v" is not supported`,
-				lhs.Value)
-		} else if lhs.IsLiteralArray() {
-			return skyerr.NewErrorf(skyerr.NotSupported,
-				`equal comparison of array "%v" is not supported`,
-				lhs.Value)
-		} else if rhs.IsLiteralMap() {
-			return skyerr.NewErrorf(skyerr.NotSupported,
-				`equal comparison of map "%v" is not supported`,
-				rhs.Value)
-		} else if rhs.IsLiteralArray() {
-			return skyerr.NewErrorf(skyerr.NotSupported,
-				`equal comparison of array "%v" is not supported`,
-				rhs.Value)
+				`user relation predicate with "%d" relation is not supported`,
+				f.RelationName)
 		}
+	case UserDiscoverFunc:
+		if parentPredicate != nil {
+			return skyerr.NewError(skyerr.NotSupported,
+				`user discover predicate cannot be combined with other predicates`)
+		}
+	default:
+		return skyerr.NewError(skyerr.NotSupported,
+			`unsupported function for functional predicate`)
+	}
+	return nil
+}
+
+func (p Predicate) validateEqualPredicate(parentPredicate *Predicate) skyerr.Error {
+	lhs := p.Children[0].(Expression)
+	rhs := p.Children[1].(Expression)
+
+	if lhs.IsLiteralMap() {
+		return skyerr.NewErrorf(skyerr.NotSupported,
+			`equal comparison of map "%v" is not supported`,
+			lhs.Value)
+	} else if lhs.IsLiteralArray() {
+		return skyerr.NewErrorf(skyerr.NotSupported,
+			`equal comparison of array "%v" is not supported`,
+			lhs.Value)
+	} else if rhs.IsLiteralMap() {
+		return skyerr.NewErrorf(skyerr.NotSupported,
+			`equal comparison of map "%v" is not supported`,
+			rhs.Value)
+	} else if rhs.IsLiteralArray() {
+		return skyerr.NewErrorf(skyerr.NotSupported,
+			`equal comparison of array "%v" is not supported`,
+			rhs.Value)
 	}
 	return nil
 }
