@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"errors"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 
@@ -11,22 +9,19 @@ import (
 )
 
 type rolePayload struct {
-	Roles []string `json:"roles"`
+	Roles []string `mapstructure:"roles"`
 }
 
-func (payload *rolePayload) Decode(data map[string]interface{}) error {
-	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  payload,
-		TagName: "json",
-	})
-	if err != nil {
-		return err
+func (payload *rolePayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "Fails to decode the request payload")
 	}
-	if err := decoder.Decode(data); err != nil {
-		return err
-	}
+	return payload.Validate()
+}
+
+func (payload *rolePayload) Validate() skyerr.Error {
 	if payload.Roles == nil {
-		return errors.New("Missing roles key in request")
+		return skyerr.NewError(skyerr.BadRequest, "Missing roles key in request")
 	}
 	return nil
 }
@@ -71,13 +66,13 @@ func (h *RoleDefaultHandler) GetPreprocessors() []router.Processor {
 func (h *RoleDefaultHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debugf("RoleDefaultHandler %v", h)
 	payload := &rolePayload{}
-	err := payload.Decode(rpayload.Data)
-	if err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	err = rpayload.DBConn.SetDefaultRoles(payload.Roles)
+	err := rpayload.DBConn.SetDefaultRoles(payload.Roles)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 	}
@@ -125,13 +120,13 @@ func (h *RoleAdminHandler) GetPreprocessors() []router.Processor {
 func (h *RoleAdminHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debugf("RoleAdminHandler %v", h)
 	payload := &rolePayload{}
-	err := payload.Decode(rpayload.Data)
-	if err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	err = rpayload.DBConn.SetAdminRoles(payload.Roles)
+	err := rpayload.DBConn.SetAdminRoles(payload.Roles)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 	}

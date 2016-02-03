@@ -1,14 +1,45 @@
 package handler
 
 import (
+	"testing"
+
 	"github.com/oursky/skygear/handler/handlertest"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyerr"
 	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
-	"testing"
 
 	"github.com/oursky/skygear/skydb"
 )
+
+func TestRolePayload(t *testing.T) {
+	Convey("rolePaylod", t, func() {
+		Convey("valid data", func() {
+			payload := rolePayload{}
+			payload.Decode(map[string]interface{}{
+				"roles": []string{
+					"admin",
+					"system",
+				},
+			})
+			err := payload.Validate()
+			So(err, ShouldBeNil)
+			So(payload.Roles, ShouldResemble, []string{
+				"admin",
+				"system",
+			})
+		})
+		Convey("missing roles", func() {
+			payload := rolePayload{}
+			payload.Decode(map[string]interface{}{})
+			err := payload.Validate()
+			So(
+				err,
+				ShouldResemble,
+				skyerr.NewError(skyerr.BadRequest, "Missing roles key in request"))
+		})
+	})
+}
 
 type roleConn struct {
 	skydb.Conn
