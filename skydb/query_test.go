@@ -128,4 +128,31 @@ func TestMalformedPredicate(t *testing.T) {
 			So(err, ShouldNotBeNil)
 		})
 	})
+
+	Convey("Predicate with User Discover", t, func() {
+		Convey("cannot be combined", func() {
+			predicate := Predicate{
+				Not,
+				[]interface{}{
+					Predicate{
+						Functional,
+						[]interface{}{
+							Expression{
+								Type: Function,
+								Value: UserDiscoverFunc{
+									Emails: []string{
+										"john.doe@example.com",
+										"jane.doe@example.com",
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			err := predicate.Validate()
+			So(err, ShouldNotBeNil)
+		})
+	})
 }

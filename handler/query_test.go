@@ -66,6 +66,44 @@ func TestQueryFromRaw(t *testing.T) {
 				},
 			})
 		})
+
+		Convey("functional predicate with user discover", func() {
+			parser := &QueryParser{
+				UserID: "USER_ID",
+			}
+			query := skydb.Query{}
+			err := parser.queryFromRaw(map[string]interface{}{
+				"record_type": "note",
+				"predicate": []interface{}{
+					"func",
+					"userDiscover",
+					map[string]interface{}{
+						"emails": []string{
+							"john.doe@example.com",
+							"jane.doe@example.com",
+						},
+					},
+				},
+			}, &query)
+			So(err, ShouldBeNil)
+			So(query, ShouldResemble, skydb.Query{
+				Type: "note",
+				Predicate: skydb.Predicate{
+					skydb.Functional,
+					[]interface{}{
+						skydb.Expression{
+							Type: skydb.Function,
+							Value: skydb.UserDiscoverFunc{
+								Emails: []string{
+									"john.doe@example.com",
+									"jane.doe@example.com",
+								},
+							},
+						},
+					},
+				},
+			})
+		})
 	})
 
 }

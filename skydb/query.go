@@ -136,6 +136,14 @@ func (p Predicate) IsEmpty() bool {
 //
 // If a Predicate is validated without error, nil is returned.
 func (p Predicate) Validate() skyerr.Error {
+	return p.validate(nil)
+}
+
+// validates is an internal version of the exported Validate() function.
+//
+// Additional information is passed as parameter to check the context
+// in which the predicate is specified.
+func (p Predicate) validate(parentPredicate *Predicate) skyerr.Error {
 	if p.Operator.IsBinary() && len(p.Children) != 2 {
 		return skyerr.NewErrorf(skyerr.InternalQueryInvalid,
 			"binary predicate must have 2 operands, got %d", len(p.Children))
@@ -153,7 +161,7 @@ func (p Predicate) Validate() skyerr.Error {
 					"children of compound predicate must be a predicate")
 			}
 
-			if err := predicate.Validate(); err != nil {
+			if err := predicate.validate(&p); err != nil {
 				return err
 			}
 		}
@@ -197,6 +205,11 @@ func (p Predicate) Validate() skyerr.Error {
 				return skyerr.NewErrorf(skyerr.NotSupported,
 					`user relation predicate with "%d" relation is not supported`,
 					f.RelationName)
+			}
+		case UserDiscoverFunc:
+			if parentPredicate != nil {
+				return skyerr.NewError(skyerr.NotSupported,
+					`user discover predicate cannot be combined with other predicates`)
 			}
 		default:
 			return skyerr.NewError(skyerr.NotSupported,
