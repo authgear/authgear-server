@@ -7,7 +7,7 @@ import (
 	osexec "os/exec"
 
 	log "github.com/Sirupsen/logrus"
-	odplugin "github.com/oursky/skygear/plugin"
+	skyplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skyconv"
@@ -64,8 +64,8 @@ var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 type execTransport struct {
 	Path        string
 	Args        []string
-	initHandler odplugin.TransportInitHandler
-	state       odplugin.TransportState
+	initHandler skyplugin.TransportInitHandler
+	state       skyplugin.TransportState
 }
 
 func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
@@ -114,15 +114,15 @@ func (p *execTransport) runProc(args []string, in []byte) (out []byte, err error
 	return
 }
 
-func (p *execTransport) State() odplugin.TransportState {
+func (p *execTransport) State() skyplugin.TransportState {
 	return p.state
 }
 
-func (p *execTransport) SetInitHandler(f odplugin.TransportInitHandler) {
+func (p *execTransport) SetInitHandler(f skyplugin.TransportInitHandler) {
 	p.initHandler = f
 }
 
-func (p *execTransport) setState(state odplugin.TransportState) {
+func (p *execTransport) setState(state skyplugin.TransportState) {
 	if state != p.state {
 		oldState := p.state
 		p.state = state
@@ -135,11 +135,11 @@ func (p *execTransport) RequestInit() {
 	if p.initHandler != nil {
 		handlerError := p.initHandler(out, err)
 		if err != nil || handlerError != nil {
-			p.setState(odplugin.TransportStateError)
+			p.setState(skyplugin.TransportStateError)
 			return
 		}
 	}
-	p.setState(odplugin.TransportStateReady)
+	p.setState(skyplugin.TransportStateReady)
 }
 
 func (p *execTransport) RunInit() (out []byte, err error) {
@@ -197,7 +197,7 @@ func (p *execTransport) RunTimer(name string, in []byte) (out []byte, err error)
 	return
 }
 
-func (p *execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.AuthResponse, error) {
+func (p *execTransport) RunProvider(request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
 	req := map[string]interface{}{
 		"auth_data": request.AuthData,
 	}
@@ -212,7 +212,7 @@ func (p *execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.Au
 		return nil, err
 	}
 
-	resp := odplugin.AuthResponse{}
+	resp := skyplugin.AuthResponse{}
 
 	err = json.Unmarshal(out, &resp)
 	if err != nil {
@@ -225,15 +225,15 @@ func (p *execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.Au
 type execTransportFactory struct {
 }
 
-func (f execTransportFactory) Open(path string, args []string) (transport odplugin.Transport) {
+func (f execTransportFactory) Open(path string, args []string) (transport skyplugin.Transport) {
 	transport = &execTransport{
 		Path:  path,
 		Args:  args,
-		state: odplugin.TransportStateUninitialized,
+		state: skyplugin.TransportStateUninitialized,
 	}
 	return
 }
 
 func init() {
-	odplugin.RegisterTransport("exec", execTransportFactory{})
+	skyplugin.RegisterTransport("exec", execTransportFactory{})
 }
