@@ -171,14 +171,20 @@ func main() {
 		WebSocket: internalPubSub,
 	}))
 
-	http.Handle("/", router.LoggingMiddleware(r, false))
-	http.Handle("/pubsub", router.LoggingMiddleware(pubSubGateway, false))
-	http.Handle("/_/pubsub", router.LoggingMiddleware(internalPubSubGateway, false))
+	corsHost := config.App.Cors
+
+	http.Handle("/", router.CorsMiddleware(
+		corsHost, router.LoggingMiddleware(r, false)))
+	http.Handle("/pubsub", router.CorsMiddleware(
+		corsHost, router.LoggingMiddleware(pubSubGateway, false)))
+	http.Handle("/_/pubsub", router.CorsMiddleware(
+		corsHost, router.LoggingMiddleware(internalPubSubGateway, false)))
 
 	fileGateway := router.NewGateway(`files/(.+)`)
 	fileGateway.GET(injector.Inject(&handler.AssetGetURLHandler{}))
 	fileGateway.PUT(injector.Inject(&handler.AssetUploadURLHandler{}))
-	http.Handle("/files/", router.LoggingMiddleware(fileGateway, true))
+	http.Handle("/files/", router.CorsMiddleware(
+		corsHost, router.LoggingMiddleware(fileGateway, true)))
 
 	// Bootstrap finished, starting services
 	cronjob.Start()

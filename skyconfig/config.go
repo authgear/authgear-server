@@ -20,6 +20,7 @@ type Configuration struct {
 		APIKey        string `gcfg:"api-key"`
 		AccessControl string `gcfg:"access-control"`
 		DevMode       bool   `gcfg:"dev-mode"`
+		Cors          string `gcfg:"cors-host"`
 	}
 	DB struct {
 		ImplName string `gcfg:"implementation"`
