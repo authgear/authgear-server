@@ -752,7 +752,7 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 	response.Result = results
 }
 
-func eagerIDs(records []skydb.Record, query skydb.Query) map[string][]skydb.RecordID {
+func eagerIDs(db skydb.Database, records []skydb.Record, query skydb.Query) map[string][]skydb.RecordID {
 	eagers := map[string][]skydb.RecordID{}
 	for _, transientExpression := range query.ComputedKeys {
 		if transientExpression.Type != skydb.KeyPath {
@@ -764,18 +764,41 @@ func eagerIDs(records []skydb.Record, query skydb.Query) map[string][]skydb.Reco
 
 	for i, record := range records {
 		for keyPath := range eagers {
-			valueAtKeyPath, ok := record.Data[keyPath]
-			if !ok || valueAtKeyPath == nil {
-				continue
-			}
-			ref, ok := valueAtKeyPath.(skydb.Reference)
-			if !ok {
+			ref := getReferenceWithKeyPath(db, &record, keyPath)
+			if ref.IsEmpty() {
 				continue
 			}
 			eagers[keyPath][i] = ref.ID
 		}
 	}
 	return eagers
+}
+
+// getReferenceWithKeyPath returns a reference for use in eager loading
+// It handles the case where reserved attribute is a string ID instead of
+// a referenced ID.
+func getReferenceWithKeyPath(db skydb.Database, record *skydb.Record, keyPath string) skydb.Reference {
+	valueAtKeyPath := record.Get(keyPath)
+	if valueAtKeyPath == nil {
+		return skydb.NewEmptyReference()
+	}
+
+	if ref, ok := valueAtKeyPath.(skydb.Reference); ok {
+		return ref
+	}
+
+	// If the value at key path is not a reference, it could be a string
+	// ID of a user record.
+	switch keyPath {
+	case "_owner_id", "_created_by", "_updated_by":
+		strID, ok := valueAtKeyPath.(string)
+		if !ok {
+			return skydb.NewEmptyReference()
+		}
+		return skydb.NewReference(db.UserRecordType(), strID)
+	default:
+		return skydb.NewEmptyReference()
+	}
 }
 
 func doQueryEager(db skydb.Database, eagersIDs map[string][]skydb.RecordID) map[string]map[string]*skydb.Record {
@@ -902,7 +925,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	eagers := eagerIDs(records, query)
+	eagers := eagerIDs(db, records, query)
 	eagerRecords := doQueryEager(db, eagers)
 
 	output := make([]interface{}, len(records))
@@ -915,19 +938,21 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 			}
 
 			keyPath := transientExpression.Value.(string)
-			if _, ok := record.Data[keyPath]; ok {
-				if record.Transient == nil {
-					record.Transient = map[string]interface{}{}
-				}
+			val := record.Get(keyPath)
+			var transientValue interface{}
+			if val != nil {
 				id := eagers[keyPath][i]
 				eagerRecord := eagerRecords[keyPath][id.Key]
 				if eagerRecord != nil {
 					injectSigner(eagerRecord, h.AssetStore)
-					record.Transient[transientKey] = (*skyconv.JSONRecord)(eagerRecord)
-				} else {
-					record.Transient[transientKey] = nil
+					transientValue = (*skyconv.JSONRecord)(eagerRecord)
 				}
 			}
+
+			if record.Transient == nil {
+				record.Transient = map[string]interface{}{}
+			}
+			record.Transient[transientKey] = transientValue
 		}
 
 		injectSigner(&record, h.AssetStore)
@@ -1070,6 +1095,11 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 
 	var records []*skydb.Record
 	for _, recordID := range recordIDs {
+		if recordID.Type == db.UserRecordType() {
+			resp.ErrMap[recordID] = skyerr.NewError(skyerr.PermissionDenied, "cannot delete user record")
+			continue
+		}
+
 		var record skydb.Record
 		if dbErr := db.Get(recordID, &record); dbErr != nil {
 			if dbErr == skydb.ErrRecordNotFound {

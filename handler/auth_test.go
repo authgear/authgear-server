@@ -47,241 +47,181 @@ func (s *singleTokenStore) Delete(accessToken string) error {
 // Seems like a memory imlementation of skydb will make tests
 // faster and easier
 
-func TestHomeHandler(t *testing.T) {
-	req := router.Payload{}
-	resp := router.Response{}
-
-	handler := &HomeHandler{}
-	handler.Handle(&req, &resp)
-	var s statusResponse
-
-	switch pt := resp.Result.(type) {
-	default:
-		t.Fatalf("unexpected type %T", pt)
-	case statusResponse:
-		s = resp.Result.(statusResponse)
-	}
-
-	if s.Status != "OK" {
-		t.Fatalf("got response %v, want `OK`", s.Status)
-	}
-}
-
 func TestSignupHandler(t *testing.T) {
-	conn := skydbtest.NewMapConn()
+	Convey("SignupHandler", t, func() {
+		conn := skydbtest.NewMapConn()
+		db := skydbtest.NewMapDB()
+		txdb := skydbtest.NewMockTxDatabase(db)
+		tokenStore := singleTokenStore{}
 
-	tokenStore := singleTokenStore{}
-	req := router.Payload{
-		Data: map[string]interface{}{
-			"username": "john.doe",
-			"email":    "john.doe@example.com",
-			"password": "secret",
-		},
-		DBConn: conn,
-	}
-	resp := router.Response{}
-	handler := &SignupHandler{
-		TokenStore: &tokenStore,
-	}
-	handler.Handle(&req, &resp)
+		Convey("sign up new account", func() {
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"username": "john.doe",
+					"email":    "john.doe@example.com",
+					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: txdb,
+			}
+			resp := router.Response{}
+			handler := &SignupHandler{
+				TokenStore: &tokenStore,
+			}
+			handler.Handle(&req, &resp)
 
-	authResp, ok := resp.Result.(authResponse)
-	if !ok {
-		t.Fatalf("got type = %T, want type authResponse", resp.Result)
-	}
+			So(txdb.DidBegin, ShouldBeTrue)
+			So(txdb.DidCommit, ShouldBeTrue)
 
-	if authResp.Username != "john.doe" {
-		t.Fatalf("got authResp.Username = %v, want john.doe", authResp.Username)
-	}
+			So(resp.Result, ShouldHaveSameTypeAs, authResponse{})
+			authResp := resp.Result.(authResponse)
+			So(authResp.Username, ShouldEqual, "john.doe")
+			So(authResp.Email, ShouldEqual, "john.doe@example.com")
+			So(authResp.AccessToken, ShouldNotBeEmpty)
+			token := authtoken.Token(tokenStore)
+			So(token.UserInfoID, ShouldEqual, authResp.UserID)
+			So(token.AccessToken, ShouldNotBeEmpty)
 
-	if authResp.Email != "john.doe@example.com" {
-		t.Fatalf("got authResp.Email = %v, want john.doe@example.com", authResp.Email)
-	}
+			_, ok := db.RecordMap[fmt.Sprintf("user/%s", token.UserInfoID)]
+			So(ok, ShouldBeTrue)
+		})
 
-	if authResp.AccessToken == "" {
-		t.Fatal("got authResp.AccessToken, want non-empty value")
-	}
+		Convey("sign up duplicate username", func() {
+			userinfo := skydb.NewUserInfo("john.doe", "", "secret")
+			conn.CreateUser(&userinfo)
 
-	token := authtoken.Token(tokenStore)
-	if token.UserInfoID != authResp.UserID {
-		t.Fatalf("Token userID don't match with response %v, %v", token.UserInfoID, authResp.UserID)
-	}
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"username": "john.doe",
+					"email":    "john.doe@example.com",
+					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: txdb,
+			}
+			resp := router.Response{}
+			handler := &SignupHandler{
+				TokenStore: &tokenStore,
+			}
+			handler.Handle(&req, &resp)
 
-	if token.AccessToken == "" {
-		t.Fatal("got empty token.AccessToken, want non-empty value")
-	}
-}
+			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
+			errorResponse := resp.Err.(skyerr.Error)
+			So(errorResponse.Code(), ShouldEqual, skyerr.Duplicated)
+		})
 
-func TestSignupHandlerDuplicatedUsername(t *testing.T) {
-	conn := skydbtest.NewMapConn()
+		Convey("sign up duplicate email", func() {
+			userinfo := skydb.NewUserInfo("", "john.doe@example.com", "secret")
+			conn.CreateUser(&userinfo)
 
-	userinfo := skydb.NewUserInfo("john.doe", "", "secret")
-	conn.CreateUser(&userinfo)
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"username": "john.doe",
+					"email":    "john.doe@example.com",
+					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: txdb,
+			}
+			resp := router.Response{}
+			handler := &SignupHandler{
+				TokenStore: &tokenStore,
+			}
+			handler.Handle(&req, &resp)
 
-	tokenStore := singleTokenStore{}
-	req := router.Payload{
-		Data: map[string]interface{}{
-			"username": "john.doe",
-			"email":    "john.doe@example.com",
-			"password": "secret",
-		},
-		DBConn: conn,
-	}
-	resp := router.Response{}
-	handler := &SignupHandler{
-		TokenStore: &tokenStore,
-	}
-	handler.Handle(&req, &resp)
-
-	errorResponse, ok := resp.Err.(skyerr.Error)
-	if !ok {
-		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
-	}
-
-	if errorResponse.Code() != 109 {
-		t.Fatalf("got errorResponse.Code() = %v, want 109", errorResponse.Code())
-	}
-}
-
-func TestSignupHandlerDuplicatedEmail(t *testing.T) {
-	conn := skydbtest.NewMapConn()
-
-	userinfo := skydb.NewUserInfo("", "john.doe@example.com", "secret")
-	conn.CreateUser(&userinfo)
-
-	tokenStore := singleTokenStore{}
-	req := router.Payload{
-		Data: map[string]interface{}{
-			"username": "john.doe",
-			"email":    "john.doe@example.com",
-			"password": "secret",
-		},
-		DBConn: conn,
-	}
-	resp := router.Response{}
-	handler := &SignupHandler{
-		TokenStore: &tokenStore,
-	}
-	handler.Handle(&req, &resp)
-
-	errorResponse, ok := resp.Err.(skyerr.Error)
-	if !ok {
-		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
-	}
-
-	if errorResponse.Code() != 109 {
-		t.Fatalf("got errorResponse.Code() = %v, want 109", errorResponse.Code())
-	}
+			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
+			errorResponse := resp.Err.(skyerr.Error)
+			So(errorResponse.Code(), ShouldEqual, skyerr.Duplicated)
+		})
+	})
 }
 
 func TestLoginHandler(t *testing.T) {
-	conn := skydbtest.NewMapConn()
+	Convey("LoginHandler", t, func() {
+		conn := skydbtest.NewMapConn()
+		db := skydbtest.NewMapDB()
+		txdb := skydbtest.NewMockTxDatabase(db)
+		tokenStore := singleTokenStore{}
 
-	userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
-	conn.CreateUser(&userinfo)
+		Convey("login user", func() {
+			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
+			conn.CreateUser(&userinfo)
 
-	tokenStore := singleTokenStore{}
-	req := router.Payload{
-		Data: map[string]interface{}{
-			"username": "john.doe",
-			"password": "secret",
-		},
-		DBConn: conn,
-	}
-	resp := router.Response{}
-	handler := &LoginHandler{
-		TokenStore: &tokenStore,
-	}
-	handler.Handle(&req, &resp)
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"username": "john.doe",
+					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: txdb,
+			}
+			resp := router.Response{}
+			handler := &LoginHandler{
+				TokenStore: &tokenStore,
+			}
+			handler.Handle(&req, &resp)
 
-	authResp, ok := resp.Result.(authResponse)
-	if !ok {
-		t.Fatalf("got type = %T, want type authResponse", resp.Result)
-	}
+			So(resp.Result, ShouldHaveSameTypeAs, authResponse{})
+			authResp := resp.Result.(authResponse)
+			So(authResp.Username, ShouldEqual, "john.doe")
+			So(authResp.Email, ShouldEqual, "john.doe@example.com")
+			So(authResp.AccessToken, ShouldNotBeEmpty)
+			token := authtoken.Token(tokenStore)
+			So(token.UserInfoID, ShouldEqual, authResp.UserID)
+			So(token.AccessToken, ShouldNotBeEmpty)
+		})
 
-	if authResp.Username != "john.doe" {
-		t.Fatalf("got authResp.UserID = %v, want userinfoid", authResp.Username)
-	}
+		Convey("login user wrong password", func() {
+			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
+			conn.CreateUser(&userinfo)
 
-	if authResp.Email != "john.doe@example.com" {
-		t.Fatalf("got authResp.Email = %v, want john.doe@example.com", authResp.Email)
-	}
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"username": "john.doe",
+					"password": "wrongsecret",
+				},
+				DBConn:   conn,
+				Database: txdb,
+			}
+			resp := router.Response{}
+			handler := &LoginHandler{
+				TokenStore: &tokenStore,
+			}
+			handler.Handle(&req, &resp)
 
-	if authResp.AccessToken == "" {
-		t.Fatal("got authResp.AccessToken, want non-empty value")
-	}
+			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
+			errorResponse := resp.Err.(skyerr.Error)
+			So(errorResponse.Code(), ShouldEqual, skyerr.InvalidCredentials)
+		})
 
-	token := authtoken.Token(tokenStore)
-	if token.UserInfoID != authResp.UserID {
-		t.Fatalf("Token userID don't match with response %v, %v", token.UserInfoID, authResp.UserID)
-	}
+		Convey("login user not found", func() {
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"username": "john.doe",
+					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: txdb,
+			}
+			resp := router.Response{}
+			handler := &LoginHandler{
+				TokenStore: &tokenStore,
+			}
+			handler.Handle(&req, &resp)
 
-	if token.AccessToken == "" {
-		t.Fatal("got empty token.AccessToken, want non-empty value")
-	}
-}
-
-func TestLoginHandlerWrongPassword(t *testing.T) {
-	conn := skydbtest.NewMapConn()
-
-	userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
-	conn.CreateUser(&userinfo)
-
-	tokenStore := singleTokenStore{}
-	req := router.Payload{
-		Data: map[string]interface{}{
-			"username": "john.doe",
-			"password": "wrongsecret",
-		},
-		DBConn: conn,
-	}
-	resp := router.Response{}
-	handler := &LoginHandler{
-		TokenStore: &tokenStore,
-	}
-	handler.Handle(&req, &resp)
-
-	errorResponse, ok := resp.Err.(skyerr.Error)
-	if !ok {
-		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
-	}
-
-	if errorResponse.Code() != 105 {
-		t.Fatalf("got resp.Err.Code() = %v, want 105", errorResponse.Code())
-	}
-}
-
-func TestLoginHandlerNotFound(t *testing.T) {
-	conn := skydbtest.NewMapConn()
-
-	tokenStore := singleTokenStore{}
-	req := router.Payload{
-		Data: map[string]interface{}{
-			"username": "john.doe",
-			"password": "secret",
-		},
-		DBConn: conn,
-	}
-	resp := router.Response{}
-	handler := &LoginHandler{
-		TokenStore: &tokenStore,
-	}
-	handler.Handle(&req, &resp)
-
-	errorResponse, ok := resp.Err.(skyerr.Error)
-	if !ok {
-		t.Fatalf("got type = %T, want type skyerr.Error", resp.Err)
-	}
-
-	if errorResponse.Code() != skyerr.ResourceNotFound {
-		t.Fatalf("got resp.Err.Code() = %v, want %v", errorResponse.Code(), skyerr.ResourceNotFound)
-	}
+			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
+			errorResponse := resp.Err.(skyerr.Error)
+			So(errorResponse.Code(), ShouldEqual, skyerr.ResourceNotFound)
+		})
+	})
 }
 
 func TestLoginHandlerWithProvider(t *testing.T) {
 	Convey("LoginHandler", t, func() {
 		tokenStore := singleTokenStore{}
 		conn := singleUserConn{}
+		db := skydbtest.NewMapDB()
+		txdb := skydbtest.NewMockTxDatabase(db)
 		providerRegistry := provider.NewRegistry()
 		providerRegistry.RegisterAuthProvider("com.example", handlertest.NewSingleUserAuthProvider("com.example", "johndoe"))
 
@@ -290,6 +230,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 			ProviderRegistry: providerRegistry,
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
+			p.Database = txdb
 		})
 
 		Convey("login in existing", func() {
@@ -319,6 +260,9 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		Convey("login in and create", func() {
 			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
 
+			So(txdb.DidBegin, ShouldBeTrue)
+			So(txdb.DidCommit, ShouldBeTrue)
+
 			token := authtoken.Token(tokenStore)
 			userinfo := conn.userinfo
 
@@ -334,6 +278,9 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 	}
 }`, userinfo.ID, token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
+
+			_, ok := db.RecordMap[fmt.Sprintf("user/%s", userinfo.ID)]
+			So(ok, ShouldBeTrue)
 		})
 	})
 }
@@ -379,15 +326,21 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 	Convey("SignupHandler", t, func() {
 		tokenStore := singleTokenStore{}
 		conn := singleUserConn{}
+		db := skydbtest.NewMapDB()
+		txdb := skydbtest.NewMockTxDatabase(db)
 
 		r := handlertest.NewSingleRouteRouter(&SignupHandler{
 			TokenStore: &tokenStore,
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
+			p.Database = txdb
 		})
 
 		Convey("signs up anonymously", func() {
 			resp := r.POST(`{}`)
+
+			So(txdb.DidBegin, ShouldBeTrue)
+			So(txdb.DidCommit, ShouldBeTrue)
 
 			token := authtoken.Token(tokenStore)
 			userinfo := conn.userinfo
@@ -401,6 +354,9 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 	}
 }`, userinfo.ID, token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
+
+			_, ok := db.RecordMap[fmt.Sprintf("user/%s", userinfo.ID)]
+			So(ok, ShouldBeTrue)
 		})
 
 		Convey("errors when both usename and email is missing", func() {
@@ -438,6 +394,8 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 	Convey("SignupHandler", t, func() {
 		tokenStore := singleTokenStore{}
 		conn := singleUserConn{}
+		db := skydbtest.NewMapDB()
+		txdb := skydbtest.NewMockTxDatabase(db)
 		providerRegistry := provider.NewRegistry()
 		providerRegistry.RegisterAuthProvider("com.example", handlertest.NewSingleUserAuthProvider("com.example", "johndoe"))
 
@@ -446,10 +404,14 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			ProviderRegistry: providerRegistry,
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
+			p.Database = txdb
 		})
 
 		Convey("signs up with user", func() {
 			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
+
+			So(txdb.DidBegin, ShouldBeTrue)
+			So(txdb.DidCommit, ShouldBeTrue)
 
 			token := authtoken.Token(tokenStore)
 			userinfo := conn.userinfo
@@ -465,6 +427,9 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 	}
 }`, userinfo.ID, token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
+
+			_, ok := db.RecordMap[fmt.Sprintf("user/%s", userinfo.ID)]
+			So(ok, ShouldBeTrue)
 		})
 
 		Convey("signs up with incorrect user", func() {
@@ -504,11 +469,13 @@ func TestLogoutHandler(t *testing.T) {
 	Convey("LogoutHandler", t, func() {
 		tokenStore := &deleteTokenStore{}
 		conn := skydbtest.NewMapConn()
+		db := skydbtest.NewMapDB()
 
 		r := handlertest.NewSingleRouteRouter(&LogoutHandler{
 			TokenStore: tokenStore,
 		}, func(p *router.Payload) {
 			p.DBConn = conn
+			p.Database = db
 		})
 
 		Convey("deletes existing access token", func() {
@@ -564,6 +531,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 
 		r := handlertest.NewSingleRouteRouter(&PasswordHandler{}, func(p *router.Payload) {
 			p.DBConn = &conn
+			p.Database = skydbtest.NewMapDB()
 		})
 
 		Convey("change password success", func() {

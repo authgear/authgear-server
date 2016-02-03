@@ -1,6 +1,8 @@
 package skydb
 
 import (
+	"fmt"
+
 	"github.com/oursky/skygear/skyerr"
 )
 
@@ -134,6 +136,14 @@ func (p Predicate) IsEmpty() bool {
 //
 // If a Predicate is validated without error, nil is returned.
 func (p Predicate) Validate() skyerr.Error {
+	return p.validate(nil)
+}
+
+// validates is an internal version of the exported Validate() function.
+//
+// Additional information is passed as parameter to check the context
+// in which the predicate is specified.
+func (p Predicate) validate(parentPredicate *Predicate) skyerr.Error {
 	if p.Operator.IsBinary() && len(p.Children) != 2 {
 		return skyerr.NewErrorf(skyerr.InternalQueryInvalid,
 			"binary predicate must have 2 operands, got %d", len(p.Children))
@@ -151,7 +161,7 @@ func (p Predicate) Validate() skyerr.Error {
 					"children of compound predicate must be a predicate")
 			}
 
-			if err := predicate.Validate(); err != nil {
+			if err := predicate.validate(&p); err != nil {
 				return err
 			}
 		}
@@ -167,60 +177,80 @@ func (p Predicate) Validate() skyerr.Error {
 
 	switch p.Operator {
 	case In:
-		lhs := p.Children[0].(Expression)
-		rhs := p.Children[1].(Expression)
-
-		if lhs.IsKeyPath() == rhs.IsKeyPath() {
-			return skyerr.NewError(skyerr.InternalQueryInvalid,
-				`either one of the operands of "IN" must be key path`)
-		}
-
-		if rhs.IsKeyPath() && !lhs.IsLiteralString() {
-			return skyerr.NewError(skyerr.InternalQueryInvalid,
-				`left operand of "IN" must be a string if comparing with a keypath`)
-		} else if lhs.IsKeyPath() && !rhs.IsLiteralArray() {
-			return skyerr.NewError(skyerr.InternalQueryInvalid,
-				`right operand of "IN" must be an array if comparing with a keypath`)
-		}
+		return p.validateInPredicate(parentPredicate)
 	case Functional:
-		expr := p.Children[0].(Expression)
-		if expr.Type != Function {
-			return skyerr.NewError(skyerr.InternalQueryInvalid,
-				`functional predicate must contain functional expression`)
-		}
-
-		switch f := expr.Value.(type) {
-		case UserRelationFunc:
-			if f.RelationName != "_friend" && f.RelationName != "_follow" {
-				return skyerr.NewErrorf(skyerr.NotSupported,
-					`user relation predicate with "%d" relation is not supported`,
-					f.RelationName)
-			}
-		default:
-			return skyerr.NewError(skyerr.NotSupported,
-				`unsupported function for functional predicate`)
-		}
+		return p.validateFunctionalPredicate(parentPredicate)
 	case Equal:
-		lhs := p.Children[0].(Expression)
-		rhs := p.Children[1].(Expression)
+		return p.validateEqualPredicate(parentPredicate)
+	}
+	return nil
+}
 
-		if lhs.IsLiteralMap() {
+func (p Predicate) validateInPredicate(parentPredicate *Predicate) skyerr.Error {
+	lhs := p.Children[0].(Expression)
+	rhs := p.Children[1].(Expression)
+
+	if lhs.IsKeyPath() == rhs.IsKeyPath() {
+		return skyerr.NewError(skyerr.InternalQueryInvalid,
+			`either one of the operands of "IN" must be key path`)
+	}
+
+	if rhs.IsKeyPath() && !lhs.IsLiteralString() {
+		return skyerr.NewError(skyerr.InternalQueryInvalid,
+			`left operand of "IN" must be a string if comparing with a keypath`)
+	} else if lhs.IsKeyPath() && !rhs.IsLiteralArray() {
+		return skyerr.NewError(skyerr.InternalQueryInvalid,
+			`right operand of "IN" must be an array if comparing with a keypath`)
+	}
+	return nil
+}
+
+func (p Predicate) validateFunctionalPredicate(parentPredicate *Predicate) skyerr.Error {
+	expr := p.Children[0].(Expression)
+	if expr.Type != Function {
+		return skyerr.NewError(skyerr.InternalQueryInvalid,
+			`functional predicate must contain functional expression`)
+	}
+
+	switch f := expr.Value.(type) {
+	case UserRelationFunc:
+		if f.RelationName != "_friend" && f.RelationName != "_follow" {
 			return skyerr.NewErrorf(skyerr.NotSupported,
-				`equal comparison of map "%v" is not supported`,
-				lhs.Value)
-		} else if lhs.IsLiteralArray() {
-			return skyerr.NewErrorf(skyerr.NotSupported,
-				`equal comparison of array "%v" is not supported`,
-				lhs.Value)
-		} else if rhs.IsLiteralMap() {
-			return skyerr.NewErrorf(skyerr.NotSupported,
-				`equal comparison of map "%v" is not supported`,
-				rhs.Value)
-		} else if rhs.IsLiteralArray() {
-			return skyerr.NewErrorf(skyerr.NotSupported,
-				`equal comparison of array "%v" is not supported`,
-				rhs.Value)
+				`user relation predicate with "%d" relation is not supported`,
+				f.RelationName)
 		}
+	case UserDiscoverFunc:
+		if parentPredicate != nil {
+			return skyerr.NewError(skyerr.NotSupported,
+				`user discover predicate cannot be combined with other predicates`)
+		}
+	default:
+		return skyerr.NewError(skyerr.NotSupported,
+			`unsupported function for functional predicate`)
+	}
+	return nil
+}
+
+func (p Predicate) validateEqualPredicate(parentPredicate *Predicate) skyerr.Error {
+	lhs := p.Children[0].(Expression)
+	rhs := p.Children[1].(Expression)
+
+	if lhs.IsLiteralMap() {
+		return skyerr.NewErrorf(skyerr.NotSupported,
+			`equal comparison of map "%v" is not supported`,
+			lhs.Value)
+	} else if lhs.IsLiteralArray() {
+		return skyerr.NewErrorf(skyerr.NotSupported,
+			`equal comparison of array "%v" is not supported`,
+			lhs.Value)
+	} else if rhs.IsLiteralMap() {
+		return skyerr.NewErrorf(skyerr.NotSupported,
+			`equal comparison of map "%v" is not supported`,
+			rhs.Value)
+	} else if rhs.IsLiteralArray() {
+		return skyerr.NewErrorf(skyerr.NotSupported,
+			`equal comparison of array "%v" is not supported`,
+			rhs.Value)
 	}
 	return nil
 }
@@ -308,5 +338,44 @@ type UserRelationFunc struct {
 
 // Args implements the Func interface
 func (f UserRelationFunc) Args() []interface{} {
+	return []interface{}{}
+}
+
+// UserDiscoverFunc searches for user reord having the specified user data, such
+// as email addresses. Can only be used with user record.
+type UserDiscoverFunc struct {
+	Emails []string
+}
+
+// Args implements the Func interface
+func (f UserDiscoverFunc) Args() []interface{} {
+	panic("not supported")
+}
+
+// ArgsByName implements the Func interface
+func (f UserDiscoverFunc) ArgsByName(name string) []interface{} {
+	var data []string
+	switch name {
+	case "email":
+		data = f.Emails
+	default:
+		panic(fmt.Errorf("not supported arg name %s", name))
+	}
+
+	args := make([]interface{}, len(data))
+	for i, email := range data {
+		args[i] = email
+	}
+	return args
+}
+
+// UserDataFunc is an expresssion to return an attribute of user info
+// as email addresses. Can only be used with user record.
+type UserDataFunc struct {
+	DataName string
+}
+
+// Args implements the Func interface
+func (f UserDataFunc) Args() []interface{} {
 	return []interface{}{}
 }

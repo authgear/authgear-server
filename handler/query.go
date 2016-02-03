@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/mitchellh/mapstructure"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skyconv"
 	"github.com/oursky/skygear/skyerr"
@@ -150,6 +151,9 @@ func (parser *QueryParser) parseExpression(i interface{}) skydb.Expression {
 	case map[string]interface{}:
 		var keyPath string
 		if err := skyconv.MapFrom(i, (*skyconv.MapKeyPath)(&keyPath)); err == nil {
+			if keyPath == "_owner" {
+				keyPath = "_owner_id"
+			}
 			return skydb.Expression{
 				Type:  skydb.KeyPath,
 				Value: keyPath,
@@ -184,6 +188,8 @@ func (parser *QueryParser) parseFunc(s []interface{}) (f skydb.Func, err error) 
 		f, err = parser.parseDistanceFunc(s[2:])
 	case "userRelation":
 		f, err = parser.parseUserRelationFunc(s[2:])
+	case "userDiscover":
+		f, err = parser.parseUserDiscoverFunc(s[2:])
 	case "":
 		return nil, errors.New("empty function name")
 	default:
@@ -238,6 +244,25 @@ func (parser *QueryParser) parseUserRelationFunc(s []interface{}) (skydb.UserRel
 		User:              parser.UserID,
 	}, nil
 
+}
+
+func (parser *QueryParser) parseUserDiscoverFunc(s []interface{}) (skydb.UserDiscoverFunc, error) {
+	emptyUserDiscoverFunc := skydb.UserDiscoverFunc{}
+	if len(s) != 1 {
+		return emptyUserDiscoverFunc, fmt.Errorf("want 1 arguments for user discover func, got %d", len(s))
+	}
+
+	userData := struct {
+		Emails []string `mapstructure:"emails"`
+	}{}
+
+	if err := mapstructure.Decode(s[0], &userData); err != nil {
+		return emptyUserDiscoverFunc, err
+	}
+
+	return skydb.UserDiscoverFunc{
+		Emails: userData.Emails,
+	}, nil
 }
 
 func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *skydb.Query) (err skyerr.Error) {

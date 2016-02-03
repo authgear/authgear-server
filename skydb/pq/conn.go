@@ -160,8 +160,9 @@ type database struct {
 	txDone bool
 }
 
-func (db *database) Conn() skydb.Conn { return db.c }
-func (db *database) ID() string       { return "" }
+func (db *database) Conn() skydb.Conn       { return db.c }
+func (db *database) ID() string             { return "" }
+func (db *database) UserRecordType() string { return "user" }
 
 // schemaName is a convenient method to access parent conn's schemaName
 func (db *database) schemaName() string {

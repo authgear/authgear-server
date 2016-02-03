@@ -30,10 +30,14 @@ func TestRecordDeleteHandler(t *testing.T) {
 		note1 := skydb.Record{
 			ID: skydb.NewRecordID("note", "1"),
 		}
+		user := skydb.Record{
+			ID: skydb.NewRecordID("user", "0"),
+		}
 
 		db := skydbtest.NewMapDB()
 		So(db.Save(&note0), ShouldBeNil)
 		So(db.Save(&note1), ShouldBeNil)
+		So(db.Save(&user), ShouldBeNil)
 
 		router := handlertest.NewSingleRouteRouter(&RecordDeleteHandler{}, func(p *router.Payload) {
 			p.Database = db
@@ -59,6 +63,18 @@ func TestRecordDeleteHandler(t *testing.T) {
 	"result": [
 		{"_id": "note/0", "_type": "record"},
 		{"_id": "note/notexistid", "_type": "error", "code": 110, "message": "record not found", "name": "ResourceNotFound"}
+	]
+}`)
+
+		})
+
+		Convey("cannot delete user record", func() {
+			resp := router.POST(`{
+	"ids": ["user/0"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": [
+		{"_id":"user/0","_type":"error","code":102,"message":"cannot delete user record","name":"PermissionDenied"}
 	]
 }`)
 
@@ -1219,8 +1235,11 @@ type referencedRecordDatabase struct {
 	note     skydb.Record
 	category skydb.Record
 	city     skydb.Record
+	user     skydb.Record
 	skydb.Database
 }
+
+func (db *referencedRecordDatabase) UserRecordType() string { return "user" }
 
 func (db *referencedRecordDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
 	switch id.String() {
@@ -1230,6 +1249,8 @@ func (db *referencedRecordDatabase) Get(id skydb.RecordID, record *skydb.Record)
 		*record = db.category
 	case "city/beautiful":
 		*record = db.city
+	case "user/ownerID":
+		*record = db.user
 	}
 	return nil
 }
@@ -1244,6 +1265,8 @@ func (db *referencedRecordDatabase) GetByIDs(ids []skydb.RecordID) (*skydb.Rows,
 			records = append(records, db.category)
 		case "city/beautiful":
 			records = append(records, db.city)
+		case "user/ownerID":
+			records = append(records, db.user)
 		}
 	}
 	return skydb.NewRows(skydb.NewMemoryRows(records)), nil
@@ -1288,6 +1311,13 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				OwnerID: "ownerID",
 				Data: map[string]interface{}{
 					"name": "This is beautiful.",
+				},
+			},
+			user: skydb.Record{
+				ID:      skydb.NewRecordID("user", "ownerID"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"name": "Owner",
 				},
 			},
 		}
@@ -1341,6 +1371,28 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				}]
 			}`)
 		})
+
+		Convey("query record with eager load on user", func() {
+			resp := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, injectDBFunc).POST(`{
+				"record_type": "note",
+				"include": {"user": {"$type": "keypath", "$val": "_owner"}}
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note1",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID",
+					"category": {"$id":"category/important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$type":"ref"},
+					"_transient": {
+						"user": {"_access":null,"_id":"user/ownerID","_type":"record","_ownerID":"ownerID", "name": "Owner"}
+					}
+				}]
+			}`)
+		})
+
 	})
 
 	Convey("Given a referenced record with null reference in DB", t, func() {
@@ -1621,34 +1673,6 @@ func TestHookExecution(t *testing.T) {
 	})
 }
 
-// mockTxDB implements and records TxDatabase's methods and delegates other
-// calls to underlying Database
-type mockTxDatabase struct {
-	DidBegin, DidCommit, DidRollback bool
-	skydb.Database
-}
-
-func newMockTxDatabase(backingDB skydb.Database) *mockTxDatabase {
-	return &mockTxDatabase{Database: backingDB}
-}
-
-func (db *mockTxDatabase) Begin() error {
-	db.DidBegin = true
-	return nil
-}
-
-func (db *mockTxDatabase) Commit() error {
-	db.DidCommit = true
-	return nil
-}
-
-func (db *mockTxDatabase) Rollback() error {
-	db.DidRollback = true
-	return nil
-}
-
-var _ skydb.TxDatabase = &mockTxDatabase{}
-
 type filterFuncDef func(op string, recordID skydb.RecordID, record *skydb.Record) skyerr.Error
 
 // selectiveDatabase filter Get, Save and Delete by executing filterFunc
@@ -1713,7 +1737,7 @@ func TestAtomicOperation(t *testing.T) {
 
 	Convey("Atomic Operation", t, func() {
 		backingDB := skydbtest.NewMapDB()
-		txDB := newMockTxDatabase(backingDB)
+		txDB := skydbtest.NewMockTxDatabase(backingDB)
 		db := newSelectiveDatabase(txDB)
 
 		Convey("for RecordSaveHandler", func() {

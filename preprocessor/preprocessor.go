@@ -56,6 +56,15 @@ func (p InjectDatabase) Preprocess(payload *router.Payload, response *router.Res
 	return http.StatusOK
 }
 
+type InjectPublicDatabase struct {
+}
+
+func (p InjectPublicDatabase) Preprocess(payload *router.Payload, response *router.Response) int {
+	conn := payload.DBConn
+	payload.Database = conn.PublicDB()
+	return http.StatusOK
+}
+
 type RequireUserForWrite struct {
 }
 

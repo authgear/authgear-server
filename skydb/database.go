@@ -41,6 +41,9 @@ type Database interface {
 	// ID returns the identifier of the Database.
 	ID() string
 
+	// UserRecordType returns name of the user record type.
+	UserRecordType() string
+
 	// Get fetches the Record identified by the supplied key and
 	// writes it onto the supplied Record.
 	//

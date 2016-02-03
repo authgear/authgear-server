@@ -26,7 +26,7 @@ func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
 		return skydb.ErrRecordNotFound
 	}
 
-	builder := db.selectQuery(id.Type, typemap).Where("_id = ?", id.Key)
+	builder := db.selectQuery(psql.Select(), id.Type, typemap).Where("_id = ?", id.Key)
 	row := db.c.QueryRowWith(builder)
 	if err := newRecordScanner(id.Type, typemap, row).Scan(record); err == sql.ErrNoRows {
 		return skydb.ErrRecordNotFound
@@ -66,7 +66,7 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 	}
 
 	inCause, inArgs := literalToSQLOperand(idStrs)
-	query := db.selectQuery(recordType, typemap).
+	query := db.selectQuery(psql.Select(), recordType, typemap).
 		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
 	rows, err := db.c.QueryWith(query)
 	if err != nil {
@@ -203,15 +203,9 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 		return skydb.EmptyRows, nil
 	}
 
-	typemap, err = updateTypemapForQuery(query, typemap)
-	if err != nil {
-		return nil, err
-	}
-
-	q := db.selectQuery(query.Type, typemap)
-
+	q := psql.Select()
+	factory := newPredicateSqlizerFactory(db, query.Type)
 	if p := query.Predicate; !p.IsEmpty() {
-		factory := newPredicateSqlizerFactory(db, query.Type)
 		sqlizer, err := factory.newPredicateSqlizer(p)
 		if err != nil {
 			return nil, err
@@ -244,6 +238,16 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 		q = q.Offset(query.Offset)
 	}
 
+	// Select columns to return, this is the last step so that predicate
+	// have a chance to change typemap, and the generated sql
+	// depends on the alias name used in table joins.
+	typemap, err = updateTypemapForQuery(query, typemap)
+	if err != nil {
+		return nil, err
+	}
+	typemap = factory.updateTypemap(typemap)
+	q = db.selectQuery(q, query.Type, typemap)
+
 	rows, err := db.c.QueryWith(q)
 	return newRows(query.Type, typemap, rows, err)
 }
@@ -270,7 +274,7 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 		},
 	}
 
-	q := db.selectQuery(query.Type, typemap)
+	q := db.selectQuery(psql.Select(), query.Type, typemap)
 
 	if p := query.Predicate; !p.IsEmpty() {
 		factory := newPredicateSqlizerFactory(db, query.Type)
@@ -481,8 +485,7 @@ func newRows(recordType string, typemap skydb.RecordSchema, rows *sqlx.Rows, err
 	return skydb.NewRows(rowsIter{rows, rs}), nil
 }
 
-func (db *database) selectQuery(recordType string, typemap skydb.RecordSchema) sq.SelectBuilder {
-	q := psql.Select()
+func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap skydb.RecordSchema) sq.SelectBuilder {
 	for column, fieldType := range typemap {
 		expr := fieldType.Expression
 		if expr.IsEmpty() {

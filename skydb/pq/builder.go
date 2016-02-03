@@ -15,6 +15,7 @@ type predicateSqlizerFactory struct {
 	db           *database
 	primaryTable string
 	joinedTables []joinedTable
+	extraColumns map[string]skydb.FieldType
 }
 
 func (f *predicateSqlizerFactory) newPredicateSqlizer(predicate skydb.Predicate) (sq.Sqlizer, error) {
@@ -76,32 +77,75 @@ func (f *predicateSqlizerFactory) newFunctionalPredicateSqlizer(predicate skydb.
 	}
 	switch fn := expr.Value.(type) {
 	case skydb.UserRelationFunc:
-		table := fn.RelationName
-		direction := fn.RelationDirection
-		if direction == "" {
-			direction = "outward"
-		}
-		primaryColumn := fn.KeyPath
-		if primaryColumn == "_owner" || primaryColumn == "" {
-			primaryColumn = "_owner_id"
-		}
-
-		var outwardAlias, inwardAlias string
-		if direction == "outward" || direction == "mutual" {
-			outwardAlias = f.createLeftJoin(table, primaryColumn, "right_id")
-		}
-		if direction == "inward" || direction == "mutual" {
-			inwardAlias = f.createLeftJoin(table, primaryColumn, "left_id")
-		}
-
-		return userRelationPredicateSqlizer{
-			outwardAlias: outwardAlias,
-			inwardAlias:  inwardAlias,
-			user:         fn.User,
-		}, nil
+		return f.newUserRelationFunctionalPredicateSqlizer(fn)
+	case skydb.UserDiscoverFunc:
+		return f.newUserDiscoverFunctionalPredicateSqlizer(fn)
 	default:
 		panic("the specified function cannot be used as a functional predicate")
 	}
+}
+
+func (f *predicateSqlizerFactory) newUserRelationFunctionalPredicateSqlizer(fn skydb.UserRelationFunc) (sq.Sqlizer, error) {
+	table := fn.RelationName
+	direction := fn.RelationDirection
+	if direction == "" {
+		direction = "outward"
+	}
+	primaryColumn := fn.KeyPath
+	if primaryColumn == "_owner" || primaryColumn == "" {
+		primaryColumn = "_owner_id"
+	}
+
+	var outwardAlias, inwardAlias string
+	if direction == "outward" || direction == "mutual" {
+		outwardAlias = f.createLeftJoin(table, primaryColumn, "right_id")
+	}
+	if direction == "inward" || direction == "mutual" {
+		inwardAlias = f.createLeftJoin(table, primaryColumn, "left_id")
+	}
+
+	return userRelationPredicateSqlizer{
+		outwardAlias: outwardAlias,
+		inwardAlias:  inwardAlias,
+		user:         fn.User,
+	}, nil
+}
+
+func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn skydb.UserDiscoverFunc) (sq.Sqlizer, error) {
+	if f.db.UserRecordType() != f.primaryTable {
+		return nil, fmt.Errorf("user discover predicate can only be used on user record")
+	}
+
+	sqlizers := []sq.Sqlizer{}
+	// Only email is supported at the moment
+	sqlizers = append(sqlizers, &containsComparisonPredicateSqlizer{
+		f.createLeftJoin("_user", "_id", "id"),
+		skydb.Predicate{
+			Operator: skydb.In,
+			Children: []interface{}{
+				skydb.Expression{
+					Type:  skydb.KeyPath,
+					Value: "email",
+				},
+				skydb.Expression{
+					Type:  skydb.Literal,
+					Value: fn.ArgsByName("email"),
+				},
+			},
+		},
+	})
+
+	f.addExtraColumn("_transient__email", skydb.TypeString, skydb.Expression{
+		Type:  skydb.Function,
+		Value: skydb.UserDataFunc{"email"},
+	})
+
+	f.addExtraColumn("_transient__username", skydb.TypeString, skydb.Expression{
+		Type:  skydb.Function,
+		Value: skydb.UserDataFunc{"username"},
+	})
+
+	return sqlizers[0], nil
 }
 
 // createLeftJoin create an alias of a table to be joined to the primary table
@@ -110,18 +154,27 @@ func (f *predicateSqlizerFactory) createLeftJoin(secondaryTable string, primaryC
 	newAlias := joinedTable{secondaryTable, primaryColumn, secondaryColumn}
 	for i, alias := range f.joinedTables {
 		if alias.equal(newAlias) {
-			return fmt.Sprintf("_t%d", i)
+			return f.aliasName(secondaryTable, i)
 		}
 	}
 
 	f.joinedTables = append(f.joinedTables, newAlias)
-	return fmt.Sprintf("_t%d", len(f.joinedTables)-1)
+	return f.aliasName(secondaryTable, len(f.joinedTables)-1)
+}
+
+func (f *predicateSqlizerFactory) aliasName(secondaryTable string, indexInJoinedTables int) string {
+	// The _user table always have the same alias name for
+	// getting user info in user discovery
+	if secondaryTable == "_user" {
+		return "_user"
+	}
+	return fmt.Sprintf("_t%d", indexInJoinedTables)
 }
 
 // addJoinsToSelectBuilder add join clauses to a SelectBuilder
 func (f *predicateSqlizerFactory) addJoinsToSelectBuilder(q sq.SelectBuilder) sq.SelectBuilder {
 	for i, alias := range f.joinedTables {
-		aliasName := fmt.Sprintf("_t%d", i)
+		aliasName := f.aliasName(alias.secondaryTable, i)
 		joinClause := fmt.Sprintf("%s AS %s ON %s = %s",
 			f.db.tableName(alias.secondaryTable), pq.QuoteIdentifier(aliasName),
 			fullQuoteIdentifier(f.primaryTable, alias.primaryColumn),
@@ -133,6 +186,23 @@ func (f *predicateSqlizerFactory) addJoinsToSelectBuilder(q sq.SelectBuilder) sq
 		q = q.Distinct()
 	}
 	return q
+}
+
+func (f *predicateSqlizerFactory) addExtraColumn(key string, fieldType skydb.DataType, expr skydb.Expression) {
+	if f.extraColumns == nil {
+		f.extraColumns = map[string]skydb.FieldType{}
+	}
+	f.extraColumns[key] = skydb.FieldType{
+		Type:       fieldType,
+		Expression: expr,
+	}
+}
+
+func (f *predicateSqlizerFactory) updateTypemap(typemap skydb.RecordSchema) skydb.RecordSchema {
+	for key, field := range f.extraColumns {
+		typemap[key] = field
+	}
+	return typemap
 }
 
 func newPredicateSqlizerFactory(db *database, primaryTable string) *predicateSqlizerFactory {
@@ -316,6 +386,8 @@ func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
 		}
 		args := []interface{}{}
 		return sql, args
+	case skydb.UserDataFunc:
+		return fmt.Sprintf("_user.%s", f.DataName), []interface{}{}
 	default:
 		panic(fmt.Errorf("got unrecgonized skydb.Func = %T", fun))
 	}

@@ -1687,6 +1687,88 @@ func TestUserRelationQuery(t *testing.T) {
 	})
 }
 
+func TestUserDiscoverQuery(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupConn(t, c)
+
+		addUserWithInfo(t, c, "user0", "john.doe@example.com")
+		addUserWithInfo(t, c, "user1", "jane.doe@example.com")
+
+		record0 := skydb.Record{
+			ID:      skydb.NewRecordID("user", "user0"),
+			OwnerID: "user0",
+			Data:    skydb.Data{},
+		}
+		record1 := skydb.Record{
+			ID:      skydb.NewRecordID("user", "user1"),
+			OwnerID: "user1",
+			Data:    skydb.Data{},
+		}
+
+		savedRecords := []skydb.Record{record0, record1}
+		savedEmails := []string{"john.doe@example.com", "jane.doe@example.com"}
+
+		db := c.PublicDB()
+		So(db.Extend("user", nil), ShouldBeNil)
+		So(db.Save(&record0), ShouldBeNil)
+		So(db.Save(&record1), ShouldBeNil)
+
+		sortsByID := []skydb.Sort{
+			skydb.Sort{
+				KeyPath: "_id",
+				Order:   skydb.Ascending,
+			},
+		}
+
+		Convey("search single user", func() {
+			query := skydb.Query{
+				Type: "user",
+				Predicate: skydb.Predicate{
+					Operator: skydb.Functional,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.Function,
+							Value: skydb.UserDiscoverFunc{Emails: []string{"john.doe@example.com"}},
+						},
+					},
+				},
+				Sorts: sortsByID,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(len(records), ShouldEqual, 1)
+			So(records[0].ID, ShouldResemble, record0.ID)
+			So(records[0].Transient, ShouldResemble, skydb.Data{"_email": "john.doe@example.com"})
+		})
+
+		Convey("search multiple user", func() {
+			query := skydb.Query{
+				Type: "user",
+				Predicate: skydb.Predicate{
+					Operator: skydb.Functional,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.Function,
+							Value: skydb.UserDiscoverFunc{Emails: savedEmails},
+						},
+					},
+				},
+				Sorts: sortsByID,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(len(records), ShouldEqual, 2)
+			for i, record := range records {
+				So(record.ID, ShouldResemble, savedRecords[i].ID)
+				So(record.Transient, ShouldResemble, skydb.Data{"_email": savedEmails[i]})
+			}
+		})
+	})
+}
+
 func TestUnsupportedQuery(t *testing.T) {
 	Convey("Database", t, func() {
 		c := getTestConn(t)
