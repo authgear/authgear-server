@@ -66,21 +66,15 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaRenameHandler struct {
-	Authenticator router.Processor `preprocessor:"authenticator"`
+	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireUser   router.Processor `preprocessor:"require_user"`
 	preprocessors []router.Processor
 }
 
 func (h *SchemaRenameHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
+		h.DevOnly,
 		h.DBConn,
-		h.InjectUser,
-		h.InjectDB,
-		h.RequireUser,
 	}
 }
 
@@ -147,21 +141,15 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaDeleteHandler struct {
-	Authenticator router.Processor `preprocessor:"authenticator"`
+	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireUser   router.Processor `preprocessor:"require_user"`
 	preprocessors []router.Processor
 }
 
 func (h *SchemaDeleteHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
+		h.DevOnly,
 		h.DBConn,
-		h.InjectUser,
-		h.InjectDB,
-		h.RequireUser,
 	}
 }
 
@@ -232,21 +220,15 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaCreateHandler struct {
-	Authenticator router.Processor `preprocessor:"authenticator"`
+	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireUser   router.Processor `preprocessor:"require_user"`
 	preprocessors []router.Processor
 }
 
 func (h *SchemaCreateHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
+		h.DevOnly,
 		h.DBConn,
-		h.InjectUser,
-		h.InjectDB,
-		h.RequireUser,
 	}
 }
 
@@ -336,21 +318,15 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaFetchHandler struct {
-	Authenticator router.Processor `preprocessor:"authenticator"`
+	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireUser   router.Processor `preprocessor:"require_user"`
 	preprocessors []router.Processor
 }
 
 func (h *SchemaFetchHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
+		h.DevOnly,
 		h.DBConn,
-		h.InjectUser,
-		h.InjectDB,
-		h.RequireUser,
 	}
 }
 
