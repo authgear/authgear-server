@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/mitchellh/mapstructure"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
@@ -24,12 +27,12 @@ func prepareSchemaResponse(db skydb.Database) (map[string]map[string]interface{}
 	}
 	rt := results["record_types"]
 
-	recordTypes, err := db.FetchRecordTypes()
+	recordTypes, err := db.GetRecordTypes()
 	if err != nil {
 		return nil, err
 	}
 	for _, recordType := range recordTypes {
-		schema, err := db.FetchSchema(recordType)
+		schema, err := db.GetSchema(recordType)
 		if err != nil {
 			return nil, err
 		}
@@ -85,20 +88,37 @@ func (h *SchemaRenameHandler) GetPreprocessors() []router.Processor {
 	return h.preprocessors
 }
 
-func (h *SchemaRenameHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("%+v", payload)
+type schemaRenamePayload struct {
+	RecordType string `mapstructure:"record_type"`
+	OldName    string `mapstructure:"item_name"`
+	NewName    string `mapstructure:"new_name"`
+}
 
-	recordType, okType := payload.Data["record_type"].(string)
-	oldName, okOldName := payload.Data["item_name"].(string)
-	newName, okNewName := payload.Data["new_name"].(string)
-	if !okType || !okOldName || !okNewName {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "data in the specified request is invalid")
+func (payload *schemaRenamePayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *schemaRenamePayload) Validate() skyerr.Error {
+	if payload.RecordType == "" || payload.OldName == "" || payload.NewName == "" {
+		return skyerr.NewError(skyerr.InvalidArgument, "data in the specified request is invalid")
+	}
+	return nil
+}
+
+func (h *SchemaRenameHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	payload := &schemaRenamePayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	db := payload.Database
+	db := rpayload.Database
 
-	if err := db.RenameSchema(recordType, oldName, newName); err != nil {
+	if err := db.RenameSchema(payload.RecordType, payload.OldName, payload.NewName); err != nil {
 		response.Err = skyerr.NewError(skyerr.ResourceNotFound, err.Error())
 		return
 	}
@@ -149,19 +169,36 @@ func (h *SchemaDeleteHandler) GetPreprocessors() []router.Processor {
 	return h.preprocessors
 }
 
-func (h *SchemaDeleteHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("%+v", payload)
+type schemaDeletePayload struct {
+	RecordType string `mapstructure:"record_type"`
+	ColumnName string `mapstructure:"item_name"`
+}
 
-	recordType, okType := payload.Data["record_type"].(string)
-	columnName, okColumnName := payload.Data["item_name"].(string)
-	if !okType || !okColumnName {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "data in the specified request is invalid")
+func (payload *schemaDeletePayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *schemaDeletePayload) Validate() skyerr.Error {
+	if payload.RecordType == "" || payload.ColumnName == "" {
+		return skyerr.NewError(skyerr.InvalidArgument, "data in the specified request is invalid")
+	}
+	return nil
+}
+
+func (h *SchemaDeleteHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	payload := &schemaDeletePayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	db := payload.Database
+	db := rpayload.Database
 
-	if err := db.DeleteSchema(recordType, columnName); err != nil {
+	if err := db.DeleteSchema(payload.RecordType, payload.ColumnName); err != nil {
 		response.Err = skyerr.NewError(skyerr.ResourceNotFound, err.Error())
 		return
 	}
@@ -217,59 +254,61 @@ func (h *SchemaCreateHandler) GetPreprocessors() []router.Processor {
 	return h.preprocessors
 }
 
-func (h *SchemaCreateHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("%+v", payload)
+type schemaCreatePayload struct {
+	RawSchemas map[string]struct {
+		Fields []struct {
+			Name     string `mapstructure:"name"`
+			TypeName string `mapstructure:"type"`
+		} `mapstructure:"fields"`
+	} `mapstructure:"record_types"`
 
-	db := payload.Database
+	Schemas map[string]skydb.RecordSchema
+}
 
-	recordTypes, ok := payload.Data["record_types"].(map[string]interface{})
-	if !ok {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "expect map of record schema")
+func (payload *schemaCreatePayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+
+	payload.Schemas = make(map[string]skydb.RecordSchema)
+	for recordType, schema := range payload.RawSchemas {
+		payload.Schemas[recordType] = make(skydb.RecordSchema)
+		for _, field := range schema.Fields {
+			var err error
+			payload.Schemas[recordType][field.Name], err = skydb.SimpleNameToFieldType(field.TypeName)
+			if err != nil {
+				return skyerr.NewError(skyerr.InvalidArgument, "unexpected field type")
+			}
+		}
+	}
+
+	return payload.Validate()
+}
+
+func (payload *schemaCreatePayload) Validate() skyerr.Error {
+	for _, schema := range payload.Schemas {
+		for fieldName := range schema {
+			if strings.HasPrefix(fieldName, "_") {
+				return skyerr.NewError(skyerr.InvalidArgument, "attempts to create reserved field")
+			}
+		}
+	}
+	return nil
+}
+
+func (h *SchemaCreateHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	log.Debugf("%+v\n", rpayload)
+
+	payload := &schemaCreatePayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	for recordType, val := range recordTypes {
-		rec, ok := val.(map[string]interface{})
-		if !ok {
-			response.Err = skyerr.NewError(skyerr.InvalidArgument, "expect map of record schema")
-			return
-		}
+	db := rpayload.Database
 
-		fields, ok := rec["fields"].([]interface{})
-		if !ok {
-			response.Err = skyerr.NewError(skyerr.InvalidArgument, "expect list of fields")
-			return
-		}
-
-		recordSchema := make(skydb.RecordSchema)
-		for _, tmpField := range fields {
-			field, ok := tmpField.(map[string]interface{})
-			if !ok {
-				response.Err = skyerr.NewError(skyerr.InvalidArgument, "unexpected field structure")
-				return
-			}
-
-			fieldName, ok := field["name"].(string)
-			if !ok {
-				response.Err = skyerr.NewError(skyerr.InvalidArgument, "expect string of field name")
-				return
-			}
-
-			fieldTypeStr, ok := field["type"].(string)
-			if !ok {
-				response.Err = skyerr.NewError(skyerr.InvalidArgument, "expect string of field name")
-				return
-			}
-
-			fieldType, err := skydb.SimpleNameToFieldType(fieldTypeStr)
-			if err != nil {
-				response.Err = skyerr.NewError(skyerr.InvalidArgument, err.Error())
-				return
-			}
-
-			recordSchema[fieldName] = fieldType
-		}
-
+	for recordType, recordSchema := range payload.Schemas {
 		err := db.Extend(recordType, recordSchema)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.IncompatibleSchema, err.Error())
@@ -319,10 +358,8 @@ func (h *SchemaFetchHandler) GetPreprocessors() []router.Processor {
 	return h.preprocessors
 }
 
-func (h *SchemaFetchHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("%+v", payload)
-
-	db := payload.Database
+func (h *SchemaFetchHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	db := rpayload.Database
 
 	results, err := prepareSchemaResponse(db)
 	if err != nil {

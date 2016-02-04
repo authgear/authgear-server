@@ -68,7 +68,7 @@ func (db *database) DeleteSchema(recordType, columnName string) error {
 	return nil
 }
 
-func (db *database) FetchSchema(recordType string) (skydb.RecordSchema, error) {
+func (db *database) GetSchema(recordType string) (skydb.RecordSchema, error) {
 	remoteRecordSchema, err := db.remoteColumnTypes(recordType)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (db *database) FetchSchema(recordType string) (skydb.RecordSchema, error) {
 	return remoteRecordSchema, nil
 }
 
-func (db *database) FetchRecordTypes() ([]string, error) {
+func (db *database) GetRecordTypes() ([]string, error) {
 	schemaName := db.schemaName()
 
 	rows, err := db.c.Queryx(`
