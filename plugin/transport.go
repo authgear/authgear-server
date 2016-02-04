@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
 	"golang.org/x/net/context"
 )
@@ -69,7 +70,7 @@ type Transport interface {
 // A TransportFactory is a generic interface to instantiates different
 // kinds of Plugin Transport.
 type TransportFactory interface {
-	Open(path string, args []string) Transport
+	Open(path string, args []string, config skyconfig.Configuration) Transport
 }
 
 type nullTransport struct {
@@ -126,7 +127,7 @@ func (t *nullTransport) RunProvider(request *AuthRequest) (response *AuthRespons
 type nullFactory struct {
 }
 
-func (f nullFactory) Open(path string, args []string) Transport {
+func (f nullFactory) Open(path string, args []string, config skyconfig.Configuration) Transport {
 	return &nullTransport{}
 }
 

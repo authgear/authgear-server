@@ -7,6 +7,7 @@ import (
 	"time"
 
 	odplugin "github.com/oursky/skygear/plugin"
+	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
 	. "github.com/oursky/skygear/skytest"
@@ -586,10 +587,13 @@ func TestRun(t *testing.T) {
 func TestFactory(t *testing.T) {
 	Convey("test factory", t, func() {
 		factory := &execTransportFactory{}
-		transport := factory.Open("/bin/echo", []string{"plugin"})
+		transport := factory.Open("/bin/echo", []string{"plugin"}, skyconfig.Configuration{})
 
 		So(transport, ShouldHaveSameTypeAs, &execTransport{})
 		So(transport.(*execTransport).Path, ShouldResemble, "/bin/echo")
-		So(transport.(*execTransport).Args, ShouldResemble, []string{"plugin"})
+		So(transport.(*execTransport).Args, ShouldResemble, []string{
+			"plugin",
+			"--subprocess",
+		})
 	})
 }

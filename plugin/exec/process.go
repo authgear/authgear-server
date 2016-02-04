@@ -7,8 +7,10 @@ import (
 	osexec "os/exec"
 
 	log "github.com/Sirupsen/logrus"
-	odplugin "github.com/oursky/skygear/plugin"
+
+	skyplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
+	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skyconv"
 	"golang.org/x/net/context"
@@ -16,6 +18,11 @@ import (
 
 var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return
+	}
+
+	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return
 	}
@@ -40,16 +47,17 @@ var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 		return
 	}
 
+	pluginLog := []byte{}
+	stdErr := bufio.NewScanner(stderr)
+	for stdErr.Scan() {
+		pluginLog = append(pluginLog, []byte("\n")...)
+		pluginLog = append(pluginLog, stdErr.Bytes()...)
+	}
+	log.Debug("exec stderr : ", string(pluginLog))
+
 	s := bufio.NewScanner(stdout)
-	if !s.Scan() {
-		if err = s.Err(); err == nil {
-			// reached EOF
-			out = []byte{}
-		} else {
-			return
-		}
-	} else {
-		out = s.Bytes()
+	for s.Scan() {
+		out = append(out, s.Bytes()...)
 	}
 
 	err = stdout.Close()
@@ -64,8 +72,9 @@ var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 type execTransport struct {
 	Path        string
 	Args        []string
-	initHandler odplugin.TransportInitHandler
-	state       odplugin.TransportState
+	DBConfig    string
+	initHandler skyplugin.TransportInitHandler
+	state       skyplugin.TransportState
 }
 
 func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
@@ -78,7 +87,9 @@ func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
 	}
 
 	cmd := osexec.Command(p.Path, finalArgs...)
-
+	cmd.Env = []string{
+		"DATABASE_URL=" + p.DBConfig,
+	}
 	log.Debugf("Calling %s %s with     : %s", cmd.Path, cmd.Args, in)
 	out, err = startCommand(cmd, in)
 	log.Debugf("Called  %s %s returning: %s", cmd.Path, cmd.Args, out)
@@ -114,15 +125,15 @@ func (p *execTransport) runProc(args []string, in []byte) (out []byte, err error
 	return
 }
 
-func (p *execTransport) State() odplugin.TransportState {
+func (p *execTransport) State() skyplugin.TransportState {
 	return p.state
 }
 
-func (p *execTransport) SetInitHandler(f odplugin.TransportInitHandler) {
+func (p *execTransport) SetInitHandler(f skyplugin.TransportInitHandler) {
 	p.initHandler = f
 }
 
-func (p *execTransport) setState(state odplugin.TransportState) {
+func (p *execTransport) setState(state skyplugin.TransportState) {
 	if state != p.state {
 		oldState := p.state
 		p.state = state
@@ -135,11 +146,11 @@ func (p *execTransport) RequestInit() {
 	if p.initHandler != nil {
 		handlerError := p.initHandler(out, err)
 		if err != nil || handlerError != nil {
-			p.setState(odplugin.TransportStateError)
+			p.setState(skyplugin.TransportStateError)
 			return
 		}
 	}
-	p.setState(odplugin.TransportStateReady)
+	p.setState(skyplugin.TransportStateReady)
 }
 
 func (p *execTransport) RunInit() (out []byte, err error) {
@@ -197,7 +208,7 @@ func (p *execTransport) RunTimer(name string, in []byte) (out []byte, err error)
 	return
 }
 
-func (p *execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.AuthResponse, error) {
+func (p *execTransport) RunProvider(request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
 	req := map[string]interface{}{
 		"auth_data": request.AuthData,
 	}
@@ -212,7 +223,7 @@ func (p *execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.Au
 		return nil, err
 	}
 
-	resp := odplugin.AuthResponse{}
+	resp := skyplugin.AuthResponse{}
 
 	err = json.Unmarshal(out, &resp)
 	if err != nil {
@@ -225,15 +236,24 @@ func (p *execTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.Au
 type execTransportFactory struct {
 }
 
-func (f execTransportFactory) Open(path string, args []string) (transport odplugin.Transport) {
+func (f execTransportFactory) Open(path string, args []string, config skyconfig.Configuration) (transport skyplugin.Transport) {
+	log.Debugf("plugin exec args %v", args)
+	if !config.App.DevMode {
+		log.Warn("plugin exec transport is development use only")
+	}
+	if path == "" {
+		path = "py-skygear"
+	}
+	args = append(args, "--subprocess")
 	transport = &execTransport{
-		Path:  path,
-		Args:  args,
-		state: odplugin.TransportStateUninitialized,
+		Path:     path,
+		Args:     args,
+		DBConfig: config.DB.Option,
+		state:    skyplugin.TransportStateUninitialized,
 	}
 	return
 }
 
 func init() {
-	odplugin.RegisterTransport("exec", execTransportFactory{})
+	skyplugin.RegisterTransport("exec", execTransportFactory{})
 }
