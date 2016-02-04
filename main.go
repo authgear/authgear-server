@@ -23,6 +23,7 @@ import (
 	"github.com/oursky/skygear/pubsub"
 	"github.com/oursky/skygear/push"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
 	_ "github.com/oursky/skygear/skydb/pq"
 	"github.com/oursky/skygear/subscription"
@@ -44,8 +45,8 @@ func main() {
 		configPath = os.Args[1]
 	}
 
-	config := Configuration{}
-	if err := ReadFileInto(&config, configPath); err != nil {
+	config := skyconfig.Configuration{}
+	if err := skyconfig.ReadFileInto(&config, configPath); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
@@ -68,6 +69,7 @@ func main() {
 		HookRegistry:     hook.NewRegistry(),
 		ProviderRegistry: provider.NewRegistry(),
 		Scheduler:        cronjob,
+		Config:           config,
 	}
 
 	internalHub := pubsub.NewHub()
@@ -189,7 +191,7 @@ func main() {
 	}
 }
 
-func ensureDB(config Configuration) func() (skydb.Conn, error) {
+func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 	connOpener := func() (skydb.Conn, error) {
 		return skydb.Open(
 			config.DB.ImplName,
@@ -220,7 +222,7 @@ func ensureDB(config Configuration) func() (skydb.Conn, error) {
 	}
 }
 
-func initAssetStore(config Configuration) asset.Store {
+func initAssetStore(config skyconfig.Configuration) asset.Store {
 	var store asset.Store
 	switch config.AssetStore.ImplName {
 	default:
@@ -248,7 +250,7 @@ func initAssetStore(config Configuration) asset.Store {
 	return store
 }
 
-func initDevice(config Configuration, connOpener func() (skydb.Conn, error)) {
+func initDevice(config skyconfig.Configuration, connOpener func() (skydb.Conn, error)) {
 	// TODO: Create a device service to check APNs to remove obsolete devices.
 	// The current implementaion deletes pubsub devices if the last registered
 	// time is more than 1 day old.
@@ -260,7 +262,7 @@ func initDevice(config Configuration, connOpener func() (skydb.Conn, error)) {
 	conn.DeleteEmptyDevicesByTime(time.Now().AddDate(0, 0, -1))
 }
 
-func initPushSender(config Configuration, connOpener func() (skydb.Conn, error)) push.Sender {
+func initPushSender(config skyconfig.Configuration, connOpener func() (skydb.Conn, error)) push.Sender {
 	routeSender := push.NewRouteSender()
 	if config.APNS.Enable {
 		apns := initAPNSPusher(config, connOpener)
@@ -275,7 +277,7 @@ func initPushSender(config Configuration, connOpener func() (skydb.Conn, error))
 	return routeSender
 }
 
-func initAPNSPusher(config Configuration, connOpener func() (skydb.Conn, error)) *push.APNSPusher {
+func initAPNSPusher(config skyconfig.Configuration, connOpener func() (skydb.Conn, error)) *push.APNSPusher {
 	apnsPushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
 	if err != nil {
 		log.Fatalf("Failed to set up push sender: %v", err)
@@ -286,11 +288,11 @@ func initAPNSPusher(config Configuration, connOpener func() (skydb.Conn, error))
 	return apnsPushSender
 }
 
-func initGCMPusher(config Configuration) *push.GCMPusher {
+func initGCMPusher(config skyconfig.Configuration) *push.GCMPusher {
 	return &push.GCMPusher{APIKey: config.GCM.APIKey}
 }
 
-func initSubscription(config Configuration, connOpener func() (skydb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
+func initSubscription(config skyconfig.Configuration, connOpener func() (skydb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
 	notifiers := []subscription.Notifier{subscription.NewHubNotifier(hub)}
 	if pushSender != nil {
 		notifiers = append(notifiers, subscription.NewPushNotifier(pushSender))
@@ -304,7 +306,7 @@ func initSubscription(config Configuration, connOpener func() (skydb.Conn, error
 	go subscriptionService.Run()
 }
 
-func initPlugin(config Configuration, initContext *plugin.InitContext) {
+func initPlugin(config skyconfig.Configuration, initContext *plugin.InitContext) {
 	for _, pluginConfig := range config.Plugin {
 		initContext.AddPluginConfiguration(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)
 	}
@@ -312,7 +314,7 @@ func initPlugin(config Configuration, initContext *plugin.InitContext) {
 	initContext.InitPlugins()
 }
 
-func initLogger(config Configuration) {
+func initLogger(config skyconfig.Configuration) {
 	// Setup Logging
 	log.SetOutput(os.Stderr)
 	level, err := log.ParseLevel(config.LOG.Level)
@@ -347,7 +349,7 @@ func higherLogLevels(minLevel log.Level) []log.Level {
 	return output
 }
 
-func initSentry(config Configuration) {
+func initSentry(config skyconfig.Configuration) {
 	level, err := log.ParseLevel(config.LogHook.SentryLevel)
 	if err != nil {
 		log.Fatalf("log-hook: error parsing sentry-level: %v", err)

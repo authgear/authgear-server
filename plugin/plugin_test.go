@@ -4,15 +4,17 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
+	"github.com/oursky/skygear/skyconfig"
 	"github.com/robfig/cron"
 )
 
 func TestPlugin(t *testing.T) {
+	config := skyconfig.Configuration{}
 	Convey("new plugin from non-registered transport", t, func() {
 		defer unregisterAllTransports()
 
 		createPlugin := func() {
-			NewPlugin("nonexistent", "/tmp/nonexistent", []string{})
+			NewPlugin("nonexistent", "/tmp/nonexistent", []string{}, config)
 		}
 		So(createPlugin, ShouldPanic)
 	})
@@ -22,14 +24,14 @@ func TestPlugin(t *testing.T) {
 
 		RegisterTransport("null", nullFactory{})
 
-		plugin := NewPlugin("null", "/tmp/nonexistent", []string{})
+		plugin := NewPlugin("null", "/tmp/nonexistent", []string{}, config)
 		So(plugin, ShouldHaveSameTypeAs, Plugin{})
 		So(plugin.transport, ShouldHaveSameTypeAs, &nullTransport{})
 	})
 
 	Convey("panic unable to register timer", t, func() {
 		RegisterTransport("null", nullFactory{})
-		plugin := NewPlugin("null", "/tmp/nonexistent", []string{})
+		plugin := NewPlugin("null", "/tmp/nonexistent", []string{}, config)
 
 		c := cron.New()
 		panicFunc := func() {

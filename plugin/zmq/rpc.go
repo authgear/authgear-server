@@ -6,8 +6,10 @@ import (
 	"runtime/debug"
 
 	log "github.com/Sirupsen/logrus"
+
 	odplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
+	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skyconv"
 	"github.com/zeromq/goczmq"
@@ -267,7 +269,7 @@ func (p *zmqTransport) ipc(req *request) (out []byte, err error) {
 type zmqTransportFactory struct {
 }
 
-func (f zmqTransportFactory) Open(name string, args []string) (transport odplugin.Transport) {
+func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.Configuration) (transport odplugin.Transport) {
 	const internalAddrFmt = `inproc://%s`
 
 	internalAddr := fmt.Sprintf(internalAddrFmt, name)

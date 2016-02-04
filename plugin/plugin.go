@@ -5,9 +5,11 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
+
 	"github.com/oursky/skygear/plugin/hook"
 	"github.com/oursky/skygear/plugin/provider"
 	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyconfig"
 	"github.com/robfig/cron"
 )
 
@@ -58,13 +60,13 @@ func unregisterAllTransports() {
 }
 
 // NewPlugin creates an instance of Plugin by transport and configuration.
-func NewPlugin(name string, path string, args []string) Plugin {
+func NewPlugin(name string, path string, args []string, config skyconfig.Configuration) Plugin {
 	factory := transportFactories[name]
 	if factory == nil {
 		panic(fmt.Errorf("unable to find plugin transport '%v'", name))
 	}
 	p := Plugin{
-		transport: factory.Open(path, args),
+		transport: factory.Open(path, args, config),
 	}
 	return p
 }
@@ -77,10 +79,11 @@ type InitContext struct {
 	HookRegistry     *hook.Registry
 	ProviderRegistry *provider.Registry
 	Scheduler        *cron.Cron
+	Config           skyconfig.Configuration
 }
 
 func (c *InitContext) AddPluginConfiguration(name string, path string, args []string) *Plugin {
-	plug := NewPlugin(name, path, args)
+	plug := NewPlugin(name, path, args, c.Config)
 	c.plugins = append(c.plugins, &plug)
 	return &plug
 }

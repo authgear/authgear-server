@@ -7,8 +7,10 @@ import (
 	osexec "os/exec"
 
 	log "github.com/Sirupsen/logrus"
+
 	skyplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
+	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skyconv"
 	"golang.org/x/net/context"
@@ -64,6 +66,7 @@ var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 type execTransport struct {
 	Path        string
 	Args        []string
+	DBConfig    string
 	initHandler skyplugin.TransportInitHandler
 	state       skyplugin.TransportState
 }
@@ -78,7 +81,9 @@ func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
 	}
 
 	cmd := osexec.Command(p.Path, finalArgs...)
-
+	cmd.Env = []string{
+		"DATABASE_URL=" + p.DBConfig,
+	}
 	log.Debugf("Calling %s %s with     : %s", cmd.Path, cmd.Args, in)
 	out, err = startCommand(cmd, in)
 	log.Debugf("Called  %s %s returning: %s", cmd.Path, cmd.Args, out)
@@ -225,11 +230,17 @@ func (p *execTransport) RunProvider(request *skyplugin.AuthRequest) (*skyplugin.
 type execTransportFactory struct {
 }
 
-func (f execTransportFactory) Open(path string, args []string) (transport skyplugin.Transport) {
+func (f execTransportFactory) Open(path string, args []string, config skyconfig.Configuration) (transport skyplugin.Transport) {
+	log.Debugf("plugin args, %v", args)
+	if path == "" {
+		path = "py-skygear"
+	}
+	args = append(args, "--subprocess")
 	transport = &execTransport{
-		Path:  path,
-		Args:  args,
-		state: skyplugin.TransportStateUninitialized,
+		Path:     path,
+		Args:     args,
+		DBConfig: config.DB.Option,
+		state:    skyplugin.TransportStateUninitialized,
 	}
 	return
 }
