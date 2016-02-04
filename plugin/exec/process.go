@@ -231,7 +231,10 @@ type execTransportFactory struct {
 }
 
 func (f execTransportFactory) Open(path string, args []string, config skyconfig.Configuration) (transport skyplugin.Transport) {
-	log.Debugf("plugin args, %v", args)
+	log.Debugf("plugin exec args %v", args)
+	if !config.App.DevMode {
+		log.Warn("plugin exec transport is development use only")
+	}
 	if path == "" {
 		path = "py-skygear"
 	}
