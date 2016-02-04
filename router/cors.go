@@ -6,7 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-func CorsMiddleware(corsOrigin string, next http.Handler) http.Handler {
+func CORSMiddleware(next http.Handler, corsOrigin string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestMethod := r.Method
 		corsMethod := r.Header.Get("Access-Control-Request-Method")
