@@ -80,6 +80,13 @@ type Conn interface {
 	// exist in the container.
 	DeleteUser(id string) error
 
+	// SetAdminRoles accepts array of role, the order will be
+	SetAdminRoles(roles []string) error
+
+	// SetDefaultRoles accepts array of roles, the supplied roles will assigned
+	// to newly created user CreateUser
+	SetDefaultRoles(roles []string) error
+
 	// GetAsset retrieves Asset information by its name
 	GetAsset(name string, asset *Asset) error
 

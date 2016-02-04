@@ -243,6 +243,26 @@ func (_mr *_MockConnRecorder) SaveDevice(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SaveDevice", arg0)
 }
 
+func (_m *MockConn) SetAdminRoles(_param0 []string) error {
+	ret := _m.ctrl.Call(_m, "SetAdminRoles", _param0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockConnRecorder) SetAdminRoles(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetAdminRoles", arg0)
+}
+
+func (_m *MockConn) SetDefaultRoles(_param0 []string) error {
+	ret := _m.ctrl.Call(_m, "SetDefaultRoles", _param0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockConnRecorder) SetDefaultRoles(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetDefaultRoles", arg0)
+}
+
 func (_m *MockConn) Subscribe(_param0 chan skydb.RecordEvent) error {
 	ret := _m.ctrl.Call(_m, "Subscribe", _param0)
 	ret0, _ := ret[0].(error)
