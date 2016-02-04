@@ -22,6 +22,11 @@ var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 		return
 	}
 
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return
+	}
+
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return
@@ -42,16 +47,17 @@ var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
 		return
 	}
 
+	pluginLog := []byte{}
+	stdErr := bufio.NewScanner(stderr)
+	for stdErr.Scan() {
+		pluginLog = append(pluginLog, []byte("\n")...)
+		pluginLog = append(pluginLog, stdErr.Bytes()...)
+	}
+	log.Debug("exec stderr : ", string(pluginLog))
+
 	s := bufio.NewScanner(stdout)
-	if !s.Scan() {
-		if err = s.Err(); err == nil {
-			// reached EOF
-			out = []byte{}
-		} else {
-			return
-		}
-	} else {
-		out = s.Bytes()
+	for s.Scan() {
+		out = append(out, s.Bytes()...)
 	}
 
 	err = stdout.Close()
