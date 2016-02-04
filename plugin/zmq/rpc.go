@@ -239,6 +239,9 @@ func (p *zmqTransport) ipc(req *request) (out []byte, err error) {
 	if err != nil {
 		return
 	}
+	defer func() {
+		reqSock.Destroy()
+	}()
 	if req.Timeout > 0 {
 		reqSock.SetRcvtimeo(req.Timeout)
 	}
