@@ -1,6 +1,8 @@
 package skydbtest
 
 import (
+	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/oursky/skygear/skydb"
@@ -210,10 +212,14 @@ type RecordMap map[string]skydb.Record
 // SubscriptionMap is a string=>Subscription map
 type SubscriptionMap map[string]skydb.Subscription
 
+// RecordSchemaMap is a string=>RecordSchema map
+type RecordSchemaMap map[string]skydb.RecordSchema
+
 // MapDB is a naive memory implementation of skydb.Database.
 type MapDB struct {
 	RecordMap       RecordMap
 	SubscriptionMap SubscriptionMap
+	RecordSchemaMap RecordSchemaMap
 	skydb.Database
 }
 
@@ -222,6 +228,7 @@ func NewMapDB() *MapDB {
 	return &MapDB{
 		RecordMap:       RecordMap{},
 		SubscriptionMap: SubscriptionMap{},
+		RecordSchemaMap: RecordSchemaMap{},
 	}
 }
 
@@ -266,10 +273,65 @@ func (db *MapDB) Query(query *skydb.Query) (*skydb.Rows, error) {
 	panic("skydbtest: MapDB.Query not supported")
 }
 
-// Extend does nothing.
+// Extend store the type of the field.
 func (db *MapDB) Extend(recordType string, schema skydb.RecordSchema) error {
-	// do nothing
+	if _, ok := db.RecordSchemaMap[recordType]; ok {
+		for fieldName, fieldType := range schema {
+			if _, ok := db.RecordSchemaMap[recordType][fieldName]; ok {
+				ft := db.RecordSchemaMap[recordType][fieldName]
+				if !reflect.DeepEqual(ft, fieldType) {
+					return fmt.Errorf("Wrong type")
+				}
+			}
+			db.RecordSchemaMap[recordType][fieldName] = fieldType
+		}
+	} else {
+		db.RecordSchemaMap[recordType] = schema
+	}
 	return nil
+}
+
+func (db *MapDB) RenameSchema(recordType, oldColumnName, newColumnName string) error {
+	if _, ok := db.RecordSchemaMap[recordType]; !ok {
+		return fmt.Errorf("record type %s does not exist", recordType)
+	}
+	if _, ok := db.RecordSchemaMap[recordType][oldColumnName]; !ok {
+		return fmt.Errorf("column %s does not exist", oldColumnName)
+	}
+	if _, ok := db.RecordSchemaMap[recordType][newColumnName]; ok {
+		if !reflect.DeepEqual(
+			db.RecordSchemaMap[recordType][oldColumnName],
+			db.RecordSchemaMap[recordType][newColumnName],
+		) {
+			return fmt.Errorf("column type conflict")
+		}
+	}
+	db.RecordSchemaMap[recordType][newColumnName] = db.RecordSchemaMap[recordType][oldColumnName]
+	delete(db.RecordSchemaMap[recordType], oldColumnName)
+
+	return nil
+}
+
+func (db *MapDB) DeleteSchema(recordType, columnName string) error {
+	if _, ok := db.RecordSchemaMap[recordType]; !ok {
+		return fmt.Errorf("record type %s does not exist", recordType)
+	}
+	if _, ok := db.RecordSchemaMap[recordType][columnName]; !ok {
+		return fmt.Errorf("column %s does not exist", columnName)
+	}
+	delete(db.RecordSchemaMap[recordType], columnName)
+	return nil
+}
+
+func (db *MapDB) GetSchema(recordType string) (skydb.RecordSchema, error) {
+	if _, ok := db.RecordSchemaMap[recordType]; !ok {
+		return nil, fmt.Errorf("record type %s does not exist", recordType)
+	}
+	return db.RecordSchemaMap[recordType], nil
+}
+
+func (db *MapDB) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
+	return db.RecordSchemaMap, nil
 }
 
 // GetSubscription return a Subscription from SubscriptionMap.

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"sort"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -15,12 +16,24 @@ type schemaResponse struct {
 }
 
 type schemaFieldList struct {
-	Fields []schemaField `json:"fields"`
+	Fields []schemaField `mapstructure:"fields" json:"fields"`
+}
+
+func (s schemaFieldList) Len() int {
+	return len(s.Fields)
+}
+
+func (s schemaFieldList) Swap(i, j int) {
+	s.Fields[i], s.Fields[j] = s.Fields[j], s.Fields[i]
+}
+
+func (s schemaFieldList) Less(i, j int) bool {
+	return strings.Compare(s.Fields[i].Name, s.Fields[j].Name) < 0
 }
 
 type schemaField struct {
-	Name     string `json:"name"`
-	TypeName string `json:"type"`
+	Name     string `mapstructure:"name" json:"name"`
+	TypeName string `mapstructure:"type" json:"type"`
 }
 
 func (resp *schemaResponse) Encode(data map[string]skydb.RecordSchema) {
@@ -37,6 +50,7 @@ func (resp *schemaResponse) Encode(data map[string]skydb.RecordSchema) {
 				TypeName: val.ToSimpleName(),
 			})
 		}
+		sort.Sort(fieldList)
 		resp.Schemas[recordType] = fieldList
 	}
 }
@@ -95,7 +109,7 @@ func (payload *schemaRenamePayload) Validate() skyerr.Error {
 	if strings.HasPrefix(payload.RecordType, "_") ||
 		strings.HasPrefix(payload.OldName, "_") ||
 		strings.HasPrefix(payload.NewName, "_") {
-		return skyerr.NewError(skyerr.InvalidArgument, "attempt to change reserved key")
+		return skyerr.NewError(skyerr.InvalidArgument, "attempts to change reserved key")
 	}
 	return nil
 }
@@ -178,7 +192,7 @@ func (payload *schemaDeletePayload) Validate() skyerr.Error {
 	}
 	if strings.HasPrefix(payload.RecordType, "_") ||
 		strings.HasPrefix(payload.ColumnName, "_") {
-		return skyerr.NewError(skyerr.InvalidArgument, "attempt to change reserved key")
+		return skyerr.NewError(skyerr.InvalidArgument, "attempts to change reserved key")
 	}
 	return nil
 }
@@ -249,12 +263,7 @@ func (h *SchemaCreateHandler) GetPreprocessors() []router.Processor {
 }
 
 type schemaCreatePayload struct {
-	RawSchemas map[string]struct {
-		Fields []struct {
-			Name     string `mapstructure:"name"`
-			TypeName string `mapstructure:"type"`
-		} `mapstructure:"fields"`
-	} `mapstructure:"record_types"`
+	RawSchemas map[string]schemaFieldList `mapstructure:"record_types"`
 
 	Schemas map[string]skydb.RecordSchema
 }

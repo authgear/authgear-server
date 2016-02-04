@@ -400,28 +400,4 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldNotBeNil)
 		})
 	})
-
-	Convey("GetRecordSchemas", t, func() {
-		c := getTestConn(t)
-		defer cleanupConn(t, c)
-
-		db := c.PublicDB()
-
-		Convey("fetch record types", func() {
-			err := db.Extend("note", skydb.RecordSchema{
-				"content": skydb.FieldType{Type: skydb.TypeString},
-			})
-			So(err, ShouldBeNil)
-			err = db.Extend("note2", skydb.RecordSchema{
-				"content": skydb.FieldType{Type: skydb.TypeString},
-			})
-			So(err, ShouldBeNil)
-
-			recordTypes, err := db.GetRecordSchemas()
-			So(err, ShouldBeNil)
-
-			expected := []string{"note", "note2"}
-			So(recordTypes, ShouldResemble, expected)
-		})
-	})
 }
