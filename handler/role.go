@@ -14,14 +14,14 @@ type rolePayload struct {
 
 func (payload *rolePayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
-		return skyerr.NewError(skyerr.BadRequest, "Fails to decode the request payload")
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 	return payload.Validate()
 }
 
 func (payload *rolePayload) Validate() skyerr.Error {
 	if payload.Roles == nil {
-		return skyerr.NewError(skyerr.BadRequest, "Missing roles key in request")
+		return skyerr.NewInvalidArgument("unspecified roles in request", []string{"roles"})
 	}
 	return nil
 }

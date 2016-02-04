@@ -22,8 +22,7 @@ func TestRolePayload(t *testing.T) {
 					"system",
 				},
 			})
-			err := payload.Validate()
-			So(err, ShouldBeNil)
+			So(payload.Validate(), ShouldBeNil)
 			So(payload.Roles, ShouldResemble, []string{
 				"admin",
 				"system",
@@ -32,11 +31,11 @@ func TestRolePayload(t *testing.T) {
 		Convey("missing roles", func() {
 			payload := rolePayload{}
 			payload.Decode(map[string]interface{}{})
-			err := payload.Validate()
 			So(
-				err,
+				payload.Validate(),
 				ShouldResemble,
-				skyerr.NewError(skyerr.BadRequest, "Missing roles key in request"))
+				skyerr.NewInvalidArgument("unspecified roles in request", []string{"roles"}),
+			)
 		})
 	})
 }
@@ -96,9 +95,14 @@ func TestRoleDefaultHandler(t *testing.T) {
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
     "error": {
-        "code": 107, 
-        "message": "Missing roles key in request", 
-        "name": "BadRequest"
+        "code": 108,
+        "message": "unspecified roles in request",
+        "info": {
+            "arguments": [
+                "roles"
+            ]
+        },
+        "name": "InvalidArgument"
     }
 }`)
 		})
@@ -143,10 +147,15 @@ func TestRoleAdminHandler(t *testing.T) {
     "no_roles": []
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-    "error": {
-        "code": 107, 
-        "message": "Missing roles key in request", 
-        "name": "BadRequest"
+   "error": {
+        "code": 108,
+        "message": "unspecified roles in request",
+        "info": {
+            "arguments": [
+                "roles"
+            ]
+        },
+        "name": "InvalidArgument"
     }
 }`)
 		})
