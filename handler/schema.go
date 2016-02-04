@@ -10,44 +10,35 @@ import (
 	"github.com/oursky/skygear/skyerr"
 )
 
-// prepareSchemaResponse fetchs the schema of all record types
-//{
-//    "record_types": {
-//        "note": {
-//            "fields": [
-//                {"name": "content", "type": "string"},
-//                {"name": "noteOrder", "type": "number"}
-//            ]
-//        }
-//    }
-//}
-func prepareSchemaResponse(db skydb.Database) (map[string]map[string]interface{}, error) {
-	results := map[string]map[string]interface{}{
-		"record_types": map[string]interface{}{},
-	}
-	rt := results["record_types"]
+type schemaResponse struct {
+	Schemas map[string]schemaFieldList `json:"record_types"`
+}
 
-	recordTypes, err := db.GetRecordTypes()
-	if err != nil {
-		return nil, err
-	}
-	for _, recordType := range recordTypes {
-		schema, err := db.GetSchema(recordType)
-		if err != nil {
-			return nil, err
-		}
-		fields := []map[string]string{}
-		for key, value := range schema {
-			field := map[string]string{"name": key, "type": value.ToSimpleName()}
-			fields = append(fields, field)
-		}
+type schemaFieldList struct {
+	Fields []schemaField `json:"fields"`
+}
 
-		rt[recordType] = map[string]interface{}{
-			"fields": fields,
-		}
-	}
+type schemaField struct {
+	Name     string `json:"name"`
+	TypeName string `json:"type"`
+}
 
-	return results, nil
+func (resp *schemaResponse) Encode(data map[string]skydb.RecordSchema) {
+	resp.Schemas = make(map[string]schemaFieldList)
+	for recordType, schema := range data {
+		fieldList := schemaFieldList{}
+		for fieldName, val := range schema {
+			if strings.HasPrefix(fieldName, "_") {
+				continue
+			}
+
+			fieldList.Fields = append(fieldList.Fields, schemaField{
+				Name:     fieldName,
+				TypeName: val.ToSimpleName(),
+			})
+		}
+		resp.Schemas[recordType] = fieldList
+	}
 }
 
 /*
@@ -68,6 +59,7 @@ EOF
 type SchemaRenameHandler struct {
 	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
 	preprocessors []router.Processor
 }
 
@@ -75,6 +67,7 @@ func (h *SchemaRenameHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.DevOnly,
 		h.DBConn,
+		h.InjectDB,
 	}
 }
 
@@ -99,6 +92,11 @@ func (payload *schemaRenamePayload) Validate() skyerr.Error {
 	if payload.RecordType == "" || payload.OldName == "" || payload.NewName == "" {
 		return skyerr.NewError(skyerr.InvalidArgument, "data in the specified request is invalid")
 	}
+	if strings.HasPrefix(payload.RecordType, "_") ||
+		strings.HasPrefix(payload.OldName, "_") ||
+		strings.HasPrefix(payload.NewName, "_") {
+		return skyerr.NewError(skyerr.InvalidArgument, "attempt to change reserved key")
+	}
 	return nil
 }
 
@@ -117,13 +115,16 @@ func (h *SchemaRenameHandler) Handle(rpayload *router.Payload, response *router.
 		return
 	}
 
-	results, err := prepareSchemaResponse(db)
+	results, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
 
-	response.Result = results
+	resp := &schemaResponse{}
+	resp.Encode(results)
+
+	response.Result = resp
 }
 
 /*
@@ -143,6 +144,7 @@ EOF
 type SchemaDeleteHandler struct {
 	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
 	preprocessors []router.Processor
 }
 
@@ -150,6 +152,7 @@ func (h *SchemaDeleteHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.DevOnly,
 		h.DBConn,
+		h.InjectDB,
 	}
 }
 
@@ -173,6 +176,10 @@ func (payload *schemaDeletePayload) Validate() skyerr.Error {
 	if payload.RecordType == "" || payload.ColumnName == "" {
 		return skyerr.NewError(skyerr.InvalidArgument, "data in the specified request is invalid")
 	}
+	if strings.HasPrefix(payload.RecordType, "_") ||
+		strings.HasPrefix(payload.ColumnName, "_") {
+		return skyerr.NewError(skyerr.InvalidArgument, "attempt to change reserved key")
+	}
 	return nil
 }
 
@@ -191,13 +198,16 @@ func (h *SchemaDeleteHandler) Handle(rpayload *router.Payload, response *router.
 		return
 	}
 
-	results, err := prepareSchemaResponse(db)
+	results, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
 
-	response.Result = results
+	resp := &schemaResponse{}
+	resp.Encode(results)
+
+	response.Result = resp
 }
 
 /*
@@ -222,6 +232,7 @@ EOF
 type SchemaCreateHandler struct {
 	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
 	preprocessors []router.Processor
 }
 
@@ -229,6 +240,7 @@ func (h *SchemaCreateHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.DevOnly,
 		h.DBConn,
+		h.InjectDB,
 	}
 }
 
@@ -268,7 +280,10 @@ func (payload *schemaCreatePayload) Decode(data map[string]interface{}) skyerr.E
 }
 
 func (payload *schemaCreatePayload) Validate() skyerr.Error {
-	for _, schema := range payload.Schemas {
+	for recordType, schema := range payload.Schemas {
+		if strings.HasPrefix(recordType, "_") {
+			return skyerr.NewError(skyerr.InvalidArgument, "attempts to create reserved table")
+		}
 		for fieldName := range schema {
 			if strings.HasPrefix(fieldName, "_") {
 				return skyerr.NewError(skyerr.InvalidArgument, "attempts to create reserved field")
@@ -298,12 +313,16 @@ func (h *SchemaCreateHandler) Handle(rpayload *router.Payload, response *router.
 		}
 	}
 
-	results, err := prepareSchemaResponse(db)
+	results, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
-	response.Result = results
+
+	resp := &schemaResponse{}
+	resp.Encode(results)
+
+	response.Result = resp
 }
 
 /*
@@ -320,6 +339,7 @@ EOF
 type SchemaFetchHandler struct {
 	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
 	preprocessors []router.Processor
 }
 
@@ -327,6 +347,7 @@ func (h *SchemaFetchHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.DevOnly,
 		h.DBConn,
+		h.InjectDB,
 	}
 }
 
@@ -337,11 +358,14 @@ func (h *SchemaFetchHandler) GetPreprocessors() []router.Processor {
 func (h *SchemaFetchHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	db := rpayload.Database
 
-	results, err := prepareSchemaResponse(db)
+	results, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
 
-	response.Result = results
+	resp := &schemaResponse{}
+	resp.Encode(results)
+
+	response.Result = resp
 }

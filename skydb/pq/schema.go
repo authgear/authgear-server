@@ -76,7 +76,7 @@ func (db *database) GetSchema(recordType string) (skydb.RecordSchema, error) {
 	return remoteRecordSchema, nil
 }
 
-func (db *database) GetRecordTypes() ([]string, error) {
+func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 	schemaName := db.schemaName()
 
 	rows, err := db.c.Queryx(`
@@ -88,16 +88,24 @@ func (db *database) GetRecordTypes() ([]string, error) {
 		return nil, err
 	}
 
-	tables := []string{}
+	result := map[string]skydb.RecordSchema{}
 	for rows.Next() {
-		var tableName string
-		if err := rows.Scan(&tableName); err != nil {
+		var recordType string
+		if err := rows.Scan(&recordType); err != nil {
 			return nil, err
 		}
-		tables = append(tables, tableName)
-	}
 
-	return tables, nil
+		log.Debugf("%s\n", recordType)
+		schema, err := db.GetSchema(recordType)
+		if err != nil {
+			return nil, err
+		}
+
+		result[recordType] = schema
+	}
+	log.Debugf("GetRecordSchemas Success")
+
+	return result, nil
 }
 
 func (db *database) createTable(recordType string) (err error) {

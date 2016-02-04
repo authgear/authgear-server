@@ -401,7 +401,7 @@ func TestExtend(t *testing.T) {
 		})
 	})
 
-	Convey("FetchRecordTypes", t, func() {
+	Convey("GetRecordSchemas", t, func() {
 		c := getTestConn(t)
 		defer cleanupConn(t, c)
 
@@ -417,7 +417,7 @@ func TestExtend(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 
-			recordTypes, err := db.FetchRecordTypes()
+			recordTypes, err := db.GetRecordSchemas()
 			So(err, ShouldBeNil)
 
 			expected := []string{"note", "note2"}
