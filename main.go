@@ -103,7 +103,7 @@ func main() {
 	preprocessorRegistry["inject_public_db"] = &pp.InjectPublicDatabase{}
 	preprocessorRegistry["dev_only"] = &pp.DevOnlyProcessor{config.App.DevMode}
 
-	r.Map("", &handler.HomeHandler{}, preprocessorRegistry["dev_only"])
+	r.Map("", &handler.HomeHandler{})
 
 	g := &inject.Graph{}
 	injectErr := g.Provide(
