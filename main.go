@@ -171,7 +171,7 @@ func main() {
 		WebSocket: internalPubSub,
 	}))
 
-	corsHost := config.App.Cors
+	corsHost := config.App.CORSHost
 
 	http.Handle("/", router.CORSMiddleware(
 		router.LoggingMiddleware(r, false), corsHost))
