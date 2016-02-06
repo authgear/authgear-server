@@ -3,10 +3,14 @@ package exec
 import (
 	"errors"
 	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
+	"golang.org/x/net/context"
+
 	odplugin "github.com/oursky/skygear/plugin"
+	"github.com/oursky/skygear/plugin/common"
 	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
@@ -74,6 +78,44 @@ func TestRun(t *testing.T) {
 			out, err := transport.RunHandler("hello:world", []byte(`{"result": "hello world"}`))
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"hello world"`)
+		})
+	})
+
+	Convey("test lambda", t, func() {
+		transport := &execTransport{
+			Path: "/never/invoked",
+			Args: nil,
+		}
+
+		// expect child test case to override startCommand
+		// save the original and defer setting it back
+		originalCommand := startCommand
+		defer func() {
+			startCommand = originalCommand
+		}()
+
+		Convey("pass context as environment variable", func() {
+			found := false
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				for _, envLine := range cmd.Env {
+					envTuple := strings.SplitN(envLine, "=", 2)
+					if envTuple[0] == "SKYGEAR_CONTEXT" {
+						decodedCtx := map[string]interface{}{}
+						err := common.DecodeBase64JSON(envTuple[1], &decodedCtx)
+						So(err, ShouldBeNil)
+						So(decodedCtx, ShouldResemble, map[string]interface{}{
+							"user_id": "user",
+						})
+						found = true
+						break
+					}
+				}
+				return []byte(`{"result": {}}`), nil
+			}
+
+			ctx := context.WithValue(context.Background(), "UserID", "user")
+			transport.RunLambda(ctx, "work", []byte{})
+			So(found, ShouldBeTrue)
 		})
 	})
 
@@ -488,6 +530,30 @@ func TestRun(t *testing.T) {
 			So(sError.Message(), ShouldEqual, `Too strong to lift a feather`)
 			So(sError.Code(), ShouldEqual, 24601)
 			So(recordout, ShouldBeNil)
+		})
+
+		Convey("pass context as environment variable", func() {
+			found := false
+			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
+				for _, envLine := range cmd.Env {
+					envTuple := strings.SplitN(envLine, "=", 2)
+					if envTuple[0] == "SKYGEAR_CONTEXT" {
+						decodedCtx := map[string]interface{}{}
+						err := common.DecodeBase64JSON(envTuple[1], &decodedCtx)
+						So(err, ShouldBeNil)
+						So(decodedCtx, ShouldResemble, map[string]interface{}{
+							"user_id": "user",
+						})
+						found = true
+						break
+					}
+				}
+				return []byte(`{"result": {}}`), nil
+			}
+
+			ctx := context.WithValue(context.Background(), "UserID", "user")
+			transport.RunHook(ctx, "note_afterSave", &recordin, nil)
+			So(found, ShouldBeTrue)
 		})
 	})
 

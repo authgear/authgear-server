@@ -77,7 +77,7 @@ type execTransport struct {
 	state       skyplugin.TransportState
 }
 
-func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
+func (p *execTransport) run(args []string, env []string, in []byte) (out []byte, err error) {
 	finalArgs := make([]string, len(p.Args)+len(args))
 	for i, arg := range p.Args {
 		finalArgs[i] = arg
@@ -90,6 +90,9 @@ func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
 	cmd.Env = []string{
 		"DATABASE_URL=" + p.DBConfig,
 	}
+	for _, envLine := range env {
+		cmd.Env = append(cmd.Env, envLine)
+	}
 	log.Debugf("Calling %s %s with     : %s", cmd.Path, cmd.Args, in)
 	out, err = startCommand(cmd, in)
 	log.Debugf("Called  %s %s returning: %s", cmd.Path, cmd.Args, out)
@@ -98,9 +101,9 @@ func (p *execTransport) run(args []string, in []byte) (out []byte, err error) {
 }
 
 // runProc unwrap inner error returned from run
-func (p *execTransport) runProc(args []string, in []byte) (out []byte, err error) {
+func (p *execTransport) runProc(args []string, env []string, in []byte) (out []byte, err error) {
 	var data []byte
-	data, err = p.run(args, in)
+	data, err = p.run(args, env, in)
 	if err != nil {
 		return
 	}
@@ -154,20 +157,25 @@ func (p *execTransport) RequestInit() {
 }
 
 func (p *execTransport) RunInit() (out []byte, err error) {
-	out, err = p.run([]string{"init"}, []byte{})
+	out, err = p.run([]string{"init"}, []string{}, []byte{})
 	return
 }
 
 func (p *execTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
-	if ctx != nil {
-		log.Warn("request context is not supported by exec transport")
+	pluginCtx := skyplugin.ContextMap(ctx)
+	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
+	if err != nil {
+		return nil, err
 	}
-	out, err = p.runProc([]string{"op", name}, in)
+	env := []string{
+		fmt.Sprintf("SKYGEAR_CONTEXT=%s", encodedCtx),
+	}
+	out, err = p.runProc([]string{"op", name}, env, in)
 	return
 }
 
 func (p *execTransport) RunHandler(name string, in []byte) (out []byte, err error) {
-	out, err = p.runProc([]string{"handler", name}, in)
+	out, err = p.runProc([]string{"handler", name}, []string{}, in)
 	return
 }
 
@@ -184,7 +192,15 @@ func (p *execTransport) RunHook(ctx context.Context, hookName string, record *sk
 		return nil, fmt.Errorf("failed to marshal record: %v", err)
 	}
 
-	out, err := p.runProc([]string{"hook", hookName}, in)
+	pluginCtx := skyplugin.ContextMap(ctx)
+	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
+	if err != nil {
+		return nil, err
+	}
+	env := []string{
+		fmt.Sprintf("SKYGEAR_CONTEXT=%s", encodedCtx),
+	}
+	out, err := p.runProc([]string{"hook", hookName}, env, in)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +220,7 @@ func (p *execTransport) RunHook(ctx context.Context, hookName string, record *sk
 }
 
 func (p *execTransport) RunTimer(name string, in []byte) (out []byte, err error) {
-	out, err = p.runProc([]string{"timer", name}, in)
+	out, err = p.runProc([]string{"timer", name}, []string{}, in)
 	return
 }
 
@@ -218,7 +234,7 @@ func (p *execTransport) RunProvider(request *skyplugin.AuthRequest) (*skyplugin.
 		return nil, fmt.Errorf("failed to marshal auth request: %v", err)
 	}
 
-	out, err := p.runProc([]string{"provider", request.ProviderName, request.Action}, in)
+	out, err := p.runProc([]string{"provider", request.ProviderName, request.Action}, []string{}, in)
 	if err != nil {
 		return nil, err
 	}
