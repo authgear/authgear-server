@@ -41,7 +41,8 @@ before_script:
            github.com/smartystreets/goconvey/convey \
            github.com/smartystreets/assertions \
            github.com/rickmak/gocyclo \
-           github.com/oursky/gogocyclo
+           github.com/oursky/gogocyclo \
+           github.com/jarcoal/httpmock
 
 script:
   - golint ./... | grep -v -f .golint.exclude; test $? -eq 1
