@@ -11,12 +11,18 @@ import (
 )
 
 type queryPayload struct {
-	Emails []string `json:"emails"`
+	Emails []string `mapstructure:"emails"`
 }
 
-type updatePayload struct {
-	Email string   `json:"email"`
-	Roles []string `json:"roles"`
+func (payload *queryPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *queryPayload) Validate() skyerr.Error {
+	return nil
 }
 
 type UserQueryHandler struct {
@@ -41,17 +47,10 @@ func (h *UserQueryHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Response) {
-	qp := queryPayload{}
-	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &qp,
-		TagName: "json",
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	if err := mapDecoder.Decode(payload.Data); err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
+	qp := &queryPayload{}
+	skyErr := qp.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
@@ -74,6 +73,22 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 		}
 	}
 	response.Result = results
+}
+
+type userUpdatePayload struct {
+	Email string   `mapstructure:"email"`
+	Roles []string `mapstructure:"roles"`
+}
+
+func (payload *userUpdatePayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *userUpdatePayload) Validate() skyerr.Error {
+	return nil
 }
 
 type UserUpdateHandler struct {
@@ -101,17 +116,10 @@ func (h *UserUpdateHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Response) {
-	p := updatePayload{}
-	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &p,
-		TagName: "json",
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	if err := mapDecoder.Decode(payload.Data); err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
+	p := &userUpdatePayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
@@ -143,6 +151,29 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 	}
 }
 
+type userLinkPayload struct {
+	Username string                 `mapstructure:"username"`
+	Email    string                 `mapstructure:"email"`
+	Password string                 `mapstructure:"password"`
+	Provider string                 `mapstructure:"provider"`
+	AuthData map[string]interface{} `mapstructure:"auth_data"`
+}
+
+func (payload *userLinkPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *userLinkPayload) Validate() skyerr.Error {
+	if payload.Provider == "" {
+		return skyerr.NewInvalidArgument("empty provider", []string{"provider"})
+	}
+
+	return nil
+}
+
 // UserLinkHandler lets user associate third-party accounts with the
 // user, with third-party authentication handled by plugin.
 type UserLinkHandler struct {
@@ -170,34 +201,30 @@ func (h *UserLinkHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *UserLinkHandler) Handle(payload *router.Payload, response *router.Response) {
-	p := loginPayload{
-		AppName: payload.AppName,
-		Meta:    payload.Meta,
-		Data:    payload.Data,
-	}
-
-	if p.Provider() == "" {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty provider")
+	p := &userLinkPayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
 	info := skydb.UserInfo{}
 
 	// Get AuthProvider and authenticates the user
-	log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
-	authProvider := h.ProviderRegistry.GetAuthProvider(p.Provider())
-	principalID, authData, err := authProvider.Login(p.AuthData())
+	log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
+	authProvider := h.ProviderRegistry.GetAuthProvider(p.Provider)
+	principalID, authData, err := authProvider.Login(p.AuthData)
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
 		return
 	}
-	log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
+	log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
 
 	err = payload.DBConn.GetUserByPrincipalID(principalID, &info)
 
 	if err != nil && err != skydb.ErrUserNotFound {
 		// TODO: more error handling here if necessary
-		response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username())
+		response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username)
 		return
 	} else if err == nil && info.ID != payload.UserInfo.ID {
 		info.RemoveProvidedAuthData(principalID)

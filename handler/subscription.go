@@ -5,27 +5,12 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
+
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skyconv"
 	"github.com/oursky/skygear/skyerr"
 )
-
-type subscriptionIDsPayload struct {
-	DeviceID        string   `json:"device_id"`
-	SubscriptionIDs []string `json:"subscription_ids"`
-}
-
-type subscriptionPayload struct {
-	DeviceID      string `json:"device_id"`
-	Subscriptions []struct {
-		ID               string                  `json:"id"`
-		Type             string                  `json:"type"`
-		DeviceID         string                  `json:"device_id"`
-		NotificationInfo *skydb.NotificationInfo `json:"notification_info,omitempty"`
-		Query            map[string]interface{}  `json:"query"`
-	} `json:"subscriptions"`
-}
 
 type jsonSubscription skydb.Subscription
 
@@ -211,6 +196,27 @@ func (e *errorWithID) MarshalJSON() ([]byte, error) {
 	}{e.id, "error", err.Message(), err.Name(), err.Code(), err.Info()})
 }
 
+// subscriptionPayload is shared by SubscriptionFetchHandler and SubscriptionDeleteHandler.
+type subscriptionPayload struct {
+	DeviceID        string   `mapstructure:"device_id"`
+	SubscriptionIDs []string `mapstructure:"subscription_ids"`
+}
+
+func (payload *subscriptionPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *subscriptionPayload) Validate() skyerr.Error {
+	if payload.DeviceID == "" {
+		return skyerr.NewInvalidArgument("empty device_id", []string{"device_id"})
+	}
+
+	return nil
+}
+
 // SubscriptionFetchHandler fetches subscriptions from the specified Database.
 //
 // Example curl:
@@ -248,21 +254,10 @@ func (h *SubscriptionFetchHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SubscriptionFetchHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	payload := subscriptionIDsPayload{}
-	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &payload,
-		TagName: "json",
-	})
-	if err != nil {
-		panic(err)
-	}
-	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
-		return
-	}
-
-	if payload.DeviceID == "" {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty device_id")
+	payload := &subscriptionPayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
@@ -325,23 +320,10 @@ func (h *SubscriptionFetchAllHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SubscriptionFetchAllHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	var payload struct {
-		DeviceID string `json:"device_id"`
-	}
-	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &payload,
-		TagName: "json",
-	})
-	if err != nil {
-		panic(err)
-	}
-	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
-		return
-	}
-
-	if payload.DeviceID == "" {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty device id")
+	payload := &subscriptionPayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
@@ -355,6 +337,43 @@ func (h *SubscriptionFetchAllHandler) Handle(rpayload *router.Payload, response 
 	if len(results) > 0 {
 		response.Result = results
 	}
+}
+
+type subscriptionSavePayload struct {
+	DeviceID      string `json:"device_id"`
+	Subscriptions []struct {
+		ID               string                  `json:"id"`
+		Type             string                  `json:"type"`
+		DeviceID         string                  `json:"device_id"`
+		NotificationInfo *skydb.NotificationInfo `json:"notification_info,omitempty"`
+		Query            map[string]interface{}  `json:"query"`
+	} `json:"subscriptions"`
+}
+
+func (payload *subscriptionSavePayload) Decode(data map[string]interface{}) skyerr.Error {
+	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:  payload,
+		TagName: "json",
+	})
+	if err != nil {
+		panic(err)
+	}
+	if err := mapDecoder.Decode(data); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *subscriptionSavePayload) Validate() skyerr.Error {
+	if len(payload.Subscriptions) == 0 {
+		return skyerr.NewInvalidArgument("empty subscriptions", []string{"subscriptions"})
+	}
+
+	if payload.DeviceID == "" {
+		return skyerr.NewInvalidArgument("empty device_id", []string{"device_id"})
+	}
+
+	return nil
 }
 
 // SubscriptionSaveHandler saves one or more subscriptions associate with
@@ -406,30 +425,14 @@ func (h *SubscriptionSaveHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	payload := subscriptionPayload{}
-	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &payload,
-		TagName: "json",
-	})
-	if err != nil {
-		panic(err)
-	}
-	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
+	payload := &subscriptionSavePayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
 	rawSubs := payload.Subscriptions
-	if len(rawSubs) == 0 {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty subscriptions")
-		return
-	}
-
-	if payload.DeviceID == "" {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty device_id")
-		return
-	}
-
 	subscriptions := make([]skydb.Subscription, len(rawSubs), len(rawSubs))
 	for i, rawSub := range rawSubs {
 		sub := &subscriptions[i]
@@ -442,7 +445,7 @@ func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *rou
 			UserID: rpayload.UserInfoID,
 		}
 		if err := parser.queryFromRaw(rawSub.Query, &sub.Query); err != nil {
-			response.Err = skyerr.NewErrorf(skyerr.InvalidArgument, "failed to parse subscriptions: %v", err)
+			response.Err = skyerr.NewInvalidArgument(fmt.Sprintf("failed to parse subscriptions: %v", err), []string{"subscriptions"})
 			return
 		}
 	}
@@ -490,21 +493,10 @@ func (h *SubscriptionDeleteHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SubscriptionDeleteHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	payload := subscriptionIDsPayload{}
-	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  &payload,
-		TagName: "json",
-	})
-	if err != nil {
-		panic(err)
-	}
-	if err := mapDecoder.Decode(rpayload.Data); err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
-		return
-	}
-
-	if payload.DeviceID == "" {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty device_id")
+	payload := &subscriptionPayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 

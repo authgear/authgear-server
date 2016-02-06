@@ -367,7 +367,8 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 	"error": {
 		"code": 108,
 		"name": "InvalidArgument",
-		"message": "empty identifier(username, email) or password"
+		"info": {"arguments": ["username","email"]},
+		"message": "empty username and empty email"
 	}
 }`)
 			So(resp.Code, ShouldEqual, 400)
@@ -382,7 +383,8 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 	"error": {
 		"code": 108,
 		"name": "InvalidArgument",
-		"message": "empty identifier(username, email) or password"
+		"info": {"arguments": ["password"]},
+		"message": "empty password"
 	}
 }`)
 			So(resp.Code, ShouldEqual, 400)
