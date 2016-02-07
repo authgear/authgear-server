@@ -340,20 +340,15 @@ func (h *SubscriptionFetchAllHandler) Handle(rpayload *router.Payload, response 
 }
 
 type subscriptionSavePayload struct {
-	DeviceID      string `json:"device_id"`
-	Subscriptions []struct {
-		ID               string                  `json:"id"`
-		Type             string                  `json:"type"`
-		DeviceID         string                  `json:"device_id"`
-		NotificationInfo *skydb.NotificationInfo `json:"notification_info,omitempty"`
-		Query            map[string]interface{}  `json:"query"`
-	} `json:"subscriptions"`
+	DeviceID      string               `json:"device_id"`
+	Subscriptions []skydb.Subscription `json:"subscriptions"`
 }
 
-func (payload *subscriptionSavePayload) Decode(data map[string]interface{}) skyerr.Error {
+func (payload *subscriptionSavePayload) Decode(data map[string]interface{}, parser *QueryParser) skyerr.Error {
 	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  payload,
-		TagName: "json",
+		Result:     payload,
+		TagName:    "json",
+		DecodeHook: mapToQueryHookFunc(parser),
 	})
 	if err != nil {
 		panic(err)
@@ -371,6 +366,13 @@ func (payload *subscriptionSavePayload) Validate() skyerr.Error {
 
 	if payload.DeviceID == "" {
 		return skyerr.NewInvalidArgument("empty device_id", []string{"device_id"})
+	}
+
+	// Reset the device ID for individual subscription to the device ID
+	// specified in the top-level of the payload.
+	for i := range payload.Subscriptions {
+		subscription := &payload.Subscriptions[i]
+		subscription.DeviceID = payload.DeviceID
 	}
 
 	return nil
@@ -425,39 +427,22 @@ func (h *SubscriptionSaveHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	parser := QueryParser{UserID: rpayload.UserInfoID}
 	payload := &subscriptionSavePayload{}
-	skyErr := payload.Decode(rpayload.Data)
+	skyErr := payload.Decode(rpayload.Data, &parser)
 	if skyErr != nil {
 		response.Err = skyErr
 		return
 	}
 
-	rawSubs := payload.Subscriptions
-	subscriptions := make([]skydb.Subscription, len(rawSubs), len(rawSubs))
-	for i, rawSub := range rawSubs {
-		sub := &subscriptions[i]
-		sub.ID = rawSub.ID
-		sub.Type = rawSub.Type
-		sub.DeviceID = rawSub.DeviceID
-		sub.NotificationInfo = rawSub.NotificationInfo
-		sub.DeviceID = payload.DeviceID
-		parser := &QueryParser{
-			UserID: rpayload.UserInfoID,
-		}
-		if err := parser.queryFromRaw(rawSub.Query, &sub.Query); err != nil {
-			response.Err = skyerr.NewInvalidArgument(fmt.Sprintf("failed to parse subscriptions: %v", err), []string{"subscriptions"})
-			return
-		}
-	}
-
 	db := rpayload.Database
-	results := make([]interface{}, 0, len(subscriptions))
+	results := make([]interface{}, 0, len(payload.Subscriptions))
 	var (
 		subscription *skydb.Subscription
 		item         interface{}
 	)
-	for i := range subscriptions {
-		subscription = &subscriptions[i]
+	for i := range payload.Subscriptions {
+		subscription = &payload.Subscriptions[i]
 		if err := db.SaveSubscription(subscription); err != nil {
 			item = newErrorWithID(subscription.ID, err)
 		} else {

@@ -3,10 +3,12 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
+
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skyconv"
 	"github.com/oursky/skygear/skyerr"
@@ -357,5 +359,24 @@ func mustDoSlice(m map[string]interface{}, key string, do func(value []interface
 				[]string{key}))
 
 		}
+	}
+}
+
+func mapToQueryHookFunc(parser *QueryParser) mapstructure.DecodeHookFunc {
+	return func(from reflect.Type, to reflect.Type, data interface{}) (interface{}, error) {
+		if from.Kind() != reflect.Map {
+			return data, nil
+		}
+
+		query := skydb.Query{}
+		if to != reflect.TypeOf(query) {
+			return data, nil
+		}
+
+		if err := parser.queryFromRaw(data.(map[string]interface{}), &query); err != nil {
+			return nil, err
+		}
+
+		return query, nil
 	}
 }

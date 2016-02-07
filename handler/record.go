@@ -893,6 +893,29 @@ func queryResultInfo(db skydb.Database, query *skydb.Query, results *skydb.Rows)
 	return resultInfo, nil
 }
 
+type recordQueryPayload struct {
+	Query      skydb.Query
+	DatabaseID string
+}
+
+func (payload *recordQueryPayload) Decode(data map[string]interface{}, parser *QueryParser) skyerr.Error {
+	// Since the fields of skydb.Query is specified in the top-level,
+	// we parse the data without mapstructure.
+	// mapstructure "squash" tag does not work because skydb.Query
+	// can only be converted using a hook func.
+
+	if err := parser.queryFromRaw(data, &payload.Query); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+
+	payload.DatabaseID, _ = data["database_id"].(string)
+	return payload.Validate()
+}
+
+func (payload *recordQueryPayload) Validate() skyerr.Error {
+	return nil
+}
+
 /*
 RecordQueryHandler is dummy implementation on fetching Records
 curl -X POST -H "Content-Type: application/json" \
@@ -932,22 +955,21 @@ func (h *RecordQueryHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Response) {
-	db := payload.Database
-
-	query := skydb.Query{}
-	parser := &QueryParser{
-		UserID: payload.UserInfoID,
-	}
-	if err := parser.queryFromRaw(payload.Data, &query); err != nil {
-		response.Err = err
+	p := &recordQueryPayload{}
+	parser := QueryParser{UserID: payload.UserInfoID}
+	skyErr := p.Decode(payload.Data, &parser)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	if payload.Data["database_id"] == "_public" {
-		query.ReadableBy = payload.UserInfoID
+	db := payload.Database
+
+	if p.DatabaseID == "_public" {
+		p.Query.ReadableBy = payload.UserInfoID
 	}
 
-	results, err := db.Query(&query)
+	results, err := db.Query(&p.Query)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
@@ -965,14 +987,14 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	eagers := eagerIDs(db, records, query)
+	eagers := eagerIDs(db, records, p.Query)
 	eagerRecords := doQueryEager(db, eagers)
 
 	output := make([]interface{}, len(records))
 	for i := range records {
 		record := records[i]
 
-		for transientKey, transientExpression := range query.ComputedKeys {
+		for transientKey, transientExpression := range p.Query.ComputedKeys {
 			if transientExpression.Type != skydb.KeyPath {
 				continue
 			}
@@ -1001,7 +1023,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	response.Result = output
 
-	resultInfo, err := queryResultInfo(db, &query, results)
+	resultInfo, err := queryResultInfo(db, &p.Query, results)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
