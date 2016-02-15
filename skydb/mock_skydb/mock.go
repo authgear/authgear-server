@@ -324,6 +324,16 @@ func (_mr *_MockDatabaseRecorder) Delete(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0)
 }
 
+func (_m *MockDatabase) DeleteSchema(_param0 string, _param1 string) error {
+	ret := _m.ctrl.Call(_m, "DeleteSchema", _param0, _param1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDatabaseRecorder) DeleteSchema(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteSchema", arg0, arg1)
+}
+
 func (_m *MockDatabase) DeleteSubscription(_param0 string, _param1 string) error {
 	ret := _m.ctrl.Call(_m, "DeleteSubscription", _param0, _param1)
 	ret0, _ := ret[0].(error)
@@ -373,6 +383,28 @@ func (_m *MockDatabase) GetMatchingSubscriptions(_param0 *skydb.Record) []skydb.
 
 func (_mr *_MockDatabaseRecorder) GetMatchingSubscriptions(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetMatchingSubscriptions", arg0)
+}
+
+func (_m *MockDatabase) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
+	ret := _m.ctrl.Call(_m, "GetRecordSchemas")
+	ret0, _ := ret[0].(map[string]skydb.RecordSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockDatabaseRecorder) GetRecordSchemas() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRecordSchemas")
+}
+
+func (_m *MockDatabase) GetSchema(_param0 string) (skydb.RecordSchema, error) {
+	ret := _m.ctrl.Call(_m, "GetSchema", _param0)
+	ret0, _ := ret[0].(skydb.RecordSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockDatabaseRecorder) GetSchema(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSchema", arg0)
 }
 
 func (_m *MockDatabase) GetSubscription(_param0 string, _param1 string, _param2 *skydb.Subscription) error {
@@ -425,6 +457,16 @@ func (_m *MockDatabase) QueryCount(_param0 *skydb.Query) (uint64, error) {
 
 func (_mr *_MockDatabaseRecorder) QueryCount(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "QueryCount", arg0)
+}
+
+func (_m *MockDatabase) RenameSchema(_param0 string, _param1 string, _param2 string) error {
+	ret := _m.ctrl.Call(_m, "RenameSchema", _param0, _param1, _param2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDatabaseRecorder) RenameSchema(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RenameSchema", arg0, arg1, arg2)
 }
 
 func (_m *MockDatabase) Save(_param0 *skydb.Record) error {

@@ -483,6 +483,8 @@ func pqDataType(dataType skydb.DataType) string {
 		return TypeString
 	case skydb.TypeNumber:
 		return TypeNumber
+	case skydb.TypeInteger:
+		return TypeInteger
 	case skydb.TypeDateTime:
 		return TypeTimestamp
 	case skydb.TypeBoolean:

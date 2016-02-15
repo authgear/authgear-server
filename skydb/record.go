@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -364,3 +365,66 @@ const (
 	TypeInteger
 	TypeSequence
 )
+
+func (f FieldType) ToSimpleName() string {
+	switch f.Type {
+	case TypeString:
+		return "string"
+	case TypeNumber:
+		return "number"
+	case TypeBoolean:
+		return "boolean"
+	case TypeJSON:
+		return "json"
+	case TypeReference:
+		return fmt.Sprintf("ref(%s)", f.ReferenceType)
+	case TypeLocation:
+		return "location"
+	case TypeDateTime:
+		return "datetime"
+	case TypeAsset:
+		return "asset"
+	case TypeACL:
+		return "acl"
+	case TypeInteger:
+		return "integer"
+	case TypeSequence:
+		return "sequence"
+	}
+	return ""
+}
+
+func SimpleNameToFieldType(s string) (result FieldType, err error) {
+	switch s {
+	case "string":
+		result.Type = TypeString
+	case "number":
+		result.Type = TypeNumber
+	case "boolean":
+		result.Type = TypeBoolean
+	case "json":
+		result.Type = TypeJSON
+	case "location":
+		result.Type = TypeLocation
+	case "datetime":
+		result.Type = TypeDateTime
+	case "asset":
+		result.Type = TypeAsset
+	case "acl":
+		result.Type = TypeACL
+	case "integer":
+		result.Type = TypeInteger
+	case "sequence":
+		result.Type = TypeSequence
+	default:
+		if regexp.MustCompile(`^ref\(.+\)$`).MatchString(s) {
+			result.Type = TypeReference
+			result.ReferenceType = s[4 : len(s)-1]
+		} else {
+			err = fmt.Errorf("Unexpected type name: %s", s)
+			return
+		}
+	}
+
+	return
+}

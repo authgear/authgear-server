@@ -45,6 +45,69 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 	return nil
 }
 
+func (db *database) RenameSchema(recordType, oldName, newName string) error {
+	tableName := db.tableName(recordType)
+	oldName = pq.QuoteIdentifier(oldName)
+	newName = pq.QuoteIdentifier(newName)
+
+	stmt := fmt.Sprintf("ALTER TABLE %s RENAME %s TO %s", tableName, oldName, newName)
+	if _, err := db.c.Exec(stmt); err != nil {
+		return fmt.Errorf("failed to alter table: %s", err)
+	}
+	return nil
+}
+
+func (db *database) DeleteSchema(recordType, columnName string) error {
+	tableName := db.tableName(recordType)
+	columnName = pq.QuoteIdentifier(columnName)
+
+	stmt := fmt.Sprintf("ALTER TABLE %s DROP %s", tableName, columnName)
+	if _, err := db.c.Exec(stmt); err != nil {
+		return fmt.Errorf("failed to alter table: %s", err)
+	}
+	return nil
+}
+
+func (db *database) GetSchema(recordType string) (skydb.RecordSchema, error) {
+	remoteRecordSchema, err := db.remoteColumnTypes(recordType)
+	if err != nil {
+		return nil, err
+	}
+	return remoteRecordSchema, nil
+}
+
+func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
+	schemaName := db.schemaName()
+
+	rows, err := db.c.Queryx(`
+	SELECT table_name 
+	FROM information_schema.tables 
+	WHERE (table_name NOT LIKE '\_%') AND (table_schema=$1)
+	`, schemaName)
+	if err != nil {
+		return nil, err
+	}
+
+	result := map[string]skydb.RecordSchema{}
+	for rows.Next() {
+		var recordType string
+		if err := rows.Scan(&recordType); err != nil {
+			return nil, err
+		}
+
+		log.Debugf("%s\n", recordType)
+		schema, err := db.GetSchema(recordType)
+		if err != nil {
+			return nil, err
+		}
+
+		result[recordType] = schema
+	}
+	log.Debugf("GetRecordSchemas Success")
+
+	return result, nil
+}
+
 func (db *database) createTable(recordType string) (err error) {
 	tablename := db.tableName(recordType)
 
