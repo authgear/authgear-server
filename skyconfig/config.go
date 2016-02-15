@@ -20,6 +20,7 @@ type Configuration struct {
 		APIKey        string `gcfg:"api-key"`
 		AccessControl string `gcfg:"access-control"`
 		DevMode       bool   `gcfg:"dev-mode"`
+		CORSHost      string `gcfg:"cors-host"`
 	}
 	DB struct {
 		ImplName string `gcfg:"implementation"`
@@ -104,6 +105,11 @@ func ReadFileInto(config *Configuration, path string) error {
 	}
 	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(config.App.Name) {
 		return fmt.Errorf("app name '%s' contains invalid characters other than alphanumberics or underscores", config.App.Name)
+	}
+
+	corsHost := os.Getenv("CORS_HOST")
+	if corsHost != "" {
+		config.App.CORSHost = corsHost
 	}
 
 	if config.App.AccessControl == "" {
