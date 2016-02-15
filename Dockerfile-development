@@ -27,7 +27,8 @@ RUN go get github.com/tools/godep && \
     go get github.com/smartystreets/goconvey/convey && \
     go get github.com/smartystreets/assertions && \
     go get github.com/golang/mock/gomock && \
-    go get github.com/golang/mock/mockgen
+    go get github.com/golang/mock/mockgen && \
+    go get github.com/jarcoal/httpmock
 
 COPY Godeps /go/src/app/Godeps
 RUN $GOPATH/bin/godep restore

@@ -17,6 +17,7 @@ import (
 	"github.com/oursky/skygear/plugin"
 	_ "github.com/oursky/skygear/plugin/exec"
 	"github.com/oursky/skygear/plugin/hook"
+	_ "github.com/oursky/skygear/plugin/http"
 	"github.com/oursky/skygear/plugin/provider"
 	_ "github.com/oursky/skygear/plugin/zmq"
 	pp "github.com/oursky/skygear/preprocessor"
