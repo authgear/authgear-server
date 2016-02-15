@@ -60,13 +60,12 @@ SchemaRenameHandler handles the action of renaming column
 curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
-	"access_token":"ee41c969-cc1f-422b-985d-ddb2217b90f8",
-	"action":"schema:rename",
-	"database_id":"_public",
-	"record_type":"student",
-	"item_type":"field",
-	"item_name":"score",
-	"new_name":"exam_score"
+	"master_key": "MASTER_KEY",
+	"action": "schema:rename",
+	"record_type": "student",
+	"item_type": "field",
+	"item_name": "score",
+	"new_name": "exam_score"
 }
 EOF
 */
@@ -146,12 +145,11 @@ SchemaDeleteHandler handles the action of deleting column
 curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
-	"access_token":"ee41c969-cc1f-422b-985d-ddb2217b90f8",
-	"action":"schema:delete",
-	"database_id":"_public",
-	"record_type":"student",
-	"item_type":"field",
-	"item_name":"score"
+	"master_key": "MASTER_KEY",
+	"action": "schema:delete",
+	"record_type": "student",
+	"item_type": "field",
+	"item_name": "score"
 }
 EOF
 */
@@ -229,13 +227,12 @@ SchemaCreateHandler handles the action of creating new columns
 curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
-	"access_token":"ee41c969-cc1f-422b-985d-ddb2217b90f8",
-	"action":"schema:create",
-	"database_id":"_public",
+	"master_key": "MASTER_KEY",
+	"action": "schema:create",
 	"record_types":{
 		"student": {
 			"fields":[
-				{"name": "age", 	"type": "number"},
+				{"name": "age", "type": "number"},
 				{"name": "nickname" "type": "string"}
 			]
 		}
@@ -339,9 +336,8 @@ SchemaFetchHandler handles the action of returing information of record schema
 curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
-	"access_token":"ee41c969-cc1f-422b-985d-ddb2217b90f8",
-	"action":"schema:fetch",
-	"database_id":"_public"
+	"master_key": "MASTER_KEY",
+	"action": "schema:fetch"
 }
 EOF
 */
