@@ -86,5 +86,43 @@ func TestCORSMiddleware(t *testing.T) {
 				So(resp.Body.String(), ShouldEqualJSON, mockRespJSON)
 			})
 		})
+
+		Convey("Skip Handling if No CORS Host", func() {
+			corsRequestMethod := "POST"
+			corsRequestHeaders := "origin, content-type"
+
+			routeWithEmptyCORSHost := CORSMiddleware(r, "")
+			req, _ := http.NewRequest(
+				"OPTIONS",
+				"http://skygear.dev/",
+				strings.NewReader(mockJSON),
+			)
+			req.Header.Set("Access-Control-Request-Method", corsRequestMethod)
+			req.Header.Set("Access-Control-Request-Headers", corsRequestHeaders)
+
+			resp := httptest.NewRecorder()
+			routeWithEmptyCORSHost.ServeHTTP(resp, req)
+
+			Convey("Should not set Access-Control-Allow-Origin header", func() {
+				allowOrigin := resp.Header().Get("Access-Control-Allow-Origin")
+				So(allowOrigin, ShouldEqual, "")
+			})
+
+			Convey("Should not set Access-Control-Allow-Methods header", func() {
+				allowMethods := resp.Header().Get("Access-Control-Allow-Methods")
+				So(allowMethods, ShouldEqual, "")
+			})
+
+			Convey("Should not set Access-Control-Allow-Headers header", func() {
+				allowHeaders := resp.Header().Get("Access-Control-Allow-Headers")
+				So(allowHeaders, ShouldEqual, "")
+			})
+
+			Convey("Should directly call next handler", func() {
+				respContent := resp.Body.String()
+				mockRespJSON, _ := json.Marshal(mockResp)
+				So(respContent, ShouldEqualJSON, mockRespJSON)
+			})
+		})
 	})
 }

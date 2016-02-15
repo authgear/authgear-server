@@ -7,6 +7,10 @@ import (
 )
 
 func CORSMiddleware(next http.Handler, corsOrigin string) http.Handler {
+	if corsOrigin == "" {
+		return next
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestMethod := r.Method
 		corsMethod := r.Header.Get("Access-Control-Request-Method")
