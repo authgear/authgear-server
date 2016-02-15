@@ -12,19 +12,19 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type MockHander struct {
+type MockHandler struct {
 	outputs Response
 }
 
-func (m *MockHander) Setup() {
+func (m *MockHandler) Setup() {
 	return
 }
 
-func (m *MockHander) GetPreprocessors() []Processor {
+func (m *MockHandler) GetPreprocessors() []Processor {
 	return nil
 }
 
-func (m *MockHander) Handle(p *Payload, r *Response) {
+func (m *MockHandler) Handle(p *Payload, r *Response) {
 	r.Result = m.outputs.Result
 	return
 }
@@ -53,11 +53,11 @@ func TestRouterMap(t *testing.T) {
 	mockResp.Result = exampleResp{
 		Username: "example",
 	}
-	mockHander := MockHander{
+	mockHandler := MockHandler{
 		outputs: mockResp,
 	}
 	r := NewRouter()
-	r.Map("mock:map", &mockHander)
+	r.Map("mock:map", &mockHandler)
 	var mockJSON = `{
 	"action": "mock:map"
 }`
@@ -80,11 +80,11 @@ func TestRouterMap(t *testing.T) {
 }
 
 func TestRouterMapMissing(t *testing.T) {
-	mockHander := MockHander{
+	mockHandler := MockHandler{
 		outputs: Response{},
 	}
 	r := NewRouter()
-	r.Map("mock:map", &mockHander)
+	r.Map("mock:map", &mockHandler)
 	var mockJSON = `{
 	"action": "missing"
 }`
@@ -143,7 +143,7 @@ func TestErrorHandler(t *testing.T) {
 
 func TestPreprocess(t *testing.T) {
 	r := NewRouter()
-	mockHandler := MockHander{outputs: Response{
+	mockHandler := MockHandler{outputs: Response{
 		Result: "ok",
 	}}
 	mockPreprocessor := getPreprocessor{}

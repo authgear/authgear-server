@@ -25,12 +25,12 @@ func TestCORSMiddleware(t *testing.T) {
 			Message: testingRespMsg,
 		}
 
-		mockHander := MockHander{
+		mockHandler := MockHandler{
 			outputs: mockResp,
 		}
 
 		r := NewRouter()
-		r.Map("mock:map", &mockHander)
+		r.Map("mock:map", &mockHandler)
 		mockJSON := `{"action": "mock:map"}`
 
 		routeWithMiddleware := CORSMiddleware(r, testingCORSHost)
