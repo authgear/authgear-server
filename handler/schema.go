@@ -102,13 +102,27 @@ func (payload *schemaRenamePayload) Decode(data map[string]interface{}) skyerr.E
 }
 
 func (payload *schemaRenamePayload) Validate() skyerr.Error {
-	if payload.RecordType == "" || payload.OldName == "" || payload.NewName == "" {
-		return skyerr.NewError(skyerr.InvalidArgument, "data in the specified request is invalid")
+	missingArgs := []string{}
+	if payload.RecordType == "" {
+		missingArgs = append(missingArgs, "record_type")
 	}
-	if strings.HasPrefix(payload.RecordType, "_") ||
-		strings.HasPrefix(payload.OldName, "_") ||
-		strings.HasPrefix(payload.NewName, "_") {
-		return skyerr.NewError(skyerr.InvalidArgument, "attempts to change reserved key")
+	if payload.OldName == "" {
+		missingArgs = append(missingArgs, "item_name")
+	}
+	if payload.NewName == "" {
+		missingArgs = append(missingArgs, "new_name")
+	}
+	if len(missingArgs) > 0 {
+		return skyerr.NewInvalidArgument("missing required fields", missingArgs)
+	}
+	if strings.HasPrefix(payload.RecordType, "_") {
+		return skyerr.NewInvalidArgument("attempts to change reserved table", []string{"record_type"})
+	}
+	if strings.HasPrefix(payload.OldName, "_") {
+		return skyerr.NewInvalidArgument("attempts to change reserved key", []string{"item_name"})
+	}
+	if strings.HasPrefix(payload.NewName, "_") {
+		return skyerr.NewInvalidArgument("attempts to change reserved key", []string{"new_name"})
 	}
 	return nil
 }
@@ -185,12 +199,22 @@ func (payload *schemaDeletePayload) Decode(data map[string]interface{}) skyerr.E
 }
 
 func (payload *schemaDeletePayload) Validate() skyerr.Error {
-	if payload.RecordType == "" || payload.ColumnName == "" {
-		return skyerr.NewError(skyerr.InvalidArgument, "data in the specified request is invalid")
+	missingArgs := []string{}
+	if payload.RecordType == "" {
+		missingArgs = append(missingArgs, "record_type")
 	}
-	if strings.HasPrefix(payload.RecordType, "_") ||
-		strings.HasPrefix(payload.ColumnName, "_") {
-		return skyerr.NewError(skyerr.InvalidArgument, "attempts to change reserved key")
+	if payload.ColumnName == "" {
+		missingArgs = append(missingArgs, "item_name")
+	}
+	if len(missingArgs) > 0 {
+		return skyerr.NewInvalidArgument("missing required fields", missingArgs)
+	}
+	if strings.HasPrefix(payload.RecordType, "_") {
+		return skyerr.NewInvalidArgument("attempts to change reserved table", []string{"record_type"})
+	}
+
+	if strings.HasPrefix(payload.ColumnName, "_") {
+		return skyerr.NewInvalidArgument("attempts to change reserved key", []string{"item_name"})
 	}
 	return nil
 }
@@ -277,7 +301,7 @@ func (payload *schemaCreatePayload) Decode(data map[string]interface{}) skyerr.E
 			var err error
 			payload.Schemas[recordType][field.Name], err = skydb.SimpleNameToFieldType(field.TypeName)
 			if err != nil {
-				return skyerr.NewError(skyerr.InvalidArgument, "unexpected field type")
+				return skyerr.NewInvalidArgument("unexpected field type", []string{field.TypeName})
 			}
 		}
 	}
@@ -288,11 +312,11 @@ func (payload *schemaCreatePayload) Decode(data map[string]interface{}) skyerr.E
 func (payload *schemaCreatePayload) Validate() skyerr.Error {
 	for recordType, schema := range payload.Schemas {
 		if strings.HasPrefix(recordType, "_") {
-			return skyerr.NewError(skyerr.InvalidArgument, "attempts to create reserved table")
+			return skyerr.NewInvalidArgument("attempts to create reserved table", []string{recordType})
 		}
 		for fieldName := range schema {
 			if strings.HasPrefix(fieldName, "_") {
-				return skyerr.NewError(skyerr.InvalidArgument, "attempts to create reserved field")
+				return skyerr.NewInvalidArgument("attempts to create reserved field", []string{fieldName})
 			}
 		}
 	}

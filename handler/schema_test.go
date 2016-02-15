@@ -176,7 +176,7 @@ func TestSchemaCreatePayload(t *testing.T) {
 		})
 
 		Convey("wrong json", func() {
-			raw := []byte(`{"record_types":"something"}`)
+			raw := []byte(`{"record_types": "something"}`)
 			var data map[string]interface{}
 			err := json.Unmarshal(raw, &data)
 			So(err, ShouldBeNil)
@@ -247,9 +247,14 @@ func TestSchemaCreateHandler(t *testing.T) {
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code":108,
-					"message":"attempts to create reserved field",
-					"name":"InvalidArgument"
+					"code": 108,
+					"message": "attempts to create reserved field",
+					"info": {
+						"arguments": [
+							"_field3"
+						]
+					},
+					"name": "InvalidArgument"
 				}
 			}`)
 		})
@@ -266,10 +271,10 @@ func TestSchemaCreateHandler(t *testing.T) {
 			}`)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"error":{
-					"code":114,
-					"message":"Wrong type",
-					"name":"IncompatibleSchema"
+				"error": {
+					"code": 114,
+					"message": "Wrong type",
+					"name": "IncompatibleSchema"
 				}
 			}`)
 		})
@@ -371,7 +376,7 @@ func TestSchemaRenamePayload(t *testing.T) {
 		})
 
 		Convey("wrong json", func() {
-			raw := []byte(`{"record_types":"something"}`)
+			raw := []byte(`{"record_types": "something"}`)
 			var data map[string]interface{}
 			err := json.Unmarshal(raw, &data)
 			So(err, ShouldBeNil)
@@ -431,9 +436,14 @@ func TestSchemaRenameHandler(t *testing.T) {
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code":108,
-					"message":"attempts to change reserved key",
-					"name":"InvalidArgument"
+					"code": 108,
+					"message": "attempts to change reserved key",
+					"info": {
+						"arguments": [
+							"item_name"
+						]
+					},
+					"name": "InvalidArgument"
 				}
 			}`)
 		})
@@ -446,10 +456,10 @@ func TestSchemaRenameHandler(t *testing.T) {
 			}`)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"error":{
-					"code":110,
-					"message":"column notexist does not exist",
-					"name":"ResourceNotFound"
+				"error": {
+					"code": 110,
+					"message": "column notexist does not exist",
+					"name": "ResourceNotFound"
 				}
 			}`)
 		})
@@ -462,10 +472,10 @@ func TestSchemaRenameHandler(t *testing.T) {
 			}`)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"error":{
-					"code":110,
-					"message":"column type conflict",
-					"name":"ResourceNotFound"
+				"error": {
+					"code": 110,
+					"message": "column type conflict",
+					"name": "ResourceNotFound"
 				}
 			}`)
 		})
@@ -523,7 +533,7 @@ func TestSchemaDeletePayload(t *testing.T) {
 		})
 
 		Convey("wrong json", func() {
-			raw := []byte(`{"record_types":"something"}`)
+			raw := []byte(`{"record_types": "something"}`)
 			var data map[string]interface{}
 			err := json.Unmarshal(raw, &data)
 			So(err, ShouldBeNil)
@@ -580,9 +590,14 @@ func TestSchemaDeleteHandler(t *testing.T) {
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code":108,
-					"message":"attempts to change reserved key",
-					"name":"InvalidArgument"
+					"code": 108,
+					"message": "attempts to change reserved key",
+					"info": {
+						"arguments": [
+							"item_name"
+						]
+					},
+					"name": "InvalidArgument"
 				}
 			}`)
 		})
@@ -594,10 +609,10 @@ func TestSchemaDeleteHandler(t *testing.T) {
 			}`)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"error":{
-					"code":110,
-					"message":"column notexist does not exist",
-					"name":"ResourceNotFound"
+				"error": {
+					"code": 110,
+					"message": "column notexist does not exist",
+					"name": "ResourceNotFound"
 				}
 			}`)
 		})
