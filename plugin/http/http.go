@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
-	odplugin "github.com/oursky/skygear/plugin"
+	skyplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
 	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
@@ -20,8 +20,8 @@ type httpTransport struct {
 	URL         string
 	Path        string
 	Args        []string
-	initHandler odplugin.TransportInitHandler
-	state       odplugin.TransportState
+	initHandler skyplugin.TransportInitHandler
+	state       skyplugin.TransportState
 	httpClient  http.Client
 }
 
@@ -61,15 +61,15 @@ func (p *httpTransport) execute(req *http.Request) (out []byte, err error) {
 	return
 }
 
-func (p *httpTransport) State() odplugin.TransportState {
+func (p *httpTransport) State() skyplugin.TransportState {
 	return p.state
 }
 
-func (p *httpTransport) SetInitHandler(f odplugin.TransportInitHandler) {
+func (p *httpTransport) SetInitHandler(f skyplugin.TransportInitHandler) {
 	p.initHandler = f
 }
 
-func (p *httpTransport) setState(state odplugin.TransportState) {
+func (p *httpTransport) setState(state skyplugin.TransportState) {
 	if state != p.state {
 		oldState := p.state
 		p.state = state
@@ -82,11 +82,11 @@ func (p *httpTransport) RequestInit() {
 	if p.initHandler != nil {
 		handlerError := p.initHandler(out, err)
 		if err != nil || handlerError != nil {
-			p.setState(odplugin.TransportStateError)
+			p.setState(skyplugin.TransportStateError)
 			return
 		}
 	}
-	p.setState(odplugin.TransportStateReady)
+	p.setState(skyplugin.TransportStateReady)
 }
 
 func (p *httpTransport) RunInit() (out []byte, err error) {
@@ -104,7 +104,7 @@ func (p *httpTransport) RunLambda(ctx context.Context, name string, in []byte) (
 	if err != nil {
 		return nil, err
 	}
-	pluginCtx := odplugin.ContextMap(ctx)
+	pluginCtx := skyplugin.ContextMap(ctx)
 	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (p *httpTransport) RunHook(ctx context.Context, hookName string, record *sk
 	if err != nil {
 		return nil, err
 	}
-	pluginCtx := odplugin.ContextMap(ctx)
+	pluginCtx := skyplugin.ContextMap(ctx)
 	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
 	if err != nil {
 		return nil, err
@@ -167,7 +167,7 @@ func (p *httpTransport) RunTimer(name string, in []byte) (out []byte, err error)
 	return p.execute(req)
 }
 
-func (p *httpTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.AuthResponse, error) {
+func (p *httpTransport) RunProvider(request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
 	req := map[string]interface{}{
 		"auth_data": request.AuthData,
 	}
@@ -184,7 +184,7 @@ func (p *httpTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.Au
 	}
 	out, err := p.execute(httpreq)
 
-	resp := odplugin.AuthResponse{}
+	resp := skyplugin.AuthResponse{}
 
 	err = json.Unmarshal(out, &resp)
 	if err != nil {
@@ -197,16 +197,16 @@ func (p *httpTransport) RunProvider(request *odplugin.AuthRequest) (*odplugin.Au
 type httpTransportFactory struct {
 }
 
-func (f httpTransportFactory) Open(path string, args []string, config skyconfig.Configuration) (transport odplugin.Transport) {
+func (f httpTransportFactory) Open(path string, args []string, config skyconfig.Configuration) (transport skyplugin.Transport) {
 	transport = &httpTransport{
 		Path:       path,
 		Args:       args,
-		state:      odplugin.TransportStateUninitialized,
+		state:      skyplugin.TransportStateUninitialized,
 		httpClient: http.Client{},
 	}
 	return
 }
 
 func init() {
-	odplugin.RegisterTransport("http", httpTransportFactory{})
+	skyplugin.RegisterTransport("http", httpTransportFactory{})
 }

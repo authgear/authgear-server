@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	odplugin "github.com/oursky/skygear/plugin"
+	skyplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
 	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
@@ -623,7 +623,7 @@ func TestRun(t *testing.T) {
 			authData := map[string]interface{}{
 				"password": "secret",
 			}
-			req := odplugin.AuthRequest{"com.example", "login", authData}
+			req := skyplugin.AuthRequest{"com.example", "login", authData}
 
 			resp, err := transport.RunProvider(&req)
 			So(err, ShouldBeNil)
@@ -641,7 +641,7 @@ func TestRun(t *testing.T) {
 			}
 
 			authData := map[string]interface{}{}
-			req := odplugin.AuthRequest{"com.example", "login", authData}
+			req := skyplugin.AuthRequest{"com.example", "login", authData}
 
 			resp, err := transport.RunProvider(&req)
 			So(err.Error(), ShouldEqual, "worrying error")

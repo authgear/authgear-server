@@ -7,7 +7,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	odplugin "github.com/oursky/skygear/plugin"
+	skyplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
 	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
@@ -19,12 +19,12 @@ import (
 const initRequestTimeout = 2000
 
 type zmqTransport struct {
-	state       odplugin.TransportState
+	state       skyplugin.TransportState
 	name        string
 	iaddr       string // the internal addr used by goroutines to make request to plugin
 	eaddr       string // the addr exposed for plugin to connect to with REP.
 	broker      *Broker
-	initHandler odplugin.TransportInitHandler
+	initHandler skyplugin.TransportInitHandler
 	logger      *log.Entry
 }
 
@@ -59,7 +59,7 @@ func newHookRequest(hookName string, record *skydb.Record, originalRecord *skydb
 	return &request{Kind: "hook", Name: hookName, Param: param, Context: ctx}
 }
 
-func newAuthRequest(authReq *odplugin.AuthRequest) *request {
+func newAuthRequest(authReq *skyplugin.AuthRequest) *request {
 	return &request{
 		Kind: "provider",
 		Name: authReq.ProviderName,
@@ -72,7 +72,7 @@ func newAuthRequest(authReq *odplugin.AuthRequest) *request {
 
 // TODO(limouren): reduce copying of this method
 func (req *request) MarshalJSON() ([]byte, error) {
-	pluginCtx := odplugin.ContextMap(req.Context)
+	pluginCtx := skyplugin.ContextMap(req.Context)
 	if rawParam, ok := req.Param.(json.RawMessage); ok {
 		rawParamReq := struct {
 			Kind    string                 `json:"kind"`
@@ -93,15 +93,15 @@ func (req *request) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&paramReq)
 }
 
-func (p *zmqTransport) State() odplugin.TransportState {
+func (p *zmqTransport) State() skyplugin.TransportState {
 	return p.state
 }
 
-func (p *zmqTransport) SetInitHandler(f odplugin.TransportInitHandler) {
+func (p *zmqTransport) SetInitHandler(f skyplugin.TransportInitHandler) {
 	p.initHandler = f
 }
 
-func (p *zmqTransport) setState(state odplugin.TransportState) {
+func (p *zmqTransport) setState(state skyplugin.TransportState) {
 	if state != p.state {
 		oldState := p.state
 		p.state = state
@@ -113,7 +113,7 @@ func (p *zmqTransport) RequestInit() {
 	for {
 		address := <-p.broker.freshWorkers
 
-		if p.state != odplugin.TransportStateUninitialized {
+		if p.state != skyplugin.TransportStateUninitialized {
 			// Although the plugin is only initialized once, we need
 			// to clear the channel buffer so that broker doesn't get stuck
 			continue
@@ -127,10 +127,10 @@ func (p *zmqTransport) RequestInit() {
 		if p.initHandler != nil {
 			handlerError := p.initHandler(out, err)
 			if err != nil || handlerError != nil {
-				p.setState(odplugin.TransportStateError)
+				p.setState(skyplugin.TransportStateError)
 			}
 		}
-		p.setState(odplugin.TransportStateReady)
+		p.setState(skyplugin.TransportStateReady)
 	}
 }
 
@@ -182,7 +182,7 @@ func (p *zmqTransport) RunTimer(name string, in []byte) (out []byte, err error) 
 	return
 }
 
-func (p *zmqTransport) RunProvider(request *odplugin.AuthRequest) (resp *odplugin.AuthResponse, err error) {
+func (p *zmqTransport) RunProvider(request *skyplugin.AuthRequest) (resp *skyplugin.AuthResponse, err error) {
 	req := newAuthRequest(request)
 	out, err := p.rpc(req)
 	if err != nil {
@@ -269,7 +269,7 @@ func (p *zmqTransport) ipc(req *request) (out []byte, err error) {
 type zmqTransportFactory struct {
 }
 
-func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.Configuration) (transport odplugin.Transport) {
+func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.Configuration) (transport skyplugin.Transport) {
 	const internalAddrFmt = `inproc://%s`
 
 	internalAddr := fmt.Sprintf(internalAddrFmt, name)
@@ -282,7 +282,7 @@ func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.C
 	}
 
 	p := zmqTransport{
-		state:  odplugin.TransportStateUninitialized,
+		state:  skyplugin.TransportStateUninitialized,
 		name:   name,
 		iaddr:  internalAddr,
 		eaddr:  externalAddr,
@@ -313,5 +313,5 @@ func init() {
 	defer router.Destroy()
 
 	// Register the zmq transport factory
-	odplugin.RegisterTransport("zmq", zmqTransportFactory{})
+	skyplugin.RegisterTransport("zmq", zmqTransportFactory{})
 }
