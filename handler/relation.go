@@ -10,38 +10,44 @@ import (
 	"github.com/oursky/skygear/skyerr"
 )
 
-type relationPayload struct {
-	Name      string   `json:"name"`
-	Direction string   `json:"direction"`
-	Target    []string `json:"targets"`
-
-	Limit  uint64 `json:"limit"`
-	Offset uint64 `json:"offset"`
-}
-
-func relationColander(data map[string]interface{}, result *relationPayload) skyerr.Error {
-	mapDecoder, _ := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  result,
-		TagName: "json",
-	})
-	if err := mapDecoder.Decode(data); err != nil {
-		return skyerr.NewError(skyerr.BadRequest, err.Error())
-	}
+func canonicalRelationName(name string) (string, skyerr.Error) {
 	relationMap := map[string]string{
 		"friend":  "_friend",
 		"_friend": "_friend",
 		"follow":  "_follow",
 		"_follow": "_follow",
 	}
-	relationName, ok := relationMap[result.Name]
+	relationName, ok := relationMap[name]
 	if !ok {
-		return skyerr.NewError(skyerr.NotSupported, "Only friend and follow relation is supported")
+		return "", skyerr.NewError(skyerr.NotSupported, "Only friend and follow relation is supported")
 	}
-	result.Name = relationName
-	if result.Direction != "" {
-		if result.Direction != "outward" && result.Direction != "inward" && result.Direction != "mutual" {
-			return skyerr.NewError(skyerr.InvalidArgument, "Only outward, inward and mutual direction is allowed")
-		}
+	return relationName, nil
+}
+
+type relationQueryPayload struct {
+	Name      string `mapstructure:"name"`
+	Direction string `mapstructure:"direction"`
+
+	Limit  uint64 `mapstructure:"limit"`
+	Offset uint64 `mapstructure:"offset"`
+}
+
+func (payload *relationQueryPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *relationQueryPayload) Validate() skyerr.Error {
+	relationName, err := canonicalRelationName(payload.Name)
+	if err != nil {
+		return err
+	}
+	payload.Name = relationName
+
+	if payload.Direction != "" && payload.Direction != "outward" && payload.Direction != "inward" && payload.Direction != "mutual" {
+		return skyerr.NewInvalidArgument("only outward, inward and mutual direction is allowed", []string{"direction"})
 	}
 	return nil
 }
@@ -108,11 +114,13 @@ func (h *RelationQueryHandler) GetPreprocessors() []router.Processor {
 
 func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debug("RelationQueryHandler")
-	payload := relationPayload{}
-	if err := relationColander(rpayload.Data, &payload); err != nil {
-		response.Err = err
+	payload := &relationQueryPayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
+
 	result := rpayload.DBConn.QueryRelation(
 		rpayload.UserInfoID, payload.Name, payload.Direction, skydb.QueryConfig{
 			Limit:  payload.Limit,
@@ -140,6 +148,28 @@ func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router
 	}{
 		count,
 	}
+}
+
+// relationChangePayload is shared by RelationAddHandler and RelationRemoveHandler
+type relationChangePayload struct {
+	Name   string   `mapstructure:"name"`
+	Target []string `mapstructure:"targets"`
+}
+
+func (payload *relationChangePayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *relationChangePayload) Validate() skyerr.Error {
+	relationName, err := canonicalRelationName(payload.Name)
+	if err != nil {
+		return err
+	}
+	payload.Name = relationName
+	return nil
 }
 
 // RelationAddHandler add current user relation
@@ -202,11 +232,13 @@ func (h *RelationAddHandler) GetPreprocessors() []router.Processor {
 
 func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debug("RelationAddHandler")
-	payload := relationPayload{}
-	if err := relationColander(rpayload.Data, &payload); err != nil {
-		response.Err = err
+	payload := relationChangePayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
+
 	results := make([]interface{}, 0, len(payload.Target))
 	for s := range payload.Target {
 		target := payload.Target[s]
@@ -271,11 +303,13 @@ func (h *RelationRemoveHandler) GetPreprocessors() []router.Processor {
 
 func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debug("RelationRemoveHandler")
-	payload := relationPayload{}
-	if err := relationColander(rpayload.Data, &payload); err != nil {
-		response.Err = err
+	payload := relationChangePayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
+
 	results := make([]interface{}, 0, len(payload.Target))
 	for s := range payload.Target {
 		target := payload.Target[s]

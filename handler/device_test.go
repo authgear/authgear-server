@@ -113,7 +113,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			handler.Handle(&payload, &resp)
 
 			err := resp.Err.(skyerr.Error)
-			So(err, ShouldResemble, skyerr.NewError(skyerr.InvalidArgument, "empty device type"))
+			So(err, ShouldResemble, skyerr.NewInvalidArgument("empty device type", []string{"type"}))
 		})
 
 		Convey("complains on invalid device type", func() {
@@ -126,7 +126,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			handler.Handle(&payload, &resp)
 
 			err := resp.Err.(skyerr.Error)
-			So(err, ShouldResemble, skyerr.NewError(skyerr.InvalidArgument, "unknown device type = invalidtype"))
+			So(err, ShouldResemble, skyerr.NewInvalidArgument("unknown device type = invalidtype", []string{"type"}))
 		})
 
 		Convey("does not complain on empty device token", func() {
@@ -175,7 +175,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			handler.Handle(&payload, &resp)
 
 			err := resp.Err.(skyerr.Error)
-			So(err, ShouldResemble, skyerr.NewError(skyerr.InvalidArgument, "unknown device type = unknown-type"))
+			So(err, ShouldResemble, skyerr.NewInvalidArgument("unknown device type = unknown-type", []string{"type"}))
 		})
 	})
 }

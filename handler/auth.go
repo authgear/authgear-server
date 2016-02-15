@@ -4,6 +4,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 
 	"github.com/oursky/skygear/asset"
@@ -25,42 +26,40 @@ type authResponse struct {
 }
 
 type signupPayload struct {
-	AppName string
-	Meta    map[string]interface{}
-	Data    map[string]interface{}
+	Username string                 `mapstructure:"username"`
+	Email    string                 `mapstructure:"email"`
+	Password string                 `mapstructure:"password"`
+	Provider string                 `mapstructure:"provider"`
+	AuthData map[string]interface{} `mapstructure:"auth_data"`
 }
 
-func (p *signupPayload) RouteAction() string {
-	return "auth:signup"
+func (payload *signupPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
 }
 
-func (p *signupPayload) Username() string {
-	username, _ := p.Data["username"].(string)
-	return username
+func (payload *signupPayload) Validate() skyerr.Error {
+
+	if payload.IsAnonymous() {
+		//no validation logic for anonymous sign up
+	} else if payload.Provider == "" {
+		identified := payload.Username != "" || payload.Email != ""
+		if !identified {
+			return skyerr.NewInvalidArgument("empty username and empty email", []string{"username", "email"})
+		}
+
+		if payload.Password == "" {
+			return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		}
+	}
+
+	return nil
 }
 
-func (p *signupPayload) Email() string {
-	email, _ := p.Data["email"].(string)
-	return email
-}
-
-func (p *signupPayload) Password() string {
-	password, _ := p.Data["password"].(string)
-	return password
-}
-
-func (p *signupPayload) IsAnonymous() bool {
-	return p.Email() == "" && p.Password() == "" && p.Username() == "" && p.Provider() == ""
-}
-
-func (p *signupPayload) Provider() string {
-	provider, _ := p.Data["provider"].(string)
-	return provider
-}
-
-func (p *signupPayload) AuthData() map[string]interface{} {
-	authData, _ := p.Data["auth_data"].(map[string]interface{})
-	return authData
+func (payload *signupPayload) IsAnonymous() bool {
+	return payload.Email == "" && payload.Password == "" && payload.Username == "" && payload.Provider == ""
 }
 
 // SignupHandler creates an UserInfo with the supplied information.
@@ -111,41 +110,33 @@ func (h *SignupHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
-	store := h.TokenStore
-
-	p := signupPayload{
-		AppName: payload.AppName,
-		Meta:    payload.Meta,
-		Data:    payload.Data,
+	p := &signupPayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
 	}
+
+	store := h.TokenStore
 
 	info := skydb.UserInfo{}
 	if p.IsAnonymous() {
 		info = skydb.NewAnonymousUserInfo()
-	} else if p.Provider() != "" {
+	} else if p.Provider != "" {
 		// Get AuthProvider and authenticates the user
-		log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
-		authProvider := h.ProviderRegistry.GetAuthProvider(p.Provider())
-		principalID, authData, err := authProvider.Login(p.AuthData())
+		log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
+		authProvider := h.ProviderRegistry.GetAuthProvider(p.Provider)
+		principalID, authData, err := authProvider.Login(p.AuthData)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
 			return
 		}
-		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
+		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
 
 		// Create new user info and set updated auth data
 		info = skydb.NewProvidedAuthUserInfo(principalID, authData)
 	} else {
-		username := p.Username()
-		email := p.Email()
-		password := p.Password()
-		unIdentified := username == "" && email == ""
-
-		if unIdentified || password == "" {
-			response.Err = skyerr.NewError(skyerr.InvalidArgument, "empty identifier(username, email) or password")
-			return
-		}
-		info = skydb.NewUserInfo(username, email, password)
+		info = skydb.NewUserInfo(p.Username, p.Email, p.Password)
 	}
 
 	createContext := createUserWithRecordContext{
@@ -156,7 +147,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	}
 
 	// generate access-token
-	token := authtoken.New(p.AppName, info.ID, time.Time{})
+	token := authtoken.New(payload.AppName, info.ID, time.Time{})
 	if err := store.Put(&token); err != nil {
 		panic(err)
 	}
@@ -170,38 +161,22 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 }
 
 type loginPayload struct {
-	AppName string
-	Meta    map[string]interface{}
-	Data    map[string]interface{}
+	Username string                 `mapstructure:"username"`
+	Email    string                 `mapstructure:"email"`
+	Password string                 `mapstructure:"password"`
+	Provider string                 `mapstructure:"provider"`
+	AuthData map[string]interface{} `mapstructure:"auth_data"`
 }
 
-func (p *loginPayload) RouteAction() string {
-	return "auth:login"
+func (payload *loginPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
 }
 
-func (p *loginPayload) Provider() string {
-	provider, _ := p.Data["provider"].(string)
-	return provider
-}
-
-func (p *loginPayload) AuthData() map[string]interface{} {
-	authData, _ := p.Data["auth_data"].(map[string]interface{})
-	return authData
-}
-
-func (p *loginPayload) Username() string {
-	username, _ := p.Data["username"].(string)
-	return username
-}
-
-func (p *loginPayload) Email() string {
-	email, _ := p.Data["email"].(string)
-	return email
-}
-
-func (p *loginPayload) Password() string {
-	password, _ := p.Data["password"].(string)
-	return password
+func (payload *loginPayload) Validate() skyerr.Error {
+	return nil
 }
 
 /*
@@ -245,35 +220,36 @@ func (h *LoginHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response) {
+	p := &loginPayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
 	if h.TokenStore == nil {
 		panic("token store is nil")
 	}
 	store := h.TokenStore
 
-	p := loginPayload{
-		AppName: payload.AppName,
-		Meta:    payload.Meta,
-		Data:    payload.Data,
-	}
-
 	info := skydb.UserInfo{}
 
-	if p.Provider() != "" {
+	if p.Provider != "" {
 		// Get AuthProvider and authenticates the user
-		log.Debugf(`Client requested auth provider: "%v".`, p.Provider())
-		authProvider := h.ProviderRegistry.GetAuthProvider(p.Provider())
-		principalID, authData, err := authProvider.Login(p.AuthData())
+		log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
+		authProvider := h.ProviderRegistry.GetAuthProvider(p.Provider)
+		principalID, authData, err := authProvider.Login(p.AuthData)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "invalid authentication information")
 			return
 		}
-		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider())
+		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
 
 		if err := payload.DBConn.GetUserByPrincipalID(principalID, &info); err != nil {
 			// Create user if and only if no user found with the same principal
 			if err != skydb.ErrUserNotFound {
 				// TODO: more error handling here if necessary
-				response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username())
+				response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username)
 				return
 			}
 
@@ -292,24 +268,24 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 			}
 		}
 	} else {
-		if err := payload.DBConn.GetUserByUsernameEmail(p.Username(), p.Email(), &info); err != nil {
+		if err := payload.DBConn.GetUserByUsernameEmail(p.Username, p.Email, &info); err != nil {
 			if err == skydb.ErrUserNotFound {
 				response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			} else {
 				// TODO: more error handling here if necessary
-				response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username())
+				response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username)
 			}
 			return
 		}
 
-		if !info.IsSamePassword(p.Password()) {
+		if !info.IsSamePassword(p.Password) {
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "username or password incorrect")
 			return
 		}
 	}
 
 	// generate access-token
-	token := authtoken.New(p.AppName, info.ID, time.Time{})
+	token := authtoken.New(payload.AppName, info.ID, time.Time{})
 	if err := store.Put(&token); err != nil {
 		panic(err)
 	}
@@ -365,28 +341,20 @@ func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Respons
 
 // Define the playload that change password handler will process
 type passwordPayload struct {
-	AppName    string
-	Data       map[string]interface{}
-	UserInfoID string
+	OldPassword string `mapstructure:"old_password"`
+	NewPassword string `mapstructure:"password"`
+	Invalidate  bool   `mapstructure:"invalidate"`
 }
 
-func (p *passwordPayload) RouteAction() string {
-	return "auth:password"
+func (payload *passwordPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
 }
 
-func (p *passwordPayload) OldPassword() string {
-	oldPassword, _ := p.Data["old_password"].(string)
-	return oldPassword
-}
-
-func (p *passwordPayload) NewPassword() string {
-	password, _ := p.Data["password"].(string)
-	return password
-}
-
-func (p *passwordPayload) Invalidate() bool {
-	invalidate, _ := p.Data["invalidate"].(bool)
-	return invalidate
+func (payload *passwordPayload) Validate() skyerr.Error {
+	return nil
 }
 
 // PasswordHandler change the current user password
@@ -438,34 +406,36 @@ func (h *PasswordHandler) GetPreprocessors() []router.Processor {
 
 func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Response) {
 	log.Debugf("changing password")
-	p := passwordPayload{
-		AppName:    payload.AppName,
-		Data:       payload.Data,
-		UserInfoID: payload.UserInfoID,
+	p := &passwordPayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
 	}
+
 	info := skydb.UserInfo{}
-	if err := payload.DBConn.GetUser(p.UserInfoID, &info); err != nil {
+	if err := payload.DBConn.GetUser(payload.UserInfoID, &info); err != nil {
 		if err == skydb.ErrUserNotFound {
 			response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		} else {
 			// TODO: more error handling here if necessary
-			response.Err = skyerr.NewResourceFetchFailureErr("user", p.UserInfoID)
+			response.Err = skyerr.NewResourceFetchFailureErr("user", payload.UserInfoID)
 		}
 		return
 	}
 
-	if !info.IsSamePassword(p.OldPassword()) {
+	if !info.IsSamePassword(p.OldPassword) {
 		log.Debug("Incorrect old password")
 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
 		return
 	}
-	info.SetPassword(p.NewPassword())
+	info.SetPassword(p.NewPassword)
 	if err := payload.DBConn.UpdateUser(&info); err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
 
-	if p.Invalidate() {
+	if p.Invalidate {
 		log.Warningf("Invalidate is not yet implement")
 		// TODO: invalidate all existing token and generate a new one for response
 	}

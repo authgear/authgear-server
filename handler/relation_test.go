@@ -240,7 +240,8 @@ func TestRelationHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
     "error": {
         "code": 108,
-        "message": "Only outward, inward and mutual direction is allowed",
+        "message": "only outward, inward and mutual direction is allowed",
+		"info": {"arguments": ["direction"]},
 		"name": "InvalidArgument"
     }
 }`)

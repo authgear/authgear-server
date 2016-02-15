@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
@@ -19,11 +18,18 @@ type deviceRegisterPayload struct {
 	DeviceToken string `mapstructure:"device_token"`
 }
 
-func (p *deviceRegisterPayload) Validate() error {
-	if p.Type == "" {
-		return errors.New("empty device type")
-	} else if p.Type != "ios" && p.Type != "android" {
-		return fmt.Errorf("unknown device type = %v", p.Type)
+func (payload *deviceRegisterPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *deviceRegisterPayload) Validate() skyerr.Error {
+	if payload.Type == "" {
+		return skyerr.NewInvalidArgument("empty device type", []string{"type"})
+	} else if payload.Type != "ios" && payload.Type != "android" {
+		return skyerr.NewInvalidArgument(fmt.Sprintf("unknown device type = %v", payload.Type), []string{"type"})
 	}
 
 	return nil
@@ -87,12 +93,9 @@ func (h *DeviceRegisterHandler) GetPreprocessors() []router.Processor {
 
 func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := deviceRegisterPayload{}
-	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
-		return
-	}
-	if err := payload.Validate(); err != nil {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, err.Error())
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 

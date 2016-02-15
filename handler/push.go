@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
@@ -12,36 +11,6 @@ import (
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skyerr"
 )
-
-type pushToDevicePayload struct {
-	DeviceIDs    []string               `mapstructure:"device_ids"`
-	Notification map[string]interface{} `mapstructure:"notification"`
-}
-
-func (p *pushToDevicePayload) Validate() error {
-	if len(p.DeviceIDs) == 0 {
-		return errors.New("empty device ids")
-	}
-	if p.Notification == nil {
-		return errors.New("no notification specified")
-	}
-	return nil
-}
-
-type pushToUserPayload struct {
-	UserIDs      []string               `mapstructure:"user_ids"`
-	Notification map[string]interface{} `mapstructure:"notification"`
-}
-
-func (p *pushToUserPayload) Validate() error {
-	if len(p.UserIDs) == 0 {
-		return errors.New("empty user ids")
-	}
-	if p.Notification == nil {
-		return errors.New("no notification specified")
-	}
-	return nil
-}
 
 var sendPushNotification = func(sender push.Sender, device skydb.Device, m push.Mapper) {
 	go func() {
@@ -85,6 +54,28 @@ func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
 	}{e.id})
 }
 
+type pushToUserPayload struct {
+	UserIDs      []string               `mapstructure:"user_ids"`
+	Notification map[string]interface{} `mapstructure:"notification"`
+}
+
+func (payload *pushToUserPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *pushToUserPayload) Validate() skyerr.Error {
+	if len(payload.UserIDs) == 0 {
+		return skyerr.NewInvalidArgument("empty user ids", []string{"user_ids"})
+	}
+	if payload.Notification == nil {
+		return skyerr.NewInvalidArgument("no notification specified", []string{"notification"})
+	}
+	return nil
+}
+
 type PushToUserHandler struct {
 	NotificationSender push.Sender      `inject:"PushSender"`
 	AccessKey          router.Processor `preprocessor:"accesskey"`
@@ -109,12 +100,9 @@ func (h *PushToUserHandler) GetPreprocessors() []router.Processor {
 
 func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := pushToUserPayload{}
-	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
-		return
-	}
-	if err := payload.Validate(); err != nil {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, err.Error())
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
@@ -141,6 +129,28 @@ func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Re
 	response.Result = resultItems
 }
 
+type pushToDevicePayload struct {
+	DeviceIDs    []string               `mapstructure:"device_ids"`
+	Notification map[string]interface{} `mapstructure:"notification"`
+}
+
+func (payload *pushToDevicePayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *pushToDevicePayload) Validate() skyerr.Error {
+	if len(payload.DeviceIDs) == 0 {
+		return skyerr.NewInvalidArgument("empty device ids", []string{"device_ids"})
+	}
+	if payload.Notification == nil {
+		return skyerr.NewInvalidArgument("no notification specified", []string{"notification"})
+	}
+	return nil
+}
+
 type PushToDeviceHandler struct {
 	NotificationSender push.Sender      `inject:"PushSender"`
 	AccessKey          router.Processor `preprocessor:"accesskey"`
@@ -164,13 +174,10 @@ func (h *PushToDeviceHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *PushToDeviceHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	payload := pushToDevicePayload{}
-	if err := mapstructure.Decode(rpayload.Data, &payload); err != nil {
-		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
-		return
-	}
-	if err := payload.Validate(); err != nil {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, err.Error())
+	payload := &pushToDevicePayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 

@@ -9,13 +9,15 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/mitchellh/mapstructure"
+	"golang.org/x/net/context"
+
 	"github.com/oursky/skygear/asset"
 	"github.com/oursky/skygear/plugin/hook"
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skyconv"
 	"github.com/oursky/skygear/skyerr"
-	"golang.org/x/net/context"
 )
 
 // transportRecord override JSON serialization and deserialization of
@@ -140,6 +142,33 @@ func injectSigner(record *skydb.Record, store asset.Store) {
 	}
 }
 
+type recordSavePayload struct {
+	Atomic     bool                     `json:"atomic"`
+	RecordMaps []map[string]interface{} `json:"records"`
+}
+
+func (payload *recordSavePayload) Decode(data map[string]interface{}) skyerr.Error {
+	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Result:  payload,
+		TagName: "json",
+	})
+	if err != nil {
+		panic(err)
+	}
+	if err := mapDecoder.Decode(data); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *recordSavePayload) Validate() skyerr.Error {
+	if len(payload.RecordMaps) == 0 {
+		return skyerr.NewInvalidArgument("expected list of record", []string{"records"})
+	}
+
+	return nil
+}
+
 /*
 RecordSaveHandler is dummy implementation on save/modify Records
 curl -X POST -H "Content-Type: application/json" \
@@ -210,23 +239,20 @@ func (h *RecordSaveHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("Working with accessModel %v", h.AccessModel)
-	var (
-		records []*skydb.Record
-		atomic  bool
-	)
-	atomic, _ = payload.Data["atomic"].(bool)
-
-	recordMaps, ok := payload.Data["records"].([]interface{})
-	if !ok {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected list of record")
+	p := &recordSavePayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	// slice to keep the order of incoming record id / error during parsing
-	incomingRecordItems := make([]interface{}, 0, len(recordMaps))
+	log.Debugf("Working with accessModel %v", h.AccessModel)
+	var records []*skydb.Record
 
-	for _, recordMap := range recordMaps {
+	// slice to keep the order of incoming record id / error during parsing
+	incomingRecordItems := make([]interface{}, 0, len(p.RecordMaps))
+
+	for _, recordMap := range p.RecordMaps {
 		var record skydb.Record
 		if err := (*transportRecord)(&record).InitFromJSON(recordMap); err != nil {
 			incomingRecordItems = append(incomingRecordItems, err)
@@ -242,7 +268,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		HookRegistry:  h.HookRegistry,
 		UserInfoID:    payload.UserInfoID,
 		RecordsToSave: records,
-		Atomic:        atomic,
+		Atomic:        p.Atomic,
 		Context:       payload.Context,
 	}
 	resp := recordModifyResponse{
@@ -250,7 +276,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	var saveFunc recordModifyFunc
-	if atomic {
+	if p.Atomic {
 		saveFunc = atomicModifyFunc(&req, &resp, recordSaveHandler)
 	} else {
 		saveFunc = recordSaveHandler
@@ -661,6 +687,25 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 	return schema
 }
 
+type recordFetchPayload struct {
+	RecordIDs []string `mapstructure:"ids"`
+}
+
+func (payload *recordFetchPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *recordFetchPayload) Validate() skyerr.Error {
+	if len(payload.RecordIDs) == 0 {
+		return skyerr.NewInvalidArgument("expected list of id", []string{"ids"})
+	}
+
+	return nil
+}
+
 /*
 RecordFetchHandler is dummy implementation on fetching Records
 curl -X POST -H "Content-Type: application/json" \
@@ -697,24 +742,19 @@ func (h *RecordFetchHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Response) {
-	interfaces, ok := payload.Data["ids"].([]interface{})
-	if !ok {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected list of id")
+	p := &recordFetchPayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	length := len(interfaces)
+	length := len(p.RecordIDs)
 	recordIDs := make([]skydb.RecordID, length, length)
-	for i, it := range interfaces {
-		rawID, ok := it.(string)
-		if !ok {
-			response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected string id")
-			return
-		}
-
+	for i, rawID := range p.RecordIDs {
 		ss := strings.SplitN(rawID, "/", 2)
 		if len(ss) == 1 {
-			response.Err = skyerr.NewErrorf(skyerr.InvalidArgument, "invalid id format: %v", rawID)
+			response.Err = skyerr.NewInvalidArgument(fmt.Sprintf("invalid id format: %v", rawID), []string{"ids"})
 			return
 		}
 
@@ -853,6 +893,29 @@ func queryResultInfo(db skydb.Database, query *skydb.Query, results *skydb.Rows)
 	return resultInfo, nil
 }
 
+type recordQueryPayload struct {
+	Query      skydb.Query
+	DatabaseID string
+}
+
+func (payload *recordQueryPayload) Decode(data map[string]interface{}, parser *QueryParser) skyerr.Error {
+	// Since the fields of skydb.Query is specified in the top-level,
+	// we parse the data without mapstructure.
+	// mapstructure "squash" tag does not work because skydb.Query
+	// can only be converted using a hook func.
+
+	if err := parser.queryFromRaw(data, &payload.Query); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+
+	payload.DatabaseID, _ = data["database_id"].(string)
+	return payload.Validate()
+}
+
+func (payload *recordQueryPayload) Validate() skyerr.Error {
+	return nil
+}
+
 /*
 RecordQueryHandler is dummy implementation on fetching Records
 curl -X POST -H "Content-Type: application/json" \
@@ -892,22 +955,21 @@ func (h *RecordQueryHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Response) {
-	db := payload.Database
-
-	query := skydb.Query{}
-	parser := &QueryParser{
-		UserID: payload.UserInfoID,
-	}
-	if err := parser.queryFromRaw(payload.Data, &query); err != nil {
-		response.Err = err
+	p := &recordQueryPayload{}
+	parser := QueryParser{UserID: payload.UserInfoID}
+	skyErr := p.Decode(payload.Data, &parser)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	if payload.Data["database_id"] == "_public" {
-		query.ReadableBy = payload.UserInfoID
+	db := payload.Database
+
+	if p.DatabaseID == "_public" {
+		p.Query.ReadableBy = payload.UserInfoID
 	}
 
-	results, err := db.Query(&query)
+	results, err := db.Query(&p.Query)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
@@ -925,14 +987,14 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	eagers := eagerIDs(db, records, query)
+	eagers := eagerIDs(db, records, p.Query)
 	eagerRecords := doQueryEager(db, eagers)
 
 	output := make([]interface{}, len(records))
 	for i := range records {
 		record := records[i]
 
-		for transientKey, transientExpression := range query.ComputedKeys {
+		for transientKey, transientExpression := range p.Query.ComputedKeys {
 			if transientExpression.Type != skydb.KeyPath {
 				continue
 			}
@@ -961,7 +1023,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	response.Result = output
 
-	resultInfo, err := queryResultInfo(db, &query, results)
+	resultInfo, err := queryResultInfo(db, &p.Query, results)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
@@ -969,6 +1031,26 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	if len(resultInfo) > 0 {
 		response.Info = resultInfo
 	}
+}
+
+type recordDeletePayload struct {
+	RecordIDs []string `mapstructure:"ids"`
+	Atomic    bool     `mapstructure:"atomic"`
+}
+
+func (payload *recordDeletePayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *recordDeletePayload) Validate() skyerr.Error {
+	if len(payload.RecordIDs) == 0 {
+		return skyerr.NewInvalidArgument("expected list of id", []string{"ids"})
+	}
+
+	return nil
 }
 
 /*
@@ -1011,26 +1093,19 @@ func (h *RecordDeleteHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.Response) {
-	atomic, _ := payload.Data["atomic"].(bool)
-
-	interfaces, ok := payload.Data["ids"].([]interface{})
-	if !ok {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected list of id")
+	p := &recordDeletePayload{}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	length := len(interfaces)
+	length := len(p.RecordIDs)
 	recordIDs := make([]skydb.RecordID, length, length)
-	for i, it := range interfaces {
-		rawID, ok := it.(string)
-		if !ok {
-			response.Err = skyerr.NewError(skyerr.InvalidArgument, "expected string id")
-			return
-		}
-
+	for i, rawID := range p.RecordIDs {
 		ss := strings.SplitN(rawID, "/", 2)
 		if len(ss) == 1 {
-			response.Err = skyerr.NewErrorf(skyerr.InvalidArgument, "invalid id format: %v", rawID)
+			response.Err = skyerr.NewInvalidArgument(fmt.Sprintf("invalid id format: %v", rawID), []string{"ids"})
 			return
 		}
 
@@ -1042,7 +1117,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		Db:                payload.Database,
 		HookRegistry:      h.HookRegistry,
 		RecordIDsToDelete: recordIDs,
-		Atomic:            atomic,
+		Atomic:            p.Atomic,
 		Context:           payload.Context,
 	}
 	resp := recordModifyResponse{
@@ -1050,7 +1125,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 	}
 
 	var deleteFunc recordModifyFunc
-	if atomic {
+	if p.Atomic {
 		deleteFunc = atomicModifyFunc(&req, &resp, recordDeleteHandler)
 	} else {
 		deleteFunc = recordDeleteHandler
