@@ -36,7 +36,7 @@ func templateExecString(t *template.Template, i interface{}) (string, error) {
 	return buf.String(), nil
 }
 
-const DbVersionNum = "41af1c8d394"
+const DbVersionNum = "551bc42a839"
 const createAppSchemaStmtTmplText = `
 CREATE SCHEMA IF NOT EXISTS {{.Schema}};
 CREATE TABLE IF NOT EXISTS public.pending_notification (
