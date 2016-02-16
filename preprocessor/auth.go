@@ -11,12 +11,12 @@ import (
 	"golang.org/x/net/context"
 )
 
-type AccessKeyValidatonPreprocessor struct {
+type AccessKeyValidationPreprocessor struct {
 	Key     string
 	AppName string
 }
 
-func (p AccessKeyValidatonPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+func (p AccessKeyValidationPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
 	apiKey := payload.APIKey()
 	if apiKey != p.Key {
 		log.Debugf("Invalid APIKEY: %v", apiKey)

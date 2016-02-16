@@ -81,7 +81,7 @@ func main() {
 	preprocessorRegistry["notification"] = &pp.NotificationPreprocessor{
 		NotificationSender: pushSender,
 	}
-	preprocessorRegistry["accesskey"] = &pp.AccessKeyValidatonPreprocessor{
+	preprocessorRegistry["accesskey"] = &pp.AccessKeyValidationPreprocessor{
 		Key:     config.App.APIKey,
 		AppName: config.App.Name,
 	}
