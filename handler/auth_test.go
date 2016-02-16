@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/oursky/skygear/authtoken"
+	"github.com/oursky/skygear/authtoken/authtokentest"
 	"github.com/oursky/skygear/handler/handlertest"
 	"github.com/oursky/skygear/plugin/provider"
 	"github.com/oursky/skygear/router"
@@ -27,23 +28,6 @@ func tempDir() string {
 	return dir
 }
 
-// singleTokenStore implementassigns to and returns itself.
-type singleTokenStore authtoken.Token
-
-func (s *singleTokenStore) Get(accessToken string, token *authtoken.Token) error {
-	*token = authtoken.Token(*s)
-	return nil
-}
-
-func (s *singleTokenStore) Put(token *authtoken.Token) error {
-	*s = singleTokenStore(*token)
-	return nil
-}
-
-func (s *singleTokenStore) Delete(accessToken string) error {
-	panic("Thou shalt not call Delete")
-}
-
 // Seems like a memory imlementation of skydb will make tests
 // faster and easier
 
@@ -52,7 +36,7 @@ func TestSignupHandler(t *testing.T) {
 		conn := skydbtest.NewMapConn()
 		db := skydbtest.NewMapDB()
 		txdb := skydbtest.NewMockTxDatabase(db)
-		tokenStore := singleTokenStore{}
+		tokenStore := authtokentest.SingleTokenStore{}
 
 		Convey("sign up new account", func() {
 			req := router.Payload{
@@ -78,7 +62,7 @@ func TestSignupHandler(t *testing.T) {
 			So(authResp.Username, ShouldEqual, "john.doe")
 			So(authResp.Email, ShouldEqual, "john.doe@example.com")
 			So(authResp.AccessToken, ShouldNotBeEmpty)
-			token := authtoken.Token(tokenStore)
+			token := tokenStore.Token
 			So(token.UserInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
 
@@ -141,7 +125,7 @@ func TestLoginHandler(t *testing.T) {
 		conn := skydbtest.NewMapConn()
 		db := skydbtest.NewMapDB()
 		txdb := skydbtest.NewMockTxDatabase(db)
-		tokenStore := singleTokenStore{}
+		tokenStore := authtokentest.SingleTokenStore{}
 
 		Convey("login user", func() {
 			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
@@ -166,7 +150,7 @@ func TestLoginHandler(t *testing.T) {
 			So(authResp.Username, ShouldEqual, "john.doe")
 			So(authResp.Email, ShouldEqual, "john.doe@example.com")
 			So(authResp.AccessToken, ShouldNotBeEmpty)
-			token := authtoken.Token(tokenStore)
+			token := tokenStore.Token
 			So(token.UserInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
 		})
@@ -218,7 +202,7 @@ func TestLoginHandler(t *testing.T) {
 
 func TestLoginHandlerWithProvider(t *testing.T) {
 	Convey("LoginHandler", t, func() {
-		tokenStore := singleTokenStore{}
+		tokenStore := authtokentest.SingleTokenStore{}
 		conn := singleUserConn{}
 		db := skydbtest.NewMapDB()
 		txdb := skydbtest.NewMockTxDatabase(db)
@@ -242,7 +226,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 
 			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
 
-			token := authtoken.Token(tokenStore)
+			token := tokenStore.Token
 			So(token.AccessToken, ShouldNotBeBlank)
 			So(conn.userinfo, ShouldNotBeNil)
 			authData := conn.userinfo.Auth["com.example:johndoe"]
@@ -263,7 +247,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 			So(txdb.DidBegin, ShouldBeTrue)
 			So(txdb.DidCommit, ShouldBeTrue)
 
-			token := authtoken.Token(tokenStore)
+			token := tokenStore.Token
 			userinfo := conn.userinfo
 
 			So(token.AccessToken, ShouldNotBeBlank)
@@ -324,7 +308,7 @@ func (conn *singleUserConn) GetUserByPrincipalID(principalID string, userinfo *s
 
 func TestSignupHandlerAsAnonymous(t *testing.T) {
 	Convey("SignupHandler", t, func() {
-		tokenStore := singleTokenStore{}
+		tokenStore := authtokentest.SingleTokenStore{}
 		conn := singleUserConn{}
 		db := skydbtest.NewMapDB()
 		txdb := skydbtest.NewMockTxDatabase(db)
@@ -342,7 +326,7 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 			So(txdb.DidBegin, ShouldBeTrue)
 			So(txdb.DidCommit, ShouldBeTrue)
 
-			token := authtoken.Token(tokenStore)
+			token := tokenStore.Token
 			userinfo := conn.userinfo
 
 			So(token.AccessToken, ShouldNotBeBlank)
@@ -394,7 +378,7 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 
 func TestSignupHandlerWithProvider(t *testing.T) {
 	Convey("SignupHandler", t, func() {
-		tokenStore := singleTokenStore{}
+		tokenStore := authtokentest.SingleTokenStore{}
 		conn := singleUserConn{}
 		db := skydbtest.NewMapDB()
 		txdb := skydbtest.NewMockTxDatabase(db)
@@ -415,7 +399,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			So(txdb.DidBegin, ShouldBeTrue)
 			So(txdb.DidCommit, ShouldBeTrue)
 
-			token := authtoken.Token(tokenStore)
+			token := tokenStore.Token
 			userinfo := conn.userinfo
 
 			So(token.AccessToken, ShouldNotBeBlank)
@@ -527,7 +511,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		userinfo := skydb.NewUserInfo("lord-of-skygear", "limouren@skygear.io", "chima")
 		userinfo.ID = "user-uuid"
 		conn.CreateUser(&userinfo)
-		tokenStore := singleTokenStore{}
+		tokenStore := authtokentest.SingleTokenStore{}
 		token := authtoken.New("_", userinfo.ID, time.Time{})
 		tokenStore.Put(&token)
 
