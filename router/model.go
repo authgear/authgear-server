@@ -47,6 +47,21 @@ func NewFuncHandler(f HandlerFunc) Handler {
 	return &funcHandler{f}
 }
 
+// AccessKeyType is the type of the access key specified in client request
+//go:generate stringer -type=AccessKeyType
+type AccessKeyType int
+
+const (
+	// NoAccessKey denotes that an access key is not specified
+	NoAccessKey AccessKeyType = 0 + iota
+
+	// ClientAccessKey denotes that a client access key is specified
+	ClientAccessKey
+
+	// MasterAccessKey denotes that a master aclieneccess key is specified
+	MasterAccessKey
+)
+
 // Payload is for passing payload to the actual handler
 type Payload struct {
 	// the raw http.Request of this payload
@@ -65,6 +80,7 @@ type Payload struct {
 	AppName    string
 	UserInfoID string
 	UserInfo   *skydb.UserInfo
+	AccessKey  AccessKeyType
 
 	DBConn   skydb.Conn
 	Database skydb.Database
