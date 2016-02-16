@@ -55,6 +55,14 @@ func RegisterTransport(name string, transport TransportFactory) {
 	transportFactories[name] = transport
 }
 
+func SupportedTransports() []string {
+	var transports []string
+	for name := range transportFactories {
+		transports = append(transports, name)
+	}
+	return transports
+}
+
 func unregisterAllTransports() {
 	transportFactories = map[string]TransportFactory{}
 }
