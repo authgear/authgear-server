@@ -70,15 +70,6 @@ type Payload struct {
 	Database skydb.Database
 }
 
-func (p *Payload) NewPayload(req *http.Request) *Payload {
-	return &Payload{
-		Req:     req,
-		Meta:    map[string]interface{}{},
-		Data:    map[string]interface{}{},
-		Context: context.Background(),
-	}
-}
-
 // RouteAction must exist for every request
 func (p *Payload) RouteAction() string {
 	actionStr, _ := p.Data["action"].(string)
