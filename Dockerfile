@@ -30,7 +30,7 @@ COPY . /go/src/app
 RUN go-wrapper download && \
     go-wrapper install && \
     go generate ./... && \
-    go-wrapper install
+    go-wrapper install --tags zmq
 
 VOLUME /go/src/app/data
 

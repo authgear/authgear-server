@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -319,6 +320,8 @@ func initSubscription(config skyconfig.Configuration, connOpener func() (skydb.C
 }
 
 func initPlugin(config skyconfig.Configuration, initContext *plugin.InitContext) {
+	log.Infof("Supported plugin transports: %s", strings.Join(plugin.SupportedTransports(), ", "))
+
 	for _, pluginConfig := range config.Plugin {
 		initContext.AddPluginConfiguration(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)
 	}
