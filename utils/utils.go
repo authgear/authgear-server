@@ -11,6 +11,18 @@ func StringSliceExcept(slice []string, except []string) []string {
 	return newSlice
 }
 
+func StringSliceContainAll(container []string, slice []string) bool {
+	if len(container) < len(slice) {
+		return false
+	}
+	for _, s := range slice {
+		if pos := strAt(container, s); pos == -1 {
+			return false
+		}
+	}
+	return true
+}
+
 func strAt(slice []string, str string) int {
 	for pos, s := range slice {
 		if s == str {

@@ -58,5 +58,34 @@ func TestStringSliceExcept(t *testing.T) {
 			So(len(result), ShouldEqual, 2)
 		})
 	})
+}
 
+func TestStringSliceContainAll(t *testing.T) {
+	Convey("StringSliceContainAll", t, func() {
+		Convey("return true on container have all elements", func() {
+			result := StringSliceContainAll([]string{
+				"god",
+				"man",
+			}, []string{
+				"god",
+			})
+			So(result, ShouldEqual, true)
+		})
+		Convey("return true on target slice is empty", func() {
+			result := StringSliceContainAll([]string{
+				"god",
+				"man",
+			}, []string{})
+			So(result, ShouldEqual, true)
+		})
+		Convey("return false on container don't have all elements", func() {
+			result := StringSliceContainAll([]string{
+				"god",
+				"man",
+			}, []string{
+				"devil",
+			})
+			So(result, ShouldEqual, false)
+		})
+	})
 }
