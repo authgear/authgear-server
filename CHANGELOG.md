@@ -1,3 +1,42 @@
+## 0.5.0 (2016-02-17)
+
+### Features
+
+- Make zmq optional and it is not compiled by default #543
+- Implement `schema:*` handler for getting and modifying database schema #491
+  - `schema:fetch`
+  - `schema:create`
+  - `schema:rename`
+  - `schema:delete`
+- Add middleware to support CORS #273
+- Implement http transport and support request context to console transport #537, #538
+- Better exec transport by providing config and print log in skygear #538
+- Add `role:admin` and `role:default` for system config #295
+- Support for user record #409
+  Skygear will create user record that have same id as `_user` when user signup.
+  - Behaviour of `auth:login` and `auth:signup` is modified to create user record
+    when a new user is created.
+  - Behaviour of user:query and relation:query remains unchanged.
+  - `record:query` is extended to support `UserDiscoverFunc` which returns
+    user by email address.
+  - `record:query` returns user record when eager loading user through
+    reserved fields (e.g. `_owner_id`).
+  - It is not allowed to delete user record.
+- Add `DevOnlyProcessor` to restrict dev-only endpoint
+- Pass plugin exception info to client oursky/py-skygear#109
+- Support registering multiple hooks of same kind oursky/py-skygear#108
+
+### Bug Fixes
+
+- Fix dev_only preprocessor wrongly required by home handler #549
+- Fix zmq socket leak #425, #527
+
+### Other Notes
+
+- Update docker-compose.yml to version 2
+- Unify handler to use mapstructure to convert the payload #545
+- Update goczmq
+
 ## 0.4.1 (2016-01-28)
 
 ### Features
