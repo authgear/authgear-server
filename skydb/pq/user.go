@@ -93,19 +93,30 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 	return nil
 }
 
+func (c *conn) baseUserBuilder() sq.SelectBuilder {
+	return psql.Select("id", "username", "email", "password", "auth",
+		"array_to_json(array_agg(role_id)) AS roles").
+		From(c.tableName("_user")).
+		LeftJoin(c.tableName("_user_role") + " ON id = user_id").
+		GroupBy("id")
+}
+
 func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error {
 	var (
 		id       string
 		username sql.NullString
 		email    sql.NullString
+		roles    nullJSONStringSlice
 	)
 	password, auth := []byte{}, authInfoValue{}
+
 	err := scanner.Scan(
 		&id,
 		&username,
 		&email,
 		&password,
 		&auth,
+		&roles,
 	)
 	if err != nil {
 		log.Infof(err.Error())
@@ -119,15 +130,14 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 	userinfo.Email = email.String
 	userinfo.HashedPassword = password
 	userinfo.Auth = skydb.AuthInfo(auth)
+	userinfo.Roles = roles.slice
 
 	return err
 }
 
 func (c *conn) GetUser(id string, userinfo *skydb.UserInfo) error {
 	log.Warnf(id)
-	builder := psql.Select("id", "username", "email", "password", "auth").
-		From(c.tableName("_user")).
-		Where("id = ?", id)
+	builder := c.baseUserBuilder().Where("id = ?", id)
 	scanner := c.QueryRowWith(builder)
 	return c.doScanUser(userinfo, scanner)
 }
@@ -135,39 +145,29 @@ func (c *conn) GetUser(id string, userinfo *skydb.UserInfo) error {
 func (c *conn) GetUserByUsernameEmail(username string, email string, userinfo *skydb.UserInfo) error {
 	var builder sq.SelectBuilder
 	if email == "" {
-		builder = psql.Select("id", "username", "email", "password", "auth").
-			From(c.tableName("_user")).
-			Where("username = ?", username)
+		builder = c.baseUserBuilder().Where("username = ?", username)
 	} else if username == "" {
-		builder = psql.Select("id", "username", "email", "password", "auth").
-			From(c.tableName("_user")).
-			Where("email = ?", email)
+		builder = c.baseUserBuilder().Where("email = ?", email)
 	} else {
-		builder = psql.Select("id", "username", "email", "password", "auth").
-			From(c.tableName("_user")).
-			Where("username = ? AND email = ?", username, email)
+		builder = c.baseUserBuilder().Where("username = ? AND email = ?", username, email)
 	}
 	scanner := c.QueryRowWith(builder)
 	return c.doScanUser(userinfo, scanner)
 }
 
 func (c *conn) GetUserByPrincipalID(principalID string, userinfo *skydb.UserInfo) error {
-	builder := psql.Select("id", "username", "email", "password", "auth").
-		From(c.tableName("_user")).
-		Where("jsonb_exists(auth, ?)", principalID)
+	builder := c.baseUserBuilder().Where("jsonb_exists(auth, ?)", principalID)
 	scanner := c.QueryRowWith(builder)
 	return c.doScanUser(userinfo, scanner)
 }
 
 func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
-
 	emailargs := make([]interface{}, len(emails))
 	for i, v := range emails {
 		emailargs[i] = interface{}(v)
 	}
 
-	builder := psql.Select("id", "username", "email", "password", "auth").
-		From(c.tableName("_user")).
+	builder := c.baseUserBuilder().
 		Where("email IN ("+sq.Placeholders(len(emailargs))+") AND email IS NOT NULL AND email != ''", emailargs...)
 
 	rows, err := c.QueryWith(builder)
@@ -177,22 +177,10 @@ func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
 	defer rows.Close()
 	results := []skydb.UserInfo{}
 	for rows.Next() {
-		var (
-			id       string
-			username sql.NullString
-			email    sql.NullString
-		)
-		password, auth := []byte{}, authInfoValue{}
-		if err := rows.Scan(&id, &username, &email, &password, &auth); err != nil {
+		userinfo := skydb.UserInfo{}
+		if err := c.doScanUser(&userinfo, rows); err != nil {
 			panic(err)
 		}
-
-		userinfo := skydb.UserInfo{}
-		userinfo.ID = id
-		userinfo.Username = username.String
-		userinfo.Email = email.String
-		userinfo.HashedPassword = password
-		userinfo.Auth = skydb.AuthInfo(auth)
 		results = append(results, userinfo)
 	}
 	if err == sql.ErrNoRows {
