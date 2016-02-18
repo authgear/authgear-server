@@ -93,6 +93,7 @@ func (p *execTransport) run(args []string, env []string, in []byte) (out []byte,
 	for _, envLine := range env {
 		cmd.Env = append(cmd.Env, envLine)
 	}
+	log.Debugf("Calling with Env %v", cmd.Env)
 	log.Debugf("Calling %s %s with     : %s", cmd.Path, cmd.Args, in)
 	out, err = startCommand(cmd, in)
 	log.Debugf("Called  %s %s returning: %s", cmd.Path, cmd.Args, out)
@@ -180,9 +181,6 @@ func (p *execTransport) RunHandler(name string, in []byte) (out []byte, err erro
 }
 
 func (p *execTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
-	if ctx != nil {
-		log.Warn("request context is not supported by exec transport")
-	}
 	param := map[string]interface{}{
 		"record":   (*skyconv.JSONRecord)(record),
 		"original": (*skyconv.JSONRecord)(originalRecord),

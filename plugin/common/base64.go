@@ -1,7 +1,6 @@
 package common
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
@@ -14,11 +13,8 @@ func EncodeBase64JSON(data interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	buf := bytes.Buffer{}
-	encoder := base64.NewEncoder(base64.URLEncoding, &buf)
-	encoder.Write(out)
-	return buf.String(), nil
+	result := base64.StdEncoding.EncodeToString(out)
+	return result, nil
 }
 
 // DecodeBase64JSON decodes a base64 encoded JSON string into an object
