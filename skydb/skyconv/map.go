@@ -254,6 +254,14 @@ func (rel *MapRelation) ToMap(m map[string]interface{}) {
 	m["$direction"] = rel.Direction
 }
 
+// MapSequence is skydb.Sequence that can convert to map
+type MapSequence struct{}
+
+// ToMap implements ToMapper
+func (seq MapSequence) ToMap(m map[string]interface{}) {
+	m["$type"] = "seq"
+}
+
 func walkMap(m map[string]interface{}) map[string]interface{} {
 	for key, value := range m {
 		m[key] = ParseInterface(value)

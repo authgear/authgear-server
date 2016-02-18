@@ -26,6 +26,8 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 			data[key] = (*MapLocation)(v)
 		case *skydb.Asset:
 			data[key] = (*MapAsset)(v)
+		case skydb.Sequence:
+			data[key] = (MapSequence)(v)
 		default:
 			data[key] = value
 		}
