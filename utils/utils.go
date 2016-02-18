@@ -11,6 +11,20 @@ func StringSliceExcept(slice []string, except []string) []string {
 	return newSlice
 }
 
+// StringSliceContainAny return true iff the container contain one of the
+// element at target slice. If the slice is empty, it will return false.
+func StringSliceContainAny(container []string, slice []string) bool {
+	if len(slice) == 0 {
+		return false
+	}
+	for _, s := range slice {
+		if pos := strAt(container, s); pos != -1 {
+			return true
+		}
+	}
+	return false
+}
+
 func StringSliceContainAll(container []string, slice []string) bool {
 	if len(container) < len(slice) {
 		return false
