@@ -46,6 +46,24 @@ func (nj *nullJSON) Scan(value interface{}) error {
 	return err
 }
 
+type nullJSONStringSlice struct {
+	slice []string
+	Valid bool
+}
+
+func (njss *nullJSONStringSlice) Scan(value interface{}) error {
+	data, ok := value.([]byte)
+	if value == nil || !ok {
+		njss.slice = nil
+		njss.Valid = false
+		return nil
+	}
+
+	err := json.Unmarshal(data, &njss.slice)
+	njss.Valid = err == nil
+	return err
+}
+
 type assetValue skydb.Asset
 
 func (asset assetValue) Value() (driver.Value, error) {
