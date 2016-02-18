@@ -80,6 +80,9 @@ type Conn interface {
 	// exist in the container.
 	DeleteUser(id string) error
 
+	// GetAdminRoles return the current admine roles
+	GetAdminRoles() ([]string, error)
+
 	// SetAdminRoles accepts array of role, the order will be
 	SetAdminRoles(roles []string) error
 

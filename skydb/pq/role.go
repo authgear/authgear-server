@@ -54,6 +54,13 @@ func (c *conn) batchUserRoleSQL(id string, roles []string) (string, []interface{
 
 }
 
+func (c *conn) GetAdminRoles() ([]string, error) {
+	// TODO: Implement actual query
+	return []string{
+		"admin",
+	}, nil
+}
+
 func (c *conn) SetAdminRoles(roles []string) error {
 	log.Debugf("SetAdminRoles %v", roles)
 	c.ensureRole(roles)

@@ -142,7 +142,16 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 
 	userinfo := payload.UserInfo
 	userinfo.Email = p.Email
-	userinfo.Roles = p.Roles
+	adminRoles, err := payload.DBConn.GetAdminRoles()
+	if err != nil {
+		response.Err = skyerr.NewUnknownErr(err)
+		return
+	}
+	skyErr = h.updateRoles(userinfo, adminRoles, p.Roles)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
 
 	if err := payload.DBConn.UpdateUser(userinfo); err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
@@ -159,6 +168,18 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 		userinfo.Username,
 		userinfo.Roles,
 	}
+}
+
+func (h *UserUpdateHandler) updateRoles(userinfo *skydb.UserInfo, admins []string, roles []string) skyerr.Error {
+	if userinfo.HasAnyRoles(admins) {
+		userinfo.Roles = roles
+		return nil
+	}
+	if userinfo.HasAllRoles(roles) {
+		userinfo.Roles = roles
+		return nil
+	}
+	return skyerr.NewError(skyerr.PermissionDenied, "no permission to add new roles")
 }
 
 type userLinkPayload struct {
