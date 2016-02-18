@@ -14,6 +14,10 @@ type DevOnlyProcessor struct {
 }
 
 func (p DevOnlyProcessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	if payload.AccessKey == router.MasterAccessKey {
+		return http.StatusOK
+	}
+
 	if !p.DevMode {
 		log.Infof("Attempt to access dev only end-point")
 		response.Err = skyerr.NewError(skyerr.PermissionDenied,

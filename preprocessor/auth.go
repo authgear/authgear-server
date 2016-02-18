@@ -11,52 +11,62 @@ import (
 	"golang.org/x/net/context"
 )
 
-type AccessKeyValidatonPreprocessor struct {
-	Key     string
-	AppName string
+func checkRequestAccessKey(payload *router.Payload, clientKey string, masterKey string) skyerr.Error {
+	apiKey := payload.APIKey()
+	if masterKey != "" && apiKey == masterKey {
+		payload.AccessKey = router.MasterAccessKey
+	} else if clientKey != "" && apiKey == clientKey {
+		payload.AccessKey = router.ClientAccessKey
+	} else if apiKey == "" {
+		payload.AccessKey = router.NoAccessKey
+	} else {
+		return skyerr.NewErrorf(skyerr.AccessKeyNotAccepted, "Cannot verify api key: `%v`", apiKey)
+	}
+	return nil
 }
 
-func (p AccessKeyValidatonPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	apiKey := payload.APIKey()
-	if apiKey != p.Key {
-		log.Debugf("Invalid APIKEY: %v", apiKey)
-		response.Err = skyerr.NewErrorf(skyerr.AccessKeyNotAccepted, "Cannot verify api key: %v", apiKey)
+// AccessKeyValidationPreprocessor provides preprocess method to check the
+// API key of the request.
+type AccessKeyValidationPreprocessor struct {
+	ClientKey string
+	MasterKey string
+	AppName   string
+}
+
+func (p AccessKeyValidationPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	if err := checkRequestAccessKey(payload, p.ClientKey, p.MasterKey); err != nil {
+		response.Err = err
+		return http.StatusUnauthorized
+	}
+
+	if payload.AccessKey == router.NoAccessKey {
+		response.Err = skyerr.NewErrorf(skyerr.NotAuthenticated, "Api key is empty")
 		return http.StatusUnauthorized
 	}
 
 	payload.AppName = p.AppName
-
 	return http.StatusOK
 }
 
 // UserAuthenticator provides preprocess method to authenicate a user
 // with access token or non-login user without api key.
 type UserAuthenticator struct {
-	// These two fields are for non-login user
-	APIKey     string
+	ClientKey  string
+	MasterKey  string
 	AppName    string
 	TokenStore authtoken.Store
 }
 
-func (author *UserAuthenticator) Preprocess(payload *router.Payload, response *router.Response) int {
-	tokenString := payload.AccessToken()
-	if tokenString == "" {
-		apiKey := payload.APIKey()
-		if apiKey != author.APIKey {
-			if author.APIKey != "" && apiKey == "" {
-				// if a non-empty api key is set and we received empty
-				// api key and access token, then client request
-				// has no authentication information
-				response.Err = skyerr.NewErrorf(skyerr.NotAuthenticated, "Both api key and access token are empty")
-			} else {
-				response.Err = skyerr.NewErrorf(skyerr.AccessKeyNotAccepted, "Cannot verify api key: `%v`", apiKey)
-			}
-			return http.StatusUnauthorized
-		}
+func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router.Response) int {
+	if err := checkRequestAccessKey(payload, p.ClientKey, p.MasterKey); err != nil {
+		response.Err = err
+		return http.StatusUnauthorized
+	}
 
-		payload.AppName = author.AppName
-	} else {
-		store := author.TokenStore
+	// If payload contains an access token, check whether if the access
+	// token is valid. API Key is not required if there is valid access token.
+	if tokenString := payload.AccessToken(); tokenString != "" {
+		store := p.TokenStore
 		token := authtoken.Token{}
 
 		if err := store.Get(tokenString, &token); err != nil {
@@ -66,7 +76,7 @@ func (author *UserAuthenticator) Preprocess(payload *router.Payload, response *r
 					"err":   err,
 				}).Infoln("Token not found")
 
-				response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token expired")
+				response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
 			} else {
 				response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 			}
@@ -76,7 +86,23 @@ func (author *UserAuthenticator) Preprocess(payload *router.Payload, response *r
 		payload.AppName = token.AppName
 		payload.UserInfoID = token.UserInfoID
 		payload.Context = context.WithValue(payload.Context, "UserID", token.UserInfoID)
+		return http.StatusOK
 	}
 
+	if payload.AccessKey == router.NoAccessKey {
+		response.Err = skyerr.NewErrorf(skyerr.NotAuthenticated, "Both api key and access token are empty")
+		return http.StatusUnauthorized
+	}
+
+	// For master access key, it is possible to impersonate any user of
+	// the caller's choosing.
+	if payload.AccessKey == router.MasterAccessKey {
+		if userID, ok := payload.Data["_user_id"].(string); ok {
+			payload.UserInfoID = userID
+			payload.Context = context.WithValue(payload.Context, "UserID", userID)
+		}
+	}
+
+	payload.AppName = p.AppName
 	return http.StatusOK
 }

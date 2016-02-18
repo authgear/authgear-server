@@ -82,12 +82,14 @@ func main() {
 	preprocessorRegistry["notification"] = &pp.NotificationPreprocessor{
 		NotificationSender: pushSender,
 	}
-	preprocessorRegistry["accesskey"] = &pp.AccessKeyValidatonPreprocessor{
-		Key:     config.App.APIKey,
-		AppName: config.App.Name,
+	preprocessorRegistry["accesskey"] = &pp.AccessKeyValidationPreprocessor{
+		ClientKey: config.App.APIKey,
+		MasterKey: config.App.MasterKey,
+		AppName:   config.App.Name,
 	}
 	preprocessorRegistry["authenticator"] = &pp.UserAuthenticator{
-		APIKey:     config.App.APIKey,
+		ClientKey:  config.App.APIKey,
+		MasterKey:  config.App.MasterKey,
 		AppName:    config.App.Name,
 		TokenStore: tokenStore,
 	}

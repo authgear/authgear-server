@@ -18,6 +18,7 @@ type Configuration struct {
 	App struct {
 		Name          string
 		APIKey        string `gcfg:"api-key"`
+		MasterKey     string `gcfg:"master-key"`
 		AccessControl string `gcfg:"access-control"`
 		DevMode       bool   `gcfg:"dev-mode"`
 		CORSHost      string `gcfg:"cors-host"`
@@ -94,6 +95,11 @@ func ReadFileInto(config *Configuration, path string) error {
 	appAPIKey := os.Getenv("API_KEY")
 	if appAPIKey != "" {
 		config.App.APIKey = appAPIKey
+	}
+
+	appMasterKey := os.Getenv("MASTER_KEY")
+	if appMasterKey != "" {
+		config.App.MasterKey = appMasterKey
 	}
 
 	appName := os.Getenv("APP_NAME")
