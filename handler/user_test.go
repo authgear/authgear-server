@@ -128,11 +128,12 @@ func TestUserUpdateHandler(t *testing.T) {
 			So(newUserInfo.Email, ShouldEqual, "peter.doe@example.com")
 		})
 
-		Convey("update roles", func() {
+		Convey("admin can expend its roles", func() {
 			conn := skydbtest.NewMapConn()
 			userInfo := skydb.UserInfo{
 				ID:       "user0",
 				Username: "username0",
+				Roles:    []string{"admin"},
 			}
 			conn.CreateUser(&userInfo)
 
@@ -153,6 +154,64 @@ func TestUserUpdateHandler(t *testing.T) {
 		"username": "username0",
 		"email": "",
 		"roles": ["admin", "writer"]
+	}
+}`)
+		})
+
+		Convey("prevent non-admin assign expend his roles", func() {
+			conn := skydbtest.NewMapConn()
+			userInfo := skydb.UserInfo{
+				ID:       "user0",
+				Username: "username0",
+			}
+			conn.CreateUser(&userInfo)
+
+			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
+				AccessModel: skydb.RoleBasedAccess,
+			}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.UserInfo = &userInfo
+			})
+
+			resp := r.POST(`{
+	"username": "username0",
+	"roles": ["admin", "writer"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 102,
+		"message": "no permission to add new roles",
+		"name": "PermissionDenied"
+	}
+}`)
+		})
+
+		Convey("allow non-admin user to remove his roles", func() {
+			conn := skydbtest.NewMapConn()
+			userInfo := skydb.UserInfo{
+				ID:       "user0",
+				Username: "username0",
+				Roles:    []string{"user", "human"},
+			}
+			conn.CreateUser(&userInfo)
+
+			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
+				AccessModel: skydb.RoleBasedAccess,
+			}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.UserInfo = &userInfo
+			})
+
+			resp := r.POST(`{
+	"username": "username0",
+	"roles": ["human"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": {
+		"_id": "user0",
+		"username": "username0",
+		"email": "",
+		"roles": ["human"]
 	}
 }`)
 		})
