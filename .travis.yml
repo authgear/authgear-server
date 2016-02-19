@@ -4,7 +4,7 @@ sudo: false
 
 go:
   - 1.5
-  - 1.6beta1
+  - 1.6
 
 addons:
   postgresql: "9.4"
