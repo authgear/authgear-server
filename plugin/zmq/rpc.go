@@ -28,6 +28,7 @@ type zmqTransport struct {
 	broker      *Broker
 	initHandler skyplugin.TransportInitHandler
 	logger      *log.Entry
+	config      skyconfig.Configuration
 }
 
 type request struct {
@@ -137,7 +138,10 @@ func (p *zmqTransport) RequestInit() {
 }
 
 func (p *zmqTransport) RunInit() (out []byte, err error) {
-	req := request{Kind: "init", Timeout: initRequestTimeout}
+	param := struct {
+		Config skyconfig.Configuration `json:"config"`
+	}{p.config}
+	req := request{Kind: "init", Param: param, Timeout: initRequestTimeout}
 	for {
 		out, err = p.ipc(&req)
 		if err == nil {
@@ -290,6 +294,7 @@ func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.C
 		eaddr:  externalAddr,
 		broker: broker,
 		logger: logger,
+		config: config,
 	}
 
 	go func() {

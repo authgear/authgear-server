@@ -13,6 +13,7 @@ import (
 
 	skyplugin "github.com/oursky/skygear/plugin"
 	"github.com/oursky/skygear/plugin/common"
+	"github.com/oursky/skygear/skyconfig"
 	"github.com/oursky/skygear/skydb"
 	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -34,15 +35,20 @@ func TestRun(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
+		appconfig := skyconfig.Configuration{}
+		appconfig.App.Name = "hello-world"
 		transport := &httpTransport{
-			Path:  "http://localhost:8000",
-			Args:  []string{},
-			state: skyplugin.TransportStateReady,
+			Path:   "http://localhost:8000",
+			Args:   []string{},
+			state:  skyplugin.TransportStateReady,
+			config: appconfig,
 		}
 
 		Convey("run init", func() {
 			httpmock.RegisterResponder("POST", "http://localhost:8000/init",
 				func(req *http.Request) (*http.Response, error) {
+					out, _ := ioutil.ReadAll(req.Body)
+					So(string(out), ShouldContainSubstring, "hello-world")
 					return httpmock.NewJsonResponse(200, map[string]interface{}{
 						"data": "hello",
 					})

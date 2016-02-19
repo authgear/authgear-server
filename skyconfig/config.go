@@ -13,70 +13,70 @@ import (
 // Configuration is Skygear's configuration
 type Configuration struct {
 	HTTP struct {
-		Host string
-	}
+		Host string `json:"host"`
+	} `json:"http"`
 	App struct {
-		Name          string
-		APIKey        string `gcfg:"api-key"`
-		MasterKey     string `gcfg:"master-key"`
-		AccessControl string `gcfg:"access-control"`
-		DevMode       bool   `gcfg:"dev-mode"`
-		CORSHost      string `gcfg:"cors-host"`
-	}
+		Name          string `json:"name"`
+		APIKey        string `gcfg:"api-key" json:"api_key"`
+		MasterKey     string `gcfg:"master-key" json:"master_key"`
+		AccessControl string `gcfg:"access-control" json:"access_control"`
+		DevMode       bool   `gcfg:"dev-mode" json:"dev_mode"`
+		CORSHost      string `gcfg:"cors-host" json:"cors_host"`
+	} `json:"app"`
 	DB struct {
-		ImplName string `gcfg:"implementation"`
-		Option   string
-	}
+		ImplName string `gcfg:"implementation" json:"implementation"`
+		Option   string `json:"option"`
+	} `json:"database"`
 	TokenStore struct {
-		ImplName string `gcfg:"implementation"`
-		Path     string `gcfg:"path"`
-	} `gcfg:"token-store"`
+		ImplName string `gcfg:"implementation" json:"implementation"`
+		Path     string `gcfg:"path" json:"path"`
+	} `gcfg:"token-store" json:"-"`
 	AssetStore struct {
-		ImplName string `gcfg:"implementation"`
-		Public   bool
+		ImplName string `gcfg:"implementation" json:"implementation"`
+		Public   bool   `json:"public"`
 
 		// followings only used when ImplName = fs
-		Path string
+		Path string `json:"-"`
 
 		// followings only used when ImplName = s3
-		AccessToken string `gcfg:"access-key"`
-		SecretToken string `gcfg:"secret-key"`
-		Region      string
-		Bucket      string
-	} `gcfg:"asset-store"`
+		AccessToken string `gcfg:"access-key" json:"access_key"`
+		SecretToken string `gcfg:"secret-key" json:"secret_key"`
+		Region      string `json:"region"`
+		Bucket      string `json:"bucket"`
+	} `gcfg:"asset-store" json:"asset_store"`
 	AssetURLSigner struct {
-		URLPrefix string `gcfg:"url-prefix"`
-		Secret    string
-	} `gcfg:"asset-url-signer"`
+		URLPrefix string `gcfg:"url-prefix" json:"url_prefix"`
+		Secret    string `json:"secret"`
+	} `gcfg:"asset-url-signer" json:"asset_signer"`
 	APNS struct {
-		Enable   bool
-		Env      string
-		Cert     string
-		Key      string
-		CertPath string `gcfg:"cert-path"`
-		KeyPath  string `gcfg:"key-path"`
-	}
+		Enable   bool   `json:"enable"`
+		Env      string `json:"env"`
+		Cert     string `json:"cert"`
+		Key      string `json:"key"`
+		CertPath string `gcfg:"cert-path" json:"-"`
+		KeyPath  string `gcfg:"key-path" json:"-"`
+	} `json:"apns"`
 	GCM struct {
-		Enable bool
-		APIKey string `gcfg:"api-key"`
-	}
+		Enable bool   `json:"enable"`
+		APIKey string `gcfg:"api-key" json:"api_key"`
+	} `json:"gcm"`
 	LOG struct {
-		Level string
-	}
+		Level string `json:"-"`
+	} `json:"log"`
 	LogHook struct {
 		SentryDSN   string `gcfg:"sentry-dsn"`
 		SentryLevel string `gcfg:"sentry-level"`
-	} `gcfg:"log-hook"`
+	} `gcfg:"log-hook" json:"-"`
 	Plugin map[string]*struct {
 		Transport string
 		Path      string
 		Args      []string
-	}
+	} `json:"-"`
 	// the alembic section here is to make the config be parsed correctly
 	// the values should not be used
 	UselessAlembic struct {
 		ScriptLocation string `gcfg:"script_location"`
-	} `gcfg:"alembic"`
+	} `gcfg:"alembic" json:"-"`
 }
 
 // ReadFileInto reads a configuration from file specified by path

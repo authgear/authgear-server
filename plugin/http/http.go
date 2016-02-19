@@ -23,6 +23,7 @@ type httpTransport struct {
 	initHandler skyplugin.TransportInitHandler
 	state       skyplugin.TransportState
 	httpClient  http.Client
+	config      skyconfig.Configuration
 }
 
 func (p *httpTransport) sendRequest(req *http.Request) (out []byte, err error) {
@@ -91,7 +92,13 @@ func (p *httpTransport) RequestInit() {
 
 func (p *httpTransport) RunInit() (out []byte, err error) {
 	url := fmt.Sprintf("%s/init", p.Path)
-	req, err := http.NewRequest("POST", url, bytes.NewReader([]byte{}))
+	in, err := json.Marshal(struct {
+		Config skyconfig.Configuration `json:"config"`
+	}{p.config})
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewReader(in))
 	if err != nil {
 		return nil, err
 	}
@@ -203,6 +210,7 @@ func (f httpTransportFactory) Open(path string, args []string, config skyconfig.
 		Args:       args,
 		state:      skyplugin.TransportStateUninitialized,
 		httpClient: http.Client{},
+		config:     config,
 	}
 	return
 }

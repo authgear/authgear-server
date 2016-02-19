@@ -73,6 +73,7 @@ type execTransport struct {
 	Path        string
 	Args        []string
 	DBConfig    string
+	Config      skyconfig.Configuration
 	initHandler skyplugin.TransportInitHandler
 	state       skyplugin.TransportState
 }
@@ -86,9 +87,15 @@ func (p *execTransport) run(args []string, env []string, in []byte) (out []byte,
 		finalArgs[i+len(p.Args)] = arg
 	}
 
+	encodedConfig, err := common.EncodeBase64JSON(p.Config)
+	if err != nil {
+		return nil, err
+	}
+
 	cmd := osexec.Command(p.Path, finalArgs...)
 	cmd.Env = []string{
 		"DATABASE_URL=" + p.DBConfig,
+		fmt.Sprintf("SKYGEAR_CONFIG=%s", encodedConfig),
 	}
 	for _, envLine := range env {
 		cmd.Env = append(cmd.Env, envLine)
@@ -263,6 +270,7 @@ func (f execTransportFactory) Open(path string, args []string, config skyconfig.
 		Path:     path,
 		Args:     args,
 		DBConfig: config.DB.Option,
+		Config:   config,
 		state:    skyplugin.TransportStateUninitialized,
 	}
 	return

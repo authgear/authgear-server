@@ -2,6 +2,7 @@ package exec
 
 import (
 	"errors"
+	"fmt"
 	"os/exec"
 	"strings"
 	"testing"
@@ -17,6 +18,64 @@ import (
 	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func getEnviron(cmd *exec.Cmd, name string) string {
+	for _, envdef := range cmd.Env {
+		tuple := strings.SplitN(envdef, "=", 2)
+		if tuple[0] == name {
+			return tuple[1]
+		}
+	}
+	return ""
+}
+
+func shouldRunWithContext(actual interface{}, expected ...interface{}) string {
+	if len(expected) != 1 {
+		return fmt.Sprintf("ShouldEqualJSON receives only one expected argument")
+	}
+
+	cmd, ok := actual.(*exec.Cmd)
+	if !ok {
+		return fmt.Sprintf("%[1]v is %[1]T, not *exec.Cmd", actual)
+	}
+
+	name := "SKYGEAR_CONTEXT"
+	value := getEnviron(cmd, name)
+	if value == "" {
+		return fmt.Sprintf(`exec.Cmd does not have environ "%s"`, name)
+	}
+
+	var decoded interface{}
+	err := common.DecodeBase64JSON(value, &decoded)
+	if err != nil {
+		return fmt.Sprintf(`unable to decode JSON in environ "%s"`, name)
+	}
+	return ShouldResemble(decoded, expected[0])
+}
+
+func shouldRunWithConfig(actual interface{}, expected ...interface{}) string {
+	if len(expected) != 1 {
+		return fmt.Sprintf("ShouldEqualJSON receives only one expected argument")
+	}
+
+	cmd, ok := actual.(*exec.Cmd)
+	if !ok {
+		return fmt.Sprintf("%[1]v is %[1]T, not *exec.Cmd", actual)
+	}
+
+	name := "SKYGEAR_CONFIG"
+	value := getEnviron(cmd, name)
+	if value == "" {
+		return fmt.Sprintf(`exec.Cmd does not have environ "%s"`, name)
+	}
+
+	decoded := skyconfig.Configuration{}
+	err := common.DecodeBase64JSON(value, &decoded)
+	if err != nil {
+		return fmt.Sprintf(`unable to decode JSON in environ "%s"`, name)
+	}
+	return ShouldResemble(decoded, expected[0])
+}
 
 func TestRun(t *testing.T) {
 	Convey("test args and stdout", t, func() {
@@ -82,9 +141,12 @@ func TestRun(t *testing.T) {
 	})
 
 	Convey("test lambda", t, func() {
+		appconfig := skyconfig.Configuration{}
+		appconfig.App.Name = "app-name"
 		transport := &execTransport{
-			Path: "/never/invoked",
-			Args: nil,
+			Path:   "/never/invoked",
+			Args:   nil,
+			Config: appconfig,
 		}
 
 		// expect child test case to override startCommand
@@ -95,34 +157,29 @@ func TestRun(t *testing.T) {
 		}()
 
 		Convey("pass context as environment variable", func() {
-			found := false
+			executed := false
 			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
-				for _, envLine := range cmd.Env {
-					envTuple := strings.SplitN(envLine, "=", 2)
-					if envTuple[0] == "SKYGEAR_CONTEXT" {
-						decodedCtx := map[string]interface{}{}
-						err := common.DecodeBase64JSON(envTuple[1], &decodedCtx)
-						So(err, ShouldBeNil)
-						So(decodedCtx, ShouldResemble, map[string]interface{}{
-							"user_id": "user",
-						})
-						found = true
-						break
-					}
-				}
+				So(cmd, shouldRunWithContext, map[string]interface{}{
+					"user_id": "user",
+				})
+				So(cmd, shouldRunWithConfig, appconfig)
+				executed = true
 				return []byte(`{"result": {}}`), nil
 			}
 
 			ctx := context.WithValue(context.Background(), "UserID", "user")
 			transport.RunLambda(ctx, "work", []byte{})
-			So(found, ShouldBeTrue)
+			So(executed, ShouldBeTrue)
 		})
 	})
 
 	Convey("test hook", t, func() {
+		appconfig := skyconfig.Configuration{}
+		appconfig.App.Name = "app-name"
 		transport := &execTransport{
-			Path: "/never/invoked",
-			Args: nil,
+			Path:   "/never/invoked",
+			Args:   nil,
+			Config: appconfig,
 		}
 
 		// expect child test case to override startCommand
@@ -550,27 +607,19 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("pass context as environment variable", func() {
-			found := false
+			executed := false
 			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
-				for _, envLine := range cmd.Env {
-					envTuple := strings.SplitN(envLine, "=", 2)
-					if envTuple[0] == "SKYGEAR_CONTEXT" {
-						decodedCtx := map[string]interface{}{}
-						err := common.DecodeBase64JSON(envTuple[1], &decodedCtx)
-						So(err, ShouldBeNil)
-						So(decodedCtx, ShouldResemble, map[string]interface{}{
-							"user_id": "user",
-						})
-						found = true
-						break
-					}
-				}
+				So(cmd, shouldRunWithContext, map[string]interface{}{
+					"user_id": "user",
+				})
+				So(cmd, shouldRunWithConfig, appconfig)
+				executed = true
 				return []byte(`{"result": {}}`), nil
 			}
 
 			ctx := context.WithValue(context.Background(), "UserID", "user")
 			transport.RunHook(ctx, "note_afterSave", &recordin, nil)
-			So(found, ShouldBeTrue)
+			So(executed, ShouldBeTrue)
 		})
 	})
 
@@ -670,7 +719,9 @@ func TestRun(t *testing.T) {
 func TestFactory(t *testing.T) {
 	Convey("test factory", t, func() {
 		factory := &execTransportFactory{}
-		transport := factory.Open("/bin/echo", []string{"plugin"}, skyconfig.Configuration{})
+		appconfig := skyconfig.Configuration{}
+		appconfig.App.Name = "app-name"
+		transport := factory.Open("/bin/echo", []string{"plugin"}, appconfig)
 
 		So(transport, ShouldHaveSameTypeAs, &execTransport{})
 		So(transport.(*execTransport).Path, ShouldResemble, "/bin/echo")
