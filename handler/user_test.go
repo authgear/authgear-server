@@ -187,6 +187,38 @@ func TestUserUpdateHandler(t *testing.T) {
 	}
 }`)
 		})
+
+		Convey("Regression #564, update roles with duplicated roles will result in InvalidaArgumnet", func() {
+			conn := skydbtest.NewMapConn()
+			userInfo := skydb.UserInfo{
+				ID:       "user0",
+				Username: "username0",
+				Roles:    []string{"admin"},
+			}
+			conn.CreateUser(&userInfo)
+
+			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
+				AccessModel: skydb.RoleBasedAccess,
+			}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.UserInfo = &userInfo
+			})
+
+			resp := r.POST(`{
+	"username": "username0",
+	"roles": ["admin", "admin"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 108,
+		"info": {
+			"arguments": ["roles"]
+		},
+		"message": "duplicated roles in payload",
+		"name": "InvalidArgument"
+	}
+}`)
+		})
 	})
 }
 

@@ -88,6 +88,16 @@ func (payload *userUpdatePayload) Decode(data map[string]interface{}) skyerr.Err
 }
 
 func (payload *userUpdatePayload) Validate() skyerr.Error {
+	roleMap := map[string]bool{}
+	for _, role := range payload.Roles {
+		existed, ok := roleMap[role]
+		if existed {
+			return skyerr.NewInvalidArgument("duplicated roles in payload", []string{"roles"})
+		}
+		if !ok {
+			roleMap[role] = true
+		}
+	}
 	return nil
 }
 
