@@ -55,10 +55,23 @@ func (c *conn) batchUserRoleSQL(id string, roles []string) (string, []interface{
 }
 
 func (c *conn) GetAdminRoles() ([]string, error) {
-	// TODO: Implement actual query
-	return []string{
-		"admin",
-	}, nil
+	builder := psql.Select("id").
+		From(c.tableName("_role")).
+		Where("is_admin = true")
+	rows, err := c.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	adminRoles := []string{}
+	for rows.Next() {
+		var roleStr string
+		if err := rows.Scan(&roleStr); err != nil {
+			panic(err)
+		}
+		adminRoles = append(adminRoles, roleStr)
+	}
+	return adminRoles, nil
 }
 
 func (c *conn) SetAdminRoles(roles []string) error {

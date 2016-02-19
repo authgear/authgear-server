@@ -100,6 +100,17 @@ func (_mr *_MockConnRecorder) DeleteUser(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteUser", arg0)
 }
 
+func (_m *MockConn) GetAdminRoles() ([]string, error) {
+	ret := _m.ctrl.Call(_m, "GetAdminRoles")
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockConnRecorder) GetAdminRoles() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAdminRoles")
+}
+
 func (_m *MockConn) GetAsset(_param0 string, _param1 *skydb.Asset) error {
 	ret := _m.ctrl.Call(_m, "GetAsset", _param0, _param1)
 	ret0, _ := ret[0].(error)
