@@ -117,7 +117,9 @@ func (conn *MapConn) DeleteUser(id string) error {
 
 // GetAdminRoles is not implemented.
 func (conn *MapConn) GetAdminRoles() ([]string, error) {
-	panic("not implemented")
+	return []string{
+		"admin",
+	}, nil
 }
 
 // SetAdminRoles is not implemented.
