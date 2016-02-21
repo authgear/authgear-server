@@ -19,10 +19,53 @@ type Revision interface {
 	Down(tx *sqlx.Tx) error
 }
 
-var findRevisions = func(original string, target string, downgrade bool) []Revision {
-	return []Revision{
-		&revision_full{},
+func findRevisionIndex(needle string) int {
+	for i := range revisions {
+		if revisions[i].Version() == needle {
+			return i
+		}
 	}
+	return -1
+}
+
+var findRevisions = func(current string, target string) []Revision {
+	full := &fullMigration{}
+	if current == "" && target == full.Version() {
+		return []Revision{full}
+	}
+
+	currentIndex := -1
+	targetIndex := -1
+
+	if current != "" {
+		currentIndex = findRevisionIndex(current)
+		if currentIndex == -1 {
+			panic("not found")
+		}
+	}
+
+	if target != "" {
+		targetIndex = findRevisionIndex(target)
+		if targetIndex == -1 {
+			panic("not found")
+		}
+	}
+
+	if currentIndex == targetIndex {
+		return []Revision{}
+	}
+
+	var results []Revision
+	if targetIndex > currentIndex {
+		for i := currentIndex + 1; i <= targetIndex; i++ {
+			results = append(results, revisions[i])
+		}
+	} else {
+		for i := currentIndex; i >= targetIndex+1; i-- {
+			results = append(results, revisions[i])
+		}
+	}
+	return results
 }
 
 func executeSchemaMigrations(tx *sqlx.Tx, schema string, original string, target string, downgrade bool) (err error) {
@@ -31,7 +74,7 @@ func executeSchemaMigrations(tx *sqlx.Tx, schema string, original string, target
 	}
 
 	currentRevision := original
-	revs := findRevisions(original, target, downgrade)
+	revs := findRevisions(original, target)
 	for i := range revs {
 		revision := revs[i]
 		if downgrade {
@@ -76,15 +119,16 @@ func EnsureLatest(db *sqlx.DB, schema string, allowMigration bool) error {
 		return err
 	}
 
+	full := &fullMigration{}
 	if versionNum == "" {
 		log.Debugf(`Database schema is uninitialized.`)
-	} else if versionNum == DbVersionNum {
-		log.Debugf(`Database schema "%s" matches the latest schema "%s".`, versionNum, DbVersionNum)
+	} else if versionNum == full.Version() {
+		log.Debugf(`Database schema "%s" matches the latest schema "%s".`, versionNum, full.Version())
 	} else {
-		log.Debugf(`Database schema "%s" does not match the latest schema "%s".`, versionNum, DbVersionNum)
+		log.Debugf(`Database schema "%s" does not match the latest schema "%s".`, versionNum, full.Version())
 	}
 
-	if versionNum == DbVersionNum {
+	if versionNum == full.Version() {
 		// no migration required
 		return nil
 	}
@@ -96,7 +140,7 @@ func EnsureLatest(db *sqlx.DB, schema string, allowMigration bool) error {
 
 	log.Infof(`Database schema requires migration.`)
 
-	if err := executeSchemaMigrations(tx, schema, versionNum, DbVersionNum, false); err != nil {
+	if err := executeSchemaMigrations(tx, schema, versionNum, full.Version(), false); err != nil {
 		return fmt.Errorf("skydb/pq: failed to init database: %v", err)
 	}
 
@@ -173,4 +217,22 @@ func setVersionNum(tx *sqlx.Tx, original string, target string) error {
 	return err
 }
 
-const DbVersionNum = "551bc42a839"
+func getAllRecordTables(tx *sqlx.Tx) ([]string, error) {
+	rows, err := tx.Queryx(`
+	SELECT tablename FROM pg_tables WHERE schemaname=current_schema()
+		AND tablename NOT LIKE '_%';
+	`)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []string
+	for rows.Next() {
+		var tableName string
+		if err := rows.Scan(&tableName); err != nil {
+			return nil, err
+		}
+		results = append(results, tableName)
+	}
+	return results, nil
+}

@@ -221,8 +221,8 @@ func TestMigration(t *testing.T) {
 		}
 
 		Convey("execute upgrade", func() {
-			findRevisions = func(original string, target string, downgrade bool) []Revision {
-				if downgrade {
+			findRevisions = func(original string, target string) []Revision {
+				if original == "version2" {
 					So(original, ShouldEqual, "version2")
 					So(target, ShouldEqual, "version1")
 					return []Revision{secondTableRevision}

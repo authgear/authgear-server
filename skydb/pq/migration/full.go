@@ -4,12 +4,12 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type revision_full struct {
+type fullMigration struct {
 }
 
-func (r *revision_full) Version() string { return "551bc42a839" }
+func (r *fullMigration) Version() string { return "551bc42a839" }
 
-func (r *revision_full) Up(tx *sqlx.Tx) error {
+func (r *fullMigration) Up(tx *sqlx.Tx) error {
 	const stmt = `
 CREATE TABLE IF NOT EXISTS public.pending_notification (
 	id SERIAL NOT NULL PRIMARY KEY,
@@ -96,6 +96,6 @@ CREATE TABLE _follow (
 	return err
 }
 
-func (r *revision_full) Down(tx *sqlx.Tx) error {
-	panic("cannot downgrade a full migration")
+func (r *fullMigration) Down(tx *sqlx.Tx) error {
+	panic("cannot downgrade from a base revision")
 }
