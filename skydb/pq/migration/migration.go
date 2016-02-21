@@ -1,127 +1,176 @@
 package migration
 
 import (
-	"bytes"
-	"text/template"
+	"database/sql"
+	"errors"
+	"fmt"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 )
 
-var createAppSchemaStmtTmpl *template.Template
+const VersionTableName = "_version"
 
-func init() {
-	createAppSchemaStmtTmpl = template.Must(template.New("createAppSchemaStmtTmpl").Parse(createAppSchemaStmtTmplText))
+var ErrMigrationDisabled = errors.New("skydb/pq/migration: migration disabled")
+
+type Revision interface {
+	Version() string
+	Up(tx *sqlx.Tx) error
+	Down(tx *sqlx.Tx) error
 }
 
-func InitSchema(tx *sqlx.Tx, schema string) error {
-	stmt, err := templateExecString(createAppSchemaStmtTmpl, struct {
-		Schema     string
-		VersionNum string
-	}{schema, DbVersionNum})
+var findRevisions = func(original string, target string, downgrade bool) []Revision {
+	return []Revision{
+		&revision_full{},
+	}
+}
 
-	if err != nil {
+func executeSchemaMigrations(tx *sqlx.Tx, schema string, original string, target string, downgrade bool) (err error) {
+	if err = ensureSchema(tx, schema); err != nil {
 		return err
 	}
 
-	_, err = tx.Exec(stmt)
+	currentRevision := original
+	revs := findRevisions(original, target, downgrade)
+	for i := range revs {
+		revision := revs[i]
+		if downgrade {
+			err = revision.Down(tx)
+		} else {
+			err = revision.Up(tx)
+		}
+
+		if err != nil {
+			log.Errorf(`Error executing schema migration "%s" -> "%s": %v`,
+				currentRevision, revision.Version(), err)
+			return err
+		}
+		log.Infof(`Executed schema migration "%s" -> "%s".`,
+			currentRevision, revision.Version())
+
+		currentRevision = revision.Version()
+	}
+
+	if err = ensureVersionTable(tx, schema); err != nil {
+		return err
+	}
+
+	if err = setVersionNum(tx, original, target); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func EnsureLatest(db *sqlx.DB, schema string, allowMigration bool) error {
+	tx, err := db.Beginx()
+	if err != nil {
+		log.Errorf(`Unable to begin transaction for schema migration: %v`, err)
+		return err
+	}
+	defer tx.Rollback()
+
+	versionNum, err := currentVersionNum(tx, schema)
+	if err != nil {
+		log.Errorf(`Unable to detetermine current schema version: %v`, err)
+		return err
+	}
+
+	if versionNum == "" {
+		log.Debugf(`Database schema is uninitialized.`)
+	} else if versionNum == DbVersionNum {
+		log.Debugf(`Database schema "%s" matches the latest schema "%s".`, versionNum, DbVersionNum)
+	} else {
+		log.Debugf(`Database schema "%s" does not match the latest schema "%s".`, versionNum, DbVersionNum)
+	}
+
+	if versionNum == DbVersionNum {
+		// no migration required
+		return nil
+	}
+
+	if !allowMigration {
+		log.Warnf(`Database schema does not match latest schema but migration is disabled.`)
+		return ErrMigrationDisabled
+	}
+
+	log.Infof(`Database schema requires migration.`)
+
+	if err := executeSchemaMigrations(tx, schema, versionNum, DbVersionNum, false); err != nil {
+		return fmt.Errorf("skydb/pq: failed to init database: %v", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Errorf(`Unable to commit transaction for schema migration: %v`, err)
+		return fmt.Errorf("skydb/pq: failed to commit DDL: %v", err)
+	}
+
+	return nil
+}
+
+func ensureSchema(tx *sqlx.Tx, schema string) error {
+	_, err := tx.Exec(fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s;`, schema))
+
+	// Due to database/sql connection polling, this function must be
+	// executed within an transaction because the connection can be
+	// different for each execution otherwise.
+	_, err = tx.Exec(fmt.Sprintf(`SET search_path TO %s;`, schema))
 	return err
 }
 
-func templateExecString(t *template.Template, i interface{}) (string, error) {
-	var buf bytes.Buffer
-	if err := t.Execute(&buf, i); err != nil {
+func ensureVersionTable(tx *sqlx.Tx, schema string) error {
+	_, err := tx.Exec(fmt.Sprintf(`
+CREATE TABLE IF NOT EXISTS %s.%s (
+	version_num character varying(32) NOT NULL
+);`, schema, VersionTableName))
+	return err
+}
+
+func tableExists(tx *sqlx.Tx, schema string, table string) (bool, error) {
+	var exists bool
+	err := tx.QueryRowx(`SELECT EXISTS (
+    SELECT 1 
+    FROM   pg_catalog.pg_class c
+    JOIN   pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+    WHERE  n.nspname = $1
+    AND    c.relname = $2
+);`, schema, table).Scan(&exists)
+	return exists, err
+}
+
+func versionTableExists(tx *sqlx.Tx, schema string) (bool, error) {
+	return tableExists(tx, schema, VersionTableName)
+}
+
+func currentVersionNum(tx *sqlx.Tx, schema string) (string, error) {
+	exists, err := versionTableExists(tx, schema)
+	if !exists {
+		log.Debugf(`Version table "%s" does not exist in schema "%s".`, VersionTableName, schema)
+		return "", nil
+	}
+	if err != nil {
 		return "", err
 	}
 
-	return buf.String(), nil
+	var versionNum string
+	err = tx.QueryRowx(fmt.Sprintf(`SELECT version_num FROM %s.%s`, schema, VersionTableName)).
+		Scan(&versionNum)
+	if err != nil && err != sql.ErrNoRows {
+		return "", err
+	}
+
+	log.Debugf(`Current version of database schema is "%s".`, versionNum)
+	return versionNum, nil
+}
+
+func setVersionNum(tx *sqlx.Tx, original string, target string) error {
+	if original == "" {
+		_, err := tx.Exec(fmt.Sprintf(`INSERT INTO %s (version_num) VALUES ($1);`, VersionTableName), target)
+		return err
+	}
+
+	_, err := tx.Exec(fmt.Sprintf(`UPDATE %s SET version_num = $1 WHERE version_num = $2;`, VersionTableName), target, original)
+	return err
 }
 
 const DbVersionNum = "551bc42a839"
-const createAppSchemaStmtTmplText = `
-CREATE SCHEMA IF NOT EXISTS {{.Schema}};
-CREATE TABLE IF NOT EXISTS public.pending_notification (
-	id SERIAL NOT NULL PRIMARY KEY,
-	op text NOT NULL,
-	appname text NOT NULL,
-	recordtype text NOT NULL,
-	record jsonb NOT NULL
-);
-CREATE OR REPLACE FUNCTION public.notify_record_change() RETURNS TRIGGER AS $$
-	DECLARE
-		affected_record RECORD;
-		inserted_id integer;
-	BEGIN
-		IF (TG_OP = 'DELETE') THEN
-			affected_record := OLD;
-		ELSE
-			affected_record := NEW;
-		END IF;
-		INSERT INTO pending_notification (op, appname, recordtype, record)
-			VALUES (TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME, row_to_json(affected_record)::jsonb)
-			RETURNING id INTO inserted_id;
-		PERFORM pg_notify('record_change', inserted_id::TEXT);
-		RETURN affected_record;
-	END;
-$$ LANGUAGE plpgsql;
-
-CREATE TABLE IF NOT EXISTS {{.Schema}}._version (
-	version_num character varying(32) NOT NULL
-);
-INSERT INTO {{.Schema}}._version (version_num) VALUES('{{.VersionNum}}');
-
-CREATE TABLE {{.Schema}}._user (
-	id text PRIMARY KEY,
-	username text,
-	email text,
-	password text,
-	auth jsonb,
-	UNIQUE (username),
-	UNIQUE (email)
-);
-
-CREATE TABLE {{.Schema}}._role (
-	id text PRIMARY KEY,
-	by_default boolean DEFAULT FALSE,
-	is_admin boolean DEFAULT FALSE
-);
-
-CREATE TABLE {{.Schema}}._user_role (
-	user_id text REFERENCES {{.Schema}}._user (id) NOT NULL,
-	role_id text REFERENCES {{.Schema}}._role (id) NOT NULL,
-	PRIMARY KEY (user_id, role_id)
-);
-
-CREATE TABLE {{.Schema}}._asset (
-	id text PRIMARY KEY,
-	content_type text NOT NULL,
-	size bigint NOT NULL
-);
-CREATE TABLE {{.Schema}}._device (
-	id text PRIMARY KEY,
-	user_id text REFERENCES {{.Schema}}._user (id),
-	type text NOT NULL,
-	token text,
-	last_registered_at timestamp without time zone NOT NULL,
-	UNIQUE (user_id, type, token)
-);
-CREATE INDEX ON {{.Schema}}._device (token, last_registered_at);
-CREATE TABLE {{.Schema}}._subscription (
-	id text NOT NULL,
-	user_id text NOT NULL,
-	device_id text REFERENCES {{.Schema}}._device (id) ON DELETE CASCADE NOT NULL,
-	type text NOT NULL,
-	notification_info jsonb,
-	query jsonb,
-	PRIMARY KEY(user_id, device_id, id)
-);
-CREATE TABLE {{.Schema}}._friend (
-	left_id text NOT NULL,
-	right_id text REFERENCES {{.Schema}}._user (id) NOT NULL,
-	PRIMARY KEY(left_id, right_id)
-);
-CREATE TABLE {{.Schema}}._follow (
-	left_id text NOT NULL,
-	right_id text REFERENCES {{.Schema}}._user (id) NOT NULL,
-	PRIMARY KEY(left_id, right_id)
-);
-`

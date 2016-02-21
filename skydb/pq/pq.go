@@ -123,42 +123,19 @@ func dbInitializer() {
 
 // mustInitDB initialize database objects for an application.
 func mustInitDB(db *sqlx.DB, appName string) error {
-	schema := pq.QuoteIdentifier("app_" + toLowerAndUnderscore(appName))
+	schema := "app_" + toLowerAndUnderscore(appName)
+	allowMigration := true
+	err := migration.EnsureLatest(db, schema, allowMigration)
 
-	var versionNum string
-	err := db.QueryRowx(fmt.Sprintf("SELECT version_num FROM %s._version", schema)).
-		Scan(&versionNum)
-
-	if err == sql.ErrNoRows || isUndefinedTable(err) {
-		// ignore the err here; they are unimportant
-		// do nothing
-	} else if isNetworkError(err) {
-		return fmt.Errorf("skydb/pq: unable to connect to database because of a network error = %v", err)
-	} else if err != nil {
-		return fmt.Errorf("skydb/pq: unrecgonized error while querying db version_num = %v", err)
-	}
-
-	// begin transactional DDL
-	tx, err := db.Beginx()
 	if err != nil {
-		return fmt.Errorf("skydb/pq: failed to begin transaction for DDL: %v", err)
-	}
-	defer tx.Rollback()
-
-	if versionNum == migration.DbVersionNum {
-		return nil
-	} else if versionNum == "" {
-		if err := migration.InitSchema(tx, schema); err != nil {
-			return fmt.Errorf("skydb/pq: failed to init database: %v", err)
+		if isNetworkError(err) {
+			return fmt.Errorf("skydb/pq: unable to connect to database because of a network error = %v", err)
+		} else if err == migration.ErrMigrationDisabled {
+			return fmt.Errorf("skydb/pq: unable to open database because schema does not match required version")
+		} else {
+			return fmt.Errorf("skydb/pq: unable to migrate database because of an error = %v", err)
 		}
-	} else {
-		return fmt.Errorf("skydb/pq: got version_num = %s, want %s", versionNum, migration.DbVersionNum)
 	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("skydb/pq: failed to commit DDL: %v", err)
-	}
-
 	return nil
 }
 
