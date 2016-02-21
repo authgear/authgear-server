@@ -7,7 +7,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "551bc42a839" }
+func (r *fullMigration) Version() string { return "bc5768da91b" }
 
 func (r *fullMigration) Up(tx *sqlx.Tx) error {
 	const stmt = `
@@ -28,7 +28,7 @@ CREATE OR REPLACE FUNCTION public.notify_record_change() RETURNS TRIGGER AS $$
 		ELSE
 			affected_record := NEW;
 		END IF;
-		INSERT INTO pending_notification (op, appname, recordtype, record)
+		INSERT INTO public.pending_notification (op, appname, recordtype, record)
 			VALUES (TG_OP, TG_TABLE_SCHEMA, TG_TABLE_NAME, row_to_json(affected_record)::jsonb)
 			RETURNING id INTO inserted_id;
 		PERFORM pg_notify('record_change', inserted_id::TEXT);

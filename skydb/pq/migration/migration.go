@@ -158,7 +158,7 @@ func ensureSchema(tx *sqlx.Tx, schema string) error {
 	// Due to database/sql connection polling, this function must be
 	// executed within an transaction because the connection can be
 	// different for each execution otherwise.
-	_, err = tx.Exec(fmt.Sprintf(`SET search_path TO %s;`, schema))
+	_, err = tx.Exec(fmt.Sprintf(`SET search_path TO %s, public;`, schema))
 	return err
 }
 
