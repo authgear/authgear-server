@@ -121,7 +121,7 @@ func EnsureLatest(db *sqlx.DB, schema string, allowMigration bool) error {
 
 	full := &fullMigration{}
 	if versionNum == "" {
-		log.Debugf(`Database schema is uninitialized.`)
+		log.Debugf(`Database schema is uninitialized. Latest schema: "%s"`, full.Version())
 	} else if versionNum == full.Version() {
 		log.Debugf(`Database schema "%s" matches the latest schema "%s".`, versionNum, full.Version())
 	} else {

@@ -7,8 +7,10 @@ import (
 	"regexp"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/pq/migration"
 )
@@ -133,6 +135,8 @@ func mustInitDB(db *sqlx.DB, appName string, migrate bool) error {
 		if isNetworkError(err) {
 			return fmt.Errorf("skydb/pq: unable to connect to database because of a network error = %v", err)
 		} else if err == migration.ErrMigrationDisabled {
+			log.Warnf(`Schema does not match required version and migration ` +
+				`is disabled. Database schema can only be modified in dev-mode.`)
 			return fmt.Errorf("skydb/pq: unable to open database because schema does not match required version")
 		} else {
 			return fmt.Errorf("skydb/pq: unable to migrate database because of an error = %v", err)
