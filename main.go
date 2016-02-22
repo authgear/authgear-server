@@ -145,6 +145,8 @@ func main() {
 
 	// subscription shares the same set of preprocessor as record read at the moment
 	r.Map("subscription:fetch_all", injector.Inject(&handler.SubscriptionFetchAllHandler{}))
+	r.Map("subscription:fetch", injector.Inject(&handler.SubscriptionFetchHandler{}))
+	r.Map("subscription:save", injector.Inject(&handler.SubscriptionSaveHandler{}))
 	r.Map("subscription:delete", injector.Inject(&handler.SubscriptionDeleteHandler{}))
 
 	// relation shares the same setof preprocessor
