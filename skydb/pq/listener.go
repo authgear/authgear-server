@@ -128,7 +128,7 @@ func (l *recordListener) Listen() {
 // NOTE(limouren): pending_notification.id is integer in database.
 func (l *recordListener) fetchNotification(notificationID string, n *notification) error {
 	var rawNoti rawNotification
-	err := l.db.QueryRowx("SELECT op, appname, recordtype, record FROM pending_notification WHERE id = $1", notificationID).
+	err := l.db.QueryRowx("SELECT op, appname, recordtype, record FROM public.pending_notification WHERE id = $1", notificationID).
 		StructScan(&rawNoti)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -146,7 +146,7 @@ func (l *recordListener) fetchNotification(notificationID string, n *notificatio
 }
 
 func (l *recordListener) deleteNotification(notificationID string) {
-	result, err := l.db.Exec("DELETE FROM pending_notification WHERE id = $1", notificationID)
+	result, err := l.db.Exec("DELETE FROM public.pending_notification WHERE id = $1", notificationID)
 	if err != nil {
 		log.WithFields(log.Fields{
 			"notificationID": notificationID,
