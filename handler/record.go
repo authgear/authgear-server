@@ -20,72 +20,6 @@ import (
 	"github.com/oursky/skygear/skyerr"
 )
 
-// transportRecord override JSON serialization and deserialization of
-// skydb.Record
-type transportRecord skydb.Record
-
-func (r *transportRecord) UnmarshalJSON(data []byte) error {
-	object := map[string]interface{}{}
-	err := json.Unmarshal(data, &object)
-
-	if err != nil {
-		return err
-	}
-
-	return r.InitFromJSON(object)
-}
-
-func (r *transportRecord) InitFromJSON(i interface{}) error {
-	if m, ok := i.(map[string]interface{}); ok {
-		return r.FromMap(m)
-	}
-
-	return fmt.Errorf("record: want a dictionary, got %T", i)
-}
-
-func (r *transportRecord) FromMap(m map[string]interface{}) error {
-	rawID, ok := m["_id"].(string)
-	if !ok {
-		return errors.New(`record: required field "_id" not found`)
-	}
-
-	ss := strings.SplitN(rawID, "/", 2)
-	if len(ss) == 1 {
-		return fmt.Errorf(`record: "_id" should be of format '{type}/{id}', got %#v`, rawID)
-	}
-
-	recordType, id := ss[0], ss[1]
-
-	r.ID.Key = id
-	r.ID.Type = recordType
-
-	aclData, ok := m["_access"]
-	if ok {
-		acl := skydb.RecordACL{}
-		if err := acl.InitFromJSON(aclData); err != nil {
-			return fmt.Errorf(`record/json: %v`, err)
-		}
-		r.ACL = acl
-	}
-
-	purgeReservedKey(m)
-	data := map[string]interface{}{}
-	if err := (*skyconv.MapData)(&data).FromMap(m); err != nil {
-		return err
-	}
-	r.Data = data
-
-	return nil
-}
-
-func purgeReservedKey(m map[string]interface{}) {
-	for key := range m {
-		if key == "" || key[0] == '_' {
-			delete(m, key)
-		}
-	}
-}
-
 type jsonData map[string]interface{}
 
 func (data jsonData) ToMap(m map[string]interface{}) {
@@ -143,28 +77,81 @@ func injectSigner(record *skydb.Record, store asset.Store) {
 }
 
 type recordSavePayload struct {
-	Atomic     bool                     `json:"atomic"`
-	RecordMaps []map[string]interface{} `json:"records"`
+	Atomic        bool                     `mapstructure:"atomic"`
+	RawMaps       []map[string]interface{} `mapstructure:"records"`
+	IncomingItems []interface{}
+	Records       []*skydb.Record
+	ItemLen       int
+}
+
+func (payload *recordSavePayload) purgeReservedKey(m map[string]interface{}) {
+	for key := range m {
+		if key == "" || key[0] == '_' {
+			delete(m, key)
+		}
+	}
 }
 
 func (payload *recordSavePayload) Decode(data map[string]interface{}) skyerr.Error {
-	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  payload,
-		TagName: "json",
-	})
-	if err != nil {
-		panic(err)
-	}
-	if err := mapDecoder.Decode(data); err != nil {
+	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+	payload.ItemLen = len(payload.RawMaps)
 	return payload.Validate()
 }
 
 func (payload *recordSavePayload) Validate() skyerr.Error {
-	if len(payload.RecordMaps) == 0 {
+	log.Debugf("whole map %v", payload.RawMaps)
+	if len(payload.RawMaps) == 0 {
 		return skyerr.NewInvalidArgument("expected list of record", []string{"records"})
 	}
+
+	payload.IncomingItems = []interface{}{}
+	payload.Records = []*skydb.Record{}
+	for _, recordMap := range payload.RawMaps {
+		var record skydb.Record
+		if err := payload.InitRecord(recordMap, &record); err != nil {
+			payload.IncomingItems = append(payload.IncomingItems, err)
+		} else {
+			payload.IncomingItems = append(payload.IncomingItems, record.ID)
+			payload.Records = append(payload.Records, &record)
+		}
+	}
+
+	return nil
+}
+
+func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.Record) error {
+	rawID, ok := m["_id"].(string)
+	if !ok {
+		return errors.New(`record: required field "_id" not found`)
+	}
+
+	ss := strings.SplitN(rawID, "/", 2)
+	if len(ss) == 1 {
+		return fmt.Errorf(`record: "_id" should be of format '{type}/{id}', got %#v`, rawID)
+	}
+
+	recordType, id := ss[0], ss[1]
+
+	r.ID.Key = id
+	r.ID.Type = recordType
+
+	aclData, ok := m["_access"]
+	if ok {
+		acl := skydb.RecordACL{}
+		if err := acl.InitFromJSON(aclData); err != nil {
+			return fmt.Errorf(`record/json: %v`, err)
+		}
+		r.ACL = acl
+	}
+
+	payload.purgeReservedKey(m)
+	data := map[string]interface{}{}
+	if err := (*skyconv.MapData)(&data).FromMap(m); err != nil {
+		return err
+	}
+	r.Data = data
 
 	return nil
 }
@@ -251,27 +238,13 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	log.Debugf("Working with accessModel %v", h.AccessModel)
-	var records []*skydb.Record
-
-	// slice to keep the order of incoming record id / error during parsing
-	incomingRecordItems := make([]interface{}, 0, len(p.RecordMaps))
-
-	for _, recordMap := range p.RecordMaps {
-		var record skydb.Record
-		if err := (*transportRecord)(&record).InitFromJSON(recordMap); err != nil {
-			incomingRecordItems = append(incomingRecordItems, err)
-		} else {
-			incomingRecordItems = append(incomingRecordItems, record.ID)
-			records = append(records, &record)
-		}
-	}
 
 	req := recordModifyRequest{
 		Db:            payload.Database,
 		AssetStore:    h.AssetStore,
 		HookRegistry:  h.HookRegistry,
 		UserInfoID:    payload.UserInfoID,
-		RecordsToSave: records,
+		RecordsToSave: p.Records,
 		Atomic:        p.Atomic,
 		Context:       payload.Context,
 	}
@@ -294,8 +267,8 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	currRecordIdx := 0
-	results := make([]interface{}, 0, len(incomingRecordItems))
-	for _, itemi := range incomingRecordItems {
+	results := make([]interface{}, 0, p.ItemLen)
+	for _, itemi := range p.IncomingItems {
 		var result interface{}
 
 		switch item := itemi.(type) {
