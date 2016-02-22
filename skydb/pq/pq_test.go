@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/oursky/skygear/skydb"
 )
@@ -27,7 +28,13 @@ func getTestConn(t *testing.T) *conn {
 	}
 	defaultTo("PGDATABASE", "skygear_test")
 	defaultTo("PGSSLMODE", "disable")
-	c, err := Open("com.oursky.skygear", skydb.RoleBasedAccess, "")
+	c, err := Open("com.oursky.skygear", skydb.RoleBasedAccess, "", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// create schema
+	err = mustInitDB(c.(*conn).Db().(*sqlx.DB), "com.oursky.skygear", true)
 	if err != nil {
 		t.Fatal(err)
 	}

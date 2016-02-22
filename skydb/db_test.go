@@ -15,7 +15,7 @@ type fakeDriver struct {
 	Driver
 }
 
-func (driver fakeDriver) Open(appName string, accessModel AccessModel, optionString string) (Conn, error) {
+func (driver fakeDriver) Open(appName string, accessModel AccessModel, optionString string, migrate bool) (Conn, error) {
 	return fakeConn{
 		AppName:      appName,
 		AccessModel:  accessModel,
@@ -28,7 +28,7 @@ func TestOpen(t *testing.T) {
 
 	Register("fakeImpl", fakeDriver{})
 
-	if driver, err := Open("fakeImpl", "com.example.app.test", "role", "fakeOption"); err != nil {
+	if driver, err := Open("fakeImpl", "com.example.app.test", "role", "fakeOption", true); err != nil {
 		t.Fatalf("got err: %v, want a driver", err.Error())
 	} else {
 		if driver, ok := driver.(fakeConn); !ok {

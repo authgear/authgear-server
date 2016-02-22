@@ -49,10 +49,10 @@ func GetAccessModel(accessString string) AccessModel {
 // optionString is passed to the driver and is implementation specific.
 // For example, in a SQL implementation it will be something
 // like "sql://localhost/db0"
-func Open(implName string, appName string, accessString string, optionString string) (Conn, error) {
+func Open(implName string, appName string, accessString string, optionString string, migrate bool) (Conn, error) {
 	accessModel := GetAccessModel(accessString)
 	if driver, ok := drivers[implName]; ok {
-		return driver.Open(appName, accessModel, optionString)
+		return driver.Open(appName, accessModel, optionString, migrate)
 	}
 
 	return nil, fmt.Errorf("Implementation not registered: %v", implName)
