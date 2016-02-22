@@ -176,12 +176,12 @@ curl -X POST -H "Content-Type: application/json" \
 {
     "action": "record:save",
     "access_token": "validToken",
-    "database_id": "_private",
+    "database_id": "_public",
     "records": [{
         "_id": "note/EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
         "content": "ewdsa",
         "_access": [{
-            "relation": "friend",
+            "role": "admin",
             "level": "write"
         }]
     }]
@@ -193,7 +193,7 @@ curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
   "action": "record:save",
-  "database_id": "_private",
+  "database_id": "_public",
   "access_token": "986bee3b-8dd9-45c2-b40c-8b6ef274cf12",
   "records": [
     {
@@ -204,7 +204,11 @@ curl -X POST -H "Content-Type: application/json" \
       "noteOrder": 1,
       "content": "hi",
       "_id": "note/71BAE736-E9C5-43CB-ADD1-D8633B80CAFA",
-      "_type": "record"
+      "_type": "record",
+      "_access": [{
+          "role": "admin",
+          "level": "write"
+      }]
     }
   ]
 }
