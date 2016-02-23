@@ -121,6 +121,7 @@ func (payload *recordSavePayload) Validate() skyerr.Error {
 	return nil
 }
 
+// InitRecord is duplicated of skyconv.record UnmarshaJSON FIXME
 func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.Record) error {
 	rawID, ok := m["_id"].(string)
 	if !ok {
@@ -138,10 +139,23 @@ func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.
 	r.ID.Type = recordType
 
 	aclData, ok := m["_access"]
-	if ok {
+	log.Debugf("data %v", aclData)
+	if ok && aclData != nil {
+		aclSlice, ok := aclData.([]interface{})
+		if !ok {
+			return fmt.Errorf("_access must be an array")
+		}
 		acl := skydb.RecordACL{}
-		if err := acl.InitFromJSON(aclData); err != nil {
-			return fmt.Errorf(`record/json: %v`, err)
+		for _, v := range aclSlice {
+			ace := skydb.RecordACLEntry{}
+			typed, ok := v.(map[string]interface{})
+			if !ok {
+				return fmt.Errorf("invalid access entry %d", id)
+			}
+			if err := (*skyconv.MapACLEntry)(&ace).FromMap(typed); err != nil {
+				return fmt.Errorf(`invalid access entry %d: %v`, id, err)
+			}
+			acl = append(acl, ace)
 		}
 		r.ACL = acl
 	}

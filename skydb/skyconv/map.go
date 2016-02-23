@@ -262,6 +262,44 @@ func (seq MapSequence) ToMap(m map[string]interface{}) {
 	m["$type"] = "seq"
 }
 
+type MapACLEntry skydb.RecordACLEntry
+
+// FromMap initializes a RecordACLEntry from a unmarshalled JSON of
+// access control definition
+func (ace *MapACLEntry) FromMap(m map[string]interface{}) error {
+	level, _ := m["level"].(string)
+	var entryLevel skydb.ACLLevel
+	switch level {
+	case "read":
+		entryLevel = skydb.ReadLevel
+	case "write":
+		entryLevel = skydb.WriteLevel
+	case "":
+		return errors.New("empty level")
+	default:
+		return fmt.Errorf("unknown level = %s", level)
+	}
+
+	relation, _ := m["relation"].(string)
+	if relation == "" {
+		return errors.New("empty relation")
+	}
+
+	var userID string
+	if relation == "$direct" {
+		userID, _ = m["user_id"].(string)
+		if userID == "" {
+			return errors.New(`empty user_id when relation = "$direct"`)
+		}
+	}
+
+	ace.Level = entryLevel
+	ace.Relation = relation
+	ace.UserID = userID
+
+	return nil
+}
+
 func walkMap(m map[string]interface{}) map[string]interface{} {
 	for key, value := range m {
 		m[key] = ParseInterface(value)

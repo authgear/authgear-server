@@ -83,7 +83,10 @@ func (record *JSONRecord) UnmarshalJSON(data []byte) (err error) {
 	if err := json.Unmarshal(data, &m); err != nil {
 		return err
 	}
+	return record.FromMap(m)
+}
 
+func (record *JSONRecord) FromMap(m map[string]interface{}) error {
 	var (
 		id      skydb.RecordID
 		acl     skydb.RecordACL
@@ -94,8 +97,19 @@ func (record *JSONRecord) UnmarshalJSON(data []byte) (err error) {
 	extractor.DoString("_id", func(s string) error {
 		return id.UnmarshalText([]byte(s))
 	})
-	extractor.DoSlice("_access", func(slice []interface{}) error {
-		return acl.InitFromJSON(slice)
+	acl = skydb.RecordACL{}
+	extractor.DoSliceMap("_access", func(slice []map[string]interface{}) error {
+		if slice == nil {
+			acl = nil
+		}
+		for i, v := range slice {
+			ace := skydb.RecordACLEntry{}
+			if err := (*MapACLEntry)(&ace).FromMap(v); err != nil {
+				return fmt.Errorf(`invalid access entry at %d: %v`, i, err)
+			}
+			acl = append(acl, ace)
+		}
+		return nil
 	})
 	if extractor.Err() != nil {
 		return extractor.Err()
@@ -179,6 +193,27 @@ func (e *mapExtractor) DoSlice(key string, doFunc func([]interface{}) error) {
 			return doFunc(nil)
 		default:
 			return fmt.Errorf("key %s is of type %T, not []interface{}", key, i)
+		}
+	})
+}
+
+func (e *mapExtractor) DoSliceMap(key string, doFunc func([]map[string]interface{}) error) {
+	e.Do(key, func(i interface{}) error {
+		switch slice := i.(type) {
+		case []interface{}:
+			m := []map[string]interface{}{}
+			for _, v := range slice {
+				if typed, ok := v.(map[string]interface{}); ok {
+					m = append(m, typed)
+				} else {
+					return fmt.Errorf("key %s is of type %T, not []map[string]interface{}", key, i)
+				}
+			}
+			return doFunc(m)
+		case nil:
+			return doFunc(nil)
+		default:
+			return fmt.Errorf("key %s is of type %T, not []map[string]interface{}", key, i)
 		}
 	})
 }
