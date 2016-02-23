@@ -128,7 +128,7 @@ func TestUserUpdateHandler(t *testing.T) {
 			So(newUserInfo.Email, ShouldEqual, "peter.doe@example.com")
 		})
 
-		Convey("admin can expend its roles", func() {
+		Convey("admin can expand its roles", func() {
 			conn := skydbtest.NewMapConn()
 			userInfo := skydb.UserInfo{
 				ID:       "user0",
@@ -158,7 +158,7 @@ func TestUserUpdateHandler(t *testing.T) {
 }`)
 		})
 
-		Convey("prevent non-admin assign expend his roles", func() {
+		Convey("prevent non-admin assign expand his roles", func() {
 			conn := skydbtest.NewMapConn()
 			userInfo := skydb.UserInfo{
 				ID:       "user0",
