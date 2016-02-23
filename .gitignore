@@ -5,7 +5,6 @@ data
 /.env
 
 # go generated sources
-*_string.go
 /Godeps/_workspace
 
 # Fabric

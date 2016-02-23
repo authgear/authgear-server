@@ -5,7 +5,6 @@ go get golang.org/x/tools/cmd/stringer
 godep restore
 go-wrapper download
 go-wrapper install
-go generate ./...
 
 mkdir -p dist
 

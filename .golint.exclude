@@ -4,3 +4,4 @@
 should have comment or be unexported$
 method ToSql should be ToSQL$
 ^skydb/pq/migration/.*don't use underscores in Go names; type revision_
+_string.go

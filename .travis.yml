@@ -47,6 +47,7 @@ before_script:
 script:
   - golint ./... | grep -v -f .golint.exclude; test $? -eq 1
   - go generate ./...
+  - git status | grep "_string.go$"; test $? -eq 1
   - gocyclo -skip-godeps -over 15 . | gogocyclo
   - go test --tags zmq -cover ./...
 
