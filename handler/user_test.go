@@ -145,7 +145,7 @@ func TestUserUpdateHandler(t *testing.T) {
 			})
 
 			resp := r.POST(`{
-	"username": "username0",
+	"_id": "user0",
 	"roles": ["admin", "writer"]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -174,7 +174,7 @@ func TestUserUpdateHandler(t *testing.T) {
 			})
 
 			resp := r.POST(`{
-	"username": "username0",
+	"_id": "user0",
 	"roles": ["admin", "writer"]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -203,7 +203,7 @@ func TestUserUpdateHandler(t *testing.T) {
 			})
 
 			resp := r.POST(`{
-	"username": "username0",
+	"_id": "user0",
 	"roles": ["human"]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -232,7 +232,7 @@ func TestUserUpdateHandler(t *testing.T) {
 			})
 
 			resp := r.POST(`{
-	"username": "username0",
+	"_id": "user0",
 	"roles": ["admin", "writer"]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
