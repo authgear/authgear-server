@@ -7,8 +7,10 @@ import (
 	"regexp"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/pq/migration"
 )
@@ -56,8 +58,8 @@ type queryxRunner interface {
 }
 
 // Open returns a new connection to postgresql implementation
-func Open(appName string, accessModel skydb.AccessModel, connString string) (skydb.Conn, error) {
-	db, err := getDB(appName, connString)
+func Open(appName string, accessModel skydb.AccessModel, connString string, migrate bool) (skydb.Conn, error) {
+	db, err := getDB(appName, connString, migrate)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +79,7 @@ func Open(appName string, accessModel skydb.AccessModel, connString string) (sky
 type getDBReq struct {
 	appName    string
 	connString string
+	migrate    bool
 	done       chan getDBResp
 }
 
@@ -88,9 +91,9 @@ type getDBResp struct {
 var dbs = map[string]*sqlx.DB{}
 var getDBChan = make(chan getDBReq)
 
-func getDB(appName, connString string) (*sqlx.DB, error) {
+func getDB(appName, connString string, migrate bool) (*sqlx.DB, error) {
 	ch := make(chan getDBResp)
-	getDBChan <- getDBReq{appName, connString, ch}
+	getDBChan <- getDBReq{appName, connString, migrate, ch}
 	resp := <-ch
 	return resp.db, resp.err
 }
@@ -109,12 +112,14 @@ func dbInitializer() {
 			}
 
 			db.SetMaxOpenConns(10)
-			dbs[req.connString] = db
-		}
 
-		if err := mustInitDB(db, req.appName); err != nil {
-			req.done <- getDBResp{nil, fmt.Errorf("failed to open connection: %s", err)}
-			continue
+			if err := mustInitDB(db, req.appName, req.migrate); err != nil {
+				db.Close()
+				req.done <- getDBResp{nil, fmt.Errorf("failed to open connection: %s", err)}
+				continue
+			}
+
+			dbs[req.connString] = db
 		}
 
 		req.done <- getDBResp{db, nil}
@@ -122,15 +127,16 @@ func dbInitializer() {
 }
 
 // mustInitDB initialize database objects for an application.
-func mustInitDB(db *sqlx.DB, appName string) error {
+func mustInitDB(db *sqlx.DB, appName string, migrate bool) error {
 	schema := "app_" + toLowerAndUnderscore(appName)
-	allowMigration := true
-	err := migration.EnsureLatest(db, schema, allowMigration)
+	err := migration.EnsureLatest(db, schema, migrate)
 
 	if err != nil {
 		if isNetworkError(err) {
 			return fmt.Errorf("skydb/pq: unable to connect to database because of a network error = %v", err)
 		} else if err == migration.ErrMigrationDisabled {
+			log.Warnf(`Schema does not match required version and migration ` +
+				`is disabled. Database schema can only be modified in dev-mode.`)
 			return fmt.Errorf("skydb/pq: unable to open database because schema does not match required version")
 		} else {
 			return fmt.Errorf("skydb/pq: unable to migrate database because of an error = %v", err)

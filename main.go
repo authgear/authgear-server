@@ -215,6 +215,7 @@ func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 			config.App.Name,
 			config.App.AccessControl,
 			config.DB.Option,
+			config.App.DevMode,
 		)
 	}
 

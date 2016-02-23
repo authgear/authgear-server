@@ -121,7 +121,7 @@ func EnsureLatest(db *sqlx.DB, schema string, allowMigration bool) error {
 
 	full := &fullMigration{}
 	if versionNum == "" {
-		log.Debugf(`Database schema is uninitialized.`)
+		log.Debugf(`Database schema is uninitialized. Latest schema: "%s"`, full.Version())
 	} else if versionNum == full.Version() {
 		log.Debugf(`Database schema "%s" matches the latest schema "%s".`, versionNum, full.Version())
 	} else {
@@ -154,6 +154,9 @@ func EnsureLatest(db *sqlx.DB, schema string, allowMigration bool) error {
 
 func ensureSchema(tx *sqlx.Tx, schema string) error {
 	_, err := tx.Exec(fmt.Sprintf(`CREATE SCHEMA IF NOT EXISTS %s;`, schema))
+	if err != nil {
+		return err
+	}
 
 	// Due to database/sql connection polling, this function must be
 	// executed within an transaction because the connection can be
