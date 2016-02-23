@@ -1,5 +1,7 @@
 package utils
 
+// StringSliceExcept return a new slice that without the element appears in the
+// second slice.
 func StringSliceExcept(slice []string, except []string) []string {
 	newSlice := []string{}
 
@@ -25,6 +27,8 @@ func StringSliceContainAny(container []string, slice []string) bool {
 	return false
 }
 
+// StringSliceContainAll return true iff the container contain all elements of
+// the target. If the target slice is empty, it will return true.
 func StringSliceContainAll(container []string, slice []string) bool {
 	if len(container) < len(slice) {
 		return false
