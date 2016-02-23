@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -82,6 +81,8 @@ type recordSavePayload struct {
 	IncomingItems []interface{}
 	Records       []*skydb.Record
 	ItemLen       int
+	Clean         bool
+	Errs          []skyerr.Error
 }
 
 func (payload *recordSavePayload) purgeReservedKey(m map[string]interface{}) {
@@ -106,11 +107,15 @@ func (payload *recordSavePayload) Validate() skyerr.Error {
 		return skyerr.NewInvalidArgument("expected list of record", []string{"records"})
 	}
 
+	payload.Clean = true
+	payload.Errs = []skyerr.Error{}
 	payload.IncomingItems = []interface{}{}
 	payload.Records = []*skydb.Record{}
 	for _, recordMap := range payload.RawMaps {
 		var record skydb.Record
 		if err := payload.InitRecord(recordMap, &record); err != nil {
+			payload.Clean = false
+			payload.Errs = append(payload.Errs, err)
 			payload.IncomingItems = append(payload.IncomingItems, err)
 		} else {
 			payload.IncomingItems = append(payload.IncomingItems, record.ID)
@@ -122,15 +127,18 @@ func (payload *recordSavePayload) Validate() skyerr.Error {
 }
 
 // InitRecord is duplicated of skyconv.record UnmarshaJSON FIXME
-func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.Record) error {
+func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.Record) skyerr.Error {
 	rawID, ok := m["_id"].(string)
 	if !ok {
-		return errors.New(`record: required field "_id" not found`)
+		return skyerr.NewInvalidArgument("missing required fields", []string{"id"})
 	}
 
 	ss := strings.SplitN(rawID, "/", 2)
 	if len(ss) == 1 {
-		return fmt.Errorf(`record: "_id" should be of format '{type}/{id}', got %#v`, rawID)
+		return skyerr.NewInvalidArgument(
+			`record: "_id" should be of format '{type}/{id}', got "`+rawID+`"`,
+			[]string{"id"},
+		)
 	}
 
 	recordType, id := ss[0], ss[1]
@@ -143,17 +151,17 @@ func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.
 	if ok && aclData != nil {
 		aclSlice, ok := aclData.([]interface{})
 		if !ok {
-			return fmt.Errorf("_access must be an array")
+			return skyerr.NewInvalidArgument("_access must be an array", []string{"_access"})
 		}
 		acl := skydb.RecordACL{}
 		for _, v := range aclSlice {
 			ace := skydb.RecordACLEntry{}
 			typed, ok := v.(map[string]interface{})
 			if !ok {
-				return fmt.Errorf("invalid access entry %d", id)
+				return skyerr.NewInvalidArgument("invalid _access entry", []string{"_access"})
 			}
 			if err := (*skyconv.MapACLEntry)(&ace).FromMap(typed); err != nil {
-				return fmt.Errorf(`invalid access entry %d: %v`, id, err)
+				return skyerr.NewInvalidArgument("invalid _access entry", []string{"_access"})
 			}
 			acl = append(acl, ace)
 		}
@@ -163,7 +171,7 @@ func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.
 	payload.purgeReservedKey(m)
 	data := map[string]interface{}{}
 	if err := (*skyconv.MapData)(&data).FromMap(m); err != nil {
-		return err
+		return skyerr.NewError(skyerr.InvalidArgument, err.Error())
 	}
 	r.Data = data
 
@@ -268,6 +276,16 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 
 	var saveFunc recordModifyFunc
 	if p.Atomic {
+		if !p.Clean {
+			response.Err = skyerr.NewErrorWithInfo(
+				skyerr.InvalidArgument,
+				"fails to de-serialize records",
+				map[string]interface{}{
+					"arguments": "records",
+					"errors":    p.Errs,
+				})
+			return
+		}
 		saveFunc = atomicModifyFunc(&req, &resp, recordSaveHandler)
 	} else {
 		saveFunc = recordSaveHandler
@@ -275,7 +293,6 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 
 	if err := saveFunc(&req, &resp); err != nil {
 		log.Debugf("Failed to save records: %v", err)
-
 		response.Err = err
 		return
 	}
@@ -286,8 +303,8 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		var result interface{}
 
 		switch item := itemi.(type) {
-		case error:
-			result = newSerializedError("", skyerr.NewError(skyerr.InvalidArgument, item.Error()))
+		case skyerr.Error:
+			result = newSerializedError("", item)
 		case skydb.RecordID:
 			if err, ok := resp.ErrMap[item]; ok {
 				log.WithFields(log.Fields{
