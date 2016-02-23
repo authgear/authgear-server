@@ -59,7 +59,8 @@ func (id *RecordID) IsEmpty() bool {
 
 // RecordACLEntry grants access to a record by relation or by user_id
 type RecordACLEntry struct {
-	Relation string   `json:"relation"`
+	Relation string   `json:"relation,omitempty"`
+	Role     string   `json:"role,omitempty"`
 	Level    ACLLevel `json:"level"`
 	UserID   string   `json:"user_id,omitempty"`
 }
@@ -75,12 +76,17 @@ const (
 
 // NewRecordACLEntryRelation returns an ACE on relation
 func NewRecordACLEntryRelation(relation string, level ACLLevel) RecordACLEntry {
-	return RecordACLEntry{relation, level, ""}
+	return RecordACLEntry{relation, "", level, ""}
 }
 
 // NewRecordACLEntryDirect returns an ACE for a specific user
 func NewRecordACLEntryDirect(userID string, level ACLLevel) RecordACLEntry {
-	return RecordACLEntry{"$direct", level, userID}
+	return RecordACLEntry{"$direct", "", level, userID}
+}
+
+// NewRecordACLRole return an ACE on role
+func NewRecordACLRole(role string, level ACLLevel) RecordACLEntry {
+	return RecordACLEntry{"", role, level, ""}
 }
 
 // RecordACL is a list of ACL entries defining access control for a record

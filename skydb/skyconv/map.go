@@ -281,22 +281,22 @@ func (ace *MapACLEntry) FromMap(m map[string]interface{}) error {
 	}
 
 	relation, _ := m["relation"].(string)
-	if relation == "" {
-		return errors.New("empty relation")
-	}
-
-	var userID string
-	if relation == "$direct" {
-		userID, _ = m["user_id"].(string)
-		if userID == "" {
-			return errors.New(`empty user_id when relation = "$direct"`)
-		}
+	userID, _ := m["user_id"].(string)
+	role, _ := m["role"].(string)
+	if relation == "" && userID == "" && role == "" {
+		return errors.New("ACLEntry must have relation, user_id or role")
 	}
 
 	ace.Level = entryLevel
-	ace.Relation = relation
-	ace.UserID = userID
-
+	if relation != "" {
+		ace.Relation = relation
+	}
+	if role != "" {
+		ace.Role = role
+	}
+	if userID != "" {
+		ace.UserID = userID
+	}
 	return nil
 }
 
