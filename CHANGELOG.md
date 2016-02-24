@@ -1,3 +1,29 @@
+## 0.6.0 (2016-02-24)
+
+### Features
+
+- Pass skygear configuration to plugin #492
+- Return 403 Forbidden for PermissionDenied error
+- Implement saving role based acl #298
+- Add checking of user permission before modify roles #539
+- Only init db for the first time db is opened #573
+- Update build script to build with zmq in linux
+- Bring back subscription:{save,fetch}
+- Remove the alembic migrate related deployment files #268
+- Skygear will migrate db itself #268
+- Reject request with duplicated roles specified user #564
+- Support for master key #294
+
+### Bug Fixes
+
+- Fix bug on serizlise Sequence to plugin #559
+- Fix bug on base64 encode at exec transport
+
+### Other Notes
+
+- Add go generate sources #571
+- Add script for cross compile binaries
+
 ## 0.5.0 (2016-02-17)
 
 ### Features
