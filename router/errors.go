@@ -11,6 +11,7 @@ import (
 func defaultStatusCode(err skyerr.Error) int {
 	httpStatus, ok := map[skyerr.ErrorCode]int{
 		skyerr.NotAuthenticated:        http.StatusUnauthorized,
+		skyerr.PermissionDenied:        http.StatusForbidden,
 		skyerr.AccessKeyNotAccepted:    http.StatusUnauthorized,
 		skyerr.AccessTokenNotAccepted:  http.StatusUnauthorized,
 		skyerr.InvalidCredentials:      http.StatusUnauthorized,
