@@ -75,14 +75,28 @@ func injectSigner(record *skydb.Record, store asset.Store) {
 	}
 }
 
+// recordSavePayload decode and validate incoming mapstructure. It will store
+// infroamtion regarding the payload after decode. Don't resue the struct for
+// another payload.
 type recordSavePayload struct {
-	Atomic        bool                     `mapstructure:"atomic"`
-	RawMaps       []map[string]interface{} `mapstructure:"records"`
+	Atomic bool `mapstructure:"atomic"`
+
+	// RawMaps stores the original incoming `records`.
+	RawMaps []map[string]interface{} `mapstructure:"records"`
+
+	// IncomigItems contains de-serialzed recordID or de-serialization error,
+	// the item is one-one corresponding to RawMaps.
 	IncomingItems []interface{}
-	Records       []*skydb.Record
-	ItemLen       int
-	Clean         bool
-	Errs          []skyerr.Error
+
+	// Records contains the sucessfully de-serialized record
+	Records []*skydb.Record
+
+	// Errs is the array of de-serialization errors
+	Errs []skyerr.Error
+
+	// Clean s true iff all incoming records are in proper format, design to
+	// used with Atomic when handling the payload
+	Clean bool
 }
 
 func (payload *recordSavePayload) purgeReservedKey(m map[string]interface{}) {
@@ -93,17 +107,19 @@ func (payload *recordSavePayload) purgeReservedKey(m map[string]interface{}) {
 	}
 }
 
+func (payload *recordSavePayload) ItemLen() int {
+	return len(payload.RawMaps)
+}
+
 func (payload *recordSavePayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
-	payload.ItemLen = len(payload.RawMaps)
 	return payload.Validate()
 }
 
 func (payload *recordSavePayload) Validate() skyerr.Error {
-	log.Debugf("whole map %v", payload.RawMaps)
-	if len(payload.RawMaps) == 0 {
+	if payload.ItemLen() == 0 {
 		return skyerr.NewInvalidArgument("expected list of record", []string{"records"})
 	}
 
@@ -126,7 +142,7 @@ func (payload *recordSavePayload) Validate() skyerr.Error {
 	return nil
 }
 
-// InitRecord is duplicated of skyconv.record UnmarshaJSON FIXME
+// InitRecord is duplicated of skyconv.record FromMap FIXME
 func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.Record) skyerr.Error {
 	rawID, ok := m["_id"].(string)
 	if !ok {
@@ -298,7 +314,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	currRecordIdx := 0
-	results := make([]interface{}, 0, p.ItemLen)
+	results := make([]interface{}, 0, p.ItemLen())
 	for _, itemi := range p.IncomingItems {
 		var result interface{}
 
