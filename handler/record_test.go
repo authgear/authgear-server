@@ -177,12 +177,14 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_type": "error",
 					"name": "InvalidArgument",
 					"code": 108,
-					"message": "record: required field \"_id\" not found"
+					"message": "missing required fields",
+					"info": {"arguments":["id"]}
 				},{
 					"_type": "error",
 					"name": "InvalidArgument",
 					"code": 108,
-					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\""
+					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\"",
+					"info": {"arguments":["id"]}
 			}]}`)
 		})
 
@@ -198,12 +200,14 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_type": "error",
 					"name": "InvalidArgument",
 					"code": 108,
-					"message": "record: required field \"_id\" not found"
+					"message": "missing required fields",
+					"info": {"arguments":["id"]}
 				},{
 					"_type": "error",
 					"name": "InvalidArgument",
 					"code": 108,
-					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\""
+					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\"",
+					"info": {"arguments":["id"]}
 			}]}`)
 		})
 
@@ -1832,6 +1836,50 @@ func TestAtomicOperation(t *testing.T) {
 
 				So(txDB.DidBegin, ShouldBeTrue)
 				So(txDB.DidCommit, ShouldBeTrue)
+				So(txDB.DidRollback, ShouldBeFalse)
+			})
+
+			Convey("fails whole request on any records mal-format", func() {
+				db.SetFilter(func(op string, recordID skydb.RecordID, record *skydb.Record) skyerr.Error {
+					return nil
+				})
+
+				resp := r.POST(`{
+					"records": [{
+						"_id": "note0",
+						"_type": "record"
+					},
+					{
+						"_id": "note/1",
+						"_access": "note/1"
+					}],
+					"atomic": true
+				}`)
+
+				So(resp.Body.String(), ShouldEqualJSON, `{
+					"error": {
+						"code": 108,
+						"info": {
+							"arguments": "records",
+							"errors": [{
+								"code": 108,
+								"info": {"arguments":["id"]},
+								"message": "record: \"_id\" should be of format '{type}/{id}', got \"note0\"",
+								"name": "InvalidArgument"
+							}, {
+								"code": 108,
+								"info": {"arguments":["_access"]},
+								"message": "_access must be an array",
+								"name": "InvalidArgument"
+							}]
+						},
+						"message": "fails to de-serialize records",
+						"name": "InvalidArgument"
+					}
+				}`)
+
+				So(txDB.DidBegin, ShouldBeFalse)
+				So(txDB.DidCommit, ShouldBeFalse)
 				So(txDB.DidRollback, ShouldBeFalse)
 			})
 		})

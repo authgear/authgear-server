@@ -59,7 +59,8 @@ func (id *RecordID) IsEmpty() bool {
 
 // RecordACLEntry grants access to a record by relation or by user_id
 type RecordACLEntry struct {
-	Relation string   `json:"relation"`
+	Relation string   `json:"relation,omitempty"`
+	Role     string   `json:"role,omitempty"`
 	Level    ACLLevel `json:"level"`
 	UserID   string   `json:"user_id,omitempty"`
 }
@@ -73,83 +74,23 @@ const (
 	WriteLevel          = "write"
 )
 
-// InitFromJSON initializes a RecordACLEntry from a unmarshalled JSON of
-// access control definition
-func (entry *RecordACLEntry) InitFromJSON(i interface{}) error {
-	m, ok := i.(map[string]interface{})
-	if !ok {
-		return fmt.Errorf("want a dictionary, got a %T", i)
-	}
-
-	level, _ := m["level"].(string)
-	var entryLevel ACLLevel
-	switch level {
-	case "read":
-		entryLevel = ReadLevel
-	case "write":
-		entryLevel = WriteLevel
-	case "":
-		return errors.New("empty level")
-	default:
-		return fmt.Errorf("unknown level = %s", level)
-	}
-
-	relation, _ := m["relation"].(string)
-	if relation == "" {
-		return errors.New("empty relation")
-	}
-
-	var userID string
-	if relation == "$direct" {
-		userID, _ = m["user_id"].(string)
-		if userID == "" {
-			return errors.New(`empty user_id when relation = "$direct"`)
-		}
-	}
-
-	entry.Level = entryLevel
-	entry.Relation = relation
-	entry.UserID = userID
-
-	return nil
-}
-
 // NewRecordACLEntryRelation returns an ACE on relation
 func NewRecordACLEntryRelation(relation string, level ACLLevel) RecordACLEntry {
-	return RecordACLEntry{relation, level, ""}
+	return RecordACLEntry{relation, "", level, ""}
 }
 
 // NewRecordACLEntryDirect returns an ACE for a specific user
 func NewRecordACLEntryDirect(userID string, level ACLLevel) RecordACLEntry {
-	return RecordACLEntry{"$direct", level, userID}
+	return RecordACLEntry{"$direct", "", level, userID}
+}
+
+// NewRecordACLRole return an ACE on role
+func NewRecordACLRole(role string, level ACLLevel) RecordACLEntry {
+	return RecordACLEntry{"", role, level, ""}
 }
 
 // RecordACL is a list of ACL entries defining access control for a record
 type RecordACL []RecordACLEntry
-
-// InitFromJSON initializes a RecordACL
-func (acl *RecordACL) InitFromJSON(i interface{}) error {
-	if i == nil {
-		*acl = nil
-		return nil
-	}
-
-	l, ok := i.([]interface{})
-	if !ok {
-		return fmt.Errorf("want an array, got %T", i)
-	}
-
-	for i, v := range l {
-		entry := RecordACLEntry{}
-		if err := entry.InitFromJSON(v); err != nil {
-			return fmt.Errorf(`invalid access entry at %d: %v`, i, err)
-		}
-		entries := (*[]RecordACLEntry)(acl)
-		*entries = append(*entries, entry)
-	}
-
-	return nil
-}
 
 // NewRecordACL returns a new RecordACL
 func NewRecordACL(entries []RecordACLEntry) RecordACL {

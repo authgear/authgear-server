@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -19,72 +18,6 @@ import (
 	"github.com/oursky/skygear/skydb/skyconv"
 	"github.com/oursky/skygear/skyerr"
 )
-
-// transportRecord override JSON serialization and deserialization of
-// skydb.Record
-type transportRecord skydb.Record
-
-func (r *transportRecord) UnmarshalJSON(data []byte) error {
-	object := map[string]interface{}{}
-	err := json.Unmarshal(data, &object)
-
-	if err != nil {
-		return err
-	}
-
-	return r.InitFromJSON(object)
-}
-
-func (r *transportRecord) InitFromJSON(i interface{}) error {
-	if m, ok := i.(map[string]interface{}); ok {
-		return r.FromMap(m)
-	}
-
-	return fmt.Errorf("record: want a dictionary, got %T", i)
-}
-
-func (r *transportRecord) FromMap(m map[string]interface{}) error {
-	rawID, ok := m["_id"].(string)
-	if !ok {
-		return errors.New(`record: required field "_id" not found`)
-	}
-
-	ss := strings.SplitN(rawID, "/", 2)
-	if len(ss) == 1 {
-		return fmt.Errorf(`record: "_id" should be of format '{type}/{id}', got %#v`, rawID)
-	}
-
-	recordType, id := ss[0], ss[1]
-
-	r.ID.Key = id
-	r.ID.Type = recordType
-
-	aclData, ok := m["_access"]
-	if ok {
-		acl := skydb.RecordACL{}
-		if err := acl.InitFromJSON(aclData); err != nil {
-			return fmt.Errorf(`record/json: %v`, err)
-		}
-		r.ACL = acl
-	}
-
-	purgeReservedKey(m)
-	data := map[string]interface{}{}
-	if err := (*skyconv.MapData)(&data).FromMap(m); err != nil {
-		return err
-	}
-	r.Data = data
-
-	return nil
-}
-
-func purgeReservedKey(m map[string]interface{}) {
-	for key := range m {
-		if key == "" || key[0] == '_' {
-			delete(m, key)
-		}
-	}
-}
 
 type jsonData map[string]interface{}
 
@@ -142,29 +75,121 @@ func injectSigner(record *skydb.Record, store asset.Store) {
 	}
 }
 
+// recordSavePayload decode and validate incoming mapstructure. It will store
+// infroamtion regarding the payload after decode. Don't resue the struct for
+// another payload.
 type recordSavePayload struct {
-	Atomic     bool                     `json:"atomic"`
-	RecordMaps []map[string]interface{} `json:"records"`
+	Atomic bool `mapstructure:"atomic"`
+
+	// RawMaps stores the original incoming `records`.
+	RawMaps []map[string]interface{} `mapstructure:"records"`
+
+	// IncomigItems contains de-serialzed recordID or de-serialization error,
+	// the item is one-one corresponding to RawMaps.
+	IncomingItems []interface{}
+
+	// Records contains the sucessfully de-serialized record
+	Records []*skydb.Record
+
+	// Errs is the array of de-serialization errors
+	Errs []skyerr.Error
+
+	// Clean s true iff all incoming records are in proper format, design to
+	// used with Atomic when handling the payload
+	Clean bool
+}
+
+func (payload *recordSavePayload) purgeReservedKey(m map[string]interface{}) {
+	for key := range m {
+		if key == "" || key[0] == '_' {
+			delete(m, key)
+		}
+	}
+}
+
+func (payload *recordSavePayload) ItemLen() int {
+	return len(payload.RawMaps)
 }
 
 func (payload *recordSavePayload) Decode(data map[string]interface{}) skyerr.Error {
-	mapDecoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		Result:  payload,
-		TagName: "json",
-	})
-	if err != nil {
-		panic(err)
-	}
-	if err := mapDecoder.Decode(data); err != nil {
+	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 	return payload.Validate()
 }
 
 func (payload *recordSavePayload) Validate() skyerr.Error {
-	if len(payload.RecordMaps) == 0 {
+	if payload.ItemLen() == 0 {
 		return skyerr.NewInvalidArgument("expected list of record", []string{"records"})
 	}
+
+	payload.Clean = true
+	payload.Errs = []skyerr.Error{}
+	payload.IncomingItems = []interface{}{}
+	payload.Records = []*skydb.Record{}
+	for _, recordMap := range payload.RawMaps {
+		var record skydb.Record
+		if err := payload.InitRecord(recordMap, &record); err != nil {
+			payload.Clean = false
+			payload.Errs = append(payload.Errs, err)
+			payload.IncomingItems = append(payload.IncomingItems, err)
+		} else {
+			payload.IncomingItems = append(payload.IncomingItems, record.ID)
+			payload.Records = append(payload.Records, &record)
+		}
+	}
+
+	return nil
+}
+
+// InitRecord is duplicated of skyconv.record FromMap FIXME
+func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.Record) skyerr.Error {
+	rawID, ok := m["_id"].(string)
+	if !ok {
+		return skyerr.NewInvalidArgument("missing required fields", []string{"id"})
+	}
+
+	ss := strings.SplitN(rawID, "/", 2)
+	if len(ss) == 1 {
+		return skyerr.NewInvalidArgument(
+			`record: "_id" should be of format '{type}/{id}', got "`+rawID+`"`,
+			[]string{"id"},
+		)
+	}
+
+	recordType, id := ss[0], ss[1]
+
+	r.ID.Key = id
+	r.ID.Type = recordType
+
+	aclData, ok := m["_access"]
+	log.Debugf("data %v", aclData)
+	if ok && aclData != nil {
+		aclSlice, ok := aclData.([]interface{})
+		if !ok {
+			return skyerr.NewInvalidArgument("_access must be an array", []string{"_access"})
+		}
+		acl := skydb.RecordACL{}
+		for _, v := range aclSlice {
+			ace := skydb.RecordACLEntry{}
+			typed, ok := v.(map[string]interface{})
+			if !ok {
+				return skyerr.NewInvalidArgument("invalid _access entry", []string{"_access"})
+			}
+			if err := (*skyconv.MapACLEntry)(&ace).FromMap(typed); err != nil {
+				return skyerr.NewInvalidArgument("invalid _access entry", []string{"_access"})
+			}
+			acl = append(acl, ace)
+		}
+		r.ACL = acl
+	}
+
+	payload.purgeReservedKey(m)
+	data := map[string]interface{}{}
+	if err := (*skyconv.MapData)(&data).FromMap(m); err != nil {
+		return skyerr.NewError(skyerr.InvalidArgument, err.Error())
+	}
+	r.Data = data
 
 	return nil
 }
@@ -176,12 +201,12 @@ curl -X POST -H "Content-Type: application/json" \
 {
     "action": "record:save",
     "access_token": "validToken",
-    "database_id": "_private",
+    "database_id": "_public",
     "records": [{
         "_id": "note/EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
         "content": "ewdsa",
         "_access": [{
-            "relation": "friend",
+            "role": "admin",
             "level": "write"
         }]
     }]
@@ -193,7 +218,7 @@ curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
   "action": "record:save",
-  "database_id": "_private",
+  "database_id": "_public",
   "access_token": "986bee3b-8dd9-45c2-b40c-8b6ef274cf12",
   "records": [
     {
@@ -204,7 +229,11 @@ curl -X POST -H "Content-Type: application/json" \
       "noteOrder": 1,
       "content": "hi",
       "_id": "note/71BAE736-E9C5-43CB-ADD1-D8633B80CAFA",
-      "_type": "record"
+      "_type": "record",
+      "_access": [{
+          "role": "admin",
+          "level": "write"
+      }]
     }
   ]
 }
@@ -247,27 +276,13 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	log.Debugf("Working with accessModel %v", h.AccessModel)
-	var records []*skydb.Record
-
-	// slice to keep the order of incoming record id / error during parsing
-	incomingRecordItems := make([]interface{}, 0, len(p.RecordMaps))
-
-	for _, recordMap := range p.RecordMaps {
-		var record skydb.Record
-		if err := (*transportRecord)(&record).InitFromJSON(recordMap); err != nil {
-			incomingRecordItems = append(incomingRecordItems, err)
-		} else {
-			incomingRecordItems = append(incomingRecordItems, record.ID)
-			records = append(records, &record)
-		}
-	}
 
 	req := recordModifyRequest{
 		Db:            payload.Database,
 		AssetStore:    h.AssetStore,
 		HookRegistry:  h.HookRegistry,
 		UserInfoID:    payload.UserInfoID,
-		RecordsToSave: records,
+		RecordsToSave: p.Records,
 		Atomic:        p.Atomic,
 		Context:       payload.Context,
 	}
@@ -277,6 +292,16 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 
 	var saveFunc recordModifyFunc
 	if p.Atomic {
+		if !p.Clean {
+			response.Err = skyerr.NewErrorWithInfo(
+				skyerr.InvalidArgument,
+				"fails to de-serialize records",
+				map[string]interface{}{
+					"arguments": "records",
+					"errors":    p.Errs,
+				})
+			return
+		}
 		saveFunc = atomicModifyFunc(&req, &resp, recordSaveHandler)
 	} else {
 		saveFunc = recordSaveHandler
@@ -284,19 +309,18 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 
 	if err := saveFunc(&req, &resp); err != nil {
 		log.Debugf("Failed to save records: %v", err)
-
 		response.Err = err
 		return
 	}
 
 	currRecordIdx := 0
-	results := make([]interface{}, 0, len(incomingRecordItems))
-	for _, itemi := range incomingRecordItems {
+	results := make([]interface{}, 0, p.ItemLen())
+	for _, itemi := range p.IncomingItems {
 		var result interface{}
 
 		switch item := itemi.(type) {
-		case error:
-			result = newSerializedError("", skyerr.NewError(skyerr.InvalidArgument, item.Error()))
+		case skyerr.Error:
+			result = newSerializedError("", item)
 		case skydb.RecordID:
 			if err, ok := resp.ErrMap[item]; ok {
 				log.WithFields(log.Fields{
