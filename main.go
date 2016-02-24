@@ -8,7 +8,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/Sirupsen/logrus/hooks/sentry"
+	"github.com/evalphobia/logrus_sentry"
 	"github.com/facebookgo/inject"
 	"github.com/robfig/cron"
 

@@ -1,11 +1,16 @@
 {
 	"ImportPath": "github.com/oursky/skygear",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.5",
 	"Deps": [
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.8.6-7-g9c060de",
-			"Rev": "9c060de643590dae45da9d7c26276463bfc46fa0"
+			"Comment": "v0.9.0-13-g74bde9e",
+			"Rev": "74bde9ea4c5b2c78995da8ed56d37e75644dc941"
+		},
+		{
+			"ImportPath": "github.com/evalphobia/logrus_sentry",
+			"Comment": "v0.1.0-5-gd265708",
+			"Rev": "d265708c9c877d2f458e673f0af437a0529baee9"
 		},
 		{
 			"ImportPath": "github.com/facebookgo/inject",
@@ -74,6 +79,18 @@
 			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
 		},
 		{
+			"ImportPath": "github.com/oursky/gcfg/scanner",
+			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
+		},
+		{
+			"ImportPath": "github.com/oursky/gcfg/token",
+			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
+		},
+		{
+			"ImportPath": "github.com/oursky/gcfg/types",
+			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
+		},
+		{
 			"ImportPath": "github.com/paulmach/go.geo",
 			"Rev": "c84b6002b0f727d4a2d40e05466dfc3cc54eb329"
 		},
@@ -113,6 +130,10 @@
 		{
 			"ImportPath": "golang.org/x/net/context",
 			"Rev": "db8e4de5b2d6653f66aea53094624468caad15d2"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "5eaf0df67e70d6997a9fe0ed24383fa1b01638d3"
 		},
 		{
 			"ImportPath": "gopkg.in/amz.v3/aws",
