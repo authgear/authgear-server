@@ -1,8 +1,10 @@
 package skydb
 
 import (
-	"github.com/oursky/skygear/uuid"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/oursky/skygear/utils"
+	"github.com/oursky/skygear/uuid"
 )
 
 // AuthInfo represents the dictionary of authenticated principal ID => authData.
@@ -88,6 +90,16 @@ func (info *UserInfo) SetProvidedAuthData(principalID string, authData map[strin
 		info.Auth = make(map[string]map[string]interface{})
 	}
 	info.Auth[principalID] = authData
+}
+
+// HasAnyRoles return true if userinfo belongs to one of the supplied roles
+func (info *UserInfo) HasAnyRoles(roles []string) bool {
+	return utils.StringSliceContainAny(info.Roles, roles)
+}
+
+// HasAllRoles return true if userinfo has all roles supplied
+func (info *UserInfo) HasAllRoles(roles []string) bool {
+	return utils.StringSliceContainAll(info.Roles, roles)
 }
 
 // GetProvidedAuthData gets the auth data for the specified principal.

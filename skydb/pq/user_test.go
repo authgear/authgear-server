@@ -11,7 +11,7 @@ import (
 func TestUserCRUD(t *testing.T) {
 	var c *conn
 
-	SkipConvey("Conn", t, func() {
+	Convey("Conn", t, func() {
 		c = getTestConn(t)
 		defer cleanupConn(t, c)
 
@@ -20,6 +20,7 @@ func TestUserCRUD(t *testing.T) {
 			Username:       "john.doe",
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
+			Roles:          []string{},
 			Auth: skydb.AuthInfo{
 				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
@@ -216,6 +217,39 @@ func TestUserCRUD(t *testing.T) {
 
 			c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
 			So(count, ShouldEqual, 1)
+		})
+	})
+}
+
+func TestUserEagerLoadRole(t *testing.T) {
+	var c *conn
+
+	Convey("User eager load roles", t, func() {
+		c = getTestConn(t)
+		defer cleanupConn(t, c)
+
+		userinfo := skydb.UserInfo{
+			ID:             "userid",
+			Username:       "john.doe",
+			Email:          "john.doe@example.com",
+			Roles:          []string{"user"},
+			HashedPassword: []byte(""),
+		}
+		c.CreateUser(&userinfo)
+
+		Convey("with GetUser", func() {
+			fetchedUserinfo := skydb.UserInfo{}
+			So(c.GetUser("userid", &fetchedUserinfo), ShouldBeNil)
+			So(fetchedUserinfo, ShouldResemble, userinfo)
+		})
+
+		Convey("with UserQuery", func() {
+			results, err := c.QueryUser([]string{
+				"john.doe@example.com",
+			})
+			So(err, ShouldBeNil)
+
+			So(results[0], ShouldResemble, userinfo)
 		})
 	})
 }

@@ -76,8 +76,10 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 }
 
 type userUpdatePayload struct {
-	Email string   `mapstructure:"email"`
-	Roles []string `mapstructure:"roles"`
+	ID       string   `mapstructure:"_id"`
+	Username string   `mapstructure:"username"`
+	Email    string   `mapstructure:"email"`
+	Roles    []string `mapstructure:"roles"`
 }
 
 func (payload *userUpdatePayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -97,6 +99,9 @@ func (payload *userUpdatePayload) Validate() skyerr.Error {
 		if !ok {
 			roleMap[role] = true
 		}
+	}
+	if payload.ID == "" {
+		return skyerr.NewInvalidArgument("missing required fields", []string{"_id"})
 	}
 	return nil
 }
@@ -141,10 +146,27 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	userinfo := payload.UserInfo
-	userinfo.Email = p.Email
-	userinfo.Roles = p.Roles
+	targetUserinfo := &skydb.UserInfo{}
+	payload.DBConn.GetUser(p.ID, targetUserinfo)
+	adminRoles, err := payload.DBConn.GetAdminRoles()
+	if err != nil {
+		response.Err = skyerr.NewUnknownErr(err)
+		return
+	}
+	if userinfo.HasAnyRoles(adminRoles) {
+		h.updateUserInfo(targetUserinfo, *p)
+	} else if userinfo.ID == targetUserinfo.ID {
+		if !userinfo.HasAllRoles(p.Roles) {
+			response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to add new roles")
+			return
+		}
+		h.updateUserInfo(targetUserinfo, *p)
+	} else {
+		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to modify other users")
+		return
+	}
 
-	if err := payload.DBConn.UpdateUser(userinfo); err != nil {
+	if err := payload.DBConn.UpdateUser(targetUserinfo); err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
@@ -154,11 +176,24 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 		Username string   `json:"username"`
 		Roles    []string `json:"roles,omitempty"`
 	}{
-		userinfo.ID,
-		userinfo.Email,
-		userinfo.Username,
-		userinfo.Roles,
+		targetUserinfo.ID,
+		targetUserinfo.Email,
+		targetUserinfo.Username,
+		targetUserinfo.Roles,
 	}
+}
+
+func (h *UserUpdateHandler) updateUserInfo(userinfo *skydb.UserInfo, p userUpdatePayload) skyerr.Error {
+	if p.Email != "" {
+		userinfo.Email = p.Email
+	}
+	if p.Username != "" {
+		userinfo.Username = p.Username
+	}
+	if p.Roles != nil {
+		userinfo.Roles = p.Roles
+	}
+	return nil
 }
 
 type userLinkPayload struct {

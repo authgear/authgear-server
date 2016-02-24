@@ -46,6 +46,34 @@ func (nj *nullJSON) Scan(value interface{}) error {
 	return err
 }
 
+// nullJSONStringSlice will reject empty member, since pq will give [null]
+// array if we use `array_to_json` on null column. So the result slice will be
+// []string{}, but not []string{""}
+type nullJSONStringSlice struct {
+	slice []string
+	Valid bool
+}
+
+func (njss *nullJSONStringSlice) Scan(value interface{}) error {
+	data, ok := value.([]byte)
+	if value == nil || !ok {
+		njss.slice = nil
+		njss.Valid = false
+		return nil
+	}
+
+	njss.slice = []string{}
+	allSlice := []string{}
+	err := json.Unmarshal(data, &allSlice)
+	for _, s := range allSlice {
+		if s != "" {
+			njss.slice = append(njss.slice, s)
+		}
+	}
+	njss.Valid = err == nil
+	return err
+}
+
 type assetValue skydb.Asset
 
 func (asset assetValue) Value() (driver.Value, error) {

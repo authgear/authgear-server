@@ -120,6 +120,16 @@ func TestRoleType(t *testing.T) {
 			})
 		})
 
+		Convey("get all admin roles", func() {
+			So(c.SetAdminRoles([]string{"god", "buddha"}), ShouldBeNil)
+			adminRoles, err := c.GetAdminRoles()
+			So(err, ShouldBeNil)
+			So(adminRoles, ShouldResemble, []string{
+				"god",
+				"buddha",
+			})
+		})
+
 		Convey("reset role is_admin to false on new admin role set", func() {
 			err := c.SetAdminRoles([]string{
 				"god",
