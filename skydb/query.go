@@ -286,7 +286,7 @@ type Query struct {
 	Type         string
 	Predicate    Predicate
 	Sorts        []Sort
-	ReadableBy   string
+	ReadableBy   UserInfo
 	ComputedKeys map[string]Expression
 	DesiredKeys  []string
 	GetCount     bool

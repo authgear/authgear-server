@@ -990,7 +990,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	db := payload.Database
 
 	if p.DatabaseID == "_public" {
-		p.Query.ReadableBy = payload.UserInfoID
+		p.Query.ReadableBy = *payload.UserInfo
 	}
 
 	results, err := db.Query(&p.Query)

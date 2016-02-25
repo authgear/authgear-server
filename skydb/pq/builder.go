@@ -148,6 +148,14 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 	return sqlizers[0], nil
 }
 
+func (f *predicateSqlizerFactory) newAccessControlSqlizer(user skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error) {
+	return &accessPredicateSqlizer{
+		f.db.ID(),
+		user,
+		aclLevel,
+	}, nil
+}
+
 // createLeftJoin create an alias of a table to be joined to the primary table
 // and return the alias for the joined table
 func (f *predicateSqlizerFactory) createLeftJoin(secondaryTable string, primaryColumn string, secondaryColumn string) string {
@@ -211,6 +219,25 @@ func newPredicateSqlizerFactory(db *database, primaryTable string) *predicateSql
 		primaryTable: primaryTable,
 		joinedTables: []joinedTable{},
 	}
+}
+
+type accessPredicateSqlizer struct {
+	databaseID string
+	user       skydb.UserInfo
+	level      skydb.ACLLevel
+}
+
+func (p accessPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
+	if p.databaseID == "" {
+		sql = ``
+	}
+	if p.user.ID != "" {
+		sql = `(_access @> '[{"user_id":"` + p.user.ID + `"}]' OR _access IS NULL OR _owner_id = ?)`
+		args = []interface{}{p.user.ID}
+	}
+
+	err = nil
+	return
 }
 
 type userRelationPredicateSqlizer struct {

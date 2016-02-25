@@ -222,13 +222,11 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 		q = q.OrderBy(orderBy)
 	}
 
-	if query.ReadableBy != "" {
-		// FIXME: Serialize the json instead of building manually
-		q = q.Where(
-			`(_access @> '[{"user_id":"`+query.ReadableBy+`"}]' OR `+
-				`_access IS NULL OR `+
-				`_owner_id = ?)`, query.ReadableBy)
+	aclSqlizer, err := factory.newAccessControlSqlizer(query.ReadableBy, skydb.ReadLevel)
+	if err != nil {
+		return nil, err
 	}
+	q = q.Where(aclSqlizer)
 
 	if query.Limit != nil {
 		q = q.Limit(*query.Limit)
@@ -276,8 +274,8 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 
 	q := db.selectQuery(psql.Select(), query.Type, typemap)
 
+	factory := newPredicateSqlizerFactory(db, query.Type)
 	if p := query.Predicate; !p.IsEmpty() {
-		factory := newPredicateSqlizerFactory(db, query.Type)
 		sqlizer, err := factory.newPredicateSqlizer(p)
 		if err != nil {
 			return 0, err
@@ -286,13 +284,11 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 		q = factory.addJoinsToSelectBuilder(q)
 	}
 
-	if query.ReadableBy != "" {
-		// FIXME: Serialize the json instead of building manually
-		q = q.Where(
-			`(_access @> '[{"user_id":"`+query.ReadableBy+`"}]' OR `+
-				`_access IS NULL OR `+
-				`_owner_id = ?)`, query.ReadableBy)
+	aclSqlizer, err := factory.newAccessControlSqlizer(query.ReadableBy, skydb.ReadLevel)
+	if err != nil {
+		return 0, err
 	}
+	q = q.Where(aclSqlizer)
 
 	rows, err := db.c.QueryWith(q)
 	if err != nil {
