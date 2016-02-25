@@ -174,7 +174,7 @@ func (parser *QueryParser) parseExpression(i interface{}) skydb.Expression {
 
 	return skydb.Expression{
 		Type:  skydb.Literal,
-		Value: skyconv.ParseInterface(i),
+		Value: skyconv.ParseLiteral(i),
 	}
 }
 
