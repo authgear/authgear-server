@@ -920,6 +920,7 @@ func queryResultInfo(db skydb.Database, query *skydb.Query, results *skydb.Rows)
 type recordQueryPayload struct {
 	Query      skydb.Query
 	DatabaseID string
+	Userinfo   *skydb.UserInfo
 }
 
 func (payload *recordQueryPayload) Decode(data map[string]interface{}, parser *QueryParser) skyerr.Error {
@@ -933,6 +934,9 @@ func (payload *recordQueryPayload) Decode(data map[string]interface{}, parser *Q
 	}
 
 	payload.DatabaseID, _ = data["database_id"].(string)
+	if payload.DatabaseID == "_public" && payload.Userinfo != nil {
+		payload.Query.ReadableBy = *payload.Userinfo
+	}
 	return payload.Validate()
 }
 
@@ -979,7 +983,9 @@ func (h *RecordQueryHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Response) {
-	p := &recordQueryPayload{}
+	p := &recordQueryPayload{
+		Userinfo: payload.UserInfo,
+	}
 	parser := QueryParser{UserID: payload.UserInfoID}
 	skyErr := p.Decode(payload.Data, &parser)
 	if skyErr != nil {
@@ -988,11 +994,6 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	}
 
 	db := payload.Database
-
-	if p.DatabaseID == "_public" {
-		p.Query.ReadableBy = *payload.UserInfo
-	}
-
 	results, err := db.Query(&p.Query)
 	if err != nil {
 		response.Err = skyerr.NewUnknownErr(err)
