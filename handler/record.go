@@ -712,7 +712,8 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 }
 
 type recordFetchPayload struct {
-	RecordIDs []string `mapstructure:"ids"`
+	RecordIDs []skydb.RecordID
+	RawIDs    []string `mapstructure:"ids"`
 }
 
 func (payload *recordFetchPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -723,11 +724,26 @@ func (payload *recordFetchPayload) Decode(data map[string]interface{}) skyerr.Er
 }
 
 func (payload *recordFetchPayload) Validate() skyerr.Error {
-	if len(payload.RecordIDs) == 0 {
+	if len(payload.RawIDs) == 0 {
 		return skyerr.NewInvalidArgument("expected list of id", []string{"ids"})
 	}
 
+	length := len(payload.RawIDs)
+	payload.RecordIDs = make([]skydb.RecordID, length, length)
+	for i, rawID := range payload.RawIDs {
+		ss := strings.SplitN(rawID, "/", 2)
+		if len(ss) == 1 {
+			return skyerr.NewInvalidArgument(fmt.Sprintf("invalid id format: %v", rawID), []string{"ids"})
+		}
+
+		payload.RecordIDs[i].Type = ss[0]
+		payload.RecordIDs[i].Key = ss[1]
+	}
 	return nil
+}
+
+func (payload *recordFetchPayload) ItemLen() int {
+	return len(payload.RecordIDs)
 }
 
 /*
@@ -773,23 +789,10 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	length := len(p.RecordIDs)
-	recordIDs := make([]skydb.RecordID, length, length)
-	for i, rawID := range p.RecordIDs {
-		ss := strings.SplitN(rawID, "/", 2)
-		if len(ss) == 1 {
-			response.Err = skyerr.NewInvalidArgument(fmt.Sprintf("invalid id format: %v", rawID), []string{"ids"})
-			return
-		}
-
-		recordIDs[i].Type = ss[0]
-		recordIDs[i].Key = ss[1]
-	}
-
 	db := payload.Database
 
-	results := make([]interface{}, length, length)
-	for i, recordID := range recordIDs {
+	results := make([]interface{}, p.ItemLen(), p.ItemLen())
+	for i, recordID := range p.RecordIDs {
 		record := skydb.Record{}
 		if err := db.Get(recordID, &record); err != nil {
 			if err == skydb.ErrRecordNotFound {
