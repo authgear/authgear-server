@@ -84,7 +84,7 @@ type recordSavePayload struct {
 	// RawMaps stores the original incoming `records`.
 	RawMaps []map[string]interface{} `mapstructure:"records"`
 
-	// IncomigItems contains de-serialzed recordID or de-serialization error,
+	// IncomigItems contains de-serialized recordID or de-serialization error,
 	// the item is one-one corresponding to RawMaps.
 	IncomingItems []interface{}
 

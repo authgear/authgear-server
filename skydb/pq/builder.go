@@ -255,7 +255,7 @@ func (p accessPredicateSqlizer) ToSql() (sql string, args []interface{}, err err
 	b.WriteString(`_access @> '[{"user_id":`)
 	escapedID, _ := json.Marshal(p.user.ID)
 	if err != nil {
-		panic("unexpected serialze error on user_id")
+		panic("unexpected serialize error on user_id")
 	}
 	b.Write(escapedID)
 	b.WriteString(`}]' OR _access IS NULL OR _owner_id = ?)`)
