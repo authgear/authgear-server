@@ -41,7 +41,6 @@ func (q jsonQuery) MarshalJSON() ([]byte, error) {
 		Type         string                      `json:"record_type"`
 		Predicate    *jsonPredicate              `json:"predicate,omitempty"`
 		Sorts        []skydb.Sort                `json:"order,omitempty"`
-		ReadableBy   string                      `json:"readable_by,omitempty"`
 		ComputedKeys map[string]skydb.Expression `json:"computed_keys,omitempty"`
 		DesiredKeys  []string                    `json:"desired_keys,omitempty"`
 		Limit        *uint64                     `json:"limit,omitempty"`
@@ -50,7 +49,6 @@ func (q jsonQuery) MarshalJSON() ([]byte, error) {
 		q.Type,
 		optionalPredicate,
 		q.Sorts,
-		q.ReadableBy,
 		q.ComputedKeys,
 		q.DesiredKeys,
 		q.Limit,

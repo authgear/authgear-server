@@ -302,7 +302,7 @@ func (ace *MapACLEntry) FromMap(m map[string]interface{}) error {
 
 func walkMap(m map[string]interface{}) map[string]interface{} {
 	for key, value := range m {
-		m[key] = ParseInterface(value)
+		m[key] = ParseLiteral(value)
 	}
 
 	return m
@@ -310,18 +310,15 @@ func walkMap(m map[string]interface{}) map[string]interface{} {
 
 func walkSlice(items []interface{}) []interface{} {
 	for i, item := range items {
-		items[i] = ParseInterface(item)
+		items[i] = ParseLiteral(item)
 	}
 
 	return items
 }
 
-// ParseInterface deduces whether i is a skydb data value and returns a
+// ParseLiteral deduces whether i is a skydb data value and returns a
 // parsed value.
-//
-// FIXME(limouren): this function is public because RecordQueryHandler
-// needs it to parse predicate's expression
-func ParseInterface(i interface{}) interface{} {
+func ParseLiteral(i interface{}) interface{} {
 	switch value := i.(type) {
 	default:
 		// considered a bug if this line is reached

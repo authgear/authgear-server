@@ -19,3 +19,41 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 		})
 	})
 }
+
+func TestAccessPredicateSqlizer(t *testing.T) {
+	Convey("access Predicate", t, func() {
+		Convey("serialized for direct ACE", func() {
+			userinfo := skydb.UserInfo{
+				ID: "userid",
+			}
+			sqlizer := &accessPredicateSqlizer{
+				userinfo,
+				"read",
+			}
+			sql, args, err := sqlizer.ToSql()
+			So(err, ShouldBeNil)
+			So(sql, ShouldEqual, `(_access @> '[{"user_id":"userid"}]' OR`+
+				` _access IS NULL OR _owner_id = ?)`)
+			So(args, ShouldResemble, []interface{}{"userid"})
+		})
+
+		Convey("serialized for role based ACE", func() {
+			userinfo := skydb.UserInfo{
+				ID:    "userid",
+				Roles: []string{"admin", "writer"},
+			}
+			sqlizer := &accessPredicateSqlizer{
+				userinfo,
+				"read",
+			}
+			sql, args, err := sqlizer.ToSql()
+			So(err, ShouldBeNil)
+			So(sql, ShouldEqual, `(_access @> '[{"role":"admin"}]' OR `+
+				`_access @> '[{"role":"writer"}]' OR `+
+				`_access @> '[{"user_id":"userid"}]' OR `+
+				`_access IS NULL OR _owner_id = ?)`)
+			So(args, ShouldResemble, []interface{}{"userid"})
+		})
+
+	})
+}

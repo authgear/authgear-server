@@ -2,6 +2,7 @@ package pq
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -148,6 +149,13 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 	return sqlizers[0], nil
 }
 
+func (f *predicateSqlizerFactory) newAccessControlSqlizer(user skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error) {
+	return &accessPredicateSqlizer{
+		user,
+		aclLevel,
+	}, nil
+}
+
 // createLeftJoin create an alias of a table to be joined to the primary table
 // and return the alias for the joined table
 func (f *predicateSqlizerFactory) createLeftJoin(secondaryTable string, primaryColumn string, secondaryColumn string) string {
@@ -211,6 +219,51 @@ func newPredicateSqlizerFactory(db *database, primaryTable string) *predicateSql
 		primaryTable: primaryTable,
 		joinedTables: []joinedTable{},
 	}
+}
+
+// accessPredicateSqlizer build the json matching expression base on user's
+// role, the builded express will filter out record which user is not accessible.
+//
+// The sql for record accessible by user rickmak
+// `_access @> '[{"user_id":"rickmak"}]'`
+//
+// Record accessible by user with admin role
+// `_access @> '[{"role":"admin"}]'`
+//
+// Record accessible by user rickmak or admin role
+// `_access @> '[{"role":"rickmak"}]' OR _access @> '[{"role":"admin"}]'`¬
+type accessPredicateSqlizer struct {
+	user  skydb.UserInfo
+	level skydb.ACLLevel
+}
+
+func (p accessPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
+	if p.user.ID == "" {
+		panic("cannot build access predicate without user")
+	}
+	var b bytes.Buffer
+	b.WriteString(`(`)
+	for _, role := range p.user.Roles {
+		escapedRole, err := json.Marshal(role)
+		if err != nil {
+			panic("unexpected serialize error on role")
+		}
+		b.WriteString(`_access @> '[{"role":`)
+		b.Write(escapedRole)
+		b.WriteString(`}]' OR `)
+	}
+	b.WriteString(`_access @> '[{"user_id":`)
+	escapedID, _ := json.Marshal(p.user.ID)
+	if err != nil {
+		panic("unexpected serialize error on user_id")
+	}
+	b.Write(escapedID)
+	b.WriteString(`}]' OR _access IS NULL OR _owner_id = ?)`)
+	sql = b.String()
+	args = []interface{}{p.user.ID}
+
+	err = nil
+	return
 }
 
 type userRelationPredicateSqlizer struct {

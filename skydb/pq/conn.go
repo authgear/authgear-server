@@ -161,8 +161,14 @@ type database struct {
 }
 
 func (db *database) Conn() skydb.Conn       { return db.c }
-func (db *database) ID() string             { return "" }
 func (db *database) UserRecordType() string { return "user" }
+
+func (db *database) ID() string {
+	if db.userID == "" {
+		return "_public"
+	}
+	return db.userID
+}
 
 // schemaName is a convenient method to access parent conn's schemaName
 func (db *database) schemaName() string {

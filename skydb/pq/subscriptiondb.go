@@ -74,7 +74,6 @@ func (query *queryValue) Scan(value interface{}) error {
 		Type         string
 		Predicate    jsonPredicate
 		Sorts        []skydb.Sort
-		ReadableBy   string
 		ComputedKeys map[string]skydb.Expression
 		DesiredKeys  []string
 		Limit        *uint64
@@ -88,7 +87,6 @@ func (query *queryValue) Scan(value interface{}) error {
 	query.Type = v.Type
 	query.Predicate = skydb.Predicate(v.Predicate)
 	query.Sorts = v.Sorts
-	query.ReadableBy = v.ReadableBy
 	query.ComputedKeys = v.ComputedKeys
 	query.DesiredKeys = v.DesiredKeys
 	query.Limit = v.Limit

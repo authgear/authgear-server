@@ -39,6 +39,8 @@ type Database interface {
 	Conn() Conn
 
 	// ID returns the identifier of the Database.
+	// We have public and private database. For public DB, the ID is
+	// `_public`; for private, the ID is the user identifier
 	ID() string
 
 	// UserRecordType returns name of the user record type.
