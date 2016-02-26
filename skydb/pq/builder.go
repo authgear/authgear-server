@@ -151,7 +151,6 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 
 func (f *predicateSqlizerFactory) newAccessControlSqlizer(user skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error) {
 	return &accessPredicateSqlizer{
-		f.db.ID(),
 		user,
 		aclLevel,
 	}, nil
@@ -234,37 +233,34 @@ func newPredicateSqlizerFactory(db *database, primaryTable string) *predicateSql
 // Record accessible by user rickmak or admin role
 // `_access @> '[{"role":"rickmak"}]' OR _access @> '[{"role":"admin"}]'`¬
 type accessPredicateSqlizer struct {
-	databaseID string
-	user       skydb.UserInfo
-	level      skydb.ACLLevel
+	user  skydb.UserInfo
+	level skydb.ACLLevel
 }
 
 func (p accessPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
-	if p.databaseID == "" {
-		sql = ``
+	if p.user.ID == "" {
+		panic("cannot build access pridicate without user")
 	}
-	if p.user.ID != "" {
-		var b bytes.Buffer
-		b.WriteString(`(`)
-		for _, role := range p.user.Roles {
-			escapedRole, err := json.Marshal(role)
-			if err != nil {
-				panic("unexpected serialze error on role")
-			}
-			b.WriteString(`_access @> '[{"role":`)
-			b.Write(escapedRole)
-			b.WriteString(`}]' OR `)
-		}
-		b.WriteString(`_access @> '[{"user_id":`)
-		escapedID, _ := json.Marshal(p.user.ID)
+	var b bytes.Buffer
+	b.WriteString(`(`)
+	for _, role := range p.user.Roles {
+		escapedRole, err := json.Marshal(role)
 		if err != nil {
-			panic("unexpected serialze error on user_id")
+			panic("unexpected serialze error on role")
 		}
-		b.Write(escapedID)
-		b.WriteString(`}]' OR _access IS NULL OR _owner_id = ?)`)
-		sql = b.String()
-		args = []interface{}{p.user.ID}
+		b.WriteString(`_access @> '[{"role":`)
+		b.Write(escapedRole)
+		b.WriteString(`}]' OR `)
 	}
+	b.WriteString(`_access @> '[{"user_id":`)
+	escapedID, _ := json.Marshal(p.user.ID)
+	if err != nil {
+		panic("unexpected serialze error on user_id")
+	}
+	b.Write(escapedID)
+	b.WriteString(`}]' OR _access IS NULL OR _owner_id = ?)`)
+	sql = b.String()
+	args = []interface{}{p.user.ID}
 
 	err = nil
 	return

@@ -281,7 +281,6 @@ func (p Predicate) GetExpressions() (ps []Expression) {
 
 // Query specifies the type, predicate and sorting order of Database
 // query.
-// ReadableBy is a temp solution for ACL before a full predicate implemented.
 type Query struct {
 	Type         string
 	Predicate    Predicate

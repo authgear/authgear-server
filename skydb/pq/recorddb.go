@@ -222,7 +222,7 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 		q = q.OrderBy(orderBy)
 	}
 
-	if db.ID() == "_public" {
+	if db.ID() == "_public" && query.ReadableBy.ID != "" {
 		aclSqlizer, err := factory.newAccessControlSqlizer(query.ReadableBy, skydb.ReadLevel)
 		if err != nil {
 			return nil, err
@@ -286,7 +286,7 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 		q = factory.addJoinsToSelectBuilder(q)
 	}
 
-	if db.ID() == "_public" {
+	if db.ID() == "_public" && query.ReadableBy.ID != "" {
 		aclSqlizer, err := factory.newAccessControlSqlizer(query.ReadableBy, skydb.ReadLevel)
 		if err != nil {
 			return 0, err
