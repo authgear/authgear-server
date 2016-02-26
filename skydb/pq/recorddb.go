@@ -222,11 +222,13 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 		q = q.OrderBy(orderBy)
 	}
 
-	aclSqlizer, err := factory.newAccessControlSqlizer(query.ReadableBy, skydb.ReadLevel)
-	if err != nil {
-		return nil, err
+	if db.ID() == "_public" {
+		aclSqlizer, err := factory.newAccessControlSqlizer(query.ReadableBy, skydb.ReadLevel)
+		if err != nil {
+			return nil, err
+		}
+		q = q.Where(aclSqlizer)
 	}
-	q = q.Where(aclSqlizer)
 
 	if query.Limit != nil {
 		q = q.Limit(*query.Limit)
@@ -284,11 +286,13 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 		q = factory.addJoinsToSelectBuilder(q)
 	}
 
-	aclSqlizer, err := factory.newAccessControlSqlizer(query.ReadableBy, skydb.ReadLevel)
-	if err != nil {
-		return 0, err
+	if db.ID() == "_public" {
+		aclSqlizer, err := factory.newAccessControlSqlizer(query.ReadableBy, skydb.ReadLevel)
+		if err != nil {
+			return 0, err
+		}
+		q = q.Where(aclSqlizer)
 	}
-	q = q.Where(aclSqlizer)
 
 	rows, err := db.c.QueryWith(q)
 	if err != nil {
