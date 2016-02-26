@@ -239,14 +239,14 @@ type accessPredicateSqlizer struct {
 
 func (p accessPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	if p.user.ID == "" {
-		panic("cannot build access pridicate without user")
+		panic("cannot build access predicate without user")
 	}
 	var b bytes.Buffer
 	b.WriteString(`(`)
 	for _, role := range p.user.Roles {
 		escapedRole, err := json.Marshal(role)
 		if err != nil {
-			panic("unexpected serialze error on role")
+			panic("unexpected serialize error on role")
 		}
 		b.WriteString(`_access @> '[{"role":`)
 		b.Write(escapedRole)
