@@ -116,6 +116,9 @@ func TestRecordSaveHandler(t *testing.T) {
 		db := skydbtest.NewMapDB()
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.Database = db
+			payload.UserInfo = &skydb.UserInfo{
+				ID: "user0",
+			}
 		})
 
 		Convey("Saves multiple records", func() {
@@ -136,13 +139,19 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_type": "record",
 					"_access": null,
 					"k1": "v1",
-					"k2": "v2"
+					"k2": "v2",
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
 				}, {
 					"_id": "type2/id2",
 					"_type": "record",
 					"_access": null,
 					"k3": "v3",
-					"k4": "v4"
+					"k4": "v4",
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
 				}]
 			}`)
 		})
@@ -160,7 +169,10 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_id": "type1/id1",
 					"_type": "record",
 					"_access":null,
-					"floatkey": 1
+					"floatkey": 1,
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
 				}]
 			}`)
 		})
@@ -223,7 +235,10 @@ func TestRecordSaveHandler(t *testing.T) {
 				"result": [{
 					"_type": "record",
 					"_id": "type/id",
-					"_access": null
+					"_access": null,
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
 				}]
 			}`)
 		})
@@ -240,7 +255,10 @@ func TestRecordSaveHandler(t *testing.T) {
 				"result": [{
 					"_type": "record",
 					"_id": "type/id",
-					"_access": null
+					"_access": null,
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
 				}]
 			}`)
 		})
@@ -257,6 +275,9 @@ func TestRecordSaveDataType(t *testing.T) {
 		db := skydbtest.NewMapDB()
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(p *router.Payload) {
 			p.Database = db
+			p.UserInfo = &skydb.UserInfo{
+				ID: "user0",
+			}
 		})
 
 		Convey("Parses date", func() {
@@ -272,7 +293,10 @@ func TestRecordSaveDataType(t *testing.T) {
 		"_id": "type1/id1",
 		"_type": "record",
 		"_access": null,
-		"date_value": {"$type": "date", "$date": "2015-04-10T09:35:20Z"}
+		"date_value": {"$type": "date", "$date": "2015-04-10T09:35:20Z"},
+		"_created_by":"user0",
+		"_updated_by":"user0",
+		"_ownerID": "user0"
 	}]
 }`)
 
@@ -283,6 +307,9 @@ func TestRecordSaveDataType(t *testing.T) {
 				Data: map[string]interface{}{
 					"date_value": time.Date(2015, 4, 10, 9, 35, 20, 0, time.UTC),
 				},
+				OwnerID:   "user0",
+				CreatorID: "user0",
+				UpdaterID: "user0",
 			})
 		})
 
@@ -299,7 +326,10 @@ func TestRecordSaveDataType(t *testing.T) {
 		"_id": "type1/id1",
 		"_type": "record",
 		"_access": null,
-		"asset": {"$type": "asset", "$name": "asset-name"}
+		"asset": {"$type": "asset", "$name": "asset-name"},
+		"_created_by":"user0",
+		"_updated_by":"user0",
+		"_ownerID": "user0"
 	}]
 }`)
 
@@ -310,6 +340,9 @@ func TestRecordSaveDataType(t *testing.T) {
 				Data: map[string]interface{}{
 					"asset": &skydb.Asset{Name: "asset-name"},
 				},
+				OwnerID:   "user0",
+				CreatorID: "user0",
+				UpdaterID: "user0",
 			})
 		})
 
@@ -326,7 +359,10 @@ func TestRecordSaveDataType(t *testing.T) {
 		"_id": "type1/id1",
 		"_type": "record",
 		"_access": null,
-		"ref": {"$type": "ref", "$id": "type2/id2"}
+		"ref": {"$type": "ref", "$id": "type2/id2"},
+		"_created_by":"user0",
+		"_updated_by":"user0",
+		"_ownerID": "user0"
 	}]
 }`)
 
@@ -337,6 +373,9 @@ func TestRecordSaveDataType(t *testing.T) {
 				Data: map[string]interface{}{
 					"ref": skydb.NewReference("type2", "id2"),
 				},
+				OwnerID:   "user0",
+				CreatorID: "user0",
+				UpdaterID: "user0",
 			})
 		})
 
@@ -353,7 +392,10 @@ func TestRecordSaveDataType(t *testing.T) {
 		"_id": "type1/id1",
 		"_type": "record",
 		"_access": null,
-		"geo": {"$type": "geo", "$lng": 1, "$lat": 2}
+		"geo": {"$type": "geo", "$lng": 1, "$lat": 2},
+		"_created_by":"user0",
+		"_updated_by":"user0",
+		"_ownerID": "user0"
 	}]
 }`)
 
@@ -364,6 +406,9 @@ func TestRecordSaveDataType(t *testing.T) {
 				Data: map[string]interface{}{
 					"geo": skydb.NewLocation(1, 2),
 				},
+				OwnerID:   "user0",
+				CreatorID: "user0",
+				UpdaterID: "user0",
 			})
 		})
 	})
@@ -399,13 +444,19 @@ func TestRecordSaveBogusField(t *testing.T) {
 		db := bogusFieldDatabase{}
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.Database = db
+			payload.UserInfo = &skydb.UserInfo{
+				ID: "user0",
+			}
 		})
 
 		Convey("parse sequence field correctly", func() {
 			db.SaveFunc = func(record *skydb.Record) error {
 				So(record, ShouldResemble, &skydb.Record{
-					ID:   skydb.NewRecordID("record", "id"),
-					Data: skydb.Data{},
+					ID:        skydb.NewRecordID("record", "id"),
+					Data:      skydb.Data{},
+					OwnerID:   "user0",
+					CreatorID: "user0",
+					UpdaterID: "user0",
 				})
 
 				record.Data["seq"] = int64(1)
@@ -428,7 +479,10 @@ func TestRecordSaveBogusField(t *testing.T) {
 					"_id": "record/id",
 					"_type": "record",
 					"_access": null,
-					"seq": 1
+					"seq": 1,
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
 				}]
 			}`)
 		})
@@ -440,6 +494,9 @@ func TestRecordSaveBogusField(t *testing.T) {
 					Data: skydb.Data{
 						"seq": int64(1),
 					},
+					OwnerID:   "user0",
+					CreatorID: "user0",
+					UpdaterID: "user0",
 				})
 				record.Data["seq"] = int64(2)
 				return nil
@@ -463,7 +520,10 @@ func TestRecordSaveBogusField(t *testing.T) {
 					"_id": "record/id",
 					"_type": "record",
 					"_access": null,
-					"seq": 2
+					"seq": 2,
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
 				}]
 			}`)
 		})
@@ -485,6 +545,9 @@ func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
 		noExtendDB := &noExtendDatabase{}
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.Database = noExtendDB
+			payload.UserInfo = &skydb.UserInfo{
+				ID: "user0",
+			}
 		})
 
 		Convey("REGRESSION #119: Database.Extend should be called when all record are invalid", func() {
@@ -998,6 +1061,9 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 
 		injectDBFunc := func(payload *router.Payload) {
 			payload.Database = db
+			payload.UserInfo = &skydb.UserInfo{
+				ID: "ownerID",
+			}
 		}
 
 		Convey("fetched record serializes owner id correctly", func() {
@@ -1057,11 +1123,14 @@ func TestRecordMetaData(t *testing.T) {
 			timeNow = timeNowUTC
 		}()
 
+		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
+			payload.Database = db
+			payload.UserInfoID = "requestUserID"
+			payload.UserInfo = &skydb.UserInfo{
+				ID: "requestUserID",
+			}
+		})
 		Convey("on a newly created record", func() {
-			r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
-				payload.Database = db
-				payload.UserInfoID = "requestUserID"
-			})
 
 			req := r.POST(`{
 				"records": [{
@@ -1101,11 +1170,6 @@ func TestRecordMetaData(t *testing.T) {
 				CreatorID: "creatorID",
 				UpdatedAt: time.Date(2006, 1, 2, 15, 4, 4, 0, time.UTC),
 				UpdaterID: "updaterID",
-			})
-
-			r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
-				payload.Database = db
-				payload.UserInfoID = "requestUserID"
 			})
 
 			req := r.POST(`{
@@ -1567,6 +1631,9 @@ func TestHookExecution(t *testing.T) {
 
 				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
 					p.Database = db
+					p.UserInfo = &skydb.UserInfo{
+						ID: "user0",
+					}
 				})
 
 				r.POST(test.reqBody)
@@ -1582,6 +1649,9 @@ func TestHookExecution(t *testing.T) {
 				registry.Register(test.afterActionKind, "record", afterHook.Func)
 				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
 					p.Database = erroneousDB{}
+					p.UserInfo = &skydb.UserInfo{
+						ID: "user0",
+					}
 				})
 
 				r.POST(test.reqBody)
@@ -1597,6 +1667,9 @@ func TestHookExecution(t *testing.T) {
 			HookRegistry: registry,
 		}, func(p *router.Payload) {
 			p.Database = db
+			p.UserInfo = &skydb.UserInfo{
+				ID: "user0",
+			}
 		})
 
 		Convey("record is not saved if BeforeSave's hook returns an error", func() {
@@ -1660,6 +1733,7 @@ func TestHookExecution(t *testing.T) {
 					Data: map[string]interface{}{
 						"new": true,
 					},
+					OwnerID: "user0",
 				})
 				So(originalRecord, ShouldBeNil)
 				return nil
@@ -1747,6 +1821,9 @@ func TestAtomicOperation(t *testing.T) {
 		Convey("for RecordSaveHandler", func() {
 			r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 				payload.Database = db
+				payload.UserInfo = &skydb.UserInfo{
+					ID: "user0",
+				}
 			})
 
 			Convey("rolls back saved records on error", func() {
@@ -1814,24 +1891,36 @@ func TestAtomicOperation(t *testing.T) {
 					"result": [{
 							"_id": "note/0",
 							"_type": "record",
-							"_access": null
+							"_access": null,
+							"_created_by":"user0",
+							"_updated_by":"user0",
+							"_ownerID": "user0"
 						}, {
 							"_id": "note/1",
 							"_type": "record",
-							"_access": null
+							"_access": null,
+							"_created_by":"user0",
+							"_updated_by":"user0",
+							"_ownerID": "user0"
 						}]
 				}`)
 
 				var record skydb.Record
 				So(backingDB.Get(skydb.NewRecordID("note", "0"), &record), ShouldBeNil)
 				So(record, ShouldResemble, skydb.Record{
-					ID:   skydb.NewRecordID("note", "0"),
-					Data: map[string]interface{}{},
+					ID:        skydb.NewRecordID("note", "0"),
+					Data:      map[string]interface{}{},
+					OwnerID:   "user0",
+					CreatorID: "user0",
+					UpdaterID: "user0",
 				})
 				So(backingDB.Get(skydb.NewRecordID("note", "1"), &record), ShouldBeNil)
 				So(record, ShouldResemble, skydb.Record{
-					ID:   skydb.NewRecordID("note", "1"),
-					Data: map[string]interface{}{},
+					ID:        skydb.NewRecordID("note", "1"),
+					Data:      map[string]interface{}{},
+					OwnerID:   "user0",
+					CreatorID: "user0",
+					UpdaterID: "user0",
 				})
 
 				So(txDB.DidBegin, ShouldBeTrue)

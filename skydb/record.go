@@ -294,6 +294,9 @@ func (r *Record) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 	if r.ACL == nil {
 		return true
 	}
+	if userinfo == nil {
+		return false
+	}
 	if r.DatabaseID != "" && r.DatabaseID != userinfo.ID {
 		return false
 	}

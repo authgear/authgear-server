@@ -281,7 +281,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		Db:            payload.Database,
 		AssetStore:    h.AssetStore,
 		HookRegistry:  h.HookRegistry,
-		UserInfoID:    payload.UserInfoID,
+		UserInfo:      payload.UserInfo,
 		RecordsToSave: p.Records,
 		Atomic:        p.Atomic,
 		Context:       payload.Context,
@@ -402,10 +402,10 @@ type recordModifyRequest struct {
 	HookRegistry *hook.Registry
 	Atomic       bool
 	Context      context.Context
+	UserInfo     *skydb.UserInfo
 
 	// Save only
 	RecordsToSave []*skydb.Record
-	UserInfoID    string
 
 	// Delete Only
 	RecordIDsToDelete []skydb.RecordID
@@ -455,7 +455,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 			// Defaults for record attributes should be provided
 			// before executing hooks
 			if !ok {
-				record.OwnerID = req.UserInfoID
+				record.OwnerID = req.UserInfo.ID
 			}
 
 			err = req.HookRegistry.ExecuteHooks(req.Context, hook.BeforeSave, record, originalRecord)
@@ -488,13 +488,13 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 		if !ok {
 			originalRecord = &skydb.Record{}
 
-			record.OwnerID = req.UserInfoID
+			record.OwnerID = req.UserInfo.ID
 			record.CreatedAt = now
-			record.CreatorID = req.UserInfoID
+			record.CreatorID = req.UserInfo.ID
 		}
 
 		record.UpdatedAt = now
-		record.UpdaterID = req.UserInfoID
+		record.UpdaterID = req.UserInfo.ID
 
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
