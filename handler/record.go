@@ -1069,8 +1069,9 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 }
 
 type recordDeletePayload struct {
-	RecordIDs []string `mapstructure:"ids"`
+	RawIDs    []string `mapstructure:"ids"`
 	Atomic    bool     `mapstructure:"atomic"`
+	RecordIDs []skydb.RecordID
 }
 
 func (payload *recordDeletePayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -1081,11 +1082,29 @@ func (payload *recordDeletePayload) Decode(data map[string]interface{}) skyerr.E
 }
 
 func (payload *recordDeletePayload) Validate() skyerr.Error {
-	if len(payload.RecordIDs) == 0 {
+	if len(payload.RawIDs) == 0 {
 		return skyerr.NewInvalidArgument("expected list of id", []string{"ids"})
 	}
 
+	length := payload.ItemLen()
+	payload.RecordIDs = make([]skydb.RecordID, length, length)
+	for i, rawID := range payload.RawIDs {
+		ss := strings.SplitN(rawID, "/", 2)
+		if len(ss) == 1 {
+			return skyerr.NewInvalidArgument(
+				`record: "_id" should be of format '{type}/{id}', got "`+rawID+`"`,
+				[]string{"ids"},
+			)
+		}
+
+		payload.RecordIDs[i].Type = ss[0]
+		payload.RecordIDs[i].Key = ss[1]
+	}
 	return nil
+}
+
+func (payload *recordDeletePayload) ItemLen() int {
+	return len(payload.RawIDs)
 }
 
 /*
@@ -1135,23 +1154,10 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	length := len(p.RecordIDs)
-	recordIDs := make([]skydb.RecordID, length, length)
-	for i, rawID := range p.RecordIDs {
-		ss := strings.SplitN(rawID, "/", 2)
-		if len(ss) == 1 {
-			response.Err = skyerr.NewInvalidArgument(fmt.Sprintf("invalid id format: %v", rawID), []string{"ids"})
-			return
-		}
-
-		recordIDs[i].Type = ss[0]
-		recordIDs[i].Key = ss[1]
-	}
-
 	req := recordModifyRequest{
 		Db:                payload.Database,
 		HookRegistry:      h.HookRegistry,
-		RecordIDsToDelete: recordIDs,
+		RecordIDsToDelete: p.RecordIDs,
 		Atomic:            p.Atomic,
 		Context:           payload.Context,
 	}
@@ -1173,8 +1179,8 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	results := make([]interface{}, 0, length)
-	for _, recordID := range recordIDs {
+	results := make([]interface{}, 0, p.ItemLen())
+	for _, recordID := range p.RecordIDs {
 		var result interface{}
 
 		if err, ok := resp.ErrMap[recordID]; ok {
