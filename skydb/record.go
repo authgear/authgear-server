@@ -85,8 +85,20 @@ func NewRecordACLEntryDirect(userID string, level ACLLevel) RecordACLEntry {
 }
 
 // NewRecordACLRole return an ACE on role
-func NewRecordACLRole(role string, level ACLLevel) RecordACLEntry {
+func NewRecordACLEntryRole(role string, level ACLLevel) RecordACLEntry {
 	return RecordACLEntry{"", role, level, ""}
+}
+
+func (ace *RecordACLEntry) Accessible(userinfo *UserInfo, level ACLLevel) bool {
+	if userinfo.ID == ace.UserID {
+		return true
+	}
+	for _, role := range userinfo.Roles {
+		if role == ace.Role {
+			return true
+		}
+	}
+	return false
 }
 
 // RecordACL is a list of ACL entries defining access control for a record
@@ -276,6 +288,24 @@ func (r *Record) Set(key string, i interface{}) {
 	} else {
 		r.Data[key] = i
 	}
+}
+
+func (r *Record) Accessible(userinfo *UserInfo, level ACLLevel) bool {
+	if r.ACL == nil {
+		return true
+	}
+	if r.DatabaseID != "" && r.DatabaseID != userinfo.ID {
+		return false
+	}
+	if r.OwnerID == userinfo.ID {
+		return true
+	}
+	for _, ace := range r.ACL {
+		if ace.Accessible(userinfo, level) {
+			return true
+		}
+	}
+	return false
 }
 
 // RecordSchema is a mapping of record key to its value's data type or reference

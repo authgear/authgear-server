@@ -811,8 +811,15 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 				)
 			}
 		} else {
-			injectSigner(&record, h.AssetStore)
-			results[i] = (*skyconv.JSONRecord)(&record)
+			if record.Accessible(payload.UserInfo, skydb.ReadLevel) {
+				injectSigner(&record, h.AssetStore)
+				results[i] = (*skyconv.JSONRecord)(&record)
+			} else {
+				results[i] = newSerializedError(
+					recordID.String(),
+					skyerr.NewError(skyerr.PermissionDenied, "no permission to read"),
+				)
+			}
 		}
 	}
 
