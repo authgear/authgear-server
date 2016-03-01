@@ -84,7 +84,7 @@ func NewRecordACLEntryDirect(userID string, level ACLLevel) RecordACLEntry {
 	return RecordACLEntry{"$direct", "", level, userID}
 }
 
-// NewRecordACLRole return an ACE on role
+// NewRecordACLEntryRole return an ACE on role
 func NewRecordACLEntryRole(role string, level ACLLevel) RecordACLEntry {
 	return RecordACLEntry{"", role, level, ""}
 }
