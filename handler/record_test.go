@@ -25,22 +25,42 @@ var ZeroTime time.Time
 func TestRecordDeleteHandler(t *testing.T) {
 	Convey("RecordDeleteHandler", t, func() {
 		note0 := skydb.Record{
-			ID: skydb.NewRecordID("note", "0"),
+			ID:         skydb.NewRecordID("note", "0"),
+			DatabaseID: "",
+			ACL: skydb.RecordACL{
+				skydb.NewRecordACLEntryDirect("user0", skydb.WriteLevel),
+			},
 		}
 		note1 := skydb.Record{
-			ID: skydb.NewRecordID("note", "1"),
+			ID:         skydb.NewRecordID("note", "1"),
+			DatabaseID: "",
+			ACL: skydb.RecordACL{
+				skydb.NewRecordACLEntryDirect("user0", skydb.WriteLevel),
+			},
+		}
+		noteReadonly := skydb.Record{
+			ID:         skydb.NewRecordID("note", "readonly"),
+			DatabaseID: "",
+			ACL: skydb.RecordACL{
+				skydb.NewRecordACLEntryDirect("user0", skydb.ReadLevel),
+			},
 		}
 		user := skydb.Record{
-			ID: skydb.NewRecordID("user", "0"),
+			ID:         skydb.NewRecordID("user", "0"),
+			DatabaseID: "",
 		}
 
 		db := skydbtest.NewMapDB()
 		So(db.Save(&note0), ShouldBeNil)
 		So(db.Save(&note1), ShouldBeNil)
+		So(db.Save(&noteReadonly), ShouldBeNil)
 		So(db.Save(&user), ShouldBeNil)
 
 		router := handlertest.NewSingleRouteRouter(&RecordDeleteHandler{}, func(p *router.Payload) {
 			p.Database = db
+			p.UserInfo = &skydb.UserInfo{
+				ID: "user0",
+			}
 		})
 
 		Convey("deletes existing records", func() {
@@ -79,6 +99,22 @@ func TestRecordDeleteHandler(t *testing.T) {
 }`)
 
 		})
+
+		Convey("permission denied on delete a readonly record", func() {
+			resp := router.POST(`{
+				"ids": ["note/readonly"]
+			}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/readonly",
+					"_type": "error",
+					"code":102,
+					"message": "no permission to delete",
+					"name": "PermissionDenied"
+				}]
+			}`)
+		})
+
 	})
 }
 
@@ -114,6 +150,12 @@ func TestRecordSaveHandler(t *testing.T) {
 
 	Convey("RecordSaveHandler", t, func() {
 		db := skydbtest.NewMapDB()
+		db.Save(&skydb.Record{
+			ID: skydb.NewRecordID("note", "readonly"),
+			ACL: skydb.RecordACL{
+				skydb.NewRecordACLEntryDirect("user0", skydb.ReadLevel),
+			},
+		})
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.Database = db
 			payload.UserInfo = &skydb.UserInfo{
@@ -200,6 +242,23 @@ func TestRecordSaveHandler(t *testing.T) {
 			}]}`)
 		})
 
+		Convey("Permission denied on saving a read only record", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "note/readonly",
+					"content": "hello"
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/readonly",
+					"_type": "error",
+					"code": 102,
+					"message": "no permission to modify",
+					"name": "PermissionDenied"
+				}]
+			}`)
+		})
 		Convey("REGRESSION #119: Returns record invalid error if _id is missing or malformated", func() {
 			resp := r.POST(`{
 				"records": [{
@@ -464,7 +523,7 @@ func TestRecordSaveBogusField(t *testing.T) {
 				return nil
 			}
 			db.GetFunc = func(id skydb.RecordID, record *skydb.Record) error {
-				return nil
+				return skydb.ErrRecordNotFound
 			}
 
 			resp := r.POST(`{
@@ -1986,6 +2045,9 @@ func TestAtomicOperation(t *testing.T) {
 
 			r := handlertest.NewSingleRouteRouter(&RecordDeleteHandler{}, func(payload *router.Payload) {
 				payload.Database = db
+				payload.UserInfo = &skydb.UserInfo{
+					ID: "user0",
+				}
 			})
 
 			Convey("rolls back deleted records on error", func() {

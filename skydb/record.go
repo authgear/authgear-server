@@ -91,12 +91,26 @@ func NewRecordACLEntryRole(role string, level ACLLevel) RecordACLEntry {
 
 func (ace *RecordACLEntry) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 	if userinfo.ID == ace.UserID {
-		return true
+		if ace.AccessibleLevel(level) {
+			return true
+		}
 	}
 	for _, role := range userinfo.Roles {
 		if role == ace.Role {
-			return true
+			if ace.AccessibleLevel(level) {
+				return true
+			}
 		}
+	}
+	return false
+}
+
+func (ace *RecordACLEntry) AccessibleLevel(level ACLLevel) bool {
+	if level == ReadLevel {
+		return true
+	}
+	if level == ace.Level && level == WriteLevel {
+		return true
 	}
 	return false
 }

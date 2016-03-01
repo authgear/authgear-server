@@ -106,5 +106,32 @@ func TestRecordACL(t *testing.T) {
 			So(note.Accessible(userinfo, ReadLevel), ShouldBeTrue)
 			So(note.Accessible(stranger, ReadLevel), ShouldBeTrue)
 		})
+
+		Convey("Write permission superset read permission", func() {
+			note := Record{
+				ID:         NewRecordID("note", "0"),
+				DatabaseID: "",
+				ACL: RecordACL{
+					NewRecordACLEntryDirect("stranger", WriteLevel),
+					NewRecordACLEntryRole("admin", WriteLevel),
+				},
+			}
+			So(note.Accessible(userinfo, ReadLevel), ShouldBeTrue)
+			So(note.Accessible(stranger, ReadLevel), ShouldBeTrue)
+		})
+
+		Convey("Reject write on read only permission", func() {
+			note := Record{
+				ID:         NewRecordID("note", "0"),
+				DatabaseID: "",
+				ACL: RecordACL{
+					NewRecordACLEntryDirect("stranger", ReadLevel),
+					NewRecordACLEntryRole("admin", ReadLevel),
+				},
+			}
+
+			So(note.Accessible(userinfo, WriteLevel), ShouldBeFalse)
+			So(note.Accessible(stranger, WriteLevel), ShouldBeFalse)
+		})
 	})
 }

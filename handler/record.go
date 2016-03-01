@@ -435,6 +435,12 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 		if dbErr == skydb.ErrRecordNotFound {
 			return nil
 		}
+		if !dbRecord.Accessible(req.UserInfo, skydb.WriteLevel) {
+			return skyerr.NewError(
+				skyerr.PermissionDenied,
+				"no permission to modify",
+			)
+		}
 
 		var origRecord skydb.Record
 		copyRecord(&origRecord, &dbRecord)
@@ -1160,6 +1166,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		RecordIDsToDelete: p.RecordIDs,
 		Atomic:            p.Atomic,
 		Context:           payload.Context,
+		UserInfo:          payload.UserInfo,
 	}
 	resp := recordModifyResponse{
 		ErrMap: map[skydb.RecordID]skyerr.Error{},
@@ -1174,7 +1181,6 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 
 	if err := deleteFunc(&req, &resp); err != nil {
 		log.Debugf("Failed to delete records: %v", err)
-
 		response.Err = err
 		return
 	}
@@ -1224,7 +1230,14 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 				resp.ErrMap[recordID] = skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
 			}
 		} else {
-			records = append(records, &record)
+			if record.Accessible(req.UserInfo, skydb.WriteLevel) {
+				records = append(records, &record)
+			} else {
+				resp.ErrMap[recordID] = skyerr.NewError(
+					skyerr.PermissionDenied,
+					"no permission to delete",
+				)
+			}
 		}
 	}
 
