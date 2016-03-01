@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
@@ -108,7 +109,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	handler, preprocessors = r.matchJSONHandler(payload)
+	handler, preprocessors = r.matchRouteHandler(req)
 
 	if handler == nil {
 		httpStatus = http.StatusNotFound
@@ -123,14 +124,23 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 		}
+
 		handler.Handle(payload, &resp)
 	}
 }
 
-func (r *Router) matchJSONHandler(p *Payload) (h Handler, pp []Processor) {
+func (r *Router) matchRouteHandler(req *http.Request) (h Handler, pp []Processor) {
 	r.actions.RLock()
 	defer r.actions.RUnlock()
-	if pipeline, ok := r.actions.m[p.RouteAction()]; ok {
+
+	action := req.URL.Path
+	if strings.HasPrefix(action, "/") {
+		action = action[1:]
+	}
+
+	action = strings.Replace(action, "/", ":", -1)
+
+	if pipeline, ok := r.actions.m[action]; ok {
 		h = pipeline.Handler
 		pp = pipeline.Preprocessors
 	}

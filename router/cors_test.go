@@ -31,7 +31,6 @@ func TestCORSMiddleware(t *testing.T) {
 
 		r := NewRouter()
 		r.Map("mock:map", &mockHandler)
-		mockJSON := `{"action": "mock:map"}`
 
 		routeWithMiddleware := CORSMiddleware(r, testingCORSHost)
 
@@ -41,8 +40,8 @@ func TestCORSMiddleware(t *testing.T) {
 
 			req, _ := http.NewRequest(
 				"OPTIONS",
-				"http://skygear.dev/",
-				strings.NewReader(mockJSON),
+				"http://skygear.dev/mock/map",
+				strings.NewReader(""),
 			)
 			req.Header.Set("Access-Control-Request-Method", corsRequestMethod)
 			req.Header.Set("Access-Control-Request-Headers", corsRequestHeaders)
@@ -74,8 +73,8 @@ func TestCORSMiddleware(t *testing.T) {
 		Convey("Handle Normal Request", func() {
 			req, _ := http.NewRequest(
 				"POST",
-				"http://skygear.dev/",
-				strings.NewReader(mockJSON),
+				"http://skygear.dev/mock/map",
+				strings.NewReader(""),
 			)
 
 			resp := httptest.NewRecorder()
@@ -94,8 +93,8 @@ func TestCORSMiddleware(t *testing.T) {
 			routeWithEmptyCORSHost := CORSMiddleware(r, "")
 			req, _ := http.NewRequest(
 				"OPTIONS",
-				"http://skygear.dev/",
-				strings.NewReader(mockJSON),
+				"http://skygear.dev/mock/map",
+				strings.NewReader(""),
 			)
 			req.Header.Set("Access-Control-Request-Method", corsRequestMethod)
 			req.Header.Set("Access-Control-Request-Headers", corsRequestHeaders)

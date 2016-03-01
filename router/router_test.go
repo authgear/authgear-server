@@ -58,14 +58,11 @@ func TestRouterMap(t *testing.T) {
 	}
 	r := NewRouter()
 	r.Map("mock:map", &mockHandler)
-	var mockJSON = `{
-	"action": "mock:map"
-}`
 
 	req, _ := http.NewRequest(
 		"POST",
-		"http://skygear.dev/api/v1",
-		strings.NewReader(mockJSON),
+		"http://skygear.dev/mock/map",
+		strings.NewReader(""),
 	)
 	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
@@ -85,14 +82,11 @@ func TestRouterMapMissing(t *testing.T) {
 	}
 	r := NewRouter()
 	r.Map("mock:map", &mockHandler)
-	var mockJSON = `{
-	"action": "missing"
-}`
 
 	req, _ := http.NewRequest(
 		"POST",
-		"http://skygear.dev/api/v1",
-		strings.NewReader(mockJSON),
+		"http://skygear.dev/missing",
+		strings.NewReader(""),
 	)
 	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
@@ -127,8 +121,8 @@ func TestErrorHandler(t *testing.T) {
 
 			req, _ := http.NewRequest(
 				"POST",
-				"http://skygear.dev/api/v1",
-				strings.NewReader(`{"action": "mock:handler"}`),
+				"http://skygear.dev/mock/handler",
+				strings.NewReader(""),
 			)
 			req.Header.Set("Content-Type", "application/json")
 
@@ -153,8 +147,8 @@ func TestPreprocess(t *testing.T) {
 	Convey("Given a router with a preprocessor", t, func() {
 		req, _ := http.NewRequest(
 			"POST",
-			"http://skygear.dev/api/v1",
-			strings.NewReader(`{"action": "mock:preprocess"}`),
+			"http://skygear.dev/mock/preprocess",
+			strings.NewReader(""),
 		)
 		req.Header.Set("Content-Type", "application/json")
 		resp := httptest.NewRecorder()
