@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -e
+
+DEPLOY_DIR=~/.sources/$1
+rm -rf $DEPLOY_DIR
+mkdir -p $DEPLOY_DIR
+
+cat | tar -x -C $DEPLOY_DIR
+if [ ! -f "$DEPLOY_DIR/plugin.py" ]; then
+    echo "Error: Must have 'plugin.py' in project root."
+    exit 1
+fi
+
+cd /home/ubuntu/myapp
+docker-compose build plugin_$1
+docker-compose up -d --force-recreate server plugin_$1

@@ -35,7 +35,22 @@ pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-l
 # Install jinja2-cli to modify config files
 pip install jinja2-cli
 
+# Install gitreceive
+apt-get install -y git
+wget https://raw.github.com/progrium/gitreceive/master/gitreceive
+mv gitreceive /usr/local/bin/gitreceive
+chmod +x /usr/local/bin/gitreceive
+gitreceive init
+usermod -aG docker git
+
+# Install augtool for modifying skygear config
+apt-get install -y augeas-tools
+
 # Move other files into place
 cp /tmp/files/kickstart.sh /usr/local/bin/kickstart.sh
 chmod +x /usr/local/bin/kickstart.sh
 cp /tmp/files/motd /etc/motd
+cp /tmp/files/skygear.aug /usr/share/augeas/lenses
+cp /tmp/files/receiver /home/git/receiver
+chmod +x /home/git/receiver
+rm -rf /tmp/files
