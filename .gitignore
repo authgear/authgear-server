@@ -12,3 +12,6 @@ fabfile.pyc
 
 # python
 __pycache__
+
+# docker
+docker-compose.override.yml

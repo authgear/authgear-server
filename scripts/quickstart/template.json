@@ -1,0 +1,58 @@
+{
+    "variables": {
+        "build_region": "ap-southeast-1",
+        "source_ami": "ami-25c00c46",
+        "skygear_version": "latest",
+        "ami_regions": "ap-northeast-1,ap-southeast-1,ap-southeast-2,eu-central-1,eu-west-1,sa-east-1,us-east-1,us-west-1,us-west-2",
+        "ami_groups": "all",
+        "build_tag": "{{ uuid }}"
+    },
+    "builders": [
+        {
+            "ami_name": "skygear-server-quickstart-{{ timestamp }}",
+            "ami_description": "Skygear Server Quickstart",
+            "instance_type": "m3.medium",
+            "region": "{{ user `build_region` }}",
+            "source_ami": "{{ user `source_ami` }}",
+            "ami_regions": "{{ user `ami_regions` }}",
+            "ami_groups": "{{ user `ami_groups` }}",
+            "ssh_username": "ubuntu",
+            "type": "amazon-ebs",
+            "tags": {
+                "skygear:version": "{{ user `skygear_version` }}",
+                "skygear:image": "quickstart",
+                "skygear:date": "{{ isotime }}",
+                "skygear:build_tag": "{{ user `build_tag` }}"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "destination": "/home/ubuntu/",
+            "source": "myapp",
+            "type": "file"
+        },
+        {
+            "destination": "/tmp/",
+            "source": "files",
+            "type": "file"
+        },
+        {
+            "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "script": "scripts/setup.sh",
+            "type": "shell"
+        },
+        {
+            "script": "scripts/set_version.sh",
+            "type": "shell",
+            "environment_vars": [
+                "SKYGEAR_VERSION={{ user `skygear_version` }}"
+            ]
+        },
+        {
+            "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "script": "scripts/pull_images.sh",
+            "type": "shell"
+        }
+    ]
+}

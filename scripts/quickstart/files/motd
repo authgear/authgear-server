@@ -1,0 +1,10 @@
+  Welcome to Skygear Server
+  -------------------------
+
+  To manage this server, it is recommended to use Fabric. The instruction for
+  using Fabric can be found in Skygear documentation:
+
+  http://docs.pandadb.com/tutorial/
+
+  You will find all configuration files in the `myapp` directory.
+
