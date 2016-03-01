@@ -94,6 +94,12 @@
         "Tags" : [
           { "Key" : "Name", "Value" : "Skygear Server" }
         ]
+      },
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Count": "1",
+          "Timeout": "PT5M"
+        }
       }
     },
 

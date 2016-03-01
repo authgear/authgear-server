@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 : ${DIST:=/home/ubuntu/myapp}
 
 while getopts ":s:n:r:" opt; do
@@ -34,7 +36,7 @@ fi
 
 if [ ! -f $DIST/development.ini ]; then
   if [ ! -z "$STACK_NAME" ] && [ ! -z "$RESOURCE_NAME" ] && [ ! -z "$AWS_REGION" ]; then
-    METADATA=`cfn-get-metadata -s $STACK_NAME -r $RESOURCE_NAME --region $AWS_REGION`
+    METADATA=`cfn-get-metadata -s "$STACK_NAME" -r "$RESOURCE_NAME" --region "$AWS_REGION"`
     if [ $? -eq 1 ]; then
       METADATA="{}"
     fi
@@ -48,4 +50,12 @@ if [ ! -f $DIST/development.ini ]; then
   chown ubuntu:ubuntu $DIST/development.ini
 fi
 
+docker-compose -f $DIST/docker-compose.yml pull
 docker-compose -f $DIST/docker-compose.yml up -d db redis web server
+
+if [ ! -z "$STACK_NAME" ] && [ ! -z "$RESOURCE_NAME" ] && [ ! -z "$AWS_REGION" ]; then
+  # NOTE: Should change this to checking the server http port for a success
+  # response instead of waiting.
+  sleep 10
+  cfn-signal --success true --stack "$STACK_NAME" --resource "$RESOURCE_NAME" --region "$AWS_REGION"
+fi

@@ -9,8 +9,8 @@
     },
     "builders": [
         {
-            "ami_name": "skygear-server-quickstart-{{ user `skygear_version` | clean_ami_name }}-{{ timestamp }}",
-            "ami_description": "Skygear Server Quickstart {{ user `skygear_version` }}",
+            "ami_name": "skygear-server-quickstart-{{ timestamp }}",
+            "ami_description": "Skygear Server Quickstart",
             "instance_type": "m3.medium",
             "region": "{{ user `build_region` }}",
             "source_ami": "{{ user `source_ami` }}",
@@ -33,25 +33,26 @@
             "type": "file"
         },
         {
-            "execute_command": "{{ .Vars }} sh '{{ .Path }}'",
-            "script": "set_version.sh",
-            "type": "shell",
-            "environment_vars": [
-                "SKYGEAR_VERSION={{ user `skygear_version` }}"
-            ]
-        },
-        {
-            "destination": "/tmp/kickstart.sh",
-            "source": "kickstart.sh",
+            "destination": "/tmp/",
+            "source": "files",
             "type": "file"
         },
         {
             "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
-            "script": "build.sh",
+            "script": "scripts/setup.sh",
+            "type": "shell"
+        },
+        {
+            "script": "scripts/set_version.sh",
             "type": "shell",
             "environment_vars": [
                 "SKYGEAR_VERSION={{ user `skygear_version` }}"
             ]
+        },
+        {
+            "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "script": "scripts/pull_images.sh",
+            "type": "shell"
         }
     ]
 }

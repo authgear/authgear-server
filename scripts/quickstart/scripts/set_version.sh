@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 : ${DIST:=/home/ubuntu/myapp}
 : ${SKYGEAR_VERSION:=latest}
 

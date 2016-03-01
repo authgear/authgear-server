@@ -35,6 +35,18 @@ where `profilename` is your AWS credentials profile defined in credentials file.
 Modify the CloudFormationt template `cloudformation.template` with the
 AMI IDs created by Packer.
 
+You can test the CloudFormation template by running this command:
+
+```
+$ aws cloudformation create-stack \
+    --region ap-southeast-1 --stack-name stackname \
+    --template-body file://`pwd`/cloudformation.template \
+    --parameters ParameterKey=Instance,ParameterValue=t2.small \
+                 ParameterKey=Data,ParameterValue=30 \
+                 ParameterKey=KeyName,ParameterValue=cheungpat \
+    --capabilities CAPABILITY_IAM
+```
+
 Upload the template with this command
 
 ```
