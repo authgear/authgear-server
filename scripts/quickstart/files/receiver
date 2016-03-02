@@ -2,16 +2,27 @@
 
 set -e
 
+# Clean and set up source repository
 DEPLOY_DIR=~/.sources/$1
 rm -rf $DEPLOY_DIR
 mkdir -p $DEPLOY_DIR
-
 cat | tar -x -C $DEPLOY_DIR
-if [ ! -f "$DEPLOY_DIR/plugin.py" ]; then
-    echo "Error: Must have 'plugin.py' in project root."
-    exit 1
-fi
 
+unset GIT_DIR
+
+# Initialize source repository with submodules
+cd $DEPLOY_DIR
+git init .
+git config -f .gitmodules --get-regexp '^submodule\..*\.path$' |
+    while read path_key path
+    do
+        rm -fr $path
+        url_key=`echo $path_key | sed 's/\.path/.url/'`
+        url=`git config -f .gitmodules --get "$url_key"`
+        git submodule add $url $path
+    done
+
+# Build plugin image
 cd /home/ubuntu/myapp
 docker-compose build plugin_$1
 docker-compose up -d --force-recreate server plugin_$1
