@@ -1,3 +1,11 @@
+## 0.7.0 (2016-03-02)
+
+### Features
+
+- Check record permission on record:* handler
+- Add CloudFormation template and scripts #561
+- Add ACL matching by JSON pattern #299
+
 ## 0.6.0 (2016-02-24)
 
 ### Features
