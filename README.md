@@ -1,50 +1,68 @@
-Welcome to the Oursky Deployment Project
+Skygear is a cloud backend for your app.
 
 [![Build Status](https://magnum.travis-ci.com/oursky/skygear.svg?token=TS65G314JpxpG31zryWn)](https://magnum.travis-ci.com/oursky/skygear)
 
-Dependencies
-============
-1. go v1.5
-2. https://github.com/tools/godep is used for managing go lib
-3. PostgreSQL if you are using pq implementation of skydb:
-   * Minimum version: 9.3
-   * Recommended version: 9.4
-4. zmq is used for connecting plugin
-   * brew install libsodium zeromq czmq
+## Getting Started
 
-Development
-===========
-$ `go generate github.com/oursky/skygear/skydb/...`
-$ `go build && ./skygear development.ini`
+To get started, you need to install Skygear Server and include one of
+our SDKs into your app. For more information on how to do this, check
+out the [Skygear Documentation](http://docs.pandadb.com/tutorial).
 
-config.ini can be provided in args or os ENV `OD_CONFIG`.
+### Configuration
+ 
+Check out `development.ini` for example configuration.
 
-Suggested to use [fresh](https://github.com/pilu/fresh) for local development
+You need to specify the configuration file when running Skygear Server:
 
-$ `OD_CONFIG=development.ini fresh`
+```shell
+$ ./skygear development.ini
+```
 
-Test
-====
-You may refer to .travis.yml
+Alternatively,
+```shell
+$ `OD_CONFIG=development.ini ./skygear`
+```
 
-#### Prepare the testing DB
-1. Create test DB `skygear_test` on local PostgreSQL
-1. Enable PostGIS on `skygear_test`.
-   ```shell
-   $ psql -c 'CREATE EXTENSION postgis;' -d skygear_test
-   ```
-1. Test case assume the 127.0.0.1 have access to skygear_test, please add following to pg_hba.conf
+## How to contribute
 
-> host    all             all             127.0.0.1/32            trust
+### Dependencies
 
-run `go test github.com/oursky/skygear/...`
+* Golang 1.5
+* PostgreSQL 9.4 with PostGIS extension
+* Redis
+* libsodium, zeromq and czmq if using ZeroMQ as a plugin transport
 
-For local development, you are suggested to open GoConvey to keep track of testing status.
+If using Mac OS X, you can get ZeroMQ dependencies using Homebrew:
 
-refs: https://github.com/smartystreets/goconvey
+```shell
+$ brew install libsodium zeromq czmq
+```
 
-Deploy to heroku
-================
-On `.ini`,
-  - [http]host should left empty for using $PORT on heroku deployment
-  - [db]option should left empty for usign $DATABASE_URL on heroku deployment
+### Building from source
+
+```shell
+$ go get github.com/tools/godep
+$ godep restore
+$ go build  # or `go build --tags zmq` for ZeroMQ support
+```
+
+### Testing
+
+1. Create a PostgreSQL database called `skygear_test` with PostGIS enabled:
+
+```shell
+psql -h db -c 'CREATE DATABASE skygear_test;' -U postgres
+psql -h db -c 'CREATE EXTENSION postgis;' -U postgres -d skygear_test
+```
+
+2. Test case assume the 127.0.0.1 have access to `skygear_test`, add the
+following to `pg_hba.conf`:
+
+```
+host    all             all             127.0.0.1/32            trust
+```
+
+3. Install golang packages required for testing (check `.travis.yml` for the
+   list).
+
+4. Run `go test github.com/oursky/skygear/...`.
