@@ -112,6 +112,12 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	handler, preprocessors = r.matchRouteHandler(req)
 
 	if handler == nil {
+		// Fallback to match action in JSON.
+		// This would match to HomeHandler if action field is omitted.
+		handler, preprocessors = r.matchJSONHandler(payload)
+	}
+
+	if handler == nil {
 		httpStatus = http.StatusNotFound
 		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, "route unmatched")
 	} else {
@@ -140,7 +146,20 @@ func (r *Router) matchRouteHandler(req *http.Request) (h Handler, pp []Processor
 
 	action = strings.Replace(action, "/", ":", -1)
 
-	if pipeline, ok := r.actions.m[action]; ok {
+	if len(action) > 0 { // prevent matching HomeHandler
+		if pipeline, ok := r.actions.m[action]; ok {
+			h = pipeline.Handler
+			pp = pipeline.Preprocessors
+		}
+	}
+
+	return
+}
+
+func (r *Router) matchJSONHandler(p *Payload) (h Handler, pp []Processor) {
+	r.actions.RLock()
+	defer r.actions.RUnlock()
+	if pipeline, ok := r.actions.m[p.RouteAction()]; ok {
 		h = pipeline.Handler
 		pp = pipeline.Preprocessors
 	}
