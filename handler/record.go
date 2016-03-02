@@ -281,7 +281,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		Db:            payload.Database,
 		AssetStore:    h.AssetStore,
 		HookRegistry:  h.HookRegistry,
-		UserInfoID:    payload.UserInfoID,
+		UserInfo:      payload.UserInfo,
 		RecordsToSave: p.Records,
 		Atomic:        p.Atomic,
 		Context:       payload.Context,
@@ -402,10 +402,10 @@ type recordModifyRequest struct {
 	HookRegistry *hook.Registry
 	Atomic       bool
 	Context      context.Context
+	UserInfo     *skydb.UserInfo
 
 	// Save only
 	RecordsToSave []*skydb.Record
-	UserInfoID    string
 
 	// Delete Only
 	RecordIDsToDelete []skydb.RecordID
@@ -435,6 +435,12 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 		if dbErr == skydb.ErrRecordNotFound {
 			return nil
 		}
+		if !dbRecord.Accessible(req.UserInfo, skydb.WriteLevel) {
+			return skyerr.NewError(
+				skyerr.PermissionDenied,
+				"no permission to modify",
+			)
+		}
 
 		var origRecord skydb.Record
 		copyRecord(&origRecord, &dbRecord)
@@ -455,7 +461,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 			// Defaults for record attributes should be provided
 			// before executing hooks
 			if !ok {
-				record.OwnerID = req.UserInfoID
+				record.OwnerID = req.UserInfo.ID
 			}
 
 			err = req.HookRegistry.ExecuteHooks(req.Context, hook.BeforeSave, record, originalRecord)
@@ -488,13 +494,13 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 		if !ok {
 			originalRecord = &skydb.Record{}
 
-			record.OwnerID = req.UserInfoID
+			record.OwnerID = req.UserInfo.ID
 			record.CreatedAt = now
-			record.CreatorID = req.UserInfoID
+			record.CreatorID = req.UserInfo.ID
 		}
 
 		record.UpdatedAt = now
-		record.UpdaterID = req.UserInfoID
+		record.UpdaterID = req.UserInfo.ID
 
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
@@ -712,7 +718,8 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 }
 
 type recordFetchPayload struct {
-	RecordIDs []string `mapstructure:"ids"`
+	RecordIDs []skydb.RecordID
+	RawIDs    []string `mapstructure:"ids"`
 }
 
 func (payload *recordFetchPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -723,11 +730,26 @@ func (payload *recordFetchPayload) Decode(data map[string]interface{}) skyerr.Er
 }
 
 func (payload *recordFetchPayload) Validate() skyerr.Error {
-	if len(payload.RecordIDs) == 0 {
+	if len(payload.RawIDs) == 0 {
 		return skyerr.NewInvalidArgument("expected list of id", []string{"ids"})
 	}
 
+	length := len(payload.RawIDs)
+	payload.RecordIDs = make([]skydb.RecordID, length, length)
+	for i, rawID := range payload.RawIDs {
+		ss := strings.SplitN(rawID, "/", 2)
+		if len(ss) == 1 {
+			return skyerr.NewInvalidArgument(fmt.Sprintf("invalid id format: %v", rawID), []string{"ids"})
+		}
+
+		payload.RecordIDs[i].Type = ss[0]
+		payload.RecordIDs[i].Key = ss[1]
+	}
 	return nil
+}
+
+func (payload *recordFetchPayload) ItemLen() int {
+	return len(payload.RecordIDs)
 }
 
 /*
@@ -773,23 +795,10 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	length := len(p.RecordIDs)
-	recordIDs := make([]skydb.RecordID, length, length)
-	for i, rawID := range p.RecordIDs {
-		ss := strings.SplitN(rawID, "/", 2)
-		if len(ss) == 1 {
-			response.Err = skyerr.NewInvalidArgument(fmt.Sprintf("invalid id format: %v", rawID), []string{"ids"})
-			return
-		}
-
-		recordIDs[i].Type = ss[0]
-		recordIDs[i].Key = ss[1]
-	}
-
 	db := payload.Database
 
-	results := make([]interface{}, length, length)
-	for i, recordID := range recordIDs {
+	results := make([]interface{}, p.ItemLen(), p.ItemLen())
+	for i, recordID := range p.RecordIDs {
 		record := skydb.Record{}
 		if err := db.Get(recordID, &record); err != nil {
 			if err == skydb.ErrRecordNotFound {
@@ -808,8 +817,15 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 				)
 			}
 		} else {
-			injectSigner(&record, h.AssetStore)
-			results[i] = (*skyconv.JSONRecord)(&record)
+			if record.Accessible(payload.UserInfo, skydb.ReadLevel) {
+				injectSigner(&record, h.AssetStore)
+				results[i] = (*skyconv.JSONRecord)(&record)
+			} else {
+				results[i] = newSerializedError(
+					recordID.String(),
+					skyerr.NewError(skyerr.PermissionDenied, "no permission to read"),
+				)
+			}
 		}
 	}
 
@@ -1059,8 +1075,9 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 }
 
 type recordDeletePayload struct {
-	RecordIDs []string `mapstructure:"ids"`
+	RawIDs    []string `mapstructure:"ids"`
 	Atomic    bool     `mapstructure:"atomic"`
+	RecordIDs []skydb.RecordID
 }
 
 func (payload *recordDeletePayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -1071,11 +1088,29 @@ func (payload *recordDeletePayload) Decode(data map[string]interface{}) skyerr.E
 }
 
 func (payload *recordDeletePayload) Validate() skyerr.Error {
-	if len(payload.RecordIDs) == 0 {
+	if len(payload.RawIDs) == 0 {
 		return skyerr.NewInvalidArgument("expected list of id", []string{"ids"})
 	}
 
+	length := payload.ItemLen()
+	payload.RecordIDs = make([]skydb.RecordID, length, length)
+	for i, rawID := range payload.RawIDs {
+		ss := strings.SplitN(rawID, "/", 2)
+		if len(ss) == 1 {
+			return skyerr.NewInvalidArgument(
+				`record: "_id" should be of format '{type}/{id}', got "`+rawID+`"`,
+				[]string{"ids"},
+			)
+		}
+
+		payload.RecordIDs[i].Type = ss[0]
+		payload.RecordIDs[i].Key = ss[1]
+	}
 	return nil
+}
+
+func (payload *recordDeletePayload) ItemLen() int {
+	return len(payload.RawIDs)
 }
 
 /*
@@ -1125,25 +1160,13 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	length := len(p.RecordIDs)
-	recordIDs := make([]skydb.RecordID, length, length)
-	for i, rawID := range p.RecordIDs {
-		ss := strings.SplitN(rawID, "/", 2)
-		if len(ss) == 1 {
-			response.Err = skyerr.NewInvalidArgument(fmt.Sprintf("invalid id format: %v", rawID), []string{"ids"})
-			return
-		}
-
-		recordIDs[i].Type = ss[0]
-		recordIDs[i].Key = ss[1]
-	}
-
 	req := recordModifyRequest{
 		Db:                payload.Database,
 		HookRegistry:      h.HookRegistry,
-		RecordIDsToDelete: recordIDs,
+		RecordIDsToDelete: p.RecordIDs,
 		Atomic:            p.Atomic,
 		Context:           payload.Context,
+		UserInfo:          payload.UserInfo,
 	}
 	resp := recordModifyResponse{
 		ErrMap: map[skydb.RecordID]skyerr.Error{},
@@ -1158,13 +1181,12 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 
 	if err := deleteFunc(&req, &resp); err != nil {
 		log.Debugf("Failed to delete records: %v", err)
-
 		response.Err = err
 		return
 	}
 
-	results := make([]interface{}, 0, length)
-	for _, recordID := range recordIDs {
+	results := make([]interface{}, 0, p.ItemLen())
+	for _, recordID := range p.RecordIDs {
 		var result interface{}
 
 		if err, ok := resp.ErrMap[recordID]; ok {
@@ -1208,7 +1230,14 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 				resp.ErrMap[recordID] = skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
 			}
 		} else {
-			records = append(records, &record)
+			if record.Accessible(req.UserInfo, skydb.WriteLevel) {
+				records = append(records, &record)
+			} else {
+				resp.ErrMap[recordID] = skyerr.NewError(
+					skyerr.PermissionDenied,
+					"no permission to delete",
+				)
+			}
 		}
 	}
 

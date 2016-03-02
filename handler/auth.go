@@ -480,10 +480,10 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.UserInfo) skyerr.Err
 			HookRegistry: ctx.HookRegistry,
 			Atomic:       false,
 			Context:      ctx.Context,
+			UserInfo:     info,
 			RecordsToSave: []*skydb.Record{
 				&userRecord,
 			},
-			UserInfoID: info.ID,
 		}
 
 		recordResp := recordModifyResponse{
