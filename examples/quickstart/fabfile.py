@@ -106,12 +106,54 @@ def augtool(cmd):
     run('rm /tmp/augtool.cmd')
 
 
+def augtool_ini_get(key):
+    result = run("augtool get /files/home/ubuntu/myapp/development.ini/{0}"
+                 "| sed \"s/.* = //\"".format(key))
+    return str(result)
+
+
 def plugin_services():
     with cd('myapp'):
         data = read_compose_override()
         if 'services' not in data:
             return []
         return [x for x in data['services'].keys() if x.startswith('plugin_')]
+
+
+def plugin_environment():
+    return {
+        'DATABASE_URL': 'postgres://postgres@db_1/postgres?sslmode=disable',
+        'PUBSUB_URL': 'PUBSUB_URL=ws://server:3000/pubsub',
+        'SKYGEAR_ENDPOINT': 'http://server:3000',
+        'SKYGEAR_APIKEY': augtool_ini_get('app/api-key'),
+        'SKYGEAR_APPNAME': augtool_ini_get('app/name'),
+        'SKYGEAR_HTTP': 'true',
+    }
+
+
+def add_docker_plugin(compose_data, name, image=None, dockerfile='Dockerfile',
+                      build_context=None):
+    service_name = "plugin_{0}".format(name)
+    service = {
+            'restart': 'always',
+            'environment': plugin_environment(),
+            }
+    source_root = '/home/git/.sources/{0}'.format(name)
+    build_context = source_root + '/' + (build_context or '.')
+    if image is None:
+        service['image'] = service_name
+        service['build'] = {
+                'context': build_context,
+                'dockerfile': dockerfile,
+            }
+    else:
+        service['image'] = image
+
+    # update compose_data
+    if 'services' not in compose_data:
+        compose_data['services'] = {}
+    compose_data['services'][service_name] = service
+    return compose_data
 
 
 @task
@@ -145,6 +187,17 @@ def stop_plugin(name):
 def restart_plugin(name):
     service = "plugin_{0}".format(name)
     docker_restart(service)
+
+
+@task
+def rebuild_plugin(name, should_restart=False):
+    """
+    Rebuild the specified plugin
+    """
+    service = "plugin_{0}".format(name)
+    docker_build(service)
+    if should_restart:
+        docker_start('server ' + service, should_recreate=True)
 
 
 @task
@@ -199,7 +252,8 @@ def remove_upload_key(name):
 
 
 @task
-def add_plugin(name, image=None, should_restart=True):
+def add_plugin(name, image=None, dockerfile='Dockerfile', build_context=None,
+               should_restart=True):
     """
     Add a new plugin by modifying skygear configuration
 
@@ -209,32 +263,22 @@ def add_plugin(name, image=None, should_restart=True):
 
     Skygear Server is restarted automatically by default if an image is
     specified.
+
+    If your Dockerfile is not at the project root, you should specify
+    an alternative Dockerfile location and build context.
     """
     config_file = '/home/ubuntu/myapp/development.ini'
     service_name = "plugin_{0}".format(name)
     with cd("myapp"):
         data = read_compose_override()
-        if 'services' not in data:
-            data['services'] = {}
-        if service_name in data['services']:
+        if service_name in data.get('services', {}):
             error("Plugin '{0}' already exists.".format(name))
             return
         augtool(r"""
         set /files{0}/plugin\ \"{1}\"/transport http
         set /files{0}/plugin\ \"{1}\"/path http://{1}:8000
         """.format(config_file, service_name))
-        service = {
-                'restart': 'always',
-                'command': 'py-skygear plugin.py --http',
-                }
-        if image is None:
-            service['image'] = service_name
-            service['build'] = {
-                    'context': '/home/git/.sources/{0}'.format(name),
-                }
-        else:
-            service['image'] = image
-        data['services'][service_name] = service
+        data = add_docker_plugin(data, name, image, dockerfile, build_context)
         write_compose_override(data)
     if image is None:
         puts("""Plugin '{0}' is added to Skygear. To upload plugin, add
@@ -242,7 +286,6 @@ def add_plugin(name, image=None, should_restart=True):
         return
     if should_restart:
         restart(should_recreate=True)
-
 
 
 @task
@@ -261,10 +304,22 @@ def remove_plugin(name, should_restart=True):
             return
     stop_plugin(name)
     with cd("myapp"):
-        with settings(warn_only=True):
-            sudo("docker-compose rm -f {0}".format(service_name))
         data['services'].pop(service_name, None)
         write_compose_override(data)
         augtool(r'rm /files{0}/plugin\ \"{1}\"'.format(config_file, name))
     if should_restart:
         restart(should_recreate=True)
+
+
+@task
+def purge_images():
+    """
+    Purge untagged Docker images.
+    """
+    with settings(warn_only=True):
+        output = sudo("docker images | grep '<none>' | tr -s ' '"
+                      " | cut -d ' ' -f 3")
+        for image in output.split('\n'):
+            if not image.strip():
+                continue
+            sudo("docker rmi {0}".format(image.strip()))
