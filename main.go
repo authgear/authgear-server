@@ -168,6 +168,7 @@ func main() {
 	r.Map("schema:delete", injector.Inject(&handler.SchemaDeleteHandler{}))
 	r.Map("schema:create", injector.Inject(&handler.SchemaCreateHandler{}))
 	r.Map("schema:fetch", injector.Inject(&handler.SchemaFetchHandler{}))
+	r.Map("schema:access", injector.Inject(&handler.SchemaAccessHandler{}))
 
 	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
