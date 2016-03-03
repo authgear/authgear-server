@@ -58,6 +58,7 @@ func main() {
 
 	// Init all the services
 	r := router.NewRouter()
+	serveMux := http.NewServeMux()
 	pushSender := initPushSender(config, connOpener)
 
 	tokenStore := authtoken.InitTokenStore(config.TokenStore.ImplName, config.TokenStore.Path)
@@ -171,38 +172,32 @@ func main() {
 
 	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
-	pubSubGateway := router.NewGateway(`pubSub`)
+	pubSubGateway := router.NewGateway("", "/pubsub", serveMux)
 	pubSubGateway.GET(injector.InjectProcessors(&handler.PubSubHandler{
 		WebSocket: pubSub,
 	}))
 
 	internalPubSub := pubsub.NewWsPubsub(internalHub)
-	internalPubSubGateway := router.NewGateway(`internalpubSub`)
+	internalPubSubGateway := router.NewGateway("", "/_/pubsub", serveMux)
 	internalPubSubGateway.GET(injector.InjectProcessors(&handler.PubSubHandler{
 		WebSocket: internalPubSub,
 	}))
 
-	corsHost := config.App.CORSHost
-
-	http.Handle("/", router.CORSMiddleware(
-		router.LoggingMiddleware(r, false), corsHost))
-	http.Handle("/pubsub", router.CORSMiddleware(
-		router.LoggingMiddleware(pubSubGateway, false), corsHost))
-	http.Handle("/_/pubsub", router.CORSMiddleware(
-		router.LoggingMiddleware(internalPubSubGateway, false), corsHost))
-
-	fileGateway := router.NewGateway(`files/(.+)`)
+	fileGateway := router.NewGateway("files/(.+)", "/files/", serveMux)
 	fileGateway.GET(injector.Inject(&handler.AssetGetURLHandler{}))
 	fileGateway.PUT(injector.Inject(&handler.AssetUploadURLHandler{}))
-	http.Handle("/files/", router.CORSMiddleware(
-		router.LoggingMiddleware(fileGateway, true), corsHost))
+
+	corsHost := config.App.CORSHost
+
+	serveMux.Handle("/", router.CORSMiddleware(
+		router.LoggingMiddleware(r, false), corsHost))
 
 	// Bootstrap finished, starting services
 	cronjob.Start()
 	initPlugin(config, &initContext)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
-	err := http.ListenAndServe(config.HTTP.Host, nil)
+	err := http.ListenAndServe(config.HTTP.Host, serveMux)
 	if err != nil {
 		log.Printf("Failed: %v", err)
 	}

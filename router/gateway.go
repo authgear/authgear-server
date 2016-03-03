@@ -21,12 +21,16 @@ type Gateway struct {
 	methodPaths map[string]pathRoute
 }
 
-func NewGateway(pattern string) *Gateway {
+func NewGateway(pattern string, path string, mux *http.ServeMux) *Gateway {
 	match := regexp.MustCompile(`\A/` + pattern + `\z`)
-	return &Gateway{
+	g := &Gateway{
 		ParamMatch:  match,
 		methodPaths: map[string]pathRoute{},
 	}
+	if path != "" && mux != nil {
+		mux.Handle(path, g)
+	}
+	return g
 }
 
 // GET register a URL handler by method GET
