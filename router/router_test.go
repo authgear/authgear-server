@@ -64,7 +64,7 @@ func TestRouterMap(t *testing.T) {
 
 	req, _ := http.NewRequest(
 		"POST",
-		"http://skygear.dev/api/v1",
+		"http://skygear.dev/",
 		strings.NewReader(mockJSON),
 	)
 	req.Header.Set("Content-Type", "application/json")
@@ -91,7 +91,7 @@ func TestRouterMapMissing(t *testing.T) {
 
 	req, _ := http.NewRequest(
 		"POST",
-		"http://skygear.dev/api/v1",
+		"http://skygear.dev/",
 		strings.NewReader(mockJSON),
 	)
 	req.Header.Set("Content-Type", "application/json")
@@ -115,6 +115,40 @@ func (p getPreprocessor) Preprocess(payload *Payload, response *Response) int {
 	return p.Status
 }
 
+func TestURLRouting(t *testing.T) {
+	Convey("URL Routing", t, func() {
+		Convey("can route to correct handler using URL, instead of payload", func() {
+			mockResp := Response{}
+			mockResp.Result = struct {
+				Message string `json:"message"`
+			}{
+				Message: "Got it.",
+			}
+
+			mockHandler := MockHandler{
+				outputs: mockResp,
+			}
+
+			r := NewRouter()
+			r.Map("mock:map", &mockHandler)
+
+			req, _ := http.NewRequest(
+				"POST",
+				"http://skygear.dev/mock/map",
+				strings.NewReader(""),
+			)
+
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			r.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, http.StatusOK)
+			So(resp.Body.String(), ShouldEqual, `{"result":{"message":"Got it."}}
+`)
+		})
+	})
+}
+
 func TestErrorHandler(t *testing.T) {
 	Convey("Router", t, func() {
 		r := NewRouter()
@@ -127,7 +161,7 @@ func TestErrorHandler(t *testing.T) {
 
 			req, _ := http.NewRequest(
 				"POST",
-				"http://skygear.dev/api/v1",
+				"http://skygear.dev/",
 				strings.NewReader(`{"action": "mock:handler"}`),
 			)
 			req.Header.Set("Content-Type", "application/json")
@@ -153,7 +187,7 @@ func TestPreprocess(t *testing.T) {
 	Convey("Given a router with a preprocessor", t, func() {
 		req, _ := http.NewRequest(
 			"POST",
-			"http://skygear.dev/api/v1",
+			"http://skygear.dev/",
 			strings.NewReader(`{"action": "mock:preprocess"}`),
 		)
 		req.Header.Set("Content-Type", "application/json")
