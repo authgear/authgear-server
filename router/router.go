@@ -109,13 +109,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	handler, preprocessors = r.matchRouteHandler(req)
-
-	if handler == nil {
-		// Fallback to match action in JSON.
-		// This would match to HomeHandler if action field is omitted.
-		handler, preprocessors = r.matchJSONHandler(payload)
-	}
+	handler, preprocessors = r.matchHandler(req, payload)
 
 	if handler == nil {
 		httpStatus = http.StatusNotFound
@@ -135,17 +129,17 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (r *Router) matchRouteHandler(req *http.Request) (h Handler, pp []Processor) {
+func (r *Router) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Processor) {
 	r.actions.RLock()
 	defer r.actions.RUnlock()
 
+	// matching using URL
 	action := req.URL.Path
 	if strings.HasPrefix(action, "/") {
 		action = action[1:]
 	}
 
 	action = strings.Replace(action, "/", ":", -1)
-
 	if len(action) > 0 { // prevent matching HomeHandler
 		if pipeline, ok := r.actions.m[action]; ok {
 			h = pipeline.Handler
@@ -153,16 +147,14 @@ func (r *Router) matchRouteHandler(req *http.Request) (h Handler, pp []Processor
 		}
 	}
 
-	return
-}
-
-func (r *Router) matchJSONHandler(p *Payload) (h Handler, pp []Processor) {
-	r.actions.RLock()
-	defer r.actions.RUnlock()
-	if pipeline, ok := r.actions.m[p.RouteAction()]; ok {
-		h = pipeline.Handler
-		pp = pipeline.Preprocessors
+	// matching using payload if needed
+	if h == nil {
+		if pipeline, ok := r.actions.m[p.RouteAction()]; ok {
+			h = pipeline.Handler
+			pp = pipeline.Preprocessors
+		}
 	}
+
 	return
 }
 
