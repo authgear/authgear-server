@@ -422,13 +422,14 @@ type SchemaAccessHandler struct {
 }
 
 type schemaAccessPayload struct {
-	Type  string   `mapstructure:"type" json:"type"`
-	Roles []string `mapstructure:"create_roles" json:"create_roles"`
+	Type           string   `mapstructure:"type" json:"type"`
+	RawCreateRoles []string `mapstructure:"create_roles" json:"create_roles"`
+	ACL            skydb.RecordACL
 }
 
 type schemaAccessResponse struct {
-	Type  string   `mapstructure:"type" json:"type"`
-	Roles []string `mapstructure:"create_roles" json:"create_roles,omitempty"`
+	Type        string   `mapstructure:"type" json:"type"`
+	CreateRoles []string `mapstructure:"create_roles" json:"create_roles,omitempty"`
 }
 
 func (h *SchemaAccessHandler) Setup() {
@@ -448,6 +449,13 @@ func (payload *schemaAccessPayload) Decode(data map[string]interface{}) skyerr.E
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 
+	entries := []skydb.RecordACLEntry{}
+	for _, perRoleName := range payload.RawCreateRoles {
+		entries = append(entries, skydb.NewRecordACLEntryRole(perRoleName, skydb.CreateLevel))
+	}
+
+	payload.ACL = skydb.NewRecordACL(entries)
+
 	return payload.Validate()
 }
 
@@ -461,16 +469,26 @@ func (payload *schemaAccessPayload) Validate() skyerr.Error {
 
 func (h *SchemaAccessHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	payload := schemaAccessPayload{}
-	err := payload.Decode(rpayload.Data)
-	if err != nil {
-		response.Err = err
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
-	// TODO: Perform Database Operations
+	db := rpayload.Database
+	err := db.SetRecordCreationAccess(payload.Type, payload.ACL)
+
+	if err != nil {
+		if skyErr, isSkyErr := err.(skyerr.Error); isSkyErr {
+			response.Err = skyErr
+		} else {
+			response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
+		}
+		return
+	}
 
 	response.Result = schemaAccessResponse{
-		Type:  payload.Type,
-		Roles: payload.Roles,
+		Type:        payload.Type,
+		CreateRoles: payload.RawCreateRoles,
 	}
 }
