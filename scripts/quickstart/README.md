@@ -28,6 +28,13 @@ If you have an alternative AWS credentials profile, run your command like this:
 $ AWS_PROFILE=profilename packer build -var skygear_version=$SKYGEAR_VERSION teplate.json
 ```
 
+To test image before releasing:
+
+```
+$ packer build -var ami_groups="" -var ami_regions="" template.json
+```
+
+
 where `profilename` is your AWS credentials profile defined in credentials file.
 
 ### Update CloudFormation template
