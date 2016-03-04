@@ -219,7 +219,7 @@ func TestExtend(t *testing.T) {
 				"dirty":     skydb.FieldType{Type: skydb.TypeNumber},
 			})
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  {%!s(skydb.ExpressionType=0) <nil>}} => {TypeNumber  {%!s(skydb.ExpressionType=0) <nil>}}")
+			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  {0 <nil>}} => {TypeNumber  {0 <nil>}}")
 		})
 	})
 
@@ -398,6 +398,70 @@ func TestExtend(t *testing.T) {
 		Convey("delete unexisting table", func() {
 			err := db.DeleteSchema("notExist", "content")
 			So(err, ShouldNotBeNil)
+		})
+	})
+}
+
+func TestSetRecordCreationAccess(t *testing.T) {
+	var c *conn
+
+	Convey("SetRecordCreationAccess", t, func() {
+
+		c = getTestConn(t)
+		defer cleanupConn(t, c)
+
+		db := database{
+			c: c,
+		}
+
+		// prepare some initial data
+		c.ensureRole([]string{"Developer", "Tester", "ProjectManager"})
+		db.insertRecordCreationAccess("ProgressUpdate", []string{"ProjectManager"})
+		db.insertRecordCreationAccess("SourceCode", []string{"Developer"})
+
+		Convey("get record creation access", func() {
+			roles, err := db.getRecordCreationAccess("ProgressUpdate")
+
+			So(err, ShouldBeNil)
+			So(roles, ShouldHaveLength, 1)
+			So(roles, ShouldContain, "ProjectManager")
+		})
+
+		Convey("set creation access", func() {
+			err := db.SetRecordCreationAccess("SourceCode", skydb.NewRecordACL(
+				[]skydb.RecordACLEntry{
+					skydb.NewRecordACLEntryRole("Developer", skydb.CreateLevel),
+					skydb.NewRecordACLEntryRole("Tester", skydb.CreateLevel),
+				},
+			))
+
+			So(err, ShouldBeNil)
+
+			roles, err := db.getRecordCreationAccess("SourceCode")
+
+			So(err, ShouldBeNil)
+			So(roles, ShouldHaveLength, 2)
+			So(roles, ShouldContain, "Developer")
+			So(roles, ShouldContain, "Tester")
+		})
+
+		Convey("remove not necessary creation access", func() {
+			err := db.SetRecordCreationAccess("ProgressUpdate", skydb.NewRecordACL(
+				[]skydb.RecordACLEntry{
+					skydb.NewRecordACLEntryRole("Developer", skydb.CreateLevel),
+					skydb.NewRecordACLEntryRole("Tester", skydb.CreateLevel),
+				},
+			))
+
+			So(err, ShouldBeNil)
+
+			roles, err := db.getRecordCreationAccess("ProgressUpdate")
+
+			So(err, ShouldBeNil)
+			So(roles, ShouldHaveLength, 2)
+			So(roles, ShouldContain, "Developer")
+			So(roles, ShouldContain, "Tester")
+			So(roles, ShouldNotContain, "ProjectManager")
 		})
 	})
 }
