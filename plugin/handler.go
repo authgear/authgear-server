@@ -1,12 +1,19 @@
 package plugin
 
 import (
-	log "github.com/Sirupsen/logrus"
+	"encoding/json"
 	"io/ioutil"
+
+	log "github.com/Sirupsen/logrus"
 
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skyerr"
 )
+
+type pluginRequestPayload struct {
+	Header map[string][]string `json:"header"`
+	Body   []byte              `json:"body"`
+}
 
 type PluginHandler struct {
 	Plugin            *Plugin
@@ -46,13 +53,25 @@ func (h *PluginHandler) GetPreprocessors() []router.Processor {
 
 // Handle executes lambda function implemented by the plugin.
 func (h *PluginHandler) Handle(payload *router.Payload, response *router.Response) {
-	inbytes, err := ioutil.ReadAll(payload.Req.Body)
+	body, err := ioutil.ReadAll(payload.Req.Body)
+	if err != nil {
+		panic(err)
+	}
+	wholeRequest := &pluginRequestPayload{
+		Header: payload.Req.Header,
+		Body:   body,
+	}
+	inbytes, err := json.Marshal(wholeRequest)
 	if err != nil {
 		panic(err)
 	}
 
-	outbytes, err := h.Plugin.transport.RunHandler(h.Name, inbytes)
-	log.Debugf("outbytes %s", outbytes)
+	outbytes, err := h.Plugin.transport.RunHandler(payload.Context, h.Name, inbytes)
+	log.WithFields(log.Fields{
+		"name": h.Name,
+		"err":  err,
+	}).Debugf("Executed a handler with result")
+
 	if err != nil {
 		switch e := err.(type) {
 		case skyerr.Error:
@@ -62,10 +81,5 @@ func (h *PluginHandler) Handle(payload *router.Payload, response *router.Respons
 		}
 		return
 	}
-
-	log.WithFields(log.Fields{
-		"name": h.Name,
-		"err":  err,
-	}).Debugf("Executed a handler with result")
 	response.Write(outbytes)
 }

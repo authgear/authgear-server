@@ -182,8 +182,16 @@ func (p *execTransport) RunLambda(ctx context.Context, name string, in []byte) (
 	return
 }
 
-func (p *execTransport) RunHandler(name string, in []byte) (out []byte, err error) {
-	out, err = p.runProc([]string{"handler", name}, []string{}, in)
+func (p *execTransport) RunHandler(ctx context.Context, name string, in []byte) (out []byte, err error) {
+	pluginCtx := skyplugin.ContextMap(ctx)
+	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
+	if err != nil {
+		return nil, err
+	}
+	env := []string{
+		fmt.Sprintf("SKYGEAR_CONTEXT=%s", encodedCtx),
+	}
+	out, err = p.runProc([]string{"handler", name}, env, in)
 	return
 }
 

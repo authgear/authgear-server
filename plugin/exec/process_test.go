@@ -109,7 +109,7 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("handler", func() {
-			out, err := transport.RunHandler("hello:world", []byte{})
+			out, err := transport.RunHandler(nil, "hello:world", []byte{})
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"handler hello:world"`)
 		})
@@ -134,7 +134,7 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("handler", func() {
-			out, err := transport.RunHandler("hello:world", []byte(`{"result": "hello world"}`))
+			out, err := transport.RunHandler(nil, "hello:world", []byte(`{"result": "hello world"}`))
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"hello world"`)
 		})
