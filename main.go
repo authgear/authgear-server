@@ -68,6 +68,7 @@ func main() {
 	cronjob := cron.New()
 	initContext := plugin.InitContext{
 		Router:           r,
+		Mux:              serveMux,
 		Preprocessors:    preprocessorRegistry,
 		HookRegistry:     hook.NewRegistry(),
 		ProviderRegistry: provider.NewRegistry(),
