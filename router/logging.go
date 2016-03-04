@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -54,33 +55,43 @@ func (l *responseLogger) Hijack() (c net.Conn, w *bufio.ReadWriter, e error) {
 	return hijacker.Hijack()
 }
 
-func LoggingMiddleware(next http.Handler, skipBody bool) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Debugf("%v %v", r.Method, r.RequestURI)
+type LoggingMiddleware struct {
+	Skips []string
+	Next  http.Handler
+}
 
-		log.Debugln("------ Header: ------")
-		for key, value := range r.Header {
-			log.Debugf("%s: %v", key, value)
+func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Debugf("%v %v", r.Method, r.RequestURI)
+
+	log.Debugln("------ Header: ------")
+	for key, value := range r.Header {
+		log.Debugf("%s: %v", key, value)
+	}
+
+	skipBody := false
+	for _, s := range l.Skips {
+		if strings.HasPrefix(r.URL.Path, s) {
+			skipBody = true
+			break
 		}
+	}
+	body, _ := ioutil.ReadAll(r.Body)
+	r.Body = ioutil.NopCloser(bytes.NewReader(body))
 
-		body, _ := ioutil.ReadAll(r.Body)
-		r.Body = ioutil.NopCloser(bytes.NewReader(body))
+	log.Debugln("------ Request: ------")
+	if !skipBody && (r.Header.Get("Content-Type") == "" || r.Header.Get("Content-Type") == "application/json") {
+		log.Debugln(string(body))
+	} else {
+		log.Debugf("%d bytes of request body", len(body))
+	}
 
-		log.Debugln("------ Request: ------")
-		if !skipBody && (r.Header.Get("Content-Type") == "" || r.Header.Get("Content-Type") == "application/json") {
-			log.Debugln(string(body))
-		} else {
-			log.Debugf("%d bytes of request body", len(body))
-		}
+	rlogger := &responseLogger{w: w}
+	l.Next.ServeHTTP(rlogger, r)
 
-		rlogger := &responseLogger{w: w}
-		next.ServeHTTP(rlogger, r)
-
-		log.Debugln("------ Response: ------")
-		if !skipBody && (w.Header().Get("Content-Type") == "" || w.Header().Get("Content-Type") == "application/json") {
-			log.Debugln(rlogger.String())
-		} else {
-			log.Debugf("%d bytes of response body", len(rlogger.String()))
-		}
-	})
+	log.Debugln("------ Response: ------")
+	if !skipBody && (w.Header().Get("Content-Type") == "" || w.Header().Get("Content-Type") == "application/json") {
+		log.Debugln(rlogger.String())
+	} else {
+		log.Debugf("%d bytes of response body", len(rlogger.String()))
+	}
 }

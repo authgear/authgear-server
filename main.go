@@ -202,6 +202,17 @@ func main() {
 		finalMux = serveMux
 	}
 
+	if config.LOG.Level == "debug" {
+		finalMux = &router.LoggingMiddleware{
+			Skips: []string{
+				"/files/",
+				"/_/pubsub/",
+				"/pubsub/",
+			},
+			Next: finalMux,
+		}
+	}
+
 	// Bootstrap finished, starting services
 	cronjob.Start()
 	initPlugin(config, &initContext)
