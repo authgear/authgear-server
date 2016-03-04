@@ -70,8 +70,9 @@ type ACLLevel string
 
 // ReadLevel and WriteLevel is self-explanatory
 const (
-	ReadLevel  ACLLevel = "read"
-	WriteLevel          = "write"
+	ReadLevel   ACLLevel = "read"
+	WriteLevel           = "write"
+	CreateLevel          = "level"
 )
 
 // NewRecordACLEntryRelation returns an ACE on relation
@@ -125,6 +126,14 @@ func NewRecordACL(entries []RecordACLEntry) RecordACL {
 		acl[i] = v
 	}
 	return acl
+}
+
+// EnumerateEachEntry enumerates each ACL Entry
+func (acl RecordACL) EnumerateEachEntry(enumerationFunc func(int, RecordACLEntry)) {
+	entries := []RecordACLEntry(acl)
+	for idx, perEntry := range entries {
+		enumerationFunc(idx, perEntry)
+	}
 }
 
 type Asset struct {

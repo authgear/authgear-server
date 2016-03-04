@@ -6,8 +6,11 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
+	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/oursky/skygear/skydb"
+	"github.com/oursky/skygear/skyerr"
+	"github.com/oursky/skygear/utils"
 )
 
 func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) error {
@@ -27,7 +30,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 		if !ok {
 			updatingSchema[key] = schema
 		} else if isConflict(remoteSchema, schema) {
-			return fmt.Errorf("conflicting schema %s => %s", remoteSchema, schema)
+			return fmt.Errorf("conflicting schema %v => %v", remoteSchema, schema)
 		}
 
 		// same data type, do nothing
@@ -80,8 +83,8 @@ func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 	schemaName := db.schemaName()
 
 	rows, err := db.c.Queryx(`
-	SELECT table_name 
-	FROM information_schema.tables 
+	SELECT table_name
+	FROM information_schema.tables
 	WHERE (table_name NOT LIKE '\_%') AND (table_schema=$1)
 	`, schemaName)
 	if err != nil {
@@ -106,6 +109,111 @@ func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 	log.Debugf("GetRecordSchemas Success")
 
 	return result, nil
+}
+
+func (db *database) SetRecordCreationAccess(recordType string, acl skydb.RecordACL) error {
+	creationRoles := []string{}
+	acl.EnumerateEachEntry(func(idx int, ace skydb.RecordACLEntry) {
+		if ace.Role != "" {
+			creationRoles = append(creationRoles, ace.Role)
+		}
+	})
+
+	_, err := db.c.ensureRole(creationRoles)
+	if err != nil {
+		return err
+	}
+
+	currentCreationRoles, err := db.getRecordCreationAccess(recordType)
+	if err != nil {
+		return err
+	}
+
+	rolesToDelete := utils.StringSliceExcept(currentCreationRoles, creationRoles)
+	rolesToAdd := utils.StringSliceExcept(creationRoles, currentCreationRoles)
+
+	err = db.deleteRecordCreationAccess(recordType, rolesToDelete)
+	if err != nil {
+		return err
+	}
+
+	err = db.insertRecordCreationAccess(recordType, rolesToAdd)
+
+	return err
+}
+
+func (db *database) getRecordCreationAccess(recordType string) ([]string, error) {
+	c := db.c
+	builder := psql.
+		Select("role_id").
+		From(c.tableName("_record_creation")).
+		Where(sq.Eq{"record_type": recordType}).
+		Join(fmt.Sprintf("%s ON %s.role_id = id",
+		c.tableName("_role"),
+		c.tableName("_record_creation")))
+
+	rows, err := db.c.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	currentCreationRoles := []string{}
+	for rows.Next() {
+		roleStr := ""
+		if err := rows.Scan(&roleStr); err != nil {
+			return nil, err
+		}
+		currentCreationRoles = append(currentCreationRoles, roleStr)
+	}
+
+	return currentCreationRoles, nil
+}
+
+func (db *database) deleteRecordCreationAccess(recordType string, roles []string) error {
+	if len(roles) == 0 {
+		return nil
+	}
+
+	c := db.c
+	roleArgs := make([]interface{}, len(roles))
+	for idx, perRole := range roles {
+		roleArgs[idx] = interface{}(perRole)
+	}
+
+	builder := psql.
+		Delete(c.tableName("_record_creation")).
+		Where("role_id IN ("+sq.Placeholders(len(roles))+")", roleArgs...)
+
+	_, err := c.ExecWith(builder)
+	return err
+}
+
+func (db *database) insertRecordCreationAccess(recordType string, roles []string) error {
+	if len(roles) == 0 {
+		return nil
+	}
+
+	c := db.c
+	for _, perRole := range roles {
+		builder := psql.
+			Insert(c.tableName("_record_creation")).
+			Columns("record_type", "role_id").
+			Values(recordType, perRole)
+
+		_, err := c.ExecWith(builder)
+		if isForienKeyViolated(err) {
+			return skyerr.NewError(skyerr.ConstraintViolated,
+				fmt.Sprintf("Does not have role %s", perRole))
+		} else if isUniqueViolated(err) {
+			return skyerr.NewError(skyerr.Duplicated,
+				fmt.Sprintf("Role %s is already have creation access for Record %s",
+					perRole, recordType))
+		}
+	}
+
+	return nil
 }
 
 func (db *database) createTable(recordType string) (err error) {

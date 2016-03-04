@@ -43,7 +43,6 @@ func isUndefinedTable(err error) bool {
 	}
 
 	return false
-
 }
 
 func isNetworkError(err error) bool {

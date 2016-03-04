@@ -98,6 +98,9 @@ type Database interface {
 	// FetchRecordTypes returns a list of all existing record type
 	GetRecordSchemas() (map[string]RecordSchema, error)
 
+	// SetRecordCreationAccess sets record creation access
+	SetRecordCreationAccess(recordType string, acl RecordACL) error
+
 	GetSubscription(key string, deviceID string, subscription *Subscription) error
 	SaveSubscription(subscription *Subscription) error
 	DeleteSubscription(key string, deviceID string) error
