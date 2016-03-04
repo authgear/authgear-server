@@ -171,6 +171,8 @@ func main() {
 	r.Map("schema:create", injector.Inject(&handler.SchemaCreateHandler{}))
 	r.Map("schema:fetch", injector.Inject(&handler.SchemaFetchHandler{}))
 
+	serveMux.Handle("/", r)
+
 	// Following section is for Gateway
 	pubSub := pubsub.NewWsPubsub(nil)
 	pubSubGateway := router.NewGateway("", "/pubsub", serveMux)
@@ -190,15 +192,22 @@ func main() {
 
 	corsHost := config.App.CORSHost
 
-	serveMux.Handle("/", router.CORSMiddleware(
-		router.LoggingMiddleware(r, false), corsHost))
+	var finalMux http.Handler
+	if corsHost != "" {
+		finalMux = &router.CORSMiddleware{
+			Origin: corsHost,
+			Next:   serveMux,
+		}
+	} else {
+		finalMux = serveMux
+	}
 
 	// Bootstrap finished, starting services
 	cronjob.Start()
 	initPlugin(config, &initContext)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
-	err := http.ListenAndServe(config.HTTP.Host, serveMux)
+	err := http.ListenAndServe(config.HTTP.Host, finalMux)
 	if err != nil {
 		log.Printf("Failed: %v", err)
 	}
