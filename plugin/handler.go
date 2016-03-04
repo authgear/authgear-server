@@ -15,7 +15,7 @@ type pluginRequestPayload struct {
 	Body   []byte              `json:"body"`
 }
 
-type PluginHandler struct {
+type Handler struct {
 	Plugin            *Plugin
 	Name              string
 	AccessKeyRequired bool
@@ -24,8 +24,8 @@ type PluginHandler struct {
 	preprocessors     []router.Processor
 }
 
-func NewPluginHandler(info pluginHandlerInfo, ppreg router.PreprocessorRegistry, p *Plugin) *PluginHandler {
-	handler := &PluginHandler{
+func NewPluginHandler(info pluginHandlerInfo, ppreg router.PreprocessorRegistry, p *Plugin) *Handler {
+	handler := &Handler{
 		Plugin:            p,
 		Name:              info.Name,
 		AccessKeyRequired: info.KeyRequired,
@@ -35,7 +35,7 @@ func NewPluginHandler(info pluginHandlerInfo, ppreg router.PreprocessorRegistry,
 	return handler
 }
 
-func (h *PluginHandler) Setup() {
+func (h *Handler) Setup() {
 	if h.UserRequired {
 		h.preprocessors = h.PreprocessorList.GetByNames(
 			"plugin", "authenticator", "dbconn", "inject_user", "require_user")
@@ -47,12 +47,12 @@ func (h *PluginHandler) Setup() {
 	}
 }
 
-func (h *PluginHandler) GetPreprocessors() []router.Processor {
+func (h *Handler) GetPreprocessors() []router.Processor {
 	return h.preprocessors
 }
 
 // Handle executes lambda function implemented by the plugin.
-func (h *PluginHandler) Handle(payload *router.Payload, response *router.Response) {
+func (h *Handler) Handle(payload *router.Payload, response *router.Response) {
 	body, err := ioutil.ReadAll(payload.Req.Body)
 	if err != nil {
 		panic(err)
