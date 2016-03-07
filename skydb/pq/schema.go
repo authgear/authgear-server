@@ -124,10 +124,17 @@ func (db *database) SetRecordCreationAccess(recordType string, acl skydb.RecordA
 		return err
 	}
 
-	currentCreationRoles, err := db.getRecordCreationAccess(recordType)
+	currentCreationAccess, err := db.GetRecordCreationAccess(recordType)
 	if err != nil {
 		return err
 	}
+
+	currentCreationRoles := []string{}
+	currentCreationAccess.EnumerateEachEntry(func(idx int, perACE skydb.RecordACLEntry) {
+		if perACE.Role != "" {
+			currentCreationRoles = append(currentCreationRoles, perACE.Role)
+		}
+	})
 
 	rolesToDelete := utils.StringSliceExcept(currentCreationRoles, creationRoles)
 	rolesToAdd := utils.StringSliceExcept(creationRoles, currentCreationRoles)
@@ -142,7 +149,7 @@ func (db *database) SetRecordCreationAccess(recordType string, acl skydb.RecordA
 	return err
 }
 
-func (db *database) getRecordCreationAccess(recordType string) ([]string, error) {
+func (db *database) GetRecordCreationAccess(recordType string) (skydb.RecordACL, error) {
 	c := db.c
 	builder := psql.
 		Select("role_id").
@@ -159,16 +166,17 @@ func (db *database) getRecordCreationAccess(recordType string) ([]string, error)
 
 	defer rows.Close()
 
-	currentCreationRoles := []string{}
+	currentCreationRoles := []skydb.RecordACLEntry{}
 	for rows.Next() {
 		roleStr := ""
 		if err := rows.Scan(&roleStr); err != nil {
 			return nil, err
 		}
-		currentCreationRoles = append(currentCreationRoles, roleStr)
+		currentCreationRoles = append(currentCreationRoles,
+			skydb.NewRecordACLEntryRole(roleStr, skydb.CreateLevel))
 	}
 
-	return currentCreationRoles, nil
+	return skydb.NewRecordACL(currentCreationRoles), nil
 }
 
 func (db *database) deleteRecordCreationAccess(recordType string, roles []string) error {

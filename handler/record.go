@@ -427,12 +427,30 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	db := req.Db
 	records := req.RecordsToSave
 
+	recordCreationAccessCacheMap := map[string]skydb.RecordACL{}
+
 	// fetch records
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
 	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 		var dbRecord skydb.Record
 		dbErr := db.Get(record.ID, &dbRecord)
 		if dbErr == skydb.ErrRecordNotFound {
+			creationAccess, creationAccessCached := recordCreationAccessCacheMap[record.ID.Type]
+			if creationAccessCached == false {
+				creationAccess, getErr := db.GetRecordCreationAccess(record.ID.Type)
+
+				if getErr == nil && creationAccess != nil {
+					recordCreationAccessCacheMap[record.ID.Type] = creationAccess
+				}
+			}
+
+			if creationAccess.Accessible(req.UserInfo, skydb.CreateLevel) == false {
+				return skyerr.NewError(
+					skyerr.PermissionDenied,
+					"no permission to create",
+				)
+			}
+
 			return nil
 		}
 		if !dbRecord.Accessible(req.UserInfo, skydb.WriteLevel) {

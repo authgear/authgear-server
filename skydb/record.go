@@ -136,6 +136,18 @@ func (acl RecordACL) EnumerateEachEntry(enumerationFunc func(int, RecordACLEntry
 	}
 }
 
+// Accessible checks whether provided user info has certain access level
+func (acl RecordACL) Accessible(userinfo *UserInfo, level ACLLevel) bool {
+	accessible := false
+	acl.EnumerateEachEntry(func(idx int, ace RecordACLEntry) {
+		if ace.Accessible(userinfo, level) {
+			accessible = true
+		}
+	})
+
+	return accessible
+}
+
 type Asset struct {
 	Name        string
 	ContentType string
@@ -326,12 +338,8 @@ func (r *Record) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 	if r.OwnerID == userinfo.ID {
 		return true
 	}
-	for _, ace := range r.ACL {
-		if ace.Accessible(userinfo, level) {
-			return true
-		}
-	}
-	return false
+
+	return r.ACL.Accessible(userinfo, level)
 }
 
 // RecordSchema is a mapping of record key to its value's data type or reference

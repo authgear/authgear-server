@@ -402,10 +402,10 @@ func TestExtend(t *testing.T) {
 	})
 }
 
-func TestSetRecordCreationAccess(t *testing.T) {
+func TestRecordCreationAccess(t *testing.T) {
 	var c *conn
 
-	Convey("SetRecordCreationAccess", t, func() {
+	Convey("RecordCreationAccess", t, func() {
 
 		c = getTestConn(t)
 		defer cleanupConn(t, c)
@@ -420,7 +420,7 @@ func TestSetRecordCreationAccess(t *testing.T) {
 		db.insertRecordCreationAccess("SourceCode", []string{"Developer"})
 
 		Convey("get record creation access", func() {
-			roles, err := db.getRecordCreationAccess("ProgressUpdate")
+			roles, err := db.GetRecordCreationAccess("ProgressUpdate")
 
 			So(err, ShouldBeNil)
 			So(roles, ShouldHaveLength, 1)
@@ -437,7 +437,7 @@ func TestSetRecordCreationAccess(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			roles, err := db.getRecordCreationAccess("SourceCode")
+			roles, err := db.GetRecordCreationAccess("SourceCode")
 
 			So(err, ShouldBeNil)
 			So(roles, ShouldHaveLength, 2)
@@ -455,7 +455,7 @@ func TestSetRecordCreationAccess(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			roles, err := db.getRecordCreationAccess("ProgressUpdate")
+			roles, err := db.GetRecordCreationAccess("ProgressUpdate")
 
 			So(err, ShouldBeNil)
 			So(roles, ShouldHaveLength, 2)

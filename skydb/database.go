@@ -101,6 +101,9 @@ type Database interface {
 	// SetRecordCreationAccess sets record creation access
 	SetRecordCreationAccess(recordType string, acl RecordACL) error
 
+	// GetRecordCreationAccess returns record creation access of a specific type
+	GetRecordCreationAccess(recordType string) (RecordACL, error)
+
 	GetSubscription(key string, deviceID string, subscription *Subscription) error
 	SaveSubscription(subscription *Subscription) error
 	DeleteSubscription(key string, deviceID string) error
