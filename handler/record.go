@@ -417,6 +417,58 @@ type recordModifyResponse struct {
 	DeletedRecordIDs []skydb.RecordID
 }
 
+type recordFetcher struct {
+	db                     skydb.Database
+	creationAccessCacheMap map[string]skydb.RecordACL
+}
+
+func newRecordFetcher(db skydb.Database) recordFetcher {
+	return recordFetcher{
+		db: db,
+		creationAccessCacheMap: map[string]skydb.RecordACL{},
+	}
+}
+
+func (f recordFetcher) getCreationAccess(recordType string) skydb.RecordACL {
+	creationAccess, creationAccessCached := f.creationAccessCacheMap[recordType]
+	if creationAccessCached == false {
+		var err error
+		creationAccess, err = f.db.GetRecordCreationAccess(recordType)
+
+		if err == nil && creationAccess != nil {
+			f.creationAccessCacheMap[recordType] = creationAccess
+		}
+	}
+
+	return creationAccess
+}
+
+func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo) (record *skydb.Record, err skyerr.Error) {
+	dbRecord := skydb.Record{}
+	if f.db.Get(recordID, &dbRecord) == skydb.ErrRecordNotFound {
+		// new record
+		creationAccess := f.getCreationAccess(recordID.Type)
+		if !creationAccess.Accessible(userInfo, skydb.CreateLevel) {
+			err = skyerr.NewError(
+				skyerr.PermissionDenied,
+				"no permission to create",
+			)
+		}
+
+		return
+	}
+
+	record = &dbRecord
+	if !dbRecord.Accessible(userInfo, skydb.WriteLevel) {
+		err = skyerr.NewError(
+			skyerr.PermissionDenied,
+			"no permission to modify",
+		)
+	}
+
+	return
+}
+
 // recordSaveHandler iterate the record to perform the following:
 // 1. Query the db for original record
 // 2. Execute before save hooks with original record and new record
@@ -427,50 +479,24 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	db := req.Db
 	records := req.RecordsToSave
 
-	recordCreationAccessCacheMap := map[string]skydb.RecordACL{}
+	fetcher := newRecordFetcher(db)
 
 	// fetch records
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
 	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-		var dbRecord skydb.Record
-		var creationAccess skydb.RecordACL
+		dbRecord, err := fetcher.fetchOrCreateRecord(record.ID, req.UserInfo)
 
-		dbErr := db.Get(record.ID, &dbRecord)
-		if dbErr == skydb.ErrRecordNotFound {
-			var creationAccessCached bool
-			creationAccess, creationAccessCached = recordCreationAccessCacheMap[record.ID.Type]
-			if creationAccessCached == false {
-				var getErr error
-				creationAccess, getErr = db.GetRecordCreationAccess(record.ID.Type)
-
-				if getErr == nil && creationAccess != nil {
-					recordCreationAccessCacheMap[record.ID.Type] = creationAccess
-				}
-			}
-
-			if creationAccess.Accessible(req.UserInfo, skydb.CreateLevel) == false {
-				return skyerr.NewError(
-					skyerr.PermissionDenied,
-					"no permission to create",
-				)
-			}
-
-			return nil
-		}
-		if !dbRecord.Accessible(req.UserInfo, skydb.WriteLevel) {
-			return skyerr.NewError(
-				skyerr.PermissionDenied,
-				"no permission to modify",
-			)
+		if dbRecord == nil || err != nil {
+			return err
 		}
 
 		var origRecord skydb.Record
-		copyRecord(&origRecord, &dbRecord)
+		copyRecord(&origRecord, dbRecord)
 		injectSigner(&origRecord, req.AssetStore)
 		originalRecordMap[origRecord.ID] = &origRecord
 
-		mergeRecord(&dbRecord, record)
-		*record = dbRecord
+		mergeRecord(dbRecord, record)
+		*record = *dbRecord
 
 		return
 	})
