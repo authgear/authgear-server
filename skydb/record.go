@@ -138,6 +138,11 @@ func (acl RecordACL) EnumerateEachEntry(enumerationFunc func(int, RecordACLEntry
 
 // Accessible checks whether provided user info has certain access level
 func (acl RecordACL) Accessible(userinfo *UserInfo, level ACLLevel) bool {
+	if len(acl) == 0 {
+		// default behavior of empty ACL
+		return true
+	}
+
 	accessible := false
 	acl.EnumerateEachEntry(func(idx int, ace RecordACLEntry) {
 		if ace.Accessible(userinfo, level) {

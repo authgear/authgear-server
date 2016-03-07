@@ -92,7 +92,7 @@ type Database interface {
 	// DeleteSchema removes a column of the Database record schema
 	DeleteSchema(recordType, columnName string) error
 
-	// FetchSchema returns the record schema of a record type
+	// GetSchema returns the record schema of a record type
 	GetSchema(recordType string) (RecordSchema, error)
 
 	// FetchRecordTypes returns a list of all existing record type

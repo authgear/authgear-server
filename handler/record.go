@@ -433,11 +433,15 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
 	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 		var dbRecord skydb.Record
+		var creationAccess skydb.RecordACL
+
 		dbErr := db.Get(record.ID, &dbRecord)
 		if dbErr == skydb.ErrRecordNotFound {
-			creationAccess, creationAccessCached := recordCreationAccessCacheMap[record.ID.Type]
+			var creationAccessCached bool
+			creationAccess, creationAccessCached = recordCreationAccessCacheMap[record.ID.Type]
 			if creationAccessCached == false {
-				creationAccess, getErr := db.GetRecordCreationAccess(record.ID.Type)
+				var getErr error
+				creationAccess, getErr = db.GetRecordCreationAccess(record.ID.Type)
 
 				if getErr == nil && creationAccess != nil {
 					recordCreationAccessCacheMap[record.ID.Type] = creationAccess

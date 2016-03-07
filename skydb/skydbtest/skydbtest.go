@@ -222,20 +222,27 @@ type SubscriptionMap map[string]skydb.Subscription
 // RecordSchemaMap is a string=>RecordSchema map
 type RecordSchemaMap map[string]skydb.RecordSchema
 
+// RecordCreationAccessMap is a string=>RecordACL map
+type RecordCreationAccessMap map[string]skydb.RecordACL
+
+//recordType string, acl RecordACL
+
 // MapDB is a naive memory implementation of skydb.Database.
 type MapDB struct {
-	RecordMap       RecordMap
-	SubscriptionMap SubscriptionMap
-	RecordSchemaMap RecordSchemaMap
+	RecordMap               RecordMap
+	SubscriptionMap         SubscriptionMap
+	RecordSchemaMap         RecordSchemaMap
+	RecordCreationAccessMap RecordCreationAccessMap
 	skydb.Database
 }
 
 // NewMapDB returns a new MapDB ready for use.
 func NewMapDB() *MapDB {
 	return &MapDB{
-		RecordMap:       RecordMap{},
-		SubscriptionMap: SubscriptionMap{},
-		RecordSchemaMap: RecordSchemaMap{},
+		RecordMap:               RecordMap{},
+		SubscriptionMap:         SubscriptionMap{},
+		RecordSchemaMap:         RecordSchemaMap{},
+		RecordCreationAccessMap: RecordCreationAccessMap{},
 	}
 }
 
@@ -330,6 +337,7 @@ func (db *MapDB) DeleteSchema(recordType, columnName string) error {
 	return nil
 }
 
+// GetSchema returns the record schema of a record type
 func (db *MapDB) GetSchema(recordType string) (skydb.RecordSchema, error) {
 	if _, ok := db.RecordSchemaMap[recordType]; !ok {
 		return nil, fmt.Errorf("record type %s does not exist", recordType)
@@ -337,6 +345,7 @@ func (db *MapDB) GetSchema(recordType string) (skydb.RecordSchema, error) {
 	return db.RecordSchemaMap[recordType], nil
 }
 
+// GetRecordSchemas returns a list of all existing record type
 func (db *MapDB) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 	return db.RecordSchemaMap, nil
 }
@@ -366,6 +375,22 @@ func (db *MapDB) DeleteSubscription(name string, deviceID string) error {
 	}
 	delete(db.SubscriptionMap, key)
 	return nil
+}
+
+// SetRecordCreationAccess sets record creation access
+func (db *MapDB) SetRecordCreationAccess(recordType string, acl skydb.RecordACL) error {
+	db.RecordCreationAccessMap[recordType] = acl
+	return nil
+}
+
+// GetRecordCreationAccess returns record creation access of a specific type
+func (db *MapDB) GetRecordCreationAccess(recordType string) (skydb.RecordACL, error) {
+	acl, gotIt := db.RecordCreationAccessMap[recordType]
+	if !gotIt {
+		acl = skydb.NewRecordACL([]skydb.RecordACLEntry{})
+	}
+
+	return acl, nil
 }
 
 // MockTxDatabase implements and records TxDatabase's methods and delegates other

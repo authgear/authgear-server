@@ -418,6 +418,21 @@ func (_mr *_MockDatabaseRecorder) GetSchema(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSchema", arg0)
 }
 
+func (_m *MockDatabase) SetRecordCreationAccess(_param0 string, _param1 skydb.RecordACL) error {
+	ret := _m.ctrl.Call(_m, "SetRecordCreationAccess", _param0, _param1)
+	ret0, _ := ret[0].(error)
+
+	return ret0
+}
+
+func (_m *MockDatabase) GetRecordCreationAccess(_param0 string) (skydb.RecordACL, error) {
+	ret := _m.ctrl.Call(_m, "GetRecordCreationAccess", _param0)
+	ret0, _ := ret[0].(skydb.RecordACL)
+	ret1, _ := ret[1].(error)
+
+	return ret0, ret1
+}
+
 func (_m *MockDatabase) GetSubscription(_param0 string, _param1 string, _param2 *skydb.Subscription) error {
 	ret := _m.ctrl.Call(_m, "GetSubscription", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)

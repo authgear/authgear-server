@@ -420,11 +420,11 @@ func TestRecordCreationAccess(t *testing.T) {
 		db.insertRecordCreationAccess("SourceCode", []string{"Developer"})
 
 		Convey("get record creation access", func() {
-			roles, err := db.GetRecordCreationAccess("ProgressUpdate")
+			access, err := db.GetRecordCreationAccess("ProgressUpdate")
 
 			So(err, ShouldBeNil)
-			So(roles, ShouldHaveLength, 1)
-			So(roles, ShouldContain, "ProjectManager")
+			So(access, ShouldHaveLength, 1)
+			So(access[0].Role, ShouldEqual, "ProjectManager")
 		})
 
 		Convey("set creation access", func() {
@@ -437,10 +437,18 @@ func TestRecordCreationAccess(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			roles, err := db.GetRecordCreationAccess("SourceCode")
+			access, err := db.GetRecordCreationAccess("SourceCode")
 
 			So(err, ShouldBeNil)
-			So(roles, ShouldHaveLength, 2)
+			So(access, ShouldHaveLength, 2)
+
+			roles := []string{}
+			access.EnumerateEachEntry(func(idx int, ace skydb.RecordACLEntry) {
+				if ace.Role != "" {
+					roles = append(roles, ace.Role)
+				}
+			})
+
 			So(roles, ShouldContain, "Developer")
 			So(roles, ShouldContain, "Tester")
 		})
@@ -455,10 +463,18 @@ func TestRecordCreationAccess(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			roles, err := db.GetRecordCreationAccess("ProgressUpdate")
+			access, err := db.GetRecordCreationAccess("ProgressUpdate")
 
 			So(err, ShouldBeNil)
-			So(roles, ShouldHaveLength, 2)
+			So(access, ShouldHaveLength, 2)
+
+			roles := []string{}
+			access.EnumerateEachEntry(func(idx int, ace skydb.RecordACLEntry) {
+				if ace.Role != "" {
+					roles = append(roles, ace.Role)
+				}
+			})
+
 			So(roles, ShouldContain, "Developer")
 			So(roles, ShouldContain, "Tester")
 			So(roles, ShouldNotContain, "ProjectManager")

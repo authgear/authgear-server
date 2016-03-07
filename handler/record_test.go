@@ -150,12 +150,17 @@ func TestRecordSaveHandler(t *testing.T) {
 
 	Convey("RecordSaveHandler", t, func() {
 		db := skydbtest.NewMapDB()
+		db.SetRecordCreationAccess("report", skydb.NewRecordACL([]skydb.RecordACLEntry{
+			skydb.NewRecordACLEntryRole("admin", skydb.CreateLevel),
+		}))
+
 		db.Save(&skydb.Record{
 			ID: skydb.NewRecordID("note", "readonly"),
 			ACL: skydb.RecordACL{
 				skydb.NewRecordACLEntryDirect("user0", skydb.ReadLevel),
 			},
 		})
+
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.Database = db
 			payload.UserInfo = &skydb.UserInfo{
@@ -195,6 +200,27 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_updated_by":"user0",
 					"_ownerID": "user0"
 				}]
+			}`)
+		})
+
+		Convey("Should not be able to create record when no permission", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "report/id1",
+					"k1": "v1",
+					"k2": "v2"
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [
+					{
+						"_id": "report/id1",
+						"_type": "error",
+						"code": 102,
+						"message": "no permission to create",
+						"name": "PermissionDenied"
+					}
+				]
 			}`)
 		})
 
@@ -489,6 +515,10 @@ func (db bogusFieldDatabase) Get(id skydb.RecordID, record *skydb.Record) error 
 
 func (db bogusFieldDatabase) Save(record *skydb.Record) error {
 	return db.SaveFunc(record)
+}
+
+func (db bogusFieldDatabase) GetRecordCreationAccess(recordType string) (skydb.RecordACL, error) {
+	return skydb.NewRecordACL([]skydb.RecordACLEntry{}), nil
 }
 
 func TestRecordSaveBogusField(t *testing.T) {
