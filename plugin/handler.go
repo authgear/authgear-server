@@ -15,6 +15,21 @@ type pluginRequestPayload struct {
 	Body   []byte              `json:"body"`
 }
 
+func (payload *pluginRequestPayload) Decode(input []byte) skyerr.Error {
+	if err := json.Unmarshal(input, &payload); err != nil {
+		return skyerr.NewError(
+			skyerr.UnexpectedError,
+			"plugin resposne malformat: "+err.Error(),
+		)
+	}
+	return nil
+}
+
+func (payload *pluginRequestPayload) Encode() ([]byte, error) {
+	return json.Marshal(payload)
+
+}
+
 type Handler struct {
 	Plugin            *Plugin
 	Name              string
@@ -61,7 +76,7 @@ func (h *Handler) Handle(payload *router.Payload, response *router.Response) {
 		Header: payload.Req.Header,
 		Body:   body,
 	}
-	inbytes, err := json.Marshal(wholeRequest)
+	inbytes, err := wholeRequest.Encode()
 	if err != nil {
 		panic(err)
 	}
@@ -81,5 +96,11 @@ func (h *Handler) Handle(payload *router.Payload, response *router.Response) {
 		}
 		return
 	}
-	response.Write(outbytes)
+	responsePayload := &pluginRequestPayload{}
+	if err := responsePayload.Decode(outbytes); err != nil {
+		response.Err = err
+	}
+
+	response.Meta = responsePayload.Header
+	response.Write(responsePayload.Body)
 }

@@ -113,12 +113,12 @@ func (p *Payload) AccessToken() string {
 
 // Response is interface for handler to write response to router
 type Response struct {
-	Meta       map[string]interface{} `json:"-"`
-	Info       interface{}            `json:"info,omitempty"`
-	Result     interface{}            `json:"result,omitempty"`
-	Err        skyerr.Error           `json:"error,omitempty"`
-	RequestID  string                 `json:"request_id,omitempty"`
-	DatabaseID string                 `json:"database_id,omitempty"`
+	Meta       map[string][]string `json:"-"`
+	Info       interface{}         `json:"info,omitempty"`
+	Result     interface{}         `json:"result,omitempty"`
+	Err        skyerr.Error        `json:"error,omitempty"`
+	RequestID  string              `json:"request_id,omitempty"`
+	DatabaseID string              `json:"database_id,omitempty"`
 	written    bool
 	hijacked   bool
 	writer     http.ResponseWriter
@@ -143,6 +143,11 @@ func (resp *Response) Hijack() (c net.Conn, w *bufio.ReadWriter, e error) {
 
 // Write writes raw bytes as response to a request.
 func (resp *Response) Write(b []byte) (int, error) {
+	for key, values := range resp.Meta {
+		for _, value := range values {
+			resp.writer.Header().Add(key, value)
+		}
+	}
 	resp.written = true
 	return resp.writer.Write(b)
 }
