@@ -11,8 +11,11 @@ import (
 )
 
 type pluginRequestPayload struct {
-	Header map[string][]string `json:"header"`
-	Body   []byte              `json:"body"`
+	Method      string              `json:"method,omitempty"`
+	Header      map[string][]string `json:"header"`
+	Body        []byte              `json:"body"`
+	Path        string              `json:"path,omitempty"`
+	QueryString string              `json:"query_string,omitempty"`
 }
 
 func (payload *pluginRequestPayload) Decode(input []byte) skyerr.Error {
@@ -27,7 +30,6 @@ func (payload *pluginRequestPayload) Decode(input []byte) skyerr.Error {
 
 func (payload *pluginRequestPayload) Encode() ([]byte, error) {
 	return json.Marshal(payload)
-
 }
 
 type Handler struct {
@@ -73,8 +75,11 @@ func (h *Handler) Handle(payload *router.Payload, response *router.Response) {
 		panic(err)
 	}
 	wholeRequest := &pluginRequestPayload{
-		Header: payload.Req.Header,
-		Body:   body,
+		Method:      payload.Req.Method,
+		Path:        payload.Req.URL.Path,
+		QueryString: payload.Req.URL.RawQuery,
+		Header:      payload.Req.Header,
+		Body:        body,
 	}
 	inbytes, err := wholeRequest.Encode()
 	if err != nil {

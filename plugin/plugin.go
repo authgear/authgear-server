@@ -22,10 +22,11 @@ type Plugin struct {
 }
 
 type pluginHandlerInfo struct {
-	AuthRequired bool   `json:"auth_required"`
-	Name         string `json:"name"`
-	KeyRequired  bool   `json:"key_required"`
-	UserRequired bool   `json:"user_required"`
+	AuthRequired bool     `json:"auth_required"`
+	Name         string   `json:"name"`
+	Method       []string `json:"method"`
+	KeyRequired  bool     `json:"key_required"`
+	UserRequired bool     `json:"user_required"`
 }
 
 type pluginHookInfo struct {
@@ -166,7 +167,17 @@ func (p *Plugin) initHandler(mux *http.ServeMux, ppreg router.PreprocessorRegist
 			name = "/" + name
 		}
 		handlerGateway := router.NewGateway("", name, mux)
-		handlerGateway.POST(h)
+		for _, method := range handler.Method {
+			if method == "GET" {
+				handlerGateway.GET(h)
+			}
+			if method == "POST" {
+				handlerGateway.POST(h)
+			}
+			if method == "PUT" {
+				handlerGateway.PUT(h)
+			}
+		}
 		log.Debugf(`Registered handler "%s" with serveMux at path "%s"`, h.Name, name)
 	}
 }
