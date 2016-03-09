@@ -674,11 +674,11 @@ func TestSchemaAccessPayload(t *testing.T) {
 			So(payload.Validate(), ShouldBeNil)
 
 			roleNames := []string{}
-			payload.ACL.EnumerateEachEntry(func(idx int, perACE skydb.RecordACLEntry) {
+			for _, perACE := range payload.ACL {
 				if perACE.Role != "" {
 					roleNames = append(roleNames, perACE.Role)
 				}
-			})
+			}
 
 			So(roleNames, ShouldContain, "Admin")
 			So(roleNames, ShouldContain, "Writer")
@@ -744,11 +744,11 @@ func TestSchemaAccessHandler(t *testing.T) {
 		So(mockDB.recordType, ShouldEqual, "script")
 
 		roleNames := []string{}
-		mockDB.acl.EnumerateEachEntry(func(idx int, perACE skydb.RecordACLEntry) {
+		for _, perACE := range mockDB.acl {
 			if perACE.Role != "" {
 				roleNames = append(roleNames, perACE.Role)
 			}
-		})
+		}
 
 		So(roleNames, ShouldContain, "Admin")
 		So(roleNames, ShouldContain, "Writer")

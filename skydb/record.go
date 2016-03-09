@@ -128,14 +128,6 @@ func NewRecordACL(entries []RecordACLEntry) RecordACL {
 	return acl
 }
 
-// EnumerateEachEntry enumerates each ACL Entry
-func (acl RecordACL) EnumerateEachEntry(enumerationFunc func(int, RecordACLEntry)) {
-	entries := []RecordACLEntry(acl)
-	for idx, perEntry := range entries {
-		enumerationFunc(idx, perEntry)
-	}
-}
-
 // Accessible checks whether provided user info has certain access level
 func (acl RecordACL) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 	if len(acl) == 0 {
@@ -144,11 +136,11 @@ func (acl RecordACL) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 	}
 
 	accessible := false
-	acl.EnumerateEachEntry(func(idx int, ace RecordACLEntry) {
+	for _, ace := range acl {
 		if ace.Accessible(userinfo, level) {
 			accessible = true
 		}
-	})
+	}
 
 	return accessible
 }

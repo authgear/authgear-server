@@ -443,11 +443,11 @@ func TestRecordCreationAccess(t *testing.T) {
 			So(access, ShouldHaveLength, 2)
 
 			roles := []string{}
-			access.EnumerateEachEntry(func(idx int, ace skydb.RecordACLEntry) {
+			for _, ace := range access {
 				if ace.Role != "" {
 					roles = append(roles, ace.Role)
 				}
-			})
+			}
 
 			So(roles, ShouldContain, "Developer")
 			So(roles, ShouldContain, "Tester")
@@ -469,11 +469,11 @@ func TestRecordCreationAccess(t *testing.T) {
 			So(access, ShouldHaveLength, 2)
 
 			roles := []string{}
-			access.EnumerateEachEntry(func(idx int, ace skydb.RecordACLEntry) {
+			for _, ace := range access {
 				if ace.Role != "" {
 					roles = append(roles, ace.Role)
 				}
-			})
+			}
 
 			So(roles, ShouldContain, "Developer")
 			So(roles, ShouldContain, "Tester")

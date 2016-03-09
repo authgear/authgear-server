@@ -113,11 +113,11 @@ func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 
 func (db *database) SetRecordCreationAccess(recordType string, acl skydb.RecordACL) error {
 	creationRoles := []string{}
-	acl.EnumerateEachEntry(func(idx int, ace skydb.RecordACLEntry) {
+	for _, ace := range acl {
 		if ace.Role != "" {
 			creationRoles = append(creationRoles, ace.Role)
 		}
-	})
+	}
 
 	_, err := db.c.ensureRole(creationRoles)
 	if err != nil {
@@ -130,11 +130,11 @@ func (db *database) SetRecordCreationAccess(recordType string, acl skydb.RecordA
 	}
 
 	currentCreationRoles := []string{}
-	currentCreationAccess.EnumerateEachEntry(func(idx int, perACE skydb.RecordACLEntry) {
+	for _, perACE := range currentCreationAccess {
 		if perACE.Role != "" {
 			currentCreationRoles = append(currentCreationRoles, perACE.Role)
 		}
-	})
+	}
 
 	rolesToDelete := utils.StringSliceExcept(currentCreationRoles, creationRoles)
 	rolesToAdd := utils.StringSliceExcept(creationRoles, currentCreationRoles)
