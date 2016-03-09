@@ -1,3 +1,10 @@
+## 0.8.0 (2016-03-09)
+
+### Features
+
+- Add HTTP path routingto router #90
+- Support quickstart example with plugin deploy
+
 ## 0.7.0 (2016-03-02)
 
 ### Features
