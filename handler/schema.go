@@ -406,7 +406,7 @@ curl -X POST -H "Content-Type: application/json" \
 {
 	"master_key": "MASTER_KEY",
 	"action": "schema:access",
-  "type": "note",
+	"type": "note",
 	"create_roles": [
 		"admin",
 		"writer"
@@ -422,14 +422,14 @@ type SchemaAccessHandler struct {
 }
 
 type schemaAccessPayload struct {
-	Type           string   `mapstructure:"type" json:"type"`
-	RawCreateRoles []string `mapstructure:"create_roles" json:"create_roles"`
+	Type           string   `mapstructure:"type"`
+	RawCreateRoles []string `mapstructure:"create_roles"`
 	ACL            skydb.RecordACL
 }
 
 type schemaAccessResponse struct {
-	Type        string   `mapstructure:"type" json:"type"`
-	CreateRoles []string `mapstructure:"create_roles" json:"create_roles,omitempty"`
+	Type        string   `json:"type"`
+	CreateRoles []string `json:"create_roles,omitempty"`
 }
 
 func (h *SchemaAccessHandler) Setup() {

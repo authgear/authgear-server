@@ -72,7 +72,7 @@ type ACLLevel string
 const (
 	ReadLevel   ACLLevel = "read"
 	WriteLevel           = "write"
-	CreateLevel          = "level"
+	CreateLevel          = "create"
 )
 
 // NewRecordACLEntryRelation returns an ACE on relation
