@@ -710,21 +710,35 @@ func TestSchemaAccessPayload(t *testing.T) {
 }
 
 type mockSchemaAccessDatabase struct {
-	skydb.Database
+	DBConn skydb.Conn
 
-	recordType string
-	acl        skydb.RecordACL
+	skydb.Database
 }
 
-func (db *mockSchemaAccessDatabase) SetRecordCreationAccess(recordType string, acl skydb.RecordACL) error {
-	db.recordType = recordType
-	db.acl = acl
+func (db *mockSchemaAccessDatabase) Conn() skydb.Conn {
+	return db.DBConn
+}
+
+type mockSchemaAccessDatabaseConnection struct {
+	recordType string
+	acl        skydb.RecordACL
+
+	skydb.Conn
+}
+
+func (c *mockSchemaAccessDatabaseConnection) SetRecordAccess(recordType string, acl skydb.RecordACL) error {
+	c.recordType = recordType
+	c.acl = acl
+
 	return nil
 }
 
 func TestSchemaAccessHandler(t *testing.T) {
 	Convey("TestSchemaAccessHandler", t, func() {
+		mockConn := &mockSchemaAccessDatabaseConnection{}
 		mockDB := &mockSchemaAccessDatabase{}
+		mockDB.DBConn = mockConn
+
 		handler := handlertest.NewSingleRouteRouter(&SchemaAccessHandler{}, func(p *router.Payload) {
 			p.Database = mockDB
 		})
@@ -741,10 +755,10 @@ func TestSchemaAccessHandler(t *testing.T) {
 			}
 		}`)
 
-		So(mockDB.recordType, ShouldEqual, "script")
+		So(mockConn.recordType, ShouldEqual, "script")
 
 		roleNames := []string{}
-		for _, perACE := range mockDB.acl {
+		for _, perACE := range mockConn.acl {
 			if perACE.Role != "" {
 				roleNames = append(roleNames, perACE.Role)
 			}

@@ -416,11 +416,11 @@ func TestRecordCreationAccess(t *testing.T) {
 
 		// prepare some initial data
 		c.ensureRole([]string{"Developer", "Tester", "ProjectManager"})
-		db.insertRecordCreationAccess("ProgressUpdate", []string{"ProjectManager"})
-		db.insertRecordCreationAccess("SourceCode", []string{"Developer"})
+		db.c.insertRecordCreationAccess("ProgressUpdate", []string{"ProjectManager"})
+		db.c.insertRecordCreationAccess("SourceCode", []string{"Developer"})
 
 		Convey("get record creation access", func() {
-			access, err := db.GetRecordCreationAccess("ProgressUpdate")
+			access, err := db.c.GetRecordAccess("ProgressUpdate")
 
 			So(err, ShouldBeNil)
 			So(access, ShouldHaveLength, 1)
@@ -428,7 +428,7 @@ func TestRecordCreationAccess(t *testing.T) {
 		})
 
 		Convey("set creation access", func() {
-			err := db.SetRecordCreationAccess("SourceCode", skydb.NewRecordACL(
+			err := db.c.SetRecordAccess("SourceCode", skydb.NewRecordACL(
 				[]skydb.RecordACLEntry{
 					skydb.NewRecordACLEntryRole("Developer", skydb.CreateLevel),
 					skydb.NewRecordACLEntryRole("Tester", skydb.CreateLevel),
@@ -437,7 +437,7 @@ func TestRecordCreationAccess(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			access, err := db.GetRecordCreationAccess("SourceCode")
+			access, err := db.c.GetRecordAccess("SourceCode")
 
 			So(err, ShouldBeNil)
 			So(access, ShouldHaveLength, 2)
@@ -454,7 +454,7 @@ func TestRecordCreationAccess(t *testing.T) {
 		})
 
 		Convey("remove not necessary creation access", func() {
-			err := db.SetRecordCreationAccess("ProgressUpdate", skydb.NewRecordACL(
+			err := db.c.SetRecordAccess("ProgressUpdate", skydb.NewRecordACL(
 				[]skydb.RecordACLEntry{
 					skydb.NewRecordACLEntryRole("Developer", skydb.CreateLevel),
 					skydb.NewRecordACLEntryRole("Tester", skydb.CreateLevel),
@@ -463,7 +463,7 @@ func TestRecordCreationAccess(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			access, err := db.GetRecordCreationAccess("ProgressUpdate")
+			access, err := db.c.GetRecordAccess("ProgressUpdate")
 
 			So(err, ShouldBeNil)
 			So(access, ShouldHaveLength, 2)

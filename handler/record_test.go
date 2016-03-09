@@ -150,7 +150,8 @@ func TestRecordSaveHandler(t *testing.T) {
 
 	Convey("RecordSaveHandler", t, func() {
 		db := skydbtest.NewMapDB()
-		db.SetRecordCreationAccess("report", skydb.NewRecordACL([]skydb.RecordACLEntry{
+		db.DBConn = skydbtest.NewMapConn()
+		db.DBConn.SetRecordAccess("report", skydb.NewRecordACL([]skydb.RecordACLEntry{
 			skydb.NewRecordACLEntryRole("admin", skydb.CreateLevel),
 		}))
 
@@ -499,10 +500,23 @@ func TestRecordSaveDataType(t *testing.T) {
 	})
 }
 
+type bogusFieldDatabaseConnection struct {
+	skydb.Conn
+}
+
+func (db bogusFieldDatabaseConnection) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
+	return skydb.NewRecordACL([]skydb.RecordACLEntry{}), nil
+}
+
 type bogusFieldDatabase struct {
+	c        bogusFieldDatabaseConnection
 	SaveFunc func(record *skydb.Record) error
 	GetFunc  func(id skydb.RecordID, record *skydb.Record) error
 	skydb.Database
+}
+
+func (db bogusFieldDatabase) Conn() skydb.Conn {
+	return db.c
 }
 
 func (db bogusFieldDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
@@ -515,10 +529,6 @@ func (db bogusFieldDatabase) Get(id skydb.RecordID, record *skydb.Record) error 
 
 func (db bogusFieldDatabase) Save(record *skydb.Record) error {
 	return db.SaveFunc(record)
-}
-
-func (db bogusFieldDatabase) GetRecordCreationAccess(recordType string) (skydb.RecordACL, error) {
-	return skydb.NewRecordACL([]skydb.RecordACLEntry{}), nil
 }
 
 func TestRecordSaveBogusField(t *testing.T) {

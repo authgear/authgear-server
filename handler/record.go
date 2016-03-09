@@ -433,7 +433,7 @@ func (f recordFetcher) getCreationAccess(recordType string) skydb.RecordACL {
 	creationAccess, creationAccessCached := f.creationAccessCacheMap[recordType]
 	if creationAccessCached == false {
 		var err error
-		creationAccess, err = f.db.GetRecordCreationAccess(recordType)
+		creationAccess, err = f.db.Conn().GetRecordAccess(recordType)
 
 		if err == nil && creationAccess != nil {
 			f.creationAccessCacheMap[recordType] = creationAccess

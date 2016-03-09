@@ -111,7 +111,7 @@ func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 	return result, nil
 }
 
-func (db *database) SetRecordCreationAccess(recordType string, acl skydb.RecordACL) error {
+func (c *conn) SetRecordAccess(recordType string, acl skydb.RecordACL) error {
 	creationRoles := []string{}
 	for _, ace := range acl {
 		if ace.Role != "" {
@@ -119,12 +119,12 @@ func (db *database) SetRecordCreationAccess(recordType string, acl skydb.RecordA
 		}
 	}
 
-	_, err := db.c.ensureRole(creationRoles)
+	_, err := c.ensureRole(creationRoles)
 	if err != nil {
 		return err
 	}
 
-	currentCreationAccess, err := db.GetRecordCreationAccess(recordType)
+	currentCreationAccess, err := c.GetRecordAccess(recordType)
 	if err != nil {
 		return err
 	}
@@ -139,18 +139,17 @@ func (db *database) SetRecordCreationAccess(recordType string, acl skydb.RecordA
 	rolesToDelete := utils.StringSliceExcept(currentCreationRoles, creationRoles)
 	rolesToAdd := utils.StringSliceExcept(creationRoles, currentCreationRoles)
 
-	err = db.deleteRecordCreationAccess(recordType, rolesToDelete)
+	err = c.deleteRecordCreationAccess(recordType, rolesToDelete)
 	if err != nil {
 		return err
 	}
 
-	err = db.insertRecordCreationAccess(recordType, rolesToAdd)
+	err = c.insertRecordCreationAccess(recordType, rolesToAdd)
 
 	return err
 }
 
-func (db *database) GetRecordCreationAccess(recordType string) (skydb.RecordACL, error) {
-	c := db.c
+func (c *conn) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
 	builder := psql.
 		Select("role_id").
 		From(c.tableName("_record_creation")).
@@ -159,7 +158,7 @@ func (db *database) GetRecordCreationAccess(recordType string) (skydb.RecordACL,
 		c.tableName("_role"),
 		c.tableName("_record_creation")))
 
-	rows, err := db.c.QueryWith(builder)
+	rows, err := c.QueryWith(builder)
 	if err != nil {
 		return nil, err
 	}
@@ -179,12 +178,10 @@ func (db *database) GetRecordCreationAccess(recordType string) (skydb.RecordACL,
 	return skydb.NewRecordACL(currentCreationRoles), nil
 }
 
-func (db *database) deleteRecordCreationAccess(recordType string, roles []string) error {
+func (c *conn) deleteRecordCreationAccess(recordType string, roles []string) error {
 	if len(roles) == 0 {
 		return nil
 	}
-
-	c := db.c
 	roleArgs := make([]interface{}, len(roles))
 	for idx, perRole := range roles {
 		roleArgs[idx] = interface{}(perRole)
@@ -198,12 +195,11 @@ func (db *database) deleteRecordCreationAccess(recordType string, roles []string
 	return err
 }
 
-func (db *database) insertRecordCreationAccess(recordType string, roles []string) error {
+func (c *conn) insertRecordCreationAccess(recordType string, roles []string) error {
 	if len(roles) == 0 {
 		return nil
 	}
 
-	c := db.c
 	for _, perRole := range roles {
 		builder := psql.
 			Insert(c.tableName("_record_creation")).

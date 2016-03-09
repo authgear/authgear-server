@@ -449,12 +449,12 @@ func (payload *schemaAccessPayload) Decode(data map[string]interface{}) skyerr.E
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 
-	entries := []skydb.RecordACLEntry{}
+	acl := skydb.RecordACL{}
 	for _, perRoleName := range payload.RawCreateRoles {
-		entries = append(entries, skydb.NewRecordACLEntryRole(perRoleName, skydb.CreateLevel))
+		acl = append(acl, skydb.NewRecordACLEntryRole(perRoleName, skydb.CreateLevel))
 	}
 
-	payload.ACL = skydb.NewRecordACL(entries)
+	payload.ACL = acl
 
 	return payload.Validate()
 }
@@ -475,8 +475,8 @@ func (h *SchemaAccessHandler) Handle(rpayload *router.Payload, response *router.
 		return
 	}
 
-	db := rpayload.Database
-	err := db.SetRecordCreationAccess(payload.Type, payload.ACL)
+	c := rpayload.Database.Conn()
+	err := c.SetRecordAccess(payload.Type, payload.ACL)
 
 	if err != nil {
 		if skyErr, isSkyErr := err.(skyerr.Error); isSkyErr {

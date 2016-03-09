@@ -90,6 +90,12 @@ type Conn interface {
 	// to newly created user CreateUser
 	SetDefaultRoles(roles []string) error
 
+	// SetRecordAccess sets record access
+	SetRecordAccess(recordType string, acl RecordACL) error
+
+	// GetRecordAccess returns record creation access of a specific type
+	GetRecordAccess(recordType string) (RecordACL, error)
+
 	// GetAsset retrieves Asset information by its name
 	GetAsset(name string, asset *Asset) error
 
