@@ -11,22 +11,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type fakeTransport struct {
-	nullTransport
-	outBytes []byte
-	outErr   error
-}
-
-func (t *fakeTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
-	t.lastContext = ctx
-	if t.outErr == nil {
-		out = t.outBytes
-	} else {
-		err = t.outErr
-	}
-	return
-}
-
 func TestLambdaCreation(t *testing.T) {
 	Convey("create simple lambda", t, func() {
 		handler := NewLambdaHandler(map[string]interface{}{

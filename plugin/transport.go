@@ -73,64 +73,6 @@ type TransportFactory interface {
 	Open(path string, args []string, config skyconfig.Configuration) Transport
 }
 
-type nullTransport struct {
-	initHandler TransportInitHandler
-	lastContext context.Context
-}
-
-func (t *nullTransport) State() TransportState {
-	return TransportStateReady
-}
-
-func (t *nullTransport) SetInitHandler(f TransportInitHandler) {
-	t.initHandler = f
-}
-
-func (t *nullTransport) RequestInit() {
-	if t.initHandler != nil {
-		t.initHandler([]byte{}, nil)
-	}
-	return
-}
-func (t nullTransport) RunInit() (out []byte, err error) {
-	out = []byte{}
-	return
-}
-func (t *nullTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
-	out = in
-	t.lastContext = ctx
-	return
-}
-func (t *nullTransport) RunHandler(ctx context.Context, name string, in []byte) (out []byte, err error) {
-	out = in
-	return
-}
-func (t *nullTransport) RunHook(ctx context.Context, hookName string, reocrd *skydb.Record, oldRecord *skydb.Record) (record *skydb.Record, err error) {
-	t.lastContext = ctx
-	return
-}
-func (t *nullTransport) RunTimer(name string, in []byte) (out []byte, err error) {
-	out = in
-	return
-}
-
-func (t *nullTransport) RunProvider(request *AuthRequest) (response *AuthResponse, err error) {
-	if request.AuthData == nil {
-		request.AuthData = map[string]interface{}{}
-	}
-	response = &AuthResponse{
-		AuthData: request.AuthData,
-	}
-	return
-}
-
-type nullFactory struct {
-}
-
-func (f nullFactory) Open(path string, args []string, config skyconfig.Configuration) Transport {
-	return &nullTransport{}
-}
-
 // ContextMap returns a map of the user request context.
 func ContextMap(ctx context.Context) map[string]interface{} {
 	if ctx == nil {
