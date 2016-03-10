@@ -18,7 +18,8 @@ import (
 // Plugin represents a collection of handlers, hooks and lambda functions
 // that extends or modifies functionality provided by skygear.
 type Plugin struct {
-	transport Transport
+	transport  Transport
+	gatewayMap map[string]*router.Gateway
 }
 
 type pluginHandlerInfo struct {
@@ -80,7 +81,8 @@ func NewPlugin(name string, path string, args []string, config skyconfig.Configu
 		panic(fmt.Errorf("unable to find plugin transport '%v'", name))
 	}
 	p := Plugin{
-		transport: factory.Open(path, args, config),
+		transport:  factory.Open(path, args, config),
+		gatewayMap: map[string]*router.Gateway{},
 	}
 	return p
 }
@@ -166,7 +168,12 @@ func (p *Plugin) initHandler(mux *http.ServeMux, ppreg router.PreprocessorRegist
 		if !strings.HasPrefix(name, "/") {
 			name = "/" + name
 		}
-		handlerGateway := router.NewGateway("", name, mux)
+		var handlerGateway *router.Gateway
+		handlerGateway, ok := p.gatewayMap[name]
+		if !ok {
+			handlerGateway = router.NewGateway("", name, mux)
+			p.gatewayMap[name] = handlerGateway
+		}
 		for _, method := range handler.Method {
 			if method == "GET" {
 				handlerGateway.GET(h)
