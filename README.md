@@ -20,7 +20,7 @@ $ ./skygear development.ini
 
 Alternatively,
 ```shell
-$ `OD_CONFIG=development.ini ./skygear`
+$ `SKY_CONFIG=development.ini ./skygear`
 ```
 
 ## How to contribute
