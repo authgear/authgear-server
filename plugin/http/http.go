@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	skyplugin "github.com/oursky/skygear/plugin"
@@ -116,7 +117,15 @@ func (p *httpTransport) RunInit() (out []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return p.sendRequest(req)
+	for {
+		out, err = p.sendRequest(req)
+		if err == nil {
+			return
+		}
+		time.Sleep(time.Second)
+		log.WithField("err", err).
+			Warnf(`http: Unable to send init request to plugin "%s". Retrying...`, p.Path)
+	}
 }
 
 func (p *httpTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
