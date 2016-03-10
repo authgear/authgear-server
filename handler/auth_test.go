@@ -306,6 +306,10 @@ func (conn *singleUserConn) GetUserByPrincipalID(principalID string, userinfo *s
 	return skydb.ErrUserNotFound
 }
 
+func (conn *singleUserConn) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
+	return skydb.NewRecordACL([]skydb.RecordACLEntry{}), nil
+}
+
 func TestSignupHandlerAsAnonymous(t *testing.T) {
 	Convey("SignupHandler", t, func() {
 		tokenStore := authtokentest.SingleTokenStore{}

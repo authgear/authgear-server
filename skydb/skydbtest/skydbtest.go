@@ -262,11 +262,6 @@ func NewMapDB() *MapDB {
 	}
 }
 
-// Conn returns the parent Conn of the Database
-func (db *MapDB) Conn() skydb.Conn {
-	return db.DBConn
-}
-
 // ID returns a mock Database ID.
 func (db *MapDB) ID() string {
 	return "map-db"

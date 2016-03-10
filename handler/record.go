@@ -279,6 +279,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 
 	req := recordModifyRequest{
 		Db:            payload.Database,
+		Conn:          payload.DBConn,
 		AssetStore:    h.AssetStore,
 		HookRegistry:  h.HookRegistry,
 		UserInfo:      payload.UserInfo,
@@ -398,6 +399,7 @@ func withTransaction(txDB skydb.TxDatabase, do func() error) (err error) {
 
 type recordModifyRequest struct {
 	Db           skydb.Database
+	Conn         skydb.Conn
 	AssetStore   asset.Store
 	HookRegistry *hook.Registry
 	Atomic       bool
@@ -419,12 +421,14 @@ type recordModifyResponse struct {
 
 type recordFetcher struct {
 	db                     skydb.Database
+	conn                   skydb.Conn
 	creationAccessCacheMap map[string]skydb.RecordACL
 }
 
-func newRecordFetcher(db skydb.Database) recordFetcher {
+func newRecordFetcher(db skydb.Database, conn skydb.Conn) recordFetcher {
 	return recordFetcher{
-		db: db,
+		db:   db,
+		conn: conn,
 		creationAccessCacheMap: map[string]skydb.RecordACL{},
 	}
 }
@@ -433,7 +437,7 @@ func (f recordFetcher) getCreationAccess(recordType string) skydb.RecordACL {
 	creationAccess, creationAccessCached := f.creationAccessCacheMap[recordType]
 	if creationAccessCached == false {
 		var err error
-		creationAccess, err = f.db.Conn().GetRecordAccess(recordType)
+		creationAccess, err = f.conn.GetRecordAccess(recordType)
 
 		if err == nil && creationAccess != nil {
 			f.creationAccessCacheMap[recordType] = creationAccess
@@ -479,7 +483,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	db := req.Db
 	records := req.RecordsToSave
 
-	fetcher := newRecordFetcher(db)
+	fetcher := newRecordFetcher(db, req.Conn)
 
 	// fetch records
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
@@ -1210,6 +1214,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 
 	req := recordModifyRequest{
 		Db:                payload.Database,
+		Conn:              payload.DBConn,
 		HookRegistry:      h.HookRegistry,
 		RecordIDsToDelete: p.RecordIDs,
 		Atomic:            p.Atomic,

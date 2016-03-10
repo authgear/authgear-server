@@ -476,6 +476,7 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.UserInfo) skyerr.Err
 
 		recordReq := recordModifyRequest{
 			Db:           db,
+			Conn:         ctx.DBConn,
 			AssetStore:   ctx.AssetStore,
 			HookRegistry: ctx.HookRegistry,
 			Atomic:       false,
