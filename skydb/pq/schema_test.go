@@ -406,21 +406,16 @@ func TestRecordCreationAccess(t *testing.T) {
 	var c *conn
 
 	Convey("RecordCreationAccess", t, func() {
-
 		c = getTestConn(t)
 		defer cleanupConn(t, c)
 
-		db := database{
-			c: c,
-		}
-
 		// prepare some initial data
 		c.ensureRole([]string{"Developer", "Tester", "ProjectManager"})
-		db.c.insertRecordCreationAccess("ProgressUpdate", []string{"ProjectManager"})
-		db.c.insertRecordCreationAccess("SourceCode", []string{"Developer"})
+		c.insertRecordCreationAccess("ProgressUpdate", []string{"ProjectManager"})
+		c.insertRecordCreationAccess("SourceCode", []string{"Developer"})
 
 		Convey("get record creation access", func() {
-			access, err := db.c.GetRecordAccess("ProgressUpdate")
+			access, err := c.GetRecordAccess("ProgressUpdate")
 
 			So(err, ShouldBeNil)
 			So(access, ShouldHaveLength, 1)
@@ -428,7 +423,7 @@ func TestRecordCreationAccess(t *testing.T) {
 		})
 
 		Convey("set creation access", func() {
-			err := db.c.SetRecordAccess("SourceCode", skydb.NewRecordACL(
+			err := c.SetRecordAccess("SourceCode", skydb.NewRecordACL(
 				[]skydb.RecordACLEntry{
 					skydb.NewRecordACLEntryRole("Developer", skydb.CreateLevel),
 					skydb.NewRecordACLEntryRole("Tester", skydb.CreateLevel),
@@ -437,7 +432,7 @@ func TestRecordCreationAccess(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			access, err := db.c.GetRecordAccess("SourceCode")
+			access, err := c.GetRecordAccess("SourceCode")
 
 			So(err, ShouldBeNil)
 			So(access, ShouldHaveLength, 2)
@@ -454,7 +449,7 @@ func TestRecordCreationAccess(t *testing.T) {
 		})
 
 		Convey("remove not necessary creation access", func() {
-			err := db.c.SetRecordAccess("ProgressUpdate", skydb.NewRecordACL(
+			err := c.SetRecordAccess("ProgressUpdate", skydb.NewRecordACL(
 				[]skydb.RecordACLEntry{
 					skydb.NewRecordACLEntryRole("Developer", skydb.CreateLevel),
 					skydb.NewRecordACLEntryRole("Tester", skydb.CreateLevel),
@@ -463,7 +458,7 @@ func TestRecordCreationAccess(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			access, err := db.c.GetRecordAccess("ProgressUpdate")
+			access, err := c.GetRecordAccess("ProgressUpdate")
 
 			So(err, ShouldBeNil)
 			So(access, ShouldHaveLength, 2)
