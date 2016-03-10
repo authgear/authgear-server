@@ -11,6 +11,7 @@ import (
 )
 
 type pluginRequestPayload struct {
+	Status      int                 `json:"status"`
 	Method      string              `json:"method,omitempty"`
 	Header      map[string][]string `json:"header"`
 	Body        []byte              `json:"body"`
@@ -107,5 +108,6 @@ func (h *Handler) Handle(payload *router.Payload, response *router.Response) {
 	}
 
 	response.Meta = responsePayload.Header
+	response.WriteHeader(responsePayload.Status)
 	response.Write(responsePayload.Body)
 }
