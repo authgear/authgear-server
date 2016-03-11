@@ -25,7 +25,7 @@ type Plugin struct {
 type pluginHandlerInfo struct {
 	AuthRequired bool     `json:"auth_required"`
 	Name         string   `json:"name"`
-	Method       []string `json:"method"`
+	Methods      []string `json:"methods"`
 	KeyRequired  bool     `json:"key_required"`
 	UserRequired bool     `json:"user_required"`
 }
@@ -174,14 +174,13 @@ func (p *Plugin) initHandler(mux *http.ServeMux, ppreg router.PreprocessorRegist
 			handlerGateway = router.NewGateway("", name, mux)
 			p.gatewayMap[name] = handlerGateway
 		}
-		for _, method := range handler.Method {
-			if method == "GET" {
+		for _, method := range handler.Methods {
+			switch method {
+			case "GET":
 				handlerGateway.GET(h)
-			}
-			if method == "POST" {
+			case "POST":
 				handlerGateway.POST(h)
-			}
-			if method == "PUT" {
+			case "PUT":
 				handlerGateway.PUT(h)
 			}
 		}

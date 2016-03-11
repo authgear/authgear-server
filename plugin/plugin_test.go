@@ -76,12 +76,12 @@ func TestPlugin(t *testing.T) {
 					Name: "chima:echo",
 				},
 				pluginHandlerInfo{
-					Name:   "faseng:location",
-					Method: []string{"GET"},
+					Name:    "faseng:location",
+					Methods: []string{"GET"},
 				},
 				pluginHandlerInfo{
-					Name:   "faseng:location",
-					Method: []string{"POST", "PUT"},
+					Name:    "faseng:location",
+					Methods: []string{"POST", "PUT"},
 				},
 			})
 			So(len(plugin.gatewayMap), ShouldEqual, 2)
