@@ -52,10 +52,14 @@ func usage() {
 func main() {
 	var configPath string
 	if len(os.Args) < 2 {
-		configPath = os.Getenv("OD_CONFIG")
+		configPath = os.Getenv("SKY_CONFIG")
 		if configPath == "" {
-			usage()
-			return
+			configPath = os.Getenv("OD_CONFIG")
+			if configPath == "" {
+				usage()
+				return
+			}
+			fmt.Print("Config via OD_CONFIG will be deprecated in next version, use SKY_CONFIG\n")
 		}
 	} else {
 		configPath = os.Args[1]
