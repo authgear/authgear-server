@@ -143,8 +143,16 @@ func (p *httpTransport) RunLambda(ctx context.Context, name string, in []byte) (
 	return p.execute(req)
 }
 
-func (p *httpTransport) RunHandler(name string, in []byte) (out []byte, err error) {
-	return nil, fmt.Errorf("not implemented")
+func (p *httpTransport) RunHandler(ctx context.Context, name string, in []byte) (out []byte, err error) {
+	url := fmt.Sprintf("%s/handler/%s", p.Path, name)
+	req, err := http.NewRequest("POST", url, bytes.NewReader(in))
+	pluginCtx := skyplugin.ContextMap(ctx)
+	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("X-Skygear-Plugin-Context", encodedCtx)
+	return p.execute(req)
 }
 
 func (p *httpTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {

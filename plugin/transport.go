@@ -65,7 +65,7 @@ type Transport interface {
 	RequestInit()
 	RunInit() ([]byte, error)
 	RunLambda(ctx context.Context, name string, in []byte) ([]byte, error)
-	RunHandler(name string, in []byte) ([]byte, error)
+	RunHandler(ctx context.Context, name string, in []byte) ([]byte, error)
 
 	// RunHook runs the hook with a name recognized by plugin, passing in
 	// record as a parameter. Transport may not modify the record passed in.
@@ -75,7 +75,7 @@ type Transport interface {
 	// in any of its memebers with the record being passed in.
 	RunHook(ctx context.Context, hookName string, record *skydb.Record, oldRecord *skydb.Record) (*skydb.Record, error)
 
-	RunTimer(name string, n []byte) ([]byte, error)
+	RunTimer(name string, in []byte) ([]byte, error)
 
 	// RunProvider runs the auth provider with the specified AuthRequest.
 	RunProvider(request *AuthRequest) (*AuthResponse, error)
@@ -85,64 +85,6 @@ type Transport interface {
 // kinds of Plugin Transport.
 type TransportFactory interface {
 	Open(path string, args []string, config skyconfig.Configuration) Transport
-}
-
-type nullTransport struct {
-	initHandler TransportInitHandler
-	lastContext context.Context
-}
-
-func (t *nullTransport) State() TransportState {
-	return TransportStateReady
-}
-
-func (t *nullTransport) SetInitHandler(f TransportInitHandler) {
-	t.initHandler = f
-}
-
-func (t *nullTransport) RequestInit() {
-	if t.initHandler != nil {
-		t.initHandler([]byte{}, nil)
-	}
-	return
-}
-func (t nullTransport) RunInit() (out []byte, err error) {
-	out = []byte{}
-	return
-}
-func (t *nullTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
-	out = in
-	t.lastContext = ctx
-	return
-}
-func (t *nullTransport) RunHandler(name string, in []byte) (out []byte, err error) {
-	out = in
-	return
-}
-func (t *nullTransport) RunHook(ctx context.Context, hookName string, reocrd *skydb.Record, oldRecord *skydb.Record) (record *skydb.Record, err error) {
-	t.lastContext = ctx
-	return
-}
-func (t *nullTransport) RunTimer(name string, in []byte) (out []byte, err error) {
-	out = in
-	return
-}
-
-func (t *nullTransport) RunProvider(request *AuthRequest) (response *AuthResponse, err error) {
-	if request.AuthData == nil {
-		request.AuthData = map[string]interface{}{}
-	}
-	response = &AuthResponse{
-		AuthData: request.AuthData,
-	}
-	return
-}
-
-type nullFactory struct {
-}
-
-func (f nullFactory) Open(path string, args []string, config skyconfig.Configuration) Transport {
-	return &nullTransport{}
 }
 
 // ContextMap returns a map of the user request context.

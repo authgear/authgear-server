@@ -17,6 +17,8 @@ package plugin
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -30,11 +32,16 @@ import (
 // Plugin represents a collection of handlers, hooks and lambda functions
 // that extends or modifies functionality provided by skygear.
 type Plugin struct {
-	transport Transport
+	transport  Transport
+	gatewayMap map[string]*router.Gateway
 }
 
 type pluginHandlerInfo struct {
-	AuthRequired bool `json:"auth_required"`
+	AuthRequired bool     `json:"auth_required"`
+	Name         string   `json:"name"`
+	Methods      []string `json:"methods"`
+	KeyRequired  bool     `json:"key_required"`
+	UserRequired bool     `json:"user_required"`
 }
 
 type pluginHookInfo struct {
@@ -55,11 +62,11 @@ type providerInfo struct {
 }
 
 type registrationInfo struct {
-	Handlers  map[string]pluginHandlerInfo `json:"handler"`
-	Hooks     []pluginHookInfo             `json:"hook"`
-	Lambdas   []map[string]interface{}     `json:"op"`
-	Timers    []timerInfo                  `json:"timer"`
-	Providers []providerInfo               `json:"provider"`
+	Handlers  []pluginHandlerInfo      `json:"handler"`
+	Hooks     []pluginHookInfo         `json:"hook"`
+	Lambdas   []map[string]interface{} `json:"op"`
+	Timers    []timerInfo              `json:"timer"`
+	Providers []providerInfo           `json:"provider"`
 }
 
 var transportFactories = map[string]TransportFactory{}
@@ -88,7 +95,8 @@ func NewPlugin(name string, path string, args []string, config skyconfig.Configu
 		panic(fmt.Errorf("unable to find plugin transport '%v'", name))
 	}
 	p := Plugin{
-		transport: factory.Open(path, args, config),
+		transport:  factory.Open(path, args, config),
+		gatewayMap: map[string]*router.Gateway{},
 	}
 	return p
 }
@@ -97,6 +105,7 @@ func NewPlugin(name string, path string, args []string, config skyconfig.Configu
 type InitContext struct {
 	plugins          []*Plugin
 	Router           *router.Router
+	Mux              *http.ServeMux
 	Preprocessors    router.PreprocessorRegistry
 	HookRegistry     *hook.Registry
 	ProviderRegistry *provider.Registry
@@ -157,10 +166,40 @@ func (p *Plugin) processRegistrationInfo(context *InitContext, regInfo registrat
 		"regInfo":   regInfo,
 		"transport": p.transport,
 	}).Debugln("Got configuration from pligin, registering")
+	p.initHandler(context.Mux, context.Preprocessors, regInfo.Handlers)
 	p.initLambda(context.Router, context.Preprocessors, regInfo.Lambdas)
 	p.initHook(context.HookRegistry, regInfo.Hooks)
 	p.initTimer(context.Scheduler, regInfo.Timers)
 	p.initProvider(context.ProviderRegistry, regInfo.Providers)
+}
+
+func (p *Plugin) initHandler(mux *http.ServeMux, ppreg router.PreprocessorRegistry, handlers []pluginHandlerInfo) {
+	for _, handler := range handlers {
+		h := NewPluginHandler(handler, ppreg, p)
+		h.Setup()
+		name := h.Name
+		name = strings.Replace(name, ":", "/", -1)
+		if !strings.HasPrefix(name, "/") {
+			name = "/" + name
+		}
+		var handlerGateway *router.Gateway
+		handlerGateway, ok := p.gatewayMap[name]
+		if !ok {
+			handlerGateway = router.NewGateway("", name, mux)
+			p.gatewayMap[name] = handlerGateway
+		}
+		for _, method := range handler.Methods {
+			switch method {
+			case "GET":
+				handlerGateway.GET(h)
+			case "POST":
+				handlerGateway.POST(h)
+			case "PUT":
+				handlerGateway.PUT(h)
+			}
+		}
+		log.Debugf(`Registered handler "%s" with serveMux at path "%s"`, h.Name, name)
+	}
 }
 
 func (p *Plugin) initLambda(r *router.Router, ppreg router.PreprocessorRegistry, lambdas []map[string]interface{}) {

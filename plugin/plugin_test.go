@@ -16,11 +16,20 @@ package plugin
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
+	"net/http"
 	"testing"
 
-	"github.com/oursky/skygear/skyconfig"
 	"github.com/robfig/cron"
+
+	"github.com/oursky/skygear/router"
+	"github.com/oursky/skygear/skyconfig"
 )
+
+type MockPluginReadyPreprocessor struct{}
+
+func (p MockPluginReadyPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	return http.StatusOK
+}
 
 func TestPlugin(t *testing.T) {
 	config := skyconfig.Configuration{}
@@ -54,6 +63,45 @@ func TestPlugin(t *testing.T) {
 			})
 		}
 		So(panicFunc, ShouldPanic)
+	})
+
+	Convey("init handler", t, func() {
+		RegisterTransport("null", nullFactory{})
+		plugin := NewPlugin("null", "/tmp/nonexistent", []string{}, config)
+		Convey("init correctly with one handler", func() {
+			mux := http.NewServeMux()
+			plugin.initHandler(mux, router.PreprocessorRegistry{
+				"plugin": MockPluginReadyPreprocessor{},
+			}, []pluginHandlerInfo{
+				pluginHandlerInfo{
+					Name: "chima:echo",
+				},
+			})
+			So(len(plugin.gatewayMap), ShouldEqual, 1)
+			So(plugin.gatewayMap, ShouldContainKey, "/chima/echo")
+		})
+
+		Convey("init correctly with multiple handler", func() {
+			mux := http.NewServeMux()
+			plugin.initHandler(mux, router.PreprocessorRegistry{
+				"plugin": MockPluginReadyPreprocessor{},
+			}, []pluginHandlerInfo{
+				pluginHandlerInfo{
+					Name: "chima:echo",
+				},
+				pluginHandlerInfo{
+					Name:    "faseng:location",
+					Methods: []string{"GET"},
+				},
+				pluginHandlerInfo{
+					Name:    "faseng:location",
+					Methods: []string{"POST", "PUT"},
+				},
+			})
+			So(len(plugin.gatewayMap), ShouldEqual, 2)
+			So(plugin.gatewayMap, ShouldContainKey, "/chima/echo")
+			So(plugin.gatewayMap, ShouldContainKey, "/faseng/location")
+		})
 	})
 
 }
