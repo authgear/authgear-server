@@ -21,7 +21,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "bc5768da91b" }
+func (r *fullMigration) Version() string { return "52b88c46931" }
 
 func (r *fullMigration) Up(tx *sqlx.Tx) error {
 	const stmt = `
@@ -105,6 +105,13 @@ CREATE TABLE _follow (
 	right_id text REFERENCES _user (id) NOT NULL,
 	PRIMARY KEY(left_id, right_id)
 );
+CREATE TABLE _record_creation (
+    record_type text NOT NULL,
+    role_id text,
+    UNIQUE (record_type, role_id),
+    FOREIGN KEY (role_id) REFERENCES _role(id)
+);
+CREATE INDEX _record_creation_unique_record_type ON _record_creation (record_type);
 `
 	_, err := tx.Exec(stmt)
 	return err

@@ -233,7 +233,7 @@ func TestExtend(t *testing.T) {
 				"dirty":     skydb.FieldType{Type: skydb.TypeNumber},
 			})
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  {%!s(skydb.ExpressionType=0) <nil>}} => {TypeNumber  {%!s(skydb.ExpressionType=0) <nil>}}")
+			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  {0 <nil>}} => {TypeNumber  {0 <nil>}}")
 		})
 	})
 

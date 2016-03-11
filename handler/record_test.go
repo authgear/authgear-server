@@ -164,13 +164,20 @@ func TestRecordSaveHandler(t *testing.T) {
 
 	Convey("RecordSaveHandler", t, func() {
 		db := skydbtest.NewMapDB()
+		conn := skydbtest.NewMapConn()
+		conn.SetRecordAccess("report", skydb.NewRecordACL([]skydb.RecordACLEntry{
+			skydb.NewRecordACLEntryRole("admin", skydb.CreateLevel),
+		}))
+
 		db.Save(&skydb.Record{
 			ID: skydb.NewRecordID("note", "readonly"),
 			ACL: skydb.RecordACL{
 				skydb.NewRecordACLEntryDirect("user0", skydb.ReadLevel),
 			},
 		})
+
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
+			payload.DBConn = conn
 			payload.Database = db
 			payload.UserInfo = &skydb.UserInfo{
 				ID: "user0",
@@ -209,6 +216,27 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_updated_by":"user0",
 					"_ownerID": "user0"
 				}]
+			}`)
+		})
+
+		Convey("Should not be able to create record when no permission", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "report/id1",
+					"k1": "v1",
+					"k2": "v2"
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [
+					{
+						"_id": "report/id1",
+						"_type": "error",
+						"code": 102,
+						"message": "no permission to create",
+						"name": "PermissionDenied"
+					}
+				]
 			}`)
 		})
 
@@ -346,7 +374,9 @@ func TestRecordSaveDataType(t *testing.T) {
 
 	Convey("RecordSaveHandler", t, func() {
 		db := skydbtest.NewMapDB()
+		conn := skydbtest.NewMapConn()
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 			p.UserInfo = &skydb.UserInfo{
 				ID: "user0",
@@ -487,6 +517,14 @@ func TestRecordSaveDataType(t *testing.T) {
 	})
 }
 
+type bogusFieldDatabaseConnection struct {
+	skydb.Conn
+}
+
+func (db bogusFieldDatabaseConnection) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
+	return skydb.NewRecordACL([]skydb.RecordACLEntry{}), nil
+}
+
 type bogusFieldDatabase struct {
 	SaveFunc func(record *skydb.Record) error
 	GetFunc  func(id skydb.RecordID, record *skydb.Record) error
@@ -515,7 +553,9 @@ func TestRecordSaveBogusField(t *testing.T) {
 
 	Convey("RecordSaveHandler", t, func() {
 		db := bogusFieldDatabase{}
+		conn := bogusFieldDatabaseConnection{}
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
+			payload.DBConn = conn
 			payload.Database = db
 			payload.UserInfo = &skydb.UserInfo{
 				ID: "user0",
@@ -1191,12 +1231,14 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 func TestRecordMetaData(t *testing.T) {
 	Convey("Record Meta Data", t, func() {
 		db := skydbtest.NewMapDB()
+		conn := skydbtest.NewMapConn()
 		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 		defer func() {
 			timeNow = timeNowUTC
 		}()
 
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
+			payload.DBConn = conn
 			payload.Database = db
 			payload.UserInfoID = "requestUserID"
 			payload.UserInfo = &skydb.UserInfo{
@@ -1736,9 +1778,11 @@ func TestHookExecution(t *testing.T) {
 	Convey("HookRegistry", t, func() {
 		registry := hook.NewRegistry()
 		db := skydbtest.NewMapDB()
+		conn := skydbtest.NewMapConn()
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{
 			HookRegistry: registry,
 		}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 			p.UserInfo = &skydb.UserInfo{
 				ID: "user0",
@@ -1887,12 +1931,14 @@ func TestAtomicOperation(t *testing.T) {
 	}()
 
 	Convey("Atomic Operation", t, func() {
+		conn := skydbtest.NewMapConn()
 		backingDB := skydbtest.NewMapDB()
 		txDB := skydbtest.NewMockTxDatabase(backingDB)
 		db := newSelectiveDatabase(txDB)
 
 		Convey("for RecordSaveHandler", func() {
 			r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
+				payload.DBConn = conn
 				payload.Database = db
 				payload.UserInfo = &skydb.UserInfo{
 					ID: "user0",

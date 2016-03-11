@@ -53,6 +53,25 @@ func (r *SingleRouteRouter) POST(body string) *httptest.ResponseRecorder {
 	return resp
 }
 
+type MockGateway router.Gateway
+
+func NewMockGateway(pattern string, path string, methods []string, handler router.Handler, prepareFunc func(*router.Payload)) *MockGateway {
+	g := router.NewGateway(pattern, path, nil)
+	pp := &FuncProcessor{prepareFunc}
+	for _, method := range methods {
+		g.Handle(method, handler, pp)
+	}
+	return (*MockGateway)(g)
+}
+
+func (g *MockGateway) Request(method string, body string) *httptest.ResponseRecorder {
+	req, _ := http.NewRequest(method, "", strings.NewReader(body))
+	resp := httptest.NewRecorder()
+
+	(*router.Gateway)(g).ServeHTTP(resp, req)
+	return resp
+}
+
 // SingleUserAuthProvider is an AuthProvider that only authenticates
 // a single user if the auth data provided contains the required
 // principal name.

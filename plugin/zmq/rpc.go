@@ -64,8 +64,8 @@ func newLambdaRequest(ctx context.Context, name string, args json.RawMessage) *r
 	return &request{Kind: "op", Name: name, Param: args, Context: ctx}
 }
 
-func newHandlerRequest(name string, input json.RawMessage) *request {
-	return &request{Kind: "handler", Name: name, Param: input}
+func newHandlerRequest(ctx context.Context, name string, input json.RawMessage) *request {
+	return &request{Kind: "handler", Name: name, Param: input, Context: ctx}
 }
 
 func newHookRequest(hookName string, record *skydb.Record, originalRecord *skydb.Record, ctx context.Context) *request {
@@ -171,8 +171,8 @@ func (p *zmqTransport) RunLambda(ctx context.Context, name string, in []byte) (o
 	return
 }
 
-func (p *zmqTransport) RunHandler(name string, in []byte) (out []byte, err error) {
-	out, err = p.rpc(newHandlerRequest(name, in))
+func (p *zmqTransport) RunHandler(ctx context.Context, name string, in []byte) (out []byte, err error) {
+	out, err = p.rpc(newHandlerRequest(ctx, name, in))
 	return
 }
 

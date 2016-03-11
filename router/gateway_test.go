@@ -17,7 +17,6 @@ package router
 import (
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	. "github.com/oursky/skygear/skytest"
@@ -28,7 +27,7 @@ func TestRouterMatchByURL(t *testing.T) {
 	Convey("Gateway", t, func() {
 
 		Convey("matches simple url action", func() {
-			g := NewGateway("endpoint")
+			g := NewGateway("endpoint", "/endpoint", nil)
 			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
 				resp.WriteEntity(struct {
 					Status string `json:"status"`
@@ -41,8 +40,52 @@ func TestRouterMatchByURL(t *testing.T) {
 			So(w.Body.Bytes(), ShouldEqualJSON, `{"status": "ok"}`)
 		})
 
+		Convey("don't matches simple url action with wrong method", func() {
+			g := NewGateway("endpoint", "/endpoint", nil)
+			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
+				resp.WriteEntity(struct {
+					Status string `json:"status"`
+				}{"ok"})
+			}))
+
+			req, _ := http.NewRequest("GET", "http://skygear.test/endpoint", nil)
+			w := httptest.NewRecorder()
+			g.ServeHTTP(w, req)
+			So(w.Code, ShouldEqual, 404)
+		})
+
+		Convey("matches simple url action with passin ServeMux", func() {
+			mux := http.NewServeMux()
+			g := NewGateway("endpoint", "/endpoint", mux)
+			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
+				resp.WriteEntity(struct {
+					Status string `json:"status"`
+				}{"ok"})
+			}))
+
+			req, _ := http.NewRequest("POST", "http://skygear.test/endpoint", nil)
+			w := httptest.NewRecorder()
+			mux.ServeHTTP(w, req)
+			So(w.Body.Bytes(), ShouldEqualJSON, `{"status": "ok"}`)
+		})
+
+		Convey("don't matches simple url action with passin ServeMux", func() {
+			mux := http.NewServeMux()
+			g := NewGateway("endpoint", "/endpoint", mux)
+			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
+				resp.WriteEntity(struct {
+					Status string `json:"status"`
+				}{"ok"})
+			}))
+
+			req, _ := http.NewRequest("POST", "http://skygear.test/404", nil)
+			w := httptest.NewRecorder()
+			mux.ServeHTTP(w, req)
+			So(w.Code, ShouldEqual, 404)
+		})
+
 		Convey("matches url with parameters", func() {
-			g := NewGateway(`(?:entity|model)/([0-9a-zA-Z\-_]+)`)
+			g := NewGateway(`(?:entity|model)/([0-9a-zA-Z\-_]+)`, "/model", nil)
 			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
 				resp.WriteEntity(p.Params)
 			}))
@@ -55,7 +98,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		})
 
 		Convey("help url handler fill in payload from Header", func() {
-			g := NewGateway("endpoint")
+			g := NewGateway("endpoint", "/endpoint", nil)
 			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
 				resp.WriteEntity(struct {
 					APIKey      string `json:"api-key"`
@@ -77,7 +120,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		})
 
 		Convey("fill in api key from query string", func() {
-			g := NewGateway("endpoint")
+			g := NewGateway("endpoint", "/endpoint", nil)
 			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
 				resp.WriteEntity(struct {
 					APIKey      string `json:"api-key"`
@@ -96,25 +139,5 @@ func TestRouterMatchByURL(t *testing.T) {
             }`)
 		})
 
-		Convey("fill in api key from url encoded form", func() {
-			g := NewGateway("endpoint")
-			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
-				resp.WriteEntity(struct {
-					APIKey      string `json:"api-key"`
-					AccessToken string `json:"access-token"`
-				}{p.APIKey(), p.AccessToken()})
-			}))
-
-			req, _ := http.NewRequest("POST", `http://skygear.test/endpoint`, strings.NewReader("api_key=someapikey&access_token=someaccesstoken"))
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-
-			w := httptest.NewRecorder()
-			g.ServeHTTP(w, req)
-
-			So(w.Body.Bytes(), ShouldEqualJSON, `{
-                "api-key": "someapikey",
-                "access-token": "someaccesstoken"
-            }`)
-		})
 	})
 }

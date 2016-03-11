@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	skyplugin "github.com/oursky/skygear/plugin"
@@ -116,7 +117,15 @@ func (p *httpTransport) RunInit() (out []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return p.sendRequest(req)
+	for {
+		out, err = p.sendRequest(req)
+		if err == nil {
+			return
+		}
+		time.Sleep(time.Second)
+		log.WithField("err", err).
+			Warnf(`http: Unable to send init request to plugin "%s". Retrying...`, p.Path)
+	}
 }
 
 func (p *httpTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
@@ -134,8 +143,16 @@ func (p *httpTransport) RunLambda(ctx context.Context, name string, in []byte) (
 	return p.execute(req)
 }
 
-func (p *httpTransport) RunHandler(name string, in []byte) (out []byte, err error) {
-	return nil, fmt.Errorf("not implemented")
+func (p *httpTransport) RunHandler(ctx context.Context, name string, in []byte) (out []byte, err error) {
+	url := fmt.Sprintf("%s/handler/%s", p.Path, name)
+	req, err := http.NewRequest("POST", url, bytes.NewReader(in))
+	pluginCtx := skyplugin.ContextMap(ctx)
+	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("X-Skygear-Plugin-Context", encodedCtx)
+	return p.execute(req)
 }
 
 func (p *httpTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {

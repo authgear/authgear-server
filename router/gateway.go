@@ -35,12 +35,16 @@ type Gateway struct {
 	methodPaths map[string]pathRoute
 }
 
-func NewGateway(pattern string) *Gateway {
+func NewGateway(pattern string, path string, mux *http.ServeMux) *Gateway {
 	match := regexp.MustCompile(`\A/` + pattern + `\z`)
-	return &Gateway{
+	g := &Gateway{
 		ParamMatch:  match,
 		methodPaths: map[string]pathRoute{},
 	}
+	if path != "" && mux != nil {
+		mux.Handle(path, g)
+	}
+	return g
 }
 
 // GET register a URL handler by method GET
@@ -135,14 +139,15 @@ func (g *Gateway) newPayloadForRawHandler(req *http.Request) (p *Payload) {
 		Data:   map[string]interface{}{},
 	}
 
+	query := req.URL.Query()
 	if apiKey := req.Header.Get("X-Skygear-Api-Key"); apiKey != "" {
 		p.Data["api_key"] = apiKey
-	} else if apiKey := req.FormValue("api_key"); apiKey != "" {
+	} else if apiKey := query.Get("api_key"); apiKey != "" {
 		p.Data["api_key"] = apiKey
 	}
 	if accessToken := req.Header.Get("X-Skygear-Access-Token"); accessToken != "" {
 		p.Data["access_token"] = accessToken
-	} else if accessToken := req.FormValue("access_token"); accessToken != "" {
+	} else if accessToken := query.Get("access_token"); accessToken != "" {
 		p.Data["access_token"] = accessToken
 	}
 
