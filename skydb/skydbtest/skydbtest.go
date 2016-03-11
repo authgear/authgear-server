@@ -24,17 +24,20 @@ import (
 
 // MapConn is a naive memory implementation of skydb.Conn
 type MapConn struct {
-	UserMap     map[string]skydb.UserInfo
-	usernameMap map[string]skydb.UserInfo
-	emailMap    map[string]skydb.UserInfo
+	UserMap         map[string]skydb.UserInfo
+	usernameMap     map[string]skydb.UserInfo
+	emailMap        map[string]skydb.UserInfo
+	recordAccessMap map[string]skydb.RecordACL
+	skydb.Conn
 }
 
 // NewMapConn returns a new MapConn.
 func NewMapConn() *MapConn {
 	return &MapConn{
-		UserMap:     map[string]skydb.UserInfo{},
-		usernameMap: map[string]skydb.UserInfo{},
-		emailMap:    map[string]skydb.UserInfo{},
+		UserMap:         map[string]skydb.UserInfo{},
+		usernameMap:     map[string]skydb.UserInfo{},
+		emailMap:        map[string]skydb.UserInfo{},
+		recordAccessMap: map[string]skydb.RecordACL{},
 	}
 }
 
@@ -146,6 +149,22 @@ func (conn *MapConn) SetDefaultRoles(roles []string) error {
 	panic("not implemented")
 }
 
+// SetRecordAccess sets record creation access
+func (conn *MapConn) SetRecordAccess(recordType string, acl skydb.RecordACL) error {
+	conn.recordAccessMap[recordType] = acl
+	return nil
+}
+
+// GetRecordAccess returns record creation access of a specific type
+func (conn *MapConn) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
+	acl, gotIt := conn.recordAccessMap[recordType]
+	if !gotIt {
+		acl = skydb.NewRecordACL([]skydb.RecordACLEntry{})
+	}
+
+	return acl, nil
+}
+
 // GetAsset is not implemented.
 func (conn *MapConn) GetAsset(name string, asset *skydb.Asset) error {
 	panic("not implemented")
@@ -236,11 +255,14 @@ type SubscriptionMap map[string]skydb.Subscription
 // RecordSchemaMap is a string=>RecordSchema map
 type RecordSchemaMap map[string]skydb.RecordSchema
 
+//recordType string, acl RecordACL
+
 // MapDB is a naive memory implementation of skydb.Database.
 type MapDB struct {
 	RecordMap       RecordMap
 	SubscriptionMap SubscriptionMap
 	RecordSchemaMap RecordSchemaMap
+	DBConn          skydb.Conn
 	skydb.Database
 }
 
@@ -250,6 +272,7 @@ func NewMapDB() *MapDB {
 		RecordMap:       RecordMap{},
 		SubscriptionMap: SubscriptionMap{},
 		RecordSchemaMap: RecordSchemaMap{},
+		DBConn:          &MapConn{},
 	}
 }
 
@@ -344,6 +367,7 @@ func (db *MapDB) DeleteSchema(recordType, columnName string) error {
 	return nil
 }
 
+// GetSchema returns the record schema of a record type
 func (db *MapDB) GetSchema(recordType string) (skydb.RecordSchema, error) {
 	if _, ok := db.RecordSchemaMap[recordType]; !ok {
 		return nil, fmt.Errorf("record type %s does not exist", recordType)
@@ -351,6 +375,7 @@ func (db *MapDB) GetSchema(recordType string) (skydb.RecordSchema, error) {
 	return db.RecordSchemaMap[recordType], nil
 }
 
+// GetRecordSchemas returns a list of all existing record type
 func (db *MapDB) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 	return db.RecordSchemaMap, nil
 }

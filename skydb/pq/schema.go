@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
+
 	"github.com/lib/pq"
 	"github.com/oursky/skygear/skydb"
 )
@@ -41,7 +42,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 		if !ok {
 			updatingSchema[key] = schema
 		} else if isConflict(remoteSchema, schema) {
-			return fmt.Errorf("conflicting schema %s => %s", remoteSchema, schema)
+			return fmt.Errorf("conflicting schema %v => %v", remoteSchema, schema)
 		}
 
 		// same data type, do nothing
@@ -94,8 +95,8 @@ func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 	schemaName := db.schemaName()
 
 	rows, err := db.c.Queryx(`
-	SELECT table_name 
-	FROM information_schema.tables 
+	SELECT table_name
+	FROM information_schema.tables
 	WHERE (table_name NOT LIKE '\_%') AND (table_schema=$1)
 	`, schemaName)
 	if err != nil {

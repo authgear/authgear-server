@@ -72,7 +72,7 @@ func (resp *schemaResponse) Encode(data map[string]skydb.RecordSchema) {
 /*
 SchemaRenameHandler handles the action of renaming column
 curl -X POST -H "Content-Type: application/json" \
-  -d @- http://localhost:3000/ <<EOF
+  -d @- http://localhost:3000/schema/rename <<EOF
 {
 	"master_key": "MASTER_KEY",
 	"action": "schema:rename",
@@ -171,7 +171,7 @@ func (h *SchemaRenameHandler) Handle(rpayload *router.Payload, response *router.
 /*
 SchemaDeleteHandler handles the action of deleting column
 curl -X POST -H "Content-Type: application/json" \
-  -d @- http://localhost:3000/ <<EOF
+  -d @- http://localhost:3000/schema/delete <<EOF
 {
 	"master_key": "MASTER_KEY",
 	"action": "schema:delete",
@@ -263,7 +263,7 @@ func (h *SchemaDeleteHandler) Handle(rpayload *router.Payload, response *router.
 /*
 SchemaCreateHandler handles the action of creating new columns
 curl -X POST -H "Content-Type: application/json" \
-  -d @- http://localhost:3000/ <<EOF
+  -d @- http://localhost:3000/schema/create <<EOF
 {
 	"master_key": "MASTER_KEY",
 	"action": "schema:create",
@@ -372,7 +372,7 @@ func (h *SchemaCreateHandler) Handle(rpayload *router.Payload, response *router.
 /*
 SchemaFetchHandler handles the action of returing information of record schema
 curl -X POST -H "Content-Type: application/json" \
-  -d @- http://localhost:3000/ <<EOF
+  -d @- http://localhost:3000/schema/fetch <<EOF
 {
 	"master_key": "MASTER_KEY",
 	"action": "schema:fetch"
@@ -411,4 +411,98 @@ func (h *SchemaFetchHandler) Handle(rpayload *router.Payload, response *router.R
 	resp.Encode(results)
 
 	response.Result = resp
+}
+
+/*
+SchemaAccessHandler handles the update of creation access of record
+curl -X POST -H "Content-Type: application/json" \
+  -d @- http://localhost:3000/schema/access <<EOF
+{
+	"master_key": "MASTER_KEY",
+	"action": "schema:access",
+	"type": "note",
+	"create_roles": [
+		"admin",
+		"writer"
+	]
+}
+EOF
+*/
+type SchemaAccessHandler struct {
+	DevOnly       router.Processor `preprocessor:"dev_only"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	preprocessors []router.Processor
+}
+
+type schemaAccessPayload struct {
+	Type           string   `mapstructure:"type"`
+	RawCreateRoles []string `mapstructure:"create_roles"`
+	ACL            skydb.RecordACL
+}
+
+type schemaAccessResponse struct {
+	Type        string   `json:"type"`
+	CreateRoles []string `json:"create_roles,omitempty"`
+}
+
+func (h *SchemaAccessHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.DevOnly,
+		h.DBConn,
+		h.InjectDB,
+	}
+}
+
+func (h *SchemaAccessHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (payload *schemaAccessPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+
+	acl := skydb.RecordACL{}
+	for _, perRoleName := range payload.RawCreateRoles {
+		acl = append(acl, skydb.NewRecordACLEntryRole(perRoleName, skydb.CreateLevel))
+	}
+
+	payload.ACL = acl
+
+	return payload.Validate()
+}
+
+func (payload *schemaAccessPayload) Validate() skyerr.Error {
+	if payload.Type == "" {
+		return skyerr.NewInvalidArgument("missing required fields", []string{"type"})
+	}
+
+	return nil
+}
+
+func (h *SchemaAccessHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	payload := schemaAccessPayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
+	c := rpayload.Database.Conn()
+	err := c.SetRecordAccess(payload.Type, payload.ACL)
+
+	if err != nil {
+		if skyErr, isSkyErr := err.(skyerr.Error); isSkyErr {
+			response.Err = skyErr
+		} else {
+			response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
+		}
+		return
+	}
+
+	response.Result = schemaAccessResponse{
+		Type:        payload.Type,
+		CreateRoles: payload.RawCreateRoles,
+	}
 }

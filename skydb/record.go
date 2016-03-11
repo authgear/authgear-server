@@ -84,8 +84,9 @@ type ACLLevel string
 
 // ReadLevel and WriteLevel is self-explanatory
 const (
-	ReadLevel  ACLLevel = "read"
-	WriteLevel          = "write"
+	ReadLevel   ACLLevel = "read"
+	WriteLevel           = "write"
+	CreateLevel          = "create"
 )
 
 // NewRecordACLEntryRelation returns an ACE on relation
@@ -139,6 +140,23 @@ func NewRecordACL(entries []RecordACLEntry) RecordACL {
 		acl[i] = v
 	}
 	return acl
+}
+
+// Accessible checks whether provided user info has certain access level
+func (acl RecordACL) Accessible(userinfo *UserInfo, level ACLLevel) bool {
+	if len(acl) == 0 {
+		// default behavior of empty ACL
+		return true
+	}
+
+	accessible := false
+	for _, ace := range acl {
+		if ace.Accessible(userinfo, level) {
+			accessible = true
+		}
+	}
+
+	return accessible
 }
 
 type Asset struct {
@@ -331,12 +349,8 @@ func (r *Record) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 	if r.OwnerID == userinfo.ID {
 		return true
 	}
-	for _, ace := range r.ACL {
-		if ace.Accessible(userinfo, level) {
-			return true
-		}
-	}
-	return false
+
+	return r.ACL.Accessible(userinfo, level)
 }
 
 // RecordSchema is a mapping of record key to its value's data type or reference

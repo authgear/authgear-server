@@ -22,6 +22,7 @@ import (
 	"github.com/oursky/skygear/router"
 	"github.com/oursky/skygear/skydb"
 	"github.com/oursky/skygear/skydb/skydbtest"
+	"github.com/oursky/skygear/skyerr"
 	. "github.com/oursky/skygear/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -667,5 +668,117 @@ func TestSchemaFetchHandler(t *testing.T) {
 				}
 			}`)
 		})
+	})
+}
+
+func TestSchemaAccessPayload(t *testing.T) {
+	Convey("SchemaAccessPayload", t, func() {
+		Convey("Valid Data", func() {
+			payload := schemaAccessPayload{}
+			skyErr := payload.Decode(map[string]interface{}{
+				"action": "schema:access",
+				"type":   "script",
+				"create_roles": []string{
+					"Admin",
+					"Writer",
+				},
+			})
+
+			So(skyErr, ShouldBeNil)
+			So(payload.Validate(), ShouldBeNil)
+
+			roleNames := []string{}
+			for _, perACE := range payload.ACL {
+				if perACE.Role != "" {
+					roleNames = append(roleNames, perACE.Role)
+				}
+			}
+
+			So(roleNames, ShouldContain, "Admin")
+			So(roleNames, ShouldContain, "Writer")
+		})
+
+		Convey("Invalid Data", func() {
+			payload := schemaAccessPayload{}
+			err := payload.Decode(map[string]interface{}{
+				"action": "schema:access",
+				"create_roles": []string{
+					"Admin",
+					"Writer",
+				},
+			})
+
+			So(err, ShouldResemble,
+				skyerr.NewInvalidArgument("missing required fields", []string{"type"}))
+
+			err = payload.Decode(map[string]interface{}{
+				"action":       "schema:access",
+				"type":         "script",
+				"create_roles": "Admin",
+			})
+
+			So(err, ShouldResemble,
+				skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload"))
+		})
+	})
+}
+
+type mockSchemaAccessDatabase struct {
+	DBConn skydb.Conn
+
+	skydb.Database
+}
+
+func (db *mockSchemaAccessDatabase) Conn() skydb.Conn {
+	return db.DBConn
+}
+
+type mockSchemaAccessDatabaseConnection struct {
+	recordType string
+	acl        skydb.RecordACL
+
+	skydb.Conn
+}
+
+func (c *mockSchemaAccessDatabaseConnection) SetRecordAccess(recordType string, acl skydb.RecordACL) error {
+	c.recordType = recordType
+	c.acl = acl
+
+	return nil
+}
+
+func TestSchemaAccessHandler(t *testing.T) {
+	Convey("TestSchemaAccessHandler", t, func() {
+		mockConn := &mockSchemaAccessDatabaseConnection{}
+		mockDB := &mockSchemaAccessDatabase{}
+		mockDB.DBConn = mockConn
+
+		handler := handlertest.NewSingleRouteRouter(&SchemaAccessHandler{}, func(p *router.Payload) {
+			p.Database = mockDB
+		})
+
+		resp := handler.POST(`{
+			"type": "script",
+			"create_roles": ["Admin", "Writer"]
+		}`)
+
+		So(resp.Body.Bytes(), ShouldEqualJSON, `{
+			"result": {
+				"type": "script",
+				"create_roles": ["Admin", "Writer"]
+			}
+		}`)
+
+		So(mockConn.recordType, ShouldEqual, "script")
+
+		roleNames := []string{}
+		for _, perACE := range mockConn.acl {
+			if perACE.Role != "" {
+				roleNames = append(roleNames, perACE.Role)
+			}
+		}
+
+		So(roleNames, ShouldContain, "Admin")
+		So(roleNames, ShouldContain, "Writer")
 	})
 }
