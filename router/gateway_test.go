@@ -3,7 +3,6 @@ package router
 import (
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	. "github.com/oursky/skygear/skytest"
@@ -126,25 +125,5 @@ func TestRouterMatchByURL(t *testing.T) {
             }`)
 		})
 
-		Convey("fill in api key from url encoded form", func() {
-			g := NewGateway("endpoint", "/endpoint", nil)
-			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
-				resp.WriteEntity(struct {
-					APIKey      string `json:"api-key"`
-					AccessToken string `json:"access-token"`
-				}{p.APIKey(), p.AccessToken()})
-			}))
-
-			req, _ := http.NewRequest("POST", `http://skygear.test/endpoint`, strings.NewReader("api_key=someapikey&access_token=someaccesstoken"))
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded; param=value")
-
-			w := httptest.NewRecorder()
-			g.ServeHTTP(w, req)
-
-			So(w.Body.Bytes(), ShouldEqualJSON, `{
-                "api-key": "someapikey",
-                "access-token": "someaccesstoken"
-            }`)
-		})
 	})
 }
