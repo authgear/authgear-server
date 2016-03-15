@@ -18,13 +18,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/oursky/skygear/uuid"
-
-	"github.com/garyburd/redigo/redis"
 )
 
 // Token is an expiry access token associated to a UserInfo.
@@ -35,6 +32,7 @@ type Token struct {
 	UserInfoID  string    `json:"userInfoID" redis:"userInfoID"`
 }
 
+// MarshalJSON implements the json.Marshaler interface.
 func (t Token) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&jsonToken{
 		t.AccessToken,
@@ -44,6 +42,7 @@ func (t Token) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface.
 func (t *Token) UnmarshalJSON(data []byte) (err error) {
 	token := jsonToken{}
 	if err := json.Unmarshal(data, &token); err != nil {
@@ -65,11 +64,13 @@ type jsonToken struct {
 
 type jsonStamp time.Time
 
+// MarshalJSON implements the json.Marshaler interface.
 func (t jsonStamp) MarshalJSON() ([]byte, error) {
 	tt := time.Time(t)
 	return json.Marshal(tt.UnixNano())
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface.
 func (t *jsonStamp) UnmarshalJSON(data []byte) (err error) {
 	var i int64
 	if err := json.Unmarshal(data, &i); err != nil {
@@ -120,89 +121,6 @@ type Store interface {
 	Delete(accessToken string) error
 }
 
-// FileStore implements TokenStore by saving users' Token under
-// a directory specified by a string. Each access token is
-// stored in a separate file.
-type FileStore string
-
-// Init MkAllDirs the FileStore directory and return itself.
-//
-// It panics when it fails to create the directory.
-func (f FileStore) Init() FileStore {
-	err := os.MkdirAll(string(f), 0755)
-	if err != nil {
-		panic("FileStore.init: " + err.Error())
-	}
-	return f
-}
-
-// Get tries to read the specified access token from file and
-// writes to the supplied Token.
-//
-// Get returns an NotFoundError if no such access token exists or
-// such access token is expired. In the latter case the expired
-// access token is still written onto the supplied Token.
-func (f FileStore) Get(accessToken string, token *Token) error {
-	if err := validateToken(accessToken); err != nil {
-		return &NotFoundError{accessToken, err}
-	}
-
-	tokenPath := filepath.Join(string(f), accessToken)
-
-	file, err := os.Open(tokenPath)
-	if err != nil {
-		return &NotFoundError{accessToken, err}
-	}
-	defer file.Close()
-
-	if err := json.NewDecoder(file).Decode(token); err != nil {
-		return &NotFoundError{accessToken, err}
-	}
-
-	if token.IsExpired() {
-		os.Remove(tokenPath)
-		return &NotFoundError{accessToken, fmt.Errorf("token expired at %v", token.ExpiredAt)}
-	}
-
-	return nil
-}
-
-// Put writes the specified token into a file and overwrites existing
-// Token if any.
-func (f FileStore) Put(token *Token) error {
-	if err := validateToken(token.AccessToken); err != nil {
-		return &NotFoundError{token.AccessToken, err}
-	}
-
-	file, err := os.Create(filepath.Join(string(f), token.AccessToken))
-	if err != nil {
-		return &NotFoundError{token.AccessToken, err}
-	}
-	defer file.Close()
-
-	if err := json.NewEncoder(file).Encode(token); err != nil {
-		return &NotFoundError{token.AccessToken, err}
-	}
-
-	return nil
-}
-
-// Delete removes the access token from the file store.
-//
-// Delete return an error if the token cannot removed. It is NOT
-// not an error if the token does not exist at deletion time.
-func (f FileStore) Delete(accessToken string) error {
-	if err := validateToken(accessToken); err != nil {
-		return &NotFoundError{accessToken, err}
-	}
-
-	if err := os.Remove(filepath.Join(string(f), accessToken)); err != nil && !os.IsNotExist(err) {
-		return err
-	}
-
-	return nil
-}
-
 var errInvalidToken = errors.New("invalid access token")
 
 func validateToken(base string) error {
@@ -213,121 +131,6 @@ func validateToken(base string) error {
 	return nil
 }
 
-// RedisStore implements TokenStore by saving users' token
-// in a redis server
-type RedisStore struct {
-	pool *redis.Pool
-}
-
-func NewRedisStore(address string) *RedisStore {
-	store := RedisStore{}
-
-	store.pool = &redis.Pool{
-		MaxIdle: 50, // NOTE: May make it configurable
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.DialURL(address)
-			if err != nil {
-				return nil, err
-			}
-			return c, err
-		},
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
-			return err
-		},
-	}
-
-	return &store
-}
-
-// RedisToken stores a Token with UnixNano timestamp
-type RedisToken struct {
-	AccessToken string `redis:"accessToken"`
-	ExpiredAt   int64  `redis:"expiredAt"`
-	AppName     string `redis:"appName"`
-	UserInfoID  string `redis:"userInfoID"`
-}
-
-func (t Token) ToRedisToken() *RedisToken {
-	return &RedisToken{
-		t.AccessToken,
-		t.ExpiredAt.UnixNano(),
-		t.AppName,
-		t.UserInfoID,
-	}
-}
-
-func (r RedisToken) ToToken() *Token {
-	return &Token{
-		r.AccessToken,
-		time.Unix(0, r.ExpiredAt).UTC(),
-		r.AppName,
-		r.UserInfoID,
-	}
-}
-
-func (r *RedisStore) Get(accessToken string, token *Token) error {
-	c := r.pool.Get()
-	if err := c.Err(); err != nil {
-		return err
-	}
-	defer c.Close()
-
-	v, err := redis.Values(c.Do("HGETALL", accessToken))
-	if err != nil {
-		return err
-	}
-	// Check if the result is empty
-	if len(v) == 0 {
-		return &NotFoundError{accessToken, err}
-	}
-
-	var redisToken RedisToken
-	err = redis.ScanStruct(v, &redisToken)
-	if err != nil {
-		return err
-	}
-	*token = *redisToken.ToToken()
-
-	return nil
-}
-
-func (r *RedisStore) Put(token *Token) error {
-	c := r.pool.Get()
-	if err := c.Err(); err != nil {
-		return err
-	}
-	defer c.Close()
-
-	redisToken := token.ToRedisToken()
-	tokenArgs := redis.Args{}.Add(redisToken.AccessToken).AddFlat(redisToken)
-
-	c.Send("MULTI")
-	c.Send("HMSET", tokenArgs...)
-	c.Send("EXPIREAT", token.AccessToken, token.ExpiredAt.Unix())
-	_, err := c.Do("EXEC")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *RedisStore) Delete(accessToken string) error {
-	c := r.pool.Get()
-	if err := c.Err(); err != nil {
-		return err
-	}
-	defer c.Close()
-
-	_, err := c.Do("DEL", accessToken)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // InitTokenStore accept a implementation and path string. Return a Store.
 func InitTokenStore(impl string, path string) Store {
 	var store Store
@@ -335,7 +138,7 @@ func InitTokenStore(impl string, path string) Store {
 	default:
 		panic("unrecgonized token store implementation: " + impl)
 	case "fs":
-		store = FileStore(path).Init()
+		store = NewFileStore(path)
 	case "redis":
 		store = NewRedisStore(path)
 	}
