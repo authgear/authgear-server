@@ -9,12 +9,24 @@ import (
 // RedisStore implements TokenStore by saving users' token
 // in a redis server
 type RedisStore struct {
-	pool *redis.Pool
+	pool   *redis.Pool
+	prefix string
 }
 
 // NewRedisStore creates a redis token store.
-func NewRedisStore(address string) *RedisStore {
+//
+// address is url to the redis server
+//
+// prefix is a string prepending to access token key in redis
+//   For example if the token is `cf4bdc65-3fe6-4d40-b7fd-58f00b82c506`
+//   and the prefix is `myApp`, the key in redis should be
+//   `myApp:cf4bdc65-3fe6-4d40-b7fd-58f00b82c506`.
+func NewRedisStore(address string, prefix string) *RedisStore {
 	store := RedisStore{}
+
+	if prefix != "" {
+		store.prefix = prefix + ":"
+	}
 
 	store.pool = &redis.Pool{
 		MaxIdle: 50, // NOTE: May make it configurable
@@ -71,7 +83,9 @@ func (r *RedisStore) Get(accessToken string, token *Token) error {
 	}
 	defer c.Close()
 
-	v, err := redis.Values(c.Do("HGETALL", accessToken))
+	accessTokenWithPrefix := r.prefix + accessToken
+
+	v, err := redis.Values(c.Do("HGETALL", accessTokenWithPrefix))
 	if err != nil {
 		return err
 	}
@@ -100,7 +114,8 @@ func (r *RedisStore) Put(token *Token) error {
 	defer c.Close()
 
 	redisToken := token.ToRedisToken()
-	tokenArgs := redis.Args{}.Add(redisToken.AccessToken).AddFlat(redisToken)
+	accessTokenWithPrefix := r.prefix + redisToken.AccessToken
+	tokenArgs := redis.Args{}.Add(accessTokenWithPrefix).AddFlat(redisToken)
 
 	c.Send("MULTI")
 	c.Send("HMSET", tokenArgs...)
@@ -121,7 +136,8 @@ func (r *RedisStore) Delete(accessToken string) error {
 	}
 	defer c.Close()
 
-	_, err := c.Do("DEL", accessToken)
+	accessTokenWithPrefix := r.prefix + accessToken
+	_, err := c.Do("DEL", accessTokenWithPrefix)
 	if err != nil {
 		return err
 	}

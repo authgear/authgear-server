@@ -79,7 +79,11 @@ func main() {
 	serveMux := http.NewServeMux()
 	pushSender := initPushSender(config, connOpener)
 
-	tokenStore := authtoken.InitTokenStore(config.TokenStore.ImplName, config.TokenStore.Path)
+	tokenStore := authtoken.InitTokenStore(authtoken.Configuration{
+		Implementation: config.TokenStore.ImplName,
+		Path:           config.TokenStore.Path,
+		Prefix:         config.TokenStore.Prefix,
+	})
 
 	preprocessorRegistry := router.PreprocessorRegistry{}
 

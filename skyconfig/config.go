@@ -44,6 +44,7 @@ type Configuration struct {
 	TokenStore struct {
 		ImplName string `gcfg:"implementation" json:"implementation"`
 		Path     string `gcfg:"path" json:"path"`
+		Prefix   string `gcfg:"prefix" json:"prefix"`
 	} `gcfg:"token-store" json:"-"`
 	AssetStore struct {
 		ImplName string `gcfg:"implementation" json:"implementation"`
@@ -151,6 +152,11 @@ func ReadFileInto(config *Configuration, path string) error {
 
 	if config.DB.ImplName == "pq" && os.Getenv("DATABASE_URL") != "" {
 		config.DB.Option = os.Getenv("DATABASE_URL")
+	}
+
+	tokenStorePrefix := os.Getenv("TOKEN_STORE_PREFIX")
+	if tokenStorePrefix != "" {
+		config.TokenStore.Prefix = tokenStorePrefix
 	}
 
 	err := readAPNS(config)

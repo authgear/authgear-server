@@ -131,16 +131,23 @@ func validateToken(base string) error {
 	return nil
 }
 
+// Configuration encapsulates arguments to initialize a token store
+type Configuration struct {
+	Implementation string
+	Path           string
+	Prefix         string
+}
+
 // InitTokenStore accept a implementation and path string. Return a Store.
-func InitTokenStore(impl string, path string) Store {
+func InitTokenStore(config Configuration) Store {
 	var store Store
-	switch impl {
+	switch config.Implementation {
 	default:
-		panic("unrecgonized token store implementation: " + impl)
+		panic("unrecgonized token store implementation: " + config.Implementation)
 	case "fs":
-		store = NewFileStore(path)
+		store = NewFileStore(config.Path)
 	case "redis":
-		store = NewRedisStore(path)
+		store = NewRedisStore(config.Path, config.Prefix)
 	}
 	return store
 }
