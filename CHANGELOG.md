@@ -1,3 +1,16 @@
+## 0.9.0 (2016-03-16)
+
+### Features
+
+- Support record access control on creation by role #594
+- Accept env SKY_CONFIG as config filepath #605
+- Implement Handler provided by plugin #587
+- Add key prefix to redis token store #616
+
+### Bug Fixes
+
+- Retry http plugin init until success #598
+
 ## 0.8.0 (2016-03-09)
 
 ### Features
