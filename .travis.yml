@@ -55,3 +55,7 @@ script:
 
 notifications:
   slack: oursky:PxqsclRADehuWEs51vpgxeUh
+
+env:
+  global:
+    - secure: qyXOofEQ4RW03vzqh6UpB2HrZpD2B6nc4TJR/As9LqLNBpkWXOSfaH09jrGQTyTr1LA+53RI/2yxIwO3ZAvyP0RjHe2bHBwKz/2uUhwQWJGrqC+GAzt/V/oVjr1ZyF7FOSOnQzgvU35ek1lHhHiCclJJKnUdQRQJPpSBH21z9HU=
