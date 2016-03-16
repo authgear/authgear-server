@@ -20,6 +20,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/garyburd/redigo/redis"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"bytes"
@@ -262,7 +263,7 @@ func exists(path string) bool {
 
 }
 
-func tempRedisStore() *RedisStore {
+func tempRedisStore(prefix string) *RedisStore {
 	defaultTo := func(envvar string, value string) {
 		if os.Getenv(envvar) == "" {
 			os.Setenv(envvar, value)
@@ -271,7 +272,7 @@ func tempRedisStore() *RedisStore {
 	// 15 is the default max DB number of redis
 	defaultTo("REDISTEST", "redis://127.0.0.1:6379/15")
 
-	return NewRedisStore(os.Getenv("REDISTEST"))
+	return NewRedisStore(os.Getenv("REDISTEST"), prefix)
 }
 
 func (r *RedisStore) clearRedisStore() {
@@ -283,7 +284,7 @@ func (r *RedisStore) clearRedisStore() {
 
 func TestRedisStoreGet(t *testing.T) {
 	Convey("RedisStore", t, func() {
-		r := tempRedisStore()
+		r := tempRedisStore("")
 		defer r.clearRedisStore()
 
 		Convey("Get Non-Expired Token", func() {
@@ -385,7 +386,7 @@ func TestRedisStoreGet(t *testing.T) {
 func TestRedisStorePut(t *testing.T) {
 	Convey("RedisStore", t, func() {
 		tokenName := ""
-		r := tempRedisStore()
+		r := tempRedisStore("")
 		defer r.clearRedisStore()
 
 		tomorrow := time.Now().AddDate(0, 0, 1).UTC()
@@ -403,7 +404,7 @@ func TestRedisStorePut(t *testing.T) {
 
 func TestRedisStoreDelete(t *testing.T) {
 	Convey("RedisStore", t, func() {
-		r := tempRedisStore()
+		r := tempRedisStore("")
 		defer r.clearRedisStore()
 
 		Convey("Delete existing token", func() {
@@ -430,6 +431,39 @@ func TestRedisStoreDelete(t *testing.T) {
 			tokenName := "nonexistentToken"
 			err := r.Delete(tokenName)
 			So(err, ShouldBeNil)
+		})
+	})
+}
+
+func TestRedisStorePrefix(t *testing.T) {
+	Convey("RedisStore with Prefix", t, func() {
+		r := tempRedisStore("testing-prefix")
+		defer r.clearRedisStore()
+
+		Convey("Redis key should have prefix", func() {
+			tokenName := "pingToken"
+			tomorrow := time.Now().AddDate(0, 0, 1).UTC()
+			token := Token{
+				AccessToken: tokenName,
+				ExpiredAt:   tomorrow,
+				AppName:     "com_oursky_skygear",
+				UserInfoID:  "someuserinfoid",
+			}
+			err := r.Put(&token)
+			So(err, ShouldBeNil)
+
+			c := r.pool.Get()
+			defer c.Close()
+
+			So(c.Err(), ShouldBeNil)
+
+			vEmpty, err := redis.Values(c.Do("HGETALL", tokenName))
+			So(err, ShouldBeNil)
+			So(len(vEmpty), ShouldEqual, 0)
+
+			vNonEmpty, err := redis.Values(c.Do("HGETALL", "testing-prefix:"+tokenName))
+			So(err, ShouldBeNil)
+			So(len(vNonEmpty), ShouldNotEqual, 0)
 		})
 	})
 }
