@@ -53,10 +53,19 @@ script:
   - gocyclo -skip-godeps -over 15 . | gogocyclo
   - go test --tags zmq -cover ./...
   - >
-    [[ "$TRAVIS_PULL_REQUEST" == "false" ]] &&
-    [[ "$TRAVIS_BRANCH" == "$BINARY_BUILDING_BRANCH" ]] &&
-    ./scripts/build-binary.sh
-
+    if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] &&
+       ([[ "$TRAVIS_BRANCH" == "$BINARY_BUILDING_BRANCH" ]] ||
+        [[ -n $TRAVIS_TAG ]])
+    then
+      ./scripts/build-binary.sh;
+    fi
+  - >
+    if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] &&
+       ([[ "$TRAVIS_BRANCH" == "$BINARY_BUILDING_BRANCH" ]] ||
+        [[ -n $TRAVIS_TAG ]])
+    then
+      ./scripts/upload-binary.sh;
+    fi
 notifications:
   slack: oursky:PxqsclRADehuWEs51vpgxeUh
 
