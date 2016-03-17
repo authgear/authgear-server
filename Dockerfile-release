@@ -4,6 +4,8 @@ ENV LIBSODIUM_VERSION 1.0.5
 ENV ZMQ_VERSION 4.1.3
 ENV CZMQ_VERSION 3.0.2
 
+ARG SKYGEAR_VERSION
+
 RUN apk update \
     && apk add libc6-compat libstdc++ \
     && apk add \
@@ -47,10 +49,11 @@ RUN apk update \
         && make && make install \
         && rm -rf /tmp/czmq* \
         && cd .. \
+    && echo " ... download skygear server v$SKYGEAR_VERSION binary" \
+        && curl -L https://dl.bintray.com/oursky/skygear/server/Releases/v${SKYGEAR_VERSION}/skygear-server-zmq-linux-amd64 -o /usr/local/bin/skygear-server \
+        && chmod a+x /usr/local/bin/skygear-server \
     && apk del coreutils gcc tar libtool make musl-dev openssl-dev g++ zlib-dev curl \
     && rm -rf /var/cache/apk/* \
     && ln -s /lib /lib64
-
-ADD skygear-server /usr/local/bin/skygear-server
 
 CMD ["/usr/local/bin/skygear-server"]
