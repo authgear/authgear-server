@@ -20,7 +20,7 @@ services:
     - redis_data:/data
 
   app:
-    image: oursky/skygear:latest
+    image: skygeario/skygear-server:latest
     ports:
     - "3000:3000" # Skygear Server API Endpoint (HTTP)
     - "5555:5555" # Skygear Server Plugin Endpoint (ZMQ)
