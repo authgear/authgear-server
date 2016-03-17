@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/google/go-gcm"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

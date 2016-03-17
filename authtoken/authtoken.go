@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/oursky/skygear/uuid"
+	"github.com/skygeario/skygear-server/uuid"
 )
 
 // Token is an expiry access token associated to a UserInfo.

@@ -17,7 +17,7 @@ package handler
 import (
 	"time"
 
-	"github.com/oursky/skygear/uuid"
+	"github.com/skygeario/skygear-server/uuid"
 )
 
 var (

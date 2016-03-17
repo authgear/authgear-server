@@ -15,7 +15,7 @@
 package pq
 
 import (
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 func (db *database) Begin() (err error) {

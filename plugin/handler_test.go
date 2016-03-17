@@ -2,12 +2,13 @@ package plugin
 
 import (
 	"encoding/json"
-	. "github.com/oursky/skygear/skytest"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
-	"github.com/oursky/skygear/handler/handlertest"
-	"github.com/oursky/skygear/router"
+	. "github.com/skygeario/skygear-server/skytest"
+	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/handler/handlertest"
+	"github.com/skygeario/skygear-server/router"
 	"golang.org/x/net/context"
 )
 

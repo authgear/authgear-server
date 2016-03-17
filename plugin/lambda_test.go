@@ -15,13 +15,15 @@
 package plugin
 
 import (
-	. "github.com/oursky/skygear/skytest"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
+	. "github.com/skygeario/skygear-server/skytest"
+	. "github.com/smartystreets/goconvey/convey"
+
 	"fmt"
-	"github.com/oursky/skygear/handler/handlertest"
-	"github.com/oursky/skygear/router"
+
+	"github.com/skygeario/skygear-server/handler/handlertest"
+	"github.com/skygeario/skygear-server/router"
 	"golang.org/x/net/context"
 )
 

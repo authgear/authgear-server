@@ -22,7 +22,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 
 	"github.com/lib/pq"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) error {

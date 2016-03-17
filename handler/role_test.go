@@ -17,13 +17,13 @@ package handler
 import (
 	"testing"
 
-	"github.com/oursky/skygear/handler/handlertest"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skyerr"
-	. "github.com/oursky/skygear/skytest"
+	"github.com/skygeario/skygear-server/handler/handlertest"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skyerr"
+	. "github.com/skygeario/skygear-server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 func TestRolePayload(t *testing.T) {

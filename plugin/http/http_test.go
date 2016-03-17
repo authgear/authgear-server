@@ -25,11 +25,11 @@ import (
 	"github.com/jarcoal/httpmock"
 	"golang.org/x/net/context"
 
-	skyplugin "github.com/oursky/skygear/plugin"
-	"github.com/oursky/skygear/plugin/common"
-	"github.com/oursky/skygear/skyconfig"
-	"github.com/oursky/skygear/skydb"
-	. "github.com/oursky/skygear/skytest"
+	skyplugin "github.com/skygeario/skygear-server/plugin"
+	"github.com/skygeario/skygear-server/plugin/common"
+	"github.com/skygeario/skygear-server/skyconfig"
+	"github.com/skygeario/skygear-server/skydb"
+	. "github.com/skygeario/skygear-server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

@@ -15,8 +15,8 @@
 package plugin
 
 import (
-	"github.com/oursky/skygear/skyconfig"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skyconfig"
+	"github.com/skygeario/skygear-server/skydb"
 	"golang.org/x/net/context"
 )
 

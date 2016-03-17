@@ -23,11 +23,11 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	skyplugin "github.com/oursky/skygear/plugin"
-	"github.com/oursky/skygear/plugin/common"
-	"github.com/oursky/skygear/skyconfig"
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/skyconv"
+	skyplugin "github.com/skygeario/skygear-server/plugin"
+	"github.com/skygeario/skygear-server/plugin/common"
+	"github.com/skygeario/skygear-server/skyconfig"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skydb/skyconv"
 	"github.com/zeromq/goczmq"
 	"golang.org/x/net/context"
 )

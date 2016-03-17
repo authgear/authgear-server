@@ -27,11 +27,11 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	skyAsset "github.com/oursky/skygear/asset"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/skyconv"
-	"github.com/oursky/skygear/skyerr"
+	skyAsset "github.com/skygeario/skygear-server/asset"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skydb/skyconv"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 // used to clean file path

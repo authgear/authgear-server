@@ -5,9 +5,9 @@ import (
 
 	sq "github.com/lann/squirrel"
 
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skyerr"
-	"github.com/oursky/skygear/utils"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skyerr"
+	"github.com/skygeario/skygear-server/utils"
 )
 
 func (c *conn) SetRecordAccess(recordType string, acl skydb.RecordACL) error {

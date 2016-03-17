@@ -20,7 +20,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/oursky/skygear/router"
+	"github.com/skygeario/skygear-server/router"
 )
 
 // SingleRouteRouter is a router that only serves with a single handler,

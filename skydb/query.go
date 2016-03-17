@@ -17,7 +17,7 @@ package skydb
 import (
 	"fmt"
 
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 // SortOrder denotes an the order of Records returned from a Query.

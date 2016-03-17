@@ -25,10 +25,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/oursky/skygear/asset"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skydb"
-	. "github.com/oursky/skygear/skytest"
+	"github.com/skygeario/skygear-server/asset"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skydb"
+	. "github.com/skygeario/skygear-server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

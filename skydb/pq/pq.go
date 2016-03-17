@@ -25,8 +25,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/pq/migration"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skydb/pq/migration"
 )
 
 var underscoreRe = regexp.MustCompile(`[.:]`)

@@ -20,7 +20,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {

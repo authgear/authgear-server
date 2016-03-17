@@ -19,9 +19,9 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 func canonicalRelationName(name string) (string, skyerr.Error) {

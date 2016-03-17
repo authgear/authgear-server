@@ -25,12 +25,12 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 
-	"github.com/oursky/skygear/asset"
-	"github.com/oursky/skygear/plugin/hook"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/skyconv"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/asset"
+	"github.com/skygeario/skygear-server/plugin/hook"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skydb/skyconv"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 type jsonData map[string]interface{}
@@ -523,7 +523,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 			originalRecord, ok := originalRecordMap[record.ID]
-			// FIXME: Hot-fix for https://github.com/oursky/skygear/issues/528
+			// FIXME: Hot-fix for issues #528
 			// Defaults for record attributes should be provided
 			// before executing hooks
 			if !ok {

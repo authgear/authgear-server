@@ -25,7 +25,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/lib/pq"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 func isDeviceNotFound(err error) bool {

@@ -17,7 +17,7 @@ package authtokentest
 import (
 	"errors"
 
-	"github.com/oursky/skygear/authtoken"
+	"github.com/skygeario/skygear-server/authtoken"
 )
 
 // SingleTokenStore is a token store for storing a single auth token for testing.

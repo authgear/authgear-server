@@ -18,7 +18,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/google/go-gcm"
 	"github.com/mitchellh/mapstructure"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 var gcmSendHTTP = gcm.SendHttp

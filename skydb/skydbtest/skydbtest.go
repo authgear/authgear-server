@@ -19,7 +19,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 // MapConn is a naive memory implementation of skydb.Conn

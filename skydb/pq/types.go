@@ -20,8 +20,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/oursky/skygear/skydb"
 	"github.com/paulmach/go.geo"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 // This file implements Record related operations of the

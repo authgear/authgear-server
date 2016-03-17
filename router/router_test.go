@@ -21,8 +21,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/oursky/skygear/skyerr"
-	. "github.com/oursky/skygear/skytest"
+	"github.com/skygeario/skygear-server/skyerr"
+	. "github.com/skygeario/skygear-server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

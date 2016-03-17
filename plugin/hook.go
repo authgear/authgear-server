@@ -15,9 +15,9 @@
 package plugin
 
 import (
-	"github.com/oursky/skygear/plugin/hook"
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/plugin/hook"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skyerr"
 	"golang.org/x/net/context"
 )
 

@@ -19,7 +19,7 @@ import (
 	"runtime/debug"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 func defaultStatusCode(err skyerr.Error) int {

@@ -17,8 +17,8 @@ package hook
 import (
 	"testing"
 
-	"github.com/oursky/skygear/plugin/hook/hooktest"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/plugin/hook/hooktest"
+	"github.com/skygeario/skygear-server/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 )

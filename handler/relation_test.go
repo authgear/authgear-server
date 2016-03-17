@@ -17,13 +17,14 @@ package handler
 import (
 	"sort"
 
-	. "github.com/oursky/skygear/skytest"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
-	"github.com/oursky/skygear/handler/handlertest"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skydb"
+	. "github.com/skygeario/skygear-server/skytest"
+	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/handler/handlertest"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 type testRelationConn struct {

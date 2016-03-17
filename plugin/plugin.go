@@ -22,11 +22,11 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/oursky/skygear/plugin/hook"
-	"github.com/oursky/skygear/plugin/provider"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skyconfig"
 	"github.com/robfig/cron"
+	"github.com/skygeario/skygear-server/plugin/hook"
+	"github.com/skygeario/skygear-server/plugin/provider"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skyconfig"
 )
 
 // Plugin represents a collection of handlers, hooks and lambda functions

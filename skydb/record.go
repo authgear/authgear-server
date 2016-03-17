@@ -24,7 +24,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/oursky/skygear/asset"
+	"github.com/skygeario/skygear-server/asset"
 )
 
 // RecordID identifies an unique record in a Database

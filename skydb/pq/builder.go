@@ -22,7 +22,7 @@ import (
 
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 // predicateSqlizerFactory is a factory for creating sqlizer for predicate
