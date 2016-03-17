@@ -5,9 +5,9 @@ ENV ZMQ_VERSION 4.1.3
 ENV CZMQ_VERSION 3.0.2
 
 RUN apk update \
-    && apk add libc6-compat libstdc++ \
+    && apk add libc6-compat libstdc++ curl \
     && apk add \
-        coreutils gcc tar libtool zlib make musl-dev openssl-dev g++ zlib-dev curl \
+        coreutils gcc tar libtool zlib make musl-dev openssl-dev g++ zlib-dev \
     && echo " ... adding libsodium" \
         && curl -L https://download.libsodium.org/libsodium/releases/libsodium-${LIBSODIUM_VERSION}.tar.gz -o /tmp/libsodium.tar.gz \
         && cd /tmp/ \
@@ -46,16 +46,15 @@ RUN apk update \
                        --infodir=/usr/share/info \
         && make && make install \
         && rm -rf /tmp/czmq* \
-        && cd ..
+        && cd .. \
+    && apk del coreutils gcc tar libtool make musl-dev openssl-dev g++ zlib-dev \
+            && rm -rf /var/cache/apk/* \
+            && ln -s /lib /lib64
 
 ARG SKYGEAR_VERSION
 
 RUN echo " ... download skygear server v$SKYGEAR_VERSION binary" \
     && curl -L https://dl.bintray.com/skygeario/skygear/skygear-server/Releases/v${SKYGEAR_VERSION}/skygear-server-zmq-linux-amd64 -o /usr/local/bin/skygear-server \
     && chmod a+x /usr/local/bin/skygear-server
-
-RUN apk del coreutils gcc tar libtool make musl-dev openssl-dev g++ zlib-dev curl \
-    && rm -rf /var/cache/apk/* \
-    && ln -s /lib /lib64
 
 CMD ["/usr/local/bin/skygear-server"]
