@@ -43,7 +43,7 @@ chmod +x /usr/local/bin/gitreceive
 gitreceive init
 usermod -aG docker git
 
-# Install augtool for modifying skygear config
+# Install augtool for modifying skygear server config
 apt-get install -y augeas-tools
 
 # Move other files into place

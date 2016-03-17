@@ -46,7 +46,7 @@ import (
 )
 
 func usage() {
-	fmt.Println("Usage: skygear [<config file>]")
+	fmt.Println("Usage: skygear-server [<config file>]")
 }
 
 func main() {
@@ -271,7 +271,7 @@ func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 		attempt++
 		log.Errorf("Failed to start skygear: %v", connError)
 		if attempt >= 5 {
-			log.Fatalf("Failed to start skygear because connection to database cannot be opened.")
+			log.Fatalf("Failed to start skygear server because connection to database cannot be opened.")
 		}
 
 		log.Info("Retrying in 1 second...")

@@ -1,6 +1,6 @@
 (Describe the issue here)
 
-- Skygear Date/Version:
+- Skygear Server Date/Version:
 - Application Platform:
 - [ ] Is this a regression?
 - [ ] Attached logs, screenshots

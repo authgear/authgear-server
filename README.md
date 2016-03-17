@@ -1,4 +1,4 @@
-Skygear is a cloud backend for your app.
+Skygear Server is a cloud backend for your app.
 
 [![Build Status](https://magnum.travis-ci.com/oursky/skygear.svg?token=TS65G314JpxpG31zryWn)](https://magnum.travis-ci.com/oursky/skygear)
 
@@ -6,7 +6,7 @@ Skygear is a cloud backend for your app.
 
 To get started, you need to install Skygear Server and include one of
 our SDKs into your app. For more information on how to do this, check
-out the [Skygear Documentation](http://docs.pandadb.com/tutorial).
+out the [Skygear Server Documentation](http://docs.pandadb.com/tutorial).
 
 ### Configuration
 
@@ -15,7 +15,7 @@ Check out `development.ini` for example configuration.
 You need to specify the configuration file when running Skygear Server:
 
 ```shell
-$ ./skygear development.ini
+$ ./skygear-server development.ini
 ```
 
 Alternatively,

@@ -1,4 +1,4 @@
-(* Skygear module for Augeas
+(* Skygear Server module for Augeas
  Adapted from puppet.aug
 *)
 module Skygear =

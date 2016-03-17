@@ -49,7 +49,7 @@ type QueryConfig struct {
 	Offset uint64
 }
 
-// Conn encapsulates the interface of an Skygear connection to a container.
+// Conn encapsulates the interface of an Skygear Server connection to a container.
 type Conn interface {
 	// CRUD of UserInfo, smell like a bad design to attach these onto
 	// a Conn, but looks very convenient to user.
