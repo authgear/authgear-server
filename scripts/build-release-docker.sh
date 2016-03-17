@@ -3,7 +3,7 @@
 : ${SKYGEAR_VERSION:=latest}
 IMAGE_NAME=skygeario/skygear-server:v$SKYGEAR_VERSION
 
-curl --fail -sIL "https://dl.bintray.com/oursky/skygear/server/Releases/v$SKYGEAR_VERSION/skygear-server-zmq-linux-amd64" > /dev/null
+curl --fail -sIL "https://dl.bintray.com/skygeario/skygear/skygear-server/Releases/v$SKYGEAR_VERSION/skygear-server-zmq-linux-amd64" > /dev/null
 
 if [ $? -eq 0 ]; then
     docker build --pull -t $IMAGE_NAME --build-arg SKYGEAR_VERSION=$SKYGEAR_VERSION -f Dockerfile-release .
