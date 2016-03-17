@@ -52,18 +52,13 @@ script:
   - git status | grep "_string.go$"; test $? -eq 1
   - gocyclo -skip-godeps -over 15 . | gogocyclo
   - go test --tags zmq -cover ./...
+
+before_deploy:
   - >
-    if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] &&
-       ([[ "$TRAVIS_BRANCH" == "$BINARY_BUILDING_BRANCH" ]] ||
-        [[ -n $TRAVIS_TAG ]])
+    if [[ "$TRAVIS_BRANCH" == "$BINARY_BUILDING_BRANCH" ]] ||
+       [[ -n $TRAVIS_TAG ]]
     then
       ./scripts/build-binary.sh;
-    fi
-  - >
-    if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] &&
-       ([[ "$TRAVIS_BRANCH" == "$BINARY_BUILDING_BRANCH" ]] ||
-        [[ -n $TRAVIS_TAG ]])
-    then
       ./scripts/upload-binary.sh;
     fi
 
