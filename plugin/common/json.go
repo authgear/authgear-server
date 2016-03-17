@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 // ExecError is error resulted from application logic of plugin (e.g.

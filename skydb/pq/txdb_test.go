@@ -18,7 +18,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

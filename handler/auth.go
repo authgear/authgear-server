@@ -21,13 +21,13 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 
-	"github.com/oursky/skygear/asset"
-	"github.com/oursky/skygear/authtoken"
-	"github.com/oursky/skygear/plugin/hook"
-	"github.com/oursky/skygear/plugin/provider"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/asset"
+	"github.com/skygeario/skygear-server/authtoken"
+	"github.com/skygeario/skygear-server/plugin/hook"
+	"github.com/skygeario/skygear-server/plugin/provider"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 var errUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")

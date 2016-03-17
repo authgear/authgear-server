@@ -17,6 +17,8 @@ cache:
     - $HOME/.cache
     - Godeps/_workspace
 
+go_import_path: github.com/skygeario/skygear-server
+
 before_install:
   - mkdir -p $HOME/.cache/local
   - export LD_INSTALL_PREFIX=$HOME/.cache/local

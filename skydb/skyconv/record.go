@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 // JSONRecord defines a common serialization format for skydb.Record

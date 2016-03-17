@@ -23,9 +23,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/skyconv"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skydb/skyconv"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 // QueryParser is a context for parsing raw query to skydb.Query

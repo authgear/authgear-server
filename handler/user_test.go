@@ -15,15 +15,16 @@
 package handler
 
 import (
-	"github.com/oursky/skygear/handler/handlertest"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skydb/skydbtest"
-	. "github.com/oursky/skygear/skytest"
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
-	"github.com/oursky/skygear/plugin/provider"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/handler/handlertest"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skydb/skydbtest"
+	. "github.com/skygeario/skygear-server/skytest"
+	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/plugin/provider"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 type queryUserConn struct {

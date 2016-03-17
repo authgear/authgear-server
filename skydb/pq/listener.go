@@ -26,7 +26,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 var subscribeListenOnce sync.Once

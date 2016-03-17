@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 // MapFrom tries to map a map to a FromMapper

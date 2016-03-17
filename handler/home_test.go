@@ -17,7 +17,7 @@ package handler
 import (
 	"testing"
 
-	"github.com/oursky/skygear/router"
+	"github.com/skygeario/skygear-server/router"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

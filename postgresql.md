@@ -49,21 +49,23 @@ See (Apt|https://wiki.postgresql.org/wiki/Apt) in the Postgresql's wiki for more
 
 After postgresql installed:
 
-Let's say we are running skygear under the user account named `oduser`
+Let's say we are running skygear server under the user account named `skyuser`
 
 1. `sudo su postgres`
-2. `createuser --superuser oduser`
+2. `createuser --superuser skyuser`
 3. `exit`
-4. `sudo su oduser`
+4. `sudo su skyuser`
 4. `createdb`; stop psql from complaining
 5. `createdb skygear`
 6. `psql`
 7. `\l`; verify that the database is created correctly
-   ```
-      Name    |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges
-   -----------+----------+----------+-------------+-------------+-----------------------
-    skygear      | goconvey | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
-    ```
+
+```
+Name    | Owner    | Encoding |   Collate   |    Ctype    |   Access privileges
+--------+----------+----------+-------------+-------------+-----------------------
+skygear | skyuser  | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+```
+
 8. Done!
 
 ## PostGIS

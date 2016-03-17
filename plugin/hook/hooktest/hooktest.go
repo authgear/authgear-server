@@ -15,8 +15,8 @@
 package hooktest
 
 import (
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skyerr"
 	"golang.org/x/net/context"
 )
 

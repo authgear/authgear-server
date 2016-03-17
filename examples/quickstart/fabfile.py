@@ -255,7 +255,7 @@ def remove_upload_key(name):
 def add_plugin(name, image=None, dockerfile='Dockerfile', build_context=None,
                should_restart=True):
     """
-    Add a new plugin by modifying skygear configuration
+    Add a new plugin by modifying skygear server configuration
 
     If an image is specified, it will be treated as a Docker repository image
     and pulled from the repository. If an image is not specified, a build
@@ -291,7 +291,7 @@ def add_plugin(name, image=None, dockerfile='Dockerfile', build_context=None,
 @task
 def remove_plugin(name, should_restart=True):
     """
-    Remove an existing plugin by modifying skygear configuration
+    Remove an existing plugin by modifying skygear server configuration
 
     Skygear Server is restarted automatically by default.
     """

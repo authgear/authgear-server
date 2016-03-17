@@ -18,8 +18,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/oursky/skygear/plugin/hook"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/plugin/hook"
+	"github.com/skygeario/skygear-server/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 )

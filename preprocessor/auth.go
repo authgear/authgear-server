@@ -19,9 +19,9 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/oursky/skygear/authtoken"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/authtoken"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skyerr"
 	"golang.org/x/net/context"
 )
 

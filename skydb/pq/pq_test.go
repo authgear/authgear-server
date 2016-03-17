@@ -21,7 +21,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 // NOTE(limouren): postgresql uses this error to signify a non-exist

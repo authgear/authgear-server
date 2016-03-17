@@ -11,7 +11,7 @@ mkdir -p $DIST
 for GOOS in darwin linux windows; do
   for GOARCH in 386 amd64; do
     FILENAME=$DAEMON_NAME-$GOOS-$GOARCH
-    GOOS=$GOOS GOARCH=$GOARCH go build -o $DIST/$FILENAME github.com/oursky/skygear
+    GOOS=$GOOS GOARCH=$GOARCH go build -o $DIST/$FILENAME github.com/skygeario/skygear-server
   done
 done
 
@@ -21,7 +21,7 @@ if [ $? -eq 0 ]; then
   GOOS=linux
   GOARCH=amd64
   FILENAME=$DAEMON_NAME-zmq-$GOOS-$GOARCH
-  GOOS=$GOOS GOARCH=$GOARCH go build --tags zmq -o $DIST/$FILENAME github.com/oursky/skygear
+  GOOS=$GOOS GOARCH=$GOARCH go build --tags zmq -o $DIST/$FILENAME github.com/skygeario/skygear-server
 else
-  >&2 echo "Did not build skygear with zmq because libczmq library is not installed."
+  >&2 echo "Did not build skygear server with zmq because libczmq library is not installed."
 fi

@@ -17,11 +17,11 @@ package handler
 import (
 	"testing"
 
-	"github.com/oursky/skygear/handler/handlertest"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/skydbtest"
-	. "github.com/oursky/skygear/skytest"
+	"github.com/skygeario/skygear-server/handler/handlertest"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skydb/skydbtest"
+	. "github.com/skygeario/skygear-server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

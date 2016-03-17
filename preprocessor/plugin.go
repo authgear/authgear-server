@@ -19,9 +19,9 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/oursky/skygear/plugin"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/plugin"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 type EnsurePluginReadyPreprocessor struct {

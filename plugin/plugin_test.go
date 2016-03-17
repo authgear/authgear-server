@@ -15,14 +15,15 @@
 package plugin
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/robfig/cron"
 
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skyconfig"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skyconfig"
 )
 
 type MockPluginReadyPreprocessor struct{}

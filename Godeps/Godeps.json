@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/oursky/skygear",
+	"ImportPath": "github.com/skygeario/skygear-server",
 	"GoVersion": "go1.5",
 	"Deps": [
 		{

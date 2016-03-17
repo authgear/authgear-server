@@ -18,7 +18,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 func (c *conn) GetAsset(name string, asset *skydb.Asset) error {

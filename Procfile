@@ -1,2 +1,1 @@
-web: skygear development.ini
-
+web: skygear-server development.ini

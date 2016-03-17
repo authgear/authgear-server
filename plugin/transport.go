@@ -15,19 +15,19 @@
 package plugin
 
 import (
-	"github.com/oursky/skygear/skyconfig"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skyconfig"
+	"github.com/skygeario/skygear-server/skydb"
 	"golang.org/x/net/context"
 )
 
-// AuthRequest is sent by Skygear to plugin which contains data for authentication
+// AuthRequest is sent by Skygear Server to plugin which contains data for authentication
 type AuthRequest struct {
 	ProviderName string
 	Action       string
 	AuthData     map[string]interface{}
 }
 
-// AuthResponse is sent by plugin to Skygear which contains authenticated data
+// AuthResponse is sent by plugin to Skygear Server which contains authenticated data
 type AuthResponse struct {
 	PrincipalID string                 `json:"principal_id"`
 	AuthData    map[string]interface{} `json:"auth_data"`

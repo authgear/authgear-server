@@ -17,8 +17,8 @@ package skydb
 import (
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/oursky/skygear/utils"
-	"github.com/oursky/skygear/uuid"
+	"github.com/skygeario/skygear-server/utils"
+	"github.com/skygeario/skygear-server/uuid"
 )
 
 // AuthInfo represents the dictionary of authenticated principal ID => authData.

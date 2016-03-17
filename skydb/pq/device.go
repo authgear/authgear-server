@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 func (c *conn) GetDevice(id string, device *skydb.Device) error {

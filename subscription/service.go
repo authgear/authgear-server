@@ -18,7 +18,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 var timeNow = time.Now

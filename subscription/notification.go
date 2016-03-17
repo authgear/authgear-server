@@ -19,9 +19,9 @@ import (
 	"fmt"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/skygear/pubsub"
-	"github.com/oursky/skygear/push"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/pubsub"
+	"github.com/skygeario/skygear-server/push"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 // Notice encapsulates the information sent to subscribers when the content of

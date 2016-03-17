@@ -16,11 +16,12 @@ package router
 
 import (
 	"errors"
-	. "github.com/smartystreets/goconvey/convey"
 	"net/http"
 	"testing"
 
-	"github.com/oursky/skygear/skyerr"
+	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 func TestErrors(t *testing.T) {

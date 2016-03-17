@@ -20,8 +20,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 
-	"github.com/oursky/skygear/skyconfig"
-	"github.com/oursky/skygear/skydb"
+	"github.com/skygeario/skygear-server/skyconfig"
+	"github.com/skygeario/skygear-server/skydb"
 )
 
 type nullTransport struct {

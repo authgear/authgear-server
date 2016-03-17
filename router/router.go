@@ -24,7 +24,7 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 // pipeline encapsulates a transformation which a request will come throught

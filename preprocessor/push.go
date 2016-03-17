@@ -17,9 +17,9 @@ package preprocessor
 import (
 	"net/http"
 
-	"github.com/oursky/skygear/push"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/push"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 type NotificationPreprocessor struct {

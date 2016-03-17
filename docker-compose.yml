@@ -13,17 +13,17 @@ services:
     - db_data:/var/lib/postgresql/data
     ports:
     - "5432:5432"
-  
+
   redis:
     image: redis:3.0
     volumes:
     - redis_data:/data
-  
+
   app:
-    image: oursky/skygear:latest
+    image: skygeario/skygear-server:latest
     ports:
-    - "3000:3000" # Skygear API Endpoint (HTTP)
-    - "5555:5555" # Skygear Plugin Endpoint (ZMQ)
+    - "3000:3000" # Skygear Server API Endpoint (HTTP)
+    - "5555:5555" # Skygear Server Plugin Endpoint (ZMQ)
     volumes:
     - app_data:/go/src/app/data
     # Uncomment the following line to override the default configuration file
@@ -31,7 +31,7 @@ services:
     links:
     - db
     - redis
-    command: skygear development.ini
+    command: skygear-server development.ini
     environment:
       # `db` in the following string should match the name of the database
       # container above.

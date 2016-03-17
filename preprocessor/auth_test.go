@@ -21,10 +21,10 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/oursky/skygear/authtoken"
-	"github.com/oursky/skygear/authtoken/authtokentest"
-	"github.com/oursky/skygear/router"
-	"github.com/oursky/skygear/skyerr"
+	"github.com/skygeario/skygear-server/authtoken"
+	"github.com/skygeario/skygear-server/authtoken/authtokentest"
+	"github.com/skygeario/skygear-server/router"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 func TestAccessKeyValidationPreprocessor(t *testing.T) {

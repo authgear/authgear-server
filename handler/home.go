@@ -15,7 +15,7 @@
 package handler
 
 import (
-	"github.com/oursky/skygear/router"
+	"github.com/skygeario/skygear-server/router"
 )
 
 type statusResponse struct {

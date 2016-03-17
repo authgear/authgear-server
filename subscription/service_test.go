@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/oursky/skygear/skydb"
-	"github.com/oursky/skygear/skydb/mock_skydb"
+	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skydb/mock_skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

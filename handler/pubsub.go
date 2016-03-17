@@ -15,8 +15,8 @@
 package handler
 
 import (
-	"github.com/oursky/skygear/pubsub"
-	"github.com/oursky/skygear/router"
+	"github.com/skygeario/skygear-server/pubsub"
+	"github.com/skygeario/skygear-server/router"
 )
 
 type PubSubHandler struct {
