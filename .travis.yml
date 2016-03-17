@@ -83,5 +83,5 @@ notifications:
 env:
   global:
     - BINARY_BUILDING_BRANCH="master"
-    - secure: qyXOofEQ4RW03vzqh6UpB2HrZpD2B6nc4TJR/As9LqLNBpkWXOSfaH09jrGQTyTr1LA+53RI/2yxIwO3ZAvyP0RjHe2bHBwKz/2uUhwQWJGrqC+GAzt/V/oVjr1ZyF7FOSOnQzgvU35ek1lHhHiCclJJKnUdQRQJPpSBH21z9HU=
+    - secure: UQzX13uGLwFXrp10cAdYKyXKNIE6jNyzk1kfGdEwig+X10rRO+MO1SilnX+o9RJwYtsWsbcf01DALRc6ce0lLyXuokIFt7rweu6MdIzPy/0wr7qzCDz5ssI7Sy9Ifyx//vMJYGBaOGz4XoEF84tmEc43yUsbYfHuOy91mqxK9rQ=
     - secure: v8KtjBrM8HXFQDxgUviMYRox0zQwXF7E+4vKAvUmtJLW9l6Cm5hyg0qFWfK00gB6qfcUU9wjx6A9FxzJh+YXZk2u/bgRdO/japW+a92UkNsGcNQvmTfjz4qjiCNSoci+3QsJEHdaF81d9XVQCa9h9uatkkr0SqVcHfYKx+0DjY4=
