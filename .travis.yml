@@ -66,6 +66,22 @@ script:
     then
       ./scripts/upload-binary.sh;
     fi
+
+deploy:
+  provider: releases
+  api-key: "$GITHUB_RELEASE_TOKEN"
+  file:
+    - "dist/skygear-server-darwin-386"
+    - "dist/skygear-server-darwin-amd64"
+    - "dist/skygear-server-linux-386"
+    - "dist/skygear-server-linux-amd64"
+    - "dist/skygear-server-windows-386"
+    - "dist/skygear-server-windows-amd64"
+    - "dist/skygear-server-zmq-linux-amd64"
+  skip_cleanup: true
+  on:
+    tags: true
+
 notifications:
   slack: oursky:PxqsclRADehuWEs51vpgxeUh
 
