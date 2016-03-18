@@ -85,11 +85,19 @@ func TestRouterMap(t *testing.T) {
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
 
-	if resp.Header().Get("Content-Type") != "application/json" {
-		t.Fatalf("Unexpected Content-Type in header %v", resp.Header().Get("Content-Type"))
+	contentTypeField := resp.Header().Get("Content-Type")
+	if contentTypeField != "application/json" {
+		t.Fatalf("Unexpected Content-Type in header %v", contentTypeField)
 	}
-	if resp.Body.String() != "{\"result\":{\"username\":\"example\"}}\n" {
-		t.Fatalf("Simple map failed %v", resp.Body.String())
+
+	serverField := resp.Header().Get("Server")
+	if serverField != "Skygear Server/dev" {
+		t.Fatalf("Unexpected Server in header %v", serverField)
+	}
+
+	responseBody := resp.Body.String()
+	if responseBody != "{\"result\":{\"username\":\"example\"}}\n" {
+		t.Fatalf("Simple map failed %v", responseBody)
 	}
 }
 
@@ -114,8 +122,14 @@ func TestRouterMapMissing(t *testing.T) {
 
 	expectedBody := `{"error":{"name":"UndefinedOperation","code":117,"message":"route unmatched"}}
 `
-	if resp.Body.String() != expectedBody {
-		t.Fatalf("want resp.Body.String() = %#v, got %#v", expectedBody, resp.Body.String())
+	serverField := resp.Header().Get("Server")
+	if serverField != "Skygear Server/dev" {
+		t.Fatalf("Unexpected Server in header %v", serverField)
+	}
+
+	responseBody := resp.Body.String()
+	if responseBody != expectedBody {
+		t.Fatalf("want resp.Body.String() = %#v, got %#v", expectedBody, responseBody)
 	}
 }
 
