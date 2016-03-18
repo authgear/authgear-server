@@ -48,8 +48,8 @@ RUN apk update \
         && rm -rf /tmp/czmq* \
         && cd .. \
     && apk del coreutils gcc tar libtool make musl-dev openssl-dev g++ zlib-dev \
-            && rm -rf /var/cache/apk/* \
-            && ln -s /lib /lib64
+    && rm -rf /var/cache/apk/* \
+    && ln -s /lib /lib64
 
 ARG SKYGEAR_VERSION
 
