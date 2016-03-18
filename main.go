@@ -42,6 +42,7 @@ import (
 	"github.com/skygeario/skygear-server/skyconfig"
 	"github.com/skygeario/skygear-server/skydb"
 	_ "github.com/skygeario/skygear-server/skydb/pq"
+	"github.com/skygeario/skygear-server/skyversion"
 	"github.com/skygeario/skygear-server/subscription"
 )
 
@@ -72,6 +73,8 @@ func main() {
 	}
 
 	initLogger(config)
+
+	log.Printf("Starting Skygear Server(%s)...", skyversion.Version())
 	connOpener := ensureDB(config) // Fatal on DB failed
 
 	// Init all the services
