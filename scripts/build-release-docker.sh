@@ -1,23 +1,13 @@
 #!/bin/sh
 
-set -e
-
 : ${SKYGEAR_VERSION:=latest}
 IMAGE_NAME=skygeario/skygear-server:v$SKYGEAR_VERSION
 
-if [ -d dist ]; then
-    echo "Error: Directory 'dist' exists."
-    exit 1
+curl --fail -sIL "https://dl.bintray.com/skygeario/skygear/skygear-server/v$SKYGEAR_VERSION/skygear-server-v$SKYGEAR_VERSION-zmq-linux-amd64" > /dev/null
+
+if [ $? -eq 0 ]; then
+    docker build --pull -t $IMAGE_NAME --build-arg SKYGEAR_VERSION=$SKYGEAR_VERSION -f Dockerfile-release .
+    echo "Done. Run \`docker push $IMAGE_NAME\` to push image."
+else
+    echo "Skygear(v$SKYGEAR_VERSION) is not available on Bintray."
 fi
-
-if [ -f skygear-server ]; then
-    echo "Error: File 'skygear-server' exists."
-    exit 1
-fi
-
-docker build -t skygear-build -f Dockerfile-development .
-docker run -it --rm -v `pwd`:/go/src/app -w /go/src/app skygear-build /go/src/app/scripts/build-binary.sh
-cp dist/skygear-server-zmq-linux-amd64 skygear-server
-docker build --pull -t $IMAGE_NAME -f Dockerfile-release .
-
-echo "Done. Run \`docker push $IMAGE_NAME\` to push image."

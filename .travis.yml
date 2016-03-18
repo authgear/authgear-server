@@ -53,5 +53,34 @@ script:
   - gocyclo -skip-godeps -over 15 . | gogocyclo
   - go test --tags zmq -cover ./...
 
+before_deploy:
+  - >
+    if [[ "$TRAVIS_GO_VERSION" == "1.5" ]] then
+      ./scripts/build-binary.sh;
+      ./scripts/upload-binary.sh;
+    else
+      echo "Skip building binary on Go Version $TRAVIS_GO_VERSION";
+    fi
+
+deploy:
+  provider: releases
+  api-key: "$GITHUB_RELEASE_TOKEN"
+  file:
+    - "dist/skygear-server-darwin-386"
+    - "dist/skygear-server-darwin-amd64"
+    - "dist/skygear-server-linux-386"
+    - "dist/skygear-server-linux-amd64"
+    - "dist/skygear-server-windows-386"
+    - "dist/skygear-server-windows-amd64"
+    - "dist/skygear-server-zmq-linux-amd64"
+  skip_cleanup: true
+  on:
+    tags: true
+
 notifications:
   slack: oursky:PxqsclRADehuWEs51vpgxeUh
+
+env:
+  global:
+    - secure: SWyc6V/g2JiSBaWEIYdVd8XB4uE4GH7pmTQdOB+afP/pgbh+r4O2nEXgf17jVIOsx+C/6G2UUeiuuFTyt/hdn4vhHMFYKYfvPP7bytWvpx5Ndt/ntSRDBKP+KF7feOuHIE/S8mQTRH6dPYTTsmsY2FLs5G9pnI4dF+pMw7KpijM=
+    - secure: v8KtjBrM8HXFQDxgUviMYRox0zQwXF7E+4vKAvUmtJLW9l6Cm5hyg0qFWfK00gB6qfcUU9wjx6A9FxzJh+YXZk2u/bgRdO/japW+a92UkNsGcNQvmTfjz4qjiCNSoci+3QsJEHdaF81d9XVQCa9h9uatkkr0SqVcHfYKx+0DjY4=
