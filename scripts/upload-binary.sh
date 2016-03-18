@@ -7,23 +7,22 @@ if [ ! -d dist ]; then
     exit 1
 fi
 
-COMMIT_NAME=`git rev-parse --short HEAD`
-TIMESTAMP=`date +%s`
+# COMMIT_NAME=`git rev-parse --short HEAD`
+# TIMESTAMP=`date +%s`
 SUBJECT_NAME="ben181231"
 ORG_NAME="skygeario"
-REPO_NAME="skygear"
 PACKAGE_NAME="skygear-server"
 
 if [ -n "$TRAVIS_TAG" ]; then
+    REPO_NAME="skygear"
     PACKAGE_VERSION="$TRAVIS_TAG"
-    FOLDER_STRUCTURE="$PACKAGE_NAME/Releases/$TRAVIS_TAG"
 else
-    PACKAGE_VERSION="Commits-$TIMESTAMP-$COMMIT_NAME"
-    FOLDER_STRUCTURE="$PACKAGE_NAME/Commits/$TIMESTAMP-$COMMIT_NAME"
+    REPO_NAME="skygear-nightly"
+    PACKAGE_VERSION=`git rev-parse --abbrev-ref HEAD`
 fi
 
 for PER_FILE in `ls -1 dist`; do
-    UPLOAD_URL="https://api.bintray.com/content/$ORG_NAME/$REPO_NAME/$PACKAGE_NAME/$PACKAGE_VERSION/$FOLDER_STRUCTURE/$PER_FILE"
+    UPLOAD_URL="https://api.bintray.com/content/$ORG_NAME/$REPO_NAME/$PACKAGE_NAME/$PACKAGE_VERSION/$PER_FILE"
 
     echo "\nUploading \"$PER_FILE\" to \"$UPLOAD_URL\"..."
 

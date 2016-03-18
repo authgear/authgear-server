@@ -54,7 +54,7 @@ RUN apk update \
 ARG SKYGEAR_VERSION
 
 RUN echo " ... download skygear server v$SKYGEAR_VERSION binary" \
-    && curl -L https://dl.bintray.com/skygeario/skygear/skygear-server/Releases/v${SKYGEAR_VERSION}/skygear-server-zmq-linux-amd64 -o /usr/local/bin/skygear-server \
+    && curl -L https://dl.bintray.com/skygeario/skygear/skygear-server/v${SKYGEAR_VERSION}/skygear-server-v${SKYGEAR_VERSION}-zmq-linux-amd64 -o /usr/local/bin/skygear-server \
     && chmod a+x /usr/local/bin/skygear-server
 
 CMD ["/usr/local/bin/skygear-server"]
