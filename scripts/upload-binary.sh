@@ -17,11 +17,12 @@ if [ -n "$TRAVIS_TAG" ]; then
     PACKAGE_VERSION="$TRAVIS_TAG"
 else
     REPO_NAME="skygear-nightly"
-    PACKAGE_VERSION=`git rev-parse --abbrev-ref HEAD`
+    PACKAGE_VERSION=$TRAVIS_BRANCH
 fi
 
-for PER_FILE in `ls -1 dist | sed s/skygear-server-/skygear-server-$VERSION-/`; do
-    UPLOAD_URL="https://api.bintray.com/content/$ORG_NAME/$REPO_NAME/$PACKAGE_NAME/$PACKAGE_VERSION/$PER_FILE"
+for PER_FILE in `ls -1 dist`; do
+    PER_FILE_WITH_VERSION=`echo $PER_FILE | sed s/skygear-server-/skygear-server-$VERSION-/`
+    UPLOAD_URL="https://api.bintray.com/content/$ORG_NAME/$REPO_NAME/$PACKAGE_NAME/$PACKAGE_VERSION/$PER_FILE_WITH_VERSION"
 
     echo "\nUploading \"$PER_FILE\" to \"$UPLOAD_URL\"..."
 
