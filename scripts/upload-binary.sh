@@ -7,7 +7,7 @@ if [ ! -d dist ]; then
     exit 1
 fi
 
-SUBJECT_NAME="ben181231"
+SUBJECT_NAME="skygeario-builder"
 ORG_NAME="skygeario"
 PACKAGE_NAME="skygear-server"
 VERSION=`git describe --tags`
