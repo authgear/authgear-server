@@ -1,8 +1,8 @@
-FROM alpine:latest
+FROM alpine:3.3
 
-ENV LIBSODIUM_VERSION 1.0.5
-ENV ZMQ_VERSION 4.1.3
-ENV CZMQ_VERSION 3.0.2
+ENV LIBSODIUM_VERSION=1.0.5 \
+    ZMQ_VERSION=4.1.3 \
+    CZMQ_VERSION=3.0.2
 
 RUN apk update \
     && apk add libc6-compat libstdc++ curl \
@@ -51,10 +51,15 @@ RUN apk update \
     && rm -rf /var/cache/apk/* \
     && ln -s /lib /lib64
 
-ARG SKYGEAR_VERSION
+ADD skygear-server /usr/local/bin/
+RUN chmod a+x /usr/local/bin/skygear-server \
+    && mkdir -p /app/data
 
-RUN echo " ... download skygear server v$SKYGEAR_VERSION binary" \
-    && curl -L https://dl.bintray.com/skygeario/skygear/skygear-server/v${SKYGEAR_VERSION}/skygear-server-v${SKYGEAR_VERSION}-zmq-linux-amd64 -o /usr/local/bin/skygear-server \
-    && chmod a+x /usr/local/bin/skygear-server
+WORKDIR /app
+VOLUME /app/data
+USER nobody
+ADD config.ini /app/
 
-CMD ["/usr/local/bin/skygear-server"]
+EXPOSE 3000
+
+CMD ["/usr/local/bin/skygear-server", "config.ini"]
