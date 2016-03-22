@@ -74,7 +74,7 @@ func main() {
 
 	initLogger(config)
 
-	log.Printf("Starting Skygear Server(%s)...", skyversion.Version())
+	log.Infof("Starting Skygear Server(%s)...", skyversion.Version())
 	connOpener := ensureDB(config) // Fatal on DB failed
 
 	// Init all the services
