@@ -91,7 +91,7 @@ func TestRouterMap(t *testing.T) {
 	}
 
 	serverField := resp.Header().Get("Server")
-	if serverField != "Skygear Server/dev" {
+	if !strings.HasPrefix(serverField, "Skygear Server/") {
 		t.Fatalf("Unexpected Server in header %v", serverField)
 	}
 
@@ -123,7 +123,7 @@ func TestRouterMapMissing(t *testing.T) {
 	expectedBody := `{"error":{"name":"UndefinedOperation","code":117,"message":"route unmatched"}}
 `
 	serverField := resp.Header().Get("Server")
-	if serverField != "Skygear Server/dev" {
+	if !strings.HasPrefix(serverField, "Skygear Server/") {
 		t.Fatalf("Unexpected Server in header %v", serverField)
 	}
 
