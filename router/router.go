@@ -17,6 +17,7 @@ package router
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -25,6 +26,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/skygeario/skygear-server/skyerr"
+	"github.com/skygeario/skygear-server/skyversion"
 )
 
 // pipeline encapsulates a transformation which a request will come throught
@@ -95,12 +97,16 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		payload       *Payload
 	)
 
+	version := strings.TrimPrefix(skyversion.Version(), "v")
+
 	resp.writer = w
 	defer func() {
 		if r := recover(); r != nil {
 			resp.Err = errorFromRecoveringPanic(r)
 			log.WithField("recovered", r).Errorln("panic occurred while handling request")
 		}
+
+		resp.Header().Set("Server", fmt.Sprintf("Skygear Server/%s", version))
 
 		if !resp.written {
 			resp.Header().Set("Content-Type", "application/json")

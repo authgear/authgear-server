@@ -10,7 +10,7 @@ fi
 SUBJECT_NAME="skygeario-builder"
 ORG_NAME="skygeario"
 PACKAGE_NAME="skygear-server"
-VERSION=`git describe --tags`
+VERSION=`git describe --always --tags`
 
 if [ -n "$TRAVIS_TAG" ]; then
     REPO_NAME="skygear"
