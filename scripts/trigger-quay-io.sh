@@ -15,7 +15,8 @@ fi
 
 DOCKER_BUILD_ARCHIVE="docker-build-archive-$VERSION.tar.gz"
 TEMP_BUILD_DIR=`mktemp -d`
-cp dist/skygear-server-$VERSION-zmq-linux-amd64 $TEMP_BUILD_DIR/skygear-server
+ls -al dist
+cp dist/skygear-server-zmq-linux-amd64 $TEMP_BUILD_DIR/skygear-server
 cp scripts/docker-release/Dockerfile $TEMP_BUILD_DIR
 cat >> $TEMP_BUILD_DIR/Dockerfile << EOF
 ENV SKYGEAR_VERSION=$VERSION
