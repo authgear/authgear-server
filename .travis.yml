@@ -79,6 +79,20 @@ deploy:
       repo: SkygearIO/skygear-server
       all_branches: true
       go: 1.5
+  - provider: script
+    script: ./scripts/trigger-docker-hub.sh
+    skip_cleanup: true
+    on:
+      repo: SkygearIO/skygear-server
+      all_branches: true
+      go: 1.5
+  - provider: script
+    script: ./scripts/trigger-quay-io.sh
+    skip_cleanup: true
+    on:
+      repo: SkygearIO/skygear-server
+      all_branches: true
+      go: 1.5
 
 notifications:
   slack: oursky:PxqsclRADehuWEs51vpgxeUh
@@ -89,3 +103,7 @@ env:
     - secure: ozy/O7WQjCUqRDZvsVRPHibl3sq8Vw6ZbGLy3NmH0CdxK5NR1i8ybJOsYsPjS8aTQ7TWvL63oxD0zusf8a1omdaSXGjSyoOlqR+/0L3qtfWHxbvYGgRnaGuQ0Aoj1CzRyxyl22+vCsXPMubsh3/MDNHYhkhFykTWSG+So+G8UNCS6kFF/EOmWJtE/d5GzNQ6AwjwcR0gpU/KL+iXkdZENqBGbdPf3eVwp6ZVPC51hAKpXQ0c42Gkrhgaum7XZMuXXb6xPVihOj564df8qCJF9gajNQPyn9gSONl42RPZzKDFM6wxUOTzj3RFq26Ou5OQCyhV6Dir9HClmA5AT009wh50R+oMdevPfmIzAX/eIq5gaVTmR9K2z78tkEXS4DEI8J3DMRr6eYMFPoKRP8CYrnoL0XhfBdcBoHFxcA2xWlvU65gcxoZTWhi0AQM2TuztTUW2L161qytqf72mBZhZW8GhkHZLN0UNqzwDTIq0o+yK1wV1NXz6vo1KP+9L6VkhXQKzuzd+tKIEoZIvxg1rDcU9rCpSXhMFYM9QNs4igu2JTmm8VMU3yGxIWtx9iSSzTJHdGdMxe38C8QBWI+AFgdc7skTQsv6H9cpTxpDiycPr+6U4L1Tk3o5QnVH5qxNrH+xJXsAuZ4DG/7qGgkp8o84ygf4/feWc5zll7zAtiOg=
     # GITHUB_RELEASE_TOKEN
     - secure: hR1f2OUGObjC8h+ks5N6QNxoaCDROYBPOGqDI5USVC4/9eBoFbPGDmVddRj1KM6Uz6UCSTQfmyQHJD8uP8k86Bme/LDyca52oRNQ/F5IqzkiyJR4i46Cmi5OIe9ba9nGRjpBc47/7EK4JMnqJ1WZkzxyDtSFzx7ImxMaHWLgMaZevgmWpPedDImQgg9z4KeNE6K/sR14DHk/B9tBtxd8yN6avBRwTrzgLAfrXY4KiocbD8JHQNe+HaPPEhy9oeT1VdDjOZfYtJtJfl9wIoIb3KFuRwIjWLiCmuKyOuxZLB0dBQtFmc9YzIgASSytJ/WLN41x6ZuQzawkG0Ds+x53sa+FW7nVDkGP1DluuVwkTQS0IvJR/QnFTkyiQjIX+H24HWuCnMvuxTOS5B5gvSHKmUP0iBqFSbB/CaZZL69XPr3DcEPRwSsLqHJGQreyK+BMAcnD8zk2J1TK4j89FxEbvyXrStDHy0TflmHwMej63qw8Imtr6bDYlp+1stFl4wlT9JuMPbrtLye4vP6hP/lhmj1WwmIZn5Vyvej5BWTwnon+S8Hm+0Mm7QXOg5+gamo5WRPyHIhT614rjmnaKd2DA13Apn+tHsHa/3uapZRpF/mzEJlsx8ug2b3dsWSzOU3+x03HmiKVE2OJlQwIWppeYZFrK/pyrfPWoSRLQyUnYa4=
+    # DOCKER_HUB_TRIGGER_TOKEN
+    - secure: "mIPp1kxXCQaNeSy/7vXpI03JXmI4bDpN4/0KZzmTl2DhuwZM1oa5tNJmJrcnckHzeygGTjVyEu77f9NGbZNI9FqsARfKFVepEFQi1ATEO6FCXpDlisWMktp6zoFToh4FWJi0q9Hkuu0MfSXT/7BXWFKMmTtMTWeVCXenQsATjpO+TwOp6DNS0nEORiQ+GLIHYd4SeLMZfS0sKvGirGIrDkloOIjlhgRgJ6+2mew9Ho65hnWa46MUtzLeq4QkTLH+Y66dLAnt1thQYcH1fSgUdAZjgnpIJIHgbFFscE+eXqQpAe4SulDMtY/gkEDmGnqRIEl1LREUVMDSWPe+Y7BTkEojej5rWKkDbihLPK4dC+s5bHQxmDw/FiKy3P7nAz3LigF/FkFwGtzgCt3WaI09igUL5h8sbc1Wd0kpDPDfCRemkU2AK233nRqThTGnyF+3m8kBtqUFB1fA0ZDf+g1SRi/qJOxDCyymBBFZ2gBAHSwfJqYugjbTxT0hyCvHzYQCD+MfEJXnx13SfiQVRIfTVE5x+8JDm9kdviuPbEVKdv9pn8ynmCicrpBxlzXiHpKiI/WCR79AxAWn3bjmNbJKijYZrUpc4P4Apm4Wv8xTD2umquRCWctHW/pbZCwJdN8tCYAvTDjZU0LmPmMtlFx5ANxl14ld1+GEfxRAtXjtvgI="
+    # QUAY_IO_ACCESS_TOKEN
+    - secure: "kxpaBYrIiN/LhCocsseXB9XlPYNNEpwydpf/cnb49tY5qnS3TIceTbxNU2ACfrI0ePRaXB1JqSak8EzCBBvHklmH9RJTJVHrFfzZBLit1GxGa1KBoBQZT+xM63WYHPuIFmj2KcFJnO287szLpve6+AOq5sn57b6Qn8NC4/COw68jdQRnCDbsz8zl6nOOuBJi5Y72daksfTvdtovW1UZ2hr3IJtLckv1Up+lINAiLnNYbjD2SmsiqGFHHWEtmqLsCFNindHNmXHhrb3HkNWtUwPJKMx2l0ZqS2UoBQmirY7CWm1vu5QRkMnaxU9X25VD/3hndogdcl0FhudejcmIwo0QXLtVZwJR90yA9XMca/7+4T1l/sTcf0Xr9WFbGbyDgB2mQWgYtLCi4dOvmicVi1oc1dM6ni0E/91Vk4JwQu8CjsaofzF5/zx8hOXOH2zXj8uLBkNXkI4S8/jFum9pekBTSW2mtQ0iKvCI4FNgHM/62ZXGrT23Aquo4go1176xwMYufQ7+GxoQy2Mp9NMqNHdJ1IbgL5V7drcoS2msiyTNqfT7es6lEEJt7Cmfxiy9/PDCzU7E78V5nLGl4oda8kmqSVxE+5SlLUAOp2yvgAfdiDqgy+/8CKAlATYnDEe9/cNq3eqE2k4zJhFL5GLTuQ0U+wi69NmURyCcOa56N6WM="
