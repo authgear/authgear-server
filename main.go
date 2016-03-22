@@ -63,6 +63,10 @@ func main() {
 			fmt.Print("Config via OD_CONFIG will be deprecated in next version, use SKY_CONFIG\n")
 		}
 	} else {
+		if os.Args[1] == "version" {
+			fmt.Printf("%s\n", skyversion.Version())
+			os.Exit(0)
+		}
 		configPath = os.Args[1]
 	}
 
