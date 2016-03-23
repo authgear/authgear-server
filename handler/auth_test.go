@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"testing"
 	"time"
 
@@ -231,6 +232,19 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 			p.Database = txdb
 		})
 
+		Convey("login in non-existent provider", func() {
+			resp := r.POST(`{"provider": "com.non-existent", "auth_data": {"name": "johndoe"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 108,
+		"name": "InvalidArgument",
+		"info": {"arguments": ["provider"]},
+		"message": "no auth provider of name \"com.non-existent\""
+	}
+}`)
+			So(resp.Code, ShouldEqual, http.StatusBadRequest)
+		})
+
 		Convey("login in existing", func() {
 			userinfo := skydb.NewProvidedAuthUserInfo("com.example:johndoe", map[string]interface{}{"name": "boo"})
 			conn.userinfo = &userinfo
@@ -409,6 +423,19 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
+		})
+
+		Convey("signs up with non-existent provider", func() {
+			resp := r.POST(`{"provider": "com.non-existent", "auth_data": {"name": "johndoe"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 108,
+		"name": "InvalidArgument",
+		"info": {"arguments": ["provider"]},
+		"message": "no auth provider of name \"com.non-existent\""
+	}
+}`)
+			So(resp.Code, ShouldEqual, http.StatusBadRequest)
 		})
 
 		Convey("signs up with user", func() {

@@ -15,6 +15,7 @@
 package provider
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -41,9 +42,12 @@ func (r *Registry) RegisterAuthProvider(name string, p AuthProvider) {
 }
 
 // GetAuthProvider gets an AuthProvider from the registry.
-func (r *Registry) GetAuthProvider(name string) AuthProvider {
+func (r *Registry) GetAuthProvider(name string) (AuthProvider, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
-	provider := r.authProviders[name]
-	return provider
+	provider, ok := r.authProviders[name]
+	if !ok {
+		return nil, fmt.Errorf(`no auth provider of name "%s"`, name)
+	}
+	return provider, nil
 }

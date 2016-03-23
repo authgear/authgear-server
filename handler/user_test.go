@@ -15,6 +15,7 @@
 package handler
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/skygeario/skygear-server/handler/handlertest"
@@ -356,6 +357,19 @@ func TestUserLinkHandler(t *testing.T) {
 		}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.UserInfo = &userInfo
+		})
+
+		Convey("link account with non-existent provider", func() {
+			resp := r.POST(`{"provider": "com.non-existent", "auth_data": {"name": "johndoe"}}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"error": {
+		"code": 108,
+		"name": "InvalidArgument",
+		"info": {"arguments": ["provider"]},
+		"message": "no auth provider of name \"com.non-existent\""
+	}
+}`)
+			So(resp.Code, ShouldEqual, http.StatusBadRequest)
 		})
 
 		Convey("link account", func() {
