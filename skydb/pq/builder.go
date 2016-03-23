@@ -372,8 +372,17 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 	args = []interface{}{}
 	if p.Operator.IsBinary() {
 		var buffer bytes.Buffer
-		lhs := expressionSqlizer{p.alias, p.Children[0].(skydb.Expression)}
-		rhs := expressionSqlizer{p.alias, p.Children[1].(skydb.Expression)}
+		lexpr := p.Children[0].(skydb.Expression)
+		rexpr := p.Children[1].(skydb.Expression)
+
+		if lexpr.IsLiteralNull() && !rexpr.IsLiteralNull() && p.Operator.IsCommutative() {
+			// In SQL, NULL must be on the right side of a comparison
+			// operator.
+			lexpr, rexpr = rexpr, lexpr
+		}
+
+		lhs := expressionSqlizer{p.alias, lexpr}
+		rhs := expressionSqlizer{p.alias, rexpr}
 
 		sqlOperand, opArgs, err := lhs.ToSql()
 		if err != nil {
@@ -382,26 +391,13 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 		buffer.WriteString(sqlOperand)
 		args = append(args, opArgs...)
 
-		switch p.Operator {
-		default:
-			err = fmt.Errorf("Comparison operator `%v` is not supported.", p.Operator)
-			return sql, args, err
-		case skydb.Equal:
-			buffer.WriteString(`=`)
-		case skydb.GreaterThan:
-			buffer.WriteString(`>`)
-		case skydb.LessThan:
-			buffer.WriteString(`<`)
-		case skydb.GreaterThanOrEqual:
-			buffer.WriteString(`>=`)
-		case skydb.LessThanOrEqual:
-			buffer.WriteString(`<=`)
-		case skydb.NotEqual:
-			buffer.WriteString(`<>`)
-		case skydb.Like:
-			buffer.WriteString(` LIKE `)
-		case skydb.ILike:
-			buffer.WriteString(` ILIKE `)
+		if rexpr.IsLiteralNull() {
+			err = p.writeOperatorForNullOperand(&buffer)
+		} else {
+			err = p.writeOperator(&buffer)
+		}
+		if err != nil {
+			return "", nil, err
 		}
 
 		sqlOperand, opArgs, err = rhs.ToSql()
@@ -417,6 +413,42 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 	}
 
 	return
+}
+
+func (p *comparisonPredicateSqlizer) writeOperator(buffer *bytes.Buffer) error {
+	switch p.Operator {
+	default:
+		return fmt.Errorf("Comparison operator `%v` is not supported.", p.Operator)
+	case skydb.Equal:
+		buffer.WriteString(`=`)
+	case skydb.GreaterThan:
+		buffer.WriteString(`>`)
+	case skydb.LessThan:
+		buffer.WriteString(`<`)
+	case skydb.GreaterThanOrEqual:
+		buffer.WriteString(`>=`)
+	case skydb.LessThanOrEqual:
+		buffer.WriteString(`<=`)
+	case skydb.NotEqual:
+		buffer.WriteString(`<>`)
+	case skydb.Like:
+		buffer.WriteString(` LIKE `)
+	case skydb.ILike:
+		buffer.WriteString(` ILIKE `)
+	}
+	return nil
+}
+
+func (p *comparisonPredicateSqlizer) writeOperatorForNullOperand(buffer *bytes.Buffer) error {
+	switch p.Operator {
+	default:
+		return p.writeOperator(buffer)
+	case skydb.Equal:
+		buffer.WriteString(` IS `)
+	case skydb.NotEqual:
+		buffer.WriteString(` IS NOT `)
+	}
+	return nil
 }
 
 type expressionSqlizer struct {
@@ -478,6 +510,9 @@ func literalToSQLOperand(literal interface{}) (string, []interface{}) {
 		// which renders `field IN(NULL)` equivalent to FALSE
 		return "(NULL)", nil
 	default:
+		if literal == nil {
+			return "NULL", []interface{}{}
+		}
 		return sq.Placeholders(1), []interface{}{literalToSQLValue(literal)}
 	}
 }

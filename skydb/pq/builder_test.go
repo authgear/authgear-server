@@ -21,7 +21,63 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func TestSqlizer(t *testing.T) {
+	Convey("Expression Sqlizer", t, func() {
+		Convey("literal null expression", func() {
+			expr := &expressionSqlizer{"table", skydb.Expression{skydb.Literal, nil}}
+			sql, args, err := expr.ToSql()
+			So(sql, ShouldEqual, "NULL")
+			So(args, ShouldResemble, []interface{}{})
+			So(err, ShouldBeNil)
+		})
+	})
+}
+
 func TestPredicateSqlizerFactory(t *testing.T) {
+	Convey("Comparison Predicate", t, func() {
+		Convey("keypath equal null", func() {
+			sqlizer := &comparisonPredicateSqlizer{"table", skydb.Predicate{
+				skydb.Equal,
+				[]interface{}{
+					skydb.Expression{skydb.KeyPath, "content"},
+					skydb.Expression{skydb.Literal, nil},
+				},
+			}}
+			sql, args, err := sqlizer.ToSql()
+			So(sql, ShouldEqual, "\"table\".\"content\" IS NULL")
+			So(args, ShouldResemble, []interface{}{})
+			So(err, ShouldBeNil)
+		})
+
+		Convey("null equal keypath", func() {
+			sqlizer := &comparisonPredicateSqlizer{"table", skydb.Predicate{
+				skydb.Equal,
+				[]interface{}{
+					skydb.Expression{skydb.Literal, nil},
+					skydb.Expression{skydb.KeyPath, "content"},
+				},
+			}}
+			sql, args, err := sqlizer.ToSql()
+			So(sql, ShouldEqual, "\"table\".\"content\" IS NULL")
+			So(args, ShouldResemble, []interface{}{})
+			So(err, ShouldBeNil)
+		})
+
+		Convey("keypath not equal null", func() {
+			sqlizer := &comparisonPredicateSqlizer{"table", skydb.Predicate{
+				skydb.NotEqual,
+				[]interface{}{
+					skydb.Expression{skydb.KeyPath, "content"},
+					skydb.Expression{skydb.Literal, nil},
+				},
+			}}
+			sql, args, err := sqlizer.ToSql()
+			So(sql, ShouldEqual, "\"table\".\"content\" IS NOT NULL")
+			So(args, ShouldResemble, []interface{}{})
+			So(err, ShouldBeNil)
+		})
+	})
+
 	Convey("Functional Predicate", t, func() {
 		Convey("user discover must be used with user record", func() {
 			f := newPredicateSqlizerFactory(nil, "note")

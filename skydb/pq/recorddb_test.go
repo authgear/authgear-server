@@ -376,6 +376,7 @@ func TestQuery(t *testing.T) {
 			Data: map[string]interface{}{
 				"noteOrder": float64(1),
 				"content":   "Hello World",
+				"emotion":   nil,
 			},
 		}
 		record2 := skydb.Record{
@@ -384,6 +385,7 @@ func TestQuery(t *testing.T) {
 			Data: map[string]interface{}{
 				"noteOrder": float64(2),
 				"content":   "Bye World",
+				"emotion":   nil,
 			},
 		}
 		record3 := skydb.Record{
@@ -392,6 +394,7 @@ func TestQuery(t *testing.T) {
 			Data: map[string]interface{}{
 				"noteOrder": float64(3),
 				"content":   "Good Hello",
+				"emotion":   "happy",
 			},
 		}
 
@@ -399,6 +402,7 @@ func TestQuery(t *testing.T) {
 		So(db.Extend("note", skydb.RecordSchema{
 			"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 			"content":   skydb.FieldType{Type: skydb.TypeString},
+			"emotion":   skydb.FieldType{Type: skydb.TypeString},
 		}), ShouldBeNil)
 
 		err := db.Save(&record2)
@@ -643,6 +647,67 @@ func TestQuery(t *testing.T) {
 			So(records[0], ShouldResemble, record2)
 			So(records[1], ShouldResemble, record1)
 			So(len(records), ShouldEqual, 2)
+		})
+
+		Convey("query records for nil item", func() {
+			query := skydb.Query{
+				Type: "note",
+				Predicate: skydb.Predicate{
+					Operator: skydb.Equal,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "emotion",
+						},
+						skydb.Expression{
+							Type:  skydb.Literal,
+							Value: nil,
+						},
+					},
+				},
+				Sorts: []skydb.Sort{
+					skydb.Sort{
+						KeyPath: "noteOrder",
+						Order:   skydb.Ascending,
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, record1)
+			So(records[1], ShouldResemble, record2)
+			So(len(records), ShouldEqual, 2)
+		})
+
+		Convey("query records for not nil item", func() {
+			query := skydb.Query{
+				Type: "note",
+				Predicate: skydb.Predicate{
+					Operator: skydb.NotEqual,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "emotion",
+						},
+						skydb.Expression{
+							Type:  skydb.Literal,
+							Value: nil,
+						},
+					},
+				},
+				Sorts: []skydb.Sort{
+					skydb.Sort{
+						KeyPath: "noteOrder",
+						Order:   skydb.Ascending,
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records[0], ShouldResemble, record3)
+			So(len(records), ShouldEqual, 1)
 		})
 	})
 

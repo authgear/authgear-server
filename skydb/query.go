@@ -85,6 +85,17 @@ func (op Operator) IsBinary() bool {
 	}
 }
 
+// IsCommutative checks whether expressions on both side of the Operator
+// can be swapped.
+func (op Operator) IsCommutative() bool {
+	switch op {
+	default:
+		return false
+	case Equal, NotEqual:
+		return true
+	}
+}
+
 // ExpressionType is the type of an Expression.
 type ExpressionType int
 
@@ -134,6 +145,14 @@ func (expr Expression) IsLiteralMap() bool {
 
 	_, ok := expr.Value.(map[string]interface{})
 	return ok
+}
+
+func (expr Expression) IsLiteralNull() bool {
+	if expr.Type != Literal {
+		return false
+	}
+
+	return expr.Value == nil
 }
 
 // Predicate is a representation of used in query for filtering records.

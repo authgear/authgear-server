@@ -25,6 +25,11 @@ func TestExpression(t *testing.T) {
 		expr := Expression{}
 		So(expr.IsEmpty(), ShouldBeTrue)
 	})
+
+	Convey("is literal null", t, func() {
+		expr := Expression{Type: Literal, Value: nil}
+		So(expr.IsLiteralNull(), ShouldBeTrue)
+	})
 }
 
 func TestMalformedPredicate(t *testing.T) {

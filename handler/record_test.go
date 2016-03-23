@@ -901,6 +901,14 @@ func TestRecordQuery(t *testing.T) {
 							},
 							float64(1),
 						},
+						[]interface{}{
+							"neq",
+							map[string]interface{}{
+								"$type": "keypath",
+								"$val":  "content",
+							},
+							nil,
+						},
 					},
 				},
 				Database: db,
@@ -926,6 +934,13 @@ func TestRecordQuery(t *testing.T) {
 						Children: []interface{}{
 							skydb.Expression{skydb.KeyPath, "noteOrder"},
 							skydb.Expression{skydb.Literal, float64(1)},
+						},
+					},
+					skydb.Predicate{
+						Operator: skydb.NotEqual,
+						Children: []interface{}{
+							skydb.Expression{skydb.KeyPath, "content"},
+							skydb.Expression{skydb.Literal, nil},
 						},
 					},
 				},
