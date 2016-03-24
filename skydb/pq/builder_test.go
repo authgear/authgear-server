@@ -35,44 +35,48 @@ func TestSqlizer(t *testing.T) {
 
 func TestPredicateSqlizerFactory(t *testing.T) {
 	Convey("Comparison Predicate", t, func() {
+		f := newPredicateSqlizerFactory(nil, "note")
 		Convey("keypath equal null", func() {
-			sqlizer := &comparisonPredicateSqlizer{"table", skydb.Predicate{
+			sqlizer, err := f.newComparisonPredicateSqlizer(skydb.Predicate{
 				skydb.Equal,
 				[]interface{}{
 					skydb.Expression{skydb.KeyPath, "content"},
 					skydb.Expression{skydb.Literal, nil},
 				},
-			}}
+			})
+			So(err, ShouldBeNil)
 			sql, args, err := sqlizer.ToSql()
-			So(sql, ShouldEqual, "\"table\".\"content\" IS NULL")
+			So(sql, ShouldEqual, "\"note\".\"content\" IS NULL")
 			So(args, ShouldResemble, []interface{}{})
 			So(err, ShouldBeNil)
 		})
 
 		Convey("null equal keypath", func() {
-			sqlizer := &comparisonPredicateSqlizer{"table", skydb.Predicate{
+			sqlizer, err := f.newComparisonPredicateSqlizer(skydb.Predicate{
 				skydb.Equal,
 				[]interface{}{
 					skydb.Expression{skydb.Literal, nil},
 					skydb.Expression{skydb.KeyPath, "content"},
 				},
-			}}
+			})
+			So(err, ShouldBeNil)
 			sql, args, err := sqlizer.ToSql()
-			So(sql, ShouldEqual, "\"table\".\"content\" IS NULL")
+			So(sql, ShouldEqual, "\"note\".\"content\" IS NULL")
 			So(args, ShouldResemble, []interface{}{})
 			So(err, ShouldBeNil)
 		})
 
 		Convey("keypath not equal null", func() {
-			sqlizer := &comparisonPredicateSqlizer{"table", skydb.Predicate{
+			sqlizer, err := f.newComparisonPredicateSqlizer(skydb.Predicate{
 				skydb.NotEqual,
 				[]interface{}{
 					skydb.Expression{skydb.KeyPath, "content"},
 					skydb.Expression{skydb.Literal, nil},
 				},
-			}}
+			})
+			So(err, ShouldBeNil)
 			sql, args, err := sqlizer.ToSql()
-			So(sql, ShouldEqual, "\"table\".\"content\" IS NOT NULL")
+			So(sql, ShouldEqual, "\"note\".\"content\" IS NOT NULL")
 			So(args, ShouldResemble, []interface{}{})
 			So(err, ShouldBeNil)
 		})

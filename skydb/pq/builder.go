@@ -33,21 +33,21 @@ type predicateSqlizerFactory struct {
 	extraColumns map[string]skydb.FieldType
 }
 
-func (f *predicateSqlizerFactory) newPredicateSqlizer(predicate skydb.Predicate) (sq.Sqlizer, error) {
-	if predicate.IsEmpty() {
+func (f *predicateSqlizerFactory) newPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
+	if p.IsEmpty() {
 		panic("no sqlizer can be created from an empty predicate")
 	}
 
-	if predicate.Operator == skydb.Functional {
-		return f.newFunctionalPredicateSqlizer(predicate)
+	if p.Operator == skydb.Functional {
+		return f.newFunctionalPredicateSqlizer(p)
 	}
-	if predicate.Operator.IsCompound() {
-		return f.newCompoundPredicateSqlizer(predicate)
+	if p.Operator.IsCompound() {
+		return f.newCompoundPredicateSqlizer(p)
 	}
-	if predicate.Operator == skydb.In {
-		return &containsComparisonPredicateSqlizer{f.primaryTable, predicate}, nil
+	if p.Operator == skydb.In {
+		return f.newContainsComparisonPredicateSqlizer(p)
 	}
-	return &comparisonPredicateSqlizer{f.primaryTable, predicate}, nil
+	return f.newComparisonPredicateSqlizer(p)
 }
 
 func (f *predicateSqlizerFactory) newCompoundPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
@@ -168,6 +168,31 @@ func (f *predicateSqlizerFactory) newAccessControlSqlizer(user *skydb.UserInfo, 
 		user,
 		aclLevel,
 	}, nil
+}
+
+func (f *predicateSqlizerFactory) newContainsComparisonPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
+	return &containsComparisonPredicateSqlizer{f.primaryTable, p}, nil
+}
+
+func (f *predicateSqlizerFactory) newComparisonPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
+	sqlizers := []expressionSqlizer{}
+	for _, child := range p.Children {
+		sqlizer, err := f.newExpressionSqlizer(child.(skydb.Expression))
+		if err != nil {
+			return nil, err
+		}
+		sqlizers = append(sqlizers, sqlizer)
+	}
+
+	return &comparisonPredicateSqlizer{sqlizers, p.Operator}, nil
+}
+
+func (f *predicateSqlizerFactory) newExpressionSqlizer(expr skydb.Expression) (expressionSqlizer, error) {
+	sqlizer := expressionSqlizer{
+		f.primaryTable,
+		expr,
+	}
+	return sqlizer, nil
 }
 
 // createLeftJoin create an alias of a table to be joined to the primary table
@@ -374,25 +399,24 @@ func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interfa
 }
 
 type comparisonPredicateSqlizer struct {
-	alias string
-	skydb.Predicate
+	sqlizers []expressionSqlizer
+	operator skydb.Operator
 }
 
 func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	args = []interface{}{}
-	if p.Operator.IsBinary() {
+	if p.operator.IsBinary() {
 		var buffer bytes.Buffer
-		lexpr := p.Children[0].(skydb.Expression)
-		rexpr := p.Children[1].(skydb.Expression)
+		lhs := p.sqlizers[0]
+		rhs := p.sqlizers[1]
 
-		if lexpr.IsLiteralNull() && !rexpr.IsLiteralNull() && p.Operator.IsCommutative() {
-			// In SQL, NULL must be on the right side of a comparison
-			// operator.
-			lexpr, rexpr = rexpr, lexpr
+		if p.operator.IsCommutative() {
+			if lhs.Expression.IsLiteralNull() && !rhs.Expression.IsLiteralNull() {
+				// In SQL, NULL must be on the right side of a comparison
+				// operator.
+				lhs, rhs = rhs, lhs
+			}
 		}
-
-		lhs := expressionSqlizer{p.alias, lexpr}
-		rhs := expressionSqlizer{p.alias, rexpr}
 
 		sqlOperand, opArgs, err := lhs.ToSql()
 		if err != nil {
@@ -401,7 +425,7 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 		buffer.WriteString(sqlOperand)
 		args = append(args, opArgs...)
 
-		if rexpr.IsLiteralNull() {
+		if rhs.IsLiteralNull() {
 			err = p.writeOperatorForNullOperand(&buffer)
 		} else {
 			err = p.writeOperator(&buffer)
@@ -419,16 +443,16 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 
 		sql = buffer.String()
 	} else {
-		err = fmt.Errorf("Comparison operator `%v` is not supported.", p.Operator)
+		err = fmt.Errorf("Comparison operator `%v` is not supported.", p.operator)
 	}
 
 	return
 }
 
 func (p *comparisonPredicateSqlizer) writeOperator(buffer *bytes.Buffer) error {
-	switch p.Operator {
+	switch p.operator {
 	default:
-		return fmt.Errorf("Comparison operator `%v` is not supported.", p.Operator)
+		return fmt.Errorf("Comparison operator `%v` is not supported.", p.operator)
 	case skydb.Equal:
 		buffer.WriteString(`=`)
 	case skydb.GreaterThan:
@@ -450,7 +474,7 @@ func (p *comparisonPredicateSqlizer) writeOperator(buffer *bytes.Buffer) error {
 }
 
 func (p *comparisonPredicateSqlizer) writeOperatorForNullOperand(buffer *bytes.Buffer) error {
-	switch p.Operator {
+	switch p.operator {
 	default:
 		return p.writeOperator(buffer)
 	case skydb.Equal:
