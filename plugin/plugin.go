@@ -189,14 +189,7 @@ func (p *Plugin) initHandler(mux *http.ServeMux, ppreg router.PreprocessorRegist
 			p.gatewayMap[name] = handlerGateway
 		}
 		for _, method := range handler.Methods {
-			switch method {
-			case "GET":
-				handlerGateway.GET(h)
-			case "POST":
-				handlerGateway.POST(h)
-			case "PUT":
-				handlerGateway.PUT(h)
-			}
+			handlerGateway.Handle(method, h)
 		}
 		log.Debugf(`Registered handler "%s" with serveMux at path "%s"`, h.Name, name)
 	}
