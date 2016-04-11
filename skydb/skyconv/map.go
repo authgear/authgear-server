@@ -294,22 +294,26 @@ func (ace *MapACLEntry) FromMap(m map[string]interface{}) error {
 		return fmt.Errorf("unknown level = %s", level)
 	}
 
-	relation, _ := m["relation"].(string)
-	userID, _ := m["user_id"].(string)
-	role, _ := m["role"].(string)
-	if relation == "" && userID == "" && role == "" {
-		return errors.New("ACLEntry must have relation, user_id or role")
+	relation, hasRelation := m["relation"].(string)
+	userID, hasUserID := m["user_id"].(string)
+	role, hasRole := m["role"].(string)
+	public, hasPublic := m["public"].(bool)
+	if !hasRelation && !hasUserID && !hasRole && !hasPublic {
+		return errors.New("ACLEntry must have relation, user_id, role or public")
 	}
 
 	ace.Level = entryLevel
-	if relation != "" {
+	if hasRelation {
 		ace.Relation = relation
 	}
-	if role != "" {
+	if hasRole {
 		ace.Role = role
 	}
-	if userID != "" {
+	if hasUserID {
 		ace.UserID = userID
+	}
+	if hasPublic {
+		ace.Public = public
 	}
 	return nil
 }

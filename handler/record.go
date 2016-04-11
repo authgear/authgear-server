@@ -177,7 +177,6 @@ func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.
 	r.ID.Type = recordType
 
 	aclData, ok := m["_access"]
-	log.Debugf("data %v", aclData)
 	if ok && aclData != nil {
 		aclSlice, ok := aclData.([]interface{})
 		if !ok {
