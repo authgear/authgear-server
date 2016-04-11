@@ -53,7 +53,8 @@ RUN apk update \
 
 ADD skygear-server /usr/local/bin/
 RUN chmod a+x /usr/local/bin/skygear-server \
-    && mkdir -p /app/data
+    && mkdir -p /app/data \
+    && chown nobody:nobody /app/data
 
 WORKDIR /app
 VOLUME /app/data
