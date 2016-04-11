@@ -98,12 +98,15 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 			}
 			sqlizer := &accessPredicateSqlizer{
 				userinfo,
-				"read",
+				skydb.ReadLevel,
 			}
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
-			So(sql, ShouldEqual, `(_access @> '[{"user_id":"userid"}]' OR`+
-				` _access IS NULL OR _owner_id = ?)`)
+			So(sql, ShouldEqual,
+				`(_access @> '[{"user_id": "userid"}]' OR `+
+					`_access @> '[{"public": true, "level": "read"}]' OR `+
+					`_access IS NULL OR `+
+					`_owner_id = ?)`)
 			So(args, ShouldResemble, []interface{}{"userid"})
 		})
 
@@ -114,14 +117,17 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 			}
 			sqlizer := &accessPredicateSqlizer{
 				userinfo,
-				"read",
+				skydb.ReadLevel,
 			}
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
-			So(sql, ShouldEqual, `(_access @> '[{"role":"admin"}]' OR `+
-				`_access @> '[{"role":"writer"}]' OR `+
-				`_access @> '[{"user_id":"userid"}]' OR `+
-				`_access IS NULL OR _owner_id = ?)`)
+			So(sql, ShouldEqual,
+				`(_access @> '[{"role": "admin"}]' OR `+
+					`_access @> '[{"role": "writer"}]' OR `+
+					`_access @> '[{"user_id": "userid"}]' OR `+
+					`_access @> '[{"public": true, "level": "read"}]' OR `+
+					`_access IS NULL OR `+
+					`_owner_id = ?)`)
 			So(args, ShouldResemble, []interface{}{"userid"})
 		})
 

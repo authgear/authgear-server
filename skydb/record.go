@@ -77,6 +77,7 @@ type RecordACLEntry struct {
 	Role     string   `json:"role,omitempty"`
 	Level    ACLLevel `json:"level"`
 	UserID   string   `json:"user_id,omitempty"`
+	Public   bool     `json:"public,omitempty"`
 }
 
 // ACLLevel represent the operation a user granted on a resource
@@ -91,17 +92,35 @@ const (
 
 // NewRecordACLEntryRelation returns an ACE on relation
 func NewRecordACLEntryRelation(relation string, level ACLLevel) RecordACLEntry {
-	return RecordACLEntry{relation, "", level, ""}
+	return RecordACLEntry{
+		Relation: relation,
+		Level:    level,
+	}
 }
 
 // NewRecordACLEntryDirect returns an ACE for a specific user
 func NewRecordACLEntryDirect(userID string, level ACLLevel) RecordACLEntry {
-	return RecordACLEntry{"$direct", "", level, userID}
+	return RecordACLEntry{
+		Relation: "$direct",
+		Level:    level,
+		UserID:   userID,
+	}
 }
 
 // NewRecordACLEntryRole return an ACE on role
 func NewRecordACLEntryRole(role string, level ACLLevel) RecordACLEntry {
-	return RecordACLEntry{"", role, level, ""}
+	return RecordACLEntry{
+		Role:  role,
+		Level: level,
+	}
+}
+
+// NewRecordACLEntryPublic return an ACE on public access
+func NewRecordACLEntryPublic(level ACLLevel) RecordACLEntry {
+	return RecordACLEntry{
+		Public: true,
+		Level:  level,
+	}
 }
 
 func (ace *RecordACLEntry) Accessible(userinfo *UserInfo, level ACLLevel) bool {
