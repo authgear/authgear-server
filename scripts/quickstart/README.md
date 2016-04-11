@@ -25,7 +25,7 @@ installed. This corresponds to the version name in the Docker Hub image tab.
 If you have an alternative AWS credentials profile, run your command like this:
 
 ```
-$ AWS_PROFILE=profilename packer build -var skygear_version=$SKYGEAR_VERSION teplate.json
+$ AWS_PROFILE=profilename packer build -var skygear_version=$SKYGEAR_VERSION template.json
 ```
 
 To test image before releasing:
