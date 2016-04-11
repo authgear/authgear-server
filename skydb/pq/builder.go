@@ -255,6 +255,11 @@ func (p accessPredicateSqlizer) ToSql() (sql string, args []interface{}, err err
 	if p.user.ID == "" {
 		panic("cannot build access predicate without user")
 	}
+	escapedID, err := json.Marshal(p.user.ID)
+	if err != nil {
+		panic("unexpected serialize error on user_id")
+	}
+
 	var b bytes.Buffer
 	b.WriteString(`(`)
 	for _, role := range p.user.Roles {
@@ -264,7 +269,7 @@ func (p accessPredicateSqlizer) ToSql() (sql string, args []interface{}, err err
 		}
 		b.WriteString(fmt.Sprintf(`_access @> '[{"role": %s}]' OR `, escapedRole))
 	}
-	b.WriteString(fmt.Sprintf(`_access @> '[{"user_id": "%s"}]' OR `, p.user.ID))
+	b.WriteString(fmt.Sprintf(`_access @> '[{"user_id": %s}]' OR `, escapedID))
 	b.WriteString(fmt.Sprintf(`_access @> '[{"public": true, "level": "%s"}]' OR `, string(p.level)))
 	b.WriteString(`_access IS NULL OR `)
 	b.WriteString(`_owner_id = ?)`)
