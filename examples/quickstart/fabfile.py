@@ -218,9 +218,9 @@ def upgrade(version="latest"):
     """
     Upgrade Skygear Server and plugins
     """
-    docker_set_image('server', "skygeario/skygear-server:{0}".format(version))
+    docker_set_image('server', "quay.io/skygeario/skygear-server:{0}".format(version))
     docker_pull('server')
-    sudo('docker pull skygeario/py-skygear:onbuild')
+    sudo('docker pull quay.io/skygeario/py-skygear:{}-onbuild'.format(version))
     services = plugin_services() + ['server']
     docker_build(' '.join(services))
     restart(should_recreate=True)

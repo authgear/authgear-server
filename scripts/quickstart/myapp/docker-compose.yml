@@ -33,7 +33,7 @@ services:
     - "6379:6379"
   
   server:
-    image: skygeario/skygear-server:latest
+    image: quay.io/skygeario/skygear-server:latest
     ports:
     - "3000:3000"
     volumes:
