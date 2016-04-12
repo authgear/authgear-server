@@ -423,8 +423,14 @@ func initSentry(config skyconfig.Configuration) {
 	}
 
 	levels := higherLogLevels(level)
+	tags := map[string]string{
+		"version": skyversion.Version(),
+	}
 
-	hook, err := logrus_sentry.NewSentryHook(config.LogHook.SentryDSN, levels)
+	hook, err := logrus_sentry.NewWithTagsSentryHook(
+		config.LogHook.SentryDSN,
+		tags,
+		levels)
 	hook.Timeout = 1 * time.Second
 	if err != nil {
 		log.Errorf("Failed to initialize Sentry: %v", err)
