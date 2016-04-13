@@ -1,3 +1,16 @@
+## 0.10.0 (2016-04-13)
+
+### Features
+- Add version number to getsentry event (oursky/skygear-server#624)
+- Support public read write ACL (oursky/skygear-server#647)
+- Allow use of arbitrary HTTP method name (oursky/py-skygear#135)
+- Add server version on log and request header (oursky/skygear-server#623)
+
+### Bug Fixes
+- Add Checking whether auth provider exists (skygeario/skygear-server#3)
+- Fix unable to query keypath for null (oursky/skygear-server#635)
+- Fix last subscriber stealing all published message (oursky/skygear-server#642)
+
 ## 0.9.0 (2016-03-16)
 
 ### Features
@@ -170,4 +183,3 @@
 - Retry opening connection to database when starting #440
 - Fix bug on transient field returning a wrong object #436
 - Fix unable to upload asset with `+` in file name #426
-
