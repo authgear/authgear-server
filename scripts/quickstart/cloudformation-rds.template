@@ -1,7 +1,7 @@
 {
   "AWSTemplateFormatVersion" : "2010-09-09",
 
-  "Description" : "Skygear Server self-hosted configuration",
+  "Description" : "Skygear Server self-hosted configuration with RDS database",
 
   "Parameters" : {
     "Instance" : {
@@ -23,6 +23,28 @@
     "KeyName" : {
       "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
       "Type" : "AWS::EC2::KeyPair::KeyName"
+    },
+    "DBInstance": {
+      "Description" : "Type of RDS instance to launch",
+      "Type" : "String",
+      "Default" : "db.m3.medium",
+      "AllowedValues": [
+        "db.m3.medium", "db.m3.large", "db.m3.xlarge", "db.m3.2xlarge",
+        "db.m4.large", "db.m4.xlarge", "db.m4.2xlarge", "db.m4.4xlarge", "db.m4.10xlarge",
+        "db.r3.large", "db.r3.xlarge", "db.r3.2xlarge", "db.r3.4xlarge", "db.r3.8xlarge",
+        "db.t2.micro", "db.t2.small", "db.t2.medium", "db.t2.large"
+      ]
+    },
+    "DBData" : {
+      "Description" : "Size of RDS storage (in GB)",
+      "Type" : "Number",
+      "Default" : 20,
+      "MinValue" : 10,
+      "MaxValue" : 1000
+    },
+    "DBPassword" : {
+      "Description" : "Password of the master user account",
+      "Type" : "String"
     }
   },
 
@@ -53,7 +75,8 @@
         "asset_aws_access_key" : { "Fn::If" : [ "IsCreateBucket", { "Ref" : "AssetAccessKey" }, "" ] },
         "asset_aws_secret_key" : { "Fn::If" : [ "IsCreateBucket", { "Fn::GetAtt" : [ "AssetAccessKey", "SecretAccessKey" ] }, "" ] },
         "asset_aws_bucket" : { "Fn::If" : [ "IsCreateBucket", { "Ref" : "AssetBucket" }, "" ] },
-        "asset_aws_region" : { "Fn::If" : [ "IsCreateBucket", { "Ref" : "AWS::Region" }, "" ] }
+        "asset_aws_region" : { "Fn::If" : [ "IsCreateBucket", { "Ref" : "AWS::Region" }, "" ] },
+        "database_host" : { "Fn::Join" : [ "", [ "postgres://", { "Fn::GetAtt" : [ "DatabaseInstance", "Endpoint.Address" ]}]]}
       },
       "Properties" : {
         "SecurityGroups" : [ { "Ref" : "StandaloneInstanceSecurityGroup" } ],
@@ -129,6 +152,34 @@
       }
     },
 
+    "DatabaseInstance" : {
+      "Type" : "AWS::RDS::DBInstance",
+      "Properties" : {
+        "AllocatedStorage" : {"Ref" : "DBData"},
+        "AllowMajorVersionUpgrade" : false,
+        "DBInstanceClass" : {"Ref" : "DBInstance"},
+        "DBName" : "postgres",
+        "Engine" : "postgres",
+        "EngineVersion" : "9.4.5",
+        "MasterUsername" : "postgres",
+        "MasterUserPassword" : { "Ref" : "DBPassword" },
+        "MultiAZ" : false,
+        "PubliclyAccessible" : false,
+        "VPCSecurityGroups" : [ { "Fn::GetAtt": [ "StandaloneInstanceSecurityGroup", "GroupId" ] } ]
+      }
+    },
+
+    "DatabaseInstanceSecurityGroupIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "GroupName": { "Ref": "StandaloneInstanceSecurityGroup" },
+        "IpProtocol": "tcp",
+        "FromPort": "5432",
+        "ToPort": "5432",
+        "SourceSecurityGroupId": { "Fn::GetAtt": [ "StandaloneInstanceSecurityGroup", "GroupId" ] }
+      }
+    },
+
     "AssetBucket": {
       "Type" : "AWS::S3::Bucket",
       "Condition" : "IsCreateBucket",
@@ -199,6 +250,12 @@
       "Description" : "URL of the primary instance",
       "Value" : { "Fn::Join" : [ "", [ "http://", { "Fn::GetAtt" : [ "StandaloneInstance", "PublicIp" ]}]]}
     },
+
+    "DatabaseEndpoint" : {
+      "Description" : "Endpoint of the database instance",
+      "Value" : { "Fn::Join" : [ "", [ "postgres://", { "Fn::GetAtt" : [ "DatabaseInstance", "Endpoint.Address" ]}]]}
+    },
+
     "AssetBucketName" : {
       "Description" : "Name of the bucket holding asset files",
       "Value" : { "Ref" : "AssetBucket" },

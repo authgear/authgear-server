@@ -15,6 +15,7 @@ services:
     - ./nginx-default.conf:/etc/nginx/conf.d/default.conf
     - ./nginx-cert.pem:/etc/nginx/nginx-cert.pem
     - ./nginx-privkey.pem:/etc/nginx/nginx-privkey.pem
+    - ./static:/usr/local/nginx
 
   db:
     image: mdillon/postgis:9.4
@@ -33,7 +34,7 @@ services:
     - "6379:6379"
   
   server:
-    image: skygeario/skygear-server:latest
+    image: quay.io/skygeario/skygear-server:latest
     ports:
     - "3000:3000"
     volumes:

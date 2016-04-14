@@ -53,6 +53,11 @@
             "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
             "script": "scripts/pull_images.sh",
             "type": "shell"
+        },
+        {
+            "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'",
+            "script": "scripts/cleanup.sh",
+            "type": "shell"
         }
     ]
 }
