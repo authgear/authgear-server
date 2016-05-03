@@ -239,6 +239,10 @@ func main() {
 				"/_/pubsub/",
 				"/pubsub/",
 			},
+			MimeConcern: []string{
+				"",
+				"application/json",
+			},
 			Next: finalMux,
 		}
 	}
