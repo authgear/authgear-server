@@ -298,6 +298,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		UserInfo:      payload.UserInfo,
 		RecordsToSave: p.Records,
 		Atomic:        p.Atomic,
+		WithMasterKey: payload.HasMasterAccess(),
 		Context:       payload.Context,
 	}
 	resp := recordModifyResponse{
@@ -411,13 +412,14 @@ func withTransaction(txDB skydb.TxDatabase, do func() error) (err error) {
 }
 
 type recordModifyRequest struct {
-	Db           skydb.Database
-	Conn         skydb.Conn
-	AssetStore   asset.Store
-	HookRegistry *hook.Registry
-	Atomic       bool
-	Context      context.Context
-	UserInfo     *skydb.UserInfo
+	Db            skydb.Database
+	Conn          skydb.Conn
+	AssetStore    asset.Store
+	HookRegistry  *hook.Registry
+	Atomic        bool
+	WithMasterKey bool
+	Context       context.Context
+	UserInfo      *skydb.UserInfo
 
 	// Save only
 	RecordsToSave []*skydb.Record
@@ -435,13 +437,15 @@ type recordModifyResponse struct {
 type recordFetcher struct {
 	db                     skydb.Database
 	conn                   skydb.Conn
+	withMasterKey          bool
 	creationAccessCacheMap map[string]skydb.RecordACL
 }
 
-func newRecordFetcher(db skydb.Database, conn skydb.Conn) recordFetcher {
+func newRecordFetcher(db skydb.Database, conn skydb.Conn, withMasterKey bool) recordFetcher {
 	return recordFetcher{
-		db:   db,
-		conn: conn,
+		db:                     db,
+		conn:                   conn,
+		withMasterKey:          withMasterKey,
 		creationAccessCacheMap: map[string]skydb.RecordACL{},
 	}
 }
@@ -464,6 +468,10 @@ func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *sk
 	dbRecord := skydb.Record{}
 	if f.db.Get(recordID, &dbRecord) == skydb.ErrRecordNotFound {
 		// new record
+		if f.withMasterKey {
+			return
+		}
+
 		creationAccess := f.getCreationAccess(recordID.Type)
 		if !creationAccess.Accessible(userInfo, skydb.CreateLevel) {
 			err = skyerr.NewError(
@@ -476,7 +484,7 @@ func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *sk
 	}
 
 	record = &dbRecord
-	if !dbRecord.Accessible(userInfo, skydb.WriteLevel) {
+	if !f.withMasterKey && !dbRecord.Accessible(userInfo, skydb.WriteLevel) {
 		err = skyerr.NewError(
 			skyerr.PermissionDenied,
 			"no permission to modify",
@@ -496,7 +504,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	db := req.Db
 	records := req.RecordsToSave
 
-	fetcher := newRecordFetcher(db, req.Conn)
+	fetcher := newRecordFetcher(db, req.Conn, req.WithMasterKey)
 
 	// fetch records
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
@@ -882,7 +890,7 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 				)
 			}
 		} else {
-			if record.Accessible(payload.UserInfo, skydb.ReadLevel) {
+			if payload.HasMasterAccess() || record.Accessible(payload.UserInfo, skydb.ReadLevel) {
 				injectSigner(&record, h.AssetStore)
 				results[i] = (*skyconv.JSONRecord)(&record)
 			} else {
@@ -1231,6 +1239,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		HookRegistry:      h.HookRegistry,
 		RecordIDsToDelete: p.RecordIDs,
 		Atomic:            p.Atomic,
+		WithMasterKey:     payload.HasMasterAccess(),
 		Context:           payload.Context,
 		UserInfo:          payload.UserInfo,
 	}
@@ -1296,7 +1305,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 				resp.ErrMap[recordID] = skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
 			}
 		} else {
-			if record.Accessible(req.UserInfo, skydb.WriteLevel) {
+			if req.WithMasterKey || record.Accessible(req.UserInfo, skydb.WriteLevel) {
 				records = append(records, &record)
 			} else {
 				resp.ErrMap[recordID] = skyerr.NewError(
