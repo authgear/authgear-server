@@ -125,6 +125,11 @@ func (p *Payload) AccessToken() string {
 	}
 }
 
+// HasMasterKey returns whether the payload has master access key
+func (p *Payload) HasMasterKey() bool {
+	return p.AccessKey == MasterAccessKey
+}
+
 // Response is interface for handler to write response to router
 type Response struct {
 	Meta          map[string][]string `json:"-"`
