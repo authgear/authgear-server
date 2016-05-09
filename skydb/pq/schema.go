@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -161,6 +162,40 @@ CREATE TABLE %s (
 `, tableName)
 }
 
+func (db *database) getExistingSequence(recordType string) ([]string, error) {
+	const queryString = `
+		SELECT c.relname
+		FROM pg_catalog.pg_class c
+			LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+		WHERE c.relname LIKE $1 AND n.nspname = $2;
+	`
+
+	rows, err := db.c.Queryx(
+		queryString,
+		fmt.Sprintf("%s\\_%%\\_seq", recordType),
+		db.schemaName(),
+	)
+	if err != nil {
+		return []string{}, err
+	}
+
+	seqList := []string{}
+
+	for rows.Next() {
+		var relname string
+		if err = rows.Scan(&relname); err != nil {
+			return []string{}, err
+		}
+
+		relname = strings.TrimPrefix(relname, fmt.Sprintf("%s_", recordType))
+		relname = strings.TrimSuffix(relname, "_seq")
+
+		seqList = append(seqList, relname)
+	}
+
+	return seqList, nil
+}
+
 // STEP 1 & 2 are obtained by reverse engineering psql \d with -E option
 //
 // STEP 3: example of getting foreign keys
@@ -229,6 +264,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 	}
 
 	var columnName, pqType string
+	var integerColumns = []string{}
 	for rows.Next() {
 		if err := rows.Scan(&columnName, &pqType); err != nil {
 			return nil, err
@@ -254,11 +290,35 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 			schema.Type = skydb.TypeLocation
 		case TypeInteger:
 			schema.Type = skydb.TypeInteger
+			integerColumns = append(integerColumns, columnName)
 		default:
 			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
 		}
 
 		typemap[columnName] = schema
+	}
+
+	// STEP 2.1: Convert integer column to sequence column if applicable
+	if len(integerColumns) > 0 {
+		sequenceList, err := db.getExistingSequence(recordType)
+		if err != nil {
+			return nil, err
+		}
+
+		sequenceMap := map[string]bool{}
+		for _, perSeq := range sequenceList {
+			sequenceMap[perSeq] = true
+		}
+
+		for _, perIntColumn := range integerColumns {
+			if _, ok := sequenceMap[perIntColumn]; ok {
+
+				schema := typemap[perIntColumn]
+				schema.Type = skydb.TypeSequence
+
+				typemap[perIntColumn] = schema
+			}
+		}
 	}
 
 	// STEP 3: FOREIGN KEY, assumeing we can only reference _id i.e. "ccu.column_name" = _id
@@ -303,14 +363,7 @@ func isConflict(from, to skydb.FieldType) bool {
 		return false
 	}
 
-	// currently integer can only be created by sequence,
-	// so there are no conflicts
-	if from.Type == skydb.TypeInteger && to.Type == skydb.TypeSequence {
-		return false
-	}
-
-	// for manual assignment of sequence
-	if from.Type == skydb.TypeInteger && to.Type == skydb.TypeNumber {
+	if from.Type.IsNumberCompatibleType() && to.Type.IsNumberCompatibleType() {
 		return false
 	}
 

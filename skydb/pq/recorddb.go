@@ -129,48 +129,15 @@ func (db *database) Save(record *skydb.Record) error {
 	return nil
 }
 
-func (db *database) sequenceExists(sequenceName string) (bool, error) {
-	const CheckExistence = `
-		SELECT COUNT(*) AS count
-		FROM pg_catalog.pg_class c
-			LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-		WHERE c.relname = $1 AND n.nspname = $2;`
-
-	var count int
-	err := db.c.QueryRowx(CheckExistence, sequenceName, db.schemaName()).Scan(&count)
-
-	if err != nil {
-		return false, err
-	}
-
-	log.Debugf("Sequence \"%s\" Exist: %v\n", sequenceName, count > 0)
-	return count > 0, nil
-}
-
 func (db *database) preSave(schema skydb.RecordSchema, record *skydb.Record) error {
 	const SetSequenceMaxValue = `SELECT setval($1, GREATEST(max(%v), $2)) FROM %v;`
 
 	for key, value := range record.Data {
 		// we are setting a sequence field
-		if schema[key].Type == skydb.TypeInteger {
-			seqName := fmt.Sprintf(`%v_%v_seq`, record.ID.Type, key)
-			seqExist, err := db.sequenceExists(seqName)
-
-			if err != nil {
-				return err
-			}
-
-			if !seqExist {
-				continue
-			}
-
-			selectSQL := fmt.Sprintf(
-				SetSequenceMaxValue,
-				pq.QuoteIdentifier(key),
-				db.tableName(record.ID.Type),
-			)
-
-			if _, err := db.c.Exec(selectSQL, db.tableName(seqName), value); err != nil {
+		if schema[key].Type == skydb.TypeSequence {
+			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), db.tableName(record.ID.Type))
+			seqName := db.tableName(fmt.Sprintf(`%v_%v_seq`, record.ID.Type, key))
+			if _, err := db.c.Exec(selectSQL, seqName, value); err != nil {
 				return err
 			}
 		}
@@ -414,6 +381,8 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 		case skydb.TypeLocation:
 			var l nullLocation
 			values = append(values, &l)
+		case skydb.TypeSequence:
+			fallthrough
 		case skydb.TypeInteger:
 			var i sql.NullInt64
 			values = append(values, &i)
