@@ -1,3 +1,18 @@
+## 0.11.0 (2016-05-09)
+
+### Features
+- Allow master key to override ACL restriction (#22)
+
+### Bug Fixes
+- Check sequence exist before update integer columns (#6)
+- Fix missing headers returned from plugins (#15)
+- Fix travis build error on Go 1.6
+
+### Other Notes
+- Use mime package for mime processing and allow config of mime type concern (#25)
+- Update slack notification token
+- Update quickstart example (oursky/skygear-doc#162)
+
 ## 0.10.0 (2016-04-13)
 
 ### Features
