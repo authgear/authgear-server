@@ -28,7 +28,7 @@ type DevOnlyProcessor struct {
 }
 
 func (p DevOnlyProcessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	if payload.HasMasterAccess() {
+	if payload.HasMasterKey() {
 		return http.StatusOK
 	}
 

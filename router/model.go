@@ -125,8 +125,8 @@ func (p *Payload) AccessToken() string {
 	}
 }
 
-// HasMasterAccess returns whether the payload has master access key
-func (p *Payload) HasMasterAccess() bool {
+// HasMasterKey returns whether the payload has master access key
+func (p *Payload) HasMasterKey() bool {
 	return p.AccessKey == MasterAccessKey
 }
 

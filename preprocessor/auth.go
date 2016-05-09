@@ -110,7 +110,7 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 
 	// For master access key, it is possible to impersonate any user of
 	// the caller's choosing.
-	if payload.HasMasterAccess() {
+	if payload.HasMasterKey() {
 		if userID, ok := payload.Data["_user_id"].(string); ok {
 			payload.UserInfoID = userID
 			payload.Context = context.WithValue(payload.Context, "UserID", userID)

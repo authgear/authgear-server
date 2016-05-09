@@ -298,7 +298,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		UserInfo:      payload.UserInfo,
 		RecordsToSave: p.Records,
 		Atomic:        p.Atomic,
-		WithMasterKey: payload.HasMasterAccess(),
+		WithMasterKey: payload.HasMasterKey(),
 		Context:       payload.Context,
 	}
 	resp := recordModifyResponse{
@@ -890,7 +890,7 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 				)
 			}
 		} else {
-			if payload.HasMasterAccess() || record.Accessible(payload.UserInfo, skydb.ReadLevel) {
+			if payload.HasMasterKey() || record.Accessible(payload.UserInfo, skydb.ReadLevel) {
 				injectSigner(&record, h.AssetStore)
 				results[i] = (*skyconv.JSONRecord)(&record)
 			} else {
@@ -1239,7 +1239,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		HookRegistry:      h.HookRegistry,
 		RecordIDsToDelete: p.RecordIDs,
 		Atomic:            p.Atomic,
-		WithMasterKey:     payload.HasMasterAccess(),
+		WithMasterKey:     payload.HasMasterKey(),
 		Context:           payload.Context,
 		UserInfo:          payload.UserInfo,
 	}
