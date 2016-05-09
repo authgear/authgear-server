@@ -401,6 +401,16 @@ const (
 	TypeSequence
 )
 
+// IsNumberCompatibleType returns true if the type is a numeric type
+func (t DataType) IsNumberCompatibleType() bool {
+	switch t {
+	case TypeNumber, TypeInteger, TypeSequence:
+		return true
+	default:
+		return false
+	}
+}
+
 func (f FieldType) ToSimpleName() string {
 	switch f.Type {
 	case TypeString:

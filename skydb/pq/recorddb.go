@@ -134,7 +134,7 @@ func (db *database) preSave(schema skydb.RecordSchema, record *skydb.Record) err
 
 	for key, value := range record.Data {
 		// we are setting a sequence field
-		if schema[key].Type == skydb.TypeInteger {
+		if schema[key].Type == skydb.TypeSequence {
 			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), db.tableName(record.ID.Type))
 			seqName := db.tableName(fmt.Sprintf(`%v_%v_seq`, record.ID.Type, key))
 			if _, err := db.c.Exec(selectSQL, seqName, value); err != nil {
@@ -381,6 +381,8 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 		case skydb.TypeLocation:
 			var l nullLocation
 			values = append(values, &l)
+		case skydb.TypeSequence:
+			fallthrough
 		case skydb.TypeInteger:
 			var i sql.NullInt64
 			values = append(values, &i)
