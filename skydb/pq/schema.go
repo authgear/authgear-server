@@ -162,7 +162,7 @@ CREATE TABLE %s (
 `, tableName)
 }
 
-func (db *database) getExistingSequence(recordType string) ([]string, error) {
+func (db *database) getSequences(recordType string) ([]string, error) {
 	const queryString = `
 		SELECT c.relname
 		FROM pg_catalog.pg_class c
@@ -300,7 +300,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 
 	// STEP 2.1: Convert integer column to sequence column if applicable
 	if len(integerColumns) > 0 {
-		sequenceList, err := db.getExistingSequence(recordType)
+		sequenceList, err := db.getSequences(recordType)
 		if err != nil {
 			return nil, err
 		}
@@ -312,7 +312,6 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 
 		for _, perIntColumn := range integerColumns {
 			if _, ok := sequenceMap[perIntColumn]; ok {
-
 				schema := typemap[perIntColumn]
 				schema.Type = skydb.TypeSequence
 
