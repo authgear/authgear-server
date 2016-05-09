@@ -127,15 +127,24 @@ func (p *Payload) AccessToken() string {
 
 // Response is interface for handler to write response to router
 type Response struct {
-	Meta       map[string][]string `json:"-"`
-	Info       interface{}         `json:"info,omitempty"`
-	Result     interface{}         `json:"result,omitempty"`
-	Err        skyerr.Error        `json:"error,omitempty"`
-	RequestID  string              `json:"request_id,omitempty"`
-	DatabaseID string              `json:"database_id,omitempty"`
-	written    bool
-	hijacked   bool
-	writer     http.ResponseWriter
+	Meta          map[string][]string `json:"-"`
+	Info          interface{}         `json:"info,omitempty"`
+	Result        interface{}         `json:"result,omitempty"`
+	Err           skyerr.Error        `json:"error,omitempty"`
+	RequestID     string              `json:"request_id,omitempty"`
+	DatabaseID    string              `json:"database_id,omitempty"`
+	headerWritten bool
+	written       bool
+	hijacked      bool
+	writer        http.ResponseWriter
+}
+
+func (resp *Response) addMetaToHeader() {
+	for key, values := range resp.Meta {
+		for _, value := range values {
+			resp.writer.Header().Add(key, value)
+		}
+	}
 }
 
 // Header returns the header map being written before return a response.
@@ -144,10 +153,14 @@ func (resp *Response) Header() http.Header {
 	return resp.writer.Header()
 }
 
+// WriteHeader sends an HTTP response header with status code.
 func (resp *Response) WriteHeader(status int) {
+	resp.addMetaToHeader()
 	resp.writer.WriteHeader(status)
+	resp.headerWritten = true
 }
 
+// Hijack lets the caller take over the connection.
 func (resp *Response) Hijack() (c net.Conn, w *bufio.ReadWriter, e error) {
 	resp.hijacked = true
 	hijacker := resp.writer.(http.Hijacker)
@@ -157,10 +170,9 @@ func (resp *Response) Hijack() (c net.Conn, w *bufio.ReadWriter, e error) {
 
 // Write writes raw bytes as response to a request.
 func (resp *Response) Write(b []byte) (int, error) {
-	for key, values := range resp.Meta {
-		for _, value := range values {
-			resp.writer.Header().Add(key, value)
-		}
+	if !resp.headerWritten {
+		resp.addMetaToHeader()
+		resp.headerWritten = true
 	}
 	resp.written = true
 	return resp.writer.Write(b)

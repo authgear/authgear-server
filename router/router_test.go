@@ -43,6 +43,25 @@ func (m *MockHandler) Handle(p *Payload, r *Response) {
 	return
 }
 
+type MockCustomHeaderHandler struct {
+	customHeaders map[string][]string
+}
+
+func (m *MockCustomHeaderHandler) Setup() {
+	return
+}
+
+func (m *MockCustomHeaderHandler) GetPreprocessors() []Processor {
+	return nil
+}
+
+func (m *MockCustomHeaderHandler) Handle(p *Payload, r *Response) {
+	r.Meta = m.customHeaders
+	r.WriteHeader(200)
+	r.Write([]byte(`{"status": "ok"}`))
+	return
+}
+
 type ErrHandler struct {
 	Err skyerr.Error
 }
@@ -285,5 +304,39 @@ func TestPreprocessorRegistry(t *testing.T) {
 		preprocessors := reg.GetByNames("mock")
 		So(len(preprocessors), ShouldEqual, 1)
 		So(preprocessors[0], ShouldEqual, mockPreprocessor)
+	})
+}
+
+func TestHeaderWriter(t *testing.T) {
+	Convey("Header Writer", t, func() {
+		mockHandler := MockCustomHeaderHandler{
+			customHeaders: map[string][]string{
+				"X-Custom-Header-1": []string{
+					"Value1",
+				},
+				"X-Custom-Header-2": []string{
+					"Value2",
+					"Value3",
+				},
+			},
+		}
+
+		r := NewRouter()
+		r.Map("mock:map", &mockHandler)
+
+		req, _ := http.NewRequest(
+			"POST",
+			"http://skygear.dev/mock/map",
+			strings.NewReader(""),
+		)
+		resp := httptest.NewRecorder()
+		r.ServeHTTP(resp, req)
+
+		responseHeader := map[string][]string(resp.Header())
+		So(responseHeader["X-Custom-Header-1"][0], ShouldEqual, "Value1")
+		So(responseHeader["X-Custom-Header-2"], ShouldResemble, []string{
+			"Value2",
+			"Value3",
+		})
 	})
 }
