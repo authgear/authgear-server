@@ -1,6 +1,6 @@
 Skygear Server is a cloud backend for your app.
 
-[![Build Status](https://magnum.travis-ci.com/oursky/skygear.svg?token=TS65G314JpxpG31zryWn)](https://magnum.travis-ci.com/oursky/skygear)
+[![Build Status](https://travis-ci.org/SkygearIO/skygear-server.svg?branch=master)](https://travis-ci.org/SkygearIO/skygear-server)
 
 ## Getting Started
 
