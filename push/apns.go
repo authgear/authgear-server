@@ -136,7 +136,7 @@ func (pusher *APNSPusher) recvFeedback() {
 		// push.Sender as NotificationService and bridge over the differences
 		// between gcm and apns on handling unregistered devices (probably
 		// as an async channel)
-		if err := conn.DeleteDeviceByToken(fb.DeviceToken, fb.Timestamp); err != nil {
+		if err := conn.DeleteDeviceByToken(fb.DeviceToken, fb.Timestamp); err != nil && err != skydb.ErrDeviceNotFound {
 			log.Errorf("apns/fb: failed to delete device token = %s: %v", fb.DeviceToken, err)
 		}
 	}
