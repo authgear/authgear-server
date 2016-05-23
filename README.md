@@ -6,7 +6,7 @@ Skygear Server is a cloud backend for your app.
 
 To get started, you need to install Skygear Server and include one of
 our SDKs into your app. For more information on how to do this, check
-out the [Skygear Server Documentation](http://docs.pandadb.com/tutorial).
+out the [Skygear Server Documentation](http://docs.skygear.io/).
 
 ### Configuration
 
