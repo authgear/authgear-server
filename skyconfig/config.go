@@ -21,10 +21,16 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/joho/godotenv"
 	"github.com/oursky/gcfg"
+	"github.com/skygeario/skygear-server/uuid"
 )
 
 // Configuration is Skygear's configuration
+// The configuration will load in following order:
+// 1. The ENV
+// 2. The key/value in .env file
+// 3. The config in *.ini (To-be depreacted)
 type Configuration struct {
 	HTTP struct {
 		Host string `json:"host"`
@@ -94,17 +100,70 @@ type Configuration struct {
 	} `gcfg:"alembic" json:"-"`
 }
 
-// ReadFileInto reads a configuration from file specified by path
-func ReadFileInto(config *Configuration, path string) error {
+func NewConfiguration() Configuration {
+	config := Configuration{}
+	config.HTTP.Host = ":3000"
+	config.App.Name = "myapp"
+	config.App.AccessControl = "role"
+	config.App.DevMode = true
+	config.DB.ImplName = "pq"
+	config.DB.Option = "postgres://postgres:@localhost/postgres?sslmode=disable"
+	config.TokenStore.ImplName = "fs"
+	config.TokenStore.Path = "data/token"
+	config.AssetStore.ImplName = "fs"
+	config.AssetStore.Path = "data/asset"
+	config.AssetURLSigner.URLPrefix = "http://localhost:3000/files"
+	config.APNS.Enable = false
+	config.APNS.Env = "sandbox"
+	config.GCM.Enable = false
+	config.LOG.Level = "debug"
+	return config
+}
+
+func NewConfigurationWithKeys() Configuration {
+	config := NewConfiguration()
+	config.App.APIKey = uuid.New()
+	config.App.MasterKey = uuid.New()
+	return config
+}
+
+func (config *Configuration) Validate() error {
+	if config.App.Name == "" {
+		return errors.New("APP_NAME is not set")
+	}
+	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(config.App.Name) {
+		return fmt.Errorf("APP_NAME '%s' contains invalid characters other than alphanumberics or underscores", config.App.Name)
+	}
+	if config.APNS.Enable && !regexp.MustCompile("^(sandbox|production)$").MatchString(config.APNS.Env) {
+		return fmt.Errorf("APNS_ENV must be sandbox or production")
+	}
+	return nil
+}
+
+// ReadFromIni reads a configuration from file specified by path
+func (config *Configuration) ReadFromINI(path string) error {
 	if err := gcfg.ReadFileInto(config, path); err != nil {
 		return err
 	}
+	return config.Validate()
+}
+
+func (config *Configuration) ReadFromEnv() error {
+	envErr := godotenv.Load()
+	if envErr != nil {
+		fmt.Errorf("Error loading .env file")
+	}
+
+	// Default to :3000 if both HOST and PORT is missing
+	host := os.Getenv("HOST")
+	if host != "" {
+		config.HTTP.Host = host
+	}
 	if config.HTTP.Host == "" {
 		port := os.Getenv("PORT")
-		if port == "" {
-			port = "3000"
+		if port != "" {
+			config.HTTP.Host = ":" + port
 		}
-		config.HTTP.Host = ":" + port
 	}
 
 	appAPIKey := os.Getenv("API_KEY")
@@ -121,20 +180,15 @@ func ReadFileInto(config *Configuration, path string) error {
 	if appName != "" {
 		config.App.Name = appName
 	}
-	if config.App.Name == "" {
-		return errors.New("app name is not set")
-	}
-	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(config.App.Name) {
-		return fmt.Errorf("app name '%s' contains invalid characters other than alphanumberics or underscores", config.App.Name)
-	}
 
 	corsHost := os.Getenv("CORS_HOST")
 	if corsHost != "" {
 		config.App.CORSHost = corsHost
 	}
 
-	if config.App.AccessControl == "" {
-		config.App.AccessControl = "role"
+	accessControl := os.Getenv("ACCESS_CONRTOL")
+	if accessControl == "" {
+		config.App.AccessControl = accessControl
 	}
 
 	DevMode := os.Getenv("DEV_MODE")
@@ -159,25 +213,52 @@ func ReadFileInto(config *Configuration, path string) error {
 		config.TokenStore.Prefix = tokenStorePrefix
 	}
 
-	err := readAPNS(config)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func readAPNS(config *Configuration) error {
 	shouldEnableAPNS := os.Getenv("APNS_ENABLE")
 	if shouldEnableAPNS != "" {
-		config.APNS.Enable = shouldEnableAPNS == "1"
-	}
-	if !config.APNS.Enable {
-		return nil
+		config.APNS.Enable = shouldEnableAPNS == "1" || shouldEnableAPNS == "YES"
 	}
 
 	env := os.Getenv("APNS_ENV")
 	if env != "" {
 		config.APNS.Env = env
+	}
+
+	err := readAPNS(config)
+	if err != nil {
+		return err
+	}
+
+	shouldEnableGCM := os.Getenv("GCM_ENABLE")
+	if shouldEnableGCM != "" {
+		config.GCM.Enable = shouldEnableGCM == "1" || shouldEnableGCM == "YES"
+	}
+
+	gcmAPIKey := os.Getenv("GCM_APIKEY")
+	if gcmAPIKey != "" {
+		config.GCM.APIKey = gcmAPIKey
+	}
+
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel != "" {
+		config.LOG.Level = logLevel
+	}
+
+	sentry := os.Getenv("SENTRY_DSN")
+	if sentry != "" {
+		config.LogHook.SentryDSN = sentry
+	}
+
+	sentryLevel := os.Getenv("SENTRY_LEVEL")
+	if sentryLevel != "" {
+		config.LogHook.SentryLevel = logLevel
+	}
+
+	return nil
+}
+
+func readAPNS(config *Configuration) error {
+	if !config.APNS.Enable {
+		return nil
 	}
 
 	cert, key := os.Getenv("APNS_CERTIFICATE"), os.Getenv("APNS_PRIVATE_KEY")
@@ -186,6 +267,14 @@ func readAPNS(config *Configuration) error {
 	}
 	if key != "" {
 		config.APNS.Key = key
+	}
+
+	certPath, keyPath := os.Getenv("APNS_CERTIFICATE_PATH"), os.Getenv("APNS_PRIVATE_KEY_PATH")
+	if certPath != "" {
+		config.APNS.CertPath = certPath
+	}
+	if keyPath != "" {
+		config.APNS.KeyPath = keyPath
 	}
 
 	if config.APNS.Cert == "" && config.APNS.CertPath != "" {
