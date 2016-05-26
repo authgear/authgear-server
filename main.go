@@ -48,24 +48,14 @@ import (
 )
 
 func main() {
-	var configPath string
 	if len(os.Args) > 1 {
 		if os.Args[1] == "version" {
 			fmt.Printf("%s\n", skyversion.Version())
 			os.Exit(0)
 		}
-		configPath = os.Args[1]
 	}
 
 	config := skyconfig.NewConfiguration()
-	if configPath == "" {
-		configPath = os.Getenv("SKY_CONFIG")
-	}
-	if configPath != "" {
-		fmt.Print("Config via *.ini will be deprecated in next version, use .env\n")
-		config.ReadFromINI(configPath)
-	}
-
 	config.ReadFromEnv()
 	if err := config.Validate(); err != nil {
 		fmt.Println(err.Error())

@@ -22,7 +22,6 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
-	"github.com/oursky/gcfg"
 	"github.com/skygeario/skygear-server/uuid"
 )
 
@@ -43,63 +42,58 @@ type Configuration struct {
 	} `json:"http"`
 	App struct {
 		Name          string `json:"name"`
-		APIKey        string `gcfg:"api-key" json:"api_key"`
-		MasterKey     string `gcfg:"master-key" json:"master_key"`
-		AccessControl string `gcfg:"access-control" json:"access_control"`
-		DevMode       bool   `gcfg:"dev-mode" json:"dev_mode"`
-		CORSHost      string `gcfg:"cors-host" json:"cors_host"`
+		APIKey        string `json:"api_key"`
+		MasterKey     string `json:"master_key"`
+		AccessControl string `json:"access_control"`
+		DevMode       bool   `json:"dev_mode"`
+		CORSHost      string `json:"cors_host"`
 	} `json:"app"`
 	DB struct {
-		ImplName string `gcfg:"implementation" json:"implementation"`
+		ImplName string `json:"implementation"`
 		Option   string `json:"option"`
 	} `json:"database"`
 	TokenStore struct {
-		ImplName string `gcfg:"implementation" json:"implementation"`
-		Path     string `gcfg:"path" json:"path"`
-		Prefix   string `gcfg:"prefix" json:"prefix"`
-	} `gcfg:"token-store" json:"-"`
+		ImplName string `json:"implementation"`
+		Path     string `json:"path"`
+		Prefix   string `json:"prefix"`
+	} `json:"-"`
 	AssetStore struct {
-		ImplName string `gcfg:"implementation" json:"implementation"`
+		ImplName string `json:"implementation"`
 		Public   bool   `json:"public"`
 
 		// followings only used when ImplName = fs
 		Path string `json:"-"`
 
 		// followings only used when ImplName = s3
-		AccessToken string `gcfg:"access-key" json:"access_key"`
-		SecretToken string `gcfg:"secret-key" json:"secret_key"`
+		AccessToken string `json:"access_key"`
+		SecretToken string `json:"secret_key"`
 		Region      string `json:"region"`
 		Bucket      string `json:"bucket"`
-	} `gcfg:"asset-store" json:"asset_store"`
+	} `json:"asset_store"`
 	AssetURLSigner struct {
-		URLPrefix string `gcfg:"url-prefix" json:"url_prefix"`
+		URLPrefix string `json:"url_prefix"`
 		Secret    string `json:"secret"`
-	} `gcfg:"asset-url-signer" json:"asset_signer"`
+	} `json:"asset_signer"`
 	APNS struct {
 		Enable   bool   `json:"enable"`
 		Env      string `json:"env"`
 		Cert     string `json:"cert"`
 		Key      string `json:"key"`
-		CertPath string `gcfg:"cert-path" json:"-"`
-		KeyPath  string `gcfg:"key-path" json:"-"`
+		CertPath string `json:"-"`
+		KeyPath  string `json:"-"`
 	} `json:"apns"`
 	GCM struct {
 		Enable bool   `json:"enable"`
-		APIKey string `gcfg:"api-key" json:"api_key"`
+		APIKey string `json:"api_key"`
 	} `json:"gcm"`
 	LOG struct {
 		Level string `json:"-"`
 	} `json:"log"`
 	LogHook struct {
-		SentryDSN   string `gcfg:"sentry-dsn"`
-		SentryLevel string `gcfg:"sentry-level"`
-	} `gcfg:"log-hook" json:"-"`
+		SentryDSN   string
+		SentryLevel string
+	} `json:"-"`
 	Plugin map[string]*PluginConfig `json:"-"`
-	// the alembic section here is to make the config be parsed correctly
-	// the values should not be used
-	UselessAlembic struct {
-		ScriptLocation string `gcfg:"script_location"`
-	} `gcfg:"alembic" json:"-"`
 }
 
 func NewConfiguration() Configuration {
@@ -147,14 +141,6 @@ func (config *Configuration) Validate() error {
 		return fmt.Errorf("APNS_ENV must be sandbox or production")
 	}
 	return nil
-}
-
-// ReadFromIni reads a configuration from file specified by path
-func (config *Configuration) ReadFromINI(path string) error {
-	if err := gcfg.ReadFileInto(config, path); err != nil {
-		return err
-	}
-	return config.Validate()
 }
 
 func (config *Configuration) ReadFromEnv() {

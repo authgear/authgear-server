@@ -26,8 +26,6 @@ services:
     - "5555:5555" # Skygear Server Plugin Endpoint (ZMQ)
     volumes:
     - app_data:/go/src/app/data
-    # Uncomment the following line to override the default configuration file
-    #- ./development.ini:/go/src/app/development.ini
     links:
     - db
     - redis
@@ -37,7 +35,6 @@ services:
       # container above.
       DATABASE_URL: postgresql://postgres:@db/postgres?sslmode=disable
       REDISTEST: redis://redis:6379
-      DB_IMPL_NAME: pq
       API_KEY: changeme
       MASTER_KEY: changeme
       APP_NAME: _

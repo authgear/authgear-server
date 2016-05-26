@@ -90,22 +90,6 @@
 			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
 		},
 		{
-			"ImportPath": "github.com/oursky/gcfg",
-			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
-		},
-		{
-			"ImportPath": "github.com/oursky/gcfg/scanner",
-			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
-		},
-		{
-			"ImportPath": "github.com/oursky/gcfg/token",
-			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
-		},
-		{
-			"ImportPath": "github.com/oursky/gcfg/types",
-			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
-		},
-		{
 			"ImportPath": "github.com/paulmach/go.geo",
 			"Rev": "c84b6002b0f727d4a2d40e05466dfc3cc54eb329"
 		},
