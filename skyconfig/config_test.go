@@ -85,5 +85,55 @@ func TestRequiredConfig(t *testing.T) {
 
 			os.Setenv("APNS_ENABLE", "")
 		})
+
+		Convey("Read plugin config correctly", func() {
+			config := NewConfigurationWithKeys()
+			os.Setenv("PLUGINS", "CAT")
+			os.Setenv("CAT_TRANSPORT", "exec")
+			os.Setenv("CAT_PATH", "py-skygear")
+			os.Setenv("CAT_ARGS", "chima,faseng")
+
+			config.readPlugins()
+			So(config.Plugin["CAT"], ShouldResemble, &PluginConfig{
+				"exec",
+				"py-skygear",
+				[]string{"chima", "faseng"},
+			})
+
+			os.Setenv("PLUGINS", "")
+			os.Setenv("CAT_TRANSPORT", "")
+			os.Setenv("CAT_PATH", "")
+			os.Setenv("CAT_ARGS", "")
+		})
+
+		Convey("Read multiple plugin config correctly", func() {
+			config := NewConfigurationWithKeys()
+			os.Setenv("PLUGINS", "CAT,BUG")
+			os.Setenv("CAT_TRANSPORT", "exec")
+			os.Setenv("CAT_PATH", "py-skygear")
+			os.Setenv("CAT_ARGS", "chima,faseng")
+			os.Setenv("BUG_TRANSPORT", "zmq")
+			os.Setenv("BUG_PATH", "tcp://skygear:5555")
+
+			config.readPlugins()
+			So(config.Plugin["CAT"], ShouldResemble, &PluginConfig{
+				"exec",
+				"py-skygear",
+				[]string{"chima", "faseng"},
+			})
+
+			So(config.Plugin["BUG"], ShouldResemble, &PluginConfig{
+				"zmq",
+				"tcp://skygear:5555",
+				nil,
+			})
+
+			os.Setenv("PLUGINS", "")
+			os.Setenv("CAT_TRANSPORT", "")
+			os.Setenv("CAT_PATH", "")
+			os.Setenv("CAT_ARGS", "")
+			os.Setenv("BUG_TRANSPORT", "")
+			os.Setenv("BUG_PATH", "")
+		})
 	})
 }

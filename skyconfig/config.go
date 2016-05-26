@@ -20,11 +20,18 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/oursky/gcfg"
 	"github.com/skygeario/skygear-server/uuid"
 )
+
+type PluginConfig struct {
+	Transport string
+	Path      string
+	Args      []string
+}
 
 // Configuration is Skygear's configuration
 // The configuration will load in following order:
@@ -88,11 +95,7 @@ type Configuration struct {
 		SentryDSN   string `gcfg:"sentry-dsn"`
 		SentryLevel string `gcfg:"sentry-level"`
 	} `gcfg:"log-hook" json:"-"`
-	Plugin map[string]*struct {
-		Transport string
-		Path      string
-		Args      []string
-	} `json:"-"`
+	Plugin map[string]*PluginConfig `json:"-"`
 	// the alembic section here is to make the config be parsed correctly
 	// the values should not be used
 	UselessAlembic struct {
@@ -117,6 +120,7 @@ func NewConfiguration() Configuration {
 	config.APNS.Env = "sandbox"
 	config.GCM.Enable = false
 	config.LOG.Level = "debug"
+	config.Plugin = map[string]*PluginConfig{}
 	return config
 }
 
@@ -253,7 +257,27 @@ func (config *Configuration) ReadFromEnv() error {
 		config.LogHook.SentryLevel = logLevel
 	}
 
+	config.readPlugins()
 	return nil
+}
+
+func (config *Configuration) readPlugins() {
+	plugin := os.Getenv("PLUGINS")
+	if plugin == "" {
+		return
+	}
+
+	plugins := strings.Split(plugin, ",")
+	for _, p := range plugins {
+		pluginConfig := &PluginConfig{}
+		pluginConfig.Transport = os.Getenv(p + "_TRANSPORT")
+		pluginConfig.Path = os.Getenv(p + "_PATH")
+		args := os.Getenv(p + "_ARGS")
+		if args != "" {
+			pluginConfig.Args = strings.Split(args, ",")
+		}
+		config.Plugin[p] = pluginConfig
+	}
 }
 
 func readAPNS(config *Configuration) error {
