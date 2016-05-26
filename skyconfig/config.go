@@ -215,6 +215,15 @@ func (config *Configuration) readHost() {
 }
 
 func (config *Configuration) readTokenStore() {
+	tokenStore := os.Getenv("TOKEN_STORE")
+	if tokenStore != "" {
+		config.TokenStore.ImplName = tokenStore
+	}
+	tokenStorePath := os.Getenv("TOKEN_STORE_PATH")
+	if tokenStorePath != "" {
+		config.TokenStore.Path = tokenStorePath
+	}
+
 	tokenStorePrefix := os.Getenv("TOKEN_STORE_PREFIX")
 	if tokenStorePrefix != "" {
 		config.TokenStore.Prefix = tokenStorePrefix
