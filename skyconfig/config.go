@@ -17,7 +17,6 @@ package skyconfig
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -135,6 +134,12 @@ func (config *Configuration) Validate() error {
 	if config.App.Name == "" {
 		return errors.New("APP_NAME is not set")
 	}
+	if config.App.APIKey == "" {
+		return errors.New("API_KEY is not set")
+	}
+	if config.App.MasterKey == "" {
+		return errors.New("MASTER_KEY is not set")
+	}
 	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(config.App.Name) {
 		return fmt.Errorf("APP_NAME '%s' contains invalid characters other than alphanumberics or underscores", config.App.Name)
 	}
@@ -152,7 +157,7 @@ func (config *Configuration) ReadFromINI(path string) error {
 	return config.Validate()
 }
 
-func (config *Configuration) ReadFromEnv() error {
+func (config *Configuration) ReadFromEnv() {
 	envErr := godotenv.Load()
 	if envErr != nil {
 		fmt.Errorf("Error loading .env file")
@@ -227,10 +232,7 @@ func (config *Configuration) ReadFromEnv() error {
 		config.APNS.Env = env
 	}
 
-	err := readAPNS(config)
-	if err != nil {
-		return err
-	}
+	config.readAPNS()
 
 	shouldEnableGCM := os.Getenv("GCM_ENABLE")
 	if shouldEnableGCM != "" {
@@ -258,7 +260,6 @@ func (config *Configuration) ReadFromEnv() error {
 	}
 
 	config.readPlugins()
-	return nil
 }
 
 func (config *Configuration) readPlugins() {
@@ -280,9 +281,9 @@ func (config *Configuration) readPlugins() {
 	}
 }
 
-func readAPNS(config *Configuration) error {
+func (config *Configuration) readAPNS() {
 	if !config.APNS.Enable {
-		return nil
+		return
 	}
 
 	cert, key := os.Getenv("APNS_CERTIFICATE"), os.Getenv("APNS_PRIVATE_KEY")
@@ -301,21 +302,4 @@ func readAPNS(config *Configuration) error {
 		config.APNS.KeyPath = keyPath
 	}
 
-	if config.APNS.Cert == "" && config.APNS.CertPath != "" {
-		certPEMBlock, err := ioutil.ReadFile(config.APNS.CertPath)
-		if err != nil {
-			return err
-		}
-		config.APNS.Cert = string(certPEMBlock)
-	}
-
-	if config.APNS.Key == "" && config.APNS.KeyPath != "" {
-		keyPEMBlock, err := ioutil.ReadFile(config.APNS.KeyPath)
-		if err != nil {
-			return err
-		}
-		config.APNS.Key = string(keyPEMBlock)
-	}
-
-	return nil
 }

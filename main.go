@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -342,7 +343,25 @@ func initPushSender(config skyconfig.Configuration, connOpener func() (skydb.Con
 }
 
 func initAPNSPusher(config skyconfig.Configuration, connOpener func() (skydb.Conn, error)) *push.APNSPusher {
-	apnsPushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
+	cert := config.APNS.Cert
+	key := config.APNS.Key
+	if config.APNS.Cert == "" && config.APNS.CertPath != "" {
+		certPEMBlock, err := ioutil.ReadFile(config.APNS.CertPath)
+		if err != nil {
+			log.Fatalf("Failed to load the APNS Cert: %v", err)
+		}
+		cert = string(certPEMBlock)
+	}
+
+	if config.APNS.Key == "" && config.APNS.KeyPath != "" {
+		keyPEMBlock, err := ioutil.ReadFile(config.APNS.KeyPath)
+		if err != nil {
+			log.Fatalf("Failed to load the APNS Key: %v", err)
+		}
+		key = string(keyPEMBlock)
+	}
+
+	apnsPushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), cert, key)
 	if err != nil {
 		log.Fatalf("Failed to set up push sender: %v", err)
 	}
