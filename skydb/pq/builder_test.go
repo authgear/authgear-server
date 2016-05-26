@@ -104,7 +104,7 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(sql, ShouldEqual,
 				`(_access @> '[{"user_id": "userid"}]' OR `+
-					`_access @> '[{"public": true, "level": "read"}]' OR `+
+					`_access @> '[{"public": true}]' OR `+
 					`_access IS NULL OR `+
 					`_owner_id = ?)`)
 			So(args, ShouldResemble, []interface{}{"userid"})
@@ -125,7 +125,7 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 				`(_access @> '[{"role": "admin"}]' OR `+
 					`_access @> '[{"role": "writer"}]' OR `+
 					`_access @> '[{"user_id": "userid"}]' OR `+
-					`_access @> '[{"public": true, "level": "read"}]' OR `+
+					`_access @> '[{"public": true}]' OR `+
 					`_access IS NULL OR `+
 					`_owner_id = ?)`)
 			So(args, ShouldResemble, []interface{}{"userid"})

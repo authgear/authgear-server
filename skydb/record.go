@@ -124,6 +124,9 @@ func NewRecordACLEntryPublic(level ACLLevel) RecordACLEntry {
 }
 
 func (ace *RecordACLEntry) Accessible(userinfo *UserInfo, level ACLLevel) bool {
+	if ace.Public {
+		return ace.AccessibleLevel(level)
+	}
 	if userinfo.ID == ace.UserID {
 		if ace.AccessibleLevel(level) {
 			return true

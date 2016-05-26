@@ -270,7 +270,12 @@ func (p accessPredicateSqlizer) ToSql() (sql string, args []interface{}, err err
 		b.WriteString(fmt.Sprintf(`_access @> '[{"role": %s}]' OR `, escapedRole))
 	}
 	b.WriteString(fmt.Sprintf(`_access @> '[{"user_id": %s}]' OR `, escapedID))
-	b.WriteString(fmt.Sprintf(`_access @> '[{"public": true, "level": "%s"}]' OR `, string(p.level)))
+	if p.level == skydb.ReadLevel {
+		b.WriteString(`_access @> '[{"public": true}]' OR `)
+	}
+	if p.level == skydb.WriteLevel {
+		b.WriteString(`_access @> '[{"public": true, "level": "write"}]' OR `)
+	}
 	b.WriteString(`_access IS NULL OR `)
 	b.WriteString(`_owner_id = ?)`)
 
