@@ -149,17 +149,7 @@ func (config *Configuration) ReadFromEnv() {
 		fmt.Errorf("Error loading .env file")
 	}
 
-	// Default to :3000 if both HOST and PORT is missing
-	host := os.Getenv("HOST")
-	if host != "" {
-		config.HTTP.Host = host
-	}
-	if config.HTTP.Host == "" {
-		port := os.Getenv("PORT")
-		if port != "" {
-			config.HTTP.Host = ":" + port
-		}
-	}
+	config.readHost()
 
 	appAPIKey := os.Getenv("API_KEY")
 	if appAPIKey != "" {
@@ -203,14 +193,45 @@ func (config *Configuration) ReadFromEnv() {
 		config.DB.Option = os.Getenv("DATABASE_URL")
 	}
 
+	config.readTokenStore()
+	config.readAssetStore()
+	config.readAPNS()
+	config.readLog()
+	config.readPlugins()
+}
+
+func (config *Configuration) readHost() {
+	// Default to :3000 if both HOST and PORT is missing
+	host := os.Getenv("HOST")
+	if host != "" {
+		config.HTTP.Host = host
+	}
+	if config.HTTP.Host == "" {
+		port := os.Getenv("PORT")
+		if port != "" {
+			config.HTTP.Host = ":" + port
+		}
+	}
+}
+
+func (config *Configuration) readTokenStore() {
 	tokenStorePrefix := os.Getenv("TOKEN_STORE_PREFIX")
 	if tokenStorePrefix != "" {
 		config.TokenStore.Prefix = tokenStorePrefix
 	}
+}
 
+func (config *Configuration) readAssetStore() {
+}
+
+func (config *Configuration) readAPNS() {
 	shouldEnableAPNS := os.Getenv("APNS_ENABLE")
 	if shouldEnableAPNS != "" {
 		config.APNS.Enable = shouldEnableAPNS == "1" || shouldEnableAPNS == "YES"
+	}
+
+	if !config.APNS.Enable {
+		return
 	}
 
 	env := os.Getenv("APNS_ENV")
@@ -218,8 +239,25 @@ func (config *Configuration) ReadFromEnv() {
 		config.APNS.Env = env
 	}
 
-	config.readAPNS()
+	cert, key := os.Getenv("APNS_CERTIFICATE"), os.Getenv("APNS_PRIVATE_KEY")
+	if cert != "" {
+		config.APNS.Cert = cert
+	}
+	if key != "" {
+		config.APNS.Key = key
+	}
 
+	certPath, keyPath := os.Getenv("APNS_CERTIFICATE_PATH"), os.Getenv("APNS_PRIVATE_KEY_PATH")
+	if certPath != "" {
+		config.APNS.CertPath = certPath
+	}
+	if keyPath != "" {
+		config.APNS.KeyPath = keyPath
+	}
+
+}
+
+func (config *Configuration) readGCM() {
 	shouldEnableGCM := os.Getenv("GCM_ENABLE")
 	if shouldEnableGCM != "" {
 		config.GCM.Enable = shouldEnableGCM == "1" || shouldEnableGCM == "YES"
@@ -229,7 +267,9 @@ func (config *Configuration) ReadFromEnv() {
 	if gcmAPIKey != "" {
 		config.GCM.APIKey = gcmAPIKey
 	}
+}
 
+func (config *Configuration) readLog() {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel != "" {
 		config.LOG.Level = logLevel
@@ -244,8 +284,6 @@ func (config *Configuration) ReadFromEnv() {
 	if sentryLevel != "" {
 		config.LogHook.SentryLevel = logLevel
 	}
-
-	config.readPlugins()
 }
 
 func (config *Configuration) readPlugins() {
@@ -265,27 +303,4 @@ func (config *Configuration) readPlugins() {
 		}
 		config.Plugin[p] = pluginConfig
 	}
-}
-
-func (config *Configuration) readAPNS() {
-	if !config.APNS.Enable {
-		return
-	}
-
-	cert, key := os.Getenv("APNS_CERTIFICATE"), os.Getenv("APNS_PRIVATE_KEY")
-	if cert != "" {
-		config.APNS.Cert = cert
-	}
-	if key != "" {
-		config.APNS.Key = key
-	}
-
-	certPath, keyPath := os.Getenv("APNS_CERTIFICATE_PATH"), os.Getenv("APNS_PRIVATE_KEY_PATH")
-	if certPath != "" {
-		config.APNS.CertPath = certPath
-	}
-	if keyPath != "" {
-		config.APNS.KeyPath = keyPath
-	}
-
 }
