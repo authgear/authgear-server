@@ -222,6 +222,46 @@ func (config *Configuration) readTokenStore() {
 }
 
 func (config *Configuration) readAssetStore() {
+	assetStore := os.Getenv("ASSET_STORE")
+	if assetStore != "" {
+		config.AssetStore.ImplName = assetStore
+	}
+	assetStorePublic := os.Getenv("ASSET_STORE_PUBLIC")
+	if assetStorePublic != "" {
+		config.AssetStore.Public = assetStorePublic == "YES" || assetStorePublic == "1"
+	}
+
+	// Local Storage related
+	assetStorePath := os.Getenv("ASSET_STORE_PATH")
+	if assetStorePath != "" {
+		config.AssetStore.Path = assetStorePath
+	}
+	assetStorePrefix := os.Getenv("ASSET_STORE_URL_PREFIX")
+	if assetStorePrefix != "" {
+		config.AssetURLSigner.URLPrefix = assetStorePrefix
+	}
+	assetStoreSecret := os.Getenv("ASSET_STORE_SECRET")
+	if assetStoreSecret != "" {
+		config.AssetURLSigner.Secret = assetStoreSecret
+	}
+
+	// S3 related
+	assetStoreAccessKey := os.Getenv("ASSET_STORE_ACCESS_KEY")
+	if assetStoreAccessKey != "" {
+		config.AssetStore.AccessToken = assetStoreAccessKey
+	}
+	assetStoreSecretKey := os.Getenv("ASSET_STORE_SECRET_KEY")
+	if assetStoreSecretKey != "" {
+		config.AssetStore.SecretToken = assetStoreSecretKey
+	}
+	assetStoreRegion := os.Getenv("ASSET_STORE_REGION")
+	if assetStoreRegion != "" {
+		config.AssetStore.Region = assetStoreRegion
+	}
+	assetStoreBucket := os.Getenv("ASSET_STORE_BUCKET")
+	if assetStoreBucket != "" {
+		config.AssetStore.Bucket = assetStoreBucket
+	}
 }
 
 func (config *Configuration) readAPNS() {
