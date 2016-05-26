@@ -2,7 +2,6 @@
 /.vagrant
 /dist
 data
-/.env
 
 # go generated sources
 /Godeps/_workspace
