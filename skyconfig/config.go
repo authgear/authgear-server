@@ -135,7 +135,7 @@ func (config *Configuration) Validate() error {
 		return errors.New("MASTER_KEY is not set")
 	}
 	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(config.App.Name) {
-		return fmt.Errorf("APP_NAME '%s' contains invalid characters other than alphanumberics or underscores", config.App.Name)
+		return fmt.Errorf("APP_NAME '%s' contains invalid characters other than alphanumerics or underscores", config.App.Name)
 	}
 	if config.APNS.Enable && !regexp.MustCompile("^(sandbox|production)$").MatchString(config.APNS.Env) {
 		return fmt.Errorf("APNS_ENV must be sandbox or production")
