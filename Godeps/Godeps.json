@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/skygeario/skygear-server",
+	"ImportPath": "github.com/SkygearIO/skygear-server",
 	"GoVersion": "go1.5",
 	"Deps": [
 		{
@@ -46,6 +46,16 @@
 			"Rev": "344b1e96d6e410a093b7bce40287731a49e253f6"
 		},
 		{
+			"ImportPath": "github.com/jmoiron/sqlx/reflectx",
+			"Comment": "sqlx-v1.1-42-g344b1e9",
+			"Rev": "344b1e96d6e410a093b7bce40287731a49e253f6"
+		},
+		{
+			"ImportPath": "github.com/joho/godotenv",
+			"Comment": "v1-10-g4ed1339",
+			"Rev": "4ed13390c0acd2ff4e371e64d8b97c8954138243"
+		},
+		{
 			"ImportPath": "github.com/jpillora/backoff",
 			"Rev": "2ff7c4694083b5dbd71b21fd7cb7577477a74b31"
 		},
@@ -67,28 +77,17 @@
 			"Rev": "b269bd035a727d6c1081f76e7a239a1b00674c40"
 		},
 		{
+			"ImportPath": "github.com/lib/pq/oid",
+			"Comment": "go1.0-cutoff-59-gb269bd0",
+			"Rev": "b269bd035a727d6c1081f76e7a239a1b00674c40"
+		},
+		{
 			"ImportPath": "github.com/mattn/go-xmpp",
 			"Rev": "d86062634d19b6ac3e601f0d2b875879bb6b9569"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
 			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
-		},
-		{
-			"ImportPath": "github.com/oursky/gcfg",
-			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
-		},
-		{
-			"ImportPath": "github.com/oursky/gcfg/scanner",
-			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
-		},
-		{
-			"ImportPath": "github.com/oursky/gcfg/token",
-			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
-		},
-		{
-			"ImportPath": "github.com/oursky/gcfg/types",
-			"Rev": "75f2f52cbc25ba6b8890651de90a02f0ddf49d5e"
 		},
 		{
 			"ImportPath": "github.com/paulmach/go.geo",

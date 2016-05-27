@@ -6,21 +6,25 @@ Skygear Server is a cloud backend for your app.
 
 To get started, you need to install Skygear Server and include one of
 our SDKs into your app. For more information on how to do this, check
-out the [Skygear Server Documentation](http://docs.skygear.io/).
+out the [Skygear Server Documentation](https://docs.skygear.io/).
 
 ### Configuration
 
-Check out `development.ini` for example configuration.
+Skygear is configure via environment variable. It also support `.env` file for
+easy development.
 
-You need to specify the configuration file when running Skygear Server:
+The minimal configuration will be provide `API_KEY` and `MASTER_KEY`
 
 ```shell
-$ ./skygear-server development.ini
+$ API_KEY=changeme MASTER_KEY=secret ./skygear-server
 ```
 
-Alternatively,
+Check out [`.env`](https://github.com/SkygearIO/skygear-server/blob/master/.env.example)
+for configuration reference. Once you configure the `.env`
+correctly, you can simple kick start the server by following.
+
 ```shell
-$ `SKY_CONFIG=development.ini ./skygear`
+$ ./skygear-server
 ```
 
 ## How to contribute

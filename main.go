@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -46,32 +47,17 @@ import (
 	"github.com/skygeario/skygear-server/subscription"
 )
 
-func usage() {
-	fmt.Println("Usage: skygear-server [<config file>]")
-}
-
 func main() {
-	var configPath string
-	if len(os.Args) < 2 {
-		configPath = os.Getenv("SKY_CONFIG")
-		if configPath == "" {
-			configPath = os.Getenv("OD_CONFIG")
-			if configPath == "" {
-				usage()
-				return
-			}
-			fmt.Print("Config via OD_CONFIG will be deprecated in next version, use SKY_CONFIG\n")
-		}
-	} else {
+	if len(os.Args) > 1 {
 		if os.Args[1] == "version" {
 			fmt.Printf("%s\n", skyversion.Version())
 			os.Exit(0)
 		}
-		configPath = os.Args[1]
 	}
 
-	config := skyconfig.Configuration{}
-	if err := skyconfig.ReadFileInto(&config, configPath); err != nil {
+	config := skyconfig.NewConfiguration()
+	config.ReadFromEnv()
+	if err := config.Validate(); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
@@ -346,7 +332,25 @@ func initPushSender(config skyconfig.Configuration, connOpener func() (skydb.Con
 }
 
 func initAPNSPusher(config skyconfig.Configuration, connOpener func() (skydb.Conn, error)) *push.APNSPusher {
-	apnsPushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), config.APNS.Cert, config.APNS.Key)
+	cert := config.APNS.Cert
+	key := config.APNS.Key
+	if config.APNS.Cert == "" && config.APNS.CertPath != "" {
+		certPEMBlock, err := ioutil.ReadFile(config.APNS.CertPath)
+		if err != nil {
+			log.Fatalf("Failed to load the APNS Cert: %v", err)
+		}
+		cert = string(certPEMBlock)
+	}
+
+	if config.APNS.Key == "" && config.APNS.KeyPath != "" {
+		keyPEMBlock, err := ioutil.ReadFile(config.APNS.KeyPath)
+		if err != nil {
+			log.Fatalf("Failed to load the APNS Key: %v", err)
+		}
+		key = string(keyPEMBlock)
+	}
+
+	apnsPushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), cert, key)
 	if err != nil {
 		log.Fatalf("Failed to set up push sender: %v", err)
 	}

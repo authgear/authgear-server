@@ -17,95 +17,139 @@ package skyconfig
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
 
-	"github.com/oursky/gcfg"
+	"github.com/joho/godotenv"
+	"github.com/skygeario/skygear-server/uuid"
 )
 
+type PluginConfig struct {
+	Transport string
+	Path      string
+	Args      []string
+}
+
 // Configuration is Skygear's configuration
+// The configuration will load in following order:
+// 1. The ENV
+// 2. The key/value in .env file
+// 3. The config in *.ini (To-be depreacted)
 type Configuration struct {
 	HTTP struct {
 		Host string `json:"host"`
 	} `json:"http"`
 	App struct {
 		Name          string `json:"name"`
-		APIKey        string `gcfg:"api-key" json:"api_key"`
-		MasterKey     string `gcfg:"master-key" json:"master_key"`
-		AccessControl string `gcfg:"access-control" json:"access_control"`
-		DevMode       bool   `gcfg:"dev-mode" json:"dev_mode"`
-		CORSHost      string `gcfg:"cors-host" json:"cors_host"`
+		APIKey        string `json:"api_key"`
+		MasterKey     string `json:"master_key"`
+		AccessControl string `json:"access_control"`
+		DevMode       bool   `json:"dev_mode"`
+		CORSHost      string `json:"cors_host"`
 	} `json:"app"`
 	DB struct {
-		ImplName string `gcfg:"implementation" json:"implementation"`
+		ImplName string `json:"implementation"`
 		Option   string `json:"option"`
 	} `json:"database"`
 	TokenStore struct {
-		ImplName string `gcfg:"implementation" json:"implementation"`
-		Path     string `gcfg:"path" json:"path"`
-		Prefix   string `gcfg:"prefix" json:"prefix"`
-	} `gcfg:"token-store" json:"-"`
+		ImplName string `json:"implementation"`
+		Path     string `json:"path"`
+		Prefix   string `json:"prefix"`
+	} `json:"-"`
 	AssetStore struct {
-		ImplName string `gcfg:"implementation" json:"implementation"`
+		ImplName string `json:"implementation"`
 		Public   bool   `json:"public"`
 
 		// followings only used when ImplName = fs
 		Path string `json:"-"`
 
 		// followings only used when ImplName = s3
-		AccessToken string `gcfg:"access-key" json:"access_key"`
-		SecretToken string `gcfg:"secret-key" json:"secret_key"`
+		AccessToken string `json:"access_key"`
+		SecretToken string `json:"secret_key"`
 		Region      string `json:"region"`
 		Bucket      string `json:"bucket"`
-	} `gcfg:"asset-store" json:"asset_store"`
+	} `json:"asset_store"`
 	AssetURLSigner struct {
-		URLPrefix string `gcfg:"url-prefix" json:"url_prefix"`
+		URLPrefix string `json:"url_prefix"`
 		Secret    string `json:"secret"`
-	} `gcfg:"asset-url-signer" json:"asset_signer"`
+	} `json:"asset_signer"`
 	APNS struct {
 		Enable   bool   `json:"enable"`
 		Env      string `json:"env"`
 		Cert     string `json:"cert"`
 		Key      string `json:"key"`
-		CertPath string `gcfg:"cert-path" json:"-"`
-		KeyPath  string `gcfg:"key-path" json:"-"`
+		CertPath string `json:"-"`
+		KeyPath  string `json:"-"`
 	} `json:"apns"`
 	GCM struct {
 		Enable bool   `json:"enable"`
-		APIKey string `gcfg:"api-key" json:"api_key"`
+		APIKey string `json:"api_key"`
 	} `json:"gcm"`
 	LOG struct {
 		Level string `json:"-"`
 	} `json:"log"`
 	LogHook struct {
-		SentryDSN   string `gcfg:"sentry-dsn"`
-		SentryLevel string `gcfg:"sentry-level"`
-	} `gcfg:"log-hook" json:"-"`
-	Plugin map[string]*struct {
-		Transport string
-		Path      string
-		Args      []string
+		SentryDSN   string
+		SentryLevel string
 	} `json:"-"`
-	// the alembic section here is to make the config be parsed correctly
-	// the values should not be used
-	UselessAlembic struct {
-		ScriptLocation string `gcfg:"script_location"`
-	} `gcfg:"alembic" json:"-"`
+	Plugin map[string]*PluginConfig `json:"-"`
 }
 
-// ReadFileInto reads a configuration from file specified by path
-func ReadFileInto(config *Configuration, path string) error {
-	if err := gcfg.ReadFileInto(config, path); err != nil {
-		return err
+func NewConfiguration() Configuration {
+	config := Configuration{}
+	config.HTTP.Host = ":3000"
+	config.App.Name = "myapp"
+	config.App.AccessControl = "role"
+	config.App.DevMode = true
+	config.DB.ImplName = "pq"
+	config.DB.Option = "postgres://postgres:@localhost/postgres?sslmode=disable"
+	config.TokenStore.ImplName = "fs"
+	config.TokenStore.Path = "data/token"
+	config.AssetStore.ImplName = "fs"
+	config.AssetStore.Path = "data/asset"
+	config.AssetURLSigner.URLPrefix = "http://localhost:3000/files"
+	config.APNS.Enable = false
+	config.APNS.Env = "sandbox"
+	config.GCM.Enable = false
+	config.LOG.Level = "debug"
+	config.Plugin = map[string]*PluginConfig{}
+	return config
+}
+
+func NewConfigurationWithKeys() Configuration {
+	config := NewConfiguration()
+	config.App.APIKey = uuid.New()
+	config.App.MasterKey = uuid.New()
+	return config
+}
+
+func (config *Configuration) Validate() error {
+	if config.App.Name == "" {
+		return errors.New("APP_NAME is not set")
 	}
-	if config.HTTP.Host == "" {
-		port := os.Getenv("PORT")
-		if port == "" {
-			port = "3000"
-		}
-		config.HTTP.Host = ":" + port
+	if config.App.APIKey == "" {
+		return errors.New("API_KEY is not set")
 	}
+	if config.App.MasterKey == "" {
+		return errors.New("MASTER_KEY is not set")
+	}
+	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(config.App.Name) {
+		return fmt.Errorf("APP_NAME '%s' contains invalid characters other than alphanumerics or underscores", config.App.Name)
+	}
+	if config.APNS.Enable && !regexp.MustCompile("^(sandbox|production)$").MatchString(config.APNS.Env) {
+		return fmt.Errorf("APNS_ENV must be sandbox or production")
+	}
+	return nil
+}
+
+func (config *Configuration) ReadFromEnv() {
+	envErr := godotenv.Load()
+	if envErr != nil {
+		fmt.Errorf("Error loading .env file")
+	}
+
+	config.readHost()
 
 	appAPIKey := os.Getenv("API_KEY")
 	if appAPIKey != "" {
@@ -121,20 +165,15 @@ func ReadFileInto(config *Configuration, path string) error {
 	if appName != "" {
 		config.App.Name = appName
 	}
-	if config.App.Name == "" {
-		return errors.New("app name is not set")
-	}
-	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(config.App.Name) {
-		return fmt.Errorf("app name '%s' contains invalid characters other than alphanumberics or underscores", config.App.Name)
-	}
 
 	corsHost := os.Getenv("CORS_HOST")
 	if corsHost != "" {
 		config.App.CORSHost = corsHost
 	}
 
-	if config.App.AccessControl == "" {
-		config.App.AccessControl = "role"
+	accessControl := os.Getenv("ACCESS_CONRTOL")
+	if accessControl == "" {
+		config.App.AccessControl = accessControl
 	}
 
 	DevMode := os.Getenv("DEV_MODE")
@@ -154,25 +193,94 @@ func ReadFileInto(config *Configuration, path string) error {
 		config.DB.Option = os.Getenv("DATABASE_URL")
 	}
 
+	config.readTokenStore()
+	config.readAssetStore()
+	config.readAPNS()
+	config.readLog()
+	config.readPlugins()
+}
+
+func (config *Configuration) readHost() {
+	// Default to :3000 if both HOST and PORT is missing
+	host := os.Getenv("HOST")
+	if host != "" {
+		config.HTTP.Host = host
+	}
+	if config.HTTP.Host == "" {
+		port := os.Getenv("PORT")
+		if port != "" {
+			config.HTTP.Host = ":" + port
+		}
+	}
+}
+
+func (config *Configuration) readTokenStore() {
+	tokenStore := os.Getenv("TOKEN_STORE")
+	if tokenStore != "" {
+		config.TokenStore.ImplName = tokenStore
+	}
+	tokenStorePath := os.Getenv("TOKEN_STORE_PATH")
+	if tokenStorePath != "" {
+		config.TokenStore.Path = tokenStorePath
+	}
+
 	tokenStorePrefix := os.Getenv("TOKEN_STORE_PREFIX")
 	if tokenStorePrefix != "" {
 		config.TokenStore.Prefix = tokenStorePrefix
 	}
-
-	err := readAPNS(config)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
-func readAPNS(config *Configuration) error {
+func (config *Configuration) readAssetStore() {
+	assetStore := os.Getenv("ASSET_STORE")
+	if assetStore != "" {
+		config.AssetStore.ImplName = assetStore
+	}
+	assetStorePublic := os.Getenv("ASSET_STORE_PUBLIC")
+	if assetStorePublic != "" {
+		config.AssetStore.Public = assetStorePublic == "YES" || assetStorePublic == "1"
+	}
+
+	// Local Storage related
+	assetStorePath := os.Getenv("ASSET_STORE_PATH")
+	if assetStorePath != "" {
+		config.AssetStore.Path = assetStorePath
+	}
+	assetStorePrefix := os.Getenv("ASSET_STORE_URL_PREFIX")
+	if assetStorePrefix != "" {
+		config.AssetURLSigner.URLPrefix = assetStorePrefix
+	}
+	assetStoreSecret := os.Getenv("ASSET_STORE_SECRET")
+	if assetStoreSecret != "" {
+		config.AssetURLSigner.Secret = assetStoreSecret
+	}
+
+	// S3 related
+	assetStoreAccessKey := os.Getenv("ASSET_STORE_ACCESS_KEY")
+	if assetStoreAccessKey != "" {
+		config.AssetStore.AccessToken = assetStoreAccessKey
+	}
+	assetStoreSecretKey := os.Getenv("ASSET_STORE_SECRET_KEY")
+	if assetStoreSecretKey != "" {
+		config.AssetStore.SecretToken = assetStoreSecretKey
+	}
+	assetStoreRegion := os.Getenv("ASSET_STORE_REGION")
+	if assetStoreRegion != "" {
+		config.AssetStore.Region = assetStoreRegion
+	}
+	assetStoreBucket := os.Getenv("ASSET_STORE_BUCKET")
+	if assetStoreBucket != "" {
+		config.AssetStore.Bucket = assetStoreBucket
+	}
+}
+
+func (config *Configuration) readAPNS() {
 	shouldEnableAPNS := os.Getenv("APNS_ENABLE")
 	if shouldEnableAPNS != "" {
-		config.APNS.Enable = shouldEnableAPNS == "1"
+		config.APNS.Enable = shouldEnableAPNS == "1" || shouldEnableAPNS == "YES"
 	}
+
 	if !config.APNS.Enable {
-		return nil
+		return
 	}
 
 	env := os.Getenv("APNS_ENV")
@@ -188,21 +296,60 @@ func readAPNS(config *Configuration) error {
 		config.APNS.Key = key
 	}
 
-	if config.APNS.Cert == "" && config.APNS.CertPath != "" {
-		certPEMBlock, err := ioutil.ReadFile(config.APNS.CertPath)
-		if err != nil {
-			return err
-		}
-		config.APNS.Cert = string(certPEMBlock)
+	certPath, keyPath := os.Getenv("APNS_CERTIFICATE_PATH"), os.Getenv("APNS_PRIVATE_KEY_PATH")
+	if certPath != "" {
+		config.APNS.CertPath = certPath
+	}
+	if keyPath != "" {
+		config.APNS.KeyPath = keyPath
 	}
 
-	if config.APNS.Key == "" && config.APNS.KeyPath != "" {
-		keyPEMBlock, err := ioutil.ReadFile(config.APNS.KeyPath)
-		if err != nil {
-			return err
-		}
-		config.APNS.Key = string(keyPEMBlock)
+}
+
+func (config *Configuration) readGCM() {
+	shouldEnableGCM := os.Getenv("GCM_ENABLE")
+	if shouldEnableGCM != "" {
+		config.GCM.Enable = shouldEnableGCM == "1" || shouldEnableGCM == "YES"
 	}
 
-	return nil
+	gcmAPIKey := os.Getenv("GCM_APIKEY")
+	if gcmAPIKey != "" {
+		config.GCM.APIKey = gcmAPIKey
+	}
+}
+
+func (config *Configuration) readLog() {
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel != "" {
+		config.LOG.Level = logLevel
+	}
+
+	sentry := os.Getenv("SENTRY_DSN")
+	if sentry != "" {
+		config.LogHook.SentryDSN = sentry
+	}
+
+	sentryLevel := os.Getenv("SENTRY_LEVEL")
+	if sentryLevel != "" {
+		config.LogHook.SentryLevel = logLevel
+	}
+}
+
+func (config *Configuration) readPlugins() {
+	plugin := os.Getenv("PLUGINS")
+	if plugin == "" {
+		return
+	}
+
+	plugins := strings.Split(plugin, ",")
+	for _, p := range plugins {
+		pluginConfig := &PluginConfig{}
+		pluginConfig.Transport = os.Getenv(p + "_TRANSPORT")
+		pluginConfig.Path = os.Getenv(p + "_PATH")
+		args := os.Getenv(p + "_ARGS")
+		if args != "" {
+			pluginConfig.Args = strings.Split(args, ",")
+		}
+		config.Plugin[p] = pluginConfig
+	}
 }

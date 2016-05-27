@@ -26,22 +26,18 @@ services:
     - "5555:5555" # Skygear Server Plugin Endpoint (ZMQ)
     volumes:
     - app_data:/go/src/app/data
-    # Uncomment the following line to override the default configuration file
-    #- ./development.ini:/go/src/app/development.ini
     links:
     - db
     - redis
-    command: skygear-server development.ini
+    command: skygear-server
     environment:
       # `db` in the following string should match the name of the database
       # container above.
       DATABASE_URL: postgresql://postgres:@db/postgres?sslmode=disable
       REDISTEST: redis://redis:6379
-      DB_IMPL_NAME: pq
       API_KEY: changeme
+      MASTER_KEY: secret
       APP_NAME: _
-      PGHOST: db
-      PGUSER: postgres
       # GOMAXPROCS - The maximum number of Go threads for execution.
       # When unspecified, the default is the number of CPU available, which
       # is the recommended setting.
