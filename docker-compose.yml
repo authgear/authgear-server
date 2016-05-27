@@ -36,7 +36,7 @@ services:
       DATABASE_URL: postgresql://postgres:@db/postgres?sslmode=disable
       REDISTEST: redis://redis:6379
       API_KEY: changeme
-      MASTER_KEY: changeme
+      MASTER_KEY: secret
       APP_NAME: _
       # GOMAXPROCS - The maximum number of Go threads for execution.
       # When unspecified, the default is the number of CPU available, which

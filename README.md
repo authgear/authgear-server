@@ -16,10 +16,10 @@ easy development.
 The minimal configuration will be provide `API_KEY` and `MASTER_KEY`
 
 ```shell
-$ API_KEY=changeme MASTER_KEY=changeme ./skygear-server
+$ API_KEY=changeme MASTER_KEY=secret ./skygear-server
 ```
 
-Check out [`.env`](https://github.com/SkygearIO/skygear-server/blob/master/.env)
+Check out [`.env`](https://github.com/SkygearIO/skygear-server/blob/master/.env.example)
 for configuration reference. Once you configure the `.env`
 correctly, you can simple kick start the server by following.
 
