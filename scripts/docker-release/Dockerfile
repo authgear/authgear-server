@@ -59,8 +59,7 @@ RUN chmod a+x /usr/local/bin/skygear-server \
 WORKDIR /app
 VOLUME /app/data
 USER nobody
-ADD config.ini /app/
 
 EXPOSE 3000
 
-CMD ["/usr/local/bin/skygear-server", "config.ini"]
+CMD ["/usr/local/bin/skygear-server"]

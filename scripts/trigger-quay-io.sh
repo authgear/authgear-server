@@ -27,7 +27,6 @@ LABEL \
     io.skygear.version=$SKYGEAR_VERSION \
     io.skygear.build-date=`date -u +"%Y-%m-%dT%H:%M:%SZ"`
 EOF
-cp development.ini $TEMP_BUILD_DIR/config.ini
 tar -C $TEMP_BUILD_DIR -zcvf dist/$DOCKER_BUILD_ARCHIVE .
 rm -rf $TEMP_BUILD_DIR
 
