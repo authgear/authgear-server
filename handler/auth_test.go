@@ -170,6 +170,61 @@ func TestLoginHandler(t *testing.T) {
 			So(token.AccessToken, ShouldNotBeEmpty)
 		})
 
+		Convey("login user with username in different case should ok", func() {
+			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
+			conn.CreateUser(&userinfo)
+
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"username": "john.DOE",
+					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: txdb,
+			}
+			resp := router.Response{}
+			handler := &LoginHandler{
+				TokenStore: &tokenStore,
+			}
+			handler.Handle(&req, &resp)
+
+			So(resp.Result, ShouldHaveSameTypeAs, authResponse{})
+			authResp := resp.Result.(authResponse)
+			So(authResp.Username, ShouldEqual, "john.doe")
+			So(authResp.Email, ShouldEqual, "john.doe@example.com")
+			So(authResp.AccessToken, ShouldNotBeEmpty)
+			token := tokenStore.Token
+			So(token.UserInfoID, ShouldEqual, authResp.UserID)
+			So(token.AccessToken, ShouldNotBeEmpty)
+		})
+
+		Convey("login user with email in different case should ok", func() {
+			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
+			conn.CreateUser(&userinfo)
+
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"email":    "john.DOE@example.com",
+					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: txdb,
+			}
+			resp := router.Response{}
+			handler := &LoginHandler{
+				TokenStore: &tokenStore,
+			}
+			handler.Handle(&req, &resp)
+
+			So(resp.Result, ShouldHaveSameTypeAs, authResponse{})
+			authResp := resp.Result.(authResponse)
+			So(authResp.Username, ShouldEqual, "john.doe")
+			So(authResp.Email, ShouldEqual, "john.doe@example.com")
+			So(authResp.AccessToken, ShouldNotBeEmpty)
+			token := tokenStore.Token
+			So(token.UserInfoID, ShouldEqual, authResp.UserID)
+			So(token.AccessToken, ShouldNotBeEmpty)
+		})
 		Convey("login user wrong password", func() {
 			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
 			conn.CreateUser(&userinfo)

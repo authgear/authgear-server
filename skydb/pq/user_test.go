@@ -107,6 +107,43 @@ func TestUserCRUD(t *testing.T) {
 			So(fetcheduserinfo, ShouldResemble, userinfo)
 		})
 
+		Convey("get an existing User with case-preserved username and email", func() {
+			userinfo := skydb.UserInfo{}
+			userinfo.Username = "Capital.ONE"
+			userinfo.Email = "capital.ONE@EXAMPLE.com"
+			userinfo.ID = "userid-capital"
+			So(c.CreateUser(&userinfo), ShouldBeNil)
+
+			fetcheduserinfo := skydb.UserInfo{}
+			err := c.GetUser("userid-capital", &fetcheduserinfo)
+			So(err, ShouldBeNil)
+
+			So(fetcheduserinfo.Username, ShouldEqual, "Capital.ONE")
+			So(fetcheduserinfo.Email, ShouldEqual, "capital.ONE@EXAMPLE.com")
+		})
+
+		Convey("gets an existing User by username case insensitive", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			fetcheduserinfo := skydb.UserInfo{}
+			err = c.GetUserByUsernameEmail("john.Doe", "", &fetcheduserinfo)
+			So(err, ShouldBeNil)
+
+			So(fetcheduserinfo, ShouldResemble, userinfo)
+		})
+
+		Convey("gets an existing User by email case insensitive", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			fetcheduserinfo := skydb.UserInfo{}
+			err = c.GetUserByUsernameEmail("", "john.DOE@example.com", &fetcheduserinfo)
+			So(err, ShouldBeNil)
+
+			So(fetcheduserinfo, ShouldResemble, userinfo)
+		})
+
 		Convey("gets an existing User by principal", func() {
 			err := c.CreateUser(&userinfo)
 			So(err, ShouldBeNil)

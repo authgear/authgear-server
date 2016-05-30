@@ -17,6 +17,7 @@ package skydbtest
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/skygeario/skygear-server/skydb"
@@ -54,8 +55,8 @@ func (conn *MapConn) CreateUser(userinfo *skydb.UserInfo) error {
 	}
 
 	conn.UserMap[userinfo.ID] = *userinfo
-	conn.usernameMap[userinfo.Username] = *userinfo
-	conn.emailMap[userinfo.Email] = *userinfo
+	conn.usernameMap[strings.ToLower(userinfo.Username)] = *userinfo
+	conn.emailMap[strings.ToLower(userinfo.Email)] = *userinfo
 	return nil
 }
 
@@ -77,9 +78,9 @@ func (conn *MapConn) GetUserByUsernameEmail(username string, email string, useri
 		ok bool
 	)
 	if email == "" {
-		u, ok = conn.usernameMap[username]
+		u, ok = conn.usernameMap[strings.ToLower(username)]
 	} else if username == "" {
-		u, ok = conn.emailMap[email]
+		u, ok = conn.emailMap[strings.ToLower(email)]
 	} else {
 		u, ok = conn.usernameMap[username]
 		if u.Email != email {

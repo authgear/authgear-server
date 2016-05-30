@@ -21,10 +21,11 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "52b88c46931" }
+func (r *fullMigration) Version() string { return "c0397f15027" }
 
 func (r *fullMigration) Up(tx *sqlx.Tx) error {
 	const stmt = `
+CREATE EXTENSION IF NOT EXISTS citext;
 CREATE TABLE IF NOT EXISTS public.pending_notification (
 	id SERIAL NOT NULL PRIMARY KEY,
 	op text NOT NULL,
@@ -52,8 +53,8 @@ $$ LANGUAGE plpgsql;
 
 CREATE TABLE _user (
 	id text PRIMARY KEY,
-	username text,
-	email text,
+	username citext,
+	email citext,
 	password text,
 	auth jsonb,
 	UNIQUE (username),
