@@ -1,3 +1,20 @@
+## 0.12.0 (2016-05-30)
+
+### Incompatible changes
+
+- Read all config from ENVVAR and support .env files (#35)
+
+### Bug fixes
+
+- Make `_user` email/username to be case insensitive at pq (#41)
+- Fix the public read record ACL bug on non readable (#39)
+- Consider deleting non-existing device as success
+
+### Other Notes
+
+- Update the doc link to http://docs.skygear.io/ (#37) 
+- Update travis build status badge
+
 ## 0.11.0 (2016-05-09)
 
 ### Features
