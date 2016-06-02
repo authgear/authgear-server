@@ -196,6 +196,7 @@ func (config *Configuration) ReadFromEnv() {
 	config.readTokenStore()
 	config.readAssetStore()
 	config.readAPNS()
+	config.readGCM()
 	config.readLog()
 	config.readPlugins()
 }
