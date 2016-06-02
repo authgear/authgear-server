@@ -1,3 +1,10 @@
+## 0.12.1 (2016-06-02)
+
+### Bug fixes
+
+- Read correct getSentry log level from ENV VAR (#43)
+- Read GCM config from env var
+
 ## 0.12.0 (2016-05-30)
 
 ### Incompatible changes
