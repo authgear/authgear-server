@@ -332,7 +332,7 @@ func (config *Configuration) readLog() {
 
 	sentryLevel := os.Getenv("SENTRY_LEVEL")
 	if sentryLevel != "" {
-		config.LogHook.SentryLevel = logLevel
+		config.LogHook.SentryLevel = sentryLevel
 	}
 }
 
