@@ -2,9 +2,7 @@ language: go
 
 sudo: false
 
-go:
-  - 1.5
-  - 1.6
+go: 1.6
 
 addons:
   postgresql: "9.4"
@@ -70,7 +68,6 @@ deploy:
     skip_cleanup: true
     on:
       repo: SkygearIO/skygear-server
-      go: 1.5
       tags: true
   - provider: script
     script: ./scripts/upload-binary.sh
@@ -78,21 +75,18 @@ deploy:
     on:
       repo: SkygearIO/skygear-server
       all_branches: true
-      go: 1.5
   - provider: script
     script: ./scripts/trigger-docker-hub.sh
     skip_cleanup: true
     on:
       repo: SkygearIO/skygear-server
       all_branches: true
-      go: 1.5
   - provider: script
     script: ./scripts/trigger-quay-io.sh
     skip_cleanup: true
     on:
       repo: SkygearIO/skygear-server
       all_branches: true
-      go: 1.5
 
 notifications:
   slack:
