@@ -102,6 +102,7 @@ func NewConfiguration() Configuration {
 	config.App.Name = "myapp"
 	config.App.AccessControl = "role"
 	config.App.DevMode = true
+	config.App.CORSHost = "*"
 	config.DB.ImplName = "pq"
 	config.DB.Option = "postgres://postgres:@localhost/postgres?sslmode=disable"
 	config.TokenStore.ImplName = "fs"
