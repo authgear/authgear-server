@@ -1211,6 +1211,21 @@ func TestQuery(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record2, record3, record4, record5})
 		})
+
+		Convey("can be queried with bypass access control", func() {
+			query := skydb.Query{
+				Type: "note",
+				ViewAsUser: &skydb.UserInfo{
+					ID: "dave",
+				},
+				Sorts:               sortsByID,
+				BypassAccessControl: true,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record1, record2, record3, record4, record5})
+		})
 	})
 
 	Convey("Empty Conn", t, func() {

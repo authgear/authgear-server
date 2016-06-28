@@ -1078,6 +1078,10 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		p.Query.ViewAsUser = payload.UserInfo
 	}
 
+	if payload.HasMasterKey() {
+		p.Query.BypassAccessControl = true
+	}
+
 	db := payload.Database
 
 	results, err := db.Query(&p.Query)

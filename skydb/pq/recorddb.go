@@ -213,7 +213,7 @@ func (db *database) applyQueryPredicate(q sq.SelectBuilder, factory *predicateSq
 		q = factory.addJoinsToSelectBuilder(q)
 	}
 
-	if db.ID() == "_public" {
+	if db.ID() == "_public" && !query.BypassAccessControl {
 		aclSqlizer, err := factory.newAccessControlSqlizer(query.ViewAsUser, skydb.ReadLevel)
 		if err != nil {
 			return q, err
