@@ -163,7 +163,7 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 	return sqlizers[0], nil
 }
 
-func (f *predicateSqlizerFactory) newAccessControlSqlizer(user skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error) {
+func (f *predicateSqlizerFactory) newAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error) {
 	return &accessPredicateSqlizer{
 		user,
 		aclLevel,
@@ -247,45 +247,47 @@ func newPredicateSqlizerFactory(db *database, primaryTable string) *predicateSql
 // Record accessible by user rickmak or admin role
 // `_access @> '[{"role":"rickmak"}]' OR _access @> '[{"role":"admin"}]'`¬
 type accessPredicateSqlizer struct {
-	user  skydb.UserInfo
+	user  *skydb.UserInfo
 	level skydb.ACLLevel
 }
 
-func (p accessPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
-	if p.user.ID == "" {
-		panic("cannot build access predicate without user")
-	}
-	escapedID, err := json.Marshal(p.user.ID)
-	if err != nil {
-		panic("unexpected serialize error on user_id")
-	}
-
+func (p accessPredicateSqlizer) ToSql() (string, []interface{}, error) {
 	var b bytes.Buffer
 	b.WriteString(`(`)
-	for _, role := range p.user.Roles {
-		escapedRole, err := json.Marshal(role)
-		if err != nil {
-			panic("unexpected serialize error on role")
+	args := []interface{}{}
+
+	if p.user != nil {
+		if p.user.ID == "" {
+			panic("cannot build access predicate without user")
 		}
-		b.WriteString(fmt.Sprintf(`_access @> '[{"role": %s}]' OR `, escapedRole))
+
+		escapedID, err := json.Marshal(p.user.ID)
+		if err != nil {
+			panic("unexpected serialize error on user_id")
+		}
+
+		for _, role := range p.user.Roles {
+			escapedRole, err := json.Marshal(role)
+			if err != nil {
+				panic("unexpected serialize error on role")
+			}
+			b.WriteString(fmt.Sprintf(`_access @> '[{"role": %s}]' OR `, escapedRole))
+		}
+		b.WriteString(fmt.Sprintf(`_access @> '[{"user_id": %s}]' OR `, escapedID))
+
+		b.WriteString(`_owner_id = ? OR `)
+		args = append(args, p.user.ID)
 	}
-	b.WriteString(fmt.Sprintf(`_access @> '[{"user_id": %s}]' OR `, escapedID))
+
 	if p.level == skydb.ReadLevel {
 		b.WriteString(`_access @> '[{"public": true}]' OR `)
-	}
-	if p.level == skydb.WriteLevel {
+	} else if p.level == skydb.WriteLevel {
 		b.WriteString(`_access @> '[{"public": true, "level": "write"}]' OR `)
 	}
-	b.WriteString(`_access IS NULL OR `)
-	b.WriteString(`_owner_id = ?)`)
 
-	sql = b.String()
-	args = []interface{}{
-		p.user.ID,
-	}
+	b.WriteString(`_access IS NULL)`)
 
-	err = nil
-	return
+	return b.String(), args, nil
 }
 
 type userRelationPredicateSqlizer struct {

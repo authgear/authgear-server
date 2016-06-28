@@ -97,17 +97,43 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 				ID: "userid",
 			}
 			sqlizer := &accessPredicateSqlizer{
-				userinfo,
+				&userinfo,
 				skydb.ReadLevel,
 			}
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
 			So(sql, ShouldEqual,
 				`(_access @> '[{"user_id": "userid"}]' OR `+
+					`_owner_id = ? OR `+
 					`_access @> '[{"public": true}]' OR `+
-					`_access IS NULL OR `+
-					`_owner_id = ?)`)
+					`_access IS NULL)`)
 			So(args, ShouldResemble, []interface{}{"userid"})
+		})
+
+		Convey("serialized for nil user and read", func() {
+			sqlizer := &accessPredicateSqlizer{
+				nil,
+				skydb.ReadLevel,
+			}
+			sql, args, err := sqlizer.ToSql()
+			So(err, ShouldBeNil)
+			So(sql, ShouldEqual,
+				`(_access @> '[{"public": true}]' OR `+
+					`_access IS NULL)`)
+			So(args, ShouldResemble, []interface{}{})
+		})
+
+		Convey("serialized for nil user and write", func() {
+			sqlizer := &accessPredicateSqlizer{
+				nil,
+				skydb.WriteLevel,
+			}
+			sql, args, err := sqlizer.ToSql()
+			So(err, ShouldBeNil)
+			So(sql, ShouldEqual,
+				`(_access @> '[{"public": true, "level": "write"}]' OR `+
+					`_access IS NULL)`)
+			So(args, ShouldResemble, []interface{}{})
 		})
 
 		Convey("serialized for role based ACE", func() {
@@ -116,7 +142,7 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 				Roles: []string{"admin", "writer"},
 			}
 			sqlizer := &accessPredicateSqlizer{
-				userinfo,
+				&userinfo,
 				skydb.ReadLevel,
 			}
 			sql, args, err := sqlizer.ToSql()
@@ -125,9 +151,9 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 				`(_access @> '[{"role": "admin"}]' OR `+
 					`_access @> '[{"role": "writer"}]' OR `+
 					`_access @> '[{"user_id": "userid"}]' OR `+
+					`_owner_id = ? OR `+
 					`_access @> '[{"public": true}]' OR `+
-					`_access IS NULL OR `+
-					`_owner_id = ?)`)
+					`_access IS NULL)`)
 			So(args, ShouldResemble, []interface{}{"userid"})
 		})
 

@@ -787,6 +787,29 @@ func TestRecordQuery(t *testing.T) {
 			})
 		})
 
+		Convey("Queries records with type and user", func() {
+			userInfo := skydb.UserInfo{
+				ID: "user0",
+			}
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+				},
+				Database: db,
+				UserInfo: &userInfo,
+			}
+			response := router.Response{}
+
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.lastquery, ShouldResemble, &skydb.Query{
+				Type:       "note",
+				ViewAsUser: &userInfo,
+			})
+		})
+
 		Convey("Queries records with sorting", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{

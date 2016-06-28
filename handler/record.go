@@ -1074,11 +1074,11 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	db := payload.Database
-
-	if db.ID() == "_public" && payload.UserInfo != nil {
-		p.Query.ReadableBy = *payload.UserInfo
+	if payload.UserInfo != nil {
+		p.Query.ViewAsUser = payload.UserInfo
 	}
+
+	db := payload.Database
 
 	results, err := db.Query(&p.Query)
 	if err != nil {
