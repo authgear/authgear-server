@@ -676,8 +676,16 @@ func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
 }
 
 type queryDatabase struct {
-	lastquery *skydb.Query
+	lastquery  *skydb.Query
+	databaseID string
 	skydb.Database
+}
+
+func (db *queryDatabase) ID() string {
+	if db.databaseID == "" {
+		return "_public"
+	}
+	return db.databaseID
 }
 
 func (db *queryDatabase) QueryCount(query *skydb.Query) (uint64, error) {
@@ -691,8 +699,16 @@ func (db *queryDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 }
 
 type queryResultsDatabase struct {
-	records []skydb.Record
+	records    []skydb.Record
+	databaseID string
 	skydb.Database
+}
+
+func (db *queryResultsDatabase) ID() string {
+	if db.databaseID == "" {
+		return "_public"
+	}
+	return db.databaseID
 }
 
 func (db *queryResultsDatabase) QueryCount(query *skydb.Query) (uint64, error) {
@@ -1146,8 +1162,16 @@ func TestRecordQuery(t *testing.T) {
 
 // a very naive Database that alway returns the single record set onto it
 type singleRecordDatabase struct {
-	record skydb.Record
+	record     skydb.Record
+	databaseID string
 	skydb.Database
+}
+
+func (db *singleRecordDatabase) ID() string {
+	if db.databaseID == "" {
+		return "_public"
+	}
+	return db.databaseID
 }
 
 func (db *singleRecordDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
@@ -1430,11 +1454,19 @@ func TestRecordAssetSerialization(t *testing.T) {
 
 // a very naive Database that alway returns the single record set onto it
 type referencedRecordDatabase struct {
-	note     skydb.Record
-	category skydb.Record
-	city     skydb.Record
-	user     skydb.Record
+	note       skydb.Record
+	category   skydb.Record
+	city       skydb.Record
+	user       skydb.Record
+	databaseID string
 	skydb.Database
+}
+
+func (db *referencedRecordDatabase) ID() string {
+	if db.databaseID == "" {
+		return "_public"
+	}
+	return db.databaseID
 }
 
 func (db *referencedRecordDatabase) UserRecordType() string { return "user" }

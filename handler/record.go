@@ -1007,8 +1007,7 @@ func queryResultInfo(db skydb.Database, query *skydb.Query, results *skydb.Rows)
 }
 
 type recordQueryPayload struct {
-	Query      skydb.Query
-	DatabaseID string
+	Query skydb.Query
 }
 
 func (payload *recordQueryPayload) Decode(data map[string]interface{}, parser *QueryParser) skyerr.Error {
@@ -1021,7 +1020,6 @@ func (payload *recordQueryPayload) Decode(data map[string]interface{}, parser *Q
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 
-	payload.DatabaseID, _ = data["database_id"].(string)
 	return payload.Validate()
 }
 
@@ -1078,7 +1076,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	db := payload.Database
 
-	if p.DatabaseID == "_public" {
+	if db.ID() == "_public" && payload.UserInfo != nil {
 		p.Query.ReadableBy = *payload.UserInfo
 	}
 
