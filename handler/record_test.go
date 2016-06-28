@@ -1141,59 +1141,6 @@ func TestRecordQuery(t *testing.T) {
 
 			So(response.Err, ShouldNotBeNil)
 		})
-
-		Convey("Queries records without master key", func() {
-			userInfo := skydb.UserInfo{
-				ID: "ownerID",
-			}
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"record_type": "note",
-					"database_id": "_public",
-				},
-				UserInfoID: userInfo.ID,
-				UserInfo:   &userInfo,
-				AccessKey:  router.ClientAccessKey,
-				Database:   db,
-			}
-			response := router.Response{}
-
-			handler := &RecordQueryHandler{}
-			handler.Handle(&payload, &response)
-
-			So(response.Err, ShouldBeNil)
-			So(db.lastquery, ShouldResemble, &skydb.Query{
-				Type:       "note",
-				ReadableBy: userInfo,
-			})
-		})
-
-		Convey("Queries records with master key", func() {
-			userInfo := skydb.UserInfo{
-				ID: "ownerID",
-			}
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"record_type": "note",
-					"database_id": "_public",
-				},
-				UserInfoID: userInfo.ID,
-				UserInfo:   &userInfo,
-				AccessKey:  router.MasterAccessKey,
-				Database:   db,
-			}
-			response := router.Response{}
-
-			handler := &RecordQueryHandler{}
-			handler.Handle(&payload, &response)
-
-			So(response.Err, ShouldBeNil)
-			So(db.lastquery, ShouldResemble, &skydb.Query{
-				Type:       "note",
-				ReadableBy: skydb.UserInfo{},
-			})
-		})
-
 	})
 }
 
