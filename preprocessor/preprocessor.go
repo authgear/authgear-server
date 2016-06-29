@@ -16,6 +16,7 @@ package preprocessor
 
 import (
 	"net/http"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -52,7 +53,11 @@ type InjectDatabase struct {
 func (p InjectDatabase) Preprocess(payload *router.Payload, response *router.Response) int {
 	conn := payload.DBConn
 
-	databaseID, _ := payload.Data["database_id"].(string)
+	databaseID, ok := payload.Data["database_id"].(string)
+	if !ok || databaseID == "" {
+		databaseID = "_public"
+	}
+
 	switch databaseID {
 	case "_private":
 		if payload.UserInfo != nil {
@@ -63,8 +68,24 @@ func (p InjectDatabase) Preprocess(payload *router.Payload, response *router.Res
 		}
 	case "_public":
 		payload.Database = conn.PublicDB()
+	case "_union":
+		if !payload.HasMasterKey() {
+			response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Master key is needed for union DB access")
+			return http.StatusUnauthorized
+		}
+		payload.Database = conn.UnionDB()
 	default:
-		payload.Database = conn.PublicDB()
+		if strings.HasPrefix(databaseID, "_") {
+			response.Err = skyerr.NewInvalidArgument("invalid database ID", []string{"database_id"})
+			return http.StatusBadRequest
+		} else if payload.HasMasterKey() {
+			payload.Database = conn.PrivateDB(databaseID)
+		} else if payload.UserInfo != nil && databaseID == payload.UserInfo.ID {
+			payload.Database = conn.PrivateDB(databaseID)
+		} else {
+			response.Err = skyerr.NewError(skyerr.PermissionDenied, "The selected DB cannot be accessed because permission is denied")
+			return http.StatusForbidden
+		}
 	}
 
 	return http.StatusOK
