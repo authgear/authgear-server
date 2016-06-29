@@ -531,6 +531,8 @@ type bogusFieldDatabase struct {
 	skydb.Database
 }
 
+func (db bogusFieldDatabase) IsReadOnly() bool { return false }
+
 func (db bogusFieldDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
 	return nil
 }
@@ -648,6 +650,8 @@ type noExtendDatabase struct {
 	skydb.Database
 }
 
+func (db *noExtendDatabase) IsReadOnly() bool { return false }
+
 func (db *noExtendDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
 	db.calledExtend = true
 	return errors.New("You shalt not call Extend")
@@ -681,9 +685,11 @@ type queryDatabase struct {
 	skydb.Database
 }
 
+func (db *queryDatabase) IsReadOnly() bool { return false }
+
 func (db *queryDatabase) ID() string {
 	if db.databaseID == "" {
-		return "_public"
+		return skydb.PublicDatabaseIdentifier
 	}
 	return db.databaseID
 }
@@ -704,9 +710,11 @@ type queryResultsDatabase struct {
 	skydb.Database
 }
 
+func (db *queryResultsDatabase) IsReadOnly() bool { return false }
+
 func (db *queryResultsDatabase) ID() string {
 	if db.databaseID == "" {
-		return "_public"
+		return skydb.PublicDatabaseIdentifier
 	}
 	return db.databaseID
 }
@@ -1215,9 +1223,11 @@ type singleRecordDatabase struct {
 	skydb.Database
 }
 
+func (db *singleRecordDatabase) IsReadOnly() bool { return false }
+
 func (db *singleRecordDatabase) ID() string {
 	if db.databaseID == "" {
-		return "_public"
+		return skydb.PublicDatabaseIdentifier
 	}
 	return db.databaseID
 }
@@ -1510,9 +1520,11 @@ type referencedRecordDatabase struct {
 	skydb.Database
 }
 
+func (db *referencedRecordDatabase) IsReadOnly() bool { return false }
+
 func (db *referencedRecordDatabase) ID() string {
 	if db.databaseID == "" {
-		return "_public"
+		return skydb.PublicDatabaseIdentifier
 	}
 	return db.databaseID
 }
@@ -1781,6 +1793,8 @@ type erroneousDB struct {
 	skydb.Database
 }
 
+func (db erroneousDB) IsReadOnly() bool { return false }
+
 func (db erroneousDB) Extend(string, skydb.RecordSchema) error {
 	return nil
 }
@@ -1978,6 +1992,8 @@ func newSelectiveDatabase(backingDB skydb.Database) *selectiveDatabase {
 		Database: backingDB,
 	}
 }
+
+func (db *selectiveDatabase) IsReadOnly() bool { return false }
 
 func (db *selectiveDatabase) SetFilter(filterFunc filterFuncDef) {
 	db.filterFunc = filterFunc

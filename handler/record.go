@@ -288,6 +288,11 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
+	if payload.Database.IsReadOnly() {
+		response.Err = skyerr.NewError(skyerr.NotSupported, "modifying the selected database is not supported")
+		return
+	}
+
 	log.Debugf("Working with accessModel %v", h.AccessModel)
 
 	req := recordModifyRequest{
@@ -1231,6 +1236,11 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
+		return
+	}
+
+	if payload.Database.IsReadOnly() {
+		response.Err = skyerr.NewError(skyerr.NotSupported, "modifying the selected database is not supported")
 		return
 	}
 

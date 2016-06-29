@@ -45,6 +45,27 @@ var ErrDatabaseTxDidBegin = errors.New("skydb: a transaction has already begun")
 var ErrDatabaseTxDidNotBegin = errors.New("skydb: a transaction has not begun")
 var ErrDatabaseTxDone = errors.New("skydb: Database's transaction has already commited or rolled back")
 
+var PublicDatabaseIdentifier = "_public"
+var UnionDatabaseIdentifier = "_union"
+
+type DatabaseType int
+
+const (
+	// PublicDatabase is a database containing records shared among all
+	// users. ACL settings may apply to restrict accesss.
+	PublicDatabase DatabaseType = 0 + iota
+
+	// PrivateDatabase is a database containing records visible to
+	// an individual user. Each individual user has their own private
+	// database. ACL settings do not apply.
+	PrivateDatabase
+
+	// UnionDatabase is a database containing all records in the PublicDatabase
+	// and all PrivateDatabase. This database is only intended for admin
+	// user and ACL settings do not apply.
+	UnionDatabase
+)
+
 // Database represents a collection of record (either public or private)
 // in a container.
 type Database interface {
@@ -54,11 +75,18 @@ type Database interface {
 
 	// ID returns the identifier of the Database.
 	// We have public and private database. For public DB, the ID is
-	// `_public`; for private, the ID is the user identifier
+	// `_public`; for union DB, the ID is `_union`;
+	// for private, the ID is the user identifier
 	ID() string
+
+	// DatabaseType returns the DatabaseType of the database.
+	DatabaseType() DatabaseType
 
 	// UserRecordType returns name of the user record type.
 	UserRecordType() string
+
+	// IsReadOnly returns true if the database is read only
+	IsReadOnly() bool
 
 	// Get fetches the Record identified by the supplied key and
 	// writes it onto the supplied Record.

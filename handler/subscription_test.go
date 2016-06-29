@@ -109,6 +109,10 @@ func newFetchallDB(subscriptions ...skydb.Subscription) *fetchallDB {
 	return &fetchallDB{subscriptions: subscriptions}
 }
 
+func (db *fetchallDB) IsReadOnly() bool { return false }
+
+func (db *fetchallDB) DatabaseType() skydb.DatabaseType { return skydb.PublicDatabase }
+
 func (db *fetchallDB) GetSubscriptionsByDeviceID(deviceID string) []skydb.Subscription {
 	db.lastDeviceID = deviceID
 	return db.subscriptions

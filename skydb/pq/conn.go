@@ -144,14 +144,23 @@ func (c *conn) Rollback() (err error) {
 
 func (c *conn) PublicDB() skydb.Database {
 	return &database{
-		c: c,
+		c:            c,
+		databaseType: skydb.PublicDatabase,
 	}
 }
 
 func (c *conn) PrivateDB(userKey string) skydb.Database {
 	return &database{
-		c:      c,
-		userID: userKey,
+		c:            c,
+		databaseType: skydb.PrivateDatabase,
+		userID:       userKey,
+	}
+}
+
+func (c *conn) UnionDB() skydb.Database {
+	return &database{
+		c:            c,
+		databaseType: skydb.UnionDatabase,
 	}
 }
 
@@ -169,20 +178,30 @@ func (c *conn) tableName(table string) string {
 }
 
 type database struct {
-	c      *conn
-	userID string
-	txDone bool
+	c            *conn
+	userID       string
+	txDone       bool
+	databaseType skydb.DatabaseType
 }
 
 func (db *database) Conn() skydb.Conn       { return db.c }
 func (db *database) UserRecordType() string { return "user" }
 
 func (db *database) ID() string {
+	if db.DatabaseType() == skydb.PublicDatabase {
+		return skydb.PublicDatabaseIdentifier
+	} else if db.DatabaseType() == skydb.UnionDatabase {
+		return skydb.UnionDatabaseIdentifier
+	}
+
 	if db.userID == "" {
-		return "_public"
+		panic("Private database but userID is empty")
 	}
 	return db.userID
 }
+
+func (db *database) DatabaseType() skydb.DatabaseType { return db.databaseType }
+func (db *database) IsReadOnly() bool                 { return db.DatabaseType() == skydb.UnionDatabase }
 
 // schemaName is a convenient method to access parent conn's schemaName
 func (db *database) schemaName() string {

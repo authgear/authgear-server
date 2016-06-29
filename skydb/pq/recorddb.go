@@ -102,9 +102,17 @@ func (db *database) Save(record *skydb.Record) error {
 		return fmt.Errorf("db.save %s: got empty OwnerID", record.ID.Key)
 	}
 
-	pkData := map[string]interface{}{
-		"_id":          record.ID.Key,
-		"_database_id": db.userID,
+	var pkData map[string]interface{}
+	switch db.DatabaseType() {
+	case skydb.UnionDatabase:
+		return skydb.ErrDatabaseIsReadOnly
+	case skydb.PublicDatabase:
+		fallthrough
+	case skydb.PrivateDatabase:
+		pkData = map[string]interface{}{
+			"_id":          record.ID.Key,
+			"_database_id": db.userID,
+		}
 	}
 	upsert := upsertQuery(db.tableName(record.ID.Type), pkData, convert(record)).
 		IgnoreKeyOnUpdate("_owner_id").
@@ -175,7 +183,16 @@ func convert(r *skydb.Record) map[string]interface{} {
 
 func (db *database) Delete(id skydb.RecordID) error {
 	builder := psql.Delete(db.tableName(id.Type)).
-		Where("_id = ? AND _database_id = ?", id.Key, db.userID)
+		Where("_id = ?", id.Key)
+
+	switch db.DatabaseType() {
+	case skydb.UnionDatabase:
+		return skydb.ErrDatabaseIsReadOnly
+	case skydb.PublicDatabase:
+		fallthrough
+	case skydb.PrivateDatabase:
+		builder = builder.Where("_database_id = ?", db.userID)
+	}
 
 	result, err := db.c.ExecWith(builder)
 	if isUndefinedTable(err) {
@@ -213,7 +230,7 @@ func (db *database) applyQueryPredicate(q sq.SelectBuilder, factory *predicateSq
 		q = factory.addJoinsToSelectBuilder(q)
 	}
 
-	if db.ID() == "_public" && !query.BypassAccessControl {
+	if db.DatabaseType() == skydb.PublicDatabase && !query.BypassAccessControl {
 		aclSqlizer, err := factory.newAccessControlSqlizer(query.ViewAsUser, skydb.ReadLevel)
 		if err != nil {
 			return q, err
@@ -512,9 +529,16 @@ func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap s
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
 	}
 
-	q = q.From(db.tableName(recordType)).
-		Where("_database_id = ?", db.userID)
+	q = q.From(db.tableName(recordType))
 
+	switch db.DatabaseType() {
+	case skydb.UnionDatabase:
+		// no filter on `_database_id` column
+	case skydb.PublicDatabase:
+		fallthrough
+	case skydb.PrivateDatabase:
+		q = q.Where("_database_id = ?", db.userID)
+	}
 	return q
 }
 

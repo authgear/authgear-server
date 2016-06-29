@@ -145,6 +145,9 @@ func (p *jsonPredicate) UnmarshalJSON(data []byte) error {
 }
 
 func (db *database) GetSubscription(key string, deviceID string, subscription *skydb.Subscription) error {
+	if db.DatabaseType() == skydb.UnionDatabase {
+		return errors.New("union database does not implement subscription")
+	}
 	nullinfo := nullNotificationInfo{}
 
 	builder := psql.Select("type", "notification_info", "query").
@@ -171,6 +174,9 @@ func (db *database) GetSubscription(key string, deviceID string, subscription *s
 }
 
 func (db *database) SaveSubscription(subscription *skydb.Subscription) error {
+	if db.DatabaseType() == skydb.UnionDatabase {
+		return errors.New("union database does not implement subscription")
+	}
 	if subscription.ID == "" {
 		return errors.New("empty id")
 	}
@@ -212,6 +218,9 @@ func (db *database) SaveSubscription(subscription *skydb.Subscription) error {
 }
 
 func (db *database) DeleteSubscription(key string, deviceID string) error {
+	if db.DatabaseType() == skydb.UnionDatabase {
+		return errors.New("union database does not implement subscription")
+	}
 	result, err := db.c.ExecWith(
 		psql.Delete(db.tableName("_subscription")).
 			Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key),
@@ -235,6 +244,13 @@ func (db *database) DeleteSubscription(key string, deviceID string) error {
 }
 
 func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions []skydb.Subscription) {
+	if db.DatabaseType() == skydb.UnionDatabase {
+		log.WithFields(log.Fields{
+			"user_id":  db.userID,
+			"deviceID": deviceID,
+		}).Errorln("GetSubscriptionsByDeviceID on union database is not implemented")
+		return nil
+	}
 	rows, err := db.c.QueryWith(
 		psql.Select("id", "type", "notification_info", "query").
 			From(db.tableName("_subscription")).
@@ -291,6 +307,12 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 }
 
 func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscriptions []skydb.Subscription) {
+	if db.DatabaseType() == skydb.UnionDatabase {
+		log.WithFields(log.Fields{
+			"user_id": db.userID,
+		}).Errorln("GetMatchingSubscriptions on union database is not implemented")
+		return nil
+	}
 	builder := psql.Select("id", "device_id", "type", "notification_info", "query").
 		From(db.tableName("_subscription")).
 		Where(`user_id = ? AND query @> ?::jsonb`, db.userID, fmt.Sprintf(`{"Type":"%s"}`, record.ID.Type))
