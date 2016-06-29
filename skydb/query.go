@@ -318,12 +318,16 @@ type Query struct {
 	Type         string
 	Predicate    Predicate
 	Sorts        []Sort
-	ReadableBy   UserInfo
 	ComputedKeys map[string]Expression
 	DesiredKeys  []string
 	GetCount     bool
 	Limit        *uint64
 	Offset       uint64
+
+	// The following fields are generated from the server side, rather
+	// than supplied from the client side.
+	ViewAsUser          *UserInfo
+	BypassAccessControl bool
 }
 
 // Func is a marker interface to denote a type being a function in skydb.

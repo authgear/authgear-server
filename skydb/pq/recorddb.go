@@ -203,6 +203,27 @@ func (db *database) Delete(id skydb.RecordID) error {
 	return err
 }
 
+func (db *database) applyQueryPredicate(q sq.SelectBuilder, factory *predicateSqlizerFactory, query *skydb.Query) (sq.SelectBuilder, error) {
+	if p := query.Predicate; !p.IsEmpty() {
+		sqlizer, err := factory.newPredicateSqlizer(p)
+		if err != nil {
+			return q, err
+		}
+		q = q.Where(sqlizer)
+		q = factory.addJoinsToSelectBuilder(q)
+	}
+
+	if db.ID() == "_public" && !query.BypassAccessControl {
+		aclSqlizer, err := factory.newAccessControlSqlizer(query.ViewAsUser, skydb.ReadLevel)
+		if err != nil {
+			return q, err
+		}
+		q = q.Where(aclSqlizer)
+	}
+
+	return q, nil
+}
+
 func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 	if query.Type == "" {
 		return nil, errors.New("got empty query type")
@@ -219,13 +240,9 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 
 	q := psql.Select()
 	factory := newPredicateSqlizerFactory(db, query.Type)
-	if p := query.Predicate; !p.IsEmpty() {
-		sqlizer, err := factory.newPredicateSqlizer(p)
-		if err != nil {
-			return nil, err
-		}
-		q = q.Where(sqlizer)
-		q = factory.addJoinsToSelectBuilder(q)
+	q, err = db.applyQueryPredicate(q, factory, query)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, sort := range query.Sorts {
@@ -234,14 +251,6 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 			return nil, err
 		}
 		q = q.OrderBy(orderBy)
-	}
-
-	if db.ID() == "_public" && query.ReadableBy.ID != "" {
-		aclSqlizer, err := factory.newAccessControlSqlizer(query.ReadableBy, skydb.ReadLevel)
-		if err != nil {
-			return nil, err
-		}
-		q = q.Where(aclSqlizer)
 	}
 
 	if query.Limit != nil {
@@ -289,23 +298,10 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 	}
 
 	q := db.selectQuery(psql.Select(), query.Type, typemap)
-
 	factory := newPredicateSqlizerFactory(db, query.Type)
-	if p := query.Predicate; !p.IsEmpty() {
-		sqlizer, err := factory.newPredicateSqlizer(p)
-		if err != nil {
-			return 0, err
-		}
-		q = q.Where(sqlizer)
-		q = factory.addJoinsToSelectBuilder(q)
-	}
-
-	if db.ID() == "_public" && query.ReadableBy.ID != "" {
-		aclSqlizer, err := factory.newAccessControlSqlizer(query.ReadableBy, skydb.ReadLevel)
-		if err != nil {
-			return 0, err
-		}
-		q = q.Where(aclSqlizer)
+	q, err = db.applyQueryPredicate(q, factory, query)
+	if err != nil {
+		return 0, err
 	}
 
 	rows, err := db.c.QueryWith(q)

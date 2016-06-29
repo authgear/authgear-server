@@ -676,8 +676,16 @@ func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
 }
 
 type queryDatabase struct {
-	lastquery *skydb.Query
+	lastquery  *skydb.Query
+	databaseID string
 	skydb.Database
+}
+
+func (db *queryDatabase) ID() string {
+	if db.databaseID == "" {
+		return "_public"
+	}
+	return db.databaseID
 }
 
 func (db *queryDatabase) QueryCount(query *skydb.Query) (uint64, error) {
@@ -691,8 +699,16 @@ func (db *queryDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 }
 
 type queryResultsDatabase struct {
-	records []skydb.Record
+	records    []skydb.Record
+	databaseID string
 	skydb.Database
+}
+
+func (db *queryResultsDatabase) ID() string {
+	if db.databaseID == "" {
+		return "_public"
+	}
+	return db.databaseID
 }
 
 func (db *queryResultsDatabase) QueryCount(query *skydb.Query) (uint64, error) {
@@ -768,6 +784,54 @@ func TestRecordQuery(t *testing.T) {
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery, ShouldResemble, &skydb.Query{
 				Type: "note",
+			})
+		})
+
+		Convey("Queries records with type and user", func() {
+			userInfo := skydb.UserInfo{
+				ID: "user0",
+			}
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+				},
+				Database: db,
+				UserInfo: &userInfo,
+			}
+			response := router.Response{}
+
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.lastquery, ShouldResemble, &skydb.Query{
+				Type:       "note",
+				ViewAsUser: &userInfo,
+			})
+		})
+
+		Convey("Queries records with type and master key", func() {
+			userInfo := skydb.UserInfo{
+				ID: "user0",
+			}
+			payload := router.Payload{
+				Data: map[string]interface{}{
+					"record_type": "note",
+				},
+				Database:  db,
+				UserInfo:  &userInfo,
+				AccessKey: router.MasterAccessKey,
+			}
+			response := router.Response{}
+
+			handler := &RecordQueryHandler{}
+			handler.Handle(&payload, &response)
+
+			So(response.Err, ShouldBeNil)
+			So(db.lastquery, ShouldResemble, &skydb.Query{
+				Type:                "note",
+				ViewAsUser:          &userInfo,
+				BypassAccessControl: true,
 			})
 		})
 
@@ -1141,66 +1205,21 @@ func TestRecordQuery(t *testing.T) {
 
 			So(response.Err, ShouldNotBeNil)
 		})
-
-		Convey("Queries records without master key", func() {
-			userInfo := skydb.UserInfo{
-				ID: "ownerID",
-			}
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"record_type": "note",
-					"database_id": "_public",
-				},
-				UserInfoID: userInfo.ID,
-				UserInfo:   &userInfo,
-				AccessKey:  router.ClientAccessKey,
-				Database:   db,
-			}
-			response := router.Response{}
-
-			handler := &RecordQueryHandler{}
-			handler.Handle(&payload, &response)
-
-			So(response.Err, ShouldBeNil)
-			So(db.lastquery, ShouldResemble, &skydb.Query{
-				Type:       "note",
-				ReadableBy: userInfo,
-			})
-		})
-
-		Convey("Queries records with master key", func() {
-			userInfo := skydb.UserInfo{
-				ID: "ownerID",
-			}
-			payload := router.Payload{
-				Data: map[string]interface{}{
-					"record_type": "note",
-					"database_id": "_public",
-				},
-				UserInfoID: userInfo.ID,
-				UserInfo:   &userInfo,
-				AccessKey:  router.MasterAccessKey,
-				Database:   db,
-			}
-			response := router.Response{}
-
-			handler := &RecordQueryHandler{}
-			handler.Handle(&payload, &response)
-
-			So(response.Err, ShouldBeNil)
-			So(db.lastquery, ShouldResemble, &skydb.Query{
-				Type:       "note",
-				ReadableBy: skydb.UserInfo{},
-			})
-		})
-
 	})
 }
 
 // a very naive Database that alway returns the single record set onto it
 type singleRecordDatabase struct {
-	record skydb.Record
+	record     skydb.Record
+	databaseID string
 	skydb.Database
+}
+
+func (db *singleRecordDatabase) ID() string {
+	if db.databaseID == "" {
+		return "_public"
+	}
+	return db.databaseID
 }
 
 func (db *singleRecordDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
@@ -1483,11 +1502,19 @@ func TestRecordAssetSerialization(t *testing.T) {
 
 // a very naive Database that alway returns the single record set onto it
 type referencedRecordDatabase struct {
-	note     skydb.Record
-	category skydb.Record
-	city     skydb.Record
-	user     skydb.Record
+	note       skydb.Record
+	category   skydb.Record
+	city       skydb.Record
+	user       skydb.Record
+	databaseID string
 	skydb.Database
+}
+
+func (db *referencedRecordDatabase) ID() string {
+	if db.databaseID == "" {
+		return "_public"
+	}
+	return db.databaseID
 }
 
 func (db *referencedRecordDatabase) UserRecordType() string { return "user" }

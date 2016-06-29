@@ -1085,6 +1085,149 @@ func TestQuery(t *testing.T) {
 		})
 	})
 
+	Convey("Database with ACL", t, func() {
+		c := getTestConn(t)
+		defer cleanupConn(t, c)
+
+		// fixture
+		record1 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id1"),
+			OwnerID: "alice",
+			ACL:     skydb.RecordACL{},
+		}
+		record2 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id2"),
+			OwnerID: "alice",
+			ACL: skydb.RecordACL{
+				skydb.NewRecordACLEntryPublic(skydb.ReadLevel),
+			},
+		}
+		record3 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id3"),
+			OwnerID: "alice",
+			ACL: skydb.RecordACL{
+				skydb.NewRecordACLEntryDirect("bob", skydb.ReadLevel),
+			},
+		}
+		record4 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id4"),
+			OwnerID: "alice",
+			ACL: skydb.RecordACL{
+				skydb.NewRecordACLEntryRole("marketing", skydb.ReadLevel),
+			},
+		}
+		record5 := skydb.Record{
+			ID:      skydb.NewRecordID("note", "id5"),
+			OwnerID: "alice",
+			ACL: skydb.RecordACL{
+				skydb.NewRecordACLEntryDirect("bob", skydb.ReadLevel),
+				skydb.NewRecordACLEntryRole("marketing", skydb.ReadLevel),
+			},
+		}
+
+		db := c.PublicDB()
+		So(db.Extend("note", skydb.RecordSchema{}), ShouldBeNil)
+
+		err := db.Save(&record1)
+		So(err, ShouldBeNil)
+		err = db.Save(&record2)
+		So(err, ShouldBeNil)
+		err = db.Save(&record3)
+		So(err, ShouldBeNil)
+		err = db.Save(&record4)
+		So(err, ShouldBeNil)
+		err = db.Save(&record5)
+		So(err, ShouldBeNil)
+
+		sortsByID := []skydb.Sort{
+			skydb.Sort{
+				KeyPath: "_id",
+				Order:   skydb.Ascending,
+			},
+		}
+
+		Convey("can be queried by owner", func() {
+			query := skydb.Query{
+				Type:       "note",
+				ViewAsUser: &skydb.UserInfo{ID: "alice"},
+				Sorts:      sortsByID,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record1, record2, record3, record4, record5})
+		})
+
+		Convey("can be queried by public", func() {
+			query := skydb.Query{
+				Type:       "note",
+				ViewAsUser: nil,
+				Sorts:      sortsByID,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record2})
+		})
+
+		Convey("can be queried by explicit user", func() {
+			query := skydb.Query{
+				Type:       "note",
+				ViewAsUser: &skydb.UserInfo{ID: "bob"},
+				Sorts:      sortsByID,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record2, record3, record5})
+		})
+
+		Convey("can be queried by explicit role", func() {
+			query := skydb.Query{
+				Type: "note",
+				ViewAsUser: &skydb.UserInfo{
+					ID:    "carol",
+					Roles: []string{"marketing"},
+				},
+				Sorts: sortsByID,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record2, record4, record5})
+		})
+
+		Convey("can be queried by explicit user and role", func() {
+			query := skydb.Query{
+				Type: "note",
+				ViewAsUser: &skydb.UserInfo{
+					ID:    "bob",
+					Roles: []string{"marketing"},
+				},
+				Sorts: sortsByID,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record2, record3, record4, record5})
+		})
+
+		Convey("can be queried with bypass access control", func() {
+			query := skydb.Query{
+				Type: "note",
+				ViewAsUser: &skydb.UserInfo{
+					ID: "dave",
+				},
+				Sorts:               sortsByID,
+				BypassAccessControl: true,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record1, record2, record3, record4, record5})
+		})
+	})
+
 	Convey("Empty Conn", t, func() {
 		c := getTestConn(t)
 		defer cleanupConn(t, c)
