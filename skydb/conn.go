@@ -35,6 +35,10 @@ var ErrRoleUpdatesFailed = errors.New("skydb: Update of user roles failed")
 // cannot be found in the current container
 var ErrDeviceNotFound = errors.New("skydb: Specific device not found")
 
+// ErrDatabaseIsReadOnly is returned by skydb.Database if the requested
+// operation modifies the database and the database is readonly.
+var ErrDatabaseIsReadOnly = errors.New("skydb: database is read only")
+
 // ZeroTime represent a zero time.Time. It is used in DeleteDeviceByToken and
 // DeleteEmptyDevicesByTime to signify a Delete without time constraint.
 var ZeroTime = time.Time{}
@@ -144,6 +148,7 @@ type Conn interface {
 
 	PublicDB() Database
 	PrivateDB(userKey string) Database
+	UnionDB() Database
 
 	// Subscribe registers the specified recordEventChan to receive
 	// RecordEvent from the Conn implementation

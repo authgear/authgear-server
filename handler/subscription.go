@@ -273,6 +273,13 @@ func (h *SubscriptionFetchHandler) Handle(rpayload *router.Payload, response *ro
 		return
 	}
 
+	// The union database can be selected by the user but it has not
+	// implemented subscription
+	if rpayload.Database.DatabaseType() == skydb.UnionDatabase {
+		response.Err = skyerr.NewError(skyerr.NotImplemented, "subscription on union database is not implemented")
+		return
+	}
+
 	if len(payload.SubscriptionIDs) == 0 {
 		response.Result = []interface{}{}
 		return
@@ -336,6 +343,13 @@ func (h *SubscriptionFetchAllHandler) Handle(rpayload *router.Payload, response 
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
+		return
+	}
+
+	// The union database can be selected by the user but it has not
+	// implemented subscription
+	if rpayload.Database.DatabaseType() == skydb.UnionDatabase {
+		response.Err = skyerr.NewError(skyerr.NotImplemented, "subscription on union database is not implemented")
 		return
 	}
 
@@ -459,6 +473,13 @@ func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *rou
 		return
 	}
 
+	// The union database can be selected by the user but it has not
+	// implemented subscription
+	if rpayload.Database.DatabaseType() == skydb.UnionDatabase {
+		response.Err = skyerr.NewError(skyerr.NotImplemented, "subscription on union database is not implemented")
+		return
+	}
+
 	db := rpayload.Database
 	results := make([]interface{}, 0, len(payload.Subscriptions))
 	var (
@@ -518,6 +539,13 @@ func (h *SubscriptionDeleteHandler) Handle(rpayload *router.Payload, response *r
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
+		return
+	}
+
+	// The union database can be selected by the user but it has not
+	// implemented subscription
+	if rpayload.Database.DatabaseType() == skydb.UnionDatabase {
+		response.Err = skyerr.NewError(skyerr.NotImplemented, "subscription on union database is not implemented")
 		return
 	}
 

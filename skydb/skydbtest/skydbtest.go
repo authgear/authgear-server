@@ -277,6 +277,10 @@ func NewMapDB() *MapDB {
 	}
 }
 
+func (db *MapDB) IsReadOnly() bool { return false }
+
+func (db *MapDB) DatabaseType() skydb.DatabaseType { return skydb.PublicDatabase }
+
 // ID returns a mock Database ID.
 func (db *MapDB) ID() string {
 	return "map-db"
