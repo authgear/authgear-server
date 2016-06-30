@@ -167,7 +167,7 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 		response.Err = skyerr.NewUnknownErr(err)
 		return
 	}
-	if userinfo.HasAnyRoles(adminRoles) {
+	if userinfo.HasAnyRoles(adminRoles) || payload.HasMasterKey() {
 		h.updateUserInfo(targetUserinfo, *p)
 	} else if userinfo.ID == targetUserinfo.ID {
 		if !userinfo.HasAllRoles(p.Roles) {

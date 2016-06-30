@@ -177,6 +177,37 @@ func TestUserUpdateHandler(t *testing.T) {
 }`)
 		})
 
+		Convey("client with master key can expand its roles", func() {
+			conn := skydbtest.NewMapConn()
+			userInfo := skydb.UserInfo{
+				ID:       "user0",
+				Username: "username0",
+				Roles:    []string{},
+			}
+			conn.CreateUser(&userInfo)
+
+			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
+				AccessModel: skydb.RoleBasedAccess,
+			}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.UserInfo = &userInfo
+				p.AccessKey = router.MasterAccessKey
+			})
+
+			resp := r.POST(`{
+	"_id": "user0",
+	"roles": ["admin", "writer"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": {
+		"_id": "user0",
+		"username": "username0",
+		"email": "",
+		"roles": ["admin", "writer"]
+	}
+}`)
+		})
+
 		Convey("missing roles key in payload will left the roles un-modified", func() {
 			conn := skydbtest.NewMapConn()
 			userInfo := skydb.UserInfo{
