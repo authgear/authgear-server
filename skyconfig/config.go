@@ -173,7 +173,7 @@ func (config *Configuration) ReadFromEnv() {
 	}
 
 	accessControl := os.Getenv("ACCESS_CONRTOL")
-	if accessControl == "" {
+	if accessControl != "" {
 		config.App.AccessControl = accessControl
 	}
 
