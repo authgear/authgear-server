@@ -52,8 +52,8 @@ func TestNewToken(t *testing.T) {
 		t.Fatal("got empty token, want non-empty AccessToken value")
 	}
 
-	if token.ExpiredAt.IsZero() {
-		t.Fatalf("got token = %v, want non-zero ExpiredAt value", token)
+	if !token.ExpiredAt.IsZero() {
+		t.Fatalf("got token = %v, want zero ExpiredAt value", token)
 	}
 }
 
@@ -82,10 +82,10 @@ func TestTokenIsExpired(t *testing.T) {
 	}
 }
 
-func TestEmptyTokenIsExpired(t *testing.T) {
+func TestEmptyTokenIsNotExpired(t *testing.T) {
 	token := Token{}
-	if !token.IsExpired() {
-		t.Fatalf("got non-expired empty token = %v, want it expired", token)
+	if token.IsExpired() {
+		t.Fatalf("got expired empty token = %v, want it non-expired", token)
 	}
 }
 
@@ -95,6 +95,40 @@ func TestFileStorePut(t *testing.T) {
 	token := Token{
 		AccessToken: "sometoken",
 		ExpiredAt:   time.Unix(1, 1).UTC(),
+		AppName:     "com_oursky_skygear",
+		UserInfoID:  "someuserinfoid",
+	}
+
+	dir := tempDir()
+	defer os.RemoveAll(dir)
+
+	store := FileStore(dir)
+	if err := store.Put(&token); err != nil {
+		t.Fatalf("got err = %v, want nil", err)
+	}
+
+	filePath := filepath.Join(dir, "sometoken")
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		panic(err)
+	}
+
+	if !bytes.Equal(fileBytes, []byte(savedFileContent)) {
+		t.Fatalf("got file content = %#v, want %#v", string(fileBytes), savedFileContent)
+	}
+}
+
+func TestFileStorePutZeroExpiry(t *testing.T) {
+	const savedFileContent = `{"accessToken":"sometoken","expiredAt":0,"appName":"com_oursky_skygear","userInfoID":"someuserinfoid"}
+`
+	token := Token{
+		AccessToken: "sometoken",
+		ExpiredAt:   time.Time{},
 		AppName:     "com_oursky_skygear",
 		UserInfoID:  "someuserinfoid",
 	}
@@ -150,6 +184,26 @@ func TestFileStoreGet(t *testing.T) {
 				AppName:     "com_oursky_skygear",
 				UserInfoID:  "someuserinfoid",
 			})
+		})
+
+		Convey("gets a zero-expiry file token", func() {
+			So(store.Put(&Token{
+				AccessToken: "sometoken",
+				ExpiredAt:   time.Time{},
+				AppName:     "com_oursky_skygear",
+				UserInfoID:  "someuserinfoid",
+			}), ShouldBeNil)
+
+			err := store.Get("sometoken", &token)
+			So(err, ShouldBeNil)
+
+			So(token, ShouldResemble, Token{
+				AccessToken: "sometoken",
+				ExpiredAt:   time.Time{},
+				AppName:     "com_oursky_skygear",
+				UserInfoID:  "someuserinfoid",
+			})
+			So(token.IsExpired(), ShouldBeFalse)
 		})
 
 		Convey("returns an NotFoundError when the token to get is expired", func() {
@@ -303,6 +357,24 @@ func TestRedisStoreGet(t *testing.T) {
 			err = r.Get(tokenName, &result)
 			So(err, ShouldBeNil)
 			So(result, ShouldResemble, token)
+		})
+
+		Convey("Get Zero-Expiry Token", func() {
+			tokenName := "someToken"
+			token := Token{
+				AccessToken: tokenName,
+				ExpiredAt:   time.Time{},
+				AppName:     "com_oursky_skygear",
+				UserInfoID:  "someuserinfoid",
+			}
+			err := r.Put(&token)
+			So(err, ShouldBeNil)
+
+			result := Token{}
+			err = r.Get(tokenName, &result)
+			So(err, ShouldBeNil)
+			So(result, ShouldResemble, token)
+			So(token.IsExpired(), ShouldBeFalse)
 		})
 
 		Convey("Get Expired Token", func() {
