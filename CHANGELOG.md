@@ -1,3 +1,22 @@
+## 0.13.0 (2016-07-05)
+
+### Features
+
+- Allow user to add role with master key
+- Implement union database, which contains all records across public
+  and private databases, only accessible by client with master key
+- Bypass access control with master key (#51)
+
+### Bug fixes
+
+- Fix ACCESS_CONTROL config default
+- Fix ACL incorrectly bypassed in certain condition (#58)
+
+### Other Notes
+
+- Make the CORSHost default to `*`
+- Switch to go 1.6
+
 ## 0.12.1 (2016-06-02)
 
 ### Bug fixes
