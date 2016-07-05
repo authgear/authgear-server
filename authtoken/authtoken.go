@@ -128,6 +128,7 @@ func (e *NotFoundError) Error() string {
 
 // Store represents a persistent storage for Token.
 type Store interface {
+	NewToken(appName string, userInfoID string) Token
 	Get(accessToken string, token *Token) error
 	Put(token *Token) error
 	Delete(accessToken string) error
@@ -148,6 +149,7 @@ type Configuration struct {
 	Implementation string
 	Path           string
 	Prefix         string
+	Expiry         int64
 }
 
 // InitTokenStore accept a implementation and path string. Return a Store.
@@ -157,9 +159,9 @@ func InitTokenStore(config Configuration) Store {
 	default:
 		panic("unrecgonized token store implementation: " + config.Implementation)
 	case "fs":
-		store = NewFileStore(config.Path)
+		store = NewFileStore(config.Path, config.Expiry)
 	case "redis":
-		store = NewRedisStore(config.Path, config.Prefix)
+		store = NewRedisStore(config.Path, config.Prefix, config.Expiry)
 	}
 	return store
 }

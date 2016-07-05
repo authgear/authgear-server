@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -56,6 +57,7 @@ type Configuration struct {
 		ImplName string `json:"implementation"`
 		Path     string `json:"path"`
 		Prefix   string `json:"prefix"`
+		Expiry   int64  `json:"expiry"`
 	} `json:"-"`
 	AssetStore struct {
 		ImplName string `json:"implementation"`
@@ -107,6 +109,7 @@ func NewConfiguration() Configuration {
 	config.DB.Option = "postgres://postgres:@localhost/postgres?sslmode=disable"
 	config.TokenStore.ImplName = "fs"
 	config.TokenStore.Path = "data/token"
+	config.TokenStore.Expiry = 0
 	config.AssetStore.ImplName = "fs"
 	config.AssetStore.Path = "data/asset"
 	config.AssetURLSigner.URLPrefix = "http://localhost:3000/files"
@@ -229,6 +232,14 @@ func (config *Configuration) readTokenStore() {
 	tokenStorePrefix := os.Getenv("TOKEN_STORE_PREFIX")
 	if tokenStorePrefix != "" {
 		config.TokenStore.Prefix = tokenStorePrefix
+	}
+
+	tokenStoreExpiry := os.Getenv("TOKEN_STORE_EXPIRY")
+	if tokenStoreExpiry != "" {
+		expiry, err := strconv.ParseInt(tokenStoreExpiry, 10, 64)
+		if err == nil {
+			config.TokenStore.Expiry = expiry
+		}
 	}
 }
 

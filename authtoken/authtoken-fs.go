@@ -5,23 +5,36 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // FileStore implements TokenStore by saving users' Token under
 // a directory specified by a string. Each access token is
 // stored in a separate file.
-type FileStore string
+type FileStore struct {
+	address string
+	expiry  int64
+}
 
 // NewFileStore creates a file token store.
 //
 // It panics when it fails to create the directory.
-func NewFileStore(address string) *FileStore {
-	store := FileStore(address)
+func NewFileStore(address string, expiry int64) *FileStore {
+	store := FileStore{address, expiry}
 	err := os.MkdirAll(address, 0755)
 	if err != nil {
 		panic("FileStore.init: " + err.Error())
 	}
 	return &store
+}
+
+// NewToken creates a new token for this token store.
+func (f *FileStore) NewToken(appName string, userInfoID string) Token {
+	var expireAt time.Time
+	if f.expiry > 0 {
+		expireAt = time.Now().Add(time.Duration(f.expiry) * time.Second)
+	}
+	return New(appName, userInfoID, expireAt)
 }
 
 // Get tries to read the specified access token from file and
@@ -30,12 +43,12 @@ func NewFileStore(address string) *FileStore {
 // Get returns an NotFoundError if no such access token exists or
 // such access token is expired. In the latter case the expired
 // access token is still written onto the supplied Token.
-func (f FileStore) Get(accessToken string, token *Token) error {
+func (f *FileStore) Get(accessToken string, token *Token) error {
 	if err := validateToken(accessToken); err != nil {
 		return &NotFoundError{accessToken, err}
 	}
 
-	tokenPath := filepath.Join(string(f), accessToken)
+	tokenPath := filepath.Join(f.address, accessToken)
 
 	file, err := os.Open(tokenPath)
 	if err != nil {
@@ -57,12 +70,12 @@ func (f FileStore) Get(accessToken string, token *Token) error {
 
 // Put writes the specified token into a file and overwrites existing
 // Token if any.
-func (f FileStore) Put(token *Token) error {
+func (f *FileStore) Put(token *Token) error {
 	if err := validateToken(token.AccessToken); err != nil {
 		return &NotFoundError{token.AccessToken, err}
 	}
 
-	file, err := os.Create(filepath.Join(string(f), token.AccessToken))
+	file, err := os.Create(filepath.Join(f.address, token.AccessToken))
 	if err != nil {
 		return &NotFoundError{token.AccessToken, err}
 	}
@@ -79,12 +92,12 @@ func (f FileStore) Put(token *Token) error {
 //
 // Delete return an error if the token cannot removed. It is NOT
 // not an error if the token does not exist at deletion time.
-func (f FileStore) Delete(accessToken string) error {
+func (f *FileStore) Delete(accessToken string) error {
 	if err := validateToken(accessToken); err != nil {
 		return &NotFoundError{accessToken, err}
 	}
 
-	if err := os.Remove(filepath.Join(string(f), accessToken)); err != nil && !os.IsNotExist(err) {
+	if err := os.Remove(filepath.Join(f.address, accessToken)); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 

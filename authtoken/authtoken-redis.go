@@ -11,6 +11,7 @@ import (
 type RedisStore struct {
 	pool   *redis.Pool
 	prefix string
+	expiry int64
 }
 
 // NewRedisStore creates a redis token store.
@@ -21,7 +22,7 @@ type RedisStore struct {
 //   For example if the token is `cf4bdc65-3fe6-4d40-b7fd-58f00b82c506`
 //   and the prefix is `myApp`, the key in redis should be
 //   `myApp:cf4bdc65-3fe6-4d40-b7fd-58f00b82c506`.
-func NewRedisStore(address string, prefix string) *RedisStore {
+func NewRedisStore(address string, prefix string, expiry int64) *RedisStore {
 	store := RedisStore{}
 
 	if prefix != "" {
@@ -42,6 +43,8 @@ func NewRedisStore(address string, prefix string) *RedisStore {
 			return err
 		},
 	}
+
+	store.expiry = expiry
 
 	return &store
 }
@@ -80,6 +83,15 @@ func (r RedisToken) ToToken() *Token {
 		r.AppName,
 		r.UserInfoID,
 	}
+}
+
+// NewToken creates a new token for this token store.
+func (r *RedisStore) NewToken(appName string, userInfoID string) Token {
+	var expireAt time.Time
+	if r.expiry > 0 {
+		expireAt = time.Now().Add(time.Duration(r.expiry) * time.Second)
+	}
+	return New(appName, userInfoID, expireAt)
 }
 
 // Get tries to read the specified access token from redis store and

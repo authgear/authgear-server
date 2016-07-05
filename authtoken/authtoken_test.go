@@ -102,7 +102,7 @@ func TestFileStorePut(t *testing.T) {
 	dir := tempDir()
 	defer os.RemoveAll(dir)
 
-	store := FileStore(dir)
+	store := FileStore{dir, 0}
 	if err := store.Put(&token); err != nil {
 		t.Fatalf("got err = %v, want nil", err)
 	}
@@ -136,7 +136,7 @@ func TestFileStorePutZeroExpiry(t *testing.T) {
 	dir := tempDir()
 	defer os.RemoveAll(dir)
 
-	store := FileStore(dir)
+	store := FileStore{dir, 0}
 	if err := store.Put(&token); err != nil {
 		t.Fatalf("got err = %v, want nil", err)
 	}
@@ -162,7 +162,7 @@ func TestFileStoreGet(t *testing.T) {
 		dir := tempDir()
 		defer os.RemoveAll(dir)
 
-		store := FileStore(dir)
+		store := FileStore{dir, 0}
 		token := Token{}
 
 		Convey("gets an non-expired file token", func() {
@@ -245,7 +245,7 @@ func TestFileStoreEscape(t *testing.T) {
 		mdErr := os.Mkdir(dir, 0755)
 		So(mdErr, ShouldBeNil)
 
-		store := FileStore(dir)
+		store := FileStore{dir, 0}
 		token := Token{}
 
 		Convey("Get not escaping dir", func() {
@@ -283,7 +283,7 @@ func TestFileStoreDelete(t *testing.T) {
 	Convey("FileStore", t, func() {
 		dir := tempDir()
 		// defer os.RemoveAll(dir)
-		store := FileStore(dir)
+		store := FileStore{dir, 0}
 
 		Convey("delete an existing token", func() {
 			accessTokenPath := filepath.Join(dir, "accesstoken")
@@ -326,7 +326,7 @@ func tempRedisStore(prefix string) *RedisStore {
 	// 15 is the default max DB number of redis
 	defaultTo("REDISTEST", "redis://127.0.0.1:6379/15")
 
-	return NewRedisStore(os.Getenv("REDISTEST"), prefix)
+	return NewRedisStore(os.Getenv("REDISTEST"), prefix, 0)
 }
 
 func (r *RedisStore) clearRedisStore() {
