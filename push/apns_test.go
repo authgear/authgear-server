@@ -15,37 +15,43 @@
 package push
 
 import (
-	"encoding/json"
 	"errors"
+	"net/http"
 	"testing"
 	"time"
 
+	"github.com/RobotsAndPencils/buford/push"
 	"github.com/skygeario/skygear-server/skydb"
 	. "github.com/skygeario/skygear-server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/timehop/apns"
 )
 
-type naiveClient struct {
-	failedNotifs      chan apns.NotificationResult
-	sentNotifications []apns.Notification
-	returnerr         error
+type naiveServiceNotification struct {
+	DeviceToken string
+	Headers     *push.Headers
+	Payload     []byte
 }
 
-func (c *naiveClient) Send(n apns.Notification) error {
-	c.sentNotifications = append(c.sentNotifications, n)
-	return c.returnerr
+type naiveService struct {
+	Sent []naiveServiceNotification
+	Err  *push.Error
 }
 
-func (c *naiveClient) FailedNotifs() chan apns.NotificationResult {
-	return c.failedNotifs
+func (s *naiveService) Push(deviceToken string, headers *push.Headers, payload []byte) (string, error) {
+	s.Sent = append(s.Sent, naiveServiceNotification{deviceToken, headers, payload})
+	if s.Err != nil {
+		return "", s.Err
+	}
+	return "77BAF428-6FD8-42DB-8D1E-6F14A36C0863", nil
 }
 
 func TestAPNSSend(t *testing.T) {
 	Convey("APNSPusher", t, func() {
-		client := naiveClient{}
+		service := naiveService{}
 		pusher := APNSPusher{
-			client: &client,
+			service: &service,
+			failed:  make(chan failedNotification, 10),
 		}
 		device := skydb.Device{
 			Token: "deviceToken",
@@ -56,6 +62,7 @@ func TestAPNSSend(t *testing.T) {
 
 		Convey("pushes notification", func() {
 			customMap := MapMapper{
+
 				"apns": map[string]interface{}{
 					"aps": map[string]interface{}{
 						"content-available": 1,
@@ -73,14 +80,13 @@ func TestAPNSSend(t *testing.T) {
 
 			So(pusher.Send(customMap, device), ShouldBeNil)
 			So(pusher.Send(customMap, secondDevice), ShouldBeNil)
-			So(len(client.sentNotifications), ShouldEqual, 2)
-			So(client.sentNotifications[0].DeviceToken, ShouldEqual, "deviceToken")
-			So(client.sentNotifications[1].DeviceToken, ShouldEqual, "deviceToken2")
+			So(len(service.Sent), ShouldEqual, 2)
+			So(service.Sent[0].DeviceToken, ShouldEqual, "deviceToken")
+			So(service.Sent[1].DeviceToken, ShouldEqual, "deviceToken2")
 
-			for i := range client.sentNotifications {
-				n := client.sentNotifications[i]
-				payloadJSON, _ := json.Marshal(&n.Payload)
-				So(payloadJSON, ShouldEqualJSON, `{
+			for i := range service.Sent {
+				n := service.Sent[i]
+				So(string(n.Payload), ShouldEqualJSON, `{
 					"aps": {
 						"content-available": 1,
 						"sound": "sosumi.mp3",
@@ -101,12 +107,33 @@ func TestAPNSSend(t *testing.T) {
 			So(err, ShouldResemble, errors.New("push/apns: payload has no apns dictionary"))
 		})
 
-		Convey("returns error returned from Client.Send", func() {
-			client.returnerr = errors.New("apns_test: some error")
+		Convey("returns error returned from Service.Push (BadMessageId)", func() {
+			service.Err = &push.Error{
+				Reason:    errors.New("BadMessageId"),
+				Status:    http.StatusBadRequest,
+				Timestamp: time.Time{},
+			}
 			err := pusher.Send(MapMapper{
 				"apns": map[string]interface{}{},
 			}, device)
-			So(err, ShouldResemble, errors.New("apns_test: some error"))
+			So(err, ShouldResemble, service.Err)
+		})
+
+		Convey("returns error returned from Service.Push (Unregistered)", func() {
+			pushError := push.Error{
+				Reason:    errors.New("Unregistered"),
+				Status:    http.StatusGone,
+				Timestamp: time.Now(),
+			}
+			service.Err = &pushError
+			err := pusher.Send(MapMapper{
+				"apns": map[string]interface{}{},
+			}, device)
+			So(err, ShouldResemble, &pushError)
+			So(<-pusher.failed, ShouldResemble, failedNotification{
+				deviceToken: device.Token,
+				err:         pushError,
+			})
 		})
 
 		Convey("pushes with custom alert", func() {
@@ -125,11 +152,10 @@ func TestAPNSSend(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			n := client.sentNotifications[0]
+			n := service.Sent[0]
 			So(n.DeviceToken, ShouldEqual, "deviceToken")
 
-			payloadJSON, _ := json.Marshal(&n.Payload)
-			So(payloadJSON, ShouldEqualJSON, `{
+			So(string(n.Payload), ShouldEqualJSON, `{
 				"aps": {
 					"alert": {
 						"body": "Acme message received from Johnny Appleseed",
@@ -170,47 +196,61 @@ func (ch feedbackChannel) Receive() <-chan apns.FeedbackTuple {
 func TestAPNSFeedback(t *testing.T) {
 	Convey("APNSPusher", t, func() {
 		conn := &mockConn{}
-		ch := make(chan apns.FeedbackTuple)
 		pusher := APNSPusher{
 			connOpener: conn.Open,
-			feedback:   feedbackChannel(ch),
+			conn:       conn,
 		}
 
-		Convey("receives no feedbacks", func() {
-			close(ch)
-			pusher.recvFeedback()
-			So(conn.calls, ShouldBeEmpty)
+		Convey("unregister device", func() {
+			pusher.unregisterDevice("devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(conn.calls, ShouldResemble, []deleteCall{
+				{"devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)},
+			})
 		})
 
-		Convey("receives multiple feedbacks", func() {
+		Convey("unregister device with error", func() {
+			conn.err = errors.New("apns/test: unknown error")
+			pusher.unregisterDevice("devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(conn.calls, ShouldResemble, []deleteCall{
+				{"devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)},
+			})
+		})
+
+		Convey("handle unregistered notification", func() {
+			pusher.handleFailedNotification(failedNotification{"devicetoken0", push.Error{
+				Reason:    errors.New("Unregistered"),
+				Status:    http.StatusGone,
+				Timestamp: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}})
+			So(conn.calls, ShouldResemble, []deleteCall{
+				{"devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)},
+			})
+		})
+
+		Convey("check failed notifications", func() {
+			pusher.failed = make(chan failedNotification)
 			go func() {
-				ch <- newFeedbackTuple("devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
-				ch <- newFeedbackTuple("devicetoken1", time.Date(2046, 1, 2, 15, 4, 5, 0, time.UTC))
-				close(ch)
+				pushError1 := push.Error{
+					Reason:    errors.New("Unregistered"),
+					Status:    http.StatusGone,
+					Timestamp: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				}
+				pusher.failed <- failedNotification{"devicetoken0", pushError1}
+
+				pushError2 := push.Error{
+					Reason:    errors.New("Unregistered"),
+					Status:    http.StatusGone,
+					Timestamp: time.Date(2046, 1, 2, 15, 4, 5, 0, time.UTC),
+				}
+				pusher.failed <- failedNotification{"devicetoken1", pushError2}
+				close(pusher.failed)
 			}()
 
-			pusher.recvFeedback()
+			pusher.checkFailedNotifications()
 			So(conn.calls, ShouldResemble, []deleteCall{
 				{"devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)},
 				{"devicetoken1", time.Date(2046, 1, 2, 15, 4, 5, 0, time.UTC)},
 			})
 		})
-
-		Convey("handles erroneous device delete", func() {
-			go func() {
-				ch <- newFeedbackTuple("devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
-				close(ch)
-			}()
-
-			conn.err = errors.New("apns/test: unknown error")
-			pusher.recvFeedback()
-			So(conn.calls, ShouldResemble, []deleteCall{
-				{"devicetoken0", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)},
-			})
-		})
 	})
-}
-
-func newFeedbackTuple(token string, t time.Time) apns.FeedbackTuple {
-	return apns.FeedbackTuple{Timestamp: t, DeviceToken: token}
 }

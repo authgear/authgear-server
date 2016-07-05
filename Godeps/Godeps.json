@@ -1,7 +1,13 @@
 {
-	"ImportPath": "github.com/SkygearIO/skygear-server",
-	"GoVersion": "go1.5",
+	"ImportPath": "github.com/skygeario/skygear-server",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v74",
 	"Deps": [
+		{
+			"ImportPath": "github.com/RobotsAndPencils/buford/push",
+			"Comment": "v0.10.0",
+			"Rev": "2d03c359eab35051daee2c71485309361639bed1"
+		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
 			"Comment": "v0.9.0-13-g74bde9e",
@@ -107,10 +113,6 @@
 			"Rev": "67823cd24dece1b04cced3a0a0b3ca2bc84d875e"
 		},
 		{
-			"ImportPath": "github.com/timehop/apns",
-			"Rev": "02b971829dfca0436e051a28d60f11ffec5e3516"
-		},
-		{
 			"ImportPath": "github.com/twinj/uuid",
 			"Rev": "70cac2bcd273ef6a371bb96cde363d28b68734c3"
 		},
@@ -128,7 +130,19 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "db8e4de5b2d6653f66aea53094624468caad15d2"
+			"Rev": "b400c2eff1badec7022a8c8f5bea058b6315eed7"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2",
+			"Rev": "b400c2eff1badec7022a8c8f5bea058b6315eed7"
+		},
+		{
+			"ImportPath": "golang.org/x/net/http2/hpack",
+			"Rev": "b400c2eff1badec7022a8c8f5bea058b6315eed7"
+		},
+		{
+			"ImportPath": "golang.org/x/net/lex/httplex",
+			"Rev": "b400c2eff1badec7022a8c8f5bea058b6315eed7"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",

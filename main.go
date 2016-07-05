@@ -355,7 +355,6 @@ func initAPNSPusher(config skyconfig.Configuration, connOpener func() (skydb.Con
 		log.Fatalf("Failed to set up push sender: %v", err)
 	}
 	go apnsPushSender.Run()
-	go apnsPushSender.RunFeedback()
 
 	return apnsPushSender
 }

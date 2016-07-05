@@ -15,14 +15,16 @@
 package push
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/RobotsAndPencils/buford/push"
 	log "github.com/Sirupsen/logrus"
 	"github.com/skygeario/skygear-server/skydb"
-	"github.com/timehop/apns"
 )
 
 // GatewayType determine which kind of gateway should be used for APNS
@@ -34,15 +36,9 @@ const (
 	Production             = "production"
 )
 
-// private interface s.t. we can mock apns.Client in test
-type apnsSender interface {
-	Send(n apns.Notification) error
-	FailedNotifs() chan apns.NotificationResult
-}
-
-// private interface to mock apns.Feedback in test
-type feedbackReceiver interface {
-	Receive() <-chan apns.FeedbackTuple
+// private interface s.t. we can mock push.Service in test
+type pushService interface {
+	Push(deviceToken string, headers *push.Headers, payload []byte) (string, error)
 }
 
 // APNSPusher pushes notification via apns
@@ -50,198 +46,160 @@ type APNSPusher struct {
 	// Function to obtain a skydb connection
 	connOpener func() (skydb.Conn, error)
 
-	// we are directly coupling on apns as it seems redundant to duplicate
-	// all the payload and client logic and interfaces.
-	client apnsSender
+	conn    skydb.Conn
+	service pushService
+	failed  chan failedNotification
+}
 
-	feedback feedbackReceiver
+type failedNotification struct {
+	deviceToken string
+	err         push.Error
 }
 
 // NewAPNSPusher returns a new APNSPusher from content of certificate
 // and private key as string
 func NewAPNSPusher(connOpener func() (skydb.Conn, error), gwType GatewayType, cert string, key string) (*APNSPusher, error) {
-	var gateway, fbGateway string
+	certificate, err := tls.X509KeyPair([]byte(cert), []byte(key))
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := push.NewClient(certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	var service *push.Service
 	switch gwType {
 	case Sandbox:
-		gateway = apns.SandboxGateway
-		fbGateway = apns.SandboxFeedbackGateway
+		service = push.NewService(client, push.Development)
 	case Production:
-		gateway = apns.ProductionGateway
-		fbGateway = apns.ProductionFeedbackGateway
+		service = push.NewService(client, push.Production)
 	default:
-		return nil, fmt.Errorf("unrecgonized GatewayType = %#v", gwType)
-	}
-
-	client, err := apns.NewClient(gateway, cert, key)
-	if err != nil {
-		return nil, err
-	}
-
-	fb, err := apns.NewFeedback(fbGateway, cert, key)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("push/apns: unrecognized gateway type %s", gwType)
 	}
 
 	return &APNSPusher{
 		connOpener: connOpener,
-		client:     &wrappedClient{&client},
-		feedback:   fb,
+		service:    service,
 	}, nil
 }
 
 // Run listens to the notification error channel
 func (pusher *APNSPusher) Run() {
-	for result := range pusher.client.FailedNotifs() {
-		log.Errorf("Failed to send notification = %s: %v", result.Notif.ID, result.Err)
-	}
-}
-
-// RunFeedback kicks start receiving from the Feedback Service.
-//
-// The checking behaviour is to:
-//	1. Receive once on startup
-//	2. Receive once at 00:00:00 everyday
-func (pusher *APNSPusher) RunFeedback() {
-	pusher.recvFeedback()
-
-	for {
-		now := time.Now()
-		year, month, day := now.Date()
-		nextDay := time.Date(year, month, day+1, 0, 0, 0, 0, time.UTC)
-		d := nextDay.Sub(now)
-
-		log.Infof("apns/fb: next feedback scheduled after %v, at %v", d, nextDay)
-
-		<-time.After(d)
-
-		log.Infoln("apns/fb: going to query feedback service")
-		pusher.recvFeedback()
-	}
-}
-
-func (pusher *APNSPusher) recvFeedback() {
+	pusher.failed = make(chan failedNotification)
 	conn, err := pusher.connOpener()
 	if err != nil {
 		log.Errorf("apns/fb: failed to open skydb.Conn, abort feedback retrival: %v\n", err)
 		return
 	}
 
-	received := false
-	for fb := range pusher.feedback.Receive() {
-		log.Infof("apns/fb: got a feedback = %v", fb)
+	pusher.conn = conn
 
-		received = true
+	go func() {
+		pusher.checkFailedNotifications()
+	}()
+}
 
-		// NOTE(limouren): it might be more elegant in the future to extend
-		// push.Sender as NotificationService and bridge over the differences
-		// between gcm and apns on handling unregistered devices (probably
-		// as an async channel)
-		if err := conn.DeleteDeviceByToken(fb.DeviceToken, fb.Timestamp); err != nil && err != skydb.ErrDeviceNotFound {
-			log.Errorf("apns/fb: failed to delete device token = %s: %v", fb.DeviceToken, err)
-		}
-	}
+func (pusher *APNSPusher) Stop() {
+	close(pusher.failed)
+}
 
-	if !received {
-		log.Infoln("apns/fb: no feedback received")
+func (pusher *APNSPusher) checkFailedNotifications() {
+	for failedNote := range pusher.failed {
+		pusher.handleFailedNotification(failedNote)
 	}
 }
 
-func setPayloadAPS(apsMap map[string]interface{}, aps *apns.APS) {
-	for key, value := range apsMap {
-		switch key {
-		case "content-available":
-			switch value := value.(type) {
-			case int:
-				aps.ContentAvailable = value
-			case float64:
-				aps.ContentAvailable = int(value)
-			}
-		case "sound":
-			if sound, ok := value.(string); ok {
-				aps.Sound = sound
-			}
-		case "badge":
-			switch value := value.(type) {
-			case int:
-				aps.Badge.Set(uint(value))
-			case float64:
-				aps.Badge.Set(uint(value))
-			}
-		case "alert":
-			if body, ok := value.(string); ok {
-				aps.Alert.Body = body
-			} else if alertMap, ok := value.(map[string]interface{}); ok {
-				jsonbytes, err := json.Marshal(&alertMap)
-				if err != nil {
-					panic("Unable to convert alert to json.")
-				}
+func (pusher *APNSPusher) queueFailedNotification(deviceToken string, err push.Error) bool {
+	logger := log.WithFields(log.Fields{
+		"deviceToken": deviceToken,
+	})
+	failed := pusher.failed
+	if failed == nil {
+		logger.Warn("Unable to queue failed notification for error handling because the pusher is not running")
+		return false
+	}
+	failed <- failedNotification{
+		deviceToken: deviceToken,
+		err:         err,
+	}
+	logger.Debug("Queued failed notification for error handling")
+	return true
+}
 
-				err = json.Unmarshal(jsonbytes, &aps.Alert)
-				if err != nil {
-					panic("Unable to convert json back to Alert struct.")
-				}
-			}
-		}
+func shouldUnregisterDevice(failedNote failedNotification) bool {
+	return failedNote.err.Status == http.StatusGone || failedNote.err.Reason.Error() == "BadDeviceToken"
+}
+
+func (pusher *APNSPusher) handleFailedNotification(failedNote failedNotification) {
+	if shouldUnregisterDevice(failedNote) {
+		pusher.unregisterDevice(failedNote.deviceToken, failedNote.err.Timestamp)
 	}
 }
 
-func setPayload(m map[string]interface{}, p *apns.Payload) {
-	if apsValue, ok := m["aps"]; ok {
-		if apsMap, ok := apsValue.(map[string]interface{}); ok {
-			setPayloadAPS(apsMap, &p.APS)
-		} else {
-			log.Errorf("Want aps.(type) be map[string]interface{}, got %T", apsValue)
+func (pusher *APNSPusher) unregisterDevice(deviceToken string, timestamp time.Time) {
+	logger := log.WithFields(log.Fields{
+		"deviceToken": deviceToken,
+	})
+
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Panicf("Panic occurred while unregistering device: %s", r)
 		}
+	}()
+
+	if err := pusher.conn.DeleteDeviceByToken(deviceToken, timestamp); err != nil && err != skydb.ErrDeviceNotFound {
+		logger.Errorf("apns/fb: failed to delete device token = %s: %v", deviceToken, err)
+		return
 	}
 
-	// set custom values
-	for key, value := range m {
-		// the "aps" key is not a custom key
-		if key == "aps" {
-			continue
-		}
-		if err := p.SetCustomValue(key, value); err != nil {
-			log.Errorf("Failed to set data[%v] = %v", key, value)
-		}
-	}
+	logger.Info("Unregistered device from skydb")
 }
 
 // Send sends a notification to the device identified by the
 // specified device
 func (pusher *APNSPusher) Send(m Mapper, device skydb.Device) error {
+	logger := log.WithFields(log.Fields{
+		"deviceToken": device.Token,
+		"deviceID":    device.ID,
+	})
+
 	if m == nil {
+		logger.Warn("Cannot send push notification with nil data.")
 		return nil
 	}
+
 	apnsMap, ok := m.Map()["apns"].(map[string]interface{})
 	if !ok {
 		return errors.New("push/apns: payload has no apns dictionary")
 	}
 
-	payload := apns.NewPayload()
-	setPayload(apnsMap, payload)
-
-	notification := apns.NewNotification()
-	notification.Payload = payload
-	notification.DeviceToken = device.Token
-	notification.Priority = apns.PriorityImmediate
-
-	if err := pusher.client.Send(notification); err != nil {
-		log.Errorf("Failed to send APNS Notification: %v", err)
+	serializedPayload, err := json.Marshal(apnsMap)
+	if err != nil {
 		return err
 	}
 
+	// push the notification:
+	apnsid, err := pusher.service.Push(device.Token, nil, serializedPayload)
+	if err != nil {
+		if pushError, ok := err.(*push.Error); ok && pushError != nil {
+			// We recognize the error, and that error comes from APNS
+			logger.WithFields(log.Fields{
+				"apnsErrorReason":    pushError.Reason,
+				"apnsErrorStatus":    pushError.Status,
+				"apnsErrorTimestamp": pushError.Timestamp,
+			}).Error("Failed to send push notification to APNS")
+			pusher.queueFailedNotification(device.Token, *pushError)
+			return err
+		}
+
+		logger.Errorf("Failed to send push notification: %s", err)
+		return err
+	}
+
+	logger.WithFields(log.Fields{
+		"apnsID": apnsid,
+	}).Info("Sent push notification to APNS")
 	return nil
-}
-
-// wrapper of apns.Client which implement apnsSender
-type wrappedClient struct {
-	ci *apns.Client
-}
-
-func (c *wrappedClient) Send(n apns.Notification) error {
-	return c.ci.Send(n)
-}
-
-func (c *wrappedClient) FailedNotifs() chan apns.NotificationResult {
-	return c.ci.FailedNotifs
 }
