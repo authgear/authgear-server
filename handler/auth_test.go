@@ -538,6 +538,10 @@ type deleteTokenStore struct {
 	errToReturn        error
 }
 
+func (store *deleteTokenStore) NewToken(appName string, userInfoID string) authtoken.Token {
+	return authtoken.New(appName, userInfoID, time.Time{})
+}
+
 func (store *deleteTokenStore) Get(accessToken string, token *authtoken.Token) error {
 	panic("Thou shalt not call Get")
 }

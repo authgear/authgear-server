@@ -86,6 +86,25 @@ func TestRequiredConfig(t *testing.T) {
 			os.Setenv("APNS_ENABLE", "")
 		})
 
+		Convey("Read token store config correctly", func() {
+			config := NewConfigurationWithKeys()
+			os.Setenv("TOKEN_STORE", "redis")
+			os.Setenv("TOKEN_STORE_PATH", "redis://redis:6379")
+			os.Setenv("TOKEN_STORE_PREFIX", "PREFIX")
+			os.Setenv("TOKEN_STORE_EXPIRY", "60")
+
+			config.readTokenStore()
+			So(config.TokenStore.ImplName, ShouldEqual, "redis")
+			So(config.TokenStore.Path, ShouldEqual, "redis://redis:6379")
+			So(config.TokenStore.Prefix, ShouldEqual, "PREFIX")
+			So(config.TokenStore.Expiry, ShouldEqual, 60)
+
+			os.Setenv("TOKEN_STORE", "")
+			os.Setenv("TOKEN_STORE_PATH", "")
+			os.Setenv("TOKEN_STORE_PREFIX", "")
+			os.Setenv("TOKEN_STORE_EXPIRY", "")
+		})
+
 		Convey("Read plugin config correctly", func() {
 			config := NewConfigurationWithKeys()
 			os.Setenv("PLUGINS", "CAT")

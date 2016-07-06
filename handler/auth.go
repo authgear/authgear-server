@@ -15,8 +15,6 @@
 package handler
 
 import (
-	"time"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
@@ -165,7 +163,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	}
 
 	// generate access-token
-	token := authtoken.New(payload.AppName, info.ID, time.Time{})
+	token := store.NewToken(payload.AppName, info.ID)
 	if err := store.Put(&token); err != nil {
 		panic(err)
 	}
@@ -307,7 +305,7 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	}
 
 	// generate access-token
-	token := authtoken.New(payload.AppName, info.ID, time.Time{})
+	token := store.NewToken(payload.AppName, info.ID)
 	if err := store.Put(&token); err != nil {
 		panic(err)
 	}

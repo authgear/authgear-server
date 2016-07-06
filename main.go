@@ -76,6 +76,7 @@ func main() {
 		Implementation: config.TokenStore.ImplName,
 		Path:           config.TokenStore.Path,
 		Prefix:         config.TokenStore.Prefix,
+		Expiry:         config.TokenStore.Expiry,
 	})
 
 	preprocessorRegistry := router.PreprocessorRegistry{}

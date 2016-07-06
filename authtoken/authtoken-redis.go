@@ -11,6 +11,7 @@ import (
 type RedisStore struct {
 	pool   *redis.Pool
 	prefix string
+	expiry int64
 }
 
 // NewRedisStore creates a redis token store.
@@ -21,7 +22,7 @@ type RedisStore struct {
 //   For example if the token is `cf4bdc65-3fe6-4d40-b7fd-58f00b82c506`
 //   and the prefix is `myApp`, the key in redis should be
 //   `myApp:cf4bdc65-3fe6-4d40-b7fd-58f00b82c506`.
-func NewRedisStore(address string, prefix string) *RedisStore {
+func NewRedisStore(address string, prefix string, expiry int64) *RedisStore {
 	store := RedisStore{}
 
 	if prefix != "" {
@@ -43,6 +44,8 @@ func NewRedisStore(address string, prefix string) *RedisStore {
 		},
 	}
 
+	store.expiry = expiry
+
 	return &store
 }
 
@@ -56,9 +59,13 @@ type RedisToken struct {
 
 // ToRedisToken converts an auth token to RedisToken
 func (t Token) ToRedisToken() *RedisToken {
+	var expireAt int64
+	if !t.ExpiredAt.IsZero() {
+		expireAt = t.ExpiredAt.UnixNano()
+	}
 	return &RedisToken{
 		t.AccessToken,
-		t.ExpiredAt.UnixNano(),
+		expireAt,
 		t.AppName,
 		t.UserInfoID,
 	}
@@ -66,12 +73,25 @@ func (t Token) ToRedisToken() *RedisToken {
 
 // ToToken converts a RedisToken to auth token
 func (r RedisToken) ToToken() *Token {
+	expireAt := time.Time{}
+	if r.ExpiredAt != 0 {
+		expireAt = time.Unix(0, r.ExpiredAt).UTC()
+	}
 	return &Token{
 		r.AccessToken,
-		time.Unix(0, r.ExpiredAt).UTC(),
+		expireAt,
 		r.AppName,
 		r.UserInfoID,
 	}
+}
+
+// NewToken creates a new token for this token store.
+func (r *RedisStore) NewToken(appName string, userInfoID string) Token {
+	var expireAt time.Time
+	if r.expiry > 0 {
+		expireAt = time.Now().Add(time.Duration(r.expiry) * time.Second)
+	}
+	return New(appName, userInfoID, expireAt)
 }
 
 // Get tries to read the specified access token from redis store and
@@ -119,7 +139,9 @@ func (r *RedisStore) Put(token *Token) error {
 
 	c.Send("MULTI")
 	c.Send("HMSET", tokenArgs...)
-	c.Send("EXPIREAT", token.AccessToken, token.ExpiredAt.Unix())
+	if !token.ExpiredAt.IsZero() {
+		c.Send("EXPIREAT", token.AccessToken, token.ExpiredAt.Unix())
+	}
 	_, err := c.Do("EXEC")
 	if err != nil {
 		return err

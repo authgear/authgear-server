@@ -34,9 +34,13 @@ type Token struct {
 
 // MarshalJSON implements the json.Marshaler interface.
 func (t Token) MarshalJSON() ([]byte, error) {
+	var expireAt jsonStamp
+	if !t.ExpiredAt.IsZero() {
+		expireAt = jsonStamp(t.ExpiredAt)
+	}
 	return json.Marshal(&jsonToken{
 		t.AccessToken,
-		jsonStamp(t.ExpiredAt),
+		expireAt,
 		t.AppName,
 		t.UserInfoID,
 	})
@@ -48,8 +52,12 @@ func (t *Token) UnmarshalJSON(data []byte) (err error) {
 	if err := json.Unmarshal(data, &token); err != nil {
 		return err
 	}
+	var expireAt time.Time
+	if !time.Time(token.ExpiredAt).IsZero() {
+		expireAt = time.Time(token.ExpiredAt)
+	}
 	t.AccessToken = token.AccessToken
-	t.ExpiredAt = time.Time(token.ExpiredAt)
+	t.ExpiredAt = expireAt
 	t.AppName = token.AppName
 	t.UserInfoID = token.UserInfoID
 	return nil
@@ -67,6 +75,9 @@ type jsonStamp time.Time
 // MarshalJSON implements the json.Marshaler interface.
 func (t jsonStamp) MarshalJSON() ([]byte, error) {
 	tt := time.Time(t)
+	if tt.IsZero() {
+		return json.Marshal(0)
+	}
 	return json.Marshal(tt.UnixNano())
 }
 
@@ -76,18 +87,19 @@ func (t *jsonStamp) UnmarshalJSON(data []byte) (err error) {
 	if err := json.Unmarshal(data, &i); err != nil {
 		return err
 	}
+
+	if i == 0 {
+		*t = jsonStamp{}
+		return nil
+	}
 	*t = jsonStamp(time.Unix(0, i))
 	return nil
 }
 
 // New creates a new Token ready for use given a userInfoID and
-// expiredAt date. If expiredAt is passed an empty Time, it
-// will be set to 30 days from now.
+// expiredAt date. If expiredAt is passed an empty Time, the token
+// does not expire.
 func New(appName string, userInfoID string, expiredAt time.Time) Token {
-	if expiredAt.IsZero() {
-		expiredAt = time.Now().Add(24 * 30 * time.Hour)
-	}
-
 	return Token{
 		// NOTE(limouren): I am not sure if it is good to use UUID
 		// as access token.
@@ -100,7 +112,7 @@ func New(appName string, userInfoID string, expiredAt time.Time) Token {
 
 // IsExpired determines whether the Token has expired now or not.
 func (t *Token) IsExpired() bool {
-	return t.ExpiredAt.Before(time.Now())
+	return !t.ExpiredAt.IsZero() && t.ExpiredAt.Before(time.Now())
 }
 
 // NotFoundError is the error returned by Get if a TokenStore
@@ -116,6 +128,7 @@ func (e *NotFoundError) Error() string {
 
 // Store represents a persistent storage for Token.
 type Store interface {
+	NewToken(appName string, userInfoID string) Token
 	Get(accessToken string, token *Token) error
 	Put(token *Token) error
 	Delete(accessToken string) error
@@ -136,6 +149,7 @@ type Configuration struct {
 	Implementation string
 	Path           string
 	Prefix         string
+	Expiry         int64
 }
 
 // InitTokenStore accept a implementation and path string. Return a Store.
@@ -145,9 +159,9 @@ func InitTokenStore(config Configuration) Store {
 	default:
 		panic("unrecgonized token store implementation: " + config.Implementation)
 	case "fs":
-		store = NewFileStore(config.Path)
+		store = NewFileStore(config.Path, config.Expiry)
 	case "redis":
-		store = NewRedisStore(config.Path, config.Prefix)
+		store = NewRedisStore(config.Path, config.Prefix, config.Expiry)
 	}
 	return store
 }
