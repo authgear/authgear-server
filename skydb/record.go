@@ -127,6 +127,9 @@ func (ace *RecordACLEntry) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 	if ace.Public {
 		return ace.AccessibleLevel(level)
 	}
+	if userinfo == nil {
+		return false
+	}
 	if userinfo.ID == ace.UserID {
 		if ace.AccessibleLevel(level) {
 			return true
@@ -362,13 +365,14 @@ func (r *Record) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 	if r.ACL == nil {
 		return true
 	}
-	if userinfo == nil {
+	userID := ""
+	if userinfo != nil {
+		userID = userinfo.ID
+	}
+	if r.DatabaseID != "" && r.DatabaseID != userID {
 		return false
 	}
-	if r.DatabaseID != "" && r.DatabaseID != userinfo.ID {
-		return false
-	}
-	if r.OwnerID == userinfo.ID {
+	if r.OwnerID == userID {
 		return true
 	}
 

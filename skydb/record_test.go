@@ -80,6 +80,26 @@ func TestRecordACL(t *testing.T) {
 			ID:    "stranger",
 			Roles: []string{"nobody"},
 		}
+		Convey("Check public ace is pass on nil user", func() {
+			ace := NewRecordACLEntryPublic(ReadLevel)
+
+			So(ace.AccessibleLevel(ReadLevel), ShouldBeTrue)
+			So(ace.Accessible(userinfo, ReadLevel), ShouldBeTrue)
+			So(ace.Accessible(nil, ReadLevel), ShouldBeTrue)
+		})
+
+		Convey("Check public access right base on no user", func() {
+			note := Record{
+				ID:         NewRecordID("note", "0"),
+				DatabaseID: "",
+				ACL: RecordACL{
+					NewRecordACLEntryPublic(ReadLevel),
+				},
+			}
+
+			So(note.Accessible(userinfo, ReadLevel), ShouldBeTrue)
+			So(note.Accessible(nil, ReadLevel), ShouldBeTrue)
+		})
 
 		Convey("Check access right base on role", func() {
 			note := Record{
