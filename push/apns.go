@@ -16,6 +16,8 @@ package push
 
 import (
 	"crypto/tls"
+	"crypto/x509"
+	"encoding/asn1"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -49,6 +51,7 @@ type APNSPusher struct {
 	conn    skydb.Conn
 	service pushService
 	failed  chan failedNotification
+	topic   string
 }
 
 type failedNotification struct {
@@ -56,10 +59,64 @@ type failedNotification struct {
 	err         push.Error
 }
 
+// parseCertificateLeaf parse the provided TLS certificate for its
+// leaf certificate. Returns an error if the leaf certificate cannot be found.
+func parseCertificateLeaf(certificate *tls.Certificate) error {
+	if certificate.Leaf != nil {
+		return nil
+	}
+
+	for _, cert := range certificate.Certificate {
+		x509Cert, err := x509.ParseCertificate(cert)
+		if err != nil {
+			return err
+		}
+		certificate.Leaf = x509Cert
+		return nil
+	}
+	return errors.New("push/apns: provided APNS certificate does not contain leaf")
+}
+
+// findDefaultAPNSTopic returns the APNS topic in the TLS certificate.
+//
+// The Subject of leaf certificate should contains the UID, which we can
+// use as the topic for APNS. The topic is usually the same as the
+// application bundle // identifier.
+//
+// Returns the topic name, and an error if an error occuring finding the topic
+// name.
+func findDefaultAPNSTopic(certificate tls.Certificate) (string, error) {
+	if certificate.Leaf == nil {
+		err := parseCertificateLeaf(&certificate)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// Loop over the subject names array to look for UID
+	uidObjectIdentifier := asn1.ObjectIdentifier([]int{0, 9, 2342, 19200300, 100, 1, 1})
+	for _, attr := range certificate.Leaf.Subject.Names {
+		if uidObjectIdentifier.Equal(attr.Type) {
+			switch value := attr.Value.(type) {
+			case string:
+				return value, nil
+			}
+			break
+		}
+	}
+
+	return "", errors.New("push/apns: cannot find UID in APNS certificate subject name")
+}
+
 // NewAPNSPusher returns a new APNSPusher from content of certificate
 // and private key as string
 func NewAPNSPusher(connOpener func() (skydb.Conn, error), gwType GatewayType, cert string, key string) (*APNSPusher, error) {
 	certificate, err := tls.X509KeyPair([]byte(cert), []byte(key))
+	if err != nil {
+		return nil, err
+	}
+
+	topic, err := findDefaultAPNSTopic(certificate)
 	if err != nil {
 		return nil, err
 	}
@@ -82,6 +139,7 @@ func NewAPNSPusher(connOpener func() (skydb.Conn, error), gwType GatewayType, ce
 	return &APNSPusher{
 		connOpener: connOpener,
 		service:    service,
+		topic:      topic,
 	}, nil
 }
 
@@ -163,6 +221,7 @@ func (pusher *APNSPusher) Send(m Mapper, device skydb.Device) error {
 	logger := log.WithFields(log.Fields{
 		"deviceToken": device.Token,
 		"deviceID":    device.ID,
+		"apnsTopic":   pusher.topic,
 	})
 
 	if m == nil {
@@ -180,8 +239,12 @@ func (pusher *APNSPusher) Send(m Mapper, device skydb.Device) error {
 		return err
 	}
 
+	headers := push.Headers{
+		Topic: pusher.topic,
+	}
+
 	// push the notification:
-	apnsid, err := pusher.service.Push(device.Token, nil, serializedPayload)
+	apnsid, err := pusher.service.Push(device.Token, &headers, serializedPayload)
 	if err != nil {
 		if pushError, ok := err.(*push.Error); ok && pushError != nil {
 			// We recognize the error, and that error comes from APNS
