@@ -125,7 +125,7 @@ func (c *conn) DeleteDevice(id string) error {
 	return nil
 }
 
-func (c *conn) DeleteDeviceByToken(token string, t time.Time) error {
+func (c *conn) DeleteDevicesByToken(token string, t time.Time) error {
 	builder := psql.Delete(c.tableName("_device")).
 		Where("token = ?", token)
 	if t != skydb.ZeroTime {
@@ -143,8 +143,6 @@ func (c *conn) DeleteDeviceByToken(token string, t time.Time) error {
 	}
 	if rowsAffected == 0 {
 		return skydb.ErrDeviceNotFound
-	} else if rowsAffected > 1 {
-		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
 	}
 
 	return nil

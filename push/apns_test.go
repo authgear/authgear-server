@@ -178,7 +178,7 @@ type mockConn struct {
 	skydb.Conn
 }
 
-func (c *mockConn) DeleteDeviceByToken(token string, t time.Time) error {
+func (c *mockConn) DeleteDevicesByToken(token string, t time.Time) error {
 	c.calls = append(c.calls, deleteCall{token, t})
 	return c.err
 }

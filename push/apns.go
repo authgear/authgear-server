@@ -207,7 +207,7 @@ func (pusher *APNSPusher) unregisterDevice(deviceToken string, timestamp time.Ti
 		}
 	}()
 
-	if err := pusher.conn.DeleteDeviceByToken(deviceToken, timestamp); err != nil && err != skydb.ErrDeviceNotFound {
+	if err := pusher.conn.DeleteDevicesByToken(deviceToken, timestamp); err != nil && err != skydb.ErrDeviceNotFound {
 		logger.Errorf("apns/fb: failed to delete device token = %s: %v", deviceToken, err)
 		return
 	}

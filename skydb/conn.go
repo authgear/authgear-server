@@ -31,7 +31,7 @@ var ErrUserNotFound = errors.New("skydb: UserInfo ID not found")
 var ErrRoleUpdatesFailed = errors.New("skydb: Update of user roles failed")
 
 // ErrDeviceNotFound is returned by Conn.GetDevice, Conn.DeleteDevice,
-// Conn.DeleteDeviceByToken and Conn.DeleteEmptyDevicesByTime, if the desired Device
+// Conn.DeleteDevicesByToken and Conn.DeleteEmptyDevicesByTime, if the desired Device
 // cannot be found in the current container
 var ErrDeviceNotFound = errors.New("skydb: Specific device not found")
 
@@ -39,7 +39,7 @@ var ErrDeviceNotFound = errors.New("skydb: Specific device not found")
 // operation modifies the database and the database is readonly.
 var ErrDatabaseIsReadOnly = errors.New("skydb: database is read only")
 
-// ZeroTime represent a zero time.Time. It is used in DeleteDeviceByToken and
+// ZeroTime represent a zero time.Time. It is used in DeleteDevicesByToken and
 // DeleteEmptyDevicesByTime to signify a Delete without time constraint.
 var ZeroTime = time.Time{}
 
@@ -134,11 +134,11 @@ type Conn interface {
 	SaveDevice(device *Device) error
 	DeleteDevice(id string) error
 
-	// DeleteDeviceByToken deletes device where its Token == token and
+	// DeleteDevicesByToken deletes device where its Token == token and
 	// LastRegisteredAt < t. If t == ZeroTime, LastRegisteredAt is not considered.
 	//
 	// If such device does not exist, ErrDeviceNotFound is returned.
-	DeleteDeviceByToken(token string, t time.Time) error
+	DeleteDevicesByToken(token string, t time.Time) error
 
 	// DeleteEmptyDevicesByTime deletes device where Token is empty and
 	// LastRegisteredAt < t. If t == ZeroTime, LastRegisteredAt is not considered.
