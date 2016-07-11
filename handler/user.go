@@ -61,6 +61,23 @@ func (h *UserQueryHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Response) {
+	adminRoles, err := payload.DBConn.GetAdminRoles()
+	if err != nil {
+		response.Err = skyerr.NewUnknownErr(err)
+		return
+	}
+
+	userinfo := payload.UserInfo
+	if userinfo == nil {
+		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed to query user")
+		return
+	}
+
+	if !userinfo.HasAnyRoles(adminRoles) && !payload.HasMasterKey() {
+		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to query user")
+		return
+	}
+
 	qp := &queryPayload{}
 	skyErr := qp.Decode(payload.Data)
 	if skyErr != nil {

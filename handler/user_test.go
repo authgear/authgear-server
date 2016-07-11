@@ -55,10 +55,27 @@ func (userconn queryUserConn) QueryUser(emails []string) ([]skydb.UserInfo, erro
 	return results, nil
 }
 
+func (userconn queryUserConn) GetAdminRoles() ([]string, error) {
+	return []string{
+		"Admin",
+	}, nil
+}
+
 func TestUserQueryHandler(t *testing.T) {
 	Convey("UserQueryHandler", t, func() {
+		adminUserInfo := skydb.UserInfo{
+			ID:             "admin",
+			Email:          "admin@example.com",
+			Username:       "admin",
+			HashedPassword: []byte("password"),
+			Roles: []string{
+				"Admin",
+			},
+		}
+
 		router := handlertest.NewSingleRouteRouter(&UserQueryHandler{}, func(p *router.Payload) {
 			p.DBConn = queryUserConn{}
+			p.UserInfo = &adminUserInfo
 		})
 
 		Convey("query non-existent email", func() {
