@@ -41,6 +41,9 @@ func (userconn queryUserConn) QueryUser(emails []string) ([]skydb.UserInfo, erro
 				Email:          "john.doe@example.com",
 				Username:       "johndoe",
 				HashedPassword: []byte("password"),
+				Roles: []string{
+					"Programmer",
+				},
 			})
 		}
 		if email == "jane.doe+1@example.com" {
@@ -100,7 +103,10 @@ func TestUserQueryHandler(t *testing.T) {
 			"data": {
 				"_id": "user0",
 				"email": "john.doe@example.com",
-				"username": "johndoe"
+				"username": "johndoe",
+				"roles": [
+					"Programmer"
+				]
 			}
 		}
 	]
@@ -116,7 +122,7 @@ func TestUserQueryHandler(t *testing.T) {
 		{
 			"id": "user0",
 			"type": "user",
-			"data": {"_id": "user0", "email": "john.doe@example.com", "username": "johndoe"}
+			"data": {"_id": "user0", "email": "john.doe@example.com", "username": "johndoe", "roles": ["Programmer"]}
 		}, {
 			"id": "user1",
 			"type": "user",

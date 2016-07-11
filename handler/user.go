@@ -97,10 +97,11 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 			"id":   userinfo.ID,
 			"type": "user",
 			"data": struct {
-				ID       string `json:"_id"`
-				Email    string `json:"email"`
-				Username string `json:"username"`
-			}{userinfo.ID, userinfo.Email, userinfo.Username},
+				ID       string   `json:"_id"`
+				Email    string   `json:"email"`
+				Username string   `json:"username"`
+				Roles    []string `json:"roles,omitempty"`
+			}{userinfo.ID, userinfo.Email, userinfo.Username, userinfo.Roles},
 		}
 	}
 	response.Result = results
