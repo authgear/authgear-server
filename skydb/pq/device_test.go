@@ -193,7 +193,7 @@ func TestDevice(t *testing.T) {
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
 
-			err := c.DeleteDeviceByToken("devicetoken", skydb.ZeroTime)
+			err := c.DeleteDevicesByToken("devicetoken", skydb.ZeroTime)
 			So(err, ShouldBeNil)
 
 			var count int
@@ -212,7 +212,7 @@ func TestDevice(t *testing.T) {
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
 
-			err := c.DeleteDeviceByToken("devicetoken", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			err := c.DeleteDevicesByToken("devicetoken", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
 			So(err, ShouldEqual, skydb.ErrDeviceNotFound)
 		})
 

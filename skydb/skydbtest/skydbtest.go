@@ -216,8 +216,8 @@ func (conn *MapConn) DeleteDevice(id string) error {
 	panic("not implemented")
 }
 
-// DeleteDeviceByToken is not implemented.
-func (conn *MapConn) DeleteDeviceByToken(token string, t time.Time) error {
+// DeleteDevicesByToken is not implemented.
+func (conn *MapConn) DeleteDevicesByToken(token string, t time.Time) error {
 	panic("not implemented")
 }
 
