@@ -41,6 +41,9 @@ func (userconn queryUserConn) QueryUser(emails []string) ([]skydb.UserInfo, erro
 				Email:          "john.doe@example.com",
 				Username:       "johndoe",
 				HashedPassword: []byte("password"),
+				Roles: []string{
+					"Programmer",
+				},
 			})
 		}
 		if email == "jane.doe+1@example.com" {
@@ -55,14 +58,31 @@ func (userconn queryUserConn) QueryUser(emails []string) ([]skydb.UserInfo, erro
 	return results, nil
 }
 
+func (userconn queryUserConn) GetAdminRoles() ([]string, error) {
+	return []string{
+		"Admin",
+	}, nil
+}
+
 func TestUserQueryHandler(t *testing.T) {
 	Convey("UserQueryHandler", t, func() {
-		router := handlertest.NewSingleRouteRouter(&UserQueryHandler{}, func(p *router.Payload) {
+		adminUserInfo := skydb.UserInfo{
+			ID:             "admin",
+			Email:          "admin@example.com",
+			Username:       "admin",
+			HashedPassword: []byte("password"),
+			Roles: []string{
+				"Admin",
+			},
+		}
+
+		adminRouter := handlertest.NewSingleRouteRouter(&UserQueryHandler{}, func(p *router.Payload) {
 			p.DBConn = queryUserConn{}
+			p.UserInfo = &adminUserInfo
 		})
 
 		Convey("query non-existent email", func() {
-			resp := router.POST(`{
+			resp := adminRouter.POST(`{
 	"emails": ["peter.doe@example.com"]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -72,7 +92,7 @@ func TestUserQueryHandler(t *testing.T) {
 		})
 
 		Convey("query single email", func() {
-			resp := router.POST(`{
+			resp := adminRouter.POST(`{
 	"emails": ["john.doe@example.com"]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -83,7 +103,10 @@ func TestUserQueryHandler(t *testing.T) {
 			"data": {
 				"_id": "user0",
 				"email": "john.doe@example.com",
-				"username": "johndoe"
+				"username": "johndoe",
+				"roles": [
+					"Programmer"
+				]
 			}
 		}
 	]
@@ -91,7 +114,7 @@ func TestUserQueryHandler(t *testing.T) {
 		})
 
 		Convey("query multiple email", func() {
-			resp := router.POST(`{
+			resp := adminRouter.POST(`{
 	"emails": ["john.doe@example.com", "jane.doe+1@example.com"]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -99,7 +122,7 @@ func TestUserQueryHandler(t *testing.T) {
 		{
 			"id": "user0",
 			"type": "user",
-			"data": {"_id": "user0", "email": "john.doe@example.com", "username": "johndoe"}
+			"data": {"_id": "user0", "email": "john.doe@example.com", "username": "johndoe", "roles": ["Programmer"]}
 		}, {
 			"id": "user1",
 			"type": "user",
@@ -107,6 +130,48 @@ func TestUserQueryHandler(t *testing.T) {
 		}
 	]
 }`)
+		})
+
+		nonAdminUserInfo := skydb.UserInfo{
+			ID:             "non-admin",
+			Email:          "non-admin@example.com",
+			Username:       "non-admin",
+			HashedPassword: []byte("password"),
+		}
+
+		Convey("query non-existent email with non-admin", func() {
+			nonAdminRouter := handlertest.NewSingleRouteRouter(&UserQueryHandler{}, func(p *router.Payload) {
+				p.DBConn = queryUserConn{}
+				p.UserInfo = &nonAdminUserInfo
+			})
+			resp := nonAdminRouter.POST(`{
+				"emails": ["peter.doe@example.com"]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 102,
+					"message": "No permission to query user",
+					"name":"PermissionDenied"
+				}
+			}`)
+		})
+
+		Convey("query non-existent email with non-admin and master key", func() {
+			nonAdminMasterKeyRouter := handlertest.NewSingleRouteRouter(
+				&UserQueryHandler{},
+				func(p *router.Payload) {
+					p.DBConn = queryUserConn{}
+					p.UserInfo = &nonAdminUserInfo
+					p.AccessKey = router.MasterAccessKey
+				},
+			)
+
+			resp := nonAdminMasterKeyRouter.POST(`{
+				"emails": ["peter.doe@example.com"]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"result":[]}`)
 		})
 	})
 }

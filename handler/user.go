@@ -61,6 +61,23 @@ func (h *UserQueryHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Response) {
+	adminRoles, err := payload.DBConn.GetAdminRoles()
+	if err != nil {
+		response.Err = skyerr.NewUnknownErr(err)
+		return
+	}
+
+	if !payload.HasMasterKey() {
+		userinfo := payload.UserInfo
+		if userinfo == nil {
+			response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed to query user")
+			return
+		} else if !userinfo.HasAnyRoles(adminRoles) {
+			response.Err = skyerr.NewError(skyerr.PermissionDenied, "No permission to query user")
+			return
+		}
+	}
+
 	qp := &queryPayload{}
 	skyErr := qp.Decode(payload.Data)
 	if skyErr != nil {
@@ -80,10 +97,11 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 			"id":   userinfo.ID,
 			"type": "user",
 			"data": struct {
-				ID       string `json:"_id"`
-				Email    string `json:"email"`
-				Username string `json:"username"`
-			}{userinfo.ID, userinfo.Email, userinfo.Username},
+				ID       string   `json:"_id"`
+				Email    string   `json:"email"`
+				Username string   `json:"username"`
+				Roles    []string `json:"roles,omitempty"`
+			}{userinfo.ID, userinfo.Email, userinfo.Username, userinfo.Roles},
 		}
 	}
 	response.Result = results
