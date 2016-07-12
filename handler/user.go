@@ -67,15 +67,15 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 		return
 	}
 
-	userinfo := payload.UserInfo
-	if userinfo == nil {
-		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed to query user")
-		return
-	}
-
-	if !userinfo.HasAnyRoles(adminRoles) && !payload.HasMasterKey() {
-		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to query user")
-		return
+	if !payload.HasMasterKey() {
+		userinfo := payload.UserInfo
+		if userinfo == nil {
+			response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed to query user")
+			return
+		} else if !userinfo.HasAnyRoles(adminRoles) {
+			response.Err = skyerr.NewError(skyerr.PermissionDenied, "No permission to query user")
+			return
+		}
 	}
 
 	qp := &queryPayload{}
