@@ -150,6 +150,7 @@ type Configuration struct {
 	Path           string
 	Prefix         string
 	Expiry         int64
+	Secret         string
 }
 
 // InitTokenStore accept a implementation and path string. Return a Store.
@@ -162,6 +163,8 @@ func InitTokenStore(config Configuration) Store {
 		store = NewFileStore(config.Path, config.Expiry)
 	case "redis":
 		store = NewRedisStore(config.Path, config.Prefix, config.Expiry)
+	case "stateless":
+		store = NewStatelessStore(config.Secret, config.Expiry)
 	}
 	return store
 }
