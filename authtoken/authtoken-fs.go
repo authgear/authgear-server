@@ -29,12 +29,12 @@ func NewFileStore(address string, expiry int64) *FileStore {
 }
 
 // NewToken creates a new token for this token store.
-func (f *FileStore) NewToken(appName string, userInfoID string) Token {
+func (f *FileStore) NewToken(appName string, userInfoID string) (Token, error) {
 	var expireAt time.Time
 	if f.expiry > 0 {
 		expireAt = time.Now().Add(time.Duration(f.expiry) * time.Second)
 	}
-	return New(appName, userInfoID, expireAt)
+	return New(appName, userInfoID, expireAt), nil
 }
 
 // Get tries to read the specified access token from file and

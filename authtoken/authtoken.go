@@ -128,7 +128,7 @@ func (e *NotFoundError) Error() string {
 
 // Store represents a persistent storage for Token.
 type Store interface {
-	NewToken(appName string, userInfoID string) Token
+	NewToken(appName string, userInfoID string) (Token, error)
 	Get(accessToken string, token *Token) error
 	Put(token *Token) error
 	Delete(accessToken string) error

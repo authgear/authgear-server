@@ -86,12 +86,13 @@ func (r RedisToken) ToToken() *Token {
 }
 
 // NewToken creates a new token for this token store.
-func (r *RedisStore) NewToken(appName string, userInfoID string) Token {
+func (r *RedisStore) NewToken(appName string, userInfoID string) (Token, error) {
 	var expireAt time.Time
 	if r.expiry > 0 {
 		expireAt = time.Now().Add(time.Duration(r.expiry) * time.Second)
 	}
-	return New(appName, userInfoID, expireAt)
+	return New(appName, userInfoID, expireAt), nil
+
 }
 
 // Get tries to read the specified access token from redis store and

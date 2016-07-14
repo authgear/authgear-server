@@ -163,8 +163,12 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	}
 
 	// generate access-token
-	token := store.NewToken(payload.AppName, info.ID)
-	if err := store.Put(&token); err != nil {
+	token, err := store.NewToken(payload.AppName, info.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = store.Put(&token); err != nil {
 		panic(err)
 	}
 
@@ -305,8 +309,12 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	}
 
 	// generate access-token
-	token := store.NewToken(payload.AppName, info.ID)
-	if err := store.Put(&token); err != nil {
+	token, err := store.NewToken(payload.AppName, info.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = store.Put(&token); err != nil {
 		panic(err)
 	}
 
