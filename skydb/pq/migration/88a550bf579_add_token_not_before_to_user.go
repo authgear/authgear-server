@@ -14,15 +14,33 @@
 
 package migration
 
-var revisions = []Revision{
-	&revision_48b961caa{},
-	&revision_d2cb54c648{},
-	&revision_51375067b45{},
-	&revision_30d0a626888{},
-	&revision_41af1c8d394{},
-	&revision_551bc42a839{},
-	&revision_bc5768da91b{},
-	&revision_52b88c46931{},
-	&revision_c0397f15027{},
-	&revision_88a550bf579{},
+import (
+	"github.com/jmoiron/sqlx"
+)
+
+type revision_88a550bf579 struct {
+}
+
+func (r *revision_88a550bf579) Version() string { return "88a550bf579" }
+
+func (r *revision_88a550bf579) Up(tx *sqlx.Tx) error {
+	stmts := []string{
+		`ALTER TABLE _user ADD COLUMN token_valid_since timestamp without time zone;`,
+	}
+	for _, stmt := range stmts {
+		_, err := tx.Exec(stmt)
+		return err
+	}
+	return nil
+}
+
+func (r *revision_88a550bf579) Down(tx *sqlx.Tx) error {
+	stmts := []string{
+		`ALTER TABLE _user DROP COLUMN token_valid_since;`,
+	}
+	for _, stmt := range stmts {
+		_, err := tx.Exec(stmt)
+		return err
+	}
+	return nil
 }

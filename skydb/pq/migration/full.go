@@ -21,7 +21,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "c0397f15027" }
+func (r *fullMigration) Version() string { return "88a550bf579" }
 
 func (r *fullMigration) Up(tx *sqlx.Tx) error {
 	const stmt = `
@@ -57,6 +57,7 @@ CREATE TABLE _user (
 	email citext,
 	password text,
 	auth jsonb,
+	token_valid_since timestamp without time zone,
 	UNIQUE (username),
 	UNIQUE (email)
 );
