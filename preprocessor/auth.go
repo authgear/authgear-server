@@ -79,7 +79,7 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 
 	// If payload contains an access token, check whether if the access
 	// token is valid. API Key is not required if there is valid access token.
-	if tokenString := payload.AccessToken(); tokenString != "" {
+	if tokenString := payload.AccessTokenString(); tokenString != "" {
 		store := p.TokenStore
 		token := authtoken.Token{}
 

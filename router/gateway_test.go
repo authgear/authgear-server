@@ -103,7 +103,7 @@ func TestRouterMatchByURL(t *testing.T) {
 				resp.WriteEntity(struct {
 					APIKey      string `json:"api-key"`
 					AccessToken string `json:"access-token"`
-				}{p.APIKey(), p.AccessToken()})
+				}{p.APIKey(), p.AccessTokenString()})
 			}))
 
 			req, _ := http.NewRequest("POST", `http://skygear.test/endpoint`, nil)
@@ -125,7 +125,7 @@ func TestRouterMatchByURL(t *testing.T) {
 				resp.WriteEntity(struct {
 					APIKey      string `json:"api-key"`
 					AccessToken string `json:"access-token"`
-				}{p.APIKey(), p.AccessToken()})
+				}{p.APIKey(), p.AccessTokenString()})
 			}))
 
 			req, _ := http.NewRequest("POST", `http://skygear.test/endpoint?api_key=someapikey&access_token=someaccesstoken`, nil)

@@ -112,9 +112,9 @@ func (p *Payload) APIKey() string {
 	return key
 }
 
-// AccessToken return the user input string
+// AccessTokenString return the user input string
 // TODO: accept all header, json payload, query string(in order)
-func (p *Payload) AccessToken() string {
+func (p *Payload) AccessTokenString() string {
 	var token interface{}
 	token = p.Data["access_token"]
 	switch token := token.(type) {

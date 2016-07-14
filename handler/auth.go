@@ -347,7 +347,7 @@ func (h *LogoutHandler) GetPreprocessors() []router.Processor {
 
 func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Response) {
 	store := h.TokenStore
-	accessToken := payload.AccessToken()
+	accessToken := payload.AccessTokenString()
 
 	var err error
 
@@ -469,7 +469,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 	}
 	response.Result = authResponse{
 		UserID:      info.ID,
-		AccessToken: payload.AccessToken(),
+		AccessToken: payload.AccessTokenString(),
 	}
 }
 
