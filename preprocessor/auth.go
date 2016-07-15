@@ -100,6 +100,7 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 		payload.AppName = token.AppName
 		payload.UserInfoID = token.UserInfoID
 		payload.Context = context.WithValue(payload.Context, "UserID", token.UserInfoID)
+		payload.AccessToken = token
 		return http.StatusOK
 	}
 

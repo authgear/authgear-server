@@ -93,6 +93,11 @@ func (info *UserInfo) SetPassword(password string) {
 	}
 
 	info.HashedPassword = hashedPassword
+
+	// Changing the password will also update the time before which issued
+	// access token should be invalidated.
+	timeNow := time.Now()
+	info.TokenValidSince = &timeNow
 }
 
 // IsSamePassword determines whether the specified password is the same

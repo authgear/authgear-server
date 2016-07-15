@@ -42,6 +42,18 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 		return http.StatusInternalServerError
 	}
 
+	// If an access token exists checks if the access token has an IssuedAt
+	// time that is later than the user's TokenValidSince time. This
+	// allows user to invalidate previously issued access token.
+	if payload.AccessToken != nil {
+		issuedAt := payload.AccessToken.IssuedAt()
+		tokenValidSince := userinfo.TokenValidSince
+		if !issuedAt.IsZero() && tokenValidSince != nil && issuedAt.Before(*tokenValidSince) {
+			response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
+			return http.StatusUnauthorized
+		}
+	}
+
 	payload.UserInfo = &userinfo
 
 	return http.StatusOK
