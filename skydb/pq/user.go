@@ -58,7 +58,7 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 		username,
 		email,
 		userinfo.HashedPassword,
-		authInfoValue(userinfo.Auth),
+		authInfoValue{userinfo.Auth, true},
 		tokenValidSince,
 	)
 
@@ -98,7 +98,7 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 		Set("username", username).
 		Set("email", email).
 		Set("password", userinfo.HashedPassword).
-		Set("auth", authInfoValue(userinfo.Auth)).
+		Set("auth", authInfoValue{userinfo.Auth, true}).
 		Set("token_valid_since", tokenValidSince).
 		Where("id = ?", userinfo.ID)
 
@@ -160,7 +160,7 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 	userinfo.Username = username.String
 	userinfo.Email = email.String
 	userinfo.HashedPassword = password
-	userinfo.Auth = skydb.AuthInfo(auth)
+	userinfo.Auth = auth.AuthInfo
 	if tokenValidSince.Valid {
 		userinfo.TokenValidSince = &tokenValidSince.Time
 	} else {
