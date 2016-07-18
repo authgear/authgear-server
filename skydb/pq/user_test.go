@@ -17,6 +17,7 @@ package pq
 import (
 	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/skygeario/skygear-server/skydb"
 	. "github.com/smartystreets/goconvey/convey"
@@ -57,7 +58,7 @@ func TestUserCRUD(t *testing.T) {
 
 			So(email, ShouldEqual, "john.doe@example.com")
 			So(password, ShouldResemble, []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"))
-			So(auth, ShouldResemble, authInfoValue{
+			So(auth.AuthInfo, ShouldResemble, skydb.AuthInfo{
 				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
 					"bool":   true,
@@ -122,6 +123,20 @@ func TestUserCRUD(t *testing.T) {
 			So(fetcheduserinfo.Email, ShouldEqual, "capital.ONE@EXAMPLE.com")
 		})
 
+		Convey("gets an existing User token valid since", func() {
+			tokenValidSince := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+			userinfo.TokenValidSince = &tokenValidSince
+
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			fetcheduserinfo := skydb.UserInfo{}
+			err = c.GetUser("userid", &fetcheduserinfo)
+			So(err, ShouldBeNil)
+
+			So(tokenValidSince.Equal(fetcheduserinfo.TokenValidSince.UTC()), ShouldBeTrue)
+		})
+
 		Convey("gets an existing User by username case insensitive", func() {
 			err := c.CreateUser(&userinfo)
 			So(err, ShouldBeNil)
@@ -174,21 +189,11 @@ func TestUserCRUD(t *testing.T) {
 			err = c.UpdateUser(&userinfo)
 			So(err, ShouldBeNil)
 
-			updateduserinfo := userInfo{}
-			err = c.Get(&updateduserinfo, "SELECT id, email, password, auth FROM app_com_oursky_skygear._user WHERE id = $1", "userid")
+			email := ""
+			err = c.QueryRowx("SELECT email FROM app_com_oursky_skygear._user WHERE id = 'userid'").
+				Scan(&email)
 			So(err, ShouldBeNil)
-			So(updateduserinfo, ShouldResemble, userInfo{
-				ID:             "userid",
-				Email:          "jane.doe@example.com",
-				HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
-				Auth: authInfoValue{
-					"com.example:johndoe": map[string]interface{}{
-						"string": "string",
-						"bool":   true,
-						"number": float64(1),
-					},
-				},
-			})
+			So(email, ShouldEqual, "jane.doe@example.com")
 		})
 
 		Convey("query for empty", func() {

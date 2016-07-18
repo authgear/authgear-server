@@ -17,11 +17,13 @@ package preprocessor
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/router"
 	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skydb/skydbtest"
 	"github.com/skygeario/skygear-server/skyerr"
 )
 
@@ -195,6 +197,111 @@ func TestInjectDatabaseProcessor(t *testing.T) {
 			So(resp.Err, ShouldBeNil)
 			So(payload.Database.DatabaseType(), ShouldEqual, skydb.PrivateDatabase)
 			So(payload.Database.ID(), ShouldEqual, "alice")
+		})
+	})
+}
+
+type injectUserPreprocessorAccessToken struct {
+	issuedAt time.Time
+}
+
+func (t injectUserPreprocessorAccessToken) IssuedAt() time.Time {
+	return t.issuedAt
+}
+
+func TestInjectUserProcessor(t *testing.T) {
+	Convey("InjectUser", t, func() {
+		pp := InjectUserIfPresent{}
+		conn := skydbtest.NewMapConn()
+
+		withoutTokenValidSince := skydb.UserInfo{
+			ID:       "userid1",
+			Username: "username1",
+			Email:    "username1@example.com",
+		}
+		So(conn.CreateUser(&withoutTokenValidSince), ShouldBeNil)
+
+		pastTime := time.Now().Add(-1 * time.Hour)
+		withPastTokenValidSince := skydb.UserInfo{
+			ID:              "userid2",
+			Username:        "username2",
+			Email:           "username2@example.com",
+			TokenValidSince: &pastTime,
+		}
+		So(conn.CreateUser(&withPastTokenValidSince), ShouldBeNil)
+
+		futureTime := time.Now().Add(1 * time.Hour)
+		withFutureTokenValidSince := skydb.UserInfo{
+			ID:              "userid3",
+			Username:        "username3",
+			Email:           "username3@example.com",
+			TokenValidSince: &futureTime,
+		}
+		So(conn.CreateUser(&withFutureTokenValidSince), ShouldBeNil)
+
+		Convey("should inject user with access token", func() {
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				UserInfoID:  "userid1",
+				AccessToken: injectUserPreprocessorAccessToken{},
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(payload.UserInfo, ShouldResemble, &withoutTokenValidSince)
+		})
+
+		Convey("should inject user without access token", func() {
+			// Note: UserInfoID can be set by master key, hence without
+			// access token.
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				UserInfoID:  "userid1",
+				AccessToken: nil,
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(payload.UserInfo, ShouldResemble, &withoutTokenValidSince)
+		})
+
+		Convey("should inject user with valid issued time", func() {
+			payload := router.Payload{
+				Data:       map[string]interface{}{},
+				Meta:       map[string]interface{}{},
+				DBConn:     conn,
+				UserInfoID: "userid2",
+				AccessToken: injectUserPreprocessorAccessToken{
+					issuedAt: time.Now(),
+				},
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(payload.UserInfo, ShouldResemble, &withPastTokenValidSince)
+		})
+
+		Convey("should not inject user with invalid issued time", func() {
+			payload := router.Payload{
+				Data:       map[string]interface{}{},
+				Meta:       map[string]interface{}{},
+				DBConn:     conn,
+				UserInfoID: "userid3",
+				AccessToken: injectUserPreprocessorAccessToken{
+					issuedAt: time.Now(),
+				},
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusUnauthorized)
+			So(resp.Err.Code(), ShouldEqual, skyerr.AccessTokenNotAccepted)
 		})
 	})
 }

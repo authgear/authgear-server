@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/skygeario/skygear-server/skydb"
 	"github.com/skygeario/skygear-server/skyerr"
@@ -76,6 +77,15 @@ const (
 	MasterAccessKey
 )
 
+// AccessToken is an interface to access information about the Access Token
+// in the payload.
+type AccessToken interface {
+	// IssuedAt returns the time when the access token is issued. If the
+	// information is not available, the IsZero method of the
+	// returned time is true.
+	IssuedAt() time.Time
+}
+
 // Payload is for passing payload to the actual handler
 type Payload struct {
 	// the raw http.Request of this payload
@@ -96,6 +106,12 @@ type Payload struct {
 	UserInfo   *skydb.UserInfo
 	AccessKey  AccessKeyType
 
+	// AccessToken stores access token for this payload.
+	//
+	// The field is injected by preprocessor. The field
+	// is nil if the AccessToken does not exist or is not valid.
+	AccessToken AccessToken
+
 	DBConn   skydb.Conn
 	Database skydb.Database
 }
@@ -112,9 +128,9 @@ func (p *Payload) APIKey() string {
 	return key
 }
 
-// AccessToken return the user input string
+// AccessTokenString return the user input string
 // TODO: accept all header, json payload, query string(in order)
-func (p *Payload) AccessToken() string {
+func (p *Payload) AccessTokenString() string {
 	var token interface{}
 	token = p.Data["access_token"]
 	switch token := token.(type) {

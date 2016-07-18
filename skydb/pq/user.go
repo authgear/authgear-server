@@ -17,16 +17,19 @@ package pq
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
+	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/skydb"
 )
 
 func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 	var (
-		username *string
-		email    *string
+		username        *string
+		email           *string
+		tokenValidSince *time.Time
 	)
 	if userinfo.Username != "" {
 		username = &userinfo.Username
@@ -38,6 +41,10 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 	} else {
 		email = nil
 	}
+	tokenValidSince = userinfo.TokenValidSince
+	if tokenValidSince != nil && tokenValidSince.IsZero() {
+		tokenValidSince = nil
+	}
 
 	builder := psql.Insert(c.tableName("_user")).Columns(
 		"id",
@@ -45,12 +52,14 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 		"email",
 		"password",
 		"auth",
+		"token_valid_since",
 	).Values(
 		userinfo.ID,
 		username,
 		email,
 		userinfo.HashedPassword,
-		authInfoValue(userinfo.Auth),
+		authInfoValue{userinfo.Auth, true},
+		tokenValidSince,
 	)
 
 	_, err = c.ExecWith(builder)
@@ -66,8 +75,9 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 
 func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 	var (
-		username *string
-		email    *string
+		username        *string
+		email           *string
+		tokenValidSince *time.Time
 	)
 	if userinfo.Username != "" {
 		username = &userinfo.Username
@@ -79,12 +89,17 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 	} else {
 		email = nil
 	}
+	tokenValidSince = userinfo.TokenValidSince
+	if tokenValidSince != nil && tokenValidSince.IsZero() {
+		tokenValidSince = nil
+	}
 
 	builder := psql.Update(c.tableName("_user")).
 		Set("username", username).
 		Set("email", email).
 		Set("password", userinfo.HashedPassword).
-		Set("auth", authInfoValue(userinfo.Auth)).
+		Set("auth", authInfoValue{userinfo.Auth, true}).
+		Set("token_valid_since", tokenValidSince).
 		Where("id = ?", userinfo.ID)
 
 	result, err := c.ExecWith(builder)
@@ -108,7 +123,7 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 }
 
 func (c *conn) baseUserBuilder() sq.SelectBuilder {
-	return psql.Select("id", "username", "email", "password", "auth",
+	return psql.Select("id", "username", "email", "password", "auth", "token_valid_since",
 		"array_to_json(array_agg(role_id)) AS roles").
 		From(c.tableName("_user")).
 		LeftJoin(c.tableName("_user_role") + " ON id = user_id").
@@ -117,10 +132,11 @@ func (c *conn) baseUserBuilder() sq.SelectBuilder {
 
 func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error {
 	var (
-		id       string
-		username sql.NullString
-		email    sql.NullString
-		roles    nullJSONStringSlice
+		id              string
+		username        sql.NullString
+		email           sql.NullString
+		tokenValidSince pq.NullTime
+		roles           nullJSONStringSlice
 	)
 	password, auth := []byte{}, authInfoValue{}
 
@@ -130,6 +146,7 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 		&email,
 		&password,
 		&auth,
+		&tokenValidSince,
 		&roles,
 	)
 	if err != nil {
@@ -143,7 +160,12 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 	userinfo.Username = username.String
 	userinfo.Email = email.String
 	userinfo.HashedPassword = password
-	userinfo.Auth = skydb.AuthInfo(auth)
+	userinfo.Auth = auth.AuthInfo
+	if tokenValidSince.Valid {
+		userinfo.TokenValidSince = &tokenValidSince.Time
+	} else {
+		userinfo.TokenValidSince = nil
+	}
 	userinfo.Roles = roles.slice
 
 	return err

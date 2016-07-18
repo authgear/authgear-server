@@ -163,8 +163,12 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	}
 
 	// generate access-token
-	token := store.NewToken(payload.AppName, info.ID)
-	if err := store.Put(&token); err != nil {
+	token, err := store.NewToken(payload.AppName, info.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = store.Put(&token); err != nil {
 		panic(err)
 	}
 
@@ -305,8 +309,12 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	}
 
 	// generate access-token
-	token := store.NewToken(payload.AppName, info.ID)
-	if err := store.Put(&token); err != nil {
+	token, err := store.NewToken(payload.AppName, info.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = store.Put(&token); err != nil {
 		panic(err)
 	}
 
@@ -339,7 +347,7 @@ func (h *LogoutHandler) GetPreprocessors() []router.Processor {
 
 func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Response) {
 	store := h.TokenStore
-	accessToken := payload.AccessToken()
+	accessToken := payload.AccessTokenString()
 
 	var err error
 
@@ -461,7 +469,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 	}
 	response.Result = authResponse{
 		UserID:      info.ID,
-		AccessToken: payload.AccessToken(),
+		AccessToken: payload.AccessTokenString(),
 	}
 }
 

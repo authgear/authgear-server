@@ -15,6 +15,8 @@
 package skydb
 
 import (
+	"time"
+
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/skygeario/skygear-server/utils"
@@ -40,12 +42,13 @@ type AuthInfo map[string]map[string]interface{}
 
 // UserInfo contains a user's information for authentication purpose
 type UserInfo struct {
-	ID             string   `json:"_id"`
-	Username       string   `json:"username,omitempty"`
-	Email          string   `json:"email,omitempty"`
-	HashedPassword []byte   `json:"password,omitempty"`
-	Roles          []string `json:"roles,omitempty"`
-	Auth           AuthInfo `json:"auth,omitempty"` // auth data for alternative methods
+	ID              string     `json:"_id"`
+	Username        string     `json:"username,omitempty"`
+	Email           string     `json:"email,omitempty"`
+	HashedPassword  []byte     `json:"password,omitempty"`
+	Roles           []string   `json:"roles,omitempty"`
+	Auth            AuthInfo   `json:"auth,omitempty"` // auth data for alternative methods
+	TokenValidSince *time.Time `json:"token_valid_since,omitempty"`
 }
 
 // NewUserInfo returns a new UserInfo with specified username, email and
@@ -90,6 +93,11 @@ func (info *UserInfo) SetPassword(password string) {
 	}
 
 	info.HashedPassword = hashedPassword
+
+	// Changing the password will also update the time before which issued
+	// access token should be invalidated.
+	timeNow := time.Now()
+	info.TokenValidSince = &timeNow
 }
 
 // IsSamePassword determines whether the specified password is the same

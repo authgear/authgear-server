@@ -58,6 +58,7 @@ type Configuration struct {
 		Path     string `json:"path"`
 		Prefix   string `json:"prefix"`
 		Expiry   int64  `json:"expiry"`
+		Secret   string `json:"secret"`
 	} `json:"-"`
 	AssetStore struct {
 		ImplName string `json:"implementation"`
@@ -240,6 +241,13 @@ func (config *Configuration) readTokenStore() {
 		if err == nil {
 			config.TokenStore.Expiry = expiry
 		}
+	}
+
+	tokenStoreSecret := os.Getenv("TOKEN_STORE_SECRET")
+	if tokenStoreSecret != "" {
+		config.TokenStore.Secret = tokenStoreSecret
+	} else {
+		config.TokenStore.Secret = config.App.MasterKey
 	}
 }
 

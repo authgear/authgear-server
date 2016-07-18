@@ -14,6 +14,11 @@
 			"Rev": "74bde9ea4c5b2c78995da8ed56d37e75644dc941"
 		},
 		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v3.0.0-4-g01aeca5",
+			"Rev": "01aeca54ebda6e0fbfafd0a524d234159c05ec20"
+		},
+		{
 			"ImportPath": "github.com/evalphobia/logrus_sentry",
 			"Comment": "v0.1.0-5-gd265708",
 			"Rev": "d265708c9c877d2f458e673f0af437a0529baee9"

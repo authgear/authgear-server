@@ -26,8 +26,8 @@ type SingleTokenStore struct {
 	Token *authtoken.Token
 }
 
-func (s *SingleTokenStore) NewToken(appName string, userInfoID string) authtoken.Token {
-	return authtoken.New(appName, userInfoID, time.Time{})
+func (s *SingleTokenStore) NewToken(appName string, userInfoID string) (authtoken.Token, error) {
+	return authtoken.New(appName, userInfoID, time.Time{}), nil
 }
 
 func (s *SingleTokenStore) Get(accessToken string, token *authtoken.Token) error {

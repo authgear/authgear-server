@@ -89,6 +89,12 @@ func TestSetPassword(t *testing.T) {
 	if err != nil {
 		t.Fatalf("got err = %v, want nil", err)
 	}
+	if info.TokenValidSince == nil {
+		t.Fatalf("got info.TokenValidSince = nil, want non-nil")
+	}
+	if info.TokenValidSince.IsZero() {
+		t.Fatalf("got info.TokenValidSince.IsZero = true, want false")
+	}
 }
 
 func TestIsSamePassword(t *testing.T) {

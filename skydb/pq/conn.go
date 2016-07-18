@@ -30,20 +30,20 @@ import (
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-type userInfo struct {
-	ID             string        `db:"id"`
-	Email          string        `db:"email"`
-	HashedPassword []byte        `db:"password"`
-	Auth           authInfoValue `db:"auth"`
-}
-
 // authInfoValue implements sql.Valuer and sql.Scanner s.t.
 // skydb.AuthInfo can be saved into and recovered from postgresql
-type authInfoValue skydb.AuthInfo
+type authInfoValue struct {
+	AuthInfo skydb.AuthInfo
+	Valid    bool
+}
 
 func (auth authInfoValue) Value() (driver.Value, error) {
+	if !auth.Valid {
+		return nil, nil
+	}
+
 	b := bytes.Buffer{}
-	if err := json.NewEncoder(&b).Encode(auth); err != nil {
+	if err := json.NewEncoder(&b).Encode(auth.AuthInfo); err != nil {
 		return nil, err
 	}
 
@@ -57,10 +57,14 @@ func (auth *authInfoValue) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		fmt.Errorf("skydb: unsupported Scan pair: %T -> %T", value, auth)
+		fmt.Errorf("skydb: unsupported Scan pair: %T -> %T", value, auth.AuthInfo)
 	}
 
-	return json.Unmarshal(b, auth)
+	err := json.Unmarshal(b, &auth.AuthInfo)
+	if err == nil {
+		auth.Valid = true
+	}
+	return err
 }
 
 // Ext is an interface for both sqlx.DB and sqlx.Tx

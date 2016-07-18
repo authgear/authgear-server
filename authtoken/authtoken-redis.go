@@ -53,19 +53,24 @@ func NewRedisStore(address string, prefix string, expiry int64) *RedisStore {
 type RedisToken struct {
 	AccessToken string `redis:"accessToken"`
 	ExpiredAt   int64  `redis:"expiredAt"`
+	IssuedAt    int64  `redis:"issuedAt"`
 	AppName     string `redis:"appName"`
 	UserInfoID  string `redis:"userInfoID"`
 }
 
 // ToRedisToken converts an auth token to RedisToken
 func (t Token) ToRedisToken() *RedisToken {
-	var expireAt int64
+	var expireAt, issuedAt int64
 	if !t.ExpiredAt.IsZero() {
 		expireAt = t.ExpiredAt.UnixNano()
+	}
+	if !t.issuedAt.IsZero() {
+		issuedAt = t.issuedAt.UnixNano()
 	}
 	return &RedisToken{
 		t.AccessToken,
 		expireAt,
+		issuedAt,
 		t.AppName,
 		t.UserInfoID,
 	}
@@ -77,21 +82,27 @@ func (r RedisToken) ToToken() *Token {
 	if r.ExpiredAt != 0 {
 		expireAt = time.Unix(0, r.ExpiredAt).UTC()
 	}
+	issuedAt := time.Time{}
+	if r.IssuedAt != 0 {
+		issuedAt = time.Unix(0, r.IssuedAt).UTC()
+	}
 	return &Token{
 		r.AccessToken,
 		expireAt,
 		r.AppName,
 		r.UserInfoID,
+		issuedAt,
 	}
 }
 
 // NewToken creates a new token for this token store.
-func (r *RedisStore) NewToken(appName string, userInfoID string) Token {
+func (r *RedisStore) NewToken(appName string, userInfoID string) (Token, error) {
 	var expireAt time.Time
 	if r.expiry > 0 {
 		expireAt = time.Now().Add(time.Duration(r.expiry) * time.Second)
 	}
-	return New(appName, userInfoID, expireAt)
+	return New(appName, userInfoID, expireAt), nil
+
 }
 
 // Get tries to read the specified access token from redis store and
