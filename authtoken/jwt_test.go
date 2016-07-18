@@ -9,12 +9,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestStatelessStore(t *testing.T) {
-	Convey("StatelessStore", t, func() {
-		store := NewStatelessStore("secret", 0)
+func TestJWTStore(t *testing.T) {
+	Convey("JWTStore", t, func() {
+		store := NewJWTStore("secret", 0)
 
 		Convey("should panic without secret", func() {
-			So(func() { NewStatelessStore("", 0) }, ShouldPanic)
+			So(func() { NewJWTStore("", 0) }, ShouldPanic)
 		})
 
 		Convey("should create new token", func() {

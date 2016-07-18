@@ -178,8 +178,8 @@ func InitTokenStore(config Configuration) Store {
 		store = NewFileStore(config.Path, config.Expiry)
 	case "redis":
 		store = NewRedisStore(config.Path, config.Prefix, config.Expiry)
-	case "stateless":
-		store = NewStatelessStore(config.Secret, config.Expiry)
+	case "jwt":
+		store = NewJWTStore(config.Secret, config.Expiry)
 	}
 	return store
 }

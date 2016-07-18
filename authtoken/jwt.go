@@ -22,19 +22,19 @@ import (
 	"github.com/skygeario/skygear-server/uuid"
 )
 
-// StatelessStore implements TokenStore by saving users' token
-// in a redis server
-type StatelessStore struct {
+// JWTStore implements TokenStore by encoding user information into
+// the access token string. This store does not keep state.
+type JWTStore struct {
 	secret string
 	expiry int64
 }
 
-// NewStatelessStore creates a stateless token store.
-func NewStatelessStore(secret string, expiry int64) *StatelessStore {
+// NewJWTStore creates a JWT token store.
+func NewJWTStore(secret string, expiry int64) *JWTStore {
 	if secret == "" {
-		panic("stateless store is not configured with a secret")
+		panic("jwt store is not configured with a secret")
 	}
-	store := StatelessStore{
+	store := JWTStore{
 		secret: secret,
 		expiry: expiry,
 	}
@@ -42,7 +42,7 @@ func NewStatelessStore(secret string, expiry int64) *StatelessStore {
 }
 
 // NewToken creates a new token for this token store.
-func (r *StatelessStore) NewToken(appName string, userInfoID string) (Token, error) {
+func (r *JWTStore) NewToken(appName string, userInfoID string) (Token, error) {
 	claims := jwt.StandardClaims{
 		Id:       uuid.New(),
 		IssuedAt: time.Now().Unix(),
@@ -66,9 +66,9 @@ func (r *StatelessStore) NewToken(appName string, userInfoID string) (Token, err
 	return token, nil
 }
 
-// Get tries to read the specified access token from redis store and
-// writes to the supplied Token.
-func (r *StatelessStore) Get(accessToken string, token *Token) error {
+// Get decodes and verifies the access token for user information. It returns
+// the access token containing information about the user.
+func (r *JWTStore) Get(accessToken string, token *Token) error {
 	claims := jwt.StandardClaims{}
 	jwtToken, err := jwt.ParseWithClaims(accessToken, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -89,7 +89,7 @@ func (r *StatelessStore) Get(accessToken string, token *Token) error {
 	return nil
 }
 
-func (r *StatelessStore) setTokenFromClaims(claims jwt.StandardClaims, token *Token) {
+func (r *JWTStore) setTokenFromClaims(claims jwt.StandardClaims, token *Token) {
 	if claims.ExpiresAt > 0 {
 		token.ExpiredAt = time.Unix(claims.ExpiresAt, 0)
 	} else {
@@ -104,12 +104,12 @@ func (r *StatelessStore) setTokenFromClaims(claims jwt.StandardClaims, token *To
 	token.UserInfoID = claims.Subject
 }
 
-// Put does nothing because the stateless token store does not store token.
-func (r *StatelessStore) Put(token *Token) error {
+// Put does nothing because the JWT token store does not store token.
+func (r *JWTStore) Put(token *Token) error {
 	return nil
 }
 
-// Delete does nothing because the stateless token store does not store token.
-func (r *StatelessStore) Delete(accessToken string) error {
+// Delete does nothing because the JWT token store does not store token.
+func (r *JWTStore) Delete(accessToken string) error {
 	return nil
 }
