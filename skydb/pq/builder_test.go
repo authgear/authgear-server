@@ -90,6 +90,20 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 	})
 }
 
+func TestNotSqlizer(t *testing.T) {
+	Convey("NotSqlizer", t, func() {
+		Convey("should generate not predicate", func() {
+			sqlizer := &NotSqlizer{
+				&expressionSqlizer{"table", skydb.Expression{skydb.Literal, false}},
+			}
+			sql, args, err := sqlizer.ToSql()
+			So(sql, ShouldEqual, "NOT (?)")
+			So(args, ShouldResemble, []interface{}{false})
+			So(err, ShouldBeNil)
+		})
+	})
+}
+
 func TestAccessPredicateSqlizer(t *testing.T) {
 	Convey("access Predicate", t, func() {
 		Convey("serialized for direct ACE", func() {

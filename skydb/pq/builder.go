@@ -623,8 +623,9 @@ type NotSqlizer struct {
 func (s NotSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	sql, args, err = s.Predicate.ToSql()
 	if err != nil {
-		sql = fmt.Sprintf("NOT (%s)", sql)
+		return
 	}
+	sql = fmt.Sprintf("NOT (%s)", sql)
 	return
 }
 
