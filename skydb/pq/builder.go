@@ -23,6 +23,7 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 // predicateSqlizerFactory is a factory for creating sqlizer for predicate
@@ -188,11 +189,40 @@ func (f *predicateSqlizerFactory) newComparisonPredicateSqlizer(p skydb.Predicat
 }
 
 func (f *predicateSqlizerFactory) newExpressionSqlizer(expr skydb.Expression) (expressionSqlizer, error) {
+	if expr.IsKeyPath() {
+		return f.newExpressionSqlizerForKeyPath(expr)
+	}
+
 	sqlizer := expressionSqlizer{
 		f.primaryTable,
 		expr,
 	}
+
 	return sqlizer, nil
+}
+
+func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expression) (expressionSqlizer, error) {
+	if !expr.IsKeyPath() {
+		panic("expression is not a key path")
+	}
+
+	components := expr.KeyPathComponents()
+	schema, err := f.db.remoteColumnTypes(f.primaryTable)
+	if err != nil {
+		return expressionSqlizer{}, skyerr.NewErrorf(skyerr.InternalQueryInvalid,
+			`record type "%s" does not exist`, f.primaryTable)
+	}
+
+	if len(components) == 1 {
+		firstComponent := components[0]
+		_, ok := schema[firstComponent]
+		if !ok {
+			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.InternalQueryInvalid,
+				`keypath "%s" does not exist`, expr.Value.(string))
+		}
+	}
+
+	return expressionSqlizer{f.primaryTable, expr}, nil
 }
 
 // createLeftJoin create an alias of a table to be joined to the primary table

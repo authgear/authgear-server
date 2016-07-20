@@ -1091,7 +1091,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	results, err := db.Query(&p.Query)
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 	defer results.Close()

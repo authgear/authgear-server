@@ -16,6 +16,7 @@ package skydb
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/skygeario/skygear-server/skyerr"
 )
@@ -153,6 +154,14 @@ func (expr Expression) IsLiteralNull() bool {
 	}
 
 	return expr.Value == nil
+}
+
+func (expr Expression) KeyPathComponents() []string {
+	if expr.Type != KeyPath {
+		panic("expression is not a keypath")
+	}
+
+	return strings.Split(expr.Value.(string), ".")
 }
 
 // Predicate is a representation of used in query for filtering records.
