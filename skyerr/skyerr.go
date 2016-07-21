@@ -193,8 +193,16 @@ func newNotFoundErr(code ErrorCode, message string) Error {
 	return NewError(code, message)
 }
 
-// NewUnknownErr returns a new UnknownError
-func NewUnknownErr(err error) Error {
+// MakeError returns an Error interface with the specified error. If the
+// specified error already implements the Error interface, the specified error
+// is returned.
+//
+// For specified error of other kinds, the returned error always have code
+// `UnexpectedError`.
+func MakeError(err error) Error {
+	if skyError, ok := err.(Error); ok {
+		return skyError
+	}
 	return NewError(UnexpectedError, err.Error())
 }
 

@@ -63,7 +63,7 @@ func (h *LambdaHandler) GetPreprocessors() []router.Processor {
 func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Response) {
 	inbytes, err := json.Marshal(payload.Data)
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Respons
 		case skyerr.Error:
 			response.Err = e
 		case error:
-			response.Err = skyerr.NewUnknownErr(err)
+			response.Err = skyerr.MakeError(err)
 		}
 		return
 	}
@@ -81,7 +81,7 @@ func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Respons
 	result := map[string]interface{}{}
 	err = json.Unmarshal(outbytes, &result)
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 	log.WithFields(log.Fields{

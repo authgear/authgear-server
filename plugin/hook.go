@@ -38,7 +38,7 @@ func CreateHookFunc(p *Plugin, hookInfo pluginHookInfo) hook.Func {
 			return pluginError
 		}
 
-		return skyerr.NewUnknownErr(err)
+		return skyerr.MakeError(err)
 	}
 	if hookInfo.Async {
 		return func(ctx context.Context, record *skydb.Record, oldRecord *skydb.Record) skyerr.Error {

@@ -63,7 +63,7 @@ func (h *UserQueryHandler) GetPreprocessors() []router.Processor {
 func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Response) {
 	adminRoles, err := payload.DBConn.GetAdminRoles()
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 
@@ -87,7 +87,7 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 
 	userinfos, err := payload.DBConn.QueryUser(qp.Emails)
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 
@@ -182,7 +182,7 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 	payload.DBConn.GetUser(p.ID, targetUserinfo)
 	adminRoles, err := payload.DBConn.GetAdminRoles()
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 	if userinfo.HasAnyRoles(adminRoles) || payload.HasMasterKey() {
@@ -199,7 +199,7 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	if err := payload.DBConn.UpdateUser(targetUserinfo); err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 	response.Result = struct {
@@ -310,7 +310,7 @@ func (h *UserLinkHandler) Handle(payload *router.Payload, response *router.Respo
 	} else if err == nil && info.ID != payload.UserInfo.ID {
 		info.RemoveProvidedAuthData(principalID)
 		if err := payload.DBConn.UpdateUser(&info); err != nil {
-			response.Err = skyerr.NewUnknownErr(err)
+			response.Err = skyerr.MakeError(err)
 			return
 		}
 	}
@@ -318,7 +318,7 @@ func (h *UserLinkHandler) Handle(payload *router.Payload, response *router.Respo
 	payload.UserInfo.SetProvidedAuthData(principalID, authData)
 
 	if err := payload.DBConn.UpdateUser(payload.UserInfo); err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 }

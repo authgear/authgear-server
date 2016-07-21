@@ -178,7 +178,7 @@ func (h *AssetUploadURLHandler) Handle(payload *router.Payload, response *router
 
 	written, tempFile, err := copyToTempFile(payload.Req.Body)
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 	defer func() {
@@ -193,7 +193,7 @@ func (h *AssetUploadURLHandler) Handle(payload *router.Payload, response *router
 
 	assetStore := h.AssetStore
 	if err := assetStore.PutFileReader(fileName, tempFile, written, contentType); err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 

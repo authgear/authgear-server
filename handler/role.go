@@ -88,7 +88,7 @@ func (h *RoleDefaultHandler) Handle(rpayload *router.Payload, response *router.R
 
 	err := rpayload.DBConn.SetDefaultRoles(payload.Roles)
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 	}
 	response.Result = payload.Roles
 }
@@ -142,7 +142,7 @@ func (h *RoleAdminHandler) Handle(rpayload *router.Payload, response *router.Res
 
 	err := rpayload.DBConn.SetAdminRoles(payload.Roles)
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 	}
 	response.Result = payload.Roles
 }
