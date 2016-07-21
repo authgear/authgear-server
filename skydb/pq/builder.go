@@ -209,7 +209,7 @@ func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expr
 	components := expr.KeyPathComponents()
 	schema, err := f.db.remoteColumnTypes(f.primaryTable)
 	if err != nil {
-		return expressionSqlizer{}, skyerr.NewErrorf(skyerr.InternalQueryInvalid,
+		return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
 			`record type "%s" does not exist`, f.primaryTable)
 	}
 
@@ -217,7 +217,7 @@ func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expr
 		firstComponent := components[0]
 		_, ok := schema[firstComponent]
 		if !ok {
-			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.InternalQueryInvalid,
+			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
 				`keypath "%s" does not exist`, expr.Value.(string))
 		}
 	}

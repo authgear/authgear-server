@@ -119,6 +119,11 @@ const (
 	// PluginTimeout occurs when an operation carried by a plugin is timed out
 	PluginTimeout
 
+	// QueryInvalid is returned when information contained in a record query
+	// is not valid. Examples include referencing keypath that is invalid, and
+	// unsupported comparison.
+	RecordQueryInvalid
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )

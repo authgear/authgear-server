@@ -63,7 +63,7 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 			)
 			builderError, ok := err.(skyerr.Error)
 			So(ok, ShouldBeTrue)
-			So(builderError.Code(), ShouldEqual, skyerr.InternalQueryInvalid)
+			So(builderError.Code(), ShouldEqual, skyerr.RecordQueryInvalid)
 		})
 	})
 

@@ -43,6 +43,7 @@ func defaultStatusCode(err skyerr.Error) int {
 		skyerr.NotImplemented:          http.StatusNotImplemented,
 		skyerr.PluginUnavailable:       http.StatusServiceUnavailable,
 		skyerr.PluginTimeout:           http.StatusGatewayTimeout,
+		skyerr.RecordQueryInvalid:      http.StatusBadRequest,
 	}[err.Code()]
 	if !ok {
 		if err.Code() < 10000 {
