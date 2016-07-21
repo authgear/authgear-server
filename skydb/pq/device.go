@@ -62,16 +62,18 @@ func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
 	defer rows.Close()
 	results := []skydb.Device{}
 	for rows.Next() {
+		var nullToken sql.NullString
 		d := skydb.Device{}
 		if err := rows.Scan(
 			&d.ID,
 			&d.Type,
-			&d.Token,
+			&nullToken,
 			&d.UserInfoID,
 			&d.LastRegisteredAt); err != nil {
 
 			panic(err)
 		}
+		d.Token = nullToken.String
 		d.LastRegisteredAt = d.LastRegisteredAt.UTC()
 		results = append(results, d)
 	}

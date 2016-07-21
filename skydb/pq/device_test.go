@@ -302,13 +302,29 @@ func TestDevice(t *testing.T) {
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
 
+			device = skydb.Device{
+				ID:               "device2",
+				Type:             "android",
+				Token:            "",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+			So(c.SaveDevice(&device), ShouldBeNil)
+
 			devices, err := c.QueryDevicesByUser("userid")
 			So(err, ShouldBeNil)
-			So(len(devices), ShouldEqual, 1)
+			So(len(devices), ShouldEqual, 2)
 			So(devices[0], ShouldResemble, skydb.Device{
 				ID:               "device",
 				Type:             "ios",
 				Token:            "devicetoken",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			})
+			So(devices[1], ShouldResemble, skydb.Device{
+				ID:               "device2",
+				Type:             "android",
+				Token:            "",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
