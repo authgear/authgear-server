@@ -194,22 +194,43 @@ func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expr
 	}
 
 	components := expr.KeyPathComponents()
-	schema, err := f.db.remoteColumnTypes(f.primaryTable)
-	if err != nil {
+	keyPath := expr.Value.(string)
+	if len(components) > 2 {
 		return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
-			`record type "%s" does not exist`, f.primaryTable)
+			`keypath "%s" with more than 2 components is not supported`, keyPath)
 	}
 
-	if len(components) == 1 {
-		firstComponent := components[0]
-		_, ok := schema[firstComponent]
+	alias := f.primaryTable
+	recordType := f.primaryTable
+	for i, component := range components {
+		isLast := (i == len(components)-1)
+
+		schema, err := f.db.remoteColumnTypes(recordType)
+		if err != nil {
+			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
+				`record type "%s" does not exist`, recordType)
+		}
+
+		field, ok := schema[component]
 		if !ok {
 			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
-				`keypath "%s" does not exist`, expr.Value.(string))
+				`keypath "%s" does not exist`, keyPath)
+		}
+
+		if field.Type != skydb.TypeReference && !isLast {
+			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
+				`field "%s" in keypath "%s" is not a reference`, component, keyPath)
+		}
+
+		if field.Type == skydb.TypeReference && !isLast {
+			// follow the keypath and join the table
+			alias = f.createLeftJoin(field.ReferenceType, component, "_id")
+			recordType = field.ReferenceType
+			continue
 		}
 	}
 
-	return expressionSqlizer{f.primaryTable, expr}, nil
+	return expressionSqlizer{alias, expr}, nil
 }
 
 // createLeftJoin create an alias of a table to be joined to the primary table
@@ -518,7 +539,9 @@ type expressionSqlizer struct {
 func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	switch expr.Type {
 	case skydb.KeyPath:
-		sql = fullQuoteIdentifier(expr.alias, expr.Value.(string))
+		components := expr.KeyPathComponents()
+		lastComponent := components[len(components)-1]
+		sql = fullQuoteIdentifier(expr.alias, lastComponent)
 		args = []interface{}{}
 	case skydb.Function:
 		sql, args = funcToSQLOperand(expr.alias, expr.Value.(skydb.Func))

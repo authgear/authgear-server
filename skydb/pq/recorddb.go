@@ -537,7 +537,7 @@ func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap s
 	case skydb.PublicDatabase:
 		fallthrough
 	case skydb.PrivateDatabase:
-		q = q.Where("_database_id = ?", db.userID)
+		q = q.Where(fmt.Sprintf(`%s."_database_id" = ?`, pq.QuoteIdentifier(recordType)), db.userID)
 	}
 	return q
 }

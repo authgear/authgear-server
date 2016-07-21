@@ -742,16 +742,22 @@ func TestQuery(t *testing.T) {
 		category1 := skydb.Record{
 			ID:      skydb.NewRecordID("category", "important"),
 			OwnerID: "user_id",
-			Data:    map[string]interface{}{},
+			Data: map[string]interface{}{
+				"hidden": false,
+			},
 		}
 		category2 := skydb.Record{
 			ID:      skydb.NewRecordID("category", "funny"),
 			OwnerID: "user_id",
-			Data:    map[string]interface{}{},
+			Data: map[string]interface{}{
+				"hidden": true,
+			},
 		}
 
 		db := c.PrivateDB("userid")
-		So(db.Extend("category", skydb.RecordSchema{}), ShouldBeNil)
+		So(db.Extend("category", skydb.RecordSchema{
+			"hidden": skydb.FieldType{Type: skydb.TypeBoolean},
+		}), ShouldBeNil)
 		So(db.Extend("note", skydb.RecordSchema{
 			"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 			"category": skydb.FieldType{
@@ -791,8 +797,32 @@ func TestQuery(t *testing.T) {
 			records, err := exhaustRows(db.Query(&query))
 
 			So(err, ShouldBeNil)
-			So(records[0], ShouldResemble, record2)
 			So(len(records), ShouldEqual, 1)
+			So(records[0], ShouldResemble, record2)
+		})
+
+		Convey("query records by comparing field in a referenced record", func() {
+			query := skydb.Query{
+				Type: "note",
+				Predicate: skydb.Predicate{
+					Operator: skydb.Equal,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "category.hidden",
+						},
+						skydb.Expression{
+							Type:  skydb.Literal,
+							Value: true,
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(len(records), ShouldEqual, 1)
+			So(records[0], ShouldResemble, record3)
 		})
 	})
 
