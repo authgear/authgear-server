@@ -123,6 +123,47 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 			So(args, ShouldResemble, []interface{}{})
 			So(err, ShouldBeNil)
 		})
+
+		Convey("keypath is in array of values", func() {
+			sqlizer, err := f.newComparisonPredicateSqlizer(skydb.Predicate{
+				skydb.In,
+				[]interface{}{
+					skydb.Expression{skydb.KeyPath, "content"},
+					skydb.Expression{skydb.Literal, []string{"hello", "world"}},
+				},
+			})
+			So(err, ShouldBeNil)
+			sql, args, err := sqlizer.ToSql()
+			So(sql, ShouldEqual, "\"note\".\"content\" IN ?")
+			So(args, ShouldResemble, []interface{}{[]string{"hello", "world"}})
+			So(err, ShouldBeNil)
+		})
+
+		Convey("non-existent keypath for equality", func() {
+			_, err := f.newComparisonPredicateSqlizer(skydb.Predicate{
+				skydb.Equal,
+				[]interface{}{
+					skydb.Expression{skydb.KeyPath, "wrong_title"},
+					skydb.Expression{skydb.Literal, "hello world"},
+				},
+			})
+			builderError, ok := err.(skyerr.Error)
+			So(ok, ShouldBeTrue)
+			So(builderError.Code(), ShouldEqual, skyerr.RecordQueryInvalid)
+		})
+
+		Convey("non-existent keypath is in array of values", func() {
+			_, err := f.newComparisonPredicateSqlizer(skydb.Predicate{
+				skydb.In,
+				[]interface{}{
+					skydb.Expression{skydb.KeyPath, "wrong_title"},
+					skydb.Expression{skydb.Literal, []string{"hello", "world"}},
+				},
+			})
+			builderError, ok := err.(skyerr.Error)
+			So(ok, ShouldBeTrue)
+			So(builderError.Code(), ShouldEqual, skyerr.RecordQueryInvalid)
+		})
 	})
 
 	Convey("Functional Predicate", t, func() {

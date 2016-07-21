@@ -45,9 +45,6 @@ func (f *predicateSqlizerFactory) newPredicateSqlizer(p skydb.Predicate) (sq.Sql
 	if p.Operator.IsCompound() {
 		return f.newCompoundPredicateSqlizer(p)
 	}
-	if p.Operator == skydb.In {
-		return f.newContainsComparisonPredicateSqlizer(p)
-	}
 	return f.newComparisonPredicateSqlizer(p)
 }
 
@@ -132,24 +129,15 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 		return nil, fmt.Errorf("user discover predicate can only be used on user record")
 	}
 
-	sqlizers := []sq.Sqlizer{}
+	var sqlizer sq.Sqlizer
 	// Only email is supported at the moment
-	sqlizers = append(sqlizers, &containsComparisonPredicateSqlizer{
-		f.createLeftJoin("_user", "_id", "id"),
-		skydb.Predicate{
-			Operator: skydb.In,
-			Children: []interface{}{
-				skydb.Expression{
-					Type:  skydb.KeyPath,
-					Value: "email",
-				},
-				skydb.Expression{
-					Type:  skydb.Literal,
-					Value: fn.ArgsByName("email"),
-				},
-			},
+	alias := f.createLeftJoin("_user", "_id", "id")
+	sqlizer = &containsComparisonPredicateSqlizer{
+		[]expressionSqlizer{
+			{alias, skydb.Expression{Type: skydb.KeyPath, Value: "email"}},
+			{alias, skydb.Expression{Type: skydb.Literal, Value: fn.ArgsByName("email")}},
 		},
-	})
+	}
 
 	f.addExtraColumn("_transient__email", skydb.TypeString, skydb.Expression{
 		Type:  skydb.Function,
@@ -161,7 +149,7 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 		Value: skydb.UserDataFunc{"username"},
 	})
 
-	return sqlizers[0], nil
+	return sqlizer, nil
 }
 
 func (f *predicateSqlizerFactory) newAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error) {
@@ -169,10 +157,6 @@ func (f *predicateSqlizerFactory) newAccessControlSqlizer(user *skydb.UserInfo, 
 		user,
 		aclLevel,
 	}, nil
-}
-
-func (f *predicateSqlizerFactory) newContainsComparisonPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
-	return &containsComparisonPredicateSqlizer{f.primaryTable, p}, nil
 }
 
 func (f *predicateSqlizerFactory) newComparisonPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
@@ -185,6 +169,9 @@ func (f *predicateSqlizerFactory) newComparisonPredicateSqlizer(p skydb.Predicat
 		sqlizers = append(sqlizers, sqlizer)
 	}
 
+	if p.Operator == skydb.In {
+		return &containsComparisonPredicateSqlizer{sqlizers}, nil
+	}
 	return &comparisonPredicateSqlizer{sqlizers, p.Operator}, nil
 }
 
@@ -372,14 +359,13 @@ func (p userRelationPredicateSqlizer) ToSql() (sql string, args []interface{}, e
 }
 
 type containsComparisonPredicateSqlizer struct {
-	alias string
-	skydb.Predicate
+	sqlizers []expressionSqlizer
 }
 
 func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	var buffer bytes.Buffer
-	lhs := expressionSqlizer{p.alias, p.Children[0].(skydb.Expression)}
-	rhs := expressionSqlizer{p.alias, p.Children[1].(skydb.Expression)}
+	lhs := p.sqlizers[0]
+	rhs := p.sqlizers[1]
 
 	if lhs.Type == skydb.Literal && rhs.Type == skydb.KeyPath {
 		buffer.WriteString(`jsonb_exists(`)
@@ -515,6 +501,15 @@ func (p *comparisonPredicateSqlizer) writeOperatorForNullOperand(buffer *bytes.B
 	return nil
 }
 
+// expressionSqlizer generates an SQL expression from a skydb.Expression. A SQL
+// expression are those found in SELECT clause or in the WHERE clause.
+//
+// In addition to generating literal value such as string (`"hello"`) or integer (`1`),
+// the expressionSqlizer can also generate expression for a column or a function.
+//
+// When expression is a column of a table, the `alias` field is required
+// and it is either the name of the table of the column, or a SQL alias of such
+// table.
 type expressionSqlizer struct {
 	alias string
 	skydb.Expression
