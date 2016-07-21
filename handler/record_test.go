@@ -2292,3 +2292,47 @@ func TestAtomicOperation(t *testing.T) {
 		})
 	})
 }
+
+func TestDeriveDeltaRecord(t *testing.T) {
+	Convey("DeriveDeltaRecord", t, func() {
+		Convey("set ACL when delta is non-nil", func() {
+			acl := skydb.RecordACL{
+				skydb.NewRecordACLEntryDirect("user0", skydb.WriteLevel),
+			}
+
+			dst := skydb.Record{}
+			base := skydb.Record{
+				ID:      skydb.NewRecordID("record", "id"),
+				OwnerID: "user0",
+			}
+			delta := skydb.Record{
+				ID:  skydb.NewRecordID("record", "id"),
+				ACL: acl,
+			}
+
+			deriveDeltaRecord(&dst, &base, &delta)
+
+			So(dst.ACL, ShouldResemble, acl)
+		})
+
+		Convey("preserve ACL when delta is nil", func() {
+			acl := skydb.RecordACL{
+				skydb.NewRecordACLEntryDirect("user0", skydb.WriteLevel),
+			}
+
+			dst := skydb.Record{}
+			base := skydb.Record{
+				ID:      skydb.NewRecordID("record", "id"),
+				OwnerID: "user0",
+				ACL:     acl,
+			}
+			delta := skydb.Record{
+				ID: skydb.NewRecordID("record", "id"),
+			}
+
+			deriveDeltaRecord(&dst, &base, &delta)
+
+			So(dst.ACL, ShouldResemble, acl)
+		})
+	})
+}
