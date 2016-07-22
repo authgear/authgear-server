@@ -119,6 +119,11 @@ const (
 	// PluginTimeout occurs when an operation carried by a plugin is timed out
 	PluginTimeout
 
+	// QueryInvalid is returned when information contained in a record query
+	// is not valid. Examples include referencing keypath that is invalid, and
+	// unsupported comparison.
+	RecordQueryInvalid
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )
@@ -193,8 +198,16 @@ func newNotFoundErr(code ErrorCode, message string) Error {
 	return NewError(code, message)
 }
 
-// NewUnknownErr returns a new UnknownError
-func NewUnknownErr(err error) Error {
+// MakeError returns an Error interface with the specified error. If the
+// specified error already implements the Error interface, the specified error
+// is returned.
+//
+// For specified error of other kinds, the returned error always have code
+// `UnexpectedError`.
+func MakeError(err error) Error {
+	if skyError, ok := err.(Error); ok {
+		return skyError
+	}
 	return NewError(UnexpectedError, err.Error())
 }
 

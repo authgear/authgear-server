@@ -16,6 +16,7 @@ package skydb
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/skygeario/skygear-server/skyerr"
 )
@@ -155,6 +156,14 @@ func (expr Expression) IsLiteralNull() bool {
 	return expr.Value == nil
 }
 
+func (expr Expression) KeyPathComponents() []string {
+	if expr.Type != KeyPath {
+		panic("expression is not a keypath")
+	}
+
+	return strings.Split(expr.Value.(string), ".")
+}
+
 // Predicate is a representation of used in query for filtering records.
 type Predicate struct {
 	Operator Operator
@@ -178,11 +187,11 @@ func (p Predicate) Validate() skyerr.Error {
 // in which the predicate is specified.
 func (p Predicate) validate(parentPredicate *Predicate) skyerr.Error {
 	if p.Operator.IsBinary() && len(p.Children) != 2 {
-		return skyerr.NewErrorf(skyerr.InternalQueryInvalid,
+		return skyerr.NewErrorf(skyerr.RecordQueryInvalid,
 			"binary predicate must have 2 operands, got %d", len(p.Children))
 	}
 	if p.Operator == Functional && len(p.Children) != 1 {
-		return skyerr.NewErrorf(skyerr.InternalQueryInvalid,
+		return skyerr.NewErrorf(skyerr.RecordQueryInvalid,
 			"functional predicate must have 1 operand, got %d", len(p.Children))
 	}
 
@@ -190,7 +199,7 @@ func (p Predicate) validate(parentPredicate *Predicate) skyerr.Error {
 		for _, child := range p.Children {
 			predicate, ok := child.(Predicate)
 			if !ok {
-				return skyerr.NewError(skyerr.InternalQueryInvalid,
+				return skyerr.NewError(skyerr.RecordQueryInvalid,
 					"children of compound predicate must be a predicate")
 			}
 
@@ -202,7 +211,7 @@ func (p Predicate) validate(parentPredicate *Predicate) skyerr.Error {
 		for _, child := range p.Children {
 			_, ok := child.(Expression)
 			if !ok {
-				return skyerr.NewError(skyerr.InternalQueryInvalid,
+				return skyerr.NewError(skyerr.RecordQueryInvalid,
 					"children of simple predicate must be an expression")
 			}
 		}
@@ -224,15 +233,15 @@ func (p Predicate) validateInPredicate(parentPredicate *Predicate) skyerr.Error 
 	rhs := p.Children[1].(Expression)
 
 	if lhs.IsKeyPath() == rhs.IsKeyPath() {
-		return skyerr.NewError(skyerr.InternalQueryInvalid,
+		return skyerr.NewError(skyerr.RecordQueryInvalid,
 			`either one of the operands of "IN" must be key path`)
 	}
 
 	if rhs.IsKeyPath() && !lhs.IsLiteralString() {
-		return skyerr.NewError(skyerr.InternalQueryInvalid,
+		return skyerr.NewError(skyerr.RecordQueryInvalid,
 			`left operand of "IN" must be a string if comparing with a keypath`)
 	} else if lhs.IsKeyPath() && !rhs.IsLiteralArray() {
-		return skyerr.NewError(skyerr.InternalQueryInvalid,
+		return skyerr.NewError(skyerr.RecordQueryInvalid,
 			`right operand of "IN" must be an array if comparing with a keypath`)
 	}
 	return nil
@@ -241,7 +250,7 @@ func (p Predicate) validateInPredicate(parentPredicate *Predicate) skyerr.Error 
 func (p Predicate) validateFunctionalPredicate(parentPredicate *Predicate) skyerr.Error {
 	expr := p.Children[0].(Expression)
 	if expr.Type != Function {
-		return skyerr.NewError(skyerr.InternalQueryInvalid,
+		return skyerr.NewError(skyerr.RecordQueryInvalid,
 			`functional predicate must contain functional expression`)
 	}
 

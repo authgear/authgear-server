@@ -98,7 +98,7 @@ func (h *Handler) Handle(payload *router.Payload, response *router.Response) {
 		case skyerr.Error:
 			response.Err = e
 		case error:
-			response.Err = skyerr.NewUnknownErr(err)
+			response.Err = skyerr.MakeError(err)
 		}
 		return
 	}

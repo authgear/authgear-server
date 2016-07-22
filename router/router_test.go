@@ -273,7 +273,7 @@ func TestPreprocess(t *testing.T) {
 
 		Convey("When preprocessor gives an skyerr preprocessor", func() {
 			mockPreprocessor.Status = http.StatusInternalServerError
-			mockPreprocessor.Err = skyerr.NewUnknownErr(errors.New("skyerr"))
+			mockPreprocessor.Err = skyerr.MakeError(errors.New("skyerr"))
 
 			r.ServeHTTP(resp, req)
 

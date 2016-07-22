@@ -1095,7 +1095,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	results, err := db.Query(&p.Query)
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 	defer results.Close()
@@ -1107,7 +1107,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	}
 
 	if results.Err() != nil {
-		response.Err = skyerr.NewUnknownErr(results.Err())
+		response.Err = skyerr.MakeError(results.Err())
 		return
 	}
 
@@ -1149,7 +1149,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	resultInfo, err := queryResultInfo(db, &p.Query, results)
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 	if len(resultInfo) > 0 {

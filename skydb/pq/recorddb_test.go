@@ -2008,7 +2008,10 @@ func TestUnsupportedQuery(t *testing.T) {
 		}
 
 		db := c.PublicDB()
-		So(db.Extend("record", nil), ShouldBeNil)
+		So(db.Extend("record", skydb.RecordSchema{
+			"categories":       skydb.FieldType{Type: skydb.TypeString},
+			"favoriteCategory": skydb.FieldType{Type: skydb.TypeString},
+		}), ShouldBeNil)
 		So(db.Save(&record0), ShouldBeNil)
 		So(db.Save(&record1), ShouldBeNil)
 

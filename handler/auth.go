@@ -287,7 +287,7 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		} else {
 			info.SetProvidedAuthData(principalID, authData)
 			if err := payload.DBConn.UpdateUser(&info); err != nil {
-				response.Err = skyerr.NewUnknownErr(err)
+				response.Err = skyerr.MakeError(err)
 				return
 			}
 		}
@@ -357,7 +357,7 @@ func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Respons
 		}
 	}
 	if err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 	} else {
 		response.Result = struct {
 			Status string `json:"status,omitempty"`
@@ -459,7 +459,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 	}
 	info.SetPassword(p.NewPassword)
 	if err := payload.DBConn.UpdateUser(&info); err != nil {
-		response.Err = skyerr.NewUnknownErr(err)
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 
@@ -530,5 +530,5 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.UserInfo) skyerr.Err
 		return err
 	}
 
-	return skyerr.NewUnknownErr(txErr)
+	return skyerr.MakeError(txErr)
 }
