@@ -90,7 +90,8 @@ type Configuration struct {
 		APIKey string `json:"api_key"`
 	} `json:"gcm"`
 	LOG struct {
-		Level string `json:"-"`
+		Level        string            `json:"-"`
+		LoggersLevel map[string]string `json:"-"`
 	} `json:"log"`
 	LogHook struct {
 		SentryDSN   string
@@ -118,6 +119,7 @@ func NewConfiguration() Configuration {
 	config.APNS.Env = "sandbox"
 	config.GCM.Enable = false
 	config.LOG.Level = "debug"
+	config.LOG.LoggersLevel = map[string]string{}
 	config.Plugin = map[string]*PluginConfig{}
 	return config
 }
@@ -343,6 +345,17 @@ func (config *Configuration) readLog() {
 	logLevel := os.Getenv("LOG_LEVEL")
 	if logLevel != "" {
 		config.LOG.Level = logLevel
+	}
+
+	for _, environ := range os.Environ() {
+		if !strings.HasPrefix(environ, "LOG_LEVEL_") {
+			continue
+		}
+
+		components := strings.SplitN(environ, "=", 2)
+		loggerName := strings.ToLower(strings.TrimPrefix(components[0], "LOG_LEVEL_"))
+		loggerLevel := components[1]
+		config.LOG.LoggersLevel[loggerName] = loggerLevel
 	}
 
 	sentry := os.Getenv("SENTRY_DSN")

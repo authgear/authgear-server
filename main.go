@@ -395,13 +395,22 @@ func initPlugin(config skyconfig.Configuration, initContext *plugin.InitContext)
 func initLogger(config skyconfig.Configuration) {
 	// Setup Logging
 	logging.SetOutput(os.Stderr)
-	level, err := logrus.ParseLevel(config.LOG.Level)
-	if err != nil {
+	if level, err := logrus.ParseLevel(config.LOG.Level); err == nil {
+		logging.SetLevel(level)
+	} else {
 		log.Warnf("log: error parsing config: %v", err)
 		log.Warnln("log: fall back to `debug`")
-		level = logrus.DebugLevel
+		logging.SetLevel(logrus.DebugLevel)
 	}
-	logging.SetLevel(level)
+
+	for loggerName, logger := range logging.Loggers() {
+		sanitized := strings.Replace(strings.ToLower(loggerName), ".", "_", -1)
+		if loggerLevel, ok := config.LOG.LoggersLevel[sanitized]; ok {
+			if level, err := logrus.ParseLevel(loggerLevel); err == nil {
+				logger.Level = level
+			}
+		}
+	}
 
 	if config.LogHook.SentryDSN != "" {
 		initSentry(config)
