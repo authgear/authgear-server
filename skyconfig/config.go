@@ -119,7 +119,9 @@ func NewConfiguration() Configuration {
 	config.APNS.Env = "sandbox"
 	config.GCM.Enable = false
 	config.LOG.Level = "debug"
-	config.LOG.LoggersLevel = map[string]string{}
+	config.LOG.LoggersLevel = map[string]string{
+		"plugin": "info",
+	}
 	config.Plugin = map[string]*PluginConfig{}
 	return config
 }
