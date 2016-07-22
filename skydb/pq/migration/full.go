@@ -25,7 +25,7 @@ func (r *fullMigration) Version() string { return "88a550bf579" }
 
 func (r *fullMigration) Up(tx *sqlx.Tx) error {
 	const stmt = `
-CREATE EXTENSION IF NOT EXISTS citext;
+CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
 CREATE TABLE IF NOT EXISTS public.pending_notification (
 	id SERIAL NOT NULL PRIMARY KEY,
 	op text NOT NULL,
