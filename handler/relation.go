@@ -15,8 +15,7 @@
 package handler
 
 import (
-	log "github.com/Sirupsen/logrus"
-
+	"github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/skygeario/skygear-server/router"
@@ -152,7 +151,7 @@ func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router
 	count, countErr := rpayload.DBConn.QueryRelationCount(
 		rpayload.UserInfoID, payload.Name, payload.Direction)
 	if countErr != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"err": countErr,
 		}).Warnf("Relation Count Query fails")
 		count = 0
@@ -258,7 +257,7 @@ func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.R
 		target := payload.Target[s]
 		err := rpayload.DBConn.AddRelation(rpayload.UserInfoID, payload.Name, target)
 		if err != nil {
-			log.WithFields(log.Fields{
+			log.WithFields(logrus.Fields{
 				"target": target,
 				"err":    err,
 			}).Debugln("failed to add relation")
@@ -329,7 +328,7 @@ func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *route
 		target := payload.Target[s]
 		err := rpayload.DBConn.RemoveRelation(rpayload.UserInfoID, payload.Name, target)
 		if err != nil {
-			log.WithFields(log.Fields{
+			log.WithFields(logrus.Fields{
 				"target": target,
 				"err":    err,
 			}).Debugln("failed to remmove user")

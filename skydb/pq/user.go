@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/skydb"

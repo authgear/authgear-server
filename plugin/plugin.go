@@ -20,14 +20,17 @@ import (
 	"net/http"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 
 	"github.com/robfig/cron"
+	"github.com/skygeario/skygear-server/logging"
 	"github.com/skygeario/skygear-server/plugin/hook"
 	"github.com/skygeario/skygear-server/plugin/provider"
 	"github.com/skygeario/skygear-server/router"
 	"github.com/skygeario/skygear-server/skyconfig"
 )
+
+var log = logging.LoggerEntry("plugin")
 
 // Plugin represents a collection of handlers, hooks and lambda functions
 // that extends or modifies functionality provided by skygear.
@@ -151,7 +154,7 @@ func (p *Plugin) Init(context *InitContext) {
 		return nil
 	})
 
-	log.WithFields(log.Fields{
+	log.WithFields(logrus.Fields{
 		"plugin": p,
 	}).Debugln("request plugin to return configuration")
 	go p.transport.RequestInit()
@@ -162,7 +165,7 @@ func (p *Plugin) IsReady() bool {
 }
 
 func (p *Plugin) processRegistrationInfo(context *InitContext, regInfo registrationInfo) {
-	log.WithFields(log.Fields{
+	log.WithFields(logrus.Fields{
 		"regInfo":   regInfo,
 		"transport": p.transport,
 	}).Debugln("Got configuration from pligin, registering")

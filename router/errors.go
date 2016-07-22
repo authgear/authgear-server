@@ -18,7 +18,6 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/skygeario/skygear-server/skyerr"
 )
 

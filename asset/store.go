@@ -29,8 +29,6 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
-
 	"gopkg.in/amz.v3/aws"
 	"gopkg.in/amz.v3/s3"
 )

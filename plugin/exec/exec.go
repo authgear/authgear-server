@@ -12,29 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package preprocessor
+package exec
 
 import (
-	"net/http"
-
-	"github.com/skygeario/skygear-server/router"
-	"github.com/skygeario/skygear-server/skyerr"
+	"github.com/skygeario/skygear-server/logging"
 )
 
-type DevOnlyProcessor struct {
-	DevMode bool
-}
-
-func (p DevOnlyProcessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	if payload.HasMasterKey() {
-		return http.StatusOK
-	}
-
-	if !p.DevMode {
-		log.Infof("Attempt to access dev only end-point")
-		response.Err = skyerr.NewError(skyerr.PermissionDenied,
-			"Attempt to access dev only end-point")
-		return http.StatusForbidden
-	}
-	return http.StatusOK
-}
+var log = logging.LoggerEntry("plugin")

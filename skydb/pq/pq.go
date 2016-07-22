@@ -21,13 +21,15 @@ import (
 	"regexp"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 
+	"github.com/skygeario/skygear-server/logging"
 	"github.com/skygeario/skygear-server/skydb"
 	"github.com/skygeario/skygear-server/skydb/pq/migration"
 )
+
+var log = logging.LoggerEntry("skydb")
 
 var underscoreRe = regexp.MustCompile(`[.:]`)
 

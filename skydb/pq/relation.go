@@ -18,7 +18,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
 	"github.com/skygeario/skygear-server/skydb"
 )

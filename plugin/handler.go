@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/router"
 	"github.com/skygeario/skygear-server/skyerr"
@@ -88,7 +88,7 @@ func (h *Handler) Handle(payload *router.Payload, response *router.Response) {
 	}
 
 	outbytes, err := h.Plugin.transport.RunHandler(payload.Context, h.Name, inbytes)
-	log.WithFields(log.Fields{
+	log.WithFields(logrus.Fields{
 		"name": h.Name,
 		"err":  err,
 	}).Debugf("Executed a handler with result")

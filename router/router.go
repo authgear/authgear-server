@@ -24,10 +24,12 @@ import (
 	"strings"
 	"sync"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/skygeario/skygear-server/logging"
 	"github.com/skygeario/skygear-server/skyerr"
 	"github.com/skygeario/skygear-server/skyversion"
 )
+
+var log = logging.LoggerEntry("router")
 
 // pipeline encapsulates a transformation which a request will come throught
 // from preprocessors to the actual handler. (and postprocessor later)

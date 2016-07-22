@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 
@@ -102,7 +102,7 @@ func (l *recordListener) Listen() {
 		eventCallback)
 
 	if err := listener.Listen(recordChangeChannel); err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"channel": recordChangeChannel,
 			"err":     err,
 		}).Errorln("pq/listener: got an err while trying to listen")
@@ -118,7 +118,7 @@ func (l *recordListener) Listen() {
 
 			n := notification{}
 			if err := l.fetchNotification(pqNotification.Extra, &n); err != nil {
-				log.WithFields(log.Fields{
+				log.WithFields(logrus.Fields{
 					"pqNotification": pqNotification,
 					"err":            err,
 				}).Errorln("pq/listener: failed to fetch notification")
@@ -145,7 +145,7 @@ func (l *recordListener) fetchNotification(notificationID string, n *notificatio
 	err := l.db.QueryRowx("SELECT op, appname, recordtype, record FROM public.pending_notification WHERE id = $1", notificationID).
 		StructScan(&rawNoti)
 	if err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"notificationID": notificationID,
 			"err":            err,
 		}).Errorln("Failed to fetch pending notification")
@@ -162,7 +162,7 @@ func (l *recordListener) fetchNotification(notificationID string, n *notificatio
 func (l *recordListener) deleteNotification(notificationID string) {
 	result, err := l.db.Exec("DELETE FROM public.pending_notification WHERE id = $1", notificationID)
 	if err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"notificationID": notificationID,
 			"err":            err,
 		}).Errorln("Failed to delete notification")
@@ -172,7 +172,7 @@ func (l *recordListener) deleteNotification(notificationID string) {
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"notificationID": notificationID,
 			"err":            err,
 			"rowsAffected":   rowsAffected,
@@ -182,7 +182,7 @@ func (l *recordListener) deleteNotification(notificationID string) {
 	}
 
 	if rowsAffected != 1 {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"notificationID": notificationID,
 			"rowsAffected":   rowsAffected,
 		}).Errorln("Zero or more than one notification deleted")

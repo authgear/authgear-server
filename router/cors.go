@@ -16,8 +16,6 @@ package router
 
 import (
 	"net/http"
-
-	log "github.com/Sirupsen/logrus"
 )
 
 type CORSMiddleware struct {

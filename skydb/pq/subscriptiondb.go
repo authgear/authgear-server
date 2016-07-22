@@ -23,7 +23,7 @@ import (
 	"reflect"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/skydb"
 )
@@ -245,7 +245,7 @@ func (db *database) DeleteSubscription(key string, deviceID string) error {
 
 func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions []skydb.Subscription) {
 	if db.DatabaseType() == skydb.UnionDatabase {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"user_id":  db.userID,
 			"deviceID": deviceID,
 		}).Errorln("GetSubscriptionsByDeviceID on union database is not implemented")
@@ -258,7 +258,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 	)
 
 	if err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"user_id":  db.userID,
 			"deviceID": deviceID,
 			"err":      err,
@@ -273,7 +273,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 		var nullinfo nullNotificationInfo
 		err := rows.Scan(&s.ID, &s.Type, &nullinfo, (*queryValue)(&s.Query))
 		if err != nil {
-			log.WithFields(log.Fields{
+			log.WithFields(logrus.Fields{
 				"userID":   db.userID,
 				"deviceID": deviceID,
 				"err":      err,
@@ -293,7 +293,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 	}
 
 	if rows.Err() != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"userID":   db.userID,
 			"deviceID": deviceID,
 			"err":      rows.Err(),
@@ -308,7 +308,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 
 func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscriptions []skydb.Subscription) {
 	if db.DatabaseType() == skydb.UnionDatabase {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"user_id": db.userID,
 		}).Errorln("GetMatchingSubscriptions on union database is not implemented")
 		return nil
@@ -319,7 +319,7 @@ func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscription
 
 	rows, err := db.c.QueryWith(builder)
 	if err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"record": record,
 			"userID": db.userID,
 			"err":    err,
@@ -355,7 +355,7 @@ func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscription
 	}
 
 	if rows.Err() != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"record": record,
 			"userID": db.userID,
 			"err":    rows.Err(),

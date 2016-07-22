@@ -17,8 +17,6 @@ package router
 import (
 	"net/http"
 	"regexp"
-
-	log "github.com/Sirupsen/logrus"
 )
 
 // pathRoute is the path matching version of pipeline. Instead of storing the action

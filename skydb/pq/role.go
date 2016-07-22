@@ -20,7 +20,6 @@ import (
 	"strconv"
 	"text/template"
 
-	log "github.com/Sirupsen/logrus"
 	sq "github.com/lann/squirrel"
 	"github.com/skygeario/skygear-server/skydb"
 	"github.com/skygeario/skygear-server/skyerr"
