@@ -25,7 +25,7 @@ The following examples assumed you had Homebrew and (homebrew-services|https://g
        Name    |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges
      limouren  | limouren | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
     ```
-* Now create a new database for Ourd
+* Now create a new database for Skygear
   * `createdb skygear`
 * Done!
 
@@ -70,7 +70,7 @@ skygear | skyuser  | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
 
 ## PostGIS
 
-Ourd uses PostGIS extension to handle geometry stroage and query.
+Skygear uses PostGIS extension to handle geometry stroage and query.
 
 *To install:*
 
@@ -84,10 +84,4 @@ $ brew install postgis
 
 ```shell
 $ sudo apt-get postgis-2.1
-```
-
-*To Enable:*
-
-```shell
-$ psql -c 'CREATE EXTENSION postgis;' -d skygear
 ```

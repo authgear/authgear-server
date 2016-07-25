@@ -26,6 +26,7 @@ func (r *revision_48b961caa) Version() string { return "48b961caa" }
 func (r *revision_48b961caa) Up(tx *sqlx.Tx) error {
 	stmts := []string{
 		`
+	    CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;
 	    CREATE TABLE IF NOT EXISTS public.pending_notification (
 	        id SERIAL NOT NULL PRIMARY KEY,
 	        op text NOT NULL,
