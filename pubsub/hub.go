@@ -16,8 +16,6 @@ package pubsub
 
 import (
 	"time"
-
-	log "github.com/Sirupsen/logrus"
 )
 
 // Parcel is the protocol that Hub talk with

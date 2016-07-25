@@ -17,9 +17,13 @@ package push
 import (
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/logging"
 	"github.com/skygeario/skygear-server/skydb"
 )
+
+var log = logging.LoggerEntry("push")
 
 // EmptyMapper is a Mapper which always returns a empty map.
 const EmptyMapper = emptyMapper(0)
@@ -79,7 +83,7 @@ func (s RouteSender) Len() int {
 func (s RouteSender) Send(m Mapper, device skydb.Device) error {
 	sender, ok := s.senders[device.Type]
 	if !ok {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"device":  device,
 			"message": m,
 		}).Errorln("No sender can send device of the Type")

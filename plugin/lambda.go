@@ -17,7 +17,7 @@ package plugin
 import (
 	"encoding/json"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/router"
 	"github.com/skygeario/skygear-server/skyerr"
@@ -84,7 +84,7 @@ func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Respons
 		response.Err = skyerr.MakeError(err)
 		return
 	}
-	log.WithFields(log.Fields{
+	log.WithFields(logrus.Fields{
 		"name":   h.Name,
 		"input":  payload.Data,
 		"result": result,

@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/zeromq/goczmq"
 )
 
@@ -60,7 +60,7 @@ type Broker struct {
 	// backend is plugin side
 	frontendAddr, backendAddr string
 	freshWorkers              chan []byte
-	logger                    *log.Entry
+	logger                    *logrus.Entry
 }
 
 // NewBroker returns a new *Broker.
@@ -70,7 +70,7 @@ func NewBroker(name, frontendAddr, backendAddr string) (*Broker, error) {
 		frontendAddr: frontendAddr,
 		backendAddr:  backendAddr,
 		freshWorkers: make(chan []byte, 1),
-		logger:       log.WithFields(log.Fields{"plugin": name}),
+		logger:       log.WithFields(logrus.Fields{"plugin": name}),
 	}, nil
 }
 

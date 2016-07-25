@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/RobotsAndPencils/buford/push"
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/skygeario/skygear-server/skydb"
 )
 
@@ -170,7 +170,7 @@ func (pusher *APNSPusher) checkFailedNotifications() {
 }
 
 func (pusher *APNSPusher) queueFailedNotification(deviceToken string, err push.Error) bool {
-	logger := log.WithFields(log.Fields{
+	logger := log.WithFields(logrus.Fields{
 		"deviceToken": deviceToken,
 	})
 	failed := pusher.failed
@@ -197,7 +197,7 @@ func (pusher *APNSPusher) handleFailedNotification(failedNote failedNotification
 }
 
 func (pusher *APNSPusher) unregisterDevice(deviceToken string, timestamp time.Time) {
-	logger := log.WithFields(log.Fields{
+	logger := log.WithFields(logrus.Fields{
 		"deviceToken": deviceToken,
 	})
 
@@ -218,7 +218,7 @@ func (pusher *APNSPusher) unregisterDevice(deviceToken string, timestamp time.Ti
 // Send sends a notification to the device identified by the
 // specified device
 func (pusher *APNSPusher) Send(m Mapper, device skydb.Device) error {
-	logger := log.WithFields(log.Fields{
+	logger := log.WithFields(logrus.Fields{
 		"deviceToken": device.Token,
 		"deviceID":    device.ID,
 		"apnsTopic":   pusher.topic,
@@ -248,7 +248,7 @@ func (pusher *APNSPusher) Send(m Mapper, device skydb.Device) error {
 	if err != nil {
 		if pushError, ok := err.(*push.Error); ok && pushError != nil {
 			// We recognize the error, and that error comes from APNS
-			logger.WithFields(log.Fields{
+			logger.WithFields(logrus.Fields{
 				"apnsErrorReason":    pushError.Reason,
 				"apnsErrorStatus":    pushError.Status,
 				"apnsErrorTimestamp": pushError.Timestamp,
@@ -261,7 +261,7 @@ func (pusher *APNSPusher) Send(m Mapper, device skydb.Device) error {
 		return err
 	}
 
-	logger.WithFields(log.Fields{
+	logger.WithFields(logrus.Fields{
 		"apnsID": apnsid,
 	}).Info("Sent push notification to APNS")
 	return nil

@@ -21,7 +21,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 
@@ -343,7 +343,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 			result = newSerializedError("", item)
 		case skydb.RecordID:
 			if err, ok := resp.ErrMap[item]; ok {
-				log.WithFields(log.Fields{
+				log.WithFields(logrus.Fields{
 					"recordID": item,
 					"err":      err,
 				}).Debugln("failed to save record")
@@ -745,7 +745,7 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 	for key, value := range m {
 		switch value.(type) {
 		default:
-			log.WithFields(log.Fields{
+			log.WithFields(logrus.Fields{
 				"key":   key,
 				"value": value,
 			}).Panicf("got unrecgonized type = %T", value)
@@ -889,7 +889,7 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 					skyerr.NewError(skyerr.ResourceNotFound, "record not found"),
 				)
 			} else {
-				log.WithFields(log.Fields{
+				log.WithFields(logrus.Fields{
 					"recordID": recordID,
 					"err":      err,
 				}).Errorln("Failed to fetch record")
@@ -1280,7 +1280,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		var result interface{}
 
 		if err, ok := resp.ErrMap[recordID]; ok {
-			log.WithFields(log.Fields{
+			log.WithFields(logrus.Fields{
 				"recordID": recordID,
 				"err":      err,
 			}).Debugln("failed to delete record")

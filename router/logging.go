@@ -22,8 +22,6 @@ import (
 	"net"
 	"net/http"
 	"strings"
-
-	log "github.com/Sirupsen/logrus"
 )
 
 type responseLogger struct {

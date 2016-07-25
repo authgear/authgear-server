@@ -17,8 +17,6 @@ package preprocessor
 import (
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
-
 	"github.com/skygeario/skygear-server/router"
 	"github.com/skygeario/skygear-server/skydb"
 	"github.com/skygeario/skygear-server/skyerr"

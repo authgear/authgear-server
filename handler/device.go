@@ -17,7 +17,7 @@ package handler
 import (
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/skygeario/skygear-server/router"
@@ -125,7 +125,7 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 			if err == skydb.ErrDeviceNotFound {
 				errToReturn = skyerr.NewError(skyerr.ResourceNotFound, "device not found")
 			} else {
-				log.WithFields(log.Fields{
+				log.WithFields(logrus.Fields{
 					"deviceID": deviceID,
 					"device":   device,
 					"err":      err,
@@ -146,7 +146,7 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 	device.LastRegisteredAt = timeNow()
 
 	if err := conn.SaveDevice(&device); err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"deviceID": deviceID,
 			"device":   device,
 			"err":      err,

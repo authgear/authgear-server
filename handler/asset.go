@@ -26,7 +26,6 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	skyAsset "github.com/skygeario/skygear-server/asset"
 	"github.com/skygeario/skygear-server/router"
 	"github.com/skygeario/skygear-server/skydb"

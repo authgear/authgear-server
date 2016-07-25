@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"

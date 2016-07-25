@@ -22,7 +22,7 @@ import (
 	"net/http"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/skygeario/skygear-server/logging"
 	skyplugin "github.com/skygeario/skygear-server/plugin"
 	"github.com/skygeario/skygear-server/plugin/common"
 	"github.com/skygeario/skygear-server/skyconfig"
@@ -30,6 +30,8 @@ import (
 	"github.com/skygeario/skygear-server/skydb/skyconv"
 	"golang.org/x/net/context"
 )
+
+var log = logging.LoggerEntry("plugin")
 
 type httpTransport struct {
 	URL         string

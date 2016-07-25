@@ -17,12 +17,12 @@ package preprocessor
 import (
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
+	"golang.org/x/net/context"
 
 	"github.com/skygeario/skygear-server/authtoken"
 	"github.com/skygeario/skygear-server/router"
 	"github.com/skygeario/skygear-server/skyerr"
-	"golang.org/x/net/context"
 )
 
 func checkRequestAccessKey(payload *router.Payload, clientKey string, masterKey string) skyerr.Error {
@@ -85,7 +85,7 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 
 		if err := store.Get(tokenString, &token); err != nil {
 			if _, ok := err.(*authtoken.NotFoundError); ok {
-				log.WithFields(log.Fields{
+				log.WithFields(logrus.Fields{
 					"token": tokenString,
 					"err":   err,
 				}).Infoln("Token not found")

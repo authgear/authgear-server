@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
 )
 

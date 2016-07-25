@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/skydb"
@@ -237,7 +237,7 @@ WHERE c.relname = $1
 		return nil, nil
 	}
 	if err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"schemaName": db.schemaName(),
 			"recordType": recordType,
 			"err":        err,
@@ -254,7 +254,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		oid)
 
 	if err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"schemaName": db.schemaName(),
 			"recordType": recordType,
 			"oid":        oid,
@@ -329,7 +329,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 
 	refs, err := db.c.QueryWith(builder)
 	if err != nil {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"schemaName": db.schemaName(),
 			"recordType": recordType,
 			"err":        err,

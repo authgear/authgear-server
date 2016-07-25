@@ -17,7 +17,7 @@ package pq
 import (
 	"database/sql"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 )
@@ -25,7 +25,7 @@ import (
 func (c *conn) Get(dest interface{}, query string, args ...interface{}) (err error) {
 	c.statementCount++
 	err = c.Db().Get(dest, query, args...)
-	logFields := log.Fields{
+	logFields := logrus.Fields{
 		"sql":            query,
 		"args":           args,
 		"error":          err,
@@ -62,7 +62,7 @@ func (c *conn) Exec(query string, args ...interface{}) (result sql.Result, err e
 		}
 	}
 
-	logFields := log.Fields{
+	logFields := logrus.Fields{
 		"sql":            query,
 		"args":           args,
 		"error":          err,
@@ -88,7 +88,7 @@ func (c *conn) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 func (c *conn) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
 	c.statementCount++
 	rows, err = c.Db().Queryx(query, args...)
-	logFields := log.Fields{
+	logFields := logrus.Fields{
 		"sql":            query,
 		"args":           args,
 		"error":          err,
@@ -113,7 +113,7 @@ func (c *conn) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 func (c *conn) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
 	c.statementCount++
 	row = c.Db().QueryRowx(query, args...)
-	log.WithFields(log.Fields{
+	log.WithFields(logrus.Fields{
 		"sql":            query,
 		"args":           args,
 		"executionCount": c.statementCount,

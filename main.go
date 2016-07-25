@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/evalphobia/logrus_sentry"
 	"github.com/facebookgo/inject"
 	"github.com/robfig/cron"
@@ -30,6 +30,7 @@ import (
 	"github.com/skygeario/skygear-server/asset"
 	"github.com/skygeario/skygear-server/authtoken"
 	"github.com/skygeario/skygear-server/handler"
+	"github.com/skygeario/skygear-server/logging"
 	"github.com/skygeario/skygear-server/plugin"
 	_ "github.com/skygeario/skygear-server/plugin/exec"
 	"github.com/skygeario/skygear-server/plugin/hook"
@@ -46,6 +47,8 @@ import (
 	"github.com/skygeario/skygear-server/skyversion"
 	"github.com/skygeario/skygear-server/subscription"
 )
+
+var log = logging.LoggerEntry("")
 
 func main() {
 	if len(os.Args) > 1 {
@@ -391,31 +394,40 @@ func initPlugin(config skyconfig.Configuration, initContext *plugin.InitContext)
 
 func initLogger(config skyconfig.Configuration) {
 	// Setup Logging
-	log.SetOutput(os.Stderr)
-	level, err := log.ParseLevel(config.LOG.Level)
-	if err != nil {
+	logging.SetOutput(os.Stderr)
+	if level, err := logrus.ParseLevel(config.LOG.Level); err == nil {
+		logging.SetLevel(level)
+	} else {
 		log.Warnf("log: error parsing config: %v", err)
 		log.Warnln("log: fall back to `debug`")
-		level = log.DebugLevel
+		logging.SetLevel(logrus.DebugLevel)
 	}
-	log.SetLevel(level)
+
+	for loggerName, logger := range logging.Loggers() {
+		sanitized := strings.Replace(strings.ToLower(loggerName), ".", "_", -1)
+		if loggerLevel, ok := config.LOG.LoggersLevel[sanitized]; ok {
+			if level, err := logrus.ParseLevel(loggerLevel); err == nil {
+				logger.Level = level
+			}
+		}
+	}
 
 	if config.LogHook.SentryDSN != "" {
 		initSentry(config)
 	}
 }
 
-func higherLogLevels(minLevel log.Level) []log.Level {
-	levels := []log.Level{
-		log.PanicLevel,
-		log.FatalLevel,
-		log.ErrorLevel,
-		log.WarnLevel,
-		log.InfoLevel,
-		log.DebugLevel,
+func higherLogLevels(minLevel logrus.Level) []logrus.Level {
+	levels := []logrus.Level{
+		logrus.PanicLevel,
+		logrus.FatalLevel,
+		logrus.ErrorLevel,
+		logrus.WarnLevel,
+		logrus.InfoLevel,
+		logrus.DebugLevel,
 	}
 
-	output := make([]log.Level, 0, len(levels))
+	output := make([]logrus.Level, 0, len(levels))
 	for _, level := range levels {
 		if level <= minLevel {
 			output = append(output, level)
@@ -425,7 +437,7 @@ func higherLogLevels(minLevel log.Level) []log.Level {
 }
 
 func initSentry(config skyconfig.Configuration) {
-	level, err := log.ParseLevel(config.LogHook.SentryLevel)
+	level, err := logrus.ParseLevel(config.LogHook.SentryLevel)
 	if err != nil {
 		log.Fatalf("log-hook: error parsing sentry-level: %v", err)
 		return
@@ -446,5 +458,5 @@ func initSentry(config skyconfig.Configuration) {
 		return
 	}
 	log.Infof("Logging to Sentry: %v", levels)
-	log.AddHook(hook)
+	logging.AddHook(hook)
 }

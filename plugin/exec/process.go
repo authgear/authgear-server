@@ -20,8 +20,6 @@ import (
 	"fmt"
 	osexec "os/exec"
 
-	log "github.com/Sirupsen/logrus"
-
 	skyplugin "github.com/skygeario/skygear-server/plugin"
 	"github.com/skygeario/skygear-server/plugin/common"
 	"github.com/skygeario/skygear-server/skyconfig"

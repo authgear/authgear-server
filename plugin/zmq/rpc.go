@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 
 	skyplugin "github.com/skygeario/skygear-server/plugin"
 	"github.com/skygeario/skygear-server/plugin/common"
@@ -41,7 +41,7 @@ type zmqTransport struct {
 	eaddr       string // the addr exposed for plugin to connect to with REP.
 	broker      *Broker
 	initHandler skyplugin.TransportInitHandler
-	logger      *log.Entry
+	logger      *logrus.Entry
 	config      skyconfig.Configuration
 }
 
@@ -296,7 +296,7 @@ func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.C
 	externalAddr := args[0]
 
 	broker, err := NewBroker(name, internalAddr, externalAddr)
-	logger := log.WithFields(log.Fields{"plugin": name})
+	logger := log.WithFields(logrus.Fields{"plugin": name})
 	if err != nil {
 		logger.Panicf("Failed to init broker for zmq transport: %v", err)
 	}

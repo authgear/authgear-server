@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
@@ -209,7 +209,7 @@ func (db *database) Delete(id skydb.RecordID) error {
 	if rowsAffected == 0 {
 		return skydb.ErrRecordNotFound
 	} else if rowsAffected > 1 {
-		log.WithFields(log.Fields{
+		log.WithFields(logrus.Fields{
 			"id":           id,
 			"rowsAffected": rowsAffected,
 			"err":          err,

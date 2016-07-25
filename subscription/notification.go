@@ -18,7 +18,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pubsub"
 	"github.com/skygeario/skygear-server/push"
 	"github.com/skygeario/skygear-server/skydb"
@@ -129,7 +130,7 @@ func (ns multiNotifier) Notify(device skydb.Device, notice Notice) error {
 	for i := 0; i < n; i++ {
 		if err := <-errCh; err != nil {
 			lasterr = err
-			log.WithFields(log.Fields{
+			log.WithFields(logrus.Fields{
 				"device": device,
 				"notice": notice,
 				"err":    err,

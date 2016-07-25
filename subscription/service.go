@@ -17,7 +17,7 @@ package subscription
 import (
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/skygeario/skygear-server/skydb"
 )
 
@@ -53,7 +53,7 @@ func (s *Service) Run() {
 			case skydb.RecordCreated, skydb.RecordUpdated, skydb.RecordDeleted:
 				conn, err := s.ConnOpener()
 				if err != nil {
-					log.WithFields(log.Fields{
+					log.WithFields(logrus.Fields{
 						"event": event,
 						"err":   err,
 					}).Errorln("subscription: failed to open skydb.Conn")
