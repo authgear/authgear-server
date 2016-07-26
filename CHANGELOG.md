@@ -1,3 +1,27 @@
+## 0.14.0 (2016-07-26)
+
+### Features
+
+- Implement predicate with keypath to referenced record (#85)
+- Set default log level of plugin logger to INFO (#49)
+- Add JWT token store (#74)
+- Include user role in user query (#70)
+- Update to use HTTP/2 APNS protocol (#47)
+
+### Bug fixes
+
+- Create extensions when migrating database schema (#53)
+- Handle invalid data format for pubsub actions (SkygearIO/skygear-SDK-JS#27)
+- Check field exists before performing query (#6)
+- Fix scan NULL token in QueryDevicesByUser (#33)
+- Preserve ACL when saving record with ACL=nil (#38)
+- Fix not-predicate not sqlized (#78)
+- Fix Public record is accessible without userinfo
+
+### Other Notes
+
+- Config auth token expiry time and default not to expire (#65)
+
 ## 0.13.0 (2016-07-05)
 
 ### Features
