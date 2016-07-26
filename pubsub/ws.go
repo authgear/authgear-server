@@ -128,6 +128,15 @@ func (w *WsPubSub) reader(c *connection) {
 			c.ws.WriteMessage(websocket.CloseMessage, nil)
 			return
 		}
+		if payload.Channel == "" {
+			log.Debugf("Got empty channel.")
+			c.ws.WriteMessage(
+				websocket.TextMessage,
+				[]byte("Error: channel should not be empty. Closing Connection"),
+			)
+			c.ws.WriteMessage(websocket.CloseMessage, nil)
+			return
+		}
 		switch payload.Action {
 		case "sub":
 			w.hub.Subscribe <- Parcel{
@@ -142,6 +151,15 @@ func (w *WsPubSub) reader(c *connection) {
 			}
 			c.channels = append(c.channels, payload.Channel)
 		case "pub":
+			if payload.Data == nil {
+				log.Debugf("Got nil pub data.")
+				c.ws.WriteMessage(
+					websocket.TextMessage,
+					[]byte("Error: missing data to publish. Closing Connection"),
+				)
+				c.ws.WriteMessage(websocket.CloseMessage, nil)
+				return
+			}
 			w.hub.Broadcast <- Parcel{
 				Channel: payload.Channel,
 				Data:    []byte(*payload.Data),
