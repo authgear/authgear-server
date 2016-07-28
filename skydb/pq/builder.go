@@ -126,30 +126,60 @@ func (f *predicateSqlizerFactory) newUserRelationFunctionalPredicateSqlizer(fn s
 
 func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn skydb.UserDiscoverFunc) (sq.Sqlizer, error) {
 	if f.db.UserRecordType() != f.primaryTable {
-		return nil, fmt.Errorf("user discover predicate can only be used on user record")
+		return nil, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
+			"user discover predicate can only be used on user record")
 	}
 
-	var sqlizer sq.Sqlizer
-	// Only email is supported at the moment
-	alias := f.createLeftJoin("_user", "_id", "id")
-	sqlizer = &containsComparisonPredicateSqlizer{
-		[]expressionSqlizer{
-			{alias, skydb.Expression{Type: skydb.KeyPath, Value: "email"}},
-			{alias, skydb.Expression{Type: skydb.Literal, Value: fn.ArgsByName("email")}},
-		},
+	discoveryArgNames := []string{"username", "email"}
+	var sqlizers sq.Or
+	var alias string
+
+	// Create sqlizers for each discovery argument (username and email).
+	for _, argName := range discoveryArgNames {
+		if !fn.HaveArgsByName(argName) {
+			continue
+		}
+
+		lhsExpr := skydb.Expression{
+			Type:  skydb.KeyPath,
+			Value: argName,
+		}
+		rhsExpr := skydb.Expression{
+			Type:  skydb.Literal,
+			Value: fn.ArgsByName(argName),
+		}
+
+		if alias == "" {
+			alias = f.createLeftJoin("_user", "_id", "id")
+		}
+		sqlizer := &containsComparisonPredicateSqlizer{
+			[]expressionSqlizer{
+				{alias, lhsExpr},
+				{alias, rhsExpr},
+			},
+		}
+		sqlizers = append(sqlizers, sqlizer)
 	}
 
-	f.addExtraColumn("_transient__email", skydb.TypeString, skydb.Expression{
-		Type:  skydb.Function,
-		Value: skydb.UserDataFunc{"email"},
-	})
+	// If there are no sqlizers, we return early with a
+	// sqlizers that always evaluates to false.
+	if len(sqlizers) == 0 {
+		return FalseSqlizer{}, nil
+	}
 
-	f.addExtraColumn("_transient__username", skydb.TypeString, skydb.Expression{
-		Type:  skydb.Function,
-		Value: skydb.UserDataFunc{"username"},
-	})
+	// Add transient attributes so that returned record also contain
+	// username and email.
+	for _, argName := range discoveryArgNames {
+		transientColumn := fmt.Sprintf("_transient__%s", argName)
 
-	return sqlizer, nil
+		expr := skydb.Expression{
+			Type:  skydb.Function,
+			Value: skydb.UserDataFunc{argName},
+		}
+		f.addExtraColumn(transientColumn, skydb.TypeString, expr)
+	}
+
+	return sqlizers, nil
 }
 
 func (f *predicateSqlizerFactory) newAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error) {
@@ -699,6 +729,15 @@ func (s NotSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	}
 	sql = fmt.Sprintf("NOT (%s)", sql)
 	return
+}
+
+// FalseSqlizer generates SQL condition that evaluates to false
+type FalseSqlizer struct {
+}
+
+// ToSql generates SQL for FalseSqlizer
+func (s FalseSqlizer) ToSql() (sql string, args []interface{}, err error) {
+	return "FALSE", []interface{}{}, nil
 }
 
 // joinedTable represents a specification for table join

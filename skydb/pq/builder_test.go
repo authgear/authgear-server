@@ -15,6 +15,7 @@
 package pq
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/skygeario/skygear-server/skydb"
@@ -175,14 +176,52 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 			"title": skydb.FieldType{Type: skydb.TypeString},
 		}), ShouldBeNil)
 
-		f := newPredicateSqlizerFactory(db, "note")
+		f := newPredicateSqlizerFactory(db, "user")
 
 		Convey("user discover must be used with user record", func() {
+			noteSqlizerFactory := newPredicateSqlizerFactory(db, "note")
 			userDiscover := skydb.UserDiscoverFunc{
 				Emails: []string{},
 			}
-			_, err := f.newUserDiscoverFunctionalPredicateSqlizer(userDiscover)
+			_, err := noteSqlizerFactory.newUserDiscoverFunctionalPredicateSqlizer(userDiscover)
 			So(err, ShouldNotBeNil)
+		})
+
+		Convey("should generate false for empty user discover args", func() {
+			userDiscover := skydb.UserDiscoverFunc{}
+			sqlizer, err := f.newUserDiscoverFunctionalPredicateSqlizer(userDiscover)
+			So(err, ShouldBeNil)
+			sql, args, err := sqlizer.ToSql()
+			So(sql, ShouldEqual, "FALSE")
+			So(args, ShouldResemble, []interface{}{})
+			So(err, ShouldBeNil)
+		})
+
+		Convey("should generate sql for email args", func() {
+			userDiscover := skydb.UserDiscoverFunc{
+				Emails: []string{"jane.doe@example.com"},
+			}
+			sqlizer, err := f.newUserDiscoverFunctionalPredicateSqlizer(userDiscover)
+			So(err, ShouldBeNil)
+			alias := f.createLeftJoin("_user", "_id", "id")
+			sql, args, err := sqlizer.ToSql()
+			So(sql, ShouldEqual, fmt.Sprintf(`("%s"."email" IN (?))`, alias))
+			So(args, ShouldResemble, []interface{}{"jane.doe@example.com"})
+			So(err, ShouldBeNil)
+		})
+
+		Convey("should generate sql for both email and username args", func() {
+			userDiscover := skydb.UserDiscoverFunc{
+				Usernames: []string{"jane.doe"},
+				Emails:    []string{"jane.doe@example.com"},
+			}
+			sqlizer, err := f.newUserDiscoverFunctionalPredicateSqlizer(userDiscover)
+			So(err, ShouldBeNil)
+			alias := f.createLeftJoin("_user", "_id", "id")
+			sql, args, err := sqlizer.ToSql()
+			So(sql, ShouldEqual, fmt.Sprintf(`("%s"."username" IN (?) OR "%s"."email" IN (?))`, alias, alias))
+			So(args, ShouldResemble, []interface{}{"jane.doe", "jane.doe@example.com"})
+			So(err, ShouldBeNil)
 		})
 	})
 }
@@ -196,6 +235,18 @@ func TestNotSqlizer(t *testing.T) {
 			sql, args, err := sqlizer.ToSql()
 			So(sql, ShouldEqual, "NOT (?)")
 			So(args, ShouldResemble, []interface{}{false})
+			So(err, ShouldBeNil)
+		})
+	})
+}
+
+func TestFalseSqlizer(t *testing.T) {
+	Convey("FalseSqlizer", t, func() {
+		Convey("should generate predicate that evaluates to false", func() {
+			sqlizer := &FalseSqlizer{}
+			sql, args, err := sqlizer.ToSql()
+			So(sql, ShouldEqual, "FALSE")
+			So(args, ShouldResemble, []interface{}{})
 			So(err, ShouldBeNil)
 		})
 	})

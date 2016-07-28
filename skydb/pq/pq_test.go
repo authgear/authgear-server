@@ -76,6 +76,13 @@ func addUserWithInfo(t *testing.T, c *conn, userid string, email string) {
 	}
 }
 
+func addUserWithUsername(t *testing.T, c *conn, userid string, username string) {
+	_, err := c.Exec("INSERT INTO app_com_oursky_skygear._user (id, password, username) VALUES ($1, 'somepassword', $2)", userid, username)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 type execor interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 }

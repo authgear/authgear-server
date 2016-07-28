@@ -268,7 +268,8 @@ func (parser *QueryParser) parseUserDiscoverFunc(s []interface{}) (skydb.UserDis
 	}
 
 	userData := struct {
-		Emails []string `mapstructure:"emails"`
+		Usernames []string `mapstructure:"usernames"`
+		Emails    []string `mapstructure:"emails"`
 	}{}
 
 	if err := mapstructure.Decode(s[0], &userData); err != nil {
@@ -276,7 +277,8 @@ func (parser *QueryParser) parseUserDiscoverFunc(s []interface{}) (skydb.UserDis
 	}
 
 	return skydb.UserDiscoverFunc{
-		Emails: userData.Emails,
+		Usernames: userData.Usernames,
+		Emails:    userData.Emails,
 	}, nil
 }
 

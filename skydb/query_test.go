@@ -32,6 +32,30 @@ func TestExpression(t *testing.T) {
 	})
 }
 
+func TestUserDiscoverFunc(t *testing.T) {
+	Convey("func with only emails", t, func() {
+		f := UserDiscoverFunc{
+			Emails: []string{"abc@example.com"},
+		}
+
+		Convey("should have args for email", func() {
+			So(f.HaveArgsByName("email"), ShouldBeTrue)
+		})
+
+		Convey("should not have args for username", func() {
+			So(f.HaveArgsByName("username"), ShouldBeFalse)
+		})
+
+		Convey("should return args for email", func() {
+			So(f.ArgsByName("email"), ShouldResemble, []interface{}{"abc@example.com"})
+		})
+
+		Convey("should return args for username", func() {
+			So(f.ArgsByName("username"), ShouldResemble, []interface{}{})
+		})
+	})
+}
+
 func TestMalformedPredicate(t *testing.T) {
 	Convey("Predicate with Equal", t, func() {
 		Convey("comparing array", func() {
