@@ -138,6 +138,14 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 		}
 	}
 
+	// delete all all devices with the same token
+	if err := conn.DeleteDevicesByToken(payload.DeviceToken, skydb.ZeroTime); err != nil {
+		if err != skydb.ErrDeviceNotFound {
+			response.Err = skyerr.NewResourceDeleteFailureErrWithStringID("device", "")
+			return
+		}
+	}
+
 	userinfoID := rpayload.UserInfoID
 
 	device.Type = payload.Type

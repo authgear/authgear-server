@@ -77,9 +77,6 @@ func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
 		d.LastRegisteredAt = d.LastRegisteredAt.UTC()
 		results = append(results, d)
 	}
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
 
 	return results, nil
 }
