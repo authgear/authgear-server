@@ -32,27 +32,40 @@ type queryUserConn struct {
 	skydb.Conn
 }
 
-func (userconn queryUserConn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
+func (userconn queryUserConn) QueryUser(emails []string, usernames []string) ([]skydb.UserInfo, error) {
+	myUserInfos := []skydb.UserInfo{
+		skydb.UserInfo{
+			ID:             "user0",
+			Email:          "john.doe@example.com",
+			Username:       "johndoe",
+			HashedPassword: []byte("password"),
+			Roles: []string{
+				"Programmer",
+			},
+		},
+		skydb.UserInfo{
+			ID:             "user1",
+			Username:       "johndoe1",
+			Email:          "jane.doe+1@example.com",
+			HashedPassword: []byte("password"),
+		},
+	}
+
 	results := []skydb.UserInfo{}
 	for _, email := range emails {
-		if email == "john.doe@example.com" {
-			results = append(results, skydb.UserInfo{
-				ID:             "user0",
-				Email:          "john.doe@example.com",
-				Username:       "johndoe",
-				HashedPassword: []byte("password"),
-				Roles: []string{
-					"Programmer",
-				},
-			})
+		for _, userInfo := range myUserInfos {
+			if userInfo.Email == email {
+				results = append(results, userInfo)
+				break
+			}
 		}
-		if email == "jane.doe+1@example.com" {
-			results = append(results, skydb.UserInfo{
-				ID:             "user1",
-				Username:       "johndoe1",
-				Email:          "jane.doe+1@example.com",
-				HashedPassword: []byte("password"),
-			})
+	}
+	for _, username := range usernames {
+		for _, userInfo := range myUserInfos {
+			if userInfo.Username == username {
+				results = append(results, userInfo)
+				break
+			}
 		}
 	}
 	return results, nil
@@ -116,6 +129,26 @@ func TestUserQueryHandler(t *testing.T) {
 		Convey("query multiple email", func() {
 			resp := adminRouter.POST(`{
 	"emails": ["john.doe@example.com", "jane.doe+1@example.com"]
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": [
+		{
+			"id": "user0",
+			"type": "user",
+			"data": {"_id": "user0", "email": "john.doe@example.com", "username": "johndoe", "roles": ["Programmer"]}
+		}, {
+			"id": "user1",
+			"type": "user",
+			"data": {"_id": "user1", "email": "jane.doe+1@example.com", "username": "johndoe1"}
+		}
+	]
+}`)
+		})
+
+		Convey("query with email and username", func() {
+			resp := adminRouter.POST(`{
+	"emails": ["john.doe@example.com"],
+	"usernames": ["johndoe1"]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [

@@ -386,15 +386,28 @@ func (f UserRelationFunc) Args() []interface{} {
 	return []interface{}{}
 }
 
-// UserDiscoverFunc searches for user reord having the specified user data, such
+// UserDiscoverFunc searches for user record having the specified user data, such
 // as email addresses. Can only be used with user record.
 type UserDiscoverFunc struct {
-	Emails []string
+	Usernames []string
+	Emails    []string
 }
 
 // Args implements the Func interface
 func (f UserDiscoverFunc) Args() []interface{} {
 	panic("not supported")
+}
+
+// HaveArgsByName implements the Func interface
+func (f UserDiscoverFunc) HaveArgsByName(name string) bool {
+	switch name {
+	case "email":
+		return len(f.Emails) > 0
+	case "username":
+		return len(f.Usernames) > 0
+	default:
+		panic(fmt.Errorf("not supported arg name %s", name))
+	}
 }
 
 // ArgsByName implements the Func interface
@@ -403,13 +416,15 @@ func (f UserDiscoverFunc) ArgsByName(name string) []interface{} {
 	switch name {
 	case "email":
 		data = f.Emails
+	case "username":
+		data = f.Usernames
 	default:
 		panic(fmt.Errorf("not supported arg name %s", name))
 	}
 
 	args := make([]interface{}, len(data))
-	for i, email := range data {
-		args[i] = email
+	for i, arg := range data {
+		args[i] = arg
 	}
 	return args
 }

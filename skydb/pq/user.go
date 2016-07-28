@@ -17,6 +17,7 @@ package pq
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	sq "github.com/lann/squirrel"
@@ -196,14 +197,40 @@ func (c *conn) GetUserByPrincipalID(principalID string, userinfo *skydb.UserInfo
 	return c.doScanUser(userinfo, scanner)
 }
 
-func (c *conn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
+func (c *conn) QueryUser(emails []string, usernames []string) ([]skydb.UserInfo, error) {
 	emailargs := make([]interface{}, len(emails))
 	for i, v := range emails {
+		if v == "" {
+			continue
+		}
 		emailargs[i] = interface{}(v)
 	}
 
+	usernameargs := make([]interface{}, len(usernames))
+	for i, v := range usernames {
+		if v == "" {
+			continue
+		}
+		usernameargs[i] = interface{}(v)
+	}
+
+	if len(emailargs) == 0 && len(usernameargs) == 0 {
+		return []skydb.UserInfo{}, nil
+	}
+
+	var sqls []string
+	var args []interface{}
+	if len(emailargs) > 0 {
+		sqls = append(sqls, fmt.Sprintf("email IN (%s) AND email IS NOT NULL AND email != ''", sq.Placeholders(len(emailargs))))
+		args = append(args, emailargs...)
+	}
+	if len(usernameargs) > 0 {
+		sqls = append(sqls, fmt.Sprintf("username IN (%s) AND username IS NOT NULL AND username != ''", sq.Placeholders(len(usernameargs))))
+		args = append(args, usernameargs...)
+	}
+
 	builder := c.baseUserBuilder().
-		Where("email IN ("+sq.Placeholders(len(emailargs))+") AND email IS NOT NULL AND email != ''", emailargs...)
+		Where(strings.Join(sqls, " OR "), args...)
 
 	rows, err := c.QueryWith(builder)
 	if err != nil {

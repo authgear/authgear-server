@@ -92,6 +92,10 @@ func TestQueryFromRaw(t *testing.T) {
 					"func",
 					"userDiscover",
 					map[string]interface{}{
+						"usernames": []string{
+							"john.doe",
+							"jane.doe",
+						},
 						"emails": []string{
 							"john.doe@example.com",
 							"jane.doe@example.com",
@@ -108,6 +112,10 @@ func TestQueryFromRaw(t *testing.T) {
 						skydb.Expression{
 							Type: skydb.Function,
 							Value: skydb.UserDiscoverFunc{
+								Usernames: []string{
+									"john.doe",
+									"jane.doe",
+								},
 								Emails: []string{
 									"john.doe@example.com",
 									"jane.doe@example.com",

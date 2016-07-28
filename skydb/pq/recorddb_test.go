@@ -1276,7 +1276,7 @@ func TestQuery(t *testing.T) {
 
 		Convey("query no users", func() {
 			emails := []string{"user@example.com"}
-			result, err := c.QueryUser(emails)
+			result, err := c.QueryUser(emails, []string{})
 			So(err, ShouldBeNil)
 			So(len(result), ShouldEqual, 0)
 		})
@@ -1946,6 +1946,7 @@ func TestUserDiscoverQuery(t *testing.T) {
 
 		addUserWithInfo(t, c, "user0", "john.doe@example.com")
 		addUserWithInfo(t, c, "user1", "jane.doe@example.com")
+		addUserWithUsername(t, c, "user2", "john.doe")
 
 		record0 := skydb.Record{
 			ID:      skydb.NewRecordID("user", "user0"),
@@ -1957,14 +1958,17 @@ func TestUserDiscoverQuery(t *testing.T) {
 			OwnerID: "user1",
 			Data:    skydb.Data{},
 		}
-
-		savedRecords := []skydb.Record{record0, record1}
-		savedEmails := []string{"john.doe@example.com", "jane.doe@example.com"}
+		record2 := skydb.Record{
+			ID:      skydb.NewRecordID("user", "user2"),
+			OwnerID: "user2",
+			Data:    skydb.Data{},
+		}
 
 		db := c.PublicDB()
 		So(db.Extend("user", nil), ShouldBeNil)
 		So(db.Save(&record0), ShouldBeNil)
 		So(db.Save(&record1), ShouldBeNil)
+		So(db.Save(&record2), ShouldBeNil)
 
 		sortsByID := []skydb.Sort{
 			skydb.Sort{
@@ -2002,8 +2006,10 @@ func TestUserDiscoverQuery(t *testing.T) {
 					Operator: skydb.Functional,
 					Children: []interface{}{
 						skydb.Expression{
-							Type:  skydb.Function,
-							Value: skydb.UserDiscoverFunc{Emails: savedEmails},
+							Type: skydb.Function,
+							Value: skydb.UserDiscoverFunc{
+								Emails: []string{"john.doe@example.com", "jane.doe@example.com"},
+							},
 						},
 					},
 				},
@@ -2013,9 +2019,41 @@ func TestUserDiscoverQuery(t *testing.T) {
 
 			So(err, ShouldBeNil)
 			So(len(records), ShouldEqual, 2)
+
+			savedRecords := []skydb.Record{record0, record1}
+			savedEmails := []string{"john.doe@example.com", "jane.doe@example.com"}
 			for i, record := range records {
 				So(record.ID, ShouldResemble, savedRecords[i].ID)
 				So(record.Transient, ShouldResemble, skydb.Data{"_email": savedEmails[i]})
+			}
+		})
+
+		Convey("search by username and email", func() {
+			query := skydb.Query{
+				Type: "user",
+				Predicate: skydb.Predicate{
+					Operator: skydb.Functional,
+					Children: []interface{}{
+						skydb.Expression{
+							Type: skydb.Function,
+							Value: skydb.UserDiscoverFunc{
+								Emails:    []string{"john.doe@example.com"},
+								Usernames: []string{"john.doe"},
+							},
+						},
+					},
+				},
+				Sorts: sortsByID,
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(len(records), ShouldEqual, 2)
+
+			savedRecords := []skydb.Record{record0, record2}
+
+			for i, record := range records {
+				So(record.ID, ShouldResemble, savedRecords[i].ID)
 			}
 		})
 	})
