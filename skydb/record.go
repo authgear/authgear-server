@@ -380,11 +380,61 @@ func (r *Record) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 // RecordSchema is a mapping of record key to its value's data type or reference
 type RecordSchema map[string]FieldType
 
+func (schema RecordSchema) DefinitionEquals(other RecordSchema) bool {
+	if len(schema) != len(other) {
+		return false
+	}
+
+	for k, myFieldType := range schema {
+		otherFieldType, ok := other[k]
+		if !ok {
+			return false
+		}
+
+		if !myFieldType.DefinitionEquals(otherFieldType) {
+			return false
+		}
+	}
+	return true
+}
+
 // FieldType represents the kind of data living within a field of a RecordSchema.
 type FieldType struct {
 	Type          DataType
 	ReferenceType string     // used only by TypeReference
 	Expression    Expression // used by Computed Keys
+}
+
+func (f FieldType) DefinitionEquals(other FieldType) bool {
+	return f.Type == other.Type && f.ReferenceType == other.ReferenceType
+}
+
+func (f FieldType) ToSimpleName() string {
+	switch f.Type {
+	case TypeString:
+		return "string"
+	case TypeNumber:
+		return "number"
+	case TypeBoolean:
+		return "boolean"
+	case TypeJSON:
+		return "json"
+	case TypeReference:
+		return fmt.Sprintf("ref(%s)", f.ReferenceType)
+	case TypeLocation:
+		return "location"
+	case TypeDateTime:
+		return "datetime"
+	case TypeAsset:
+		return "asset"
+	case TypeACL:
+		return "acl"
+	case TypeInteger:
+		return "integer"
+	case TypeSequence:
+		return "sequence"
+	}
+	return ""
 }
 
 // DataType defines the type of data that can saved into an skydb database
@@ -414,34 +464,6 @@ func (t DataType) IsNumberCompatibleType() bool {
 	default:
 		return false
 	}
-}
-
-func (f FieldType) ToSimpleName() string {
-	switch f.Type {
-	case TypeString:
-		return "string"
-	case TypeNumber:
-		return "number"
-	case TypeBoolean:
-		return "boolean"
-	case TypeJSON:
-		return "json"
-	case TypeReference:
-		return fmt.Sprintf("ref(%s)", f.ReferenceType)
-	case TypeLocation:
-		return "location"
-	case TypeDateTime:
-		return "datetime"
-	case TypeAsset:
-		return "asset"
-	case TypeACL:
-		return "acl"
-	case TypeInteger:
-		return "integer"
-	case TypeSequence:
-		return "sequence"
-	}
-	return ""
 }
 
 func SimpleNameToFieldType(s string) (result FieldType, err error) {

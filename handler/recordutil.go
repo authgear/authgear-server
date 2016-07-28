@@ -222,6 +222,9 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	// derive and extend record schema
 	if err := extendRecordSchema(db, records); err != nil {
 		log.WithField("err", err).Errorln("failed to migrate record schema")
+		if myerr, ok := err.(skyerr.Error); ok {
+			return myerr
+		}
 		return skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
 	}
 

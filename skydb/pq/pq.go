@@ -88,6 +88,7 @@ func Open(appName string, accessModel skydb.AccessModel, connString string, migr
 		appName:      appName,
 		option:       connString,
 		accessModel:  accessModel,
+		canMigrate:   migrate,
 	}, nil
 }
 
