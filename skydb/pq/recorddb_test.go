@@ -1276,7 +1276,7 @@ func TestQuery(t *testing.T) {
 
 		Convey("query no users", func() {
 			emails := []string{"user@example.com"}
-			result, err := c.QueryUser(emails)
+			result, err := c.QueryUser(emails, []string{})
 			So(err, ShouldBeNil)
 			So(len(result), ShouldEqual, 0)
 		})

@@ -224,15 +224,15 @@ func (_mr *_MockConnRecorder) QueryRelationCount(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "QueryRelationCount", arg0, arg1, arg2)
 }
 
-func (_m *MockConn) QueryUser(_param0 []string) ([]skydb.UserInfo, error) {
-	ret := _m.ctrl.Call(_m, "QueryUser", _param0)
+func (_m *MockConn) QueryUser(_param0 []string, _param1 []string) ([]skydb.UserInfo, error) {
+	ret := _m.ctrl.Call(_m, "QueryUser", _param0, _param1)
 	ret0, _ := ret[0].([]skydb.UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockConnRecorder) QueryUser(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "QueryUser", arg0)
+func (_mr *_MockConnRecorder) QueryUser(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "QueryUser", arg0, arg1)
 }
 
 func (_m *MockConn) RemoveRelation(_param0 string, _param1 string, _param2 string) error {

@@ -109,7 +109,7 @@ func (conn *MapConn) GetUserByPrincipalID(principalID string, userinfo *skydb.Us
 }
 
 // QueryUser is not implemented.
-func (conn *MapConn) QueryUser(emails []string) ([]skydb.UserInfo, error) {
+func (conn *MapConn) QueryUser(emails []string, usernames []string) ([]skydb.UserInfo, error) {
 	panic("not implemented")
 }
 

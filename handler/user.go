@@ -23,7 +23,8 @@ import (
 )
 
 type queryPayload struct {
-	Emails []string `mapstructure:"emails"`
+	Emails    []string `mapstructure:"emails"`
+	Usernames []string `mapstructure:"usernames"`
 }
 
 func (payload *queryPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -83,7 +84,7 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 		return
 	}
 
-	userinfos, err := payload.DBConn.QueryUser(qp.Emails)
+	userinfos, err := payload.DBConn.QueryUser(qp.Emails, qp.Usernames)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return

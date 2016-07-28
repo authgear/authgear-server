@@ -202,12 +202,12 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			emails := []string{""}
-			results, err := c.QueryUser(emails)
+			results, err := c.QueryUser(emails, []string{})
 			So(err, ShouldBeNil)
 			So(len(results), ShouldEqual, 0)
 		})
 
-		Convey("query for users", func() {
+		Convey("query for users with email", func() {
 			err := c.CreateUser(&userinfo)
 			So(err, ShouldBeNil)
 
@@ -217,7 +217,29 @@ func TestUserCRUD(t *testing.T) {
 			So(c.CreateUser(&userinfo), ShouldBeNil)
 
 			emails := []string{"john.doe@example.com", "jane.doe@example.com"}
-			results, err := c.QueryUser(emails)
+			results, err := c.QueryUser(emails, []string{})
+			So(err, ShouldBeNil)
+
+			userids := []string{}
+			for _, userinfo := range results {
+				userids = append(userids, userinfo.ID)
+			}
+			So(userids, ShouldContain, "userid")
+			So(userids, ShouldContain, "userid2")
+		})
+
+		Convey("query for users with email and username", func() {
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			userinfo.Username = "jane.doe"
+			userinfo.Email = "jane.doe@example.com"
+			userinfo.ID = "userid2"
+			So(c.CreateUser(&userinfo), ShouldBeNil)
+
+			emails := []string{"john.doe@example.com"}
+			usernames := []string{"jane.doe"}
+			results, err := c.QueryUser(emails, usernames)
 			So(err, ShouldBeNil)
 
 			userids := []string{}
@@ -302,7 +324,7 @@ func TestUserEagerLoadRole(t *testing.T) {
 		Convey("with UserQuery", func() {
 			results, err := c.QueryUser([]string{
 				"john.doe@example.com",
-			})
+			}, []string{})
 			So(err, ShouldBeNil)
 
 			So(results[0], ShouldResemble, userinfo)
