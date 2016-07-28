@@ -57,6 +57,7 @@ $ go build  # or `go build --tags zmq` for ZeroMQ support
 ```shell
 psql -h db -c 'CREATE DATABASE skygear_test;' -U postgres
 psql -h db -c 'CREATE EXTENSION postgis;' -U postgres -d skygear_test
+psql -h db -c 'CREATE EXTENSION citext;' -U postgres -d skygear_test
 ```
 
 2. Test case assume the 127.0.0.1 have access to `skygear_test`, add the
