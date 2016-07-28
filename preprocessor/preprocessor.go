@@ -17,6 +17,7 @@ package preprocessor
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/skygeario/skygear-server/logging"
 	"github.com/skygeario/skygear-server/router"
@@ -27,6 +28,24 @@ import (
 var log = logging.LoggerEntry("preprocessor")
 
 type InjectUserIfPresent struct {
+}
+
+func isTokenStillValid(token router.AccessToken, userInfo skydb.UserInfo) bool {
+	if userInfo.TokenValidSince == nil {
+		return true
+	}
+	tokenValidSince := *userInfo.TokenValidSince
+
+	// Not all types of access token support this field. The token is
+	// still considered if it does not have an issue time.
+	if token.IssuedAt().IsZero() {
+		return true
+	}
+
+	// Due to precision, the issue time of the token can be before
+	// UserInfo.TokenValidSince. We consider the token still valid
+	// if the token is issued within 1 second before tokenValidSince.
+	return token.IssuedAt().After(tokenValidSince.Add(-1 * time.Second))
 }
 
 func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
@@ -46,13 +65,9 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 	// If an access token exists checks if the access token has an IssuedAt
 	// time that is later than the user's TokenValidSince time. This
 	// allows user to invalidate previously issued access token.
-	if payload.AccessToken != nil {
-		issuedAt := payload.AccessToken.IssuedAt()
-		tokenValidSince := userinfo.TokenValidSince
-		if !issuedAt.IsZero() && tokenValidSince != nil && issuedAt.Before(*tokenValidSince) {
-			response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
-			return http.StatusUnauthorized
-		}
+	if payload.AccessToken != nil && !isTokenStillValid(payload.AccessToken, userinfo) {
+		response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
+		return http.StatusUnauthorized
 	}
 
 	payload.UserInfo = &userinfo
