@@ -67,30 +67,47 @@ func (c *conn) batchUserRoleSQL(id string, roles []string) (string, []interface{
 
 }
 
-func (c *conn) GetAdminRoles() ([]string, error) {
+func (c *conn) getRolesByType(roleType string) ([]string, error) {
+	var col string
+	switch roleType {
+	case "admin":
+		col = "is_admin"
+	case "default":
+		col = "by_default"
+	default:
+		panic("Unknow role type")
+	}
 	builder := psql.Select("id").
 		From(c.tableName("_role")).
-		Where("is_admin = true")
+		Where(col + " = true")
 	rows, err := c.QueryWith(builder)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	adminRoles := []string{}
+	roles := []string{}
 	for rows.Next() {
 		var roleStr string
 		if err := rows.Scan(&roleStr); err != nil {
 			panic(err)
 		}
-		adminRoles = append(adminRoles, roleStr)
+		roles = append(roles, roleStr)
 	}
-	return adminRoles, nil
+	return roles, nil
+}
+
+func (c *conn) GetAdminRoles() ([]string, error) {
+	return c.getRolesByType("admin")
 }
 
 func (c *conn) SetAdminRoles(roles []string) error {
 	log.Debugf("SetAdminRoles %v", roles)
 	c.ensureRole(roles)
 	return c.setRoleType(roles, "is_admin")
+}
+
+func (c *conn) GetDefaultRoles() ([]string, error) {
+	return c.getRolesByType("default")
 }
 
 func (c *conn) SetDefaultRoles(roles []string) error {
