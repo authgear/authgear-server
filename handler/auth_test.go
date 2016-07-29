@@ -81,8 +81,36 @@ func TestSignupHandler(t *testing.T) {
 			So(token.UserInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
 
+			userinfo := &skydb.UserInfo{}
+			err := conn.GetUserByUsernameEmail("john.doe", "", userinfo)
+			So(err, ShouldBeNil)
+			So(userinfo.Roles, ShouldBeNil)
+
 			_, ok := db.RecordMap[fmt.Sprintf("user/%s", token.UserInfoID)]
 			So(ok, ShouldBeTrue)
+		})
+
+		Convey("sign up new account with role base access control will have defautl role", func() {
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"username": "john.doe",
+					"email":    "john.doe@example.com",
+					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: txdb,
+			}
+			resp := router.Response{}
+			handler := &SignupHandler{
+				TokenStore:  &tokenStore,
+				AccessModel: skydb.RoleBasedAccess,
+			}
+			handler.Handle(&req, &resp)
+
+			userinfo := &skydb.UserInfo{}
+			err := conn.GetUserByUsernameEmail("john.doe", "", userinfo)
+			So(err, ShouldBeNil)
+			So(userinfo.Roles, ShouldResemble, []string{"user"})
 		})
 
 		Convey("sign up duplicate username", func() {
