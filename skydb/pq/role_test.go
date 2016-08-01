@@ -190,6 +190,16 @@ func TestRoleType(t *testing.T) {
 			})
 		})
 
+		Convey("get all admin roles", func() {
+			So(c.SetDefaultRoles([]string{"human", "chinese"}), ShouldBeNil)
+			defaultRoles, err := c.GetDefaultRoles()
+			So(err, ShouldBeNil)
+			So(defaultRoles, ShouldResemble, []string{
+				"human",
+				"chinese",
+			})
+		})
+
 		Convey("reset role by_default to false on new default role set", func() {
 			err := c.SetDefaultRoles([]string{
 				"human",

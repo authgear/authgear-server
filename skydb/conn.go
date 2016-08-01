@@ -104,6 +104,9 @@ type Conn interface {
 	// SetAdminRoles accepts array of role, the order will be
 	SetAdminRoles(roles []string) error
 
+	// GetDefaultRoles return the current default roles
+	GetDefaultRoles() ([]string, error)
+
 	// SetDefaultRoles accepts array of roles, the supplied roles will assigned
 	// to newly created user CreateUser
 	SetDefaultRoles(roles []string) error

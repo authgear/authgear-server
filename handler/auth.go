@@ -100,6 +100,7 @@ type SignupHandler struct {
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
 	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
 	AssetStore       asset.Store        `inject:"AssetStore"`
+	AccessModel      skydb.AccessModel  `inject:"AccessModel"`
 	AccessKey        router.Processor   `preprocessor:"accesskey"`
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
@@ -152,6 +153,16 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		info = skydb.NewProvidedAuthUserInfo(principalID, authData)
 	} else {
 		info = skydb.NewUserInfo(p.Username, p.Email, p.Password)
+	}
+
+	// Populate the default roles to user
+	if h.AccessModel == skydb.RoleBasedAccess {
+		defaultRoles, err := payload.DBConn.GetDefaultRoles()
+		if err != nil {
+			response.Err = skyerr.NewError(skyerr.InternalQueryInvalid, "unable to query default roles")
+			return
+		}
+		info.Roles = defaultRoles
 	}
 
 	createContext := createUserWithRecordContext{

@@ -145,6 +145,13 @@ func (conn *MapConn) SetAdminRoles(roles []string) error {
 	panic("not implemented")
 }
 
+// GetDefaultRoles always return user for testing
+func (conn *MapConn) GetDefaultRoles() ([]string, error) {
+	return []string{
+		"user",
+	}, nil
+}
+
 // SetDefaultRoles is not implemented.
 func (conn *MapConn) SetDefaultRoles(roles []string) error {
 	panic("not implemented")
