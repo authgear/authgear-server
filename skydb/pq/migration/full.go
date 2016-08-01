@@ -15,7 +15,11 @@
 package migration
 
 import (
+	"fmt"
+
 	"github.com/jmoiron/sqlx"
+	"github.com/skygeario/skygear-server/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type fullMigration struct {
@@ -23,7 +27,7 @@ type fullMigration struct {
 
 func (r *fullMigration) Version() string { return "88a550bf579" }
 
-func (r *fullMigration) Up(tx *sqlx.Tx) error {
+func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
 CREATE EXTENSION IF NOT EXISTS postgis WITH SCHEMA public;
 CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
@@ -118,6 +122,57 @@ CREATE INDEX _record_creation_unique_record_type ON _record_creation (record_typ
 `
 	_, err := tx.Exec(stmt)
 	return err
+}
+
+func (r *fullMigration) insertSeedData(tx *sqlx.Tx) error {
+	newUserID := uuid.New()
+	hashedPassword, err := bcrypt.GenerateFromPassword(
+		[]byte(adminUserDefaultPassword),
+		bcrypt.DefaultCost,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	stmts := []string{
+		fmt.Sprintf(
+			`INSERT INTO _role (id, is_admin) VALUES ('%s', TRUE)`,
+			adminRoleDefaultName,
+		),
+		fmt.Sprintf(
+			`INSERT INTO _user (id, username, password) VALUES ('%s', '%s', '%s')`,
+			newUserID,
+			adminUserDefaultUsername,
+			hashedPassword,
+		),
+		fmt.Sprintf(
+			`INSERT INTO _user_role (user_id, role_id) VALUES('%s', '%s')`,
+			newUserID,
+			adminRoleDefaultName,
+		),
+	}
+
+	for _, stmt := range stmts {
+		if _, err := tx.Exec(stmt); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (r *fullMigration) Up(tx *sqlx.Tx) error {
+	var err error
+	if err = r.createTable(tx); err != nil {
+		return err
+	}
+
+	if err = r.insertSeedData(tx); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *fullMigration) Down(tx *sqlx.Tx) error {
