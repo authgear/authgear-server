@@ -162,6 +162,15 @@ func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *sk
 	return
 }
 
+func removeRecordFieldTypeHints(r *skydb.Record) {
+	for k, v := range r.Data {
+		switch v.(type) {
+		case skydb.Sequence:
+			delete(r.Data, k)
+		}
+	}
+}
+
 // recordSaveHandler iterate the record to perform the following:
 // 1. Query the db for original record
 // 2. Execute before save hooks with original record and new record
@@ -218,12 +227,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 
 	// remove bogus field, they are only for schema change
 	for _, r := range records {
-		for k, v := range r.Data {
-			switch v.(type) {
-			case skydb.Sequence:
-				delete(r.Data, k)
-			}
-		}
+		removeRecordFieldTypeHints(r)
 	}
 
 	// save records
