@@ -121,6 +121,7 @@ func main() {
 		DBOpener:      skydb.Open,
 		DBImpl:        config.DB.ImplName,
 		Option:        config.DB.Option,
+		DevMode:       config.App.DevMode,
 	}
 	preprocessorRegistry["plugin"] = &pp.EnsurePluginReadyPreprocessor{&initContext}
 	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}

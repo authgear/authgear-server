@@ -82,6 +82,7 @@ type conn struct {
 	option         string
 	statementCount uint64
 	accessModel    skydb.AccessModel
+	canMigrate     bool
 }
 
 // Db returns the current database wrapper, or a transaction wrapper when

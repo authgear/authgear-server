@@ -28,12 +28,14 @@ type ConnPreprocessor struct {
 	DBOpener      func(string, string, string, string, bool) (skydb.Conn, error)
 	DBImpl        string
 	Option        string
+	DevMode       bool
 }
 
 func (p ConnPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
 	log.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, p.AppName, p.Option)
 
-	conn, err := p.DBOpener(p.DBImpl, p.AppName, p.AccessControl, p.Option, true)
+	canMigrate := payload.HasMasterKey() || p.DevMode
+	conn, err := p.DBOpener(p.DBImpl, p.AppName, p.AccessControl, p.Option, canMigrate)
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedUnableToOpenDatabase, err.Error())
 		return http.StatusServiceUnavailable

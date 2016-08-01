@@ -86,6 +86,14 @@ func TestExtend(t *testing.T) {
 			So(i, ShouldEqual, 1)
 		})
 
+		Convey("should not create table if schema locked", func() {
+			c.canMigrate = false
+			err := db.Extend("note", skydb.RecordSchema{
+				"content": skydb.FieldType{Type: skydb.TypeString},
+			})
+			So(err, ShouldNotBeNil)
+		})
+
 		Convey("REGRESSION #277: creates table with `:`", func() {
 			err := db.Extend("table:name", nil)
 			So(err, ShouldBeNil)
@@ -272,6 +280,18 @@ func TestExtend(t *testing.T) {
 			So(i, ShouldEqual, 1)
 		})
 
+		Convey("should not rename column if schema is locked", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"content": skydb.FieldType{Type: skydb.TypeString},
+			})
+			So(err, ShouldBeNil)
+
+			c.canMigrate = false
+
+			err = db.RenameSchema("note", "content", "content2")
+			So(err, ShouldNotBeNil)
+		})
+
 		Convey("rename column with reserved name", func() {
 			err := db.Extend("note", skydb.RecordSchema{
 				"some":      skydb.FieldType{Type: skydb.TypeString},
@@ -371,6 +391,18 @@ func TestExtend(t *testing.T) {
 			i, err := result.RowsAffected()
 			So(err, ShouldBeNil)
 			So(i, ShouldEqual, 1)
+		})
+
+		Convey("should not delete column if schema is locked", func() {
+			err := db.Extend("note", skydb.RecordSchema{
+				"content": skydb.FieldType{Type: skydb.TypeString},
+			})
+			So(err, ShouldBeNil)
+
+			c.canMigrate = false
+
+			err = db.DeleteSchema("note", "content")
+			So(err, ShouldNotBeNil)
 		})
 
 		Convey("delete column with reserved name", func() {

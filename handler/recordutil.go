@@ -162,6 +162,15 @@ func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *sk
 	return
 }
 
+func removeRecordFieldTypeHints(r *skydb.Record) {
+	for k, v := range r.Data {
+		switch v.(type) {
+		case skydb.Sequence:
+			delete(r.Data, k)
+		}
+	}
+}
+
 // recordSaveHandler iterate the record to perform the following:
 // 1. Query the db for original record
 // 2. Execute before save hooks with original record and new record
@@ -213,17 +222,15 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	// derive and extend record schema
 	if err := extendRecordSchema(db, records); err != nil {
 		log.WithField("err", err).Errorln("failed to migrate record schema")
+		if myerr, ok := err.(skyerr.Error); ok {
+			return myerr
+		}
 		return skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
 	}
 
 	// remove bogus field, they are only for schema change
 	for _, r := range records {
-		for k, v := range r.Data {
-			switch v.(type) {
-			case skydb.Sequence:
-				delete(r.Data, k)
-			}
-		}
+		removeRecordFieldTypeHints(r)
 	}
 
 	// save records

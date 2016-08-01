@@ -24,12 +24,25 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/skydb"
+	"github.com/skygeario/skygear-server/skyerr"
 )
 
 func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) error {
 	remoteRecordSchema, err := db.remoteColumnTypes(recordType)
 	if err != nil {
 		return err
+	}
+
+	if len(remoteRecordSchema) > 0 && remoteRecordSchema.DefinitionEquals(recordSchema) {
+		// The record schemas are the same. There is no need to extend the
+		// schema.
+		return nil
+	}
+
+	if !db.c.canMigrate {
+		// The record schemas are different, but the database connection
+		// does not allow migration.
+		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
 	}
 
 	if len(remoteRecordSchema) == 0 {
@@ -62,6 +75,12 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 }
 
 func (db *database) RenameSchema(recordType, oldName, newName string) error {
+	if !db.c.canMigrate {
+		// The record schemas are different, but the database connection
+		// does not allow migration.
+		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
+	}
+
 	tableName := db.tableName(recordType)
 	oldName = pq.QuoteIdentifier(oldName)
 	newName = pq.QuoteIdentifier(newName)
@@ -74,6 +93,12 @@ func (db *database) RenameSchema(recordType, oldName, newName string) error {
 }
 
 func (db *database) DeleteSchema(recordType, columnName string) error {
+	if !db.c.canMigrate {
+		// The record schemas are different, but the database connection
+		// does not allow migration.
+		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
+	}
+
 	tableName := db.tableName(recordType)
 	columnName = pq.QuoteIdentifier(columnName)
 

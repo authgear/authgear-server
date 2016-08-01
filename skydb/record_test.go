@@ -169,3 +169,48 @@ func TestRecordACL(t *testing.T) {
 		})
 	})
 }
+
+func TestRecordSchema(t *testing.T) {
+	Convey("RecordSchema", t, func() {
+		target := RecordSchema{
+			"content": FieldType{TypeString, "", Expression{}},
+			"date":    FieldType{TypeDateTime, "", Expression{}},
+			"ref":     FieldType{TypeReference, "other", Expression{}},
+		}
+
+		Convey("should be equal", func() {
+			other := RecordSchema{
+				"content": FieldType{TypeString, "", Expression{}},
+				"date":    FieldType{TypeDateTime, "", Expression{}},
+				"ref":     FieldType{TypeReference, "other", Expression{}},
+			}
+			So(target.DefinitionEquals(other), ShouldBeTrue)
+		})
+
+		Convey("should check count", func() {
+			other := RecordSchema{
+				"content": FieldType{TypeString, "", Expression{}},
+				"date":    FieldType{TypeDateTime, "", Expression{}},
+			}
+			So(target.DefinitionEquals(other), ShouldBeFalse)
+		})
+
+		Convey("should check field type", func() {
+			other := RecordSchema{
+				"content": FieldType{TypeString, "", Expression{}},
+				"date":    FieldType{TypeString, "", Expression{}},
+				"ref":     FieldType{TypeReference, "other", Expression{}},
+			}
+			So(target.DefinitionEquals(other), ShouldBeFalse)
+		})
+
+		Convey("should check reference type", func() {
+			other := RecordSchema{
+				"content": FieldType{TypeString, "", Expression{}},
+				"date":    FieldType{TypeDateTime, "", Expression{}},
+				"ref":     FieldType{TypeReference, "something", Expression{}},
+			}
+			So(target.DefinitionEquals(other), ShouldBeFalse)
+		})
+	})
+}
