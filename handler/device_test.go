@@ -25,32 +25,61 @@ import (
 )
 
 type naiveConn struct {
-	getid      string
-	deleteid   string
-	getdevice  *skydb.Device
-	savedevice *skydb.Device
-	geterr     error
-	saveerr    error
-	deleteerr  error
+	devices                  map[string]skydb.Device
+	mockGetError             error
+	mockSaveError            error
+	mockDeleteError          error
+	mockDeleteWithTokenError error
 	skydb.Conn
 }
 
 func (conn *naiveConn) GetDevice(id string, device *skydb.Device) error {
-	conn.getid = id
-	if conn.geterr == nil {
-		*device = *conn.getdevice
+	if conn.mockGetError != nil {
+		return conn.mockGetError
 	}
-	return conn.geterr
+
+	*device = conn.devices[id]
+	return nil
 }
 
 func (conn *naiveConn) SaveDevice(device *skydb.Device) error {
-	conn.savedevice = device
-	return conn.saveerr
+	if conn.mockSaveError != nil {
+		return conn.mockSaveError
+	}
+
+	deviceID := device.ID
+	if deviceID != "" {
+		conn.devices[deviceID] = *device
+	}
+
+	return nil
 }
 
 func (conn *naiveConn) DeleteDevice(id string) error {
-	conn.deleteid = id
-	return conn.deleteerr
+	if conn.mockDeleteError != nil {
+		return conn.mockDeleteError
+	}
+
+	delete(conn.devices, id)
+	return nil
+}
+
+func (conn *naiveConn) DeleteDevicesByToken(token string, t time.Time) error {
+	if conn.mockDeleteWithTokenError != nil {
+		return conn.mockDeleteWithTokenError
+	}
+
+	newDevices := map[string]skydb.Device{}
+
+	for perID, perDevice := range conn.devices {
+		if perDevice.Token != token || (t != skydb.ZeroTime && perDevice.LastRegisteredAt.After(t)) {
+			newDevices[perID] = perDevice
+		}
+	}
+
+	conn.devices = newDevices
+
+	return nil
 }
 
 func TestDeviceRegisterHandler(t *testing.T) {
@@ -60,7 +89,10 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			timeNow = timeNowUTC
 		}()
 
-		conn := naiveConn{}
+		conn := naiveConn{
+			devices: map[string]skydb.Device{},
+		}
+
 		payload := router.Payload{
 			DBConn:     &conn,
 			UserInfoID: "userinfoid",
@@ -77,9 +109,10 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			handler.Handle(&payload, &resp)
 
 			result := resp.Result.(DeviceReigsterResult)
-			So(result.ID, ShouldNotBeEmpty)
-			So(conn.savedevice, ShouldResemble, &skydb.Device{
-				ID:               result.ID,
+			resultID := result.ID
+			So(resultID, ShouldNotBeEmpty)
+			So(conn.devices[resultID], ShouldResemble, skydb.Device{
+				ID:               resultID,
 				Type:             "ios",
 				Token:            "some-awesome-token",
 				UserInfoID:       "userinfoid",
@@ -95,7 +128,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				UserInfoID:       "olduserinfoid",
 				LastRegisteredAt: time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
-			conn.getdevice = &olddevice
+			So(conn.SaveDevice(&olddevice), ShouldBeNil)
 
 			payload.Data = map[string]interface{}{
 				"id":           "deviceid",
@@ -107,15 +140,46 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			handler.Handle(&payload, &resp)
 
 			result := resp.Result.(DeviceReigsterResult)
-			So(result.ID, ShouldEqual, "deviceid")
-			So(conn.getid, ShouldEqual, "deviceid")
-			So(conn.savedevice, ShouldResemble, &skydb.Device{
+			resultID := result.ID
+			So(resultID, ShouldEqual, "deviceid")
+			So(conn.devices[resultID], ShouldResemble, skydb.Device{
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "newtoken",
 				UserInfoID:       "userinfoid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
+		})
+
+		Convey("remove devices with the same token when register", func() {
+			existingDevice := skydb.Device{
+				ID:               "existing_id",
+				Type:             "ios",
+				Token:            "existing_token",
+				UserInfoID:       "existing_user",
+				LastRegisteredAt: time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+			So(conn.SaveDevice(&existingDevice), ShouldBeNil)
+
+			payload.Data = map[string]interface{}{
+				"type":         "ios",
+				"device_token": "existing_token",
+			}
+
+			handler := &DeviceRegisterHandler{}
+			handler.Handle(&payload, &resp)
+
+			result := resp.Result.(DeviceReigsterResult)
+			resultID := result.ID
+			So(resultID, ShouldNotBeEmpty)
+			So(conn.devices[resultID], ShouldResemble, skydb.Device{
+				ID:               resultID,
+				Type:             "ios",
+				Token:            "existing_token",
+				UserInfoID:       "userinfoid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			})
+			So(conn.devices["existing_id"], ShouldResemble, skydb.Device{})
 		})
 
 		Convey("complains on empty device type", func() {
@@ -152,8 +216,9 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			handler.Handle(&payload, &resp)
 
 			result := resp.Result.(DeviceReigsterResult)
-			So(result.ID, ShouldNotBeEmpty)
-			So(conn.savedevice, ShouldResemble, &skydb.Device{
+			resultID := result.ID
+			So(resultID, ShouldNotBeEmpty)
+			So(conn.devices[resultID], ShouldResemble, skydb.Device{
 				ID:               result.ID,
 				Type:             "android",
 				Token:            "",
@@ -163,7 +228,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 		})
 
 		Convey("complains on non-existed update", func() {
-			conn.geterr = skydb.ErrDeviceNotFound
+			conn.mockGetError = skydb.ErrDeviceNotFound
 
 			payload.Data = map[string]interface{}{
 				"id":           "deviceid",
@@ -179,7 +244,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 		})
 
 		Convey("complains on unknown device type", func() {
-			conn.geterr = skydb.ErrDeviceNotFound
+			conn.mockGetError = skydb.ErrDeviceNotFound
 
 			payload.Data = map[string]interface{}{
 				"type": "unknown-type",
