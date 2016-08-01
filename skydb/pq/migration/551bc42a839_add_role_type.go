@@ -29,8 +29,9 @@ func (r *revision_551bc42a839) Up(tx *sqlx.Tx) error {
 		`ALTER TABLE _role ADD COLUMN is_admin boolean DEFAULT FALSE;`,
 	}
 	for _, stmt := range stmts {
-		_, err := tx.Exec(stmt)
-		return err
+		if _, err := tx.Exec(stmt); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -41,8 +42,9 @@ func (r *revision_551bc42a839) Down(tx *sqlx.Tx) error {
 		`ALTER TABLE _role DROP COLUMN by_default;`,
 	}
 	for _, stmt := range stmts {
-		_, err := tx.Exec(stmt)
-		return err
+		if _, err := tx.Exec(stmt); err != nil {
+			return err
+		}
 	}
 	return nil
 }

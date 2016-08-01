@@ -43,8 +43,9 @@ func (r *revision_41af1c8d394) Up(tx *sqlx.Tx) error {
 		`,
 	}
 	for _, stmt := range stmts {
-		_, err := tx.Exec(stmt)
-		return err
+		if _, err := tx.Exec(stmt); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -55,8 +56,9 @@ func (r *revision_41af1c8d394) Down(tx *sqlx.Tx) error {
 		`DROP TABLE _role;`,
 	}
 	for _, stmt := range stmts {
-		_, err := tx.Exec(stmt)
-		return err
+		if _, err := tx.Exec(stmt); err != nil {
+			return err
+		}
 	}
 	return nil
 }

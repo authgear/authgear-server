@@ -30,8 +30,9 @@ func (r *revision_30d0a626888) Up(tx *sqlx.Tx) error {
 		`ALTER TABLE _user ADD CONSTRAINT _user_email_key UNIQUE (email);`,
 	}
 	for _, stmt := range stmts {
-		_, err := tx.Exec(stmt)
-		return err
+		if _, err := tx.Exec(stmt); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -42,8 +43,9 @@ func (r *revision_30d0a626888) Down(tx *sqlx.Tx) error {
 		`ALTER TABLE _user DROP CONSTRAINT _user_email_key;`,
 	}
 	for _, stmt := range stmts {
-		_, err := tx.Exec(stmt)
-		return err
+		if _, err := tx.Exec(stmt); err != nil {
+			return err
+		}
 	}
 	return nil
 }

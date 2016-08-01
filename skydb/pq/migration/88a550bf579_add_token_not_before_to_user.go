@@ -28,8 +28,9 @@ func (r *revision_88a550bf579) Up(tx *sqlx.Tx) error {
 		`ALTER TABLE _user ADD COLUMN token_valid_since timestamp without time zone;`,
 	}
 	for _, stmt := range stmts {
-		_, err := tx.Exec(stmt)
-		return err
+		if _, err := tx.Exec(stmt); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -39,8 +40,9 @@ func (r *revision_88a550bf579) Down(tx *sqlx.Tx) error {
 		`ALTER TABLE _user DROP COLUMN token_valid_since;`,
 	}
 	for _, stmt := range stmts {
-		_, err := tx.Exec(stmt)
-		return err
+		if _, err := tx.Exec(stmt); err != nil {
+			return err
+		}
 	}
 	return nil
 }
