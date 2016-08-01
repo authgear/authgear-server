@@ -21,6 +21,7 @@ import (
 
 	"github.com/skygeario/skygear-server/skydb"
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func TestUserCRUD(t *testing.T) {
@@ -44,6 +45,39 @@ func TestUserCRUD(t *testing.T) {
 				},
 			},
 		}
+
+		Convey("default admin role", func() {
+			var exists bool
+			c.QueryRowx(`
+				SELECT EXISTS (
+					SELECT 1
+					FROM app_com_oursky_skygear._role
+					WHERE is_admin = TRUE
+				)`).Scan(&exists)
+			So(exists, ShouldBeTrue)
+		})
+
+		Convey("default admin user", func() {
+			var username string
+			var actualHashedPassword string
+
+			c.QueryRowx(`
+				SELECT u.username, u.password
+				FROM app_com_oursky_skygear._user as u
+					JOIN app_com_oursky_skygear._user_role as ur ON ur.user_id = u.id
+					JOIN app_com_oursky_skygear._role as r ON ur.role_id = r.id
+				WHERE r.is_admin = TRUE`,
+			).Scan(&username, &actualHashedPassword)
+
+			So(username, ShouldEqual, "admin")
+			So(
+				bcrypt.CompareHashAndPassword(
+					[]byte(actualHashedPassword),
+					[]byte("secret"),
+				),
+				ShouldBeNil,
+			)
+		})
 
 		Convey("creates user", func() {
 			err := c.CreateUser(&userinfo)
@@ -288,13 +322,13 @@ func TestUserCRUD(t *testing.T) {
 
 			count := 0
 			c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
-			So(count, ShouldEqual, 2)
+			So(count, ShouldEqual, 3) // including default admin user
 
 			err = c.DeleteUser("2")
 			So(err, ShouldBeNil)
 
 			c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
-			So(count, ShouldEqual, 1)
+			So(count, ShouldEqual, 2) // including default admin user
 		})
 	})
 }
