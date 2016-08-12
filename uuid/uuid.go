@@ -17,7 +17,7 @@ package uuid
 import "github.com/twinj/uuid"
 
 func init() {
-	uuid.SwitchFormat(uuid.CleanHyphen)
+	uuid.SwitchFormat(uuid.FormatCanonical)
 }
 
 // New returns a new uuid4 string

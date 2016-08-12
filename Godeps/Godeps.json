@@ -119,7 +119,7 @@
 		},
 		{
 			"ImportPath": "github.com/twinj/uuid",
-			"Rev": "70cac2bcd273ef6a371bb96cde363d28b68734c3"
+			"Rev": "b505f2cca343b7b21416b27b1f2ad88469800892"
 		},
 		{
 			"ImportPath": "github.com/zeromq/goczmq",
