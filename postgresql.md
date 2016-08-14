@@ -37,14 +37,14 @@ The following examples assumed you had Homebrew and (homebrew-services|https://g
 2. `sudo apt-get install wget ca-certificates`
 3. `wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -`
 4. `sudo apt-get update`
-5. `sudo apt-get install postgresql-9.4 pgadmin3`
+5. `sudo apt-get install postgresql-9.5 pgadmin3`
 6. Done!
 
 See (Apt|https://wiki.postgresql.org/wiki/Apt) in the Postgresql's wiki for more information.
 
 *Trusty*
 
-1. `sudo apt-get install postgresql-9.4 pgadmin3`
+1. `sudo apt-get install postgresql-9.5 pgadmin3`
 2. Done!
 
 After postgresql installed:
@@ -83,5 +83,5 @@ $ brew install postgis
 ### Deb
 
 ```shell
-$ sudo apt-get postgis-2.1
+$ sudo apt-get postgis-2.2
 ```

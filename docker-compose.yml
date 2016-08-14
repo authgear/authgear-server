@@ -8,7 +8,7 @@ version: '2'
 
 services:
   db:
-    image: mdillon/postgis:9.4
+    image: mdillon/postgis:9.5
     volumes:
     - db_data:/var/lib/postgresql/data
     ports:

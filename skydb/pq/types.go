@@ -29,7 +29,7 @@ import (
 
 // Different data types that can be saved in and loaded from postgreSQL
 // NOTE(limouren): varchar is missing because text can replace them,
-// see the docs here: http://www.postgresql.org/docs/9.4/static/datatype-character.html
+// see the docs here: http://www.postgresql.org/docs/9.5/static/datatype-character.html
 const (
 	TypeString    = "text"
 	TypeNumber    = "double precision"
