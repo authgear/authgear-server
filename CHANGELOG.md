@@ -1,3 +1,22 @@
+## 0.15.0 (2016-08-17)
+
+### Features
+
+- Schema migration is disable in non-dev-mode (#93)
+- Add migration for initial admin user (#75)
+- Assign default user role to new signup user (#44)
+- Support user discovery with username (#19)
+
+### Bug Fixes
+
+- Fix issue when running `go install` (#64)
+- Remove existing device with the same token when registering device (#71)
+- Fix JWT token not considered valid created by signup (#94)
+
+### Other Notes
+
+- Update setup test env. script on README
+
 ## 0.14.0 (2016-07-26)
 
 ### Features
