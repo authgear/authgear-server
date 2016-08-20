@@ -5,7 +5,7 @@ data
 .env
 
 # go generated sources
-/Godeps/_workspace
+vendor
 
 # Fabric
 fabfile.pyc

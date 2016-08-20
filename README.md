@@ -72,8 +72,8 @@ $ brew install libsodium zeromq czmq
 ### Building from source
 
 ```shell
-$ go get github.com/tools/godep
-$ godep restore
+$ go get github.com/Masterminds/glide
+$ glide install
 $ go build  # or `go build --tags zmq` for ZeroMQ support
 ```
 

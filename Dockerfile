@@ -20,9 +20,9 @@ WORKDIR /go/src/app
 
 # Copy a minimal set of files to restore Go dependencies to get advantage
 # of Docker build cache
-RUN go get github.com/tools/godep
-COPY Godeps /go/src/app/Godeps
-RUN $GOPATH/bin/godep restore
+COPY glide.yaml glide.lock /go/src/app/
+RUN go get github.com/Masterminds/glide && \
+    $GOPATH/bin/glide install --skip-test
 
 COPY . /go/src/app
 

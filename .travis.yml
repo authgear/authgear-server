@@ -13,7 +13,6 @@ services:
 cache:
   directories:
     - $HOME/.cache
-    - Godeps/_workspace
 
 go_import_path: github.com/skygeario/skygear-server
 
@@ -29,7 +28,11 @@ before_install:
   - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/zeromq4-1.git v4.1.3
   - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/czmq.git v3.0.2
   - popd
-  - ./scripts/if-differ.sh Godeps/Godeps.json $HOME/.cache/Godeps.json rm -rf Godeps/_workspace
+  - go get github.com/Masterminds/glide
+
+install:
+  - glide install
+  - go install
 
 before_script:
   - psql -c 'CREATE DATABASE skygear_test;' -U postgres
@@ -38,11 +41,8 @@ before_script:
     go get golang.org/x/tools/cmd/stringer \
            golang.org/x/tools/cmd/cover \
            github.com/golang/lint/golint \
-           github.com/smartystreets/goconvey/convey \
-           github.com/smartystreets/assertions \
            github.com/rickmak/gocyclo \
-           github.com/oursky/gogocyclo \
-           github.com/jarcoal/httpmock
+           github.com/oursky/gogocyclo
 
 script:
   - golint ./pkg/... | grep -v -f .golint.exclude; test $? -eq 1
