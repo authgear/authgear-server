@@ -15,7 +15,7 @@ for GOOS in darwin linux windows; do
 
     GOOS=$GOOS GOARCH=$GOARCH \
     go build \
-    -ldflags "-X github.com/skygeario/skygear-server/skyversion.version=$VERSION" \
+    -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$VERSION" \
     -o dist/$FILENAME \
     github.com/skygeario/skygear-server
 
@@ -32,7 +32,7 @@ echo -n "Building $FILENAME... "
 GOOS=$GOOS GOARCH=$GOARCH \
 go build \
 --tags zmq \
--ldflags "-X github.com/skygeario/skygear-server/skyversion.version=$VERSION" \
+-ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$VERSION" \
 -o dist/$FILENAME \
 github.com/skygeario/skygear-server
 
