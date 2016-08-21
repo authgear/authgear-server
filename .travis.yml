@@ -42,7 +42,8 @@ before_script:
            golang.org/x/tools/cmd/cover \
            github.com/golang/lint/golint \
            github.com/rickmak/gocyclo \
-           github.com/oursky/gogocyclo
+           github.com/oursky/gogocyclo \
+           github.com/mitchellh/gox
 
 script:
   - golint ./pkg/... | grep -v -f .golint.exclude; test $? -eq 1
@@ -52,16 +53,16 @@ script:
   - go test --tags zmq -cover ./pkg/...
 
 before_deploy:
-  - ./scripts/build-binary.sh
+  - make all
 
 deploy:
   - provider: releases
     api-key: "$GITHUB_RELEASE_TOKEN"
     file:
-      - "dist/skygear-server-darwin-386"
       - "dist/skygear-server-darwin-amd64"
       - "dist/skygear-server-linux-386"
       - "dist/skygear-server-linux-amd64"
+      - "dist/skygear-server-linux-arm"
       - "dist/skygear-server-windows-386"
       - "dist/skygear-server-windows-amd64"
       - "dist/skygear-server-zmq-linux-amd64"
