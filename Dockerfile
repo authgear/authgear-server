@@ -1,19 +1,4 @@
-FROM golang:1.6
-
-RUN \
-    apt-get update && \
-    apt-get install --no-install-recommends -y libtool-bin automake pkg-config && \
-    git clone --branch 1.0.5 --depth 1 git://github.com/jedisct1/libsodium.git && \
-    ( cd libsodium; ./autogen.sh; ./configure; make install; ldconfig ) && \
-    rm -rf libsodium && \
-    git clone --branch v4.1.3 --depth 1 git://github.com/zeromq/zeromq4-1.git && \
-    ( cd zeromq4-1; ./autogen.sh; ./configure; make install; ldconfig ) && \
-    rm -rf zeromq4-1 && \
-    git clone --branch v3.0.2 --depth 1 git://github.com/zeromq/czmq.git && \
-    ( cd czmq; ./autogen.sh; ./configure; make install; ldconfig ) && \
-    rm -rf czmq && \
-    apt-get install --no-install-recommends -y net-tools telnet && \
-    rm -rf /var/lib/apt/lists/*
+FROM skygeario/skygear-dev:latest
 
 RUN mkdir -p /go/src/app
 WORKDIR /go/src/app
@@ -21,8 +6,7 @@ WORKDIR /go/src/app
 # Copy a minimal set of files to restore Go dependencies to get advantage
 # of Docker build cache
 COPY glide.yaml glide.lock /go/src/app/
-RUN go get github.com/Masterminds/glide && \
-    $GOPATH/bin/glide install --skip-test
+RUN glide install --skip-test
 
 COPY . /go/src/app
 
