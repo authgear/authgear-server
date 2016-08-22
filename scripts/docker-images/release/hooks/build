@@ -1,0 +1,4 @@
+#!/bin/sh
+
+make docker-build IMAGE_NAME=$IMAGE_NAME
+

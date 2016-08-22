@@ -1,0 +1,90 @@
+package: github.com/skygeario/skygear-server
+import:
+- package: github.com/RobotsAndPencils/buford
+  version: ~0.10.0
+  subpackages:
+  - push
+- package: github.com/Sirupsen/logrus
+  version: 74bde9ea4c5b2c78995da8ed56d37e75644dc941
+- package: github.com/dgrijalva/jwt-go
+  version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
+- package: github.com/evalphobia/logrus_sentry
+  version: d265708c9c877d2f458e673f0af437a0529baee9
+- package: github.com/facebookgo/inject
+  version: d5029152fecb2a8e68f7f8eb3c6391fc8ee70496
+- package: github.com/facebookgo/structtag
+  version: 217e25fb96916cc60332e399c9aa63f5c422ceed
+- package: github.com/garyburd/redigo
+  version: 6ece6e0a09f28cc399b21550cbf37ab39ba63cce
+  subpackages:
+  - internal
+  - redis
+- package: github.com/getsentry/raven-go
+  version: 74c334d7b8aaa4fd1b4fc6aa428c36fed1699e28
+- package: github.com/google/go-gcm
+  version: 423613e2e8f11e71023c75ae2dd7e27105326cbf
+- package: github.com/gorilla/websocket
+  version: b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5
+- package: github.com/jmoiron/sqlx
+  version: 344b1e96d6e410a093b7bce40287731a49e253f6
+  subpackages:
+  - reflectx
+- package: github.com/joho/godotenv
+  version: 4ed13390c0acd2ff4e371e64d8b97c8954138243
+- package: github.com/jpillora/backoff
+  version: 2ff7c4694083b5dbd71b21fd7cb7577477a74b31
+- package: github.com/lann/builder
+  version: f22ce00fd9394014049dad11c244859432bd6820
+- package: github.com/lann/ps
+  version: 62de8c46ede02a7675c4c79c84883eb164cb71e3
+- package: github.com/lann/squirrel
+  version: e13dbacee404686afd0acf2d44b8d34869605e03
+- package: github.com/lib/pq
+  version: b269bd035a727d6c1081f76e7a239a1b00674c40
+  subpackages:
+  - oid
+- package: github.com/mattn/go-xmpp
+  version: d86062634d19b6ac3e601f0d2b875879bb6b9569
+- package: github.com/mitchellh/mapstructure
+  version: 281073eb9eb092240d33ef253c404f1cca550309
+- package: github.com/paulmach/go.geo
+  version: c84b6002b0f727d4a2d40e05466dfc3cc54eb329
+- package: github.com/paulmach/go.geojson
+  version: ~1.0.0
+- package: github.com/pborman/uuid
+  version: cccd189d45f7ac3368a0d127efb7f4d08ae0b655
+- package: github.com/robfig/cron
+  version: 67823cd24dece1b04cced3a0a0b3ca2bc84d875e
+- package: github.com/twinj/uuid
+  version: b505f2cca343b7b21416b27b1f2ad88469800892
+- package: github.com/zeromq/goczmq
+  version: 91476d8f9ec24f1c2b7d35d459a9d2b32376e450
+- package: golang.org/x/crypto
+  version: 173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd
+  subpackages:
+  - bcrypt
+  - blowfish
+- package: golang.org/x/net
+  version: b400c2eff1badec7022a8c8f5bea058b6315eed7
+  subpackages:
+  - context
+  - http2
+  - http2/hpack
+  - lex/httplex
+- package: golang.org/x/sys
+  version: 5eaf0df67e70d6997a9fe0ed24383fa1b01638d3
+  subpackages:
+  - unix
+- package: gopkg.in/amz.v3
+  version: bff3a097c4108da57bb8cbe3aad2990d74d23676
+  subpackages:
+  - aws
+  - s3
+- package: github.com/golang/mock
+  subpackages:
+  - gomock
+testImport:
+- package: github.com/jarcoal/httpmock
+- package: github.com/smartystreets/goconvey
+  subpackages:
+  - convey
