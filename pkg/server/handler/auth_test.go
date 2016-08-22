@@ -172,6 +172,10 @@ func TestLoginHandler(t *testing.T) {
 
 		Convey("login user", func() {
 			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
+			userinfo.Roles = []string{
+				"Programmer",
+				"Tester",
+			}
 			conn.CreateUser(&userinfo)
 
 			req := router.Payload{
@@ -189,10 +193,14 @@ func TestLoginHandler(t *testing.T) {
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, authResponse{})
+
 			authResp := resp.Result.(authResponse)
 			So(authResp.Username, ShouldEqual, "john.doe")
 			So(authResp.Email, ShouldEqual, "john.doe@example.com")
 			So(authResp.AccessToken, ShouldNotBeEmpty)
+			So(authResp.Roles, ShouldContain, "Programmer")
+			So(authResp.Roles, ShouldContain, "Tester")
+
 			token := tokenStore.Token
 			So(token.UserInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
