@@ -30,10 +30,11 @@ import (
 var errUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 
 type authResponse struct {
-	UserID      string `json:"user_id,omitempty"`
-	Username    string `json:"username,omitempty"`
-	Email       string `json:"email,omitempty"`
-	AccessToken string `json:"access_token,omitempty"`
+	UserID      string   `json:"user_id,omitempty"`
+	Username    string   `json:"username,omitempty"`
+	Email       string   `json:"email,omitempty"`
+	Roles       []string `json:"roles,omitempty"`
+	AccessToken string   `json:"access_token,omitempty"`
 }
 
 type signupPayload struct {
@@ -186,6 +187,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		UserID:      info.ID,
 		Username:    info.Username,
 		Email:       info.Email,
+		Roles:       info.Roles,
 		AccessToken: token.AccessToken,
 	}
 }
@@ -332,6 +334,7 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		UserID:      info.ID,
 		Username:    info.Username,
 		Email:       info.Email,
+		Roles:       info.Roles,
 		AccessToken: token.AccessToken,
 	}
 }

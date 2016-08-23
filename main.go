@@ -177,6 +177,8 @@ func main() {
 	r.Map("relation:add", injector.Inject(&handler.RelationAddHandler{}))
 	r.Map("relation:remove", injector.Inject(&handler.RelationRemoveHandler{}))
 
+	r.Map("me", injector.Inject(&handler.MeHandler{}))
+
 	r.Map("user:query", injector.Inject(&handler.UserQueryHandler{}))
 	r.Map("user:update", injector.Inject(&handler.UserUpdateHandler{}))
 	r.Map("user:link", injector.Inject(&handler.UserLinkHandler{}))
