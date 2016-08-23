@@ -41,6 +41,7 @@ func TestMeHandler(t *testing.T) {
 
 		Convey("Get me with user info", func() {
 			r := handlertest.NewSingleRouteRouter(&MeHandler{}, func(p *router.Payload) {
+				p.Data["access_token"] = "token-1"
 				p.UserInfo = &sampleUserInfo
 			})
 
@@ -48,6 +49,7 @@ func TestMeHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, http.StatusOK)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
         "result": {
+          "access_token": "token-1",
           "user_id": "tester-1",
           "email": "tester1@example.com",
           "username": "tester1",

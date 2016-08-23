@@ -50,9 +50,16 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 	}
 
 	response.Result = struct {
-		UserID   string   `json:"user_id,omitempty"`
-		Username string   `json:"username,omitempty"`
-		Email    string   `json:"email,omitempty"`
-		Roles    []string `json:"roles,omitempty"`
-	}{userinfo.ID, userinfo.Username, userinfo.Email, userinfo.Roles}
+		UserID      string   `json:"user_id,omitempty"`
+		Username    string   `json:"username,omitempty"`
+		Email       string   `json:"email,omitempty"`
+		Roles       []string `json:"roles,omitempty"`
+		AccessToken string   `json:"access_token,omitempty"`
+	}{
+		userinfo.ID,
+		userinfo.Username,
+		userinfo.Email,
+		userinfo.Roles,
+		payload.AccessTokenString(),
+	}
 }
