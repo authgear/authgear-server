@@ -2,7 +2,7 @@
 
 docker login -u "$QUAY_USER" -p "$QUAY_PASSWORD" quay.io
 
-MAKE=make -C scripts/docker-images/release
+MAKE="make -C scripts/docker-images/release"
 
 $MAKE clean
 $MAKE docker-build DOCKER_REGISTRY=quay.io/
