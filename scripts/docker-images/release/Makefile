@@ -13,7 +13,7 @@ IMAGE_NAME := $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(DOCKER_IMAGE):$(DOCKER_TAG)
 
 .PHONY: clean
 clean:
-	rm skygear-server
+	-rm skygear-server
 
 skygear-server:
 	$(MAKE) -C ../../../ vendor WITH_DOCKER=1
