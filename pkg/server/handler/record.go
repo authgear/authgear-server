@@ -86,7 +86,7 @@ type recordSavePayload struct {
 	// the item is one-one corresponding to RawMaps.
 	IncomingItems []interface{}
 
-	// Records contains the sucessfully de-serialized record
+	// Records contains the successfully de-serialized record
 	Records []*skydb.Record
 
 	// Errs is the array of de-serialization errors

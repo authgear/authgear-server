@@ -43,7 +43,7 @@ func (rs emptyRowsIter) OverallRecordCount() *uint64 {
 
 var ErrDatabaseTxDidBegin = errors.New("skydb: a transaction has already begun")
 var ErrDatabaseTxDidNotBegin = errors.New("skydb: a transaction has not begun")
-var ErrDatabaseTxDone = errors.New("skydb: Database's transaction has already commited or rolled back")
+var ErrDatabaseTxDone = errors.New("skydb: Database's transaction has already committed or rolled back")
 
 var PublicDatabaseIdentifier = "_public"
 var UnionDatabaseIdentifier = "_union"
@@ -52,7 +52,7 @@ type DatabaseType int
 
 const (
 	// PublicDatabase is a database containing records shared among all
-	// users. ACL settings may apply to restrict accesss.
+	// users. ACL settings may apply to restrict access.
 	PublicDatabase DatabaseType = 0 + iota
 
 	// PrivateDatabase is a database containing records visible to
@@ -101,7 +101,7 @@ type Database interface {
 	// Save updates the supplied Record in the Database if Record with
 	// the same key exists, else such Record is created.
 	//
-	// Save returns an error if the underlying implemention failed to
+	// Save returns an error if the underlying implementation failed to
 	// create / modify the Record.
 	Save(record *Record) error
 
@@ -189,7 +189,7 @@ func NewRows(iter RowsIter) *Rows {
 	}
 }
 
-// Close closes the Rows and prevents futher enumerations on the instance.
+// Close closes the Rows and prevents further enumerations on the instance.
 func (r *Rows) Close() error {
 	if r.closed {
 		return nil

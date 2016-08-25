@@ -31,7 +31,7 @@ import (
 
 var log = logging.LoggerEntry("router")
 
-// pipeline encapsulates a transformation which a request will come throught
+// pipeline encapsulates a transformation which a request will come through
 // from preprocessors to the actual handler. (and postprocessor later)
 type pipeline struct {
 	Action        string
