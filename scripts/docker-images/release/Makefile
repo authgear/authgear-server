@@ -5,7 +5,7 @@ BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 DOCKER_REGISTRY := 
 DOCKER_ORG_NAME := skygeario
-DOCKER_IMAGE := skygear-server-deps
+DOCKER_IMAGE := skygear-server
 DOCKER_TAG := git-$(shell git rev-parse --short HEAD)
 PUSH_DOCKER_TAG := $(VERSION)
 
