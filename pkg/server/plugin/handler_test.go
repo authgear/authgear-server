@@ -43,7 +43,7 @@ func TestHandlerCreation(t *testing.T) {
 }
 
 func TestHandler(t *testing.T) {
-	Convey("test reponse header and body", t, func() {
+	Convey("test response header and body", t, func() {
 		transport := &fakeTransport{}
 		transport.outBytes, _ = json.Marshal(struct {
 			Header map[string][]string `json:"header"`

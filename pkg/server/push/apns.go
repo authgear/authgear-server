@@ -83,7 +83,7 @@ func parseCertificateLeaf(certificate *tls.Certificate) error {
 // use as the topic for APNS. The topic is usually the same as the
 // application bundle // identifier.
 //
-// Returns the topic name, and an error if an error occuring finding the topic
+// Returns the topic name, and an error if an error occurring finding the topic
 // name.
 func findDefaultAPNSTopic(certificate tls.Certificate) (string, error) {
 	if certificate.Leaf == nil {
