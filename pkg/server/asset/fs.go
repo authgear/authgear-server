@@ -28,30 +28,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"gopkg.in/amz.v3/aws"
-	"gopkg.in/amz.v3/s3"
 )
-
-// Store specify the interfaces of an asset store
-type Store interface {
-	GetFileReader(name string) (io.ReadCloser, error)
-	PutFileReader(name string, src io.Reader, length int64, contentType string) error
-}
-
-// URLSigner signs a signature and returns a URL accessible to that asset.
-type URLSigner interface {
-	// SignedURL returns a url with access to the named file. If asset
-	// store is private, the returned URL is a signed one, allowing access
-	// to asset for a short period.
-	SignedURL(name string) (string, error)
-	IsSignatureRequired() bool
-}
-
-// SignatureParser parses a signed signature string
-type SignatureParser interface {
-	ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error)
-}
 
 // FileStore implements Store by storing files on file system
 type FileStore struct {
@@ -61,10 +38,12 @@ type FileStore struct {
 	public bool
 }
 
+// NewFileStore creates a new FileStore
 func NewFileStore(dir, prefix, secret string, public bool) *FileStore {
 	return &FileStore{dir, prefix, secret, public}
 }
 
+// GetFileReader returns a reader for reading files
 func (s *FileStore) GetFileReader(name string) (io.ReadCloser, error) {
 	path := filepath.Join(s.dir, name)
 	return os.Open(path)
@@ -97,6 +76,7 @@ func (s *FileStore) PutFileReader(name string, src io.Reader, length int64, cont
 	return nil
 }
 
+// SignedURL returns a signed url with expiry date
 func (s *FileStore) SignedURL(name string) (string, error) {
 	if !s.IsSignatureRequired() {
 		return fmt.Sprintf("%s/%s", s.prefix, name), nil
@@ -119,6 +99,7 @@ func (s *FileStore) SignedURL(name string) (string, error) {
 	), nil
 }
 
+// ParseSignature tries to parse the asset signature
 func (s *FileStore) ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error) {
 	base64Decoder := base64.NewDecoder(base64.URLEncoding, strings.NewReader(signed))
 	remoteSignature, err := ioutil.ReadAll(base64Decoder)
@@ -135,56 +116,7 @@ func (s *FileStore) ParseSignature(signed string, name string, expiredAt time.Ti
 	return !hmac.Equal(remoteSignature, h.Sum(nil)), nil
 }
 
+// IsSignatureRequired indicates whether a signature is required
 func (s *FileStore) IsSignatureRequired() bool {
-	return !s.public
-}
-
-// S3Store implements Store by storing files on S3
-type S3Store struct {
-	bucket *s3.Bucket
-	public bool
-}
-
-// NewS3Store returns a new S3Store
-func NewS3Store(accessKey, secretKey, regionName, bucketName string, public bool) (*S3Store, error) {
-	auth := aws.Auth{
-		AccessKey: accessKey,
-		SecretKey: secretKey,
-	}
-
-	region, ok := aws.Regions[regionName]
-	if !ok {
-		return nil, fmt.Errorf("unrecgonized region name = %v", regionName)
-	}
-
-	bucket, err := s3.New(auth, region).Bucket(bucketName)
-	if err != nil {
-		return nil, err
-	}
-
-	return &S3Store{
-		bucket: bucket,
-		public: public,
-	}, nil
-}
-
-func (s *S3Store) GetFileReader(name string) (io.ReadCloser, error) {
-	return s.bucket.GetReader(name)
-}
-
-// PutFileReader uploads a file to s3 with content from io.Reader
-func (s *S3Store) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
-	return s.bucket.PutReader(name, src, length, contentType, s3.Private)
-}
-
-// SignedURL return a signed s3 URL with expiry date
-func (s *S3Store) SignedURL(name string) (string, error) {
-	if !s.IsSignatureRequired() {
-		return s.bucket.URL(name), nil
-	}
-	return s.bucket.SignedURL(name, time.Minute*time.Duration(15))
-}
-
-func (s *S3Store) IsSignatureRequired() bool {
 	return !s.public
 }
