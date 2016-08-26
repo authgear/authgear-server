@@ -72,6 +72,12 @@ type Configuration struct {
 		SecretToken string `json:"secret_key"`
 		Region      string `json:"region"`
 		Bucket      string `json:"bucket"`
+
+		// followings only used when ImplName = cloud
+		CloudAssetHost          string `json:"cloud_asset_host"`
+		CloudAssetToken         string `json:"cloud_asset_token"`
+		CloudAssetPublicPrefix  string `json:"cloud_asset_public_prefix"`
+		CloudAssetPrivatePrefix string `json:"cloud_asset_private_prefix"`
 	} `json:"asset_store"`
 	AssetURLSigner struct {
 		URLPrefix string `json:"url_prefix"`
@@ -295,6 +301,24 @@ func (config *Configuration) readAssetStore() {
 	assetStoreBucket := os.Getenv("ASSET_STORE_BUCKET")
 	if assetStoreBucket != "" {
 		config.AssetStore.Bucket = assetStoreBucket
+	}
+
+	// Cloud Asset related
+	cloudAssetHost := os.Getenv("CLOUD_ASSET_HOST")
+	if cloudAssetHost != "" {
+		config.AssetStore.CloudAssetHost = cloudAssetHost
+	}
+	cloudAssetToken := os.Getenv("CLOUD_ASSET_TOKEN")
+	if cloudAssetToken != "" {
+		config.AssetStore.CloudAssetToken = cloudAssetToken
+	}
+	cloudAssetPublicPrefix := os.Getenv("CLOUD_ASSET_PUBLIC_PREFIX")
+	if cloudAssetPublicPrefix != "" {
+		config.AssetStore.CloudAssetPublicPrefix = cloudAssetPublicPrefix
+	}
+	cloudAssetPrivatePrefix := os.Getenv("CLOUD_ASSET_PRIVATE_PREFIX")
+	if cloudAssetPrivatePrefix != "" {
+		config.AssetStore.CloudAssetPrivatePrefix = cloudAssetPrivatePrefix
 	}
 }
 
