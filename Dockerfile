@@ -1,4 +1,4 @@
-FROM skygeario/skygear-dev:latest
+FROM skygeario/skygear-godev:latest
 
 RUN mkdir -p /go/src/app
 WORKDIR /go/src/app
