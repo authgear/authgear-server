@@ -308,6 +308,19 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 			panic("failed to initialize asset.S3Store: " + err.Error())
 		}
 		store = s3Store
+	case "cloud":
+		cloudStore, err := asset.NewCloudStore(
+			config.App.Name,
+			config.AssetStore.CloudAssetHost,
+			config.AssetStore.CloudAssetToken,
+			config.AssetStore.CloudAssetPublicPrefix,
+			config.AssetStore.CloudAssetPrivatePrefix,
+			config.AssetStore.Public,
+		)
+		if err != nil {
+			panic("Fail to initialize asset.CloudStore: " + err.Error())
+		}
+		store = cloudStore
 	}
 	return store
 }

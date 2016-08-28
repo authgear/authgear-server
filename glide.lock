@@ -1,5 +1,5 @@
-hash: da673804c3f543c57bf20c6d75cd1d1124e0136cfc4162e62717dd00ef0b2e7b
-updated: 2016-08-20T17:31:37.90739671+08:00
+hash: 5a85e09f1fc1086db033cf9015910a9f6b6f87b354f8516ebf3c6b766a4c22aa
+updated: 2016-08-29T00:46:11.860991053+08:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
@@ -9,6 +9,8 @@ imports:
   version: d5029152fecb2a8e68f7f8eb3c6391fc8ee70496
 - name: github.com/facebookgo/structtag
   version: 217e25fb96916cc60332e399c9aa63f5c422ceed
+- name: github.com/franela/goreq
+  version: fc08df6ca2d4a0d1a5ae24739aa268863943e723
 - name: github.com/garyburd/redigo
   version: 6ece6e0a09f28cc399b21550cbf37ab39ba63cce
   subpackages:
