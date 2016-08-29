@@ -15,16 +15,21 @@
 package asset
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"io"
+	"net/url"
+	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/franela/goreq"
 )
 
 const (
+	cloudAssetURLExpiryInterval          = 15 * time.Minute
 	cloudAssetSignerTokenRefreshInterval = 30 * time.Minute
 	cloudAssetSignerTokenExpiryInterval  = 2 * time.Hour
 )
@@ -36,13 +41,7 @@ type CloudStore struct {
 	authToken string
 	urlPrefix string
 	public    bool
-
-	// signer related
-	signerToken              string
-	signerExtra              string
-	signerTokenExpiredAt     time.Time
-	signerTokenRefreshTicker *time.Ticker
-	signerTokenMutex         *sync.RWMutex
+	signer    *cloudStoreSigner
 }
 
 type refreshSignerTokenResponse struct {
@@ -93,25 +92,15 @@ func NewCloudStore(
 		urlPrefix: urlPrefix,
 	}
 
+	store.signer = newCloudStoreSigner(
+		cloudAssetSignerTokenRefreshInterval,
+		store.refreshSignerToken,
+	)
+	go store.refreshSignerToken()
+
 	log.
 		WithField("cloud-store", store).
 		Info("Created Cloud Asset Store")
-
-	// setup ticker to refresh signer token
-	store.signerTokenMutex = &sync.RWMutex{}
-	store.signerTokenRefreshTicker = time.NewTicker(
-		cloudAssetSignerTokenRefreshInterval,
-	)
-	go func(s *CloudStore) {
-		for tickerTime := range s.signerTokenRefreshTicker.C {
-			log.
-				WithField("time", tickerTime).
-				Info("Cloud Asset Signer Token Refresh Ticker Trigger")
-
-			s.refreshSignerToken()
-		}
-	}(store)
-	go store.refreshSignerToken()
 
 	return store, nil
 }
@@ -161,11 +150,7 @@ func (s *CloudStore) refreshSignerToken() {
 		WithField("response", resBody).
 		Info("Successfully got new Cloud Asset Signer Token")
 
-	s.signerTokenMutex.Lock()
-	s.signerToken = resBody.Value
-	s.signerExtra = resBody.Extra
-	s.signerTokenExpiredAt = resBody.ExpiredAt
-	s.signerTokenMutex.Unlock()
+	s.signer.update(resBody.Value, resBody.Extra, resBody.ExpiredAt)
 }
 
 // GetFileReader returns a reader for reading files
@@ -189,15 +174,57 @@ func (s CloudStore) PutFileReader(
 
 // SignedURL return a signed URL with expiry date
 func (s CloudStore) SignedURL(name string) (string, error) {
-	// TODO: Generate signed URL
-	return strings.Join(
-		[]string{
-			s.urlPrefix,
-			s.appName,
-			name,
-		},
+	targetURLString := strings.Join(
+		[]string{s.urlPrefix, s.appName, name},
 		"/",
-	), nil
+	)
+
+	targetURL, err := url.Parse(targetURLString)
+	if err != nil {
+		log.
+			WithField("error", err).
+			WithField("unsigned-url", targetURLString).
+			Error("Fail to parse the unsigned URL")
+
+		return "", errors.New("Fail to parse the unsigned URL")
+	}
+
+	if !s.IsSignatureRequired() {
+		return targetURL.String(), nil
+	}
+
+	signerToken, signerExtra, _ := s.signer.get()
+
+	if signerToken == "" || signerExtra == "" {
+		log.
+			WithField("signer-token", signerToken).
+			WithField("signer-extra", signerExtra).
+			Warn("Cloud Asset Signer Token is not yet ready")
+
+		return "", errors.New("Cloud Asset Signer Token is not yet ready")
+	}
+
+	expiredAt := time.Now().Add(cloudAssetURLExpiryInterval)
+	expiredAtString := strconv.FormatInt(expiredAt.Unix(), 10)
+
+	hash := hmac.New(sha256.New, []byte(signerToken))
+	hash.Write([]byte(s.appName))
+	hash.Write([]byte(name))
+	hash.Write([]byte(expiredAtString))
+	hash.Write([]byte(signerExtra))
+
+	signature := base64.StdEncoding.EncodeToString(hash.Sum(nil))
+	signatureAndExtra := strings.Join(
+		[]string{signature, signerExtra},
+		".",
+	)
+
+	targetURL.RawQuery = url.Values{
+		"expired_at": []string{expiredAtString},
+		"signature":  []string{signatureAndExtra},
+	}.Encode()
+
+	return targetURL.String(), nil
 }
 
 // IsSignatureRequired indicates whether a signature is required
