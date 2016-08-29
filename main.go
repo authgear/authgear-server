@@ -212,7 +212,10 @@ func main() {
 
 	fileGateway := router.NewGateway("files/(.+)", "/files/", serveMux)
 	fileGateway.GET(injector.Inject(&handler.AssetGetURLHandler{}))
-	fileGateway.PUT(injector.Inject(&handler.AssetUploadURLHandler{}))
+
+	assetUploadURLHandler := injector.Inject(&handler.AssetUploadURLHandler{})
+	fileGateway.PUT(assetUploadURLHandler)
+	fileGateway.POST(assetUploadURLHandler)
 
 	corsHost := config.App.CORSHost
 

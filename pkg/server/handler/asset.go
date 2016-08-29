@@ -15,9 +15,11 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -65,22 +67,26 @@ func validateAssetGetRequest(assetStore skyAsset.Store, fileName string, expired
 	return nil
 }
 
+// AssetGetURLHandler models the get handler for asset
 type AssetGetURLHandler struct {
 	AssetStore    skyAsset.Store   `inject:"AssetStore"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	preprocessors []router.Processor
 }
 
+// Setup sets preprocessors being used
 func (h *AssetGetURLHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.DBConn,
 	}
 }
 
+// GetPreprocessors returns all preprocessors
 func (h *AssetGetURLHandler) GetPreprocessors() []router.Processor {
 	return h.preprocessors
 }
 
+// Handle handles the get request for asset
 func (h *AssetGetURLHandler) Handle(payload *router.Payload, response *router.Response) {
 	payload.Req.ParseForm()
 
@@ -133,12 +139,19 @@ func (h *AssetGetURLHandler) Handle(payload *router.Payload, response *router.Re
 
 // AssetUploadURLHandler receives and persists a file to be associated by Record.
 //
-// Example curl:
+// Example curl (PUT):
 //	curl -XPUT \
 //		-H 'X-Skygear-API-Key: apiKey' \
 //		-H 'Content-Type: text/plain' \
 //		--data-binary '@file.txt' \
 //		http://localhost:3000/files/filename
+//
+// Example curl (POST):
+//	curl -XPOST \
+//    -H "X-Skygear-API-Key: apiKey" \
+//    -F 'file=@file.txt' \
+//    http://localhost:3000/files/filename
+//
 type AssetUploadURLHandler struct {
 	AssetStore    skyAsset.Store   `inject:"AssetStore"`
 	AccessKey     router.Processor `preprocessor:"accesskey"`
@@ -146,6 +159,13 @@ type AssetUploadURLHandler struct {
 	preprocessors []router.Processor
 }
 
+type assetUploadRequest struct {
+	filename    string
+	contentType string
+	fileReader  io.Reader
+}
+
+// Setup sets preprocessors being used
 func (h *AssetUploadURLHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.AccessKey,
@@ -153,29 +173,38 @@ func (h *AssetUploadURLHandler) Setup() {
 	}
 }
 
+// GetPreprocessors returns all preprocessors
 func (h *AssetUploadURLHandler) GetPreprocessors() []router.Processor {
 	return h.preprocessors
 }
 
-func (h *AssetUploadURLHandler) Handle(payload *router.Payload, response *router.Response) {
-	var (
-		fileName, contentType string
-	)
+// Handle handles the upload asset request
+func (h *AssetUploadURLHandler) Handle(
+	payload *router.Payload,
+	response *router.Response,
+) {
 
-	fileName = clean(payload.Params[0])
-
-	dir, file := filepath.Split(fileName)
-	file = fmt.Sprintf("%s-%s", uuidNew(), file)
-
-	fileName = filepath.Join(dir, file)
-	contentType = payload.Req.Header.Get("Content-Type")
-
-	if contentType == "" {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "Content-Type cannot be empty")
+	uploadRequest, err := parseUploadRequest(payload)
+	if err != nil {
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
 
-	written, tempFile, err := copyToTempFile(payload.Req.Body)
+	dir, file := filepath.Split(uploadRequest.filename)
+	file = fmt.Sprintf("%s-%s", uuidNew(), file)
+
+	fileName := filepath.Join(dir, file)
+	contentType := uploadRequest.contentType
+
+	if contentType == "" {
+		response.Err = skyerr.NewError(
+			skyerr.InvalidArgument,
+			"Content-Type cannot be empty",
+		)
+		return
+	}
+
+	written, tempFile, err := copyToTempFile(uploadRequest.fileReader)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -216,6 +245,61 @@ func (h *AssetUploadURLHandler) Handle(payload *router.Payload, response *router
 		return
 	}
 	response.Result = skyconv.ToMap((*skyconv.MapAsset)(&asset))
+}
+
+// parseUploadRequest tries to parse the payload from router to be compatible
+// with both PUT requests and multiparts POST request
+func parseUploadRequest(payload *router.Payload) (*assetUploadRequest, error) {
+	httpRequest := payload.Req
+	method := httpRequest.Method
+
+	var (
+		filename, contentType string
+		fileReader            io.ReadCloser
+	)
+
+	if method == http.MethodPost {
+		// use 100 MB max memory to parse the multiparts Form
+		err := httpRequest.ParseMultipartForm(100 << 20)
+		if err != nil {
+			log.
+				WithField("error", err).
+				Error("Fail to parse multiparts form for asset upload")
+
+			return nil, err
+		}
+
+		form := httpRequest.MultipartForm
+		fileHeader := form.File["file"]
+		if fileHeader == nil || len(fileHeader) == 0 {
+			log.Error("Missing file in multiparts form")
+
+			return nil, errors.New("Missing file in multiparts form")
+		}
+
+		firstFileHeader := fileHeader[0]
+
+		filename = firstFileHeader.Filename
+		contentType = firstFileHeader.Header["Content-Type"][0]
+		fileReader, err = firstFileHeader.Open()
+		if err != nil {
+			return nil, err
+		}
+	} else if method == http.MethodPut {
+		filename = clean(payload.Params[0])
+		contentType = httpRequest.Header.Get("Content-Type")
+		fileReader = httpRequest.Body
+	} else {
+		return nil, errors.New(
+			"Method " + method + " is not supported",
+		)
+	}
+
+	return &assetUploadRequest{
+		filename:    filename,
+		contentType: contentType,
+		fileReader:  fileReader,
+	}, nil
 }
 
 func copyToTempFile(src io.Reader) (written int64, tempFile *os.File, err error) {
