@@ -1,6 +1,6 @@
 DOCKER_REGISTRY := 
 DOCKER_ORG_NAME := skygeario
-DOCKER_IMAGE := skygear-server-godev
+DOCKER_IMAGE := skygear-godev
 DOCKER_TAG := latest
 
 IMAGE_NAME := $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(DOCKER_IMAGE):$(DOCKER_TAG)

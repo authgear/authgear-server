@@ -26,4 +26,5 @@ RUN go get github.com/Masterminds/glide \
            golang.org/x/tools/cmd/cover \
            github.com/golang/lint/golint \
            github.com/golang/mock/mockgen \
-           github.com/mitchellh/gox
+           github.com/mitchellh/gox \
+           github.com/vektra/mockery/.../
