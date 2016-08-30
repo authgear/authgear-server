@@ -15,335 +15,157 @@
 package handler
 
 import (
-	"bytes"
-	"fmt"
+	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-// a thin wrapper on router.Gateway with helper methods to invoke request more
-// easily
-type modGateway router.Gateway
+type generatePostFileRequestAssetStore struct{}
 
-func newmodGateway(pattern string) *modGateway {
-	return (*modGateway)(router.NewGateway(pattern, "/", nil))
+func (s generatePostFileRequestAssetStore) GetFileReader(
+	name string,
+) (io.ReadCloser, error) {
+	panic("Not Implemented")
 }
 
-func (g *modGateway) Handle(method string, handler router.Handler, prepareFunc func(*router.Payload)) {
-	(*router.Gateway)(g).Handle(method, handler, mockProcessor{prepareFunc})
+func (s generatePostFileRequestAssetStore) PutFileReader(
+	name string,
+	src io.Reader,
+	length int64,
+	contentType string,
+) error {
+	panic("Not Implemented")
 }
 
-func (g *modGateway) Do(req *http.Request) *httptest.ResponseRecorder {
-	resp := httptest.NewRecorder()
-	(*router.Gateway)(g).ServeHTTP(resp, req)
-	return resp
-}
-
-func (g *modGateway) GET(path string) *httptest.ResponseRecorder {
-	return g.makeRequest("GET", path, "")
-}
-
-func (g *modGateway) PUT(path, body string) *httptest.ResponseRecorder {
-	return g.makeRequest("PUT", path, body)
-}
-
-func (g *modGateway) makeRequest(method, path, body string) *httptest.ResponseRecorder {
-	path = "http://skygear.test/" + path
-	req, _ := http.NewRequest(method, path, strings.NewReader(body))
-	resp := httptest.NewRecorder()
-
-	(*router.Gateway)(g).ServeHTTP(resp, req)
-	return resp
-}
-
-type mockProcessor struct {
-	Mockfunc func(*router.Payload)
-}
-
-func (p mockProcessor) Preprocess(payload *router.Payload, _ *router.Response) int {
-	p.Mockfunc(payload)
-	return http.StatusOK
-}
-
-type naiveAssetConn struct {
-	asset skydb.Asset
-	skydb.Conn
-}
-
-func (c *naiveAssetConn) GetAsset(name string, asset *skydb.Asset) error {
-	*asset = c.asset
-	return nil
-}
-
-func (c *naiveAssetConn) SaveAsset(asset *skydb.Asset) error {
-	c.asset = *asset
-	return nil
-}
-
-// an asset store that writes to and reads from the same buf
-type bufferedAssetStore struct {
-	buf         *bytes.Buffer
-	name        string
-	length      int64
-	contentType string
-}
-
-func newBufferedStore() *bufferedAssetStore {
-	return &bufferedAssetStore{
-		buf: &bytes.Buffer{},
-	}
-}
-
-func (store *bufferedAssetStore) GetFileReader(name string) (io.ReadCloser, error) {
-	return ioutil.NopCloser(store.buf), nil
-}
-
-func (store *bufferedAssetStore) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
-	store.name = name
-	store.length = length
-	store.contentType = contentType
-
-	written, err := io.Copy(store.buf, src)
-	if err != nil {
-		return err
-	}
-
-	if written != length {
-		return fmt.Errorf("got bytes written = %v, want %v", written, length)
-	}
-
-	return nil
-}
-
-func (store *bufferedAssetStore) GeneratePostFileRequest(name string) (*asset.PostFileRequest, error) {
+func (s generatePostFileRequestAssetStore) GeneratePostFileRequest(
+	name string,
+) (*asset.PostFileRequest, error) {
 	return &asset.PostFileRequest{
-		Action: "http://skygear.test/files/" + name,
+		Action: "http://skygear.dev/files/" + name,
 		ExtraFields: map[string]interface{}{
-			"X-Extra-Field-1": "extra-field-1-value",
-			"X-Extra-Field-2": "extra-field-2-value",
+			"X-Extra-Field-1": "extra-fields-1",
+			"X-Extra-Field-2": "extra-fields-2",
 		},
 	}, nil
 }
 
-func (store *bufferedAssetStore) SignedURL(name string) (string, error) {
-	return name + "?signedurl=true", nil
+func (s generatePostFileRequestAssetStore) SignedURL(name string) (string, error) {
+	return "http://asset.skygear.dev/" + name, nil
 }
 
-func (store *bufferedAssetStore) IsSignatureRequired() bool {
+func (s generatePostFileRequestAssetStore) IsSignatureRequired() bool {
 	return false
 }
 
-func TestAssetUploadURLHandler(t *testing.T) {
-	Convey("AssetUploadURLHandler", t, func() {
-		assetConn := &naiveAssetConn{}
-		store := newBufferedStore()
+type saveAssetDBConn struct {
+	skydb.Conn
+	savedAsset map[string]*skydb.Asset
+}
 
-		r := newmodGateway("(.+)")
-		r.Handle("PUT", &AssetUploadURLHandler{
-			AssetStore: store,
-		}, func(p *router.Payload) {
-			p.DBConn = assetConn
-		})
+func (db *saveAssetDBConn) SaveAsset(asset *skydb.Asset) error {
+	db.savedAsset[asset.Name] = asset
+	return nil
+}
 
-		Convey("uploads a file", func() {
+func TestAssetUploadHandler(t *testing.T) {
+	Convey("Asset Upload Handler", t, func() {
+		assetDBConn := &saveAssetDBConn{}
+		assetDBConn.savedAsset = map[string]*skydb.Asset{}
+
+		assetRouter := handlertest.NewSingleRouteRouter(
+			&AssetUploadHandler{AssetStore: generatePostFileRequestAssetStore{}},
+			func(p *router.Payload) {
+				p.DBConn = assetDBConn
+			},
+		)
+
+		Convey("Success on normal flow", func() {
 			uuidNew = func() string {
-				return "f28c4037-uuid-4d0a-94d6-2206ab371d6c"
+				return "7b0e2a7c-7135-4912-a6c9-7c1dbec0f5ef"
 			}
 
-			req, _ := http.NewRequest("PUT", "http://skygear.test/asset", strings.NewReader(``))
-			req.Header.Set("Content-Type", "plain/text")
-			req.Body = ioutil.NopCloser(strings.NewReader(`I am a boy`))
+			res := assetRouter.POST(`{
+        "filename": "file001",
+        "content-type": "text/plain",
+        "content-size": 2384571
+      }`)
 
-			resp := r.Do(req)
+			So(res.Code, ShouldEqual, http.StatusOK)
 
-			So(assetConn.asset, ShouldResemble, skydb.Asset{
-				Name:        "f28c4037-uuid-4d0a-94d6-2206ab371d6c-asset",
-				ContentType: "plain/text",
-				Size:        10,
-			})
+			resJSON := struct {
+				Result *AssetUploadResponse `json:"result"`
+			}{}
 
-			So(store.buf.String(), ShouldEqual, "I am a boy")
-			So(store.name, ShouldEqual, "f28c4037-uuid-4d0a-94d6-2206ab371d6c-asset")
-			So(store.length, ShouldEqual, 10)
-			So(store.contentType, ShouldEqual, "plain/text")
+			So(json.Unmarshal(res.Body.Bytes(), &resJSON), ShouldBeNil)
+			So(resJSON.Result, ShouldNotBeNil)
 
-			So(resp.Body.String(), ShouldEqualJSON, `{
-				"result": {
-					"$type": "asset",
-					"$name": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-asset",
-					"$url": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-asset?signedurl=true"
-				}
-			}`)
+			So(resJSON.Result.Asset, ShouldNotBeNil)
+			So((*resJSON.Result.Asset)["$type"], ShouldEqual, "asset")
+			So(
+				(*resJSON.Result.Asset)["$name"],
+				ShouldEqual,
+				"7b0e2a7c-7135-4912-a6c9-7c1dbec0f5ef-file001",
+			)
+			So(
+				(*resJSON.Result.Asset)["$url"],
+				ShouldEqual,
+				"http://asset.skygear.dev/7b0e2a7c-7135-4912-a6c9-7c1dbec0f5ef-file001",
+			)
+
+			So(resJSON.Result.PostRequest, ShouldNotBeNil)
+			So(strings.HasSuffix(resJSON.Result.PostRequest.Action, "file001"), ShouldBeTrue)
+			So(
+				resJSON.Result.PostRequest.ExtraFields["X-Extra-Field-1"],
+				ShouldEqual,
+				"extra-fields-1",
+			)
+			So(
+				resJSON.Result.PostRequest.ExtraFields["X-Extra-Field-2"],
+				ShouldEqual,
+				"extra-fields-2",
+			)
+
+			savedAsset :=
+				assetDBConn.savedAsset["7b0e2a7c-7135-4912-a6c9-7c1dbec0f5ef-file001"]
+
+			So(savedAsset, ShouldNotBeNil)
+			So(savedAsset.ContentType, ShouldEqual, "text/plain")
+			So(savedAsset.Size, ShouldEqual, 2384571)
 		})
 
-		Convey("refs #426 uploads a file with + character", func() {
-			uuidNew = func() string {
-				return "f28c4037-uuid-4d0a-94d6-2206ab371d6c"
-			}
+		Convey("Fail when no filename", func() {
+			res := assetRouter.POST(`{
+        "content-type": "text/plain",
+        "content-size": 2384571
+      }`)
 
-			req, _ := http.NewRequest("PUT", "http://skygear.test/hello+world", strings.NewReader(``))
-			req.Header.Set("Content-Type", "plain/text")
-			req.Body = ioutil.NopCloser(strings.NewReader(`I am a boy`))
-
-			resp := r.Do(req)
-
-			So(assetConn.asset, ShouldResemble, skydb.Asset{
-				Name:        "f28c4037-uuid-4d0a-94d6-2206ab371d6c-helloworld",
-				ContentType: "plain/text",
-				Size:        10,
-			})
-
-			So(store.name, ShouldEqual, "f28c4037-uuid-4d0a-94d6-2206ab371d6c-helloworld")
-
-			So(resp.Body.String(), ShouldEqualJSON, `{
-				"result": {
-					"$type": "asset",
-					"$name": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-helloworld",
-					"$url": "f28c4037-uuid-4d0a-94d6-2206ab371d6c-helloworld?signedurl=true"
-				}
-			}`)
+			So(res.Code, ShouldEqual, http.StatusBadRequest)
 		})
 
-		Convey("errors missing content-type", func() {
-			resp := r.PUT("asset", ``)
-			So(resp.Body.String(), ShouldEqualJSON, `{
-				"error": {
-					"code": 108,
-					"name": "InvalidArgument",
-					"message": "Content-Type cannot be empty"
-				}
-			}`)
+		Convey("Fail when no content type", func() {
+			res := assetRouter.POST(`{
+        "filename": "file001",
+        "content-size": 2384571
+      }`)
+
+			So(res.Code, ShouldEqual, http.StatusBadRequest)
 		})
 
-		Convey("errors reading zero-byte body", func() {
-			req, _ := http.NewRequest("PUT", "http://skygear.test/asset", strings.NewReader(``))
-			req.Header.Set("Content-Type", "plain/text")
-			resp := r.Do(req)
+		Convey("Fail when no content-size", func() {
+			res := assetRouter.POST(`{
+        "filename": "file001",
+        "content-type": "text/plain"
+      }`)
 
-			So(resp.Body.String(), ShouldEqualJSON, `{
-				"error": {
-					"code": 108,
-					"name": "InvalidArgument",
-					"message": "Zero-byte content"
-				}
-			}`)
-		})
-	})
-}
-
-type naiveStoreSignatureParser struct {
-	valid     bool
-	signed    string
-	name      string
-	expiredAt time.Time
-	asset.Store
-}
-
-func newNaiveStoreSignatureParser(assetStore asset.Store) *naiveStoreSignatureParser {
-	return &naiveStoreSignatureParser{
-		Store: assetStore,
-	}
-}
-
-func (p *naiveStoreSignatureParser) SignedURL(name string) (string, error) {
-	panic("this should not be called")
-}
-
-func (p *naiveStoreSignatureParser) IsSignatureRequired() bool {
-	return true
-}
-
-func (p *naiveStoreSignatureParser) ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error) {
-	p.signed = signed
-	p.name = name
-	p.expiredAt = expiredAt
-
-	return p.valid, nil
-}
-
-func TestAssetGetURLHandler(t *testing.T) {
-	Convey("AssetGetURLHandler", t, func() {
-		assetConn := &naiveAssetConn{}
-		store := newBufferedStore()
-		signparser := newNaiveStoreSignatureParser(store)
-
-		r := newmodGateway("(.+)")
-		r.Handle("GET", &AssetGetURLHandler{
-			AssetStore: signparser,
-		}, func(p *router.Payload) {
-			p.DBConn = assetConn
-		})
-
-		Convey("GET a signed URL", func() {
-			timeNow = func() time.Time {
-				return time.Unix(1436431129, 999)
-			}
-			defer func() {
-				timeNow = timeNowUTC
-			}()
-			signparser.valid = true
-			assetConn.asset = skydb.Asset{
-				Name:        "assetName",
-				ContentType: "plain/text",
-				Size:        10,
-			}
-			io.WriteString(store.buf, "I am a boy")
-
-			resp := r.GET("assetName?signature=signedSignature&expiredAt=1436431130")
-			So(resp.Body.String(), ShouldEqual, "I am a boy")
-			So(resp.Header().Get("Content-Type"), ShouldEqual, "plain/text")
-			So(resp.Header().Get("Content-Length"), ShouldEqual, "10")
-
-			So(signparser.signed, ShouldEqual, "signedSignature")
-			So(signparser.name, ShouldEqual, "assetName")
-			So(signparser.expiredAt.Unix(), ShouldEqual, 1436431130)
-		})
-
-		Convey("errors if signature expired", func() {
-			timeNow = func() time.Time {
-				return time.Unix(1436431130, 1)
-			}
-			defer func() {
-				timeNow = timeNowUTC
-			}()
-
-			resp := r.GET("assetName?signature=signedSignature&expiredAt=1436431130")
-			So(resp.Body.String(), ShouldEqualJSON, `{
-				"error": {
-					"code": 102,
-					"name": "PermissionDenied",
-					"message": "Access denied"
-				}
-			}`)
-		})
-
-		Convey("errors on invalid signature", func() {
-			timeNow = func() time.Time {
-				return time.Unix(1436431129, 999)
-			}
-			defer func() {
-				timeNow = timeNowUTC
-			}()
-
-			resp := r.GET("assetName?signature=signedSignature&expiredAt=1436431130")
-			So(resp.Body.String(), ShouldEqualJSON, `{
-				"error": {
-					"code": 106,
-					"name": "InvalidSignature",
-					"message": "Invalid signature"
-				}
-			}`)
+			So(res.Code, ShouldEqual, http.StatusBadRequest)
 		})
 	})
 }

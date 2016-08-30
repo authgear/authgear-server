@@ -159,6 +159,8 @@ func main() {
 	r.Map("auth:logout", injector.Inject(&handler.LogoutHandler{}))
 	r.Map("auth:password", injector.Inject(&handler.PasswordHandler{}))
 
+	r.Map("asset:put", injector.Inject(&handler.AssetUploadHandler{}))
+
 	r.Map("record:fetch", injector.Inject(&handler.RecordFetchHandler{}))
 	r.Map("record:query", injector.Inject(&handler.RecordQueryHandler{}))
 	r.Map("record:save", injector.Inject(&handler.RecordSaveHandler{}))
@@ -211,11 +213,11 @@ func main() {
 	}))
 
 	fileGateway := router.NewGateway("files/(.+)", "/files/", serveMux)
-	fileGateway.GET(injector.Inject(&handler.AssetGetURLHandler{}))
+	fileGateway.GET(injector.Inject(&handler.GetFileHandler{}))
 
-	assetUploadURLHandler := injector.Inject(&handler.AssetUploadURLHandler{})
-	fileGateway.PUT(assetUploadURLHandler)
-	fileGateway.POST(assetUploadURLHandler)
+	uploadFileHandler := injector.Inject(&handler.UploadFileHandler{})
+	fileGateway.PUT(uploadFileHandler)
+	fileGateway.POST(uploadFileHandler)
 
 	corsHost := config.App.CORSHost
 
