@@ -281,7 +281,7 @@ func parseUploadFileRequest(payload *router.Payload) (*uploadFileRequest, error)
 
 		firstFileHeader := fileHeader[0]
 
-		filename = firstFileHeader.Filename
+		filename = clean(payload.Params[0])
 		contentType = firstFileHeader.Header["Content-Type"][0]
 		fileReader, err = firstFileHeader.Open()
 		if err != nil {
