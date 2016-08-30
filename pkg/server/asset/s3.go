@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"gopkg.in/amz.v3/aws"
@@ -26,12 +27,21 @@ import (
 
 // S3Store implements Store by storing files on S3
 type S3Store struct {
-	bucket *s3.Bucket
-	public bool
+	bucket     *s3.Bucket
+	postPrefix string
+	public     bool
 }
 
 // NewS3Store returns a new S3Store
-func NewS3Store(accessKey, secretKey, regionName, bucketName string, public bool) (*S3Store, error) {
+func NewS3Store(
+	accessKey string,
+	secretKey string,
+	regionName string,
+	bucketName string,
+	postPrefix string,
+	public bool,
+) (*S3Store, error) {
+
 	auth := aws.Auth{
 		AccessKey: accessKey,
 		SecretKey: secretKey,
@@ -48,8 +58,9 @@ func NewS3Store(accessKey, secretKey, regionName, bucketName string, public bool
 	}
 
 	return &S3Store{
-		bucket: bucket,
-		public: public,
+		bucket:     bucket,
+		postPrefix: postPrefix,
+		public:     public,
 	}, nil
 }
 
@@ -67,6 +78,16 @@ func (s *S3Store) PutFileReader(
 ) error {
 
 	return s.bucket.PutReader(name, src, length, contentType, s3.Private)
+}
+
+// GeneratePostFileRequest return a PostFileRequest for uploading asset
+func (s *S3Store) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
+	return &PostFileRequest{
+		Action: strings.Join(
+			[]string{s.postPrefix, "files", name},
+			"/",
+		),
+	}, nil
 }
 
 // SignedURL return a signed s3 URL with expiry date

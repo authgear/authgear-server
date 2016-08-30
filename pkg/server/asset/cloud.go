@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -170,6 +171,47 @@ func (s CloudStore) PutFileReader(
 	return errors.New(
 		"Directly uploading files is not available for cloud-based asset store",
 	)
+}
+
+// GeneratePostFileRequest return a PostFileRequest for uploading asset
+func (s CloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
+	log.
+		WithField("name", name).
+		Info("Start generate post file request for Cloud Asset")
+
+	urlString := strings.Join(
+		[]string{s.host, "asset", s.appName, name},
+		"/",
+	)
+
+	req := goreq.Request{
+		Method:  http.MethodPut,
+		Uri:     urlString,
+		Timeout: 10 * time.Second,
+	}.WithHeader("Authorization", "Bearer "+s.authToken)
+
+	res, err := req.Do()
+	if err != nil {
+		log.
+			WithField("url", urlString).
+			WithField("error", err).
+			Error("Fail to request for pre-signed POST request")
+
+		return nil, errors.New("Fail to request for pre-signed POST request")
+	}
+
+	postRequest := &PostFileRequest{}
+	err = res.Body.FromJsonTo(postRequest)
+	if err != nil {
+		log.
+			WithField("error", err).
+			WithField("response", res.Body).
+			Error("Fail to parse the response of pre-signed POST request")
+
+		return nil, errors.New("Fail to parse the response of pre-signed POST request")
+	}
+
+	return postRequest, nil
 }
 
 // SignedURL return a signed URL with expiry date

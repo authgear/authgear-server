@@ -296,6 +296,7 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 		store = asset.NewFileStore(
 			config.AssetStore.Path,
 			config.AssetURLSigner.URLPrefix,
+			config.HTTP.Host,
 			config.AssetURLSigner.Secret,
 			config.AssetStore.Public,
 		)
@@ -305,6 +306,7 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 			config.AssetStore.SecretToken,
 			config.AssetStore.Region,
 			config.AssetStore.Bucket,
+			config.HTTP.Host,
 			config.AssetStore.Public,
 		)
 		if err != nil {

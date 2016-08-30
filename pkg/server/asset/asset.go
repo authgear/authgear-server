@@ -23,10 +23,16 @@ import (
 
 var log = logging.LoggerEntry("asset")
 
+type PostFileRequest struct {
+	Action      string                 `json:"action"`
+	ExtraFields map[string]interface{} `json:"extra-fields,omitempty"`
+}
+
 // Store specify the interfaces of an asset store
 type Store interface {
 	GetFileReader(name string) (io.ReadCloser, error)
 	PutFileReader(name string, src io.Reader, length int64, contentType string) error
+	GeneratePostFileRequest(name string) (*PostFileRequest, error)
 }
 
 // URLSigner signs a signature and returns a URL accessible to that asset.

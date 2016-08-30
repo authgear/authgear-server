@@ -126,6 +126,16 @@ func (store *bufferedAssetStore) PutFileReader(name string, src io.Reader, lengt
 	return nil
 }
 
+func (store *bufferedAssetStore) GeneratePostFileRequest(name string) (*asset.PostFileRequest, error) {
+	return &asset.PostFileRequest{
+		Action: "http://skygear.test/files/" + name,
+		ExtraFields: map[string]interface{}{
+			"X-Extra-Field-1": "extra-field-1-value",
+			"X-Extra-Field-2": "extra-field-2-value",
+		},
+	}, nil
+}
+
 func (store *bufferedAssetStore) SignedURL(name string) (string, error) {
 	return name + "?signedurl=true", nil
 }
