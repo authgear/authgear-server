@@ -21,6 +21,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
@@ -1423,6 +1424,10 @@ func (s *urlOnlyAssetStore) GetFileReader(name string) (io.ReadCloser, error) {
 }
 
 func (s *urlOnlyAssetStore) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
+	panic("not implemented")
+}
+
+func (s *urlOnlyAssetStore) GeneratePostFileRequest(name string) (*asset.PostFileRequest, error) {
 	panic("not implemented")
 }
 

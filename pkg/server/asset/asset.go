@@ -15,7 +15,37 @@
 package asset
 
 import (
+	"io"
+	"time"
+
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 var log = logging.LoggerEntry("asset")
+
+// PostFileRequest models the POST request for upload asset file
+type PostFileRequest struct {
+	Action      string                 `json:"action"`
+	ExtraFields map[string]interface{} `json:"extra-fields,omitempty"`
+}
+
+// Store specify the interfaces of an asset store
+type Store interface {
+	GetFileReader(name string) (io.ReadCloser, error)
+	PutFileReader(name string, src io.Reader, length int64, contentType string) error
+	GeneratePostFileRequest(name string) (*PostFileRequest, error)
+}
+
+// URLSigner signs a signature and returns a URL accessible to that asset.
+type URLSigner interface {
+	// SignedURL returns a url with access to the named file. If asset
+	// store is private, the returned URL is a signed one, allowing access
+	// to asset for a short period.
+	SignedURL(name string) (string, error)
+	IsSignatureRequired() bool
+}
+
+// SignatureParser parses a signed signature string
+type SignatureParser interface {
+	ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error)
+}

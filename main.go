@@ -159,6 +159,8 @@ func main() {
 	r.Map("auth:logout", injector.Inject(&handler.LogoutHandler{}))
 	r.Map("auth:password", injector.Inject(&handler.PasswordHandler{}))
 
+	r.Map("asset:put", injector.Inject(&handler.AssetUploadHandler{}))
+
 	r.Map("record:fetch", injector.Inject(&handler.RecordFetchHandler{}))
 	r.Map("record:query", injector.Inject(&handler.RecordQueryHandler{}))
 	r.Map("record:save", injector.Inject(&handler.RecordSaveHandler{}))
@@ -211,8 +213,11 @@ func main() {
 	}))
 
 	fileGateway := router.NewGateway("files/(.+)", "/files/", serveMux)
-	fileGateway.GET(injector.Inject(&handler.AssetGetURLHandler{}))
-	fileGateway.PUT(injector.Inject(&handler.AssetUploadURLHandler{}))
+	fileGateway.GET(injector.Inject(&handler.GetFileHandler{}))
+
+	uploadFileHandler := injector.Inject(&handler.UploadFileHandler{})
+	fileGateway.PUT(uploadFileHandler)
+	fileGateway.POST(uploadFileHandler)
 
 	corsHost := config.App.CORSHost
 
@@ -293,6 +298,7 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 		store = asset.NewFileStore(
 			config.AssetStore.Path,
 			config.AssetURLSigner.URLPrefix,
+			config.AssetStore.Host,
 			config.AssetURLSigner.Secret,
 			config.AssetStore.Public,
 		)
@@ -302,12 +308,26 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 			config.AssetStore.SecretToken,
 			config.AssetStore.Region,
 			config.AssetStore.Bucket,
+			config.AssetStore.Host,
 			config.AssetStore.Public,
 		)
 		if err != nil {
 			panic("failed to initialize asset.S3Store: " + err.Error())
 		}
 		store = s3Store
+	case "cloud":
+		cloudStore, err := asset.NewCloudStore(
+			config.App.Name,
+			config.AssetStore.Host,
+			config.AssetStore.CloudAssetToken,
+			config.AssetStore.CloudAssetPublicPrefix,
+			config.AssetStore.CloudAssetPrivatePrefix,
+			config.AssetStore.Public,
+		)
+		if err != nil {
+			panic("Fail to initialize asset.CloudStore: " + err.Error())
+		}
+		store = cloudStore
 	}
 	return store
 }

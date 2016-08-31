@@ -15,16 +15,8 @@
 package handler
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
-	"path"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
-	"time"
 
 	skyAsset "github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/router"
@@ -33,221 +25,106 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-// used to clean file path
-var sanitizedPathRe = regexp.MustCompile(`\A[/.]+`)
-
-func clean(p string) string {
-	sanitized := strings.Replace(sanitizedPathRe.ReplaceAllString(path.Clean(p), ""), "..", "", -1)
-	// refs #426: S3 Asset Store is not able to put filename with `+` correctly
-	sanitized = strings.Replace(sanitized, "+", "", -1)
-	return sanitized
-}
-
-func validateAssetGetRequest(assetStore skyAsset.Store, fileName string, expiredAtUnix int64, signature string) skyerr.Error {
-	// check whether the request is expired
-	expiredAt := time.Unix(expiredAtUnix, 0)
-	if timeNow().After(expiredAt) {
-		return skyerr.NewError(skyerr.PermissionDenied, "Access denied")
-	}
-
-	// check the signature of the URL
-	signatureParser := assetStore.(skyAsset.SignatureParser)
-	valid, err := signatureParser.ParseSignature(signature, fileName, expiredAt)
-	if err != nil {
-		log.Errorf("Failed to parse signature: %v", err)
-
-		return skyerr.NewError(skyerr.PermissionDenied, "Access denied")
-	}
-
-	if !valid {
-		return skyerr.NewError(skyerr.InvalidSignature, "Invalid signature")
-	}
-	return nil
-}
-
-type AssetGetURLHandler struct {
-	AssetStore    skyAsset.Store   `inject:"AssetStore"`
-	DBConn        router.Processor `preprocessor:"dbconn"`
-	preprocessors []router.Processor
-}
-
-func (h *AssetGetURLHandler) Setup() {
-	h.preprocessors = []router.Processor{
-		h.DBConn,
-	}
-}
-
-func (h *AssetGetURLHandler) GetPreprocessors() []router.Processor {
-	return h.preprocessors
-}
-
-func (h *AssetGetURLHandler) Handle(payload *router.Payload, response *router.Response) {
-	payload.Req.ParseForm()
-
-	store := h.AssetStore
-	fileName := clean(payload.Params[0])
-	if store.(skyAsset.URLSigner).IsSignatureRequired() {
-		expiredAtUnix, err := strconv.ParseInt(payload.Req.Form.Get("expiredAt"), 10, 64)
-		if err != nil {
-			response.Err = skyerr.NewError(skyerr.InvalidArgument, "expect expiredAt to be an integer")
-			return
-		}
-
-		signature := payload.Req.Form.Get("signature")
-		requestErr := validateAssetGetRequest(h.AssetStore, fileName, expiredAtUnix, signature)
-		if requestErr != nil {
-			response.Err = requestErr
-			return
-		}
-	}
-
-	// everything's right, proceed with the request
-
-	conn := payload.DBConn
-	asset := skydb.Asset{}
-	if err := conn.GetAsset(fileName, &asset); err != nil {
-		log.Errorf("Failed to get asset: %v", err)
-
-		response.Err = skyerr.NewResourceFetchFailureErr("asset", fileName)
-		return
-	}
-
-	response.Header().Set("Content-Type", asset.ContentType)
-	response.Header().Set("Content-Length", strconv.FormatInt(asset.Size, 10))
-
-	reader, err := store.GetFileReader(fileName)
-	if err != nil {
-		log.Errorf("Failed to get file reader: %v", err)
-
-		response.Err = skyerr.NewResourceFetchFailureErr("asset", fileName)
-		return
-	}
-	defer reader.Close()
-
-	if _, err := io.Copy(response, reader); err != nil {
-		// there is nothing we can do if error occurred after started
-		// writing a response. Log.
-		log.Errorf("Error writing file to response: %v", err)
-	}
-}
-
-// AssetUploadURLHandler receives and persists a file to be associated by Record.
-//
-// Example curl:
-//	curl -XPUT \
-//		-H 'X-Skygear-API-Key: apiKey' \
-//		-H 'Content-Type: text/plain' \
-//		--data-binary '@file.txt' \
-//		http://localhost:3000/files/filename
-type AssetUploadURLHandler struct {
+// AssetUploadHandler models the handler for asset upload request
+type AssetUploadHandler struct {
 	AssetStore    skyAsset.Store   `inject:"AssetStore"`
 	AccessKey     router.Processor `preprocessor:"accesskey"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	preprocessors []router.Processor
 }
 
-func (h *AssetUploadURLHandler) Setup() {
+// AssetUploadResponse models the response of asset upload request
+type AssetUploadResponse struct {
+	PostRequest *skyAsset.PostFileRequest `json:"post-request"`
+	Asset       *map[string]interface{}   `json:"asset"`
+}
+
+// Setup adds injected pre-processors to preprocessors array
+func (h *AssetUploadHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.AccessKey,
 		h.DBConn,
 	}
 }
 
-func (h *AssetUploadURLHandler) GetPreprocessors() []router.Processor {
+// GetPreprocessors returns all pre-processors for the handler
+func (h *AssetUploadHandler) GetPreprocessors() []router.Processor {
 	return h.preprocessors
 }
 
-func (h *AssetUploadURLHandler) Handle(payload *router.Payload, response *router.Response) {
-	var (
-		fileName, contentType string
-	)
-
-	fileName = clean(payload.Params[0])
-
-	dir, file := filepath.Split(fileName)
-	file = fmt.Sprintf("%s-%s", uuidNew(), file)
-
-	fileName = filepath.Join(dir, file)
-	contentType = payload.Req.Header.Get("Content-Type")
-
-	if contentType == "" {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "Content-Type cannot be empty")
+// Handle is the handling method of the asset upload request
+func (h *AssetUploadHandler) Handle(
+	payload *router.Payload,
+	response *router.Response,
+) {
+	filename, ok := payload.Data["filename"].(string)
+	if !ok {
+		response.Err = skyerr.NewInvalidArgument(
+			"Missing filename or filename is invalid",
+			[]string{"filename"},
+		)
 		return
 	}
 
-	written, tempFile, err := copyToTempFile(payload.Req.Body)
-	if err != nil {
-		response.Err = skyerr.MakeError(err)
-		return
-	}
-	defer func() {
-		tempFile.Close()
-		os.Remove(tempFile.Name())
-	}()
-
-	if written == 0 {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "Zero-byte content")
+	contentType, ok := payload.Data["content-type"].(string)
+	if !ok {
+		response.Err = skyerr.NewInvalidArgument(
+			"Missing content type or content type is invalid",
+			[]string{"content-type"},
+		)
 		return
 	}
 
+	contentSizeFloat, ok := payload.Data["content-size"].(float64)
+	if !ok {
+		response.Err = skyerr.NewInvalidArgument(
+			"Missing content size or content size is invalid",
+			[]string{"content-size"},
+		)
+		return
+	}
+	contentSize := int64(contentSizeFloat)
+
+	// Add UUID to Filename
+	dir, file := filepath.Split(filename)
+	file = strings.Join([]string{uuidNew(), file}, "-")
+	filename = filepath.Join(dir, file)
+
+	// Generate POST File Request
 	assetStore := h.AssetStore
-	if err := assetStore.PutFileReader(fileName, tempFile, written, contentType); err != nil {
-		response.Err = skyerr.MakeError(err)
+	postRequest, err := assetStore.GeneratePostFileRequest(filename)
+	if err != nil {
+		response.Err = skyerr.NewError(
+			skyerr.UnexpectedError,
+			"Fail to generate post file request",
+		)
 		return
 	}
 
-	asset := skydb.Asset{
-		Name:        fileName,
-		ContentType: contentType,
-		Size:        written,
-	}
-
+	// Save Asset to DB
 	conn := payload.DBConn
+	asset := skydb.Asset{
+		Name:        filename,
+		ContentType: contentType,
+		Size:        contentSize,
+	}
 	if err := conn.SaveAsset(&asset); err != nil {
 		response.Err = skyerr.NewResourceSaveFailureErrWithStringID("asset", asset.Name)
 		return
 	}
 
-	if signer, ok := h.AssetStore.(skyAsset.URLSigner); ok {
+	// Add Signer to Asset for Serialization
+	if signer, ok := assetStore.(skyAsset.URLSigner); ok {
 		asset.Signer = signer
 	} else {
 		log.Warnf("Failed to acquire asset URLSigner, please check configuration")
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, "Failed to sign the url")
 		return
 	}
-	response.Result = skyconv.ToMap((*skyconv.MapAsset)(&asset))
-}
+	assetMap := skyconv.ToMap((*skyconv.MapAsset)(&asset))
 
-func copyToTempFile(src io.Reader) (written int64, tempFile *os.File, err error) {
-	tempFile, err = ioutil.TempFile("", "")
-	if err != nil {
-		return
+	response.Result = &AssetUploadResponse{
+		PostRequest: postRequest,
+		Asset:       &assetMap,
 	}
-	written, err = io.Copy(tempFile, src)
-	if err != nil {
-		cleanupFile(tempFile)
-		tempFile = nil
-		return
-	}
-	if _, err = tempFile.Seek(0, 0); err != nil {
-		cleanupFile(tempFile)
-		tempFile = nil
-		return
-	}
-	return
-}
-
-func cleanupFile(f *os.File) error {
-	closeErr := f.Close()
-	if closeErr != nil {
-		log.Errorf("Failed to close tempFile %s: %v", f.Name(), closeErr)
-		return closeErr
-	}
-
-	if err := os.Remove(f.Name()); err != nil {
-		log.Errorf("Failed to remove file %s: %v", f.Name(), err)
-		return err
-	}
-
-	return nil
 }
