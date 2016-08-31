@@ -30,8 +30,8 @@ import (
 	"time"
 )
 
-// FileStore implements Store by storing files on file system
-type FileStore struct {
+// fileStore implements Store by storing files on file system
+type fileStore struct {
 	dir        string
 	prefix     string
 	postPrefix string
@@ -39,19 +39,19 @@ type FileStore struct {
 	public     bool
 }
 
-// NewFileStore creates a new FileStore
-func NewFileStore(dir, prefix, postPrefix, secret string, public bool) *FileStore {
-	return &FileStore{dir, prefix, postPrefix, secret, public}
+// NewFileStore creates a new fileStore
+func NewFileStore(dir, prefix, postPrefix, secret string, public bool) Store {
+	return &fileStore{dir, prefix, postPrefix, secret, public}
 }
 
 // GetFileReader returns a reader for reading files
-func (s *FileStore) GetFileReader(name string) (io.ReadCloser, error) {
+func (s *fileStore) GetFileReader(name string) (io.ReadCloser, error) {
 	path := filepath.Join(s.dir, name)
 	return os.Open(path)
 }
 
 // PutFileReader stores a file from reader onto file system
-func (s *FileStore) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
+func (s *fileStore) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
 	path := filepath.Join(s.dir, name)
 
 	dir := filepath.Dir(path)
@@ -78,7 +78,7 @@ func (s *FileStore) PutFileReader(name string, src io.Reader, length int64, cont
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
-func (s *FileStore) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
+func (s *fileStore) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
 	return &PostFileRequest{
 		Action: strings.Join(
 			[]string{s.postPrefix, "files", name},
@@ -88,7 +88,7 @@ func (s *FileStore) GeneratePostFileRequest(name string) (*PostFileRequest, erro
 }
 
 // SignedURL returns a signed url with expiry date
-func (s *FileStore) SignedURL(name string) (string, error) {
+func (s *fileStore) SignedURL(name string) (string, error) {
 	if !s.IsSignatureRequired() {
 		return fmt.Sprintf("%s/%s", s.prefix, name), nil
 	}
@@ -111,7 +111,7 @@ func (s *FileStore) SignedURL(name string) (string, error) {
 }
 
 // ParseSignature tries to parse the asset signature
-func (s *FileStore) ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error) {
+func (s *fileStore) ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error) {
 	base64Decoder := base64.NewDecoder(base64.URLEncoding, strings.NewReader(signed))
 	remoteSignature, err := ioutil.ReadAll(base64Decoder)
 	if err != nil {
@@ -128,6 +128,6 @@ func (s *FileStore) ParseSignature(signed string, name string, expiredAt time.Ti
 }
 
 // IsSignatureRequired indicates whether a signature is required
-func (s *FileStore) IsSignatureRequired() bool {
+func (s *fileStore) IsSignatureRequired() bool {
 	return !s.public
 }

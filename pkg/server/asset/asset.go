@@ -23,6 +23,7 @@ import (
 
 var log = logging.LoggerEntry("asset")
 
+// PostFileRequest models the POST request for upload asset file
 type PostFileRequest struct {
 	Action      string                 `json:"action"`
 	ExtraFields map[string]interface{} `json:"extra-fields,omitempty"`

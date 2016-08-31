@@ -37,7 +37,7 @@ func TestCloudStoreCreation(t *testing.T) {
 
 	Convey("Cloud Store Creation", t, func() {
 		Convey("Success on normal flow (public)", func() {
-			store, err := NewCloudStore(
+			_store, err := NewCloudStore(
 				"testapp",
 				testServer.URL,
 				"correct-auth-token",
@@ -45,6 +45,7 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/private",
 				true,
 			)
+			store := _store.(*cloudStore)
 			defer store.signer.refreshTicker.Stop()
 
 			So(err, ShouldBeNil)
@@ -62,7 +63,7 @@ func TestCloudStoreCreation(t *testing.T) {
 		})
 
 		Convey("Success on normal flow (private)", func() {
-			store, err := NewCloudStore(
+			_store, err := NewCloudStore(
 				"testapp",
 				testServer.URL,
 				"correct-auth-token",
@@ -70,7 +71,7 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/private",
 				false,
 			)
-
+			store := _store.(*cloudStore)
 			defer store.signer.refreshTicker.Stop()
 
 			So(err, ShouldBeNil)
@@ -185,7 +186,7 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 
 	Convey("Cloud Store Get Signed URL", t, func() {
 		Convey("Success on public store", func() {
-			publicStore, _ := NewCloudStore(
+			_publicStore, _ := NewCloudStore(
 				"testapp",
 				testServer.URL,
 				"correct-auth-token",
@@ -193,6 +194,7 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 				"http://localhost:12345/private",
 				true,
 			)
+			publicStore := _publicStore.(*cloudStore)
 			defer publicStore.signer.refreshTicker.Stop()
 
 			time.Sleep(100 * time.Millisecond)
@@ -206,7 +208,7 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 		})
 
 		Convey("Success on private store", func() {
-			publicStore, _ := NewCloudStore(
+			_publicStore, _ := NewCloudStore(
 				"testapp",
 				testServer.URL,
 				"correct-auth-token",
@@ -214,6 +216,7 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 				"http://localhost:12345/private",
 				false,
 			)
+			publicStore := _publicStore.(*cloudStore)
 			defer publicStore.signer.refreshTicker.Stop()
 
 			time.Sleep(100 * time.Millisecond)
@@ -273,14 +276,13 @@ func TestCloudStoreGeneratePostFileRequest(t *testing.T) {
 
 	Convey("Generate Post File Request", t, func() {
 		Convey("Success on normal flow", func() {
-			store := &CloudStore{
+			store := &cloudStore{
 				appName:   "testapp",
 				host:      testServer.URL,
 				authToken: "correct-auth-token",
 				urlPrefix: "http://localhost:12345/public",
 				public:    true,
 			}
-
 			postRequest, err := store.GeneratePostFileRequest("file001")
 
 			So(err, ShouldBeNil)

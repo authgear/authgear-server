@@ -36,8 +36,8 @@ const (
 	cloudAssetSignerTokenExpiryInterval  = 2 * time.Hour
 )
 
-// CloudStore models the skygear cloud asset store
-type CloudStore struct {
+// cloudStore models the skygear cloud asset store
+type cloudStore struct {
 	appName   string
 	host      string
 	authToken string
@@ -60,7 +60,7 @@ func NewCloudStore(
 	publicURLPrefix string,
 	privateURLPrefix string,
 	public bool,
-) (*CloudStore, error) {
+) (Store, error) {
 	if appName == "" {
 		return nil, errors.New("Missing app name for cloud asset")
 	}
@@ -86,7 +86,7 @@ func NewCloudStore(
 		urlPrefix = publicURLPrefix
 	}
 
-	store := &CloudStore{
+	store := &cloudStore{
 		appName:   appName,
 		host:      host,
 		authToken: authToken,
@@ -107,7 +107,7 @@ func NewCloudStore(
 	return store, nil
 }
 
-func (s *CloudStore) refreshSignerToken() {
+func (s *cloudStore) refreshSignerToken() {
 	log.Info("Start refresh Cloud Asset Signer Token")
 
 	urlString := strings.Join(
@@ -156,14 +156,14 @@ func (s *CloudStore) refreshSignerToken() {
 }
 
 // GetFileReader returns a reader for reading files
-func (s CloudStore) GetFileReader(name string) (io.ReadCloser, error) {
+func (s cloudStore) GetFileReader(name string) (io.ReadCloser, error) {
 	return nil, errors.New(
 		"Directly getting files is not available for cloud-based asset store",
 	)
 }
 
 // PutFileReader return a writer for uploading files
-func (s CloudStore) PutFileReader(
+func (s cloudStore) PutFileReader(
 	name string,
 	src io.Reader,
 	length int64,
@@ -175,7 +175,7 @@ func (s CloudStore) PutFileReader(
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
-func (s CloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
+func (s cloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
 	log.
 		WithField("name", name).
 		Info("Start generate post file request for Cloud Asset")
@@ -216,7 +216,7 @@ func (s CloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, erro
 }
 
 // SignedURL return a signed URL with expiry date
-func (s CloudStore) SignedURL(name string) (string, error) {
+func (s cloudStore) SignedURL(name string) (string, error) {
 	targetURLString := strings.Join(
 		[]string{s.urlPrefix, s.appName, name},
 		"/",
@@ -271,12 +271,12 @@ func (s CloudStore) SignedURL(name string) (string, error) {
 }
 
 // IsSignatureRequired indicates whether a signature is required
-func (s CloudStore) IsSignatureRequired() bool {
+func (s cloudStore) IsSignatureRequired() bool {
 	return !s.public
 }
 
 // ParseSignature tries to parse the asset signature
-func (s CloudStore) ParseSignature(
+func (s cloudStore) ParseSignature(
 	signed string,
 	name string,
 	expiredAt time.Time,

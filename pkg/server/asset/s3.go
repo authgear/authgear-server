@@ -25,14 +25,14 @@ import (
 	"gopkg.in/amz.v3/s3"
 )
 
-// S3Store implements Store by storing files on S3
-type S3Store struct {
+// s3Store implements Store by storing files on S3
+type s3Store struct {
 	bucket     *s3.Bucket
 	postPrefix string
 	public     bool
 }
 
-// NewS3Store returns a new S3Store
+// NewS3Store returns a new s3Store
 func NewS3Store(
 	accessKey string,
 	secretKey string,
@@ -40,7 +40,7 @@ func NewS3Store(
 	bucketName string,
 	postPrefix string,
 	public bool,
-) (*S3Store, error) {
+) (Store, error) {
 
 	auth := aws.Auth{
 		AccessKey: accessKey,
@@ -57,7 +57,7 @@ func NewS3Store(
 		return nil, err
 	}
 
-	return &S3Store{
+	return &s3Store{
 		bucket:     bucket,
 		postPrefix: postPrefix,
 		public:     public,
@@ -65,12 +65,12 @@ func NewS3Store(
 }
 
 // GetFileReader returns a reader for files
-func (s *S3Store) GetFileReader(name string) (io.ReadCloser, error) {
+func (s *s3Store) GetFileReader(name string) (io.ReadCloser, error) {
 	return s.bucket.GetReader(name)
 }
 
 // PutFileReader uploads a file to s3 with content from io.Reader
-func (s *S3Store) PutFileReader(
+func (s *s3Store) PutFileReader(
 	name string,
 	src io.Reader,
 	length int64,
@@ -81,7 +81,7 @@ func (s *S3Store) PutFileReader(
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
-func (s *S3Store) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
+func (s *s3Store) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
 	return &PostFileRequest{
 		Action: strings.Join(
 			[]string{s.postPrefix, "files", name},
@@ -91,7 +91,7 @@ func (s *S3Store) GeneratePostFileRequest(name string) (*PostFileRequest, error)
 }
 
 // SignedURL return a signed s3 URL with expiry date
-func (s *S3Store) SignedURL(name string) (string, error) {
+func (s *s3Store) SignedURL(name string) (string, error) {
 	if !s.IsSignatureRequired() {
 		return s.bucket.URL(name), nil
 	}
@@ -99,12 +99,12 @@ func (s *S3Store) SignedURL(name string) (string, error) {
 }
 
 // IsSignatureRequired indicates whether a signature is required
-func (s *S3Store) IsSignatureRequired() bool {
+func (s *s3Store) IsSignatureRequired() bool {
 	return !s.public
 }
 
 // ParseSignature tries to parse the asset signature
-func (s *S3Store) ParseSignature(
+func (s *s3Store) ParseSignature(
 	signed string,
 	name string,
 	expiredAt time.Time,
