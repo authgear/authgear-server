@@ -26,6 +26,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/franela/goreq"
 )
 
@@ -127,11 +128,11 @@ func (s *CloudStore) refreshSignerToken() {
 
 	res, err := req.Do()
 	if err != nil {
-		log.
-			WithField("url", urlString).
-			WithField("expired-at", expiredAt).
-			WithField("error", err).
-			Error("Fail to request to refresh Cloud Asset Signer Token")
+		log.WithFields(logrus.Fields{
+			"url":        urlString,
+			"expired-at": expiredAt,
+			"error":      err,
+		}).Error("Fail to request to refresh Cloud Asset Signer Token")
 
 		return
 	}
@@ -139,10 +140,10 @@ func (s *CloudStore) refreshSignerToken() {
 	resBody := refreshSignerTokenResponse{}
 	err = res.Body.FromJsonTo(&resBody)
 	if err != nil {
-		log.
-			WithField("error", err).
-			WithField("response", res.Body).
-			Error("Fail to parse the response for refresh Cloud Asset Signer Token")
+		log.WithFields(logrus.Fields{
+			"error":    err,
+			"response": res.Body,
+		}).Error("Fail to parse the response for refresh Cloud Asset Signer Token")
 
 		return
 	}
@@ -192,10 +193,10 @@ func (s CloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, erro
 
 	res, err := req.Do()
 	if err != nil {
-		log.
-			WithField("url", urlString).
-			WithField("error", err).
-			Error("Fail to request for pre-signed POST request")
+		log.WithFields(logrus.Fields{
+			"url":   urlString,
+			"error": err,
+		}).Error("Fail to request for pre-signed POST request")
 
 		return nil, errors.New("Fail to request for pre-signed POST request")
 	}
@@ -203,10 +204,10 @@ func (s CloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, erro
 	postRequest := &PostFileRequest{}
 	err = res.Body.FromJsonTo(postRequest)
 	if err != nil {
-		log.
-			WithField("error", err).
-			WithField("response", res.Body).
-			Error("Fail to parse the response of pre-signed POST request")
+		log.WithFields(logrus.Fields{
+			"error":    err,
+			"response": res.Body,
+		}).Error("Fail to parse the response of pre-signed POST request")
 
 		return nil, errors.New("Fail to parse the response of pre-signed POST request")
 	}
@@ -223,10 +224,10 @@ func (s CloudStore) SignedURL(name string) (string, error) {
 
 	targetURL, err := url.Parse(targetURLString)
 	if err != nil {
-		log.
-			WithField("error", err).
-			WithField("unsigned-url", targetURLString).
-			Error("Fail to parse the unsigned URL")
+		log.WithFields(logrus.Fields{
+			"error":        err,
+			"unsigned-url": targetURLString,
+		}).Error("Fail to parse the unsigned URL")
 
 		return "", errors.New("Fail to parse the unsigned URL")
 	}
@@ -238,10 +239,10 @@ func (s CloudStore) SignedURL(name string) (string, error) {
 	signerToken, signerExtra, _ := s.signer.get()
 
 	if signerToken == "" || signerExtra == "" {
-		log.
-			WithField("signer-token", signerToken).
-			WithField("signer-extra", signerExtra).
-			Warn("Cloud Asset Signer Token is not yet ready")
+		log.WithFields(logrus.Fields{
+			"signer-token": signerToken,
+			"signer-extra": signerExtra,
+		}).Warn("Cloud Asset Signer Token is not yet ready")
 
 		return "", errors.New("Cloud Asset Signer Token is not yet ready")
 	}
