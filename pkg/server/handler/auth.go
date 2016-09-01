@@ -41,6 +41,18 @@ type authResponse struct {
 	LastSeenAt  *time.Time `json:"last_seen_at,omitempty"`
 }
 
+func NewAuthResponse(info skydb.UserInfo, accessToken string) authResponse {
+	return authResponse{
+		UserID:      info.ID,
+		Username:    info.Username,
+		Email:       info.Email,
+		Roles:       info.Roles,
+		AccessToken: accessToken,
+		LastLoginAt: info.LastLoginAt,
+		LastSeenAt:  info.LastSeenAt,
+	}
+}
+
 type signupPayload struct {
 	Username string                 `mapstructure:"username"`
 	Email    string                 `mapstructure:"email"`
@@ -192,15 +204,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		panic(err)
 	}
 
-	response.Result = authResponse{
-		UserID:      info.ID,
-		Username:    info.Username,
-		Email:       info.Email,
-		Roles:       info.Roles,
-		AccessToken: token.AccessToken,
-		LastLoginAt: info.LastLoginAt,
-		LastSeenAt:  info.LastLoginAt,
-	}
+	response.Result = NewAuthResponse(info, token.AccessToken)
 }
 
 type loginPayload struct {
@@ -349,15 +353,7 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		panic(err)
 	}
 
-	response.Result = authResponse{
-		UserID:      info.ID,
-		Username:    info.Username,
-		Email:       info.Email,
-		Roles:       info.Roles,
-		AccessToken: token.AccessToken,
-		LastLoginAt: info.LastLoginAt,
-		LastSeenAt:  info.LastSeenAt,
-	}
+	response.Result = NewAuthResponse(info, token.AccessToken)
 }
 
 // LogoutHandler receives an access token and invalidates it
