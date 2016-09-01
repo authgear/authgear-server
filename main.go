@@ -103,9 +103,12 @@ func main() {
 		Config:           config,
 	}
 
-	internalHub := pubsub.NewHub()
-	initSubscription(config, connOpener, internalHub, pushSender)
-	initDevice(config, connOpener)
+	var internalHub *pubsub.Hub
+	if !config.App.Slave {
+		internalHub = pubsub.NewHub()
+		initSubscription(config, connOpener, internalHub, pushSender)
+		initDevice(config, connOpener)
+	}
 
 	// Preprocessor
 	preprocessorRegistry["notification"] = &pp.NotificationPreprocessor{
@@ -207,17 +210,19 @@ func main() {
 	serveMux.Handle("/", r)
 
 	// Following section is for Gateway
-	pubSub := pubsub.NewWsPubsub(nil)
-	pubSubGateway := router.NewGateway("", "/pubsub", serveMux)
-	pubSubGateway.GET(injector.InjectProcessors(&handler.PubSubHandler{
-		WebSocket: pubSub,
-	}))
+	if !config.App.Slave {
+		pubSub := pubsub.NewWsPubsub(nil)
+		pubSubGateway := router.NewGateway("", "/pubsub", serveMux)
+		pubSubGateway.GET(injector.InjectProcessors(&handler.PubSubHandler{
+			WebSocket: pubSub,
+		}))
 
-	internalPubSub := pubsub.NewWsPubsub(internalHub)
-	internalPubSubGateway := router.NewGateway("", "/_/pubsub", serveMux)
-	internalPubSubGateway.GET(injector.InjectProcessors(&handler.PubSubHandler{
-		WebSocket: internalPubSub,
-	}))
+		internalPubSub := pubsub.NewWsPubsub(internalHub)
+		internalPubSubGateway := router.NewGateway("", "/_/pubsub", serveMux)
+		internalPubSubGateway.GET(injector.InjectProcessors(&handler.PubSubHandler{
+			WebSocket: internalPubSub,
+		}))
+	}
 
 	fileGateway := router.NewGateway("files/(.+)", "/files/", serveMux)
 	fileGateway.GET(injector.Inject(&handler.GetFileHandler{}))
