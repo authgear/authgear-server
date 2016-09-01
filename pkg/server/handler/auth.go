@@ -15,8 +15,6 @@
 package handler
 
 import (
-	"time"
-
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 
@@ -30,28 +28,6 @@ import (
 )
 
 var errUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
-
-type authResponse struct {
-	UserID      string     `json:"user_id,omitempty"`
-	Username    string     `json:"username,omitempty"`
-	Email       string     `json:"email,omitempty"`
-	Roles       []string   `json:"roles,omitempty"`
-	AccessToken string     `json:"access_token,omitempty"`
-	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
-	LastSeenAt  *time.Time `json:"last_seen_at,omitempty"`
-}
-
-func NewAuthResponse(info skydb.UserInfo, accessToken string) authResponse {
-	return authResponse{
-		UserID:      info.ID,
-		Username:    info.Username,
-		Email:       info.Email,
-		Roles:       info.Roles,
-		AccessToken: accessToken,
-		LastLoginAt: info.LastLoginAt,
-		LastSeenAt:  info.LastSeenAt,
-	}
-}
 
 type signupPayload struct {
 	Username string                 `mapstructure:"username"`
@@ -497,7 +473,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		log.Warningf("Invalidate is not yet implement")
 		// TODO: invalidate all existing token and generate a new one for response
 	}
-	response.Result = authResponse{
+	response.Result = AuthResponse{
 		UserID:      info.ID,
 		AccessToken: payload.AccessTokenString(),
 	}

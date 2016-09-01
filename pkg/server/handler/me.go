@@ -57,7 +57,5 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	// FIXME: the NewAuthResponse is defined in handler/auth.go which should
-	// not use here
 	response.Result = NewAuthResponse(*info, payload.AccessTokenString())
 }

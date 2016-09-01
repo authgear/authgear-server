@@ -72,8 +72,8 @@ func TestSignupHandler(t *testing.T) {
 			So(txdb.DidBegin, ShouldBeTrue)
 			So(txdb.DidCommit, ShouldBeTrue)
 
-			So(resp.Result, ShouldHaveSameTypeAs, authResponse{})
-			authResp := resp.Result.(authResponse)
+			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
+			authResp := resp.Result.(AuthResponse)
 			So(authResp.Username, ShouldEqual, "john.doe")
 			So(authResp.Email, ShouldEqual, "john.doe@example.com")
 			So(authResp.AccessToken, ShouldNotBeEmpty)
@@ -194,9 +194,9 @@ func TestLoginHandler(t *testing.T) {
 			}
 			handler.Handle(&req, &resp)
 
-			So(resp.Result, ShouldHaveSameTypeAs, authResponse{})
+			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
 
-			authResp := resp.Result.(authResponse)
+			authResp := resp.Result.(AuthResponse)
 			So(authResp.Username, ShouldEqual, "john.doe")
 			So(authResp.Email, ShouldEqual, "john.doe@example.com")
 			So(authResp.AccessToken, ShouldNotBeEmpty)
@@ -226,8 +226,8 @@ func TestLoginHandler(t *testing.T) {
 			}
 			handler.Handle(&req, &resp)
 
-			So(resp.Result, ShouldHaveSameTypeAs, authResponse{})
-			authResp := resp.Result.(authResponse)
+			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
+			authResp := resp.Result.(AuthResponse)
 			So(authResp.Username, ShouldEqual, "john.doe")
 			So(authResp.Email, ShouldEqual, "john.doe@example.com")
 			So(authResp.AccessToken, ShouldNotBeEmpty)
@@ -254,8 +254,8 @@ func TestLoginHandler(t *testing.T) {
 			}
 			handler.Handle(&req, &resp)
 
-			So(resp.Result, ShouldHaveSameTypeAs, authResponse{})
-			authResp := resp.Result.(authResponse)
+			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
+			authResp := resp.Result.(AuthResponse)
 			So(authResp.Username, ShouldEqual, "john.doe")
 			So(authResp.Email, ShouldEqual, "john.doe@example.com")
 			So(authResp.AccessToken, ShouldNotBeEmpty)
