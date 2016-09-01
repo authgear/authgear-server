@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -211,25 +212,26 @@ func (h *UploadFileHandler) Handle(
 		return
 	}
 
-	assetStore := h.AssetStore
-	if err := assetStore.PutFileReader(
-		uploadRequest.filename,
-		tempFile,
-		written,
-		uploadRequest.contentType,
-	); err != nil {
-
-		response.Err = skyerr.MakeError(err)
-		return
-	}
-
 	asset := skydb.Asset{}
 	conn := payload.DBConn
 	if err := conn.GetAsset(uploadRequest.filename, &asset); err != nil {
-		response.Err = skyerr.NewResourceFetchFailureErr(
-			"asset",
-			uploadRequest.filename,
-		)
+		// compatible with SDK <= v0.15
+		dir, file := filepath.Split(uploadRequest.filename)
+		file = strings.Join([]string{uuidNew(), file}, "-")
+
+		asset.Name = filepath.Join(dir, file)
+		asset.ContentType = uploadRequest.contentType
+	}
+
+	assetStore := h.AssetStore
+	if err := assetStore.PutFileReader(
+		asset.Name,
+		tempFile,
+		written,
+		asset.ContentType,
+	); err != nil {
+
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 
