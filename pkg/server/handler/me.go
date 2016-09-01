@@ -15,6 +15,8 @@
 package handler
 
 import (
+	"time"
+
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -43,23 +45,21 @@ func (h *MeHandler) GetPreprocessors() []router.Processor {
 
 // Handle is the handling method of the me request
 func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
-	userinfo := payload.UserInfo
-	if userinfo == nil {
+	info := payload.UserInfo
+	if info == nil {
 		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed to get current user")
 		return
 	}
 
-	response.Result = struct {
-		UserID      string   `json:"user_id,omitempty"`
-		Username    string   `json:"username,omitempty"`
-		Email       string   `json:"email,omitempty"`
-		Roles       []string `json:"roles,omitempty"`
-		AccessToken string   `json:"access_token,omitempty"`
-	}{
-		userinfo.ID,
-		userinfo.Username,
-		userinfo.Email,
-		userinfo.Roles,
-		payload.AccessTokenString(),
+	// Populate the activity time to user
+	timeNow := time.Now().UTC()
+	info.LastSeenAt = &timeNow
+	if err := payload.DBConn.UpdateUser(info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
 	}
+
+	// FIXME: the NewAuthResponse is defined in handler/auth.go which should
+	// not use here
+	response.Result = NewAuthResponse(*info, payload.AccessTokenString())
 }
