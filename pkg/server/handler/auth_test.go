@@ -77,6 +77,8 @@ func TestSignupHandler(t *testing.T) {
 			So(authResp.Username, ShouldEqual, "john.doe")
 			So(authResp.Email, ShouldEqual, "john.doe@example.com")
 			So(authResp.AccessToken, ShouldNotBeEmpty)
+			So(authResp.LastLoginAt, ShouldNotBeEmpty)
+			So(authResp.LastSeenAt, ShouldNotBeEmpty)
 			token := tokenStore.Token
 			So(token.UserInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
@@ -354,9 +356,16 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "%v",
-		"access_token": "%v"
+		"access_token": "%v",
+		"last_login_at": "%v",
+		"last_seen_at": "%v"
 	}
-}`, userinfo.ID, token.AccessToken))
+}`,
+				userinfo.ID,
+				token.AccessToken,
+				conn.userinfo.LastLoginAt.Format(time.RFC3339Nano),
+				conn.userinfo.LastSeenAt.Format(time.RFC3339Nano),
+			))
 			So(resp.Code, ShouldEqual, 200)
 		})
 
@@ -377,9 +386,16 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "%v",
-		"access_token": "%v"
+		"access_token": "%v",
+		"last_login_at": "%v",
+		"last_seen_at": "%v"
 	}
-}`, userinfo.ID, token.AccessToken))
+}`,
+				userinfo.ID,
+				token.AccessToken,
+				userinfo.LastLoginAt.Format(time.RFC3339Nano),
+				userinfo.LastSeenAt.Format(time.RFC3339Nano),
+			))
 			So(resp.Code, ShouldEqual, 200)
 
 			_, ok := db.RecordMap[fmt.Sprintf("user/%s", userinfo.ID)]
@@ -457,9 +473,16 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "%v",
-		"access_token": "%v"
+		"access_token": "%v",
+		"last_login_at": "%v",
+		"last_seen_at": "%v"
 	}
-}`, userinfo.ID, token.AccessToken))
+}`,
+				userinfo.ID,
+				token.AccessToken,
+				userinfo.LastLoginAt.Format(time.RFC3339Nano),
+				userinfo.LastSeenAt.Format(time.RFC3339Nano),
+			))
 			So(resp.Code, ShouldEqual, 200)
 
 			_, ok := db.RecordMap[fmt.Sprintf("user/%s", userinfo.ID)]
@@ -545,9 +568,16 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "%v",
-		"access_token": "%v"
+		"access_token": "%v",
+		"last_login_at": "%v",
+		"last_seen_at": "%v"
 	}
-}`, userinfo.ID, token.AccessToken))
+}`,
+				userinfo.ID,
+				token.AccessToken,
+				userinfo.LastLoginAt.Format(time.RFC3339Nano),
+				userinfo.LastSeenAt.Format(time.RFC3339Nano),
+			))
 			So(resp.Code, ShouldEqual, 200)
 
 			_, ok := db.RecordMap[fmt.Sprintf("user/%s", userinfo.ID)]

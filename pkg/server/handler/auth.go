@@ -15,6 +15,8 @@
 package handler
 
 import (
+	"time"
+
 	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 
@@ -30,11 +32,13 @@ import (
 var errUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 
 type authResponse struct {
-	UserID      string   `json:"user_id,omitempty"`
-	Username    string   `json:"username,omitempty"`
-	Email       string   `json:"email,omitempty"`
-	Roles       []string `json:"roles,omitempty"`
-	AccessToken string   `json:"access_token,omitempty"`
+	UserID      string     `json:"user_id,omitempty"`
+	Username    string     `json:"username,omitempty"`
+	Email       string     `json:"email,omitempty"`
+	Roles       []string   `json:"roles,omitempty"`
+	AccessToken string     `json:"access_token,omitempty"`
+	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
+	LastSeenAt  *time.Time `json:"last_seen_at,omitempty"`
 }
 
 type signupPayload struct {
@@ -166,6 +170,11 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		info.Roles = defaultRoles
 	}
 
+	// Populate the activity time to user
+	timeNow := time.Now().UTC()
+	info.LastLoginAt = &timeNow
+	info.LastSeenAt = &timeNow
+
 	createContext := createUserWithRecordContext{
 		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
 	}
@@ -189,6 +198,8 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		Email:       info.Email,
 		Roles:       info.Roles,
 		AccessToken: token.AccessToken,
+		LastLoginAt: info.LastLoginAt,
+		LastSeenAt:  info.LastLoginAt,
 	}
 }
 
@@ -319,6 +330,14 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 			return
 		}
 	}
+	// Populate the activity time to user
+	timeNow := time.Now().UTC()
+	info.LastLoginAt = &timeNow
+	info.LastSeenAt = &timeNow
+	if err := payload.DBConn.UpdateUser(&info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
 
 	// generate access-token
 	token, err := store.NewToken(payload.AppName, info.ID)
@@ -336,6 +355,8 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		Email:       info.Email,
 		Roles:       info.Roles,
 		AccessToken: token.AccessToken,
+		LastLoginAt: info.LastLoginAt,
+		LastSeenAt:  info.LastSeenAt,
 	}
 }
 

@@ -30,6 +30,8 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 		username        *string
 		email           *string
 		tokenValidSince *time.Time
+		lastLoginAt     *time.Time
+		lastSeenAt      *time.Time
 	)
 	if userinfo.Username != "" {
 		username = &userinfo.Username
@@ -45,6 +47,14 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
 		tokenValidSince = nil
 	}
+	lastLoginAt = userinfo.LastLoginAt
+	if lastLoginAt != nil && lastLoginAt.IsZero() {
+		lastLoginAt = nil
+	}
+	lastSeenAt = userinfo.LastSeenAt
+	if lastSeenAt != nil && lastSeenAt.IsZero() {
+		lastSeenAt = nil
+	}
 
 	builder := psql.Insert(c.tableName("_user")).Columns(
 		"id",
@@ -53,6 +63,8 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 		"password",
 		"auth",
 		"token_valid_since",
+		"last_login_at",
+		"last_seen_at",
 	).Values(
 		userinfo.ID,
 		username,
@@ -60,6 +72,8 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 		userinfo.HashedPassword,
 		authInfoValue{userinfo.Auth, true},
 		tokenValidSince,
+		lastLoginAt,
+		lastSeenAt,
 	)
 
 	_, err = c.ExecWith(builder)
@@ -78,6 +92,8 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 		username        *string
 		email           *string
 		tokenValidSince *time.Time
+		lastLoginAt     *time.Time
+		lastSeenAt      *time.Time
 	)
 	if userinfo.Username != "" {
 		username = &userinfo.Username
@@ -93,6 +109,14 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
 		tokenValidSince = nil
 	}
+	lastLoginAt = userinfo.LastLoginAt
+	if lastLoginAt != nil && lastLoginAt.IsZero() {
+		lastLoginAt = nil
+	}
+	lastSeenAt = userinfo.LastSeenAt
+	if lastSeenAt != nil && lastSeenAt.IsZero() {
+		lastSeenAt = nil
+	}
 
 	builder := psql.Update(c.tableName("_user")).
 		Set("username", username).
@@ -100,6 +124,8 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 		Set("password", userinfo.HashedPassword).
 		Set("auth", authInfoValue{userinfo.Auth, true}).
 		Set("token_valid_since", tokenValidSince).
+		Set("last_login_at", lastLoginAt).
+		Set("last_seen_at", lastSeenAt).
 		Where("id = ?", userinfo.ID)
 
 	result, err := c.ExecWith(builder)
@@ -123,7 +149,8 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 }
 
 func (c *conn) baseUserBuilder() sq.SelectBuilder {
-	return psql.Select("id", "username", "email", "password", "auth", "token_valid_since",
+	return psql.Select("id", "username", "email", "password", "auth",
+		"token_valid_since", "last_login_at", "last_seen_at",
 		"array_to_json(array_agg(role_id)) AS roles").
 		From(c.tableName("_user")).
 		LeftJoin(c.tableName("_user_role") + " ON id = user_id").
@@ -136,6 +163,8 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 		username        sql.NullString
 		email           sql.NullString
 		tokenValidSince pq.NullTime
+		lastLoginAt     pq.NullTime
+		lastSeenAt      pq.NullTime
 		roles           nullJSONStringSlice
 	)
 	password, auth := []byte{}, authInfoValue{}
@@ -147,6 +176,8 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 		&password,
 		&auth,
 		&tokenValidSince,
+		&lastLoginAt,
+		&lastSeenAt,
 		&roles,
 	)
 	if err != nil {
