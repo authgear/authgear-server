@@ -70,6 +70,10 @@ func main() {
 	log.Infof("Starting Skygear Server(%s)...", skyversion.Version())
 	connOpener := ensureDB(config) // Fatal on DB failed
 
+	if config.App.Slave {
+		log.Infof("Skygear Server is running in slave mode.")
+	}
+
 	// Init all the services
 	r := router.NewRouter()
 	serveMux := http.NewServeMux()
@@ -85,7 +89,10 @@ func main() {
 
 	preprocessorRegistry := router.PreprocessorRegistry{}
 
-	cronjob := cron.New()
+	var cronjob *cron.Cron
+	if !config.App.Slave {
+		cronjob = cron.New()
+	}
 	initContext := plugin.InitContext{
 		Router:           r,
 		Mux:              serveMux,
@@ -247,7 +254,6 @@ func main() {
 	}
 
 	// Bootstrap finished, starting services
-	cronjob.Start()
 	initPlugin(config, &initContext)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
@@ -405,6 +411,10 @@ func initSubscription(config skyconfig.Configuration, connOpener func() (skydb.C
 
 func initPlugin(config skyconfig.Configuration, initContext *plugin.InitContext) {
 	log.Infof("Supported plugin transports: %s", strings.Join(plugin.SupportedTransports(), ", "))
+
+	if initContext.Scheduler != nil {
+		initContext.Scheduler.Start()
+	}
 
 	for _, pluginConfig := range config.Plugin {
 		initContext.AddPluginConfiguration(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)

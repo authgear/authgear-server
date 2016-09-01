@@ -49,6 +49,7 @@ type Configuration struct {
 		AccessControl string `json:"access_control"`
 		DevMode       bool   `json:"dev_mode"`
 		CORSHost      string `json:"cors_host"`
+		Slave         bool   `json:"slave"`
 	} `json:"app"`
 	DB struct {
 		ImplName string `json:"implementation"`
@@ -114,6 +115,7 @@ func NewConfiguration() Configuration {
 	config.App.AccessControl = "role"
 	config.App.DevMode = true
 	config.App.CORSHost = "*"
+	config.App.Slave = false
 	config.DB.ImplName = "pq"
 	config.DB.Option = "postgres://postgres:@localhost/postgres?sslmode=disable"
 	config.TokenStore.ImplName = "fs"
@@ -207,6 +209,15 @@ func (config *Configuration) ReadFromEnv() {
 
 	if config.DB.ImplName == "pq" && os.Getenv("DATABASE_URL") != "" {
 		config.DB.Option = os.Getenv("DATABASE_URL")
+	}
+
+	slave := os.Getenv("SLAVE")
+	if slave == "YES" {
+		config.App.Slave = true
+	} else if slave == "NO" {
+		config.App.Slave = false
+	} else if slaveBool, err := strconv.ParseBool(slave); err == nil {
+		config.App.Slave = slaveBool
 	}
 
 	config.readTokenStore()

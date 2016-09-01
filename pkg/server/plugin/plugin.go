@@ -168,11 +168,15 @@ func (p *Plugin) processRegistrationInfo(context *InitContext, regInfo registrat
 	log.WithFields(logrus.Fields{
 		"regInfo":   regInfo,
 		"transport": p.transport,
-	}).Debugln("Got configuration from pligin, registering")
+	}).Debugln("Got configuration from plugin, registering")
 	p.initHandler(context.Mux, context.Preprocessors, regInfo.Handlers)
 	p.initLambda(context.Router, context.Preprocessors, regInfo.Lambdas)
 	p.initHook(context.HookRegistry, regInfo.Hooks)
-	p.initTimer(context.Scheduler, regInfo.Timers)
+	if context.Scheduler != nil {
+		p.initTimer(context.Scheduler, regInfo.Timers)
+	} else {
+		log.Info("Ignoring scheduled cron jobs because server is in slave mode.")
+	}
 	p.initProvider(context.ProviderRegistry, regInfo.Providers)
 }
 
