@@ -90,7 +90,7 @@ func TestSignupHandler(t *testing.T) {
 			So(ok, ShouldBeTrue)
 		})
 
-		Convey("sign up new account with role base access control will have defautl role", func() {
+		Convey("sign up new account with role base access control will have default role", func() {
 			req := router.Payload{
 				Data: map[string]interface{}{
 					"username": "john.doe",
