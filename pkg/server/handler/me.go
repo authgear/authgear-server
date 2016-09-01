@@ -15,8 +15,6 @@
 package handler
 
 import (
-	"time"
-
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -52,8 +50,8 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 	}
 
 	// Populate the activity time to user
-	timeNow := time.Now().UTC()
-	info.LastSeenAt = &timeNow
+	now := timeNow()
+	info.LastSeenAt = &now
 	if err := payload.DBConn.UpdateUser(info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return

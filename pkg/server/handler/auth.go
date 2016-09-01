@@ -183,9 +183,9 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	}
 
 	// Populate the activity time to user
-	timeNow := time.Now().UTC()
-	info.LastLoginAt = &timeNow
-	info.LastSeenAt = &timeNow
+	now := timeNowUTC()
+	info.LastLoginAt = &now
+	info.LastSeenAt = &now
 
 	createContext := createUserWithRecordContext{
 		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
@@ -335,9 +335,9 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		}
 	}
 	// Populate the activity time to user
-	timeNow := time.Now().UTC()
-	info.LastLoginAt = &timeNow
-	info.LastSeenAt = &timeNow
+	now := timeNow()
+	info.LastLoginAt = &now
+	info.LastSeenAt = &now
 	if err := payload.DBConn.UpdateUser(&info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
