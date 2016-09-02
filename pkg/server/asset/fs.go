@@ -32,16 +32,15 @@ import (
 
 // fileStore implements Store by storing files on file system
 type fileStore struct {
-	dir        string
-	prefix     string
-	postPrefix string
-	secret     string
-	public     bool
+	dir    string
+	prefix string
+	secret string
+	public bool
 }
 
 // NewFileStore creates a new fileStore
-func NewFileStore(dir, prefix, postPrefix, secret string, public bool) Store {
-	return &fileStore{dir, prefix, postPrefix, secret, public}
+func NewFileStore(dir, prefix, secret string, public bool) Store {
+	return &fileStore{dir, prefix, secret, public}
 }
 
 // GetFileReader returns a reader for reading files
@@ -80,10 +79,7 @@ func (s *fileStore) PutFileReader(name string, src io.Reader, length int64, cont
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
 func (s *fileStore) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
 	return &PostFileRequest{
-		Action: strings.Join(
-			[]string{s.postPrefix, "files", name},
-			"/",
-		),
+		Action: "/files/" + name,
 	}, nil
 }
 

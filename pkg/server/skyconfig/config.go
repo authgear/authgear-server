@@ -17,6 +17,7 @@ package skyconfig
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -63,7 +64,6 @@ type Configuration struct {
 	AssetStore struct {
 		ImplName string `json:"implementation"`
 		Public   bool   `json:"public"`
-		Host     string `json:"asset_store_host"`
 
 		// followings only used when ImplName = fs
 		Path string `json:"-"`
@@ -75,6 +75,7 @@ type Configuration struct {
 		Bucket      string `json:"bucket"`
 
 		// followings only used when ImplName = cloud
+		CloudAssetHost          string `json:"cloud_asset_host"`
 		CloudAssetToken         string `json:"cloud_asset_token"`
 		CloudAssetPublicPrefix  string `json:"cloud_asset_public_prefix"`
 		CloudAssetPrivatePrefix string `json:"cloud_asset_private_prefix"`
@@ -161,7 +162,7 @@ func (config *Configuration) Validate() error {
 func (config *Configuration) ReadFromEnv() {
 	envErr := godotenv.Load()
 	if envErr != nil {
-		fmt.Errorf("Error loading .env file")
+		log.Print("Error in loading .env file")
 	}
 
 	config.readHost()
@@ -266,10 +267,7 @@ func (config *Configuration) readAssetStore() {
 	if assetStore != "" {
 		config.AssetStore.ImplName = assetStore
 	}
-	assetStoreHost := os.Getenv("ASSET_STORE_HOST")
-	if assetStoreHost != "" {
-		config.AssetStore.Host = assetStoreHost
-	}
+
 	assetStorePublic := os.Getenv("ASSET_STORE_PUBLIC")
 	if assetStorePublic != "" {
 		config.AssetStore.Public = assetStorePublic == "YES" || assetStorePublic == "1"
@@ -308,6 +306,10 @@ func (config *Configuration) readAssetStore() {
 	}
 
 	// Cloud Asset related
+	cloudAssetHost := os.Getenv("CLOUD_ASSET_HOST")
+	if cloudAssetHost != "" {
+		config.AssetStore.CloudAssetHost = cloudAssetHost
+	}
 	cloudAssetToken := os.Getenv("CLOUD_ASSET_TOKEN")
 	if cloudAssetToken != "" {
 		config.AssetStore.CloudAssetToken = cloudAssetToken

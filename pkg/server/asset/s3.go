@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 	"time"
 
 	"gopkg.in/amz.v3/aws"
@@ -27,9 +26,8 @@ import (
 
 // s3Store implements Store by storing files on S3
 type s3Store struct {
-	bucket     *s3.Bucket
-	postPrefix string
-	public     bool
+	bucket *s3.Bucket
+	public bool
 }
 
 // NewS3Store returns a new s3Store
@@ -38,7 +36,6 @@ func NewS3Store(
 	secretKey string,
 	regionName string,
 	bucketName string,
-	postPrefix string,
 	public bool,
 ) (Store, error) {
 
@@ -58,9 +55,8 @@ func NewS3Store(
 	}
 
 	return &s3Store{
-		bucket:     bucket,
-		postPrefix: postPrefix,
-		public:     public,
+		bucket: bucket,
+		public: public,
 	}, nil
 }
 
@@ -83,10 +79,7 @@ func (s *s3Store) PutFileReader(
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
 func (s *s3Store) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
 	return &PostFileRequest{
-		Action: strings.Join(
-			[]string{s.postPrefix, "files", name},
-			"/",
-		),
+		Action: "/files/" + name,
 	}, nil
 }
 
