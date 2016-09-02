@@ -58,14 +58,9 @@ deploy:
   - provider: releases
     api-key: "$GITHUB_RELEASE_TOKEN"
     file:
-      - "dist/skygear-server-darwin-amd64"
-      - "dist/skygear-server-linux-386"
-      - "dist/skygear-server-linux-amd64"
-      - "dist/skygear-server-linux-arm"
-      - "dist/skygear-server-windows-386"
-      - "dist/skygear-server-windows-amd64"
-      - "dist/skygear-server-zmq-linux-amd64"
+      - "dist/skygear-server-*"
     skip_cleanup: true
+    file_glob: true
     on:
       repo: SkygearIO/skygear-server
       tags: true
