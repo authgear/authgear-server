@@ -259,19 +259,11 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 
 	if p.Provider != "" {
 		// Get AuthProvider and authenticates the user
-		log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
-		authProvider, err := h.ProviderRegistry.GetAuthProvider(p.Provider)
-		if err != nil {
-			response.Err = skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
+		principalID, authData, skyErr := h.authPrincipal(p)
+		if skyErr != nil {
+			response.Err = skyErr
 			return
 		}
-		principalID, authData, err := authProvider.Login(p.AuthData)
-		if err != nil {
-			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "invalid authentication information")
-			return
-		}
-		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
-
 		if err := payload.DBConn.GetUserByPrincipalID(principalID, &info); err != nil {
 			// Create user if and only if no user found with the same principal
 			if err != skydb.ErrUserNotFound {
@@ -330,6 +322,22 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	}
 
 	response.Result = NewAuthResponse(info, token.AccessToken)
+}
+
+func (h *LoginHandler) authPrincipal(p *loginPayload) (string, map[string]interface{}, skyerr.Error) {
+	log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
+	authProvider, err := h.ProviderRegistry.GetAuthProvider(p.Provider)
+	if err != nil {
+		skyErr := skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
+		return "", nil, skyErr
+	}
+	principalID, authData, err := authProvider.Login(p.AuthData)
+	if err != nil {
+		skyErr := skyerr.NewError(skyerr.InvalidCredentials, "invalid authentication information")
+		return "", nil, skyErr
+	}
+	log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
+	return principalID, authData, nil
 }
 
 // LogoutHandler receives an access token and invalidates it
