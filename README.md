@@ -73,8 +73,9 @@ $ brew install libsodium zeromq czmq
 
 ```shell
 $ go get github.com/Masterminds/glide
-$ glide install
-$ go build  # or `go build --tags zmq` for ZeroMQ support
+$ make vendor
+$ # export WITH_ZMQ=1 # If you need ZeroMQ support
+$ make build
 ```
 
 ### Testing
@@ -97,7 +98,7 @@ host    all             all             127.0.0.1/32            trust
 3. Install golang packages required for testing (check `.travis.yml` for the
    list).
 
-4. Run `go test github.com/skygeario/skygear-server/...`.
+4. Run `go test github.com/skygeario/skygear-server/pkg/...`.
 
 ## License & Copyright
 
