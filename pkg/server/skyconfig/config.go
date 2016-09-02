@@ -27,6 +27,20 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
+// parseBool parses a string representation of boolean value into a boolean
+// type. In addition to what strconv.ParseBool recognize, it also recognize
+// Yes, yes, YES, y, No, no, NO, n. Any other value returns an error.
+func parseBool(str string) (bool, error) {
+	switch str {
+	case "Yes", "yes", "YES", "y":
+		return true, nil
+	case "No", "no", "NO", "n":
+		return false, nil
+	default:
+		return strconv.ParseBool(str)
+	}
+}
+
 type PluginConfig struct {
 	Transport string
 	Path      string
@@ -194,12 +208,8 @@ func (config *Configuration) ReadFromEnv() {
 		config.App.AccessControl = accessControl
 	}
 
-	DevMode := os.Getenv("DEV_MODE")
-	if DevMode == "YES" {
-		config.App.DevMode = true
-	}
-	if DevMode == "NO" {
-		config.App.DevMode = false
+	if devMode, err := parseBool(os.Getenv("DEV_MODE")); err == nil {
+		config.App.DevMode = devMode
 	}
 
 	dbImplName := os.Getenv("DB_IMPL_NAME")
@@ -211,13 +221,8 @@ func (config *Configuration) ReadFromEnv() {
 		config.DB.Option = os.Getenv("DATABASE_URL")
 	}
 
-	slave := os.Getenv("SLAVE")
-	if slave == "YES" {
-		config.App.Slave = true
-	} else if slave == "NO" {
-		config.App.Slave = false
-	} else if slaveBool, err := strconv.ParseBool(slave); err == nil {
-		config.App.Slave = slaveBool
+	if slave, err := parseBool(os.Getenv("SLAVE")); err == nil {
+		config.App.Slave = slave
 	}
 
 	config.readTokenStore()
@@ -257,12 +262,8 @@ func (config *Configuration) readTokenStore() {
 		config.TokenStore.Prefix = tokenStorePrefix
 	}
 
-	tokenStoreExpiry := os.Getenv("TOKEN_STORE_EXPIRY")
-	if tokenStoreExpiry != "" {
-		expiry, err := strconv.ParseInt(tokenStoreExpiry, 10, 64)
-		if err == nil {
-			config.TokenStore.Expiry = expiry
-		}
+	if expiry, err := strconv.ParseInt(os.Getenv("TOKEN_STORE_EXPIRY"), 10, 64); err == nil {
+		config.TokenStore.Expiry = expiry
 	}
 
 	tokenStoreSecret := os.Getenv("TOKEN_STORE_SECRET")
@@ -279,9 +280,8 @@ func (config *Configuration) readAssetStore() {
 		config.AssetStore.ImplName = assetStore
 	}
 
-	assetStorePublic := os.Getenv("ASSET_STORE_PUBLIC")
-	if assetStorePublic != "" {
-		config.AssetStore.Public = assetStorePublic == "YES" || assetStorePublic == "1"
+	if assetStorePublic, err := parseBool(os.Getenv("ASSET_STORE_PUBLIC")); err == nil {
+		config.AssetStore.Public = assetStorePublic
 	}
 
 	// Local Storage related
@@ -336,9 +336,8 @@ func (config *Configuration) readAssetStore() {
 }
 
 func (config *Configuration) readAPNS() {
-	shouldEnableAPNS := os.Getenv("APNS_ENABLE")
-	if shouldEnableAPNS != "" {
-		config.APNS.Enable = shouldEnableAPNS == "1" || shouldEnableAPNS == "YES"
+	if shouldEnableAPNS, err := parseBool(os.Getenv("APNS_ENABLE")); err == nil {
+		config.APNS.Enable = shouldEnableAPNS
 	}
 
 	if !config.APNS.Enable {
@@ -369,9 +368,8 @@ func (config *Configuration) readAPNS() {
 }
 
 func (config *Configuration) readGCM() {
-	shouldEnableGCM := os.Getenv("GCM_ENABLE")
-	if shouldEnableGCM != "" {
-		config.GCM.Enable = shouldEnableGCM == "1" || shouldEnableGCM == "YES"
+	if shouldEnableGCM, err := parseBool(os.Getenv("GCM_ENABLE")); err == nil {
+		config.GCM.Enable = shouldEnableGCM
 	}
 
 	gcmAPIKey := os.Getenv("GCM_APIKEY")
