@@ -76,7 +76,7 @@ import:
   subpackages:
   - unix
 - package: gopkg.in/amz.v3
-  version: bff3a097c4108da57bb8cbe3aad2990d74d23676
+  version: 537454f724132c64dec76f0b9156917fcdd47e3a
   subpackages:
   - aws
   - s3

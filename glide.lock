@@ -1,5 +1,5 @@
-hash: 5a85e09f1fc1086db033cf9015910a9f6b6f87b354f8516ebf3c6b766a4c22aa
-updated: 2016-08-29T00:46:11.860991053+08:00
+hash: 37cc39109d1be309985ddd82923284136b18e18aca4ab82f7a43e981c95d5995
+updated: 2016-09-02T17:16:18.504250625+08:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
@@ -83,13 +83,13 @@ imports:
   subpackages:
   - unix
 - name: gopkg.in/amz.v3
-  version: bff3a097c4108da57bb8cbe3aad2990d74d23676
+  version: 537454f724132c64dec76f0b9156917fcdd47e3a
   subpackages:
   - aws
   - s3
 testImports:
 - name: github.com/gopherjs/gopherjs
-  version: 72e303cb5f235b23471872477b57e573dc1c71d0
+  version: 45518c130e5bd1525f20110830a4986365a153de
   subpackages:
   - js
 - name: github.com/jarcoal/httpmock
@@ -102,8 +102,8 @@ testImports:
   - internal/go-render/render
   - internal/oglematchers
 - name: github.com/smartystreets/goconvey
-  version: 4622128e06c77c0174e17a7f0ed2db19a989b473
+  version: 5db88ed452e937f2fd557de6f4f1af7f2eabed0b
   subpackages:
   - convey
-  - convey/reporting
   - convey/gotest
+  - convey/reporting
