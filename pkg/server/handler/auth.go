@@ -29,14 +29,6 @@ import (
 
 var errUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 
-type authResponse struct {
-	UserID      string   `json:"user_id,omitempty"`
-	Username    string   `json:"username,omitempty"`
-	Email       string   `json:"email,omitempty"`
-	Roles       []string `json:"roles,omitempty"`
-	AccessToken string   `json:"access_token,omitempty"`
-}
-
 type signupPayload struct {
 	Username string                 `mapstructure:"username"`
 	Email    string                 `mapstructure:"email"`
@@ -166,6 +158,11 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		info.Roles = defaultRoles
 	}
 
+	// Populate the activity time to user
+	now := timeNowUTC()
+	info.LastLoginAt = &now
+	info.LastSeenAt = &now
+
 	createContext := createUserWithRecordContext{
 		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
 	}
@@ -183,13 +180,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		panic(err)
 	}
 
-	response.Result = authResponse{
-		UserID:      info.ID,
-		Username:    info.Username,
-		Email:       info.Email,
-		Roles:       info.Roles,
-		AccessToken: token.AccessToken,
-	}
+	response.Result = NewAuthResponse(info, token.AccessToken)
 }
 
 type loginPayload struct {
@@ -268,19 +259,11 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 
 	if p.Provider != "" {
 		// Get AuthProvider and authenticates the user
-		log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
-		authProvider, err := h.ProviderRegistry.GetAuthProvider(p.Provider)
-		if err != nil {
-			response.Err = skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
+		principalID, authData, skyErr := h.authPrincipal(p)
+		if skyErr != nil {
+			response.Err = skyErr
 			return
 		}
-		principalID, authData, err := authProvider.Login(p.AuthData)
-		if err != nil {
-			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "invalid authentication information")
-			return
-		}
-		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
-
 		if err := payload.DBConn.GetUserByPrincipalID(principalID, &info); err != nil {
 			// Create user if and only if no user found with the same principal
 			if err != skydb.ErrUserNotFound {
@@ -319,6 +302,14 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 			return
 		}
 	}
+	// Populate the activity time to user
+	now := timeNow()
+	info.LastLoginAt = &now
+	info.LastSeenAt = &now
+	if err := payload.DBConn.UpdateUser(&info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
 
 	// generate access-token
 	token, err := store.NewToken(payload.AppName, info.ID)
@@ -330,13 +321,23 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		panic(err)
 	}
 
-	response.Result = authResponse{
-		UserID:      info.ID,
-		Username:    info.Username,
-		Email:       info.Email,
-		Roles:       info.Roles,
-		AccessToken: token.AccessToken,
+	response.Result = NewAuthResponse(info, token.AccessToken)
+}
+
+func (h *LoginHandler) authPrincipal(p *loginPayload) (string, map[string]interface{}, skyerr.Error) {
+	log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
+	authProvider, err := h.ProviderRegistry.GetAuthProvider(p.Provider)
+	if err != nil {
+		skyErr := skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
+		return "", nil, skyErr
 	}
+	principalID, authData, err := authProvider.Login(p.AuthData)
+	if err != nil {
+		skyErr := skyerr.NewError(skyerr.InvalidCredentials, "invalid authentication information")
+		return "", nil, skyErr
+	}
+	log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
+	return principalID, authData, nil
 }
 
 // LogoutHandler receives an access token and invalidates it
@@ -480,7 +481,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		log.Warningf("Invalidate is not yet implement")
 		// TODO: invalidate all existing token and generate a new one for response
 	}
-	response.Result = authResponse{
+	response.Result = AuthResponse{
 		UserID:      info.ID,
 		AccessToken: payload.AccessTokenString(),
 	}

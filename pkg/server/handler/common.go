@@ -17,6 +17,7 @@ package handler
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
@@ -25,3 +26,26 @@ var (
 	uuidNew    = uuid.New
 	timeNow    = timeNowUTC
 )
+
+// AuthResponse is the unify way of returing a UserInfo to SDK
+type AuthResponse struct {
+	UserID      string     `json:"user_id,omitempty"`
+	Username    string     `json:"username,omitempty"`
+	Email       string     `json:"email,omitempty"`
+	Roles       []string   `json:"roles,omitempty"`
+	AccessToken string     `json:"access_token,omitempty"`
+	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
+	LastSeenAt  *time.Time `json:"last_seen_at,omitempty"`
+}
+
+func NewAuthResponse(info skydb.UserInfo, accessToken string) AuthResponse {
+	return AuthResponse{
+		UserID:      info.ID,
+		Username:    info.Username,
+		Email:       info.Email,
+		Roles:       info.Roles,
+		AccessToken: accessToken,
+		LastLoginAt: info.LastLoginAt,
+		LastSeenAt:  info.LastSeenAt,
+	}
+}

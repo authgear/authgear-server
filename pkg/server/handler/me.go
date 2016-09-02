@@ -43,23 +43,19 @@ func (h *MeHandler) GetPreprocessors() []router.Processor {
 
 // Handle is the handling method of the me request
 func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
-	userinfo := payload.UserInfo
-	if userinfo == nil {
+	info := payload.UserInfo
+	if info == nil {
 		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed to get current user")
 		return
 	}
 
-	response.Result = struct {
-		UserID      string   `json:"user_id,omitempty"`
-		Username    string   `json:"username,omitempty"`
-		Email       string   `json:"email,omitempty"`
-		Roles       []string `json:"roles,omitempty"`
-		AccessToken string   `json:"access_token,omitempty"`
-	}{
-		userinfo.ID,
-		userinfo.Username,
-		userinfo.Email,
-		userinfo.Roles,
-		payload.AccessTokenString(),
+	// Populate the activity time to user
+	now := timeNow()
+	info.LastSeenAt = &now
+	if err := payload.DBConn.UpdateUser(info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
 	}
+
+	response.Result = NewAuthResponse(*info, payload.AccessTokenString())
 }

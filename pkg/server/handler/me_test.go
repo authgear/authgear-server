@@ -15,12 +15,15 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skydbtest"
 
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -28,7 +31,9 @@ import (
 
 func TestMeHandler(t *testing.T) {
 	Convey("MeHandler", t, func() {
-		sampleUserInfo := skydb.UserInfo{
+		conn := skydbtest.NewMapConn()
+		lastHour := time.Now().UTC().Add(0 - time.Hour)
+		userinfo := skydb.UserInfo{
 			ID:             "tester-1",
 			Email:          "tester1@example.com",
 			Username:       "tester1",
@@ -37,25 +42,34 @@ func TestMeHandler(t *testing.T) {
 				"Test",
 				"Programmer",
 			},
+			LastLoginAt: &lastHour,
+			LastSeenAt:  &lastHour,
 		}
+		conn.CreateUser(&userinfo)
 
 		Convey("Get me with user info", func() {
 			r := handlertest.NewSingleRouteRouter(&MeHandler{}, func(p *router.Payload) {
 				p.Data["access_token"] = "token-1"
-				p.UserInfo = &sampleUserInfo
+				p.UserInfo = &userinfo
+				p.DBConn = conn
 			})
 
 			resp := r.POST("")
 			So(resp.Code, ShouldEqual, http.StatusOK)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
         "result": {
           "access_token": "token-1",
           "user_id": "tester-1",
           "email": "tester1@example.com",
           "username": "tester1",
-          "roles": ["Test", "Programmer"]
+          "roles": ["Test", "Programmer"],
+          "last_login_at": "%v",
+          "last_seen_at": "%v"
         }
-      }`)
+      }`,
+				lastHour.Format(time.RFC3339Nano),
+				userinfo.LastSeenAt.Format(time.RFC3339Nano),
+			))
 		})
 
 		Convey("Get me without user info", func() {
