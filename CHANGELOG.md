@@ -1,3 +1,21 @@
+## 0.16.0 (2016-09-02)
+
+### Features
+
+- Implement slave mode (#103, #104, #105)
+- Provide user last logged in and last seen at _user
+- Support Cloud Asset (#107)
+- Implement `me` endpoint to get current user (#111)
+
+### Bug Fixes
+
+- Update amz.v3 for signing s3 asset with UTC
+
+### Other Notes
+
+- Revamp release binaries building
+- Upgrade postgres to 9.5
+
 ## 0.15.0 (2016-08-17)
 
 ### Features
