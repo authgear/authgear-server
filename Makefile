@@ -25,6 +25,10 @@ vendor:
 build:
 	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)
 
+.PHONY: test
+test:
+	$(DOCKER_RUN) go test ./pkg/...
+
 .PHONY: clean
 	rm -rf $(DIST_DIR)
 
