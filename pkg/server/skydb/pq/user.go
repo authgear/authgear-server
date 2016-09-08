@@ -197,6 +197,16 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 	} else {
 		userinfo.TokenValidSince = nil
 	}
+	if lastLoginAt.Valid {
+		userinfo.LastLoginAt = &lastLoginAt.Time
+	} else {
+		userinfo.LastLoginAt = nil
+	}
+	if lastSeenAt.Valid {
+		userinfo.LastSeenAt = &lastSeenAt.Time
+	} else {
+		userinfo.LastSeenAt = nil
+	}
 	userinfo.Roles = roles.slice
 
 	return err

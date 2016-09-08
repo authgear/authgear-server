@@ -171,6 +171,37 @@ func TestUserCRUD(t *testing.T) {
 			So(tokenValidSince.Equal(fetcheduserinfo.TokenValidSince.UTC()), ShouldBeTrue)
 		})
 
+		Convey("gets an existing User last login at", func() {
+			lastLoginAt := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+			userinfo.LastLoginAt = &lastLoginAt
+
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			fetcheduserinfo := skydb.UserInfo{}
+			err = c.GetUser("userid", &fetcheduserinfo)
+			So(err, ShouldBeNil)
+
+			So(lastLoginAt.Equal(fetcheduserinfo.LastLoginAt.UTC()), ShouldBeTrue)
+		})
+
+		Convey("gets an existing User last seen at", func() {
+			lastSeenAt := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+			userinfo.LastSeenAt = &lastSeenAt
+
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			fetcheduserinfo := skydb.UserInfo{}
+			err = c.GetUser("userid", &fetcheduserinfo)
+			So(err, ShouldBeNil)
+
+			So(
+				lastSeenAt.Equal(fetcheduserinfo.LastSeenAt.UTC()),
+				ShouldBeTrue,
+			)
+		})
+
 		Convey("gets an existing User by username case insensitive", func() {
 			err := c.CreateUser(&userinfo)
 			So(err, ShouldBeNil)
