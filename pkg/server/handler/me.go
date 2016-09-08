@@ -42,6 +42,20 @@ func (h *MeHandler) GetPreprocessors() []router.Processor {
 }
 
 // Handle is the handling method of the me request
+//  curl -X POST -H "Content-Type: application/json" \
+//    -d @- http://localhost:3000/ <<EOF
+//  {
+//      "action": "me"
+//  }
+//  EOF
+//
+// {
+//   "user_id": "3df4b52b-bd58-4fa2-8aee-3d44fd7f974d",
+//   "username": "user1",
+//   "last_login_at": "2016-09-08T06:42:59.871181Z",
+//   "last_seen_at": "2016-09-08T07:15:18.026567355Z",
+//   "roles": []
+// }
 func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 	info := payload.UserInfo
 	if info == nil {
@@ -49,6 +63,8 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 		return
 	}
 
+	// We will return the last seen in DB, not current time stamp
+	authResponse := NewAuthResponse(*info, payload.AccessTokenString())
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastSeenAt = &now
@@ -57,5 +73,5 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 		return
 	}
 
-	response.Result = NewAuthResponse(*info, payload.AccessTokenString())
+	response.Result = authResponse
 }

@@ -68,8 +68,11 @@ func TestMeHandler(t *testing.T) {
         }
       }`,
 				lastHour.Format(time.RFC3339Nano),
-				userinfo.LastSeenAt.Format(time.RFC3339Nano),
+				lastHour.Format(time.RFC3339Nano),
 			))
+			updateInfo := skydb.UserInfo{}
+			conn.GetUser("tester-1", &updateInfo)
+			So(updateInfo.LastSeenAt, ShouldNotEqual, lastHour)
 		})
 
 		Convey("Get me without user info", func() {
