@@ -340,6 +340,9 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 
 		Convey("login in existing", func() {
 			userinfo := skydb.NewProvidedAuthUserInfo("com.example:johndoe", map[string]interface{}{"name": "boo"})
+			n := timeNow()
+			userinfo.LastLoginAt = &n
+			userinfo.LastSeenAt = &n
 			conn.userinfo = &userinfo
 			defer func() {
 				conn.userinfo = nil
@@ -363,10 +366,12 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 }`,
 				userinfo.ID,
 				token.AccessToken,
-				conn.userinfo.LastLoginAt.Format(time.RFC3339Nano),
-				conn.userinfo.LastSeenAt.Format(time.RFC3339Nano),
+				n.Format(time.RFC3339Nano),
+				n.Format(time.RFC3339Nano),
 			))
 			So(resp.Code, ShouldEqual, 200)
+			// The LastLoginAt should updated
+			So(conn.userinfo.LastLoginAt, ShouldNotEqual, n)
 		})
 
 		Convey("login in and create", func() {
@@ -386,17 +391,14 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "%v",
-		"access_token": "%v",
-		"last_login_at": "%v",
-		"last_seen_at": "%v"
+		"access_token": "%v"
 	}
 }`,
 				userinfo.ID,
 				token.AccessToken,
-				userinfo.LastLoginAt.Format(time.RFC3339Nano),
-				userinfo.LastSeenAt.Format(time.RFC3339Nano),
 			))
 			So(resp.Code, ShouldEqual, 200)
+			So(userinfo.LastLoginAt, ShouldNotBeNil)
 
 			_, ok := db.RecordMap[fmt.Sprintf("user/%s", userinfo.ID)]
 			So(ok, ShouldBeTrue)

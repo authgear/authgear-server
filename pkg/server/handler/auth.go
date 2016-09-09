@@ -302,14 +302,6 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 			return
 		}
 	}
-	// Populate the activity time to user
-	now := timeNow()
-	info.LastLoginAt = &now
-	info.LastSeenAt = &now
-	if err := payload.DBConn.UpdateUser(&info); err != nil {
-		response.Err = skyerr.MakeError(err)
-		return
-	}
 
 	// generate access-token
 	token, err := store.NewToken(payload.AppName, info.ID)
@@ -321,7 +313,16 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		panic(err)
 	}
 
-	response.Result = NewAuthResponse(info, token.AccessToken)
+	authResponse := NewAuthResponse(info, token.AccessToken)
+	// Populate the activity time to user
+	now := timeNow()
+	info.LastLoginAt = &now
+	info.LastSeenAt = &now
+	if err := payload.DBConn.UpdateUser(&info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+	response.Result = authResponse
 }
 
 func (h *LoginHandler) authPrincipal(p *loginPayload) (string, map[string]interface{}, skyerr.Error) {
