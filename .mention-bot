@@ -1,0 +1,7 @@
+{
+    "assignToReviewer": true,
+    "requiredOrgs": [
+        "SkygearIO",
+        "oursky"
+    ]
+}
