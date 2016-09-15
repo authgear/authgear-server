@@ -1,3 +1,11 @@
+## 0.17.0 (2016-09-15)
+
+### Bug fixes
+
+- `auth:login` return last seen that query from DB,
+  not current timestamp (#110)
+- Fix bugs on `me` clear out the last login at for user
+
 ## 0.16.0 (2016-09-02)
 
 ### Features
@@ -99,7 +107,7 @@
 
 ### Other Notes
 
-- Update the doc link to http://docs.skygear.io/ (#37) 
+- Update the doc link to http://docs.skygear.io/ (#37)
 - Update travis build status badge
 
 ## 0.11.0 (2016-05-09)
