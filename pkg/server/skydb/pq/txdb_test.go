@@ -116,22 +116,18 @@ func TestTxDB(t *testing.T) {
 			So(db.Rollback(), ShouldEqual, skydb.ErrDatabaseTxDidNotBegin)
 		})
 
-		Convey("Begin/Commit/Rollback on a Commit'ed db returns ErrDatabaseTxDone", func() {
+		Convey("New transaction can begin after commit", func() {
 			So(db.Begin(), ShouldBeNil)
 			So(db.Commit(), ShouldBeNil)
 
-			So(db.Begin(), ShouldEqual, skydb.ErrDatabaseTxDone)
-			So(db.Commit(), ShouldEqual, skydb.ErrDatabaseTxDone)
-			So(db.Rollback(), ShouldEqual, skydb.ErrDatabaseTxDone)
+			So(db.Begin(), ShouldEqual, nil)
 		})
 
-		Convey("Begin/Commit/Rollback on a Rollback'ed db returns ErrDatabaseTxDone", func() {
+		Convey("New transaction can begin after rollback", func() {
 			So(db.Begin(), ShouldBeNil)
 			So(db.Rollback(), ShouldBeNil)
 
-			So(db.Begin(), ShouldEqual, skydb.ErrDatabaseTxDone)
-			So(db.Commit(), ShouldEqual, skydb.ErrDatabaseTxDone)
-			So(db.Rollback(), ShouldEqual, skydb.ErrDatabaseTxDone)
+			So(db.Begin(), ShouldEqual, nil)
 		})
 	})
 }

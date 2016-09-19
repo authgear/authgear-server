@@ -76,7 +76,6 @@ type Ext interface {
 type conn struct {
 	db             *sqlx.DB // database wrapper
 	tx             *sqlx.Tx // transaction wrapper, nil when no transaction
-	txDone         bool     // transaction is done, can only have one tx currently
 	RecordSchema   map[string]skydb.RecordSchema
 	appName        string
 	option         string
@@ -97,10 +96,6 @@ func (c *conn) Db() Ext {
 // Begin begins a transaction.
 func (c *conn) Begin() (err error) {
 	log.Debugf("%p: Beginning transaction", c)
-	if c.txDone {
-		return skydb.ErrDatabaseTxDone
-	}
-
 	if c.tx != nil {
 		return skydb.ErrDatabaseTxDidBegin
 	}
@@ -112,17 +107,13 @@ func (c *conn) Begin() (err error) {
 
 // Commit commits a transaction.
 func (c *conn) Commit() (err error) {
-	if c.txDone {
-		return skydb.ErrDatabaseTxDone
-	}
-
 	if c.tx == nil {
 		return skydb.ErrDatabaseTxDidNotBegin
 	}
 
 	err = c.tx.Commit()
 	if err == nil {
-		c.txDone = true
+		c.tx = nil
 	}
 	log.Debugf("%p: Committed transaction %p", c, c.tx)
 	return
@@ -130,17 +121,13 @@ func (c *conn) Commit() (err error) {
 
 // Rollback rollbacks a transaction.
 func (c *conn) Rollback() (err error) {
-	if c.txDone {
-		return skydb.ErrDatabaseTxDone
-	}
-
 	if c.tx == nil {
 		return skydb.ErrDatabaseTxDidNotBegin
 	}
 
 	err = c.tx.Rollback()
 	if err == nil {
-		c.txDone = true
+		c.tx = nil
 	}
 	log.Debugf("%p: Rolled back transaction %p", c, c.tx)
 	return
@@ -184,7 +171,6 @@ func (c *conn) tableName(table string) string {
 type database struct {
 	c            *conn
 	userID       string
-	txDone       bool
 	databaseType skydb.DatabaseType
 }
 
