@@ -1,3 +1,6 @@
+### Bug Fixes
+
+- Fix not able to update user after signup with auth provider
 ## 0.17.0 (2016-09-15)
 
 ### Bug fixes
