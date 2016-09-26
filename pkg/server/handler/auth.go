@@ -483,7 +483,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		log.Warningf("Invalidate is not yet implement")
 		// TODO: invalidate all existing token and generate a new one for response
 	}
-	// Generate New access-token. Because InjectUserIfPresent preprocessor
+	// Generate new access-token. Because InjectUserIfPresent preprocessor
 	// will expire existing access-token.
 	store := h.TokenStore
 	token, err := store.NewToken(payload.AppName, info.ID)
