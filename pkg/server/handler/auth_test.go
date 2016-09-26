@@ -687,7 +687,9 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		token := authtoken.New("_", userinfo.ID, time.Time{})
 		tokenStore.Put(&token)
 
-		r := handlertest.NewSingleRouteRouter(&PasswordHandler{}, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&PasswordHandler{
+			TokenStore: &tokenStore,
+		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = skydbtest.NewMapDB()
 		})
@@ -705,7 +707,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		"user_id": "user-uuid",
 		"access_token": "%s"
 	}
-}`, token.AccessToken))
+}`, tokenStore.Token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
 		})
 

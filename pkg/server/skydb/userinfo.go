@@ -98,7 +98,7 @@ func (info *UserInfo) SetPassword(password string) {
 
 	// Changing the password will also update the time before which issued
 	// access token should be invalidated.
-	timeNow := time.Now()
+	timeNow := time.Now().UTC()
 	info.TokenValidSince = &timeNow
 }
 

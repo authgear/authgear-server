@@ -427,6 +427,7 @@ func (payload *passwordPayload) Validate() skyerr.Error {
 // accept `invalidate` and invaldate all existing access token.
 // Return userInfoID with new AccessToken if the invalidate is true
 type PasswordHandler struct {
+	TokenStore    authtoken.Store  `inject:"TokenStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
@@ -482,9 +483,20 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		log.Warningf("Invalidate is not yet implement")
 		// TODO: invalidate all existing token and generate a new one for response
 	}
+	// Generate new access-token. Because InjectUserIfPresent preprocessor
+	// will expire existing access-token.
+	store := h.TokenStore
+	token, err := store.NewToken(payload.AppName, info.ID)
+	if err != nil {
+		panic(err)
+	}
+	if err = store.Put(&token); err != nil {
+		panic(err)
+	}
+
 	response.Result = AuthResponse{
 		UserID:      info.ID,
-		AccessToken: payload.AccessTokenString(),
+		AccessToken: token.AccessToken,
 	}
 }
 
