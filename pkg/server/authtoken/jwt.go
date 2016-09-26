@@ -86,6 +86,14 @@ func (r *JWTStore) Get(accessToken string, token *Token) error {
 	} else {
 		return &NotFoundError{accessToken, errors.New("invalid token")}
 	}
+
+	// The token is considered valid by the JWTStore. (i.e. the token
+	// has a valid signature and the signature is verified with the secret.)
+	//
+	// In skygear-server, the `InjectUserIfPresent` preprocessor is
+	// responsible for checking if the token is still valid. A token
+	// might become invalid if the user has changed the password after the
+	// token is generated.
 	return nil
 }
 
