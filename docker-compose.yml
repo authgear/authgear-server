@@ -12,12 +12,7 @@ services:
     volumes:
     - db_data:/var/lib/postgresql/data
     ports:
-    - "5432:5432"
-
-  redis:
-    image: redis:3.0
-    volumes:
-    - redis_data:/data
+    - "65432:5432"
 
   app:
     image: skygeario/skygear-server:latest
@@ -28,8 +23,8 @@ services:
     - app_data:/go/src/app/data
     links:
     - db
-    - redis
     command: skygear-server
+    restart: always
     environment:
       # `db` in the following string should match the name of the database
       # container above.
@@ -38,14 +33,14 @@ services:
       API_KEY: changeme
       MASTER_KEY: secret
       APP_NAME: _
+      TOKEN_STORE: jwt
+      TOKEN_STORE_SECRET: my_skygear_jwt_secret
       # GOMAXPROCS - The maximum number of Go threads for execution.
       # When unspecified, the default is the number of CPU available, which
       # is the recommended setting.
       #GOMAXPROCS: 1
 
 volumes:
-  redis_data:
-    driver: local
   db_data:
     driver: local
   app_data:
