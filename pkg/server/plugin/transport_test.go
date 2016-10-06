@@ -20,6 +20,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 
+	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
@@ -120,7 +121,7 @@ func TestContextMap(t *testing.T) {
 
 	Convey("UserID", t, func() {
 		ctx := context.Background()
-		ctx = context.WithValue(ctx, "UserID", "42")
+		ctx = context.WithValue(ctx, router.UserIDContextKey, "42")
 		So(ContextMap(ctx), ShouldResemble, map[string]interface{}{
 			"user_id": "42",
 		})

@@ -68,7 +68,7 @@ func TestHandler(t *testing.T) {
 			&handler,
 			func(p *router.Payload) {
 				p.Context = context.Background()
-				p.Context = context.WithValue(p.Context, "hello", "world")
+				p.Context = context.WithValue(p.Context, HelloContextKey, "world")
 			},
 		)
 
@@ -81,7 +81,7 @@ func TestHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"kind": "I can be anything"
 }`)
-			So(transport.lastContext.Value("hello"), ShouldEqual, "world")
+			So(transport.lastContext.Value(HelloContextKey), ShouldEqual, "world")
 		})
 
 	})

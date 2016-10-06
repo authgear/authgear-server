@@ -26,6 +26,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 )
 
+type ContextKey string
+
+var HelloContextKey ContextKey = "hello"
+
 type MockPluginReadyPreprocessor struct{}
 
 func (p MockPluginReadyPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {

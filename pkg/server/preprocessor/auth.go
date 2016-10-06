@@ -99,7 +99,7 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 
 		payload.AppName = token.AppName
 		payload.UserInfoID = token.UserInfoID
-		payload.Context = context.WithValue(payload.Context, "UserID", token.UserInfoID)
+		payload.Context = context.WithValue(payload.Context, router.UserIDContextKey, token.UserInfoID)
 		payload.AccessToken = token
 		return http.StatusOK
 	}
@@ -114,7 +114,7 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 	if payload.HasMasterKey() {
 		if userID, ok := payload.Data["_user_id"].(string); ok {
 			payload.UserInfoID = userID
-			payload.Context = context.WithValue(payload.Context, "UserID", userID)
+			payload.Context = context.WithValue(payload.Context, router.UserIDContextKey, userID)
 		}
 	}
 

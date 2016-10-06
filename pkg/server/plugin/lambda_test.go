@@ -69,7 +69,7 @@ func TestLambdaHandler(t *testing.T) {
 		}
 		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
 			p.Context = context.Background()
-			p.Context = context.WithValue(p.Context, "hello", "world")
+			p.Context = context.WithValue(p.Context, HelloContextKey, "world")
 		})
 
 		Convey("handle", func() {
@@ -79,7 +79,7 @@ func TestLambdaHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": {"args":["bob"]}
 }`)
-			So(transport.lastContext.Value("hello"), ShouldEqual, "world")
+			So(transport.lastContext.Value(HelloContextKey), ShouldEqual, "world")
 		})
 
 	})
@@ -96,7 +96,7 @@ func TestLambdaHandler(t *testing.T) {
 		}
 		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
 			p.Context = context.Background()
-			p.Context = context.WithValue(p.Context, "hello", "world")
+			p.Context = context.WithValue(p.Context, HelloContextKey, "world")
 		})
 
 		Convey("init", func() {
@@ -106,7 +106,7 @@ func TestLambdaHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"error":{"code":10000,"message":"an error","name":"UnexpectedError"}
 }`)
-			So(transport.lastContext.Value("hello"), ShouldEqual, "world")
+			So(transport.lastContext.Value(HelloContextKey), ShouldEqual, "world")
 		})
 
 	})

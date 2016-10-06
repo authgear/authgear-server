@@ -15,6 +15,7 @@
 package plugin
 
 import (
+	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"golang.org/x/net/context"
@@ -93,7 +94,7 @@ func ContextMap(ctx context.Context) map[string]interface{} {
 		return map[string]interface{}{}
 	}
 	pluginCtx := map[string]interface{}{}
-	if userID, ok := ctx.Value("UserID").(string); ok {
+	if userID, ok := ctx.Value(router.UserIDContextKey).(string); ok {
 		pluginCtx["user_id"] = userID
 	}
 	return pluginCtx

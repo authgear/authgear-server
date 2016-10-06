@@ -27,6 +27,7 @@ import (
 
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/common"
+	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
@@ -75,7 +76,7 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("run lambda", func() {
-			ctx := context.WithValue(context.Background(), "UserID", "user")
+			ctx := context.WithValue(context.Background(), router.UserIDContextKey, "user")
 			data := []byte(`{"data": "bye"}`)
 			httpmock.RegisterResponder("POST", "http://localhost:8000/op/john",
 				func(req *http.Request) (*http.Response, error) {
@@ -100,7 +101,7 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("run hook", func() {
-			ctx := context.WithValue(context.Background(), "UserID", "user")
+			ctx := context.WithValue(context.Background(), router.UserIDContextKey, "user")
 
 			recordin := skydb.Record{
 				ID:      skydb.NewRecordID("note", "id"),

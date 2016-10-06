@@ -23,6 +23,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+type ContextKey string
+
+var HelloContextKey ContextKey = "hello"
+
 func TestHookRegistry(t *testing.T) {
 	Convey("Registry", t, func() {
 
@@ -30,7 +34,7 @@ func TestHookRegistry(t *testing.T) {
 		afterSave := hooktest.StackingHook{}
 		beforeDelete := hooktest.StackingHook{}
 		afterDelete := hooktest.StackingHook{}
-		ctx := context.WithValue(context.Background(), "hello", "world")
+		ctx := context.WithValue(context.Background(), HelloContextKey, "world")
 
 		registry := NewRegistry()
 
@@ -55,7 +59,7 @@ func TestHookRegistry(t *testing.T) {
 				registry.ExecuteHooks(ctx, BeforeSave, record, originalRecord)
 				So(beforeSave.Records, ShouldResemble, []*skydb.Record{record})
 				So(beforeSave.OriginalRecords, ShouldResemble, []*skydb.Record{originalRecord})
-				So(beforeSave.Context[0].Value("hello"), ShouldEqual, "world")
+				So(beforeSave.Context[0].Value(HelloContextKey), ShouldEqual, "world")
 				So(afterSave.Records, ShouldBeEmpty)
 				So(afterSave.OriginalRecords, ShouldBeEmpty)
 				So(beforeDelete.Records, ShouldBeEmpty)
@@ -68,7 +72,7 @@ func TestHookRegistry(t *testing.T) {
 				So(beforeSave.OriginalRecords, ShouldBeEmpty)
 				So(afterSave.Records, ShouldResemble, []*skydb.Record{record})
 				So(afterSave.OriginalRecords, ShouldResemble, []*skydb.Record{originalRecord})
-				So(afterSave.Context[0].Value("hello"), ShouldEqual, "world")
+				So(afterSave.Context[0].Value(HelloContextKey), ShouldEqual, "world")
 				So(beforeDelete.Records, ShouldBeEmpty)
 				So(afterDelete.Records, ShouldBeEmpty)
 			})
@@ -80,7 +84,7 @@ func TestHookRegistry(t *testing.T) {
 				So(afterSave.Records, ShouldBeEmpty)
 				So(afterSave.OriginalRecords, ShouldBeEmpty)
 				So(beforeDelete.Records, ShouldResemble, []*skydb.Record{record})
-				So(beforeDelete.Context[0].Value("hello"), ShouldEqual, "world")
+				So(beforeDelete.Context[0].Value(HelloContextKey), ShouldEqual, "world")
 				So(afterDelete.Records, ShouldBeEmpty)
 			})
 
@@ -92,7 +96,7 @@ func TestHookRegistry(t *testing.T) {
 				So(afterSave.OriginalRecords, ShouldBeEmpty)
 				So(beforeDelete.Records, ShouldBeEmpty)
 				So(afterDelete.Records, ShouldResemble, []*skydb.Record{record})
-				So(afterDelete.Context[0].Value("hello"), ShouldEqual, "world")
+				So(afterDelete.Context[0].Value(HelloContextKey), ShouldEqual, "world")
 			})
 		})
 
@@ -117,8 +121,8 @@ func TestHookRegistry(t *testing.T) {
 			So(hook2.Records, ShouldResemble, []*skydb.Record{record})
 			So(hook1.OriginalRecords, ShouldResemble, []*skydb.Record{originalRecord})
 			So(hook2.OriginalRecords, ShouldResemble, []*skydb.Record{originalRecord})
-			So(hook1.Context[0].Value("hello"), ShouldEqual, "world")
-			So(hook2.Context[0].Value("hello"), ShouldEqual, "world")
+			So(hook1.Context[0].Value(HelloContextKey), ShouldEqual, "world")
+			So(hook2.Context[0].Value(HelloContextKey), ShouldEqual, "world")
 		})
 
 		Convey("executes no hooks", func() {

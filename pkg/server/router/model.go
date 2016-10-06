@@ -26,6 +26,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+type ContextKey string
+
+var UserIDContextKey ContextKey = "UserID"
+
 // HandlerFunc specifies the function signature of a request handler function
 type HandlerFunc func(*Payload, *Response)
 

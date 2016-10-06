@@ -26,6 +26,7 @@ import (
 
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/common"
+	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -181,7 +182,7 @@ func TestRun(t *testing.T) {
 				return []byte(`{"result": {}}`), nil
 			}
 
-			ctx := context.WithValue(context.Background(), "UserID", "user")
+			ctx := context.WithValue(context.Background(), router.UserIDContextKey, "user")
 			transport.RunLambda(ctx, "work", []byte{})
 			So(executed, ShouldBeTrue)
 		})
@@ -631,7 +632,7 @@ func TestRun(t *testing.T) {
 				return []byte(`{"result": {}}`), nil
 			}
 
-			ctx := context.WithValue(context.Background(), "UserID", "user")
+			ctx := context.WithValue(context.Background(), router.UserIDContextKey, "user")
 			transport.RunHook(ctx, "note_afterSave", &recordin, nil)
 			So(executed, ShouldBeTrue)
 		})
