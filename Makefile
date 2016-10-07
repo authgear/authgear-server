@@ -8,11 +8,17 @@ ifeq (1,${WITH_ZMQ})
 GO_BUILD_TAGS := --tags zmq
 endif
 
+DOCKER_COMPOSE_CMD := docker-compose \
+	-f docker-compose.dev.yml \
+	-p skygear-server-test
+
 ifeq (1,${WITH_DOCKER})
 DOCKER_RUN := docker run --rm -i \
 	-v `pwd`:/go/src/github.com/skygeario/skygear-server \
 	-w /go/src/github.com/skygeario/skygear-server \
 	skygeario/skygear-godev:latest
+DOCKER_COMPOSE_RUN := ${DOCKER_COMPOSE_CMD} run --rm app
+DOCKER_COMPOSE_RUN_DB := ${DOCKER_COMPOSE_CMD} run --rm db_cmd
 endif
 
 GO_BUILD_ARGS := $(GO_BUILD_TAGS) $(GO_BUILD_LDFLAGS)
@@ -25,9 +31,17 @@ vendor:
 build:
 	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)
 
+.PHONY: before-test
+before-test:
+	-$(DOCKER_COMPOSE_RUN_DB) psql -c 'CREATE DATABASE skygear_test;'
+
 .PHONY: test
 test:
-	$(DOCKER_RUN) go test ./pkg/...
+	$(DOCKER_COMPOSE_RUN) go test ./pkg/...
+
+.PHONY: after-test
+after-test:
+	-$(DOCKER_COMPOSE_CMD) down
 
 .PHONY: clean
 	rm -rf $(DIST_DIR)

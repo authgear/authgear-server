@@ -1,0 +1,27 @@
+version: '2'
+
+services:
+  db:
+    image: mdillon/postgis:9.5
+  redis:
+    image: redis:3.0
+  app:
+    image: skygeario/skygear-godev:latest
+    volumes:
+    - .:/go/src/github.com/skygeario/skygear-server
+    working_dir: /go/src/github.com/skygeario/skygear-server
+    links:
+    - db
+    - redis
+    environment:
+      DATABASE_URL: postgresql://postgres:@db/postgres?sslmode=disable
+      REDISTEST: redis://redis:6379
+      PGHOST: db
+      PGUSER: postgres
+  db_cmd:
+    image: mdillon/postgis:9.5
+    links:
+    - db
+    environment:
+      PGHOST: db
+      PGUSER: postgres
