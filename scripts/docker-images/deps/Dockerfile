@@ -39,6 +39,5 @@ RUN apk --update --no-cache add --virtual build-dependencies \
                     --infodir=/usr/share/info; \
         make; make install; \
     ) && rm -rf czmq && \
-    apk del build-dependencies
-
-RUN ln -s /lib /lib64
+    apk del build-dependencies && \
+    ln -s /lib /lib64
