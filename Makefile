@@ -31,6 +31,12 @@ vendor:
 build:
 	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)
 
+.PHONY: before-docker-test
+before-docker-test:
+	-$(DOCKER_COMPOSE_CMD) up -d db redis
+	sleep 20
+	make before-test WITH_DOCKER=1
+
 .PHONY: before-test
 before-test:
 	-$(DOCKER_COMPOSE_RUN_DB) psql -c 'CREATE DATABASE skygear_test;'
@@ -39,8 +45,8 @@ before-test:
 test:
 	$(DOCKER_COMPOSE_RUN) go test ./pkg/...
 
-.PHONY: after-test
-after-test:
+.PHONY: after-docker-test
+after-docker-test:
 	-$(DOCKER_COMPOSE_CMD) down
 
 .PHONY: clean
