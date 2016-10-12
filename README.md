@@ -100,6 +100,15 @@ host    all             all             127.0.0.1/32            trust
 
 4. Run `go test github.com/skygeario/skygear-server/pkg/...`.
 
+You can also run the test suite in Docker:
+
+```
+$ make vendor WITH_DOCKER=1  # install dependencies
+$ make before-docker-test    # start dependent services
+$ make test WITH_DOCKER=1    # run test
+$ make after-docker-test     # clean up docker containers
+```
+
 ## License & Copyright
 
 ```
