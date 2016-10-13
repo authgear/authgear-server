@@ -50,6 +50,19 @@ const (
 	Shutdown = "\003"
 )
 
+// parcel is used to multiplex the chan with zmq worker
+type parcel struct {
+	respChan chan []byte
+	frame    []byte
+}
+
+func newParcel(frame []byte) *parcel {
+	return &parcel{
+		respChan: make(chan []byte),
+		frame:    frame,
+	}
+}
+
 // Broker implements the Paranoid Pirate queue described in the zguide:
 // http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
 // Related RFC: https://rfc.zeromq.org/spec:6/PPP
@@ -58,25 +71,26 @@ const (
 // 1. Shutdown signal, which signifies a normal termination of worker to provide
 //    a fast path of worker removal
 type Broker struct {
-	name string
-	// NOTE: goroutines are caller of plugin, so frontend is Go side,
-	// backend is plugin side
-	frontend      *goczmq.Sock
+	name          string
 	backend       *goczmq.Sock
 	bothPoller    *goczmq.Poller
 	backendPoller *goczmq.Poller
+	frontend      chan [][]byte
+	recvChan      chan *parcel
+	addressChan   map[string]chan []byte
+	timeout       chan string
 	workers       workerQueue
 	freshWorkers  chan []byte
 	logger        *logrus.Entry
+	stop          chan int
 }
 
 // NewBroker returns a new *Broker.
-func NewBroker(name, frontendAddr, backendAddr string) (*Broker, error) {
-	namedLogger := log.WithFields(logrus.Fields{"plugin": name})
-	frontend, err := goczmq.NewRouter(frontendAddr)
-	if err != nil {
-		panic(err)
-	}
+func NewBroker(name, backendAddr string) (*Broker, error) {
+	namedLogger := log.WithFields(logrus.Fields{
+		"plugin": name,
+		"eaddr":  backendAddr,
+	})
 
 	backend, err := goczmq.NewRouter(backendAddr)
 	if err != nil {
@@ -88,34 +102,28 @@ func NewBroker(name, frontendAddr, backendAddr string) (*Broker, error) {
 		panic(err)
 	}
 
-	bothPoller, err := goczmq.NewPoller(frontend, backend)
-	if err != nil {
-		panic(err)
-	}
-
 	return &Broker{
 		name:          name,
-		frontend:      frontend,
 		backend:       backend,
-		bothPoller:    bothPoller,
 		backendPoller: backendPoller,
+		frontend:      make(chan [][]byte),
+		recvChan:      make(chan *parcel),
+		addressChan:   map[string]chan []byte{},
+		timeout:       make(chan string),
 		workers:       newWorkerQueue(),
 		freshWorkers:  make(chan []byte, 1),
 		logger:        namedLogger,
+		stop:          make(chan int),
 	}, nil
 }
 
 // Run kicks start the Broker and listens for requests. It blocks function
 // execution.
 func (lb *Broker) Run() {
+	lb.logger.Infof("Running zmq broker")
 	heartbeatAt := time.Now().Add(HeartbeatInterval)
 	for {
-		var sock *goczmq.Sock
-		if lb.workers.Len() == 0 {
-			sock = lb.backendPoller.Wait(heartbeatIntervalMS)
-		} else {
-			sock = lb.bothPoller.Wait(heartbeatIntervalMS)
-		}
+		sock := lb.backendPoller.Wait(heartbeatIntervalMS)
 
 		switch sock {
 		case lb.backend:
@@ -137,18 +145,9 @@ func (lb *Broker) Run() {
 				status := string(msg[0])
 				lb.handleWorkerStatus(&lb.workers, address, status)
 			} else {
-				lb.frontend.SendMessage(msg)
+				lb.frontend <- msg
 				lb.logger.Debugf("zmq/broker: plugin => server: %#x, %s\n", msg[0], msg)
 			}
-		case lb.frontend:
-			frames, err := lb.frontend.RecvMessage()
-			if err != nil {
-				panic(err)
-			}
-
-			frames = append([][]byte{lb.workers.Next()}, frames...)
-			lb.backend.SendMessage(frames)
-			lb.logger.Debugf("zmq/broker: server => plugin: %#x, %s\n", frames[0], frames)
 		case nil:
 			// do nothing
 		default:
@@ -167,6 +166,58 @@ func (lb *Broker) Run() {
 
 		lb.workers.Purge()
 	}
+}
+
+func (lb *Broker) Channler() {
+	lb.logger.Infof("zmq channler running %p", lb)
+	for {
+		select {
+		case frames := <-lb.frontend:
+			lb.logger.Debugf("zmq/broker: zmq => channel %#x, %s\n", frames[0], frames)
+			// Dispacth back to the channel based on the zmq first frame
+			address := string(frames[0])
+			respChan, ok := lb.addressChan[address]
+			if !ok {
+				lb.logger.Infof("zmq/broker: chan not found for worker %#x\n", address)
+				return
+			}
+			delete(lb.addressChan, address)
+			respChan <- frames[2]
+		case p := <-lb.recvChan:
+			// Save the chan and dispatch the message to zmq
+			addr := lb.workers.Next()
+			frames := append([][]byte{addr}, addr, []byte{}, p.frame)
+			address := string(addr)
+			lb.addressChan[address] = p.respChan
+			lb.backend.SendMessage(frames)
+			lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
+			go lb.setTimeout(address, HeartbeatInterval*HeartbeatLiveness)
+		case address := <-lb.timeout:
+			respChan, ok := lb.addressChan[address]
+			if !ok {
+				return
+			}
+			lb.logger.Infof("zmq/broker: chan time out for  worker %#x\n", address)
+			delete(lb.addressChan, address)
+			respChan <- []byte{0}
+		case <-lb.stop:
+			break
+		}
+	}
+	lb.logger.Infof("zmq channler stopped %p!", lb)
+}
+
+func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
+	p := newParcel(in)
+	lb.recvChan <- p
+	go func() {
+		requestChan <- p.respChan
+	}()
+}
+
+func (lb *Broker) setTimeout(address string, wait time.Duration) {
+	time.Sleep(wait)
+	lb.timeout <- address
 }
 
 func (lb *Broker) handleWorkerStatus(workers *workerQueue, address []byte, status string) {

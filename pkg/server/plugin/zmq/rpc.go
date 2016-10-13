@@ -17,6 +17,7 @@
 package zmq
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"runtime/debug"
@@ -33,16 +34,6 @@ import (
 )
 
 const initRequestTimeout = 2000
-
-type zmqTransport struct {
-	state       skyplugin.TransportState
-	name        string
-	iaddr       string // the internal addr used by goroutines to make request to plugin
-	broker      *Broker
-	initHandler skyplugin.TransportInitHandler
-	logger      *logrus.Entry
-	config      skyconfig.Configuration
-}
 
 type request struct {
 	Context context.Context
@@ -107,6 +98,15 @@ func (req *request) MarshalJSON() ([]byte, error) {
 	}{req.Kind, req.Name, req.Param, pluginCtx}
 
 	return json.Marshal(&paramReq)
+}
+
+type zmqTransport struct {
+	state       skyplugin.TransportState
+	name        string
+	broker      *Broker
+	initHandler skyplugin.TransportInitHandler
+	logger      *logrus.Entry
+	config      skyconfig.Configuration
 }
 
 func (p *zmqTransport) State() skyplugin.TransportState {
@@ -246,40 +246,22 @@ func (p *zmqTransport) ipc(req *request) (out []byte, err error) {
 			return
 		}
 	}()
-	var (
-		in      []byte
-		reqSock *goczmq.Sock
-	)
 
-	in, err = json.Marshal(req)
+	in, err := json.Marshal(req)
 	if err != nil {
 		return
 	}
 
-	reqSock, err = goczmq.NewReq(p.iaddr)
-	if err != nil {
-		return
-	}
-	defer func() {
-		reqSock.Destroy()
-	}()
-	if req.Timeout > 0 {
-		reqSock.SetRcvtimeo(req.Timeout)
-	}
-	err = reqSock.SendMessage([][]byte{in})
-	if err != nil {
-		return
-	}
+	reqChan := make(chan chan []byte)
+	p.broker.RPC(reqChan, in)
+	respChan := <-reqChan
+	// Broker will sent back a null byte if time out
+	msg := <-respChan
 
-	msg, err := reqSock.RecvMessage()
-	if err != nil {
-		return
-	}
-
-	if len(msg) != 1 {
-		err = fmt.Errorf("malformed resp msg = %s", msg)
+	if bytes.Equal(msg, []byte{0}) {
+		err = fmt.Errorf("RPC time out")
 	} else {
-		out = msg[0]
+		out = msg
 	}
 
 	return
@@ -289,12 +271,8 @@ type zmqTransportFactory struct {
 }
 
 func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.Configuration) (transport skyplugin.Transport) {
-	const internalAddrFmt = `inproc://%s`
-
-	internalAddr := fmt.Sprintf(internalAddrFmt, name)
 	externalAddr := args[0]
-
-	broker, err := NewBroker(name, internalAddr, externalAddr)
+	broker, err := NewBroker(name, externalAddr)
 	logger := log.WithFields(logrus.Fields{"plugin": name})
 	if err != nil {
 		logger.Panicf("Failed to init broker for zmq transport: %v", err)
@@ -303,15 +281,16 @@ func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.C
 	p := zmqTransport{
 		state:  skyplugin.TransportStateUninitialized,
 		name:   name,
-		iaddr:  internalAddr,
 		broker: broker,
 		logger: logger,
 		config: config,
 	}
 
 	go func() {
-		logger.Infof("Running zmq broker:\niaddr = %s\neaddr = %s", internalAddr, externalAddr)
 		broker.Run()
+	}()
+	go func() {
+		broker.Channler()
 	}()
 
 	return &p
