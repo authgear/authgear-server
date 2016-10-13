@@ -20,8 +20,11 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/zeromq/goczmq"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func workerSock(t *testing.T, id string, addr string) *goczmq.Sock {
@@ -135,4 +138,69 @@ func TestBrokerEndToEnd(t *testing.T) {
 	}) {
 		t.Fatalf(`want ["job 0", "job 1", "job 2"], got %v`, resps)
 	}
+}
+
+func TestWorker(t *testing.T) {
+	Convey("Test workerQueue", t, func() {
+		address1 := []byte("address1")
+		address2 := []byte("address2")
+		address3 := []byte("address3")
+
+		Convey("Add and pick a worker", func() {
+			q := newWorkerQueue()
+			q.Add(newWorker(address1))
+			So(q.Len(), ShouldEqual, 1)
+			addr := q.Next()
+			So(addr, ShouldResemble, address1)
+			So(q.Len(), ShouldEqual, 0)
+		})
+
+		Convey("Add duplicated worker", func() {
+			q := newWorkerQueue()
+			q.Add(newWorker(address1))
+			So(q.Len(), ShouldEqual, 1)
+			q.Add(newWorker(address1))
+			So(q.Len(), ShouldEqual, 1)
+
+			q.Add(newWorker(address2))
+			q.Add(newWorker(address3))
+			So(q.Len(), ShouldEqual, 3)
+		})
+
+		Convey("Return the last Add worker first", func() {
+			q := newWorkerQueue()
+			q.Add(newWorker(address1))
+			q.Add(newWorker(address2))
+			q.Add(newWorker(address3))
+			So(q.Len(), ShouldEqual, 3)
+
+			So(q.Next(), ShouldResemble, address3)
+			So(q.Next(), ShouldResemble, address2)
+			So(q.Next(), ShouldResemble, address1)
+		})
+
+		Convey("Tick a non exist worker", func() {
+			q := newWorkerQueue()
+			q.Tick(newWorker(address1))
+			So(q.Len(), ShouldEqual, 0)
+			q.Add(newWorker(address2))
+			So(q.Len(), ShouldEqual, 1)
+			q.Tick(newWorker(address1))
+			So(q.Len(), ShouldEqual, 1)
+		})
+
+		Convey("Pruge multiple expired workers", func() {
+			q := newWorkerQueue()
+			q.Add(newWorker(address1))
+			q.Add(newWorker(address2))
+			So(q.Len(), ShouldEqual, 2)
+
+			// With the worker to time out
+			time.Sleep((HeartbeatLiveness + 1) * HeartbeatInterval)
+			q.Add(newWorker(address3))
+			So(q.Len(), ShouldEqual, 3)
+			q.Purge()
+			So(q.Len(), ShouldEqual, 1)
+		})
+	})
 }

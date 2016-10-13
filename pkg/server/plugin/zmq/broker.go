@@ -106,7 +106,7 @@ func NewBroker(name, frontendAddr, backendAddr string) (*Broker, error) {
 // Run kicks start the Broker and listens for requests. It blocks function
 // execution.
 func (lb *Broker) Run() {
-	workers := workerQueue{}
+	workers := newWorkerQueue()
 	heartbeatAt := time.Now().Add(HeartbeatInterval)
 	for {
 		var sock *goczmq.Sock
@@ -124,19 +124,20 @@ func (lb *Broker) Run() {
 			}
 
 			address := frames[0]
-
+			msg := frames[1:]
 			tErr := workers.Tick(newWorker(address))
 			if tErr != nil {
-				lb.logger.Warnln(tErr)
+				status := string(msg[0])
+				if status != Ready {
+					lb.logger.Warnln(tErr)
+				}
 			}
-
-			msg := frames[1:]
 			if len(msg) == 1 {
 				status := string(msg[0])
 				lb.handleWorkerStatus(&workers, address, status)
 			} else {
 				lb.frontend.SendMessage(msg)
-				lb.logger.Debugf("zmq/broker: backend => frontend: %#x, %s\n", msg[0], msg)
+				lb.logger.Debugf("zmq/broker: plugin => server: %#x, %s\n", msg[0], msg)
 			}
 		case lb.frontend:
 			frames, err := lb.frontend.RecvMessage()
@@ -146,16 +147,18 @@ func (lb *Broker) Run() {
 
 			frames = append([][]byte{workers.Next()}, frames...)
 			lb.backend.SendMessage(frames)
-			lb.logger.Debugf("zmq/broker: frontend => backend: %#x, %s\n", frames[0], frames)
+			lb.logger.Debugf("zmq/broker: server => plugin: %#x, %s\n", frames[0], frames)
 		case nil:
 			// do nothing
 		default:
 			panic("zmq/broker: received unknown socket")
 		}
 
+		lb.logger.Debugf("zmq/broker: idle worker count %d\n", workers.Len())
 		if heartbeatAt.Before(time.Now()) {
-			for _, worker := range workers {
+			for _, worker := range workers.pworkers {
 				msg := [][]byte{worker.address, []byte(Heartbeat)}
+				lb.logger.Debugf("zmq/broker: server => plugin Heartbeat: %s\n", worker.address)
 				lb.backend.SendMessage(msg)
 			}
 			heartbeatAt = time.Now().Add(HeartbeatInterval)
@@ -168,11 +171,11 @@ func (lb *Broker) Run() {
 func (lb *Broker) handleWorkerStatus(workers *workerQueue, address []byte, status string) {
 	switch status {
 	case Ready:
-		workers.Ready(newWorker(address))
-		lb.freshWorkers <- address
 		log.Infof("zmq/broker: ready worker = %s", address)
+		workers.Add(newWorker(address))
+		lb.freshWorkers <- address
 	case Heartbeat:
-		// do nothing
+		// no-ops
 	case Shutdown:
 		workers.Remove(address)
 		log.Infof("zmq/broker: shutdown of worker = %s", address)
@@ -193,64 +196,80 @@ func newWorker(address []byte) pworker {
 	}
 }
 
-type workerQueue []pworker
+type pworkers []pworker
+
+// workerQueue is a last tick fist out queue.
+// A worker need to register itself using Add before it can tick.
+// Ticking of an non-registered worker will be no-ops.
+type workerQueue struct {
+	pworkers
+	addresses map[string]bool
+}
+
+func newWorkerQueue() workerQueue {
+	return workerQueue{
+		pworkers{},
+		map[string]bool{},
+	}
+}
 
 func (q workerQueue) Len() int {
-	return len(q)
+	return len(q.pworkers)
 }
 
 func (q *workerQueue) Next() []byte {
-	workers := *q
+	workers := q.pworkers
 	worker := workers[len(workers)-1]
-	*q = workers[:len(workers)-1]
+	q.pworkers = workers[:len(workers)-1]
 	return worker.address
 }
 
-func (q *workerQueue) Ready(worker pworker) {
+func (q *workerQueue) Add(worker pworker) {
+	q.addresses[string(worker.address)] = true
 	err := q.Tick(worker)
 	if err == nil {
 		return
 	}
-	workers := *q
-	*q = append(workers, worker)
 }
 
 func (q *workerQueue) Tick(worker pworker) error {
-	workers := *q
+	if _, ok := q.addresses[string(worker.address)]; !ok {
+		return errors.New(fmt.Sprintf("zmq/broker: Ticking non-registered worker = %s", worker.address))
+	}
+	workers := q.pworkers
 
-	var (
-		i int
-		w pworker
-	)
-	for i, w = range workers {
+	for i, w := range workers {
 		if bytes.Equal(w.address, worker.address) {
-			*q = append(append(workers[:i], workers[i+1:]...), worker)
+			q.pworkers = append(append(workers[:i], workers[i+1:]...), worker)
 			return nil
 		}
 	}
-
-	return errors.New(fmt.Sprintf("zmq/broker: Ticking non-existing worker = %s", worker.address))
+	q.pworkers = append(q.pworkers, worker)
+	log.Debugf("zmq/broker: worker return to poll = %s", worker.address)
+	return nil
 }
 
 func (q *workerQueue) Purge() {
-	workers := *q
+	workers := q.pworkers
 
 	now := time.Now()
 	for i, w := range workers {
 		if w.expiry.After(now) {
 			break
 		}
-		*q = workers[i+1:]
+		q.pworkers = workers[i+1:]
+		delete(q.addresses, string(w.address))
 		log.Infof("zmq/broker: disconnected worker = %s", w.address)
 	}
 }
 
 func (q *workerQueue) Remove(address []byte) {
-	workers := *q
+	delete(q.addresses, string(address))
+	workers := q.pworkers
 
 	for i, w := range workers {
 		if bytes.Equal(w.address, address) {
-			*q = append(workers[:i], workers[i+1:]...)
+			q.pworkers = append(workers[:i], workers[i+1:]...)
 			break
 		}
 	}
