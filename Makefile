@@ -44,7 +44,7 @@ before-test:
 
 .PHONY: test
 test:
-	$(DOCKER_COMPOSE_RUN) go test ./pkg/...
+	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) ./pkg/...
 
 .PHONY: after-docker-test
 after-docker-test:
