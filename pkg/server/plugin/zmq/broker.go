@@ -65,6 +65,7 @@ type Broker struct {
 	backend       *goczmq.Sock
 	bothPoller    *goczmq.Poller
 	backendPoller *goczmq.Poller
+	workers       workerQueue
 	freshWorkers  chan []byte
 	logger        *logrus.Entry
 }
@@ -98,6 +99,7 @@ func NewBroker(name, frontendAddr, backendAddr string) (*Broker, error) {
 		backend:       backend,
 		bothPoller:    bothPoller,
 		backendPoller: backendPoller,
+		workers:       newWorkerQueue(),
 		freshWorkers:  make(chan []byte, 1),
 		logger:        namedLogger,
 	}, nil
@@ -106,11 +108,10 @@ func NewBroker(name, frontendAddr, backendAddr string) (*Broker, error) {
 // Run kicks start the Broker and listens for requests. It blocks function
 // execution.
 func (lb *Broker) Run() {
-	workers := newWorkerQueue()
 	heartbeatAt := time.Now().Add(HeartbeatInterval)
 	for {
 		var sock *goczmq.Sock
-		if workers.Len() == 0 {
+		if lb.workers.Len() == 0 {
 			sock = lb.backendPoller.Wait(heartbeatIntervalMS)
 		} else {
 			sock = lb.bothPoller.Wait(heartbeatIntervalMS)
@@ -125,7 +126,7 @@ func (lb *Broker) Run() {
 
 			address := frames[0]
 			msg := frames[1:]
-			tErr := workers.Tick(newWorker(address))
+			tErr := lb.workers.Tick(newWorker(address))
 			if tErr != nil {
 				status := string(msg[0])
 				if status != Ready {
@@ -134,7 +135,7 @@ func (lb *Broker) Run() {
 			}
 			if len(msg) == 1 {
 				status := string(msg[0])
-				lb.handleWorkerStatus(&workers, address, status)
+				lb.handleWorkerStatus(&lb.workers, address, status)
 			} else {
 				lb.frontend.SendMessage(msg)
 				lb.logger.Debugf("zmq/broker: plugin => server: %#x, %s\n", msg[0], msg)
@@ -145,7 +146,7 @@ func (lb *Broker) Run() {
 				panic(err)
 			}
 
-			frames = append([][]byte{workers.Next()}, frames...)
+			frames = append([][]byte{lb.workers.Next()}, frames...)
 			lb.backend.SendMessage(frames)
 			lb.logger.Debugf("zmq/broker: server => plugin: %#x, %s\n", frames[0], frames)
 		case nil:
@@ -154,9 +155,9 @@ func (lb *Broker) Run() {
 			panic("zmq/broker: received unknown socket")
 		}
 
-		lb.logger.Debugf("zmq/broker: idle worker count %d\n", workers.Len())
+		lb.logger.Debugf("zmq/broker: idle worker count %d\n", lb.workers.Len())
 		if heartbeatAt.Before(time.Now()) {
-			for _, worker := range workers.pworkers {
+			for _, worker := range lb.workers.pworkers {
 				msg := [][]byte{worker.address, []byte(Heartbeat)}
 				lb.logger.Debugf("zmq/broker: server => plugin Heartbeat: %s\n", worker.address)
 				lb.backend.SendMessage(msg)
@@ -164,7 +165,7 @@ func (lb *Broker) Run() {
 			heartbeatAt = time.Now().Add(HeartbeatInterval)
 		}
 
-		workers.Purge()
+		lb.workers.Purge()
 	}
 }
 
