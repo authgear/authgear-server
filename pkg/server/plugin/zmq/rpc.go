@@ -38,7 +38,6 @@ type zmqTransport struct {
 	state       skyplugin.TransportState
 	name        string
 	iaddr       string // the internal addr used by goroutines to make request to plugin
-	eaddr       string // the addr exposed for plugin to connect to with REP.
 	broker      *Broker
 	initHandler skyplugin.TransportInitHandler
 	logger      *logrus.Entry
@@ -305,7 +304,6 @@ func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.C
 		state:  skyplugin.TransportStateUninitialized,
 		name:   name,
 		iaddr:  internalAddr,
-		eaddr:  externalAddr,
 		broker: broker,
 		logger: logger,
 		config: config,
