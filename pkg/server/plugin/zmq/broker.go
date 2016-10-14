@@ -197,19 +197,17 @@ func newWorker(address []byte) pworker {
 	}
 }
 
-type pworkers []pworker
-
 // workerQueue is a last tick fist out queue.
 // A worker need to register itself using Add before it can tick.
 // Ticking of an non-registered worker will be no-ops.
 type workerQueue struct {
-	pworkers
+	pworkers  []pworker
 	addresses map[string]bool
 }
 
 func newWorkerQueue() workerQueue {
 	return workerQueue{
-		pworkers{},
+		[]pworker{},
 		map[string]bool{},
 	}
 }
