@@ -17,6 +17,7 @@
 package zmq
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -201,12 +202,18 @@ func TestBrokerWorker(t *testing.T) {
 		Convey("send message from server to multple plugin", func() {
 			w := workerSock(t, "worker", workerAddr)
 			w.SetRcvtimeo(heartbeatIntervalMS)
-			defer w.Destroy()
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
 			w.SendMessage(bytesArray(Ready))
 			<-broker.freshWorkers
 			w2 := workerSock(t, "worker2", workerAddr)
 			w2.SetRcvtimeo(heartbeatIntervalMS)
-			defer w2.Destroy()
+			defer func() {
+				w2.SendMessage(bytesArray(Shutdown))
+				w2.Destroy()
+			}()
 			w2.SendMessage(bytesArray(Ready))
 			<-broker.freshWorkers
 
@@ -224,6 +231,66 @@ func TestBrokerWorker(t *testing.T) {
 
 			resp := <-respChan
 			So(resp, ShouldResemble, []byte("from worker2"))
+		})
+
+		Convey("send multiple message from server to multple plugin", func(c C) {
+			w := workerSock(t, "mworker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+			<-broker.freshWorkers
+			w2 := workerSock(t, "mworker2", workerAddr)
+			w2.SetRcvtimeo(heartbeatIntervalMS)
+			defer func() {
+				w2.SendMessage(bytesArray(Shutdown))
+				w2.Destroy()
+			}()
+			w2.SendMessage(bytesArray(Ready))
+			<-broker.freshWorkers
+
+			So(broker.workers.Len(), ShouldEqual, 2)
+
+			reqChan := make(chan chan []byte)
+			broker.RPC(reqChan, []byte(("from server")))
+			respChan := <-reqChan
+
+			req2Chan := make(chan chan []byte)
+			broker.RPC(req2Chan, []byte(("from server")))
+			resp2Chan := <-req2Chan
+
+			go func() {
+				msg, _ := w.RecvMessage()
+				c.So(len(msg), ShouldEqual, 3)
+				c.So(msg[2], ShouldResemble, []byte("from server"))
+				msg[2] = []byte("from worker1")
+				w.SendMessage(msg)
+			}()
+
+			go func() {
+				msg, _ := w2.RecvMessage()
+				c.So(len(msg), ShouldEqual, 3)
+				c.So(msg[2], ShouldResemble, []byte("from server"))
+				msg[2] = []byte("from worker2")
+				w2.SendMessage(msg)
+			}()
+
+			var wg sync.WaitGroup
+			wg.Add(2)
+			go func() {
+				defer wg.Done()
+				resp := <-respChan
+				c.So(resp, ShouldResemble, []byte("from worker2"))
+			}()
+			go func() {
+				defer wg.Done()
+				resp := <-resp2Chan
+				c.So(resp, ShouldResemble, []byte("from worker1"))
+			}()
+			wg.Wait()
+
 		})
 	})
 }
