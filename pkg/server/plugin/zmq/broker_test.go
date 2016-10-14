@@ -53,9 +53,9 @@ func bytesArray(ss ...string) (bs [][]byte) {
 
 func TestWorker(t *testing.T) {
 	Convey("Test workerQueue", t, func() {
-		address1 := []byte("address1")
-		address2 := []byte("address2")
-		address3 := []byte("address3")
+		address1 := "address1"
+		address2 := "address2"
+		address3 := "address3"
 
 		Convey("Add and pick a worker", func() {
 			q := newWorkerQueue()

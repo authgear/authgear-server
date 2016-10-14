@@ -135,7 +135,7 @@ func (p *zmqTransport) RequestInit() {
 			continue
 		}
 
-		p.logger.Debugf("zmq transport got fresh worker %s", string(address))
+		p.logger.Debugf("zmq transport got fresh worker %s", address)
 
 		// TODO: Only send init to the new address. For now, we let
 		// the broker decide.

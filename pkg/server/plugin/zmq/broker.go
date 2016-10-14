@@ -17,7 +17,6 @@
 package zmq
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"time"
@@ -80,7 +79,7 @@ type Broker struct {
 	addressChan   map[string]chan []byte
 	timeout       chan string
 	workers       workerQueue
-	freshWorkers  chan []byte
+	freshWorkers  chan string
 	logger        *logrus.Entry
 	stop          chan int
 }
@@ -111,7 +110,7 @@ func NewBroker(name, backendAddr string) (*Broker, error) {
 		addressChan:   map[string]chan []byte{},
 		timeout:       make(chan string),
 		workers:       newWorkerQueue(),
-		freshWorkers:  make(chan []byte, 1),
+		freshWorkers:  make(chan string, 1),
 		logger:        namedLogger,
 		stop:          make(chan int),
 	}, nil
@@ -132,7 +131,7 @@ func (lb *Broker) Run() {
 				panic(err)
 			}
 
-			address := frames[0]
+			address := string(frames[0])
 			msg := frames[1:]
 			tErr := lb.workers.Tick(newWorker(address))
 			if tErr != nil {
@@ -157,7 +156,10 @@ func (lb *Broker) Run() {
 		lb.logger.Debugf("zmq/broker: idle worker count %d\n", lb.workers.Len())
 		if heartbeatAt.Before(time.Now()) {
 			for _, worker := range lb.workers.pworkers {
-				msg := [][]byte{worker.address, []byte(Heartbeat)}
+				msg := [][]byte{
+					[]byte(worker.address),
+					[]byte(Heartbeat),
+				}
 				lb.logger.Debugf("zmq/broker: server => plugin Heartbeat: %s\n", worker.address)
 				lb.backend.SendMessage(msg)
 			}
@@ -185,9 +187,14 @@ func (lb *Broker) Channler() {
 			respChan <- frames[2]
 		case p := <-lb.recvChan:
 			// Save the chan and dispatch the message to zmq
-			addr := lb.workers.Next()
-			frames := append([][]byte{addr}, addr, []byte{}, p.frame)
-			address := string(addr)
+			address := lb.workers.Next()
+			addr := []byte(address)
+			frames := [][]byte{
+				addr,
+				addr,
+				[]byte{},
+				p.frame,
+			}
 			lb.addressChan[address] = p.respChan
 			lb.backend.SendMessage(frames)
 			lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
@@ -220,7 +227,7 @@ func (lb *Broker) setTimeout(address string, wait time.Duration) {
 	lb.timeout <- address
 }
 
-func (lb *Broker) handleWorkerStatus(workers *workerQueue, address []byte, status string) {
+func (lb *Broker) handleWorkerStatus(workers *workerQueue, address string, status string) {
 	switch status {
 	case Ready:
 		log.Infof("zmq/broker: ready worker = %s", address)
@@ -237,11 +244,11 @@ func (lb *Broker) handleWorkerStatus(workers *workerQueue, address []byte, statu
 }
 
 type pworker struct {
-	address []byte
+	address string
 	expiry  time.Time
 }
 
-func newWorker(address []byte) pworker {
+func newWorker(address string) pworker {
 	return pworker{
 		address,
 		time.Now().Add(HeartbeatLiveness * HeartbeatInterval),
@@ -267,7 +274,7 @@ func (q workerQueue) Len() int {
 	return len(q.pworkers)
 }
 
-func (q *workerQueue) Next() []byte {
+func (q *workerQueue) Next() string {
 	workers := q.pworkers
 	worker := workers[len(workers)-1]
 	q.pworkers = workers[:len(workers)-1]
@@ -275,7 +282,7 @@ func (q *workerQueue) Next() []byte {
 }
 
 func (q *workerQueue) Add(worker pworker) {
-	q.addresses[string(worker.address)] = true
+	q.addresses[worker.address] = true
 	err := q.Tick(worker)
 	if err == nil {
 		return
@@ -283,13 +290,13 @@ func (q *workerQueue) Add(worker pworker) {
 }
 
 func (q *workerQueue) Tick(worker pworker) error {
-	if _, ok := q.addresses[string(worker.address)]; !ok {
+	if _, ok := q.addresses[worker.address]; !ok {
 		return errors.New(fmt.Sprintf("zmq/broker: Ticking non-registered worker = %s", worker.address))
 	}
 	workers := q.pworkers
 
 	for i, w := range workers {
-		if bytes.Equal(w.address, worker.address) {
+		if w.address == worker.address {
 			q.pworkers = append(append(workers[:i], workers[i+1:]...), worker)
 			return nil
 		}
@@ -308,17 +315,17 @@ func (q *workerQueue) Purge() {
 			break
 		}
 		q.pworkers = workers[i+1:]
-		delete(q.addresses, string(w.address))
+		delete(q.addresses, w.address)
 		log.Infof("zmq/broker: disconnected worker = %s", w.address)
 	}
 }
 
-func (q *workerQueue) Remove(address []byte) {
-	delete(q.addresses, string(address))
+func (q *workerQueue) Remove(address string) {
+	delete(q.addresses, address)
 	workers := q.pworkers
 
 	for i, w := range workers {
-		if bytes.Equal(w.address, address) {
+		if w.address == address {
 			q.pworkers = append(workers[:i], workers[i+1:]...)
 			break
 		}
