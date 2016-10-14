@@ -153,14 +153,12 @@ func (lb *Broker) Run() {
 			panic("zmq/broker: received unknown socket")
 		}
 
-		lb.logger.Debugf("zmq/broker: idle worker count %d\n", lb.workers.Len())
 		if heartbeatAt.Before(time.Now()) {
 			for _, worker := range lb.workers.pworkers {
 				msg := [][]byte{
 					[]byte(worker.address),
 					[]byte(Heartbeat),
 				}
-				lb.logger.Debugf("zmq/broker: server => plugin Heartbeat: %s\n", worker.address)
 				lb.backend.SendMessage(msg)
 			}
 			heartbeatAt = time.Now().Add(HeartbeatInterval)
