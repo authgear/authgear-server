@@ -176,7 +176,7 @@ func (lb *Broker) handleWorkerStatus(workers *workerQueue, address []byte, statu
 		workers.Add(newWorker(address))
 		lb.freshWorkers <- address
 	case Heartbeat:
-		// no-ops
+		// no-op
 	case Shutdown:
 		workers.Remove(address)
 		log.Infof("zmq/broker: shutdown of worker = %s", address)
