@@ -119,7 +119,7 @@ func TestBrokerWorker(t *testing.T) {
 	const (
 		workerAddr = "inproc://plugin.test"
 	)
-	broker, err := NewBroker("", workerAddr)
+	broker, err := NewBroker("test", workerAddr)
 	if err != nil {
 		t.Fatalf("Failed to init broker: %v", err)
 	}
@@ -129,7 +129,10 @@ func TestBrokerWorker(t *testing.T) {
 	Convey("Test Broker with worker", t, func() {
 		Convey("receive Ready signal will register the worker", func() {
 			w := workerSock(t, "ready", workerAddr)
-			defer w.Destroy()
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
 			w.SendMessage(bytesArray(Ready))
 			<-broker.freshWorkers
 
@@ -139,11 +142,17 @@ func TestBrokerWorker(t *testing.T) {
 
 		Convey("receive multiple Ready signal will register all workers", func() {
 			w1 := workerSock(t, "ready1", workerAddr)
-			defer w1.Destroy()
+			defer func() {
+				w1.SendMessage(bytesArray(Shutdown))
+				w1.Destroy()
+			}()
 			w1.SendMessage(bytesArray(Ready))
 			<-broker.freshWorkers
 			w2 := workerSock(t, "ready2", workerAddr)
-			defer w2.Destroy()
+			defer func() {
+				w2.SendMessage(bytesArray(Shutdown))
+				w2.Destroy()
+			}()
 			w2.SendMessage(bytesArray(Ready))
 			<-broker.freshWorkers
 
@@ -152,19 +161,41 @@ func TestBrokerWorker(t *testing.T) {
 			w2.SendMessage(bytesArray(Shutdown))
 		})
 
-		Convey("reveice Heartbeat without Reay will not register the worker", func() {
+		Convey("reveice Heartbeat without Ready will not register the worker", func() {
 			w := workerSock(t, "heartbeat", workerAddr)
-			defer w.Destroy()
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
 			w.SendMessage(bytesArray(Heartbeat))
 			// Wait the poller to get the message
 			time.Sleep(HeartbeatInterval)
 			So(broker.workers.Len(), ShouldEqual, 0)
 		})
 
+		Convey("reveice message without Reay will be ignored", func() {
+			w := workerSock(t, "unregistered", workerAddr)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage([][]byte{
+				[]byte("unregistered"),
+				[]byte{0},
+				[]byte("Message to be ignored"),
+			})
+			// Wait the poller to get the message
+			time.Sleep(HeartbeatInterval)
+			So(broker.workers.Len(), ShouldEqual, 0)
+		})
+
 		Convey("broker RPC will timeout", func() {
-			w := workerSock(t, "worker", workerAddr)
+			w := workerSock(t, "timeout", workerAddr)
 			w.SetRcvtimeo(heartbeatIntervalMS)
-			defer w.Destroy()
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
 			w.SendMessage(bytesArray(Ready))
 			<-broker.freshWorkers
 
@@ -180,7 +211,10 @@ func TestBrokerWorker(t *testing.T) {
 		Convey("broker RPC recive worker reply", func() {
 			w := workerSock(t, "worker", workerAddr)
 			w.SetRcvtimeo(heartbeatIntervalMS)
-			defer w.Destroy()
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
 			w.SendMessage(bytesArray(Ready))
 			<-broker.freshWorkers
 			So(broker.workers.Len(), ShouldEqual, 1)
@@ -200,7 +234,7 @@ func TestBrokerWorker(t *testing.T) {
 		})
 
 		Convey("send message from server to multple plugin", func() {
-			w := workerSock(t, "worker", workerAddr)
+			w := workerSock(t, "worker1", workerAddr)
 			w.SetRcvtimeo(heartbeatIntervalMS)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
@@ -234,7 +268,7 @@ func TestBrokerWorker(t *testing.T) {
 		})
 
 		Convey("send multiple message from server to multple plugin", func(c C) {
-			w := workerSock(t, "mworker", workerAddr)
+			w := workerSock(t, "mworker1", workerAddr)
 			w.SetRcvtimeo(heartbeatIntervalMS)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
@@ -293,4 +327,5 @@ func TestBrokerWorker(t *testing.T) {
 
 		})
 	})
+	broker.stop <- 1
 }

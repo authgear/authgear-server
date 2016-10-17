@@ -169,7 +169,8 @@ func (lb *Broker) Run() {
 }
 
 func (lb *Broker) Channler() {
-	lb.logger.Infof("zmq channler running %p", lb)
+	lb.logger.Infof("zmq channler running %p\n", lb)
+ChannlerLoop:
 	for {
 		select {
 		case frames := <-lb.frontend:
@@ -178,8 +179,8 @@ func (lb *Broker) Channler() {
 			address := string(frames[0])
 			respChan, ok := lb.addressChan[address]
 			if !ok {
-				lb.logger.Infof("zmq/broker: chan not found for worker %#x\n", address)
-				return
+				lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
+				break
 			}
 			delete(lb.addressChan, address)
 			respChan <- frames[2]
@@ -200,16 +201,16 @@ func (lb *Broker) Channler() {
 		case address := <-lb.timeout:
 			respChan, ok := lb.addressChan[address]
 			if !ok {
-				return
+				break
 			}
-			lb.logger.Infof("zmq/broker: chan time out for  worker %#x\n", address)
+			lb.logger.Infof("zmq/broker: chan time out for  worker %s\n", address)
 			delete(lb.addressChan, address)
 			respChan <- []byte{0}
 		case <-lb.stop:
-			break
+			break ChannlerLoop
 		}
 	}
-	lb.logger.Infof("zmq channler stopped %p!", lb)
+	lb.logger.Infof("zmq channler stopped %p!\n", lb)
 }
 
 func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
