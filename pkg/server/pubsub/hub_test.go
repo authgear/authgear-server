@@ -77,6 +77,7 @@ func TestNormalSubscription(t *testing.T) {
 			case <-time.After(50 * time.Millisecond):
 				// do nothing
 			}
+			hub.stop <- 1
 		})
 
 		Convey("No receive message after unsubscribe", func(c C) {
@@ -104,6 +105,7 @@ func TestNormalSubscription(t *testing.T) {
 			case <-time.After(50 * time.Millisecond):
 				// do nothing
 			}
+			hub.stop <- 1
 		})
 
 		Convey("Subscribe to multiple channel broadcast message", func(c C) {
