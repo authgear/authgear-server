@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime/debug"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 
@@ -33,14 +34,13 @@ import (
 	"golang.org/x/net/context"
 )
 
-const initRequestTimeout = 2000
+const initRequestTimeout = time.Second * 2
 
 type request struct {
 	Context context.Context
 	Kind    string
 	Name    string
 	Param   interface{}
-	Timeout int // timeout in millisecond
 }
 
 type hookRequest struct {
@@ -154,13 +154,14 @@ func (p *zmqTransport) RunInit() (out []byte, err error) {
 	param := struct {
 		Config skyconfig.Configuration `json:"config"`
 	}{p.config}
-	req := request{Kind: "init", Param: param, Timeout: initRequestTimeout}
+	req := request{Kind: "init", Param: param}
 	for {
 		out, err = p.ipc(&req)
 		if err == nil {
 			break
 		}
 		p.logger.WithField("err", err).Warnf(`zmq/rpc: Unable to send init request to plugin "%s". Retrying...`, p.name)
+		time.Sleep(initRequestTimeout)
 	}
 	return
 }

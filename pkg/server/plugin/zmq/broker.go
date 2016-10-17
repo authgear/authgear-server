@@ -19,6 +19,7 @@ package zmq
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -53,12 +54,14 @@ const (
 type parcel struct {
 	respChan chan []byte
 	frame    []byte
+	retry    int
 }
 
 func newParcel(frame []byte) *parcel {
 	return &parcel{
 		respChan: make(chan []byte),
 		frame:    frame,
+		retry:    0,
 	}
 }
 
@@ -186,7 +189,22 @@ ChannlerLoop:
 			respChan <- frames[2]
 		case p := <-lb.recvChan:
 			// Save the chan and dispatch the message to zmq
+			// If current no worker ready, will retry after HeartbeatInterval.
+			// Retry for HeartbeatLiveness tine
 			address := lb.workers.Next()
+			if address == "" {
+				if p.retry < HeartbeatLiveness {
+					p.retry += 1
+					lb.logger.Infof("zmq/broker: no worker avaliable, retry %d...\n", p.retry)
+					go func() {
+						time.Sleep(HeartbeatInterval)
+						lb.recvChan <- p
+					}()
+					break
+				}
+				lb.logger.Infof("zmq/broker: no worker avaliable, timeout.\n")
+				p.respChan <- []byte{0}
+			}
 			addr := []byte(address)
 			frames := [][]byte{
 				addr,
@@ -260,12 +278,15 @@ func newWorker(address string) pworker {
 type workerQueue struct {
 	pworkers  []pworker
 	addresses map[string]bool
+	mu        *sync.Mutex
 }
 
 func newWorkerQueue() workerQueue {
+	mu := new(sync.Mutex)
 	return workerQueue{
 		[]pworker{},
 		map[string]bool{},
+		mu,
 	}
 }
 
@@ -274,6 +295,11 @@ func (q workerQueue) Len() int {
 }
 
 func (q *workerQueue) Next() string {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	if q.Len() == 0 {
+		return ""
+	}
 	workers := q.pworkers
 	worker := workers[len(workers)-1]
 	q.pworkers = workers[:len(workers)-1]
@@ -289,6 +315,8 @@ func (q *workerQueue) Add(worker pworker) {
 }
 
 func (q *workerQueue) Tick(worker pworker) error {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	if _, ok := q.addresses[worker.address]; !ok {
 		return errors.New(fmt.Sprintf("zmq/broker: Ticking non-registered worker = %s", worker.address))
 	}
@@ -306,6 +334,8 @@ func (q *workerQueue) Tick(worker pworker) error {
 }
 
 func (q *workerQueue) Purge() {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	workers := q.pworkers
 
 	now := time.Now()
@@ -320,6 +350,8 @@ func (q *workerQueue) Purge() {
 }
 
 func (q *workerQueue) Remove(address string) {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	delete(q.addresses, address)
 	workers := q.pworkers
 

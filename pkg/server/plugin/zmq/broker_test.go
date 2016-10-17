@@ -126,7 +126,7 @@ func TestBrokerWorker(t *testing.T) {
 	go broker.Run()
 	go broker.Channler()
 
-	Convey("Test Broker with worker", t, func() {
+	Convey("Test Broker", t, func() {
 		Convey("receive Ready signal will register the worker", func() {
 			w := workerSock(t, "ready", workerAddr)
 			defer func() {
@@ -173,7 +173,7 @@ func TestBrokerWorker(t *testing.T) {
 			So(broker.workers.Len(), ShouldEqual, 0)
 		})
 
-		Convey("reveice message without Reay will be ignored", func() {
+		Convey("reveice worker message without Reay will be ignored", func() {
 			w := workerSock(t, "unregistered", workerAddr)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
@@ -189,7 +189,7 @@ func TestBrokerWorker(t *testing.T) {
 			So(broker.workers.Len(), ShouldEqual, 0)
 		})
 
-		Convey("broker RPC will timeout", func() {
+		Convey("receive RPC will timeout", func() {
 			w := workerSock(t, "timeout", workerAddr)
 			w.SetRcvtimeo(heartbeatIntervalMS)
 			defer func() {
@@ -206,6 +206,42 @@ func TestBrokerWorker(t *testing.T) {
 			respChan := <-reqChan
 			msg := <-respChan
 			So(msg, ShouldResemble, []byte{0})
+		})
+
+		Convey("recive RPC without Ready worker will wait for Heartbeat Liveness time", func() {
+			reqChan := make(chan chan []byte)
+			timeout := time.Now().Add(HeartbeatInterval * HeartbeatLiveness)
+			broker.RPC(reqChan, []byte(("from server")))
+			respChan := <-reqChan
+			resp := <-respChan
+			So(resp, ShouldResemble, []byte{0})
+			So(time.Now(), ShouldHappenAfter, timeout)
+		})
+
+		Convey("worker after recive RPC and before timeout will got the message", func() {
+			reqChan := make(chan chan []byte)
+			broker.RPC(reqChan, []byte(("from server")))
+			respChan := <-reqChan
+			time.Sleep(HeartbeatInterval)
+
+			w := workerSock(t, "lateworker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+			<-broker.freshWorkers
+			So(broker.workers.Len(), ShouldEqual, 1)
+
+			msg, _ := w.RecvMessage()
+			So(len(msg), ShouldEqual, 3)
+			So(msg[2], ShouldResemble, []byte("from server"))
+			msg[2] = []byte("from worker")
+			w.SendMessage(msg)
+
+			resp := <-respChan
+			So(resp, ShouldResemble, []byte("from worker"))
 		})
 
 		Convey("broker RPC recive worker reply", func() {
