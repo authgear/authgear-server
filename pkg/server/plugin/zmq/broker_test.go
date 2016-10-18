@@ -135,7 +135,7 @@ func TestBrokerWorker(t *testing.T) {
 		t.Fatalf("Failed to init broker: %v", err)
 	}
 	go broker.Run()
-	go broker.Channler()
+	go broker.Channeler()
 
 	Convey("Test Broker", t, func() {
 		Convey("receive Ready signal will register the worker", func() {

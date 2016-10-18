@@ -170,9 +170,9 @@ func (lb *Broker) Run() {
 	}
 }
 
-func (lb *Broker) Channler() {
+func (lb *Broker) Channeler() {
 	lb.logger.Infof("zmq channler running %p\n", lb)
-ChannlerLoop:
+ChannelerLoop:
 	for {
 		select {
 		case frames := <-lb.frontend:
@@ -225,7 +225,7 @@ ChannlerLoop:
 			delete(lb.addressChan, address)
 			respChan <- []byte{0}
 		case <-lb.stop:
-			break ChannlerLoop
+			break ChannelerLoop
 		}
 	}
 	lb.logger.Infof("zmq channler stopped %p!\n", lb)

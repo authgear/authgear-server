@@ -280,7 +280,7 @@ func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.C
 		broker.Run()
 	}()
 	go func() {
-		broker.Channler()
+		broker.Channeler()
 	}()
 
 	return &p
