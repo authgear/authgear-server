@@ -65,9 +65,9 @@ func newParcel(frame []byte) *parcel {
 	}
 }
 
-// Broker implements the Paranoid Pirate queue described in the zguide:
-// http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
+// Broker implements the Paranoid Pirate queue described as follow:
 // Related RFC: https://rfc.zeromq.org/spec:6/PPP
+// refs: http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
 // with the addition of:
 //
 // 1. Shutdown signal, which signifies a normal termination of worker to provide
@@ -117,8 +117,7 @@ func NewBroker(name, backendAddr string) (*Broker, error) {
 	}, nil
 }
 
-// Run kicks start the Broker and listens for requests. It blocks function
-// execution.
+// Run the Broker and listens for zmq requests.
 func (lb *Broker) Run() {
 	heartbeatAt := time.Now().Add(HeartbeatInterval)
 	for {
@@ -170,6 +169,8 @@ func (lb *Broker) Run() {
 	}
 }
 
+// Channeler accept message from RPC and dispatch to zmq if avalible.
+// It retry and timeout the request if the zmq worker is not yet avalible.
 func (lb *Broker) Channeler() {
 	lb.logger.Infof("zmq channler running %p\n", lb)
 ChannelerLoop:
@@ -272,8 +273,17 @@ func newWorker(address string) pworker {
 }
 
 // workerQueue is a last tick fist out queue.
-// A worker need to register itself using Add before it can tick.
-// Ticking of an non-registered worker will be no-ops.
+//
+// Worker is expect to register itself on ready. Tick itself when it is
+// avalible. The most recently Tick worker will got the job.
+// A worker do not Tick itself within the expiry will regards as disconnected
+// and requires to Add itself again to become avaliable.
+//
+// workerQueue is not goroutine safe. To use it safely across goroutine.
+// Please use the Lock/Unlock interace before manupliate the queue item via
+// methods like Add/Tick/Purge.
+// Comsuming method Next is the only method will acquire the mutex lock
+// by itself.
 type workerQueue struct {
 	pworkers  []pworker
 	addresses map[string]bool
@@ -302,6 +312,9 @@ func (q *workerQueue) Len() int {
 	return len(q.pworkers)
 }
 
+// Next will pop the next avaliable worker, and the worker will not avalible
+// until it Tick back to the workerQueue again.
+// This worker comsuing method will acquire mutex lock.
 func (q *workerQueue) Next() string {
 	q.mu.Lock()
 	defer q.mu.Unlock()
@@ -315,6 +328,8 @@ func (q *workerQueue) Next() string {
 	return worker.address
 }
 
+// Add will register the worker as live worker and call Tick to make itself to
+// the next avaliable worker.
 func (q *workerQueue) Add(worker pworker) {
 	q.addresses[worker.address] = true
 	err := q.Tick(worker)
@@ -323,6 +338,8 @@ func (q *workerQueue) Add(worker pworker) {
 	}
 }
 
+// Tick will make the worker to be the next avalible worker. Ticking an un
+// registered worker will be no-op.
 func (q *workerQueue) Tick(worker pworker) error {
 	if _, ok := q.addresses[worker.address]; !ok {
 		return errors.New(fmt.Sprintf("zmq/broker: Ticking non-registered worker = %s", worker.address))
@@ -340,6 +357,8 @@ func (q *workerQueue) Tick(worker pworker) error {
 	return nil
 }
 
+// Purge will unregister the worker that is not heathly. i.e. haven't Tick for
+// a while.
 func (q *workerQueue) Purge() {
 	workers := q.pworkers
 
@@ -354,6 +373,8 @@ func (q *workerQueue) Purge() {
 	}
 }
 
+// Remove will unregister the worker with specified address regardless of its
+// expiry. Intented for clean shutdown and fast removal of worker.
 func (q *workerQueue) Remove(address string) {
 	delete(q.addresses, address)
 	workers := q.pworkers
