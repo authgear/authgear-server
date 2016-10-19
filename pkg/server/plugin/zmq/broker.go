@@ -73,17 +73,15 @@ func newParcel(frame []byte) *parcel {
 // 1. Shutdown signal, which signifies a normal termination of worker to provide
 //    a fast path of worker removal
 type Broker struct {
-	name          string
-	backend       *goczmq.Sock
-	bothPoller    *goczmq.Poller
-	backendPoller *goczmq.Poller
-	frontend      chan [][]byte
-	recvChan      chan *parcel
-	addressChan   map[string]chan []byte
-	timeout       chan string
-	workers       workerQueue
-	logger        *logrus.Entry
-	stop          chan int
+	name        string
+	backendAddr string
+	frontend    chan [][]byte
+	recvChan    chan *parcel
+	addressChan map[string]chan []byte
+	timeout     chan string
+	workers     workerQueue
+	logger      *logrus.Entry
+	stop        chan int
 }
 
 // NewBroker returns a new *Broker.
@@ -93,40 +91,46 @@ func NewBroker(name, backendAddr string) (*Broker, error) {
 		"eaddr":  backendAddr,
 	})
 
-	backend, err := goczmq.NewRouter(backendAddr)
-	if err != nil {
-		panic(err)
-	}
-
-	backendPoller, err := goczmq.NewPoller(backend)
-	if err != nil {
-		panic(err)
-	}
-
 	return &Broker{
-		name:          name,
-		backend:       backend,
-		backendPoller: backendPoller,
-		frontend:      make(chan [][]byte, 10),
-		recvChan:      make(chan *parcel, 10),
-		addressChan:   map[string]chan []byte{},
-		timeout:       make(chan string),
-		workers:       newWorkerQueue(),
-		logger:        namedLogger,
-		stop:          make(chan int),
+		name:        name,
+		backendAddr: backendAddr,
+		frontend:    make(chan [][]byte, 10),
+		recvChan:    make(chan *parcel, 10),
+		addressChan: map[string]chan []byte{},
+		timeout:     make(chan string),
+		workers:     newWorkerQueue(),
+		logger:      namedLogger,
+		stop:        make(chan int),
 	}, nil
 }
 
 // Run the Broker and listens for zmq requests.
 func (lb *Broker) Run() {
+	backend, err := goczmq.NewRouter(lb.backendAddr)
+	if err != nil {
+		panic(err)
+	}
+	defer backend.Destroy()
+
+	pull, err := goczmq.NewPull(fmt.Sprintf("inproc://chanpipeline%d", lb.name))
+	if err != nil {
+		panic(err)
+	}
+	defer pull.Destroy()
+
+	backendPoller, err := goczmq.NewPoller(backend, pull)
+	if err != nil {
+		panic(err)
+	}
+
 	heartbeatAt := time.Now().Add(HeartbeatInterval)
 	for {
-		sock := lb.backendPoller.Wait(heartbeatIntervalMS)
+		sock := backendPoller.Wait(heartbeatIntervalMS)
 		lb.workers.Lock()
 
 		switch sock {
-		case lb.backend:
-			frames, err := lb.backend.RecvMessage()
+		case backend:
+			frames, err := backend.RecvMessage()
 			if err != nil {
 				panic(err)
 			}
@@ -147,6 +151,12 @@ func (lb *Broker) Run() {
 				lb.frontend <- msg
 				lb.logger.Debugf("zmq/broker: plugin => server: %#x, %s\n", msg[0], msg)
 			}
+		case pull:
+			frames, err := pull.RecvMessage()
+			if err != nil {
+				panic(err)
+			}
+			backend.SendMessage(frames)
 		case nil:
 			// do nothing
 		default:
@@ -159,7 +169,7 @@ func (lb *Broker) Run() {
 					[]byte(worker.address),
 					[]byte(Heartbeat),
 				}
-				lb.backend.SendMessage(msg)
+				backend.SendMessage(msg)
 			}
 			heartbeatAt = time.Now().Add(HeartbeatInterval)
 		}
@@ -173,6 +183,11 @@ func (lb *Broker) Run() {
 // It retry and timeout the request if the zmq worker is not yet avalible.
 func (lb *Broker) Channeler() {
 	lb.logger.Infof("zmq channler running %p\n", lb)
+	push, err := goczmq.NewPush(fmt.Sprintf("inproc://chanpipeline%d", lb.name))
+	if err != nil {
+		panic(err)
+	}
+	defer push.Destroy()
 ChannelerLoop:
 	for {
 		select {
@@ -214,7 +229,7 @@ ChannelerLoop:
 				p.frame,
 			}
 			lb.addressChan[address] = p.respChan
-			lb.backend.SendMessage(frames)
+			push.SendMessage(frames)
 			lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
 			go lb.setTimeout(address, HeartbeatInterval*HeartbeatLiveness)
 		case address := <-lb.timeout:
