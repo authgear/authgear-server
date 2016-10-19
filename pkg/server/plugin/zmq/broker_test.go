@@ -44,6 +44,17 @@ func clientSock(t *testing.T, id string, addr string) *goczmq.Sock {
 	return sock
 }
 
+func recvNonControlFrame(w *goczmq.Sock) [][]byte {
+	var msg [][]byte
+	for {
+		msg, _ = w.RecvMessage()
+		if len(msg) != 1 {
+			break
+		}
+	}
+	return msg
+}
+
 func bytesArray(ss ...string) (bs [][]byte) {
 	for _, s := range ss {
 		bs = append(bs, []byte(s))
@@ -134,7 +145,7 @@ func TestBrokerWorker(t *testing.T) {
 				w.Destroy()
 			}()
 			w.SendMessage(bytesArray(Ready))
-			<-broker.freshWorkers
+			time.Sleep(HeartbeatInterval)
 
 			So(broker.workers.Len(), ShouldEqual, 1)
 			w.SendMessage(bytesArray(Shutdown))
@@ -147,14 +158,13 @@ func TestBrokerWorker(t *testing.T) {
 				w1.Destroy()
 			}()
 			w1.SendMessage(bytesArray(Ready))
-			<-broker.freshWorkers
 			w2 := workerSock(t, "ready2", workerAddr)
 			defer func() {
 				w2.SendMessage(bytesArray(Shutdown))
 				w2.Destroy()
 			}()
 			w2.SendMessage(bytesArray(Ready))
-			<-broker.freshWorkers
+			time.Sleep(HeartbeatInterval)
 
 			So(broker.workers.Len(), ShouldEqual, 2)
 			w1.SendMessage(bytesArray(Shutdown))
@@ -197,7 +207,7 @@ func TestBrokerWorker(t *testing.T) {
 				w.Destroy()
 			}()
 			w.SendMessage(bytesArray(Ready))
-			<-broker.freshWorkers
+			time.Sleep(HeartbeatInterval)
 
 			So(broker.workers.Len(), ShouldEqual, 1)
 
@@ -225,16 +235,14 @@ func TestBrokerWorker(t *testing.T) {
 			time.Sleep(HeartbeatInterval)
 
 			w := workerSock(t, "lateworker", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
 				w.Destroy()
 			}()
 			w.SendMessage(bytesArray(Ready))
-			<-broker.freshWorkers
-			So(broker.workers.Len(), ShouldEqual, 1)
 
-			msg, _ := w.RecvMessage()
+			msg := recvNonControlFrame(w)
 			So(len(msg), ShouldEqual, 3)
 			So(msg[2], ShouldResemble, []byte("from server"))
 			msg[2] = []byte("from worker")
@@ -246,20 +254,18 @@ func TestBrokerWorker(t *testing.T) {
 
 		Convey("broker RPC recive worker reply", func() {
 			w := workerSock(t, "worker", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
 				w.Destroy()
 			}()
 			w.SendMessage(bytesArray(Ready))
-			<-broker.freshWorkers
-			So(broker.workers.Len(), ShouldEqual, 1)
 
 			reqChan := make(chan chan []byte)
 			broker.RPC(reqChan, []byte(("from server")))
 			respChan := <-reqChan
 
-			msg, _ := w.RecvMessage()
+			msg := recvNonControlFrame(w)
 			So(len(msg), ShouldEqual, 3)
 			So(msg[2], ShouldResemble, []byte("from server"))
 			msg[2] = []byte("from worker")
@@ -271,29 +277,25 @@ func TestBrokerWorker(t *testing.T) {
 
 		Convey("send message from server to multple plugin", func() {
 			w := workerSock(t, "worker1", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
 				w.Destroy()
 			}()
 			w.SendMessage(bytesArray(Ready))
-			<-broker.freshWorkers
 			w2 := workerSock(t, "worker2", workerAddr)
-			w2.SetRcvtimeo(heartbeatIntervalMS)
+			w2.SetRcvtimeo(heartbeatIntervalMS * 2)
 			defer func() {
 				w2.SendMessage(bytesArray(Shutdown))
 				w2.Destroy()
 			}()
 			w2.SendMessage(bytesArray(Ready))
-			<-broker.freshWorkers
-
-			So(broker.workers.Len(), ShouldEqual, 2)
 
 			reqChan := make(chan chan []byte)
 			broker.RPC(reqChan, []byte(("from server")))
 			respChan := <-reqChan
 
-			msg, _ := w2.RecvMessage()
+			msg := recvNonControlFrame(w2)
 			So(len(msg), ShouldEqual, 3)
 			So(msg[2], ShouldResemble, []byte("from server"))
 			msg[2] = []byte("from worker2")
@@ -305,23 +307,19 @@ func TestBrokerWorker(t *testing.T) {
 
 		Convey("send multiple message from server to multple plugin", func(c C) {
 			w := workerSock(t, "mworker1", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
 				w.Destroy()
 			}()
 			w.SendMessage(bytesArray(Ready))
-			<-broker.freshWorkers
 			w2 := workerSock(t, "mworker2", workerAddr)
-			w2.SetRcvtimeo(heartbeatIntervalMS)
+			w2.SetRcvtimeo(heartbeatIntervalMS * 2)
 			defer func() {
 				w2.SendMessage(bytesArray(Shutdown))
 				w2.Destroy()
 			}()
 			w2.SendMessage(bytesArray(Ready))
-			<-broker.freshWorkers
-
-			So(broker.workers.Len(), ShouldEqual, 2)
 
 			reqChan := make(chan chan []byte)
 			broker.RPC(reqChan, []byte(("from server")))
@@ -332,7 +330,7 @@ func TestBrokerWorker(t *testing.T) {
 			resp2Chan := <-req2Chan
 
 			go func() {
-				msg, _ := w.RecvMessage()
+				msg := recvNonControlFrame(w)
 				c.So(len(msg), ShouldEqual, 3)
 				c.So(msg[2], ShouldResemble, []byte("from server"))
 				msg[2] = []byte("from worker1")
@@ -340,7 +338,7 @@ func TestBrokerWorker(t *testing.T) {
 			}()
 
 			go func() {
-				msg, _ := w2.RecvMessage()
+				msg := recvNonControlFrame(w2)
 				c.So(len(msg), ShouldEqual, 3)
 				c.So(msg[2], ShouldResemble, []byte("from server"))
 				msg[2] = []byte("from worker2")

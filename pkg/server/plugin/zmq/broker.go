@@ -82,7 +82,6 @@ type Broker struct {
 	addressChan   map[string]chan []byte
 	timeout       chan string
 	workers       workerQueue
-	freshWorkers  chan string
 	logger        *logrus.Entry
 	stop          chan int
 }
@@ -108,12 +107,11 @@ func NewBroker(name, backendAddr string) (*Broker, error) {
 		name:          name,
 		backend:       backend,
 		backendPoller: backendPoller,
-		frontend:      make(chan [][]byte),
-		recvChan:      make(chan *parcel),
+		frontend:      make(chan [][]byte, 10),
+		recvChan:      make(chan *parcel, 10),
 		addressChan:   map[string]chan []byte{},
 		timeout:       make(chan string),
 		workers:       newWorkerQueue(),
-		freshWorkers:  make(chan string, 1),
 		logger:        namedLogger,
 		stop:          make(chan int),
 	}, nil
@@ -122,10 +120,10 @@ func NewBroker(name, backendAddr string) (*Broker, error) {
 // Run kicks start the Broker and listens for requests. It blocks function
 // execution.
 func (lb *Broker) Run() {
-	lb.logger.Infof("Running zmq broker")
 	heartbeatAt := time.Now().Add(HeartbeatInterval)
 	for {
 		sock := lb.backendPoller.Wait(heartbeatIntervalMS)
+		lb.workers.Lock()
 
 		switch sock {
 		case lb.backend:
@@ -145,7 +143,7 @@ func (lb *Broker) Run() {
 			}
 			if len(msg) == 1 {
 				status := string(msg[0])
-				lb.handleWorkerStatus(&lb.workers, address, status)
+				lb.handleWorkerStatus(address, status)
 			} else {
 				lb.frontend <- msg
 				lb.logger.Debugf("zmq/broker: plugin => server: %#x, %s\n", msg[0], msg)
@@ -168,6 +166,7 @@ func (lb *Broker) Run() {
 		}
 
 		lb.workers.Purge()
+		lb.workers.Unlock()
 	}
 }
 
@@ -196,14 +195,15 @@ ChannlerLoop:
 				if p.retry < HeartbeatLiveness {
 					p.retry += 1
 					lb.logger.Infof("zmq/broker: no worker avaliable, retry %d...\n", p.retry)
-					go func() {
+					go func(p2 *parcel) {
 						time.Sleep(HeartbeatInterval)
-						lb.recvChan <- p
-					}()
+						lb.recvChan <- p2
+					}(p)
 					break
 				}
 				lb.logger.Infof("zmq/broker: no worker avaliable, timeout.\n")
 				p.respChan <- []byte{0}
+				break
 			}
 			addr := []byte(address)
 			frames := [][]byte{
@@ -244,16 +244,15 @@ func (lb *Broker) setTimeout(address string, wait time.Duration) {
 	lb.timeout <- address
 }
 
-func (lb *Broker) handleWorkerStatus(workers *workerQueue, address string, status string) {
+func (lb *Broker) handleWorkerStatus(address string, status string) {
 	switch status {
 	case Ready:
 		log.Infof("zmq/broker: ready worker = %s", address)
-		workers.Add(newWorker(address))
-		lb.freshWorkers <- address
+		lb.workers.Add(newWorker(address))
 	case Heartbeat:
 		// no-op
 	case Shutdown:
-		workers.Remove(address)
+		lb.workers.Remove(address)
 		log.Infof("zmq/broker: shutdown of worker = %s", address)
 	default:
 		log.Errorf("zmq/broker: invalid status from worker = %s: %s", address, status)
@@ -282,22 +281,32 @@ type workerQueue struct {
 }
 
 func newWorkerQueue() workerQueue {
-	mu := new(sync.Mutex)
+	mu := &sync.Mutex{}
 	return workerQueue{
 		[]pworker{},
 		map[string]bool{},
 		mu,
 	}
 }
+func (q *workerQueue) Lock() {
+	q.mu.Lock()
+}
 
-func (q workerQueue) Len() int {
+func (q *workerQueue) Unlock() {
+	q.mu.Unlock()
+}
+
+func (q *workerQueue) Len() int {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	return len(q.pworkers)
 }
 
 func (q *workerQueue) Next() string {
 	q.mu.Lock()
 	defer q.mu.Unlock()
-	if q.Len() == 0 {
+	cnt := len(q.pworkers)
+	if cnt == 0 {
 		return ""
 	}
 	workers := q.pworkers
@@ -315,8 +324,6 @@ func (q *workerQueue) Add(worker pworker) {
 }
 
 func (q *workerQueue) Tick(worker pworker) error {
-	q.mu.Lock()
-	defer q.mu.Unlock()
 	if _, ok := q.addresses[worker.address]; !ok {
 		return errors.New(fmt.Sprintf("zmq/broker: Ticking non-registered worker = %s", worker.address))
 	}
@@ -334,8 +341,6 @@ func (q *workerQueue) Tick(worker pworker) error {
 }
 
 func (q *workerQueue) Purge() {
-	q.mu.Lock()
-	defer q.mu.Unlock()
 	workers := q.pworkers
 
 	now := time.Now()
@@ -350,8 +355,6 @@ func (q *workerQueue) Purge() {
 }
 
 func (q *workerQueue) Remove(address string) {
-	q.mu.Lock()
-	defer q.mu.Unlock()
 	delete(q.addresses, address)
 	workers := q.pworkers
 

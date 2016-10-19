@@ -125,21 +125,16 @@ func (p *zmqTransport) setState(state skyplugin.TransportState) {
 	}
 }
 
+// RequestInit is expected to run in separate gorountine and called once to
+// set it internal state with coordinate with broker.
 func (p *zmqTransport) RequestInit() {
 	for {
-		address := <-p.broker.freshWorkers
-
-		if p.state != skyplugin.TransportStateUninitialized {
-			// Although the plugin is only initialized once, we need
-			// to clear the channel buffer so that broker doesn't get stuck
+		out, err := p.RunInit()
+		if err != nil {
+			p.logger.WithField("err", err).
+				Warnf(`zmq/rpc: Unable to send init request to plugin "%s". Retrying...`, p.name)
 			continue
 		}
-
-		p.logger.Debugf("zmq transport got fresh worker %s", address)
-
-		// TODO: Only send init to the new address. For now, we let
-		// the broker decide.
-		out, err := p.RunInit()
 		if p.initHandler != nil {
 			handlerError := p.initHandler(out, err)
 			if err != nil || handlerError != nil {
@@ -147,6 +142,7 @@ func (p *zmqTransport) RequestInit() {
 			}
 		}
 		p.setState(skyplugin.TransportStateReady)
+		break
 	}
 }
 
@@ -155,14 +151,7 @@ func (p *zmqTransport) RunInit() (out []byte, err error) {
 		Config skyconfig.Configuration `json:"config"`
 	}{p.config}
 	req := request{Kind: "init", Param: param}
-	for {
-		out, err = p.ipc(&req)
-		if err == nil {
-			break
-		}
-		p.logger.WithField("err", err).Warnf(`zmq/rpc: Unable to send init request to plugin "%s". Retrying...`, p.name)
-		time.Sleep(initRequestTimeout)
-	}
+	out, err = p.ipc(&req)
 	return
 }
 
