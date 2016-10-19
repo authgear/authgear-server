@@ -91,7 +91,7 @@ func NewBroker(name, backendAddr string) (*Broker, error) {
 		"eaddr":  backendAddr,
 	})
 
-	return &Broker{
+	broker := &Broker{
 		name:        name,
 		backendAddr: backendAddr,
 		frontend:    make(chan [][]byte, 10),
@@ -101,7 +101,11 @@ func NewBroker(name, backendAddr string) (*Broker, error) {
 		workers:     newWorkerQueue(),
 		logger:      namedLogger,
 		stop:        make(chan int),
-	}, nil
+	}
+
+	go broker.Run()
+	go broker.Channeler()
+	return broker, nil
 }
 
 // Run the Broker and listens for zmq requests.

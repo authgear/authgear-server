@@ -276,13 +276,6 @@ func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.C
 		config: config,
 	}
 
-	go func() {
-		broker.Run()
-	}()
-	go func() {
-		broker.Channeler()
-	}()
-
 	return &p
 }
 
