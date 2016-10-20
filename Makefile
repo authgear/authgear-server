@@ -30,7 +30,7 @@ vendor:
 .PHONY: build
 build:
 	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)
-	chmod +x $(DIST)
+	$(DOCKER_RUN) chmod +x $(DIST)
 
 .PHONY: before-docker-test
 before-docker-test:
@@ -58,7 +58,7 @@ all:
 	mkdir -p $(DIST_DIR)
 	$(DOCKER_RUN) gox -osarch="$(OSARCHS)" -output="$(DIST_DIR)/{{.Dir}}-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS)
 	$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$(DIST_DIR)$(DIST)-zmq-linux-amd64 WITH_ZMQ=1
-	chmod +x $(DIST_DIR)/$(DIST)*
+	$(DOCKER_RUN) chmod +x $(DIST_DIR)/$(DIST)*
 
 .PHONY: docker-build
 docker-build: build
