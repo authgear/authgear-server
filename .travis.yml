@@ -3,7 +3,7 @@ language: go
 go: 1.6
 
 addons:
-  postgresql: "9.4"
+  postgresql: "9.5"
 
 services:
   - redis-server
