@@ -249,7 +249,7 @@ func (p *zmqTransport) ipc(req *request) (out []byte, err error) {
 	msg := <-respChan
 
 	if bytes.Equal(msg, []byte{0}) {
-		err = fmt.Errorf("RPC time out")
+		err = fmt.Errorf("Plugin time out")
 	} else {
 		out = msg
 	}
