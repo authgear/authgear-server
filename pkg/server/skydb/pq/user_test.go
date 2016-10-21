@@ -51,7 +51,7 @@ func TestUserCRUD(t *testing.T) {
 			c.QueryRowx(`
 				SELECT EXISTS (
 					SELECT 1
-					FROM app_com_oursky_skygear._role
+					FROM _role
 					WHERE is_admin = TRUE
 				)`).Scan(&exists)
 			So(exists, ShouldBeTrue)
@@ -63,9 +63,9 @@ func TestUserCRUD(t *testing.T) {
 
 			c.QueryRowx(`
 				SELECT u.username, u.password
-				FROM app_com_oursky_skygear._user as u
-					JOIN app_com_oursky_skygear._user_role as ur ON ur.user_id = u.id
-					JOIN app_com_oursky_skygear._role as r ON ur.role_id = r.id
+				FROM _user as u
+					JOIN _user_role as ur ON ur.user_id = u.id
+					JOIN _role as r ON ur.role_id = r.id
 				WHERE r.is_admin = TRUE`,
 			).Scan(&username, &actualHashedPassword)
 
@@ -86,7 +86,7 @@ func TestUserCRUD(t *testing.T) {
 			email := ""
 			password := []byte{}
 			auth := authInfoValue{}
-			err = c.QueryRowx("SELECT email, password, auth FROM app_com_oursky_skygear._user WHERE id = 'userid'").
+			err = c.QueryRowx("SELECT email, password, auth FROM _user WHERE id = 'userid'").
 				Scan(&email, &password, &auth)
 			So(err, ShouldBeNil)
 
@@ -255,7 +255,7 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			email := ""
-			err = c.QueryRowx("SELECT email FROM app_com_oursky_skygear._user WHERE id = 'userid'").
+			err = c.QueryRowx("SELECT email FROM _user WHERE id = 'userid'").
 				Scan(&email)
 			So(err, ShouldBeNil)
 			So(email, ShouldEqual, "jane.doe@example.com")
@@ -328,7 +328,7 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			placeholder := []byte{}
-			err = c.QueryRowx("SELECT false FROM app_com_oursky_skygear._user WHERE id = $1", "userid").Scan(&placeholder)
+			err = c.QueryRowx("SELECT false FROM _user WHERE id = $1", "userid").Scan(&placeholder)
 			So(err, ShouldEqual, sql.ErrNoRows)
 			So(placeholder, ShouldBeEmpty)
 		})
@@ -352,13 +352,13 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			count := 0
-			c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
+			c.QueryRowx("SELECT COUNT(*) FROM _user").Scan(&count)
 			So(count, ShouldEqual, 3) // including default admin user
 
 			err = c.DeleteUser("2")
 			So(err, ShouldBeNil)
 
-			c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._user").Scan(&count)
+			c.QueryRowx("SELECT COUNT(*) FROM _user").Scan(&count)
 			So(count, ShouldEqual, 2) // including default admin user
 		})
 	})

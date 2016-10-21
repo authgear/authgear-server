@@ -44,17 +44,17 @@ func TestRoleCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var role string
-			err = c.QueryRowx("SELECT id FROM app_com_oursky_skygear._role WHERE id = 'admin'").
+			err = c.QueryRowx("SELECT id FROM _role WHERE id = 'admin'").
 				Scan(&role)
 			So(err, ShouldBeNil)
 			So(role, ShouldEqual, "admin")
 
-			err = c.QueryRowx("SELECT id FROM app_com_oursky_skygear._role WHERE id = 'writer'").
+			err = c.QueryRowx("SELECT id FROM _role WHERE id = 'writer'").
 				Scan(&role)
 			So(err, ShouldBeNil)
 			So(role, ShouldEqual, "writer")
 
-			rows, err := c.Queryx("SELECT role_id FROM app_com_oursky_skygear._user_role WHERE user_id = 'userid'")
+			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
 			So(err, ShouldBeNil)
 			c := 0
 			roles := []string{}
@@ -82,17 +82,17 @@ func TestRoleCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var role string
-			err = c.QueryRowx("SELECT id FROM app_com_oursky_skygear._role WHERE id = 'admin'").
+			err = c.QueryRowx("SELECT id FROM _role WHERE id = 'admin'").
 				Scan(&role)
 			So(err, ShouldBeNil)
 			So(role, ShouldEqual, "admin")
 
-			err = c.QueryRowx("SELECT id FROM app_com_oursky_skygear._role WHERE id = 'writer'").
+			err = c.QueryRowx("SELECT id FROM _role WHERE id = 'writer'").
 				Scan(&role)
 			So(err, ShouldBeNil)
 			So(role, ShouldEqual, "writer")
 
-			rows, err := c.Queryx("SELECT role_id FROM app_com_oursky_skygear._user_role WHERE user_id = 'userid'")
+			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
 			So(err, ShouldBeNil)
 			c := 0
 			for rows.Next() {
@@ -117,7 +117,7 @@ func TestRoleType(t *testing.T) {
 				"buddha",
 			})
 			So(err, ShouldBeNil)
-			rows, err := c.Queryx("SELECT id FROM app_com_oursky_skygear._role WHERE is_admin = TRUE")
+			rows, err := c.Queryx("SELECT id FROM _role WHERE is_admin = TRUE")
 			So(err, ShouldBeNil)
 			c := 0
 			var role string
@@ -156,7 +156,7 @@ func TestRoleType(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var role string
-			err = c.QueryRowx("SELECT id FROM app_com_oursky_skygear._role WHERE is_admin = TRUE").
+			err = c.QueryRowx("SELECT id FROM _role WHERE is_admin = TRUE").
 				Scan(&role)
 			So(err, ShouldBeNil)
 			So(role, ShouldEqual, "man")
@@ -173,7 +173,7 @@ func TestRoleType(t *testing.T) {
 				"chinese",
 			})
 			So(err, ShouldBeNil)
-			rows, err := c.Queryx("SELECT id FROM app_com_oursky_skygear._role WHERE by_default = TRUE")
+			rows, err := c.Queryx("SELECT id FROM _role WHERE by_default = TRUE")
 			So(err, ShouldBeNil)
 			c := 0
 			var role string
@@ -212,7 +212,7 @@ func TestRoleType(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var role string
-			err = c.QueryRowx("SELECT id FROM app_com_oursky_skygear._role WHERE by_default = TRUE").
+			err = c.QueryRowx("SELECT id FROM _role WHERE by_default = TRUE").
 				Scan(&role)
 			So(err, ShouldBeNil)
 			So(role, ShouldEqual, "free man")

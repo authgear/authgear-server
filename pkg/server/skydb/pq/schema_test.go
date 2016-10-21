@@ -76,7 +76,7 @@ func TestExtend(t *testing.T) {
 
 			// verify with an insert
 			result, err := c.Exec(
-				`INSERT INTO app_com_oursky_skygear."note" ` +
+				`INSERT INTO "note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
 			So(err, ShouldBeNil)
@@ -106,7 +106,7 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			result, err := c.Exec(
-				`INSERT INTO app_com_oursky_skygear."note" ` +
+				`INSERT INTO "note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "tags") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', '["tag0", "tag1"]')`)
 			So(err, ShouldBeNil)
@@ -217,7 +217,7 @@ func TestExtend(t *testing.T) {
 
 			// verify with an insert
 			result, err := c.Exec(
-				`INSERT INTO app_com_oursky_skygear."note" ` +
+				`INSERT INTO "note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt", "dirty") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06', TRUE)`)
 			So(err, ShouldBeNil)
@@ -264,13 +264,13 @@ func TestExtend(t *testing.T) {
 
 			// verify with an insert
 			_, err = c.Exec(
-				`INSERT INTO app_com_oursky_skygear."note" ` +
+				`INSERT INTO "note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
 			So(err, ShouldNotBeNil)
 
 			result, err := c.Exec(
-				`INSERT INTO app_com_oursky_skygear."note" ` +
+				`INSERT INTO "note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content2", "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
 			So(err, ShouldBeNil)
@@ -318,7 +318,7 @@ func TestExtend(t *testing.T) {
 
 			// schema should remain unchanged
 			result, err := c.Exec(
-				`INSERT INTO app_com_oursky_skygear."note" ` +
+				`INSERT INTO "note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
 			So(err, ShouldBeNil)
@@ -342,7 +342,7 @@ func TestExtend(t *testing.T) {
 
 			// schema should remain unchanged
 			result, err := c.Exec(
-				`INSERT INTO app_com_oursky_skygear."note" ` +
+				`INSERT INTO "note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
 			So(err, ShouldBeNil)
@@ -377,13 +377,13 @@ func TestExtend(t *testing.T) {
 
 			// verify with an insert
 			_, err = c.Exec(
-				`INSERT INTO app_com_oursky_skygear."note" ` +
+				`INSERT INTO "note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
 			So(err, ShouldNotBeNil)
 
 			result, err := c.Exec(
-				`INSERT INTO app_com_oursky_skygear."note" ` +
+				`INSERT INTO "note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 2, '1988-02-06')`)
 			So(err, ShouldBeNil)
@@ -431,7 +431,7 @@ func TestExtend(t *testing.T) {
 
 			// schema should remain unchanged
 			result, err := c.Exec(
-				`INSERT INTO app_com_oursky_skygear."note" ` +
+				`INSERT INTO "note" ` +
 					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content", "noteOrder", "createdAt") ` +
 					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater', 'some content', 2, '1988-02-06')`)
 			So(err, ShouldBeNil)

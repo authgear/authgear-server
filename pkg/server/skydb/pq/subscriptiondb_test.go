@@ -25,7 +25,7 @@ import (
 )
 
 func addDevice(t *testing.T, c *conn, userID string, deviceID string) {
-	_, err := c.Exec("INSERT INTO app_com_oursky_skygear._device (id, user_id, type, token, last_registered_at) VALUES ($1, $2, '', $3, $4)", deviceID, userID, randHex(64), time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+	_, err := c.Exec("INSERT INTO _device (id, user_id, type, token, last_registered_at) VALUES ($1, $2, '', $3, $4)", deviceID, userID, randHex(64), time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +117,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 				resultQuery            skydb.Query
 			)
 			err = c.QueryRowx(`
-				SELECT device_id, type, notification_info, query FROM app_com_oursky_skygear._subscription
+				SELECT device_id, type, notification_info, query FROM _subscription
 				WHERE id = $1 AND user_id = $2`, "subscriptionid", "userid").
 				Scan(&deviceID, &queryType, &resultNotificationInfo, (*queryValue)(&resultQuery))
 			So(err, ShouldBeNil)
@@ -141,7 +141,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 				resultQuery            skydb.Query
 			)
 			err = c.QueryRowx(`
-				SELECT device_id, type, notification_info, query FROM app_com_oursky_skygear._subscription
+				SELECT device_id, type, notification_info, query FROM _subscription
 				WHERE id = $1 AND user_id = $2`, "subscriptionid", "userid").
 				Scan(&deviceID, &queryType, &resultNotificationInfo, (*queryValue)(&resultQuery))
 			So(err, ShouldBeNil)
@@ -203,7 +203,7 @@ func TestSubscriptionCRUD(t *testing.T) {
 
 			var count int
 			err = c.QueryRowx(
-				`SELECT COUNT(*) FROM app_com_oursky_skygear._subscription
+				`SELECT COUNT(*) FROM _subscription
 				WHERE id = $1 AND user_id = $2`,
 				"subscriptionid", "userid").
 				Scan(&count)

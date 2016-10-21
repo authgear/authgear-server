@@ -38,7 +38,7 @@ func createTestRecordTable(tx *sqlx.Tx, tableName string) error {
 }
 
 func TestRevisions(t *testing.T) {
-	schema := "app_com_oursky_skygear"
+	schema := testSchemaName()
 
 	Convey("execute", t, func() {
 		db := getTestDB(t)

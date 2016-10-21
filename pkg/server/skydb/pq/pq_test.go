@@ -16,6 +16,8 @@ package pq
 
 import (
 	"database/sql"
+	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 
@@ -34,6 +36,14 @@ func isInvalidSchemaName(err error) bool {
 	return false
 }
 
+func testAppName() string {
+	// Generate a random app name so that schema is different each time.
+	//
+	// This is a workaround for the issue that schema is not reliably
+	// created during testing. c.f. SkygearIO/skygear-server#171
+	return fmt.Sprintf("io.skygear.test.%d", rand.Int())
+}
+
 func getTestConn(t *testing.T) *conn {
 	defaultTo := func(envvar string, value string) {
 		if os.Getenv(envvar) == "" {
@@ -42,13 +52,14 @@ func getTestConn(t *testing.T) *conn {
 	}
 	defaultTo("PGDATABASE", "skygear_test")
 	defaultTo("PGSSLMODE", "disable")
-	c, err := Open("com.oursky.skygear", skydb.RoleBasedAccess, "", true)
+	appName := testAppName()
+	c, err := Open(appName, skydb.RoleBasedAccess, "", true)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// create schema
-	err = mustInitDB(c.(*conn).Db().(*sqlx.DB), "com.oursky.skygear", true)
+	err = mustInitDB(c.(*conn).Db().(*sqlx.DB), appName, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,28 +67,29 @@ func getTestConn(t *testing.T) *conn {
 }
 
 func cleanupConn(t *testing.T, c *conn) {
-	_, err := c.db.Exec("DROP SCHEMA app_com_oursky_skygear CASCADE")
+	schemaName := fmt.Sprintf("app_%s", toLowerAndUnderscore(c.appName))
+	_, err := c.db.Exec(fmt.Sprintf("DROP SCHEMA if exists %s CASCADE", schemaName))
 	if err != nil && !isInvalidSchemaName(err) {
 		t.Fatal(err)
 	}
 }
 
 func addUser(t *testing.T, c *conn, userid string) {
-	_, err := c.Exec("INSERT INTO app_com_oursky_skygear._user (id, password) VALUES ($1, 'somepassword')", userid)
+	_, err := c.Exec("INSERT INTO _user (id, password) VALUES ($1, 'somepassword')", userid)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func addUserWithInfo(t *testing.T, c *conn, userid string, email string) {
-	_, err := c.Exec("INSERT INTO app_com_oursky_skygear._user (id, password, email) VALUES ($1, 'somepassword', $2)", userid, email)
+	_, err := c.Exec("INSERT INTO _user (id, password, email) VALUES ($1, 'somepassword', $2)", userid, email)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func addUserWithUsername(t *testing.T, c *conn, userid string, username string) {
-	_, err := c.Exec("INSERT INTO app_com_oursky_skygear._user (id, password, username) VALUES ($1, 'somepassword', $2)", userid, username)
+	_, err := c.Exec("INSERT INTO _user (id, password, username) VALUES ($1, 'somepassword', $2)", userid, username)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -67,7 +67,7 @@ func TestDevice(t *testing.T) {
 				deviceType, token, userInfoID string
 				lastRegisteredAt              time.Time
 			)
-			err = c.QueryRowx("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").
+			err = c.QueryRowx("SELECT type, token, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").
 				Scan(&deviceType, &token, &userInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
@@ -95,7 +95,7 @@ func TestDevice(t *testing.T) {
 				deviceType, token, userInfoID string
 				lastRegisteredAt              time.Time
 			)
-			err = c.QueryRowx("SELECT type, token, user_id, last_registered_at FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").
+			err = c.QueryRowx("SELECT type, token, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").
 				Scan(&deviceType, &token, &userInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
@@ -178,7 +178,7 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").Scan(&count)
+			err = c.QueryRowx("SELECT COUNT(*) FROM _device WHERE id = 'deviceid'").Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
 		})
@@ -197,7 +197,7 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._device WHERE id = 'deviceid'").Scan(&count)
+			err = c.QueryRowx("SELECT COUNT(*) FROM _device WHERE id = 'deviceid'").Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
 		})
@@ -246,7 +246,7 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var count int
-			err = c.QueryRowx("SELECT COUNT(*) FROM app_com_oursky_skygear._device").Scan(&count)
+			err = c.QueryRowx("SELECT COUNT(*) FROM _device").Scan(&count)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 1)
 		})

@@ -16,6 +16,7 @@ package migration
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 
@@ -23,6 +24,14 @@ import (
 	_ "github.com/lib/pq"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func testSchemaName() string {
+	// Generate a random schema name so that schema is different each time.
+	//
+	// This is a workaround for the issue that schema is not reliably
+	// created during testing. c.f. SkygearIO/skygear-server#171
+	return fmt.Sprintf("app_io_skygear_test_%d", rand.Int())
+}
 
 func getTestDB(t *testing.T) *sqlx.DB {
 	defaultTo := func(envvar string, value string) {
@@ -68,7 +77,7 @@ func (r *naiveRevision) Up(tx *sqlx.Tx) error   { return r.UpFunc(tx) }
 func (r *naiveRevision) Down(tx *sqlx.Tx) error { return r.DownFunc(tx) }
 
 func TestSchemaAndVersion(t *testing.T) {
-	schema := "app_com_oursky_skygear"
+	schema := testSchemaName()
 
 	Convey("Schema", t, func() {
 		db := getTestDB(t)
@@ -199,7 +208,7 @@ func TestSchemaAndVersion(t *testing.T) {
 }
 
 func TestMigration(t *testing.T) {
-	schema := "app_com_oursky_skygear"
+	schema := testSchemaName()
 
 	Convey("Execute", t, func() {
 		db := getTestDB(t)
