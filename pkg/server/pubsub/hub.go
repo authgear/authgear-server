@@ -51,6 +51,9 @@ func NewHub() *Hub {
 
 func (h *Hub) run() {
 	log.Debugf("Hub running %p", h)
+	defer func() {
+		log.Info("Hub stopped %p!", h)
+	}()
 	for {
 		select {
 		case p := <-h.Subscribe:
@@ -61,10 +64,9 @@ func (h *Hub) run() {
 			log.Warnf("Broadcast %v:%s", p.Channel, p.Data)
 			h.publish(p.Channel, p.Data)
 		case <-h.stop:
-			break
+			return
 		}
 	}
-	log.Info("Hub stopped %p!", h)
 }
 
 func (h *Hub) timeOut() <-chan time.Time {
