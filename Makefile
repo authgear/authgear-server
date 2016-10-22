@@ -2,6 +2,7 @@ DIST_DIR = ./dist/
 DIST := skygear-server
 VERSION := $(shell git describe --always --tags)
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
+GO_TEST_TIMEOUT := 1m
 OSARCHS := linux/amd64 linux/386 linux/arm windows/amd64 windows/386 darwin/amd64
 
 ifeq (1,${WITH_ZMQ})
@@ -19,6 +20,7 @@ DOCKER_RUN := docker run --rm -i \
 	skygeario/skygear-godev:latest
 DOCKER_COMPOSE_RUN := ${DOCKER_COMPOSE_CMD} run --rm app
 DOCKER_COMPOSE_RUN_DB := ${DOCKER_COMPOSE_CMD} run --rm db_cmd
+GO_TEST_TIMEOUT := 5m
 endif
 
 GO_BUILD_ARGS := $(GO_BUILD_TAGS) $(GO_BUILD_LDFLAGS)
@@ -46,7 +48,7 @@ before-test:
 test:
 	# Run `go install` to compile packages to speed up test process
 	$(DOCKER_COMPOSE_RUN) go install $(GO_BUILD_ARGS)
-	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover ./pkg/...
+	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) ./pkg/...
 
 .PHONY: after-docker-test
 after-docker-test:
