@@ -17,6 +17,7 @@
 package zmq
 
 import (
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -127,6 +128,9 @@ func TestWorker(t *testing.T) {
 	})
 }
 func TestBrokerWorker(t *testing.T) {
+	if runtime.GOMAXPROCS(0) == 1 {
+		t.Skip("skipping zmq test in GOMAXPROCS=1")
+	}
 	const (
 		workerAddr = "inproc://plugin.test"
 	)

@@ -1,6 +1,6 @@
 language: go
 
-go: 1.6
+go: 1.6.3
 
 addons:
   postgresql: "9.5"
@@ -49,7 +49,7 @@ script:
   - go generate ./pkg/...
   - git status | grep "_string.go$"; test $? -eq 1
   - gocyclo -over 15 pkg | gogocyclo
-  - go test --tags zmq -cover -timeout 1m ./pkg/...
+  - WITH_ZMQ=1 make test
 
 before_deploy:
   - if [[ -z "$TRAVIS_TAG" ]]; make all; fi

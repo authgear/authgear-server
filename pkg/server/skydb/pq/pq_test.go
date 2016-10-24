@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -45,6 +46,9 @@ func testAppName() string {
 }
 
 func getTestConn(t *testing.T) *conn {
+	if runtime.GOMAXPROCS(0) > 1 {
+		t.Skip("skipping zmq test in GOMAXPROCS>1")
+	}
 	defaultTo := func(envvar string, value string) {
 		if os.Getenv(envvar) == "" {
 			os.Setenv(envvar, value)
