@@ -187,12 +187,12 @@ func (lb *Broker) Run() {
 // It retry and timeout the request if the zmq worker is not yet available.
 func (lb *Broker) Channeler() {
 	lb.logger.Infof("zmq channeler running %p\n", lb)
+	defer lb.logger.Infof("zmq channeler stopped %p!\n", lb)
 	push, err := goczmq.NewPush(fmt.Sprintf("inproc://chanpipeline%d", lb.name))
 	if err != nil {
 		panic(err)
 	}
 	defer push.Destroy()
-ChannelerLoop:
 	for {
 		select {
 		case frames := <-lb.frontend:
@@ -245,10 +245,9 @@ ChannelerLoop:
 			delete(lb.addressChan, address)
 			respChan <- []byte{0}
 		case <-lb.stop:
-			break ChannelerLoop
+			return
 		}
 	}
-	lb.logger.Infof("zmq channeler stopped %p!\n", lb)
 }
 
 func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
