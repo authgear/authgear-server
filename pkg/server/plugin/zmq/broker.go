@@ -65,7 +65,7 @@ func newParcel(frame []byte) *parcel {
 	}
 }
 
-// Broker implements the Paranoid Pirate queue described as follow:
+// Broker implements the Paranoid Pirate queue described as follows:
 // Related RFC: https://rfc.zeromq.org/spec:6/PPP
 // refs: http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
 // with the addition of:
@@ -183,10 +183,10 @@ func (lb *Broker) Run() {
 	}
 }
 
-// Channeler accept message from RPC and dispatch to zmq if avalible.
-// It retry and timeout the request if the zmq worker is not yet avalible.
+// Channeler accept message from RPC and dispatch to zmq if available.
+// It retry and timeout the request if the zmq worker is not yet available.
 func (lb *Broker) Channeler() {
-	lb.logger.Infof("zmq channler running %p\n", lb)
+	lb.logger.Infof("zmq channeler running %p\n", lb)
 	push, err := goczmq.NewPush(fmt.Sprintf("inproc://chanpipeline%d", lb.name))
 	if err != nil {
 		panic(err)
@@ -209,19 +209,19 @@ ChannelerLoop:
 		case p := <-lb.recvChan:
 			// Save the chan and dispatch the message to zmq
 			// If current no worker ready, will retry after HeartbeatInterval.
-			// Retry for HeartbeatLiveness tine
+			// Retry for HeartbeatLiveness times
 			address := lb.workers.Next()
 			if address == "" {
 				if p.retry < HeartbeatLiveness {
 					p.retry += 1
-					lb.logger.Infof("zmq/broker: no worker avaliable, retry %d...\n", p.retry)
+					lb.logger.Infof("zmq/broker: no worker available, retry %d...\n", p.retry)
 					go func(p2 *parcel) {
 						time.Sleep(HeartbeatInterval)
 						lb.recvChan <- p2
 					}(p)
 					break
 				}
-				lb.logger.Infof("zmq/broker: no worker avaliable, timeout.\n")
+				lb.logger.Infof("zmq/broker: no worker available, timeout.\n")
 				p.respChan <- []byte{0}
 				break
 			}
@@ -241,14 +241,14 @@ ChannelerLoop:
 			if !ok {
 				break
 			}
-			lb.logger.Infof("zmq/broker: chan time out for  worker %s\n", address)
+			lb.logger.Infof("zmq/broker: chan timeout for worker %s\n", address)
 			delete(lb.addressChan, address)
 			respChan <- []byte{0}
 		case <-lb.stop:
 			break ChannelerLoop
 		}
 	}
-	lb.logger.Infof("zmq channler stopped %p!\n", lb)
+	lb.logger.Infof("zmq channeler stopped %p!\n", lb)
 }
 
 func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
@@ -294,8 +294,8 @@ func newWorker(address string) pworker {
 // workerQueue is a last tick fist out queue.
 //
 // Worker is expect to register itself on ready. Tick itself when it is
-// avalible. The most recently Tick worker will got the job.
-// A worker do not Tick itself within the expiry will regards as disconnected
+// available. The most recently Tick worker will got the job.
+// A worker do not Tick itself within the expiry will regard as disconnected
 // and requires to Add itself again to become avaliable.
 //
 // workerQueue is not goroutine safe. To use it safely across goroutine.
@@ -348,7 +348,7 @@ func (q *workerQueue) Next() string {
 }
 
 // Add will register the worker as live worker and call Tick to make itself to
-// the next avaliable worker.
+// the next available worker.
 func (q *workerQueue) Add(worker pworker) {
 	q.addresses[worker.address] = true
 	err := q.Tick(worker)
@@ -357,7 +357,7 @@ func (q *workerQueue) Add(worker pworker) {
 	}
 }
 
-// Tick will make the worker to be the next avalible worker. Ticking an un
+// Tick will make the worker to be the next available worker. Ticking an un-
 // registered worker will be no-op.
 func (q *workerQueue) Tick(worker pworker) error {
 	if _, ok := q.addresses[worker.address]; !ok {
@@ -393,7 +393,7 @@ func (q *workerQueue) Purge() {
 }
 
 // Remove will unregister the worker with specified address regardless of its
-// expiry. Intented for clean shutdown and fast removal of worker.
+// expiry. Intended for clean shutdown and fast removal of worker.
 func (q *workerQueue) Remove(address string) {
 	delete(q.addresses, address)
 	workers := q.pworkers
