@@ -72,16 +72,27 @@ func newParcel(frame []byte) *parcel {
 //
 // 1. Shutdown signal, which signifies a normal termination of worker to provide
 //    a fast path of worker removal
+// TODO: channeler can be separated into a separate struct, communiate with
+// broker using frontend chan, workers and pull/push sock address.
 type Broker struct {
-	name        string
+	// name is assume to be unique and used to construct the zmq address
+	name string
+	// backendAddr is the address to communicate with plugin
 	backendAddr string
-	frontend    chan [][]byte
-	recvChan    chan *parcel
+	// frontend chan is receive zmq messgae and handle at Channeler
+	frontend chan [][]byte
+	// recvChan receive RPC request and dispatch to zmq Run Loop using
+	// push/pull zsock
+	recvChan chan *parcel
+	// addressChan is use zmq worker addess as key to route the message to
+	// correct go chan
 	addressChan map[string]chan []byte
-	timeout     chan string
-	workers     workerQueue
-	logger      *logrus.Entry
-	stop        chan int
+	// for RPC timeout, used by Channeler
+	timeout chan string
+	workers workerQueue
+	logger  *logrus.Entry
+	// for stoping the channeler
+	stop chan int
 }
 
 // NewBroker returns a new *Broker.
@@ -300,7 +311,7 @@ func newWorker(address string) pworker {
 // workerQueue is not goroutine safe. To use it safely across goroutine.
 // Please use the Lock/Unlock interace before manupliate the queue item via
 // methods like Add/Tick/Purge.
-// Comsuming method Next is the only method will acquire the mutex lock
+// Consuming the queue using Next is the only method will acquire the mutex lock
 // by itself.
 type workerQueue struct {
 	pworkers  []pworker
@@ -332,7 +343,7 @@ func (q *workerQueue) Len() int {
 
 // Next will pop the next avaliable worker, and the worker will not avalible
 // until it Tick back to the workerQueue again.
-// This worker comsuing method will acquire mutex lock.
+// This method for consuming the queue will acquire mutex lock.
 func (q *workerQueue) Next() string {
 	q.mu.Lock()
 	defer q.mu.Unlock()
