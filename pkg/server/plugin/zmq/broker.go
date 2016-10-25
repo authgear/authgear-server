@@ -17,9 +17,9 @@
 package zmq
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -50,81 +50,107 @@ const (
 	Shutdown = "\003"
 )
 
-// Broker implements the Paranoid Pirate queue described in the zguide:
-// http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
+// parcel is used to multiplex the chan with zmq worker
+type parcel struct {
+	respChan chan []byte
+	frame    []byte
+	retry    int
+}
+
+func newParcel(frame []byte) *parcel {
+	return &parcel{
+		respChan: make(chan []byte),
+		frame:    frame,
+		retry:    0,
+	}
+}
+
+// Broker implements the Paranoid Pirate queue described as follows:
 // Related RFC: https://rfc.zeromq.org/spec:6/PPP
+// refs: http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
 // with the addition of:
 //
 // 1. Shutdown signal, which signifies a normal termination of worker to provide
 //    a fast path of worker removal
+// TODO: channeler can be separated into a separate struct, communiate with
+// broker using frontend chan, workers and pull/push sock address.
 type Broker struct {
+	// name is assume to be unique and used to construct the zmq address
 	name string
-	// NOTE: goroutines are caller of plugin, so frontend is Go side,
-	// backend is plugin side
-	frontend      *goczmq.Sock
-	backend       *goczmq.Sock
-	bothPoller    *goczmq.Poller
-	backendPoller *goczmq.Poller
-	workers       workerQueue
-	freshWorkers  chan []byte
-	logger        *logrus.Entry
+	// backendAddr is the address to communicate with plugin
+	backendAddr string
+	// frontend chan is receive zmq messgae and handle at Channeler
+	frontend chan [][]byte
+	// recvChan receive RPC request and dispatch to zmq Run Loop using
+	// push/pull zsock
+	recvChan chan *parcel
+	// addressChan is use zmq worker addess as key to route the message to
+	// correct go chan
+	addressChan map[string]chan []byte
+	// for RPC timeout, used by Channeler
+	timeout chan string
+	workers workerQueue
+	logger  *logrus.Entry
+	// for stoping the channeler
+	stop chan int
 }
 
 // NewBroker returns a new *Broker.
-func NewBroker(name, frontendAddr, backendAddr string) (*Broker, error) {
-	namedLogger := log.WithFields(logrus.Fields{"plugin": name})
-	frontend, err := goczmq.NewRouter(frontendAddr)
-	if err != nil {
-		panic(err)
+func NewBroker(name, backendAddr string) (*Broker, error) {
+	namedLogger := log.WithFields(logrus.Fields{
+		"plugin": name,
+		"eaddr":  backendAddr,
+	})
+
+	broker := &Broker{
+		name:        name,
+		backendAddr: backendAddr,
+		frontend:    make(chan [][]byte, 10),
+		recvChan:    make(chan *parcel, 10),
+		addressChan: map[string]chan []byte{},
+		timeout:     make(chan string),
+		workers:     newWorkerQueue(),
+		logger:      namedLogger,
+		stop:        make(chan int),
 	}
 
-	backend, err := goczmq.NewRouter(backendAddr)
-	if err != nil {
-		panic(err)
-	}
-
-	backendPoller, err := goczmq.NewPoller(backend)
-	if err != nil {
-		panic(err)
-	}
-
-	bothPoller, err := goczmq.NewPoller(frontend, backend)
-	if err != nil {
-		panic(err)
-	}
-
-	return &Broker{
-		name:          name,
-		frontend:      frontend,
-		backend:       backend,
-		bothPoller:    bothPoller,
-		backendPoller: backendPoller,
-		workers:       newWorkerQueue(),
-		freshWorkers:  make(chan []byte, 1),
-		logger:        namedLogger,
-	}, nil
+	go broker.Run()
+	go broker.Channeler()
+	return broker, nil
 }
 
-// Run kicks start the Broker and listens for requests. It blocks function
-// execution.
+// Run the Broker and listens for zmq requests.
 func (lb *Broker) Run() {
+	backend, err := goczmq.NewRouter(lb.backendAddr)
+	if err != nil {
+		panic(err)
+	}
+	defer backend.Destroy()
+
+	pull, err := goczmq.NewPull(fmt.Sprintf("inproc://chanpipeline%d", lb.name))
+	if err != nil {
+		panic(err)
+	}
+	defer pull.Destroy()
+
+	backendPoller, err := goczmq.NewPoller(backend, pull)
+	if err != nil {
+		panic(err)
+	}
+
 	heartbeatAt := time.Now().Add(HeartbeatInterval)
 	for {
-		var sock *goczmq.Sock
-		if lb.workers.Len() == 0 {
-			sock = lb.backendPoller.Wait(heartbeatIntervalMS)
-		} else {
-			sock = lb.bothPoller.Wait(heartbeatIntervalMS)
-		}
+		sock := backendPoller.Wait(heartbeatIntervalMS)
+		lb.workers.Lock()
 
 		switch sock {
-		case lb.backend:
-			frames, err := lb.backend.RecvMessage()
+		case backend:
+			frames, err := backend.RecvMessage()
 			if err != nil {
 				panic(err)
 			}
 
-			address := frames[0]
+			address := string(frames[0])
 			msg := frames[1:]
 			tErr := lb.workers.Tick(newWorker(address))
 			if tErr != nil {
@@ -135,50 +161,128 @@ func (lb *Broker) Run() {
 			}
 			if len(msg) == 1 {
 				status := string(msg[0])
-				lb.handleWorkerStatus(&lb.workers, address, status)
+				lb.handleWorkerStatus(address, status)
 			} else {
-				lb.frontend.SendMessage(msg)
+				lb.frontend <- msg
 				lb.logger.Debugf("zmq/broker: plugin => server: %#x, %s\n", msg[0], msg)
 			}
-		case lb.frontend:
-			frames, err := lb.frontend.RecvMessage()
+		case pull:
+			frames, err := pull.RecvMessage()
 			if err != nil {
 				panic(err)
 			}
-
-			frames = append([][]byte{lb.workers.Next()}, frames...)
-			lb.backend.SendMessage(frames)
-			lb.logger.Debugf("zmq/broker: server => plugin: %#x, %s\n", frames[0], frames)
+			backend.SendMessage(frames)
 		case nil:
 			// do nothing
 		default:
 			panic("zmq/broker: received unknown socket")
 		}
 
-		lb.logger.Debugf("zmq/broker: idle worker count %d\n", lb.workers.Len())
 		if heartbeatAt.Before(time.Now()) {
 			for _, worker := range lb.workers.pworkers {
-				msg := [][]byte{worker.address, []byte(Heartbeat)}
-				lb.logger.Debugf("zmq/broker: server => plugin Heartbeat: %s\n", worker.address)
-				lb.backend.SendMessage(msg)
+				msg := [][]byte{
+					[]byte(worker.address),
+					[]byte(Heartbeat),
+				}
+				backend.SendMessage(msg)
 			}
 			heartbeatAt = time.Now().Add(HeartbeatInterval)
 		}
 
 		lb.workers.Purge()
+		lb.workers.Unlock()
 	}
 }
 
-func (lb *Broker) handleWorkerStatus(workers *workerQueue, address []byte, status string) {
+// Channeler accept message from RPC and dispatch to zmq if available.
+// It retry and timeout the request if the zmq worker is not yet available.
+func (lb *Broker) Channeler() {
+	lb.logger.Infof("zmq channeler running %p\n", lb)
+	defer lb.logger.Infof("zmq channeler stopped %p!\n", lb)
+	push, err := goczmq.NewPush(fmt.Sprintf("inproc://chanpipeline%d", lb.name))
+	if err != nil {
+		panic(err)
+	}
+	defer push.Destroy()
+	for {
+		select {
+		case frames := <-lb.frontend:
+			lb.logger.Debugf("zmq/broker: zmq => channel %#x, %s\n", frames[0], frames)
+			// Dispacth back to the channel based on the zmq first frame
+			address := string(frames[0])
+			respChan, ok := lb.addressChan[address]
+			if !ok {
+				lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
+				break
+			}
+			delete(lb.addressChan, address)
+			respChan <- frames[2]
+		case p := <-lb.recvChan:
+			// Save the chan and dispatch the message to zmq
+			// If current no worker ready, will retry after HeartbeatInterval.
+			// Retry for HeartbeatLiveness times
+			address := lb.workers.Next()
+			if address == "" {
+				if p.retry < HeartbeatLiveness {
+					p.retry += 1
+					lb.logger.Infof("zmq/broker: no worker available, retry %d...\n", p.retry)
+					go func(p2 *parcel) {
+						time.Sleep(HeartbeatInterval)
+						lb.recvChan <- p2
+					}(p)
+					break
+				}
+				lb.logger.Infof("zmq/broker: no worker available, timeout.\n")
+				p.respChan <- []byte{0}
+				break
+			}
+			addr := []byte(address)
+			frames := [][]byte{
+				addr,
+				addr,
+				[]byte{},
+				p.frame,
+			}
+			lb.addressChan[address] = p.respChan
+			push.SendMessage(frames)
+			lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
+			go lb.setTimeout(address, HeartbeatInterval*HeartbeatLiveness)
+		case address := <-lb.timeout:
+			respChan, ok := lb.addressChan[address]
+			if !ok {
+				break
+			}
+			lb.logger.Infof("zmq/broker: chan timeout for worker %s\n", address)
+			delete(lb.addressChan, address)
+			respChan <- []byte{0}
+		case <-lb.stop:
+			return
+		}
+	}
+}
+
+func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
+	p := newParcel(in)
+	lb.recvChan <- p
+	go func() {
+		requestChan <- p.respChan
+	}()
+}
+
+func (lb *Broker) setTimeout(address string, wait time.Duration) {
+	time.Sleep(wait)
+	lb.timeout <- address
+}
+
+func (lb *Broker) handleWorkerStatus(address string, status string) {
 	switch status {
 	case Ready:
 		log.Infof("zmq/broker: ready worker = %s", address)
-		workers.Add(newWorker(address))
-		lb.freshWorkers <- address
+		lb.workers.Add(newWorker(address))
 	case Heartbeat:
 		// no-op
 	case Shutdown:
-		workers.Remove(address)
+		lb.workers.Remove(address)
 		log.Infof("zmq/broker: shutdown of worker = %s", address)
 	default:
 		log.Errorf("zmq/broker: invalid status from worker = %s: %s", address, status)
@@ -186,11 +290,11 @@ func (lb *Broker) handleWorkerStatus(workers *workerQueue, address []byte, statu
 }
 
 type pworker struct {
-	address []byte
+	address string
 	expiry  time.Time
 }
 
-func newWorker(address []byte) pworker {
+func newWorker(address string) pworker {
 	return pworker{
 		address,
 		time.Now().Add(HeartbeatLiveness * HeartbeatInterval),
@@ -198,47 +302,81 @@ func newWorker(address []byte) pworker {
 }
 
 // workerQueue is a last tick fist out queue.
-// A worker need to register itself using Add before it can tick.
-// Ticking of an non-registered worker will be no-ops.
+//
+// Worker is expect to register itself on ready. Tick itself when it is
+// available. The most recently Tick worker will got the job.
+// A worker do not Tick itself within the expiry will regard as disconnected
+// and requires to Add itself again to become avaliable.
+//
+// workerQueue is not goroutine safe. To use it safely across goroutine.
+// Please use the Lock/Unlock interace before manupliate the queue item via
+// methods like Add/Tick/Purge.
+// Consuming the queue using Next is the only method will acquire the mutex lock
+// by itself.
 type workerQueue struct {
 	pworkers  []pworker
 	addresses map[string]bool
+	mu        *sync.Mutex
 }
 
 func newWorkerQueue() workerQueue {
+	mu := &sync.Mutex{}
 	return workerQueue{
 		[]pworker{},
 		map[string]bool{},
+		mu,
 	}
 }
+func (q *workerQueue) Lock() {
+	q.mu.Lock()
+}
 
-func (q workerQueue) Len() int {
+func (q *workerQueue) Unlock() {
+	q.mu.Unlock()
+}
+
+func (q *workerQueue) Len() int {
+	q.mu.Lock()
+	defer q.mu.Unlock()
 	return len(q.pworkers)
 }
 
-func (q *workerQueue) Next() []byte {
+// Next will pop the next avaliable worker, and the worker will not avalible
+// until it Tick back to the workerQueue again.
+// This method for consuming the queue will acquire mutex lock.
+func (q *workerQueue) Next() string {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	cnt := len(q.pworkers)
+	if cnt == 0 {
+		return ""
+	}
 	workers := q.pworkers
 	worker := workers[len(workers)-1]
 	q.pworkers = workers[:len(workers)-1]
 	return worker.address
 }
 
+// Add will register the worker as live worker and call Tick to make itself to
+// the next available worker.
 func (q *workerQueue) Add(worker pworker) {
-	q.addresses[string(worker.address)] = true
+	q.addresses[worker.address] = true
 	err := q.Tick(worker)
 	if err == nil {
 		return
 	}
 }
 
+// Tick will make the worker to be the next available worker. Ticking an un-
+// registered worker will be no-op.
 func (q *workerQueue) Tick(worker pworker) error {
-	if _, ok := q.addresses[string(worker.address)]; !ok {
+	if _, ok := q.addresses[worker.address]; !ok {
 		return errors.New(fmt.Sprintf("zmq/broker: Ticking non-registered worker = %s", worker.address))
 	}
 	workers := q.pworkers
 
 	for i, w := range workers {
-		if bytes.Equal(w.address, worker.address) {
+		if w.address == worker.address {
 			q.pworkers = append(append(workers[:i], workers[i+1:]...), worker)
 			return nil
 		}
@@ -248,6 +386,8 @@ func (q *workerQueue) Tick(worker pworker) error {
 	return nil
 }
 
+// Purge will unregister the worker that is not heathly. i.e. haven't Tick for
+// a while.
 func (q *workerQueue) Purge() {
 	workers := q.pworkers
 
@@ -257,17 +397,19 @@ func (q *workerQueue) Purge() {
 			break
 		}
 		q.pworkers = workers[i+1:]
-		delete(q.addresses, string(w.address))
+		delete(q.addresses, w.address)
 		log.Infof("zmq/broker: disconnected worker = %s", w.address)
 	}
 }
 
-func (q *workerQueue) Remove(address []byte) {
-	delete(q.addresses, string(address))
+// Remove will unregister the worker with specified address regardless of its
+// expiry. Intended for clean shutdown and fast removal of worker.
+func (q *workerQueue) Remove(address string) {
+	delete(q.addresses, address)
 	workers := q.pworkers
 
 	for i, w := range workers {
-		if bytes.Equal(w.address, address) {
+		if w.address == address {
 			q.pworkers = append(workers[:i], workers[i+1:]...)
 			break
 		}
