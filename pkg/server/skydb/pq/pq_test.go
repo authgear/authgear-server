@@ -70,11 +70,27 @@ func getTestConn(t *testing.T) *conn {
 	return c.(*conn)
 }
 
-func cleanupConn(t *testing.T, c *conn) {
+func dropAllRecordTables(t *testing.T, c *conn) {
+	tx, err := c.db.Beginx()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback()
+
+	db := c.PublicDB().(*database)
 	for recordType := range c.RecordSchema {
-		if err := c.PublicDB().(*database).dropTable(recordType); err != nil {
+		if err := dropTable(tx, db.tableName(recordType)); err != nil {
 			t.Fatal(err)
 		}
+	}
+	if err = tx.Commit(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func cleanupConn(t *testing.T, c *conn) {
+	if len(c.RecordSchema) > 0 {
+		dropAllRecordTables(t, c)
 	}
 
 	schemaName := fmt.Sprintf("app_%s", toLowerAndUnderscore(c.appName))

@@ -22,6 +22,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -45,8 +46,15 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
 	}
 
+	// Begin transaction for schema migration
+	tx, err := db.c.db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	if len(remoteRecordSchema) == 0 {
-		if err := db.createTable(recordType); err != nil {
+		if err := createTable(tx, db.tableName(recordType)); err != nil {
 			return fmt.Errorf("failed to create table: %s", err)
 		}
 	}
@@ -66,9 +74,13 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 		stmt := db.addColumnStmt(recordType, updatingSchema)
 
 		log.WithField("stmt", stmt).Debugln("Adding columns to table")
-		if _, err := db.c.Exec(stmt); err != nil {
+		if _, err := tx.Exec(stmt); err != nil {
 			return fmt.Errorf("failed to alter table: %s", err)
 		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("unable to commit transaction for Extend: %s", err)
 	}
 	delete(db.c.RecordSchema, recordType)
 	return nil
@@ -149,37 +161,34 @@ func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 	return result, nil
 }
 
-func (db *database) createTable(recordType string) (err error) {
-	tablename := db.tableName(recordType)
-
-	stmt := createTableStmt(tablename)
+func createTable(tx *sqlx.Tx, tableName string) error {
+	stmt := createTableStmt(tableName)
 	log.WithField("stmt", stmt).Debugln("Creating table")
-	_, err = db.c.Exec(stmt)
-	if err != nil {
+	if _, err := tx.Exec(stmt); err != nil {
 		return err
 	}
 
-	const CreateTriggerStmtFmt = `CREATE TRIGGER trigger_notify_record_change
-    AFTER INSERT OR UPDATE OR DELETE ON %s FOR EACH ROW
-    EXECUTE PROCEDURE public.notify_record_change();
-`
-	stmt = fmt.Sprintf(CreateTriggerStmtFmt, tablename)
+	stmt = fmt.Sprintf(`
+		CREATE TRIGGER trigger_notify_record_change
+		AFTER INSERT OR UPDATE OR DELETE ON %s FOR EACH ROW
+		EXECUTE PROCEDURE public.notify_record_change();
+	`, tableName)
 	log.WithField("stmt", stmt).Debugln("Creating trigger")
-	_, err = db.c.Exec(stmt)
+	if _, err := tx.Exec(stmt); err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
-func (db *database) dropTable(recordType string) error {
-	tableName := db.tableName(recordType)
-
+func dropTable(tx *sqlx.Tx, tableName string) error {
 	stmt := fmt.Sprintf(`
 		DROP TRIGGER IF EXISTS trigger_notify_record_change
 		ON %s
 		CASCADE
 	`, tableName)
 	log.WithField("stmt", stmt).Debugln("Deleting trigger")
-	if _, err := db.c.Exec(stmt); err != nil {
+	if _, err := tx.Exec(stmt); err != nil {
 		return err
 	}
 
@@ -188,7 +197,7 @@ func (db *database) dropTable(recordType string) error {
 		CASCADE
 	`, tableName)
 	log.WithField("stmt", stmt).Debugln("Deleting table")
-	if _, err := db.c.Exec(stmt); err != nil {
+	if _, err := tx.Exec(stmt); err != nil {
 		return err
 	}
 
