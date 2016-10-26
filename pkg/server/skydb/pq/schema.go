@@ -170,6 +170,31 @@ func (db *database) createTable(recordType string) (err error) {
 	return err
 }
 
+func (db *database) dropTable(recordType string) error {
+	tableName := db.tableName(recordType)
+
+	stmt := fmt.Sprintf(`
+		DROP TRIGGER IF EXISTS trigger_notify_record_change
+		ON %s
+		CASCADE
+	`, tableName)
+	log.WithField("stmt", stmt).Debugln("Deleting trigger")
+	if _, err := db.c.Exec(stmt); err != nil {
+		return err
+	}
+
+	stmt = fmt.Sprintf(`
+		DROP TABLE IF EXISTS %s
+		CASCADE
+	`, tableName)
+	log.WithField("stmt", stmt).Debugln("Deleting table")
+	if _, err := db.c.Exec(stmt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func createTableStmt(tableName string) string {
 	return fmt.Sprintf(`
 CREATE TABLE %s (

@@ -71,6 +71,12 @@ func getTestConn(t *testing.T) *conn {
 }
 
 func cleanupConn(t *testing.T, c *conn) {
+	for recordType := range c.RecordSchema {
+		if err := c.PublicDB().(*database).dropTable(recordType); err != nil {
+			t.Fatal(err)
+		}
+	}
+
 	schemaName := fmt.Sprintf("app_%s", toLowerAndUnderscore(c.appName))
 	_, err := c.db.Exec(fmt.Sprintf("DROP SCHEMA if exists %s CASCADE", schemaName))
 	if err != nil && !isInvalidSchemaName(err) {
