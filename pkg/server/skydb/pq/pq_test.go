@@ -17,7 +17,6 @@ package pq
 import (
 	"database/sql"
 	"fmt"
-	"math/rand"
 	"os"
 	"runtime"
 	"testing"
@@ -38,11 +37,7 @@ func isInvalidSchemaName(err error) bool {
 }
 
 func testAppName() string {
-	// Generate a random app name so that schema is different each time.
-	//
-	// This is a workaround for the issue that schema is not reliably
-	// created during testing. c.f. SkygearIO/skygear-server#171
-	return fmt.Sprintf("io.skygear.test.%d", rand.Int())
+	return "io.skygear.test"
 }
 
 func getTestConn(t *testing.T) *conn {
@@ -70,7 +65,29 @@ func getTestConn(t *testing.T) *conn {
 	return c.(*conn)
 }
 
+func dropAllRecordTables(t *testing.T, c *conn) {
+	tx, err := c.db.Beginx()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback()
+
+	db := c.PublicDB().(*database)
+	for recordType := range c.RecordSchema {
+		if err := dropTable(tx, db.tableName(recordType)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err = tx.Commit(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func cleanupConn(t *testing.T, c *conn) {
+	if len(c.RecordSchema) > 0 {
+		dropAllRecordTables(t, c)
+	}
+
 	schemaName := fmt.Sprintf("app_%s", toLowerAndUnderscore(c.appName))
 	_, err := c.db.Exec(fmt.Sprintf("DROP SCHEMA if exists %s CASCADE", schemaName))
 	if err != nil && !isInvalidSchemaName(err) {
