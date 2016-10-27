@@ -130,6 +130,9 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 
 	result, err := c.ExecWith(builder)
 	if err != nil {
+		if isUniqueViolated(err) {
+			return skydb.ErrUserDuplicated
+		}
 		return err
 	}
 	rowsAffected, err := result.RowsAffected()

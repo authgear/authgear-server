@@ -198,6 +198,10 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	if err := payload.DBConn.UpdateUser(targetUserinfo); err != nil {
+		if err == skydb.ErrUserDuplicated {
+			response.Err = errUserDuplicated
+			return
+		}
 		response.Err = skyerr.MakeError(err)
 		return
 	}
