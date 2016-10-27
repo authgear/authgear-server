@@ -16,7 +16,6 @@ package migration
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"testing"
 
@@ -26,11 +25,7 @@ import (
 )
 
 func testSchemaName() string {
-	// Generate a random schema name so that schema is different each time.
-	//
-	// This is a workaround for the issue that schema is not reliably
-	// created during testing. c.f. SkygearIO/skygear-server#171
-	return fmt.Sprintf("app_io_skygear_test_%d", rand.Int())
+	return "app_io_skygear_test"
 }
 
 func getTestDB(t *testing.T) *sqlx.DB {

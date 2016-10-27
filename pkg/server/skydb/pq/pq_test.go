@@ -17,7 +17,6 @@ package pq
 import (
 	"database/sql"
 	"fmt"
-	"math/rand"
 	"os"
 	"runtime"
 	"testing"
@@ -38,11 +37,7 @@ func isInvalidSchemaName(err error) bool {
 }
 
 func testAppName() string {
-	// Generate a random app name so that schema is different each time.
-	//
-	// This is a workaround for the issue that schema is not reliably
-	// created during testing. c.f. SkygearIO/skygear-server#171
-	return fmt.Sprintf("io.skygear.test.%d", rand.Int())
+	return "io.skygear.test"
 }
 
 func getTestConn(t *testing.T) *conn {
