@@ -5,11 +5,16 @@ services:
     image: mdillon/postgis:9.5
   redis:
     image: redis:3.0
+  app_data:
+    image: skygeario/skygear-godev:latest
+    volumes:
+    - /go/pkg
   app:
     image: skygeario/skygear-godev:latest
     volumes:
     - .:/go/src/github.com/skygeario/skygear-server
-    - dev:/go/pkg
+    volumes_from:
+    - app_data
     working_dir: /go/src/github.com/skygeario/skygear-server
     links:
     - db
@@ -27,7 +32,3 @@ services:
     environment:
       PGHOST: db
       PGUSER: postgres
-
-volumes:
-  dev:
-    driver: local

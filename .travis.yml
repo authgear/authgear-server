@@ -47,10 +47,9 @@ before_script:
            github.com/mitchellh/gox
 
 script:
-  - golint ./pkg/... | grep -v -f .golint.exclude; test $? -eq 1
-  - go generate ./pkg/...
+  - WITH_ZMQ=1 make generate
   - git status | grep "_string.go$"; test $? -eq 1
-  - gocyclo -over 15 pkg | gogocyclo
+  - WITH_ZMQ=1 make lint
   - WITH_ZMQ=1 make test
 
 before_deploy:
