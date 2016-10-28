@@ -359,10 +359,14 @@ func extendRecordSchema(db skydb.Database, records []*skydb.Record) error {
 		merger, ok := recordSchemaMergerMap[recordType]
 		if !ok {
 			merger = newSchemaMerger()
-			recordSchemaMergerMap[recordType] = merger
 		}
 
 		merger.Extend(deriveRecordSchema(record.Data))
+
+		// The map hold the value of Schema Merger. After we have
+		// updated the Schema Merger, we have to copy the value
+		// of Schema Merger back to the map.
+		recordSchemaMergerMap[recordType] = merger
 	}
 
 	for recordType, merger := range recordSchemaMergerMap {
