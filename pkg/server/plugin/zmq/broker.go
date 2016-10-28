@@ -91,10 +91,10 @@ type Broker struct {
 	timeout chan string
 	workers workerQueue
 	logger  *logrus.Entry
-	// for stoping the channeler
+	// for stopping the channeler
 	stop chan int
-	// internal state for stoping the zmq Run when true.
-	// Should use the stop chan to stop. The stop chan will set this varibale.
+	// internal state for stopping the zmq Run when true.
+	// Should use the stop chan to stop. The stop chan will set this variable.
 	stopping bool
 }
 
