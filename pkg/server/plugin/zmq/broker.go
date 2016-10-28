@@ -93,6 +93,9 @@ type Broker struct {
 	logger  *logrus.Entry
 	// for stoping the channeler
 	stop chan int
+	// internal state for stoping the zmq Run when true.
+	// Should use the stop chan to stop. The stop chan will set this varibale.
+	stopping bool
 }
 
 // NewBroker returns a new *Broker.
@@ -112,6 +115,7 @@ func NewBroker(name, backendAddr string) (*Broker, error) {
 		workers:     newWorkerQueue(),
 		logger:      namedLogger,
 		stop:        make(chan int),
+		stopping:    false,
 	}
 
 	go broker.Run()
@@ -191,6 +195,9 @@ func (lb *Broker) Run() {
 
 		lb.workers.Purge()
 		lb.workers.Unlock()
+		if lb.stopping {
+			return
+		}
 	}
 }
 
@@ -256,6 +263,7 @@ func (lb *Broker) Channeler() {
 			delete(lb.addressChan, address)
 			respChan <- []byte{0}
 		case <-lb.stop:
+			lb.stopping = true
 			return
 		}
 	}
