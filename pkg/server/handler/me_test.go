@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/server/authtoken/authtokentest"
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -47,8 +48,13 @@ func TestMeHandler(t *testing.T) {
 		}
 		conn.CreateUser(&userinfo)
 
+		tokenStore := &authtokentest.SingleTokenStore{}
+		handler := &MeHandler{
+			TokenStore: tokenStore,
+		}
+
 		Convey("Get me with user info", func() {
-			r := handlertest.NewSingleRouteRouter(&MeHandler{}, func(p *router.Payload) {
+			r := handlertest.NewSingleRouteRouter(handler, func(p *router.Payload) {
 				p.Data["access_token"] = "token-1"
 				p.UserInfo = &userinfo
 				p.DBConn = conn
@@ -58,7 +64,7 @@ func TestMeHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, http.StatusOK)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
         "result": {
-          "access_token": "token-1",
+          "access_token": "%s",
           "user_id": "tester-1",
           "email": "tester1@example.com",
           "username": "tester1",
@@ -67,6 +73,7 @@ func TestMeHandler(t *testing.T) {
           "last_seen_at": "%v"
         }
       }`,
+				tokenStore.Token.AccessToken,
 				lastHour.Format(time.RFC3339Nano),
 				lastHour.Format(time.RFC3339Nano),
 			))
@@ -76,7 +83,7 @@ func TestMeHandler(t *testing.T) {
 		})
 
 		Convey("Get me without user info", func() {
-			r := handlertest.NewSingleRouteRouter(&MeHandler{}, func(p *router.Payload) {})
+			r := handlertest.NewSingleRouteRouter(handler, func(p *router.Payload) {})
 			resp := r.POST("")
 			So(resp.Code, ShouldEqual, http.StatusUnauthorized)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{

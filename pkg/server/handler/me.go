@@ -15,12 +15,14 @@
 package handler
 
 import (
+	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 // MeHandler handles the me request
 type MeHandler struct {
+	TokenStore    authtoken.Store  `inject:"TokenStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
@@ -63,8 +65,23 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 		return
 	}
 
+	if h.TokenStore == nil {
+		panic("token store is nil")
+	}
+	store := h.TokenStore
+
+	// refresh access token with a newly generated one
+	token, err := store.NewToken(payload.AppName, info.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = store.Put(&token); err != nil {
+		panic(err)
+	}
+
 	// We will return the last seen in DB, not current time stamp
-	authResponse := NewAuthResponse(*info, payload.AccessTokenString())
+	authResponse := NewAuthResponse(*info, token.AccessToken)
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastSeenAt = &now
