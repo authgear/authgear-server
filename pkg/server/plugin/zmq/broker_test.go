@@ -131,15 +131,21 @@ func TestBrokerWorker(t *testing.T) {
 	if runtime.GOMAXPROCS(0) == 1 {
 		t.Skip("skipping zmq test in GOMAXPROCS=1")
 	}
-	const (
-		workerAddr = "inproc://plugin.test"
-	)
-	broker, err := NewBroker("test", workerAddr)
-	if err != nil {
-		t.Fatalf("Failed to init broker: %v", err)
-	}
 
 	Convey("Test Broker", t, func() {
+		const (
+			workerAddr = "inproc://plugin.test"
+		)
+		broker, err := NewBroker("test", workerAddr)
+		if err != nil {
+			t.Fatalf("Failed to init broker: %v", err)
+		}
+
+		Reset(func() {
+			broker.stop <- 1
+			time.Sleep(HeartbeatInterval * 2)
+		})
+
 		Convey("receive Ready signal will register the worker", func() {
 			w := workerSock(t, "ready", workerAddr)
 			defer func() {
@@ -374,6 +380,5 @@ func TestBrokerWorker(t *testing.T) {
 
 		})
 	})
-	broker.stop <- 1
 
 }
