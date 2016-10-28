@@ -1,6 +1,31 @@
+## 0.18.0 (2016-10-28)
+
+### Features
+
+- Refresh token at me endpoint (#118)
+
+### Bug Fixes
+
+- Fix unable to detect schema conflict (#140)
+- Check for username/email duplicate when updating (#124)
+- Resolve socket exhaust problem on high concurrency (#160)
+- Fix skygear not sending init to plugin when restarted quickly (#150)
+- Fix auth:password response invalid access token (#142)
+
+### Other Notes
+
+- Properly stop pubsub hub at test case
+- Allow run test with docker-compose (#157)
+- Make changes for smaller number of image layers
+- Add ca-certificate to deps building pipeline (#154)
+- Mark the skygear-server restart to always in Docker Compose (#145)
+
+## 0.17.1 (2016-09-23)
+
 ### Bug Fixes
 
 - Fix not able to update user after signup with auth provider
+
 ## 0.17.0 (2016-09-15)
 
 ### Bug fixes
