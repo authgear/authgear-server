@@ -89,6 +89,10 @@ func (p *zmqTransport) RunInit() (out []byte, err error) {
 	return
 }
 
+func (p *zmqTransport) SendEvent(name string, in []byte) ([]byte, error) {
+	return p.rpc(pluginrequest.NewEventRequest(name, in))
+}
+
 func (p *zmqTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
 	out, err = p.rpc(pluginrequest.NewLambdaRequest(ctx, name, in))
 	return

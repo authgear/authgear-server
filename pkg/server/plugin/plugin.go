@@ -79,6 +79,7 @@ func RegisterTransport(name string, transport TransportFactory) {
 	transportFactories[name] = transport
 }
 
+// SupportedTransports tells all supported transport names
 func SupportedTransports() []string {
 	var transports []string
 	for name := range transportFactories {
@@ -116,12 +117,14 @@ type InitContext struct {
 	Config           skyconfig.Configuration
 }
 
+// AddPluginConfiguration creates and appends a plugin
 func (c *InitContext) AddPluginConfiguration(name string, path string, args []string) *Plugin {
 	plug := NewPlugin(name, path, args, c.Config)
 	c.plugins = append(c.plugins, &plug)
 	return &plug
 }
 
+// InitPlugins initializes all plugins registered
 func (c *InitContext) InitPlugins() {
 	for _, plug := range c.plugins {
 		plug.Init(c)
@@ -160,6 +163,7 @@ func (p *Plugin) Init(context *InitContext) {
 	go p.transport.RequestInit()
 }
 
+// IsReady tells whether the plugin is ready
 func (p *Plugin) IsReady() bool {
 	return p.transport.State() == TransportStateReady
 }

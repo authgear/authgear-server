@@ -123,6 +123,12 @@ func TestRun(t *testing.T) {
 			So(string(out), ShouldEqual, `"op hello:world"`)
 		})
 
+		Convey("event", func() {
+			out, err := transport.SendEvent("foo:bar", []byte{})
+			So(err, ShouldBeNil)
+			So(string(out), ShouldEqual, `"event foo:bar"`)
+		})
+
 		Convey("handler", func() {
 			out, err := transport.RunHandler(nil, "hello:world", []byte{})
 			So(err, ShouldBeNil)
@@ -146,6 +152,12 @@ func TestRun(t *testing.T) {
 			out, err := transport.RunLambda(nil, "hello:world", []byte(`{"result": "hello world"}`))
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"hello world"`)
+		})
+
+		Convey("event", func() {
+			out, err := transport.SendEvent("foo:bar", []byte(`{"result": "haha"}`))
+			So(err, ShouldBeNil)
+			So(string(out), ShouldEqual, `"haha"`)
 		})
 
 		Convey("handler", func() {

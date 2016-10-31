@@ -42,6 +42,11 @@ func NewLambdaRequest(ctx context.Context, name string, args json.RawMessage) *R
 	return &Request{Kind: "op", Name: name, Param: args, Context: ctx}
 }
 
+// NewEventRequest creates a new event request
+func NewEventRequest(name string, data json.RawMessage) *Request {
+	return &Request{Kind: "event", Name: name, Param: data}
+}
+
 // NewHandlerRequest creates a new handler request.
 func NewHandlerRequest(ctx context.Context, name string, input json.RawMessage) *Request {
 	return &Request{Kind: "handler", Name: name, Param: input, Context: ctx}

@@ -48,6 +48,10 @@ func (t nullTransport) RunInit() (out []byte, err error) {
 	out = []byte{}
 	return
 }
+func (t nullTransport) SendEvent(name string, in []byte) (out []byte, err error) {
+	out = in
+	return
+}
 func (t *nullTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
 	out = in
 	t.lastContext = ctx

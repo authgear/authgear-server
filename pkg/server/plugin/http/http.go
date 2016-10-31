@@ -134,6 +134,11 @@ func (p *httpTransport) RunInit() (out []byte, err error) {
 	}
 }
 
+func (p *httpTransport) SendEvent(name string, in []byte) (out []byte, err error) {
+	out, err = p.rpc(pluginrequest.NewEventRequest(name, in))
+	return
+}
+
 func (p *httpTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
 	out, err = p.rpc(pluginrequest.NewLambdaRequest(ctx, name, in))
 	return

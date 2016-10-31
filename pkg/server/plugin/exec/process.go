@@ -181,6 +181,10 @@ func (p *execTransport) RunInit() (out []byte, err error) {
 	return
 }
 
+func (p *execTransport) SendEvent(name string, in []byte) ([]byte, error) {
+	return p.runProc([]string{"event", name}, []string{}, in)
+}
+
 func (p *execTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
 	pluginCtx := skyplugin.ContextMap(ctx)
 	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
