@@ -145,6 +145,7 @@ func NewConfiguration() Configuration {
 	config.LOG.LoggersLevel = map[string]string{
 		"plugin": "info",
 	}
+	config.LogHook.SentryLevel = "error"
 	config.Plugin = map[string]*PluginConfig{}
 	return config
 }
