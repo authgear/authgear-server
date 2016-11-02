@@ -21,84 +21,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime/debug"
-	"time"
 
 	"github.com/Sirupsen/logrus"
 
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/common"
+	pluginrequest "github.com/skygeario/skygear-server/pkg/server/plugin/request"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/zeromq/goczmq"
 	"golang.org/x/net/context"
 )
-
-const initRequestTimeout = time.Second * 2
-
-type request struct {
-	Context context.Context
-	Kind    string
-	Name    string
-	Param   interface{}
-}
-
-type hookRequest struct {
-	Record   interface{} `json:"record"`
-	Original interface{} `json:"original"`
-}
-
-// type-safe constructors for request.Param assignment
-
-func newLambdaRequest(ctx context.Context, name string, args json.RawMessage) *request {
-	return &request{Kind: "op", Name: name, Param: args, Context: ctx}
-}
-
-func newHandlerRequest(ctx context.Context, name string, input json.RawMessage) *request {
-	return &request{Kind: "handler", Name: name, Param: input, Context: ctx}
-}
-
-func newHookRequest(hookName string, record *skydb.Record, originalRecord *skydb.Record, ctx context.Context) *request {
-	param := hookRequest{
-		Record:   (*skyconv.JSONRecord)(record),
-		Original: (*skyconv.JSONRecord)(originalRecord),
-	}
-	return &request{Kind: "hook", Name: hookName, Param: param, Context: ctx}
-}
-
-func newAuthRequest(authReq *skyplugin.AuthRequest) *request {
-	return &request{
-		Kind: "provider",
-		Name: authReq.ProviderName,
-		Param: struct {
-			Action   string                 `json:"action"`
-			AuthData map[string]interface{} `json:"auth_data"`
-		}{authReq.Action, authReq.AuthData},
-	}
-}
-
-// TODO(limouren): reduce copying of this method
-func (req *request) MarshalJSON() ([]byte, error) {
-	pluginCtx := skyplugin.ContextMap(req.Context)
-	if rawParam, ok := req.Param.(json.RawMessage); ok {
-		rawParamReq := struct {
-			Kind    string                 `json:"kind"`
-			Name    string                 `json:"name,omitempty"`
-			Param   json.RawMessage        `json:"param,omitempty"`
-			Context map[string]interface{} `json:"context,omitempty"`
-		}{req.Kind, req.Name, rawParam, pluginCtx}
-		return json.Marshal(&rawParamReq)
-	}
-
-	paramReq := struct {
-		Kind    string                 `json:"kind"`
-		Name    string                 `json:"name,omitempty"`
-		Param   interface{}            `json:"param,omitempty"`
-		Context map[string]interface{} `json:"context,omitempty"`
-	}{req.Kind, req.Name, req.Param, pluginCtx}
-
-	return json.Marshal(&paramReq)
-}
 
 type zmqTransport struct {
 	state       skyplugin.TransportState
@@ -150,23 +84,23 @@ func (p *zmqTransport) RunInit() (out []byte, err error) {
 	param := struct {
 		Config skyconfig.Configuration `json:"config"`
 	}{p.config}
-	req := request{Kind: "init", Param: param}
+	req := pluginrequest.Request{Kind: "init", Param: param}
 	out, err = p.ipc(&req)
 	return
 }
 
 func (p *zmqTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
-	out, err = p.rpc(newLambdaRequest(ctx, name, in))
+	out, err = p.rpc(pluginrequest.NewLambdaRequest(ctx, name, in))
 	return
 }
 
 func (p *zmqTransport) RunHandler(ctx context.Context, name string, in []byte) (out []byte, err error) {
-	out, err = p.rpc(newHandlerRequest(ctx, name, in))
+	out, err = p.rpc(pluginrequest.NewHandlerRequest(ctx, name, in))
 	return
 }
 
 func (p *zmqTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
-	out, err := p.rpc(newHookRequest(hookName, record, originalRecord, ctx))
+	out, err := p.rpc(pluginrequest.NewHookRequest(ctx, hookName, record, originalRecord))
 	if err != nil {
 		return nil, err
 	}
@@ -186,13 +120,13 @@ func (p *zmqTransport) RunHook(ctx context.Context, hookName string, record *sky
 }
 
 func (p *zmqTransport) RunTimer(name string, in []byte) (out []byte, err error) {
-	req := request{Kind: "timer", Name: name}
+	req := pluginrequest.Request{Kind: "timer", Name: name}
 	out, err = p.rpc(&req)
 	return
 }
 
 func (p *zmqTransport) RunProvider(request *skyplugin.AuthRequest) (resp *skyplugin.AuthResponse, err error) {
-	req := newAuthRequest(request)
+	req := pluginrequest.NewAuthRequest(request)
 	out, err := p.rpc(req)
 	if err != nil {
 		return
@@ -202,7 +136,7 @@ func (p *zmqTransport) RunProvider(request *skyplugin.AuthRequest) (resp *skyplu
 	return
 }
 
-func (p *zmqTransport) rpc(req *request) (out []byte, err error) {
+func (p *zmqTransport) rpc(req *pluginrequest.Request) (out []byte, err error) {
 	var rawResp []byte
 
 	rawResp, err = p.ipc(req)
@@ -227,7 +161,7 @@ func (p *zmqTransport) rpc(req *request) (out []byte, err error) {
 	return
 }
 
-func (p *zmqTransport) ipc(req *request) (out []byte, err error) {
+func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.WithField("recovered", r).

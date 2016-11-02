@@ -26,7 +26,6 @@ import (
 	"golang.org/x/net/context"
 
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
-	"github.com/skygeario/skygear-server/pkg/server/plugin/common"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -60,7 +59,7 @@ func TestRun(t *testing.T) {
 		}
 
 		Convey("run init", func() {
-			httpmock.RegisterResponder("POST", "http://localhost:8000/init",
+			httpmock.RegisterResponder("POST", "http://localhost:8000",
 				func(req *http.Request) (*http.Response, error) {
 					out, _ := ioutil.ReadAll(req.Body)
 					So(string(out), ShouldContainSubstring, "hello-world")
@@ -77,25 +76,18 @@ func TestRun(t *testing.T) {
 
 		Convey("run lambda", func() {
 			ctx := context.WithValue(context.Background(), router.UserIDContextKey, "user")
-			data := []byte(`{"data": "bye"}`)
-			httpmock.RegisterResponder("POST", "http://localhost:8000/op/john",
+			data := `{"data": "bye"}`
+			httpmock.RegisterResponder("POST", "http://localhost:8000",
 				func(req *http.Request) (*http.Response, error) {
-					encodedCtx := req.Header.Get("X-Skygear-Plugin-Context")
-					decodedCtx := map[string]interface{}{}
-					common.DecodeBase64JSON(encodedCtx, &decodedCtx)
-					So(decodedCtx, ShouldResemble, map[string]interface{}{
-						"user_id": "user",
-					})
-
 					out, _ := ioutil.ReadAll(req.Body)
-					So(out, ShouldResemble, data)
+					So(out, ShouldEqualJSON, `{"context":{"user_id":"user"},"kind":"op","name":"john","param":{"data":"bye"}}`)
 					return httpmock.NewJsonResponse(200, map[string]interface{}{
 						"result": map[string]interface{}{"data": "hello"},
 					})
 				},
 			)
 
-			out, err := transport.RunLambda(ctx, "john", data)
+			out, err := transport.RunLambda(ctx, "john", []byte(data))
 			So(out, ShouldEqualJSON, `{"data": "hello"}`)
 			So(err, ShouldBeNil)
 		})
@@ -135,64 +127,62 @@ func TestRun(t *testing.T) {
 				},
 			}
 
-			httpmock.RegisterResponder("POST", "http://localhost:8000/hook/beforeSave",
+			httpmock.RegisterResponder("POST", "http://localhost:8000",
 				func(req *http.Request) (*http.Response, error) {
-					encodedCtx := req.Header.Get("X-Skygear-Plugin-Context")
-					decodedCtx := map[string]interface{}{}
-					common.DecodeBase64JSON(encodedCtx, &decodedCtx)
-					So(decodedCtx, ShouldResemble, map[string]interface{}{
-						"user_id": "user",
-					})
-
 					in, _ := ioutil.ReadAll(req.Body)
 					So(in, ShouldEqualJSON, `{
-						"record": {
-							"_id": "note/id",
-							"_type": "record",
-							"_ownerID": "john.doe@example.com",
-							"content": "some note content",
-							"noteOrder": 1,
-							"tags": ["test", "unimportant"],
-							"date": {
-								"$type": "date",
-								"$date": "2017-07-23T19:30:24Z"
+						"context":{"user_id":"user"},
+						"kind":"hook",
+						"name":"beforeSave",
+						"param":{
+							"record": {
+								"_id": "note/id",
+								"_type": "record",
+								"_ownerID": "john.doe@example.com",
+								"content": "some note content",
+								"noteOrder": 1,
+								"tags": ["test", "unimportant"],
+								"date": {
+									"$type": "date",
+									"$date": "2017-07-23T19:30:24Z"
+								},
+								"ref": {
+									"$type": "ref",
+									"$id": "category/1"
+								},
+								"asset":{
+									"$type": "asset",
+									"$name": "asset-name"
+								},
+								"_access": [{
+									"relation": "friend",
+									"level": "write"
+								}, {
+									"relation": "$direct",
+									"level": "read",
+									"user_id": "user_id"
+								}]
 							},
-							"ref": {
-								"$type": "ref",
-								"$id": "category/1"
-							},
-							"asset":{
-								"$type": "asset",
-								"$name": "asset-name"
-							},
-							"_access": [{
-								"relation": "friend",
-								"level": "write"
-							}, {
-								"relation": "$direct",
-								"level": "read",
-								"user_id": "user_id"
-							}]
-						},
-						"original": {
-							"_id": "note/id",
-							"_type": "record",
-							"_ownerID": "john.doe@example.com",
-							"content": "original content",
-							"noteOrder": 1,
-							"tags": [],
-							"date": {
-								"$type": "date",
-								"$date": "2017-07-21T19:30:24Z"
-							},
-							"_access": [{
-								"relation": "friend",
-								"level": "write"
-							}, {
-								"relation": "$direct",
-								"level": "read",
-								"user_id": "user_id"
-							}]
+							"original": {
+								"_id": "note/id",
+								"_type": "record",
+								"_ownerID": "john.doe@example.com",
+								"content": "original content",
+								"noteOrder": 1,
+								"tags": [],
+								"date": {
+									"$type": "date",
+									"$date": "2017-07-21T19:30:24Z"
+								},
+								"_access": [{
+									"relation": "friend",
+									"level": "write"
+								}, {
+									"relation": "$direct",
+									"level": "read",
+									"user_id": "user_id"
+								}]
+							}
 						}
 					}`)
 
@@ -273,7 +263,7 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("run timer", func() {
-			httpmock.RegisterResponder("POST", "http://localhost:8000/timer/john",
+			httpmock.RegisterResponder("POST", "http://localhost:8000",
 				func(req *http.Request) (*http.Response, error) {
 					return httpmock.NewJsonResponse(200, map[string]interface{}{
 						"result": map[string]interface{}{"data": "hello"},
@@ -289,10 +279,10 @@ func TestRun(t *testing.T) {
 		Convey("run provider", func() {
 			authData := map[string]interface{}{"data": "bye"}
 
-			httpmock.RegisterResponder("POST", "http://localhost:8000/provider/com.example/login",
+			httpmock.RegisterResponder("POST", "http://localhost:8000",
 				func(req *http.Request) (*http.Response, error) {
 					out, _ := ioutil.ReadAll(req.Body)
-					So(out, ShouldEqualJSON, `{"auth_data":{"data": "bye"}}`)
+					So(out, ShouldEqualJSON, `{"kind":"provider","name":"com.example","param":{"action":"login","auth_data":{"data":"bye"}}}`)
 
 					return httpmock.NewJsonResponse(200, map[string]interface{}{
 						"result": map[string]interface{}{

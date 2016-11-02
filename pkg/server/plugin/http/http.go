@@ -25,6 +25,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/common"
+	pluginrequest "github.com/skygeario/skygear-server/pkg/server/plugin/request"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
@@ -43,18 +44,8 @@ type httpTransport struct {
 	config      skyconfig.Configuration
 }
 
-func (p *httpTransport) sendRequest(req *http.Request) (out []byte, err error) {
-	httpresp, err := p.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer httpresp.Body.Close()
-
-	return ioutil.ReadAll(httpresp.Body)
-}
-
-func (p *httpTransport) execute(req *http.Request) (out []byte, err error) {
-	data, err := p.sendRequest(req)
+func (p *httpTransport) rpc(req *pluginrequest.Request) (out []byte, err error) {
+	data, err := p.ipc(req)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +68,26 @@ func (p *httpTransport) execute(req *http.Request) (out []byte, err error) {
 
 	out = resp.Result
 	return
+}
+
+func (p *httpTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
+	in, err := json.Marshal(req)
+	if err != nil {
+		return
+	}
+
+	httpreq, err := http.NewRequest("POST", p.Path, bytes.NewReader(in))
+	if err != nil {
+		return
+	}
+
+	httpresp, err := p.httpClient.Do(httpreq)
+	if err != nil {
+		return nil, err
+	}
+	defer httpresp.Body.Close()
+
+	return ioutil.ReadAll(httpresp.Body)
 }
 
 func (p *httpTransport) State() skyplugin.TransportState {
@@ -108,19 +119,12 @@ func (p *httpTransport) RequestInit() {
 }
 
 func (p *httpTransport) RunInit() (out []byte, err error) {
-	url := fmt.Sprintf("%s/init", p.Path)
-	in, err := json.Marshal(struct {
+	param := struct {
 		Config skyconfig.Configuration `json:"config"`
-	}{p.config})
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequest("POST", url, bytes.NewReader(in))
-	if err != nil {
-		return nil, err
-	}
+	}{p.config}
+	req := pluginrequest.Request{Kind: "init", Param: param}
 	for {
-		out, err = p.sendRequest(req)
+		out, err = p.ipc(&req)
 		if err == nil {
 			return
 		}
@@ -131,55 +135,17 @@ func (p *httpTransport) RunInit() (out []byte, err error) {
 }
 
 func (p *httpTransport) RunLambda(ctx context.Context, name string, in []byte) (out []byte, err error) {
-	url := fmt.Sprintf("%s/op/%s", p.Path, name)
-	req, err := http.NewRequest("POST", url, bytes.NewReader(in))
-	if err != nil {
-		return nil, err
-	}
-	pluginCtx := skyplugin.ContextMap(ctx)
-	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("X-Skygear-Plugin-Context", encodedCtx)
-	return p.execute(req)
+	out, err = p.rpc(pluginrequest.NewLambdaRequest(ctx, name, in))
+	return
 }
 
 func (p *httpTransport) RunHandler(ctx context.Context, name string, in []byte) (out []byte, err error) {
-	url := fmt.Sprintf("%s/handler/%s", p.Path, name)
-	req, err := http.NewRequest("POST", url, bytes.NewReader(in))
-	pluginCtx := skyplugin.ContextMap(ctx)
-	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("X-Skygear-Plugin-Context", encodedCtx)
-	return p.execute(req)
+	out, err = p.rpc(pluginrequest.NewHandlerRequest(ctx, name, in))
+	return
 }
 
 func (p *httpTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
-	param := map[string]interface{}{
-		"record":   (*skyconv.JSONRecord)(record),
-		"original": (*skyconv.JSONRecord)(originalRecord),
-	}
-	in, err := json.Marshal(param)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal record: %v", err)
-	}
-
-	url := fmt.Sprintf("%s/hook/%s", p.Path, hookName)
-	req, err := http.NewRequest("POST", url, bytes.NewReader(in))
-	if err != nil {
-		return nil, err
-	}
-	pluginCtx := skyplugin.ContextMap(ctx)
-	encodedCtx, err := common.EncodeBase64JSON(pluginCtx)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("X-Skygear-Plugin-Context", encodedCtx)
-
-	out, err := p.execute(req)
+	out, err := p.rpc(pluginrequest.NewHookRequest(ctx, hookName, record, originalRecord))
 	if err != nil {
 		return nil, err
 	}
@@ -199,30 +165,14 @@ func (p *httpTransport) RunHook(ctx context.Context, hookName string, record *sk
 }
 
 func (p *httpTransport) RunTimer(name string, in []byte) (out []byte, err error) {
-	url := fmt.Sprintf("%s/timer/%s", p.Path, name)
-	req, err := http.NewRequest("POST", url, bytes.NewReader(in))
-	if err != nil {
-		return nil, err
-	}
-	return p.execute(req)
+	req := pluginrequest.Request{Kind: "timer", Name: name}
+	out, err = p.rpc(&req)
+	return
 }
 
 func (p *httpTransport) RunProvider(request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
-	req := map[string]interface{}{
-		"auth_data": request.AuthData,
-	}
-
-	in, err := json.Marshal(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal auth request: %v", err)
-	}
-
-	url := fmt.Sprintf("%s/provider/%s/%s", p.Path, request.ProviderName, request.Action)
-	httpreq, err := http.NewRequest("POST", url, bytes.NewReader(in))
-	if err != nil {
-		return nil, err
-	}
-	out, err := p.execute(httpreq)
+	req := pluginrequest.NewAuthRequest(request)
+	out, err := p.rpc(req)
 
 	resp := skyplugin.AuthResponse{}
 
