@@ -488,11 +488,11 @@ func initSentry(config skyconfig.Configuration) {
 		config.LogHook.SentryDSN,
 		tags,
 		levels)
-	hook.Timeout = 1 * time.Second
 	if err != nil {
 		log.Errorf("Failed to initialize Sentry: %v", err)
 		return
 	}
+	hook.Timeout = 1 * time.Second
 	log.Infof("Logging to Sentry: %v", levels)
 	logging.AddHook(hook)
 }
