@@ -118,9 +118,9 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("event", func() {
-			out, err := transport.SendEvent("foo:bar", []byte{})
+			out, err := transport.SendEvent("foo-bar", []byte{})
 			So(err, ShouldBeNil)
-			So(string(out), ShouldEqual, `"event foo:bar"`)
+			So(string(out), ShouldEqual, `"event foo-bar"`)
 		})
 
 		Convey("handler", func() {
@@ -143,7 +143,7 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("event", func() {
-			out, err := transport.SendEvent("foo:bar", []byte(`{"result": "haha"}`))
+			out, err := transport.SendEvent("foo-bar", []byte(`{"result": "haha"}`))
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"haha"`)
 		})

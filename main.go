@@ -93,7 +93,7 @@ func main() {
 	if !config.App.Slave {
 		cronjob = cron.New()
 	}
-	initContext := plugin.InitContext{
+	pluginContext := plugin.Context{
 		Router:           r,
 		Mux:              serveMux,
 		Preprocessors:    preprocessorRegistry,
@@ -133,19 +133,23 @@ func main() {
 		Option:        config.DB.Option,
 		DevMode:       config.App.DevMode,
 	}
-	preprocessorRegistry["plugin"] = &pp.EnsurePluginReadyPreprocessor{&initContext}
+	preprocessorRegistry["plugin"] = &pp.EnsurePluginReadyPreprocessor{
+		PluginContext: &pluginContext,
+	}
 	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
 	preprocessorRegistry["require_user"] = &pp.RequireUserForWrite{}
 	preprocessorRegistry["inject_db"] = &pp.InjectDatabase{}
 	preprocessorRegistry["inject_public_db"] = &pp.InjectPublicDatabase{}
-	preprocessorRegistry["dev_only"] = &pp.DevOnlyProcessor{config.App.DevMode}
+	preprocessorRegistry["dev_only"] = &pp.DevOnlyProcessor{
+		DevMode: config.App.DevMode,
+	}
 
 	r.Map("", &handler.HomeHandler{})
 
 	g := &inject.Graph{}
 	injectErr := g.Provide(
-		&inject.Object{Value: initContext.ProviderRegistry, Complete: true, Name: "ProviderRegistry"},
-		&inject.Object{Value: initContext.HookRegistry, Complete: true, Name: "HookRegistry"},
+		&inject.Object{Value: pluginContext.ProviderRegistry, Complete: true, Name: "ProviderRegistry"},
+		&inject.Object{Value: pluginContext.HookRegistry, Complete: true, Name: "HookRegistry"},
 		&inject.Object{Value: tokenStore, Complete: true, Name: "TokenStore"},
 		&inject.Object{Value: initAssetStore(config), Complete: true, Name: "AssetStore"},
 		&inject.Object{Value: pushSender, Complete: true, Name: "PushSender"},
@@ -160,8 +164,8 @@ func main() {
 	}
 
 	injector := router.HandlerInjector{
-		g,
-		&preprocessorRegistry,
+		ServiceGraph:    g,
+		PreprocessorMap: &preprocessorRegistry,
 	}
 
 	r.Map("auth:signup", injector.Inject(&handler.SignupHandler{}))
@@ -259,7 +263,9 @@ func main() {
 	}
 
 	// Bootstrap finished, starting services
-	initPlugin(config, &initContext)
+	initPlugin(config, &pluginContext)
+
+	pluginContext.SendEvents("server-ready", []byte{}, false)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, finalMux)
@@ -414,18 +420,18 @@ func initSubscription(config skyconfig.Configuration, connOpener func() (skydb.C
 	go subscriptionService.Run()
 }
 
-func initPlugin(config skyconfig.Configuration, initContext *plugin.InitContext) {
+func initPlugin(config skyconfig.Configuration, ctx *plugin.Context) {
 	log.Infof("Supported plugin transports: %s", strings.Join(plugin.SupportedTransports(), ", "))
 
-	if initContext.Scheduler != nil {
-		initContext.Scheduler.Start()
+	if ctx.Scheduler != nil {
+		ctx.Scheduler.Start()
 	}
 
 	for _, pluginConfig := range config.Plugin {
-		initContext.AddPluginConfiguration(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)
+		ctx.AddPluginConfiguration(pluginConfig.Transport, pluginConfig.Path, pluginConfig.Args)
 	}
 
-	initContext.InitPlugins()
+	ctx.InitPlugins()
 }
 
 func initLogger(config skyconfig.Configuration) {

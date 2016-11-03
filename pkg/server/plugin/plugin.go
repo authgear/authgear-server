@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -112,8 +113,8 @@ func NewPlugin(name string, path string, args []string, config skyconfig.Configu
 	return p
 }
 
-// InitContext contains reference to structs that will be initialized by plugin.
-type InitContext struct {
+// Context contains reference to structs that will be initialized by plugin.
+type Context struct {
 	plugins          []*Plugin
 	Router           *router.Router
 	Mux              *http.ServeMux
@@ -125,31 +126,59 @@ type InitContext struct {
 }
 
 // AddPluginConfiguration creates and appends a plugin
-func (c *InitContext) AddPluginConfiguration(name string, path string, args []string) *Plugin {
+func (c *Context) AddPluginConfiguration(name string, path string, args []string) *Plugin {
 	plug := NewPlugin(name, path, args, c.Config)
 	c.plugins = append(c.plugins, &plug)
 	return &plug
 }
 
 // InitPlugins initializes all plugins registered
-func (c *InitContext) InitPlugins() {
-	for _, plug := range c.plugins {
-		go plug.Init(c)
+func (c *Context) InitPlugins() {
+	wg := sync.WaitGroup{}
+	for _, eachPlugin := range c.plugins {
+		wg.Add(1)
+		go func(plug *Plugin) {
+			defer wg.Done()
+			plug.Init(c)
+		}(eachPlugin)
 	}
+
+	log.
+		WithField("count", len(c.plugins)).
+		Info("Wait for all plugin configurations")
+	wg.Wait()
+	c.SendEvents("before-plugins-ready", []byte{}, false)
+	c.SendEvents("after-plugins-ready", []byte{}, false)
 }
 
 // IsReady returns true if all the configured plugins are available
-func (c *InitContext) IsReady() bool {
-	for _, plug := range c.plugins {
-		if !plug.IsReady() {
+func (c *Context) IsReady() bool {
+	for _, eachPlugin := range c.plugins {
+		if !eachPlugin.IsReady() {
 			return false
 		}
 	}
 	return true
 }
 
+// SendEvents sends event to all plugins
+func (c *Context) SendEvents(name string, data []byte, async bool) {
+	sendEventFunc := func(plugin *Plugin, name string, data []byte) {
+		plugin.transport.SendEvent(name, data)
+	}
+
+	for _, eachPlugin := range c.plugins {
+		if async {
+			go sendEventFunc(eachPlugin, name, data)
+		} else {
+			sendEventFunc(eachPlugin, name, data)
+		}
+	}
+}
+
 // Init instantiates a plugin. This sets up hooks and handlers.
-func (p *Plugin) Init(context *InitContext) {
+func (p *Plugin) Init(context *Context) {
+	p.transport.SendEvent("before-config", []byte{})
 	for {
 		log.
 			WithField("retry", p.initRetryCount).
@@ -173,9 +202,10 @@ func (p *Plugin) Init(context *InitContext) {
 
 		break
 	}
+	p.transport.SendEvent("after-config", []byte{})
 }
 
-func (p *Plugin) requestInit(context *InitContext) (regInfo registrationInfo, initErr error) {
+func (p *Plugin) requestInit(context *Context) (regInfo registrationInfo, initErr error) {
 	payload := struct {
 		Config skyconfig.Configuration `json:"config"`
 	}{context.Config}
@@ -211,7 +241,7 @@ func (p *Plugin) IsReady() bool {
 	return p.transport.State() == TransportStateReady
 }
 
-func (p *Plugin) processRegistrationInfo(context *InitContext, regInfo registrationInfo) {
+func (p *Plugin) processRegistrationInfo(context *Context, regInfo registrationInfo) {
 	log.WithFields(logrus.Fields{
 		"regInfo":   regInfo,
 		"transport": p.transport,

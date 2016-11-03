@@ -23,11 +23,11 @@ import (
 )
 
 type EnsurePluginReadyPreprocessor struct {
-	PluginInitContext *plugin.InitContext
+	PluginContext *plugin.Context
 }
 
 func (p *EnsurePluginReadyPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	if !p.PluginInitContext.IsReady() {
+	if !p.PluginContext.IsReady() {
 		log.Errorf("Request cannot be handled because plugins are unavailable at the moment.")
 		response.Err = skyerr.NewError(skyerr.PluginUnavailable, "plugins are unavailable at the moment")
 		return http.StatusServiceUnavailable
