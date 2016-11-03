@@ -26,27 +26,16 @@ import (
 )
 
 type nullTransport struct {
+	state       TransportState
 	initHandler TransportInitHandler
 	lastContext context.Context
 }
 
 func (t *nullTransport) State() TransportState {
-	return TransportStateReady
+	return t.state
 }
-
-func (t *nullTransport) SetInitHandler(f TransportInitHandler) {
-	t.initHandler = f
-}
-
-func (t *nullTransport) RequestInit() {
-	if t.initHandler != nil {
-		t.initHandler([]byte{}, nil)
-	}
-	return
-}
-func (t nullTransport) RunInit() (out []byte, err error) {
-	out = []byte{}
-	return
+func (t *nullTransport) SetState(newState TransportState) {
+	t.state = newState
 }
 func (t nullTransport) SendEvent(name string, in []byte) (out []byte, err error) {
 	out = in

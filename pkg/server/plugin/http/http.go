@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
@@ -94,43 +93,11 @@ func (p *httpTransport) State() skyplugin.TransportState {
 	return p.state
 }
 
-func (p *httpTransport) SetInitHandler(f skyplugin.TransportInitHandler) {
-	p.initHandler = f
-}
-
-func (p *httpTransport) setState(state skyplugin.TransportState) {
+func (p *httpTransport) SetState(state skyplugin.TransportState) {
 	if state != p.state {
 		oldState := p.state
 		p.state = state
 		log.Infof("Transport state changes from %v to %v.", oldState, p.state)
-	}
-}
-
-func (p *httpTransport) RequestInit() {
-	out, err := p.RunInit()
-	if p.initHandler != nil {
-		handlerError := p.initHandler(out, err)
-		if err != nil || handlerError != nil {
-			p.setState(skyplugin.TransportStateError)
-			return
-		}
-	}
-	p.setState(skyplugin.TransportStateReady)
-}
-
-func (p *httpTransport) RunInit() (out []byte, err error) {
-	param := struct {
-		Config skyconfig.Configuration `json:"config"`
-	}{p.config}
-	req := pluginrequest.Request{Kind: "init", Param: param}
-	for {
-		out, err = p.ipc(&req)
-		if err == nil {
-			return
-		}
-		time.Sleep(time.Second)
-		log.WithField("err", err).
-			Warnf(`http: Unable to send init request to plugin "%s". Retrying...`, p.Path)
 	}
 }
 

@@ -104,12 +104,6 @@ func TestRun(t *testing.T) {
 			startCommand = originalCommand
 		}()
 
-		Convey("init", func() {
-			out, err := transport.RunInit()
-			So(err, ShouldBeNil)
-			So(string(out), ShouldEqual, "init")
-		})
-
 		startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
 			out, err = originalCommand(cmd, in)
 			out = append([]byte(`{"result":"`), out...)
@@ -141,12 +135,6 @@ func TestRun(t *testing.T) {
 			Path: "/bin/sh",
 			Args: []string{"-c", `"cat"`},
 		}
-
-		Convey("init", func() {
-			out, err := transport.RunInit()
-			So(err, ShouldBeNil)
-			So(string(out), ShouldEqual, "")
-		})
 
 		Convey("op", func() {
 			out, err := transport.RunLambda(nil, "hello:world", []byte(`{"result": "hello world"}`))
@@ -657,7 +645,7 @@ func TestRun(t *testing.T) {
 				Args: []string{},
 			}
 
-			_, err := transport.RunInit()
+			_, err := transport.SendEvent("init", []byte{})
 			So(err, ShouldNotBeNil)
 		})
 
@@ -667,7 +655,7 @@ func TestRun(t *testing.T) {
 				Args: []string{},
 			}
 
-			_, err := transport.RunInit()
+			_, err := transport.SendEvent("init", []byte{})
 			So(err, ShouldNotBeNil)
 		})
 
@@ -677,7 +665,7 @@ func TestRun(t *testing.T) {
 				Args: []string{},
 			}
 
-			_, err := transport.RunInit()
+			_, err := transport.SendEvent("init", []byte{})
 			So(err, ShouldNotBeNil)
 		})
 	})

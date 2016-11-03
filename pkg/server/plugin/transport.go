@@ -63,10 +63,7 @@ type TransportInitHandler func([]byte, error) error
 // and remote process.
 type Transport interface {
 	State() TransportState
-
-	SetInitHandler(TransportInitHandler)
-	RequestInit()
-	RunInit() ([]byte, error)
+	SetState(TransportState)
 
 	SendEvent(name string, in []byte) ([]byte, error)
 

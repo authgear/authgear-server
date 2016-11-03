@@ -47,46 +47,12 @@ func (p *zmqTransport) State() skyplugin.TransportState {
 	return p.state
 }
 
-func (p *zmqTransport) SetInitHandler(f skyplugin.TransportInitHandler) {
-	p.initHandler = f
-}
-
-func (p *zmqTransport) setState(state skyplugin.TransportState) {
+func (p *zmqTransport) SetState(state skyplugin.TransportState) {
 	if state != p.state {
 		oldState := p.state
 		p.state = state
 		p.logger.Infof("Transport state changes from %v to %v.", oldState, p.state)
 	}
-}
-
-// RequestInit is expected to run in separate gorountine and called once to
-// set it internal state with coordinate with broker.
-func (p *zmqTransport) RequestInit() {
-	for {
-		out, err := p.RunInit()
-		if err != nil {
-			p.logger.WithField("err", err).
-				Warnf(`zmq/rpc: Unable to send init request to plugin "%s". Retrying...`, p.name)
-			continue
-		}
-		if p.initHandler != nil {
-			handlerError := p.initHandler(out, err)
-			if err != nil || handlerError != nil {
-				p.setState(skyplugin.TransportStateError)
-			}
-		}
-		p.setState(skyplugin.TransportStateReady)
-		break
-	}
-}
-
-func (p *zmqTransport) RunInit() (out []byte, err error) {
-	param := struct {
-		Config skyconfig.Configuration `json:"config"`
-	}{p.config}
-	req := pluginrequest.Request{Kind: "init", Param: param}
-	out, err = p.ipc(&req)
-	return
 }
 
 func (p *zmqTransport) SendEvent(name string, in []byte) ([]byte, error) {

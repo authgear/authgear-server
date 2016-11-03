@@ -59,22 +59,6 @@ func TestRun(t *testing.T) {
 			config: appconfig,
 		}
 
-		Convey("run init", func() {
-			httpmock.RegisterResponder("POST", "http://localhost:8000",
-				func(req *http.Request) (*http.Response, error) {
-					out, _ := ioutil.ReadAll(req.Body)
-					So(string(out), ShouldContainSubstring, "hello-world")
-					return httpmock.NewJsonResponse(200, map[string]interface{}{
-						"data": "hello",
-					})
-				},
-			)
-
-			out, err := transport.RunInit()
-			So(out, ShouldEqualJSON, `{"data": "hello"}`)
-			So(err, ShouldBeNil)
-		})
-
 		Convey("send event", func() {
 			Convey("success case", func() {
 				data := []byte(`{"data": "hello-world"}`)

@@ -152,33 +152,12 @@ func (p *execTransport) State() skyplugin.TransportState {
 	return p.state
 }
 
-func (p *execTransport) SetInitHandler(f skyplugin.TransportInitHandler) {
-	p.initHandler = f
-}
-
-func (p *execTransport) setState(state skyplugin.TransportState) {
+func (p *execTransport) SetState(state skyplugin.TransportState) {
 	if state != p.state {
 		oldState := p.state
 		p.state = state
 		log.Infof("Transport state changes from %v to %v.", oldState, p.state)
 	}
-}
-
-func (p *execTransport) RequestInit() {
-	out, err := p.RunInit()
-	if p.initHandler != nil {
-		handlerError := p.initHandler(out, err)
-		if err != nil || handlerError != nil {
-			p.setState(skyplugin.TransportStateError)
-			return
-		}
-	}
-	p.setState(skyplugin.TransportStateReady)
-}
-
-func (p *execTransport) RunInit() (out []byte, err error) {
-	out, err = p.run([]string{"init"}, []string{}, []byte{})
-	return
 }
 
 func (p *execTransport) SendEvent(name string, in []byte) ([]byte, error) {
