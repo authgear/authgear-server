@@ -15,10 +15,12 @@
 package handler
 
 import (
+	"encoding/json"
 	"sort"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
+	pluginEvent "github.com/skygeario/skygear-server/pkg/server/plugin/event"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -83,9 +85,10 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaRenameHandler struct {
-	DevOnly       router.Processor `preprocessor:"dev_only"`
-	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
+	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
+	DevOnly       router.Processor   `preprocessor:"dev_only"`
+	DBConn        router.Processor   `preprocessor:"dbconn"`
+	InjectDB      router.Processor   `preprocessor:"inject_db"`
 	preprocessors []router.Processor
 }
 
@@ -164,6 +167,15 @@ func (h *SchemaRenameHandler) Handle(rpayload *router.Payload, response *router.
 	resp := &schemaResponse{}
 	resp.Encode(results)
 
+	if h.EventSender != nil {
+		encodedSchema, err := json.Marshal(resp)
+		if err != nil {
+			log.WithField("err", err).Warn("Unable to encode schema")
+		} else {
+			h.EventSender.Send("schema-changed", encodedSchema, true)
+		}
+	}
+
 	response.Result = resp
 }
 
@@ -175,15 +187,15 @@ curl -X POST -H "Content-Type: application/json" \
 	"master_key": "MASTER_KEY",
 	"action": "schema:delete",
 	"record_type": "student",
-	"item_type": "field",
 	"item_name": "score"
 }
 EOF
 */
 type SchemaDeleteHandler struct {
-	DevOnly       router.Processor `preprocessor:"dev_only"`
-	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
+	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
+	DevOnly       router.Processor   `preprocessor:"dev_only"`
+	DBConn        router.Processor   `preprocessor:"dbconn"`
+	InjectDB      router.Processor   `preprocessor:"inject_db"`
 	preprocessors []router.Processor
 }
 
@@ -256,6 +268,15 @@ func (h *SchemaDeleteHandler) Handle(rpayload *router.Payload, response *router.
 	resp := &schemaResponse{}
 	resp.Encode(results)
 
+	if h.EventSender != nil {
+		encodedSchema, err := json.Marshal(resp)
+		if err != nil {
+			log.WithField("err", err).Warn("Unable to encode schema")
+		} else {
+			h.EventSender.Send("schema-changed", encodedSchema, true)
+		}
+	}
+
 	response.Result = resp
 }
 
@@ -278,9 +299,10 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaCreateHandler struct {
-	DevOnly       router.Processor `preprocessor:"dev_only"`
-	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
+	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
+	DevOnly       router.Processor   `preprocessor:"dev_only"`
+	DBConn        router.Processor   `preprocessor:"dbconn"`
+	InjectDB      router.Processor   `preprocessor:"inject_db"`
 	preprocessors []router.Processor
 }
 
@@ -364,6 +386,15 @@ func (h *SchemaCreateHandler) Handle(rpayload *router.Payload, response *router.
 
 	resp := &schemaResponse{}
 	resp.Encode(results)
+
+	if h.EventSender != nil {
+		encodedSchema, err := json.Marshal(resp)
+		if err != nil {
+			log.WithField("err", err).Warn("Unable to encode schema")
+		} else {
+			h.EventSender.Send("schema-changed", encodedSchema, true)
+		}
+	}
 
 	response.Result = resp
 }

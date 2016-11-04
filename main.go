@@ -32,6 +32,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/handler"
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/plugin"
+	pluginEvent "github.com/skygeario/skygear-server/pkg/server/plugin/event"
 	_ "github.com/skygeario/skygear-server/pkg/server/plugin/exec"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	_ "github.com/skygeario/skygear-server/pkg/server/plugin/http"
@@ -144,15 +145,38 @@ func main() {
 		DevMode: config.App.DevMode,
 	}
 
-	r.Map("", &handler.HomeHandler{})
-
 	g := &inject.Graph{}
 	injectErr := g.Provide(
-		&inject.Object{Value: pluginContext.ProviderRegistry, Complete: true, Name: "ProviderRegistry"},
-		&inject.Object{Value: pluginContext.HookRegistry, Complete: true, Name: "HookRegistry"},
-		&inject.Object{Value: tokenStore, Complete: true, Name: "TokenStore"},
-		&inject.Object{Value: initAssetStore(config), Complete: true, Name: "AssetStore"},
-		&inject.Object{Value: pushSender, Complete: true, Name: "PushSender"},
+		&inject.Object{
+			Value:    pluginContext.ProviderRegistry,
+			Complete: true,
+			Name:     "ProviderRegistry",
+		},
+		&inject.Object{
+			Value:    pluginContext.HookRegistry,
+			Complete: true,
+			Name:     "HookRegistry",
+		},
+		&inject.Object{
+			Value:    tokenStore,
+			Complete: true,
+			Name:     "TokenStore",
+		},
+		&inject.Object{
+			Value:    initAssetStore(config),
+			Complete: true,
+			Name:     "AssetStore",
+		},
+		&inject.Object{
+			Value:    pushSender,
+			Complete: true,
+			Name:     "PushSender",
+		},
+		&inject.Object{
+			Value:    pluginEvent.NewSender(&pluginContext),
+			Complete: true,
+			Name:     "PluginEventSender",
+		},
 		&inject.Object{
 			Value:    skydb.GetAccessModel(config.App.AccessControl),
 			Complete: true,
@@ -167,6 +191,8 @@ func main() {
 		ServiceGraph:    g,
 		PreprocessorMap: &preprocessorRegistry,
 	}
+
+	r.Map("", &handler.HomeHandler{})
 
 	r.Map("auth:signup", injector.Inject(&handler.SignupHandler{}))
 	r.Map("auth:login", injector.Inject(&handler.LoginHandler{}))
@@ -265,7 +291,7 @@ func main() {
 	// Bootstrap finished, starting services
 	initPlugin(config, &pluginContext)
 
-	pluginContext.SendEvents("server-ready", []byte{}, false)
+	pluginContext.SendEvent("server-ready", []byte{}, false)
 
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, finalMux)

@@ -147,8 +147,8 @@ func (c *Context) InitPlugins() {
 		WithField("count", len(c.plugins)).
 		Info("Wait for all plugin configurations")
 	wg.Wait()
-	c.SendEvents("before-plugins-ready", []byte{}, false)
-	c.SendEvents("after-plugins-ready", []byte{}, false)
+	c.SendEvent("before-plugins-ready", []byte{}, false)
+	c.SendEvent("after-plugins-ready", []byte{}, false)
 }
 
 // IsReady returns true if all the configured plugins are available
@@ -161,8 +161,11 @@ func (c *Context) IsReady() bool {
 	return true
 }
 
-// SendEvents sends event to all plugins
-func (c *Context) SendEvents(name string, data []byte, async bool) {
+// SendEvent sends event to all plugins
+//
+// SendEvent accepts `async` flag. Setting `async` to `false` means that
+// an event will be sent to a plugin after another.
+func (c *Context) SendEvent(name string, data []byte, async bool) {
 	sendEventFunc := func(plugin *Plugin, name string, data []byte) {
 		plugin.transport.SendEvent(name, data)
 	}
