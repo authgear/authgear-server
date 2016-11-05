@@ -190,6 +190,10 @@ func (f *predicateSqlizerFactory) newAccessControlSqlizer(user *skydb.UserInfo, 
 }
 
 func (f *predicateSqlizerFactory) newComparisonPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
+	if sqlizer, ok := f.tryOptimizeDistancePredicate(p); ok {
+		return sqlizer, nil
+	}
+
 	sqlizers := []expressionSqlizer{}
 	for _, child := range p.Children {
 		sqlizer, err := f.newExpressionSqlizer(child.(skydb.Expression))
@@ -203,6 +207,42 @@ func (f *predicateSqlizerFactory) newComparisonPredicateSqlizer(p skydb.Predicat
 		return &containsComparisonPredicateSqlizer{sqlizers}, nil
 	}
 	return &comparisonPredicateSqlizer{sqlizers, p.Operator}, nil
+}
+
+// tryOptimizeDistancePredicate returns a sqlizer that is more efficient
+// at querying whether two points are within certain distance.
+//
+// If the predicate cannot be optimize or an error occurred generating
+// an optimized sqlizer, the second value returned is false.
+func (f *predicateSqlizerFactory) tryOptimizeDistancePredicate(p skydb.Predicate) (sq.Sqlizer, bool) {
+	var tryFunc skydb.Expression
+	var tryValue skydb.Expression
+	if p.Operator == skydb.LessThan {
+		tryFunc = p.Children[0].(skydb.Expression)
+		tryValue = p.Children[1].(skydb.Expression)
+	} else if p.Operator == skydb.GreaterThan {
+		tryFunc = p.Children[1].(skydb.Expression)
+		tryValue = p.Children[0].(skydb.Expression)
+	} else {
+		return nil, false
+	}
+
+	distanceFunc, ok := tryFunc.Value.(skydb.DistanceFunc)
+	if !ok {
+		return nil, false
+	}
+
+	distanceValue, err := f.newExpressionSqlizer(tryValue)
+	if err != nil {
+		return nil, false
+	}
+
+	return &distancePredicateSqlizer{
+		f.primaryTable,
+		distanceFunc.Field,
+		distanceFunc.Location,
+		distanceValue,
+	}, true
 }
 
 func (f *predicateSqlizerFactory) newExpressionSqlizer(expr skydb.Expression) (expressionSqlizer, error) {
@@ -738,6 +778,32 @@ type FalseSqlizer struct {
 // ToSql generates SQL for FalseSqlizer
 func (s FalseSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	return "FALSE", []interface{}{}, nil
+}
+
+// distancePredicateSqlizer generates SQL condition that calculates if a
+// location is within a certain distance.
+type distancePredicateSqlizer struct {
+	alias    string
+	field    string
+	location skydb.Location
+	distance expressionSqlizer
+}
+
+// ToSql generates SQL for distancePredicateSqlizer
+func (s distancePredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
+	distanceSQL, distanceArgs, err := s.distance.ToSql()
+	if err != nil {
+		return
+	}
+
+	sql = fmt.Sprintf(
+		"ST_DWithin(%s, ST_MakePoint(?, ?), %s)",
+		fullQuoteIdentifier(s.alias, s.field),
+		distanceSQL,
+	)
+	args = []interface{}{s.location.Lng(), s.location.Lat()}
+	args = append(args, distanceArgs...)
+	return
 }
 
 // joinedTable represents a specification for table join

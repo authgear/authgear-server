@@ -227,6 +227,61 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
+
+	Convey("Distance Predicate", t, func() {
+		c := getTestConn(t)
+		defer cleanupConn(t, c)
+
+		db := c.PublicDB().(*database)
+		_, err := db.Extend("note", skydb.RecordSchema{
+			"latlng": skydb.FieldType{Type: skydb.TypeLocation},
+		})
+		So(err, ShouldBeNil)
+
+		f := newPredicateSqlizerFactory(db, "note")
+
+		expr1 := skydb.Expression{
+			skydb.Function,
+			skydb.DistanceFunc{
+				"latlng",
+				skydb.NewLocation(22.25, 114.1667),
+			},
+		}
+		expr2 := skydb.Expression{skydb.Literal, 500.0}
+
+		Convey("within distance", func() {
+			for _, predicate := range []skydb.Predicate{
+				{skydb.LessThan, []interface{}{expr1, expr2}},
+				{skydb.GreaterThan, []interface{}{expr2, expr1}},
+			} {
+				sqlizer, err := f.newComparisonPredicateSqlizer(predicate)
+				So(err, ShouldBeNil)
+				So(sqlizer, ShouldResemble, &distancePredicateSqlizer{
+					"note",
+					"latlng",
+					skydb.NewLocation(22.25, 114.1667),
+					expressionSqlizer{
+						"note",
+						skydb.Expression{skydb.Literal, 500.0},
+					},
+				})
+			}
+		})
+
+		Convey("beyond distance", func() {
+			sqlizer, err := f.newComparisonPredicateSqlizer(skydb.Predicate{
+				skydb.GreaterThan, []interface{}{expr1, expr2},
+			})
+			So(err, ShouldBeNil)
+			So(sqlizer, ShouldResemble, &comparisonPredicateSqlizer{
+				[]expressionSqlizer{
+					{"note", expr1},
+					{"note", expr2},
+				},
+				skydb.GreaterThan,
+			})
+		})
+	})
 }
 
 func TestNotSqlizer(t *testing.T) {
@@ -321,6 +376,26 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 					`_access IS NULL)`)
 			So(args, ShouldResemble, []interface{}{"userid"})
 		})
+	})
+}
 
+func TestDistancePredicateSqlizer(t *testing.T) {
+	Convey("distance predicate", t, func() {
+		Convey("serialized", func() {
+			sqlizer := &distancePredicateSqlizer{
+				"note",
+				"latlng",
+				skydb.NewLocation(22.25, 114.1667),
+				expressionSqlizer{
+					"note",
+					skydb.Expression{skydb.Literal, 500.0},
+				},
+			}
+			sql, args, err := sqlizer.ToSql()
+			So(err, ShouldBeNil)
+			So(sql, ShouldEqual,
+				`ST_DWithin("note"."latlng", ST_MakePoint(?, ?), ?)`)
+			So(args, ShouldResemble, []interface{}{22.25, 114.1667, 500.0})
+		})
 	})
 }
