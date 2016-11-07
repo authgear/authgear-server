@@ -534,8 +534,8 @@ type bogusFieldDatabase struct {
 
 func (db bogusFieldDatabase) IsReadOnly() bool { return false }
 
-func (db bogusFieldDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
-	return nil
+func (db bogusFieldDatabase) Extend(recordType string, schema skydb.RecordSchema) (bool, error) {
+	return false, nil
 }
 
 func (db bogusFieldDatabase) Get(id skydb.RecordID, record *skydb.Record) error {
@@ -653,9 +653,9 @@ type noExtendDatabase struct {
 
 func (db *noExtendDatabase) IsReadOnly() bool { return false }
 
-func (db *noExtendDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
+func (db *noExtendDatabase) Extend(recordType string, schema skydb.RecordSchema) (bool, error) {
 	db.calledExtend = true
-	return errors.New("You shalt not call Extend")
+	return false, errors.New("You shalt not call Extend")
 }
 
 func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
@@ -1251,8 +1251,8 @@ func (db *singleRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{db.record})), nil
 }
 
-func (db *singleRecordDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
-	return nil
+func (db *singleRecordDatabase) Extend(recordType string, schema skydb.RecordSchema) (bool, error) {
+	return false, nil
 }
 
 func TestRecordOwnerIDSerialization(t *testing.T) {
@@ -1579,8 +1579,8 @@ func (db *referencedRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, erro
 	return skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{db.note})), nil
 }
 
-func (db *referencedRecordDatabase) Extend(recordType string, schema skydb.RecordSchema) error {
-	return nil
+func (db *referencedRecordDatabase) Extend(recordType string, schema skydb.RecordSchema) (bool, error) {
+	return false, nil
 }
 
 func TestRecordQueryWithEagerLoad(t *testing.T) {
@@ -1800,8 +1800,8 @@ type erroneousDB struct {
 
 func (db erroneousDB) IsReadOnly() bool { return false }
 
-func (db erroneousDB) Extend(string, skydb.RecordSchema) error {
-	return nil
+func (db erroneousDB) Extend(string, skydb.RecordSchema) (bool, error) {
+	return false, nil
 }
 
 func (db erroneousDB) Get(skydb.RecordID, *skydb.Record) error {

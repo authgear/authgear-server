@@ -31,12 +31,13 @@ func TestGet(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		db := c.PrivateDB("getuser")
-		So(db.Extend("record", skydb.RecordSchema{
+		_, err := db.Extend("record", skydb.RecordSchema{
 			"string":   skydb.FieldType{Type: skydb.TypeString},
 			"number":   skydb.FieldType{Type: skydb.TypeNumber},
 			"datetime": skydb.FieldType{Type: skydb.TypeDateTime},
 			"boolean":  skydb.FieldType{Type: skydb.TypeBoolean},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		insertRow(t, c.Db(), `INSERT INTO "record" `+
 			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "string", "number", "datetime", "boolean") `+
@@ -78,9 +79,10 @@ func TestGetByIDs(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		db := c.PrivateDB("getuser")
-		So(db.Extend("record", skydb.RecordSchema{
+		_, err := db.Extend("record", skydb.RecordSchema{
 			"string": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		insertRow(t, c.Db(), `INSERT INTO "record" `+
 			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "string") `+
@@ -191,11 +193,12 @@ func TestSave(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"content":   skydb.FieldType{Type: skydb.TypeString},
 			"number":    skydb.FieldType{Type: skydb.TypeNumber},
 			"timestamp": skydb.FieldType{Type: skydb.TypeDateTime},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		record := skydb.Record{
 			ID:        skydb.NewRecordID("note", "someid"),
@@ -273,9 +276,10 @@ func TestSave(t *testing.T) {
 		})
 
 		Convey("REGRESSION: update record with attribute having capital letters", func() {
-			So(db.Extend("note", skydb.RecordSchema{
+			_, err := db.Extend("note", skydb.RecordSchema{
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
-			}), ShouldBeNil)
+			})
+			So(err, ShouldBeNil)
 
 			record = skydb.Record{
 				ID:      skydb.NewRecordID("note", "1"),
@@ -291,7 +295,7 @@ func TestSave(t *testing.T) {
 			ShouldBeNil(db.Save(&record))
 
 			var noteOrder int
-			err := c.QueryRowx(`SELECT "noteOrder" FROM note WHERE _id = '1' and _database_id = ''`).
+			err = c.QueryRowx(`SELECT "noteOrder" FROM note WHERE _id = '1' and _database_id = ''`).
 				Scan(&noteOrder)
 			So(err, ShouldBeNil)
 			So(noteOrder, ShouldEqual, 2)
@@ -326,9 +330,10 @@ func TestDelete(t *testing.T) {
 
 		db := c.PrivateDB("userid")
 
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"content": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		record := skydb.Record{
 			ID:      skydb.NewRecordID("note", "someid"),
@@ -399,13 +404,14 @@ func TestQuery(t *testing.T) {
 		}
 
 		db := c.PrivateDB("userid")
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 			"content":   skydb.FieldType{Type: skydb.TypeString},
 			"emotion":   skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
-		err := db.Save(&record2)
+		err = db.Save(&record2)
 		So(err, ShouldBeNil)
 		err = db.Save(&record1)
 		So(err, ShouldBeNil)
@@ -755,18 +761,21 @@ func TestQuery(t *testing.T) {
 		}
 
 		db := c.PrivateDB("userid")
-		So(db.Extend("category", skydb.RecordSchema{
+		_, err := db.Extend("category", skydb.RecordSchema{
 			"hidden": skydb.FieldType{Type: skydb.TypeBoolean},
-		}), ShouldBeNil)
-		So(db.Extend("note", skydb.RecordSchema{
+		})
+		So(err, ShouldBeNil)
+
+		_, err = db.Extend("note", skydb.RecordSchema{
 			"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 			"category": skydb.FieldType{
 				Type:          skydb.TypeReference,
 				ReferenceType: "category",
 			},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
-		err := db.Save(&category1)
+		err = db.Save(&category1)
 		So(err, ShouldBeNil)
 		err = db.Save(&category2)
 		So(err, ShouldBeNil)
@@ -853,9 +862,10 @@ func TestQuery(t *testing.T) {
 		}
 
 		db := c.PublicDB()
-		So(db.Extend("restaurant", skydb.RecordSchema{
+		_, err := db.Extend("restaurant", skydb.RecordSchema{
 			"location": skydb.FieldType{Type: skydb.TypeLocation},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 		So(db.Save(&record0), ShouldBeNil)
 		So(db.Save(&record1), ShouldBeNil)
 		So(db.Save(&record2), ShouldBeNil)
@@ -984,10 +994,11 @@ func TestQuery(t *testing.T) {
 		recordsInDB := []skydb.Record{record0, record1, record2}
 
 		db := c.PublicDB()
-		So(db.Extend("restaurant", skydb.RecordSchema{
+		_, err := db.Extend("restaurant", skydb.RecordSchema{
 			"title":   skydb.FieldType{Type: skydb.TypeString},
 			"cuisine": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 		So(db.Save(&record0), ShouldBeNil)
 		So(db.Save(&record1), ShouldBeNil)
 		So(db.Save(&record2), ShouldBeNil)
@@ -1079,12 +1090,13 @@ func TestQuery(t *testing.T) {
 		}
 
 		db := c.PrivateDB("userid")
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"primaryTag": skydb.FieldType{Type: skydb.TypeString},
 			"tags":       skydb.FieldType{Type: skydb.TypeJSON},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
-		err := db.Save(&record2)
+		err = db.Save(&record2)
 		So(err, ShouldBeNil)
 		err = db.Save(&record1)
 		So(err, ShouldBeNil)
@@ -1156,9 +1168,10 @@ func TestQuery(t *testing.T) {
 		}
 
 		db := c.PublicDB()
-		So(db.Extend("note", skydb.RecordSchema{}), ShouldBeNil)
+		_, err := db.Extend("note", skydb.RecordSchema{})
+		So(err, ShouldBeNil)
 
-		err := db.Save(&record1)
+		err = db.Save(&record1)
 		So(err, ShouldBeNil)
 		err = db.Save(&record2)
 		So(err, ShouldBeNil)
@@ -1367,12 +1380,13 @@ func TestQueryCount(t *testing.T) {
 		}
 
 		db := c.PrivateDB("userid")
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 			"content":   skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
-		err := db.Save(&record2)
+		err = db.Save(&record2)
 		So(err, ShouldBeNil)
 		err = db.Save(&record1)
 		So(err, ShouldBeNil)
@@ -1444,9 +1458,10 @@ func TestAggregateQuery(t *testing.T) {
 
 		// fixture
 		db := c.PrivateDB("userid")
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"category": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		categories := []string{"funny", "funny", "serious"}
 		dbRecords := []skydb.Record{}
@@ -1562,7 +1577,8 @@ func TestMetaDataQuery(t *testing.T) {
 		}
 
 		db := c.PublicDB()
-		So(db.Extend("record", nil), ShouldBeNil)
+		_, err := db.Extend("record", nil)
+		So(err, ShouldBeNil)
 		So(db.Save(&record0), ShouldBeNil)
 		So(db.Save(&record1), ShouldBeNil)
 
@@ -1752,7 +1768,8 @@ func TestUserRelationQuery(t *testing.T) {
 		}
 
 		db := c.PublicDB()
-		So(db.Extend("record", nil), ShouldBeNil)
+		_, err := db.Extend("record", nil)
+		So(err, ShouldBeNil)
 		So(db.Save(&record0), ShouldBeNil)
 		So(db.Save(&record1), ShouldBeNil)
 		So(db.Save(&record2), ShouldBeNil)
@@ -1965,7 +1982,8 @@ func TestUserDiscoverQuery(t *testing.T) {
 		}
 
 		db := c.PublicDB()
-		So(db.Extend("user", nil), ShouldBeNil)
+		_, err := db.Extend("user", nil)
+		So(err, ShouldBeNil)
 		So(db.Save(&record0), ShouldBeNil)
 		So(db.Save(&record1), ShouldBeNil)
 		So(db.Save(&record2), ShouldBeNil)
@@ -2076,10 +2094,11 @@ func TestUnsupportedQuery(t *testing.T) {
 		}
 
 		db := c.PublicDB()
-		So(db.Extend("record", skydb.RecordSchema{
+		_, err := db.Extend("record", skydb.RecordSchema{
 			"categories":       skydb.FieldType{Type: skydb.TypeString},
 			"favoriteCategory": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 		So(db.Save(&record0), ShouldBeNil)
 		So(db.Save(&record1), ShouldBeNil)
 
@@ -2111,7 +2130,8 @@ func TestRecordACL(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
-		So(db.Extend("note", nil), ShouldBeNil)
+		_, err := db.Extend("note", nil)
+		So(err, ShouldBeNil)
 
 		record := skydb.Record{
 			ID:      skydb.NewRecordID("note", "1"),
@@ -2139,22 +2159,24 @@ func TestRecordJSON(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"jsonfield": skydb.FieldType{Type: skydb.TypeJSON},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		Convey("fetch record with json field", func() {
-			So(db.Extend("record", skydb.RecordSchema{
+			_, err := db.Extend("record", skydb.RecordSchema{
 				"array":      skydb.FieldType{Type: skydb.TypeJSON},
 				"dictionary": skydb.FieldType{Type: skydb.TypeJSON},
-			}), ShouldBeNil)
+			})
+			So(err, ShouldBeNil)
 
 			insertRow(t, c.Db(), `INSERT INTO "record" `+
 				`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "array", "dictionary") `+
 				`VALUES ('', 'id', '', '0001-01-01 00:00:00', '', '0001-01-01 00:00:00', '', '[1, "string", true]', '{"number": 0, "string": "value", "bool": false}')`)
 
 			var record skydb.Record
-			err := db.Get(skydb.NewRecordID("record", "id"), &record)
+			err = db.Get(skydb.NewRecordID("record", "id"), &record)
 			So(err, ShouldBeNil)
 
 			So(record, ShouldResemble, skydb.Record{
@@ -2224,9 +2246,10 @@ func TestRecordAssetField(t *testing.T) {
 		}), ShouldBeNil)
 
 		db := c.PublicDB()
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"image": skydb.FieldType{Type: skydb.TypeAsset},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		Convey("can be associated", func() {
 			err := db.Save(&skydb.Record{
@@ -2279,9 +2302,10 @@ func TestRecordLocationField(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
-		So(db.Extend("photo", skydb.RecordSchema{
+		_, err := db.Extend("photo", skydb.RecordSchema{
 			"location": skydb.FieldType{Type: skydb.TypeLocation},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		Convey("saves & load location field", func() {
 			err := db.Save(&skydb.Record{
@@ -2314,9 +2338,10 @@ func TestRecordSequenceField(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		db := c.PublicDB()
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"seq": skydb.FieldType{Type: skydb.TypeSequence},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		Convey("saves & load sequence field", func() {
 			record := skydb.Record{

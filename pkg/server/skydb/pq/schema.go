@@ -28,43 +28,48 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) error {
+func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (extended bool, err error) {
 	remoteRecordSchema, err := db.remoteColumnTypes(recordType)
 	if err != nil {
-		return err
+		return
 	}
 
 	if len(remoteRecordSchema) > 0 && remoteRecordSchema.DefinitionEquals(recordSchema) {
 		// The record schemas are the same. There is no need to extend the
 		// schema.
-		return nil
+		return
 	}
 
 	if !db.c.canMigrate {
 		// The record schemas are different, but the database connection
 		// does not allow migration.
-		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
+		err = skyerr.NewError(
+			skyerr.IncompatibleSchema,
+			"Record schema requires migration but migration is disabled.",
+		)
+		return
 	}
 
 	// Begin transaction for schema migration
 	tx, err := db.c.db.Beginx()
 	if err != nil {
-		return err
+		return
 	}
 	defer tx.Rollback()
 
 	if len(remoteRecordSchema) == 0 {
 		if err := createTable(tx, db.tableName(recordType)); err != nil {
-			return fmt.Errorf("failed to create table: %s", err)
+			return false, fmt.Errorf("failed to create table: %s", err)
 		}
 	}
+
 	updatingSchema := skydb.RecordSchema{}
 	for key, schema := range recordSchema {
 		remoteSchema, ok := remoteRecordSchema[key]
 		if !ok {
 			updatingSchema[key] = schema
 		} else if isConflict(remoteSchema, schema) {
-			return fmt.Errorf("conflicting schema %v => %v", remoteSchema, schema)
+			return false, fmt.Errorf("conflicting schema %v => %v", remoteSchema, schema)
 		}
 
 		// same data type, do nothing
@@ -75,15 +80,19 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) e
 
 		log.WithField("stmt", stmt).Debugln("Adding columns to table")
 		if _, err := tx.Exec(stmt); err != nil {
-			return fmt.Errorf("failed to alter table: %s", err)
+			return false, fmt.Errorf("failed to alter table: %s", err)
 		}
+
+		extended = true
 	}
 
 	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("unable to commit transaction for Extend: %s", err)
+		return false, fmt.Errorf("unable to commit transaction for Extend: %s", err)
 	}
+
 	delete(db.c.RecordSchema, recordType)
-	return nil
+
+	return
 }
 
 func (db *database) RenameSchema(recordType, oldName, newName string) error {

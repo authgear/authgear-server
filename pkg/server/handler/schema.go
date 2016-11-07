@@ -15,8 +15,6 @@
 package handler
 
 import (
-	"encoding/json"
-	"sort"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -28,46 +26,6 @@ import (
 
 type schemaResponse struct {
 	Schemas map[string]schemaFieldList `json:"record_types"`
-}
-
-type schemaFieldList struct {
-	Fields []schemaField `mapstructure:"fields" json:"fields"`
-}
-
-func (s schemaFieldList) Len() int {
-	return len(s.Fields)
-}
-
-func (s schemaFieldList) Swap(i, j int) {
-	s.Fields[i], s.Fields[j] = s.Fields[j], s.Fields[i]
-}
-
-func (s schemaFieldList) Less(i, j int) bool {
-	return strings.Compare(s.Fields[i].Name, s.Fields[j].Name) < 0
-}
-
-type schemaField struct {
-	Name     string `mapstructure:"name" json:"name"`
-	TypeName string `mapstructure:"type" json:"type"`
-}
-
-func (resp *schemaResponse) Encode(data map[string]skydb.RecordSchema) {
-	resp.Schemas = make(map[string]schemaFieldList)
-	for recordType, schema := range data {
-		fieldList := schemaFieldList{}
-		for fieldName, val := range schema {
-			if strings.HasPrefix(fieldName, "_") {
-				continue
-			}
-
-			fieldList.Fields = append(fieldList.Fields, schemaField{
-				Name:     fieldName,
-				TypeName: val.ToSimpleName(),
-			})
-		}
-		sort.Sort(fieldList)
-		resp.Schemas[recordType] = fieldList
-	}
 }
 
 /*
@@ -152,31 +110,26 @@ func (h *SchemaRenameHandler) Handle(rpayload *router.Payload, response *router.
 	}
 
 	db := rpayload.Database
-
 	if err := db.RenameSchema(payload.RecordType, payload.OldName, payload.NewName); err != nil {
 		response.Err = skyerr.NewError(skyerr.ResourceNotFound, err.Error())
 		return
 	}
 
-	results, err := db.GetRecordSchemas()
+	schemas, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
-
-	resp := &schemaResponse{}
-	resp.Encode(results)
-
-	if h.EventSender != nil {
-		encodedSchema, err := json.Marshal(resp)
-		if err != nil {
-			log.WithField("err", err).Warn("Unable to encode schema")
-		} else {
-			h.EventSender.Send("schema-changed", encodedSchema, true)
-		}
+	response.Result = &schemaResponse{
+		Schemas: encodeRecordSchemas(schemas),
 	}
 
-	response.Result = resp
+	if h.EventSender != nil {
+		err := sendSchemaChangedEvent(h.EventSender, db)
+		if err != nil {
+			log.WithField("err", err).Warn("Fail to send schema changed event")
+		}
+	}
 }
 
 /*
@@ -253,31 +206,26 @@ func (h *SchemaDeleteHandler) Handle(rpayload *router.Payload, response *router.
 	}
 
 	db := rpayload.Database
-
 	if err := db.DeleteSchema(payload.RecordType, payload.ColumnName); err != nil {
 		response.Err = skyerr.NewError(skyerr.ResourceNotFound, err.Error())
 		return
 	}
 
-	results, err := db.GetRecordSchemas()
+	schemas, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
-
-	resp := &schemaResponse{}
-	resp.Encode(results)
-
-	if h.EventSender != nil {
-		encodedSchema, err := json.Marshal(resp)
-		if err != nil {
-			log.WithField("err", err).Warn("Unable to encode schema")
-		} else {
-			h.EventSender.Send("schema-changed", encodedSchema, true)
-		}
+	response.Result = &schemaResponse{
+		Schemas: encodeRecordSchemas(schemas),
 	}
 
-	response.Result = resp
+	if h.EventSender != nil {
+		err := sendSchemaChangedEvent(h.EventSender, db)
+		if err != nil {
+			log.WithField("err", err).Warn("Fail to send schema changed event")
+		}
+	}
 }
 
 /*
@@ -369,34 +317,29 @@ func (h *SchemaCreateHandler) Handle(rpayload *router.Payload, response *router.
 	}
 
 	db := rpayload.Database
-
 	for recordType, recordSchema := range payload.Schemas {
-		err := db.Extend(recordType, recordSchema)
+		_, err := db.Extend(recordType, recordSchema)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.IncompatibleSchema, err.Error())
 			return
 		}
 	}
 
-	results, err := db.GetRecordSchemas()
+	schemas, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
-
-	resp := &schemaResponse{}
-	resp.Encode(results)
-
-	if h.EventSender != nil {
-		encodedSchema, err := json.Marshal(resp)
-		if err != nil {
-			log.WithField("err", err).Warn("Unable to encode schema")
-		} else {
-			h.EventSender.Send("schema-changed", encodedSchema, true)
-		}
+	response.Result = &schemaResponse{
+		Schemas: encodeRecordSchemas(schemas),
 	}
 
-	response.Result = resp
+	if h.EventSender != nil {
+		err := sendSchemaChangedEvent(h.EventSender, db)
+		if err != nil {
+			log.WithField("err", err).Warn("Fail to send schema changed event")
+		}
+	}
 }
 
 /*
@@ -430,17 +373,15 @@ func (h *SchemaFetchHandler) GetPreprocessors() []router.Processor {
 
 func (h *SchemaFetchHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	db := rpayload.Database
-
-	results, err := db.GetRecordSchemas()
+	schemas, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
 
-	resp := &schemaResponse{}
-	resp.Encode(results)
-
-	response.Result = resp
+	response.Result = &schemaResponse{
+		Schemas: encodeRecordSchemas(schemas),
+	}
 }
 
 /*

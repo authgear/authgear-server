@@ -330,13 +330,13 @@ func (db *MapDB) Query(query *skydb.Query) (*skydb.Rows, error) {
 }
 
 // Extend store the type of the field.
-func (db *MapDB) Extend(recordType string, schema skydb.RecordSchema) error {
+func (db *MapDB) Extend(recordType string, schema skydb.RecordSchema) (bool, error) {
 	if _, ok := db.RecordSchemaMap[recordType]; ok {
 		for fieldName, fieldType := range schema {
 			if _, ok := db.RecordSchemaMap[recordType][fieldName]; ok {
 				ft := db.RecordSchemaMap[recordType][fieldName]
 				if !reflect.DeepEqual(ft, fieldType) {
-					return fmt.Errorf("Wrong type")
+					return false, fmt.Errorf("Wrong type")
 				}
 			}
 			db.RecordSchemaMap[recordType][fieldName] = fieldType
@@ -344,7 +344,7 @@ func (db *MapDB) Extend(recordType string, schema skydb.RecordSchema) error {
 	} else {
 		db.RecordSchemaMap[recordType] = schema
 	}
-	return nil
+	return true, nil
 }
 
 func (db *MapDB) RenameSchema(recordType, oldColumnName, newColumnName string) error {

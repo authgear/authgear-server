@@ -23,6 +23,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	pluginEvent "github.com/skygeario/skygear-server/pkg/server/plugin/event"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -237,15 +238,16 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordSaveHandler struct {
-	HookRegistry  *hook.Registry    `inject:"HookRegistry"`
-	AssetStore    asset.Store       `inject:"AssetStore"`
-	AccessModel   skydb.AccessModel `inject:"AccessModel"`
-	Authenticator router.Processor  `preprocessor:"authenticator"`
-	DBConn        router.Processor  `preprocessor:"dbconn"`
-	InjectUser    router.Processor  `preprocessor:"inject_user"`
-	InjectDB      router.Processor  `preprocessor:"inject_db"`
-	RequireUser   router.Processor  `preprocessor:"require_user"`
-	PluginReady   router.Processor  `preprocessor:"plugin"`
+	HookRegistry  *hook.Registry     `inject:"HookRegistry"`
+	AssetStore    asset.Store        `inject:"AssetStore"`
+	AccessModel   skydb.AccessModel  `inject:"AccessModel"`
+	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
+	Authenticator router.Processor   `preprocessor:"authenticator"`
+	DBConn        router.Processor   `preprocessor:"dbconn"`
+	InjectUser    router.Processor   `preprocessor:"inject_user"`
+	InjectDB      router.Processor   `preprocessor:"inject_db"`
+	RequireUser   router.Processor   `preprocessor:"require_user"`
+	PluginReady   router.Processor   `preprocessor:"plugin"`
 	preprocessors []router.Processor
 }
 
@@ -344,8 +346,14 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 
 		results = append(results, result)
 	}
-
 	response.Result = results
+
+	if resp.SchemaUpdated && h.EventSender != nil {
+		err := sendSchemaChangedEvent(h.EventSender, payload.Database)
+		if err != nil {
+			log.WithField("err", err).Warn("Fail to send schema changed event")
+		}
+	}
 }
 
 type recordFetchPayload struct {

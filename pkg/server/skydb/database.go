@@ -124,9 +124,10 @@ type Database interface {
 	// Extend extends the Database record schema such that a record
 	// arrived subsequently with that schema can be saved
 	//
-	// Extend returns an error if the specified schema conflicts with
-	// existing schem in the Database
-	Extend(recordType string, schema RecordSchema) error
+	// Extend returns an bool indicating whether the schema is really extended.
+	// Extend also returns an error if the specified schema conflicts with
+	// existing schema in the Database
+	Extend(recordType string, schema RecordSchema) (extended bool, err error)
 
 	// RenameSchema renames a column of the Database record schema
 	RenameSchema(recordType, oldColumnName, newColumnName string) error
