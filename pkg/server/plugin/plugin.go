@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 
@@ -32,11 +34,17 @@ import (
 
 var log = logging.LoggerEntry("plugin")
 
+const (
+	// PluginInitMaxRetryCount defines the maximum retries for plugin initialization
+	PluginInitMaxRetryCount = 100
+)
+
 // Plugin represents a collection of handlers, hooks and lambda functions
 // that extends or modifies functionality provided by skygear.
 type Plugin struct {
-	transport  Transport
-	gatewayMap map[string]*router.Gateway
+	initRetryCount int
+	transport      Transport
+	gatewayMap     map[string]*router.Gateway
 }
 
 type pluginHandlerInfo struct {
@@ -79,6 +87,7 @@ func RegisterTransport(name string, transport TransportFactory) {
 	transportFactories[name] = transport
 }
 
+// SupportedTransports tells all supported transport names
 func SupportedTransports() []string {
 	var transports []string
 	for name := range transportFactories {
@@ -104,8 +113,8 @@ func NewPlugin(name string, path string, args []string, config skyconfig.Configu
 	return p
 }
 
-// InitContext contains reference to structs that will be initialized by plugin.
-type InitContext struct {
+// Context contains reference to structs that will be initialized by plugin.
+type Context struct {
 	plugins          []*Plugin
 	Router           *router.Router
 	Mux              *http.ServeMux
@@ -116,55 +125,126 @@ type InitContext struct {
 	Config           skyconfig.Configuration
 }
 
-func (c *InitContext) AddPluginConfiguration(name string, path string, args []string) *Plugin {
+// AddPluginConfiguration creates and appends a plugin
+func (c *Context) AddPluginConfiguration(name string, path string, args []string) *Plugin {
 	plug := NewPlugin(name, path, args, c.Config)
 	c.plugins = append(c.plugins, &plug)
 	return &plug
 }
 
-func (c *InitContext) InitPlugins() {
-	for _, plug := range c.plugins {
-		plug.Init(c)
+// InitPlugins initializes all plugins registered
+func (c *Context) InitPlugins() {
+	wg := sync.WaitGroup{}
+	for _, eachPlugin := range c.plugins {
+		wg.Add(1)
+		go func(plug *Plugin) {
+			defer wg.Done()
+			plug.Init(c)
+		}(eachPlugin)
 	}
+
+	log.
+		WithField("count", len(c.plugins)).
+		Info("Wait for all plugin configurations")
+	wg.Wait()
+	c.SendEvent("before-plugins-ready", []byte{}, false)
+	c.SendEvent("after-plugins-ready", []byte{}, false)
 }
 
 // IsReady returns true if all the configured plugins are available
-func (c *InitContext) IsReady() bool {
-	for _, plug := range c.plugins {
-		if !plug.IsReady() {
+func (c *Context) IsReady() bool {
+	for _, eachPlugin := range c.plugins {
+		if !eachPlugin.IsReady() {
 			return false
 		}
 	}
 	return true
 }
 
-// Init instantiates a plugin. This sets up hooks and handlers.
-func (p *Plugin) Init(context *InitContext) {
-	p.transport.SetInitHandler(func(out []byte, err error) error {
-		if err != nil {
-			panic(fmt.Sprintf("Unable to get registration info from plugin. Error: %v", err))
+// SendEvent sends event to all plugins
+//
+// SendEvent accepts `async` flag. Setting `async` to `false` means that
+// an event will be sent to a plugin after another.
+func (c *Context) SendEvent(name string, data []byte, async bool) {
+	sendEventFunc := func(plugin *Plugin, name string, data []byte) {
+		plugin.transport.SendEvent(name, data)
+	}
+
+	for _, eachPlugin := range c.plugins {
+		if async {
+			go sendEventFunc(eachPlugin, name, data)
+		} else {
+			sendEventFunc(eachPlugin, name, data)
 		}
-
-		regInfo := registrationInfo{}
-		if err := json.Unmarshal(out, &regInfo); err != nil {
-			panic(err)
-		}
-
-		p.processRegistrationInfo(context, regInfo)
-		return nil
-	})
-
-	log.WithFields(logrus.Fields{
-		"plugin": p,
-	}).Debugln("request plugin to return configuration")
-	go p.transport.RequestInit()
+	}
 }
 
+// Init instantiates a plugin. This sets up hooks and handlers.
+func (p *Plugin) Init(context *Context) {
+	p.transport.SendEvent("before-config", []byte{})
+	for {
+		log.
+			WithField("retry", p.initRetryCount).
+			Info("Sending init event to plugin")
+
+		p.transport.SetState(TransportStateUninitialized)
+		regInfo, err := p.requestInit(context)
+		if err != nil {
+			p.transport.SetState(TransportStateError)
+
+			p.initRetryCount++
+			if p.initRetryCount >= PluginInitMaxRetryCount {
+				log.Panic("Fail to initialize plugin")
+			}
+			time.Sleep(2 * time.Second)
+			continue
+		}
+
+		p.transport.SetState(TransportStateReady)
+		p.processRegistrationInfo(context, regInfo)
+
+		break
+	}
+	p.transport.SendEvent("after-config", []byte{})
+}
+
+func (p *Plugin) requestInit(context *Context) (regInfo registrationInfo, initErr error) {
+	payload := struct {
+		Config skyconfig.Configuration `json:"config"`
+	}{context.Config}
+
+	in, err := json.Marshal(payload)
+	if err != nil {
+		initErr = fmt.Errorf("Cannot encode plugin initialization payload. Error: %v", err)
+		return
+	}
+
+	out, err := p.transport.SendEvent("init", in)
+	log.WithFields(logrus.Fields{
+		"out":    string(out),
+		"err":    err,
+		"plugin": p,
+	}).Info("Get response from init")
+
+	if err != nil {
+		initErr = fmt.Errorf("Cannot encode plugin initialization payload. Error: %v", err)
+		return
+	}
+
+	if err := json.Unmarshal(out, &regInfo); err != nil {
+		initErr = fmt.Errorf("Unable to decode plugin initialization info. Error: %v", err)
+		return
+	}
+
+	return
+}
+
+// IsReady tells whether the plugin is ready
 func (p *Plugin) IsReady() bool {
 	return p.transport.State() == TransportStateReady
 }
 
-func (p *Plugin) processRegistrationInfo(context *InitContext, regInfo registrationInfo) {
+func (p *Plugin) processRegistrationInfo(context *Context, regInfo registrationInfo) {
 	log.WithFields(logrus.Fields{
 		"regInfo":   regInfo,
 		"transport": p.transport,

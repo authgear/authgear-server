@@ -41,9 +41,10 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		db := c.PublicDB().(*database)
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"title": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		f := newPredicateSqlizerFactory(db, "note")
 
@@ -73,10 +74,11 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		db := c.PublicDB().(*database)
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"title":   skydb.FieldType{Type: skydb.TypeString},
 			"content": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		f := newPredicateSqlizerFactory(db, "note")
 
@@ -172,9 +174,10 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		db := c.PublicDB().(*database)
-		So(db.Extend("note", skydb.RecordSchema{
+		_, err := db.Extend("note", skydb.RecordSchema{
 			"title": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		f := newPredicateSqlizerFactory(db, "user")
 

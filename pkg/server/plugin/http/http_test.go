@@ -29,6 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -58,20 +59,57 @@ func TestRun(t *testing.T) {
 			config: appconfig,
 		}
 
-		Convey("run init", func() {
-			httpmock.RegisterResponder("POST", "http://localhost:8000",
-				func(req *http.Request) (*http.Response, error) {
-					out, _ := ioutil.ReadAll(req.Body)
-					So(string(out), ShouldContainSubstring, "hello-world")
-					return httpmock.NewJsonResponse(200, map[string]interface{}{
-						"data": "hello",
-					})
-				},
-			)
+		Convey("send event", func() {
+			Convey("success case", func() {
+				data := []byte(`{"data": "hello-world"}`)
+				httpmock.RegisterResponder(
+					"POST",
+					"http://localhost:8000",
+					func(req *http.Request) (*http.Response, error) {
+						bodyBytes, _ := ioutil.ReadAll(req.Body)
+						So(
+							bodyBytes,
+							ShouldEqualJSON,
+							`{"kind":"event","name":"foo","param":{"data":"hello-world"}}`,
+						)
 
-			out, err := transport.RunInit()
-			So(out, ShouldEqualJSON, `{"data": "hello"}`)
-			So(err, ShouldBeNil)
+						return httpmock.NewJsonResponse(200, map[string]interface{}{
+							"result": map[string]interface{}{"data": "hello-world-resp"},
+						})
+					},
+				)
+
+				out, err := transport.SendEvent("foo", data)
+				So(out, ShouldEqualJSON, `{"data": "hello-world-resp"}`)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("fail case", func() {
+				data := []byte(`{"data": "hello-world"}`)
+				httpmock.RegisterResponder(
+					"POST",
+					"http://localhost:8000",
+					func(req *http.Request) (*http.Response, error) {
+						bodyBytes, _ := ioutil.ReadAll(req.Body)
+						So(
+							bodyBytes,
+							ShouldEqualJSON,
+							`{"kind":"event","name":"foo2","param":{"data":"hello-world"}}`,
+						)
+
+						return httpmock.NewJsonResponse(500, map[string]interface{}{
+							"error": map[string]interface{}{
+								"code":    skyerr.UnexpectedError,
+								"message": "test error",
+							},
+						})
+					},
+				)
+
+				out, err := transport.SendEvent("foo2", data)
+				So(out, ShouldBeNil)
+				So(err.Error(), ShouldEqual, "UnexpectedError: test error")
+			})
 		})
 
 		Convey("run lambda", func() {

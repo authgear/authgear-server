@@ -41,8 +41,9 @@ func TestSchemaResponse(t *testing.T) {
 				},
 			}
 
-			result := &schemaResponse{}
-			result.Encode(data)
+			result := &schemaResponse{
+				Schemas: encodeRecordSchemas(data),
+			}
 
 			expected := &schemaResponse{
 				Schemas: map[string]schemaFieldList{
@@ -61,8 +62,9 @@ func TestSchemaResponse(t *testing.T) {
 				"note": skydb.RecordSchema{},
 			}
 
-			result := &schemaResponse{}
-			result.Encode(data)
+			result := &schemaResponse{
+				Schemas: encodeRecordSchemas(data),
+			}
 
 			expected := &schemaResponse{
 				Schemas: map[string]schemaFieldList{
@@ -74,8 +76,9 @@ func TestSchemaResponse(t *testing.T) {
 		Convey("empty record type", func() {
 			data := map[string]skydb.RecordSchema{}
 
-			result := &schemaResponse{}
-			result.Encode(data)
+			result := &schemaResponse{
+				Schemas: encodeRecordSchemas(data),
+			}
 
 			expected := &schemaResponse{
 				Schemas: map[string]schemaFieldList{},
@@ -215,7 +218,8 @@ func TestSchemaCreateHandler(t *testing.T) {
 		}
 
 		db := skydbtest.NewMapDB()
-		So(db.Extend("note", note), ShouldBeNil)
+		_, err := db.Extend("note", note)
+		So(err, ShouldBeNil)
 
 		router := handlertest.NewSingleRouteRouter(&SchemaCreateHandler{}, func(p *router.Payload) {
 			p.Database = db
@@ -415,7 +419,8 @@ func TestSchemaRenameHandler(t *testing.T) {
 		}
 
 		db := skydbtest.NewMapDB()
-		So(db.Extend("note", note), ShouldBeNil)
+		_, err := db.Extend("note", note)
+		So(err, ShouldBeNil)
 
 		router := handlertest.NewSingleRouteRouter(&SchemaRenameHandler{}, func(p *router.Payload) {
 			p.Database = db
@@ -572,7 +577,8 @@ func TestSchemaDeleteHandler(t *testing.T) {
 		}
 
 		db := skydbtest.NewMapDB()
-		So(db.Extend("note", note), ShouldBeNil)
+		_, err := db.Extend("note", note)
+		So(err, ShouldBeNil)
 
 		router := handlertest.NewSingleRouteRouter(&SchemaDeleteHandler{}, func(p *router.Payload) {
 			p.Database = db
@@ -646,7 +652,8 @@ func TestSchemaFetchHandler(t *testing.T) {
 		}
 
 		db := skydbtest.NewMapDB()
-		So(db.Extend("note", note), ShouldBeNil)
+		_, err := db.Extend("note", note)
+		So(err, ShouldBeNil)
 
 		router := handlertest.NewSingleRouteRouter(&SchemaFetchHandler{}, func(p *router.Payload) {
 			p.Database = db

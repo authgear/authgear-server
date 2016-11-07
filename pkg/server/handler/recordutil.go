@@ -98,6 +98,7 @@ type recordModifyRequest struct {
 
 type recordModifyResponse struct {
 	ErrMap           map[skydb.RecordID]skyerr.Error
+	SchemaUpdated    bool
 	SavedRecords     []*skydb.Record
 	DeletedRecordIDs []skydb.RecordID
 }
@@ -220,7 +221,8 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	}
 
 	// derive and extend record schema
-	if err := extendRecordSchema(db, records); err != nil {
+	schemaExtended, err := extendRecordSchema(db, records)
+	if err != nil {
 		log.WithField("err", err).Errorln("failed to migrate record schema")
 		if myerr, ok := err.(skyerr.Error); ok {
 			return myerr
@@ -278,6 +280,8 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	}
 
 	resp.SavedRecords = records
+	resp.SchemaUpdated = schemaExtended
+
 	return nil
 }
 
@@ -352,7 +356,7 @@ func deriveDeltaRecord(dst, base, delta *skydb.Record) {
 	}
 }
 
-func extendRecordSchema(db skydb.Database, records []*skydb.Record) error {
+func extendRecordSchema(db skydb.Database, records []*skydb.Record) (bool, error) {
 	recordSchemaMergerMap := map[string]schemaMerger{}
 	for _, record := range records {
 		recordType := record.ID.Type
@@ -369,18 +373,27 @@ func extendRecordSchema(db skydb.Database, records []*skydb.Record) error {
 		recordSchemaMergerMap[recordType] = merger
 	}
 
+	extended := false
 	for recordType, merger := range recordSchemaMergerMap {
 		schema, err := merger.Schema()
 		if err != nil {
-			return err
+			return false, err
 		}
 
-		if err = db.Extend(recordType, schema); err != nil {
-			return err
+		schemaExtended, err := db.Extend(recordType, schema)
+		if err != nil {
+			return false, err
+		}
+		if schemaExtended {
+			log.
+				WithField("type", recordType).
+				WithField("schema", schema).
+				Info("Schema Extended")
+			extended = true
 		}
 	}
 
-	return nil
+	return extended, nil
 }
 
 func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) skyerr.Error {

@@ -15,10 +15,10 @@
 package handler
 
 import (
-	"sort"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
+	pluginEvent "github.com/skygeario/skygear-server/pkg/server/plugin/event"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -26,46 +26,6 @@ import (
 
 type schemaResponse struct {
 	Schemas map[string]schemaFieldList `json:"record_types"`
-}
-
-type schemaFieldList struct {
-	Fields []schemaField `mapstructure:"fields" json:"fields"`
-}
-
-func (s schemaFieldList) Len() int {
-	return len(s.Fields)
-}
-
-func (s schemaFieldList) Swap(i, j int) {
-	s.Fields[i], s.Fields[j] = s.Fields[j], s.Fields[i]
-}
-
-func (s schemaFieldList) Less(i, j int) bool {
-	return strings.Compare(s.Fields[i].Name, s.Fields[j].Name) < 0
-}
-
-type schemaField struct {
-	Name     string `mapstructure:"name" json:"name"`
-	TypeName string `mapstructure:"type" json:"type"`
-}
-
-func (resp *schemaResponse) Encode(data map[string]skydb.RecordSchema) {
-	resp.Schemas = make(map[string]schemaFieldList)
-	for recordType, schema := range data {
-		fieldList := schemaFieldList{}
-		for fieldName, val := range schema {
-			if strings.HasPrefix(fieldName, "_") {
-				continue
-			}
-
-			fieldList.Fields = append(fieldList.Fields, schemaField{
-				Name:     fieldName,
-				TypeName: val.ToSimpleName(),
-			})
-		}
-		sort.Sort(fieldList)
-		resp.Schemas[recordType] = fieldList
-	}
 }
 
 /*
@@ -83,9 +43,10 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaRenameHandler struct {
-	DevOnly       router.Processor `preprocessor:"dev_only"`
-	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
+	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
+	DevOnly       router.Processor   `preprocessor:"dev_only"`
+	DBConn        router.Processor   `preprocessor:"dbconn"`
+	InjectDB      router.Processor   `preprocessor:"inject_db"`
 	preprocessors []router.Processor
 }
 
@@ -149,22 +110,26 @@ func (h *SchemaRenameHandler) Handle(rpayload *router.Payload, response *router.
 	}
 
 	db := rpayload.Database
-
 	if err := db.RenameSchema(payload.RecordType, payload.OldName, payload.NewName); err != nil {
 		response.Err = skyerr.NewError(skyerr.ResourceNotFound, err.Error())
 		return
 	}
 
-	results, err := db.GetRecordSchemas()
+	schemas, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
+	response.Result = &schemaResponse{
+		Schemas: encodeRecordSchemas(schemas),
+	}
 
-	resp := &schemaResponse{}
-	resp.Encode(results)
-
-	response.Result = resp
+	if h.EventSender != nil {
+		err := sendSchemaChangedEvent(h.EventSender, db)
+		if err != nil {
+			log.WithField("err", err).Warn("Fail to send schema changed event")
+		}
+	}
 }
 
 /*
@@ -175,15 +140,15 @@ curl -X POST -H "Content-Type: application/json" \
 	"master_key": "MASTER_KEY",
 	"action": "schema:delete",
 	"record_type": "student",
-	"item_type": "field",
 	"item_name": "score"
 }
 EOF
 */
 type SchemaDeleteHandler struct {
-	DevOnly       router.Processor `preprocessor:"dev_only"`
-	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
+	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
+	DevOnly       router.Processor   `preprocessor:"dev_only"`
+	DBConn        router.Processor   `preprocessor:"dbconn"`
+	InjectDB      router.Processor   `preprocessor:"inject_db"`
 	preprocessors []router.Processor
 }
 
@@ -241,22 +206,26 @@ func (h *SchemaDeleteHandler) Handle(rpayload *router.Payload, response *router.
 	}
 
 	db := rpayload.Database
-
 	if err := db.DeleteSchema(payload.RecordType, payload.ColumnName); err != nil {
 		response.Err = skyerr.NewError(skyerr.ResourceNotFound, err.Error())
 		return
 	}
 
-	results, err := db.GetRecordSchemas()
+	schemas, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
+	response.Result = &schemaResponse{
+		Schemas: encodeRecordSchemas(schemas),
+	}
 
-	resp := &schemaResponse{}
-	resp.Encode(results)
-
-	response.Result = resp
+	if h.EventSender != nil {
+		err := sendSchemaChangedEvent(h.EventSender, db)
+		if err != nil {
+			log.WithField("err", err).Warn("Fail to send schema changed event")
+		}
+	}
 }
 
 /*
@@ -278,9 +247,10 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaCreateHandler struct {
-	DevOnly       router.Processor `preprocessor:"dev_only"`
-	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
+	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
+	DevOnly       router.Processor   `preprocessor:"dev_only"`
+	DBConn        router.Processor   `preprocessor:"dbconn"`
+	InjectDB      router.Processor   `preprocessor:"inject_db"`
 	preprocessors []router.Processor
 }
 
@@ -347,25 +317,29 @@ func (h *SchemaCreateHandler) Handle(rpayload *router.Payload, response *router.
 	}
 
 	db := rpayload.Database
-
 	for recordType, recordSchema := range payload.Schemas {
-		err := db.Extend(recordType, recordSchema)
+		_, err := db.Extend(recordType, recordSchema)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.IncompatibleSchema, err.Error())
 			return
 		}
 	}
 
-	results, err := db.GetRecordSchemas()
+	schemas, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
+	response.Result = &schemaResponse{
+		Schemas: encodeRecordSchemas(schemas),
+	}
 
-	resp := &schemaResponse{}
-	resp.Encode(results)
-
-	response.Result = resp
+	if h.EventSender != nil {
+		err := sendSchemaChangedEvent(h.EventSender, db)
+		if err != nil {
+			log.WithField("err", err).Warn("Fail to send schema changed event")
+		}
+	}
 }
 
 /*
@@ -399,17 +373,15 @@ func (h *SchemaFetchHandler) GetPreprocessors() []router.Processor {
 
 func (h *SchemaFetchHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	db := rpayload.Database
-
-	results, err := db.GetRecordSchemas()
+	schemas, err := db.GetRecordSchemas()
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
 		return
 	}
 
-	resp := &schemaResponse{}
-	resp.Encode(results)
-
-	response.Result = resp
+	response.Result = &schemaResponse{
+		Schemas: encodeRecordSchemas(schemas),
+	}
 }
 
 /*

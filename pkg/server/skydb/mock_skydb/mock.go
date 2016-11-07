@@ -407,10 +407,11 @@ func (_mr *_MockDatabaseRecorder) DeleteSubscription(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteSubscription", arg0, arg1)
 }
 
-func (_m *MockDatabase) Extend(_param0 string, _param1 skydb.RecordSchema) error {
+func (_m *MockDatabase) Extend(_param0 string, _param1 skydb.RecordSchema) (bool, error) {
 	ret := _m.ctrl.Call(_m, "Extend", _param0, _param1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 func (_mr *_MockDatabaseRecorder) Extend(arg0, arg1 interface{}) *gomock.Call {

@@ -56,15 +56,17 @@ const (
 	TransportStateError
 )
 
+// TransportInitHandler models the handler for transport init
 type TransportInitHandler func([]byte, error) error
 
 // A Transport represents the interface of data transfer between skygear
 // and remote process.
 type Transport interface {
 	State() TransportState
-	SetInitHandler(TransportInitHandler)
-	RequestInit()
-	RunInit() ([]byte, error)
+	SetState(TransportState)
+
+	SendEvent(name string, in []byte) ([]byte, error)
+
 	RunLambda(ctx context.Context, name string, in []byte) ([]byte, error)
 	RunHandler(ctx context.Context, name string, in []byte) ([]byte, error)
 

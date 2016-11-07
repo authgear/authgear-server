@@ -29,9 +29,10 @@ func TestTxDB(t *testing.T) {
 
 		dbx := c.Db()
 		db := c.PublicDB().(*database)
-		So(db.Extend("record", skydb.RecordSchema{
+		_, err := db.Extend("record", skydb.RecordSchema{
 			"content": skydb.FieldType{Type: skydb.TypeString},
-		}), ShouldBeNil)
+		})
+		So(err, ShouldBeNil)
 
 		insertRow(t, dbx, `INSERT INTO "record" `+
 			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "content") `+

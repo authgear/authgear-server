@@ -28,10 +28,12 @@ func TestExtend(t *testing.T) {
 		db := c.PublicDB().(*database)
 
 		Convey("return Resemble RecordSchema on second call", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
+
 			schema, _ := db.remoteColumnTypes("note")
 			schema2, _ := db.remoteColumnTypes("note")
 			So(schema, ShouldResemble, schema2)
@@ -47,14 +49,19 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("clean the cache of RecordSchema on extend recordType", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
+
 			schema, _ := db.remoteColumnTypes("note")
-			err = db.Extend("note", skydb.RecordSchema{
+			extended, err = db.Extend("note", skydb.RecordSchema{
 				"description": skydb.FieldType{Type: skydb.TypeString},
 			})
+			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
+
 			schema2, _ := db.remoteColumnTypes("note")
 			So(schema, ShouldNotResemble, schema2)
 		})
@@ -67,12 +74,13 @@ func TestExtend(t *testing.T) {
 		db := c.PublicDB()
 
 		Convey("creates table if not exist", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content":   skydb.FieldType{Type: skydb.TypeString},
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			// verify with an insert
 			result, err := c.Exec(
@@ -88,22 +96,25 @@ func TestExtend(t *testing.T) {
 
 		Convey("should not create table if schema locked", func() {
 			c.canMigrate = false
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
 			})
 			So(err, ShouldNotBeNil)
+			So(extended, ShouldBeFalse)
 		})
 
 		Convey("REGRESSION #277: creates table with `:`", func() {
-			err := db.Extend("table:name", nil)
+			extended, err := db.Extend("table:name", nil)
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeFalse)
 		})
 
 		Convey("creates table with JSON field", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"tags": skydb.FieldType{Type: skydb.TypeJSON},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			result, err := c.Exec(
 				`INSERT INTO "note" ` +
@@ -117,29 +128,35 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("creates table with asset", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"image": skydb.FieldType{Type: skydb.TypeAsset},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 		})
 
 		Convey("creates table with multiple assets", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"image0": skydb.FieldType{Type: skydb.TypeAsset},
 			})
 			So(err, ShouldBeNil)
-			err = db.Extend("note", skydb.RecordSchema{
+			So(extended, ShouldBeTrue)
+
+			extended, err = db.Extend("note", skydb.RecordSchema{
 				"image1": skydb.FieldType{Type: skydb.TypeAsset},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 		})
 
 		Convey("creates table with reference", func() {
-			err := db.Extend("collection", skydb.RecordSchema{
+			extended, err := db.Extend("collection", skydb.RecordSchema{
 				"name": skydb.FieldType{Type: skydb.TypeString},
 			})
 			So(err, ShouldBeNil)
-			err = db.Extend("note", skydb.RecordSchema{
+			So(extended, ShouldBeTrue)
+
+			extended, err = db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
 				"collection": skydb.FieldType{
 					Type:          skydb.TypeReference,
@@ -147,14 +164,17 @@ func TestExtend(t *testing.T) {
 				},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 		})
 
 		Convey("REGRESSION #318: creates table with `:` with reference", func() {
-			err := db.Extend("colon:fever", skydb.RecordSchema{
+			extended, err := db.Extend("colon:fever", skydb.RecordSchema{
 				"name": skydb.FieldType{Type: skydb.TypeString},
 			})
 			So(err, ShouldBeNil)
-			err = db.Extend("note", skydb.RecordSchema{
+			So(extended, ShouldBeTrue)
+
+			extended, err = db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
 				"colon:fever": skydb.FieldType{
 					Type:          skydb.TypeReference,
@@ -162,36 +182,41 @@ func TestExtend(t *testing.T) {
 				},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 		})
 
 		Convey("creates table with location", func() {
-			err := db.Extend("photo", skydb.RecordSchema{
+			extended, err := db.Extend("photo", skydb.RecordSchema{
 				"location": skydb.FieldType{Type: skydb.TypeLocation},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 		})
 
 		Convey("creates table with sequence", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"order": skydb.FieldType{Type: skydb.TypeSequence},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 		})
 
 		Convey("extend sequence twice", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"order": skydb.FieldType{Type: skydb.TypeSequence},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
-			err = db.Extend("note", skydb.RecordSchema{
+			extended, err = db.Extend("note", skydb.RecordSchema{
 				"order": skydb.FieldType{Type: skydb.TypeSequence},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeFalse)
 		})
 
 		Convey("error if creates table with reference not exist", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			_, err := db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
 				"tag": skydb.FieldType{
 					Type:          skydb.TypeReference,
@@ -202,18 +227,20 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("adds new column if table already exist", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content":   skydb.FieldType{Type: skydb.TypeString},
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
-			err = db.Extend("note", skydb.RecordSchema{
+			extended, err = db.Extend("note", skydb.RecordSchema{
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 				"dirty":     skydb.FieldType{Type: skydb.TypeBoolean},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			// verify with an insert
 			result, err := c.Exec(
@@ -228,14 +255,15 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("errors if conflict with existing column type", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content":   skydb.FieldType{Type: skydb.TypeString},
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
-			err = db.Extend("note", skydb.RecordSchema{
+			_, err = db.Extend("note", skydb.RecordSchema{
 				"content":   skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 				"dirty":     skydb.FieldType{Type: skydb.TypeNumber},
@@ -252,12 +280,13 @@ func TestExtend(t *testing.T) {
 		db := c.PublicDB()
 
 		Convey("rename column normally", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content":   skydb.FieldType{Type: skydb.TypeString},
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			err = db.RenameSchema("note", "content", "content2")
 			So(err, ShouldBeNil)
@@ -281,10 +310,11 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("should not rename column if schema is locked", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			c.canMigrate = false
 
@@ -293,12 +323,13 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("rename column with reserved name", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"some":      skydb.FieldType{Type: skydb.TypeString},
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			// "some" is reserved by psql
 			err = db.RenameSchema("note", "some", "content")
@@ -306,12 +337,13 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("rename unexisting column", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content":   skydb.FieldType{Type: skydb.TypeString},
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			err = db.RenameSchema("note", "notExist", "content2")
 			So(err, ShouldNotBeNil)
@@ -329,13 +361,14 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("rename to an existing column", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content":   skydb.FieldType{Type: skydb.TypeString},
 				"content2":  skydb.FieldType{Type: skydb.TypeString},
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			err = db.RenameSchema("note", "content", "content2")
 			So(err, ShouldNotBeNil)
@@ -365,12 +398,13 @@ func TestExtend(t *testing.T) {
 		db := c.PublicDB()
 
 		Convey("delete column normally", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content":   skydb.FieldType{Type: skydb.TypeString},
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			err = db.DeleteSchema("note", "content")
 			So(err, ShouldBeNil)
@@ -394,10 +428,11 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("should not delete column if schema is locked", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			c.canMigrate = false
 
@@ -406,12 +441,13 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("delete column with reserved name", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"some":      skydb.FieldType{Type: skydb.TypeString},
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			// "some" is reserved by psql
 			err = db.DeleteSchema("note", "some")
@@ -419,12 +455,13 @@ func TestExtend(t *testing.T) {
 		})
 
 		Convey("delete unexisting column", func() {
-			err := db.Extend("note", skydb.RecordSchema{
+			extended, err := db.Extend("note", skydb.RecordSchema{
 				"content":   skydb.FieldType{Type: skydb.TypeString},
 				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
 				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
 			})
 			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
 
 			err = db.DeleteSchema("note", "notExist")
 			So(err, ShouldNotBeNil)
