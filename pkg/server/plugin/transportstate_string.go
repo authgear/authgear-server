@@ -4,9 +4,9 @@ package plugin
 
 import "fmt"
 
-const _TransportState_name = "TransportStateUninitializedTransportStateReadyTransportStateWorkerUnavailableTransportStateError"
+const _TransportState_name = "TransportStateUninitializedTransportStateInitializedTransportStateReadyTransportStateWorkerUnavailableTransportStateError"
 
-var _TransportState_index = [...]uint8{0, 27, 46, 77, 96}
+var _TransportState_index = [...]uint8{0, 27, 52, 71, 102, 121}
 
 func (i TransportState) String() string {
 	if i < 0 || i >= TransportState(len(_TransportState_index)-1) {
