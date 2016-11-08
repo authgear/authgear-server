@@ -69,6 +69,7 @@ after-docker-test:
 	-$(DOCKER_COMPOSE_CMD) down -v
 
 .PHONY: clean
+clean:
 	rm -rf $(DIST_DIR)
 
 .PHONY: all
