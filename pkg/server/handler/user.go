@@ -43,6 +43,7 @@ type UserQueryHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -52,6 +53,7 @@ func (h *UserQueryHandler) Setup() {
 		h.DBConn,
 		h.InjectUser,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 
@@ -144,6 +146,7 @@ type UserUpdateHandler struct {
 	InjectUser    router.Processor  `preprocessor:"inject_user"`
 	InjectDB      router.Processor  `preprocessor:"inject_db"`
 	RequireUser   router.Processor  `preprocessor:"require_user"`
+	PluginReady   router.Processor  `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -154,6 +157,7 @@ func (h *UserUpdateHandler) Setup() {
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
+		h.PluginReady,
 	}
 }
 
@@ -263,6 +267,7 @@ type UserLinkHandler struct {
 	InjectUser       router.Processor   `preprocessor:"inject_user"`
 	InjectDB         router.Processor   `preprocessor:"inject_db"`
 	RequireUser      router.Processor   `preprocessor:"require_user"`
+	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
 	preprocessors    []router.Processor
 }
 
@@ -273,6 +278,7 @@ func (h *UserLinkHandler) Setup() {
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
+		h.PluginReady,
 	}
 }
 

@@ -60,15 +60,19 @@ func (payload *rolePayload) Validate() skyerr.Error {
 //     ]
 // }
 type RoleDefaultHandler struct {
+	AccessKey     router.Processor `preprocessor:"accesskey"`
 	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
 func (h *RoleDefaultHandler) Setup() {
 	h.preprocessors = []router.Processor{
+		h.AccessKey,
 		h.DevOnly,
 		h.DBConn,
+		h.PluginReady,
 	}
 }
 
@@ -114,15 +118,19 @@ func (h *RoleDefaultHandler) Handle(rpayload *router.Payload, response *router.R
 //     ]
 // }
 type RoleAdminHandler struct {
+	AccessKey     router.Processor `preprocessor:"accesskey"`
 	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
 func (h *RoleAdminHandler) Setup() {
 	h.preprocessors = []router.Processor{
+		h.AccessKey,
 		h.DevOnly,
 		h.DBConn,
+		h.PluginReady,
 	}
 }
 

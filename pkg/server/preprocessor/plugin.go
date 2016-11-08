@@ -26,11 +26,34 @@ type EnsurePluginReadyPreprocessor struct {
 	PluginContext *plugin.Context
 }
 
-func (p *EnsurePluginReadyPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	if !p.PluginContext.IsReady() {
-		log.Errorf("Request cannot be handled because plugins are unavailable at the moment.")
-		response.Err = skyerr.NewError(skyerr.PluginUnavailable, "plugins are unavailable at the moment")
+func (p *EnsurePluginReadyPreprocessor) Preprocess(
+	payload *router.Payload,
+	response *router.Response,
+) int {
+
+	// allow any request when plugins are ready
+	if p.PluginContext.IsReady() {
+		return http.StatusOK
+	}
+
+	// only allow requests with master key and the "_from_plugin" is set to true
+	// when the some plugin are just initialized
+	if p.PluginContext.IsInitialized() {
+		fromPlugin, _ := payload.Data["_from_plugin"].(bool)
+		if payload.HasMasterKey() && fromPlugin {
+			return http.StatusOK
+		}
+
+		response.Err = skyerr.NewError(
+			skyerr.PluginInitializing,
+			"Plugins are initializing at the moment",
+		)
 		return http.StatusServiceUnavailable
 	}
-	return http.StatusOK
+
+	response.Err = skyerr.NewError(
+		skyerr.PluginUnavailable,
+		"plugins are unavailable at the moment",
+	)
+	return http.StatusServiceUnavailable
 }

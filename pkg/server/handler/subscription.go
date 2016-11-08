@@ -248,6 +248,7 @@ type SubscriptionFetchHandler struct {
 	InjectUser    router.Processor `preprocessor:"inject_user"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	RequireUser   router.Processor `preprocessor:"require_user"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -258,6 +259,7 @@ func (h *SubscriptionFetchHandler) Setup() {
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
+		h.PluginReady,
 	}
 }
 
@@ -321,6 +323,7 @@ type SubscriptionFetchAllHandler struct {
 	InjectUser    router.Processor `preprocessor:"inject_user"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	RequireUser   router.Processor `preprocessor:"require_user"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -331,6 +334,7 @@ func (h *SubscriptionFetchAllHandler) Setup() {
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
+		h.PluginReady,
 	}
 }
 
@@ -447,6 +451,7 @@ type SubscriptionSaveHandler struct {
 	InjectUser    router.Processor `preprocessor:"inject_user"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	RequireUser   router.Processor `preprocessor:"require_user"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -457,6 +462,7 @@ func (h *SubscriptionSaveHandler) Setup() {
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
+		h.PluginReady,
 	}
 }
 
@@ -517,6 +523,7 @@ type SubscriptionDeleteHandler struct {
 	InjectUser    router.Processor `preprocessor:"inject_user"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	RequireUser   router.Processor `preprocessor:"require_user"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -527,6 +534,7 @@ func (h *SubscriptionDeleteHandler) Setup() {
 		h.InjectUser,
 		h.InjectDB,
 		h.RequireUser,
+		h.PluginReady,
 	}
 }
 

@@ -134,7 +134,7 @@ func main() {
 		Option:        config.DB.Option,
 		DevMode:       config.App.DevMode,
 	}
-	preprocessorRegistry["plugin"] = &pp.EnsurePluginReadyPreprocessor{
+	preprocessorRegistry["plugin_ready"] = &pp.EnsurePluginReadyPreprocessor{
 		PluginContext: &pluginContext,
 	}
 	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}

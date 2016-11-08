@@ -30,6 +30,7 @@ type AssetUploadHandler struct {
 	AssetStore    skyAsset.Store   `inject:"AssetStore"`
 	AccessKey     router.Processor `preprocessor:"accesskey"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -44,6 +45,7 @@ func (h *AssetUploadHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.AccessKey,
 		h.DBConn,
+		h.PluginReady,
 	}
 }
 

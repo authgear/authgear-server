@@ -46,12 +46,22 @@ func NewLambdaHandler(info map[string]interface{}, ppreg router.PreprocessorRegi
 func (h *LambdaHandler) Setup() {
 	if h.UserRequired {
 		h.preprocessors = h.PreprocessorList.GetByNames(
-			"plugin", "authenticator", "dbconn", "inject_user", "require_user")
+			"authenticator",
+			"dbconn",
+			"inject_user",
+			"require_user",
+			"plugin_ready",
+		)
 	} else if h.AccessKeyRequired {
 		h.preprocessors = h.PreprocessorList.GetByNames(
-			"plugin", "authenticator")
+			"authenticator",
+			"plugin_ready",
+		)
 	} else {
-		h.preprocessors = h.PreprocessorList.GetByNames("plugin")
+		h.preprocessors = h.PreprocessorList.GetByNames(
+			"accesskey",
+			"plugin_ready",
+		)
 	}
 }
 

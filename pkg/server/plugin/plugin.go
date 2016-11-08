@@ -260,7 +260,9 @@ func (p *Plugin) requestInit(context *Context) (regInfo registrationInfo, initEr
 
 // IsInitialized returns true if the plugin has been initialized
 func (p *Plugin) IsInitialized() bool {
-	return p.transport.State() == TransportStateInitialized
+	transportState := p.transport.State()
+	return transportState == TransportStateInitialized ||
+		transportState == TransportStateReady
 }
 
 // IsReady returns true if the plugin is ready for client request

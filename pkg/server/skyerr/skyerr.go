@@ -124,6 +124,9 @@ const (
 	// unsupported comparison.
 	RecordQueryInvalid
 
+	// PluginInitializing occurs when any of the plugins are initializing
+	PluginInitializing
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )
