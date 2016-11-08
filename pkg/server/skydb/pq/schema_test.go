@@ -106,7 +106,7 @@ func TestExtend(t *testing.T) {
 		Convey("REGRESSION #277: creates table with `:`", func() {
 			extended, err := db.Extend("table:name", nil)
 			So(err, ShouldBeNil)
-			So(extended, ShouldBeFalse)
+			So(extended, ShouldBeTrue)
 		})
 
 		Convey("creates table with JSON field", func() {

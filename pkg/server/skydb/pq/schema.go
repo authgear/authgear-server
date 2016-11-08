@@ -61,6 +61,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (
 		if err := createTable(tx, db.tableName(recordType)); err != nil {
 			return false, fmt.Errorf("failed to create table: %s", err)
 		}
+		extended = true
 	}
 
 	updatingSchema := skydb.RecordSchema{}
