@@ -34,9 +34,9 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (
 		return
 	}
 
-	if len(remoteRecordSchema) > 0 && remoteRecordSchema.DefinitionEquals(recordSchema) {
-		// The record schemas are the same. There is no need to extend the
-		// schema.
+	if len(remoteRecordSchema) > 0 && remoteRecordSchema.DefinitionSupersetOf(recordSchema) {
+		// The current record schema is superset of requested record
+		// schema. There is no need to extend the schema.
 		return
 	}
 

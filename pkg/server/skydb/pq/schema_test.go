@@ -271,6 +271,53 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  {0 <nil>}} => {TypeNumber  {0 <nil>}}")
 		})
+
+		Convey("creates empty table", func() {
+			extended, err := db.Extend("note", skydb.RecordSchema{})
+			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
+
+			// verify with an insert
+			result, err := c.Exec(
+				`INSERT INTO "note" ` +
+					`(_id, _database_id, _owner_id, _created_at, _created_by, _updated_at, _updated_by) ` +
+					`VALUES (1, 1, 1, '1988-02-06', 'creator', '1988-02-06', 'updater')`)
+			So(err, ShouldBeNil)
+
+			i, err := result.RowsAffected()
+			So(err, ShouldBeNil)
+			So(i, ShouldEqual, 1)
+		})
+
+		Convey("do not extend for empty schema table", func() {
+			extended, err := db.Extend("note", skydb.RecordSchema{})
+			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
+
+			c.canMigrate = false
+
+			extended, err = db.Extend("note", skydb.RecordSchema{})
+			So(err, ShouldBeNil)
+			So(extended, ShouldBeFalse)
+		})
+
+		Convey("do not extend for table with superset columns", func() {
+			extended, err := db.Extend("note", skydb.RecordSchema{
+				"content":   skydb.FieldType{Type: skydb.TypeString},
+				"noteOrder": skydb.FieldType{Type: skydb.TypeNumber},
+				"createdAt": skydb.FieldType{Type: skydb.TypeDateTime},
+			})
+			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
+
+			c.canMigrate = false
+
+			extended, err = db.Extend("note", skydb.RecordSchema{
+				"content": skydb.FieldType{Type: skydb.TypeString},
+			})
+			So(err, ShouldBeNil)
+			So(extended, ShouldBeFalse)
+		})
 	})
 
 	Convey("RenameSchema", t, func() {

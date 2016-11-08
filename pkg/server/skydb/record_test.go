@@ -178,39 +178,49 @@ func TestRecordSchema(t *testing.T) {
 			"ref":     FieldType{TypeReference, "other", Expression{}},
 		}
 
-		Convey("should be equal", func() {
+		Convey("is superset if equal", func() {
 			other := RecordSchema{
 				"content": FieldType{TypeString, "", Expression{}},
 				"date":    FieldType{TypeDateTime, "", Expression{}},
 				"ref":     FieldType{TypeReference, "other", Expression{}},
 			}
-			So(target.DefinitionEquals(other), ShouldBeTrue)
+			So(target.DefinitionSupersetOf(other), ShouldBeTrue)
 		})
 
-		Convey("should check count", func() {
+		Convey("is superset if target has all columns of the other schema", func() {
 			other := RecordSchema{
 				"content": FieldType{TypeString, "", Expression{}},
 				"date":    FieldType{TypeDateTime, "", Expression{}},
 			}
-			So(target.DefinitionEquals(other), ShouldBeFalse)
+			So(target.DefinitionSupersetOf(other), ShouldBeTrue)
 		})
 
-		Convey("should check field type", func() {
+		Convey("is not superset if wrong field type", func() {
 			other := RecordSchema{
 				"content": FieldType{TypeString, "", Expression{}},
 				"date":    FieldType{TypeString, "", Expression{}},
 				"ref":     FieldType{TypeReference, "other", Expression{}},
 			}
-			So(target.DefinitionEquals(other), ShouldBeFalse)
+			So(target.DefinitionSupersetOf(other), ShouldBeFalse)
 		})
 
-		Convey("should check reference type", func() {
+		Convey("is not superset if wrong reference type", func() {
 			other := RecordSchema{
 				"content": FieldType{TypeString, "", Expression{}},
 				"date":    FieldType{TypeDateTime, "", Expression{}},
 				"ref":     FieldType{TypeReference, "something", Expression{}},
 			}
-			So(target.DefinitionEquals(other), ShouldBeFalse)
+			So(target.DefinitionSupersetOf(other), ShouldBeFalse)
+		})
+
+		Convey("is not superset if column not exist in target", func() {
+			other := RecordSchema{
+				"content": FieldType{TypeString, "", Expression{}},
+				"date":    FieldType{TypeDateTime, "", Expression{}},
+				"ref":     FieldType{TypeReference, "other", Expression{}},
+				"tag":     FieldType{TypeString, "", Expression{}},
+			}
+			So(target.DefinitionSupersetOf(other), ShouldBeFalse)
 		})
 	})
 }
