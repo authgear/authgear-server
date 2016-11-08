@@ -1,5 +1,5 @@
-hash: 37cc39109d1be309985ddd82923284136b18e18aca4ab82f7a43e981c95d5995
-updated: 2016-09-02T17:16:18.504250625+08:00
+hash: 499da816dcd287aa4c2f2e1057ee57f64ab367c0c119efa8feb9c56eb2c8ad77
+updated: 2016-11-08T13:09:29.159211903Z
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
@@ -27,7 +27,7 @@ imports:
 - name: github.com/gorilla/websocket
   version: b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5
 - name: github.com/jmoiron/sqlx
-  version: 344b1e96d6e410a093b7bce40287731a49e253f6
+  version: 5f97679e23f75f42b265fec8d3bdb1c8de90b79d
   subpackages:
   - reflectx
 - name: github.com/joho/godotenv
@@ -41,7 +41,7 @@ imports:
 - name: github.com/lann/squirrel
   version: e13dbacee404686afd0acf2d44b8d34869605e03
 - name: github.com/lib/pq
-  version: b269bd035a727d6c1081f76e7a239a1b00674c40
+  version: d8eeeb8bae8896dd8e1b7e514ab0d396c4f12a1b
   subpackages:
   - oid
 - name: github.com/mattn/go-xmpp
@@ -89,7 +89,7 @@ imports:
   - s3
 testImports:
 - name: github.com/gopherjs/gopherjs
-  version: 45518c130e5bd1525f20110830a4986365a153de
+  version: e34a5cd6a1bc7c4fde759f2d3039852fc68b5fcc
   subpackages:
   - js
 - name: github.com/jarcoal/httpmock
@@ -102,7 +102,7 @@ testImports:
   - internal/go-render/render
   - internal/oglematchers
 - name: github.com/smartystreets/goconvey
-  version: 5db88ed452e937f2fd557de6f4f1af7f2eabed0b
+  version: 019319c870f8f1d61dc9c34291abff5cd128b6e8
   subpackages:
   - convey
   - convey/gotest

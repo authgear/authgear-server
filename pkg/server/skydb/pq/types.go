@@ -106,13 +106,13 @@ func (na *nullAsset) Scan(value interface{}) error {
 		return nil
 	}
 
-	assetName, ok := value.([]byte)
+	assetName, ok := value.(string)
 	if !ok {
 		return fmt.Errorf("failed to scan Asset: got type(value) = %T, expect []byte", value)
 	}
 
 	na.Asset = &skydb.Asset{
-		Name: string(assetName),
+		Name: assetName,
 	}
 	na.Valid = true
 

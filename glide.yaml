@@ -26,7 +26,6 @@ import:
 - package: github.com/gorilla/websocket
   version: b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5
 - package: github.com/jmoiron/sqlx
-  version: 344b1e96d6e410a093b7bce40287731a49e253f6
   subpackages:
   - reflectx
 - package: github.com/joho/godotenv
@@ -40,7 +39,6 @@ import:
 - package: github.com/lann/squirrel
   version: e13dbacee404686afd0acf2d44b8d34869605e03
 - package: github.com/lib/pq
-  version: b269bd035a727d6c1081f76e7a239a1b00674c40
   subpackages:
   - oid
 - package: github.com/mattn/go-xmpp
