@@ -334,6 +334,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 
 	var columnName, pqType string
 	var integerColumns = []string{}
+	var columnErrors []error
 	for rows.Next() {
 		if err := rows.Scan(&columnName, &pqType); err != nil {
 			return nil, err
@@ -361,10 +362,14 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 			schema.Type = skydb.TypeInteger
 			integerColumns = append(integerColumns, columnName)
 		default:
-			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
+			// We need to enumerate all rows, so do not simply return with the error here
+			columnErrors = append(columnErrors, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName))
 		}
 
 		typemap[columnName] = schema
+	}
+	if len(columnErrors) > 0 {
+		return nil, columnErrors[0]
 	}
 
 	// STEP 2.1: Convert integer column to sequence column if applicable
