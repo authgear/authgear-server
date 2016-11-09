@@ -358,6 +358,8 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 			}
 		case TypeLocation:
 			schema.Type = skydb.TypeLocation
+		case TypeBigInteger:
+			fallthrough
 		case TypeInteger:
 			schema.Type = skydb.TypeInteger
 			integerColumns = append(integerColumns, columnName)

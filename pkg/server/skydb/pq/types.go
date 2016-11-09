@@ -31,14 +31,15 @@ import (
 // NOTE(limouren): varchar is missing because text can replace them,
 // see the docs here: http://www.postgresql.org/docs/9.5/static/datatype-character.html
 const (
-	TypeString    = "text"
-	TypeNumber    = "double precision"
-	TypeBoolean   = "boolean"
-	TypeJSON      = "jsonb"
-	TypeTimestamp = "timestamp without time zone"
-	TypeLocation  = "geometry(Point)"
-	TypeInteger   = "integer"
-	TypeSerial    = "serial UNIQUE"
+	TypeString     = "text"
+	TypeNumber     = "double precision"
+	TypeBoolean    = "boolean"
+	TypeJSON       = "jsonb"
+	TypeTimestamp  = "timestamp without time zone"
+	TypeLocation   = "geometry(Point)"
+	TypeInteger    = "integer"
+	TypeSerial     = "serial UNIQUE"
+	TypeBigInteger = "bigint"
 )
 
 type nullJSON struct {
