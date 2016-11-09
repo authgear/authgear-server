@@ -283,18 +283,16 @@ func (db *database) getSequences(recordType string) ([]string, error) {
 // AND tc.table_name = 'note';
 func (db *database) remoteColumnTypes(recordType string) (skydb.RecordSchema, error) {
 	typemap := skydb.RecordSchema{}
+	var err error
 	// STEP 0: Return the cached ColumnType
 	if schema, ok := db.c.RecordSchema[recordType]; ok {
+		log.Debugf("Using cached remoteColumnTypes %s", recordType)
 		return schema, nil
 	}
-	defer func() {
-		db.c.RecordSchema[recordType] = typemap
-		log.Debugf("Cache remoteColumnTypes %s", recordType)
-	}()
 	log.Debugf("Querying remoteColumnTypes %s", recordType)
 	// STEP 1: Get the oid of the current table
 	var oid int
-	err := db.c.QueryRowx(`
+	err = db.c.QueryRowx(`
 SELECT c.oid
 FROM pg_catalog.pg_class c
      LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
@@ -303,6 +301,8 @@ WHERE c.relname = $1
 		recordType, db.schemaName()).Scan(&oid)
 
 	if err == sql.ErrNoRows {
+		db.c.RecordSchema[recordType] = nil
+		log.Debugf("Cache remoteColumnTypes %s (no table)", recordType)
 		return nil, nil
 	}
 	if err != nil {
@@ -334,6 +334,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 
 	var columnName, pqType string
 	var integerColumns = []string{}
+	var columnErrors []error
 	for rows.Next() {
 		if err := rows.Scan(&columnName, &pqType); err != nil {
 			return nil, err
@@ -357,14 +358,20 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 			}
 		case TypeLocation:
 			schema.Type = skydb.TypeLocation
+		case TypeBigInteger:
+			fallthrough
 		case TypeInteger:
 			schema.Type = skydb.TypeInteger
 			integerColumns = append(integerColumns, columnName)
 		default:
-			return nil, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName)
+			// We need to enumerate all rows, so do not simply return with the error here
+			columnErrors = append(columnErrors, fmt.Errorf("received unknown data type = %s for column = %s", pqType, columnName))
 		}
 
 		typemap[columnName] = schema
+	}
+	if len(columnErrors) > 0 {
+		return nil, columnErrors[0]
 	}
 
 	// STEP 2.1: Convert integer column to sequence column if applicable
@@ -423,6 +430,9 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		}
 		typemap[primaryColumn] = s
 	}
+
+	db.c.RecordSchema[recordType] = typemap
+	log.Debugf("Cache remoteColumnTypes %s", recordType)
 	return typemap, nil
 }
 

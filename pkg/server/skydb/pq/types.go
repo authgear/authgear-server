@@ -31,14 +31,15 @@ import (
 // NOTE(limouren): varchar is missing because text can replace them,
 // see the docs here: http://www.postgresql.org/docs/9.5/static/datatype-character.html
 const (
-	TypeString    = "text"
-	TypeNumber    = "double precision"
-	TypeBoolean   = "boolean"
-	TypeJSON      = "jsonb"
-	TypeTimestamp = "timestamp without time zone"
-	TypeLocation  = "geometry(Point)"
-	TypeInteger   = "integer"
-	TypeSerial    = "serial UNIQUE"
+	TypeString     = "text"
+	TypeNumber     = "double precision"
+	TypeBoolean    = "boolean"
+	TypeJSON       = "jsonb"
+	TypeTimestamp  = "timestamp without time zone"
+	TypeLocation   = "geometry(Point)"
+	TypeInteger    = "integer"
+	TypeSerial     = "serial UNIQUE"
+	TypeBigInteger = "bigint"
 )
 
 type nullJSON struct {
@@ -106,13 +107,13 @@ func (na *nullAsset) Scan(value interface{}) error {
 		return nil
 	}
 
-	assetName, ok := value.([]byte)
+	assetName, ok := value.(string)
 	if !ok {
 		return fmt.Errorf("failed to scan Asset: got type(value) = %T, expect []byte", value)
 	}
 
 	na.Asset = &skydb.Asset{
-		Name: string(assetName),
+		Name: assetName,
 	}
 	na.Valid = true
 

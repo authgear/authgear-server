@@ -94,43 +94,50 @@ func (c *conn) Db() Ext {
 }
 
 // Begin begins a transaction.
-func (c *conn) Begin() (err error) {
+func (c *conn) Begin() error {
 	log.Debugf("%p: Beginning transaction", c)
 	if c.tx != nil {
 		return skydb.ErrDatabaseTxDidBegin
 	}
 
-	c.tx, err = c.db.Beginx()
+	tx, err := c.db.Beginx()
+	if err != nil {
+		log.Debugf("%p: Unable to begin transaction %p: %v", c, err)
+		return err
+	}
+	c.tx = tx
 	log.Debugf("%p: Done beginning transaction %p", c, c.tx)
-	return
+	return nil
 }
 
 // Commit commits a transaction.
-func (c *conn) Commit() (err error) {
+func (c *conn) Commit() error {
 	if c.tx == nil {
 		return skydb.ErrDatabaseTxDidNotBegin
 	}
 
-	err = c.tx.Commit()
-	if err == nil {
-		c.tx = nil
+	if err := c.tx.Commit(); err != nil {
+		log.Errorf("%p: Unable to commit transaction %p: %v", c, c.tx, err)
+		return err
 	}
-	log.Debugf("%p: Committed transaction %p", c, c.tx)
-	return
+	c.tx = nil
+	log.Debugf("%p: Committed transaction", c)
+	return nil
 }
 
 // Rollback rollbacks a transaction.
-func (c *conn) Rollback() (err error) {
+func (c *conn) Rollback() error {
 	if c.tx == nil {
 		return skydb.ErrDatabaseTxDidNotBegin
 	}
 
-	err = c.tx.Rollback()
-	if err == nil {
-		c.tx = nil
+	if err := c.tx.Rollback(); err != nil {
+		log.Errorf("%p: Unable to rollback transaction %p: %v", c, c.tx, err)
+		return err
 	}
-	log.Debugf("%p: Rolled back transaction %p", c, c.tx)
-	return
+	c.tx = nil
+	log.Debugf("%p: Rolled back transaction", c)
+	return nil
 }
 
 func (c *conn) PublicDB() skydb.Database {
