@@ -380,13 +380,13 @@ func (r *Record) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 // RecordSchema is a mapping of record key to its value's data type or reference
 type RecordSchema map[string]FieldType
 
-func (schema RecordSchema) DefinitionEquals(other RecordSchema) bool {
-	if len(schema) != len(other) {
+func (schema RecordSchema) DefinitionSupersetOf(other RecordSchema) bool {
+	if len(schema) < len(other) {
 		return false
 	}
 
-	for k, myFieldType := range schema {
-		otherFieldType, ok := other[k]
+	for k, myFieldType := range other {
+		otherFieldType, ok := schema[k]
 		if !ok {
 			return false
 		}

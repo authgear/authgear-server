@@ -34,9 +34,9 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (
 		return
 	}
 
-	if len(remoteRecordSchema) > 0 && remoteRecordSchema.DefinitionEquals(recordSchema) {
-		// The record schemas are the same. There is no need to extend the
-		// schema.
+	if len(remoteRecordSchema) > 0 && remoteRecordSchema.DefinitionSupersetOf(recordSchema) {
+		// The current record schema is superset of requested record
+		// schema. There is no need to extend the schema.
 		return
 	}
 
@@ -61,6 +61,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (
 		if err := createTable(tx, db.tableName(recordType)); err != nil {
 			return false, fmt.Errorf("failed to create table: %s", err)
 		}
+		extended = true
 	}
 
 	updatingSchema := skydb.RecordSchema{}
