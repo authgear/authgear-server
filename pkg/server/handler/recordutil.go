@@ -135,21 +135,24 @@ func (f recordFetcher) getCreationAccess(recordType string) skydb.RecordACL {
 
 func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo) (record *skydb.Record, err skyerr.Error) {
 	dbRecord := skydb.Record{}
-	if f.db.Get(recordID, &dbRecord) == skydb.ErrRecordNotFound {
-		// new record
-		if f.withMasterKey {
+	if dbErr := f.db.Get(recordID, &dbRecord); dbErr != nil {
+		if dbErr == skydb.ErrRecordNotFound {
+			// new record
+			if f.withMasterKey {
+				return
+			}
+
+			creationAccess := f.getCreationAccess(recordID.Type)
+			if !creationAccess.Accessible(userInfo, skydb.CreateLevel) {
+				err = skyerr.NewError(
+					skyerr.PermissionDenied,
+					"no permission to create",
+				)
+			}
+
 			return
 		}
-
-		creationAccess := f.getCreationAccess(recordID.Type)
-		if !creationAccess.Accessible(userInfo, skydb.CreateLevel) {
-			err = skyerr.NewError(
-				skyerr.PermissionDenied,
-				"no permission to create",
-			)
-		}
-
-		return
+		return nil, skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
 	}
 
 	record = &dbRecord
