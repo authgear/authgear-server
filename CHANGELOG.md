@@ -1,3 +1,27 @@
+## 0.19.0 (2016-11-10)
+
+### Incompatible changes
+
+- The protocol for plugin transport is updated. Skygear Server and cloud code
+  in previous versions cannot be used with this version.
+
+### Features
+
+- Support plugin only request during plugin initialization
+- Add support for bigint db type
+- Make use of `ST_DWithin` to compare distance (#213)
+- Support plugin event (#199)
+
+### Bug Fixes
+
+- Fix various issues with creating user on sign up (#218)
+- Fix schema extending more than necessary
+- Fix unable to configure sentry log hook
+
+### Other Notes
+
+- Send JSON-encoded plugin call in http request body (skygeario/py-skygear#82)
+
 ## 0.18.0 (2016-10-28)
 
 ### Features
