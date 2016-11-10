@@ -43,8 +43,13 @@ const (
 	// been initialized
 	TransportStateUninitialized TransportState = iota
 
+	// TransportStateInitialized is the state when the transport has been
+	// initialized. During this state, only requests from plugins with master key
+	// will be accepted.
+	TransportStateInitialized
+
 	// TransportStateReady is the state when the transport is ready for
-	// requests
+	// the requests from client.
 	TransportStateReady
 
 	// TransportStateWorkerUnavailable is the state when all workers

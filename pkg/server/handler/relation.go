@@ -109,6 +109,7 @@ type RelationQueryHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -118,6 +119,7 @@ func (h *RelationQueryHandler) Setup() {
 		h.DBConn,
 		h.InjectUser,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 
@@ -227,6 +229,7 @@ type RelationAddHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -236,6 +239,7 @@ func (h *RelationAddHandler) Setup() {
 		h.DBConn,
 		h.InjectUser,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 
@@ -298,6 +302,7 @@ type RelationRemoveHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -307,6 +312,7 @@ func (h *RelationRemoveHandler) Setup() {
 		h.DBConn,
 		h.InjectUser,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 

@@ -143,15 +143,34 @@ func (c *Context) InitPlugins() {
 		}(eachPlugin)
 	}
 
-	log.
-		WithField("count", len(c.plugins)).
-		Info("Wait for all plugin configurations")
-	wg.Wait()
-	c.SendEvent("before-plugins-ready", []byte{}, false)
-	c.SendEvent("after-plugins-ready", []byte{}, false)
+	// make a goroutine to wait for all the plugins to be ready
+	go func() {
+		log.
+			WithField("count", len(c.plugins)).
+			Info("Wait for all plugin configurations")
+		wg.Wait()
+		c.SendEvent("before-plugins-ready", []byte{}, false)
+
+		for _, eachPlugin := range c.plugins {
+			eachPlugin.transport.SetState(TransportStateReady)
+		}
+
+		c.SendEvent("after-plugins-ready", []byte{}, false)
+		c.SendEvent("server-ready", []byte{}, false)
+	}()
 }
 
-// IsReady returns true if all the configured plugins are available
+// IsInitialized returns true if all the plugins have been initialized
+func (c *Context) IsInitialized() bool {
+	for _, eachPlugin := range c.plugins {
+		if !eachPlugin.IsInitialized() {
+			return false
+		}
+	}
+	return true
+}
+
+// IsReady returns true if all the plugins are ready for client requests
 func (c *Context) IsReady() bool {
 	for _, eachPlugin := range c.plugins {
 		if !eachPlugin.IsReady() {
@@ -200,8 +219,8 @@ func (p *Plugin) Init(context *Context) {
 			continue
 		}
 
-		p.transport.SetState(TransportStateReady)
 		p.processRegistrationInfo(context, regInfo)
+		p.transport.SetState(TransportStateInitialized)
 
 		break
 	}
@@ -239,7 +258,14 @@ func (p *Plugin) requestInit(context *Context) (regInfo registrationInfo, initEr
 	return
 }
 
-// IsReady tells whether the plugin is ready
+// IsInitialized returns true if the plugin has been initialized
+func (p *Plugin) IsInitialized() bool {
+	transportState := p.transport.State()
+	return transportState == TransportStateInitialized ||
+		transportState == TransportStateReady
+}
+
+// IsReady returns true if the plugin is ready for client request
 func (p *Plugin) IsReady() bool {
 	return p.transport.State() == TransportStateReady
 }

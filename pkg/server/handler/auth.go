@@ -97,7 +97,7 @@ type SignupHandler struct {
 	AccessKey        router.Processor   `preprocessor:"accesskey"`
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
-	PluginReady      router.Processor   `preprocessor:"plugin"`
+	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
 	preprocessors    []router.Processor
 }
 
@@ -225,7 +225,7 @@ type LoginHandler struct {
 	AccessKey        router.Processor   `preprocessor:"accesskey"`
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
-	PluginReady      router.Processor   `preprocessor:"plugin"`
+	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
 	preprocessors    []router.Processor
 }
 
@@ -345,7 +345,7 @@ func (h *LoginHandler) authPrincipal(p *loginPayload) (string, map[string]interf
 type LogoutHandler struct {
 	TokenStore    authtoken.Store  `inject:"TokenStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
-	PluginReady   router.Processor `preprocessor:"plugin"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -432,6 +432,7 @@ type PasswordHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -441,6 +442,7 @@ func (h *PasswordHandler) Setup() {
 		h.DBConn,
 		h.InjectUser,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 

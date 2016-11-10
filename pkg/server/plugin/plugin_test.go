@@ -36,6 +36,13 @@ func (p MockPluginReadyPreprocessor) Preprocess(payload *router.Payload, respons
 	return http.StatusOK
 }
 
+type MockAccessKeyPreprocessor struct{}
+
+func (p MockAccessKeyPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	payload.AccessKey = router.ClientAccessKey
+	return http.StatusOK
+}
+
 func TestPlugin(t *testing.T) {
 	config := skyconfig.Configuration{}
 	Convey("new plugin from non-registered transport", t, func() {
@@ -76,7 +83,8 @@ func TestPlugin(t *testing.T) {
 		Convey("init correctly with one handler", func() {
 			mux := http.NewServeMux()
 			plugin.initHandler(mux, router.PreprocessorRegistry{
-				"plugin": MockPluginReadyPreprocessor{},
+				"plugin_ready": MockPluginReadyPreprocessor{},
+				"accesskey":    MockAccessKeyPreprocessor{},
 			}, []pluginHandlerInfo{
 				pluginHandlerInfo{
 					Name: "chima:echo",
@@ -89,7 +97,8 @@ func TestPlugin(t *testing.T) {
 		Convey("init correctly with multiple handler", func() {
 			mux := http.NewServeMux()
 			plugin.initHandler(mux, router.PreprocessorRegistry{
-				"plugin": MockPluginReadyPreprocessor{},
+				"plugin_ready": MockPluginReadyPreprocessor{},
+				"accesskey":    MockAccessKeyPreprocessor{},
 			}, []pluginHandlerInfo{
 				pluginHandlerInfo{
 					Name: "chima:echo",

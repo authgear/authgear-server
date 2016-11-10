@@ -247,7 +247,7 @@ type RecordSaveHandler struct {
 	InjectUser    router.Processor   `preprocessor:"inject_user"`
 	InjectDB      router.Processor   `preprocessor:"inject_db"`
 	RequireUser   router.Processor   `preprocessor:"require_user"`
-	PluginReady   router.Processor   `preprocessor:"plugin"`
+	PluginReady   router.Processor   `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -410,6 +410,7 @@ type RecordFetchHandler struct {
 	DBConn        router.Processor  `preprocessor:"dbconn"`
 	InjectUser    router.Processor  `preprocessor:"inject_user"`
 	InjectDB      router.Processor  `preprocessor:"inject_db"`
+	PluginReady   router.Processor  `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -419,6 +420,7 @@ func (h *RecordFetchHandler) Setup() {
 		h.DBConn,
 		h.InjectUser,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 
@@ -514,6 +516,7 @@ type RecordQueryHandler struct {
 	DBConn        router.Processor  `preprocessor:"dbconn"`
 	InjectUser    router.Processor  `preprocessor:"inject_user"`
 	InjectDB      router.Processor  `preprocessor:"inject_db"`
+	PluginReady   router.Processor  `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -523,6 +526,7 @@ func (h *RecordQueryHandler) Setup() {
 		h.DBConn,
 		h.InjectUser,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 
@@ -672,7 +676,7 @@ type RecordDeleteHandler struct {
 	InjectUser    router.Processor  `preprocessor:"inject_user"`
 	InjectDB      router.Processor  `preprocessor:"inject_db"`
 	RequireUser   router.Processor  `preprocessor:"require_user"`
-	PluginReady   router.Processor  `preprocessor:"plugin"`
+	PluginReady   router.Processor  `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 

@@ -95,6 +95,7 @@ type PushToUserHandler struct {
 	DBConn             router.Processor `preprocessor:"dbconn"`
 	InjectDB           router.Processor `preprocessor:"inject_db"`
 	Notification       router.Processor `preprocessor:"notification"`
+	PluginReady        router.Processor `preprocessor:"plugin_ready"`
 	preprocessors      []router.Processor
 }
 
@@ -104,6 +105,7 @@ func (h *PushToUserHandler) Setup() {
 		h.DBConn,
 		h.InjectDB,
 		h.Notification,
+		h.PluginReady,
 	}
 }
 
@@ -170,6 +172,7 @@ type PushToDeviceHandler struct {
 	DBConn             router.Processor `preprocessor:"dbconn"`
 	InjectDB           router.Processor `preprocessor:"inject_db"`
 	Notification       router.Processor `preprocessor:"notification"`
+	PluginReady        router.Processor `preprocessor:"plugin_ready"`
 	preprocessors      []router.Processor
 }
 
@@ -179,6 +182,7 @@ func (h *PushToDeviceHandler) Setup() {
 		h.DBConn,
 		h.InjectDB,
 		h.Notification,
+		h.PluginReady,
 	}
 }
 

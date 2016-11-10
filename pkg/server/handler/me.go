@@ -26,6 +26,7 @@ type MeHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -35,6 +36,7 @@ func (h *MeHandler) Setup() {
 		h.Authenticator,
 		h.DBConn,
 		h.InjectUser,
+		h.PluginReady,
 	}
 }
 

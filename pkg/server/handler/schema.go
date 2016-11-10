@@ -44,17 +44,21 @@ EOF
 */
 type SchemaRenameHandler struct {
 	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
+	AccessKey     router.Processor   `preprocessor:"accesskey"`
 	DevOnly       router.Processor   `preprocessor:"dev_only"`
 	DBConn        router.Processor   `preprocessor:"dbconn"`
 	InjectDB      router.Processor   `preprocessor:"inject_db"`
+	PluginReady   router.Processor   `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
 func (h *SchemaRenameHandler) Setup() {
 	h.preprocessors = []router.Processor{
+		h.AccessKey,
 		h.DevOnly,
 		h.DBConn,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 
@@ -146,17 +150,21 @@ EOF
 */
 type SchemaDeleteHandler struct {
 	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
+	AccessKey     router.Processor   `preprocessor:"accesskey"`
 	DevOnly       router.Processor   `preprocessor:"dev_only"`
 	DBConn        router.Processor   `preprocessor:"dbconn"`
 	InjectDB      router.Processor   `preprocessor:"inject_db"`
+	PluginReady   router.Processor   `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
 func (h *SchemaDeleteHandler) Setup() {
 	h.preprocessors = []router.Processor{
+		h.AccessKey,
 		h.DevOnly,
 		h.DBConn,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 
@@ -248,17 +256,21 @@ EOF
 */
 type SchemaCreateHandler struct {
 	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
+	AccessKey     router.Processor   `preprocessor:"accesskey"`
 	DevOnly       router.Processor   `preprocessor:"dev_only"`
 	DBConn        router.Processor   `preprocessor:"dbconn"`
 	InjectDB      router.Processor   `preprocessor:"inject_db"`
+	PluginReady   router.Processor   `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
 func (h *SchemaCreateHandler) Setup() {
 	h.preprocessors = []router.Processor{
+		h.AccessKey,
 		h.DevOnly,
 		h.DBConn,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 
@@ -353,17 +365,21 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaFetchHandler struct {
+	AccessKey     router.Processor `preprocessor:"accesskey"`
 	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
 func (h *SchemaFetchHandler) Setup() {
 	h.preprocessors = []router.Processor{
+		h.AccessKey,
 		h.DevOnly,
 		h.DBConn,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 
@@ -400,9 +416,11 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaAccessHandler struct {
+	AccessKey     router.Processor `preprocessor:"accesskey"`
 	DevOnly       router.Processor `preprocessor:"dev_only"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -419,9 +437,11 @@ type schemaAccessResponse struct {
 
 func (h *SchemaAccessHandler) Setup() {
 	h.preprocessors = []router.Processor{
+		h.AccessKey,
 		h.DevOnly,
 		h.DBConn,
 		h.InjectDB,
+		h.PluginReady,
 	}
 }
 
