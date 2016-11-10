@@ -150,13 +150,6 @@ func (p *Payload) HasMasterKey() bool {
 	return p.AccessKey == MasterAccessKey
 }
 
-// IsValidPluginRequest returns true when the payload indicate that the
-// request is from plugin AND the master key is used
-func (p Payload) IsValidPluginRequest() bool {
-	fromPlugin, _ := p.Data["_from_plugin"].(bool)
-	return fromPlugin && p.HasMasterKey()
-}
-
 // Response is interface for handler to write response to router
 type Response struct {
 	Meta          map[string][]string `json:"-"`
