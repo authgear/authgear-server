@@ -24,6 +24,8 @@ import (
 
 type EnsurePluginReadyPreprocessor struct {
 	PluginContext *plugin.Context
+	ClientKey     string
+	MasterKey     string
 }
 
 func (p *EnsurePluginReadyPreprocessor) Preprocess(
@@ -39,6 +41,11 @@ func (p *EnsurePluginReadyPreprocessor) Preprocess(
 	// only allow requests with master key and the "_from_plugin" is set to true
 	// when the some plugin are just initialized
 	if p.PluginContext.IsInitialized() {
+		if err := checkRequestAccessKey(payload, p.ClientKey, p.MasterKey); err != nil {
+			response.Err = err
+			return http.StatusUnauthorized
+		}
+
 		fromPlugin, _ := payload.Data["_from_plugin"].(bool)
 		if payload.HasMasterKey() && fromPlugin {
 			return http.StatusOK

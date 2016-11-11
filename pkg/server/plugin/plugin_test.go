@@ -84,7 +84,6 @@ func TestPlugin(t *testing.T) {
 			mux := http.NewServeMux()
 			plugin.initHandler(mux, router.PreprocessorRegistry{
 				"plugin_ready": MockPluginReadyPreprocessor{},
-				"accesskey":    MockAccessKeyPreprocessor{},
 			}, []pluginHandlerInfo{
 				pluginHandlerInfo{
 					Name: "chima:echo",
@@ -98,7 +97,6 @@ func TestPlugin(t *testing.T) {
 			mux := http.NewServeMux()
 			plugin.initHandler(mux, router.PreprocessorRegistry{
 				"plugin_ready": MockPluginReadyPreprocessor{},
-				"accesskey":    MockAccessKeyPreprocessor{},
 			}, []pluginHandlerInfo{
 				pluginHandlerInfo{
 					Name: "chima:echo",

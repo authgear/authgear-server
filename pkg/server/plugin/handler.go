@@ -68,10 +68,7 @@ func (h *Handler) Setup() {
 			"plugin_ready",
 		)
 	} else {
-		h.preprocessors = h.PreprocessorList.GetByNames(
-			"accesskey",
-			"plugin_ready",
-		)
+		h.preprocessors = h.PreprocessorList.GetByNames("plugin_ready")
 	}
 }
 

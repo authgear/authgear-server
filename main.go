@@ -136,6 +136,8 @@ func main() {
 	}
 	preprocessorRegistry["plugin_ready"] = &pp.EnsurePluginReadyPreprocessor{
 		PluginContext: &pluginContext,
+		ClientKey:     config.App.APIKey,
+		MasterKey:     config.App.MasterKey,
 	}
 	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
 	preprocessorRegistry["require_user"] = &pp.RequireUserForWrite{}
