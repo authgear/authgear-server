@@ -291,8 +291,6 @@ func main() {
 	// Bootstrap finished, starting services
 	initPlugin(config, &pluginContext)
 
-	pluginContext.SendEvent("server-ready", []byte{}, false)
-
 	log.Printf("Listening on %v...", config.HTTP.Host)
 	err := http.ListenAndServe(config.HTTP.Host, finalMux)
 	if err != nil {
