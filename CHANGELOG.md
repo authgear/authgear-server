@@ -1,3 +1,9 @@
+## 0.19.1 (2016-11-12)
+
+### Bug Fixes
+
+- Fix plugin lambda / handler always require API key
+
 ## 0.19.0 (2016-11-10)
 
 ### Incompatible changes
