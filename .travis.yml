@@ -53,7 +53,7 @@ script:
   - WITH_ZMQ=1 make test
 
 before_deploy:
-  - if [[ -z "$TRAVIS_TAG" ]]; then make all; fi
+  - if [[ ! -z "$TRAVIS_TAG" ]]; then make all; fi
 
 deploy:
   - provider: releases
