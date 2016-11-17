@@ -595,7 +595,7 @@ func TestRun(t *testing.T) {
 			}
 
 			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil)
-			So(err.Error(), ShouldEqual, "failed to parse response: invalid character 'I' looking for beginning of value")
+			So(err.Error(), ShouldEqual, "failed to parse plugin response: invalid character 'I' looking for beginning of value")
 			So(recordout, ShouldBeNil)
 		})
 

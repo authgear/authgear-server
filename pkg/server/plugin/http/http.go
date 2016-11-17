@@ -21,6 +21,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
+	"golang.org/x/net/context"
+
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/common"
@@ -28,7 +31,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
-	"golang.org/x/net/context"
 )
 
 var log = logging.LoggerEntry("plugin")
@@ -56,7 +58,19 @@ func (p *httpTransport) rpc(req *pluginrequest.Request) (out []byte, err error) 
 
 	jsonErr := json.Unmarshal(data, &resp)
 	if jsonErr != nil {
-		err = fmt.Errorf("failed to parse response: %v", jsonErr)
+		logger := log.WithFields(logrus.Fields{
+			"response-content": string(data),
+			"err":              err,
+		})
+
+		if reqContent, err := json.Marshal(req); err == nil {
+			logger = logger.WithFields(logrus.Fields{
+				"request-content": string(reqContent),
+			})
+		}
+
+		logger.Errorln("Fail to unmarshal plugin response")
+		err = fmt.Errorf("Failed to parse plugin response: %v", jsonErr)
 		return
 	}
 

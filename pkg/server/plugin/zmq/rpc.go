@@ -120,6 +120,19 @@ func (p *zmqTransport) rpc(req *pluginrequest.Request) (out []byte, err error) {
 	}
 
 	if err = json.Unmarshal(rawResp, &resp); err != nil {
+		logger := log.WithFields(logrus.Fields{
+			"response-content": string(rawResp),
+			"err":              err,
+		})
+
+		if reqContent, err := json.Marshal(req); err == nil {
+			logger = logger.WithFields(logrus.Fields{
+				"request-content": string(reqContent),
+			})
+		}
+
+		logger.Errorln("Fail to unmarshal plugin response")
+		err = fmt.Errorf("Failed to parse plugin response: %v", err)
 		return
 	}
 	if resp.Err != nil {

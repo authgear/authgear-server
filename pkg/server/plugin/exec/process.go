@@ -20,12 +20,14 @@ import (
 	"fmt"
 	osexec "os/exec"
 
+	"github.com/Sirupsen/logrus"
+	"golang.org/x/net/context"
+
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/common"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
-	"golang.org/x/net/context"
 )
 
 var startCommand = func(cmd *osexec.Cmd, in []byte) (out []byte, err error) {
@@ -135,7 +137,13 @@ func (p *execTransport) runProc(args []string, env []string, in []byte) (out []b
 
 	jsonErr := json.Unmarshal(data, &resp)
 	if jsonErr != nil {
-		err = fmt.Errorf("failed to parse response: %v", jsonErr)
+		logger := log.WithFields(logrus.Fields{
+			"response-content": string(data),
+			"err":              err,
+		})
+
+		logger.Errorln("Fail to unmarshal plugin response")
+		err = fmt.Errorf("failed to parse plugin response: %v", jsonErr)
 		return
 	}
 
