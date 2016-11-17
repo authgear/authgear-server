@@ -91,7 +91,7 @@ func (p *SingleUserAuthProvider) Login(authData map[string]interface{}) (princip
 		principalID = p.providerName + ":" + p.principalName
 		newAuthData = authData
 	} else {
-		err = fmt.Errorf("Incorrect user.")
+		err = fmt.Errorf("incorrect user")
 	}
 	return
 }

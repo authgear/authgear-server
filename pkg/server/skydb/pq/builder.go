@@ -51,7 +51,7 @@ func (f *predicateSqlizerFactory) newPredicateSqlizer(p skydb.Predicate) (sq.Sql
 func (f *predicateSqlizerFactory) newCompoundPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
 	switch p.Operator {
 	default:
-		err := fmt.Errorf("Compound operator `%v` is not supported.", p.Operator)
+		err := fmt.Errorf("compound operator `%v` is not supported", p.Operator)
 		return nil, err
 	case skydb.And:
 		and := make(sq.And, len(p.Children))
@@ -550,7 +550,7 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 
 		sql = buffer.String()
 	} else {
-		err = fmt.Errorf("Comparison operator `%v` is not supported.", p.operator)
+		err = fmt.Errorf("comparison operator `%v` is not supported", p.operator)
 	}
 
 	return
@@ -559,7 +559,7 @@ func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, er
 func (p *comparisonPredicateSqlizer) writeOperator(buffer *bytes.Buffer) error {
 	switch p.operator {
 	default:
-		return fmt.Errorf("Comparison operator `%v` is not supported.", p.operator)
+		return fmt.Errorf("comparison operator `%v` is not supported", p.operator)
 	case skydb.Equal:
 		buffer.WriteString(`=`)
 	case skydb.GreaterThan:

@@ -148,7 +148,7 @@ func (parser *QueryParser) predicateFromRaw(rawPredicate []interface{}) skydb.Pr
 			expr := parser.parseExpression(rawPredicate[i])
 			if expr.Type == skydb.KeyPath && strings.Contains(expr.Value.(string), ".") {
 
-				panic(fmt.Errorf("Key path `%s` is not supported.", expr.Value))
+				panic(fmt.Errorf("key path `%s` is not supported", expr.Value))
 			}
 			predicate.Children = append(predicate.Children, expr)
 		}
