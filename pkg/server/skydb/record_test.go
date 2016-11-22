@@ -173,52 +173,52 @@ func TestRecordACL(t *testing.T) {
 func TestRecordSchema(t *testing.T) {
 	Convey("RecordSchema", t, func() {
 		target := RecordSchema{
-			"content": FieldType{TypeString, "", Expression{}},
-			"date":    FieldType{TypeDateTime, "", Expression{}},
-			"ref":     FieldType{TypeReference, "other", Expression{}},
+			"content": FieldType{Type: TypeString},
+			"date":    FieldType{Type: TypeDateTime},
+			"ref":     FieldType{Type: TypeReference, ReferenceType: "other"},
 		}
 
 		Convey("is superset if equal", func() {
 			other := RecordSchema{
-				"content": FieldType{TypeString, "", Expression{}},
-				"date":    FieldType{TypeDateTime, "", Expression{}},
-				"ref":     FieldType{TypeReference, "other", Expression{}},
+				"content": FieldType{Type: TypeString},
+				"date":    FieldType{Type: TypeDateTime},
+				"ref":     FieldType{Type: TypeReference, ReferenceType: "other"},
 			}
 			So(target.DefinitionSupersetOf(other), ShouldBeTrue)
 		})
 
 		Convey("is superset if target has all columns of the other schema", func() {
 			other := RecordSchema{
-				"content": FieldType{TypeString, "", Expression{}},
-				"date":    FieldType{TypeDateTime, "", Expression{}},
+				"content": FieldType{Type: TypeString},
+				"date":    FieldType{Type: TypeDateTime},
 			}
 			So(target.DefinitionSupersetOf(other), ShouldBeTrue)
 		})
 
 		Convey("is not superset if wrong field type", func() {
 			other := RecordSchema{
-				"content": FieldType{TypeString, "", Expression{}},
-				"date":    FieldType{TypeString, "", Expression{}},
-				"ref":     FieldType{TypeReference, "other", Expression{}},
+				"content": FieldType{Type: TypeString},
+				"date":    FieldType{Type: TypeString},
+				"ref":     FieldType{Type: TypeReference, ReferenceType: "other"},
 			}
 			So(target.DefinitionSupersetOf(other), ShouldBeFalse)
 		})
 
 		Convey("is not superset if wrong reference type", func() {
 			other := RecordSchema{
-				"content": FieldType{TypeString, "", Expression{}},
-				"date":    FieldType{TypeDateTime, "", Expression{}},
-				"ref":     FieldType{TypeReference, "something", Expression{}},
+				"content": FieldType{Type: TypeString},
+				"date":    FieldType{Type: TypeDateTime},
+				"ref":     FieldType{Type: TypeReference, ReferenceType: "something"},
 			}
 			So(target.DefinitionSupersetOf(other), ShouldBeFalse)
 		})
 
 		Convey("is not superset if column not exist in target", func() {
 			other := RecordSchema{
-				"content": FieldType{TypeString, "", Expression{}},
-				"date":    FieldType{TypeDateTime, "", Expression{}},
-				"ref":     FieldType{TypeReference, "other", Expression{}},
-				"tag":     FieldType{TypeString, "", Expression{}},
+				"content": FieldType{Type: TypeString},
+				"date":    FieldType{Type: TypeDateTime},
+				"ref":     FieldType{Type: TypeReference, ReferenceType: "other"},
+				"tag":     FieldType{Type: TypeString},
 			}
 			So(target.DefinitionSupersetOf(other), ShouldBeFalse)
 		})

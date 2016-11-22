@@ -215,6 +215,17 @@ func TestExtend(t *testing.T) {
 			So(extended, ShouldBeFalse)
 		})
 
+		Convey("cannot creates table with unknown type", func() {
+			So(func() {
+				db.Extend("note", skydb.RecordSchema{
+					"order": skydb.FieldType{
+						Type:           skydb.TypeUnknown,
+						UnderlyingType: "money",
+					},
+				})
+			}, ShouldPanic)
+		})
+
 		Convey("error if creates table with reference not exist", func() {
 			_, err := db.Extend("note", skydb.RecordSchema{
 				"content": skydb.FieldType{Type: skydb.TypeString},
@@ -269,7 +280,7 @@ func TestExtend(t *testing.T) {
 				"dirty":     skydb.FieldType{Type: skydb.TypeNumber},
 			})
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldEqual, "conflicting schema {TypeString  {0 <nil>}} => {TypeNumber  {0 <nil>}}")
+			So(err.Error(), ShouldStartWith, "conflicting schema")
 		})
 
 		Convey("creates empty table", func() {

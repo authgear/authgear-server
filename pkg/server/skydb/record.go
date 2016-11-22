@@ -261,6 +261,11 @@ func (loc Location) String() string {
 // via JIT schema migration
 type Sequence struct{}
 
+// Unknown is a bogus data type denoting the type of a field is unknown.
+type Unknown struct {
+	UnderlyingType string
+}
+
 // A Data represents a key-value object used for storing ODRecord.
 type Data map[string]interface{}
 
@@ -400,9 +405,10 @@ func (schema RecordSchema) DefinitionSupersetOf(other RecordSchema) bool {
 
 // FieldType represents the kind of data living within a field of a RecordSchema.
 type FieldType struct {
-	Type          DataType
-	ReferenceType string     // used only by TypeReference
-	Expression    Expression // used by Computed Keys
+	Type           DataType
+	ReferenceType  string     // used only by TypeReference
+	Expression     Expression // used by Computed Keys
+	UnderlyingType string     // indicates the underlying (pq) type
 }
 
 func (f FieldType) DefinitionEquals(other FieldType) bool {
@@ -433,6 +439,8 @@ func (f FieldType) ToSimpleName() string {
 		return "integer"
 	case TypeSequence:
 		return "sequence"
+	case TypeUnknown:
+		return "unknown"
 	}
 	return ""
 }
@@ -454,6 +462,7 @@ const (
 	TypeACL
 	TypeInteger
 	TypeSequence
+	TypeUnknown
 )
 
 // IsNumberCompatibleType returns true if the type is a numeric type
@@ -488,6 +497,8 @@ func SimpleNameToFieldType(s string) (result FieldType, err error) {
 		result.Type = TypeInteger
 	case "sequence":
 		result.Type = TypeSequence
+	case "unknown":
+		result.Type = TypeUnknown
 	default:
 		if regexp.MustCompile(`^ref\(.+\)$`).MatchString(s) {
 			result.Type = TypeReference

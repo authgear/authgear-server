@@ -168,6 +168,9 @@ func convert(r *skydb.Record) map[string]interface{} {
 			m[key] = referenceValue(value)
 		case skydb.Location:
 			m[key] = locationValue(value)
+		case skydb.Unknown:
+			// Do not modify columns with unknown type because they are
+			// managed by the developer.
 		default:
 			m[key] = rawValue
 		}
@@ -399,6 +402,9 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 		case skydb.TypeInteger:
 			var i sql.NullInt64
 			values = append(values, &i)
+		case skydb.TypeUnknown:
+			var u nullUnknown
+			values = append(values, &u)
 		default:
 			return fmt.Errorf("received unknown data type = %v for column = %s", schema.Type, column)
 		}
@@ -471,6 +477,14 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 		case *nullLocation:
 			if svalue.Valid {
 				record.Set(column, svalue.Location)
+			}
+		case *nullUnknown:
+			if svalue.Valid {
+				val := skydb.Unknown{}
+				if schema, ok := rs.typemap[column]; ok {
+					val.UnderlyingType = schema.UnderlyingType
+				}
+				record.Set(column, val)
 			}
 		case *sql.NullInt64:
 			if svalue.Valid {

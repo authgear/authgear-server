@@ -2411,3 +2411,69 @@ func TestRecordSequenceField(t *testing.T) {
 		})
 	})
 }
+
+func TestRecordUnknownField(t *testing.T) {
+	Convey("Database", t, func() {
+		c := getTestConn(t)
+		defer cleanupConn(t, c)
+
+		db := c.PublicDB()
+		_, err := db.Extend("note", skydb.RecordSchema{})
+		So(err, ShouldBeNil)
+		_, err = c.Exec(`ALTER TABLE "note" ADD "money" money;`)
+		So(err, ShouldBeNil)
+		insertRow(t, c.Db(), `INSERT INTO "note" `+
+			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "money") `+
+			`VALUES ('', 'id0', 'user0', '1988-02-06', 'user0', '1988-02-06', 'user0', 1)`)
+		insertRow(t, c.Db(), `INSERT INTO "note" `+
+			`(_database_id, _id, _owner_id, _created_at, _created_by, _updated_at, _updated_by, "money") `+
+			`VALUES ('', 'id1', 'user0', '1988-02-06', 'user0', '1988-02-06', 'user0', NULL)`)
+
+		Convey("fetch returns unknown type", func() {
+			record := skydb.Record{}
+			err = db.Get(skydb.NewRecordID("note", "id0"), &record)
+			So(err, ShouldBeNil)
+			So(record.Data, ShouldResemble, skydb.Data{
+				"money": skydb.Unknown{
+					UnderlyingType: "money",
+				},
+			})
+		})
+
+		Convey("fetch null row returns null (no unknown type)", func() {
+			record := skydb.Record{}
+			err = db.Get(skydb.NewRecordID("note", "id1"), &record)
+			So(err, ShouldBeNil)
+			So(record.Data, ShouldResemble, skydb.Data{})
+		})
+
+		Convey("save to existing record returns unknown type", func() {
+			record := skydb.Record{
+				ID:      skydb.NewRecordID("note", "id0"),
+				OwnerID: "user0",
+			}
+			err = db.Save(&record)
+			So(err, ShouldBeNil)
+			So(record.Data, ShouldResemble, skydb.Data{
+				"money": skydb.Unknown{
+					UnderlyingType: "money",
+				},
+			})
+		})
+
+		Convey("save to new record will omit unknown type", func() {
+			record := skydb.Record{
+				ID:      skydb.NewRecordID("note", "id1"),
+				OwnerID: "user0",
+				Data: map[string]interface{}{
+					"money": skydb.Unknown{
+						UnderlyingType: "money",
+					},
+				},
+			}
+			err = db.Save(&record)
+			So(err, ShouldBeNil)
+			So(record.Data, ShouldResemble, skydb.Data{})
+		})
+	})
+}

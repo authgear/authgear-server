@@ -171,6 +171,8 @@ func removeRecordFieldTypeHints(r *skydb.Record) {
 		switch v.(type) {
 		case skydb.Sequence:
 			delete(r.Data, k)
+		case skydb.Unknown:
+			delete(r.Data, k)
 		}
 	}
 }
@@ -498,7 +500,7 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 	schema := skydb.RecordSchema{}
 	log.Debugf("%v", m)
 	for key, value := range m {
-		switch value.(type) {
+		switch val := value.(type) {
 		default:
 			log.WithFields(logrus.Fields{
 				"key":   key,
@@ -543,6 +545,11 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 		case skydb.Sequence:
 			schema[key] = skydb.FieldType{
 				Type: skydb.TypeSequence,
+			}
+		case skydb.Unknown:
+			schema[key] = skydb.FieldType{
+				Type:           skydb.TypeUnknown,
+				UnderlyingType: val.UnderlyingType,
 			}
 		case map[string]interface{}, []interface{}:
 			schema[key] = skydb.FieldType{

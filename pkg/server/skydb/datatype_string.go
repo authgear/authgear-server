@@ -4,9 +4,9 @@ package skydb
 
 import "fmt"
 
-const _DataType_name = "TypeStringTypeNumberTypeBooleanTypeJSONTypeReferenceTypeLocationTypeDateTimeTypeAssetTypeACLTypeIntegerTypeSequence"
+const _DataType_name = "TypeStringTypeNumberTypeBooleanTypeJSONTypeReferenceTypeLocationTypeDateTimeTypeAssetTypeACLTypeIntegerTypeSequenceTypeUnknown"
 
-var _DataType_index = [...]uint8{0, 10, 20, 31, 39, 52, 64, 76, 85, 92, 103, 115}
+var _DataType_index = [...]uint8{0, 10, 20, 31, 39, 52, 64, 76, 85, 92, 103, 115, 126}
 
 func (i DataType) String() string {
 	i -= 1

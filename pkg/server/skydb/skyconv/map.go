@@ -276,6 +276,22 @@ func (seq MapSequence) ToMap(m map[string]interface{}) {
 	m["$type"] = "seq"
 }
 
+// MapUnknown is skydb.Unknown that can convert to map
+type MapUnknown skydb.Unknown
+
+// FromMap implements FromMapper
+func (val *MapUnknown) FromMap(m map[string]interface{}) error {
+	underlyingType, _ := m["$underlying_type"].(string)
+	*val = MapUnknown{underlyingType}
+	return nil
+}
+
+// ToMap implements ToMapper
+func (val MapUnknown) ToMap(m map[string]interface{}) {
+	m["$type"] = "unknown"
+	m["$underlying_type"] = val.UnderlyingType
+}
+
 type MapACLEntry skydb.RecordACLEntry
 
 // FromMap initializes a RecordACLEntry from a unmarshalled JSON of
@@ -382,6 +398,10 @@ func ParseLiteral(i interface{}) interface{} {
 			return loc
 		case "seq":
 			return skydb.Sequence{}
+		case "unknown":
+			var val skydb.Unknown
+			mapFromOrPanic((*MapUnknown)(&val), value)
+			return val
 		case "relation":
 			var rel MapRelation
 			mapFromOrPanic((*MapRelation)(&rel), value)

@@ -182,3 +182,12 @@ type locationValue skydb.Location
 func (loc locationValue) Value() (driver.Value, error) {
 	return geo.Point(loc).ToWKT(), nil
 }
+
+type nullUnknown struct {
+	Valid bool
+}
+
+func (nu *nullUnknown) Scan(value interface{}) error {
+	nu.Valid = value != nil
+	return nil
+}
