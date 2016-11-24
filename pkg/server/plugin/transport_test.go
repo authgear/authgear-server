@@ -115,8 +115,10 @@ func TestContextMap(t *testing.T) {
 	Convey("UserID", t, func() {
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, router.UserIDContextKey, "42")
+		ctx = context.WithValue(ctx, router.AccessKeyTypeContextKey, router.MasterAccessKey)
 		So(ContextMap(ctx), ShouldResemble, map[string]interface{}{
-			"user_id": "42",
+			"user_id":         "42",
+			"access_key_type": "master",
 		})
 	})
 }

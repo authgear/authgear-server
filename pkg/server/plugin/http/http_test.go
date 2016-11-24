@@ -114,11 +114,12 @@ func TestRun(t *testing.T) {
 
 		Convey("run lambda", func() {
 			ctx := context.WithValue(context.Background(), router.UserIDContextKey, "user")
+			ctx = context.WithValue(ctx, router.AccessKeyTypeContextKey, router.MasterAccessKey)
 			data := `{"data": "bye"}`
 			httpmock.RegisterResponder("POST", "http://localhost:8000",
 				func(req *http.Request) (*http.Response, error) {
 					out, _ := ioutil.ReadAll(req.Body)
-					So(out, ShouldEqualJSON, `{"context":{"user_id":"user"},"kind":"op","name":"john","param":{"data":"bye"}}`)
+					So(out, ShouldEqualJSON, `{"context":{"user_id":"user","access_key_type":"master"},"kind":"op","name":"john","param":{"data":"bye"}}`)
 					return httpmock.NewJsonResponse(200, map[string]interface{}{
 						"result": map[string]interface{}{"data": "hello"},
 					})
@@ -132,6 +133,7 @@ func TestRun(t *testing.T) {
 
 		Convey("run hook", func() {
 			ctx := context.WithValue(context.Background(), router.UserIDContextKey, "user")
+			ctx = context.WithValue(ctx, router.AccessKeyTypeContextKey, router.ClientAccessKey)
 
 			recordin := skydb.Record{
 				ID:      skydb.NewRecordID("note", "id"),
@@ -169,7 +171,7 @@ func TestRun(t *testing.T) {
 				func(req *http.Request) (*http.Response, error) {
 					in, _ := ioutil.ReadAll(req.Body)
 					So(in, ShouldEqualJSON, `{
-						"context":{"user_id":"user"},
+						"context":{"user_id":"user","access_key_type":"client"},
 						"kind":"hook",
 						"name":"beforeSave",
 						"param":{

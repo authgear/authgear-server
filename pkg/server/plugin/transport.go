@@ -104,5 +104,13 @@ func ContextMap(ctx context.Context) map[string]interface{} {
 	if userID, ok := ctx.Value(router.UserIDContextKey).(string); ok {
 		pluginCtx["user_id"] = userID
 	}
+	if accessKeyType, ok := ctx.Value(router.AccessKeyTypeContextKey).(router.AccessKeyType); ok {
+		switch accessKeyType {
+		case router.ClientAccessKey:
+			pluginCtx["access_key_type"] = "client"
+		case router.MasterAccessKey:
+			pluginCtx["access_key_type"] = "master"
+		}
+	}
 	return pluginCtx
 }

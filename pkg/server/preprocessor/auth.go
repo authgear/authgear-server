@@ -36,6 +36,7 @@ func checkRequestAccessKey(payload *router.Payload, clientKey string, masterKey 
 	} else {
 		return skyerr.NewErrorf(skyerr.AccessKeyNotAccepted, "Cannot verify api key: `%v`", apiKey)
 	}
+	payload.Context = context.WithValue(payload.Context, router.AccessKeyTypeContextKey, payload.AccessKey)
 	return nil
 }
 

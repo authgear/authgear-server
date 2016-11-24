@@ -175,7 +175,8 @@ func TestRun(t *testing.T) {
 			executed := false
 			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
 				So(cmd, shouldRunWithContext, map[string]interface{}{
-					"user_id": "user",
+					"user_id":         "user",
+					"access_key_type": "master",
 				})
 				So(cmd, shouldRunWithConfig, appconfig)
 				executed = true
@@ -183,6 +184,7 @@ func TestRun(t *testing.T) {
 			}
 
 			ctx := context.WithValue(context.Background(), router.UserIDContextKey, "user")
+			ctx = context.WithValue(ctx, router.AccessKeyTypeContextKey, router.MasterAccessKey)
 			transport.RunLambda(ctx, "work", []byte{})
 			So(executed, ShouldBeTrue)
 		})
@@ -625,7 +627,8 @@ func TestRun(t *testing.T) {
 			executed := false
 			startCommand = func(cmd *exec.Cmd, in []byte) (out []byte, err error) {
 				So(cmd, shouldRunWithContext, map[string]interface{}{
-					"user_id": "user",
+					"user_id":         "user",
+					"access_key_type": "master",
 				})
 				So(cmd, shouldRunWithConfig, appconfig)
 				executed = true
@@ -633,6 +636,7 @@ func TestRun(t *testing.T) {
 			}
 
 			ctx := context.WithValue(context.Background(), router.UserIDContextKey, "user")
+			ctx = context.WithValue(ctx, router.AccessKeyTypeContextKey, router.MasterAccessKey)
 			transport.RunHook(ctx, "note_afterSave", &recordin, nil)
 			So(executed, ShouldBeTrue)
 		})
