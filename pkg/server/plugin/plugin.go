@@ -132,6 +132,14 @@ func (c *Context) AddPluginConfiguration(name string, path string, args []string
 	return &plug
 }
 
+func (c *Context) getInitPayload() ([]byte, error) {
+	payload := struct {
+		Config skyconfig.Configuration `json:"config"`
+	}{c.Config}
+
+	return json.Marshal(payload)
+}
+
 // InitPlugins initializes all plugins registered
 func (c *Context) InitPlugins() {
 	wg := sync.WaitGroup{}
@@ -149,14 +157,20 @@ func (c *Context) InitPlugins() {
 			WithField("count", len(c.plugins)).
 			Info("Wait for all plugin configurations")
 		wg.Wait()
-		c.SendEvent("before-plugins-ready", []byte{}, false)
+
+		data, err := c.getInitPayload()
+		if err != nil {
+			log.WithField("error", err).Warning("Fail to get init payload")
+			data = []byte{}
+		}
+		c.SendEvent("before-plugins-ready", data, false)
 
 		for _, eachPlugin := range c.plugins {
 			eachPlugin.transport.SetState(TransportStateReady)
 		}
 
-		c.SendEvent("after-plugins-ready", []byte{}, false)
-		c.SendEvent("server-ready", []byte{}, false)
+		c.SendEvent("after-plugins-ready", data, false)
+		c.SendEvent("server-ready", data, false)
 	}()
 }
 
@@ -200,14 +214,19 @@ func (c *Context) SendEvent(name string, data []byte, async bool) {
 
 // Init instantiates a plugin. This sets up hooks and handlers.
 func (p *Plugin) Init(context *Context) {
-	p.transport.SendEvent("before-config", []byte{})
+	data, err := context.getInitPayload()
+	if err != nil {
+		log.WithField("error", err).Panic("Fail to get init payload")
+	}
+
+	p.transport.SendEvent("before-config", data)
 	for {
 		log.
 			WithField("retry", p.initRetryCount).
 			Info("Sending init event to plugin")
 
 		p.transport.SetState(TransportStateUninitialized)
-		regInfo, err := p.requestInit(context)
+		regInfo, err := p.requestInit(data)
 		if err != nil {
 			p.transport.SetState(TransportStateError)
 
@@ -224,21 +243,11 @@ func (p *Plugin) Init(context *Context) {
 
 		break
 	}
-	p.transport.SendEvent("after-config", []byte{})
+	p.transport.SendEvent("after-config", data)
 }
 
-func (p *Plugin) requestInit(context *Context) (regInfo registrationInfo, initErr error) {
-	payload := struct {
-		Config skyconfig.Configuration `json:"config"`
-	}{context.Config}
-
-	in, err := json.Marshal(payload)
-	if err != nil {
-		initErr = fmt.Errorf("Cannot encode plugin initialization payload. Error: %v", err)
-		return
-	}
-
-	out, err := p.transport.SendEvent("init", in)
+func (p *Plugin) requestInit(data []byte) (regInfo registrationInfo, initErr error) {
+	out, err := p.transport.SendEvent("init", data)
 	log.WithFields(logrus.Fields{
 		"out":    string(out),
 		"err":    err,
