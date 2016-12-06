@@ -32,6 +32,7 @@ before_install:
   - go get github.com/Masterminds/glide
 
 install:
+  - sudo apt-get install -y postgresql-9.5-postgis-2.3
   - glide install
   - go install
 
