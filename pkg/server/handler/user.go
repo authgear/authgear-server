@@ -191,6 +191,7 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 	if userinfo.HasAnyRoles(adminRoles) || payload.HasMasterKey() {
 		h.updateUserInfo(targetUserinfo, *p)
 	} else if userinfo.ID == targetUserinfo.ID {
+		// Make sure no new roles will be added. But some roles can be removed.
 		if !userinfo.HasAllRoles(p.Roles) {
 			response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to add new roles")
 			return
