@@ -119,6 +119,9 @@ type Configuration struct {
 		SentryDSN   string
 		SentryLevel string
 	} `json:"-"`
+	Zmq struct {
+		Timeout int `json:"timeout"`
+	} `json:"zmq"`
 	Plugin map[string]*PluginConfig `json:"-"`
 }
 
@@ -146,6 +149,7 @@ func NewConfiguration() Configuration {
 		"plugin": "info",
 	}
 	config.LogHook.SentryLevel = "error"
+	config.Zmq.Timeout = 30
 	config.Plugin = map[string]*PluginConfig{}
 	return config
 }
@@ -408,6 +412,12 @@ func (config *Configuration) readLog() {
 }
 
 func (config *Configuration) readPlugins() {
+	timeoutStr := os.Getenv("ZMQ_TIMEOUT")
+	timeout, err := strconv.Atoi(timeoutStr)
+	if err == nil {
+		config.Zmq.Timeout = timeout
+	}
+
 	plugin := os.Getenv("PLUGINS")
 	if plugin == "" {
 		return

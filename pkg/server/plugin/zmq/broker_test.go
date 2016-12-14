@@ -136,7 +136,7 @@ func TestBrokerWorker(t *testing.T) {
 		const (
 			workerAddr = "inproc://plugin.test"
 		)
-		broker, err := NewBroker("test", workerAddr)
+		broker, err := NewBroker("test", workerAddr, 10)
 		if err != nil {
 			t.Fatalf("Failed to init broker: %v", err)
 		}

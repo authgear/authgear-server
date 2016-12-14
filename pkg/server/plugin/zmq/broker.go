@@ -89,8 +89,11 @@ type Broker struct {
 	addressChan map[string]chan []byte
 	// for RPC timeout, used by Channeler
 	timeout chan string
-	workers workerQueue
-	logger  *logrus.Entry
+	// determine how long will timeout happen, relative to the
+	// HeartBeatInterval
+	timeoutInterval time.Duration
+	workers         workerQueue
+	logger          *logrus.Entry
 	// for stopping the channeler
 	stop chan int
 	// internal state for stopping the zmq Run when true.
@@ -99,23 +102,24 @@ type Broker struct {
 }
 
 // NewBroker returns a new *Broker.
-func NewBroker(name, backendAddr string) (*Broker, error) {
+func NewBroker(name, backendAddr string, timeoutInterval int) (*Broker, error) {
 	namedLogger := log.WithFields(logrus.Fields{
 		"plugin": name,
 		"eaddr":  backendAddr,
 	})
 
 	broker := &Broker{
-		name:        name,
-		backendAddr: backendAddr,
-		frontend:    make(chan [][]byte, 10),
-		recvChan:    make(chan *parcel, 10),
-		addressChan: map[string]chan []byte{},
-		timeout:     make(chan string),
-		workers:     newWorkerQueue(),
-		logger:      namedLogger,
-		stop:        make(chan int),
-		stopping:    false,
+		name:            name,
+		backendAddr:     backendAddr,
+		frontend:        make(chan [][]byte, 10),
+		recvChan:        make(chan *parcel, 10),
+		addressChan:     map[string]chan []byte{},
+		timeout:         make(chan string),
+		timeoutInterval: time.Duration(timeoutInterval),
+		workers:         newWorkerQueue(),
+		logger:          namedLogger,
+		stop:            make(chan int),
+		stopping:        false,
 	}
 
 	go broker.Run()
@@ -253,7 +257,7 @@ func (lb *Broker) Channeler() {
 			lb.addressChan[address] = p.respChan
 			push.SendMessage(frames)
 			lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
-			go lb.setTimeout(address, HeartbeatInterval*HeartbeatLiveness)
+			go lb.setTimeout(address)
 		case address := <-lb.timeout:
 			respChan, ok := lb.addressChan[address]
 			if !ok {
@@ -277,8 +281,8 @@ func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
 	}()
 }
 
-func (lb *Broker) setTimeout(address string, wait time.Duration) {
-	time.Sleep(wait)
+func (lb *Broker) setTimeout(address string) {
+	time.Sleep(HeartbeatInterval * lb.timeoutInterval)
 	lb.timeout <- address
 }
 
