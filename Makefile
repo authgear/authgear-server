@@ -81,9 +81,9 @@ all:
 
 .PHONY: docker-build
 docker-build: build
-	cp skygear-server scripts/release/
-	make -C scripts/release docker-build
+	cp skygear-server scripts/docker-images/release/
+	make -C scripts/docker-images/release docker-build
 
 .PHONY: docker-build
 docker-push:
-	make -C scripts/release docker-push
+	make -C scripts/docker-images/release docker-push
