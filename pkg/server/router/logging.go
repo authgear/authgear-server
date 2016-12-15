@@ -72,6 +72,7 @@ type LoggingMiddleware struct {
 	Skips       []string
 	MimeConcern []string
 	Next        http.Handler
+	ByteLimit   *int
 }
 
 func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -93,7 +94,10 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Body = ioutil.NopCloser(bytes.NewReader(body))
 
 	log.Debugln("------ Request: ------")
-	if !skipBody && l.isConcernType(r.Header.Get("Content-Type")) {
+	var shouldLogRequestBody = !skipBody &&
+		l.isConcernType(r.Header.Get("Content-Type")) &&
+		(l.ByteLimit == nil || *l.ByteLimit >= len(body))
+	if shouldLogRequestBody {
 		log.Debugln(string(body))
 	} else {
 		log.Debugf("%d bytes of request body", len(body))
@@ -103,10 +107,13 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	l.Next.ServeHTTP(rlogger, r)
 
 	log.Debugln("------ Response: ------")
-	if !skipBody && l.isConcernType(w.Header().Get("Content-Type")) {
+	var shouldLogResponseBody = !skipBody &&
+		l.isConcernType(w.Header().Get("Content-Type")) &&
+		(l.ByteLimit == nil || *l.ByteLimit >= rlogger.Size())
+	if shouldLogResponseBody {
 		log.Debugln(rlogger.String())
 	} else {
-		log.Debugf("%d bytes of response body", len(rlogger.String()))
+		log.Debugf("%d bytes of response body", rlogger.Size())
 	}
 }
 

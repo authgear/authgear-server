@@ -276,7 +276,7 @@ func main() {
 	}
 
 	if config.LOG.Level == "debug" {
-		finalMux = &router.LoggingMiddleware{
+		loggingMiddleware := &router.LoggingMiddleware{
 			Skips: []string{
 				"/files/",
 				"/_/pubsub/",
@@ -288,6 +288,14 @@ func main() {
 			},
 			Next: finalMux,
 		}
+
+		if config.LOG.RouterByteLimit > 0 {
+			var limit int
+			limit = int(config.LOG.RouterByteLimit)
+			loggingMiddleware.ByteLimit = &limit
+		}
+
+		finalMux = loggingMiddleware
 	}
 
 	// Bootstrap finished, starting services

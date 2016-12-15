@@ -112,8 +112,9 @@ type Configuration struct {
 		APIKey string `json:"api_key"`
 	} `json:"gcm"`
 	LOG struct {
-		Level        string            `json:"-"`
-		LoggersLevel map[string]string `json:"-"`
+		Level           string            `json:"-"`
+		LoggersLevel    map[string]string `json:"-"`
+		RouterByteLimit int64             `json:"-"`
 	} `json:"log"`
 	LogHook struct {
 		SentryDSN   string
@@ -148,6 +149,7 @@ func NewConfiguration() Configuration {
 	config.LOG.LoggersLevel = map[string]string{
 		"plugin": "info",
 	}
+	config.LOG.RouterByteLimit = 100000
 	config.LogHook.SentryLevel = "error"
 	config.Zmq.Timeout = 30
 	config.Plugin = map[string]*PluginConfig{}
@@ -398,6 +400,10 @@ func (config *Configuration) readLog() {
 		loggerName := strings.ToLower(strings.TrimPrefix(components[0], "LOG_LEVEL_"))
 		loggerLevel := components[1]
 		config.LOG.LoggersLevel[loggerName] = loggerLevel
+	}
+
+	if byteLimit, err := strconv.ParseInt(os.Getenv("LOG_ROUTER_BYTE_LIMIT"), 10, 64); err == nil {
+		config.LOG.RouterByteLimit = byteLimit
 	}
 
 	sentry := os.Getenv("SENTRY_DSN")
