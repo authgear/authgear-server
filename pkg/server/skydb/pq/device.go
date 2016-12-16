@@ -28,11 +28,12 @@ func (c *conn) GetDevice(id string, device *skydb.Device) error {
 		From(c.tableName("_device")).
 		Where("id = ?", id)
 
-	var nullToken sql.NullString
+	nullableToken := sql.NullString{}
+	nullableUserID := sql.NullString{}
 	err := c.QueryRowWith(builder).Scan(
 		&device.Type,
-		&nullToken,
-		&device.UserInfoID,
+		&nullableToken,
+		&nullableUserID,
 		&device.LastRegisteredAt,
 	)
 
@@ -42,8 +43,8 @@ func (c *conn) GetDevice(id string, device *skydb.Device) error {
 		return err
 	}
 
-	device.Token = nullToken.String
-
+	device.Token = nullableToken.String
+	device.UserInfoID = nullableUserID.String
 	device.LastRegisteredAt = device.LastRegisteredAt.In(time.UTC)
 	device.ID = id
 
@@ -89,8 +90,12 @@ func (c *conn) SaveDevice(device *skydb.Device) error {
 	pkData := map[string]interface{}{"id": device.ID}
 	data := map[string]interface{}{
 		"type":               device.Type,
-		"user_id":            device.UserInfoID,
+		"user_id":            nil,
 		"last_registered_at": device.LastRegisteredAt.UTC(),
+	}
+
+	if device.UserInfoID != "" {
+		data["user_id"] = device.UserInfoID
 	}
 
 	if device.Token != "" {
