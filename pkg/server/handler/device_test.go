@@ -38,7 +38,12 @@ func (conn *naiveConn) GetDevice(id string, device *skydb.Device) error {
 		return conn.mockGetError
 	}
 
-	*device = conn.devices[id]
+	targetDevice, ok := conn.devices[id]
+	if !ok {
+		return skydb.ErrDeviceNotFound
+	}
+
+	*device = targetDevice
 	return nil
 }
 
@@ -240,7 +245,10 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			handler.Handle(&payload, &resp)
 
 			err := resp.Err.(skyerr.Error)
-			So(err, ShouldResemble, skyerr.NewError(skyerr.ResourceNotFound, "device not found"))
+			So(err, ShouldResemble, skyerr.NewError(
+				skyerr.ResourceNotFound,
+				"Device not found",
+			))
 		})
 
 		Convey("complains on unknown device type", func() {
@@ -255,6 +263,137 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 			err := resp.Err.(skyerr.Error)
 			So(err, ShouldResemble, skyerr.NewInvalidArgument("unknown device type = unknown-type", []string{"type"}))
+		})
+	})
+}
+
+func TestDeviceUnregisterHandler(t *testing.T) {
+	Convey("DeviceUnregisterHandler", t, func() {
+		conn := naiveConn{
+			devices: map[string]skydb.Device{
+				"device_1": skydb.Device{
+					ID:               "device_1",
+					Type:             "ios",
+					Token:            "device_token_1",
+					UserInfoID:       "user_id_1",
+					LastRegisteredAt: time.Date(2016, 12, 16, 6, 54, 0, 0, time.UTC),
+				},
+				"device_2_1": skydb.Device{
+					ID:               "device_2_1",
+					Type:             "ios",
+					Token:            "device_token_2",
+					UserInfoID:       "user_id_2",
+					LastRegisteredAt: time.Date(2016, 12, 16, 6, 55, 0, 0, time.UTC),
+				},
+				"device_2_2": skydb.Device{
+					ID:               "device_2_2",
+					Type:             "ios",
+					Token:            "device_token_2",
+					UserInfoID:       "user_id_3",
+					LastRegisteredAt: time.Date(2016, 12, 16, 6, 56, 0, 0, time.UTC),
+				},
+			},
+		}
+
+		Convey("removes user id of target device", func() {
+			payload := router.Payload{
+				DBConn:     &conn,
+				UserInfoID: "user_id_1",
+				Data: map[string]interface{}{
+					"id": "device_1",
+				},
+			}
+
+			resp := router.Response{}
+			handler := &DeviceUnregisterHandler{}
+
+			handler.Handle(&payload, &resp)
+
+			result := resp.Result.(DeviceReigsterResult)
+			So(result.ID, ShouldEqual, "device_1")
+
+			device := conn.devices["device_1"]
+			So(device.ID, ShouldEqual, "device_1")
+			So(device.Type, ShouldEqual, "ios")
+			So(device.Token, ShouldEqual, "device_token_1")
+			So(device.UserInfoID, ShouldBeEmpty)
+			So(
+				device.LastRegisteredAt,
+				ShouldResemble,
+				time.Date(2016, 12, 16, 6, 54, 0, 0, time.UTC),
+			)
+		})
+
+		Convey("deletes other devices with the same token", func() {
+			payload := router.Payload{
+				DBConn:     &conn,
+				UserInfoID: "user_id_2",
+				Data: map[string]interface{}{
+					"id": "device_2_1",
+				},
+			}
+
+			resp := router.Response{}
+			handler := &DeviceUnregisterHandler{}
+
+			handler.Handle(&payload, &resp)
+
+			result := resp.Result.(DeviceReigsterResult)
+			So(result.ID, ShouldEqual, "device_2_1")
+
+			device := conn.devices["device_2_1"]
+			So(device.ID, ShouldEqual, "device_2_1")
+			So(device.Type, ShouldEqual, "ios")
+			So(device.Token, ShouldEqual, "device_token_2")
+			So(device.UserInfoID, ShouldBeEmpty)
+			So(
+				device.LastRegisteredAt,
+				ShouldResemble,
+				time.Date(2016, 12, 16, 6, 55, 0, 0, time.UTC),
+			)
+
+			_, ok := conn.devices["device_2_2"]
+			So(ok, ShouldBeFalse)
+		})
+
+		Convey("complains on non-existed update", func() {
+			payload := router.Payload{
+				DBConn:     &conn,
+				UserInfoID: "user_id_3",
+				Data: map[string]interface{}{
+					"id": "device_3",
+				},
+			}
+
+			resp := router.Response{}
+			handler := &DeviceUnregisterHandler{}
+
+			handler.Handle(&payload, &resp)
+
+			err := resp.Err
+			So(err, ShouldResemble, skyerr.NewError(
+				skyerr.ResourceNotFound,
+				"Device not found",
+			))
+		})
+
+		Convey("complains on empty device id", func() {
+			payload := router.Payload{
+				DBConn:     &conn,
+				UserInfoID: "user_id_3",
+				Data:       map[string]interface{}{},
+			}
+
+			resp := router.Response{}
+			handler := &DeviceUnregisterHandler{}
+
+			handler.Handle(&payload, &resp)
+
+			err := resp.Err
+			So(err, ShouldResemble, skyerr.NewInvalidArgument(
+				"Missing device id",
+				[]string{"id"},
+			))
 		})
 	})
 }
