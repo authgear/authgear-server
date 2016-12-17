@@ -140,18 +140,6 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		Convey("cannot save Device without user id", func() {
-			device := skydb.Device{
-				ID:               "deviceid",
-				Type:             "ios",
-				Token:            "devicetoken",
-				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
-			}
-
-			err := c.SaveDevice(&device)
-			So(err, ShouldNotBeNil)
-		})
-
 		Convey("cannot save Device without last_registered_at", func() {
 			device := skydb.Device{
 				ID:         "deviceid",

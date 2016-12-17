@@ -49,6 +49,25 @@ func (payload *deviceRegisterPayload) Validate() skyerr.Error {
 	return nil
 }
 
+type deviceUnregisterPayload struct {
+	ID string
+}
+
+func (payload *deviceUnregisterPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *deviceUnregisterPayload) Validate() skyerr.Error {
+	if payload.ID == "" {
+		return skyerr.NewInvalidArgument("Missing device id", []string{"id"})
+	}
+
+	return nil
+}
+
 // DeviceReigsterResult is the result put onto response.Result on
 // successful call of DeviceRegisterHandler
 type DeviceReigsterResult struct {
@@ -123,24 +142,22 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 		device.ID = uuid.New()
 	} else { // update device
 		if err := conn.GetDevice(deviceID, &device); err != nil {
-			var errToReturn skyerr.Error
 			if err == skydb.ErrDeviceNotFound {
-				errToReturn = skyerr.NewError(skyerr.ResourceNotFound, "device not found")
-			} else {
-				log.WithFields(logrus.Fields{
-					"deviceID": deviceID,
-					"device":   device,
-					"err":      err,
-				}).Errorln("Failed to get device")
-
-				errToReturn = skyerr.NewResourceFetchFailureErr("device", deviceID)
+				response.Err = skyerr.NewError(skyerr.ResourceNotFound, "Device not found")
+				return
 			}
-			response.Err = errToReturn
+
+			log.WithFields(logrus.Fields{
+				"deviceID": deviceID,
+				"err":      err,
+			}).Errorln("Fail to get device")
+
+			response.Err = skyerr.NewResourceFetchFailureErr("device", deviceID)
 			return
 		}
 	}
 
-	// delete all all devices with the same token
+	// delete all devices with the same token
 	if err := conn.DeleteDevicesByToken(payload.DeviceToken, skydb.ZeroTime); err != nil {
 		if err != skydb.ErrDeviceNotFound {
 			response.Err = skyerr.NewResourceDeleteFailureErrWithStringID("device", "")
@@ -148,11 +165,9 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 		}
 	}
 
-	userinfoID := rpayload.UserInfoID
-
 	device.Type = payload.Type
 	device.Token = payload.DeviceToken
-	device.UserInfoID = userinfoID
+	device.UserInfoID = rpayload.UserInfoID
 	device.LastRegisteredAt = timeNow()
 
 	if err := conn.SaveDevice(&device); err != nil {
@@ -166,4 +181,91 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 	} else {
 		response.Result = DeviceReigsterResult{device.ID}
 	}
+}
+
+// DeviceUnregisterHandler removes user id from a device
+//
+// Example to unregister a device:
+//
+//	curl -X POST -H "Content-Type: application/json" \
+//	  -d @- http://localhost:3000/ <<EOF
+//	{
+//		"action": "device:unregister",
+//		"access_token": "some-access-token",
+//		"type": "ios",
+//		"device_token": "some-device-token"
+//	}
+//	EOF
+//
+type DeviceUnregisterHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	RequireUser   router.Processor `preprocessor:"require_user"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
+	preprocessors []router.Processor
+}
+
+func (h *DeviceUnregisterHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.InjectDB,
+		h.RequireUser,
+		h.PluginReady,
+	}
+}
+
+func (h *DeviceUnregisterHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (h *DeviceUnregisterHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	payload := deviceUnregisterPayload{}
+	if err := payload.Decode(rpayload.Data); err != nil {
+		response.Err = err
+		return
+	}
+
+	conn := rpayload.DBConn
+
+	device := skydb.Device{}
+	if err := conn.GetDevice(payload.ID, &device); err != nil {
+		if err == skydb.ErrDeviceNotFound {
+			response.Err = skyerr.NewError(skyerr.ResourceNotFound, "Device not found")
+			return
+		}
+
+		log.WithFields(logrus.Fields{
+			"deviceID": payload.ID,
+			"err":      err,
+		}).Errorln("Fail to get device")
+
+		response.Err = skyerr.NewResourceFetchFailureErr("device", payload.ID)
+		return
+	}
+
+	// delete all devices with the same token
+	if err := conn.DeleteDevicesByToken(device.Token, skydb.ZeroTime); err != nil {
+		if err != skydb.ErrDeviceNotFound {
+			response.Err = skyerr.NewResourceDeleteFailureErrWithStringID("device", "")
+			return
+		}
+	}
+
+	device.UserInfoID = ""
+	if err := conn.SaveDevice(&device); err != nil {
+		log.WithFields(logrus.Fields{
+			"deviceID": payload.ID,
+			"device":   device,
+			"err":      err,
+		}).Errorln("Fail to save device")
+
+		response.Err = skyerr.NewResourceSaveFailureErrWithStringID("device", payload.ID)
+		return
+	}
+
+	response.Result = DeviceReigsterResult{device.ID}
 }
