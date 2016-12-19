@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"gopkg.in/amz.v3/aws"
@@ -26,8 +27,9 @@ import (
 
 // s3Store implements Store by storing files on S3
 type s3Store struct {
-	bucket *s3.Bucket
-	public bool
+	bucket    *s3.Bucket
+	urlPrefix string
+	public    bool
 }
 
 // NewS3Store returns a new s3Store
@@ -36,6 +38,7 @@ func NewS3Store(
 	secretKey string,
 	regionName string,
 	bucketName string,
+	urlPrefix string,
 	public bool,
 ) (Store, error) {
 
@@ -55,8 +58,9 @@ func NewS3Store(
 	}
 
 	return &s3Store{
-		bucket: bucket,
-		public: public,
+		bucket:    bucket,
+		urlPrefix: urlPrefix,
+		public:    public,
 	}, nil
 }
 
@@ -86,6 +90,9 @@ func (s *s3Store) GeneratePostFileRequest(name string) (*PostFileRequest, error)
 // SignedURL return a signed s3 URL with expiry date
 func (s *s3Store) SignedURL(name string) (string, error) {
 	if !s.IsSignatureRequired() {
+		if s.urlPrefix != "" {
+			return strings.Join([]string{s.urlPrefix, name}, "/"), nil
+		}
 		return s.bucket.URL(name), nil
 	}
 	return s.bucket.SignedURL(name, time.Minute*time.Duration(15))

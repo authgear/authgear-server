@@ -80,25 +80,27 @@ type Configuration struct {
 		ImplName string `json:"implementation"`
 		Public   bool   `json:"public"`
 
-		// followings only used when ImplName = fs
-		Path string `json:"-"`
+		FileSystemStore struct {
+			Path      string `json:"-"`
+			URLPrefix string `json:"url_prefix"`
+			Secret    string `json:"secret"`
+		} `json:"fs"`
 
-		// followings only used when ImplName = s3
-		AccessToken string `json:"access_key"`
-		SecretToken string `json:"secret_key"`
-		Region      string `json:"region"`
-		Bucket      string `json:"bucket"`
+		S3Store struct {
+			AccessToken string `json:"access_key"`
+			SecretToken string `json:"secret_key"`
+			Region      string `json:"region"`
+			Bucket      string `json:"bucket"`
+			URLPrefix   string `json:"url_prefix"`
+		} `json:"s3"`
 
-		// followings only used when ImplName = cloud
-		CloudAssetHost          string `json:"cloud_asset_host"`
-		CloudAssetToken         string `json:"cloud_asset_token"`
-		CloudAssetPublicPrefix  string `json:"cloud_asset_public_prefix"`
-		CloudAssetPrivatePrefix string `json:"cloud_asset_private_prefix"`
+		CloudStore struct {
+			Host          string `json:"host"`
+			Token         string `json:"token"`
+			PublicPrefix  string `json:"public_prefix"`
+			PrivatePrefix string `json:"private_prefix"`
+		} `json:"cloud"`
 	} `json:"asset_store"`
-	AssetURLSigner struct {
-		URLPrefix string `json:"url_prefix"`
-		Secret    string `json:"secret"`
-	} `json:"asset_signer"`
 	APNS struct {
 		Enable   bool   `json:"enable"`
 		Env      string `json:"env"`
@@ -140,8 +142,8 @@ func NewConfiguration() Configuration {
 	config.TokenStore.Path = "data/token"
 	config.TokenStore.Expiry = 0
 	config.AssetStore.ImplName = "fs"
-	config.AssetStore.Path = "data/asset"
-	config.AssetURLSigner.URLPrefix = "http://localhost:3000/files"
+	config.AssetStore.FileSystemStore.Path = "data/asset"
+	config.AssetStore.FileSystemStore.URLPrefix = "http://localhost:3000/files"
 	config.APNS.Enable = false
 	config.APNS.Env = "sandbox"
 	config.GCM.Enable = false
@@ -294,51 +296,55 @@ func (config *Configuration) readAssetStore() {
 	// Local Storage related
 	assetStorePath := os.Getenv("ASSET_STORE_PATH")
 	if assetStorePath != "" {
-		config.AssetStore.Path = assetStorePath
+		config.AssetStore.FileSystemStore.Path = assetStorePath
 	}
 	assetStorePrefix := os.Getenv("ASSET_STORE_URL_PREFIX")
 	if assetStorePrefix != "" {
-		config.AssetURLSigner.URLPrefix = assetStorePrefix
+		config.AssetStore.FileSystemStore.URLPrefix = assetStorePrefix
 	}
 	assetStoreSecret := os.Getenv("ASSET_STORE_SECRET")
 	if assetStoreSecret != "" {
-		config.AssetURLSigner.Secret = assetStoreSecret
+		config.AssetStore.FileSystemStore.Secret = assetStoreSecret
 	}
 
 	// S3 related
 	assetStoreAccessKey := os.Getenv("ASSET_STORE_ACCESS_KEY")
 	if assetStoreAccessKey != "" {
-		config.AssetStore.AccessToken = assetStoreAccessKey
+		config.AssetStore.S3Store.AccessToken = assetStoreAccessKey
 	}
 	assetStoreSecretKey := os.Getenv("ASSET_STORE_SECRET_KEY")
 	if assetStoreSecretKey != "" {
-		config.AssetStore.SecretToken = assetStoreSecretKey
+		config.AssetStore.S3Store.SecretToken = assetStoreSecretKey
 	}
 	assetStoreRegion := os.Getenv("ASSET_STORE_REGION")
 	if assetStoreRegion != "" {
-		config.AssetStore.Region = assetStoreRegion
+		config.AssetStore.S3Store.Region = assetStoreRegion
 	}
 	assetStoreBucket := os.Getenv("ASSET_STORE_BUCKET")
 	if assetStoreBucket != "" {
-		config.AssetStore.Bucket = assetStoreBucket
+		config.AssetStore.S3Store.Bucket = assetStoreBucket
+	}
+	assetStoreS3URLPrefix := os.Getenv("ASSET_STORE_S3_URL_PREFIX")
+	if assetStoreS3URLPrefix != "" {
+		config.AssetStore.S3Store.URLPrefix = assetStoreS3URLPrefix
 	}
 
 	// Cloud Asset related
 	cloudAssetHost := os.Getenv("CLOUD_ASSET_HOST")
 	if cloudAssetHost != "" {
-		config.AssetStore.CloudAssetHost = cloudAssetHost
+		config.AssetStore.CloudStore.Host = cloudAssetHost
 	}
 	cloudAssetToken := os.Getenv("CLOUD_ASSET_TOKEN")
 	if cloudAssetToken != "" {
-		config.AssetStore.CloudAssetToken = cloudAssetToken
+		config.AssetStore.CloudStore.Token = cloudAssetToken
 	}
 	cloudAssetPublicPrefix := os.Getenv("CLOUD_ASSET_PUBLIC_PREFIX")
 	if cloudAssetPublicPrefix != "" {
-		config.AssetStore.CloudAssetPublicPrefix = cloudAssetPublicPrefix
+		config.AssetStore.CloudStore.PublicPrefix = cloudAssetPublicPrefix
 	}
 	cloudAssetPrivatePrefix := os.Getenv("CLOUD_ASSET_PRIVATE_PREFIX")
 	if cloudAssetPrivatePrefix != "" {
-		config.AssetStore.CloudAssetPrivatePrefix = cloudAssetPrivatePrefix
+		config.AssetStore.CloudStore.PrivatePrefix = cloudAssetPrivatePrefix
 	}
 }
 

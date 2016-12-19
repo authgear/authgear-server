@@ -348,17 +348,18 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 		panic("unrecgonized asset store implementation: " + config.AssetStore.ImplName)
 	case "fs":
 		store = asset.NewFileStore(
-			config.AssetStore.Path,
-			config.AssetURLSigner.URLPrefix,
-			config.AssetURLSigner.Secret,
+			config.AssetStore.FileSystemStore.Path,
+			config.AssetStore.FileSystemStore.URLPrefix,
+			config.AssetStore.FileSystemStore.Secret,
 			config.AssetStore.Public,
 		)
 	case "s3":
 		s3Store, err := asset.NewS3Store(
-			config.AssetStore.AccessToken,
-			config.AssetStore.SecretToken,
-			config.AssetStore.Region,
-			config.AssetStore.Bucket,
+			config.AssetStore.S3Store.AccessToken,
+			config.AssetStore.S3Store.SecretToken,
+			config.AssetStore.S3Store.Region,
+			config.AssetStore.S3Store.Bucket,
+			config.AssetStore.S3Store.URLPrefix,
 			config.AssetStore.Public,
 		)
 		if err != nil {
@@ -368,10 +369,10 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 	case "cloud":
 		cloudStore, err := asset.NewCloudStore(
 			config.App.Name,
-			config.AssetStore.CloudAssetHost,
-			config.AssetStore.CloudAssetToken,
-			config.AssetStore.CloudAssetPublicPrefix,
-			config.AssetStore.CloudAssetPrivatePrefix,
+			config.AssetStore.CloudStore.Host,
+			config.AssetStore.CloudStore.Token,
+			config.AssetStore.CloudStore.PublicPrefix,
+			config.AssetStore.CloudStore.PrivatePrefix,
 			config.AssetStore.Public,
 		)
 		if err != nil {
