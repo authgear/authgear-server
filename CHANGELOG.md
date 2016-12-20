@@ -1,3 +1,34 @@
+## 0.20.0 (2016-12-20)
+
+### Features
+
+- Support s3 asset store url prefix (#254)
+- Support unregister device (#249)
+- Add configuration for timeout of plugin
+- Provide skygear config for plugin init events
+
+### Bug Fixes
+
+- Fix postgis-2.3 not found
+
+### Other Notes
+
+- More log when plugin response is invalid (#232)
+- Put access_key_type to plugin request context (#238)
+- Limit the number of bytes in request log
+
+    The existing implementation prints the response body for certain type
+    this pose a problem to log collection when the response body is too big.
+
+- Better handling for unrecognized data type (#231)
+
+    This is achieved by introducing a new skydb type called Unknown, which
+    will be passed to client when the server sees a column with an
+    unrecognized data type.
+
+    Previous behavior will result in skygear server throwing an error when
+    it sees a column with unrecognized data type.
+
 ## 0.19.1 (2016-11-12)
 
 ### Bug Fixes
