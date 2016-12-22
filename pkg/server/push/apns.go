@@ -24,8 +24,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/RobotsAndPencils/buford/push"
 	"github.com/Sirupsen/logrus"
+	"github.com/skygeario/buford/push"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 

@@ -1,5 +1,5 @@
-hash: 499da816dcd287aa4c2f2e1057ee57f64ab367c0c119efa8feb9c56eb2c8ad77
-updated: 2016-11-08T13:09:29.159211903Z
+hash: a7a28b6d36ec35524c4d4ca953e928eaa8dc94179ba0872af8e30c0b0e5e62d9
+updated: 2016-12-23T13:43:45.65916462+08:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
@@ -56,12 +56,12 @@ imports:
   version: cccd189d45f7ac3368a0d127efb7f4d08ae0b655
 - name: github.com/robfig/cron
   version: 67823cd24dece1b04cced3a0a0b3ca2bc84d875e
-- name: github.com/RobotsAndPencils/buford
-  version: 2d03c359eab35051daee2c71485309361639bed1
-  subpackages:
-  - push
 - name: github.com/Sirupsen/logrus
   version: 74bde9ea4c5b2c78995da8ed56d37e75644dc941
+- name: github.com/SkygearIO/buford
+  version: fa85459e6bd358249063cdffecd8ab025aa8a44c
+  subpackages:
+  - push
 - name: github.com/twinj/uuid
   version: b505f2cca343b7b21416b27b1f2ad88469800892
 - name: github.com/zeromq/goczmq
