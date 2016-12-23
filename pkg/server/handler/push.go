@@ -25,15 +25,16 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+// Remarks: create a variable for mocking on test cases
 var sendPushNotification = func(sender push.Sender, device skydb.Device, m push.Mapper) {
 	go func() {
-		log.Debugf("Sending notification to device token = %s", device.Token)
+		log.Infof("Sending notification to device token = %s", device.Token)
 		err := sender.Send(m, device)
 
 		if err != nil {
 			log.Warnf("Failed to send notification: %v\n", err)
 		} else {
-			log.Debugf("Sent notification to device token = %s", device.Token)
+			log.Infof("Sent notification to device token = %s", device.Token)
 		}
 	}()
 }

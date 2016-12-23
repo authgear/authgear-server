@@ -410,32 +410,84 @@ func initPushSender(config skyconfig.Configuration, connOpener func() (skydb.Con
 	return routeSender
 }
 
-func initAPNSPusher(config skyconfig.Configuration, connOpener func() (skydb.Conn, error)) *push.APNSPusher {
-	cert := config.APNS.Cert
-	key := config.APNS.Key
-	if config.APNS.Cert == "" && config.APNS.CertPath != "" {
-		certPEMBlock, err := ioutil.ReadFile(config.APNS.CertPath)
+func initAPNSPusher(config skyconfig.Configuration, connOpener func() (skydb.Conn, error)) push.APNSPusher {
+	var pushSender push.APNSPusher
+
+	switch config.APNS.Type {
+	case "cert":
+		pushSender = initCertBaseAPNSPusher(config, connOpener)
+	case "token":
+		pushSender = initTokenBaseAPNSPusher(config, connOpener)
+	default:
+		log.Fatalf("Unknown APNS Type: %s", config.APNS.Type)
+	}
+
+	go pushSender.Start()
+	return pushSender
+}
+
+func initCertBaseAPNSPusher(
+	config skyconfig.Configuration,
+	connOpener func() (skydb.Conn, error),
+) push.APNSPusher {
+	cert := config.APNS.CertConfig.Cert
+	key := config.APNS.CertConfig.Key
+	if config.APNS.CertConfig.Cert == "" && config.APNS.CertConfig.CertPath != "" {
+		certPEMBlock, err := ioutil.ReadFile(config.APNS.CertConfig.CertPath)
 		if err != nil {
 			log.Fatalf("Failed to load the APNS Cert: %v", err)
 		}
 		cert = string(certPEMBlock)
 	}
 
-	if config.APNS.Key == "" && config.APNS.KeyPath != "" {
-		keyPEMBlock, err := ioutil.ReadFile(config.APNS.KeyPath)
+	if config.APNS.CertConfig.Key == "" && config.APNS.CertConfig.KeyPath != "" {
+		keyPEMBlock, err := ioutil.ReadFile(config.APNS.CertConfig.KeyPath)
 		if err != nil {
 			log.Fatalf("Failed to load the APNS Key: %v", err)
 		}
 		key = string(keyPEMBlock)
 	}
 
-	apnsPushSender, err := push.NewAPNSPusher(connOpener, push.GatewayType(config.APNS.Env), cert, key)
+	pushSender, err := push.NewCertBaseAPNSPusher(
+		connOpener,
+		push.GatewayType(config.APNS.Env),
+		cert,
+		key,
+	)
 	if err != nil {
 		log.Fatalf("Failed to set up push sender: %v", err)
 	}
-	go apnsPushSender.Run()
 
-	return apnsPushSender
+	return pushSender
+}
+
+func initTokenBaseAPNSPusher(
+	config skyconfig.Configuration,
+	connOpener func() (skydb.Conn, error),
+) push.APNSPusher {
+	key := config.APNS.TokenConfig.Key
+	keyPath := config.APNS.TokenConfig.KeyPath
+	if key == "" && keyPath != "" {
+		keyBytes, err := ioutil.ReadFile(keyPath)
+		if err != nil {
+			log.Fatalf("Failed to load APNS key: %v", err)
+		}
+
+		key = string(keyBytes)
+	}
+
+	pushSender, err := push.NewTokenBaseAPNSPusher(
+		connOpener,
+		push.GatewayType(config.APNS.Env),
+		config.APNS.TokenConfig.TeamID,
+		config.APNS.TokenConfig.KeyID,
+		key,
+	)
+	if err != nil {
+		log.Fatalf("Failed to set up push sender: %v", err)
+	}
+
+	return pushSender
 }
 
 func initGCMPusher(config skyconfig.Configuration) *push.GCMPusher {
