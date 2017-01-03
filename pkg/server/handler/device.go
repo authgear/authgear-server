@@ -29,6 +29,7 @@ import (
 type deviceRegisterPayload struct {
 	ID          string
 	Type        string
+	Topic       string
 	DeviceToken string `mapstructure:"device_token"`
 }
 
@@ -44,6 +45,8 @@ func (payload *deviceRegisterPayload) Validate() skyerr.Error {
 		return skyerr.NewInvalidArgument("empty device type", []string{"type"})
 	} else if payload.Type != "ios" && payload.Type != "android" {
 		return skyerr.NewInvalidArgument(fmt.Sprintf("unknown device type = %v", payload.Type), []string{"type"})
+	} else if payload.Topic == "" {
+		return skyerr.NewInvalidArgument("missing device topic", []string{"topic"})
 	}
 
 	return nil
@@ -84,6 +87,7 @@ type DeviceReigsterResult struct {
 //		"action": "device:register",
 //		"access_token": "some-access-token",
 //		"type": "ios",
+//		"topic": "io.skygear.sample.topic",
 //		"device_token": "some-device-token"
 //	}
 //	EOF
@@ -167,6 +171,7 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 
 	device.Type = payload.Type
 	device.Token = payload.DeviceToken
+	device.Topic = payload.Topic
 	device.UserInfoID = rpayload.UserInfoID
 	device.LastRegisteredAt = timeNow()
 
