@@ -70,6 +70,7 @@ func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
 
 type pushToUserPayload struct {
 	UserIDs      []string               `mapstructure:"user_ids"`
+	Topic        string                 `mapstructure:"topic"`
 	Notification map[string]interface{} `mapstructure:"notification"`
 }
 
@@ -123,10 +124,20 @@ func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Re
 	}
 
 	conn := rpayload.DBConn
+
+	var queryFunc func(string) ([]skydb.Device, error)
+	if payload.Topic != "" {
+		queryFunc = func(uID string) ([]skydb.Device, error) {
+			return conn.QueryDevicesByUserAndTopic(uID, payload.Topic)
+		}
+	} else {
+		queryFunc = conn.QueryDevicesByUser
+	}
+
 	resultItems := make([]sendPushResponseItem, len(payload.UserIDs))
 	for i, userID := range payload.UserIDs {
 		resultItems[i].id = userID
-		devices, err := conn.QueryDevicesByUser(userID)
+		devices, err := queryFunc(userID)
 		if err != nil {
 			resultItems[i].err = &err
 		} else {
@@ -147,6 +158,7 @@ func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Re
 
 type pushToDevicePayload struct {
 	DeviceIDs    []string               `mapstructure:"device_ids"`
+	Topic        string                 `mapstructure:"topic"`
 	Notification map[string]interface{} `mapstructure:"notification"`
 }
 
@@ -200,11 +212,21 @@ func (h *PushToDeviceHandler) Handle(rpayload *router.Payload, response *router.
 	}
 
 	conn := rpayload.DBConn
+
+	var getDeviceFunc func(string, *skydb.Device) error
+	if payload.Topic != "" {
+		getDeviceFunc = func(id string, device *skydb.Device) error {
+			return conn.GetDeviceByIDAndTopic(id, payload.Topic, device)
+		}
+	} else {
+		getDeviceFunc = conn.GetDevice
+	}
+
 	resultItems := make([]sendPushResponseItem, len(payload.DeviceIDs))
 	for i, deviceID := range payload.DeviceIDs {
 		device := skydb.Device{}
 		resultItems[i].id = deviceID
-		if err := conn.GetDevice(deviceID, &device); err != nil {
+		if err := getDeviceFunc(deviceID, &device); err != nil {
 			resultItems[i].err = &err
 		} else {
 			pushMap := push.MapMapper(payload.Notification)

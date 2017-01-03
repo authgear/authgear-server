@@ -24,9 +24,9 @@ import (
 )
 
 func (c *conn) GetDevice(id string, device *skydb.Device) error {
-	builder := psql.Select("type", "token", "user_id", "last_registered_at").
+	builder := psql.Select("type", "token", "user_id", "topic", "last_registered_at").
 		From(c.tableName("_device")).
-		Where("id = ?", id)
+		Where("id = ? AND topic IS NOT NULL", id)
 
 	nullableToken := sql.NullString{}
 	nullableUserID := sql.NullString{}
@@ -34,6 +34,36 @@ func (c *conn) GetDevice(id string, device *skydb.Device) error {
 		&device.Type,
 		&nullableToken,
 		&nullableUserID,
+		&device.Topic,
+		&device.LastRegisteredAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return skydb.ErrDeviceNotFound
+	} else if err != nil {
+		return err
+	}
+
+	device.Token = nullableToken.String
+	device.UserInfoID = nullableUserID.String
+	device.LastRegisteredAt = device.LastRegisteredAt.In(time.UTC)
+	device.ID = id
+
+	return nil
+}
+
+func (c *conn) GetDeviceByIDAndTopic(id, topic string, device *skydb.Device) error {
+	builder := psql.Select("type", "token", "user_id", "topic", "last_registered_at").
+		From(c.tableName("_device")).
+		Where("id = ? AND topic = ?", id, topic)
+
+	nullableToken := sql.NullString{}
+	nullableUserID := sql.NullString{}
+	err := c.QueryRowWith(builder).Scan(
+		&device.Type,
+		&nullableToken,
+		&nullableUserID,
+		&device.Topic,
 		&device.LastRegisteredAt,
 	)
 
@@ -52,9 +82,9 @@ func (c *conn) GetDevice(id string, device *skydb.Device) error {
 }
 
 func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
-	builder := psql.Select("id", "type", "token", "user_id", "last_registered_at").
+	builder := psql.Select("id", "type", "token", "user_id", "topic", "last_registered_at").
 		From(c.tableName("_device")).
-		Where("user_id = ?", user)
+		Where("user_id = ? AND topic IS NOT NULL", user)
 
 	rows, err := c.QueryWith(builder)
 	if err != nil {
@@ -70,6 +100,39 @@ func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
 			&d.Type,
 			&nullToken,
 			&d.UserInfoID,
+			&d.Topic,
+			&d.LastRegisteredAt); err != nil {
+
+			panic(err)
+		}
+		d.Token = nullToken.String
+		d.LastRegisteredAt = d.LastRegisteredAt.UTC()
+		results = append(results, d)
+	}
+
+	return results, nil
+}
+
+func (c *conn) QueryDevicesByUserAndTopic(user, topic string) ([]skydb.Device, error) {
+	builder := psql.Select("id", "type", "token", "user_id", "topic", "last_registered_at").
+		From(c.tableName("_device")).
+		Where("user_id = ? AND topic = ?", user, topic)
+
+	rows, err := c.QueryWith(builder)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	results := []skydb.Device{}
+	for rows.Next() {
+		var nullToken sql.NullString
+		d := skydb.Device{}
+		if err := rows.Scan(
+			&d.ID,
+			&d.Type,
+			&nullToken,
+			&d.UserInfoID,
+			&d.Topic,
 			&d.LastRegisteredAt); err != nil {
 
 			panic(err)
@@ -100,6 +163,10 @@ func (c *conn) SaveDevice(device *skydb.Device) error {
 
 	if device.Token != "" {
 		data["token"] = device.Token
+	}
+
+	if device.Topic != "" {
+		data["topic"] = device.Topic
 	}
 
 	upsert := upsertQuery(c.tableName("_device"), pkData, data)
