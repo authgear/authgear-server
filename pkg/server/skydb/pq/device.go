@@ -26,15 +26,16 @@ import (
 func (c *conn) GetDevice(id string, device *skydb.Device) error {
 	builder := psql.Select("type", "token", "user_id", "topic", "last_registered_at").
 		From(c.tableName("_device")).
-		Where("id = ? AND topic IS NOT NULL", id)
+		Where("id = ?", id)
 
 	nullableToken := sql.NullString{}
+	nullableTopic := sql.NullString{}
 	nullableUserID := sql.NullString{}
 	err := c.QueryRowWith(builder).Scan(
 		&device.Type,
 		&nullableToken,
 		&nullableUserID,
-		&device.Topic,
+		&nullableTopic,
 		&device.LastRegisteredAt,
 	)
 
@@ -45,35 +46,7 @@ func (c *conn) GetDevice(id string, device *skydb.Device) error {
 	}
 
 	device.Token = nullableToken.String
-	device.UserInfoID = nullableUserID.String
-	device.LastRegisteredAt = device.LastRegisteredAt.In(time.UTC)
-	device.ID = id
-
-	return nil
-}
-
-func (c *conn) GetDeviceByIDAndTopic(id, topic string, device *skydb.Device) error {
-	builder := psql.Select("type", "token", "user_id", "topic", "last_registered_at").
-		From(c.tableName("_device")).
-		Where("id = ? AND topic = ?", id, topic)
-
-	nullableToken := sql.NullString{}
-	nullableUserID := sql.NullString{}
-	err := c.QueryRowWith(builder).Scan(
-		&device.Type,
-		&nullableToken,
-		&nullableUserID,
-		&device.Topic,
-		&device.LastRegisteredAt,
-	)
-
-	if err == sql.ErrNoRows {
-		return skydb.ErrDeviceNotFound
-	} else if err != nil {
-		return err
-	}
-
-	device.Token = nullableToken.String
+	device.Topic = nullableTopic.String
 	device.UserInfoID = nullableUserID.String
 	device.LastRegisteredAt = device.LastRegisteredAt.In(time.UTC)
 	device.ID = id
@@ -84,7 +57,7 @@ func (c *conn) GetDeviceByIDAndTopic(id, topic string, device *skydb.Device) err
 func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
 	builder := psql.Select("id", "type", "token", "user_id", "topic", "last_registered_at").
 		From(c.tableName("_device")).
-		Where("user_id = ? AND topic IS NOT NULL", user)
+		Where("user_id = ?", user)
 
 	rows, err := c.QueryWith(builder)
 	if err != nil {
@@ -93,19 +66,21 @@ func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
 	defer rows.Close()
 	results := []skydb.Device{}
 	for rows.Next() {
-		var nullToken sql.NullString
+		nullableToken := sql.NullString{}
+		nullableTopic := sql.NullString{}
 		d := skydb.Device{}
 		if err := rows.Scan(
 			&d.ID,
 			&d.Type,
-			&nullToken,
+			&nullableToken,
 			&d.UserInfoID,
-			&d.Topic,
+			&nullableTopic,
 			&d.LastRegisteredAt); err != nil {
 
 			panic(err)
 		}
-		d.Token = nullToken.String
+		d.Token = nullableToken.String
+		d.Topic = nullableTopic.String
 		d.LastRegisteredAt = d.LastRegisteredAt.UTC()
 		results = append(results, d)
 	}
@@ -125,19 +100,19 @@ func (c *conn) QueryDevicesByUserAndTopic(user, topic string) ([]skydb.Device, e
 	defer rows.Close()
 	results := []skydb.Device{}
 	for rows.Next() {
-		var nullToken sql.NullString
+		var nullableToken sql.NullString
 		d := skydb.Device{}
 		if err := rows.Scan(
 			&d.ID,
 			&d.Type,
-			&nullToken,
+			&nullableToken,
 			&d.UserInfoID,
 			&d.Topic,
 			&d.LastRegisteredAt); err != nil {
 
 			panic(err)
 		}
-		d.Token = nullToken.String
+		d.Token = nullableToken.String
 		d.LastRegisteredAt = d.LastRegisteredAt.UTC()
 		results = append(results, d)
 	}

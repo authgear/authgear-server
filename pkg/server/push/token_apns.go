@@ -33,7 +33,7 @@ import (
 
 const tokenRefreshInterval = 30 * time.Minute
 
-type tokenBaseAPNSPusher struct {
+type tokenBasedAPNSPusher struct {
 	APNSPusher
 
 	// Function to obtain a skydb connection
@@ -58,8 +58,8 @@ type token struct {
 	expiredAt time.Time
 }
 
-// NewTokenBaseAPNSPusher creates a new APNSPusher from the content of auth key
-func NewTokenBaseAPNSPusher(
+// NewTokenBasedAPNSPusher creates a new APNSPusher from the content of auth key
+func NewTokenBasedAPNSPusher(
 	connOpener func() (skydb.Conn, error),
 	gatewayType GatewayType,
 	teamID string,
@@ -88,7 +88,7 @@ func NewTokenBaseAPNSPusher(
 
 	switch typedKey := privateKey.(type) {
 	case *ecdsa.PrivateKey:
-		return &tokenBaseAPNSPusher{
+		return &tokenBasedAPNSPusher{
 			connOpener: connOpener,
 			service:    service,
 			teamID:     teamID,
@@ -101,7 +101,7 @@ func NewTokenBaseAPNSPusher(
 	}
 }
 
-func (pusher *tokenBaseAPNSPusher) refreshToken() {
+func (pusher *tokenBasedAPNSPusher) refreshToken() {
 	claims := jwt.StandardClaims{
 		Issuer:   pusher.teamID,
 		IssuedAt: time.Now().Unix(),
@@ -129,14 +129,14 @@ func (pusher *tokenBaseAPNSPusher) refreshToken() {
 	})
 }
 
-func (pusher *tokenBaseAPNSPusher) updateToken(newToken token) {
+func (pusher *tokenBasedAPNSPusher) updateToken(newToken token) {
 	pusher.tokenMutex.Lock()
 	defer pusher.tokenMutex.Unlock()
 
 	pusher.token = newToken
 }
 
-func (pusher tokenBaseAPNSPusher) getToken() token {
+func (pusher tokenBasedAPNSPusher) getToken() token {
 	pusher.tokenMutex.RLock()
 	defer pusher.tokenMutex.RUnlock()
 
@@ -144,7 +144,7 @@ func (pusher tokenBaseAPNSPusher) getToken() token {
 }
 
 // Start setups the pusher and starts it
-func (pusher *tokenBaseAPNSPusher) Start() {
+func (pusher *tokenBasedAPNSPusher) Start() {
 	conn, err := pusher.connOpener()
 	if err != nil {
 		log.Errorf("push/apns: failed to open skydb.Conn, abort feedback retrival: %v\n", err)
@@ -171,7 +171,7 @@ func (pusher *tokenBaseAPNSPusher) Start() {
 }
 
 // Stop stops and cleans up the pusher
-func (pusher *tokenBaseAPNSPusher) Stop() {
+func (pusher *tokenBasedAPNSPusher) Stop() {
 	close(pusher.failed)
 	pusher.failed = nil
 
@@ -180,7 +180,7 @@ func (pusher *tokenBaseAPNSPusher) Stop() {
 
 // Send sends a notification to the device identified by the
 // specified device
-func (pusher *tokenBaseAPNSPusher) Send(m Mapper, device skydb.Device) error {
+func (pusher *tokenBasedAPNSPusher) Send(m Mapper, device skydb.Device) error {
 	logger := log.WithFields(logrus.Fields{
 		"deviceToken": device.Token,
 		"deviceID":    device.ID,
@@ -193,8 +193,8 @@ func (pusher *tokenBaseAPNSPusher) Send(m Mapper, device skydb.Device) error {
 	}
 
 	if device.Topic == "" {
-		logger.Warn("Cannot send push notification with empty topic.")
-		return errors.New("push/apns: push notification has empty topic")
+		logger.Print("Found device with null topic field, ignored.")
+		return nil
 	}
 
 	apnsMap, ok := m.Map()["apns"].(map[string]interface{})
@@ -239,10 +239,10 @@ func (pusher *tokenBaseAPNSPusher) Send(m Mapper, device skydb.Device) error {
 	return nil
 }
 
-func (pusher tokenBaseAPNSPusher) getFailedNotificationChannel() chan failedNotification {
+func (pusher tokenBasedAPNSPusher) getFailedNotificationChannel() chan failedNotification {
 	return pusher.failed
 }
 
-func (pusher tokenBaseAPNSPusher) deleteDeviceToken(token string, beforeTime time.Time) error {
+func (pusher tokenBasedAPNSPusher) deleteDeviceToken(token string, beforeTime time.Time) error {
 	return pusher.conn.DeleteDevicesByToken(token, beforeTime)
 }

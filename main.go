@@ -415,9 +415,9 @@ func initAPNSPusher(config skyconfig.Configuration, connOpener func() (skydb.Con
 
 	switch config.APNS.Type {
 	case "cert":
-		pushSender = initCertBaseAPNSPusher(config, connOpener)
+		pushSender = initCertBasedAPNSPusher(config, connOpener)
 	case "token":
-		pushSender = initTokenBaseAPNSPusher(config, connOpener)
+		pushSender = initTokenBasedAPNSPusher(config, connOpener)
 	default:
 		log.Fatalf("Unknown APNS Type: %s", config.APNS.Type)
 	}
@@ -426,7 +426,7 @@ func initAPNSPusher(config skyconfig.Configuration, connOpener func() (skydb.Con
 	return pushSender
 }
 
-func initCertBaseAPNSPusher(
+func initCertBasedAPNSPusher(
 	config skyconfig.Configuration,
 	connOpener func() (skydb.Conn, error),
 ) push.APNSPusher {
@@ -448,7 +448,7 @@ func initCertBaseAPNSPusher(
 		key = string(keyPEMBlock)
 	}
 
-	pushSender, err := push.NewCertBaseAPNSPusher(
+	pushSender, err := push.NewCertBasedAPNSPusher(
 		connOpener,
 		push.GatewayType(config.APNS.Env),
 		cert,
@@ -461,7 +461,7 @@ func initCertBaseAPNSPusher(
 	return pushSender
 }
 
-func initTokenBaseAPNSPusher(
+func initTokenBasedAPNSPusher(
 	config skyconfig.Configuration,
 	connOpener func() (skydb.Conn, error),
 ) push.APNSPusher {
@@ -476,7 +476,7 @@ func initTokenBaseAPNSPusher(
 		key = string(keyBytes)
 	}
 
-	pushSender, err := push.NewTokenBaseAPNSPusher(
+	pushSender, err := push.NewTokenBasedAPNSPusher(
 		connOpener,
 		push.GatewayType(config.APNS.Env),
 		config.APNS.TokenConfig.TeamID,

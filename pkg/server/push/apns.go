@@ -56,6 +56,7 @@ type failedNotification struct {
 	err         push.Error
 }
 
+// TODO: make something like APNSFeedbackHandler to handle the feedback from APNS so that the pusher will not have the reference to conn.
 func newPushService(client *http.Client, gatewayType GatewayType) (*push.Service, error) {
 	switch gatewayType {
 	case Sandbox:

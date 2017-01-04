@@ -212,25 +212,20 @@ func (h *PushToDeviceHandler) Handle(rpayload *router.Payload, response *router.
 	}
 
 	conn := rpayload.DBConn
-
-	var getDeviceFunc func(string, *skydb.Device) error
-	if payload.Topic != "" {
-		getDeviceFunc = func(id string, device *skydb.Device) error {
-			return conn.GetDeviceByIDAndTopic(id, payload.Topic, device)
-		}
-	} else {
-		getDeviceFunc = conn.GetDevice
-	}
-
-	resultItems := make([]sendPushResponseItem, len(payload.DeviceIDs))
-	for i, deviceID := range payload.DeviceIDs {
+	resultItems := []sendPushResponseItem{}
+	for _, deviceID := range payload.DeviceIDs {
 		device := skydb.Device{}
-		resultItems[i].id = deviceID
-		if err := getDeviceFunc(deviceID, &device); err != nil {
-			resultItems[i].err = &err
-		} else {
+		if err := conn.GetDevice(deviceID, &device); err != nil {
+			resultItems = append(resultItems, sendPushResponseItem{
+				id:  deviceID,
+				err: &err,
+			})
+		} else if payload.Topic == "" || payload.Topic == device.Topic {
 			pushMap := push.MapMapper(payload.Notification)
 			sendPushNotification(h.NotificationSender, device, pushMap)
+			resultItems = append(resultItems, sendPushResponseItem{
+				id: deviceID,
+			})
 		}
 	}
 	response.Result = resultItems
