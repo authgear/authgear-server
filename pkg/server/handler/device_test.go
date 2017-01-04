@@ -290,19 +290,6 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			err := resp.Err.(skyerr.Error)
 			So(err, ShouldResemble, skyerr.NewInvalidArgument("unknown device type = unknown-type", []string{"type"}))
 		})
-
-		Convey("complains on empty topic", func() {
-			payload.Data = map[string]interface{}{
-				"type":         "ios",
-				"device_token": "some-token",
-			}
-
-			handler := &DeviceRegisterHandler{}
-			handler.Handle(&payload, &resp)
-
-			err := resp.Err.(skyerr.Error)
-			So(err, ShouldResemble, skyerr.NewInvalidArgument("missing device topic", []string{"topic"}))
-		})
 	})
 }
 

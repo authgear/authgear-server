@@ -45,8 +45,6 @@ func (payload *deviceRegisterPayload) Validate() skyerr.Error {
 		return skyerr.NewInvalidArgument("empty device type", []string{"type"})
 	} else if payload.Type != "ios" && payload.Type != "android" {
 		return skyerr.NewInvalidArgument(fmt.Sprintf("unknown device type = %v", payload.Type), []string{"type"})
-	} else if payload.Topic == "" {
-		return skyerr.NewInvalidArgument("missing device topic", []string{"topic"})
 	}
 
 	return nil
