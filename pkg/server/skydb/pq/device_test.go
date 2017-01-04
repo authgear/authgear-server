@@ -34,6 +34,7 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "devicetoken",
+				Topic:            "devicetopic",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
@@ -46,6 +47,7 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "devicetoken",
+				Topic:            "devicetopic",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
@@ -56,6 +58,7 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "devicetoken",
+				Topic:            "devicetopic",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
@@ -64,14 +67,14 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var (
-				deviceType, token, userInfoID string
-				lastRegisteredAt              time.Time
+				deviceType, token, topic, userInfoID string
+				lastRegisteredAt                     time.Time
 			)
-			err = c.QueryRowx("SELECT type, token, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").
-				Scan(&deviceType, &token, &userInfoID, &lastRegisteredAt)
+			err = c.QueryRowx("SELECT type, token, topic, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").Scan(&deviceType, &token, &topic, &userInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
 			So(token, ShouldEqual, "devicetoken")
+			So(topic, ShouldEqual, "devicetopic")
 			So(userInfoID, ShouldEqual, "userid")
 			So(lastRegisteredAt.Unix(), ShouldEqual, 1136214245)
 		})
@@ -81,6 +84,7 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "devicetoken",
+				Topic:            "devicetopic",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
@@ -92,14 +96,14 @@ func TestDevice(t *testing.T) {
 			So(c.SaveDevice(&device), ShouldBeNil)
 
 			var (
-				deviceType, token, userInfoID string
-				lastRegisteredAt              time.Time
+				deviceType, token, topic, userInfoID string
+				lastRegisteredAt                     time.Time
 			)
-			err = c.QueryRowx("SELECT type, token, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").
-				Scan(&deviceType, &token, &userInfoID, &lastRegisteredAt)
+			err = c.QueryRowx("SELECT type, token, topic, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").Scan(&deviceType, &token, &topic, &userInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
 			So(token, ShouldEqual, "anotherdevicetoken")
+			So(topic, ShouldEqual, "devicetopic")
 			So(userInfoID, ShouldEqual, "userid")
 			So(lastRegisteredAt.Unix(), ShouldEqual, 1136214245)
 		})
@@ -244,6 +248,7 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid0",
 				Type:             "ios",
 				Token:            "",
+				Topic:            "devicetopic",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 4, 59, time.UTC),
 			}
@@ -251,6 +256,7 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid1",
 				Type:             "ios",
 				Token:            "DEVICE_TOKEN",
+				Topic:            "devicetopic",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
@@ -285,6 +291,7 @@ func TestDevice(t *testing.T) {
 				ID:               "device",
 				Type:             "ios",
 				Token:            "devicetoken",
+				Topic:            "devicetopic1",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
@@ -294,6 +301,7 @@ func TestDevice(t *testing.T) {
 				ID:               "device2",
 				Type:             "android",
 				Token:            "",
+				Topic:            "devicetopic2",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
@@ -306,6 +314,7 @@ func TestDevice(t *testing.T) {
 				ID:               "device",
 				Type:             "ios",
 				Token:            "devicetoken",
+				Topic:            "devicetopic1",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
@@ -313,11 +322,68 @@ func TestDevice(t *testing.T) {
 				ID:               "device2",
 				Type:             "android",
 				Token:            "",
+				Topic:            "devicetopic2",
 				UserInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 
 			devices, err = c.QueryDevicesByUser("nonexistent")
+			So(err, ShouldBeNil)
+			So(len(devices), ShouldEqual, 0)
+		})
+
+		Convey("query devices by user and topic", func() {
+			device := skydb.Device{
+				ID:               "device",
+				Type:             "ios",
+				Token:            "devicetoken",
+				Topic:            "devicetopic1",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+			So(c.SaveDevice(&device), ShouldBeNil)
+
+			device = skydb.Device{
+				ID:               "device2",
+				Type:             "android",
+				Token:            "",
+				Topic:            "devicetopic1",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+			So(c.SaveDevice(&device), ShouldBeNil)
+
+			device = skydb.Device{
+				ID:               "device3",
+				Type:             "android",
+				Token:            "",
+				Topic:            "devicetopic2",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			}
+			So(c.SaveDevice(&device), ShouldBeNil)
+
+			devices, err := c.QueryDevicesByUserAndTopic("userid", "devicetopic1")
+			So(err, ShouldBeNil)
+			So(len(devices), ShouldEqual, 2)
+			So(devices[0], ShouldResemble, skydb.Device{
+				ID:               "device",
+				Type:             "ios",
+				Token:            "devicetoken",
+				Topic:            "devicetopic1",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			})
+			So(devices[1], ShouldResemble, skydb.Device{
+				ID:               "device2",
+				Type:             "android",
+				Token:            "",
+				Topic:            "devicetopic1",
+				UserInfoID:       "userid",
+				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			})
+
+			devices, err = c.QueryDevicesByUserAndTopic("nonexistent", "devicetopic1")
 			So(err, ShouldBeNil)
 			So(len(devices), ShouldEqual, 0)
 		})

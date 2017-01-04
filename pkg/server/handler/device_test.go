@@ -27,6 +27,7 @@ import (
 type naiveConn struct {
 	devices                  map[string]skydb.Device
 	mockGetError             error
+	mockGetByTopicError      error
 	mockSaveError            error
 	mockDeleteError          error
 	mockDeleteWithTokenError error
@@ -39,7 +40,21 @@ func (conn *naiveConn) GetDevice(id string, device *skydb.Device) error {
 	}
 
 	targetDevice, ok := conn.devices[id]
-	if !ok {
+	if !ok || targetDevice.Topic == "" {
+		return skydb.ErrDeviceNotFound
+	}
+
+	*device = targetDevice
+	return nil
+}
+
+func (conn *naiveConn) GetDeviceByIDAndTopic(id, topic string, device *skydb.Device) error {
+	if conn.mockGetByTopicError != nil {
+		return conn.mockGetByTopicError
+	}
+
+	targetDevice, ok := conn.devices[id]
+	if !ok || targetDevice.Topic == "" || targetDevice.Topic != topic {
 		return skydb.ErrDeviceNotFound
 	}
 
@@ -108,6 +123,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			payload.Data = map[string]interface{}{
 				"type":         "ios",
 				"device_token": "some-awesome-token",
+				"topic":        "some-awesome-topic",
 			}
 
 			handler := &DeviceRegisterHandler{}
@@ -120,6 +136,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				ID:               resultID,
 				Type:             "ios",
 				Token:            "some-awesome-token",
+				Topic:            "some-awesome-topic",
 				UserInfoID:       "userinfoid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
@@ -130,6 +147,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				ID:               "deviceid",
 				Type:             "android",
 				Token:            "oldtoken",
+				Topic:            "oldtopic",
 				UserInfoID:       "olduserinfoid",
 				LastRegisteredAt: time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
@@ -139,6 +157,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				"id":           "deviceid",
 				"type":         "ios",
 				"device_token": "newtoken",
+				"topic":        "newtopic",
 			}
 
 			handler := &DeviceRegisterHandler{}
@@ -151,6 +170,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "newtoken",
+				Topic:            "newtopic",
 				UserInfoID:       "userinfoid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
@@ -161,6 +181,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				ID:               "existing_id",
 				Type:             "ios",
 				Token:            "existing_token",
+				Topic:            "existing_topic",
 				UserInfoID:       "existing_user",
 				LastRegisteredAt: time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
@@ -169,6 +190,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			payload.Data = map[string]interface{}{
 				"type":         "ios",
 				"device_token": "existing_token",
+				"topic":        "existing_topic",
 			}
 
 			handler := &DeviceRegisterHandler{}
@@ -181,6 +203,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				ID:               resultID,
 				Type:             "ios",
 				Token:            "existing_token",
+				Topic:            "existing_topic",
 				UserInfoID:       "userinfoid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
@@ -214,7 +237,8 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 		Convey("does not complain on empty device token", func() {
 			payload.Data = map[string]interface{}{
-				"type": "android",
+				"type":  "android",
+				"topic": "some-topic",
 			}
 
 			handler := &DeviceRegisterHandler{}
@@ -227,6 +251,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				ID:               result.ID,
 				Type:             "android",
 				Token:            "",
+				Topic:            "some-topic",
 				UserInfoID:       "userinfoid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
@@ -239,6 +264,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				"id":           "deviceid",
 				"type":         "ios",
 				"device_token": "newtoken",
+				"topic":        "some-topic",
 			}
 
 			handler := &DeviceRegisterHandler{}
@@ -264,6 +290,19 @@ func TestDeviceRegisterHandler(t *testing.T) {
 			err := resp.Err.(skyerr.Error)
 			So(err, ShouldResemble, skyerr.NewInvalidArgument("unknown device type = unknown-type", []string{"type"}))
 		})
+
+		Convey("complains on empty topic", func() {
+			payload.Data = map[string]interface{}{
+				"type":         "ios",
+				"device_token": "some-token",
+			}
+
+			handler := &DeviceRegisterHandler{}
+			handler.Handle(&payload, &resp)
+
+			err := resp.Err.(skyerr.Error)
+			So(err, ShouldResemble, skyerr.NewInvalidArgument("missing device topic", []string{"topic"}))
+		})
 	})
 }
 
@@ -275,6 +314,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 					ID:               "device_1",
 					Type:             "ios",
 					Token:            "device_token_1",
+					Topic:            "device_topic_1",
 					UserInfoID:       "user_id_1",
 					LastRegisteredAt: time.Date(2016, 12, 16, 6, 54, 0, 0, time.UTC),
 				},
@@ -282,6 +322,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 					ID:               "device_2_1",
 					Type:             "ios",
 					Token:            "device_token_2",
+					Topic:            "device_topic_2",
 					UserInfoID:       "user_id_2",
 					LastRegisteredAt: time.Date(2016, 12, 16, 6, 55, 0, 0, time.UTC),
 				},
@@ -289,6 +330,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 					ID:               "device_2_2",
 					Type:             "ios",
 					Token:            "device_token_2",
+					Topic:            "device_topic_3",
 					UserInfoID:       "user_id_3",
 					LastRegisteredAt: time.Date(2016, 12, 16, 6, 56, 0, 0, time.UTC),
 				},

@@ -214,6 +214,17 @@ func (_mr *_MockConnRecorder) QueryDevicesByUser(arg0 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "QueryDevicesByUser", arg0)
 }
 
+func (_m *MockConn) QueryDevicesByUserAndTopic(_param0 string, _param1 string) ([]skydb.Device, error) {
+	ret := _m.ctrl.Call(_m, "QueryDevicesByUserAndTopic", _param0, _param1)
+	ret0, _ := ret[0].([]skydb.Device)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockConnRecorder) QueryDevicesByUserAndTopic(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "QueryDevicesByUserAndTopic", arg0, arg1)
+}
+
 func (_m *MockConn) QueryRelation(_param0 string, _param1 string, _param2 string, _param3 skydb.QueryConfig) []skydb.UserInfo {
 	ret := _m.ctrl.Call(_m, "QueryRelation", _param0, _param1, _param2, _param3)
 	ret0, _ := ret[0].([]skydb.UserInfo)
