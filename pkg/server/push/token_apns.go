@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
-	"strings"
 	"sync"
 	"time"
 
@@ -208,11 +207,8 @@ func (pusher *tokenBasedAPNSPusher) Send(m Mapper, device skydb.Device) error {
 	}
 
 	headers := push.Headers{
-		Topic: device.Topic,
-		Authorization: strings.Join([]string{
-			"bearer",
-			pusher.getToken().value,
-		}, " "),
+		Topic:         device.Topic,
+		Authorization: pusher.getToken().value,
 	}
 
 	apnsid, err := pusher.service.Push(device.Token, &headers, serializedPayload)
