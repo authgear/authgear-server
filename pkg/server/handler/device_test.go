@@ -48,20 +48,6 @@ func (conn *naiveConn) GetDevice(id string, device *skydb.Device) error {
 	return nil
 }
 
-func (conn *naiveConn) GetDeviceByIDAndTopic(id, topic string, device *skydb.Device) error {
-	if conn.mockGetByTopicError != nil {
-		return conn.mockGetByTopicError
-	}
-
-	targetDevice, ok := conn.devices[id]
-	if !ok || targetDevice.Topic == "" || targetDevice.Topic != topic {
-		return skydb.ErrDeviceNotFound
-	}
-
-	*device = targetDevice
-	return nil
-}
-
 func (conn *naiveConn) SaveDevice(device *skydb.Device) error {
 	if conn.mockSaveError != nil {
 		return conn.mockSaveError

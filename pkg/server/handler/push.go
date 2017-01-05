@@ -25,7 +25,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-// Remarks: create a variable for mocking on test cases
+// Remarks: this variable is for mocking in test cases
 var sendPushNotification = func(sender push.Sender, device skydb.Device, m push.Mapper) {
 	go func() {
 		log.Infof("Sending notification to device token = %s", device.Token)
@@ -124,20 +124,18 @@ func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Re
 	}
 
 	conn := rpayload.DBConn
-
-	var queryFunc func(string) ([]skydb.Device, error)
-	if payload.Topic != "" {
-		queryFunc = func(uID string) ([]skydb.Device, error) {
-			return conn.QueryDevicesByUserAndTopic(uID, payload.Topic)
-		}
-	} else {
-		queryFunc = conn.QueryDevicesByUser
-	}
-
 	resultItems := make([]sendPushResponseItem, len(payload.UserIDs))
 	for i, userID := range payload.UserIDs {
 		resultItems[i].id = userID
-		devices, err := queryFunc(userID)
+		var devices []skydb.Device
+		var err error
+
+		if payload.Topic != "" {
+			devices, err = conn.QueryDevicesByUserAndTopic(userID, payload.Topic)
+		} else {
+			devices, err = conn.QueryDevicesByUser(userID)
+		}
+
 		if err != nil {
 			resultItems[i].err = &err
 		} else {
