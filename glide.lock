@@ -1,5 +1,5 @@
-hash: a7a28b6d36ec35524c4d4ca953e928eaa8dc94179ba0872af8e30c0b0e5e62d9
-updated: 2016-12-23T13:43:45.65916462+08:00
+hash: 6e8a2445b32b9edad25e56d3a54964b625b9fb696e95e69b7733638dadb71aba
+updated: 2017-01-05T16:26:46.772208561+08:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
@@ -72,11 +72,12 @@ imports:
   - bcrypt
   - blowfish
 - name: golang.org/x/net
-  version: b400c2eff1badec7022a8c8f5bea058b6315eed7
+  version: 45e771701b814666a7eb299e6c7a57d0b1799e91
   subpackages:
   - context
   - http2
   - http2/hpack
+  - idna
   - lex/httplex
 - name: golang.org/x/sys
   version: 5eaf0df67e70d6997a9fe0ed24383fa1b01638d3

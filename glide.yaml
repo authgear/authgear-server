@@ -59,7 +59,7 @@ import:
   - bcrypt
   - blowfish
 - package: golang.org/x/net
-  version: b400c2eff1badec7022a8c8f5bea058b6315eed7
+  version: 45e771701b814666a7eb299e6c7a57d0b1799e91
   subpackages:
   - context
   - http2
