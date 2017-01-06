@@ -25,15 +25,16 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+// Remarks: this variable is for mocking in test cases
 var sendPushNotification = func(sender push.Sender, device skydb.Device, m push.Mapper) {
 	go func() {
-		log.Debugf("Sending notification to device token = %s", device.Token)
+		log.Infof("Sending notification to device token = %s", device.Token)
 		err := sender.Send(m, device)
 
 		if err != nil {
 			log.Warnf("Failed to send notification: %v\n", err)
 		} else {
-			log.Debugf("Sent notification to device token = %s", device.Token)
+			log.Infof("Sent notification to device token = %s", device.Token)
 		}
 	}()
 }
@@ -69,6 +70,7 @@ func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
 
 type pushToUserPayload struct {
 	UserIDs      []string               `mapstructure:"user_ids"`
+	Topic        string                 `mapstructure:"topic"`
 	Notification map[string]interface{} `mapstructure:"notification"`
 }
 
@@ -125,7 +127,15 @@ func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Re
 	resultItems := make([]sendPushResponseItem, len(payload.UserIDs))
 	for i, userID := range payload.UserIDs {
 		resultItems[i].id = userID
-		devices, err := conn.QueryDevicesByUser(userID)
+		var devices []skydb.Device
+		var err error
+
+		if payload.Topic != "" {
+			devices, err = conn.QueryDevicesByUserAndTopic(userID, payload.Topic)
+		} else {
+			devices, err = conn.QueryDevicesByUser(userID)
+		}
+
 		if err != nil {
 			resultItems[i].err = &err
 		} else {
@@ -146,6 +156,7 @@ func (h *PushToUserHandler) Handle(rpayload *router.Payload, response *router.Re
 
 type pushToDevicePayload struct {
 	DeviceIDs    []string               `mapstructure:"device_ids"`
+	Topic        string                 `mapstructure:"topic"`
 	Notification map[string]interface{} `mapstructure:"notification"`
 }
 
@@ -199,15 +210,20 @@ func (h *PushToDeviceHandler) Handle(rpayload *router.Payload, response *router.
 	}
 
 	conn := rpayload.DBConn
-	resultItems := make([]sendPushResponseItem, len(payload.DeviceIDs))
-	for i, deviceID := range payload.DeviceIDs {
+	resultItems := []sendPushResponseItem{}
+	for _, deviceID := range payload.DeviceIDs {
 		device := skydb.Device{}
-		resultItems[i].id = deviceID
 		if err := conn.GetDevice(deviceID, &device); err != nil {
-			resultItems[i].err = &err
-		} else {
+			resultItems = append(resultItems, sendPushResponseItem{
+				id:  deviceID,
+				err: &err,
+			})
+		} else if payload.Topic == "" || payload.Topic == device.Topic {
 			pushMap := push.MapMapper(payload.Notification)
 			sendPushNotification(h.NotificationSender, device, pushMap)
+			resultItems = append(resultItems, sendPushResponseItem{
+				id: deviceID,
+			})
 		}
 	}
 	response.Result = resultItems

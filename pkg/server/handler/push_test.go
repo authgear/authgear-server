@@ -47,11 +47,11 @@ func TestPushToDevice(t *testing.T) {
 			sendPushNotification = originalSendFunc
 		}()
 
-		Convey("push to single device", func() {
+		Convey("push to single device", func(c C) {
 			called := false
 			sendPushNotification = func(sender push.Sender, device skydb.Device, m push.Mapper) {
-				So(device, ShouldResemble, testdevice)
-				So(m.Map(), ShouldResemble, map[string]interface{}{
+				c.So(device, ShouldResemble, testdevice)
+				c.So(m.Map(), ShouldResemble, map[string]interface{}{
 					"aps": map[string]interface{}{
 						"alert": "This is a message.",
 						"sound": "sosumi.mp3",
@@ -60,6 +60,7 @@ func TestPushToDevice(t *testing.T) {
 				})
 				called = true
 			}
+
 			resp := r.POST(`{
 					"device_ids": ["device"],
 					"notification": {
@@ -144,10 +145,10 @@ func TestPushToUser(t *testing.T) {
 			sendPushNotification = originalSendFunc
 		}()
 
-		Convey("push to single user", func() {
-			var sentDevices []skydb.Device
+		Convey("push to single user", func(c C) {
+			sentDevices := []skydb.Device{}
 			sendPushNotification = func(sender push.Sender, device skydb.Device, m push.Mapper) {
-				So(m.Map(), ShouldResemble, map[string]interface{}{
+				c.So(m.Map(), ShouldResemble, map[string]interface{}{
 					"aps": map[string]interface{}{
 						"alert": "This is a message.",
 						"sound": "sosumi.mp3",
@@ -156,6 +157,7 @@ func TestPushToUser(t *testing.T) {
 				})
 				sentDevices = append(sentDevices, device)
 			}
+
 			resp := r.POST(`{
 					"user_ids": ["johndoe"],
 					"notification": {

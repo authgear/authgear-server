@@ -14,18 +14,25 @@
 
 package migration
 
-var revisions = []Revision{
-	&revision_48b961caa{},
-	&revision_d2cb54c648{},
-	&revision_51375067b45{},
-	&revision_30d0a626888{},
-	&revision_41af1c8d394{},
-	&revision_551bc42a839{},
-	&revision_bce7089fca4{},
-	&revision_bc5768da91b{},
-	&revision_52b88c46931{},
-	&revision_c0397f15027{},
-	&revision_88a550bf579{},
-	&revision_db76e79e987{},
-	&revision_1981535c8aeb{},
+import "github.com/jmoiron/sqlx"
+
+type revision_1981535c8aeb struct {
+}
+
+func (r *revision_1981535c8aeb) Version() string {
+	return "1981535c8aeb"
+}
+
+func (r *revision_1981535c8aeb) Up(tx *sqlx.Tx) error {
+	if _, err := tx.Exec(`ALTER TABLE _device ADD COLUMN topic text;`); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *revision_1981535c8aeb) Down(tx *sqlx.Tx) error {
+	if _, err := tx.Exec(`ALTER TABLE _device DROP COLUMN topic;`); err != nil {
+		return err
+	}
+	return nil
 }

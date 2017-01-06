@@ -25,7 +25,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "db76e79e987" }
+func (r *fullMigration) Version() string { return "1981535c8aeb" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -91,6 +91,7 @@ CREATE TABLE _device (
 	user_id text REFERENCES _user (id),
 	type text NOT NULL,
 	token text,
+	topic text,
 	last_registered_at timestamp without time zone NOT NULL,
 	UNIQUE (user_id, type, token)
 );

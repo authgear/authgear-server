@@ -102,12 +102,23 @@ type Configuration struct {
 		} `json:"cloud"`
 	} `json:"asset_store"`
 	APNS struct {
-		Enable   bool   `json:"enable"`
-		Env      string `json:"env"`
-		Cert     string `json:"cert"`
-		Key      string `json:"key"`
-		CertPath string `json:"-"`
-		KeyPath  string `json:"-"`
+		Enable bool   `json:"enable"`
+		Type   string `json:"type"`
+		Env    string `json:"env"`
+
+		CertConfig struct {
+			Cert     string `json:"cert"`
+			Key      string `json:"key"`
+			CertPath string `json:"-"`
+			KeyPath  string `json:"-"`
+		} `json:"cert_config"`
+
+		TokenConfig struct {
+			TeamID  string `json:"team_id"`
+			KeyID   string `json:"key_id"`
+			Key     string `json:"key"`
+			KeyPath string `json:"-"`
+		} `json:"token_config"`
 	} `json:"apns"`
 	GCM struct {
 		Enable bool   `json:"enable"`
@@ -145,6 +156,7 @@ func NewConfiguration() Configuration {
 	config.AssetStore.FileSystemStore.Path = "data/asset"
 	config.AssetStore.FileSystemStore.URLPrefix = "http://localhost:3000/files"
 	config.APNS.Enable = false
+	config.APNS.Type = "cert"
 	config.APNS.Env = "sandbox"
 	config.GCM.Enable = false
 	config.LOG.Level = "debug"
@@ -180,6 +192,9 @@ func (config *Configuration) Validate() error {
 	}
 	if config.APNS.Enable && !regexp.MustCompile("^(sandbox|production)$").MatchString(config.APNS.Env) {
 		return fmt.Errorf("APNS_ENV must be sandbox or production")
+	}
+	if config.APNS.Enable && !regexp.MustCompile("^(cert|token)$").MatchString(config.APNS.Type) {
+		return fmt.Errorf("APNS_TYPE must be cert or token")
 	}
 	return nil
 }
@@ -362,22 +377,57 @@ func (config *Configuration) readAPNS() {
 		config.APNS.Env = env
 	}
 
+	apnsType := os.Getenv("APNS_TYPE")
+	if apnsType != "" {
+		config.APNS.Type = apnsType
+	}
+
+	switch strings.ToLower(config.APNS.Type) {
+	case "cert":
+		config.readAPNSCert()
+	case "token":
+		config.readAPNSToken()
+	}
+}
+
+func (config *Configuration) readAPNSCert() {
 	cert, key := os.Getenv("APNS_CERTIFICATE"), os.Getenv("APNS_PRIVATE_KEY")
 	if cert != "" {
-		config.APNS.Cert = cert
+		config.APNS.CertConfig.Cert = cert
 	}
 	if key != "" {
-		config.APNS.Key = key
+		config.APNS.CertConfig.Key = key
 	}
 
 	certPath, keyPath := os.Getenv("APNS_CERTIFICATE_PATH"), os.Getenv("APNS_PRIVATE_KEY_PATH")
 	if certPath != "" {
-		config.APNS.CertPath = certPath
+		config.APNS.CertConfig.CertPath = certPath
 	}
 	if keyPath != "" {
-		config.APNS.KeyPath = keyPath
+		config.APNS.CertConfig.KeyPath = keyPath
+	}
+}
+
+func (config *Configuration) readAPNSToken() {
+	teamID := os.Getenv("APNS_TEAM_ID")
+	if teamID != "" {
+		config.APNS.TokenConfig.TeamID = teamID
 	}
 
+	keyID := os.Getenv("APNS_KEY_ID")
+	if keyID != "" {
+		config.APNS.TokenConfig.KeyID = keyID
+	}
+
+	key := os.Getenv("APNS_TOKEN_KEY")
+	if key != "" {
+		config.APNS.TokenConfig.Key = key
+	}
+
+	keyPath := os.Getenv("APNS_TOKEN_KEY_PATH")
+	if keyPath != "" {
+		config.APNS.TokenConfig.KeyPath = keyPath
+	}
 }
 
 func (config *Configuration) readGCM() {

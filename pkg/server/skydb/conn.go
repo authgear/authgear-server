@@ -134,6 +134,7 @@ type Conn interface {
 	// QueryDevicesByUser queries the Device database which are registered
 	// by the specified user.
 	QueryDevicesByUser(user string) ([]Device, error)
+	QueryDevicesByUserAndTopic(user, topic string) ([]Device, error)
 	SaveDevice(device *Device) error
 	DeleteDevice(id string) error
 

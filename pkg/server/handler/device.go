@@ -29,6 +29,7 @@ import (
 type deviceRegisterPayload struct {
 	ID          string
 	Type        string
+	Topic       string
 	DeviceToken string `mapstructure:"device_token"`
 }
 
@@ -84,6 +85,7 @@ type DeviceReigsterResult struct {
 //		"action": "device:register",
 //		"access_token": "some-access-token",
 //		"type": "ios",
+//		"topic": "io.skygear.sample.topic",
 //		"device_token": "some-device-token"
 //	}
 //	EOF
@@ -167,6 +169,7 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 
 	device.Type = payload.Type
 	device.Token = payload.DeviceToken
+	device.Topic = payload.Topic
 	device.UserInfoID = rpayload.UserInfoID
 	device.LastRegisteredAt = timeNow()
 

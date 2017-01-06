@@ -1,9 +1,5 @@
 package: github.com/skygeario/skygear-server
 import:
-- package: github.com/RobotsAndPencils/buford
-  version: ~0.10.0
-  subpackages:
-  - push
 - package: github.com/Sirupsen/logrus
   version: 74bde9ea4c5b2c78995da8ed56d37e75644dc941
 - package: github.com/dgrijalva/jwt-go
@@ -63,7 +59,7 @@ import:
   - bcrypt
   - blowfish
 - package: golang.org/x/net
-  version: b400c2eff1badec7022a8c8f5bea058b6315eed7
+  version: 45e771701b814666a7eb299e6c7a57d0b1799e91
   subpackages:
   - context
   - http2
@@ -82,6 +78,10 @@ import:
   subpackages:
   - gomock
 - package: github.com/franela/goreq
+- package: github.com/SkygearIO/buford
+  version: fa85459
+  subpackages:
+  - push
 testImport:
 - package: github.com/jarcoal/httpmock
 - package: github.com/smartystreets/goconvey
