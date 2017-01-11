@@ -1,3 +1,9 @@
+## 0.21.0 (2017-01-11)
+
+### Features
+
+- Support token based APNS (#239)
+
 ## 0.20.0 (2016-12-20)
 
 ### Features
