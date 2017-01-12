@@ -749,6 +749,8 @@ func pqDataType(dataType skydb.DataType) string {
 		return TypeLocation
 	case skydb.TypeSequence:
 		return TypeSerial
+	case skydb.TypeGeometry:
+		return TypeGeometry
 	}
 }
 

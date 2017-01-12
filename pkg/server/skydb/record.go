@@ -439,6 +439,8 @@ func (f FieldType) ToSimpleName() string {
 		return "integer"
 	case TypeSequence:
 		return "sequence"
+	case TypeGeometry:
+		return "geometry"
 	case TypeUnknown:
 		return "unknown"
 	}
@@ -462,6 +464,7 @@ const (
 	TypeACL
 	TypeInteger
 	TypeSequence
+	TypeGeometry
 	TypeUnknown
 )
 
@@ -497,6 +500,8 @@ func SimpleNameToFieldType(s string) (result FieldType, err error) {
 		result.Type = TypeInteger
 	case "sequence":
 		result.Type = TypeSequence
+	case "geometry":
+		result.Type = TypeGeometry
 	case "unknown":
 		result.Type = TypeUnknown
 	default:

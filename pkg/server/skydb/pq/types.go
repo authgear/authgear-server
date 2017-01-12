@@ -40,6 +40,7 @@ const (
 	TypeInteger    = "integer"
 	TypeSerial     = "serial UNIQUE"
 	TypeBigInteger = "bigint"
+	TypeGeometry   = "geometry"
 )
 
 type nullJSON struct {
@@ -125,6 +126,11 @@ type nullLocation struct {
 	Valid    bool
 }
 
+type nullGeometry struct {
+	JSON  interface{}
+	Valid bool
+}
+
 func (nl *nullLocation) Scan(value interface{}) error {
 	if value == nil {
 		nl.Location = skydb.Location{}
@@ -147,6 +153,21 @@ func (nl *nullLocation) Scan(value interface{}) error {
 
 	err = (*geo.Point)(&nl.Location).Scan(decoded)
 	nl.Valid = err == nil
+	return err
+}
+
+func (ng *nullGeometry) Scan(value interface{}) error {
+	data, ok := value.(string)
+
+	if value == nil || !ok {
+		ng.JSON = nil
+		ng.Valid = false
+		return nil
+	}
+
+	err := json.Unmarshal([]byte(data), &ng.JSON)
+	ng.Valid = err == nil
+
 	return err
 }
 

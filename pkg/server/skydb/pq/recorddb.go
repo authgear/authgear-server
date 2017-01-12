@@ -402,6 +402,9 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 		case skydb.TypeInteger:
 			var i sql.NullInt64
 			values = append(values, &i)
+		case skydb.TypeGeometry:
+			var g nullGeometry
+			values = append(values, &g)
 		case skydb.TypeUnknown:
 			var u nullUnknown
 			values = append(values, &u)
@@ -477,6 +480,10 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 		case *nullLocation:
 			if svalue.Valid {
 				record.Set(column, svalue.Location)
+			}
+		case *nullGeometry:
+			if svalue.Valid {
+				record.Set(column, svalue.JSON)
 			}
 		case *nullUnknown:
 			if svalue.Valid {
