@@ -195,6 +195,7 @@ func main() {
 	}
 
 	r.Map("", &handler.HomeHandler{})
+	r.Map("_status:healthz", injector.Inject(&handler.HealthzHandler{}))
 
 	r.Map("auth:signup", injector.Inject(&handler.SignupHandler{}))
 	r.Map("auth:login", injector.Inject(&handler.LoginHandler{}))
