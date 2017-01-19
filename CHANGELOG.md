@@ -1,3 +1,13 @@
+## 0.21.1 (2017-01-19)
+
+### Features
+
+- Add `_status:healthz` endpoint (#264)
+
+### Bug Fixes
+
+- Fix ST_DWithin query (#266)
+
 ## 0.21.0 (2017-01-11)
 
 ### Features
