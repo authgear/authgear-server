@@ -840,29 +840,31 @@ func TestQuery(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		record0 := skydb.Record{
-			ID:      skydb.NewRecordID("restaurant", "0"),
+			ID:      skydb.NewRecordID("point_of_interest", "eiffel_tower"),
 			OwnerID: "someuserid",
 			Data: map[string]interface{}{
-				"location": skydb.NewLocation(0, 0),
+				"location": skydb.NewLocation(2.2945, 48.858222),
 			},
 		}
 		record1 := skydb.Record{
-			ID:      skydb.NewRecordID("restaurant", "1"),
+			ID:      skydb.NewRecordID("point_of_interest", "london_eye"),
 			OwnerID: "someuserid",
 			Data: map[string]interface{}{
-				"location": skydb.NewLocation(1, 0),
+				"location": skydb.NewLocation(-0.1194, 51.5033),
 			},
 		}
 		record2 := skydb.Record{
-			ID:      skydb.NewRecordID("restaurant", "2"),
+			ID:      skydb.NewRecordID("point_of_interest", "stonehenge"),
 			OwnerID: "someuserid",
 			Data: map[string]interface{}{
-				"location": skydb.NewLocation(0, 1),
+				"location": skydb.NewLocation(-1.826189, 51.178844),
 			},
 		}
 
+		westminsterPalaceLocation := skydb.NewLocation(-0.124722, 51.499167)
+
 		db := c.PublicDB()
-		_, err := db.Extend("restaurant", skydb.RecordSchema{
+		_, err := db.Extend("point_of_interest", skydb.RecordSchema{
 			"location": skydb.FieldType{Type: skydb.TypeLocation},
 		})
 		So(err, ShouldBeNil)
@@ -872,7 +874,7 @@ func TestQuery(t *testing.T) {
 
 		Convey("query within distance", func() {
 			query := skydb.Query{
-				Type: "restaurant",
+				Type: "point_of_interest",
 				Predicate: skydb.Predicate{
 					Operator: skydb.LessThanOrEqual,
 					Children: []interface{}{
@@ -880,12 +882,12 @@ func TestQuery(t *testing.T) {
 							Type: skydb.Function,
 							Value: skydb.DistanceFunc{
 								Field:    "location",
-								Location: skydb.NewLocation(1, 1),
+								Location: westminsterPalaceLocation,
 							},
 						},
 						skydb.Expression{
 							Type:  skydb.Literal,
-							Value: 157260,
+							Value: 1000,
 						},
 					},
 				},
@@ -893,24 +895,24 @@ func TestQuery(t *testing.T) {
 			records, err := exhaustRows(db.Query(&query))
 
 			So(err, ShouldBeNil)
-			So(records, ShouldResemble, []skydb.Record{record0, record1, record2})
+			So(records, ShouldResemble, []skydb.Record{record1})
 		})
 
 		Convey("query within distance with func on R.H.S.", func() {
 			query := skydb.Query{
-				Type: "restaurant",
+				Type: "point_of_interest",
 				Predicate: skydb.Predicate{
 					Operator: skydb.GreaterThan,
 					Children: []interface{}{
 						skydb.Expression{
 							Type:  skydb.Literal,
-							Value: 157260,
+							Value: 1000,
 						},
 						skydb.Expression{
 							Type: skydb.Function,
 							Value: skydb.DistanceFunc{
 								Field:    "location",
-								Location: skydb.NewLocation(1, 1),
+								Location: westminsterPalaceLocation,
 							},
 						},
 					},
@@ -919,18 +921,31 @@ func TestQuery(t *testing.T) {
 			records, err := exhaustRows(db.Query(&query))
 
 			So(err, ShouldBeNil)
-			So(records, ShouldResemble, []skydb.Record{record0, record1, record2})
+			So(records, ShouldResemble, []skydb.Record{record1})
 		})
 
 		Convey("query with computed distance", func() {
 			query := skydb.Query{
-				Type: "restaurant",
+				Type: "point_of_interest",
 				ComputedKeys: map[string]skydb.Expression{
 					"distance": skydb.Expression{
 						Type: skydb.Function,
 						Value: skydb.DistanceFunc{
 							Field:    "location",
-							Location: skydb.NewLocation(1, 1),
+							Location: westminsterPalaceLocation,
+						},
+					},
+				},
+				Predicate: skydb.Predicate{
+					Operator: skydb.Equal,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.Literal,
+							Value: "london_eye",
+						},
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "_id",
 						},
 					},
 				},
@@ -938,18 +953,18 @@ func TestQuery(t *testing.T) {
 			records, err := exhaustRows(db.Query(&query))
 
 			So(err, ShouldBeNil)
-			So(len(records), ShouldEqual, 3)
-			So(records[0].Transient["distance"], ShouldAlmostEqual, 157249, 1)
+			So(len(records), ShouldEqual, 1)
+			So(records[0].Transient["distance"], ShouldAlmostEqual, 589, 1)
 		})
 
 		Convey("query records ordered by distance", func() {
 			query := skydb.Query{
-				Type: "restaurant",
+				Type: "point_of_interest",
 				Sorts: []skydb.Sort{
 					{
 						Func: skydb.DistanceFunc{
 							Field:    "location",
-							Location: skydb.NewLocation(0, 0),
+							Location: westminsterPalaceLocation,
 						},
 						Order: skydb.Desc,
 					},
@@ -958,7 +973,7 @@ func TestQuery(t *testing.T) {
 
 			records, err := exhaustRows(db.Query(&query))
 			So(err, ShouldBeNil)
-			So(records, ShouldResemble, []skydb.Record{record1, record2, record0})
+			So(records, ShouldResemble, []skydb.Record{record0, record2, record1})
 		})
 	})
 

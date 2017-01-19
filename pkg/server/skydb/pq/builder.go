@@ -797,7 +797,7 @@ func (s distancePredicateSqlizer) ToSql() (sql string, args []interface{}, err e
 	}
 
 	sql = fmt.Sprintf(
-		"ST_DWithin(%s, ST_MakePoint(?, ?), %s)",
+		"ST_DWithin(%s::geography, ST_MakePoint(?, ?)::geography, %s)",
 		fullQuoteIdentifier(s.alias, s.field),
 		distanceSQL,
 	)

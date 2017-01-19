@@ -394,7 +394,7 @@ func TestDistancePredicateSqlizer(t *testing.T) {
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
 			So(sql, ShouldEqual,
-				`ST_DWithin("note"."latlng", ST_MakePoint(?, ?), ?)`)
+				`ST_DWithin("note"."latlng"::geography, ST_MakePoint(?, ?)::geography, ?)`)
 			So(args, ShouldResemble, []interface{}{22.25, 114.1667, 500.0})
 		})
 	})
