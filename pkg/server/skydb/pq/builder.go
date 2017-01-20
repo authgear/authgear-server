@@ -26,6 +26,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+const (
+	ContextWhere  = "where"
+	ContextSelect = "select"
+)
+
 // predicateSqlizerFactory is a factory for creating sqlizer for predicate
 type predicateSqlizerFactory struct {
 	db           *database
@@ -154,8 +159,8 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 		}
 		sqlizer := &containsComparisonPredicateSqlizer{
 			[]expressionSqlizer{
-				{alias, lhsExpr},
-				{alias, rhsExpr},
+				newExpressionSqlizer(alias, lhsExpr),
+				newExpressionSqlizer(alias, rhsExpr),
 			},
 		}
 		sqlizers = append(sqlizers, sqlizer)
@@ -245,15 +250,24 @@ func (f *predicateSqlizerFactory) tryOptimizeDistancePredicate(p skydb.Predicate
 	}, true
 }
 
+func newExpressionSqlizer(alias string, expr skydb.Expression) expressionSqlizer {
+	return expressionSqlizer{
+		alias,
+		expr,
+		ContextWhere,
+		skydb.FieldType{},
+	}
+}
+
 func (f *predicateSqlizerFactory) newExpressionSqlizer(expr skydb.Expression) (expressionSqlizer, error) {
 	if expr.IsKeyPath() {
 		return f.newExpressionSqlizerForKeyPath(expr)
 	}
 
-	sqlizer := expressionSqlizer{
+	sqlizer := newExpressionSqlizer(
 		f.primaryTable,
 		expr,
-	}
+	)
 
 	return sqlizer, nil
 }
@@ -300,7 +314,7 @@ func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expr
 		}
 	}
 
-	return expressionSqlizer{alias, expr}, nil
+	return newExpressionSqlizer(alias, expr), nil
 }
 
 // createLeftJoin create an alias of a table to be joined to the primary table
@@ -604,6 +618,8 @@ func (p *comparisonPredicateSqlizer) writeOperatorForNullOperand(buffer *bytes.B
 type expressionSqlizer struct {
 	alias string
 	skydb.Expression
+	context   string
+	fieldType skydb.FieldType
 }
 
 func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err error) {

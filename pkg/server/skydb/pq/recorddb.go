@@ -544,8 +544,7 @@ func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap s
 				Value: column,
 			}
 		}
-
-		e := expressionSqlizer{recordType, expr}
+		e := expressionSqlizer{recordType, expr, ContextSelect, fieldType}
 		sqlOperand, opArgs, _ := e.ToSql()
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
 	}
