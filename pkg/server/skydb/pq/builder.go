@@ -633,7 +633,11 @@ func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err erro
 		sql, args = funcToSQLOperand(expr.alias, expr.Value.(skydb.Func))
 	default:
 		sql, args = literalToSQLOperand(expr.Value)
+		if expr.fieldType.Type == skydb.TypeGeometry && expr.context == ContextSelect {
+			sql = selectGeoJSON(sql)
+		}
 	}
+
 	return
 }
 
@@ -716,6 +720,10 @@ func sortOrderBySQL(alias string, sort skydb.Sort) (string, error) {
 	}
 
 	return fmt.Sprintf(expr + " " + order), nil
+}
+
+func selectGeoJSON(sql string) string {
+	return fmt.Sprintf("ST_AsGeoJSON(%s)", sql)
 }
 
 // due to sq not being able to pass args in OrderBy, we can't re-use funcToSQLOperand

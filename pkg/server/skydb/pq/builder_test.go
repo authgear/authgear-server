@@ -405,3 +405,20 @@ func TestDistancePredicateSqlizer(t *testing.T) {
 		})
 	})
 }
+
+func TestExpressionSqlizerWithGeometry(t *testing.T) {
+	Convey("expression sqlizer with geometry", t, func() {
+		Convey("serialized", func() {
+			sqlizer := expressionSqlizer{
+				"note",
+				skydb.Expression{skydb.Literal, "geometry"},
+				ContextSelect,
+				skydb.FieldType{Type: skydb.TypeGeometry}}
+			sql, args, err := sqlizer.ToSql()
+			So(err, ShouldBeNil)
+			So(sql, ShouldEqual,
+				`ST_AsGeoJSON(?)`)
+			So(args, ShouldResemble, []interface{}{"geometry"})
+		})
+	})
+}
