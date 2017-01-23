@@ -206,6 +206,15 @@ func (loc MapLocation) ToMap(m map[string]interface{}) {
 	m["$lat"] = loc[1]
 }
 
+// MapGeomtry is skydb.Geometry that can be converted from and to a map.
+type MapGeometry skydb.Geometry
+
+// ToMap implements ToMapper
+func (geom MapGeometry) ToMap(m map[string]interface{}) {
+	m["$type"] = "geojson"
+	m["$value"] = geom
+}
+
 func walkData(m map[string]interface{}) (mapReturned map[string]interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {

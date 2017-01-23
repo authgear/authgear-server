@@ -38,6 +38,8 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 			data[key] = (MapLocation)(v)
 		case *skydb.Location:
 			data[key] = (*MapLocation)(v)
+		case skydb.Geometry:
+			data[key] = (MapGeometry)(v)
 		case *skydb.Asset:
 			data[key] = (*MapAsset)(v)
 		case skydb.Sequence:

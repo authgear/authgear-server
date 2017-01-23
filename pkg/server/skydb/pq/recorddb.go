@@ -483,7 +483,7 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 			}
 		case *nullGeometry:
 			if svalue.Valid {
-				record.Set(column, svalue.JSON)
+				record.Set(column, svalue.Geometry)
 			}
 		case *nullUnknown:
 			if svalue.Valid {

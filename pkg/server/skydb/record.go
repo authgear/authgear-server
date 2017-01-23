@@ -236,6 +236,8 @@ func (reference *Reference) IsEmpty() bool {
 // between paulmach/go.geo.Point.
 type Location [2]float64
 
+type Geometry map[string]interface{}
+
 // NewLocation returns a new Location
 func NewLocation(lng, lat float64) Location {
 	return Location{lng, lat}

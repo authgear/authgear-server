@@ -127,8 +127,8 @@ type nullLocation struct {
 }
 
 type nullGeometry struct {
-	JSON  interface{}
-	Valid bool
+	Geometry skydb.Geometry
+	Valid    bool
 }
 
 func (nl *nullLocation) Scan(value interface{}) error {
@@ -160,12 +160,12 @@ func (ng *nullGeometry) Scan(value interface{}) error {
 	data, ok := value.(string)
 
 	if value == nil || !ok {
-		ng.JSON = nil
+		ng.Geometry = nil
 		ng.Valid = false
 		return nil
 	}
 
-	err := json.Unmarshal([]byte(data), &ng.JSON)
+	err := json.Unmarshal([]byte(data), &ng.Geometry)
 	ng.Valid = err == nil
 
 	return err
