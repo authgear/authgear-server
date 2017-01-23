@@ -633,9 +633,10 @@ func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err erro
 		sql, args = funcToSQLOperand(expr.alias, expr.Value.(skydb.Func))
 	default:
 		sql, args = literalToSQLOperand(expr.Value)
-		if expr.fieldType.Type == skydb.TypeGeometry && expr.context == ContextSelect {
-			sql = selectGeoJSON(sql)
-		}
+	}
+
+	if expr.fieldType.Type == skydb.TypeGeometry && expr.context == ContextSelect {
+		sql = selectGeoJSON(sql)
 	}
 
 	return
