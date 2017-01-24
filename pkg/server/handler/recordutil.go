@@ -546,6 +546,10 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 			schema[key] = skydb.FieldType{
 				Type: skydb.TypeSequence,
 			}
+		case skydb.Geometry:
+			schema[key] = skydb.FieldType{
+				Type: skydb.TypeGeometry,
+			}
 		case skydb.Unknown:
 			schema[key] = skydb.FieldType{
 				Type:           skydb.TypeUnknown,

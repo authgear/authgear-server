@@ -212,7 +212,19 @@ type MapGeometry skydb.Geometry
 // ToMap implements ToMapper
 func (geom MapGeometry) ToMap(m map[string]interface{}) {
 	m["$type"] = "geojson"
-	m["$value"] = geom
+	m["$val"] = geom
+}
+
+// FromMap implements FromMapper
+func (geom *MapGeometry) FromMap(m map[string]interface{}) error {
+	var ok bool
+
+	*geom, ok = m["$val"].(map[string]interface{})
+	if !ok {
+		panic("failed to assert $val to map[string]interface{}")
+	}
+
+	return nil
 }
 
 func walkData(m map[string]interface{}) (mapReturned map[string]interface{}, err error) {
@@ -405,6 +417,10 @@ func ParseLiteral(i interface{}) interface{} {
 			var loc skydb.Location
 			mapFromOrPanic((*MapLocation)(&loc), value)
 			return loc
+		case "geojson":
+			var geom skydb.Geometry
+			mapFromOrPanic((*MapGeometry)(&geom), value)
+			return geom
 		case "seq":
 			return skydb.Sequence{}
 		case "unknown":

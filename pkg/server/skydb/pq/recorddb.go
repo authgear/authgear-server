@@ -168,6 +168,8 @@ func convert(r *skydb.Record) map[string]interface{} {
 			m[key] = referenceValue(value)
 		case skydb.Location:
 			m[key] = locationValue(value)
+		case skydb.Geometry:
+			m[key] = geometryValue(value)
 		case skydb.Unknown:
 			// Do not modify columns with unknown type because they are
 			// managed by the developer.

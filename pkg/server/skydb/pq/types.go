@@ -204,6 +204,12 @@ func (loc locationValue) Value() (driver.Value, error) {
 	return geo.Point(loc).ToWKT(), nil
 }
 
+type geometryValue skydb.Geometry
+
+func (geom geometryValue) Value() (driver.Value, error) {
+	return json.Marshal(geom)
+}
+
 type nullUnknown struct {
 	Valid bool
 }

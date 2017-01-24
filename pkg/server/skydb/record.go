@@ -236,8 +236,6 @@ func (reference *Reference) IsEmpty() bool {
 // between paulmach/go.geo.Point.
 type Location [2]float64
 
-type Geometry map[string]interface{}
-
 // NewLocation returns a new Location
 func NewLocation(lng, lat float64) Location {
 	return Location{lng, lat}
@@ -258,6 +256,9 @@ func (loc Location) Lat() float64 {
 func (loc Location) String() string {
 	return fmt.Sprintf("POINT(%g %g)", loc[0], loc[1])
 }
+
+// Geometry represent a geometry in GeoJSON.
+type Geometry map[string]interface{}
 
 // Sequence is a bogus data type for creating a sequence field
 // via JIT schema migration
