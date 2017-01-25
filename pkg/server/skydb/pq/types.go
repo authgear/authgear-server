@@ -210,6 +210,10 @@ func (geom geometryValue) Value() (driver.Value, error) {
 	return json.Marshal(geom)
 }
 
+func wrapGeometry(val string) string {
+	return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", val)
+}
+
 type nullUnknown struct {
 	Valid bool
 }

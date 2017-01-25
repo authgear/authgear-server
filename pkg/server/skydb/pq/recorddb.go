@@ -114,7 +114,8 @@ func (db *database) Save(record *skydb.Record) error {
 			"_database_id": db.userID,
 		}
 	}
-	upsert := upsertQuery(db.tableName(record.ID.Type), pkData, convert(record)).
+
+	upsert := upsertQueryWithWrappers(db.tableName(record.ID.Type), pkData, convert(record), wrap(record)).
 		IgnoreKeyOnUpdate("_owner_id").
 		IgnoreKeyOnUpdate("_created_at").
 		IgnoreKeyOnUpdate("_created_by")
@@ -183,6 +184,17 @@ func convert(r *skydb.Record) map[string]interface{} {
 	m["_created_by"] = r.CreatorID
 	m["_updated_at"] = r.UpdatedAt
 	m["_updated_by"] = r.UpdaterID
+	return m
+}
+
+func wrap(r *skydb.Record) map[string]func(string) string {
+	m := map[string]func(string) string{}
+	for key, rawValue := range r.Data {
+		switch rawValue.(type) {
+		case skydb.Geometry:
+			m[key] = wrapGeometry
+		}
+	}
 	return m
 }
 

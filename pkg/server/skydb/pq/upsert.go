@@ -16,6 +16,7 @@ package pq
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"text/template"
 
@@ -28,7 +29,7 @@ const upsertTemplateText = `
 WITH updated AS (
 	{{if .UpdateCols }}
 		UPDATE {{.Table}}
-		SET ({{template "commaSeparatedList" .UpdateCols}}) = ({{placeholderList (len .Keys) (len .UpdateCols)}})
+		SET ({{template "commaSeparatedList" .UpdateCols}}) = ({{placeholderList (len .Keys) (len .UpdateCols) .Wrappers}})
 		WHERE {{range $i, $_ := .Keys}}{{if $i}} AND {{end}}{{quoted .}} = ${{addOne $i}}{{end}}
 		RETURNING *
 	{{else}}
@@ -39,7 +40,7 @@ WITH updated AS (
 ), inserted AS (
 	INSERT INTO {{.Table}}
 		({{template "commaSeparatedList" .InsertCols}})
-	SELECT {{placeholderList 0 (len .InsertCols)}}
+	SELECT {{placeholderList 0 (len .InsertCols) .Wrappers}}
 	WHERE NOT EXISTS (SELECT * FROM updated)
 	RETURNING *
 )
@@ -51,13 +52,18 @@ SELECT * FROM inserted;
 var funcMap = template.FuncMap{
 	"addOne": func(n int) int { return n + 1 },
 	"quoted": pq.QuoteIdentifier,
-	"placeholderList": func(i, n int) string {
+	"placeholderList": func(i, n int, wrappers map[int]func(string) string) string {
 		b := bytes.Buffer{}
 		from := i + 1
 		to := from + n - 1
 		for j := from; j <= to; j++ {
-			b.WriteByte('$')
-			b.WriteString(strconv.Itoa(j))
+			if wrappers[j] != nil {
+				b.WriteString(wrappers[j](fmt.Sprintf("$%d", j)))
+			} else {
+				b.WriteByte('$')
+				b.WriteString(strconv.Itoa(j))
+			}
+
 			if j != to {
 				b.WriteByte(',')
 			}
@@ -117,6 +123,7 @@ type upsertQueryBuilder struct {
 	pkData         map[string]interface{}
 	data           map[string]interface{}
 	updateIngnores map[string]struct{}
+	wrappers       map[string]func(string) string
 }
 
 // TODO(limouren): we can support a better fluent builder like this
@@ -130,7 +137,11 @@ type upsertQueryBuilder struct {
 //		})
 //
 func upsertQuery(table string, pkData, data map[string]interface{}) *upsertQueryBuilder {
-	return &upsertQueryBuilder{table, pkData, data, map[string]struct{}{}}
+	return &upsertQueryBuilder{table, pkData, data, map[string]struct{}{}, map[string]func(string) string{}}
+}
+
+func upsertQueryWithWrappers(table string, pkData, data map[string]interface{}, wrappers map[string]func(string) string) *upsertQueryBuilder {
+	return &upsertQueryBuilder{table, pkData, data, map[string]struct{}{}, wrappers}
 }
 
 func (upsert *upsertQueryBuilder) IgnoreKeyOnUpdate(col string) *upsertQueryBuilder {
@@ -148,16 +159,28 @@ func (upsert *upsertQueryBuilder) ToSql() (sql string, args []interface{}, err e
 	updateCols := cols[:len(cols)-ignored]
 
 	b := bytes.Buffer{}
+
+	insertCols := append(pks, cols...)
+	wrappers := map[int]func(string) string{}
+
+	for i, col := range insertCols {
+		if upsert.wrappers[col] != nil {
+			wrappers[i+1] = upsert.wrappers[col]
+		}
+	}
+
 	err = upsertTemplate.Execute(&b, struct {
 		Table      string
 		Keys       []string
 		UpdateCols []string
 		InsertCols []string
+		Wrappers   map[int]func(string) string
 	}{
 		Table:      upsert.table,
 		Keys:       pks,
 		UpdateCols: updateCols,
-		InsertCols: append(pks, cols...),
+		InsertCols: insertCols,
+		Wrappers:   wrappers,
 	})
 	if err != nil {
 		panic(err)
