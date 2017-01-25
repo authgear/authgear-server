@@ -47,23 +47,6 @@ type Router struct {
 	}
 }
 
-// PreprocessorRegistry is holding all preprocessors and their mapping with
-// a string name.
-type PreprocessorRegistry map[string]Processor
-
-// GetByNames returns a list of registered preprocessors by preprocessor names.
-func (r PreprocessorRegistry) GetByNames(names ...string) []Processor {
-	preprocessors := make([]Processor, len(names))
-	for i, name := range names {
-		pp, ok := r[name]
-		if !ok {
-			log.Fatalf("preprocessor %s is not defined", name)
-		}
-		preprocessors[i] = pp
-	}
-	return preprocessors
-}
-
 // NewRouter is factory for Router
 func NewRouter() *Router {
 	return &Router{
@@ -100,17 +83,17 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	)
 
 	version := strings.TrimPrefix(skyversion.Version(), "v")
+	w.Header().Set("Server", fmt.Sprintf("Skygear Server/%s", version))
 
 	resp.writer = w
+
 	defer func() {
 		if r := recover(); r != nil {
 			resp.Err = errorFromRecoveringPanic(r)
 			log.WithField("recovered", r).Errorln("panic occurred while handling request")
 		}
 
-		resp.Header().Set("Server", fmt.Sprintf("Skygear Server/%s", version))
-
-		if !resp.written {
+		if !resp.written && !resp.hijacked {
 			resp.Header().Set("Content-Type", "application/json")
 			if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
 				resp.writer.WriteHeader(defaultStatusCode(resp.Err))
@@ -124,7 +107,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}()
 
 	var err error
-	payload, err = newPayloadForJSONHandler(req)
+	payload, err = r.newPayload(req)
 	if err != nil {
 		httpStatus = http.StatusBadRequest
 		resp.Err = skyerr.NewRequestJSONInvalidErr(err)
@@ -132,23 +115,39 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	handler, preprocessors = r.matchHandler(req, payload)
-
 	if handler == nil {
 		httpStatus = http.StatusNotFound
 		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, "route unmatched")
-	} else {
-		for _, p := range preprocessors {
-			httpStatus = p.Preprocess(payload, &resp)
-			if resp.Err != nil {
-				if httpStatus == http.StatusOK {
-					httpStatus = defaultStatusCode(resp.Err)
-				}
-				return
-			}
-		}
-
-		handler.Handle(payload, &resp)
+		return
 	}
+
+	httpStatus = r.callHandler(handler, preprocessors, payload, &resp)
+}
+
+func (r *Router) callHandler(handler Handler, pp []Processor, payload *Payload, resp *Response) (httpStatus int) {
+	httpStatus = http.StatusOK
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.WithField("recovered", r).Errorln("panic occurred while handling request")
+
+			resp.Err = errorFromRecoveringPanic(r)
+			httpStatus = defaultStatusCode(resp.Err)
+		}
+	}()
+
+	for _, p := range pp {
+		httpStatus = p.Preprocess(payload, resp)
+		if resp.Err != nil {
+			if httpStatus == http.StatusOK {
+				httpStatus = defaultStatusCode(resp.Err)
+			}
+			return
+		}
+	}
+
+	handler.Handle(payload, resp)
+	return httpStatus
 }
 
 func (r *Router) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Processor) {
@@ -180,7 +179,7 @@ func (r *Router) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Pr
 	return
 }
 
-func newPayloadForJSONHandler(req *http.Request) (p *Payload, err error) {
+func (r *Router) newPayload(req *http.Request) (p *Payload, err error) {
 	reqBody := req.Body
 	if reqBody == nil {
 		reqBody = ioutil.NopCloser(bytes.NewReader(nil))

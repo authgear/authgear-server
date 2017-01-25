@@ -15,8 +15,12 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
+
+	"github.com/skygeario/skygear-server/pkg/server/skyversion"
 )
 
 // pathRoute is the path matching version of pipeline. Instead of storing the action
@@ -80,7 +84,12 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		preprocessors []Processor
 		payload       *Payload
 	)
+
+	version := strings.TrimPrefix(skyversion.Version(), "v")
+	w.Header().Set("Server", fmt.Sprintf("Skygear Server/%s", version))
+
 	resp.writer = w
+
 	defer func() {
 		if r := recover(); r != nil {
 			resp.Err = errorFromRecoveringPanic(r)
@@ -88,6 +97,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if !resp.written && !resp.hijacked {
+			resp.Header().Set("Content-Type", "application/json")
 			if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
 				resp.writer.WriteHeader(defaultStatusCode(resp.Err))
 			} else {
@@ -99,14 +109,36 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}()
 
-	handler, preprocessors, payload = g.matchRawHandler(req)
-	if handler == nil {
-		w.WriteHeader(http.StatusNotFound)
+	var err error
+	payload, err = g.newPayload(req)
+	if err != nil {
+		httpStatus = http.StatusBadRequest
 		return
 	}
 
-	for _, p := range preprocessors {
-		httpStatus = p.Preprocess(payload, &resp)
+	handler, preprocessors = g.matchHandler(req, payload)
+	if handler == nil {
+		httpStatus = http.StatusNotFound
+		return
+	}
+
+	httpStatus = g.callHandler(handler, preprocessors, payload, &resp)
+}
+
+func (g *Gateway) callHandler(handler Handler, pp []Processor, payload *Payload, resp *Response) (httpStatus int) {
+	httpStatus = http.StatusOK
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.WithField("recovered", r).Errorln("panic occurred while handling request")
+
+			resp.Err = errorFromRecoveringPanic(r)
+			httpStatus = defaultStatusCode(resp.Err)
+		}
+	}()
+
+	for _, p := range pp {
+		httpStatus = p.Preprocess(payload, resp)
 		if resp.Err != nil {
 			if httpStatus == http.StatusOK {
 				httpStatus = defaultStatusCode(resp.Err)
@@ -114,19 +146,20 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-	handler.Handle(payload, &resp)
+
+	handler.Handle(payload, resp)
+	return httpStatus
 }
 
-func (g *Gateway) matchRawHandler(req *http.Request) (h Handler, pp []Processor, p *Payload) {
+func (g *Gateway) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Processor) {
 	if pathRoute, ok := g.methodPaths[req.Method]; ok {
 		h = pathRoute.Handler
 		pp = pathRoute.Preprocessors
-		p = g.newPayloadForRawHandler(req)
 	}
 	return
 }
 
-func (g *Gateway) newPayloadForRawHandler(req *http.Request) (p *Payload) {
+func (g *Gateway) newPayload(req *http.Request) (p *Payload, err error) {
 	indices := g.ParamMatch.FindAllStringSubmatchIndex(req.URL.Path, -1)
 	params := submatchesFromIndices(req.URL.Path, indices)
 	log.Debugf("Matched params: %v", params)
