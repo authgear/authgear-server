@@ -284,7 +284,7 @@ func (p *Plugin) processRegistrationInfo(context *Context, regInfo registrationI
 		"regInfo":   regInfo,
 		"transport": p.transport,
 	}).Debugln("Got configuration from plugin, registering")
-	p.initHandler(context.Mux, context.Preprocessors, regInfo.Handlers)
+	p.initHandler(context.Mux, context.Preprocessors, regInfo.Handlers, context.Config)
 	p.initLambda(context.Router, context.Preprocessors, regInfo.Lambdas)
 	p.initHook(context.HookRegistry, regInfo.Hooks)
 	if context.Scheduler != nil {
@@ -295,7 +295,7 @@ func (p *Plugin) processRegistrationInfo(context *Context, regInfo registrationI
 	p.initProvider(context.ProviderRegistry, regInfo.Providers)
 }
 
-func (p *Plugin) initHandler(mux *http.ServeMux, ppreg router.PreprocessorRegistry, handlers []pluginHandlerInfo) {
+func (p *Plugin) initHandler(mux *http.ServeMux, ppreg router.PreprocessorRegistry, handlers []pluginHandlerInfo, config skyconfig.Configuration) {
 	for _, handler := range handlers {
 		h := NewPluginHandler(handler, ppreg, p)
 		h.Setup()
@@ -308,6 +308,7 @@ func (p *Plugin) initHandler(mux *http.ServeMux, ppreg router.PreprocessorRegist
 		handlerGateway, ok := p.gatewayMap[name]
 		if !ok {
 			handlerGateway = router.NewGateway("", name, mux)
+			handlerGateway.ResponseTimeout = time.Duration(config.App.ResponseTimeout) * time.Second
 			p.gatewayMap[name] = handlerGateway
 		}
 		for _, method := range handler.Methods {

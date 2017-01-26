@@ -88,7 +88,7 @@ func TestPlugin(t *testing.T) {
 				pluginHandlerInfo{
 					Name: "chima:echo",
 				},
-			})
+			}, config)
 			So(len(plugin.gatewayMap), ShouldEqual, 1)
 			So(plugin.gatewayMap, ShouldContainKey, "/chima/echo")
 		})
@@ -109,7 +109,7 @@ func TestPlugin(t *testing.T) {
 					Name:    "faseng:location",
 					Methods: []string{"POST", "PUT"},
 				},
-			})
+			}, config)
 			So(len(plugin.gatewayMap), ShouldEqual, 2)
 			So(plugin.gatewayMap, ShouldContainKey, "/chima/echo")
 			So(plugin.gatewayMap, ShouldContainKey, "/faseng/location")

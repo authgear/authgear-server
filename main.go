@@ -77,6 +77,7 @@ func main() {
 
 	// Init all the services
 	r := router.NewRouter()
+	r.ResponseTimeout = time.Duration(config.App.ResponseTimeout) * time.Second
 	serveMux := http.NewServeMux()
 	pushSender := initPushSender(config, connOpener)
 
@@ -259,6 +260,7 @@ func main() {
 	}
 
 	fileGateway := router.NewGateway("files/(.+)", "/files/", serveMux)
+	fileGateway.ResponseTimeout = time.Duration(config.App.ResponseTimeout) * time.Second
 	fileGateway.GET(injector.Inject(&handler.GetFileHandler{}))
 
 	uploadFileHandler := injector.Inject(&handler.UploadFileHandler{})
