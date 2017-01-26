@@ -187,8 +187,8 @@ func convert(r *skydb.Record) map[string]interface{} {
 	return m
 }
 
-func wrap(r *skydb.Record) map[string]func(string) string {
-	m := map[string]func(string) string{}
+func wrap(r *skydb.Record) map[string]func(string, string) string {
+	m := map[string]func(string, string) string{}
 	for key, rawValue := range r.Data {
 		switch rawValue.(type) {
 		case skydb.Geometry:

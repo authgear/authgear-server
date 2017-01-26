@@ -210,8 +210,15 @@ func (geom geometryValue) Value() (driver.Value, error) {
 	return json.Marshal(geom)
 }
 
-func wrapGeometry(val string) string {
-	return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", val)
+func wrapGeometry(val string, context string) string {
+	switch context {
+	case ContextWhere:
+		return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", val)
+	case ContextSelect:
+		return fmt.Sprintf("ST_AsGeoJSON(%s)", val)
+	default:
+		panic("unknown context")
+	}
 }
 
 type nullUnknown struct {

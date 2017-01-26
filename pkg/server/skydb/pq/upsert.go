@@ -29,7 +29,7 @@ const upsertTemplateText = `
 WITH updated AS (
 	{{if .UpdateCols }}
 		UPDATE {{.Table}}
-		SET ({{template "commaSeparatedList" .UpdateCols}}) = ({{placeholderList (len .Keys) (len .UpdateCols) .Wrappers}})
+		SET ({{template "commaSeparatedList" .UpdateCols}}) = ({{placeholderList (len .Keys) (len .UpdateCols) .WrappersAtIndex}})
 		WHERE {{range $i, $_ := .Keys}}{{if $i}} AND {{end}}{{quoted .}} = ${{addOne $i}}{{end}}
 		RETURNING *
 	{{else}}
@@ -40,25 +40,25 @@ WITH updated AS (
 ), inserted AS (
 	INSERT INTO {{.Table}}
 		({{template "commaSeparatedList" .InsertCols}})
-	SELECT {{placeholderList 0 (len .InsertCols) .Wrappers}}
+	SELECT {{placeholderList 0 (len .InsertCols) .WrappersAtIndex}}
 	WHERE NOT EXISTS (SELECT * FROM updated)
 	RETURNING *
 )
-SELECT * FROM updated
+SELECT * {{extraSelectColumns .Wrappers}} FROM updated
 UNION ALL
-SELECT * FROM inserted;
+SELECT * {{extraSelectColumns .Wrappers}} FROM inserted;
 `
 
 var funcMap = template.FuncMap{
 	"addOne": func(n int) int { return n + 1 },
 	"quoted": pq.QuoteIdentifier,
-	"placeholderList": func(i, n int, wrappers map[int]func(string) string) string {
+	"placeholderList": func(i, n int, wrappers map[int]func(string, string) string) string {
 		b := bytes.Buffer{}
 		from := i + 1
 		to := from + n - 1
 		for j := from; j <= to; j++ {
 			if wrappers[j] != nil {
-				b.WriteString(wrappers[j](fmt.Sprintf("$%d", j)))
+				b.WriteString(wrappers[j](fmt.Sprintf("$%d", j), ContextWhere))
 			} else {
 				b.WriteByte('$')
 				b.WriteString(strconv.Itoa(j))
@@ -67,6 +67,14 @@ var funcMap = template.FuncMap{
 			if j != to {
 				b.WriteByte(',')
 			}
+		}
+		return b.String()
+	},
+	"extraSelectColumns": func(wrappers map[string]func(string, string) string) string {
+		b := bytes.Buffer{}
+		for k, v := range wrappers {
+			b.WriteByte(',')
+			b.WriteString(fmt.Sprintf("%s as %s", v(k, ContextSelect), k))
 		}
 		return b.String()
 	},
@@ -123,7 +131,7 @@ type upsertQueryBuilder struct {
 	pkData         map[string]interface{}
 	data           map[string]interface{}
 	updateIngnores map[string]struct{}
-	wrappers       map[string]func(string) string
+	wrappers       map[string]func(string, string) string
 }
 
 // TODO(limouren): we can support a better fluent builder like this
@@ -137,10 +145,10 @@ type upsertQueryBuilder struct {
 //		})
 //
 func upsertQuery(table string, pkData, data map[string]interface{}) *upsertQueryBuilder {
-	return &upsertQueryBuilder{table, pkData, data, map[string]struct{}{}, map[string]func(string) string{}}
+	return &upsertQueryBuilder{table, pkData, data, map[string]struct{}{}, map[string]func(string, string) string{}}
 }
 
-func upsertQueryWithWrappers(table string, pkData, data map[string]interface{}, wrappers map[string]func(string) string) *upsertQueryBuilder {
+func upsertQueryWithWrappers(table string, pkData, data map[string]interface{}, wrappers map[string]func(string, string) string) *upsertQueryBuilder {
 	return &upsertQueryBuilder{table, pkData, data, map[string]struct{}{}, wrappers}
 }
 
@@ -161,7 +169,7 @@ func (upsert *upsertQueryBuilder) ToSql() (sql string, args []interface{}, err e
 	b := bytes.Buffer{}
 
 	insertCols := append(pks, cols...)
-	wrappers := map[int]func(string) string{}
+	wrappers := map[int]func(string, string) string{}
 
 	for i, col := range insertCols {
 		if upsert.wrappers[col] != nil {
@@ -170,17 +178,19 @@ func (upsert *upsertQueryBuilder) ToSql() (sql string, args []interface{}, err e
 	}
 
 	err = upsertTemplate.Execute(&b, struct {
-		Table      string
-		Keys       []string
-		UpdateCols []string
-		InsertCols []string
-		Wrappers   map[int]func(string) string
+		Table           string
+		Keys            []string
+		UpdateCols      []string
+		InsertCols      []string
+		Wrappers        map[string]func(string, string) string
+		WrappersAtIndex map[int]func(string, string) string
 	}{
-		Table:      upsert.table,
-		Keys:       pks,
-		UpdateCols: updateCols,
-		InsertCols: insertCols,
-		Wrappers:   wrappers,
+		Table:           upsert.table,
+		Keys:            pks,
+		UpdateCols:      updateCols,
+		InsertCols:      insertCols,
+		Wrappers:        upsert.wrappers,
+		WrappersAtIndex: wrappers,
 	})
 	if err != nil {
 		panic(err)
