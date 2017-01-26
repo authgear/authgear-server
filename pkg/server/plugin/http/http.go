@@ -94,6 +94,7 @@ func (p *httpTransport) ipc(req *pluginrequest.Request) (out []byte, err error) 
 		return
 	}
 
+	httpreq.Cancel = req.Context.Done()
 	httpresp, err := p.httpClient.Do(httpreq)
 	if err != nil {
 		return nil, err

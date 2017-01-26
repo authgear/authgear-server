@@ -161,14 +161,16 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 
 	reqChan := make(chan chan []byte)
 	p.broker.RPC(reqChan, in)
-	respChan := <-reqChan
-	// Broker will sent back a null byte if time out
-	msg := <-respChan
-
-	if bytes.Equal(msg, []byte{0}) {
+	select {
+	case msg := <-<-reqChan:
+		// Broker will sent back a null byte if time out
+		if bytes.Equal(msg, []byte{0}) {
+			err = fmt.Errorf("Plugin time out")
+		} else {
+			out = msg
+		}
+	case <-req.Context.Done():
 		err = fmt.Errorf("Plugin time out")
-	} else {
-		out = msg
 	}
 
 	return
