@@ -114,7 +114,17 @@ func (h *Handler) Handle(payload *router.Payload, response *router.Response) {
 		response.Err = err
 	}
 
-	response.Meta = responsePayload.Header
-	response.WriteHeader(responsePayload.Status)
-	response.Write(responsePayload.Body)
+	writer := response.Writer()
+	if writer == nil {
+		// The response is already written.
+		return
+	}
+
+	for key, values := range responsePayload.Header {
+		for _, value := range values {
+			writer.Header().Add(key, value)
+		}
+	}
+	writer.WriteHeader(responsePayload.Status)
+	writer.Write(responsePayload.Body)
 }

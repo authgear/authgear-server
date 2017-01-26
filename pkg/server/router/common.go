@@ -15,6 +15,8 @@
 package router
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -50,16 +52,20 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			log.WithField("recovered", r).Errorln("panic occurred while handling request")
 		}
 
-		if !resp.written && !resp.hijacked {
-			resp.Header().Set("Content-Type", "application/json")
-			if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
-				resp.writer.WriteHeader(defaultStatusCode(resp.Err))
-			} else {
-				resp.writer.WriteHeader(httpStatus)
-			}
-			if err := resp.WriteEntity(resp); err != nil {
-				panic(err)
-			}
+		writer := resp.Writer()
+		if writer == nil {
+			// The response is already written.
+			return
+		}
+
+		writer.Header().Set("Content-Type", "application/json")
+		if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
+			httpStatus = defaultStatusCode(resp.Err)
+		}
+
+		writer.WriteHeader(httpStatus)
+		if err := writeEntity(writer, resp); err != nil {
+			panic(err)
 		}
 	}()
 
@@ -106,4 +112,11 @@ func (r *commonRouter) callHandler(handler Handler, pp []Processor, payload *Pay
 
 	handler.Handle(payload, resp)
 	return httpStatus
+}
+
+func writeEntity(w http.ResponseWriter, i interface{}) error {
+	if w == nil {
+		return errors.New("writer is nil")
+	}
+	return json.NewEncoder(w).Encode(i)
 }

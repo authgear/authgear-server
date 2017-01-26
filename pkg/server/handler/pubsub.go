@@ -36,5 +36,11 @@ func (h *PubSubHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *PubSubHandler) Handle(payload *router.Payload, response *router.Response) {
-	h.WebSocket.Handle(response, payload.Req)
+	writer := response.Writer()
+	if writer == nil {
+		// The response is already written.
+		return
+	}
+
+	h.WebSocket.Handle(writer, payload.Req)
 }
