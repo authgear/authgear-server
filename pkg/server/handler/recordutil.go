@@ -259,7 +259,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
-		if dbErr := db.Save(&deltaRecord); dbErr != nil {
+		if dbErr := db.SaveDeltaRecord(&deltaRecord, originalRecord, record); dbErr != nil {
 			err = skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
 		}
 		injectSigner(&deltaRecord, req.AssetStore)
