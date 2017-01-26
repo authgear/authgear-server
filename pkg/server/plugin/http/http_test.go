@@ -15,6 +15,7 @@
 package http
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -23,7 +24,6 @@ import (
 	"time"
 
 	"github.com/jarcoal/httpmock"
-	"golang.org/x/net/context"
 
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/router"

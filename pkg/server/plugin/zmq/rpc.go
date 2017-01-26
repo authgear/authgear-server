@@ -18,6 +18,7 @@ package zmq
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"runtime/debug"
@@ -31,7 +32,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/zeromq/goczmq"
-	"golang.org/x/net/context"
 )
 
 type zmqTransport struct {

@@ -15,12 +15,12 @@
 package hook
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
-	"golang.org/x/net/context"
 )
 
 // Kind defines when a hook should be executed on mutation of skydb.Record.

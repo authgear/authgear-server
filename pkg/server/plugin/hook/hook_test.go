@@ -15,12 +15,12 @@
 package hook
 
 import (
+	"context"
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook/hooktest"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/net/context"
 )
 
 type ContextKey string

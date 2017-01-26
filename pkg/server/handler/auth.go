@@ -15,8 +15,9 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/mitchellh/mapstructure"
-	"golang.org/x/net/context"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"

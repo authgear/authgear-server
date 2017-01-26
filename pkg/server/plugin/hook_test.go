@@ -15,13 +15,13 @@
 package plugin
 
 import (
+	"context"
 	"errors"
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/net/context"
 )
 
 type hookOnlyTransport struct {

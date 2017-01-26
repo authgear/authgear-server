@@ -15,9 +15,10 @@
 package hooktest
 
 import (
+	"context"
+
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
-	"golang.org/x/net/context"
 )
 
 type StackingHook struct {

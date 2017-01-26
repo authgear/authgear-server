@@ -15,12 +15,12 @@
 package request
 
 import (
+	"context"
 	"encoding/json"
 
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
-	"golang.org/x/net/context"
 )
 
 // Request represents data in a server to worker plugin request.

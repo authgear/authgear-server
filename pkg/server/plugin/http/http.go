@@ -16,13 +16,13 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	"golang.org/x/net/context"
 
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"

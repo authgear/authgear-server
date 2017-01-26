@@ -15,13 +15,13 @@
 package router
 
 import (
+	"context"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
-	"golang.org/x/net/context"
 )
 
 type ContextKey string

@@ -61,7 +61,6 @@ import:
 - package: golang.org/x/net
   version: 45e771701b814666a7eb299e6c7a57d0b1799e91
   subpackages:
-  - context
   - http2
   - http2/hpack
   - lex/httplex
