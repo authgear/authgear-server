@@ -15,12 +15,8 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 	"regexp"
-	"strings"
-
-	"github.com/skygeario/skygear-server/pkg/server/skyversion"
 )
 
 // pathRoute is the path matching version of pipeline. Instead of storing the action
@@ -33,6 +29,7 @@ type pathRoute struct {
 // Gateway is a man in the middle to inject dependency
 // It currently bind to HTTP method, it disregard path.
 type Gateway struct {
+	commonRouter
 	ParamMatch  *regexp.Regexp
 	methodPaths map[string]pathRoute
 }
@@ -46,6 +43,8 @@ func NewGateway(pattern string, path string, mux *http.ServeMux) *Gateway {
 	if path != "" && mux != nil {
 		mux.Handle(path, g)
 	}
+	g.commonRouter.payloadFunc = g.newPayload
+	g.commonRouter.matchHandlerFunc = g.matchHandler
 	return g
 }
 
@@ -77,78 +76,7 @@ func (g *Gateway) Handle(method string, handler Handler, preprocessors ...Proces
 }
 
 func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	var (
-		httpStatus    = http.StatusOK
-		resp          Response
-		handler       Handler
-		preprocessors []Processor
-		payload       *Payload
-	)
-
-	version := strings.TrimPrefix(skyversion.Version(), "v")
-	w.Header().Set("Server", fmt.Sprintf("Skygear Server/%s", version))
-
-	resp.writer = w
-
-	defer func() {
-		if r := recover(); r != nil {
-			resp.Err = errorFromRecoveringPanic(r)
-			log.WithField("recovered", r).Errorln("panic occurred while handling request")
-		}
-
-		if !resp.written && !resp.hijacked {
-			resp.Header().Set("Content-Type", "application/json")
-			if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
-				resp.writer.WriteHeader(defaultStatusCode(resp.Err))
-			} else {
-				resp.writer.WriteHeader(httpStatus)
-			}
-			if err := resp.WriteEntity(resp); err != nil {
-				panic(err)
-			}
-		}
-	}()
-
-	var err error
-	payload, err = g.newPayload(req)
-	if err != nil {
-		httpStatus = http.StatusBadRequest
-		return
-	}
-
-	handler, preprocessors = g.matchHandler(req, payload)
-	if handler == nil {
-		httpStatus = http.StatusNotFound
-		return
-	}
-
-	httpStatus = g.callHandler(handler, preprocessors, payload, &resp)
-}
-
-func (g *Gateway) callHandler(handler Handler, pp []Processor, payload *Payload, resp *Response) (httpStatus int) {
-	httpStatus = http.StatusOK
-
-	defer func() {
-		if r := recover(); r != nil {
-			log.WithField("recovered", r).Errorln("panic occurred while handling request")
-
-			resp.Err = errorFromRecoveringPanic(r)
-			httpStatus = defaultStatusCode(resp.Err)
-		}
-	}()
-
-	for _, p := range pp {
-		httpStatus = p.Preprocess(payload, resp)
-		if resp.Err != nil {
-			if httpStatus == http.StatusOK {
-				httpStatus = defaultStatusCode(resp.Err)
-			}
-			return
-		}
-	}
-
-	handler.Handle(payload, resp)
-	return httpStatus
+	g.commonRouter.ServeHTTP(w, req)
 }
 
 func (g *Gateway) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Processor) {
