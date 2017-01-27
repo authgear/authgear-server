@@ -16,6 +16,7 @@ package router
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -120,8 +121,13 @@ func (r *Router) newPayload(req *http.Request) (p *Payload, err error) {
 	}
 
 	p = &Payload{
-		Data: data,
-		Meta: map[string]interface{}{},
+		Data:    data,
+		Meta:    map[string]interface{}{},
+		Context: req.Context(),
+	}
+
+	if p.Context != nil {
+		p.Context = context.Background()
 	}
 
 	if apiKey := req.Header.Get("X-Skygear-Api-Key"); apiKey != "" {

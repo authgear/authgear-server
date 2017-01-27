@@ -565,9 +565,9 @@ func TestRecordSaveBogusField(t *testing.T) {
 			}
 		})
 
-		Convey("parse sequence field correctly", func() {
+		Convey("parse sequence field correctly", func(c C) {
 			db.SaveFunc = func(record *skydb.Record) error {
-				So(record, ShouldResemble, &skydb.Record{
+				c.So(record, ShouldResemble, &skydb.Record{
 					ID:        skydb.NewRecordID("record", "id"),
 					Data:      skydb.Data{},
 					OwnerID:   "user0",
@@ -603,9 +603,9 @@ func TestRecordSaveBogusField(t *testing.T) {
 			}`)
 		})
 
-		Convey("can save without specifying seq", func() {
+		Convey("can save without specifying seq", func(c C) {
 			db.SaveFunc = func(record *skydb.Record) error {
-				So(record, ShouldResemble, &skydb.Record{
+				c.So(record, ShouldResemble, &skydb.Record{
 					ID: skydb.NewRecordID("record", "id"),
 					Data: skydb.Data{
 						"seq": int64(1),
@@ -618,7 +618,7 @@ func TestRecordSaveBogusField(t *testing.T) {
 				return nil
 			}
 			db.GetFunc = func(id skydb.RecordID, record *skydb.Record) error {
-				So(id, ShouldResemble, skydb.NewRecordID("record", "id"))
+				c.So(id, ShouldResemble, skydb.NewRecordID("record", "id"))
 				record.Data = skydb.Data{
 					"seq": int64(1),
 				}

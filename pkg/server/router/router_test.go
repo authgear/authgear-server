@@ -20,6 +20,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
@@ -28,6 +29,7 @@ import (
 
 type MockHandler struct {
 	outputs Response
+	delay   time.Duration
 }
 
 func (m *MockHandler) Setup() {
@@ -39,6 +41,9 @@ func (m *MockHandler) GetPreprocessors() []Processor {
 }
 
 func (m *MockHandler) Handle(p *Payload, r *Response) {
+	if m.delay.Seconds() > 0 {
+		<-time.After(m.delay)
+	}
 	r.Result = m.outputs.Result
 	return
 }
@@ -285,5 +290,37 @@ func TestPreprocessorRegistry(t *testing.T) {
 		preprocessors := reg.GetByNames("mock")
 		So(len(preprocessors), ShouldEqual, 1)
 		So(preprocessors[0], ShouldEqual, mockPreprocessor)
+	})
+}
+
+func TestTimeout(t *testing.T) {
+	Convey("Router", t, func() {
+		r := NewRouter()
+		r.ResponseTimeout = 10 * time.Millisecond
+
+		Convey("Return 503 when request timed out.", func() {
+			delayHandler := &MockHandler{
+				outputs: Response{
+					Result: map[string]string{
+						"hello": "wait",
+					},
+				},
+				delay: 20 * time.Millisecond,
+			}
+			r.Map("delay:handler", delayHandler)
+
+			req, _ := http.NewRequest(
+				"POST",
+				"http://skygear.dev/",
+				strings.NewReader(`{"action": "delay:handler"}`),
+			)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp := httptest.NewRecorder()
+
+			r.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, http.StatusServiceUnavailable)
+		})
 	})
 }

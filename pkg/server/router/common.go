@@ -15,11 +15,13 @@
 package router
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	"github.com/skygeario/skygear-server/pkg/server/skyversion"
@@ -30,6 +32,7 @@ import (
 type commonRouter struct {
 	payloadFunc      func(req *http.Request) (p *Payload, err error)
 	matchHandlerFunc func(req *http.Request, p *Payload) (h Handler, pp []Processor)
+	ResponseTimeout  time.Duration
 }
 
 func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -39,6 +42,8 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		handler       Handler
 		preprocessors []Processor
 		payload       *Payload
+		timedOut      bool
+		closed        bool
 	)
 
 	version := strings.TrimPrefix(skyversion.Version(), "v")
@@ -59,8 +64,22 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 
 		writer.Header().Set("Content-Type", "application/json")
+
+		if timedOut {
+			resp.Err = skyerr.NewError(
+				skyerr.ResponseTimeout,
+				"Service taking too long to respond.",
+			)
+			log.Errorln("timed out serving request")
+		}
+
 		if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
 			httpStatus = defaultStatusCode(resp.Err)
+		}
+
+		if closed {
+			// There is no point writing to a closed connection.
+			return
 		}
 
 		writer.WriteHeader(httpStatus)
@@ -85,7 +104,27 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	httpStatus = r.callHandler(handler, preprocessors, payload, &resp)
+	// Call handler
+	var cancelFunc context.CancelFunc
+	payload.Context, cancelFunc = context.WithCancel(payload.Context)
+	defer cancelFunc()
+
+	go func() {
+		httpStatus = r.callHandler(handler, preprocessors, payload, &resp)
+		cancelFunc()
+	}()
+
+	// This function will return in one of the following conditions:
+	select {
+	case <-payload.Context.Done():
+		// request conext cancelled or response generated
+	case <-getCloseChan(w):
+		// connection closed
+		closed = true
+	case <-getTimeoutChan(r.ResponseTimeout):
+		// timeout exceeded
+		timedOut = true
+	}
 }
 
 func (r *commonRouter) callHandler(handler Handler, pp []Processor, payload *Payload, resp *Response) (httpStatus int) {
@@ -119,4 +158,18 @@ func writeEntity(w http.ResponseWriter, i interface{}) error {
 		return errors.New("writer is nil")
 	}
 	return json.NewEncoder(w).Encode(i)
+}
+
+func getCloseChan(w http.ResponseWriter) <-chan bool {
+	if closeNotifier, ok := w.(http.CloseNotifier); ok {
+		return closeNotifier.CloseNotify()
+	}
+	return make(chan bool)
+}
+
+func getTimeoutChan(timeout time.Duration) <-chan time.Time {
+	if timeout.Seconds() > 0 {
+		return time.After(timeout)
+	}
+	return make(chan time.Time)
 }

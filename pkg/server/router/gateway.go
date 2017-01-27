@@ -15,6 +15,7 @@
 package router
 
 import (
+	"context"
 	"net/http"
 	"regexp"
 )
@@ -92,10 +93,15 @@ func (g *Gateway) newPayload(req *http.Request) (p *Payload, err error) {
 	params := submatchesFromIndices(req.URL.Path, indices)
 	log.Debugf("Matched params: %v", params)
 	p = &Payload{
-		Req:    req,
-		Params: params,
-		Meta:   map[string]interface{}{},
-		Data:   map[string]interface{}{},
+		Req:     req,
+		Params:  params,
+		Meta:    map[string]interface{}{},
+		Data:    map[string]interface{}{},
+		Context: req.Context(),
+	}
+
+	if p.Context != nil {
+		p.Context = context.Background()
 	}
 
 	query := req.URL.Query()
