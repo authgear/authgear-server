@@ -87,7 +87,7 @@ type Transport interface {
 	RunTimer(name string, in []byte) ([]byte, error)
 
 	// RunProvider runs the auth provider with the specified AuthRequest.
-	RunProvider(request *AuthRequest) (*AuthResponse, error)
+	RunProvider(context context.Context, request *AuthRequest) (*AuthResponse, error)
 }
 
 // A TransportFactory is a generic interface to instantiates different

@@ -151,13 +151,13 @@ func (p *httpTransport) RunHook(ctx context.Context, hookName string, record *sk
 }
 
 func (p *httpTransport) RunTimer(name string, in []byte) (out []byte, err error) {
-	req := pluginrequest.Request{Kind: "timer", Name: name}
-	out, err = p.rpc(&req)
+	req := pluginrequest.NewTimerRequest(name)
+	out, err = p.rpc(req)
 	return
 }
 
-func (p *httpTransport) RunProvider(request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
-	req := pluginrequest.NewAuthRequest(request)
+func (p *httpTransport) RunProvider(ctx context.Context, request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
+	req := pluginrequest.NewAuthRequest(ctx, request)
 	out, err := p.rpc(req)
 
 	resp := skyplugin.AuthResponse{}

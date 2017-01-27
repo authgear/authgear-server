@@ -136,7 +136,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 			response.Err = skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
 			return
 		}
-		principalID, authData, err := authProvider.Login(p.AuthData)
+		principalID, authData, err := authProvider.Login(payload.Context, p.AuthData)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
 			return
@@ -260,7 +260,7 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 
 	if p.Provider != "" {
 		// Get AuthProvider and authenticates the user
-		principalID, authData, skyErr := h.authPrincipal(p)
+		principalID, authData, skyErr := h.authPrincipal(payload.Context, p)
 		if skyErr != nil {
 			response.Err = skyErr
 			return
@@ -326,14 +326,14 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	response.Result = authResponse
 }
 
-func (h *LoginHandler) authPrincipal(p *loginPayload) (string, map[string]interface{}, skyerr.Error) {
+func (h *LoginHandler) authPrincipal(ctx context.Context, p *loginPayload) (string, map[string]interface{}, skyerr.Error) {
 	log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
 	authProvider, err := h.ProviderRegistry.GetAuthProvider(p.Provider)
 	if err != nil {
 		skyErr := skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
 		return "", nil, skyErr
 	}
-	principalID, authData, err := authProvider.Login(p.AuthData)
+	principalID, authData, err := authProvider.Login(ctx, p.AuthData)
 	if err != nil {
 		skyErr := skyerr.NewError(skyerr.InvalidCredentials, "invalid authentication information")
 		return "", nil, skyErr

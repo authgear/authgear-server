@@ -59,7 +59,7 @@ func (t *nullTransport) RunTimer(name string, in []byte) (out []byte, err error)
 	return
 }
 
-func (t *nullTransport) RunProvider(request *AuthRequest) (response *AuthResponse, err error) {
+func (t *nullTransport) RunProvider(ctx context.Context, request *AuthRequest) (response *AuthResponse, err error) {
 	if request.AuthData == nil {
 		request.AuthData = map[string]interface{}{}
 	}

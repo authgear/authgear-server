@@ -709,7 +709,7 @@ func TestRun(t *testing.T) {
 			}
 			req := skyplugin.AuthRequest{"com.example", "login", authData}
 
-			resp, err := transport.RunProvider(&req)
+			resp, err := transport.RunProvider(context.Background(), &req)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 			So(resp.PrincipalID, ShouldEqual, "johndoe")
@@ -727,7 +727,7 @@ func TestRun(t *testing.T) {
 			authData := map[string]interface{}{}
 			req := skyplugin.AuthRequest{"com.example", "login", authData}
 
-			resp, err := transport.RunProvider(&req)
+			resp, err := transport.RunProvider(context.Background(), &req)
 			So(err.Error(), ShouldEqual, "worrying error")
 			So(resp, ShouldBeNil)
 		})

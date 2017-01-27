@@ -95,8 +95,8 @@ func (p *zmqTransport) RunTimer(name string, in []byte) (out []byte, err error) 
 	return
 }
 
-func (p *zmqTransport) RunProvider(request *skyplugin.AuthRequest) (resp *skyplugin.AuthResponse, err error) {
-	req := pluginrequest.NewAuthRequest(request)
+func (p *zmqTransport) RunProvider(ctx context.Context, request *skyplugin.AuthRequest) (resp *skyplugin.AuthResponse, err error) {
+	req := pluginrequest.NewAuthRequest(ctx, request)
 	out, err := p.rpc(req)
 	if err != nil {
 		return

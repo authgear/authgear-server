@@ -240,7 +240,7 @@ func (p *execTransport) RunTimer(name string, in []byte) (out []byte, err error)
 	return
 }
 
-func (p *execTransport) RunProvider(request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
+func (p *execTransport) RunProvider(ctx context.Context, request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
 	req := map[string]interface{}{
 		"auth_data": request.AuthData,
 	}

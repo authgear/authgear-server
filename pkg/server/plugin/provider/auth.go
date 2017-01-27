@@ -14,11 +14,13 @@
 
 package provider
 
-import ()
+import (
+	"context"
+)
 
 // AuthProvider is an interface to provide user authentication.
 type AuthProvider interface {
-	Login(authData map[string]interface{}) (string, map[string]interface{}, error)
-	Logout(authData map[string]interface{}) (map[string]interface{}, error)
-	Info(authData map[string]interface{}) (map[string]interface{}, error)
+	Login(context context.Context, authData map[string]interface{}) (string, map[string]interface{}, error)
+	Logout(context context.Context, authData map[string]interface{}) (map[string]interface{}, error)
+	Info(context context.Context, authData map[string]interface{}) (map[string]interface{}, error)
 }

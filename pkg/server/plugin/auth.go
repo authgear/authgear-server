@@ -14,7 +14,9 @@
 
 package plugin
 
-import ()
+import (
+	"context"
+)
 
 // AuthProvider is implemented by plugin to provider user authentication functionality to Skygear.
 type AuthProvider struct {
@@ -23,10 +25,10 @@ type AuthProvider struct {
 }
 
 // Login calls the AuthProvider implemented by plugin to request for user login authentication
-func (p *AuthProvider) Login(authData map[string]interface{}) (principalID string, newAuthData map[string]interface{}, err error) {
+func (p *AuthProvider) Login(ctx context.Context, authData map[string]interface{}) (principalID string, newAuthData map[string]interface{}, err error) {
 	request := AuthRequest{p.Name, "login", authData}
 
-	response, err := p.plugin.transport.RunProvider(&request)
+	response, err := p.plugin.transport.RunProvider(ctx, &request)
 	if err != nil {
 		return
 	}
@@ -37,10 +39,10 @@ func (p *AuthProvider) Login(authData map[string]interface{}) (principalID strin
 }
 
 // Logout calls the AuthProvider implemented by plugin to request for user logout.
-func (p *AuthProvider) Logout(authData map[string]interface{}) (newAuthData map[string]interface{}, err error) {
+func (p *AuthProvider) Logout(ctx context.Context, authData map[string]interface{}) (newAuthData map[string]interface{}, err error) {
 	request := AuthRequest{p.Name, "logout", authData}
 
-	response, err := p.plugin.transport.RunProvider(&request)
+	response, err := p.plugin.transport.RunProvider(ctx, &request)
 	if err != nil {
 		return
 	}
@@ -50,10 +52,10 @@ func (p *AuthProvider) Logout(authData map[string]interface{}) (newAuthData map[
 }
 
 // Info calls the AuthProvider implemented by plugin to request for user information.
-func (p *AuthProvider) Info(authData map[string]interface{}) (newAuthData map[string]interface{}, err error) {
+func (p *AuthProvider) Info(ctx context.Context, authData map[string]interface{}) (newAuthData map[string]interface{}, err error) {
 	request := AuthRequest{p.Name, "info", authData}
 
-	response, err := p.plugin.transport.RunProvider(&request)
+	response, err := p.plugin.transport.RunProvider(ctx, &request)
 	if err != nil {
 		return
 	}

@@ -334,7 +334,7 @@ func TestRun(t *testing.T) {
 			)
 
 			authReq := &skyplugin.AuthRequest{"com.example", "login", authData}
-			authResp, err := transport.RunProvider(authReq)
+			authResp, err := transport.RunProvider(context.Background(), authReq)
 			So(authResp, ShouldResemble, &skyplugin.AuthResponse{
 				PrincipalID: "hello",
 				AuthData:    map[string]interface{}{"hello": "world"},

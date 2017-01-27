@@ -15,6 +15,7 @@
 package handlertest
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -86,7 +87,7 @@ func NewSingleUserAuthProvider(providerName string, principalName string) *Singl
 }
 
 // Login implements the AuthProvider's Login interface.
-func (p *SingleUserAuthProvider) Login(authData map[string]interface{}) (principalID string, newAuthData map[string]interface{}, err error) {
+func (p *SingleUserAuthProvider) Login(ctx context.Context, authData map[string]interface{}) (principalID string, newAuthData map[string]interface{}, err error) {
 	if authData["name"] == p.principalName {
 		principalID = p.providerName + ":" + p.principalName
 		newAuthData = authData
@@ -97,13 +98,13 @@ func (p *SingleUserAuthProvider) Login(authData map[string]interface{}) (princip
 }
 
 // Logout implements the AuthProvider's Logout interface.
-func (p *SingleUserAuthProvider) Logout(authData map[string]interface{}) (newAuthData map[string]interface{}, err error) {
+func (p *SingleUserAuthProvider) Logout(ctx context.Context, authData map[string]interface{}) (newAuthData map[string]interface{}, err error) {
 	newAuthData = authData
 	return
 }
 
 // Info implements the AuthProvider's Info interface.
-func (p *SingleUserAuthProvider) Info(authData map[string]interface{}) (newAuthData map[string]interface{}, err error) {
+func (p *SingleUserAuthProvider) Info(ctx context.Context, authData map[string]interface{}) (newAuthData map[string]interface{}, err error) {
 	newAuthData = authData
 	return
 }
