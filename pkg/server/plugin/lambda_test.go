@@ -15,16 +15,15 @@
 package plugin
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"fmt"
-
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
-	"golang.org/x/net/context"
 )
 
 func TestLambdaCreation(t *testing.T) {

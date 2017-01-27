@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"golang.org/x/net/context"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"

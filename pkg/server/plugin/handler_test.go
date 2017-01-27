@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -9,7 +10,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
-	"golang.org/x/net/context"
 )
 
 func TestHandlerCreation(t *testing.T) {

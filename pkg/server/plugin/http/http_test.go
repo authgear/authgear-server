@@ -15,6 +15,7 @@
 package http
 
 import (
+	"context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -23,7 +24,6 @@ import (
 	"time"
 
 	"github.com/jarcoal/httpmock"
-	"golang.org/x/net/context"
 
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/router"
@@ -334,7 +334,7 @@ func TestRun(t *testing.T) {
 			)
 
 			authReq := &skyplugin.AuthRequest{"com.example", "login", authData}
-			authResp, err := transport.RunProvider(authReq)
+			authResp, err := transport.RunProvider(context.Background(), authReq)
 			So(authResp, ShouldResemble, &skyplugin.AuthResponse{
 				PrincipalID: "hello",
 				AuthData:    map[string]interface{}{"hello": "world"},

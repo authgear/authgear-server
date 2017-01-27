@@ -15,10 +15,11 @@
 package plugin
 
 import (
+	"context"
+
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"golang.org/x/net/context"
 )
 
 // AuthRequest is sent by Skygear Server to plugin which contains data for authentication
@@ -86,7 +87,7 @@ type Transport interface {
 	RunTimer(name string, in []byte) ([]byte, error)
 
 	// RunProvider runs the auth provider with the specified AuthRequest.
-	RunProvider(request *AuthRequest) (*AuthResponse, error)
+	RunProvider(context context.Context, request *AuthRequest) (*AuthResponse, error)
 }
 
 // A TransportFactory is a generic interface to instantiates different

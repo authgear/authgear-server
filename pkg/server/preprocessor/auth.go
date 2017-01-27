@@ -15,10 +15,10 @@
 package preprocessor
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	"golang.org/x/net/context"
 
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/router"

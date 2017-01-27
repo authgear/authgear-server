@@ -20,6 +20,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
@@ -28,6 +29,7 @@ import (
 
 type MockHandler struct {
 	outputs Response
+	delay   time.Duration
 }
 
 func (m *MockHandler) Setup() {
@@ -39,26 +41,10 @@ func (m *MockHandler) GetPreprocessors() []Processor {
 }
 
 func (m *MockHandler) Handle(p *Payload, r *Response) {
+	if m.delay.Seconds() > 0 {
+		<-time.After(m.delay)
+	}
 	r.Result = m.outputs.Result
-	return
-}
-
-type MockCustomHeaderHandler struct {
-	customHeaders map[string][]string
-}
-
-func (m *MockCustomHeaderHandler) Setup() {
-	return
-}
-
-func (m *MockCustomHeaderHandler) GetPreprocessors() []Processor {
-	return nil
-}
-
-func (m *MockCustomHeaderHandler) Handle(p *Payload, r *Response) {
-	r.Meta = m.customHeaders
-	r.WriteHeader(200)
-	r.Write([]byte(`{"status": "ok"}`))
 	return
 }
 
@@ -307,36 +293,34 @@ func TestPreprocessorRegistry(t *testing.T) {
 	})
 }
 
-func TestHeaderWriter(t *testing.T) {
-	Convey("Header Writer", t, func() {
-		mockHandler := MockCustomHeaderHandler{
-			customHeaders: map[string][]string{
-				"X-Custom-Header-1": []string{
-					"Value1",
-				},
-				"X-Custom-Header-2": []string{
-					"Value2",
-					"Value3",
-				},
-			},
-		}
-
+func TestTimeout(t *testing.T) {
+	Convey("Router", t, func() {
 		r := NewRouter()
-		r.Map("mock:map", &mockHandler)
+		r.ResponseTimeout = 10 * time.Millisecond
 
-		req, _ := http.NewRequest(
-			"POST",
-			"http://skygear.dev/mock/map",
-			strings.NewReader(""),
-		)
-		resp := httptest.NewRecorder()
-		r.ServeHTTP(resp, req)
+		Convey("Return 503 when request timed out.", func() {
+			delayHandler := &MockHandler{
+				outputs: Response{
+					Result: map[string]string{
+						"hello": "wait",
+					},
+				},
+				delay: 20 * time.Millisecond,
+			}
+			r.Map("delay:handler", delayHandler)
 
-		responseHeader := map[string][]string(resp.Header())
-		So(responseHeader["X-Custom-Header-1"][0], ShouldEqual, "Value1")
-		So(responseHeader["X-Custom-Header-2"], ShouldResemble, []string{
-			"Value2",
-			"Value3",
+			req, _ := http.NewRequest(
+				"POST",
+				"http://skygear.dev/",
+				strings.NewReader(`{"action": "delay:handler"}`),
+			)
+			req.Header.Set("Content-Type", "application/json")
+
+			resp := httptest.NewRecorder()
+
+			r.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, http.StatusServiceUnavailable)
 		})
 	})
 }

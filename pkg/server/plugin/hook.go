@@ -15,10 +15,11 @@
 package plugin
 
 import (
+	"context"
+
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
-	"golang.org/x/net/context"
 )
 
 // CreateHookFunc returns a hook.HookFunc that run the hook registered by a

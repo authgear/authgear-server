@@ -16,12 +16,12 @@ package exec
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	osexec "os/exec"
 
 	"github.com/Sirupsen/logrus"
-	"golang.org/x/net/context"
 
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/common"
@@ -240,7 +240,7 @@ func (p *execTransport) RunTimer(name string, in []byte) (out []byte, err error)
 	return
 }
 
-func (p *execTransport) RunProvider(request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
+func (p *execTransport) RunProvider(ctx context.Context, request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
 	req := map[string]interface{}{
 		"auth_data": request.AuthData,
 	}

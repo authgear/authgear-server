@@ -16,13 +16,13 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	"golang.org/x/net/context"
 
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
@@ -94,6 +94,7 @@ func (p *httpTransport) ipc(req *pluginrequest.Request) (out []byte, err error) 
 		return
 	}
 
+	httpreq.Cancel = req.Context.Done()
 	httpresp, err := p.httpClient.Do(httpreq)
 	if err != nil {
 		return nil, err
@@ -151,13 +152,13 @@ func (p *httpTransport) RunHook(ctx context.Context, hookName string, record *sk
 }
 
 func (p *httpTransport) RunTimer(name string, in []byte) (out []byte, err error) {
-	req := pluginrequest.Request{Kind: "timer", Name: name}
-	out, err = p.rpc(&req)
+	req := pluginrequest.NewTimerRequest(name)
+	out, err = p.rpc(req)
 	return
 }
 
-func (p *httpTransport) RunProvider(request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
-	req := pluginrequest.NewAuthRequest(request)
+func (p *httpTransport) RunProvider(ctx context.Context, request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
+	req := pluginrequest.NewAuthRequest(ctx, request)
 	out, err := p.rpc(req)
 
 	resp := skyplugin.AuthResponse{}

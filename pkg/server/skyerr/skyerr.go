@@ -127,6 +127,10 @@ const (
 	// PluginInitializing occurs when any of the plugins are initializing
 	PluginInitializing
 
+	// ResponseTimeout occurs when an operation is taking too long to produce
+	// a response
+	ResponseTimeout
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )

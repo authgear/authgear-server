@@ -15,10 +15,10 @@
 package plugin
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/net/context"
 
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
@@ -59,7 +59,7 @@ func (t *nullTransport) RunTimer(name string, in []byte) (out []byte, err error)
 	return
 }
 
-func (t *nullTransport) RunProvider(request *AuthRequest) (response *AuthResponse, err error) {
+func (t *nullTransport) RunProvider(ctx context.Context, request *AuthRequest) (response *AuthResponse, err error) {
 	if request.AuthData == nil {
 		request.AuthData = map[string]interface{}{}
 	}

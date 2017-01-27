@@ -12,24 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package hooktest
+package router
 
-import (
-	"context"
+//
+// PreprocessorRegistry is holding all preprocessors and their mapping with
+// a string name.
+type PreprocessorRegistry map[string]Processor
 
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
-)
-
-type StackingHook struct {
-	Context         []context.Context
-	Records         []*skydb.Record
-	OriginalRecords []*skydb.Record
-}
-
-func (p *StackingHook) Func(ctx context.Context, record *skydb.Record, originalRecord *skydb.Record) skyerr.Error {
-	p.Context = append(p.Context, ctx)
-	p.Records = append(p.Records, record)
-	p.OriginalRecords = append(p.OriginalRecords, originalRecord)
-	return nil
+// GetByNames returns a list of registered preprocessors by preprocessor names.
+func (r PreprocessorRegistry) GetByNames(names ...string) []Processor {
+	preprocessors := make([]Processor, len(names))
+	for i, name := range names {
+		pp, ok := r[name]
+		if !ok {
+			log.Fatalf("preprocessor %s is not defined", name)
+		}
+		preprocessors[i] = pp
+	}
+	return preprocessors
 }

@@ -15,6 +15,7 @@
 package router
 
 import (
+	"context"
 	"net/http"
 	"regexp"
 )
@@ -29,6 +30,7 @@ type pathRoute struct {
 // Gateway is a man in the middle to inject dependency
 // It currently bind to HTTP method, it disregard path.
 type Gateway struct {
+	commonRouter
 	ParamMatch  *regexp.Regexp
 	methodPaths map[string]pathRoute
 }
@@ -42,6 +44,8 @@ func NewGateway(pattern string, path string, mux *http.ServeMux) *Gateway {
 	if path != "" && mux != nil {
 		mux.Handle(path, g)
 	}
+	g.commonRouter.payloadFunc = g.newPayload
+	g.commonRouter.matchHandlerFunc = g.matchHandler
 	return g
 }
 
@@ -73,68 +77,31 @@ func (g *Gateway) Handle(method string, handler Handler, preprocessors ...Proces
 }
 
 func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	var (
-		httpStatus    = http.StatusOK
-		resp          Response
-		handler       Handler
-		preprocessors []Processor
-		payload       *Payload
-	)
-	resp.writer = w
-	defer func() {
-		if r := recover(); r != nil {
-			resp.Err = errorFromRecoveringPanic(r)
-			log.WithField("recovered", r).Errorln("panic occurred while handling request")
-		}
-
-		if !resp.written && !resp.hijacked {
-			if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
-				resp.writer.WriteHeader(defaultStatusCode(resp.Err))
-			} else {
-				resp.writer.WriteHeader(httpStatus)
-			}
-			if err := resp.WriteEntity(resp); err != nil {
-				panic(err)
-			}
-		}
-	}()
-
-	handler, preprocessors, payload = g.matchRawHandler(req)
-	if handler == nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	for _, p := range preprocessors {
-		httpStatus = p.Preprocess(payload, &resp)
-		if resp.Err != nil {
-			if httpStatus == http.StatusOK {
-				httpStatus = defaultStatusCode(resp.Err)
-			}
-			return
-		}
-	}
-	handler.Handle(payload, &resp)
+	g.commonRouter.ServeHTTP(w, req)
 }
 
-func (g *Gateway) matchRawHandler(req *http.Request) (h Handler, pp []Processor, p *Payload) {
+func (g *Gateway) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Processor) {
 	if pathRoute, ok := g.methodPaths[req.Method]; ok {
 		h = pathRoute.Handler
 		pp = pathRoute.Preprocessors
-		p = g.newPayloadForRawHandler(req)
 	}
 	return
 }
 
-func (g *Gateway) newPayloadForRawHandler(req *http.Request) (p *Payload) {
+func (g *Gateway) newPayload(req *http.Request) (p *Payload, err error) {
 	indices := g.ParamMatch.FindAllStringSubmatchIndex(req.URL.Path, -1)
 	params := submatchesFromIndices(req.URL.Path, indices)
 	log.Debugf("Matched params: %v", params)
 	p = &Payload{
-		Req:    req,
-		Params: params,
-		Meta:   map[string]interface{}{},
-		Data:   map[string]interface{}{},
+		Req:     req,
+		Params:  params,
+		Meta:    map[string]interface{}{},
+		Data:    map[string]interface{}{},
+		Context: req.Context(),
+	}
+
+	if p.Context != nil {
+		p.Context = context.Background()
 	}
 
 	query := req.URL.Query()

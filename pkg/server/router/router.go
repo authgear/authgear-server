@@ -16,8 +16,8 @@ package router
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -25,8 +25,6 @@ import (
 	"sync"
 
 	"github.com/skygeario/skygear-server/pkg/server/logging"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
-	"github.com/skygeario/skygear-server/pkg/server/skyversion"
 )
 
 var log = logging.LoggerEntry("router")
@@ -41,39 +39,26 @@ type pipeline struct {
 
 // Router to dispatch HTTP request to respective handler
 type Router struct {
+	commonRouter
 	actions struct {
 		sync.RWMutex
 		m map[string]pipeline
 	}
 }
 
-// PreprocessorRegistry is holding all preprocessors and their mapping with
-// a string name.
-type PreprocessorRegistry map[string]Processor
-
-// GetByNames returns a list of registered preprocessors by preprocessor names.
-func (r PreprocessorRegistry) GetByNames(names ...string) []Processor {
-	preprocessors := make([]Processor, len(names))
-	for i, name := range names {
-		pp, ok := r[name]
-		if !ok {
-			log.Fatalf("preprocessor %s is not defined", name)
-		}
-		preprocessors[i] = pp
-	}
-	return preprocessors
-}
-
 // NewRouter is factory for Router
 func NewRouter() *Router {
-	return &Router{
-		struct {
+	r := &Router{
+		actions: struct {
 			sync.RWMutex
 			m map[string]pipeline
 		}{
 			m: map[string]pipeline{},
 		},
 	}
+	r.commonRouter.payloadFunc = r.newPayload
+	r.commonRouter.matchHandlerFunc = r.matchHandler
+	return r
 }
 
 // Map to register action to handle mapping
@@ -91,64 +76,7 @@ func (r *Router) Map(action string, handler Handler, preprocessors ...Processor)
 }
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	var (
-		httpStatus    = http.StatusOK
-		resp          Response
-		handler       Handler
-		preprocessors []Processor
-		payload       *Payload
-	)
-
-	version := strings.TrimPrefix(skyversion.Version(), "v")
-
-	resp.writer = w
-	defer func() {
-		if r := recover(); r != nil {
-			resp.Err = errorFromRecoveringPanic(r)
-			log.WithField("recovered", r).Errorln("panic occurred while handling request")
-		}
-
-		resp.Header().Set("Server", fmt.Sprintf("Skygear Server/%s", version))
-
-		if !resp.written {
-			resp.Header().Set("Content-Type", "application/json")
-			if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
-				resp.writer.WriteHeader(defaultStatusCode(resp.Err))
-			} else {
-				resp.writer.WriteHeader(httpStatus)
-			}
-			if err := resp.WriteEntity(resp); err != nil {
-				panic(err)
-			}
-		}
-	}()
-
-	var err error
-	payload, err = newPayloadForJSONHandler(req)
-	if err != nil {
-		httpStatus = http.StatusBadRequest
-		resp.Err = skyerr.NewRequestJSONInvalidErr(err)
-		return
-	}
-
-	handler, preprocessors = r.matchHandler(req, payload)
-
-	if handler == nil {
-		httpStatus = http.StatusNotFound
-		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, "route unmatched")
-	} else {
-		for _, p := range preprocessors {
-			httpStatus = p.Preprocess(payload, &resp)
-			if resp.Err != nil {
-				if httpStatus == http.StatusOK {
-					httpStatus = defaultStatusCode(resp.Err)
-				}
-				return
-			}
-		}
-
-		handler.Handle(payload, &resp)
-	}
+	r.commonRouter.ServeHTTP(w, req)
 }
 
 func (r *Router) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Processor) {
@@ -180,7 +108,7 @@ func (r *Router) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Pr
 	return
 }
 
-func newPayloadForJSONHandler(req *http.Request) (p *Payload, err error) {
+func (r *Router) newPayload(req *http.Request) (p *Payload, err error) {
 	reqBody := req.Body
 	if reqBody == nil {
 		reqBody = ioutil.NopCloser(bytes.NewReader(nil))
@@ -193,8 +121,13 @@ func newPayloadForJSONHandler(req *http.Request) (p *Payload, err error) {
 	}
 
 	p = &Payload{
-		Data: data,
-		Meta: map[string]interface{}{},
+		Data:    data,
+		Meta:    map[string]interface{}{},
+		Context: req.Context(),
+	}
+
+	if p.Context != nil {
+		p.Context = context.Background()
 	}
 
 	if apiKey := req.Header.Get("X-Skygear-Api-Key"); apiKey != "" {

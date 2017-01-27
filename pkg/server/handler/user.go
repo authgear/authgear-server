@@ -304,7 +304,7 @@ func (h *UserLinkHandler) Handle(payload *router.Payload, response *router.Respo
 		response.Err = skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
 		return
 	}
-	principalID, authData, err := authProvider.Login(p.AuthData)
+	principalID, authData, err := authProvider.Login(payload.Context, p.AuthData)
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
 		return

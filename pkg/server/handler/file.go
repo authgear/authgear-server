@@ -117,9 +117,6 @@ func (h *GetFileHandler) Handle(payload *router.Payload, response *router.Respon
 		return
 	}
 
-	response.Header().Set("Content-Type", asset.ContentType)
-	response.Header().Set("Content-Length", strconv.FormatInt(asset.Size, 10))
-
 	reader, err := store.GetFileReader(fileName)
 	if err != nil {
 		log.Errorf("Failed to get file reader: %v", err)
@@ -129,7 +126,16 @@ func (h *GetFileHandler) Handle(payload *router.Payload, response *router.Respon
 	}
 	defer reader.Close()
 
-	if _, err := io.Copy(response, reader); err != nil {
+	writer := response.Writer()
+	if writer == nil {
+		// The response is already written.
+		return
+	}
+
+	writer.Header().Set("Content-Type", asset.ContentType)
+	writer.Header().Set("Content-Length", strconv.FormatInt(asset.Size, 10))
+
+	if _, err := io.Copy(writer, reader); err != nil {
 		// there is nothing we can do if error occurred after started
 		// writing a response. Log.
 		log.Errorf("Error writing file to response: %v", err)

@@ -15,12 +15,12 @@
 package request
 
 import (
+	"context"
 	"encoding/json"
 
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
-	"golang.org/x/net/context"
 )
 
 // Request represents data in a server to worker plugin request.
@@ -44,7 +44,7 @@ func NewLambdaRequest(ctx context.Context, name string, args json.RawMessage) *R
 
 // NewEventRequest creates a new event request
 func NewEventRequest(name string, data json.RawMessage) *Request {
-	return &Request{Kind: "event", Name: name, Param: data}
+	return &Request{Kind: "event", Name: name, Param: data, Context: context.Background()}
 }
 
 // NewHandlerRequest creates a new handler request.
@@ -62,14 +62,24 @@ func NewHookRequest(ctx context.Context, hookName string, record *skydb.Record, 
 }
 
 // NewAuthRequest creates a new auth request.
-func NewAuthRequest(authReq *skyplugin.AuthRequest) *Request {
+func NewAuthRequest(ctx context.Context, authReq *skyplugin.AuthRequest) *Request {
 	return &Request{
-		Kind: "provider",
-		Name: authReq.ProviderName,
+		Kind:    "provider",
+		Name:    authReq.ProviderName,
+		Context: ctx,
 		Param: struct {
 			Action   string                 `json:"action"`
 			AuthData map[string]interface{} `json:"auth_data"`
 		}{authReq.Action, authReq.AuthData},
+	}
+}
+
+// NewTimerRequest creates a new timer request.
+func NewTimerRequest(name string) *Request {
+	return &Request{
+		Kind:    "timer",
+		Name:    name,
+		Context: context.Background(),
 	}
 }
 

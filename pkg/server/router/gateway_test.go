@@ -29,7 +29,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		Convey("matches simple url action", func() {
 			g := NewGateway("endpoint", "/endpoint", nil)
 			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
-				resp.WriteEntity(struct {
+				writeEntity(resp.Writer(), struct {
 					Status string `json:"status"`
 				}{"ok"})
 			}))
@@ -43,7 +43,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		Convey("don't matches simple url action with wrong method", func() {
 			g := NewGateway("endpoint", "/endpoint", nil)
 			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
-				resp.WriteEntity(struct {
+				writeEntity(resp.Writer(), struct {
 					Status string `json:"status"`
 				}{"ok"})
 			}))
@@ -58,7 +58,7 @@ func TestRouterMatchByURL(t *testing.T) {
 			mux := http.NewServeMux()
 			g := NewGateway("endpoint", "/endpoint", mux)
 			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
-				resp.WriteEntity(struct {
+				writeEntity(resp.Writer(), struct {
 					Status string `json:"status"`
 				}{"ok"})
 			}))
@@ -73,7 +73,7 @@ func TestRouterMatchByURL(t *testing.T) {
 			mux := http.NewServeMux()
 			g := NewGateway("endpoint", "/endpoint", mux)
 			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
-				resp.WriteEntity(struct {
+				writeEntity(resp.Writer(), struct {
 					Status string `json:"status"`
 				}{"ok"})
 			}))
@@ -87,7 +87,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		Convey("matches url with parameters", func() {
 			g := NewGateway(`(?:entity|model)/([0-9a-zA-Z\-_]+)`, "/model", nil)
 			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
-				resp.WriteEntity(p.Params)
+				writeEntity(resp.Writer(), p.Params)
 			}))
 
 			req, _ := http.NewRequest("POST", `http://skygear.test/model/Zz0-_`, nil)
@@ -100,7 +100,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		Convey("help url handler fill in payload from Header", func() {
 			g := NewGateway("endpoint", "/endpoint", nil)
 			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
-				resp.WriteEntity(struct {
+				writeEntity(resp.Writer(), struct {
 					APIKey      string `json:"api-key"`
 					AccessToken string `json:"access-token"`
 				}{p.APIKey(), p.AccessTokenString()})
@@ -122,7 +122,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		Convey("fill in api key from query string", func() {
 			g := NewGateway("endpoint", "/endpoint", nil)
 			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
-				resp.WriteEntity(struct {
+				writeEntity(resp.Writer(), struct {
 					APIKey      string `json:"api-key"`
 					AccessToken string `json:"access-token"`
 				}{p.APIKey(), p.AccessTokenString()})
