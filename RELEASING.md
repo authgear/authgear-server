@@ -132,10 +132,6 @@ $ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
 ## Release to npm
 $ npm publish
 
-## Publish minified JS to code.skygear.io
-$ npm run deploy
-$ npm run deploy-latest
-
 ## Tag and push commit
 $ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
 $ git push --follow-tags origin v$SKYGEAR_VERSION
