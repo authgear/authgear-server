@@ -106,7 +106,7 @@ func (c *conn) insertRecordCreationAccess(recordType string, roles []string) err
 			Values(recordType, perRole)
 
 		_, err := c.ExecWith(builder)
-		if isForienKeyViolated(err) {
+		if isForeignKeyViolated(err) {
 			return skyerr.NewError(skyerr.ConstraintViolated,
 				fmt.Sprintf("Does not have role %s", perRole))
 		} else if isUniqueViolated(err) {

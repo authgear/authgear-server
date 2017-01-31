@@ -37,7 +37,7 @@ func toLowerAndUnderscore(s string) string {
 	return underscoreRe.ReplaceAllLiteralString(strings.ToLower(s), "_")
 }
 
-func isForienKeyViolated(err error) bool {
+func isForeignKeyViolated(err error) bool {
 	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23503" {
 		return true
 	}
