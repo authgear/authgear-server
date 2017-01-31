@@ -28,6 +28,7 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
@@ -200,6 +201,11 @@ func (db *database) Delete(id skydb.RecordID) error {
 	result, err := db.c.ExecWith(builder)
 	if isUndefinedTable(err) {
 		return skydb.ErrRecordNotFound
+	} else if isForeignKeyViolated(err) {
+		return skyerr.NewError(
+			skyerr.ConstraintViolated,
+			fmt.Sprintf("delete %s: failed to delete record because other records have reference to it", id),
+		)
 	} else if err != nil {
 		return fmt.Errorf("delete %s: failed to delete record", id)
 	}
