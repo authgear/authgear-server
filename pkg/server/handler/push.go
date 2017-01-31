@@ -51,7 +51,7 @@ func (e *sendPushResponseItem) MarshalJSON() ([]byte, error) {
 	} else if e.err != nil && *e.err == skydb.ErrUserNotFound {
 		err = skyerr.NewErrorWithInfo(skyerr.ResourceNotFound, fmt.Sprintf(`cannot find user "%s"`, e.id), map[string]interface{}{"id": e.id})
 	} else if e.err != nil {
-		err = skyerr.NewError(skyerr.UnexpectedError, fmt.Sprintf("unknown error occurred: %v", (*e.err).Error()))
+		err = skyerr.MakeError(*e.err)
 	}
 	if e.err != nil {
 		return json.Marshal(&struct {
