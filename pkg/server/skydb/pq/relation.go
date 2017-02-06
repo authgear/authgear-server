@@ -106,7 +106,7 @@ func (c *conn) AddRelation(user string, name string, targetUser string) error {
 	upsert := upsertQuery(c.tableName(name), ralationPair, nil)
 	_, err := c.ExecWith(upsert)
 	if err != nil {
-		if isForienKeyViolated(err) {
+		if isForeignKeyViolated(err) {
 			return fmt.Errorf("userID not exist")
 		}
 	}

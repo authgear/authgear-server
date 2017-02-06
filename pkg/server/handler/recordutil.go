@@ -152,7 +152,7 @@ func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *sk
 
 			return
 		}
-		return nil, skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
+		return nil, skyerr.MakeError(dbErr)
 	}
 
 	record = &dbRecord
@@ -260,7 +260,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
 		if dbErr := db.Save(&deltaRecord); dbErr != nil {
-			err = skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
+			err = skyerr.MakeError(dbErr)
 		}
 		injectSigner(&deltaRecord, req.AssetStore)
 		*record = deltaRecord
@@ -417,7 +417,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 			if dbErr == skydb.ErrRecordNotFound {
 				resp.ErrMap[recordID] = skyerr.NewError(skyerr.ResourceNotFound, "record not found")
 			} else {
-				resp.ErrMap[recordID] = skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
+				resp.ErrMap[recordID] = skyerr.MakeError(dbErr)
 			}
 		} else {
 			if req.WithMasterKey || record.Accessible(req.UserInfo, skydb.WriteLevel) {
@@ -441,7 +441,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 
 		if dbErr := db.Delete(record.ID); dbErr != nil {
-			return skyerr.NewError(skyerr.UnexpectedError, dbErr.Error())
+			return skyerr.MakeError(dbErr)
 		}
 		return nil
 	})

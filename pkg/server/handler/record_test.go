@@ -2093,7 +2093,7 @@ func TestAtomicOperation(t *testing.T) {
 						"info": {
 							"note/1": {
 								"code": 10000,
-								"message": "UnexpectedError: Original Sin",
+								"message": "Original Sin",
 								"name": "UnexpectedError"
 							}
 						}
@@ -2251,7 +2251,7 @@ func TestAtomicOperation(t *testing.T) {
 						"info": {
 							"note/1": {
 								"code": 10000,
-								"message": "UnexpectedError: Original Sin",
+								"message": "Original Sin",
 								"name": "UnexpectedError"
 							}
 						}

@@ -196,7 +196,7 @@ func (e *errorWithID) MarshalJSON() ([]byte, error) {
 	if e.err == skydb.ErrSubscriptionNotFound {
 		err = skyerr.NewErrorWithInfo(skyerr.ResourceNotFound, fmt.Sprintf(`cannot find subscription "%s"`, e.id), map[string]interface{}{"id": e.id})
 	} else {
-		err = skyerr.NewError(skyerr.UnexpectedError, fmt.Sprintf("unknown error occurred: %v", e.err.Error()))
+		err = skyerr.MakeError(e.err)
 	}
 	return json.Marshal(&struct {
 		ID       string                 `json:"_id"`

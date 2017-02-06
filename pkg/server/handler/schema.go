@@ -121,7 +121,7 @@ func (h *SchemaRenameHandler) Handle(rpayload *router.Payload, response *router.
 
 	schemas, err := db.GetRecordSchemas()
 	if err != nil {
-		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 	response.Result = &schemaResponse{
@@ -221,7 +221,7 @@ func (h *SchemaDeleteHandler) Handle(rpayload *router.Payload, response *router.
 
 	schemas, err := db.GetRecordSchemas()
 	if err != nil {
-		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 	response.Result = &schemaResponse{
@@ -339,7 +339,7 @@ func (h *SchemaCreateHandler) Handle(rpayload *router.Payload, response *router.
 
 	schemas, err := db.GetRecordSchemas()
 	if err != nil {
-		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 	response.Result = &schemaResponse{
@@ -391,7 +391,7 @@ func (h *SchemaFetchHandler) Handle(rpayload *router.Payload, response *router.R
 	db := rpayload.Database
 	schemas, err := db.GetRecordSchemas()
 	if err != nil {
-		response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 
@@ -487,7 +487,7 @@ func (h *SchemaAccessHandler) Handle(rpayload *router.Payload, response *router.
 		if skyErr, isSkyErr := err.(skyerr.Error); isSkyErr {
 			response.Err = skyErr
 		} else {
-			response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
+			response.Err = skyerr.MakeError(err)
 		}
 		return
 	}

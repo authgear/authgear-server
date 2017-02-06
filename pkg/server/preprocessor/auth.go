@@ -93,7 +93,7 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 
 				response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
 			} else {
-				response.Err = skyerr.NewError(skyerr.UnexpectedError, err.Error())
+				response.Err = skyerr.MakeError(err)
 			}
 			return http.StatusUnauthorized
 		}
