@@ -78,6 +78,17 @@ $ # export WITH_ZMQ=1 # If you need ZeroMQ support
 $ make build
 ```
 
+#### Building with Nix
+
+Assuming you have [Nix](https://nixos.org/nix/) installed,
+Skygear can be built with the following command:
+
+```shell
+nix-build default.nix
+```
+
+You will have a symbolic link `result-bin` linking to the binary.
+
 ### Testing
 
 1. Create a PostgreSQL database called `skygear_test` with PostGIS enabled:
@@ -115,9 +126,9 @@ $ make after-docker-test     # clean up docker containers
 Copyright (c) 2015-present, Oursky Ltd.
 All rights reserved.
 
-This source code is licensed under the Apache License version 2.0 
-found in the LICENSE file in the root directory of this source tree. 
-An additional grant of patent rights can be found in the PATENTS 
+This source code is licensed under the Apache License version 2.0
+found in the LICENSE file in the root directory of this source tree.
+An additional grant of patent rights can be found in the PATENTS
 file in the same directory.
 
 ```
