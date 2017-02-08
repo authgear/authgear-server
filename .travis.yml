@@ -1,6 +1,12 @@
 language: go
 
-go: 1.7.4
+go:
+  - 1.8rc3
+  - 1.7.5
+
+matrix:
+  allow_failures:
+    - go: 1.8rc3
 
 addons:
   postgresql: "9.5"
@@ -64,21 +70,21 @@ deploy:
     on:
       repo: SkygearIO/skygear-server
       tags: true
-      go: 1.7.4
+      go: 1.7.5
   - provider: script
     script: ./scripts/deploy-docker-hub.sh
     skip_cleanup: true
     on:
       repo: SkygearIO/skygear-server
       all_branches: true
-      go: 1.7.4
+      go: 1.7.5
   - provider: script
     script: ./scripts/deploy-quay-io.sh
     skip_cleanup: true
     on:
       repo: SkygearIO/skygear-server
       all_branches: true
-      go: 1.7.4
+      go: 1.7.5
 
 notifications:
   slack:
