@@ -15,3 +15,6 @@ __pycache__
 
 # docker
 docker-compose.override.yml
+
+# nix
+result-bin
