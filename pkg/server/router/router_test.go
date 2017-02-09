@@ -48,6 +48,24 @@ func (m *MockHandler) Handle(p *Payload, r *Response) {
 	return
 }
 
+type CallbackHandler struct {
+	callback func(*Payload, *Response)
+}
+
+func (h *CallbackHandler) Setup() {
+	return
+}
+
+func (h *CallbackHandler) GetPreprocessors() []Processor {
+	return nil
+}
+
+func (h *CallbackHandler) Handle(p *Payload, r *Response) {
+	if h.callback != nil {
+		h.callback(p, r)
+	}
+}
+
 type ErrHandler struct {
 	Err skyerr.Error
 }
@@ -321,6 +339,31 @@ func TestTimeout(t *testing.T) {
 			r.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, http.StatusServiceUnavailable)
+		})
+	})
+}
+
+func TestRouterRequest(t *testing.T) {
+	Convey("Router", t, func() {
+		Convey("can create request", func(c C) {
+			callbackHandler := CallbackHandler{
+				callback: func(p *Payload, r *Response) {
+					c.So(p.Context, ShouldNotBeNil)
+				},
+			}
+
+			r := NewRouter()
+			r.Map("mock:callback", &callbackHandler)
+
+			req, _ := http.NewRequest(
+				"POST",
+				"http://skygear.dev/mock/callback",
+				strings.NewReader(""),
+			)
+
+			req.Header.Set("Content-Type", "application/json")
+			resp := httptest.NewRecorder()
+			r.ServeHTTP(resp, req)
 		})
 	})
 }

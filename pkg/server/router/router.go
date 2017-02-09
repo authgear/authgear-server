@@ -126,7 +126,7 @@ func (r *Router) newPayload(req *http.Request) (p *Payload, err error) {
 		Context: req.Context(),
 	}
 
-	if p.Context != nil {
+	if p.Context == nil {
 		p.Context = context.Background()
 	}
 
