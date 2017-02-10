@@ -1,3 +1,16 @@
+### Features
+
+- Implement API response timeout (#271)
+
+### Bug Fixes
+
+- Fix request context not initialized (#284)
+- Check for constraint violation when deleting
+
+### Other Notes
+
+- Add Nix derivation for building
+- Require go1.7.4
 ## 0.21.1 (2017-01-19)
 
 ### Features
