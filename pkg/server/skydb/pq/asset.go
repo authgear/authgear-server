@@ -19,6 +19,7 @@ import (
 	"errors"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	sq "github.com/lann/squirrel"
 )
 
 func (c *conn) GetAsset(name string, asset *skydb.Asset) error {
@@ -43,6 +44,38 @@ func (c *conn) GetAsset(name string, asset *skydb.Asset) error {
 	asset.Size = size
 
 	return err
+}
+
+func (c *conn) GetAssets(names []string) ([]skydb.Asset, error) {
+	nameArgs := make([]interface{}, len(names))
+	for idx, perName := range names {
+		nameArgs[idx] = interface{}(perName)
+	}
+
+	builder := psql.Select("id", "content_type", "size").
+		From(c.tableName("_asset")).
+		Where("id IN ("+sq.Placeholders(len(names))+")", nameArgs...)
+
+	rows, err := c.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	results := []skydb.Asset{}
+	for rows.Next() {
+		a := skydb.Asset{}
+		if err := rows.Scan(
+			&a.Name,
+			&a.ContentType,
+			&a.Size); err != nil {
+
+			panic(err)
+		}
+		results = append(results, a)
+	}
+
+	return results, nil
 }
 
 func (c *conn) SaveAsset(asset *skydb.Asset) error {

@@ -120,6 +120,8 @@ type Conn interface {
 	// GetAsset retrieves Asset information by its name
 	GetAsset(name string, asset *Asset) error
 
+	GetAssets(names []string) ([]Asset, error)
+
 	// SaveAsset saves an Asset information into a container to
 	// be referenced by records.
 	SaveAsset(asset *Asset) error
