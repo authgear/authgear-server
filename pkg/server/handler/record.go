@@ -571,6 +571,11 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
+	// Scan does not query assets,
+	// it only replaces them with assets then only have name,
+	// so we replace them with some complete assets.
+	makeAssetsComplete(db, payload.DBConn, records)
+
 	eagers := eagerIDs(db, records, p.Query)
 	eagerRecords := doQueryEager(db, eagers)
 
