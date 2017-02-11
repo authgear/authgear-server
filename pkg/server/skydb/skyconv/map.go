@@ -131,6 +131,7 @@ func (asset *MapAsset) FromMap(m map[string]interface{}) error {
 func (asset *MapAsset) ToMap(m map[string]interface{}) {
 	m["$type"] = "asset"
 	m["$name"] = asset.Name
+	m["$content_type"] = asset.ContentType
 	url := (*skydb.Asset)(asset).SignedURL()
 	if url != "" {
 		m["$url"] = url
