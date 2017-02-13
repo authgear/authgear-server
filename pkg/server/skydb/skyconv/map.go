@@ -124,6 +124,20 @@ func (asset *MapAsset) FromMap(m map[string]interface{}) error {
 	}
 
 	asset.Name = name
+
+	contentTypei, ok := m["$content_type"]
+	if !ok {
+		return errors.New("missing compulsory field $content_type")
+	}
+	contentType, ok := contentTypei.(string)
+	if !ok {
+		return fmt.Errorf("got type($contentType) = %T, want string", contentTypei)
+	}
+	if contentType == "" {
+		return errors.New("asset's $contentType should not be empty")
+	}
+
+	asset.ContentType = contentType
 	return nil
 }
 
