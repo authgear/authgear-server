@@ -47,6 +47,10 @@ func (c *conn) GetAsset(name string, asset *skydb.Asset) error {
 }
 
 func (c *conn) GetAssets(names []string) ([]skydb.Asset, error) {
+	if len(names) == 0 {
+		return []skydb.Asset{}, nil
+	}
+
 	nameArgs := make([]interface{}, len(names))
 	for idx, perName := range names {
 		nameArgs[idx] = interface{}(perName)
