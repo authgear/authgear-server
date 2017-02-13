@@ -193,7 +193,8 @@ func TestUploadFileHandler(t *testing.T) {
 				"result": {
 					"$type": "asset",
 					"$name": "c34e739e-ac82-44c0-b36b-28d226edb237-asset",
-					"$url": "c34e739e-ac82-44c0-b36b-28d226edb237-asset?signedurl=true"
+					"$url": "c34e739e-ac82-44c0-b36b-28d226edb237-asset?signedurl=true",
+					"$content_type":"plain/text"
 				}
 			}`)
 		})
@@ -230,7 +231,8 @@ func TestUploadFileHandler(t *testing.T) {
 				"result": {
 					"$type": "asset",
 					"$name": "78640a1a-25c7-45a1-8c1f-cf8d3b162f9e-helloworld",
-					"$url": "78640a1a-25c7-45a1-8c1f-cf8d3b162f9e-helloworld?signedurl=true"
+					"$url": "78640a1a-25c7-45a1-8c1f-cf8d3b162f9e-helloworld?signedurl=true",
+					"$content_type":"plain/text"
 				}
 			}`)
 		})

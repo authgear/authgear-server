@@ -219,7 +219,10 @@ func TestRun(t *testing.T) {
 				"date":           time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC),
 				"ref":            skydb.NewReference("category", "1"),
 				"auto_increment": skydb.Sequence{},
-				"asset":          &skydb.Asset{Name: "asset-name"},
+				"asset":          &skydb.Asset{
+					Name: "asset-name",
+					ContentType: "plain/text",
+				},
 			},
 		}
 
@@ -262,7 +265,8 @@ func TestRun(t *testing.T) {
 						},
 						"asset": {
 							"$type": "asset",
-							"$name": "asset-name"
+							"$name": "asset-name",
+							"$content_type":"plain/text"
 						},
 						"auto_increment": {
 							"$type": "seq"
@@ -316,7 +320,8 @@ func TestRun(t *testing.T) {
 						},
 						"asset": {
 							"$type": "asset",
-							"$name": "asset-name"
+							"$name": "asset-name",
+							"$content_type":"plain/text"
 						},
 						"auto_increment": {
 							"$type": "seq"
@@ -352,7 +357,10 @@ func TestRun(t *testing.T) {
 					"tags":           []interface{}{"test", "unimportant"},
 					"ref":            skydb.NewReference("category", "1"),
 					"auto_increment": skydb.Sequence{},
-					"asset":          &skydb.Asset{Name: "asset-name"},
+					"asset":          &skydb.Asset{
+						Name: "asset-name",
+						ContentType: "plain/text",
+					},
 				},
 			})
 			// GoConvey's bug, ShouldEqual and ShouldResemble doesn't work on time.Time
@@ -373,7 +381,10 @@ func TestRun(t *testing.T) {
 					"tags":           []interface{}{"test", "unimportant"},
 					"ref":            skydb.NewReference("category", "1"),
 					"auto_increment": skydb.Sequence{},
-					"asset":          &skydb.Asset{Name: "asset-name"},
+					"asset":          &skydb.Asset{
+						Name: "asset-name",
+						ContentType: "plain/text",
+					},
 				},
 			})
 			So(dateout == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
@@ -403,7 +414,8 @@ func TestRun(t *testing.T) {
 						},
 						"asset": {
 							"$type": "asset",
-							"$name": "asset-name"
+							"$name": "asset-name",
+							"$content_type":"plain/text"
 						},
 						"auto_increment": {
 							"$type": "seq"
@@ -438,7 +450,8 @@ func TestRun(t *testing.T) {
 						},
 						"asset":{
 							"$type": "asset",
-							"$name": "asset-name"
+							"$name": "asset-name",
+							"$content_type":"plain/text"
 						},
 						"auto_increment": {
 							"$type": "seq"
@@ -474,7 +487,10 @@ func TestRun(t *testing.T) {
 					"tags":           []interface{}{"test", "unimportant"},
 					"ref":            skydb.NewReference("category", "1"),
 					"auto_increment": skydb.Sequence{},
-					"asset":          &skydb.Asset{Name: "asset-name"},
+					"asset":          &skydb.Asset{
+						Name: "asset-name",
+						ContentType: "plain/text",
+					},
 				},
 			})
 			// GoConvey's bug, ShouldEqual and ShouldResemble doesn't work on time.Time
@@ -495,7 +511,10 @@ func TestRun(t *testing.T) {
 					"tags":           []interface{}{"test", "unimportant"},
 					"ref":            skydb.NewReference("category", "1"),
 					"auto_increment": skydb.Sequence{},
-					"asset":          &skydb.Asset{Name: "asset-name"},
+					"asset":          &skydb.Asset{
+						Name: "asset-name",
+						ContentType: "plain/text",
+					},
 				},
 			})
 			So(dateout == time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC), ShouldBeTrue)
