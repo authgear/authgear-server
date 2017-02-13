@@ -686,6 +686,10 @@ func makeAssetsComplete(db skydb.Database, conn skydb.Conn, records []skydb.Reco
 		}
 	}
 
+	if len(assetNames) == 0 {
+		return nil
+	}
+
 	assets, err := conn.GetAssets(assetNames)
 	if err != nil {
 		return err
