@@ -711,6 +711,7 @@ func (db *queryDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 type queryResultsDatabase struct {
 	records    []skydb.Record
 	databaseID string
+	typemap    map[string]skydb.RecordSchema
 	skydb.Database
 }
 
@@ -729,6 +730,10 @@ func (db *queryResultsDatabase) QueryCount(query *skydb.Query) (uint64, error) {
 
 func (db *queryResultsDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows(db.records)), nil
+}
+
+func (db *queryResultsDatabase) GetSchema(recordType string) (skydb.RecordSchema, error) {
+	return db.typemap[recordType], nil
 }
 
 func TestRecordQueryResults(t *testing.T) {
@@ -1222,8 +1227,9 @@ func TestRecordQuery(t *testing.T) {
 
 // a very naive Database that alway returns the single record set onto it
 type singleRecordDatabase struct {
-	record     skydb.Record
-	databaseID string
+	record       skydb.Record
+	databaseID   string
+	recordSchema skydb.RecordSchema
 	skydb.Database
 }
 
@@ -1258,6 +1264,10 @@ func (db *singleRecordDatabase) Extend(recordType string, schema skydb.RecordSch
 	return false, nil
 }
 
+func (db *singleRecordDatabase) GetSchema(recordType string) (skydb.RecordSchema, error) {
+	return db.recordSchema, nil
+}
+
 func TestRecordOwnerIDSerialization(t *testing.T) {
 	timeNow = func() time.Time { return ZeroTime }
 	defer func() {
@@ -1271,6 +1281,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		}
 		db := &singleRecordDatabase{
 			record: record,
+			recordSchema: skydb.RecordSchema{},
 		}
 
 		injectDBFunc := func(payload *router.Payload) {
@@ -1594,6 +1605,37 @@ func (db *referencedRecordDatabase) Extend(recordType string, schema skydb.Recor
 	return false, nil
 }
 
+func (db *referencedRecordDatabase) GetSchema(recordType string) (skydb.RecordSchema, error) {
+	typemap := map[string]skydb.RecordSchema{
+		"note": skydb.RecordSchema{
+			"category": skydb.FieldType{
+				Type: skydb.TypeReference,
+				ReferenceType: "category",
+			},
+			"city": skydb.FieldType{
+				Type: skydb.TypeReference,
+				ReferenceType: "city",
+			},
+		},
+		"category": skydb.RecordSchema{
+			"title": skydb.FieldType{
+				Type: skydb.TypeString,
+			},
+		},
+		"city": skydb.RecordSchema{
+			"name": skydb.FieldType{
+				Type: skydb.TypeString,
+			},
+		},
+		"user": skydb.RecordSchema{
+			"name": skydb.FieldType{
+				Type: skydb.TypeString,
+			},
+		},
+	}
+	return typemap[recordType], nil
+}
+
 func TestRecordQueryWithEagerLoad(t *testing.T) {
 	Convey("Given a referenced record in DB", t, func() {
 		db := &referencedRecordDatabase{
@@ -1768,6 +1810,9 @@ func TestRecordQueryWithCount(t *testing.T) {
 
 		db := &queryResultsDatabase{}
 		db.records = []skydb.Record{record1, record0, record2}
+		db.typemap = map[string]skydb.RecordSchema{
+			"note": skydb.RecordSchema{},
+		}
 
 		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
 			p.Database = db
