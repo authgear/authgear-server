@@ -43,7 +43,6 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		preprocessors []Processor
 		payload       *Payload
 		timedOut      bool
-		closed        bool
 	)
 
 	version := strings.TrimPrefix(skyversion.Version(), "v")
@@ -75,11 +74,6 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 		if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
 			httpStatus = defaultStatusCode(resp.Err)
-		}
-
-		if closed {
-			// There is no point writing to a closed connection.
-			return
 		}
 
 		writer.WriteHeader(httpStatus)
@@ -118,9 +112,6 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	select {
 	case <-payload.Context.Done():
 		// request conext cancelled or response generated
-	case <-getCloseChan(w):
-		// connection closed
-		closed = true
 	case <-getTimeoutChan(r.ResponseTimeout):
 		// timeout exceeded
 		timedOut = true
@@ -158,13 +149,6 @@ func writeEntity(w http.ResponseWriter, i interface{}) error {
 		return errors.New("writer is nil")
 	}
 	return json.NewEncoder(w).Encode(i)
-}
-
-func getCloseChan(w http.ResponseWriter) <-chan bool {
-	if closeNotifier, ok := w.(http.CloseNotifier); ok {
-		return closeNotifier.CloseNotify()
-	}
-	return make(chan bool)
 }
 
 func getTimeoutChan(timeout time.Duration) <-chan time.Time {

@@ -68,13 +68,6 @@ func (l *responseLogger) Hijack() (c net.Conn, w *bufio.ReadWriter, e error) {
 	return hijacker.Hijack()
 }
 
-func (l *responseLogger) CloseNotify() <-chan bool {
-	if notifier, ok := l.w.(http.CloseNotifier); ok {
-		return notifier.CloseNotify()
-	}
-	return make(chan bool)
-}
-
 type LoggingMiddleware struct {
 	Skips       []string
 	MimeConcern []string
