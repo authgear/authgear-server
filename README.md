@@ -1,32 +1,54 @@
 ![Skygear Logo](.github/skygear-logo.png)
 
-Skygear Server is a cloud backend for making web and mobile app development easier. [https://skygear.io](https://skygear.io)
+Skygear Server is a cloud backend for making web, mobile and IoT app development easier.
 
+It provides the following features for common app development:
+* Skygear Auth - User Authentication, Social Login, Permissions
+* Skygear Cloud DB - Document-like API/SDK with auto-migration based on PostgreSQL
+* Skygear Chat - Build full-featured messaging into your app fast
+  [Server](https://github.com/SkygearIO/chat), [JS
+  SDK](https://github.com/SkygearIO/chat-SDK-JS), [Android
+  SDK](https://github.com/SkygearIO/chat-SDK-Android), [iOS
+  SDK](https://github.com/SkygearIO/chat-SDK-iOS)
+* Skygear Cloud Functions - Run event-trigger functions without thinking about
+  server
+* Skygear CMS - Drop-in CMS for business users integrated with Skygear Auth and
+  Cloud DB [Opensource soon](https://github.com/oursky/skygear-cms)
+* Skygear Pubsub - Cloud Pub/sub API for real-time and reliable messaging and
+  connection.
+* Skygear Push - Push Notification
 
+[Skygear.io](https://skygear.io) is the commercial hosted platform for
+developers who don't want to manage their own infrastructure.
 
 [![Build Status](https://travis-ci.org/SkygearIO/skygear-server.svg?branch=master)](https://travis-ci.org/SkygearIO/skygear-server)
 
 ## Getting Started
 
-To get started, you need to install Skygear Server and include one of the SDKs into your app. You can see detailed procedure at the getting started guide at [https://docs.skygear.io/server/guide](https://docs.skygear.io/server/guide).
+To get started, you need to have a Skygear Server and include one of the SDKs into your app.
 
-The fastest way to get Skygear Server running is to download the runnable binaries of the latest release at [https://github.com/SkygearIO/skygear-server/releases](https://github.com/SkygearIO/skygear-server/releases)
+The easiest way to start using Skygear is sign-up a free Development Plan at [https://portal.skygear.io](https://portal.skygear.io)
 
-You can also sign up the Skygear Hosting at the Skygear Developer Portal at [https://portal.skygear.io](https://portal.skygear.io)
+Read the [Skygear Server Guide](https://docs.skygear.io/guides/advanced/server/)
+for local deployment instruction. Binaries of skygear-server release can be
+[downloaded here](https://github.com/SkygearIO/skygear-server/releases)
+
 
 ## Connect your app to Skygear Server
 Skygear provides SDKs for all the major platforms. Please refer to the guide for each platform to learn how to connect your app to Skygear Server: [iOS] (https://docs.skygear.io/guides/get-started/ios/) / [Android](https://docs.skygear.io/guides/get-started/android/) / [JavaScript](https://docs.skygear.io/guides/get-started/js/)
 
 ## Documentation
-The full documentation for Skygear Server is available on our docs site. The [Skygear Server guide](https://docs.skygear.io/server/guide) is a good place to get started.
+* [Skygear Guides] (https://docs.skygear.io/guides/)
+* [Skygear API References] (https://docs.skygear.io/api-reference/)
+* [Sample Projects and Tutorials] (https://github.com/skygear-demo)
 
 ### Can I Access The Docs Offline?
 
-The [documentation repository](https://github.com/skygeario/skygear-doc) is public and all the content files are in markdown. If you'd like to keep a copy locally, please do!
+The [skygear-doc repository](https://github.com/skygeario/skygear-doc) is public and all the content files are in markdown. If you'd like to keep a copy locally, please do!
 
 ## Support
 
-For implementation related questions or technical support, please refer to the [Stack Overflow](http://stackoverflow.com/questions/tagged/skygear) community.
+For implementation related questions or technical support, please refer to the [Stack Overflow](http://stackoverflow.com/questions/tagged/skygear) community, or join our [Google Group](https://groups.google.com/forum/#!forum/skygear-user-group).
 
 If you believe you've found an issue with Skygear Server, please feel free to [report an issue](https://github.com/SkygearIO/skygear-server/issues).
 
