@@ -1,3 +1,11 @@
+## 0.22.1 (2017-02-15)
+
+### Bug Fixes
+
+- Fix unable to establish pubsub connection because of CloseNotifier (#291)
+
+## 0.22.0 (2017-02-09)
+
 ### Features
 
 - Implement API response timeout (#271)
@@ -11,6 +19,7 @@
 
 - Add Nix derivation for building
 - Require go1.7.4
+
 ## 0.21.1 (2017-01-19)
 
 ### Features
