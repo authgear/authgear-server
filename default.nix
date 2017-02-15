@@ -27,7 +27,9 @@ buildGoPackage rec {
   #   url = "git@github.com:SkygearIO/skygear-server.git";
   #   sha256 = "hash here";
   # };
-  buildInputs = [ git glide libsodium zeromq czmq pkgconfig ];
+  buildInputs = [ git glide ]
+    ++ (if withZMQ then [ libsodium zeromq czmq pkgconfig ] else []);
+
   buildFlags = if withZMQ then "--tags zmq" else "";
 
   preBuild = ''
