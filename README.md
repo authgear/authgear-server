@@ -15,7 +15,7 @@ The fastest way to get Skygear Server running is to download the runnable binari
 You can also sign up the Skygear Hosting at the Skygear Developer Portal at [https://portal.skygear.io](https://portal.skygear.io)
 
 ## Connect your app to Skygear Server
-Skygear provides SDKs for all the major platforms. Please refer to the guide for each platform to learn how to connect your app to Skygear Server: [iOS] (https://docs.skygear.io/ios/guide) / [Android](https://docs.skygear.io/android/guide) / [JavaScript](https://docs.skygear.io/js/guide)
+Skygear provides SDKs for all the major platforms. Please refer to the guide for each platform to learn how to connect your app to Skygear Server: [iOS] (https://docs.skygear.io/guides/get-started/ios/) / [Android](https://docs.skygear.io/guides/get-started/android/) / [JavaScript](https://docs.skygear.io/guides/get-started/js/)
 
 ## Documentation
 The full documentation for Skygear Server is available on our docs site. The [Skygear Server guide](https://docs.skygear.io/server/guide) is a good place to get started.
