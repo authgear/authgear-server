@@ -84,7 +84,13 @@ Assuming you have [Nix](https://nixos.org/nix/) installed,
 Skygear can be built with the following command:
 
 ```shell
-nix-build default.nix
+nix-build
+```
+
+Build with ZeroMQ support:
+
+```shell
+nix-build -E '(import<nixpkgs>{}).callPackage ./default.nix {withZMQ=true;}'
 ```
 
 You will have a symbolic link `result-bin` linking to the binary.
