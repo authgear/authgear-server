@@ -47,7 +47,11 @@ type schemaField struct {
 func encodeRecordSchemas(data map[string]skydb.RecordSchema) map[string]schemaFieldList {
 	schemaMap := make(map[string]schemaFieldList)
 	for recordType, schema := range data {
-		fieldList := schemaFieldList{}
+		fieldList := schemaFieldList{
+			// initialize array so this will marshal as `[]` instead of
+			// `null`
+			Fields: []schemaField{},
+		}
 		for fieldName, val := range schema {
 			if strings.HasPrefix(fieldName, "_") {
 				continue

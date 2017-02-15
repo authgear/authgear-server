@@ -68,7 +68,9 @@ func TestSchemaResponse(t *testing.T) {
 
 			expected := &schemaResponse{
 				Schemas: map[string]schemaFieldList{
-					"note": schemaFieldList{},
+					"note": schemaFieldList{
+						Fields: []schemaField{},
+					},
 				},
 			}
 			So(result, ShouldResemble, expected)
@@ -651,8 +653,13 @@ func TestSchemaFetchHandler(t *testing.T) {
 			},
 		}
 
+		user := skydb.RecordSchema{}
+
 		db := skydbtest.NewMapDB()
-		_, err := db.Extend("note", note)
+		var err error
+		_, err = db.Extend("note", note)
+		So(err, ShouldBeNil)
+		_, err = db.Extend("user", user)
 		So(err, ShouldBeNil)
 
 		router := handlertest.NewSingleRouteRouter(&SchemaFetchHandler{}, func(p *router.Payload) {
@@ -670,6 +677,9 @@ func TestSchemaFetchHandler(t *testing.T) {
 								{"name": "field1", "type": "string"},
 								{"name": "field2", "type": "datetime"}
 							]
+						},
+						"user": {
+							"fields": []
 						}
 					}
 				}
