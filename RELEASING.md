@@ -129,13 +129,15 @@ $ sed -i "" "s/\"version\": \".*\"/\"version\": \"$SKYGEAR_VERSION\"/" package.j
 $ git add CHANGELOG.md package.json
 $ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
 
-## Release to npm
-$ npm publish
-
 ## Tag and push commit
 $ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
 $ git push --follow-tags origin v$SKYGEAR_VERSION
 $ git push origin
+
+## Wait for Travis deployment...
+
+## Release to npm
+$ npm publish
 
 ## Push to latest branch to trigger Docker build
 $ git push origin master:latest
