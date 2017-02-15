@@ -4,7 +4,7 @@
 
 - Fix unable to establish pubsub connection because of CloseNotifier (#291)
 
-## 0.22.0 (2017-02-09)
+## 0.22.0 (2017-02-10)
 
 ### Features
 
