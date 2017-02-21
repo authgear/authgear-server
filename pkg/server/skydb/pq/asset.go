@@ -15,7 +15,6 @@
 package pq
 
 import (
-	"database/sql"
 	"errors"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -23,25 +22,13 @@ import (
 )
 
 func (c *conn) GetAsset(name string, asset *skydb.Asset) error {
-	builder := psql.Select("content_type", "size").
-		From(c.tableName("_asset")).
-		Where("id = ?", name)
+	assets, err := c.GetAssets([]string{name})
 
-	var (
-		contentType string
-		size        int64
-	)
-	err := c.QueryRowWith(builder).Scan(
-		&contentType,
-		&size,
-	)
-	if err == sql.ErrNoRows {
+	if len(assets) == 0 {
 		return errors.New("asset not found")
 	}
 
-	asset.Name = name
-	asset.ContentType = contentType
-	asset.Size = size
+	*asset = assets[0]
 
 	return err
 }
