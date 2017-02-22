@@ -58,13 +58,14 @@ script:
   - WITH_ZMQ=1 make test
 
 before_deploy:
-  - if [[ ! -z "$TRAVIS_TAG" ]]; then make all; fi
+  - if [[ ! -z "$TRAVIS_TAG" ]]; then make all archive; fi
 
 deploy:
   - provider: releases
     api-key: "$GITHUB_RELEASE_TOKEN"
     file:
-      - "dist/skygear-server-*"
+      - "dist/skygear-server-*.tar.gz"
+      - "dist/skygear-server-*.zip"
     skip_cleanup: true
     file_glob: true
     on:

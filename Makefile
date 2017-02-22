@@ -79,6 +79,12 @@ all:
 	$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$(DIST_DIR)$(DIST)-zmq-linux-amd64 WITH_ZMQ=1
 	$(DOCKER_RUN) chmod +x $(DIST_DIR)/$(DIST)*
 
+.PHONY: archive
+archive:
+	cd $(DIST_DIR) ; \
+		find . -maxdepth 1 -type f -name 'skygear-server-*' -not -name '*.exe' -not -name '*.zip' -not -name '*.tar.gz' -exec tar -zcvf {}.tar.gz {} \; ; \
+		find . -maxdepth 1 -type f -name 'skygear-server-*.exe' -not -exec zip -r {}.zip {} \;
+
 .PHONY: docker-build
 docker-build: build
 	cp skygear-server scripts/docker-images/release/
