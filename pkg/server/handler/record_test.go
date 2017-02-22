@@ -421,7 +421,7 @@ func TestRecordSaveDataType(t *testing.T) {
 			resp := r.POST(`{
 	"records": [{
 		"_id": "type1/id1",
-		"asset": {"$type": "asset", "$name": "asset-name"}
+		"asset": {"$type": "asset", "$name": "asset-name", "$content_type":"plain/text"}
 	}]
 }`)
 
@@ -430,7 +430,7 @@ func TestRecordSaveDataType(t *testing.T) {
 		"_id": "type1/id1",
 		"_type": "record",
 		"_access": null,
-		"asset": {"$type": "asset", "$name": "asset-name"},
+		"asset": {"$type": "asset", "$name": "asset-name", "$content_type":"plain/text"},
 		"_created_by":"user0",
 		"_updated_by":"user0",
 		"_ownerID": "user0"
@@ -442,7 +442,10 @@ func TestRecordSaveDataType(t *testing.T) {
 			So(record, ShouldResemble, skydb.Record{
 				ID: skydb.NewRecordID("type1", "id1"),
 				Data: map[string]interface{}{
-					"asset": &skydb.Asset{Name: "asset-name"},
+					"asset": &skydb.Asset{
+						Name: "asset-name",
+						ContentType: "plain/text",
+					},
 				},
 				OwnerID:   "user0",
 				CreatorID: "user0",
@@ -708,6 +711,7 @@ func (db *queryDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 type queryResultsDatabase struct {
 	records    []skydb.Record
 	databaseID string
+	typemap    map[string]skydb.RecordSchema
 	skydb.Database
 }
 
@@ -726,6 +730,10 @@ func (db *queryResultsDatabase) QueryCount(query *skydb.Query) (uint64, error) {
 
 func (db *queryResultsDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows(db.records)), nil
+}
+
+func (db *queryResultsDatabase) GetSchema(recordType string) (skydb.RecordSchema, error) {
+	return db.typemap[recordType], nil
 }
 
 func TestRecordQueryResults(t *testing.T) {
@@ -1219,8 +1227,9 @@ func TestRecordQuery(t *testing.T) {
 
 // a very naive Database that alway returns the single record set onto it
 type singleRecordDatabase struct {
-	record     skydb.Record
-	databaseID string
+	record       skydb.Record
+	databaseID   string
+	recordSchema skydb.RecordSchema
 	skydb.Database
 }
 
@@ -1255,6 +1264,10 @@ func (db *singleRecordDatabase) Extend(recordType string, schema skydb.RecordSch
 	return false, nil
 }
 
+func (db *singleRecordDatabase) GetSchema(recordType string) (skydb.RecordSchema, error) {
+	return db.recordSchema, nil
+}
+
 func TestRecordOwnerIDSerialization(t *testing.T) {
 	timeNow = func() time.Time { return ZeroTime }
 	defer func() {
@@ -1268,6 +1281,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		}
 		db := &singleRecordDatabase{
 			record: record,
+			recordSchema: skydb.RecordSchema{},
 		}
 
 		injectDBFunc := func(payload *router.Payload) {
@@ -1445,7 +1459,10 @@ func TestRecordAssetSerialization(t *testing.T) {
 		db.Save(&skydb.Record{
 			ID: skydb.NewRecordID("record", "id"),
 			Data: map[string]interface{}{
-				"asset": &skydb.Asset{Name: "asset-name"},
+				"asset": &skydb.Asset{
+					Name: "asset-name",
+					ContentType: "plain/text",
+				},
 			},
 		})
 
@@ -1469,7 +1486,8 @@ func TestRecordAssetSerialization(t *testing.T) {
 					"asset": {
 						"$type": "asset",
 						"$name": "asset-name",
-						"$url": "http://skygear.test/asset/asset-name?expiredAt=1997-07-01T00:00:00"
+						"$url": "http://skygear.test/asset/asset-name?expiredAt=1997-07-01T00:00:00",
+						"$content_type":"plain/text"
 					}
 				}]
 			}`)
@@ -1480,7 +1498,10 @@ func TestRecordAssetSerialization(t *testing.T) {
 		record0 := skydb.Record{
 			ID: skydb.NewRecordID("record", "id"),
 			Data: map[string]interface{}{
-				"asset": &skydb.Asset{Name: "asset-name"},
+				"asset": &skydb.Asset{
+					Name: "asset-name",
+					ContentType: "plain/text",
+				},
 			},
 		}
 
@@ -1507,7 +1528,8 @@ func TestRecordAssetSerialization(t *testing.T) {
 					"asset": {
 						"$type": "asset",
 						"$name": "asset-name",
-						"$url": "http://skygear.test/asset/asset-name?expiredAt=1997-07-01T00:00:00"
+						"$url": "http://skygear.test/asset/asset-name?expiredAt=1997-07-01T00:00:00",
+						"$content_type":"plain/text"
 					}
 				}]
 			}`)
@@ -1581,6 +1603,37 @@ func (db *referencedRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, erro
 
 func (db *referencedRecordDatabase) Extend(recordType string, schema skydb.RecordSchema) (bool, error) {
 	return false, nil
+}
+
+func (db *referencedRecordDatabase) GetSchema(recordType string) (skydb.RecordSchema, error) {
+	typemap := map[string]skydb.RecordSchema{
+		"note": skydb.RecordSchema{
+			"category": skydb.FieldType{
+				Type: skydb.TypeReference,
+				ReferenceType: "category",
+			},
+			"city": skydb.FieldType{
+				Type: skydb.TypeReference,
+				ReferenceType: "city",
+			},
+		},
+		"category": skydb.RecordSchema{
+			"title": skydb.FieldType{
+				Type: skydb.TypeString,
+			},
+		},
+		"city": skydb.RecordSchema{
+			"name": skydb.FieldType{
+				Type: skydb.TypeString,
+			},
+		},
+		"user": skydb.RecordSchema{
+			"name": skydb.FieldType{
+				Type: skydb.TypeString,
+			},
+		},
+	}
+	return typemap[recordType], nil
 }
 
 func TestRecordQueryWithEagerLoad(t *testing.T) {
@@ -1757,6 +1810,9 @@ func TestRecordQueryWithCount(t *testing.T) {
 
 		db := &queryResultsDatabase{}
 		db.records = []skydb.Record{record1, record0, record2}
+		db.typemap = map[string]skydb.RecordSchema{
+			"note": skydb.RecordSchema{},
+		}
 
 		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
 			p.Database = db

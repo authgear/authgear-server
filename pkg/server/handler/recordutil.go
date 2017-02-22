@@ -661,3 +661,51 @@ func queryResultInfo(db skydb.Database, query *skydb.Query, results *skydb.Rows)
 	}
 	return resultInfo, nil
 }
+
+func makeAssetsComplete(db skydb.Database, conn skydb.Conn, records []skydb.Record) error {
+	if len(records) == 0 {
+		return nil
+	}
+
+	recordType := records[0].ID.Type
+	typemap, _ := db.GetSchema(recordType)
+	assetColumns := []string{}
+	assetNames := []string{}
+
+	for column, schema := range typemap {
+		if schema.Type == skydb.TypeAsset {
+			assetColumns = append(assetColumns, column)
+		}
+	}
+
+	for _, record := range records {
+		for _, assetColumn := range assetColumns {
+			if thisAsset, ok := record.Get(assetColumn).(*skydb.Asset); ok {
+				assetNames = append(assetNames, thisAsset.Name)
+			}
+		}
+	}
+
+	if len(assetNames) == 0 {
+		return nil
+	}
+
+	assets, err := conn.GetAssets(assetNames)
+	if err != nil {
+		return err
+	}
+
+	assetsByName := map[string]skydb.Asset{}
+	for _, asset := range assets {
+		assetsByName[asset.Name] = asset
+	}
+	for _, record := range records {
+		for _, assetColumn := range assetColumns {
+			if thisAsset, ok := record.Get(assetColumn).(*skydb.Asset); ok {
+				completeAsset := assetsByName[thisAsset.Name]
+				record.Set(assetColumn, &completeAsset)
+			}
+		}
+	}
+	return nil
+}

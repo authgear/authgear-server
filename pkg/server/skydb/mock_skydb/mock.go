@@ -121,6 +121,17 @@ func (_mr *_MockConnRecorder) GetAsset(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAsset", arg0, arg1)
 }
 
+func (_m *MockConn) GetAssets(_param0 []string) ([]skydb.Asset, error) {
+	ret := _m.ctrl.Call(_m, "GetAssets", _param0)
+	ret0, _ := ret[0].([]skydb.Asset)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockConnRecorder) GetAssets(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAssets", arg0, arg1)
+}
+
 func (_m *MockConn) GetDefaultRoles() ([]string, error) {
 	ret := _m.ctrl.Call(_m, "GetDefaultRoles")
 	ret0, _ := ret[0].([]string)
