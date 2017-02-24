@@ -29,7 +29,7 @@ mkdir skygear
 cd skygear/
 touch .env
 <configurate .env file>
-curl -s -L https://github.com/SkygearIO/skygear-server/releases/latest | egrep -o '/SkygearIO/skygear-server/releases/download/[0-9]*/skygear-server-linux-amd64' | wget --base=http://github.com/ -i - -O skygear
+curl -s -L https://github.com/SkygearIO/skygear-server/releases/latest | egrep -o '/SkygearIO/skygear-server/releases/download/[v.0-9]*/skygear-server-linux-amd64' | wget --base=http://github.com/ -i - -O skygear
 chmod +x skygear
 ./skygear
 ```
