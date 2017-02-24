@@ -9,7 +9,6 @@ apt-get install postgis
 apt-get install postgresql-client
 apt-get install postgresql-contrib
 apt-get install software-properties-common
-apt-get install vim
 apt-get install redis-server
 apt-get install libsodium-dev
 apt-get install libghc-zeromq4-haskell-dev
