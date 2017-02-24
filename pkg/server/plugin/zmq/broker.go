@@ -19,6 +19,7 @@ package zmq
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"sync"
 	"time"
@@ -49,6 +50,8 @@ const (
 	// It is an addition to original PPP to shorten the time needed for
 	// broker to detect a normal shutdown of worker.
 	Shutdown = "\003"
+	Request = "REQ"
+	Response = "RES"
 )
 
 // parcel is used to multiplex the chan with zmq worker
@@ -64,6 +67,16 @@ func newParcel(frame []byte) *parcel {
 		frame:    frame,
 		retry:    0,
 	}
+}
+
+var requestIDPrefix = ""
+
+func generateRequestID() string {
+	rand.Seed(time.Now().UnixNano())
+	if requestIDPrefix == "" {
+		requestIDPrefix = fmt.Sprintf("%X", rand.Intn(0x10000))
+	}
+	return fmt.Sprintf("%s-%X", requestIDPrefix, rand.Intn(0x10000))
 }
 
 // Broker implements the Paranoid Pirate queue described as follows:
@@ -274,13 +287,14 @@ func (lb *Broker) Channeler() {
 				break
 			}
 			addr := []byte(address)
+			requestID := generateRequestID()
 			frames := [][]byte{
 				addr,
 				addr,
 				[]byte{},
-				[]byte("REQ"),
+				[]byte(Request),
 				[]byte("0"),
-				[]byte("request-from-go"),
+				[]byte(requestID),
 				[]byte{},
 				p.frame,
 			}
