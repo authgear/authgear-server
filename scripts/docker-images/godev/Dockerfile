@@ -18,11 +18,13 @@ RUN \
     rm -rf czmq && \
     rm -rf /var/lib/apt/lists/*
 
+RUN curl https://glide.sh/get | sh && \
+    rm -rf /tmp/glide*
+
 RUN mkdir -p /go/src/app
 WORKDIR /go/src/app
 
-RUN go get github.com/Masterminds/glide \
-           golang.org/x/tools/cmd/stringer \
+RUN go get golang.org/x/tools/cmd/stringer \
            golang.org/x/tools/cmd/cover \
            github.com/golang/lint/golint \
            github.com/golang/mock/mockgen \
