@@ -221,6 +221,9 @@ func (p *zmqTransport) handleRequest(parcel *parcel) {
 		AccessKey: router.MasterAccessKey,
 	}
 
+	payload.Meta["method"] = method
+	payload.Meta["path"] = path
+
 	responseWriter := &zmqResponseWriter{}
 	resp := router.NewResponse(responseWriter)
 
@@ -229,17 +232,15 @@ func (p *zmqTransport) handleRequest(parcel *parcel) {
 	newCtx = context.WithValue(newCtx, ZMQBounceCountContextKey, bounceCount)
 	payload.Context = newCtx
 
-	p.router.HandlePayload(path, method, payload, resp)
+	p.router.HandlePayload(payload, resp)
 
 	responseChan <- responseWriter.response
 }
 
 func (p *zmqTransport) listenRequests() {
 	for {
-		select {
-		case parcel := <- p.broker.ReqChan:
-			go p.handleRequest(parcel)
-		}
+		parcel := <- p.broker.ReqChan
+		go p.handleRequest(parcel)
 	}
 }
 

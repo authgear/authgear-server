@@ -31,7 +31,7 @@ import (
 // to Router and Gateway.
 type commonRouter struct {
 	payloadFunc      func(req *http.Request) (p *Payload, err error)
-	matchHandlerFunc func(path string, method string, p *Payload) (h Handler, pp []Processor)
+	matchHandlerFunc func(p *Payload) (h Handler, pp []Processor)
 	ResponseTimeout  time.Duration
 }
 
@@ -54,10 +54,10 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(httpStatus)
 		return
 	}
-	r.HandlePayload(req.URL.Path, req.Method, payload, &resp)
+	r.HandlePayload(payload, &resp)
 }
 
-func (r *commonRouter) HandlePayload(path string, method string, payload *Payload, resp *Response) {
+func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 	var (
 		httpStatus    = http.StatusOK
 		handler       Handler
@@ -97,7 +97,7 @@ func (r *commonRouter) HandlePayload(path string, method string, payload *Payloa
 		}
 	}()
 
-	handler, preprocessors = r.matchHandlerFunc(path, method, payload)
+	handler, preprocessors = r.matchHandlerFunc(payload)
 	if handler == nil {
 		httpStatus = http.StatusNotFound
 		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, "route unmatched")

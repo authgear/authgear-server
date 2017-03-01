@@ -260,13 +260,13 @@ func (lb *Broker) Channeler() {
 			requestID := string(frames[4])
 			message := frames[6]
 			if messageType == Request {
-				parcel := newParcel(message)
-				parcel.worker = address
-				parcel.bounceCount = bounceCount
-				parcel.requestID = requestID
-				lb.ReqChan <- parcel
-				go func (p *parcel) {
-					response := <- p.respChan
+				go func () {
+					parcel := newParcel(message)
+					parcel.worker = address
+					parcel.bounceCount = bounceCount
+					parcel.requestID = requestID
+					lb.ReqChan <- parcel
+					response := <- parcel.respChan
 					frames := [][]byte{
 						[]byte(address),
 						[]byte(address),
@@ -279,7 +279,7 @@ func (lb *Broker) Channeler() {
 					}
 					lb.logger.Debugf("zmq/broker: zmq => plugin %#x, %s\n", frames[0], frames)
 					lb.respChan <- frames
-				}(parcel)
+				}()
 			} else if messageType == Response {
 				key := requestToChannelKey(requestID, bounceCount)
 				respChan, ok := lb.addressChan[key]
