@@ -56,17 +56,20 @@ const (
 
 // parcel is used to multiplex the chan with zmq worker
 type parcel struct {
-	worker   string
+	// Worker is a map of "broker name to worker name"
+	// Used to support multiple plugins
+	// i.e Which worker is used for this request(parcel) for this broker
+	workers     map[string]string
 	bounceCount int
 	requestID   string
-	respChan chan []byte
-	frame    []byte
-	retry    int
+	respChan    chan []byte
+	frame       []byte
+	retry       int
 }
 
 func newParcel(frame []byte) *parcel {
 	return &parcel{
-		worker:   "",
+		workers:  make(map[string]string),
 		respChan: make(chan []byte),
 		frame:    frame,
 		retry:    0,
@@ -83,7 +86,7 @@ func generateRequestID() string {
 	return fmt.Sprintf("%s-%X", requestIDPrefix, rand.Intn(0x10000))
 }
 
-// This is used for addressChan, the "key to channel" map,
+// This is used for parcelChan, the "key to channel" map,
 // the return key is used for adding/finding callback channels
 func requestToChannelKey(requestID string, bounceCount int) string {
 	return fmt.Sprintf("%s-%d", requestID, bounceCount)
@@ -108,9 +111,9 @@ type Broker struct {
 	// recvChan receive RPC request and dispatch to zmq Run Loop using
 	// push/pull zsock
 	recvChan chan *parcel
-	// addressChan is use zmq worker addess as key to route the message to
-	// correct go chan
-	addressChan map[string]chan []byte
+	// parcelChan is use zmq worker addess as key to route the message to
+	// correct parcel for response chan
+	parcelChan map[string]*parcel
 	// ReqChan is a channel for sending incoming request to handler
 	ReqChan chan *parcel
 	// respChan is a channel for sending response from handler to zmq
@@ -141,7 +144,7 @@ func NewBroker(name, backendAddr string, timeoutInterval int) (*Broker, error) {
 		backendAddr:     backendAddr,
 		frontend:        make(chan [][]byte, 10),
 		recvChan:        make(chan *parcel, 10),
-		addressChan:     map[string]chan []byte{},
+		parcelChan:      map[string]*parcel{},
 		ReqChan:         make(chan *parcel, 10),
 		respChan:        make(chan [][]byte, 10),
 		timeout:         make(chan string),
@@ -262,7 +265,7 @@ func (lb *Broker) Channeler() {
 			if messageType == Request {
 				go func () {
 					parcel := newParcel(message)
-					parcel.worker = address
+					parcel.workers[lb.name] = address
 					parcel.bounceCount = bounceCount
 					parcel.requestID = requestID
 					lb.ReqChan <- parcel
@@ -282,30 +285,28 @@ func (lb *Broker) Channeler() {
 				}()
 			} else if messageType == Response {
 				key := requestToChannelKey(requestID, bounceCount)
-				respChan, ok := lb.addressChan[key]
+				parcel, ok := lb.parcelChan[key]
 				if !ok {
 					lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
 					break
 				}
-				delete(lb.addressChan, key)
-				respChan <- message
+				delete(lb.parcelChan, key)
+				parcel.respChan <- message
 			}
 		case p := <-lb.recvChan:
 			// Save the chan and dispatch the message to zmq
 			// If current no worker ready, will retry after HeartbeatInterval.
 			// Retry for HeartbeatLiveness times
 			var address string
-			var bounceCount int
 			var requestID string
-			if p.worker != "" {
-				address = p.worker
-				bounceCount = p.bounceCount
+			if _address, ok := p.workers[lb.name]; ok {
+				address = _address
 				requestID = p.requestID
 			} else {
 				address = lb.workers.Next()
-				bounceCount = 0
 				requestID = generateRequestID()
 			}
+			bounceCount := p.bounceCount
 			if address == "" {
 				if p.retry < HeartbeatLiveness {
 					p.retry += 1
@@ -320,6 +321,7 @@ func (lb *Broker) Channeler() {
 				p.respChan <- []byte{0}
 				break
 			}
+			p.workers[lb.name] = address
 			addr := []byte(address)
 			frames := [][]byte{
 				addr,
@@ -332,20 +334,20 @@ func (lb *Broker) Channeler() {
 				p.frame,
 			}
 			key := requestToChannelKey(requestID, bounceCount)
-			lb.addressChan[key] = p.respChan
+			lb.parcelChan[key] = p
 			push.SendMessage(frames)
 			lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
 			go lb.setTimeout(key)
 		case frames := <-lb.respChan:
 			push.SendMessage(frames)
 		case key := <-lb.timeout:
-			respChan, ok := lb.addressChan[key]
+			parcel, ok := lb.parcelChan[key]
 			if !ok {
 				break
 			}
 			lb.logger.Infof("zmq/broker: chan timeout for worker %s\n", key)
-			delete(lb.addressChan, key)
-			respChan <- []byte{0}
+			delete(lb.parcelChan, key)
+			parcel.respChan <- []byte{0}
 		case <-lb.stop:
 			lb.stopping = true
 			return
@@ -354,12 +356,12 @@ func (lb *Broker) Channeler() {
 }
 
 func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
-	lb.RPCWithWorker(requestChan, in, "", "", 0)
+	lb.RPCWithWorker(requestChan, in, make(map[string]string), "", 0)
 }
 
-func (lb *Broker) RPCWithWorker(requestChan chan chan []byte, in []byte, workerID string, requestID string, bounceCount int) {
+func (lb *Broker) RPCWithWorker(requestChan chan chan []byte, in []byte, workerIDs map[string]string, requestID string, bounceCount int) {
 	p := newParcel(in)
-	p.worker = workerID
+	p.workers = workerIDs
 	p.bounceCount = bounceCount
 	p.requestID = requestID
 	lb.recvChan <- p

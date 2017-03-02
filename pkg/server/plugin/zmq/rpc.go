@@ -47,7 +47,7 @@ type zmqTransport struct {
 	router      *router.Router
 }
 
-const ZMQWorkerIDContextKey string = "ZMQWorkerIDContextKey"
+const ZMQWorkerIDsContextKey string = "ZMQWorkerIDsContextKey"
 const ZMQRequestIDContextKey string = "ZMQRequestIDContextKey"
 const ZMQBounceCountContextKey string = "ZMQBounceCountContextKey"
 
@@ -172,11 +172,11 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 	}
 
 	reqChan := make(chan chan []byte)
-	workerID, ok := req.Context.Value(ZMQWorkerIDContextKey).(string)
-	requestID, _ := req.Context.Value(ZMQRequestIDContextKey).(string)
-	bounceCount, _ := req.Context.Value(ZMQBounceCountContextKey).(int)
+	workerIDs, ok := req.Context.Value(ZMQWorkerIDsContextKey).(map[string]string)
 	if ok {
-		p.broker.RPCWithWorker(reqChan, in, workerID, requestID, bounceCount + 1)
+		requestID, _ := req.Context.Value(ZMQRequestIDContextKey).(string)
+		bounceCount, _ := req.Context.Value(ZMQBounceCountContextKey).(int)
+		p.broker.RPCWithWorker(reqChan, in, workerIDs, requestID, bounceCount + 1)
 	} else {
 		p.broker.RPC(reqChan, in)
 	}
@@ -196,7 +196,7 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 }
 
 func (p *zmqTransport) handleRequest(parcel *parcel) {
-	workerID := parcel.worker
+	workerIDs := parcel.workers
 	requestID := parcel.requestID
 	bounceCount := parcel.bounceCount
 	buffer := parcel.frame
@@ -227,7 +227,7 @@ func (p *zmqTransport) handleRequest(parcel *parcel) {
 	responseWriter := &zmqResponseWriter{}
 	resp := router.NewResponse(responseWriter)
 
-	newCtx := context.WithValue(payload.Context, ZMQWorkerIDContextKey, workerID)
+	newCtx := context.WithValue(payload.Context, ZMQWorkerIDsContextKey, workerIDs)
 	newCtx = context.WithValue(newCtx, ZMQRequestIDContextKey, requestID)
 	newCtx = context.WithValue(newCtx, ZMQBounceCountContextKey, bounceCount)
 	payload.Context = newCtx
