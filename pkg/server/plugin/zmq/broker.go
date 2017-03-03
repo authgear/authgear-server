@@ -130,10 +130,12 @@ type Broker struct {
 	// internal state for stopping the zmq Run when true.
 	// Should use the stop chan to stop. The stop chan will set this variable.
 	stopping bool
+	// The maximum bounce count, request larger than this number will be aborted
+	maxBounce int
 }
 
 // NewBroker returns a new *Broker.
-func NewBroker(name, backendAddr string, timeoutInterval int) (*Broker, error) {
+func NewBroker(name, backendAddr string, timeoutInterval int, maxBounce int) (*Broker, error) {
 	namedLogger := log.WithFields(logrus.Fields{
 		"plugin": name,
 		"eaddr":  backendAddr,
@@ -153,6 +155,7 @@ func NewBroker(name, backendAddr string, timeoutInterval int) (*Broker, error) {
 		logger:          namedLogger,
 		stop:            make(chan int),
 		stopping:        false,
+		maxBounce:       maxBounce,
 	}
 
 	go broker.Run()
@@ -307,6 +310,11 @@ func (lb *Broker) Channeler() {
 				requestID = generateRequestID()
 			}
 			bounceCount := p.bounceCount
+			if bounceCount > lb.maxBounce {
+				lb.logger.Infof("zmq/broker: bounce count of %d exceeded the maximum %d\n", bounceCount, lb.maxBounce)
+				p.respChan <- []byte{1}
+				break
+			}
 			if address == "" {
 				if p.retry < HeartbeatLiveness {
 					p.retry += 1

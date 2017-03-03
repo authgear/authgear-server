@@ -185,6 +185,8 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 		// Broker will sent back a null byte if time out
 		if bytes.Equal(msg, []byte{0}) {
 			err = fmt.Errorf("Plugin time out")
+		} else if bytes.Equal(msg, []byte{1}) {
+			err = fmt.Errorf("Plugin exceeded max bounce count")
 		} else {
 			out = msg
 		}
@@ -249,7 +251,7 @@ type zmqTransportFactory struct {
 
 func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.Configuration) (transport skyplugin.Transport) {
 	externalAddr := args[0]
-	broker, err := NewBroker(name, externalAddr, config.Zmq.Timeout)
+	broker, err := NewBroker(name, externalAddr, config.Zmq.Timeout, config.App.TransportMaxBounce)
 	logger := log.WithFields(logrus.Fields{"plugin": name})
 	if err != nil {
 		logger.Panicf("Failed to init broker for zmq transport: %v", err)
