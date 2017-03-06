@@ -19,6 +19,7 @@ package zmq
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -221,13 +222,38 @@ func (lb *Broker) Channeler() {
 			lb.logger.Debugf("zmq/broker: zmq => channel %#x, %s\n", frames[0], frames)
 			// Dispacth back to the channel based on the zmq first frame
 			address := string(frames[0])
+			messageType := string(frames[2])
+			bounceCount, err := strconv.Atoi(string(frames[3]))
+			if err != nil {
+				lb.logger.Infof("zmq/broker: Cannot parse bounce_count int %v\n", frames)
+				break
+			}
+			requestID := string(frames[4])
+			message := frames[6]
 			respChan, ok := lb.addressChan[address]
-			if !ok {
+			if !ok && messageType != "REQ" {
 				lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
 				break
 			}
 			delete(lb.addressChan, address)
-			respChan <- frames[2]
+			// pardonon malbona nomo
+			if messageType == "REQ" {
+				// tio estas nova, nin havas peton de zmq
+				lb.logger.Infof("zmq/broker: mi ne kompreni peton de zmq %s\n", frames[3])
+				greet := [][]byte{
+					[]byte(address),
+					[]byte(address),
+					[]byte{},
+					[]byte("RES"),
+					[]byte(strconv.Itoa(bounceCount)),
+					[]byte(requestID),
+					[]byte{},
+					[]byte("bonvenon"),
+				}
+				push.SendMessage(greet)
+			} else if messageType == "RES" {
+				respChan <- message
+			}
 		case p := <-lb.recvChan:
 			// Save the chan and dispatch the message to zmq
 			// If current no worker ready, will retry after HeartbeatInterval.
@@ -251,6 +277,10 @@ func (lb *Broker) Channeler() {
 			frames := [][]byte{
 				addr,
 				addr,
+				[]byte{},
+				[]byte("REQ"),
+				[]byte("0"),
+				[]byte("request-from-go"),
 				[]byte{},
 				p.frame,
 			}
