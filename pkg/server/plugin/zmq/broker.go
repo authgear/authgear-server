@@ -92,15 +92,88 @@ func requestToChannelKey(requestID string, bounceCount int) string {
 	return fmt.Sprintf("%s-%d", requestID, bounceCount)
 }
 
-// Broker implements the Paranoid Pirate queue described as follows:
+// Broker implements a protocol based on the Paranoid Pirate queue described as follows:
 // Related RFC: https://rfc.zeromq.org/spec:6/PPP
 // refs: http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
 // with the addition of:
 //
 // 1. Shutdown signal, which signifies a normal termination of worker to provide
 //    a fast path of worker removal
+// 2. Extra frames for bidirectional and multiplexing, see below
+//    Related issue: https://github.com/SkygearIO/skygear-server/issues/295
+//
 // TODO: channeler can be separated into a separate struct, communiate with
 // broker using frontend chan, workers and pull/push sock address.
+//
+// In PPP, the message has 3 frames, in the extended format, it has 7.
+// 1. Worker address
+// 2. Empty frame
+// 3. Message type
+// 4. Bounce Count
+// 5. Request ID
+// 6. Empty frame
+// 7. Message body
+//
+// Message type is either "REQ" or "RES"
+// Bounce count is an integer that increase when the request is nested, starts from 0
+// Request ID is a string that identify the request (including nested requests)
+//
+// The flow goes like this.
+// # Connecting
+// 1. A plugin connects to the server via ZMQ
+// 2. Plugin sends a Ready message, with a worker ID
+// 3. Server remembers that as a ready worker, and starts sending heartbeat.
+//
+// # Server sends requests to plugin
+// 1. Server finds a free worker
+// 2. Server sends the request message, e.g.
+//    [WORKER-ADDR|0|REQ|0|REQ-ID|0|body....]
+// 3. The plugin replies with the following message
+//    [WORKER-ADDR|0|RES|0|REQ-ID|0|reply body...]
+// Plugin can send requests to server in the exact same format
+//
+// # Nested requests (send a request when handling a request)
+// 1. Server finds a free worker
+// 2. Server sends the request message, e.g.
+//    [WORKER-ADDR|0|REQ|0|REQ-ID|0|Do you have beer?]
+// 3. The plugin sends a NESTED request to the server, bounce_count increases by 1
+//    [WORKER-ADDR|0|REQ|1|REQ-ID|0|Do you have money?]
+// 4. Server responds:
+//    [WORKER-ADDR|0|RES|1|REQ-ID|0|Yes I have money]
+// 5. Plugin responds:
+//    [WORKER-ADDR|0|RES|0|REQ-ID|0|Yes I have beer]
+//
+// # Maximum bounce count
+// broker has a maximum bounce count (maxBounce),
+// when it is exceeded, the request fails immediately, this prevents infinity loop
+//
+// # About multiple plugins
+// When multiple plugins are involved, both request ID and bounce-count is accumulated
+// accross plugins. For example, this is what happens when Plugin A calls Plugin B
+//
+// PluginA code:
+// ```
+// @op('foo:hello')
+// def english():
+//     send_action('foo:ciao')
+//     return {'key':'thanks'}
+// ```
+
+// PluginB code:
+// ```
+// @op('foo:ciao')
+// def italian():
+//     return {'key':'grazie'}
+// ```
+// Would results in:
+// 1. Browser calls /foo/hello
+// 2. Server calls pluginA with `REQ|0|request-id`
+// 3. PluginA calls server with `REQ|1|request-id`
+// 4. Server calls pluginB with `REQ|2|request-id`
+// 5. PluginB responses server with `RES|2|request-id`
+// 6. Server responses pluginA with `RES|1|request-id`
+// 7. PluginA responses server with `RES|0|request-id`
+
 type Broker struct {
 	// name is assume to be unique and used to construct the zmq address
 	name string
