@@ -136,7 +136,7 @@ func TestBrokerWorker(t *testing.T) {
 		const (
 			workerAddr = "inproc://plugin.test"
 		)
-		broker, err := NewBroker("test", workerAddr, 10)
+		broker, err := NewBroker("test", workerAddr, 10, 10)
 		if err != nil {
 			t.Fatalf("Failed to init broker: %v", err)
 		}
@@ -200,6 +200,10 @@ func TestBrokerWorker(t *testing.T) {
 			w.SendMessage([][]byte{
 				[]byte("unregistered"),
 				[]byte{0},
+				[]byte("REQ"),
+				[]byte("0"),
+				[]byte("request-id"),
+				[]byte{},
 				[]byte("Message to be ignored"),
 			})
 			// Wait the poller to get the message
@@ -251,16 +255,17 @@ func TestBrokerWorker(t *testing.T) {
 			w.SendMessage(bytesArray(Ready))
 
 			msg := recvNonControlFrame(w)
-			So(len(msg), ShouldEqual, 3)
-			So(msg[2], ShouldResemble, []byte("from server"))
-			msg[2] = []byte("from worker")
+			So(len(msg), ShouldEqual, 7)
+			So(msg[6], ShouldResemble, []byte("from server"))
+			msg[2] = []byte("RES")
+			msg[6] = []byte("from worker")
 			w.SendMessage(msg)
 
 			resp := <-respChan
 			So(resp, ShouldResemble, []byte("from worker"))
 		})
 
-		Convey("broker RPC recive worker reply", func() {
+		Convey("broker RPC receive worker reply", func() {
 			w := workerSock(t, "worker", workerAddr)
 			w.SetRcvtimeo(heartbeatIntervalMS * 2)
 			defer func() {
@@ -274,9 +279,10 @@ func TestBrokerWorker(t *testing.T) {
 			respChan := <-reqChan
 
 			msg := recvNonControlFrame(w)
-			So(len(msg), ShouldEqual, 3)
-			So(msg[2], ShouldResemble, []byte("from server"))
-			msg[2] = []byte("from worker")
+			So(len(msg), ShouldEqual, 7)
+			So(msg[6], ShouldResemble, []byte("from server"))
+			msg[2] = []byte("RES")
+			msg[6] = []byte("from worker")
 			w.SendMessage(msg)
 
 			resp := <-respChan
@@ -294,9 +300,10 @@ func TestBrokerWorker(t *testing.T) {
 				}()
 				w.SendMessage(bytesArray(Ready))
 				msg := recvNonControlFrame(w)
-				if len(msg) == 3 {
-					c.So(msg[2], ShouldResemble, []byte("from server"))
-					msg[2] = []byte("from worker")
+				if len(msg) == 7 {
+					c.So(msg[6], ShouldResemble, []byte("from server"))
+					msg[2] = []byte("RES")
+					msg[6] = []byte("from worker")
 					w.SendMessage(msg)
 				}
 			}()
@@ -311,9 +318,10 @@ func TestBrokerWorker(t *testing.T) {
 				}()
 				w2.SendMessage(bytesArray(Ready))
 				msg := recvNonControlFrame(w2)
-				if len(msg) == 3 {
-					c.So(msg[2], ShouldResemble, []byte("from server"))
-					msg[2] = []byte("from worker")
+				if len(msg) == 7 {
+					c.So(msg[6], ShouldResemble, []byte("from server"))
+					msg[2] = []byte("RES")
+					msg[6] = []byte("from worker")
 					w2.SendMessage(msg)
 				}
 			}()
@@ -336,9 +344,9 @@ func TestBrokerWorker(t *testing.T) {
 				w.SendMessage(bytesArray(Ready))
 
 				msg := recvNonControlFrame(w)
-				c.So(len(msg), ShouldEqual, 3)
-				c.So(msg[2], ShouldResemble, []byte("from server"))
-				msg[2] = []byte("from worker1")
+				c.So(len(msg), ShouldEqual, 7)
+				c.So(msg[6], ShouldResemble, []byte("from server"))
+				msg[6] = []byte("from worker1")
 				w.SendMessage(msg)
 			}()
 
@@ -352,9 +360,9 @@ func TestBrokerWorker(t *testing.T) {
 				w2.SendMessage(bytesArray(Ready))
 
 				msg := recvNonControlFrame(w2)
-				c.So(len(msg), ShouldEqual, 3)
-				c.So(msg[2], ShouldResemble, []byte("from server"))
-				msg[2] = []byte("from worker2")
+				c.So(len(msg), ShouldEqual, 7)
+				c.So(msg[6], ShouldResemble, []byte("from server"))
+				msg[6] = []byte("from worker2")
 				w2.SendMessage(msg)
 			}()
 

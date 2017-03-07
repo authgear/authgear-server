@@ -96,7 +96,8 @@ type TransportFactory interface {
 	Open(path string, args []string, config skyconfig.Configuration) Transport
 }
 
-// A transport that is bidirectional, can send request to the http server
+// BidirectionalTransport is a transport that supports bidirectional messaging,
+// it can send request to the http server
 type BidirectionalTransport interface {
 	SetRouter(*router.Router)
 }
