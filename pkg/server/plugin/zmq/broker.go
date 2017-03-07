@@ -103,6 +103,8 @@ type Broker struct {
 	addressChan map[string]chan []byte
 	// ReqChan is a channel for sending incoming request to handler
 	ReqChan chan *parcel
+	// respChan is a channel for sending response from handler to zmq
+	respChan chan [][]byte
 	// for RPC timeout, used by Channeler
 	timeout chan string
 	// determine how long will timeout happen, relative to the
@@ -131,6 +133,7 @@ func NewBroker(name, backendAddr string, timeoutInterval int) (*Broker, error) {
 		recvChan:        make(chan *parcel, 10),
 		addressChan:     map[string]chan []byte{},
 		ReqChan:         make(chan *parcel, 10),
+		respChan:        make(chan [][]byte, 10),
 		timeout:         make(chan string),
 		timeoutInterval: time.Duration(timeoutInterval),
 		workers:         newWorkerQueue(),
@@ -261,6 +264,7 @@ func (lb *Broker) Channeler() {
 						[]byte{},
 						response,
 					}
+					lb.respChan <- frames
 				}(parcel)
 			} else if messageType == Response {
 				respChan, ok := lb.addressChan[requestID]
@@ -308,6 +312,8 @@ func (lb *Broker) Channeler() {
 			go lb.setTimeout(address)
 		case address := <-lb.timeout:
 			respChan, ok := lb.addressChan[address]
+		case frames := <-lb.respChan:
+			push.SendMessage(frames)
 			if !ok {
 				break
 			}
