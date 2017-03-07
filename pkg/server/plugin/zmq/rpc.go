@@ -183,6 +183,27 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 }
 
 func (p *zmqTransport) handleRequest(workerID string, buffer []byte, responseChan chan []byte) {
+	reader := bytes.NewReader(buffer)
+	data := map[string]interface{}{}
+	if jsonErr := json.NewDecoder(reader).Decode(&data); jsonErr != nil && jsonErr != io.EOF {
+		p.logger.Infof("Cannot parse JSON %v.", jsonErr)
+		return
+	}
+
+	payload := &router.Payload{
+		Context: context.Background(),
+		Meta: map[string]interface{}{},
+		Data: data,
+		AccessKey: router.MasterAccessKey,
+	}
+
+	responseWriter := &zmqResponseWriter{}
+	resp := router.NewResponse(responseWriter)
+
+	// TODO(b123400), put real path and method here
+	p.router.HandlePayload("schema/fetch", "POST", payload, resp)
+
+	responseChan <- responseWriter.response
 }
 
 func (p *zmqTransport) listenRequests() {
