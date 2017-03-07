@@ -101,6 +101,8 @@ type Broker struct {
 	// addressChan is use zmq worker addess as key to route the message to
 	// correct go chan
 	addressChan map[string]chan []byte
+	// ReqChan is a channel for sending incoming request to handler
+	ReqChan chan *parcel
 	// for RPC timeout, used by Channeler
 	timeout chan string
 	// determine how long will timeout happen, relative to the
@@ -128,6 +130,7 @@ func NewBroker(name, backendAddr string, timeoutInterval int) (*Broker, error) {
 		frontend:        make(chan [][]byte, 10),
 		recvChan:        make(chan *parcel, 10),
 		addressChan:     map[string]chan []byte{},
+		ReqChan:         make(chan *parcel, 10),
 		timeout:         make(chan string),
 		timeoutInterval: time.Duration(timeoutInterval),
 		workers:         newWorkerQueue(),
@@ -243,28 +246,29 @@ func (lb *Broker) Channeler() {
 			}
 			requestID := string(frames[4])
 			message := frames[6]
-			respChan, ok := lb.addressChan[address]
-			if !ok && messageType != "REQ" {
-				lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
-				break
-			}
-			delete(lb.addressChan, address)
-			// pardonon malbona nomo
-			if messageType == "REQ" {
-				// tio estas nova, nin havas peton de zmq
-				lb.logger.Infof("zmq/broker: mi ne kompreni peton de zmq %s\n", frames[3])
-				greet := [][]byte{
-					[]byte(address),
-					[]byte(address),
-					[]byte{},
-					[]byte("RES"),
-					[]byte(strconv.Itoa(bounceCount)),
-					[]byte(requestID),
-					[]byte{},
-					[]byte("bonvenon"),
+			if messageType == Request {
+				parcel := newParcel(message)
+				lb.ReqChan <- parcel
+				go func (p *parcel) {
+					response := <- p.respChan
+					frames := [][]byte{
+						[]byte(address),
+						[]byte(address),
+						[]byte{},
+						[]byte(Response),
+						[]byte(strconv.Itoa(bounceCount)),
+						[]byte(requestID),
+						[]byte{},
+						response,
+					}
+				}(parcel)
+			} else if messageType == Response {
+				respChan, ok := lb.addressChan[requestID]
+				if !ok {
+					lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
+					break
 				}
-				push.SendMessage(greet)
-			} else if messageType == "RES" {
+				delete(lb.addressChan, requestID)
 				respChan <- message
 			}
 		case p := <-lb.recvChan:

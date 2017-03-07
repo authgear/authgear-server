@@ -182,6 +182,18 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 	return
 }
 
+func (p *zmqTransport) handleRequest(workerID string, buffer []byte, responseChan chan []byte) {
+}
+
+func (p *zmqTransport) listenRequests() {
+	for {
+		select {
+		case parcel := <- p.broker.ReqChan:
+			go p.handleRequest("worker-id", parcel.frame, parcel.respChan)
+		}
+	}
+}
+
 type zmqTransportFactory struct {
 }
 
@@ -200,6 +212,7 @@ func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.C
 		logger: logger,
 		config: config,
 	}
+	go p.listenRequests()
 
 	return &p
 }
