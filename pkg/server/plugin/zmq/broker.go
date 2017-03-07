@@ -57,6 +57,8 @@ const (
 // parcel is used to multiplex the chan with zmq worker
 type parcel struct {
 	worker   string
+	bounceCount int
+	requestID   string
 	respChan chan []byte
 	frame    []byte
 	retry    int
@@ -254,6 +256,8 @@ func (lb *Broker) Channeler() {
 			if messageType == Request {
 				parcel := newParcel(message)
 				parcel.worker = address
+				parcel.bounceCount = bounceCount
+				parcel.requestID = requestID
 				lb.ReqChan <- parcel
 				go func (p *parcel) {
 					response := <- p.respChan
@@ -267,6 +271,7 @@ func (lb *Broker) Channeler() {
 						[]byte{},
 						response,
 					}
+					lb.logger.Debugf("zmq/broker: zmq => plugin %#x, %s\n", frames[0], frames)
 					lb.respChan <- frames
 				}(parcel)
 			} else if messageType == Response {
@@ -283,10 +288,13 @@ func (lb *Broker) Channeler() {
 			// If current no worker ready, will retry after HeartbeatInterval.
 			// Retry for HeartbeatLiveness times
 			var address string
+			var bounceCount int
 			if p.worker != "" {
 				address = p.worker
+				bounceCount = p.bounceCount
 			} else {
 				address = lb.workers.Next()
+				bounceCount = 0
 			}
 			if address == "" {
 				if p.retry < HeartbeatLiveness {
@@ -309,7 +317,7 @@ func (lb *Broker) Channeler() {
 				addr,
 				[]byte{},
 				[]byte(Request),
-				[]byte("0"),
+				[]byte(strconv.Itoa(bounceCount)),
 				[]byte(requestID),
 				[]byte{},
 				p.frame,
@@ -336,12 +344,14 @@ func (lb *Broker) Channeler() {
 }
 
 func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
-	lb.RPCWithWorkerID(requestChan, in, "")
+	lb.RPCWithWorker(requestChan, in, "", "", 0)
 }
 
-func (lb *Broker) RPCWithWorkerID(requestChan chan chan []byte, in []byte, workerID string) {
+func (lb *Broker) RPCWithWorker(requestChan chan chan []byte, in []byte, workerID string, requestID string, bounceCount int) {
 	p := newParcel(in)
 	p.worker = workerID
+	p.bounceCount = bounceCount
+	p.requestID = requestID
 	lb.recvChan <- p
 	go func() {
 		requestChan <- p.respChan

@@ -21,6 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"runtime/debug"
 
 	"github.com/Sirupsen/logrus"
@@ -46,6 +47,8 @@ type zmqTransport struct {
 }
 
 const ZMQWorkerIDContextKey string = "ZMQWorkerIDContextKey"
+const ZMQRequestIDContextKey string = "ZMQRequestIDContextKey"
+const ZMQBounceCountContextKey string = "ZMQBounceCountContextKey"
 
 func (p *zmqTransport) State() skyplugin.TransportState {
 	return p.state
@@ -169,8 +172,10 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 
 	reqChan := make(chan chan []byte)
 	workerID, ok := req.Context.Value(ZMQWorkerIDContextKey).(string)
+	requestID, _ := req.Context.Value(ZMQRequestIDContextKey).(string)
+	bounceCount, _ := req.Context.Value(ZMQBounceCountContextKey).(int)
 	if ok {
-		p.broker.RPCWithWorkerID(reqChan, in, workerID)
+		p.broker.RPCWithWorker(reqChan, in, workerID, requestID, bounceCount + 1)
 	} else {
 		p.broker.RPC(reqChan, in)
 	}
@@ -189,7 +194,13 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 	return
 }
 
-func (p *zmqTransport) handleRequest(workerID string, buffer []byte, responseChan chan []byte) {
+func (p *zmqTransport) handleRequest(parcel *parcel) {
+	workerID := parcel.worker
+	requestID := parcel.requestID
+	bounceCount := parcel.bounceCount
+	buffer := parcel.frame
+	responseChan := parcel.respChan
+
 	reader := bytes.NewReader(buffer)
 	data := map[string]interface{}{}
 	if jsonErr := json.NewDecoder(reader).Decode(&data); jsonErr != nil && jsonErr != io.EOF {
@@ -208,6 +219,8 @@ func (p *zmqTransport) handleRequest(workerID string, buffer []byte, responseCha
 	resp := router.NewResponse(responseWriter)
 
 	newCtx := context.WithValue(payload.Context, ZMQWorkerIDContextKey, workerID)
+	newCtx = context.WithValue(newCtx, ZMQRequestIDContextKey, requestID)
+	newCtx = context.WithValue(newCtx, ZMQBounceCountContextKey, bounceCount)
 	payload.Context = newCtx
 
 	// TODO(b123400), put real path and method here
