@@ -179,7 +179,7 @@ func TestBrokerWorker(t *testing.T) {
 			w2.SendMessage(bytesArray(Shutdown))
 		})
 
-		Convey("reveice Heartbeat without Ready will not register the worker", func() {
+		Convey("receive Heartbeat without Ready will not register the worker", func() {
 			w := workerSock(t, "heartbeat", workerAddr)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
@@ -191,7 +191,7 @@ func TestBrokerWorker(t *testing.T) {
 			So(broker.workers.Len(), ShouldEqual, 0)
 		})
 
-		Convey("reveice worker message without Reay will be ignored", func() {
+		Convey("receive worker message without Ready will be ignored", func() {
 			w := workerSock(t, "unregistered", workerAddr)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
@@ -230,7 +230,7 @@ func TestBrokerWorker(t *testing.T) {
 			So(msg, ShouldResemble, []byte{0})
 		})
 
-		Convey("recive RPC without Ready worker will wait for Heartbeat Liveness time", func() {
+		Convey("receive RPC without Ready worker will wait for Heartbeat Liveness time", func() {
 			reqChan := make(chan chan []byte)
 			timeout := time.Now().Add(HeartbeatInterval * HeartbeatLiveness)
 			broker.RPC(reqChan, []byte(("from server")))
@@ -240,7 +240,7 @@ func TestBrokerWorker(t *testing.T) {
 			So(time.Now(), ShouldHappenAfter, timeout)
 		})
 
-		Convey("worker after recive RPC and before timeout will got the message", func() {
+		Convey("worker after receive RPC and before timeout will got the message", func() {
 			reqChan := make(chan chan []byte)
 			broker.RPC(reqChan, []byte(("from server")))
 			respChan := <-reqChan

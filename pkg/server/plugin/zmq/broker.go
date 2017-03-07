@@ -491,7 +491,7 @@ func (q *workerQueue) Tick(worker pworker) error {
 		}
 	}
 	q.pworkers = append(q.pworkers, worker)
-	log.Debugf("zmq/broker: worker return to poll = %s", worker.address)
+	log.Debugf("zmq/broker: worker returns to pool = %s", worker.address)
 	return nil
 }
 
