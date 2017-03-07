@@ -83,6 +83,12 @@ func generateRequestID() string {
 	return fmt.Sprintf("%s-%X", requestIDPrefix, rand.Intn(0x10000))
 }
 
+// This is used for addressChan, the "key to channel" map,
+// the return key is used for adding/finding callback channels
+func requestToChannelKey(requestID string, bounceCount int) string {
+	return fmt.Sprintf("%s-%d", requestID, bounceCount)
+}
+
 // Broker implements the Paranoid Pirate queue described as follows:
 // Related RFC: https://rfc.zeromq.org/spec:6/PPP
 // refs: http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
@@ -275,12 +281,13 @@ func (lb *Broker) Channeler() {
 					lb.respChan <- frames
 				}(parcel)
 			} else if messageType == Response {
-				respChan, ok := lb.addressChan[requestID]
+				key := requestToChannelKey(requestID, bounceCount)
+				respChan, ok := lb.addressChan[key]
 				if !ok {
 					lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
 					break
 				}
-				delete(lb.addressChan, requestID)
+				delete(lb.addressChan, key)
 				respChan <- message
 			}
 		case p := <-lb.recvChan:
@@ -289,12 +296,15 @@ func (lb *Broker) Channeler() {
 			// Retry for HeartbeatLiveness times
 			var address string
 			var bounceCount int
+			var requestID string
 			if p.worker != "" {
 				address = p.worker
 				bounceCount = p.bounceCount
+				requestID = p.requestID
 			} else {
 				address = lb.workers.Next()
 				bounceCount = 0
+				requestID = generateRequestID()
 			}
 			if address == "" {
 				if p.retry < HeartbeatLiveness {
@@ -311,7 +321,6 @@ func (lb *Broker) Channeler() {
 				break
 			}
 			addr := []byte(address)
-			requestID := generateRequestID()
 			frames := [][]byte{
 				addr,
 				addr,
@@ -322,19 +331,20 @@ func (lb *Broker) Channeler() {
 				[]byte{},
 				p.frame,
 			}
-			lb.addressChan[requestID] = p.respChan
+			key := requestToChannelKey(requestID, bounceCount)
+			lb.addressChan[key] = p.respChan
 			push.SendMessage(frames)
 			lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
-			go lb.setTimeout(requestID)
+			go lb.setTimeout(key)
 		case frames := <-lb.respChan:
 			push.SendMessage(frames)
-		case requestID := <-lb.timeout:
-			respChan, ok := lb.addressChan[requestID]
+		case key := <-lb.timeout:
+			respChan, ok := lb.addressChan[key]
 			if !ok {
 				break
 			}
-			lb.logger.Infof("zmq/broker: chan timeout for worker %s\n", requestID)
-			delete(lb.addressChan, requestID)
+			lb.logger.Infof("zmq/broker: chan timeout for worker %s\n", key)
+			delete(lb.addressChan, key)
 			respChan <- []byte{0}
 		case <-lb.stop:
 			lb.stopping = true
