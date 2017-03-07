@@ -289,6 +289,46 @@ func TestBrokerWorker(t *testing.T) {
 			So(resp, ShouldResemble, []byte("from worker"))
 		})
 
+		Convey("broker RPC receive worker request", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte("REQ"),
+				[]byte("0"),
+				[]byte("request-id"),
+				[]byte{},
+				[]byte("request from plugin"),
+			})
+
+			parcel := <- broker.ReqChan
+
+			So(parcel.requestID, ShouldResemble, "request-id")
+			So(parcel.workers, ShouldResemble, map[string]string{
+				"test": "worker",
+			})
+			So(parcel.bounceCount, ShouldEqual, 0)
+
+			parcel.respChan <- []byte("server response")
+
+			msg := recvNonControlFrame(w)
+			So(len(msg), ShouldEqual, 7)
+			So(msg[0], ShouldResemble, []byte("worker"))
+			So(msg[1], ShouldResemble, []byte{})
+			So(msg[2], ShouldResemble, []byte("RES"))
+			So(msg[3], ShouldResemble, []byte("0"))
+			So(msg[4], ShouldResemble, []byte("request-id"))
+			So(msg[5], ShouldResemble, []byte{})
+			So(msg[6], ShouldResemble, []byte("server response"))
+		})
+
 		Convey("send message from server to multiple plugin", func(c C) {
 			go func() {
 				w := workerSock(t, "worker1", workerAddr)
