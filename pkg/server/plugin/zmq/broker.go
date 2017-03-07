@@ -314,19 +314,19 @@ func (lb *Broker) Channeler() {
 				[]byte{},
 				p.frame,
 			}
-			lb.addressChan[address] = p.respChan
+			lb.addressChan[requestID] = p.respChan
 			push.SendMessage(frames)
 			lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
-			go lb.setTimeout(address)
-		case address := <-lb.timeout:
-			respChan, ok := lb.addressChan[address]
+			go lb.setTimeout(requestID)
 		case frames := <-lb.respChan:
 			push.SendMessage(frames)
+		case requestID := <-lb.timeout:
+			respChan, ok := lb.addressChan[requestID]
 			if !ok {
 				break
 			}
-			lb.logger.Infof("zmq/broker: chan timeout for worker %s\n", address)
-			delete(lb.addressChan, address)
+			lb.logger.Infof("zmq/broker: chan timeout for worker %s\n", requestID)
+			delete(lb.addressChan, requestID)
 			respChan <- []byte{0}
 		case <-lb.stop:
 			lb.stopping = true
@@ -348,9 +348,9 @@ func (lb *Broker) RPCWithWorkerID(requestChan chan chan []byte, in []byte, worke
 	}()
 }
 
-func (lb *Broker) setTimeout(address string) {
+func (lb *Broker) setTimeout(requestID string) {
 	time.Sleep(HeartbeatInterval * lb.timeoutInterval)
-	lb.timeout <- address
+	lb.timeout <- requestID
 }
 
 func (lb *Broker) handleWorkerStatus(address string, status string) {
