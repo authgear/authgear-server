@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"runtime/debug"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 
@@ -208,10 +209,15 @@ func (p *zmqTransport) handleRequest(parcel *parcel) {
 		return
 	}
 
+	payloadData := data["payload"].(map[string]interface{})
+	method := data["method"].(string)
+	actionString := payloadData["action"].(string)
+	path := strings.Replace(actionString, ":", "/", -1)
+
 	payload := &router.Payload{
 		Context: context.Background(),
 		Meta: map[string]interface{}{},
-		Data: data,
+		Data: payloadData,
 		AccessKey: router.MasterAccessKey,
 	}
 
@@ -223,8 +229,7 @@ func (p *zmqTransport) handleRequest(parcel *parcel) {
 	newCtx = context.WithValue(newCtx, ZMQBounceCountContextKey, bounceCount)
 	payload.Context = newCtx
 
-	// TODO(b123400), put real path and method here
-	p.router.HandlePayload("schema/fetch", "POST", payload, resp)
+	p.router.HandlePayload(path, method, payload, resp)
 
 	responseChan <- responseWriter.response
 }
@@ -233,7 +238,7 @@ func (p *zmqTransport) listenRequests() {
 	for {
 		select {
 		case parcel := <- p.broker.ReqChan:
-			go p.handleRequest(parcel.worker, parcel.frame, parcel.respChan)
+			go p.handleRequest(parcel)
 		}
 	}
 }
