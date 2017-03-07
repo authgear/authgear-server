@@ -56,6 +56,7 @@ const (
 
 // parcel is used to multiplex the chan with zmq worker
 type parcel struct {
+	worker   string
 	respChan chan []byte
 	frame    []byte
 	retry    int
@@ -63,6 +64,7 @@ type parcel struct {
 
 func newParcel(frame []byte) *parcel {
 	return &parcel{
+		worker:   "",
 		respChan: make(chan []byte),
 		frame:    frame,
 		retry:    0,
@@ -251,6 +253,7 @@ func (lb *Broker) Channeler() {
 			message := frames[6]
 			if messageType == Request {
 				parcel := newParcel(message)
+				parcel.worker = address
 				lb.ReqChan <- parcel
 				go func (p *parcel) {
 					response := <- p.respChan
@@ -279,7 +282,12 @@ func (lb *Broker) Channeler() {
 			// Save the chan and dispatch the message to zmq
 			// If current no worker ready, will retry after HeartbeatInterval.
 			// Retry for HeartbeatLiveness times
-			address := lb.workers.Next()
+			var address string
+			if p.worker != "" {
+				address = p.worker
+			} else {
+				address = lb.workers.Next()
+			}
 			if address == "" {
 				if p.retry < HeartbeatLiveness {
 					p.retry += 1
@@ -328,7 +336,12 @@ func (lb *Broker) Channeler() {
 }
 
 func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
+	lb.RPCWithWorkerID(requestChan, in, "")
+}
+
+func (lb *Broker) RPCWithWorkerID(requestChan chan chan []byte, in []byte, workerID string) {
 	p := newParcel(in)
+	p.worker = workerID
 	lb.recvChan <- p
 	go func() {
 		requestChan <- p.respChan

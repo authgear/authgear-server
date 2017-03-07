@@ -45,6 +45,8 @@ type zmqTransport struct {
 	router      *router.Router
 }
 
+const ZMQWorkerIDContextKey string = "ZMQWorkerIDContextKey"
+
 func (p *zmqTransport) State() skyplugin.TransportState {
 	return p.state
 }
@@ -166,7 +168,12 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 	}
 
 	reqChan := make(chan chan []byte)
-	p.broker.RPC(reqChan, in)
+	workerID, ok := req.Context.Value(ZMQWorkerIDContextKey).(string)
+	if ok {
+		p.broker.RPCWithWorkerID(reqChan, in, workerID)
+	} else {
+		p.broker.RPC(reqChan, in)
+	}
 	select {
 	case msg := <-<-reqChan:
 		// Broker will sent back a null byte if time out
@@ -200,6 +207,9 @@ func (p *zmqTransport) handleRequest(workerID string, buffer []byte, responseCha
 	responseWriter := &zmqResponseWriter{}
 	resp := router.NewResponse(responseWriter)
 
+	newCtx := context.WithValue(payload.Context, ZMQWorkerIDContextKey, workerID)
+	payload.Context = newCtx
+
 	// TODO(b123400), put real path and method here
 	p.router.HandlePayload("schema/fetch", "POST", payload, resp)
 
@@ -210,7 +220,7 @@ func (p *zmqTransport) listenRequests() {
 	for {
 		select {
 		case parcel := <- p.broker.ReqChan:
-			go p.handleRequest("worker-id", parcel.frame, parcel.respChan)
+			go p.handleRequest(parcel.worker, parcel.frame, parcel.respChan)
 		}
 	}
 }
