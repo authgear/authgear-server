@@ -314,8 +314,10 @@ func (lb *Broker) Run() {
 	}
 }
 
-// Channeler accept message from RPC and dispatch to zmq if available.
-// It retry and timeout the request if the zmq worker is not yet available.
+// Channeler bridges between golang channels and zmq channels,
+// it accepts messages from RPC and dispatch to zmq,
+// it accepts messages from zmq and dispatch to lb.ReqChan.
+// It retries and timeout requests if no zmq worker is available.
 func (lb *Broker) Channeler() {
 	lb.logger.Infof("zmq channeler running %p\n", lb)
 	defer lb.logger.Infof("zmq channeler stopped %p!\n", lb)
@@ -327,98 +329,9 @@ func (lb *Broker) Channeler() {
 	for {
 		select {
 		case frames := <-lb.frontend:
-			lb.logger.Debugf("zmq/broker: zmq => channel %#x, %s\n", frames[0], frames)
-			// Dispacth back to the channel based on the zmq first frame
-			address := string(frames[0])
-			messageType := string(frames[2])
-			bounceCount, err := strconv.Atoi(string(frames[3]))
-			if err != nil {
-				lb.logger.Infof("zmq/broker: Cannot parse bounce_count int %v\n", frames)
-				break
-			}
-			requestID := string(frames[4])
-			message := frames[6]
-			if messageType == Request {
-				go func () {
-					parcel := newParcel(message)
-					parcel.workers[lb.name] = address
-					parcel.bounceCount = bounceCount
-					parcel.requestID = requestID
-					lb.ReqChan <- parcel
-					response := <- parcel.respChan
-					frames := [][]byte{
-						[]byte(address),
-						[]byte(address),
-						[]byte{},
-						[]byte(Response),
-						[]byte(strconv.Itoa(bounceCount)),
-						[]byte(requestID),
-						[]byte{},
-						response,
-					}
-					lb.logger.Debugf("zmq/broker: zmq => plugin %#x, %s\n", frames[0], frames)
-					lb.respChan <- frames
-				}()
-			} else if messageType == Response {
-				key := requestToChannelKey(requestID, bounceCount)
-				parcel, ok := lb.parcelChan[key]
-				if !ok {
-					lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
-					break
-				}
-				delete(lb.parcelChan, key)
-				parcel.respChan <- message
-			}
+			lb.sendZMQFramesToChannel(frames)
 		case p := <-lb.recvChan:
-			// Save the chan and dispatch the message to zmq
-			// If current no worker ready, will retry after HeartbeatInterval.
-			// Retry for HeartbeatLiveness times
-			var address string
-			var requestID string
-			if _address, ok := p.workers[lb.name]; ok {
-				address = _address
-				requestID = p.requestID
-			} else {
-				address = lb.workers.Next()
-				requestID = generateRequestID()
-			}
-			bounceCount := p.bounceCount
-			if bounceCount > lb.maxBounce {
-				lb.logger.Infof("zmq/broker: bounce count of %d exceeded the maximum %d\n", bounceCount, lb.maxBounce)
-				p.respChan <- []byte{1}
-				break
-			}
-			if address == "" {
-				if p.retry < HeartbeatLiveness {
-					p.retry += 1
-					lb.logger.Infof("zmq/broker: no worker available, retry %d...\n", p.retry)
-					go func(p2 *parcel) {
-						time.Sleep(HeartbeatInterval)
-						lb.recvChan <- p2
-					}(p)
-					break
-				}
-				lb.logger.Infof("zmq/broker: no worker available, timeout.\n")
-				p.respChan <- []byte{0}
-				break
-			}
-			p.workers[lb.name] = address
-			addr := []byte(address)
-			frames := [][]byte{
-				addr,
-				addr,
-				[]byte{},
-				[]byte(Request),
-				[]byte(strconv.Itoa(bounceCount)),
-				[]byte(requestID),
-				[]byte{},
-				p.frame,
-			}
-			key := requestToChannelKey(requestID, bounceCount)
-			lb.parcelChan[key] = p
-			push.SendMessage(frames)
-			lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
-			go lb.setTimeout(key)
+			lb.sendChannelParcelToZMQ(p, push)
 		case frames := <-lb.respChan:
 			push.SendMessage(frames)
 		case key := <-lb.timeout:
@@ -434,6 +347,103 @@ func (lb *Broker) Channeler() {
 			return
 		}
 	}
+}
+
+func (lb *Broker) sendZMQFramesToChannel(frames [][]byte) {
+	lb.logger.Debugf("zmq/broker: zmq => channel %#x, %s\n", frames[0], frames)
+	// Dispacth back to the channel based on the zmq first frame
+	address := string(frames[0])
+	messageType := string(frames[2])
+	bounceCount, err := strconv.Atoi(string(frames[3]))
+	if err != nil {
+		lb.logger.Infof("zmq/broker: Cannot parse bounce_count int %v\n", frames)
+		return
+	}
+	requestID := string(frames[4])
+	message := frames[6]
+	if messageType == Request {
+		go func () {
+			parcel := newParcel(message)
+			parcel.workers[lb.name] = address
+			parcel.bounceCount = bounceCount
+			parcel.requestID = requestID
+			lb.ReqChan <- parcel
+			response := <- parcel.respChan
+			frames := [][]byte{
+				[]byte(address),
+				[]byte(address),
+				[]byte{},
+				[]byte(Response),
+				[]byte(strconv.Itoa(bounceCount)),
+				[]byte(requestID),
+				[]byte{},
+				response,
+			}
+			lb.logger.Debugf("zmq/broker: zmq => plugin %#x, %s\n", frames[0], frames)
+			lb.respChan <- frames
+		}()
+	} else if messageType == Response {
+		key := requestToChannelKey(requestID, bounceCount)
+		parcel, ok := lb.parcelChan[key]
+		if !ok {
+			lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
+			return
+		}
+		delete(lb.parcelChan, key)
+		parcel.respChan <- message
+	}
+}
+
+func (lb *Broker) sendChannelParcelToZMQ(p *parcel, push *goczmq.Sock) {
+	// Save the chan and dispatch the message to zmq
+	// If current no worker ready, will retry after HeartbeatInterval.
+	// Retry for HeartbeatLiveness times
+	var address string
+	var requestID string
+	if _address, ok := p.workers[lb.name]; ok {
+		address = _address
+		requestID = p.requestID
+	} else {
+		address = lb.workers.Next()
+		requestID = generateRequestID()
+	}
+	bounceCount := p.bounceCount
+	if bounceCount > lb.maxBounce {
+		lb.logger.Infof("zmq/broker: bounce count of %d exceeded the maximum %d\n", bounceCount, lb.maxBounce)
+		p.respChan <- []byte{1}
+		return
+	}
+	if address == "" {
+		if p.retry < HeartbeatLiveness {
+			p.retry += 1
+			lb.logger.Infof("zmq/broker: no worker available, retry %d...\n", p.retry)
+			go func(p2 *parcel) {
+				time.Sleep(HeartbeatInterval)
+				lb.recvChan <- p2
+			}(p)
+			return
+		}
+		lb.logger.Infof("zmq/broker: no worker available, timeout.\n")
+		p.respChan <- []byte{0}
+		return
+	}
+	p.workers[lb.name] = address
+	addr := []byte(address)
+	frames := [][]byte{
+		addr,
+		addr,
+		[]byte{},
+		[]byte(Request),
+		[]byte(strconv.Itoa(bounceCount)),
+		[]byte(requestID),
+		[]byte{},
+		p.frame,
+	}
+	key := requestToChannelKey(requestID, bounceCount)
+	lb.parcelChan[key] = p
+	push.SendMessage(frames)
+	lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
+	go lb.setTimeout(key)
 }
 
 func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
