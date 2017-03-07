@@ -80,8 +80,8 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	g.commonRouter.ServeHTTP(w, req)
 }
 
-func (g *Gateway) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Processor) {
-	if pathRoute, ok := g.methodPaths[req.Method]; ok {
+func (g *Gateway) matchHandler(path string, method string, p *Payload) (h Handler, pp []Processor) {
+	if pathRoute, ok := g.methodPaths[method]; ok {
 		h = pathRoute.Handler
 		pp = pathRoute.Preprocessors
 	}

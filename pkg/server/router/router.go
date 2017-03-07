@@ -79,12 +79,12 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.commonRouter.ServeHTTP(w, req)
 }
 
-func (r *Router) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Processor) {
+func (r *Router) matchHandler(path string, method string, p *Payload) (h Handler, pp []Processor) {
 	r.actions.RLock()
 	defer r.actions.RUnlock()
 
 	// matching using URL
-	action := req.URL.Path
+	action := path
 	if strings.HasPrefix(action, "/") {
 		action = action[1:]
 	}

@@ -31,24 +31,39 @@ import (
 // to Router and Gateway.
 type commonRouter struct {
 	payloadFunc      func(req *http.Request) (p *Payload, err error)
-	matchHandlerFunc func(req *http.Request, p *Payload) (h Handler, pp []Processor)
+	matchHandlerFunc func(path string, method string, p *Payload) (h Handler, pp []Processor)
 	ResponseTimeout  time.Duration
 }
 
 func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
-		httpStatus    = http.StatusOK
 		resp          Response
-		handler       Handler
-		preprocessors []Processor
 		payload       *Payload
-		timedOut      bool
+		err           error
 	)
 
 	version := strings.TrimPrefix(skyversion.Version(), "v")
 	w.Header().Set("Server", fmt.Sprintf("Skygear Server/%s", version))
-
 	resp.writer = w
+
+	// Create request, response struct and match handler
+	payload, err = r.payloadFunc(req)
+	if err != nil {
+		resp.Err = skyerr.NewRequestJSONInvalidErr(err)
+		httpStatus := defaultStatusCode(resp.Err)
+		w.WriteHeader(httpStatus)
+		return
+	}
+	r.HandlePayload(req.URL.Path, req.Method, payload, &resp)
+}
+
+func (r *commonRouter) HandlePayload(path string, method string, payload *Payload, resp *Response) {
+	var (
+		httpStatus    = http.StatusOK
+		handler       Handler
+		preprocessors []Processor
+		timedOut      bool
+	)
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -82,16 +97,7 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}()
 
-	// Create request, response struct and match handler
-	var err error
-	payload, err = r.payloadFunc(req)
-	if err != nil {
-		httpStatus = http.StatusBadRequest
-		resp.Err = skyerr.NewRequestJSONInvalidErr(err)
-		return
-	}
-
-	handler, preprocessors = r.matchHandlerFunc(req, payload)
+	handler, preprocessors = r.matchHandlerFunc(path, method, payload)
 	if handler == nil {
 		httpStatus = http.StatusNotFound
 		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, "route unmatched")
@@ -104,7 +110,7 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer cancelFunc()
 
 	go func() {
-		httpStatus = r.callHandler(handler, preprocessors, payload, &resp)
+		httpStatus = r.callHandler(handler, preprocessors, payload, resp)
 		cancelFunc()
 	}()
 
