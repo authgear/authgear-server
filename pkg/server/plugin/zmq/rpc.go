@@ -28,6 +28,7 @@ import (
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/common"
 	pluginrequest "github.com/skygeario/skygear-server/pkg/server/plugin/request"
+	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
@@ -41,6 +42,7 @@ type zmqTransport struct {
 	initHandler skyplugin.TransportInitHandler
 	logger      *logrus.Entry
 	config      skyconfig.Configuration
+	router      *router.Router
 }
 
 func (p *zmqTransport) State() skyplugin.TransportState {
@@ -53,6 +55,10 @@ func (p *zmqTransport) SetState(state skyplugin.TransportState) {
 		p.state = state
 		p.logger.Infof("Transport state changes from %v to %v.", oldState, p.state)
 	}
+}
+
+func (p *zmqTransport) SetRouter(router *router.Router) {
+	p.router = router
 }
 
 func (p *zmqTransport) SendEvent(name string, in []byte) ([]byte, error) {

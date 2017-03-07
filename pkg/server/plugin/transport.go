@@ -96,6 +96,11 @@ type TransportFactory interface {
 	Open(path string, args []string, config skyconfig.Configuration) Transport
 }
 
+// A transport that is bidirectional, can send request to the http server
+type BidirectionalTransport interface {
+	SetRouter(*router.Router)
+}
+
 // ContextMap returns a map of the user request context.
 func ContextMap(ctx context.Context) map[string]interface{} {
 	if ctx == nil {
