@@ -47,9 +47,17 @@ The [skygear-doc repository](https://github.com/skygeario/skygear-doc) is public
 
 ## Support
 
-For implementation related questions or technical support, please refer to the [Stack Overflow](http://stackoverflow.com/questions/tagged/skygear) community, or join our [Google Group](https://groups.google.com/forum/#!forum/skygear-user-group).
+If you believe you've found an bugs or feature requests for Skygear, please feel
+free to [report an issue](https://github.com/SkygearIO/skygear-server/issues).
 
-If you believe you've found an issue with Skygear Server, please feel free to [report an issue](https://github.com/SkygearIO/skygear-server/issues).
+Please do not use the issue tracker for personal support requests. Instead, use
+[Stack Overflow](http://stackoverflow.com/questions/tagged/skygear) community,
+join our [Google Group](https://groups.google.com/forum/#!forum/skygear-user-group),
+or [Slack Team](https://skygear.signup.team) to chat with our
+supports/developers.
+
+For issues about [Skygear Guides](https://docs.skygear.io) please use the
+[Skygear Guides issues tracker](https://github.com/skygeario/guides/issues).
 
 ## Configuration
 
