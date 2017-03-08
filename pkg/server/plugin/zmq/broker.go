@@ -269,14 +269,14 @@ func (lb *Broker) Run() {
 
 			address := string(frames[0])
 			msg := frames[1:]
-			tErr := lb.workers.Tick(newWorker(address))
-			if tErr != nil {
-				status := string(msg[0])
-				if status != Ready {
-					lb.logger.Warnln(tErr)
-				}
-			}
 			if len(msg) == 1 {
+				tErr := lb.workers.Tick(newWorker(address))
+				if tErr != nil {
+					status := string(msg[0])
+					if status != Ready {
+						lb.logger.Warnln(tErr)
+					}
+				}
 				status := string(msg[0])
 				lb.handleWorkerStatus(address, status)
 			} else {
@@ -381,6 +381,11 @@ func (lb *Broker) sendZMQFramesToChannel(frames [][]byte) {
 			}
 			lb.logger.Debugf("zmq/broker: zmq => plugin %q, %s\n", frames[0:7], frames[7])
 			lb.respChan <- frames
+			if bounceCount == 0 {
+				lb.workers.Lock()
+				lb.workers.Tick(newWorker(address))
+				lb.workers.Unlock()
+			}
 		}()
 	} else if messageType == Response {
 		key := requestToChannelKey(requestID, bounceCount)
@@ -390,6 +395,11 @@ func (lb *Broker) sendZMQFramesToChannel(frames [][]byte) {
 			return
 		}
 		delete(lb.parcelChan, key)
+		if bounceCount == 0 {
+			lb.workers.Lock()
+			lb.workers.Tick(newWorker(address))
+			lb.workers.Unlock()
+		}
 		parcel.respChan <- message
 	}
 }
