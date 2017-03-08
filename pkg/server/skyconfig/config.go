@@ -57,14 +57,15 @@ type Configuration struct {
 		Host string `json:"host"`
 	} `json:"http"`
 	App struct {
-		Name            string `json:"name"`
-		APIKey          string `json:"api_key"`
-		MasterKey       string `json:"master_key"`
-		AccessControl   string `json:"access_control"`
-		DevMode         bool   `json:"dev_mode"`
-		CORSHost        string `json:"cors_host"`
-		Slave           bool   `json:"slave"`
-		ResponseTimeout int64  `json:"response_timeout"`
+		Name               string `json:"name"`
+		APIKey             string `json:"api_key"`
+		MasterKey          string `json:"master_key"`
+		AccessControl      string `json:"access_control"`
+		DevMode            bool   `json:"dev_mode"`
+		CORSHost           string `json:"cors_host"`
+		Slave              bool   `json:"slave"`
+		ResponseTimeout    int64  `json:"response_timeout"`
+		TransportMaxBounce int    `json:"transport_max_bounce"`
 	} `json:"app"`
 	DB struct {
 		ImplName string `json:"implementation"`
@@ -149,6 +150,7 @@ func NewConfiguration() Configuration {
 	config.App.CORSHost = "*"
 	config.App.Slave = false
 	config.App.ResponseTimeout = 60
+	config.App.TransportMaxBounce = 10
 	config.DB.ImplName = "pq"
 	config.DB.Option = "postgres://postgres:@localhost/postgres?sslmode=disable"
 	config.TokenStore.ImplName = "fs"
@@ -253,6 +255,10 @@ func (config *Configuration) ReadFromEnv() {
 
 	if timeout, err := strconv.ParseInt(os.Getenv("RESPONSE_TIMEOUT"), 10, 64); err == nil {
 		config.App.ResponseTimeout = timeout
+	}
+
+	if bounceCount, err := strconv.ParseInt(os.Getenv("TRANSPORT_MAX_BOUNCE"), 10, 0); err == nil {
+		config.App.TransportMaxBounce = int(bounceCount)
 	}
 
 	config.readTokenStore()

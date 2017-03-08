@@ -79,12 +79,12 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.commonRouter.ServeHTTP(w, req)
 }
 
-func (r *Router) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Processor) {
+func (r *Router) matchHandler(p *Payload) (h Handler, pp []Processor) {
 	r.actions.RLock()
 	defer r.actions.RUnlock()
 
 	// matching using URL
-	action := req.URL.Path
+	action := p.Meta["path"].(string)
 	if strings.HasPrefix(action, "/") {
 		action = action[1:]
 	}
@@ -136,6 +136,9 @@ func (r *Router) newPayload(req *http.Request) (p *Payload, err error) {
 	if accessToken := req.Header.Get("X-Skygear-Access-Token"); accessToken != "" {
 		p.Data["access_token"] = accessToken
 	}
+
+	p.Meta["path"] = req.URL.Path
+	p.Meta["method"] = req.Method
 
 	return
 }

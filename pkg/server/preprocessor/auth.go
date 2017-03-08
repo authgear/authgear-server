@@ -26,6 +26,9 @@ import (
 )
 
 func checkRequestAccessKey(payload *router.Payload, clientKey string, masterKey string) skyerr.Error {
+	if payload.AccessKey != router.NoAccessKey {
+		return nil
+	}
 	apiKey := payload.APIKey()
 	if masterKey != "" && apiKey == masterKey {
 		payload.AccessKey = router.MasterAccessKey

@@ -19,6 +19,8 @@ package zmq
 import (
 	"errors"
 	"fmt"
+	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 
@@ -48,32 +50,130 @@ const (
 	// It is an addition to original PPP to shorten the time needed for
 	// broker to detect a normal shutdown of worker.
 	Shutdown = "\003"
+	Request = "REQ"
+	Response = "RES"
 )
 
 // parcel is used to multiplex the chan with zmq worker
 type parcel struct {
-	respChan chan []byte
-	frame    []byte
-	retry    int
+	// Worker is a map of "broker name to worker name"
+	// Used to support multiple plugins
+	// i.e Which worker is used for this request(parcel) for this broker
+	workers     map[string]string
+	bounceCount int
+	requestID   string
+	respChan    chan []byte
+	frame       []byte
+	retry       int
 }
 
 func newParcel(frame []byte) *parcel {
 	return &parcel{
+		workers:  make(map[string]string),
 		respChan: make(chan []byte),
 		frame:    frame,
 		retry:    0,
 	}
 }
 
-// Broker implements the Paranoid Pirate queue described as follows:
+var requestIDPrefix = ""
+
+func generateRequestID() string {
+	rand.Seed(time.Now().UnixNano())
+	if requestIDPrefix == "" {
+		requestIDPrefix = fmt.Sprintf("%X", rand.Intn(0x10000))
+	}
+	return fmt.Sprintf("%s-%X", requestIDPrefix, rand.Intn(0x10000))
+}
+
+// This is used for parcelChan, the "key to channel" map,
+// the return key is used for adding/finding callback channels
+func requestToChannelKey(requestID string, bounceCount int) string {
+	return fmt.Sprintf("%s-%d", requestID, bounceCount)
+}
+
+// Broker implements a protocol based on the Paranoid Pirate queue described as follows:
 // Related RFC: https://rfc.zeromq.org/spec:6/PPP
 // refs: http://zguide.zeromq.org/py:all#Robust-Reliable-Queuing-Paranoid-Pirate-Pattern
 // with the addition of:
 //
 // 1. Shutdown signal, which signifies a normal termination of worker to provide
 //    a fast path of worker removal
+// 2. Extra frames for bidirectional and multiplexing, see below
+//    Related issue: https://github.com/SkygearIO/skygear-server/issues/295
+//
 // TODO: channeler can be separated into a separate struct, communiate with
 // broker using frontend chan, workers and pull/push sock address.
+//
+// In PPP, the message has 3 frames, in the extended format, it has 7.
+// 1. Worker address
+// 2. Empty frame
+// 3. Message type
+// 4. Bounce Count
+// 5. Request ID
+// 6. Empty frame
+// 7. Message body
+//
+// Message type is either "REQ" or "RES"
+// Bounce count is an integer that increase when the request is nested, starts from 0
+// Request ID is a string that identify the request (including nested requests)
+//
+// The flow goes like this.
+// # Connecting
+// 1. A plugin connects to the server via ZMQ
+// 2. Plugin sends a Ready message, with a worker ID
+// 3. Server remembers that as a ready worker, and starts sending heartbeat.
+//
+// # Server sends requests to plugin
+// 1. Server finds a free worker
+// 2. Server sends the request message, e.g.
+//    [WORKER-ADDR|0|REQ|0|REQ-ID|0|body....]
+// 3. The plugin replies with the following message
+//    [WORKER-ADDR|0|RES|0|REQ-ID|0|reply body...]
+// Plugin can send requests to server in the exact same format
+//
+// # Nested requests (send a request when handling a request)
+// 1. Server finds a free worker
+// 2. Server sends the request message, e.g.
+//    [WORKER-ADDR|0|REQ|0|REQ-ID|0|Do you have beer?]
+// 3. The plugin sends a NESTED request to the server, bounce_count increases by 1
+//    [WORKER-ADDR|0|REQ|1|REQ-ID|0|Do you have money?]
+// 4. Server responds:
+//    [WORKER-ADDR|0|RES|1|REQ-ID|0|Yes I have money]
+// 5. Plugin responds:
+//    [WORKER-ADDR|0|RES|0|REQ-ID|0|Yes I have beer]
+//
+// # Maximum bounce count
+// broker has a maximum bounce count (maxBounce),
+// when it is exceeded, the request fails immediately, this prevents infinity loop
+//
+// # About multiple plugins
+// When multiple plugins are involved, both request ID and bounce-count is accumulated
+// accross plugins. For example, this is what happens when Plugin A calls Plugin B
+//
+// PluginA code:
+// ```
+// @op('foo:hello')
+// def english():
+//     send_action('foo:ciao')
+//     return {'key':'thanks'}
+// ```
+
+// PluginB code:
+// ```
+// @op('foo:ciao')
+// def italian():
+//     return {'key':'grazie'}
+// ```
+// Would results in:
+// 1. Browser calls /foo/hello
+// 2. Server calls pluginA with `REQ|0|request-id`
+// 3. PluginA calls server with `REQ|1|request-id`
+// 4. Server calls pluginB with `REQ|2|request-id`
+// 5. PluginB responses server with `RES|2|request-id`
+// 6. Server responses pluginA with `RES|1|request-id`
+// 7. PluginA responses server with `RES|0|request-id`
+
 type Broker struct {
 	// name is assume to be unique and used to construct the zmq address
 	name string
@@ -84,9 +184,13 @@ type Broker struct {
 	// recvChan receive RPC request and dispatch to zmq Run Loop using
 	// push/pull zsock
 	recvChan chan *parcel
-	// addressChan is use zmq worker addess as key to route the message to
-	// correct go chan
-	addressChan map[string]chan []byte
+	// parcelChan is use zmq worker addess as key to route the message to
+	// correct parcel for response chan
+	parcelChan map[string]*parcel
+	// ReqChan is a channel for sending incoming request to handler
+	ReqChan chan *parcel
+	// respChan is a channel for sending response from handler to zmq
+	respChan chan [][]byte
 	// for RPC timeout, used by Channeler
 	timeout chan string
 	// determine how long will timeout happen, relative to the
@@ -99,10 +203,12 @@ type Broker struct {
 	// internal state for stopping the zmq Run when true.
 	// Should use the stop chan to stop. The stop chan will set this variable.
 	stopping bool
+	// The maximum bounce count, request larger than this number will be aborted
+	maxBounce int
 }
 
 // NewBroker returns a new *Broker.
-func NewBroker(name, backendAddr string, timeoutInterval int) (*Broker, error) {
+func NewBroker(name, backendAddr string, timeoutInterval int, maxBounce int) (*Broker, error) {
 	namedLogger := log.WithFields(logrus.Fields{
 		"plugin": name,
 		"eaddr":  backendAddr,
@@ -113,13 +219,16 @@ func NewBroker(name, backendAddr string, timeoutInterval int) (*Broker, error) {
 		backendAddr:     backendAddr,
 		frontend:        make(chan [][]byte, 10),
 		recvChan:        make(chan *parcel, 10),
-		addressChan:     map[string]chan []byte{},
+		parcelChan:      map[string]*parcel{},
+		ReqChan:         make(chan *parcel, 10),
+		respChan:        make(chan [][]byte, 10),
 		timeout:         make(chan string),
 		timeoutInterval: time.Duration(timeoutInterval),
 		workers:         newWorkerQueue(),
 		logger:          namedLogger,
 		stop:            make(chan int),
 		stopping:        false,
+		maxBounce:       maxBounce,
 	}
 
 	go broker.Run()
@@ -205,8 +314,10 @@ func (lb *Broker) Run() {
 	}
 }
 
-// Channeler accept message from RPC and dispatch to zmq if available.
-// It retry and timeout the request if the zmq worker is not yet available.
+// Channeler bridges between golang channels and zmq channels,
+// it accepts messages from RPC and dispatch to zmq,
+// it accepts messages from zmq and dispatch to lb.ReqChan.
+// It retries and timeout requests if no zmq worker is available.
 func (lb *Broker) Channeler() {
 	lb.logger.Infof("zmq channeler running %p\n", lb)
 	defer lb.logger.Infof("zmq channeler stopped %p!\n", lb)
@@ -218,54 +329,19 @@ func (lb *Broker) Channeler() {
 	for {
 		select {
 		case frames := <-lb.frontend:
-			lb.logger.Debugf("zmq/broker: zmq => channel %#x, %s\n", frames[0], frames)
-			// Dispacth back to the channel based on the zmq first frame
-			address := string(frames[0])
-			respChan, ok := lb.addressChan[address]
-			if !ok {
-				lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
-				break
-			}
-			delete(lb.addressChan, address)
-			respChan <- frames[2]
+			lb.sendZMQFramesToChannel(frames)
 		case p := <-lb.recvChan:
-			// Save the chan and dispatch the message to zmq
-			// If current no worker ready, will retry after HeartbeatInterval.
-			// Retry for HeartbeatLiveness times
-			address := lb.workers.Next()
-			if address == "" {
-				if p.retry < HeartbeatLiveness {
-					p.retry += 1
-					lb.logger.Infof("zmq/broker: no worker available, retry %d...\n", p.retry)
-					go func(p2 *parcel) {
-						time.Sleep(HeartbeatInterval)
-						lb.recvChan <- p2
-					}(p)
-					break
-				}
-				lb.logger.Infof("zmq/broker: no worker available, timeout.\n")
-				p.respChan <- []byte{0}
-				break
-			}
-			addr := []byte(address)
-			frames := [][]byte{
-				addr,
-				addr,
-				[]byte{},
-				p.frame,
-			}
-			lb.addressChan[address] = p.respChan
+			lb.sendChannelParcelToZMQ(p, push)
+		case frames := <-lb.respChan:
 			push.SendMessage(frames)
-			lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
-			go lb.setTimeout(address)
-		case address := <-lb.timeout:
-			respChan, ok := lb.addressChan[address]
+		case key := <-lb.timeout:
+			parcel, ok := lb.parcelChan[key]
 			if !ok {
 				break
 			}
-			lb.logger.Infof("zmq/broker: chan timeout for worker %s\n", address)
-			delete(lb.addressChan, address)
-			respChan <- []byte{0}
+			lb.logger.Infof("zmq/broker: chan timeout for worker %s\n", key)
+			delete(lb.parcelChan, key)
+			parcel.respChan <- []byte{0}
 		case <-lb.stop:
 			lb.stopping = true
 			return
@@ -273,17 +349,121 @@ func (lb *Broker) Channeler() {
 	}
 }
 
+func (lb *Broker) sendZMQFramesToChannel(frames [][]byte) {
+	lb.logger.Debugf("zmq/broker: zmq => channel %#x, %s\n", frames[0], frames)
+	// Dispacth back to the channel based on the zmq first frame
+	address := string(frames[0])
+	messageType := string(frames[2])
+	bounceCount, err := strconv.Atoi(string(frames[3]))
+	if err != nil {
+		lb.logger.Infof("zmq/broker: Cannot parse bounce_count int %v\n", frames)
+		return
+	}
+	requestID := string(frames[4])
+	message := frames[6]
+	if messageType == Request {
+		go func () {
+			parcel := newParcel(message)
+			parcel.workers[lb.name] = address
+			parcel.bounceCount = bounceCount
+			parcel.requestID = requestID
+			lb.ReqChan <- parcel
+			response := <- parcel.respChan
+			frames := [][]byte{
+				[]byte(address),
+				[]byte(address),
+				[]byte{},
+				[]byte(Response),
+				[]byte(strconv.Itoa(bounceCount)),
+				[]byte(requestID),
+				[]byte{},
+				response,
+			}
+			lb.logger.Debugf("zmq/broker: zmq => plugin %#x, %s\n", frames[0], frames)
+			lb.respChan <- frames
+		}()
+	} else if messageType == Response {
+		key := requestToChannelKey(requestID, bounceCount)
+		parcel, ok := lb.parcelChan[key]
+		if !ok {
+			lb.logger.Infof("zmq/broker: chan not found for worker %s\n", address)
+			return
+		}
+		delete(lb.parcelChan, key)
+		parcel.respChan <- message
+	}
+}
+
+func (lb *Broker) sendChannelParcelToZMQ(p *parcel, push *goczmq.Sock) {
+	// Save the chan and dispatch the message to zmq
+	// If current no worker ready, will retry after HeartbeatInterval.
+	// Retry for HeartbeatLiveness times
+	var address string
+	var requestID string
+	if _address, ok := p.workers[lb.name]; ok {
+		address = _address
+		requestID = p.requestID
+	} else {
+		address = lb.workers.Next()
+		requestID = generateRequestID()
+	}
+	bounceCount := p.bounceCount
+	if bounceCount > lb.maxBounce {
+		lb.logger.Infof("zmq/broker: bounce count of %d exceeded the maximum %d\n", bounceCount, lb.maxBounce)
+		p.respChan <- []byte{1}
+		return
+	}
+	if address == "" {
+		if p.retry < HeartbeatLiveness {
+			p.retry += 1
+			lb.logger.Infof("zmq/broker: no worker available, retry %d...\n", p.retry)
+			go func(p2 *parcel) {
+				time.Sleep(HeartbeatInterval)
+				lb.recvChan <- p2
+			}(p)
+			return
+		}
+		lb.logger.Infof("zmq/broker: no worker available, timeout.\n")
+		p.respChan <- []byte{0}
+		return
+	}
+	p.workers[lb.name] = address
+	addr := []byte(address)
+	frames := [][]byte{
+		addr,
+		addr,
+		[]byte{},
+		[]byte(Request),
+		[]byte(strconv.Itoa(bounceCount)),
+		[]byte(requestID),
+		[]byte{},
+		p.frame,
+	}
+	key := requestToChannelKey(requestID, bounceCount)
+	lb.parcelChan[key] = p
+	push.SendMessage(frames)
+	lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
+	go lb.setTimeout(key)
+}
+
 func (lb *Broker) RPC(requestChan chan chan []byte, in []byte) {
+	lb.RPCWithWorker(requestChan, in, make(map[string]string), "", 0)
+}
+
+func (lb *Broker) RPCWithWorker(requestChan chan chan []byte, in []byte, workerIDs map[string]string, requestID string, bounceCount int) {
 	p := newParcel(in)
+	p.workers = workerIDs
+	p.bounceCount = bounceCount
+	p.requestID = requestID
 	lb.recvChan <- p
 	go func() {
 		requestChan <- p.respChan
 	}()
 }
 
-func (lb *Broker) setTimeout(address string) {
+func (lb *Broker) setTimeout(requestID string) {
 	time.Sleep(HeartbeatInterval * lb.timeoutInterval)
-	lb.timeout <- address
+	lb.timeout <- requestID
 }
 
 func (lb *Broker) handleWorkerStatus(address string, status string) {
@@ -394,7 +574,7 @@ func (q *workerQueue) Tick(worker pworker) error {
 		}
 	}
 	q.pworkers = append(q.pworkers, worker)
-	log.Debugf("zmq/broker: worker return to poll = %s", worker.address)
+	log.Debugf("zmq/broker: worker returns to pool = %s", worker.address)
 	return nil
 }
 

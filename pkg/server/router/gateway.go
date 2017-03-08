@@ -80,8 +80,9 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	g.commonRouter.ServeHTTP(w, req)
 }
 
-func (g *Gateway) matchHandler(req *http.Request, p *Payload) (h Handler, pp []Processor) {
-	if pathRoute, ok := g.methodPaths[req.Method]; ok {
+func (g *Gateway) matchHandler(p *Payload) (h Handler, pp []Processor) {
+	method := p.Meta["method"].(string)
+	if pathRoute, ok := g.methodPaths[method]; ok {
 		h = pathRoute.Handler
 		pp = pathRoute.Preprocessors
 	}
@@ -115,6 +116,9 @@ func (g *Gateway) newPayload(req *http.Request) (p *Payload, err error) {
 	} else if accessToken := query.Get("access_token"); accessToken != "" {
 		p.Data["access_token"] = accessToken
 	}
+
+	p.Meta["path"] = req.URL.Path
+	p.Meta["method"] = req.Method
 
 	return
 }
