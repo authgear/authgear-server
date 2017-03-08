@@ -362,6 +362,10 @@ func (lb *Broker) sendZMQFramesToChannel(frames [][]byte) {
 	requestID := string(frames[4])
 	message := frames[6]
 	if messageType == Request {
+		if bounceCount == 0 {
+			// This is a new request from plugin, need to mark the worker as occupied
+			lb.workers.Borrow(address)
+		}
 		go func() {
 			parcel := newParcel(message)
 			parcel.workers[lb.name] = address
@@ -567,6 +571,24 @@ func (q *workerQueue) Add(worker pworker) {
 	if err == nil {
 		return
 	}
+}
+
+// Borrow will mark the specified worker as being comsumed,
+// it is like Next() but you can specific which worker to take.
+func (q *workerQueue) Borrow(address string) error {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	workers := []pworker{}
+	for _, w := range q.pworkers {
+		if w.address != address {
+			workers = append(workers, w)
+		}
+	}
+	if len(workers) == len(q.pworkers) {
+		return errors.New(fmt.Sprintf("zmq/broker: Cannot find worker = %s", address))
+	}
+	q.pworkers = workers
+	return nil
 }
 
 // Tick will make the worker to be the next available worker. Ticking an un-
