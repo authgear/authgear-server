@@ -50,8 +50,8 @@ const (
 	// It is an addition to original PPP to shorten the time needed for
 	// broker to detect a normal shutdown of worker.
 	Shutdown = "\003"
-	Request = "REQ"
-	Response = "RES"
+	Request = "\004"
+	Response = "\005"
 )
 
 // parcel is used to multiplex the chan with zmq worker
@@ -114,7 +114,7 @@ func requestToChannelKey(requestID string, bounceCount int) string {
 // 6. Empty frame
 // 7. Message body
 //
-// Message type is either "REQ" or "RES"
+// Message type is either Request or Response
 // Bounce count is an integer that increase when the request is nested, starts from 0
 // Request ID is a string that identify the request (including nested requests)
 //

@@ -200,7 +200,7 @@ func TestBrokerWorker(t *testing.T) {
 			w.SendMessage([][]byte{
 				[]byte("unregistered"),
 				[]byte{0},
-				[]byte("REQ"),
+				[]byte(Request),
 				[]byte("0"),
 				[]byte("request-id"),
 				[]byte{},
@@ -257,7 +257,7 @@ func TestBrokerWorker(t *testing.T) {
 			msg := recvNonControlFrame(w)
 			So(len(msg), ShouldEqual, 7)
 			So(msg[6], ShouldResemble, []byte("from server"))
-			msg[2] = []byte("RES")
+			msg[2] = []byte(Response)
 			msg[6] = []byte("from worker")
 			w.SendMessage(msg)
 
@@ -281,7 +281,7 @@ func TestBrokerWorker(t *testing.T) {
 			msg := recvNonControlFrame(w)
 			So(len(msg), ShouldEqual, 7)
 			So(msg[6], ShouldResemble, []byte("from server"))
-			msg[2] = []byte("RES")
+			msg[2] = []byte(Response)
 			msg[6] = []byte("from worker")
 			w.SendMessage(msg)
 
@@ -301,7 +301,7 @@ func TestBrokerWorker(t *testing.T) {
 			w.SendMessage([][]byte{
 				[]byte("worker"),
 				[]byte{},
-				[]byte("REQ"),
+				[]byte(Request),
 				[]byte("0"),
 				[]byte("request-id"),
 				[]byte{},
@@ -322,7 +322,7 @@ func TestBrokerWorker(t *testing.T) {
 			So(len(msg), ShouldEqual, 7)
 			So(msg[0], ShouldResemble, []byte("worker"))
 			So(msg[1], ShouldResemble, []byte{})
-			So(msg[2], ShouldResemble, []byte("RES"))
+			So(msg[2], ShouldResemble, []byte(Response))
 			So(msg[3], ShouldResemble, []byte("0"))
 			So(msg[4], ShouldResemble, []byte("request-id"))
 			So(msg[5], ShouldResemble, []byte{})
@@ -342,7 +342,7 @@ func TestBrokerWorker(t *testing.T) {
 				msg := recvNonControlFrame(w)
 				if len(msg) == 7 {
 					c.So(msg[6], ShouldResemble, []byte("from server"))
-					msg[2] = []byte("RES")
+					msg[2] = []byte(Response)
 					msg[6] = []byte("from worker")
 					w.SendMessage(msg)
 				}
@@ -360,7 +360,7 @@ func TestBrokerWorker(t *testing.T) {
 				msg := recvNonControlFrame(w2)
 				if len(msg) == 7 {
 					c.So(msg[6], ShouldResemble, []byte("from server"))
-					msg[2] = []byte("RES")
+					msg[2] = []byte(Response)
 					msg[6] = []byte("from worker")
 					w2.SendMessage(msg)
 				}
