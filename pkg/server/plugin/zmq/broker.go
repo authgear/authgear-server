@@ -50,7 +50,7 @@ const (
 	// It is an addition to original PPP to shorten the time needed for
 	// broker to detect a normal shutdown of worker.
 	Shutdown = "\003"
-	Request = "\004"
+	Request  = "\004"
 	Response = "\005"
 )
 
@@ -281,7 +281,7 @@ func (lb *Broker) Run() {
 				lb.handleWorkerStatus(address, status)
 			} else {
 				lb.frontend <- msg
-				lb.logger.Debugf("zmq/broker: plugin => server: %#x, %s\n", msg[0], msg)
+				lb.logger.Debugf("zmq/broker: plugin => server: %q, %s\n", msg[0:6], msg[6])
 			}
 		case pull:
 			frames, err := pull.RecvMessage()
@@ -350,7 +350,7 @@ func (lb *Broker) Channeler() {
 }
 
 func (lb *Broker) sendZMQFramesToChannel(frames [][]byte) {
-	lb.logger.Debugf("zmq/broker: zmq => channel %#x, %s\n", frames[0], frames)
+	lb.logger.Debugf("zmq/broker: zmq => channel %q, %s\n", frames[0:6], frames[6])
 	// Dispacth back to the channel based on the zmq first frame
 	address := string(frames[0])
 	messageType := string(frames[2])
@@ -362,13 +362,13 @@ func (lb *Broker) sendZMQFramesToChannel(frames [][]byte) {
 	requestID := string(frames[4])
 	message := frames[6]
 	if messageType == Request {
-		go func () {
+		go func() {
 			parcel := newParcel(message)
 			parcel.workers[lb.name] = address
 			parcel.bounceCount = bounceCount
 			parcel.requestID = requestID
 			lb.ReqChan <- parcel
-			response := <- parcel.respChan
+			response := <-parcel.respChan
 			frames := [][]byte{
 				[]byte(address),
 				[]byte(address),
@@ -379,7 +379,7 @@ func (lb *Broker) sendZMQFramesToChannel(frames [][]byte) {
 				[]byte{},
 				response,
 			}
-			lb.logger.Debugf("zmq/broker: zmq => plugin %#x, %s\n", frames[0], frames)
+			lb.logger.Debugf("zmq/broker: zmq => plugin %q, %s\n", frames[0:7], frames[7])
 			lb.respChan <- frames
 		}()
 	} else if messageType == Response {
@@ -442,7 +442,7 @@ func (lb *Broker) sendChannelParcelToZMQ(p *parcel, push *goczmq.Sock) {
 	key := requestToChannelKey(requestID, bounceCount)
 	lb.parcelChan[key] = p
 	push.SendMessage(frames)
-	lb.logger.Debugf("zmq/broker: channel => zmq: %#x, %s\n", addr, frames)
+	lb.logger.Debugf("zmq/broker: channel => zmq: %q, %s\n", frames[0:7], frames[7])
 	go lb.setTimeout(key)
 }
 
