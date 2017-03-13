@@ -491,5 +491,28 @@ func TestBrokerWorker(t *testing.T) {
 			resp := <-respChan
 			So(resp, ShouldResemble, []byte("response from worker"))
 		})
+
+		Convey("broker returns error when bounce count is over maximum", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			reqChan := make(chan chan []byte)
+			broker.maxBounce = 10
+			broker.RPCWithWorker(
+				reqChan,
+				[]byte("from server"),
+				make(map[string]string),
+				"request-id",
+				11,
+			)
+			respChan := <-reqChan
+			resp := <-respChan
+			So(resp, ShouldResemble, []byte{1})
+		})
 	})
 }
