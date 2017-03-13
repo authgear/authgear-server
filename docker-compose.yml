@@ -35,7 +35,7 @@ services:
       APP_NAME: _
       TOKEN_STORE: jwt
       TOKEN_STORE_SECRET: my_skygear_jwt_secret
-      TRANSPORT_MAX_BOUNCE: 10
+      ZMQ_MAX_BOUNCE: 10
       # GOMAXPROCS - The maximum number of Go threads for execution.
       # When unspecified, the default is the number of CPU available, which
       # is the recommended setting.

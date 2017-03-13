@@ -65,7 +65,6 @@ type Configuration struct {
 		CORSHost           string `json:"cors_host"`
 		Slave              bool   `json:"slave"`
 		ResponseTimeout    int64  `json:"response_timeout"`
-		TransportMaxBounce int    `json:"transport_max_bounce"`
 	} `json:"app"`
 	DB struct {
 		ImplName string `json:"implementation"`
@@ -136,7 +135,8 @@ type Configuration struct {
 		SentryLevel string
 	} `json:"-"`
 	Zmq struct {
-		Timeout int `json:"timeout"`
+		Timeout   int `json:"timeout"`
+		MaxBounce int `json:"max_bounce"`
 	} `json:"zmq"`
 	Plugin map[string]*PluginConfig `json:"-"`
 }
@@ -150,7 +150,6 @@ func NewConfiguration() Configuration {
 	config.App.CORSHost = "*"
 	config.App.Slave = false
 	config.App.ResponseTimeout = 60
-	config.App.TransportMaxBounce = 10
 	config.DB.ImplName = "pq"
 	config.DB.Option = "postgres://postgres:@localhost/postgres?sslmode=disable"
 	config.TokenStore.ImplName = "fs"
@@ -170,6 +169,7 @@ func NewConfiguration() Configuration {
 	config.LOG.RouterByteLimit = 100000
 	config.LogHook.SentryLevel = "error"
 	config.Zmq.Timeout = 30
+	config.Zmq.MaxBounce = 10
 	config.Plugin = map[string]*PluginConfig{}
 	return config
 }
@@ -257,8 +257,8 @@ func (config *Configuration) ReadFromEnv() {
 		config.App.ResponseTimeout = timeout
 	}
 
-	if bounceCount, err := strconv.ParseInt(os.Getenv("TRANSPORT_MAX_BOUNCE"), 10, 0); err == nil {
-		config.App.TransportMaxBounce = int(bounceCount)
+	if bounceCount, err := strconv.ParseInt(os.Getenv("ZMQ_MAX_BOUNCE"), 10, 0); err == nil {
+		config.Zmq.MaxBounce = int(bounceCount)
 	}
 
 	config.readTokenStore()

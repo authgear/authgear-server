@@ -251,7 +251,7 @@ type zmqTransportFactory struct {
 
 func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.Configuration) (transport skyplugin.Transport) {
 	externalAddr := args[0]
-	broker, err := NewBroker(name, externalAddr, config.Zmq.Timeout, config.App.TransportMaxBounce)
+	broker, err := NewBroker(name, externalAddr, config.Zmq.Timeout, config.Zmq.MaxBounce)
 	logger := log.WithFields(logrus.Fields{"plugin": name})
 	if err != nil {
 		logger.Panicf("Failed to init broker for zmq transport: %v", err)
