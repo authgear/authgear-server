@@ -21,9 +21,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"runtime/debug"
-	"strings"
 
 	"github.com/Sirupsen/logrus"
 
@@ -198,45 +196,15 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 }
 
 func (p *zmqTransport) handleRequest(parcel *parcel) {
-	workerIDs := parcel.workers
-	requestID := parcel.requestID
-	bounceCount := parcel.bounceCount
-	buffer := parcel.frame
-	responseChan := parcel.respChan
-
-	reader := bytes.NewReader(buffer)
-	data := map[string]interface{}{}
-	if jsonErr := json.NewDecoder(reader).Decode(&data); jsonErr != nil && jsonErr != io.EOF {
-		p.logger.Infof("Cannot parse JSON %v.", jsonErr)
+	payload, err := parcel.makePayload()
+	if err != nil {
+		p.logger.Warnf("Cannot parse JSON %v.", err)
 		return
 	}
-
-	payloadData := data["payload"].(map[string]interface{})
-	method := data["method"].(string)
-	actionString := payloadData["action"].(string)
-	path := strings.Replace(actionString, ":", "/", -1)
-
-	payload := &router.Payload{
-		Context: context.Background(),
-		Meta: map[string]interface{}{},
-		Data: payloadData,
-		AccessKey: router.MasterAccessKey,
-	}
-
-	payload.Meta["method"] = method
-	payload.Meta["path"] = path
-
 	responseWriter := &zmqResponseWriter{}
 	resp := router.NewResponse(responseWriter)
-
-	newCtx := context.WithValue(payload.Context, ZMQWorkerIDsContextKey, workerIDs)
-	newCtx = context.WithValue(newCtx, ZMQRequestIDContextKey, requestID)
-	newCtx = context.WithValue(newCtx, ZMQBounceCountContextKey, bounceCount)
-	payload.Context = newCtx
-
 	p.router.HandlePayload(payload, resp)
-
-	responseChan <- responseWriter.response
+	parcel.respChan <- responseWriter.response
 }
 
 func (p *zmqTransport) listenRequests() {
