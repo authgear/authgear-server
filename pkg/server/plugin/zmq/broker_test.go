@@ -425,8 +425,71 @@ func TestBrokerWorker(t *testing.T) {
 				c.So(resp, ShouldNotBeEmpty)
 			}()
 			wg.Wait()
+		})
 
+		Convey("broker RPC handle nested request", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			reqChan := make(chan chan []byte)
+			// worker send req to plugin
+			broker.RPCWithWorker(
+				reqChan,
+				[]byte("from server"),
+				make(map[string]string),
+				"request-id",
+				0,
+			)
+
+			time.Sleep(HeartbeatInterval)
+
+			// plugin send nested request
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte(Request),
+				[]byte("1"),
+				[]byte("request-id"),
+				[]byte{},
+				[]byte("request from plugin"),
+			})
+
+			// handle nested request
+			parcel := <- broker.ReqChan
+
+			So(parcel.requestID, ShouldResemble, "request-id")
+			So(parcel.workers, ShouldResemble, map[string]string{
+				"test": "worker",
+			})
+			So(parcel.bounceCount, ShouldEqual, 1)
+			So(parcel.frame, ShouldResemble, []byte("request from plugin"))
+			// server reply nested request
+			parcel.respChan <- []byte("from server")
+
+			// plugin get nested reply
+			msg := recvNonControlFrame(w)
+			So(len(msg), ShouldEqual, 7)
+			So(msg[6], ShouldResemble, []byte("from server"))
+			// plugin main reply
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte(Response),
+				[]byte("0"),
+				[]byte("request-id"),  // here update + assert?!
+				[]byte{},
+				[]byte("response from worker"),
+			})
+
+			// server get main response
+			respChan := <-reqChan
+			resp := <-respChan
+			So(resp, ShouldResemble, []byte("response from worker"))
 		})
 	})
-
 }

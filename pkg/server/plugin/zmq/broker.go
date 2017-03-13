@@ -439,9 +439,12 @@ func (lb *Broker) sendChannelParcelToZMQ(p *parcel, push *goczmq.Sock) {
 	var requestID string
 	if _address, ok := p.workers[lb.name]; ok {
 		address = _address
-		requestID = p.requestID
 	} else {
 		address = lb.workers.Next()
+	}
+	if p.requestID != "" {
+		requestID = p.requestID
+	} else {
 		requestID = generateRequestID()
 	}
 	bounceCount := p.bounceCount
