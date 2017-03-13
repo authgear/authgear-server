@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/zeromq/goczmq"
+	"github.com/skygeario/skygear-server/pkg/server/router"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -513,6 +514,45 @@ func TestBrokerWorker(t *testing.T) {
 			respChan := <-reqChan
 			resp := <-respChan
 			So(resp, ShouldResemble, []byte{1})
+		})
+
+		Convey("Parcel should create payload", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte(Request),
+				[]byte("0"),
+				[]byte("request-id"),
+				[]byte{},
+				[]byte("{\"method\":\"POST\", \"payload\":{\"action\":\"foo:bar\", \"key\":\"value\"}}"),
+			})
+
+			parcel := <- broker.ReqChan
+			payload, err := parcel.makePayload()
+
+			if err != nil {
+				t.Fatalf("Failed to create payload: %v", err)
+			}
+
+			So(payload.Meta["method"], ShouldResemble, "POST")
+			So(payload.Meta["path"], ShouldResemble, "foo/bar")
+			So(payload.Data["key"], ShouldResemble, "value")
+			So(payload.AccessKey, ShouldEqual, router.MasterAccessKey)
+
+			ctx := payload.Context
+			So(ctx.Value(ZMQRequestIDContextKey), ShouldEqual, "request-id")
+			So(ctx.Value(ZMQBounceCountContextKey), ShouldEqual, 0)
+			So(ctx.Value(ZMQWorkerIDsContextKey), ShouldResemble, map[string]string{
+				"test": "worker",
+			})
 		})
 	})
 }
