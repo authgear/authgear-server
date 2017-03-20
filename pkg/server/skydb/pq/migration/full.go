@@ -25,7 +25,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "1981535c8aeb" }
+func (r *fullMigration) Version() string { return "069921d63218" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -122,6 +122,12 @@ CREATE TABLE _record_creation (
     FOREIGN KEY (role_id) REFERENCES _role(id)
 );
 CREATE INDEX _record_creation_unique_record_type ON _record_creation (record_type);
+CREATE TABLE _record_default_access (
+    record_type text NOT NULL,
+    default_access jsonb,
+    UNIQUE (record_type)
+);
+CREATE INDEX _record_default_access_unique_record_type ON _record_default_access (record_type);
 `
 	_, err := tx.Exec(stmt)
 	return err
