@@ -25,22 +25,24 @@ import (
 
 // MapConn is a naive memory implementation of skydb.Conn
 type MapConn struct {
-	UserMap         map[string]skydb.UserInfo
-	AssetMap        map[string]skydb.Asset
-	usernameMap     map[string]skydb.UserInfo
-	emailMap        map[string]skydb.UserInfo
-	recordAccessMap map[string]skydb.RecordACL
+	UserMap                map[string]skydb.UserInfo
+	AssetMap               map[string]skydb.Asset
+	usernameMap            map[string]skydb.UserInfo
+	emailMap               map[string]skydb.UserInfo
+	recordAccessMap        map[string]skydb.RecordACL
+	recordDefaultAccessMap map[string]skydb.RecordACL
 	skydb.Conn
 }
 
 // NewMapConn returns a new MapConn.
 func NewMapConn() *MapConn {
 	return &MapConn{
-		UserMap:         map[string]skydb.UserInfo{},
-		usernameMap:     map[string]skydb.UserInfo{},
-		emailMap:        map[string]skydb.UserInfo{},
-		recordAccessMap: map[string]skydb.RecordACL{},
-		AssetMap:       map[string]skydb.Asset{},
+		UserMap:                map[string]skydb.UserInfo{},
+		usernameMap:            map[string]skydb.UserInfo{},
+		emailMap:               map[string]skydb.UserInfo{},
+		recordAccessMap:        map[string]skydb.RecordACL{},
+		recordDefaultAccessMap: map[string]skydb.RecordACL{},
+		AssetMap:               map[string]skydb.Asset{},
 	}
 }
 
@@ -162,6 +164,12 @@ func (conn *MapConn) SetDefaultRoles(roles []string) error {
 // SetRecordAccess sets record creation access
 func (conn *MapConn) SetRecordAccess(recordType string, acl skydb.RecordACL) error {
 	conn.recordAccessMap[recordType] = acl
+	return nil
+}
+
+// SetRecordDefaultAccess sets record creation access
+func (conn *MapConn) SetRecordDefaultAccess(recordType string, acl skydb.RecordACL) error {
+	conn.recordDefaultAccessMap[recordType] = acl
 	return nil
 }
 
