@@ -118,3 +118,21 @@ func (c *conn) insertRecordCreationAccess(recordType string, roles []string) err
 
 	return nil
 }
+
+func (c *conn) SetRecordDefaultAccess(recordType string, acl skydb.RecordACL) error {
+	pkData := map[string]interface{}{
+		"record_type": recordType,
+	}
+	values := map[string]interface{}{
+		"default_access": aclValue(acl),
+	}
+
+	upsert := upsertQuery(c.tableName("_record_default_access"), pkData, values)
+	_, err := c.ExecWith(upsert)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

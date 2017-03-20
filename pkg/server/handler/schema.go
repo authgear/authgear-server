@@ -21,6 +21,7 @@ import (
 	pluginEvent "github.com/skygeario/skygear-server/pkg/server/plugin/event"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -495,5 +496,106 @@ func (h *SchemaAccessHandler) Handle(rpayload *router.Payload, response *router.
 	response.Result = schemaAccessResponse{
 		Type:        payload.Type,
 		CreateRoles: payload.RawCreateRoles,
+	}
+}
+
+/*
+SchemaDefaultAccessHandler handles the update of creation access of record
+curl -X POST -H "Content-Type: application/json" \
+  -d @- http://localhost:3000/schema/default_access <<EOF
+{
+	"master_key": "MASTER_KEY",
+	"action": "schema:access",
+	"type": "note",
+	"default_access": [
+		{"public": true, "level": "write"}
+	]
+}
+EOF
+*/
+type SchemaDefaultAccessHandler struct {
+	AccessKey     router.Processor `preprocessor:"accesskey"`
+	DevOnly       router.Processor `preprocessor:"dev_only"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectDB      router.Processor `preprocessor:"inject_db"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
+	preprocessors []router.Processor
+}
+
+type schemaDefaultAccessPayload struct {
+	Type             string                   `mapstructure:"type"`
+	RawDefaultAccess []map[string]interface{} `mapstructure:"default_access"`
+	ACL              skydb.RecordACL
+}
+
+type schemaDefaultAccessResponse struct {
+	Type          string                   `json:"type"`
+	DefaultAccess []map[string]interface{} `json:"default_access,omitempty"`
+}
+
+func (h *SchemaDefaultAccessHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.AccessKey,
+		h.DevOnly,
+		h.DBConn,
+		h.InjectDB,
+		h.PluginReady,
+	}
+}
+
+func (h *SchemaDefaultAccessHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (payload *schemaDefaultAccessPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+
+	acl := skydb.RecordACL{}
+	for _, v := range payload.RawDefaultAccess {
+		ace := skydb.RecordACLEntry{}
+		if err := (*skyconv.MapACLEntry)(&ace).FromMap(v); err != nil {
+			return skyerr.NewInvalidArgument("invalid default_access entry", []string{"default_access"})
+		}
+		acl = append(acl, ace)
+	}
+
+	payload.ACL = acl
+
+	return payload.Validate()
+}
+
+func (payload *schemaDefaultAccessPayload) Validate() skyerr.Error {
+	if payload.Type == "" {
+		return skyerr.NewInvalidArgument("missing required fields", []string{"type"})
+	}
+
+	return nil
+}
+
+func (h *SchemaDefaultAccessHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	payload := schemaDefaultAccessPayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
+	c := rpayload.Database.Conn()
+	err := c.SetRecordDefaultAccess(payload.Type, payload.ACL)
+
+	if err != nil {
+		if skyErr, isSkyErr := err.(skyerr.Error); isSkyErr {
+			response.Err = skyErr
+		} else {
+			response.Err = skyerr.MakeError(err)
+		}
+		return
+	}
+
+	response.Result = schemaDefaultAccessResponse{
+		Type:          payload.Type,
+		DefaultAccess: payload.RawDefaultAccess,
 	}
 }

@@ -114,6 +114,9 @@ type Conn interface {
 	// SetRecordAccess sets default record access of a specific type
 	SetRecordAccess(recordType string, acl RecordACL) error
 
+	// SetRecordDefaultAccess sets default record access of a specific type
+	SetRecordDefaultAccess(recordType string, acl RecordACL) error
+
 	// GetRecordAccess returns default record access of a specific type
 	GetRecordAccess(recordType string) (RecordACL, error)
 
