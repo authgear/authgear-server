@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/zeromq/goczmq"
+	"github.com/skygeario/skygear-server/pkg/server/router"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -425,8 +426,133 @@ func TestBrokerWorker(t *testing.T) {
 				c.So(resp, ShouldNotBeEmpty)
 			}()
 			wg.Wait()
+		})
 
+		Convey("broker RPC handle nested request", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			reqChan := make(chan chan []byte)
+			// worker send req to plugin
+			broker.RPCWithWorker(
+				reqChan,
+				[]byte("from server"),
+				make(map[string]string),
+				"request-id",
+				0,
+			)
+
+			time.Sleep(HeartbeatInterval)
+
+			// plugin send nested request
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte(Request),
+				[]byte("1"),
+				[]byte("request-id"),
+				[]byte{},
+				[]byte("request from plugin"),
+			})
+
+			// handle nested request
+			parcel := <- broker.ReqChan
+
+			So(parcel.requestID, ShouldResemble, "request-id")
+			So(parcel.workers, ShouldResemble, map[string]string{
+				"test": "worker",
+			})
+			So(parcel.bounceCount, ShouldEqual, 1)
+			So(parcel.frame, ShouldResemble, []byte("request from plugin"))
+			// server reply nested request
+			parcel.respChan <- []byte("from server")
+
+			// plugin get nested reply
+			msg := recvNonControlFrame(w)
+			So(len(msg), ShouldEqual, 7)
+			So(msg[6], ShouldResemble, []byte("from server"))
+			// plugin main reply
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte(Response),
+				[]byte("0"),
+				[]byte("request-id"),  // here update + assert?!
+				[]byte{},
+				[]byte("response from worker"),
+			})
+
+			// server get main response
+			respChan := <-reqChan
+			resp := <-respChan
+			So(resp, ShouldResemble, []byte("response from worker"))
+		})
+
+		Convey("broker returns error when bounce count is over maximum", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			reqChan := make(chan chan []byte)
+			broker.maxBounce = 10
+			broker.RPCWithWorker(
+				reqChan,
+				[]byte("from server"),
+				make(map[string]string),
+				"request-id",
+				11,
+			)
+			respChan := <-reqChan
+			resp := <-respChan
+			So(resp, ShouldResemble, []byte{1})
+		})
+
+		Convey("Parcel should create payload", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte(Request),
+				[]byte("0"),
+				[]byte("request-id"),
+				[]byte{},
+				[]byte("{\"method\":\"POST\", \"payload\":{\"action\":\"foo:bar\", \"key\":\"value\"}}"),
+			})
+
+			parcel := <- broker.ReqChan
+			payload, err := parcel.makePayload()
+
+			if err != nil {
+				t.Fatalf("Failed to create payload: %v", err)
+			}
+
+			So(payload.Meta["method"], ShouldResemble, "POST")
+			So(payload.Meta["path"], ShouldResemble, "foo/bar")
+			So(payload.Data["key"], ShouldResemble, "value")
+			So(payload.AccessKey, ShouldEqual, router.MasterAccessKey)
+
+			ctx := payload.Context
+			So(ctx.Value(ZMQRequestIDContextKey), ShouldEqual, "request-id")
+			So(ctx.Value(ZMQBounceCountContextKey), ShouldEqual, 0)
+			So(ctx.Value(ZMQWorkerIDsContextKey), ShouldResemble, map[string]string{
+				"test": "worker",
+			})
 		})
 	})
-
 }
