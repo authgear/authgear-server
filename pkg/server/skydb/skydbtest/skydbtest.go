@@ -183,6 +183,15 @@ func (conn *MapConn) GetRecordAccess(recordType string) (skydb.RecordACL, error)
 	return acl, nil
 }
 
+// GetRecordDefaultAccess returns record default access of a specific type
+func (conn *MapConn) GetRecordDefaultAccess(recordType string) (skydb.RecordACL, error) {
+	acl, gotIt := conn.recordDefaultAccessMap[recordType]
+	if !gotIt {
+		return nil, nil
+	}
+	return acl, nil
+}
+
 // GetAsset is not implemented.
 func (conn *MapConn) GetAsset(name string, asset *skydb.Asset) error {
 	panic("not implemented")
