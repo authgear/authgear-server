@@ -1,6 +1,8 @@
 package pq
 
 import (
+	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	sq "github.com/lann/squirrel"
@@ -135,4 +137,24 @@ func (c *conn) SetRecordDefaultAccess(recordType string, acl skydb.RecordACL) er
 	}
 
 	return nil
+}
+
+func (c *conn) GetRecordDefaultAccess(recordType string) (skydb.RecordACL, error) {
+	builder := psql.
+		Select("default_access").
+		From(c.tableName("_record_default_access")).
+		Where(sq.Eq{"record_type": recordType})
+
+	nullableACLString := sql.NullString{}
+	err := c.QueryRowWith(builder).Scan(&nullableACLString)
+	if err != nil {
+		return nil, err
+	}
+
+	acl := skydb.RecordACL{}
+	if nullableACLString.Valid {
+		json.Unmarshal([]byte(nullableACLString.String), &acl)
+		return acl, nil
+	}
+	return nil, nil
 }
