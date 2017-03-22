@@ -26,6 +26,7 @@ import (
 // MapConn is a naive memory implementation of skydb.Conn
 type MapConn struct {
 	UserMap         map[string]skydb.UserInfo
+	AssetMap        map[string]skydb.Asset
 	usernameMap     map[string]skydb.UserInfo
 	emailMap        map[string]skydb.UserInfo
 	recordAccessMap map[string]skydb.RecordACL
@@ -39,6 +40,7 @@ func NewMapConn() *MapConn {
 		usernameMap:     map[string]skydb.UserInfo{},
 		emailMap:        map[string]skydb.UserInfo{},
 		recordAccessMap: map[string]skydb.RecordACL{},
+		AssetMap:       map[string]skydb.Asset{},
 	}
 }
 
@@ -181,6 +183,18 @@ func (conn *MapConn) GetAsset(name string, asset *skydb.Asset) error {
 // SaveAsset is not implemented.
 func (conn *MapConn) SaveAsset(asset *skydb.Asset) error {
 	panic("not implemented")
+}
+
+// GetAssets always returns empty array.
+func (conn *MapConn) GetAssets(names []string) ([]skydb.Asset, error) {
+	assets := []skydb.Asset{}
+	for _, v := range(names) {
+		asset, ok := conn.AssetMap[v]
+		if ok {
+			assets = append(assets, asset)
+		}
+	}
+	return assets, nil
 }
 
 // QueryRelation is not implemented.
