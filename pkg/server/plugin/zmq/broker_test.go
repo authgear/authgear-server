@@ -126,6 +126,18 @@ func TestWorker(t *testing.T) {
 			q.Purge()
 			So(q.Len(), ShouldEqual, 1)
 		})
+
+		Convey("Borrow a worker", func() {
+			q := newWorkerQueue()
+			q.Add(newWorker(address1))
+			q.Add(newWorker(address2))
+			q.Add(newWorker(address3))
+			So(q.Len(), ShouldEqual, 3)
+
+			q.Borrow(address1)
+			So(q.Next(), ShouldResemble, address3)
+			So(q.Next(), ShouldResemble, address2)
+		})
 	})
 }
 func TestBrokerWorker(t *testing.T) {
