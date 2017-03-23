@@ -303,5 +303,47 @@ func TestInjectUserProcessor(t *testing.T) {
 			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusUnauthorized)
 			So(resp.Err.Code(), ShouldEqual, skyerr.AccessTokenNotAccepted)
 		})
+
+		Convey("should create and inject user when master key is used", func() {
+			// Note: UserInfoID can be set by master key, hence without
+			// access token.
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				UserInfoID:  "newuser",
+				AccessToken: nil,
+				AccessKey:   router.MasterAccessKey,
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(payload.UserInfo.ID, ShouldResemble, "newuser")
+
+			_, ok := conn.UserMap["newuser"]
+			So(ok, ShouldBeTrue)
+		})
+
+		Convey("should create _god user when master key is used and no user", func() {
+			// Note: UserInfoID can be set by master key, hence without
+			// access token.
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				UserInfoID:  "",
+				AccessToken: nil,
+				AccessKey:   router.MasterAccessKey,
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(payload.UserInfo.ID, ShouldResemble, "_god")
+
+			_, ok := conn.UserMap["_god"]
+			So(ok, ShouldBeTrue)
+		})
 	})
 }
