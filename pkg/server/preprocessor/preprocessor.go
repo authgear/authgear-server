@@ -15,6 +15,7 @@
 package preprocessor
 
 import (
+	"context"
 	"net/http"
 	"strings"
 	"time"
@@ -50,16 +51,29 @@ func isTokenStillValid(token router.AccessToken, userInfo skydb.UserInfo) bool {
 
 func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
 	if payload.UserInfoID == "" {
-		log.Debugln("injectUser: empty UserInfoID, skipping")
-		return http.StatusOK
+		if !payload.HasMasterKey() {
+			log.Debugln("injectUser: empty UserInfoID, skipping")
+			return http.StatusOK
+		}
+		payload.UserInfoID = "_god"
+		payload.Context = context.WithValue(payload.Context, router.UserIDContextKey, "_god")
 	}
 
 	conn := payload.DBConn
 	userinfo := skydb.UserInfo{}
 	if err := conn.GetUser(payload.UserInfoID, &userinfo); err != nil {
-		log.Errorf("Cannot find UserInfo.ID = %#v\n", payload.UserInfoID)
-		response.Err = skyerr.NewError(skyerr.UnexpectedUserInfoNotFound, err.Error())
-		return http.StatusInternalServerError
+		if err == skydb.ErrUserNotFound && payload.HasMasterKey() {
+			userinfo = skydb.UserInfo{
+				ID: payload.UserInfoID,
+			}
+			if err := payload.DBConn.CreateUser(&userinfo); err != nil && err != skydb.ErrUserDuplicated {
+				return http.StatusInternalServerError
+			}
+		} else {
+			log.Errorf("Cannot find UserInfo.ID = %#v\n", payload.UserInfoID)
+			response.Err = skyerr.NewError(skyerr.UnexpectedUserInfoNotFound, err.Error())
+			return http.StatusInternalServerError
+		}
 	}
 
 	// If an access token exists checks if the access token has an IssuedAt
