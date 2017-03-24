@@ -799,3 +799,125 @@ func TestSchemaAccessHandler(t *testing.T) {
 		So(roleNames, ShouldContain, "Writer")
 	})
 }
+
+func TestSchemaDefaultAccessPayload(t *testing.T) {
+	Convey("SchemaDefaultAccessPayload", t, func() {
+		Convey("Valid Data", func() {
+			payload := schemaDefaultAccessPayload{}
+			skyErr := payload.Decode(map[string]interface{}{
+				"action": "schema:default_access",
+				"type":   "note",
+				"default_access": []interface{}{
+					map[string]interface{}{
+						"public": true,
+						"level": "read",
+					},
+					map[string]interface{}{
+						"role": "admin",
+						"level": "write",
+					},
+				},
+			})
+
+			So(skyErr, ShouldBeNil)
+			So(payload.Validate(), ShouldBeNil)
+
+			admin := skydb.UserInfo{
+				Roles: []string{"admin"},
+			}
+			So(payload.ACL.Accessible(&admin, skydb.WriteLevel), ShouldEqual, true)
+			So(payload.ACL.Accessible(nil, skydb.ReadLevel), ShouldEqual, true)
+		})
+
+		Convey("Invalid Data", func() {
+			payload := schemaDefaultAccessPayload{}
+			err := payload.Decode(map[string]interface{}{
+				"action": "schema:default_access",
+				"default_access": []interface{}{
+					map[string]interface{}{
+						"public": true,
+						"level": "read",
+					},
+					map[string]interface{}{
+						"role": "admin",
+						"level": "write",
+					},
+				},
+			})
+
+			So(err, ShouldResemble,
+				skyerr.NewInvalidArgument("missing required fields", []string{"type"}))
+
+			err = payload.Decode(map[string]interface{}{
+				"action":         "schema:default_access",
+				"type":           "script",
+				"default_access": "read",
+			})
+
+			So(err, ShouldResemble,
+				skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload"))
+		})
+	})
+}
+
+type mockSchemaDefaultAccessDatabase struct {
+	DBConn skydb.Conn
+
+	skydb.Database
+}
+
+func (db *mockSchemaDefaultAccessDatabase) Conn() skydb.Conn {
+	return db.DBConn
+}
+
+type mockSchemaDefaultAccessDatabaseConnection struct {
+	recordType string
+	acl        skydb.RecordACL
+
+	skydb.Conn
+}
+
+func (c *mockSchemaDefaultAccessDatabaseConnection) SetRecordDefaultAccess(recordType string, acl skydb.RecordACL) error {
+	c.recordType = recordType
+	c.acl = acl
+
+	return nil
+}
+
+func TestSchemaDefaultAccessHandler(t *testing.T) {
+	Convey("TestSchemaDefaultAccessHandler", t, func() {
+		mockConn := &mockSchemaDefaultAccessDatabaseConnection{}
+		mockDB := &mockSchemaDefaultAccessDatabase{}
+		mockDB.DBConn = mockConn
+
+		handler := handlertest.NewSingleRouteRouter(&SchemaDefaultAccessHandler{}, func(p *router.Payload) {
+			p.Database = mockDB
+		})
+
+		resp := handler.POST(`{
+			"type": "script",
+			"default_access": [
+				{"public": true, "level": "read"},
+				{"role": "admin", "level": "write"}
+			]
+		}`)
+
+		So(resp.Body.Bytes(), ShouldEqualJSON, `{
+			"result": {
+				"type": "script",
+				"default_access": [
+					{"public": true, "level": "read"},
+					{"role": "admin", "level": "write"}
+				]
+			}
+		}`)
+
+		So(mockConn.recordType, ShouldEqual, "script")
+
+		admin := skydb.UserInfo{
+			Roles: []string{"admin"},
+		}
+		So(mockConn.acl.Accessible(&admin, skydb.WriteLevel), ShouldEqual, true)
+		So(mockConn.acl.Accessible(nil, skydb.ReadLevel), ShouldEqual, true)
+	})
+}
