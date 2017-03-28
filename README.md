@@ -21,7 +21,11 @@ It provides the following features for common app development:
 [Skygear.io](https://skygear.io) is the commercial hosted platform for
 developers who don't want to manage their own infrastructure.
 
+[![Slack](https://img.shields.io/badge/join-Slack-green.svg)](https://skygear.signup.team/)
+[![Google Group](https://img.shields.io/badge/join-Google%20Group-green.svg)](https://groups.google.com/forum/#!forum/skygear-user-group)
+
 [![Build Status](https://travis-ci.org/SkygearIO/skygear-server.svg?branch=master)](https://travis-ci.org/SkygearIO/skygear-server)
+[![Go Report Card](https://goreportcard.com/badge/github.com/skygeario/skygear-server)](https://goreportcard.com/report/github.com/skygeario/skygear-server)
 
 ## Getting Started
 
