@@ -376,6 +376,13 @@ func TestRecordSaveDataType(t *testing.T) {
 	Convey("RecordSaveHandler", t, func() {
 		db := skydbtest.NewMapDB()
 		conn := skydbtest.NewMapConn()
+		conn.AssetMap = map[string]skydb.Asset{
+			"asset-name": skydb.Asset{
+						Name: "asset-name",
+						ContentType: "plain/text",
+			},
+		}
+
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.Database = db
@@ -547,6 +554,11 @@ func (db bogusFieldDatabase) Get(id skydb.RecordID, record *skydb.Record) error 
 
 func (db bogusFieldDatabase) Save(record *skydb.Record) error {
 	return db.SaveFunc(record)
+}
+
+
+func (db bogusFieldDatabase) GetSchema(recordType string) (skydb.RecordSchema, error) {
+	return skydb.RecordSchema{}, nil
 }
 
 func TestRecordSaveBogusField(t *testing.T) {

@@ -262,7 +262,6 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 		if dbErr := db.Save(&deltaRecord); dbErr != nil {
 			err = skyerr.MakeError(dbErr)
 		}
-		injectSigner(&deltaRecord, req.AssetStore)
 		*record = deltaRecord
 
 		return
@@ -271,6 +270,8 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	if req.Atomic && len(resp.ErrMap) > 0 {
 		return skyerr.NewError(skyerr.UnexpectedError, "atomic operation failed")
 	}
+
+	makeAssetsCompleteAndInjectSigner(db, req.Conn, records, req.AssetStore)
 
 	// execute after save hooks
 	if req.HookRegistry != nil {
@@ -706,6 +707,21 @@ func makeAssetsComplete(db skydb.Database, conn skydb.Conn, records []skydb.Reco
 				record.Set(assetColumn, &completeAsset)
 			}
 		}
+	}
+	return nil
+}
+
+func makeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, records []*skydb.Record, store asset.Store) error {
+	recordArr := []skydb.Record{}
+	for _, v := range(records) {
+		recordArr = append(recordArr, *v)
+	}
+	err := makeAssetsComplete(db, conn, recordArr)
+	if err != nil {
+		return err
+	}
+	for _, record := range(records) {
+		injectSigner(record, store)
 	}
 	return nil
 }
