@@ -34,12 +34,12 @@ for local deployment. Download binaries of [Skygear Releases here](https://githu
 
 
 ## Connect your app to Skygear Server
-Skygear provides SDKs for all the major platforms. Please refer to the guide for each platform to learn how to connect your app to Skygear Server: [iOS] (https://docs.skygear.io/guides/get-started/ios/) / [Android](https://docs.skygear.io/guides/get-started/android/) / [JavaScript](https://docs.skygear.io/guides/get-started/js/)
+Skygear provides SDKs for all the major platforms. Please refer to the guide for each platform to learn how to connect your app to Skygear Server: [iOS](https://docs.skygear.io/guides/get-started/ios/) / [Android](https://docs.skygear.io/guides/get-started/android/) / [JavaScript](https://docs.skygear.io/guides/get-started/js/)
 
 ## Documentation
-* [Skygear Guides] (https://docs.skygear.io/guides/)
-* [Skygear API References] (https://docs.skygear.io/api-reference/)
-* [Sample Projects and Tutorials] (https://github.com/skygear-demo)
+* [Skygear Guides](https://docs.skygear.io/guides/)
+* [Skygear API References](https://docs.skygear.io/api-reference/)
+* [Sample Projects and Tutorials](https://github.com/skygear-demo)
 
 ### Can I Access The Docs Offline?
 
