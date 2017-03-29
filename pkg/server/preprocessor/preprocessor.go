@@ -142,12 +142,12 @@ func (p InjectPublicDatabase) Preprocess(payload *router.Payload, response *rout
 	return http.StatusOK
 }
 
-type RequireUserForWrite struct {
+type RequireUser struct {
 }
 
-func (p RequireUserForWrite) Preprocess(payload *router.Payload, response *router.Response) int {
+func (p RequireUser) Preprocess(payload *router.Payload, response *router.Response) int {
 	if payload.UserInfo == nil {
-		response.Err = skyerr.NewError(skyerr.PermissionDenied, "write is not allowed")
+		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "User is required for this action, please login.")
 		return http.StatusUnauthorized
 	}
 
