@@ -90,9 +90,7 @@ func (p *zmqTransport) RunHook(ctx context.Context, hookName string, record *sky
 }
 
 func (p *zmqTransport) RunTimer(name string, in []byte) (out []byte, err error) {
-	req := pluginrequest.Request{Kind: "timer", Name: name}
-	out, err = p.rpc(&req)
-	return
+	return p.rpc(pluginrequest.NewTimerRequest(name))
 }
 
 func (p *zmqTransport) RunProvider(ctx context.Context, request *skyplugin.AuthRequest) (resp *skyplugin.AuthResponse, err error) {
