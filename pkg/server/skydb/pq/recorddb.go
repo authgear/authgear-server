@@ -92,7 +92,19 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 }
 
 // Save attempts to do a upsert
+func (db *database) SaveDeltaRecord(delta *skydb.Record, original *skydb.Record, record *skydb.Record) error {
+	wrappers := map[string]func(string, string) string{}
+	wrap(original, &wrappers)
+	wrap(record, &wrappers)
+
+	return db.saveWithWrappers(delta, wrappers)
+}
+
 func (db *database) Save(record *skydb.Record) error {
+	return db.saveWithWrappers(record, map[string]func(string, string) string{})
+}
+
+func (db *database) saveWithWrappers(record *skydb.Record, wrappers map[string]func(string, string) string) error {
 	if record.ID.Key == "" {
 		return errors.New("db.save: got empty record id")
 	}
@@ -115,7 +127,8 @@ func (db *database) Save(record *skydb.Record) error {
 			"_database_id": db.userID,
 		}
 	}
-	upsert := upsertQuery(db.tableName(record.ID.Type), pkData, convert(record)).
+
+	upsert := upsertQueryWithWrappers(db.tableName(record.ID.Type), pkData, convert(record), wrappers).
 		IgnoreKeyOnUpdate("_owner_id").
 		IgnoreKeyOnUpdate("_created_at").
 		IgnoreKeyOnUpdate("_created_by")
@@ -175,6 +188,8 @@ func convert(r *skydb.Record) map[string]interface{} {
 			m[key] = referenceValue(value)
 		case skydb.Location:
 			m[key] = locationValue(value)
+		case skydb.Geometry:
+			m[key] = geometryValue(value)
 		case skydb.Unknown:
 			// Do not modify columns with unknown type because they are
 			// managed by the developer.
@@ -189,6 +204,15 @@ func convert(r *skydb.Record) map[string]interface{} {
 	m["_updated_at"] = r.UpdatedAt
 	m["_updated_by"] = r.UpdaterID
 	return m
+}
+
+func wrap(r *skydb.Record, m *map[string]func(string, string) string) {
+	for key, rawValue := range r.Data {
+		switch rawValue.(type) {
+		case skydb.Geometry:
+			(*m)[key] = wrapGeometry
+		}
+	}
 }
 
 func (db *database) Delete(id skydb.RecordID) error {
@@ -414,6 +438,9 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 		case skydb.TypeInteger:
 			var i sql.NullInt64
 			values = append(values, &i)
+		case skydb.TypeGeometry:
+			var g nullGeometry
+			values = append(values, &g)
 		case skydb.TypeUnknown:
 			var u nullUnknown
 			values = append(values, &u)
@@ -490,6 +517,10 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 			if svalue.Valid {
 				record.Set(column, svalue.Location)
 			}
+		case *nullGeometry:
+			if svalue.Valid {
+				record.Set(column, svalue.Geometry)
+			}
 		case *nullUnknown:
 			if svalue.Valid {
 				val := skydb.Unknown{}
@@ -549,8 +580,7 @@ func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap s
 				Value: column,
 			}
 		}
-
-		e := expressionSqlizer{recordType, expr}
+		e := expressionSqlizer{recordType, expr, ContextSelect, fieldType}
 		sqlOperand, opArgs, _ := e.ToSql()
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
 	}

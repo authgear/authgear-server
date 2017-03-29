@@ -259,7 +259,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
-		if dbErr := db.Save(&deltaRecord); dbErr != nil {
+		if dbErr := db.SaveDeltaRecord(&deltaRecord, originalRecord, record); dbErr != nil {
 			err = skyerr.MakeError(dbErr)
 		}
 		*record = deltaRecord
@@ -547,6 +547,10 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 			schema[key] = skydb.FieldType{
 				Type: skydb.TypeSequence,
 			}
+		case skydb.Geometry:
+			schema[key] = skydb.FieldType{
+				Type: skydb.TypeGeometry,
+			}
 		case skydb.Unknown:
 			schema[key] = skydb.FieldType{
 				Type:           skydb.TypeUnknown,
@@ -713,14 +717,14 @@ func makeAssetsComplete(db skydb.Database, conn skydb.Conn, records []skydb.Reco
 
 func makeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, records []*skydb.Record, store asset.Store) error {
 	recordArr := []skydb.Record{}
-	for _, v := range(records) {
+	for _, v := range records {
 		recordArr = append(recordArr, *v)
 	}
 	err := makeAssetsComplete(db, conn, recordArr)
 	if err != nil {
 		return err
 	}
-	for _, record := range(records) {
+	for _, record := range records {
 		injectSigner(record, store)
 	}
 	return nil
