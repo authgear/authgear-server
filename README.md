@@ -21,7 +21,11 @@ It provides the following features for common app development:
 [Skygear.io](https://skygear.io) is the commercial hosted platform for
 developers who don't want to manage their own infrastructure.
 
+[![Slack](https://img.shields.io/badge/join-Slack-green.svg)](https://skygear.signup.team/)
+[![Google Group](https://img.shields.io/badge/join-Google%20Group-green.svg)](https://groups.google.com/forum/#!forum/skygear-user-group)
+
 [![Build Status](https://travis-ci.org/SkygearIO/skygear-server.svg?branch=master)](https://travis-ci.org/SkygearIO/skygear-server)
+[![Go Report Card](https://goreportcard.com/badge/github.com/skygeario/skygear-server)](https://goreportcard.com/report/github.com/skygeario/skygear-server)
 
 ## Getting Started
 
@@ -34,12 +38,12 @@ for local deployment. Download binaries of [Skygear Releases here](https://githu
 
 
 ## Connect your app to Skygear Server
-Skygear provides SDKs for all the major platforms. Please refer to the guide for each platform to learn how to connect your app to Skygear Server: [iOS] (https://docs.skygear.io/guides/get-started/ios/) / [Android](https://docs.skygear.io/guides/get-started/android/) / [JavaScript](https://docs.skygear.io/guides/get-started/js/)
+Skygear provides SDKs for all the major platforms. Please refer to the guide for each platform to learn how to connect your app to Skygear Server: [iOS](https://docs.skygear.io/guides/get-started/ios/) / [Android](https://docs.skygear.io/guides/get-started/android/) / [JavaScript](https://docs.skygear.io/guides/get-started/js/)
 
 ## Documentation
-* [Skygear Guides] (https://docs.skygear.io/guides/)
-* [Skygear API References] (https://docs.skygear.io/api-reference/)
-* [Sample Projects and Tutorials] (https://github.com/skygear-demo)
+* [Skygear Guides](https://docs.skygear.io/guides/)
+* [Skygear API References](https://docs.skygear.io/api-reference/)
+* [Sample Projects and Tutorials](https://github.com/skygear-demo)
 
 ### Can I Access The Docs Offline?
 
