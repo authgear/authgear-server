@@ -26,11 +26,7 @@ import (
 func TestSqlizer(t *testing.T) {
 	Convey("Expression Sqlizer", t, func() {
 		Convey("literal null expression", func() {
-			expSqlizer := newExpressionSqlizer(
-				"table",
-				skydb.Expression{skydb.Literal, nil},
-			)
-			expr := &expSqlizer
+			expr := newExpressionSqlizer("table", skydb.FieldType{}, skydb.Expression{skydb.Literal, nil})
 			sql, args, err := expr.ToSql()
 			So(sql, ShouldEqual, "NULL")
 			So(args, ShouldResemble, []interface{}{})
@@ -264,10 +260,7 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 					"note",
 					"latlng",
 					skydb.NewLocation(22.25, 114.1667),
-					newExpressionSqlizer(
-						"note",
-						skydb.Expression{skydb.Literal, 500.0},
-					),
+					newExpressionSqlizer("note", skydb.FieldType{Type: skydb.TypeNumber}, skydb.Expression{skydb.Literal, 500.0}),
 				})
 			}
 		})
@@ -279,8 +272,8 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(sqlizer, ShouldResemble, &comparisonPredicateSqlizer{
 				[]expressionSqlizer{
-					newExpressionSqlizer("note", expr1),
-					newExpressionSqlizer("note", expr2),
+					newExpressionSqlizer("note", skydb.FieldType{Type: skydb.TypeNumber}, expr1),
+					newExpressionSqlizer("note", skydb.FieldType{Type: skydb.TypeNumber}, expr2),
 				},
 				skydb.GreaterThan,
 			})
@@ -291,10 +284,7 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 func TestNotSqlizer(t *testing.T) {
 	Convey("NotSqlizer", t, func() {
 		Convey("should generate not predicate", func() {
-			expSqlizer := newExpressionSqlizer(
-				"table",
-				skydb.Expression{skydb.Literal, false},
-			)
+			expSqlizer := newExpressionSqlizer("table", skydb.FieldType{Type: skydb.TypeBoolean}, skydb.Expression{skydb.Literal, false})
 			sqlizer := &NotSqlizer{&expSqlizer}
 			sql, args, err := sqlizer.ToSql()
 			So(sql, ShouldEqual, "NOT (?)")
@@ -392,10 +382,7 @@ func TestDistancePredicateSqlizer(t *testing.T) {
 				"note",
 				"latlng",
 				skydb.NewLocation(22.25, 114.1667),
-				newExpressionSqlizer(
-					"note",
-					skydb.Expression{skydb.Literal, 500.0},
-				),
+				newExpressionSqlizer("note", skydb.FieldType{Type: skydb.TypeNumber}, skydb.Expression{skydb.Literal, 500.0}),
 			}
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
@@ -409,16 +396,13 @@ func TestDistancePredicateSqlizer(t *testing.T) {
 func TestExpressionSqlizerWithGeometry(t *testing.T) {
 	Convey("expression sqlizer with geometry", t, func() {
 		Convey("serialized", func() {
-			sqlizer := expressionSqlizer{
-				"note",
-				skydb.Expression{skydb.Literal, "geometry"},
-				ContextSelect,
-				skydb.FieldType{Type: skydb.TypeGeometry}}
+			sqlizer := newExpressionSqlizer("note", skydb.FieldType{Type: skydb.TypeGeometry}, skydb.Expression{skydb.KeyPath, "geometry"})
+			sqlizer.requireCast = true
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
 			So(sql, ShouldEqual,
-				`ST_AsGeoJSON(?)`)
-			So(args, ShouldResemble, []interface{}{"geometry"})
+				`ST_AsGeoJSON(geometry)`)
+			So(args, ShouldResemble, []interface{}{})
 		})
 	})
 }

@@ -347,6 +347,7 @@ type Query struct {
 // provide more extensive type checking at handler level.
 type Func interface {
 	Args() []interface{}
+	DataType() DataType
 }
 
 // DistanceFunc represents a function that calculates distance between
@@ -361,6 +362,10 @@ func (f DistanceFunc) Args() []interface{} {
 	return []interface{}{f.Field, f.Location}
 }
 
+func (f DistanceFunc) DataType() DataType {
+	return TypeNumber
+}
+
 // CountFunc represents a function that count number of rows matching
 // a query
 type CountFunc struct {
@@ -370,6 +375,10 @@ type CountFunc struct {
 // Args implements the Func interface
 func (f CountFunc) Args() []interface{} {
 	return []interface{}{}
+}
+
+func (f CountFunc) DataType() DataType {
+	return TypeNumber
 }
 
 // UserRelationFunc represents a function that is used to evaulate
@@ -386,6 +395,10 @@ func (f UserRelationFunc) Args() []interface{} {
 	return []interface{}{}
 }
 
+func (f UserRelationFunc) DataType() DataType {
+	return TypeBoolean
+}
+
 // UserDiscoverFunc searches for user record having the specified user data, such
 // as email addresses. Can only be used with user record.
 type UserDiscoverFunc struct {
@@ -396,6 +409,10 @@ type UserDiscoverFunc struct {
 // Args implements the Func interface
 func (f UserDiscoverFunc) Args() []interface{} {
 	panic("not supported")
+}
+
+func (f UserDiscoverFunc) DataType() DataType {
+	return TypeBoolean
 }
 
 // HaveArgsByName implements the Func interface
@@ -438,4 +455,8 @@ type UserDataFunc struct {
 // Args implements the Func interface
 func (f UserDataFunc) Args() []interface{} {
 	return []interface{}{}
+}
+
+func (f UserDataFunc) DataType() DataType {
+	return TypeJSON
 }

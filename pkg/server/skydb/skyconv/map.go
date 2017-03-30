@@ -216,7 +216,7 @@ func (loc MapLocation) ToMap(m map[string]interface{}) {
 	m["$lat"] = loc[1]
 }
 
-// MapGeomtry is skydb.Geometry that can be converted from and to a map.
+// MapGeometry is skydb.Geometry that can be converted from and to a map.
 type MapGeometry skydb.Geometry
 
 // ToMap implements ToMapper
@@ -231,7 +231,7 @@ func (geom *MapGeometry) FromMap(m map[string]interface{}) error {
 
 	*geom, ok = m["$val"].(map[string]interface{})
 	if !ok {
-		panic("failed to assert $val to map[string]interface{}")
+		return fmt.Errorf("$val is not a map")
 	}
 
 	return nil

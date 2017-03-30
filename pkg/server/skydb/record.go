@@ -504,6 +504,10 @@ func (t DataType) IsNumberCompatibleType() bool {
 	}
 }
 
+func (t DataType) IsGeometryCompatibleType() bool {
+	return t == TypeLocation || t == TypeGeometry
+}
+
 func SimpleNameToFieldType(s string) (result FieldType, err error) {
 	switch s {
 	case "string":
