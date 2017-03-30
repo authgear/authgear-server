@@ -780,6 +780,11 @@ func pqDataType(dataType skydb.DataType) string {
 }
 
 func fullQuoteIdentifier(aliasName string, columnName string) string {
+	// If aliasName is empty, generate a identifier without qualifying
+	// it with an alias name.
+	if aliasName == "" {
+		return pq.QuoteIdentifier(columnName)
+	}
 	return pq.QuoteIdentifier(aliasName) + "." + pq.QuoteIdentifier(columnName)
 }
 
