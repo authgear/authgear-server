@@ -104,7 +104,6 @@ type Database interface {
 	// Save returns an error if the underlying implementation failed to
 	// create / modify the Record.
 	Save(record *Record) error
-	SaveDeltaRecord(delta *Record, original *Record, record *Record) error
 
 	// Delete removes the Record identified by the key in the Database.
 	//

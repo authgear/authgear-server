@@ -92,19 +92,7 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 }
 
 // Save attempts to do a upsert
-func (db *database) SaveDeltaRecord(delta *skydb.Record, original *skydb.Record, record *skydb.Record) error {
-	wrappers := map[string]func(string) string{}
-	wrap(original, &wrappers)
-	wrap(record, &wrappers)
-
-	return db.saveWithWrappers(delta, wrappers)
-}
-
 func (db *database) Save(record *skydb.Record) error {
-	return db.saveWithWrappers(record, map[string]func(string) string{})
-}
-
-func (db *database) saveWithWrappers(record *skydb.Record, wrappers map[string]func(string) string) error {
 	if record.ID.Key == "" {
 		return errors.New("db.save: got empty record id")
 	}
@@ -128,15 +116,24 @@ func (db *database) saveWithWrappers(record *skydb.Record, wrappers map[string]f
 		}
 	}
 
-	upsert := upsertQueryWithWrappers(db.tableName(record.ID.Type), pkData, convert(record), wrappers).
-		IgnoreKeyOnUpdate("_owner_id").
-		IgnoreKeyOnUpdate("_created_at").
-		IgnoreKeyOnUpdate("_created_by")
-
 	typemap, err := db.remoteColumnTypes(record.ID.Type)
 	if err != nil {
 		return err
 	}
+
+	wrappers := map[string]func(string) string{}
+	for column, fieldType := range typemap {
+		if fieldType.Type == skydb.TypeGeometry {
+			wrappers[column] = func(val string) string {
+				return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", val)
+			}
+		}
+	}
+
+	upsert := upsertQueryWithWrappers(db.tableName(record.ID.Type), pkData, convert(record), wrappers).
+		IgnoreKeyOnUpdate("_owner_id").
+		IgnoreKeyOnUpdate("_created_at").
+		IgnoreKeyOnUpdate("_created_by")
 
 	// record type is empty in the following statement because upsert
 	// only concerns with one record type, and that specifying the
@@ -212,17 +209,6 @@ func convert(r *skydb.Record) map[string]interface{} {
 	m["_updated_at"] = r.UpdatedAt
 	m["_updated_by"] = r.UpdaterID
 	return m
-}
-
-func wrap(r *skydb.Record, m *map[string]func(string) string) {
-	for key, rawValue := range r.Data {
-		switch rawValue.(type) {
-		case skydb.Geometry:
-			(*m)[key] = func(val string) string {
-				return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", val)
-			}
-		}
-	}
 }
 
 func (db *database) Delete(id skydb.RecordID) error {

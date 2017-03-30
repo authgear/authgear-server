@@ -401,7 +401,7 @@ func TestExpressionSqlizerWithGeometry(t *testing.T) {
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
 			So(sql, ShouldEqual,
-				`ST_AsGeoJSON(geometry)`)
+				`ST_AsGeoJSON("note"."geometry")`)
 			So(args, ShouldResemble, []interface{}{})
 		})
 	})

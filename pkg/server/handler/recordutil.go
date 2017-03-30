@@ -258,7 +258,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 
 		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
-		if dbErr := db.SaveDeltaRecord(&deltaRecord, originalRecord, record); dbErr != nil {
+		if dbErr := db.Save(&deltaRecord); dbErr != nil {
 			err = skyerr.MakeError(dbErr)
 		}
 		*record = deltaRecord
