@@ -1,3 +1,24 @@
+## 0.22.2 (2017-02-15)
+
+### Features
+
+- Create user when master key is provided (#261)
+- Fetch full assets data in query
+- Return asset content type in response of record save
+
+### Bug Fixes
+
+- Fix plugin timer request not properly initialized (#333)
+- Fix schema:fetch when record type has no fields
+
+
+### Other Notes
+
+- Make RequireUser preprocessor gives a better error message
+- Add ASSET_STORE_S3_URL_PREFIX in .env.sample
+- Update godev image not using development version of glide
+- Commands for setting up skygear in Linux env
+
 ## 0.22.1 (2017-02-15)
 
 ### Bug Fixes
