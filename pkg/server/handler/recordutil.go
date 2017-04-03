@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/Sirupsen/logrus"
 
@@ -501,66 +500,18 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 	schema := skydb.RecordSchema{}
 	log.Debugf("%v", m)
 	for key, value := range m {
-		switch val := value.(type) {
-		default:
+		if value == nil {
+			continue
+		}
+
+		fieldType, err := skydb.DeriveFieldType(value)
+		if err != nil {
 			log.WithFields(logrus.Fields{
 				"key":   key,
 				"value": value,
-			}).Panicf("got unrecgonized type = %T", value)
-		case nil:
-			// do nothing
-		case int64:
-			schema[key] = skydb.FieldType{
-				Type: skydb.TypeInteger,
-			}
-		case float64:
-			schema[key] = skydb.FieldType{
-				Type: skydb.TypeNumber,
-			}
-		case string:
-			schema[key] = skydb.FieldType{
-				Type: skydb.TypeString,
-			}
-		case time.Time:
-			schema[key] = skydb.FieldType{
-				Type: skydb.TypeDateTime,
-			}
-		case bool:
-			schema[key] = skydb.FieldType{
-				Type: skydb.TypeBoolean,
-			}
-		case *skydb.Asset:
-			schema[key] = skydb.FieldType{
-				Type: skydb.TypeAsset,
-			}
-		case skydb.Reference:
-			v := value.(skydb.Reference)
-			schema[key] = skydb.FieldType{
-				Type:          skydb.TypeReference,
-				ReferenceType: v.Type(),
-			}
-		case skydb.Location:
-			schema[key] = skydb.FieldType{
-				Type: skydb.TypeLocation,
-			}
-		case skydb.Sequence:
-			schema[key] = skydb.FieldType{
-				Type: skydb.TypeSequence,
-			}
-		case skydb.Geometry:
-			schema[key] = skydb.FieldType{
-				Type: skydb.TypeGeometry,
-			}
-		case skydb.Unknown:
-			schema[key] = skydb.FieldType{
-				Type:           skydb.TypeUnknown,
-				UnderlyingType: val.UnderlyingType,
-			}
-		case map[string]interface{}, []interface{}:
-			schema[key] = skydb.FieldType{
-				Type: skydb.TypeJSON,
-			}
+			}).Panicf("unable to derive record schema: %s", err)
 		}
+		schema[key] = fieldType
 	}
 
 	return schema
