@@ -174,53 +174,65 @@ func TestRecordSchema(t *testing.T) {
 	Convey("RecordSchema", t, func() {
 		target := RecordSchema{
 			"content": FieldType{Type: TypeString},
+			"num":     FieldType{Type: TypeNumber},
 			"date":    FieldType{Type: TypeDateTime},
 			"ref":     FieldType{Type: TypeReference, ReferenceType: "other"},
 		}
 
-		Convey("is superset if equal", func() {
+		Convey("is compatible if equal", func() {
 			other := RecordSchema{
 				"content": FieldType{Type: TypeString},
+				"num":     FieldType{Type: TypeNumber},
 				"date":    FieldType{Type: TypeDateTime},
 				"ref":     FieldType{Type: TypeReference, ReferenceType: "other"},
 			}
-			So(target.DefinitionSupersetOf(other), ShouldBeTrue)
+			So(target.DefinitionCompatibleTo(other), ShouldBeTrue)
 		})
 
-		Convey("is superset if target has all columns of the other schema", func() {
+		Convey("is compatible if target has all columns of the other schema", func() {
 			other := RecordSchema{
 				"content": FieldType{Type: TypeString},
 				"date":    FieldType{Type: TypeDateTime},
 			}
-			So(target.DefinitionSupersetOf(other), ShouldBeTrue)
+			So(target.DefinitionCompatibleTo(other), ShouldBeTrue)
 		})
 
-		Convey("is not superset if wrong field type", func() {
+		Convey("is compatible if different type but compatible type", func() {
+			other := RecordSchema{
+				"content": FieldType{Type: TypeString},
+				"num":     FieldType{Type: TypeInteger},
+				"date":    FieldType{Type: TypeString},
+				"ref":     FieldType{Type: TypeReference, ReferenceType: "other"},
+			}
+			So(target.DefinitionCompatibleTo(other), ShouldBeFalse)
+		})
+
+		Convey("is not compatible if wrong field type", func() {
 			other := RecordSchema{
 				"content": FieldType{Type: TypeString},
 				"date":    FieldType{Type: TypeString},
 				"ref":     FieldType{Type: TypeReference, ReferenceType: "other"},
 			}
-			So(target.DefinitionSupersetOf(other), ShouldBeFalse)
+			So(target.DefinitionCompatibleTo(other), ShouldBeFalse)
 		})
 
-		Convey("is not superset if wrong reference type", func() {
+		Convey("is not compatible if wrong reference type", func() {
 			other := RecordSchema{
 				"content": FieldType{Type: TypeString},
 				"date":    FieldType{Type: TypeDateTime},
 				"ref":     FieldType{Type: TypeReference, ReferenceType: "something"},
 			}
-			So(target.DefinitionSupersetOf(other), ShouldBeFalse)
+			So(target.DefinitionCompatibleTo(other), ShouldBeFalse)
 		})
 
-		Convey("is not superset if column not exist in target", func() {
+		Convey("is not compatible if column not exist in target", func() {
 			other := RecordSchema{
 				"content": FieldType{Type: TypeString},
 				"date":    FieldType{Type: TypeDateTime},
 				"ref":     FieldType{Type: TypeReference, ReferenceType: "other"},
 				"tag":     FieldType{Type: TypeString},
 			}
-			So(target.DefinitionSupersetOf(other), ShouldBeFalse)
+			So(target.DefinitionCompatibleTo(other), ShouldBeFalse)
 		})
 	})
 }

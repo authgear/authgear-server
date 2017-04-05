@@ -53,6 +53,11 @@ func isUniqueViolated(err error) bool {
 	return false
 }
 
+func isInvalidInputSyntax(err error) bool {
+	pqErr, ok := err.(*pq.Error)
+	return ok && (pqErr.Code == "22P02" || pqErr.Code == "22P03")
+}
+
 func isUndefinedTable(err error) bool {
 	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "42P01" {
 		return true

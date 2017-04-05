@@ -280,7 +280,7 @@ func TestExtend(t *testing.T) {
 				"dirty":     skydb.FieldType{Type: skydb.TypeNumber},
 			})
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldStartWith, "conflicting schema")
+			So(err.Error(), ShouldStartWith, "IncompatibleSchema: conflicting schema")
 		})
 
 		Convey("creates empty table", func() {
@@ -328,6 +328,24 @@ func TestExtend(t *testing.T) {
 			})
 			So(err, ShouldBeNil)
 			So(extended, ShouldBeFalse)
+		})
+
+		Convey("do not extend if type is different but compatible", func() {
+			extended, err := db.Extend("note", skydb.RecordSchema{
+				"content": skydb.FieldType{Type: skydb.TypeInteger},
+			})
+			So(err, ShouldBeNil)
+			So(extended, ShouldBeTrue)
+
+			for _, canMigrate := range []bool{false, true} {
+				c.canMigrate = canMigrate
+
+				extended, err = db.Extend("note", skydb.RecordSchema{
+					"content": skydb.FieldType{Type: skydb.TypeNumber},
+				})
+				So(err, ShouldBeNil)
+				So(extended, ShouldBeFalse)
+			}
 		})
 	})
 

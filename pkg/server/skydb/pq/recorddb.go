@@ -131,7 +131,13 @@ func (db *database) Save(record *skydb.Record) error {
 
 	row := db.c.QueryRowWith(upsert)
 	if err = newRecordScanner(record.ID.Type, typemap, row).Scan(record); err != nil {
-		return err
+		if isInvalidInputSyntax(err) {
+			return skyerr.NewErrorf(
+				skyerr.InvalidArgument,
+				fmt.Sprintf("failed to save %s: %s", record.ID, err),
+			)
+		}
+		return skyerr.MakeError(err)
 	}
 
 	record.DatabaseID = db.userID

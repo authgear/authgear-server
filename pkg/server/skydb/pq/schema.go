@@ -34,7 +34,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (
 		return
 	}
 
-	if len(remoteRecordSchema) > 0 && remoteRecordSchema.DefinitionSupersetOf(recordSchema) {
+	if len(remoteRecordSchema) > 0 && remoteRecordSchema.DefinitionCompatibleTo(recordSchema) {
 		// The current record schema is superset of requested record
 		// schema. There is no need to extend the schema.
 		return
@@ -64,16 +64,19 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (
 		extended = true
 	}
 
+	// Find new columns
 	updatingSchema := skydb.RecordSchema{}
-	for key, schema := range recordSchema {
-		remoteSchema, ok := remoteRecordSchema[key]
-		if !ok {
-			updatingSchema[key] = schema
-		} else if isConflict(remoteSchema, schema) {
-			return false, fmt.Errorf("conflicting schema %v => %v", remoteSchema, schema)
+	for key, fieldType := range recordSchema {
+		if remoteFieldType, ok := remoteRecordSchema[key]; ok {
+			if !remoteFieldType.DefinitionCompatibleTo(fieldType) {
+				return false, skyerr.NewError(
+					skyerr.IncompatibleSchema,
+					fmt.Sprintf("conflicting schema %v => %v", remoteFieldType, fieldType),
+				)
+			}
+		} else {
+			updatingSchema[key] = fieldType
 		}
-
-		// same data type, do nothing
 	}
 
 	if len(updatingSchema) > 0 {
@@ -431,18 +434,6 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 	db.c.RecordSchema[recordType] = typemap
 	log.Debugf("Cache remoteColumnTypes %s", recordType)
 	return typemap, nil
-}
-
-func isConflict(from, to skydb.FieldType) bool {
-	if from.Type == to.Type {
-		return false
-	}
-
-	if from.Type.IsNumberCompatibleType() && to.Type.IsNumberCompatibleType() {
-		return false
-	}
-
-	return true
 }
 
 // ALTER TABLE app__.note add collection text;

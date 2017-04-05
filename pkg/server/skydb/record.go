@@ -385,7 +385,12 @@ func (r *Record) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 // RecordSchema is a mapping of record key to its value's data type or reference
 type RecordSchema map[string]FieldType
 
-func (schema RecordSchema) DefinitionSupersetOf(other RecordSchema) bool {
+// DefinitionCompatibleTo returns if a record having the specified RecordSchema
+//
+// can be saved to a database table of this RecordSchema.
+//
+// This function is not associative. In other words, `a.fn(b) != b.fn(a)`.
+func (schema RecordSchema) DefinitionCompatibleTo(other RecordSchema) bool {
 	if len(schema) < len(other) {
 		return false
 	}
@@ -396,7 +401,7 @@ func (schema RecordSchema) DefinitionSupersetOf(other RecordSchema) bool {
 			return false
 		}
 
-		if !myFieldType.DefinitionEquals(otherFieldType) {
+		if !myFieldType.DefinitionCompatibleTo(otherFieldType) {
 			return false
 		}
 	}
@@ -411,8 +416,25 @@ type FieldType struct {
 	UnderlyingType string     // indicates the underlying (pq) type
 }
 
-func (f FieldType) DefinitionEquals(other FieldType) bool {
-	return f.Type == other.Type && f.ReferenceType == other.ReferenceType
+// DefinitionCompatibleTo returns if a value of the specifed FieldType can
+// be saved to a database column of this FieldType.
+//
+// When a FieldType is compatible with another FieldType, it also means
+// it is possible to cast value of a type to another type. Whether the cast
+// is successful is subject to the actual value, whether it will
+// lose number precision for example.
+//
+// This function is not associative. In other words, `a.fn(b) != b.fn(a)`.
+func (f FieldType) DefinitionCompatibleTo(other FieldType) bool {
+	if f.Type == TypeReference {
+		return f.Type == other.Type && f.ReferenceType == other.ReferenceType
+	}
+
+	if f.Type.IsNumberCompatibleType() && other.Type.IsNumberCompatibleType() {
+		return true
+	}
+
+	return f.Type == other.Type
 }
 
 func (f FieldType) ToSimpleName() string {

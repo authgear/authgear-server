@@ -320,6 +320,48 @@ func TestSave(t *testing.T) {
 			So(ownerID, ShouldEqual, "user_id")
 		})
 	})
+
+	Convey("Database with integer column", t, func() {
+		c = getTestConn(t)
+		defer cleanupConn(t, c)
+
+		db := c.PublicDB()
+		_, err := db.Extend("note", skydb.RecordSchema{
+			"integer": skydb.FieldType{Type: skydb.TypeInteger},
+		})
+		So(err, ShouldBeNil)
+
+		record := skydb.Record{
+			ID:        skydb.NewRecordID("note", "someid"),
+			OwnerID:   "user_id",
+			CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			CreatorID: "creator",
+			UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			UpdaterID: "updater",
+			Data: map[string]interface{}{
+				"integer": int64(1),
+			},
+		}
+		So(db.Save(&record), ShouldBeNil)
+
+		Convey("save to integer column with integer", func() {
+			record.Set("integer", int64(2))
+			err = db.Save(&record)
+			So(err, ShouldBeNil)
+
+			var value int64
+			err = c.QueryRowx("SELECT integer FROM note WHERE _id = 'someid' and _database_id = ''").
+				Scan(&value)
+			So(err, ShouldBeNil)
+			So(value, ShouldEqual, int64(2))
+		})
+
+		Convey("unable to save to integer column with floating point number", func() {
+			record.Set("integer", 1.5)
+			err = db.Save(&record)
+			So(err, ShouldNotBeNil)
+		})
+	})
 }
 
 func TestDelete(t *testing.T) {
