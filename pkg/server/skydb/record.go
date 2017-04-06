@@ -438,6 +438,13 @@ func (f FieldType) DefinitionCompatibleTo(other FieldType) bool {
 		return true
 	}
 
+	if f.Type == TypeGeometry && other.Type.IsGeometryCompatibleType() {
+		// Note: Saving skydb.Location to skydb.Geometry is currently
+		// not supported (see #343)
+		//return true
+		return other.Type == TypeGeometry
+	}
+
 	return f.Type == other.Type
 }
 
