@@ -29,7 +29,7 @@ import (
 )
 
 func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (extended bool, err error) {
-	remoteRecordSchema, err := db.remoteColumnTypes(recordType)
+	remoteRecordSchema, err := db.RemoteColumnTypes(recordType)
 	if err != nil {
 		return
 	}
@@ -58,7 +58,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (
 	defer tx.Rollback()
 
 	if len(remoteRecordSchema) == 0 {
-		if err := createTable(tx, db.tableName(recordType)); err != nil {
+		if err := createTable(tx, db.TableName(recordType)); err != nil {
 			return false, fmt.Errorf("failed to create table: %s", err)
 		}
 		extended = true
@@ -106,7 +106,7 @@ func (db *database) RenameSchema(recordType, oldName, newName string) error {
 		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
 	}
 
-	tableName := db.tableName(recordType)
+	tableName := db.TableName(recordType)
 	oldName = pq.QuoteIdentifier(oldName)
 	newName = pq.QuoteIdentifier(newName)
 
@@ -124,7 +124,7 @@ func (db *database) DeleteSchema(recordType, columnName string) error {
 		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
 	}
 
-	tableName := db.tableName(recordType)
+	tableName := db.TableName(recordType)
 	columnName = pq.QuoteIdentifier(columnName)
 
 	stmt := fmt.Sprintf("ALTER TABLE %s DROP %s", tableName, columnName)
@@ -135,7 +135,7 @@ func (db *database) DeleteSchema(recordType, columnName string) error {
 }
 
 func (db *database) GetSchema(recordType string) (skydb.RecordSchema, error) {
-	remoteRecordSchema, err := db.remoteColumnTypes(recordType)
+	remoteRecordSchema, err := db.RemoteColumnTypes(recordType)
 	if err != nil {
 		return nil, err
 	}
@@ -284,7 +284,7 @@ func (db *database) getSequences(recordType string) ([]string, error) {
 // WHERE constraint_type = 'FOREIGN KEY'
 // AND tc.table_schema = 'app__'
 // AND tc.table_name = 'note';
-func (db *database) remoteColumnTypes(recordType string) (skydb.RecordSchema, error) {
+func (db *database) RemoteColumnTypes(recordType string) (skydb.RecordSchema, error) {
 	typemap := skydb.RecordSchema{}
 	var err error
 	// STEP 0: Return the cached ColumnType
@@ -446,7 +446,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 func (db *database) addColumnStmt(recordType string, recordSchema skydb.RecordSchema) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("ALTER TABLE "))
-	buf.WriteString(db.tableName(recordType))
+	buf.WriteString(db.TableName(recordType))
 	buf.WriteByte(' ')
 	for column, schema := range recordSchema {
 		buf.Write([]byte("ADD "))
@@ -474,7 +474,7 @@ func (db *database) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, refer
 	buf.Write([]byte(` FOREIGN KEY (`))
 	buf.WriteString(pq.QuoteIdentifier(localCol))
 	buf.Write([]byte(`) REFERENCES `))
-	buf.WriteString(db.tableName(referent))
+	buf.WriteString(db.TableName(referent))
 	buf.Write([]byte(` (`))
 	buf.WriteString(pq.QuoteIdentifier(remoteCol))
 	buf.Write([]byte(`),`))

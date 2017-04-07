@@ -21,9 +21,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
+	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 )
 
 func TestGet(t *testing.T) {
@@ -2310,7 +2312,7 @@ func TestUnsupportedQuery(t *testing.T) {
 					},
 				},
 			}
-			So(func() { db.Query(&query) }, ShouldPanicWith, errCannotCompareUsingInOperator)
+			So(func() { db.Query(&query) }, ShouldPanicWith, builder.ErrCannotCompareUsingInOperator)
 		})
 	})
 }

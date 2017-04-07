@@ -85,8 +85,14 @@ type Database interface {
 	// UserRecordType returns name of the user record type.
 	UserRecordType() string
 
+	// TableName returns the fully qualified name of a table.
+	TableName(table string) string
+
 	// IsReadOnly returns true if the database is read only
 	IsReadOnly() bool
+
+	// RemoteColumnTypes returns a typemap of a database table.
+	RemoteColumnTypes(recordType string) (RecordSchema, error)
 
 	// Get fetches the Record identified by the supplied key and
 	// writes it onto the supplied Record.

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pq
+package builder
 
 import (
 	"bytes"
@@ -118,7 +118,9 @@ var upsertTemplate = template.Must(template.New("upsert").Funcs(funcMap).Parse(u
 // More on UPSERT: https://wiki.postgresql.org/wiki/UPSERT#PostgreSQL_.28today.29
 //
 // [1]: http://www.postgresql.org/docs/9.4/static/plpgsql-control-structures.html#PLPGSQL-UPSERT-EXAMPLE
-type upsertQueryBuilder struct {
+
+// UpsertQueryBuilder is a sqlizer for INSERT ON CONFLICT UPDATE SQL.
+type UpsertQueryBuilder struct {
 	table          string
 	pkData         map[string]interface{}
 	data           map[string]interface{}
@@ -137,8 +139,10 @@ type upsertQueryBuilder struct {
 //			upsert.Unset("deleteme")
 //		})
 //
-func upsertQuery(table string, pkData, data map[string]interface{}) *upsertQueryBuilder {
-	return &upsertQueryBuilder{
+
+// UpsertQuery creates a new UpsertQueryBuilder.
+func UpsertQuery(table string, pkData, data map[string]interface{}) *UpsertQueryBuilder {
+	return &UpsertQueryBuilder{
 		table,
 		pkData,
 		data,
@@ -148,8 +152,8 @@ func upsertQuery(table string, pkData, data map[string]interface{}) *upsertQuery
 	}
 }
 
-func upsertQueryWithWrappers(table string, pkData, data map[string]interface{}, wrappers map[string]func(string) string) *upsertQueryBuilder {
-	return &upsertQueryBuilder{
+func UpsertQueryWithWrappers(table string, pkData, data map[string]interface{}, wrappers map[string]func(string) string) *UpsertQueryBuilder {
+	return &UpsertQueryBuilder{
 		table,
 		pkData,
 		data,
@@ -159,18 +163,17 @@ func upsertQueryWithWrappers(table string, pkData, data map[string]interface{}, 
 	}
 }
 
-func (upsert *upsertQueryBuilder) IgnoreKeyOnUpdate(col string) *upsertQueryBuilder {
+func (upsert *UpsertQueryBuilder) IgnoreKeyOnUpdate(col string) *UpsertQueryBuilder {
 	upsert.updateIngnores[col] = struct{}{}
 	return upsert
 }
 
-func (upsert *upsertQueryBuilder) SelectColumn(col string, sqlizer sq.Sqlizer) *upsertQueryBuilder {
+func (upsert *UpsertQueryBuilder) SelectColumn(col string, sqlizer sq.Sqlizer) *UpsertQueryBuilder {
 	upsert.selectColumns[col] = sqlizer
 	return upsert
 }
 
-// err always returns nil
-func (upsert *upsertQueryBuilder) ToSql() (sql string, args []interface{}, err error) {
+func (upsert *UpsertQueryBuilder) ToSql() (sql string, args []interface{}, err error) {
 	// extract columns values pair
 	pks, pkArgs := extractKeyAndValue(upsert.pkData)
 	cols, args := extractKeyAndValue(upsert.data)
@@ -264,4 +267,4 @@ func upsertSelectClause(sqlizers map[string]sq.Sqlizer) string {
 	return b.String()
 }
 
-var _ sq.Sqlizer = &upsertQueryBuilder{}
+var _ sq.Sqlizer = &UpsertQueryBuilder{}

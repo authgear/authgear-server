@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pq
+package builder
 
 import (
 	"bytes"
@@ -26,17 +26,24 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-var errCannotCompareUsingInOperator = errors.New(`cannot use "in" operator to compare the specified values`)
+var ErrCannotCompareUsingInOperator = errors.New(`cannot use "in" operator to compare the specified values`)
+
+type PredicateSqlizerFactory interface {
+	UpdateTypemap(typemap skydb.RecordSchema) skydb.RecordSchema
+	AddJoinsToSelectBuilder(q sq.SelectBuilder) sq.SelectBuilder
+	NewPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error)
+	NewAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error)
+}
 
 // predicateSqlizerFactory is a factory for creating sqlizer for predicate
 type predicateSqlizerFactory struct {
-	db           *database
+	db           skydb.Database
 	primaryTable string
 	joinedTables []joinedTable
 	extraColumns map[string]skydb.FieldType
 }
 
-func (f *predicateSqlizerFactory) newPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
+func (f *predicateSqlizerFactory) NewPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error) {
 	if p.IsEmpty() {
 		panic("no sqlizer can be created from an empty predicate")
 	}
@@ -58,7 +65,7 @@ func (f *predicateSqlizerFactory) newCompoundPredicateSqlizer(p skydb.Predicate)
 	case skydb.And:
 		and := make(sq.And, len(p.Children))
 		for i, child := range p.Children {
-			sqlizer, err := f.newPredicateSqlizer(child.(skydb.Predicate))
+			sqlizer, err := f.NewPredicateSqlizer(child.(skydb.Predicate))
 			if err != nil {
 				return nil, err
 			}
@@ -68,7 +75,7 @@ func (f *predicateSqlizerFactory) newCompoundPredicateSqlizer(p skydb.Predicate)
 	case skydb.Or:
 		or := make(sq.Or, len(p.Children))
 		for i, child := range p.Children {
-			sqlizer, err := f.newPredicateSqlizer(child.(skydb.Predicate))
+			sqlizer, err := f.NewPredicateSqlizer(child.(skydb.Predicate))
 			if err != nil {
 				return nil, err
 			}
@@ -77,7 +84,7 @@ func (f *predicateSqlizerFactory) newCompoundPredicateSqlizer(p skydb.Predicate)
 		return or, nil
 	case skydb.Not:
 		pred := p.Children[0].(skydb.Predicate)
-		sqlizer, err := f.newPredicateSqlizer(pred)
+		sqlizer, err := f.NewPredicateSqlizer(pred)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +191,7 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 	return sqlizers, nil
 }
 
-func (f *predicateSqlizerFactory) newAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error) {
+func (f *predicateSqlizerFactory) NewAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error) {
 	return &accessPredicateSqlizer{
 		user,
 		aclLevel,
@@ -296,7 +303,7 @@ func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expr
 	for i, component := range components {
 		isLast := (i == len(components)-1)
 
-		schema, err := f.db.remoteColumnTypes(recordType)
+		schema, err := f.db.RemoteColumnTypes(recordType)
 		if err != nil {
 			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
 				`record type "%s" does not exist`, recordType)
@@ -348,12 +355,12 @@ func (f *predicateSqlizerFactory) aliasName(secondaryTable string, indexInJoined
 	return fmt.Sprintf("_t%d", indexInJoinedTables)
 }
 
-// addJoinsToSelectBuilder add join clauses to a SelectBuilder
-func (f *predicateSqlizerFactory) addJoinsToSelectBuilder(q sq.SelectBuilder) sq.SelectBuilder {
+// AddJoinsToSelectBuilder adds join clauses to a SelectBuilder
+func (f *predicateSqlizerFactory) AddJoinsToSelectBuilder(q sq.SelectBuilder) sq.SelectBuilder {
 	for i, alias := range f.joinedTables {
 		aliasName := f.aliasName(alias.secondaryTable, i)
 		joinClause := fmt.Sprintf("%s AS %s ON %s = %s",
-			f.db.tableName(alias.secondaryTable), pq.QuoteIdentifier(aliasName),
+			f.db.TableName(alias.secondaryTable), pq.QuoteIdentifier(aliasName),
 			fullQuoteIdentifier(f.primaryTable, alias.primaryColumn),
 			fullQuoteIdentifier(aliasName, alias.secondaryColumn))
 		q = q.LeftJoin(joinClause)
@@ -375,14 +382,14 @@ func (f *predicateSqlizerFactory) addExtraColumn(key string, fieldType skydb.Dat
 	}
 }
 
-func (f *predicateSqlizerFactory) updateTypemap(typemap skydb.RecordSchema) skydb.RecordSchema {
+func (f *predicateSqlizerFactory) UpdateTypemap(typemap skydb.RecordSchema) skydb.RecordSchema {
 	for key, field := range f.extraColumns {
 		typemap[key] = field
 	}
 	return typemap
 }
 
-func newPredicateSqlizerFactory(db *database, primaryTable string) *predicateSqlizerFactory {
+func NewPredicateSqlizerFactory(db skydb.Database, primaryTable string) PredicateSqlizerFactory {
 	return &predicateSqlizerFactory{
 		db:           db,
 		primaryTable: primaryTable,
@@ -551,7 +558,7 @@ func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interfa
 	// but the generated SQL depends on the types of values being compared.
 	// It is currently not supported to compare two keypaths,
 	// unless they are geometry types.  cf. #345
-	return "", []interface{}{}, errCannotCompareUsingInOperator
+	return "", []interface{}{}, ErrCannotCompareUsingInOperator
 }
 
 type comparisonPredicateSqlizer struct {
@@ -671,6 +678,10 @@ type expressionSqlizer struct {
 	skydb.Expression
 }
 
+func NewExpressionSqlizer(alias string, fieldType skydb.FieldType, expr skydb.Expression) sq.Sqlizer {
+	return newExpressionSqlizer(alias, fieldType, expr)
+}
+
 func newExpressionSqlizer(alias string, fieldType skydb.FieldType, expr skydb.Expression) expressionSqlizer {
 	requireCast := false
 	if fieldType.Type.IsGeometryCompatibleType() && expr.Type == skydb.Literal {
@@ -685,7 +696,7 @@ func newExpressionSqlizer(alias string, fieldType skydb.FieldType, expr skydb.Ex
 	}
 }
 
-func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err error) {
+func (expr expressionSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	switch expr.Type {
 	case skydb.KeyPath:
 		components := expr.KeyPathComponents()
@@ -702,9 +713,19 @@ func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err erro
 	case skydb.Function:
 		sql, args = funcToSQLOperand(expr.alias, expr.Value.(skydb.Func))
 	default:
-		sql, args = literalToSQLOperand(expr.Value)
+		sql, args = LiteralToSQLOperand(expr.Value)
 	}
 	return
+}
+
+func RequireCast(sqlizer sq.Sqlizer) (sq.Sqlizer, error) {
+	expr, ok := sqlizer.(expressionSqlizer)
+	if !ok {
+		return nil, errors.New("sqlizer not supported")
+	}
+
+	expr.requireCast = true
+	return expr, nil
 }
 
 func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
@@ -730,7 +751,7 @@ func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
 	}
 }
 
-func literalToSQLOperand(literal interface{}) (string, []interface{}) {
+func LiteralToSQLOperand(literal interface{}) (string, []interface{}) {
 	// Array detection is borrowed from squirrel's expr.go
 	switch literalValue := literal.(type) {
 	case skydb.Geometry:
@@ -772,7 +793,7 @@ func literalToSQLValue(value interface{}) interface{} {
 	}
 }
 
-func sortOrderBySQL(alias string, sort skydb.Sort) (string, error) {
+func SortOrderBySQL(alias string, sort skydb.Sort) (string, error) {
 	var expr string
 
 	switch {

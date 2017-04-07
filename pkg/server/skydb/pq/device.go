@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
 
 func (c *conn) GetDevice(id string, device *skydb.Device) error {
@@ -144,7 +145,7 @@ func (c *conn) SaveDevice(device *skydb.Device) error {
 		data["topic"] = device.Topic
 	}
 
-	upsert := upsertQuery(c.tableName("_device"), pkData, data)
+	upsert := builder.UpsertQuery(c.tableName("_device"), pkData, data)
 	_, err := c.ExecWith(upsert)
 	return err
 }

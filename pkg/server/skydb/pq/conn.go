@@ -206,7 +206,7 @@ func (db *database) schemaName() string {
 }
 
 // tableName is a convenient method to access parent conn's tableName
-func (db *database) tableName(table string) string {
+func (db *database) TableName(table string) string {
 	return db.c.tableName(table)
 }
 

@@ -12,15 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pq
+package builder
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func TestSqlizer(t *testing.T) {
@@ -37,16 +40,18 @@ func TestSqlizer(t *testing.T) {
 
 func TestPredicateSqlizerFactory(t *testing.T) {
 	Convey("Expression", t, func() {
-		c := getTestConn(t)
-		defer cleanupConn(t, c)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-		db := c.PublicDB().(*database)
-		_, err := db.Extend("note", skydb.RecordSchema{
-			"title": skydb.FieldType{Type: skydb.TypeString},
-		})
-		So(err, ShouldBeNil)
+		db := mock_skydb.NewMockDatabase(ctrl)
+		db.EXPECT().RemoteColumnTypes(gomock.Eq("note")).
+			Return(
+				skydb.RecordSchema{
+					"title": skydb.FieldType{Type: skydb.TypeString},
+				}, nil,
+			).AnyTimes()
 
-		f := newPredicateSqlizerFactory(db, "note")
+		f := NewPredicateSqlizerFactory(db, "note").(*predicateSqlizerFactory)
 
 		Convey("existing keypath", func() {
 			sqlizer, err := f.newExpressionSqlizer(
@@ -70,17 +75,19 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 	})
 
 	Convey("Comparison Predicate", t, func() {
-		c := getTestConn(t)
-		defer cleanupConn(t, c)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-		db := c.PublicDB().(*database)
-		_, err := db.Extend("note", skydb.RecordSchema{
-			"title":   skydb.FieldType{Type: skydb.TypeString},
-			"content": skydb.FieldType{Type: skydb.TypeString},
-		})
-		So(err, ShouldBeNil)
+		db := mock_skydb.NewMockDatabase(ctrl)
+		db.EXPECT().RemoteColumnTypes(gomock.Eq("note")).
+			Return(
+				skydb.RecordSchema{
+					"title":   skydb.FieldType{Type: skydb.TypeString},
+					"content": skydb.FieldType{Type: skydb.TypeString},
+				}, nil,
+			).AnyTimes()
 
-		f := newPredicateSqlizerFactory(db, "note")
+		f := NewPredicateSqlizerFactory(db, "note").(*predicateSqlizerFactory)
 
 		Convey("keypath equal null", func() {
 			sqlizer, err := f.newComparisonPredicateSqlizer(skydb.Predicate{
@@ -170,19 +177,17 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 	})
 
 	Convey("Functional Predicate", t, func() {
-		c := getTestConn(t)
-		defer cleanupConn(t, c)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-		db := c.PublicDB().(*database)
-		_, err := db.Extend("note", skydb.RecordSchema{
-			"title": skydb.FieldType{Type: skydb.TypeString},
-		})
-		So(err, ShouldBeNil)
+		db := mock_skydb.NewMockDatabase(ctrl)
+		db.EXPECT().UserRecordType().
+			Return("user").AnyTimes()
 
-		f := newPredicateSqlizerFactory(db, "user")
+		f := NewPredicateSqlizerFactory(db, "user").(*predicateSqlizerFactory)
 
 		Convey("user discover must be used with user record", func() {
-			noteSqlizerFactory := newPredicateSqlizerFactory(db, "note")
+			noteSqlizerFactory := NewPredicateSqlizerFactory(db, "note").(*predicateSqlizerFactory)
 			userDiscover := skydb.UserDiscoverFunc{
 				Emails: []string{},
 			}
@@ -229,16 +234,12 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 	})
 
 	Convey("Distance Predicate", t, func() {
-		c := getTestConn(t)
-		defer cleanupConn(t, c)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
 
-		db := c.PublicDB().(*database)
-		_, err := db.Extend("note", skydb.RecordSchema{
-			"latlng": skydb.FieldType{Type: skydb.TypeLocation},
-		})
-		So(err, ShouldBeNil)
+		db := mock_skydb.NewMockDatabase(ctrl)
 
-		f := newPredicateSqlizerFactory(db, "note")
+		f := NewPredicateSqlizerFactory(db, "note").(*predicateSqlizerFactory)
 
 		expr1 := skydb.Expression{
 			skydb.Function,

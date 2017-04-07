@@ -128,8 +128,8 @@ func (_m *MockConn) GetAssets(_param0 []string) ([]skydb.Asset, error) {
 	return ret0, ret1
 }
 
-func (_mr *_MockConnRecorder) GetAssets(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAssets", arg0, arg1)
+func (_mr *_MockConnRecorder) GetAssets(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAssets", arg0)
 }
 
 func (_m *MockConn) GetDefaultRoles() ([]string, error) {
@@ -160,6 +160,10 @@ func (_m *MockConn) GetRecordAccess(_param0 string) (skydb.RecordACL, error) {
 	return ret0, ret1
 }
 
+func (_mr *_MockConnRecorder) GetRecordAccess(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRecordAccess", arg0)
+}
+
 func (_m *MockConn) GetRecordDefaultAccess(_param0 string) (skydb.RecordACL, error) {
 	ret := _m.ctrl.Call(_m, "GetRecordDefaultAccess", _param0)
 	ret0, _ := ret[0].(skydb.RecordACL)
@@ -167,8 +171,8 @@ func (_m *MockConn) GetRecordDefaultAccess(_param0 string) (skydb.RecordACL, err
 	return ret0, ret1
 }
 
-func (_mr *_MockConnRecorder) GetRecordAccess(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRecordAccess", arg0)
+func (_mr *_MockConnRecorder) GetRecordDefaultAccess(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRecordDefaultAccess", arg0)
 }
 
 func (_m *MockConn) GetUser(_param0 string, _param1 *skydb.UserInfo) error {
@@ -331,14 +335,18 @@ func (_m *MockConn) SetRecordAccess(_param0 string, _param1 skydb.RecordACL) err
 	return ret0
 }
 
+func (_mr *_MockConnRecorder) SetRecordAccess(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRecordAccess", arg0, arg1)
+}
+
 func (_m *MockConn) SetRecordDefaultAccess(_param0 string, _param1 skydb.RecordACL) error {
 	ret := _m.ctrl.Call(_m, "SetRecordDefaultAccess", _param0, _param1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockConnRecorder) SetRecordAccess(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRecordAccess", arg0, arg1)
+func (_mr *_MockConnRecorder) SetRecordDefaultAccess(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRecordDefaultAccess", arg0, arg1)
 }
 
 func (_m *MockConn) Subscribe(_param0 chan skydb.RecordEvent) error {
@@ -568,6 +576,17 @@ func (_mr *_MockDatabaseRecorder) QueryCount(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "QueryCount", arg0)
 }
 
+func (_m *MockDatabase) RemoteColumnTypes(_param0 string) (skydb.RecordSchema, error) {
+	ret := _m.ctrl.Call(_m, "RemoteColumnTypes", _param0)
+	ret0, _ := ret[0].(skydb.RecordSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockDatabaseRecorder) RemoteColumnTypes(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoteColumnTypes", arg0)
+}
+
 func (_m *MockDatabase) RenameSchema(_param0 string, _param1 string, _param2 string) error {
 	ret := _m.ctrl.Call(_m, "RenameSchema", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
@@ -596,6 +615,16 @@ func (_m *MockDatabase) SaveSubscription(_param0 *skydb.Subscription) error {
 
 func (_mr *_MockDatabaseRecorder) SaveSubscription(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SaveSubscription", arg0)
+}
+
+func (_m *MockDatabase) TableName(_param0 string) string {
+	ret := _m.ctrl.Call(_m, "TableName", _param0)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+func (_mr *_MockDatabaseRecorder) TableName(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TableName", arg0)
 }
 
 func (_m *MockDatabase) UserRecordType() string {

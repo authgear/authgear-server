@@ -28,11 +28,12 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
-	typemap, err := db.remoteColumnTypes(id.Type)
+	typemap, err := db.RemoteColumnTypes(id.Type)
 	if err != nil {
 		return err
 	}
@@ -71,7 +72,7 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 	}
 
 	log.Debugf("GetByIDs Type: %s", recordType)
-	typemap, err := db.remoteColumnTypes(recordType)
+	typemap, err := db.RemoteColumnTypes(recordType)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +81,7 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 		return nil, skydb.ErrRecordNotFound
 	}
 
-	inCause, inArgs := literalToSQLOperand(idStrs)
+	inCause, inArgs := builder.LiteralToSQLOperand(idStrs)
 	query := db.selectQuery(psql.Select(), recordType, typemap).
 		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
 	rows, err := db.c.QueryWith(query)
@@ -116,7 +117,7 @@ func (db *database) Save(record *skydb.Record) error {
 		}
 	}
 
-	typemap, err := db.remoteColumnTypes(record.ID.Type)
+	typemap, err := db.RemoteColumnTypes(record.ID.Type)
 	if err != nil {
 		return err
 	}
@@ -130,7 +131,7 @@ func (db *database) Save(record *skydb.Record) error {
 		}
 	}
 
-	upsert := upsertQueryWithWrappers(db.tableName(record.ID.Type), pkData, convert(record), wrappers).
+	upsert := builder.UpsertQueryWithWrappers(db.TableName(record.ID.Type), pkData, convert(record), wrappers).
 		IgnoreKeyOnUpdate("_owner_id").
 		IgnoreKeyOnUpdate("_created_at").
 		IgnoreKeyOnUpdate("_created_by")
@@ -168,8 +169,8 @@ func (db *database) preSave(schema skydb.RecordSchema, record *skydb.Record) err
 	for key, value := range record.Data {
 		// we are setting a sequence field
 		if schema[key].Type == skydb.TypeSequence {
-			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), db.tableName(record.ID.Type))
-			seqName := db.tableName(fmt.Sprintf(`%v_%v_seq`, record.ID.Type, key))
+			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), db.TableName(record.ID.Type))
+			seqName := db.TableName(fmt.Sprintf(`%v_%v_seq`, record.ID.Type, key))
 			if _, err := db.c.Exec(selectSQL, seqName, value); err != nil {
 				return err
 			}
@@ -212,7 +213,7 @@ func convert(r *skydb.Record) map[string]interface{} {
 }
 
 func (db *database) Delete(id skydb.RecordID) error {
-	builder := psql.Delete(db.tableName(id.Type)).
+	builder := psql.Delete(db.TableName(id.Type)).
 		Where("_id = ?", id.Key)
 
 	switch db.DatabaseType() {
@@ -255,18 +256,18 @@ func (db *database) Delete(id skydb.RecordID) error {
 	return err
 }
 
-func (db *database) applyQueryPredicate(q sq.SelectBuilder, factory *predicateSqlizerFactory, query *skydb.Query) (sq.SelectBuilder, error) {
+func (db *database) applyQueryPredicate(q sq.SelectBuilder, factory builder.PredicateSqlizerFactory, query *skydb.Query) (sq.SelectBuilder, error) {
 	if p := query.Predicate; !p.IsEmpty() {
-		sqlizer, err := factory.newPredicateSqlizer(p)
+		sqlizer, err := factory.NewPredicateSqlizer(p)
 		if err != nil {
 			return q, err
 		}
 		q = q.Where(sqlizer)
-		q = factory.addJoinsToSelectBuilder(q)
+		q = factory.AddJoinsToSelectBuilder(q)
 	}
 
 	if db.DatabaseType() == skydb.PublicDatabase && !query.BypassAccessControl {
-		aclSqlizer, err := factory.newAccessControlSqlizer(query.ViewAsUser, skydb.ReadLevel)
+		aclSqlizer, err := factory.NewAccessControlSqlizer(query.ViewAsUser, skydb.ReadLevel)
 		if err != nil {
 			return q, err
 		}
@@ -281,7 +282,7 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 		return nil, errors.New("got empty query type")
 	}
 
-	typemap, err := db.remoteColumnTypes(query.Type)
+	typemap, err := db.RemoteColumnTypes(query.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -291,14 +292,14 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 	}
 
 	q := psql.Select()
-	factory := newPredicateSqlizerFactory(db, query.Type)
+	factory := builder.NewPredicateSqlizerFactory(db, query.Type)
 	q, err = db.applyQueryPredicate(q, factory, query)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, sort := range query.Sorts {
-		orderBy, err := sortOrderBySQL(query.Type, sort)
+		orderBy, err := builder.SortOrderBySQL(query.Type, sort)
 		if err != nil {
 			return nil, err
 		}
@@ -320,7 +321,7 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	typemap = factory.updateTypemap(typemap)
+	typemap = factory.UpdateTypemap(typemap)
 	q = db.selectQuery(q, query.Type, typemap)
 
 	rows, err := db.c.QueryWith(q)
@@ -332,7 +333,7 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 		return 0, errors.New("got empty query type")
 	}
 
-	typemap, err := db.remoteColumnTypes(query.Type)
+	typemap, err := db.RemoteColumnTypes(query.Type)
 	if err != nil || len(typemap) == 0 { // error or record type has not been created
 		return 0, err
 	}
@@ -350,7 +351,7 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 	}
 
 	q := db.selectQuery(psql.Select(), query.Type, typemap)
-	factory := newPredicateSqlizerFactory(db, query.Type)
+	factory := builder.NewPredicateSqlizerFactory(db, query.Type)
 	q, err = db.applyQueryPredicate(q, factory, query)
 	if err != nil {
 		return 0, err
@@ -578,11 +579,11 @@ func columnSqlizersForSelect(recordType string, typemap skydb.RecordSchema) map[
 			}
 		}
 
-		sqlizer := newExpressionSqlizer(recordType, fieldType, expr)
+		sqlizer := builder.NewExpressionSqlizer(recordType, fieldType, expr)
 		if fieldType.Type == skydb.TypeGeometry {
-			sqlizer.requireCast = true
+			sqlizer, _ = builder.RequireCast(sqlizer)
 		}
-		sqlizers[column] = &sqlizer
+		sqlizers[column] = sqlizer
 	}
 	return sqlizers
 }
@@ -593,7 +594,7 @@ func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap s
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
 	}
 
-	q = q.From(db.tableName(recordType))
+	q = q.From(db.TableName(recordType))
 
 	switch db.DatabaseType() {
 	case skydb.UnionDatabase:

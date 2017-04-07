@@ -74,7 +74,7 @@ func dropAllRecordTables(t *testing.T, c *conn) {
 
 	db := c.PublicDB().(*database)
 	for recordType := range c.RecordSchema {
-		if err := dropTable(tx, db.tableName(recordType)); err != nil {
+		if err := dropTable(tx, db.TableName(recordType)); err != nil {
 			t.Fatal(err)
 		}
 	}
