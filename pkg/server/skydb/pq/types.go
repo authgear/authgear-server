@@ -43,6 +43,31 @@ const (
 	TypeGeometry   = "geometry"
 )
 
+func pqDataType(dataType skydb.DataType) string {
+	switch dataType {
+	default:
+		panic(fmt.Sprintf("Unsupported dataType = %s", dataType))
+	case skydb.TypeString, skydb.TypeAsset, skydb.TypeReference:
+		return TypeString
+	case skydb.TypeNumber:
+		return TypeNumber
+	case skydb.TypeInteger:
+		return TypeInteger
+	case skydb.TypeDateTime:
+		return TypeTimestamp
+	case skydb.TypeBoolean:
+		return TypeBoolean
+	case skydb.TypeJSON:
+		return TypeJSON
+	case skydb.TypeLocation:
+		return TypeLocation
+	case skydb.TypeSequence:
+		return TypeSerial
+	case skydb.TypeGeometry:
+		return TypeGeometry
+	}
+}
+
 type nullJSON struct {
 	JSON  interface{}
 	Valid bool
