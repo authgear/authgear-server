@@ -727,7 +727,11 @@ func literalToSQLOperand(literal interface{}) (string, []interface{}) {
 	// Array detection is borrowed from squirrel's expr.go
 	switch literalValue := literal.(type) {
 	case skydb.Geometry:
-		return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", sq.Placeholders(1)), []interface{}{literalValue}
+		valueInJSON, err := json.Marshal(literalValue)
+		if err != nil {
+			panic(fmt.Sprintf("unable to marshal skydb.Geometry: %s", err))
+		}
+		return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", sq.Placeholders(1)), []interface{}{valueInJSON}
 	case skydb.Location:
 		return fmt.Sprintf("ST_MakePoint(%s)", sq.Placeholders(2)), []interface{}{literalValue.Lng(), literalValue.Lat()}
 	case []interface{}:
