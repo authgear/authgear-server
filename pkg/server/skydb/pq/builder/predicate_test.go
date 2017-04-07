@@ -26,18 +26,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-func TestSqlizer(t *testing.T) {
-	Convey("Expression Sqlizer", t, func() {
-		Convey("literal null expression", func() {
-			expr := newExpressionSqlizer("table", skydb.FieldType{}, skydb.Expression{skydb.Literal, nil})
-			sql, args, err := expr.ToSql()
-			So(sql, ShouldEqual, "NULL")
-			So(args, ShouldResemble, []interface{}{})
-			So(err, ShouldBeNil)
-		})
-	})
-}
-
 func TestPredicateSqlizerFactory(t *testing.T) {
 	Convey("Expression", t, func() {
 		ctrl := gomock.NewController(t)
@@ -390,20 +378,6 @@ func TestDistancePredicateSqlizer(t *testing.T) {
 			So(sql, ShouldEqual,
 				`ST_DWithin("note"."latlng"::geography, ST_MakePoint(?, ?)::geography, ?)`)
 			So(args, ShouldResemble, []interface{}{22.25, 114.1667, 500.0})
-		})
-	})
-}
-
-func TestExpressionSqlizerWithGeometry(t *testing.T) {
-	Convey("expression sqlizer with geometry", t, func() {
-		Convey("serialized", func() {
-			sqlizer := newExpressionSqlizer("note", skydb.FieldType{Type: skydb.TypeGeometry}, skydb.Expression{skydb.KeyPath, "geometry"})
-			sqlizer.requireCast = true
-			sql, args, err := sqlizer.ToSql()
-			So(err, ShouldBeNil)
-			So(sql, ShouldEqual,
-				`ST_AsGeoJSON("note"."geometry")`)
-			So(args, ShouldResemble, []interface{}{})
 		})
 	})
 }
