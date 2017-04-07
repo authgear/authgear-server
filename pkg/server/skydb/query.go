@@ -218,31 +218,10 @@ func (p Predicate) validate(parentPredicate *Predicate) skyerr.Error {
 	}
 
 	switch p.Operator {
-	case In:
-		return p.validateInPredicate(parentPredicate)
 	case Functional:
 		return p.validateFunctionalPredicate(parentPredicate)
 	case Equal:
 		return p.validateEqualPredicate(parentPredicate)
-	}
-	return nil
-}
-
-func (p Predicate) validateInPredicate(parentPredicate *Predicate) skyerr.Error {
-	lhs := p.Children[0].(Expression)
-	rhs := p.Children[1].(Expression)
-
-	if lhs.IsKeyPath() == rhs.IsKeyPath() {
-		return skyerr.NewError(skyerr.RecordQueryInvalid,
-			`either one of the operands of "IN" must be key path`)
-	}
-
-	if rhs.IsKeyPath() && !lhs.IsLiteralString() {
-		return skyerr.NewError(skyerr.RecordQueryInvalid,
-			`left operand of "IN" must be a string if comparing with a keypath`)
-	} else if lhs.IsKeyPath() && !rhs.IsLiteralArray() {
-		return skyerr.NewError(skyerr.RecordQueryInvalid,
-			`right operand of "IN" must be an array if comparing with a keypath`)
 	}
 	return nil
 }

@@ -26,6 +26,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+var errCannotCompareUsingInOperator = errors.New(`cannot use "in" operator to compare the specified values`)
+
 // predicateSqlizerFactory is a factory for creating sqlizer for predicate
 type predicateSqlizerFactory struct {
 	db           *database
@@ -544,7 +546,12 @@ func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interfa
 		sql = buffer.String()
 		return sql, args, err
 	}
-	panic("malformed query")
+
+	// Note: "In" operator may be used to compare other types of values
+	// but the generated SQL depends on the types of values being compared.
+	// It is currently not supported to compare two keypaths,
+	// unless they are geometry types.  cf. #345
+	return "", []interface{}{}, errCannotCompareUsingInOperator
 }
 
 type comparisonPredicateSqlizer struct {

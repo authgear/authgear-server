@@ -2310,7 +2310,7 @@ func TestUnsupportedQuery(t *testing.T) {
 					},
 				},
 			}
-			So(func() { db.Query(&query) }, ShouldPanicWith, "malformed query")
+			So(func() { db.Query(&query) }, ShouldPanicWith, errCannotCompareUsingInOperator)
 		})
 	})
 }
