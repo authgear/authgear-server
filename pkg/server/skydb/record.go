@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -257,6 +258,9 @@ func (loc Location) String() string {
 	return fmt.Sprintf("POINT(%g %g)", loc[0], loc[1])
 }
 
+// Geometry represent a geometry in GeoJSON.
+type Geometry map[string]interface{}
+
 // Sequence is a bogus data type for creating a sequence field
 // via JIT schema migration
 type Sequence struct{}
@@ -434,6 +438,13 @@ func (f FieldType) DefinitionCompatibleTo(other FieldType) bool {
 		return true
 	}
 
+	if f.Type == TypeGeometry && other.Type.IsGeometryCompatibleType() {
+		// Note: Saving skydb.Location to skydb.Geometry is currently
+		// not supported (see #343)
+		//return true
+		return other.Type == TypeGeometry
+	}
+
 	return f.Type == other.Type
 }
 
@@ -461,6 +472,8 @@ func (f FieldType) ToSimpleName() string {
 		return "integer"
 	case TypeSequence:
 		return "sequence"
+	case TypeGeometry:
+		return "geometry"
 	case TypeUnknown:
 		return "unknown"
 	}
@@ -484,6 +497,7 @@ const (
 	TypeACL
 	TypeInteger
 	TypeSequence
+	TypeGeometry
 	TypeUnknown
 )
 
@@ -495,6 +509,10 @@ func (t DataType) IsNumberCompatibleType() bool {
 	default:
 		return false
 	}
+}
+
+func (t DataType) IsGeometryCompatibleType() bool {
+	return t == TypeLocation || t == TypeGeometry
 }
 
 func SimpleNameToFieldType(s string) (result FieldType, err error) {
@@ -519,6 +537,8 @@ func SimpleNameToFieldType(s string) (result FieldType, err error) {
 		result.Type = TypeInteger
 	case "sequence":
 		result.Type = TypeSequence
+	case "geometry":
+		result.Type = TypeGeometry
 	case "unknown":
 		result.Type = TypeUnknown
 	default:
@@ -531,5 +551,69 @@ func SimpleNameToFieldType(s string) (result FieldType, err error) {
 		}
 	}
 
+	return
+}
+
+func DeriveFieldType(value interface{}) (fieldType FieldType, err error) {
+	switch val := value.(type) {
+	default:
+		kind := reflect.ValueOf(val).Kind()
+		if kind == reflect.Map || kind == reflect.Slice || kind == reflect.Array {
+			fieldType = FieldType{
+				Type: TypeJSON,
+			}
+		} else {
+			err = fmt.Errorf("got unrecognized type = %T", value)
+		}
+	case nil:
+		err = errors.New("cannot derive field type from nil")
+	case int64:
+		fieldType = FieldType{
+			Type: TypeInteger,
+		}
+	case float64:
+		fieldType = FieldType{
+			Type: TypeNumber,
+		}
+	case string:
+		fieldType = FieldType{
+			Type: TypeString,
+		}
+	case time.Time:
+		fieldType = FieldType{
+			Type: TypeDateTime,
+		}
+	case bool:
+		fieldType = FieldType{
+			Type: TypeBoolean,
+		}
+	case *Asset:
+		fieldType = FieldType{
+			Type: TypeAsset,
+		}
+	case Reference:
+		v := value.(Reference)
+		fieldType = FieldType{
+			Type:          TypeReference,
+			ReferenceType: v.Type(),
+		}
+	case Location:
+		fieldType = FieldType{
+			Type: TypeLocation,
+		}
+	case Sequence:
+		fieldType = FieldType{
+			Type: TypeSequence,
+		}
+	case Geometry:
+		fieldType = FieldType{
+			Type: TypeGeometry,
+		}
+	case Unknown:
+		fieldType = FieldType{
+			Type:           TypeUnknown,
+			UnderlyingType: val.UnderlyingType,
+		}
+	}
 	return
 }

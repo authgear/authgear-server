@@ -16,6 +16,7 @@ package pq
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -525,7 +526,7 @@ func TestQuery(t *testing.T) {
 						},
 						skydb.Expression{
 							Type:  skydb.Literal,
-							Value: 1,
+							Value: int64(1),
 						},
 					},
 				},
@@ -646,11 +647,11 @@ func TestQuery(t *testing.T) {
 			}
 			value1 := skydb.Expression{
 				Type:  skydb.Literal,
-				Value: 2,
+				Value: int64(2),
 			}
 			value2 := skydb.Expression{
 				Type:  skydb.Literal,
-				Value: 3,
+				Value: int64(3),
 			}
 			query := skydb.Query{
 				Type: "note",
@@ -929,7 +930,7 @@ func TestQuery(t *testing.T) {
 						},
 						skydb.Expression{
 							Type:  skydb.Literal,
-							Value: 1000,
+							Value: int64(1000),
 						},
 					},
 				},
@@ -948,7 +949,7 @@ func TestQuery(t *testing.T) {
 					Children: []interface{}{
 						skydb.Expression{
 							Type:  skydb.Literal,
-							Value: 1000,
+							Value: int64(1000),
 						},
 						skydb.Expression{
 							Type: skydb.Function,
@@ -1016,6 +1017,139 @@ func TestQuery(t *testing.T) {
 			records, err := exhaustRows(db.Query(&query))
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record0, record2, record1})
+		})
+	})
+
+	Convey("Database with geometry", t, func() {
+		c := getTestConn(t)
+		defer cleanupConn(t, c)
+
+		var geom1 skydb.Geometry
+		So(json.Unmarshal([]byte(`{
+          "coordinates": [
+            [ [ 100, 0 ], [ 101, 0 ],
+              [ 101, 1 ], [ 100, 1 ] ]
+          ],
+          "type": "Polygon"
+        }`), &geom1), ShouldBeNil)
+		var geom2 skydb.Geometry
+		So(json.Unmarshal([]byte(`{
+          "coordinates": [
+            [ [ 101, 0 ], [ 102, 0 ],
+              [ 102, 1 ], [ 101, 1 ] ]
+          ],
+          "type": "Polygon"
+        }`), &geom2), ShouldBeNil)
+
+		point1 := skydb.NewLocation(100.5, 0.5)
+		point2 := skydb.NewLocation(101.5, 0.5)
+
+		record1 := skydb.Record{
+			ID:      skydb.NewRecordID("georecord", "value1"),
+			OwnerID: "someuserid",
+			Data: map[string]interface{}{
+				"geom": geom1,
+			},
+		}
+		record2 := skydb.Record{
+			ID:      skydb.NewRecordID("georecord", "value2"),
+			OwnerID: "someuserid",
+			Data: map[string]interface{}{
+				"geom":  geom2,
+				"point": point2,
+			},
+		}
+
+		db := c.PublicDB()
+		_, err := db.Extend("georecord", skydb.RecordSchema{
+			"geom":  skydb.FieldType{Type: skydb.TypeGeometry},
+			"point": skydb.FieldType{Type: skydb.TypeLocation},
+		})
+		So(err, ShouldBeNil)
+		So(db.Save(&record1), ShouldBeNil)
+		So(db.Save(&record2), ShouldBeNil)
+
+		Convey("fetch", func() {
+			record := skydb.Record{}
+			err = db.Get(skydb.NewRecordID("georecord", "value1"), &record)
+			So(err, ShouldBeNil)
+			So(record.Data, ShouldResemble, skydb.Data{
+				"geom": geom1,
+			})
+		})
+
+		Convey("query within geom", func() {
+			query := skydb.Query{
+				Type: "georecord",
+				Predicate: skydb.Predicate{
+					Operator: skydb.In,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.Literal,
+							Value: point1,
+						},
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "geom",
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record1})
+		})
+
+		Convey("query not within geom", func() {
+			query := skydb.Query{
+				Type: "georecord",
+				Predicate: skydb.Predicate{
+					Operator: skydb.Not,
+					Children: []interface{}{
+						skydb.Predicate{
+							Operator: skydb.In,
+							Children: []interface{}{
+								skydb.Expression{
+									Type:  skydb.Literal,
+									Value: point1,
+								},
+								skydb.Expression{
+									Type:  skydb.KeyPath,
+									Value: "geom",
+								},
+							},
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record2})
+		})
+
+		Convey("query by comparing keypath", func() {
+			query := skydb.Query{
+				Type: "georecord",
+				Predicate: skydb.Predicate{
+					Operator: skydb.In,
+					Children: []interface{}{
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "point",
+						},
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "geom",
+						},
+					},
+				},
+			}
+			records, err := exhaustRows(db.Query(&query))
+
+			So(err, ShouldBeNil)
+			So(records, ShouldResemble, []skydb.Record{record2})
 		})
 	})
 
@@ -2176,7 +2310,7 @@ func TestUnsupportedQuery(t *testing.T) {
 					},
 				},
 			}
-			So(func() { db.Query(&query) }, ShouldPanicWith, "malformed query")
+			So(func() { db.Query(&query) }, ShouldPanicWith, errCannotCompareUsingInOperator)
 		})
 	})
 }

@@ -115,14 +115,32 @@ func (db *database) Save(record *skydb.Record) error {
 			"_database_id": db.userID,
 		}
 	}
-	upsert := upsertQuery(db.tableName(record.ID.Type), pkData, convert(record)).
-		IgnoreKeyOnUpdate("_owner_id").
-		IgnoreKeyOnUpdate("_created_at").
-		IgnoreKeyOnUpdate("_created_by")
 
 	typemap, err := db.remoteColumnTypes(record.ID.Type)
 	if err != nil {
 		return err
+	}
+
+	wrappers := map[string]func(string) string{}
+	for column, fieldType := range typemap {
+		if fieldType.Type == skydb.TypeGeometry {
+			wrappers[column] = func(val string) string {
+				return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", val)
+			}
+		}
+	}
+
+	upsert := upsertQueryWithWrappers(db.tableName(record.ID.Type), pkData, convert(record), wrappers).
+		IgnoreKeyOnUpdate("_owner_id").
+		IgnoreKeyOnUpdate("_created_at").
+		IgnoreKeyOnUpdate("_created_by")
+
+	// record type is empty in the following statement because upsert
+	// only concerns with one record type, and that specifying the
+	// name of the record type here actually causes the SQL to find
+	// the table, which is not found because aliasing.
+	for column, sqlizer := range columnSqlizersForSelect("", typemap) {
+		upsert = upsert.SelectColumn(column, sqlizer)
 	}
 
 	if err := db.preSave(typemap, record); err != nil {
@@ -175,6 +193,8 @@ func convert(r *skydb.Record) map[string]interface{} {
 			m[key] = referenceValue(value)
 		case skydb.Location:
 			m[key] = locationValue(value)
+		case skydb.Geometry:
+			m[key] = geometryValue(value)
 		case skydb.Unknown:
 			// Do not modify columns with unknown type because they are
 			// managed by the developer.
@@ -414,6 +434,9 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 		case skydb.TypeInteger:
 			var i sql.NullInt64
 			values = append(values, &i)
+		case skydb.TypeGeometry:
+			var g nullGeometry
+			values = append(values, &g)
 		case skydb.TypeUnknown:
 			var u nullUnknown
 			values = append(values, &u)
@@ -490,6 +513,10 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 			if svalue.Valid {
 				record.Set(column, svalue.Location)
 			}
+		case *nullGeometry:
+			if svalue.Valid {
+				record.Set(column, svalue.Geometry)
+			}
 		case *nullUnknown:
 			if svalue.Valid {
 				val := skydb.Unknown{}
@@ -540,7 +567,8 @@ func newRows(recordType string, typemap skydb.RecordSchema, rows *sqlx.Rows, err
 	return skydb.NewRows(rowsIter{rows, rs}), nil
 }
 
-func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap skydb.RecordSchema) sq.SelectBuilder {
+func columnSqlizersForSelect(recordType string, typemap skydb.RecordSchema) map[string]sq.Sqlizer {
+	sqlizers := map[string]sq.Sqlizer{}
 	for column, fieldType := range typemap {
 		expr := fieldType.Expression
 		if expr.IsEmpty() {
@@ -550,7 +578,17 @@ func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap s
 			}
 		}
 
-		e := expressionSqlizer{recordType, expr}
+		sqlizer := newExpressionSqlizer(recordType, fieldType, expr)
+		if fieldType.Type == skydb.TypeGeometry {
+			sqlizer.requireCast = true
+		}
+		sqlizers[column] = &sqlizer
+	}
+	return sqlizers
+}
+
+func (db *database) selectQuery(q sq.SelectBuilder, recordType string, typemap skydb.RecordSchema) sq.SelectBuilder {
+	for column, e := range columnSqlizersForSelect(recordType, typemap) {
 		sqlOperand, opArgs, _ := e.ToSql()
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
 	}

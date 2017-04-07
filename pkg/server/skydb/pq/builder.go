@@ -26,6 +26,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+var errCannotCompareUsingInOperator = errors.New(`cannot use "in" operator to compare the specified values`)
+
 // predicateSqlizerFactory is a factory for creating sqlizer for predicate
 type predicateSqlizerFactory struct {
 	db           *database
@@ -154,8 +156,8 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 		}
 		sqlizer := &containsComparisonPredicateSqlizer{
 			[]expressionSqlizer{
-				{alias, lhsExpr},
-				{alias, rhsExpr},
+				newExpressionSqlizer(alias, skydb.FieldType{Type: skydb.TypeString}, lhsExpr),
+				newExpressionSqlizer(alias, skydb.FieldType{Type: skydb.TypeString}, rhsExpr),
 			},
 		}
 		sqlizers = append(sqlizers, sqlizer)
@@ -250,12 +252,30 @@ func (f *predicateSqlizerFactory) newExpressionSqlizer(expr skydb.Expression) (e
 		return f.newExpressionSqlizerForKeyPath(expr)
 	}
 
-	sqlizer := expressionSqlizer{
-		f.primaryTable,
-		expr,
+	if expr.Type == skydb.Literal {
+		var fieldType skydb.FieldType
+		if expr.Value != nil {
+			var err error
+			fieldType, err = skydb.DeriveFieldType(expr.Value)
+			if err != nil {
+				return expressionSqlizer{}, err
+			}
+		}
+
+		sqlizer := newExpressionSqlizer(f.primaryTable, fieldType, expr)
+		return sqlizer, nil
 	}
 
-	return sqlizer, nil
+	if expr.Type == skydb.Function {
+		funcInterface, ok := expr.Value.(skydb.Func)
+		if !ok {
+			panic(`expression value is not a function`)
+		}
+		return newExpressionSqlizer(f.primaryTable, skydb.FieldType{Type: funcInterface.DataType()}, expr), nil
+	}
+
+	return expressionSqlizer{}, skyerr.NewError(skyerr.RecordQueryInvalid,
+		`unexpected expression type`)
 }
 
 func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expression) (expressionSqlizer, error) {
@@ -272,6 +292,7 @@ func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expr
 
 	alias := f.primaryTable
 	recordType := f.primaryTable
+	field := skydb.FieldType{}
 	for i, component := range components {
 		isLast := (i == len(components)-1)
 
@@ -281,8 +302,9 @@ func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expr
 				`record type "%s" does not exist`, recordType)
 		}
 
-		field, ok := schema[component]
-		if !ok {
+		if f, ok := schema[component]; ok {
+			field = f
+		} else {
 			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
 				`keypath "%s" does not exist`, keyPath)
 		}
@@ -300,7 +322,7 @@ func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expr
 		}
 	}
 
-	return expressionSqlizer{alias, expr}, nil
+	return newExpressionSqlizer(alias, field, expr), nil
 }
 
 // createLeftJoin create an alias of a table to be joined to the primary table
@@ -458,7 +480,30 @@ func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interfa
 	lhs := p.sqlizers[0]
 	rhs := p.sqlizers[1]
 
-	if lhs.Type == skydb.Literal && rhs.Type == skydb.KeyPath {
+	if lhs.fieldType.Type.IsGeometryCompatibleType() && rhs.fieldType.Type.IsGeometryCompatibleType() {
+		buffer.WriteString(`ST_Contains(`)
+
+		sqlOperand, opArgs, err := rhs.ToSql()
+		if err != nil {
+			return "", nil, err
+		}
+		buffer.WriteString(sqlOperand)
+		args = append(args, opArgs...)
+
+		buffer.WriteString(`, `)
+
+		sqlOperand, opArgs, err = lhs.ToSql()
+		if err != nil {
+			return "", nil, err
+		}
+		buffer.WriteString(sqlOperand)
+		args = append(args, opArgs...)
+
+		buffer.WriteString(`)`)
+
+		sql = buffer.String()
+		return sql, args, err
+	} else if lhs.Type == skydb.Literal && rhs.Type == skydb.KeyPath {
 		buffer.WriteString(`jsonb_exists(`)
 
 		sqlOperand, opArgs, err := rhs.ToSql()
@@ -500,9 +545,13 @@ func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interfa
 
 		sql = buffer.String()
 		return sql, args, err
-	} else {
-		panic("malformed query")
 	}
+
+	// Note: "In" operator may be used to compare other types of values
+	// but the generated SQL depends on the types of values being compared.
+	// It is currently not supported to compare two keypaths,
+	// unless they are geometry types.  cf. #345
+	return "", []interface{}{}, errCannotCompareUsingInOperator
 }
 
 type comparisonPredicateSqlizer struct {
@@ -602,8 +651,38 @@ func (p *comparisonPredicateSqlizer) writeOperatorForNullOperand(buffer *bytes.B
 // and it is either the name of the table of the column, or a SQL alias of such
 // table.
 type expressionSqlizer struct {
+	// Alias is the name to qualify a SQL identifier. Could be empty
+	// if there is no identifier or if the identifier does not need
+	// to be qualified. This is usually the table name of the table alias.
 	alias string
+
+	// RequireCast is true when the expression should be casted to a different
+	// SQL type. Whether the expression requires casting depends on the context
+	// where the expression is used, hence cannot be determined by the
+	// expression itself.
+	requireCast bool
+
+	// FieldType contains the database field type when available. If the
+	// expression is a literal or is a computed value (such as function),
+	// the field type maybe derived from the expression value. If not
+	// available, the field type may be empty.
+	fieldType skydb.FieldType
+
 	skydb.Expression
+}
+
+func newExpressionSqlizer(alias string, fieldType skydb.FieldType, expr skydb.Expression) expressionSqlizer {
+	requireCast := false
+	if fieldType.Type.IsGeometryCompatibleType() && expr.Type == skydb.Literal {
+		requireCast = true
+	}
+
+	return expressionSqlizer{
+		alias,
+		requireCast,
+		fieldType,
+		expr,
+	}
 }
 
 func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err error) {
@@ -613,6 +692,13 @@ func (expr *expressionSqlizer) ToSql() (sql string, args []interface{}, err erro
 		lastComponent := components[len(components)-1]
 		sql = fullQuoteIdentifier(expr.alias, lastComponent)
 		args = []interface{}{}
+
+		if expr.requireCast {
+			switch expr.fieldType.Type {
+			case skydb.TypeLocation, skydb.TypeGeometry:
+				sql = fmt.Sprintf("ST_AsGeoJSON(%s)", sql)
+			}
+		}
 	case skydb.Function:
 		sql, args = funcToSQLOperand(expr.alias, expr.Value.(skydb.Func))
 	default:
@@ -647,6 +733,14 @@ func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
 func literalToSQLOperand(literal interface{}) (string, []interface{}) {
 	// Array detection is borrowed from squirrel's expr.go
 	switch literalValue := literal.(type) {
+	case skydb.Geometry:
+		valueInJSON, err := json.Marshal(literalValue)
+		if err != nil {
+			panic(fmt.Sprintf("unable to marshal skydb.Geometry: %s", err))
+		}
+		return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", sq.Placeholders(1)), []interface{}{valueInJSON}
+	case skydb.Location:
+		return fmt.Sprintf("ST_MakePoint(%s)", sq.Placeholders(2)), []interface{}{literalValue.Lng(), literalValue.Lat()}
 	case []interface{}:
 		argCount := len(literalValue)
 		if argCount > 0 {
@@ -749,10 +843,17 @@ func pqDataType(dataType skydb.DataType) string {
 		return TypeLocation
 	case skydb.TypeSequence:
 		return TypeSerial
+	case skydb.TypeGeometry:
+		return TypeGeometry
 	}
 }
 
 func fullQuoteIdentifier(aliasName string, columnName string) string {
+	// If aliasName is empty, generate a identifier without qualifying
+	// it with an alias name.
+	if aliasName == "" {
+		return pq.QuoteIdentifier(columnName)
+	}
 	return pq.QuoteIdentifier(aliasName) + "." + pq.QuoteIdentifier(columnName)
 }
 

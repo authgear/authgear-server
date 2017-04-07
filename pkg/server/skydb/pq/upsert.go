@@ -16,6 +16,7 @@ package pq
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"text/template"
 
@@ -28,7 +29,7 @@ const upsertTemplateText = `
 WITH updated AS (
 	{{if .UpdateCols }}
 		UPDATE {{.Table}}
-		SET ({{template "commaSeparatedList" .UpdateCols}}) = ({{placeholderList (len .Keys) (len .UpdateCols)}})
+		SET ({{template "commaSeparatedList" .UpdateCols}}) = ({{placeholderList (len .Keys) (len .UpdateCols) .WrappersAtIndex}})
 		WHERE {{range $i, $_ := .Keys}}{{if $i}} AND {{end}}{{quoted .}} = ${{addOne $i}}{{end}}
 		RETURNING *
 	{{else}}
@@ -39,25 +40,30 @@ WITH updated AS (
 ), inserted AS (
 	INSERT INTO {{.Table}}
 		({{template "commaSeparatedList" .InsertCols}})
-	SELECT {{placeholderList 0 (len .InsertCols)}}
+	SELECT {{placeholderList 0 (len .InsertCols) .WrappersAtIndex}}
 	WHERE NOT EXISTS (SELECT * FROM updated)
 	RETURNING *
 )
-SELECT * FROM updated
+SELECT {{ .SelectColumnsSQL }} FROM updated
 UNION ALL
-SELECT * FROM inserted;
+SELECT {{ .SelectColumnsSQL }} FROM inserted;
 `
 
 var funcMap = template.FuncMap{
 	"addOne": func(n int) int { return n + 1 },
 	"quoted": pq.QuoteIdentifier,
-	"placeholderList": func(i, n int) string {
+	"placeholderList": func(i, n int, wrappers map[int]func(string) string) string {
 		b := bytes.Buffer{}
 		from := i + 1
 		to := from + n - 1
 		for j := from; j <= to; j++ {
-			b.WriteByte('$')
-			b.WriteString(strconv.Itoa(j))
+			if wrappers[j] != nil {
+				b.WriteString(wrappers[j](fmt.Sprintf("$%d", j)))
+			} else {
+				b.WriteByte('$')
+				b.WriteString(strconv.Itoa(j))
+			}
+
 			if j != to {
 				b.WriteByte(',')
 			}
@@ -117,6 +123,8 @@ type upsertQueryBuilder struct {
 	pkData         map[string]interface{}
 	data           map[string]interface{}
 	updateIngnores map[string]struct{}
+	wrappers       map[string]func(string) string
+	selectColumns  map[string]sq.Sqlizer
 }
 
 // TODO(limouren): we can support a better fluent builder like this
@@ -130,11 +138,34 @@ type upsertQueryBuilder struct {
 //		})
 //
 func upsertQuery(table string, pkData, data map[string]interface{}) *upsertQueryBuilder {
-	return &upsertQueryBuilder{table, pkData, data, map[string]struct{}{}}
+	return &upsertQueryBuilder{
+		table,
+		pkData,
+		data,
+		map[string]struct{}{},
+		map[string]func(string) string{},
+		map[string]sq.Sqlizer{},
+	}
+}
+
+func upsertQueryWithWrappers(table string, pkData, data map[string]interface{}, wrappers map[string]func(string) string) *upsertQueryBuilder {
+	return &upsertQueryBuilder{
+		table,
+		pkData,
+		data,
+		map[string]struct{}{},
+		wrappers,
+		map[string]sq.Sqlizer{},
+	}
 }
 
 func (upsert *upsertQueryBuilder) IgnoreKeyOnUpdate(col string) *upsertQueryBuilder {
 	upsert.updateIngnores[col] = struct{}{}
+	return upsert
+}
+
+func (upsert *upsertQueryBuilder) SelectColumn(col string, sqlizer sq.Sqlizer) *upsertQueryBuilder {
+	upsert.selectColumns[col] = sqlizer
 	return upsert
 }
 
@@ -148,16 +179,30 @@ func (upsert *upsertQueryBuilder) ToSql() (sql string, args []interface{}, err e
 	updateCols := cols[:len(cols)-ignored]
 
 	b := bytes.Buffer{}
+
+	insertCols := append(pks, cols...)
+	wrappers := map[int]func(string) string{}
+
+	for i, col := range insertCols {
+		if wrapper, ok := upsert.wrappers[col]; ok {
+			wrappers[i+1] = wrapper
+		}
+	}
+
 	err = upsertTemplate.Execute(&b, struct {
-		Table      string
-		Keys       []string
-		UpdateCols []string
-		InsertCols []string
+		Table            string
+		Keys             []string
+		UpdateCols       []string
+		InsertCols       []string
+		WrappersAtIndex  map[int]func(string) string
+		SelectColumnsSQL string
 	}{
-		Table:      upsert.table,
-		Keys:       pks,
-		UpdateCols: updateCols,
-		InsertCols: append(pks, cols...),
+		Table:            upsert.table,
+		Keys:             pks,
+		UpdateCols:       updateCols,
+		InsertCols:       insertCols,
+		WrappersAtIndex:  wrappers,
+		SelectColumnsSQL: upsertSelectClause(upsert.selectColumns),
 	})
 	if err != nil {
 		panic(err)
@@ -199,6 +244,24 @@ func sortColsArgs(cols []string, args []interface{}, ignoreCols map[string]struc
 	}
 
 	return append(c, ic...), append(a, ia...), ignored
+}
+
+func upsertSelectClause(sqlizers map[string]sq.Sqlizer) string {
+	if len(sqlizers) == 0 {
+		return "*"
+	}
+
+	b := bytes.Buffer{}
+	first := true
+	for column, s := range sqlizers {
+		sql, _, _ := s.ToSql()
+		if !first {
+			b.WriteByte(',')
+		}
+		first = false
+		b.WriteString(fmt.Sprintf("%s as %s", sql, pq.QuoteIdentifier(column)))
+	}
+	return b.String()
 }
 
 var _ sq.Sqlizer = &upsertQueryBuilder{}

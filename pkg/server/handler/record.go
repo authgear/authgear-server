@@ -484,7 +484,7 @@ func (payload *recordQueryPayload) Decode(data map[string]interface{}, parser *Q
 	// can only be converted using a hook func.
 
 	if err := parser.queryFromRaw(data, &payload.Query); err != nil {
-		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+		return err
 	}
 
 	return payload.Validate()
