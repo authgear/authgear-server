@@ -114,8 +114,14 @@ type Conn interface {
 	// SetRecordAccess sets default record access of a specific type
 	SetRecordAccess(recordType string, acl RecordACL) error
 
-	// GetRecordAccess returns default record access of a specific type
+	// SetRecordDefaultAccess sets default record access of a specific type
+	SetRecordDefaultAccess(recordType string, acl RecordACL) error
+
+	// GetRecordAccess returns the record creation access of a specific type
 	GetRecordAccess(recordType string) (RecordACL, error)
+
+	// GetRecordDefaultAccess returns default record access of a specific type
+	GetRecordDefaultAccess(recordType string) (RecordACL, error)
 
 	// GetAsset retrieves Asset information by its name
 	GetAsset(name string, asset *Asset) error

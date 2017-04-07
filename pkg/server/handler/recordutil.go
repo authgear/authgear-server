@@ -108,6 +108,7 @@ type recordFetcher struct {
 	conn                   skydb.Conn
 	withMasterKey          bool
 	creationAccessCacheMap map[string]skydb.RecordACL
+	defaultAccessCacheMap  map[string]skydb.RecordACL
 }
 
 func newRecordFetcher(db skydb.Database, conn skydb.Conn, withMasterKey bool) recordFetcher {
@@ -116,6 +117,7 @@ func newRecordFetcher(db skydb.Database, conn skydb.Conn, withMasterKey bool) re
 		conn:                   conn,
 		withMasterKey:          withMasterKey,
 		creationAccessCacheMap: map[string]skydb.RecordACL{},
+		defaultAccessCacheMap:  map[string]skydb.RecordACL{},
 	}
 }
 
@@ -131,6 +133,20 @@ func (f recordFetcher) getCreationAccess(recordType string) skydb.RecordACL {
 	}
 
 	return creationAccess
+}
+
+func (f recordFetcher) getDefaultAccess(recordType string) skydb.RecordACL {
+	defaultAccess, defaultAccessCached := f.defaultAccessCacheMap[recordType]
+	if defaultAccessCached == false {
+		var err error
+		defaultAccess, err = f.conn.GetRecordDefaultAccess(recordType)
+
+		if err == nil && defaultAccess != nil {
+			f.defaultAccessCacheMap[recordType] = defaultAccess
+		}
+	}
+
+	return defaultAccess
 }
 
 func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo) (record *skydb.Record, err skyerr.Error) {
@@ -207,6 +223,15 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 		*record = *dbRecord
 
 		return
+	})
+
+	// Apply default access
+	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) skyerr.Error {
+		if record.ACL == nil {
+			defaultACL := fetcher.getDefaultAccess(record.ID.Type)
+			record.ACL = defaultACL
+		}
+		return nil
 	})
 
 	// execute before save hooks

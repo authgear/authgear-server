@@ -536,6 +536,10 @@ func (db bogusFieldDatabaseConnection) GetRecordAccess(recordType string) (skydb
 	return skydb.NewRecordACL([]skydb.RecordACLEntry{}), nil
 }
 
+func (db bogusFieldDatabaseConnection) GetRecordDefaultAccess(recordType string) (skydb.RecordACL, error) {
+	return nil, nil
+}
+
 type bogusFieldDatabase struct {
 	SaveFunc func(record *skydb.Record) error
 	GetFunc  func(id skydb.RecordID, record *skydb.Record) error
@@ -1295,9 +1299,11 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 			record: record,
 			recordSchema: skydb.RecordSchema{},
 		}
+		conn := skydbtest.NewMapConn()
 
 		injectDBFunc := func(payload *router.Payload) {
 			payload.Database = db
+			payload.DBConn = conn
 			payload.UserInfo = &skydb.UserInfo{
 				ID: "ownerID",
 			}
@@ -1928,6 +1934,7 @@ func TestHookExecution(t *testing.T) {
 
 				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
 					p.Database = db
+					p.DBConn = skydbtest.NewMapConn()
 					p.UserInfo = &skydb.UserInfo{
 						ID: "user0",
 					}

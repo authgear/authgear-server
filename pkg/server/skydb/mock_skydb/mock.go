@@ -160,6 +160,13 @@ func (_m *MockConn) GetRecordAccess(_param0 string) (skydb.RecordACL, error) {
 	return ret0, ret1
 }
 
+func (_m *MockConn) GetRecordDefaultAccess(_param0 string) (skydb.RecordACL, error) {
+	ret := _m.ctrl.Call(_m, "GetRecordDefaultAccess", _param0)
+	ret0, _ := ret[0].(skydb.RecordACL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
 func (_mr *_MockConnRecorder) GetRecordAccess(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRecordAccess", arg0)
 }
@@ -320,6 +327,12 @@ func (_mr *_MockConnRecorder) SetDefaultRoles(arg0 interface{}) *gomock.Call {
 
 func (_m *MockConn) SetRecordAccess(_param0 string, _param1 skydb.RecordACL) error {
 	ret := _m.ctrl.Call(_m, "SetRecordAccess", _param0, _param1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_m *MockConn) SetRecordDefaultAccess(_param0 string, _param1 skydb.RecordACL) error {
+	ret := _m.ctrl.Call(_m, "SetRecordDefaultAccess", _param0, _param1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }

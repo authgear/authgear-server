@@ -28,4 +28,5 @@ var revisions = []Revision{
 	&revision_88a550bf579{},
 	&revision_db76e79e987{},
 	&revision_1981535c8aeb{},
+	&revision_069921d63218{},
 }
