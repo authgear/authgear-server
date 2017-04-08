@@ -4,6 +4,8 @@ VERSION := $(shell git describe --always --tags)
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
 GO_TEST_TIMEOUT := 1m30s
 OSARCHS := linux/amd64 linux/386 linux/arm windows/amd64 windows/386 darwin/amd64
+GO_TEST_CPU := 1,4
+GO_TEST_PACKAGE := ./pkg/...
 
 ifeq (1,${WITH_ZMQ})
 GO_BUILD_TAGS := --tags zmq
@@ -53,11 +55,7 @@ before-test:
 test:
 # Run `go install` to compile packages for caching and catch compilation error.
 	$(DOCKER_COMPOSE_RUN) go install $(GO_BUILD_ARGS)
-# The pq test suites do not run well without other test suites, so they are run
-# separately.
-	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -cpu 1 ./pkg/server/skydb/pq/...
-# Run the test of test suites. pq test suites are skipped when GOMAXPROCS != 1.
-	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -cpu 4 ./pkg/...
+	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -p 1 -cpu $(GO_TEST_CPU) $(GO_TEST_PACKAGE)
 
 .PHONY: lint
 lint:
