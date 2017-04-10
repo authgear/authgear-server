@@ -17,8 +17,10 @@ package pq
 import (
 	"errors"
 
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	sq "github.com/lann/squirrel"
+
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
 
 func (c *conn) GetAsset(name string, asset *skydb.Asset) error {
@@ -77,7 +79,7 @@ func (c *conn) SaveAsset(asset *skydb.Asset) error {
 		"content_type": asset.ContentType,
 		"size":         asset.Size,
 	}
-	upsert := upsertQuery(c.tableName("_asset"), pkData, data)
+	upsert := builder.UpsertQuery(c.tableName("_asset"), pkData, data)
 	_, err := c.ExecWith(upsert)
 	return err
 }

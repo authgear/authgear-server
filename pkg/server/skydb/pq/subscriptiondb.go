@@ -26,6 +26,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
 
 func isDeviceNotFound(err error) bool {
@@ -151,7 +152,7 @@ func (db *database) GetSubscription(key string, deviceID string, subscription *s
 	nullinfo := nullNotificationInfo{}
 
 	builder := psql.Select("type", "notification_info", "query").
-		From(db.tableName("_subscription")).
+		From(db.TableName("_subscription")).
 		Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key)
 	err := db.c.QueryRowWith(builder).
 		Scan(&subscription.Type, &nullinfo, (*queryValue)(&subscription.Query))
@@ -207,7 +208,7 @@ func (db *database) SaveSubscription(subscription *skydb.Subscription) error {
 		"query":             queryValue(subscription.Query),
 	}
 
-	builder := upsertQuery(db.tableName("_subscription"), pkData, data)
+	builder := builder.UpsertQuery(db.TableName("_subscription"), pkData, data)
 
 	_, err := db.c.ExecWith(builder)
 	if isDeviceNotFound(err) {
@@ -222,7 +223,7 @@ func (db *database) DeleteSubscription(key string, deviceID string) error {
 		return errors.New("union database does not implement subscription")
 	}
 	result, err := db.c.ExecWith(
-		psql.Delete(db.tableName("_subscription")).
+		psql.Delete(db.TableName("_subscription")).
 			Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key),
 	)
 
@@ -253,7 +254,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 	}
 	rows, err := db.c.QueryWith(
 		psql.Select("id", "type", "notification_info", "query").
-			From(db.tableName("_subscription")).
+			From(db.TableName("_subscription")).
 			Where(`user_id = ? AND device_id = ?`, db.userID, deviceID),
 	)
 
@@ -314,7 +315,7 @@ func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscription
 		return nil
 	}
 	builder := psql.Select("id", "device_id", "type", "notification_info", "query").
-		From(db.tableName("_subscription")).
+		From(db.TableName("_subscription")).
 		Where(`user_id = ? AND query @> ?::jsonb`, db.userID, fmt.Sprintf(`{"Type":"%s"}`, record.ID.Type))
 
 	rows, err := db.c.QueryWith(builder)

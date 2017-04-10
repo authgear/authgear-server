@@ -20,6 +20,7 @@ import (
 
 	sq "github.com/lann/squirrel"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
 
 func (c *conn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.UserInfo {
@@ -103,7 +104,7 @@ func (c *conn) AddRelation(user string, name string, targetUser string) error {
 		"right_id": targetUser,
 	}
 
-	upsert := upsertQuery(c.tableName(name), ralationPair, nil)
+	upsert := builder.UpsertQuery(c.tableName(name), ralationPair, nil)
 	_, err := c.ExecWith(upsert)
 	if err != nil {
 		if isForeignKeyViolated(err) {

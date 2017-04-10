@@ -34,8 +34,8 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(extended, ShouldBeTrue)
 
-			schema, _ := db.remoteColumnTypes("note")
-			schema2, _ := db.remoteColumnTypes("note")
+			schema, _ := db.RemoteColumnTypes("note")
+			schema2, _ := db.RemoteColumnTypes("note")
 			So(schema, ShouldResemble, schema2)
 		})
 
@@ -44,7 +44,7 @@ func TestExtend(t *testing.T) {
 				"cached": skydb.FieldType{Type: skydb.TypeString},
 			}
 			c.RecordSchema["note"] = cachedSchema
-			schema, _ := db.remoteColumnTypes("note")
+			schema, _ := db.RemoteColumnTypes("note")
 			So(schema, ShouldResemble, cachedSchema)
 		})
 
@@ -55,14 +55,14 @@ func TestExtend(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(extended, ShouldBeTrue)
 
-			schema, _ := db.remoteColumnTypes("note")
+			schema, _ := db.RemoteColumnTypes("note")
 			extended, err = db.Extend("note", skydb.RecordSchema{
 				"description": skydb.FieldType{Type: skydb.TypeString},
 			})
 			So(err, ShouldBeNil)
 			So(extended, ShouldBeTrue)
 
-			schema2, _ := db.remoteColumnTypes("note")
+			schema2, _ := db.RemoteColumnTypes("note")
 			So(schema, ShouldNotResemble, schema2)
 		})
 	})

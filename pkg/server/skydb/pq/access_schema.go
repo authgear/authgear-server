@@ -8,6 +8,7 @@ import (
 	sq "github.com/lann/squirrel"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	"github.com/skygeario/skygear-server/pkg/server/utils"
 )
@@ -129,7 +130,7 @@ func (c *conn) SetRecordDefaultAccess(recordType string, acl skydb.RecordACL) er
 		"default_access": aclValue(acl),
 	}
 
-	upsert := upsertQuery(c.tableName("_record_default_access"), pkData, values)
+	upsert := builder.UpsertQuery(c.tableName("_record_default_access"), pkData, values)
 	_, err := c.ExecWith(upsert)
 
 	if err != nil {
