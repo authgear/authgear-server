@@ -29,6 +29,7 @@ type Request struct {
 	Kind    string
 	Name    string
 	Param   interface{}
+	Async   bool
 }
 
 // HookRequest contains records involved in a database hook.
@@ -53,12 +54,12 @@ func NewHandlerRequest(ctx context.Context, name string, input json.RawMessage) 
 }
 
 // NewHookRequest creates a new hook request.
-func NewHookRequest(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) *Request {
+func NewHookRequest(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record, async bool) *Request {
 	param := HookRequest{
 		Record:   (*skyconv.JSONRecord)(record),
 		Original: (*skyconv.JSONRecord)(originalRecord),
 	}
-	return &Request{Kind: "hook", Name: hookName, Param: param, Context: ctx}
+	return &Request{Kind: "hook", Name: hookName, Param: param, Context: ctx, Async: async}
 }
 
 // NewAuthRequest creates a new auth request.

@@ -79,8 +79,8 @@ func (p *zmqTransport) RunHandler(ctx context.Context, name string, in []byte) (
 	return
 }
 
-func (p *zmqTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
-	out, err := p.rpc(pluginrequest.NewHookRequest(ctx, hookName, record, originalRecord))
+func (p *zmqTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record, async bool) (*skydb.Record, error) {
+	out, err := p.rpc(pluginrequest.NewHookRequest(ctx, hookName, record, originalRecord, async))
 	if err != nil {
 		return nil, err
 	}
@@ -169,9 +169,16 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 		return
 	}
 
+	workerIDs, needReuseWorker := req.Context.Value(ZMQWorkerIDsContextKey).(map[string]string)
+
+	if needReuseWorker {
+		// Prevent reuse worker if it is an async hook
+		needReuseWorker = !req.Async
+	}
+
 	reqChan := make(chan chan []byte)
-	workerIDs, ok := req.Context.Value(ZMQWorkerIDsContextKey).(map[string]string)
-	if ok {
+
+	if needReuseWorker {
 		requestID, _ := req.Context.Value(ZMQRequestIDContextKey).(string)
 		bounceCount, _ := req.Context.Value(ZMQBounceCountContextKey).(int)
 		p.broker.RPCWithWorker(reqChan, in, workerIDs, requestID, bounceCount + 1)

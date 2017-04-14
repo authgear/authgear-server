@@ -198,7 +198,7 @@ func (p *execTransport) RunHandler(ctx context.Context, name string, in []byte) 
 	return
 }
 
-func (p *execTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+func (p *execTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record, async bool) (*skydb.Record, error) {
 	param := map[string]interface{}{
 		"record":   (*skyconv.JSONRecord)(record),
 		"original": (*skyconv.JSONRecord)(originalRecord),

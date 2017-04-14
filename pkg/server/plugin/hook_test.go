@@ -29,7 +29,7 @@ type hookOnlyTransport struct {
 	Transport
 }
 
-func (t *hookOnlyTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
+func (t *hookOnlyTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record, async bool) (*skydb.Record, error) {
 	return t.RunHookFunc(ctx, hookName, record, originalRecord)
 }
 

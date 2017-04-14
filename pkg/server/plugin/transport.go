@@ -82,7 +82,7 @@ type Transport interface {
 	// A skydb.Record is returned as a result of invocation. Such record must be
 	// a newly allocated instance, and may not share any reference type values
 	// in any of its memebers with the record being passed in.
-	RunHook(ctx context.Context, hookName string, record *skydb.Record, oldRecord *skydb.Record) (*skydb.Record, error)
+	RunHook(ctx context.Context, hookName string, record *skydb.Record, oldRecord *skydb.Record, async bool) (*skydb.Record, error)
 
 	RunTimer(name string, in []byte) ([]byte, error)
 

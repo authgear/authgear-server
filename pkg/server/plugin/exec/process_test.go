@@ -338,7 +338,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, &recordold)
+			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, &recordold, false)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 
@@ -468,7 +468,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil, false)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 
@@ -557,7 +557,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil, false)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 			So(*recordout, ShouldResemble, recordin)
@@ -593,7 +593,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil, false)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 			So(*recordout, ShouldResemble, recordin)
@@ -604,7 +604,7 @@ func TestRun(t *testing.T) {
 				return nil, errors.New("worrying error")
 			}
 
-			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil, false)
 			So(err.Error(), ShouldEqual, "worrying error")
 			So(recordout, ShouldBeNil)
 		})
@@ -614,7 +614,7 @@ func TestRun(t *testing.T) {
 				return []byte("I am not a json"), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil, false)
 			So(err.Error(), ShouldEqual, "failed to parse plugin response: invalid character 'I' looking for beginning of value")
 			So(recordout, ShouldBeNil)
 		})
@@ -633,7 +633,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil)
+			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil, false)
 			sError, ok := err.(skyerr.Error)
 			So(ok, ShouldBeTrue)
 			So(sError.Message(), ShouldEqual, `Too strong to lift a feather`)
@@ -655,7 +655,7 @@ func TestRun(t *testing.T) {
 
 			ctx := context.WithValue(context.Background(), router.UserIDContextKey, "user")
 			ctx = context.WithValue(ctx, router.AccessKeyTypeContextKey, router.MasterAccessKey)
-			transport.RunHook(ctx, "note_afterSave", &recordin, nil)
+			transport.RunHook(ctx, "note_afterSave", &recordin, nil, false)
 			So(executed, ShouldBeTrue)
 		})
 	})
