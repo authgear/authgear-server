@@ -159,8 +159,9 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 
 	reqChan := make(chan chan []byte)
 	p.broker.RPC(reqChan, in)
+	respChan := <-reqChan
 	select {
-	case msg := <-<-reqChan:
+	case msg := <- respChan:
 		// Broker will sent back a null byte if time out
 		if bytes.Equal(msg, []byte{0}) {
 			err = fmt.Errorf("Plugin time out")
@@ -168,6 +169,11 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 			out = msg
 		}
 	case <-req.Context.Done():
+		// Ensure the response channel is being consumed
+		// so channeller does not block.
+		go func() {
+			<- respChan
+		}()
 		err = fmt.Errorf("Plugin time out")
 	}
 
