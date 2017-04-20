@@ -1,3 +1,19 @@
+## 0.23.0 (2017-04-20)
+
+### Features
+
+- Implement GeoJSON query using ST_Contains (#262)
+- Make default ACL server-based (#309)
+
+### Bug Fixes
+
+- Ensure respond channel of zmq is always consumed so channeller is not blocked (#347)
+- Fix inconsistent behavior saving to integer column (#319)
+
+### Other Notes
+
+- Revamp query sqlizer into its own package
+
 ## 0.22.2 (2017-03-31)
 
 ### Features
