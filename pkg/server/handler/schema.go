@@ -505,7 +505,7 @@ curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/schema/default_access <<EOF
 {
 	"master_key": "MASTER_KEY",
-	"action": "schema:access",
+	"action": "schema:default_access",
 	"type": "note",
 	"default_access": [
 		{"public": true, "level": "write"}
