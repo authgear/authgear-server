@@ -50,7 +50,7 @@ func (t *nullTransport) RunHandler(ctx context.Context, name string, in []byte) 
 	out = in
 	return
 }
-func (t *nullTransport) RunHook(ctx context.Context, hookName string, reocrd *skydb.Record, oldRecord *skydb.Record) (record *skydb.Record, err error) {
+func (t *nullTransport) RunHook(ctx context.Context, hookName string, reocrd *skydb.Record, oldRecord *skydb.Record, async bool) (record *skydb.Record, err error) {
 	t.lastContext = ctx
 	return
 }

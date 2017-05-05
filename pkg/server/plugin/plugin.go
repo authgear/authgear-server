@@ -219,16 +219,21 @@ func (p *Plugin) Init(context *Context) {
 		log.WithField("error", err).Panic("Fail to get init payload")
 	}
 
-	p.transport.SendEvent("before-config", data)
+	transport := p.transport
+	if bidirectional, ok := transport.(BidirectionalTransport); ok {
+		bidirectional.SetRouter(context.Router)
+	}
+
+	transport.SendEvent("before-config", data)
 	for {
 		log.
 			WithField("retry", p.initRetryCount).
 			Info("Sending init event to plugin")
 
-		p.transport.SetState(TransportStateUninitialized)
+		transport.SetState(TransportStateUninitialized)
 		regInfo, err := p.requestInit(data)
 		if err != nil {
-			p.transport.SetState(TransportStateError)
+			transport.SetState(TransportStateError)
 
 			p.initRetryCount++
 			if p.initRetryCount >= PluginInitMaxRetryCount {
@@ -239,11 +244,11 @@ func (p *Plugin) Init(context *Context) {
 		}
 
 		p.processRegistrationInfo(context, regInfo)
-		p.transport.SetState(TransportStateInitialized)
+		transport.SetState(TransportStateInitialized)
 
 		break
 	}
-	p.transport.SendEvent("after-config", data)
+	transport.SendEvent("after-config", data)
 }
 
 func (p *Plugin) requestInit(data []byte) (regInfo registrationInfo, initErr error) {

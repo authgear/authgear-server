@@ -131,8 +131,8 @@ func (p *httpTransport) RunHandler(ctx context.Context, name string, in []byte) 
 	return
 }
 
-func (p *httpTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
-	out, err := p.rpc(pluginrequest.NewHookRequest(ctx, hookName, record, originalRecord))
+func (p *httpTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record, async bool) (*skydb.Record, error) {
+	out, err := p.rpc(pluginrequest.NewHookRequest(ctx, hookName, record, originalRecord, async))
 	if err != nil {
 		return nil, err
 	}

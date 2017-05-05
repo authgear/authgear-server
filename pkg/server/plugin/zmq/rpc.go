@@ -28,6 +28,7 @@ import (
 	skyplugin "github.com/skygeario/skygear-server/pkg/server/plugin"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/common"
 	pluginrequest "github.com/skygeario/skygear-server/pkg/server/plugin/request"
+	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
@@ -41,7 +42,12 @@ type zmqTransport struct {
 	initHandler skyplugin.TransportInitHandler
 	logger      *logrus.Entry
 	config      skyconfig.Configuration
+	router      *router.Router
 }
+
+const ZMQWorkerIDsContextKey string = "ZMQWorkerIDsContextKey"
+const ZMQRequestIDContextKey string = "ZMQRequestIDContextKey"
+const ZMQBounceCountContextKey string = "ZMQBounceCountContextKey"
 
 func (p *zmqTransport) State() skyplugin.TransportState {
 	return p.state
@@ -53,6 +59,10 @@ func (p *zmqTransport) SetState(state skyplugin.TransportState) {
 		p.state = state
 		p.logger.Infof("Transport state changes from %v to %v.", oldState, p.state)
 	}
+}
+
+func (p *zmqTransport) SetRouter(router *router.Router) {
+	p.router = router
 }
 
 func (p *zmqTransport) SendEvent(name string, in []byte) ([]byte, error) {
@@ -69,8 +79,8 @@ func (p *zmqTransport) RunHandler(ctx context.Context, name string, in []byte) (
 	return
 }
 
-func (p *zmqTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record) (*skydb.Record, error) {
-	out, err := p.rpc(pluginrequest.NewHookRequest(ctx, hookName, record, originalRecord))
+func (p *zmqTransport) RunHook(ctx context.Context, hookName string, record *skydb.Record, originalRecord *skydb.Record, async bool) (*skydb.Record, error) {
+	out, err := p.rpc(pluginrequest.NewHookRequest(ctx, hookName, record, originalRecord, async))
 	if err != nil {
 		return nil, err
 	}
@@ -157,14 +167,30 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 		return
 	}
 
+	workerIDs, needReuseWorker := req.Context.Value(ZMQWorkerIDsContextKey).(map[string]string)
+
+	if needReuseWorker {
+		// Prevent reuse worker if it is an async hook
+		needReuseWorker = !req.Async
+	}
+
 	reqChan := make(chan chan []byte)
-	p.broker.RPC(reqChan, in)
+	if needReuseWorker {
+		requestID, _ := req.Context.Value(ZMQRequestIDContextKey).(string)
+		bounceCount, _ := req.Context.Value(ZMQBounceCountContextKey).(int)
+		p.broker.RPCWithWorker(reqChan, in, workerIDs, requestID, bounceCount+1)
+	} else {
+		p.broker.RPC(reqChan, in)
+	}
 	respChan := <-reqChan
+
 	select {
-	case msg := <- respChan:
+	case msg := <-respChan:
 		// Broker will sent back a null byte if time out
 		if bytes.Equal(msg, []byte{0}) {
 			err = fmt.Errorf("Plugin time out")
+		} else if bytes.Equal(msg, []byte{1}) {
+			err = fmt.Errorf("Plugin exceeded max bounce count")
 		} else {
 			out = msg
 		}
@@ -172,7 +198,7 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 		// Ensure the response channel is being consumed
 		// so channeller does not block.
 		go func() {
-			<- respChan
+			<-respChan
 		}()
 		err = fmt.Errorf("Plugin time out")
 	}
@@ -180,12 +206,31 @@ func (p *zmqTransport) ipc(req *pluginrequest.Request) (out []byte, err error) {
 	return
 }
 
+func (p *zmqTransport) handleRequest(parcel *parcel) {
+	payload, err := parcel.makePayload()
+	if err != nil {
+		p.logger.Warnf("Cannot parse JSON %v.", err)
+		return
+	}
+	responseWriter := &zmqResponseWriter{}
+	resp := router.NewResponse(responseWriter)
+	p.router.HandlePayload(payload, resp)
+	parcel.respChan <- responseWriter.response
+}
+
+func (p *zmqTransport) listenRequests() {
+	for {
+		parcel := <-p.broker.ReqChan
+		go p.handleRequest(parcel)
+	}
+}
+
 type zmqTransportFactory struct {
 }
 
 func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.Configuration) (transport skyplugin.Transport) {
 	externalAddr := args[0]
-	broker, err := NewBroker(name, externalAddr, config.Zmq.Timeout)
+	broker, err := NewBroker(name, externalAddr, config.Zmq.Timeout, config.Zmq.MaxBounce)
 	logger := log.WithFields(logrus.Fields{"plugin": name})
 	if err != nil {
 		logger.Panicf("Failed to init broker for zmq transport: %v", err)
@@ -198,6 +243,7 @@ func (f zmqTransportFactory) Open(name string, args []string, config skyconfig.C
 		logger: logger,
 		config: config,
 	}
+	go p.listenRequests()
 
 	return &p
 }

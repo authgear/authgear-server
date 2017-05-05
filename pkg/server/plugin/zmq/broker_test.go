@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/zeromq/goczmq"
+	"github.com/skygeario/skygear-server/pkg/server/router"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -125,6 +126,18 @@ func TestWorker(t *testing.T) {
 			q.Purge()
 			So(q.Len(), ShouldEqual, 1)
 		})
+
+		Convey("Borrow a worker", func() {
+			q := newWorkerQueue()
+			q.Add(newWorker(address1))
+			q.Add(newWorker(address2))
+			q.Add(newWorker(address3))
+			So(q.Len(), ShouldEqual, 3)
+
+			q.Borrow(address1)
+			So(q.Next(), ShouldResemble, address3)
+			So(q.Next(), ShouldResemble, address2)
+		})
 	})
 }
 func TestBrokerWorker(t *testing.T) {
@@ -136,7 +149,7 @@ func TestBrokerWorker(t *testing.T) {
 		const (
 			workerAddr = "inproc://plugin.test"
 		)
-		broker, err := NewBroker("test", workerAddr, 10)
+		broker, err := NewBroker("test", workerAddr, 10, 10)
 		if err != nil {
 			t.Fatalf("Failed to init broker: %v", err)
 		}
@@ -179,7 +192,7 @@ func TestBrokerWorker(t *testing.T) {
 			w2.SendMessage(bytesArray(Shutdown))
 		})
 
-		Convey("reveice Heartbeat without Ready will not register the worker", func() {
+		Convey("receive Heartbeat without Ready will not register the worker", func() {
 			w := workerSock(t, "heartbeat", workerAddr)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
@@ -191,7 +204,7 @@ func TestBrokerWorker(t *testing.T) {
 			So(broker.workers.Len(), ShouldEqual, 0)
 		})
 
-		Convey("reveice worker message without Reay will be ignored", func() {
+		Convey("receive worker message without Ready will be ignored", func() {
 			w := workerSock(t, "unregistered", workerAddr)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
@@ -200,6 +213,10 @@ func TestBrokerWorker(t *testing.T) {
 			w.SendMessage([][]byte{
 				[]byte("unregistered"),
 				[]byte{0},
+				[]byte(Request),
+				[]byte("0"),
+				[]byte("request-id"),
+				[]byte{},
 				[]byte("Message to be ignored"),
 			})
 			// Wait the poller to get the message
@@ -226,7 +243,7 @@ func TestBrokerWorker(t *testing.T) {
 			So(msg, ShouldResemble, []byte{0})
 		})
 
-		Convey("recive RPC without Ready worker will wait for Heartbeat Liveness time", func() {
+		Convey("receive RPC without Ready worker will wait for Heartbeat Liveness time", func() {
 			reqChan := make(chan chan []byte)
 			timeout := time.Now().Add(HeartbeatInterval * HeartbeatLiveness)
 			broker.RPC(reqChan, []byte(("from server")))
@@ -236,7 +253,7 @@ func TestBrokerWorker(t *testing.T) {
 			So(time.Now(), ShouldHappenAfter, timeout)
 		})
 
-		Convey("worker after recive RPC and before timeout will got the message", func() {
+		Convey("worker after receive RPC and before timeout will got the message", func() {
 			reqChan := make(chan chan []byte)
 			broker.RPC(reqChan, []byte(("from server")))
 			respChan := <-reqChan
@@ -251,16 +268,17 @@ func TestBrokerWorker(t *testing.T) {
 			w.SendMessage(bytesArray(Ready))
 
 			msg := recvNonControlFrame(w)
-			So(len(msg), ShouldEqual, 3)
-			So(msg[2], ShouldResemble, []byte("from server"))
-			msg[2] = []byte("from worker")
+			So(len(msg), ShouldEqual, 7)
+			So(msg[6], ShouldResemble, []byte("from server"))
+			msg[2] = []byte(Response)
+			msg[6] = []byte("from worker")
 			w.SendMessage(msg)
 
 			resp := <-respChan
 			So(resp, ShouldResemble, []byte("from worker"))
 		})
 
-		Convey("broker RPC recive worker reply", func() {
+		Convey("broker RPC receive worker reply", func() {
 			w := workerSock(t, "worker", workerAddr)
 			w.SetRcvtimeo(heartbeatIntervalMS * 2)
 			defer func() {
@@ -274,13 +292,54 @@ func TestBrokerWorker(t *testing.T) {
 			respChan := <-reqChan
 
 			msg := recvNonControlFrame(w)
-			So(len(msg), ShouldEqual, 3)
-			So(msg[2], ShouldResemble, []byte("from server"))
-			msg[2] = []byte("from worker")
+			So(len(msg), ShouldEqual, 7)
+			So(msg[6], ShouldResemble, []byte("from server"))
+			msg[2] = []byte(Response)
+			msg[6] = []byte("from worker")
 			w.SendMessage(msg)
 
 			resp := <-respChan
 			So(resp, ShouldResemble, []byte("from worker"))
+		})
+
+		Convey("broker RPC receive worker request", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte(Request),
+				[]byte("0"),
+				[]byte("request-id"),
+				[]byte{},
+				[]byte("request from plugin"),
+			})
+
+			parcel := <- broker.ReqChan
+
+			So(parcel.requestID, ShouldResemble, "request-id")
+			So(parcel.workers, ShouldResemble, map[string]string{
+				"test": "worker",
+			})
+			So(parcel.bounceCount, ShouldEqual, 0)
+
+			parcel.respChan <- []byte("server response")
+
+			msg := recvNonControlFrame(w)
+			So(len(msg), ShouldEqual, 7)
+			So(msg[0], ShouldResemble, []byte("worker"))
+			So(msg[1], ShouldResemble, []byte{})
+			So(msg[2], ShouldResemble, []byte(Response))
+			So(msg[3], ShouldResemble, []byte("0"))
+			So(msg[4], ShouldResemble, []byte("request-id"))
+			So(msg[5], ShouldResemble, []byte{})
+			So(msg[6], ShouldResemble, []byte("server response"))
 		})
 
 		Convey("send message from server to multiple plugin", func(c C) {
@@ -294,9 +353,10 @@ func TestBrokerWorker(t *testing.T) {
 				}()
 				w.SendMessage(bytesArray(Ready))
 				msg := recvNonControlFrame(w)
-				if len(msg) == 3 {
-					c.So(msg[2], ShouldResemble, []byte("from server"))
-					msg[2] = []byte("from worker")
+				if len(msg) == 7 {
+					c.So(msg[6], ShouldResemble, []byte("from server"))
+					msg[2] = []byte(Response)
+					msg[6] = []byte("from worker")
 					w.SendMessage(msg)
 				}
 			}()
@@ -311,9 +371,10 @@ func TestBrokerWorker(t *testing.T) {
 				}()
 				w2.SendMessage(bytesArray(Ready))
 				msg := recvNonControlFrame(w2)
-				if len(msg) == 3 {
-					c.So(msg[2], ShouldResemble, []byte("from server"))
-					msg[2] = []byte("from worker")
+				if len(msg) == 7 {
+					c.So(msg[6], ShouldResemble, []byte("from server"))
+					msg[2] = []byte(Response)
+					msg[6] = []byte("from worker")
 					w2.SendMessage(msg)
 				}
 			}()
@@ -336,9 +397,9 @@ func TestBrokerWorker(t *testing.T) {
 				w.SendMessage(bytesArray(Ready))
 
 				msg := recvNonControlFrame(w)
-				c.So(len(msg), ShouldEqual, 3)
-				c.So(msg[2], ShouldResemble, []byte("from server"))
-				msg[2] = []byte("from worker1")
+				c.So(len(msg), ShouldEqual, 7)
+				c.So(msg[6], ShouldResemble, []byte("from server"))
+				msg[6] = []byte("from worker1")
 				w.SendMessage(msg)
 			}()
 
@@ -352,9 +413,9 @@ func TestBrokerWorker(t *testing.T) {
 				w2.SendMessage(bytesArray(Ready))
 
 				msg := recvNonControlFrame(w2)
-				c.So(len(msg), ShouldEqual, 3)
-				c.So(msg[2], ShouldResemble, []byte("from server"))
-				msg[2] = []byte("from worker2")
+				c.So(len(msg), ShouldEqual, 7)
+				c.So(msg[6], ShouldResemble, []byte("from server"))
+				msg[6] = []byte("from worker2")
 				w2.SendMessage(msg)
 			}()
 
@@ -377,8 +438,133 @@ func TestBrokerWorker(t *testing.T) {
 				c.So(resp, ShouldNotBeEmpty)
 			}()
 			wg.Wait()
+		})
 
+		Convey("broker RPC handle nested request", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			reqChan := make(chan chan []byte)
+			// worker send req to plugin
+			broker.RPCWithWorker(
+				reqChan,
+				[]byte("from server"),
+				make(map[string]string),
+				"request-id",
+				0,
+			)
+
+			time.Sleep(HeartbeatInterval)
+
+			// plugin send nested request
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte(Request),
+				[]byte("1"),
+				[]byte("request-id"),
+				[]byte{},
+				[]byte("request from plugin"),
+			})
+
+			// handle nested request
+			parcel := <- broker.ReqChan
+
+			So(parcel.requestID, ShouldResemble, "request-id")
+			So(parcel.workers, ShouldResemble, map[string]string{
+				"test": "worker",
+			})
+			So(parcel.bounceCount, ShouldEqual, 1)
+			So(parcel.frame, ShouldResemble, []byte("request from plugin"))
+			// server reply nested request
+			parcel.respChan <- []byte("from server")
+
+			// plugin get nested reply
+			msg := recvNonControlFrame(w)
+			So(len(msg), ShouldEqual, 7)
+			So(msg[6], ShouldResemble, []byte("from server"))
+			// plugin main reply
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte(Response),
+				[]byte("0"),
+				[]byte("request-id"),  // here update + assert?!
+				[]byte{},
+				[]byte("response from worker"),
+			})
+
+			// server get main response
+			respChan := <-reqChan
+			resp := <-respChan
+			So(resp, ShouldResemble, []byte("response from worker"))
+		})
+
+		Convey("broker returns error when bounce count is over maximum", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			reqChan := make(chan chan []byte)
+			broker.maxBounce = 10
+			broker.RPCWithWorker(
+				reqChan,
+				[]byte("from server"),
+				make(map[string]string),
+				"request-id",
+				11,
+			)
+			respChan := <-reqChan
+			resp := <-respChan
+			So(resp, ShouldResemble, []byte{1})
+		})
+
+		Convey("Parcel should create payload", func() {
+			w := workerSock(t, "worker", workerAddr)
+			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			defer func() {
+				w.SendMessage(bytesArray(Shutdown))
+				w.Destroy()
+			}()
+			w.SendMessage(bytesArray(Ready))
+
+			w.SendMessage([][]byte{
+				[]byte("worker"),
+				[]byte{},
+				[]byte(Request),
+				[]byte("0"),
+				[]byte("request-id"),
+				[]byte{},
+				[]byte("{\"method\":\"POST\", \"payload\":{\"action\":\"foo:bar\", \"key\":\"value\"}}"),
+			})
+
+			parcel := <- broker.ReqChan
+			payload, err := parcel.makePayload()
+
+			if err != nil {
+				t.Fatalf("Failed to create payload: %v", err)
+			}
+
+			So(payload.Meta["method"], ShouldResemble, "POST")
+			So(payload.Meta["path"], ShouldResemble, "foo/bar")
+			So(payload.Data["key"], ShouldResemble, "value")
+			So(payload.AccessKey, ShouldEqual, router.MasterAccessKey)
+
+			ctx := payload.Context
+			So(ctx.Value(ZMQRequestIDContextKey), ShouldEqual, "request-id")
+			So(ctx.Value(ZMQBounceCountContextKey), ShouldEqual, 0)
+			So(ctx.Value(ZMQWorkerIDsContextKey), ShouldResemble, map[string]string{
+				"test": "worker",
+			})
 		})
 	})
-
 }

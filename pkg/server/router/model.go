@@ -161,6 +161,12 @@ type Response struct {
 	writerOnce sync.Once
 }
 
+func NewResponse(writer http.ResponseWriter) *Response {
+	return &Response{
+		writer: writer,
+	}
+}
+
 // Writer returns a http.ResponseWriter only once. If a writer is already
 // returned, this function will always return nil.
 //

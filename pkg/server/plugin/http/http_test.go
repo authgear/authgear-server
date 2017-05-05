@@ -264,7 +264,7 @@ func TestRun(t *testing.T) {
 				},
 			)
 
-			recordout, err := transport.RunHook(ctx, "beforeSave", &recordin, &recordold)
+			recordout, err := transport.RunHook(ctx, "beforeSave", &recordin, &recordold, false)
 			So(err, ShouldBeNil)
 
 			datein := recordin.Data["date"].(time.Time)

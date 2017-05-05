@@ -57,14 +57,14 @@ type Configuration struct {
 		Host string `json:"host"`
 	} `json:"http"`
 	App struct {
-		Name            string `json:"name"`
-		APIKey          string `json:"api_key"`
-		MasterKey       string `json:"master_key"`
-		AccessControl   string `json:"access_control"`
-		DevMode         bool   `json:"dev_mode"`
-		CORSHost        string `json:"cors_host"`
-		Slave           bool   `json:"slave"`
-		ResponseTimeout int64  `json:"response_timeout"`
+		Name               string `json:"name"`
+		APIKey             string `json:"api_key"`
+		MasterKey          string `json:"master_key"`
+		AccessControl      string `json:"access_control"`
+		DevMode            bool   `json:"dev_mode"`
+		CORSHost           string `json:"cors_host"`
+		Slave              bool   `json:"slave"`
+		ResponseTimeout    int64  `json:"response_timeout"`
 	} `json:"app"`
 	DB struct {
 		ImplName string `json:"implementation"`
@@ -135,7 +135,8 @@ type Configuration struct {
 		SentryLevel string
 	} `json:"-"`
 	Zmq struct {
-		Timeout int `json:"timeout"`
+		Timeout   int `json:"timeout"`
+		MaxBounce int `json:"max_bounce"`
 	} `json:"zmq"`
 	Plugin map[string]*PluginConfig `json:"-"`
 }
@@ -168,6 +169,7 @@ func NewConfiguration() Configuration {
 	config.LOG.RouterByteLimit = 100000
 	config.LogHook.SentryLevel = "error"
 	config.Zmq.Timeout = 30
+	config.Zmq.MaxBounce = 10
 	config.Plugin = map[string]*PluginConfig{}
 	return config
 }
@@ -253,6 +255,10 @@ func (config *Configuration) ReadFromEnv() {
 
 	if timeout, err := strconv.ParseInt(os.Getenv("RESPONSE_TIMEOUT"), 10, 64); err == nil {
 		config.App.ResponseTimeout = timeout
+	}
+
+	if bounceCount, err := strconv.ParseInt(os.Getenv("ZMQ_MAX_BOUNCE"), 10, 0); err == nil {
+		config.Zmq.MaxBounce = int(bounceCount)
 	}
 
 	config.readTokenStore()

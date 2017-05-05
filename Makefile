@@ -2,7 +2,7 @@ DIST_DIR = ./dist/
 DIST := skygear-server
 VERSION := $(shell git describe --always --tags)
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
-GO_TEST_TIMEOUT := 1m
+GO_TEST_TIMEOUT := 1m30s
 OSARCHS := linux/amd64 linux/386 linux/arm windows/amd64 windows/386 darwin/amd64
 
 ifeq (1,${WITH_ZMQ})
