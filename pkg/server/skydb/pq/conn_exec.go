@@ -24,7 +24,7 @@ import (
 
 func (c *conn) Get(dest interface{}, query string, args ...interface{}) (err error) {
 	c.statementCount++
-	err = c.Db().Get(dest, query, args...)
+	err = c.Db().GetContext(c.context, dest, query, args...)
 	logFields := logrus.Fields{
 		"sql":            query,
 		"args":           args,
@@ -49,7 +49,7 @@ func (c *conn) GetWith(dest interface{}, sqlizeri sq.Sqlizer) (err error) {
 
 func (c *conn) Exec(query string, args ...interface{}) (result sql.Result, err error) {
 	c.statementCount++
-	result, err = c.Db().Exec(query, args...)
+	result, err = c.Db().ExecContext(c.context, query, args...)
 
 	var rowsAffected int64
 	if result != nil {
@@ -87,7 +87,7 @@ func (c *conn) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 
 func (c *conn) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
 	c.statementCount++
-	rows, err = c.Db().Queryx(query, args...)
+	rows, err = c.Db().QueryxContext(c.context, query, args...)
 	logFields := logrus.Fields{
 		"sql":            query,
 		"args":           args,
@@ -112,7 +112,7 @@ func (c *conn) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 
 func (c *conn) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
 	c.statementCount++
-	row = c.Db().QueryRowx(query, args...)
+	row = c.Db().QueryRowxContext(c.context, query, args...)
 	log.WithFields(logrus.Fields{
 		"sql":            query,
 		"args":           args,

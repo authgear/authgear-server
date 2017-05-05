@@ -15,6 +15,7 @@
 package pq
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -88,8 +89,12 @@ func cleanupConn(t *testing.T, c *conn) {
 		dropAllRecordTables(t, c)
 	}
 
+	// Do not use the context.Context from conn struct because
+	// we don't want a cancelled context preventing clean up.
+	ctx := context.Background()
+
 	schemaName := fmt.Sprintf("app_%s", toLowerAndUnderscore(c.appName))
-	_, err := c.db.Exec(fmt.Sprintf("DROP SCHEMA if exists %s CASCADE", schemaName))
+	_, err := c.db.ExecContext(ctx, fmt.Sprintf("DROP SCHEMA if exists %s CASCADE", schemaName))
 	if err != nil && !isInvalidSchemaName(err) {
 		t.Fatal(err)
 	}
@@ -117,11 +122,11 @@ func addUserWithUsername(t *testing.T, c *conn, userid string, username string) 
 }
 
 type execor interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
 }
 
 func insertRow(t *testing.T, db execor, query string, args ...interface{}) {
-	result, err := db.Exec(query, args...)
+	result, err := db.ExecContext(context.Background(), query, args...)
 	if err != nil {
 		t.Fatal(err)
 	}

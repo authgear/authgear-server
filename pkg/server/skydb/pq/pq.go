@@ -15,6 +15,7 @@
 package pq
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"net"
@@ -71,10 +72,10 @@ func isNetworkError(err error) bool {
 	return ok
 }
 
-type queryxRunner interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
-	QueryRowx(query string, args ...interface{}) *sqlx.Row
+type queryxContextRunner interface {
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	QueryxContext(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error)
+	QueryRowxContext(ctx context.Context, query string, args ...interface{}) *sqlx.Row
 }
 
 // Open returns a new connection to postgresql implementation
@@ -94,6 +95,7 @@ func Open(appName string, accessModel skydb.AccessModel, connString string, migr
 		option:       connString,
 		accessModel:  accessModel,
 		canMigrate:   migrate,
+		context:      context.Background(),
 	}, nil
 }
 

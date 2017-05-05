@@ -15,11 +15,15 @@
 package pq
 
 import (
+	"context"
 	"database/sql"
 	"testing"
+	"time"
+
+	"github.com/lib/pq"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestTxDB(t *testing.T) {
@@ -70,17 +74,17 @@ func TestTxDB(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				var content string
-				err = dbx.QueryRowx(`SELECT content FROM "record" WHERE _id = '0'`).
+				err = dbx.QueryRowxContext(c.context, `SELECT content FROM "record" WHERE _id = '0'`).
 					Scan(&content)
 				So(err, ShouldBeNil)
 				So(content, ShouldEqual, "new0")
 
-				err = dbx.QueryRowx(`SELECT content FROM "record" WHERE _id = '1'`).
+				err = dbx.QueryRowxContext(c.context, `SELECT content FROM "record" WHERE _id = '1'`).
 					Scan(&content)
 				So(err, ShouldBeNil)
 				So(content, ShouldEqual, "new1")
 
-				err = dbx.QueryRowx(`SELECT content FROM "record" WHERE _id = '2'`).
+				err = dbx.QueryRowxContext(c.context, `SELECT content FROM "record" WHERE _id = '2'`).
 					Scan(&content)
 				So(err, ShouldEqual, sql.ErrNoRows)
 			})
@@ -90,16 +94,16 @@ func TestTxDB(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				var content string
-				err = dbx.QueryRowx(`SELECT content FROM "record" WHERE _id = '0'`).
+				err = dbx.QueryRowxContext(c.context, `SELECT content FROM "record" WHERE _id = '0'`).
 					Scan(&content)
 				So(err, ShouldEqual, sql.ErrNoRows)
 
-				err = dbx.QueryRowx(`SELECT content FROM "record" WHERE _id = '1'`).
+				err = dbx.QueryRowxContext(c.context, `SELECT content FROM "record" WHERE _id = '1'`).
 					Scan(&content)
 				So(err, ShouldBeNil)
 				So(content, ShouldEqual, "original1")
 
-				err = dbx.QueryRowx(`SELECT content FROM "record" WHERE _id = '2'`).
+				err = dbx.QueryRowxContext(c.context, `SELECT content FROM "record" WHERE _id = '2'`).
 					Scan(&content)
 				So(err, ShouldBeNil)
 				So(content, ShouldEqual, "original2")
@@ -129,6 +133,21 @@ func TestTxDB(t *testing.T) {
 			So(db.Rollback(), ShouldBeNil)
 
 			So(db.Begin(), ShouldEqual, nil)
+		})
+	})
+
+	Convey("TxDatabase with Context", t, func() {
+		c := getTestConn(t)
+		defer cleanupConn(t, c)
+
+		Convey("Should cancel query when timeout exceeded", func() {
+			c.context, _ = context.WithTimeout(c.context, 10*time.Millisecond)
+			row := c.QueryRowx(`SELECT pg_sleep(0.1);`)
+			err := row.Err()
+			So(err, ShouldNotBeNil)
+			pqErr, ok := err.(*pq.Error)
+			So(ok, ShouldBeTrue)
+			So(pqErr.Code.Name(), ShouldResemble, "query_canceled")
 		})
 	})
 }
