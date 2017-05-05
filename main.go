@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -316,6 +317,7 @@ func main() {
 func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 	connOpener := func() (skydb.Conn, error) {
 		return skydb.Open(
+			context.Background(),
 			config.DB.ImplName,
 			config.App.Name,
 			config.App.AccessControl,

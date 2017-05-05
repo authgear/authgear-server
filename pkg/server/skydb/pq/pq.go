@@ -79,7 +79,7 @@ type queryxContextRunner interface {
 }
 
 // Open returns a new connection to postgresql implementation
-func Open(appName string, accessModel skydb.AccessModel, connString string, migrate bool) (skydb.Conn, error) {
+func Open(ctx context.Context, appName string, accessModel skydb.AccessModel, connString string, migrate bool) (skydb.Conn, error) {
 	db, err := getDB(appName, connString, migrate)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func Open(appName string, accessModel skydb.AccessModel, connString string, migr
 		option:       connString,
 		accessModel:  accessModel,
 		canMigrate:   migrate,
-		context:      context.Background(),
+		context:      ctx,
 	}, nil
 }
 
