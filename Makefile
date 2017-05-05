@@ -17,7 +17,7 @@ ifeq (1,${WITH_DOCKER})
 DOCKER_RUN := docker run --rm -i \
 	-v `pwd`:/go/src/github.com/skygeario/skygear-server \
 	-w /go/src/github.com/skygeario/skygear-server \
-	skygeario/skygear-godev:latest
+	skygeario/skygear-godev:go1.8
 DOCKER_COMPOSE_RUN := ${DOCKER_COMPOSE_CMD} run --rm app
 DOCKER_COMPOSE_RUN_DB := ${DOCKER_COMPOSE_CMD} run --rm db_cmd
 GO_TEST_TIMEOUT := 5m
