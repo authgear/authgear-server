@@ -57,8 +57,8 @@ func (c *conn) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
 		From(c.tableName("_record_creation")).
 		Where(sq.Eq{"record_type": recordType}).
 		Join(fmt.Sprintf("%s ON %s.role_id = id",
-		c.tableName("_role"),
-		c.tableName("_record_creation")))
+			c.tableName("_role"),
+			c.tableName("_record_creation")))
 
 	rows, err := c.QueryWith(builder)
 	if err != nil {

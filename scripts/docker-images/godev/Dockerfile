@@ -1,4 +1,4 @@
-FROM golang:1.7
+FROM golang:1.8.1
 
 ENV LIBSODIUM_VERSION=1.0.5 \
     ZMQ_VERSION=4.1.3 \

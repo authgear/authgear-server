@@ -15,6 +15,7 @@
 package skydb
 
 import (
+	"context"
 	"testing"
 )
 
@@ -23,17 +24,19 @@ type fakeConn struct {
 	AppName      string
 	AccessModel  AccessModel
 	OptionString string
+	Context      context.Context
 }
 
 type fakeDriver struct {
 	Driver
 }
 
-func (driver fakeDriver) Open(appName string, accessModel AccessModel, optionString string, migrate bool) (Conn, error) {
+func (driver fakeDriver) Open(ctx context.Context, appName string, accessModel AccessModel, optionString string, migrate bool) (Conn, error) {
 	return fakeConn{
 		AppName:      appName,
 		AccessModel:  accessModel,
 		OptionString: optionString,
+		Context:      ctx,
 	}, nil
 }
 
@@ -42,7 +45,12 @@ func TestOpen(t *testing.T) {
 
 	Register("fakeImpl", fakeDriver{})
 
-	if driver, err := Open("fakeImpl", "com.example.app.test", "role", "fakeOption", true); err != nil {
+	type contextKey string
+	const FakeValueContextKey contextKey = "fake"
+
+	ctx := context.WithValue(context.Background(), FakeValueContextKey, true)
+
+	if driver, err := Open(ctx, "fakeImpl", "com.example.app.test", "role", "fakeOption", true); err != nil {
 		t.Fatalf("got err: %v, want a driver", err.Error())
 	} else {
 		if driver, ok := driver.(fakeConn); !ok {
@@ -56,6 +64,12 @@ func TestOpen(t *testing.T) {
 			}
 			if driver.OptionString != "fakeOption" {
 				t.Fatalf("got driver.OptionString = %v, want \"fakeOption\"", driver.OptionString)
+			}
+			if ctx == nil {
+				t.Fatalf("got driver.Context = nil, want \"context.Context\"")
+			}
+			if contextValue, ok := ctx.Value(FakeValueContextKey).(bool); !ok || !contextValue {
+				t.Fatalf("got driver.Context.Value(\"fake\") = %v, want true", ctx.Value(FakeValueContextKey))
 			}
 		}
 	}

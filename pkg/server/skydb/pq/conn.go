@@ -16,6 +16,7 @@ package pq
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
@@ -66,11 +67,11 @@ func (auth *authInfoValue) Scan(value interface{}) error {
 	return err
 }
 
-// Ext is an interface for both sqlx.DB and sqlx.Tx
-type Ext interface {
-	sqlx.Ext
-	Get(dest interface{}, query string, args ...interface{}) error
-	QueryRow(query string, args ...interface{}) *sql.Row
+// ExtContext is an interface for both sqlx.DB and sqlx.Tx
+type ExtContext interface {
+	sqlx.ExtContext
+	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 }
 
 type conn struct {
@@ -82,11 +83,12 @@ type conn struct {
 	statementCount uint64
 	accessModel    skydb.AccessModel
 	canMigrate     bool
+	context        context.Context
 }
 
 // Db returns the current database wrapper, or a transaction wrapper when
 // a transaction is in effect.
-func (c *conn) Db() Ext {
+func (c *conn) Db() ExtContext {
 	if c.tx != nil {
 		return c.tx
 	}

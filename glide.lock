@@ -1,5 +1,5 @@
-hash: 6e8a2445b32b9edad25e56d3a54964b625b9fb696e95e69b7733638dadb71aba
-updated: 2017-01-05T16:26:46.772208561+08:00
+hash: 5f048d9c0595dca99115e16396798d34cbf6d94ff0629bf54f400f7b45770fd2
+updated: 2017-05-05T18:51:54.405169836+08:00
 imports:
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
@@ -10,7 +10,7 @@ imports:
 - name: github.com/facebookgo/structtag
   version: 217e25fb96916cc60332e399c9aa63f5c422ceed
 - name: github.com/franela/goreq
-  version: fc08df6ca2d4a0d1a5ae24739aa268863943e723
+  version: b5b0f5eb2d16f20345cce0a544a75163579c0b00
 - name: github.com/garyburd/redigo
   version: 6ece6e0a09f28cc399b21550cbf37ab39ba63cce
   subpackages:
@@ -27,7 +27,7 @@ imports:
 - name: github.com/gorilla/websocket
   version: b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5
 - name: github.com/jmoiron/sqlx
-  version: 5f97679e23f75f42b265fec8d3bdb1c8de90b79d
+  version: d9bd385d68c068f1fabb5057e3dedcbcbb039d0f
   subpackages:
   - reflectx
 - name: github.com/joho/godotenv
@@ -41,7 +41,7 @@ imports:
 - name: github.com/lann/squirrel
   version: e13dbacee404686afd0acf2d44b8d34869605e03
 - name: github.com/lib/pq
-  version: d8eeeb8bae8896dd8e1b7e514ab0d396c4f12a1b
+  version: 2704adc878c21e1329f46f6e56a1c387d788ff94
   subpackages:
   - oid
 - name: github.com/mattn/go-xmpp
@@ -74,7 +74,6 @@ imports:
 - name: golang.org/x/net
   version: 45e771701b814666a7eb299e6c7a57d0b1799e91
   subpackages:
-  - context
   - http2
   - http2/hpack
   - idna
@@ -94,7 +93,7 @@ testImports:
   subpackages:
   - js
 - name: github.com/jarcoal/httpmock
-  version: 145b10d659265440f062c31ea15326166bae56ee
+  version: 4442edb3db31196622da56482fd8d0fa375fba4d
 - name: github.com/jtolds/gls
   version: 8ddce2a84170772b95dd5d576c48d517b22cac63
 - name: github.com/smartystreets/assertions
@@ -103,7 +102,7 @@ testImports:
   - internal/go-render/render
   - internal/oglematchers
 - name: github.com/smartystreets/goconvey
-  version: 019319c870f8f1d61dc9c34291abff5cd128b6e8
+  version: d4c757aa9afd1e2fc1832aaab209b5794eb336e1
   subpackages:
   - convey
   - convey/gotest
