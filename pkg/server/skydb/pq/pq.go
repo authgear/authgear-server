@@ -16,7 +16,6 @@ package pq
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net"
 	"regexp"
@@ -70,12 +69,6 @@ func isUndefinedTable(err error) bool {
 func isNetworkError(err error) bool {
 	_, ok := err.(*net.OpError)
 	return ok
-}
-
-type queryxContextRunner interface {
-	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
-	QueryxContext(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error)
-	QueryRowxContext(ctx context.Context, query string, args ...interface{}) *sqlx.Row
 }
 
 // Open returns a new connection to postgresql implementation
