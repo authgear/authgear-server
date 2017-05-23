@@ -1,3 +1,5 @@
+## 0.24.0 (2017-05-23)
+
 ### Features
 
 - Support for cancellable query (#277)
@@ -14,6 +16,7 @@
 
 - Update releasing guide for npm + lerna
 - Fix schema:default_access inline doc
+
 ## 0.23.0 (2017-04-20)
 
 ### Features
