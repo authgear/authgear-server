@@ -1,3 +1,19 @@
+### Features
+
+- Support for cancellable query (#277)
+- Make plugin transport ZMQ multiplex (#295)
+
+    This feature will enable the bidirectional plugin transport and multiplexing.
+    The protocol will introduce address-stack and bounce-count, so the
+    bidirectional communication stack will be limited to the bounce-count-limit.
+    
+    It solved the problem of workers exhaust problem when plugin call back
+    skygear-server.
+
+### Other Notes
+
+- Update releasing guide for npm + lerna
+- Fix schema:default_access inline doc
 ## 0.23.0 (2017-04-20)
 
 ### Features
