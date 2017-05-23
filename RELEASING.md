@@ -130,9 +130,11 @@ $ git add CHANGELOG.md
 ## Changing the version number and releasing all packages to npm using lerna.
 $ npm run lerna bootstrap # make sure dependencies are linked
 $ npm run prepublish # Build all packages
-$ npm run lerna publish -- --repo-version $SKYGEAR_VERSION -m "Update CHANGELOG for v$SKYGEAR_VERSION" # Publish all packages
+$ npm run lerna publish -- --skip-git --repo-version $SKYGEAR_VERSION # Publish all packages
 
 ## Tag and push commit
+$ git add CHANGELOG.md lerna.json packages/*/package.json
+$ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
 $ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
 $ git push --follow-tags origin v$SKYGEAR_VERSION
 $ git push origin
