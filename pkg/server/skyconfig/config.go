@@ -191,6 +191,9 @@ func (config *Configuration) Validate() error {
 	if config.App.MasterKey == "" {
 		return errors.New("MASTER_KEY is not set")
 	}
+	if config.App.APIKey == config.App.MasterKey {
+		return errors.New("MASTER_KEY cannot be the same as API_KEY")
+	}
 	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(config.App.Name) {
 		return fmt.Errorf("APP_NAME '%s' contains invalid characters other than alphanumerics or underscores", config.App.Name)
 	}
