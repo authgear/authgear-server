@@ -255,7 +255,7 @@ func (r *Record) Set(key string, i interface{}) {
 	}
 }
 
-func (r *Record) Accessible(userinfo *UserInfo, level ACLLevel) bool {
+func (r *Record) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
 	if r.ACL == nil {
 		return true
 	}

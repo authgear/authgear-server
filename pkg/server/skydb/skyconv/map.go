@@ -329,7 +329,7 @@ type MapACLEntry skydb.RecordACLEntry
 // access control definition
 func (ace *MapACLEntry) FromMap(m map[string]interface{}) error {
 	level, _ := m["level"].(string)
-	var entryLevel skydb.ACLLevel
+	var entryLevel skydb.RecordACLLevel
 	switch level {
 	case "read":
 		entryLevel = skydb.ReadLevel

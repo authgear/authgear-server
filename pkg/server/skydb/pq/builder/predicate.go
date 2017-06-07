@@ -36,7 +36,7 @@ import (
 // `_access @> '[{"role":"rickmak"}]' OR _access @> '[{"role":"admin"}]'`¬
 type accessPredicateSqlizer struct {
 	user  *skydb.UserInfo
-	level skydb.ACLLevel
+	level skydb.RecordACLLevel
 }
 
 func (p accessPredicateSqlizer) ToSql() (string, []interface{}, error) {

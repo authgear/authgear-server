@@ -16,25 +16,25 @@ package skydb
 
 // RecordACLEntry grants access to a record by relation or by user_id
 type RecordACLEntry struct {
-	Relation string   `json:"relation,omitempty"`
-	Role     string   `json:"role,omitempty"`
-	Level    ACLLevel `json:"level"`
-	UserID   string   `json:"user_id,omitempty"`
-	Public   bool     `json:"public,omitempty"`
+	Relation string         `json:"relation,omitempty"`
+	Role     string         `json:"role,omitempty"`
+	Level    RecordACLLevel `json:"level"`
+	UserID   string         `json:"user_id,omitempty"`
+	Public   bool           `json:"public,omitempty"`
 }
 
-// ACLLevel represent the operation a user granted on a resource
-type ACLLevel string
+// RecordACLLevel represent the operation a user granted on a resource
+type RecordACLLevel string
 
 // ReadLevel and WriteLevel is self-explanatory
 const (
-	ReadLevel   ACLLevel = "read"
-	WriteLevel           = "write"
-	CreateLevel          = "create"
+	ReadLevel   RecordACLLevel = "read"
+	WriteLevel                 = "write"
+	CreateLevel                = "create"
 )
 
 // NewRecordACLEntryRelation returns an ACE on relation
-func NewRecordACLEntryRelation(relation string, level ACLLevel) RecordACLEntry {
+func NewRecordACLEntryRelation(relation string, level RecordACLLevel) RecordACLEntry {
 	return RecordACLEntry{
 		Relation: relation,
 		Level:    level,
@@ -42,7 +42,7 @@ func NewRecordACLEntryRelation(relation string, level ACLLevel) RecordACLEntry {
 }
 
 // NewRecordACLEntryDirect returns an ACE for a specific user
-func NewRecordACLEntryDirect(userID string, level ACLLevel) RecordACLEntry {
+func NewRecordACLEntryDirect(userID string, level RecordACLLevel) RecordACLEntry {
 	return RecordACLEntry{
 		Relation: "$direct",
 		Level:    level,
@@ -51,7 +51,7 @@ func NewRecordACLEntryDirect(userID string, level ACLLevel) RecordACLEntry {
 }
 
 // NewRecordACLEntryRole return an ACE on role
-func NewRecordACLEntryRole(role string, level ACLLevel) RecordACLEntry {
+func NewRecordACLEntryRole(role string, level RecordACLLevel) RecordACLEntry {
 	return RecordACLEntry{
 		Role:  role,
 		Level: level,
@@ -59,14 +59,14 @@ func NewRecordACLEntryRole(role string, level ACLLevel) RecordACLEntry {
 }
 
 // NewRecordACLEntryPublic return an ACE on public access
-func NewRecordACLEntryPublic(level ACLLevel) RecordACLEntry {
+func NewRecordACLEntryPublic(level RecordACLLevel) RecordACLEntry {
 	return RecordACLEntry{
 		Public: true,
 		Level:  level,
 	}
 }
 
-func (ace *RecordACLEntry) Accessible(userinfo *UserInfo, level ACLLevel) bool {
+func (ace *RecordACLEntry) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
 	if ace.Public {
 		return ace.AccessibleLevel(level)
 	}
@@ -88,7 +88,7 @@ func (ace *RecordACLEntry) Accessible(userinfo *UserInfo, level ACLLevel) bool {
 	return false
 }
 
-func (ace *RecordACLEntry) AccessibleLevel(level ACLLevel) bool {
+func (ace *RecordACLEntry) AccessibleLevel(level RecordACLLevel) bool {
 	if level == ReadLevel {
 		return true
 	}
@@ -111,7 +111,7 @@ func NewRecordACL(entries []RecordACLEntry) RecordACL {
 }
 
 // Accessible checks whether provided user info has certain access level
-func (acl RecordACL) Accessible(userinfo *UserInfo, level ACLLevel) bool {
+func (acl RecordACL) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
 	if len(acl) == 0 {
 		// default behavior of empty ACL
 		return true
