@@ -25,7 +25,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "069921d63218" }
+func (r *fullMigration) Version() string { return "bd7643dc5c8" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -128,6 +128,16 @@ CREATE TABLE _record_default_access (
     UNIQUE (record_type)
 );
 CREATE INDEX _record_default_access_unique_record_type ON _record_default_access (record_type);
+CREATE TABLE _record_field_access (
+    record_type text NOT NULL,
+    record_field text NOT NULL,
+    user_role text NOT NULL,
+    writable boolean NOT NULL,
+    readable boolean NOT NULL,
+    comparable boolean NOT NULL,
+    discoverable boolean NOT NULL,
+    PRIMARY KEY (record_type, record_field, user_role)
+);
 `
 	_, err := tx.Exec(stmt)
 	return err
