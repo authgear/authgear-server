@@ -14,6 +14,10 @@
 
 package skydb
 
+import (
+	"strings"
+)
+
 // RecordACLEntry grants access to a record by relation or by user_id
 type RecordACLEntry struct {
 	Relation string         `json:"relation,omitempty"`
@@ -126,3 +130,192 @@ func (acl RecordACL) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
 
 	return accessible
 }
+
+// FieldAccessMode is the intended access operation to be granted access
+type FieldAccessMode int
+
+const (
+	// ReadFieldAccessMode means the access mode is for reading
+	ReadFieldAccessMode FieldAccessMode = iota + 1
+
+	// WriteFieldAccessMode means the access mode is for writing
+	WriteFieldAccessMode
+
+	// DiscoverFieldAccessMode means the access mode is for discovery
+	DiscoverFieldAccessMode
+
+	// CompareFieldAccessMode means the access mode is for query
+	CompareFieldAccessMode
+)
+
+// FieldACL contains all field ACL rules for all record types
+type FieldACL struct {
+	wildcardRecordType FieldACLEntryList
+	recordTypes        map[string]FieldACLEntryList
+}
+
+// NewFieldACL returns a struct of FieldACL with a list of field ACL entries.
+func NewFieldACL(list FieldACLEntryList) FieldACL {
+	acl := FieldACL{
+		wildcardRecordType: FieldACLEntryList{},
+		recordTypes:        map[string]FieldACLEntryList{},
+	}
+
+	for _, entry := range list {
+		if entry.RecordType == WildcardRecordType {
+			acl.wildcardRecordType = append(acl.wildcardRecordType, entry)
+			continue
+		}
+
+		perRecordList, _ := acl.recordTypes[entry.RecordType]
+		acl.recordTypes[entry.RecordType] = append(perRecordList, entry)
+	}
+
+	return acl
+}
+
+// NewFieldACLDefault returns a struct of FieldACL with a default setting
+// if the default setting is not otherwise specified.
+func NewFieldACLDefault(list FieldACLEntryList, defEntry FieldACLEntry) FieldACL {
+	acl := NewFieldACL(list)
+	entry := acl.FindDefaultEntry()
+	if entry == nil {
+		// There is no entry with wildcard record type and record field,
+		// add the default entry to the wildcardRecordType list
+		defEntry.RecordType = WildcardRecordType
+		defEntry.RecordField = WildcardRecordField
+		defEntry.UserRole = "_public"
+		acl.wildcardRecordType = append(acl.wildcardRecordType, defEntry)
+	}
+
+	return acl
+}
+
+// AllEntries return all ACL entries in FieldACL.
+func (acl FieldACL) AllEntries() FieldACLEntryList {
+	result := acl.wildcardRecordType
+	for _, entries := range acl.recordTypes {
+		result = append(result, entries...)
+	}
+	return result
+}
+
+// FindDefaultEntry finds the default ACL entry in FieldACL.
+//
+// This function returns nil if the default ACL entry is not contained
+// in the FieldACL.
+func (acl FieldACL) FindDefaultEntry() *FieldACLEntry {
+	return acl.wildcardRecordType.findDefaultEntry()
+}
+
+// Accessible returns true when the access mode is allowed access
+func (acl FieldACL) Accessible(
+	userinfo *UserInfo,
+	record *Record,
+	recordType string,
+	field string,
+	mode FieldAccessMode,
+) bool {
+	if acl.wildcardRecordType.Accessible(userinfo, record, recordType, field, mode) {
+		return true
+	}
+	if list, ok := acl.recordTypes[recordType]; ok {
+		return list.Accessible(userinfo, record, recordType, field, mode)
+	}
+	return false
+}
+
+// FieldACLEntryList contains a list of field ACL entries
+type FieldACLEntryList []FieldACLEntry
+
+// Accessible returns true when the access mode is allowed access
+func (list FieldACLEntryList) Accessible(
+	userinfo *UserInfo,
+	record *Record,
+	recordType string,
+	field string,
+	mode FieldAccessMode,
+) bool {
+	for _, entry := range list {
+		if entry.Accessible(userinfo, record, recordType, field, mode) {
+			return true
+		}
+	}
+	return false
+}
+
+func (list FieldACLEntryList) findDefaultEntry() *FieldACLEntry {
+	for _, entry := range list {
+		if entry.RecordType == WildcardRecordType &&
+			entry.RecordField == WildcardRecordField &&
+			entry.UserRole == "_public" {
+			return &entry
+		}
+	}
+	return nil
+}
+
+func (list FieldACLEntryList) Len() int      { return len(list) }
+func (list FieldACLEntryList) Swap(i, j int) { list[i], list[j] = list[j], list[i] }
+func (list FieldACLEntryList) Less(i, j int) bool {
+	// compare is similar to strings.Compare except that specified wildcard
+	// string will be less than non-wildcard string.
+	compare := func(a, b, wildcard string) int {
+		if a == wildcard && b != wildcard {
+			return -1
+		} else if b == wildcard && a != wildcard {
+			return 1
+		}
+		return strings.Compare(a, b)
+	}
+
+	result := compare(list[i].RecordType, list[j].RecordType, WildcardRecordType)
+	if result != 0 {
+		return result < 0
+	}
+
+	result = compare(list[i].RecordField, list[j].RecordField, WildcardRecordField)
+	if result != 0 {
+		return result < 0
+	}
+
+	return strings.Compare(list[i].UserRole, list[j].UserRole) < 0
+}
+
+// FieldACLEntry contains a single field ACL entry
+type FieldACLEntry struct {
+	RecordType   string
+	RecordField  string
+	UserRole     string
+	Writable     bool
+	Readable     bool
+	Comparable   bool
+	Discoverable bool
+}
+
+// Accessible returns true when the access mode is allowed access
+func (entry FieldACLEntry) Accessible(
+	userinfo *UserInfo,
+	record *Record,
+	recordType string,
+	field string,
+	mode FieldAccessMode,
+) bool {
+	if (entry.RecordType != recordType && entry.RecordType != WildcardRecordType) ||
+		(entry.RecordField != field && entry.RecordField != WildcardRecordField) {
+		return false
+	}
+
+	// TODO: Check access here
+
+	return (mode == ReadFieldAccessMode && entry.Readable) ||
+		(mode == WriteFieldAccessMode && entry.Writable) ||
+		(mode == CompareFieldAccessMode && entry.Comparable) ||
+		(mode == DiscoverFieldAccessMode && entry.Discoverable)
+}
+
+// WildcardRecordType is a special record type that applies to all record types
+const WildcardRecordType = "*"
+
+// WildcardRecordField is a special record field that applies to all record fields
+const WildcardRecordField = "*"
