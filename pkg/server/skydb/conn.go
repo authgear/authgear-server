@@ -123,6 +123,12 @@ type Conn interface {
 	// GetRecordDefaultAccess returns default record access of a specific type
 	GetRecordDefaultAccess(recordType string) (RecordACL, error)
 
+	// SetRecordFieldAccess replace field ACL setting
+	SetRecordFieldAccess(acl FieldACL) (err error)
+
+	// GetRecordFieldAccess retrieve field ACL setting
+	GetRecordFieldAccess() (FieldACL, error)
+
 	// GetAsset retrieves Asset information by its name
 	GetAsset(name string, asset *Asset) error
 

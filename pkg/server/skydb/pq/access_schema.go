@@ -159,3 +159,116 @@ func (c *conn) GetRecordDefaultAccess(recordType string) (skydb.RecordACL, error
 	}
 	return nil, nil
 }
+
+func (c *conn) SetRecordFieldAccess(acl skydb.FieldACL) (err error) {
+	tx, err := c.db.Beginx()
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+
+	deleteBuilder := psql.
+		Delete(c.tableName("_record_field_access"))
+
+	_, err = c.ExecWith(deleteBuilder)
+	if err != nil {
+		return
+	}
+
+	builder := psql.
+		Insert(c.tableName("_record_field_access")).
+		Columns(
+			"record_type",
+			"record_field",
+			"user_role",
+			"writable",
+			"readable",
+			"comparable",
+			"discoverable",
+		)
+
+	for _, entry := range acl.AllEntries() {
+		builder = builder.Values(
+			entry.RecordType,
+			entry.RecordField,
+			entry.UserRole,
+			entry.Writable,
+			entry.Readable,
+			entry.Comparable,
+			entry.Discoverable,
+		)
+	}
+
+	_, err = c.ExecWith(builder)
+	if err != nil {
+		return
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("unable to commit transaction: %s", err)
+	}
+	return nil
+}
+
+func (c *conn) GetRecordFieldAccess() (skydb.FieldACL, error) {
+	builder := psql.
+		Select(
+			"record_type",
+			"record_field",
+			"user_role",
+			"writable",
+			"readable",
+			"comparable",
+			"discoverable",
+		).
+		From(c.tableName("_record_field_access"))
+
+	var recordTypeString string
+	var recordFieldString string
+	var userRoleString string
+	var writableBoolean bool
+	var readableBoolean bool
+	var comparableBoolean bool
+	var discoverableBoolean bool
+
+	rows, err := c.QueryWith(builder)
+	if err != nil {
+		return skydb.FieldACL{}, err
+	}
+
+	entries := []skydb.FieldACLEntry{}
+	var entry skydb.FieldACLEntry
+	for rows.Next() {
+		err := rows.Scan(
+			&recordTypeString,
+			&recordFieldString,
+			&userRoleString,
+			&writableBoolean,
+			&readableBoolean,
+			&comparableBoolean,
+			&discoverableBoolean,
+		)
+		if err != nil {
+			return skydb.FieldACL{}, err
+		}
+
+		entry.RecordType = recordTypeString
+		entry.RecordField = recordFieldString
+		entry.UserRole = userRoleString
+		entry.Writable = writableBoolean
+		entry.Readable = readableBoolean
+		entry.Comparable = comparableBoolean
+		entry.Discoverable = discoverableBoolean
+		entries = append(entries, entry)
+	}
+
+	return skydb.NewFieldACLDefault(
+		skydb.FieldACLEntryList(entries),
+		skydb.FieldACLEntry{
+			Writable:     true,
+			Readable:     true,
+			Comparable:   true,
+			Discoverable: true,
+		},
+	), nil
+}
