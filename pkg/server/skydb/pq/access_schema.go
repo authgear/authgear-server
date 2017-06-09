@@ -207,10 +207,16 @@ func (c *conn) SetRecordFieldAccess(acl skydb.FieldACL) (err error) {
 	if err = tx.Commit(); err != nil {
 		return fmt.Errorf("unable to commit transaction: %s", err)
 	}
+
+	c.FieldACL = nil // invalidate cached FieldACL
 	return nil
 }
 
 func (c *conn) GetRecordFieldAccess() (skydb.FieldACL, error) {
+	if c.FieldACL != nil {
+		return *c.FieldACL, nil
+	}
+
 	builder := psql.
 		Select(
 			"record_type",
@@ -262,5 +268,8 @@ func (c *conn) GetRecordFieldAccess() (skydb.FieldACL, error) {
 		entries = append(entries, entry)
 	}
 
-	return skydb.NewFieldACL(skydb.FieldACLEntryList(entries)), nil
+	acl := skydb.NewFieldACL(skydb.FieldACLEntryList(entries))
+
+	c.FieldACL = &acl
+	return acl, nil
 }
