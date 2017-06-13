@@ -408,8 +408,36 @@ func (r FieldUserRole) Compare(other FieldUserRole) int {
 // Match returns true if the specifid UserInfo and Record matches the
 // user role.
 func (r FieldUserRole) Match(userinfo *UserInfo, record *Record) bool {
-	// TODO
-	return true
+	if r.Type == PublicFieldUserRoleType {
+		return true
+	}
+
+	// All the other types requires UserInfo
+	if userinfo == nil {
+		return false
+	}
+
+	switch r.Type {
+	case OwnerFieldUserRoleType:
+		// TODO
+		return false
+	case SpecificUserFieldUserRoleType:
+		return userinfo.ID == r.Data
+	case DynamicUserFieldUserRoleType:
+		// TODO
+		return false
+	case DefinedRoleFieldUserRoleType:
+		for _, role := range userinfo.Roles {
+			if role == r.Data {
+				return true
+			}
+		}
+		return false
+	case AnyUserFieldUserRoleType:
+		return true
+	default:
+		panic(fmt.Sprintf(`unexpected field user role type "%s"`, r.Type))
+	}
 }
 
 var defaultFieldUserRole = FieldUserRole{PublicFieldUserRoleType, ""}
