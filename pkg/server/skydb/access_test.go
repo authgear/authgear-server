@@ -26,7 +26,6 @@ func TestFieldACL(t *testing.T) {
 		Convey("NewFieldACL should create a Field ACL with no entries", func() {
 			acl := NewFieldACL(FieldACLEntryList{})
 			So(acl, ShouldNotBeNil)
-			So(len(acl.wildcardRecordType), ShouldEqual, 0)
 			So(len(acl.recordTypes), ShouldEqual, 0)
 
 		})
@@ -54,7 +53,7 @@ func TestFieldACL(t *testing.T) {
 			}
 			acl := NewFieldACL(FieldACLEntryList(entryList))
 			So(acl, ShouldNotBeNil)
-			So(acl.wildcardRecordType[0], ShouldResemble, entryList[0])
+			So(acl.recordTypes[WildcardRecordType][0], ShouldResemble, entryList[0])
 			So(acl.recordTypes["note"][0], ShouldResemble, entryList[1])
 		})
 
@@ -88,9 +87,9 @@ func TestFieldACL(t *testing.T) {
 			So(acl.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeTrue)
 		})
 
-		Convey("should returns false if entry list is empty", func() {
+		Convey("should returns true if entry list is empty", func() {
 			acl := NewFieldACL(FieldACLEntryList{})
-			So(acl.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeFalse)
+			So(acl.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeTrue)
 		})
 	})
 }

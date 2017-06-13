@@ -150,23 +150,16 @@ const (
 
 // FieldACL contains all field ACL rules for all record types
 type FieldACL struct {
-	wildcardRecordType FieldACLEntryList
-	recordTypes        map[string]FieldACLEntryList
+	recordTypes map[string]FieldACLEntryList
 }
 
 // NewFieldACL returns a struct of FieldACL with a list of field ACL entries.
 func NewFieldACL(list FieldACLEntryList) FieldACL {
 	acl := FieldACL{
-		wildcardRecordType: FieldACLEntryList{},
-		recordTypes:        map[string]FieldACLEntryList{},
+		recordTypes: map[string]FieldACLEntryList{},
 	}
 
 	for _, entry := range list {
-		if entry.RecordType == WildcardRecordType {
-			acl.wildcardRecordType = append(acl.wildcardRecordType, entry)
-			continue
-		}
-
 		perRecordList, _ := acl.recordTypes[entry.RecordType]
 		acl.recordTypes[entry.RecordType] = append(perRecordList, entry)
 	}
@@ -185,7 +178,10 @@ func NewFieldACLDefault(list FieldACLEntryList, defEntry FieldACLEntry) FieldACL
 		defEntry.RecordType = WildcardRecordType
 		defEntry.RecordField = WildcardRecordField
 		defEntry.UserRole = "_public"
-		acl.wildcardRecordType = append(acl.wildcardRecordType, defEntry)
+
+		// It is okay if not exists, the returned slice is empty
+		entries, _ := acl.recordTypes[WildcardRecordType]
+		acl.recordTypes[WildcardRecordType] = append(entries, defEntry)
 	}
 
 	return acl
@@ -193,7 +189,7 @@ func NewFieldACLDefault(list FieldACLEntryList, defEntry FieldACLEntry) FieldACL
 
 // AllEntries return all ACL entries in FieldACL.
 func (acl FieldACL) AllEntries() FieldACLEntryList {
-	result := acl.wildcardRecordType
+	var result FieldACLEntryList
 	for _, entries := range acl.recordTypes {
 		result = append(result, entries...)
 	}
@@ -205,7 +201,10 @@ func (acl FieldACL) AllEntries() FieldACLEntryList {
 // This function returns nil if the default ACL entry is not contained
 // in the FieldACL.
 func (acl FieldACL) FindDefaultEntry() *FieldACLEntry {
-	return acl.wildcardRecordType.findDefaultEntry()
+	if list, ok := acl.recordTypes[WildcardRecordType]; ok {
+		return list.findDefaultEntry()
+	}
+	return nil
 }
 
 // Accessible returns true when the access mode is allowed access
@@ -216,12 +215,23 @@ func (acl FieldACL) Accessible(
 	field string,
 	mode FieldAccessMode,
 ) bool {
-	if acl.wildcardRecordType.Accessible(userinfo, record, recordType, field, mode) {
+	// If there is no Field ACL entry (i.e. empty), the default is to grant
+	// access. This could happen for testing purpose.
+	if len(acl.recordTypes) == 0 {
 		return true
 	}
-	if list, ok := acl.recordTypes[recordType]; ok {
-		return list.Accessible(userinfo, record, recordType, field, mode)
+
+	// There are Field ACL entries, find an ACL entry that grants the access.
+	for _, recordType := range []string{WildcardRecordType, recordType} {
+		if list, ok := acl.recordTypes[recordType]; ok {
+			if list.Accessible(userinfo, record, recordType, field, mode) {
+				return true
+			}
+		}
 	}
+
+	// If there exists any Field ACL entries but none grants the access,
+	// the default is to deny access.
 	return false
 }
 
