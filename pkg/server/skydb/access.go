@@ -266,32 +266,9 @@ func (list FieldACLEntryList) findDefaultEntry() *FieldACLEntry {
 	return nil
 }
 
-func (list FieldACLEntryList) Len() int      { return len(list) }
-func (list FieldACLEntryList) Swap(i, j int) { list[i], list[j] = list[j], list[i] }
-func (list FieldACLEntryList) Less(i, j int) bool {
-	// compare is similar to strings.Compare except that specified wildcard
-	// string will be less than non-wildcard string.
-	compare := func(a, b, wildcard string) int {
-		if a == wildcard && b != wildcard {
-			return -1
-		} else if b == wildcard && a != wildcard {
-			return 1
-		}
-		return strings.Compare(a, b)
-	}
-
-	result := compare(list[i].RecordType, list[j].RecordType, WildcardRecordType)
-	if result != 0 {
-		return result < 0
-	}
-
-	result = compare(list[i].RecordField, list[j].RecordField, WildcardRecordField)
-	if result != 0 {
-		return result < 0
-	}
-
-	return strings.Compare(list[i].UserRole.String(), list[j].UserRole.String()) < 0
-}
+func (list FieldACLEntryList) Len() int           { return len(list) }
+func (list FieldACLEntryList) Swap(i, j int)      { list[i], list[j] = list[j], list[i] }
+func (list FieldACLEntryList) Less(i, j int) bool { return list[i].Compare(list[j]) < 0 }
 
 // FieldACLEntry contains a single field ACL entry
 type FieldACLEntry struct {
@@ -302,6 +279,33 @@ type FieldACLEntry struct {
 	Readable     bool
 	Comparable   bool
 	Discoverable bool
+}
+
+// Compare the order for evaluation with the other entry.
+//
+// This function returns negative when the specified entry have a lower
+// priority.
+func (entry FieldACLEntry) Compare(other FieldACLEntry) int {
+	compare := func(a, b, wildcard string) int {
+		if a == wildcard && b != wildcard {
+			return -1
+		} else if b == wildcard && a != wildcard {
+			return 1
+		}
+		return strings.Compare(a, b)
+	}
+
+	result := compare(entry.RecordType, other.RecordType, WildcardRecordType)
+	if result != 0 {
+		return result
+	}
+
+	result = compare(entry.RecordField, other.RecordField, WildcardRecordField)
+	if result != 0 {
+		return result
+	}
+
+	return entry.UserRole.Compare(other.UserRole)
 }
 
 // Accessible returns true when the access mode is allowed access
@@ -351,6 +355,29 @@ const (
 	PublicFieldUserRoleType = "_public"
 )
 
+// Compare compares two user role type in the order of evaluation.
+func (userRoleType FieldUserRoleType) Compare(other FieldUserRoleType) int {
+	if userRoleType == other {
+		return 0
+	}
+
+	for _, eachType := range []FieldUserRoleType{
+		OwnerFieldUserRoleType,
+		SpecificUserFieldUserRoleType,
+		DynamicUserFieldUserRoleType,
+		DefinedRoleFieldUserRoleType,
+		AnyUserFieldUserRoleType,
+		PublicFieldUserRoleType,
+	} {
+		if userRoleType == eachType {
+			return -1
+		} else if other == eachType {
+			return 1
+		}
+	}
+	return 0
+}
+
 // FieldUserRole contains field user role information and checks whether
 // a user matches the user role.
 type FieldUserRole struct {
@@ -393,6 +420,15 @@ func (r FieldUserRole) String() string {
 	default:
 		panic(fmt.Sprintf(`unexpected field user role type "%s"`, r.Type))
 	}
+}
+
+// Compare compares two FieldUserRole according to the order of evaluation.
+func (r FieldUserRole) Compare(other FieldUserRole) int {
+	result := r.Type.Compare(other.Type)
+	if result != 0 {
+		return result
+	}
+	return strings.Compare(r.Data, other.Data)
 }
 
 // Match returns true if the specifid UserInfo and Record matches the

@@ -158,6 +158,27 @@ func TestFieldACLEntry(t *testing.T) {
 		Convey("should return true", func() {
 			So(entry.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeTrue)
 		})
+
+		Convey("should compare entries", func() {
+			compare := func(type1, field1, role1, type2, field2, role2 string) int {
+				entry1 := FieldACLEntry{
+					RecordType:  type1,
+					RecordField: field1,
+					UserRole:    NewFieldUserRole(role1),
+				}
+				entry2 := FieldACLEntry{
+					RecordType:  type2,
+					RecordField: field2,
+					UserRole:    NewFieldUserRole(role2),
+				}
+				return entry1.Compare(entry2)
+			}
+
+			So(compare("note", "*", "_public", "note", "*", "_public"), ShouldEqual, 0)
+			So(compare("*", "*", "_public", "note", "*", "_public"), ShouldBeLessThan, 0)
+			So(compare("*", "content", "_public", "*", "*", "_public"), ShouldBeGreaterThan, 0)
+			So(compare("*", "*", "_public", "*", "*", "_any_user"), ShouldBeGreaterThan, 0)
+		})
 	})
 }
 
@@ -240,6 +261,20 @@ func TestFieldUserRole(t *testing.T) {
 				ShouldEqual,
 				"_public",
 			)
+		})
+
+		Convey("should compare user roles", func() {
+			compare := func(role1, role2 string) int {
+				return NewFieldUserRole(role1).Compare(NewFieldUserRole(role2))
+			}
+
+			So(compare("_any_user", "_any_user"), ShouldEqual, 0)
+			So(compare("_owner", "_user_id:johndoe"), ShouldBeLessThan, 0)
+			So(compare("_user_id:johndoe", "_user_id:janedoe"), ShouldBeGreaterThan, 0)
+			So(compare("_user_id:john_doe", "_field:stared"), ShouldBeLessThan, 0)
+			So(compare("_field:stared", "_role:admin"), ShouldBeLessThan, 0)
+			So(compare("_role:admin", "_any_user"), ShouldBeLessThan, 0)
+			So(compare("_any_user", "_public"), ShouldBeLessThan, 0)
 		})
 	})
 }
