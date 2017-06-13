@@ -182,7 +182,10 @@ func TestRecordFieldAccess(t *testing.T) {
 			acl, err = c.GetRecordFieldAccess()
 			So(acl, ShouldNotBeNil)
 			So(err, ShouldBeNil)
-			So(acl.AllEntries(), ShouldResemble, fixture)
+
+			entries := acl.AllEntries()
+			sort.Stable(entries)
+			So(entries, ShouldResemble, fixture)
 		})
 
 		Convey("should remove entry before insert", func() {
@@ -201,7 +204,10 @@ func TestRecordFieldAccess(t *testing.T) {
 			acl, err = c.GetRecordFieldAccess()
 			So(acl, ShouldNotBeNil)
 			So(err, ShouldBeNil)
-			So(acl.AllEntries(), ShouldResemble, fixture)
+
+			entries := acl.AllEntries()
+			sort.Stable(entries)
+			So(entries, ShouldResemble, fixture)
 		})
 	})
 }

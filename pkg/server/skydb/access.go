@@ -16,6 +16,7 @@ package skydb
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -159,6 +160,8 @@ func NewFieldACL(list FieldACLEntryList) FieldACL {
 	acl := FieldACL{
 		recordTypes: map[string]FieldACLEntryList{},
 	}
+
+	sort.Sort(list)
 
 	for _, entry := range list {
 		perRecordList, _ := acl.recordTypes[entry.RecordType]
