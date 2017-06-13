@@ -299,6 +299,23 @@ func (r *Record) Apply(src *Record) {
 	}
 }
 
+// MergedCopy is similar to copy but the copy contains data dictionary
+// which is creating by copying the original and apply the specified dictionary.
+func (r *Record) MergedCopy(merge *Record) *Record {
+	var dst Record
+	dst = *merge
+
+	// creating a new map is essential because map is a reference type
+	dst.Data = map[string]interface{}{}
+	for key, value := range r.Data {
+		dst.Data[key] = value
+	}
+	for key, value := range merge.Data {
+		dst.Data[key] = value
+	}
+	return &dst
+}
+
 // RecordSchema is a mapping of record key to its value's data type or reference
 type RecordSchema map[string]FieldType
 

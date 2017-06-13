@@ -205,7 +205,7 @@ func (conn *MapConn) SaveAsset(asset *skydb.Asset) error {
 // GetAssets always returns empty array.
 func (conn *MapConn) GetAssets(names []string) ([]skydb.Asset, error) {
 	assets := []skydb.Asset{}
-	for _, v := range(names) {
+	for _, v := range names {
 		asset, ok := conn.AssetMap[v]
 		if ok {
 			assets = append(assets, asset)
@@ -341,7 +341,13 @@ func (db *MapDB) Get(id skydb.RecordID, record *skydb.Record) error {
 
 // Save assigns Record to RecordMap.
 func (db *MapDB) Save(record *skydb.Record) error {
-	db.RecordMap[record.ID.String()] = *record
+	recordID := record.ID.String()
+
+	if origRecord, ok := db.RecordMap[recordID]; ok {
+		*record = *origRecord.MergedCopy(record)
+	}
+
+	db.RecordMap[recordID] = *record
 	return nil
 }
 
