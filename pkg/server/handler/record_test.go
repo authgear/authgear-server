@@ -65,6 +65,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 			DatabaseID: "",
 		}
 
+		conn := skydbtest.NewMapConn()
 		db := skydbtest.NewMapDB()
 		So(db.Save(&note0), ShouldBeNil)
 		So(db.Save(&note1), ShouldBeNil)
@@ -72,6 +73,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 		So(db.Save(&user), ShouldBeNil)
 
 		router := handlertest.NewSingleRouteRouter(&RecordDeleteHandler{}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 			p.UserInfo = &skydb.UserInfo{
 				ID: "user0",
@@ -540,6 +542,10 @@ func (db bogusFieldDatabaseConnection) GetRecordDefaultAccess(recordType string)
 	return nil, nil
 }
 
+func (db bogusFieldDatabaseConnection) GetRecordFieldAccess() (skydb.FieldACL, error) {
+	return skydb.FieldACL{}, nil
+}
+
 type bogusFieldDatabase struct {
 	SaveFunc func(record *skydb.Record) error
 	GetFunc  func(id skydb.RecordID, record *skydb.Record) error
@@ -769,10 +775,12 @@ func TestRecordQueryResults(t *testing.T) {
 			ID: skydb.NewRecordID("note", "2"),
 		}
 
+		conn := skydbtest.NewMapConn()
 		db := &queryResultsDatabase{}
 		db.records = []skydb.Record{record1, record0, record2}
 
 		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 		})
 
@@ -806,12 +814,14 @@ func TestRecordQueryResults(t *testing.T) {
 func TestRecordQuery(t *testing.T) {
 	Convey("Given a Database", t, func() {
 		db := &queryDatabase{}
+		conn := skydbtest.NewMapConn()
 
 		Convey("Queries records with type", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
 					"record_type": "note",
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -833,6 +843,7 @@ func TestRecordQuery(t *testing.T) {
 				Data: map[string]interface{}{
 					"record_type": "note",
 				},
+				DBConn:   conn,
 				Database: db,
 				UserInfo: &userInfo,
 			}
@@ -856,6 +867,7 @@ func TestRecordQuery(t *testing.T) {
 				Data: map[string]interface{}{
 					"record_type": "note",
 				},
+				DBConn:    conn,
 				Database:  db,
 				UserInfo:  &userInfo,
 				AccessKey: router.MasterAccessKey,
@@ -887,6 +899,7 @@ func TestRecordQuery(t *testing.T) {
 						},
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -929,6 +942,7 @@ func TestRecordQuery(t *testing.T) {
 						},
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -964,6 +978,7 @@ func TestRecordQuery(t *testing.T) {
 						float64(1),
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1013,6 +1028,7 @@ func TestRecordQuery(t *testing.T) {
 						},
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1071,6 +1087,7 @@ func TestRecordQuery(t *testing.T) {
 						float64(500),
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1114,6 +1131,7 @@ func TestRecordQuery(t *testing.T) {
 						},
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1139,6 +1157,7 @@ func TestRecordQuery(t *testing.T) {
 					"record_type":  "note",
 					"desired_keys": []interface{}{"location"},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1156,6 +1175,7 @@ func TestRecordQuery(t *testing.T) {
 					"record_type":  "note",
 					"desired_keys": []interface{}{},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1173,6 +1193,7 @@ func TestRecordQuery(t *testing.T) {
 					"record_type":  "note",
 					"desired_keys": nil,
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1191,6 +1212,7 @@ func TestRecordQuery(t *testing.T) {
 					"limit":       float64(200),
 					"offset":      float64(400),
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1210,6 +1232,7 @@ func TestRecordQuery(t *testing.T) {
 					"record_type": "note",
 					"count":       true,
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1234,6 +1257,7 @@ func TestRecordQuery(t *testing.T) {
 						map[string]interface{}{},
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1478,6 +1502,7 @@ func (s *urlOnlyAssetStore) IsSignatureRequired() bool {
 
 func TestRecordAssetSerialization(t *testing.T) {
 	Convey("RecordAssetSerialization for fetch", t, func() {
+		conn := skydbtest.NewMapConn()
 		db := skydbtest.NewMapDB()
 		db.Save(&skydb.Record{
 			ID: skydb.NewRecordID("record", "id"),
@@ -1494,6 +1519,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&RecordFetchHandler{
 			AssetStore: assetStore,
 		}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 		})
 
@@ -1528,6 +1554,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 			},
 		}
 
+		conn := skydbtest.NewMapConn()
 		db := &queryResultsDatabase{}
 		db.records = []skydb.Record{record0}
 
@@ -1536,6 +1563,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{
 			AssetStore: assetStore,
 		}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 		})
 
@@ -1692,9 +1720,11 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				},
 			},
 		}
+		conn := skydbtest.NewMapConn()
 
 		injectDBFunc := func(payload *router.Payload) {
 			payload.Database = db
+			payload.DBConn = conn
 		}
 
 		Convey("query record with eager load", func() {
@@ -1791,9 +1821,11 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				},
 			},
 		}
+		conn := skydbtest.NewMapConn()
 
 		injectDBFunc := func(payload *router.Payload) {
 			payload.Database = db
+			payload.DBConn = conn
 		}
 
 		Convey("query record with eager load", func() {
@@ -1831,6 +1863,7 @@ func TestRecordQueryWithCount(t *testing.T) {
 			ID: skydb.NewRecordID("note", "2"),
 		}
 
+		conn := skydbtest.NewMapConn()
 		db := &queryResultsDatabase{}
 		db.records = []skydb.Record{record1, record0, record2}
 		db.typemap = map[string]skydb.RecordSchema{
@@ -1838,6 +1871,7 @@ func TestRecordQueryWithCount(t *testing.T) {
 		}
 
 		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 		})
 

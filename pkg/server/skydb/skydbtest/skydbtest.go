@@ -31,6 +31,7 @@ type MapConn struct {
 	emailMap               map[string]skydb.UserInfo
 	recordAccessMap        map[string]skydb.RecordACL
 	recordDefaultAccessMap map[string]skydb.RecordACL
+	fieldAccess            skydb.FieldACL
 	skydb.Conn
 }
 
@@ -42,6 +43,7 @@ func NewMapConn() *MapConn {
 		emailMap:               map[string]skydb.UserInfo{},
 		recordAccessMap:        map[string]skydb.RecordACL{},
 		recordDefaultAccessMap: map[string]skydb.RecordACL{},
+		fieldAccess:            skydb.FieldACL{},
 		AssetMap:               map[string]skydb.Asset{},
 	}
 }
@@ -190,6 +192,17 @@ func (conn *MapConn) GetRecordDefaultAccess(recordType string) (skydb.RecordACL,
 		return nil, nil
 	}
 	return acl, nil
+}
+
+// SetRecordFieldAccess sets record field access for all types
+func (conn *MapConn) SetRecordFieldAccess(acl skydb.FieldACL) error {
+	conn.fieldAccess = acl
+	return nil
+}
+
+// GetRecordFieldAccess returns record field access for all types
+func (conn *MapConn) GetRecordFieldAccess() (skydb.FieldACL, error) {
+	return conn.fieldAccess, nil
 }
 
 // GetAsset is not implemented.
