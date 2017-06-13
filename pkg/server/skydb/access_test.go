@@ -23,11 +23,12 @@ import (
 
 func TestFieldACL(t *testing.T) {
 	Convey("FieldACL", t, func() {
+		publicRole := FieldUserRole{PublicFieldUserRoleType, ""}
+
 		Convey("NewFieldACL should create a Field ACL with no entries", func() {
 			acl := NewFieldACL(FieldACLEntryList{})
 			So(acl, ShouldNotBeNil)
 			So(len(acl.recordTypes), ShouldEqual, 0)
-
 		})
 
 		Convey("NewFieldACL should create a Field ACL with entries", func() {
@@ -35,7 +36,7 @@ func TestFieldACL(t *testing.T) {
 				{
 					RecordType:   "*",
 					RecordField:  "*",
-					UserRole:     "_public",
+					UserRole:     publicRole,
 					Writable:     true,
 					Readable:     true,
 					Comparable:   true,
@@ -44,7 +45,7 @@ func TestFieldACL(t *testing.T) {
 				{
 					RecordType:   "note",
 					RecordField:  "*",
-					UserRole:     "_public",
+					UserRole:     publicRole,
 					Writable:     true,
 					Readable:     true,
 					Comparable:   true,
@@ -62,7 +63,7 @@ func TestFieldACL(t *testing.T) {
 				{
 					RecordType:   "*",
 					RecordField:  "*",
-					UserRole:     "_public",
+					UserRole:     publicRole,
 					Writable:     true,
 					Readable:     true,
 					Comparable:   true,
@@ -77,7 +78,7 @@ func TestFieldACL(t *testing.T) {
 				{
 					RecordType:   "note",
 					RecordField:  "*",
-					UserRole:     "_public",
+					UserRole:     publicRole,
 					Writable:     true,
 					Readable:     true,
 					Comparable:   true,
@@ -96,18 +97,21 @@ func TestFieldACL(t *testing.T) {
 
 func TestFieldACLEntryList(t *testing.T) {
 	Convey("FieldACLEntryList", t, func() {
+		publicRole := FieldUserRole{PublicFieldUserRoleType, ""}
+		anyUserRole := FieldUserRole{AnyUserFieldUserRoleType, ""}
+
 		Convey("Accessible", func() {
 			Convey("should return false for empty list", func() {
 				entryList := FieldACLEntryList{}
 				So(entryList.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeFalse)
 			})
 
-			Convey("should return true if a entry is accessible", func() {
+			Convey("should return true if an entry is accessible", func() {
 				entryList := FieldACLEntryList{
 					{
 						RecordType:   "note",
 						RecordField:  "*",
-						UserRole:     "_public",
+						UserRole:     publicRole,
 						Writable:     true,
 						Readable:     true,
 						Comparable:   true,
@@ -121,15 +125,15 @@ func TestFieldACLEntryList(t *testing.T) {
 		Convey("Sort", func() {
 			Convey("should sort", func() {
 				entries := FieldACLEntryList{
-					{"note", "*", "_public", true, true, false, false},
-					{"*", "content", "_any_user", false, false, true, true},
-					{"*", "*", "_public", false, false, false, false},
+					{"note", "*", publicRole, true, true, false, false},
+					{"*", "content", anyUserRole, false, false, true, true},
+					{"*", "*", publicRole, false, false, false, false},
 				}
 				sort.Stable(entries)
 				So(entries, ShouldResemble, FieldACLEntryList{
-					{"*", "*", "_public", false, false, false, false},
-					{"*", "content", "_any_user", false, false, true, true},
-					{"note", "*", "_public", true, true, false, false},
+					{"*", "*", publicRole, false, false, false, false},
+					{"*", "content", anyUserRole, false, false, true, true},
+					{"note", "*", publicRole, true, true, false, false},
 				})
 			})
 		})
@@ -138,10 +142,12 @@ func TestFieldACLEntryList(t *testing.T) {
 
 func TestFieldACLEntry(t *testing.T) {
 	Convey("FieldACLEntry", t, func() {
+		publicRole := FieldUserRole{PublicFieldUserRoleType, ""}
+
 		entry := FieldACLEntry{
 			RecordType:   "note",
 			RecordField:  "*",
-			UserRole:     "_public",
+			UserRole:     publicRole,
 			Writable:     true,
 			Readable:     true,
 			Comparable:   true,
@@ -151,6 +157,89 @@ func TestFieldACLEntry(t *testing.T) {
 		// TODO: add test case
 		Convey("should return true", func() {
 			So(entry.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeTrue)
+		})
+	})
+}
+
+func TestFieldUserRole(t *testing.T) {
+	Convey("FieldUserRole", t, func() {
+		Convey("NewFieldUserRole", func() {
+			Convey("should create field user role", func() {
+				So(
+					NewFieldUserRole("_owner"),
+					ShouldResemble,
+					FieldUserRole{OwnerFieldUserRoleType, ""},
+				)
+				So(
+					NewFieldUserRole("_user_id:johndoe"),
+					ShouldResemble,
+					FieldUserRole{SpecificUserFieldUserRoleType, "johndoe"},
+				)
+				So(
+					NewFieldUserRole("_field:stared"),
+					ShouldResemble,
+					FieldUserRole{DynamicUserFieldUserRoleType, "stared"},
+				)
+				So(
+					NewFieldUserRole("_role:admin"),
+					ShouldResemble,
+					FieldUserRole{DefinedRoleFieldUserRoleType, "admin"},
+				)
+				So(
+					NewFieldUserRole("_any_user"),
+					ShouldResemble,
+					FieldUserRole{AnyUserFieldUserRoleType, ""},
+				)
+				So(
+					NewFieldUserRole("_public"),
+					ShouldResemble,
+					FieldUserRole{PublicFieldUserRoleType, ""},
+				)
+			})
+
+			Convey("should panic if role string is not recognized", func() {
+				So(func() { NewFieldUserRole("") }, ShouldPanic)
+				So(func() { NewFieldUserRole("_invalid") }, ShouldPanic)
+				So(func() { NewFieldUserRole("_owner:me") }, ShouldPanic)
+				So(func() { NewFieldUserRole("_user_id") }, ShouldPanic)
+				So(func() { NewFieldUserRole("_field") }, ShouldPanic)
+				So(func() { NewFieldUserRole("_role") }, ShouldPanic)
+				So(func() { NewFieldUserRole("_any_user:any") }, ShouldPanic)
+				So(func() { NewFieldUserRole("_public:public") }, ShouldPanic)
+			})
+		})
+
+		Convey("should generate string representation", func() {
+			So(
+				FieldUserRole{OwnerFieldUserRoleType, ""}.String(),
+				ShouldEqual,
+				"_owner",
+			)
+			So(
+				FieldUserRole{SpecificUserFieldUserRoleType, "johndoe"}.String(),
+				ShouldEqual,
+				"_user_id:johndoe",
+			)
+			So(
+				FieldUserRole{DynamicUserFieldUserRoleType, "stared"}.String(),
+				ShouldEqual,
+				"_field:stared",
+			)
+			So(
+				FieldUserRole{DefinedRoleFieldUserRoleType, "admin"}.String(),
+				ShouldEqual,
+				"_role:admin",
+			)
+			So(
+				FieldUserRole{AnyUserFieldUserRoleType, ""}.String(),
+				ShouldEqual,
+				"_any_user",
+			)
+			So(
+				FieldUserRole{PublicFieldUserRoleType, ""}.String(),
+				ShouldEqual,
+				"_public",
+			)
 		})
 	})
 }

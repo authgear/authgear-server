@@ -191,7 +191,7 @@ func (c *conn) SetRecordFieldAccess(acl skydb.FieldACL) (err error) {
 		builder = builder.Values(
 			entry.RecordType,
 			entry.RecordField,
-			entry.UserRole,
+			entry.UserRole.String(),
 			entry.Writable,
 			entry.Readable,
 			entry.Comparable,
@@ -254,7 +254,7 @@ func (c *conn) GetRecordFieldAccess() (skydb.FieldACL, error) {
 
 		entry.RecordType = recordTypeString
 		entry.RecordField = recordFieldString
-		entry.UserRole = userRoleString
+		entry.UserRole = skydb.NewFieldUserRole(userRoleString)
 		entry.Writable = writableBoolean
 		entry.Readable = readableBoolean
 		entry.Comparable = comparableBoolean

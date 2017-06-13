@@ -100,6 +100,8 @@ func TestRecordFieldAccess(t *testing.T) {
 			"comparable",
 			"discoverable",
 		}
+		anyUserRole := skydb.FieldUserRole{skydb.AnyUserFieldUserRoleType, ""}
+		publicRole := skydb.FieldUserRole{skydb.PublicFieldUserRoleType, ""}
 
 		insertEntries := func(list skydb.FieldACLEntryList) error {
 			builder := psql.
@@ -109,7 +111,7 @@ func TestRecordFieldAccess(t *testing.T) {
 				builder = builder.Values(
 					entry.RecordType,
 					entry.RecordField,
-					entry.UserRole,
+					entry.UserRole.String(),
 					entry.Writable,
 					entry.Readable,
 					entry.Comparable,
@@ -133,7 +135,7 @@ func TestRecordFieldAccess(t *testing.T) {
 
 		Convey("should return with default entry if not exists in table", func() {
 			So(insertEntries(skydb.FieldACLEntryList{
-				{"note", "*", "_public", false, false, false, false},
+				{"note", "*", anyUserRole, false, false, false, false},
 			}), ShouldBeNil)
 			acl, err := c.GetRecordFieldAccess()
 			So(err, ShouldBeNil)
@@ -147,9 +149,9 @@ func TestRecordFieldAccess(t *testing.T) {
 
 		Convey("should return all entries", func() {
 			fixture := skydb.FieldACLEntryList{
-				{"*", "*", "_public", false, false, false, false},
-				{"*", "content", "_any_user", false, false, true, true},
-				{"note", "*", "_public", true, true, false, false},
+				{"*", "*", publicRole, false, false, false, false},
+				{"*", "content", anyUserRole, false, false, true, true},
+				{"note", "*", publicRole, true, true, false, false},
 			}
 			So(insertEntries(fixture), ShouldBeNil)
 			acl, err := c.GetRecordFieldAccess()
@@ -157,7 +159,7 @@ func TestRecordFieldAccess(t *testing.T) {
 
 			defaultEntry := acl.FindDefaultEntry()
 			So(defaultEntry, ShouldNotBeNil)
-			So(defaultEntry.UserRole, ShouldEqual, "_public")
+			So(defaultEntry.UserRole, ShouldResemble, publicRole)
 			So(defaultEntry.Writable, ShouldBeFalse)
 			So(defaultEntry.Readable, ShouldBeFalse)
 			So(defaultEntry.Comparable, ShouldBeFalse)
@@ -170,9 +172,9 @@ func TestRecordFieldAccess(t *testing.T) {
 
 		Convey("should insert all entries", func() {
 			fixture := skydb.FieldACLEntryList{
-				{"*", "*", "_public", false, false, false, false},
-				{"*", "content", "_any_user", false, false, true, true},
-				{"note", "*", "_public", true, true, false, false},
+				{"*", "*", publicRole, false, false, false, false},
+				{"*", "content", anyUserRole, false, false, true, true},
+				{"note", "*", publicRole, true, true, false, false},
 			}
 			acl := skydb.NewFieldACL(fixture)
 			err := c.SetRecordFieldAccess(acl)
@@ -185,13 +187,13 @@ func TestRecordFieldAccess(t *testing.T) {
 
 		Convey("should remove entry before insert", func() {
 			So(insertEntries(skydb.FieldACLEntryList{
-				{"*", "*", "_public", false, false, false, false},
-				{"photo", "*", "_public", true, true, false, false},
+				{"*", "*", publicRole, false, false, false, false},
+				{"photo", "*", publicRole, true, true, false, false},
 			}), ShouldBeNil)
 			fixture := skydb.FieldACLEntryList{
-				{"*", "*", "_public", true, false, false, true},
-				{"*", "content", "_any_user", false, false, true, true},
-				{"note", "*", "_public", true, true, false, false},
+				{"*", "*", publicRole, true, false, false, true},
+				{"*", "content", anyUserRole, false, false, true, true},
+				{"note", "*", publicRole, true, true, false, false},
 			}
 			acl := skydb.NewFieldACL(fixture)
 			err := c.SetRecordFieldAccess(acl)

@@ -15,6 +15,7 @@
 package skydb
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -177,7 +178,7 @@ func NewFieldACLDefault(list FieldACLEntryList, defEntry FieldACLEntry) FieldACL
 		// add the default entry to the wildcardRecordType list
 		defEntry.RecordType = WildcardRecordType
 		defEntry.RecordField = WildcardRecordField
-		defEntry.UserRole = "_public"
+		defEntry.UserRole = defaultFieldUserRole
 
 		// It is okay if not exists, the returned slice is empty
 		entries, _ := acl.recordTypes[WildcardRecordType]
@@ -258,7 +259,7 @@ func (list FieldACLEntryList) findDefaultEntry() *FieldACLEntry {
 	for _, entry := range list {
 		if entry.RecordType == WildcardRecordType &&
 			entry.RecordField == WildcardRecordField &&
-			entry.UserRole == "_public" {
+			entry.UserRole == defaultFieldUserRole {
 			return &entry
 		}
 	}
@@ -289,14 +290,14 @@ func (list FieldACLEntryList) Less(i, j int) bool {
 		return result < 0
 	}
 
-	return strings.Compare(list[i].UserRole, list[j].UserRole) < 0
+	return strings.Compare(list[i].UserRole.String(), list[j].UserRole.String()) < 0
 }
 
 // FieldACLEntry contains a single field ACL entry
 type FieldACLEntry struct {
 	RecordType   string
 	RecordField  string
-	UserRole     string
+	UserRole     FieldUserRole
 	Writable     bool
 	Readable     bool
 	Comparable   bool
@@ -316,13 +317,92 @@ func (entry FieldACLEntry) Accessible(
 		return false
 	}
 
-	// TODO: Check access here
+	if !entry.UserRole.Match(userinfo, record) {
+		return false
+	}
 
 	return (mode == ReadFieldAccessMode && entry.Readable) ||
 		(mode == WriteFieldAccessMode && entry.Writable) ||
 		(mode == CompareFieldAccessMode && entry.Comparable) ||
 		(mode == DiscoverFieldAccessMode && entry.Discoverable)
 }
+
+// FieldUserRoleType denotes the type of field user role, which
+// specify who can access certain fields.
+type FieldUserRoleType string
+
+const (
+	// OwnerFieldUserRoleType means field is accessible by the record owner.
+	OwnerFieldUserRoleType FieldUserRoleType = "_owner"
+
+	// SpecificUserFieldUserRoleType means field is accessible by a specific user.
+	SpecificUserFieldUserRoleType = "_user_id"
+
+	// DynamicUserFieldUserRoleType means field is accessible by user contained in another field.
+	DynamicUserFieldUserRoleType = "_field"
+
+	// DefinedRoleFieldUserRoleType means field is accessible by a users of specific role.
+	DefinedRoleFieldUserRoleType = "_role"
+
+	// AnyUserFieldUserRoleType means field is accessible by any authenticated user.
+	AnyUserFieldUserRoleType = "_any_user"
+
+	// PublicFieldUserRoleType means field is accessible by public.
+	PublicFieldUserRoleType = "_public"
+)
+
+// FieldUserRole contains field user role information and checks whether
+// a user matches the user role.
+type FieldUserRole struct {
+	// Type contains the type of the user role.
+	Type FieldUserRoleType
+
+	// Data is information specific to the type of user role.
+	Data string
+}
+
+// NewFieldUserRole returns a FieldUserRole struct from the user role
+// specification.
+func NewFieldUserRole(roleString string) FieldUserRole {
+	components := strings.SplitN(roleString, ":", 2)
+	roleType := FieldUserRoleType(components[0])
+	switch roleType {
+	case OwnerFieldUserRoleType, AnyUserFieldUserRoleType, PublicFieldUserRoleType:
+		if len(components) > 1 {
+			panic(fmt.Sprintf(`unexpected user role string "%s"`, roleString))
+		}
+		return FieldUserRole{roleType, ""}
+	case SpecificUserFieldUserRoleType, DynamicUserFieldUserRoleType, DefinedRoleFieldUserRoleType:
+		if len(components) != 2 {
+			panic(fmt.Sprintf(`unexpected user role string "%s"`, roleString))
+		}
+		return FieldUserRole{roleType, components[1]}
+	default:
+		panic(fmt.Sprintf(`unexpected user role string "%s"`, roleString))
+
+	}
+}
+
+// String returns the user role specification in string representation.
+func (r FieldUserRole) String() string {
+	switch r.Type {
+	case OwnerFieldUserRoleType, AnyUserFieldUserRoleType, PublicFieldUserRoleType:
+		return string(r.Type)
+	case SpecificUserFieldUserRoleType, DynamicUserFieldUserRoleType, DefinedRoleFieldUserRoleType:
+		return fmt.Sprintf("%s:%s", r.Type, r.Data)
+	default:
+		panic(fmt.Sprintf(`unexpected field user role type "%s"`, r.Type))
+	}
+}
+
+// Match returns true if the specifid UserInfo and Record matches the
+// user role.
+func (r FieldUserRole) Match(userinfo *UserInfo, record *Record) bool {
+	// TODO
+	return true
+}
+
+var defaultFieldUserRole = FieldUserRole{PublicFieldUserRoleType, ""}
 
 // WildcardRecordType is a special record type that applies to all record types
 const WildcardRecordType = "*"
