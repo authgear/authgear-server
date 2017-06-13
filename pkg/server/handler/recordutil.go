@@ -148,34 +148,58 @@ func (f recordFetcher) getDefaultAccess(recordType string) skydb.RecordACL {
 	return defaultAccess
 }
 
-func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo) (record *skydb.Record, err skyerr.Error) {
+func (f recordFetcher) fetchRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo, accessLevel skydb.ACLLevel) (record *skydb.Record, err skyerr.Error) {
 	dbRecord := skydb.Record{}
 	if dbErr := f.db.Get(recordID, &dbRecord); dbErr != nil {
 		if dbErr == skydb.ErrRecordNotFound {
-			// new record
-			if f.withMasterKey {
-				return
-			}
-
-			creationAccess := f.getCreationAccess(recordID.Type)
-			if !creationAccess.Accessible(userInfo, skydb.CreateLevel) {
-				err = skyerr.NewError(
-					skyerr.PermissionDenied,
-					"no permission to create",
-				)
-			}
-
-			return
+			err = skyerr.NewError(skyerr.ResourceNotFound, "record not found")
+		} else {
+			log.WithFields(logrus.Fields{
+				"recordID": recordID,
+				"err":      dbErr,
+			}).Errorln("Failed to fetch record")
+			err = skyerr.NewResourceFetchFailureErr("record", recordID.String())
 		}
-		return nil, skyerr.MakeError(dbErr)
+		return
 	}
 
 	record = &dbRecord
-	if !f.withMasterKey && !dbRecord.Accessible(userInfo, skydb.WriteLevel) {
+	if !f.withMasterKey && !dbRecord.Accessible(userInfo, accessLevel) {
 		err = skyerr.NewError(
 			skyerr.PermissionDenied,
-			"no permission to modify",
+			"no permission to perform operation",
 		)
+	}
+
+	return
+}
+
+func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo) (record *skydb.Record, err skyerr.Error) {
+	record, err = f.fetchRecord(recordID, userInfo, skydb.WriteLevel)
+	if err == nil {
+		return
+	}
+
+	if err.Code() == skyerr.ResourceNotFound {
+		allowCreation := func() bool {
+			if f.withMasterKey {
+				return true
+			}
+
+			creationAccess := f.getCreationAccess(recordID.Type)
+			return creationAccess.Accessible(userInfo, skydb.CreateLevel)
+		}
+
+		if !allowCreation() {
+			err = skyerr.NewError(
+				skyerr.PermissionDenied,
+				"no permission to create",
+			)
+			return
+		}
+
+		record = &skydb.Record{}
+		err = nil
 	}
 
 	return
@@ -430,6 +454,8 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 	db := req.Db
 	recordIDs := req.RecordIDsToDelete
 
+	fetcher := newRecordFetcher(db, req.Conn, req.WithMasterKey)
+
 	var records []*skydb.Record
 	for _, recordID := range recordIDs {
 		if recordID.Type == db.UserRecordType() {
@@ -437,23 +463,12 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 			continue
 		}
 
-		var record skydb.Record
-		if dbErr := db.Get(recordID, &record); dbErr != nil {
-			if dbErr == skydb.ErrRecordNotFound {
-				resp.ErrMap[recordID] = skyerr.NewError(skyerr.ResourceNotFound, "record not found")
-			} else {
-				resp.ErrMap[recordID] = skyerr.MakeError(dbErr)
-			}
-		} else {
-			if req.WithMasterKey || record.Accessible(req.UserInfo, skydb.WriteLevel) {
-				records = append(records, &record)
-			} else {
-				resp.ErrMap[recordID] = skyerr.NewError(
-					skyerr.PermissionDenied,
-					"no permission to delete",
-				)
-			}
+		record, err := fetcher.fetchRecord(recordID, req.UserInfo, skydb.WriteLevel)
+		if err != nil {
+			resp.ErrMap[recordID] = err
+			continue
 		}
+		records = append(records, record)
 	}
 
 	if req.HookRegistry != nil {

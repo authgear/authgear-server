@@ -124,7 +124,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 					"_id": "note/readonly",
 					"_type": "error",
 					"code":102,
-					"message": "no permission to delete",
+					"message": "no permission to perform operation",
 					"name": "PermissionDenied"
 				}]
 			}`)
@@ -297,7 +297,7 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_id": "note/readonly",
 					"_type": "error",
 					"code": 102,
-					"message": "no permission to modify",
+					"message": "no permission to perform operation",
 					"name": "PermissionDenied"
 				}]
 			}`)
@@ -378,8 +378,8 @@ func TestRecordSaveDataType(t *testing.T) {
 		conn := skydbtest.NewMapConn()
 		conn.AssetMap = map[string]skydb.Asset{
 			"asset-name": skydb.Asset{
-						Name: "asset-name",
-						ContentType: "plain/text",
+				Name:        "asset-name",
+				ContentType: "plain/text",
 			},
 		}
 
@@ -450,7 +450,7 @@ func TestRecordSaveDataType(t *testing.T) {
 				ID: skydb.NewRecordID("type1", "id1"),
 				Data: map[string]interface{}{
 					"asset": &skydb.Asset{
-						Name: "asset-name",
+						Name:        "asset-name",
 						ContentType: "plain/text",
 					},
 				},
@@ -559,7 +559,6 @@ func (db bogusFieldDatabase) Get(id skydb.RecordID, record *skydb.Record) error 
 func (db bogusFieldDatabase) Save(record *skydb.Record) error {
 	return db.SaveFunc(record)
 }
-
 
 func (db bogusFieldDatabase) GetSchema(recordType string) (skydb.RecordSchema, error) {
 	return skydb.RecordSchema{}, nil
@@ -1296,7 +1295,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 			OwnerID: "ownerID",
 		}
 		db := &singleRecordDatabase{
-			record: record,
+			record:       record,
 			recordSchema: skydb.RecordSchema{},
 		}
 		conn := skydbtest.NewMapConn()
@@ -1478,7 +1477,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 			ID: skydb.NewRecordID("record", "id"),
 			Data: map[string]interface{}{
 				"asset": &skydb.Asset{
-					Name: "asset-name",
+					Name:        "asset-name",
 					ContentType: "plain/text",
 				},
 			},
@@ -1517,7 +1516,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 			ID: skydb.NewRecordID("record", "id"),
 			Data: map[string]interface{}{
 				"asset": &skydb.Asset{
-					Name: "asset-name",
+					Name:        "asset-name",
 					ContentType: "plain/text",
 				},
 			},
@@ -1627,11 +1626,11 @@ func (db *referencedRecordDatabase) GetSchema(recordType string) (skydb.RecordSc
 	typemap := map[string]skydb.RecordSchema{
 		"note": skydb.RecordSchema{
 			"category": skydb.FieldType{
-				Type: skydb.TypeReference,
+				Type:          skydb.TypeReference,
 				ReferenceType: "category",
 			},
 			"city": skydb.FieldType{
-				Type: skydb.TypeReference,
+				Type:          skydb.TypeReference,
 				ReferenceType: "city",
 			},
 		},

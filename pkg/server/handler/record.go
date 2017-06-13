@@ -437,37 +437,21 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 	}
 
 	db := payload.Database
+	fetcher := newRecordFetcher(db, payload.DBConn, payload.HasMasterKey())
 
 	results := make([]interface{}, p.ItemLen(), p.ItemLen())
 	for i, recordID := range p.RecordIDs {
-		record := skydb.Record{}
-		if err := db.Get(recordID, &record); err != nil {
-			if err == skydb.ErrRecordNotFound {
-				results[i] = newSerializedError(
-					recordID.String(),
-					skyerr.NewError(skyerr.ResourceNotFound, "record not found"),
-				)
-			} else {
-				log.WithFields(logrus.Fields{
-					"recordID": recordID,
-					"err":      err,
-				}).Errorln("Failed to fetch record")
-				results[i] = newSerializedError(
-					recordID.String(),
-					skyerr.NewResourceFetchFailureErr("record", recordID.String()),
-				)
-			}
-		} else {
-			if payload.HasMasterKey() || record.Accessible(payload.UserInfo, skydb.ReadLevel) {
-				injectSigner(&record, h.AssetStore)
-				results[i] = (*skyconv.JSONRecord)(&record)
-			} else {
-				results[i] = newSerializedError(
-					recordID.String(),
-					skyerr.NewError(skyerr.PermissionDenied, "no permission to read"),
-				)
-			}
+		record, err := fetcher.fetchRecord(recordID, payload.UserInfo, skydb.ReadLevel)
+		if err != nil {
+			results[i] = newSerializedError(
+				recordID.String(),
+				err,
+			)
+			continue
 		}
+
+		injectSigner(record, h.AssetStore)
+		results[i] = (*skyconv.JSONRecord)(record)
 	}
 
 	response.Result = results
