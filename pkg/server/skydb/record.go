@@ -255,6 +255,22 @@ func (r *Record) Set(key string, i interface{}) {
 	}
 }
 
+func (r *Record) Remove(key string) {
+	if key[0] == '_' {
+		panic(fmt.Sprintf("cannot remove reserved key: %s", key))
+	}
+
+	delete(r.Data, key)
+}
+
+func (r *Record) UserKeys() []string {
+	var keys []string
+	for key := range r.Data {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
 func (r *Record) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
 	if r.ACL == nil {
 		return true

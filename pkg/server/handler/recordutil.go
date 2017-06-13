@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -22,6 +23,16 @@ func injectSigner(record *skydb.Record, store asset.Store) {
 			} else {
 				log.Warnf("Failed to acquire asset URLSigner, please check configuration")
 			}
+		}
+	}
+}
+
+// scrubRecordFieldsForRead checks the field ACL to remove the fields
+// from a skydb.Record that the user is not allowed to read.
+func scrubRecordFieldsForRead(userInfo *skydb.UserInfo, record *skydb.Record, fieldACL skydb.FieldACL) {
+	for _, key := range record.UserKeys() {
+		if !fieldACL.Accessible(record.ID.Type, key, skydb.ReadFieldAccessMode, userInfo, record) {
+			record.Remove(key)
 		}
 	}
 }
@@ -694,4 +705,20 @@ func makeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, recor
 		injectSigner(record, store)
 	}
 	return nil
+}
+
+type recordResultFilter struct {
+	AssetStore asset.Store
+	FieldACL   skydb.FieldACL
+	UserInfo   *skydb.UserInfo
+}
+
+func (f *recordResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecord {
+	if record == nil {
+		return nil
+	}
+
+	scrubRecordFieldsForRead(f.UserInfo, record, f.FieldACL)
+	injectSigner(record, f.AssetStore)
+	return (*skyconv.JSONRecord)(record)
 }

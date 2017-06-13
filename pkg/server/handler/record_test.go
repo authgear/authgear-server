@@ -1313,6 +1313,81 @@ func (db *singleRecordDatabase) GetSchema(recordType string) (skydb.RecordSchema
 	return db.recordSchema, nil
 }
 
+func TestRecordFetchHandler(t *testing.T) {
+	timeNow = func() time.Time { return ZeroTime }
+	defer func() {
+		timeNow = timeNowUTC
+	}()
+
+	Convey("RecordFetchHandler with Field ACL", t, func() {
+		db := skydbtest.NewMapDB()
+		db.RecordSchemaMap = skydbtest.RecordSchemaMap{
+			"note": {
+				"content":  skydb.FieldType{Type: skydb.TypeString},
+				"favorite": skydb.FieldType{Type: skydb.TypeBoolean},
+				"category": skydb.FieldType{Type: skydb.TypeString},
+			},
+		}
+		conn := skydbtest.NewMapConn()
+		publicRole := skydb.FieldUserRole{skydb.PublicFieldUserRoleType, ""}
+
+		db.Save(&skydb.Record{
+			ID:        skydb.NewRecordID("note", "note0"),
+			OwnerID:   "user0",
+			CreatorID: "user0",
+			CreatedAt: timeNow(),
+			UpdaterID: "user0",
+			UpdatedAt: timeNow(),
+			Data: map[string]interface{}{
+				"content":  "Hello World!",
+				"category": "interesting",
+			},
+		})
+
+		conn.SetRecordFieldAccess(skydb.NewFieldACL(skydb.FieldACLEntryList{
+			{
+				RecordType:  "*",
+				RecordField: "*",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    true,
+			},
+			{
+				RecordType:  "note",
+				RecordField: "category",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    false,
+			},
+		}))
+
+		r := handlertest.NewSingleRouteRouter(&RecordFetchHandler{}, func(payload *router.Payload) {
+			payload.DBConn = conn
+			payload.Database = db
+			payload.UserInfo = &skydb.UserInfo{
+				ID: "user0",
+			}
+		})
+
+		Convey("should fetch without non-readable fields", func() {
+			resp := r.POST(`{
+				"ids": ["note/note0"]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note0",
+					"_type": "record",
+					"_access": null,
+					"content": "Hello World!",
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+		})
+	})
+}
+
 func TestRecordOwnerIDSerialization(t *testing.T) {
 	timeNow = func() time.Time { return ZeroTime }
 	defer func() {

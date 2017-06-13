@@ -279,6 +279,18 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
+	resultFilter := recordResultFilter{
+		AssetStore: h.AssetStore,
+		UserInfo:   payload.UserInfo,
+		FieldACL: func() skydb.FieldACL {
+			acl, err := payload.DBConn.GetRecordFieldAccess()
+			if err != nil {
+				panic(err)
+			}
+			return acl
+		}(),
+	}
+
 	log.Debugf("Working with accessModel %v", h.AccessModel)
 
 	req := recordModifyRequest{
@@ -338,7 +350,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 			} else {
 				record := resp.SavedRecords[currRecordIdx]
 				currRecordIdx++
-				result = (*skyconv.JSONRecord)(record)
+				result = resultFilter.JSONResult(record)
 			}
 		default:
 			panic(fmt.Sprintf("unknown type of incoming item: %T", itemi))
@@ -437,6 +449,17 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 	}
 
 	db := payload.Database
+	resultFilter := recordResultFilter{
+		AssetStore: h.AssetStore,
+		UserInfo:   payload.UserInfo,
+		FieldACL: func() skydb.FieldACL {
+			acl, err := payload.DBConn.GetRecordFieldAccess()
+			if err != nil {
+				panic(err)
+			}
+			return acl
+		}(),
+	}
 	fetcher := newRecordFetcher(db, payload.DBConn, payload.HasMasterKey())
 
 	results := make([]interface{}, p.ItemLen(), p.ItemLen())
@@ -449,9 +472,7 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 			)
 			continue
 		}
-
-		injectSigner(record, h.AssetStore)
-		results[i] = (*skyconv.JSONRecord)(record)
+		results[i] = resultFilter.JSONResult(record)
 	}
 
 	response.Result = results
@@ -555,6 +576,18 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
+	resultFilter := recordResultFilter{
+		AssetStore: h.AssetStore,
+		UserInfo:   payload.UserInfo,
+		FieldACL: func() skydb.FieldACL {
+			acl, err := payload.DBConn.GetRecordFieldAccess()
+			if err != nil {
+				panic(err)
+			}
+			return acl
+		}(),
+	}
+
 	// Scan does not query assets,
 	// it only replaces them with assets then only have name,
 	// so we replace them with some complete assets.
@@ -579,8 +612,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 				id := eagers[keyPath][i]
 				eagerRecord := eagerRecords[keyPath][id.Key]
 				if eagerRecord != nil {
-					injectSigner(eagerRecord, h.AssetStore)
-					transientValue = (*skyconv.JSONRecord)(eagerRecord)
+					transientValue = resultFilter.JSONResult(eagerRecord)
 				}
 			}
 
@@ -590,8 +622,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 			record.Transient[transientKey] = transientValue
 		}
 
-		injectSigner(&record, h.AssetStore)
-		output[i] = (*skyconv.JSONRecord)(&record)
+		output[i] = resultFilter.JSONResult(&record)
 	}
 
 	response.Result = output
