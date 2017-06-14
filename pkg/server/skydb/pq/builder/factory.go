@@ -27,7 +27,7 @@ type PredicateSqlizerFactory interface {
 	UpdateTypemap(typemap skydb.RecordSchema) skydb.RecordSchema
 	AddJoinsToSelectBuilder(q sq.SelectBuilder) sq.SelectBuilder
 	NewPredicateSqlizer(p skydb.Predicate) (sq.Sqlizer, error)
-	NewAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error)
+	NewAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.RecordACLLevel) (sq.Sqlizer, error)
 }
 
 // predicateSqlizerFactory is a factory for creating sqlizer for predicate
@@ -194,7 +194,7 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 	return sqlizers, nil
 }
 
-func (f *predicateSqlizerFactory) NewAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.ACLLevel) (sq.Sqlizer, error) {
+func (f *predicateSqlizerFactory) NewAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.RecordACLLevel) (sq.Sqlizer, error) {
 	return &accessPredicateSqlizer{
 		user,
 		aclLevel,

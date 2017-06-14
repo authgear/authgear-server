@@ -175,6 +175,17 @@ func (_mr *_MockConnRecorder) GetRecordDefaultAccess(arg0 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRecordDefaultAccess", arg0)
 }
 
+func (_m *MockConn) GetRecordFieldAccess() (skydb.FieldACL, error) {
+	ret := _m.ctrl.Call(_m, "GetRecordFieldAccess")
+	ret0, _ := ret[0].(skydb.FieldACL)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockConnRecorder) GetRecordFieldAccess() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRecordFieldAccess")
+}
+
 func (_m *MockConn) GetUser(_param0 string, _param1 *skydb.UserInfo) error {
 	ret := _m.ctrl.Call(_m, "GetUser", _param0, _param1)
 	ret0, _ := ret[0].(error)
@@ -347,6 +358,16 @@ func (_m *MockConn) SetRecordDefaultAccess(_param0 string, _param1 skydb.RecordA
 
 func (_mr *_MockConnRecorder) SetRecordDefaultAccess(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRecordDefaultAccess", arg0, arg1)
+}
+
+func (_m *MockConn) SetRecordFieldAccess(_param0 skydb.FieldACL) error {
+	ret := _m.ctrl.Call(_m, "SetRecordFieldAccess", _param0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockConnRecorder) SetRecordFieldAccess(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRecordFieldAccess", arg0)
 }
 
 func (_m *MockConn) Subscribe(_param0 chan skydb.RecordEvent) error {
