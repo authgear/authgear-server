@@ -1,20 +1,14 @@
-#Setup for Linux Debian / Ubuntu
+# Setup for Linux Debian / Ubuntu
 
-##Install Required Dependency
+## Install Required Dependencies
 
 ```
-apt-get install postgresql
-apt-get install golang
-apt-get install postgis
-apt-get install postgresql-client
-apt-get install postgresql-contrib
-apt-get install software-properties-common
-apt-get install redis-server
-apt-get install libsodium-dev
-apt-get install libghc-zeromq4-haskell-dev
+apt-get update
+apt-get install libsodium18 libzmq5 postgresql-9.5-postgis-2.2 redis-server
 ```
 
-##Setup Database
+## Setup Database
+
 ```
 service postgresql start
 sudo -u postgres psql postgres
@@ -23,13 +17,15 @@ sudo -u postgres psql postgres
 \q
 ```
 
-##Download and Start Skygear
+## Download and Start Skygear
+
 ```
 mkdir skygear
 cd skygear/
 touch .env
-<configurate .env file>
-curl -s -L https://github.com/SkygearIO/skygear-server/releases/latest | egrep -o '/SkygearIO/skygear-server/releases/download/[v.0-9]*/skygear-server-linux-amd64' | wget --base=http://github.com/ -i - -O skygear
-chmod +x skygear
-./skygear
+# <configurate .env file>
+wget https://github.com/$(wget https://github.com/SkygearIO/skygear-server/releases/latest -O - | egrep '/.*/.*/.*linux-amd64.tar.gz' -o)
+tar zxf skygear-server-linux-amd64.tar.gz
+mv skygear-server-linux-amd64 skygear-server
+./skygear-server
 ```
