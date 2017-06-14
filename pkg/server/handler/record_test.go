@@ -367,6 +367,150 @@ func TestRecordSaveHandler(t *testing.T) {
 			}`)
 		})
 	})
+
+	Convey("RecordSaveHandler with Field ACL", t, func() {
+		mapDB := skydbtest.NewMapDB()
+		mapDB.RecordSchemaMap = skydbtest.RecordSchemaMap{
+			"note": {
+				"content":  skydb.FieldType{Type: skydb.TypeString},
+				"favorite": skydb.FieldType{Type: skydb.TypeBoolean},
+				"category": skydb.FieldType{Type: skydb.TypeString},
+			},
+		}
+		db := skydbtest.NewMockTxDatabase(mapDB)
+		conn := skydbtest.NewMapConn()
+		publicRole := skydb.FieldUserRole{skydb.PublicFieldUserRoleType, ""}
+
+		db.Save(&skydb.Record{
+			ID:        skydb.NewRecordID("note", "note0"),
+			OwnerID:   "user0",
+			CreatorID: "user0",
+			CreatedAt: timeNow(),
+			UpdaterID: "user0",
+			UpdatedAt: timeNow(),
+			Data: map[string]interface{}{
+				"content":  "Hello World!",
+				"favorite": true,
+				"category": "interesting",
+			},
+		})
+
+		conn.SetRecordFieldAccess(skydb.NewFieldACL(skydb.FieldACLEntryList{
+			{
+				RecordType:  "*",
+				RecordField: "*",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    true,
+			},
+			{
+				RecordType:  "note",
+				RecordField: "content",
+				UserRole:    publicRole,
+				Writable:    false,
+				Readable:    true,
+			},
+			{
+				RecordType:  "note",
+				RecordField: "category",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    false,
+			},
+			{
+				RecordType:  "note",
+				RecordField: "*",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    true,
+			},
+		}))
+
+		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
+			payload.DBConn = conn
+			payload.Database = db
+			payload.UserInfo = &skydb.UserInfo{
+				ID: "user0",
+			}
+		})
+
+		Convey("should not save to read only field", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "note/note0",
+					"content": "Bye World!",
+					"favorite": false
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note0",
+					"_type": "record",
+					"_access": null,
+					"content": "Hello World!",
+					"favorite": false,
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+			So(mapDB.RecordMap["note/note0"].Data["content"], ShouldEqual, "Hello World!")
+			So(mapDB.RecordMap["note/note0"].Data["favorite"], ShouldEqual, false)
+		})
+
+		Convey("should fail request if atomic save to read only field", func() {
+			resp := r.POST(`{
+				"atomic": true,
+				"records": [{
+					"_id": "note/note0",
+					"content": "Bye World!",
+					"favorite": false
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code":115,
+					"info": {
+						"note/note0": {
+							"code":123,
+							"info": { "arguments":["content"] },
+							"message":"Unable to save to some record fields because of Field ACL denied update.",
+							"name":"DeniedArgument"
+						}
+					},
+					"message":"Atomic Operation rolled back due to one or more errors",
+					"name":"AtomicOperationFailure"
+				}
+			}`)
+			So(mapDB.RecordMap["note/note0"].Data["content"], ShouldEqual, "Hello World!")
+			So(mapDB.RecordMap["note/note0"].Data["favorite"], ShouldEqual, true)
+		})
+
+		Convey("should not fail request if read only field did not change", func() {
+			resp := r.POST(`{
+				"atomic": true,
+				"records": [{
+					"_id": "note/note0",
+					"content": "Hello World!",
+					"favorite": false
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note0",
+					"_type": "record",
+					"_access": null,
+					"content": "Hello World!",
+					"favorite": false,
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+			So(mapDB.RecordMap["note/note0"].Data["content"], ShouldEqual, "Hello World!")
+			So(mapDB.RecordMap["note/note0"].Data["favorite"], ShouldEqual, false)
+		})
+	})
 }
 
 func TestRecordSaveDataType(t *testing.T) {

@@ -37,6 +37,35 @@ func scrubRecordFieldsForRead(userInfo *skydb.UserInfo, record *skydb.Record, fi
 	}
 }
 
+// scrubRecordFieldsForWrite checks the field ACL for write access.
+// Depending on whether the request is an atomic one, this function
+// will either remove the fields if the user is not allowed access if atomic
+// is false, or will return an error.
+func scrubRecordFieldsForWrite(userInfo *skydb.UserInfo, record *skydb.Record, origRecord *skydb.Record, fieldACL skydb.FieldACL, atomic bool) skyerr.Error {
+	nonWritableFields := []string{}
+
+	var deltaRecord skydb.Record
+	deriveDeltaRecord(&deltaRecord, origRecord, record)
+
+	for key := range deltaRecord.Data {
+		if fieldACL.Accessible(record.ID.Type, key, skydb.WriteFieldAccessMode, userInfo, origRecord) {
+			continue
+		}
+
+		if atomic {
+			nonWritableFields = append(nonWritableFields, key)
+			continue
+		}
+
+		record.Remove(key)
+	}
+
+	if len(nonWritableFields) > 0 {
+		return skyerr.NewDeniedArgument("Unable to save to some record fields because of Field ACL denied update.", nonWritableFields)
+	}
+	return nil
+}
+
 type recordModifyFunc func(*recordModifyRequest, *recordModifyResponse) skyerr.Error
 
 func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFunc recordModifyFunc) recordModifyFunc {
@@ -239,6 +268,10 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	records := req.RecordsToSave
 
 	fetcher := newRecordFetcher(db, req.Conn, req.WithMasterKey)
+	fieldACL, err := req.Conn.GetRecordFieldAccess()
+	if err != nil {
+		return skyerr.MakeError(err)
+	}
 
 	// fetch records
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
@@ -250,6 +283,17 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 
 		if dbRecord == nil {
 			panic("unable to fetch record")
+		}
+
+		err = scrubRecordFieldsForWrite(
+			req.UserInfo,
+			record,
+			dbRecord,
+			fieldACL,
+			req.Atomic,
+		)
+		if err != nil {
+			return
 		}
 
 		now := timeNow()
