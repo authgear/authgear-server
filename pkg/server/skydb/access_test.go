@@ -76,6 +76,15 @@ func TestFieldACL(t *testing.T) {
 		Convey("should check accessible for specific record type", func() {
 			acl := NewFieldACL(FieldACLEntryList{
 				{
+					RecordType:   "*",
+					RecordField:  "*",
+					UserRole:     publicRole,
+					Writable:     true,
+					Readable:     true,
+					Comparable:   true,
+					Discoverable: true,
+				},
+				{
 					RecordType:   "note",
 					RecordField:  "*",
 					UserRole:     publicRole,

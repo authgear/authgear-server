@@ -226,7 +226,7 @@ func (acl FieldACL) Accessible(
 	}
 
 	// There are Field ACL entries, find an ACL entry that grants the access.
-	for _, recordType := range []string{WildcardRecordType, recordType} {
+	for _, recordType := range []string{recordType, WildcardRecordType} {
 		if list, ok := acl.recordTypes[recordType]; ok {
 			if list.Accessible(userinfo, record, recordType, field, mode) {
 				return true
