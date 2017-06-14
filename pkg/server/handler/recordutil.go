@@ -148,7 +148,7 @@ func (f recordFetcher) getDefaultAccess(recordType string) skydb.RecordACL {
 	return defaultAccess
 }
 
-func (f recordFetcher) fetchRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo, accessLevel skydb.ACLLevel) (record *skydb.Record, err skyerr.Error) {
+func (f recordFetcher) fetchRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo, accessLevel skydb.RecordACLLevel) (record *skydb.Record, err skyerr.Error) {
 	dbRecord := skydb.Record{}
 	if dbErr := f.db.Get(recordID, &dbRecord); dbErr != nil {
 		if dbErr == skydb.ErrRecordNotFound {
