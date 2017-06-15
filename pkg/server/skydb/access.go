@@ -291,9 +291,9 @@ type FieldACLEntry struct {
 func (entry FieldACLEntry) Compare(other FieldACLEntry) int {
 	compare := func(a, b, wildcard string) int {
 		if a == wildcard && b != wildcard {
-			return -1
-		} else if b == wildcard && a != wildcard {
 			return 1
+		} else if b == wildcard && a != wildcard {
+			return -1
 		}
 		return strings.Compare(a, b)
 	}

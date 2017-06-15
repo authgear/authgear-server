@@ -32,30 +32,29 @@ func TestFieldACL(t *testing.T) {
 		})
 
 		Convey("NewFieldACL should create a Field ACL with entries", func() {
-			entryList := []FieldACLEntry{
-				{
-					RecordType:   "*",
-					RecordField:  "*",
-					UserRole:     publicRole,
-					Writable:     true,
-					Readable:     true,
-					Comparable:   true,
-					Discoverable: true,
-				},
-				{
-					RecordType:   "note",
-					RecordField:  "*",
-					UserRole:     publicRole,
-					Writable:     true,
-					Readable:     true,
-					Comparable:   true,
-					Discoverable: true,
-				},
+			entry1 := FieldACLEntry{
+				RecordType:   "*",
+				RecordField:  "*",
+				UserRole:     publicRole,
+				Writable:     true,
+				Readable:     true,
+				Comparable:   true,
+				Discoverable: true,
 			}
+			entry2 := FieldACLEntry{
+				RecordType:   "note",
+				RecordField:  "*",
+				UserRole:     publicRole,
+				Writable:     true,
+				Readable:     true,
+				Comparable:   true,
+				Discoverable: true,
+			}
+			entryList := []FieldACLEntry{entry1, entry2}
 			acl := NewFieldACL(FieldACLEntryList(entryList))
 			So(acl, ShouldNotBeNil)
-			So(acl.recordTypes[WildcardRecordType][0], ShouldResemble, entryList[0])
-			So(acl.recordTypes["note"][0], ShouldResemble, entryList[1])
+			So(acl.recordTypes[WildcardRecordType][0], ShouldResemble, entry1)
+			So(acl.recordTypes["note"][0], ShouldResemble, entry2)
 		})
 
 		Convey("should check accessible for wildcard record type", func() {
@@ -140,9 +139,9 @@ func TestFieldACLEntryList(t *testing.T) {
 				}
 				sort.Stable(entries)
 				So(entries, ShouldResemble, FieldACLEntryList{
-					{"*", "*", publicRole, false, false, false, false},
-					{"*", "content", anyUserRole, false, false, true, true},
 					{"note", "*", publicRole, true, true, false, false},
+					{"*", "content", anyUserRole, false, false, true, true},
+					{"*", "*", publicRole, false, false, false, false},
 				})
 			})
 		})
@@ -184,8 +183,8 @@ func TestFieldACLEntry(t *testing.T) {
 			}
 
 			So(compare("note", "*", "_public", "note", "*", "_public"), ShouldEqual, 0)
-			So(compare("*", "*", "_public", "note", "*", "_public"), ShouldBeLessThan, 0)
-			So(compare("*", "content", "_public", "*", "*", "_public"), ShouldBeGreaterThan, 0)
+			So(compare("*", "*", "_public", "note", "*", "_public"), ShouldBeGreaterThan, 0)
+			So(compare("*", "content", "_public", "*", "*", "_public"), ShouldBeLessThan, 0)
 			So(compare("*", "*", "_public", "*", "*", "_any_user"), ShouldBeGreaterThan, 0)
 		})
 	})
