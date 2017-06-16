@@ -171,26 +171,6 @@ func NewFieldACL(list FieldACLEntryList) FieldACL {
 	return acl
 }
 
-// NewFieldACLDefault returns a struct of FieldACL with a default setting
-// if the default setting is not otherwise specified.
-func NewFieldACLDefault(list FieldACLEntryList, defEntry FieldACLEntry) FieldACL {
-	acl := NewFieldACL(list)
-	entry := acl.FindDefaultEntry()
-	if entry == nil {
-		// There is no entry with wildcard record type and record field,
-		// add the default entry to the wildcardRecordType list
-		defEntry.RecordType = WildcardRecordType
-		defEntry.RecordField = WildcardRecordField
-		defEntry.UserRole = defaultFieldUserRole
-
-		// It is okay if not exists, the returned slice is empty
-		entries, _ := acl.recordTypes[WildcardRecordType]
-		acl.recordTypes[WildcardRecordType] = append(entries, defEntry)
-	}
-
-	return acl
-}
-
 // AllEntries return all ACL entries in FieldACL.
 func (acl FieldACL) AllEntries() FieldACLEntryList {
 	var result FieldACLEntryList
@@ -200,74 +180,78 @@ func (acl FieldACL) AllEntries() FieldACLEntryList {
 	return result
 }
 
-// FindDefaultEntry finds the default ACL entry in FieldACL.
-//
-// This function returns nil if the default ACL entry is not contained
-// in the FieldACL.
-func (acl FieldACL) FindDefaultEntry() *FieldACLEntry {
-	if list, ok := acl.recordTypes[WildcardRecordType]; ok {
-		return list.findDefaultEntry()
-	}
-	return nil
-}
-
 // Accessible returns true when the access mode is allowed access
 func (acl FieldACL) Accessible(
-	userinfo *UserInfo,
-	record *Record,
 	recordType string,
 	field string,
 	mode FieldAccessMode,
+	userInfo *UserInfo,
+	record *Record,
 ) bool {
-	// If there is no Field ACL entry (i.e. empty), the default is to grant
-	// access. This could happen for testing purpose.
-	if len(acl.recordTypes) == 0 {
-		return true
+	iter := NewFieldACLIterator(acl, recordType, field)
+	for {
+		entry := iter.Next()
+		if entry == nil {
+			// There is no matching ACL entry, the fallback is to grant access.
+			return true
+		}
+
+		if !entry.UserRole.Match(userInfo, record) {
+			continue
+		}
+
+		return entry.Accessible(mode)
+	}
+}
+
+type FieldACLIterator struct {
+	acl         FieldACL
+	recordType  string
+	recordField string
+
+	nextRecordTypes []string
+	nextEntries     []FieldACLEntry
+	eof             bool
+}
+
+func NewFieldACLIterator(acl FieldACL, recordType, recordField string) *FieldACLIterator {
+	return &FieldACLIterator{
+		acl:             acl,
+		recordType:      recordType,
+		recordField:     recordField,
+		nextRecordTypes: []string{recordType, WildcardRecordType},
+	}
+}
+
+func (i *FieldACLIterator) Next() *FieldACLEntry {
+	if i.eof {
+		return nil
 	}
 
-	// There are Field ACL entries, find an ACL entry that grants the access.
-	for _, recordType := range []string{recordType, WildcardRecordType} {
-		if list, ok := acl.recordTypes[recordType]; ok {
-			if list.Accessible(userinfo, record, recordType, field, mode) {
-				return true
+	var nextEntry FieldACLEntry
+	for {
+		for len(i.nextEntries) == 0 {
+			if len(i.nextRecordTypes) == 0 {
+				i.eof = true
+				return nil
 			}
+
+			var nextRecordType string
+			nextRecordType, i.nextRecordTypes = i.nextRecordTypes[0], i.nextRecordTypes[1:]
+			i.nextEntries, _ = i.acl.recordTypes[nextRecordType]
+		}
+
+		nextEntry, i.nextEntries = i.nextEntries[0], i.nextEntries[1:]
+		if (nextEntry.RecordType == WildcardRecordType || nextEntry.RecordType == i.recordType) &&
+			(nextEntry.RecordField == WildcardRecordField || nextEntry.RecordField == i.recordField) {
+			break
 		}
 	}
-
-	// If there exists any Field ACL entries but none grants the access,
-	// the default is to deny access.
-	return false
+	return &nextEntry
 }
 
 // FieldACLEntryList contains a list of field ACL entries
 type FieldACLEntryList []FieldACLEntry
-
-// Accessible returns true when the access mode is allowed access
-func (list FieldACLEntryList) Accessible(
-	userinfo *UserInfo,
-	record *Record,
-	recordType string,
-	field string,
-	mode FieldAccessMode,
-) bool {
-	for _, entry := range list {
-		if entry.Accessible(userinfo, record, recordType, field, mode) {
-			return true
-		}
-	}
-	return false
-}
-
-func (list FieldACLEntryList) findDefaultEntry() *FieldACLEntry {
-	for _, entry := range list {
-		if entry.RecordType == WildcardRecordType &&
-			entry.RecordField == WildcardRecordField &&
-			entry.UserRole == defaultFieldUserRole {
-			return &entry
-		}
-	}
-	return nil
-}
 
 func (list FieldACLEntryList) Len() int           { return len(list) }
 func (list FieldACLEntryList) Swap(i, j int)      { list[i], list[j] = list[j], list[i] }
@@ -311,23 +295,10 @@ func (entry FieldACLEntry) Compare(other FieldACLEntry) int {
 	return entry.UserRole.Compare(other.UserRole)
 }
 
-// Accessible returns true when the access mode is allowed access
-func (entry FieldACLEntry) Accessible(
-	userinfo *UserInfo,
-	record *Record,
-	recordType string,
-	field string,
-	mode FieldAccessMode,
-) bool {
-	if (entry.RecordType != recordType && entry.RecordType != WildcardRecordType) ||
-		(entry.RecordField != field && entry.RecordField != WildcardRecordField) {
-		return false
-	}
-
-	if !entry.UserRole.Match(userinfo, record) {
-		return false
-	}
-
+// Accessible returns true when the entry grants access for
+// the specified access mode. This function does not consider whether
+// the entry matches the user role or record type.
+func (entry FieldACLEntry) Accessible(mode FieldAccessMode) bool {
 	return (mode == ReadFieldAccessMode && entry.Readable) ||
 		(mode == WriteFieldAccessMode && entry.Writable) ||
 		(mode == CompareFieldAccessMode && entry.Comparable) ||
