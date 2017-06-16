@@ -321,7 +321,7 @@ func (db *MapDB) DatabaseType() skydb.DatabaseType { return skydb.PublicDatabase
 
 // ID returns a mock Database ID.
 func (db *MapDB) ID() string {
-	return "map-db"
+	return ""
 }
 
 func (db *MapDB) UserRecordType() string {

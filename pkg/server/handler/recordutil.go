@@ -174,7 +174,7 @@ func (f recordFetcher) fetchRecord(recordID skydb.RecordID, userInfo *skydb.User
 	return
 }
 
-func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo) (record *skydb.Record, err skyerr.Error) {
+func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo) (record *skydb.Record, created bool, err skyerr.Error) {
 	record, err = f.fetchRecord(recordID, userInfo, skydb.WriteLevel)
 	if err == nil {
 		return
@@ -199,6 +199,7 @@ func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *sk
 		}
 
 		record = &skydb.Record{}
+		created = true
 		err = nil
 	}
 
@@ -231,19 +232,36 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	// fetch records
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
 	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-		dbRecord, err := fetcher.fetchOrCreateRecord(record.ID, req.UserInfo)
-
-		if dbRecord == nil || err != nil {
+		dbRecord, created, err := fetcher.fetchOrCreateRecord(record.ID, req.UserInfo)
+		if err != nil {
 			return err
 		}
 
-		var origRecord skydb.Record
-		copyRecord(&origRecord, dbRecord)
-		injectSigner(&origRecord, req.AssetStore)
-		originalRecordMap[origRecord.ID] = &origRecord
+		if dbRecord == nil {
+			panic("unable to fetch record")
+		}
 
-		mergeRecord(dbRecord, record)
+		now := timeNow()
+		if created {
+			dbRecord.ID = record.ID
+			dbRecord.DatabaseID = db.ID()
+			dbRecord.OwnerID = req.UserInfo.ID
+			dbRecord.CreatedAt = now
+			dbRecord.CreatorID = req.UserInfo.ID
+			dbRecord.UpdatedAt = now
+			dbRecord.UpdaterID = req.UserInfo.ID
+		}
+
+		if !created {
+			origRecord := dbRecord.Copy()
+			injectSigner(origRecord, req.AssetStore)
+			originalRecordMap[origRecord.ID] = origRecord
+		}
+
+		dbRecord.Apply(record)
 		*record = *dbRecord
+		record.UpdatedAt = now
+		record.UpdaterID = req.UserInfo.ID
 
 		return
 	})
@@ -260,14 +278,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	// execute before save hooks
 	if req.HookRegistry != nil {
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-			originalRecord, ok := originalRecordMap[record.ID]
-			// FIXME: Hot-fix for issues #528
-			// Defaults for record attributes should be provided
-			// before executing hooks
-			if !ok {
-				record.OwnerID = req.UserInfo.ID
-			}
-
+			originalRecord, _ := originalRecordMap[record.ID]
 			err = req.HookRegistry.ExecuteHooks(req.Context, hook.BeforeSave, record, originalRecord)
 			return
 		})
@@ -290,22 +301,12 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 
 	// save records
 	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-		now := timeNow()
-
 		var deltaRecord skydb.Record
-		originalRecord, ok := originalRecordMap[record.ID]
-		if !ok {
-			originalRecord = &skydb.Record{}
-
-			record.OwnerID = req.UserInfo.ID
-			record.CreatedAt = now
-			record.CreatorID = req.UserInfo.ID
+		if originalRecord, ok := originalRecordMap[record.ID]; ok {
+			deriveDeltaRecord(&deltaRecord, originalRecord, record)
+		} else {
+			deltaRecord = *record
 		}
-
-		record.UpdatedAt = now
-		record.UpdaterID = req.UserInfo.ID
-
-		deriveDeltaRecord(&deltaRecord, originalRecord, record)
 
 		if dbErr := db.Save(&deltaRecord); dbErr != nil {
 			err = skyerr.MakeError(dbErr)
@@ -351,32 +352,6 @@ func executeRecordFunc(recordsIn []*skydb.Record, errMap map[skydb.RecordID]skye
 	}
 
 	return
-}
-
-func copyRecord(dst, src *skydb.Record) {
-	*dst = *src
-
-	dst.Data = map[string]interface{}{}
-	for key, value := range src.Data {
-		dst.Data[key] = value
-	}
-}
-
-func mergeRecord(dst, src *skydb.Record) {
-	dst.ID = src.ID
-	dst.ACL = src.ACL
-
-	if src.DatabaseID != "" {
-		dst.DatabaseID = src.DatabaseID
-	}
-
-	if dst.Data == nil {
-		dst.Data = map[string]interface{}{}
-	}
-
-	for key, value := range src.Data {
-		dst.Data[key] = value
-	}
 }
 
 // Derive fields in delta which is either new or different from base, and
