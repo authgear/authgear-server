@@ -576,52 +576,33 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	resultFilter := recordResultFilter{
-		AssetStore: h.AssetStore,
-		UserInfo:   payload.UserInfo,
-		FieldACL: func() skydb.FieldACL {
-			acl, err := payload.DBConn.GetRecordFieldAccess()
-			if err != nil {
-				panic(err)
-			}
-			return acl
-		}(),
-	}
-
 	// Scan does not query assets,
 	// it only replaces them with assets then only have name,
 	// so we replace them with some complete assets.
 	makeAssetsComplete(db, payload.DBConn, records)
 
-	eagers := eagerIDs(db, records, p.Query)
-	eagerRecords := doQueryEager(db, eagers)
+	eagerRecords := doQueryEager(db, eagerIDs(db, records, p.Query))
+
+	resultFilter := queryResultFilter{
+		Database:     db,
+		Query:        p.Query,
+		EagerRecords: eagerRecords,
+		recordResultFilter: recordResultFilter{
+			AssetStore: h.AssetStore,
+			UserInfo:   payload.UserInfo,
+			FieldACL: func() skydb.FieldACL {
+				acl, err := payload.DBConn.GetRecordFieldAccess()
+				if err != nil {
+					panic(err)
+				}
+				return acl
+			}(),
+		},
+	}
 
 	output := make([]interface{}, len(records))
 	for i := range records {
 		record := records[i]
-
-		for transientKey, transientExpression := range p.Query.ComputedKeys {
-			if transientExpression.Type != skydb.KeyPath {
-				continue
-			}
-
-			keyPath := transientExpression.Value.(string)
-			val := record.Get(keyPath)
-			var transientValue interface{}
-			if val != nil {
-				id := eagers[keyPath][i]
-				eagerRecord := eagerRecords[keyPath][id.Key]
-				if eagerRecord != nil {
-					transientValue = resultFilter.JSONResult(eagerRecord)
-				}
-			}
-
-			if record.Transient == nil {
-				record.Transient = map[string]interface{}{}
-			}
-			record.Transient[transientKey] = transientValue
-		}
-
 		output[i] = resultFilter.JSONResult(&record)
 	}
 

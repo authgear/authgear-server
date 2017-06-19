@@ -766,3 +766,37 @@ func (f *recordResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecor
 	injectSigner(record, f.AssetStore)
 	return (*skyconv.JSONRecord)(record)
 }
+
+type queryResultFilter struct {
+	Database     skydb.Database
+	Query        skydb.Query
+	EagerRecords map[string]map[string]*skydb.Record
+	recordResultFilter
+}
+
+func (f *queryResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecord {
+	if record == nil {
+		return nil
+	}
+
+	for transientKey, transientExpression := range f.Query.ComputedKeys {
+		if transientExpression.Type != skydb.KeyPath {
+			continue
+		}
+
+		keyPath := transientExpression.Value.(string)
+		ref := getReferenceWithKeyPath(f.Database, record, keyPath)
+		var transientValue interface{}
+		eagerRecord := f.EagerRecords[keyPath][ref.ID.Key]
+		if eagerRecord != nil {
+			transientValue = f.recordResultFilter.JSONResult(eagerRecord)
+		}
+
+		if record.Transient == nil {
+			record.Transient = map[string]interface{}{}
+		}
+		record.Transient[transientKey] = transientValue
+	}
+
+	return f.recordResultFilter.JSONResult(record)
+}
