@@ -1417,6 +1417,162 @@ func TestRecordQuery(t *testing.T) {
 
 			So(response.Err, ShouldNotBeNil)
 		})
+
+		Convey("with FieldACL", func() {
+			publicRole := skydb.FieldUserRole{skydb.PublicFieldUserRoleType, ""}
+
+			conn.SetRecordFieldAccess(skydb.NewFieldACL(skydb.FieldACLEntryList{
+				{
+					RecordType:   "*",
+					RecordField:  "*",
+					UserRole:     publicRole,
+					Writable:     true,
+					Readable:     true,
+					Comparable:   true,
+					Discoverable: true,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "category",
+					UserRole:     publicRole,
+					Writable:     false,
+					Readable:     false,
+					Comparable:   true,
+					Discoverable: true,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "index",
+					UserRole:     publicRole,
+					Writable:     true,
+					Readable:     true,
+					Comparable:   false,
+					Discoverable: false,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "title",
+					UserRole:     publicRole,
+					Writable:     true,
+					Readable:     true,
+					Comparable:   false,
+					Discoverable: true,
+				},
+			}))
+
+			Convey("should block non-comparable, non-discoverable field", func() {
+				payload := router.Payload{
+					Data: map[string]interface{}{
+						"record_type": "note",
+						"predicate": []interface{}{
+							"gt",
+							map[string]interface{}{
+								"$type": "keypath",
+								"$val":  "index",
+							},
+							float64(1),
+						},
+					},
+					DBConn:   conn,
+					Database: db,
+				}
+				response := router.Response{}
+
+				handler := &RecordQueryHandler{}
+				handler.Handle(&payload, &response)
+				So(response.Err, ShouldNotBeNil)
+				So(response.Err.Code(), ShouldEqual, skyerr.RecordQueryDenied)
+			})
+
+			Convey("should block non-comparable", func() {
+				payload := router.Payload{
+					Data: map[string]interface{}{
+						"record_type": "note",
+						"predicate": []interface{}{
+							"gt",
+							map[string]interface{}{
+								"$type": "keypath",
+								"$val":  "title",
+							},
+							"Tale of Two Cities",
+						},
+					},
+					DBConn:   conn,
+					Database: db,
+				}
+				response := router.Response{}
+
+				handler := &RecordQueryHandler{}
+				handler.Handle(&payload, &response)
+				So(response.Err, ShouldNotBeNil)
+				So(response.Err.Code(), ShouldEqual, skyerr.RecordQueryDenied)
+			})
+
+			Convey("should allow comparable field with equality", func() {
+				payload := router.Payload{
+					Data: map[string]interface{}{
+						"record_type": "note",
+						"predicate": []interface{}{
+							"eq",
+							map[string]interface{}{
+								"$type": "keypath",
+								"$val":  "title",
+							},
+							"Tale of Two Cities",
+						},
+					},
+					DBConn:   conn,
+					Database: db,
+				}
+				response := router.Response{}
+
+				handler := &RecordQueryHandler{}
+				handler.Handle(&payload, &response)
+				So(response.Err, ShouldBeNil)
+			})
+
+			Convey("should block non-comparable field in sort", func() {
+				payload := router.Payload{
+					Data: map[string]interface{}{
+						"record_type": "note",
+						"sort": []interface{}{
+							[]interface{}{
+								map[string]interface{}{
+									"$type": "keypath",
+									"$val":  "title",
+								},
+								"desc",
+							},
+						},
+					},
+					DBConn:   conn,
+					Database: db,
+				}
+				response := router.Response{}
+
+				handler := &RecordQueryHandler{}
+				handler.Handle(&payload, &response)
+				So(response.Err, ShouldNotBeNil)
+			})
+
+			Convey("should block non-readable field in transient include", func() {
+				payload := router.Payload{
+					Data: map[string]interface{}{
+						"record_type": "note",
+						"include": map[string]interface{}{
+							"category": map[string]interface{}{"$type": "keypath", "$val": "category"},
+						},
+					},
+					DBConn:   conn,
+					Database: db,
+				}
+				response := router.Response{}
+
+				handler := &RecordQueryHandler{}
+				handler.Handle(&payload, &response)
+				So(response.Err, ShouldNotBeNil)
+			})
+		})
 	})
 }
 

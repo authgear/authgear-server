@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -392,4 +393,163 @@ func mapToQueryHookFunc(parser *QueryParser) mapstructure.DecodeHookFunc {
 
 		return query, nil
 	}
+}
+
+type queryAccessVisitorPredicateStackEntry struct {
+	Predicate        skydb.Predicate
+	SimpleComparison bool
+}
+
+type queryAccessVisitor struct {
+	pStack               []queryAccessVisitorPredicateStackEntry
+	err                  skyerr.Error
+	FieldACL             skydb.FieldACL
+	RecordType           string
+	UserInfo             *skydb.UserInfo
+	ExpressionACLChecker ExpressionACLChecker
+	inSort               bool
+}
+
+func (c *queryAccessVisitor) VisitQuery(p skydb.Query)    {}
+func (c *queryAccessVisitor) EndVisitQuery(p skydb.Query) {}
+
+func (c *queryAccessVisitor) VisitPredicate(p skydb.Predicate) {
+	simple := func() bool {
+		op := p.Operator
+		simpleOp := op == skydb.Equal || op == skydb.In || op == skydb.And
+		if len(c.pStack) > 0 {
+			return c.pStack[len(c.pStack)-1].SimpleComparison && simpleOp
+		}
+		return simpleOp
+	}()
+	c.pStack = append(
+		c.pStack,
+		queryAccessVisitorPredicateStackEntry{
+			Predicate:        p,
+			SimpleComparison: simple,
+		},
+	)
+}
+
+func (c *queryAccessVisitor) EndVisitPredicate(p skydb.Predicate) {
+	log.Infof("EndVisitPredicate: len: %d", len(c.pStack))
+	c.pStack = c.pStack[:len(c.pStack)-1]
+}
+
+func (c *queryAccessVisitor) VisitSort(sort skydb.Sort) {
+	c.inSort = true
+}
+
+func (c *queryAccessVisitor) EndVisitSort(sort skydb.Sort) {
+	c.inSort = false
+}
+
+func (c *queryAccessVisitor) VisitExpression(expr skydb.Expression) {
+	if c.err != nil {
+		return
+	}
+
+	var accessMode skydb.FieldAccessMode
+	if len(c.pStack) > 0 {
+		if c.pStack[len(c.pStack)-1].SimpleComparison {
+			accessMode = skydb.DiscoverOrCompareFieldAccessMode
+		} else {
+			accessMode = skydb.CompareFieldAccessMode
+		}
+	} else if c.inSort {
+		accessMode = skydb.CompareFieldAccessMode
+	} else {
+		accessMode = skydb.ReadFieldAccessMode
+	}
+
+	if err := c.ExpressionACLChecker.Check(expr, accessMode); err != nil {
+		c.err = err
+		return
+	}
+}
+
+func (c *queryAccessVisitor) EndVisitExpression(expr skydb.Expression) {
+	// do nothing
+}
+
+func (c *queryAccessVisitor) Error() skyerr.Error {
+	return c.err
+}
+
+type ExpressionACLChecker struct {
+	FieldACL   skydb.FieldACL
+	RecordType string
+	UserInfo   *skydb.UserInfo
+	Database   skydb.Database
+}
+
+func (c *ExpressionACLChecker) Check(expr skydb.Expression, accessMode skydb.FieldAccessMode) skyerr.Error {
+	switch expr.Type {
+	case skydb.KeyPath:
+		return c.checkKeyPath(expr.Value.(string), accessMode)
+	case skydb.Function:
+		return c.checkFunc(expr.Value.(skydb.Func), accessMode)
+	case skydb.Literal:
+		return nil
+	default:
+		panic("unsupported expression type")
+	}
+}
+
+func (c *ExpressionACLChecker) checkFunc(fn skydb.Func, accessMode skydb.FieldAccessMode) skyerr.Error {
+	if keyPathFn, ok := fn.(skydb.KeyPathFunc); ok {
+		for _, keyPath := range keyPathFn.ReferencedKeyPaths() {
+			if err := c.checkKeyPath(keyPath, accessMode); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (c *ExpressionACLChecker) checkKeyPath(keyPath string, accessMode skydb.FieldAccessMode) skyerr.Error {
+	recordType := c.RecordType
+	components := strings.Split(keyPath, ".")
+
+	var fields []skydb.FieldType
+	if len(components) > 1 {
+		// Since the keypath is consists of multiple components, we have
+		// to check the column types to find the Field ACL setting for all
+		// referenced records.
+		var err error
+		fields, err = skydb.TraverseColumnTypes(c.Database, recordType, keyPath)
+		if err != nil {
+			return skyerr.NewError(skyerr.RecordQueryInvalid, err.Error())
+		}
+	}
+
+	for i, component := range components {
+		if !strings.HasPrefix(component, "_") && !c.FieldACL.Accessible(
+			recordType,
+			component,
+			accessMode,
+			c.UserInfo,
+			nil,
+		) {
+			var msg string
+			switch accessMode {
+			case skydb.DiscoverOrCompareFieldAccessMode:
+				msg = fmt.Sprintf(`Cannot query on field "%s" due to Field ACL, need to be discoverable or comparable`, component)
+			case skydb.CompareFieldAccessMode:
+				msg = fmt.Sprintf(`Cannot query on field "%s" due to Field ACL, need to be comparable`, component)
+			case skydb.ReadFieldAccessMode:
+				msg = fmt.Sprintf(`Cannot query on field "%s" due to Field ACL, need to be readable`, component)
+			}
+			return skyerr.NewError(skyerr.RecordQueryDenied, msg)
+		}
+
+		isLast := (i == len(components)-1)
+		if !isLast {
+			if len(fields) <= i {
+				panic("number of components in keypath does not match that in database schema")
+			}
+			recordType = fields[i].ReferenceType
+		}
+	}
+	return nil
 }
