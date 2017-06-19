@@ -32,65 +32,72 @@ func TestFieldACL(t *testing.T) {
 		})
 
 		Convey("NewFieldACL should create a Field ACL with entries", func() {
-			entryList := []FieldACLEntry{
-				{
-					RecordType:   "*",
-					RecordField:  "*",
-					UserRole:     publicRole,
-					Writable:     true,
-					Readable:     true,
-					Comparable:   true,
-					Discoverable: true,
-				},
-				{
-					RecordType:   "note",
-					RecordField:  "*",
-					UserRole:     publicRole,
-					Writable:     true,
-					Readable:     true,
-					Comparable:   true,
-					Discoverable: true,
-				},
+			entry1 := FieldACLEntry{
+				RecordType:   "*",
+				RecordField:  "*",
+				UserRole:     publicRole,
+				Writable:     true,
+				Readable:     true,
+				Comparable:   true,
+				Discoverable: true,
 			}
+			entry2 := FieldACLEntry{
+				RecordType:   "note",
+				RecordField:  "*",
+				UserRole:     publicRole,
+				Writable:     true,
+				Readable:     true,
+				Comparable:   true,
+				Discoverable: true,
+			}
+			entryList := []FieldACLEntry{entry1, entry2}
 			acl := NewFieldACL(FieldACLEntryList(entryList))
 			So(acl, ShouldNotBeNil)
-			So(acl.recordTypes[WildcardRecordType][0], ShouldResemble, entryList[0])
-			So(acl.recordTypes["note"][0], ShouldResemble, entryList[1])
+			So(acl.recordTypes[WildcardRecordType][0], ShouldResemble, entry1)
+			So(acl.recordTypes["note"][0], ShouldResemble, entry2)
 		})
 
-		Convey("should check accessible for wildcard record type", func() {
-			acl := NewFieldACL([]FieldACLEntry{
+		Convey("should return whether the access mode is accessible", func() {
+			acl := NewFieldACL(FieldACLEntryList{
 				{
 					RecordType:   "*",
 					RecordField:  "*",
 					UserRole:     publicRole,
 					Writable:     true,
+					Readable:     false,
+					Comparable:   true,
+					Discoverable: true,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "content",
+					UserRole:     publicRole,
+					Writable:     false,
 					Readable:     true,
 					Comparable:   true,
 					Discoverable: true,
 				},
-			})
-			So(acl.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeTrue)
-		})
-
-		Convey("should check accessible for specific record type", func() {
-			acl := NewFieldACL(FieldACLEntryList{
 				{
 					RecordType:   "note",
 					RecordField:  "*",
 					UserRole:     publicRole,
 					Writable:     true,
 					Readable:     true,
-					Comparable:   true,
+					Comparable:   false,
 					Discoverable: true,
 				},
 			})
-			So(acl.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeTrue)
+
+			So(acl.Accessible("note", "content", WriteFieldAccessMode, nil, nil), ShouldBeFalse)
+			So(acl.Accessible("note", "content", ReadFieldAccessMode, nil, nil), ShouldBeTrue)
+			So(acl.Accessible("note", "favorite", CompareFieldAccessMode, nil, nil), ShouldBeFalse)
+			So(acl.Accessible("article", "content", ReadFieldAccessMode, nil, nil), ShouldBeFalse)
+			So(acl.Accessible("article", "content", DiscoverFieldAccessMode, nil, nil), ShouldBeTrue)
 		})
 
-		Convey("should returns true if entry list is empty", func() {
+		Convey("should returns true if no entry matches", func() {
 			acl := NewFieldACL(FieldACLEntryList{})
-			So(acl.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeTrue)
+			So(acl.Accessible("note", "content", WriteFieldAccessMode, nil, nil), ShouldBeTrue)
 		})
 	})
 }
@@ -99,28 +106,6 @@ func TestFieldACLEntryList(t *testing.T) {
 	Convey("FieldACLEntryList", t, func() {
 		publicRole := FieldUserRole{PublicFieldUserRoleType, ""}
 		anyUserRole := FieldUserRole{AnyUserFieldUserRoleType, ""}
-
-		Convey("Accessible", func() {
-			Convey("should return false for empty list", func() {
-				entryList := FieldACLEntryList{}
-				So(entryList.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeFalse)
-			})
-
-			Convey("should return true if an entry is accessible", func() {
-				entryList := FieldACLEntryList{
-					{
-						RecordType:   "note",
-						RecordField:  "*",
-						UserRole:     publicRole,
-						Writable:     true,
-						Readable:     true,
-						Comparable:   true,
-						Discoverable: true,
-					},
-				}
-				So(entryList.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeTrue)
-			})
-		})
 
 		Convey("Sort", func() {
 			Convey("should sort", func() {
@@ -131,9 +116,9 @@ func TestFieldACLEntryList(t *testing.T) {
 				}
 				sort.Stable(entries)
 				So(entries, ShouldResemble, FieldACLEntryList{
-					{"*", "*", publicRole, false, false, false, false},
-					{"*", "content", anyUserRole, false, false, true, true},
 					{"note", "*", publicRole, true, true, false, false},
+					{"*", "content", anyUserRole, false, false, true, true},
+					{"*", "*", publicRole, false, false, false, false},
 				})
 			})
 		})
@@ -149,14 +134,16 @@ func TestFieldACLEntry(t *testing.T) {
 			RecordField:  "*",
 			UserRole:     publicRole,
 			Writable:     true,
-			Readable:     true,
+			Readable:     false,
 			Comparable:   true,
-			Discoverable: true,
+			Discoverable: false,
 		}
 
-		// TODO: add test case
-		Convey("should return true", func() {
-			So(entry.Accessible(nil, nil, "note", "content", WriteFieldAccessMode), ShouldBeTrue)
+		Convey("should check accessible", func() {
+			So(entry.Accessible(WriteFieldAccessMode), ShouldBeTrue)
+			So(entry.Accessible(ReadFieldAccessMode), ShouldBeFalse)
+			So(entry.Accessible(CompareFieldAccessMode), ShouldBeTrue)
+			So(entry.Accessible(DiscoverFieldAccessMode), ShouldBeFalse)
 		})
 
 		Convey("should compare entries", func() {
@@ -175,8 +162,8 @@ func TestFieldACLEntry(t *testing.T) {
 			}
 
 			So(compare("note", "*", "_public", "note", "*", "_public"), ShouldEqual, 0)
-			So(compare("*", "*", "_public", "note", "*", "_public"), ShouldBeLessThan, 0)
-			So(compare("*", "content", "_public", "*", "*", "_public"), ShouldBeGreaterThan, 0)
+			So(compare("*", "*", "_public", "note", "*", "_public"), ShouldBeGreaterThan, 0)
+			So(compare("*", "content", "_public", "*", "*", "_public"), ShouldBeLessThan, 0)
 			So(compare("*", "*", "_public", "*", "*", "_any_user"), ShouldBeGreaterThan, 0)
 		})
 	})

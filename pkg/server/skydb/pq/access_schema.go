@@ -262,13 +262,5 @@ func (c *conn) GetRecordFieldAccess() (skydb.FieldACL, error) {
 		entries = append(entries, entry)
 	}
 
-	return skydb.NewFieldACLDefault(
-		skydb.FieldACLEntryList(entries),
-		skydb.FieldACLEntry{
-			Writable:     true,
-			Readable:     true,
-			Comparable:   true,
-			Discoverable: true,
-		},
-	), nil
+	return skydb.NewFieldACL(skydb.FieldACLEntryList(entries)), nil
 }
