@@ -180,7 +180,7 @@ func (p Predicate) Validate() skyerr.Error {
 	return p.validate(nil)
 }
 
-// validates is an internal version of the exported Validate() function.
+// validate is an internal version of the exported Validate() function.
 //
 // Additional information is passed as parameter to check the context
 // in which the predicate is specified.
