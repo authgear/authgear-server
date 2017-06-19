@@ -757,6 +757,19 @@ type recordResultFilter struct {
 	UserInfo   *skydb.UserInfo
 }
 
+func newRecordResultFilter(conn skydb.Conn, assetStore asset.Store, userInfo *skydb.UserInfo) (recordResultFilter, error) {
+	acl, err := conn.GetRecordFieldAccess()
+	if err != nil {
+		return recordResultFilter{}, err
+	}
+
+	return recordResultFilter{
+		AssetStore: assetStore,
+		UserInfo:   userInfo,
+		FieldACL:   acl,
+	}, nil
+}
+
 func (f *recordResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecord {
 	if record == nil {
 		return nil

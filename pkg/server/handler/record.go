@@ -279,16 +279,10 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	resultFilter := recordResultFilter{
-		AssetStore: h.AssetStore,
-		UserInfo:   payload.UserInfo,
-		FieldACL: func() skydb.FieldACL {
-			acl, err := payload.DBConn.GetRecordFieldAccess()
-			if err != nil {
-				panic(err)
-			}
-			return acl
-		}(),
+	resultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.UserInfo)
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
 	}
 
 	log.Debugf("Working with accessModel %v", h.AccessModel)
@@ -449,17 +443,12 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 	}
 
 	db := payload.Database
-	resultFilter := recordResultFilter{
-		AssetStore: h.AssetStore,
-		UserInfo:   payload.UserInfo,
-		FieldACL: func() skydb.FieldACL {
-			acl, err := payload.DBConn.GetRecordFieldAccess()
-			if err != nil {
-				panic(err)
-			}
-			return acl
-		}(),
+	resultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.UserInfo)
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
 	}
+
 	fetcher := newRecordFetcher(db, payload.DBConn, payload.HasMasterKey())
 
 	results := make([]interface{}, p.ItemLen(), p.ItemLen())
@@ -583,21 +572,17 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	eagerRecords := doQueryEager(db, eagerIDs(db, records, p.Query))
 
+	recordResultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.UserInfo)
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
 	resultFilter := queryResultFilter{
-		Database:     db,
-		Query:        p.Query,
-		EagerRecords: eagerRecords,
-		recordResultFilter: recordResultFilter{
-			AssetStore: h.AssetStore,
-			UserInfo:   payload.UserInfo,
-			FieldACL: func() skydb.FieldACL {
-				acl, err := payload.DBConn.GetRecordFieldAccess()
-				if err != nil {
-					panic(err)
-				}
-				return acl
-			}(),
-		},
+		Database:           db,
+		Query:              p.Query,
+		EagerRecords:       eagerRecords,
+		recordResultFilter: recordResultFilter,
 	}
 
 	output := make([]interface{}, len(records))
