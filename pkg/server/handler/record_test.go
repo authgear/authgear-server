@@ -548,6 +548,8 @@ type bogusFieldDatabase struct {
 
 func (db bogusFieldDatabase) IsReadOnly() bool { return false }
 
+func (db bogusFieldDatabase) ID() string { return "" }
+
 func (db bogusFieldDatabase) Extend(recordType string, schema skydb.RecordSchema) (bool, error) {
 	return false, nil
 }
@@ -624,10 +626,8 @@ func TestRecordSaveBogusField(t *testing.T) {
 		Convey("can save without specifying seq", func(c C) {
 			db.SaveFunc = func(record *skydb.Record) error {
 				c.So(record, ShouldResemble, &skydb.Record{
-					ID: skydb.NewRecordID("record", "id"),
-					Data: skydb.Data{
-						"seq": int64(1),
-					},
+					ID:        skydb.NewRecordID("record", "id"),
+					Data:      skydb.Data{},
 					OwnerID:   "user0",
 					CreatorID: "user0",
 					UpdaterID: "user0",
@@ -637,6 +637,12 @@ func TestRecordSaveBogusField(t *testing.T) {
 			}
 			db.GetFunc = func(id skydb.RecordID, record *skydb.Record) error {
 				c.So(id, ShouldResemble, skydb.NewRecordID("record", "id"))
+				record.ID = skydb.NewRecordID("record", "id")
+				record.OwnerID = "user0"
+				record.CreatorID = "user0"
+				record.CreatedAt = timeNow()
+				record.UpdaterID = "user0"
+				record.UpdatedAt = timeNow()
 				record.Data = skydb.Data{
 					"seq": int64(1),
 				}

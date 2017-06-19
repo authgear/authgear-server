@@ -7,3 +7,4 @@ ignores = `skyconv`.ParseLiteral
 ignores = `zmq`.(*Broker).Run
 ignores = `skyconv`.(*JSONRecord).MarshalJSON
 ignores = `skydb`.DeriveFieldType
+ignores = `handler`.recordSaveHandler

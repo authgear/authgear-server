@@ -273,6 +273,32 @@ func (r *Record) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
 	return r.ACL.Accessible(userinfo, level)
 }
 
+// Copy copies the content of the record.
+func (r *Record) Copy() *Record {
+	var dst Record
+	dst = *r
+
+	// creating a new map is essential because map is a reference type
+	dst.Data = map[string]interface{}{}
+	for key, value := range r.Data {
+		dst.Data[key] = value
+	}
+	return &dst
+}
+
+// Apply modifies the content of the record with the specified record.
+func (r *Record) Apply(src *Record) {
+	r.ACL = src.ACL
+
+	if r.Data == nil {
+		r.Data = map[string]interface{}{}
+	}
+
+	for key, value := range src.Data {
+		r.Data[key] = value
+	}
+}
+
 // RecordSchema is a mapping of record key to its value's data type or reference
 type RecordSchema map[string]FieldType
 
