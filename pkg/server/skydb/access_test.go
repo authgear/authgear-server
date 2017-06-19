@@ -92,7 +92,7 @@ func TestFieldACL(t *testing.T) {
 			So(acl.Accessible("note", "content", ReadFieldAccessMode, nil, nil), ShouldBeTrue)
 			So(acl.Accessible("note", "favorite", CompareFieldAccessMode, nil, nil), ShouldBeFalse)
 			So(acl.Accessible("article", "content", ReadFieldAccessMode, nil, nil), ShouldBeFalse)
-			So(acl.Accessible("article", "content", DiscoverFieldAccessMode, nil, nil), ShouldBeTrue)
+			So(acl.Accessible("article", "content", DiscoverOrCompareFieldAccessMode, nil, nil), ShouldBeTrue)
 		})
 
 		Convey("should returns true if no entry matches", func() {
@@ -135,15 +135,15 @@ func TestFieldACLEntry(t *testing.T) {
 			UserRole:     publicRole,
 			Writable:     true,
 			Readable:     false,
-			Comparable:   true,
-			Discoverable: false,
+			Comparable:   false,
+			Discoverable: true,
 		}
 
 		Convey("should check accessible", func() {
 			So(entry.Accessible(WriteFieldAccessMode), ShouldBeTrue)
 			So(entry.Accessible(ReadFieldAccessMode), ShouldBeFalse)
-			So(entry.Accessible(CompareFieldAccessMode), ShouldBeTrue)
-			So(entry.Accessible(DiscoverFieldAccessMode), ShouldBeFalse)
+			So(entry.Accessible(CompareFieldAccessMode), ShouldBeFalse)
+			So(entry.Accessible(DiscoverOrCompareFieldAccessMode), ShouldBeTrue)
 		})
 
 		Convey("should compare entries", func() {
