@@ -119,7 +119,8 @@ const (
 	// PluginTimeout occurs when an operation carried by a plugin is timed out
 	PluginTimeout
 
-	// QueryInvalid is returned when information contained in a record query
+	// RecordQueryInvalid is returned when information contained in a record
+	// query
 	// is not valid. Examples include referencing keypath that is invalid, and
 	// unsupported comparison.
 	RecordQueryInvalid
@@ -135,6 +136,11 @@ const (
 	// that the user is not allowed to specify. This might occur
 	// when modifying a field in a record that the user has no write access.
 	DeniedArgument
+
+	// RecordQueryDenied is returned when the user is not allowed to
+	// perform the query.
+	// Examples include referencing a field that is disallowed by Field ACL.
+	RecordQueryDenied
 
 	// Error codes for expected error condition should be placed
 	// above this line.
