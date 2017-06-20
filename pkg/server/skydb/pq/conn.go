@@ -78,6 +78,7 @@ type conn struct {
 	db             *sqlx.DB // database wrapper
 	tx             *sqlx.Tx // transaction wrapper, nil when no transaction
 	RecordSchema   map[string]skydb.RecordSchema
+	FieldACL       *skydb.FieldACL
 	appName        string
 	option         string
 	statementCount uint64

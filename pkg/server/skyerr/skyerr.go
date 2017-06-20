@@ -131,6 +131,11 @@ const (
 	// a response
 	ResponseTimeout
 
+	// DeniedArgument occurs when the a request involves an argument
+	// that the user is not allowed to specify. This might occur
+	// when modifying a field in a record that the user has no write access.
+	DeniedArgument
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )
@@ -194,6 +199,18 @@ func NewErrorWithInfo(code ErrorCode, message string, info map[string]interface{
 func NewInvalidArgument(message string, arguments []string) Error {
 	return &genericError{
 		code:    InvalidArgument,
+		message: message,
+		info: map[string]interface{}{
+			"arguments": arguments,
+		},
+	}
+}
+
+// NewDeniedArgument is a convenient function to returns a denied argument
+// error with a list of arguments that are denied.
+func NewDeniedArgument(message string, arguments []string) Error {
+	return &genericError{
+		code:    DeniedArgument,
 		message: message,
 		info: map[string]interface{}{
 			"arguments": arguments,

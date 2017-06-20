@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -24,6 +25,45 @@ func injectSigner(record *skydb.Record, store asset.Store) {
 			}
 		}
 	}
+}
+
+// scrubRecordFieldsForRead checks the field ACL to remove the fields
+// from a skydb.Record that the user is not allowed to read.
+func scrubRecordFieldsForRead(userInfo *skydb.UserInfo, record *skydb.Record, fieldACL skydb.FieldACL) {
+	for _, key := range record.UserKeys() {
+		if !fieldACL.Accessible(record.ID.Type, key, skydb.ReadFieldAccessMode, userInfo, record) {
+			record.Remove(key)
+		}
+	}
+}
+
+// scrubRecordFieldsForWrite checks the field ACL for write access.
+// Depending on whether the request is an atomic one, this function
+// will either remove the fields if the user is not allowed access if atomic
+// is false, or will return an error.
+func scrubRecordFieldsForWrite(userInfo *skydb.UserInfo, record *skydb.Record, origRecord *skydb.Record, fieldACL skydb.FieldACL, atomic bool) skyerr.Error {
+	nonWritableFields := []string{}
+
+	var deltaRecord skydb.Record
+	deriveDeltaRecord(&deltaRecord, origRecord, record)
+
+	for key := range deltaRecord.Data {
+		if fieldACL.Accessible(record.ID.Type, key, skydb.WriteFieldAccessMode, userInfo, origRecord) {
+			continue
+		}
+
+		if atomic {
+			nonWritableFields = append(nonWritableFields, key)
+			continue
+		}
+
+		record.Remove(key)
+	}
+
+	if len(nonWritableFields) > 0 {
+		return skyerr.NewDeniedArgument("Unable to save to some record fields because of Field ACL denied update.", nonWritableFields)
+	}
+	return nil
 }
 
 type recordModifyFunc func(*recordModifyRequest, *recordModifyResponse) skyerr.Error
@@ -228,6 +268,10 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	records := req.RecordsToSave
 
 	fetcher := newRecordFetcher(db, req.Conn, req.WithMasterKey)
+	fieldACL, err := req.Conn.GetRecordFieldAccess()
+	if err != nil {
+		return skyerr.MakeError(err)
+	}
 
 	// fetch records
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
@@ -239,6 +283,17 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 
 		if dbRecord == nil {
 			panic("unable to fetch record")
+		}
+
+		err = scrubRecordFieldsForWrite(
+			req.UserInfo,
+			record,
+			dbRecord,
+			fieldACL,
+			req.Atomic,
+		)
+		if err != nil {
+			return
 		}
 
 		now := timeNow()
@@ -694,4 +749,67 @@ func makeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, recor
 		injectSigner(record, store)
 	}
 	return nil
+}
+
+type recordResultFilter struct {
+	AssetStore asset.Store
+	FieldACL   skydb.FieldACL
+	UserInfo   *skydb.UserInfo
+}
+
+func newRecordResultFilter(conn skydb.Conn, assetStore asset.Store, userInfo *skydb.UserInfo) (recordResultFilter, error) {
+	acl, err := conn.GetRecordFieldAccess()
+	if err != nil {
+		return recordResultFilter{}, err
+	}
+
+	return recordResultFilter{
+		AssetStore: assetStore,
+		UserInfo:   userInfo,
+		FieldACL:   acl,
+	}, nil
+}
+
+func (f *recordResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecord {
+	if record == nil {
+		return nil
+	}
+
+	scrubRecordFieldsForRead(f.UserInfo, record, f.FieldACL)
+	injectSigner(record, f.AssetStore)
+	return (*skyconv.JSONRecord)(record)
+}
+
+type queryResultFilter struct {
+	Database     skydb.Database
+	Query        skydb.Query
+	EagerRecords map[string]map[string]*skydb.Record
+	recordResultFilter
+}
+
+func (f *queryResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecord {
+	if record == nil {
+		return nil
+	}
+
+	for transientKey, transientExpression := range f.Query.ComputedKeys {
+		if transientExpression.Type != skydb.KeyPath {
+			continue
+		}
+
+		keyPath := transientExpression.Value.(string)
+		ref := getReferenceWithKeyPath(f.Database, record, keyPath)
+		var transientValue interface{}
+		eagerRecord := f.EagerRecords[keyPath][ref.ID.Key]
+		if eagerRecord != nil {
+			transientValue = f.recordResultFilter.JSONResult(eagerRecord)
+		}
+
+		if record.Transient == nil {
+			record.Transient = map[string]interface{}{}
+		}
+		record.Transient[transientKey] = transientValue
+	}
+
+	return f.recordResultFilter.JSONResult(record)
 }

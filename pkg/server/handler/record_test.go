@@ -65,6 +65,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 			DatabaseID: "",
 		}
 
+		conn := skydbtest.NewMapConn()
 		db := skydbtest.NewMapDB()
 		So(db.Save(&note0), ShouldBeNil)
 		So(db.Save(&note1), ShouldBeNil)
@@ -72,6 +73,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 		So(db.Save(&user), ShouldBeNil)
 
 		router := handlertest.NewSingleRouteRouter(&RecordDeleteHandler{}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 			p.UserInfo = &skydb.UserInfo{
 				ID: "user0",
@@ -365,6 +367,150 @@ func TestRecordSaveHandler(t *testing.T) {
 			}`)
 		})
 	})
+
+	Convey("RecordSaveHandler with Field ACL", t, func() {
+		mapDB := skydbtest.NewMapDB()
+		mapDB.RecordSchemaMap = skydbtest.RecordSchemaMap{
+			"note": {
+				"content":  skydb.FieldType{Type: skydb.TypeString},
+				"favorite": skydb.FieldType{Type: skydb.TypeBoolean},
+				"category": skydb.FieldType{Type: skydb.TypeString},
+			},
+		}
+		db := skydbtest.NewMockTxDatabase(mapDB)
+		conn := skydbtest.NewMapConn()
+		publicRole := skydb.FieldUserRole{skydb.PublicFieldUserRoleType, ""}
+
+		db.Save(&skydb.Record{
+			ID:        skydb.NewRecordID("note", "note0"),
+			OwnerID:   "user0",
+			CreatorID: "user0",
+			CreatedAt: timeNow(),
+			UpdaterID: "user0",
+			UpdatedAt: timeNow(),
+			Data: map[string]interface{}{
+				"content":  "Hello World!",
+				"favorite": true,
+				"category": "interesting",
+			},
+		})
+
+		conn.SetRecordFieldAccess(skydb.NewFieldACL(skydb.FieldACLEntryList{
+			{
+				RecordType:  "*",
+				RecordField: "*",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    true,
+			},
+			{
+				RecordType:  "note",
+				RecordField: "content",
+				UserRole:    publicRole,
+				Writable:    false,
+				Readable:    true,
+			},
+			{
+				RecordType:  "note",
+				RecordField: "category",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    false,
+			},
+			{
+				RecordType:  "note",
+				RecordField: "*",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    true,
+			},
+		}))
+
+		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
+			payload.DBConn = conn
+			payload.Database = db
+			payload.UserInfo = &skydb.UserInfo{
+				ID: "user0",
+			}
+		})
+
+		Convey("should not save to read only field", func() {
+			resp := r.POST(`{
+				"records": [{
+					"_id": "note/note0",
+					"content": "Bye World!",
+					"favorite": false
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note0",
+					"_type": "record",
+					"_access": null,
+					"content": "Hello World!",
+					"favorite": false,
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+			So(mapDB.RecordMap["note/note0"].Data["content"], ShouldEqual, "Hello World!")
+			So(mapDB.RecordMap["note/note0"].Data["favorite"], ShouldEqual, false)
+		})
+
+		Convey("should fail request if atomic save to read only field", func() {
+			resp := r.POST(`{
+				"atomic": true,
+				"records": [{
+					"_id": "note/note0",
+					"content": "Bye World!",
+					"favorite": false
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code":115,
+					"info": {
+						"note/note0": {
+							"code":123,
+							"info": { "arguments":["content"] },
+							"message":"Unable to save to some record fields because of Field ACL denied update.",
+							"name":"DeniedArgument"
+						}
+					},
+					"message":"Atomic Operation rolled back due to one or more errors",
+					"name":"AtomicOperationFailure"
+				}
+			}`)
+			So(mapDB.RecordMap["note/note0"].Data["content"], ShouldEqual, "Hello World!")
+			So(mapDB.RecordMap["note/note0"].Data["favorite"], ShouldEqual, true)
+		})
+
+		Convey("should not fail request if read only field did not change", func() {
+			resp := r.POST(`{
+				"atomic": true,
+				"records": [{
+					"_id": "note/note0",
+					"content": "Hello World!",
+					"favorite": false
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note0",
+					"_type": "record",
+					"_access": null,
+					"content": "Hello World!",
+					"favorite": false,
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+			So(mapDB.RecordMap["note/note0"].Data["content"], ShouldEqual, "Hello World!")
+			So(mapDB.RecordMap["note/note0"].Data["favorite"], ShouldEqual, false)
+		})
+	})
 }
 
 func TestRecordSaveDataType(t *testing.T) {
@@ -538,6 +684,10 @@ func (db bogusFieldDatabaseConnection) GetRecordAccess(recordType string) (skydb
 
 func (db bogusFieldDatabaseConnection) GetRecordDefaultAccess(recordType string) (skydb.RecordACL, error) {
 	return nil, nil
+}
+
+func (db bogusFieldDatabaseConnection) GetRecordFieldAccess() (skydb.FieldACL, error) {
+	return skydb.FieldACL{}, nil
 }
 
 type bogusFieldDatabase struct {
@@ -769,10 +919,12 @@ func TestRecordQueryResults(t *testing.T) {
 			ID: skydb.NewRecordID("note", "2"),
 		}
 
+		conn := skydbtest.NewMapConn()
 		db := &queryResultsDatabase{}
 		db.records = []skydb.Record{record1, record0, record2}
 
 		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 		})
 
@@ -806,12 +958,14 @@ func TestRecordQueryResults(t *testing.T) {
 func TestRecordQuery(t *testing.T) {
 	Convey("Given a Database", t, func() {
 		db := &queryDatabase{}
+		conn := skydbtest.NewMapConn()
 
 		Convey("Queries records with type", func() {
 			payload := router.Payload{
 				Data: map[string]interface{}{
 					"record_type": "note",
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -833,6 +987,7 @@ func TestRecordQuery(t *testing.T) {
 				Data: map[string]interface{}{
 					"record_type": "note",
 				},
+				DBConn:   conn,
 				Database: db,
 				UserInfo: &userInfo,
 			}
@@ -856,6 +1011,7 @@ func TestRecordQuery(t *testing.T) {
 				Data: map[string]interface{}{
 					"record_type": "note",
 				},
+				DBConn:    conn,
 				Database:  db,
 				UserInfo:  &userInfo,
 				AccessKey: router.MasterAccessKey,
@@ -887,6 +1043,7 @@ func TestRecordQuery(t *testing.T) {
 						},
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -929,6 +1086,7 @@ func TestRecordQuery(t *testing.T) {
 						},
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -964,6 +1122,7 @@ func TestRecordQuery(t *testing.T) {
 						float64(1),
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1013,6 +1172,7 @@ func TestRecordQuery(t *testing.T) {
 						},
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1071,6 +1231,7 @@ func TestRecordQuery(t *testing.T) {
 						float64(500),
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1114,6 +1275,7 @@ func TestRecordQuery(t *testing.T) {
 						},
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1139,6 +1301,7 @@ func TestRecordQuery(t *testing.T) {
 					"record_type":  "note",
 					"desired_keys": []interface{}{"location"},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1156,6 +1319,7 @@ func TestRecordQuery(t *testing.T) {
 					"record_type":  "note",
 					"desired_keys": []interface{}{},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1173,6 +1337,7 @@ func TestRecordQuery(t *testing.T) {
 					"record_type":  "note",
 					"desired_keys": nil,
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1191,6 +1356,7 @@ func TestRecordQuery(t *testing.T) {
 					"limit":       float64(200),
 					"offset":      float64(400),
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1210,6 +1376,7 @@ func TestRecordQuery(t *testing.T) {
 					"record_type": "note",
 					"count":       true,
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1234,6 +1401,7 @@ func TestRecordQuery(t *testing.T) {
 						map[string]interface{}{},
 					},
 				},
+				DBConn:   conn,
 				Database: db,
 			}
 			response := router.Response{}
@@ -1287,6 +1455,81 @@ func (db *singleRecordDatabase) Extend(recordType string, schema skydb.RecordSch
 
 func (db *singleRecordDatabase) GetSchema(recordType string) (skydb.RecordSchema, error) {
 	return db.recordSchema, nil
+}
+
+func TestRecordFetchHandler(t *testing.T) {
+	timeNow = func() time.Time { return ZeroTime }
+	defer func() {
+		timeNow = timeNowUTC
+	}()
+
+	Convey("RecordFetchHandler with Field ACL", t, func() {
+		db := skydbtest.NewMapDB()
+		db.RecordSchemaMap = skydbtest.RecordSchemaMap{
+			"note": {
+				"content":  skydb.FieldType{Type: skydb.TypeString},
+				"favorite": skydb.FieldType{Type: skydb.TypeBoolean},
+				"category": skydb.FieldType{Type: skydb.TypeString},
+			},
+		}
+		conn := skydbtest.NewMapConn()
+		publicRole := skydb.FieldUserRole{skydb.PublicFieldUserRoleType, ""}
+
+		db.Save(&skydb.Record{
+			ID:        skydb.NewRecordID("note", "note0"),
+			OwnerID:   "user0",
+			CreatorID: "user0",
+			CreatedAt: timeNow(),
+			UpdaterID: "user0",
+			UpdatedAt: timeNow(),
+			Data: map[string]interface{}{
+				"content":  "Hello World!",
+				"category": "interesting",
+			},
+		})
+
+		conn.SetRecordFieldAccess(skydb.NewFieldACL(skydb.FieldACLEntryList{
+			{
+				RecordType:  "*",
+				RecordField: "*",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    true,
+			},
+			{
+				RecordType:  "note",
+				RecordField: "category",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    false,
+			},
+		}))
+
+		r := handlertest.NewSingleRouteRouter(&RecordFetchHandler{}, func(payload *router.Payload) {
+			payload.DBConn = conn
+			payload.Database = db
+			payload.UserInfo = &skydb.UserInfo{
+				ID: "user0",
+			}
+		})
+
+		Convey("should fetch without non-readable fields", func() {
+			resp := r.POST(`{
+				"ids": ["note/note0"]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note0",
+					"_type": "record",
+					"_access": null,
+					"content": "Hello World!",
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+		})
+	})
 }
 
 func TestRecordOwnerIDSerialization(t *testing.T) {
@@ -1478,6 +1721,7 @@ func (s *urlOnlyAssetStore) IsSignatureRequired() bool {
 
 func TestRecordAssetSerialization(t *testing.T) {
 	Convey("RecordAssetSerialization for fetch", t, func() {
+		conn := skydbtest.NewMapConn()
 		db := skydbtest.NewMapDB()
 		db.Save(&skydb.Record{
 			ID: skydb.NewRecordID("record", "id"),
@@ -1494,6 +1738,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&RecordFetchHandler{
 			AssetStore: assetStore,
 		}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 		})
 
@@ -1528,6 +1773,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 			},
 		}
 
+		conn := skydbtest.NewMapConn()
 		db := &queryResultsDatabase{}
 		db.records = []skydb.Record{record0}
 
@@ -1536,6 +1782,7 @@ func TestRecordAssetSerialization(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{
 			AssetStore: assetStore,
 		}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 		})
 
@@ -1692,9 +1939,11 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				},
 			},
 		}
+		conn := skydbtest.NewMapConn()
 
 		injectDBFunc := func(payload *router.Payload) {
 			payload.Database = db
+			payload.DBConn = conn
 		}
 
 		Convey("query record with eager load", func() {
@@ -1791,9 +2040,11 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				},
 			},
 		}
+		conn := skydbtest.NewMapConn()
 
 		injectDBFunc := func(payload *router.Payload) {
 			payload.Database = db
+			payload.DBConn = conn
 		}
 
 		Convey("query record with eager load", func() {
@@ -1831,6 +2082,7 @@ func TestRecordQueryWithCount(t *testing.T) {
 			ID: skydb.NewRecordID("note", "2"),
 		}
 
+		conn := skydbtest.NewMapConn()
 		db := &queryResultsDatabase{}
 		db.records = []skydb.Record{record1, record0, record2}
 		db.typemap = map[string]skydb.RecordSchema{
@@ -1838,6 +2090,7 @@ func TestRecordQueryWithCount(t *testing.T) {
 		}
 
 		r := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
+			p.DBConn = conn
 			p.Database = db
 		})
 

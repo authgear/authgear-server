@@ -451,6 +451,10 @@ func (conn *singleUserConn) GetRecordDefaultAccess(recordType string) (skydb.Rec
 	return nil, nil
 }
 
+func (conn *singleUserConn) GetRecordFieldAccess() (skydb.FieldACL, error) {
+	return skydb.FieldACL{}, nil
+}
+
 func TestSignupHandlerAsAnonymous(t *testing.T) {
 	Convey("SignupHandler", t, func() {
 		tokenStore := authtokentest.SingleTokenStore{}

@@ -31,6 +31,7 @@ type MapConn struct {
 	emailMap               map[string]skydb.UserInfo
 	recordAccessMap        map[string]skydb.RecordACL
 	recordDefaultAccessMap map[string]skydb.RecordACL
+	fieldAccess            skydb.FieldACL
 	skydb.Conn
 }
 
@@ -42,6 +43,7 @@ func NewMapConn() *MapConn {
 		emailMap:               map[string]skydb.UserInfo{},
 		recordAccessMap:        map[string]skydb.RecordACL{},
 		recordDefaultAccessMap: map[string]skydb.RecordACL{},
+		fieldAccess:            skydb.FieldACL{},
 		AssetMap:               map[string]skydb.Asset{},
 	}
 }
@@ -192,6 +194,17 @@ func (conn *MapConn) GetRecordDefaultAccess(recordType string) (skydb.RecordACL,
 	return acl, nil
 }
 
+// SetRecordFieldAccess sets record field access for all types
+func (conn *MapConn) SetRecordFieldAccess(acl skydb.FieldACL) error {
+	conn.fieldAccess = acl
+	return nil
+}
+
+// GetRecordFieldAccess returns record field access for all types
+func (conn *MapConn) GetRecordFieldAccess() (skydb.FieldACL, error) {
+	return conn.fieldAccess, nil
+}
+
 // GetAsset is not implemented.
 func (conn *MapConn) GetAsset(name string, asset *skydb.Asset) error {
 	panic("not implemented")
@@ -205,7 +218,7 @@ func (conn *MapConn) SaveAsset(asset *skydb.Asset) error {
 // GetAssets always returns empty array.
 func (conn *MapConn) GetAssets(names []string) ([]skydb.Asset, error) {
 	assets := []skydb.Asset{}
-	for _, v := range(names) {
+	for _, v := range names {
 		asset, ok := conn.AssetMap[v]
 		if ok {
 			assets = append(assets, asset)
@@ -341,7 +354,13 @@ func (db *MapDB) Get(id skydb.RecordID, record *skydb.Record) error {
 
 // Save assigns Record to RecordMap.
 func (db *MapDB) Save(record *skydb.Record) error {
-	db.RecordMap[record.ID.String()] = *record
+	recordID := record.ID.String()
+
+	if origRecord, ok := db.RecordMap[recordID]; ok {
+		*record = *origRecord.MergedCopy(record)
+	}
+
+	db.RecordMap[recordID] = *record
 	return nil
 }
 

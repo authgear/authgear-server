@@ -255,6 +255,22 @@ func (r *Record) Set(key string, i interface{}) {
 	}
 }
 
+func (r *Record) Remove(key string) {
+	if key[0] == '_' {
+		panic(fmt.Sprintf("cannot remove reserved key: %s", key))
+	}
+
+	delete(r.Data, key)
+}
+
+func (r *Record) UserKeys() []string {
+	var keys []string
+	for key := range r.Data {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
 func (r *Record) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
 	if r.ACL == nil {
 		return true
@@ -297,6 +313,23 @@ func (r *Record) Apply(src *Record) {
 	for key, value := range src.Data {
 		r.Data[key] = value
 	}
+}
+
+// MergedCopy is similar to copy but the copy contains data dictionary
+// which is creating by copying the original and apply the specified dictionary.
+func (r *Record) MergedCopy(merge *Record) *Record {
+	var dst Record
+	dst = *merge
+
+	// creating a new map is essential because map is a reference type
+	dst.Data = map[string]interface{}{}
+	for key, value := range r.Data {
+		dst.Data[key] = value
+	}
+	for key, value := range merge.Data {
+		dst.Data[key] = value
+	}
+	return &dst
 }
 
 // RecordSchema is a mapping of record key to its value's data type or reference

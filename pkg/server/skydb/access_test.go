@@ -263,5 +263,15 @@ func TestFieldUserRole(t *testing.T) {
 			So(compare("_role:admin", "_any_user"), ShouldBeLessThan, 0)
 			So(compare("_any_user", "_public"), ShouldBeLessThan, 0)
 		})
+
+		Convey("should match user role", func() {
+			So(NewFieldUserRole("_public").Match(nil, nil), ShouldBeTrue)
+			So(NewFieldUserRole("_any_user").Match(nil, nil), ShouldBeFalse)
+			So(NewFieldUserRole("_user_id:janedoe").Match(&UserInfo{ID: "johndoe"}, nil), ShouldBeFalse)
+			So(NewFieldUserRole("_user_id:johndoe").Match(&UserInfo{ID: "johndoe"}, nil), ShouldBeTrue)
+			So(NewFieldUserRole("_role:admin").Match(&UserInfo{Roles: []string{"guest"}}, nil), ShouldBeFalse)
+			So(NewFieldUserRole("_role:admin").Match(&UserInfo{Roles: []string{"admin"}}, nil), ShouldBeTrue)
+			So(NewFieldUserRole("_any_user").Match(&UserInfo{}, nil), ShouldBeTrue)
+		})
 	})
 }
