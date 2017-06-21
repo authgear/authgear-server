@@ -33,20 +33,29 @@ type QueryParser struct {
 
 func (parser *QueryParser) sortFromRaw(rawSort []interface{}, sort *skydb.Sort) {
 	var (
-		keyPath   string
-		funcExpr  skydb.Func
+		expr      skydb.Expression
 		sortOrder skydb.SortOrder
 	)
 	switch v := rawSort[0].(type) {
 	case map[string]interface{}:
+		var keyPath string
 		if err := (*skyconv.MapKeyPath)(&keyPath).FromMap(v); err != nil {
 			panic(err)
 		}
+		expr = skydb.Expression{
+			Type:  skydb.KeyPath,
+			Value: keyPath,
+		}
 	case []interface{}:
+		var funcExpr skydb.Func
 		var err error
 		funcExpr, err = parser.parseFunc(v)
 		if err != nil {
 			panic(err)
+		}
+		expr = skydb.Expression{
+			Type:  skydb.Function,
+			Value: funcExpr,
 		}
 	default:
 		panic(fmt.Errorf("unexpected type of sort expression = %T", rawSort[0]))
@@ -65,8 +74,7 @@ func (parser *QueryParser) sortFromRaw(rawSort []interface{}, sort *skydb.Sort) 
 		panic(fmt.Errorf("unknown sort order: %v", orderStr))
 	}
 
-	sort.KeyPath = keyPath
-	sort.Func = funcExpr
+	sort.Expression = expr
 	sort.Order = sortOrder
 }
 

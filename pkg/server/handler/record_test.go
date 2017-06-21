@@ -1056,8 +1056,11 @@ func TestRecordQuery(t *testing.T) {
 				Type: "note",
 				Sorts: []skydb.Sort{
 					skydb.Sort{
-						KeyPath: "noteOrder",
-						Order:   skydb.Desc,
+						Expression: skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "noteOrder",
+						},
+						Order: skydb.Desc,
 					},
 				},
 			})
@@ -1099,9 +1102,12 @@ func TestRecordQuery(t *testing.T) {
 				Type: "note",
 				Sorts: []skydb.Sort{
 					skydb.Sort{
-						Func: skydb.DistanceFunc{
-							Field:    "location",
-							Location: skydb.NewLocation(1, 2),
+						Expression: skydb.Expression{
+							Type: skydb.Function,
+							Value: skydb.DistanceFunc{
+								Field:    "location",
+								Location: skydb.NewLocation(1, 2),
+							},
 						},
 						Order: skydb.Desc,
 					},

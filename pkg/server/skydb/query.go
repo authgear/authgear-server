@@ -37,9 +37,8 @@ const (
 // Record order can be sorted w.r.t. a record field or a value returned
 // from a predefined function.
 type Sort struct {
-	KeyPath string
-	Func    Func
-	Order   SortOrder
+	Expression Expression
+	Order      SortOrder
 }
 
 // Operator denotes how the result of a predicate is determined from
