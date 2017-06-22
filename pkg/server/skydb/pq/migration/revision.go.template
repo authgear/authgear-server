@@ -14,25 +14,25 @@
 
 package migration
 
-//
-// You may run scripts/add-revision.sh to add new revision file
-// and follow the instruction to copy the new revision to this list
-//
+import "github.com/jmoiron/sqlx"
 
-var revisions = []Revision{
-	&revision_48b961caa{},
-	&revision_d2cb54c648{},
-	&revision_51375067b45{},
-	&revision_30d0a626888{},
-	&revision_41af1c8d394{},
-	&revision_551bc42a839{},
-	&revision_bce7089fca4{},
-	&revision_bc5768da91b{},
-	&revision_52b88c46931{},
-	&revision_c0397f15027{},
-	&revision_88a550bf579{},
-	&revision_db76e79e987{},
-	&revision_1981535c8aeb{},
-	&revision_069921d63218{},
-	&revision_bd7643dc5c8{},
+type revision___VERSION__ struct {
+}
+
+func (r *revision___VERSION__) Version() string {
+  return "__VERSION__"
+}
+
+func (r *revision___VERSION__) Up(tx *sqlx.Tx) error {
+  stmt := ``
+
+  _, err := tx.Exec(stmt)
+  return err
+}
+
+func (r *revision___VERSION__) Down(tx *sqlx.Tx) error {
+  stmt := ``
+
+  _, err := tx.Exec(stmt)
+  return err
 }
