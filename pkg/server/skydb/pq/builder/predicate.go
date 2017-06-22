@@ -27,14 +27,15 @@ import (
 // role, the builded express will filter out record which user is not accessible.
 //
 // The sql for record accessible by user rickmak
-// `_access @> '[{"user_id":"rickmak"}]'`
+// `"_access" @> '[{"user_id":"rickmak"}]'`
 //
 // Record accessible by user with admin role
-// `_access @> '[{"role":"admin"}]'`
+// `"_access" @> '[{"role":"admin"}]'`
 //
 // Record accessible by user rickmak or admin role
-// `_access @> '[{"role":"rickmak"}]' OR _access @> '[{"role":"admin"}]'`¬
+// `"_access" @> '[{"role":"rickmak"}]' OR "_access" @> '[{"role":"admin"}]'`¬
 type accessPredicateSqlizer struct {
+	alias string
 	user  *skydb.UserInfo
 	level skydb.RecordACLLevel
 }
@@ -59,21 +60,21 @@ func (p accessPredicateSqlizer) ToSql() (string, []interface{}, error) {
 			if err != nil {
 				panic("unexpected serialize error on role")
 			}
-			b.WriteString(fmt.Sprintf(`_access @> '[{"role": %s}]' OR `, escapedRole))
+			b.WriteString(fmt.Sprintf(`%s @> '[{"role": %s}]' OR `, fullQuoteIdentifier(p.alias, "_access"), escapedRole))
 		}
-		b.WriteString(fmt.Sprintf(`_access @> '[{"user_id": %s}]' OR `, escapedID))
+		b.WriteString(fmt.Sprintf(`%s @> '[{"user_id": %s}]' OR `, fullQuoteIdentifier(p.alias, "_access"), escapedID))
 
-		b.WriteString(`_owner_id = ? OR `)
+		b.WriteString(fmt.Sprintf(`%s = ? OR `, fullQuoteIdentifier(p.alias, "_owner_id")))
 		args = append(args, p.user.ID)
 	}
 
 	if p.level == skydb.ReadLevel {
-		b.WriteString(`_access @> '[{"public": true}]' OR `)
+		b.WriteString(fmt.Sprintf(`%s @> '[{"public": true}]' OR `, fullQuoteIdentifier(p.alias, "_access")))
 	} else if p.level == skydb.WriteLevel {
-		b.WriteString(`_access @> '[{"public": true, "level": "write"}]' OR `)
+		b.WriteString(fmt.Sprintf(`%s @> '[{"public": true, "level": "write"}]' OR `, fullQuoteIdentifier(p.alias, "_access")))
 	}
 
-	b.WriteString(`_access IS NULL)`)
+	b.WriteString(fmt.Sprintf(`%s IS NULL)`, fullQuoteIdentifier(p.alias, "_access")))
 
 	return b.String(), args, nil
 }

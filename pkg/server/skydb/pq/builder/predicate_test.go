@@ -302,42 +302,45 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 				ID: "userid",
 			}
 			sqlizer := &accessPredicateSqlizer{
+				"note",
 				&userinfo,
 				skydb.ReadLevel,
 			}
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
 			So(sql, ShouldEqual,
-				`(_access @> '[{"user_id": "userid"}]' OR `+
-					`_owner_id = ? OR `+
-					`_access @> '[{"public": true}]' OR `+
-					`_access IS NULL)`)
+				`("note"."_access" @> '[{"user_id": "userid"}]' OR `+
+					`"note"."_owner_id" = ? OR `+
+					`"note"."_access" @> '[{"public": true}]' OR `+
+					`"note"."_access" IS NULL)`)
 			So(args, ShouldResemble, []interface{}{"userid"})
 		})
 
 		Convey("serialized for nil user and read", func() {
 			sqlizer := &accessPredicateSqlizer{
+				"",
 				nil,
 				skydb.ReadLevel,
 			}
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
 			So(sql, ShouldEqual,
-				`(_access @> '[{"public": true}]' OR `+
-					`_access IS NULL)`)
+				`("_access" @> '[{"public": true}]' OR `+
+					`"_access" IS NULL)`)
 			So(args, ShouldResemble, []interface{}{})
 		})
 
 		Convey("serialized for nil user and write", func() {
 			sqlizer := &accessPredicateSqlizer{
+				"",
 				nil,
 				skydb.WriteLevel,
 			}
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
 			So(sql, ShouldEqual,
-				`(_access @> '[{"public": true, "level": "write"}]' OR `+
-					`_access IS NULL)`)
+				`("_access" @> '[{"public": true, "level": "write"}]' OR `+
+					`"_access" IS NULL)`)
 			So(args, ShouldResemble, []interface{}{})
 		})
 
@@ -347,18 +350,19 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 				Roles: []string{"admin", "writer"},
 			}
 			sqlizer := &accessPredicateSqlizer{
+				"",
 				&userinfo,
 				skydb.ReadLevel,
 			}
 			sql, args, err := sqlizer.ToSql()
 			So(err, ShouldBeNil)
 			So(sql, ShouldEqual,
-				`(_access @> '[{"role": "admin"}]' OR `+
-					`_access @> '[{"role": "writer"}]' OR `+
-					`_access @> '[{"user_id": "userid"}]' OR `+
-					`_owner_id = ? OR `+
-					`_access @> '[{"public": true}]' OR `+
-					`_access IS NULL)`)
+				`("_access" @> '[{"role": "admin"}]' OR `+
+					`"_access" @> '[{"role": "writer"}]' OR `+
+					`"_access" @> '[{"user_id": "userid"}]' OR `+
+					`"_owner_id" = ? OR `+
+					`"_access" @> '[{"public": true}]' OR `+
+					`"_access" IS NULL)`)
 			So(args, ShouldResemble, []interface{}{"userid"})
 		})
 	})
