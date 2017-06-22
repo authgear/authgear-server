@@ -22,11 +22,41 @@ import (
 )
 
 func TestQueryFromRaw(t *testing.T) {
-	Convey("functional predicate", t, func() {
+	Convey("QueryParser", t, func() {
+		parser := &QueryParser{
+			UserID: "USER_ID",
+		}
+
+		Convey("should parse simple predicate with multi-components keypath", func() {
+			query := skydb.Query{}
+			err := parser.queryFromRaw(map[string]interface{}{
+				"record_type": "note",
+				"predicate": []interface{}{
+					"eq",
+					map[string]interface{}{"$type": "keypath", "$val": "category.name"},
+					"Interesting",
+				},
+			}, &query)
+			So(err, ShouldBeNil)
+			So(query, ShouldResemble, skydb.Query{
+				Type: "note",
+				Predicate: skydb.Predicate{
+					skydb.Equal,
+					[]interface{}{
+						skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "category.name",
+						},
+						skydb.Expression{
+							Type:  skydb.Literal,
+							Value: "Interesting",
+						},
+					},
+				},
+			})
+		})
+
 		Convey("functional predicate with user relation", func() {
-			parser := &QueryParser{
-				UserID: "USER_ID",
-			}
 			query := skydb.Query{}
 			err := parser.queryFromRaw(map[string]interface{}{
 				"record_type": "note",
@@ -53,9 +83,6 @@ func TestQueryFromRaw(t *testing.T) {
 		})
 
 		Convey("functional predicate with user friend relation", func() {
-			parser := &QueryParser{
-				UserID: "USER_ID",
-			}
 			query := skydb.Query{}
 			err := parser.queryFromRaw(map[string]interface{}{
 				"record_type": "note",
@@ -82,9 +109,6 @@ func TestQueryFromRaw(t *testing.T) {
 		})
 
 		Convey("functional predicate with user discover", func() {
-			parser := &QueryParser{
-				UserID: "USER_ID",
-			}
 			query := skydb.Query{}
 			err := parser.queryFromRaw(map[string]interface{}{
 				"record_type": "note",
