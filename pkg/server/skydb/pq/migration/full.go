@@ -25,7 +25,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "bd7643dc5c8" }
+func (r *fullMigration) Version() string { return "f0c53134d25d" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
