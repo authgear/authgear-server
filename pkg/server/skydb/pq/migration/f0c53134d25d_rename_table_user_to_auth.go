@@ -14,7 +14,22 @@
 
 package migration
 
-import "github.com/jmoiron/sqlx"
+
+import (
+	"fmt"
+
+  "github.com/jmoiron/sqlx"
+)
+
+type ReservedColumnExistedError struct {
+	table  string
+	column string
+}
+
+func (e *ReservedColumnExistedError) Error() string {
+	// TODO: put a link of guide here for those who failed to migrate
+	return fmt.Sprintf(`Reserved column %s.%s has already been existed`, e.table, e.column)
+}
 
 type revision_f0c53134d25d struct {
 }
@@ -23,20 +38,51 @@ func (r *revision_f0c53134d25d) Version() string {
 	return "f0c53134d25d"
 }
 
-func (r *revision_f0c53134d25d) IsUserTableExisted(tx *sqlx.Tx) (bool, error) {
-	var exists = false
-	if err := tx.QueryRowx(`
+func (r *revision_f0c53134d25d) IsTableExisted(tx *sqlx.Tx, table string) (bool, error) {
+	var exists bool
+	err := tx.QueryRowx(`
 SELECT EXISTS (
 	SELECT 1
 	FROM information_schema.tables
-	WHERE table_schema = 'app_skydev' AND table_name = 'user'
+	WHERE
+		table_schema = current_schema() AND
+		table_name = $1
 );
-	`,
-	).Scan(&exists); err != nil {
-		return false, err
+		`, table).Scan(&exists)
+	return exists, err
+}
+
+func (r *revision_f0c53134d25d) IsColumnExisted(tx *sqlx.Tx, table string, column string) (bool, error) {
+	var exists bool
+	err := tx.QueryRowx(`
+SELECT EXISTS (
+	SELECT 1
+	FROM information_schema.columns
+	WHERE
+		table_schema = current_schema() AND
+		table_name = $1 AND
+		column_name = $2
+);
+		`, table, column).Scan(&exists)
+	return exists, err
+}
+
+func (r *revision_f0c53134d25d) EnsureReservedColumnsNotExisted(tx *sqlx.Tx) error {
+	table := `user`
+	columns := [2]string{`username`, `email`}
+
+	for _, column := range columns {
+		isExisted, err := r.IsColumnExisted(tx, table, column)
+		if err != nil {
+			return err
+		}
+
+		if isExisted {
+			return &ReservedColumnExistedError{table: table, column: column}
+		}
 	}
 
-	return exists, nil
+	return nil
 }
 
 func (r *revision_f0c53134d25d) Up(tx *sqlx.Tx) error {
@@ -74,14 +120,19 @@ ALTER TABLE _auth RENAME auth to provider_info;
 		return err
 	}
 
-	var userTableExists = false
-	userTableExists, err = r.IsUserTableExisted(tx)
+	if err = r.EnsureReservedColumnsNotExisted(tx); err != nil {
+		return err
+	}
+
+	var userTableExists bool
+	userTableExists, err = r.IsTableExisted(tx, `user`)
 	if err != nil {
 		return err
 	}
 
+	var migrateUserStmt string
 	if userTableExists {
-		migrateUserStmt := `
+		migrateUserStmt = `
 -- Migrate username and email to user table
 ALTER TABLE user ADD COLUMN username citext UNIQUE;
 ALTER TABLE user ADD COLUMN email citext UNIQUE;
@@ -95,23 +146,38 @@ FROM _auth as a;
 ALTER TABLE _auth DROP COLUMN username citext UNIQUE;
 ALTER TABLE _auth DROP COLUMN email citext UNIQUE;
 		`
-		_, err := tx.Exec(migrateUserStmt)
-		if err != nil {
-			return err
-		}
+	} else {
+		migrateUserStmt = `
+-- Create user table if not existed
+CREATE TABLE user (
+    _id text,
+    _database_id text,
+    _owner_id text,
+    _access jsonb,
+    _created_at timestamp without time zone NOT NULL,
+    _created_by text,
+    _updated_at timestamp without time zone NOT NULL,
+    _updated_by text,
+    username citext,
+    email citext,
+    PRIMARY KEY(_id, _database_id, _owner_id),
+    UNIQUE (_id),
+    UNIQUE (username),
+    UNIQUE (email)
+);
+		`
+	}
+
+	_, err = tx.Exec(migrateUserStmt)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (r *revision_f0c53134d25d) Down(tx *sqlx.Tx) error {
-	userTableExists, err := r.IsUserTableExisted(tx)
-	if err != nil {
-		return err
-	}
-
-	if userTableExists {
-		migrateUserStmt := `
+	migrateUserStmt := `
 -- Migrate username and email to user table (backward)
 ALTER TABLE _auth ADD COLUMN username citext UNIQUE;
 ALTER TABLE _auth ADD COLUMN email citext UNIQUE;
@@ -125,10 +191,9 @@ FROM user as u;
 ALTER TABLE user DROP COLUMN username citext UNIQUE;
 ALTER TABLE user DROP COLUMN email citext UNIQUE;
 		`
-		_, err := tx.Exec(migrateUserStmt)
-		if err != nil {
-			return err
-		}
+	_, err := tx.Exec(migrateUserStmt)
+	if err != nil {
+		return err
 	}
 
 	migrateSkygearUserStmt := `
