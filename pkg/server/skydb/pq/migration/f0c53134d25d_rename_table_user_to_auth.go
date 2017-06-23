@@ -134,22 +134,23 @@ ALTER TABLE _auth RENAME auth to provider_info;
 	if userTableExists {
 		migrateUserStmt = `
 -- Migrate username and email to user table
-ALTER TABLE user ADD COLUMN username citext UNIQUE;
-ALTER TABLE user ADD COLUMN email citext UNIQUE;
+ALTER TABLE "user" ADD COLUMN username citext UNIQUE;
+ALTER TABLE "user" ADD COLUMN email citext UNIQUE;
 
-UPDATE user
+UPDATE "user"
 SET
 	username = a.username,
 	email = a.email
-FROM _auth as a;
+FROM _auth as a
+WHERE a.id = "user"._id;
 
-ALTER TABLE _auth DROP COLUMN username citext UNIQUE;
-ALTER TABLE _auth DROP COLUMN email citext UNIQUE;
+ALTER TABLE _auth DROP COLUMN username;
+ALTER TABLE _auth DROP COLUMN email;
 		`
 	} else {
 		migrateUserStmt = `
 -- Create user table if not existed
-CREATE TABLE user (
+CREATE TABLE "user" (
     _id text,
     _database_id text,
     _owner_id text,
@@ -186,10 +187,11 @@ UPDATE _auth
 SET
 	username = u.username,
 	email = u.email
-FROM user as u;
+FROM "user" as u
+WHERE _auth.id = u._id;
 
-ALTER TABLE user DROP COLUMN username citext UNIQUE;
-ALTER TABLE user DROP COLUMN email citext UNIQUE;
+ALTER TABLE "user" DROP COLUMN username;
+ALTER TABLE "user" DROP COLUMN email;
 		`
 	_, err := tx.Exec(migrateUserStmt)
 	if err != nil {
