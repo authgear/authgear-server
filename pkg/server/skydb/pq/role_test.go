@@ -100,6 +100,144 @@ func TestRoleCRUD(t *testing.T) {
 			}
 			So(c, ShouldEqual, 0)
 		})
+	})
+}
+
+func TestRoleAssignRevoke(t *testing.T) {
+	var c *conn
+	Convey("AssignRoles", t, func() {
+		c = getTestConn(t)
+		defer cleanupConn(t, c)
+
+		Convey("assign roles to user without roles", func() {
+			userinfo := skydb.UserInfo{
+				ID:       "userid",
+				Username: "john.doe",
+				Email:    "john.doe@example.com",
+			}
+			err := c.CreateUser(&userinfo)
+			roles := []string{
+				"admin",
+				"user",
+			}
+			err = c.AssignRoles([]string{
+				"userid",
+			}, roles)
+			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
+			So(err, ShouldBeNil)
+			c := 0
+			result := []string{}
+			var role string
+			for rows.Next() {
+				c++
+				rows.Scan(&role)
+				result = append(result, role)
+			}
+			So(c, ShouldEqual, 2)
+			So(result, ShouldResemble, roles)
+		})
+
+		Convey("assign roles to users with existing roles", func() {
+			userinfo := skydb.UserInfo{
+				ID: "userid",
+				Roles: []string{
+					"admin",
+				},
+			}
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+			userinfo = skydb.UserInfo{
+				ID: "userid2",
+				Roles: []string{
+					"user",
+				},
+			}
+			err = c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			roles := []string{
+				"admin",
+				"user",
+			}
+			err = c.AssignRoles([]string{
+				"userid",
+				"userid2",
+			}, roles)
+			So(err, ShouldBeNil)
+			rows, err := c.Queryx(
+				"SELECT * FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
+			So(err, ShouldBeNil)
+			c := 0
+			for rows.Next() {
+				c++
+			}
+			So(c, ShouldEqual, 4)
+		})
+	})
+
+	Convey("RevokeRoles", t, func() {
+		c = getTestConn(t)
+		defer cleanupConn(t, c)
+		Convey("revoke roles from users with a roles", func() {
+			userinfo := skydb.UserInfo{
+				ID: "userid",
+				Roles: []string{
+					"admin",
+					"user",
+				},
+			}
+			err := c.CreateUser(&userinfo)
+			userinfo = skydb.UserInfo{
+				ID: "userid2",
+				Roles: []string{
+					"user",
+				},
+			}
+
+			roles := []string{
+				"admin",
+				"user",
+			}
+			err = c.RevokeRoles([]string{
+				"userid",
+				"userid2",
+			}, roles)
+			rows, err := c.Queryx(
+				"SELECT role_id FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
+			So(err, ShouldBeNil)
+			c := 0
+			for rows.Next() {
+				c++
+			}
+			So(c, ShouldEqual, 0)
+		})
+
+		Convey("revoke roles from users without a roles", func() {
+			userinfo := skydb.UserInfo{
+				ID: "userid",
+			}
+			err := c.CreateUser(&userinfo)
+			userinfo = skydb.UserInfo{
+				ID: "userid2",
+			}
+
+			roles := []string{
+				"admin",
+				"user",
+			}
+			err = c.RevokeRoles([]string{
+				"userid",
+				"userid2",
+			}, roles)
+			rows, err := c.Queryx(
+				"SELECT role_id FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
+			So(err, ShouldBeNil)
+			c := 0
+			for rows.Next() {
+				c++
+			}
+			So(c, ShouldEqual, 0)
+		})
 
 	})
 }
