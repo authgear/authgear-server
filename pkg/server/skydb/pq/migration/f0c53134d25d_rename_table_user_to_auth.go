@@ -110,9 +110,6 @@ ALTER TABLE _friend
 ALTER TABLE _follow
 	ADD CONSTRAINT _follow_right_id_fkey FOREIGN KEY (right_id) REFERENCES _auth (id);
 
-CREATE VIEW _user AS
-SELECT * FROM _auth;
-
 ALTER TABLE _auth RENAME auth to provider_info;
 	 `
 	_, err := tx.Exec(migrateSkygearUserStmt)
@@ -174,10 +171,41 @@ CREATE TABLE "user" (
 		return err
 	}
 
+	createViewStmt := `
+-- Create _user view for backward compatibility
+CREATE VIEW _user AS
+	SELECT
+		_auth.id,
+		_auth.password,
+		"user".username,
+		"user".email,
+		_auth.provider_info AS auth,
+		_auth.token_valid_since,
+		_auth.last_login_at,
+		_auth.last_seen_at
+	FROM _auth
+	JOIN "user" ON "user"._id = _auth.id;
+	`
+
+	_, err = tx.Exec(createViewStmt)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (r *revision_f0c53134d25d) Down(tx *sqlx.Tx) error {
+	createViewStmt := `
+-- Create _user view for backward compatibility (backward)
+DROP VIEW _user;
+	`
+
+	_, err := tx.Exec(createViewStmt)
+	if err != nil {
+		return err
+	}
+
 	migrateUserStmt := `
 -- Migrate username and email to user table (backward)
 ALTER TABLE _auth ADD COLUMN username citext UNIQUE;
@@ -193,7 +221,7 @@ WHERE _auth.id = u._id;
 ALTER TABLE "user" DROP COLUMN username;
 ALTER TABLE "user" DROP COLUMN email;
 		`
-	_, err := tx.Exec(migrateUserStmt)
+	_, err = tx.Exec(migrateUserStmt)
 	if err != nil {
 		return err
 	}
@@ -201,8 +229,6 @@ ALTER TABLE "user" DROP COLUMN email;
 	migrateSkygearUserStmt := `
 -- Migrate _user to _auth (backward)
 ALTER TABLE _auth RENAME provider_info to auth;
-
-DROP VIEW _user;
 
 ALTER TABLE _auth_role DROP CONSTRAINT _auth_role_auth_id_fkey;
 ALTER TABLE _device DROP CONSTRAINT _device_auth_id_fkey;
