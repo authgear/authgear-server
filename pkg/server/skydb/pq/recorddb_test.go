@@ -1834,7 +1834,7 @@ func TestMetaDataQuery(t *testing.T) {
 						},
 						skydb.Expression{
 							Type:  skydb.Literal,
-							Value: skydb.NewReference("_user", "ownerID1"),
+							Value: skydb.NewReference("_auth", "ownerID1"),
 						},
 					},
 				},
@@ -1880,7 +1880,7 @@ func TestMetaDataQuery(t *testing.T) {
 						},
 						skydb.Expression{
 							Type:  skydb.Literal,
-							Value: skydb.NewReference("_user", "creatorID0"),
+							Value: skydb.NewReference("_auth", "creatorID0"),
 						},
 					},
 				},
@@ -1926,7 +1926,7 @@ func TestMetaDataQuery(t *testing.T) {
 						},
 						skydb.Expression{
 							Type:  skydb.Literal,
-							Value: skydb.NewReference("_user", "updaterID1"),
+							Value: skydb.NewReference("_auth", "updaterID1"),
 						},
 					},
 				},

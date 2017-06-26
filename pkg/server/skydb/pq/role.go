@@ -27,7 +27,7 @@ import (
 )
 
 const batchUserRoleInsertTemplate = `
-INSERT INTO {{.UserRoleTable}} (user_id, role_id)
+INSERT INTO {{.UserRoleTable}} (auth_id, role_id)
 SELECT $1, id
 FROM {{.RoleTable}}
 WHERE id IN ({{range $i, $_ := .In}}{{inDollar $i}}{{end}});
@@ -53,7 +53,7 @@ type batchUserRole struct {
 func (c *conn) batchUserRoleSQL(id string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	batchUserRoleInsert.Execute(&b, batchUserRole{
-		c.tableName("_user_role"),
+		c.tableName("_auth_role"),
 		c.tableName("_role"),
 		roles,
 	})
@@ -249,7 +249,7 @@ func (c *conn) setRoleType(roles []string, col string) error {
 
 func (c *conn) UpdateUserRoles(authinfo *skydb.AuthInfo) error {
 	log.Debugf("UpdateRoles %v", authinfo)
-	builder := psql.Delete(c.tableName("_user_role")).Where("user_id = ?", authinfo.ID)
+	builder := psql.Delete(c.tableName("_auth_role")).Where("auth_id = ?", authinfo.ID)
 	_, err := c.ExecWith(builder)
 	if err != nil {
 		return skyerr.NewError(skyerr.ConstraintViolated,

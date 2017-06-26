@@ -29,17 +29,17 @@ func (c *conn) QueryRelation(user string, name string, direction string, config 
 
 	if direction == "outward" {
 		selectBuilder = psql.Select("u.id", "u.username", "u.email").
-			From(c.tableName("_user")+" AS u").
+			From(c.tableName("_auth")+" AS u").
 			Join(c.tableName(name)+" AS relation ON relation.right_id = u.id").
 			Where("relation.left_id = ?", user)
 	} else if direction == "inward" {
 		selectBuilder = psql.Select("u.id", "u.username", "u.email").
-			From(c.tableName("_user")+" AS u").
+			From(c.tableName("_auth")+" AS u").
 			Join(c.tableName(name)+" AS relation ON relation.left_id = u.id").
 			Where("relation.right_id = ?", user)
 	} else {
 		selectBuilder = psql.Select("u.id", "u.username", "u.email").
-			From(c.tableName("_user")+" AS u").
+			From(c.tableName("_auth")+" AS u").
 			Join(c.tableName(name)+" AS inward_relation ON inward_relation.left_id = u.id").
 			Join(c.tableName(name)+" AS outward_relation ON outward_relation.right_id = u.id").
 			Where("inward_relation.right_id = ?", user).

@@ -120,7 +120,7 @@ func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
 		args := []interface{}{}
 		return sql, args
 	case skydb.UserDataFunc:
-		return fmt.Sprintf("_user.%s", f.DataName), []interface{}{}
+		return fmt.Sprintf("_auth.%s", f.DataName), []interface{}{}
 	default:
 		panic(fmt.Errorf("got unrecgonized skydb.Func = %T", fun))
 	}

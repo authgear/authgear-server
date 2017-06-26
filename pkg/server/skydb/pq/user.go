@@ -56,7 +56,7 @@ func (c *conn) CreateUser(authinfo *skydb.AuthInfo) (err error) {
 		lastSeenAt = nil
 	}
 
-	builder := psql.Insert(c.tableName("_user")).Columns(
+	builder := psql.Insert(c.tableName("_auth")).Columns(
 		"id",
 		"username",
 		"email",
@@ -118,7 +118,7 @@ func (c *conn) UpdateUser(authinfo *skydb.AuthInfo) (err error) {
 		lastSeenAt = nil
 	}
 
-	builder := psql.Update(c.tableName("_user")).
+	builder := psql.Update(c.tableName("_auth")).
 		Set("username", username).
 		Set("email", email).
 		Set("password", authinfo.HashedPassword).
@@ -155,8 +155,8 @@ func (c *conn) baseUserBuilder() sq.SelectBuilder {
 	return psql.Select("id", "username", "email", "password", "auth",
 		"token_valid_since", "last_login_at", "last_seen_at",
 		"array_to_json(array_agg(role_id)) AS roles").
-		From(c.tableName("_user")).
-		LeftJoin(c.tableName("_user_role") + " ON id = user_id").
+		From(c.tableName("_auth")).
+		LeftJoin(c.tableName("_auth_role") + " ON id = auth_id").
 		GroupBy("id")
 }
 
@@ -297,7 +297,7 @@ func (c *conn) QueryUser(emails []string, usernames []string) ([]skydb.AuthInfo,
 }
 
 func (c *conn) DeleteUser(id string) error {
-	builder := psql.Delete(c.tableName("_user")).
+	builder := psql.Delete(c.tableName("_auth")).
 		Where("id = ?", id)
 
 	result, err := c.ExecWith(builder)

@@ -199,7 +199,7 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 			}
 			sqlizer, err := f.newUserDiscoverFunctionalPredicateSqlizer(userDiscover)
 			So(err, ShouldBeNil)
-			alias := f.createLeftJoin("_user", "_id", "id")
+			alias := f.createLeftJoin("_auth", "_id", "id")
 			sql, args, err := sqlizer.ToSql()
 			So(sql, ShouldEqual, fmt.Sprintf(`("%s"."email" IN (?))`, alias))
 			So(args, ShouldResemble, []interface{}{"jane.doe@example.com"})
@@ -213,7 +213,7 @@ func TestPredicateSqlizerFactory(t *testing.T) {
 			}
 			sqlizer, err := f.newUserDiscoverFunctionalPredicateSqlizer(userDiscover)
 			So(err, ShouldBeNil)
-			alias := f.createLeftJoin("_user", "_id", "id")
+			alias := f.createLeftJoin("_auth", "_id", "id")
 			sql, args, err := sqlizer.ToSql()
 			So(sql, ShouldEqual, fmt.Sprintf(`("%s"."username" IN (?) OR "%s"."email" IN (?))`, alias, alias))
 			So(args, ShouldResemble, []interface{}{"jane.doe", "jane.doe@example.com"})

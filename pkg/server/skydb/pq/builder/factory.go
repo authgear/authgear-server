@@ -162,7 +162,7 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 		}
 
 		if alias == "" {
-			alias = f.createLeftJoin("_user", "_id", "id")
+			alias = f.createLeftJoin("_auth", "_id", "id")
 		}
 		sqlizer := &containsComparisonPredicateSqlizer{
 			[]expressionSqlizer{
@@ -333,10 +333,10 @@ func (f *predicateSqlizerFactory) createLeftJoin(secondaryTable string, primaryC
 }
 
 func (f *predicateSqlizerFactory) aliasName(secondaryTable string, indexInJoinedTables int) string {
-	// The _user table always have the same alias name for
+	// The _auth table always have the same alias name for
 	// getting user info in user discovery
-	if secondaryTable == "_user" {
-		return "_user"
+	if secondaryTable == "_auth" {
+		return "_auth"
 	}
 	return fmt.Sprintf("_t%d", indexInJoinedTables)
 }

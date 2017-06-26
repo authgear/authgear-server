@@ -101,21 +101,21 @@ func cleanupConn(t *testing.T, c *conn) {
 }
 
 func addUser(t *testing.T, c *conn, userid string) {
-	_, err := c.Exec("INSERT INTO _user (id, password) VALUES ($1, 'somepassword')", userid)
+	_, err := c.Exec("INSERT INTO _auth (id, password) VALUES ($1, 'somepassword')", userid)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func addUserWithInfo(t *testing.T, c *conn, userid string, email string) {
-	_, err := c.Exec("INSERT INTO _user (id, password, email) VALUES ($1, 'somepassword', $2)", userid, email)
+	_, err := c.Exec("INSERT INTO _auth (id, password, email) VALUES ($1, 'somepassword', $2)", userid, email)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func addUserWithUsername(t *testing.T, c *conn, userid string, username string) {
-	_, err := c.Exec("INSERT INTO _user (id, password, username) VALUES ($1, 'somepassword', $2)", userid, username)
+	_, err := c.Exec("INSERT INTO _auth (id, password, username) VALUES ($1, 'somepassword', $2)", userid, username)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -63,8 +63,8 @@ func TestUserCRUD(t *testing.T) {
 
 			c.QueryRowx(`
 				SELECT u.username, u.password
-				FROM _user as u
-					JOIN _user_role as ur ON ur.user_id = u.id
+				FROM _auth as u
+					JOIN _auth_role as ur ON ur.auth_id = u.id
 					JOIN _role as r ON ur.role_id = r.id
 				WHERE r.is_admin = TRUE`,
 			).Scan(&username, &actualHashedPassword)
@@ -86,7 +86,7 @@ func TestUserCRUD(t *testing.T) {
 			email := ""
 			password := []byte{}
 			auth := authInfoValue{}
-			err = c.QueryRowx("SELECT email, password, auth FROM _user WHERE id = 'userid'").
+			err = c.QueryRowx("SELECT email, password, auth FROM _auth WHERE id = 'userid'").
 				Scan(&email, &password, &auth)
 			So(err, ShouldBeNil)
 
@@ -255,7 +255,7 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			email := ""
-			err = c.QueryRowx("SELECT email FROM _user WHERE id = 'userid'").
+			err = c.QueryRowx("SELECT email FROM _auth WHERE id = 'userid'").
 				Scan(&email)
 			So(err, ShouldBeNil)
 			So(email, ShouldEqual, "jane.doe@example.com")
@@ -328,7 +328,7 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			placeholder := []byte{}
-			err = c.QueryRowx("SELECT false FROM _user WHERE id = $1", "userid").Scan(&placeholder)
+			err = c.QueryRowx("SELECT false FROM _auth WHERE id = $1", "userid").Scan(&placeholder)
 			So(err, ShouldEqual, sql.ErrNoRows)
 			So(placeholder, ShouldBeEmpty)
 		})
@@ -352,13 +352,13 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			count := 0
-			c.QueryRowx("SELECT COUNT(*) FROM _user").Scan(&count)
+			c.QueryRowx("SELECT COUNT(*) FROM _auth").Scan(&count)
 			So(count, ShouldEqual, 3) // including default admin user
 
 			err = c.DeleteUser("2")
 			So(err, ShouldBeNil)
 
-			c.QueryRowx("SELECT COUNT(*) FROM _user").Scan(&count)
+			c.QueryRowx("SELECT COUNT(*) FROM _auth").Scan(&count)
 			So(count, ShouldEqual, 2) // including default admin user
 		})
 	})

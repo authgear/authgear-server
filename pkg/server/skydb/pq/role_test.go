@@ -54,7 +54,7 @@ func TestRoleCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(role, ShouldEqual, "writer")
 
-			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
+			rows, err := c.Queryx("SELECT role_id FROM _auth_role WHERE auth_id = 'userid'")
 			So(err, ShouldBeNil)
 			roles := []string{}
 			for rows.Next() {
@@ -89,7 +89,7 @@ func TestRoleCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(role, ShouldEqual, "writer")
 
-			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
+			rows, err := c.Queryx("SELECT role_id FROM _auth_role WHERE auth_id = 'userid'")
 			So(err, ShouldBeNil)
 			So(rows.Next(), ShouldBeFalse)
 		})
