@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:generate mockgen -package skydb -source=conn.go -destination=mock_conn_test.go
+
 package skydb
 
 import (
@@ -54,6 +56,7 @@ type QueryConfig struct {
 }
 
 // Conn encapsulates the interface of an Skygear Server connection to a container.
+//go:generate mockgen -destination=mock_skydb/mock_conn.go github.com/skygeario/skygear-server/pkg/server/skydb Conn
 type Conn interface {
 	// CRUD of UserInfo, smell like a bad design to attach these onto
 	// a Conn, but looks very convenient to user.

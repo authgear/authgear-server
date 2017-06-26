@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:generate mockgen -package skydb -source=database.go -destination=mock_database_test.go
+
 package skydb
 
 import (
@@ -68,6 +70,8 @@ const (
 
 // Database represents a collection of record (either public or private)
 // in a container.
+//
+//go:generate mockgen -destination=mock_skydb/mock_database.go github.com/skygeario/skygear-server/pkg/server/skydb Database
 type Database interface {
 
 	// Conn returns the parent Conn of the Database
