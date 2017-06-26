@@ -159,6 +159,15 @@ $ make test WITH_DOCKER=1    # run test
 $ make after-docker-test     # clean up docker containers
 ```
 
+### Debugging
+
+Delve is ready to use in the docker image `skygeario/skygear-godev`, with some extra setting:
+
+- With `docker`, you need to pass `--security-opt=seccomp:unconfined` to `docker run`
+- With `docker-compose`, you need to add `- seccomp:unconfined` to `security_opt:` under the container you want to run Delve
+
+See https://github.com/derekparker/delve for more details of Delve.
+
 ## License & Copyright
 
 ```
