@@ -196,7 +196,8 @@ func (acl FieldACL) Accessible(
 			return true
 		}
 
-		if !entry.UserRole.Match(userInfo, record) {
+		if !entry.UserRole.Applicable(mode) ||
+			!entry.UserRole.Match(userInfo, record) {
 			continue
 		}
 
@@ -352,6 +353,13 @@ func (userRoleType FieldUserRoleType) Compare(other FieldUserRoleType) int {
 	return 0
 }
 
+// RecordDependent returns true if this user role type requires
+// record data when evaluating accessibility.
+func (userRoleType FieldUserRoleType) RecordDependent() bool {
+	return userRoleType == OwnerFieldUserRoleType ||
+		userRoleType == DynamicUserFieldUserRoleType
+}
+
 // FieldUserRole contains field user role information and checks whether
 // a user matches the user role.
 type FieldUserRole struct {
@@ -412,20 +420,18 @@ func (r FieldUserRole) Match(userinfo *UserInfo, record *Record) bool {
 		return true
 	}
 
-	// All the other types requires UserInfo
-	if userinfo == nil {
+	// Exit early if userinfo and record is nil
+	if userinfo == nil || (r.Type.RecordDependent() && record == nil) {
 		return false
 	}
 
 	switch r.Type {
 	case OwnerFieldUserRoleType:
-		// TODO
-		return false
+		return record.OwnerID == userinfo.ID
 	case SpecificUserFieldUserRoleType:
 		return userinfo.ID == r.Data
 	case DynamicUserFieldUserRoleType:
-		// TODO
-		return false
+		return r.matchDynamic(userinfo, record)
 	case DefinedRoleFieldUserRoleType:
 		for _, role := range userinfo.Roles {
 			if role == r.Data {
@@ -438,6 +444,35 @@ func (r FieldUserRole) Match(userinfo *UserInfo, record *Record) bool {
 	default:
 		panic(fmt.Sprintf(`unexpected field user role type "%s"`, r.Type))
 	}
+}
+
+// matchDynamic is a helper function for returning whether the
+// field user role with dynamic user field type matches the specified
+// UserInfo and Record.
+func (r FieldUserRole) matchDynamic(userInfo *UserInfo, record *Record) bool {
+	dynamicFieldName := r.Data
+	switch fieldVal := record.Get(dynamicFieldName).(type) {
+	case string:
+		return userInfo.ID == fieldVal
+	case []interface{}:
+		for _, item := range fieldVal {
+			if userID, ok := item.(string); ok && userID == userInfo.ID {
+				return true
+			}
+		}
+		return false
+	}
+	return false
+}
+
+// Applicable returns true if the field user role is able to evaluate
+// the specified access mode.
+func (r FieldUserRole) Applicable(accessMode FieldAccessMode) bool {
+	if r.Type.RecordDependent() {
+		return accessMode == ReadFieldAccessMode ||
+			accessMode == WriteFieldAccessMode
+	}
+	return true
 }
 
 var defaultFieldUserRole = FieldUserRole{PublicFieldUserRoleType, ""}
