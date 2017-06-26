@@ -31,4 +31,5 @@ RUN go get golang.org/x/tools/cmd/stringer \
            github.com/rickmak/gocyclo \
            github.com/oursky/gogocyclo \
            github.com/mitchellh/gox \
-           github.com/vektra/mockery/.../
+           github.com/vektra/mockery/.../ \
+           github.com/derekparker/delve/cmd/dlv
