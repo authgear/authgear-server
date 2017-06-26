@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -146,10 +145,6 @@ func (parser *QueryParser) predicateFromRaw(rawPredicate []interface{}) skydb.Pr
 	} else {
 		for i := 1; i < len(rawPredicate); i++ {
 			expr := parser.parseExpression(rawPredicate[i])
-			if expr.Type == skydb.KeyPath && strings.Contains(expr.Value.(string), ".") {
-
-				panic(fmt.Errorf("key path `%s` is not supported", expr.Value))
-			}
 			predicate.Children = append(predicate.Children, expr)
 		}
 	}

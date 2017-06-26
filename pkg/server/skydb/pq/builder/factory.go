@@ -196,6 +196,7 @@ func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn s
 
 func (f *predicateSqlizerFactory) NewAccessControlSqlizer(user *skydb.UserInfo, aclLevel skydb.RecordACLLevel) (sq.Sqlizer, error) {
 	return &accessPredicateSqlizer{
+		f.primaryTable,
 		user,
 		aclLevel,
 	}, nil
