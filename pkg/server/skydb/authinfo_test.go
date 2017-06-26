@@ -23,10 +23,10 @@ import (
 )
 
 func TestNewAuthInfo(t *testing.T) {
-	info := NewAuthInfo("authinfoid", "john.doe@example.com", "secret")
+	info := NewAuthInfo("userinfoid", "john.doe@example.com", "secret")
 
-	if info.Username != "authinfoid" {
-		t.Fatalf("got info.ID = %v, want authinfoid", info.ID)
+	if info.Username != "userinfoid" {
+		t.Fatalf("got info.ID = %v, want userinfoid", info.ID)
 	}
 
 	if info.Email != "john.doe@example.com" {
@@ -69,15 +69,15 @@ func TestNewAnonymousAuthInfo(t *testing.T) {
 	}
 }
 
-func TestNewProvidedAuthAuthInfo(t *testing.T) {
+func TestNewProviderInfoAuthInfo(t *testing.T) {
 	k := "com.example:johndoe"
 	v := map[string]interface{}{
 		"hello": "world",
 	}
 
-	Convey("Test Provied Auth", t, func() {
-		info := NewProvidedAuthAuthInfo(k, v)
-		So(info.Auth[k], ShouldResemble, v)
+	Convey("Test Provied ProviderInfo", t, func() {
+		info := NewProviderInfoAuthInfo(k, v)
+		So(info.ProviderInfo[k], ShouldResemble, v)
 		So(len(info.HashedPassword), ShouldEqual, 0)
 	})
 }
@@ -105,47 +105,47 @@ func TestIsSamePassword(t *testing.T) {
 	}
 }
 
-func TestGetSetProvidedAuthData(t *testing.T) {
-	Convey("Test Get/Set Provided Auth Data", t, func() {
+func TestGetSetProviderInfoData(t *testing.T) {
+	Convey("Test Get/Set ProviderInfo Data", t, func() {
 		k := "com.example:johndoe"
 		v := map[string]interface{}{
 			"hello": "world",
 		}
 
-		Convey("Test Set Provided Auth", func() {
+		Convey("Test Set ProviderInfo", func() {
 			info := AuthInfo{}
-			info.SetProvidedAuthData(k, v)
+			info.SetProviderInfoData(k, v)
 
-			So(info.Auth[k], ShouldResemble, v)
+			So(info.ProviderInfo[k], ShouldResemble, v)
 		})
 
-		Convey("Test nonexistent Get Provided Auth", func() {
+		Convey("Test nonexistent Get ProviderInfo", func() {
 			info := AuthInfo{
-				Auth: ProviderInfo{},
+				ProviderInfo: ProviderInfo{},
 			}
 
-			So(info.GetProvidedAuthData(k), ShouldBeNil)
+			So(info.GetProviderInfoData(k), ShouldBeNil)
 		})
 
-		Convey("Test Get Provided Auth", func() {
+		Convey("Test Get ProviderInfo", func() {
 			info := AuthInfo{
-				Auth: ProviderInfo(map[string]map[string]interface{}{
+				ProviderInfo: ProviderInfo(map[string]map[string]interface{}{
 					k: v,
 				}),
 			}
 
-			So(info.GetProvidedAuthData(k), ShouldResemble, v)
+			So(info.GetProviderInfoData(k), ShouldResemble, v)
 		})
 
-		Convey("Test Remove Provided Auth", func() {
+		Convey("Test Remove ProviderInfo", func() {
 			info := AuthInfo{
-				Auth: ProviderInfo(map[string]map[string]interface{}{
+				ProviderInfo: ProviderInfo(map[string]map[string]interface{}{
 					k: v,
 				}),
 			}
 
-			info.RemoveProvidedAuthData(k)
-			v, _ = info.Auth[k]
+			info.RemoveProviderInfoData(k)
+			v, _ = info.ProviderInfo[k]
 			So(v, ShouldBeNil)
 		})
 	})

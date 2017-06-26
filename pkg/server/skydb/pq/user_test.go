@@ -37,7 +37,7 @@ func TestUserCRUD(t *testing.T) {
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
 			Roles:          []string{},
-			Auth: skydb.ProviderInfo{
+			ProviderInfo: skydb.ProviderInfo{
 				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
 					"bool":   true,
@@ -381,9 +381,9 @@ func TestUserEagerLoadRole(t *testing.T) {
 		c.CreateUser(&authinfo)
 
 		Convey("with GetUser", func() {
-			fetchedUserinfo := skydb.AuthInfo{}
-			So(c.GetUser("userid", &fetchedUserinfo), ShouldBeNil)
-			So(fetchedUserinfo, ShouldResemble, authinfo)
+			fetchedAuthinfo := skydb.AuthInfo{}
+			So(c.GetUser("userid", &fetchedAuthinfo), ShouldBeNil)
+			So(fetchedAuthinfo, ShouldResemble, authinfo)
 		})
 
 		Convey("with UserQuery", func() {

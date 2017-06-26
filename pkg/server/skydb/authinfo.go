@@ -47,7 +47,7 @@ type AuthInfo struct {
 	Email           string       `json:"email,omitempty"`
 	HashedPassword  []byte       `json:"password,omitempty"`
 	Roles           []string     `json:"roles,omitempty"`
-	Auth            ProviderInfo `json:"auth,omitempty"` // auth data for alternative methods
+	ProviderInfo    ProviderInfo `json:"provider_info,omitempty"` // auth data for alternative methods
 	TokenValidSince *time.Time   `json:"token_valid_since,omitempty"`
 	LastLoginAt     *time.Time   `json:"last_login_at,omitempty"`
 	LastSeenAt      *time.Time   `json:"last_seen_at,omitempty"`
@@ -76,12 +76,12 @@ func NewAnonymousAuthInfo() AuthInfo {
 	}
 }
 
-// NewProvidedAuthAuthInfo returns an AuthInfo provided by a AuthProvider,
+// NewProviderInfoAuthInfo returns an AuthInfo provided by a AuthProvider,
 // which has no Email and Password.
-func NewProvidedAuthAuthInfo(principalID string, authData map[string]interface{}) AuthInfo {
+func NewProviderInfoAuthInfo(principalID string, authData map[string]interface{}) AuthInfo {
 	return AuthInfo{
 		ID: uuid.New(),
-		Auth: ProviderInfo(map[string]map[string]interface{}{
+		ProviderInfo: ProviderInfo(map[string]map[string]interface{}{
 			principalID: authData,
 		}),
 	}
@@ -108,12 +108,12 @@ func (info AuthInfo) IsSamePassword(password string) bool {
 	return bcrypt.CompareHashAndPassword(info.HashedPassword, []byte(password)) == nil
 }
 
-// SetProvidedAuthData sets the auth data to the specified principal.
-func (info *AuthInfo) SetProvidedAuthData(principalID string, authData map[string]interface{}) {
-	if info.Auth == nil {
-		info.Auth = make(map[string]map[string]interface{})
+// SetProviderInfoData sets the auth data to the specified principal.
+func (info *AuthInfo) SetProviderInfoData(principalID string, authData map[string]interface{}) {
+	if info.ProviderInfo == nil {
+		info.ProviderInfo = make(map[string]map[string]interface{})
 	}
-	info.Auth[principalID] = authData
+	info.ProviderInfo[principalID] = authData
 }
 
 // HasAnyRoles return true if authinfo belongs to one of the supplied roles
@@ -126,18 +126,18 @@ func (info *AuthInfo) HasAllRoles(roles []string) bool {
 	return utils.StringSliceContainAll(info.Roles, roles)
 }
 
-// GetProvidedAuthData gets the auth data for the specified principal.
-func (info *AuthInfo) GetProvidedAuthData(principalID string) map[string]interface{} {
-	if info.Auth == nil {
+// GetProviderInfoData gets the auth data for the specified principal.
+func (info *AuthInfo) GetProviderInfoData(principalID string) map[string]interface{} {
+	if info.ProviderInfo == nil {
 		return nil
 	}
-	value, _ := info.Auth[principalID]
+	value, _ := info.ProviderInfo[principalID]
 	return value
 }
 
-// RemoveProvidedAuthData remove the auth data for the specified principal.
-func (info *AuthInfo) RemoveProvidedAuthData(principalID string) {
-	if info.Auth != nil {
-		delete(info.Auth, principalID)
+// RemoveProviderInfoData remove the auth data for the specified principal.
+func (info *AuthInfo) RemoveProviderInfoData(principalID string) {
+	if info.ProviderInfo != nil {
+		delete(info.ProviderInfo, principalID)
 	}
 }

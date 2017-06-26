@@ -472,7 +472,7 @@ func TestUserLinkHandler(t *testing.T) {
 			Username:       "username1",
 			Email:          "john.doe@example.org",
 			HashedPassword: []byte("password"),
-			Auth: skydb.ProviderInfo{
+			ProviderInfo: skydb.ProviderInfo{
 				"org.example:johndoe": map[string]interface{}{},
 			},
 		}

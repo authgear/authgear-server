@@ -353,7 +353,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 			token := tokenStore.Token
 			So(token.AccessToken, ShouldNotBeBlank)
 			So(conn.authinfo, ShouldNotBeNil)
-			authData := conn.authinfo.Auth["com.example:johndoe"]
+			authData := conn.authinfo.ProviderInfo["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -385,7 +385,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 
 			So(token.AccessToken, ShouldNotBeBlank)
 			So(conn.authinfo, ShouldNotBeNil)
-			authData := conn.authinfo.Auth["com.example:johndoe"]
+			authData := conn.authinfo.ProviderInfo["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -572,7 +572,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			authinfo := conn.authinfo
 
 			So(token.AccessToken, ShouldNotBeBlank)
-			authData := conn.authinfo.Auth["com.example:johndoe"]
+			authData := conn.authinfo.ProviderInfo["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{

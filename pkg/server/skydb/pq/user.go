@@ -70,7 +70,7 @@ func (c *conn) CreateUser(authinfo *skydb.AuthInfo) (err error) {
 		username,
 		email,
 		authinfo.HashedPassword,
-		authInfoValue{authinfo.Auth, true},
+		providerInfoValue{authinfo.ProviderInfo, true},
 		tokenValidSince,
 		lastLoginAt,
 		lastSeenAt,
@@ -122,7 +122,7 @@ func (c *conn) UpdateUser(authinfo *skydb.AuthInfo) (err error) {
 		Set("username", username).
 		Set("email", email).
 		Set("password", authinfo.HashedPassword).
-		Set("auth", authInfoValue{authinfo.Auth, true}).
+		Set("auth", providerInfoValue{authinfo.ProviderInfo, true}).
 		Set("token_valid_since", tokenValidSince).
 		Set("last_login_at", lastLoginAt).
 		Set("last_seen_at", lastSeenAt).
@@ -170,7 +170,7 @@ func (c *conn) doScanUser(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 		lastSeenAt      pq.NullTime
 		roles           nullJSONStringSlice
 	)
-	password, auth := []byte{}, authInfoValue{}
+	password, auth := []byte{}, providerInfoValue{}
 
 	err := scanner.Scan(
 		&id,
@@ -194,7 +194,7 @@ func (c *conn) doScanUser(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 	authinfo.Username = username.String
 	authinfo.Email = email.String
 	authinfo.HashedPassword = password
-	authinfo.Auth = auth.ProviderInfo
+	authinfo.ProviderInfo = auth.ProviderInfo
 	if tokenValidSince.Valid {
 		authinfo.TokenValidSince = &tokenValidSince.Time
 	} else {
