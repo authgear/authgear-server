@@ -181,8 +181,7 @@ func (payload *roleBatchPayload) Validate() skyerr.Error {
 //
 // RoleAssignHandler required user with admin role.
 // All specified users will assign to all roles specified. Roles not already
-// exisited in DB will be created. Any users not found will result in a fails
-// request.
+// exisited in DB will be created. Users not already existed will be ignored.
 //
 // curl -X POST -H "Content-Type: application/json" \
 //   -d @- http://localhost:3000/ <<EOF
@@ -202,16 +201,7 @@ func (payload *roleBatchPayload) Validate() skyerr.Error {
 // EOF
 //
 // {
-//     "result": {
-//       "roles": [
-//          "writer",
-//          "user"
-//       ],
-//       "users": [
-//          "95db1e34-0cc0-47b0-8a97-3948633ce09f",
-//          "3df4b52b-bd58-4fa2-8aee-3d44fd7f974d"
-//       ]
-//     }
+//     "result": "OK"
 // }
 type RoleAssignHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
@@ -258,13 +248,7 @@ func (h *RoleAssignHandler) Handle(rpayload *router.Payload, response *router.Re
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 	}
-	response.Result = struct {
-		Roles   []string `mapstructure:"roles"`
-		UserIDs []string `mapstructure:"users"`
-	}{
-		payload.Roles,
-		payload.UserIDs,
-	}
+	response.Result = "OK"
 }
 
 // RoleRevokeHandler allow system administractor to batch revoke roles from
@@ -292,16 +276,7 @@ func (h *RoleAssignHandler) Handle(rpayload *router.Payload, response *router.Re
 // EOF
 //
 // {
-//     "result": {
-//       "roles": [
-//          "writer",
-//          "user"
-//       ],
-//       "users": [
-//          "95db1e34-0cc0-47b0-8a97-3948633ce09f",
-//          "3df4b52b-bd58-4fa2-8aee-3d44fd7f974d"
-//       ]
-//     }
+//     "result": "OK"
 // }
 type RoleRevokeHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
@@ -348,11 +323,5 @@ func (h *RoleRevokeHandler) Handle(rpayload *router.Payload, response *router.Re
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 	}
-	response.Result = struct {
-		Roles   []string `mapstructure:"roles"`
-		UserIDs []string `mapstructure:"users"`
-	}{
-		payload.Roles,
-		payload.UserIDs,
-	}
+	response.Result = "OK"
 }
