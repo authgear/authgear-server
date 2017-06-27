@@ -178,7 +178,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 	Convey("RevokeRoles", t, func() {
 		c = getTestConn(t)
 		defer cleanupConn(t, c)
-		Convey("revoke roles from users with a roles", func() {
+		Convey("revoke roles from users with a role", func() {
 			userinfo := skydb.UserInfo{
 				ID: "userid",
 				Roles: []string{
@@ -212,7 +212,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 			So(c, ShouldEqual, 0)
 		})
 
-		Convey("revoke roles from users without a roles", func() {
+		Convey("revoke roles from users without a role", func() {
 			userinfo := skydb.UserInfo{
 				ID: "userid",
 			}

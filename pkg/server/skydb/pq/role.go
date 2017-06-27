@@ -129,7 +129,7 @@ func (c *conn) assignUserRoleSQL(users []string, roles []string) (string, []inte
 
 const revokeUserRoleDeleteTemplate = `
 {{ $userLen := len .Users }}
-DELETE FROm {{.UserRoleTable}}
+DELETE FROM {{.UserRoleTable}}
 WHERE
   user_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
   AND
