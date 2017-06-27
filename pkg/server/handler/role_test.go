@@ -17,13 +17,16 @@ package handler
 import (
 	"testing"
 
+	"github.com/golang/mock/gomock"
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
-	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 )
 
 func TestRolePayload(t *testing.T) {
@@ -172,6 +175,140 @@ func TestRoleAdminHandler(t *testing.T) {
         "name": "InvalidArgument"
     }
 }`)
+		})
+	})
+}
+
+func TestRoleAssignHandler(t *testing.T) {
+	Convey("RoleAssignHandler", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		conn := mock_skydb.NewMockConn(ctrl)
+
+		Convey("should set role successfully", func() {
+			payloadString := `{
+	"roles": ["god", "buddha"],
+	"users": ["johndoe", "janedoe"]
+}`
+			responseString := `{
+	"result": "OK"
+}`
+
+			conn.EXPECT().GetAdminRoles().Return([]string{"admin"}, nil).AnyTimes()
+			conn.EXPECT().AssignRoles(
+				gomock.Eq([]string{"johndoe", "janedoe"}),
+				gomock.Eq([]string{"god", "buddha"}),
+			).Return(nil)
+
+			Convey("with master key", func() {
+				mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
+					p.DBConn = conn
+					p.AccessKey = router.MasterAccessKey
+					p.UserInfo = &skydb.UserInfo{}
+				})
+				resp := mockRouter.POST(payloadString)
+				So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
+			})
+
+			Convey("with admin role", func() {
+				mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
+					p.DBConn = conn
+					p.UserInfo = &skydb.UserInfo{
+						Roles: []string{"admin"},
+					}
+				})
+				resp := mockRouter.POST(payloadString)
+				So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
+			})
+		})
+
+		Convey("should fail set role without admin role or master key", func() {
+			conn.EXPECT().GetAdminRoles().Return([]string{""}, nil).AnyTimes()
+
+			mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.UserInfo = &skydb.UserInfo{}
+			})
+
+			resp := mockRouter.POST(`{
+		"roles": ["god", "buddha"],
+		"users": ["johndoe", "janedoe"]
+	}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+		"error":{
+			"code":102,
+			"message":"no permission to modify other users",
+			"name":"PermissionDenied"
+		}
+	}`)
+		})
+	})
+}
+
+func TestRoleRevokeHandler(t *testing.T) {
+	Convey("RoleRevokeHandler", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		conn := mock_skydb.NewMockConn(ctrl)
+
+		Convey("should set role successfully", func() {
+			payloadString := `{
+	"roles": ["god", "buddha"],
+	"users": ["johndoe", "janedoe"]
+}`
+			responseString := `{
+	"result": "OK"
+}`
+
+			conn.EXPECT().GetAdminRoles().Return([]string{"admin"}, nil).AnyTimes()
+			conn.EXPECT().RevokeRoles(
+				gomock.Eq([]string{"johndoe", "janedoe"}),
+				gomock.Eq([]string{"god", "buddha"}),
+			).Return(nil)
+
+			Convey("with master key", func() {
+				mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
+					p.DBConn = conn
+					p.AccessKey = router.MasterAccessKey
+					p.UserInfo = &skydb.UserInfo{}
+				})
+				resp := mockRouter.POST(payloadString)
+				So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
+			})
+
+			Convey("with admin role", func() {
+				mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
+					p.DBConn = conn
+					p.UserInfo = &skydb.UserInfo{
+						Roles: []string{"admin"},
+					}
+				})
+				resp := mockRouter.POST(payloadString)
+				So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
+			})
+		})
+
+		Convey("should fail set role without admin role or master key", func() {
+			conn.EXPECT().GetAdminRoles().Return([]string{""}, nil).AnyTimes()
+
+			mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.UserInfo = &skydb.UserInfo{}
+			})
+
+			resp := mockRouter.POST(`{
+		"roles": ["god", "buddha"],
+		"users": ["johndoe", "janedoe"]
+	}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+		"error":{
+			"code":102,
+			"message":"no permission to modify other users",
+			"name":"PermissionDenied"
+		}
+	}`)
 		})
 	})
 }
