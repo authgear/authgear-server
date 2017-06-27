@@ -56,14 +56,11 @@ func TestRoleCRUD(t *testing.T) {
 
 			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
 			So(err, ShouldBeNil)
-			c := 0
 			roles := []string{}
 			for rows.Next() {
-				c++
 				rows.Scan(&role)
 				roles = append(roles, role)
 			}
-			So(c, ShouldEqual, 2)
 			So(roles, ShouldResemble, userinfo.Roles)
 		})
 
@@ -94,11 +91,7 @@ func TestRoleCRUD(t *testing.T) {
 
 			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
 			So(err, ShouldBeNil)
-			c := 0
-			for rows.Next() {
-				c++
-			}
-			So(c, ShouldEqual, 0)
+			So(rows.Next(), ShouldBeFalse)
 		})
 	})
 }
@@ -125,15 +118,12 @@ func TestRoleAssignRevoke(t *testing.T) {
 			}, roles)
 			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
 			So(err, ShouldBeNil)
-			c := 0
 			result := []string{}
 			var role string
 			for rows.Next() {
-				c++
 				rows.Scan(&role)
 				result = append(result, role)
 			}
-			So(c, ShouldEqual, 2)
 			So(result, ShouldResemble, roles)
 		})
 
@@ -167,11 +157,11 @@ func TestRoleAssignRevoke(t *testing.T) {
 			rows, err := c.Queryx(
 				"SELECT * FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
 			So(err, ShouldBeNil)
-			c := 0
+			count := 0
 			for rows.Next() {
-				c++
+				count++
 			}
-			So(c, ShouldEqual, 4)
+			So(count, ShouldEqual, 4)
 		})
 	})
 
@@ -205,11 +195,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 			rows, err := c.Queryx(
 				"SELECT role_id FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
 			So(err, ShouldBeNil)
-			c := 0
-			for rows.Next() {
-				c++
-			}
-			So(c, ShouldEqual, 0)
+			So(rows.Next(), ShouldBeFalse)
 		})
 
 		Convey("revoke roles from users without a role", func() {
@@ -232,11 +218,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 			rows, err := c.Queryx(
 				"SELECT role_id FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
 			So(err, ShouldBeNil)
-			c := 0
-			for rows.Next() {
-				c++
-			}
-			So(c, ShouldEqual, 0)
+			So(rows.Next(), ShouldBeFalse)
 		})
 
 	})
@@ -257,15 +239,12 @@ func TestRoleType(t *testing.T) {
 			So(err, ShouldBeNil)
 			rows, err := c.Queryx("SELECT id FROM _role WHERE is_admin = TRUE")
 			So(err, ShouldBeNil)
-			c := 0
 			var role string
 			roles := []string{}
 			for rows.Next() {
-				c++
 				rows.Scan(&role)
 				roles = append(roles, role)
 			}
-			So(c, ShouldEqual, 2)
 			So(roles, ShouldResemble, []string{
 				"god",
 				"buddha",
@@ -313,15 +292,12 @@ func TestRoleType(t *testing.T) {
 			So(err, ShouldBeNil)
 			rows, err := c.Queryx("SELECT id FROM _role WHERE by_default = TRUE")
 			So(err, ShouldBeNil)
-			c := 0
 			var role string
 			roles := []string{}
 			for rows.Next() {
-				c++
 				rows.Scan(&role)
 				roles = append(roles, role)
 			}
-			So(c, ShouldEqual, 2)
 			So(roles, ShouldResemble, []string{
 				"human",
 				"chinese",
