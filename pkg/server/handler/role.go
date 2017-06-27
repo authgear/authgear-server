@@ -247,6 +247,7 @@ func (h *RoleAssignHandler) Handle(rpayload *router.Payload, response *router.Re
 	err = rpayload.DBConn.AssignRoles(payload.UserIDs, payload.Roles)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
+		return
 	}
 	response.Result = "OK"
 }
@@ -322,6 +323,7 @@ func (h *RoleRevokeHandler) Handle(rpayload *router.Payload, response *router.Re
 	err = rpayload.DBConn.RevokeRoles(payload.UserIDs, payload.Roles)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
+		return
 	}
 	response.Result = "OK"
 }

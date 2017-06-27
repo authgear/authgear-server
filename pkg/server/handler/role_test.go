@@ -243,6 +243,32 @@ func TestRoleAssignHandler(t *testing.T) {
 		}
 	}`)
 		})
+
+		Convey("should handle error", func() {
+			conn.EXPECT().GetAdminRoles().Return([]string{""}, nil).AnyTimes()
+			conn.EXPECT().AssignRoles(
+				gomock.Eq([]string{"johndoe", "janedoe"}),
+				gomock.Eq([]string{"god", "buddha"}),
+			).Return(skyerr.NewError(skyerr.UnexpectedError, "unexpected error"))
+
+			mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.AccessKey = router.MasterAccessKey
+				p.UserInfo = &skydb.UserInfo{}
+			})
+
+			resp := mockRouter.POST(`{
+		"roles": ["god", "buddha"],
+		"users": ["johndoe", "janedoe"]
+	}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+		"error":{
+			"code":10000,
+			"message":"unexpected error",
+			"name":"UnexpectedError"
+		}
+	}`)
+		})
 	})
 }
 
@@ -307,6 +333,32 @@ func TestRoleRevokeHandler(t *testing.T) {
 			"code":102,
 			"message":"no permission to modify other users",
 			"name":"PermissionDenied"
+		}
+	}`)
+		})
+
+		Convey("should handle error", func() {
+			conn.EXPECT().GetAdminRoles().Return([]string{""}, nil).AnyTimes()
+			conn.EXPECT().RevokeRoles(
+				gomock.Eq([]string{"johndoe", "janedoe"}),
+				gomock.Eq([]string{"god", "buddha"}),
+			).Return(skyerr.NewError(skyerr.UnexpectedError, "unexpected error"))
+
+			mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
+				p.DBConn = conn
+				p.AccessKey = router.MasterAccessKey
+				p.UserInfo = &skydb.UserInfo{}
+			})
+
+			resp := mockRouter.POST(`{
+		"roles": ["god", "buddha"],
+		"users": ["johndoe", "janedoe"]
+	}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+		"error":{
+			"code":10000,
+			"message":"unexpected error",
+			"name":"UnexpectedError"
 		}
 	}`)
 		})
