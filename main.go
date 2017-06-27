@@ -227,10 +227,6 @@ func main() {
 
 	r.Map("me", injector.Inject(&handler.MeHandler{}))
 
-	r.Map("user:query", injector.Inject(&handler.UserQueryHandler{}))
-	r.Map("user:update", injector.Inject(&handler.UserUpdateHandler{}))
-	r.Map("user:link", injector.Inject(&handler.UserLinkHandler{}))
-
 	r.Map("role:default", injector.Inject(&handler.RoleDefaultHandler{}))
 	r.Map("role:admin", injector.Inject(&handler.RoleAdminHandler{}))
 	r.Map("role:assign", injector.Inject(&handler.RoleAssignHandler{}))
