@@ -365,6 +365,65 @@ func (ace *MapACLEntry) FromMap(m map[string]interface{}) error {
 	return nil
 }
 
+type MapFieldACLEntry skydb.FieldACLEntry
+
+// FromMap initializes a FieldACLEntry from a unmarshalled JSON of
+// field access control definition
+func (ace *MapFieldACLEntry) FromMap(m map[string]interface{}) error {
+	if recordType, ok := m["record_type"].(string); ok {
+		if recordType == "" {
+			return fmt.Errorf(`invalid record_type "%s"`, recordType)
+		}
+		ace.RecordType = recordType
+	} else {
+		return fmt.Errorf("missing or invalid record_type")
+	}
+
+	if recordField, ok := m["record_field"].(string); ok {
+		ace.RecordField = recordField
+		if recordField == "" {
+			return fmt.Errorf(`invalid record_field "%s"`, recordField)
+		}
+	} else {
+		return fmt.Errorf("missing or invalid record_field")
+	}
+
+	if userRole, ok := m["user_role"].(string); ok {
+		var err error
+		ace.UserRole, err = skydb.ParseFieldUserRole(userRole)
+		if err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("missing or invalid user_role")
+	}
+
+	if readable, ok := m["readable"].(bool); ok {
+		ace.Readable = readable
+	} else {
+		return fmt.Errorf("missing or invalid readable")
+	}
+
+	if writable, ok := m["writable"].(bool); ok {
+		ace.Writable = writable
+	} else {
+		return fmt.Errorf("missing or invalid writable")
+	}
+
+	if comparable, ok := m["comparable"].(bool); ok {
+		ace.Comparable = comparable
+	} else {
+		return fmt.Errorf("missing or invalid comparable")
+	}
+
+	if discoverable, ok := m["discoverable"].(bool); ok {
+		ace.Discoverable = discoverable
+	} else {
+		return fmt.Errorf("missing or invalid discoverable")
+	}
+	return nil
+}
+
 func walkMap(m map[string]interface{}) map[string]interface{} {
 	for key, value := range m {
 		m[key] = ParseLiteral(value)

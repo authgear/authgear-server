@@ -16,15 +16,19 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skydbtest"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
-	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestSchemaResponse(t *testing.T) {
@@ -919,5 +923,197 @@ func TestSchemaDefaultAccessHandler(t *testing.T) {
 		}
 		So(mockConn.acl.Accessible(&admin, skydb.WriteLevel), ShouldEqual, true)
 		So(mockConn.acl.Accessible(nil, skydb.ReadLevel), ShouldEqual, true)
+	})
+}
+
+func TestSchemaFieldAccessGetHandler(t *testing.T) {
+	Convey("SchemaFieldAccessGetHandler", t, func() {
+		ctrl := gomock.NewController(handlertest.NewGoroutineAwareTestReporter(t))
+		defer ctrl.Finish()
+		conn := mock_skydb.NewMockConn(ctrl)
+
+		handler := handlertest.NewSingleRouteRouter(&SchemaFieldAccessGetHandler{}, func(p *router.Payload) {
+			p.DBConn = conn
+		})
+
+		Convey("should return empty array for no Field ACL settings", func() {
+			conn.EXPECT().GetRecordFieldAccess().
+				Return(
+					skydb.FieldACL{},
+					nil,
+				)
+
+			resp := handler.POST(`{}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"access": []
+				}
+			}`)
+		})
+
+		Convey("should return Field ACL settings", func() {
+			conn.EXPECT().GetRecordFieldAccess().
+				Return(
+					skydb.NewFieldACL(skydb.FieldACLEntryList{
+						{
+							RecordType:   "*",
+							RecordField:  "*",
+							UserRole:     skydb.FieldUserRole{skydb.PublicFieldUserRoleType, ""},
+							Writable:     true,
+							Readable:     true,
+							Comparable:   true,
+							Discoverable: true,
+						},
+						{
+							RecordType:   "note",
+							RecordField:  "content",
+							UserRole:     skydb.FieldUserRole{skydb.SpecificUserFieldUserRoleType, "johndoe"},
+							Writable:     false,
+							Readable:     true,
+							Comparable:   false,
+							Discoverable: false,
+						},
+						{
+							RecordType:   "note",
+							RecordField:  "*",
+							UserRole:     skydb.FieldUserRole{skydb.OwnerFieldUserRoleType, ""},
+							Writable:     true,
+							Readable:     true,
+							Comparable:   true,
+							Discoverable: true,
+						},
+					}),
+					nil,
+				)
+
+			resp := handler.POST(`{}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"access": [
+						{
+							"record_type":"note",
+							"record_field":"content",
+							"user_role":"_user_id:johndoe",
+							"writable":false,
+							"readable":true,
+							"comparable":false,
+							"discoverable":false
+						},
+						{
+							"record_type":"note",
+							"record_field":"*",
+							"user_role":"_owner", 
+							"writable":true,
+							"readable":true,
+							"comparable":true,
+							"discoverable":true
+						},
+						{
+							"record_type":"*",
+							"record_field":"*",
+							"user_role":"_public",
+							"writable":true,
+							"readable":true,
+							"comparable":true,
+							"discoverable":true
+						}
+					]
+				}
+			}`)
+		})
+	})
+}
+
+func TestSchemaFieldAccessUpdateHandler(t *testing.T) {
+	Convey("SchemaFieldAccessUpdateHandler", t, func(c C) {
+		ctrl := gomock.NewController(handlertest.NewGoroutineAwareTestReporter(t))
+		defer ctrl.Finish()
+		conn := mock_skydb.NewMockConn(ctrl)
+
+		handler := handlertest.NewSingleRouteRouter(&SchemaFieldAccessUpdateHandler{}, func(p *router.Payload) {
+			p.DBConn = conn
+		})
+
+		c.Convey("should set empty Field ACL", func() {
+			conn.EXPECT().SetRecordFieldAccess(
+				skydb.NewFieldACL(skydb.FieldACLEntryList{}),
+			).Return(nil)
+
+			resp := handler.POST(`{"access": []}`)
+			c.So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"access": []
+				}
+			}`)
+		})
+
+		c.Convey("should set Field ACL", func() {
+			conn.EXPECT().SetRecordFieldAccess(gomock.Eq(skydb.NewFieldACL(skydb.FieldACLEntryList{
+				{
+					RecordType:   "*",
+					RecordField:  "*",
+					UserRole:     skydb.FieldUserRole{skydb.PublicFieldUserRoleType, ""},
+					Writable:     true,
+					Readable:     true,
+					Comparable:   true,
+					Discoverable: true,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "content",
+					UserRole:     skydb.FieldUserRole{skydb.SpecificUserFieldUserRoleType, "johndoe"},
+					Writable:     false,
+					Readable:     true,
+					Comparable:   false,
+					Discoverable: false,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "*",
+					UserRole:     skydb.FieldUserRole{skydb.OwnerFieldUserRoleType, ""},
+					Writable:     true,
+					Readable:     true,
+					Comparable:   true,
+					Discoverable: true,
+				},
+			}))).Return(nil)
+
+			fieldACLJSON := `[
+				{
+					"record_type":"note",
+					"record_field":"content",
+					"user_role":"_user_id:johndoe",
+					"writable":false,
+					"readable":true,
+					"comparable":false,
+					"discoverable":false
+				},
+				{
+					"record_type":"note",
+					"record_field":"*",
+					"user_role":"_owner", 
+					"writable":true,
+					"readable":true,
+					"comparable":true,
+					"discoverable":true
+				},
+				{
+					"record_type":"*",
+					"record_field":"*",
+					"user_role":"_public",
+					"writable":true,
+					"readable":true,
+					"comparable":true,
+					"discoverable":true
+				}
+			]`
+
+			resp := handler.POST(fmt.Sprintf(`{"access": %s}`, fieldACLJSON))
+			c.So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+				"result": {
+					"access": %s
+				}
+			}`, fieldACLJSON))
+		})
 	})
 }
