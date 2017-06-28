@@ -391,25 +391,54 @@ func mapToQueryHookFunc(parser *QueryParser) mapstructure.DecodeHookFunc {
 	}
 }
 
+// queryAccessVisitorPredicateStackEntry is an entry in the queryAccessVisitor
+// predicate stack.
 type queryAccessVisitorPredicateStackEntry struct {
-	Predicate        skydb.Predicate
+	// Predicate is the predicate being check.
+	Predicate skydb.Predicate
+
+	// SimpleComparison is the result of the simple comparison check.
+	// If the predicate is performing simple comparison, the access
+	// is considered "discover" and "compare" instead of just "compare".
 	SimpleComparison bool
 }
 
+// queryAccessVisitor checks a Query struct to determine if the client
+// is authorized to perform this query.
 type queryAccessVisitor struct {
-	pStack               []queryAccessVisitorPredicateStackEntry
-	err                  skyerr.Error
-	FieldACL             skydb.FieldACL
-	RecordType           string
-	UserInfo             *skydb.UserInfo
+	// FieldACL is the Field ACL settings.
+	FieldACL skydb.FieldACL
+
+	// Record Type is type of the record being queried.
+	RecordType string
+
+	// UserInfo is the current logged in user.
+	UserInfo *skydb.UserInfo
+
+	// ExpressionACLChecker is the helper struct for evaluating whether
+	// the Field ACL settings allow access for an Expression.
 	ExpressionACLChecker ExpressionACLChecker
-	inSort               bool
+
+	// pStack stores the stack of the Predicate being checked. Empty
+	// if not checking any predicate.
+	pStack []queryAccessVisitorPredicateStackEntry
+
+	// err stores the error encountered (if any)
+	err skyerr.Error
+
+	// inSort stores true if the visitor is checking the expression in sorts.
+	inSort bool
 }
 
 func (c *queryAccessVisitor) VisitQuery(p skydb.Query)    {}
 func (c *queryAccessVisitor) EndVisitQuery(p skydb.Query) {}
 
 func (c *queryAccessVisitor) VisitPredicate(p skydb.Predicate) {
+	// For each predicate, determine if the predicate is for simple comparison.
+	// A predicate performs simple comparison if the predicate operator
+	// falls into a certain group. If the parent of a predicate is performing
+	// non-simple comparison, the predicate in question is always performing
+	// non-simple comparison.
 	simple := func() bool {
 		op := p.Operator
 		simpleOp := op == skydb.Equal || op == skydb.In || op == skydb.And
@@ -418,6 +447,8 @@ func (c *queryAccessVisitor) VisitPredicate(p skydb.Predicate) {
 		}
 		return simpleOp
 	}()
+
+	// Push the predicate and the result of SimpleComparison into stack.
 	c.pStack = append(
 		c.pStack,
 		queryAccessVisitorPredicateStackEntry{
@@ -428,7 +459,7 @@ func (c *queryAccessVisitor) VisitPredicate(p skydb.Predicate) {
 }
 
 func (c *queryAccessVisitor) EndVisitPredicate(p skydb.Predicate) {
-	log.Infof("EndVisitPredicate: len: %d", len(c.pStack))
+	// Pop from stack.
 	c.pStack = c.pStack[:len(c.pStack)-1]
 }
 
@@ -447,17 +478,24 @@ func (c *queryAccessVisitor) VisitExpression(expr skydb.Expression) {
 
 	var accessMode skydb.FieldAccessMode
 	if len(c.pStack) > 0 {
+		// The predicate stack is non-empty, that means we are checking
+		// the predicate part of the query.
 		if c.pStack[len(c.pStack)-1].SimpleComparison {
 			accessMode = skydb.DiscoverOrCompareFieldAccessMode
 		} else {
 			accessMode = skydb.CompareFieldAccessMode
 		}
 	} else if c.inSort {
+		// We are checking the Sorts part of the query.
 		accessMode = skydb.CompareFieldAccessMode
 	} else {
+		// We are checking other parts of the query. For the time being
+		// we are checking the ComputedKeys part of the query.
 		accessMode = skydb.ReadFieldAccessMode
 	}
 
+	// When we have determined the access mode, check whether the expression
+	// is allowed access.
 	if err := c.ExpressionACLChecker.Check(expr, accessMode); err != nil {
 		c.err = err
 		return
