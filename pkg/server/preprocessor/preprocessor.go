@@ -153,3 +153,36 @@ func (p RequireUser) Preprocess(payload *router.Payload, response *router.Respon
 
 	return http.StatusOK
 }
+
+type RequireAdminOrMasterKey struct {
+}
+
+func (p RequireAdminOrMasterKey) Preprocess(payload *router.Payload, response *router.Response) int {
+	if payload.HasMasterKey() {
+		return http.StatusOK
+	}
+
+	if payload.AuthInfo == nil {
+		response.Err = skyerr.NewError(
+			skyerr.NotAuthenticated,
+			"User is required for this action, please login.",
+		)
+		return http.StatusUnauthorized
+	}
+
+	adminRoles, err := payload.DBConn.GetAdminRoles()
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return http.StatusInternalServerError
+	}
+
+	if payload.AuthInfo.HasAnyRoles(adminRoles) {
+		return http.StatusOK
+	}
+
+	response.Err = skyerr.NewError(
+		skyerr.PermissionDenied,
+		"no permission to perform this action",
+	)
+	return http.StatusUnauthorized
+}
