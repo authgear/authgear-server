@@ -15,6 +15,7 @@
 package skydb
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -286,13 +287,13 @@ func (list FieldACLEntryList) Less(i, j int) bool { return list[i].Compare(list[
 
 // FieldACLEntry contains a single field ACL entry
 type FieldACLEntry struct {
-	RecordType   string
-	RecordField  string
-	UserRole     FieldUserRole
-	Writable     bool
-	Readable     bool
-	Comparable   bool
-	Discoverable bool
+	RecordType   string        `json:"record_type"`
+	RecordField  string        `json:"record_field"`
+	UserRole     FieldUserRole `json:"user_role"`
+	Writable     bool          `json:"writable"`
+	Readable     bool          `json:"readable"`
+	Comparable   bool          `json:"comparable"`
+	Discoverable bool          `json:"discoverable"`
 }
 
 // Compare the order for evaluation with the other entry.
@@ -492,6 +493,22 @@ func (r FieldUserRole) matchDynamic(authInfo *AuthInfo, record *Record) bool {
 		return false
 	}
 	return false
+}
+
+// MarshalJSON implements json.Marshaler
+func (r *FieldUserRole) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.String())
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (r *FieldUserRole) UnmarshalJSON(data []byte) (err error) {
+	var strValue string
+	if err = json.Unmarshal(data, &strValue); err != nil {
+		return
+	}
+	newRole := NewFieldUserRole(strValue)
+	*r = newRole
+	return
 }
 
 var defaultFieldUserRole = FieldUserRole{PublicFieldUserRoleType, ""}
