@@ -128,7 +128,7 @@ func TestFieldACL(t *testing.T) {
 					RecordType:   "note",
 					RecordField:  "*",
 					UserRole:     FieldUserRole{DefinedRoleFieldUserRoleType, "admin"},
-					Writable:     false,
+					Writable:     true,
 					Readable:     false,
 					Comparable:   true,
 					Discoverable: true,
@@ -149,8 +149,9 @@ func TestFieldACL(t *testing.T) {
 
 			So(acl.Accessible("note", "content", ReadFieldAccessMode, nil, record), ShouldBeFalse)
 			So(acl.Accessible("note", "content", ReadFieldAccessMode, johndoe, record), ShouldBeTrue)
-			So(acl.Accessible("note", "content", CompareFieldAccessMode, johndoe, record), ShouldBeFalse)
-			So(acl.Accessible("note", "content", CompareFieldAccessMode, janedoe, record), ShouldBeTrue)
+			So(acl.Accessible("note", "content", WriteFieldAccessMode, janedoe, record), ShouldBeTrue)
+			So(acl.Accessible("note", "content", CompareFieldAccessMode, johndoe, nil), ShouldBeFalse)
+			So(acl.Accessible("note", "content", CompareFieldAccessMode, janedoe, nil), ShouldBeTrue)
 		})
 
 		Convey("should returns true if no entry matches", func() {
@@ -344,25 +345,15 @@ func TestFieldUserRole(t *testing.T) {
 			So(NewFieldUserRole("_role:admin").Match(johndoe, nil), ShouldBeFalse)
 			So(NewFieldUserRole("_role:admin").Match(janedoe, nil), ShouldBeTrue)
 			So(NewFieldUserRole("_field:uid").Match(johndoe, record), ShouldBeTrue)
+			So(NewFieldUserRole("_field:uid").Match(johndoe, nil), ShouldBeFalse)
 			So(NewFieldUserRole("_field:uid").Match(janedoe, record), ShouldBeFalse)
 			So(NewFieldUserRole("_field:uids").Match(johndoe, record), ShouldBeFalse)
 			So(NewFieldUserRole("_field:uids").Match(janedoe, record), ShouldBeTrue)
 			So(NewFieldUserRole("_user_id:janedoe").Match(johndoe, nil), ShouldBeFalse)
 			So(NewFieldUserRole("_user_id:johndoe").Match(johndoe, nil), ShouldBeTrue)
 			So(NewFieldUserRole("_owner").Match(johndoe, record), ShouldBeTrue)
+			So(NewFieldUserRole("_owner").Match(johndoe, nil), ShouldBeFalse)
 			So(NewFieldUserRole("_owner").Match(janedoe, record), ShouldBeFalse)
-
-		})
-
-		Convey("should check applicability", func() {
-			So(NewFieldUserRole("_public").Applicable(CompareFieldAccessMode), ShouldBeTrue)
-			So(NewFieldUserRole("_any_user").Applicable(CompareFieldAccessMode), ShouldBeTrue)
-			So(NewFieldUserRole("_role:admin").Applicable(CompareFieldAccessMode), ShouldBeTrue)
-			So(NewFieldUserRole("_field:stared").Applicable(CompareFieldAccessMode), ShouldBeFalse)
-			So(NewFieldUserRole("_field:stared").Applicable(ReadFieldAccessMode), ShouldBeTrue)
-			So(NewFieldUserRole("_user_id:janedoe").Applicable(CompareFieldAccessMode), ShouldBeTrue)
-			So(NewFieldUserRole("_owner").Applicable(CompareFieldAccessMode), ShouldBeFalse)
-			So(NewFieldUserRole("_owner").Applicable(WriteFieldAccessMode), ShouldBeTrue)
 		})
 	})
 }

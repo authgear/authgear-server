@@ -185,8 +185,8 @@ func (acl FieldACL) AllEntries() FieldACLEntryList {
 // Accessible returns true when the access mode is allowed access
 //
 // The accessibility of a field access request is determined by the first
-// applicable rules and user-role-matching rule. If no rule is found that
-// is both applicable and matched, the default rule is to grant access.
+// matching rule. If no matching rule is found, the default rule is to
+// grant access.
 func (acl FieldACL) Accessible(
 	recordType string,
 	field string,
@@ -205,11 +205,8 @@ func (acl FieldACL) Accessible(
 			return true
 		}
 
-		// Not all rules apply to this request. Only the rules that
-		// are applicable and only the rules that matches the user role
-		// will be selected.
-		if !entry.UserRole.Applicable(mode) ||
-			!entry.UserRole.Match(userInfo, record) {
+		// Only the rules that matches the user role will be selected.
+		if !entry.UserRole.Match(userInfo, record) {
 			continue
 		}
 
@@ -443,6 +440,9 @@ func (r FieldUserRole) Compare(other FieldUserRole) int {
 
 // Match returns true if the specifid UserInfo and Record matches the
 // user role.
+//
+// If the specified user role type is record dependent, this function
+// returns false if Record is nil.
 func (r FieldUserRole) Match(userinfo *UserInfo, record *Record) bool {
 	if r.Type == PublicFieldUserRoleType {
 		return true
@@ -491,20 +491,6 @@ func (r FieldUserRole) matchDynamic(userInfo *UserInfo, record *Record) bool {
 		return false
 	}
 	return false
-}
-
-// Applicable returns true if the field user role is able to evaluate
-// the specified access mode.
-func (r FieldUserRole) Applicable(accessMode FieldAccessMode) bool {
-	// If the user role is record dependent, it requires record data,
-	// which is only available when reading and writing.
-	if r.Type.RecordDependent() {
-		return accessMode == ReadFieldAccessMode ||
-			accessMode == WriteFieldAccessMode
-	}
-
-	// The user role is applicable in all other cases.
-	return true
 }
 
 var defaultFieldUserRole = FieldUserRole{PublicFieldUserRoleType, ""}
