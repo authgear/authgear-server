@@ -32,36 +32,25 @@ type QueryParser struct {
 	UserID string
 }
 
+// sortFromRaw parses the specified structure into a Sort struct.
+//
+// The structure takes the following form:
+//
+//     [ _expression_ , _sort_order ]
+//
+// Expression supports key path type or the function type. Literal type is
+// not supported.
+//
+// Sort Order only supports `"asc"` or `"desc"`.
 func (parser *QueryParser) sortFromRaw(rawSort []interface{}, sort *skydb.Sort) {
-	var (
-		expr      skydb.Expression
-		sortOrder skydb.SortOrder
-	)
-	switch v := rawSort[0].(type) {
-	case map[string]interface{}:
-		var keyPath string
-		if err := (*skyconv.MapKeyPath)(&keyPath).FromMap(v); err != nil {
-			panic(err)
-		}
-		expr = skydb.Expression{
-			Type:  skydb.KeyPath,
-			Value: keyPath,
-		}
-	case []interface{}:
-		var funcExpr skydb.Func
-		var err error
-		funcExpr, err = parser.parseFunc(v)
-		if err != nil {
-			panic(err)
-		}
-		expr = skydb.Expression{
-			Type:  skydb.Function,
-			Value: funcExpr,
-		}
-	default:
-		panic(fmt.Errorf("unexpected type of sort expression = %T", rawSort[0]))
+	// Parse expression.
+	expr := parser.parseExpression(rawSort[0])
+	if expr.Type == skydb.Literal {
+		panic(errors.New("sort does not support literal"))
 	}
 
+	// Parse sort order.
+	var sortOrder skydb.SortOrder
 	orderStr, _ := rawSort[1].(string)
 	if orderStr == "" {
 		panic(errors.New("empty sort order in sort descriptor"))
@@ -165,6 +154,13 @@ func (parser *QueryParser) predicateFromRaw(rawPredicate []interface{}) skydb.Pr
 	return predicate
 }
 
+// parseExpression parses the specific structure into an Expression struct.
+//
+// Accepts one of the following types:
+//
+// * { "$type": "keypath", "$val": "_key_path_name_" }    // key path
+// * [ "_func_name_" , _expression_1_ , _expression_2_ ]  // function
+// * 42                                                   // literal
 func (parser *QueryParser) parseExpression(i interface{}) skydb.Expression {
 	switch v := i.(type) {
 	case map[string]interface{}:
