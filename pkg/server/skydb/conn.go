@@ -111,6 +111,14 @@ type Conn interface {
 	// to newly created user CreateUser
 	SetDefaultRoles(roles []string) error
 
+	// AssignRoles accepts array of roles and userID, the supplied roles will
+	// be assigned to all passed in users
+	AssignRoles(userIDs []string, roles []string) error
+
+	// RevokeRoles accepts array of roles and userID, the supplied roles will
+	// be revoked from all passed in users
+	RevokeRoles(userIDs []string, roles []string) error
+
 	// SetRecordAccess sets default record access of a specific type
 	SetRecordAccess(recordType string, acl RecordACL) error
 

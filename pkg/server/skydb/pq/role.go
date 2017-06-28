@@ -67,6 +67,112 @@ func (c *conn) batchUserRoleSQL(id string, roles []string) (string, []interface{
 
 }
 
+const assignUserRoleInsertTemplate = `
+{{ $userLen := len .Users }}
+INSERT INTO {{.UserRoleTable}} (user_id, role_id)
+SELECT "user"."id", "role"."id"
+FROM {{.UserTable}} AS "user", {{.RoleTable}} AS "role"
+WHERE
+  "user"."id" IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  AND
+  "role"."id" IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
+  AND ("role"."id", "user"."id") NOT IN (
+    SELECT role_id, user_id
+  FROM {{.UserRoleTable}}
+  WHERE
+    user_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  AND
+    role_id IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
+  );
+`
+
+var assignUserRoleInsert = template.Must(
+	template.New("assignUserRole").Funcs(template.FuncMap{
+		"inDollar": func(offset int, n int) string {
+			dollar := "$" + strconv.Itoa(n+offset+1)
+			if n > 0 {
+				dollar = "," + dollar
+			}
+			return dollar
+		},
+	}).Parse(assignUserRoleInsertTemplate))
+
+type assignUserRole struct {
+	UserRoleTable string
+	RoleTable     string
+	UserTable     string
+	Roles         []string
+	Users         []string
+}
+
+func (c *conn) assignUserRoleSQL(users []string, roles []string) (string, []interface{}) {
+	b := bytes.Buffer{}
+	assignUserRoleInsert.Execute(&b, assignUserRole{
+		c.tableName("_user_role"),
+		c.tableName("_role"),
+		c.tableName("_user"),
+		roles,
+		users,
+	})
+
+	args := make([]interface{}, len(users)+len(roles))
+	for i := range users {
+		args[i] = users[i]
+	}
+	offset := len(users)
+	for i := range roles {
+		args[i+offset] = roles[i]
+	}
+	return b.String(), args
+
+}
+
+const revokeUserRoleDeleteTemplate = `
+{{ $userLen := len .Users }}
+DELETE FROM {{.UserRoleTable}}
+WHERE
+  user_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  AND
+  role_id IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
+;
+`
+
+var revokeUserRoleDelete = template.Must(
+	template.New("revokeUserRole").Funcs(template.FuncMap{
+		"inDollar": func(offset int, n int) string {
+			dollar := "$" + strconv.Itoa(n+offset+1)
+			if n > 0 {
+				dollar = "," + dollar
+			}
+			return dollar
+		},
+	}).Parse(revokeUserRoleDeleteTemplate))
+
+type revokeUserRole struct {
+	UserRoleTable string
+	Roles         []string
+	Users         []string
+}
+
+func (c *conn) revokeUserRoleSQL(users []string, roles []string) (string, []interface{}) {
+	b := bytes.Buffer{}
+	revokeUserRoleDelete.Execute(&b, revokeUserRole{
+		c.tableName("_user_role"),
+		roles,
+		users,
+	})
+
+	args := make([]interface{}, len(users)+len(roles))
+	for i := range users {
+		args[i] = users[i]
+	}
+	offset := len(users)
+	for i := range roles {
+		args[i+offset] = roles[i]
+	}
+	return b.String(), args
+}
+
 func (c *conn) getRolesByType(roleType string) ([]string, error) {
 	var col string
 	switch roleType {
@@ -170,6 +276,27 @@ func (c *conn) UpdateUserRoles(userinfo *skydb.UserInfo) error {
 		}
 	}
 
+	return nil
+}
+
+func (c *conn) AssignRoles(userIDs []string, roles []string) error {
+	log.Debugf("AssignRoles %v to %v", roles, userIDs)
+	c.ensureRole(roles)
+	sql, args := c.assignUserRoleSQL(userIDs, roles)
+	_, err := c.Exec(sql, args...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *conn) RevokeRoles(userIDs []string, roles []string) error {
+	log.Debugf("RevokeRoles %v to %v", roles, userIDs)
+	sql, args := c.revokeUserRoleSQL(userIDs, roles)
+	_, err := c.Exec(sql, args...)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -44,6 +44,18 @@ func (_mr *MockConnMockRecorder) AddRelation(arg0, arg1, arg2 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddRelation", arg0, arg1, arg2)
 }
 
+// AssignRoles mocks base method
+func (_m *MockConn) AssignRoles(_param0 []string, _param1 []string) error {
+	ret := _m.ctrl.Call(_m, "AssignRoles", _param0, _param1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AssignRoles indicates an expected call of AssignRoles
+func (_mr *MockConnMockRecorder) AssignRoles(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AssignRoles", arg0, arg1)
+}
+
 // Close mocks base method
 func (_m *MockConn) Close() error {
 	ret := _m.ctrl.Call(_m, "Close")
@@ -352,6 +364,18 @@ func (_m *MockConn) RemoveRelation(_param0 string, _param1 string, _param2 strin
 // RemoveRelation indicates an expected call of RemoveRelation
 func (_mr *MockConnMockRecorder) RemoveRelation(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveRelation", arg0, arg1, arg2)
+}
+
+// RevokeRoles mocks base method
+func (_m *MockConn) RevokeRoles(_param0 []string, _param1 []string) error {
+	ret := _m.ctrl.Call(_m, "RevokeRoles", _param0, _param1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RevokeRoles indicates an expected call of RevokeRoles
+func (_mr *MockConnMockRecorder) RevokeRoles(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RevokeRoles", arg0, arg1)
 }
 
 // SaveAsset mocks base method

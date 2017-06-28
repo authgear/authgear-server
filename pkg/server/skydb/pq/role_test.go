@@ -56,14 +56,11 @@ func TestRoleCRUD(t *testing.T) {
 
 			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
 			So(err, ShouldBeNil)
-			c := 0
 			roles := []string{}
 			for rows.Next() {
-				c++
 				rows.Scan(&role)
 				roles = append(roles, role)
 			}
-			So(c, ShouldEqual, 2)
 			So(roles, ShouldResemble, userinfo.Roles)
 		})
 
@@ -94,11 +91,134 @@ func TestRoleCRUD(t *testing.T) {
 
 			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
 			So(err, ShouldBeNil)
-			c := 0
-			for rows.Next() {
-				c++
+			So(rows.Next(), ShouldBeFalse)
+		})
+	})
+}
+
+func TestRoleAssignRevoke(t *testing.T) {
+	var c *conn
+	Convey("AssignRoles", t, func() {
+		c = getTestConn(t)
+		defer cleanupConn(t, c)
+
+		Convey("assign roles to user without roles", func() {
+			userinfo := skydb.UserInfo{
+				ID:       "userid",
+				Username: "john.doe",
+				Email:    "john.doe@example.com",
 			}
-			So(c, ShouldEqual, 0)
+			err := c.CreateUser(&userinfo)
+			roles := []string{
+				"admin",
+				"user",
+			}
+			err = c.AssignRoles([]string{
+				"userid",
+			}, roles)
+			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
+			So(err, ShouldBeNil)
+			result := []string{}
+			var role string
+			for rows.Next() {
+				rows.Scan(&role)
+				result = append(result, role)
+			}
+			So(result, ShouldResemble, roles)
+		})
+
+		Convey("assign roles to users with existing roles", func() {
+			userinfo := skydb.UserInfo{
+				ID: "userid",
+				Roles: []string{
+					"admin",
+				},
+			}
+			err := c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+			userinfo = skydb.UserInfo{
+				ID: "userid2",
+				Roles: []string{
+					"user",
+				},
+			}
+			err = c.CreateUser(&userinfo)
+			So(err, ShouldBeNil)
+
+			roles := []string{
+				"admin",
+				"user",
+			}
+			err = c.AssignRoles([]string{
+				"userid",
+				"userid2",
+			}, roles)
+			So(err, ShouldBeNil)
+			rows, err := c.Queryx(
+				"SELECT * FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
+			So(err, ShouldBeNil)
+			count := 0
+			for rows.Next() {
+				count++
+			}
+			So(count, ShouldEqual, 4)
+		})
+	})
+
+	Convey("RevokeRoles", t, func() {
+		c = getTestConn(t)
+		defer cleanupConn(t, c)
+		Convey("revoke roles from users with a role", func() {
+			userinfo := skydb.UserInfo{
+				ID: "userid",
+				Roles: []string{
+					"admin",
+					"user",
+				},
+			}
+			err := c.CreateUser(&userinfo)
+			userinfo = skydb.UserInfo{
+				ID: "userid2",
+				Roles: []string{
+					"user",
+				},
+			}
+
+			roles := []string{
+				"admin",
+				"user",
+			}
+			err = c.RevokeRoles([]string{
+				"userid",
+				"userid2",
+			}, roles)
+			rows, err := c.Queryx(
+				"SELECT role_id FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
+			So(err, ShouldBeNil)
+			So(rows.Next(), ShouldBeFalse)
+		})
+
+		Convey("revoke roles from users without a role", func() {
+			userinfo := skydb.UserInfo{
+				ID: "userid",
+			}
+			err := c.CreateUser(&userinfo)
+			userinfo = skydb.UserInfo{
+				ID: "userid2",
+			}
+
+			roles := []string{
+				"admin",
+				"user",
+			}
+			err = c.RevokeRoles([]string{
+				"userid",
+				"userid2",
+			}, roles)
+			rows, err := c.Queryx(
+				"SELECT role_id FROM _user_role WHERE user_id IN ( 'userid', 'userid2' )")
+			So(err, ShouldBeNil)
+			So(rows.Next(), ShouldBeFalse)
 		})
 
 	})
@@ -119,15 +239,12 @@ func TestRoleType(t *testing.T) {
 			So(err, ShouldBeNil)
 			rows, err := c.Queryx("SELECT id FROM _role WHERE is_admin = TRUE")
 			So(err, ShouldBeNil)
-			c := 0
 			var role string
 			roles := []string{}
 			for rows.Next() {
-				c++
 				rows.Scan(&role)
 				roles = append(roles, role)
 			}
-			So(c, ShouldEqual, 2)
 			So(roles, ShouldResemble, []string{
 				"god",
 				"buddha",
@@ -175,15 +292,12 @@ func TestRoleType(t *testing.T) {
 			So(err, ShouldBeNil)
 			rows, err := c.Queryx("SELECT id FROM _role WHERE by_default = TRUE")
 			So(err, ShouldBeNil)
-			c := 0
 			var role string
 			roles := []string{}
 			for rows.Next() {
-				c++
 				rows.Scan(&role)
 				roles = append(roles, role)
 			}
-			So(c, ShouldEqual, 2)
 			So(roles, ShouldResemble, []string{
 				"human",
 				"chinese",
