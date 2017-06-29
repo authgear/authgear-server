@@ -143,8 +143,9 @@ const (
 	// WriteFieldAccessMode means the access mode is for writing
 	WriteFieldAccessMode
 
-	// DiscoverFieldAccessMode means the access mode is for discovery
-	DiscoverFieldAccessMode
+	// DiscoverOrCompareFieldAccessMode means the access mode is for discovery
+	// or compare
+	DiscoverOrCompareFieldAccessMode
 
 	// CompareFieldAccessMode means the access mode is for query
 	CompareFieldAccessMode
@@ -302,7 +303,7 @@ func (entry FieldACLEntry) Accessible(mode FieldAccessMode) bool {
 	return (mode == ReadFieldAccessMode && entry.Readable) ||
 		(mode == WriteFieldAccessMode && entry.Writable) ||
 		(mode == CompareFieldAccessMode && entry.Comparable) ||
-		(mode == DiscoverFieldAccessMode && entry.Discoverable)
+		(mode == DiscoverOrCompareFieldAccessMode && (entry.Discoverable || entry.Comparable))
 }
 
 // FieldUserRoleType denotes the type of field user role, which

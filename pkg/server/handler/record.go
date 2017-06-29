@@ -545,6 +545,31 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		p.Query.BypassAccessControl = true
 	}
 
+	fieldACL := func() skydb.FieldACL {
+		acl, err := payload.DBConn.GetRecordFieldAccess()
+		if err != nil {
+			panic(err)
+		}
+		return acl
+	}()
+
+	visitor := &queryAccessVisitor{
+		FieldACL:   fieldACL,
+		RecordType: p.Query.Type,
+		UserInfo:   p.Query.ViewAsUser,
+		ExpressionACLChecker: ExpressionACLChecker{
+			FieldACL:   fieldACL,
+			RecordType: p.Query.Type,
+			UserInfo:   payload.UserInfo,
+			Database:   payload.Database,
+		},
+	}
+	p.Query.Accept(visitor)
+	if err := visitor.Error(); err != nil {
+		response.Err = err
+		return
+	}
+
 	db := payload.Database
 
 	results, err := db.Query(&p.Query)

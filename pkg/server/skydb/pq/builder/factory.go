@@ -302,37 +302,19 @@ func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr skydb.Expr
 	}
 
 	alias := f.primaryTable
-	recordType := f.primaryTable
-	field := skydb.FieldType{}
-	for i, component := range components {
-		isLast := (i == len(components)-1)
-
-		schema, err := f.db.RemoteColumnTypes(recordType)
-		if err != nil {
-			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
-				`record type "%s" does not exist`, recordType)
-		}
-
-		if f, ok := schema[component]; ok {
-			field = f
-		} else {
-			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
-				`keypath "%s" does not exist`, keyPath)
-		}
-
-		if field.Type != skydb.TypeReference && !isLast {
-			return expressionSqlizer{}, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
-				`field "%s" in keypath "%s" is not a reference`, component, keyPath)
-		}
-
-		if field.Type == skydb.TypeReference && !isLast {
-			// follow the keypath and join the table
-			alias = f.createLeftJoin(field.ReferenceType, component, "_id")
-			recordType = field.ReferenceType
-			continue
-		}
+	fields, err := skydb.TraverseColumnTypes(f.db, f.primaryTable, keyPath)
+	if err != nil {
+		return expressionSqlizer{}, skyerr.NewError(skyerr.RecordQueryInvalid, err.Error())
 	}
 
+	field := skydb.FieldType{}
+	for i, keyPathField := range fields {
+		isLast := (i == len(components)-1)
+		field = keyPathField
+		if field.Type == skydb.TypeReference && !isLast {
+			alias = f.createLeftJoin(field.ReferenceType, components[i], "_id")
+		}
+	}
 	return newExpressionSqlizer(alias, field, expr), nil
 }
 

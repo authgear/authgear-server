@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:generate mockgen -package skydb -source=query.go -destination=mock_query_test.go
+
 package skydb
 
 import (
@@ -37,9 +39,19 @@ const (
 // Record order can be sorted w.r.t. a record field or a value returned
 // from a predefined function.
 type Sort struct {
-	KeyPath string
-	Func    Func
-	Order   SortOrder
+	Expression Expression
+	Order      SortOrder
+}
+
+// Accept implements the Visitor pattern.
+func (sort Sort) Accept(visitor Visitor) {
+	if v, ok := visitor.(SortVisitor); ok {
+		v.VisitSort(sort)
+		defer v.EndVisitSort(sort)
+	}
+	if v, ok := visitor.(ExpressionVisitor); ok {
+		sort.Expression.Accept(v)
+	}
 }
 
 // Operator denotes how the result of a predicate is determined from
@@ -164,6 +176,14 @@ func (expr Expression) KeyPathComponents() []string {
 	return strings.Split(expr.Value.(string), ".")
 }
 
+// Accept implements the Visitor pattern.
+func (expr Expression) Accept(visitor Visitor) {
+	if v, ok := visitor.(ExpressionVisitor); ok {
+		v.VisitExpression(expr)
+		v.EndVisitExpression(expr)
+	}
+}
+
 // Predicate is a representation of used in query for filtering records.
 type Predicate struct {
 	Operator Operator
@@ -181,7 +201,7 @@ func (p Predicate) Validate() skyerr.Error {
 	return p.validate(nil)
 }
 
-// validates is an internal version of the exported Validate() function.
+// validate is an internal version of the exported Validate() function.
 //
 // Additional information is passed as parameter to check the context
 // in which the predicate is specified.
@@ -300,6 +320,35 @@ func (p Predicate) GetExpressions() (ps []Expression) {
 	return
 }
 
+// Accept implements the Visitor pattern.
+func (p Predicate) Accept(visitor Visitor) {
+	if v, ok := visitor.(PredicateVisitor); ok {
+		v.VisitPredicate(p)
+		defer v.EndVisitPredicate(p)
+	}
+	if p.Operator.IsCompound() {
+		for _, child := range p.Children {
+			predicate, ok := child.(Predicate)
+			if !ok {
+				panic("children of compound predicate must be a predicate")
+			}
+
+			predicate.Accept(visitor)
+		}
+	} else {
+		if v, ok := visitor.(ExpressionVisitor); ok {
+			for _, child := range p.Children {
+				expr, ok := child.(Expression)
+				if !ok {
+					panic("children of simple predicate must be an expression")
+				}
+
+				expr.Accept(v)
+			}
+		}
+	}
+}
+
 // Query specifies the type, predicate and sorting order of Database
 // query.
 type Query struct {
@@ -318,6 +367,30 @@ type Query struct {
 	BypassAccessControl bool
 }
 
+// Accept implements the Visitor pattern.
+func (q Query) Accept(visitor Visitor) {
+	if v, ok := visitor.(QueryVisitor); ok {
+		v.VisitQuery(q)
+		defer v.EndVisitQuery(q)
+	}
+
+	if v, ok := visitor.(PredicateVisitor); ok {
+		q.Predicate.Accept(v)
+	}
+
+	if v, ok := visitor.(SortVisitor); ok {
+		for _, sort := range q.Sorts {
+			sort.Accept(v)
+		}
+	}
+
+	if v, ok := visitor.(ExpressionVisitor); ok {
+		for _, expr := range q.ComputedKeys {
+			expr.Accept(v)
+		}
+	}
+}
+
 // Func is a marker interface to denote a type being a function in skydb.
 //
 // skydb's function receives zero or more arguments and returns a DataType
@@ -327,6 +400,13 @@ type Query struct {
 type Func interface {
 	Args() []interface{}
 	DataType() DataType
+}
+
+// KeyPathFunc is a marker interface to denote a func that
+// references certain key paths.
+type KeyPathFunc interface {
+	// Returns a list of key paths that is referenced by this function.
+	ReferencedKeyPaths() []string
 }
 
 // DistanceFunc represents a function that calculates distance between
@@ -343,6 +423,11 @@ func (f DistanceFunc) Args() []interface{} {
 
 func (f DistanceFunc) DataType() DataType {
 	return TypeNumber
+}
+
+// ReferencedKeyPaths implements the KeyPathFunc interface.
+func (f DistanceFunc) ReferencedKeyPaths() []string {
+	return []string{f.Field}
 }
 
 // CountFunc represents a function that count number of rows matching
@@ -376,6 +461,11 @@ func (f UserRelationFunc) Args() []interface{} {
 
 func (f UserRelationFunc) DataType() DataType {
 	return TypeBoolean
+}
+
+// ReferencedKeyPaths implements the KeyPathFunc interface.
+func (f UserRelationFunc) ReferencedKeyPaths() []string {
+	return []string{f.KeyPath}
 }
 
 // UserDiscoverFunc searches for user record having the specified user data, such
@@ -438,4 +528,43 @@ func (f UserDataFunc) Args() []interface{} {
 
 func (f UserDataFunc) DataType() DataType {
 	return TypeJSON
+}
+
+// Visitor is a marker interface
+type Visitor interface{}
+
+// FullQueryVisitor is a marker interface for all query-related visitors
+type FullQueryVisitor interface {
+	QueryVisitor
+	PredicateVisitor
+	SortVisitor
+	ExpressionVisitor
+}
+
+// QueryVisitor is an interface that implements the Visitor pattern for
+// the Query struct.
+type QueryVisitor interface {
+	VisitQuery(Query)
+	EndVisitQuery(Query)
+}
+
+// PredicateVisitor is an interface that implements the Visitor pattern for
+// the Predicate struct.
+type PredicateVisitor interface {
+	VisitPredicate(Predicate)
+	EndVisitPredicate(Predicate)
+}
+
+// SortVisitor is an interface that implements the Visitor pattern for
+// the Sort struct.
+type SortVisitor interface {
+	VisitSort(Sort)
+	EndVisitSort(Sort)
+}
+
+// ExpressionVisitor is an interface that implements the Visitor pattern for
+// the Expression struct.
+type ExpressionVisitor interface {
+	VisitExpression(Expression)
+	EndVisitExpression(Expression)
 }

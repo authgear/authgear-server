@@ -481,8 +481,11 @@ func TestQuery(t *testing.T) {
 				Type: "note",
 				Sorts: []skydb.Sort{
 					skydb.Sort{
-						KeyPath: "noteOrder",
-						Order:   skydb.Ascending,
+						Expression: skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "noteOrder",
+						},
+						Order: skydb.Ascending,
 					},
 				},
 			}
@@ -501,8 +504,11 @@ func TestQuery(t *testing.T) {
 				Type: "note",
 				Sorts: []skydb.Sort{
 					skydb.Sort{
-						KeyPath: "noteOrder",
-						Order:   skydb.Descending,
+						Expression: skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "noteOrder",
+						},
+						Order: skydb.Descending,
 					},
 				},
 			}
@@ -606,8 +612,11 @@ func TestQuery(t *testing.T) {
 				},
 				Sorts: []skydb.Sort{
 					skydb.Sort{
-						KeyPath: "noteOrder",
-						Order:   skydb.Descending,
+						Expression: skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "noteOrder",
+						},
+						Order: skydb.Descending,
 					},
 				},
 			}
@@ -686,8 +695,11 @@ func TestQuery(t *testing.T) {
 				Offset: 1,
 				Sorts: []skydb.Sort{
 					skydb.Sort{
-						KeyPath: "noteOrder",
-						Order:   skydb.Descending,
+						Expression: skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "noteOrder",
+						},
+						Order: skydb.Descending,
 					},
 				},
 			}
@@ -718,8 +730,11 @@ func TestQuery(t *testing.T) {
 				},
 				Sorts: []skydb.Sort{
 					skydb.Sort{
-						KeyPath: "noteOrder",
-						Order:   skydb.Ascending,
+						Expression: skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "noteOrder",
+						},
+						Order: skydb.Ascending,
 					},
 				},
 			}
@@ -749,8 +764,11 @@ func TestQuery(t *testing.T) {
 				},
 				Sorts: []skydb.Sort{
 					skydb.Sort{
-						KeyPath: "noteOrder",
-						Order:   skydb.Ascending,
+						Expression: skydb.Expression{
+							Type:  skydb.KeyPath,
+							Value: "noteOrder",
+						},
+						Order: skydb.Ascending,
 					},
 				},
 			}
@@ -1007,9 +1025,12 @@ func TestQuery(t *testing.T) {
 				Type: "point_of_interest",
 				Sorts: []skydb.Sort{
 					{
-						Func: skydb.DistanceFunc{
-							Field:    "location",
-							Location: westminsterPalaceLocation,
+						Expression: skydb.Expression{
+							Type: skydb.Function,
+							Value: skydb.DistanceFunc{
+								Field:    "location",
+								Location: westminsterPalaceLocation,
+							},
 						},
 						Order: skydb.Desc,
 					},
@@ -1377,8 +1398,11 @@ func TestQuery(t *testing.T) {
 
 		sortsByID := []skydb.Sort{
 			skydb.Sort{
-				KeyPath: "_id",
-				Order:   skydb.Ascending,
+				Expression: skydb.Expression{
+					Type:  skydb.KeyPath,
+					Value: "_id",
+				},
+				Order: skydb.Ascending,
 			},
 		}
 
@@ -1971,8 +1995,11 @@ func TestUserRelationQuery(t *testing.T) {
 
 		sortsByID := []skydb.Sort{
 			skydb.Sort{
-				KeyPath: "_id",
-				Order:   skydb.Ascending,
+				Expression: skydb.Expression{
+					Type:  skydb.KeyPath,
+					Value: "_id",
+				},
+				Order: skydb.Ascending,
 			},
 		}
 
@@ -2183,8 +2210,11 @@ func TestUserDiscoverQuery(t *testing.T) {
 
 		sortsByID := []skydb.Sort{
 			skydb.Sort{
-				KeyPath: "_id",
-				Order:   skydb.Ascending,
+				Expression: skydb.Expression{
+					Type:  skydb.KeyPath,
+					Value: "_id",
+				},
+				Order: skydb.Ascending,
 			},
 		}
 

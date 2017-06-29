@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -31,27 +32,25 @@ type QueryParser struct {
 	UserID string
 }
 
+// sortFromRaw parses the specified structure into a Sort struct.
+//
+// The structure takes the following form:
+//
+//     [ _expression_ , _sort_order ]
+//
+// Expression supports key path type or the function type. Literal type is
+// not supported.
+//
+// Sort Order only supports `"asc"` or `"desc"`.
 func (parser *QueryParser) sortFromRaw(rawSort []interface{}, sort *skydb.Sort) {
-	var (
-		keyPath   string
-		funcExpr  skydb.Func
-		sortOrder skydb.SortOrder
-	)
-	switch v := rawSort[0].(type) {
-	case map[string]interface{}:
-		if err := (*skyconv.MapKeyPath)(&keyPath).FromMap(v); err != nil {
-			panic(err)
-		}
-	case []interface{}:
-		var err error
-		funcExpr, err = parser.parseFunc(v)
-		if err != nil {
-			panic(err)
-		}
-	default:
-		panic(fmt.Errorf("unexpected type of sort expression = %T", rawSort[0]))
+	// Parse expression.
+	expr := parser.parseExpression(rawSort[0])
+	if expr.Type == skydb.Literal {
+		panic(errors.New("sort does not support literal"))
 	}
 
+	// Parse sort order.
+	var sortOrder skydb.SortOrder
 	orderStr, _ := rawSort[1].(string)
 	if orderStr == "" {
 		panic(errors.New("empty sort order in sort descriptor"))
@@ -65,8 +64,7 @@ func (parser *QueryParser) sortFromRaw(rawSort []interface{}, sort *skydb.Sort) 
 		panic(fmt.Errorf("unknown sort order: %v", orderStr))
 	}
 
-	sort.KeyPath = keyPath
-	sort.Func = funcExpr
+	sort.Expression = expr
 	sort.Order = sortOrder
 }
 
@@ -156,6 +154,13 @@ func (parser *QueryParser) predicateFromRaw(rawPredicate []interface{}) skydb.Pr
 	return predicate
 }
 
+// parseExpression parses the specific structure into an Expression struct.
+//
+// Accepts one of the following types:
+//
+// * { "$type": "keypath", "$val": "_key_path_name_" }    // key path
+// * [ "_func_name_" , _expression_1_ , _expression_2_ ]  // function
+// * 42                                                   // literal
 func (parser *QueryParser) parseExpression(i interface{}) skydb.Expression {
 	switch v := i.(type) {
 	case map[string]interface{}:
@@ -384,4 +389,201 @@ func mapToQueryHookFunc(parser *QueryParser) mapstructure.DecodeHookFunc {
 
 		return query, nil
 	}
+}
+
+// queryAccessVisitorPredicateStackEntry is an entry in the queryAccessVisitor
+// predicate stack.
+type queryAccessVisitorPredicateStackEntry struct {
+	// Predicate is the predicate being check.
+	Predicate skydb.Predicate
+
+	// SimpleComparison is the result of the simple comparison check.
+	// If the predicate is performing simple comparison, the access
+	// is considered "discover" and "compare" instead of just "compare".
+	SimpleComparison bool
+}
+
+// queryAccessVisitor checks a Query struct to determine if the client
+// is authorized to perform this query.
+type queryAccessVisitor struct {
+	// FieldACL is the Field ACL settings.
+	FieldACL skydb.FieldACL
+
+	// Record Type is type of the record being queried.
+	RecordType string
+
+	// UserInfo is the current logged in user.
+	UserInfo *skydb.UserInfo
+
+	// ExpressionACLChecker is the helper struct for evaluating whether
+	// the Field ACL settings allow access for an Expression.
+	ExpressionACLChecker ExpressionACLChecker
+
+	// pStack stores the stack of the Predicate being checked. Empty
+	// if not checking any predicate.
+	pStack []queryAccessVisitorPredicateStackEntry
+
+	// err stores the error encountered (if any)
+	err skyerr.Error
+
+	// inSort stores true if the visitor is checking the expression in sorts.
+	inSort bool
+}
+
+func (c *queryAccessVisitor) VisitQuery(p skydb.Query)    {}
+func (c *queryAccessVisitor) EndVisitQuery(p skydb.Query) {}
+
+func (c *queryAccessVisitor) VisitPredicate(p skydb.Predicate) {
+	// For each predicate, determine if the predicate is for simple comparison.
+	// A predicate performs simple comparison if the predicate operator
+	// falls into a certain group. If the parent of a predicate is performing
+	// non-simple comparison, the predicate in question is always performing
+	// non-simple comparison.
+	simple := func() bool {
+		op := p.Operator
+		simpleOp := op == skydb.Equal || op == skydb.In || op == skydb.And
+		if len(c.pStack) > 0 {
+			return c.pStack[len(c.pStack)-1].SimpleComparison && simpleOp
+		}
+		return simpleOp
+	}()
+
+	// Push the predicate and the result of SimpleComparison into stack.
+	c.pStack = append(
+		c.pStack,
+		queryAccessVisitorPredicateStackEntry{
+			Predicate:        p,
+			SimpleComparison: simple,
+		},
+	)
+}
+
+func (c *queryAccessVisitor) EndVisitPredicate(p skydb.Predicate) {
+	// Pop from stack.
+	c.pStack = c.pStack[:len(c.pStack)-1]
+}
+
+func (c *queryAccessVisitor) VisitSort(sort skydb.Sort) {
+	c.inSort = true
+}
+
+func (c *queryAccessVisitor) EndVisitSort(sort skydb.Sort) {
+	c.inSort = false
+}
+
+func (c *queryAccessVisitor) VisitExpression(expr skydb.Expression) {
+	if c.err != nil {
+		return
+	}
+
+	var accessMode skydb.FieldAccessMode
+	if len(c.pStack) > 0 {
+		// The predicate stack is non-empty, that means we are checking
+		// the predicate part of the query.
+		if c.pStack[len(c.pStack)-1].SimpleComparison {
+			accessMode = skydb.DiscoverOrCompareFieldAccessMode
+		} else {
+			accessMode = skydb.CompareFieldAccessMode
+		}
+	} else if c.inSort {
+		// We are checking the Sorts part of the query.
+		accessMode = skydb.CompareFieldAccessMode
+	} else {
+		// We are checking other parts of the query. For the time being
+		// we are checking the ComputedKeys part of the query.
+		accessMode = skydb.ReadFieldAccessMode
+	}
+
+	// When we have determined the access mode, check whether the expression
+	// is allowed access.
+	if err := c.ExpressionACLChecker.Check(expr, accessMode); err != nil {
+		c.err = err
+		return
+	}
+}
+
+func (c *queryAccessVisitor) EndVisitExpression(expr skydb.Expression) {
+	// do nothing
+}
+
+func (c *queryAccessVisitor) Error() skyerr.Error {
+	return c.err
+}
+
+type ExpressionACLChecker struct {
+	FieldACL   skydb.FieldACL
+	RecordType string
+	UserInfo   *skydb.UserInfo
+	Database   skydb.Database
+}
+
+func (c *ExpressionACLChecker) Check(expr skydb.Expression, accessMode skydb.FieldAccessMode) skyerr.Error {
+	switch expr.Type {
+	case skydb.KeyPath:
+		return c.checkKeyPath(expr.Value.(string), accessMode)
+	case skydb.Function:
+		return c.checkFunc(expr.Value.(skydb.Func), accessMode)
+	case skydb.Literal:
+		return nil
+	default:
+		panic("unsupported expression type")
+	}
+}
+
+func (c *ExpressionACLChecker) checkFunc(fn skydb.Func, accessMode skydb.FieldAccessMode) skyerr.Error {
+	if keyPathFn, ok := fn.(skydb.KeyPathFunc); ok {
+		for _, keyPath := range keyPathFn.ReferencedKeyPaths() {
+			if err := c.checkKeyPath(keyPath, accessMode); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (c *ExpressionACLChecker) checkKeyPath(keyPath string, accessMode skydb.FieldAccessMode) skyerr.Error {
+	recordType := c.RecordType
+	components := strings.Split(keyPath, ".")
+
+	var fields []skydb.FieldType
+	if len(components) > 1 {
+		// Since the keypath is consists of multiple components, we have
+		// to check the column types to find the Field ACL setting for all
+		// referenced records.
+		var err error
+		fields, err = skydb.TraverseColumnTypes(c.Database, recordType, keyPath)
+		if err != nil {
+			return skyerr.NewError(skyerr.RecordQueryInvalid, err.Error())
+		}
+	}
+
+	for i, component := range components {
+		if !strings.HasPrefix(component, "_") && !c.FieldACL.Accessible(
+			recordType,
+			component,
+			accessMode,
+			c.UserInfo,
+			nil,
+		) {
+			var msg string
+			switch accessMode {
+			case skydb.DiscoverOrCompareFieldAccessMode:
+				msg = fmt.Sprintf(`Cannot query on field "%s" due to Field ACL, need to be discoverable or comparable`, component)
+			case skydb.CompareFieldAccessMode:
+				msg = fmt.Sprintf(`Cannot query on field "%s" due to Field ACL, need to be comparable`, component)
+			case skydb.ReadFieldAccessMode:
+				msg = fmt.Sprintf(`Cannot query on field "%s" due to Field ACL, need to be readable`, component)
+			}
+			return skyerr.NewError(skyerr.RecordQueryDenied, msg)
+		}
+
+		isLast := (i == len(components)-1)
+		if !isLast {
+			if len(fields) <= i {
+				panic("number of components in keypath does not match that in database schema")
+			}
+			recordType = fields[i].ReferenceType
+		}
+	}
+	return nil
 }

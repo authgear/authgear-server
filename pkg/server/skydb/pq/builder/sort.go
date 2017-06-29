@@ -24,12 +24,12 @@ import (
 func SortOrderBySQL(alias string, sort skydb.Sort) (string, error) {
 	var expr string
 
-	switch {
-	case sort.KeyPath != "":
-		expr = fullQuoteIdentifier(alias, sort.KeyPath)
-	case sort.Func != nil:
+	switch sort.Expression.Type {
+	case skydb.KeyPath:
+		expr = fullQuoteIdentifier(alias, sort.Expression.Value.(string))
+	case skydb.Function:
 		var err error
-		expr, err = funcOrderBySQL(alias, sort.Func)
+		expr, err = funcOrderBySQL(alias, sort.Expression.Value.(skydb.Func))
 		if err != nil {
 			return "", err
 		}

@@ -45,6 +45,7 @@ func defaultStatusCode(err skyerr.Error) int {
 		skyerr.RecordQueryInvalid:      http.StatusBadRequest,
 		skyerr.ResponseTimeout:         http.StatusServiceUnavailable,
 		skyerr.DeniedArgument:          http.StatusForbidden,
+		skyerr.RecordQueryDenied:       http.StatusForbidden,
 	}[err.Code()]
 	if !ok {
 		if err.Code() < 10000 {

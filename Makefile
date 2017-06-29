@@ -32,9 +32,8 @@ vendor:
 .PHONY: generate
 generate:
 # go install is required before go generate.
+	find pkg -type f -name "mock_*.go" -delete
 	$(DOCKER_RUN) sh -c 'go install $(GO_BUILD_ARGS) && go generate ./pkg/...'
-	$(DOCKER_RUN) sh -c 'mockgen github.com/skygeario/skygear-server/pkg/server/skydb Conn,Database > pkg/server/skydb/mock_skydb/mock.go'
-
 .PHONY: build
 build:
 	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)

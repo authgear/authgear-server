@@ -17,8 +17,137 @@ package skydb
 import (
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func TestQuery(t *testing.T) {
+	Convey("Query", t, func() {
+		Convey("Accept", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			Convey("should call QueryVisitor", func() {
+				q := Query{}
+
+				v := NewMockQueryVisitor(ctrl)
+				call := v.EXPECT().VisitQuery(gomock.Eq(q))
+				v.EXPECT().EndVisitQuery(gomock.Eq(q)).After(call)
+				q.Accept(v)
+			})
+
+			Convey("should call all visitors", func() {
+				helloExpr := Expression{
+					Type:  Literal,
+					Value: "helllo",
+				}
+				q := Query{
+					Predicate: Predicate{},
+					Sorts: []Sort{
+						{
+							Expression: Expression{},
+						},
+					},
+					ComputedKeys: map[string]Expression{
+						"hello": helloExpr,
+					},
+				}
+
+				v := NewMockFullQueryVisitor(ctrl)
+				call := v.EXPECT().VisitQuery(gomock.Eq(q))
+				call = v.EXPECT().VisitPredicate(gomock.Eq(q.Predicate)).After(call)
+				call = v.EXPECT().EndVisitPredicate(gomock.Eq(q.Predicate)).After(call)
+				call = v.EXPECT().VisitSort(gomock.Eq(q.Sorts[0])).After(call)
+				call = v.EXPECT().VisitExpression(gomock.Any()).After(call)
+				call = v.EXPECT().EndVisitExpression(gomock.Any()).After(call)
+				call = v.EXPECT().EndVisitSort(gomock.Eq(q.Sorts[0])).After(call)
+				call = v.EXPECT().VisitExpression(gomock.Eq(helloExpr)).After(call)
+				call = v.EXPECT().EndVisitExpression(gomock.Eq(helloExpr)).After(call)
+				v.EXPECT().EndVisitQuery(gomock.Eq(q)).After(call)
+				q.Accept(v)
+			})
+		})
+	})
+}
+
+func TestPredicate(t *testing.T) {
+	Convey("Predicate", t, func() {
+		Convey("Accept", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			Convey("should call PredicateVisitor", func() {
+				p := Predicate{}
+
+				v := NewMockPredicateVisitor(ctrl)
+				call := v.EXPECT().VisitPredicate(gomock.Eq(p))
+				v.EXPECT().EndVisitPredicate(gomock.Eq(p)).After(call)
+				p.Accept(v)
+			})
+
+			Convey("should call PredicateVisitor for compound predicate", func() {
+				child := Predicate{}
+				p := Predicate{
+					Operator: Not,
+					Children: []interface{}{child},
+				}
+
+				v := NewMockPredicateVisitor(ctrl)
+				call := v.EXPECT().VisitPredicate(gomock.Eq(p))
+				call = v.EXPECT().VisitPredicate(gomock.Eq(child)).After(call)
+				call = v.EXPECT().EndVisitPredicate(gomock.Eq(child)).After(call)
+				v.EXPECT().EndVisitPredicate(gomock.Eq(p)).After(call)
+				p.Accept(v)
+			})
+
+			Convey("should call ExpressionVisitor for simple predicate", func() {
+				child := Expression{}
+				p := Predicate{
+					Operator: Equal,
+					Children: []interface{}{child},
+				}
+
+				v := NewMockExpressionVisitor(ctrl)
+				call := v.EXPECT().VisitExpression(gomock.Eq(child))
+				v.EXPECT().EndVisitExpression(gomock.Eq(child)).After(call)
+				p.Accept(v)
+			})
+		})
+	})
+}
+
+func TestSort(t *testing.T) {
+	Convey("Sort", t, func() {
+		Convey("Accept", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			Convey("should call SortVisitor", func() {
+				child := Expression{}
+				sort := Sort{
+					Expression: child,
+				}
+
+				v := NewMockSortVisitor(ctrl)
+				call := v.EXPECT().VisitSort(gomock.Eq(sort))
+				v.EXPECT().EndVisitSort(gomock.Eq(sort)).After(call)
+				sort.Accept(v)
+			})
+
+			Convey("should call ExpressionVisitor", func() {
+				child := Expression{}
+				sort := Sort{
+					Expression: child,
+				}
+
+				v := NewMockExpressionVisitor(ctrl)
+				call := v.EXPECT().VisitExpression(gomock.Eq(child))
+				v.EXPECT().EndVisitExpression(gomock.Eq(child)).After(call)
+				sort.Accept(v)
+			})
+		})
+	})
+}
 
 func TestExpression(t *testing.T) {
 	Convey("is empty", t, func() {
@@ -29,6 +158,20 @@ func TestExpression(t *testing.T) {
 	Convey("is literal null", t, func() {
 		expr := Expression{Type: Literal, Value: nil}
 		So(expr.IsLiteralNull(), ShouldBeTrue)
+	})
+
+	Convey("Accept", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		Convey("should call ExpressionVisitor", func() {
+			expr := Expression{}
+
+			v := NewMockExpressionVisitor(ctrl)
+			call := v.EXPECT().VisitExpression(gomock.Eq(expr))
+			v.EXPECT().EndVisitExpression(gomock.Eq(expr)).After(call)
+			expr.Accept(v)
+		})
 	})
 }
 
