@@ -151,7 +151,9 @@ const (
 	CompareFieldAccessMode
 )
 
-// FieldACL contains all field ACL rules for all record types
+// FieldACL contains all field ACL rules for all record types. This struct
+// provides functions for evaluating whether access can be granted for a
+// request.
 type FieldACL struct {
 	recordTypes map[string]FieldACLEntryList
 }
@@ -182,6 +184,10 @@ func (acl FieldACL) AllEntries() FieldACLEntryList {
 }
 
 // Accessible returns true when the access mode is allowed access
+//
+// The accessibility of a field access request is determined by the first
+// matching rule. If no matching rule is found, the default rule is to
+// grant access.
 func (acl FieldACL) Accessible(
 	recordType string,
 	field string,
@@ -189,6 +195,9 @@ func (acl FieldACL) Accessible(
 	userInfo *UserInfo,
 	record *Record,
 ) bool {
+	// Create an iterator for Field ACL rules that applies to
+	// the specified record type and field. The iterator will handle the
+	// scenario where wildcard record type and field.
 	iter := NewFieldACLIterator(acl, recordType, field)
 	for {
 		entry := iter.Next()
@@ -197,14 +206,24 @@ func (acl FieldACL) Accessible(
 			return true
 		}
 
+		// Only the rules that matches the user role will be selected.
 		if !entry.UserRole.Match(userInfo, record) {
 			continue
 		}
 
+		// The selected rule decides whether to grant ot deny the request.
+		// Other rules are ignored.
 		return entry.Accessible(mode)
 	}
 }
 
+// FieldACLIterator iterates FieldACL to find a list of rules that apply
+// to the specified record type and record field.
+//
+// The iterator does not consider the access mode, the UserInfo and the Record
+// of individual access. So the result is always the same as long as the
+// FieldACL setting is unchanged. The list of rules can then be considered
+// one by one, which is specific to each individual request.
 type FieldACLIterator struct {
 	acl         FieldACL
 	recordType  string
@@ -215,6 +234,7 @@ type FieldACLIterator struct {
 	eof             bool
 }
 
+// NewFieldACLIterator creates a new iterator.
 func NewFieldACLIterator(acl FieldACL, recordType, recordField string) *FieldACLIterator {
 	return &FieldACLIterator{
 		acl:             acl,
@@ -224,6 +244,8 @@ func NewFieldACLIterator(acl FieldACL, recordType, recordField string) *FieldACL
 	}
 }
 
+// Next returns the next FieldACLEntry. If there is no more entries to return,
+// this function will return nil.
 func (i *FieldACLIterator) Next() *FieldACLEntry {
 	if i.eof {
 		return nil
@@ -231,6 +253,9 @@ func (i *FieldACLIterator) Next() *FieldACLEntry {
 
 	var nextEntry FieldACLEntry
 	for {
+		// Always populate the nextEntries var with the upcoming entries.
+		// If there is no more entries to populate, the iterator will stop and
+		// always return nil.
 		for len(i.nextEntries) == 0 {
 			if len(i.nextRecordTypes) == 0 {
 				i.eof = true
@@ -242,6 +267,7 @@ func (i *FieldACLIterator) Next() *FieldACLEntry {
 			i.nextEntries, _ = i.acl.recordTypes[nextRecordType]
 		}
 
+		// Get next entry.
 		nextEntry, i.nextEntries = i.nextEntries[0], i.nextEntries[1:]
 		if (nextEntry.RecordType == WildcardRecordType || nextEntry.RecordType == i.recordType) &&
 			(nextEntry.RecordField == WildcardRecordField || nextEntry.RecordField == i.recordField) {
@@ -353,6 +379,13 @@ func (userRoleType FieldUserRoleType) Compare(other FieldUserRoleType) int {
 	return 0
 }
 
+// RecordDependent returns true if this user role type requires
+// record data when evaluating accessibility.
+func (userRoleType FieldUserRoleType) RecordDependent() bool {
+	return userRoleType == OwnerFieldUserRoleType ||
+		userRoleType == DynamicUserFieldUserRoleType
+}
+
 // FieldUserRole contains field user role information and checks whether
 // a user matches the user role.
 type FieldUserRole struct {
@@ -408,25 +441,26 @@ func (r FieldUserRole) Compare(other FieldUserRole) int {
 
 // Match returns true if the specifid UserInfo and Record matches the
 // user role.
+//
+// If the specified user role type is record dependent, this function
+// returns false if Record is nil.
 func (r FieldUserRole) Match(userinfo *UserInfo, record *Record) bool {
 	if r.Type == PublicFieldUserRoleType {
 		return true
 	}
 
-	// All the other types requires UserInfo
-	if userinfo == nil {
+	// Exit early if userinfo and record is nil
+	if userinfo == nil || (r.Type.RecordDependent() && record == nil) {
 		return false
 	}
 
 	switch r.Type {
 	case OwnerFieldUserRoleType:
-		// TODO
-		return false
+		return record.OwnerID == userinfo.ID
 	case SpecificUserFieldUserRoleType:
 		return userinfo.ID == r.Data
 	case DynamicUserFieldUserRoleType:
-		// TODO
-		return false
+		return r.matchDynamic(userinfo, record)
 	case DefinedRoleFieldUserRoleType:
 		for _, role := range userinfo.Roles {
 			if role == r.Data {
@@ -439,6 +473,25 @@ func (r FieldUserRole) Match(userinfo *UserInfo, record *Record) bool {
 	default:
 		panic(fmt.Sprintf(`unexpected field user role type "%s"`, r.Type))
 	}
+}
+
+// matchDynamic is a helper function for returning whether the
+// field user role with dynamic user field type matches the specified
+// UserInfo and Record.
+func (r FieldUserRole) matchDynamic(userInfo *UserInfo, record *Record) bool {
+	dynamicFieldName := r.Data
+	switch fieldVal := record.Get(dynamicFieldName).(type) {
+	case string:
+		return userInfo.ID == fieldVal
+	case []interface{}:
+		for _, item := range fieldVal {
+			if userID, ok := item.(string); ok && userID == userInfo.ID {
+				return true
+			}
+		}
+		return false
+	}
+	return false
 }
 
 var defaultFieldUserRole = FieldUserRole{PublicFieldUserRoleType, ""}
