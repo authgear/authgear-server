@@ -165,13 +165,31 @@ func (c *conn) SetRecordFieldAccess(acl skydb.FieldACL) (err error) {
 	if err != nil {
 		return
 	}
-	defer tx.Rollback()
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			return
+		}
+
+		if err = tx.Commit(); err != nil {
+			err = fmt.Errorf("unable to commit transaction: %s", err)
+			return
+		}
+
+		c.FieldACL = nil // invalidate cached FieldACL
+	}()
 
 	deleteBuilder := psql.
 		Delete(c.tableName("_record_field_access"))
 
-	_, err = c.ExecWith(deleteBuilder)
-	if err != nil {
+	if _, err = c.ExecWith(deleteBuilder); err != nil {
+		return
+	}
+
+	allEntries := acl.AllEntries()
+	if len(allEntries) == 0 {
+		// Do not insert if new setting is empty.
 		return
 	}
 
@@ -187,7 +205,7 @@ func (c *conn) SetRecordFieldAccess(acl skydb.FieldACL) (err error) {
 			"discoverable",
 		)
 
-	for _, entry := range acl.AllEntries() {
+	for _, entry := range allEntries {
 		builder = builder.Values(
 			entry.RecordType,
 			entry.RecordField,
@@ -200,16 +218,7 @@ func (c *conn) SetRecordFieldAccess(acl skydb.FieldACL) (err error) {
 	}
 
 	_, err = c.ExecWith(builder)
-	if err != nil {
-		return
-	}
-
-	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("unable to commit transaction: %s", err)
-	}
-
-	c.FieldACL = nil // invalidate cached FieldACL
-	return nil
+	return
 }
 
 func (c *conn) GetRecordFieldAccess() (skydb.FieldACL, error) {

@@ -137,6 +137,16 @@ func TestRecordFieldAccess(t *testing.T) {
 			So(entries, ShouldResemble, fixture)
 		})
 
+		Convey("should reset entries", func() {
+			acl := skydb.NewFieldACL(skydb.FieldACLEntryList{})
+			err := c.SetRecordFieldAccess(acl)
+			So(err, ShouldBeNil)
+			acl, err = c.GetRecordFieldAccess()
+			So(acl, ShouldNotBeNil)
+			So(err, ShouldBeNil)
+			So(len(acl.AllEntries()), ShouldEqual, 0)
+		})
+
 		Convey("should insert all entries", func() {
 			fixture := skydb.FieldACLEntryList{
 				{"note", "*", publicRole, true, true, false, false},
