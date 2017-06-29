@@ -432,6 +432,9 @@ func TestRecordSaveHandler(t *testing.T) {
 			payload.AuthInfo = &skydb.AuthInfo{
 				ID: "user0",
 			}
+			if apiKey, ok := payload.Data["api_key"]; ok && apiKey == "master" {
+				payload.AccessKey = router.MasterAccessKey
+			}
 		})
 
 		Convey("should not save to read only field", func() {
@@ -455,6 +458,32 @@ func TestRecordSaveHandler(t *testing.T) {
 				}]
 			}`)
 			So(mapDB.RecordMap["note/note0"].Data["content"], ShouldEqual, "Hello World!")
+			So(mapDB.RecordMap["note/note0"].Data["favorite"], ShouldEqual, false)
+		})
+
+		Convey("should save to read only field with master key", func() {
+			resp := r.POST(`{
+				"api_key": "master",
+				"records": [{
+					"_id": "note/note0",
+					"content": "Bye World!",
+					"favorite": false
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note0",
+					"_type": "record",
+					"_access": null,
+					"content": "Bye World!",
+					"favorite": false,
+					"category": "interesting",
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+			So(mapDB.RecordMap["note/note0"].Data["content"], ShouldEqual, "Bye World!")
 			So(mapDB.RecordMap["note/note0"].Data["favorite"], ShouldEqual, false)
 		})
 
@@ -1484,6 +1513,30 @@ func TestRecordQuery(t *testing.T) {
 				So(response.Err.Code(), ShouldEqual, skyerr.RecordQueryDenied)
 			})
 
+			Convey("should not block non-comparable, non-discoverable field with master key", func() {
+				payload := router.Payload{
+					Data: map[string]interface{}{
+						"record_type": "note",
+						"predicate": []interface{}{
+							"gt",
+							map[string]interface{}{
+								"$type": "keypath",
+								"$val":  "index",
+							},
+							float64(1),
+						},
+					},
+					DBConn:    conn,
+					Database:  db,
+					AccessKey: router.MasterAccessKey,
+				}
+				response := router.Response{}
+
+				handler := &RecordQueryHandler{}
+				handler.Handle(&payload, &response)
+				So(response.Err, ShouldBeNil)
+			})
+
 			Convey("should block non-comparable", func() {
 				payload := router.Payload{
 					Data: map[string]interface{}{
@@ -1673,6 +1726,9 @@ func TestRecordFetchHandler(t *testing.T) {
 			payload.AuthInfo = &skydb.AuthInfo{
 				ID: "user0",
 			}
+			if apiKey, ok := payload.Data["api_key"]; ok && apiKey == "master" {
+				payload.AccessKey = router.MasterAccessKey
+			}
 		})
 
 		Convey("should fetch without non-readable fields", func() {
@@ -1685,6 +1741,25 @@ func TestRecordFetchHandler(t *testing.T) {
 					"_type": "record",
 					"_access": null,
 					"content": "Hello World!",
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+		})
+
+		Convey("should fetch with all fields with master key", func() {
+			resp := r.POST(`{
+				"api_key": "master",
+				"ids": ["note/note0"]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note0",
+					"_type": "record",
+					"_access": null,
+					"content": "Hello World!",
+					"category": "interesting",
 					"_created_by":"user0",
 					"_updated_by":"user0",
 					"_ownerID": "user0"

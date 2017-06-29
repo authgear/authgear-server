@@ -285,15 +285,16 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 			panic("unable to fetch record")
 		}
 
-		err = scrubRecordFieldsForWrite(
-			req.AuthInfo,
-			record,
-			dbRecord,
-			fieldACL,
-			req.Atomic,
-		)
-		if err != nil {
-			return
+		if !req.WithMasterKey {
+			if err = scrubRecordFieldsForWrite(
+				req.AuthInfo,
+				record,
+				dbRecord,
+				fieldACL,
+				req.Atomic,
+			); err != nil {
+				return
+			}
 		}
 
 		now := timeNow()
@@ -752,21 +753,30 @@ func makeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, recor
 }
 
 type recordResultFilter struct {
-	AssetStore asset.Store
-	FieldACL   skydb.FieldACL
-	AuthInfo   *skydb.AuthInfo
+	AssetStore          asset.Store
+	FieldACL            skydb.FieldACL
+	AuthInfo            *skydb.AuthInfo
+	BypassAccessControl bool
 }
 
-func newRecordResultFilter(conn skydb.Conn, assetStore asset.Store, authInfo *skydb.AuthInfo) (recordResultFilter, error) {
-	acl, err := conn.GetRecordFieldAccess()
-	if err != nil {
-		return recordResultFilter{}, err
+func newRecordResultFilter(conn skydb.Conn, assetStore asset.Store, authInfo *skydb.AuthInfo, bypassAccessControl bool) (recordResultFilter, error) {
+	var (
+		acl skydb.FieldACL
+		err error
+	)
+
+	if !bypassAccessControl {
+		acl, err = conn.GetRecordFieldAccess()
+		if err != nil {
+			return recordResultFilter{}, err
+		}
 	}
 
 	return recordResultFilter{
-		AssetStore: assetStore,
-		AuthInfo:   authInfo,
-		FieldACL:   acl,
+		AssetStore:          assetStore,
+		AuthInfo:            authInfo,
+		FieldACL:            acl,
+		BypassAccessControl: bypassAccessControl,
 	}, nil
 }
 
@@ -775,7 +785,9 @@ func (f *recordResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecor
 		return nil
 	}
 
-	scrubRecordFieldsForRead(f.AuthInfo, record, f.FieldACL)
+	if !f.BypassAccessControl {
+		scrubRecordFieldsForRead(f.AuthInfo, record, f.FieldACL)
+	}
 	injectSigner(record, f.AssetStore)
 	return (*skyconv.JSONRecord)(record)
 }

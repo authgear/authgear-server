@@ -279,7 +279,12 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	resultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
+	resultFilter, err := newRecordResultFilter(
+		payload.DBConn,
+		h.AssetStore,
+		payload.AuthInfo,
+		payload.HasMasterKey(),
+	)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -443,7 +448,12 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 	}
 
 	db := payload.Database
-	resultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
+	resultFilter, err := newRecordResultFilter(
+		payload.DBConn,
+		h.AssetStore,
+		payload.AuthInfo,
+		payload.HasMasterKey(),
+	)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -553,21 +563,23 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return acl
 	}()
 
-	visitor := &queryAccessVisitor{
-		FieldACL:   fieldACL,
-		RecordType: p.Query.Type,
-		AuthInfo:   p.Query.ViewAsUser,
-		ExpressionACLChecker: ExpressionACLChecker{
+	if !p.Query.BypassAccessControl {
+		visitor := &queryAccessVisitor{
 			FieldACL:   fieldACL,
 			RecordType: p.Query.Type,
-			AuthInfo:   payload.AuthInfo,
-			Database:   payload.Database,
-		},
-	}
-	p.Query.Accept(visitor)
-	if err := visitor.Error(); err != nil {
-		response.Err = err
-		return
+			AuthInfo:   p.Query.ViewAsUser,
+			ExpressionACLChecker: ExpressionACLChecker{
+				FieldACL:   fieldACL,
+				RecordType: p.Query.Type,
+				AuthInfo:   payload.AuthInfo,
+				Database:   payload.Database,
+			},
+		}
+		p.Query.Accept(visitor)
+		if err := visitor.Error(); err != nil {
+			response.Err = err
+			return
+		}
 	}
 
 	db := payload.Database
@@ -597,7 +609,12 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	eagerRecords := doQueryEager(db, eagerIDs(db, records, p.Query))
 
-	recordResultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
+	recordResultFilter, err := newRecordResultFilter(
+		payload.DBConn,
+		h.AssetStore,
+		payload.AuthInfo,
+		p.Query.BypassAccessControl,
+	)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
