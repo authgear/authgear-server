@@ -397,26 +397,35 @@ type FieldUserRole struct {
 	Data string
 }
 
-// NewFieldUserRole returns a FieldUserRole struct from the user role
-// specification.
-func NewFieldUserRole(roleString string) FieldUserRole {
+// ParseFieldUserRole parses a user role string to a FieldUserRole.
+func ParseFieldUserRole(roleString string) (FieldUserRole, error) {
 	components := strings.SplitN(roleString, ":", 2)
 	roleType := FieldUserRoleType(components[0])
 	switch roleType {
 	case OwnerFieldUserRoleType, AnyUserFieldUserRoleType, PublicFieldUserRoleType:
 		if len(components) > 1 {
-			panic(fmt.Sprintf(`unexpected user role string "%s"`, roleString))
+			return FieldUserRole{}, fmt.Errorf(`unexpected user role string "%s"`, roleString)
 		}
-		return FieldUserRole{roleType, ""}
+		return FieldUserRole{roleType, ""}, nil
 	case SpecificUserFieldUserRoleType, DynamicUserFieldUserRoleType, DefinedRoleFieldUserRoleType:
 		if len(components) != 2 {
-			panic(fmt.Sprintf(`unexpected user role string "%s"`, roleString))
+			return FieldUserRole{}, fmt.Errorf(`unexpected user role string "%s"`, roleString)
 		}
-		return FieldUserRole{roleType, components[1]}
+		return FieldUserRole{roleType, components[1]}, nil
 	default:
-		panic(fmt.Sprintf(`unexpected user role string "%s"`, roleString))
+		return FieldUserRole{}, fmt.Errorf(`unexpected user role string "%s"`, roleString)
 
 	}
+}
+
+// NewFieldUserRole returns a FieldUserRole struct from the user role
+// specification.
+func NewFieldUserRole(roleString string) FieldUserRole {
+	userRole, err := ParseFieldUserRole(roleString)
+	if err != nil {
+		panic(err)
+	}
+	return userRole
 }
 
 // String returns the user role specification in string representation.
