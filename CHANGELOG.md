@@ -1,3 +1,9 @@
+## 1.0.0 (2017-06-30)
+
+### Bug Fixes
+
+- Do not allow API KEY to be the same as MASTER_KEY
+
 ## 0.24.0 (2017-05-23)
 
 ### Features
