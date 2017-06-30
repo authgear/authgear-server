@@ -30,14 +30,14 @@ import (
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
-// authInfoValue implements sql.Valuer and sql.Scanner s.t.
+// providerInfoValue implements sql.Valuer and sql.Scanner s.t.
 // skydb.ProviderInfo can be saved into and recovered from postgresql
-type authInfoValue struct {
+type providerInfoValue struct {
 	ProviderInfo skydb.ProviderInfo
 	Valid        bool
 }
 
-func (auth authInfoValue) Value() (driver.Value, error) {
+func (auth providerInfoValue) Value() (driver.Value, error) {
 	if !auth.Valid {
 		return nil, nil
 	}
@@ -50,7 +50,7 @@ func (auth authInfoValue) Value() (driver.Value, error) {
 	return b.Bytes(), nil
 }
 
-func (auth *authInfoValue) Scan(value interface{}) error {
+func (auth *providerInfoValue) Scan(value interface{}) error {
 	if value == nil {
 		return nil
 	}
@@ -218,5 +218,5 @@ var (
 	_ skydb.Conn     = &conn{}
 	_ skydb.Database = &database{}
 
-	_ driver.Valuer = authInfoValue{}
+	_ driver.Valuer = providerInfoValue{}
 )
