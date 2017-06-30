@@ -27,7 +27,8 @@ var (
 	timeNow    = timeNowUTC
 )
 
-// AuthResponse is the unify way of returing a AuthInfo to SDK
+// AuthResponse is the unify way of returing a AuthInfo with AuthData to SDK
+// TODO: auth related APIs return User record
 type AuthResponse struct {
 	UserID      string     `json:"user_id,omitempty"`
 	Username    string     `json:"username,omitempty"`
@@ -38,11 +39,19 @@ type AuthResponse struct {
 	LastSeenAt  *time.Time `json:"last_seen_at,omitempty"`
 }
 
-func NewAuthResponse(info skydb.AuthInfo, accessToken string) AuthResponse {
+func NewAuthResponse(info skydb.AuthInfo, authdata *skydb.AuthData, accessToken string) AuthResponse {
+	username := ""
+	email := ""
+
+	if authdata != nil {
+		username, _ = (*authdata)["username"].(string)
+		email, _ = (*authdata)["email"].(string)
+	}
+
 	return AuthResponse{
 		UserID:      info.ID,
-		Username:    info.Username,
-		Email:       info.Email,
+		Username:    username,
+		Email:       email,
 		Roles:       info.Roles,
 		AccessToken: accessToken,
 		LastLoginAt: info.LastLoginAt,
