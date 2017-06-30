@@ -175,30 +175,6 @@ func TestExpression(t *testing.T) {
 	})
 }
 
-func TestUserDiscoverFunc(t *testing.T) {
-	Convey("func with only emails", t, func() {
-		f := UserDiscoverFunc{
-			Emails: []string{"abc@example.com"},
-		}
-
-		Convey("should have args for email", func() {
-			So(f.HaveArgsByName("email"), ShouldBeTrue)
-		})
-
-		Convey("should not have args for username", func() {
-			So(f.HaveArgsByName("username"), ShouldBeFalse)
-		})
-
-		Convey("should return args for email", func() {
-			So(f.ArgsByName("email"), ShouldResemble, []interface{}{"abc@example.com"})
-		})
-
-		Convey("should return args for username", func() {
-			So(f.ArgsByName("username"), ShouldResemble, []interface{}{})
-		})
-	})
-}
-
 func TestMalformedPredicate(t *testing.T) {
 	Convey("Predicate with Equal", t, func() {
 		Convey("comparing array", func() {
@@ -233,33 +209,6 @@ func TestMalformedPredicate(t *testing.T) {
 					},
 				},
 			}
-			err := predicate.Validate()
-			So(err, ShouldNotBeNil)
-		})
-	})
-
-	Convey("Predicate with User Discover", t, func() {
-		Convey("cannot be combined", func() {
-			predicate := Predicate{
-				Not,
-				[]interface{}{
-					Predicate{
-						Functional,
-						[]interface{}{
-							Expression{
-								Type: Function,
-								Value: UserDiscoverFunc{
-									Emails: []string{
-										"john.doe@example.com",
-										"jane.doe@example.com",
-									},
-								},
-							},
-						},
-					},
-				},
-			}
-
 			err := predicate.Validate()
 			So(err, ShouldNotBeNil)
 		})

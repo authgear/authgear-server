@@ -103,8 +103,6 @@ func (f *predicateSqlizerFactory) newFunctionalPredicateSqlizer(predicate skydb.
 	switch fn := expr.Value.(type) {
 	case skydb.UserRelationFunc:
 		return f.newUserRelationFunctionalPredicateSqlizer(fn)
-	case skydb.UserDiscoverFunc:
-		return f.newUserDiscoverFunctionalPredicateSqlizer(fn)
 	default:
 		panic("the specified function cannot be used as a functional predicate")
 	}
@@ -134,64 +132,6 @@ func (f *predicateSqlizerFactory) newUserRelationFunctionalPredicateSqlizer(fn s
 		inwardAlias:  inwardAlias,
 		user:         fn.User,
 	}, nil
-}
-
-func (f *predicateSqlizerFactory) newUserDiscoverFunctionalPredicateSqlizer(fn skydb.UserDiscoverFunc) (sq.Sqlizer, error) {
-	if f.db.UserRecordType() != f.primaryTable {
-		return nil, skyerr.NewErrorf(skyerr.RecordQueryInvalid,
-			"user discover predicate can only be used on user record")
-	}
-
-	discoveryArgNames := []string{"username", "email"}
-	var sqlizers sq.Or
-	var alias string
-
-	// Create sqlizers for each discovery argument (username and email).
-	for _, argName := range discoveryArgNames {
-		if !fn.HaveArgsByName(argName) {
-			continue
-		}
-
-		lhsExpr := skydb.Expression{
-			Type:  skydb.KeyPath,
-			Value: argName,
-		}
-		rhsExpr := skydb.Expression{
-			Type:  skydb.Literal,
-			Value: fn.ArgsByName(argName),
-		}
-
-		if alias == "" {
-			alias = f.createLeftJoin("_auth", "_id", "id")
-		}
-		sqlizer := &containsComparisonPredicateSqlizer{
-			[]expressionSqlizer{
-				newExpressionSqlizer(alias, skydb.FieldType{Type: skydb.TypeString}, lhsExpr),
-				newExpressionSqlizer(alias, skydb.FieldType{Type: skydb.TypeString}, rhsExpr),
-			},
-		}
-		sqlizers = append(sqlizers, sqlizer)
-	}
-
-	// If there are no sqlizers, we return early with a
-	// sqlizers that always evaluates to false.
-	if len(sqlizers) == 0 {
-		return FalseSqlizer{}, nil
-	}
-
-	// Add transient attributes so that returned record also contain
-	// username and email.
-	for _, argName := range discoveryArgNames {
-		transientColumn := fmt.Sprintf("_transient__%s", argName)
-
-		expr := skydb.Expression{
-			Type:  skydb.Function,
-			Value: skydb.UserDataFunc{argName},
-		}
-		f.addExtraColumn(transientColumn, skydb.TypeString, expr)
-	}
-
-	return sqlizers, nil
 }
 
 func (f *predicateSqlizerFactory) NewAccessControlSqlizer(user *skydb.AuthInfo, aclLevel skydb.RecordACLLevel) (sq.Sqlizer, error) {

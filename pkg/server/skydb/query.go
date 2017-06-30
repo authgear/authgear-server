@@ -17,7 +17,6 @@
 package skydb
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -260,11 +259,6 @@ func (p Predicate) validateFunctionalPredicate(parentPredicate *Predicate) skyer
 				`user relation predicate with "%d" relation is not supported`,
 				f.RelationName)
 		}
-	case UserDiscoverFunc:
-		if parentPredicate != nil {
-			return skyerr.NewError(skyerr.NotSupported,
-				`user discover predicate cannot be combined with other predicates`)
-		}
 	default:
 		return skyerr.NewError(skyerr.NotSupported,
 			`unsupported function for functional predicate`)
@@ -466,68 +460,6 @@ func (f UserRelationFunc) DataType() DataType {
 // ReferencedKeyPaths implements the KeyPathFunc interface.
 func (f UserRelationFunc) ReferencedKeyPaths() []string {
 	return []string{f.KeyPath}
-}
-
-// UserDiscoverFunc searches for user record having the specified user data, such
-// as email addresses. Can only be used with user record.
-type UserDiscoverFunc struct {
-	Usernames []string
-	Emails    []string
-}
-
-// Args implements the Func interface
-func (f UserDiscoverFunc) Args() []interface{} {
-	panic("not supported")
-}
-
-func (f UserDiscoverFunc) DataType() DataType {
-	return TypeBoolean
-}
-
-// HaveArgsByName implements the Func interface
-func (f UserDiscoverFunc) HaveArgsByName(name string) bool {
-	switch name {
-	case "email":
-		return len(f.Emails) > 0
-	case "username":
-		return len(f.Usernames) > 0
-	default:
-		panic(fmt.Errorf("not supported arg name %s", name))
-	}
-}
-
-// ArgsByName implements the Func interface
-func (f UserDiscoverFunc) ArgsByName(name string) []interface{} {
-	var data []string
-	switch name {
-	case "email":
-		data = f.Emails
-	case "username":
-		data = f.Usernames
-	default:
-		panic(fmt.Errorf("not supported arg name %s", name))
-	}
-
-	args := make([]interface{}, len(data))
-	for i, arg := range data {
-		args[i] = arg
-	}
-	return args
-}
-
-// UserDataFunc is an expresssion to return an attribute of user info
-// as email addresses. Can only be used with user record.
-type UserDataFunc struct {
-	DataName string
-}
-
-// Args implements the Func interface
-func (f UserDataFunc) Args() []interface{} {
-	return []interface{}{}
-}
-
-func (f UserDataFunc) DataType() DataType {
-	return TypeJSON
 }
 
 // Visitor is a marker interface
