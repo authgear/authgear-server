@@ -49,6 +49,7 @@ func isTokenStillValid(token router.AccessToken, authInfo skydb.AuthInfo) bool {
 	return token.IssuedAt().After(tokenValidSince.Add(-1 * time.Second))
 }
 
+// TODO: Inject both AuthInfo and user Record
 func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
 	if payload.AuthInfoID == "" {
 		if !payload.HasMasterKey() {
@@ -61,12 +62,13 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 
 	conn := payload.DBConn
 	authinfo := skydb.AuthInfo{}
-	if err := conn.GetUser(payload.AuthInfoID, &authinfo); err != nil {
+
+	if err := conn.GetAuth(payload.AuthInfoID, &authinfo); err != nil {
 		if err == skydb.ErrUserNotFound && payload.HasMasterKey() {
 			authinfo = skydb.AuthInfo{
 				ID: payload.AuthInfoID,
 			}
-			if err := payload.DBConn.CreateUser(&authinfo); err != nil && err != skydb.ErrUserDuplicated {
+			if err := payload.DBConn.CreateAuth(&authinfo); err != nil && err != skydb.ErrUserDuplicated {
 				return http.StatusInternalServerError
 			}
 		} else {
