@@ -163,10 +163,7 @@ type Database interface {
 //
 // A Begin'ed transaction must end with a call to Commit or Rollback. After
 // that, all opertions on Database will return ErrDatabaseTxDone.
-//
-// NOTE(limouren): The interface is not Database specific, but currently only
-// Database supports it.
-type TxDatabase interface {
+type Transactional interface {
 	// Begin opens a transaction for the current Database.
 	//
 	// Calling Begin on an already Begin'ed Database returns ErrDatabaseTxDidBegin.
@@ -177,6 +174,12 @@ type TxDatabase interface {
 
 	// Rollbacks discards all the changes made to Database after Begin.
 	Rollback() error
+}
+
+//go:generate mockgen -destination=mock_skydb/mock_tx_database.go github.com/skygeario/skygear-server/pkg/server/skydb TxDatabase
+type TxDatabase interface {
+	Transactional
+	Database
 }
 
 // Rows implements a scanner-like interface for easy iteration on a

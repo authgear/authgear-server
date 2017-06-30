@@ -30,4 +30,4 @@ func (db *database) Rollback() (err error) {
 	return db.c.Rollback()
 }
 
-var _ skydb.TxDatabase = &database{}
+var _ skydb.Transactional = &database{}

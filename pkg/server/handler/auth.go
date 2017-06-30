@@ -515,7 +515,7 @@ type createUserWithRecordContext struct {
 
 func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo) skyerr.Error {
 	db := ctx.Database
-	txDB, ok := db.(skydb.TxDatabase)
+	txDB, ok := db.(skydb.Transactional)
 	if !ok {
 		return skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
 	}
