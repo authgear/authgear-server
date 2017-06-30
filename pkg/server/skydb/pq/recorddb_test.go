@@ -1494,33 +1494,26 @@ func TestQuery(t *testing.T) {
 
 		Convey("gets no users", func() {
 			authinfo := skydb.AuthInfo{}
-			err := c.GetUser("notexistuserid", &authinfo)
+			err := c.GetAuth("notexistuserid", &authinfo)
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 
 		Convey("gets no users with principal", func() {
 			authinfo := skydb.AuthInfo{}
-			err := c.GetUserByPrincipalID("com.example:johndoe", &authinfo)
+			err := c.GetAuthByPrincipalID("com.example:johndoe", &authinfo)
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
-		})
-
-		Convey("query no users", func() {
-			emails := []string{"user@example.com"}
-			result, err := c.QueryUser(emails, []string{})
-			So(err, ShouldBeNil)
-			So(len(result), ShouldEqual, 0)
 		})
 
 		Convey("updates no users", func() {
 			authinfo := skydb.AuthInfo{
 				ID: "notexistuserid",
 			}
-			err := c.UpdateUser(&authinfo)
+			err := c.UpdateAuth(&authinfo)
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 
 		Convey("deletes no users", func() {
-			err := c.DeleteUser("notexistuserid")
+			err := c.DeleteAuth("notexistuserid")
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 

@@ -30,11 +30,9 @@ func TestRoleCRUD(t *testing.T) {
 
 		Convey("add roles to a user", func() {
 			authinfo := skydb.AuthInfo{
-				ID:       "userid",
-				Username: "john.doe",
-				Email:    "john.doe@example.com",
+				ID: "userid",
 			}
-			err := c.CreateUser(&authinfo)
+			err := c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
 			authinfo.Roles = []string{
 				"admin",
@@ -72,7 +70,7 @@ func TestRoleCRUD(t *testing.T) {
 					"writer",
 				},
 			}
-			err := c.CreateUser(&authinfo)
+			err := c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
 			authinfo.Roles = nil
 			err = c.UpdateUserRoles(&authinfo)
