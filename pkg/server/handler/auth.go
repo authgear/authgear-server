@@ -16,6 +16,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -31,11 +32,11 @@ import (
 var errUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 
 type signupPayload struct {
-	Username string                 `mapstructure:"username"`
-	Email    string                 `mapstructure:"email"`
-	Password string                 `mapstructure:"password"`
-	Provider string                 `mapstructure:"provider"`
-	AuthData map[string]interface{} `mapstructure:"auth_data"`
+	Username         string                 `mapstructure:"username"`
+	Email            string                 `mapstructure:"email"`
+	Password         string                 `mapstructure:"password"`
+	Provider         string                 `mapstructure:"provider"`
+	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
 }
 
 func (payload *signupPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -126,6 +127,8 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	store := h.TokenStore
 
 	info := skydb.AuthInfo{}
+	var authdata skydb.AuthData
+
 	if p.IsAnonymous() {
 		info = skydb.NewAnonymousAuthInfo()
 	} else if p.Provider != "" {
@@ -136,7 +139,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 			response.Err = skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
 			return
 		}
-		principalID, authData, err := authProvider.Login(payload.Context, p.AuthData)
+		principalID, authdata, err := authProvider.Login(payload.Context, p.ProviderAuthData)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
 			return
@@ -144,9 +147,12 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
 
 		// Create new user info and set updated auth data
-		info = skydb.NewProvidedAuthAuthInfo(principalID, authData)
+		info = skydb.NewProviderInfoAuthInfo(principalID, authdata)
 	} else {
-		info = skydb.NewAuthInfo(p.Username, p.Email, p.Password)
+		info = skydb.NewAuthInfo(p.Password)
+		authdata = make(skydb.AuthData)
+		authdata["username"] = p.Username
+		authdata["email"] = p.Email
 	}
 
 	// Populate the default roles to user
@@ -167,7 +173,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	createContext := createUserWithRecordContext{
 		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
 	}
-	if response.Err = createContext.execute(&info); response.Err != nil {
+	if response.Err = createContext.execute(&info, &authdata); response.Err != nil {
 		return
 	}
 
@@ -181,15 +187,15 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		panic(err)
 	}
 
-	response.Result = NewAuthResponse(info, token.AccessToken)
+	response.Result = NewAuthResponse(info, &authdata, token.AccessToken)
 }
 
 type loginPayload struct {
-	Username string                 `mapstructure:"username"`
-	Email    string                 `mapstructure:"email"`
-	Password string                 `mapstructure:"password"`
-	Provider string                 `mapstructure:"provider"`
-	AuthData map[string]interface{} `mapstructure:"auth_data"`
+	Username         string                 `mapstructure:"username"`
+	Email            string                 `mapstructure:"email"`
+	Password         string                 `mapstructure:"password"`
+	Provider         string                 `mapstructure:"provider"`
+	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
 }
 
 func (payload *loginPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -257,15 +263,20 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	store := h.TokenStore
 
 	info := skydb.AuthInfo{}
+	authdata := skydb.AuthData{
+		"username": p.Username,
+		"email":    p.Email,
+	}
 
 	if p.Provider != "" {
 		// Get AuthProvider and authenticates the user
-		principalID, authData, skyErr := h.authPrincipal(payload.Context, p)
+		principalID, providerAuthData, skyErr := h.authPrincipal(payload.Context, p)
 		if skyErr != nil {
 			response.Err = skyErr
 			return
 		}
-		if err := payload.DBConn.GetUserByPrincipalID(principalID, &info); err != nil {
+		if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
+
 			// Create user if and only if no user found with the same principal
 			if err != skydb.ErrUserNotFound {
 				// TODO: more error handling here if necessary
@@ -273,22 +284,25 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 				return
 			}
 
-			info = skydb.NewProvidedAuthAuthInfo(principalID, authData)
+			info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
+			authdata = skydb.AuthData{}
 			createContext := createUserWithRecordContext{
 				payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
 			}
-			if response.Err = createContext.execute(&info); response.Err != nil {
+
+			if response.Err = createContext.execute(&info, &authdata); response.Err != nil {
 				return
 			}
 		} else {
-			info.SetProvidedAuthData(principalID, authData)
-			if err := payload.DBConn.UpdateUser(&info); err != nil {
+			info.SetProviderInfoData(principalID, providerAuthData)
+			if err := payload.DBConn.UpdateAuth(&info); err != nil {
 				response.Err = skyerr.MakeError(err)
 				return
 			}
 		}
 	} else {
-		if err := payload.DBConn.GetUserByUsernameEmail(p.Username, p.Email, &info); err != nil {
+		fetcher := newUserAuthFetcher(payload.Database, payload.DBConn, authdata, &info, nil)
+		if err := fetcher.FetchAuth(); err != nil {
 			if err == skydb.ErrUserNotFound {
 				response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			} else {
@@ -297,6 +311,8 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 			}
 			return
 		}
+
+		authdata = fetcher.AuthData
 
 		if !info.IsSamePassword(p.Password) {
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "username or password incorrect")
@@ -314,12 +330,12 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		panic(err)
 	}
 
-	authResponse := NewAuthResponse(info, token.AccessToken)
+	authResponse := NewAuthResponse(info, &authdata, token.AccessToken)
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastLoginAt = &now
 	info.LastSeenAt = &now
-	if err := payload.DBConn.UpdateUser(&info); err != nil {
+	if err := payload.DBConn.UpdateAuth(&info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
@@ -333,7 +349,7 @@ func (h *LoginHandler) authPrincipal(ctx context.Context, p *loginPayload) (stri
 		skyErr := skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
 		return "", nil, skyErr
 	}
-	principalID, authData, err := authProvider.Login(ctx, p.AuthData)
+	principalID, authData, err := authProvider.Login(ctx, p.ProviderAuthData)
 	if err != nil {
 		skyErr := skyerr.NewError(skyerr.InvalidCredentials, "invalid authentication information")
 		return "", nil, skyErr
@@ -461,7 +477,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 	}
 
 	info := skydb.AuthInfo{}
-	if err := payload.DBConn.GetUser(payload.AuthInfoID, &info); err != nil {
+	if err := payload.DBConn.GetAuth(payload.AuthInfoID, &info); err != nil {
 		if err == skydb.ErrUserNotFound {
 			response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		} else {
@@ -477,7 +493,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		return
 	}
 	info.SetPassword(p.NewPassword)
-	if err := payload.DBConn.UpdateUser(&info); err != nil {
+	if err := payload.DBConn.UpdateAuth(&info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
@@ -503,6 +519,130 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 	}
 }
 
+type UserAuthFetcher struct {
+	DBConn   skydb.Conn
+	Database skydb.Database
+
+	// AuthData is the input of the Fetcher
+	// while a user may contain more than one set of AuthData
+	// it can be updated after the user is fetched
+	AuthData skydb.AuthData
+
+	// Result
+	AuthInfo *skydb.AuthInfo
+	User     *skydb.Record
+}
+
+func newUserAuthFetcher(db skydb.Database, conn skydb.Conn, authData skydb.AuthData, authInfo *skydb.AuthInfo, user *skydb.Record) UserAuthFetcher {
+	if authInfo == nil {
+		authInfo = &skydb.AuthInfo{}
+	}
+
+	if user == nil {
+		user = &skydb.Record{}
+	}
+
+	return UserAuthFetcher{
+		DBConn:   conn,
+		Database: db,
+		AuthData: authData,
+		AuthInfo: authInfo,
+		User:     user,
+	}
+}
+
+func (f *UserAuthFetcher) FetchAuth() error {
+	if err := f.FetchUser(); err != nil {
+		return err
+	}
+
+	// update auth data
+	f.AuthData["username"] = f.User.Data["username"]
+	f.AuthData["email"] = f.User.Data["email"]
+
+	return f.DBConn.GetAuth(f.User.ID.Key, f.AuthInfo)
+}
+
+func (f *UserAuthFetcher) FetchUser() error {
+	var err error
+	if err = validateAuthData(f.AuthData); err != nil {
+		return err
+	}
+
+	query := f.buildAuthDataQuery()
+
+	var results *skydb.Rows
+	results, err = f.Database.Query(&query)
+	if err != nil {
+		return err
+	}
+	defer results.Close()
+
+	records := []skydb.Record{}
+	for results.Scan() {
+		record := results.Record()
+		records = append(records, record)
+	}
+
+	if err = results.Err(); err != nil {
+		return err
+	}
+
+	recordsQueried := len(records)
+	if recordsQueried == 0 {
+		return skydb.ErrUserNotFound
+	} else if recordsQueried > 1 {
+		panic(fmt.Errorf("want 1 records queried, got %v", recordsQueried))
+	}
+
+	f.User = &records[0]
+
+	return nil
+}
+
+func (f *UserAuthFetcher) buildAuthDataQuery() skydb.Query {
+	username, _ := f.AuthData["username"].(string)
+	email, _ := f.AuthData["email"].(string)
+
+	predicates := []skydb.Predicate{}
+
+	makeILikePredicate := func(keyPath string, value string) skydb.Predicate {
+		return skydb.Predicate{
+			Operator: skydb.ILike,
+			Children: []interface{}{
+				skydb.Expression{Type: skydb.KeyPath, Value: keyPath},
+				skydb.Expression{Type: skydb.Literal, Value: value},
+			},
+		}
+	}
+
+	if username != "" {
+		predicates = append(predicates, makeILikePredicate("username", username))
+	}
+
+	if email != "" {
+		predicates = append(predicates, makeILikePredicate("email", email))
+	}
+
+	var predicate skydb.Predicate
+	if len(predicates) == 1 {
+		predicate = predicates[0]
+	} else {
+		predicate = skydb.Predicate{
+			Operator: skydb.And,
+			Children: []interface{}{predicates[0], predicates[1]},
+		}
+	}
+
+	query := skydb.Query{
+		Type:      "user",
+		Predicate: predicate,
+		Limit:     new(uint64),
+	}
+	*query.Limit = 1
+	return query
+}
+
 // createUserWithRecordContext is a context for creating a new user with
 // database record
 type createUserWithRecordContext struct {
@@ -513,7 +653,7 @@ type createUserWithRecordContext struct {
 	Context      context.Context
 }
 
-func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo) skyerr.Error {
+func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData *skydb.AuthData) skyerr.Error {
 	db := ctx.Database
 	txDB, ok := db.(skydb.Transactional)
 	if !ok {
@@ -521,15 +661,32 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo) skyerr.Err
 	}
 
 	txErr := withTransaction(txDB, func() error {
-		if err := ctx.DBConn.CreateUser(info); err != nil {
+		// Check if AuthData duplicated only when it is provided
+		// AuthData may be absent, e.g. login with provider
+		if validateAuthData(*authData) == nil {
+			fetcher := newUserAuthFetcher(db, ctx.DBConn, *authData, nil, nil)
+			err := fetcher.FetchAuth()
+			if err == nil {
+				return errUserDuplicated
+			}
+
+			if err != skydb.ErrUserNotFound {
+				return skyerr.MakeError(err)
+			}
+		}
+
+		if err := ctx.DBConn.CreateAuth(info); err != nil {
 			if err == skydb.ErrUserDuplicated {
 				return errUserDuplicated
 			}
-			return skyerr.NewResourceSaveFailureErrWithStringID("user", info.Username)
+
+			username, _ := (*authData)["username"].(string)
+			return skyerr.NewResourceSaveFailureErrWithStringID("user", username)
 		}
 
 		userRecord := skydb.Record{
-			ID: skydb.NewRecordID(db.UserRecordType(), info.ID),
+			ID:   skydb.NewRecordID(db.UserRecordType(), info.ID),
+			Data: skydb.Data(*authData),
 		}
 
 		recordReq := recordModifyRequest{
@@ -561,4 +718,16 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo) skyerr.Err
 	}
 
 	return skyerr.MakeError(txErr)
+}
+
+// TODO: validate according to environment variable
+func validateAuthData(authData skydb.AuthData) error {
+	username, _ := authData["username"].(string)
+	email, _ := authData["email"].(string)
+
+	if username == "" && email == "" {
+		return fmt.Errorf("Either username and email must be set")
+	}
+
+	return nil
 }

@@ -20,10 +20,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken/authtokentest"
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skydbtest"
 
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
@@ -36,8 +38,6 @@ func TestMeHandler(t *testing.T) {
 		lastHour := time.Now().UTC().Add(0 - time.Hour)
 		authinfo := skydb.AuthInfo{
 			ID:             "tester-1",
-			Email:          "tester1@example.com",
-			Username:       "tester1",
 			HashedPassword: []byte("password"),
 			Roles: []string{
 				"Test",
@@ -46,7 +46,7 @@ func TestMeHandler(t *testing.T) {
 			LastLoginAt: &lastHour,
 			LastSeenAt:  &lastHour,
 		}
-		conn.CreateUser(&authinfo)
+		conn.CreateAuth(&authinfo)
 
 		tokenStore := &authtokentest.SingleTokenStore{}
 		handler := &MeHandler{
@@ -54,10 +54,32 @@ func TestMeHandler(t *testing.T) {
 		}
 
 		Convey("Get me with user info", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			db := mock_skydb.NewMockTxDatabase(ctrl)
+			db.EXPECT().
+				Get(gomock.Any(), gomock.Any()).
+				Do(func(recordID skydb.RecordID, record *skydb.Record) {
+					if recordID.Type != "user" || recordID.Key != "tester-1" {
+						panic("Wrong RecordID")
+					}
+				}).
+				SetArg(1, skydb.Record{
+					ID: skydb.NewRecordID("user", "tester-1"),
+					Data: map[string]interface{}{
+						"username": "tester1",
+						"email":    "tester1@example.com",
+					},
+				}).
+				Return(nil).
+				AnyTimes()
+
 			r := handlertest.NewSingleRouteRouter(handler, func(p *router.Payload) {
 				p.Data["access_token"] = "token-1"
 				p.AuthInfo = &authinfo
 				p.DBConn = conn
+				p.Database = db
 			})
 
 			resp := r.POST("")
@@ -78,7 +100,7 @@ func TestMeHandler(t *testing.T) {
 				lastHour.Format(time.RFC3339Nano),
 			))
 			updateInfo := skydb.AuthInfo{}
-			conn.GetUser("tester-1", &updateInfo)
+			conn.GetAuth("tester-1", &updateInfo)
 			So(updateInfo.LastSeenAt, ShouldNotEqual, lastHour)
 		})
 
