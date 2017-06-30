@@ -69,18 +69,18 @@ func (c *conn) batchUserRoleSQL(id string, roles []string) (string, []interface{
 
 const assignUserRoleInsertTemplate = `
 {{ $userLen := len .Users }}
-INSERT INTO {{.UserRoleTable}} (user_id, role_id)
-SELECT "user"."id", "role"."id"
-FROM {{.UserTable}} AS "user", {{.RoleTable}} AS "role"
+INSERT INTO {{.UserRoleTable}} (auth_id, role_id)
+SELECT "_auth"."id", "role"."id"
+FROM {{.UserTable}} AS "_auth", {{.RoleTable}} AS "role"
 WHERE
-  "user"."id" IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  "_auth"."id" IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
   AND
   "role"."id" IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
-  AND ("role"."id", "user"."id") NOT IN (
-    SELECT role_id, user_id
+  AND ("role"."id", "_auth"."id") NOT IN (
+    SELECT role_id, auth_id
   FROM {{.UserRoleTable}}
   WHERE
-    user_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+    auth_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
   AND
     role_id IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
   );
@@ -108,9 +108,9 @@ type assignUserRole struct {
 func (c *conn) assignUserRoleSQL(users []string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	assignUserRoleInsert.Execute(&b, assignUserRole{
-		c.tableName("_user_role"),
+		c.tableName("_auth_role"),
 		c.tableName("_role"),
-		c.tableName("_user"),
+		c.tableName("_auth"),
 		roles,
 		users,
 	})
@@ -131,7 +131,7 @@ const revokeUserRoleDeleteTemplate = `
 {{ $userLen := len .Users }}
 DELETE FROM {{.UserRoleTable}}
 WHERE
-  user_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  auth_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
   AND
   role_id IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
 ;
@@ -157,7 +157,7 @@ type revokeUserRole struct {
 func (c *conn) revokeUserRoleSQL(users []string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	revokeUserRoleDelete.Execute(&b, revokeUserRole{
-		c.tableName("_user_role"),
+		c.tableName("_auth_role"),
 		roles,
 		users,
 	})
