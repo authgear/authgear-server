@@ -346,6 +346,8 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 			UnderlyingType: pqType,
 		}
 		switch pqType {
+		case TypeCaseInsensitiveString:
+			fallthrough
 		case TypeString:
 			schema.Type = skydb.TypeString
 		case TypeNumber:
