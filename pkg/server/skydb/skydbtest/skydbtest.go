@@ -45,7 +45,7 @@ func NewMapConn() *MapConn {
 	}
 }
 
-// CreateUser creates a AuthInfo in UserMap.
+// CreateAuth creates a AuthInfo in UserMap.
 func (conn *MapConn) CreateAuth(authinfo *skydb.AuthInfo) error {
 	if _, existed := conn.UserMap[authinfo.ID]; existed {
 		return skydb.ErrUserDuplicated
@@ -55,7 +55,7 @@ func (conn *MapConn) CreateAuth(authinfo *skydb.AuthInfo) error {
 	return nil
 }
 
-// GetUser returns a AuthInfo in UserMap.
+// GetAuth returns a AuthInfo in UserMap.
 func (conn *MapConn) GetAuth(id string, authinfo *skydb.AuthInfo) error {
 	u, ok := conn.UserMap[id]
 	if !ok {
@@ -66,7 +66,7 @@ func (conn *MapConn) GetAuth(id string, authinfo *skydb.AuthInfo) error {
 	return nil
 }
 
-// GetUserByPrincipalID returns a AuthInfo by its principalID.
+// GetAuthByPrincipalID returns a AuthInfo by its principalID.
 func (conn *MapConn) GetAuthByPrincipalID(principalID string, authinfo *skydb.AuthInfo) error {
 	for _, u := range conn.UserMap {
 		if _, ok := u.ProviderInfo[principalID]; ok {
@@ -78,7 +78,7 @@ func (conn *MapConn) GetAuthByPrincipalID(principalID string, authinfo *skydb.Au
 	return skydb.ErrUserNotFound
 }
 
-// UpdateUser updates an existing AuthInfo in UserMap.
+// UpdateAuth updates an existing AuthInfo in UserMap.
 func (conn *MapConn) UpdateAuth(authinfo *skydb.AuthInfo) error {
 	if _, ok := conn.UserMap[authinfo.ID]; !ok {
 		return skydb.ErrUserNotFound
@@ -88,7 +88,7 @@ func (conn *MapConn) UpdateAuth(authinfo *skydb.AuthInfo) error {
 	return nil
 }
 
-// DeleteUser remove an existing in UserMap.
+// DeleteAuth remove an existing in UserMap.
 func (conn *MapConn) DeleteAuth(id string) error {
 	if _, ok := conn.UserMap[id]; !ok {
 		return skydb.ErrUserNotFound

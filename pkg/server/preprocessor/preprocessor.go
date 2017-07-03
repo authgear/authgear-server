@@ -49,8 +49,8 @@ func isTokenStillValid(token router.AccessToken, authInfo skydb.AuthInfo) bool {
 	return token.IssuedAt().After(tokenValidSince.Add(-1 * time.Second))
 }
 
-// TODO: Inject both AuthInfo and user Record
 func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
+	// TODO: Inject both AuthInfo and user Record
 	if payload.AuthInfoID == "" {
 		if !payload.HasMasterKey() {
 			log.Debugln("injectUser: empty AuthInfoID, skipping")
