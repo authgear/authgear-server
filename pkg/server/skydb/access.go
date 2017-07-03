@@ -15,6 +15,7 @@
 package skydb
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -286,13 +287,13 @@ func (list FieldACLEntryList) Less(i, j int) bool { return list[i].Compare(list[
 
 // FieldACLEntry contains a single field ACL entry
 type FieldACLEntry struct {
-	RecordType   string
-	RecordField  string
-	UserRole     FieldUserRole
-	Writable     bool
-	Readable     bool
-	Comparable   bool
-	Discoverable bool
+	RecordType   string        `json:"record_type"`
+	RecordField  string        `json:"record_field"`
+	UserRole     FieldUserRole `json:"user_role"`
+	Writable     bool          `json:"writable"`
+	Readable     bool          `json:"readable"`
+	Comparable   bool          `json:"comparable"`
+	Discoverable bool          `json:"discoverable"`
 }
 
 // Compare the order for evaluation with the other entry.
@@ -396,26 +397,35 @@ type FieldUserRole struct {
 	Data string
 }
 
-// NewFieldUserRole returns a FieldUserRole struct from the user role
-// specification.
-func NewFieldUserRole(roleString string) FieldUserRole {
+// ParseFieldUserRole parses a user role string to a FieldUserRole.
+func ParseFieldUserRole(roleString string) (FieldUserRole, error) {
 	components := strings.SplitN(roleString, ":", 2)
 	roleType := FieldUserRoleType(components[0])
 	switch roleType {
 	case OwnerFieldUserRoleType, AnyUserFieldUserRoleType, PublicFieldUserRoleType:
 		if len(components) > 1 {
-			panic(fmt.Sprintf(`unexpected user role string "%s"`, roleString))
+			return FieldUserRole{}, fmt.Errorf(`unexpected user role string "%s"`, roleString)
 		}
-		return FieldUserRole{roleType, ""}
+		return FieldUserRole{roleType, ""}, nil
 	case SpecificUserFieldUserRoleType, DynamicUserFieldUserRoleType, DefinedRoleFieldUserRoleType:
 		if len(components) != 2 {
-			panic(fmt.Sprintf(`unexpected user role string "%s"`, roleString))
+			return FieldUserRole{}, fmt.Errorf(`unexpected user role string "%s"`, roleString)
 		}
-		return FieldUserRole{roleType, components[1]}
+		return FieldUserRole{roleType, components[1]}, nil
 	default:
-		panic(fmt.Sprintf(`unexpected user role string "%s"`, roleString))
+		return FieldUserRole{}, fmt.Errorf(`unexpected user role string "%s"`, roleString)
 
 	}
+}
+
+// NewFieldUserRole returns a FieldUserRole struct from the user role
+// specification.
+func NewFieldUserRole(roleString string) FieldUserRole {
+	userRole, err := ParseFieldUserRole(roleString)
+	if err != nil {
+		panic(err)
+	}
+	return userRole
 }
 
 // String returns the user role specification in string representation.
@@ -492,6 +502,22 @@ func (r FieldUserRole) matchDynamic(authInfo *AuthInfo, record *Record) bool {
 		return false
 	}
 	return false
+}
+
+// MarshalJSON implements json.Marshaler
+func (r *FieldUserRole) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.String())
+}
+
+// UnmarshalJSON implements json.Unmarshaler
+func (r *FieldUserRole) UnmarshalJSON(data []byte) (err error) {
+	var strValue string
+	if err = json.Unmarshal(data, &strValue); err != nil {
+		return
+	}
+	newRole := NewFieldUserRole(strValue)
+	*r = newRole
+	return
 }
 
 var defaultFieldUserRole = FieldUserRole{PublicFieldUserRoleType, ""}

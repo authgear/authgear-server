@@ -143,6 +143,7 @@ func main() {
 	}
 	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
 	preprocessorRegistry["require_user"] = &pp.RequireUser{}
+	preprocessorRegistry["require_admin"] = &pp.RequireAdminOrMasterKey{}
 	preprocessorRegistry["inject_db"] = &pp.InjectDatabase{}
 	preprocessorRegistry["inject_public_db"] = &pp.InjectPublicDatabase{}
 	preprocessorRegistry["dev_only"] = &pp.DevOnlyProcessor{
@@ -245,6 +246,8 @@ func main() {
 	r.Map("schema:fetch", injector.Inject(&handler.SchemaFetchHandler{}))
 	r.Map("schema:access", injector.Inject(&handler.SchemaAccessHandler{}))
 	r.Map("schema:default_access", injector.Inject(&handler.SchemaDefaultAccessHandler{}))
+	r.Map("schema:field_access:get", injector.Inject(&handler.SchemaFieldAccessGetHandler{}))
+	r.Map("schema:field_access:update", injector.Inject(&handler.SchemaFieldAccessUpdateHandler{}))
 
 	serveMux.Handle("/", r)
 

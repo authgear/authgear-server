@@ -19,10 +19,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skydbtest"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -344,6 +346,66 @@ func TestInjectUserProcessor(t *testing.T) {
 
 			_, ok := conn.UserMap["_god"]
 			So(ok, ShouldBeTrue)
+		})
+	})
+}
+
+func TestRequireAdminOrMasterKey(t *testing.T) {
+	Convey("RequireAdminOrMasterKey", t, func() {
+		pp := RequireAdminOrMasterKey{}
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		conn := mock_skydb.NewMockConn(ctrl)
+		conn.EXPECT().GetAdminRoles().Return([]string{"admin"}, nil).AnyTimes()
+
+		Convey("should ok with master key", func() {
+			payload := router.Payload{
+				DBConn:    conn,
+				AccessKey: router.MasterAccessKey,
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+		})
+
+		Convey("should ok with admin user", func() {
+			payload := router.Payload{
+				DBConn: conn,
+				AuthInfo: &skydb.AuthInfo{
+					Roles: []string{"admin"},
+				},
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+		})
+
+		Convey("should fail without user", func() {
+			payload := router.Payload{
+				DBConn:   conn,
+				AuthInfo: &skydb.AuthInfo{},
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusUnauthorized)
+			So(resp.Err, ShouldNotBeNil)
+		})
+
+		Convey("should fail with not having admin role", func() {
+			payload := router.Payload{
+				DBConn: conn,
+				AuthInfo: &skydb.AuthInfo{
+					Roles: []string{"guest"},
+				},
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusUnauthorized)
+			So(resp.Err, ShouldNotBeNil)
 		})
 	})
 }

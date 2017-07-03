@@ -15,6 +15,7 @@
 package handler
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -598,4 +599,174 @@ func (h *SchemaDefaultAccessHandler) Handle(rpayload *router.Payload, response *
 		Type:          payload.Type,
 		DefaultAccess: payload.RawDefaultAccess,
 	}
+}
+
+type schemaFieldAccessResponse struct {
+	Access skydb.FieldACLEntryList `json:"access"`
+}
+
+func (r schemaFieldAccessResponse) WithAccess(fieldACL skydb.FieldACL) schemaFieldAccessResponse {
+	fieldACLEntries := fieldACL.AllEntries()
+	if len(fieldACLEntries) == 0 {
+		// Make sure the response contains array with 0 items rather than nil.
+		fieldACLEntries = make(skydb.FieldACLEntryList, 0)
+	} else {
+		sort.Sort(fieldACLEntries)
+	}
+	r.Access = fieldACLEntries
+	return r
+}
+
+/*
+SchemaFieldAccessGetHandler fetches the entire Field ACL settings.
+curl -X POST -H "Content-Type: application/json" \
+  -d @- http://localhost:3000/schema/default_access <<EOF
+{
+	"api_key": "MASTER_KEY",
+	"action": "schema:field_access:get",
+}
+
+{
+  "result": [
+    {
+      "record_type": "User",
+      "record_field": "*",
+      "user_role": "_owner",
+      "writable": true,
+      "readable": true,
+      "comparable": true,
+      "discoverable": true
+    }
+  ]
+}
+EOF
+*/
+type SchemaFieldAccessGetHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	RequireAdmin  router.Processor `preprocessor:"require_admin"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
+	preprocessors []router.Processor
+}
+
+func (h *SchemaFieldAccessGetHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.RequireAdmin,
+		h.PluginReady,
+	}
+}
+
+func (h *SchemaFieldAccessGetHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (h *SchemaFieldAccessGetHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	c := rpayload.DBConn
+	fieldACL, err := c.GetRecordFieldAccess()
+
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	response.Result = schemaFieldAccessResponse{}.WithAccess(fieldACL)
+}
+
+// SchemaFieldAcccssUpdateHandler
+
+type schemaFieldAccessUpdatePayload struct {
+	RawAccess []map[string]interface{} `mapstructure:"access"`
+	FieldACL  skydb.FieldACL
+}
+
+func (payload *schemaFieldAccessUpdatePayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+
+	entries := skydb.FieldACLEntryList{}
+	for _, v := range payload.RawAccess {
+		ace := skydb.FieldACLEntry{}
+		if err := (*skyconv.MapFieldACLEntry)(&ace).FromMap(v); err != nil {
+			return skyerr.NewInvalidArgument("invalid access entry", []string{"access"})
+		}
+		entries = append(entries, ace)
+	}
+
+	payload.FieldACL = skydb.NewFieldACL(entries)
+	return payload.Validate()
+}
+
+func (payload *schemaFieldAccessUpdatePayload) Validate() skyerr.Error {
+	return nil
+}
+
+/*
+SchemaFieldAccessUpdateHandler fetches the entire Field ACL settings.
+curl -X POST -H "Content-Type: application/json" \
+  -d @- http://localhost:3000/schema/default_access <<EOF
+{
+	"api_key": "MASTER_KEY",
+	"action": "schema:field_access:get",
+}
+
+{
+  "result": [
+    {
+      "record_type": "User",
+      "record_field": "*",
+      "user_role": "_owner",
+      "writable": true,
+      "readable": true,
+      "comparable": true,
+      "discoverable": true
+    }
+  ]
+}
+EOF
+*/
+type SchemaFieldAccessUpdateHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	RequireAdmin  router.Processor `preprocessor:"require_admin"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
+	preprocessors []router.Processor
+}
+
+func (h *SchemaFieldAccessUpdateHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectUser,
+		h.RequireAdmin,
+		h.PluginReady,
+	}
+}
+
+func (h *SchemaFieldAccessUpdateHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (h *SchemaFieldAccessUpdateHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	payload := schemaFieldAccessUpdatePayload{}
+	skyErr := payload.Decode(rpayload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
+	c := rpayload.DBConn
+	err := c.SetRecordFieldAccess(payload.FieldACL)
+
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	response.Result = schemaFieldAccessResponse{}.WithAccess(payload.FieldACL)
 }
