@@ -1409,7 +1409,7 @@ func TestQuery(t *testing.T) {
 		Convey("can be queried by owner", func() {
 			query := skydb.Query{
 				Type:       "note",
-				ViewAsUser: &skydb.UserInfo{ID: "alice"},
+				ViewAsUser: &skydb.AuthInfo{ID: "alice"},
 				Sorts:      sortsByID,
 			}
 			records, err := exhaustRows(db.Query(&query))
@@ -1433,7 +1433,7 @@ func TestQuery(t *testing.T) {
 		Convey("can be queried by explicit user", func() {
 			query := skydb.Query{
 				Type:       "note",
-				ViewAsUser: &skydb.UserInfo{ID: "bob"},
+				ViewAsUser: &skydb.AuthInfo{ID: "bob"},
 				Sorts:      sortsByID,
 			}
 			records, err := exhaustRows(db.Query(&query))
@@ -1445,7 +1445,7 @@ func TestQuery(t *testing.T) {
 		Convey("can be queried by explicit role", func() {
 			query := skydb.Query{
 				Type: "note",
-				ViewAsUser: &skydb.UserInfo{
+				ViewAsUser: &skydb.AuthInfo{
 					ID:    "carol",
 					Roles: []string{"marketing"},
 				},
@@ -1460,7 +1460,7 @@ func TestQuery(t *testing.T) {
 		Convey("can be queried by explicit user and role", func() {
 			query := skydb.Query{
 				Type: "note",
-				ViewAsUser: &skydb.UserInfo{
+				ViewAsUser: &skydb.AuthInfo{
 					ID:    "bob",
 					Roles: []string{"marketing"},
 				},
@@ -1475,7 +1475,7 @@ func TestQuery(t *testing.T) {
 		Convey("can be queried with bypass access control", func() {
 			query := skydb.Query{
 				Type: "note",
-				ViewAsUser: &skydb.UserInfo{
+				ViewAsUser: &skydb.AuthInfo{
 					ID: "dave",
 				},
 				Sorts:               sortsByID,
@@ -1493,14 +1493,14 @@ func TestQuery(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		Convey("gets no users", func() {
-			userinfo := skydb.UserInfo{}
-			err := c.GetUser("notexistuserid", &userinfo)
+			authinfo := skydb.AuthInfo{}
+			err := c.GetUser("notexistuserid", &authinfo)
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 
 		Convey("gets no users with principal", func() {
-			userinfo := skydb.UserInfo{}
-			err := c.GetUserByPrincipalID("com.example:johndoe", &userinfo)
+			authinfo := skydb.AuthInfo{}
+			err := c.GetUserByPrincipalID("com.example:johndoe", &authinfo)
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 
@@ -1512,10 +1512,10 @@ func TestQuery(t *testing.T) {
 		})
 
 		Convey("updates no users", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID: "notexistuserid",
 			}
-			err := c.UpdateUser(&userinfo)
+			err := c.UpdateUser(&authinfo)
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 

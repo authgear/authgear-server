@@ -247,29 +247,29 @@ func (c *conn) setRoleType(roles []string, col string) error {
 	return nil
 }
 
-func (c *conn) UpdateUserRoles(userinfo *skydb.UserInfo) error {
-	log.Debugf("UpdateRoles %v", userinfo)
-	builder := psql.Delete(c.tableName("_user_role")).Where("user_id = ?", userinfo.ID)
+func (c *conn) UpdateUserRoles(authinfo *skydb.AuthInfo) error {
+	log.Debugf("UpdateRoles %v", authinfo)
+	builder := psql.Delete(c.tableName("_user_role")).Where("user_id = ?", authinfo.ID)
 	_, err := c.ExecWith(builder)
 	if err != nil {
 		return skyerr.NewError(skyerr.ConstraintViolated,
-			fmt.Sprintf("Fails to reset user roles %v", userinfo.ID))
+			fmt.Sprintf("Fails to reset user roles %v", authinfo.ID))
 	}
-	if len(userinfo.Roles) == 0 {
+	if len(authinfo.Roles) == 0 {
 		return nil
 	}
-	sql, args := c.batchUserRoleSQL(userinfo.ID, userinfo.Roles)
+	sql, args := c.batchUserRoleSQL(authinfo.ID, authinfo.Roles)
 	result, err := c.Exec(sql, args...)
 	if err != nil {
 		return err
 	}
 	rowsAffected, _ := result.RowsAffected()
-	if rowsAffected != int64(len(userinfo.Roles)) {
-		absenceRoles, err := c.ensureRole(userinfo.Roles)
+	if rowsAffected != int64(len(authinfo.Roles)) {
+		absenceRoles, err := c.ensureRole(authinfo.Roles)
 		if err != nil {
 			return err
 		}
-		sql, args := c.batchUserRoleSQL(userinfo.ID, absenceRoles)
+		sql, args := c.batchUserRoleSQL(authinfo.ID, absenceRoles)
 		_, err = c.Exec(sql, args...)
 		if err != nil {
 			return err

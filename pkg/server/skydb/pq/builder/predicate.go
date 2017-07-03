@@ -36,7 +36,7 @@ import (
 // `"_access" @> '[{"role":"rickmak"}]' OR "_access" @> '[{"role":"admin"}]'`¬
 type accessPredicateSqlizer struct {
 	alias string
-	user  *skydb.UserInfo
+	user  *skydb.AuthInfo
 	level skydb.RecordACLLevel
 }
 

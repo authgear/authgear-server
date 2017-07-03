@@ -34,7 +34,7 @@ func TestMeHandler(t *testing.T) {
 	Convey("MeHandler", t, func() {
 		conn := skydbtest.NewMapConn()
 		lastHour := time.Now().UTC().Add(0 - time.Hour)
-		userinfo := skydb.UserInfo{
+		authinfo := skydb.AuthInfo{
 			ID:             "tester-1",
 			Email:          "tester1@example.com",
 			Username:       "tester1",
@@ -46,7 +46,7 @@ func TestMeHandler(t *testing.T) {
 			LastLoginAt: &lastHour,
 			LastSeenAt:  &lastHour,
 		}
-		conn.CreateUser(&userinfo)
+		conn.CreateUser(&authinfo)
 
 		tokenStore := &authtokentest.SingleTokenStore{}
 		handler := &MeHandler{
@@ -56,7 +56,7 @@ func TestMeHandler(t *testing.T) {
 		Convey("Get me with user info", func() {
 			r := handlertest.NewSingleRouteRouter(handler, func(p *router.Payload) {
 				p.Data["access_token"] = "token-1"
-				p.UserInfo = &userinfo
+				p.AuthInfo = &authinfo
 				p.DBConn = conn
 			})
 
@@ -77,7 +77,7 @@ func TestMeHandler(t *testing.T) {
 				lastHour.Format(time.RFC3339Nano),
 				lastHour.Format(time.RFC3339Nano),
 			))
-			updateInfo := skydb.UserInfo{}
+			updateInfo := skydb.AuthInfo{}
 			conn.GetUser("tester-1", &updateInfo)
 			So(updateInfo.LastSeenAt, ShouldNotEqual, lastHour)
 		})

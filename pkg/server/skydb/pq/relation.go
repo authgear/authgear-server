@@ -23,7 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
 
-func (c *conn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.UserInfo {
+func (c *conn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.AuthInfo {
 	log.Debugf("Query Relation: %v, %v", user, name)
 	var selectBuilder sq.SelectBuilder
 
@@ -57,7 +57,7 @@ func (c *conn) QueryRelation(user string, name string, direction string, config 
 		panic(err)
 	}
 	defer rows.Close()
-	results := []skydb.UserInfo{}
+	results := []skydb.AuthInfo{}
 	for rows.Next() {
 		var (
 			id       string
@@ -67,12 +67,12 @@ func (c *conn) QueryRelation(user string, name string, direction string, config 
 		if err := rows.Scan(&id, &username, &email); err != nil {
 			panic(err)
 		}
-		userInfo := skydb.UserInfo{
+		authInfo := skydb.AuthInfo{
 			ID:       id,
 			Username: username.String,
 			Email:    email.String,
 		}
-		results = append(results, userInfo)
+		results = append(results, authInfo)
 	}
 	return results
 }

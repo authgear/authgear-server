@@ -137,21 +137,21 @@ func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router
 	}
 
 	result := rpayload.DBConn.QueryRelation(
-		rpayload.UserInfoID, payload.Name, payload.Direction, skydb.QueryConfig{
+		rpayload.AuthInfoID, payload.Name, payload.Direction, skydb.QueryConfig{
 			Limit:  payload.Limit,
 			Offset: payload.Offset,
 		})
 	resultList := make([]interface{}, 0, len(result))
-	for _, userinfo := range result {
+	for _, authinfo := range result {
 		resultList = append(resultList, struct {
 			ID   string      `json:"id"`
 			Type string      `json:"type"`
 			Data interface{} `json:"data"`
-		}{userinfo.ID, "user", userinfo})
+		}{authinfo.ID, "user", authinfo})
 	}
 	response.Result = resultList
 	count, countErr := rpayload.DBConn.QueryRelationCount(
-		rpayload.UserInfoID, payload.Name, payload.Direction)
+		rpayload.AuthInfoID, payload.Name, payload.Direction)
 	if countErr != nil {
 		log.WithFields(logrus.Fields{
 			"err": countErr,
@@ -259,7 +259,7 @@ func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.R
 	results := make([]interface{}, 0, len(payload.Target))
 	for s := range payload.Target {
 		target := payload.Target[s]
-		err := rpayload.DBConn.AddRelation(rpayload.UserInfoID, payload.Name, target)
+		err := rpayload.DBConn.AddRelation(rpayload.AuthInfoID, payload.Name, target)
 		if err != nil {
 			log.WithFields(logrus.Fields{
 				"target": target,
@@ -271,14 +271,14 @@ func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.R
 				Data skyerr.Error `json:"data"`
 			}{target, "error", skyerr.NewResourceFetchFailureErr("user", target)})
 		} else {
-			userinfo := skydb.UserInfo{}
-			rpayload.DBConn.GetUser(target, &userinfo)
-			userinfo.HashedPassword = []byte{}
+			authinfo := skydb.AuthInfo{}
+			rpayload.DBConn.GetUser(target, &authinfo)
+			authinfo.HashedPassword = []byte{}
 			results = append(results, struct {
 				ID   string      `json:"id"`
 				Type string      `json:"type"`
 				Data interface{} `json:"data"`
-			}{target, "user", userinfo})
+			}{target, "user", authinfo})
 		}
 	}
 	response.Result = results
@@ -332,7 +332,7 @@ func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *route
 	results := make([]interface{}, 0, len(payload.Target))
 	for s := range payload.Target {
 		target := payload.Target[s]
-		err := rpayload.DBConn.RemoveRelation(rpayload.UserInfoID, payload.Name, target)
+		err := rpayload.DBConn.RemoveRelation(rpayload.AuthInfoID, payload.Name, target)
 		if err != nil {
 			log.WithFields(logrus.Fields{
 				"target": target,

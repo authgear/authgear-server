@@ -32,8 +32,8 @@ func (_m *MockConn) EXPECT() *MockConnMockRecorder {
 }
 
 // CreateUser mocks base method
-func (_m *MockConn) CreateUser(userinfo *UserInfo) error {
-	ret := _m.ctrl.Call(_m, "CreateUser", userinfo)
+func (_m *MockConn) CreateUser(authinfo *AuthInfo) error {
+	ret := _m.ctrl.Call(_m, "CreateUser", authinfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -44,8 +44,8 @@ func (_mr *MockConnMockRecorder) CreateUser(arg0 interface{}) *gomock.Call {
 }
 
 // GetUser mocks base method
-func (_m *MockConn) GetUser(id string, userinfo *UserInfo) error {
-	ret := _m.ctrl.Call(_m, "GetUser", id, userinfo)
+func (_m *MockConn) GetUser(id string, authinfo *AuthInfo) error {
+	ret := _m.ctrl.Call(_m, "GetUser", id, authinfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -56,8 +56,8 @@ func (_mr *MockConnMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetUserByUsernameEmail mocks base method
-func (_m *MockConn) GetUserByUsernameEmail(username string, email string, userinfo *UserInfo) error {
-	ret := _m.ctrl.Call(_m, "GetUserByUsernameEmail", username, email, userinfo)
+func (_m *MockConn) GetUserByUsernameEmail(username string, email string, authinfo *AuthInfo) error {
+	ret := _m.ctrl.Call(_m, "GetUserByUsernameEmail", username, email, authinfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -68,8 +68,8 @@ func (_mr *MockConnMockRecorder) GetUserByUsernameEmail(arg0, arg1, arg2 interfa
 }
 
 // GetUserByPrincipalID mocks base method
-func (_m *MockConn) GetUserByPrincipalID(principalID string, userinfo *UserInfo) error {
-	ret := _m.ctrl.Call(_m, "GetUserByPrincipalID", principalID, userinfo)
+func (_m *MockConn) GetUserByPrincipalID(principalID string, authinfo *AuthInfo) error {
+	ret := _m.ctrl.Call(_m, "GetUserByPrincipalID", principalID, authinfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -80,8 +80,8 @@ func (_mr *MockConnMockRecorder) GetUserByPrincipalID(arg0, arg1 interface{}) *g
 }
 
 // UpdateUser mocks base method
-func (_m *MockConn) UpdateUser(userinfo *UserInfo) error {
-	ret := _m.ctrl.Call(_m, "UpdateUser", userinfo)
+func (_m *MockConn) UpdateUser(authinfo *AuthInfo) error {
+	ret := _m.ctrl.Call(_m, "UpdateUser", authinfo)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -92,9 +92,9 @@ func (_mr *MockConnMockRecorder) UpdateUser(arg0 interface{}) *gomock.Call {
 }
 
 // QueryUser mocks base method
-func (_m *MockConn) QueryUser(emails []string, usernames []string) ([]UserInfo, error) {
+func (_m *MockConn) QueryUser(emails []string, usernames []string) ([]AuthInfo, error) {
 	ret := _m.ctrl.Call(_m, "QueryUser", emails, usernames)
-	ret0, _ := ret[0].([]UserInfo)
+	ret0, _ := ret[0].([]AuthInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -279,9 +279,9 @@ func (_mr *MockConnMockRecorder) SaveAsset(arg0 interface{}) *gomock.Call {
 }
 
 // QueryRelation mocks base method
-func (_m *MockConn) QueryRelation(user string, name string, direction string, config QueryConfig) []UserInfo {
+func (_m *MockConn) QueryRelation(user string, name string, direction string, config QueryConfig) []AuthInfo {
 	ret := _m.ctrl.Call(_m, "QueryRelation", user, name, direction, config)
-	ret0, _ := ret[0].([]UserInfo)
+	ret0, _ := ret[0].([]AuthInfo)
 	return ret0
 }
 

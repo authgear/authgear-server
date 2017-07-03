@@ -29,18 +29,18 @@ func TestRoleCRUD(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		Convey("add roles to a user", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID:       "userid",
 				Username: "john.doe",
 				Email:    "john.doe@example.com",
 			}
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
-			userinfo.Roles = []string{
+			authinfo.Roles = []string{
 				"admin",
 				"writer",
 			}
-			err = c.UpdateUserRoles(&userinfo)
+			err = c.UpdateUserRoles(&authinfo)
 			So(err, ShouldBeNil)
 
 			var role string
@@ -61,21 +61,21 @@ func TestRoleCRUD(t *testing.T) {
 				rows.Scan(&role)
 				roles = append(roles, role)
 			}
-			So(roles, ShouldResemble, userinfo.Roles)
+			So(roles, ShouldResemble, authinfo.Roles)
 		})
 
 		Convey("clear roles of a user keep the role definition", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID: "userid",
 				Roles: []string{
 					"admin",
 					"writer",
 				},
 			}
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
-			userinfo.Roles = nil
-			err = c.UpdateUserRoles(&userinfo)
+			authinfo.Roles = nil
+			err = c.UpdateUserRoles(&authinfo)
 			So(err, ShouldBeNil)
 
 			var role string
@@ -103,12 +103,12 @@ func TestRoleAssignRevoke(t *testing.T) {
 		defer cleanupConn(t, c)
 
 		Convey("assign roles to user without roles", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID:       "userid",
 				Username: "john.doe",
 				Email:    "john.doe@example.com",
 			}
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			roles := []string{
 				"admin",
 				"user",
@@ -128,21 +128,21 @@ func TestRoleAssignRevoke(t *testing.T) {
 		})
 
 		Convey("assign roles to users with existing roles", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID: "userid",
 				Roles: []string{
 					"admin",
 				},
 			}
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
-			userinfo = skydb.UserInfo{
+			authinfo = skydb.AuthInfo{
 				ID: "userid2",
 				Roles: []string{
 					"user",
 				},
 			}
-			err = c.CreateUser(&userinfo)
+			err = c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
 			roles := []string{
@@ -169,15 +169,15 @@ func TestRoleAssignRevoke(t *testing.T) {
 		c = getTestConn(t)
 		defer cleanupConn(t, c)
 		Convey("revoke roles from users with a role", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID: "userid",
 				Roles: []string{
 					"admin",
 					"user",
 				},
 			}
-			err := c.CreateUser(&userinfo)
-			userinfo = skydb.UserInfo{
+			err := c.CreateUser(&authinfo)
+			authinfo = skydb.AuthInfo{
 				ID: "userid2",
 				Roles: []string{
 					"user",
@@ -199,11 +199,11 @@ func TestRoleAssignRevoke(t *testing.T) {
 		})
 
 		Convey("revoke roles from users without a role", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID: "userid",
 			}
-			err := c.CreateUser(&userinfo)
-			userinfo = skydb.UserInfo{
+			err := c.CreateUser(&authinfo)
+			authinfo = skydb.AuthInfo{
 				ID: "userid2",
 			}
 

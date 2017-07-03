@@ -80,15 +80,15 @@ func TestSignupHandler(t *testing.T) {
 			So(authResp.LastLoginAt, ShouldNotBeEmpty)
 			So(authResp.LastSeenAt, ShouldNotBeEmpty)
 			token := tokenStore.Token
-			So(token.UserInfoID, ShouldEqual, authResp.UserID)
+			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
 
-			userinfo := &skydb.UserInfo{}
-			err := conn.GetUserByUsernameEmail("john.doe", "", userinfo)
+			authinfo := &skydb.AuthInfo{}
+			err := conn.GetUserByUsernameEmail("john.doe", "", authinfo)
 			So(err, ShouldBeNil)
-			So(userinfo.Roles, ShouldBeNil)
+			So(authinfo.Roles, ShouldBeNil)
 
-			_, ok := db.RecordMap[fmt.Sprintf("user/%s", token.UserInfoID)]
+			_, ok := db.RecordMap[fmt.Sprintf("user/%s", token.AuthInfoID)]
 			So(ok, ShouldBeTrue)
 		})
 
@@ -109,15 +109,15 @@ func TestSignupHandler(t *testing.T) {
 			}
 			handler.Handle(&req, &resp)
 
-			userinfo := &skydb.UserInfo{}
-			err := conn.GetUserByUsernameEmail("john.doe", "", userinfo)
+			authinfo := &skydb.AuthInfo{}
+			err := conn.GetUserByUsernameEmail("john.doe", "", authinfo)
 			So(err, ShouldBeNil)
-			So(userinfo.Roles, ShouldResemble, []string{"user"})
+			So(authinfo.Roles, ShouldResemble, []string{"user"})
 		})
 
 		Convey("sign up duplicate username", func() {
-			userinfo := skydb.NewUserInfo("john.doe", "", "secret")
-			conn.CreateUser(&userinfo)
+			authinfo := skydb.NewAuthInfo("john.doe", "", "secret")
+			conn.CreateUser(&authinfo)
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -140,8 +140,8 @@ func TestSignupHandler(t *testing.T) {
 		})
 
 		Convey("sign up duplicate email", func() {
-			userinfo := skydb.NewUserInfo("", "john.doe@example.com", "secret")
-			conn.CreateUser(&userinfo)
+			authinfo := skydb.NewAuthInfo("", "john.doe@example.com", "secret")
+			conn.CreateUser(&authinfo)
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -173,12 +173,12 @@ func TestLoginHandler(t *testing.T) {
 		tokenStore := authtokentest.SingleTokenStore{}
 
 		Convey("login user", func() {
-			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
-			userinfo.Roles = []string{
+			authinfo := skydb.NewAuthInfo("john.doe", "john.doe@example.com", "secret")
+			authinfo.Roles = []string{
 				"Programmer",
 				"Tester",
 			}
-			conn.CreateUser(&userinfo)
+			conn.CreateUser(&authinfo)
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -204,13 +204,13 @@ func TestLoginHandler(t *testing.T) {
 			So(authResp.Roles, ShouldContain, "Tester")
 
 			token := tokenStore.Token
-			So(token.UserInfoID, ShouldEqual, authResp.UserID)
+			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
 		})
 
 		Convey("login user with username in different case should ok", func() {
-			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
-			conn.CreateUser(&userinfo)
+			authinfo := skydb.NewAuthInfo("john.doe", "john.doe@example.com", "secret")
+			conn.CreateUser(&authinfo)
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -232,13 +232,13 @@ func TestLoginHandler(t *testing.T) {
 			So(authResp.Email, ShouldEqual, "john.doe@example.com")
 			So(authResp.AccessToken, ShouldNotBeEmpty)
 			token := tokenStore.Token
-			So(token.UserInfoID, ShouldEqual, authResp.UserID)
+			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
 		})
 
 		Convey("login user with email in different case should ok", func() {
-			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
-			conn.CreateUser(&userinfo)
+			authinfo := skydb.NewAuthInfo("john.doe", "john.doe@example.com", "secret")
+			conn.CreateUser(&authinfo)
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -260,12 +260,12 @@ func TestLoginHandler(t *testing.T) {
 			So(authResp.Email, ShouldEqual, "john.doe@example.com")
 			So(authResp.AccessToken, ShouldNotBeEmpty)
 			token := tokenStore.Token
-			So(token.UserInfoID, ShouldEqual, authResp.UserID)
+			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
 		})
 		Convey("login user wrong password", func() {
-			userinfo := skydb.NewUserInfo("john.doe", "john.doe@example.com", "secret")
-			conn.CreateUser(&userinfo)
+			authinfo := skydb.NewAuthInfo("john.doe", "john.doe@example.com", "secret")
+			conn.CreateUser(&authinfo)
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -339,21 +339,21 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("login in existing", func() {
-			userinfo := skydb.NewProvidedAuthUserInfo("com.example:johndoe", map[string]interface{}{"name": "boo"})
+			authinfo := skydb.NewProvidedAuthAuthInfo("com.example:johndoe", map[string]interface{}{"name": "boo"})
 			n := timeNow()
-			userinfo.LastLoginAt = &n
-			userinfo.LastSeenAt = &n
-			conn.userinfo = &userinfo
+			authinfo.LastLoginAt = &n
+			authinfo.LastSeenAt = &n
+			conn.authinfo = &authinfo
 			defer func() {
-				conn.userinfo = nil
+				conn.authinfo = nil
 			}()
 
 			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
 
 			token := tokenStore.Token
 			So(token.AccessToken, ShouldNotBeBlank)
-			So(conn.userinfo, ShouldNotBeNil)
-			authData := conn.userinfo.Auth["com.example:johndoe"]
+			So(conn.authinfo, ShouldNotBeNil)
+			authData := conn.authinfo.Auth["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -364,14 +364,14 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		"last_seen_at": "%v"
 	}
 }`,
-				userinfo.ID,
+				authinfo.ID,
 				token.AccessToken,
 				n.Format(time.RFC3339Nano),
 				n.Format(time.RFC3339Nano),
 			))
 			So(resp.Code, ShouldEqual, 200)
 			// The LastLoginAt should updated
-			So(conn.userinfo.LastLoginAt, ShouldNotEqual, n)
+			So(conn.authinfo.LastLoginAt, ShouldNotEqual, n)
 		})
 
 		Convey("login in and create", func() {
@@ -381,11 +381,11 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 			So(txdb.DidCommit, ShouldBeTrue)
 
 			token := tokenStore.Token
-			userinfo := conn.userinfo
+			authinfo := conn.authinfo
 
 			So(token.AccessToken, ShouldNotBeBlank)
-			So(conn.userinfo, ShouldNotBeNil)
-			authData := conn.userinfo.Auth["com.example:johndoe"]
+			So(conn.authinfo, ShouldNotBeNil)
+			authData := conn.authinfo.Auth["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -394,50 +394,50 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		"access_token": "%v"
 	}
 }`,
-				userinfo.ID,
+				authinfo.ID,
 				token.AccessToken,
 			))
 			So(resp.Code, ShouldEqual, 200)
-			So(userinfo.LastLoginAt, ShouldNotBeNil)
+			So(authinfo.LastLoginAt, ShouldNotBeNil)
 
-			_, ok := db.RecordMap[fmt.Sprintf("user/%s", userinfo.ID)]
+			_, ok := db.RecordMap[fmt.Sprintf("user/%s", authinfo.ID)]
 			So(ok, ShouldBeTrue)
 		})
 	})
 }
 
 type singleUserConn struct {
-	userinfo *skydb.UserInfo
+	authinfo *skydb.AuthInfo
 	skydb.Conn
 }
 
-func (conn *singleUserConn) UpdateUser(userinfo *skydb.UserInfo) error {
-	if conn.userinfo != nil && conn.userinfo.ID == userinfo.ID {
-		conn.userinfo = userinfo
+func (conn *singleUserConn) UpdateUser(authinfo *skydb.AuthInfo) error {
+	if conn.authinfo != nil && conn.authinfo.ID == authinfo.ID {
+		conn.authinfo = authinfo
 		return nil
 	}
 	return skydb.ErrUserNotFound
 }
 
-func (conn *singleUserConn) CreateUser(userinfo *skydb.UserInfo) error {
-	if conn.userinfo == nil {
-		conn.userinfo = userinfo
+func (conn *singleUserConn) CreateUser(authinfo *skydb.AuthInfo) error {
+	if conn.authinfo == nil {
+		conn.authinfo = authinfo
 		return nil
 	}
 	return skydb.ErrUserDuplicated
 }
 
-func (conn *singleUserConn) GetUser(id string, userinfo *skydb.UserInfo) error {
-	if conn.userinfo != nil {
-		*userinfo = *conn.userinfo
+func (conn *singleUserConn) GetUser(id string, authinfo *skydb.AuthInfo) error {
+	if conn.authinfo != nil {
+		*authinfo = *conn.authinfo
 		return nil
 	}
 	return skydb.ErrUserNotFound
 }
 
-func (conn *singleUserConn) GetUserByPrincipalID(principalID string, userinfo *skydb.UserInfo) error {
-	if conn.userinfo != nil {
-		*userinfo = *conn.userinfo
+func (conn *singleUserConn) GetUserByPrincipalID(principalID string, authinfo *skydb.AuthInfo) error {
+	if conn.authinfo != nil {
+		*authinfo = *conn.authinfo
 		return nil
 	}
 	return skydb.ErrUserNotFound
@@ -476,10 +476,10 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 			So(txdb.DidCommit, ShouldBeTrue)
 
 			token := tokenStore.Token
-			userinfo := conn.userinfo
+			authinfo := conn.authinfo
 
 			So(token.AccessToken, ShouldNotBeBlank)
-			So(conn.userinfo.ID, ShouldNotBeBlank)
+			So(conn.authinfo.ID, ShouldNotBeBlank)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "%v",
@@ -488,14 +488,14 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 		"last_seen_at": "%v"
 	}
 }`,
-				userinfo.ID,
+				authinfo.ID,
 				token.AccessToken,
-				userinfo.LastLoginAt.Format(time.RFC3339Nano),
-				userinfo.LastSeenAt.Format(time.RFC3339Nano),
+				authinfo.LastLoginAt.Format(time.RFC3339Nano),
+				authinfo.LastSeenAt.Format(time.RFC3339Nano),
 			))
 			So(resp.Code, ShouldEqual, 200)
 
-			_, ok := db.RecordMap[fmt.Sprintf("user/%s", userinfo.ID)]
+			_, ok := db.RecordMap[fmt.Sprintf("user/%s", authinfo.ID)]
 			So(ok, ShouldBeTrue)
 		})
 
@@ -569,10 +569,10 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			So(txdb.DidCommit, ShouldBeTrue)
 
 			token := tokenStore.Token
-			userinfo := conn.userinfo
+			authinfo := conn.authinfo
 
 			So(token.AccessToken, ShouldNotBeBlank)
-			authData := conn.userinfo.Auth["com.example:johndoe"]
+			authData := conn.authinfo.Auth["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -583,14 +583,14 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 		"last_seen_at": "%v"
 	}
 }`,
-				userinfo.ID,
+				authinfo.ID,
 				token.AccessToken,
-				userinfo.LastLoginAt.Format(time.RFC3339Nano),
-				userinfo.LastSeenAt.Format(time.RFC3339Nano),
+				authinfo.LastLoginAt.Format(time.RFC3339Nano),
+				authinfo.LastSeenAt.Format(time.RFC3339Nano),
 			))
 			So(resp.Code, ShouldEqual, 200)
 
-			_, ok := db.RecordMap[fmt.Sprintf("user/%s", userinfo.ID)]
+			_, ok := db.RecordMap[fmt.Sprintf("user/%s", authinfo.ID)]
 			So(ok, ShouldBeTrue)
 		})
 
@@ -614,8 +614,8 @@ type deleteTokenStore struct {
 	errToReturn        error
 }
 
-func (store *deleteTokenStore) NewToken(appName string, userInfoID string) (authtoken.Token, error) {
-	return authtoken.New(appName, userInfoID, time.Time{}), nil
+func (store *deleteTokenStore) NewToken(appName string, authInfoID string) (authtoken.Token, error) {
+	return authtoken.New(appName, authInfoID, time.Time{}), nil
 }
 
 func (store *deleteTokenStore) Get(accessToken string, token *authtoken.Token) error {
@@ -688,11 +688,11 @@ func TestLogoutHandler(t *testing.T) {
 func TestPasswordHandlerWithProvider(t *testing.T) {
 	Convey("PasswordHandler", t, func() {
 		conn := singleUserConn{}
-		userinfo := skydb.NewUserInfo("lord-of-skygear", "limouren@skygear.io", "chima")
-		userinfo.ID = "user-uuid"
-		conn.CreateUser(&userinfo)
+		authinfo := skydb.NewAuthInfo("lord-of-skygear", "limouren@skygear.io", "chima")
+		authinfo.ID = "user-uuid"
+		conn.CreateUser(&authinfo)
 		tokenStore := authtokentest.SingleTokenStore{}
-		token := authtoken.New("_", userinfo.ID, time.Time{})
+		token := authtoken.New("_", authinfo.ID, time.Time{})
 		tokenStore.Put(&token)
 
 		r := handlertest.NewSingleRouteRouter(&PasswordHandler{

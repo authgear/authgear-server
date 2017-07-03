@@ -22,13 +22,13 @@ import (
 )
 
 // ErrUserDuplicated is returned by Conn.CreateUser when
-// the UserInfo to be created has the same ID/username in the current container
+// the AuthInfo to be created has the same ID/username in the current container
 var ErrUserDuplicated = errors.New("skydb: duplicated UserID or Username")
 
 // ErrUserNotFound is returned by Conn.GetUser, Conn.UpdateUser and
-// Conn.DeleteUser when the UserInfo's ID is not found
+// Conn.DeleteUser when the AuthInfo's ID is not found
 // in the current container
-var ErrUserNotFound = errors.New("skydb: UserInfo ID not found")
+var ErrUserNotFound = errors.New("skydb: AuthInfo ID not found")
 
 var ErrRoleUpdatesFailed = errors.New("skydb: Update of user roles failed")
 
@@ -58,46 +58,46 @@ type QueryConfig struct {
 // Conn encapsulates the interface of an Skygear Server connection to a container.
 //go:generate mockgen -destination=mock_skydb/mock_conn.go github.com/skygeario/skygear-server/pkg/server/skydb Conn
 type Conn interface {
-	// CRUD of UserInfo, smell like a bad design to attach these onto
+	// CRUD of AuthInfo, smell like a bad design to attach these onto
 	// a Conn, but looks very convenient to user.
 
-	// CreateUser creates a new UserInfo in the container
+	// CreateUser creates a new AuthInfo in the container
 	// this Conn associated to.
-	CreateUser(userinfo *UserInfo) error
+	CreateUser(authinfo *AuthInfo) error
 
-	// GetUser fetches the UserInfo with supplied ID in the container and
-	// fills in the supplied UserInfo with the result.
+	// GetUser fetches the AuthInfo with supplied ID in the container and
+	// fills in the supplied AuthInfo with the result.
 	//
-	// GetUser returns ErrUserNotFound if no UserInfo exists
+	// GetUser returns ErrUserNotFound if no AuthInfo exists
 	// for the supplied ID.
-	GetUser(id string, userinfo *UserInfo) error
+	GetUser(id string, authinfo *AuthInfo) error
 
-	// GetUserByUsernameEmail fetch the UserInfo with supplied username or email,
+	// GetUserByUsernameEmail fetch the AuthInfo with supplied username or email,
 	//
-	GetUserByUsernameEmail(username string, email string, userinfo *UserInfo) error
+	GetUserByUsernameEmail(username string, email string, authinfo *AuthInfo) error
 
-	// GetUserByPrincipalID fetches the UserInfo with supplied principal ID in the
-	// container and fills in the supplied UserInfo with the result.
+	// GetUserByPrincipalID fetches the AuthInfo with supplied principal ID in the
+	// container and fills in the supplied AuthInfo with the result.
 	//
 	// Principal ID is an ID of an authenticated principal with such
 	// authentication provided by AuthProvider.
 	//
-	// GetUserByPrincipalID returns ErrUserNotFound if no UserInfo exists
+	// GetUserByPrincipalID returns ErrUserNotFound if no AuthInfo exists
 	// for the supplied principal ID.
-	GetUserByPrincipalID(principalID string, userinfo *UserInfo) error
+	GetUserByPrincipalID(principalID string, authinfo *AuthInfo) error
 
-	// UpdateUser updates an existing UserInfo matched by the ID field.
+	// UpdateUser updates an existing AuthInfo matched by the ID field.
 	//
-	// UpdateUser returns ErrUserNotFound if such UserInfo does not
+	// UpdateUser returns ErrUserNotFound if such AuthInfo does not
 	// exist in the container.
-	UpdateUser(userinfo *UserInfo) error
+	UpdateUser(authinfo *AuthInfo) error
 
-	// QueryUser queries for UserInfo matching one of the specified emails.
-	QueryUser(emails []string, usernames []string) ([]UserInfo, error)
+	// QueryUser queries for AuthInfo matching one of the specified emails.
+	QueryUser(emails []string, usernames []string) ([]AuthInfo, error)
 
-	// DeleteUser removes UserInfo with the supplied ID in the container.
+	// DeleteUser removes AuthInfo with the supplied ID in the container.
 	//
-	// DeleteUser returns ErrUserNotFound if such UserInfo does not
+	// DeleteUser returns ErrUserNotFound if such AuthInfo does not
 	// exist in the container.
 	DeleteUser(id string) error
 
@@ -149,7 +149,7 @@ type Conn interface {
 	// be referenced by records.
 	SaveAsset(asset *Asset) error
 
-	QueryRelation(user string, name string, direction string, config QueryConfig) []UserInfo
+	QueryRelation(user string, name string, direction string, config QueryConfig) []AuthInfo
 	QueryRelationCount(user string, name string, direction string) (uint64, error)
 	AddRelation(user string, name string, targetUser string) error
 	RemoveRelation(user string, name string, targetUser string) error

@@ -135,11 +135,11 @@ func TestFieldACL(t *testing.T) {
 				},
 			})
 
-			johndoe := &UserInfo{
+			johndoe := &AuthInfo{
 				ID:    "johndoe",
 				Roles: []string{"guest"},
 			}
-			janedoe := &UserInfo{
+			janedoe := &AuthInfo{
 				ID:    "janedoe",
 				Roles: []string{"admin"},
 			}
@@ -324,11 +324,11 @@ func TestFieldUserRole(t *testing.T) {
 		})
 
 		Convey("should match user role", func() {
-			johndoe := &UserInfo{
+			johndoe := &AuthInfo{
 				ID:    "johndoe",
 				Roles: []string{"guest"},
 			}
-			janedoe := &UserInfo{
+			janedoe := &AuthInfo{
 				ID:    "janedoe",
 				Roles: []string{"admin"},
 			}

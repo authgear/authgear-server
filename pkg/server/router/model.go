@@ -105,8 +105,8 @@ type Payload struct {
 	Context context.Context
 
 	AppName    string
-	UserInfoID string
-	UserInfo   *skydb.UserInfo
+	AuthInfoID string
+	AuthInfo   *skydb.AuthInfo
 	AccessKey  AccessKeyType
 
 	// AccessToken stores access token for this payload.

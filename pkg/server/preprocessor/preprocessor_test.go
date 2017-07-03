@@ -105,7 +105,7 @@ func TestInjectDatabaseProcessor(t *testing.T) {
 					"database_id": "_private",
 				},
 				Meta: map[string]interface{}{},
-				UserInfo: &skydb.UserInfo{
+				AuthInfo: &skydb.AuthInfo{
 					ID: "alice",
 				},
 				DBConn: &conn,
@@ -169,7 +169,7 @@ func TestInjectDatabaseProcessor(t *testing.T) {
 					"database_id": "alice",
 				},
 				Meta: map[string]interface{}{},
-				UserInfo: &skydb.UserInfo{
+				AuthInfo: &skydb.AuthInfo{
 					ID: "alice",
 				},
 				DBConn: &conn,
@@ -214,7 +214,7 @@ func TestInjectUserProcessor(t *testing.T) {
 		pp := InjectUserIfPresent{}
 		conn := skydbtest.NewMapConn()
 
-		withoutTokenValidSince := skydb.UserInfo{
+		withoutTokenValidSince := skydb.AuthInfo{
 			ID:       "userid1",
 			Username: "username1",
 			Email:    "username1@example.com",
@@ -222,7 +222,7 @@ func TestInjectUserProcessor(t *testing.T) {
 		So(conn.CreateUser(&withoutTokenValidSince), ShouldBeNil)
 
 		pastTime := time.Now().Add(-1 * time.Hour)
-		withPastTokenValidSince := skydb.UserInfo{
+		withPastTokenValidSince := skydb.AuthInfo{
 			ID:              "userid2",
 			Username:        "username2",
 			Email:           "username2@example.com",
@@ -231,7 +231,7 @@ func TestInjectUserProcessor(t *testing.T) {
 		So(conn.CreateUser(&withPastTokenValidSince), ShouldBeNil)
 
 		futureTime := time.Now().Add(1 * time.Hour)
-		withFutureTokenValidSince := skydb.UserInfo{
+		withFutureTokenValidSince := skydb.AuthInfo{
 			ID:              "userid3",
 			Username:        "username3",
 			Email:           "username3@example.com",
@@ -244,31 +244,31 @@ func TestInjectUserProcessor(t *testing.T) {
 				Data:        map[string]interface{}{},
 				Meta:        map[string]interface{}{},
 				DBConn:      conn,
-				UserInfoID:  "userid1",
+				AuthInfoID:  "userid1",
 				AccessToken: injectUserPreprocessorAccessToken{},
 			}
 			resp := router.Response{}
 
 			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
 			So(resp.Err, ShouldBeNil)
-			So(payload.UserInfo, ShouldResemble, &withoutTokenValidSince)
+			So(payload.AuthInfo, ShouldResemble, &withoutTokenValidSince)
 		})
 
 		Convey("should inject user without access token", func() {
-			// Note: UserInfoID can be set by master key, hence without
+			// Note: AuthInfoID can be set by master key, hence without
 			// access token.
 			payload := router.Payload{
 				Data:        map[string]interface{}{},
 				Meta:        map[string]interface{}{},
 				DBConn:      conn,
-				UserInfoID:  "userid1",
+				AuthInfoID:  "userid1",
 				AccessToken: nil,
 			}
 			resp := router.Response{}
 
 			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
 			So(resp.Err, ShouldBeNil)
-			So(payload.UserInfo, ShouldResemble, &withoutTokenValidSince)
+			So(payload.AuthInfo, ShouldResemble, &withoutTokenValidSince)
 		})
 
 		Convey("should inject user with valid issued time", func() {
@@ -276,7 +276,7 @@ func TestInjectUserProcessor(t *testing.T) {
 				Data:       map[string]interface{}{},
 				Meta:       map[string]interface{}{},
 				DBConn:     conn,
-				UserInfoID: "userid2",
+				AuthInfoID: "userid2",
 				AccessToken: injectUserPreprocessorAccessToken{
 					issuedAt: time.Now(),
 				},
@@ -285,7 +285,7 @@ func TestInjectUserProcessor(t *testing.T) {
 
 			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
 			So(resp.Err, ShouldBeNil)
-			So(payload.UserInfo, ShouldResemble, &withPastTokenValidSince)
+			So(payload.AuthInfo, ShouldResemble, &withPastTokenValidSince)
 		})
 
 		Convey("should not inject user with invalid issued time", func() {
@@ -293,7 +293,7 @@ func TestInjectUserProcessor(t *testing.T) {
 				Data:       map[string]interface{}{},
 				Meta:       map[string]interface{}{},
 				DBConn:     conn,
-				UserInfoID: "userid3",
+				AuthInfoID: "userid3",
 				AccessToken: injectUserPreprocessorAccessToken{
 					issuedAt: time.Now(),
 				},
@@ -305,13 +305,13 @@ func TestInjectUserProcessor(t *testing.T) {
 		})
 
 		Convey("should create and inject user when master key is used", func() {
-			// Note: UserInfoID can be set by master key, hence without
+			// Note: AuthInfoID can be set by master key, hence without
 			// access token.
 			payload := router.Payload{
 				Data:        map[string]interface{}{},
 				Meta:        map[string]interface{}{},
 				DBConn:      conn,
-				UserInfoID:  "newuser",
+				AuthInfoID:  "newuser",
 				AccessToken: nil,
 				AccessKey:   router.MasterAccessKey,
 			}
@@ -319,20 +319,20 @@ func TestInjectUserProcessor(t *testing.T) {
 
 			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
 			So(resp.Err, ShouldBeNil)
-			So(payload.UserInfo.ID, ShouldResemble, "newuser")
+			So(payload.AuthInfo.ID, ShouldResemble, "newuser")
 
 			_, ok := conn.UserMap["newuser"]
 			So(ok, ShouldBeTrue)
 		})
 
 		Convey("should create _god user when master key is used and no user", func() {
-			// Note: UserInfoID can be set by master key, hence without
+			// Note: AuthInfoID can be set by master key, hence without
 			// access token.
 			payload := router.Payload{
 				Data:        map[string]interface{}{},
 				Meta:        map[string]interface{}{},
 				DBConn:      conn,
-				UserInfoID:  "",
+				AuthInfoID:  "",
 				AccessToken: nil,
 				AccessKey:   router.MasterAccessKey,
 			}
@@ -340,7 +340,7 @@ func TestInjectUserProcessor(t *testing.T) {
 
 			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
 			So(resp.Err, ShouldBeNil)
-			So(payload.UserInfo.ID, ShouldResemble, "_god")
+			So(payload.AuthInfo.ID, ShouldResemble, "_god")
 
 			_, ok := conn.UserMap["_god"]
 			So(ok, ShouldBeTrue)

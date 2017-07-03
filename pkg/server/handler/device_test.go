@@ -101,7 +101,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 
 		payload := router.Payload{
 			DBConn:     &conn,
-			UserInfoID: "userinfoid",
+			AuthInfoID: "authinfoid",
 		}
 		resp := router.Response{}
 
@@ -123,7 +123,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				Type:             "ios",
 				Token:            "some-awesome-token",
 				Topic:            "some-awesome-topic",
-				UserInfoID:       "userinfoid",
+				AuthInfoID:       "authinfoid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 		})
@@ -134,7 +134,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				Type:             "android",
 				Token:            "oldtoken",
 				Topic:            "oldtopic",
-				UserInfoID:       "olduserinfoid",
+				AuthInfoID:       "oldauthinfoid",
 				LastRegisteredAt: time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(conn.SaveDevice(&olddevice), ShouldBeNil)
@@ -157,7 +157,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				Type:             "ios",
 				Token:            "newtoken",
 				Topic:            "newtopic",
-				UserInfoID:       "userinfoid",
+				AuthInfoID:       "authinfoid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 		})
@@ -168,7 +168,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				Type:             "ios",
 				Token:            "existing_token",
 				Topic:            "existing_topic",
-				UserInfoID:       "existing_user",
+				AuthInfoID:       "existing_user",
 				LastRegisteredAt: time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(conn.SaveDevice(&existingDevice), ShouldBeNil)
@@ -190,7 +190,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				Type:             "ios",
 				Token:            "existing_token",
 				Topic:            "existing_topic",
-				UserInfoID:       "userinfoid",
+				AuthInfoID:       "authinfoid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 			So(conn.devices["existing_id"], ShouldResemble, skydb.Device{})
@@ -238,7 +238,7 @@ func TestDeviceRegisterHandler(t *testing.T) {
 				Type:             "android",
 				Token:            "",
 				Topic:            "some-topic",
-				UserInfoID:       "userinfoid",
+				AuthInfoID:       "authinfoid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 		})
@@ -288,7 +288,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 					Type:             "ios",
 					Token:            "device_token_1",
 					Topic:            "device_topic_1",
-					UserInfoID:       "user_id_1",
+					AuthInfoID:       "user_id_1",
 					LastRegisteredAt: time.Date(2016, 12, 16, 6, 54, 0, 0, time.UTC),
 				},
 				"device_2_1": skydb.Device{
@@ -296,7 +296,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 					Type:             "ios",
 					Token:            "device_token_2",
 					Topic:            "device_topic_2",
-					UserInfoID:       "user_id_2",
+					AuthInfoID:       "user_id_2",
 					LastRegisteredAt: time.Date(2016, 12, 16, 6, 55, 0, 0, time.UTC),
 				},
 				"device_2_2": skydb.Device{
@@ -304,7 +304,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 					Type:             "ios",
 					Token:            "device_token_2",
 					Topic:            "device_topic_3",
-					UserInfoID:       "user_id_3",
+					AuthInfoID:       "user_id_3",
 					LastRegisteredAt: time.Date(2016, 12, 16, 6, 56, 0, 0, time.UTC),
 				},
 			},
@@ -313,7 +313,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 		Convey("removes user id of target device", func() {
 			payload := router.Payload{
 				DBConn:     &conn,
-				UserInfoID: "user_id_1",
+				AuthInfoID: "user_id_1",
 				Data: map[string]interface{}{
 					"id": "device_1",
 				},
@@ -331,7 +331,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 			So(device.ID, ShouldEqual, "device_1")
 			So(device.Type, ShouldEqual, "ios")
 			So(device.Token, ShouldEqual, "device_token_1")
-			So(device.UserInfoID, ShouldBeEmpty)
+			So(device.AuthInfoID, ShouldBeEmpty)
 			So(
 				device.LastRegisteredAt,
 				ShouldResemble,
@@ -342,7 +342,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 		Convey("deletes other devices with the same token", func() {
 			payload := router.Payload{
 				DBConn:     &conn,
-				UserInfoID: "user_id_2",
+				AuthInfoID: "user_id_2",
 				Data: map[string]interface{}{
 					"id": "device_2_1",
 				},
@@ -360,7 +360,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 			So(device.ID, ShouldEqual, "device_2_1")
 			So(device.Type, ShouldEqual, "ios")
 			So(device.Token, ShouldEqual, "device_token_2")
-			So(device.UserInfoID, ShouldBeEmpty)
+			So(device.AuthInfoID, ShouldBeEmpty)
 			So(
 				device.LastRegisteredAt,
 				ShouldResemble,
@@ -374,7 +374,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 		Convey("complains on non-existed update", func() {
 			payload := router.Payload{
 				DBConn:     &conn,
-				UserInfoID: "user_id_3",
+				AuthInfoID: "user_id_3",
 				Data: map[string]interface{}{
 					"id": "device_3",
 				},
@@ -395,7 +395,7 @@ func TestDeviceUnregisterHandler(t *testing.T) {
 		Convey("complains on empty device id", func() {
 			payload := router.Payload{
 				DBConn:     &conn,
-				UserInfoID: "user_id_3",
+				AuthInfoID: "user_id_3",
 				Data:       map[string]interface{}{},
 			}
 

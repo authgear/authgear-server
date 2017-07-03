@@ -69,11 +69,11 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 	}
 
 	if !payload.HasMasterKey() {
-		userinfo := payload.UserInfo
-		if userinfo == nil {
+		authinfo := payload.AuthInfo
+		if authinfo == nil {
 			response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed to query user")
 			return
-		} else if !userinfo.HasAnyRoles(adminRoles) {
+		} else if !authinfo.HasAnyRoles(adminRoles) {
 			response.Err = skyerr.NewError(skyerr.PermissionDenied, "No permission to query user")
 			return
 		}
@@ -86,23 +86,23 @@ func (h *UserQueryHandler) Handle(payload *router.Payload, response *router.Resp
 		return
 	}
 
-	userinfos, err := payload.DBConn.QueryUser(qp.Emails, qp.Usernames)
+	authinfos, err := payload.DBConn.QueryUser(qp.Emails, qp.Usernames)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
 
-	results := make([]interface{}, len(userinfos))
-	for i, userinfo := range userinfos {
+	results := make([]interface{}, len(authinfos))
+	for i, authinfo := range authinfos {
 		results[i] = map[string]interface{}{
-			"id":   userinfo.ID,
+			"id":   authinfo.ID,
 			"type": "user",
 			"data": struct {
 				ID       string   `json:"_id"`
 				Email    string   `json:"email"`
 				Username string   `json:"username"`
 				Roles    []string `json:"roles,omitempty"`
-			}{userinfo.ID, userinfo.Email, userinfo.Username, userinfo.Roles},
+			}{authinfo.ID, authinfo.Email, authinfo.Username, authinfo.Roles},
 		}
 	}
 	response.Result = results
@@ -180,23 +180,23 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	userinfo := payload.UserInfo
-	targetUserinfo := &skydb.UserInfo{}
+	authinfo := payload.AuthInfo
+	targetUserinfo := &skydb.AuthInfo{}
 	payload.DBConn.GetUser(p.ID, targetUserinfo)
 	adminRoles, err := payload.DBConn.GetAdminRoles()
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
-	if userinfo.HasAnyRoles(adminRoles) || payload.HasMasterKey() {
-		h.updateUserInfo(targetUserinfo, *p)
-	} else if userinfo.ID == targetUserinfo.ID {
+	if authinfo.HasAnyRoles(adminRoles) || payload.HasMasterKey() {
+		h.updateAuthInfo(targetUserinfo, *p)
+	} else if authinfo.ID == targetUserinfo.ID {
 		// Make sure no new roles will be added. But some roles can be removed.
-		if !userinfo.HasAllRoles(p.Roles) {
+		if !authinfo.HasAllRoles(p.Roles) {
 			response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to add new roles")
 			return
 		}
-		h.updateUserInfo(targetUserinfo, *p)
+		h.updateAuthInfo(targetUserinfo, *p)
 	} else {
 		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to modify other users")
 		return
@@ -223,15 +223,15 @@ func (h *UserUpdateHandler) Handle(payload *router.Payload, response *router.Res
 	}
 }
 
-func (h *UserUpdateHandler) updateUserInfo(userinfo *skydb.UserInfo, p userUpdatePayload) skyerr.Error {
+func (h *UserUpdateHandler) updateAuthInfo(authinfo *skydb.AuthInfo, p userUpdatePayload) skyerr.Error {
 	if p.Email != "" {
-		userinfo.Email = p.Email
+		authinfo.Email = p.Email
 	}
 	if p.Username != "" {
-		userinfo.Username = p.Username
+		authinfo.Username = p.Username
 	}
 	if p.Roles != nil {
-		userinfo.Roles = p.Roles
+		authinfo.Roles = p.Roles
 	}
 	return nil
 }
@@ -295,7 +295,7 @@ func (h *UserLinkHandler) Handle(payload *router.Payload, response *router.Respo
 		return
 	}
 
-	info := skydb.UserInfo{}
+	info := skydb.AuthInfo{}
 
 	// Get AuthProvider and authenticates the user
 	log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
@@ -317,7 +317,7 @@ func (h *UserLinkHandler) Handle(payload *router.Payload, response *router.Respo
 		// TODO: more error handling here if necessary
 		response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username)
 		return
-	} else if err == nil && info.ID != payload.UserInfo.ID {
+	} else if err == nil && info.ID != payload.AuthInfo.ID {
 		info.RemoveProvidedAuthData(principalID)
 		if err := payload.DBConn.UpdateUser(&info); err != nil {
 			response.Err = skyerr.MakeError(err)
@@ -325,9 +325,9 @@ func (h *UserLinkHandler) Handle(payload *router.Payload, response *router.Respo
 		}
 	}
 
-	payload.UserInfo.SetProvidedAuthData(principalID, authData)
+	payload.AuthInfo.SetProvidedAuthData(principalID, authData)
 
-	if err := payload.DBConn.UpdateUser(payload.UserInfo); err != nil {
+	if err := payload.DBConn.UpdateUser(payload.AuthInfo); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}

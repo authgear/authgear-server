@@ -170,7 +170,7 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 	device.Type = payload.Type
 	device.Token = payload.DeviceToken
 	device.Topic = payload.Topic
-	device.UserInfoID = rpayload.UserInfoID
+	device.AuthInfoID = rpayload.AuthInfoID
 	device.LastRegisteredAt = timeNow()
 
 	if err := conn.SaveDevice(&device); err != nil {
@@ -258,7 +258,7 @@ func (h *DeviceUnregisterHandler) Handle(rpayload *router.Payload, response *rou
 		}
 	}
 
-	device.UserInfoID = ""
+	device.AuthInfoID = ""
 	if err := conn.SaveDevice(&device); err != nil {
 		log.WithFields(logrus.Fields{
 			"deviceID": payload.ID,

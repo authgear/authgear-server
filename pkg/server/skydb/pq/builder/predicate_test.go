@@ -298,12 +298,12 @@ func TestFalseSqlizer(t *testing.T) {
 func TestAccessPredicateSqlizer(t *testing.T) {
 	Convey("access Predicate", t, func() {
 		Convey("serialized for direct ACE", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID: "userid",
 			}
 			sqlizer := &accessPredicateSqlizer{
 				"note",
-				&userinfo,
+				&authinfo,
 				skydb.ReadLevel,
 			}
 			sql, args, err := sqlizer.ToSql()
@@ -345,13 +345,13 @@ func TestAccessPredicateSqlizer(t *testing.T) {
 		})
 
 		Convey("serialized for role based ACE", func() {
-			userinfo := skydb.UserInfo{
+			authinfo := skydb.AuthInfo{
 				ID:    "userid",
 				Roles: []string{"admin", "writer"},
 			}
 			sqlizer := &accessPredicateSqlizer{
 				"",
-				&userinfo,
+				&authinfo,
 				skydb.ReadLevel,
 			}
 			sql, args, err := sqlizer.ToSql()

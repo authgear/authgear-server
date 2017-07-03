@@ -29,9 +29,9 @@ func injectSigner(record *skydb.Record, store asset.Store) {
 
 // scrubRecordFieldsForRead checks the field ACL to remove the fields
 // from a skydb.Record that the user is not allowed to read.
-func scrubRecordFieldsForRead(userInfo *skydb.UserInfo, record *skydb.Record, fieldACL skydb.FieldACL) {
+func scrubRecordFieldsForRead(authInfo *skydb.AuthInfo, record *skydb.Record, fieldACL skydb.FieldACL) {
 	for _, key := range record.UserKeys() {
-		if !fieldACL.Accessible(record.ID.Type, key, skydb.ReadFieldAccessMode, userInfo, record) {
+		if !fieldACL.Accessible(record.ID.Type, key, skydb.ReadFieldAccessMode, authInfo, record) {
 			record.Remove(key)
 		}
 	}
@@ -41,14 +41,14 @@ func scrubRecordFieldsForRead(userInfo *skydb.UserInfo, record *skydb.Record, fi
 // Depending on whether the request is an atomic one, this function
 // will either remove the fields if the user is not allowed access if atomic
 // is false, or will return an error.
-func scrubRecordFieldsForWrite(userInfo *skydb.UserInfo, record *skydb.Record, origRecord *skydb.Record, fieldACL skydb.FieldACL, atomic bool) skyerr.Error {
+func scrubRecordFieldsForWrite(authInfo *skydb.AuthInfo, record *skydb.Record, origRecord *skydb.Record, fieldACL skydb.FieldACL, atomic bool) skyerr.Error {
 	nonWritableFields := []string{}
 
 	var deltaRecord skydb.Record
 	deriveDeltaRecord(&deltaRecord, origRecord, record)
 
 	for key := range deltaRecord.Data {
-		if fieldACL.Accessible(record.ID.Type, key, skydb.WriteFieldAccessMode, userInfo, origRecord) {
+		if fieldACL.Accessible(record.ID.Type, key, skydb.WriteFieldAccessMode, authInfo, origRecord) {
 			continue
 		}
 
@@ -126,7 +126,7 @@ type recordModifyRequest struct {
 	Atomic        bool
 	WithMasterKey bool
 	Context       context.Context
-	UserInfo      *skydb.UserInfo
+	AuthInfo      *skydb.AuthInfo
 
 	// Save only
 	RecordsToSave []*skydb.Record
@@ -188,7 +188,7 @@ func (f recordFetcher) getDefaultAccess(recordType string) skydb.RecordACL {
 	return defaultAccess
 }
 
-func (f recordFetcher) fetchRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo, accessLevel skydb.RecordACLLevel) (record *skydb.Record, err skyerr.Error) {
+func (f recordFetcher) fetchRecord(recordID skydb.RecordID, authInfo *skydb.AuthInfo, accessLevel skydb.RecordACLLevel) (record *skydb.Record, err skyerr.Error) {
 	dbRecord := skydb.Record{}
 	if dbErr := f.db.Get(recordID, &dbRecord); dbErr != nil {
 		if dbErr == skydb.ErrRecordNotFound {
@@ -204,7 +204,7 @@ func (f recordFetcher) fetchRecord(recordID skydb.RecordID, userInfo *skydb.User
 	}
 
 	record = &dbRecord
-	if !f.withMasterKey && !dbRecord.Accessible(userInfo, accessLevel) {
+	if !f.withMasterKey && !dbRecord.Accessible(authInfo, accessLevel) {
 		err = skyerr.NewError(
 			skyerr.PermissionDenied,
 			"no permission to perform operation",
@@ -214,8 +214,8 @@ func (f recordFetcher) fetchRecord(recordID skydb.RecordID, userInfo *skydb.User
 	return
 }
 
-func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *skydb.UserInfo) (record *skydb.Record, created bool, err skyerr.Error) {
-	record, err = f.fetchRecord(recordID, userInfo, skydb.WriteLevel)
+func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, authInfo *skydb.AuthInfo) (record *skydb.Record, created bool, err skyerr.Error) {
+	record, err = f.fetchRecord(recordID, authInfo, skydb.WriteLevel)
 	if err == nil {
 		return
 	}
@@ -227,7 +227,7 @@ func (f recordFetcher) fetchOrCreateRecord(recordID skydb.RecordID, userInfo *sk
 			}
 
 			creationAccess := f.getCreationAccess(recordID.Type)
-			return creationAccess.Accessible(userInfo, skydb.CreateLevel)
+			return creationAccess.Accessible(authInfo, skydb.CreateLevel)
 		}
 
 		if !allowCreation() {
@@ -276,7 +276,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 	// fetch records
 	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
 	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-		dbRecord, created, err := fetcher.fetchOrCreateRecord(record.ID, req.UserInfo)
+		dbRecord, created, err := fetcher.fetchOrCreateRecord(record.ID, req.AuthInfo)
 		if err != nil {
 			return err
 		}
@@ -286,7 +286,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 		}
 
 		err = scrubRecordFieldsForWrite(
-			req.UserInfo,
+			req.AuthInfo,
 			record,
 			dbRecord,
 			fieldACL,
@@ -300,11 +300,11 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 		if created {
 			dbRecord.ID = record.ID
 			dbRecord.DatabaseID = db.ID()
-			dbRecord.OwnerID = req.UserInfo.ID
+			dbRecord.OwnerID = req.AuthInfo.ID
 			dbRecord.CreatedAt = now
-			dbRecord.CreatorID = req.UserInfo.ID
+			dbRecord.CreatorID = req.AuthInfo.ID
 			dbRecord.UpdatedAt = now
-			dbRecord.UpdaterID = req.UserInfo.ID
+			dbRecord.UpdaterID = req.AuthInfo.ID
 		}
 
 		if !created {
@@ -316,7 +316,7 @@ func recordSaveHandler(req *recordModifyRequest, resp *recordModifyResponse) sky
 		dbRecord.Apply(record)
 		*record = *dbRecord
 		record.UpdatedAt = now
-		record.UpdaterID = req.UserInfo.ID
+		record.UpdaterID = req.AuthInfo.ID
 
 		return
 	})
@@ -493,7 +493,7 @@ func recordDeleteHandler(req *recordModifyRequest, resp *recordModifyResponse) s
 			continue
 		}
 
-		record, err := fetcher.fetchRecord(recordID, req.UserInfo, skydb.WriteLevel)
+		record, err := fetcher.fetchRecord(recordID, req.AuthInfo, skydb.WriteLevel)
 		if err != nil {
 			resp.ErrMap[recordID] = err
 			continue
@@ -754,10 +754,10 @@ func makeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, recor
 type recordResultFilter struct {
 	AssetStore asset.Store
 	FieldACL   skydb.FieldACL
-	UserInfo   *skydb.UserInfo
+	AuthInfo   *skydb.AuthInfo
 }
 
-func newRecordResultFilter(conn skydb.Conn, assetStore asset.Store, userInfo *skydb.UserInfo) (recordResultFilter, error) {
+func newRecordResultFilter(conn skydb.Conn, assetStore asset.Store, authInfo *skydb.AuthInfo) (recordResultFilter, error) {
 	acl, err := conn.GetRecordFieldAccess()
 	if err != nil {
 		return recordResultFilter{}, err
@@ -765,7 +765,7 @@ func newRecordResultFilter(conn skydb.Conn, assetStore asset.Store, userInfo *sk
 
 	return recordResultFilter{
 		AssetStore: assetStore,
-		UserInfo:   userInfo,
+		AuthInfo:   authInfo,
 		FieldACL:   acl,
 	}, nil
 }
@@ -775,7 +775,7 @@ func (f *recordResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecor
 		return nil
 	}
 
-	scrubRecordFieldsForRead(f.UserInfo, record, f.FieldACL)
+	scrubRecordFieldsForRead(f.AuthInfo, record, f.FieldACL)
 	injectSigner(record, f.AssetStore)
 	return (*skyconv.JSONRecord)(record)
 }

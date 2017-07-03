@@ -27,7 +27,7 @@ var (
 	timeNow    = timeNowUTC
 )
 
-// AuthResponse is the unify way of returing a UserInfo to SDK
+// AuthResponse is the unify way of returing a AuthInfo to SDK
 type AuthResponse struct {
 	UserID      string     `json:"user_id,omitempty"`
 	Username    string     `json:"username,omitempty"`
@@ -38,7 +38,7 @@ type AuthResponse struct {
 	LastSeenAt  *time.Time `json:"last_seen_at,omitempty"`
 }
 
-func NewAuthResponse(info skydb.UserInfo, accessToken string) AuthResponse {
+func NewAuthResponse(info skydb.AuthInfo, accessToken string) AuthResponse {
 	return AuthResponse{
 		UserID:      info.ID,
 		Username:    info.Username,

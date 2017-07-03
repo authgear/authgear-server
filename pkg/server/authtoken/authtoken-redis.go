@@ -55,7 +55,7 @@ type RedisToken struct {
 	ExpiredAt   int64  `redis:"expiredAt"`
 	IssuedAt    int64  `redis:"issuedAt"`
 	AppName     string `redis:"appName"`
-	UserInfoID  string `redis:"userInfoID"`
+	AuthInfoID  string `redis:"authInfoID"`
 }
 
 // ToRedisToken converts an auth token to RedisToken
@@ -72,7 +72,7 @@ func (t Token) ToRedisToken() *RedisToken {
 		expireAt,
 		issuedAt,
 		t.AppName,
-		t.UserInfoID,
+		t.AuthInfoID,
 	}
 }
 
@@ -90,18 +90,18 @@ func (r RedisToken) ToToken() *Token {
 		r.AccessToken,
 		expireAt,
 		r.AppName,
-		r.UserInfoID,
+		r.AuthInfoID,
 		issuedAt,
 	}
 }
 
 // NewToken creates a new token for this token store.
-func (r *RedisStore) NewToken(appName string, userInfoID string) (Token, error) {
+func (r *RedisStore) NewToken(appName string, authInfoID string) (Token, error) {
 	var expireAt time.Time
 	if r.expiry > 0 {
 		expireAt = time.Now().Add(time.Duration(r.expiry) * time.Second)
 	}
-	return New(appName, userInfoID, expireAt), nil
+	return New(appName, authInfoID, expireAt), nil
 
 }
 

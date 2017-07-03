@@ -25,7 +25,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
-func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
+func (c *conn) CreateUser(authinfo *skydb.AuthInfo) (err error) {
 	var (
 		username        *string
 		email           *string
@@ -33,25 +33,25 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 		lastLoginAt     *time.Time
 		lastSeenAt      *time.Time
 	)
-	if userinfo.Username != "" {
-		username = &userinfo.Username
+	if authinfo.Username != "" {
+		username = &authinfo.Username
 	} else {
 		username = nil
 	}
-	if userinfo.Email != "" {
-		email = &userinfo.Email
+	if authinfo.Email != "" {
+		email = &authinfo.Email
 	} else {
 		email = nil
 	}
-	tokenValidSince = userinfo.TokenValidSince
+	tokenValidSince = authinfo.TokenValidSince
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
 		tokenValidSince = nil
 	}
-	lastLoginAt = userinfo.LastLoginAt
+	lastLoginAt = authinfo.LastLoginAt
 	if lastLoginAt != nil && lastLoginAt.IsZero() {
 		lastLoginAt = nil
 	}
-	lastSeenAt = userinfo.LastSeenAt
+	lastSeenAt = authinfo.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
 	}
@@ -66,11 +66,11 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 		"last_login_at",
 		"last_seen_at",
 	).Values(
-		userinfo.ID,
+		authinfo.ID,
 		username,
 		email,
-		userinfo.HashedPassword,
-		authInfoValue{userinfo.Auth, true},
+		authinfo.HashedPassword,
+		authInfoValue{authinfo.Auth, true},
 		tokenValidSince,
 		lastLoginAt,
 		lastSeenAt,
@@ -81,13 +81,13 @@ func (c *conn) CreateUser(userinfo *skydb.UserInfo) (err error) {
 		return skydb.ErrUserDuplicated
 	}
 
-	if err := c.UpdateUserRoles(userinfo); err != nil {
+	if err := c.UpdateUserRoles(authinfo); err != nil {
 		return skydb.ErrRoleUpdatesFailed
 	}
 	return err
 }
 
-func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
+func (c *conn) UpdateUser(authinfo *skydb.AuthInfo) (err error) {
 	var (
 		username        *string
 		email           *string
@@ -95,25 +95,25 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 		lastLoginAt     *time.Time
 		lastSeenAt      *time.Time
 	)
-	if userinfo.Username != "" {
-		username = &userinfo.Username
+	if authinfo.Username != "" {
+		username = &authinfo.Username
 	} else {
 		username = nil
 	}
-	if userinfo.Email != "" {
-		email = &userinfo.Email
+	if authinfo.Email != "" {
+		email = &authinfo.Email
 	} else {
 		email = nil
 	}
-	tokenValidSince = userinfo.TokenValidSince
+	tokenValidSince = authinfo.TokenValidSince
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
 		tokenValidSince = nil
 	}
-	lastLoginAt = userinfo.LastLoginAt
+	lastLoginAt = authinfo.LastLoginAt
 	if lastLoginAt != nil && lastLoginAt.IsZero() {
 		lastLoginAt = nil
 	}
-	lastSeenAt = userinfo.LastSeenAt
+	lastSeenAt = authinfo.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
 	}
@@ -121,12 +121,12 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 	builder := psql.Update(c.tableName("_user")).
 		Set("username", username).
 		Set("email", email).
-		Set("password", userinfo.HashedPassword).
-		Set("auth", authInfoValue{userinfo.Auth, true}).
+		Set("password", authinfo.HashedPassword).
+		Set("auth", authInfoValue{authinfo.Auth, true}).
 		Set("token_valid_since", tokenValidSince).
 		Set("last_login_at", lastLoginAt).
 		Set("last_seen_at", lastSeenAt).
-		Where("id = ?", userinfo.ID)
+		Where("id = ?", authinfo.ID)
 
 	result, err := c.ExecWith(builder)
 	if err != nil {
@@ -145,7 +145,7 @@ func (c *conn) UpdateUser(userinfo *skydb.UserInfo) (err error) {
 		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
 	}
 
-	if err := c.UpdateUserRoles(userinfo); err != nil {
+	if err := c.UpdateUserRoles(authinfo); err != nil {
 		return skydb.ErrRoleUpdatesFailed
 	}
 	return nil
@@ -160,7 +160,7 @@ func (c *conn) baseUserBuilder() sq.SelectBuilder {
 		GroupBy("id")
 }
 
-func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error {
+func (c *conn) doScanUser(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error {
 	var (
 		id              string
 		username        sql.NullString
@@ -190,39 +190,39 @@ func (c *conn) doScanUser(userinfo *skydb.UserInfo, scanner sq.RowScanner) error
 		return skydb.ErrUserNotFound
 	}
 
-	userinfo.ID = id
-	userinfo.Username = username.String
-	userinfo.Email = email.String
-	userinfo.HashedPassword = password
-	userinfo.Auth = auth.AuthInfo
+	authinfo.ID = id
+	authinfo.Username = username.String
+	authinfo.Email = email.String
+	authinfo.HashedPassword = password
+	authinfo.Auth = auth.ProviderInfo
 	if tokenValidSince.Valid {
-		userinfo.TokenValidSince = &tokenValidSince.Time
+		authinfo.TokenValidSince = &tokenValidSince.Time
 	} else {
-		userinfo.TokenValidSince = nil
+		authinfo.TokenValidSince = nil
 	}
 	if lastLoginAt.Valid {
-		userinfo.LastLoginAt = &lastLoginAt.Time
+		authinfo.LastLoginAt = &lastLoginAt.Time
 	} else {
-		userinfo.LastLoginAt = nil
+		authinfo.LastLoginAt = nil
 	}
 	if lastSeenAt.Valid {
-		userinfo.LastSeenAt = &lastSeenAt.Time
+		authinfo.LastSeenAt = &lastSeenAt.Time
 	} else {
-		userinfo.LastSeenAt = nil
+		authinfo.LastSeenAt = nil
 	}
-	userinfo.Roles = roles.slice
+	authinfo.Roles = roles.slice
 
 	return err
 }
 
-func (c *conn) GetUser(id string, userinfo *skydb.UserInfo) error {
+func (c *conn) GetUser(id string, authinfo *skydb.AuthInfo) error {
 	log.Warnf(id)
 	builder := c.baseUserBuilder().Where("id = ?", id)
 	scanner := c.QueryRowWith(builder)
-	return c.doScanUser(userinfo, scanner)
+	return c.doScanUser(authinfo, scanner)
 }
 
-func (c *conn) GetUserByUsernameEmail(username string, email string, userinfo *skydb.UserInfo) error {
+func (c *conn) GetUserByUsernameEmail(username string, email string, authinfo *skydb.AuthInfo) error {
 	var builder sq.SelectBuilder
 	if email == "" {
 		builder = c.baseUserBuilder().Where("username = ?", username)
@@ -232,16 +232,16 @@ func (c *conn) GetUserByUsernameEmail(username string, email string, userinfo *s
 		builder = c.baseUserBuilder().Where("username = ? AND email = ?", username, email)
 	}
 	scanner := c.QueryRowWith(builder)
-	return c.doScanUser(userinfo, scanner)
+	return c.doScanUser(authinfo, scanner)
 }
 
-func (c *conn) GetUserByPrincipalID(principalID string, userinfo *skydb.UserInfo) error {
+func (c *conn) GetUserByPrincipalID(principalID string, authinfo *skydb.AuthInfo) error {
 	builder := c.baseUserBuilder().Where("jsonb_exists(auth, ?)", principalID)
 	scanner := c.QueryRowWith(builder)
-	return c.doScanUser(userinfo, scanner)
+	return c.doScanUser(authinfo, scanner)
 }
 
-func (c *conn) QueryUser(emails []string, usernames []string) ([]skydb.UserInfo, error) {
+func (c *conn) QueryUser(emails []string, usernames []string) ([]skydb.AuthInfo, error) {
 	emailargs := make([]interface{}, len(emails))
 	for i, v := range emails {
 		if v == "" {
@@ -259,7 +259,7 @@ func (c *conn) QueryUser(emails []string, usernames []string) ([]skydb.UserInfo,
 	}
 
 	if len(emailargs) == 0 && len(usernameargs) == 0 {
-		return []skydb.UserInfo{}, nil
+		return []skydb.AuthInfo{}, nil
 	}
 
 	var sqls []string
@@ -281,13 +281,13 @@ func (c *conn) QueryUser(emails []string, usernames []string) ([]skydb.UserInfo,
 		panic(err)
 	}
 	defer rows.Close()
-	results := []skydb.UserInfo{}
+	results := []skydb.AuthInfo{}
 	for rows.Next() {
-		userinfo := skydb.UserInfo{}
-		if err := c.doScanUser(&userinfo, rows); err != nil {
+		authinfo := skydb.AuthInfo{}
+		if err := c.doScanUser(&authinfo, rows); err != nil {
 			panic(err)
 		}
-		results = append(results, userinfo)
+		results = append(results, authinfo)
 	}
 	if err == sql.ErrNoRows {
 		return nil, nil

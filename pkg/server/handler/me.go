@@ -61,7 +61,7 @@ func (h *MeHandler) GetPreprocessors() []router.Processor {
 //   "roles": []
 // }
 func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
-	info := payload.UserInfo
+	info := payload.AuthInfo
 	if info == nil {
 		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed to get current user")
 		return

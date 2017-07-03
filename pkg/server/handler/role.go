@@ -233,13 +233,13 @@ func (h *RoleAssignHandler) Handle(rpayload *router.Payload, response *router.Re
 		return
 	}
 
-	userinfo := rpayload.UserInfo
+	authinfo := rpayload.AuthInfo
 	adminRoles, err := rpayload.DBConn.GetAdminRoles()
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
-	if !userinfo.HasAnyRoles(adminRoles) && !rpayload.HasMasterKey() {
+	if !authinfo.HasAnyRoles(adminRoles) && !rpayload.HasMasterKey() {
 		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to modify other users")
 		return
 	}
@@ -309,13 +309,13 @@ func (h *RoleRevokeHandler) Handle(rpayload *router.Payload, response *router.Re
 		return
 	}
 
-	userinfo := rpayload.UserInfo
+	authinfo := rpayload.AuthInfo
 	adminRoles, err := rpayload.DBConn.GetAdminRoles()
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
-	if !userinfo.HasAnyRoles(adminRoles) && !rpayload.HasMasterKey() {
+	if !authinfo.HasAnyRoles(adminRoles) && !rpayload.HasMasterKey() {
 		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to modify other users")
 		return
 	}

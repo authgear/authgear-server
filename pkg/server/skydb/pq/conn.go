@@ -31,10 +31,10 @@ import (
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 // authInfoValue implements sql.Valuer and sql.Scanner s.t.
-// skydb.AuthInfo can be saved into and recovered from postgresql
+// skydb.ProviderInfo can be saved into and recovered from postgresql
 type authInfoValue struct {
-	AuthInfo skydb.AuthInfo
-	Valid    bool
+	ProviderInfo skydb.ProviderInfo
+	Valid        bool
 }
 
 func (auth authInfoValue) Value() (driver.Value, error) {
@@ -43,7 +43,7 @@ func (auth authInfoValue) Value() (driver.Value, error) {
 	}
 
 	b := bytes.Buffer{}
-	if err := json.NewEncoder(&b).Encode(auth.AuthInfo); err != nil {
+	if err := json.NewEncoder(&b).Encode(auth.ProviderInfo); err != nil {
 		return nil, err
 	}
 
@@ -57,10 +57,10 @@ func (auth *authInfoValue) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		fmt.Errorf("skydb: unsupported Scan pair: %T -> %T", value, auth.AuthInfo)
+		fmt.Errorf("skydb: unsupported Scan pair: %T -> %T", value, auth.ProviderInfo)
 	}
 
-	err := json.Unmarshal(b, &auth.AuthInfo)
+	err := json.Unmarshal(b, &auth.ProviderInfo)
 	if err == nil {
 		auth.Valid = true
 	}

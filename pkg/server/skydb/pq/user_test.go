@@ -31,13 +31,13 @@ func TestUserCRUD(t *testing.T) {
 		c = getTestConn(t)
 		defer cleanupConn(t, c)
 
-		userinfo := skydb.UserInfo{
+		authinfo := skydb.AuthInfo{
 			ID:             "userid",
 			Username:       "john.doe",
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
 			Roles:          []string{},
-			Auth: skydb.AuthInfo{
+			Auth: skydb.ProviderInfo{
 				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
 					"bool":   true,
@@ -80,7 +80,7 @@ func TestUserCRUD(t *testing.T) {
 		})
 
 		Convey("creates user", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
 			email := ""
@@ -92,7 +92,7 @@ func TestUserCRUD(t *testing.T) {
 
 			So(email, ShouldEqual, "john.doe@example.com")
 			So(password, ShouldResemble, []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"))
-			So(auth.AuthInfo, ShouldResemble, skydb.AuthInfo{
+			So(auth.ProviderInfo, ShouldResemble, skydb.ProviderInfo{
 				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
 					"bool":   true,
@@ -102,18 +102,18 @@ func TestUserCRUD(t *testing.T) {
 		})
 
 		Convey("returns ErrUserDuplicated when user to create already exists", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			err = c.CreateUser(&userinfo)
+			err = c.CreateUser(&authinfo)
 			So(err, ShouldEqual, skydb.ErrUserDuplicated)
 		})
 
 		Convey("returns ErrUserDuplicated when user with same username", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			err = c.CreateUser(&skydb.UserInfo{
+			err = c.CreateUser(&skydb.AuthInfo{
 				Username:       "john.doe",
 				HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
 			})
@@ -121,10 +121,10 @@ func TestUserCRUD(t *testing.T) {
 		})
 
 		Convey("returns ErrUserDuplicated when user with same email", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			err = c.CreateUser(&skydb.UserInfo{
+			err = c.CreateUser(&skydb.AuthInfo{
 				Email:          "john.doe@example.com",
 				HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
 			})
@@ -132,126 +132,126 @@ func TestUserCRUD(t *testing.T) {
 		})
 
 		Convey("gets an existing User", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			fetcheduserinfo := skydb.UserInfo{}
-			err = c.GetUser("userid", &fetcheduserinfo)
+			fetchedauthinfo := skydb.AuthInfo{}
+			err = c.GetUser("userid", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
-			So(fetcheduserinfo, ShouldResemble, userinfo)
+			So(fetchedauthinfo, ShouldResemble, authinfo)
 		})
 
 		Convey("get an existing User with case-preserved username and email", func() {
-			userinfo := skydb.UserInfo{}
-			userinfo.Username = "Capital.ONE"
-			userinfo.Email = "capital.ONE@EXAMPLE.com"
-			userinfo.ID = "userid-capital"
-			So(c.CreateUser(&userinfo), ShouldBeNil)
+			authinfo := skydb.AuthInfo{}
+			authinfo.Username = "Capital.ONE"
+			authinfo.Email = "capital.ONE@EXAMPLE.com"
+			authinfo.ID = "userid-capital"
+			So(c.CreateUser(&authinfo), ShouldBeNil)
 
-			fetcheduserinfo := skydb.UserInfo{}
-			err := c.GetUser("userid-capital", &fetcheduserinfo)
+			fetchedauthinfo := skydb.AuthInfo{}
+			err := c.GetUser("userid-capital", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
-			So(fetcheduserinfo.Username, ShouldEqual, "Capital.ONE")
-			So(fetcheduserinfo.Email, ShouldEqual, "capital.ONE@EXAMPLE.com")
+			So(fetchedauthinfo.Username, ShouldEqual, "Capital.ONE")
+			So(fetchedauthinfo.Email, ShouldEqual, "capital.ONE@EXAMPLE.com")
 		})
 
 		Convey("gets an existing User token valid since", func() {
 			tokenValidSince := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
-			userinfo.TokenValidSince = &tokenValidSince
+			authinfo.TokenValidSince = &tokenValidSince
 
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			fetcheduserinfo := skydb.UserInfo{}
-			err = c.GetUser("userid", &fetcheduserinfo)
+			fetchedauthinfo := skydb.AuthInfo{}
+			err = c.GetUser("userid", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
-			So(tokenValidSince.Equal(fetcheduserinfo.TokenValidSince.UTC()), ShouldBeTrue)
+			So(tokenValidSince.Equal(fetchedauthinfo.TokenValidSince.UTC()), ShouldBeTrue)
 		})
 
 		Convey("gets an existing User last login at", func() {
 			lastLoginAt := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
-			userinfo.LastLoginAt = &lastLoginAt
+			authinfo.LastLoginAt = &lastLoginAt
 
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			fetcheduserinfo := skydb.UserInfo{}
-			err = c.GetUser("userid", &fetcheduserinfo)
+			fetchedauthinfo := skydb.AuthInfo{}
+			err = c.GetUser("userid", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
-			So(lastLoginAt.Equal(fetcheduserinfo.LastLoginAt.UTC()), ShouldBeTrue)
+			So(lastLoginAt.Equal(fetchedauthinfo.LastLoginAt.UTC()), ShouldBeTrue)
 		})
 
 		Convey("gets an existing User last seen at", func() {
 			lastSeenAt := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
-			userinfo.LastSeenAt = &lastSeenAt
+			authinfo.LastSeenAt = &lastSeenAt
 
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			fetcheduserinfo := skydb.UserInfo{}
-			err = c.GetUser("userid", &fetcheduserinfo)
+			fetchedauthinfo := skydb.AuthInfo{}
+			err = c.GetUser("userid", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
 			So(
-				lastSeenAt.Equal(fetcheduserinfo.LastSeenAt.UTC()),
+				lastSeenAt.Equal(fetchedauthinfo.LastSeenAt.UTC()),
 				ShouldBeTrue,
 			)
 		})
 
 		Convey("gets an existing User by username case insensitive", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			fetcheduserinfo := skydb.UserInfo{}
-			err = c.GetUserByUsernameEmail("john.Doe", "", &fetcheduserinfo)
+			fetchedauthinfo := skydb.AuthInfo{}
+			err = c.GetUserByUsernameEmail("john.Doe", "", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
-			So(fetcheduserinfo, ShouldResemble, userinfo)
+			So(fetchedauthinfo, ShouldResemble, authinfo)
 		})
 
 		Convey("gets an existing User by email case insensitive", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			fetcheduserinfo := skydb.UserInfo{}
-			err = c.GetUserByUsernameEmail("", "john.DOE@example.com", &fetcheduserinfo)
+			fetchedauthinfo := skydb.AuthInfo{}
+			err = c.GetUserByUsernameEmail("", "john.DOE@example.com", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
-			So(fetcheduserinfo, ShouldResemble, userinfo)
+			So(fetchedauthinfo, ShouldResemble, authinfo)
 		})
 
 		Convey("gets an existing User by principal", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			fetcheduserinfo := skydb.UserInfo{}
-			err = c.GetUserByPrincipalID("com.example:johndoe", &fetcheduserinfo)
+			fetchedauthinfo := skydb.AuthInfo{}
+			err = c.GetUserByPrincipalID("com.example:johndoe", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
-			So(fetcheduserinfo, ShouldResemble, userinfo)
+			So(fetchedauthinfo, ShouldResemble, authinfo)
 		})
 
 		Convey("returns ErrUserNotFound when the user does not exist", func() {
-			err := c.GetUser("userid", (*skydb.UserInfo)(nil))
+			err := c.GetUser("userid", (*skydb.AuthInfo)(nil))
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 
 		Convey("returns ErrUserNotFound when the user does not exist by principal", func() {
-			err := c.GetUserByPrincipalID("com.example:janedoe", (*skydb.UserInfo)(nil))
+			err := c.GetUserByPrincipalID("com.example:janedoe", (*skydb.AuthInfo)(nil))
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 
 		Convey("updates a user", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			userinfo.Email = "jane.doe@example.com"
+			authinfo.Email = "jane.doe@example.com"
 
-			err = c.UpdateUser(&userinfo)
+			err = c.UpdateUser(&authinfo)
 			So(err, ShouldBeNil)
 
 			email := ""
@@ -262,8 +262,8 @@ func TestUserCRUD(t *testing.T) {
 		})
 
 		Convey("query for empty", func() {
-			userinfo.Email = ""
-			err := c.CreateUser(&userinfo)
+			authinfo.Email = ""
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
 			emails := []string{""}
@@ -273,34 +273,34 @@ func TestUserCRUD(t *testing.T) {
 		})
 
 		Convey("query for users with email", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			userinfo.Username = "jane.doe"
-			userinfo.Email = "jane.doe@example.com"
-			userinfo.ID = "userid2"
-			So(c.CreateUser(&userinfo), ShouldBeNil)
+			authinfo.Username = "jane.doe"
+			authinfo.Email = "jane.doe@example.com"
+			authinfo.ID = "userid2"
+			So(c.CreateUser(&authinfo), ShouldBeNil)
 
 			emails := []string{"john.doe@example.com", "jane.doe@example.com"}
 			results, err := c.QueryUser(emails, []string{})
 			So(err, ShouldBeNil)
 
 			userids := []string{}
-			for _, userinfo := range results {
-				userids = append(userids, userinfo.ID)
+			for _, authinfo := range results {
+				userids = append(userids, authinfo.ID)
 			}
 			So(userids, ShouldContain, "userid")
 			So(userids, ShouldContain, "userid2")
 		})
 
 		Convey("query for users with email and username", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			userinfo.Username = "jane.doe"
-			userinfo.Email = "jane.doe@example.com"
-			userinfo.ID = "userid2"
-			So(c.CreateUser(&userinfo), ShouldBeNil)
+			authinfo.Username = "jane.doe"
+			authinfo.Email = "jane.doe@example.com"
+			authinfo.ID = "userid2"
+			So(c.CreateUser(&authinfo), ShouldBeNil)
 
 			emails := []string{"john.doe@example.com"}
 			usernames := []string{"jane.doe"}
@@ -308,20 +308,20 @@ func TestUserCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			userids := []string{}
-			for _, userinfo := range results {
-				userids = append(userids, userinfo.ID)
+			for _, authinfo := range results {
+				userids = append(userids, authinfo.ID)
 			}
 			So(userids, ShouldContain, "userid")
 			So(userids, ShouldContain, "userid2")
 		})
 
 		Convey("returns ErrUserNotFound when the user to update does not exist", func() {
-			err := c.UpdateUser(&userinfo)
+			err := c.UpdateUser(&authinfo)
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 
 		Convey("deletes an existing user", func() {
-			err := c.CreateUser(&userinfo)
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
 			err = c.DeleteUser("userid")
@@ -339,16 +339,16 @@ func TestUserCRUD(t *testing.T) {
 		})
 
 		Convey("deletes only the desired user", func() {
-			userinfo.ID = "1"
-			userinfo.Username = "user1"
-			userinfo.Email = "user1@skygear.com"
-			err := c.CreateUser(&userinfo)
+			authinfo.ID = "1"
+			authinfo.Username = "user1"
+			authinfo.Email = "user1@skygear.com"
+			err := c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
-			userinfo.ID = "2"
-			userinfo.Username = "user2"
-			userinfo.Email = "user2@skygear.com"
-			err = c.CreateUser(&userinfo)
+			authinfo.ID = "2"
+			authinfo.Username = "user2"
+			authinfo.Email = "user2@skygear.com"
+			err = c.CreateUser(&authinfo)
 			So(err, ShouldBeNil)
 
 			count := 0
@@ -371,19 +371,19 @@ func TestUserEagerLoadRole(t *testing.T) {
 		c = getTestConn(t)
 		defer cleanupConn(t, c)
 
-		userinfo := skydb.UserInfo{
+		authinfo := skydb.AuthInfo{
 			ID:             "userid",
 			Username:       "john.doe",
 			Email:          "john.doe@example.com",
 			Roles:          []string{"user"},
 			HashedPassword: []byte(""),
 		}
-		c.CreateUser(&userinfo)
+		c.CreateUser(&authinfo)
 
 		Convey("with GetUser", func() {
-			fetchedUserinfo := skydb.UserInfo{}
+			fetchedUserinfo := skydb.AuthInfo{}
 			So(c.GetUser("userid", &fetchedUserinfo), ShouldBeNil)
-			So(fetchedUserinfo, ShouldResemble, userinfo)
+			So(fetchedUserinfo, ShouldResemble, authinfo)
 		})
 
 		Convey("with UserQuery", func() {
@@ -392,7 +392,7 @@ func TestUserEagerLoadRole(t *testing.T) {
 			}, []string{})
 			So(err, ShouldBeNil)
 
-			So(results[0], ShouldResemble, userinfo)
+			So(results[0], ShouldResemble, authinfo)
 		})
 	})
 }

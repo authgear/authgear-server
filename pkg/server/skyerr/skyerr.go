@@ -154,7 +154,7 @@ const (
 	//
 	// Refrain from using this error code.
 	UnexpectedError ErrorCode = 10000 + iota
-	UnexpectedUserInfoNotFound
+	UnexpectedAuthInfoNotFound
 	UnexpectedUnableToOpenDatabase
 	UnexpectedPushNotificationNotConfigured
 	InternalQueryInvalid

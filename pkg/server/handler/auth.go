@@ -67,7 +67,7 @@ func (payload *signupPayload) IsAnonymous() bool {
 	return payload.Email == "" && payload.Password == "" && payload.Username == "" && payload.Provider == ""
 }
 
-// SignupHandler creates an UserInfo with the supplied information.
+// SignupHandler creates an AuthInfo with the supplied information.
 //
 // SignupHandler receives three parameters:
 //
@@ -125,9 +125,9 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 
 	store := h.TokenStore
 
-	info := skydb.UserInfo{}
+	info := skydb.AuthInfo{}
 	if p.IsAnonymous() {
-		info = skydb.NewAnonymousUserInfo()
+		info = skydb.NewAnonymousAuthInfo()
 	} else if p.Provider != "" {
 		// Get AuthProvider and authenticates the user
 		log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
@@ -144,9 +144,9 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
 
 		// Create new user info and set updated auth data
-		info = skydb.NewProvidedAuthUserInfo(principalID, authData)
+		info = skydb.NewProvidedAuthAuthInfo(principalID, authData)
 	} else {
-		info = skydb.NewUserInfo(p.Username, p.Email, p.Password)
+		info = skydb.NewAuthInfo(p.Username, p.Email, p.Password)
 	}
 
 	// Populate the default roles to user
@@ -256,7 +256,7 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	}
 	store := h.TokenStore
 
-	info := skydb.UserInfo{}
+	info := skydb.AuthInfo{}
 
 	if p.Provider != "" {
 		// Get AuthProvider and authenticates the user
@@ -273,7 +273,7 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 				return
 			}
 
-			info = skydb.NewProvidedAuthUserInfo(principalID, authData)
+			info = skydb.NewProvidedAuthAuthInfo(principalID, authData)
 			createContext := createUserWithRecordContext{
 				payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
 			}
@@ -426,7 +426,7 @@ func (payload *passwordPayload) Validate() skyerr.Error {
 // Input accept `user_id` and `invalidate`.
 // If `user_id` is supplied, will check authorization policy and see if existing
 // accept `invalidate` and invaldate all existing access token.
-// Return userInfoID with new AccessToken if the invalidate is true
+// Return authInfoID with new AccessToken if the invalidate is true
 type PasswordHandler struct {
 	TokenStore    authtoken.Store  `inject:"TokenStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
@@ -460,13 +460,13 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		return
 	}
 
-	info := skydb.UserInfo{}
-	if err := payload.DBConn.GetUser(payload.UserInfoID, &info); err != nil {
+	info := skydb.AuthInfo{}
+	if err := payload.DBConn.GetUser(payload.AuthInfoID, &info); err != nil {
 		if err == skydb.ErrUserNotFound {
 			response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		} else {
 			// TODO: more error handling here if necessary
-			response.Err = skyerr.NewResourceFetchFailureErr("user", payload.UserInfoID)
+			response.Err = skyerr.NewResourceFetchFailureErr("user", payload.AuthInfoID)
 		}
 		return
 	}
@@ -513,7 +513,7 @@ type createUserWithRecordContext struct {
 	Context      context.Context
 }
 
-func (ctx *createUserWithRecordContext) execute(info *skydb.UserInfo) skyerr.Error {
+func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo) skyerr.Error {
 	db := ctx.Database
 	txDB, ok := db.(skydb.TxDatabase)
 	if !ok {
@@ -539,7 +539,7 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.UserInfo) skyerr.Err
 			HookRegistry: ctx.HookRegistry,
 			Atomic:       false,
 			Context:      ctx.Context,
-			UserInfo:     info,
+			AuthInfo:     info,
 			RecordsToSave: []*skydb.Record{
 				&userRecord,
 			},

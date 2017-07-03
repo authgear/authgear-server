@@ -42,12 +42,12 @@ func NewJWTStore(secret string, expiry int64) *JWTStore {
 }
 
 // NewToken creates a new token for this token store.
-func (r *JWTStore) NewToken(appName string, userInfoID string) (Token, error) {
+func (r *JWTStore) NewToken(appName string, authInfoID string) (Token, error) {
 	claims := jwt.StandardClaims{
 		Id:       uuid.New(),
 		IssuedAt: time.Now().Unix(),
 		Issuer:   appName,
-		Subject:  userInfoID,
+		Subject:  authInfoID,
 	}
 
 	if r.expiry > 0 {
@@ -109,7 +109,7 @@ func (r *JWTStore) setTokenFromClaims(claims jwt.StandardClaims, token *Token) {
 		token.issuedAt = time.Time{}
 	}
 	token.AppName = claims.Issuer
-	token.UserInfoID = claims.Subject
+	token.AuthInfoID = claims.Subject
 }
 
 // Put does nothing because the JWT token store does not store token.

@@ -20,7 +20,7 @@ func TestJWTStore(t *testing.T) {
 		Convey("should create new token", func() {
 			token, err := store.NewToken("exampleapp", "userid1")
 			So(err, ShouldBeNil)
-			So(token.UserInfoID, ShouldEqual, "userid1")
+			So(token.AuthInfoID, ShouldEqual, "userid1")
 
 			tokenString := token.AccessToken
 			claims := jwt.StandardClaims{}
@@ -54,7 +54,7 @@ func TestJWTStore(t *testing.T) {
 			token := Token{}
 			So(store.Get(signedString, &token), ShouldBeNil)
 
-			So(token.UserInfoID, ShouldEqual, "userid1")
+			So(token.AuthInfoID, ShouldEqual, "userid1")
 			So(token.IssuedAt().Unix(), ShouldEqual, issuedAt.Unix())
 			So(token.ExpiredAt.Unix(), ShouldEqual, issuedAt.Add(time.Hour*1).Unix())
 		})

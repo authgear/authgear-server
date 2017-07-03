@@ -205,7 +205,7 @@ func TestRoleAssignHandler(t *testing.T) {
 				mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
 					p.DBConn = conn
 					p.AccessKey = router.MasterAccessKey
-					p.UserInfo = &skydb.UserInfo{}
+					p.AuthInfo = &skydb.AuthInfo{}
 				})
 				resp := mockRouter.POST(payloadString)
 				So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
@@ -214,7 +214,7 @@ func TestRoleAssignHandler(t *testing.T) {
 			Convey("with admin role", func() {
 				mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
 					p.DBConn = conn
-					p.UserInfo = &skydb.UserInfo{
+					p.AuthInfo = &skydb.AuthInfo{
 						Roles: []string{"admin"},
 					}
 				})
@@ -228,7 +228,7 @@ func TestRoleAssignHandler(t *testing.T) {
 
 			mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
 				p.DBConn = conn
-				p.UserInfo = &skydb.UserInfo{}
+				p.AuthInfo = &skydb.AuthInfo{}
 			})
 
 			resp := mockRouter.POST(`{
@@ -254,7 +254,7 @@ func TestRoleAssignHandler(t *testing.T) {
 			mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
 				p.DBConn = conn
 				p.AccessKey = router.MasterAccessKey
-				p.UserInfo = &skydb.UserInfo{}
+				p.AuthInfo = &skydb.AuthInfo{}
 			})
 
 			resp := mockRouter.POST(`{
@@ -298,7 +298,7 @@ func TestRoleRevokeHandler(t *testing.T) {
 				mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
 					p.DBConn = conn
 					p.AccessKey = router.MasterAccessKey
-					p.UserInfo = &skydb.UserInfo{}
+					p.AuthInfo = &skydb.AuthInfo{}
 				})
 				resp := mockRouter.POST(payloadString)
 				So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
@@ -307,7 +307,7 @@ func TestRoleRevokeHandler(t *testing.T) {
 			Convey("with admin role", func() {
 				mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
 					p.DBConn = conn
-					p.UserInfo = &skydb.UserInfo{
+					p.AuthInfo = &skydb.AuthInfo{
 						Roles: []string{"admin"},
 					}
 				})
@@ -321,7 +321,7 @@ func TestRoleRevokeHandler(t *testing.T) {
 
 			mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
 				p.DBConn = conn
-				p.UserInfo = &skydb.UserInfo{}
+				p.AuthInfo = &skydb.AuthInfo{}
 			})
 
 			resp := mockRouter.POST(`{
@@ -347,7 +347,7 @@ func TestRoleRevokeHandler(t *testing.T) {
 			mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
 				p.DBConn = conn
 				p.AccessKey = router.MasterAccessKey
-				p.UserInfo = &skydb.UserInfo{}
+				p.AuthInfo = &skydb.AuthInfo{}
 			})
 
 			resp := mockRouter.POST(`{

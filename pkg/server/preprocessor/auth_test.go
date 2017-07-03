@@ -141,14 +141,14 @@ func TestUserAuthenticator(t *testing.T) {
 			So(pp.Preprocess(payload, resp), ShouldEqual, http.StatusOK)
 			So(payload.AccessKey, ShouldEqual, router.MasterAccessKey)
 			So(payload.AppName, ShouldEqual, "app-name")
-			So(payload.UserInfoID, ShouldEqual, "user-id")
+			So(payload.AuthInfoID, ShouldEqual, "user-id")
 			So(resp.Err, ShouldBeNil)
 		})
 
 		Convey("impersonate a user without master key", func() {
 			payload.Data["api_key"] = "client-key"
 			payload.Data["_user_id"] = "user-id"
-			So(payload.UserInfoID, ShouldNotEqual, "user-id")
+			So(payload.AuthInfoID, ShouldNotEqual, "user-id")
 		})
 	})
 
@@ -172,7 +172,7 @@ func TestUserAuthenticator(t *testing.T) {
 			payload.Data["access_token"] = token.AccessToken
 			So(pp.Preprocess(payload, resp), ShouldEqual, http.StatusOK)
 			So(payload.AppName, ShouldEqual, "app-name")
-			So(payload.UserInfoID, ShouldEqual, "user-id")
+			So(payload.AuthInfoID, ShouldEqual, "user-id")
 			So(resp.Err, ShouldBeNil)
 		})
 

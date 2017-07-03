@@ -71,12 +71,12 @@ func TestRecord(t *testing.T) {
 
 func TestRecordACL(t *testing.T) {
 	Convey("Record with ACL", t, func() {
-		userinfo := &UserInfo{
+		authinfo := &AuthInfo{
 			ID:    "user1",
 			Roles: []string{"admin"},
 		}
 
-		stranger := &UserInfo{
+		stranger := &AuthInfo{
 			ID:    "stranger",
 			Roles: []string{"nobody"},
 		}
@@ -84,7 +84,7 @@ func TestRecordACL(t *testing.T) {
 			ace := NewRecordACLEntryPublic(ReadLevel)
 
 			So(ace.AccessibleLevel(ReadLevel), ShouldBeTrue)
-			So(ace.Accessible(userinfo, ReadLevel), ShouldBeTrue)
+			So(ace.Accessible(authinfo, ReadLevel), ShouldBeTrue)
 			So(ace.Accessible(nil, ReadLevel), ShouldBeTrue)
 		})
 
@@ -97,7 +97,7 @@ func TestRecordACL(t *testing.T) {
 				},
 			}
 
-			So(note.Accessible(userinfo, ReadLevel), ShouldBeTrue)
+			So(note.Accessible(authinfo, ReadLevel), ShouldBeTrue)
 			So(note.Accessible(nil, ReadLevel), ShouldBeTrue)
 		})
 
@@ -110,7 +110,7 @@ func TestRecordACL(t *testing.T) {
 				},
 			}
 
-			So(note.Accessible(userinfo, ReadLevel), ShouldBeTrue)
+			So(note.Accessible(authinfo, ReadLevel), ShouldBeTrue)
 			So(note.Accessible(stranger, ReadLevel), ShouldBeFalse)
 		})
 
@@ -123,7 +123,7 @@ func TestRecordACL(t *testing.T) {
 				},
 			}
 
-			So(note.Accessible(userinfo, ReadLevel), ShouldBeTrue)
+			So(note.Accessible(authinfo, ReadLevel), ShouldBeTrue)
 			So(note.Accessible(stranger, ReadLevel), ShouldBeFalse)
 		})
 
@@ -137,7 +137,7 @@ func TestRecordACL(t *testing.T) {
 				},
 			}
 
-			So(note.Accessible(userinfo, ReadLevel), ShouldBeTrue)
+			So(note.Accessible(authinfo, ReadLevel), ShouldBeTrue)
 			So(note.Accessible(stranger, ReadLevel), ShouldBeTrue)
 		})
 
@@ -150,7 +150,7 @@ func TestRecordACL(t *testing.T) {
 					NewRecordACLEntryRole("admin", WriteLevel),
 				},
 			}
-			So(note.Accessible(userinfo, ReadLevel), ShouldBeTrue)
+			So(note.Accessible(authinfo, ReadLevel), ShouldBeTrue)
 			So(note.Accessible(stranger, ReadLevel), ShouldBeTrue)
 		})
 
@@ -164,7 +164,7 @@ func TestRecordACL(t *testing.T) {
 				},
 			}
 
-			So(note.Accessible(userinfo, WriteLevel), ShouldBeFalse)
+			So(note.Accessible(authinfo, WriteLevel), ShouldBeFalse)
 			So(note.Accessible(stranger, WriteLevel), ShouldBeFalse)
 		})
 	})

@@ -471,7 +471,7 @@ func (h *SubscriptionSaveHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	parser := QueryParser{UserID: rpayload.UserInfoID}
+	parser := QueryParser{UserID: rpayload.AuthInfoID}
 	payload := &subscriptionSavePayload{}
 	skyErr := payload.Decode(rpayload.Data, &parser)
 	if skyErr != nil {

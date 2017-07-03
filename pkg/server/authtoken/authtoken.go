@@ -24,12 +24,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
-// Token is an expiry access token associated to a UserInfo.
+// Token is an expiry access token associated to a AuthInfo.
 type Token struct {
 	AccessToken string    `json:"accessToken" redis:"accessToken"`
 	ExpiredAt   time.Time `json:"expiredAt" redis:"expiredAt"`
 	AppName     string    `json:"appName" redis:"appName"`
-	UserInfoID  string    `json:"userInfoID" redis:"userInfoID"`
+	AuthInfoID  string    `json:"authInfoID" redis:"authInfoID"`
 	issuedAt    time.Time `json:"issuedAt" redis:"issuedAt"`
 }
 
@@ -46,7 +46,7 @@ func (t Token) MarshalJSON() ([]byte, error) {
 		t.AccessToken,
 		expireAt,
 		t.AppName,
-		t.UserInfoID,
+		t.AuthInfoID,
 		issuedAt,
 	})
 }
@@ -67,7 +67,7 @@ func (t *Token) UnmarshalJSON(data []byte) (err error) {
 	t.AccessToken = token.AccessToken
 	t.ExpiredAt = expireAt
 	t.AppName = token.AppName
-	t.UserInfoID = token.UserInfoID
+	t.AuthInfoID = token.AuthInfoID
 	t.issuedAt = issuedAt
 	return nil
 }
@@ -80,7 +80,7 @@ type jsonToken struct {
 	AccessToken string    `json:"accessToken"`
 	ExpiredAt   jsonStamp `json:"expiredAt"`
 	AppName     string    `json:"appName"`
-	UserInfoID  string    `json:"userInfoID"`
+	AuthInfoID  string    `json:"authInfoID"`
 	issuedAt    jsonStamp `json:"issuedAt"`
 }
 
@@ -110,17 +110,17 @@ func (t *jsonStamp) UnmarshalJSON(data []byte) (err error) {
 	return nil
 }
 
-// New creates a new Token ready for use given a userInfoID and
+// New creates a new Token ready for use given a authInfoID and
 // expiredAt date. If expiredAt is passed an empty Time, the token
 // does not expire.
-func New(appName string, userInfoID string, expiredAt time.Time) Token {
+func New(appName string, authInfoID string, expiredAt time.Time) Token {
 	return Token{
 		// NOTE(limouren): I am not sure if it is good to use UUID
 		// as access token.
 		AccessToken: uuid.New(),
 		ExpiredAt:   expiredAt,
 		AppName:     appName,
-		UserInfoID:  userInfoID,
+		AuthInfoID:  authInfoID,
 		issuedAt:    time.Now(),
 	}
 }
@@ -143,7 +143,7 @@ func (e *NotFoundError) Error() string {
 
 // Store represents a persistent storage for Token.
 type Store interface {
-	NewToken(appName string, userInfoID string) (Token, error)
+	NewToken(appName string, authInfoID string) (Token, error)
 	Get(accessToken string, token *Token) error
 	Put(token *Token) error
 	Delete(accessToken string) error

@@ -279,7 +279,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	resultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.UserInfo)
+	resultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -292,7 +292,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		Conn:          payload.DBConn,
 		AssetStore:    h.AssetStore,
 		HookRegistry:  h.HookRegistry,
-		UserInfo:      payload.UserInfo,
+		AuthInfo:      payload.AuthInfo,
 		RecordsToSave: p.Records,
 		Atomic:        p.Atomic,
 		WithMasterKey: payload.HasMasterKey(),
@@ -443,7 +443,7 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 	}
 
 	db := payload.Database
-	resultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.UserInfo)
+	resultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -453,7 +453,7 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 
 	results := make([]interface{}, p.ItemLen(), p.ItemLen())
 	for i, recordID := range p.RecordIDs {
-		record, err := fetcher.fetchRecord(recordID, payload.UserInfo, skydb.ReadLevel)
+		record, err := fetcher.fetchRecord(recordID, payload.AuthInfo, skydb.ReadLevel)
 		if err != nil {
 			results[i] = newSerializedError(
 				recordID.String(),
@@ -530,15 +530,15 @@ func (h *RecordQueryHandler) GetPreprocessors() []router.Processor {
 
 func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Response) {
 	p := &recordQueryPayload{}
-	parser := QueryParser{UserID: payload.UserInfoID}
+	parser := QueryParser{UserID: payload.AuthInfoID}
 	skyErr := p.Decode(payload.Data, &parser)
 	if skyErr != nil {
 		response.Err = skyErr
 		return
 	}
 
-	if payload.UserInfo != nil {
-		p.Query.ViewAsUser = payload.UserInfo
+	if payload.AuthInfo != nil {
+		p.Query.ViewAsUser = payload.AuthInfo
 	}
 
 	if payload.HasMasterKey() {
@@ -556,11 +556,11 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	visitor := &queryAccessVisitor{
 		FieldACL:   fieldACL,
 		RecordType: p.Query.Type,
-		UserInfo:   p.Query.ViewAsUser,
+		AuthInfo:   p.Query.ViewAsUser,
 		ExpressionACLChecker: ExpressionACLChecker{
 			FieldACL:   fieldACL,
 			RecordType: p.Query.Type,
-			UserInfo:   payload.UserInfo,
+			AuthInfo:   payload.AuthInfo,
 			Database:   payload.Database,
 		},
 	}
@@ -597,7 +597,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	eagerRecords := doQueryEager(db, eagerIDs(db, records, p.Query))
 
-	recordResultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.UserInfo)
+	recordResultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -727,7 +727,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		Atomic:            p.Atomic,
 		WithMasterKey:     payload.HasMasterKey(),
 		Context:           payload.Context,
-		UserInfo:          payload.UserInfo,
+		AuthInfo:          payload.AuthInfo,
 	}
 	resp := recordModifyResponse{
 		ErrMap: map[skydb.RecordID]skyerr.Error{},

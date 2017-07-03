@@ -75,7 +75,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 		router := handlertest.NewSingleRouteRouter(&RecordDeleteHandler{}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.Database = db
-			p.UserInfo = &skydb.UserInfo{
+			p.AuthInfo = &skydb.AuthInfo{
 				ID: "user0",
 			}
 		})
@@ -182,7 +182,7 @@ func TestRecordSaveHandler(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.DBConn = conn
 			payload.Database = db
-			payload.UserInfo = &skydb.UserInfo{
+			payload.AuthInfo = &skydb.AuthInfo{
 				ID: "user0",
 			}
 		})
@@ -429,7 +429,7 @@ func TestRecordSaveHandler(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.DBConn = conn
 			payload.Database = db
-			payload.UserInfo = &skydb.UserInfo{
+			payload.AuthInfo = &skydb.AuthInfo{
 				ID: "user0",
 			}
 		})
@@ -532,7 +532,7 @@ func TestRecordSaveDataType(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.Database = db
-			p.UserInfo = &skydb.UserInfo{
+			p.AuthInfo = &skydb.AuthInfo{
 				ID: "user0",
 			}
 		})
@@ -730,7 +730,7 @@ func TestRecordSaveBogusField(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.DBConn = conn
 			payload.Database = db
-			payload.UserInfo = &skydb.UserInfo{
+			payload.AuthInfo = &skydb.AuthInfo{
 				ID: "user0",
 			}
 		})
@@ -837,7 +837,7 @@ func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
 		noExtendDB := &noExtendDatabase{}
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.Database = noExtendDB
-			payload.UserInfo = &skydb.UserInfo{
+			payload.AuthInfo = &skydb.AuthInfo{
 				ID: "user0",
 			}
 		})
@@ -980,7 +980,7 @@ func TestRecordQuery(t *testing.T) {
 		})
 
 		Convey("Queries records with type and user", func() {
-			userInfo := skydb.UserInfo{
+			authInfo := skydb.AuthInfo{
 				ID: "user0",
 			}
 			payload := router.Payload{
@@ -989,7 +989,7 @@ func TestRecordQuery(t *testing.T) {
 				},
 				DBConn:   conn,
 				Database: db,
-				UserInfo: &userInfo,
+				AuthInfo: &authInfo,
 			}
 			response := router.Response{}
 
@@ -999,12 +999,12 @@ func TestRecordQuery(t *testing.T) {
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery, ShouldResemble, &skydb.Query{
 				Type:       "note",
-				ViewAsUser: &userInfo,
+				ViewAsUser: &authInfo,
 			})
 		})
 
 		Convey("Queries records with type and master key", func() {
-			userInfo := skydb.UserInfo{
+			authInfo := skydb.AuthInfo{
 				ID: "user0",
 			}
 			payload := router.Payload{
@@ -1013,7 +1013,7 @@ func TestRecordQuery(t *testing.T) {
 				},
 				DBConn:    conn,
 				Database:  db,
-				UserInfo:  &userInfo,
+				AuthInfo:  &authInfo,
 				AccessKey: router.MasterAccessKey,
 			}
 			response := router.Response{}
@@ -1024,7 +1024,7 @@ func TestRecordQuery(t *testing.T) {
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery, ShouldResemble, &skydb.Query{
 				Type:                "note",
-				ViewAsUser:          &userInfo,
+				ViewAsUser:          &authInfo,
 				BypassAccessControl: true,
 			})
 		})
@@ -1670,7 +1670,7 @@ func TestRecordFetchHandler(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&RecordFetchHandler{}, func(payload *router.Payload) {
 			payload.DBConn = conn
 			payload.Database = db
-			payload.UserInfo = &skydb.UserInfo{
+			payload.AuthInfo = &skydb.AuthInfo{
 				ID: "user0",
 			}
 		})
@@ -1714,7 +1714,7 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		injectDBFunc := func(payload *router.Payload) {
 			payload.Database = db
 			payload.DBConn = conn
-			payload.UserInfo = &skydb.UserInfo{
+			payload.AuthInfo = &skydb.AuthInfo{
 				ID: "ownerID",
 			}
 		}
@@ -1780,8 +1780,8 @@ func TestRecordMetaData(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 			payload.DBConn = conn
 			payload.Database = db
-			payload.UserInfoID = "requestUserID"
-			payload.UserInfo = &skydb.UserInfo{
+			payload.AuthInfoID = "requestUserID"
+			payload.AuthInfo = &skydb.AuthInfo{
 				ID: "requestUserID",
 			}
 		})
@@ -2355,7 +2355,7 @@ func TestHookExecution(t *testing.T) {
 				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
 					p.Database = db
 					p.DBConn = skydbtest.NewMapConn()
-					p.UserInfo = &skydb.UserInfo{
+					p.AuthInfo = &skydb.AuthInfo{
 						ID: "user0",
 					}
 				})
@@ -2373,7 +2373,7 @@ func TestHookExecution(t *testing.T) {
 				registry.Register(test.afterActionKind, "record", afterHook.Func)
 				r := handlertest.NewSingleRouteRouter(test.handler, func(p *router.Payload) {
 					p.Database = erroneousDB{}
-					p.UserInfo = &skydb.UserInfo{
+					p.AuthInfo = &skydb.AuthInfo{
 						ID: "user0",
 					}
 				})
@@ -2393,7 +2393,7 @@ func TestHookExecution(t *testing.T) {
 		}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.Database = db
-			p.UserInfo = &skydb.UserInfo{
+			p.AuthInfo = &skydb.AuthInfo{
 				ID: "user0",
 			}
 		})
@@ -2551,7 +2551,7 @@ func TestAtomicOperation(t *testing.T) {
 			r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
 				payload.DBConn = conn
 				payload.Database = db
-				payload.UserInfo = &skydb.UserInfo{
+				payload.AuthInfo = &skydb.AuthInfo{
 					ID: "user0",
 				}
 			})
@@ -2716,7 +2716,7 @@ func TestAtomicOperation(t *testing.T) {
 
 			r := handlertest.NewSingleRouteRouter(&RecordDeleteHandler{}, func(payload *router.Payload) {
 				payload.Database = db
-				payload.UserInfo = &skydb.UserInfo{
+				payload.AuthInfo = &skydb.AuthInfo{
 					ID: "user0",
 				}
 			})

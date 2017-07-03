@@ -21,7 +21,7 @@ type Device struct {
 	ID               string
 	Type             string
 	Token            string
-	UserInfoID       string
+	AuthInfoID       string
 	Topic            string
 	LastRegisteredAt time.Time
 }

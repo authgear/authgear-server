@@ -35,7 +35,7 @@ func TestDevice(t *testing.T) {
 				Type:             "ios",
 				Token:            "devicetoken",
 				Topic:            "devicetopic",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
@@ -48,7 +48,7 @@ func TestDevice(t *testing.T) {
 				Type:             "ios",
 				Token:            "devicetoken",
 				Topic:            "devicetopic",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 		})
@@ -59,7 +59,7 @@ func TestDevice(t *testing.T) {
 				Type:             "ios",
 				Token:            "devicetoken",
 				Topic:            "devicetopic",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 
@@ -67,15 +67,15 @@ func TestDevice(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var (
-				deviceType, token, topic, userInfoID string
+				deviceType, token, topic, authInfoID string
 				lastRegisteredAt                     time.Time
 			)
-			err = c.QueryRowx("SELECT type, token, topic, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").Scan(&deviceType, &token, &topic, &userInfoID, &lastRegisteredAt)
+			err = c.QueryRowx("SELECT type, token, topic, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").Scan(&deviceType, &token, &topic, &authInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
 			So(token, ShouldEqual, "devicetoken")
 			So(topic, ShouldEqual, "devicetopic")
-			So(userInfoID, ShouldEqual, "userid")
+			So(authInfoID, ShouldEqual, "userid")
 			So(lastRegisteredAt.Unix(), ShouldEqual, 1136214245)
 		})
 
@@ -85,7 +85,7 @@ func TestDevice(t *testing.T) {
 				Type:             "ios",
 				Token:            "devicetoken",
 				Topic:            "devicetopic",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 
@@ -96,15 +96,15 @@ func TestDevice(t *testing.T) {
 			So(c.SaveDevice(&device), ShouldBeNil)
 
 			var (
-				deviceType, token, topic, userInfoID string
+				deviceType, token, topic, authInfoID string
 				lastRegisteredAt                     time.Time
 			)
-			err = c.QueryRowx("SELECT type, token, topic, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").Scan(&deviceType, &token, &topic, &userInfoID, &lastRegisteredAt)
+			err = c.QueryRowx("SELECT type, token, topic, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").Scan(&deviceType, &token, &topic, &authInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
 			So(token, ShouldEqual, "anotherdevicetoken")
 			So(topic, ShouldEqual, "devicetopic")
-			So(userInfoID, ShouldEqual, "userid")
+			So(authInfoID, ShouldEqual, "userid")
 			So(lastRegisteredAt.Unix(), ShouldEqual, 1136214245)
 		})
 
@@ -112,7 +112,7 @@ func TestDevice(t *testing.T) {
 			device := skydb.Device{
 				Type:             "ios",
 				Token:            "devicetoken",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 
@@ -124,7 +124,7 @@ func TestDevice(t *testing.T) {
 			device := skydb.Device{
 				ID:               "deviceid",
 				Token:            "devicetoken",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 
@@ -136,7 +136,7 @@ func TestDevice(t *testing.T) {
 			device := skydb.Device{
 				ID:               "deviceid",
 				Type:             "pubsub",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 
@@ -149,7 +149,7 @@ func TestDevice(t *testing.T) {
 				ID:         "deviceid",
 				Type:       "ios",
 				Token:      "devicetoken",
-				UserInfoID: "userid",
+				AuthInfoID: "userid",
 			}
 
 			err := c.SaveDevice(&device)
@@ -161,7 +161,7 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "devicetoken",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
@@ -180,7 +180,7 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "devicetoken",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
@@ -199,7 +199,7 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "devicetoken",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
@@ -213,21 +213,21 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid0",
 				Type:             "ios",
 				Token:            "DEVICE_TOKEN",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			device1 := skydb.Device{
 				ID:               "deviceid1",
 				Type:             "ios",
 				Token:            "",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			device2 := skydb.Device{
 				ID:               "deviceid2",
 				Type:             "ios",
 				Token:            "",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device0), ShouldBeNil)
@@ -249,7 +249,7 @@ func TestDevice(t *testing.T) {
 				Type:             "ios",
 				Token:            "",
 				Topic:            "devicetopic",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 4, 59, time.UTC),
 			}
 			device1 := skydb.Device{
@@ -257,7 +257,7 @@ func TestDevice(t *testing.T) {
 				Type:             "ios",
 				Token:            "DEVICE_TOKEN",
 				Topic:            "devicetopic",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device0), ShouldBeNil)
@@ -277,7 +277,7 @@ func TestDevice(t *testing.T) {
 				ID:               "deviceid",
 				Type:             "ios",
 				Token:            "devicetoken",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
@@ -292,7 +292,7 @@ func TestDevice(t *testing.T) {
 				Type:             "ios",
 				Token:            "devicetoken",
 				Topic:            "devicetopic1",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
@@ -302,7 +302,7 @@ func TestDevice(t *testing.T) {
 				Type:             "android",
 				Token:            "",
 				Topic:            "devicetopic2",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
@@ -315,7 +315,7 @@ func TestDevice(t *testing.T) {
 				Type:             "ios",
 				Token:            "devicetoken",
 				Topic:            "devicetopic1",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 			So(devices[1], ShouldResemble, skydb.Device{
@@ -323,7 +323,7 @@ func TestDevice(t *testing.T) {
 				Type:             "android",
 				Token:            "",
 				Topic:            "devicetopic2",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 
@@ -338,7 +338,7 @@ func TestDevice(t *testing.T) {
 				Type:             "ios",
 				Token:            "devicetoken",
 				Topic:            "devicetopic1",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
@@ -348,7 +348,7 @@ func TestDevice(t *testing.T) {
 				Type:             "android",
 				Token:            "",
 				Topic:            "devicetopic1",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
@@ -358,7 +358,7 @@ func TestDevice(t *testing.T) {
 				Type:             "android",
 				Token:            "",
 				Topic:            "devicetopic2",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			}
 			So(c.SaveDevice(&device), ShouldBeNil)
@@ -371,7 +371,7 @@ func TestDevice(t *testing.T) {
 				Type:             "ios",
 				Token:            "devicetoken",
 				Topic:            "devicetopic1",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 			So(devices[1], ShouldResemble, skydb.Device{
@@ -379,7 +379,7 @@ func TestDevice(t *testing.T) {
 				Type:             "android",
 				Token:            "",
 				Topic:            "devicetopic1",
-				UserInfoID:       "userid",
+				AuthInfoID:       "userid",
 				LastRegisteredAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 			})
 

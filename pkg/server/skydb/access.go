@@ -72,19 +72,19 @@ func NewRecordACLEntryPublic(level RecordACLLevel) RecordACLEntry {
 	}
 }
 
-func (ace *RecordACLEntry) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
+func (ace *RecordACLEntry) Accessible(authinfo *AuthInfo, level RecordACLLevel) bool {
 	if ace.Public {
 		return ace.AccessibleLevel(level)
 	}
-	if userinfo == nil {
+	if authinfo == nil {
 		return false
 	}
-	if userinfo.ID == ace.UserID {
+	if authinfo.ID == ace.UserID {
 		if ace.AccessibleLevel(level) {
 			return true
 		}
 	}
-	for _, role := range userinfo.Roles {
+	for _, role := range authinfo.Roles {
 		if role == ace.Role {
 			if ace.AccessibleLevel(level) {
 				return true
@@ -117,7 +117,7 @@ func NewRecordACL(entries []RecordACLEntry) RecordACL {
 }
 
 // Accessible checks whether provided user info has certain access level
-func (acl RecordACL) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
+func (acl RecordACL) Accessible(authinfo *AuthInfo, level RecordACLLevel) bool {
 	if len(acl) == 0 {
 		// default behavior of empty ACL
 		return true
@@ -125,7 +125,7 @@ func (acl RecordACL) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
 
 	accessible := false
 	for _, ace := range acl {
-		if ace.Accessible(userinfo, level) {
+		if ace.Accessible(authinfo, level) {
 			accessible = true
 		}
 	}
@@ -192,7 +192,7 @@ func (acl FieldACL) Accessible(
 	recordType string,
 	field string,
 	mode FieldAccessMode,
-	userInfo *UserInfo,
+	authInfo *AuthInfo,
 	record *Record,
 ) bool {
 	// Create an iterator for Field ACL rules that applies to
@@ -207,7 +207,7 @@ func (acl FieldACL) Accessible(
 		}
 
 		// Only the rules that matches the user role will be selected.
-		if !entry.UserRole.Match(userInfo, record) {
+		if !entry.UserRole.Match(authInfo, record) {
 			continue
 		}
 
@@ -220,7 +220,7 @@ func (acl FieldACL) Accessible(
 // FieldACLIterator iterates FieldACL to find a list of rules that apply
 // to the specified record type and record field.
 //
-// The iterator does not consider the access mode, the UserInfo and the Record
+// The iterator does not consider the access mode, the AuthInfo and the Record
 // of individual access. So the result is always the same as long as the
 // FieldACL setting is unchanged. The list of rules can then be considered
 // one by one, which is specific to each individual request.
@@ -439,30 +439,30 @@ func (r FieldUserRole) Compare(other FieldUserRole) int {
 	return strings.Compare(r.Data, other.Data)
 }
 
-// Match returns true if the specifid UserInfo and Record matches the
+// Match returns true if the specifid AuthInfo and Record matches the
 // user role.
 //
 // If the specified user role type is record dependent, this function
 // returns false if Record is nil.
-func (r FieldUserRole) Match(userinfo *UserInfo, record *Record) bool {
+func (r FieldUserRole) Match(authinfo *AuthInfo, record *Record) bool {
 	if r.Type == PublicFieldUserRoleType {
 		return true
 	}
 
-	// Exit early if userinfo and record is nil
-	if userinfo == nil || (r.Type.RecordDependent() && record == nil) {
+	// Exit early if authinfo and record is nil
+	if authinfo == nil || (r.Type.RecordDependent() && record == nil) {
 		return false
 	}
 
 	switch r.Type {
 	case OwnerFieldUserRoleType:
-		return record.OwnerID == userinfo.ID
+		return record.OwnerID == authinfo.ID
 	case SpecificUserFieldUserRoleType:
-		return userinfo.ID == r.Data
+		return authinfo.ID == r.Data
 	case DynamicUserFieldUserRoleType:
-		return r.matchDynamic(userinfo, record)
+		return r.matchDynamic(authinfo, record)
 	case DefinedRoleFieldUserRoleType:
-		for _, role := range userinfo.Roles {
+		for _, role := range authinfo.Roles {
 			if role == r.Data {
 				return true
 			}
@@ -477,15 +477,15 @@ func (r FieldUserRole) Match(userinfo *UserInfo, record *Record) bool {
 
 // matchDynamic is a helper function for returning whether the
 // field user role with dynamic user field type matches the specified
-// UserInfo and Record.
-func (r FieldUserRole) matchDynamic(userInfo *UserInfo, record *Record) bool {
+// AuthInfo and Record.
+func (r FieldUserRole) matchDynamic(authInfo *AuthInfo, record *Record) bool {
 	dynamicFieldName := r.Data
 	switch fieldVal := record.Get(dynamicFieldName).(type) {
 	case string:
-		return userInfo.ID == fieldVal
+		return authInfo.ID == fieldVal
 	case []interface{}:
 		for _, item := range fieldVal {
-			if userID, ok := item.(string); ok && userID == userInfo.ID {
+			if userID, ok := item.(string); ok && userID == authInfo.ID {
 				return true
 			}
 		}

@@ -363,7 +363,7 @@ type Query struct {
 
 	// The following fields are generated from the server side, rather
 	// than supplied from the client side.
-	ViewAsUser          *UserInfo
+	ViewAsUser          *AuthInfo
 	BypassAccessControl bool
 }
 

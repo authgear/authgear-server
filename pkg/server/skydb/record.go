@@ -271,13 +271,13 @@ func (r *Record) UserKeys() []string {
 	return keys
 }
 
-func (r *Record) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
+func (r *Record) Accessible(authinfo *AuthInfo, level RecordACLLevel) bool {
 	if r.ACL == nil {
 		return true
 	}
 	userID := ""
-	if userinfo != nil {
-		userID = userinfo.ID
+	if authinfo != nil {
+		userID = authinfo.ID
 	}
 	if r.DatabaseID != "" && r.DatabaseID != userID {
 		return false
@@ -286,7 +286,7 @@ func (r *Record) Accessible(userinfo *UserInfo, level RecordACLLevel) bool {
 		return true
 	}
 
-	return r.ACL.Accessible(userinfo, level)
+	return r.ACL.Accessible(authinfo, level)
 }
 
 // Copy copies the content of the record.

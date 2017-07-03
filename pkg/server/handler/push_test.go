@@ -32,7 +32,7 @@ func TestPushToDevice(t *testing.T) {
 			ID:         "device",
 			Type:       "ios",
 			Token:      "token",
-			UserInfoID: "userid",
+			AuthInfoID: "userid",
 		}
 		conn := simpleDeviceConn{
 			devices: []skydb.Device{testdevice},
@@ -118,19 +118,19 @@ func TestPushToUser(t *testing.T) {
 			ID:         "device1",
 			Type:       "ios",
 			Token:      "token1",
-			UserInfoID: "johndoe",
+			AuthInfoID: "johndoe",
 		}
 		testdevice2 := skydb.Device{
 			ID:         "device2",
 			Type:       "ios",
 			Token:      "token2",
-			UserInfoID: "johndoe",
+			AuthInfoID: "johndoe",
 		}
 		testdevice3 := skydb.Device{
 			ID:         "device2",
 			Type:       "ios",
 			Token:      "token3",
-			UserInfoID: "janedoe",
+			AuthInfoID: "janedoe",
 		}
 		conn := simpleDeviceConn{
 			devices: []skydb.Device{testdevice1, testdevice2, testdevice3},
@@ -228,7 +228,7 @@ func (conn *simpleDeviceConn) GetDevice(id string, device *skydb.Device) error {
 func (conn *simpleDeviceConn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
 	var result []skydb.Device
 	for _, prospectiveDevice := range conn.devices {
-		if prospectiveDevice.UserInfoID == user {
+		if prospectiveDevice.AuthInfoID == user {
 			result = append(result, prospectiveDevice)
 		}
 	}

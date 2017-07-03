@@ -48,7 +48,7 @@ func (c *conn) GetDevice(id string, device *skydb.Device) error {
 
 	device.Token = nullableToken.String
 	device.Topic = nullableTopic.String
-	device.UserInfoID = nullableUserID.String
+	device.AuthInfoID = nullableUserID.String
 	device.LastRegisteredAt = device.LastRegisteredAt.In(time.UTC)
 	device.ID = id
 
@@ -74,7 +74,7 @@ func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
 			&d.ID,
 			&d.Type,
 			&nullableToken,
-			&d.UserInfoID,
+			&d.AuthInfoID,
 			&nullableTopic,
 			&d.LastRegisteredAt); err != nil {
 
@@ -107,7 +107,7 @@ func (c *conn) QueryDevicesByUserAndTopic(user, topic string) ([]skydb.Device, e
 			&d.ID,
 			&d.Type,
 			&nullableToken,
-			&d.UserInfoID,
+			&d.AuthInfoID,
 			&d.Topic,
 			&d.LastRegisteredAt); err != nil {
 
@@ -133,8 +133,8 @@ func (c *conn) SaveDevice(device *skydb.Device) error {
 		"last_registered_at": device.LastRegisteredAt.UTC(),
 	}
 
-	if device.UserInfoID != "" {
-		data["user_id"] = device.UserInfoID
+	if device.AuthInfoID != "" {
+		data["user_id"] = device.AuthInfoID
 	}
 
 	if device.Token != "" {

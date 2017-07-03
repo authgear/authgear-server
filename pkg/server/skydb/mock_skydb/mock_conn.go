@@ -69,7 +69,7 @@ func (_mr *MockConnMockRecorder) Close() *gomock.Call {
 }
 
 // CreateUser mocks base method
-func (_m *MockConn) CreateUser(_param0 *skydb.UserInfo) error {
+func (_m *MockConn) CreateUser(_param0 *skydb.AuthInfo) error {
 	ret := _m.ctrl.Call(_m, "CreateUser", _param0)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -231,7 +231,7 @@ func (_mr *MockConnMockRecorder) GetRecordFieldAccess() *gomock.Call {
 }
 
 // GetUser mocks base method
-func (_m *MockConn) GetUser(_param0 string, _param1 *skydb.UserInfo) error {
+func (_m *MockConn) GetUser(_param0 string, _param1 *skydb.AuthInfo) error {
 	ret := _m.ctrl.Call(_m, "GetUser", _param0, _param1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -243,7 +243,7 @@ func (_mr *MockConnMockRecorder) GetUser(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetUserByPrincipalID mocks base method
-func (_m *MockConn) GetUserByPrincipalID(_param0 string, _param1 *skydb.UserInfo) error {
+func (_m *MockConn) GetUserByPrincipalID(_param0 string, _param1 *skydb.AuthInfo) error {
 	ret := _m.ctrl.Call(_m, "GetUserByPrincipalID", _param0, _param1)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -255,7 +255,7 @@ func (_mr *MockConnMockRecorder) GetUserByPrincipalID(arg0, arg1 interface{}) *g
 }
 
 // GetUserByUsernameEmail mocks base method
-func (_m *MockConn) GetUserByUsernameEmail(_param0 string, _param1 string, _param2 *skydb.UserInfo) error {
+func (_m *MockConn) GetUserByUsernameEmail(_param0 string, _param1 string, _param2 *skydb.AuthInfo) error {
 	ret := _m.ctrl.Call(_m, "GetUserByUsernameEmail", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -317,9 +317,9 @@ func (_mr *MockConnMockRecorder) QueryDevicesByUserAndTopic(arg0, arg1 interface
 }
 
 // QueryRelation mocks base method
-func (_m *MockConn) QueryRelation(_param0 string, _param1 string, _param2 string, _param3 skydb.QueryConfig) []skydb.UserInfo {
+func (_m *MockConn) QueryRelation(_param0 string, _param1 string, _param2 string, _param3 skydb.QueryConfig) []skydb.AuthInfo {
 	ret := _m.ctrl.Call(_m, "QueryRelation", _param0, _param1, _param2, _param3)
-	ret0, _ := ret[0].([]skydb.UserInfo)
+	ret0, _ := ret[0].([]skydb.AuthInfo)
 	return ret0
 }
 
@@ -342,9 +342,9 @@ func (_mr *MockConnMockRecorder) QueryRelationCount(arg0, arg1, arg2 interface{}
 }
 
 // QueryUser mocks base method
-func (_m *MockConn) QueryUser(_param0 []string, _param1 []string) ([]skydb.UserInfo, error) {
+func (_m *MockConn) QueryUser(_param0 []string, _param1 []string) ([]skydb.AuthInfo, error) {
 	ret := _m.ctrl.Call(_m, "QueryUser", _param0, _param1)
-	ret0, _ := ret[0].([]skydb.UserInfo)
+	ret0, _ := ret[0].([]skydb.AuthInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -487,7 +487,7 @@ func (_mr *MockConnMockRecorder) UnionDB() *gomock.Call {
 }
 
 // UpdateUser mocks base method
-func (_m *MockConn) UpdateUser(_param0 *skydb.UserInfo) error {
+func (_m *MockConn) UpdateUser(_param0 *skydb.AuthInfo) error {
 	ret := _m.ctrl.Call(_m, "UpdateUser", _param0)
 	ret0, _ := ret[0].(error)
 	return ret0

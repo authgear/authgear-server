@@ -25,10 +25,10 @@ import (
 
 // MapConn is a naive memory implementation of skydb.Conn
 type MapConn struct {
-	UserMap                map[string]skydb.UserInfo
+	UserMap                map[string]skydb.AuthInfo
 	AssetMap               map[string]skydb.Asset
-	usernameMap            map[string]skydb.UserInfo
-	emailMap               map[string]skydb.UserInfo
+	usernameMap            map[string]skydb.AuthInfo
+	emailMap               map[string]skydb.AuthInfo
 	recordAccessMap        map[string]skydb.RecordACL
 	recordDefaultAccessMap map[string]skydb.RecordACL
 	fieldAccess            skydb.FieldACL
@@ -38,9 +38,9 @@ type MapConn struct {
 // NewMapConn returns a new MapConn.
 func NewMapConn() *MapConn {
 	return &MapConn{
-		UserMap:                map[string]skydb.UserInfo{},
-		usernameMap:            map[string]skydb.UserInfo{},
-		emailMap:               map[string]skydb.UserInfo{},
+		UserMap:                map[string]skydb.AuthInfo{},
+		usernameMap:            map[string]skydb.AuthInfo{},
+		emailMap:               map[string]skydb.AuthInfo{},
 		recordAccessMap:        map[string]skydb.RecordACL{},
 		recordDefaultAccessMap: map[string]skydb.RecordACL{},
 		fieldAccess:            skydb.FieldACL{},
@@ -48,39 +48,39 @@ func NewMapConn() *MapConn {
 	}
 }
 
-// CreateUser creates a UserInfo in UserMap.
-func (conn *MapConn) CreateUser(userinfo *skydb.UserInfo) error {
-	if _, existed := conn.UserMap[userinfo.ID]; existed {
+// CreateUser creates a AuthInfo in UserMap.
+func (conn *MapConn) CreateUser(authinfo *skydb.AuthInfo) error {
+	if _, existed := conn.UserMap[authinfo.ID]; existed {
 		return skydb.ErrUserDuplicated
 	}
-	if _, existed := conn.usernameMap[userinfo.Username]; existed {
+	if _, existed := conn.usernameMap[authinfo.Username]; existed {
 		return skydb.ErrUserDuplicated
 	}
-	if _, existed := conn.emailMap[userinfo.Email]; existed {
+	if _, existed := conn.emailMap[authinfo.Email]; existed {
 		return skydb.ErrUserDuplicated
 	}
 
-	conn.UserMap[userinfo.ID] = *userinfo
-	conn.usernameMap[strings.ToLower(userinfo.Username)] = *userinfo
-	conn.emailMap[strings.ToLower(userinfo.Email)] = *userinfo
+	conn.UserMap[authinfo.ID] = *authinfo
+	conn.usernameMap[strings.ToLower(authinfo.Username)] = *authinfo
+	conn.emailMap[strings.ToLower(authinfo.Email)] = *authinfo
 	return nil
 }
 
-// GetUser returns a UserInfo in UserMap.
-func (conn *MapConn) GetUser(id string, userinfo *skydb.UserInfo) error {
+// GetUser returns a AuthInfo in UserMap.
+func (conn *MapConn) GetUser(id string, authinfo *skydb.AuthInfo) error {
 	u, ok := conn.UserMap[id]
 	if !ok {
 		return skydb.ErrUserNotFound
 	}
 
-	*userinfo = u
+	*authinfo = u
 	return nil
 }
 
-// GetUserByUsernameEmail returns a UserInfo in UserMap by email address.
-func (conn *MapConn) GetUserByUsernameEmail(username string, email string, userinfo *skydb.UserInfo) error {
+// GetUserByUsernameEmail returns a AuthInfo in UserMap by email address.
+func (conn *MapConn) GetUserByUsernameEmail(username string, email string, authinfo *skydb.AuthInfo) error {
 	var (
-		u  skydb.UserInfo
+		u  skydb.AuthInfo
 		ok bool
 	)
 	if email == "" {
@@ -98,15 +98,15 @@ func (conn *MapConn) GetUserByUsernameEmail(username string, email string, useri
 		return skydb.ErrUserNotFound
 	}
 
-	*userinfo = u
+	*authinfo = u
 	return nil
 }
 
-// GetUserByPrincipalID returns a UserInfo by its principalID.
-func (conn *MapConn) GetUserByPrincipalID(principalID string, userinfo *skydb.UserInfo) error {
+// GetUserByPrincipalID returns a AuthInfo by its principalID.
+func (conn *MapConn) GetUserByPrincipalID(principalID string, authinfo *skydb.AuthInfo) error {
 	for _, u := range conn.UserMap {
 		if _, ok := u.Auth[principalID]; ok {
-			*userinfo = u
+			*authinfo = u
 			return nil
 		}
 	}
@@ -115,17 +115,17 @@ func (conn *MapConn) GetUserByPrincipalID(principalID string, userinfo *skydb.Us
 }
 
 // QueryUser is not implemented.
-func (conn *MapConn) QueryUser(emails []string, usernames []string) ([]skydb.UserInfo, error) {
+func (conn *MapConn) QueryUser(emails []string, usernames []string) ([]skydb.AuthInfo, error) {
 	panic("not implemented")
 }
 
-// UpdateUser updates an existing UserInfo in UserMap.
-func (conn *MapConn) UpdateUser(userinfo *skydb.UserInfo) error {
-	if _, ok := conn.UserMap[userinfo.ID]; !ok {
+// UpdateUser updates an existing AuthInfo in UserMap.
+func (conn *MapConn) UpdateUser(authinfo *skydb.AuthInfo) error {
+	if _, ok := conn.UserMap[authinfo.ID]; !ok {
 		return skydb.ErrUserNotFound
 	}
 
-	conn.UserMap[userinfo.ID] = *userinfo
+	conn.UserMap[authinfo.ID] = *authinfo
 	return nil
 }
 
@@ -228,7 +228,7 @@ func (conn *MapConn) GetAssets(names []string) ([]skydb.Asset, error) {
 }
 
 // QueryRelation is not implemented.
-func (conn *MapConn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.UserInfo {
+func (conn *MapConn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.AuthInfo {
 	panic("not implemented")
 }
 

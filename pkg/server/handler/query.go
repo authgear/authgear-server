@@ -412,8 +412,8 @@ type queryAccessVisitor struct {
 	// Record Type is type of the record being queried.
 	RecordType string
 
-	// UserInfo is the current logged in user.
-	UserInfo *skydb.UserInfo
+	// AuthInfo is the current logged in user.
+	AuthInfo *skydb.AuthInfo
 
 	// ExpressionACLChecker is the helper struct for evaluating whether
 	// the Field ACL settings allow access for an Expression.
@@ -513,7 +513,7 @@ func (c *queryAccessVisitor) Error() skyerr.Error {
 type ExpressionACLChecker struct {
 	FieldACL   skydb.FieldACL
 	RecordType string
-	UserInfo   *skydb.UserInfo
+	AuthInfo   *skydb.AuthInfo
 	Database   skydb.Database
 }
 
@@ -562,7 +562,7 @@ func (c *ExpressionACLChecker) checkKeyPath(keyPath string, accessMode skydb.Fie
 			recordType,
 			component,
 			accessMode,
-			c.UserInfo,
+			c.AuthInfo,
 			nil,
 		) {
 			var msg string

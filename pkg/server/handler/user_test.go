@@ -32,9 +32,9 @@ type queryUserConn struct {
 	skydb.Conn
 }
 
-func (userconn queryUserConn) QueryUser(emails []string, usernames []string) ([]skydb.UserInfo, error) {
-	myUserInfos := []skydb.UserInfo{
-		skydb.UserInfo{
+func (userconn queryUserConn) QueryUser(emails []string, usernames []string) ([]skydb.AuthInfo, error) {
+	myAuthInfos := []skydb.AuthInfo{
+		skydb.AuthInfo{
 			ID:             "user0",
 			Email:          "john.doe@example.com",
 			Username:       "johndoe",
@@ -43,7 +43,7 @@ func (userconn queryUserConn) QueryUser(emails []string, usernames []string) ([]
 				"Programmer",
 			},
 		},
-		skydb.UserInfo{
+		skydb.AuthInfo{
 			ID:             "user1",
 			Username:       "johndoe1",
 			Email:          "jane.doe+1@example.com",
@@ -51,19 +51,19 @@ func (userconn queryUserConn) QueryUser(emails []string, usernames []string) ([]
 		},
 	}
 
-	results := []skydb.UserInfo{}
+	results := []skydb.AuthInfo{}
 	for _, email := range emails {
-		for _, userInfo := range myUserInfos {
-			if userInfo.Email == email {
-				results = append(results, userInfo)
+		for _, authInfo := range myAuthInfos {
+			if authInfo.Email == email {
+				results = append(results, authInfo)
 				break
 			}
 		}
 	}
 	for _, username := range usernames {
-		for _, userInfo := range myUserInfos {
-			if userInfo.Username == username {
-				results = append(results, userInfo)
+		for _, authInfo := range myAuthInfos {
+			if authInfo.Username == username {
+				results = append(results, authInfo)
 				break
 			}
 		}
@@ -79,7 +79,7 @@ func (userconn queryUserConn) GetAdminRoles() ([]string, error) {
 
 func TestUserQueryHandler(t *testing.T) {
 	Convey("UserQueryHandler", t, func() {
-		adminUserInfo := skydb.UserInfo{
+		adminAuthInfo := skydb.AuthInfo{
 			ID:             "admin",
 			Email:          "admin@example.com",
 			Username:       "admin",
@@ -91,7 +91,7 @@ func TestUserQueryHandler(t *testing.T) {
 
 		adminRouter := handlertest.NewSingleRouteRouter(&UserQueryHandler{}, func(p *router.Payload) {
 			p.DBConn = queryUserConn{}
-			p.UserInfo = &adminUserInfo
+			p.AuthInfo = &adminAuthInfo
 		})
 
 		Convey("query non-existent email", func() {
@@ -165,7 +165,7 @@ func TestUserQueryHandler(t *testing.T) {
 }`)
 		})
 
-		nonAdminUserInfo := skydb.UserInfo{
+		nonAdminAuthInfo := skydb.AuthInfo{
 			ID:             "non-admin",
 			Email:          "non-admin@example.com",
 			Username:       "non-admin",
@@ -175,7 +175,7 @@ func TestUserQueryHandler(t *testing.T) {
 		Convey("query non-existent email with non-admin", func() {
 			nonAdminRouter := handlertest.NewSingleRouteRouter(&UserQueryHandler{}, func(p *router.Payload) {
 				p.DBConn = queryUserConn{}
-				p.UserInfo = &nonAdminUserInfo
+				p.AuthInfo = &nonAdminAuthInfo
 			})
 			resp := nonAdminRouter.POST(`{
 				"emails": ["peter.doe@example.com"]
@@ -195,7 +195,7 @@ func TestUserQueryHandler(t *testing.T) {
 				&UserQueryHandler{},
 				func(p *router.Payload) {
 					p.DBConn = queryUserConn{}
-					p.UserInfo = &nonAdminUserInfo
+					p.AuthInfo = &nonAdminAuthInfo
 					p.AccessKey = router.MasterAccessKey
 				},
 			)
@@ -212,19 +212,19 @@ func TestUserQueryHandler(t *testing.T) {
 func TestUserUpdateHandler(t *testing.T) {
 	Convey("UserUpdateHandler", t, func() {
 		conn := skydbtest.NewMapConn()
-		userInfo := skydb.UserInfo{
+		authInfo := skydb.AuthInfo{
 			ID:             "user0",
 			Username:       "john.doe",
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("password"),
 		}
-		conn.CreateUser(&userInfo)
+		conn.CreateUser(&authInfo)
 
 		r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
 			AccessModel: skydb.RoleBasedAccess,
 		}, func(p *router.Payload) {
 			p.DBConn = conn
-			p.UserInfo = &userInfo
+			p.AuthInfo = &authInfo
 		})
 
 		Convey("update email", func() {
@@ -240,25 +240,25 @@ func TestUserUpdateHandler(t *testing.T) {
 	}
 }`)
 
-			newUserInfo := skydb.UserInfo{}
-			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
-			So(newUserInfo.Email, ShouldEqual, "peter.doe@example.com")
+			newAuthInfo := skydb.AuthInfo{}
+			So(conn.GetUser("user0", &newAuthInfo), ShouldBeNil)
+			So(newAuthInfo.Email, ShouldEqual, "peter.doe@example.com")
 		})
 
 		Convey("admin can expand its roles", func() {
 			conn := skydbtest.NewMapConn()
-			userInfo := skydb.UserInfo{
+			authInfo := skydb.AuthInfo{
 				ID:       "user0",
 				Username: "username0",
 				Roles:    []string{"admin"},
 			}
-			conn.CreateUser(&userInfo)
+			conn.CreateUser(&authInfo)
 
 			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
 				AccessModel: skydb.RoleBasedAccess,
 			}, func(p *router.Payload) {
 				p.DBConn = conn
-				p.UserInfo = &userInfo
+				p.AuthInfo = &authInfo
 			})
 
 			resp := r.POST(`{
@@ -277,18 +277,18 @@ func TestUserUpdateHandler(t *testing.T) {
 
 		Convey("client with master key can expand its roles", func() {
 			conn := skydbtest.NewMapConn()
-			userInfo := skydb.UserInfo{
+			authInfo := skydb.AuthInfo{
 				ID:       "user0",
 				Username: "username0",
 				Roles:    []string{},
 			}
-			conn.CreateUser(&userInfo)
+			conn.CreateUser(&authInfo)
 
 			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
 				AccessModel: skydb.RoleBasedAccess,
 			}, func(p *router.Payload) {
 				p.DBConn = conn
-				p.UserInfo = &userInfo
+				p.AuthInfo = &authInfo
 				p.AccessKey = router.MasterAccessKey
 			})
 
@@ -308,18 +308,18 @@ func TestUserUpdateHandler(t *testing.T) {
 
 		Convey("missing roles key in payload will left the roles un-modified", func() {
 			conn := skydbtest.NewMapConn()
-			userInfo := skydb.UserInfo{
+			authInfo := skydb.AuthInfo{
 				ID:       "user0",
 				Username: "username0",
 				Roles:    []string{"admin"},
 			}
-			conn.CreateUser(&userInfo)
+			conn.CreateUser(&authInfo)
 
 			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
 				AccessModel: skydb.RoleBasedAccess,
 			}, func(p *router.Payload) {
 				p.DBConn = conn
-				p.UserInfo = &userInfo
+				p.AuthInfo = &authInfo
 			})
 
 			resp := r.POST(`{
@@ -336,17 +336,17 @@ func TestUserUpdateHandler(t *testing.T) {
 		})
 		Convey("prevent non-admin assign expand his roles", func() {
 			conn := skydbtest.NewMapConn()
-			userInfo := skydb.UserInfo{
+			authInfo := skydb.AuthInfo{
 				ID:       "user0",
 				Username: "username0",
 			}
-			conn.CreateUser(&userInfo)
+			conn.CreateUser(&authInfo)
 
 			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
 				AccessModel: skydb.RoleBasedAccess,
 			}, func(p *router.Payload) {
 				p.DBConn = conn
-				p.UserInfo = &userInfo
+				p.AuthInfo = &authInfo
 			})
 
 			resp := r.POST(`{
@@ -364,18 +364,18 @@ func TestUserUpdateHandler(t *testing.T) {
 
 		Convey("allow non-admin user to remove his roles", func() {
 			conn := skydbtest.NewMapConn()
-			userInfo := skydb.UserInfo{
+			authInfo := skydb.AuthInfo{
 				ID:       "user0",
 				Username: "username0",
 				Roles:    []string{"user", "human"},
 			}
-			conn.CreateUser(&userInfo)
+			conn.CreateUser(&authInfo)
 
 			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
 				AccessModel: skydb.RoleBasedAccess,
 			}, func(p *router.Payload) {
 				p.DBConn = conn
-				p.UserInfo = &userInfo
+				p.AuthInfo = &authInfo
 			})
 
 			resp := r.POST(`{
@@ -394,17 +394,17 @@ func TestUserUpdateHandler(t *testing.T) {
 
 		Convey("update roles at non role base configuration result in error", func() {
 			conn := skydbtest.NewMapConn()
-			userInfo := skydb.UserInfo{
+			authInfo := skydb.AuthInfo{
 				ID:       "user0",
 				Username: "username0",
 			}
-			conn.CreateUser(&userInfo)
+			conn.CreateUser(&authInfo)
 
 			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
 				AccessModel: skydb.RelationBasedAccess,
 			}, func(p *router.Payload) {
 				p.DBConn = conn
-				p.UserInfo = &userInfo
+				p.AuthInfo = &authInfo
 			})
 
 			resp := r.POST(`{
@@ -425,18 +425,18 @@ func TestUserUpdateHandler(t *testing.T) {
 
 		Convey("Regression #564, update roles with duplicated roles will result in InvalidaArgumnet", func() {
 			conn := skydbtest.NewMapConn()
-			userInfo := skydb.UserInfo{
+			authInfo := skydb.AuthInfo{
 				ID:       "user0",
 				Username: "username0",
 				Roles:    []string{"admin"},
 			}
-			conn.CreateUser(&userInfo)
+			conn.CreateUser(&authInfo)
 
 			r := handlertest.NewSingleRouteRouter(&UserUpdateHandler{
 				AccessModel: skydb.RoleBasedAccess,
 			}, func(p *router.Payload) {
 				p.DBConn = conn
-				p.UserInfo = &userInfo
+				p.AuthInfo = &authInfo
 			})
 
 			resp := r.POST(`{
@@ -460,23 +460,23 @@ func TestUserUpdateHandler(t *testing.T) {
 func TestUserLinkHandler(t *testing.T) {
 	Convey("UserLinkHandler", t, func() {
 		conn := skydbtest.NewMapConn()
-		userInfo := skydb.UserInfo{
+		authInfo := skydb.AuthInfo{
 			ID:             "user0",
 			Username:       "username0",
 			Email:          "john.doe@example.com",
 			HashedPassword: []byte("password"),
 		}
-		conn.CreateUser(&userInfo)
-		userInfo2 := skydb.UserInfo{
+		conn.CreateUser(&authInfo)
+		authInfo2 := skydb.AuthInfo{
 			ID:             "user1",
 			Username:       "username1",
 			Email:          "john.doe@example.org",
 			HashedPassword: []byte("password"),
-			Auth: skydb.AuthInfo{
+			Auth: skydb.ProviderInfo{
 				"org.example:johndoe": map[string]interface{}{},
 			},
 		}
-		conn.CreateUser(&userInfo2)
+		conn.CreateUser(&authInfo2)
 
 		providerRegistry := provider.NewRegistry()
 		providerRegistry.RegisterAuthProvider("com.example", handlertest.NewSingleUserAuthProvider("com.example", "johndoe"))
@@ -485,7 +485,7 @@ func TestUserLinkHandler(t *testing.T) {
 			ProviderRegistry: providerRegistry,
 		}, func(p *router.Payload) {
 			p.DBConn = conn
-			p.UserInfo = &userInfo
+			p.AuthInfo = &authInfo
 		})
 
 		Convey("link account with non-existent provider", func() {
@@ -505,9 +505,9 @@ func TestUserLinkHandler(t *testing.T) {
 			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
 
-			newUserInfo := skydb.UserInfo{}
-			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
-			So(newUserInfo.Auth["com.example:johndoe"], ShouldResemble, map[string]interface{}{
+			newAuthInfo := skydb.AuthInfo{}
+			So(conn.GetUser("user0", &newAuthInfo), ShouldBeNil)
+			So(newAuthInfo.Auth["com.example:johndoe"], ShouldResemble, map[string]interface{}{
 				"name": "johndoe",
 			})
 		})
@@ -516,13 +516,13 @@ func TestUserLinkHandler(t *testing.T) {
 			resp := r.POST(`{"provider": "org.example", "auth_data": {"name": "johndoe"}}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
 
-			newUserInfo := skydb.UserInfo{}
-			So(conn.GetUser("user0", &newUserInfo), ShouldBeNil)
-			So(newUserInfo.Auth["org.example:johndoe"], ShouldResemble, map[string]interface{}{
+			newAuthInfo := skydb.AuthInfo{}
+			So(conn.GetUser("user0", &newAuthInfo), ShouldBeNil)
+			So(newAuthInfo.Auth["org.example:johndoe"], ShouldResemble, map[string]interface{}{
 				"name": "johndoe",
 			})
-			So(conn.GetUser("user1", &newUserInfo), ShouldBeNil)
-			_, err := newUserInfo.Auth["org.example:johndoe"]
+			So(conn.GetUser("user1", &newAuthInfo), ShouldBeNil)
+			_, err := newAuthInfo.Auth["org.example:johndoe"]
 			So(err, ShouldNotBeNil)
 		})
 	})

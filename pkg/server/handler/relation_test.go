@@ -28,7 +28,7 @@ import (
 )
 
 type testRelationConn struct {
-	UserInfo     []skydb.UserInfo
+	AuthInfo     []skydb.AuthInfo
 	RelationName string
 	addedID      string
 	removeID     string
@@ -37,33 +37,33 @@ type testRelationConn struct {
 	skydb.Conn
 }
 
-func (conn *testRelationConn) GetUser(id string, userinfo *skydb.UserInfo) error {
-	userinfo.ID = id
-	userinfo.Username = "testRelationConn"
+func (conn *testRelationConn) GetUser(id string, authinfo *skydb.AuthInfo) error {
+	authinfo.ID = id
+	authinfo.Username = "testRelationConn"
 	return nil
 }
 
-type sortableUserInfo []skydb.UserInfo
+type sortableAuthInfo []skydb.AuthInfo
 
-func (a sortableUserInfo) Len() int           { return len(a) }
-func (a sortableUserInfo) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a sortableUserInfo) Less(i, j int) bool { return a[i].ID < a[j].ID }
+func (a sortableAuthInfo) Len() int           { return len(a) }
+func (a sortableAuthInfo) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a sortableAuthInfo) Less(i, j int) bool { return a[i].ID < a[j].ID }
 
-func (conn *testRelationConn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.UserInfo {
+func (conn *testRelationConn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.AuthInfo {
 	conn.RelationName = name
-	if conn.UserInfo == nil {
-		return []skydb.UserInfo{}
+	if conn.AuthInfo == nil {
+		return []skydb.AuthInfo{}
 	}
 
-	sort.Sort(sortableUserInfo(conn.UserInfo))
+	sort.Sort(sortableAuthInfo(conn.AuthInfo))
 	if config.Limit == 0 {
-		return conn.UserInfo[config.Offset:]
+		return conn.AuthInfo[config.Offset:]
 	}
 
-	if config.Offset+config.Limit-1 > uint64(len(conn.UserInfo)) {
-		return conn.UserInfo[config.Offset:]
+	if config.Offset+config.Limit-1 > uint64(len(conn.AuthInfo)) {
+		return conn.AuthInfo[config.Offset:]
 	}
-	return conn.UserInfo[config.Offset : config.Offset+config.Limit]
+	return conn.AuthInfo[config.Offset : config.Offset+config.Limit]
 }
 
 func (conn *testRelationConn) AddRelation(user string, name string, targetUser string) error {
@@ -80,10 +80,10 @@ func (conn *testRelationConn) RemoveRelation(user string, name string, targetUse
 
 func (conn *testRelationConn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
 	conn.RelationName = name
-	if conn.UserInfo == nil {
+	if conn.AuthInfo == nil {
 		return 0, nil
 	}
-	count := uint64(len(conn.UserInfo))
+	count := uint64(len(conn.AuthInfo))
 	return count, nil
 }
 
@@ -140,13 +140,13 @@ func TestRelationHandler(t *testing.T) {
 		})
 
 		Convey("query inward relation with count", func() {
-			users := []skydb.UserInfo{}
-			users = append(users, skydb.UserInfo{
+			users := []skydb.AuthInfo{}
+			users = append(users, skydb.AuthInfo{
 				ID:       "101",
 				Username: "user101",
 				Email:    "user101@skygear.io",
 			})
-			conn.UserInfo = users
+			conn.AuthInfo = users
 			resp := r.POST(`{
     "name": "follow",
     "direction": "outward"
@@ -185,21 +185,21 @@ func TestRelationHandler(t *testing.T) {
 		})
 
 		Convey("query relation with pagination", func() {
-			user1 := skydb.UserInfo{
+			user1 := skydb.AuthInfo{
 				ID:       "101",
 				Username: "user101",
 				Email:    "user101@skygear.io",
 			}
-			user2 := skydb.UserInfo{
+			user2 := skydb.AuthInfo{
 				ID:       "102",
 				Username: "user102",
 				Email:    "user102@skygear.io",
 			}
 
-			users := []skydb.UserInfo{}
+			users := []skydb.AuthInfo{}
 			users = append(users, user1)
 			users = append(users, user2)
-			conn.UserInfo = users
+			conn.AuthInfo = users
 			resp := r.POST(`{
     "name": "follow",
     "direction": "outward",

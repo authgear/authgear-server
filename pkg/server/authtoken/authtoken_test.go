@@ -44,8 +44,8 @@ func TestNewToken(t *testing.T) {
 		t.Fatalf("got token.AppName = %v, want com_oursky_skygear", token.AppName)
 	}
 
-	if token.UserInfoID != "46709394" {
-		t.Fatalf("got token.UserInfoID = %v, want 46709394", token.UserInfoID)
+	if token.AuthInfoID != "46709394" {
+		t.Fatalf("got token.AuthInfoID = %v, want 46709394", token.AuthInfoID)
 	}
 
 	if token.AccessToken == "" {
@@ -90,13 +90,13 @@ func TestEmptyTokenIsNotExpired(t *testing.T) {
 }
 
 func TestFileStorePut(t *testing.T) {
-	const savedFileContent = `{"accessToken":"sometoken","expiredAt":1000000001,"appName":"com_oursky_skygear","userInfoID":"someuserinfoid"}
+	const savedFileContent = `{"accessToken":"sometoken","expiredAt":1000000001,"appName":"com_oursky_skygear","authInfoID":"someauthinfoid"}
 `
 	token := Token{
 		AccessToken: "sometoken",
 		ExpiredAt:   time.Unix(1, 1).UTC(),
 		AppName:     "com_oursky_skygear",
-		UserInfoID:  "someuserinfoid",
+		AuthInfoID:  "someauthinfoid",
 	}
 
 	dir := tempDir()
@@ -124,13 +124,13 @@ func TestFileStorePut(t *testing.T) {
 }
 
 func TestFileStorePutZeroExpiry(t *testing.T) {
-	const savedFileContent = `{"accessToken":"sometoken","expiredAt":0,"appName":"com_oursky_skygear","userInfoID":"someuserinfoid"}
+	const savedFileContent = `{"accessToken":"sometoken","expiredAt":0,"appName":"com_oursky_skygear","authInfoID":"someauthinfoid"}
 `
 	token := Token{
 		AccessToken: "sometoken",
 		ExpiredAt:   time.Time{},
 		AppName:     "com_oursky_skygear",
-		UserInfoID:  "someuserinfoid",
+		AuthInfoID:  "someauthinfoid",
 	}
 
 	dir := tempDir()
@@ -172,7 +172,7 @@ func TestFileStoreGet(t *testing.T) {
 				AccessToken: "sometoken",
 				ExpiredAt:   tomorrow,
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			}), ShouldBeNil)
 
 			err := store.Get("sometoken", &token)
@@ -182,7 +182,7 @@ func TestFileStoreGet(t *testing.T) {
 				AccessToken: "sometoken",
 				ExpiredAt:   tomorrow,
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			})
 		})
 
@@ -191,7 +191,7 @@ func TestFileStoreGet(t *testing.T) {
 				AccessToken: "sometoken",
 				ExpiredAt:   time.Time{},
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			}), ShouldBeNil)
 
 			err := store.Get("sometoken", &token)
@@ -201,7 +201,7 @@ func TestFileStoreGet(t *testing.T) {
 				AccessToken: "sometoken",
 				ExpiredAt:   time.Time{},
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			})
 			So(token.IsExpired(), ShouldBeFalse)
 		})
@@ -213,7 +213,7 @@ func TestFileStoreGet(t *testing.T) {
 	"accessToken": "sometoken",
 	"expiredAt": %v,
 	"appName": "com_oursky_skygear",
-	"userInfoID": "someuserinfoid"
+	"authInfoID": "someauthinfoid"
 }
 			`, yesterday.UnixNano())
 
@@ -262,7 +262,7 @@ func TestFileStoreEscape(t *testing.T) {
 				AccessToken: "../outerfile",
 				ExpiredAt:   time.Unix(1, 1).UTC(),
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			}
 			err := store.Put(&token)
 			So(err.Error(), ShouldEqual, `get "../outerfile": invalid access token`)
@@ -348,7 +348,7 @@ func TestRedisStoreGet(t *testing.T) {
 				AccessToken: tokenName,
 				ExpiredAt:   tomorrow,
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			}
 			err := r.Put(&token)
 			So(err, ShouldBeNil)
@@ -365,7 +365,7 @@ func TestRedisStoreGet(t *testing.T) {
 				AccessToken: tokenName,
 				ExpiredAt:   time.Time{},
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			}
 			err := r.Put(&token)
 			So(err, ShouldBeNil)
@@ -384,7 +384,7 @@ func TestRedisStoreGet(t *testing.T) {
 				AccessToken: tokenName,
 				ExpiredAt:   yesterday,
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			}
 			err := r.Put(&token)
 			So(err, ShouldBeNil)
@@ -401,7 +401,7 @@ func TestRedisStoreGet(t *testing.T) {
 				AccessToken: tokenName,
 				ExpiredAt:   tomorrow,
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			}
 			err := r.Put(&token)
 			So(err, ShouldBeNil)
@@ -417,7 +417,7 @@ func TestRedisStoreGet(t *testing.T) {
 					AccessToken: tokenName,
 					ExpiredAt:   future,
 					AppName:     "com_oursky_skygear",
-					UserInfoID:  "someuserinfoid",
+					AuthInfoID:  "someauthinfoid",
 				}
 				err := r.Put(&token)
 				So(err, ShouldBeNil)
@@ -434,7 +434,7 @@ func TestRedisStoreGet(t *testing.T) {
 					AccessToken: tokenName,
 					ExpiredAt:   past,
 					AppName:     "com_oursky_skygear",
-					UserInfoID:  "someuserinfoid",
+					AuthInfoID:  "someauthinfoid",
 				}
 				err := r.Put(&token)
 				So(err, ShouldBeNil)
@@ -466,7 +466,7 @@ func TestRedisStorePut(t *testing.T) {
 			AccessToken: tokenName,
 			ExpiredAt:   tomorrow,
 			AppName:     "com_oursky_skygear",
-			UserInfoID:  "someuserinfoid",
+			AuthInfoID:  "someauthinfoid",
 		}
 
 		err := r.Put(&token)
@@ -486,7 +486,7 @@ func TestRedisStoreDelete(t *testing.T) {
 				AccessToken: tokenName,
 				ExpiredAt:   tomorrow,
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			}
 			err := r.Put(&token)
 			So(err, ShouldBeNil)
@@ -519,7 +519,7 @@ func TestRedisStorePrefix(t *testing.T) {
 				AccessToken: tokenName,
 				ExpiredAt:   tomorrow,
 				AppName:     "com_oursky_skygear",
-				UserInfoID:  "someuserinfoid",
+				AuthInfoID:  "someauthinfoid",
 			}
 			err := r.Put(&token)
 			So(err, ShouldBeNil)

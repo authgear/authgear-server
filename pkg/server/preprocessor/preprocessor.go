@@ -31,11 +31,11 @@ var log = logging.LoggerEntry("preprocessor")
 type InjectUserIfPresent struct {
 }
 
-func isTokenStillValid(token router.AccessToken, userInfo skydb.UserInfo) bool {
-	if userInfo.TokenValidSince == nil {
+func isTokenStillValid(token router.AccessToken, authInfo skydb.AuthInfo) bool {
+	if authInfo.TokenValidSince == nil {
 		return true
 	}
-	tokenValidSince := *userInfo.TokenValidSince
+	tokenValidSince := *authInfo.TokenValidSince
 
 	// Not all types of access token support this field. The token is
 	// still considered if it does not have an issue time.
@@ -44,34 +44,34 @@ func isTokenStillValid(token router.AccessToken, userInfo skydb.UserInfo) bool {
 	}
 
 	// Due to precision, the issue time of the token can be before
-	// UserInfo.TokenValidSince. We consider the token still valid
+	// AuthInfo.TokenValidSince. We consider the token still valid
 	// if the token is issued within 1 second before tokenValidSince.
 	return token.IssuedAt().After(tokenValidSince.Add(-1 * time.Second))
 }
 
 func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
-	if payload.UserInfoID == "" {
+	if payload.AuthInfoID == "" {
 		if !payload.HasMasterKey() {
-			log.Debugln("injectUser: empty UserInfoID, skipping")
+			log.Debugln("injectUser: empty AuthInfoID, skipping")
 			return http.StatusOK
 		}
-		payload.UserInfoID = "_god"
+		payload.AuthInfoID = "_god"
 		payload.Context = context.WithValue(payload.Context, router.UserIDContextKey, "_god")
 	}
 
 	conn := payload.DBConn
-	userinfo := skydb.UserInfo{}
-	if err := conn.GetUser(payload.UserInfoID, &userinfo); err != nil {
+	authinfo := skydb.AuthInfo{}
+	if err := conn.GetUser(payload.AuthInfoID, &authinfo); err != nil {
 		if err == skydb.ErrUserNotFound && payload.HasMasterKey() {
-			userinfo = skydb.UserInfo{
-				ID: payload.UserInfoID,
+			authinfo = skydb.AuthInfo{
+				ID: payload.AuthInfoID,
 			}
-			if err := payload.DBConn.CreateUser(&userinfo); err != nil && err != skydb.ErrUserDuplicated {
+			if err := payload.DBConn.CreateUser(&authinfo); err != nil && err != skydb.ErrUserDuplicated {
 				return http.StatusInternalServerError
 			}
 		} else {
-			log.Errorf("Cannot find UserInfo.ID = %#v\n", payload.UserInfoID)
-			response.Err = skyerr.NewError(skyerr.UnexpectedUserInfoNotFound, err.Error())
+			log.Errorf("Cannot find AuthInfo.ID = %#v\n", payload.AuthInfoID)
+			response.Err = skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, err.Error())
 			return http.StatusInternalServerError
 		}
 	}
@@ -79,12 +79,12 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 	// If an access token exists checks if the access token has an IssuedAt
 	// time that is later than the user's TokenValidSince time. This
 	// allows user to invalidate previously issued access token.
-	if payload.AccessToken != nil && !isTokenStillValid(payload.AccessToken, userinfo) {
+	if payload.AccessToken != nil && !isTokenStillValid(payload.AccessToken, authinfo) {
 		response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
 		return http.StatusUnauthorized
 	}
 
-	payload.UserInfo = &userinfo
+	payload.AuthInfo = &authinfo
 
 	return http.StatusOK
 }
@@ -102,8 +102,8 @@ func (p InjectDatabase) Preprocess(payload *router.Payload, response *router.Res
 
 	switch databaseID {
 	case "_private":
-		if payload.UserInfo != nil {
-			payload.Database = conn.PrivateDB(payload.UserInfo.ID)
+		if payload.AuthInfo != nil {
+			payload.Database = conn.PrivateDB(payload.AuthInfo.ID)
 		} else {
 			response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is needed for private DB access")
 			return http.StatusUnauthorized
@@ -122,7 +122,7 @@ func (p InjectDatabase) Preprocess(payload *router.Payload, response *router.Res
 			return http.StatusBadRequest
 		} else if payload.HasMasterKey() {
 			payload.Database = conn.PrivateDB(databaseID)
-		} else if payload.UserInfo != nil && databaseID == payload.UserInfo.ID {
+		} else if payload.AuthInfo != nil && databaseID == payload.AuthInfo.ID {
 			payload.Database = conn.PrivateDB(databaseID)
 		} else {
 			response.Err = skyerr.NewError(skyerr.PermissionDenied, "The selected DB cannot be accessed because permission is denied")
@@ -146,7 +146,7 @@ type RequireUser struct {
 }
 
 func (p RequireUser) Preprocess(payload *router.Payload, response *router.Response) int {
-	if payload.UserInfo == nil {
+	if payload.AuthInfo == nil {
 		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "User is required for this action, please login.")
 		return http.StatusUnauthorized
 	}
