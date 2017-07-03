@@ -471,7 +471,7 @@ type PasswordHandler struct {
 	TokenStore    authtoken.Store  `inject:"TokenStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -481,7 +481,7 @@ func (h *PasswordHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.PluginReady,
 	}
@@ -526,7 +526,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		log.Warningf("Invalidate is not yet implement")
 		// TODO: invalidate all existing token and generate a new one for response
 	}
-	// Generate new access-token. Because InjectUserIfPresent preprocessor
+	// Generate new access-token. Because InjectAuthIfPresent preprocessor
 	// will expire existing access-token.
 	store := h.TokenStore
 	token, err := store.NewToken(payload.AppName, info.ID)

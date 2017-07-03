@@ -106,7 +106,7 @@ type DeviceReigsterResult struct {
 type DeviceRegisterHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	RequireUser   router.Processor `preprocessor:"require_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
@@ -117,7 +117,7 @@ func (h *DeviceRegisterHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.RequireUser,
 		h.PluginReady,
@@ -203,7 +203,7 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 type DeviceUnregisterHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	RequireUser   router.Processor `preprocessor:"require_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
@@ -214,7 +214,7 @@ func (h *DeviceUnregisterHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.RequireUser,
 		h.PluginReady,

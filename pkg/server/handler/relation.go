@@ -107,7 +107,7 @@ func (payload *relationQueryPayload) Validate() skyerr.Error {
 type RelationQueryHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -117,7 +117,7 @@ func (h *RelationQueryHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.PluginReady,
 	}
@@ -234,7 +234,7 @@ func (payload *relationChangePayload) Validate() skyerr.Error {
 type RelationAddHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -244,7 +244,7 @@ func (h *RelationAddHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.PluginReady,
 	}
@@ -311,7 +311,7 @@ func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.R
 type RelationRemoveHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -321,7 +321,7 @@ func (h *RelationRemoveHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.PluginReady,
 	}

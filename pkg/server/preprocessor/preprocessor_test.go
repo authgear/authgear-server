@@ -209,9 +209,9 @@ func (t injectUserPreprocessorAccessToken) IssuedAt() time.Time {
 	return t.issuedAt
 }
 
-func TestInjectUserProcessor(t *testing.T) {
-	Convey("InjectUser", t, func() {
-		pp := InjectUserIfPresent{}
+func TestInjectAuthProcessor(t *testing.T) {
+	Convey("InjectAuth", t, func() {
+		pp := InjectAuthIfPresent{}
 		conn := skydbtest.NewMapConn()
 
 		withoutTokenValidSince := skydb.AuthInfo{

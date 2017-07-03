@@ -48,7 +48,7 @@ func (h *LambdaHandler) Setup() {
 		h.preprocessors = h.PreprocessorList.GetByNames(
 			"authenticator",
 			"dbconn",
-			"inject_user",
+			"inject_auth",
 			"require_user",
 			"plugin_ready",
 		)

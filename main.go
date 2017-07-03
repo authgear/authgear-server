@@ -141,7 +141,7 @@ func main() {
 		ClientKey:     config.App.APIKey,
 		MasterKey:     config.App.MasterKey,
 	}
-	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
+	preprocessorRegistry["inject_auth"] = &pp.InjectAuthIfPresent{}
 	preprocessorRegistry["require_user"] = &pp.RequireUser{}
 	preprocessorRegistry["inject_db"] = &pp.InjectDatabase{}
 	preprocessorRegistry["inject_public_db"] = &pp.InjectPublicDatabase{}
