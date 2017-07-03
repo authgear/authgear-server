@@ -16,6 +16,7 @@ package preprocessor
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -50,7 +51,6 @@ func isTokenStillValid(token router.AccessToken, authInfo skydb.AuthInfo) bool {
 }
 
 func (p InjectAuthIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
-	// TODO: Inject both AuthInfo and user Record
 	if payload.AuthInfoID == "" {
 		if !payload.HasMasterKey() {
 			log.Debugln("injectUser: empty AuthInfoID, skipping")
@@ -89,6 +89,47 @@ func (p InjectAuthIfPresent) Preprocess(payload *router.Payload, response *route
 	payload.AuthInfo = &authinfo
 
 	return http.StatusOK
+}
+
+// InjectUserIfPresent injects a user record to the payload
+//
+// An AuthInfo must be injected before this, if it is not found, the preprocessor
+// would just skip the injection
+//
+// If AuthInfo is injected but a user record is not found, the preprocessor would
+// create a new user record and inject it to the payload
+type InjectUserIfPresent struct {
+}
+
+func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
+	db := payload.Database
+	authInfo := payload.AuthInfo
+
+	if authInfo == nil {
+		log.Debugln("injectUser: empty AuthInfo, skipping")
+		return http.StatusOK
+	}
+
+	user := skydb.Record{}
+	err := db.Get(skydb.NewRecordID("user", authInfo.ID), &user)
+
+	if err == skydb.ErrRecordNotFound {
+		err = p.createUser(db, &user)
+	}
+
+	if err != nil {
+		log.Errorf("injectUser: unable to find user record ", err)
+		response.Err = skyerr.NewError(skyerr.UnexpectedUserNotFound, err.Error())
+		return http.StatusInternalServerError
+	}
+
+	payload.User = &user
+
+	return http.StatusOK
+}
+
+func (p InjectUserIfPresent) createUser(db skydb.Database, user *skydb.Record) error {
+	return fmt.Errorf("InjectUserIfPresent.createUser: Operation not implemented")
 }
 
 type InjectDatabase struct {

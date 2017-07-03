@@ -341,3 +341,79 @@ func TestInjectAuthProcessor(t *testing.T) {
 		})
 	})
 }
+
+func TestInjectUserProcessor(t *testing.T) {
+	Convey("InjectUser", t, func() {
+		pp := InjectUserIfPresent{}
+		conn := skydbtest.NewMapConn()
+		db := skydbtest.NewMapDB()
+		authInfo := skydb.AuthInfo{
+			ID: "userid1",
+		}
+		user := skydb.Record{
+			ID: skydb.NewRecordID("user", "userid1"),
+			Data: map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			},
+		}
+
+		So(db.Save(&user), ShouldBeNil)
+
+		Convey("should inject user with authinfo id", func() {
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				Database:    db,
+				AuthInfoID:  "userid1",
+				AuthInfo:    &authInfo,
+				AccessToken: injectUserPreprocessorAccessToken{},
+				User:        nil,
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(*payload.User, ShouldResemble, user)
+		})
+
+		Convey("should skip inject user without authinfo", func() {
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				Database:    db,
+				AuthInfoID:  "",
+				AuthInfo:    nil,
+				AccessToken: injectUserPreprocessorAccessToken{},
+				User:        nil,
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(payload.User, ShouldEqual, nil)
+		})
+
+		Convey("should inject user with authinfo id, but no user record", func() {
+			authInfo := skydb.AuthInfo{
+				ID: "userid2",
+			}
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				Database:    db,
+				AuthInfoID:  "userid2",
+				AuthInfo:    &authInfo,
+				AccessToken: injectUserPreprocessorAccessToken{},
+				User:        nil,
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldNotEqual, http.StatusOK)
+			So(resp.Err, ShouldNotBeNil)
+		})
+	})
+}

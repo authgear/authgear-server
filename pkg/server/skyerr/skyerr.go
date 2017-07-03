@@ -158,6 +158,7 @@ const (
 	UnexpectedUnableToOpenDatabase
 	UnexpectedPushNotificationNotConfigured
 	InternalQueryInvalid
+	UnexpectedUserNotFound
 
 	// Error codes for unexpected error condition should be placed
 	// above this line.
