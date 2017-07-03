@@ -65,9 +65,6 @@ CREATE TABLE _auth (
 	last_seen_at timestamp without time zone
 );
 
-CREATE VIEW _user AS
-SELECT * FROM _auth;
-
 CREATE TABLE _role (
 	id text PRIMARY KEY,
 	by_default boolean DEFAULT FALSE,
@@ -153,6 +150,18 @@ CREATE TABLE "user" (
     UNIQUE (username),
     UNIQUE (email)
 );
+CREATE VIEW _user AS
+	SELECT
+		_auth.id,
+		_auth.password,
+		"user".username,
+		"user".email,
+		_auth.provider_info AS auth,
+		_auth.token_valid_since,
+		_auth.last_login_at,
+		_auth.last_seen_at
+	FROM _auth
+	JOIN "user" ON "user"._id = _auth.id;
 `
 	_, err := tx.Exec(stmt)
 	return err
