@@ -118,6 +118,14 @@ func TestSignupHandler(t *testing.T) {
 		conn := skydbtest.NewMapConn()
 		tokenStore := authtokentest.SingleTokenStore{}
 
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		db := mock_skydb.NewMockTxDatabase(ctrl)
+		handler := &SignupHandler{
+			TokenStore: &tokenStore,
+		}
+
 		expectDBSaveUser := func(db *mock_skydb.MockTxDatabase, authData skydb.AuthData) {
 			db.EXPECT().UserRecordType().Return("user").AnyTimes()
 			db.EXPECT().ID().Return("_public").AnyTimes()
@@ -146,11 +154,6 @@ func TestSignupHandler(t *testing.T) {
 
 		Convey("sign up new account", func() {
 			fmt.Println("sign up new account")
-
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			db := mock_skydb.NewMockTxDatabase(ctrl)
 			db.EXPECT().
 				Query(gomock.Any()).
 				Do(makeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
@@ -171,9 +174,6 @@ func TestSignupHandler(t *testing.T) {
 				Database: db,
 			}
 			resp := router.Response{}
-			handler := &SignupHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
@@ -234,11 +234,6 @@ func TestSignupHandler(t *testing.T) {
 		Convey("sign up duplicate username", func() {
 			authinfo := skydb.NewAuthInfo("secret")
 			conn.CreateAuth(&authinfo)
-
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			db := mock_skydb.NewMockTxDatabase(ctrl)
 			db.EXPECT().
 				Query(gomock.Any()).
 				Do(makeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
@@ -265,9 +260,6 @@ func TestSignupHandler(t *testing.T) {
 				Database: db,
 			}
 			resp := router.Response{}
-			handler := &SignupHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
@@ -278,11 +270,6 @@ func TestSignupHandler(t *testing.T) {
 		Convey("sign up duplicate email", func() {
 			authinfo := skydb.NewAuthInfo("secret")
 			conn.CreateAuth(&authinfo)
-
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			db := mock_skydb.NewMockTxDatabase(ctrl)
 			db.EXPECT().
 				Query(gomock.Any()).
 				Do(makeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
@@ -309,9 +296,6 @@ func TestSignupHandler(t *testing.T) {
 				Database: db,
 			}
 			resp := router.Response{}
-			handler := &SignupHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
@@ -325,6 +309,15 @@ func TestLoginHandler(t *testing.T) {
 	Convey("LoginHandler", t, func() {
 		conn := skydbtest.NewMapConn()
 
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		db := mock_skydb.NewMockDatabase(ctrl)
+
+		tokenStore := authtokentest.SingleTokenStore{}
+		handler := &LoginHandler{
+			TokenStore: &tokenStore,
+		}
+
 		Convey("login user", func() {
 			authinfo := skydb.NewAuthInfo("secret")
 			authinfo.Roles = []string{
@@ -333,11 +326,6 @@ func TestLoginHandler(t *testing.T) {
 			}
 			conn.CreateAuth(&authinfo)
 
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			db := mock_skydb.NewMockDatabase(ctrl)
-			tokenStore := authtokentest.SingleTokenStore{}
 			db.EXPECT().
 				Query(gomock.Any()).
 				Do(makeUsernameEmailQueryAssertion("john.doe", "")).
@@ -356,9 +344,6 @@ func TestLoginHandler(t *testing.T) {
 				Database: db,
 			}
 			resp := router.Response{}
-			handler := &LoginHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
@@ -379,11 +364,6 @@ func TestLoginHandler(t *testing.T) {
 			authinfo := skydb.NewAuthInfo("secret")
 			conn.CreateAuth(&authinfo)
 
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			db := mock_skydb.NewMockDatabase(ctrl)
-			tokenStore := authtokentest.SingleTokenStore{}
 			db.EXPECT().
 				Query(gomock.Any()).
 				Do(makeUsernameEmailQueryAssertion("john.DOE", "")).
@@ -402,9 +382,6 @@ func TestLoginHandler(t *testing.T) {
 				Database: db,
 			}
 			resp := router.Response{}
-			handler := &LoginHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
@@ -421,11 +398,6 @@ func TestLoginHandler(t *testing.T) {
 			authinfo := skydb.NewAuthInfo("secret")
 			conn.CreateAuth(&authinfo)
 
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			db := mock_skydb.NewMockDatabase(ctrl)
-			tokenStore := authtokentest.SingleTokenStore{}
 			db.EXPECT().
 				Query(gomock.Any()).
 				Do(makeUsernameEmailQueryAssertion("", "john.DOE@example.com")).
@@ -444,9 +416,6 @@ func TestLoginHandler(t *testing.T) {
 				Database: db,
 			}
 			resp := router.Response{}
-			handler := &LoginHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
@@ -462,11 +431,6 @@ func TestLoginHandler(t *testing.T) {
 			authinfo := skydb.NewAuthInfo("secret")
 			conn.CreateAuth(&authinfo)
 
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			db := mock_skydb.NewMockDatabase(ctrl)
-			tokenStore := authtokentest.SingleTokenStore{}
 			db.EXPECT().
 				Query(gomock.Any()).
 				Do(makeUsernameEmailQueryAssertion("john.doe", "")).
@@ -485,9 +449,6 @@ func TestLoginHandler(t *testing.T) {
 				Database: db,
 			}
 			resp := router.Response{}
-			handler := &LoginHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
@@ -496,12 +457,6 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("login user not found", func() {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			db := mock_skydb.NewMockDatabase(ctrl)
-			tokenStore := authtokentest.SingleTokenStore{}
-
 			db.EXPECT().
 				Query(gomock.Any()).
 				Do(makeUsernameEmailQueryAssertion("john.doe", "")).
@@ -517,9 +472,6 @@ func TestLoginHandler(t *testing.T) {
 				Database: db,
 			}
 			resp := router.Response{}
-			handler := &LoginHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
