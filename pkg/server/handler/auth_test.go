@@ -720,8 +720,9 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 			))
 			So(resp.Code, ShouldEqual, 200)
 
-			_, ok := db.RecordMap[fmt.Sprintf("user/%s", authinfo.ID)]
+			user, ok := db.RecordMap[fmt.Sprintf("user/%s", authinfo.ID)]
 			So(ok, ShouldBeTrue)
+			So(len(user.Data) == 0, ShouldBeTrue)
 		})
 
 		Convey("errors when both usename and email is missing", func() {
