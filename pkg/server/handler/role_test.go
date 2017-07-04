@@ -194,58 +194,21 @@ func TestRoleAssignHandler(t *testing.T) {
 			responseString := `{
 	"result": "OK"
 }`
-
-			conn.EXPECT().GetAdminRoles().Return([]string{"admin"}, nil).AnyTimes()
 			conn.EXPECT().AssignRoles(
 				gomock.Eq([]string{"johndoe", "janedoe"}),
 				gomock.Eq([]string{"god", "buddha"}),
 			).Return(nil)
 
-			Convey("with master key", func() {
-				mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
-					p.DBConn = conn
-					p.AccessKey = router.MasterAccessKey
-					p.AuthInfo = &skydb.AuthInfo{}
-				})
-				resp := mockRouter.POST(payloadString)
-				So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
-			})
-
-			Convey("with admin role", func() {
-				mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
-					p.DBConn = conn
-					p.AuthInfo = &skydb.AuthInfo{
-						Roles: []string{"admin"},
-					}
-				})
-				resp := mockRouter.POST(payloadString)
-				So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
-			})
-		})
-
-		Convey("should fail set role without admin role or master key", func() {
-			conn.EXPECT().GetAdminRoles().Return([]string{""}, nil).AnyTimes()
-
 			mockRouter := handlertest.NewSingleRouteRouter(&RoleAssignHandler{}, func(p *router.Payload) {
 				p.DBConn = conn
+				p.AccessKey = router.MasterAccessKey
 				p.AuthInfo = &skydb.AuthInfo{}
 			})
-
-			resp := mockRouter.POST(`{
-		"roles": ["god", "buddha"],
-		"users": ["johndoe", "janedoe"]
-	}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-		"error":{
-			"code":102,
-			"message":"no permission to modify other users",
-			"name":"PermissionDenied"
-		}
-	}`)
+			resp := mockRouter.POST(payloadString)
+			So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
 		})
 
 		Convey("should handle error", func() {
-			conn.EXPECT().GetAdminRoles().Return([]string{""}, nil).AnyTimes()
 			conn.EXPECT().AssignRoles(
 				gomock.Eq([]string{"johndoe", "janedoe"}),
 				gomock.Eq([]string{"god", "buddha"}),
@@ -288,57 +251,21 @@ func TestRoleRevokeHandler(t *testing.T) {
 	"result": "OK"
 }`
 
-			conn.EXPECT().GetAdminRoles().Return([]string{"admin"}, nil).AnyTimes()
 			conn.EXPECT().RevokeRoles(
 				gomock.Eq([]string{"johndoe", "janedoe"}),
 				gomock.Eq([]string{"god", "buddha"}),
 			).Return(nil)
 
-			Convey("with master key", func() {
-				mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
-					p.DBConn = conn
-					p.AccessKey = router.MasterAccessKey
-					p.AuthInfo = &skydb.AuthInfo{}
-				})
-				resp := mockRouter.POST(payloadString)
-				So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
-			})
-
-			Convey("with admin role", func() {
-				mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
-					p.DBConn = conn
-					p.AuthInfo = &skydb.AuthInfo{
-						Roles: []string{"admin"},
-					}
-				})
-				resp := mockRouter.POST(payloadString)
-				So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
-			})
-		})
-
-		Convey("should fail set role without admin role or master key", func() {
-			conn.EXPECT().GetAdminRoles().Return([]string{""}, nil).AnyTimes()
-
 			mockRouter := handlertest.NewSingleRouteRouter(&RoleRevokeHandler{}, func(p *router.Payload) {
 				p.DBConn = conn
+				p.AccessKey = router.MasterAccessKey
 				p.AuthInfo = &skydb.AuthInfo{}
 			})
-
-			resp := mockRouter.POST(`{
-		"roles": ["god", "buddha"],
-		"users": ["johndoe", "janedoe"]
-	}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-		"error":{
-			"code":102,
-			"message":"no permission to modify other users",
-			"name":"PermissionDenied"
-		}
-	}`)
+			resp := mockRouter.POST(payloadString)
+			So(resp.Body.Bytes(), ShouldEqualJSON, responseString)
 		})
 
 		Convey("should handle error", func() {
-			conn.EXPECT().GetAdminRoles().Return([]string{""}, nil).AnyTimes()
 			conn.EXPECT().RevokeRoles(
 				gomock.Eq([]string{"johndoe", "janedoe"}),
 				gomock.Eq([]string{"god", "buddha"}),

@@ -207,6 +207,7 @@ type RoleAssignHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
+	RequireAdmin  router.Processor `preprocessor:"require_admin"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -216,6 +217,7 @@ func (h *RoleAssignHandler) Setup() {
 		h.Authenticator,
 		h.DBConn,
 		h.InjectUser,
+		h.RequireAdmin,
 		h.PluginReady,
 	}
 }
@@ -233,19 +235,7 @@ func (h *RoleAssignHandler) Handle(rpayload *router.Payload, response *router.Re
 		return
 	}
 
-	authinfo := rpayload.AuthInfo
-	adminRoles, err := rpayload.DBConn.GetAdminRoles()
-	if err != nil {
-		response.Err = skyerr.MakeError(err)
-		return
-	}
-	if !authinfo.HasAnyRoles(adminRoles) && !rpayload.HasMasterKey() {
-		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to modify other users")
-		return
-	}
-
-	err = rpayload.DBConn.AssignRoles(payload.UserIDs, payload.Roles)
-	if err != nil {
+	if err := rpayload.DBConn.AssignRoles(payload.UserIDs, payload.Roles); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
@@ -283,6 +273,7 @@ type RoleRevokeHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
+	RequireAdmin  router.Processor `preprocessor:"require_admin"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -292,6 +283,7 @@ func (h *RoleRevokeHandler) Setup() {
 		h.Authenticator,
 		h.DBConn,
 		h.InjectUser,
+		h.RequireAdmin,
 		h.PluginReady,
 	}
 }
@@ -309,19 +301,7 @@ func (h *RoleRevokeHandler) Handle(rpayload *router.Payload, response *router.Re
 		return
 	}
 
-	authinfo := rpayload.AuthInfo
-	adminRoles, err := rpayload.DBConn.GetAdminRoles()
-	if err != nil {
-		response.Err = skyerr.MakeError(err)
-		return
-	}
-	if !authinfo.HasAnyRoles(adminRoles) && !rpayload.HasMasterKey() {
-		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to modify other users")
-		return
-	}
-
-	err = rpayload.DBConn.RevokeRoles(payload.UserIDs, payload.Roles)
-	if err != nil {
+	if err := rpayload.DBConn.RevokeRoles(payload.UserIDs, payload.Roles); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
