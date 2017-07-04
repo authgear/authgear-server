@@ -139,7 +139,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 			response.Err = skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
 			return
 		}
-		principalID, authdata, err := authProvider.Login(payload.Context, p.ProviderAuthData)
+		principalID, providerAuthData, err := authProvider.Login(payload.Context, p.ProviderAuthData)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
 			return
@@ -147,7 +147,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
 
 		// Create new user info and set updated auth data
-		info = skydb.NewProviderInfoAuthInfo(principalID, authdata)
+		info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
 	} else {
 		info = skydb.NewAuthInfo(p.Password)
 		authdata = make(skydb.AuthData)
