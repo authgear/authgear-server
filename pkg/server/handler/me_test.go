@@ -53,7 +53,7 @@ func TestMeHandler(t *testing.T) {
 			TokenStore: tokenStore,
 		}
 
-		Convey("Get me with user info", func() {
+		Convey("Get me with user info", func(c C) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
@@ -61,9 +61,8 @@ func TestMeHandler(t *testing.T) {
 			db.EXPECT().
 				Get(gomock.Any(), gomock.Any()).
 				Do(func(recordID skydb.RecordID, record *skydb.Record) {
-					if recordID.Type != "user" || recordID.Key != "tester-1" {
-						panic("Wrong RecordID")
-					}
+					c.So(recordID.Type, ShouldEqual, "user")
+					c.So(recordID.Key, ShouldEqual, "tester-1")
 				}).
 				SetArg(1, skydb.Record{
 					ID: skydb.NewRecordID("user", "tester-1"),
