@@ -57,33 +57,25 @@ func makeILikePredicate(keyPath string, value string) skydb.Predicate {
 
 func makeILikePredicateAssertion(key string, value string) func(predicate *skydb.Predicate) {
 	return func(predicate *skydb.Predicate) {
-		if predicate.Operator != skydb.ILike {
-			panic(fmt.Sprintf("Expect query with ILike, but %v", predicate.Operator))
-		}
+		So(predicate.Operator, ShouldEqual, skydb.ILike)
 
 		keyExp := predicate.Children[0].(skydb.Expression)
 		valueExp := predicate.Children[1].(skydb.Expression)
 
-		if keyExp.Type != skydb.KeyPath || keyExp.Value != key {
-			panic(fmt.Sprintf("Expect query with keypath %v", key))
-		}
+		So(keyExp.Type, ShouldEqual, skydb.KeyPath)
+		So(keyExp.Value, ShouldEqual, key)
 
-		if valueExp.Type != skydb.Literal || valueExp.Value != value {
-			panic(fmt.Sprintf("Expect query with keypath %v", value))
-		}
+		So(valueExp.Type, ShouldEqual, skydb.Literal)
+		So(valueExp.Value, ShouldEqual, value)
 	}
 }
 
 func makeUsernameEmailQueryAssertion(username string, email string) func(query *skydb.Query) {
 	return func(query *skydb.Query) {
-		if query.Type != "user" {
-			panic("Expect query with type: user")
-		}
+		So(query.Type, ShouldEqual, "user")
 
 		predicate := query.Predicate
-		if predicate.Operator != skydb.And {
-			panic(fmt.Sprintf("Expect query with And, now: %v", predicate.Operator))
-		}
+		So(predicate.Operator, ShouldEqual, skydb.And)
 
 		expectedChildrenCount := 0
 		if username != "" {
@@ -94,9 +86,7 @@ func makeUsernameEmailQueryAssertion(username string, email string) func(query *
 			expectedChildrenCount = expectedChildrenCount + 1
 		}
 
-		if len(predicate.Children) != expectedChildrenCount {
-			panic(fmt.Sprintf("Expected predicate children count: %v", expectedChildrenCount))
-		}
+		So(len(predicate.Children), ShouldEqual, expectedChildrenCount)
 
 		for _, child := range predicate.Children {
 			childPredicate := child.(skydb.Predicate)
@@ -114,13 +104,9 @@ func makeUsernameEmailQueryAssertion(username string, email string) func(query *
 
 func makeUserRecordAssertion(authData skydb.AuthData) func(record *skydb.Record) {
 	return func(record *skydb.Record) {
-		if record.ID.Type != "user" {
-			panic(fmt.Sprintf("Expect recordType: user, got: %v", record.ID.Type))
-		}
-
-		if record.Data["username"] != authData["username"] || record.Data["email"] != authData["email"] {
-			panic(fmt.Sprintf("Expect auth data: %v", authData))
-		}
+		So(record.ID.Type, ShouldEqual, "user")
+		So(record.Data["username"], ShouldEqual, authData["username"])
+		So(record.Data["email"], ShouldEqual, authData["email"])
 	}
 }
 
