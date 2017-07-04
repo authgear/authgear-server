@@ -181,7 +181,7 @@ func TestRoleAdminHandler(t *testing.T) {
 
 func TestRoleAssignHandler(t *testing.T) {
 	Convey("RoleAssignHandler", t, func() {
-		ctrl := gomock.NewController(t)
+		ctrl := gomock.NewController(handlertest.NewGoroutineAwareTestReporter(t))
 		defer ctrl.Finish()
 
 		conn := mock_skydb.NewMockConn(ctrl)
@@ -237,7 +237,7 @@ func TestRoleAssignHandler(t *testing.T) {
 
 func TestRoleRevokeHandler(t *testing.T) {
 	Convey("RoleRevokeHandler", t, func() {
-		ctrl := gomock.NewController(t)
+		ctrl := gomock.NewController(handlertest.NewGoroutineAwareTestReporter(t))
 		defer ctrl.Finish()
 
 		conn := mock_skydb.NewMockConn(ctrl)
