@@ -74,13 +74,41 @@ func makeILikePredicateAssertion(key string, value string) func(predicate *skydb
 	}
 }
 
-func makeILikeQueryAssertion(qType string, key string, value string) func(query *skydb.Query) {
+func makeUsernameEmailQueryAssertion(username string, email string) func(query *skydb.Query) {
 	return func(query *skydb.Query) {
-		if query.Type != qType {
-			panic(fmt.Sprintf("Expect query with type: %v, now: %v", qType, query.Type))
+		if query.Type != "user" {
+			panic("Expect query with type: user")
 		}
 
-		makeILikePredicateAssertion(key, value)(&query.Predicate)
+		predicate := query.Predicate
+		if predicate.Operator != skydb.And {
+			panic(fmt.Sprintf("Expect query with And, now: %v", predicate.Operator))
+		}
+
+		expectedChildrenCount := 0
+		if username != "" {
+			expectedChildrenCount = expectedChildrenCount + 1
+		}
+
+		if email != "" {
+			expectedChildrenCount = expectedChildrenCount + 1
+		}
+
+		if len(predicate.Children) != expectedChildrenCount {
+			panic(fmt.Sprintf("Expected predicate children count: %v", expectedChildrenCount))
+		}
+
+		for _, child := range predicate.Children {
+			childPredicate := child.(skydb.Predicate)
+			keyExp := childPredicate.Children[0].(skydb.Expression)
+			if keyExp.Type == skydb.KeyPath && keyExp.Value == "username" {
+				makeILikePredicateAssertion("username", username)(&childPredicate)
+			} else if keyExp.Type == skydb.KeyPath && keyExp.Value == "email" {
+				makeILikePredicateAssertion("email", email)(&childPredicate)
+			} else {
+				panic(fmt.Sprintf("Unexpected keypath"))
+			}
+		}
 	}
 }
 
@@ -103,24 +131,6 @@ func TestSignupHandler(t *testing.T) {
 	Convey("SignupHandler", t, func() {
 		conn := skydbtest.NewMapConn()
 		tokenStore := authtokentest.SingleTokenStore{}
-
-		makeUsernameEmailQueryAssertion := func(username string, email string) func(query *skydb.Query) {
-			return func(query *skydb.Query) {
-				if query.Type != "user" {
-					panic("Expect query with type: user")
-				}
-
-				predicate := query.Predicate
-				if predicate.Operator != skydb.And {
-					panic(fmt.Sprintf("Expect query with And, now: %v", predicate.Operator))
-				}
-
-				usernamePredicate := predicate.Children[0].(skydb.Predicate)
-				emailPredicate := predicate.Children[1].(skydb.Predicate)
-				makeILikePredicateAssertion("username", username)(&usernamePredicate)
-				makeILikePredicateAssertion("email", email)(&emailPredicate)
-			}
-		}
 
 		expectDBSaveUser := func(db *mock_skydb.MockTxDatabase, authData skydb.AuthData) {
 			db.EXPECT().UserRecordType().Return("user").AnyTimes()
@@ -344,7 +354,7 @@ func TestLoginHandler(t *testing.T) {
 			tokenStore := authtokentest.SingleTokenStore{}
 			db.EXPECT().
 				Query(gomock.Any()).
-				Do(makeILikeQueryAssertion("user", "username", "john.doe")).
+				Do(makeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
 					ID:   skydb.NewRecordID("user", authinfo.ID),
 					Data: map[string]interface{}{"username": "john.doe", "email": "john.doe@example.com"},
@@ -390,7 +400,7 @@ func TestLoginHandler(t *testing.T) {
 			tokenStore := authtokentest.SingleTokenStore{}
 			db.EXPECT().
 				Query(gomock.Any()).
-				Do(makeILikeQueryAssertion("user", "username", "john.DOE")).
+				Do(makeUsernameEmailQueryAssertion("john.DOE", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
 					ID:   skydb.NewRecordID("user", authinfo.ID),
 					Data: map[string]interface{}{"username": "john.doe", "email": "john.doe@example.com"},
@@ -432,7 +442,7 @@ func TestLoginHandler(t *testing.T) {
 			tokenStore := authtokentest.SingleTokenStore{}
 			db.EXPECT().
 				Query(gomock.Any()).
-				Do(makeILikeQueryAssertion("user", "email", "john.DOE@example.com")).
+				Do(makeUsernameEmailQueryAssertion("", "john.DOE@example.com")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
 					ID:   skydb.NewRecordID("user", authinfo.ID),
 					Data: map[string]interface{}{"username": "john.doe", "email": "john.doe@example.com"},
@@ -473,7 +483,7 @@ func TestLoginHandler(t *testing.T) {
 			tokenStore := authtokentest.SingleTokenStore{}
 			db.EXPECT().
 				Query(gomock.Any()).
-				Do(makeILikeQueryAssertion("user", "username", "john.doe")).
+				Do(makeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
 					ID:   skydb.NewRecordID("user", authinfo.ID),
 					Data: map[string]interface{}{"username": "john.doe", "email": "john.doe@example.com"},
@@ -508,7 +518,7 @@ func TestLoginHandler(t *testing.T) {
 
 			db.EXPECT().
 				Query(gomock.Any()).
-				Do(makeILikeQueryAssertion("user", "username", "john.doe")).
+				Do(makeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
 				AnyTimes()
 
