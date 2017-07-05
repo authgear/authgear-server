@@ -78,8 +78,10 @@ $ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
 $ git push --follow-tags origin v$SKYGEAR_VERSION
 $ git push origin
 
-## Push to latest branch to trigger Docker build
-$ git push origin master:latest
+## Push latest tag (only for highest version number)
+$ git push origin :latest
+$ git tag -f latest
+$ git push origin latest
 
 ## Click `Publish release` in github release page
 ```
@@ -111,6 +113,11 @@ $ git push origin
 
 ## Push commit to Cocoapods
 $ pod trunk push SKYKit.podspec --allow-warnings
+
+## Push latest tag (only for highest version number)
+$ git push origin :latest
+$ git tag -f latest
+$ git push origin latest
 
 ## Click `Publish release` in github release page
 ```
