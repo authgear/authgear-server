@@ -27,6 +27,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/recordutil"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -279,7 +280,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	resultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
+	resultFilter, err := recordutil.NewRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -287,7 +288,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 
 	log.Debugf("Working with accessModel %v", h.AccessModel)
 
-	req := recordModifyRequest{
+	req := recordutil.RecordModifyRequest{
 		Db:            payload.Database,
 		Conn:          payload.DBConn,
 		AssetStore:    h.AssetStore,
@@ -297,8 +298,9 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		Atomic:        p.Atomic,
 		WithMasterKey: payload.HasMasterKey(),
 		Context:       payload.Context,
+		ModifyAt:      timeNow(),
 	}
-	resp := recordModifyResponse{
+	resp := recordutil.RecordModifyResponse{
 		ErrMap: map[skydb.RecordID]skyerr.Error{},
 	}
 
@@ -314,9 +316,9 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 				})
 			return
 		}
-		saveFunc = atomicModifyFunc(&req, &resp, recordSaveHandler)
+		saveFunc = atomicModifyFunc(&req, &resp, recordutil.RecordSaveHandler)
 	} else {
-		saveFunc = recordSaveHandler
+		saveFunc = recordutil.RecordSaveHandler
 	}
 
 	if err := saveFunc(&req, &resp); err != nil {
@@ -443,17 +445,17 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 	}
 
 	db := payload.Database
-	resultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
+	resultFilter, err := recordutil.NewRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
 
-	fetcher := newRecordFetcher(db, payload.DBConn, payload.HasMasterKey())
+	fetcher := recordutil.NewRecordFetcher(db, payload.DBConn, payload.HasMasterKey())
 
 	results := make([]interface{}, p.ItemLen(), p.ItemLen())
 	for i, recordID := range p.RecordIDs {
-		record, err := fetcher.fetchRecord(recordID, payload.AuthInfo, skydb.ReadLevel)
+		record, err := fetcher.FetchRecord(recordID, payload.AuthInfo, skydb.ReadLevel)
 		if err != nil {
 			results[i] = newSerializedError(
 				recordID.String(),
@@ -593,21 +595,21 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	// Scan does not query assets,
 	// it only replaces them with assets then only have name,
 	// so we replace them with some complete assets.
-	makeAssetsComplete(db, payload.DBConn, records)
+	recordutil.MakeAssetsComplete(db, payload.DBConn, records)
 
-	eagerRecords := doQueryEager(db, eagerIDs(db, records, p.Query))
+	eagerRecords := recordutil.DoQueryEager(db, recordutil.EagerIDs(db, records, p.Query))
 
-	recordResultFilter, err := newRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
+	recordResultFilter, err := recordutil.NewRecordResultFilter(payload.DBConn, h.AssetStore, payload.AuthInfo)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
 
-	resultFilter := queryResultFilter{
+	resultFilter := recordutil.QueryResultFilter{
 		Database:           db,
 		Query:              p.Query,
 		EagerRecords:       eagerRecords,
-		recordResultFilter: recordResultFilter,
+		RecordResultFilter: recordResultFilter,
 	}
 
 	output := make([]interface{}, len(records))
@@ -618,7 +620,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	response.Result = output
 
-	resultInfo, err := queryResultInfo(db, &p.Query, results)
+	resultInfo, err := recordutil.QueryResultInfo(db, &p.Query, results)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -719,7 +721,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	req := recordModifyRequest{
+	req := recordutil.RecordModifyRequest{
 		Db:                payload.Database,
 		Conn:              payload.DBConn,
 		HookRegistry:      h.HookRegistry,
@@ -729,15 +731,15 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		Context:           payload.Context,
 		AuthInfo:          payload.AuthInfo,
 	}
-	resp := recordModifyResponse{
+	resp := recordutil.RecordModifyResponse{
 		ErrMap: map[skydb.RecordID]skyerr.Error{},
 	}
 
 	var deleteFunc recordModifyFunc
 	if p.Atomic {
-		deleteFunc = atomicModifyFunc(&req, &resp, recordDeleteHandler)
+		deleteFunc = atomicModifyFunc(&req, &resp, recordutil.RecordDeleteHandler)
 	} else {
-		deleteFunc = recordDeleteHandler
+		deleteFunc = recordutil.RecordDeleteHandler
 	}
 
 	if err := deleteFunc(&req, &resp); err != nil {
@@ -770,4 +772,37 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 	}
 
 	response.Result = results
+}
+
+type recordModifyFunc func(*recordutil.RecordModifyRequest, *recordutil.RecordModifyResponse) skyerr.Error
+
+func atomicModifyFunc(req *recordutil.RecordModifyRequest, resp *recordutil.RecordModifyResponse, mFunc recordModifyFunc) recordModifyFunc {
+	return func(req *recordutil.RecordModifyRequest, resp *recordutil.RecordModifyResponse) (err skyerr.Error) {
+		txDB, ok := req.Db.(skydb.Transactional)
+		if !ok {
+			err = skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
+			return
+		}
+
+		txErr := skydb.WithTransaction(txDB, func() error {
+			return mFunc(req, resp)
+		})
+
+		if len(resp.ErrMap) > 0 {
+			info := map[string]interface{}{}
+			for recordID, err := range resp.ErrMap {
+				info[recordID.String()] = err
+			}
+
+			return skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
+				"Atomic Operation rolled back due to one or more errors",
+				info)
+		} else if txErr != nil {
+			err = skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
+				"Atomic Operation rolled back due to an error",
+				map[string]interface{}{"innerError": txErr})
+
+		}
+		return
+	}
 }
