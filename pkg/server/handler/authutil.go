@@ -50,10 +50,6 @@ func (f *UserAuthFetcher) FetchAuth(authData skydb.AuthData) (authInfo skydb.Aut
 }
 
 func (f *UserAuthFetcher) FetchUser(authData skydb.AuthData) (user skydb.Record, err error) {
-	if err = validateAuthData(authData); err != nil {
-		return
-	}
-
 	query := f.buildAuthDataQuery(authData)
 
 	var results *skydb.Rows
@@ -144,10 +140,6 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 		// Check if AuthData duplicated only when it is provided
 		// AuthData may be absent, e.g. login with provider
 		if len(authData) != 0 {
-			if err := validateAuthData(authData); err != nil {
-				return err
-			}
-
 			fetcher := newUserAuthFetcher(db, ctx.DBConn)
 			_, _, err := fetcher.FetchAuth(authData)
 			if err == nil {

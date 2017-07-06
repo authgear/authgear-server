@@ -172,6 +172,12 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	createContext := createUserWithRecordContext{
 		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
 	}
+
+	if ok := authdata.IsValid(); !ok {
+		response.Err = skyerr.NewInvalidArgument("Unexpected key found", []string{"authdata"})
+		return
+	}
+
 	if response.Err = createContext.execute(&info, authdata); response.Err != nil {
 		return
 	}
@@ -299,6 +305,11 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		authdata = skydb.AuthData{}
 		authdata.SetUsername(p.Username)
 		authdata.SetEmail(p.Email)
+
+		if ok := authdata.IsValid(); !ok {
+			response.Err = skyerr.NewInvalidArgument("Unexpected key found", []string{"authdata"})
+			return
+		}
 
 		fetcher := newUserAuthFetcher(payload.Database, payload.DBConn)
 		fetchedAuthInfo, _, err := fetcher.FetchAuth(authdata)
