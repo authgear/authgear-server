@@ -344,6 +344,12 @@ func TestInjectAuthProcessor(t *testing.T) {
 
 func TestInjectUserProcessor(t *testing.T) {
 	Convey("InjectUser", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+
 		pp := InjectUserIfPresent{}
 		conn := skydbtest.NewMapConn()
 		db := skydbtest.NewMapDB()
@@ -412,8 +418,19 @@ func TestInjectUserProcessor(t *testing.T) {
 			}
 			resp := router.Response{}
 
-			So(pp.Preprocess(&payload, &resp), ShouldNotEqual, http.StatusOK)
-			So(resp.Err, ShouldNotBeNil)
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+
+			user := skydb.Record{
+				ID:        skydb.NewRecordID("user", "userid2"),
+				OwnerID:   "userid2",
+				CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				CreatorID: "userid2",
+				UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				UpdaterID: "userid2",
+				Data:      skydb.Data{},
+			}
+			So(*payload.User, ShouldResemble, user)
 		})
 	})
 }
