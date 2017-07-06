@@ -27,7 +27,7 @@ type MeHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
+	InjectDB      router.Processor `preprocessor:"inject_public_db"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
