@@ -149,9 +149,9 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
 	} else {
 		info = skydb.NewAuthInfo(p.Password)
-		authdata = make(skydb.AuthData)
-		authdata["username"] = p.Username
-		authdata["email"] = p.Email
+		authdata = skydb.AuthData{}
+		authdata.SetUsername(p.Username)
+		authdata.SetEmail(p.Email)
 	}
 
 	// Populate the default roles to user
@@ -186,7 +186,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		panic(err)
 	}
 
-	response.Result = NewAuthResponse(info, &authdata, token.AccessToken)
+	response.Result = NewAuthResponse(info, authdata, token.AccessToken)
 }
 
 type loginPayload struct {
@@ -296,10 +296,10 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 			}
 		}
 	} else {
-		authdata = skydb.AuthData{
-			"username": p.Username,
-			"email":    p.Email,
-		}
+		authdata = skydb.AuthData{}
+		authdata.SetUsername(p.Username)
+		authdata.SetEmail(p.Email)
+
 		fetcher := newUserAuthFetcher(payload.Database, payload.DBConn)
 		fetchedAuthInfo, _, err := fetcher.FetchAuth(authdata)
 		if err != nil {
@@ -330,7 +330,7 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		panic(err)
 	}
 
-	authResponse := NewAuthResponse(info, &authdata, token.AccessToken)
+	authResponse := NewAuthResponse(info, authdata, token.AccessToken)
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastLoginAt = &now

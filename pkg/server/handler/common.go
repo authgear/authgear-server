@@ -39,19 +39,11 @@ type AuthResponse struct {
 	LastSeenAt  *time.Time `json:"last_seen_at,omitempty"`
 }
 
-func NewAuthResponse(info skydb.AuthInfo, authdata *skydb.AuthData, accessToken string) AuthResponse {
-	username := ""
-	email := ""
-
-	if authdata != nil {
-		username, _ = (*authdata)["username"].(string)
-		email, _ = (*authdata)["email"].(string)
-	}
-
+func NewAuthResponse(info skydb.AuthInfo, authdata skydb.AuthData, accessToken string) AuthResponse {
 	return AuthResponse{
 		UserID:      info.ID,
-		Username:    username,
-		Email:       email,
+		Username:    authdata.GetUsername(),
+		Email:       authdata.GetEmail(),
 		Roles:       info.Roles,
 		AccessToken: accessToken,
 		LastLoginAt: info.LastLoginAt,

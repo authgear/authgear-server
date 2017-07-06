@@ -90,13 +90,12 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 		panic(err)
 	}
 
-	authData := skydb.AuthData{
-		"username": user.Data["username"],
-		"email":    user.Data["email"],
-	}
+	authData := skydb.AuthData{}
+	authData.SetUsername(user.Data["username"].(string))
+	authData.SetEmail(user.Data["email"].(string))
 
 	// We will return the last seen in DB, not current time stamp
-	authResponse := NewAuthResponse(*info, &authData, token.AccessToken)
+	authResponse := NewAuthResponse(*info, authData, token.AccessToken)
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastSeenAt = &now
