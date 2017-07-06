@@ -136,7 +136,7 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 		return skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
 	}
 
-	txErr := withTransaction(txDB, func() error {
+	txErr := skydb.WithTransaction(txDB, func() error {
 		// Check if AuthData duplicated only when it is provided
 		// AuthData may be absent, e.g. login with provider
 		if len(authData) != 0 {

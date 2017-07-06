@@ -176,6 +176,24 @@ type Transactional interface {
 	Rollback() error
 }
 
+func WithTransaction(tx Transactional, do func() error) (err error) {
+	err = tx.Begin()
+	if err != nil {
+		return
+	}
+
+	err = do()
+	if err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			log.Errorf("Failed to rollback: %v", rbErr)
+		}
+	} else {
+		err = tx.Commit()
+	}
+
+	return
+}
+
 // TxDatabase defines a Transactional Database
 //
 //go:generate mockgen -destination=mock_skydb/mock_tx_database.go github.com/skygeario/skygear-server/pkg/server/skydb TxDatabase

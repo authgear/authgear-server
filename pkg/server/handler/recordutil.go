@@ -76,7 +76,7 @@ func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFun
 			return
 		}
 
-		txErr := withTransaction(txDB, func() error {
+		txErr := skydb.WithTransaction(txDB, func() error {
 			return mFunc(req, resp)
 		})
 
@@ -97,25 +97,6 @@ func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFun
 		}
 		return
 	}
-}
-
-func withTransaction(txDB skydb.Transactional, do func() error) (err error) {
-	err = txDB.Begin()
-	if err != nil {
-		return
-	}
-
-	err = do()
-	if err != nil {
-		if rbErr := txDB.Rollback(); rbErr != nil {
-			log.Errorf("Failed to rollback: %v", rbErr)
-		}
-
-	} else {
-		err = txDB.Commit()
-	}
-
-	return
 }
 
 type recordModifyRequest struct {
