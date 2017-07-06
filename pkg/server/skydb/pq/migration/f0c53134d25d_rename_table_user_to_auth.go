@@ -14,11 +14,10 @@
 
 package migration
 
-
 import (
 	"fmt"
 
-  "github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx"
 )
 
 type ReservedColumnExistedError struct {
@@ -38,7 +37,7 @@ func (r *revision_f0c53134d25d) Version() string {
 	return "f0c53134d25d"
 }
 
-func (r *revision_f0c53134d25d) IsTableExisted(tx *sqlx.Tx, table string) (bool, error) {
+func (r *revision_f0c53134d25d) DoesTableExist(tx *sqlx.Tx, table string) (bool, error) {
 	var exists bool
 	err := tx.QueryRowx(`
 SELECT EXISTS (
@@ -52,7 +51,7 @@ SELECT EXISTS (
 	return exists, err
 }
 
-func (r *revision_f0c53134d25d) IsColumnExisted(tx *sqlx.Tx, table string, column string) (bool, error) {
+func (r *revision_f0c53134d25d) DoesColumnExist(tx *sqlx.Tx, table string, column string) (bool, error) {
 	var exists bool
 	err := tx.QueryRowx(`
 SELECT EXISTS (
@@ -67,12 +66,12 @@ SELECT EXISTS (
 	return exists, err
 }
 
-func (r *revision_f0c53134d25d) EnsureReservedColumnsNotExisted(tx *sqlx.Tx) error {
+func (r *revision_f0c53134d25d) EnsureReservedColumnsDoNotExist(tx *sqlx.Tx) error {
 	table := `user`
 	columns := [2]string{`username`, `email`}
 
 	for _, column := range columns {
-		isExisted, err := r.IsColumnExisted(tx, table, column)
+		isExisted, err := r.DoesColumnExist(tx, table, column)
 		if err != nil {
 			return err
 		}
@@ -117,12 +116,12 @@ ALTER TABLE _auth RENAME auth to provider_info;
 		return err
 	}
 
-	if err = r.EnsureReservedColumnsNotExisted(tx); err != nil {
+	if err = r.EnsureReservedColumnsDoNotExist(tx); err != nil {
 		return err
 	}
 
 	var userTableExists bool
-	userTableExists, err = r.IsTableExisted(tx, `user`)
+	userTableExists, err = r.DoesTableExist(tx, `user`)
 	if err != nil {
 		return err
 	}
