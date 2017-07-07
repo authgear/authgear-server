@@ -26,8 +26,8 @@ type MeHandler struct {
 	TokenStore    authtoken.Store  `inject:"TokenStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
 	InjectAuth    router.Processor `preprocessor:"inject_auth"`
-	InjectDB      router.Processor `preprocessor:"inject_public_db"`
 	RequireUser   router.Processor `preprocessor:"require_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -38,8 +38,8 @@ func (h *MeHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
+		h.InjectUser,
 		h.InjectAuth,
-		h.InjectDB,
 		h.RequireUser,
 		h.PluginReady,
 	}
@@ -87,9 +87,9 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 		panic(err)
 	}
 
-	user := skydb.Record{}
-	if err = payload.Database.Get(skydb.NewRecordID("user", info.ID), &user); err != nil {
-		panic(err)
+	user := payload.User
+	if user == nil {
+		panic("user record not found")
 	}
 
 	authData := skydb.AuthData{}

@@ -20,12 +20,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken/authtokentest"
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skydbtest"
 
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
@@ -54,31 +52,19 @@ func TestMeHandler(t *testing.T) {
 		}
 
 		Convey("Get me with user info", func(c C) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			db := mock_skydb.NewMockTxDatabase(ctrl)
-			db.EXPECT().
-				Get(gomock.Any(), gomock.Any()).
-				Do(func(recordID skydb.RecordID, record *skydb.Record) {
-					c.So(recordID.Type, ShouldEqual, "user")
-					c.So(recordID.Key, ShouldEqual, "tester-1")
-				}).
-				SetArg(1, skydb.Record{
-					ID: skydb.NewRecordID("user", "tester-1"),
-					Data: map[string]interface{}{
-						"username": "tester1",
-						"email":    "tester1@example.com",
-					},
-				}).
-				Return(nil).
-				AnyTimes()
+			user := skydb.Record{
+				ID: skydb.NewRecordID("user", "tester-1"),
+				Data: map[string]interface{}{
+					"username": "tester1",
+					"email":    "tester1@example.com",
+				},
+			}
 
 			r := handlertest.NewSingleRouteRouter(handler, func(p *router.Payload) {
 				p.Data["access_token"] = "token-1"
 				p.AuthInfo = &authinfo
 				p.DBConn = conn
-				p.Database = db
+				p.User = &user
 			})
 
 			resp := r.POST("")
