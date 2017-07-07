@@ -109,8 +109,8 @@ type InjectUserIfPresent struct {
 }
 
 func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
-	db := payload.Database
 	authInfo := payload.AuthInfo
+	db := payload.DBConn.PublicDB()
 
 	if authInfo == nil {
 		log.Debugln("injectUser: empty AuthInfo, skipping")
@@ -137,7 +137,7 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 
 func (p InjectUserIfPresent) createUser(payload *router.Payload) (skydb.Record, error) {
 	authInfo := payload.AuthInfo
-	db := payload.Database
+	db := payload.DBConn.PublicDB()
 
 	userRecord := skydb.Record{
 		ID: skydb.NewRecordID(db.UserRecordType(), authInfo.ID),
