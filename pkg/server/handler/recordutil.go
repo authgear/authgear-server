@@ -70,7 +70,7 @@ type recordModifyFunc func(*recordModifyRequest, *recordModifyResponse) skyerr.E
 
 func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFunc recordModifyFunc) recordModifyFunc {
 	return func(req *recordModifyRequest, resp *recordModifyResponse) (err skyerr.Error) {
-		txDB, ok := req.Db.(skydb.TxDatabase)
+		txDB, ok := req.Db.(skydb.Transactional)
 		if !ok {
 			err = skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
 			return
@@ -99,7 +99,7 @@ func atomicModifyFunc(req *recordModifyRequest, resp *recordModifyResponse, mFun
 	}
 }
 
-func withTransaction(txDB skydb.TxDatabase, do func() error) (err error) {
+func withTransaction(txDB skydb.Transactional, do func() error) (err error) {
 	err = txDB.Begin()
 	if err != nil {
 		return

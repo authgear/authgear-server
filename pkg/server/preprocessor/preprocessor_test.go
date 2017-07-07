@@ -215,29 +215,23 @@ func TestInjectUserProcessor(t *testing.T) {
 		conn := skydbtest.NewMapConn()
 
 		withoutTokenValidSince := skydb.AuthInfo{
-			ID:       "userid1",
-			Username: "username1",
-			Email:    "username1@example.com",
+			ID: "userid1",
 		}
-		So(conn.CreateUser(&withoutTokenValidSince), ShouldBeNil)
+		So(conn.CreateAuth(&withoutTokenValidSince), ShouldBeNil)
 
 		pastTime := time.Now().Add(-1 * time.Hour)
 		withPastTokenValidSince := skydb.AuthInfo{
 			ID:              "userid2",
-			Username:        "username2",
-			Email:           "username2@example.com",
 			TokenValidSince: &pastTime,
 		}
-		So(conn.CreateUser(&withPastTokenValidSince), ShouldBeNil)
+		So(conn.CreateAuth(&withPastTokenValidSince), ShouldBeNil)
 
 		futureTime := time.Now().Add(1 * time.Hour)
 		withFutureTokenValidSince := skydb.AuthInfo{
 			ID:              "userid3",
-			Username:        "username3",
-			Email:           "username3@example.com",
 			TokenValidSince: &futureTime,
 		}
-		So(conn.CreateUser(&withFutureTokenValidSince), ShouldBeNil)
+		So(conn.CreateAuth(&withFutureTokenValidSince), ShouldBeNil)
 
 		Convey("should inject user with access token", func() {
 			payload := router.Payload{

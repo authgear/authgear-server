@@ -12,22 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pq
+package migration
 
-import (
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
-)
+import "github.com/jmoiron/sqlx"
 
-func (db *database) Begin() (err error) {
-	return db.c.Begin()
+type revision___VERSION__ struct {
 }
 
-func (db *database) Commit() (err error) {
-	return db.c.Commit()
+func (r *revision___VERSION__) Version() string {
+  return "__VERSION__"
 }
 
-func (db *database) Rollback() (err error) {
-	return db.c.Rollback()
+func (r *revision___VERSION__) Up(tx *sqlx.Tx) error {
+  stmt := ``
+
+  _, err := tx.Exec(stmt)
+  return err
 }
 
-var _ skydb.Transactional = &database{}
+func (r *revision___VERSION__) Down(tx *sqlx.Tx) error {
+  stmt := ``
+
+  _, err := tx.Exec(stmt)
+  return err
+}

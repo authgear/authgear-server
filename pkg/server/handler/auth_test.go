@@ -23,12 +23,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken/authtokentest"
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/provider"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skydbtest"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
@@ -43,17 +45,125 @@ func tempDir() string {
 	return dir
 }
 
+func makeEqualPredicate(keyPath string, value string) skydb.Predicate {
+	return skydb.Predicate{
+		Operator: skydb.Equal,
+		Children: []interface{}{
+			skydb.Expression{Type: skydb.KeyPath, Value: keyPath},
+			skydb.Expression{Type: skydb.Literal, Value: value},
+		},
+	}
+}
+
+func makeEqualPredicateAssertion(key string, value string) func(predicate *skydb.Predicate) {
+	return func(predicate *skydb.Predicate) {
+		So(predicate.Operator, ShouldEqual, skydb.Equal)
+
+		keyExp := predicate.Children[0].(skydb.Expression)
+		valueExp := predicate.Children[1].(skydb.Expression)
+
+		So(keyExp.Type, ShouldEqual, skydb.KeyPath)
+		So(keyExp.Value, ShouldEqual, key)
+
+		So(valueExp.Type, ShouldEqual, skydb.Literal)
+		So(valueExp.Value, ShouldEqual, value)
+	}
+}
+
+func makeUsernameEmailQueryAssertion(username string, email string) func(query *skydb.Query) {
+	return func(query *skydb.Query) {
+		So(query.Type, ShouldEqual, "user")
+
+		predicate := query.Predicate
+		So(predicate.Operator, ShouldEqual, skydb.And)
+
+		expectedChildrenCount := 0
+		if username != "" {
+			expectedChildrenCount = expectedChildrenCount + 1
+		}
+
+		if email != "" {
+			expectedChildrenCount = expectedChildrenCount + 1
+		}
+
+		So(len(predicate.Children), ShouldEqual, expectedChildrenCount)
+
+		for _, child := range predicate.Children {
+			childPredicate := child.(skydb.Predicate)
+			keyExp := childPredicate.Children[0].(skydb.Expression)
+			if keyExp.Type == skydb.KeyPath && keyExp.Value == "username" {
+				makeEqualPredicateAssertion("username", username)(&childPredicate)
+			} else if keyExp.Type == skydb.KeyPath && keyExp.Value == "email" {
+				makeEqualPredicateAssertion("email", email)(&childPredicate)
+			} else {
+				panic(fmt.Sprintf("Unexpected keypath"))
+			}
+		}
+	}
+}
+
+func makeUserRecordAssertion(authData skydb.AuthData) func(record *skydb.Record) {
+	return func(record *skydb.Record) {
+		So(record.ID.Type, ShouldEqual, "user")
+		So(record.Data["username"], ShouldEqual, authData["username"])
+		So(record.Data["email"], ShouldEqual, authData["email"])
+	}
+}
+
 // Seems like a memory imlementation of skydb will make tests
 // faster and easier
 
 func TestSignupHandler(t *testing.T) {
 	Convey("SignupHandler", t, func() {
 		conn := skydbtest.NewMapConn()
-		db := skydbtest.NewMapDB()
-		txdb := skydbtest.NewMockTxDatabase(db)
 		tokenStore := authtokentest.SingleTokenStore{}
 
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		db := mock_skydb.NewMockTxDatabase(ctrl)
+		handler := &SignupHandler{
+			TokenStore: &tokenStore,
+		}
+
+		expectDBSaveUser := func(db *mock_skydb.MockTxDatabase, authData skydb.AuthData) {
+			db.EXPECT().UserRecordType().Return("user").AnyTimes()
+			db.EXPECT().ID().Return("_public").AnyTimes()
+
+			// no record found
+			db.EXPECT().
+				Get(gomock.Any(), gomock.Any()).
+				Return(skydb.ErrRecordNotFound).
+				AnyTimes()
+
+			userRecordSchema := skydb.RecordSchema{
+				"username": skydb.FieldType{Type: skydb.TypeString},
+				"email":    skydb.FieldType{Type: skydb.TypeString},
+			}
+
+			// extend Schema
+			db.EXPECT().GetSchema("user").Return(skydb.RecordSchema{}, nil).AnyTimes()
+			db.EXPECT().Extend("user", userRecordSchema).Return(true, nil).AnyTimes()
+
+			db.EXPECT().
+				Save(gomock.Any()).
+				Do(makeUserRecordAssertion(authData)).
+				Return(nil).
+				AnyTimes()
+		}
+
 		Convey("sign up new account", func() {
+			fmt.Println("sign up new account")
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(makeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
+				AnyTimes()
+			txBegin := db.EXPECT().Begin().AnyTimes()
+			db.EXPECT().Commit().After(txBegin)
+
+			expectDBSaveUser(db, skydb.AuthData{"username": "john.doe", "email": "john.doe@example.com"})
+
 			req := router.Payload{
 				Data: map[string]interface{}{
 					"username": "john.doe",
@@ -61,16 +171,10 @@ func TestSignupHandler(t *testing.T) {
 					"password": "secret",
 				},
 				DBConn:   conn,
-				Database: txdb,
+				Database: db,
 			}
 			resp := router.Response{}
-			handler := &SignupHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
-
-			So(txdb.DidBegin, ShouldBeTrue)
-			So(txdb.DidCommit, ShouldBeTrue)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
 			authResp := resp.Result.(AuthResponse)
@@ -84,15 +188,26 @@ func TestSignupHandler(t *testing.T) {
 			So(token.AccessToken, ShouldNotBeEmpty)
 
 			authinfo := &skydb.AuthInfo{}
-			err := conn.GetUserByUsernameEmail("john.doe", "", authinfo)
+			err := conn.GetAuth(authResp.UserID, authinfo)
 			So(err, ShouldBeNil)
 			So(authinfo.Roles, ShouldBeNil)
-
-			_, ok := db.RecordMap[fmt.Sprintf("user/%s", token.AuthInfoID)]
-			So(ok, ShouldBeTrue)
 		})
 
 		Convey("sign up new account with role base access control will have default role", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			db := mock_skydb.NewMockTxDatabase(ctrl)
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(makeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
+				AnyTimes()
+			txBegin := db.EXPECT().Begin().AnyTimes()
+			db.EXPECT().Commit().After(txBegin)
+
+			expectDBSaveUser(db, skydb.AuthData{"username": "john.doe", "email": "john.doe@example.com"})
+
 			req := router.Payload{
 				Data: map[string]interface{}{
 					"username": "john.doe",
@@ -100,7 +215,7 @@ func TestSignupHandler(t *testing.T) {
 					"password": "secret",
 				},
 				DBConn:   conn,
-				Database: txdb,
+				Database: db,
 			}
 			resp := router.Response{}
 			handler := &SignupHandler{
@@ -108,16 +223,32 @@ func TestSignupHandler(t *testing.T) {
 				AccessModel: skydb.RoleBasedAccess,
 			}
 			handler.Handle(&req, &resp)
+			authResp := resp.Result.(AuthResponse)
 
 			authinfo := &skydb.AuthInfo{}
-			err := conn.GetUserByUsernameEmail("john.doe", "", authinfo)
+			err := conn.GetAuth(authResp.UserID, authinfo)
 			So(err, ShouldBeNil)
 			So(authinfo.Roles, ShouldResemble, []string{"user"})
 		})
 
 		Convey("sign up duplicate username", func() {
-			authinfo := skydb.NewAuthInfo("john.doe", "", "secret")
-			conn.CreateUser(&authinfo)
+			authinfo := skydb.NewAuthInfo("secret")
+			conn.CreateAuth(&authinfo)
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(makeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{
+					skydb.Record{
+						ID: skydb.NewRecordID("user", authinfo.ID),
+						Data: map[string]interface{}{
+							"username": "john.doe",
+							"email":    "john.doe@example.com",
+						},
+					},
+				})), nil).
+				AnyTimes()
+			txBegin := db.EXPECT().Begin().AnyTimes()
+			db.EXPECT().Rollback().After(txBegin)
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -126,12 +257,9 @@ func TestSignupHandler(t *testing.T) {
 					"password": "secret",
 				},
 				DBConn:   conn,
-				Database: txdb,
+				Database: db,
 			}
 			resp := router.Response{}
-			handler := &SignupHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
@@ -140,8 +268,23 @@ func TestSignupHandler(t *testing.T) {
 		})
 
 		Convey("sign up duplicate email", func() {
-			authinfo := skydb.NewAuthInfo("", "john.doe@example.com", "secret")
-			conn.CreateUser(&authinfo)
+			authinfo := skydb.NewAuthInfo("secret")
+			conn.CreateAuth(&authinfo)
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(makeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{
+					skydb.Record{
+						ID: skydb.NewRecordID("user", authinfo.ID),
+						Data: map[string]interface{}{
+							"username": "john.doe",
+							"email":    "john.doe@example.com",
+						},
+					},
+				})), nil).
+				AnyTimes()
+			txBegin := db.EXPECT().Begin().AnyTimes()
+			db.EXPECT().Rollback().After(txBegin)
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -150,12 +293,9 @@ func TestSignupHandler(t *testing.T) {
 					"password": "secret",
 				},
 				DBConn:   conn,
-				Database: txdb,
+				Database: db,
 			}
 			resp := router.Response{}
-			handler := &SignupHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
@@ -168,17 +308,32 @@ func TestSignupHandler(t *testing.T) {
 func TestLoginHandler(t *testing.T) {
 	Convey("LoginHandler", t, func() {
 		conn := skydbtest.NewMapConn()
-		db := skydbtest.NewMapDB()
-		txdb := skydbtest.NewMockTxDatabase(db)
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		db := mock_skydb.NewMockDatabase(ctrl)
+
 		tokenStore := authtokentest.SingleTokenStore{}
+		handler := &LoginHandler{
+			TokenStore: &tokenStore,
+		}
 
 		Convey("login user", func() {
-			authinfo := skydb.NewAuthInfo("john.doe", "john.doe@example.com", "secret")
+			authinfo := skydb.NewAuthInfo("secret")
 			authinfo.Roles = []string{
 				"Programmer",
 				"Tester",
 			}
-			conn.CreateUser(&authinfo)
+			conn.CreateAuth(&authinfo)
+
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(makeUsernameEmailQueryAssertion("john.doe", "")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
+					ID:   skydb.NewRecordID("user", authinfo.ID),
+					Data: map[string]interface{}{"username": "john.doe", "email": "john.doe@example.com"},
+				}})), nil).
+				AnyTimes()
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -186,12 +341,9 @@ func TestLoginHandler(t *testing.T) {
 					"password": "secret",
 				},
 				DBConn:   conn,
-				Database: txdb,
+				Database: db,
 			}
 			resp := router.Response{}
-			handler := &LoginHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
@@ -209,8 +361,17 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("login user with username in different case should ok", func() {
-			authinfo := skydb.NewAuthInfo("john.doe", "john.doe@example.com", "secret")
-			conn.CreateUser(&authinfo)
+			authinfo := skydb.NewAuthInfo("secret")
+			conn.CreateAuth(&authinfo)
+
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(makeUsernameEmailQueryAssertion("john.DOE", "")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
+					ID:   skydb.NewRecordID("user", authinfo.ID),
+					Data: map[string]interface{}{"username": "john.doe", "email": "john.doe@example.com"},
+				}})), nil).
+				AnyTimes()
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -218,12 +379,9 @@ func TestLoginHandler(t *testing.T) {
 					"password": "secret",
 				},
 				DBConn:   conn,
-				Database: txdb,
+				Database: db,
 			}
 			resp := router.Response{}
-			handler := &LoginHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
@@ -237,8 +395,17 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("login user with email in different case should ok", func() {
-			authinfo := skydb.NewAuthInfo("john.doe", "john.doe@example.com", "secret")
-			conn.CreateUser(&authinfo)
+			authinfo := skydb.NewAuthInfo("secret")
+			conn.CreateAuth(&authinfo)
+
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(makeUsernameEmailQueryAssertion("", "john.DOE@example.com")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
+					ID:   skydb.NewRecordID("user", authinfo.ID),
+					Data: map[string]interface{}{"username": "john.doe", "email": "john.doe@example.com"},
+				}})), nil).
+				AnyTimes()
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -246,12 +413,9 @@ func TestLoginHandler(t *testing.T) {
 					"password": "secret",
 				},
 				DBConn:   conn,
-				Database: txdb,
+				Database: db,
 			}
 			resp := router.Response{}
-			handler := &LoginHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
@@ -264,8 +428,17 @@ func TestLoginHandler(t *testing.T) {
 			So(token.AccessToken, ShouldNotBeEmpty)
 		})
 		Convey("login user wrong password", func() {
-			authinfo := skydb.NewAuthInfo("john.doe", "john.doe@example.com", "secret")
-			conn.CreateUser(&authinfo)
+			authinfo := skydb.NewAuthInfo("secret")
+			conn.CreateAuth(&authinfo)
+
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(makeUsernameEmailQueryAssertion("john.doe", "")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
+					ID:   skydb.NewRecordID("user", authinfo.ID),
+					Data: map[string]interface{}{"username": "john.doe", "email": "john.doe@example.com"},
+				}})), nil).
+				AnyTimes()
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -273,12 +446,9 @@ func TestLoginHandler(t *testing.T) {
 					"password": "wrongsecret",
 				},
 				DBConn:   conn,
-				Database: txdb,
+				Database: db,
 			}
 			resp := router.Response{}
-			handler := &LoginHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
@@ -287,18 +457,21 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("login user not found", func() {
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(makeUsernameEmailQueryAssertion("john.doe", "")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
+				AnyTimes()
+
 			req := router.Payload{
 				Data: map[string]interface{}{
 					"username": "john.doe",
 					"password": "secret",
 				},
 				DBConn:   conn,
-				Database: txdb,
+				Database: db,
 			}
 			resp := router.Response{}
-			handler := &LoginHandler{
-				TokenStore: &tokenStore,
-			}
 			handler.Handle(&req, &resp)
 
 			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
@@ -326,7 +499,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("login in non-existent provider", func() {
-			resp := r.POST(`{"provider": "com.non-existent", "auth_data": {"name": "johndoe"}}`)
+			resp := r.POST(`{"provider": "com.non-existent", "provider_auth_data": {"name": "johndoe"}}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"error": {
 		"code": 108,
@@ -339,7 +512,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("login in existing", func() {
-			authinfo := skydb.NewProvidedAuthAuthInfo("com.example:johndoe", map[string]interface{}{"name": "boo"})
+			authinfo := skydb.NewProviderInfoAuthInfo("com.example:johndoe", map[string]interface{}{"name": "boo"})
 			n := timeNow()
 			authinfo.LastLoginAt = &n
 			authinfo.LastSeenAt = &n
@@ -348,12 +521,12 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 				conn.authinfo = nil
 			}()
 
-			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
+			resp := r.POST(`{"provider": "com.example", "provider_auth_data": {"name": "johndoe"}}`)
 
 			token := tokenStore.Token
 			So(token.AccessToken, ShouldNotBeBlank)
 			So(conn.authinfo, ShouldNotBeNil)
-			authData := conn.authinfo.Auth["com.example:johndoe"]
+			authData := conn.authinfo.ProviderInfo["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -375,7 +548,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("login in and create", func() {
-			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
+			resp := r.POST(`{"provider": "com.example", "provider_auth_data": {"name": "johndoe"}}`)
 
 			So(txdb.DidBegin, ShouldBeTrue)
 			So(txdb.DidCommit, ShouldBeTrue)
@@ -385,7 +558,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 
 			So(token.AccessToken, ShouldNotBeBlank)
 			So(conn.authinfo, ShouldNotBeNil)
-			authData := conn.authinfo.Auth["com.example:johndoe"]
+			authData := conn.authinfo.ProviderInfo["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -411,7 +584,7 @@ type singleUserConn struct {
 	skydb.Conn
 }
 
-func (conn *singleUserConn) UpdateUser(authinfo *skydb.AuthInfo) error {
+func (conn *singleUserConn) UpdateAuth(authinfo *skydb.AuthInfo) error {
 	if conn.authinfo != nil && conn.authinfo.ID == authinfo.ID {
 		conn.authinfo = authinfo
 		return nil
@@ -419,7 +592,7 @@ func (conn *singleUserConn) UpdateUser(authinfo *skydb.AuthInfo) error {
 	return skydb.ErrUserNotFound
 }
 
-func (conn *singleUserConn) CreateUser(authinfo *skydb.AuthInfo) error {
+func (conn *singleUserConn) CreateAuth(authinfo *skydb.AuthInfo) error {
 	if conn.authinfo == nil {
 		conn.authinfo = authinfo
 		return nil
@@ -427,7 +600,7 @@ func (conn *singleUserConn) CreateUser(authinfo *skydb.AuthInfo) error {
 	return skydb.ErrUserDuplicated
 }
 
-func (conn *singleUserConn) GetUser(id string, authinfo *skydb.AuthInfo) error {
+func (conn *singleUserConn) GetAuth(id string, authinfo *skydb.AuthInfo) error {
 	if conn.authinfo != nil {
 		*authinfo = *conn.authinfo
 		return nil
@@ -435,7 +608,7 @@ func (conn *singleUserConn) GetUser(id string, authinfo *skydb.AuthInfo) error {
 	return skydb.ErrUserNotFound
 }
 
-func (conn *singleUserConn) GetUserByPrincipalID(principalID string, authinfo *skydb.AuthInfo) error {
+func (conn *singleUserConn) GetAuthByPrincipalID(principalID string, authinfo *skydb.AuthInfo) error {
 	if conn.authinfo != nil {
 		*authinfo = *conn.authinfo
 		return nil
@@ -495,8 +668,9 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 			))
 			So(resp.Code, ShouldEqual, 200)
 
-			_, ok := db.RecordMap[fmt.Sprintf("user/%s", authinfo.ID)]
+			user, ok := db.RecordMap[fmt.Sprintf("user/%s", authinfo.ID)]
 			So(ok, ShouldBeTrue)
+			So(len(user.Data) == 0, ShouldBeTrue)
 		})
 
 		Convey("errors when both usename and email is missing", func() {
@@ -550,7 +724,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("signs up with non-existent provider", func() {
-			resp := r.POST(`{"provider": "com.non-existent", "auth_data": {"name": "johndoe"}}`)
+			resp := r.POST(`{"provider": "com.non-existent", "provider_auth_data": {"name": "johndoe"}}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"error": {
 		"code": 108,
@@ -563,7 +737,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("signs up with user", func() {
-			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "johndoe"}}`)
+			resp := r.POST(`{"provider": "com.example", "provider_auth_data": {"name": "johndoe"}}`)
 
 			So(txdb.DidBegin, ShouldBeTrue)
 			So(txdb.DidCommit, ShouldBeTrue)
@@ -572,7 +746,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			authinfo := conn.authinfo
 
 			So(token.AccessToken, ShouldNotBeBlank)
-			authData := conn.authinfo.Auth["com.example:johndoe"]
+			authData := conn.authinfo.ProviderInfo["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
@@ -595,7 +769,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("signs up with incorrect user", func() {
-			resp := r.POST(`{"provider": "com.example", "auth_data": {"name": "janedoe"}}`)
+			resp := r.POST(`{"provider": "com.example", "provider_auth_data": {"name": "janedoe"}}`)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"error": {
@@ -688,9 +862,9 @@ func TestLogoutHandler(t *testing.T) {
 func TestPasswordHandlerWithProvider(t *testing.T) {
 	Convey("PasswordHandler", t, func() {
 		conn := singleUserConn{}
-		authinfo := skydb.NewAuthInfo("lord-of-skygear", "limouren@skygear.io", "chima")
+		authinfo := skydb.NewAuthInfo("chima")
 		authinfo.ID = "user-uuid"
-		conn.CreateUser(&authinfo)
+		conn.CreateAuth(&authinfo)
 		tokenStore := authtokentest.SingleTokenStore{}
 		token := authtoken.New("_", authinfo.ID, time.Time{})
 		tokenStore.Put(&token)

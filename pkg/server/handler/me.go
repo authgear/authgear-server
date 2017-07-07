@@ -17,6 +17,7 @@ package handler
 import (
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/router"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -26,6 +27,8 @@ type MeHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectDB      router.Processor `preprocessor:"inject_public_db"`
+	RequireUser   router.Processor `preprocessor:"require_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -36,6 +39,8 @@ func (h *MeHandler) Setup() {
 		h.Authenticator,
 		h.DBConn,
 		h.InjectUser,
+		h.InjectDB,
+		h.RequireUser,
 		h.PluginReady,
 	}
 }
@@ -82,12 +87,24 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 		panic(err)
 	}
 
+	user := skydb.Record{}
+	if err = payload.Database.Get(skydb.NewRecordID("user", info.ID), &user); err != nil {
+		panic(err)
+	}
+
+	authData := skydb.AuthData{}
+	username, _ := user.Data["username"].(string)
+	email, _ := user.Data["email"].(string)
+
+	authData.SetUsername(username)
+	authData.SetEmail(email)
+
 	// We will return the last seen in DB, not current time stamp
-	authResponse := NewAuthResponse(*info, token.AccessToken)
+	authResponse := NewAuthResponse(*info, authData, token.AccessToken)
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastSeenAt = &now
-	if err := payload.DBConn.UpdateUser(info); err != nil {
+	if err := payload.DBConn.UpdateAuth(info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}

@@ -19,12 +19,14 @@ import (
 
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 )
 
 type testRelationConn struct {
@@ -37,9 +39,8 @@ type testRelationConn struct {
 	skydb.Conn
 }
 
-func (conn *testRelationConn) GetUser(id string, authinfo *skydb.AuthInfo) error {
+func (conn *testRelationConn) GetAuth(id string, authinfo *skydb.AuthInfo) error {
 	authinfo.ID = id
-	authinfo.Username = "testRelationConn"
 	return nil
 }
 
@@ -90,11 +91,33 @@ func (conn *testRelationConn) QueryRelationCount(user string, name string, direc
 func TestRelationHandler(t *testing.T) {
 	Convey("RelationAddHandler", t, func() {
 		conn := testRelationConn{}
-		r := handlertest.NewSingleRouteRouter(&RelationAddHandler{}, func(p *router.Payload) {
-			p.DBConn = &conn
-		})
 
 		Convey("add new relation", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			db := mock_skydb.NewMockTxDatabase(ctrl)
+			db.EXPECT().
+				Get(gomock.Any(), gomock.Any()).
+				Do(func(recordID skydb.RecordID, record *skydb.Record) {
+					if recordID.Type != "user" || recordID.Key != "some-friend" {
+						panic("Wrong RecordID")
+					}
+				}).
+				SetArg(1, skydb.Record{
+					ID: skydb.NewRecordID("user", "some-friend"),
+					Data: map[string]interface{}{
+						"username": "testRelationConn",
+					},
+				}).
+				Return(nil).
+				AnyTimes()
+
+			r := handlertest.NewSingleRouteRouter(&RelationAddHandler{}, func(p *router.Payload) {
+				p.DBConn = &conn
+				p.Database = db
+			})
+
 			resp := r.POST(`{
     "name": "friend",
     "targets": [
@@ -120,11 +143,12 @@ func TestRelationHandler(t *testing.T) {
 
 	Convey("RelationQueryHandler", t, func() {
 		conn := testRelationConn{}
-		r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
-			p.DBConn = &conn
-		})
 
 		Convey("query outward relation", func() {
+			r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
+				p.DBConn = &conn
+			})
+
 			resp := r.POST(`{
     "name": "follow",
     "direction": "outward"
@@ -140,11 +164,35 @@ func TestRelationHandler(t *testing.T) {
 		})
 
 		Convey("query inward relation with count", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			db := mock_skydb.NewMockTxDatabase(ctrl)
+			db.EXPECT().
+				Get(gomock.Any(), gomock.Any()).
+				Do(func(recordID skydb.RecordID, record *skydb.Record) {
+					if recordID.Type != "user" || recordID.Key != "101" {
+						panic("Wrong RecordID")
+					}
+				}).
+				SetArg(1, skydb.Record{
+					ID: skydb.NewRecordID("user", "101"),
+					Data: map[string]interface{}{
+						"username": "user101",
+						"email":    "user101@skygear.io",
+					},
+				}).
+				Return(nil).
+				AnyTimes()
+
+			r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
+				p.DBConn = &conn
+				p.Database = db
+			})
+
 			users := []skydb.AuthInfo{}
 			users = append(users, skydb.AuthInfo{
-				ID:       "101",
-				Username: "user101",
-				Email:    "user101@skygear.io",
+				ID: "101",
 			})
 			conn.AuthInfo = users
 			resp := r.POST(`{
@@ -170,6 +218,10 @@ func TestRelationHandler(t *testing.T) {
 		})
 
 		Convey("query relation with _follow", func() {
+			r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
+				p.DBConn = &conn
+			})
+
 			resp := r.POST(`{
     "name": "_follow",
     "direction": "outward"
@@ -185,15 +237,37 @@ func TestRelationHandler(t *testing.T) {
 		})
 
 		Convey("query relation with pagination", func() {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			db := mock_skydb.NewMockTxDatabase(ctrl)
+			firstUser := db.EXPECT().
+				Get(gomock.Any(), gomock.Any()).
+				Do(func(recordID skydb.RecordID, record *skydb.Record) {
+					if recordID.Type != "user" || recordID.Key != "101" {
+						panic("Wrong RecordID")
+					}
+				}).
+				SetArg(1, skydb.Record{
+					ID: skydb.NewRecordID("user", "101"),
+					Data: map[string]interface{}{
+						"username": "user101",
+						"email":    "user101@skygear.io",
+					},
+				}).
+				Return(nil).
+				Times(1)
+
+			r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
+				p.DBConn = &conn
+				p.Database = db
+			})
+
 			user1 := skydb.AuthInfo{
-				ID:       "101",
-				Username: "user101",
-				Email:    "user101@skygear.io",
+				ID: "101",
 			}
 			user2 := skydb.AuthInfo{
-				ID:       "102",
-				Username: "user102",
-				Email:    "user102@skygear.io",
+				ID: "102",
 			}
 
 			users := []skydb.AuthInfo{}
@@ -222,6 +296,23 @@ func TestRelationHandler(t *testing.T) {
     }
 }`)
 
+			db.EXPECT().
+				Get(gomock.Any(), gomock.Any()).
+				Do(func(recordID skydb.RecordID, record *skydb.Record) {
+					if recordID.Type != "user" || recordID.Key != "102" {
+						panic("Wrong RecordID")
+					}
+				}).
+				SetArg(1, skydb.Record{
+					ID: skydb.NewRecordID("user", "102"),
+					Data: map[string]interface{}{
+						"username": "user102",
+						"email":    "user102@skygear.io",
+					},
+				}).
+				Return(nil).
+				After(firstUser)
+
 			resp = r.POST(`{
     "name": "follow",
     "direction": "outward",
@@ -247,6 +338,10 @@ func TestRelationHandler(t *testing.T) {
 		})
 
 		Convey("query relation with wrong direction", func() {
+			r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
+				p.DBConn = &conn
+			})
+
 			resp := r.POST(`{
     "name": "follow",
     "direction": "bidirection"

@@ -143,11 +143,18 @@ func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router
 		})
 	resultList := make([]interface{}, 0, len(result))
 	for _, authinfo := range result {
+		data, err := fetchUserAuthData(rpayload.Database, rpayload.DBConn, authinfo.ID)
+		if err != nil {
+			response.Err = skyerr.MakeError(err)
+			return
+		}
+
+		data["_id"] = authinfo.ID
 		resultList = append(resultList, struct {
 			ID   string      `json:"id"`
 			Type string      `json:"type"`
 			Data interface{} `json:"data"`
-		}{authinfo.ID, "user", authinfo})
+		}{authinfo.ID, "user", data})
 	}
 	response.Result = resultList
 	count, countErr := rpayload.DBConn.QueryRelationCount(
@@ -271,14 +278,18 @@ func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.R
 				Data skyerr.Error `json:"data"`
 			}{target, "error", skyerr.NewResourceFetchFailureErr("user", target)})
 		} else {
-			authinfo := skydb.AuthInfo{}
-			rpayload.DBConn.GetUser(target, &authinfo)
-			authinfo.HashedPassword = []byte{}
+			data, err := fetchUserAuthData(rpayload.Database, rpayload.DBConn, target)
+			if err != nil {
+				response.Err = skyerr.MakeError(err)
+				return
+			}
+
+			data["_id"] = target
 			results = append(results, struct {
 				ID   string      `json:"id"`
 				Type string      `json:"type"`
 				Data interface{} `json:"data"`
-			}{target, "user", authinfo})
+			}{target, "user", data})
 		}
 	}
 	response.Result = results
@@ -350,4 +361,25 @@ func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *route
 		}
 	}
 	response.Result = results
+}
+
+func fetchUserAuthData(db skydb.Database, conn skydb.Conn, userID string) (data map[string]interface{}, err error) {
+	data = map[string]interface{}{}
+
+	// TODO: return user record
+	user := skydb.Record{}
+	if err = db.Get(skydb.NewRecordID("user", userID), &user); err != nil {
+		// TODO: handle auth without user in a better way
+		return
+	}
+
+	if username, _ := user.Data["username"].(string); username != "" {
+		data["username"] = username
+	}
+
+	if email, _ := user.Data["email"].(string); email != "" {
+		data["email"] = email
+	}
+
+	return
 }

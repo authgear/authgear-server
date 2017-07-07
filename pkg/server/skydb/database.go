@@ -158,25 +158,30 @@ type Database interface {
 	GetMatchingSubscriptions(record *Record) []Subscription
 }
 
-// TxDatabase defines the methods for a Database that supports
+// Transactional defines the methods for a persistence storage that supports
 // transaction.
 //
 // A Begin'ed transaction must end with a call to Commit or Rollback. After
-// that, all opertions on Database will return ErrDatabaseTxDone.
-//
-// NOTE(limouren): The interface is not Database specific, but currently only
-// Database supports it.
-type TxDatabase interface {
-	// Begin opens a transaction for the current Database.
+// that, all opertions on the storage will return ErrDatabaseTxDone.
+type Transactional interface {
+	// Begin opens a transaction for the current storage.
 	//
-	// Calling Begin on an already Begin'ed Database returns ErrDatabaseTxDidBegin.
+	// Calling Begin on an already Begin'ed storage returns ErrDatabaseTxDidBegin.
 	Begin() error
 
-	// Commit saves all the changes made to Database after Begin atomically.
+	// Commit saves all the changes made to storage after Begin atomically.
 	Commit() error
 
-	// Rollbacks discards all the changes made to Database after Begin.
+	// Rollbacks discards all the changes made to storage after Begin.
 	Rollback() error
+}
+
+// TxDatabase defines a Transactional Database
+//
+//go:generate mockgen -destination=mock_skydb/mock_tx_database.go github.com/skygeario/skygear-server/pkg/server/skydb TxDatabase
+type TxDatabase interface {
+	Transactional
+	Database
 }
 
 // Rows implements a scanner-like interface for easy iteration on a
