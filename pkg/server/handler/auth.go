@@ -270,65 +270,16 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	info := skydb.AuthInfo{}
 	authdata := skydb.AuthData{}
 
+	var handleLoginFunc func(*router.Payload, *loginPayload, *skydb.AuthInfo, *skydb.AuthData) skyerr.Error
 	if p.Provider != "" {
-		// Get AuthProvider and authenticates the user
-		principalID, providerAuthData, skyErr := h.authPrincipal(payload.Context, p)
-		if skyErr != nil {
-			response.Err = skyErr
-			return
-		}
-		if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
-
-			// Create user if and only if no user found with the same principal
-			if err != skydb.ErrUserNotFound {
-				// TODO: more error handling here if necessary
-				response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username)
-				return
-			}
-
-			info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
-			createContext := createUserWithRecordContext{
-				payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
-			}
-
-			if response.Err = createContext.execute(&info, authdata); response.Err != nil {
-				return
-			}
-		} else {
-			info.SetProviderInfoData(principalID, providerAuthData)
-			if err := payload.DBConn.UpdateAuth(&info); err != nil {
-				response.Err = skyerr.MakeError(err)
-				return
-			}
-		}
+		handleLoginFunc = h.handleLoginWithProvider
 	} else {
-		authdata = skydb.AuthData{}
-		authdata.SetUsername(p.Username)
-		authdata.SetEmail(p.Email)
+		handleLoginFunc = h.handleLoginWithAuthData
+	}
 
-		if ok := authdata.IsValid(); !ok {
-			response.Err = skyerr.NewInvalidArgument("Unexpected key found", []string{"authdata"})
-			return
-		}
-
-		fetcher := newUserAuthFetcher(payload.Database, payload.DBConn)
-		fetchedAuthInfo, _, err := fetcher.FetchAuth(authdata)
-		if err != nil {
-			if err == skydb.ErrUserNotFound {
-				response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-			} else {
-				// TODO: more error handling here if necessary
-				response.Err = skyerr.NewResourceFetchFailureErr("user", p.Username)
-			}
-			return
-		}
-
-		info = fetchedAuthInfo
-
-		if !info.IsSamePassword(p.Password) {
-			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "username or password incorrect")
-			return
-		}
+	if skyErr = handleLoginFunc(payload, p, &info, &authdata); skyErr != nil {
+		response.Err = skyErr
+		return
 	}
 
 	// generate access-token
@@ -351,6 +302,68 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		return
 	}
 	response.Result = authResponse
+}
+
+func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *loginPayload, authinfo *skydb.AuthInfo, authdata *skydb.AuthData) skyerr.Error {
+	*authdata = skydb.AuthData{}
+	principalID, providerAuthData, skyErr := h.authPrincipal(payload.Context, p)
+	if skyErr != nil {
+		return skyErr
+	}
+
+	if err := payload.DBConn.GetAuthByPrincipalID(principalID, authinfo); err != nil {
+		// Create user if and only if no user found with the same principal
+		if err != skydb.ErrUserNotFound {
+			// TODO: more error handling here if necessary
+			return skyerr.NewResourceFetchFailureErr("user", p.Username)
+		}
+
+		*authinfo = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
+
+		createContext := createUserWithRecordContext{
+			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
+		}
+
+		if err = createContext.execute(authinfo, *authdata); err != nil {
+			return skyerr.MakeError(err)
+		}
+	} else {
+		authinfo.SetProviderInfoData(principalID, providerAuthData)
+		if err := payload.DBConn.UpdateAuth(authinfo); err != nil {
+			return skyerr.MakeError(err)
+		}
+	}
+
+	return nil
+}
+
+func (h *LoginHandler) handleLoginWithAuthData(payload *router.Payload, p *loginPayload, authinfo *skydb.AuthInfo, authdata *skydb.AuthData) skyerr.Error {
+	*authdata = skydb.AuthData{}
+	authdata.SetUsername(p.Username)
+	authdata.SetEmail(p.Email)
+
+	if ok := authdata.IsValid(); !ok {
+		return skyerr.NewInvalidArgument("Unexpected key found", []string{"authdata"})
+	}
+
+	fetcher := newUserAuthFetcher(payload.Database, payload.DBConn)
+	fetchedAuthInfo, _, err := fetcher.FetchAuth(*authdata)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			return skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+		}
+
+		// TODO: more error handling here if necessary
+		return skyerr.NewResourceFetchFailureErr("user", p.Username)
+	}
+
+	*authinfo = fetchedAuthInfo
+
+	if !authinfo.IsSamePassword(p.Password) {
+		return skyerr.NewError(skyerr.InvalidCredentials, "username or password incorrect")
+	}
+
+	return nil
 }
 
 func (h *LoginHandler) authPrincipal(ctx context.Context, p *loginPayload) (string, map[string]interface{}, skyerr.Error) {
