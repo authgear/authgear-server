@@ -17,7 +17,10 @@ package handler
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/recordutil"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
@@ -28,25 +31,33 @@ var (
 )
 
 // AuthResponse is the unify way of returing a AuthInfo with AuthData to SDK
-// TODO: auth related APIs return User record
 type AuthResponse struct {
-	UserID      string     `json:"user_id,omitempty"`
-	Username    string     `json:"username,omitempty"`
-	Email       string     `json:"email,omitempty"`
-	Roles       []string   `json:"roles,omitempty"`
-	AccessToken string     `json:"access_token,omitempty"`
-	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
-	LastSeenAt  *time.Time `json:"last_seen_at,omitempty"`
+	UserID      string              `json:"user_id,omitempty"`
+	User        *skyconv.JSONRecord `json:"user,omitempty"`
+	Roles       []string            `json:"roles,omitempty"`
+	AccessToken string              `json:"access_token,omitempty"`
+	LastLoginAt *time.Time          `json:"last_login_at,omitempty"`
+	LastSeenAt  *time.Time          `json:"last_seen_at,omitempty"`
 }
 
-func NewAuthResponse(info skydb.AuthInfo, authdata skydb.AuthData, accessToken string) AuthResponse {
+type AuthResponseFactory struct {
+	AssetStore asset.Store `inject:"AssetStore"`
+}
+
+func (f AuthResponseFactory) NewAuthResponse(conn skydb.Conn, info skydb.AuthInfo, user skydb.Record, accessToken string) (AuthResponse, error) {
+	filter, err := recordutil.NewRecordResultFilter(conn, f.AssetStore, &info)
+	if err != nil {
+		return AuthResponse{}, err
+	}
+
+	jsonUser := filter.JSONResult(&user)
+
 	return AuthResponse{
 		UserID:      info.ID,
-		Username:    authdata.GetUsername(),
-		Email:       authdata.GetEmail(),
+		User:        jsonUser,
 		Roles:       info.Roles,
 		AccessToken: accessToken,
 		LastLoginAt: info.LastLoginAt,
 		LastSeenAt:  info.LastSeenAt,
-	}
+	}, nil
 }

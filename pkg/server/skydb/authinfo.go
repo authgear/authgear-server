@@ -55,33 +55,34 @@ type AuthInfo struct {
 // e.g.: {"username": "userA", "email": "userA@abc.com"}
 type AuthData map[string]interface{}
 
-func (a AuthData) getStringValue(key string) string {
-	value, _ := a[key].(string)
-	return value
-}
+func (a AuthData) MakeEqualPredicate() Predicate {
+	appendEqualPredicateForKey := func(predicates []interface{}, key string) []interface{} {
+		if a[key] == nil {
+			return predicates
+		}
 
-func (a AuthData) setStringValue(key string, value string) {
-	if value == "" {
-		delete(a, key)
-	} else {
-		a[key] = value
+		return append(predicates, Predicate{
+			Operator: Equal,
+			Children: []interface{}{
+				Expression{Type: KeyPath, Value: key},
+				Expression{Type: Literal, Value: a[key]},
+			},
+		})
+	}
+
+	predicates := []interface{}{}
+	predicates = appendEqualPredicateForKey(predicates, "username")
+	predicates = appendEqualPredicateForKey(predicates, "email")
+
+	return Predicate{
+		Operator: And,
+		Children: predicates,
 	}
 }
 
-func (a AuthData) GetUsername() string {
-	return a.getStringValue("username")
-}
-
-func (a AuthData) GetEmail() string {
-	return a.getStringValue("email")
-}
-
-func (a AuthData) SetUsername(value string) {
-	a.setStringValue("username", value)
-}
-
-func (a AuthData) SetEmail(value string) {
-	a.setStringValue("email", value)
+func (a AuthData) UpdateFromRecordData(data Data) {
+	a["username"] = data["username"]
+	a["email"] = data["email"]
 }
 
 func (a AuthData) IsValid() bool {
@@ -91,7 +92,26 @@ func (a AuthData) IsValid() bool {
 		}
 	}
 
-	return true
+	return !a.IsEmpty()
+}
+
+// IsEmpty would return true if
+//
+// 1. no entries or
+// 2. all values are null
+func (a AuthData) IsEmpty() bool {
+	emptyCount := 0
+	for k := range a {
+		if a.IsFieldEmpty(k) {
+			emptyCount = emptyCount + 1
+		}
+	}
+
+	return len(a) == emptyCount
+}
+
+func (a AuthData) IsFieldEmpty(key string) bool {
+	return a[key] == nil
 }
 
 // NewAuthInfo returns a new AuthInfo with specified password.

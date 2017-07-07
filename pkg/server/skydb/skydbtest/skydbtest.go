@@ -26,6 +26,7 @@ import (
 type MapConn struct {
 	UserMap                map[string]skydb.AuthInfo
 	AssetMap               map[string]skydb.Asset
+	InternalPublicDB       skydb.Database
 	usernameMap            map[string]skydb.AuthInfo
 	emailMap               map[string]skydb.AuthInfo
 	recordAccessMap        map[string]skydb.RecordACL
@@ -238,7 +239,7 @@ func (conn *MapConn) DeleteEmptyDevicesByTime(t time.Time) error {
 
 // PublicDB is not implemented.
 func (conn *MapConn) PublicDB() skydb.Database {
-	panic("not implemented")
+	return conn.InternalPublicDB
 }
 
 // PrivateDB is not implemented.

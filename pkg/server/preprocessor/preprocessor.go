@@ -138,34 +138,49 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 func (p InjectUserIfPresent) createUser(payload *router.Payload) (skydb.Record, error) {
 	authInfo := payload.AuthInfo
 	db := payload.DBConn.PublicDB()
-
-	userRecord := skydb.Record{
-		ID: skydb.NewRecordID(db.UserRecordType(), authInfo.ID),
+	txDB, ok := db.(skydb.Transactional)
+	if !ok {
+		return skydb.Record{}, skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
 	}
 
-	recordReq := recordutil.RecordModifyRequest{
-		Db:           db,
-		Conn:         payload.DBConn,
-		AssetStore:   p.AssetStore,
-		HookRegistry: p.HookRegistry,
-		Atomic:       true,
-		Context:      payload.Context,
-		AuthInfo:     authInfo,
-		ModifyAt:     timeNow(),
-		RecordsToSave: []*skydb.Record{
-			&userRecord,
-		},
+	var user *skydb.Record
+	txErr := skydb.WithTransaction(txDB, func() error {
+		userRecord := skydb.Record{
+			ID: skydb.NewRecordID(db.UserRecordType(), authInfo.ID),
+		}
+
+		recordReq := recordutil.RecordModifyRequest{
+			Db:           db,
+			Conn:         payload.DBConn,
+			AssetStore:   p.AssetStore,
+			HookRegistry: p.HookRegistry,
+			Atomic:       true,
+			Context:      payload.Context,
+			AuthInfo:     authInfo,
+			ModifyAt:     timeNow(),
+			RecordsToSave: []*skydb.Record{
+				&userRecord,
+			},
+		}
+
+		recordResp := recordutil.RecordModifyResponse{
+			ErrMap: map[skydb.RecordID]skyerr.Error{},
+		}
+
+		err := recordutil.RecordSaveHandler(&recordReq, &recordResp)
+		if err != nil {
+			return err
+		}
+
+		user = recordResp.SavedRecords[0]
+		return nil
+	})
+
+	if txErr != nil {
+		return skydb.Record{}, txErr
 	}
 
-	recordResp := recordutil.RecordModifyResponse{
-		ErrMap: map[skydb.RecordID]skyerr.Error{},
-	}
-
-	if err := recordutil.RecordSaveHandler(&recordReq, &recordResp); err != nil {
-		return skydb.Record{}, err
-	}
-
-	return *recordResp.SavedRecords[0], nil
+	return *user, nil
 }
 
 type InjectDatabase struct {

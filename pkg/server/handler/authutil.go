@@ -85,37 +85,11 @@ func (f *UserAuthFetcher) FetchUser(authData skydb.AuthData) (user skydb.Record,
 }
 
 func (f *UserAuthFetcher) buildAuthDataQuery(authData skydb.AuthData) skydb.Query {
-	username := authData.GetUsername()
-	email := authData.GetEmail()
-
-	predicates := []interface{}{}
-
-	makeEqualPredicate := func(keyPath string, value string) skydb.Predicate {
-		return skydb.Predicate{
-			Operator: skydb.Equal,
-			Children: []interface{}{
-				skydb.Expression{Type: skydb.KeyPath, Value: keyPath},
-				skydb.Expression{Type: skydb.Literal, Value: value},
-			},
-		}
-	}
-
-	if username != "" {
-		predicates = append(predicates, makeEqualPredicate("username", username))
-	}
-
-	if email != "" {
-		predicates = append(predicates, makeEqualPredicate("email", email))
-	}
-
 	one := uint64(1)
 	query := skydb.Query{
-		Type: "user",
-		Predicate: skydb.Predicate{
-			Operator: skydb.And,
-			Children: predicates,
-		},
-		Limit: &one,
+		Type:      "user",
+		Predicate: authData.MakeEqualPredicate(),
+		Limit:     &one,
 	}
 	return query
 }
@@ -130,17 +104,18 @@ type createUserWithRecordContext struct {
 	Context      context.Context
 }
 
-func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData skydb.AuthData) skyerr.Error {
+func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData skydb.AuthData) (*skydb.Record, skyerr.Error) {
 	db := ctx.Database
 	txDB, ok := db.(skydb.Transactional)
 	if !ok {
-		return skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
+		return nil, skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
 	}
 
+	var user *skydb.Record
 	txErr := skydb.WithTransaction(txDB, func() error {
 		// Check if AuthData duplicated only when it is provided
 		// AuthData may be absent, e.g. login with provider
-		if len(authData) != 0 {
+		if !authData.IsEmpty() {
 			fetcher := newUserAuthFetcher(db, ctx.DBConn)
 			_, _, err := fetcher.FetchAuth(authData)
 			if err == nil {
@@ -157,7 +132,7 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 				return errUserDuplicated
 			}
 
-			return skyerr.NewResourceSaveFailureErrWithStringID("user", authData.GetUsername())
+			return skyerr.NewResourceSaveFailureErr("auth_data", authData)
 		}
 
 		userRecord := skydb.Record{
@@ -183,26 +158,29 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 			ErrMap: map[skydb.RecordID]skyerr.Error{},
 		}
 
-		return recordutil.RecordSaveHandler(&recordReq, &recordResp)
+		err := recordutil.RecordSaveHandler(&recordReq, &recordResp)
+		if err != nil {
+			return err
+		}
+
+		user = recordResp.SavedRecords[0]
+		return nil
 	})
 
 	if txErr == nil {
-		return nil
+		return user, nil
 	}
 
 	if err, ok := txErr.(skyerr.Error); ok {
-		return err
+		return nil, err
 	}
 
-	return skyerr.MakeError(txErr)
+	return nil, skyerr.MakeError(txErr)
 }
 
 // TODO: validate according to settings/options
 func validateAuthData(authData skydb.AuthData) error {
-	username := authData.GetUsername()
-	email := authData.GetEmail()
-
-	if username == "" && email == "" {
+	if !authData.IsValid() {
 		return fmt.Errorf("Either username and email must be set")
 	}
 
@@ -215,9 +193,5 @@ func getAuthDataFromUser(authData skydb.AuthData, user skydb.Record) {
 		panic("getAuthDataFromUser must be called with user record")
 	}
 
-	username, _ := user.Data["username"].(string)
-	email, _ := user.Data["email"].(string)
-
-	authData.SetUsername(username)
-	authData.SetEmail(email)
+	authData.UpdateFromRecordData(user.Data)
 }

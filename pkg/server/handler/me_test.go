@@ -73,8 +73,13 @@ func TestMeHandler(t *testing.T) {
         "result": {
           "access_token": "%s",
           "user_id": "tester-1",
-          "email": "tester1@example.com",
-          "username": "tester1",
+          "user": {
+            "_type": "record",
+            "_id": "user/tester-1",
+            "_access": null,
+            "email": "tester1@example.com",
+            "username": "tester1"
+          },
           "roles": ["Test", "Programmer"],
           "last_login_at": "%v",
           "last_seen_at": "%v"

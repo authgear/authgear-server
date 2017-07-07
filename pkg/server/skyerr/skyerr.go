@@ -252,7 +252,7 @@ func NewResourceFetchFailureErr(kind string, id interface{}) Error {
 	return NewError(UnexpectedError, fmt.Sprintf("failed to fetch %v id = %v", kind, id))
 }
 
-func newResourceSaveFailureErr(kind string, id interface{}) Error {
+func NewResourceSaveFailureErr(kind string, id interface{}) Error {
 	var message string
 	if id != nil {
 		message = fmt.Sprintf("failed to save %v id = %v", kind, id)
@@ -270,7 +270,7 @@ func NewResourceSaveFailureErrWithStringID(kind string, id string) Error {
 	if id != "" {
 		iID = id
 	}
-	return newResourceSaveFailureErr(kind, iID)
+	return NewResourceSaveFailureErr(kind, iID)
 }
 
 func newResourceDeleteFailureErr(kind string, id interface{}) Error {

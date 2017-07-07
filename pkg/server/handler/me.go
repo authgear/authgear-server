@@ -17,7 +17,6 @@ package handler
 import (
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/router"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -38,8 +37,8 @@ func (h *MeHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
 		h.InjectAuth,
+		h.InjectUser,
 		h.RequireUser,
 		h.PluginReady,
 	}
@@ -92,15 +91,13 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 		panic("user record not found")
 	}
 
-	authData := skydb.AuthData{}
-	username, _ := user.Data["username"].(string)
-	email, _ := user.Data["email"].(string)
-
-	authData.SetUsername(username)
-	authData.SetEmail(email)
-
 	// We will return the last seen in DB, not current time stamp
-	authResponse := NewAuthResponse(*info, authData, token.AccessToken)
+	authResponse, err := AuthResponseFactory{}.NewAuthResponse(payload.DBConn, *info, *user, token.AccessToken)
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastSeenAt = &now
