@@ -93,8 +93,11 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 	}
 
 	authData := skydb.AuthData{}
-	authData.SetUsername(user.Data["username"].(string))
-	authData.SetEmail(user.Data["email"].(string))
+	username, _ := user.Data["username"].(string)
+	email, _ := user.Data["email"].(string)
+
+	authData.SetUsername(username)
+	authData.SetEmail(email)
 
 	// We will return the last seen in DB, not current time stamp
 	authResponse := NewAuthResponse(*info, authData, token.AccessToken)

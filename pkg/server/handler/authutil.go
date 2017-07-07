@@ -213,6 +213,9 @@ func getAuthDataFromUser(authData skydb.AuthData, user skydb.Record) {
 		panic("getAuthDataFromUser must be called with user record")
 	}
 
-	authData.SetUsername(user.Data["username"].(string))
-	authData.SetEmail(user.Data["email"].(string))
+	username, _ := user.Data["username"].(string)
+	email, _ := user.Data["email"].(string)
+
+	authData.SetUsername(username)
+	authData.SetEmail(email)
 }

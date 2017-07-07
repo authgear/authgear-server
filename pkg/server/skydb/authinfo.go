@@ -60,6 +60,14 @@ func (a AuthData) getStringValue(key string) string {
 	return value
 }
 
+func (a AuthData) setStringValue(key string, value string) {
+	if value == "" {
+		delete(a, key)
+	} else {
+		a[key] = value
+	}
+}
+
 func (a AuthData) GetUsername() string {
 	return a.getStringValue("username")
 }
@@ -69,11 +77,11 @@ func (a AuthData) GetEmail() string {
 }
 
 func (a AuthData) SetUsername(value string) {
-	a["username"] = value
+	a.setStringValue("username", value)
 }
 
 func (a AuthData) SetEmail(value string) {
-	a["email"] = value
+	a.setStringValue("email", value)
 }
 
 func (a AuthData) IsValid() bool {
