@@ -45,9 +45,9 @@ func tempDir() string {
 	return dir
 }
 
-func makeILikePredicate(keyPath string, value string) skydb.Predicate {
+func makeEqualPredicate(keyPath string, value string) skydb.Predicate {
 	return skydb.Predicate{
-		Operator: skydb.ILike,
+		Operator: skydb.Equal,
 		Children: []interface{}{
 			skydb.Expression{Type: skydb.KeyPath, Value: keyPath},
 			skydb.Expression{Type: skydb.Literal, Value: value},
@@ -55,9 +55,9 @@ func makeILikePredicate(keyPath string, value string) skydb.Predicate {
 	}
 }
 
-func makeILikePredicateAssertion(key string, value string) func(predicate *skydb.Predicate) {
+func makeEqualPredicateAssertion(key string, value string) func(predicate *skydb.Predicate) {
 	return func(predicate *skydb.Predicate) {
-		So(predicate.Operator, ShouldEqual, skydb.ILike)
+		So(predicate.Operator, ShouldEqual, skydb.Equal)
 
 		keyExp := predicate.Children[0].(skydb.Expression)
 		valueExp := predicate.Children[1].(skydb.Expression)
@@ -92,9 +92,9 @@ func makeUsernameEmailQueryAssertion(username string, email string) func(query *
 			childPredicate := child.(skydb.Predicate)
 			keyExp := childPredicate.Children[0].(skydb.Expression)
 			if keyExp.Type == skydb.KeyPath && keyExp.Value == "username" {
-				makeILikePredicateAssertion("username", username)(&childPredicate)
+				makeEqualPredicateAssertion("username", username)(&childPredicate)
 			} else if keyExp.Type == skydb.KeyPath && keyExp.Value == "email" {
-				makeILikePredicateAssertion("email", email)(&childPredicate)
+				makeEqualPredicateAssertion("email", email)(&childPredicate)
 			} else {
 				panic(fmt.Sprintf("Unexpected keypath"))
 			}

@@ -89,9 +89,9 @@ func (f *UserAuthFetcher) buildAuthDataQuery(authData skydb.AuthData) skydb.Quer
 
 	predicates := []interface{}{}
 
-	makeILikePredicate := func(keyPath string, value string) skydb.Predicate {
+	makeEqualPredicate := func(keyPath string, value string) skydb.Predicate {
 		return skydb.Predicate{
-			Operator: skydb.ILike,
+			Operator: skydb.Equal,
 			Children: []interface{}{
 				skydb.Expression{Type: skydb.KeyPath, Value: keyPath},
 				skydb.Expression{Type: skydb.Literal, Value: value},
@@ -100,11 +100,11 @@ func (f *UserAuthFetcher) buildAuthDataQuery(authData skydb.AuthData) skydb.Quer
 	}
 
 	if username != "" {
-		predicates = append(predicates, makeILikePredicate("username", username))
+		predicates = append(predicates, makeEqualPredicate("username", username))
 	}
 
 	if email != "" {
-		predicates = append(predicates, makeILikePredicate("email", email))
+		predicates = append(predicates, makeEqualPredicate("email", email))
 	}
 
 	one := uint64(1)
