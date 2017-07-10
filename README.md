@@ -98,8 +98,14 @@ If you have any fixes or suggestions, simply send us a pull request!
 
 If using Mac OS X, you can get the ZeroMQ dependencies using Homebrew:
 
+We need to reset the czmq to 3.x at homebrew.
+
 ```shell
-$ brew install libsodium zeromq czmq
+$ cd `brew --prefix` && cd Homebrew/Library/Taps/homebrew/homebrew-core
+$ git checkout 7a4dabfc1a2acd9f01a1670fde4f0094c4fb6ffa Formula/czmq.rb
+$ brew install czmq
+$ brew install libsodium zeromq 
+$ git reset master && git checkout Formula/czmq.rb
 ```
 
 ### Building from source
