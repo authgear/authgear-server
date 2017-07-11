@@ -92,7 +92,7 @@ type RecordModifyResponse struct {
 	DeletedRecordIDs []skydb.RecordID
 }
 
-type recordFetcher struct {
+type RecordFetcher struct {
 	db                     skydb.Database
 	conn                   skydb.Conn
 	withMasterKey          bool
@@ -100,8 +100,9 @@ type recordFetcher struct {
 	defaultAccessCacheMap  map[string]skydb.RecordACL
 }
 
-func NewRecordFetcher(db skydb.Database, conn skydb.Conn, withMasterKey bool) recordFetcher {
-	return recordFetcher{
+// NewRecordFetcher provide a convenient FetchOrCreateRecord method
+func NewRecordFetcher(db skydb.Database, conn skydb.Conn, withMasterKey bool) RecordFetcher {
+	return RecordFetcher{
 		db:                     db,
 		conn:                   conn,
 		withMasterKey:          withMasterKey,
@@ -110,7 +111,7 @@ func NewRecordFetcher(db skydb.Database, conn skydb.Conn, withMasterKey bool) re
 	}
 }
 
-func (f recordFetcher) getCreationAccess(recordType string) skydb.RecordACL {
+func (f RecordFetcher) getCreationAccess(recordType string) skydb.RecordACL {
 	creationAccess, creationAccessCached := f.creationAccessCacheMap[recordType]
 	if creationAccessCached == false {
 		var err error
@@ -124,7 +125,7 @@ func (f recordFetcher) getCreationAccess(recordType string) skydb.RecordACL {
 	return creationAccess
 }
 
-func (f recordFetcher) getDefaultAccess(recordType string) skydb.RecordACL {
+func (f RecordFetcher) getDefaultAccess(recordType string) skydb.RecordACL {
 	defaultAccess, defaultAccessCached := f.defaultAccessCacheMap[recordType]
 	if defaultAccessCached == false {
 		var err error
@@ -138,7 +139,7 @@ func (f recordFetcher) getDefaultAccess(recordType string) skydb.RecordACL {
 	return defaultAccess
 }
 
-func (f recordFetcher) FetchRecord(recordID skydb.RecordID, authInfo *skydb.AuthInfo, accessLevel skydb.RecordACLLevel) (record *skydb.Record, err skyerr.Error) {
+func (f RecordFetcher) FetchRecord(recordID skydb.RecordID, authInfo *skydb.AuthInfo, accessLevel skydb.RecordACLLevel) (record *skydb.Record, err skyerr.Error) {
 	dbRecord := skydb.Record{}
 	if dbErr := f.db.Get(recordID, &dbRecord); dbErr != nil {
 		if dbErr == skydb.ErrRecordNotFound {
@@ -164,7 +165,7 @@ func (f recordFetcher) FetchRecord(recordID skydb.RecordID, authInfo *skydb.Auth
 	return
 }
 
-func (f recordFetcher) FetchOrCreateRecord(recordID skydb.RecordID, authInfo *skydb.AuthInfo) (record skydb.Record, created bool, err skyerr.Error) {
+func (f RecordFetcher) FetchOrCreateRecord(recordID skydb.RecordID, authInfo *skydb.AuthInfo) (record skydb.Record, created bool, err skyerr.Error) {
 	fetchedRecord, err := f.FetchRecord(recordID, authInfo, skydb.WriteLevel)
 	if err == nil {
 		record = *fetchedRecord
@@ -208,7 +209,7 @@ func removeRecordFieldTypeHints(r *skydb.Record) {
 	}
 }
 
-// recordSaveHandler iterate the record to perform the following:
+// RecordSaveHandler iterate the record to perform the following:
 // 1. Query the db for original record
 // 2. Execute before save hooks with original record and new record
 // 3. Clean up some transport only data (sequence for example) away from record
@@ -373,7 +374,7 @@ func executeRecordFunc(recordsIn []*skydb.Record, errMap map[skydb.RecordID]skye
 	return
 }
 
-// Derive fields in delta which is either new or different from base, and
+// DeriveDeltaRecord derive fields in delta which is either new or different from base, and
 // write them in dst.
 //
 // It is the caller's reponsibility to ensure that base and delta identify
@@ -720,26 +721,30 @@ func makeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, recor
 	return nil
 }
 
-type recordResultFilter struct {
+type RecordResultFilter struct {
 	AssetStore asset.Store
 	FieldACL   skydb.FieldACL
 	AuthInfo   *skydb.AuthInfo
 }
 
-func NewRecordResultFilter(conn skydb.Conn, assetStore asset.Store, authInfo *skydb.AuthInfo) (recordResultFilter, error) {
+// NewRecordResultFilter return a RecordResultFilter which
+// 1. apply field-based acl
+// 2. inject asset
+// 3. return JSONRecord that is ready to be serialized
+func NewRecordResultFilter(conn skydb.Conn, assetStore asset.Store, authInfo *skydb.AuthInfo) (RecordResultFilter, error) {
 	acl, err := conn.GetRecordFieldAccess()
 	if err != nil {
-		return recordResultFilter{}, err
+		return RecordResultFilter{}, err
 	}
 
-	return recordResultFilter{
+	return RecordResultFilter{
 		AssetStore: assetStore,
 		AuthInfo:   authInfo,
 		FieldACL:   acl,
 	}, nil
 }
 
-func (f *recordResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecord {
+func (f *RecordResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecord {
 	if record == nil {
 		return nil
 	}
@@ -753,7 +758,7 @@ type QueryResultFilter struct {
 	Database           skydb.Database
 	Query              skydb.Query
 	EagerRecords       map[string]map[string]*skydb.Record
-	RecordResultFilter recordResultFilter
+	RecordResultFilter RecordResultFilter
 }
 
 func (f *QueryResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecord {
