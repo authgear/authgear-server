@@ -88,6 +88,10 @@ func (conn *testRelationConn) QueryRelationCount(user string, name string, direc
 	return count, nil
 }
 
+func (conn *testRelationConn) GetRecordFieldAccess() (skydb.FieldACL, error) {
+	return skydb.FieldACL{}, nil
+}
+
 func TestRelationHandler(t *testing.T) {
 	Convey("RelationAddHandler", t, func() {
 		conn := testRelationConn{}
@@ -116,6 +120,9 @@ func TestRelationHandler(t *testing.T) {
 			r := handlertest.NewSingleRouteRouter(&RelationAddHandler{}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.Database = db
+				p.AuthInfo = &skydb.AuthInfo{
+					ID: "user-1",
+				}
 			})
 
 			resp := r.POST(`{
@@ -133,7 +140,9 @@ func TestRelationHandler(t *testing.T) {
         "id": "some-friend",
         "type": "user",
         "data": {
-            "_id": "some-friend",
+            "_id": "user/some-friend",
+            "_type": "record",
+            "_access": null,
             "username": "testRelationConn"
         }
     }]
@@ -147,6 +156,9 @@ func TestRelationHandler(t *testing.T) {
 		Convey("query outward relation", func() {
 			r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
 				p.DBConn = &conn
+				p.AuthInfo = &skydb.AuthInfo{
+					ID: "user-1",
+				}
 			})
 
 			resp := r.POST(`{
@@ -188,6 +200,9 @@ func TestRelationHandler(t *testing.T) {
 			r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.Database = db
+				p.AuthInfo = &skydb.AuthInfo{
+					ID: "user-1",
+				}
 			})
 
 			users := []skydb.AuthInfo{}
@@ -206,7 +221,9 @@ func TestRelationHandler(t *testing.T) {
         "id": "101",
         "type": "user",
         "data":{
-            "_id": "101",
+            "_id": "user/101",
+            "_type": "record",
+            "_access": null,
             "email": "user101@skygear.io",
             "username": "user101"
         }
@@ -220,6 +237,9 @@ func TestRelationHandler(t *testing.T) {
 		Convey("query relation with _follow", func() {
 			r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
 				p.DBConn = &conn
+				p.AuthInfo = &skydb.AuthInfo{
+					ID: "user-1",
+				}
 			})
 
 			resp := r.POST(`{
@@ -261,6 +281,9 @@ func TestRelationHandler(t *testing.T) {
 			r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.Database = db
+				p.AuthInfo = &skydb.AuthInfo{
+					ID: "user-1",
+				}
 			})
 
 			user1 := skydb.AuthInfo{
@@ -286,7 +309,9 @@ func TestRelationHandler(t *testing.T) {
         "id": "101",
         "type": "user",
         "data":{
-            "_id": "101",
+            "_id": "user/101",
+            "_type": "record",
+            "_access": null,
             "email": "user101@skygear.io",
             "username": "user101"
         }
@@ -326,7 +351,9 @@ func TestRelationHandler(t *testing.T) {
         "id": "102",
         "type": "user",
         "data":{
-            "_id": "102",
+            "_id": "user/102",
+            "_type": "record",
+            "_access": null,
             "email": "user102@skygear.io",
             "username": "user102"
         }
@@ -340,6 +367,9 @@ func TestRelationHandler(t *testing.T) {
 		Convey("query relation with wrong direction", func() {
 			r := handlertest.NewSingleRouteRouter(&RelationQueryHandler{}, func(p *router.Payload) {
 				p.DBConn = &conn
+				p.AuthInfo = &skydb.AuthInfo{
+					ID: "user-1",
+				}
 			})
 
 			resp := r.POST(`{
