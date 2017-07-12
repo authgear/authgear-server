@@ -31,8 +31,7 @@ import (
 var errUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 
 type signupPayload struct {
-	Username         string                 `mapstructure:"username"`
-	Email            string                 `mapstructure:"email"`
+	AuthData         skydb.AuthData         `mapstructure:"auth_data"`
 	Password         string                 `mapstructure:"password"`
 	Provider         string                 `mapstructure:"provider"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
@@ -46,13 +45,12 @@ func (payload *signupPayload) Decode(data map[string]interface{}) skyerr.Error {
 }
 
 func (payload *signupPayload) Validate() skyerr.Error {
-
 	if payload.IsAnonymous() {
 		//no validation logic for anonymous sign up
 	} else if payload.Provider == "" {
-		identified := payload.Username != "" || payload.Email != ""
+		identified := payload.AuthData.IsValid()
 		if !identified {
-			return skyerr.NewInvalidArgument("empty username and empty email", []string{"username", "email"})
+			return skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
 		}
 
 		if payload.Password == "" {
@@ -64,28 +62,32 @@ func (payload *signupPayload) Validate() skyerr.Error {
 }
 
 func (payload *signupPayload) IsAnonymous() bool {
-	return payload.Email == "" && payload.Password == "" && payload.Username == "" && payload.Provider == ""
+	return payload.AuthData.IsEmpty() && payload.Password == "" && payload.Provider == ""
 }
 
 // SignupHandler creates an AuthInfo with the supplied information.
 //
 // SignupHandler receives three parameters:
 //
-// * username (string, unique, optional)
-// * email  (string, unqiue, optional)
+// * auth_data (json object, optional)
 // * password (string, optional)
 //
-// If both username and email is not supplied, an anonymous user is created and
+// If auth_data is not supplied, an anonymous user is created and
 // have user_id auto-generated. SignupHandler writes an error to
 // response.Result if the supplied username or email collides with an existing
 // username.
+//
+// Any entry with null value in auth_data would be purged. If all entries are
+// having null value, this would be treated as anonymous sign up.
 //
 //  curl -X POST -H "Content-Type: application/json" \
 //    -d @- http://localhost:3000/ <<EOF
 //  {
 //      "action": "auth:signup",
-//      "username": "rickmak",
-//      "email": "rick.mak@gmail.com",
+//      "auth_data": {
+//        "username": "rickmak",
+//        "email": "rick.mak@gmail.com",
+//      },
 //      "password": "123456"
 //  }
 //  EOF
@@ -149,9 +151,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
 	} else {
 		info = skydb.NewAuthInfo(p.Password)
-		authdata = skydb.AuthData{}
-		authdata.SetUsername(p.Username)
-		authdata.SetEmail(p.Email)
+		authdata = p.AuthData
 	}
 
 	// Populate the default roles to user
@@ -173,12 +173,9 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
 	}
 
-	if ok := authdata.IsValid(); !ok {
-		response.Err = skyerr.NewInvalidArgument("Unexpected key found", []string{"authdata"})
-		return
-	}
-
-	if response.Err = createContext.execute(&info, authdata); response.Err != nil {
+	user, skyErr := createContext.execute(&info, authdata)
+	if skyErr != nil {
+		response.Err = skyErr
 		return
 	}
 
@@ -192,12 +189,20 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		panic(err)
 	}
 
-	response.Result = NewAuthResponse(info, authdata, token.AccessToken)
+	authResponse, err := AuthResponseFactory{
+		AssetStore: h.AssetStore,
+		Conn:       payload.DBConn,
+	}.NewAuthResponse(info, *user, token.AccessToken)
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	response.Result = authResponse
 }
 
 type loginPayload struct {
-	Username         string                 `mapstructure:"username"`
-	Email            string                 `mapstructure:"email"`
+	AuthData         skydb.AuthData         `mapstructure:"auth_data"`
 	Password         string                 `mapstructure:"password"`
 	Provider         string                 `mapstructure:"provider"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
@@ -211,6 +216,13 @@ func (payload *loginPayload) Decode(data map[string]interface{}) skyerr.Error {
 }
 
 func (payload *loginPayload) Validate() skyerr.Error {
+	if payload.Provider == "" {
+		identified := payload.AuthData.IsValid()
+		if !identified {
+			return skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
+		}
+	}
+
 	return nil
 }
 
@@ -268,16 +280,16 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	store := h.TokenStore
 
 	info := skydb.AuthInfo{}
-	authdata := skydb.AuthData{}
+	user := skydb.Record{}
 
-	var handleLoginFunc func(*router.Payload, *loginPayload, *skydb.AuthInfo, *skydb.AuthData) skyerr.Error
+	var handleLoginFunc func(*router.Payload, *loginPayload, *skydb.AuthInfo, *skydb.Record) skyerr.Error
 	if p.Provider != "" {
 		handleLoginFunc = h.handleLoginWithProvider
 	} else {
 		handleLoginFunc = h.handleLoginWithAuthData
 	}
 
-	if skyErr = handleLoginFunc(payload, p, &info, &authdata); skyErr != nil {
+	if skyErr = handleLoginFunc(payload, p, &info, &user); skyErr != nil {
 		response.Err = skyErr
 		return
 	}
@@ -292,7 +304,15 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		panic(err)
 	}
 
-	authResponse := NewAuthResponse(info, authdata, token.AccessToken)
+	authResponse, err := AuthResponseFactory{
+		AssetStore: h.AssetStore,
+		Conn:       payload.DBConn,
+	}.NewAuthResponse(info, user, token.AccessToken)
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastLoginAt = &now
@@ -304,8 +324,7 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	response.Result = authResponse
 }
 
-func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *loginPayload, authinfo *skydb.AuthInfo, authdata *skydb.AuthData) skyerr.Error {
-	*authdata = skydb.AuthData{}
+func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *loginPayload, authinfo *skydb.AuthInfo, user *skydb.Record) skyerr.Error {
 	principalID, providerAuthData, skyErr := h.authPrincipal(payload.Context, p)
 	if skyErr != nil {
 		return skyErr
@@ -315,7 +334,7 @@ func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *login
 		// Create user if and only if no user found with the same principal
 		if err != skydb.ErrUserNotFound {
 			// TODO: more error handling here if necessary
-			return skyerr.NewResourceFetchFailureErr("user", p.Username)
+			return skyerr.NewResourceFetchFailureErr("auth_data", p.AuthData)
 		}
 
 		*authinfo = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
@@ -324,12 +343,20 @@ func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *login
 			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
 		}
 
-		if err = createContext.execute(authinfo, *authdata); err != nil {
+		createdUser, err := createContext.execute(authinfo, skydb.AuthData{})
+		if err != nil {
 			return skyerr.MakeError(err)
 		}
+
+		*user = *createdUser
 	} else {
 		authinfo.SetProviderInfoData(principalID, providerAuthData)
 		if err := payload.DBConn.UpdateAuth(authinfo); err != nil {
+			return skyerr.MakeError(err)
+		}
+
+		err := payload.Database.Get(skydb.NewRecordID("user", authinfo.ID), user)
+		if err != nil {
 			return skyerr.MakeError(err)
 		}
 	}
@@ -337,30 +364,29 @@ func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *login
 	return nil
 }
 
-func (h *LoginHandler) handleLoginWithAuthData(payload *router.Payload, p *loginPayload, authinfo *skydb.AuthInfo, authdata *skydb.AuthData) skyerr.Error {
-	*authdata = skydb.AuthData{}
-	authdata.SetUsername(p.Username)
-	authdata.SetEmail(p.Email)
+func (h *LoginHandler) handleLoginWithAuthData(payload *router.Payload, p *loginPayload, authinfo *skydb.AuthInfo, user *skydb.Record) skyerr.Error {
+	authdata := p.AuthData
 
 	if ok := authdata.IsValid(); !ok {
 		return skyerr.NewInvalidArgument("Unexpected key found", []string{"authdata"})
 	}
 
 	fetcher := newUserAuthFetcher(payload.Database, payload.DBConn)
-	fetchedAuthInfo, _, err := fetcher.FetchAuth(*authdata)
+	fetchedAuthInfo, fetchedUser, err := fetcher.FetchAuth(authdata)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
 			return skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		}
 
 		// TODO: more error handling here if necessary
-		return skyerr.NewResourceFetchFailureErr("user", p.Username)
+		return skyerr.NewResourceFetchFailureErr("auth_data", p.AuthData)
 	}
 
 	*authinfo = fetchedAuthInfo
+	*user = fetchedUser
 
 	if !authinfo.IsSamePassword(p.Password) {
-		return skyerr.NewError(skyerr.InvalidCredentials, "username or password incorrect")
+		return skyerr.NewError(skyerr.InvalidCredentials, "auth_data or password incorrect")
 	}
 
 	return nil
@@ -471,7 +497,7 @@ type PasswordHandler struct {
 	TokenStore    authtoken.Store  `inject:"TokenStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -481,7 +507,7 @@ func (h *PasswordHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.PluginReady,
 	}
@@ -526,7 +552,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		log.Warningf("Invalidate is not yet implement")
 		// TODO: invalidate all existing token and generate a new one for response
 	}
-	// Generate new access-token. Because InjectUserIfPresent preprocessor
+	// Generate new access-token. Because InjectAuthIfPresent preprocessor
 	// will expire existing access-token.
 	store := h.TokenStore
 	token, err := store.NewToken(payload.AppName, info.ID)

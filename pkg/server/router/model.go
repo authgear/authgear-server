@@ -117,6 +117,8 @@ type Payload struct {
 
 	DBConn   skydb.Conn
 	Database skydb.Database
+
+	User *skydb.Record
 }
 
 // RouteAction must exist for every request

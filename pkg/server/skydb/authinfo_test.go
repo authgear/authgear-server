@@ -59,6 +59,45 @@ func TestNewProviderInfoAuthInfo(t *testing.T) {
 	})
 }
 
+func TestAuthData(t *testing.T) {
+	Convey("Test AuthData", t, func() {
+		Convey("valid AuthData", func() {
+			So(AuthData{
+				"username": "johndoe",
+			}.IsValid(), ShouldBeTrue)
+
+			So(AuthData{
+				"email": "johndoe@example.com",
+			}.IsValid(), ShouldBeTrue)
+
+			So(AuthData{
+				"username": "johndoe",
+				"email":    "johndoe@example.com",
+			}.IsValid(), ShouldBeTrue)
+		})
+
+		Convey("invalid AuthData", func() {
+			So(AuthData{}.IsValid(), ShouldBeFalse)
+			So(AuthData{
+				"iamyourfather": "johndoe",
+			}.IsValid(), ShouldBeFalse)
+			So(AuthData{
+				"username": nil,
+			}.IsValid(), ShouldBeFalse)
+		})
+
+		Convey("empty AuthData", func() {
+			So(AuthData{}.IsEmpty(), ShouldBeTrue)
+			So(AuthData{
+				"username": nil,
+			}.IsEmpty(), ShouldBeTrue)
+			So(AuthData{
+				"iamyourfather": "johndoe",
+			}.IsEmpty(), ShouldBeFalse)
+		})
+	})
+}
+
 func TestSetPassword(t *testing.T) {
 	info := AuthInfo{}
 	info.SetPassword("secret")

@@ -21,8 +21,10 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/golang/mock/gomock"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skydbtest"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -209,9 +211,9 @@ func (t injectUserPreprocessorAccessToken) IssuedAt() time.Time {
 	return t.issuedAt
 }
 
-func TestInjectUserProcessor(t *testing.T) {
-	Convey("InjectUser", t, func() {
-		pp := InjectUserIfPresent{}
+func TestInjectAuthProcessor(t *testing.T) {
+	Convey("InjectAuth", t, func() {
+		pp := InjectAuthIfPresent{}
 		conn := skydbtest.NewMapConn()
 
 		withoutTokenValidSince := skydb.AuthInfo{
@@ -338,6 +340,122 @@ func TestInjectUserProcessor(t *testing.T) {
 
 			_, ok := conn.UserMap["_god"]
 			So(ok, ShouldBeTrue)
+		})
+	})
+}
+
+func TestInjectUserProcessor(t *testing.T) {
+	Convey("InjectUser", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		db := mock_skydb.NewMockTxDatabase(ctrl)
+
+		pp := InjectUserIfPresent{}
+		conn := skydbtest.NewMapConn()
+		conn.InternalPublicDB = db
+
+		authInfo := skydb.AuthInfo{
+			ID: "userid1",
+		}
+		user := skydb.Record{
+			ID: skydb.NewRecordID("user", "userid1"),
+			Data: map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			},
+		}
+
+		Convey("should inject user with authinfo id", func() {
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				Database:    db,
+				AuthInfoID:  "userid1",
+				AuthInfo:    &authInfo,
+				AccessToken: injectUserPreprocessorAccessToken{},
+				User:        nil,
+			}
+			resp := router.Response{}
+
+			db.EXPECT().
+				Get(skydb.NewRecordID("user", "userid1"), gomock.Any()).
+				SetArg(1, user).
+				Return(nil).
+				AnyTimes()
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(*payload.User, ShouldResemble, user)
+		})
+
+		Convey("should skip inject user without authinfo", func() {
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				Database:    db,
+				AuthInfoID:  "",
+				AuthInfo:    nil,
+				AccessToken: injectUserPreprocessorAccessToken{},
+				User:        nil,
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(payload.User, ShouldEqual, nil)
+		})
+
+		Convey("should inject user with authinfo id, but no user record", func() {
+			authInfo := skydb.AuthInfo{
+				ID: "userid2",
+			}
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				Database:    db,
+				AuthInfoID:  "userid2",
+				AuthInfo:    &authInfo,
+				AccessToken: injectUserPreprocessorAccessToken{},
+				User:        nil,
+			}
+			resp := router.Response{}
+
+			db.EXPECT().
+				Get(skydb.NewRecordID("user", "userid2"), gomock.Any()).
+				Return(skydb.ErrRecordNotFound).
+				AnyTimes()
+			txBegin := db.EXPECT().Begin().AnyTimes()
+			db.EXPECT().Commit().After(txBegin)
+
+			skydbtest.ExpectDBSaveUser(db, skydb.RecordSchema{}, func(record *skydb.Record) {
+				So(record.ID.Type, ShouldEqual, "user")
+				So(record.ID, ShouldResemble, skydb.NewRecordID("user", "userid2"))
+			})
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+
+			user := skydb.Record{
+				ID:         skydb.NewRecordID("user", "userid2"),
+				DatabaseID: "_public",
+				OwnerID:    "userid2",
+				CreatedAt:  time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				CreatorID:  "userid2",
+				UpdatedAt:  time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				UpdaterID:  "userid2",
+				Data:       skydb.Data{},
+			}
+			So(*payload.User, ShouldResemble, user)
 		})
 	})
 }
