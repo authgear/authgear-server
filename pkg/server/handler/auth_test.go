@@ -157,14 +157,14 @@ func TestSignupHandler(t *testing.T) {
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
 			authResp := resp.Result.(AuthResponse)
-			So(authResp.User.ID, ShouldResemble, skydb.NewRecordID("user", authResp.UserID))
-			So(authResp.User.DatabaseID, ShouldResemble, "_public")
-			So(authResp.User.OwnerID, ShouldResemble, authResp.UserID)
-			So(authResp.User.CreatorID, ShouldResemble, authResp.UserID)
-			So(authResp.User.UpdaterID, ShouldResemble, authResp.UserID)
-			So(authResp.User.CreatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
-			So(authResp.User.UpdatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
-			So(authResp.User.Data, ShouldResemble, skydb.Data{
+			So(authResp.Profile.ID, ShouldResemble, skydb.NewRecordID("user", authResp.UserID))
+			So(authResp.Profile.DatabaseID, ShouldResemble, "_public")
+			So(authResp.Profile.OwnerID, ShouldResemble, authResp.UserID)
+			So(authResp.Profile.CreatorID, ShouldResemble, authResp.UserID)
+			So(authResp.Profile.UpdaterID, ShouldResemble, authResp.UserID)
+			So(authResp.Profile.CreatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(authResp.Profile.UpdatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(authResp.Profile.Data, ShouldResemble, skydb.Data{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			})
@@ -370,8 +370,8 @@ func TestLoginHandler(t *testing.T) {
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
 
 			authResp := resp.Result.(AuthResponse)
-			So(authResp.User.ID, ShouldResemble, skydb.NewRecordID("user", authResp.UserID))
-			So(authResp.User.Data, ShouldResemble, skydb.Data{
+			So(authResp.Profile.ID, ShouldResemble, skydb.NewRecordID("user", authResp.UserID))
+			So(authResp.Profile.Data, ShouldResemble, skydb.Data{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			})
@@ -529,7 +529,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "%v",
-		"user": {
+		"profile": {
 			"_type": "record",
 			"_id": "user/%v",
 			"_created_by": "%v",
@@ -575,7 +575,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "%v",
-		"user": {
+		"profile": {
 			"_type": "record",
 			"_id": "user/%v",
 			"_created_by": "%v",
@@ -687,7 +687,7 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "%v",
-		"user": {
+		"profile": {
 			"_type": "record",
 			"_id": "user/%v",
 			"_created_by": "%v",
@@ -805,7 +805,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "%v",
-		"user": {
+		"profile": {
 			"_type": "record",
 			"_id": "user/%v",
 			"_created_by": "%v",

@@ -33,7 +33,7 @@ var (
 // AuthResponse is the unify way of returing a AuthInfo with AuthData to SDK
 type AuthResponse struct {
 	UserID      string              `json:"user_id,omitempty"`
-	User        *skyconv.JSONRecord `json:"user,omitempty"`
+	Profile     *skyconv.JSONRecord `json:"profile,omitempty"`
 	Roles       []string            `json:"roles,omitempty"`
 	AccessToken string              `json:"access_token,omitempty"`
 	LastLoginAt *time.Time          `json:"last_login_at,omitempty"`
@@ -55,7 +55,7 @@ func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Rec
 
 	return AuthResponse{
 		UserID:      info.ID,
-		User:        jsonUser,
+		Profile:     jsonUser,
 		Roles:       info.Roles,
 		AccessToken: accessToken,
 		LastLoginAt: info.LastLoginAt,

@@ -73,7 +73,7 @@ func TestMeHandler(t *testing.T) {
         "result": {
           "access_token": "%s",
           "user_id": "tester-1",
-          "user": {
+          "profile": {
             "_type": "record",
             "_id": "user/tester-1",
             "_access": null,
