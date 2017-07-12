@@ -100,14 +100,17 @@ func (a AuthData) IsValid() bool {
 // 1. no entries or
 // 2. all values are null
 func (a AuthData) IsEmpty() bool {
-	emptyCount := 0
+	if len(a) == 0 {
+		return true
+	}
+
 	for k := range a {
-		if a.isFieldEmpty(k) {
-			emptyCount = emptyCount + 1
+		if !a.isFieldEmpty(k) {
+			return false
 		}
 	}
 
-	return len(a) == emptyCount
+	return true
 }
 
 func (a AuthData) isFieldEmpty(key string) bool {
