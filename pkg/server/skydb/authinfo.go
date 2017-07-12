@@ -102,7 +102,7 @@ func (a AuthData) IsValid() bool {
 func (a AuthData) IsEmpty() bool {
 	emptyCount := 0
 	for k := range a {
-		if a.IsFieldEmpty(k) {
+		if a.isFieldEmpty(k) {
 			emptyCount = emptyCount + 1
 		}
 	}
@@ -110,7 +110,7 @@ func (a AuthData) IsEmpty() bool {
 	return len(a) == emptyCount
 }
 
-func (a AuthData) IsFieldEmpty(key string) bool {
+func (a AuthData) isFieldEmpty(key string) bool {
 	return a[key] == nil
 }
 
