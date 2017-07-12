@@ -189,7 +189,10 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		panic(err)
 	}
 
-	authResponse, err := AuthResponseFactory{}.NewAuthResponse(payload.DBConn, info, *user, token.AccessToken)
+	authResponse, err := AuthResponseFactory{
+		AssetStore: h.AssetStore,
+		Conn:       payload.DBConn,
+	}.NewAuthResponse(info, *user, token.AccessToken)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -301,7 +304,10 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 		panic(err)
 	}
 
-	authResponse, err := AuthResponseFactory{}.NewAuthResponse(payload.DBConn, info, user, token.AccessToken)
+	authResponse, err := AuthResponseFactory{
+		AssetStore: h.AssetStore,
+		Conn:       payload.DBConn,
+	}.NewAuthResponse(info, user, token.AccessToken)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return

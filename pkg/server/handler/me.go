@@ -15,6 +15,7 @@
 package handler
 
 import (
+	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -23,6 +24,7 @@ import (
 // MeHandler handles the me request
 type MeHandler struct {
 	TokenStore    authtoken.Store  `inject:"TokenStore"`
+	AssetStore    asset.Store      `inject:"AssetStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
@@ -92,7 +94,10 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 	}
 
 	// We will return the last seen in DB, not current time stamp
-	authResponse, err := AuthResponseFactory{}.NewAuthResponse(payload.DBConn, *info, *user, token.AccessToken)
+	authResponse, err := AuthResponseFactory{
+		AssetStore: h.AssetStore,
+		Conn:       payload.DBConn,
+	}.NewAuthResponse(*info, *user, token.AccessToken)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return

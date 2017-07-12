@@ -41,11 +41,12 @@ type AuthResponse struct {
 }
 
 type AuthResponseFactory struct {
-	AssetStore asset.Store `inject:"AssetStore"`
+	AssetStore asset.Store
+	Conn       skydb.Conn
 }
 
-func (f AuthResponseFactory) NewAuthResponse(conn skydb.Conn, info skydb.AuthInfo, user skydb.Record, accessToken string) (AuthResponse, error) {
-	filter, err := recordutil.NewRecordResultFilter(conn, f.AssetStore, &info)
+func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Record, accessToken string) (AuthResponse, error) {
+	filter, err := recordutil.NewRecordResultFilter(f.Conn, f.AssetStore, &info)
 	if err != nil {
 		return AuthResponse{}, err
 	}
