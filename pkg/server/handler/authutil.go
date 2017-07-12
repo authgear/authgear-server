@@ -20,6 +20,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
+	"github.com/skygeario/skygear-server/pkg/server/recordutil"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -136,7 +137,7 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 		return skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
 	}
 
-	txErr := withTransaction(txDB, func() error {
+	txErr := skydb.WithTransaction(txDB, func() error {
 		// Check if AuthData duplicated only when it is provided
 		// AuthData may be absent, e.g. login with provider
 		if len(authData) != 0 {
@@ -164,7 +165,7 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 			Data: skydb.Data(authData),
 		}
 
-		recordReq := recordModifyRequest{
+		recordReq := recordutil.RecordModifyRequest{
 			Db:           db,
 			Conn:         ctx.DBConn,
 			AssetStore:   ctx.AssetStore,
@@ -172,16 +173,17 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 			Atomic:       false,
 			Context:      ctx.Context,
 			AuthInfo:     info,
+			ModifyAt:     timeNow(),
 			RecordsToSave: []*skydb.Record{
 				&userRecord,
 			},
 		}
 
-		recordResp := recordModifyResponse{
+		recordResp := recordutil.RecordModifyResponse{
 			ErrMap: map[skydb.RecordID]skyerr.Error{},
 		}
 
-		return recordSaveHandler(&recordReq, &recordResp)
+		return recordutil.RecordSaveHandler(&recordReq, &recordResp)
 	})
 
 	if txErr == nil {
