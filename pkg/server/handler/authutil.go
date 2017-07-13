@@ -104,7 +104,7 @@ type createUserWithRecordContext struct {
 	Context      context.Context
 }
 
-func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData skydb.AuthData) (*skydb.Record, skyerr.Error) {
+func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData skydb.AuthData, profile skydb.Data) (*skydb.Record, skyerr.Error) {
 	db := ctx.Database
 	txDB, ok := db.(skydb.Transactional)
 	if !ok {
@@ -137,7 +137,7 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 
 		userRecord := skydb.Record{
 			ID:   skydb.NewRecordID(db.UserRecordType(), info.ID),
-			Data: skydb.Data(authData),
+			Data: mergeAuthDataWithProfile(authData, profile),
 		}
 
 		recordReq := recordutil.RecordModifyRequest{
@@ -176,6 +176,17 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 	}
 
 	return nil, skyerr.MakeError(txErr)
+}
+
+func mergeAuthDataWithProfile(authData skydb.AuthData, profile skydb.Data) skydb.Data {
+	if profile == nil {
+		profile = skydb.Data{}
+	}
+
+	for k, v := range authData {
+		profile[k] = v
+	}
+	return profile
 }
 
 // TODO: validate according to settings/options
