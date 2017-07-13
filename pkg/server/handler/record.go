@@ -321,15 +321,42 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		saveFunc = recordutil.RecordSaveHandler
 	}
 
+	// derive and extend record schema
+	// hotfix (Steven-Chan): moved outside of the transaction to prevent deadlock
+	schemaUpdated, err := recordutil.ExtendRecordSchema(payload.Database, p.Records)
+	if err != nil {
+		log.WithField("err", err).Errorln("failed to migrate record schema")
+		if myerr, ok := err.(skyerr.Error); ok {
+			response.Err = myerr
+			return
+		}
+
+		response.Err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
+		return
+	}
+
 	if err := saveFunc(&req, &resp); err != nil {
 		log.Debugf("Failed to save records: %v", err)
 		response.Err = err
 		return
 	}
 
-	currRecordIdx := 0
 	results := make([]interface{}, 0, p.ItemLen())
-	for _, itemi := range p.IncomingItems {
+	h.makeResultsFromIncomingItem(p.IncomingItems, resp, resultFilter, &results)
+
+	response.Result = results
+
+	if schemaUpdated && h.EventSender != nil {
+		err := sendSchemaChangedEvent(h.EventSender, payload.Database)
+		if err != nil {
+			log.WithField("err", err).Warn("Fail to send schema changed event")
+		}
+	}
+}
+
+func (h *RecordSaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, resp recordutil.RecordModifyResponse, resultFilter recordutil.RecordResultFilter, results *[]interface{}) {
+	currRecordIdx := 0
+	for _, itemi := range incomingItems {
 		var result interface{}
 
 		switch item := itemi.(type) {
@@ -352,15 +379,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 			panic(fmt.Sprintf("unknown type of incoming item: %T", itemi))
 		}
 
-		results = append(results, result)
-	}
-	response.Result = results
-
-	if resp.SchemaUpdated && h.EventSender != nil {
-		err := sendSchemaChangedEvent(h.EventSender, payload.Database)
-		if err != nil {
-			log.WithField("err", err).Warn("Fail to send schema changed event")
-		}
+		*results = append(*results, result)
 	}
 }
 

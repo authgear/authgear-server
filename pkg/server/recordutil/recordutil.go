@@ -87,7 +87,6 @@ type RecordModifyRequest struct {
 
 type RecordModifyResponse struct {
 	ErrMap           map[skydb.RecordID]skyerr.Error
-	SchemaUpdated    bool
 	SavedRecords     []*skydb.Record
 	DeletedRecordIDs []skydb.RecordID
 }
@@ -284,16 +283,6 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 			trigger(records, hook.BeforeSave)
 	}
 
-	// derive and extend record schema
-	schemaExtended, err := extendRecordSchema(db, records)
-	if err != nil {
-		log.WithField("err", err).Errorln("failed to migrate record schema")
-		if myerr, ok := err.(skyerr.Error); ok {
-			return myerr
-		}
-		return skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
-	}
-
 	// remove bogus field, they are only for schema change
 	for _, r := range records {
 		removeRecordFieldTypeHints(r)
@@ -326,7 +315,6 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 	}
 
 	resp.SavedRecords = records
-	resp.SchemaUpdated = schemaExtended
 
 	return nil
 }
@@ -410,7 +398,7 @@ func DeriveDeltaRecord(dst, base, delta *skydb.Record) {
 	}
 }
 
-func extendRecordSchema(db skydb.Database, records []*skydb.Record) (bool, error) {
+func ExtendRecordSchema(db skydb.Database, records []*skydb.Record) (bool, error) {
 	recordSchemaMergerMap := map[string]schemaMerger{}
 	for _, record := range records {
 		recordType := record.ID.Type

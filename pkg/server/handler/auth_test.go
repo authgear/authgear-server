@@ -105,7 +105,7 @@ func ExpectDBSaveUserWithAuthData(db *mock_skydb.MockTxDatabase, authData skydb.
 		"username": skydb.FieldType{Type: skydb.TypeString},
 		"email":    skydb.FieldType{Type: skydb.TypeString},
 	}
-	skydbtest.ExpectDBSaveUser(db, userRecordSchema, MakeUserRecordAssertion(authData))
+	skydbtest.ExpectDBSaveUser(db, &userRecordSchema, MakeUserRecordAssertion(authData))
 }
 
 // Seems like a memory imlementation of skydb will make tests
@@ -190,7 +190,7 @@ func TestSignupHandler(t *testing.T) {
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Commit().After(txBegin)
 
-			skydbtest.ExpectDBSaveUser(db, skydb.RecordSchema{
+			skydbtest.ExpectDBSaveUser(db, &skydb.RecordSchema{
 				"username": skydb.FieldType{Type: skydb.TypeString},
 				"email":    skydb.FieldType{Type: skydb.TypeString},
 				"nickname": skydb.FieldType{Type: skydb.TypeString},
@@ -261,7 +261,7 @@ func TestSignupHandler(t *testing.T) {
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Commit().After(txBegin)
 
-			skydbtest.ExpectDBSaveUser(db, skydb.RecordSchema{
+			skydbtest.ExpectDBSaveUser(db, &skydb.RecordSchema{
 				"username": skydb.FieldType{Type: skydb.TypeString},
 				"email":    skydb.FieldType{Type: skydb.TypeString},
 				"nickname": skydb.FieldType{Type: skydb.TypeString},
@@ -335,6 +335,10 @@ func TestSignupHandler(t *testing.T) {
 		})
 
 		Convey("sign up with duplicated keys in auth data and profile", func() {
+			skydbtest.ExpectDBExtendSchema(db, skydb.RecordSchema{
+				"username": skydb.FieldType{Type: skydb.TypeString},
+			})
+
 			req := router.Payload{
 				Data: map[string]interface{}{
 					"auth_data": skydb.AuthData{
@@ -415,6 +419,11 @@ func TestSignupHandler(t *testing.T) {
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Rollback().After(txBegin)
 
+			skydbtest.ExpectDBExtendSchema(db, skydb.RecordSchema{
+				"username": skydb.FieldType{Type: skydb.TypeString},
+				"email":    skydb.FieldType{Type: skydb.TypeString},
+			})
+
 			req := router.Payload{
 				Data: map[string]interface{}{
 					"auth_data": skydb.AuthData{
@@ -452,6 +461,11 @@ func TestSignupHandler(t *testing.T) {
 				AnyTimes()
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Rollback().After(txBegin)
+
+			skydbtest.ExpectDBExtendSchema(db, skydb.RecordSchema{
+				"username": skydb.FieldType{Type: skydb.TypeString},
+				"email":    skydb.FieldType{Type: skydb.TypeString},
+			})
 
 			req := router.Payload{
 				Data: map[string]interface{}{
