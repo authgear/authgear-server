@@ -72,6 +72,8 @@ func main() {
 	log.Infof("Starting Skygear Server(%s)...", skyversion.Version())
 	connOpener := ensureDB(config) // Fatal on DB failed
 
+	initUserAuthRecordKeys(connOpener)
+
 	if config.App.Slave {
 		log.Infof("Skygear Server is running in slave mode.")
 	}
@@ -129,12 +131,13 @@ func main() {
 		TokenStore: tokenStore,
 	}
 	preprocessorRegistry["dbconn"] = &pp.ConnPreprocessor{
-		AppName:       config.App.Name,
-		AccessControl: config.App.AccessControl,
-		DBOpener:      skydb.Open,
-		DBImpl:        config.DB.ImplName,
-		Option:        config.DB.Option,
-		DevMode:       config.App.DevMode,
+		AppName:        config.App.Name,
+		AccessControl:  config.App.AccessControl,
+		DBOpener:       skydb.Open,
+		DBImpl:         config.DB.ImplName,
+		Option:         config.DB.Option,
+		AuthRecordKeys: config.App.AuthRecordKeys,
+		DevMode:        config.App.DevMode,
 	}
 	preprocessorRegistry["plugin_ready"] = &pp.EnsurePluginReadyPreprocessor{
 		PluginContext: &pluginContext,
@@ -315,7 +318,7 @@ func main() {
 
 func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 	connOpener := func() (skydb.Conn, error) {
-		return skydb.Open(
+		conn, err := skydb.Open(
 			context.Background(),
 			config.DB.ImplName,
 			config.App.Name,
@@ -323,6 +326,13 @@ func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 			config.DB.Option,
 			config.App.DevMode,
 		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		conn.SetAuthRecordKeys(config.App.AuthRecordKeys)
+		return conn, nil
 	}
 
 	// Attempt to open connection to database. Retry for a number of
@@ -343,6 +353,19 @@ func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 
 		log.Info("Retrying in 1 second...")
 		time.Sleep(time.Second * time.Duration(1))
+	}
+}
+
+func initUserAuthRecordKeys(connOpener func() (skydb.Conn, error)) {
+	conn, err := connOpener()
+	if err != nil {
+		log.Warnf("Failed to init user auth record keys: %v", err)
+	}
+
+	defer conn.Close()
+
+	if err := conn.EnsureAuthRecordKeysValid(); err != nil {
+		panic(err)
 	}
 }
 

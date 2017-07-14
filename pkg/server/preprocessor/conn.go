@@ -24,12 +24,13 @@ import (
 )
 
 type ConnPreprocessor struct {
-	AppName       string
-	AccessControl string
-	DBOpener      func(context.Context, string, string, string, string, bool) (skydb.Conn, error)
-	DBImpl        string
-	Option        string
-	DevMode       bool
+	AppName        string
+	AccessControl  string
+	DBOpener       func(context.Context, string, string, string, string, bool) (skydb.Conn, error)
+	DBImpl         string
+	Option         string
+	AuthRecordKeys [][]string
+	DevMode        bool
 }
 
 func (p ConnPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
@@ -42,6 +43,7 @@ func (p ConnPreprocessor) Preprocess(payload *router.Payload, response *router.R
 		return http.StatusServiceUnavailable
 	}
 	payload.DBConn = conn
+	conn.SetAuthRecordKeys(p.AuthRecordKeys)
 
 	log.Debugf("Get DB OK")
 

@@ -358,6 +358,22 @@ func (schema RecordSchema) DefinitionCompatibleTo(other RecordSchema) bool {
 	return true
 }
 
+func (schema RecordSchema) HasField(field string) bool {
+	_, found := schema[field]
+	return found
+}
+
+func (schema RecordSchema) HasFields(fields []string) bool {
+	for _, field := range fields {
+		found := schema.HasField(field)
+		if !found {
+			return false
+		}
+	}
+
+	return true
+}
+
 // FieldType represents the kind of data living within a field of a RecordSchema.
 type FieldType struct {
 	Type           DataType

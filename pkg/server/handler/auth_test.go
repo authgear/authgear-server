@@ -823,6 +823,10 @@ func (conn *singleUserConn) GetRecordFieldAccess() (skydb.FieldACL, error) {
 	return skydb.FieldACL{}, nil
 }
 
+func (conn *singleUserConn) EnsureUserAuthRecordKeysValid() error {
+	return nil
+}
+
 func TestSignupHandlerAsAnonymous(t *testing.T) {
 	Convey("SignupHandler", t, func() {
 		realTime := timeNow

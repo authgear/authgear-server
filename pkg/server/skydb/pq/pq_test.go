@@ -57,6 +57,7 @@ func getTestConn(t *testing.T) *conn {
 	if err != nil {
 		t.Fatal(err)
 	}
+	c.SetAuthRecordKeys([][]string{[]string{"username"}, []string{"email"}})
 
 	// create schema
 	err = mustInitDB(c.(*conn).Db().(*sqlx.DB), appName, true)

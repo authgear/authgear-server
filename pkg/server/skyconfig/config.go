@@ -53,6 +53,10 @@ func parseBool(str string) (bool, error) {
 // a,(b,(d),c)
 // a,a(b)c
 func parseAuthRecordKeys(str string) ([][]string, error) {
+	if str == "" {
+		return [][]string{}, fmt.Errorf("Empty string")
+	}
+
 	splits := strings.Split(str, ",")
 	results := [][]string{}
 	container := []string{}

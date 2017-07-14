@@ -80,6 +80,7 @@ type conn struct {
 	RecordSchema   map[string]skydb.RecordSchema
 	FieldACL       *skydb.FieldACL
 	appName        string
+	authRecordKeys [][]string
 	option         string
 	statementCount uint64
 	accessModel    skydb.AccessModel

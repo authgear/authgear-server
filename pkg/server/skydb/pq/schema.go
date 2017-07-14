@@ -481,3 +481,91 @@ func (db *database) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, refer
 	buf.WriteString(pq.QuoteIdentifier(remoteCol))
 	buf.Write([]byte(`),`))
 }
+
+type dbIndex struct {
+	table   string
+	name    string
+	columns []string
+}
+
+func (db *database) getIndexes(tableName string) (indexes []dbIndex, err error) {
+	schemaName := db.schemaName()
+	rows, err := db.c.Queryx(`
+SELECT
+    t.relname AS table_name,
+    i.relname AS index_name,
+    array_to_string(array_agg(a.attname), ',') AS column_names
+FROM
+    pg_class t,
+    pg_class i,
+    pg_index ix,
+    pg_attribute a,
+    pg_namespace ns
+WHERE
+    t.oid = ix.indrelid
+    AND i.oid = ix.indexrelid
+    AND ns.oid = t.relnamespace
+    AND ns.oid = i.relnamespace
+    AND a.attrelid = t.oid
+    AND a.attnum = ANY(ix.indkey)
+    AND t.relkind = 'r'
+    AND ix.indisunique = TRUE
+    AND ns.nspname = $1
+    AND t.relname = $2
+GROUP BY
+    ns.nspname,
+    t.relname,
+    i.relname;`,
+		schemaName, tableName)
+
+	if err != nil {
+		return
+	}
+
+	indexes = []dbIndex{}
+	for rows.Next() {
+		var table string
+		var name string
+		var columnNames string
+		if err = rows.Scan(&table, &name, &columnNames); err != nil {
+			return
+		}
+
+		indexes = append(indexes, dbIndex{
+			table:   table,
+			name:    name,
+			columns: strings.Split(columnNames, ","),
+		})
+	}
+
+	return
+}
+
+func (db *database) createIndex(i dbIndex) error {
+	quotedColumns := []string{}
+	for _, col := range i.columns {
+		quotedColumns = append(quotedColumns, fmt.Sprintf("\"%s\"", col))
+	}
+
+	stmt := fmt.Sprintf(`
+		ALTER TABLE "%s"."%s" ADD CONSTRAINT "%s" UNIQUE (%s);
+	`, db.schemaName(), i.table, i.name, strings.Join(quotedColumns, ","))
+	log.WithField("stmt", stmt).Debugln("Creating unique constraint")
+	if _, err := db.c.Exec(stmt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *database) dropIndex(tableName string, name string) error {
+	stmt := fmt.Sprintf(`
+		ALTER TABLE "%s"."%s" DROP CONSTRAINT "%s";
+	`, db.schemaName(), tableName, name)
+	log.WithField("stmt", stmt).Debugln("Dropping unique constraint")
+	if _, err := db.c.Exec(stmt); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -17,6 +17,8 @@ package pq
 import (
 	"database/sql"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	sq "github.com/lann/squirrel"
@@ -207,6 +209,178 @@ func (c *conn) DeleteAuth(id string) error {
 		return skydb.ErrUserNotFound
 	} else if rowsAffected > 1 {
 		panic(fmt.Errorf("want 1 rows deleted, got %v", rowsAffected))
+	}
+
+	return nil
+}
+
+func (c *conn) SetAuthRecordKeys(authRecordKeys [][]string) {
+	c.authRecordKeys = authRecordKeys
+}
+
+func (c *conn) GetAuthRecordKeys() [][]string {
+	return c.authRecordKeys
+}
+
+func (c *conn) EnsureAuthRecordKeysValid() error {
+	authRecordKeys := c.authRecordKeys
+	db := c.PublicDB().(*database)
+	schema, err := db.GetSchema(db.UserRecordType())
+	if err != nil {
+		return fmt.Errorf("Unable to retrieve user record schema")
+	}
+
+	// check if auth record keys exist in user record
+	// if not and canMigrate = true, just pass, since not enough information to migrate
+	// if not and canMigrate = false, return error
+	missingKeys := c.findMissingRecordKeys(schema, authRecordKeys)
+	if len(missingKeys) > 0 && !c.canMigrate {
+		return fmt.Errorf("%v are missing in user record schema", missingKeys)
+	}
+
+	// check if auth record keys that have invalid record type
+	// return error if found
+	for _, keys := range authRecordKeys {
+		for _, key := range keys {
+			err = c.ensureRecordKeyValidType(schema, key)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// check if auth record keys have unique constraints
+	// if not and canMigrate = true, create a special unique constraint, which would be managed by skygear
+	// if not and canMigrate = false, return error
+	for _, keys := range authRecordKeys {
+		indexes, err := db.getIndexes(db.UserRecordType())
+		if err != nil {
+			return err
+		}
+
+		err = c.ensureRecordKeysUnique(indexes, keys)
+		if err != nil {
+			if !c.canMigrate {
+				return fmt.Errorf("%v must be unique in user record schema", keys)
+			}
+
+			if schema.HasFields(keys) {
+				if err = c.createManagedUniqueConstraint(keys); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// if canMigrate = true, clean up unique constraint managed by skygear, which is no longer exist
+	if c.canMigrate {
+		if err = c.removeManagedUniqueConstraints(authRecordKeys); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *conn) findMissingRecordKeys(schema skydb.RecordSchema, authRecordKeys [][]string) []string {
+	recordKeyMap := map[string]bool{}
+	for _, keys := range authRecordKeys {
+		for _, key := range keys {
+			recordKeyMap[key] = schema.HasField(key)
+		}
+	}
+
+	missing := []string{}
+	for key, ok := range recordKeyMap {
+		if !ok {
+			missing = append(missing, key)
+		}
+	}
+
+	return missing
+}
+
+func (c *conn) ensureRecordKeyValidType(schema skydb.RecordSchema, key string) error {
+	if !schema.HasField(key) {
+		return nil
+	}
+
+	fieldType := schema[key].Type
+
+	var valid bool
+	switch fieldType {
+	case skydb.TypeString, skydb.TypeNumber, skydb.TypeInteger, skydb.TypeBoolean, skydb.TypeSequence:
+		valid = true
+	default:
+		valid = false
+	}
+
+	if !valid {
+		return fmt.Errorf("%v must be string, number, integer, boolean or sequence", key)
+	}
+
+	return nil
+}
+
+func (c *conn) ensureRecordKeysUnique(indexes []dbIndex, authRecordKeys []string) error {
+	for _, index := range indexes {
+		columns := index.columns
+
+		sort.Strings(authRecordKeys)
+		sort.Strings(columns)
+
+		if strings.Join(authRecordKeys, ",") == strings.Join(columns, ",") {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("Unique index not found on keys: %v", authRecordKeys)
+}
+
+func (c *conn) indexName(tableName string, columns []string) string {
+	return fmt.Sprintf("auth_record_keys_%s_%s_key", tableName, strings.Join(columns, "_"))
+}
+
+func (c *conn) createManagedUniqueConstraint(columns []string) error {
+	db := c.PublicDB().(*database)
+	tableName := db.UserRecordType()
+	return db.createIndex(dbIndex{
+		table:   tableName,
+		name:    c.indexName(tableName, columns),
+		columns: columns,
+	})
+}
+
+func (c *conn) removeManagedUniqueConstraints(exceptColumns [][]string) error {
+	db := c.PublicDB().(*database)
+	indexes, err := db.getIndexes(db.UserRecordType())
+	if err != nil {
+		return err
+	}
+
+	exceptColumnNames := []string{}
+	for _, cols := range exceptColumns {
+		exceptColumnNames = append(exceptColumnNames, c.indexName(db.UserRecordType(), cols))
+	}
+
+	for _, index := range indexes {
+		if index.name != c.indexName(index.table, index.columns) {
+			continue
+		}
+
+		isException := false
+		for _, exceptName := range exceptColumnNames {
+			if index.name == exceptName {
+				isException = true
+				break
+			}
+		}
+
+		if isException {
+			continue
+		}
+
+		db.dropIndex(index.table, index.name)
 	}
 
 	return nil

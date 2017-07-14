@@ -110,6 +110,16 @@ func (_mr *_MockConnRecorder) DeleteEmptyDevicesByTime(arg0 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteEmptyDevicesByTime", arg0)
 }
 
+func (_m *MockConn) EnsureAuthRecordKeysValid() error {
+	ret := _m.ctrl.Call(_m, "EnsureAuthRecordKeysValid")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockConnRecorder) EnsureAuthRecordKeysValid() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EnsureAuthRecordKeysValid")
+}
+
 func (_m *MockConn) GetAdminRoles() ([]string, error) {
 	ret := _m.ctrl.Call(_m, "GetAdminRoles")
 	ret0, _ := ret[0].([]string)
@@ -160,6 +170,16 @@ func (_m *MockConn) GetAuthByPrincipalID(_param0 string, _param1 *skydb.AuthInfo
 
 func (_mr *_MockConnRecorder) GetAuthByPrincipalID(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAuthByPrincipalID", arg0, arg1)
+}
+
+func (_m *MockConn) GetAuthRecordKeys() [][]string {
+	ret := _m.ctrl.Call(_m, "GetAuthRecordKeys")
+	ret0, _ := ret[0].([][]string)
+	return ret0
+}
+
+func (_mr *_MockConnRecorder) GetAuthRecordKeys() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAuthRecordKeys")
 }
 
 func (_m *MockConn) GetDefaultRoles() ([]string, error) {
@@ -327,6 +347,14 @@ func (_m *MockConn) SetAdminRoles(_param0 []string) error {
 
 func (_mr *_MockConnRecorder) SetAdminRoles(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetAdminRoles", arg0)
+}
+
+func (_m *MockConn) SetAuthRecordKeys(_param0 [][]string) {
+	_m.ctrl.Call(_m, "SetAuthRecordKeys", _param0)
+}
+
+func (_mr *_MockConnRecorder) SetAuthRecordKeys(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetAuthRecordKeys", arg0)
 }
 
 func (_m *MockConn) SetDefaultRoles(_param0 []string) error {
