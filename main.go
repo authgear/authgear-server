@@ -23,7 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/evalphobia/logrus_sentry"
 	"github.com/facebookgo/inject"
 	"github.com/robfig/cron"

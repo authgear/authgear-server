@@ -1,10 +1,12 @@
-hash: 5f048d9c0595dca99115e16396798d34cbf6d94ff0629bf54f400f7b45770fd2
-updated: 2017-05-05T18:51:54.405169836+08:00
+hash: beb6cf65bfc92b2cef6dcd80515fbb78b407c66652d16a85600094e9358364c1
+updated: 2017-07-15T16:57:43.012911833+08:00
 imports:
+- name: github.com/certifi/gocertifi
+  version: a9c833d2837d3b16888d55d5aafa9ffe9afb22b0
 - name: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
 - name: github.com/evalphobia/logrus_sentry
-  version: d265708c9c877d2f458e673f0af437a0529baee9
+  version: 9f8f2d05a621e616d9341ac75374eb8402ae0630
 - name: github.com/facebookgo/inject
   version: d5029152fecb2a8e68f7f8eb3c6391fc8ee70496
 - name: github.com/facebookgo/structtag
@@ -17,9 +19,9 @@ imports:
   - internal
   - redis
 - name: github.com/getsentry/raven-go
-  version: 74c334d7b8aaa4fd1b4fc6aa428c36fed1699e28
+  version: d175f85701dfbf44cb0510114c9943e665e60907
 - name: github.com/golang/mock
-  version: bd3c8e81be01eef76d4b503f5e687d2d1354d2d9
+  version: 93f6609a15b7de76bd49259f1f9a6b58df358936
   subpackages:
   - gomock
 - name: github.com/google/go-gcm
@@ -41,7 +43,7 @@ imports:
 - name: github.com/lann/squirrel
   version: e13dbacee404686afd0acf2d44b8d34869605e03
 - name: github.com/lib/pq
-  version: 2704adc878c21e1329f46f6e56a1c387d788ff94
+  version: dd1fe2071026ce53f36a39112e645b4d4f5793a4
   subpackages:
   - oid
 - name: github.com/mattn/go-xmpp
@@ -54,10 +56,12 @@ imports:
   version: 6bb595384bbe8e2f960c3a1df0e4e66c9da3e884
 - name: github.com/pborman/uuid
   version: cccd189d45f7ac3368a0d127efb7f4d08ae0b655
+- name: github.com/pkg/errors
+  version: c605e284fe17294bda444b34710735b29d1a9d90
 - name: github.com/robfig/cron
   version: 67823cd24dece1b04cced3a0a0b3ca2bc84d875e
-- name: github.com/Sirupsen/logrus
-  version: 74bde9ea4c5b2c78995da8ed56d37e75644dc941
+- name: github.com/sirupsen/logrus
+  version: a3f95b5c423586578a4e099b11a46c2479628cac
 - name: github.com/SkygearIO/buford
   version: fa85459e6bd358249063cdffecd8ab025aa8a44c
   subpackages:
@@ -89,15 +93,15 @@ imports:
   - s3
 testImports:
 - name: github.com/gopherjs/gopherjs
-  version: e34a5cd6a1bc7c4fde759f2d3039852fc68b5fcc
+  version: 2b1d432c8a82c9bff0b0baffaeb3ec6e92974112
   subpackages:
   - js
 - name: github.com/jarcoal/httpmock
   version: 4442edb3db31196622da56482fd8d0fa375fba4d
 - name: github.com/jtolds/gls
-  version: 8ddce2a84170772b95dd5d576c48d517b22cac63
+  version: 77f18212c9c7edc9bd6a33d383a7b545ce62f064
 - name: github.com/smartystreets/assertions
-  version: 2063fd1cc7c975db70502811a34b06ad034ccdf2
+  version: 4ea54c1f28ad3ae597e76607dea3871fa177e263
   subpackages:
   - internal/go-render/render
   - internal/oglematchers

@@ -1,11 +1,11 @@
 package: github.com/skygeario/skygear-server
 import:
-- package: github.com/Sirupsen/logrus
-  version: 74bde9ea4c5b2c78995da8ed56d37e75644dc941
+- package: github.com/sirupsen/logrus
+  version: ^1.0.1
 - package: github.com/dgrijalva/jwt-go
   version: 01aeca54ebda6e0fbfafd0a524d234159c05ec20
 - package: github.com/evalphobia/logrus_sentry
-  version: d265708c9c877d2f458e673f0af437a0529baee9
+  version: ^0.4.1
 - package: github.com/facebookgo/inject
   version: d5029152fecb2a8e68f7f8eb3c6391fc8ee70496
 - package: github.com/facebookgo/structtag
@@ -16,7 +16,7 @@ import:
   - internal
   - redis
 - package: github.com/getsentry/raven-go
-  version: 74c334d7b8aaa4fd1b4fc6aa428c36fed1699e28
+  version: d175f85701dfbf44cb0510114c9943e665e60907
 - package: github.com/google/go-gcm
   version: 423613e2e8f11e71023c75ae2dd7e27105326cbf
 - package: github.com/gorilla/websocket

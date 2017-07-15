@@ -17,7 +17,7 @@ package handler
 import (
 	"fmt"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/skygeario/skygear-server/pkg/server/router"

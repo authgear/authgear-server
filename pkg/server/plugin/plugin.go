@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"github.com/robfig/cron"
 	"github.com/skygeario/skygear-server/pkg/server/logging"

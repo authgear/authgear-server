@@ -29,7 +29,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/zeromq/goczmq"
 )
