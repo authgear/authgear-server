@@ -201,7 +201,7 @@ func mergeAuthDataWithProfile(authData skydb.AuthData, profile skydb.Data) skydb
 		profile = skydb.Data{}
 	}
 
-	for k, v := range authData {
+	for k, v := range authData.GetData() {
 		profile[k] = v
 	}
 	return profile

@@ -693,7 +693,15 @@ func (db bogusFieldDatabaseConnection) GetRecordFieldAccess() (skydb.FieldACL, e
 	return skydb.FieldACL{}, nil
 }
 
-func (db bogusFieldDatabaseConnection) EnsureUserAuthRecordKeysValid() error {
+func (db bogusFieldDatabaseConnection) SetAuthRecordKeys(authRecordKeys [][]string) {
+	// noop
+}
+
+func (db bogusFieldDatabaseConnection) GetAuthRecordKeys() [][]string {
+	return [][]string{[]string{"username"}, []string{"email"}}
+}
+
+func (db bogusFieldDatabaseConnection) EnsureAuthRecordKeysValid() error {
 	return nil
 }
 

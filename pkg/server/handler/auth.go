@@ -31,7 +31,9 @@ import (
 var errUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 
 type signupPayload struct {
-	AuthData         skydb.AuthData         `mapstructure:"auth_data"`
+	AuthDataData     map[string]interface{} `mapstructure:"auth_data"`
+	AuthRecordKeys   [][]string
+	AuthData         skydb.AuthData
 	Password         string                 `mapstructure:"password"`
 	Provider         string                 `mapstructure:"provider"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
@@ -42,6 +44,7 @@ func (payload *signupPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+	payload.AuthData = skydb.NewAuthData(payload.AuthDataData, payload.AuthRecordKeys)
 	return payload.Validate()
 }
 
@@ -73,7 +76,7 @@ func (payload *signupPayload) IsAnonymous() bool {
 func (payload *signupPayload) duplicatedKeysInAuthDataAndProfile() []string {
 	keys := []string{}
 
-	for k := range payload.AuthData {
+	for k := range payload.AuthData.GetData() {
 		if _, found := payload.Profile[k]; found {
 			keys = append(keys, k)
 		}
@@ -135,7 +138,9 @@ func (h *SignupHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
-	p := &signupPayload{}
+	p := &signupPayload{
+		AuthRecordKeys: payload.DBConn.GetAuthRecordKeys(),
+	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
@@ -219,7 +224,9 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 }
 
 type loginPayload struct {
-	AuthData         skydb.AuthData         `mapstructure:"auth_data"`
+	AuthDataData     map[string]interface{} `mapstructure:"auth_data"`
+	AuthRecordKeys   [][]string
+	AuthData         skydb.AuthData
 	Password         string                 `mapstructure:"password"`
 	Provider         string                 `mapstructure:"provider"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
@@ -229,6 +236,7 @@ func (payload *loginPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+	payload.AuthData = skydb.NewAuthData(payload.AuthDataData, payload.AuthRecordKeys)
 	return payload.Validate()
 }
 
@@ -284,7 +292,9 @@ func (h *LoginHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response) {
-	p := &loginPayload{}
+	p := &loginPayload{
+		AuthRecordKeys: payload.DBConn.GetAuthRecordKeys(),
+	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr

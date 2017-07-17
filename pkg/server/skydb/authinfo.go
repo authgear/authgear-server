@@ -53,11 +53,64 @@ type AuthInfo struct {
 
 // AuthData contains the unique authentication data of a user
 // e.g.: {"username": "userA", "email": "userA@abc.com"}
-type AuthData map[string]interface{}
+type AuthData struct {
+	data map[string]interface{}
+	keys [][]string
+}
+
+func NewAuthData(data map[string]interface{}, authRecordKeys [][]string) AuthData {
+	return AuthData{
+		data: data,
+		keys: authRecordKeys,
+	}
+}
+
+func (a AuthData) allKeys() []string {
+	keyMap := map[string]bool{}
+	for _, keys := range a.keys {
+		for _, key := range keys {
+			keyMap[key] = true
+		}
+	}
+
+	keys := []string{}
+	for k := range keyMap {
+		keys = append(keys, k)
+	}
+
+	return keys
+}
+
+func (a AuthData) usingKeys() []string {
+	for _, ks := range a.keys {
+		count := 0
+		for _, k := range ks {
+			for dk := range a.data {
+				if k == dk && !a.isFieldEmpty(dk) {
+					count = count + 1
+				}
+			}
+		}
+
+		if len(ks) == count {
+			return ks
+		}
+	}
+
+	return []string{}
+}
+
+func (a AuthData) GetData() map[string]interface{} {
+	c := map[string]interface{}{}
+	for k, v := range a.data {
+		c[k] = v
+	}
+	return c
+}
 
 func (a AuthData) MakeEqualPredicate() Predicate {
 	appendEqualPredicateForKey := func(predicates []interface{}, key string) []interface{} {
-		if a[key] == nil {
+		if a.data[key] == nil {
 			return predicates
 		}
 
@@ -65,14 +118,15 @@ func (a AuthData) MakeEqualPredicate() Predicate {
 			Operator: Equal,
 			Children: []interface{}{
 				Expression{Type: KeyPath, Value: key},
-				Expression{Type: Literal, Value: a[key]},
+				Expression{Type: Literal, Value: a.data[key]},
 			},
 		})
 	}
 
 	predicates := []interface{}{}
-	predicates = appendEqualPredicateForKey(predicates, "username")
-	predicates = appendEqualPredicateForKey(predicates, "email")
+	for _, k := range a.usingKeys() {
+		predicates = appendEqualPredicateForKey(predicates, k)
+	}
 
 	return Predicate{
 		Operator: And,
@@ -80,19 +134,28 @@ func (a AuthData) MakeEqualPredicate() Predicate {
 	}
 }
 
-func (a AuthData) UpdateFromRecordData(data Data) {
-	a["username"] = data["username"]
-	a["email"] = data["email"]
+func (a *AuthData) UpdateFromRecordData(data Data) {
+	for _, k := range a.allKeys() {
+		a.data[k] = data[k]
+	}
 }
 
 func (a AuthData) IsValid() bool {
-	for k := range a {
-		if k != "username" && k != "email" {
+	for dk := range a.data {
+		found := false
+		for _, k := range a.allKeys() {
+			if dk == k {
+				found = true
+				break
+			}
+		}
+
+		if !found {
 			return false
 		}
 	}
 
-	return !a.IsEmpty()
+	return len(a.usingKeys()) > 0
 }
 
 // IsEmpty would return true if
@@ -100,11 +163,11 @@ func (a AuthData) IsValid() bool {
 // 1. no entries or
 // 2. all values are null
 func (a AuthData) IsEmpty() bool {
-	if len(a) == 0 {
+	if len(a.data) == 0 {
 		return true
 	}
 
-	for k := range a {
+	for k := range a.data {
 		if !a.isFieldEmpty(k) {
 			return false
 		}
@@ -114,7 +177,7 @@ func (a AuthData) IsEmpty() bool {
 }
 
 func (a AuthData) isFieldEmpty(key string) bool {
-	return a[key] == nil
+	return a.data[key] == nil
 }
 
 // NewAuthInfo returns a new AuthInfo with specified password.

@@ -61,39 +61,84 @@ func TestNewProviderInfoAuthInfo(t *testing.T) {
 
 func TestAuthData(t *testing.T) {
 	Convey("Test AuthData", t, func() {
+		keys := [][]string{[]string{"username"}, []string{"email"}}
+
 		Convey("valid AuthData", func() {
-			So(AuthData{
+			So(NewAuthData(map[string]interface{}{
 				"username": "johndoe",
-			}.IsValid(), ShouldBeTrue)
+			}, keys).IsValid(), ShouldBeTrue)
 
-			So(AuthData{
+			So(NewAuthData(map[string]interface{}{
 				"email": "johndoe@example.com",
-			}.IsValid(), ShouldBeTrue)
+			}, keys).IsValid(), ShouldBeTrue)
 
-			So(AuthData{
+			authData := NewAuthData(map[string]interface{}{
 				"username": "johndoe",
 				"email":    "johndoe@example.com",
-			}.IsValid(), ShouldBeTrue)
+			}, keys)
+			So(authData.IsValid(), ShouldBeTrue)
+			So(authData.usingKeys(), ShouldResemble, []string{"username"})
 		})
 
 		Convey("invalid AuthData", func() {
-			So(AuthData{}.IsValid(), ShouldBeFalse)
-			So(AuthData{
+			So(NewAuthData(map[string]interface{}{}, keys).IsValid(), ShouldBeFalse)
+			So(NewAuthData(map[string]interface{}{
 				"iamyourfather": "johndoe",
-			}.IsValid(), ShouldBeFalse)
-			So(AuthData{
+			}, keys).IsValid(), ShouldBeFalse)
+			So(NewAuthData(map[string]interface{}{
 				"username": nil,
-			}.IsValid(), ShouldBeFalse)
+			}, keys).IsValid(), ShouldBeFalse)
 		})
 
 		Convey("empty AuthData", func() {
-			So(AuthData{}.IsEmpty(), ShouldBeTrue)
-			So(AuthData{
+			So(NewAuthData(map[string]interface{}{}, keys).IsEmpty(), ShouldBeTrue)
+			So(NewAuthData(map[string]interface{}{
 				"username": nil,
-			}.IsEmpty(), ShouldBeTrue)
-			So(AuthData{
+			}, keys).IsEmpty(), ShouldBeTrue)
+			So(NewAuthData(map[string]interface{}{
 				"iamyourfather": "johndoe",
-			}.IsEmpty(), ShouldBeFalse)
+			}, keys).IsEmpty(), ShouldBeFalse)
+		})
+	})
+
+	Convey("Test AuthData with multiple keys", t, func() {
+		keys := [][]string{[]string{"username", "email"}, []string{"username", "phone"}}
+
+		Convey("valid AuthData", func() {
+			So(NewAuthData(map[string]interface{}{
+				"username": "johndoe",
+				"email":    "johndoe@example.com",
+			}, keys).IsValid(), ShouldBeTrue)
+
+			So(NewAuthData(map[string]interface{}{
+				"username": "johndoe",
+				"phone":    "123",
+			}, keys).IsValid(), ShouldBeTrue)
+
+			authData := NewAuthData(map[string]interface{}{
+				"username": "johndoe",
+				"email":    "johndoe@example.com",
+				"phone":    "123",
+			}, keys)
+			So(authData.IsValid(), ShouldBeTrue)
+			So(authData.usingKeys(), ShouldResemble, []string{"username", "email"})
+		})
+
+		Convey("invalid AuthData", func() {
+			So(NewAuthData(map[string]interface{}{}, keys).IsValid(), ShouldBeFalse)
+			So(NewAuthData(map[string]interface{}{
+				"username": "johndoe",
+			}, keys).IsValid(), ShouldBeFalse)
+			So(NewAuthData(map[string]interface{}{
+				"email": "johndoe@example.com",
+			}, keys).IsValid(), ShouldBeFalse)
+			So(NewAuthData(map[string]interface{}{
+				"phone": "123",
+			}, keys).IsValid(), ShouldBeFalse)
+			So(NewAuthData(map[string]interface{}{
+				"email": "johndoe@example.com",
+				"phone": "123",
+			}, keys).IsValid(), ShouldBeFalse)
 		})
 	})
 }
