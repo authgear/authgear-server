@@ -437,7 +437,10 @@ func TestInjectUserProcessor(t *testing.T) {
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Commit().After(txBegin)
 
-			skydbtest.ExpectDBSaveUser(db, skydb.RecordSchema{}, func(record *skydb.Record) {
+			db.EXPECT().UserRecordType().Return("user").AnyTimes()
+			db.EXPECT().GetSchema("user").Return(skydb.RecordSchema{}, nil).AnyTimes()
+
+			skydbtest.ExpectDBSaveUser(db, nil, func(record *skydb.Record) {
 				So(record.ID.Type, ShouldEqual, "user")
 				So(record.ID, ShouldResemble, skydb.NewRecordID("user", "userid2"))
 			})

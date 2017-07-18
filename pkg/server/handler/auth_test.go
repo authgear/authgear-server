@@ -105,7 +105,7 @@ func ExpectDBSaveUserWithAuthData(db *mock_skydb.MockTxDatabase, authData skydb.
 		"username": skydb.FieldType{Type: skydb.TypeString},
 		"email":    skydb.FieldType{Type: skydb.TypeString},
 	}
-	skydbtest.ExpectDBSaveUser(db, userRecordSchema, MakeUserRecordAssertion(authData))
+	skydbtest.ExpectDBSaveUser(db, &userRecordSchema, MakeUserRecordAssertion(authData))
 }
 
 // Seems like a memory imlementation of skydb will make tests
@@ -181,6 +181,140 @@ func TestSignupHandler(t *testing.T) {
 			So(authinfo.Roles, ShouldBeNil)
 		})
 
+		Convey("sign up new account with profile", func() {
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(MakeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
+				AnyTimes()
+			txBegin := db.EXPECT().Begin().AnyTimes()
+			db.EXPECT().Commit().After(txBegin)
+
+			skydbtest.ExpectDBSaveUser(db, &skydb.RecordSchema{
+				"username": skydb.FieldType{Type: skydb.TypeString},
+				"email":    skydb.FieldType{Type: skydb.TypeString},
+				"nickname": skydb.FieldType{Type: skydb.TypeString},
+				"number":   skydb.FieldType{Type: skydb.TypeNumber},
+				"boolean":  skydb.FieldType{Type: skydb.TypeBoolean},
+			}, MakeUserRecordAssertion(skydb.AuthData{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+				"nickname": "iamyourfather",
+				"number":   float64(0),
+				"boolean":  false,
+			}))
+
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"auth_data": skydb.AuthData{
+						"username": "john.doe",
+						"email":    "john.doe@example.com",
+					},
+					"password": "secret",
+					"profile": skydb.Data{
+						"nickname": "iamyourfather",
+						"number":   float64(0),
+						"boolean":  false,
+					},
+				},
+				DBConn:   conn,
+				Database: db,
+			}
+			resp := router.Response{}
+			handler.Handle(&req, &resp)
+
+			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
+			authResp := resp.Result.(AuthResponse)
+			So(authResp.Profile.ID, ShouldResemble, skydb.NewRecordID("user", authResp.UserID))
+			So(authResp.Profile.DatabaseID, ShouldResemble, "_public")
+			So(authResp.Profile.OwnerID, ShouldResemble, authResp.UserID)
+			So(authResp.Profile.CreatorID, ShouldResemble, authResp.UserID)
+			So(authResp.Profile.UpdaterID, ShouldResemble, authResp.UserID)
+			So(authResp.Profile.CreatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(authResp.Profile.UpdatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(authResp.Profile.Data, ShouldResemble, skydb.Data{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+				"nickname": "iamyourfather",
+				"number":   float64(0),
+				"boolean":  false,
+			})
+			So(authResp.AccessToken, ShouldNotBeEmpty)
+			So(authResp.LastLoginAt, ShouldNotBeEmpty)
+			So(authResp.LastSeenAt, ShouldNotBeEmpty)
+			token := tokenStore.Token
+			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
+			So(token.AccessToken, ShouldNotBeEmpty)
+
+			authinfo := &skydb.AuthInfo{}
+			err := conn.GetAuth(authResp.UserID, authinfo)
+			So(err, ShouldBeNil)
+			So(authinfo.Roles, ShouldBeNil)
+		})
+
+		Convey("sign up new account with profile, with auth data key but not duplicated", func() {
+			db.EXPECT().
+				Query(gomock.Any()).
+				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
+				AnyTimes()
+			txBegin := db.EXPECT().Begin().AnyTimes()
+			db.EXPECT().Commit().After(txBegin)
+
+			skydbtest.ExpectDBSaveUser(db, &skydb.RecordSchema{
+				"username": skydb.FieldType{Type: skydb.TypeString},
+				"email":    skydb.FieldType{Type: skydb.TypeString},
+				"nickname": skydb.FieldType{Type: skydb.TypeString},
+			}, MakeUserRecordAssertion(skydb.AuthData{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+				"nickname": "iamyourfather",
+			}))
+
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"auth_data": skydb.AuthData{
+						"username": "john.doe",
+					},
+					"password": "secret",
+					"profile": skydb.Data{
+						"email":    "john.doe@example.com",
+						"nickname": "iamyourfather",
+					},
+				},
+				DBConn:   conn,
+				Database: db,
+			}
+			resp := router.Response{}
+			handler.Handle(&req, &resp)
+
+			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
+			authResp := resp.Result.(AuthResponse)
+			So(authResp.Profile.ID, ShouldResemble, skydb.NewRecordID("user", authResp.UserID))
+			So(authResp.Profile.DatabaseID, ShouldResemble, "_public")
+			So(authResp.Profile.OwnerID, ShouldResemble, authResp.UserID)
+			So(authResp.Profile.CreatorID, ShouldResemble, authResp.UserID)
+			So(authResp.Profile.UpdaterID, ShouldResemble, authResp.UserID)
+			So(authResp.Profile.CreatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(authResp.Profile.UpdatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(authResp.Profile.Data, ShouldResemble, skydb.Data{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+				"nickname": "iamyourfather",
+			})
+			So(authResp.AccessToken, ShouldNotBeEmpty)
+			So(authResp.LastLoginAt, ShouldNotBeEmpty)
+			So(authResp.LastSeenAt, ShouldNotBeEmpty)
+			token := tokenStore.Token
+			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
+			So(token.AccessToken, ShouldNotBeEmpty)
+
+			authinfo := &skydb.AuthInfo{}
+			err := conn.GetAuth(authResp.UserID, authinfo)
+			So(err, ShouldBeNil)
+			So(authinfo.Roles, ShouldBeNil)
+		})
+
 		Convey("sign up with invalid auth data", func() {
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -188,6 +322,32 @@ func TestSignupHandler(t *testing.T) {
 						"iamyourfather": "john.doe",
 					},
 					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: db,
+			}
+			resp := router.Response{}
+			handler.Handle(&req, &resp)
+
+			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
+			errorResponse := resp.Err.(skyerr.Error)
+			So(errorResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+		})
+
+		Convey("sign up with duplicated keys in auth data and profile", func() {
+			skydbtest.ExpectDBExtendSchema(db, skydb.RecordSchema{
+				"username": skydb.FieldType{Type: skydb.TypeString},
+			})
+
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"auth_data": skydb.AuthData{
+						"username": "john.doe",
+					},
+					"password": "secret",
+					"profile": skydb.Data{
+						"username": "iamyourfather",
+					},
 				},
 				DBConn:   conn,
 				Database: db,
@@ -259,6 +419,11 @@ func TestSignupHandler(t *testing.T) {
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Rollback().After(txBegin)
 
+			skydbtest.ExpectDBExtendSchema(db, skydb.RecordSchema{
+				"username": skydb.FieldType{Type: skydb.TypeString},
+				"email":    skydb.FieldType{Type: skydb.TypeString},
+			})
+
 			req := router.Payload{
 				Data: map[string]interface{}{
 					"auth_data": skydb.AuthData{
@@ -296,6 +461,11 @@ func TestSignupHandler(t *testing.T) {
 				AnyTimes()
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Rollback().After(txBegin)
+
+			skydbtest.ExpectDBExtendSchema(db, skydb.RecordSchema{
+				"username": skydb.FieldType{Type: skydb.TypeString},
+				"email":    skydb.FieldType{Type: skydb.TypeString},
+			})
 
 			req := router.Payload{
 				Data: map[string]interface{}{

@@ -104,11 +104,27 @@ type createUserWithRecordContext struct {
 	Context      context.Context
 }
 
-func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData skydb.AuthData) (*skydb.Record, skyerr.Error) {
+func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData skydb.AuthData, profile skydb.Data) (*skydb.Record, skyerr.Error) {
 	db := ctx.Database
 	txDB, ok := db.(skydb.Transactional)
 	if !ok {
 		return nil, skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
+	}
+
+	userRecord := skydb.Record{
+		ID:   skydb.NewRecordID(db.UserRecordType(), info.ID),
+		Data: mergeAuthDataWithProfile(authData, profile),
+	}
+
+	// derive and extend record schema
+	// hotfix (Steven-Chan): moved outside of the transaction to prevent deadlock
+	_, err := recordutil.ExtendRecordSchema(db, []*skydb.Record{&userRecord})
+	if err != nil {
+		log.WithField("err", err).Errorln("failed to migrate record schema")
+		if myerr, ok := err.(skyerr.Error); ok {
+			return nil, myerr
+		}
+		return nil, skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
 	}
 
 	var user *skydb.Record
@@ -133,11 +149,6 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 			}
 
 			return skyerr.NewResourceSaveFailureErr("auth_data", authData)
-		}
-
-		userRecord := skydb.Record{
-			ID:   skydb.NewRecordID(db.UserRecordType(), info.ID),
-			Data: skydb.Data(authData),
 		}
 
 		recordReq := recordutil.RecordModifyRequest{
@@ -176,6 +187,17 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 	}
 
 	return nil, skyerr.MakeError(txErr)
+}
+
+func mergeAuthDataWithProfile(authData skydb.AuthData, profile skydb.Data) skydb.Data {
+	if profile == nil {
+		profile = skydb.Data{}
+	}
+
+	for k, v := range authData {
+		profile[k] = v
+	}
+	return profile
 }
 
 // TODO: validate according to settings/options

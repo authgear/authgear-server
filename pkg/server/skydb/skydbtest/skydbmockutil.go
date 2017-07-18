@@ -20,8 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 )
 
-func ExpectDBSaveUser(db *mock_skydb.MockTxDatabase, extendedSchema skydb.RecordSchema, assertSavedUserRecord interface{}) {
-	db.EXPECT().UserRecordType().Return("user").AnyTimes()
+func ExpectDBSaveUser(db *mock_skydb.MockTxDatabase, extendedSchema *skydb.RecordSchema, assertSavedUserRecord interface{}) {
 	db.EXPECT().ID().Return("_public").AnyTimes()
 
 	// no record found
@@ -31,15 +30,19 @@ func ExpectDBSaveUser(db *mock_skydb.MockTxDatabase, extendedSchema skydb.Record
 		AnyTimes()
 
 	// extend Schema
-	db.EXPECT().GetSchema("user").Return(skydb.RecordSchema{}, nil).AnyTimes()
-	db.EXPECT().Extend("user", extendedSchema).Return(len(extendedSchema) > 0, nil).AnyTimes()
-
-	// if len(extendedSchema) > 0 {
-	// }
+	if extendedSchema != nil {
+		ExpectDBExtendSchema(db, *extendedSchema)
+	}
 
 	db.EXPECT().
 		Save(gomock.Any()).
 		Do(assertSavedUserRecord).
 		Return(nil).
 		AnyTimes()
+}
+
+func ExpectDBExtendSchema(db *mock_skydb.MockTxDatabase, extendedSchema skydb.RecordSchema) {
+	db.EXPECT().UserRecordType().Return("user").AnyTimes()
+	db.EXPECT().GetSchema("user").Return(skydb.RecordSchema{}, nil).AnyTimes()
+	db.EXPECT().Extend("user", extendedSchema).Return(len(extendedSchema) > 0, nil).AnyTimes()
 }

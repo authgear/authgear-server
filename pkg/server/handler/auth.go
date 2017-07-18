@@ -35,6 +35,7 @@ type signupPayload struct {
 	Password         string                 `mapstructure:"password"`
 	Provider         string                 `mapstructure:"provider"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
+	Profile          skydb.Data             `mapstructure:"profile"`
 }
 
 func (payload *signupPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -53,6 +54,10 @@ func (payload *signupPayload) Validate() skyerr.Error {
 			return skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
 		}
 
+		if duplicatedKeys := payload.duplicatedKeysInAuthDataAndProfile(); len(duplicatedKeys) > 0 {
+			return skyerr.NewInvalidArgument("duplicated keys found in auth data in profile", duplicatedKeys)
+		}
+
 		if payload.Password == "" {
 			return skyerr.NewInvalidArgument("empty password", []string{"password"})
 		}
@@ -63,6 +68,18 @@ func (payload *signupPayload) Validate() skyerr.Error {
 
 func (payload *signupPayload) IsAnonymous() bool {
 	return payload.AuthData.IsEmpty() && payload.Password == "" && payload.Provider == ""
+}
+
+func (payload *signupPayload) duplicatedKeysInAuthDataAndProfile() []string {
+	keys := []string{}
+
+	for k := range payload.AuthData {
+		if _, found := payload.Profile[k]; found {
+			keys = append(keys, k)
+		}
+	}
+
+	return keys
 }
 
 // SignupHandler creates an AuthInfo with the supplied information.
@@ -173,7 +190,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
 	}
 
-	user, skyErr := createContext.execute(&info, authdata)
+	user, skyErr := createContext.execute(&info, authdata, p.Profile)
 	if skyErr != nil {
 		response.Err = skyErr
 		return
@@ -343,7 +360,7 @@ func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *login
 			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
 		}
 
-		createdUser, err := createContext.execute(authinfo, skydb.AuthData{})
+		createdUser, err := createContext.execute(authinfo, skydb.AuthData{}, skydb.Data{})
 		if err != nil {
 			return skyerr.MakeError(err)
 		}
