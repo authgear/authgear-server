@@ -287,14 +287,12 @@ func TestAuthRecordKeys(t *testing.T) {
 
 		Convey("canMigrate is true", func() {
 			Convey("no error for default user record", func() {
-				c.authRecordKeys = [][]string{[]string{"username"}, []string{"email"}}
-				err := c.EnsureAuthRecordKeysValid()
+				err := c.EnsureAuthRecordKeysValid([][]string{[]string{"username"}, []string{"email"}})
 				So(err, ShouldBeNil)
 			})
 
 			Convey("no error for non existing column, no new column created", func() {
-				c.authRecordKeys = [][]string{[]string{"iamyourfather"}}
-				err := c.EnsureAuthRecordKeysValid()
+				err := c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldBeNil)
 
 				var exists bool
@@ -313,8 +311,7 @@ func TestAuthRecordKeys(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 
-				c.authRecordKeys = [][]string{[]string{"iamyourfather"}}
-				err = c.EnsureAuthRecordKeysValid()
+				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldNotBeNil)
 			})
 
@@ -325,8 +322,7 @@ func TestAuthRecordKeys(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 
-				c.authRecordKeys = [][]string{[]string{"iamyourfather", "iamyourmother"}}
-				err = c.EnsureAuthRecordKeysValid()
+				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather", "iamyourmother"}})
 				So(err, ShouldBeNil)
 
 				So(c.PublicDB().Save(&skydb.Record{
@@ -377,16 +373,14 @@ func TestAuthRecordKeys(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				db := c.PublicDB().(*database)
-				c.authRecordKeys = [][]string{[]string{"iamyourfather"}, []string{"iamyourmother"}}
-				err = c.EnsureAuthRecordKeysValid()
+				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}, []string{"iamyourmother"}})
 				So(err, ShouldBeNil)
 				indexes, err := db.getIndexes("user")
 				So(err, ShouldBeNil)
 				shouldContainConstraintWithName(indexes, "auth_record_keys_user_iamyourfather_key")
 				shouldContainConstraintWithName(indexes, "auth_record_keys_user_iamyourmother_key")
 
-				c.authRecordKeys = [][]string{[]string{"iamyourfather"}}
-				err = c.EnsureAuthRecordKeysValid()
+				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldBeNil)
 				indexes, err = db.getIndexes("user")
 				So(err, ShouldBeNil)
@@ -399,14 +393,12 @@ func TestAuthRecordKeys(t *testing.T) {
 			c.canMigrate = false
 
 			Convey("no error for default user record", func() {
-				c.authRecordKeys = [][]string{[]string{"username"}, []string{"email"}}
-				err := c.EnsureAuthRecordKeysValid()
+				err := c.EnsureAuthRecordKeysValid([][]string{[]string{"username"}, []string{"email"}})
 				So(err, ShouldBeNil)
 			})
 
 			Convey("error for non existing column", func() {
-				c.authRecordKeys = [][]string{[]string{"iamyourfather"}}
-				err := c.EnsureAuthRecordKeysValid()
+				err := c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldNotBeNil)
 			})
 
@@ -418,8 +410,7 @@ func TestAuthRecordKeys(t *testing.T) {
 				So(err, ShouldBeNil)
 				c.canMigrate = false
 
-				c.authRecordKeys = [][]string{[]string{"iamyourfather"}}
-				err = c.EnsureAuthRecordKeysValid()
+				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldNotBeNil)
 			})
 
@@ -431,8 +422,7 @@ func TestAuthRecordKeys(t *testing.T) {
 				So(err, ShouldBeNil)
 				c.canMigrate = false
 
-				c.authRecordKeys = [][]string{[]string{"iamyourfather"}}
-				err = c.EnsureAuthRecordKeysValid()
+				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldNotBeNil)
 			})
 		})

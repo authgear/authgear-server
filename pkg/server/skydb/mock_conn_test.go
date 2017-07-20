@@ -388,32 +388,14 @@ func (_mr *_MockConnRecorder) Subscribe(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Subscribe", arg0)
 }
 
-func (_m *MockConn) SetAuthRecordKeys(authRecordKeys [][]string) {
-	_m.ctrl.Call(_m, "SetAuthRecordKeys", authRecordKeys)
-}
-
-func (_mr *_MockConnRecorder) SetAuthRecordKeys(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetAuthRecordKeys", arg0)
-}
-
-func (_m *MockConn) GetAuthRecordKeys() [][]string {
-	ret := _m.ctrl.Call(_m, "GetAuthRecordKeys")
-	ret0, _ := ret[0].([][]string)
-	return ret0
-}
-
-func (_mr *_MockConnRecorder) GetAuthRecordKeys() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetAuthRecordKeys")
-}
-
-func (_m *MockConn) EnsureAuthRecordKeysValid() error {
-	ret := _m.ctrl.Call(_m, "EnsureAuthRecordKeysValid")
+func (_m *MockConn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
+	ret := _m.ctrl.Call(_m, "EnsureAuthRecordKeysValid", authRecordKeys)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockConnRecorder) EnsureAuthRecordKeysValid() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "EnsureAuthRecordKeysValid")
+func (_mr *_MockConnRecorder) EnsureAuthRecordKeysValid(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EnsureAuthRecordKeysValid", arg0)
 }
 
 func (_m *MockConn) Close() error {

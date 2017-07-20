@@ -130,7 +130,8 @@ func TestSignupHandler(t *testing.T) {
 
 		db := mock_skydb.NewMockTxDatabase(ctrl)
 		handler := &SignupHandler{
-			TokenStore: &tokenStore,
+			TokenStore:     &tokenStore,
+			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
 		}
 
 		Convey("sign up new account", func() {
@@ -397,8 +398,9 @@ func TestSignupHandler(t *testing.T) {
 			}
 			resp := router.Response{}
 			handler := &SignupHandler{
-				TokenStore:  &tokenStore,
-				AccessModel: skydb.RoleBasedAccess,
+				TokenStore:     &tokenStore,
+				AccessModel:    skydb.RoleBasedAccess,
+				AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
 			}
 			handler.Handle(&req, &resp)
 			authResp := resp.Result.(AuthResponse)
@@ -513,7 +515,8 @@ func TestLoginHandler(t *testing.T) {
 
 		tokenStore := authtokentest.SingleTokenStore{}
 		handler := &LoginHandler{
-			TokenStore: &tokenStore,
+			TokenStore:     &tokenStore,
+			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
 		}
 
 		Convey("login user", func() {
@@ -658,6 +661,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&LoginHandler{
 			TokenStore:       &tokenStore,
 			ProviderRegistry: providerRegistry,
+			AuthRecordKeys:   [][]string{[]string{"username"}, []string{"email"}},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
@@ -832,15 +836,7 @@ func (conn *singleUserConn) GetRecordFieldAccess() (skydb.FieldACL, error) {
 	return skydb.FieldACL{}, nil
 }
 
-func (conn *singleUserConn) SetAuthRecordKeys(authRecordKeys [][]string) {
-	// noop
-}
-
-func (conn *singleUserConn) GetAuthRecordKeys() [][]string {
-	return [][]string{[]string{"username"}, []string{"email"}}
-}
-
-func (conn *singleUserConn) EnsureAuthRecordKeysValid() error {
+func (conn *singleUserConn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
 	return nil
 }
 
@@ -858,7 +854,8 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 		txdb := skydbtest.NewMockTxDatabase(db)
 
 		r := handlertest.NewSingleRouteRouter(&SignupHandler{
-			TokenStore: &tokenStore,
+			TokenStore:     &tokenStore,
+			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
@@ -962,6 +959,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&SignupHandler{
 			TokenStore:       &tokenStore,
 			ProviderRegistry: providerRegistry,
+			AuthRecordKeys:   [][]string{[]string{"username"}, []string{"email"}},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb

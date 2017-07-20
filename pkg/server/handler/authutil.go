@@ -97,11 +97,12 @@ func (f *UserAuthFetcher) buildAuthDataQuery(authData skydb.AuthData) skydb.Quer
 // createUserWithRecordContext is a context for creating a new user with
 // database record
 type createUserWithRecordContext struct {
-	DBConn       skydb.Conn
-	Database     skydb.Database
-	AssetStore   asset.Store
-	HookRegistry *hook.Registry
-	Context      context.Context
+	DBConn         skydb.Conn
+	Database       skydb.Database
+	AssetStore     asset.Store
+	HookRegistry   *hook.Registry
+	AuthRecordKeys [][]string
+	Context        context.Context
 }
 
 func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData skydb.AuthData, profile skydb.Data) (*skydb.Record, skyerr.Error) {
@@ -129,7 +130,7 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 
 	// TODO: should be in the same transaction of extend schema and create user
 	if schemaUpdated {
-		if err = ctx.DBConn.EnsureAuthRecordKeysValid(); err != nil {
+		if err = ctx.DBConn.EnsureAuthRecordKeysValid(ctx.AuthRecordKeys); err != nil {
 			return nil, skyerr.MakeError(err)
 		}
 	}

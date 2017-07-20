@@ -176,13 +176,11 @@ type Conn interface {
 	// RecordEvent from the Conn implementation
 	Subscribe(recordEventChan chan RecordEvent) error
 
-	SetAuthRecordKeys(authRecordKeys [][]string)
-	GetAuthRecordKeys() [][]string
-
-	// EnsureAuthRecordKeysValid check if authRecordKeys exist, has valid type
-	// and unique
+	// EnsureAuthRecordKeysValid check if authRecordKeys exist in database,
+	// has valid type and unique
+	//
 	// Migration would be done in dev mode
-	EnsureAuthRecordKeysValid() error
+	EnsureAuthRecordKeysValid(authRecordKeys [][]string) error
 
 	Close() error
 }

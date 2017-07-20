@@ -239,17 +239,18 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordSaveHandler struct {
-	HookRegistry  *hook.Registry     `inject:"HookRegistry"`
-	AssetStore    asset.Store        `inject:"AssetStore"`
-	AccessModel   skydb.AccessModel  `inject:"AccessModel"`
-	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
-	Authenticator router.Processor   `preprocessor:"authenticator"`
-	DBConn        router.Processor   `preprocessor:"dbconn"`
-	InjectAuth    router.Processor   `preprocessor:"inject_auth"`
-	InjectDB      router.Processor   `preprocessor:"inject_db"`
-	RequireUser   router.Processor   `preprocessor:"require_user"`
-	PluginReady   router.Processor   `preprocessor:"plugin_ready"`
-	preprocessors []router.Processor
+	HookRegistry   *hook.Registry     `inject:"HookRegistry"`
+	AssetStore     asset.Store        `inject:"AssetStore"`
+	AccessModel    skydb.AccessModel  `inject:"AccessModel"`
+	EventSender    pluginEvent.Sender `inject:"PluginEventSender"`
+	AuthRecordKeys [][]string         `inject:"AuthRecordKeys"`
+	Authenticator  router.Processor   `preprocessor:"authenticator"`
+	DBConn         router.Processor   `preprocessor:"dbconn"`
+	InjectAuth     router.Processor   `preprocessor:"inject_auth"`
+	InjectDB       router.Processor   `preprocessor:"inject_db"`
+	RequireUser    router.Processor   `preprocessor:"require_user"`
+	PluginReady    router.Processor   `preprocessor:"plugin_ready"`
+	preprocessors  []router.Processor
 }
 
 func (h *RecordSaveHandler) Setup() {
@@ -336,7 +337,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	// TODO: should be in the same transaction of extend schema and create user
-	if err = payload.DBConn.EnsureAuthRecordKeysValid(); err != nil {
+	if err = payload.DBConn.EnsureAuthRecordKeysValid(h.AuthRecordKeys); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}

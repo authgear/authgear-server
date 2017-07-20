@@ -214,16 +214,7 @@ func (c *conn) DeleteAuth(id string) error {
 	return nil
 }
 
-func (c *conn) SetAuthRecordKeys(authRecordKeys [][]string) {
-	c.authRecordKeys = authRecordKeys
-}
-
-func (c *conn) GetAuthRecordKeys() [][]string {
-	return c.authRecordKeys
-}
-
-func (c *conn) EnsureAuthRecordKeysValid() error {
-	authRecordKeys := c.authRecordKeys
+func (c *conn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
 	db := c.PublicDB().(*database)
 	schema, err := db.GetSchema(db.UserRecordType())
 	if err != nil {

@@ -117,6 +117,7 @@ type SignupHandler struct {
 	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
 	AssetStore       asset.Store        `inject:"AssetStore"`
 	AccessModel      skydb.AccessModel  `inject:"AccessModel"`
+	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
 	AccessKey        router.Processor   `preprocessor:"accesskey"`
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
@@ -139,7 +140,7 @@ func (h *SignupHandler) GetPreprocessors() []router.Processor {
 
 func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
 	p := &signupPayload{
-		AuthRecordKeys: payload.DBConn.GetAuthRecordKeys(),
+		AuthRecordKeys: h.AuthRecordKeys,
 	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
@@ -192,7 +193,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	info.LastSeenAt = &now
 
 	createContext := createUserWithRecordContext{
-		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
+		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context,
 	}
 
 	user, skyErr := createContext.execute(&info, authdata, p.Profile)
@@ -271,6 +272,7 @@ type LoginHandler struct {
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
 	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
 	AssetStore       asset.Store        `inject:"AssetStore"`
+	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
 	AccessKey        router.Processor   `preprocessor:"accesskey"`
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
@@ -293,7 +295,7 @@ func (h *LoginHandler) GetPreprocessors() []router.Processor {
 
 func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response) {
 	p := &loginPayload{
-		AuthRecordKeys: payload.DBConn.GetAuthRecordKeys(),
+		AuthRecordKeys: h.AuthRecordKeys,
 	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
@@ -367,7 +369,7 @@ func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *login
 		*authinfo = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
 
 		createContext := createUserWithRecordContext{
-			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
+			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context,
 		}
 
 		createdUser, err := createContext.execute(authinfo, skydb.AuthData{}, skydb.Data{})
