@@ -99,6 +99,7 @@ func (s *fileStore) SignedURL(name string) (string, error) {
 	buf := bytes.Buffer{}
 	base64Encoder := base64.NewEncoder(base64.URLEncoding, &buf)
 	base64Encoder.Write(h.Sum(nil))
+	base64Encoder.Close()
 
 	return fmt.Sprintf(
 		"%s/%s?expiredAt=%s&signature=%s",
@@ -120,7 +121,7 @@ func (s *fileStore) ParseSignature(signed string, name string, expiredAt time.Ti
 	io.WriteString(h, name)
 	io.WriteString(h, strconv.FormatInt(expiredAt.Unix(), 10))
 
-	return !hmac.Equal(remoteSignature, h.Sum(nil)), nil
+	return hmac.Equal(remoteSignature, h.Sum(nil)), nil
 }
 
 // IsSignatureRequired indicates whether a signature is required
