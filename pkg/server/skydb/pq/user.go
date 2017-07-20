@@ -224,7 +224,7 @@ func (c *conn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
 	// check if auth record keys exist in user record
 	// if not and canMigrate = true, just pass, since not enough information to migrate
 	// if not and canMigrate = false, return error
-	missingKeys := c.findMissingRecordKeys(schema, authRecordKeys)
+	missingKeys := findMissingRecordKeys(schema, authRecordKeys)
 	if len(missingKeys) > 0 && !c.canMigrate {
 		return fmt.Errorf("%v are missing in user record schema", missingKeys)
 	}
@@ -233,7 +233,7 @@ func (c *conn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
 	// return error if found
 	for _, keys := range authRecordKeys {
 		for _, key := range keys {
-			err = c.ensureRecordKeyValidType(schema, key)
+			err = ensureRecordKeyValidType(schema, key)
 			if err != nil {
 				return err
 			}
@@ -249,7 +249,7 @@ func (c *conn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
 			return err
 		}
 
-		err = c.ensureRecordKeysUnique(indexes, keys)
+		err = ensureRecordKeysUnique(indexes, keys)
 		if err != nil {
 			if !c.canMigrate {
 				return fmt.Errorf("%v must be unique in user record schema", keys)
@@ -273,7 +273,56 @@ func (c *conn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
 	return nil
 }
 
-func (c *conn) findMissingRecordKeys(schema skydb.RecordSchema, authRecordKeys [][]string) []string {
+func (c *conn) createManagedUniqueConstraint(columns []string) error {
+	db := c.PublicDB().(*database)
+	tableName := db.UserRecordType()
+	return db.createIndex(dbIndex{
+		table:   tableName,
+		name:    managedIndexName(tableName, columns),
+		columns: columns,
+	})
+}
+
+func (c *conn) removeManagedUniqueConstraints(exceptColumns [][]string) error {
+	db := c.PublicDB().(*database)
+	indexes, err := db.getIndexes(db.UserRecordType())
+	if err != nil {
+		return err
+	}
+
+	exceptColumnNames := []string{}
+	for _, cols := range exceptColumns {
+		exceptColumnNames = append(exceptColumnNames, managedIndexName(db.UserRecordType(), cols))
+	}
+
+	for _, index := range indexes {
+		if index.name != managedIndexName(index.table, index.columns) {
+			continue
+		}
+
+		isException := false
+		for _, exceptName := range exceptColumnNames {
+			if index.name == exceptName {
+				isException = true
+				break
+			}
+		}
+
+		if isException {
+			continue
+		}
+
+		db.dropIndex(index.table, index.name)
+	}
+
+	return nil
+}
+
+func managedIndexName(tableName string, columns []string) string {
+	return fmt.Sprintf("auth_record_keys_%s_%s_key", tableName, strings.Join(columns, "_"))
+}
+
+func findMissingRecordKeys(schema skydb.RecordSchema, authRecordKeys [][]string) []string {
 	recordKeyMap := map[string]bool{}
 	for _, keys := range authRecordKeys {
 		for _, key := range keys {
@@ -291,7 +340,7 @@ func (c *conn) findMissingRecordKeys(schema skydb.RecordSchema, authRecordKeys [
 	return missing
 }
 
-func (c *conn) ensureRecordKeyValidType(schema skydb.RecordSchema, key string) error {
+func ensureRecordKeyValidType(schema skydb.RecordSchema, key string) error {
 	if !schema.HasField(key) {
 		return nil
 	}
@@ -313,7 +362,7 @@ func (c *conn) ensureRecordKeyValidType(schema skydb.RecordSchema, key string) e
 	return nil
 }
 
-func (c *conn) ensureRecordKeysUnique(indexes []dbIndex, authRecordKeys []string) error {
+func ensureRecordKeysUnique(indexes []dbIndex, authRecordKeys []string) error {
 	for _, index := range indexes {
 		columns := index.columns
 
@@ -326,53 +375,4 @@ func (c *conn) ensureRecordKeysUnique(indexes []dbIndex, authRecordKeys []string
 	}
 
 	return fmt.Errorf("Unique index not found on keys: %v", authRecordKeys)
-}
-
-func (c *conn) indexName(tableName string, columns []string) string {
-	return fmt.Sprintf("auth_record_keys_%s_%s_key", tableName, strings.Join(columns, "_"))
-}
-
-func (c *conn) createManagedUniqueConstraint(columns []string) error {
-	db := c.PublicDB().(*database)
-	tableName := db.UserRecordType()
-	return db.createIndex(dbIndex{
-		table:   tableName,
-		name:    c.indexName(tableName, columns),
-		columns: columns,
-	})
-}
-
-func (c *conn) removeManagedUniqueConstraints(exceptColumns [][]string) error {
-	db := c.PublicDB().(*database)
-	indexes, err := db.getIndexes(db.UserRecordType())
-	if err != nil {
-		return err
-	}
-
-	exceptColumnNames := []string{}
-	for _, cols := range exceptColumns {
-		exceptColumnNames = append(exceptColumnNames, c.indexName(db.UserRecordType(), cols))
-	}
-
-	for _, index := range indexes {
-		if index.name != c.indexName(index.table, index.columns) {
-			continue
-		}
-
-		isException := false
-		for _, exceptName := range exceptColumnNames {
-			if index.name == exceptName {
-				isException = true
-				break
-			}
-		}
-
-		if isException {
-			continue
-		}
-
-		db.dropIndex(index.table, index.name)
-	}
-
-	return nil
 }
