@@ -300,6 +300,43 @@ func (c *conn) RevokeRoles(userIDs []string, roles []string) error {
 	return nil
 }
 
+func (c *conn) GetRoles(userIDs []string) (map[string][]string, error) {
+
+	userIDArgs := make([]interface{}, len(userIDs))
+	for idx, eachID := range userIDs {
+		userIDArgs[idx] = eachID
+	}
+
+	builder := psql.Select("auth_id", "role_id").
+		From(c.tableName("_auth_role")).
+		Where("auth_id IN ("+sq.Placeholders(len(userIDArgs))+")", userIDArgs...).
+		OrderBy("auth_id")
+
+	rows, err := c.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	roleMap := map[string][]string{}
+	for _, eachUserID := range userIDs {
+		// keep an empty array even no roles found for that user
+		roleMap[eachUserID] = []string{}
+	}
+
+	for rows.Next() {
+		eachAuthID := ""
+		eachRole := ""
+		if err := rows.Scan(&eachAuthID, &eachRole); err != nil {
+			panic(err)
+		}
+		eachAuthRoles := roleMap[eachAuthID]
+		roleMap[eachAuthID] = append(eachAuthRoles, eachRole)
+	}
+
+	return roleMap, nil
+}
+
 func (c *conn) createRoles(roles []string) error {
 	log.Debugf("createRole %v", roles)
 	for _, role := range roles {

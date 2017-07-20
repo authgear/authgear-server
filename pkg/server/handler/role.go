@@ -327,3 +327,117 @@ func (h *RoleRevokeHandler) Handle(rpayload *router.Payload, response *router.Re
 	}
 	response.Result = "OK"
 }
+
+type getRolesPayload struct {
+	UserIDs []string `mapstructure:"user_ids"`
+}
+
+func (payload *getRolesPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *getRolesPayload) Validate() skyerr.Error {
+	if payload.UserIDs == nil || len(payload.UserIDs) == 0 {
+		return skyerr.NewInvalidArgument("unspecified user IDs in request", []string{"user_ids"})
+	}
+	return nil
+}
+
+// RoleGetHandler returns roles of users specified by user IDs. Users can only
+// get his own roles except that administrators can query roles of other users.
+//
+// curl \
+//   -X POST \
+//   -H "Content-Type: application/json" \
+//   -d @- \
+//   http://localhost:3000/ \
+// <<EOF
+// {
+//     "action": "role:get",
+//     "master_key": "MASTER_KEY",
+//     "access_token": "ACCESS_TOKEN",
+//     "user_ids": [
+//        "e0cfd2d6-184d-4dad-8cf1-f7ff96954c8d",
+//        "e023c399-f329-41d6-9d95-9a5261c63501",
+//        "24e1df68-9007-4111-8ec1-c53a2a45ad9e"
+//     ]
+// }
+// EOF
+//
+// {
+//     "result": {
+// 		     "e0cfd2d6-184d-4dad-8cf1-f7ff96954c8d": [
+//             "developer",
+//             "tech-lead"
+//         ],
+// 		     "e023c399-f329-41d6-9d95-9a5261c63501": [
+//         ],
+// 		     "24e1df68-9007-4111-8ec1-c53a2a45ad9e": [
+//             "project-manager",
+//             "project-consultant"
+//         ]
+//     }
+// }
+type RoleGetHandler struct {
+	Authenticator router.Processor `preprocessor:"authenticator"`
+	DBConn        router.Processor `preprocessor:"dbconn"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
+	PluginReady   router.Processor `preprocessor:"plugin_ready"`
+	preprocessors []router.Processor
+}
+
+func (h *RoleGetHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectAuth,
+		h.PluginReady,
+	}
+}
+
+func (h *RoleGetHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (h *RoleGetHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	payload := &getRolesPayload{}
+	if skyErr := payload.Decode(rpayload.Data); skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
+	// check permissions
+	authInfo := rpayload.AuthInfo
+	isAdmin := false
+	if rpayload.HasMasterKey() {
+		isAdmin = true
+	} else {
+		adminRoles, err := rpayload.DBConn.GetAdminRoles()
+		if err != nil {
+			response.Err = skyerr.MakeError(err)
+			return
+		}
+		if authInfo.HasAnyRoles(adminRoles) {
+			isAdmin = true
+		}
+	}
+
+	// non-admin cannot get other users' roles
+	if isAdmin == false {
+		if len(payload.UserIDs) > 1 || payload.UserIDs[0] != authInfo.ID {
+			response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to get other users' roles")
+			return
+		}
+	}
+
+	roleMap, err := rpayload.DBConn.GetRoles(payload.UserIDs)
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	response.Result = roleMap
+}
