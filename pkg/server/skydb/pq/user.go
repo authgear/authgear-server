@@ -241,7 +241,7 @@ func (c *conn) EnsureAuthRecordKeysExist(authRecordKeys [][]string) error {
 	return nil
 }
 
-func (c *conn) EnsureAuthRecordKeysIndexesExist(authRecordKeys [][]string) error {
+func (c *conn) EnsureAuthRecordKeysIndexesMatch(authRecordKeys [][]string) error {
 	db := c.PublicDB().(*database)
 	userRecordType := db.UserRecordType()
 

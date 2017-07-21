@@ -365,7 +365,7 @@ func initUserAuthRecordKeys(connOpener func() (skydb.Conn, error), authRecordKey
 		panic(err)
 	}
 
-	if err := conn.EnsureAuthRecordKeysIndexesExist(authRecordKeys); err != nil {
+	if err := conn.EnsureAuthRecordKeysIndexesMatch(authRecordKeys); err != nil {
 		panic(err)
 	}
 }

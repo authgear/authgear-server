@@ -301,7 +301,7 @@ func TestAuthRecordKeys(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 
-				err = c.EnsureAuthRecordKeysIndexesExist([][]string{[]string{"iamyourfather", "iamyourmother"}})
+				err = c.EnsureAuthRecordKeysIndexesMatch([][]string{[]string{"iamyourfather", "iamyourmother"}})
 				So(err, ShouldBeNil)
 
 				So(c.PublicDB().Save(&skydb.Record{
@@ -352,14 +352,14 @@ func TestAuthRecordKeys(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				db := c.PublicDB().(*database)
-				err = c.EnsureAuthRecordKeysIndexesExist([][]string{[]string{"iamyourfather"}, []string{"iamyourmother"}})
+				err = c.EnsureAuthRecordKeysIndexesMatch([][]string{[]string{"iamyourfather"}, []string{"iamyourmother"}})
 				So(err, ShouldBeNil)
 				indexes, err := db.GetIndexesByRecordType("user")
 				So(err, ShouldBeNil)
 				So(indexes, ShouldContainKey, "auth_record_keys_user_iamyourfather_key")
 				So(indexes, ShouldContainKey, "auth_record_keys_user_iamyourmother_key")
 
-				err = c.EnsureAuthRecordKeysIndexesExist([][]string{[]string{"iamyourfather"}})
+				err = c.EnsureAuthRecordKeysIndexesMatch([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldBeNil)
 				indexes, err = db.GetIndexesByRecordType("user")
 				So(err, ShouldBeNil)
@@ -401,7 +401,7 @@ func TestAuthRecordKeys(t *testing.T) {
 				So(err, ShouldBeNil)
 				c.canMigrate = false
 
-				err = c.EnsureAuthRecordKeysIndexesExist([][]string{[]string{"iamyourfather"}})
+				err = c.EnsureAuthRecordKeysIndexesMatch([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldNotBeNil)
 			})
 		})
