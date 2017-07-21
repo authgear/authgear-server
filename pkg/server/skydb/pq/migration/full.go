@@ -148,8 +148,8 @@ CREATE TABLE "user" (
     PRIMARY KEY(_id, _database_id, _owner_id),
     UNIQUE (_id)
 );
-CREATE UNIQUE INDEX auth_record_keys_user_username_key ON "user" (username);
-CREATE UNIQUE INDEX auth_record_keys_user_email_key ON "user" (email);
+ALTER TABLE "user" ADD CONSTRAINT auth_record_keys_user_username_key UNIQUE (username);
+ALTER TABLE "user" ADD CONSTRAINT auth_record_keys_user_email_key UNIQUE (email);
 CREATE VIEW _user AS
 	SELECT
 		_auth.id,
