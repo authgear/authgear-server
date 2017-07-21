@@ -336,12 +336,6 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	// TODO: should be in the same transaction of extend schema and create user
-	if err = payload.DBConn.EnsureAuthRecordKeysValid(h.AuthRecordKeys); err != nil {
-		response.Err = skyerr.MakeError(err)
-		return
-	}
-
 	if err := saveFunc(&req, &resp); err != nil {
 		log.Debugf("Failed to save records: %v", err)
 		response.Err = err

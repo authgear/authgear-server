@@ -262,37 +262,16 @@ func TestAuthRecordKeys(t *testing.T) {
 		c := getTestConn(t)
 		defer cleanupConn(t, c)
 
-		checkContainConstraintWithName := func(do func(bool), actual []dbIndex, expected string) {
-			for _, index := range actual {
-				if index.name == expected {
-					do(true)
-					return
-				}
-			}
-
-			do(false)
-		}
-
-		shouldContainConstraintWithName := func(actual []dbIndex, expected string) {
-			checkContainConstraintWithName(func(found bool) {
-				So(found, ShouldBeTrue)
-			}, actual, expected)
-		}
-
-		shouldNotContainConstraintWithName := func(actual []dbIndex, expected string) {
-			checkContainConstraintWithName(func(found bool) {
-				So(found, ShouldBeFalse)
-			}, actual, expected)
-		}
-
 		Convey("canMigrate is true", func() {
+			c.canMigrate = true
+
 			Convey("no error for default user record", func() {
-				err := c.EnsureAuthRecordKeysValid([][]string{[]string{"username"}, []string{"email"}})
+				err := c.EnsureAuthRecordKeysExist([][]string{[]string{"username"}, []string{"email"}})
 				So(err, ShouldBeNil)
 			})
 
-			Convey("no error for non existing column, no new column created", func() {
-				err := c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
+			Convey("no error for non existing column, new column created", func() {
+				err := c.EnsureAuthRecordKeysExist([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldBeNil)
 
 				var exists bool
@@ -302,17 +281,17 @@ func TestAuthRecordKeys(t *testing.T) {
 					FROM information_schema.columns
 					WHERE table_name = 'user' AND column_name = 'iamyourfather'
 				)`).Scan(&exists)
-				So(exists, ShouldBeFalse)
+				So(exists, ShouldBeTrue)
 			})
 
-			Convey("error for existing column with invalid type", func() {
+			Convey("no error for existing column with non string type", func() {
 				_, err := c.PublicDB().Extend("user", skydb.RecordSchema{
 					"iamyourfather": skydb.FieldType{Type: skydb.TypeJSON},
 				})
 				So(err, ShouldBeNil)
 
-				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
-				So(err, ShouldNotBeNil)
+				err = c.EnsureAuthRecordKeysExist([][]string{[]string{"iamyourfather"}})
+				So(err, ShouldBeNil)
 			})
 
 			Convey("create unique constraints for existing non unique fields", func() {
@@ -322,7 +301,7 @@ func TestAuthRecordKeys(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 
-				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather", "iamyourmother"}})
+				err = c.EnsureAuthRecordKeysIndexesExist([][]string{[]string{"iamyourfather", "iamyourmother"}})
 				So(err, ShouldBeNil)
 
 				So(c.PublicDB().Save(&skydb.Record{
@@ -373,19 +352,19 @@ func TestAuthRecordKeys(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				db := c.PublicDB().(*database)
-				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}, []string{"iamyourmother"}})
+				err = c.EnsureAuthRecordKeysIndexesExist([][]string{[]string{"iamyourfather"}, []string{"iamyourmother"}})
 				So(err, ShouldBeNil)
-				indexes, err := db.getIndexes("user")
+				indexes, err := db.GetIndexesByRecordType("user")
 				So(err, ShouldBeNil)
-				shouldContainConstraintWithName(indexes, "auth_record_keys_user_iamyourfather_key")
-				shouldContainConstraintWithName(indexes, "auth_record_keys_user_iamyourmother_key")
+				So(indexes, ShouldContainKey, "auth_record_keys_user_iamyourfather_key")
+				So(indexes, ShouldContainKey, "auth_record_keys_user_iamyourmother_key")
 
-				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
+				err = c.EnsureAuthRecordKeysIndexesExist([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldBeNil)
-				indexes, err = db.getIndexes("user")
+				indexes, err = db.GetIndexesByRecordType("user")
 				So(err, ShouldBeNil)
-				shouldContainConstraintWithName(indexes, "auth_record_keys_user_iamyourfather_key")
-				shouldNotContainConstraintWithName(indexes, "auth_record_keys_user_iamyourmother_key")
+				So(indexes, ShouldContainKey, "auth_record_keys_user_iamyourfather_key")
+				So(indexes, ShouldNotContainKey, "auth_record_keys_user_iamyourmother_key")
 			})
 		})
 
@@ -393,16 +372,16 @@ func TestAuthRecordKeys(t *testing.T) {
 			c.canMigrate = false
 
 			Convey("no error for default user record", func() {
-				err := c.EnsureAuthRecordKeysValid([][]string{[]string{"username"}, []string{"email"}})
+				err := c.EnsureAuthRecordKeysExist([][]string{[]string{"username"}, []string{"email"}})
 				So(err, ShouldBeNil)
 			})
 
 			Convey("error for non existing column", func() {
-				err := c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
+				err := c.EnsureAuthRecordKeysExist([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("error for existing column with invalid type", func() {
+			Convey("no error for existing column with non string type", func() {
 				c.canMigrate = true
 				_, err := c.PublicDB().Extend("user", skydb.RecordSchema{
 					"iamyourfather": skydb.FieldType{Type: skydb.TypeJSON},
@@ -410,8 +389,8 @@ func TestAuthRecordKeys(t *testing.T) {
 				So(err, ShouldBeNil)
 				c.canMigrate = false
 
-				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
-				So(err, ShouldNotBeNil)
+				err = c.EnsureAuthRecordKeysExist([][]string{[]string{"iamyourfather"}})
+				So(err, ShouldBeNil)
 			})
 
 			Convey("error for existing column without unique constraint", func() {
@@ -422,7 +401,7 @@ func TestAuthRecordKeys(t *testing.T) {
 				So(err, ShouldBeNil)
 				c.canMigrate = false
 
-				err = c.EnsureAuthRecordKeysValid([][]string{[]string{"iamyourfather"}})
+				err = c.EnsureAuthRecordKeysIndexesExist([][]string{[]string{"iamyourfather"}})
 				So(err, ShouldNotBeNil)
 			})
 		})

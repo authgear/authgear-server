@@ -156,6 +156,10 @@ type Database interface {
 	DeleteSubscription(key string, deviceID string) error
 	GetSubscriptionsByDeviceID(deviceID string) []Subscription
 	GetMatchingSubscriptions(record *Record) []Subscription
+
+	GetIndexesByRecordType(recordType string) (indexes map[string]Index, err error)
+	SaveIndex(recordType, indexName string, index Index) error
+	DeleteIndex(recordType string, indexName string) error
 }
 
 // Transactional defines the methods for a persistence storage that supports

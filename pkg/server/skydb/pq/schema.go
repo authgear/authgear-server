@@ -482,13 +482,7 @@ func (db *database) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, refer
 	buf.Write([]byte(`),`))
 }
 
-type dbIndex struct {
-	table   string
-	name    string
-	columns []string
-}
-
-func (db *database) getIndexes(tableName string) (indexes []dbIndex, err error) {
+func (db *database) GetIndexesByRecordType(recordType string) (indexes map[string]skydb.Index, err error) {
 	schemaName := db.schemaName()
 	rows, err := db.c.Queryx(`
 SELECT
@@ -516,13 +510,13 @@ GROUP BY
     ns.nspname,
     t.relname,
     i.relname;`,
-		schemaName, tableName)
+		schemaName, recordType)
 
 	if err != nil {
 		return
 	}
 
-	indexes = []dbIndex{}
+	indexes = map[string]skydb.Index{}
 	for rows.Next() {
 		var table string
 		var name string
@@ -531,25 +525,24 @@ GROUP BY
 			return
 		}
 
-		indexes = append(indexes, dbIndex{
-			table:   table,
-			name:    name,
-			columns: strings.Split(columnNames, ","),
-		})
+		indexes[name] = skydb.Index{
+			Fields: strings.Split(columnNames, ","),
+		}
 	}
 
 	return
 }
 
-func (db *database) createIndex(i dbIndex) error {
+func (db *database) SaveIndex(recordType, indexName string, index skydb.Index) error {
 	quotedColumns := []string{}
-	for _, col := range i.columns {
-		quotedColumns = append(quotedColumns, fmt.Sprintf("\"%s\"", col))
+	for _, col := range index.Fields {
+		quotedColumns = append(quotedColumns, fmt.Sprintf("%s", col))
 	}
 
 	stmt := fmt.Sprintf(`
-		ALTER TABLE "%s"."%s" ADD CONSTRAINT "%s" UNIQUE (%s);
-	`, db.schemaName(), i.table, i.name, strings.Join(quotedColumns, ","))
+		ALTER TABLE "%s"."%s" ADD CONSTRAINT %s UNIQUE (%s);
+	`, db.schemaName(), recordType, indexName, strings.Join(quotedColumns, ","))
+	fmt.Println("Save Index", stmt)
 	log.WithField("stmt", stmt).Debugln("Creating unique constraint")
 	if _, err := db.c.Exec(stmt); err != nil {
 		return err
@@ -558,10 +551,10 @@ func (db *database) createIndex(i dbIndex) error {
 	return nil
 }
 
-func (db *database) dropIndex(tableName string, name string) error {
+func (db *database) DeleteIndex(recordType string, indexName string) error {
 	stmt := fmt.Sprintf(`
-		ALTER TABLE "%s"."%s" DROP CONSTRAINT "%s";
-	`, db.schemaName(), tableName, name)
+		ALTER TABLE "%s"."%s" DROP CONSTRAINT %s;
+	`, db.schemaName(), recordType, indexName)
 	log.WithField("stmt", stmt).Debugln("Dropping unique constraint")
 	if _, err := db.c.Exec(stmt); err != nil {
 		return err

@@ -214,165 +214,116 @@ func (c *conn) DeleteAuth(id string) error {
 	return nil
 }
 
-func (c *conn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
+func (c *conn) EnsureAuthRecordKeysExist(authRecordKeys [][]string) error {
 	db := c.PublicDB().(*database)
-	schema, err := db.GetSchema(db.UserRecordType())
+	userRecordType := db.UserRecordType()
+	schema, err := db.GetSchema(userRecordType)
 	if err != nil {
 		return fmt.Errorf("Unable to retrieve user record schema")
 	}
 
-	// check if auth record keys exist in user record
-	// if not and canMigrate = true, just pass, since not enough information to migrate
-	// if not and canMigrate = false, return error
-	missingKeys := findMissingRecordKeys(schema, authRecordKeys)
-	if len(missingKeys) > 0 && !c.canMigrate {
-		return fmt.Errorf("%v are missing in user record schema", missingKeys)
+	requiredKeys := getAllAuthRecordKeys(authRecordKeys)
+	schemaToExtend := skydb.RecordSchema{}
+	for _, key := range requiredKeys {
+		if _, ok := schema[key]; ok {
+			continue
+		}
+
+		schemaToExtend[key] = skydb.FieldType{
+			Type: skydb.TypeString,
+		}
 	}
 
-	// check if auth record keys that have invalid record type
-	// return error if found
+	if _, err := db.Extend(userRecordType, schemaToExtend); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *conn) EnsureAuthRecordKeysIndexesExist(authRecordKeys [][]string) error {
+	db := c.PublicDB().(*database)
+	userRecordType := db.UserRecordType()
+
+	requiredIndexes := []skydb.Index{}
 	for _, keys := range authRecordKeys {
-		for _, key := range keys {
-			err = ensureRecordKeyValidType(schema, key)
-			if err != nil {
+		requiredIndexes = append(requiredIndexes, skydb.Index{
+			Fields: keys,
+		})
+	}
+
+	indexesByName, err := db.GetIndexesByRecordType(userRecordType)
+	if err != nil {
+		return err
+	}
+
+	indexes := []skydb.Index{}
+	for _, index := range indexesByName {
+		indexes = append(indexes, index)
+	}
+
+	requiredIndexesByFields := groupIndexesByFields(requiredIndexes)
+	indexesByFields := groupIndexesByFields(indexes)
+
+	for fieldsString := range requiredIndexesByFields {
+		if _, ok := indexesByFields[fieldsString]; !ok {
+			index := requiredIndexesByFields[fieldsString]
+			if !c.canMigrate {
+				return fmt.Errorf("Index of %v is required in user record schema", index.Fields)
+			}
+
+			if err = db.SaveIndex(userRecordType, managedIndexName(userRecordType, index), index); err != nil {
 				return err
 			}
 		}
 	}
 
-	// check if auth record keys have unique constraints
-	// if not and canMigrate = true, create a special unique constraint, which would be managed by skygear
-	// if not and canMigrate = false, return error
-	for _, keys := range authRecordKeys {
-		indexes, err := db.getIndexes(db.UserRecordType())
-		if err != nil {
-			return err
-		}
-
-		err = ensureRecordKeysUnique(indexes, keys)
-		if err != nil {
-			if !c.canMigrate {
-				return fmt.Errorf("%v must be unique in user record schema", keys)
-			}
-
-			if schema.HasFields(keys) {
-				if err = c.createManagedUniqueConstraint(keys); err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	// if canMigrate = true, clean up unique constraint managed by skygear, which is no longer exist
+	// cleanup unused unique constraint
 	if c.canMigrate {
-		if err = c.removeManagedUniqueConstraints(authRecordKeys); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (c *conn) createManagedUniqueConstraint(columns []string) error {
-	db := c.PublicDB().(*database)
-	tableName := db.UserRecordType()
-	return db.createIndex(dbIndex{
-		table:   tableName,
-		name:    managedIndexName(tableName, columns),
-		columns: columns,
-	})
-}
-
-func (c *conn) removeManagedUniqueConstraints(exceptColumns [][]string) error {
-	db := c.PublicDB().(*database)
-	indexes, err := db.getIndexes(db.UserRecordType())
-	if err != nil {
-		return err
-	}
-
-	exceptColumnNames := []string{}
-	for _, cols := range exceptColumns {
-		exceptColumnNames = append(exceptColumnNames, managedIndexName(db.UserRecordType(), cols))
-	}
-
-	for _, index := range indexes {
-		if index.name != managedIndexName(index.table, index.columns) {
-			continue
-		}
-
-		isException := false
-		for _, exceptName := range exceptColumnNames {
-			if index.name == exceptName {
-				isException = true
-				break
+		for indexName, index := range indexesByName {
+			fieldsString := joinFields(index.Fields)
+			_, isRequired := requiredIndexesByFields[fieldsString]
+			if !isRequired && indexName == managedIndexName(userRecordType, index) {
+				db.DeleteIndex(userRecordType, indexName)
 			}
 		}
-
-		if isException {
-			continue
-		}
-
-		db.dropIndex(index.table, index.name)
 	}
 
 	return nil
 }
 
-func managedIndexName(tableName string, columns []string) string {
-	return fmt.Sprintf("auth_record_keys_%s_%s_key", tableName, strings.Join(columns, "_"))
-}
-
-func findMissingRecordKeys(schema skydb.RecordSchema, authRecordKeys [][]string) []string {
+func getAllAuthRecordKeys(authRecordKeys [][]string) []string {
 	recordKeyMap := map[string]bool{}
 	for _, keys := range authRecordKeys {
 		for _, key := range keys {
-			recordKeyMap[key] = schema.HasField(key)
+			recordKeyMap[key] = true
 		}
 	}
 
-	missing := []string{}
-	for key, ok := range recordKeyMap {
-		if !ok {
-			missing = append(missing, key)
-		}
+	allKeys := []string{}
+	for key := range recordKeyMap {
+		allKeys = append(allKeys, key)
 	}
 
-	return missing
+	return allKeys
 }
 
-func ensureRecordKeyValidType(schema skydb.RecordSchema, key string) error {
-	if !schema.HasField(key) {
-		return nil
-	}
-
-	fieldType := schema[key].Type
-
-	var valid bool
-	switch fieldType {
-	case skydb.TypeString, skydb.TypeNumber, skydb.TypeInteger, skydb.TypeBoolean, skydb.TypeSequence:
-		valid = true
-	default:
-		valid = false
-	}
-
-	if !valid {
-		return fmt.Errorf("%v must be string, number, integer, boolean or sequence", key)
-	}
-
-	return nil
+func joinFields(fields []string) string {
+	sort.Strings(fields)
+	return strings.Join(fields, ",")
 }
 
-func ensureRecordKeysUnique(indexes []dbIndex, authRecordKeys []string) error {
+func groupIndexesByFields(indexes []skydb.Index) map[string]skydb.Index {
+	output := map[string]skydb.Index{}
 	for _, index := range indexes {
-		columns := index.columns
-
-		sort.Strings(authRecordKeys)
-		sort.Strings(columns)
-
-		if strings.Join(authRecordKeys, ",") == strings.Join(columns, ",") {
-			return nil
-		}
+		fieldsString := joinFields(index.Fields)
+		output[fieldsString] = index
 	}
+	return output
+}
 
-	return fmt.Errorf("Unique index not found on keys: %v", authRecordKeys)
+func managedIndexName(recordType string, index skydb.Index) string {
+	fields := index.Fields
+	sort.Strings(fields)
+	return fmt.Sprintf("auth_record_keys_%s_%s_key", recordType, strings.Join(fields, "_"))
 }

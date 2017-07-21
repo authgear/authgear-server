@@ -332,6 +332,11 @@ func (r *Record) MergedCopy(merge *Record) *Record {
 	return &dst
 }
 
+// Index indicates the value of fields within a record type cannot be duplicated
+type Index struct {
+	Fields []string
+}
+
 // RecordSchema is a mapping of record key to its value's data type or reference
 type RecordSchema map[string]FieldType
 

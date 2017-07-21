@@ -119,20 +119,13 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 
 	// derive and extend record schema
 	// hotfix (Steven-Chan): moved outside of the transaction to prevent deadlock
-	schemaUpdated, err := recordutil.ExtendRecordSchema(db, []*skydb.Record{&userRecord})
+	_, err := recordutil.ExtendRecordSchema(db, []*skydb.Record{&userRecord})
 	if err != nil {
 		log.WithField("err", err).Errorln("failed to migrate record schema")
 		if myerr, ok := err.(skyerr.Error); ok {
 			return nil, myerr
 		}
 		return nil, skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
-	}
-
-	// TODO: should be in the same transaction of extend schema and create user
-	if schemaUpdated {
-		if err = ctx.DBConn.EnsureAuthRecordKeysValid(ctx.AuthRecordKeys); err != nil {
-			return nil, skyerr.MakeError(err)
-		}
 	}
 
 	var user *skydb.Record
