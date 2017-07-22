@@ -265,6 +265,37 @@ func (_mr *_MockDatabaseRecorder) GetMatchingSubscriptions(arg0 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetMatchingSubscriptions", arg0)
 }
 
+func (_m *MockDatabase) GetIndexesByRecordType(recordType string) (map[string]Index, error) {
+	ret := _m.ctrl.Call(_m, "GetIndexesByRecordType", recordType)
+	ret0, _ := ret[0].(map[string]Index)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockDatabaseRecorder) GetIndexesByRecordType(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetIndexesByRecordType", arg0)
+}
+
+func (_m *MockDatabase) SaveIndex(recordType string, indexName string, index Index) error {
+	ret := _m.ctrl.Call(_m, "SaveIndex", recordType, indexName, index)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDatabaseRecorder) SaveIndex(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SaveIndex", arg0, arg1, arg2)
+}
+
+func (_m *MockDatabase) DeleteIndex(recordType string, indexName string) error {
+	ret := _m.ctrl.Call(_m, "DeleteIndex", recordType, indexName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDatabaseRecorder) DeleteIndex(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteIndex", arg0, arg1)
+}
+
 // Mock of Transactional interface
 type MockTransactional struct {
 	ctrl     *gomock.Controller
@@ -602,6 +633,37 @@ func (_m *MockTxDatabase) GetMatchingSubscriptions(record *Record) []Subscriptio
 
 func (_mr *_MockTxDatabaseRecorder) GetMatchingSubscriptions(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetMatchingSubscriptions", arg0)
+}
+
+func (_m *MockTxDatabase) GetIndexesByRecordType(recordType string) (map[string]Index, error) {
+	ret := _m.ctrl.Call(_m, "GetIndexesByRecordType", recordType)
+	ret0, _ := ret[0].(map[string]Index)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockTxDatabaseRecorder) GetIndexesByRecordType(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetIndexesByRecordType", arg0)
+}
+
+func (_m *MockTxDatabase) SaveIndex(recordType string, indexName string, index Index) error {
+	ret := _m.ctrl.Call(_m, "SaveIndex", recordType, indexName, index)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockTxDatabaseRecorder) SaveIndex(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SaveIndex", arg0, arg1, arg2)
+}
+
+func (_m *MockTxDatabase) DeleteIndex(recordType string, indexName string) error {
+	ret := _m.ctrl.Call(_m, "DeleteIndex", recordType, indexName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockTxDatabaseRecorder) DeleteIndex(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteIndex", arg0, arg1)
 }
 
 // Mock of RowsIter interface

@@ -250,6 +250,10 @@ func (conn *MapConn) Subscribe(recordEventChan chan skydb.RecordEvent) error {
 	panic("not implemented")
 }
 
+func (conn *MapConn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
+	return nil
+}
+
 // Close does nothing.
 func (conn *MapConn) Close() error {
 	// do nothing

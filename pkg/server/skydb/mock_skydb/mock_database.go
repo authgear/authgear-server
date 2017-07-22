@@ -59,6 +59,16 @@ func (_mr *_MockDatabaseRecorder) Delete(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0)
 }
 
+func (_m *MockDatabase) DeleteIndex(_param0 string, _param1 string) error {
+	ret := _m.ctrl.Call(_m, "DeleteIndex", _param0, _param1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDatabaseRecorder) DeleteIndex(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteIndex", arg0, arg1)
+}
+
 func (_m *MockDatabase) DeleteSchema(_param0 string, _param1 string) error {
 	ret := _m.ctrl.Call(_m, "DeleteSchema", _param0, _param1)
 	ret0, _ := ret[0].(error)
@@ -109,6 +119,17 @@ func (_m *MockDatabase) GetByIDs(_param0 []skydb.RecordID) (*skydb.Rows, error) 
 
 func (_mr *_MockDatabaseRecorder) GetByIDs(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetByIDs", arg0)
+}
+
+func (_m *MockDatabase) GetIndexesByRecordType(_param0 string) (map[string]skydb.Index, error) {
+	ret := _m.ctrl.Call(_m, "GetIndexesByRecordType", _param0)
+	ret0, _ := ret[0].(map[string]skydb.Index)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockDatabaseRecorder) GetIndexesByRecordType(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetIndexesByRecordType", arg0)
 }
 
 func (_m *MockDatabase) GetMatchingSubscriptions(_param0 *skydb.Record) []skydb.Subscription {
@@ -234,6 +255,16 @@ func (_m *MockDatabase) Save(_param0 *skydb.Record) error {
 
 func (_mr *_MockDatabaseRecorder) Save(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Save", arg0)
+}
+
+func (_m *MockDatabase) SaveIndex(_param0 string, _param1 string, _param2 skydb.Index) error {
+	ret := _m.ctrl.Call(_m, "SaveIndex", _param0, _param1, _param2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDatabaseRecorder) SaveIndex(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SaveIndex", arg0, arg1, arg2)
 }
 
 func (_m *MockDatabase) SaveSubscription(_param0 *skydb.Subscription) error {

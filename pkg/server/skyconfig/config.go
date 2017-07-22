@@ -20,6 +20,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -41,6 +42,59 @@ func parseBool(str string) (bool, error) {
 	}
 }
 
+// parseAuthRecordKeys parses a string representation of a comma separated list
+// to keys and key tuples
+//
+// example:
+// a,b,c => [[a], [b], [c]]
+// (a),(b,c),(d,e,f) => [[a], [b,c], [d,e,f]]
+//
+// error example:
+// a,(b,(d),c)
+// a,a(b)c
+func parseAuthRecordKeys(str string) ([][]string, error) {
+	if str == "" {
+		return [][]string{}, fmt.Errorf("Empty string")
+	}
+
+	splits := strings.Split(str, ",")
+	results := [][]string{}
+	container := []string{}
+	level := 0
+	for _, split := range splits {
+		split = strings.TrimSpace(split)
+		content := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(split, "("), ")"))
+
+		isGroupOpening := strings.HasPrefix(split, "(")
+		isGroupClosing := strings.HasSuffix(split, ")")
+
+		// validation
+		if strings.Contains(content, "(") || strings.Contains(content, ")") || (level > 0 && isGroupOpening) {
+			return [][]string{}, fmt.Errorf("Unexpected char in " + content)
+		}
+
+		if isGroupOpening {
+			container = []string{}
+			level++
+		}
+
+		container = append(container, content)
+
+		if isGroupClosing {
+			level--
+			sort.Strings(container)
+			results = append(results, container)
+		}
+
+		if !isGroupOpening && !isGroupClosing && level == 0 {
+			results = append(results, container)
+			container = []string{}
+		}
+	}
+
+	return results, nil
+}
+
 type PluginConfig struct {
 	Transport string
 	Path      string
@@ -57,14 +111,15 @@ type Configuration struct {
 		Host string `json:"host"`
 	} `json:"http"`
 	App struct {
-		Name               string `json:"name"`
-		APIKey             string `json:"api_key"`
-		MasterKey          string `json:"master_key"`
-		AccessControl      string `json:"access_control"`
-		DevMode            bool   `json:"dev_mode"`
-		CORSHost           string `json:"cors_host"`
-		Slave              bool   `json:"slave"`
-		ResponseTimeout    int64  `json:"response_timeout"`
+		Name            string     `json:"name"`
+		APIKey          string     `json:"api_key"`
+		MasterKey       string     `json:"master_key"`
+		AccessControl   string     `json:"access_control"`
+		AuthRecordKeys  [][]string `json:"auth_record_keys"`
+		DevMode         bool       `json:"dev_mode"`
+		CORSHost        string     `json:"cors_host"`
+		Slave           bool       `json:"slave"`
+		ResponseTimeout int64      `json:"response_timeout"`
 	} `json:"app"`
 	DB struct {
 		ImplName string `json:"implementation"`
@@ -146,6 +201,7 @@ func NewConfiguration() Configuration {
 	config.HTTP.Host = ":3000"
 	config.App.Name = "myapp"
 	config.App.AccessControl = "role"
+	config.App.AuthRecordKeys = [][]string{[]string{"username"}, []string{"email"}}
 	config.App.DevMode = true
 	config.App.CORSHost = "*"
 	config.App.Slave = false
@@ -203,6 +259,23 @@ func (config *Configuration) Validate() error {
 	if config.APNS.Enable && !regexp.MustCompile("^(cert|token)$").MatchString(config.APNS.Type) {
 		return fmt.Errorf("APNS_TYPE must be cert or token")
 	}
+	if err := config.checkAuthRecordKeysDuplication(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (config *Configuration) checkAuthRecordKeysDuplication() error {
+	check := map[string]interface{}{}
+	for _, result := range config.App.AuthRecordKeys {
+		c := strings.Join(result, ",")
+		if _, found := check[c]; found {
+			return fmt.Errorf("AUTH_RECORD_KEYS cannot have duplicated keys '%s'", c)
+		}
+		check[c] = result
+	}
+
 	return nil
 }
 
@@ -237,6 +310,10 @@ func (config *Configuration) ReadFromEnv() {
 	accessControl := os.Getenv("ACCESS_CONRTOL")
 	if accessControl != "" {
 		config.App.AccessControl = accessControl
+	}
+
+	if authRecordKeys, err := parseAuthRecordKeys(os.Getenv("AUTH_RECORD_KEYS")); err == nil {
+		config.App.AuthRecordKeys = authRecordKeys
 	}
 
 	if devMode, err := parseBool(os.Getenv("DEV_MODE")); err == nil {

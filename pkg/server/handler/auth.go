@@ -31,7 +31,9 @@ import (
 var errUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 
 type signupPayload struct {
-	AuthData         skydb.AuthData         `mapstructure:"auth_data"`
+	AuthDataData     map[string]interface{} `mapstructure:"auth_data"`
+	AuthRecordKeys   [][]string
+	AuthData         skydb.AuthData
 	Password         string                 `mapstructure:"password"`
 	Provider         string                 `mapstructure:"provider"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
@@ -42,6 +44,7 @@ func (payload *signupPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+	payload.AuthData = skydb.NewAuthData(payload.AuthDataData, payload.AuthRecordKeys)
 	return payload.Validate()
 }
 
@@ -73,7 +76,7 @@ func (payload *signupPayload) IsAnonymous() bool {
 func (payload *signupPayload) duplicatedKeysInAuthDataAndProfile() []string {
 	keys := []string{}
 
-	for k := range payload.AuthData {
+	for k := range payload.AuthData.GetData() {
 		if _, found := payload.Profile[k]; found {
 			keys = append(keys, k)
 		}
@@ -114,6 +117,7 @@ type SignupHandler struct {
 	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
 	AssetStore       asset.Store        `inject:"AssetStore"`
 	AccessModel      skydb.AccessModel  `inject:"AccessModel"`
+	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
 	AccessKey        router.Processor   `preprocessor:"accesskey"`
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
@@ -135,7 +139,9 @@ func (h *SignupHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
-	p := &signupPayload{}
+	p := &signupPayload{
+		AuthRecordKeys: h.AuthRecordKeys,
+	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
@@ -187,7 +193,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	info.LastSeenAt = &now
 
 	createContext := createUserWithRecordContext{
-		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
+		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context,
 	}
 
 	user, skyErr := createContext.execute(&info, authdata, p.Profile)
@@ -219,7 +225,9 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 }
 
 type loginPayload struct {
-	AuthData         skydb.AuthData         `mapstructure:"auth_data"`
+	AuthDataData     map[string]interface{} `mapstructure:"auth_data"`
+	AuthRecordKeys   [][]string
+	AuthData         skydb.AuthData
 	Password         string                 `mapstructure:"password"`
 	Provider         string                 `mapstructure:"provider"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
@@ -229,6 +237,7 @@ func (payload *loginPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+	payload.AuthData = skydb.NewAuthData(payload.AuthDataData, payload.AuthRecordKeys)
 	return payload.Validate()
 }
 
@@ -263,6 +272,7 @@ type LoginHandler struct {
 	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
 	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
 	AssetStore       asset.Store        `inject:"AssetStore"`
+	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
 	AccessKey        router.Processor   `preprocessor:"accesskey"`
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
@@ -284,7 +294,9 @@ func (h *LoginHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response) {
-	p := &loginPayload{}
+	p := &loginPayload{
+		AuthRecordKeys: h.AuthRecordKeys,
+	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
@@ -357,7 +369,7 @@ func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *login
 		*authinfo = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
 
 		createContext := createUserWithRecordContext{
-			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, payload.Context,
+			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context,
 		}
 
 		createdUser, err := createContext.execute(authinfo, skydb.AuthData{}, skydb.Data{})

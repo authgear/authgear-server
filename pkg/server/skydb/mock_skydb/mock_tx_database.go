@@ -79,6 +79,16 @@ func (_mr *_MockTxDatabaseRecorder) Delete(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0)
 }
 
+func (_m *MockTxDatabase) DeleteIndex(_param0 string, _param1 string) error {
+	ret := _m.ctrl.Call(_m, "DeleteIndex", _param0, _param1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockTxDatabaseRecorder) DeleteIndex(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteIndex", arg0, arg1)
+}
+
 func (_m *MockTxDatabase) DeleteSchema(_param0 string, _param1 string) error {
 	ret := _m.ctrl.Call(_m, "DeleteSchema", _param0, _param1)
 	ret0, _ := ret[0].(error)
@@ -129,6 +139,17 @@ func (_m *MockTxDatabase) GetByIDs(_param0 []skydb.RecordID) (*skydb.Rows, error
 
 func (_mr *_MockTxDatabaseRecorder) GetByIDs(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetByIDs", arg0)
+}
+
+func (_m *MockTxDatabase) GetIndexesByRecordType(_param0 string) (map[string]skydb.Index, error) {
+	ret := _m.ctrl.Call(_m, "GetIndexesByRecordType", _param0)
+	ret0, _ := ret[0].(map[string]skydb.Index)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockTxDatabaseRecorder) GetIndexesByRecordType(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetIndexesByRecordType", arg0)
 }
 
 func (_m *MockTxDatabase) GetMatchingSubscriptions(_param0 *skydb.Record) []skydb.Subscription {
@@ -264,6 +285,16 @@ func (_m *MockTxDatabase) Save(_param0 *skydb.Record) error {
 
 func (_mr *_MockTxDatabaseRecorder) Save(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Save", arg0)
+}
+
+func (_m *MockTxDatabase) SaveIndex(_param0 string, _param1 string, _param2 skydb.Index) error {
+	ret := _m.ctrl.Call(_m, "SaveIndex", _param0, _param1, _param2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockTxDatabaseRecorder) SaveIndex(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SaveIndex", arg0, arg1, arg2)
 }
 
 func (_m *MockTxDatabase) SaveSubscription(_param0 *skydb.Subscription) error {

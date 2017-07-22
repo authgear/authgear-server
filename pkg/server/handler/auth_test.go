@@ -94,9 +94,10 @@ func MakeUsernameEmailQueryAssertion(username string, email string) func(query *
 
 func MakeUserRecordAssertion(authData skydb.AuthData) func(record *skydb.Record) {
 	return func(record *skydb.Record) {
+		authDataData := authData.GetData()
 		So(record.ID.Type, ShouldEqual, "user")
-		So(record.Data["username"], ShouldEqual, authData["username"])
-		So(record.Data["email"], ShouldEqual, authData["email"])
+		So(record.Data["username"], ShouldEqual, authDataData["username"])
+		So(record.Data["email"], ShouldEqual, authDataData["email"])
 	}
 }
 
@@ -113,6 +114,8 @@ func ExpectDBSaveUserWithAuthData(db *mock_skydb.MockTxDatabase, authData skydb.
 
 func TestSignupHandler(t *testing.T) {
 	Convey("SignupHandler", t, func() {
+		authRecordKeys := [][]string{[]string{"username"}, []string{"email"}}
+
 		realTime := timeNow
 		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 		defer func() {
@@ -127,23 +130,27 @@ func TestSignupHandler(t *testing.T) {
 
 		db := mock_skydb.NewMockTxDatabase(ctrl)
 		handler := &SignupHandler{
-			TokenStore: &tokenStore,
+			TokenStore:     &tokenStore,
+			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
 		}
 
 		Convey("sign up new account", func() {
 			db.EXPECT().
 				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
+				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
 				AnyTimes()
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Commit().After(txBegin)
 
-			ExpectDBSaveUserWithAuthData(db, skydb.AuthData{"username": "john.doe", "email": "john.doe@example.com"})
+			ExpectDBSaveUserWithAuthData(db, skydb.NewAuthData(map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			}, authRecordKeys))
 
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 						"email":    "john.doe@example.com",
 					},
@@ -184,7 +191,7 @@ func TestSignupHandler(t *testing.T) {
 		Convey("sign up new account with profile", func() {
 			db.EXPECT().
 				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
+				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
 				AnyTimes()
 			txBegin := db.EXPECT().Begin().AnyTimes()
@@ -196,17 +203,17 @@ func TestSignupHandler(t *testing.T) {
 				"nickname": skydb.FieldType{Type: skydb.TypeString},
 				"number":   skydb.FieldType{Type: skydb.TypeNumber},
 				"boolean":  skydb.FieldType{Type: skydb.TypeBoolean},
-			}, MakeUserRecordAssertion(skydb.AuthData{
+			}, MakeUserRecordAssertion(skydb.NewAuthData(map[string]interface{}{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 				"nickname": "iamyourfather",
 				"number":   float64(0),
 				"boolean":  false,
-			}))
+			}, authRecordKeys)))
 
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 						"email":    "john.doe@example.com",
 					},
@@ -265,15 +272,15 @@ func TestSignupHandler(t *testing.T) {
 				"username": skydb.FieldType{Type: skydb.TypeString},
 				"email":    skydb.FieldType{Type: skydb.TypeString},
 				"nickname": skydb.FieldType{Type: skydb.TypeString},
-			}, MakeUserRecordAssertion(skydb.AuthData{
+			}, MakeUserRecordAssertion(skydb.NewAuthData(map[string]interface{}{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 				"nickname": "iamyourfather",
-			}))
+			}, authRecordKeys)))
 
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 					},
 					"password": "secret",
@@ -318,7 +325,7 @@ func TestSignupHandler(t *testing.T) {
 		Convey("sign up with invalid auth data", func() {
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"iamyourfather": "john.doe",
 					},
 					"password": "secret",
@@ -341,7 +348,7 @@ func TestSignupHandler(t *testing.T) {
 
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 					},
 					"password": "secret",
@@ -367,17 +374,20 @@ func TestSignupHandler(t *testing.T) {
 			db := mock_skydb.NewMockTxDatabase(ctrl)
 			db.EXPECT().
 				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
+				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
 				AnyTimes()
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Commit().After(txBegin)
 
-			ExpectDBSaveUserWithAuthData(db, skydb.AuthData{"username": "john.doe", "email": "john.doe@example.com"})
+			ExpectDBSaveUserWithAuthData(db, skydb.NewAuthData(map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			}, authRecordKeys))
 
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 						"email":    "john.doe@example.com",
 					},
@@ -388,8 +398,9 @@ func TestSignupHandler(t *testing.T) {
 			}
 			resp := router.Response{}
 			handler := &SignupHandler{
-				TokenStore:  &tokenStore,
-				AccessModel: skydb.RoleBasedAccess,
+				TokenStore:     &tokenStore,
+				AccessModel:    skydb.RoleBasedAccess,
+				AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
 			}
 			handler.Handle(&req, &resp)
 			authResp := resp.Result.(AuthResponse)
@@ -405,7 +416,7 @@ func TestSignupHandler(t *testing.T) {
 			conn.CreateAuth(&authinfo)
 			db.EXPECT().
 				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
+				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{
 					skydb.Record{
 						ID: skydb.NewRecordID("user", authinfo.ID),
@@ -426,7 +437,7 @@ func TestSignupHandler(t *testing.T) {
 
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 						"email":    "john.doe@example.com",
 					},
@@ -448,7 +459,7 @@ func TestSignupHandler(t *testing.T) {
 			conn.CreateAuth(&authinfo)
 			db.EXPECT().
 				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "john.doe@example.com")).
+				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{
 					skydb.Record{
 						ID: skydb.NewRecordID("user", authinfo.ID),
@@ -469,7 +480,7 @@ func TestSignupHandler(t *testing.T) {
 
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 						"email":    "john.doe@example.com",
 					},
@@ -504,7 +515,8 @@ func TestLoginHandler(t *testing.T) {
 
 		tokenStore := authtokentest.SingleTokenStore{}
 		handler := &LoginHandler{
-			TokenStore: &tokenStore,
+			TokenStore:     &tokenStore,
+			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
 		}
 
 		Convey("login user", func() {
@@ -526,7 +538,7 @@ func TestLoginHandler(t *testing.T) {
 
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 					},
 					"password": "secret",
@@ -557,7 +569,7 @@ func TestLoginHandler(t *testing.T) {
 		Convey("login with invalid auth data", func() {
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"iamyourfather": "john.doe",
 					},
 					"password": "secret",
@@ -588,7 +600,7 @@ func TestLoginHandler(t *testing.T) {
 
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 					},
 					"password": "wrongsecret",
@@ -613,7 +625,7 @@ func TestLoginHandler(t *testing.T) {
 
 			req := router.Payload{
 				Data: map[string]interface{}{
-					"auth_data": skydb.AuthData{
+					"auth_data": map[string]interface{}{
 						"username": "john.doe",
 					},
 					"password": "secret",
@@ -649,6 +661,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&LoginHandler{
 			TokenStore:       &tokenStore,
 			ProviderRegistry: providerRegistry,
+			AuthRecordKeys:   [][]string{[]string{"username"}, []string{"email"}},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
@@ -823,6 +836,10 @@ func (conn *singleUserConn) GetRecordFieldAccess() (skydb.FieldACL, error) {
 	return skydb.FieldACL{}, nil
 }
 
+func (conn *singleUserConn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
+	return nil
+}
+
 func TestSignupHandlerAsAnonymous(t *testing.T) {
 	Convey("SignupHandler", t, func() {
 		realTime := timeNow
@@ -837,7 +854,8 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 		txdb := skydbtest.NewMockTxDatabase(db)
 
 		r := handlertest.NewSingleRouteRouter(&SignupHandler{
-			TokenStore: &tokenStore,
+			TokenStore:     &tokenStore,
+			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
@@ -941,6 +959,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&SignupHandler{
 			TokenStore:       &tokenStore,
 			ProviderRegistry: providerRegistry,
+			AuthRecordKeys:   [][]string{[]string{"username"}, []string{"email"}},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb

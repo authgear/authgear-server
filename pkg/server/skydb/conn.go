@@ -176,6 +176,20 @@ type Conn interface {
 	// RecordEvent from the Conn implementation
 	Subscribe(recordEventChan chan RecordEvent) error
 
+	// EnsureAuthRecordKeysExist check if authRecordKeys exist in
+	// user record schema
+	EnsureAuthRecordKeysExist(authRecordKeys [][]string) error
+
+	// EnsureAuthRecordKeysIndexesExist check if indexes of user record schema
+	// match with authRecordKeys, so that:
+	//
+	// 1. indexes of authRecordKeys exist, if not and in dev mode, indexes with
+	//    special name would be created
+	//
+	// 2. indexes of old authRecordKeys with special name does not exist, if
+	//    found and in dev mode, they would be removed
+	EnsureAuthRecordKeysIndexesMatch(authRecordKeys [][]string) error
+
 	Close() error
 }
 

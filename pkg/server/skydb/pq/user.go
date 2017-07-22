@@ -17,6 +17,8 @@ package pq
 import (
 	"database/sql"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	sq "github.com/lann/squirrel"
@@ -210,4 +212,118 @@ func (c *conn) DeleteAuth(id string) error {
 	}
 
 	return nil
+}
+
+func (c *conn) EnsureAuthRecordKeysExist(authRecordKeys [][]string) error {
+	db := c.PublicDB().(*database)
+	userRecordType := db.UserRecordType()
+	schema, err := db.GetSchema(userRecordType)
+	if err != nil {
+		return fmt.Errorf("Unable to retrieve user record schema")
+	}
+
+	requiredKeys := getAllAuthRecordKeys(authRecordKeys)
+	schemaToExtend := skydb.RecordSchema{}
+	for _, key := range requiredKeys {
+		if _, ok := schema[key]; ok {
+			continue
+		}
+
+		schemaToExtend[key] = skydb.FieldType{
+			Type: skydb.TypeString,
+		}
+	}
+
+	if _, err := db.Extend(userRecordType, schemaToExtend); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *conn) EnsureAuthRecordKeysIndexesMatch(authRecordKeys [][]string) error {
+	db := c.PublicDB().(*database)
+	userRecordType := db.UserRecordType()
+
+	requiredIndexes := []skydb.Index{}
+	for _, keys := range authRecordKeys {
+		requiredIndexes = append(requiredIndexes, skydb.Index{
+			Fields: keys,
+		})
+	}
+
+	indexesByName, err := db.GetIndexesByRecordType(userRecordType)
+	if err != nil {
+		return err
+	}
+
+	indexes := []skydb.Index{}
+	for _, index := range indexesByName {
+		indexes = append(indexes, index)
+	}
+
+	requiredIndexesByFields := groupIndexesByFields(requiredIndexes)
+	indexesByFields := groupIndexesByFields(indexes)
+
+	for fieldsString := range requiredIndexesByFields {
+		if _, ok := indexesByFields[fieldsString]; !ok {
+			index := requiredIndexesByFields[fieldsString]
+			if !c.canMigrate {
+				return fmt.Errorf("Index of %v is required in user record schema", index.Fields)
+			}
+
+			if err = db.SaveIndex(userRecordType, managedIndexName(userRecordType, index), index); err != nil {
+				return err
+			}
+		}
+	}
+
+	// cleanup unused unique constraint
+	if c.canMigrate {
+		for indexName, index := range indexesByName {
+			fieldsString := joinFields(index.Fields)
+			_, isRequired := requiredIndexesByFields[fieldsString]
+			if !isRequired && indexName == managedIndexName(userRecordType, index) {
+				db.DeleteIndex(userRecordType, indexName)
+			}
+		}
+	}
+
+	return nil
+}
+
+func getAllAuthRecordKeys(authRecordKeys [][]string) []string {
+	recordKeyMap := map[string]bool{}
+	for _, keys := range authRecordKeys {
+		for _, key := range keys {
+			recordKeyMap[key] = true
+		}
+	}
+
+	allKeys := []string{}
+	for key := range recordKeyMap {
+		allKeys = append(allKeys, key)
+	}
+
+	return allKeys
+}
+
+func joinFields(fields []string) string {
+	sort.Strings(fields)
+	return strings.Join(fields, ",")
+}
+
+func groupIndexesByFields(indexes []skydb.Index) map[string]skydb.Index {
+	output := map[string]skydb.Index{}
+	for _, index := range indexes {
+		fieldsString := joinFields(index.Fields)
+		output[fieldsString] = index
+	}
+	return output
+}
+
+func managedIndexName(recordType string, index skydb.Index) string {
+	fields := index.Fields
+	sort.Strings(fields)
+	return fmt.Sprintf("auth_record_keys_%s_%s_key", recordType, strings.Join(fields, "_"))
 }

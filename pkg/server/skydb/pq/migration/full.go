@@ -25,7 +25,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "f0c53134d25d" }
+func (r *fullMigration) Version() string { return "cc97afd25016" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -146,10 +146,10 @@ CREATE TABLE "user" (
     username citext,
     email citext,
     PRIMARY KEY(_id, _database_id, _owner_id),
-    UNIQUE (_id),
-    UNIQUE (username),
-    UNIQUE (email)
+    UNIQUE (_id)
 );
+ALTER TABLE "user" ADD CONSTRAINT auth_record_keys_user_username_key UNIQUE (username);
+ALTER TABLE "user" ADD CONSTRAINT auth_record_keys_user_email_key UNIQUE (email);
 CREATE VIEW _user AS
 	SELECT
 		_auth.id,

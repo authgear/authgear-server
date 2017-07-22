@@ -388,6 +388,26 @@ func (_mr *_MockConnRecorder) Subscribe(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Subscribe", arg0)
 }
 
+func (_m *MockConn) EnsureAuthRecordKeysExist(authRecordKeys [][]string) error {
+	ret := _m.ctrl.Call(_m, "EnsureAuthRecordKeysExist", authRecordKeys)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockConnRecorder) EnsureAuthRecordKeysExist(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EnsureAuthRecordKeysExist", arg0)
+}
+
+func (_m *MockConn) EnsureAuthRecordKeysIndexesExist(authRecordKeys [][]string) error {
+	ret := _m.ctrl.Call(_m, "EnsureAuthRecordKeysIndexesExist", authRecordKeys)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockConnRecorder) EnsureAuthRecordKeysIndexesExist(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EnsureAuthRecordKeysIndexesExist", arg0)
+}
+
 func (_m *MockConn) Close() error {
 	ret := _m.ctrl.Call(_m, "Close")
 	ret0, _ := ret[0].(error)

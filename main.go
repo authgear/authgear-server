@@ -72,6 +72,8 @@ func main() {
 	log.Infof("Starting Skygear Server(%s)...", skyversion.Version())
 	connOpener := ensureDB(config) // Fatal on DB failed
 
+	initUserAuthRecordKeys(connOpener, config.App.AuthRecordKeys)
+
 	if config.App.Slave {
 		log.Infof("Skygear Server is running in slave mode.")
 	}
@@ -186,6 +188,11 @@ func main() {
 			Value:    skydb.GetAccessModel(config.App.AccessControl),
 			Complete: true,
 			Name:     "AccessModel",
+		},
+		&inject.Object{
+			Value:    config.App.AuthRecordKeys,
+			Complete: true,
+			Name:     "AuthRecordKeys",
 		},
 	)
 	if injectErr != nil {
@@ -343,6 +350,23 @@ func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 
 		log.Info("Retrying in 1 second...")
 		time.Sleep(time.Second * time.Duration(1))
+	}
+}
+
+func initUserAuthRecordKeys(connOpener func() (skydb.Conn, error), authRecordKeys [][]string) {
+	conn, err := connOpener()
+	if err != nil {
+		log.Warnf("Failed to init user auth record keys: %v", err)
+	}
+
+	defer conn.Close()
+
+	if err := conn.EnsureAuthRecordKeysExist(authRecordKeys); err != nil {
+		panic(err)
+	}
+
+	if err := conn.EnsureAuthRecordKeysIndexesMatch(authRecordKeys); err != nil {
+		panic(err)
 	}
 }
 

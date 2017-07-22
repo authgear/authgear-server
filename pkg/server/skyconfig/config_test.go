@@ -66,6 +66,29 @@ func TestRequiredConfig(t *testing.T) {
 			os.Setenv("APP_NAME", "")
 		})
 
+		Convey("Validate the AUTH_RECORD_KEYS", func() {
+			config := NewConfigurationWithKeys()
+			os.Setenv("AUTH_RECORD_KEYS", "a,b,c")
+			config.ReadFromEnv()
+			So(config.Validate(), ShouldBeNil)
+			So(config.App.AuthRecordKeys, ShouldResemble, [][]string{
+				[]string{"a"},
+				[]string{"b"},
+				[]string{"c"},
+			})
+
+			os.Setenv("AUTH_RECORD_KEYS", "a,a,c")
+			config.ReadFromEnv()
+			So(config.Validate(), ShouldNotBeNil)
+
+			os.Setenv("AUTH_RECORD_KEYS", "a,b,(abc,bbc,b,d),(bbc,d,abc,b)")
+			config.ReadFromEnv()
+			So(config.Validate(), ShouldNotBeNil)
+
+			// Clean up
+			os.Setenv("AUTH_RECORD_KEYS", "")
+		})
+
 		Convey("Validate the APNS_ENV", func() {
 			config := NewConfigurationWithKeys()
 			os.Setenv("APNS_ENABLE", "YES")
@@ -154,5 +177,35 @@ func TestRequiredConfig(t *testing.T) {
 			os.Setenv("BUG_TRANSPORT", "")
 			os.Setenv("BUG_PATH", "")
 		})
+	})
+}
+
+func TestParseAuthRecordKeys(t *testing.T) {
+	Convey("Get keys correctly", t, func() {
+		result, err := parseAuthRecordKeys("a,b,c")
+		So(result, ShouldResemble, [][]string{[]string{"a"}, []string{"b"}, []string{"c"}})
+		So(err, ShouldBeNil)
+
+		result, err = parseAuthRecordKeys("a, b ,c")
+		So(result, ShouldResemble, [][]string{[]string{"a"}, []string{"b"}, []string{"c"}})
+		So(err, ShouldBeNil)
+	})
+
+	Convey("Get key tuples correctly", t, func() {
+		result, err := parseAuthRecordKeys("a,(b,c),(d,e,f),(x)")
+		So(result, ShouldResemble, [][]string{[]string{"a"}, []string{"b", "c"}, []string{"d", "e", "f"}, []string{"x"}})
+		So(err, ShouldBeNil)
+
+		result, err = parseAuthRecordKeys("a,(b,c),( d, e ,f ),(x)")
+		So(result, ShouldResemble, [][]string{[]string{"a"}, []string{"b", "c"}, []string{"d", "e", "f"}, []string{"x"}})
+		So(err, ShouldBeNil)
+	})
+
+	Convey("Throw error for unexpected token", t, func() {
+		_, err := parseAuthRecordKeys("a,(b,(c)")
+		So(err, ShouldNotBeNil)
+
+		_, err = parseAuthRecordKeys("a,(b,)c)")
+		So(err, ShouldNotBeNil)
 	})
 }
