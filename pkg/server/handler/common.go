@@ -46,6 +46,7 @@ type AuthResponseFactory struct {
 
 func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Record, accessToken string) (AuthResponse, error) {
 	var jsonUser *skyconv.JSONRecord
+	var lastLoginAt *time.Time
 
 	if user.ID.Type != "" {
 		filter, err := recordutil.NewRecordResultFilter(f.Conn, f.AssetStore, &info)
@@ -54,6 +55,9 @@ func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Rec
 		}
 
 		jsonUser = filter.JSONResult(&user)
+		if lastLoginAtTime, ok := user.Get(UserRecordLastLoginAtKey).(time.Time); ok {
+			lastLoginAt = &lastLoginAtTime
+		}
 	}
 
 	return AuthResponse{
@@ -61,7 +65,7 @@ func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Rec
 		Profile:     jsonUser,
 		Roles:       info.Roles,
 		AccessToken: accessToken,
-		LastLoginAt: info.LastLoginAt,
+		LastLoginAt: lastLoginAt,
 		LastSeenAt:  info.LastSeenAt,
 	}, nil
 }
