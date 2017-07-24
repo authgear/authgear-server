@@ -108,12 +108,12 @@ func TestRoleAssignRevoke(t *testing.T) {
 				Username: "john.doe",
 				Email:    "john.doe@example.com",
 			}
-			err := c.CreateUser(&authinfo)
+			c.CreateUser(&authinfo)
 			roles := []string{
 				"admin",
 				"user",
 			}
-			err = c.AssignRoles([]string{
+			c.AssignRoles([]string{
 				"userid",
 			}, roles)
 			rows, err := c.Queryx("SELECT role_id FROM _user_role WHERE user_id = 'userid'")
@@ -176,7 +176,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 					"user",
 				},
 			}
-			err := c.CreateUser(&authinfo)
+			c.CreateUser(&authinfo)
 			authinfo = skydb.AuthInfo{
 				ID: "userid2",
 				Roles: []string{
@@ -188,7 +188,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 				"admin",
 				"user",
 			}
-			err = c.RevokeRoles([]string{
+			c.RevokeRoles([]string{
 				"userid",
 				"userid2",
 			}, roles)
@@ -202,7 +202,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 			authinfo := skydb.AuthInfo{
 				ID: "userid",
 			}
-			err := c.CreateUser(&authinfo)
+			c.CreateUser(&authinfo)
 			authinfo = skydb.AuthInfo{
 				ID: "userid2",
 			}
@@ -211,7 +211,7 @@ func TestRoleAssignRevoke(t *testing.T) {
 				"admin",
 				"user",
 			}
-			err = c.RevokeRoles([]string{
+			c.RevokeRoles([]string{
 				"userid",
 				"userid2",
 			}, roles)

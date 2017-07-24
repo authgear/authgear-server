@@ -318,7 +318,7 @@ func TestSave(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			var ownerID string
-			err = c.QueryRowx(`SELECT "_owner_id" FROM note WHERE _id = 'someid' and _database_id = ''`).
+			c.QueryRowx(`SELECT "_owner_id" FROM note WHERE _id = 'someid' and _database_id = ''`).
 				Scan(&ownerID)
 			So(ownerID, ShouldEqual, "user_id")
 		})

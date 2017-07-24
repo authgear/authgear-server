@@ -109,7 +109,7 @@ func TestContextMap(t *testing.T) {
 	})
 
 	Convey("nil", t, func() {
-		So(ContextMap(nil), ShouldResemble, map[string]interface{}{})
+		So(ContextMap(context.TODO()), ShouldResemble, map[string]interface{}{})
 	})
 
 	Convey("UserID", t, func() {

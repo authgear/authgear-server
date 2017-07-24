@@ -75,7 +75,7 @@ func (s *Service) Run() {
 			}
 		case <-s.stop:
 			log.Infoln("subscription: stopping the service")
-			break
+			return
 		}
 	}
 }

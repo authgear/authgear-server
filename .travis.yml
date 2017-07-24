@@ -44,7 +44,8 @@ before_script:
            github.com/rickmak/gocyclo \
            github.com/oursky/gogocyclo \
            github.com/mitchellh/gox \
-           github.com/golang/mock/mockgen
+           github.com/golang/mock/mockgen \
+           honnef.co/go/tools/cmd/staticcheck
 
 script:
   - WITH_ZMQ=1 make generate

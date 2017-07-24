@@ -24,7 +24,7 @@ func TestJWTStore(t *testing.T) {
 
 			tokenString := token.AccessToken
 			claims := jwt.StandardClaims{}
-			jwtToken, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
+			jwtToken, _ := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, errors.New("incorrect signing method")
 				}

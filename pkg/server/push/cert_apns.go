@@ -22,8 +22,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/SkygearIO/buford/push"
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
@@ -47,8 +47,8 @@ func parseCertificateLeaf(certificate *tls.Certificate) error {
 		return nil
 	}
 
-	for _, cert := range certificate.Certificate {
-		x509Cert, err := x509.ParseCertificate(cert)
+	if len(certificate.Certificate) > 0 {
+		x509Cert, err := x509.ParseCertificate(certificate.Certificate[0])
 		if err != nil {
 			return err
 		}

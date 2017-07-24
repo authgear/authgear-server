@@ -60,6 +60,7 @@ test:
 lint:
 	$(DOCKER_RUN) sh -c 'golint ./pkg/... | grep -v -f .golint.exclude; test $$? -eq 1'
 	$(DOCKER_RUN) sh -c 'gocyclo -over 15 pkg | gogocyclo'
+	$(DOCKER_RUN) sh -c 'staticcheck ./pkg/...
 
 .PHONY: after-docker-test
 after-docker-test:

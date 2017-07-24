@@ -94,7 +94,7 @@ func (p *httpTransport) ipc(req *pluginrequest.Request) (out []byte, err error) 
 		return
 	}
 
-	httpreq.Cancel = req.Context.Done()
+	httpreq = httpreq.WithContext(req.Context)
 	httpresp, err := p.httpClient.Do(httpreq)
 	if err != nil {
 		return nil, err
@@ -159,11 +159,11 @@ func (p *httpTransport) RunTimer(name string, in []byte) (out []byte, err error)
 
 func (p *httpTransport) RunProvider(ctx context.Context, request *skyplugin.AuthRequest) (*skyplugin.AuthResponse, error) {
 	req := pluginrequest.NewAuthRequest(ctx, request)
-	out, err := p.rpc(req)
+	out, _ := p.rpc(req)
 
 	resp := skyplugin.AuthResponse{}
 
-	err = json.Unmarshal(out, &resp)
+	err := json.Unmarshal(out, &resp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse response: %v", err)
 	}

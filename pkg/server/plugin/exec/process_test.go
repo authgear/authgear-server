@@ -111,7 +111,7 @@ func TestRun(t *testing.T) {
 		}
 
 		Convey("op", func() {
-			out, err := transport.RunLambda(nil, "hello:world", []byte{})
+			out, err := transport.RunLambda(context.TODO(), "hello:world", []byte{})
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"op hello:world"`)
 		})
@@ -123,7 +123,7 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("handler", func() {
-			out, err := transport.RunHandler(nil, "hello:world", []byte{})
+			out, err := transport.RunHandler(context.TODO(), "hello:world", []byte{})
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"handler hello:world"`)
 		})
@@ -136,7 +136,7 @@ func TestRun(t *testing.T) {
 		}
 
 		Convey("op", func() {
-			out, err := transport.RunLambda(nil, "hello:world", []byte(`{"result": "hello world"}`))
+			out, err := transport.RunLambda(context.TODO(), "hello:world", []byte(`{"result": "hello world"}`))
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"hello world"`)
 		})
@@ -148,7 +148,7 @@ func TestRun(t *testing.T) {
 		})
 
 		Convey("handler", func() {
-			out, err := transport.RunHandler(nil, "hello:world", []byte(`{"result": "hello world"}`))
+			out, err := transport.RunHandler(context.TODO(), "hello:world", []byte(`{"result": "hello world"}`))
 			So(err, ShouldBeNil)
 			So(string(out), ShouldEqual, `"hello world"`)
 		})
@@ -219,8 +219,8 @@ func TestRun(t *testing.T) {
 				"date":           time.Date(2017, 7, 23, 19, 30, 24, 0, time.UTC),
 				"ref":            skydb.NewReference("category", "1"),
 				"auto_increment": skydb.Sequence{},
-				"asset":          &skydb.Asset{
-					Name: "asset-name",
+				"asset": &skydb.Asset{
+					Name:        "asset-name",
 					ContentType: "plain/text",
 				},
 			},
@@ -338,7 +338,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, &recordold, false)
+			recordout, err := transport.RunHook(context.TODO(), "note_beforeSave", &recordin, &recordold, false)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 
@@ -357,8 +357,8 @@ func TestRun(t *testing.T) {
 					"tags":           []interface{}{"test", "unimportant"},
 					"ref":            skydb.NewReference("category", "1"),
 					"auto_increment": skydb.Sequence{},
-					"asset":          &skydb.Asset{
-						Name: "asset-name",
+					"asset": &skydb.Asset{
+						Name:        "asset-name",
 						ContentType: "plain/text",
 					},
 				},
@@ -381,8 +381,8 @@ func TestRun(t *testing.T) {
 					"tags":           []interface{}{"test", "unimportant"},
 					"ref":            skydb.NewReference("category", "1"),
 					"auto_increment": skydb.Sequence{},
-					"asset":          &skydb.Asset{
-						Name: "asset-name",
+					"asset": &skydb.Asset{
+						Name:        "asset-name",
 						ContentType: "plain/text",
 					},
 				},
@@ -468,7 +468,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil, false)
+			recordout, err := transport.RunHook(context.TODO(), "note_beforeSave", &recordin, nil, false)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 
@@ -487,8 +487,8 @@ func TestRun(t *testing.T) {
 					"tags":           []interface{}{"test", "unimportant"},
 					"ref":            skydb.NewReference("category", "1"),
 					"auto_increment": skydb.Sequence{},
-					"asset":          &skydb.Asset{
-						Name: "asset-name",
+					"asset": &skydb.Asset{
+						Name:        "asset-name",
 						ContentType: "plain/text",
 					},
 				},
@@ -511,8 +511,8 @@ func TestRun(t *testing.T) {
 					"tags":           []interface{}{"test", "unimportant"},
 					"ref":            skydb.NewReference("category", "1"),
 					"auto_increment": skydb.Sequence{},
-					"asset":          &skydb.Asset{
-						Name: "asset-name",
+					"asset": &skydb.Asset{
+						Name:        "asset-name",
 						ContentType: "plain/text",
 					},
 				},
@@ -557,7 +557,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil, false)
+			recordout, err := transport.RunHook(context.TODO(), "note_beforeSave", &recordin, nil, false)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 			So(*recordout, ShouldResemble, recordin)
@@ -593,7 +593,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_beforeSave", &recordin, nil, false)
+			recordout, err := transport.RunHook(context.TODO(), "note_beforeSave", &recordin, nil, false)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
 			So(*recordout, ShouldResemble, recordin)
@@ -604,7 +604,7 @@ func TestRun(t *testing.T) {
 				return nil, errors.New("worrying error")
 			}
 
-			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil, false)
+			recordout, err := transport.RunHook(context.TODO(), "note_afterSave", &recordin, nil, false)
 			So(err.Error(), ShouldEqual, "worrying error")
 			So(recordout, ShouldBeNil)
 		})
@@ -614,7 +614,7 @@ func TestRun(t *testing.T) {
 				return []byte("I am not a json"), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil, false)
+			recordout, err := transport.RunHook(context.TODO(), "note_afterSave", &recordin, nil, false)
 			So(err.Error(), ShouldEqual, "failed to parse plugin response: invalid character 'I' looking for beginning of value")
 			So(recordout, ShouldBeNil)
 		})
@@ -633,7 +633,7 @@ func TestRun(t *testing.T) {
 				}`), nil
 			}
 
-			recordout, err := transport.RunHook(nil, "note_afterSave", &recordin, nil, false)
+			recordout, err := transport.RunHook(context.TODO(), "note_afterSave", &recordin, nil, false)
 			sError, ok := err.(skyerr.Error)
 			So(ok, ShouldBeTrue)
 			So(sError.Message(), ShouldEqual, `Too strong to lift a feather`)
