@@ -398,14 +398,14 @@ func (_mr *_MockConnRecorder) EnsureAuthRecordKeysExist(arg0 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "EnsureAuthRecordKeysExist", arg0)
 }
 
-func (_m *MockConn) EnsureAuthRecordKeysIndexesExist(authRecordKeys [][]string) error {
-	ret := _m.ctrl.Call(_m, "EnsureAuthRecordKeysIndexesExist", authRecordKeys)
+func (_m *MockConn) EnsureAuthRecordKeysIndexesMatch(authRecordKeys [][]string) error {
+	ret := _m.ctrl.Call(_m, "EnsureAuthRecordKeysIndexesMatch", authRecordKeys)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockConnRecorder) EnsureAuthRecordKeysIndexesExist(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "EnsureAuthRecordKeysIndexesExist", arg0)
+func (_mr *_MockConnRecorder) EnsureAuthRecordKeysIndexesMatch(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EnsureAuthRecordKeysIndexesMatch", arg0)
 }
 
 func (_m *MockConn) Close() error {
