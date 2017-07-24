@@ -369,13 +369,13 @@ func (payload *getRolesPayload) Validate() skyerr.Error {
 //
 // {
 //     "result": {
-// 		     "e0cfd2d6-184d-4dad-8cf1-f7ff96954c8d": [
+//         "e0cfd2d6-184d-4dad-8cf1-f7ff96954c8d": [
 //             "developer",
 //             "tech-lead"
 //         ],
-// 		     "e023c399-f329-41d6-9d95-9a5261c63501": [
+//         "e023c399-f329-41d6-9d95-9a5261c63501": [
 //         ],
-// 		     "24e1df68-9007-4111-8ec1-c53a2a45ad9e": [
+//         "24e1df68-9007-4111-8ec1-c53a2a45ad9e": [
 //             "project-manager",
 //             "project-consultant"
 //         ]
