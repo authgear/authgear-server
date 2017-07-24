@@ -115,6 +115,9 @@ type Conn interface {
 	// be revoked from all passed in users
 	RevokeRoles(userIDs []string, roles []string) error
 
+	// GetRoles returns roles of users specified by user IDs
+	GetRoles(userIDs []string) (map[string][]string, error)
+
 	// SetRecordAccess sets default record access of a specific type
 	SetRecordAccess(recordType string, acl RecordACL) error
 

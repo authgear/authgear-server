@@ -239,6 +239,7 @@ func main() {
 	r.Map("role:admin", injector.Inject(&handler.RoleAdminHandler{}))
 	r.Map("role:assign", injector.Inject(&handler.RoleAssignHandler{}))
 	r.Map("role:revoke", injector.Inject(&handler.RoleRevokeHandler{}))
+	r.Map("role:get", injector.Inject(&handler.RoleGetHandler{}))
 
 	r.Map("push:user", injector.Inject(&handler.PushToUserHandler{}))
 	r.Map("push:device", injector.Inject(&handler.PushToDeviceHandler{}))

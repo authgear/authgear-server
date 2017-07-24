@@ -30,7 +30,7 @@ func TestRoleCRUD(t *testing.T) {
 
 		Convey("add roles to a user", func() {
 			authinfo := skydb.AuthInfo{
-				ID: "userid",
+				ID: "userid-1",
 			}
 			err := c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
@@ -52,7 +52,7 @@ func TestRoleCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(role, ShouldEqual, "writer")
 
-			rows, err := c.Queryx("SELECT role_id FROM _auth_role WHERE auth_id = 'userid'")
+			rows, err := c.Queryx("SELECT role_id FROM _auth_role WHERE auth_id = 'userid-1'")
 			So(err, ShouldBeNil)
 			roles := []string{}
 			for rows.Next() {
@@ -64,7 +64,7 @@ func TestRoleCRUD(t *testing.T) {
 
 		Convey("clear roles of a user keep the role definition", func() {
 			authinfo := skydb.AuthInfo{
-				ID: "userid",
+				ID: "userid-2",
 				Roles: []string{
 					"admin",
 					"writer",
@@ -87,9 +87,37 @@ func TestRoleCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(role, ShouldEqual, "writer")
 
-			rows, err := c.Queryx("SELECT role_id FROM _auth_role WHERE auth_id = 'userid'")
+			rows, err := c.Queryx("SELECT role_id FROM _auth_role WHERE auth_id = 'userid-2'")
 			So(err, ShouldBeNil)
 			So(rows.Next(), ShouldBeFalse)
+		})
+
+		Convey("get roles of users", func() {
+			var err error
+			err = c.CreateAuth(&skydb.AuthInfo{
+				ID:    "userid-3",
+				Roles: []string{"developer"},
+			})
+			So(err, ShouldBeNil)
+
+			err = c.CreateAuth(&skydb.AuthInfo{
+				ID:    "userid-4",
+				Roles: []string{"developer", "project-manager"},
+			})
+			So(err, ShouldBeNil)
+
+			err = c.CreateAuth(&skydb.AuthInfo{
+				ID: "userid-5",
+			})
+			So(err, ShouldBeNil)
+
+			roleMap, err := c.GetRoles([]string{"userid-3", "userid-4", "userid-5"})
+			So(err, ShouldBeNil)
+			So(roleMap, ShouldResemble, map[string][]string{
+				"userid-3": []string{"developer"},
+				"userid-4": []string{"developer", "project-manager"},
+				"userid-5": []string{},
+			})
 		})
 	})
 }
