@@ -25,7 +25,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "cc97afd25016" }
+func (r *fullMigration) Version() string { return "83f549ff247b" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -61,7 +61,6 @@ CREATE TABLE _auth (
 	password text,
 	provider_info jsonb,
 	token_valid_since timestamp without time zone,
-	last_login_at timestamp without time zone,
 	last_seen_at timestamp without time zone
 );
 
@@ -145,23 +144,24 @@ CREATE TABLE "user" (
     _updated_by text,
     username citext,
     email citext,
+    last_login_at timestamp without time zone,
     PRIMARY KEY(_id, _database_id, _owner_id),
     UNIQUE (_id)
 );
 ALTER TABLE "user" ADD CONSTRAINT auth_record_keys_user_username_key UNIQUE (username);
 ALTER TABLE "user" ADD CONSTRAINT auth_record_keys_user_email_key UNIQUE (email);
 CREATE VIEW _user AS
-	SELECT
-		_auth.id,
-		_auth.password,
-		"user".username,
-		"user".email,
-		_auth.provider_info AS auth,
-		_auth.token_valid_since,
-		_auth.last_login_at,
-		_auth.last_seen_at
-	FROM _auth
-	JOIN "user" ON "user"._id = _auth.id;
+    SELECT
+        a.id,
+        a.password,
+        u.username,
+        u.email,
+        a.provider_info AS auth,
+        a.token_valid_since,
+        u.last_login_at,
+        a.last_seen_at
+    FROM _auth AS a
+    JOIN "user" AS u ON u._id = a.id;
 `
 	_, err := tx.Exec(stmt)
 	return err
