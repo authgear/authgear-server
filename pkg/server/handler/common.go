@@ -25,9 +25,8 @@ import (
 )
 
 var (
-	timeNowUTC = func() time.Time { return time.Now().UTC() }
-	uuidNew    = uuid.New
-	timeNow    = timeNowUTC
+	uuidNew = uuid.New
+	timeNow = func() time.Time { return time.Now().UTC() }
 )
 
 // AuthResponse is the unify way of returing a AuthInfo with AuthData to SDK

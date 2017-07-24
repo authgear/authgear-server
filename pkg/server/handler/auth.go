@@ -188,7 +188,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	}
 
 	// Populate the activity time to user
-	now := timeNowUTC()
+	now := timeNow()
 	info.LastLoginAt = &now
 	info.LastSeenAt = &now
 

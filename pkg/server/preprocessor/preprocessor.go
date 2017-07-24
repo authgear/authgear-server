@@ -29,8 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-var timeNowUTC = time.Now().UTC
-var timeNow = timeNowUTC
+var timeNow = time.Now().UTC
 
 var log = logging.LoggerEntry("preprocessor")
 
@@ -125,7 +124,7 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 	}
 
 	if err != nil {
-		log.Errorf("injectUser: unable to find or create user record ", err)
+		log.Error("injectUser: unable to find or create user record", err)
 		response.Err = skyerr.NewError(skyerr.UnexpectedUserNotFound, err.Error())
 		return http.StatusInternalServerError
 	}
