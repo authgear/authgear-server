@@ -108,7 +108,7 @@ type DeviceRegisterHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireUser   router.Processor `preprocessor:"require_user"`
+	RequireAuth   router.Processor `preprocessor:"require_auth"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -119,7 +119,7 @@ func (h *DeviceRegisterHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
-		h.RequireUser,
+		h.RequireAuth,
 		h.PluginReady,
 	}
 }
@@ -205,7 +205,7 @@ type DeviceUnregisterHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireUser   router.Processor `preprocessor:"require_user"`
+	RequireAuth   router.Processor `preprocessor:"require_auth"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -216,7 +216,7 @@ func (h *DeviceUnregisterHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
-		h.RequireUser,
+		h.RequireAuth,
 		h.PluginReady,
 	}
 }

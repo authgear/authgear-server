@@ -529,7 +529,7 @@ type PasswordHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
-	RequireUser   router.Processor `preprocessor:"require_user"`
+	RequireAuth   router.Processor `preprocessor:"require_auth"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -540,7 +540,7 @@ func (h *PasswordHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectUser,
-		h.RequireUser,
+		h.RequireAuth,
 		h.PluginReady,
 	}
 }
