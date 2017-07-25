@@ -32,8 +32,16 @@ import (
 
 func TestMeHandler(t *testing.T) {
 	Convey("MeHandler", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+
+		now := timeNow()
+		anHourAgo := now.Add(-1 * time.Hour)
 		conn := skydbtest.NewMapConn()
-		lastHour := time.Now().UTC().Add(0 - time.Hour)
+		db := skydbtest.NewMapDB()
 		authinfo := skydb.AuthInfo{
 			ID:             "tester-1",
 			HashedPassword: []byte("password"),
@@ -41,10 +49,25 @@ func TestMeHandler(t *testing.T) {
 				"Test",
 				"Programmer",
 			},
-			LastLoginAt: &lastHour,
-			LastSeenAt:  &lastHour,
+			LastSeenAt: &anHourAgo,
+		}
+		user := skydb.Record{
+			ID: skydb.RecordID{
+				Type: "user",
+				Key:  "tester-1",
+			},
+			CreatedAt: anHourAgo,
+			CreatorID: "tester-1",
+			UpdatedAt: anHourAgo,
+			UpdaterID: "tester-1",
+			Data: skydb.Data{
+				"username":      "tester1",
+				"email":         "tester1@example.com",
+				"last_login_at": anHourAgo,
+			},
 		}
 		conn.CreateAuth(&authinfo)
+		db.Save(&user)
 
 		tokenStore := &authtokentest.SingleTokenStore{}
 		handler := &MeHandler{
@@ -52,46 +75,51 @@ func TestMeHandler(t *testing.T) {
 		}
 
 		Convey("Get me with user info", func(c C) {
-			user := skydb.Record{
-				ID: skydb.NewRecordID("user", "tester-1"),
-				Data: map[string]interface{}{
-					"username": "tester1",
-					"email":    "tester1@example.com",
-				},
-			}
-
 			r := handlertest.NewSingleRouteRouter(handler, func(p *router.Payload) {
 				p.Data["access_token"] = "token-1"
 				p.AuthInfo = &authinfo
 				p.DBConn = conn
+				p.Database = db
 				p.User = &user
 			})
 
 			resp := r.POST("")
 			So(resp.Code, ShouldEqual, http.StatusOK)
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-        "result": {
-          "access_token": "%s",
-          "user_id": "tester-1",
-          "profile": {
-            "_type": "record",
-            "_id": "user/tester-1",
-            "_access": null,
-            "email": "tester1@example.com",
-            "username": "tester1"
-          },
-          "roles": ["Test", "Programmer"],
-          "last_login_at": "%v",
-          "last_seen_at": "%v"
-        }
-      }`,
-				tokenStore.Token.AccessToken,
-				lastHour.Format(time.RFC3339Nano),
-				lastHour.Format(time.RFC3339Nano),
-			))
+			So(
+				resp.Body.Bytes(),
+				ShouldEqualJSON,
+				fmt.Sprintf(`
+					{
+						"result": {
+							"access_token": "%s",
+							"user_id": "tester-1",
+							"profile": {
+								"_type": "record",
+								"_id": "user/tester-1",
+								"_access": null,
+								"_created_at": "2006-01-02T14:04:05Z",
+								"_created_by": "tester-1",
+								"_updated_at": "2006-01-02T14:04:05Z",
+								"_updated_by": "tester-1",
+								"email": "tester1@example.com",
+								"username": "tester1",
+								"last_login_at": {
+									"$type": "date",
+									"$date": "2006-01-02T14:04:05Z"
+								}
+							},
+							"roles": ["Test", "Programmer"],
+							"last_login_at": "2006-01-02T14:04:05Z",
+							"last_seen_at": "2006-01-02T14:04:05Z"
+						}
+					}`,
+					tokenStore.Token.AccessToken,
+				),
+			)
+
 			updateInfo := skydb.AuthInfo{}
 			conn.GetAuth("tester-1", &updateInfo)
-			So(updateInfo.LastSeenAt, ShouldNotEqual, lastHour)
+			So(updateInfo.LastSeenAt, ShouldResemble, &now)
 		})
 
 		Convey("Get me without user info", func() {
