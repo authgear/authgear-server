@@ -53,7 +53,7 @@ import:
 - package: github.com/twinj/uuid
   version: b505f2cca343b7b21416b27b1f2ad88469800892
 - package: github.com/zeromq/goczmq
-  version: 91476d8f9ec24f1c2b7d35d459a9d2b32376e450
+  version: v4.0.2
 - package: golang.org/x/crypto
   version: 173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd
   subpackages:

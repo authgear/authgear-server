@@ -23,9 +23,9 @@ before_install:
   - export PKG_CONFIG_PATH=$LD_INSTALL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH
   - mkdir -p $LD_INSTALL_PREFIX/src
   - pushd $LD_INSTALL_PREFIX/src
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/jedisct1/libsodium.git 1.0.5
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/zeromq4-1.git v4.1.3
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/czmq.git v3.0.2
+  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/jedisct1/libsodium.git 1.0.8
+  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/zeromq4-1.git v4.1.4
+  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/czmq.git v4.0.2
   - popd
   - go get github.com/Masterminds/glide
 
