@@ -1,5 +1,5 @@
-hash: beb6cf65bfc92b2cef6dcd80515fbb78b407c66652d16a85600094e9358364c1
-updated: 2017-07-15T16:57:43.012911833+08:00
+hash: 9b3956092904fd76cec1cfdc4436daffff4f8197d786851b3263fa3e4bab2012
+updated: 2017-07-25T01:25:09.505907587+08:00
 imports:
 - name: github.com/certifi/gocertifi
   version: a9c833d2837d3b16888d55d5aafa9ffe9afb22b0
@@ -21,7 +21,7 @@ imports:
 - name: github.com/getsentry/raven-go
   version: d175f85701dfbf44cb0510114c9943e665e60907
 - name: github.com/golang/mock
-  version: 93f6609a15b7de76bd49259f1f9a6b58df358936
+  version: 13f360950a79f5864a972c786a10a50e44b69541
   subpackages:
   - gomock
 - name: github.com/google/go-gcm
