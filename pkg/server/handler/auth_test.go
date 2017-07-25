@@ -1133,15 +1133,15 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 			},
 		}
 
-		r := handlertest.NewSingleRouteRouter(&PasswordHandler{
-			TokenStore: &tokenStore,
-		}, func(p *router.Payload) {
-			p.DBConn = &conn
-			p.User = &user
-			p.AuthInfo = &authinfo
-		})
-
 		Convey("change password success", func() {
+			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
+				TokenStore: &tokenStore,
+			}, func(p *router.Payload) {
+				p.DBConn = &conn
+				p.User = &user
+				p.AuthInfo = &authinfo
+			})
+
 			resp := r.POST(fmt.Sprintf(`{
 	"access_token": "%s",
 	"old_password": "chima",
@@ -1159,6 +1159,30 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 			"email": "tester1@example.com",
 			"username": "tester1"
 		}
+	}
+}`, tokenStore.Token.AccessToken))
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("change password success, without user", func() {
+			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
+				TokenStore: &tokenStore,
+			}, func(p *router.Payload) {
+				p.DBConn = &conn
+				p.AuthInfo = &authinfo
+			})
+
+			resp := r.POST(fmt.Sprintf(`{
+	"access_token": "%s",
+	"old_password": "chima",
+	"password": "faseng"
+}`, token.AccessToken))
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+	"result": {
+		"user_id": "user-uuid",
+		"access_token": "%s",
+		"profile": null
 	}
 }`, tokenStore.Token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
