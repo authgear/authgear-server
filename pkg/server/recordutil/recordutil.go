@@ -256,8 +256,8 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 
 		if !created {
 			origRecord := dbRecord.Copy()
-			injectSigner(origRecord, req.AssetStore)
-			originalRecordMap[origRecord.ID] = origRecord
+			injectSigner(&origRecord, req.AssetStore)
+			originalRecordMap[origRecord.ID] = &origRecord
 		}
 
 		dbRecord.Apply(record)
@@ -737,9 +737,10 @@ func (f *RecordResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecor
 		return nil
 	}
 
-	scrubRecordFieldsForRead(f.AuthInfo, record, f.FieldACL)
-	injectSigner(record, f.AssetStore)
-	return (*skyconv.JSONRecord)(record)
+	recordCopy := record.Copy()
+	scrubRecordFieldsForRead(f.AuthInfo, &recordCopy, f.FieldACL)
+	injectSigner(&recordCopy, f.AssetStore)
+	return (*skyconv.JSONRecord)(&recordCopy)
 }
 
 type QueryResultFilter struct {
@@ -754,24 +755,25 @@ func (f *QueryResultFilter) JSONResult(record *skydb.Record) *skyconv.JSONRecord
 		return nil
 	}
 
+	recordCopy := record.Copy()
 	for transientKey, transientExpression := range f.Query.ComputedKeys {
 		if transientExpression.Type != skydb.KeyPath {
 			continue
 		}
 
 		keyPath := transientExpression.Value.(string)
-		ref := getReferenceWithKeyPath(f.Database, record, keyPath)
+		ref := getReferenceWithKeyPath(f.Database, &recordCopy, keyPath)
 		var transientValue interface{}
 		eagerRecord := f.EagerRecords[keyPath][ref.ID.Key]
 		if eagerRecord != nil {
 			transientValue = f.RecordResultFilter.JSONResult(eagerRecord)
 		}
 
-		if record.Transient == nil {
-			record.Transient = map[string]interface{}{}
+		if recordCopy.Transient == nil {
+			recordCopy.Transient = map[string]interface{}{}
 		}
-		record.Transient[transientKey] = transientValue
+		recordCopy.Transient[transientKey] = transientValue
 	}
 
-	return f.RecordResultFilter.JSONResult(record)
+	return f.RecordResultFilter.JSONResult(&recordCopy)
 }
