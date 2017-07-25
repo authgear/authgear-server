@@ -1125,17 +1125,25 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		token := authtoken.New("_", authinfo.ID, time.Time{})
 		tokenStore.Put(&token)
 
-		r := handlertest.NewSingleRouteRouter(&PasswordHandler{
-			TokenStore: &tokenStore,
-		}, func(p *router.Payload) {
-			p.DBConn = &conn
-			p.Database = skydbtest.NewMapDB()
-		})
+		user := skydb.Record{
+			ID: skydb.NewRecordID("user", "tester-1"),
+			Data: map[string]interface{}{
+				"username": "tester1",
+				"email":    "tester1@example.com",
+			},
+		}
 
 		Convey("change password success", func() {
+			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
+				TokenStore: &tokenStore,
+			}, func(p *router.Payload) {
+				p.DBConn = &conn
+				p.User = &user
+				p.AuthInfo = &authinfo
+			})
+
 			resp := r.POST(fmt.Sprintf(`{
 	"access_token": "%s",
-	"username": "lord-of-skygear",
 	"old_password": "chima",
 	"password": "faseng"
 }`, token.AccessToken))
@@ -1143,7 +1151,38 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 	"result": {
 		"user_id": "user-uuid",
-		"access_token": "%s"
+		"access_token": "%s",
+		"profile": {
+			"_type": "record",
+			"_id": "user/tester-1",
+			"_access": null,
+			"email": "tester1@example.com",
+			"username": "tester1"
+		}
+	}
+}`, tokenStore.Token.AccessToken))
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("change password success, without user", func() {
+			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
+				TokenStore: &tokenStore,
+			}, func(p *router.Payload) {
+				p.DBConn = &conn
+				p.AuthInfo = &authinfo
+			})
+
+			resp := r.POST(fmt.Sprintf(`{
+	"access_token": "%s",
+	"old_password": "chima",
+	"password": "faseng"
+}`, token.AccessToken))
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+	"result": {
+		"user_id": "user-uuid",
+		"access_token": "%s",
+		"profile": null
 	}
 }`, tokenStore.Token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)

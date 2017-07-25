@@ -524,10 +524,12 @@ func (payload *passwordPayload) Validate() skyerr.Error {
 // Return authInfoID with new AccessToken if the invalidate is true
 type PasswordHandler struct {
 	TokenStore    authtoken.Store  `inject:"TokenStore"`
+	AssetStore    asset.Store      `inject:"AssetStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectAuth    router.Processor `preprocessor:"inject_auth"`
-	InjectDB      router.Processor `preprocessor:"inject_db"`
+	InjectUser    router.Processor `preprocessor:"inject_user"`
+	RequireAuth   router.Processor `preprocessor:"require_auth"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -537,7 +539,8 @@ func (h *PasswordHandler) Setup() {
 		h.Authenticator,
 		h.DBConn,
 		h.InjectAuth,
-		h.InjectDB,
+		h.InjectUser,
+		h.RequireAuth,
 		h.PluginReady,
 	}
 }
@@ -555,24 +558,14 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		return
 	}
 
-	info := skydb.AuthInfo{}
-	if err := payload.DBConn.GetAuth(payload.AuthInfoID, &info); err != nil {
-		if err == skydb.ErrUserNotFound {
-			response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-		} else {
-			// TODO: more error handling here if necessary
-			response.Err = skyerr.NewResourceFetchFailureErr("user", payload.AuthInfoID)
-		}
-		return
-	}
-
+	info := payload.AuthInfo
 	if !info.IsSamePassword(p.OldPassword) {
 		log.Debug("Incorrect old password")
 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
 		return
 	}
 	info.SetPassword(p.NewPassword)
-	if err := payload.DBConn.UpdateAuth(&info); err != nil {
+	if err := payload.DBConn.UpdateAuth(info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
@@ -592,8 +585,19 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		panic(err)
 	}
 
-	response.Result = AuthResponse{
-		UserID:      info.ID,
-		AccessToken: token.AccessToken,
+	user := payload.User
+	if user == nil {
+		user = &skydb.Record{}
 	}
+
+	authResponse, err := AuthResponseFactory{
+		AssetStore: h.AssetStore,
+		Conn:       payload.DBConn,
+	}.NewAuthResponse(*info, *user, token.AccessToken)
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	response.Result = authResponse
 }

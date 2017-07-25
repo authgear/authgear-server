@@ -236,12 +236,12 @@ func (p InjectPublicDatabase) Preprocess(payload *router.Payload, response *rout
 	return http.StatusOK
 }
 
-type RequireUser struct {
+type RequireAuth struct {
 }
 
-func (p RequireUser) Preprocess(payload *router.Payload, response *router.Response) int {
+func (p RequireAuth) Preprocess(payload *router.Payload, response *router.Response) int {
 	if payload.AuthInfo == nil {
-		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "User is required for this action, please login.")
+		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is required for this action, please login.")
 		return http.StatusUnauthorized
 	}
 
