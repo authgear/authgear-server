@@ -711,9 +711,11 @@ func makeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, recor
 }
 
 // NewRecordResultFilter return a RecordResultFilter which
-// 1. apply field-based acl
-// 2. inject asset
-// 3. return JSONRecord that is ready to be serialized
+// 1. Apply field-based acl, remove fields that are not accessible to the
+//    provided authInfo
+// 2. Inject asset
+// 3. Return JSONRecord that is a copy of passed in Record that is ready to
+//    be serialized
 type RecordResultFilter struct {
 	AssetStore          asset.Store
 	FieldACL            skydb.FieldACL
