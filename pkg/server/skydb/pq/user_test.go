@@ -124,20 +124,6 @@ func TestAuthCRUD(t *testing.T) {
 			So(tokenValidSince.Equal(fetchedauthinfo.TokenValidSince.UTC()), ShouldBeTrue)
 		})
 
-		Convey("gets an existing User last login at", func() {
-			lastLoginAt := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
-			authinfo.LastLoginAt = &lastLoginAt
-
-			err := c.CreateAuth(&authinfo)
-			So(err, ShouldBeNil)
-
-			fetchedauthinfo := skydb.AuthInfo{}
-			err = c.GetAuth("userid", &fetchedauthinfo)
-			So(err, ShouldBeNil)
-
-			So(lastLoginAt.Equal(fetchedauthinfo.LastLoginAt.UTC()), ShouldBeTrue)
-		})
-
 		Convey("gets an existing User last seen at", func() {
 			lastSeenAt := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
 			authinfo.LastSeenAt = &lastSeenAt

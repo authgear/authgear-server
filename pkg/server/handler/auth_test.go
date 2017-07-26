@@ -129,6 +129,7 @@ func TestSignupHandler(t *testing.T) {
 		defer ctrl.Finish()
 
 		db := mock_skydb.NewMockTxDatabase(ctrl)
+		db.EXPECT().Save(gomock.Any()).Return(nil).AnyTimes()
 		handler := &SignupHandler{
 			TokenStore:     &tokenStore,
 			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
@@ -163,21 +164,28 @@ func TestSignupHandler(t *testing.T) {
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
+
+			now := timeNow()
 			authResp := resp.Result.(AuthResponse)
-			So(authResp.Profile.ID, ShouldResemble, skydb.NewRecordID("user", authResp.UserID))
+			So(
+				authResp.Profile.ID,
+				ShouldResemble,
+				skydb.NewRecordID("user", authResp.UserID),
+			)
 			So(authResp.Profile.DatabaseID, ShouldResemble, "_public")
 			So(authResp.Profile.OwnerID, ShouldResemble, authResp.UserID)
 			So(authResp.Profile.CreatorID, ShouldResemble, authResp.UserID)
 			So(authResp.Profile.UpdaterID, ShouldResemble, authResp.UserID)
-			So(authResp.Profile.CreatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
-			So(authResp.Profile.UpdatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(authResp.Profile.CreatedAt, ShouldResemble, now)
+			So(authResp.Profile.UpdatedAt, ShouldResemble, now)
 			So(authResp.Profile.Data, ShouldResemble, skydb.Data{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			})
 			So(authResp.AccessToken, ShouldNotBeEmpty)
-			So(authResp.LastLoginAt, ShouldNotBeEmpty)
 			So(authResp.LastSeenAt, ShouldNotBeEmpty)
+			So(authResp.LastLoginAt, ShouldBeNil)
+
 			token := tokenStore.Token
 			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
@@ -231,14 +239,20 @@ func TestSignupHandler(t *testing.T) {
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
+
+			now := timeNow()
 			authResp := resp.Result.(AuthResponse)
-			So(authResp.Profile.ID, ShouldResemble, skydb.NewRecordID("user", authResp.UserID))
+			So(
+				authResp.Profile.ID,
+				ShouldResemble,
+				skydb.NewRecordID("user", authResp.UserID),
+			)
 			So(authResp.Profile.DatabaseID, ShouldResemble, "_public")
 			So(authResp.Profile.OwnerID, ShouldResemble, authResp.UserID)
 			So(authResp.Profile.CreatorID, ShouldResemble, authResp.UserID)
 			So(authResp.Profile.UpdaterID, ShouldResemble, authResp.UserID)
-			So(authResp.Profile.CreatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
-			So(authResp.Profile.UpdatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(authResp.Profile.CreatedAt, ShouldResemble, now)
+			So(authResp.Profile.UpdatedAt, ShouldResemble, now)
 			So(authResp.Profile.Data, ShouldResemble, skydb.Data{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
@@ -247,8 +261,9 @@ func TestSignupHandler(t *testing.T) {
 				"boolean":  false,
 			})
 			So(authResp.AccessToken, ShouldNotBeEmpty)
-			So(authResp.LastLoginAt, ShouldNotBeEmpty)
 			So(authResp.LastSeenAt, ShouldNotBeEmpty)
+			So(authResp.LastLoginAt, ShouldBeNil)
+
 			token := tokenStore.Token
 			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
@@ -296,22 +311,25 @@ func TestSignupHandler(t *testing.T) {
 			handler.Handle(&req, &resp)
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
+
+			now := timeNow()
 			authResp := resp.Result.(AuthResponse)
 			So(authResp.Profile.ID, ShouldResemble, skydb.NewRecordID("user", authResp.UserID))
 			So(authResp.Profile.DatabaseID, ShouldResemble, "_public")
 			So(authResp.Profile.OwnerID, ShouldResemble, authResp.UserID)
 			So(authResp.Profile.CreatorID, ShouldResemble, authResp.UserID)
 			So(authResp.Profile.UpdaterID, ShouldResemble, authResp.UserID)
-			So(authResp.Profile.CreatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
-			So(authResp.Profile.UpdatedAt, ShouldResemble, time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC))
+			So(authResp.Profile.CreatedAt, ShouldResemble, now)
+			So(authResp.Profile.UpdatedAt, ShouldResemble, now)
 			So(authResp.Profile.Data, ShouldResemble, skydb.Data{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 				"nickname": "iamyourfather",
 			})
 			So(authResp.AccessToken, ShouldNotBeEmpty)
-			So(authResp.LastLoginAt, ShouldNotBeEmpty)
 			So(authResp.LastSeenAt, ShouldNotBeEmpty)
+			So(authResp.LastLoginAt, ShouldBeNil)
+
 			token := tokenStore.Token
 			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
 			So(token.AccessToken, ShouldNotBeEmpty)
@@ -371,12 +389,13 @@ func TestSignupHandler(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			db := mock_skydb.NewMockTxDatabase(ctrl)
 			db.EXPECT().
 				Query(gomock.Any()).
 				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
 				AnyTimes()
+			db.EXPECT().Save(gomock.Any()).Return(nil).AnyTimes()
+
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Commit().After(txBegin)
 
@@ -397,12 +416,12 @@ func TestSignupHandler(t *testing.T) {
 				Database: db,
 			}
 			resp := router.Response{}
-			handler := &SignupHandler{
+			signupHandler := &SignupHandler{
 				TokenStore:     &tokenStore,
 				AccessModel:    skydb.RoleBasedAccess,
 				AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
 			}
-			handler.Handle(&req, &resp)
+			signupHandler.Handle(&req, &resp)
 			authResp := resp.Result.(AuthResponse)
 
 			authinfo := &skydb.AuthInfo{}
@@ -427,6 +446,7 @@ func TestSignupHandler(t *testing.T) {
 					},
 				})), nil).
 				AnyTimes()
+
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Rollback().After(txBegin)
 
@@ -512,6 +532,7 @@ func TestLoginHandler(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 		db := mock_skydb.NewMockDatabase(ctrl)
+		db.EXPECT().Save(gomock.Any()).Return(nil).AnyTimes()
 
 		tokenStore := authtokentest.SingleTokenStore{}
 		handler := &LoginHandler{
@@ -668,81 +689,115 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("login in non-existent provider", func() {
-			resp := r.POST(`{"provider": "com.non-existent", "provider_auth_data": {"name": "johndoe"}}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-	"error": {
-		"code": 108,
-		"name": "InvalidArgument",
-		"info": {"arguments": ["provider"]},
-		"message": "no auth provider of name \"com.non-existent\""
-	}
-}`)
+			resp := r.POST(`
+				{
+					"provider": "com.non-existent",
+					"provider_auth_data": {"name": "johndoe"}
+				}`)
 			So(resp.Code, ShouldEqual, http.StatusBadRequest)
+			So(
+				resp.Body.Bytes(),
+				ShouldEqualJSON,
+				`
+				{
+					"error": {
+						"code": 108,
+						"name": "InvalidArgument",
+						"info": {"arguments": ["provider"]},
+						"message": "no auth provider of name \"com.non-existent\""
+					}
+				}`,
+			)
 		})
 
 		Convey("login in existing", func() {
-			authinfo := skydb.NewProviderInfoAuthInfo("com.example:johndoe", map[string]interface{}{"name": "boo"})
-			n := timeNow()
-			authinfo.LastLoginAt = &n
-			authinfo.LastSeenAt = &n
+			authinfo := skydb.NewProviderInfoAuthInfo(
+				"com.example:johndoe",
+				map[string]interface{}{"name": "boo"},
+			)
+
+			anHourAgo := timeNow().Add(-1 * time.Hour)
+			authinfo.LastSeenAt = &anHourAgo
+
 			conn.authinfo = &authinfo
 			defer func() {
 				conn.authinfo = nil
 			}()
 
+			userRecordID := skydb.NewRecordID("user", authinfo.ID)
 			db.Save(&skydb.Record{
-				ID:         skydb.NewRecordID("user", authinfo.ID),
+				ID:         userRecordID,
 				DatabaseID: db.ID(),
 				OwnerID:    authinfo.ID,
 				CreatorID:  authinfo.ID,
 				UpdaterID:  authinfo.ID,
-				CreatedAt:  n,
-				UpdatedAt:  n,
-				Data:       map[string]interface{}{},
+				CreatedAt:  anHourAgo,
+				UpdatedAt:  anHourAgo,
+				Data: map[string]interface{}{
+					"last_login_at": anHourAgo,
+				},
 			})
 
-			resp := r.POST(`{"provider": "com.example", "provider_auth_data": {"name": "johndoe"}}`)
+			now := timeNow()
+			resp := r.POST(`
+				{
+					"provider": "com.example",
+					"provider_auth_data": {"name": "johndoe"}
+				}`)
 
 			token := tokenStore.Token
 			So(token.AccessToken, ShouldNotBeBlank)
 			So(conn.authinfo, ShouldNotBeNil)
+
 			authData := conn.authinfo.ProviderInfo["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-	"result": {
-		"user_id": "%v",
-		"profile": {
-			"_type": "record",
-			"_id": "user/%v",
-			"_created_by": "%v",
-			"_ownerID": "%v",
-			"_updated_by": "%v",
-			"_access": null,
-			"_created_at": "2006-01-02T15:04:05Z",
-			"_updated_at": "2006-01-02T15:04:05Z"
-		},
-		"access_token": "%v",
-		"last_login_at": "%v",
-		"last_seen_at": "%v"
-	}
-}`,
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
+				{
+					"result": {
+						"user_id": "%v",
+						"profile": {
+							"_type": "record",
+							"_id": "user/%v",
+							"_created_by": "%v",
+							"_ownerID": "%v",
+							"_updated_by": "%v",
+							"_access": null,
+							"_created_at": "2006-01-02T14:04:05Z",
+							"_updated_at": "2006-01-02T14:04:05Z",
+							"last_login_at": {
+								"$date": "2006-01-02T14:04:05Z",
+								"$type": "date"
+							}
+						},
+						"access_token": "%v",
+						"last_login_at": "2006-01-02T14:04:05Z",
+						"last_seen_at": "2006-01-02T14:04:05Z"
+					}
+				}`,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				token.AccessToken,
-				n.Format(time.RFC3339Nano),
-				n.Format(time.RFC3339Nano),
 			))
-			So(resp.Code, ShouldEqual, 200)
+
 			// The LastLoginAt should updated
-			So(conn.authinfo.LastLoginAt, ShouldNotEqual, n)
+			fetchedRecord := skydb.Record{}
+			So(db.Get(userRecordID, &fetchedRecord), ShouldBeNil)
+			So(fetchedRecord.UpdatedAt, ShouldResemble, now)
+			So(fetchedRecord.Data["last_login_at"], ShouldNotResemble, anHourAgo)
 		})
 
 		Convey("login in and create", func() {
-			resp := r.POST(`{"provider": "com.example", "provider_auth_data": {"name": "johndoe"}}`)
+			resp := r.POST(`
+				{
+					"provider": "com.example",
+					"provider_auth_data": {"name": "johndoe"}
+				}`)
 
 			So(txdb.DidBegin, ShouldBeTrue)
 			So(txdb.DidCommit, ShouldBeTrue)
@@ -752,25 +807,29 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 
 			So(token.AccessToken, ShouldNotBeBlank)
 			So(conn.authinfo, ShouldNotBeNil)
+
 			authData := conn.authinfo.ProviderInfo["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-	"result": {
-		"user_id": "%v",
-		"profile": {
-			"_type": "record",
-			"_id": "user/%v",
-			"_created_by": "%v",
-			"_ownerID": "%v",
-			"_updated_by": "%v",
-			"_access": null,
-			"_created_at": "2006-01-02T15:04:05Z",
-			"_updated_at": "2006-01-02T15:04:05Z"
-		},
-		"access_token": "%v"
-	}
-}`,
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
+				{
+					"result": {
+						"user_id": "%v",
+						"profile": {
+							"_type": "record",
+							"_id": "user/%v",
+							"_created_by": "%v",
+							"_ownerID": "%v",
+							"_updated_by": "%v",
+							"_access": null,
+							"_created_at": "2006-01-02T15:04:05Z",
+							"_updated_at": "2006-01-02T15:04:05Z"
+						},
+						"access_token": "%v"
+					}
+				}`,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
@@ -778,11 +837,12 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 				authinfo.ID,
 				token.AccessToken,
 			))
-			So(resp.Code, ShouldEqual, 200)
-			So(authinfo.LastLoginAt, ShouldNotBeNil)
 
-			_, ok := db.RecordMap[fmt.Sprintf("user/%s", authinfo.ID)]
-			So(ok, ShouldBeTrue)
+			userRecordID := skydb.NewRecordID("user", authinfo.ID)
+			fetchedUser := skydb.Record{}
+
+			So(db.Get(userRecordID, &fetchedUser), ShouldBeNil)
+			So(fetchedUser.Data["last_login_at"], ShouldResemble, timeNow())
 		})
 	})
 }
@@ -868,74 +928,78 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 			So(txdb.DidCommit, ShouldBeTrue)
 
 			token := tokenStore.Token
-			authinfo := conn.authinfo
-
 			So(token.AccessToken, ShouldNotBeBlank)
-			So(conn.authinfo.ID, ShouldNotBeBlank)
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-	"result": {
-		"user_id": "%v",
-		"profile": {
-			"_type": "record",
-			"_id": "user/%v",
-			"_created_by": "%v",
-			"_ownerID": "%v",
-			"_updated_by": "%v",
-			"_access": null,
-			"_created_at": "2006-01-02T15:04:05Z",
-			"_updated_at": "2006-01-02T15:04:05Z"
-		},
-		"access_token": "%v",
-		"last_login_at": "%v",
-		"last_seen_at": "%v"
-	}
-}`,
+
+			authinfo := conn.authinfo
+			So(authinfo.ID, ShouldNotBeBlank)
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
+				{
+					"result": {
+						"user_id": "%v",
+						"profile": {
+							"_type": "record",
+							"_id": "user/%v",
+							"_created_by": "%v",
+							"_ownerID": "%v",
+							"_updated_by": "%v",
+							"_access": null,
+							"_created_at": "2006-01-02T15:04:05Z",
+							"_updated_at": "2006-01-02T15:04:05Z"
+						},
+						"access_token": "%v"
+					}
+				}`,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				token.AccessToken,
-				authinfo.LastLoginAt.Format(time.RFC3339Nano),
-				authinfo.LastSeenAt.Format(time.RFC3339Nano),
 			))
-			So(resp.Code, ShouldEqual, 200)
 
+			now := timeNow()
 			user, ok := db.RecordMap[fmt.Sprintf("user/%s", authinfo.ID)]
 			So(ok, ShouldBeTrue)
-			So(len(user.Data) == 0, ShouldBeTrue)
+			So(user.Data, ShouldResemble, skydb.Data{
+				"last_login_at": &now,
+			})
 		})
 
 		Convey("errors when both usename and email is missing", func() {
 			resp := r.POST(`{
 				"password": "iamyourfather"
 }`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-	"error": {
-		"code": 108,
-		"name": "InvalidArgument",
-		"info": {"arguments": ["auth_data"]},
-		"message": "invalid auth data"
-	}
-}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"code": 108,
+					"name": "InvalidArgument",
+					"info": {"arguments": ["auth_data"]},
+					"message": "invalid auth data"
+				}
+			}`)
 			So(resp.Code, ShouldEqual, 400)
 		})
 
 		Convey("errors when password is missing", func() {
-			resp := r.POST(`{
-				"auth_data": {
-					"username": "john.doe",
-					"email": "john.doe@example.com"
-				}
-}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-	"error": {
-		"code": 108,
-		"name": "InvalidArgument",
-		"info": {"arguments": ["password"]},
-		"message": "empty password"
-	}
-}`)
+			resp := r.POST(`
+				{
+					"auth_data": {
+						"username": "john.doe",
+						"email": "john.doe@example.com"
+					}
+				}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+				{
+					"error": {
+						"code": 108,
+						"name": "InvalidArgument",
+						"info": {"arguments": ["password"]},
+						"message": "empty password"
+					}
+				}`)
 			So(resp.Code, ShouldEqual, 400)
 		})
 	})
@@ -967,14 +1031,15 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 
 		Convey("signs up with non-existent provider", func() {
 			resp := r.POST(`{"provider": "com.non-existent", "provider_auth_data": {"name": "johndoe"}}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-	"error": {
-		"code": 108,
-		"name": "InvalidArgument",
-		"info": {"arguments": ["provider"]},
-		"message": "no auth provider of name \"com.non-existent\""
-	}
-}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+				{
+					"error": {
+						"code": 108,
+						"name": "InvalidArgument",
+						"info": {"arguments": ["provider"]},
+						"message": "no auth provider of name \"com.non-existent\""
+					}
+				}`)
 			So(resp.Code, ShouldEqual, http.StatusBadRequest)
 		})
 
@@ -985,40 +1050,38 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			So(txdb.DidCommit, ShouldBeTrue)
 
 			token := tokenStore.Token
-			authinfo := conn.authinfo
-
 			So(token.AccessToken, ShouldNotBeBlank)
+
+			authinfo := conn.authinfo
 			authData := conn.authinfo.ProviderInfo["com.example:johndoe"]
 			authDataJSON, _ := json.Marshal(&authData)
 			So(authDataJSON, ShouldEqualJSON, `{"name": "johndoe"}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-	"result": {
-		"user_id": "%v",
-		"profile": {
-			"_type": "record",
-			"_id": "user/%v",
-			"_created_by": "%v",
-			"_ownerID": "%v",
-			"_updated_by": "%v",
-			"_access": null,
-			"_created_at": "2006-01-02T15:04:05Z",
-			"_updated_at": "2006-01-02T15:04:05Z"
-		},
-		"access_token": "%v",
-		"last_login_at": "%v",
-		"last_seen_at": "%v"
-	}
-}`,
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
+				{
+					"result": {
+						"user_id": "%v",
+						"profile": {
+							"_type": "record",
+							"_id": "user/%v",
+							"_created_by": "%v",
+							"_ownerID": "%v",
+							"_updated_by": "%v",
+							"_access": null,
+							"_created_at": "2006-01-02T15:04:05Z",
+							"_updated_at": "2006-01-02T15:04:05Z"
+						},
+						"access_token": "%v"
+					}
+				}`,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				token.AccessToken,
-				authinfo.LastLoginAt.Format(time.RFC3339Nano),
-				authinfo.LastSeenAt.Format(time.RFC3339Nano),
 			))
-			So(resp.Code, ShouldEqual, 200)
 
 			_, ok := db.RecordMap[fmt.Sprintf("user/%s", authinfo.ID)]
 			So(ok, ShouldBeTrue)
@@ -1075,41 +1138,32 @@ func TestLogoutHandler(t *testing.T) {
 		})
 
 		Convey("deletes existing access token", func() {
-			resp := r.POST(`{
-	"access_token": "someaccesstoken"
-}`)
+			resp := r.POST(`{"access_token": "someaccesstoken"}`)
 			So(tokenStore.deletedAccessToken, ShouldEqual, "someaccesstoken")
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-	"result":{"status":"OK"}
-}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"result":{"status":"OK"}}`)
 			So(resp.Code, ShouldEqual, 200)
 		})
 
 		Convey("deletes non-existing access token without error", func() {
 			tokenStore.errToReturn = &authtoken.NotFoundError{}
-			resp := r.POST(`{
-	"access_token": "notexistaccesstoken"
-}`)
+			resp := r.POST(`{"access_token": "notexistaccesstoken"}`)
 			So(tokenStore.deletedAccessToken, ShouldEqual, "notexistaccesstoken")
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-	"result":{"status":"OK"}
-}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"result":{"status":"OK"}}`)
 			So(resp.Code, ShouldEqual, 200)
 		})
 
 		Convey("fails to delete due to unknown error", func() {
 			tokenStore.errToReturn = errors.New("some interesting error")
-			resp := r.POST(`{
-	"access_token": "someaccesstoken"
-}`)
+			resp := r.POST(`{"access_token": "someaccesstoken"}`)
 			So(tokenStore.deletedAccessToken, ShouldEqual, "someaccesstoken")
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-	"error": {
-		"code": 10000,
-		"name": "UnexpectedError",
-		"message": "some interesting error"
-	}
-}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"code": 10000,
+					"name": "UnexpectedError",
+					"message": "some interesting error"
+				}
+			}`)
 			So(resp.Code, ShouldEqual, 500)
 		})
 	})
@@ -1142,25 +1196,27 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 				p.AuthInfo = &authinfo
 			})
 
-			resp := r.POST(fmt.Sprintf(`{
-	"access_token": "%s",
-	"old_password": "chima",
-	"password": "faseng"
-}`, token.AccessToken))
+			resp := r.POST(fmt.Sprintf(`
+				{
+					"access_token": "%s",
+					"old_password": "chima",
+					"password": "faseng"
+				}`, token.AccessToken))
 
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-	"result": {
-		"user_id": "user-uuid",
-		"access_token": "%s",
-		"profile": {
-			"_type": "record",
-			"_id": "user/tester-1",
-			"_access": null,
-			"email": "tester1@example.com",
-			"username": "tester1"
-		}
-	}
-}`, tokenStore.Token.AccessToken))
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
+				{
+					"result": {
+						"user_id": "user-uuid",
+						"access_token": "%s",
+						"profile": {
+							"_type": "record",
+							"_id": "user/tester-1",
+							"_access": null,
+							"email": "tester1@example.com",
+							"username": "tester1"
+						}
+					}
+				}`, tokenStore.Token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
 		})
 
@@ -1172,19 +1228,21 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 				p.AuthInfo = &authinfo
 			})
 
-			resp := r.POST(fmt.Sprintf(`{
-	"access_token": "%s",
-	"old_password": "chima",
-	"password": "faseng"
-}`, token.AccessToken))
+			resp := r.POST(fmt.Sprintf(`
+				{
+					"access_token": "%s",
+					"old_password": "chima",
+					"password": "faseng"
+				}`, token.AccessToken))
 
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-	"result": {
-		"user_id": "user-uuid",
-		"access_token": "%s",
-		"profile": null
-	}
-}`, tokenStore.Token.AccessToken))
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
+				{
+					"result": {
+						"user_id": "user-uuid",
+						"access_token": "%s",
+						"profile": null
+					}
+				}`, tokenStore.Token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
 		})
 

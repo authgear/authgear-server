@@ -346,10 +346,10 @@ func TestInjectAuthProcessor(t *testing.T) {
 
 func TestInjectUserProcessor(t *testing.T) {
 	Convey("InjectUser", t, func() {
-		realTime := timeNow
+		realTimeNow := timeNow
 		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 		defer func() {
-			timeNow = realTime
+			timeNow = realTimeNow
 		}()
 
 		ctrl := gomock.NewController(t)
@@ -456,7 +456,6 @@ func TestInjectUserProcessor(t *testing.T) {
 				CreatorID:  "userid2",
 				UpdatedAt:  time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
 				UpdaterID:  "userid2",
-				Data:       skydb.Data{},
 			}
 			So(*payload.User, ShouldResemble, user)
 		})

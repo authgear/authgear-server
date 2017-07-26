@@ -319,7 +319,9 @@ func (db *MapDB) Save(record *skydb.Record) error {
 	recordID := record.ID.String()
 
 	if origRecord, ok := db.RecordMap[recordID]; ok {
-		*record = *origRecord.MergedCopy(record)
+		// keep the meta-data of record, only update record.Data
+		origRecordMergedCopy := origRecord.MergedCopy(record)
+		record.Apply(&origRecordMergedCopy)
 	}
 
 	db.RecordMap[recordID] = *record

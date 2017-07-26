@@ -174,6 +174,15 @@ type Record struct {
 	Transient  Data `json:"-"`
 }
 
+// Copy makes a shadow copy of itself
+func (d Data) Copy() Data {
+	dataCopy := Data{}
+	for key, value := range d {
+		dataCopy[key] = value
+	}
+	return dataCopy
+}
+
 // Get returns the value specified by key. If no value is associated
 // with the specified key, it returns nil.
 //
@@ -290,46 +299,50 @@ func (r *Record) Accessible(authinfo *AuthInfo, level RecordACLLevel) bool {
 }
 
 // Copy copies the content of the record.
-func (r *Record) Copy() *Record {
-	var dst Record
+func (r *Record) Copy() Record {
+	dst := Record{}
 	dst = *r
 
-	// creating a new map is essential because map is a reference type
-	dst.Data = map[string]interface{}{}
-	for key, value := range r.Data {
-		dst.Data[key] = value
+	if r.Data != nil {
+		dst.Data = r.Data.Copy()
 	}
-	return &dst
+
+	if r.Transient != nil {
+		dst.Transient = r.Transient.Copy()
+	}
+
+	return dst
 }
 
 // Apply modifies the content of the record with the specified record.
 func (r *Record) Apply(src *Record) {
 	r.ACL = src.ACL
 
-	if r.Data == nil {
-		r.Data = map[string]interface{}{}
+	if src.Data != nil {
+		if r.Data == nil {
+			r.Data = Data{}
+		}
+		for key, value := range src.Data {
+			r.Data[key] = value
+		}
 	}
 
-	for key, value := range src.Data {
-		r.Data[key] = value
+	if src.Transient != nil {
+		if r.Transient == nil {
+			r.Transient = Data{}
+		}
+		for key, value := range src.Transient {
+			r.Transient[key] = value
+		}
 	}
 }
 
 // MergedCopy is similar to copy but the copy contains data dictionary
 // which is creating by copying the original and apply the specified dictionary.
-func (r *Record) MergedCopy(merge *Record) *Record {
-	var dst Record
-	dst = *merge
-
-	// creating a new map is essential because map is a reference type
-	dst.Data = map[string]interface{}{}
-	for key, value := range r.Data {
-		dst.Data[key] = value
-	}
-	for key, value := range merge.Data {
-		dst.Data[key] = value
-	}
-	return &dst
+func (r *Record) MergedCopy(merge *Record) Record {
+	dst := r.Copy()
+	dst.Apply(merge)
+	return dst
 }
 
 // Index indicates the value of fields within a record type cannot be duplicated

@@ -724,11 +724,12 @@ func (db bogusFieldDatabase) GetSchema(recordType string) (skydb.RecordSchema, e
 }
 
 func TestRecordSaveBogusField(t *testing.T) {
+	realTimeNow := timeNow
 	timeNow = func() time.Time {
 		return ZeroTime
 	}
 	defer func() {
-		timeNow = timeNowUTC
+		timeNow = realTimeNow
 	}()
 
 	Convey("RecordSaveHandler", t, func() {

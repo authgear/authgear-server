@@ -25,9 +25,8 @@ import (
 )
 
 var (
-	timeNowUTC = func() time.Time { return time.Now().UTC() }
-	uuidNew    = uuid.New
-	timeNow    = timeNowUTC
+	uuidNew = uuid.New
+	timeNow = func() time.Time { return time.Now().UTC() }
 )
 
 // AuthResponse is the unify way of returing a AuthInfo with AuthData to SDK
@@ -47,6 +46,7 @@ type AuthResponseFactory struct {
 
 func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Record, accessToken string) (AuthResponse, error) {
 	var jsonUser *skyconv.JSONRecord
+	var lastLoginAt *time.Time
 
 	if user.ID.Type != "" {
 		filter, err := recordutil.NewRecordResultFilter(f.Conn, f.AssetStore, &info)
@@ -55,6 +55,9 @@ func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Rec
 		}
 
 		jsonUser = filter.JSONResult(&user)
+		if lastLoginAtTime, ok := user.Get(UserRecordLastLoginAtKey).(time.Time); ok {
+			lastLoginAt = &lastLoginAtTime
+		}
 	}
 
 	return AuthResponse{
@@ -62,7 +65,7 @@ func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Rec
 		Profile:     jsonUser,
 		Roles:       info.Roles,
 		AccessToken: accessToken,
-		LastLoginAt: info.LastLoginAt,
+		LastLoginAt: lastLoginAt,
 		LastSeenAt:  info.LastSeenAt,
 	}, nil
 }

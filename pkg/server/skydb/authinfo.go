@@ -47,7 +47,6 @@ type AuthInfo struct {
 	Roles           []string     `json:"roles,omitempty"`
 	ProviderInfo    ProviderInfo `json:"provider_info,omitempty"` // auth data for alternative methods
 	TokenValidSince *time.Time   `json:"token_valid_since,omitempty"`
-	LastLoginAt     *time.Time   `json:"last_login_at,omitempty"`
 	LastSeenAt      *time.Time   `json:"last_seen_at,omitempty"`
 }
 

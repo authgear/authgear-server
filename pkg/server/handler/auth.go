@@ -187,13 +187,13 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		info.Roles = defaultRoles
 	}
 
-	// Populate the activity time to user
-	now := timeNowUTC()
-	info.LastLoginAt = &now
-	info.LastSeenAt = &now
-
 	createContext := createUserWithRecordContext{
-		payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context,
+		payload.DBConn,
+		payload.Database,
+		h.AssetStore,
+		h.HookRegistry,
+		h.AuthRecordKeys,
+		payload.Context,
 	}
 
 	user, skyErr := createContext.execute(&info, authdata, p.Profile)
@@ -217,6 +217,23 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		Conn:       payload.DBConn,
 	}.NewAuthResponse(info, *user, token.AccessToken)
 	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	// Populate the activity time to user
+	now := timeNow()
+	info.LastSeenAt = &now
+	if err := payload.DBConn.UpdateAuth(&info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	// Update user last login time
+	user.UpdatedAt = now
+	user.UpdaterID = info.ID
+	user.Data[UserRecordLastLoginAtKey] = &now
+	if err := payload.Database.Save(user); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
@@ -344,12 +361,21 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 
 	// Populate the activity time to user
 	now := timeNow()
-	info.LastLoginAt = &now
 	info.LastSeenAt = &now
 	if err := payload.DBConn.UpdateAuth(&info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
+
+	// update user record last login time
+	user.UpdatedAt = now
+	user.UpdaterID = info.ID
+	user.Data[UserRecordLastLoginAtKey] = now
+	if err := payload.Database.Save(&user); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
 	response.Result = authResponse
 }
 

@@ -25,6 +25,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+const (
+	UserRecordLastLoginAtKey = "last_login_at"
+)
+
 // UserAuthFetcher provides helper functions to fetch AuthInfo and user Record
 // with AuthData in a single structs
 type UserAuthFetcher struct {

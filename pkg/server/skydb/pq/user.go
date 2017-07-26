@@ -29,16 +29,11 @@ import (
 func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
-		lastLoginAt     *time.Time
 		lastSeenAt      *time.Time
 	)
 	tokenValidSince = authinfo.TokenValidSince
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
 		tokenValidSince = nil
-	}
-	lastLoginAt = authinfo.LastLoginAt
-	if lastLoginAt != nil && lastLoginAt.IsZero() {
-		lastLoginAt = nil
 	}
 	lastSeenAt = authinfo.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
@@ -50,14 +45,12 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 		"password",
 		"provider_info",
 		"token_valid_since",
-		"last_login_at",
 		"last_seen_at",
 	).Values(
 		authinfo.ID,
 		authinfo.HashedPassword,
 		providerInfoValue{authinfo.ProviderInfo, true},
 		tokenValidSince,
-		lastLoginAt,
 		lastSeenAt,
 	)
 
@@ -75,16 +68,11 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
-		lastLoginAt     *time.Time
 		lastSeenAt      *time.Time
 	)
 	tokenValidSince = authinfo.TokenValidSince
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
 		tokenValidSince = nil
-	}
-	lastLoginAt = authinfo.LastLoginAt
-	if lastLoginAt != nil && lastLoginAt.IsZero() {
-		lastLoginAt = nil
 	}
 	lastSeenAt = authinfo.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
@@ -95,7 +83,6 @@ func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 		Set("password", authinfo.HashedPassword).
 		Set("provider_info", providerInfoValue{authinfo.ProviderInfo, true}).
 		Set("token_valid_since", tokenValidSince).
-		Set("last_login_at", lastLoginAt).
 		Set("last_seen_at", lastSeenAt).
 		Where("id = ?", authinfo.ID)
 
@@ -124,7 +111,7 @@ func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 
 func (c *conn) baseUserBuilder() sq.SelectBuilder {
 	return psql.Select("id", "password", "provider_info",
-		"token_valid_since", "last_login_at", "last_seen_at",
+		"token_valid_since", "last_seen_at",
 		"array_to_json(array_agg(role_id)) AS roles").
 		From(c.tableName("_auth")).
 		LeftJoin(c.tableName("_auth_role") + " ON id = auth_id").
@@ -135,7 +122,6 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 	var (
 		id              string
 		tokenValidSince pq.NullTime
-		lastLoginAt     pq.NullTime
 		lastSeenAt      pq.NullTime
 		roles           nullJSONStringSlice
 	)
@@ -146,7 +132,6 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 		&password,
 		&providerInfo,
 		&tokenValidSince,
-		&lastLoginAt,
 		&lastSeenAt,
 		&roles,
 	)
@@ -164,11 +149,6 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 		authinfo.TokenValidSince = &tokenValidSince.Time
 	} else {
 		authinfo.TokenValidSince = nil
-	}
-	if lastLoginAt.Valid {
-		authinfo.LastLoginAt = &lastLoginAt.Time
-	} else {
-		authinfo.LastLoginAt = nil
 	}
 	if lastSeenAt.Valid {
 		authinfo.LastSeenAt = &lastSeenAt.Time
