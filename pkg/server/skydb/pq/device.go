@@ -25,7 +25,7 @@ import (
 )
 
 func (c *conn) GetDevice(id string, device *skydb.Device) error {
-	builder := psql.Select("type", "token", "user_id", "topic", "last_registered_at").
+	builder := psql.Select("type", "token", "auth_id", "topic", "last_registered_at").
 		From(c.tableName("_device")).
 		Where("id = ?", id)
 
@@ -56,9 +56,9 @@ func (c *conn) GetDevice(id string, device *skydb.Device) error {
 }
 
 func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
-	builder := psql.Select("id", "type", "token", "user_id", "topic", "last_registered_at").
+	builder := psql.Select("id", "type", "token", "auth_id", "topic", "last_registered_at").
 		From(c.tableName("_device")).
-		Where("user_id = ?", user)
+		Where("auth_id = ?", user)
 
 	rows, err := c.QueryWith(builder)
 	if err != nil {
@@ -90,9 +90,9 @@ func (c *conn) QueryDevicesByUser(user string) ([]skydb.Device, error) {
 }
 
 func (c *conn) QueryDevicesByUserAndTopic(user, topic string) ([]skydb.Device, error) {
-	builder := psql.Select("id", "type", "token", "user_id", "topic", "last_registered_at").
+	builder := psql.Select("id", "type", "token", "auth_id", "topic", "last_registered_at").
 		From(c.tableName("_device")).
-		Where("user_id = ? AND topic = ?", user, topic)
+		Where("auth_id = ? AND topic = ?", user, topic)
 
 	rows, err := c.QueryWith(builder)
 	if err != nil {
@@ -129,12 +129,12 @@ func (c *conn) SaveDevice(device *skydb.Device) error {
 	pkData := map[string]interface{}{"id": device.ID}
 	data := map[string]interface{}{
 		"type":               device.Type,
-		"user_id":            nil,
+		"auth_id":            nil,
 		"last_registered_at": device.LastRegisteredAt.UTC(),
 	}
 
 	if device.AuthInfoID != "" {
-		data["user_id"] = device.AuthInfoID
+		data["auth_id"] = device.AuthInfoID
 	}
 
 	if device.Token != "" {

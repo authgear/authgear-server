@@ -17,6 +17,7 @@ package pq
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -25,54 +26,31 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
-func (c *conn) CreateUser(authinfo *skydb.AuthInfo) (err error) {
+func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 	var (
-		username        *string
-		email           *string
 		tokenValidSince *time.Time
-		lastLoginAt     *time.Time
 		lastSeenAt      *time.Time
 	)
-	if authinfo.Username != "" {
-		username = &authinfo.Username
-	} else {
-		username = nil
-	}
-	if authinfo.Email != "" {
-		email = &authinfo.Email
-	} else {
-		email = nil
-	}
 	tokenValidSince = authinfo.TokenValidSince
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
 		tokenValidSince = nil
-	}
-	lastLoginAt = authinfo.LastLoginAt
-	if lastLoginAt != nil && lastLoginAt.IsZero() {
-		lastLoginAt = nil
 	}
 	lastSeenAt = authinfo.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
 	}
 
-	builder := psql.Insert(c.tableName("_user")).Columns(
+	builder := psql.Insert(c.tableName("_auth")).Columns(
 		"id",
-		"username",
-		"email",
 		"password",
-		"auth",
+		"provider_info",
 		"token_valid_since",
-		"last_login_at",
 		"last_seen_at",
 	).Values(
 		authinfo.ID,
-		username,
-		email,
 		authinfo.HashedPassword,
-		authInfoValue{authinfo.Auth, true},
+		providerInfoValue{authinfo.ProviderInfo, true},
 		tokenValidSince,
-		lastLoginAt,
 		lastSeenAt,
 	)
 
@@ -87,44 +65,24 @@ func (c *conn) CreateUser(authinfo *skydb.AuthInfo) (err error) {
 	return err
 }
 
-func (c *conn) UpdateUser(authinfo *skydb.AuthInfo) (err error) {
+func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 	var (
-		username        *string
-		email           *string
 		tokenValidSince *time.Time
-		lastLoginAt     *time.Time
 		lastSeenAt      *time.Time
 	)
-	if authinfo.Username != "" {
-		username = &authinfo.Username
-	} else {
-		username = nil
-	}
-	if authinfo.Email != "" {
-		email = &authinfo.Email
-	} else {
-		email = nil
-	}
 	tokenValidSince = authinfo.TokenValidSince
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
 		tokenValidSince = nil
-	}
-	lastLoginAt = authinfo.LastLoginAt
-	if lastLoginAt != nil && lastLoginAt.IsZero() {
-		lastLoginAt = nil
 	}
 	lastSeenAt = authinfo.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
 	}
 
-	builder := psql.Update(c.tableName("_user")).
-		Set("username", username).
-		Set("email", email).
+	builder := psql.Update(c.tableName("_auth")).
 		Set("password", authinfo.HashedPassword).
-		Set("auth", authInfoValue{authinfo.Auth, true}).
+		Set("provider_info", providerInfoValue{authinfo.ProviderInfo, true}).
 		Set("token_valid_since", tokenValidSince).
-		Set("last_login_at", lastLoginAt).
 		Set("last_seen_at", lastSeenAt).
 		Where("id = ?", authinfo.ID)
 
@@ -152,34 +110,28 @@ func (c *conn) UpdateUser(authinfo *skydb.AuthInfo) (err error) {
 }
 
 func (c *conn) baseUserBuilder() sq.SelectBuilder {
-	return psql.Select("id", "username", "email", "password", "auth",
-		"token_valid_since", "last_login_at", "last_seen_at",
+	return psql.Select("id", "password", "provider_info",
+		"token_valid_since", "last_seen_at",
 		"array_to_json(array_agg(role_id)) AS roles").
-		From(c.tableName("_user")).
-		LeftJoin(c.tableName("_user_role") + " ON id = user_id").
+		From(c.tableName("_auth")).
+		LeftJoin(c.tableName("_auth_role") + " ON id = auth_id").
 		GroupBy("id")
 }
 
-func (c *conn) doScanUser(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error {
+func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error {
 	var (
 		id              string
-		username        sql.NullString
-		email           sql.NullString
 		tokenValidSince pq.NullTime
-		lastLoginAt     pq.NullTime
 		lastSeenAt      pq.NullTime
 		roles           nullJSONStringSlice
 	)
-	password, auth := []byte{}, authInfoValue{}
+	password, providerInfo := []byte{}, providerInfoValue{}
 
 	err := scanner.Scan(
 		&id,
-		&username,
-		&email,
 		&password,
-		&auth,
+		&providerInfo,
 		&tokenValidSince,
-		&lastLoginAt,
 		&lastSeenAt,
 		&roles,
 	)
@@ -191,19 +143,12 @@ func (c *conn) doScanUser(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 	}
 
 	authinfo.ID = id
-	authinfo.Username = username.String
-	authinfo.Email = email.String
 	authinfo.HashedPassword = password
-	authinfo.Auth = auth.ProviderInfo
+	authinfo.ProviderInfo = providerInfo.ProviderInfo
 	if tokenValidSince.Valid {
 		authinfo.TokenValidSince = &tokenValidSince.Time
 	} else {
 		authinfo.TokenValidSince = nil
-	}
-	if lastLoginAt.Valid {
-		authinfo.LastLoginAt = &lastLoginAt.Time
-	} else {
-		authinfo.LastLoginAt = nil
 	}
 	if lastSeenAt.Valid {
 		authinfo.LastSeenAt = &lastSeenAt.Time
@@ -215,89 +160,21 @@ func (c *conn) doScanUser(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 	return err
 }
 
-func (c *conn) GetUser(id string, authinfo *skydb.AuthInfo) error {
+func (c *conn) GetAuth(id string, authinfo *skydb.AuthInfo) error {
 	log.Warnf(id)
 	builder := c.baseUserBuilder().Where("id = ?", id)
 	scanner := c.QueryRowWith(builder)
-	return c.doScanUser(authinfo, scanner)
+	return c.doScanAuth(authinfo, scanner)
 }
 
-func (c *conn) GetUserByUsernameEmail(username string, email string, authinfo *skydb.AuthInfo) error {
-	var builder sq.SelectBuilder
-	if email == "" {
-		builder = c.baseUserBuilder().Where("username = ?", username)
-	} else if username == "" {
-		builder = c.baseUserBuilder().Where("email = ?", email)
-	} else {
-		builder = c.baseUserBuilder().Where("username = ? AND email = ?", username, email)
-	}
+func (c *conn) GetAuthByPrincipalID(principalID string, authinfo *skydb.AuthInfo) error {
+	builder := c.baseUserBuilder().Where("jsonb_exists(provider_info, ?)", principalID)
 	scanner := c.QueryRowWith(builder)
-	return c.doScanUser(authinfo, scanner)
+	return c.doScanAuth(authinfo, scanner)
 }
 
-func (c *conn) GetUserByPrincipalID(principalID string, authinfo *skydb.AuthInfo) error {
-	builder := c.baseUserBuilder().Where("jsonb_exists(auth, ?)", principalID)
-	scanner := c.QueryRowWith(builder)
-	return c.doScanUser(authinfo, scanner)
-}
-
-func (c *conn) QueryUser(emails []string, usernames []string) ([]skydb.AuthInfo, error) {
-	emailargs := make([]interface{}, len(emails))
-	for i, v := range emails {
-		if v == "" {
-			continue
-		}
-		emailargs[i] = interface{}(v)
-	}
-
-	usernameargs := make([]interface{}, len(usernames))
-	for i, v := range usernames {
-		if v == "" {
-			continue
-		}
-		usernameargs[i] = interface{}(v)
-	}
-
-	if len(emailargs) == 0 && len(usernameargs) == 0 {
-		return []skydb.AuthInfo{}, nil
-	}
-
-	var sqls []string
-	var args []interface{}
-	if len(emailargs) > 0 {
-		sqls = append(sqls, fmt.Sprintf("email IN (%s) AND email IS NOT NULL AND email != ''", sq.Placeholders(len(emailargs))))
-		args = append(args, emailargs...)
-	}
-	if len(usernameargs) > 0 {
-		sqls = append(sqls, fmt.Sprintf("username IN (%s) AND username IS NOT NULL AND username != ''", sq.Placeholders(len(usernameargs))))
-		args = append(args, usernameargs...)
-	}
-
-	builder := c.baseUserBuilder().
-		Where(strings.Join(sqls, " OR "), args...)
-
-	rows, err := c.QueryWith(builder)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-	results := []skydb.AuthInfo{}
-	for rows.Next() {
-		authinfo := skydb.AuthInfo{}
-		if err := c.doScanUser(&authinfo, rows); err != nil {
-			panic(err)
-		}
-		results = append(results, authinfo)
-	}
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-
-	return results, nil
-}
-
-func (c *conn) DeleteUser(id string) error {
-	builder := psql.Delete(c.tableName("_user")).
+func (c *conn) DeleteAuth(id string) error {
+	builder := psql.Delete(c.tableName("_auth")).
 		Where("id = ?", id)
 
 	result, err := c.ExecWith(builder)
@@ -315,4 +192,118 @@ func (c *conn) DeleteUser(id string) error {
 	}
 
 	return nil
+}
+
+func (c *conn) EnsureAuthRecordKeysExist(authRecordKeys [][]string) error {
+	db := c.PublicDB().(*database)
+	userRecordType := db.UserRecordType()
+	schema, err := db.GetSchema(userRecordType)
+	if err != nil {
+		return fmt.Errorf("Unable to retrieve user record schema")
+	}
+
+	requiredKeys := getAllAuthRecordKeys(authRecordKeys)
+	schemaToExtend := skydb.RecordSchema{}
+	for _, key := range requiredKeys {
+		if _, ok := schema[key]; ok {
+			continue
+		}
+
+		schemaToExtend[key] = skydb.FieldType{
+			Type: skydb.TypeString,
+		}
+	}
+
+	if _, err := db.Extend(userRecordType, schemaToExtend); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *conn) EnsureAuthRecordKeysIndexesMatch(authRecordKeys [][]string) error {
+	db := c.PublicDB().(*database)
+	userRecordType := db.UserRecordType()
+
+	requiredIndexes := []skydb.Index{}
+	for _, keys := range authRecordKeys {
+		requiredIndexes = append(requiredIndexes, skydb.Index{
+			Fields: keys,
+		})
+	}
+
+	indexesByName, err := db.GetIndexesByRecordType(userRecordType)
+	if err != nil {
+		return err
+	}
+
+	indexes := []skydb.Index{}
+	for _, index := range indexesByName {
+		indexes = append(indexes, index)
+	}
+
+	requiredIndexesByFields := groupIndexesByFields(requiredIndexes)
+	indexesByFields := groupIndexesByFields(indexes)
+
+	for fieldsString := range requiredIndexesByFields {
+		if _, ok := indexesByFields[fieldsString]; !ok {
+			index := requiredIndexesByFields[fieldsString]
+			if !c.canMigrate {
+				return fmt.Errorf("Index of %v is required in user record schema", index.Fields)
+			}
+
+			if err = db.SaveIndex(userRecordType, managedIndexName(userRecordType, index), index); err != nil {
+				return err
+			}
+		}
+	}
+
+	// cleanup unused unique constraint
+	if c.canMigrate {
+		for indexName, index := range indexesByName {
+			fieldsString := joinFields(index.Fields)
+			_, isRequired := requiredIndexesByFields[fieldsString]
+			if !isRequired && indexName == managedIndexName(userRecordType, index) {
+				db.DeleteIndex(userRecordType, indexName)
+			}
+		}
+	}
+
+	return nil
+}
+
+func getAllAuthRecordKeys(authRecordKeys [][]string) []string {
+	recordKeyMap := map[string]bool{}
+	for _, keys := range authRecordKeys {
+		for _, key := range keys {
+			recordKeyMap[key] = true
+		}
+	}
+
+	allKeys := []string{}
+	for key := range recordKeyMap {
+		allKeys = append(allKeys, key)
+	}
+
+	return allKeys
+}
+
+func joinFields(fields []string) string {
+	sort.Strings(fields)
+	return strings.Join(fields, ",")
+}
+
+func groupIndexesByFields(indexes []skydb.Index) map[string]skydb.Index {
+	output := map[string]skydb.Index{}
+	for _, index := range indexes {
+		fieldsString := joinFields(index.Fields)
+		output[fieldsString] = index
+	}
+	return output
+}
+
+func managedIndexName(recordType string, index skydb.Index) string {
+	fields := index.Fields
+	sort.Strings(fields)
+	return fmt.Sprintf("auth_record_keys_%s_%s_key", recordType, strings.Join(fields, "_"))
 }

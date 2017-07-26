@@ -27,6 +27,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook/hooktest"
+	"github.com/skygeario/skygear-server/pkg/server/recordutil"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skydbtest"
@@ -160,9 +161,10 @@ func (store *errStore) Put(token *authtoken.Token) error {
 }
 
 func TestRecordSaveHandler(t *testing.T) {
+	realTime := timeNow
 	timeNow = func() time.Time { return ZeroTime }
 	defer func() {
-		timeNow = timeNowUTC
+		timeNow = realTime
 	}()
 
 	Convey("RecordSaveHandler", t, func() {
@@ -543,9 +545,10 @@ func TestRecordSaveHandler(t *testing.T) {
 }
 
 func TestRecordSaveDataType(t *testing.T) {
+	realTime := timeNow
 	timeNow = func() time.Time { return ZeroTime }
 	defer func() {
-		timeNow = timeNowUTC
+		timeNow = realTime
 	}()
 
 	Convey("RecordSaveHandler", t, func() {
@@ -719,6 +722,10 @@ func (db bogusFieldDatabaseConnection) GetRecordFieldAccess() (skydb.FieldACL, e
 	return skydb.FieldACL{}, nil
 }
 
+func (db bogusFieldDatabaseConnection) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
+	return nil
+}
+
 type bogusFieldDatabase struct {
 	SaveFunc func(record *skydb.Record) error
 	GetFunc  func(id skydb.RecordID, record *skydb.Record) error
@@ -746,11 +753,12 @@ func (db bogusFieldDatabase) GetSchema(recordType string) (skydb.RecordSchema, e
 }
 
 func TestRecordSaveBogusField(t *testing.T) {
+	realTimeNow := timeNow
 	timeNow = func() time.Time {
 		return ZeroTime
 	}
 	defer func() {
-		timeNow = timeNowUTC
+		timeNow = realTimeNow
 	}()
 
 	Convey("RecordSaveHandler", t, func() {
@@ -1673,9 +1681,10 @@ func (db *singleRecordDatabase) GetSchema(recordType string) (skydb.RecordSchema
 }
 
 func TestRecordFetchHandler(t *testing.T) {
+	realTime := timeNow
 	timeNow = func() time.Time { return ZeroTime }
 	defer func() {
-		timeNow = timeNowUTC
+		timeNow = realTime
 	}()
 
 	Convey("RecordFetchHandler with Field ACL", t, func() {
@@ -1770,9 +1779,10 @@ func TestRecordFetchHandler(t *testing.T) {
 }
 
 func TestRecordOwnerIDSerialization(t *testing.T) {
+	realTime := timeNow
 	timeNow = func() time.Time { return ZeroTime }
 	defer func() {
-		timeNow = timeNowUTC
+		timeNow = realTime
 	}()
 
 	Convey("Given a record with owner id in DB", t, func() {
@@ -1847,9 +1857,10 @@ func TestRecordMetaData(t *testing.T) {
 	Convey("Record Meta Data", t, func() {
 		db := skydbtest.NewMapDB()
 		conn := skydbtest.NewMapConn()
+		realTime := timeNow
 		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 		defer func() {
-			timeNow = timeNowUTC
+			timeNow = realTime
 		}()
 
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
@@ -1861,7 +1872,6 @@ func TestRecordMetaData(t *testing.T) {
 			}
 		})
 		Convey("on a newly created record", func() {
-
 			req := r.POST(`{
 				"records": [{
 					"_id": "record/id"
@@ -2611,9 +2621,10 @@ func (db *selectiveDatabase) Rollback() error {
 }
 
 func TestAtomicOperation(t *testing.T) {
+	realTime := timeNow
 	timeNow = func() time.Time { return ZeroTime }
 	defer func() {
-		timeNow = timeNowUTC
+		timeNow = realTime
 	}()
 
 	Convey("Atomic Operation", t, func() {
@@ -2885,7 +2896,7 @@ func TestDeriveDeltaRecord(t *testing.T) {
 				ACL: acl,
 			}
 
-			deriveDeltaRecord(&dst, &base, &delta)
+			recordutil.DeriveDeltaRecord(&dst, &base, &delta)
 
 			So(dst.ACL, ShouldResemble, acl)
 		})
@@ -2905,7 +2916,7 @@ func TestDeriveDeltaRecord(t *testing.T) {
 				ID: skydb.NewRecordID("record", "id"),
 			}
 
-			deriveDeltaRecord(&dst, &base, &delta)
+			recordutil.DeriveDeltaRecord(&dst, &base, &delta)
 
 			So(dst.ACL, ShouldResemble, acl)
 		})

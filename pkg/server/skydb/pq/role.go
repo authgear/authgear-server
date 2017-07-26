@@ -27,7 +27,7 @@ import (
 )
 
 const batchUserRoleInsertTemplate = `
-INSERT INTO {{.UserRoleTable}} (user_id, role_id)
+INSERT INTO {{.UserRoleTable}} (auth_id, role_id)
 SELECT $1, id
 FROM {{.RoleTable}}
 WHERE id IN ({{range $i, $_ := .In}}{{inDollar $i}}{{end}});
@@ -53,7 +53,7 @@ type batchUserRole struct {
 func (c *conn) batchUserRoleSQL(id string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	batchUserRoleInsert.Execute(&b, batchUserRole{
-		c.tableName("_user_role"),
+		c.tableName("_auth_role"),
 		c.tableName("_role"),
 		roles,
 	})
@@ -69,18 +69,18 @@ func (c *conn) batchUserRoleSQL(id string, roles []string) (string, []interface{
 
 const assignUserRoleInsertTemplate = `
 {{ $userLen := len .Users }}
-INSERT INTO {{.UserRoleTable}} (user_id, role_id)
-SELECT "user"."id", "role"."id"
-FROM {{.UserTable}} AS "user", {{.RoleTable}} AS "role"
+INSERT INTO {{.UserRoleTable}} (auth_id, role_id)
+SELECT "_auth"."id", "role"."id"
+FROM {{.UserTable}} AS "_auth", {{.RoleTable}} AS "role"
 WHERE
-  "user"."id" IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  "_auth"."id" IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
   AND
   "role"."id" IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
-  AND ("role"."id", "user"."id") NOT IN (
-    SELECT role_id, user_id
+  AND ("role"."id", "_auth"."id") NOT IN (
+    SELECT role_id, auth_id
   FROM {{.UserRoleTable}}
   WHERE
-    user_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+    auth_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
   AND
     role_id IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
   );
@@ -108,9 +108,9 @@ type assignUserRole struct {
 func (c *conn) assignUserRoleSQL(users []string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	assignUserRoleInsert.Execute(&b, assignUserRole{
-		c.tableName("_user_role"),
+		c.tableName("_auth_role"),
 		c.tableName("_role"),
-		c.tableName("_user"),
+		c.tableName("_auth"),
 		roles,
 		users,
 	})
@@ -131,7 +131,7 @@ const revokeUserRoleDeleteTemplate = `
 {{ $userLen := len .Users }}
 DELETE FROM {{.UserRoleTable}}
 WHERE
-  user_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  auth_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
   AND
   role_id IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
 ;
@@ -157,7 +157,7 @@ type revokeUserRole struct {
 func (c *conn) revokeUserRoleSQL(users []string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	revokeUserRoleDelete.Execute(&b, revokeUserRole{
-		c.tableName("_user_role"),
+		c.tableName("_auth_role"),
 		roles,
 		users,
 	})
@@ -249,7 +249,7 @@ func (c *conn) setRoleType(roles []string, col string) error {
 
 func (c *conn) UpdateUserRoles(authinfo *skydb.AuthInfo) error {
 	log.Debugf("UpdateRoles %v", authinfo)
-	builder := psql.Delete(c.tableName("_user_role")).Where("user_id = ?", authinfo.ID)
+	builder := psql.Delete(c.tableName("_auth_role")).Where("auth_id = ?", authinfo.ID)
 	_, err := c.ExecWith(builder)
 	if err != nil {
 		return skyerr.NewError(skyerr.ConstraintViolated,
@@ -298,6 +298,43 @@ func (c *conn) RevokeRoles(userIDs []string, roles []string) error {
 		return err
 	}
 	return nil
+}
+
+func (c *conn) GetRoles(userIDs []string) (map[string][]string, error) {
+
+	userIDArgs := make([]interface{}, len(userIDs))
+	for idx, eachID := range userIDs {
+		userIDArgs[idx] = eachID
+	}
+
+	builder := psql.Select("auth_id", "role_id").
+		From(c.tableName("_auth_role")).
+		Where("auth_id IN ("+sq.Placeholders(len(userIDArgs))+")", userIDArgs...).
+		OrderBy("auth_id")
+
+	rows, err := c.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	roleMap := map[string][]string{}
+	for _, eachUserID := range userIDs {
+		// keep an empty array even no roles found for that user
+		roleMap[eachUserID] = []string{}
+	}
+
+	for rows.Next() {
+		eachAuthID := ""
+		eachRole := ""
+		if err := rows.Scan(&eachAuthID, &eachRole); err != nil {
+			panic(err)
+		}
+		eachAuthRoles := roleMap[eachAuthID]
+		roleMap[eachAuthID] = append(eachAuthRoles, eachRole)
+	}
+
+	return roleMap, nil
 }
 
 func (c *conn) createRoles(roles []string) error {

@@ -14,6 +14,11 @@
 
 package migration
 
+//
+// You may run scripts/add-revision.sh to add new revision file
+// and follow the instruction to copy the new revision to this list
+//
+
 var revisions = []Revision{
 	&revision_48b961caa{},
 	&revision_d2cb54c648{},
@@ -30,4 +35,8 @@ var revisions = []Revision{
 	&revision_1981535c8aeb{},
 	&revision_069921d63218{},
 	&revision_bd7643dc5c8{},
+	&revision_f0c53134d25d{},
+	&revision_cc97afd25016{},
+	&revision_83f549ff247b{},
+	&revision_81beb4d8658c{},
 }

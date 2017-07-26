@@ -90,9 +90,10 @@ func (conn *naiveConn) DeleteDevicesByToken(token string, t time.Time) error {
 
 func TestDeviceRegisterHandler(t *testing.T) {
 	Convey("DeviceRegisterHandler", t, func() {
+		realTimeNow := timeNow
 		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 		defer func() {
-			timeNow = timeNowUTC
+			timeNow = realTimeNow
 		}()
 
 		conn := naiveConn{

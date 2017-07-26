@@ -35,6 +35,7 @@ vendor:
 generate:
 # go install is required before go generate.
 	$(DOCKER_RUN) sh -c 'go install $(GO_BUILD_ARGS) && find pkg -type f -name "mock_*.go" -delete && go generate ./pkg/...'
+
 .PHONY: build
 build:
 	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)

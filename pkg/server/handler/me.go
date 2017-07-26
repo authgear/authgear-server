@@ -15,6 +15,7 @@
 package handler
 
 import (
+	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -23,9 +24,12 @@ import (
 // MeHandler handles the me request
 type MeHandler struct {
 	TokenStore    authtoken.Store  `inject:"TokenStore"`
+	AssetStore    asset.Store      `inject:"AssetStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
+	RequireAuth   router.Processor `preprocessor:"require_auth"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -35,7 +39,9 @@ func (h *MeHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
+		h.InjectAuth,
 		h.InjectUser,
+		h.RequireAuth,
 		h.PluginReady,
 	}
 }
@@ -82,12 +88,25 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 		panic(err)
 	}
 
+	user := payload.User
+	if user == nil {
+		panic("user record not found")
+	}
+
 	// We will return the last seen in DB, not current time stamp
-	authResponse := NewAuthResponse(*info, token.AccessToken)
+	authResponse, err := AuthResponseFactory{
+		AssetStore: h.AssetStore,
+		Conn:       payload.DBConn,
+	}.NewAuthResponse(*info, *user, token.AccessToken, payload.HasMasterKey())
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastSeenAt = &now
-	if err := payload.DBConn.UpdateUser(info); err != nil {
+	if err := payload.DBConn.UpdateAuth(info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}

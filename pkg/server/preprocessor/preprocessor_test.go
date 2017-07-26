@@ -211,35 +211,29 @@ func (t injectUserPreprocessorAccessToken) IssuedAt() time.Time {
 	return t.issuedAt
 }
 
-func TestInjectUserProcessor(t *testing.T) {
-	Convey("InjectUser", t, func() {
-		pp := InjectUserIfPresent{}
+func TestInjectAuthProcessor(t *testing.T) {
+	Convey("InjectAuth", t, func() {
+		pp := InjectAuthIfPresent{}
 		conn := skydbtest.NewMapConn()
 
 		withoutTokenValidSince := skydb.AuthInfo{
-			ID:       "userid1",
-			Username: "username1",
-			Email:    "username1@example.com",
+			ID: "userid1",
 		}
-		So(conn.CreateUser(&withoutTokenValidSince), ShouldBeNil)
+		So(conn.CreateAuth(&withoutTokenValidSince), ShouldBeNil)
 
 		pastTime := time.Now().Add(-1 * time.Hour)
 		withPastTokenValidSince := skydb.AuthInfo{
 			ID:              "userid2",
-			Username:        "username2",
-			Email:           "username2@example.com",
 			TokenValidSince: &pastTime,
 		}
-		So(conn.CreateUser(&withPastTokenValidSince), ShouldBeNil)
+		So(conn.CreateAuth(&withPastTokenValidSince), ShouldBeNil)
 
 		futureTime := time.Now().Add(1 * time.Hour)
 		withFutureTokenValidSince := skydb.AuthInfo{
 			ID:              "userid3",
-			Username:        "username3",
-			Email:           "username3@example.com",
 			TokenValidSince: &futureTime,
 		}
-		So(conn.CreateUser(&withFutureTokenValidSince), ShouldBeNil)
+		So(conn.CreateAuth(&withFutureTokenValidSince), ShouldBeNil)
 
 		Convey("should inject user with access token", func() {
 			payload := router.Payload{
@@ -406,6 +400,124 @@ func TestRequireAdminOrMasterKey(t *testing.T) {
 
 			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusUnauthorized)
 			So(resp.Err, ShouldNotBeNil)
+		})
+	})
+}
+
+func TestInjectUserProcessor(t *testing.T) {
+	Convey("InjectUser", t, func() {
+		realTimeNow := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTimeNow
+		}()
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		db := mock_skydb.NewMockTxDatabase(ctrl)
+
+		pp := InjectUserIfPresent{}
+		conn := skydbtest.NewMapConn()
+		conn.InternalPublicDB = db
+
+		authInfo := skydb.AuthInfo{
+			ID: "userid1",
+		}
+		user := skydb.Record{
+			ID: skydb.NewRecordID("user", "userid1"),
+			Data: map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			},
+		}
+
+		Convey("should inject user with authinfo id", func() {
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				Database:    db,
+				AuthInfoID:  "userid1",
+				AuthInfo:    &authInfo,
+				AccessToken: injectUserPreprocessorAccessToken{},
+				User:        nil,
+			}
+			resp := router.Response{}
+
+			db.EXPECT().
+				Get(skydb.NewRecordID("user", "userid1"), gomock.Any()).
+				SetArg(1, user).
+				Return(nil).
+				AnyTimes()
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(*payload.User, ShouldResemble, user)
+		})
+
+		Convey("should skip inject user without authinfo", func() {
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				Database:    db,
+				AuthInfoID:  "",
+				AuthInfo:    nil,
+				AccessToken: injectUserPreprocessorAccessToken{},
+				User:        nil,
+			}
+			resp := router.Response{}
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+			So(payload.User, ShouldEqual, nil)
+		})
+
+		Convey("should inject user with authinfo id, but no user record", func() {
+			authInfo := skydb.AuthInfo{
+				ID: "userid2",
+			}
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				Database:    db,
+				AuthInfoID:  "userid2",
+				AuthInfo:    &authInfo,
+				AccessToken: injectUserPreprocessorAccessToken{},
+				User:        nil,
+			}
+			resp := router.Response{}
+
+			db.EXPECT().
+				Get(skydb.NewRecordID("user", "userid2"), gomock.Any()).
+				Return(skydb.ErrRecordNotFound).
+				AnyTimes()
+			txBegin := db.EXPECT().Begin().AnyTimes()
+			db.EXPECT().Commit().After(txBegin)
+
+			db.EXPECT().UserRecordType().Return("user").AnyTimes()
+			db.EXPECT().GetSchema("user").Return(skydb.RecordSchema{}, nil).AnyTimes()
+
+			skydbtest.ExpectDBSaveUser(db, nil, func(record *skydb.Record) {
+				So(record.ID.Type, ShouldEqual, "user")
+				So(record.ID, ShouldResemble, skydb.NewRecordID("user", "userid2"))
+			})
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+			So(resp.Err, ShouldBeNil)
+
+			user := skydb.Record{
+				ID:         skydb.NewRecordID("user", "userid2"),
+				DatabaseID: "_public",
+				OwnerID:    "userid2",
+				CreatedAt:  time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				CreatorID:  "userid2",
+				UpdatedAt:  time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+				UpdaterID:  "userid2",
+			}
+			So(*payload.User, ShouldResemble, user)
 		})
 	})
 }

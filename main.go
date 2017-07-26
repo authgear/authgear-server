@@ -23,10 +23,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/evalphobia/logrus_sentry"
 	"github.com/facebookgo/inject"
 	"github.com/robfig/cron"
+	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
@@ -71,6 +71,8 @@ func main() {
 
 	log.Infof("Starting Skygear Server(%s)...", skyversion.Version())
 	connOpener := ensureDB(config) // Fatal on DB failed
+
+	initUserAuthRecordKeys(connOpener, config.App.AuthRecordKeys)
 
 	if config.App.Slave {
 		log.Infof("Skygear Server is running in slave mode.")
@@ -141,8 +143,9 @@ func main() {
 		ClientKey:     config.App.APIKey,
 		MasterKey:     config.App.MasterKey,
 	}
+	preprocessorRegistry["inject_auth"] = &pp.InjectAuthIfPresent{}
 	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
-	preprocessorRegistry["require_user"] = &pp.RequireUser{}
+	preprocessorRegistry["require_auth"] = &pp.RequireAuth{}
 	preprocessorRegistry["require_admin"] = &pp.RequireAdminOrMasterKey{}
 	preprocessorRegistry["inject_db"] = &pp.InjectDatabase{}
 	preprocessorRegistry["inject_public_db"] = &pp.InjectPublicDatabase{}
@@ -187,6 +190,11 @@ func main() {
 			Complete: true,
 			Name:     "AccessModel",
 		},
+		&inject.Object{
+			Value:    config.App.AuthRecordKeys,
+			Complete: true,
+			Name:     "AuthRecordKeys",
+		},
 	)
 	if injectErr != nil {
 		panic(fmt.Sprintf("Unable to set up handler: %v", injectErr))
@@ -228,14 +236,11 @@ func main() {
 
 	r.Map("me", injector.Inject(&handler.MeHandler{}))
 
-	r.Map("user:query", injector.Inject(&handler.UserQueryHandler{}))
-	r.Map("user:update", injector.Inject(&handler.UserUpdateHandler{}))
-	r.Map("user:link", injector.Inject(&handler.UserLinkHandler{}))
-
 	r.Map("role:default", injector.Inject(&handler.RoleDefaultHandler{}))
 	r.Map("role:admin", injector.Inject(&handler.RoleAdminHandler{}))
 	r.Map("role:assign", injector.Inject(&handler.RoleAssignHandler{}))
 	r.Map("role:revoke", injector.Inject(&handler.RoleRevokeHandler{}))
+	r.Map("role:get", injector.Inject(&handler.RoleGetHandler{}))
 
 	r.Map("push:user", injector.Inject(&handler.PushToUserHandler{}))
 	r.Map("push:device", injector.Inject(&handler.PushToDeviceHandler{}))
@@ -349,6 +354,23 @@ func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 
 		log.Info("Retrying in 1 second...")
 		time.Sleep(time.Second * time.Duration(1))
+	}
+}
+
+func initUserAuthRecordKeys(connOpener func() (skydb.Conn, error), authRecordKeys [][]string) {
+	conn, err := connOpener()
+	if err != nil {
+		log.Warnf("Failed to init user auth record keys: %v", err)
+	}
+
+	defer conn.Close()
+
+	if err := conn.EnsureAuthRecordKeysExist(authRecordKeys); err != nil {
+		panic(err)
+	}
+
+	if err := conn.EnsureAuthRecordKeysIndexesMatch(authRecordKeys); err != nil {
+		panic(err)
 	}
 }
 

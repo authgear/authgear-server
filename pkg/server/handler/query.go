@@ -203,8 +203,6 @@ func (parser *QueryParser) parseFunc(s []interface{}) (f skydb.Func, err error) 
 		f, err = parser.parseDistanceFunc(s[2:])
 	case "userRelation":
 		f, err = parser.parseUserRelationFunc(s[2:])
-	case "userDiscover":
-		f, err = parser.parseUserDiscoverFunc(s[2:])
 	case "":
 		return nil, errors.New("empty function name")
 	default:
@@ -259,27 +257,6 @@ func (parser *QueryParser) parseUserRelationFunc(s []interface{}) (skydb.UserRel
 		User:              parser.UserID,
 	}, nil
 
-}
-
-func (parser *QueryParser) parseUserDiscoverFunc(s []interface{}) (skydb.UserDiscoverFunc, error) {
-	emptyUserDiscoverFunc := skydb.UserDiscoverFunc{}
-	if len(s) != 1 {
-		return emptyUserDiscoverFunc, fmt.Errorf("want 1 arguments for user discover func, got %d", len(s))
-	}
-
-	userData := struct {
-		Usernames []string `mapstructure:"usernames"`
-		Emails    []string `mapstructure:"emails"`
-	}{}
-
-	if err := mapstructure.Decode(s[0], &userData); err != nil {
-		return emptyUserDiscoverFunc, err
-	}
-
-	return skydb.UserDiscoverFunc{
-		Usernames: userData.Usernames,
-		Emails:    userData.Emails,
-	}, nil
 }
 
 func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *skydb.Query) (err skyerr.Error) {

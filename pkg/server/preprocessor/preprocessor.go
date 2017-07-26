@@ -20,15 +20,20 @@ import (
 	"strings"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/logging"
+	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
+	"github.com/skygeario/skygear-server/pkg/server/recordutil"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+var timeNow = time.Now().UTC
+
 var log = logging.LoggerEntry("preprocessor")
 
-type InjectUserIfPresent struct {
+type InjectAuthIfPresent struct {
 }
 
 func isTokenStillValid(token router.AccessToken, authInfo skydb.AuthInfo) bool {
@@ -49,7 +54,7 @@ func isTokenStillValid(token router.AccessToken, authInfo skydb.AuthInfo) bool {
 	return token.IssuedAt().After(tokenValidSince.Add(-1 * time.Second))
 }
 
-func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
+func (p InjectAuthIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
 	if payload.AuthInfoID == "" {
 		if !payload.HasMasterKey() {
 			log.Debugln("injectUser: empty AuthInfoID, skipping")
@@ -61,12 +66,13 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 
 	conn := payload.DBConn
 	authinfo := skydb.AuthInfo{}
-	if err := conn.GetUser(payload.AuthInfoID, &authinfo); err != nil {
+
+	if err := conn.GetAuth(payload.AuthInfoID, &authinfo); err != nil {
 		if err == skydb.ErrUserNotFound && payload.HasMasterKey() {
 			authinfo = skydb.AuthInfo{
 				ID: payload.AuthInfoID,
 			}
-			if err := payload.DBConn.CreateUser(&authinfo); err != nil && err != skydb.ErrUserDuplicated {
+			if err := payload.DBConn.CreateAuth(&authinfo); err != nil && err != skydb.ErrUserDuplicated {
 				return http.StatusInternalServerError
 			}
 		} else {
@@ -87,6 +93,93 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 	payload.AuthInfo = &authinfo
 
 	return http.StatusOK
+}
+
+// InjectUserIfPresent injects a user record to the payload
+//
+// An AuthInfo must be injected before this, if it is not found, the preprocessor
+// would just skip the injection
+//
+// If AuthInfo is injected but a user record is not found, the preprocessor would
+// create a new user record and inject it to the payload
+type InjectUserIfPresent struct {
+	HookRegistry *hook.Registry `inject:"HookRegistry"`
+	AssetStore   asset.Store    `inject:"AssetStore"`
+}
+
+func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
+	authInfo := payload.AuthInfo
+	db := payload.DBConn.PublicDB()
+
+	if authInfo == nil {
+		log.Debugln("injectUser: empty AuthInfo, skipping")
+		return http.StatusOK
+	}
+
+	user := skydb.Record{}
+	err := db.Get(skydb.NewRecordID("user", authInfo.ID), &user)
+
+	if err == skydb.ErrRecordNotFound {
+		user, err = p.createUser(payload)
+	}
+
+	if err != nil {
+		log.Error("injectUser: unable to find or create user record", err)
+		response.Err = skyerr.NewError(skyerr.UnexpectedUserNotFound, err.Error())
+		return http.StatusInternalServerError
+	}
+
+	payload.User = &user
+
+	return http.StatusOK
+}
+
+func (p InjectUserIfPresent) createUser(payload *router.Payload) (skydb.Record, error) {
+	authInfo := payload.AuthInfo
+	db := payload.DBConn.PublicDB()
+	txDB, ok := db.(skydb.Transactional)
+	if !ok {
+		return skydb.Record{}, skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
+	}
+
+	var user *skydb.Record
+	txErr := skydb.WithTransaction(txDB, func() error {
+		userRecord := skydb.Record{
+			ID: skydb.NewRecordID(db.UserRecordType(), authInfo.ID),
+		}
+
+		recordReq := recordutil.RecordModifyRequest{
+			Db:           db,
+			Conn:         payload.DBConn,
+			AssetStore:   p.AssetStore,
+			HookRegistry: p.HookRegistry,
+			Atomic:       true,
+			Context:      payload.Context,
+			AuthInfo:     authInfo,
+			ModifyAt:     timeNow(),
+			RecordsToSave: []*skydb.Record{
+				&userRecord,
+			},
+		}
+
+		recordResp := recordutil.RecordModifyResponse{
+			ErrMap: map[skydb.RecordID]skyerr.Error{},
+		}
+
+		err := recordutil.RecordSaveHandler(&recordReq, &recordResp)
+		if err != nil {
+			return err
+		}
+
+		user = recordResp.SavedRecords[0]
+		return nil
+	})
+
+	if txErr != nil {
+		return skydb.Record{}, txErr
+	}
+
+	return *user, nil
 }
 
 type InjectDatabase struct {
@@ -142,12 +235,12 @@ func (p InjectPublicDatabase) Preprocess(payload *router.Payload, response *rout
 	return http.StatusOK
 }
 
-type RequireUser struct {
+type RequireAuth struct {
 }
 
-func (p RequireUser) Preprocess(payload *router.Payload, response *router.Response) int {
+func (p RequireAuth) Preprocess(payload *router.Payload, response *router.Response) int {
 	if payload.AuthInfo == nil {
-		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "User is required for this action, please login.")
+		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is required for this action, please login.")
 		return http.StatusUnauthorized
 	}
 

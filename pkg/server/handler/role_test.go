@@ -291,3 +291,132 @@ func TestRoleRevokeHandler(t *testing.T) {
 		})
 	})
 }
+
+func TestRoleGetHandler(t *testing.T) {
+	Convey("RoleGetHandler", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		conn := mock_skydb.NewMockConn(ctrl)
+		conn.EXPECT().GetAdminRoles().Return([]string{"admin"}, nil).AnyTimes()
+		conn.EXPECT().GetRoles(gomock.Eq([]string{"user1", "user2", "user3"})).
+			Return(map[string][]string{
+				"user1": []string{
+					"developer",
+					"project-manager",
+				},
+				"user2": []string{},
+				"user3": []string{
+					"designer",
+				},
+			}, nil).AnyTimes()
+		conn.EXPECT().GetRoles(gomock.Eq([]string{"user1"})).
+			Return(map[string][]string{
+				"user1": []string{
+					"developer",
+					"project-manager",
+				},
+			}, nil).AnyTimes()
+		conn.EXPECT().GetRoles(gomock.Eq([]string{"error-user"})).
+			Return(
+				nil,
+				skyerr.NewError(skyerr.UnexpectedError, "unexpected error"),
+			).AnyTimes()
+
+		Convey("should get roles successfully with master key", func() {
+			handler := RoleGetHandler{}
+			authInfo := skydb.AuthInfo{}
+			mockRouter := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
+				p.DBConn = conn
+				p.AuthInfo = &authInfo
+				p.AccessKey = router.MasterAccessKey
+			})
+			resp := mockRouter.POST(
+				`{ "user_ids": ["user1", "user2", "user3"] }`,
+			)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"user1": ["developer", "project-manager"],
+					"user2": [],
+					"user3": ["designer"]
+				}
+			}`)
+		})
+
+		Convey("should get roles successfully with admin role", func() {
+			handler := RoleGetHandler{}
+			authInfo := skydb.AuthInfo{
+				Roles: []string{"admin"},
+			}
+			mockRouter := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
+				p.DBConn = conn
+				p.AuthInfo = &authInfo
+				p.AccessKey = router.ClientAccessKey
+			})
+			resp := mockRouter.POST(`{ "user_ids": ["user1", "user2", "user3"]}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"user1": ["developer", "project-manager"],
+					"user2": [],
+					"user3": ["designer"]
+				}
+			}`)
+		})
+
+		Convey("should get roles successfully get my role", func() {
+			handler := RoleGetHandler{}
+			authInfo := skydb.AuthInfo{
+				ID: "user1",
+			}
+			mockRouter := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
+				p.DBConn = conn
+				p.AuthInfo = &authInfo
+				p.AccessKey = router.ClientAccessKey
+			})
+			resp := mockRouter.POST(`{ "user_ids": [ "user1" ] }`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"user1": ["developer", "project-manager"]
+				}
+			}`)
+		})
+
+		Convey("should fail if no permission", func() {
+			handler := RoleGetHandler{}
+			authInfo := skydb.AuthInfo{
+				ID: "user2",
+			}
+			mockRouter := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
+				p.DBConn = conn
+				p.AuthInfo = &authInfo
+				p.AccessKey = router.ClientAccessKey
+			})
+			resp := mockRouter.POST(`{ "user_ids": [ "user1" ] }`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 102,
+					"name": "PermissionDenied",
+					"message": "no permission to get other users' roles"
+				}
+			}`)
+		})
+
+		Convey("should handle error", func() {
+			handler := RoleGetHandler{}
+			authInfo := skydb.AuthInfo{}
+			mockRouter := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
+				p.DBConn = conn
+				p.AuthInfo = &authInfo
+				p.AccessKey = router.MasterAccessKey
+			})
+			resp := mockRouter.POST(`{ "user_ids": [ "error-user" ] }`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 10000,
+					"message": "unexpected error",
+					"name": "UnexpectedError"
+				}
+			}`)
+		})
+	})
+}

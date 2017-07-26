@@ -153,7 +153,7 @@ func (db *database) GetSubscription(key string, deviceID string, subscription *s
 
 	builder := psql.Select("type", "notification_info", "query").
 		From(db.TableName("_subscription")).
-		Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key)
+		Where("auth_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key)
 	err := db.c.QueryRowWith(builder).
 		Scan(&subscription.Type, &nullinfo, (*queryValue)(&subscription.Query))
 
@@ -198,7 +198,7 @@ func (db *database) SaveSubscription(subscription *skydb.Subscription) error {
 
 	pkData := map[string]interface{}{
 		"id":        subscription.ID,
-		"user_id":   db.userID,
+		"auth_id":   db.userID,
 		"device_id": subscription.DeviceID,
 	}
 
@@ -224,7 +224,7 @@ func (db *database) DeleteSubscription(key string, deviceID string) error {
 	}
 	result, err := db.c.ExecWith(
 		psql.Delete(db.TableName("_subscription")).
-			Where("user_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key),
+			Where("auth_id = ? AND device_id = ? AND id = ?", db.userID, deviceID, key),
 	)
 
 	if err != nil {
@@ -247,7 +247,7 @@ func (db *database) DeleteSubscription(key string, deviceID string) error {
 func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions []skydb.Subscription) {
 	if db.DatabaseType() == skydb.UnionDatabase {
 		log.WithFields(logrus.Fields{
-			"user_id":  db.userID,
+			"auth_id":  db.userID,
 			"deviceID": deviceID,
 		}).Errorln("GetSubscriptionsByDeviceID on union database is not implemented")
 		return nil
@@ -255,12 +255,12 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 	rows, err := db.c.QueryWith(
 		psql.Select("id", "type", "notification_info", "query").
 			From(db.TableName("_subscription")).
-			Where(`user_id = ? AND device_id = ?`, db.userID, deviceID),
+			Where(`auth_id = ? AND device_id = ?`, db.userID, deviceID),
 	)
 
 	if err != nil {
 		log.WithFields(logrus.Fields{
-			"user_id":  db.userID,
+			"auth_id":  db.userID,
 			"deviceID": deviceID,
 			"err":      err,
 		}).Errorln("failed to query subscriptions by device id")
@@ -310,13 +310,13 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscriptions []skydb.Subscription) {
 	if db.DatabaseType() == skydb.UnionDatabase {
 		log.WithFields(logrus.Fields{
-			"user_id": db.userID,
+			"auth_id": db.userID,
 		}).Errorln("GetMatchingSubscriptions on union database is not implemented")
 		return nil
 	}
 	builder := psql.Select("id", "device_id", "type", "notification_info", "query").
 		From(db.TableName("_subscription")).
-		Where(`user_id = ? AND query @> ?::jsonb`, db.userID, fmt.Sprintf(`{"Type":"%s"}`, record.ID.Type))
+		Where(`auth_id = ? AND query @> ?::jsonb`, db.userID, fmt.Sprintf(`{"Type":"%s"}`, record.ID.Type))
 
 	rows, err := db.c.QueryWith(builder)
 	if err != nil {

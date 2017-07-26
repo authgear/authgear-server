@@ -310,11 +310,12 @@ func TestGetFileHandler(t *testing.T) {
 		})
 
 		Convey("GET a signed URL", func() {
+			realTimeNow := timeNow
 			timeNow = func() time.Time {
 				return time.Unix(1436431129, 999)
 			}
 			defer func() {
-				timeNow = timeNowUTC
+				timeNow = realTimeNow
 			}()
 			signparser.valid = true
 			assetConn.savedAsset["assetName"] = &skydb.Asset{
@@ -335,11 +336,12 @@ func TestGetFileHandler(t *testing.T) {
 		})
 
 		Convey("errors if signature expired", func() {
+			realTimeNow := timeNow
 			timeNow = func() time.Time {
 				return time.Unix(1436431130, 1)
 			}
 			defer func() {
-				timeNow = timeNowUTC
+				timeNow = realTimeNow
 			}()
 
 			resp := r.GET("assetName?signature=signedSignature&expiredAt=1436431130")
@@ -353,11 +355,12 @@ func TestGetFileHandler(t *testing.T) {
 		})
 
 		Convey("errors on invalid signature", func() {
+			realTimeNow := timeNow
 			timeNow = func() time.Time {
 				return time.Unix(1436431129, 999)
 			}
 			defer func() {
-				timeNow = timeNowUTC
+				timeNow = realTimeNow
 			}()
 
 			resp := r.GET("assetName?signature=signedSignature&expiredAt=1436431130")

@@ -21,12 +21,12 @@ import (
 	"time"
 )
 
-// ErrUserDuplicated is returned by Conn.CreateUser when
+// ErrUserDuplicated is returned by Conn.CreateAuth when
 // the AuthInfo to be created has the same ID/username in the current container
 var ErrUserDuplicated = errors.New("skydb: duplicated UserID or Username")
 
-// ErrUserNotFound is returned by Conn.GetUser, Conn.UpdateUser and
-// Conn.DeleteUser when the AuthInfo's ID is not found
+// ErrUserNotFound is returned by Conn.GetAuth, Conn.UpdateAuth and
+// Conn.DeleteAuth when the AuthInfo's ID is not found
 // in the current container
 var ErrUserNotFound = errors.New("skydb: AuthInfo ID not found")
 
@@ -61,45 +61,38 @@ type Conn interface {
 	// CRUD of AuthInfo, smell like a bad design to attach these onto
 	// a Conn, but looks very convenient to user.
 
-	// CreateUser creates a new AuthInfo in the container
+	// CreateAuth creates a new AuthInfo in the container
 	// this Conn associated to.
-	CreateUser(authinfo *AuthInfo) error
+	CreateAuth(authinfo *AuthInfo) error
 
-	// GetUser fetches the AuthInfo with supplied ID in the container and
+	// GetAuth fetches the AuthInfo with supplied ID in the container and
 	// fills in the supplied AuthInfo with the result.
 	//
-	// GetUser returns ErrUserNotFound if no AuthInfo exists
+	// GetAuth returns ErrUserNotFound if no AuthInfo exists
 	// for the supplied ID.
-	GetUser(id string, authinfo *AuthInfo) error
+	GetAuth(id string, authinfo *AuthInfo) error
 
-	// GetUserByUsernameEmail fetch the AuthInfo with supplied username or email,
-	//
-	GetUserByUsernameEmail(username string, email string, authinfo *AuthInfo) error
-
-	// GetUserByPrincipalID fetches the AuthInfo with supplied principal ID in the
+	// GetAuthByPrincipalID fetches the AuthInfo with supplied principal ID in the
 	// container and fills in the supplied AuthInfo with the result.
 	//
 	// Principal ID is an ID of an authenticated principal with such
 	// authentication provided by AuthProvider.
 	//
-	// GetUserByPrincipalID returns ErrUserNotFound if no AuthInfo exists
+	// GetAuthByPrincipalID returns ErrUserNotFound if no AuthInfo exists
 	// for the supplied principal ID.
-	GetUserByPrincipalID(principalID string, authinfo *AuthInfo) error
+	GetAuthByPrincipalID(principalID string, authinfo *AuthInfo) error
 
-	// UpdateUser updates an existing AuthInfo matched by the ID field.
+	// UpdateAuth updates an existing AuthInfo matched by the ID field.
 	//
-	// UpdateUser returns ErrUserNotFound if such AuthInfo does not
+	// UpdateAuth returns ErrUserNotFound if such AuthInfo does not
 	// exist in the container.
-	UpdateUser(authinfo *AuthInfo) error
+	UpdateAuth(authinfo *AuthInfo) error
 
-	// QueryUser queries for AuthInfo matching one of the specified emails.
-	QueryUser(emails []string, usernames []string) ([]AuthInfo, error)
-
-	// DeleteUser removes AuthInfo with the supplied ID in the container.
+	// DeleteAuth removes AuthInfo with the supplied ID in the container.
 	//
-	// DeleteUser returns ErrUserNotFound if such AuthInfo does not
+	// DeleteAuth returns ErrUserNotFound if such AuthInfo does not
 	// exist in the container.
-	DeleteUser(id string) error
+	DeleteAuth(id string) error
 
 	// GetAdminRoles return the current admine roles
 	GetAdminRoles() ([]string, error)
@@ -111,7 +104,7 @@ type Conn interface {
 	GetDefaultRoles() ([]string, error)
 
 	// SetDefaultRoles accepts array of roles, the supplied roles will assigned
-	// to newly created user CreateUser
+	// to newly created user CreateAuth
 	SetDefaultRoles(roles []string) error
 
 	// AssignRoles accepts array of roles and userID, the supplied roles will
@@ -121,6 +114,9 @@ type Conn interface {
 	// RevokeRoles accepts array of roles and userID, the supplied roles will
 	// be revoked from all passed in users
 	RevokeRoles(userIDs []string, roles []string) error
+
+	// GetRoles returns roles of users specified by user IDs
+	GetRoles(userIDs []string) (map[string][]string, error)
 
 	// SetRecordAccess sets default record access of a specific type
 	SetRecordAccess(recordType string, acl RecordACL) error
@@ -182,6 +178,20 @@ type Conn interface {
 	// Subscribe registers the specified recordEventChan to receive
 	// RecordEvent from the Conn implementation
 	Subscribe(recordEventChan chan RecordEvent) error
+
+	// EnsureAuthRecordKeysExist check if authRecordKeys exist in
+	// user record schema
+	EnsureAuthRecordKeysExist(authRecordKeys [][]string) error
+
+	// EnsureAuthRecordKeysIndexesExist check if indexes of user record schema
+	// match with authRecordKeys, so that:
+	//
+	// 1. indexes of authRecordKeys exist, if not and in dev mode, indexes with
+	//    special name would be created
+	//
+	// 2. indexes of old authRecordKeys with special name does not exist, if
+	//    found and in dev mode, they would be removed
+	EnsureAuthRecordKeysIndexesMatch(authRecordKeys [][]string) error
 
 	Close() error
 }

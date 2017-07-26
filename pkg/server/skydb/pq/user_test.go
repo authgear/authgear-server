@@ -24,7 +24,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func TestUserCRUD(t *testing.T) {
+func TestAuthCRUD(t *testing.T) {
 	var c *conn
 
 	Convey("Conn", t, func() {
@@ -33,11 +33,9 @@ func TestUserCRUD(t *testing.T) {
 
 		authinfo := skydb.AuthInfo{
 			ID:             "userid",
-			Username:       "john.doe",
-			Email:          "john.doe@example.com",
 			HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
 			Roles:          []string{},
-			Auth: skydb.ProviderInfo{
+			ProviderInfo: skydb.ProviderInfo{
 				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
 					"bool":   true,
@@ -58,18 +56,16 @@ func TestUserCRUD(t *testing.T) {
 		})
 
 		Convey("default admin user", func() {
-			var username string
 			var actualHashedPassword string
 
 			c.QueryRowx(`
-				SELECT u.username, u.password
-				FROM _user as u
-					JOIN _user_role as ur ON ur.user_id = u.id
+				SELECT u.password
+				FROM _auth as u
+					JOIN _auth_role as ur ON ur.auth_id = u.id
 					JOIN _role as r ON ur.role_id = r.id
 				WHERE r.is_admin = TRUE`,
-			).Scan(&username, &actualHashedPassword)
+			).Scan(&actualHashedPassword)
 
-			So(username, ShouldEqual, "admin")
 			So(
 				bcrypt.CompareHashAndPassword(
 					[]byte(actualHashedPassword),
@@ -80,19 +76,16 @@ func TestUserCRUD(t *testing.T) {
 		})
 
 		Convey("creates user", func() {
-			err := c.CreateUser(&authinfo)
+			err := c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
 
-			email := ""
 			password := []byte{}
-			auth := authInfoValue{}
-			err = c.QueryRowx("SELECT email, password, auth FROM _user WHERE id = 'userid'").
-				Scan(&email, &password, &auth)
+			providerInfo := providerInfoValue{}
+			err = c.QueryRowx("SELECT password, provider_info FROM _auth WHERE id = 'userid'").
+				Scan(&password, &providerInfo)
 			So(err, ShouldBeNil)
-
-			So(email, ShouldEqual, "john.doe@example.com")
 			So(password, ShouldResemble, []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"))
-			So(auth.ProviderInfo, ShouldResemble, skydb.ProviderInfo{
+			So(providerInfo.ProviderInfo, ShouldResemble, skydb.ProviderInfo{
 				"com.example:johndoe": map[string]interface{}{
 					"string": "string",
 					"bool":   true,
@@ -102,98 +95,44 @@ func TestUserCRUD(t *testing.T) {
 		})
 
 		Convey("returns ErrUserDuplicated when user to create already exists", func() {
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
-
-			err = c.CreateUser(&authinfo)
-			So(err, ShouldEqual, skydb.ErrUserDuplicated)
-		})
-
-		Convey("returns ErrUserDuplicated when user with same username", func() {
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
-
-			err = c.CreateUser(&skydb.AuthInfo{
-				Username:       "john.doe",
-				HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
-			})
-			So(err, ShouldEqual, skydb.ErrUserDuplicated)
-		})
-
-		Convey("returns ErrUserDuplicated when user with same email", func() {
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
-
-			err = c.CreateUser(&skydb.AuthInfo{
-				Email:          "john.doe@example.com",
-				HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
-			})
-			So(err, ShouldEqual, skydb.ErrUserDuplicated)
+			So(c.CreateAuth(&authinfo), ShouldBeNil)
+			So(c.CreateAuth(&authinfo), ShouldEqual, skydb.ErrUserDuplicated)
 		})
 
 		Convey("gets an existing User", func() {
-			err := c.CreateUser(&authinfo)
+			err := c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
 
 			fetchedauthinfo := skydb.AuthInfo{}
-			err = c.GetUser("userid", &fetchedauthinfo)
+			err = c.GetAuth("userid", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
 			So(fetchedauthinfo, ShouldResemble, authinfo)
-		})
-
-		Convey("get an existing User with case-preserved username and email", func() {
-			authinfo := skydb.AuthInfo{}
-			authinfo.Username = "Capital.ONE"
-			authinfo.Email = "capital.ONE@EXAMPLE.com"
-			authinfo.ID = "userid-capital"
-			So(c.CreateUser(&authinfo), ShouldBeNil)
-
-			fetchedauthinfo := skydb.AuthInfo{}
-			err := c.GetUser("userid-capital", &fetchedauthinfo)
-			So(err, ShouldBeNil)
-
-			So(fetchedauthinfo.Username, ShouldEqual, "Capital.ONE")
-			So(fetchedauthinfo.Email, ShouldEqual, "capital.ONE@EXAMPLE.com")
 		})
 
 		Convey("gets an existing User token valid since", func() {
 			tokenValidSince := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
 			authinfo.TokenValidSince = &tokenValidSince
 
-			err := c.CreateUser(&authinfo)
+			err := c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
 
 			fetchedauthinfo := skydb.AuthInfo{}
-			err = c.GetUser("userid", &fetchedauthinfo)
+			err = c.GetAuth("userid", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
 			So(tokenValidSince.Equal(fetchedauthinfo.TokenValidSince.UTC()), ShouldBeTrue)
-		})
-
-		Convey("gets an existing User last login at", func() {
-			lastLoginAt := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
-			authinfo.LastLoginAt = &lastLoginAt
-
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
-
-			fetchedauthinfo := skydb.AuthInfo{}
-			err = c.GetUser("userid", &fetchedauthinfo)
-			So(err, ShouldBeNil)
-
-			So(lastLoginAt.Equal(fetchedauthinfo.LastLoginAt.UTC()), ShouldBeTrue)
 		})
 
 		Convey("gets an existing User last seen at", func() {
 			lastSeenAt := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
 			authinfo.LastSeenAt = &lastSeenAt
 
-			err := c.CreateUser(&authinfo)
+			err := c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
 
 			fetchedauthinfo := skydb.AuthInfo{}
-			err = c.GetUser("userid", &fetchedauthinfo)
+			err = c.GetAuth("userid", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
 			So(
@@ -202,169 +141,87 @@ func TestUserCRUD(t *testing.T) {
 			)
 		})
 
-		Convey("gets an existing User by username case insensitive", func() {
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
-
-			fetchedauthinfo := skydb.AuthInfo{}
-			err = c.GetUserByUsernameEmail("john.Doe", "", &fetchedauthinfo)
-			So(err, ShouldBeNil)
-
-			So(fetchedauthinfo, ShouldResemble, authinfo)
-		})
-
-		Convey("gets an existing User by email case insensitive", func() {
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
-
-			fetchedauthinfo := skydb.AuthInfo{}
-			err = c.GetUserByUsernameEmail("", "john.DOE@example.com", &fetchedauthinfo)
-			So(err, ShouldBeNil)
-
-			So(fetchedauthinfo, ShouldResemble, authinfo)
-		})
-
 		Convey("gets an existing User by principal", func() {
-			err := c.CreateUser(&authinfo)
+			err := c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
 
 			fetchedauthinfo := skydb.AuthInfo{}
-			err = c.GetUserByPrincipalID("com.example:johndoe", &fetchedauthinfo)
+			err = c.GetAuthByPrincipalID("com.example:johndoe", &fetchedauthinfo)
 			So(err, ShouldBeNil)
 
 			So(fetchedauthinfo, ShouldResemble, authinfo)
 		})
 
 		Convey("returns ErrUserNotFound when the user does not exist", func() {
-			err := c.GetUser("userid", (*skydb.AuthInfo)(nil))
+			err := c.GetAuth("userid", (*skydb.AuthInfo)(nil))
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 
 		Convey("returns ErrUserNotFound when the user does not exist by principal", func() {
-			err := c.GetUserByPrincipalID("com.example:janedoe", (*skydb.AuthInfo)(nil))
+			err := c.GetAuthByPrincipalID("com.example:janedoe", (*skydb.AuthInfo)(nil))
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 
 		Convey("updates a user", func() {
-			err := c.CreateUser(&authinfo)
+			err := c.CreateAuth(&authinfo)
 			So(err, ShouldBeNil)
 
-			authinfo.Email = "jane.doe@example.com"
+			authinfo.HashedPassword = []byte("newsecret")
 
-			err = c.UpdateUser(&authinfo)
+			err = c.UpdateAuth(&authinfo)
 			So(err, ShouldBeNil)
 
-			email := ""
-			err = c.QueryRowx("SELECT email FROM _user WHERE id = 'userid'").
-				Scan(&email)
+			hashedPassword := []byte("")
+			err = c.QueryRowx("SELECT password FROM _auth WHERE id = 'userid'").
+				Scan(&hashedPassword)
 			So(err, ShouldBeNil)
-			So(email, ShouldEqual, "jane.doe@example.com")
-		})
-
-		Convey("query for empty", func() {
-			authinfo.Email = ""
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
-
-			emails := []string{""}
-			results, err := c.QueryUser(emails, []string{})
-			So(err, ShouldBeNil)
-			So(len(results), ShouldEqual, 0)
-		})
-
-		Convey("query for users with email", func() {
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
-
-			authinfo.Username = "jane.doe"
-			authinfo.Email = "jane.doe@example.com"
-			authinfo.ID = "userid2"
-			So(c.CreateUser(&authinfo), ShouldBeNil)
-
-			emails := []string{"john.doe@example.com", "jane.doe@example.com"}
-			results, err := c.QueryUser(emails, []string{})
-			So(err, ShouldBeNil)
-
-			userids := []string{}
-			for _, authinfo := range results {
-				userids = append(userids, authinfo.ID)
-			}
-			So(userids, ShouldContain, "userid")
-			So(userids, ShouldContain, "userid2")
-		})
-
-		Convey("query for users with email and username", func() {
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
-
-			authinfo.Username = "jane.doe"
-			authinfo.Email = "jane.doe@example.com"
-			authinfo.ID = "userid2"
-			So(c.CreateUser(&authinfo), ShouldBeNil)
-
-			emails := []string{"john.doe@example.com"}
-			usernames := []string{"jane.doe"}
-			results, err := c.QueryUser(emails, usernames)
-			So(err, ShouldBeNil)
-
-			userids := []string{}
-			for _, authinfo := range results {
-				userids = append(userids, authinfo.ID)
-			}
-			So(userids, ShouldContain, "userid")
-			So(userids, ShouldContain, "userid2")
+			So(hashedPassword, ShouldResemble, []byte("newsecret"))
 		})
 
 		Convey("returns ErrUserNotFound when the user to update does not exist", func() {
-			err := c.UpdateUser(&authinfo)
+			err := c.UpdateAuth(&authinfo)
 			So(err, ShouldEqual, skydb.ErrUserNotFound)
 		})
 
 		Convey("deletes an existing user", func() {
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
-
-			err = c.DeleteUser("userid")
-			So(err, ShouldBeNil)
+			So(c.CreateAuth(&authinfo), ShouldBeNil)
+			So(c.DeleteAuth("userid"), ShouldBeNil)
 
 			placeholder := []byte{}
-			err = c.QueryRowx("SELECT false FROM _user WHERE id = $1", "userid").Scan(&placeholder)
+			err := c.QueryRowx("SELECT false FROM _auth WHERE id = $1", "userid").Scan(&placeholder)
+			So(err, ShouldEqual, sql.ErrNoRows)
+			So(placeholder, ShouldBeEmpty)
+
+			err = c.QueryRowx(`SELECT false FROM "user" WHERE _id = $1`, "userid").Scan(&placeholder)
 			So(err, ShouldEqual, sql.ErrNoRows)
 			So(placeholder, ShouldBeEmpty)
 		})
 
 		Convey("returns ErrUserNotFound when the user to delete does not exist", func() {
-			err := c.DeleteUser("notexistid")
-			So(err, ShouldEqual, skydb.ErrUserNotFound)
+			So(c.DeleteAuth("notexistid"), ShouldEqual, skydb.ErrUserNotFound)
 		})
 
 		Convey("deletes only the desired user", func() {
 			authinfo.ID = "1"
-			authinfo.Username = "user1"
-			authinfo.Email = "user1@skygear.com"
-			err := c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
+			So(c.CreateAuth(&authinfo), ShouldBeNil)
 
 			authinfo.ID = "2"
-			authinfo.Username = "user2"
-			authinfo.Email = "user2@skygear.com"
-			err = c.CreateUser(&authinfo)
-			So(err, ShouldBeNil)
+			So(c.CreateAuth(&authinfo), ShouldBeNil)
 
 			count := 0
-			c.QueryRowx("SELECT COUNT(*) FROM _user").Scan(&count)
+			c.QueryRowx("SELECT COUNT(*) FROM _auth").Scan(&count)
 			So(count, ShouldEqual, 3) // including default admin user
 
-			err = c.DeleteUser("2")
+			err := c.DeleteAuth("2")
 			So(err, ShouldBeNil)
 
-			c.QueryRowx("SELECT COUNT(*) FROM _user").Scan(&count)
+			c.QueryRowx("SELECT COUNT(*) FROM _auth").Scan(&count)
 			So(count, ShouldEqual, 2) // including default admin user
 		})
 	})
 }
 
-func TestUserEagerLoadRole(t *testing.T) {
+func TestAuthEagerLoadRole(t *testing.T) {
 	var c *conn
 
 	Convey("User eager load roles", t, func() {
@@ -373,26 +230,166 @@ func TestUserEagerLoadRole(t *testing.T) {
 
 		authinfo := skydb.AuthInfo{
 			ID:             "userid",
-			Username:       "john.doe",
-			Email:          "john.doe@example.com",
 			Roles:          []string{"user"},
 			HashedPassword: []byte(""),
 		}
-		c.CreateUser(&authinfo)
+		c.CreateAuth(&authinfo)
 
 		Convey("with GetUser", func() {
-			fetchedUserinfo := skydb.AuthInfo{}
-			So(c.GetUser("userid", &fetchedUserinfo), ShouldBeNil)
-			So(fetchedUserinfo, ShouldResemble, authinfo)
+			fetchedAuthinfo := skydb.AuthInfo{}
+			So(c.GetAuth("userid", &fetchedAuthinfo), ShouldBeNil)
+			So(fetchedAuthinfo, ShouldResemble, authinfo)
+		})
+	})
+}
+
+func TestAuthRecordKeys(t *testing.T) {
+	Convey("EnsureUserAuthRecordKeys", t, func() {
+		c := getTestConn(t)
+		defer cleanupConn(t, c)
+
+		Convey("canMigrate is true", func() {
+			c.canMigrate = true
+
+			Convey("no error for default user record", func() {
+				err := c.EnsureAuthRecordKeysExist([][]string{[]string{"username"}, []string{"email"}})
+				So(err, ShouldBeNil)
+			})
+
+			Convey("no error for non existing column, new column created", func() {
+				err := c.EnsureAuthRecordKeysExist([][]string{[]string{"iamyourfather"}})
+				So(err, ShouldBeNil)
+
+				var exists bool
+				c.QueryRowx(`
+				SELECT EXISTS (
+					SELECT 1
+					FROM information_schema.columns
+					WHERE table_name = 'user' AND column_name = 'iamyourfather'
+				)`).Scan(&exists)
+				So(exists, ShouldBeTrue)
+			})
+
+			Convey("no error for existing column with non string type", func() {
+				_, err := c.PublicDB().Extend("user", skydb.RecordSchema{
+					"iamyourfather": skydb.FieldType{Type: skydb.TypeJSON},
+				})
+				So(err, ShouldBeNil)
+
+				err = c.EnsureAuthRecordKeysExist([][]string{[]string{"iamyourfather"}})
+				So(err, ShouldBeNil)
+			})
+
+			Convey("create unique constraints for existing non unique fields", func() {
+				_, err := c.PublicDB().Extend("user", skydb.RecordSchema{
+					"iamyourfather": skydb.FieldType{Type: skydb.TypeString},
+					"iamyourmother": skydb.FieldType{Type: skydb.TypeString},
+				})
+				So(err, ShouldBeNil)
+
+				err = c.EnsureAuthRecordKeysIndexesMatch([][]string{[]string{"iamyourfather", "iamyourmother"}})
+				So(err, ShouldBeNil)
+
+				So(c.PublicDB().Save(&skydb.Record{
+					ID:        skydb.NewRecordID("user", "johndoe"),
+					OwnerID:   "johndoe",
+					CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+					CreatorID: "johndoe",
+					UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+					UpdaterID: "johndoe",
+					Data: map[string]interface{}{
+						"iamyourfather": "father",
+						"iamyourmother": "mother",
+					},
+				}), ShouldBeNil)
+
+				So(c.PublicDB().Save(&skydb.Record{
+					ID:        skydb.NewRecordID("user", "john.doe"),
+					OwnerID:   "john.doe",
+					CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+					CreatorID: "john.doe",
+					UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+					UpdaterID: "john.doe",
+					Data: map[string]interface{}{
+						"iamyourfather": "father",
+						"iamyourmother": "Mother",
+					},
+				}), ShouldBeNil)
+
+				So(c.PublicDB().Save(&skydb.Record{
+					ID:        skydb.NewRecordID("user", "john.do.e"),
+					OwnerID:   "john.do.e",
+					CreatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+					CreatorID: "john.do.e",
+					UpdatedAt: time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+					UpdaterID: "john.do.e",
+					Data: map[string]interface{}{
+						"iamyourfather": "father",
+						"iamyourmother": "Mother",
+					},
+				}), ShouldNotBeNil)
+			})
+
+			Convey("remove managed unique constraints for fields no longer auth record keys", func() {
+				_, err := c.PublicDB().Extend("user", skydb.RecordSchema{
+					"iamyourfather": skydb.FieldType{Type: skydb.TypeString},
+					"iamyourmother": skydb.FieldType{Type: skydb.TypeString},
+				})
+				So(err, ShouldBeNil)
+
+				db := c.PublicDB().(*database)
+				err = c.EnsureAuthRecordKeysIndexesMatch([][]string{[]string{"iamyourfather"}, []string{"iamyourmother"}})
+				So(err, ShouldBeNil)
+				indexes, err := db.GetIndexesByRecordType("user")
+				So(err, ShouldBeNil)
+				So(indexes, ShouldContainKey, "auth_record_keys_user_iamyourfather_key")
+				So(indexes, ShouldContainKey, "auth_record_keys_user_iamyourmother_key")
+
+				err = c.EnsureAuthRecordKeysIndexesMatch([][]string{[]string{"iamyourfather"}})
+				So(err, ShouldBeNil)
+				indexes, err = db.GetIndexesByRecordType("user")
+				So(err, ShouldBeNil)
+				So(indexes, ShouldContainKey, "auth_record_keys_user_iamyourfather_key")
+				So(indexes, ShouldNotContainKey, "auth_record_keys_user_iamyourmother_key")
+			})
 		})
 
-		Convey("with UserQuery", func() {
-			results, err := c.QueryUser([]string{
-				"john.doe@example.com",
-			}, []string{})
-			So(err, ShouldBeNil)
+		Convey("canMigrate is false", func() {
+			c.canMigrate = false
 
-			So(results[0], ShouldResemble, authinfo)
+			Convey("no error for default user record", func() {
+				err := c.EnsureAuthRecordKeysExist([][]string{[]string{"username"}, []string{"email"}})
+				So(err, ShouldBeNil)
+			})
+
+			Convey("error for non existing column", func() {
+				err := c.EnsureAuthRecordKeysExist([][]string{[]string{"iamyourfather"}})
+				So(err, ShouldNotBeNil)
+			})
+
+			Convey("no error for existing column with non string type", func() {
+				c.canMigrate = true
+				_, err := c.PublicDB().Extend("user", skydb.RecordSchema{
+					"iamyourfather": skydb.FieldType{Type: skydb.TypeJSON},
+				})
+				So(err, ShouldBeNil)
+				c.canMigrate = false
+
+				err = c.EnsureAuthRecordKeysExist([][]string{[]string{"iamyourfather"}})
+				So(err, ShouldBeNil)
+			})
+
+			Convey("error for existing column without unique constraint", func() {
+				c.canMigrate = true
+				_, err := c.PublicDB().Extend("user", skydb.RecordSchema{
+					"iamyourfather": skydb.FieldType{Type: skydb.TypeString},
+				})
+				So(err, ShouldBeNil)
+				c.canMigrate = false
+
+				err = c.EnsureAuthRecordKeysIndexesMatch([][]string{[]string{"iamyourfather"}})
+				So(err, ShouldNotBeNil)
+			})
 		})
 	})
 }

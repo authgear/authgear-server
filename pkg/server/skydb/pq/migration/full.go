@@ -25,7 +25,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "bd7643dc5c8" }
+func (r *fullMigration) Version() string { return "81beb4d8658c" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -56,17 +56,12 @@ CREATE OR REPLACE FUNCTION public.notify_record_change() RETURNS TRIGGER AS $$
 	END;
 $$ LANGUAGE plpgsql;
 
-CREATE TABLE _user (
+CREATE TABLE _auth (
 	id text PRIMARY KEY,
-	username citext,
-	email citext,
 	password text,
-	auth jsonb,
+	provider_info jsonb,
 	token_valid_since timestamp without time zone,
-	last_login_at timestamp without time zone,
-	last_seen_at timestamp without time zone,
-	UNIQUE (username),
-	UNIQUE (email)
+	last_seen_at timestamp without time zone
 );
 
 CREATE TABLE _role (
@@ -75,10 +70,10 @@ CREATE TABLE _role (
 	is_admin boolean DEFAULT FALSE
 );
 
-CREATE TABLE _user_role (
-	user_id text REFERENCES _user (id) NOT NULL,
+CREATE TABLE _auth_role (
+	auth_id text REFERENCES _auth (id) NOT NULL,
 	role_id text REFERENCES _role (id) NOT NULL,
-	PRIMARY KEY (user_id, role_id)
+	PRIMARY KEY (auth_id, role_id)
 );
 
 CREATE TABLE _asset (
@@ -88,31 +83,31 @@ CREATE TABLE _asset (
 );
 CREATE TABLE _device (
 	id text PRIMARY KEY,
-	user_id text REFERENCES _user (id),
+	auth_id text REFERENCES _auth (id),
 	type text NOT NULL,
 	token text,
 	topic text,
 	last_registered_at timestamp without time zone NOT NULL,
-	UNIQUE (user_id, type, token)
+	UNIQUE (auth_id, type, token)
 );
 CREATE INDEX ON _device (token, last_registered_at);
 CREATE TABLE _subscription (
 	id text NOT NULL,
-	user_id text NOT NULL,
+	auth_id text NOT NULL,
 	device_id text REFERENCES _device (id) ON DELETE CASCADE NOT NULL,
 	type text NOT NULL,
 	notification_info jsonb,
 	query jsonb,
-	PRIMARY KEY(user_id, device_id, id)
+	PRIMARY KEY(auth_id, device_id, id)
 );
 CREATE TABLE _friend (
 	left_id text NOT NULL,
-	right_id text REFERENCES _user (id) NOT NULL,
+	right_id text REFERENCES _auth (id) NOT NULL,
 	PRIMARY KEY(left_id, right_id)
 );
 CREATE TABLE _follow (
 	left_id text NOT NULL,
-	right_id text REFERENCES _user (id) NOT NULL,
+	right_id text REFERENCES _auth (id) NOT NULL,
 	PRIMARY KEY(left_id, right_id)
 );
 CREATE TABLE _record_creation (
@@ -138,6 +133,35 @@ CREATE TABLE _record_field_access (
     discoverable boolean NOT NULL,
     PRIMARY KEY (record_type, record_field, user_role)
 );
+CREATE TABLE "user" (
+    _id text,
+    _database_id text,
+    _owner_id text,
+    _access jsonb,
+    _created_at timestamp without time zone NOT NULL,
+    _created_by text,
+    _updated_at timestamp without time zone NOT NULL,
+    _updated_by text,
+    username citext,
+    email citext,
+    last_login_at timestamp without time zone,
+    PRIMARY KEY(_id, _database_id, _owner_id),
+    UNIQUE (_id)
+);
+ALTER TABLE "user" ADD CONSTRAINT auth_record_keys_user_username_key UNIQUE (username);
+ALTER TABLE "user" ADD CONSTRAINT auth_record_keys_user_email_key UNIQUE (email);
+CREATE VIEW _user AS
+    SELECT
+        a.id,
+        a.password,
+        u.username,
+        u.email,
+        a.provider_info AS auth,
+        a.token_valid_since,
+        u.last_login_at,
+        a.last_seen_at
+    FROM _auth AS a
+    JOIN "user" AS u ON u._id = a.id;
 `
 	_, err := tx.Exec(stmt)
 	return err
@@ -160,13 +184,12 @@ func (r *fullMigration) insertSeedData(tx *sqlx.Tx) error {
 			adminRoleDefaultName,
 		),
 		fmt.Sprintf(
-			`INSERT INTO _user (id, username, password) VALUES ('%s', '%s', '%s')`,
+			`INSERT INTO _auth (id, password) VALUES ('%s', '%s')`,
 			newUserID,
-			adminUserDefaultUsername,
 			hashedPassword,
 		),
 		fmt.Sprintf(
-			`INSERT INTO _user_role (user_id, role_id) VALUES('%s', '%s')`,
+			`INSERT INTO _auth_role (auth_id, role_id) VALUES('%s', '%s')`,
 			newUserID,
 			adminRoleDefaultName,
 		),

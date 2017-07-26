@@ -19,12 +19,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	pluginEvent "github.com/skygeario/skygear-server/pkg/server/plugin/event"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
+	"github.com/skygeario/skygear-server/pkg/server/recordutil"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
@@ -238,26 +239,27 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type RecordSaveHandler struct {
-	HookRegistry  *hook.Registry     `inject:"HookRegistry"`
-	AssetStore    asset.Store        `inject:"AssetStore"`
-	AccessModel   skydb.AccessModel  `inject:"AccessModel"`
-	EventSender   pluginEvent.Sender `inject:"PluginEventSender"`
-	Authenticator router.Processor   `preprocessor:"authenticator"`
-	DBConn        router.Processor   `preprocessor:"dbconn"`
-	InjectUser    router.Processor   `preprocessor:"inject_user"`
-	InjectDB      router.Processor   `preprocessor:"inject_db"`
-	RequireUser   router.Processor   `preprocessor:"require_user"`
-	PluginReady   router.Processor   `preprocessor:"plugin_ready"`
-	preprocessors []router.Processor
+	HookRegistry   *hook.Registry     `inject:"HookRegistry"`
+	AssetStore     asset.Store        `inject:"AssetStore"`
+	AccessModel    skydb.AccessModel  `inject:"AccessModel"`
+	EventSender    pluginEvent.Sender `inject:"PluginEventSender"`
+	AuthRecordKeys [][]string         `inject:"AuthRecordKeys"`
+	Authenticator  router.Processor   `preprocessor:"authenticator"`
+	DBConn         router.Processor   `preprocessor:"dbconn"`
+	InjectAuth     router.Processor   `preprocessor:"inject_auth"`
+	InjectDB       router.Processor   `preprocessor:"inject_db"`
+	RequireAuth    router.Processor   `preprocessor:"require_auth"`
+	PluginReady    router.Processor   `preprocessor:"plugin_ready"`
+	preprocessors  []router.Processor
 }
 
 func (h *RecordSaveHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
-		h.RequireUser,
+		h.RequireAuth,
 		h.PluginReady,
 	}
 }
@@ -279,7 +281,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	resultFilter, err := newRecordResultFilter(
+	resultFilter, err := recordutil.NewRecordResultFilter(
 		payload.DBConn,
 		h.AssetStore,
 		payload.AuthInfo,
@@ -292,7 +294,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 
 	log.Debugf("Working with accessModel %v", h.AccessModel)
 
-	req := recordModifyRequest{
+	req := recordutil.RecordModifyRequest{
 		Db:            payload.Database,
 		Conn:          payload.DBConn,
 		AssetStore:    h.AssetStore,
@@ -302,8 +304,9 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		Atomic:        p.Atomic,
 		WithMasterKey: payload.HasMasterKey(),
 		Context:       payload.Context,
+		ModifyAt:      timeNow(),
 	}
-	resp := recordModifyResponse{
+	resp := recordutil.RecordModifyResponse{
 		ErrMap: map[skydb.RecordID]skyerr.Error{},
 	}
 
@@ -319,9 +322,23 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 				})
 			return
 		}
-		saveFunc = atomicModifyFunc(&req, &resp, recordSaveHandler)
+		saveFunc = atomicModifyFunc(&req, &resp, recordutil.RecordSaveHandler)
 	} else {
-		saveFunc = recordSaveHandler
+		saveFunc = recordutil.RecordSaveHandler
+	}
+
+	// derive and extend record schema
+	// hotfix (Steven-Chan): moved outside of the transaction to prevent deadlock
+	schemaUpdated, err := recordutil.ExtendRecordSchema(payload.Database, p.Records)
+	if err != nil {
+		log.WithField("err", err).Errorln("failed to migrate record schema")
+		if myerr, ok := err.(skyerr.Error); ok {
+			response.Err = myerr
+			return
+		}
+
+		response.Err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
+		return
 	}
 
 	if err := saveFunc(&req, &resp); err != nil {
@@ -330,9 +347,22 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	currRecordIdx := 0
 	results := make([]interface{}, 0, p.ItemLen())
-	for _, itemi := range p.IncomingItems {
+	h.makeResultsFromIncomingItem(p.IncomingItems, resp, resultFilter, &results)
+
+	response.Result = results
+
+	if schemaUpdated && h.EventSender != nil {
+		err := sendSchemaChangedEvent(h.EventSender, payload.Database)
+		if err != nil {
+			log.WithField("err", err).Warn("Fail to send schema changed event")
+		}
+	}
+}
+
+func (h *RecordSaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, resp recordutil.RecordModifyResponse, resultFilter recordutil.RecordResultFilter, results *[]interface{}) {
+	currRecordIdx := 0
+	for _, itemi := range incomingItems {
 		var result interface{}
 
 		switch item := itemi.(type) {
@@ -355,15 +385,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 			panic(fmt.Sprintf("unknown type of incoming item: %T", itemi))
 		}
 
-		results = append(results, result)
-	}
-	response.Result = results
-
-	if resp.SchemaUpdated && h.EventSender != nil {
-		err := sendSchemaChangedEvent(h.EventSender, payload.Database)
-		if err != nil {
-			log.WithField("err", err).Warn("Fail to send schema changed event")
-		}
+		*results = append(*results, result)
 	}
 }
 
@@ -419,7 +441,7 @@ type RecordFetchHandler struct {
 	AccessModel   skydb.AccessModel `inject:"AccessModel"`
 	Authenticator router.Processor  `preprocessor:"authenticator"`
 	DBConn        router.Processor  `preprocessor:"dbconn"`
-	InjectUser    router.Processor  `preprocessor:"inject_user"`
+	InjectAuth    router.Processor  `preprocessor:"inject_auth"`
 	InjectDB      router.Processor  `preprocessor:"inject_db"`
 	PluginReady   router.Processor  `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -429,7 +451,7 @@ func (h *RecordFetchHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.PluginReady,
 	}
@@ -448,7 +470,7 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 	}
 
 	db := payload.Database
-	resultFilter, err := newRecordResultFilter(
+	resultFilter, err := recordutil.NewRecordResultFilter(
 		payload.DBConn,
 		h.AssetStore,
 		payload.AuthInfo,
@@ -459,11 +481,11 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	fetcher := newRecordFetcher(db, payload.DBConn, payload.HasMasterKey())
+	fetcher := recordutil.NewRecordFetcher(db, payload.DBConn, payload.HasMasterKey())
 
 	results := make([]interface{}, p.ItemLen(), p.ItemLen())
 	for i, recordID := range p.RecordIDs {
-		record, err := fetcher.fetchRecord(recordID, payload.AuthInfo, skydb.ReadLevel)
+		record, err := fetcher.FetchRecord(recordID, payload.AuthInfo, skydb.ReadLevel)
 		if err != nil {
 			results[i] = newSerializedError(
 				recordID.String(),
@@ -518,7 +540,7 @@ type RecordQueryHandler struct {
 	AccessModel   skydb.AccessModel `inject:"AccessModel"`
 	Authenticator router.Processor  `preprocessor:"authenticator"`
 	DBConn        router.Processor  `preprocessor:"dbconn"`
-	InjectUser    router.Processor  `preprocessor:"inject_user"`
+	InjectAuth    router.Processor  `preprocessor:"inject_auth"`
 	InjectDB      router.Processor  `preprocessor:"inject_db"`
 	PluginReady   router.Processor  `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -528,7 +550,7 @@ func (h *RecordQueryHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.PluginReady,
 	}
@@ -605,11 +627,11 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	// Scan does not query assets,
 	// it only replaces them with assets then only have name,
 	// so we replace them with some complete assets.
-	makeAssetsComplete(db, payload.DBConn, records)
+	recordutil.MakeAssetsComplete(db, payload.DBConn, records)
 
-	eagerRecords := doQueryEager(db, eagerIDs(db, records, p.Query))
+	eagerRecords := recordutil.DoQueryEager(db, recordutil.EagerIDs(db, records, p.Query))
 
-	recordResultFilter, err := newRecordResultFilter(
+	recordResultFilter, err := recordutil.NewRecordResultFilter(
 		payload.DBConn,
 		h.AssetStore,
 		payload.AuthInfo,
@@ -620,11 +642,11 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	resultFilter := queryResultFilter{
+	resultFilter := recordutil.QueryResultFilter{
 		Database:           db,
 		Query:              p.Query,
 		EagerRecords:       eagerRecords,
-		recordResultFilter: recordResultFilter,
+		RecordResultFilter: recordResultFilter,
 	}
 
 	output := make([]interface{}, len(records))
@@ -635,7 +657,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	response.Result = output
 
-	resultInfo, err := queryResultInfo(db, &p.Query, results)
+	resultInfo, err := recordutil.QueryResultInfo(db, &p.Query, results)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -701,9 +723,9 @@ type RecordDeleteHandler struct {
 	AccessModel   skydb.AccessModel `inject:"AccessModel"`
 	Authenticator router.Processor  `preprocessor:"authenticator"`
 	DBConn        router.Processor  `preprocessor:"dbconn"`
-	InjectUser    router.Processor  `preprocessor:"inject_user"`
+	InjectAuth    router.Processor  `preprocessor:"inject_auth"`
 	InjectDB      router.Processor  `preprocessor:"inject_db"`
-	RequireUser   router.Processor  `preprocessor:"require_user"`
+	RequireAuth   router.Processor  `preprocessor:"require_auth"`
 	PluginReady   router.Processor  `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -712,9 +734,9 @@ func (h *RecordDeleteHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
-		h.RequireUser,
+		h.RequireAuth,
 		h.PluginReady,
 	}
 }
@@ -736,7 +758,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	req := recordModifyRequest{
+	req := recordutil.RecordModifyRequest{
 		Db:                payload.Database,
 		Conn:              payload.DBConn,
 		HookRegistry:      h.HookRegistry,
@@ -746,15 +768,15 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		Context:           payload.Context,
 		AuthInfo:          payload.AuthInfo,
 	}
-	resp := recordModifyResponse{
+	resp := recordutil.RecordModifyResponse{
 		ErrMap: map[skydb.RecordID]skyerr.Error{},
 	}
 
 	var deleteFunc recordModifyFunc
 	if p.Atomic {
-		deleteFunc = atomicModifyFunc(&req, &resp, recordDeleteHandler)
+		deleteFunc = atomicModifyFunc(&req, &resp, recordutil.RecordDeleteHandler)
 	} else {
-		deleteFunc = recordDeleteHandler
+		deleteFunc = recordutil.RecordDeleteHandler
 	}
 
 	if err := deleteFunc(&req, &resp); err != nil {
@@ -787,4 +809,37 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 	}
 
 	response.Result = results
+}
+
+type recordModifyFunc func(*recordutil.RecordModifyRequest, *recordutil.RecordModifyResponse) skyerr.Error
+
+func atomicModifyFunc(req *recordutil.RecordModifyRequest, resp *recordutil.RecordModifyResponse, mFunc recordModifyFunc) recordModifyFunc {
+	return func(req *recordutil.RecordModifyRequest, resp *recordutil.RecordModifyResponse) (err skyerr.Error) {
+		txDB, ok := req.Db.(skydb.Transactional)
+		if !ok {
+			err = skyerr.NewError(skyerr.NotSupported, "database impl does not support transaction")
+			return
+		}
+
+		txErr := skydb.WithTransaction(txDB, func() error {
+			return mFunc(req, resp)
+		})
+
+		if len(resp.ErrMap) > 0 {
+			info := map[string]interface{}{}
+			for recordID, err := range resp.ErrMap {
+				info[recordID.String()] = err
+			}
+
+			return skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
+				"Atomic Operation rolled back due to one or more errors",
+				info)
+		} else if txErr != nil {
+			err = skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
+				"Atomic Operation rolled back due to an error",
+				map[string]interface{}{"innerError": txErr})
+
+		}
+		return
+	}
 }

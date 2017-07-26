@@ -70,7 +70,7 @@ func TestDevice(t *testing.T) {
 				deviceType, token, topic, authInfoID string
 				lastRegisteredAt                     time.Time
 			)
-			err = c.QueryRowx("SELECT type, token, topic, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").Scan(&deviceType, &token, &topic, &authInfoID, &lastRegisteredAt)
+			err = c.QueryRowx("SELECT type, token, topic, auth_id, last_registered_at FROM _device WHERE id = 'deviceid'").Scan(&deviceType, &token, &topic, &authInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
 			So(token, ShouldEqual, "devicetoken")
@@ -99,7 +99,7 @@ func TestDevice(t *testing.T) {
 				deviceType, token, topic, authInfoID string
 				lastRegisteredAt                     time.Time
 			)
-			err = c.QueryRowx("SELECT type, token, topic, user_id, last_registered_at FROM _device WHERE id = 'deviceid'").Scan(&deviceType, &token, &topic, &authInfoID, &lastRegisteredAt)
+			err = c.QueryRowx("SELECT type, token, topic, auth_id, last_registered_at FROM _device WHERE id = 'deviceid'").Scan(&deviceType, &token, &topic, &authInfoID, &lastRegisteredAt)
 			So(err, ShouldBeNil)
 			So(deviceType, ShouldEqual, "ios")
 			So(token, ShouldEqual, "anotherdevicetoken")

@@ -17,7 +17,6 @@ package skydbtest
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -27,8 +26,7 @@ import (
 type MapConn struct {
 	UserMap                map[string]skydb.AuthInfo
 	AssetMap               map[string]skydb.Asset
-	usernameMap            map[string]skydb.AuthInfo
-	emailMap               map[string]skydb.AuthInfo
+	InternalPublicDB       skydb.Database
 	recordAccessMap        map[string]skydb.RecordACL
 	recordDefaultAccessMap map[string]skydb.RecordACL
 	fieldAccess            skydb.FieldACL
@@ -39,8 +37,6 @@ type MapConn struct {
 func NewMapConn() *MapConn {
 	return &MapConn{
 		UserMap:                map[string]skydb.AuthInfo{},
-		usernameMap:            map[string]skydb.AuthInfo{},
-		emailMap:               map[string]skydb.AuthInfo{},
 		recordAccessMap:        map[string]skydb.RecordACL{},
 		recordDefaultAccessMap: map[string]skydb.RecordACL{},
 		fieldAccess:            skydb.FieldACL{},
@@ -48,26 +44,18 @@ func NewMapConn() *MapConn {
 	}
 }
 
-// CreateUser creates a AuthInfo in UserMap.
-func (conn *MapConn) CreateUser(authinfo *skydb.AuthInfo) error {
+// CreateAuth creates a AuthInfo in UserMap.
+func (conn *MapConn) CreateAuth(authinfo *skydb.AuthInfo) error {
 	if _, existed := conn.UserMap[authinfo.ID]; existed {
-		return skydb.ErrUserDuplicated
-	}
-	if _, existed := conn.usernameMap[authinfo.Username]; existed {
-		return skydb.ErrUserDuplicated
-	}
-	if _, existed := conn.emailMap[authinfo.Email]; existed {
 		return skydb.ErrUserDuplicated
 	}
 
 	conn.UserMap[authinfo.ID] = *authinfo
-	conn.usernameMap[strings.ToLower(authinfo.Username)] = *authinfo
-	conn.emailMap[strings.ToLower(authinfo.Email)] = *authinfo
 	return nil
 }
 
-// GetUser returns a AuthInfo in UserMap.
-func (conn *MapConn) GetUser(id string, authinfo *skydb.AuthInfo) error {
+// GetAuth returns a AuthInfo in UserMap.
+func (conn *MapConn) GetAuth(id string, authinfo *skydb.AuthInfo) error {
 	u, ok := conn.UserMap[id]
 	if !ok {
 		return skydb.ErrUserNotFound
@@ -77,35 +65,10 @@ func (conn *MapConn) GetUser(id string, authinfo *skydb.AuthInfo) error {
 	return nil
 }
 
-// GetUserByUsernameEmail returns a AuthInfo in UserMap by email address.
-func (conn *MapConn) GetUserByUsernameEmail(username string, email string, authinfo *skydb.AuthInfo) error {
-	var (
-		u  skydb.AuthInfo
-		ok bool
-	)
-	if email == "" {
-		u, ok = conn.usernameMap[strings.ToLower(username)]
-	} else if username == "" {
-		u, ok = conn.emailMap[strings.ToLower(email)]
-	} else {
-		u, ok = conn.usernameMap[username]
-		if u.Email != email {
-			ok = false
-		}
-	}
-
-	if !ok {
-		return skydb.ErrUserNotFound
-	}
-
-	*authinfo = u
-	return nil
-}
-
-// GetUserByPrincipalID returns a AuthInfo by its principalID.
-func (conn *MapConn) GetUserByPrincipalID(principalID string, authinfo *skydb.AuthInfo) error {
+// GetAuthByPrincipalID returns a AuthInfo by its principalID.
+func (conn *MapConn) GetAuthByPrincipalID(principalID string, authinfo *skydb.AuthInfo) error {
 	for _, u := range conn.UserMap {
-		if _, ok := u.Auth[principalID]; ok {
+		if _, ok := u.ProviderInfo[principalID]; ok {
 			*authinfo = u
 			return nil
 		}
@@ -114,13 +77,8 @@ func (conn *MapConn) GetUserByPrincipalID(principalID string, authinfo *skydb.Au
 	return skydb.ErrUserNotFound
 }
 
-// QueryUser is not implemented.
-func (conn *MapConn) QueryUser(emails []string, usernames []string) ([]skydb.AuthInfo, error) {
-	panic("not implemented")
-}
-
-// UpdateUser updates an existing AuthInfo in UserMap.
-func (conn *MapConn) UpdateUser(authinfo *skydb.AuthInfo) error {
+// UpdateAuth updates an existing AuthInfo in UserMap.
+func (conn *MapConn) UpdateAuth(authinfo *skydb.AuthInfo) error {
 	if _, ok := conn.UserMap[authinfo.ID]; !ok {
 		return skydb.ErrUserNotFound
 	}
@@ -129,8 +87,8 @@ func (conn *MapConn) UpdateUser(authinfo *skydb.AuthInfo) error {
 	return nil
 }
 
-// DeleteUser remove an existing in UserMap.
-func (conn *MapConn) DeleteUser(id string) error {
+// DeleteAuth remove an existing in UserMap.
+func (conn *MapConn) DeleteAuth(id string) error {
 	if _, ok := conn.UserMap[id]; !ok {
 		return skydb.ErrUserNotFound
 	}
@@ -279,7 +237,7 @@ func (conn *MapConn) DeleteEmptyDevicesByTime(t time.Time) error {
 
 // PublicDB is not implemented.
 func (conn *MapConn) PublicDB() skydb.Database {
-	panic("not implemented")
+	return conn.InternalPublicDB
 }
 
 // PrivateDB is not implemented.
@@ -290,6 +248,10 @@ func (conn *MapConn) PrivateDB(userKey string) skydb.Database {
 // Subscribe is not implemented.
 func (conn *MapConn) Subscribe(recordEventChan chan skydb.RecordEvent) error {
 	panic("not implemented")
+}
+
+func (conn *MapConn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
+	return nil
 }
 
 // Close does nothing.
@@ -357,7 +319,9 @@ func (db *MapDB) Save(record *skydb.Record) error {
 	recordID := record.ID.String()
 
 	if origRecord, ok := db.RecordMap[recordID]; ok {
-		*record = *origRecord.MergedCopy(record)
+		// keep the meta-data of record, only update record.Data
+		origRecordMergedCopy := origRecord.MergedCopy(record)
+		record.Apply(&origRecordMergedCopy)
 	}
 
 	db.RecordMap[recordID] = *record

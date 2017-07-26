@@ -15,11 +15,14 @@
 package handler
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/recordutil"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -85,7 +88,9 @@ func (payload *relationQueryPayload) Validate() skyerr.Error {
 //             "id": "1001",
 //             "type": "user",
 //             "data": {
-//                 "_id": "1001",
+//                 "_type": "record",
+//                 "_id": "user/1001",
+//                 "_access": null,
 //                 "username": "user1001",
 //                 "email": "user1001@skygear.io"
 //             }
@@ -94,7 +99,9 @@ func (payload *relationQueryPayload) Validate() skyerr.Error {
 //             "id": "1002",
 //             "type": "user",
 //             "data": {
+//                 "_type": "record",
 //                 "_id": "1002",
+//                 "_access": null,
 //                 "username": "user1002",
 //                 "email": "user1001@skygear.io"
 //             }
@@ -105,9 +112,10 @@ func (payload *relationQueryPayload) Validate() skyerr.Error {
 //     }
 // }
 type RelationQueryHandler struct {
+	AssetStore    asset.Store      `inject:"AssetStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -117,7 +125,7 @@ func (h *RelationQueryHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.PluginReady,
 	}
@@ -143,11 +151,24 @@ func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router
 		})
 	resultList := make([]interface{}, 0, len(result))
 	for _, authinfo := range result {
+		user, err := fetchUser(
+			rpayload.Database,
+			rpayload.DBConn,
+			h.AssetStore,
+			*rpayload.AuthInfo,
+			authinfo.ID,
+			rpayload.HasMasterKey(),
+		)
+		if err != nil {
+			response.Err = skyerr.MakeError(err)
+			return
+		}
+
 		resultList = append(resultList, struct {
 			ID   string      `json:"id"`
 			Type string      `json:"type"`
 			Data interface{} `json:"data"`
-		}{authinfo.ID, "user", authinfo})
+		}{authinfo.ID, "user", &user})
 	}
 	response.Result = resultList
 	count, countErr := rpayload.DBConn.QueryRelationCount(
@@ -208,7 +229,9 @@ func (payload *relationChangePayload) Validate() skyerr.Error {
 //             "id": "1001",
 //             "type": "user",
 //             "data": {
+//                 "_type": "record",
 //                 "_id": "1001",
+//                 "_access": null,
 //                 "username": "user1001",
 //                 "email": "user1001@skygear.io"
 //             }
@@ -225,9 +248,10 @@ func (payload *relationChangePayload) Validate() skyerr.Error {
 //     ]
 // }
 type RelationAddHandler struct {
+	AssetStore    asset.Store      `inject:"AssetStore"`
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -237,7 +261,7 @@ func (h *RelationAddHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.PluginReady,
 	}
@@ -271,14 +295,24 @@ func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.R
 				Data skyerr.Error `json:"data"`
 			}{target, "error", skyerr.NewResourceFetchFailureErr("user", target)})
 		} else {
-			authinfo := skydb.AuthInfo{}
-			rpayload.DBConn.GetUser(target, &authinfo)
-			authinfo.HashedPassword = []byte{}
+			user, err := fetchUser(
+				rpayload.Database,
+				rpayload.DBConn,
+				h.AssetStore,
+				*rpayload.AuthInfo,
+				target,
+				rpayload.HasMasterKey(),
+			)
+			if err != nil {
+				response.Err = skyerr.MakeError(err)
+				return
+			}
+
 			results = append(results, struct {
 				ID   string      `json:"id"`
 				Type string      `json:"type"`
 				Data interface{} `json:"data"`
-			}{target, "user", authinfo})
+			}{target, "user", &user})
 		}
 	}
 	response.Result = results
@@ -300,7 +334,7 @@ func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.R
 type RelationRemoveHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -310,7 +344,7 @@ func (h *RelationRemoveHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.InjectDB,
 		h.PluginReady,
 	}
@@ -350,4 +384,21 @@ func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *route
 		}
 	}
 	response.Result = results
+}
+
+func fetchUser(db skydb.Database, conn skydb.Conn, assetStore asset.Store, info skydb.AuthInfo, userID string, hasMasterKey bool) (jsonUser skyconv.JSONRecord, err error) {
+	user := skydb.Record{}
+	if err = db.Get(skydb.NewRecordID("user", userID), &user); err != nil {
+		// TODO: handle auth without user in a better way
+		return
+	}
+
+	filter, err := recordutil.NewRecordResultFilter(conn, assetStore, &info, hasMasterKey)
+	if err != nil {
+		return
+	}
+
+	result := filter.JSONResult(&user)
+	jsonUser = *result
+	return
 }

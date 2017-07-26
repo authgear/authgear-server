@@ -48,8 +48,8 @@ func (h *LambdaHandler) Setup() {
 		h.preprocessors = h.PreprocessorList.GetByNames(
 			"authenticator",
 			"dbconn",
-			"inject_user",
-			"require_user",
+			"inject_auth",
+			"require_auth",
 			"plugin_ready",
 		)
 	} else if h.AccessKeyRequired {
