@@ -1,5 +1,5 @@
-hash: 9b3956092904fd76cec1cfdc4436daffff4f8197d786851b3263fa3e4bab2012
-updated: 2017-07-25T01:25:09.505907587+08:00
+hash: b7d52e1ba7ffc7e5f9c8e4b42065629c49f23ed53413271430aad18e29396aaa
+updated: 2017-07-25T12:09:54.926800567+08:00
 imports:
 - name: github.com/certifi/gocertifi
   version: a9c833d2837d3b16888d55d5aafa9ffe9afb22b0
@@ -69,7 +69,7 @@ imports:
 - name: github.com/twinj/uuid
   version: b505f2cca343b7b21416b27b1f2ad88469800892
 - name: github.com/zeromq/goczmq
-  version: 91476d8f9ec24f1c2b7d35d459a9d2b32376e450
+  version: faef36c9feea28111fd413ea29ea99d80ef54e7b
 - name: golang.org/x/crypto
   version: 173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd
   subpackages:
