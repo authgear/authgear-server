@@ -710,7 +710,8 @@ func makeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, recor
 	return nil
 }
 
-// NewRecordResultFilter return a RecordResultFilter which
+// RecordResultFilter is for processing Record into results.
+//
 // 1. Apply field-based acl, remove fields that are not accessible to the
 //    provided authInfo
 // 2. Inject asset
@@ -723,6 +724,7 @@ type RecordResultFilter struct {
 	BypassAccessControl bool
 }
 
+// NewRecordResultFilter return a RecordResultFilter.
 func NewRecordResultFilter(conn skydb.Conn, assetStore asset.Store, authInfo *skydb.AuthInfo, bypassAccessControl bool) (RecordResultFilter, error) {
 	var (
 		acl skydb.FieldACL
