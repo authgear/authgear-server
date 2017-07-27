@@ -1,3 +1,9 @@
+## 1.0.0 (2017-06-30)
+
+### Bug Fixes
+
+- Do not allow API KEY to be the same as MASTER_KEY
+
 ## 0.24.0 (2017-05-23)
 
 ### Features
@@ -75,6 +81,12 @@
 
 - Add Nix derivation for building
 - Require go1.7.4
+
+## 0.21.2 (2017-02-09)
+
+### Bug Fixes
+
+- Fix request context not initialized (#284)
 
 ## 0.21.1 (2017-01-19)
 
@@ -269,6 +281,12 @@
 - Make the CORSHost default to `*`
 - Switch to go 1.6
 
+## 0.12.2 (2016-07-05)
+
+### Incompatible changes
+
+- Change the token expiry default to never (#65)
+
 ## 0.12.1 (2016-06-02)
 
 ### Bug fixes
@@ -348,6 +366,12 @@
 - Check record permission on record:* handler
 - Add CloudFormation template and scripts #561
 - Add ACL matching by JSON pattern #299
+
+## 0.6.1 (2016-03-29)
+
+### Bug Fixes
+
+- Fix last subscriber stealing all published message oursky/skygear-server#642
 
 ## 0.6.0 (2016-02-24)
 
