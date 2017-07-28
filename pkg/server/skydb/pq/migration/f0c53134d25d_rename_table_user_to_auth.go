@@ -132,16 +132,6 @@ ALTER TABLE _auth RENAME auth to provider_info;
 -- Migrate username and email to user table
 ALTER TABLE "user" ADD COLUMN username citext UNIQUE;
 ALTER TABLE "user" ADD COLUMN email citext UNIQUE;
-
-UPDATE "user"
-SET
-	username = a.username,
-	email = a.email
-FROM _auth as a
-WHERE a.id = "user"._id;
-
-ALTER TABLE _auth DROP COLUMN username;
-ALTER TABLE _auth DROP COLUMN email;
 		`
 	} else {
 		migrateUserStmt = `
@@ -166,6 +156,36 @@ CREATE TABLE "user" (
 	}
 
 	_, err = tx.Exec(migrateUserStmt)
+	if err != nil {
+		return err
+	}
+
+	addMissingUserStmt := `
+INSERT INTO "user" (_id,_database_id,_owner_id,_access,_created_at,_created_by,_updated_at,_updated_by)
+SELECT id,'',id,NULL,Now(),id,Now(),id
+FROM   "_auth" AS a
+WHERE  id NOT IN (
+	SELECT _id AS id FROM "user" AS u
+);
+	`
+	_, err = tx.Exec(addMissingUserStmt)
+	if err != nil {
+		return err
+	}
+
+	updateUserAuthDataStmt := `
+UPDATE "user"
+SET
+	username = a.username,
+	email = a.email
+FROM _auth as a
+WHERE a.id = "user"._id;
+
+ALTER TABLE _auth DROP COLUMN username;
+ALTER TABLE _auth DROP COLUMN email;
+	`
+
+	_, err = tx.Exec(updateUserAuthDataStmt)
 	if err != nil {
 		return err
 	}
