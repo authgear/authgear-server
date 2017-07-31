@@ -136,20 +136,6 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 
 	var user *skydb.Record
 	txErr := skydb.WithTransaction(txDB, func() error {
-		// Check if AuthData duplicated only when it is provided
-		// AuthData may be absent, e.g. login with provider
-		if !authData.IsEmpty() {
-			fetcher := newUserAuthFetcher(db, ctx.DBConn)
-			_, _, err := fetcher.FetchAuth(authData)
-			if err == nil {
-				return errUserDuplicated
-			}
-
-			if err != skydb.ErrUserNotFound {
-				return skyerr.MakeError(err)
-			}
-		}
-
 		if err := ctx.DBConn.CreateAuth(info); err != nil {
 			if err == skydb.ErrUserDuplicated {
 				return errUserDuplicated
@@ -178,6 +164,14 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 
 		err := recordutil.RecordSaveHandler(&recordReq, &recordResp)
 		if err != nil {
+			return err
+		}
+
+		if err := recordResp.ErrMap[userRecord.ID]; err != nil {
+			if skyErr, ok := err.(skyerr.Error); ok && skyErr.Code() == skyerr.Duplicated {
+				return errUserDuplicated
+			}
+
 			return err
 		}
 

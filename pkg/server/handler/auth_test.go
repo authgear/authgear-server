@@ -106,7 +106,7 @@ func ExpectDBSaveUserWithAuthData(db *mock_skydb.MockTxDatabase, authData skydb.
 		"username": skydb.FieldType{Type: skydb.TypeString},
 		"email":    skydb.FieldType{Type: skydb.TypeString},
 	}
-	skydbtest.ExpectDBSaveUser(db, &userRecordSchema, MakeUserRecordAssertion(authData))
+	skydbtest.ExpectDBSaveUser(db, &userRecordSchema, MakeUserRecordAssertion(authData), nil)
 }
 
 // Seems like a memory imlementation of skydb will make tests
@@ -129,18 +129,12 @@ func TestSignupHandler(t *testing.T) {
 		defer ctrl.Finish()
 
 		db := mock_skydb.NewMockTxDatabase(ctrl)
-		db.EXPECT().Save(gomock.Any()).Return(nil).AnyTimes()
 		handler := &SignupHandler{
 			TokenStore:     &tokenStore,
 			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
 		}
 
 		Convey("sign up new account", func() {
-			db.EXPECT().
-				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
-				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
-				AnyTimes()
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Commit().After(txBegin)
 
@@ -197,11 +191,6 @@ func TestSignupHandler(t *testing.T) {
 		})
 
 		Convey("sign up new account with profile", func() {
-			db.EXPECT().
-				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
-				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
-				AnyTimes()
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Commit().After(txBegin)
 
@@ -217,7 +206,7 @@ func TestSignupHandler(t *testing.T) {
 				"nickname": "iamyourfather",
 				"number":   float64(0),
 				"boolean":  false,
-			}, authRecordKeys)))
+			}, authRecordKeys)), nil)
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -275,11 +264,6 @@ func TestSignupHandler(t *testing.T) {
 		})
 
 		Convey("sign up new account with profile, with auth data key but not duplicated", func() {
-			db.EXPECT().
-				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
-				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
-				AnyTimes()
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Commit().After(txBegin)
 
@@ -291,7 +275,7 @@ func TestSignupHandler(t *testing.T) {
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 				"nickname": "iamyourfather",
-			}, authRecordKeys)))
+			}, authRecordKeys)), nil)
 
 			req := router.Payload{
 				Data: map[string]interface{}{
@@ -389,11 +373,6 @@ func TestSignupHandler(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			db.EXPECT().
-				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
-				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
-				AnyTimes()
 			db.EXPECT().Save(gomock.Any()).Return(nil).AnyTimes()
 
 			txBegin := db.EXPECT().Begin().AnyTimes()
@@ -430,73 +409,19 @@ func TestSignupHandler(t *testing.T) {
 			So(authinfo.Roles, ShouldResemble, []string{"user"})
 		})
 
-		Convey("sign up duplicate username", func() {
+		Convey("sign up duplicate auth data", func() {
 			authinfo := skydb.NewAuthInfo("secret")
 			conn.CreateAuth(&authinfo)
-			db.EXPECT().
-				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
-				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{
-					skydb.Record{
-						ID: skydb.NewRecordID("user", authinfo.ID),
-						Data: map[string]interface{}{
-							"username": "john.doe",
-							"email":    "john.doe@example.com",
-						},
-					},
-				})), nil).
-				AnyTimes()
-
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Rollback().After(txBegin)
 
-			skydbtest.ExpectDBExtendSchema(db, skydb.RecordSchema{
+			skydbtest.ExpectDBSaveUser(db, &skydb.RecordSchema{
 				"username": skydb.FieldType{Type: skydb.TypeString},
 				"email":    skydb.FieldType{Type: skydb.TypeString},
-			})
-
-			req := router.Payload{
-				Data: map[string]interface{}{
-					"auth_data": map[string]interface{}{
-						"username": "john.doe",
-						"email":    "john.doe@example.com",
-					},
-					"password": "secret",
-				},
-				DBConn:   conn,
-				Database: db,
-			}
-			resp := router.Response{}
-			handler.Handle(&req, &resp)
-
-			So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
-			errorResponse := resp.Err.(skyerr.Error)
-			So(errorResponse.Code(), ShouldEqual, skyerr.Duplicated)
-		})
-
-		Convey("sign up duplicate email", func() {
-			authinfo := skydb.NewAuthInfo("secret")
-			conn.CreateAuth(&authinfo)
-			db.EXPECT().
-				Query(gomock.Any()).
-				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
-				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{
-					skydb.Record{
-						ID: skydb.NewRecordID("user", authinfo.ID),
-						Data: map[string]interface{}{
-							"username": "john.doe",
-							"email":    "john.doe@example.com",
-						},
-					},
-				})), nil).
-				AnyTimes()
-			txBegin := db.EXPECT().Begin().AnyTimes()
-			db.EXPECT().Rollback().After(txBegin)
-
-			skydbtest.ExpectDBExtendSchema(db, skydb.RecordSchema{
-				"username": skydb.FieldType{Type: skydb.TypeString},
-				"email":    skydb.FieldType{Type: skydb.TypeString},
-			})
+			}, MakeUserRecordAssertion(skydb.NewAuthData(map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			}, authRecordKeys)), skyerr.NewErrorf(skyerr.Duplicated, "violate unique constraint"))
 
 			req := router.Payload{
 				Data: map[string]interface{}{

@@ -20,7 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 )
 
-func ExpectDBSaveUser(db *mock_skydb.MockTxDatabase, extendedSchema *skydb.RecordSchema, assertSavedUserRecord interface{}) {
+func ExpectDBSaveUser(db *mock_skydb.MockTxDatabase, extendedSchema *skydb.RecordSchema, assertSavedUserRecord interface{}, saveError error) {
 	db.EXPECT().ID().Return("_public").AnyTimes()
 
 	// no record found
@@ -37,7 +37,7 @@ func ExpectDBSaveUser(db *mock_skydb.MockTxDatabase, extendedSchema *skydb.Recor
 	db.EXPECT().
 		Save(gomock.Any()).
 		Do(assertSavedUserRecord).
-		Return(nil).
+		Return(saveError).
 		AnyTimes()
 }
 

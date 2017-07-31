@@ -503,7 +503,7 @@ func TestInjectUserProcessor(t *testing.T) {
 			skydbtest.ExpectDBSaveUser(db, nil, func(record *skydb.Record) {
 				So(record.ID.Type, ShouldEqual, "user")
 				So(record.ID, ShouldResemble, skydb.NewRecordID("user", "userid2"))
-			})
+			}, nil)
 
 			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
 			So(resp.Err, ShouldBeNil)

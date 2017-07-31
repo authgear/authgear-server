@@ -23,10 +23,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -150,6 +150,13 @@ func (db *database) Save(record *skydb.Record) error {
 
 	row := db.c.QueryRowWith(upsert)
 	if err = newRecordScanner(record.ID.Type, typemap, row).Scan(record); err != nil {
+		if isUniqueViolated(err) {
+			return skyerr.NewErrorf(
+				skyerr.Duplicated,
+				fmt.Sprintf("violate unique constraint"),
+			)
+		}
+
 		if isInvalidInputSyntax(err) {
 			return skyerr.NewErrorf(
 				skyerr.InvalidArgument,
