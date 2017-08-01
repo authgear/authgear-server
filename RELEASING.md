@@ -138,6 +138,8 @@ $ git add CHANGELOG.md
 $ npm run lerna bootstrap # make sure dependencies are linked
 $ npm run prepublish # Build all packages
 $ npm run lerna publish -- --skip-git --repo-version $SKYGEAR_VERSION # Publish all packages
+## For publishing to alpha channel
+## $ npm run lerna publish -- --skip-git --npm-tag=alpha --repo-version $SKYGEAR_VERSION
 
 ## Tag and push commit
 $ git add CHANGELOG.md lerna.json packages/*/package.json
