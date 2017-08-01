@@ -18,8 +18,6 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/skygeario/skygear-server/pkg/server/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type fullMigration struct {
@@ -168,29 +166,9 @@ CREATE VIEW _user AS
 }
 
 func (r *fullMigration) insertSeedData(tx *sqlx.Tx) error {
-	newUserID := uuid.New()
-	hashedPassword, err := bcrypt.GenerateFromPassword(
-		[]byte(adminUserDefaultPassword),
-		bcrypt.DefaultCost,
-	)
-
-	if err != nil {
-		return err
-	}
-
 	stmts := []string{
 		fmt.Sprintf(
 			`INSERT INTO _role (id, is_admin) VALUES ('%s', TRUE)`,
-			adminRoleDefaultName,
-		),
-		fmt.Sprintf(
-			`INSERT INTO _auth (id, password) VALUES ('%s', '%s')`,
-			newUserID,
-			hashedPassword,
-		),
-		fmt.Sprintf(
-			`INSERT INTO _auth_role (auth_id, role_id) VALUES('%s', '%s')`,
-			newUserID,
 			adminRoleDefaultName,
 		),
 	}

@@ -21,7 +21,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func TestAuthCRUD(t *testing.T) {
@@ -53,26 +52,6 @@ func TestAuthCRUD(t *testing.T) {
 					WHERE is_admin = TRUE
 				)`).Scan(&exists)
 			So(exists, ShouldBeTrue)
-		})
-
-		Convey("default admin user", func() {
-			var actualHashedPassword string
-
-			c.QueryRowx(`
-				SELECT u.password
-				FROM _auth as u
-					JOIN _auth_role as ur ON ur.auth_id = u.id
-					JOIN _role as r ON ur.role_id = r.id
-				WHERE r.is_admin = TRUE`,
-			).Scan(&actualHashedPassword)
-
-			So(
-				bcrypt.CompareHashAndPassword(
-					[]byte(actualHashedPassword),
-					[]byte("secret"),
-				),
-				ShouldBeNil,
-			)
 		})
 
 		Convey("creates user", func() {
@@ -210,13 +189,13 @@ func TestAuthCRUD(t *testing.T) {
 
 			count := 0
 			c.QueryRowx("SELECT COUNT(*) FROM _auth").Scan(&count)
-			So(count, ShouldEqual, 3) // including default admin user
+			So(count, ShouldEqual, 2) // including default admin user
 
 			err := c.DeleteAuth("2")
 			So(err, ShouldBeNil)
 
 			c.QueryRowx("SELECT COUNT(*) FROM _auth").Scan(&count)
-			So(count, ShouldEqual, 2) // including default admin user
+			So(count, ShouldEqual, 1) // including default admin user
 		})
 	})
 }
