@@ -541,6 +541,31 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(mapDB.RecordMap["note/note0"].Data["content"], ShouldEqual, "Hello World!")
 			So(mapDB.RecordMap["note/note0"].Data["favorite"], ShouldEqual, false)
 		})
+
+		Convey("should save a new record", func() {
+			resp := r.POST(`{
+				"atomic": true,
+				"records": [{
+					"_id": "note/new-note",
+					"category": "nice",
+					"favorite": true
+				}]
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/new-note",
+					"_type": "record",
+					"_access": null,
+					"favorite": true,
+					"_created_by":"user0",
+					"_updated_by":"user0",
+					"_ownerID": "user0"
+				}]
+			}`)
+			So(mapDB.RecordMap["note/new-note"].Data["category"], ShouldEqual, "nice")
+			So(mapDB.RecordMap["note/new-note"].Data["favorite"], ShouldEqual, true)
+		})
 	})
 }
 
