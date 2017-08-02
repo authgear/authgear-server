@@ -102,6 +102,7 @@ func TestRecordFieldAccess(t *testing.T) {
 		}
 		anyUserRole := skydb.FieldUserRole{skydb.AnyUserFieldUserRoleType, ""}
 		publicRole := skydb.FieldUserRole{skydb.PublicFieldUserRoleType, ""}
+		ownerRole := skydb.FieldUserRole{skydb.OwnerFieldUserRoleType, ""}
 
 		insertEntries := func(list skydb.FieldACLEntryList) error {
 			builder := psql.
@@ -122,7 +123,7 @@ func TestRecordFieldAccess(t *testing.T) {
 			return err
 		}
 
-		Convey("should return all entries by order", func() {
+		Convey("should return all entries, with default entries", func() {
 			fixture := skydb.FieldACLEntryList{
 				{"note", "*", publicRole, true, true, false, false},
 				{"*", "content", anyUserRole, false, false, true, true},
@@ -134,7 +135,17 @@ func TestRecordFieldAccess(t *testing.T) {
 
 			entries := acl.AllEntries()
 			sort.Stable(entries)
-			So(entries, ShouldResemble, fixture)
+			expectedAllEntries := skydb.FieldACLEntryList{
+				{"note", "*", publicRole, true, true, false, false},
+				{"*", "content", anyUserRole, false, false, true, true},
+				{"*", "*", publicRole, false, false, false, false},
+				{"user", "email", anyUserRole, false, false, false, true},
+				{"user", "email", ownerRole, true, true, true, true},
+				{"user", "username", anyUserRole, false, false, false, true},
+				{"user", "username", ownerRole, true, true, true, true},
+			}
+			sort.Stable(expectedAllEntries)
+			So(entries, ShouldResemble, expectedAllEntries)
 		})
 
 		Convey("should reset entries", func() {

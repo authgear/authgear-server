@@ -23,7 +23,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "81beb4d8658c" }
+func (r *fullMigration) Version() string { return "b55e91bc9391" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -160,6 +160,26 @@ CREATE VIEW _user AS
         a.last_seen_at
     FROM _auth AS a
     JOIN "user" AS u ON u._id = a.id;
+
+INSERT INTO _record_field_access
+  (record_type, record_field, user_role, writable, readable, comparable, discoverable)
+VALUES
+  ('user', 'username', '_any_user', 'FALSE', 'FALSE', 'FALSE', 'TRUE');
+
+INSERT INTO _record_field_access
+  (record_type, record_field, user_role, writable, readable, comparable, discoverable)
+VALUES
+  ('user', 'username', '_owner', 'TRUE', 'TRUE', 'TRUE', 'TRUE');
+
+INSERT INTO _record_field_access
+  (record_type, record_field, user_role, writable, readable, comparable, discoverable)
+VALUES
+  ('user', 'email', '_any_user', 'FALSE', 'FALSE', 'FALSE', 'TRUE');
+
+INSERT INTO _record_field_access
+  (record_type, record_field, user_role, writable, readable, comparable, discoverable)
+VALUES
+  ('user', 'email', '_owner', 'TRUE', 'TRUE', 'TRUE', 'TRUE');
 `
 	_, err := tx.Exec(stmt)
 	return err
