@@ -232,6 +232,17 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 			return err
 		}
 
+		now := req.ModifyAt
+		if created {
+			dbRecord.ID = record.ID
+			dbRecord.DatabaseID = db.ID()
+			dbRecord.OwnerID = req.AuthInfo.ID
+			dbRecord.CreatedAt = now
+			dbRecord.CreatorID = req.AuthInfo.ID
+			dbRecord.UpdatedAt = now
+			dbRecord.UpdaterID = req.AuthInfo.ID
+		}
+
 		if !req.WithMasterKey {
 			if err = scrubRecordFieldsForWrite(
 				req.AuthInfo,
@@ -242,17 +253,6 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 			); err != nil {
 				return
 			}
-		}
-
-		now := req.ModifyAt
-		if created {
-			dbRecord.ID = record.ID
-			dbRecord.DatabaseID = db.ID()
-			dbRecord.OwnerID = req.AuthInfo.ID
-			dbRecord.CreatedAt = now
-			dbRecord.CreatorID = req.AuthInfo.ID
-			dbRecord.UpdatedAt = now
-			dbRecord.UpdaterID = req.AuthInfo.ID
 		}
 
 		if !created {
