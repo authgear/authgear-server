@@ -1,11 +1,8 @@
-FROM golang:1.8.1
+FROM golang:1.8.3-stretch
 
 RUN \
     apt-get update && \
-    apt-get install --no-install-recommends -y libtool-bin automake pkg-config libsodium-dev libzmq3-dev && \
-    git clone --branch v4.0.2 --depth 1 git://github.com/zeromq/czmq.git && \
-    ( cd czmq; ./autogen.sh; ./configure; make check; make install; ldconfig ) && \
-    rm -rf czmq && \
+    apt-get install --no-install-recommends -y libtool-bin automake pkg-config libsodium-dev libzmq3-dev libczmq-dev && \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl https://glide.sh/get | sh && \
