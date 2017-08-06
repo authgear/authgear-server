@@ -1,3 +1,46 @@
+## Changes since 1.0.0
+
+### Incompatible changes
+
+- Introducing a new user record design
+
+  In the new user record design, username and email is now part of user
+  record instead of part of `_auth` table (previously `_user` table). When
+  upgrading from previous version of Skygear Server, the server will perform
+  database schema migration, which is likely to break cloud function that
+  needs the user data.
+
+  The request API is changed substantially to support the new authentication
+  mechanism. Previous SDKs will not work with this version of Skygear Server.
+
+### Features
+
+- Implement new user record design (SkygearIO/features#48)
+    Set default field discoverability to user auth record keys (#431)
+- Add assign roles and revoke roles handler
+  - Update role:{assign,revoke} to use require_admin preprocessor
+- Support field-based access control for record data (SkygearIO/features#48)
+  - Add db and struct for FieldACL (#375)
+  - Add read/write Field ACL (#376)
+  - Add discoverability Field ACL (#377)
+  - Support dynamic field and owner for Field ACL (#379, #378)
+  - Ignore Field ACL when using master key (#403)
+  - Implement field ACL get/update handlers (#375)
+
+### Bug Fixes
+
+- Fix SignedURL and ParseSignature of file store (#427)
+- Fix handler/query does not allow joined query
+- Fix potential problem when saving new record
+- Fix undefined skydb.ACLLevel
+
+### Other Notes
+
+- Golang version is upgraded to go1.8.3
+- Upgrade czmq dependency to version 4.0.2
+- Update instruction on installing czmq via homebrew
+- Update linux setup notes (#383)
+
 ## 1.0.0 (2017-06-30)
 
 ### Bug Fixes
