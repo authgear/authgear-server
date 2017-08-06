@@ -20,7 +20,6 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
@@ -57,7 +56,7 @@ func (auth *providerInfoValue) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		fmt.Errorf("skydb: unsupported Scan pair: %T -> %T", value, auth.ProviderInfo)
+		log.Errorf("skydb: unsupported Scan pair: %T -> %T", value, auth.ProviderInfo)
 	}
 
 	err := json.Unmarshal(b, &auth.ProviderInfo)

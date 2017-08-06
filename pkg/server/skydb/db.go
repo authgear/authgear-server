@@ -54,7 +54,7 @@ func GetAccessModel(accessString string) AccessModel {
 		ok    bool
 	)
 	if model, ok = accessModelMap[accessString]; !ok {
-		fmt.Errorf("Received a not supported Access Contol option: %v", accessString)
+		log.Errorf("Received a not supported Access Contol option: %v", accessString)
 	}
 	return model
 }

@@ -23,8 +23,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
@@ -57,7 +57,7 @@ func (ni *nullNotificationInfo) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		fmt.Errorf("skydb: unsupported Scan pair: %T -> %T", value, ni.NotificationInfo)
+		log.Errorf("skydb: unsupported Scan pair: %T -> %T", value, ni.NotificationInfo)
 	}
 
 	if err := json.Unmarshal(b, &ni.NotificationInfo); err != nil {
@@ -82,7 +82,7 @@ func (query *queryValue) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		fmt.Errorf("skydb: unsupported Scan pair: %T -> %T", value, query)
+		log.Errorf("skydb: unsupported Scan pair: %T -> %T", value, query)
 	}
 
 	v := struct {
