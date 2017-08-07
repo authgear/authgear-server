@@ -43,15 +43,14 @@ $ sed -i "" "s/version = \".*\"/version = \"v$SKYGEAR_VERSION\"/" pkg/server/sky
 $ git add CHANGELOG.md pkg/server/skyversion/version.go
 $ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
 
-## Tag and push commit
+## Tag commit
 $ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
-$ git push --follow-tags origin v$SKYGEAR_VERSION
-$ git push origin
 
-## Wait for Travis deployment...
+### If the release is latest (official release with the highest version number)
+$ git tag -f latest
+$ git push origin :latest
 
-## Push to latest branch to trigger Docker build
-$ git push origin master:latest
+$ git push --follow-tags origin master v$SKYGEAR_VERSION latest
 
 ## Click `Publish release` in github release page
 ```
@@ -70,18 +69,18 @@ $ sed -i "" "s/version='.*'/version='$SKYGEAR_VERSION'/" setup.py
 $ git add CHANGELOG.md setup.py
 $ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
 
-## Release to pypi
+## Release to pypi (Only for official release)
 $ python3 setup.py sdist upload
 
 ## Tag and push commit
 $ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
-$ git push --follow-tags origin v$SKYGEAR_VERSION
-$ git push origin
 
-## Push latest tag (only for highest version number)
-$ git push origin :latest
+### If the release is latest (official release with the highest version number)
 $ git tag -f latest
-$ git push origin latest
+$ git push origin :latest
+
+$ git push --follow-tags origin master v$SKYGEAR_VERSION latest
+
 
 ## Click `Publish release` in github release page
 ```
@@ -108,16 +107,15 @@ $ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
 
 ## Tag and push commit
 $ git tag -a $SKYGEAR_VERSION -s -u $KEY_ID -m "Release $SKYGEAR_VERSION"
-$ git push --follow-tags origin $SKYGEAR_VERSION
-$ git push origin
 
-## Push commit to Cocoapods
-$ pod trunk push SKYKit.podspec --allow-warnings
-
-## Push latest tag (only for highest version number)
-$ git push origin :latest
+### If the release is latest (official release with the highest version number)
 $ git tag -f latest
-$ git push origin latest
+$ git push origin :latest
+
+$ git push --follow-tags origin master $SKYGEAR_VERSION latest
+
+## Push commit to Cocoapods (Only for official release)
+$ pod trunk push SKYKit.podspec --allow-warnings
 
 ## Click `Publish release` in github release page
 ```
@@ -145,13 +143,12 @@ $ npm run lerna publish -- --skip-git --repo-version $SKYGEAR_VERSION # Publish 
 $ git add CHANGELOG.md lerna.json packages/*/package.json
 $ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
 $ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
-$ git push --follow-tags origin v$SKYGEAR_VERSION
-$ git push origin
 
-## Wait for Travis deployment...
+### If the release is latest (official release with the highest version number)
+$ git tag -f latest
+$ git push origin :latest
 
-## Push to latest branch to trigger Docker build
-$ git push origin master:latest
+$ git push --follow-tags origin master v$SKYGEAR_VERSION latest
 
 ## Click `Publish release` in github release page
 ```
@@ -171,8 +168,12 @@ $ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
 
 ## Tag and push commit
 $ git tag -a $SKYGEAR_VERSION -s -u $KEY_ID -m "Release $SKYGEAR_VERSION"
-$ git push --follow-tags origin $SKYGEAR_VERSION
-$ git push origin
+
+### If the release is latest (official release with the highest version number)
+$ git tag -f latest
+$ git push origin :latest
+
+$ git push --follow-tags origin master $SKYGEAR_VERSION latest
 
 ## Click `Publish release` in github release page
 ```
