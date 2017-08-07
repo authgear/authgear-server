@@ -1,4 +1,4 @@
-## Changes since 1.0.0
+## 1.1.0 (2017-08-07)
 
 ### Incompatible changes
 
@@ -57,7 +57,7 @@
     This feature will enable the bidirectional plugin transport and multiplexing.
     The protocol will introduce address-stack and bounce-count, so the
     bidirectional communication stack will be limited to the bounce-count-limit.
-    
+
     It solved the problem of workers exhaust problem when plugin call back
     skygear-server.
 
