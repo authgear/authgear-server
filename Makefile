@@ -78,6 +78,10 @@ all:
 	$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$(DIST_DIR)$(DIST)-zmq-linux-amd64 WITH_ZMQ=1
 	$(DOCKER_RUN) chmod +x $(DIST_DIR)/$(DIST)*
 
+.PHONY: update-version
+update-version:
+	sed -i "" "s/version = \".*\"/version = \"v$SKYGEAR_VERSION\"/" pkg/server/skyversion/version.go
+
 .PHONY: archive
 archive:
 	cd $(DIST_DIR) ; \

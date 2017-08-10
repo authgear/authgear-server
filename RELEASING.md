@@ -39,7 +39,7 @@ $ github-release release -u skygeario -r skygear-server --draft --tag v$SKYGEAR_
 
 ## Update changelog
 $ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ sed -i "" "s/version = \".*\"/version = \"v$SKYGEAR_VERSION\"/" pkg/server/skyversion/version.go
+$ make update-version VERSION=$SKYGEAR_VERSION
 $ git add CHANGELOG.md pkg/server/skyversion/version.go
 $ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
 
