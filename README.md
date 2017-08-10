@@ -21,7 +21,7 @@ It provides the following features for common app development:
 [Skygear.io](https://skygear.io) is the commercial hosted platform for
 developers who don't want to manage their own infrastructure.
 
-[![Slack](https://img.shields.io/badge/join-Slack-green.svg)](https://skygear.signup.team/)
+[![Slack](https://img.shields.io/badge/join-Slack-green.svg)](https://slack.skygear.io/)
 [![Google Group](https://img.shields.io/badge/join-Google%20Group-green.svg)](https://groups.google.com/forum/#!forum/skygear-user-group)
 
 [![Build Status](https://travis-ci.org/SkygearIO/skygear-server.svg?branch=master)](https://travis-ci.org/SkygearIO/skygear-server)
@@ -57,7 +57,7 @@ free to [report an issue](https://github.com/SkygearIO/skygear-server/issues).
 Please do not use the issue tracker for personal support requests. Instead, use
 [Stack Overflow](http://stackoverflow.com/questions/tagged/skygear) community,
 join our [Google Group](https://groups.google.com/forum/#!forum/skygear-user-group),
-or [Slack Team](https://skygear.signup.team) to chat with our
+or [Slack Team](https://slack.skygear.io) to chat with our
 supports/developers.
 
 For issues about [Skygear Guides](https://docs.skygear.io) please use the
