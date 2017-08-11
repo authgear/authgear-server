@@ -1,9 +1,9 @@
 GIT_SHA := $(shell git rev-parse HEAD)
 GIT_SHORT_SHA := $(shell git rev-parse --short HEAD)
-VERSION := $(shell git describe --always --tags)
+VERSION := $(shell git describe --always)
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-DOCKER_REGISTRY := 
+DOCKER_REGISTRY :=
 DOCKER_ORG_NAME := skygeario
 DOCKER_IMAGE := skygear-server
 DOCKER_TAG := git-$(shell git rev-parse --short HEAD)

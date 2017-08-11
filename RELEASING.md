@@ -39,7 +39,7 @@ $ github-release release -u skygeario -r skygear-server --draft --tag v$SKYGEAR_
 
 ## Update changelog
 $ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ sed -i "" "s/version = \".*\"/version = \"v$SKYGEAR_VERSION\"/" pkg/server/skyversion/version.go
+$ make update-version VERSION=$SKYGEAR_VERSION
 $ git add CHANGELOG.md pkg/server/skyversion/version.go
 $ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
 
@@ -65,8 +65,8 @@ $ github-release release -u skygeario -r py-skygear --draft --tag v$SKYGEAR_VERS
 
 ## Update changelog and version number
 $ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ sed -i "" "s/version='.*'/version='$SKYGEAR_VERSION'/" setup.py
-$ git add CHANGELOG.md setup.py
+$ make update-version VERSION=$SKYGEAR_VERSION
+$ git add CHANGELOG.md setup.py skygear/__version__.py
 $ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
 
 ## Release to pypi (Only for official release)
@@ -101,8 +101,8 @@ $ github-release release -u skygeario -r skygear-SDK-iOS --draft --tag $SKYGEAR_
 
 ## Update changelog and version number
 $ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ sed -i "" "s/\(s\.version[^=]*=[^\"]*\"\)[^\"]*/\1$SKYGEAR_VERSION/" SKYKit.podspec
-$ git add CHANGELOG.md SKYKit.podspec
+$ make update-version VERSION=$SKYGEAR_VERSION
+$ git add CHANGELOG.md SKYKit.podspec Pod/Classes/SKYKit+version.h
 $ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
 
 ## Tag and push commit
@@ -133,6 +133,7 @@ $ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
 $ git add CHANGELOG.md
 
 ## Changing the version number and releasing all packages to npm using lerna.
+$ make update-version VERSION=$SKYGEAR_VERSION
 $ npm run lerna bootstrap # make sure dependencies are linked
 $ npm run prepublish # Build all packages
 $ npm run lerna publish -- --skip-git --repo-version $SKYGEAR_VERSION # Publish all packages
@@ -140,7 +141,7 @@ $ npm run lerna publish -- --skip-git --repo-version $SKYGEAR_VERSION # Publish 
 ## $ npm run lerna publish -- --skip-git --npm-tag=alpha --repo-version $SKYGEAR_VERSION
 
 ## Tag and push commit
-$ git add CHANGELOG.md lerna.json packages/*/package.json
+$ git add CHANGELOG.md lerna.json gulp/context.js packages/*/package.json
 $ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
 $ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
 
@@ -163,7 +164,8 @@ $ github-release release -u skygeario -r skygear-SDK-Android --draft --tag $SKYG
 
 ## Update changelog
 $ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ git add CHANGELOG.md
+$ make update-version VERSION=$SKYGEAR_VERSION
+$ git add CHANGELOG.md skygear/build.gradle
 $ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
 
 ## Tag and push commit

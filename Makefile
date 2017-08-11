@@ -1,6 +1,6 @@
 DIST_DIR = ./dist/
 DIST := skygear-server
-VERSION := $(shell git describe --always --tags)
+VERSION := $(shell git describe --always)
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
 GO_TEST_TIMEOUT := 1m30s
 OSARCHS := linux/amd64 linux/386 linux/arm windows/amd64 windows/386 darwin/amd64
@@ -77,6 +77,10 @@ all:
 	$(DOCKER_RUN) gox -osarch="$(OSARCHS)" -output="$(DIST_DIR)/{{.Dir}}-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS)
 	$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$(DIST_DIR)$(DIST)-zmq-linux-amd64 WITH_ZMQ=1
 	$(DOCKER_RUN) chmod +x $(DIST_DIR)/$(DIST)*
+
+.PHONY: update-version
+update-version:
+	sed -i "" "s/version = \".*\"/version = \"v$SKYGEAR_VERSION\"/" pkg/server/skyversion/version.go
 
 .PHONY: archive
 archive:
