@@ -1173,3 +1173,121 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 
 	})
 }
+
+func TestLoginProviderHandler(t *testing.T) {
+	Convey("LoginProviderHandler", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+
+		tokenStore := authtokentest.SingleTokenStore{}
+		conn := singleUserConn{}
+		db := skydbtest.NewMapDB()
+		txdb := skydbtest.NewMockTxDatabase(db)
+
+		r := handlertest.NewSingleRouteRouter(&LoginProviderHandler{
+			TokenStore: &tokenStore,
+		}, func(p *router.Payload) {
+			p.DBConn = &conn
+			p.Database = txdb
+			p.AccessKey = router.MasterAccessKey
+		})
+
+		Convey("login provider with non existent principal id", func() {
+			resp := r.POST(`
+				{
+					"principal_id": "non-existent",
+					"provider": "skygear",
+					"provider_auth_data": {"name": "chima ceo"}
+				}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+				{
+					"error": {
+						"name": "InvalidCredentials",
+						"code": 105,
+						"message": "no connected user"
+					}
+				}
+				`)
+			So(resp.Code, ShouldEqual, 401)
+		})
+
+		Convey("login provider with existent principal id", func() {
+			authinfo := skydb.NewProviderInfoAuthInfo(
+				"skygear:chima",
+				map[string]interface{}{"name": "chima ceo"},
+			)
+
+			anHourAgo := timeNow().Add(-1 * time.Hour)
+			authinfo.LastSeenAt = &anHourAgo
+
+			conn.authinfo = &authinfo
+			defer func() {
+				conn.authinfo = nil
+			}()
+
+			userRecordID := skydb.NewRecordID("user", authinfo.ID)
+			db.Save(&skydb.Record{
+				ID:         userRecordID,
+				DatabaseID: db.ID(),
+				OwnerID:    authinfo.ID,
+				CreatorID:  authinfo.ID,
+				UpdaterID:  authinfo.ID,
+				CreatedAt:  anHourAgo,
+				UpdatedAt:  anHourAgo,
+				Data: map[string]interface{}{
+					"last_login_at": anHourAgo,
+				},
+			})
+
+			resp := r.POST(`
+				{
+					"principal_id": "chima",
+					"provider": "skygear",
+					"provider_auth_data": {"name": "new chima ceo"}
+				}`)
+			token := tokenStore.Token
+			So(token.AccessToken, ShouldNotBeBlank)
+			So(conn.authinfo, ShouldNotBeNil)
+
+			authData := conn.authinfo.ProviderInfo["skygear:chima"]
+			authDataJSON, _ := json.Marshal(&authData)
+			So(authDataJSON, ShouldEqualJSON, `{"name": "new chima ceo"}`)
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
+				{
+					"result": {
+						"user_id": "%v",
+						"profile": {
+							"_type": "record",
+							"_id": "user/%v",
+							"_created_by": "%v",
+							"_ownerID": "%v",
+							"_updated_by": "%v",
+							"_access": null,
+							"_created_at": "2006-01-02T14:04:05Z",
+							"_updated_at": "2006-01-02T14:04:05Z",
+							"last_login_at": {
+								"$date": "2006-01-02T14:04:05Z",
+								"$type": "date"
+							}
+						},
+						"access_token": "%v",
+						"last_login_at": "2006-01-02T14:04:05Z",
+						"last_seen_at": "2006-01-02T14:04:05Z"
+					}
+				}`,
+				authinfo.ID,
+				authinfo.ID,
+				authinfo.ID,
+				authinfo.ID,
+				authinfo.ID,
+				token.AccessToken,
+			))
+		})
+	})
+}
