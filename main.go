@@ -221,6 +221,7 @@ func main() {
 	r.Map("auth:logout", injector.Inject(&handler.LogoutHandler{}))
 	r.Map("auth:password", injector.Inject(&handler.PasswordHandler{}))
 	r.Map("auth:login_provider", injector.Inject(&handler.LoginProviderHandler{}))
+	r.Map("auth:signup_provider", injector.Inject(&handler.SignupProviderHandler{}))
 
 	r.Map("asset:put", injector.Inject(&handler.AssetUploadHandler{}))
 
