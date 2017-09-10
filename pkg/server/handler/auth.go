@@ -946,6 +946,7 @@ type linkProviderPayload struct {
 	PrincipalID      string                 `mapstructure:"principal_id"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
 	UserID           string                 `mapstructure:"user_id"`
+	IsLogin          bool                   `mapstructure:"is_login"`
 }
 
 func (payload *linkProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -1096,7 +1097,9 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 	// update user record last login time
 	user.UpdatedAt = now
 	user.UpdaterID = info.ID
-	user.Data[UserRecordLastLoginAtKey] = now
+	if p.IsLogin {
+		user.Data[UserRecordLastLoginAtKey] = now
+	}
 	if err := payload.Database.Save(&user); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
