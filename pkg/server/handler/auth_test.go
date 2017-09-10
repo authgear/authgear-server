@@ -1394,9 +1394,165 @@ func TestSignupProviderHandler(t *testing.T) {
 					"error": {
 						"name": "InvalidArgument",
 						"code": 108,
-						"message": "user connected already"
+						"message": "user already connected"
 					}
 				}`)
+		})
+	})
+}
+
+func TestLinkProviderHandler(t *testing.T) {
+	Convey("LinkProviderHandler", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+
+		tokenStore := authtokentest.SingleTokenStore{}
+		conn := skydbtest.NewMapConn()
+		db := skydbtest.NewMapDB()
+		txdb := skydbtest.NewMockTxDatabase(db)
+
+		r := handlertest.NewSingleRouteRouter(&LinkProviderHandler{
+			TokenStore: &tokenStore,
+		}, func(p *router.Payload) {
+			p.DBConn = conn
+			p.Database = txdb
+			p.AccessKey = router.MasterAccessKey
+		})
+
+		Convey("connect provider with non existent user", func() {
+			resp := r.POST(`
+				{
+					"principal_id": "non-existent",
+					"provider": "skygear",
+					"provider_auth_data": {"name": "chima ceo"},
+					"user_id": "non-existent"
+				}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+				{
+					"error": {
+							"name": "ResourceNotFound",
+							"code": 110,
+							"message": "user not found"
+					}
+				}`)
+			So(resp.Code, ShouldEqual, 404)
+		})
+
+		Convey("connect provider which is already connected", func() {
+			authinfo := skydb.NewProviderInfoAuthInfo(
+				"skygear:chima",
+				map[string]interface{}{"name": "chima ceo"},
+			)
+			anHourAgo := timeNow().Add(-1 * time.Hour)
+			authinfo.LastSeenAt = &anHourAgo
+
+			userRecordID := skydb.NewRecordID("user", authinfo.ID)
+			conn.CreateAuth(&authinfo)
+			db.Save(&skydb.Record{
+				ID:         userRecordID,
+				DatabaseID: db.ID(),
+				OwnerID:    authinfo.ID,
+				CreatorID:  authinfo.ID,
+				UpdaterID:  authinfo.ID,
+				CreatedAt:  anHourAgo,
+				UpdatedAt:  anHourAgo,
+				Data: map[string]interface{}{
+					"last_login_at": anHourAgo,
+				},
+			})
+
+			resp := r.POST(`
+				{
+					"principal_id": "chima",
+					"provider": "skygear",
+					"provider_auth_data": {"name": "new chima ceo"},
+					"user_id": "non-existent"
+				}`)
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+				{
+					"error": {
+						"name": "InvalidArgument",
+						"code": 108,
+						"message": "principal id already connected"
+					}
+				}`)
+		})
+
+		Convey("connect provider success", func() {
+			authinfo := skydb.NewProviderInfoAuthInfo(
+				"skygear:chima",
+				map[string]interface{}{"name": "chima ceo"},
+			)
+			anHourAgo := timeNow().Add(-1 * time.Hour)
+			authinfo.LastSeenAt = &anHourAgo
+
+			conn.CreateAuth(&authinfo)
+			userRecordID := skydb.NewRecordID("user", authinfo.ID)
+			db.Save(&skydb.Record{
+				ID: userRecordID,
+				DatabaseID: db.ID(),
+				OwnerID:    authinfo.ID,
+				CreatorID:  authinfo.ID,
+				UpdaterID:  authinfo.ID,
+				CreatedAt:  anHourAgo,
+				UpdatedAt:  anHourAgo,
+				Data: map[string]interface{}{
+					"last_login_at": anHourAgo,
+				},
+			})
+
+			now := timeNow()
+			resp := r.POST(fmt.Sprintf(`
+				{
+					"principal_id": "non-existent",
+					"provider": "skygear",
+					"provider_auth_data": {"name": "chima ceo"},
+					"user_id": "%v"
+				}`, authinfo.ID))
+
+			token := tokenStore.Token
+			So(token.AccessToken, ShouldNotBeBlank)
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
+				{
+					"result": {
+						"user_id": "%v",
+						"profile": {
+							"_type": "record",
+							"_id": "user/%v",
+							"_created_by": "%v",
+							"_ownerID": "%v",
+							"_updated_by": "%v",
+							"_access": null,
+							"_created_at": "2006-01-02T14:04:05Z",
+							"_updated_at": "2006-01-02T14:04:05Z",
+							"last_login_at": {
+								"$date": "2006-01-02T14:04:05Z",
+								"$type": "date"
+							}
+						},
+						"access_token": "%v",
+						"last_login_at": "2006-01-02T14:04:05Z",
+						"last_seen_at": "2006-01-02T14:04:05Z"
+					}
+				}`,
+				authinfo.ID,
+				authinfo.ID,
+				authinfo.ID,
+				authinfo.ID,
+				authinfo.ID,
+				token.AccessToken,
+			))
+
+			// The LastLoginAt should updated
+			fetchedRecord := skydb.Record{}
+			So(db.Get(userRecordID, &fetchedRecord), ShouldBeNil)
+			So(fetchedRecord.UpdatedAt, ShouldResemble, now)
+			So(fetchedRecord.Data["last_login_at"], ShouldNotResemble, anHourAgo)
 		})
 	})
 }
