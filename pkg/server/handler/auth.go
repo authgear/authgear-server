@@ -630,15 +630,17 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 
 // Define the playload for sso plugin to login user with provider
 type loginProviderPayload struct {
-	Provider         string                 `mapstructure:"provider"`
-	PrincipalID      string                 `mapstructure:"principal_id"`
-	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
+	Provider            string                 `mapstructure:"provider"`
+	PrincipalID         string                 `mapstructure:"principal_id"`
+	ProviderPrincipalID string
+	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
 }
 
 func (payload *loginProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
 	return payload.Validate()
 }
 
@@ -717,7 +719,7 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 	store := h.TokenStore
 	info := skydb.AuthInfo{}
 	user := skydb.Record{}
-	principalID := p.Provider + ":" + p.PrincipalID
+	principalID := p.ProviderPrincipalID
 
 	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "no connected user")
@@ -778,16 +780,18 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 
 //  Define the playload for sso plugin to signup user with provider
 type signupProviderPayload struct {
-	Provider         string                 `mapstructure:"provider"`
-	PrincipalID      string                 `mapstructure:"principal_id"`
-	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
-	Profile          skydb.Data             `mapstructure:"profile"`
+	Provider         		string                 `mapstructure:"provider"`
+	PrincipalID         string                 `mapstructure:"principal_id"`
+	ProviderPrincipalID string
+	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
+	Profile             skydb.Data             `mapstructure:"profile"`
 }
 
 func (payload *signupProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
 	return payload.Validate()
 }
 
@@ -868,7 +872,7 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 	store := h.TokenStore
 	info := skydb.AuthInfo{}
 	user := skydb.Record{}
-	principalID := p.Provider + ":" + p.PrincipalID
+	principalID := p.ProviderPrincipalID
 
 	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
 		if err != skydb.ErrUserNotFound {
@@ -936,17 +940,19 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 
 //  Define the playload for sso plugin to connect user with provider
 type linkProviderPayload struct {
-	Provider         string                 `mapstructure:"provider"`
-	PrincipalID      string                 `mapstructure:"principal_id"`
-	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
-	UserID           string                 `mapstructure:"user_id"`
-	IsLogin          bool                   `mapstructure:"is_login"`
+	Provider            string                 `mapstructure:"provider"`
+	PrincipalID         string                 `mapstructure:"principal_id"`
+	ProviderPrincipalID string
+	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
+	UserID              string                 `mapstructure:"user_id"`
+	IsLogin             bool                   `mapstructure:"is_login"`
 }
 
 func (payload *linkProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
 	return payload.Validate()
 }
 
@@ -1028,7 +1034,7 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 	store := h.TokenStore
 	info := skydb.AuthInfo{}
 	user := skydb.Record{}
-	principalID := p.Provider + ":" + p.PrincipalID
+	principalID := p.ProviderPrincipalID
 	userID := p.UserID
 
 	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
