@@ -155,6 +155,7 @@ func main() {
 	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
 	preprocessorRegistry["require_auth"] = &pp.RequireAuth{}
 	preprocessorRegistry["require_admin"] = &pp.RequireAdminOrMasterKey{}
+	preprocessorRegistry["require_master_key"] = &pp.RequireMasterKey{}
 	preprocessorRegistry["inject_db"] = &pp.InjectDatabase{}
 	preprocessorRegistry["inject_public_db"] = &pp.InjectPublicDatabase{}
 	preprocessorRegistry["dev_only"] = &pp.DevOnlyProcessor{

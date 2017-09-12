@@ -279,3 +279,15 @@ func (p RequireAdminOrMasterKey) Preprocess(payload *router.Payload, response *r
 	)
 	return http.StatusUnauthorized
 }
+
+type RequireMasterKey struct {
+}
+
+func (p RequireMasterKey) Preprocess(payload *router.Payload, response *router.Response) int {
+	if payload.HasMasterKey() == false {
+		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to this action")
+		return http.StatusUnauthorized
+	}
+
+	return http.StatusOK
+}

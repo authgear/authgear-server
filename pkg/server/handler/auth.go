@@ -687,6 +687,7 @@ type LoginProviderHandler struct {
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
 	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor   `preprocessor:"require_master_key"`
 	preprocessors    []router.Processor
 }
 
@@ -696,6 +697,7 @@ func (h *LoginProviderHandler) Setup() {
 		h.DBConn,
 		h.InjectPublicDB,
 		h.PluginReady,
+		h.RequireMasterKey,
 	}
 }
 
@@ -709,11 +711,6 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
-		return
-	}
-
-	if payload.HasMasterKey() == false {
-		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to login provider")
 		return
 	}
 
@@ -841,6 +838,7 @@ type SignupProviderHandler struct {
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
 	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor   `preprocessor:"require_master_key"`
 	preprocessors    []router.Processor
 }
 
@@ -850,6 +848,7 @@ func (h *SignupProviderHandler) Setup() {
 		h.DBConn,
 		h.InjectPublicDB,
 		h.PluginReady,
+		h.RequireMasterKey,
 	}
 }
 
@@ -863,11 +862,6 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
-		return
-	}
-
-	if payload.HasMasterKey() == false {
-		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to signup provider")
 		return
 	}
 
@@ -1004,6 +998,7 @@ type LinkProviderHandler struct {
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
 	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor   `preprocessor:"require_master_key"`
 	preprocessors    []router.Processor
 }
 
@@ -1013,6 +1008,7 @@ func (h *LinkProviderHandler) Setup() {
 		h.DBConn,
 		h.InjectPublicDB,
 		h.PluginReady,
+		h.RequireMasterKey,
 	}
 }
 
@@ -1026,11 +1022,6 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
-		return
-	}
-
-	if payload.HasMasterKey() == false {
-		response.Err = skyerr.NewError(skyerr.PermissionDenied, "no permission to connect provider")
 		return
 	}
 
