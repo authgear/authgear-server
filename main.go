@@ -220,9 +220,9 @@ func main() {
 	r.Map("auth:login", injector.Inject(&handler.LoginHandler{}))
 	r.Map("auth:logout", injector.Inject(&handler.LogoutHandler{}))
 	r.Map("auth:password", injector.Inject(&handler.PasswordHandler{}))
-	r.Map("auth:login_provider", injector.Inject(&handler.LoginProviderHandler{}))
-	r.Map("auth:signup_provider", injector.Inject(&handler.SignupProviderHandler{}))
-	r.Map("auth:link_provider", injector.Inject(&handler.LinkProviderHandler{}))
+	r.Map("auth:provider:login", injector.Inject(&handler.LoginProviderHandler{}))
+	r.Map("auth:provider:signup", injector.Inject(&handler.SignupProviderHandler{}))
+	r.Map("auth:provider:link", injector.Inject(&handler.LinkProviderHandler{}))
 
 	r.Map("asset:put", injector.Inject(&handler.AssetUploadHandler{}))
 

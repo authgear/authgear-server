@@ -664,7 +664,7 @@ func (payload *loginProviderPayload) Validate() skyerr.Error {
 // curl -X POST -H "Content-Type: application/json" \
 //   -d @- http://localhost:3000/ <<EOF
 // {
-// 		"action": "auth:login_provider",
+// 		"action": "auth:provider:login",
 // 		"provider": "facebook",
 // 		"principal_id": "104174434987489953648",
 // 		"provider_auth_data": {}
@@ -818,7 +818,7 @@ func (payload *signupProviderPayload) Validate() skyerr.Error {
 // curl -X POST -H "Content-Type: application/json" \
 //   -d @- http://localhost:3000/ <<EOF
 // {
-// 		"action": "auth:signup_provider",
+// 		"action": "auth:provider:signup",
 // 		"provider": "facebook",
 // 		"principal_id": "104174434987489953648",
 // 		"provider_auth_data": {},
@@ -984,7 +984,7 @@ func (payload *linkProviderPayload) Validate() skyerr.Error {
 // curl -X POST -H "Content-Type: application/json" \
 //   -d @- http://localhost:3000/ <<EOF
 // {
-// 		"action": "auth:connect_provider",
+// 		"action": "auth:provider:link",
 // 		"provider": "facebook",
 // 		"principal_id": "104174434987489953648",
 // 		"provider_auth_data": {},
