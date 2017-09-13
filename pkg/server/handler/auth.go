@@ -801,6 +801,10 @@ func (payload *signupProviderPayload) Validate() skyerr.Error {
 		return skyerr.NewInvalidArgument("empty provider", []string{"provider"})
 	}
 
+	if strings.Contains(payload.Provider, ":") {
+		return skyerr.NewInvalidArgument("provider name contains invalid character :", []string{"provider"})
+	}
+
 	if payload.PrincipalID == "" {
 		return skyerr.NewInvalidArgument("empty principal id", []string{"principal_id"})
 	}

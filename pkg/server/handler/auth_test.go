@@ -1313,6 +1313,31 @@ func TestSignupProviderHandler(t *testing.T) {
 			p.AccessKey = router.MasterAccessKey
 		})
 
+		Convey("signup provider with invalid provider name", func() {
+			resp := r.POST(`
+				{
+					"principal_id": "non-existent",
+					"provider": "skygear:",
+					"provider_auth_data": {"name": "chima ceo"},
+					"profile": {"email": "chima@skygeario.com"}
+				}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+				{
+					"error": {
+						"name": "InvalidArgument",
+						"code": 108,
+						"message": "provider name contains invalid character :",
+						"info": {
+							"arguments": [
+								"provider"
+							]
+						}
+					}
+				}`)
+			So(resp.Code, ShouldEqual, 400)
+		})
+
 		Convey("signup provider with non existent principal id", func() {
 			resp := r.POST(`
 				{
