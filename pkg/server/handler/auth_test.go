@@ -1552,3 +1552,92 @@ func TestLinkProviderHandler(t *testing.T) {
 		})
 	})
 }
+
+func TestUnlinkProviderHandler(t *testing.T) {
+	Convey("UnlinkProviderHandler", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+
+		conn := skydbtest.NewMapConn()
+		db := skydbtest.NewMapDB()
+		txdb := skydbtest.NewMockTxDatabase(db)
+
+		r := handlertest.NewSingleRouteRouter(&UnlinkProviderHandler{}, func(p *router.Payload) {
+			p.DBConn = conn
+			p.Database = txdb
+			p.AccessKey = router.MasterAccessKey
+		})
+
+		Convey("unlink provider with non existent user", func() {
+			resp := r.POST(`
+				{
+					"provider": "skygear",
+					"user_id": "non-existent"
+				}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+				{
+					"error": {
+							"name": "ResourceNotFound",
+							"code": 110,
+							"message": "user not found"
+					}
+				}`)
+			So(resp.Code, ShouldEqual, 404)
+		})
+
+		Convey("unlink provider success", func() {
+			authinfo := skydb.NewAnonymousAuthInfo()
+			authinfo.SetProviderInfoData(
+				"skygear:chima",
+				map[string]interface{}{"name": "chima ceo"},
+			)
+			authinfo.SetProviderInfoData(
+				"skygear:faseng",
+				map[string]interface{}{"name": "faseng cto"},
+			)
+			authinfo.SetProviderInfoData(
+				"cat:milktea",
+				map[string]interface{}{"name": "milktea the cat"},
+			)
+			authinfo.SetProviderInfoData(
+				"cat:coffee",
+				map[string]interface{}{"name": "office lady"},
+			)
+
+			anHourAgo := timeNow().Add(-1 * time.Hour)
+			authinfo.LastSeenAt = &anHourAgo
+			userRecordID := skydb.NewRecordID("user", authinfo.ID)
+			conn.CreateAuth(&authinfo)
+			db.Save(&skydb.Record{
+				ID:         userRecordID,
+				DatabaseID: db.ID(),
+				OwnerID:    authinfo.ID,
+				CreatorID:  authinfo.ID,
+				UpdaterID:  authinfo.ID,
+				CreatedAt:  anHourAgo,
+				UpdatedAt:  anHourAgo,
+				Data: map[string]interface{}{
+					"last_login_at": anHourAgo,
+				},
+			})
+
+			resp := r.POST(fmt.Sprintf(`
+				{
+					"provider": "skygear",
+					"user_id": "%v"
+				}`, authinfo.ID))
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"result": "OK"}`)
+
+			newAuthInfo := skydb.AuthInfo{}
+			conn.GetAuth(authinfo.ID, &newAuthInfo)
+			So(newAuthInfo.GetProviderInfoData("skygear:chima"), ShouldBeNil)
+			So(newAuthInfo.GetProviderInfoData("skygear:faseng"), ShouldBeNil)
+			So(newAuthInfo.GetProviderInfoData("cat:milktea"), ShouldNotBeNil)
+			So(newAuthInfo.GetProviderInfoData("cat:coffee"), ShouldNotBeNil)
+		})
+	})
+}
