@@ -139,9 +139,9 @@ func TestRecordFieldAccess(t *testing.T) {
 				{"note", "*", publicRole, true, true, false, false},
 				{"*", "content", anyUserRole, false, false, true, true},
 				{"*", "*", publicRole, false, false, false, false},
-				{"user", "email", anyUserRole, false, false, false, true},
+				{"user", "email", anyUserRole, false, true, false, true},
 				{"user", "email", ownerRole, true, true, true, true},
-				{"user", "username", anyUserRole, false, false, false, true},
+				{"user", "username", anyUserRole, false, true, false, true},
 				{"user", "username", ownerRole, true, true, true, true},
 			}
 			sort.Stable(expectedAllEntries)
