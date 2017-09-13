@@ -1409,14 +1409,11 @@ func TestLinkProviderHandler(t *testing.T) {
 			timeNow = realTime
 		}()
 
-		tokenStore := authtokentest.SingleTokenStore{}
 		conn := skydbtest.NewMapConn()
 		db := skydbtest.NewMapDB()
 		txdb := skydbtest.NewMockTxDatabase(db)
 
-		r := handlertest.NewSingleRouteRouter(&LinkProviderHandler{
-			TokenStore: &tokenStore,
-		}, func(p *router.Payload) {
+		r := handlertest.NewSingleRouteRouter(&LinkProviderHandler{}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.Database = txdb
 			p.AccessKey = router.MasterAccessKey
@@ -1505,7 +1502,6 @@ func TestLinkProviderHandler(t *testing.T) {
 				},
 			})
 
-			now := timeNow()
 			resp := r.POST(fmt.Sprintf(`
 				{
 					"principal_id": "non-existent",
@@ -1515,45 +1511,8 @@ func TestLinkProviderHandler(t *testing.T) {
 					"is_login": true
 				}`, authinfo.ID))
 
-			token := tokenStore.Token
-			So(token.AccessToken, ShouldNotBeBlank)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
-				{
-					"result": {
-						"user_id": "%v",
-						"profile": {
-							"_type": "record",
-							"_id": "user/%v",
-							"_created_by": "%v",
-							"_ownerID": "%v",
-							"_updated_by": "%v",
-							"_access": null,
-							"_created_at": "2006-01-02T14:04:05Z",
-							"_updated_at": "2006-01-02T14:04:05Z",
-							"last_login_at": {
-								"$date": "2006-01-02T14:04:05Z",
-								"$type": "date"
-							}
-						},
-						"access_token": "%v",
-						"last_login_at": "2006-01-02T14:04:05Z",
-						"last_seen_at": "2006-01-02T14:04:05Z"
-					}
-				}`,
-				authinfo.ID,
-				authinfo.ID,
-				authinfo.ID,
-				authinfo.ID,
-				authinfo.ID,
-				token.AccessToken,
-			))
-
-			// The LastLoginAt should updated
-			fetchedRecord := skydb.Record{}
-			So(db.Get(userRecordID, &fetchedRecord), ShouldBeNil)
-			So(fetchedRecord.UpdatedAt, ShouldResemble, now)
-			So(fetchedRecord.Data["last_login_at"], ShouldNotResemble, anHourAgo)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"result": "OK"}`)
 		})
 
 		Convey("connect provider after login", func() {
@@ -1579,7 +1538,6 @@ func TestLinkProviderHandler(t *testing.T) {
 				},
 			})
 
-			now := timeNow()
 			resp := r.POST(fmt.Sprintf(`
 				{
 					"principal_id": "non-existent",
@@ -1589,45 +1547,8 @@ func TestLinkProviderHandler(t *testing.T) {
 					"is_login": false
 				}`, authinfo.ID))
 
-			token := tokenStore.Token
-			So(token.AccessToken, ShouldNotBeBlank)
 			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
-				{
-					"result": {
-						"user_id": "%v",
-						"profile": {
-							"_type": "record",
-							"_id": "user/%v",
-							"_created_by": "%v",
-							"_ownerID": "%v",
-							"_updated_by": "%v",
-							"_access": null,
-							"_created_at": "2006-01-02T14:04:05Z",
-							"_updated_at": "2006-01-02T14:04:05Z",
-							"last_login_at": {
-								"$date": "2006-01-02T14:04:05Z",
-								"$type": "date"
-							}
-						},
-						"access_token": "%v",
-						"last_login_at": "2006-01-02T14:04:05Z",
-						"last_seen_at": "2006-01-02T14:04:05Z"
-					}
-				}`,
-				authinfo.ID,
-				authinfo.ID,
-				authinfo.ID,
-				authinfo.ID,
-				authinfo.ID,
-				token.AccessToken,
-			))
-
-			// The LastLoginAt should not be updated
-			fetchedRecord := skydb.Record{}
-			So(db.Get(userRecordID, &fetchedRecord), ShouldBeNil)
-			So(fetchedRecord.UpdatedAt, ShouldResemble, now)
-			So(fetchedRecord.Data["last_login_at"], ShouldResemble, anHourAgo)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{"result": "OK"}`)
 		})
 	})
 }

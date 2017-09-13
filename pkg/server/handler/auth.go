@@ -834,7 +834,6 @@ func (payload *signupProviderPayload) Validate() skyerr.Error {
 
 type SignupProviderHandler struct {
 	TokenStore       authtoken.Store    `inject:"TokenStore"`
-	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
 	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
 	AssetStore       asset.Store        `inject:"AssetStore"`
 	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
@@ -945,7 +944,6 @@ type linkProviderPayload struct {
 	ProviderPrincipalID string
 	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
 	UserID              string                 `mapstructure:"user_id"`
-	IsLogin             bool                   `mapstructure:"is_login"`
 }
 
 func (payload *linkProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -979,7 +977,7 @@ func (payload *linkProviderPayload) Validate() skyerr.Error {
 // * provider (string, required)
 // * principal_id (string, required)
 // * provider_auth_data (json object, optional)
-// * user_id (json object, optional)
+// * user_id (string, required)
 //
 // curl -X POST -H "Content-Type: application/json" \
 //   -d @- http://localhost:3000/ <<EOF
@@ -992,11 +990,10 @@ func (payload *linkProviderPayload) Validate() skyerr.Error {
 // }
 // EOF
 // Response
-// return user and token
-
+// {
+//     "result": "OK"
+// }
 type LinkProviderHandler struct {
-	TokenStore       authtoken.Store    `inject:"TokenStore"`
-	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
 	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
 	AssetStore       asset.Store        `inject:"AssetStore"`
 	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
@@ -1023,7 +1020,7 @@ func (h *LinkProviderHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("Connect provider")
+	log.Debugf("Link provider")
 	p := &linkProviderPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
@@ -1031,9 +1028,7 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	store := h.TokenStore
 	info := skydb.AuthInfo{}
-	user := skydb.Record{}
 	principalID := p.ProviderPrincipalID
 	userID := p.UserID
 
@@ -1058,50 +1053,6 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	err := payload.Database.Get(skydb.NewRecordID("user", info.ID), &user)
-	if err != nil {
-		response.Err = skyerr.MakeError(err)
-		return
-	}
-
-	// generate access-token
-	token, err := store.NewToken(payload.AppName, info.ID)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = store.Put(&token); err != nil {
-		panic(err)
-	}
-
-	authResponse, err := AuthResponseFactory{
-		AssetStore: h.AssetStore,
-		Conn:       payload.DBConn,
-	}.NewAuthResponse(info, user, token.AccessToken, payload.HasMasterKey())
-	if err != nil {
-		response.Err = skyerr.MakeError(err)
-		return
-	}
-
-	// Populate the activity time to user
-	now := timeNow()
-	info.LastSeenAt = &now
-	if err := payload.DBConn.UpdateAuth(&info); err != nil {
-		response.Err = skyerr.MakeError(err)
-		return
-	}
-
-	// update user record last login time
-	user.UpdatedAt = now
-	user.UpdaterID = info.ID
-	if p.IsLogin {
-		user.Data[UserRecordLastLoginAtKey] = now
-	}
-	if err := payload.Database.Save(&user); err != nil {
-		response.Err = skyerr.MakeError(err)
-		return
-	}
-
-	response.Result = authResponse
+	response.Result = "OK"
 	return
 }
