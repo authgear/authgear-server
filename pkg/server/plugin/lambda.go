@@ -58,7 +58,10 @@ func (h *LambdaHandler) Setup() {
 			"plugin_ready",
 		)
 	} else {
-		h.preprocessors = h.PreprocessorList.GetByNames("plugin_ready")
+		h.preprocessors = h.PreprocessorList.GetByNames(
+			"inject_auth_id",
+			"plugin_ready",
+		)
 	}
 }
 

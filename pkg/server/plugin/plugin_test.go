@@ -36,6 +36,12 @@ func (p MockPluginReadyPreprocessor) Preprocess(payload *router.Payload, respons
 	return http.StatusOK
 }
 
+type MockInjectAuthIDPreprocessor struct{}
+
+func (p MockInjectAuthIDPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
+	return http.StatusOK
+}
+
 type MockAccessKeyPreprocessor struct{}
 
 func (p MockAccessKeyPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
@@ -83,6 +89,7 @@ func TestPlugin(t *testing.T) {
 		Convey("init correctly with one handler", func() {
 			mux := http.NewServeMux()
 			plugin.initHandler(mux, router.PreprocessorRegistry{
+				"inject_auth_id": MockInjectAuthIDPreprocessor{},
 				"plugin_ready": MockPluginReadyPreprocessor{},
 			}, []pluginHandlerInfo{
 				pluginHandlerInfo{
@@ -96,6 +103,7 @@ func TestPlugin(t *testing.T) {
 		Convey("init correctly with multiple handler", func() {
 			mux := http.NewServeMux()
 			plugin.initHandler(mux, router.PreprocessorRegistry{
+				"inject_auth_id": MockInjectAuthIDPreprocessor{},
 				"plugin_ready": MockPluginReadyPreprocessor{},
 			}, []pluginHandlerInfo{
 				pluginHandlerInfo{

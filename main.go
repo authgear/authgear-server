@@ -125,10 +125,18 @@ func main() {
 		AppName:   config.App.Name,
 	}
 	preprocessorRegistry["authenticator"] = &pp.UserAuthenticator{
-		ClientKey:  config.App.APIKey,
-		MasterKey:  config.App.MasterKey,
-		AppName:    config.App.Name,
-		TokenStore: tokenStore,
+		ClientKey:          config.App.APIKey,
+		MasterKey:          config.App.MasterKey,
+		AppName:            config.App.Name,
+		TokenStore:         tokenStore,
+		BypassUnauthorized: false,
+	}
+	preprocessorRegistry["inject_auth_id"] = &pp.UserAuthenticator{
+		ClientKey:          config.App.APIKey,
+		MasterKey:          config.App.MasterKey,
+		AppName:            config.App.Name,
+		TokenStore:         tokenStore,
+		BypassUnauthorized: true,
 	}
 	preprocessorRegistry["dbconn"] = &pp.ConnPreprocessor{
 		AppName:       config.App.Name,

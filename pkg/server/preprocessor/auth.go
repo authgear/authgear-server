@@ -68,15 +68,25 @@ func (p AccessKeyValidationPreprocessor) Preprocess(payload *router.Payload, res
 
 // UserAuthenticator provides preprocess method to authenicate a user
 // with access token or non-login user without api key.
+// It inject AuthInfoID and related context.
+// If BypassUnauthorized is true, UserAuthenticator will return
+// StatusOK instead of StatusUnauthorized if the request is not
+// authenticated. It is for plugin so even handler or lambda
+// that are not user_required, we can still get the
+// AuthInfoID from context.
 type UserAuthenticator struct {
-	ClientKey  string
-	MasterKey  string
-	AppName    string
-	TokenStore authtoken.Store
+	ClientKey            string
+	MasterKey            string
+	AppName              string
+	TokenStore           authtoken.Store
+	BypassUnauthorized   bool
 }
 
 func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router.Response) int {
 	if err := checkRequestAccessKey(payload, p.ClientKey, p.MasterKey); err != nil {
+		if p.BypassUnauthorized {
+			return http.StatusOK
+		}
 		response.Err = err
 		return http.StatusUnauthorized
 	}
@@ -88,6 +98,9 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 		token := authtoken.Token{}
 
 		if err := store.Get(tokenString, &token); err != nil {
+			if p.BypassUnauthorized {
+				return http.StatusOK
+			}
 			if _, ok := err.(*authtoken.NotFoundError); ok {
 				log.WithFields(logrus.Fields{
 					"token": tokenString,
@@ -109,6 +122,9 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 	}
 
 	if payload.AccessKey == router.NoAccessKey {
+		if p.BypassUnauthorized {
+			return http.StatusOK
+		}
 		response.Err = skyerr.NewErrorf(skyerr.NotAuthenticated, "Both api key and access token are empty")
 		return http.StatusUnauthorized
 	}
