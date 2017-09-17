@@ -1065,7 +1065,6 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 // Define the playload for sso plugin to disconnect user with provider
 type unlinkProviderPayload struct {
 	Provider            string                 `mapstructure:"provider"`
-	PrincipalIDPrefix   string
 	UserID              string                 `mapstructure:"user_id"`
 }
 
@@ -1073,7 +1072,6 @@ func (payload *unlinkProviderPayload) Decode(data map[string]interface{}) skyerr
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
-	payload.PrincipalIDPrefix = payload.Provider + ":"
 	return payload.Validate()
 }
 
@@ -1151,17 +1149,8 @@ func (h *UnlinkProviderHandler) Handle(payload *router.Payload, response *router
 		return
 	}
 
-	providerInfo := info.ProviderInfo
-	unlinked := false
-	for k := range providerInfo {
-		if strings.HasPrefix(k, p.PrincipalIDPrefix) {
-			info.RemoveProviderInfoData(k)
-			unlinked = true
-		}
-	}
-
-	if !unlinked {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "no connected provider to unlink")
+	if err := info.RemoveProviderInfoDataByProvider(p.Provider); err != nil {
+		response.Err = skyerr.MakeError(err)
 		return
 	}
 
