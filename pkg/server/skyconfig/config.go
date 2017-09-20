@@ -259,11 +259,7 @@ func (config *Configuration) Validate() error {
 	if config.APNS.Enable && !regexp.MustCompile("^(cert|token)$").MatchString(config.APNS.Type) {
 		return fmt.Errorf("APNS_TYPE must be cert or token")
 	}
-	if err := config.checkAuthRecordKeysDuplication(); err != nil {
-		return err
-	}
-
-	return nil
+	return config.checkAuthRecordKeysDuplication()
 }
 
 func (config *Configuration) checkAuthRecordKeysDuplication() error {

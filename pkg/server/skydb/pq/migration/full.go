@@ -208,11 +208,7 @@ func (r *fullMigration) Up(tx *sqlx.Tx) error {
 		return err
 	}
 
-	if err = r.insertSeedData(tx); err != nil {
-		return err
-	}
-
-	return nil
+	return r.insertSeedData(tx)
 }
 
 func (r *fullMigration) Down(tx *sqlx.Tx) error {

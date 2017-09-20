@@ -22,9 +22,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
@@ -152,11 +152,7 @@ func (l *recordListener) fetchNotification(notificationID string, n *notificatio
 		return err
 	}
 
-	if err := parseNotification(&rawNoti, n); err != nil {
-		return err
-	}
-
-	return nil
+	return parseNotification(&rawNoti, n)
 }
 
 func (l *recordListener) deleteNotification(notificationID string) {

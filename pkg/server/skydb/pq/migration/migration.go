@@ -115,11 +115,7 @@ func executeSchemaMigrations(tx *sqlx.Tx, schema string, original string, target
 		return err
 	}
 
-	if err = setVersionNum(tx, original, target); err != nil {
-		return err
-	}
-
-	return nil
+	return setVersionNum(tx, original, target)
 }
 
 func EnsureLatest(db *sqlx.DB, schema string, allowMigration bool) error {

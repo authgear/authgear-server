@@ -103,11 +103,7 @@ func (r *revision_bce7089fca4) Up(tx *sqlx.Tx) error {
 		return err
 	}
 
-	if err := r.insertAdminUserIfNotExists(tx); err != nil {
-		return err
-	}
-
-	return nil
+	return r.insertAdminUserIfNotExists(tx)
 }
 
 func (r *revision_bce7089fca4) Down(tx *sqlx.Tx) error {
