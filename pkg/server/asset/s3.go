@@ -16,18 +16,22 @@ package asset
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"strings"
 	"time"
 
-	"gopkg.in/amz.v3/aws"
-	"gopkg.in/amz.v3/s3"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 // s3Store implements Store by storing files on S3
 type s3Store struct {
-	bucket    *s3.Bucket
+	svc       *s3.S3
+	uploader  *s3manager.Uploader
+	bucket    *string
 	urlPrefix string
 	public    bool
 }
@@ -42,22 +46,23 @@ func NewS3Store(
 	public bool,
 ) (Store, error) {
 
-	auth := aws.Auth{
-		AccessKey: accessKey,
-		SecretKey: secretKey,
-	}
+	creds := credentials.NewStaticCredentials(
+		accessKey,
+		secretKey,
+		"",
+	)
+	sess := session.Must(session.NewSession())
+	svc := s3.New(sess, &aws.Config{
+		Region:      aws.String(regionName),
+		Credentials: creds,
+	})
+	uploader := s3manager.NewUploaderWithClient(svc)
 
-	region, ok := aws.Regions[regionName]
-	if !ok {
-		return nil, fmt.Errorf("unrecgonized region name = %v", regionName)
-	}
-
-	bucket, err := s3.New(auth, region).Bucket(bucketName)
-	if err != nil {
-		return nil, err
-	}
+	bucket := aws.String(bucketName)
 
 	return &s3Store{
+		svc:       svc,
+		uploader:  uploader,
 		bucket:    bucket,
 		urlPrefix: urlPrefix,
 		public:    public,
@@ -66,7 +71,13 @@ func NewS3Store(
 
 // GetFileReader returns a reader for files
 func (s *s3Store) GetFileReader(name string) (io.ReadCloser, error) {
-	return s.bucket.GetReader(name)
+	key := aws.String(name)
+	input := &s3.GetObjectInput{
+		Bucket: s.bucket,
+		Key:    key,
+	}
+	objOutput, err := s.svc.GetObject(input)
+	return objOutput.Body, err
 }
 
 // PutFileReader uploads a file to s3 with content from io.Reader
@@ -76,8 +87,15 @@ func (s *s3Store) PutFileReader(
 	length int64,
 	contentType string,
 ) error {
-
-	return s.bucket.PutReader(name, src, length, contentType, s3.Private)
+	key := aws.String(name)
+	input := &s3manager.UploadInput{
+		Body:        src,
+		Bucket:      s.bucket,
+		Key:         key,
+		ContentType: aws.String(contentType),
+	}
+	_, err := s.uploader.Upload(input)
+	return err
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
@@ -93,9 +111,23 @@ func (s *s3Store) SignedURL(name string) (string, error) {
 		if s.urlPrefix != "" {
 			return strings.Join([]string{s.urlPrefix, name}, "/"), nil
 		}
-		return s.bucket.URL(name), nil
+		key := aws.String(name)
+		input := &s3.GetObjectInput{
+			Bucket: s.bucket,
+			Key:    key,
+		}
+		req, _ := s.svc.GetObjectRequest(input)
+		// Sign will interpolate the URL String, otherwise the URL will be %bucket%
+		req.Sign()
+		return req.HTTPRequest.URL.String(), nil
 	}
-	return s.bucket.SignedURL(name, time.Minute*time.Duration(15))
+	key := aws.String(name)
+	input := &s3.GetObjectInput{
+		Bucket: s.bucket,
+		Key:    key,
+	}
+	req, _ := s.svc.GetObjectRequest(input)
+	return req.Presign(time.Minute * time.Duration(15))
 }
 
 // IsSignatureRequired indicates whether a signature is required

@@ -69,11 +69,6 @@ import:
   version: 5eaf0df67e70d6997a9fe0ed24383fa1b01638d3
   subpackages:
   - unix
-- package: gopkg.in/amz.v3
-  version: 537454f724132c64dec76f0b9156917fcdd47e3a
-  subpackages:
-  - aws
-  - s3
 - package: github.com/golang/mock
   subpackages:
   - gomock
@@ -82,6 +77,8 @@ import:
   version: fa85459
   subpackages:
   - push
+- package: github.com/aws/aws-sdk-go
+  version: ~1.10.50
 testImport:
 - package: github.com/jarcoal/httpmock
 - package: github.com/smartystreets/goconvey
