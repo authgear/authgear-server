@@ -1,3 +1,14 @@
+## 1.1.1 (2017-09-22)
+
+### Features
+- Add preprocessor for plugin to inject user id to context even plugin is not user required
+
+### Bug Fixes
+- Update to use official aws-sdk-go (#468)
+
+# Other Notes
+- Update user username and email field acl default for new app (#457)
+
 ## 1.1.0 (2017-08-07)
 
 ### Incompatible changes
