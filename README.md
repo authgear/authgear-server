@@ -3,13 +3,10 @@
 Skygear Server is a cloud backend for making web, mobile and IoT app development easier.
 
 It provides the following features for common app development:
-* Skygear Auth - User Authentication, Social Login, Security
+* Skygear Auth - User Auth, [Forgot Password](https://github.com/SkygearIO/forgot_password) [Social Login](https://github.com/SkygearIO/skygear-sso), Security
 * Skygear Cloud DB - Document-like API/SDK with auto-migration based on PostgreSQL
 * Skygear Chat - Build full-featured messaging into your app fast
-  [Server](https://github.com/SkygearIO/chat), [JS
-  SDK](https://github.com/SkygearIO/chat-SDK-JS), [Android
-  SDK](https://github.com/SkygearIO/chat-SDK-Android), [iOS
-  SDK](https://github.com/SkygearIO/chat-SDK-iOS)
+  [Server](https://github.com/SkygearIO/chat)
 * Skygear Cloud Functions - Run event-trigger functions without thinking about
   server
 * Skygear CMS - Drop-in CMS for business users integrated with Skygear Auth and
@@ -18,11 +15,16 @@ It provides the following features for common app development:
   connection.
 * Skygear Push - Push Notification
 
+Skygear Server / Cloud Functions are expected to be used with client side SDK:
+* Javascript: [Core](https://github.com/skygearIO/skygear-sdk-js), [Chat](https://github.com/SkygearIO/chat-SDK-JS)
+* iOS: [Core](https://github.com/skygearIO/skygear-sdk-ios), [Chat](https://github.com/SkygearIO/chat-SDK-iOS)
+* Android: [Core](https://github.com/skygearIO/skygear-sdk-android), [Chat](https://github.com/SkygearIO/chat-SDK-Android)
+
 [Skygear.io](https://skygear.io) is the commercial hosted platform for
 developers who don't want to manage their own infrastructure.
 
 [![Slack](https://img.shields.io/badge/join-Slack-green.svg)](https://slack.skygear.io/)
-[![Google Group](https://img.shields.io/badge/join-Google%20Group-green.svg)](https://groups.google.com/forum/#!forum/skygear-user-group)
+[![Forum](https://img.shields.io/badge/join-Forum-green.svg)](https://discuss.skygear.io)
 
 [![Build Status](https://travis-ci.org/SkygearIO/skygear-server.svg?branch=master)](https://travis-ci.org/SkygearIO/skygear-server)
 [![Go Report Card](https://goreportcard.com/badge/github.com/skygeario/skygear-server)](https://goreportcard.com/report/github.com/skygeario/skygear-server)
@@ -35,7 +37,6 @@ The easiest way to start using Skygear is sign-up a free Development Plan at [ht
 
 Read the [Skygear Server Guide](https://docs.skygear.io/guides/advanced/server/)
 for local deployment. Download binaries of [Skygear Releases here](https://github.com/SkygearIO/skygear-server/releases)
-
 
 ## Connect your app to Skygear Server
 Skygear provides SDKs for all the major platforms. Please refer to the guide for each platform to learn how to connect your app to Skygear Server: [iOS](https://docs.skygear.io/guides/get-started/ios/) / [Android](https://docs.skygear.io/guides/get-started/android/) / [JavaScript](https://docs.skygear.io/guides/get-started/js/)
@@ -56,9 +57,7 @@ free to [report an issue](https://github.com/SkygearIO/skygear-server/issues).
 
 Please do not use the issue tracker for personal support requests. Instead, use
 [Stack Overflow](http://stackoverflow.com/questions/tagged/skygear) community,
-join our [Google Group](https://groups.google.com/forum/#!forum/skygear-user-group),
-or [Slack Team](https://slack.skygear.io) to chat with our
-supports/developers.
+or ask questions in [Forum](https://discuss.skygear.io).
 
 For issues about [Skygear Guides](https://docs.skygear.io) please use the
 [Skygear Guides issues tracker](https://github.com/skygeario/guides/issues).
