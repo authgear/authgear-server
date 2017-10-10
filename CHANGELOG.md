@@ -1,3 +1,10 @@
+## 1.1.2 (2017-10-10)
+
+# Other Notes
+- Update user username and email field acl default for new app (#457)
+- Update .env.example according to code (#471)
+- Add links to README.md, and change Google Forum to discuss.skygear.io## 1.1.1 (2017-09-22)
+
 ## 1.1.1 (2017-09-22)
 
 ### Features
