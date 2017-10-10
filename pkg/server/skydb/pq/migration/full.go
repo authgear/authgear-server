@@ -164,7 +164,7 @@ CREATE VIEW _user AS
 INSERT INTO _record_field_access
   (record_type, record_field, user_role, writable, readable, comparable, discoverable)
 VALUES
-  ('user', 'username', '_any_user', 'FALSE', 'TRUE', 'FALSE', 'TRUE');
+  ('user', 'username', '_any_user', 'FALSE', 'TRUE', 'TRUE', 'TRUE');
 
 INSERT INTO _record_field_access
   (record_type, record_field, user_role, writable, readable, comparable, discoverable)
@@ -174,7 +174,7 @@ VALUES
 INSERT INTO _record_field_access
   (record_type, record_field, user_role, writable, readable, comparable, discoverable)
 VALUES
-  ('user', 'email', '_any_user', 'FALSE', 'TRUE', 'FALSE', 'TRUE');
+  ('user', 'email', '_any_user', 'FALSE', 'TRUE', 'TRUE', 'TRUE');
 
 INSERT INTO _record_field_access
   (record_type, record_field, user_role, writable, readable, comparable, discoverable)
