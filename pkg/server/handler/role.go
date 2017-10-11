@@ -309,7 +309,7 @@ func (h *RoleRevokeHandler) Handle(rpayload *router.Payload, response *router.Re
 }
 
 type getRolesPayload struct {
-	UserIDs []string `mapstructure:"user_ids"`
+	UserIDs []string `mapstructure:"users"`
 }
 
 func (payload *getRolesPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -321,7 +321,7 @@ func (payload *getRolesPayload) Decode(data map[string]interface{}) skyerr.Error
 
 func (payload *getRolesPayload) Validate() skyerr.Error {
 	if payload.UserIDs == nil || len(payload.UserIDs) == 0 {
-		return skyerr.NewInvalidArgument("unspecified user IDs in request", []string{"user_ids"})
+		return skyerr.NewInvalidArgument("unspecified user IDs in request", []string{"users"})
 	}
 	return nil
 }
@@ -339,7 +339,7 @@ func (payload *getRolesPayload) Validate() skyerr.Error {
 //     "action": "role:get",
 //     "master_key": "MASTER_KEY",
 //     "access_token": "ACCESS_TOKEN",
-//     "user_ids": [
+//     "users": [
 //        "e0cfd2d6-184d-4dad-8cf1-f7ff96954c8d",
 //        "e023c399-f329-41d6-9d95-9a5261c63501",
 //        "24e1df68-9007-4111-8ec1-c53a2a45ad9e"

@@ -332,7 +332,7 @@ func TestRoleGetHandler(t *testing.T) {
 				p.AccessKey = router.MasterAccessKey
 			})
 			resp := mockRouter.POST(
-				`{ "user_ids": ["user1", "user2", "user3"] }`,
+				`{ "users": ["user1", "user2", "user3"] }`,
 			)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
@@ -353,7 +353,7 @@ func TestRoleGetHandler(t *testing.T) {
 				p.AuthInfo = &authInfo
 				p.AccessKey = router.ClientAccessKey
 			})
-			resp := mockRouter.POST(`{ "user_ids": ["user1", "user2", "user3"]}`)
+			resp := mockRouter.POST(`{ "users": ["user1", "user2", "user3"]}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
 					"user1": ["developer", "project-manager"],
@@ -373,7 +373,7 @@ func TestRoleGetHandler(t *testing.T) {
 				p.AuthInfo = &authInfo
 				p.AccessKey = router.ClientAccessKey
 			})
-			resp := mockRouter.POST(`{ "user_ids": [ "user1" ] }`)
+			resp := mockRouter.POST(`{ "users": [ "user1" ] }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
 					"user1": ["developer", "project-manager"]
@@ -391,7 +391,7 @@ func TestRoleGetHandler(t *testing.T) {
 				p.AuthInfo = &authInfo
 				p.AccessKey = router.ClientAccessKey
 			})
-			resp := mockRouter.POST(`{ "user_ids": [ "user1" ] }`)
+			resp := mockRouter.POST(`{ "users": [ "user1" ] }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"code": 102,
@@ -409,7 +409,7 @@ func TestRoleGetHandler(t *testing.T) {
 				p.AuthInfo = &authInfo
 				p.AccessKey = router.MasterAccessKey
 			})
-			resp := mockRouter.POST(`{ "user_ids": [ "error-user" ] }`)
+			resp := mockRouter.POST(`{ "users": [ "error-user" ] }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"code": 10000,
