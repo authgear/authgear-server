@@ -154,6 +154,144 @@ func TestFieldACL(t *testing.T) {
 			So(acl.Accessible("note", "content", CompareFieldAccessMode, janedoe, nil), ShouldBeTrue)
 		})
 
+		Convey("should return whether the access mode is accessible for user and record with and without wildcard", func() {
+			acl := NewFieldACL(FieldACLEntryList{
+				{
+					RecordType:   "*",
+					RecordField:  "*",
+					UserRole:     publicRole,
+					Writable:     false,
+					Readable:     true,
+					Comparable:   true,
+					Discoverable: true,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "*",
+					UserRole:     FieldUserRole{OwnerFieldUserRoleType, ""},
+					Writable:     true,
+					Readable:     false,
+					Comparable:   true,
+					Discoverable: true,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "content",
+					UserRole:     FieldUserRole{DefinedRoleFieldUserRoleType, "guest"},
+					Writable:     false,
+					Readable:     true,
+					Comparable:   false,
+					Discoverable: false,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "content",
+					UserRole:     FieldUserRole{OwnerFieldUserRoleType, ""},
+					Writable:     true,
+					Readable:     true,
+					Comparable:   true,
+					Discoverable: true,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "stars",
+					UserRole:     FieldUserRole{DefinedRoleFieldUserRoleType, "admin"},
+					Writable:     true,
+					Readable:     false,
+					Comparable:   true,
+					Discoverable: true,
+				},
+				{
+					RecordType:   "note",
+					RecordField:  "stars",
+					UserRole:     FieldUserRole{DefinedRoleFieldUserRoleType, "guest"},
+					Writable:     false,
+					Readable:     true,
+					Comparable:   true,
+					Discoverable: true,
+				},
+			})
+
+			johndoe := &AuthInfo{
+				ID:    "johndoe",
+				Roles: []string{"guest"},
+			}
+			janedoe := &AuthInfo{
+				ID:    "janedoe",
+				Roles: []string{"admin"},
+			}
+			record := &Record{
+				OwnerID: "janedoe",
+			}
+
+			So(acl.Accessible("note", "content", ReadFieldAccessMode, nil, record), ShouldBeFalse)
+			So(acl.Accessible("note", "content", WriteFieldAccessMode, nil, record), ShouldBeFalse)
+			So(acl.Accessible("note", "content", ReadFieldAccessMode, johndoe, record), ShouldBeTrue)
+			So(acl.Accessible("note", "content", WriteFieldAccessMode, johndoe, record), ShouldBeFalse)
+			So(acl.Accessible("note", "content", ReadFieldAccessMode, janedoe, record), ShouldBeTrue)
+			So(acl.Accessible("note", "content", WriteFieldAccessMode, janedoe, record), ShouldBeTrue)
+
+			So(acl.Accessible("note", "title", ReadFieldAccessMode, nil, record), ShouldBeFalse)
+			So(acl.Accessible("note", "title", WriteFieldAccessMode, nil, record), ShouldBeFalse)
+			So(acl.Accessible("note", "title", ReadFieldAccessMode, johndoe, record), ShouldBeFalse)
+			So(acl.Accessible("note", "title", WriteFieldAccessMode, johndoe, record), ShouldBeFalse)
+			So(acl.Accessible("note", "title", ReadFieldAccessMode, janedoe, record), ShouldBeFalse)
+			So(acl.Accessible("note", "title", WriteFieldAccessMode, janedoe, record), ShouldBeTrue)
+
+			So(acl.Accessible("project", "title", ReadFieldAccessMode, nil, record), ShouldBeTrue)
+			So(acl.Accessible("project", "title", WriteFieldAccessMode, nil, record), ShouldBeFalse)
+			So(acl.Accessible("project", "title", ReadFieldAccessMode, johndoe, record), ShouldBeTrue)
+			So(acl.Accessible("project", "title", WriteFieldAccessMode, johndoe, record), ShouldBeFalse)
+			So(acl.Accessible("project", "title", ReadFieldAccessMode, janedoe, record), ShouldBeTrue)
+			So(acl.Accessible("project", "title", WriteFieldAccessMode, janedoe, record), ShouldBeFalse)
+		})
+
+		Convey("should return false if no entry matches for user role", func() {
+			acl := NewFieldACL(FieldACLEntryList{
+				{
+					RecordType:   "*",
+					RecordField:  "*",
+					UserRole:     FieldUserRole{OwnerFieldUserRoleType, ""},
+					Writable:     true,
+					Readable:     true,
+					Comparable:   true,
+					Discoverable: true,
+				},
+			})
+
+			So(acl.Accessible("note", "content", ReadFieldAccessMode, nil, nil), ShouldBeFalse)
+			So(acl.Accessible("note", "content", WriteFieldAccessMode, nil, nil), ShouldBeFalse)
+		})
+
+		Convey("should return whether the access mode is accessible for user with both wildcard", func() {
+			acl := NewFieldACL(FieldACLEntryList{
+				{
+					RecordType:   "*",
+					RecordField:  "*",
+					UserRole:     FieldUserRole{OwnerFieldUserRoleType, ""},
+					Writable:     true,
+					Readable:     true,
+					Comparable:   true,
+					Discoverable: true,
+				},
+			})
+			johndoe := &AuthInfo{
+				ID: "johndoe",
+			}
+			janedoe := &AuthInfo{
+				ID: "janedoe",
+			}
+			record := &Record{
+				OwnerID: "janedoe",
+			}
+
+			So(acl.Accessible("note", "content", ReadFieldAccessMode, johndoe, record), ShouldBeFalse)
+			So(acl.Accessible("note", "content", WriteFieldAccessMode, johndoe, record), ShouldBeFalse)
+
+			So(acl.Accessible("note", "content", ReadFieldAccessMode, janedoe, record), ShouldBeTrue)
+			So(acl.Accessible("note", "content", WriteFieldAccessMode, janedoe, record), ShouldBeTrue)
+		})
+
 		Convey("should returns true if no entry matches", func() {
 			acl := NewFieldACL(FieldACLEntryList{})
 			So(acl.Accessible("note", "content", WriteFieldAccessMode, nil, nil), ShouldBeTrue)

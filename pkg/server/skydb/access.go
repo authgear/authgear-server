@@ -200,22 +200,23 @@ func (acl FieldACL) Accessible(
 	// the specified record type and field. The iterator will handle the
 	// scenario where wildcard record type and field.
 	iter := NewFieldACLIterator(acl, recordType, field)
-	for {
-		entry := iter.Next()
-		if entry == nil {
-			// There is no matching ACL entry, the fallback is to grant access.
-			return true
-		}
+	entry := iter.Next()
 
-		// Only the rules that matches the user role will be selected.
-		if !entry.UserRole.Match(authInfo, record) {
-			continue
-		}
-
-		// The selected rule decides whether to grant ot deny the request.
-		// Other rules are ignored.
-		return entry.Accessible(mode)
+	// There is no ACL entry that matches the field of record type,
+	// the fallback is to grant access
+	if entry == nil {
+		return true
 	}
+
+	for ; entry != nil; entry = iter.Next() {
+		if entry.UserRole.Match(authInfo, record) {
+			return entry.Accessible(mode)
+		}
+	}
+
+	// There is no ACL entry that matches the user role,
+	// the fallback is access denied
+	return false
 }
 
 // FieldACLIterator iterates FieldACL to find a list of rules that apply
@@ -270,11 +271,16 @@ func (i *FieldACLIterator) Next() *FieldACLEntry {
 
 		// Get next entry.
 		nextEntry, i.nextEntries = i.nextEntries[0], i.nextEntries[1:]
-		if (nextEntry.RecordType == WildcardRecordType || nextEntry.RecordType == i.recordType) &&
-			(nextEntry.RecordField == WildcardRecordField || nextEntry.RecordField == i.recordField) {
+		if nextEntry.RecordField == i.recordField || nextEntry.RecordField == WildcardRecordField {
+			// Stop the iterator in the next iteration when
+			// - no more entries for the record type
+			// - two entries have different field
+			i.eof = len(i.nextEntries) == 0 ||
+				nextEntry.RecordField != i.nextEntries[0].RecordField
 			break
 		}
 	}
+
 	return &nextEntry
 }
 
