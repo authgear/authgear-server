@@ -1,3 +1,18 @@
+## 1.1.3 (2017-10-25)
+
+### Features
+
+- Update FieldACL Accessible matching logic (#479)
+
+  New matching criteria is, record type and record field.
+  - If no matched entries, return true
+  - Otherwise if user role does not fullfil matched entries, return false
+  - Otherwise return the result of the matched entry
+
+### Bug Fixes
+
+- Fix role:get expecting User IDs from wrong keys (#475)
+
 ## 1.1.2 (2017-10-10)
 
 # Other Notes
