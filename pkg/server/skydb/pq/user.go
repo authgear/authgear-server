@@ -405,6 +405,13 @@ func (c *conn) GetOAuthInfo(provider string, principalID string, oauthinfo *skyd
 	return c.doScanOAuthInfo(oauthinfo, scanner)
 }
 
+func (c *conn) GetOAuthInfoByProvicerAndUserID(provider string, userID string, oauthinfo *skydb.OAuthInfo) error {
+	builder := c.oauthBuilder().
+		Where("provider = ? and user_id = ?", provider, userID)
+	scanner := c.QueryRowWith(builder)
+	return c.doScanOAuthInfo(oauthinfo, scanner)
+}
+
 func (c *conn) DeleteOAuthByUserIDAndProvider(userID string, provider string) error {
 	builder := psql.Delete(c.tableName("_sso_oauth")).
 		Where("userID = ? and provider = ?", userID, provider)

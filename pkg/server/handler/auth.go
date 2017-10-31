@@ -1077,7 +1077,13 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 			return
 		}
 	} else {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "provider already connected")
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "provider account linked with existing user already")
+		return
+	}
+
+	if err := payload.DBConn.GetOAuthInfoByProvicerAndUserID(p.Provider, userID, &oauth);
+		err != skydb.ErrUserNotFound {
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "user linked to the provider already")
 		return
 	}
 
