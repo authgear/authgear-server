@@ -631,17 +631,16 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 
 // Define the playload for sso plugin to login user with provider
 type loginProviderPayload struct {
-	Provider            string                 `mapstructure:"provider"`
-	PrincipalID         string                 `mapstructure:"principal_id"`
-	ProviderPrincipalID string
-	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
+	Provider            string                   `mapstructure:"provider"`
+	PrincipalID         string                   `mapstructure:"principal_id"`
+	TokenResponse       map[string]interface{}   `mapstructure:"token_response"`
+	ProviderProfile     map[string]interface{}   `mapstructure:"provider_profile"`
 }
 
 func (payload *loginProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
-	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
 	return payload.Validate()
 }
 
@@ -662,15 +661,19 @@ func (payload *loginProviderPayload) Validate() skyerr.Error {
 //
 // * provider (string, required)
 // * principal_id (string, required)
-// * provider_auth_data (json object, optional)
+// * token_response (json object, optional)
+// * provider_profile (json object, optional)
 //
 // curl -X POST -H "Content-Type: application/json" \
 //   -d @- http://localhost:3000/ <<EOF
 // {
-// 		"action": "auth:provider:login",
+// 		"action": "sso:oauth:login",
 // 		"provider": "facebook",
 // 		"principal_id": "104174434987489953648",
-// 		"provider_auth_data": {}
+// 		"token_response": {
+//			"access_token": "..."
+//		},
+// 		"provider_profile": {},
 // }
 // EOF
 // Response
@@ -718,29 +721,36 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 	}
 
 	store := h.TokenStore
+	oauth := skydb.OAuthInfo{}
 	info := skydb.AuthInfo{}
 	user := skydb.Record{}
-	principalID := p.ProviderPrincipalID
+	now := timeNow()
 
-	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
+	if err := payload.DBConn.GetOAuthInfo(p.Provider, p.PrincipalID, &oauth); err != nil {
 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "no connected user")
 		return
 	}
 
-	info.SetProviderInfoData(principalID, p.ProviderAuthData)
-	if err := payload.DBConn.UpdateAuth(&info); err != nil {
+	oauth.TokenResponse = p.TokenResponse
+	oauth.ProviderProfile = p.ProviderProfile
+	oauth.UpdatedAt = &now
+	if err := payload.DBConn.UpdateOAuthInfo(&oauth); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
 
-	err := payload.Database.Get(skydb.NewRecordID("user", info.ID), &user)
-	if err != nil {
+	if err := payload.Database.Get(skydb.NewRecordID("user", oauth.UserID), &user); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	if err := payload.DBConn.GetAuth(oauth.UserID, &info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
 
 	// generate access-token
-	token, err := store.NewToken(payload.AppName, info.ID)
+	token, err := store.NewToken(payload.AppName, oauth.UserID)
 	if err != nil {
 		panic(err)
 	}
@@ -759,7 +769,6 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 	}
 
 	// Populate the activity time to user
-	now := timeNow()
 	info.LastSeenAt = &now
 	if err := payload.DBConn.UpdateAuth(&info); err != nil {
 		response.Err = skyerr.MakeError(err)
