@@ -16,7 +16,6 @@ package handler
 
 import (
 	"context"
-	"strings"
 
 	"github.com/mitchellh/mapstructure"
 
@@ -792,26 +791,21 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 type signupProviderPayload struct {
 	Provider         		string                 `mapstructure:"provider"`
 	PrincipalID         string                 `mapstructure:"principal_id"`
-	ProviderPrincipalID string
-	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
 	Profile             skydb.Data             `mapstructure:"profile"`
+	TokenResponse       map[string]interface{} `mapstructure:"token_response"`
+	ProviderProfile     map[string]interface{} `mapstructure:"provider_profile"`
 }
 
 func (payload *signupProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
-	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
 	return payload.Validate()
 }
 
 func (payload *signupProviderPayload) Validate() skyerr.Error {
 	if payload.Provider == "" {
 		return skyerr.NewInvalidArgument("empty provider", []string{"provider"})
-	}
-
-	if strings.Contains(payload.Provider, ":") {
-		return skyerr.NewInvalidArgument("provider name contains invalid character :", []string{"provider"})
 	}
 
 	if payload.PrincipalID == "" {
@@ -827,16 +821,23 @@ func (payload *signupProviderPayload) Validate() skyerr.Error {
 //
 // * provider (string, required)
 // * principal_id (string, required)
-// * provider_auth_data (json object, optional)
+// * token_response (json object, optional)
+// * provider_profile (json object, optional)
 // * profile (json object, optional)
 //
 // curl -X POST -H "Content-Type: application/json" \
 //   -d @- http://localhost:3000/ <<EOF
 // {
-// 		"action": "auth:provider:signup",
+// 		"action": "sso:oauth:signup",
 // 		"provider": "facebook",
 // 		"principal_id": "104174434987489953648",
-// 		"provider_auth_data": {},
+// 		"token_response": {
+// 			"access_token": "access_token"
+// 		},
+// 		"provider_profile": {
+//			"id": "104174434987489953648",
+// 			"email": "chima@skygeario.com"
+// 		},
 // 		"profile": {"email": "chima@skygeario.com"}
 // }
 // EOF
@@ -882,25 +883,44 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 		return
 	}
 
+	var (
+		oauth skydb.OAuthInfo
+	)
 	store := h.TokenStore
 	info := skydb.AuthInfo{}
 	user := skydb.Record{}
-	principalID := p.ProviderPrincipalID
+	now := timeNow()
 
-	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
+	if err := payload.DBConn.GetOAuthInfo(p.Provider, p.PrincipalID, &oauth); err != nil {
 		if err != skydb.ErrUserNotFound {
 			// TODO: more error handling here if necessary
 			response.Err = skyerr.NewResourceFetchFailureErr("provider", p.Provider)
 			return
 		}
 
-		// create new user
-		info = skydb.NewProviderInfoAuthInfo(principalID, p.ProviderAuthData)
+		// oauth record not found
+		// create new user with anonymous authInfo
+		info = skydb.NewAnonymousAuthInfo()
 		createContext := createUserWithRecordContext{
 			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context,
 		}
 		createdUser, err := createContext.execute(&info, skydb.AuthData{}, p.Profile)
 		if err != nil {
+			response.Err = skyerr.MakeError(err)
+			return
+		}
+
+		oauth = skydb.OAuthInfo{
+			UserID: info.ID,
+			Provider: p.Provider,
+			PrincipalID: p.PrincipalID,
+			TokenResponse: p.TokenResponse,
+			ProviderProfile: p.ProviderProfile,
+			CreatedAt: &now,
+			UpdatedAt: &now,
+		}
+
+		if err := payload.DBConn.CreateOAuthInfo(&oauth); err != nil {
 			response.Err = skyerr.MakeError(err)
 			return
 		}
@@ -931,7 +951,6 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 	}
 
 	// Populate the activity time to user
-	now := timeNow()
 	info.LastSeenAt = &now
 	if err := payload.DBConn.UpdateAuth(&info); err != nil {
 		response.Err = skyerr.MakeError(err)
