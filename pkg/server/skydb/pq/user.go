@@ -311,6 +311,66 @@ func (c *conn) CreateOAuthInfo(oauthinfo *skydb.OAuthInfo) (err error) {
 	return err
 }
 
+func (c *conn) oauthBuilder() sq.SelectBuilder {
+	return psql.Select("user_id", "provider", "principal_id",
+		"token_response", "profile", "_created_at", "_updated_at").
+		From(c.tableName("_sso_oauth"))
+}
+
+func (c *conn) doScanOAuthInfo(oauthinfo *skydb.OAuthInfo, scanner sq.RowScanner) error {
+	var (
+		userID              string
+		provider            string
+		principalID         string
+		createdAt           pq.NullTime
+		updatedAt           pq.NullTime
+	)
+	tokenResponse := tokenResponseValue{}
+	providerProfile := providerProfileValue{}
+
+	err := scanner.Scan(
+		&userID,
+		&provider,
+		&principalID,
+		&tokenResponse,
+		&providerProfile,
+		&createdAt,
+		&updatedAt,
+	)
+	if err != nil {
+		log.Infof(err.Error())
+	}
+	if err == sql.ErrNoRows {
+		return skydb.ErrUserNotFound
+	}
+
+	oauthinfo.UserID = userID
+	oauthinfo.Provider = provider
+	oauthinfo.PrincipalID = principalID
+	oauthinfo.TokenResponse = tokenResponse.TokenResponse
+	oauthinfo.ProviderProfile = providerProfile.ProviderProfile
+
+	if createdAt.Valid {
+		oauthinfo.CreatedAt = &createdAt.Time
+	} else {
+		oauthinfo.CreatedAt = nil
+	}
+	if updatedAt.Valid {
+		oauthinfo.UpdatedAt = &updatedAt.Time
+	} else {
+		oauthinfo.UpdatedAt = nil
+	}
+
+	return err
+}
+
+func (c *conn) GetOAuthInfo(provider string, principalID string, oauthinfo *skydb.OAuthInfo) error {
+	builder := c.oauthBuilder().
+		Where("provider = ? and principal_id = ?", provider, principalID)
+	scanner := c.QueryRowWith(builder)
+	return c.doScanOAuthInfo(oauthinfo, scanner)
+}
+
 func getAllAuthRecordKeys(authRecordKeys [][]string) []string {
 	recordKeyMap := map[string]bool{}
 	for _, keys := range authRecordKeys {

@@ -197,6 +197,12 @@ type Conn interface {
 	// this Conn associated to.
 	CreateOAuthInfo(oauthinfo *OAuthInfo) error
 
+	// GetOAuthInfo fetches the OAuthInfo with supplied provider and principalID
+	// in the container and fills in the supplied OAuthInfo with the result.
+	//
+	// GetOAuthInfo returns ErrUserNotFound if no OAuthInfo exists
+	// for the supplied provider and principalID.
+	GetOAuthInfo(provider string, principalID string, oauthinfo *OAuthInfo) error
 	Close() error
 }
 
