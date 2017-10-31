@@ -974,8 +974,8 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 type linkProviderPayload struct {
 	Provider            string                 `mapstructure:"provider"`
 	PrincipalID         string                 `mapstructure:"principal_id"`
-	ProviderPrincipalID string
-	ProviderAuthData    map[string]interface{} `mapstructure:"provider_auth_data"`
+	TokenResponse       map[string]interface{} `mapstructure:"token_response"`
+	ProviderProfile     map[string]interface{} `mapstructure:"provider_profile"`
 	UserID              string                 `mapstructure:"user_id"`
 }
 
@@ -983,7 +983,6 @@ func (payload *linkProviderPayload) Decode(data map[string]interface{}) skyerr.E
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
-	payload.ProviderPrincipalID = payload.Provider + ":" + payload.PrincipalID
 	return payload.Validate()
 }
 
@@ -1009,17 +1008,24 @@ func (payload *linkProviderPayload) Validate() skyerr.Error {
 //
 // * provider (string, required)
 // * principal_id (string, required)
-// * provider_auth_data (json object, optional)
 // * user_id (string, required)
+// * token_response (json object, optional)
+// * provider_profile (json object, optional)
 //
 // curl -X POST -H "Content-Type: application/json" \
 //   -d @- http://localhost:3000/ <<EOF
 // {
-// 		"action": "auth:provider:link",
+// 		"action": "sso:oauth:link",
 // 		"provider": "facebook",
 // 		"principal_id": "104174434987489953648",
-// 		"provider_auth_data": {},
-// 		"user_id": "c0959b6b-15ea-4e21-8afb-9c8308ad79db"
+// 		"user_id": "c0959b6b-15ea-4e21-8afb-9c8308ad79db",
+// 		"token_response": {
+// 			"access_token": "access_token"
+// 		},
+// 		"provider_profile": {
+//			"id": "104174434987489953648",
+// 			"email": "chima@skygeario.com"
+// 		}
 // }
 // EOF
 // Response
@@ -1061,17 +1067,17 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
+	oauth := skydb.OAuthInfo{}
 	info := skydb.AuthInfo{}
-	principalID := p.ProviderPrincipalID
 	userID := p.UserID
 
-	if err := payload.DBConn.GetAuthByPrincipalID(principalID, &info); err != nil {
+	if err := payload.DBConn.GetOAuthInfo(p.Provider, p.PrincipalID, &oauth); err != nil {
 		if err != skydb.ErrUserNotFound {
-			response.Err = skyerr.NewResourceFetchFailureErr("principal_id", principalID)
+			response.Err = skyerr.NewResourceFetchFailureErr("sso_auth", p.PrincipalID)
 			return
 		}
 	} else {
-		response.Err = skyerr.NewError(skyerr.InvalidArgument, "principal id already connected")
+		response.Err = skyerr.NewError(skyerr.InvalidArgument, "provider already connected")
 		return
 	}
 
@@ -1080,8 +1086,19 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	info.SetProviderInfoData(principalID, p.ProviderAuthData)
-	if err := payload.DBConn.UpdateAuth(&info); err != nil {
+	// new oauth record for linking provider
+	now := timeNow()
+	oauth = skydb.OAuthInfo{
+		UserID: info.ID,
+		Provider: p.Provider,
+		PrincipalID: p.PrincipalID,
+		TokenResponse: p.TokenResponse,
+		ProviderProfile: p.ProviderProfile,
+		CreatedAt: &now,
+		UpdatedAt: &now,
+	}
+
+	if err := payload.DBConn.CreateOAuthInfo(&oauth); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
