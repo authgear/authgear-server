@@ -311,6 +311,40 @@ func (c *conn) CreateOAuthInfo(oauthinfo *skydb.OAuthInfo) (err error) {
 	return err
 }
 
+func (c *conn) UpdateOAuthInfo(oauthinfo *skydb.OAuthInfo) (err error) {
+	var (
+		updatedAt       *time.Time
+	)
+	updatedAt = oauthinfo.UpdatedAt
+	if updatedAt != nil && updatedAt.IsZero() {
+		updatedAt = nil
+	}
+
+	builder := psql.Update(c.tableName("_sso_oauth")).
+		Set("token_response", tokenResponseValue{oauthinfo.TokenResponse, true}).
+		Set("profile", providerProfileValue{oauthinfo.ProviderProfile, true}).
+		Set("_updated_at", updatedAt).
+		Where("provider = ? and principal_id = ?", oauthinfo.Provider, oauthinfo.PrincipalID)
+
+	result, err := c.ExecWith(builder)
+	if err != nil {
+		if isUniqueViolated(err) {
+			return skydb.ErrUserDuplicated
+		}
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return skydb.ErrUserNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+	}
+	return nil
+}
+
 func (c *conn) oauthBuilder() sq.SelectBuilder {
 	return psql.Select("user_id", "provider", "principal_id",
 		"token_response", "profile", "_created_at", "_updated_at").

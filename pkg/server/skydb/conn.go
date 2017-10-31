@@ -203,6 +203,13 @@ type Conn interface {
 	// GetOAuthInfo returns ErrUserNotFound if no OAuthInfo exists
 	// for the supplied provider and principalID.
 	GetOAuthInfo(provider string, principalID string, oauthinfo *OAuthInfo) error
+	//
+	// UpdateOAuthInfo updates an existing OAuthInfo matched by the
+	// provider and principalID.
+	//
+	// UpdateOAuthInfo returns ErrUserNotFound if such OAuthInfo does not
+	// exist in the container.
+	UpdateOAuthInfo(oauthinfo *OAuthInfo) error
 	Close() error
 }
 
