@@ -405,6 +405,27 @@ func (c *conn) GetOAuthInfo(provider string, principalID string, oauthinfo *skyd
 	return c.doScanOAuthInfo(oauthinfo, scanner)
 }
 
+func (c *conn) DeleteOAuthByUserIDAndProvider(userID string, provider string) error {
+	builder := psql.Delete(c.tableName("_sso_oauth")).
+		Where("userID = ? and provider = ?", userID, provider)
+
+	result, err := c.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return skydb.ErrUserNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows deleted, got %v", rowsAffected))
+	}
+
+	return nil
+}
+
 func getAllAuthRecordKeys(authRecordKeys [][]string) []string {
 	recordKeyMap := map[string]bool{}
 	for _, keys := range authRecordKeys {
