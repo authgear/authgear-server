@@ -219,12 +219,12 @@ type Conn interface {
 	// exist in the container.
 	UpdateOAuthInfo(oauthinfo *OAuthInfo) error
 	//
-	// DeleteOAuthByUserIDAndProvider removes OAuthInfo with the
-	// supplied UserID and provider in the container for unlink provider.
+	// DeleteOAuth removes OAuthInfo with the
+	// supplied provider and principalID in the container for unlink provider.
 	//
-	// DeleteOAuthByUserIDAndProvider returns ErrUserNotFound if
+	// DeleteOAuth returns ErrUserNotFound if
 	// such OAuthInfo does not exist in the container.
-	DeleteOAuthByUserIDAndProvider(userID string, provider string) error
+	DeleteOAuth(provider string, principalID string) error
 
 	Close() error
 }

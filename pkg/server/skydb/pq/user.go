@@ -412,9 +412,9 @@ func (c *conn) GetOAuthInfoByProvicerAndUserID(provider string, userID string, o
 	return c.doScanOAuthInfo(oauthinfo, scanner)
 }
 
-func (c *conn) DeleteOAuthByUserIDAndProvider(userID string, provider string) error {
+func (c *conn) DeleteOAuth(provider string, principalID string) error {
 	builder := psql.Delete(c.tableName("_sso_oauth")).
-		Where("userID = ? and provider = ?", userID, provider)
+		Where("provider = ? and principal_id = ?", provider, principalID)
 
 	result, err := c.ExecWith(builder)
 	if err != nil {

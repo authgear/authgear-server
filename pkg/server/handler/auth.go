@@ -1148,7 +1148,7 @@ func (payload *unlinkProviderPayload) Validate() skyerr.Error {
 // curl -X POST -H "Content-Type: application/json" \
 //   -d @- http://localhost:3000/ <<EOF
 // {
-// 		"action": "auth:provider:unlink",
+// 		"action": "sso:oauth:unlink",
 // 		"provider": "facebook",
 // 		"user_id": "c0959b6b-15ea-4e21-8afb-9c8308ad79db"
 // }
@@ -1192,20 +1192,14 @@ func (h *UnlinkProviderHandler) Handle(payload *router.Payload, response *router
 		return
 	}
 
-	info := skydb.AuthInfo{}
-	userID := p.UserID
+	oauth := skydb.OAuthInfo{}
 
-	if err := payload.DBConn.GetAuth(userID, &info); err != nil {
-		response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+	if err := payload.DBConn.GetOAuthInfoByProvicerAndUserID(p.Provider, p.UserID, &oauth); err != nil {
+		response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user is not connected")
 		return
 	}
 
-	if err := info.RemoveProviderInfoDataByProvider(p.Provider); err != nil {
-		response.Err = skyerr.MakeError(err)
-		return
-	}
-
-	if err := payload.DBConn.UpdateAuth(&info); err != nil {
+	if err := payload.DBConn.DeleteOAuth(oauth.Provider, oauth.PrincipalID); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
