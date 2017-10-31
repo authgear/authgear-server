@@ -15,6 +15,7 @@
 package pq
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"encoding/hex"
 	"encoding/json"
@@ -243,4 +244,74 @@ type nullUnknown struct {
 func (nu *nullUnknown) Scan(value interface{}) error {
 	nu.Valid = value != nil
 	return nil
+}
+
+type tokenResponseValue struct {
+	TokenResponse skydb.TokenResponse
+	Valid        bool
+}
+
+func (v tokenResponseValue) Value() (driver.Value, error) {
+	if !v.Valid {
+		return nil, nil
+	}
+
+	b := bytes.Buffer{}
+	if err := json.NewEncoder(&b).Encode(v.TokenResponse); err != nil {
+		return nil, err
+	}
+
+	return b.Bytes(), nil
+}
+
+func (v *tokenResponseValue) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		log.Errorf("skydb: unsupported Scan pair: %T -> %T", value, v.TokenResponse)
+	}
+
+	err := json.Unmarshal(b, &v.TokenResponse)
+	if err == nil {
+		v.Valid = true
+	}
+	return err
+}
+
+type providerProfileValue struct {
+	ProviderProfile   skydb.ProviderProfile
+	Valid             bool
+}
+
+func (v providerProfileValue) Value() (driver.Value, error) {
+	if !v.Valid {
+		return nil, nil
+	}
+
+	b := bytes.Buffer{}
+	if err := json.NewEncoder(&b).Encode(v.ProviderProfile); err != nil {
+		return nil, err
+	}
+
+	return b.Bytes(), nil
+}
+
+func (v *providerProfileValue) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		log.Errorf("skydb: unsupported Scan pair: %T -> %T", value, v.ProviderProfile)
+	}
+
+	err := json.Unmarshal(b, &v.ProviderProfile)
+	if err == nil {
+		v.Valid = true
+	}
+	return err
 }

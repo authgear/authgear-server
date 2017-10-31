@@ -193,6 +193,10 @@ type Conn interface {
 	//    found and in dev mode, they would be removed
 	EnsureAuthRecordKeysIndexesMatch(authRecordKeys [][]string) error
 
+	// CreateOAuthInfo creates a new OAuthInfo in the container
+	// this Conn associated to.
+	CreateOAuthInfo(oauthinfo *OAuthInfo) error
+
 	Close() error
 }
 

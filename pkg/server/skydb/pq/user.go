@@ -272,6 +272,45 @@ func (c *conn) EnsureAuthRecordKeysIndexesMatch(authRecordKeys [][]string) error
 	return nil
 }
 
+func (c *conn) CreateOAuthInfo(oauthinfo *skydb.OAuthInfo) (err error) {
+	var (
+		createdAt       *time.Time
+		updatedAt       *time.Time
+	)
+	createdAt = oauthinfo.CreatedAt
+	if createdAt != nil && createdAt.IsZero() {
+		createdAt = nil
+	}
+	updatedAt = oauthinfo.UpdatedAt
+	if updatedAt != nil && updatedAt.IsZero() {
+		updatedAt = nil
+	}
+
+	builder := psql.Insert(c.tableName("_sso_oauth")).Columns(
+		"user_id",
+		"provider",
+		"principal_id",
+		"token_response",
+		"profile",
+		"_created_at",
+		"_updated_at",
+	).Values(
+		oauthinfo.UserID,
+		oauthinfo.Provider,
+		oauthinfo.PrincipalID,
+		tokenResponseValue{oauthinfo.TokenResponse, true},
+		providerProfileValue{oauthinfo.ProviderProfile, true},
+		createdAt,
+		updatedAt,
+	)
+
+	_, err = c.ExecWith(builder)
+	if isUniqueViolated(err) {
+		return skydb.ErrUserDuplicated
+	}
+	return err
+}
+
 func getAllAuthRecordKeys(authRecordKeys [][]string) []string {
 	recordKeyMap := map[string]bool{}
 	for _, keys := range authRecordKeys {
