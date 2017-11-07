@@ -22,6 +22,9 @@ type TokenResponse    map[string]interface{}
 type ProviderProfile  map[string]interface{}
 
 // OAuthInfo contains 3rd provider information for authentication
+//
+// UserID is AuthInfo ID which incidcate user who link with
+// the given oauth data
 type OAuthInfo struct {
 	UserID           string            `json:"user_id"`
 	Provider         string            `json:"provider"`
