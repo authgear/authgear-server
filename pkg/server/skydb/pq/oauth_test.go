@@ -80,7 +80,7 @@ func TestOAuthCRUD(t *testing.T) {
       So(c.CreateOAuthInfo(&oauthinfo), ShouldBeNil)
 
   		fetchedoauthinfo := skydb.OAuthInfo{}
-  		err := c.GetOAuthInfoByProvicerAndUserID("skygear", "userid", &fetchedoauthinfo)
+  		err := c.GetOAuthInfoByProviderAndUserID("skygear", "userid", &fetchedoauthinfo)
   		So(err, ShouldBeNil)
 
       So(fetchedoauthinfo.PrincipalID, ShouldResemble, "faseng")

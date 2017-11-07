@@ -479,7 +479,7 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	if err := payload.DBConn.GetOAuthInfoByProvicerAndUserID(p.Provider, userID, &oauth);
+	if err := payload.DBConn.GetOAuthInfoByProviderAndUserID(p.Provider, userID, &oauth);
 		err != skydb.ErrUserNotFound {
 		response.Err = skyerr.NewError(skyerr.InvalidArgument, "user linked to the provider already")
 		return
@@ -592,7 +592,7 @@ func (h *UnlinkProviderHandler) Handle(payload *router.Payload, response *router
 
 	oauth := skydb.OAuthInfo{}
 
-	if err := payload.DBConn.GetOAuthInfoByProvicerAndUserID(p.Provider, p.UserID, &oauth); err != nil {
+	if err := payload.DBConn.GetOAuthInfoByProviderAndUserID(p.Provider, p.UserID, &oauth); err != nil {
 		response.Err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		return
 	}

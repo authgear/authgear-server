@@ -276,16 +276,16 @@ func (_mr *MockConnMockRecorder) GetOAuthInfo(arg0, arg1, arg2 interface{}) *gom
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetOAuthInfo", reflect.TypeOf((*MockConn)(nil).GetOAuthInfo), arg0, arg1, arg2)
 }
 
-// GetOAuthInfoByProvicerAndUserID mocks base method
-func (_m *MockConn) GetOAuthInfoByProvicerAndUserID(_param0 string, _param1 string, _param2 *skydb.OAuthInfo) error {
-	ret := _m.ctrl.Call(_m, "GetOAuthInfoByProvicerAndUserID", _param0, _param1, _param2)
+// GetOAuthInfoByProviderAndUserID mocks base method
+func (_m *MockConn) GetOAuthInfoByProviderAndUserID(_param0 string, _param1 string, _param2 *skydb.OAuthInfo) error {
+	ret := _m.ctrl.Call(_m, "GetOAuthInfoByProviderAndUserID", _param0, _param1, _param2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// GetOAuthInfoByProvicerAndUserID indicates an expected call of GetOAuthInfoByProvicerAndUserID
-func (_mr *MockConnMockRecorder) GetOAuthInfoByProvicerAndUserID(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetOAuthInfoByProvicerAndUserID", reflect.TypeOf((*MockConn)(nil).GetOAuthInfoByProvicerAndUserID), arg0, arg1, arg2)
+// GetOAuthInfoByProviderAndUserID indicates an expected call of GetOAuthInfoByProviderAndUserID
+func (_mr *MockConnMockRecorder) GetOAuthInfoByProviderAndUserID(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetOAuthInfoByProviderAndUserID", reflect.TypeOf((*MockConn)(nil).GetOAuthInfoByProviderAndUserID), arg0, arg1, arg2)
 }
 
 // GetRecordAccess mocks base method
