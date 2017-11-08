@@ -278,8 +278,10 @@ curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
     "action": "auth:login",
-    "username": "rickmak",
-    "email": "rick.mak@gmail.com",
+    "auth_data": {
+      "username": "rickmak",
+      "email": "rick.mak@gmail.com",
+    },
     "password": "123456"
 }
 EOF
