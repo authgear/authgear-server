@@ -27,25 +27,18 @@ before_install:
   - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/zeromq4-1.git v4.1.4
   - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/czmq.git v4.0.2
   - popd
-  - go get github.com/Masterminds/glide
+  - go get -u github.com/golang/dep/cmd/dep
+  - go get -u github.com/GetStream/vg
+  - 'eval "$(vg eval --shell bash)"'
+  - vg init
 
 install:
   - sudo apt-get install -y postgresql-9.5-postgis-2.3
-  - glide install
-  - go install
+  - vg ensure
 
 before_script:
   - psql -c 'CREATE DATABASE skygear_test;' -U postgres
   - psql -c 'CREATE EXTENSION postgis;' -U postgres -d skygear_test
-  - >
-    go get golang.org/x/tools/cmd/stringer \
-           golang.org/x/tools/cmd/cover \
-           github.com/golang/lint/golint \
-           github.com/rickmak/gocyclo \
-           github.com/oursky/gogocyclo \
-           github.com/mitchellh/gox \
-           github.com/golang/mock/mockgen \
-           honnef.co/go/tools/cmd/staticcheck
 
 script:
   - WITH_ZMQ=1 make generate

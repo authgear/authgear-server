@@ -103,9 +103,28 @@ $ brew install libsodium zeromq czmq
 
 ### Building from source
 
-```shell
-$ go get github.com/Masterminds/glide
-$ make vendor
+The recommended way to set up development environment is by using
+[vg](https://github.com/GetStream/vg). It install dependencies and supporting
+binaries.
+
+```
+$ brew install dep
+$ brew install vg
+$ vg setup
+$ source ~/.bashrc  # assuming your shell is bash
+$ vg init
+$ vg ensure
+$ # export WITH_ZMQ=1 # If you need ZeroMQ support
+$ make build
+```
+
+If you do not want `vg` to manage a golang virtural environment, `dep` is
+a good alternative. However, `dep` doesn't install supporting binaries for you,
+so you cannot run lint or code generator.
+
+```
+$ brew install dep
+$ dep ensure
 $ # export WITH_ZMQ=1 # If you need ZeroMQ support
 $ make build
 ```

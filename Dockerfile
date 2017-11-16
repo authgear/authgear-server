@@ -5,8 +5,8 @@ WORKDIR /go/src/app
 
 # Copy a minimal set of files to restore Go dependencies to get advantage
 # of Docker build cache
-COPY glide.yaml glide.lock /go/src/app/
-RUN glide install --skip-test
+COPY Gopkg.toml Gopkg.lock /go/src/app/
+RUN dep ensure
 
 COPY . /go/src/app
 

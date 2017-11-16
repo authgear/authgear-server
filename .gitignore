@@ -4,8 +4,9 @@
 data
 .env
 
-# go generated sources
+# golang
 vendor
+.virtualgo
 
 # Fabric
 fabfile.pyc
@@ -18,6 +19,3 @@ docker-compose.override.yml
 
 # nix
 result-bin
-
-# glide cache
-.glide
