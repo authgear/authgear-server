@@ -12,7 +12,7 @@ services:
     volumes:
     - db_data:/var/lib/postgresql/data
     ports:
-    - "65432:5432"
+    - "5432:5432"
 
   app:
     image: skygeario/skygear-server:latest
