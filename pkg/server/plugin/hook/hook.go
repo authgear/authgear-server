@@ -29,9 +29,9 @@ type Kind string
 // The four kind of hooks provided by Skygear.
 const (
 	BeforeSave   Kind = "beforeSave"
-	AfterSave         = "afterSave"
-	BeforeDelete      = "beforeDelete"
-	AfterDelete       = "afterDelete"
+	AfterSave    Kind = "afterSave"
+	BeforeDelete Kind = "beforeDelete"
+	AfterDelete  Kind = "afterDelete"
 )
 
 // Func defines the interface of a function that can be hooked.
