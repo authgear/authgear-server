@@ -19,8 +19,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/SkygearIO/buford/push"
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
@@ -30,7 +30,7 @@ type GatewayType string
 // Available gateways
 const (
 	Sandbox    GatewayType = "sandbox"
-	Production             = "production"
+	Production GatewayType = "production"
 )
 
 // private interface s.t. we can mock push.Service in test

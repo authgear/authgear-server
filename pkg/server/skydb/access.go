@@ -36,8 +36,8 @@ type RecordACLLevel string
 // ReadLevel and WriteLevel is self-explanatory
 const (
 	ReadLevel   RecordACLLevel = "read"
-	WriteLevel                 = "write"
-	CreateLevel                = "create"
+	WriteLevel  RecordACLLevel = "write"
+	CreateLevel RecordACLLevel = "create"
 )
 
 // NewRecordACLEntryRelation returns an ACE on relation
@@ -348,19 +348,19 @@ const (
 	OwnerFieldUserRoleType FieldUserRoleType = "_owner"
 
 	// SpecificUserFieldUserRoleType means field is accessible by a specific user.
-	SpecificUserFieldUserRoleType = "_user_id"
+	SpecificUserFieldUserRoleType FieldUserRoleType = "_user_id"
 
 	// DynamicUserFieldUserRoleType means field is accessible by user contained in another field.
-	DynamicUserFieldUserRoleType = "_field"
+	DynamicUserFieldUserRoleType FieldUserRoleType = "_field"
 
 	// DefinedRoleFieldUserRoleType means field is accessible by a users of specific role.
-	DefinedRoleFieldUserRoleType = "_role"
+	DefinedRoleFieldUserRoleType FieldUserRoleType = "_role"
 
 	// AnyUserFieldUserRoleType means field is accessible by any authenticated user.
-	AnyUserFieldUserRoleType = "_any_user"
+	AnyUserFieldUserRoleType FieldUserRoleType = "_any_user"
 
 	// PublicFieldUserRoleType means field is accessible by public.
-	PublicFieldUserRoleType = "_public"
+	PublicFieldUserRoleType FieldUserRoleType = "_public"
 )
 
 // Compare compares two user role type in the order of evaluation.
