@@ -30,6 +30,7 @@ type MapConn struct {
 	recordAccessMap        map[string]skydb.RecordACL
 	recordDefaultAccessMap map[string]skydb.RecordACL
 	fieldAccess            skydb.FieldACL
+	OAuthMap               map[string]skydb.OAuthInfo
 	skydb.Conn
 }
 
@@ -41,6 +42,7 @@ func NewMapConn() *MapConn {
 		recordDefaultAccessMap: map[string]skydb.RecordACL{},
 		fieldAccess:            skydb.FieldACL{},
 		AssetMap:               map[string]skydb.Asset{},
+		OAuthMap:               map[string]skydb.OAuthInfo{},
 	}
 }
 
@@ -251,6 +253,66 @@ func (conn *MapConn) Subscribe(recordEventChan chan skydb.RecordEvent) error {
 }
 
 func (conn *MapConn) EnsureAuthRecordKeysValid(authRecordKeys [][]string) error {
+	return nil
+}
+
+func (conn *MapConn) getOAuthKey(provider, principalID string) (key string) {
+	return provider + "_" + principalID
+}
+
+// CreateOAuthInfo creates OAuthInfo in OAuthMap.
+func (conn *MapConn) CreateOAuthInfo(oauthinfo *skydb.OAuthInfo) (err error) {
+	key := conn.getOAuthKey(oauthinfo.Provider, oauthinfo.PrincipalID)
+	if _, existed := conn.OAuthMap[key]; existed {
+		return skydb.ErrUserDuplicated
+	}
+
+	conn.OAuthMap[key] = *oauthinfo
+	return nil
+}
+
+// UpdateOAuthInfo updates an existing OAuthInfo in OAuthMap.
+func (conn *MapConn) UpdateOAuthInfo(oauthinfo *skydb.OAuthInfo) (err error) {
+	key := conn.getOAuthKey(oauthinfo.Provider, oauthinfo.PrincipalID)
+	if _, ok := conn.OAuthMap[key]; !ok {
+		return skydb.ErrUserNotFound
+	}
+
+	conn.OAuthMap[key] = *oauthinfo
+	return nil
+}
+
+// GetOAuthInfo returns OAuthInfo by provider and principalID.
+func (conn *MapConn) GetOAuthInfo(provider string, principalID string, oauthinfo *skydb.OAuthInfo) error {
+	key := conn.getOAuthKey(provider, principalID)
+	o, ok := conn.OAuthMap[key]
+	if !ok {
+		return skydb.ErrUserNotFound
+	}
+
+	*oauthinfo = o
+	return nil
+}
+
+// GetOAuthInfoByProviderAndUserID returns OAuthInfo by provider and userID.
+func (conn *MapConn) GetOAuthInfoByProviderAndUserID(provider string, userID string, oauthinfo *skydb.OAuthInfo) error {
+	for _, o := range conn.OAuthMap {
+		if o.Provider == provider && o.UserID == userID  {
+			*oauthinfo = o
+			return nil
+		}
+	}
+	return skydb.ErrUserNotFound
+}
+
+// DeleteOAuth remove an existing in OAuthMap.
+func (conn *MapConn) DeleteOAuth(provider string, principalID string) error {
+	key := conn.getOAuthKey(provider, principalID)
+	if _, ok := conn.OAuthMap[key]; !ok {
+		return skydb.ErrUserNotFound
+	}
+
+	delete(conn.OAuthMap, key)
 	return nil
 }
 

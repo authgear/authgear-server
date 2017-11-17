@@ -23,7 +23,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "b55e91bc9391" }
+func (r *fullMigration) Version() string { return "ce320de280b1" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -180,6 +180,18 @@ INSERT INTO _record_field_access
   (record_type, record_field, user_role, writable, readable, comparable, discoverable)
 VALUES
   ('user', 'email', '_owner', 'TRUE', 'TRUE', 'TRUE', 'TRUE');
+
+CREATE TABLE _sso_oauth (
+  user_id text NOT NULL,
+  provider text NOT NULL,
+  principal_id text NOT NULL,
+  token_response jsonb,
+  profile jsonb,
+  _created_at timestamp without time zone NOT NULL,
+  _updated_at timestamp without time zone NOT NULL,
+  PRIMARY KEY (provider, principal_id),
+	UNIQUE (user_id, provider)
+);
 `
 	_, err := tx.Exec(stmt)
 	return err

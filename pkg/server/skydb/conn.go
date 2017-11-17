@@ -193,6 +193,39 @@ type Conn interface {
 	//    found and in dev mode, they would be removed
 	EnsureAuthRecordKeysIndexesMatch(authRecordKeys [][]string) error
 
+	// CreateOAuthInfo creates a new OAuthInfo in the container
+	// this Conn associated to.
+	CreateOAuthInfo(oauthinfo *OAuthInfo) error
+
+	// GetOAuthInfo fetches the OAuthInfo with supplied provider and principalID
+	// in the container and fills in the supplied OAuthInfo with the result.
+	//
+	// GetOAuthInfo returns ErrUserNotFound if no OAuthInfo exists
+	// for the supplied provider and principalID.
+	GetOAuthInfo(provider string, principalID string, oauthinfo *OAuthInfo) error
+
+	// GetOAuthInfoByProviderAndUserID fetches the OAuthInfo with supplied provider and userID
+	// in the container and fills in the supplied OAuthInfo with the result.
+	//
+	// GetOAuthInfo returns ErrUserNotFound if no OAuthInfo exists
+	// for the supplied provider and userID.
+	GetOAuthInfoByProviderAndUserID(provider string, userID string, oauthinfo *OAuthInfo) error
+
+	//
+	// UpdateOAuthInfo updates an existing OAuthInfo matched by the
+	// provider and principalID.
+	//
+	// UpdateOAuthInfo returns ErrUserNotFound if such OAuthInfo does not
+	// exist in the container.
+	UpdateOAuthInfo(oauthinfo *OAuthInfo) error
+	//
+	// DeleteOAuth removes OAuthInfo with the
+	// supplied provider and principalID in the container for unlink provider.
+	//
+	// DeleteOAuth returns ErrUserNotFound if
+	// such OAuthInfo does not exist in the container.
+	DeleteOAuth(provider string, principalID string) error
+
 	Close() error
 }
 

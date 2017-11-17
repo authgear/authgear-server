@@ -155,6 +155,7 @@ func main() {
 	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
 	preprocessorRegistry["require_auth"] = &pp.RequireAuth{}
 	preprocessorRegistry["require_admin"] = &pp.RequireAdminOrMasterKey{}
+	preprocessorRegistry["require_master_key"] = &pp.RequireMasterKey{}
 	preprocessorRegistry["inject_db"] = &pp.InjectDatabase{}
 	preprocessorRegistry["inject_public_db"] = &pp.InjectPublicDatabase{}
 	preprocessorRegistry["dev_only"] = &pp.DevOnlyProcessor{
@@ -220,6 +221,10 @@ func main() {
 	r.Map("auth:login", injector.Inject(&handler.LoginHandler{}))
 	r.Map("auth:logout", injector.Inject(&handler.LogoutHandler{}))
 	r.Map("auth:password", injector.Inject(&handler.PasswordHandler{}))
+	r.Map("sso:oauth:login", injector.Inject(&handler.LoginProviderHandler{}))
+	r.Map("sso:oauth:signup", injector.Inject(&handler.SignupProviderHandler{}))
+	r.Map("sso:oauth:link", injector.Inject(&handler.LinkProviderHandler{}))
+	r.Map("sso:oauth:unlink", injector.Inject(&handler.UnlinkProviderHandler{}))
 
 	r.Map("asset:put", injector.Inject(&handler.AssetUploadHandler{}))
 
