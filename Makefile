@@ -12,7 +12,7 @@ GO_BUILD_TAGS := --tags zmq
 endif
 
 DOCKER_COMPOSE_CMD := docker-compose \
-	-f docker-compose.dev.yml \
+	-f docker-compose.make.yml \
 	-p skygear-server-test
 
 ifeq (1,${WITH_DOCKER})
