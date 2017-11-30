@@ -37,9 +37,9 @@ type commonRouter struct {
 
 func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var (
-		resp          Response
-		payload       *Payload
-		err           error
+		resp    Response
+		payload *Payload
+		err     error
 	)
 
 	version := strings.TrimPrefix(skyversion.Version(), "v")

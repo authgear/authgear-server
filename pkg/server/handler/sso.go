@@ -28,10 +28,10 @@ import (
 
 // Define the playload for sso plugin to login user with provider
 type loginProviderPayload struct {
-	Provider            string                   `mapstructure:"provider"`
-	PrincipalID         string                   `mapstructure:"principal_id"`
-	TokenResponse       map[string]interface{}   `mapstructure:"token_response"`
-	ProviderProfile     map[string]interface{}   `mapstructure:"provider_profile"`
+	Provider        string                 `mapstructure:"provider"`
+	PrincipalID     string                 `mapstructure:"principal_id"`
+	TokenResponse   map[string]interface{} `mapstructure:"token_response"`
+	ProviderProfile map[string]interface{} `mapstructure:"provider_profile"`
 }
 
 func (payload *loginProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -52,6 +52,7 @@ func (payload *loginProviderPayload) Validate() skyerr.Error {
 
 	return nil
 }
+
 // LoginProviderHandler login user with provider information
 //
 // LoginProviderHandler receives parameters:
@@ -187,11 +188,11 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 
 // Define the playload for sso plugin to signup user with provider
 type signupProviderPayload struct {
-	Provider         		string                 `mapstructure:"provider"`
-	PrincipalID         string                 `mapstructure:"principal_id"`
-	Profile             skydb.Data             `mapstructure:"profile"`
-	TokenResponse       map[string]interface{} `mapstructure:"token_response"`
-	ProviderProfile     map[string]interface{} `mapstructure:"provider_profile"`
+	Provider        string                 `mapstructure:"provider"`
+	PrincipalID     string                 `mapstructure:"principal_id"`
+	Profile         skydb.Data             `mapstructure:"profile"`
+	TokenResponse   map[string]interface{} `mapstructure:"token_response"`
+	ProviderProfile map[string]interface{} `mapstructure:"provider_profile"`
 }
 
 func (payload *signupProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -246,15 +247,15 @@ func (payload *signupProviderPayload) Validate() skyerr.Error {
 // 		return skyerr.InvalidArgument
 
 type SignupProviderHandler struct {
-	TokenStore       authtoken.Store    `inject:"TokenStore"`
-	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
-	AssetStore       asset.Store        `inject:"AssetStore"`
-	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
-	AccessKey        router.Processor   `preprocessor:"accesskey"`
-	DBConn           router.Processor   `preprocessor:"dbconn"`
-	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
-	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
-	RequireMasterKey router.Processor   `preprocessor:"require_master_key"`
+	TokenStore       authtoken.Store  `inject:"TokenStore"`
+	HookRegistry     *hook.Registry   `inject:"HookRegistry"`
+	AssetStore       asset.Store      `inject:"AssetStore"`
+	AuthRecordKeys   [][]string       `inject:"AuthRecordKeys"`
+	AccessKey        router.Processor `preprocessor:"accesskey"`
+	DBConn           router.Processor `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor `preprocessor:"inject_public_db"`
+	PluginReady      router.Processor `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor `preprocessor:"require_master_key"`
 	preprocessors    []router.Processor
 }
 
@@ -309,13 +310,13 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 		}
 
 		oauth = skydb.OAuthInfo{
-			UserID: info.ID,
-			Provider: p.Provider,
-			PrincipalID: p.PrincipalID,
-			TokenResponse: p.TokenResponse,
+			UserID:          info.ID,
+			Provider:        p.Provider,
+			PrincipalID:     p.PrincipalID,
+			TokenResponse:   p.TokenResponse,
 			ProviderProfile: p.ProviderProfile,
-			CreatedAt: &now,
-			UpdatedAt: &now,
+			CreatedAt:       &now,
+			UpdatedAt:       &now,
 		}
 
 		if err := payload.DBConn.CreateOAuthInfo(&oauth); err != nil {
@@ -370,11 +371,11 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 
 // Define the playload for sso plugin to connect user with provider
 type linkProviderPayload struct {
-	Provider            string                 `mapstructure:"provider"`
-	PrincipalID         string                 `mapstructure:"principal_id"`
-	TokenResponse       map[string]interface{} `mapstructure:"token_response"`
-	ProviderProfile     map[string]interface{} `mapstructure:"provider_profile"`
-	UserID              string                 `mapstructure:"user_id"`
+	Provider        string                 `mapstructure:"provider"`
+	PrincipalID     string                 `mapstructure:"principal_id"`
+	TokenResponse   map[string]interface{} `mapstructure:"token_response"`
+	ProviderProfile map[string]interface{} `mapstructure:"provider_profile"`
+	UserID          string                 `mapstructure:"user_id"`
 }
 
 func (payload *linkProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -431,14 +432,14 @@ func (payload *linkProviderPayload) Validate() skyerr.Error {
 //     "result": "OK"
 // }
 type LinkProviderHandler struct {
-	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
-	AssetStore       asset.Store        `inject:"AssetStore"`
-	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
-	AccessKey        router.Processor   `preprocessor:"accesskey"`
-	DBConn           router.Processor   `preprocessor:"dbconn"`
-	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
-	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
-	RequireMasterKey router.Processor   `preprocessor:"require_master_key"`
+	HookRegistry     *hook.Registry   `inject:"HookRegistry"`
+	AssetStore       asset.Store      `inject:"AssetStore"`
+	AuthRecordKeys   [][]string       `inject:"AuthRecordKeys"`
+	AccessKey        router.Processor `preprocessor:"accesskey"`
+	DBConn           router.Processor `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor `preprocessor:"inject_public_db"`
+	PluginReady      router.Processor `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor `preprocessor:"require_master_key"`
 	preprocessors    []router.Processor
 }
 
@@ -479,8 +480,7 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	if err := payload.DBConn.GetOAuthInfoByProviderAndUserID(p.Provider, userID, &oauth);
-		err != skydb.ErrUserNotFound {
+	if err := payload.DBConn.GetOAuthInfoByProviderAndUserID(p.Provider, userID, &oauth); err != skydb.ErrUserNotFound {
 		response.Err = skyerr.NewError(skyerr.InvalidArgument, "user linked to the provider already")
 		return
 	}
@@ -493,13 +493,13 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 	// new oauth record for linking provider
 	now := timeNow()
 	oauth = skydb.OAuthInfo{
-		UserID: info.ID,
-		Provider: p.Provider,
-		PrincipalID: p.PrincipalID,
-		TokenResponse: p.TokenResponse,
+		UserID:          info.ID,
+		Provider:        p.Provider,
+		PrincipalID:     p.PrincipalID,
+		TokenResponse:   p.TokenResponse,
 		ProviderProfile: p.ProviderProfile,
-		CreatedAt: &now,
-		UpdatedAt: &now,
+		CreatedAt:       &now,
+		UpdatedAt:       &now,
 	}
 
 	if err := payload.DBConn.CreateOAuthInfo(&oauth); err != nil {
@@ -513,8 +513,8 @@ func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.R
 
 // Define the playload for sso plugin to disconnect user with provider
 type unlinkProviderPayload struct {
-	Provider            string                 `mapstructure:"provider"`
-	UserID              string                 `mapstructure:"user_id"`
+	Provider string `mapstructure:"provider"`
+	UserID   string `mapstructure:"user_id"`
 }
 
 func (payload *unlinkProviderPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -556,14 +556,14 @@ func (payload *unlinkProviderPayload) Validate() skyerr.Error {
 //     "result": "OK"
 // }
 type UnlinkProviderHandler struct {
-	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
-	AssetStore       asset.Store        `inject:"AssetStore"`
-	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
-	AccessKey        router.Processor   `preprocessor:"accesskey"`
-	DBConn           router.Processor   `preprocessor:"dbconn"`
-	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
-	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
-	RequireMasterKey router.Processor   `preprocessor:"require_master_key"`
+	HookRegistry     *hook.Registry   `inject:"HookRegistry"`
+	AssetStore       asset.Store      `inject:"AssetStore"`
+	AuthRecordKeys   [][]string       `inject:"AuthRecordKeys"`
+	AccessKey        router.Processor `preprocessor:"accesskey"`
+	DBConn           router.Processor `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor `preprocessor:"inject_public_db"`
+	PluginReady      router.Processor `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor `preprocessor:"require_master_key"`
 	preprocessors    []router.Processor
 }
 

@@ -26,8 +26,8 @@ import (
 
 func (c *conn) CreateOAuthInfo(oauthinfo *skydb.OAuthInfo) (err error) {
 	var (
-		createdAt       *time.Time
-		updatedAt       *time.Time
+		createdAt *time.Time
+		updatedAt *time.Time
 	)
 	createdAt = oauthinfo.CreatedAt
 	if createdAt != nil && createdAt.IsZero() {
@@ -65,7 +65,7 @@ func (c *conn) CreateOAuthInfo(oauthinfo *skydb.OAuthInfo) (err error) {
 
 func (c *conn) UpdateOAuthInfo(oauthinfo *skydb.OAuthInfo) (err error) {
 	var (
-		updatedAt       *time.Time
+		updatedAt *time.Time
 	)
 	updatedAt = oauthinfo.UpdatedAt
 	if updatedAt != nil && updatedAt.IsZero() {
@@ -105,11 +105,11 @@ func (c *conn) oauthBuilder() sq.SelectBuilder {
 
 func (c *conn) doScanOAuthInfo(oauthinfo *skydb.OAuthInfo, scanner sq.RowScanner) error {
 	var (
-		userID              string
-		provider            string
-		principalID         string
-		createdAt           pq.NullTime
-		updatedAt           pq.NullTime
+		userID      string
+		provider    string
+		principalID string
+		createdAt   pq.NullTime
+		updatedAt   pq.NullTime
 	)
 	tokenResponse := tokenResponseValue{}
 	providerProfile := providerProfileValue{}

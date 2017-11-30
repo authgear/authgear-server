@@ -18,19 +18,19 @@ import (
 	"time"
 )
 
-type TokenResponse    map[string]interface{}
-type ProviderProfile  map[string]interface{}
+type TokenResponse map[string]interface{}
+type ProviderProfile map[string]interface{}
 
 // OAuthInfo contains 3rd provider information for authentication
 //
 // UserID is AuthInfo ID which incidcate user who link with
 // the given oauth data
 type OAuthInfo struct {
-	UserID           string            `json:"user_id"`
-	Provider         string            `json:"provider"`
-	PrincipalID      string            `json:"principal_id"`
-	TokenResponse    TokenResponse     `json:"token_response,omitempty"`
-	ProviderProfile  ProviderProfile   `json:"profile,omitempty"`
-	CreatedAt        *time.Time        `json:"created_at,omitempty"`
-	UpdatedAt        *time.Time        `json:"updated_at,omitempty"`
+	UserID          string          `json:"user_id"`
+	Provider        string          `json:"provider"`
+	PrincipalID     string          `json:"principal_id"`
+	TokenResponse   TokenResponse   `json:"token_response,omitempty"`
+	ProviderProfile ProviderProfile `json:"profile,omitempty"`
+	CreatedAt       *time.Time      `json:"created_at,omitempty"`
+	UpdatedAt       *time.Time      `json:"updated_at,omitempty"`
 }

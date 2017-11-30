@@ -92,13 +92,13 @@ func TestLoginProviderHandler(t *testing.T) {
 			})
 
 			oauth := skydb.OAuthInfo{
-				UserID: authinfo.ID,
-				Provider: "skygear",
-				PrincipalID: "chima",
-				TokenResponse: map[string]interface{}{"access_token": "token"},
+				UserID:          authinfo.ID,
+				Provider:        "skygear",
+				PrincipalID:     "chima",
+				TokenResponse:   map[string]interface{}{"access_token": "token"},
 				ProviderProfile: map[string]interface{}{"name": "chima ceo"},
-				CreatedAt: &anHourAgo,
-				UpdatedAt: &anHourAgo,
+				CreatedAt:       &anHourAgo,
+				UpdatedAt:       &anHourAgo,
 			}
 			conn.CreateOAuthInfo(&oauth)
 
@@ -257,13 +257,13 @@ func TestSignupProviderHandler(t *testing.T) {
 			})
 
 			oauth := skydb.OAuthInfo{
-				UserID: authinfo.ID,
-				Provider: "skygear",
-				PrincipalID: "chima",
-				TokenResponse: map[string]interface{}{"access_token": "token"},
+				UserID:          authinfo.ID,
+				Provider:        "skygear",
+				PrincipalID:     "chima",
+				TokenResponse:   map[string]interface{}{"access_token": "token"},
 				ProviderProfile: map[string]interface{}{"name": "chima ceo"},
-				CreatedAt: &anHourAgo,
-				UpdatedAt: &anHourAgo,
+				CreatedAt:       &anHourAgo,
+				UpdatedAt:       &anHourAgo,
 			}
 			conn.CreateOAuthInfo(&oauth)
 
@@ -286,7 +286,6 @@ func TestSignupProviderHandler(t *testing.T) {
 		})
 	})
 }
-
 
 func TestLinkProviderHandler(t *testing.T) {
 	Convey("LinkProviderHandler", t, func() {
@@ -346,13 +345,13 @@ func TestLinkProviderHandler(t *testing.T) {
 			})
 
 			oauth := skydb.OAuthInfo{
-				UserID: authinfo.ID,
-				Provider: "skygear",
-				PrincipalID: "chima",
-				TokenResponse: map[string]interface{}{"access_token": "token"},
+				UserID:          authinfo.ID,
+				Provider:        "skygear",
+				PrincipalID:     "chima",
+				TokenResponse:   map[string]interface{}{"access_token": "token"},
 				ProviderProfile: map[string]interface{}{"name": "chima ceo"},
-				CreatedAt: &anHourAgo,
-				UpdatedAt: &anHourAgo,
+				CreatedAt:       &anHourAgo,
+				UpdatedAt:       &anHourAgo,
 			}
 			conn.CreateOAuthInfo(&oauth)
 
@@ -383,7 +382,7 @@ func TestLinkProviderHandler(t *testing.T) {
 			conn.CreateAuth(&authinfo)
 			userRecordID := skydb.NewRecordID("user", authinfo.ID)
 			db.Save(&skydb.Record{
-				ID: userRecordID,
+				ID:         userRecordID,
 				DatabaseID: db.ID(),
 				OwnerID:    authinfo.ID,
 				CreatorID:  authinfo.ID,
@@ -396,13 +395,13 @@ func TestLinkProviderHandler(t *testing.T) {
 			})
 
 			oauth := skydb.OAuthInfo{
-				UserID: authinfo.ID,
-				Provider: "skygear",
-				PrincipalID: "chima",
-				TokenResponse: map[string]interface{}{"access_token": "token"},
+				UserID:          authinfo.ID,
+				Provider:        "skygear",
+				PrincipalID:     "chima",
+				TokenResponse:   map[string]interface{}{"access_token": "token"},
 				ProviderProfile: map[string]interface{}{"name": "chima ceo"},
-				CreatedAt: &anHourAgo,
-				UpdatedAt: &anHourAgo,
+				CreatedAt:       &anHourAgo,
+				UpdatedAt:       &anHourAgo,
 			}
 			conn.CreateOAuthInfo(&oauth)
 
@@ -434,7 +433,7 @@ func TestLinkProviderHandler(t *testing.T) {
 			conn.CreateAuth(&authinfo)
 			userRecordID := skydb.NewRecordID("user", authinfo.ID)
 			db.Save(&skydb.Record{
-				ID: userRecordID,
+				ID:         userRecordID,
 				DatabaseID: db.ID(),
 				OwnerID:    authinfo.ID,
 				CreatorID:  authinfo.ID,
@@ -516,24 +515,24 @@ func TestUnlinkProviderHandler(t *testing.T) {
 			})
 
 			oauth := skydb.OAuthInfo{
-				UserID: authinfo.ID,
-				Provider: "skygear",
-				PrincipalID: "chima",
-				TokenResponse: map[string]interface{}{"access_token": "token"},
+				UserID:          authinfo.ID,
+				Provider:        "skygear",
+				PrincipalID:     "chima",
+				TokenResponse:   map[string]interface{}{"access_token": "token"},
 				ProviderProfile: map[string]interface{}{"name": "chima ceo"},
-				CreatedAt: &anHourAgo,
-				UpdatedAt: &anHourAgo,
+				CreatedAt:       &anHourAgo,
+				UpdatedAt:       &anHourAgo,
 			}
 			conn.CreateOAuthInfo(&oauth)
 
 			oauth = skydb.OAuthInfo{
-				UserID: authinfo.ID,
-				Provider: "cats",
-				PrincipalID: "faseng",
-				TokenResponse: map[string]interface{}{"access_token": "token"},
+				UserID:          authinfo.ID,
+				Provider:        "cats",
+				PrincipalID:     "faseng",
+				TokenResponse:   map[string]interface{}{"access_token": "token"},
 				ProviderProfile: map[string]interface{}{"name": "faseng cto"},
-				CreatedAt: &anHourAgo,
-				UpdatedAt: &anHourAgo,
+				CreatedAt:       &anHourAgo,
+				UpdatedAt:       &anHourAgo,
 			}
 			conn.CreateOAuthInfo(&oauth)
 

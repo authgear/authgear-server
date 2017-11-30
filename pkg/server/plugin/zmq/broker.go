@@ -82,7 +82,7 @@ func newParcel(frame []byte) *parcel {
 	}
 }
 
-func (p *parcel)makePayload() (*router.Payload, error) {
+func (p *parcel) makePayload() (*router.Payload, error) {
 	buffer := p.frame
 	reader := bytes.NewReader(buffer)
 	data := map[string]interface{}{}
@@ -104,9 +104,9 @@ func (p *parcel)makePayload() (*router.Payload, error) {
 		Context: ctx,
 		Meta: map[string]interface{}{
 			"method": method,
-			"path": path,
+			"path":   path,
 		},
-		Data: payloadData,
+		Data:      payloadData,
 		AccessKey: router.MasterAccessKey,
 	}
 

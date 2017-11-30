@@ -63,6 +63,10 @@ lint:
 	$(DOCKER_RUN) sh -c 'gocyclo -over 15 pkg | gogocyclo'
 	$(DOCKER_RUN) sh -c 'staticcheck ./pkg/...'
 
+.PHONY: fmt
+fmt:
+	$(DOCKER_RUN) gofmt -w main.go ./pkg
+
 .PHONY: after-docker-test
 after-docker-test:
 	-$(DOCKER_COMPOSE_CMD) down -v

@@ -297,7 +297,7 @@ func (conn *MapConn) GetOAuthInfo(provider string, principalID string, oauthinfo
 // GetOAuthInfoByProviderAndUserID returns OAuthInfo by provider and userID.
 func (conn *MapConn) GetOAuthInfoByProviderAndUserID(provider string, userID string, oauthinfo *skydb.OAuthInfo) error {
 	for _, o := range conn.OAuthMap {
-		if o.Provider == provider && o.UserID == userID  {
+		if o.Provider == provider && o.UserID == userID {
 			*oauthinfo = o
 			return nil
 		}

@@ -75,11 +75,11 @@ func (p AccessKeyValidationPreprocessor) Preprocess(payload *router.Payload, res
 // that are not user_required, we can still get the
 // AuthInfoID from context.
 type UserAuthenticator struct {
-	ClientKey            string
-	MasterKey            string
-	AppName              string
-	TokenStore           authtoken.Store
-	BypassUnauthorized   bool
+	ClientKey          string
+	MasterKey          string
+	AppName            string
+	TokenStore         authtoken.Store
+	BypassUnauthorized bool
 }
 
 func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router.Response) int {

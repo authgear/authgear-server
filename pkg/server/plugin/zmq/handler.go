@@ -19,9 +19,10 @@ import (
 )
 
 type zmqResponseWriter struct {
-	header int
+	header   int
 	response []byte
 }
+
 func (w *zmqResponseWriter) Header() http.Header {
 	return map[string][]string{}
 }

@@ -17,9 +17,9 @@ package pq
 import (
 	"database/sql"
 
-	"github.com/sirupsen/logrus"
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
+	"github.com/sirupsen/logrus"
 )
 
 func (c *conn) Get(dest interface{}, query string, args ...interface{}) (err error) {

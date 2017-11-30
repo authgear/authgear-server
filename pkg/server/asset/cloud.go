@@ -26,8 +26,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/franela/goreq"
+	"github.com/sirupsen/logrus"
 )
 
 const (

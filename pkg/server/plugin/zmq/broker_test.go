@@ -22,8 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zeromq/goczmq"
 	"github.com/skygeario/skygear-server/pkg/server/router"
+	"github.com/zeromq/goczmq"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -321,7 +321,7 @@ func TestBrokerWorker(t *testing.T) {
 				[]byte("request from plugin"),
 			})
 
-			parcel := <- broker.ReqChan
+			parcel := <-broker.ReqChan
 
 			So(parcel.requestID, ShouldResemble, "request-id")
 			So(parcel.workers, ShouldResemble, map[string]string{
@@ -473,7 +473,7 @@ func TestBrokerWorker(t *testing.T) {
 			})
 
 			// handle nested request
-			parcel := <- broker.ReqChan
+			parcel := <-broker.ReqChan
 
 			So(parcel.requestID, ShouldResemble, "request-id")
 			So(parcel.workers, ShouldResemble, map[string]string{
@@ -494,7 +494,7 @@ func TestBrokerWorker(t *testing.T) {
 				[]byte{},
 				[]byte(Response),
 				[]byte("0"),
-				[]byte("request-id"),  // here update + assert?!
+				[]byte("request-id"), // here update + assert?!
 				[]byte{},
 				[]byte("response from worker"),
 			})
@@ -547,7 +547,7 @@ func TestBrokerWorker(t *testing.T) {
 				[]byte("{\"method\":\"POST\", \"payload\":{\"action\":\"foo:bar\", \"key\":\"value\"}}"),
 			})
 
-			parcel := <- broker.ReqChan
+			parcel := <-broker.ReqChan
 			payload, err := parcel.makePayload()
 
 			if err != nil {

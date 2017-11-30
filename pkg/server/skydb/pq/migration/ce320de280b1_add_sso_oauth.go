@@ -20,11 +20,11 @@ type revision_ce320de280b1 struct {
 }
 
 func (r *revision_ce320de280b1) Version() string {
-  return "ce320de280b1"
+	return "ce320de280b1"
 }
 
 func (r *revision_ce320de280b1) Up(tx *sqlx.Tx) error {
-  stmt := `CREATE TABLE _sso_oauth (
+	stmt := `CREATE TABLE _sso_oauth (
     user_id text NOT NULL,
     provider text NOT NULL,
     principal_id text NOT NULL,
@@ -36,13 +36,13 @@ func (r *revision_ce320de280b1) Up(tx *sqlx.Tx) error {
   	UNIQUE (user_id, provider)
   );`
 
-  _, err := tx.Exec(stmt)
-  return err
+	_, err := tx.Exec(stmt)
+	return err
 }
 
 func (r *revision_ce320de280b1) Down(tx *sqlx.Tx) error {
-  stmt := `DROP TABLE _sso_oauth;`
+	stmt := `DROP TABLE _sso_oauth;`
 
-  _, err := tx.Exec(stmt)
-  return err
+	_, err := tx.Exec(stmt)
+	return err
 }

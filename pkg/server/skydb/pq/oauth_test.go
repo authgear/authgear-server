@@ -15,7 +15,7 @@
 package pq
 
 import (
-  "database/sql"
+	"database/sql"
 	"testing"
 	"time"
 
@@ -24,28 +24,28 @@ import (
 )
 
 func TestOAuthCRUD(t *testing.T) {
-  var c *conn
+	var c *conn
 
 	Convey("Conn", t, func() {
-    c = getTestConn(t)
+		c = getTestConn(t)
 		defer cleanupConn(t, c)
 
-    now := time.Now()
-    oauthinfo := skydb.OAuthInfo {
-      UserID:           "userid",
-      Provider:         "skygear",
-      PrincipalID:      "faseng",
-      TokenResponse:    map[string]interface{}{"access_token": "token"},
-      ProviderProfile:  map[string]interface{}{"name": "faseng cto"},
-      CreatedAt:        &now,
-      UpdatedAt:        &now,
+		now := time.Now()
+		oauthinfo := skydb.OAuthInfo{
+			UserID:          "userid",
+			Provider:        "skygear",
+			PrincipalID:     "faseng",
+			TokenResponse:   map[string]interface{}{"access_token": "token"},
+			ProviderProfile: map[string]interface{}{"name": "faseng cto"},
+			CreatedAt:       &now,
+			UpdatedAt:       &now,
 		}
 
-    Convey("creates oauth record", func() {
+		Convey("creates oauth record", func() {
 			err := c.CreateOAuthInfo(&oauthinfo)
 			So(err, ShouldBeNil)
 
-      provider := []byte{}
+			provider := []byte{}
 			tokenResponse := tokenResponseValue{}
 			providerProfile := providerProfileValue{}
 			err = c.QueryRowx("SELECT provider, token_response, profile FROM _sso_oauth WHERE user_id = 'userid'").
@@ -53,45 +53,45 @@ func TestOAuthCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(provider, ShouldResemble, []byte("skygear"))
 			So(tokenResponse.TokenResponse, ShouldResemble, skydb.TokenResponse{
-        "access_token": "token",
+				"access_token": "token",
 			})
-      So(providerProfile.ProviderProfile, ShouldResemble, skydb.ProviderProfile{
-        "name": "faseng cto",
+			So(providerProfile.ProviderProfile, ShouldResemble, skydb.ProviderProfile{
+				"name": "faseng cto",
 			})
 		})
 
-    Convey("returns ErrUserDuplicated when create duplicated oauth info", func() {
+		Convey("returns ErrUserDuplicated when create duplicated oauth info", func() {
 			So(c.CreateOAuthInfo(&oauthinfo), ShouldBeNil)
 			So(c.CreateOAuthInfo(&oauthinfo), ShouldEqual, skydb.ErrUserDuplicated)
 		})
 
-    Convey("gets ouath info", func() {
-      So(c.CreateOAuthInfo(&oauthinfo), ShouldBeNil)
+		Convey("gets ouath info", func() {
+			So(c.CreateOAuthInfo(&oauthinfo), ShouldBeNil)
 
 			fetchedoauthinfo := skydb.OAuthInfo{}
 			err := c.GetOAuthInfo("skygear", "faseng", &fetchedoauthinfo)
 			So(err, ShouldBeNil)
 
-      So(fetchedoauthinfo.UserID, ShouldResemble, "userid")
+			So(fetchedoauthinfo.UserID, ShouldResemble, "userid")
 			So(fetchedoauthinfo.ProviderProfile, ShouldResemble, oauthinfo.ProviderProfile)
 		})
 
-    Convey("gets ouath info by provider and user id", func() {
-      So(c.CreateOAuthInfo(&oauthinfo), ShouldBeNil)
+		Convey("gets ouath info by provider and user id", func() {
+			So(c.CreateOAuthInfo(&oauthinfo), ShouldBeNil)
 
-  		fetchedoauthinfo := skydb.OAuthInfo{}
-  		err := c.GetOAuthInfoByProviderAndUserID("skygear", "userid", &fetchedoauthinfo)
-  		So(err, ShouldBeNil)
+			fetchedoauthinfo := skydb.OAuthInfo{}
+			err := c.GetOAuthInfoByProviderAndUserID("skygear", "userid", &fetchedoauthinfo)
+			So(err, ShouldBeNil)
 
-      So(fetchedoauthinfo.PrincipalID, ShouldResemble, "faseng")
-  		So(fetchedoauthinfo.ProviderProfile, ShouldResemble, oauthinfo.ProviderProfile)
-  	})
+			So(fetchedoauthinfo.PrincipalID, ShouldResemble, "faseng")
+			So(fetchedoauthinfo.ProviderProfile, ShouldResemble, oauthinfo.ProviderProfile)
+		})
 
-    Convey("updates oauth info", func() {
-      So(c.CreateOAuthInfo(&oauthinfo), ShouldBeNil)
+		Convey("updates oauth info", func() {
+			So(c.CreateOAuthInfo(&oauthinfo), ShouldBeNil)
 
 			oauthinfo.TokenResponse = skydb.TokenResponse{
-        "access_token": "new_token",
+				"access_token": "new_token",
 			}
 
 			err := c.UpdateOAuthInfo(&oauthinfo)
@@ -102,19 +102,19 @@ func TestOAuthCRUD(t *testing.T) {
 				Scan(&tokenResponse)
 			So(err, ShouldBeNil)
 			So(tokenResponse.TokenResponse, ShouldResemble, skydb.TokenResponse{
-        "access_token": "new_token",
+				"access_token": "new_token",
 			})
 		})
 
-    Convey("delete oauth info", func() {
-      So(c.CreateOAuthInfo(&oauthinfo), ShouldBeNil)
-		  So(c.DeleteOAuth("skygear", "faseng"), ShouldBeNil)
+		Convey("delete oauth info", func() {
+			So(c.CreateOAuthInfo(&oauthinfo), ShouldBeNil)
+			So(c.DeleteOAuth("skygear", "faseng"), ShouldBeNil)
 
-      placeholder := []byte{}
-      err := c.QueryRowx("SELECT false FROM _sso_oauth WHERE user_id = $1", "userid").Scan(&placeholder)
+			placeholder := []byte{}
+			err := c.QueryRowx("SELECT false FROM _sso_oauth WHERE user_id = $1", "userid").Scan(&placeholder)
 			So(err, ShouldEqual, sql.ErrNoRows)
-      So(placeholder, ShouldBeEmpty)
+			So(placeholder, ShouldBeEmpty)
 		})
 
-  })
+	})
 }

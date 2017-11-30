@@ -90,7 +90,7 @@ func TestPlugin(t *testing.T) {
 			mux := http.NewServeMux()
 			plugin.initHandler(mux, router.PreprocessorRegistry{
 				"inject_auth_id": MockInjectAuthIDPreprocessor{},
-				"plugin_ready": MockPluginReadyPreprocessor{},
+				"plugin_ready":   MockPluginReadyPreprocessor{},
 			}, []pluginHandlerInfo{
 				pluginHandlerInfo{
 					Name: "chima:echo",
@@ -104,7 +104,7 @@ func TestPlugin(t *testing.T) {
 			mux := http.NewServeMux()
 			plugin.initHandler(mux, router.PreprocessorRegistry{
 				"inject_auth_id": MockInjectAuthIDPreprocessor{},
-				"plugin_ready": MockPluginReadyPreprocessor{},
+				"plugin_ready":   MockPluginReadyPreprocessor{},
 			}, []pluginHandlerInfo{
 				pluginHandlerInfo{
 					Name: "chima:echo",

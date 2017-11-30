@@ -272,7 +272,6 @@ func (c *conn) EnsureAuthRecordKeysIndexesMatch(authRecordKeys [][]string) error
 	return nil
 }
 
-
 func getAllAuthRecordKeys(authRecordKeys [][]string) []string {
 	recordKeyMap := map[string]bool{}
 	for _, keys := range authRecordKeys {

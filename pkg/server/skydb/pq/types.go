@@ -248,7 +248,7 @@ func (nu *nullUnknown) Scan(value interface{}) error {
 
 type tokenResponseValue struct {
 	TokenResponse skydb.TokenResponse
-	Valid        bool
+	Valid         bool
 }
 
 func (v tokenResponseValue) Value() (driver.Value, error) {
@@ -282,8 +282,8 @@ func (v *tokenResponseValue) Scan(value interface{}) error {
 }
 
 type providerProfileValue struct {
-	ProviderProfile   skydb.ProviderProfile
-	Valid             bool
+	ProviderProfile skydb.ProviderProfile
+	Valid           bool
 }
 
 func (v providerProfileValue) Value() (driver.Value, error) {
