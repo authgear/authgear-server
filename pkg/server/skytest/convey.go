@@ -19,7 +19,96 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
+
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
+
+// ShouldEqualSkyError asserts the equality of skyerr.Error
+func ShouldEqualSkyError(actual interface{}, expected ...interface{}) string {
+	if len(expected) < 1 || len(expected) > 3 {
+		return fmt.Sprintf("ShouldEqualSkyError receives 1 to 3 arguments")
+	}
+
+	lhs, ok := actual.(skyerr.Error)
+	if !ok {
+		return fmt.Sprintf("%v is not skyerr.Error", actual)
+	}
+
+	// expected[0] is code
+	// expected[1] is message
+	// expected[2] is info
+
+	code, ok := expected[0].(skyerr.ErrorCode)
+	if !ok {
+		return fmt.Sprintf("%v is not skyerr.ErrorCode", expected[0])
+	}
+
+	message := ""
+	if len(expected) >= 2 {
+		message, ok = expected[1].(string)
+		if !ok {
+			return fmt.Sprintf("%v is not message", expected[1])
+		}
+	}
+
+	var info map[string]interface{}
+	if len(expected) == 3 {
+		info, ok = expected[2].(map[string]interface{})
+		if !ok {
+			return fmt.Sprintf("%v is not info", expected[2])
+		}
+	}
+
+	rhs := skyerr.NewErrorWithInfo(code, message, info)
+	if !reflect.DeepEqual(lhs, rhs) {
+		return fmt.Sprintf(`Expected: '%v' Actual: '%v'`, lhs, rhs)
+	}
+
+	return ""
+}
+
+// ShouldEqualStringSliceWithoutOrder compares two string slice
+// by considering them as string set
+func ShouldEqualStringSliceWithoutOrder(actual interface{}, expected ...interface{}) string {
+	if len(expected) != 1 {
+		return fmt.Sprintf("ShouldEqualStringSliceWithoutOrder receives only expected argument")
+	}
+
+	l, ok := actual.([]string)
+	if !ok {
+		return fmt.Sprintf("%v is not []string", actual)
+	}
+
+	r, ok := expected[0].([]string)
+	if !ok {
+		return fmt.Sprintf("%v is not []string", expected[0])
+	}
+
+	errMessage := func() string {
+		return fmt.Sprintf(`Expected: '%v' Actual: '%v'`, l, r)
+	}
+
+	if len(l) != len(r) {
+		return errMessage()
+	}
+
+	ll := make([]string, len(l))
+	copy(ll, l)
+	rr := make([]string, len(r))
+	copy(rr, r)
+
+	lll := sort.StringSlice(ll)
+	lll.Sort()
+	rrr := sort.StringSlice(rr)
+	rrr.Sort()
+
+	if !reflect.DeepEqual(lll, rrr) {
+		return errMessage()
+	}
+
+	return ""
+}
 
 // ShouldEqualJSON asserts eqaulity of two JSON bytes or strings by
 // their key / value, regardless of the actual position of those
