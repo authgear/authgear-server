@@ -175,6 +175,11 @@
   revision = "281073eb9eb092240d33ef253c404f1cca550309"
 
 [[projects]]
+  name = "github.com/nbutton23/zxcvbn-go"
+  packages = [".","adjacency","data","entropy","frequency","match","matching","scoring","utils/math"]
+  revision = "eafdab6b0663b4b528c35975c8b0e78be6e25261"
+
+[[projects]]
   branch = "master"
   name = "github.com/oursky/gogocyclo"
   packages = ["."]
@@ -293,6 +298,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f774702fccf129cae27121fabe947c8b43bf3b4654e897aedfa34fa6daa1f096"
+  inputs-digest = "452203866049ced3330a0bfe7d9503fff4a8f19f3882fe6ac2d15affd65133a9"
   solver-name = "gps-cdcl"
   solver-version = 1

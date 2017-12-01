@@ -126,3 +126,7 @@ required = [
 [[constraint]]
   name = "golang.org/x/crypto"
   revision = "173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd"
+
+[[constraint]]
+  name = "github.com/nbutton23/zxcvbn-go"
+  revision = "eafdab6b0663b4b528c35975c8b0e78be6e25261"
