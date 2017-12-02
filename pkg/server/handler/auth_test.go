@@ -1149,6 +1149,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		tokenStore := authtokentest.SingleTokenStore{}
 		token := authtoken.New("_", authinfo.ID, time.Time{})
 		tokenStore.Put(&token)
+		userAuditor := audit.UserAuditor{}
 
 		user := skydb.Record{
 			ID: skydb.NewRecordID("user", "tester-1"),
@@ -1160,7 +1161,8 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 
 		Convey("change password success", func() {
 			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
-				TokenStore: &tokenStore,
+				TokenStore:  &tokenStore,
+				UserAuditor: &userAuditor,
 			}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.User = &user
@@ -1193,7 +1195,8 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 
 		Convey("change password success, without user", func() {
 			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
-				TokenStore: &tokenStore,
+				TokenStore:  &tokenStore,
+				UserAuditor: &userAuditor,
 			}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.AuthInfo = &authinfo
@@ -1215,6 +1218,40 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 					}
 				}`, tokenStore.Token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("change to a weak password", func() {
+			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
+				TokenStore: &tokenStore,
+				UserAuditor: &audit.UserAuditor{
+					PwMinLength: 8,
+				},
+			}, func(p *router.Payload) {
+				p.DBConn = &conn
+				p.AuthInfo = &authinfo
+			})
+
+			resp := r.POST(fmt.Sprintf(`
+				{
+					"access_token": "%s",
+					"old_password": "chima",
+					"password": "faseng"
+				}`, token.AccessToken))
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+				{
+					"error": {
+						"code": 125,
+						"name": "PasswordTooShort",
+						"message": "password too short",
+						"info": {
+							"min_length": 8,
+							"pw_length": 6
+						}
+					}
+				}
+			`)
+			So(resp.Code, ShouldEqual, 500)
 		})
 
 	})

@@ -532,6 +532,8 @@ type passwordPayload struct {
 	OldPassword string `mapstructure:"old_password"`
 	NewPassword string `mapstructure:"password"`
 	Invalidate  bool   `mapstructure:"invalidate"`
+	userAuditor *audit.UserAuditor
+	userRecord  *skydb.Record
 }
 
 func (payload *passwordPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -542,7 +544,11 @@ func (payload *passwordPayload) Decode(data map[string]interface{}) skyerr.Error
 }
 
 func (payload *passwordPayload) Validate() skyerr.Error {
-	return nil
+	var userData map[string]interface{}
+	if payload.userRecord != nil {
+		userData = map[string]interface{}(payload.userRecord.Data)
+	}
+	return payload.userAuditor.ValidatePassword(payload.NewPassword, userData)
 }
 
 // PasswordHandler change the current user password
@@ -572,14 +578,15 @@ func (payload *passwordPayload) Validate() skyerr.Error {
 // accept `invalidate` and invaldate all existing access token.
 // Return authInfoID with new AccessToken if the invalidate is true
 type PasswordHandler struct {
-	TokenStore    authtoken.Store  `inject:"TokenStore"`
-	AssetStore    asset.Store      `inject:"AssetStore"`
-	Authenticator router.Processor `preprocessor:"authenticator"`
-	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectAuth    router.Processor `preprocessor:"inject_auth"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
-	RequireAuth   router.Processor `preprocessor:"require_auth"`
-	PluginReady   router.Processor `preprocessor:"plugin_ready"`
+	TokenStore    authtoken.Store    `inject:"TokenStore"`
+	AssetStore    asset.Store        `inject:"AssetStore"`
+	UserAuditor   *audit.UserAuditor `inject:"UserAuditor"`
+	Authenticator router.Processor   `preprocessor:"authenticator"`
+	DBConn        router.Processor   `preprocessor:"dbconn"`
+	InjectAuth    router.Processor   `preprocessor:"inject_auth"`
+	InjectUser    router.Processor   `preprocessor:"inject_user"`
+	RequireAuth   router.Processor   `preprocessor:"require_auth"`
+	PluginReady   router.Processor   `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -600,7 +607,10 @@ func (h *PasswordHandler) GetPreprocessors() []router.Processor {
 
 func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Response) {
 	log.Debugf("changing password")
-	p := &passwordPayload{}
+	p := &passwordPayload{
+		userAuditor: h.UserAuditor,
+		userRecord:  payload.User,
+	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
