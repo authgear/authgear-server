@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken/authtokentest"
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
@@ -132,6 +133,7 @@ func TestSignupHandler(t *testing.T) {
 		handler := &SignupHandler{
 			TokenStore:     &tokenStore,
 			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
+			UserAuditor:    &audit.UserAuditor{},
 		}
 
 		Convey("sign up new account", func() {
@@ -399,6 +401,7 @@ func TestSignupHandler(t *testing.T) {
 				TokenStore:     &tokenStore,
 				AccessModel:    skydb.RoleBasedAccess,
 				AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
+				UserAuditor:    &audit.UserAuditor{},
 			}
 			signupHandler.Handle(&req, &resp)
 			authResp := resp.Result.(AuthResponse)
@@ -841,6 +844,7 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 		r := handlertest.NewSingleRouteRouter(&SignupHandler{
 			TokenStore:     &tokenStore,
 			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
+			UserAuditor:    &audit.UserAuditor{},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
@@ -949,6 +953,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			TokenStore:       &tokenStore,
 			ProviderRegistry: providerRegistry,
 			AuthRecordKeys:   [][]string{[]string{"username"}, []string{"email"}},
+			UserAuditor:      &audit.UserAuditor{},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
@@ -1024,6 +1029,47 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 }`))
 			So(resp.Code, ShouldEqual, 401)
 		})
+	})
+}
+
+func TestSignupHandlerWithUserAuditor(t *testing.T) {
+	Convey("SignupHandler with UserAuditor", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+		conn := skydbtest.NewMapConn()
+		tokenStore := authtokentest.SingleTokenStore{}
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		db := mock_skydb.NewMockTxDatabase(ctrl)
+		handler := &SignupHandler{
+			TokenStore:     &tokenStore,
+			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
+			UserAuditor: &audit.UserAuditor{
+				PwUppercaseRequired: true,
+			},
+		}
+		req := router.Payload{
+			Data: map[string]interface{}{
+				"auth_data": map[string]interface{}{
+					"username": "john.doe",
+					"email":    "john.doe@example.com",
+				},
+				"password": "secret",
+			},
+			DBConn:   conn,
+			Database: db,
+		}
+		resp := router.Response{}
+		handler.Handle(&req, &resp)
+
+		So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
+		errorResponse := resp.Err.(skyerr.Error)
+		So(errorResponse.Code(), ShouldEqual, skyerr.PasswordUppercaseRequired)
 	})
 }
 

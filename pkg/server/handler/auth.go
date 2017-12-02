@@ -20,6 +20,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/provider"
@@ -38,6 +39,7 @@ type signupPayload struct {
 	Provider         string                 `mapstructure:"provider"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
 	Profile          skydb.Data             `mapstructure:"profile"`
+	userAuditor      *audit.UserAuditor
 }
 
 func (payload *signupPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -64,6 +66,11 @@ func (payload *signupPayload) Validate() skyerr.Error {
 		if payload.Password == "" {
 			return skyerr.NewInvalidArgument("empty password", []string{"password"})
 		}
+
+		mergedUserData := payload.mergedUserData()
+		if err := payload.userAuditor.ValidatePassword(payload.Password, mergedUserData); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -83,6 +90,18 @@ func (payload *signupPayload) duplicatedKeysInAuthDataAndProfile() []string {
 	}
 
 	return keys
+}
+
+func (payload *signupPayload) mergedUserData() map[string]interface{} {
+	// Assume duplicatedKeysInAuthDataAndProfile is called before this
+	userData := make(map[string]interface{})
+	for key, value := range payload.AuthData.GetData() {
+		userData[key] = value
+	}
+	for key, value := range payload.Profile {
+		userData[key] = value
+	}
+	return userData
 }
 
 // SignupHandler creates an AuthInfo with the supplied information.
@@ -118,6 +137,7 @@ type SignupHandler struct {
 	AssetStore       asset.Store        `inject:"AssetStore"`
 	AccessModel      skydb.AccessModel  `inject:"AccessModel"`
 	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
+	UserAuditor      *audit.UserAuditor `inject:"UserAuditor"`
 	AccessKey        router.Processor   `preprocessor:"accesskey"`
 	DBConn           router.Processor   `preprocessor:"dbconn"`
 	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
@@ -141,6 +161,7 @@ func (h *SignupHandler) GetPreprocessors() []router.Processor {
 func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
 	p := &signupPayload{
 		AuthRecordKeys: h.AuthRecordKeys,
+		userAuditor:    h.UserAuditor,
 	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {

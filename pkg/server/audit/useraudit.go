@@ -185,7 +185,7 @@ type UserAuditor struct {
 	PwExpiryDays        int
 }
 
-func (ua *UserAuditor) checkPasswordLength(password string) error {
+func (ua *UserAuditor) checkPasswordLength(password string) skyerr.Error {
 	minLength := ua.PwMinLength
 	if minLength > 0 && !checkPasswordLength(password, minLength) {
 		return skyerr.NewErrorWithInfo(
@@ -200,7 +200,7 @@ func (ua *UserAuditor) checkPasswordLength(password string) error {
 	return nil
 }
 
-func (ua *UserAuditor) checkPasswordUppercase(password string) error {
+func (ua *UserAuditor) checkPasswordUppercase(password string) skyerr.Error {
 	if ua.PwUppercaseRequired && !checkPasswordUppercase(password) {
 		return skyerr.NewError(
 			skyerr.PasswordUppercaseRequired,
@@ -210,7 +210,7 @@ func (ua *UserAuditor) checkPasswordUppercase(password string) error {
 	return nil
 }
 
-func (ua *UserAuditor) checkPasswordLowercase(password string) error {
+func (ua *UserAuditor) checkPasswordLowercase(password string) skyerr.Error {
 	if ua.PwLowercaseRequired && !checkPasswordLowercase(password) {
 		return skyerr.NewError(
 			skyerr.PasswordLowercaseRequired,
@@ -220,7 +220,7 @@ func (ua *UserAuditor) checkPasswordLowercase(password string) error {
 	return nil
 }
 
-func (ua *UserAuditor) checkPasswordDigit(password string) error {
+func (ua *UserAuditor) checkPasswordDigit(password string) skyerr.Error {
 	if ua.PwDigitRequired && !checkPasswordDigit(password) {
 		return skyerr.NewError(
 			skyerr.PasswordDigitRequired,
@@ -230,7 +230,7 @@ func (ua *UserAuditor) checkPasswordDigit(password string) error {
 	return nil
 }
 
-func (ua *UserAuditor) checkPasswordSymbol(password string) error {
+func (ua *UserAuditor) checkPasswordSymbol(password string) skyerr.Error {
 	if ua.PwSymbolRequired && !checkPasswordSymbol(password) {
 		return skyerr.NewError(
 			skyerr.PasswordSymbolRequired,
@@ -240,7 +240,7 @@ func (ua *UserAuditor) checkPasswordSymbol(password string) error {
 	return nil
 }
 
-func (ua *UserAuditor) checkPasswordExcludedKeywords(password string) error {
+func (ua *UserAuditor) checkPasswordExcludedKeywords(password string) skyerr.Error {
 	keywords := ua.PwExcludedKeywords
 	if len(keywords) > 0 && !checkPasswordExcludedKeywords(password, keywords) {
 		return skyerr.NewError(
@@ -251,7 +251,7 @@ func (ua *UserAuditor) checkPasswordExcludedKeywords(password string) error {
 	return nil
 }
 
-func (ua *UserAuditor) checkPasswordExcludedFields(password string, userData map[string]interface{}) error {
+func (ua *UserAuditor) checkPasswordExcludedFields(password string, userData map[string]interface{}) skyerr.Error {
 	fields := ua.PwExcludedFields
 	if len(fields) > 0 {
 		dict := userDataToStringStringMap(userData)
@@ -266,7 +266,7 @@ func (ua *UserAuditor) checkPasswordExcludedFields(password string, userData map
 	return nil
 }
 
-func (ua *UserAuditor) checkPasswordGuessableLevel(password string, userData map[string]interface{}) error {
+func (ua *UserAuditor) checkPasswordGuessableLevel(password string, userData map[string]interface{}) skyerr.Error {
 	minLevel := ua.PwMinGuessableLevel
 	if minLevel > 0 {
 		dict := userDataToStringStringMap(userData)
@@ -286,7 +286,7 @@ func (ua *UserAuditor) checkPasswordGuessableLevel(password string, userData map
 	return nil
 }
 
-func (ua *UserAuditor) ValidatePassword(password string, userData map[string]interface{}) error {
+func (ua *UserAuditor) ValidatePassword(password string, userData map[string]interface{}) skyerr.Error {
 	if err := ua.checkPasswordLength(password); err != nil {
 		return err
 	}

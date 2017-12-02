@@ -29,6 +29,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/handler"
 	"github.com/skygeario/skygear-server/pkg/server/logging"
@@ -91,6 +92,21 @@ func main() {
 		Expiry:         config.TokenStore.Expiry,
 		Secret:         config.TokenStore.Secret,
 	})
+
+	userAuditor := &audit.UserAuditor{
+		Enabled:             config.UserAudit.Enabled,
+		PwMinLength:         config.UserAudit.PwMinLength,
+		PwUppercaseRequired: config.UserAudit.PwUppercaseRequired,
+		PwLowercaseRequired: config.UserAudit.PwLowercaseRequired,
+		PwDigitRequired:     config.UserAudit.PwDigitRequired,
+		PwSymbolRequired:    config.UserAudit.PwSymbolRequired,
+		PwMinGuessableLevel: config.UserAudit.PwMinGuessableLevel,
+		PwExcludedKeywords:  config.UserAudit.PwExcludedKeywords,
+		PwExcludedFields:    config.UserAudit.PwExcludedFields,
+		PwHistorySize:       config.UserAudit.PwHistorySize,
+		PwHistoryDays:       config.UserAudit.PwHistoryDays,
+		PwExpiryDays:        config.UserAudit.PwExpiryDays,
+	}
 
 	preprocessorRegistry := router.PreprocessorRegistry{}
 
@@ -203,6 +219,11 @@ func main() {
 			Value:    config.App.AuthRecordKeys,
 			Complete: true,
 			Name:     "AuthRecordKeys",
+		},
+		&inject.Object{
+			Value:    userAuditor,
+			Complete: true,
+			Name:     "UserAuditor",
 		},
 	)
 	if injectErr != nil {
