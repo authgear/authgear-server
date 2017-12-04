@@ -296,6 +296,31 @@ func (c *conn) GetPasswordHistory(authID string, historySize, historyDays int, t
 	return daysHistory, nil
 }
 
+func (c *conn) RemovePasswordHistory(authID string, historySize, historyDays int, t time.Time) error {
+	history, err := c.GetPasswordHistory(authID, historySize, historyDays, t)
+	if err != nil {
+		return err
+	}
+
+	if len(history) <= 0 {
+		return nil
+	}
+
+	oldestTime := history[len(history)-1].LoggedAt
+	ids := []interface{}{}
+	for _, h := range history {
+		ids = append(ids, h.ID)
+	}
+
+	builder := psql.Delete(c.tableName("_password_history")).
+		Where("auth_id = ?", authID).
+		Where("id NOT IN ("+sq.Placeholders(len(ids))+")", ids...).
+		Where("logged_at < ?", oldestTime)
+
+	_, err = c.ExecWith(builder)
+	return err
+}
+
 func (c *conn) EnsureAuthRecordKeysExist(authRecordKeys [][]string) error {
 	db := c.PublicDB().(*database)
 	userRecordType := db.UserRecordType()

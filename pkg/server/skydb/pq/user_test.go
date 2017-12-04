@@ -274,6 +274,31 @@ func TestPasswordHistoryCRUD(t *testing.T) {
 			}
 		}
 
+		queryIDs := func() []string {
+			rows, err := c.db.NamedQuery(`
+				SELECT id FROM _password_history
+				WHERE auth_id = :auth_id
+				ORDER BY logged_at DESC
+			`, map[string]interface{}{
+				"auth_id": authID,
+			})
+			if err != nil {
+				panic(err)
+			}
+			defer rows.Close()
+
+			ids := []string{}
+			for rows.Next() {
+				var id string
+				if err := rows.Scan(&id); err != nil {
+					panic(err)
+				}
+				ids = append(ids, id)
+			}
+
+			return ids
+		}
+
 		Convey("Query password history by size", func() {
 			h1, err := c.GetPasswordHistory(authID, 4, 0, time.Time{})
 			So(err, ShouldBeNil)
@@ -316,6 +341,17 @@ func TestPasswordHistoryCRUD(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(len(h2), ShouldEqual, 2)
 			So(sort.IsSorted(passwordHistoryByLoggedAt(h2)), ShouldBeTrue)
+		})
+
+		Convey("Remove password history", func() {
+			t := time.Date(2017, 12, 4, 1, 2, 3, 0, time.UTC)
+
+			err := c.RemovePasswordHistory(authID, 1, 0, t)
+			So(err, ShouldBeNil)
+
+			ids := queryIDs()
+			So(len(ids), ShouldEqual, 1)
+			So(ids, ShouldResemble, []string{"3"})
 		})
 	})
 }

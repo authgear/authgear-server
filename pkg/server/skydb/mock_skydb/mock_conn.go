@@ -464,6 +464,18 @@ func (_mr *MockConnMockRecorder) QueryRelationCount(arg0, arg1, arg2 interface{}
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "QueryRelationCount", reflect.TypeOf((*MockConn)(nil).QueryRelationCount), arg0, arg1, arg2)
 }
 
+// RemovePasswordHistory mocks base method
+func (m *MockConn) RemovePasswordHistory(arg0 string, arg1, arg2 int, arg3 time.Time) error {
+	ret := m.ctrl.Call(m, "RemovePasswordHistory", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemovePasswordHistory indicates an expected call of RemovePasswordHistory
+func (mr *MockConnMockRecorder) RemovePasswordHistory(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemovePasswordHistory", reflect.TypeOf((*MockConn)(nil).RemovePasswordHistory), arg0, arg1, arg2, arg3)
+}
+
 // RemoveRelation mocks base method
 func (_m *MockConn) RemoveRelation(_param0 string, _param1 string, _param2 string) error {
 	ret := _m.ctrl.Call(_m, "RemoveRelation", _param0, _param1, _param2)

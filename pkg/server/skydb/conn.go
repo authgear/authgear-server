@@ -105,6 +105,10 @@ type Conn interface {
 	// is the longer of the result.
 	GetPasswordHistory(authID string, historySize, historyDays int, t time.Time) ([]PasswordHistory, error)
 
+	// RemovePasswordHistory removes old password history.
+	// It uses GetPasswordHistory to query active history and then purge old history.
+	RemovePasswordHistory(authID string, historySize, historyDays int, t time.Time) error
+
 	// GetAdminRoles return the current admine roles
 	GetAdminRoles() ([]string, error)
 
