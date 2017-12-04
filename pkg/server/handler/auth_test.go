@@ -1150,6 +1150,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		token := authtoken.New("_", authinfo.ID, time.Time{})
 		tokenStore.Put(&token)
 		userAuditor := audit.UserAuditor{}
+		housekeeper := audit.PwHousekeeper{}
 
 		user := skydb.Record{
 			ID: skydb.NewRecordID("user", "tester-1"),
@@ -1161,8 +1162,9 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 
 		Convey("change password success", func() {
 			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
-				TokenStore:  &tokenStore,
-				UserAuditor: &userAuditor,
+				TokenStore:    &tokenStore,
+				UserAuditor:   &userAuditor,
+				PwHousekeeper: &housekeeper,
 			}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.User = &user
@@ -1195,8 +1197,9 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 
 		Convey("change password success, without user", func() {
 			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
-				TokenStore:  &tokenStore,
-				UserAuditor: &userAuditor,
+				TokenStore:    &tokenStore,
+				UserAuditor:   &userAuditor,
+				PwHousekeeper: &housekeeper,
 			}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.AuthInfo = &authinfo
@@ -1226,6 +1229,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 				UserAuditor: &audit.UserAuditor{
 					PwMinLength: 8,
 				},
+				PwHousekeeper: &housekeeper,
 			}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.AuthInfo = &authinfo

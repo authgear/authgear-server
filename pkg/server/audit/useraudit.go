@@ -15,6 +15,7 @@
 package audit
 
 import (
+	"context"
 	"regexp"
 	"strings"
 	"time"
@@ -22,9 +23,12 @@ import (
 	"github.com/nbutton23/zxcvbn-go"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
+
+var log = logging.LoggerEntry("audit")
 
 func isUpperRune(r rune) bool {
 	// NOTE: Intentionally not use unicode.IsUpper
@@ -178,6 +182,44 @@ type ValidatePasswordPayload struct {
 	PlainPassword string
 	UserData      map[string]interface{}
 	Conn          skydb.Conn
+}
+
+type PwHousekeeper struct {
+	AppName       string
+	AccessControl string
+	DBOpener      func(context.Context, string, string, string, string, bool) (skydb.Conn, error)
+	DBImpl        string
+	Option        string
+
+	PwHistorySize int
+	PwHistoryDays int
+}
+
+func (p *PwHousekeeper) doHousekeep(authID string) {
+	if !p.enabled() {
+		return
+	}
+
+	conn, err := p.DBOpener(context.Background(), p.DBImpl, p.AppName, p.AccessControl, p.Option, false)
+	if err != nil {
+		log.Warnf(`Unable to housekeep password history`)
+		return
+	}
+	defer conn.Close()
+
+	t := time.Now().UTC()
+	err = conn.RemovePasswordHistory(authID, p.PwHistorySize, p.PwHistoryDays, t)
+	if err != nil {
+		log.Warnf(`Unable to housekeep password history`)
+	}
+}
+
+func (p *PwHousekeeper) enabled() bool {
+	return isPasswordHistoryEnabled(p.PwHistorySize, p.PwHistoryDays)
+}
+
+func (p *PwHousekeeper) Housekeep(authID string) {
+	go p.doHousekeep(authID)
 }
 
 type UserAuditor struct {
@@ -361,7 +403,7 @@ func (ua *UserAuditor) ValidatePassword(payload ValidatePasswordPayload) skyerr.
 }
 
 func (ua *UserAuditor) ShouldSavePasswordHistory() bool {
-	return ua.PwHistorySize > 0 || ua.PwHistoryDays > 0
+	return isPasswordHistoryEnabled(ua.PwHistorySize, ua.PwHistoryDays)
 }
 
 func (ua *UserAuditor) shouldCheckPasswordHistory() bool {
@@ -370,4 +412,8 @@ func (ua *UserAuditor) shouldCheckPasswordHistory() bool {
 
 func IsSamePassword(hashedPassword []byte, password string) bool {
 	return bcrypt.CompareHashAndPassword(hashedPassword, []byte(password)) == nil
+}
+
+func isPasswordHistoryEnabled(historySize, historyDays int) bool {
+	return historySize > 0 || historyDays > 0
 }

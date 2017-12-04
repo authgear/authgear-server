@@ -590,15 +590,16 @@ func (payload *passwordPayload) Validate() skyerr.Error {
 // accept `invalidate` and invaldate all existing access token.
 // Return authInfoID with new AccessToken if the invalidate is true
 type PasswordHandler struct {
-	TokenStore    authtoken.Store    `inject:"TokenStore"`
-	AssetStore    asset.Store        `inject:"AssetStore"`
-	UserAuditor   *audit.UserAuditor `inject:"UserAuditor"`
-	Authenticator router.Processor   `preprocessor:"authenticator"`
-	DBConn        router.Processor   `preprocessor:"dbconn"`
-	InjectAuth    router.Processor   `preprocessor:"inject_auth"`
-	InjectUser    router.Processor   `preprocessor:"inject_user"`
-	RequireAuth   router.Processor   `preprocessor:"require_auth"`
-	PluginReady   router.Processor   `preprocessor:"plugin_ready"`
+	TokenStore    authtoken.Store      `inject:"TokenStore"`
+	AssetStore    asset.Store          `inject:"AssetStore"`
+	UserAuditor   *audit.UserAuditor   `inject:"UserAuditor"`
+	PwHousekeeper *audit.PwHousekeeper `inject:"PwHousekeeper"`
+	Authenticator router.Processor     `preprocessor:"authenticator"`
+	DBConn        router.Processor     `preprocessor:"dbconn"`
+	InjectAuth    router.Processor     `preprocessor:"inject_auth"`
+	InjectUser    router.Processor     `preprocessor:"inject_user"`
+	RequireAuth   router.Processor     `preprocessor:"require_auth"`
+	PluginReady   router.Processor     `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
 
@@ -674,4 +675,5 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 	}
 
 	response.Result = authResponse
+	h.PwHousekeeper.Housekeep(info.ID)
 }

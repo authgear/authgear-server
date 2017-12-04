@@ -108,6 +108,17 @@ func main() {
 		PwExpiryDays:        config.UserAudit.PwExpiryDays,
 	}
 
+	pwHousekeeper := &audit.PwHousekeeper{
+		AppName:       config.App.Name,
+		AccessControl: config.App.AccessControl,
+		DBOpener:      skydb.Open,
+		DBImpl:        config.DB.ImplName,
+		Option:        config.DB.Option,
+
+		PwHistorySize: config.UserAudit.PwHistorySize,
+		PwHistoryDays: config.UserAudit.PwHistoryDays,
+	}
+
 	preprocessorRegistry := router.PreprocessorRegistry{}
 
 	var cronjob *cron.Cron
@@ -224,6 +235,11 @@ func main() {
 			Value:    userAuditor,
 			Complete: true,
 			Name:     "UserAuditor",
+		},
+		&inject.Object{
+			Value:    pwHousekeeper,
+			Complete: true,
+			Name:     "PwHousekeeper",
 		},
 	)
 	if injectErr != nil {
