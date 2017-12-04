@@ -231,6 +231,71 @@ func (c *conn) DeleteAuth(id string) error {
 	return nil
 }
 
+func (c *conn) basePasswordHistoryBuilder(authID string) sq.SelectBuilder {
+	return psql.Select("id", "auth_id", "password", "logged_at").
+		From(c.tableName("_password_history")).
+		Where("auth_id = ?", authID).
+		OrderBy("logged_at DESC")
+}
+
+func (c *conn) doQueryPasswordHistory(builder sq.SelectBuilder) ([]skydb.PasswordHistory, error) {
+	rows, err := c.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []skydb.PasswordHistory{}
+	for rows.Next() {
+		var (
+			id                string
+			authID            string
+			hashedPasswordStr string
+			loggedAt          time.Time
+		)
+		if err := rows.Scan(&id, &authID, &hashedPasswordStr, &loggedAt); err != nil {
+			return nil, err
+		}
+		passwordHistory := skydb.PasswordHistory{
+			ID:             id,
+			AuthID:         authID,
+			HashedPassword: []byte(hashedPasswordStr),
+			LoggedAt:       loggedAt,
+		}
+		out = append(out, passwordHistory)
+	}
+	return out, nil
+}
+
+func (c *conn) GetPasswordHistory(authID string, historySize, historyDays int, t time.Time) ([]skydb.PasswordHistory, error) {
+	var err error
+	var sizeHistory, daysHistory []skydb.PasswordHistory
+
+	if historySize > 0 {
+		sizeBuilder := c.basePasswordHistoryBuilder(authID).Limit(uint64(historySize))
+		sizeHistory, err = c.doQueryPasswordHistory(sizeBuilder)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if historyDays > 0 {
+		startOfDay := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+		since := startOfDay.AddDate(0, 0, -historyDays)
+		daysBuilder := c.basePasswordHistoryBuilder(authID).
+			Where("logged_at >= ?", since)
+		daysHistory, err = c.doQueryPasswordHistory(daysBuilder)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(sizeHistory) > len(daysHistory) {
+		return sizeHistory, nil
+	}
+
+	return daysHistory, nil
+}
+
 func (c *conn) EnsureAuthRecordKeysExist(authRecordKeys [][]string) error {
 	db := c.PublicDB().(*database)
 	userRecordType := db.UserRecordType()

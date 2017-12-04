@@ -16,6 +16,7 @@ package pq
 
 import (
 	"database/sql"
+	"sort"
 	"testing"
 	"time"
 
@@ -216,6 +217,105 @@ func TestAuthCRUD(t *testing.T) {
 
 			c.QueryRowx("SELECT COUNT(*) FROM _auth").Scan(&count)
 			So(count, ShouldEqual, 1) // including default admin user
+		})
+	})
+}
+
+type passwordHistoryByLoggedAt []skydb.PasswordHistory
+
+func (a passwordHistoryByLoggedAt) Len() int      { return len(a) }
+func (a passwordHistoryByLoggedAt) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a passwordHistoryByLoggedAt) Less(i, j int) bool {
+	return !a[i].LoggedAt.Before(a[j].LoggedAt)
+}
+
+func TestPasswordHistoryCRUD(t *testing.T) {
+	var c *conn
+
+	Convey("Conn", t, func() {
+		c = getTestConn(t)
+		defer cleanupConn(t, c)
+
+		authID := "user1"
+		hashedPassword := []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO")
+		fixtures := []skydb.PasswordHistory{
+			skydb.PasswordHistory{
+				ID:             "1",
+				LoggedAt:       time.Date(2017, 12, 1, 0, 0, 0, 0, time.UTC),
+				AuthID:         authID,
+				HashedPassword: hashedPassword,
+			},
+			skydb.PasswordHistory{
+				ID:             "2",
+				LoggedAt:       time.Date(2017, 12, 2, 0, 0, 0, 0, time.UTC),
+				AuthID:         authID,
+				HashedPassword: hashedPassword,
+			},
+			skydb.PasswordHistory{
+				ID:             "3",
+				LoggedAt:       time.Date(2017, 12, 3, 0, 0, 0, 0, time.UTC),
+				AuthID:         authID,
+				HashedPassword: hashedPassword,
+			},
+		}
+		for _, f := range fixtures {
+			_, err := c.db.NamedExec(`
+				INSERT INTO _password_history
+				(id, auth_id, password, logged_at) VALUES
+				(:id, :auth_id, :password, :logged_at)
+			`, map[string]interface{}{
+				"id":        f.ID,
+				"auth_id":   f.AuthID,
+				"password":  f.HashedPassword,
+				"logged_at": f.LoggedAt,
+			})
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		Convey("Query password history by size", func() {
+			h1, err := c.GetPasswordHistory(authID, 4, 0, time.Time{})
+			So(err, ShouldBeNil)
+			So(len(h1), ShouldEqual, 3)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h1)), ShouldBeTrue)
+
+			h2, err := c.GetPasswordHistory(authID, 2, 0, time.Time{})
+			So(err, ShouldBeNil)
+			So(len(h2), ShouldEqual, 2)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h2)), ShouldBeTrue)
+		})
+
+		Convey("Query password history by days", func() {
+			t := time.Date(2017, 12, 4, 1, 2, 3, 0, time.UTC)
+			h1, err := c.GetPasswordHistory(authID, 0, 1, t)
+			So(err, ShouldBeNil)
+			So(len(h1), ShouldEqual, 1)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h1)), ShouldBeTrue)
+
+			h2, err := c.GetPasswordHistory(authID, 0, 2, t)
+			So(err, ShouldBeNil)
+			So(len(h2), ShouldEqual, 2)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h2)), ShouldBeTrue)
+
+			h3, err := c.GetPasswordHistory(authID, 0, 10, t)
+			So(err, ShouldBeNil)
+			So(len(h3), ShouldEqual, 3)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h3)), ShouldBeTrue)
+		})
+
+		Convey("Query password history by size and days", func() {
+			t := time.Date(2017, 12, 4, 1, 2, 3, 0, time.UTC)
+
+			h1, err := c.GetPasswordHistory(authID, 1, 2, t)
+			So(err, ShouldBeNil)
+			So(len(h1), ShouldEqual, 2)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h1)), ShouldBeTrue)
+
+			h2, err := c.GetPasswordHistory(authID, 2, 1, t)
+			So(err, ShouldBeNil)
+			So(len(h2), ShouldEqual, 2)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h2)), ShouldBeTrue)
 		})
 	})
 }
