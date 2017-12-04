@@ -23,7 +23,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "6250fd676f58" }
+func (r *fullMigration) Version() string { return "94ffce762644" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -198,6 +198,14 @@ CREATE TABLE _sso_custom_token (
   _created_at timestamp without time zone NOT NULL,
   UNIQUE (principal_id)
 );
+
+CREATE TABLE _password_history (
+	id TEXT PRIMARY KEY,
+	auth_id TEXT NOT NULL,
+	password TEXT NOT NULL,
+	logged_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
+);
+CREATE INDEX ON _password_history (auth_id, logged_at DESC);
 `
 	_, err := tx.Exec(stmt)
 	return err
