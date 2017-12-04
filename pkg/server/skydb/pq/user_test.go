@@ -73,6 +73,26 @@ func TestAuthCRUD(t *testing.T) {
 			})
 		})
 
+		Convey("creates user with password history", func() {
+			tokenValidSince := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+			authInfoWithHistory := skydb.AuthInfo{
+				ID:                     "userid",
+				HashedPassword:         []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
+				PasswordHistoryEnabled: true,
+			}
+			authInfoWithHistory.TokenValidSince = &tokenValidSince
+			err := c.CreateAuth(&authInfoWithHistory)
+			So(err, ShouldBeNil)
+
+			var count int
+			c.QueryRowx(`
+				SELECT COUNT(1)
+				FROM _password_history
+				WHERE auth_id = 'userid'
+			`).Scan(&count)
+			So(count, ShouldEqual, 1)
+		})
+
 		Convey("returns ErrUserDuplicated when user to create already exists", func() {
 			So(c.CreateAuth(&authinfo), ShouldBeNil)
 			So(c.CreateAuth(&authinfo), ShouldEqual, skydb.ErrUserDuplicated)

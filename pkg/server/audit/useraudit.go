@@ -310,3 +310,7 @@ func (ua *UserAuditor) ValidatePassword(password string, userData map[string]int
 	}
 	return ua.checkPasswordGuessableLevel(password, userData)
 }
+
+func (ua *UserAuditor) ShouldSavePasswordHistory() bool {
+	return ua.PwHistorySize > 0 || ua.PwHistoryDays > 0
+}

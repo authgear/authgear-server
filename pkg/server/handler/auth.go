@@ -195,6 +195,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
 	} else {
 		info = skydb.NewAuthInfo(p.Password)
+		info.PasswordHistoryEnabled = h.UserAuditor.ShouldSavePasswordHistory()
 		authdata = p.AuthData
 	}
 
@@ -245,6 +246,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastSeenAt = &now
+	info.PasswordHistoryEnabled = false
 	if err := payload.DBConn.UpdateAuth(&info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -624,6 +626,7 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 		return
 	}
 	info.SetPassword(p.NewPassword)
+	info.PasswordHistoryEnabled = h.UserAuditor.ShouldSavePasswordHistory()
 	if err := payload.DBConn.UpdateAuth(info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return

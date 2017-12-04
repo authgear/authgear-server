@@ -24,6 +24,7 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
 func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
@@ -62,6 +63,16 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 	if err := c.UpdateUserRoles(authinfo); err != nil {
 		return skydb.ErrRoleUpdatesFailed
 	}
+
+	if authinfo.ShouldSavePasswordHistory() {
+		builder = c.insertPasswordHistoryBuilder(
+			authinfo.ID,
+			authinfo.HashedPassword,
+			authinfo.TokenValidSince,
+		)
+		_, err = c.ExecWith(builder)
+	}
+
 	return err
 }
 
@@ -106,7 +117,33 @@ func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 	if err := c.UpdateUserRoles(authinfo); err != nil {
 		return skydb.ErrRoleUpdatesFailed
 	}
+
+	if authinfo.ShouldSavePasswordHistory() {
+		updateBuilder := c.insertPasswordHistoryBuilder(
+			authinfo.ID,
+			authinfo.HashedPassword,
+			authinfo.TokenValidSince,
+		)
+		if _, err := c.ExecWith(updateBuilder); err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (c *conn) insertPasswordHistoryBuilder(authID string, hashedPassword []byte, loggedAt *time.Time) sq.InsertBuilder {
+	return psql.Insert(c.tableName("_password_history")).Columns(
+		"id",
+		"auth_id",
+		"password",
+		"logged_at",
+	).Values(
+		uuid.New(),
+		authID,
+		hashedPassword,
+		loggedAt,
+	)
 }
 
 func (c *conn) baseUserBuilder() sq.SelectBuilder {

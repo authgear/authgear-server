@@ -158,6 +158,19 @@ func TestSetPassword(t *testing.T) {
 	}
 }
 
+func TestShouldSavePasswordHistory(t *testing.T) {
+	Convey("ShouldSavePasswordHistory", t, func() {
+		info := AuthInfo{}
+		So(info.ShouldSavePasswordHistory(), ShouldBeFalse)
+
+		info.SetPassword("secret")
+		So(info.ShouldSavePasswordHistory(), ShouldBeFalse)
+
+		info.PasswordHistoryEnabled = true
+		So(info.ShouldSavePasswordHistory(), ShouldBeTrue)
+	})
+}
+
 func TestIsSamePassword(t *testing.T) {
 	info := AuthInfo{}
 	info.SetPassword("secret")
