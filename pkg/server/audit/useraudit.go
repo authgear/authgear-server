@@ -17,9 +17,12 @@ package audit
 import (
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/nbutton23/zxcvbn-go"
+	"golang.org/x/crypto/bcrypt"
 
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -170,6 +173,13 @@ func filterDictionaryTakeAll(m map[string]string) []string {
 	return filterDictionary(m, predicate)
 }
 
+type ValidatePasswordPayload struct {
+	AuthID        string
+	PlainPassword string
+	UserData      map[string]interface{}
+	Conn          skydb.Conn
+}
+
 type UserAuditor struct {
 	Enabled             bool
 	PwMinLength         int
@@ -286,7 +296,43 @@ func (ua *UserAuditor) checkPasswordGuessableLevel(password string, userData map
 	return nil
 }
 
-func (ua *UserAuditor) ValidatePassword(password string, userData map[string]interface{}) skyerr.Error {
+func (ua *UserAuditor) checkPasswordHistory(password, authID string, conn skydb.Conn) skyerr.Error {
+	makeErr := func() skyerr.Error {
+		return skyerr.NewErrorWithInfo(
+			skyerr.PasswordReused,
+			"password reused",
+			map[string]interface{}{
+				"history_size": ua.PwHistorySize,
+				"history_days": ua.PwHistoryDays,
+			},
+		)
+	}
+
+	if ua.shouldCheckPasswordHistory() && authID != "" {
+		now := time.Now().UTC()
+		history, err := conn.GetPasswordHistory(
+			authID,
+			ua.PwHistorySize,
+			ua.PwHistoryDays,
+			now,
+		)
+		if err != nil {
+			return makeErr()
+		}
+		for _, ph := range history {
+			if IsSamePassword(ph.HashedPassword, password) {
+				return makeErr()
+			}
+		}
+	}
+	return nil
+}
+
+func (ua *UserAuditor) ValidatePassword(payload ValidatePasswordPayload) skyerr.Error {
+	password := payload.PlainPassword
+	userData := payload.UserData
+	conn := payload.Conn
+	authID := payload.AuthID
 	if err := ua.checkPasswordLength(password); err != nil {
 		return err
 	}
@@ -308,9 +354,20 @@ func (ua *UserAuditor) ValidatePassword(password string, userData map[string]int
 	if err := ua.checkPasswordExcludedFields(password, userData); err != nil {
 		return err
 	}
-	return ua.checkPasswordGuessableLevel(password, userData)
+	if err := ua.checkPasswordGuessableLevel(password, userData); err != nil {
+		return err
+	}
+	return ua.checkPasswordHistory(password, authID, conn)
 }
 
 func (ua *UserAuditor) ShouldSavePasswordHistory() bool {
 	return ua.PwHistorySize > 0 || ua.PwHistoryDays > 0
+}
+
+func (ua *UserAuditor) shouldCheckPasswordHistory() bool {
+	return ua.ShouldSavePasswordHistory()
+}
+
+func IsSamePassword(hashedPassword []byte, password string) bool {
+	return bcrypt.CompareHashAndPassword(hashedPassword, []byte(password)) == nil
 }

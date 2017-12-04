@@ -16,7 +16,12 @@ package audit
 
 import (
 	"testing"
+	"time"
 
+	"github.com/golang/mock/gomock"
+
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -137,7 +142,9 @@ func TestValidatePassword(t *testing.T) {
 			PwMinLength: 2,
 		}
 		So(
-			ua.ValidatePassword(password, nil),
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: password,
+			}),
 			ShouldEqualSkyError,
 			skyerr.PasswordTooShort,
 			"password too short",
@@ -153,7 +160,9 @@ func TestValidatePassword(t *testing.T) {
 			PwUppercaseRequired: true,
 		}
 		So(
-			ua.ValidatePassword(password, nil),
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: password,
+			}),
 			ShouldEqualSkyError,
 			skyerr.PasswordUppercaseRequired,
 			"password uppercase required",
@@ -165,7 +174,9 @@ func TestValidatePassword(t *testing.T) {
 			PwLowercaseRequired: true,
 		}
 		So(
-			ua.ValidatePassword(password, nil),
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: password,
+			}),
 			ShouldEqualSkyError,
 			skyerr.PasswordLowercaseRequired,
 			"password lowercase required",
@@ -177,7 +188,9 @@ func TestValidatePassword(t *testing.T) {
 			PwDigitRequired: true,
 		}
 		So(
-			ua.ValidatePassword(password, nil),
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: password,
+			}),
 			ShouldEqualSkyError,
 			skyerr.PasswordDigitRequired,
 			"password digit required",
@@ -189,7 +202,9 @@ func TestValidatePassword(t *testing.T) {
 			PwSymbolRequired: true,
 		}
 		So(
-			ua.ValidatePassword(password, nil),
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: password,
+			}),
 			ShouldEqualSkyError,
 			skyerr.PasswordSymbolRequired,
 			"password symbol required",
@@ -201,7 +216,9 @@ func TestValidatePassword(t *testing.T) {
 			PwExcludedKeywords: []string{"user"},
 		}
 		So(
-			ua.ValidatePassword(password, nil),
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: password,
+			}),
 			ShouldEqualSkyError,
 			skyerr.PasswordContainingExcludedKeywords,
 			"password containing excluded keywords",
@@ -217,7 +234,10 @@ func TestValidatePassword(t *testing.T) {
 			"last_name":  "Lovelace",
 		}
 		So(
-			ua.ValidatePassword(password, userData),
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: password,
+				UserData:      userData,
+			}),
 			ShouldEqualSkyError,
 			skyerr.PasswordContainingExcludedKeywords,
 			"password containing excluded keywords",
@@ -229,7 +249,9 @@ func TestValidatePassword(t *testing.T) {
 			PwMinGuessableLevel: 5,
 		}
 		So(
-			ua.ValidatePassword(password, nil),
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: password,
+			}),
 			ShouldEqualSkyError,
 			skyerr.PasswordBelowGuessableLevel,
 			"password below guessable level",
@@ -237,6 +259,56 @@ func TestValidatePassword(t *testing.T) {
 				"min_level": 5,
 				"pw_level":  1,
 			},
+		)
+	})
+	Convey("validate password history", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		authID := "chima"
+		historySize := 12
+		historyDays := 365
+
+		conn := mock_skydb.NewMockConn(ctrl)
+		conn.EXPECT().
+			GetPasswordHistory(authID, historySize, historyDays, gomock.Any()).
+			MinTimes(1).
+			Return([]skydb.PasswordHistory{
+				skydb.PasswordHistory{
+					ID:             "1",
+					AuthID:         authID,
+					HashedPassword: []byte("$2a$10$EazYxG5cUdf99wGXDU1fguNxvCe7xQLEgr/Ay6VS9fkkVjHZtpJfm"), // "chima"
+					LoggedAt:       time.Date(2017, 11, 1, 0, 0, 0, 0, time.UTC),
+				},
+			}, nil)
+
+		ua := &UserAuditor{
+			PwHistorySize: historySize,
+			PwHistoryDays: historyDays,
+		}
+
+		So(
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: "chima",
+				AuthID:        authID,
+				Conn:          conn,
+			}),
+			ShouldEqualSkyError,
+			skyerr.PasswordReused,
+			"password reused",
+			map[string]interface{}{
+				"history_size": historySize,
+				"history_days": historyDays,
+			},
+		)
+
+		So(
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: "faseng",
+				AuthID:        authID,
+				Conn:          conn,
+			}),
+			ShouldBeNil,
 		)
 	})
 	Convey("validate strong password", t, func() {
@@ -255,6 +327,13 @@ func TestValidatePassword(t *testing.T) {
 			"first_name": "Natsume",
 			"last_name":  "Souseki",
 		}
-		So(ua.ValidatePassword(password, userData), ShouldEqual, nil)
+		So(
+			ua.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: password,
+				UserData:      userData,
+			}),
+			ShouldEqual,
+			nil,
+		)
 	})
 }

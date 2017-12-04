@@ -67,8 +67,11 @@ func (payload *signupPayload) Validate() skyerr.Error {
 			return skyerr.NewInvalidArgument("empty password", []string{"password"})
 		}
 
-		mergedUserData := payload.mergedUserData()
-		if err := payload.userAuditor.ValidatePassword(payload.Password, mergedUserData); err != nil {
+		err := payload.userAuditor.ValidatePassword(audit.ValidatePasswordPayload{
+			PlainPassword: payload.Password,
+			UserData:      payload.mergedUserData(),
+		})
+		if err != nil {
 			return err
 		}
 	}
@@ -536,6 +539,8 @@ type passwordPayload struct {
 	Invalidate  bool   `mapstructure:"invalidate"`
 	userAuditor *audit.UserAuditor
 	userRecord  *skydb.Record
+	authInfo    *skydb.AuthInfo
+	conn        skydb.Conn
 }
 
 func (payload *passwordPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -550,7 +555,12 @@ func (payload *passwordPayload) Validate() skyerr.Error {
 	if payload.userRecord != nil {
 		userData = map[string]interface{}(payload.userRecord.Data)
 	}
-	return payload.userAuditor.ValidatePassword(payload.NewPassword, userData)
+	return payload.userAuditor.ValidatePassword(audit.ValidatePasswordPayload{
+		AuthID:        payload.authInfo.ID,
+		PlainPassword: payload.NewPassword,
+		UserData:      userData,
+		Conn:          payload.conn,
+	})
 }
 
 // PasswordHandler change the current user password
@@ -612,6 +622,8 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 	p := &passwordPayload{
 		userAuditor: h.UserAuditor,
 		userRecord:  payload.User,
+		authInfo:    payload.AuthInfo,
+		conn:        payload.DBConn,
 	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {

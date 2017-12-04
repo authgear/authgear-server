@@ -173,6 +173,10 @@ const (
 	// contains configured excluded keywords
 	PasswordContainingExcludedKeywords
 
+	// PasswordReused is returned when the password
+	// is the same as a historical password.
+	PasswordReused
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )
