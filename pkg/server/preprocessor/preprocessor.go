@@ -34,6 +34,7 @@ var timeNow = func() time.Time { return time.Now().UTC() }
 var log = logging.LoggerEntry("preprocessor")
 
 type InjectAuthIfPresent struct {
+	PwExpiryDays int
 }
 
 func isTokenStillValid(token router.AccessToken, authInfo skydb.AuthInfo) bool {
@@ -82,12 +83,18 @@ func (p InjectAuthIfPresent) Preprocess(payload *router.Payload, response *route
 		}
 	}
 
-	// If an access token exists checks if the access token has an IssuedAt
-	// time that is later than the user's TokenValidSince time. This
-	// allows user to invalidate previously issued access token.
-	if payload.AccessToken != nil && !isTokenStillValid(payload.AccessToken, authinfo) {
-		response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
-		return http.StatusUnauthorized
+	if payload.AccessToken != nil {
+		// If an access token exists checks if the access token has an IssuedAt
+		// time that is later than the user's TokenValidSince time. This
+		// allows user to invalidate previously issued access token.
+		if !isTokenStillValid(payload.AccessToken, authinfo) {
+			response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
+			return http.StatusUnauthorized
+		}
+		if authinfo.IsPasswordExpired(p.PwExpiryDays, timeNow()) {
+			response.Err = skyerr.NewError(skyerr.PasswordExpired, "password expired")
+			return http.StatusUnauthorized
+		}
 	}
 
 	payload.AuthInfo = &authinfo

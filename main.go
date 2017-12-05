@@ -178,7 +178,9 @@ func main() {
 		ClientKey:     config.App.APIKey,
 		MasterKey:     config.App.MasterKey,
 	}
-	preprocessorRegistry["inject_auth"] = &pp.InjectAuthIfPresent{}
+	preprocessorRegistry["inject_auth"] = &pp.InjectAuthIfPresent{
+		PwExpiryDays: config.UserAudit.PwExpiryDays,
+	}
 	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
 	preprocessorRegistry["require_auth"] = &pp.RequireAuth{}
 	preprocessorRegistry["require_admin"] = &pp.RequireAdminOrMasterKey{}

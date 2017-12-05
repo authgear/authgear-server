@@ -177,6 +177,10 @@ const (
 	// is the same as a historical password.
 	PasswordReused
 
+	// PasswordExpired is returned when the password
+	// is expired
+	PasswordExpired
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )

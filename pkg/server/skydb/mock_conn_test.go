@@ -106,15 +106,15 @@ func (_mr *MockConnMockRecorder) GetPasswordHistory(arg0, arg1, arg2, arg3 inter
 }
 
 // RemovePasswordHistory mocks base method
-func (m *MockConn) RemovePasswordHistory(authID string, historySize, historyDays int, t time.Time) error {
-	ret := m.ctrl.Call(m, "RemovePasswordHistory", authID, historySize, historyDays, t)
+func (_m *MockConn) RemovePasswordHistory(authID string, historySize int, historyDays int, t time.Time) error {
+	ret := _m.ctrl.Call(_m, "RemovePasswordHistory", authID, historySize, historyDays, t)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RemovePasswordHistory indicates an expected call of RemovePasswordHistory
-func (mr *MockConnMockRecorder) RemovePasswordHistory(authID, historySize, historyDays, t interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemovePasswordHistory", reflect.TypeOf((*MockConn)(nil).RemovePasswordHistory), authID, historySize, historyDays, t)
+func (_mr *MockConnMockRecorder) RemovePasswordHistory(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "RemovePasswordHistory", reflect.TypeOf((*MockConn)(nil).RemovePasswordHistory), arg0, arg1, arg2, arg3)
 }
 
 // GetAdminRoles mocks base method
