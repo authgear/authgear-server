@@ -223,7 +223,6 @@ func (p *PwHousekeeper) Housekeep(authID string) {
 }
 
 type PasswordChecker struct {
-	Enabled             bool
 	PwMinLength         int
 	PwUppercaseRequired bool
 	PwLowercaseRequired bool
@@ -234,7 +233,6 @@ type PasswordChecker struct {
 	PwExcludedFields    []string
 	PwHistorySize       int
 	PwHistoryDays       int
-	PwExpiryDays        int
 }
 
 func (ua *PasswordChecker) checkPasswordLength(password string) skyerr.Error {

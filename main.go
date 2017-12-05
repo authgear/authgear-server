@@ -94,7 +94,6 @@ func main() {
 	})
 
 	passwordChecker := &audit.PasswordChecker{
-		Enabled:             config.UserAudit.Enabled,
 		PwMinLength:         config.UserAudit.PwMinLength,
 		PwUppercaseRequired: config.UserAudit.PwUppercaseRequired,
 		PwLowercaseRequired: config.UserAudit.PwLowercaseRequired,
@@ -105,7 +104,6 @@ func main() {
 		PwExcludedFields:    config.UserAudit.PwExcludedFields,
 		PwHistorySize:       config.UserAudit.PwHistorySize,
 		PwHistoryDays:       config.UserAudit.PwHistoryDays,
-		PwExpiryDays:        config.UserAudit.PwExpiryDays,
 	}
 
 	pwHousekeeper := &audit.PwHousekeeper{
