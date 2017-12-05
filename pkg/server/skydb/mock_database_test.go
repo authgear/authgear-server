@@ -129,16 +129,16 @@ func (_mr *MockDatabaseMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetByIDs mocks base method
-func (_m *MockDatabase) GetByIDs(ids []RecordID) (*Rows, error) {
-	ret := _m.ctrl.Call(_m, "GetByIDs", ids)
+func (_m *MockDatabase) GetByIDs(ids []RecordID, accessControlOptions *AccessControlOptions) (*Rows, error) {
+	ret := _m.ctrl.Call(_m, "GetByIDs", ids, accessControlOptions)
 	ret0, _ := ret[0].(*Rows)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByIDs indicates an expected call of GetByIDs
-func (_mr *MockDatabaseMockRecorder) GetByIDs(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetByIDs", reflect.TypeOf((*MockDatabase)(nil).GetByIDs), arg0)
+func (_mr *MockDatabaseMockRecorder) GetByIDs(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetByIDs", reflect.TypeOf((*MockDatabase)(nil).GetByIDs), arg0, arg1)
 }
 
 // Save mocks base method
@@ -567,16 +567,16 @@ func (_mr *MockTxDatabaseMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // GetByIDs mocks base method
-func (_m *MockTxDatabase) GetByIDs(ids []RecordID) (*Rows, error) {
-	ret := _m.ctrl.Call(_m, "GetByIDs", ids)
+func (_m *MockTxDatabase) GetByIDs(ids []RecordID, accessControlOptions *AccessControlOptions) (*Rows, error) {
+	ret := _m.ctrl.Call(_m, "GetByIDs", ids, accessControlOptions)
 	ret0, _ := ret[0].(*Rows)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByIDs indicates an expected call of GetByIDs
-func (_mr *MockTxDatabaseMockRecorder) GetByIDs(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetByIDs", reflect.TypeOf((*MockTxDatabase)(nil).GetByIDs), arg0)
+func (_mr *MockTxDatabaseMockRecorder) GetByIDs(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetByIDs", reflect.TypeOf((*MockTxDatabase)(nil).GetByIDs), arg0, arg1)
 }
 
 // Save mocks base method

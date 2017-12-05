@@ -130,16 +130,16 @@ func (_mr *MockDatabaseMockRecorder) Get(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // GetByIDs mocks base method
-func (_m *MockDatabase) GetByIDs(_param0 []skydb.RecordID) (*skydb.Rows, error) {
-	ret := _m.ctrl.Call(_m, "GetByIDs", _param0)
+func (_m *MockDatabase) GetByIDs(_param0 []skydb.RecordID, _param1 *skydb.AccessControlOptions) (*skydb.Rows, error) {
+	ret := _m.ctrl.Call(_m, "GetByIDs", _param0, _param1)
 	ret0, _ := ret[0].(*skydb.Rows)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByIDs indicates an expected call of GetByIDs
-func (_mr *MockDatabaseMockRecorder) GetByIDs(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetByIDs", reflect.TypeOf((*MockDatabase)(nil).GetByIDs), arg0)
+func (_mr *MockDatabaseMockRecorder) GetByIDs(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetByIDs", reflect.TypeOf((*MockDatabase)(nil).GetByIDs), arg0, arg1)
 }
 
 // GetIndexesByRecordType mocks base method

@@ -2121,7 +2121,7 @@ func (db *referencedRecordDatabase) Get(id skydb.RecordID, record *skydb.Record)
 	return nil
 }
 
-func (db *referencedRecordDatabase) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
+func (db *referencedRecordDatabase) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	records := []skydb.Record{}
 	for _, id := range ids {
 		switch id.String() {

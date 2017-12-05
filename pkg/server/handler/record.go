@@ -626,7 +626,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	// so we replace them with some complete assets.
 	recordutil.MakeAssetsComplete(db, payload.DBConn, records)
 
-	eagerRecords := recordutil.DoQueryEager(db, recordutil.EagerIDs(db, records, p.Query))
+	eagerRecords := recordutil.DoQueryEager(db, recordutil.EagerIDs(db, records, p.Query), accessControlOptions)
 
 	recordResultFilter, err := recordutil.NewRecordResultFilter(
 		payload.DBConn,

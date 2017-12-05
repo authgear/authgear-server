@@ -56,7 +56,7 @@ func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
 // GetByIDs only support one type of records at a time. If you want to query
 // array of ids belongs to different type, you need to call this method multiple
 // time.
-func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
+func (db *database) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	if len(ids) == 0 {
 		return nil, errors.New("db.GetByIDs received empty array")
 	}
@@ -84,6 +84,16 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 	inCause, inArgs := builder.LiteralToSQLOperand(idStrs)
 	query := db.selectQuery(psql.Select(), recordType, typemap).
 		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
+
+	if db.DatabaseType() == skydb.PublicDatabase && !accessControlOptions.BypassAccessControl {
+		factory := builder.NewPredicateSqlizerFactory(db, recordType)
+		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, skydb.ReadLevel)
+		if err != nil {
+			return nil, err
+		}
+		query = query.Where(aclSqlizer)
+	}
+
 	rows, err := db.c.QueryWith(query)
 	if err != nil {
 		log.Debugf("Getting records by ID failed %v", err)

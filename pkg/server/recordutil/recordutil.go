@@ -595,11 +595,11 @@ func getReferenceWithKeyPath(db skydb.Database, record *skydb.Record, keyPath st
 	}
 }
 
-func DoQueryEager(db skydb.Database, eagersIDs map[string][]skydb.RecordID) map[string]map[string]*skydb.Record {
+func DoQueryEager(db skydb.Database, eagersIDs map[string][]skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) map[string]map[string]*skydb.Record {
 	eagerRecords := map[string]map[string]*skydb.Record{}
 	for keyPath, ids := range eagersIDs {
 		log.Debugf("Getting value for keypath %v", keyPath)
-		eagerScanner, err := db.GetByIDs(ids)
+		eagerScanner, err := db.GetByIDs(ids, accessControlOptions)
 		if err != nil {
 			log.Debugf("No Records found in the eager load key path: %s", keyPath)
 			eagerRecords[keyPath] = map[string]*skydb.Record{}

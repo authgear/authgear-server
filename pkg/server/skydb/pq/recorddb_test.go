@@ -95,7 +95,7 @@ func TestGetByIDs(t *testing.T) {
 			`VALUES ('getuser', 'id1', 'getuser', '1988-02-06', 'getuser', '1988-02-06', 'getuser', 'string')`)
 
 		Convey("get one record", func() {
-			scanner, err := db.GetByIDs([]skydb.RecordID{skydb.NewRecordID("record", "id1")})
+			scanner, err := db.GetByIDs([]skydb.RecordID{skydb.NewRecordID("record", "id1")}, &skydb.AccessControlOptions{})
 			So(err, ShouldBeNil)
 
 			scanner.Scan()
@@ -118,7 +118,7 @@ func TestGetByIDs(t *testing.T) {
 			scanner, err := db.GetByIDs([]skydb.RecordID{
 				skydb.NewRecordID("record", "id1"),
 				skydb.NewRecordID("record", "id1"),
-			})
+			}, &skydb.AccessControlOptions{})
 			So(err, ShouldBeNil)
 
 			scanner.Scan()
@@ -142,7 +142,7 @@ func TestGetByIDs(t *testing.T) {
 			scanner, err := db.GetByIDs([]skydb.RecordID{
 				skydb.RecordID{},
 				skydb.NewRecordID("record", "id1"),
-			})
+			}, &skydb.AccessControlOptions{})
 			So(err, ShouldBeNil)
 
 			scanner.Scan()
@@ -166,7 +166,7 @@ func TestGetByIDs(t *testing.T) {
 			scanner, err := db.GetByIDs([]skydb.RecordID{
 				skydb.NewRecordID("record", "id0"),
 				skydb.NewRecordID("record", "id1"),
-			})
+			}, &skydb.AccessControlOptions{})
 			So(err, ShouldBeNil)
 
 			scanner.Scan()
