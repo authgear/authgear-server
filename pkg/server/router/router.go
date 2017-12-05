@@ -139,6 +139,16 @@ func (r *Router) newPayload(req *http.Request) (p *Payload, err error) {
 
 	p.Meta["path"] = req.URL.Path
 	p.Meta["method"] = req.Method
+	p.Meta["remote_addr"] = req.RemoteAddr
+	if xff := req.Header.Get("x-forwarded-for"); xff != "" {
+		p.Meta["x_forwarded_for"] = xff
+	}
+	if xri := req.Header.Get("x-real-ip"); xri != "" {
+		p.Meta["x_real_ip"] = xri
+	}
+	if forwarded := req.Header.Get("forwarded"); forwarded != "" {
+		p.Meta["forwarded"] = forwarded
+	}
 
 	return
 }
