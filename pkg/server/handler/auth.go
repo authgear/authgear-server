@@ -265,6 +265,11 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	}
 
 	response.Result = authResponse
+
+	audit.Trail(audit.Entry{
+		AuthID: info.ID,
+		Event:  audit.EventSignup,
+	}.WithRouterPayload(payload))
 }
 
 type loginPayload struct {
@@ -339,6 +344,22 @@ func (h *LoginHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response) {
+	info := skydb.AuthInfo{}
+
+	defer func() {
+		if response.Err != nil {
+			audit.Trail(audit.Entry{
+				AuthID: info.ID,
+				Event:  audit.EventLoginFailure,
+			}.WithRouterPayload(payload))
+		} else {
+			audit.Trail(audit.Entry{
+				AuthID: info.ID,
+				Event:  audit.EventLoginSuccess,
+			}.WithRouterPayload(payload))
+		}
+	}()
+
 	p := &loginPayload{
 		AuthRecordKeys: h.AuthRecordKeys,
 	}
@@ -353,7 +374,6 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	}
 	store := h.TokenStore
 
-	info := skydb.AuthInfo{}
 	user := skydb.Record{}
 
 	var handleLoginFunc func(*router.Payload, *loginPayload, *skydb.AuthInfo, *skydb.Record) skyerr.Error
@@ -530,6 +550,11 @@ func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Respons
 			"OK",
 		}
 	}
+
+	audit.Trail(audit.Entry{
+		AuthID: payload.AuthInfoID,
+		Event:  audit.EventLogout,
+	}.WithRouterPayload(payload))
 }
 
 // Define the playload that change password handler will process
@@ -675,5 +700,10 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 	}
 
 	response.Result = authResponse
+
+	audit.Trail(audit.Entry{
+		AuthID: info.ID,
+		Event:  audit.EventChangePassword,
+	}.WithRouterPayload(payload))
 	h.PwHousekeeper.Housekeep(info.ID)
 }

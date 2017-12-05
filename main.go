@@ -631,6 +631,10 @@ func initLogger(config skyconfig.Configuration) {
 	if config.LogHook.SentryDSN != "" {
 		initSentry(config)
 	}
+
+	if config.UserAudit.Enabled {
+		audit.SetTrailEnabled(true)
+	}
 }
 
 func higherLogLevels(minLevel logrus.Level) []logrus.Level {

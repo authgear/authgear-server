@@ -17,6 +17,7 @@ package handler
 import (
 	"github.com/mitchellh/mapstructure"
 
+	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -229,6 +230,21 @@ func (h *RoleAssignHandler) GetPreprocessors() []router.Processor {
 func (h *RoleAssignHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debugf("RoleAssignHandler %v", h)
 	payload := &roleBatchPayload{}
+
+	defer func() {
+		if response.Err == nil {
+			audit.Trail(audit.Entry{
+				AuthID: rpayload.AuthInfoID,
+				Event:  audit.EventChangeRoles,
+				Data: map[string]interface{}{
+					"type":     "assign",
+					"user_ids": payload.UserIDs,
+					"roles":    payload.Roles,
+				},
+			}.WithRouterPayload(rpayload))
+		}
+	}()
+
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
@@ -295,6 +311,21 @@ func (h *RoleRevokeHandler) GetPreprocessors() []router.Processor {
 func (h *RoleRevokeHandler) Handle(rpayload *router.Payload, response *router.Response) {
 	log.Debugf("RoleRevokeHandler %v", h)
 	payload := &roleBatchPayload{}
+
+	defer func() {
+		if response.Err == nil {
+			audit.Trail(audit.Entry{
+				AuthID: rpayload.AuthInfoID,
+				Event:  audit.EventChangeRoles,
+				Data: map[string]interface{}{
+					"type":     "revoke",
+					"user_ids": payload.UserIDs,
+					"roles":    payload.Roles,
+				},
+			}.WithRouterPayload(rpayload))
+		}
+	}()
+
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
