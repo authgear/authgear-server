@@ -131,9 +131,9 @@ func TestSignupHandler(t *testing.T) {
 
 		db := mock_skydb.NewMockTxDatabase(ctrl)
 		handler := &SignupHandler{
-			TokenStore:     &tokenStore,
-			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
-			UserAuditor:    &audit.UserAuditor{},
+			TokenStore:      &tokenStore,
+			AuthRecordKeys:  [][]string{[]string{"username"}, []string{"email"}},
+			PasswordChecker: &audit.PasswordChecker{},
 		}
 
 		Convey("sign up new account", func() {
@@ -398,10 +398,10 @@ func TestSignupHandler(t *testing.T) {
 			}
 			resp := router.Response{}
 			signupHandler := &SignupHandler{
-				TokenStore:     &tokenStore,
-				AccessModel:    skydb.RoleBasedAccess,
-				AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
-				UserAuditor:    &audit.UserAuditor{},
+				TokenStore:      &tokenStore,
+				AccessModel:     skydb.RoleBasedAccess,
+				AuthRecordKeys:  [][]string{[]string{"username"}, []string{"email"}},
+				PasswordChecker: &audit.PasswordChecker{},
 			}
 			signupHandler.Handle(&req, &resp)
 			authResp := resp.Result.(AuthResponse)
@@ -842,9 +842,9 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 		txdb := skydbtest.NewMockTxDatabase(db)
 
 		r := handlertest.NewSingleRouteRouter(&SignupHandler{
-			TokenStore:     &tokenStore,
-			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
-			UserAuditor:    &audit.UserAuditor{},
+			TokenStore:      &tokenStore,
+			AuthRecordKeys:  [][]string{[]string{"username"}, []string{"email"}},
+			PasswordChecker: &audit.PasswordChecker{},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
@@ -953,7 +953,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			TokenStore:       &tokenStore,
 			ProviderRegistry: providerRegistry,
 			AuthRecordKeys:   [][]string{[]string{"username"}, []string{"email"}},
-			UserAuditor:      &audit.UserAuditor{},
+			PasswordChecker:  &audit.PasswordChecker{},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
@@ -1033,7 +1033,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 }
 
 func TestSignupHandlerWithUserAuditor(t *testing.T) {
-	Convey("SignupHandler with UserAuditor", t, func() {
+	Convey("SignupHandler with PasswordChecker", t, func() {
 		realTime := timeNow
 		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 		defer func() {
@@ -1049,7 +1049,7 @@ func TestSignupHandlerWithUserAuditor(t *testing.T) {
 		handler := &SignupHandler{
 			TokenStore:     &tokenStore,
 			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
-			UserAuditor: &audit.UserAuditor{
+			PasswordChecker: &audit.PasswordChecker{
 				PwUppercaseRequired: true,
 			},
 		}
@@ -1149,7 +1149,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		tokenStore := authtokentest.SingleTokenStore{}
 		token := authtoken.New("_", authinfo.ID, time.Time{})
 		tokenStore.Put(&token)
-		userAuditor := audit.UserAuditor{}
+		passwordChecker := audit.PasswordChecker{}
 		housekeeper := audit.PwHousekeeper{}
 
 		user := skydb.Record{
@@ -1162,9 +1162,9 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 
 		Convey("change password success", func() {
 			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
-				TokenStore:    &tokenStore,
-				UserAuditor:   &userAuditor,
-				PwHousekeeper: &housekeeper,
+				TokenStore:      &tokenStore,
+				PasswordChecker: &passwordChecker,
+				PwHousekeeper:   &housekeeper,
 			}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.User = &user
@@ -1197,9 +1197,9 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 
 		Convey("change password success, without user", func() {
 			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
-				TokenStore:    &tokenStore,
-				UserAuditor:   &userAuditor,
-				PwHousekeeper: &housekeeper,
+				TokenStore:      &tokenStore,
+				PasswordChecker: &passwordChecker,
+				PwHousekeeper:   &housekeeper,
 			}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.AuthInfo = &authinfo
@@ -1226,7 +1226,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		Convey("change to a weak password", func() {
 			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
 				TokenStore: &tokenStore,
-				UserAuditor: &audit.UserAuditor{
+				PasswordChecker: &audit.PasswordChecker{
 					PwMinLength: 8,
 				},
 				PwHousekeeper: &housekeeper,

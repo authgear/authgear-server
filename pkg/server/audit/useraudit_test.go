@@ -138,7 +138,7 @@ func TestGetDictionary(t *testing.T) {
 func TestValidatePassword(t *testing.T) {
 	Convey("validate short password", t, func() {
 		password := "1"
-		ua := &UserAuditor{
+		ua := &PasswordChecker{
 			PwMinLength: 2,
 		}
 		So(
@@ -156,7 +156,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate uppercase password", t, func() {
 		password := "a"
-		ua := &UserAuditor{
+		ua := &PasswordChecker{
 			PwUppercaseRequired: true,
 		}
 		So(
@@ -170,7 +170,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate lowercase password", t, func() {
 		password := "A"
-		ua := &UserAuditor{
+		ua := &PasswordChecker{
 			PwLowercaseRequired: true,
 		}
 		So(
@@ -184,7 +184,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate digit password", t, func() {
 		password := "-"
-		ua := &UserAuditor{
+		ua := &PasswordChecker{
 			PwDigitRequired: true,
 		}
 		So(
@@ -198,7 +198,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate symbol password", t, func() {
 		password := "azAZ09"
-		ua := &UserAuditor{
+		ua := &PasswordChecker{
 			PwSymbolRequired: true,
 		}
 		So(
@@ -212,7 +212,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate excluded keywords password", t, func() {
 		password := "useradmin1"
-		ua := &UserAuditor{
+		ua := &PasswordChecker{
 			PwExcludedKeywords: []string{"user"},
 		}
 		So(
@@ -226,7 +226,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate excluded fields password", t, func() {
 		password := "adalovelace"
-		ua := &UserAuditor{
+		ua := &PasswordChecker{
 			PwExcludedFields: []string{"first_name"},
 		}
 		userData := map[string]interface{}{
@@ -245,7 +245,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate guessable password", t, func() {
 		password := "abcde123456"
-		ua := &UserAuditor{
+		ua := &PasswordChecker{
 			PwMinGuessableLevel: 5,
 		}
 		So(
@@ -282,7 +282,7 @@ func TestValidatePassword(t *testing.T) {
 				},
 			}, nil)
 
-		ua := &UserAuditor{
+		ua := &PasswordChecker{
 			PwHistorySize: historySize,
 			PwHistoryDays: historyDays,
 		}
@@ -313,7 +313,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate strong password", t, func() {
 		password := "N!hon-no-tsuk!-wa-seka!-1ban-k!re!desu" // 日本の月は世界一番きれいです
-		ua := &UserAuditor{
+		ua := &PasswordChecker{
 			PwMinLength:         8,
 			PwUppercaseRequired: true,
 			PwLowercaseRequired: true,

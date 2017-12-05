@@ -93,7 +93,7 @@ func main() {
 		Secret:         config.TokenStore.Secret,
 	})
 
-	userAuditor := &audit.UserAuditor{
+	passwordChecker := &audit.PasswordChecker{
 		Enabled:             config.UserAudit.Enabled,
 		PwMinLength:         config.UserAudit.PwMinLength,
 		PwUppercaseRequired: config.UserAudit.PwUppercaseRequired,
@@ -234,9 +234,9 @@ func main() {
 			Name:     "AuthRecordKeys",
 		},
 		&inject.Object{
-			Value:    userAuditor,
+			Value:    passwordChecker,
 			Complete: true,
-			Name:     "UserAuditor",
+			Name:     "PasswordChecker",
 		},
 		&inject.Object{
 			Value:    pwHousekeeper,
