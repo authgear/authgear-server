@@ -166,29 +166,29 @@ func (_mr *MockDatabaseMockRecorder) Delete(arg0 interface{}) *gomock.Call {
 }
 
 // Query mocks base method
-func (_m *MockDatabase) Query(query *Query) (*Rows, error) {
-	ret := _m.ctrl.Call(_m, "Query", query)
+func (_m *MockDatabase) Query(query *Query, accessControlOptions *AccessControlOptions) (*Rows, error) {
+	ret := _m.ctrl.Call(_m, "Query", query, accessControlOptions)
 	ret0, _ := ret[0].(*Rows)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Query indicates an expected call of Query
-func (_mr *MockDatabaseMockRecorder) Query(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "Query", reflect.TypeOf((*MockDatabase)(nil).Query), arg0)
+func (_mr *MockDatabaseMockRecorder) Query(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "Query", reflect.TypeOf((*MockDatabase)(nil).Query), arg0, arg1)
 }
 
 // QueryCount mocks base method
-func (_m *MockDatabase) QueryCount(query *Query) (uint64, error) {
-	ret := _m.ctrl.Call(_m, "QueryCount", query)
+func (_m *MockDatabase) QueryCount(query *Query, accessControlOptions *AccessControlOptions) (uint64, error) {
+	ret := _m.ctrl.Call(_m, "QueryCount", query, accessControlOptions)
 	ret0, _ := ret[0].(uint64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // QueryCount indicates an expected call of QueryCount
-func (_mr *MockDatabaseMockRecorder) QueryCount(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "QueryCount", reflect.TypeOf((*MockDatabase)(nil).QueryCount), arg0)
+func (_mr *MockDatabaseMockRecorder) QueryCount(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "QueryCount", reflect.TypeOf((*MockDatabase)(nil).QueryCount), arg0, arg1)
 }
 
 // Extend mocks base method
@@ -604,29 +604,29 @@ func (_mr *MockTxDatabaseMockRecorder) Delete(arg0 interface{}) *gomock.Call {
 }
 
 // Query mocks base method
-func (_m *MockTxDatabase) Query(query *Query) (*Rows, error) {
-	ret := _m.ctrl.Call(_m, "Query", query)
+func (_m *MockTxDatabase) Query(query *Query, accessControlOptions *AccessControlOptions) (*Rows, error) {
+	ret := _m.ctrl.Call(_m, "Query", query, accessControlOptions)
 	ret0, _ := ret[0].(*Rows)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Query indicates an expected call of Query
-func (_mr *MockTxDatabaseMockRecorder) Query(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "Query", reflect.TypeOf((*MockTxDatabase)(nil).Query), arg0)
+func (_mr *MockTxDatabaseMockRecorder) Query(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "Query", reflect.TypeOf((*MockTxDatabase)(nil).Query), arg0, arg1)
 }
 
 // QueryCount mocks base method
-func (_m *MockTxDatabase) QueryCount(query *Query) (uint64, error) {
-	ret := _m.ctrl.Call(_m, "QueryCount", query)
+func (_m *MockTxDatabase) QueryCount(query *Query, accessControlOptions *AccessControlOptions) (uint64, error) {
+	ret := _m.ctrl.Call(_m, "QueryCount", query, accessControlOptions)
 	ret0, _ := ret[0].(uint64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // QueryCount indicates an expected call of QueryCount
-func (_mr *MockTxDatabaseMockRecorder) QueryCount(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "QueryCount", reflect.TypeOf((*MockTxDatabase)(nil).QueryCount), arg0)
+func (_mr *MockTxDatabaseMockRecorder) QueryCount(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "QueryCount", reflect.TypeOf((*MockTxDatabase)(nil).QueryCount), arg0, arg1)
 }
 
 // Extend mocks base method

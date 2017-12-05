@@ -354,11 +354,6 @@ type Query struct {
 	GetCount     bool
 	Limit        *uint64
 	Offset       uint64
-
-	// The following fields are generated from the server side, rather
-	// than supplied from the client side.
-	ViewAsUser          *AuthInfo
-	BypassAccessControl bool
 }
 
 // Accept implements the Visitor pattern.
@@ -383,6 +378,15 @@ func (q Query) Accept(visitor Visitor) {
 			expr.Accept(v)
 		}
 	}
+}
+
+// AccessControlOptions provide access control options to query.
+//
+// The following fields are generated from the server side, rather
+// than supplied from the client side.
+type AccessControlOptions struct {
+	ViewAsUser          *AuthInfo
+	BypassAccessControl bool
 }
 
 // Func is a marker interface to denote a type being a function in skydb.

@@ -467,7 +467,8 @@ func TestQuery(t *testing.T) {
 			query := skydb.Query{
 				Type: "note",
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records[0], ShouldResemble, record2)
@@ -489,7 +490,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{
@@ -512,7 +514,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{
@@ -539,7 +542,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records[0], ShouldResemble, record1)
@@ -563,7 +567,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records[0], ShouldResemble, record1)
@@ -587,7 +592,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records[0], ShouldResemble, record1)
@@ -620,7 +626,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records[0], ShouldResemble, record3)
@@ -645,7 +652,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(len(records), ShouldEqual, 0)
@@ -680,7 +688,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records[0], ShouldResemble, record2)
@@ -704,7 +713,8 @@ func TestQuery(t *testing.T) {
 				},
 			}
 			*query.Limit = 2
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records[0], ShouldResemble, record2)
@@ -738,7 +748,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records[0], ShouldResemble, record1)
@@ -772,7 +783,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records[0], ShouldResemble, record3)
@@ -866,7 +878,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(len(records), ShouldEqual, 1)
@@ -890,7 +903,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(len(records), ShouldEqual, 1)
@@ -955,7 +969,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record1})
@@ -981,7 +996,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record1})
@@ -1013,7 +1029,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(len(records), ShouldEqual, 1)
@@ -1037,7 +1054,8 @@ func TestQuery(t *testing.T) {
 				},
 			}
 
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record0, record2, record1})
 		})
@@ -1118,7 +1136,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record1})
@@ -1146,7 +1165,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record2})
@@ -1169,7 +1189,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record2})
@@ -1222,7 +1243,8 @@ func TestQuery(t *testing.T) {
 				Type:        "restaurant",
 				DesiredKeys: []string{"cuisine"},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(len(records), ShouldEqual, 3)
@@ -1237,7 +1259,8 @@ func TestQuery(t *testing.T) {
 				Type:        "restaurant",
 				DesiredKeys: []string{},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(len(records), ShouldEqual, 3)
@@ -1252,7 +1275,8 @@ func TestQuery(t *testing.T) {
 				Type:        "restaurant",
 				DesiredKeys: nil,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(len(records), ShouldEqual, 3)
@@ -1267,7 +1291,8 @@ func TestQuery(t *testing.T) {
 				Type:        "restaurant",
 				DesiredKeys: []string{"pricing"},
 			}
-			_, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			_, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldNotBeNil)
 		})
@@ -1334,7 +1359,8 @@ func TestQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record3})
@@ -1408,11 +1434,13 @@ func TestQuery(t *testing.T) {
 
 		Convey("can be queried by owner", func() {
 			query := skydb.Query{
-				Type:       "note",
-				ViewAsUser: &skydb.AuthInfo{ID: "alice"},
-				Sorts:      sortsByID,
+				Type:  "note",
+				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{
+				ViewAsUser: &skydb.AuthInfo{ID: "alice"},
+			}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record1, record2, record3, record4, record5})
@@ -1420,11 +1448,13 @@ func TestQuery(t *testing.T) {
 
 		Convey("can be queried by public", func() {
 			query := skydb.Query{
-				Type:       "note",
-				ViewAsUser: nil,
-				Sorts:      sortsByID,
+				Type:  "note",
+				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{
+				ViewAsUser: nil,
+			}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record2})
@@ -1432,11 +1462,13 @@ func TestQuery(t *testing.T) {
 
 		Convey("can be queried by explicit user", func() {
 			query := skydb.Query{
-				Type:       "note",
-				ViewAsUser: &skydb.AuthInfo{ID: "bob"},
-				Sorts:      sortsByID,
+				Type:  "note",
+				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{
+				ViewAsUser: &skydb.AuthInfo{ID: "bob"},
+			}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record2, record3, record5})
@@ -1444,14 +1476,16 @@ func TestQuery(t *testing.T) {
 
 		Convey("can be queried by explicit role", func() {
 			query := skydb.Query{
-				Type: "note",
+				Type:  "note",
+				Sorts: sortsByID,
+			}
+			accessControlOptions := skydb.AccessControlOptions{
 				ViewAsUser: &skydb.AuthInfo{
 					ID:    "carol",
 					Roles: []string{"marketing"},
 				},
-				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record2, record4, record5})
@@ -1459,14 +1493,16 @@ func TestQuery(t *testing.T) {
 
 		Convey("can be queried by explicit user and role", func() {
 			query := skydb.Query{
-				Type: "note",
+				Type:  "note",
+				Sorts: sortsByID,
+			}
+			accessControlOptions := skydb.AccessControlOptions{
 				ViewAsUser: &skydb.AuthInfo{
 					ID:    "bob",
 					Roles: []string{"marketing"},
 				},
-				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record2, record3, record4, record5})
@@ -1474,14 +1510,16 @@ func TestQuery(t *testing.T) {
 
 		Convey("can be queried with bypass access control", func() {
 			query := skydb.Query{
-				Type: "note",
+				Type:  "note",
+				Sorts: sortsByID,
+			}
+			accessControlOptions := skydb.AccessControlOptions{
 				ViewAsUser: &skydb.AuthInfo{
 					ID: "dave",
 				},
-				Sorts:               sortsByID,
 				BypassAccessControl: true,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record1, record2, record3, record4, record5})
@@ -1549,7 +1587,8 @@ func TestQuery(t *testing.T) {
 					Type: "notexisttype",
 				}
 
-				records, err := exhaustRows(db.Query(&query))
+				accessControlOptions := skydb.AccessControlOptions{}
+				records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 				So(err, ShouldBeNil)
 				So(records, ShouldBeEmpty)
@@ -1607,7 +1646,8 @@ func TestQueryCount(t *testing.T) {
 			query := skydb.Query{
 				Type: "note",
 			}
-			count, err := db.QueryCount(&query)
+			accessControlOptions := skydb.AccessControlOptions{}
+			count, err := db.QueryCount(&query, &accessControlOptions)
 
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 3)
@@ -1630,7 +1670,8 @@ func TestQueryCount(t *testing.T) {
 					},
 				},
 			}
-			count, err := db.QueryCount(&query)
+			accessControlOptions := skydb.AccessControlOptions{}
+			count, err := db.QueryCount(&query, &accessControlOptions)
 
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 1)
@@ -1653,7 +1694,8 @@ func TestQueryCount(t *testing.T) {
 					},
 				},
 			}
-			count, err := db.QueryCount(&query)
+			accessControlOptions := skydb.AccessControlOptions{}
+			count, err := db.QueryCount(&query, &accessControlOptions)
 
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 0)
@@ -1711,7 +1753,8 @@ func TestAggregateQuery(t *testing.T) {
 				Predicate: equalCategoryPredicate("funny"),
 				GetCount:  true,
 			}
-			rows, err := db.Query(&query)
+			accessControlOptions := skydb.AccessControlOptions{}
+			rows, err := db.Query(&query, &accessControlOptions)
 			records, err := exhaustRows(rows, err)
 
 			So(err, ShouldBeNil)
@@ -1730,7 +1773,8 @@ func TestAggregateQuery(t *testing.T) {
 				Predicate: equalCategoryPredicate("interesting"),
 				GetCount:  true,
 			}
-			rows, err := db.Query(&query)
+			accessControlOptions := skydb.AccessControlOptions{}
+			rows, err := db.Query(&query, &accessControlOptions)
 			records, err := exhaustRows(rows, err)
 
 			So(err, ShouldBeNil)
@@ -1748,7 +1792,8 @@ func TestAggregateQuery(t *testing.T) {
 				Limit:     new(uint64),
 			}
 			*query.Limit = 1
-			rows, err := db.Query(&query)
+			accessControlOptions := skydb.AccessControlOptions{}
+			rows, err := db.Query(&query, &accessControlOptions)
 			records, err := exhaustRows(rows, err)
 
 			So(err, ShouldBeNil)
@@ -1809,7 +1854,8 @@ func TestMetaDataQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record0})
@@ -1832,7 +1878,8 @@ func TestMetaDataQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record1})
@@ -1855,7 +1902,8 @@ func TestMetaDataQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record0})
@@ -1878,7 +1926,8 @@ func TestMetaDataQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record0})
@@ -1901,7 +1950,8 @@ func TestMetaDataQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record1})
@@ -1924,7 +1974,8 @@ func TestMetaDataQuery(t *testing.T) {
 					},
 				},
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record1})
@@ -2010,7 +2061,8 @@ func TestUserRelationQuery(t *testing.T) {
 				},
 				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record1, record2})
@@ -2030,7 +2082,8 @@ func TestUserRelationQuery(t *testing.T) {
 				},
 				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record0})
@@ -2064,7 +2117,8 @@ func TestUserRelationQuery(t *testing.T) {
 				},
 				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record0, record1, record2})
@@ -2084,7 +2138,8 @@ func TestUserRelationQuery(t *testing.T) {
 				},
 				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record2})
@@ -2104,7 +2159,8 @@ func TestUserRelationQuery(t *testing.T) {
 				},
 				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(len(records), ShouldEqual, 0)
@@ -2124,7 +2180,8 @@ func TestUserRelationQuery(t *testing.T) {
 				},
 				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record3})
@@ -2158,11 +2215,13 @@ func TestUserRelationQuery(t *testing.T) {
 				},
 				Sorts: sortsByID,
 			}
-			records, err := exhaustRows(db.Query(&query))
+			accessControlOptions := skydb.AccessControlOptions{}
+			records, err := exhaustRows(db.Query(&query, &accessControlOptions))
 			So(err, ShouldBeNil)
 			So(records, ShouldResemble, []skydb.Record{record0, record4})
 
-			count, err := db.QueryCount(&query)
+			accessControlOptions = skydb.AccessControlOptions{}
+			count, err := db.QueryCount(&query, &accessControlOptions)
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 2)
 		})
@@ -2211,7 +2270,8 @@ func TestUnsupportedQuery(t *testing.T) {
 					},
 				},
 			}
-			So(func() { db.Query(&query) }, ShouldPanicWith, builder.ErrCannotCompareUsingInOperator)
+			accessControlOptions := skydb.AccessControlOptions{}
+			So(func() { db.Query(&query, &accessControlOptions) }, ShouldPanicWith, builder.ErrCannotCompareUsingInOperator)
 		})
 	})
 }

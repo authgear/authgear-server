@@ -597,7 +597,6 @@ func getReferenceWithKeyPath(db skydb.Database, record *skydb.Record, keyPath st
 
 func DoQueryEager(db skydb.Database, eagersIDs map[string][]skydb.RecordID) map[string]map[string]*skydb.Record {
 	eagerRecords := map[string]map[string]*skydb.Record{}
-
 	for keyPath, ids := range eagersIDs {
 		log.Debugf("Getting value for keypath %v", keyPath)
 		eagerScanner, err := db.GetByIDs(ids)
@@ -619,7 +618,7 @@ func DoQueryEager(db skydb.Database, eagersIDs map[string][]skydb.RecordID) map[
 	return eagerRecords
 }
 
-func getRecordCount(db skydb.Database, query *skydb.Query, results *skydb.Rows) (uint64, error) {
+func getRecordCount(db skydb.Database, query *skydb.Query, accessControlOptions *skydb.AccessControlOptions, results *skydb.Rows) (uint64, error) {
 	if results != nil {
 		recordCount := results.OverallRecordCount()
 		if recordCount != nil {
@@ -627,7 +626,7 @@ func getRecordCount(db skydb.Database, query *skydb.Query, results *skydb.Rows) 
 		}
 	}
 
-	recordCount, err := db.QueryCount(query)
+	recordCount, err := db.QueryCount(query, accessControlOptions)
 	if err != nil {
 		return 0, err
 	}
@@ -635,10 +634,10 @@ func getRecordCount(db skydb.Database, query *skydb.Query, results *skydb.Rows) 
 	return recordCount, nil
 }
 
-func QueryResultInfo(db skydb.Database, query *skydb.Query, results *skydb.Rows) (map[string]interface{}, error) {
+func QueryResultInfo(db skydb.Database, query *skydb.Query, accessControlOptions *skydb.AccessControlOptions, results *skydb.Rows) (map[string]interface{}, error) {
 	resultInfo := map[string]interface{}{}
 	if query.GetCount {
-		recordCount, err := getRecordCount(db, query, results)
+		recordCount, err := getRecordCount(db, query, accessControlOptions, results)
 		if err != nil {
 			return nil, err
 		}

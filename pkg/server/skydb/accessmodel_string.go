@@ -2,7 +2,7 @@
 
 package skydb
 
-import "strconv"
+import "fmt"
 
 const _AccessModel_name = "RoleBasedAccessRelationBasedAccess"
 
@@ -11,7 +11,7 @@ var _AccessModel_index = [...]uint8{0, 15, 34}
 func (i AccessModel) String() string {
 	i -= 1
 	if i < 0 || i >= AccessModel(len(_AccessModel_index)-1) {
-		return "AccessModel(" + strconv.FormatInt(int64(i+1), 10) + ")"
+		return fmt.Sprintf("AccessModel(%d)", i+1)
 	}
 	return _AccessModel_name[_AccessModel_index[i]:_AccessModel_index[i+1]]
 }

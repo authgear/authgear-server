@@ -242,29 +242,29 @@ func (_mr *MockDatabaseMockRecorder) IsReadOnly() *gomock.Call {
 }
 
 // Query mocks base method
-func (_m *MockDatabase) Query(_param0 *skydb.Query) (*skydb.Rows, error) {
-	ret := _m.ctrl.Call(_m, "Query", _param0)
+func (_m *MockDatabase) Query(_param0 *skydb.Query, _param1 *skydb.AccessControlOptions) (*skydb.Rows, error) {
+	ret := _m.ctrl.Call(_m, "Query", _param0, _param1)
 	ret0, _ := ret[0].(*skydb.Rows)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Query indicates an expected call of Query
-func (_mr *MockDatabaseMockRecorder) Query(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "Query", reflect.TypeOf((*MockDatabase)(nil).Query), arg0)
+func (_mr *MockDatabaseMockRecorder) Query(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "Query", reflect.TypeOf((*MockDatabase)(nil).Query), arg0, arg1)
 }
 
 // QueryCount mocks base method
-func (_m *MockDatabase) QueryCount(_param0 *skydb.Query) (uint64, error) {
-	ret := _m.ctrl.Call(_m, "QueryCount", _param0)
+func (_m *MockDatabase) QueryCount(_param0 *skydb.Query, _param1 *skydb.AccessControlOptions) (uint64, error) {
+	ret := _m.ctrl.Call(_m, "QueryCount", _param0, _param1)
 	ret0, _ := ret[0].(uint64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // QueryCount indicates an expected call of QueryCount
-func (_mr *MockDatabaseMockRecorder) QueryCount(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "QueryCount", reflect.TypeOf((*MockDatabase)(nil).QueryCount), arg0)
+func (_mr *MockDatabaseMockRecorder) QueryCount(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "QueryCount", reflect.TypeOf((*MockDatabase)(nil).QueryCount), arg0, arg1)
 }
 
 // RemoteColumnTypes mocks base method

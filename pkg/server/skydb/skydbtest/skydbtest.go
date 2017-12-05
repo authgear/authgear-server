@@ -401,7 +401,7 @@ func (db *MapDB) Delete(id skydb.RecordID) error {
 }
 
 // Query is not implemented.
-func (db *MapDB) Query(query *skydb.Query) (*skydb.Rows, error) {
+func (db *MapDB) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	panic("skydbtest: MapDB.Query not supported")
 }
 

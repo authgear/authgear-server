@@ -917,8 +917,9 @@ func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
 }
 
 type queryDatabase struct {
-	lastquery  *skydb.Query
-	databaseID string
+	lastquery                *skydb.Query
+	lastAccessControlOptions *skydb.AccessControlOptions
+	databaseID               string
 	skydb.Database
 }
 
@@ -931,13 +932,15 @@ func (db *queryDatabase) ID() string {
 	return db.databaseID
 }
 
-func (db *queryDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+func (db *queryDatabase) QueryCount(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (uint64, error) {
 	db.lastquery = query
+	db.lastAccessControlOptions = accessControlOptions
 	return 0, nil
 }
 
-func (db *queryDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+func (db *queryDatabase) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	db.lastquery = query
+	db.lastAccessControlOptions = accessControlOptions
 	return skydb.EmptyRows, nil
 }
 
@@ -957,11 +960,11 @@ func (db *queryResultsDatabase) ID() string {
 	return db.databaseID
 }
 
-func (db *queryResultsDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+func (db *queryResultsDatabase) QueryCount(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (uint64, error) {
 	return uint64(len(db.records)), nil
 }
 
-func (db *queryResultsDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+func (db *queryResultsDatabase) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows(db.records)), nil
 }
 
@@ -1060,7 +1063,9 @@ func TestRecordQuery(t *testing.T) {
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery, ShouldResemble, &skydb.Query{
-				Type:       "note",
+				Type: "note",
+			})
+			So(db.lastAccessControlOptions, ShouldResemble, &skydb.AccessControlOptions{
 				ViewAsUser: &authInfo,
 			})
 		})
@@ -1085,7 +1090,9 @@ func TestRecordQuery(t *testing.T) {
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery, ShouldResemble, &skydb.Query{
-				Type:                "note",
+				Type: "note",
+			})
+			So(db.lastAccessControlOptions, ShouldResemble, &skydb.AccessControlOptions{
 				ViewAsUser:          &authInfo,
 				BypassAccessControl: true,
 			})
@@ -1689,11 +1696,11 @@ func (db *singleRecordDatabase) Save(record *skydb.Record) error {
 	return nil
 }
 
-func (db *singleRecordDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+func (db *singleRecordDatabase) QueryCount(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (uint64, error) {
 	return uint64(1), nil
 }
 
-func (db *singleRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+func (db *singleRecordDatabase) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{db.record})), nil
 }
 
@@ -2135,11 +2142,11 @@ func (db *referencedRecordDatabase) Save(record *skydb.Record) error {
 	return nil
 }
 
-func (db *referencedRecordDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+func (db *referencedRecordDatabase) QueryCount(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (uint64, error) {
 	return uint64(1), nil
 }
 
-func (db *referencedRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+func (db *referencedRecordDatabase) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{db.note})), nil
 }
 

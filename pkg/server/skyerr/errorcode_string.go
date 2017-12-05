@@ -2,7 +2,7 @@
 
 package skyerr
 
-import "strconv"
+import "fmt"
 
 const (
 	_ErrorCode_name_0 = "NotAuthenticatedPermissionDeniedAccessKeyNotAcceptedAccessTokenNotAcceptedInvalidCredentialsInvalidSignatureBadRequestInvalidArgumentDuplicatedResourceNotFoundNotSupportedNotImplementedConstraintViolatedIncompatibleSchemaAtomicOperationFailurePartialOperationFailureUndefinedOperationPluginUnavailablePluginTimeoutRecordQueryInvalidPluginInitializingResponseTimeoutDeniedArgumentRecordQueryDenied"
@@ -23,6 +23,6 @@ func (i ErrorCode) String() string {
 		i -= 10000
 		return _ErrorCode_name_1[_ErrorCode_index_1[i]:_ErrorCode_index_1[i+1]]
 	default:
-		return "ErrorCode(" + strconv.FormatInt(int64(i), 10) + ")"
+		return fmt.Sprintf("ErrorCode(%d)", i)
 	}
 }

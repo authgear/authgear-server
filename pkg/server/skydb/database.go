@@ -125,11 +125,11 @@ type Database interface {
 
 	// Query executes the supplied query against the Database and returns
 	// an Rows to iterate the results.
-	Query(query *Query) (*Rows, error)
+	Query(query *Query, accessControlOptions *AccessControlOptions) (*Rows, error)
 
 	// QueryCount executes the supplied query against the Database and returns
 	// the number of records matching the query's predicate.
-	QueryCount(query *Query) (uint64, error)
+	QueryCount(query *Query, accessControlOptions *AccessControlOptions) (uint64, error)
 
 	// Extend extends the Database record schema such that a record
 	// arrived subsequently with that schema can be saved
