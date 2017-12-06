@@ -29,7 +29,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-var timeNow = time.Now().UTC
+var timeNow = func() time.Time { return time.Now().UTC() }
 
 var log = logging.LoggerEntry("preprocessor")
 
