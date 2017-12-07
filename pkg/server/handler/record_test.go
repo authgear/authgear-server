@@ -2092,6 +2092,7 @@ type referencedRecordDatabase struct {
 	category   skydb.Record
 	city       skydb.Record
 	user       skydb.Record
+	secret     skydb.Record
 	databaseID string
 	skydb.Database
 }
@@ -2124,15 +2125,34 @@ func (db *referencedRecordDatabase) Get(id skydb.RecordID, record *skydb.Record)
 func (db *referencedRecordDatabase) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	records := []skydb.Record{}
 	for _, id := range ids {
+		var record *skydb.Record
 		switch id.String() {
 		case "note/note1":
-			records = append(records, db.note)
+			record = &db.note
 		case "category/important":
-			records = append(records, db.category)
+			record = &db.category
 		case "city/beautiful":
-			records = append(records, db.city)
+			record = &db.city
 		case "user/ownerID":
-			records = append(records, db.user)
+			record = &db.user
+		case "secret/secretID":
+			record = &db.secret
+		}
+
+		// mock the acl query
+		// it will only consider direct record acl entry
+		if record != nil {
+			if record.ACL == nil || len(record.ACL) == 0 {
+				records = append(records, *record)
+				continue
+			}
+			for _, aclEntry := range record.ACL {
+				if aclEntry.Relation == "$direct" &&
+					aclEntry.UserID == accessControlOptions.ViewAsUser.ID {
+					records = append(records, db.secret)
+					continue
+				}
+			}
 		}
 	}
 	return skydb.NewRows(skydb.NewMemoryRows(records)), nil
@@ -2194,6 +2214,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				Data: map[string]interface{}{
 					"category": skydb.NewReference("category", "important"),
 					"city":     skydb.NewReference("city", "beautiful"),
+					"secret":   skydb.NewReference("secret", "secretID"),
 				},
 			},
 			category: skydb.Record{
@@ -2215,6 +2236,16 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				OwnerID: "ownerID",
 				Data: map[string]interface{}{
 					"name": "Owner",
+				},
+			},
+			secret: skydb.Record{
+				ID:      skydb.NewRecordID("secret", "secretID"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"content": "Secret of the note",
+				},
+				ACL: skydb.RecordACL{
+					skydb.NewRecordACLEntryDirect("ownerID", skydb.WriteLevel),
 				},
 			},
 		}
@@ -2239,6 +2270,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 					"_ownerID": "ownerID",
 					"category": {"$id":"category/important","$type":"ref"},
 					"city": {"$id":"city/beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$type":"ref"},
 					"_transient": {
 						"category": {"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID", "title": "This is important."}
 					}
@@ -2263,6 +2295,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 					"_ownerID": "ownerID",
 					"category": {"$id":"category/important","$type":"ref"},
 					"city": {"$id":"city/beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$type":"ref"},
 					"_transient": {
 						"category": {"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID", "title": "This is important."},
 						"city": {"_access":null,"_id":"city/beautiful","_type":"record","_ownerID":"ownerID", "name": "This is beautiful."}
@@ -2285,8 +2318,67 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 					"_ownerID": "ownerID",
 					"category": {"$id":"category/important","$type":"ref"},
 					"city": {"$id":"city/beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$type":"ref"},
 					"_transient": {
 						"user": {"_access":null,"_id":"user/ownerID","_type":"record","_ownerID":"ownerID", "name": "Owner"}
+					}
+				}]
+			}`)
+		})
+
+		Convey("query record with eager load on non public record", func() {
+			resp := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
+				p.Database = db
+				p.DBConn = skydbtest.NewMapConn()
+				p.AuthInfo = &skydb.AuthInfo{
+					ID: "user0",
+				}
+			}).POST(`{
+				"record_type": "note",
+				"include": {
+					"secret": {"$type": "keypath", "$val": "secret"}
+				}
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note1",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID",
+					"category": {"$id":"category/important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$type":"ref"},
+					"_transient": {"secret":null}
+				}]
+			}`)
+		})
+
+		Convey("query record with eager load on non public record with permission", func() {
+			resp := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
+				p.Database = db
+				p.DBConn = skydbtest.NewMapConn()
+				p.AuthInfo = &skydb.AuthInfo{
+					ID: "ownerID",
+				}
+			}).POST(`{
+				"record_type": "note",
+				"include": {
+					"secret": {"$type": "keypath", "$val": "secret"}
+				}
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note1",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID",
+					"category": {"$id":"category/important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$type":"ref"},
+					"_transient": {
+						"secret": {"_access":[{"level":"write","relation":"$direct","user_id":"ownerID"}],"_id":"secret/secretID","_type":"record","_ownerID":"ownerID", "content": "Secret of the note"}
 					}
 				}]
 			}`)
