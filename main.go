@@ -225,6 +225,7 @@ func main() {
 	r.Map("sso:oauth:signup", injector.Inject(&handler.SignupProviderHandler{}))
 	r.Map("sso:oauth:link", injector.Inject(&handler.LinkProviderHandler{}))
 	r.Map("sso:oauth:unlink", injector.Inject(&handler.UnlinkProviderHandler{}))
+	r.Map("sso:custom_token:login", injector.Inject(&handler.SSOCustomTokenLoginHandler{}))
 
 	r.Map("asset:put", injector.Inject(&handler.AssetUploadHandler{}))
 
