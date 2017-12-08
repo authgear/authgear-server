@@ -5,9 +5,6 @@ RUN \
     apt-get install --no-install-recommends -y libtool-bin automake pkg-config libsodium-dev libzmq3-dev libczmq-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl https://glide.sh/get | sh && \
-    rm -rf /tmp/glide*
-
 RUN mkdir -p /go/src/app
 WORKDIR /go/src/app
 
@@ -20,4 +17,6 @@ RUN go get golang.org/x/tools/cmd/stringer \
            github.com/mitchellh/gox \
            github.com/vektra/mockery/.../ \
            github.com/derekparker/delve/cmd/dlv \
-           honnef.co/go/tools/cmd/staticcheck
+           honnef.co/go/tools/cmd/staticcheck \
+           github.com/golang/dep/cmd/dep \
+           github.com/GetStream/vg
