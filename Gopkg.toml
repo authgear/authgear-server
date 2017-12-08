@@ -1,0 +1,128 @@
+
+# Gopkg.toml example
+#
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#  name = "github.com/x/y"
+#  version = "2.4.0"
+
+required = [
+  "golang.org/x/tools/cmd/stringer",
+  "golang.org/x/tools/cmd/cover",
+  "github.com/golang/lint/golint",
+  "github.com/rickmak/gocyclo",
+  "github.com/oursky/gogocyclo",
+  "github.com/mitchellh/gox",
+  "github.com/golang/mock/mockgen",
+  "honnef.co/go/tools/cmd/staticcheck"
+]
+
+[[constraint]]
+  name = "github.com/SkygearIO/buford"
+  revision = "fa85459e6bd358249063cdffecd8ab025aa8a44c"
+
+[[constraint]]
+  name = "github.com/aws/aws-sdk-go"
+  version = "~1.10.50"
+
+[[constraint]]
+  name = "github.com/dgrijalva/jwt-go"
+  revision = "01aeca54ebda6e0fbfafd0a524d234159c05ec20"
+
+[[constraint]]
+  name = "github.com/evalphobia/logrus_sentry"
+  version = "0.4.1"
+
+[[constraint]]
+  name = "github.com/facebookgo/inject"
+  revision = "d5029152fecb2a8e68f7f8eb3c6391fc8ee70496"
+
+[[constraint]]
+  name = "github.com/facebookgo/structtag"
+  revision = "217e25fb96916cc60332e399c9aa63f5c422ceed"
+
+[[constraint]]
+  name = "github.com/franela/goreq"
+  revision = "b5b0f5eb2d16f20345cce0a544a75163579c0b00"
+
+[[constraint]]
+  name = "github.com/garyburd/redigo"
+  revision = "6ece6e0a09f28cc399b21550cbf37ab39ba63cce"
+
+[[constraint]]
+  name = "github.com/golang/mock"
+  version = "~1.0.0"
+
+[[constraint]]
+  name = "github.com/google/go-gcm"
+  revision = "423613e2e8f11e71023c75ae2dd7e27105326cbf"
+
+[[constraint]]
+  name = "github.com/gorilla/websocket"
+  revision = "b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5"
+
+[[constraint]]
+  name = "github.com/jarcoal/httpmock"
+  revision = "4442edb3db31196622da56482fd8d0fa375fba4d"
+
+[[constraint]]
+  name = "github.com/jmoiron/sqlx"
+  revision = "d9bd385d68c068f1fabb5057e3dedcbcbb039d0f"
+
+[[constraint]]
+  name = "github.com/joho/godotenv"
+  revision = "4ed13390c0acd2ff4e371e64d8b97c8954138243"
+
+[[constraint]]
+  name = "github.com/lann/squirrel"
+  revision = "e13dbacee404686afd0acf2d44b8d34869605e03"
+
+[[constraint]]
+  name = "github.com/lib/pq"
+  revision = "8c6ee72f3e6bcb1542298dd5f76cb74af9742cec"
+
+[[constraint]]
+  name = "github.com/mitchellh/mapstructure"
+  revision = "281073eb9eb092240d33ef253c404f1cca550309"
+
+[[constraint]]
+  name = "github.com/paulmach/go.geo"
+  revision = "c84b6002b0f727d4a2d40e05466dfc3cc54eb329"
+
+[[constraint]]
+  name = "github.com/robfig/cron"
+  revision = "67823cd24dece1b04cced3a0a0b3ca2bc84d875e"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.1"
+
+[[constraint]]
+  name = "github.com/smartystreets/goconvey"
+  version = "~1.6.3"
+
+[[constraint]]
+  name = "github.com/twinj/uuid"
+  revision = "b505f2cca343b7b21416b27b1f2ad88469800892"
+
+[[constraint]]
+  name = "github.com/zeromq/goczmq"
+  version = "=4.0.2"
+
+[[constraint]]
+  name = "golang.org/x/crypto"
+  revision = "173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd"
