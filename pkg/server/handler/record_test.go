@@ -917,8 +917,9 @@ func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
 }
 
 type queryDatabase struct {
-	lastquery  *skydb.Query
-	databaseID string
+	lastquery                *skydb.Query
+	lastAccessControlOptions *skydb.AccessControlOptions
+	databaseID               string
 	skydb.Database
 }
 
@@ -931,13 +932,15 @@ func (db *queryDatabase) ID() string {
 	return db.databaseID
 }
 
-func (db *queryDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+func (db *queryDatabase) QueryCount(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (uint64, error) {
 	db.lastquery = query
+	db.lastAccessControlOptions = accessControlOptions
 	return 0, nil
 }
 
-func (db *queryDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+func (db *queryDatabase) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	db.lastquery = query
+	db.lastAccessControlOptions = accessControlOptions
 	return skydb.EmptyRows, nil
 }
 
@@ -957,11 +960,11 @@ func (db *queryResultsDatabase) ID() string {
 	return db.databaseID
 }
 
-func (db *queryResultsDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+func (db *queryResultsDatabase) QueryCount(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (uint64, error) {
 	return uint64(len(db.records)), nil
 }
 
-func (db *queryResultsDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+func (db *queryResultsDatabase) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows(db.records)), nil
 }
 
@@ -1060,7 +1063,9 @@ func TestRecordQuery(t *testing.T) {
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery, ShouldResemble, &skydb.Query{
-				Type:       "note",
+				Type: "note",
+			})
+			So(db.lastAccessControlOptions, ShouldResemble, &skydb.AccessControlOptions{
 				ViewAsUser: &authInfo,
 			})
 		})
@@ -1085,7 +1090,9 @@ func TestRecordQuery(t *testing.T) {
 
 			So(response.Err, ShouldBeNil)
 			So(db.lastquery, ShouldResemble, &skydb.Query{
-				Type:                "note",
+				Type: "note",
+			})
+			So(db.lastAccessControlOptions, ShouldResemble, &skydb.AccessControlOptions{
 				ViewAsUser:          &authInfo,
 				BypassAccessControl: true,
 			})
@@ -1689,11 +1696,11 @@ func (db *singleRecordDatabase) Save(record *skydb.Record) error {
 	return nil
 }
 
-func (db *singleRecordDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+func (db *singleRecordDatabase) QueryCount(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (uint64, error) {
 	return uint64(1), nil
 }
 
-func (db *singleRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+func (db *singleRecordDatabase) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{db.record})), nil
 }
 
@@ -2085,6 +2092,7 @@ type referencedRecordDatabase struct {
 	category   skydb.Record
 	city       skydb.Record
 	user       skydb.Record
+	secret     skydb.Record
 	databaseID string
 	skydb.Database
 }
@@ -2114,18 +2122,37 @@ func (db *referencedRecordDatabase) Get(id skydb.RecordID, record *skydb.Record)
 	return nil
 }
 
-func (db *referencedRecordDatabase) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
+func (db *referencedRecordDatabase) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	records := []skydb.Record{}
 	for _, id := range ids {
+		var record *skydb.Record
 		switch id.String() {
 		case "note/note1":
-			records = append(records, db.note)
+			record = &db.note
 		case "category/important":
-			records = append(records, db.category)
+			record = &db.category
 		case "city/beautiful":
-			records = append(records, db.city)
+			record = &db.city
 		case "user/ownerID":
-			records = append(records, db.user)
+			record = &db.user
+		case "secret/secretID":
+			record = &db.secret
+		}
+
+		// mock the acl query
+		// it will only consider direct record acl entry
+		if record != nil {
+			if record.ACL == nil || len(record.ACL) == 0 {
+				records = append(records, *record)
+				continue
+			}
+			for _, aclEntry := range record.ACL {
+				if aclEntry.Relation == "$direct" &&
+					aclEntry.UserID == accessControlOptions.ViewAsUser.ID {
+					records = append(records, db.secret)
+					continue
+				}
+			}
 		}
 	}
 	return skydb.NewRows(skydb.NewMemoryRows(records)), nil
@@ -2135,11 +2162,11 @@ func (db *referencedRecordDatabase) Save(record *skydb.Record) error {
 	return nil
 }
 
-func (db *referencedRecordDatabase) QueryCount(query *skydb.Query) (uint64, error) {
+func (db *referencedRecordDatabase) QueryCount(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (uint64, error) {
 	return uint64(1), nil
 }
 
-func (db *referencedRecordDatabase) Query(query *skydb.Query) (*skydb.Rows, error) {
+func (db *referencedRecordDatabase) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	return skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{db.note})), nil
 }
 
@@ -2187,6 +2214,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				Data: map[string]interface{}{
 					"category": skydb.NewReference("category", "important"),
 					"city":     skydb.NewReference("city", "beautiful"),
+					"secret":   skydb.NewReference("secret", "secretID"),
 				},
 			},
 			category: skydb.Record{
@@ -2208,6 +2236,16 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				OwnerID: "ownerID",
 				Data: map[string]interface{}{
 					"name": "Owner",
+				},
+			},
+			secret: skydb.Record{
+				ID:      skydb.NewRecordID("secret", "secretID"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"content": "Secret of the note",
+				},
+				ACL: skydb.RecordACL{
+					skydb.NewRecordACLEntryDirect("ownerID", skydb.WriteLevel),
 				},
 			},
 		}
@@ -2232,6 +2270,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 					"_ownerID": "ownerID",
 					"category": {"$id":"category/important","$type":"ref"},
 					"city": {"$id":"city/beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$type":"ref"},
 					"_transient": {
 						"category": {"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID", "title": "This is important."}
 					}
@@ -2256,6 +2295,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 					"_ownerID": "ownerID",
 					"category": {"$id":"category/important","$type":"ref"},
 					"city": {"$id":"city/beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$type":"ref"},
 					"_transient": {
 						"category": {"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID", "title": "This is important."},
 						"city": {"_access":null,"_id":"city/beautiful","_type":"record","_ownerID":"ownerID", "name": "This is beautiful."}
@@ -2278,8 +2318,67 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 					"_ownerID": "ownerID",
 					"category": {"$id":"category/important","$type":"ref"},
 					"city": {"$id":"city/beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$type":"ref"},
 					"_transient": {
 						"user": {"_access":null,"_id":"user/ownerID","_type":"record","_ownerID":"ownerID", "name": "Owner"}
+					}
+				}]
+			}`)
+		})
+
+		Convey("query record with eager load on non public record", func() {
+			resp := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
+				p.Database = db
+				p.DBConn = skydbtest.NewMapConn()
+				p.AuthInfo = &skydb.AuthInfo{
+					ID: "user0",
+				}
+			}).POST(`{
+				"record_type": "note",
+				"include": {
+					"secret": {"$type": "keypath", "$val": "secret"}
+				}
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note1",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID",
+					"category": {"$id":"category/important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$type":"ref"},
+					"_transient": {"secret":null}
+				}]
+			}`)
+		})
+
+		Convey("query record with eager load on non public record with permission", func() {
+			resp := handlertest.NewSingleRouteRouter(&RecordQueryHandler{}, func(p *router.Payload) {
+				p.Database = db
+				p.DBConn = skydbtest.NewMapConn()
+				p.AuthInfo = &skydb.AuthInfo{
+					ID: "ownerID",
+				}
+			}).POST(`{
+				"record_type": "note",
+				"include": {
+					"secret": {"$type": "keypath", "$val": "secret"}
+				}
+			}`)
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [{
+					"_id": "note/note1",
+					"_type": "record",
+					"_access": null,
+					"_ownerID": "ownerID",
+					"category": {"$id":"category/important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$type":"ref"},
+					"_transient": {
+						"secret": {"_access":[{"level":"write","relation":"$direct","user_id":"ownerID"}],"_id":"secret/secretID","_type":"record","_ownerID":"ownerID", "content": "Secret of the note"}
 					}
 				}]
 			}`)

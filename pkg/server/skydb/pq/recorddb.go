@@ -56,7 +56,7 @@ func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
 // GetByIDs only support one type of records at a time. If you want to query
 // array of ids belongs to different type, you need to call this method multiple
 // time.
-func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
+func (db *database) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	if len(ids) == 0 {
 		return nil, errors.New("db.GetByIDs received empty array")
 	}
@@ -84,6 +84,16 @@ func (db *database) GetByIDs(ids []skydb.RecordID) (*skydb.Rows, error) {
 	inCause, inArgs := builder.LiteralToSQLOperand(idStrs)
 	query := db.selectQuery(psql.Select(), recordType, typemap).
 		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
+
+	if db.DatabaseType() == skydb.PublicDatabase && !accessControlOptions.BypassAccessControl {
+		factory := builder.NewPredicateSqlizerFactory(db, recordType)
+		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, skydb.ReadLevel)
+		if err != nil {
+			return nil, err
+		}
+		query = query.Where(aclSqlizer)
+	}
+
 	rows, err := db.c.QueryWith(query)
 	if err != nil {
 		log.Debugf("Getting records by ID failed %v", err)
@@ -263,7 +273,7 @@ func (db *database) Delete(id skydb.RecordID) error {
 	return err
 }
 
-func (db *database) applyQueryPredicate(q sq.SelectBuilder, factory builder.PredicateSqlizerFactory, query *skydb.Query) (sq.SelectBuilder, error) {
+func (db *database) applyQueryPredicate(q sq.SelectBuilder, factory builder.PredicateSqlizerFactory, query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (sq.SelectBuilder, error) {
 	if p := query.Predicate; !p.IsEmpty() {
 		sqlizer, err := factory.NewPredicateSqlizer(p)
 		if err != nil {
@@ -273,8 +283,8 @@ func (db *database) applyQueryPredicate(q sq.SelectBuilder, factory builder.Pred
 		q = factory.AddJoinsToSelectBuilder(q)
 	}
 
-	if db.DatabaseType() == skydb.PublicDatabase && !query.BypassAccessControl {
-		aclSqlizer, err := factory.NewAccessControlSqlizer(query.ViewAsUser, skydb.ReadLevel)
+	if db.DatabaseType() == skydb.PublicDatabase && !accessControlOptions.BypassAccessControl {
+		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, skydb.ReadLevel)
 		if err != nil {
 			return q, err
 		}
@@ -284,7 +294,7 @@ func (db *database) applyQueryPredicate(q sq.SelectBuilder, factory builder.Pred
 	return q, nil
 }
 
-func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
+func (db *database) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
 	if query.Type == "" {
 		return nil, errors.New("got empty query type")
 	}
@@ -300,7 +310,7 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 
 	q := psql.Select()
 	factory := builder.NewPredicateSqlizerFactory(db, query.Type)
-	q, err = db.applyQueryPredicate(q, factory, query)
+	q, err = db.applyQueryPredicate(q, factory, query, accessControlOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -335,7 +345,7 @@ func (db *database) Query(query *skydb.Query) (*skydb.Rows, error) {
 	return newRows(query.Type, typemap, rows, err)
 }
 
-func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
+func (db *database) QueryCount(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (uint64, error) {
 	if query.Type == "" {
 		return 0, errors.New("got empty query type")
 	}
@@ -359,7 +369,7 @@ func (db *database) QueryCount(query *skydb.Query) (uint64, error) {
 
 	q := db.selectQuery(psql.Select(), query.Type, typemap)
 	factory := builder.NewPredicateSqlizerFactory(db, query.Type)
-	q, err = db.applyQueryPredicate(q, factory, query)
+	q, err = db.applyQueryPredicate(q, factory, query, accessControlOptions)
 	if err != nil {
 		return 0, err
 	}

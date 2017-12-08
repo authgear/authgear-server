@@ -2,7 +2,7 @@
 
 package skydb
 
-import "strconv"
+import "fmt"
 
 const _Operator_name = "AndOrNotEqualGreaterThanLessThanGreaterThanOrEqualLessThanOrEqualNotEqualLikeILikeInFunctional"
 
@@ -11,7 +11,7 @@ var _Operator_index = [...]uint8{0, 3, 5, 8, 13, 24, 32, 50, 65, 73, 77, 82, 84,
 func (i Operator) String() string {
 	i -= 1
 	if i < 0 || i >= Operator(len(_Operator_index)-1) {
-		return "Operator(" + strconv.FormatInt(int64(i+1), 10) + ")"
+		return fmt.Sprintf("Operator(%d)", i+1)
 	}
 	return _Operator_name[_Operator_index[i]:_Operator_index[i+1]]
 }

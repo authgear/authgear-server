@@ -569,12 +569,9 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	if payload.AuthInfo != nil {
-		p.Query.ViewAsUser = payload.AuthInfo
-	}
-
-	if payload.HasMasterKey() {
-		p.Query.BypassAccessControl = true
+	accessControlOptions := &skydb.AccessControlOptions{
+		ViewAsUser:          payload.AuthInfo,
+		BypassAccessControl: payload.HasMasterKey(),
 	}
 
 	fieldACL := func() skydb.FieldACL {
@@ -585,11 +582,11 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 		return acl
 	}()
 
-	if !p.Query.BypassAccessControl {
+	if !accessControlOptions.BypassAccessControl {
 		visitor := &queryAccessVisitor{
 			FieldACL:   fieldACL,
 			RecordType: p.Query.Type,
-			AuthInfo:   p.Query.ViewAsUser,
+			AuthInfo:   accessControlOptions.ViewAsUser,
 			ExpressionACLChecker: ExpressionACLChecker{
 				FieldACL:   fieldACL,
 				RecordType: p.Query.Type,
@@ -606,7 +603,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	db := payload.Database
 
-	results, err := db.Query(&p.Query)
+	results, err := db.Query(&p.Query, accessControlOptions)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -629,13 +626,13 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	// so we replace them with some complete assets.
 	recordutil.MakeAssetsComplete(db, payload.DBConn, records)
 
-	eagerRecords := recordutil.DoQueryEager(db, recordutil.EagerIDs(db, records, p.Query))
+	eagerRecords := recordutil.DoQueryEager(db, recordutil.EagerIDs(db, records, p.Query), accessControlOptions)
 
 	recordResultFilter, err := recordutil.NewRecordResultFilter(
 		payload.DBConn,
 		h.AssetStore,
 		payload.AuthInfo,
-		p.Query.BypassAccessControl,
+		accessControlOptions.BypassAccessControl,
 	)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
@@ -657,7 +654,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 
 	response.Result = output
 
-	resultInfo, err := recordutil.QueryResultInfo(db, &p.Query, results)
+	resultInfo, err := recordutil.QueryResultInfo(db, &p.Query, accessControlOptions, results)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return

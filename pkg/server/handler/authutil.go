@@ -60,7 +60,7 @@ func (f *UserAuthFetcher) FetchUser(authData skydb.AuthData) (user skydb.Record,
 	query := f.buildAuthDataQuery(authData)
 
 	var results *skydb.Rows
-	results, err = f.Database.Query(&query)
+	results, err = f.Database.Query(&query, &skydb.AccessControlOptions{})
 	if err != nil {
 		return
 	}

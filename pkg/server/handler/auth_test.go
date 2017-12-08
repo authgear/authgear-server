@@ -60,8 +60,8 @@ func MakeEqualPredicateAssertion(key string, value string) func(predicate *skydb
 	}
 }
 
-func MakeUsernameEmailQueryAssertion(username string, email string) func(query *skydb.Query) {
-	return func(query *skydb.Query) {
+func MakeUsernameEmailQueryAssertion(username string, email string) func(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) {
+	return func(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) {
 		So(query.Type, ShouldEqual, "user")
 
 		predicate := query.Predicate
@@ -474,7 +474,7 @@ func TestLoginHandler(t *testing.T) {
 			conn.CreateAuth(&authinfo)
 
 			db.EXPECT().
-				Query(gomock.Any()).
+				Query(gomock.Any(), gomock.Any()).
 				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
 					ID:   skydb.NewRecordID("user", authinfo.ID),
@@ -536,7 +536,7 @@ func TestLoginHandler(t *testing.T) {
 			conn.CreateAuth(&authinfo)
 
 			db.EXPECT().
-				Query(gomock.Any()).
+				Query(gomock.Any(), gomock.Any()).
 				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
 					ID:   skydb.NewRecordID("user", authinfo.ID),
@@ -564,7 +564,7 @@ func TestLoginHandler(t *testing.T) {
 
 		Convey("login user not found", func() {
 			db.EXPECT().
-				Query(gomock.Any()).
+				Query(gomock.Any(), gomock.Any()).
 				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{})), nil).
 				AnyTimes()
