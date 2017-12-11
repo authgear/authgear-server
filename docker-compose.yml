@@ -15,12 +15,14 @@ services:
     - "5432:5432"
 
   app:
-    image: skygeario/skygear-server:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
     - "3000:3000" # Skygear Server API Endpoint (HTTP)
     - "5555:5555" # Skygear Server Plugin Endpoint (ZMQ)
     volumes:
-    - app_data:/go/src/app/data
+    - app_data:/app/data
     links:
     - db
     command: skygear-server
