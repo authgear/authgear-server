@@ -41,4 +41,5 @@ var revisions = []Revision{
 	&revision_81beb4d8658c{},
 	&revision_b55e91bc9391{},
 	&revision_ce320de280b1{},
+	&revision_6250fd676f58{},
 }
