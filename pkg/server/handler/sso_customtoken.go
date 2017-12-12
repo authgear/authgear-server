@@ -132,6 +132,14 @@ func (h *SSOCustomTokenLoginHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SSOCustomTokenLoginHandler) Handle(payload *router.Payload, response *router.Response) {
+	if h.CustomTokenSecret == "" {
+		response.Err = skyerr.NewError(
+			skyerr.NotConfigured,
+			"login with custom token requires CUSTOM_TOKEN_SECRET config",
+		)
+		return
+	}
+
 	p := &ssoCustomTokenLoginPayload{
 		keyFunc: func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

@@ -142,6 +142,10 @@ const (
 	// Examples include referencing a field that is disallowed by Field ACL.
 	RecordQueryDenied
 
+	// NotConfigured is returned when a feature requires extra configuration
+	// and the required configuration is missing.
+	NotConfigured
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )
