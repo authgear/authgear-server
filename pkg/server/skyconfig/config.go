@@ -132,6 +132,9 @@ type Configuration struct {
 		Expiry   int64  `json:"expiry"`
 		Secret   string `json:"secret"`
 	} `json:"-"`
+	Auth struct {
+		CustomTokenSecret string `json:"custom_token_secret"`
+	} `json:"auth"`
 	AssetStore struct {
 		ImplName string `json:"implementation"`
 		Public   bool   `json:"public"`
@@ -335,6 +338,10 @@ func (config *Configuration) ReadFromEnv() {
 
 	if bounceCount, err := strconv.ParseInt(os.Getenv("ZMQ_MAX_BOUNCE"), 10, 0); err == nil {
 		config.Zmq.MaxBounce = int(bounceCount)
+	}
+
+	if secret := os.Getenv("CUSTOM_TOKEN_SECRET"); secret != "" {
+		config.Auth.CustomTokenSecret = secret
 	}
 
 	config.readTokenStore()
