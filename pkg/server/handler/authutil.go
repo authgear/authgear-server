@@ -112,6 +112,42 @@ type createUserWithRecordContext struct {
 }
 
 func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData skydb.AuthData, profile skydb.Data) (*skydb.Record, skyerr.Error) {
+	newCtx := authUserRecordContext{
+		DBConn:         ctx.DBConn,
+		Database:       ctx.Database,
+		AssetStore:     ctx.AssetStore,
+		HookRegistry:   ctx.HookRegistry,
+		AuthRecordKeys: ctx.AuthRecordKeys,
+		Context:        ctx.Context,
+
+		BeforeSaveFunc: func(conn skydb.Conn, info *skydb.AuthInfo) error {
+			if err := conn.CreateAuth(info); err != nil {
+				if err == skydb.ErrUserDuplicated {
+					return errUserDuplicated
+				}
+
+				return skyerr.NewResourceSaveFailureErr("auth_data", authData)
+			}
+			return nil
+		},
+	}
+	return newCtx.execute(info, authData, profile)
+}
+
+// authUserRecordContext is a context for manipulating a user with
+// database record
+type authUserRecordContext struct {
+	DBConn           skydb.Conn
+	Database         skydb.Database
+	AssetStore       asset.Store
+	HookRegistry     *hook.Registry
+	AuthRecordKeys   [][]string
+	Context          context.Context
+	BeforeSaveFunc   func(conn skydb.Conn, info *skydb.AuthInfo) error
+	BeforeCommitFunc func(conn skydb.Conn, user *skydb.Record) error
+}
+
+func (ctx *authUserRecordContext) execute(info *skydb.AuthInfo, authData skydb.AuthData, profile skydb.Data) (*skydb.Record, skyerr.Error) {
 	db := ctx.Database
 	txDB, ok := db.(skydb.Transactional)
 	if !ok {
@@ -136,12 +172,10 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 
 	var user *skydb.Record
 	txErr := skydb.WithTransaction(txDB, func() error {
-		if err := ctx.DBConn.CreateAuth(info); err != nil {
-			if err == skydb.ErrUserDuplicated {
-				return errUserDuplicated
+		if ctx.BeforeSaveFunc != nil {
+			if err := ctx.BeforeSaveFunc(ctx.DBConn, info); err != nil {
+				return err
 			}
-
-			return skyerr.NewResourceSaveFailureErr("auth_data", authData)
 		}
 
 		recordReq := recordutil.RecordModifyRequest{
@@ -176,6 +210,12 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 		}
 
 		user = recordResp.SavedRecords[0]
+
+		if ctx.BeforeCommitFunc != nil {
+			if err := ctx.BeforeCommitFunc(ctx.DBConn, user); err != nil {
+				return err
+			}
+		}
 		return nil
 	})
 

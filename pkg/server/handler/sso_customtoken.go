@@ -225,49 +225,69 @@ func (h *SSOCustomTokenLoginHandler) handleLogin(payload *router.Payload, p *sso
 				return skyerr.MakeError(err)
 			}
 			createNewUser = true
+			*authinfo = skydb.NewAnonymousAuthInfo()
 		}
 	}
 
+	userRecordContext := &authUserRecordContext{
+		DBConn:         payload.DBConn,
+		Database:       payload.Database,
+		AssetStore:     h.AssetStore,
+		HookRegistry:   h.HookRegistry,
+		AuthRecordKeys: h.AuthRecordKeys,
+		Context:        payload.Context,
+	}
 	if createNewUser {
-		createContext := createUserWithRecordContext{
-			payload.DBConn,
-			payload.Database,
-			h.AssetStore,
-			h.HookRegistry,
-			h.AuthRecordKeys,
-			payload.Context,
+		userRecordContext.BeforeSaveFunc = func(conn skydb.Conn, info *skydb.AuthInfo) error {
+			if err := conn.CreateAuth(info); err != nil {
+				if err == skydb.ErrUserDuplicated {
+					return errUserDuplicated
+				}
+
+				return skyerr.MakeError(err)
+			}
+			return nil
+		}
+		userRecordContext.BeforeCommitFunc = func(conn skydb.Conn, user *skydb.Record) error {
+			now := timeNow()
+			if err := conn.CreateCustomTokenInfo(&skydb.CustomTokenInfo{
+				UserID:      user.ID.Key,
+				PrincipalID: principalID,
+				CreatedAt:   &now,
+			}); err != nil {
+				return skyerr.MakeError(err)
+			}
+			return nil
 		}
 
-		*authinfo = skydb.NewAnonymousAuthInfo()
-		if createdUser, err := createContext.execute(
-			authinfo,
-			skydb.AuthData{},
-			p.Profile,
-		); err != nil {
-			return skyerr.MakeError(err)
-		} else {
-			*user = *createdUser
-		}
-
-		now := timeNow()
-		customTokenInfo = skydb.CustomTokenInfo{
-			UserID:      user.ID.Key,
-			PrincipalID: principalID,
-			CreatedAt:   &now,
-		}
-
-		if err := payload.DBConn.CreateCustomTokenInfo(&customTokenInfo); err != nil {
-			return skyerr.MakeError(err)
-		}
 	} else {
-		if err := payload.DBConn.UpdateAuth(authinfo); err != nil {
-			return skyerr.MakeError(err)
+		userRecordContext.BeforeSaveFunc = func(conn skydb.Conn, info *skydb.AuthInfo) error {
+			if err := conn.UpdateAuth(info); err != nil {
+				return skyerr.MakeError(err)
+			}
+			return nil
 		}
+		userRecordContext.BeforeCommitFunc = func(conn skydb.Conn, user *skydb.Record) error {
+			now := timeNow()
+			if err := conn.CreateCustomTokenInfo(&skydb.CustomTokenInfo{
+				UserID:      user.ID.Key,
+				PrincipalID: principalID,
+				CreatedAt:   &now,
+			}); err != nil {
+				return skyerr.MakeError(err)
+			}
+			return nil
+		}
+	}
 
-		userRecordID := skydb.NewRecordID("user", customTokenInfo.UserID)
-		if err := payload.Database.Get(userRecordID, user); err != nil {
-			return skyerr.MakeError(err)
-		}
+	if modifiedUser, err := userRecordContext.execute(
+		authinfo,
+		skydb.AuthData{},
+		p.Claims.Profile,
+	); err != nil {
+		return skyerr.MakeError(err)
+	} else {
+		*user = *modifiedUser
 	}
 
 	return nil
