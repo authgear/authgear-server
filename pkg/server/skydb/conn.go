@@ -211,14 +211,13 @@ type Conn interface {
 	// for the supplied provider and userID.
 	GetOAuthInfoByProviderAndUserID(provider string, userID string, oauthinfo *OAuthInfo) error
 
-	//
 	// UpdateOAuthInfo updates an existing OAuthInfo matched by the
 	// provider and principalID.
 	//
 	// UpdateOAuthInfo returns ErrUserNotFound if such OAuthInfo does not
 	// exist in the container.
 	UpdateOAuthInfo(oauthinfo *OAuthInfo) error
-	//
+
 	// DeleteOAuth removes OAuthInfo with the
 	// supplied provider and principalID in the container for unlink provider.
 	//
