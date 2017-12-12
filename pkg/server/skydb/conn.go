@@ -226,6 +226,14 @@ type Conn interface {
 	DeleteOAuth(provider string, principalID string) error
 
 	Close() error
+
+	CustomTokenConn
+}
+
+type CustomTokenConn interface {
+	GetCustomTokenInfo(principalID string, tokenInfo *CustomTokenInfo) error
+	CreateCustomTokenInfo(tokenInfo *CustomTokenInfo) error
+	DeleteCustomTokenInfo(principalID string) error
 }
 
 // AccessModel indicates the type of access control model while db query.

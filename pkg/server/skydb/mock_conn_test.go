@@ -569,3 +569,98 @@ func (_m *MockConn) Close() error {
 func (_mr *MockConnMockRecorder) Close() *gomock.Call {
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "Close", reflect.TypeOf((*MockConn)(nil).Close))
 }
+
+// GetCustomTokenInfo mocks base method
+func (_m *MockConn) GetCustomTokenInfo(principalID string, tokenInfo *CustomTokenInfo) error {
+	ret := _m.ctrl.Call(_m, "GetCustomTokenInfo", principalID, tokenInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// GetCustomTokenInfo indicates an expected call of GetCustomTokenInfo
+func (_mr *MockConnMockRecorder) GetCustomTokenInfo(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetCustomTokenInfo", reflect.TypeOf((*MockConn)(nil).GetCustomTokenInfo), arg0, arg1)
+}
+
+// CreateCustomTokenInfo mocks base method
+func (_m *MockConn) CreateCustomTokenInfo(tokenInfo *CustomTokenInfo) error {
+	ret := _m.ctrl.Call(_m, "CreateCustomTokenInfo", tokenInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateCustomTokenInfo indicates an expected call of CreateCustomTokenInfo
+func (_mr *MockConnMockRecorder) CreateCustomTokenInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "CreateCustomTokenInfo", reflect.TypeOf((*MockConn)(nil).CreateCustomTokenInfo), arg0)
+}
+
+// DeleteCustomTokenInfo mocks base method
+func (_m *MockConn) DeleteCustomTokenInfo(principalID string) error {
+	ret := _m.ctrl.Call(_m, "DeleteCustomTokenInfo", principalID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCustomTokenInfo indicates an expected call of DeleteCustomTokenInfo
+func (_mr *MockConnMockRecorder) DeleteCustomTokenInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "DeleteCustomTokenInfo", reflect.TypeOf((*MockConn)(nil).DeleteCustomTokenInfo), arg0)
+}
+
+// MockCustomTokenConn is a mock of CustomTokenConn interface
+type MockCustomTokenConn struct {
+	ctrl     *gomock.Controller
+	recorder *MockCustomTokenConnMockRecorder
+}
+
+// MockCustomTokenConnMockRecorder is the mock recorder for MockCustomTokenConn
+type MockCustomTokenConnMockRecorder struct {
+	mock *MockCustomTokenConn
+}
+
+// NewMockCustomTokenConn creates a new mock instance
+func NewMockCustomTokenConn(ctrl *gomock.Controller) *MockCustomTokenConn {
+	mock := &MockCustomTokenConn{ctrl: ctrl}
+	mock.recorder = &MockCustomTokenConnMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (_m *MockCustomTokenConn) EXPECT() *MockCustomTokenConnMockRecorder {
+	return _m.recorder
+}
+
+// GetCustomTokenInfo mocks base method
+func (_m *MockCustomTokenConn) GetCustomTokenInfo(principalID string, tokenInfo *CustomTokenInfo) error {
+	ret := _m.ctrl.Call(_m, "GetCustomTokenInfo", principalID, tokenInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// GetCustomTokenInfo indicates an expected call of GetCustomTokenInfo
+func (_mr *MockCustomTokenConnMockRecorder) GetCustomTokenInfo(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetCustomTokenInfo", reflect.TypeOf((*MockCustomTokenConn)(nil).GetCustomTokenInfo), arg0, arg1)
+}
+
+// CreateCustomTokenInfo mocks base method
+func (_m *MockCustomTokenConn) CreateCustomTokenInfo(tokenInfo *CustomTokenInfo) error {
+	ret := _m.ctrl.Call(_m, "CreateCustomTokenInfo", tokenInfo)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateCustomTokenInfo indicates an expected call of CreateCustomTokenInfo
+func (_mr *MockCustomTokenConnMockRecorder) CreateCustomTokenInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "CreateCustomTokenInfo", reflect.TypeOf((*MockCustomTokenConn)(nil).CreateCustomTokenInfo), arg0)
+}
+
+// DeleteCustomTokenInfo mocks base method
+func (_m *MockCustomTokenConn) DeleteCustomTokenInfo(principalID string) error {
+	ret := _m.ctrl.Call(_m, "DeleteCustomTokenInfo", principalID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCustomTokenInfo indicates an expected call of DeleteCustomTokenInfo
+func (_mr *MockCustomTokenConnMockRecorder) DeleteCustomTokenInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "DeleteCustomTokenInfo", reflect.TypeOf((*MockCustomTokenConn)(nil).DeleteCustomTokenInfo), arg0)
+}

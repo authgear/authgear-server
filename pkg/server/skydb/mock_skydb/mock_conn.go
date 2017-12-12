@@ -81,6 +81,18 @@ func (_mr *MockConnMockRecorder) CreateAuth(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "CreateAuth", reflect.TypeOf((*MockConn)(nil).CreateAuth), arg0)
 }
 
+// CreateCustomTokenInfo mocks base method
+func (_m *MockConn) CreateCustomTokenInfo(_param0 *skydb.CustomTokenInfo) error {
+	ret := _m.ctrl.Call(_m, "CreateCustomTokenInfo", _param0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateCustomTokenInfo indicates an expected call of CreateCustomTokenInfo
+func (_mr *MockConnMockRecorder) CreateCustomTokenInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "CreateCustomTokenInfo", reflect.TypeOf((*MockConn)(nil).CreateCustomTokenInfo), arg0)
+}
+
 // CreateOAuthInfo mocks base method
 func (_m *MockConn) CreateOAuthInfo(_param0 *skydb.OAuthInfo) error {
 	ret := _m.ctrl.Call(_m, "CreateOAuthInfo", _param0)
@@ -103,6 +115,18 @@ func (_m *MockConn) DeleteAuth(_param0 string) error {
 // DeleteAuth indicates an expected call of DeleteAuth
 func (_mr *MockConnMockRecorder) DeleteAuth(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "DeleteAuth", reflect.TypeOf((*MockConn)(nil).DeleteAuth), arg0)
+}
+
+// DeleteCustomTokenInfo mocks base method
+func (_m *MockConn) DeleteCustomTokenInfo(_param0 string) error {
+	ret := _m.ctrl.Call(_m, "DeleteCustomTokenInfo", _param0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteCustomTokenInfo indicates an expected call of DeleteCustomTokenInfo
+func (_mr *MockConnMockRecorder) DeleteCustomTokenInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "DeleteCustomTokenInfo", reflect.TypeOf((*MockConn)(nil).DeleteCustomTokenInfo), arg0)
 }
 
 // DeleteDevice mocks base method
@@ -237,6 +261,18 @@ func (_m *MockConn) GetAuthByPrincipalID(_param0 string, _param1 *skydb.AuthInfo
 // GetAuthByPrincipalID indicates an expected call of GetAuthByPrincipalID
 func (_mr *MockConnMockRecorder) GetAuthByPrincipalID(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetAuthByPrincipalID", reflect.TypeOf((*MockConn)(nil).GetAuthByPrincipalID), arg0, arg1)
+}
+
+// GetCustomTokenInfo mocks base method
+func (_m *MockConn) GetCustomTokenInfo(_param0 string, _param1 *skydb.CustomTokenInfo) error {
+	ret := _m.ctrl.Call(_m, "GetCustomTokenInfo", _param0, _param1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// GetCustomTokenInfo indicates an expected call of GetCustomTokenInfo
+func (_mr *MockConnMockRecorder) GetCustomTokenInfo(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GetCustomTokenInfo", reflect.TypeOf((*MockConn)(nil).GetCustomTokenInfo), arg0, arg1)
 }
 
 // GetDefaultRoles mocks base method
