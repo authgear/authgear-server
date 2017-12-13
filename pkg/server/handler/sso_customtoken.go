@@ -44,16 +44,16 @@ func (payload *ssoCustomTokenLoginPayload) Decode(data map[string]interface{}) s
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 
-	if parsedToken, err := jwt.ParseWithClaims(
+	parsedToken, err := jwt.ParseWithClaims(
 		payload.TokenString,
 		&payload.Claims,
 		payload.keyFunc,
-	); err != nil {
+	)
+	if err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
-	} else {
-		payload.Token = parsedToken
 	}
 
+	payload.Token = parsedToken
 	return payload.Validate()
 }
 
@@ -280,15 +280,15 @@ func (h *SSOCustomTokenLoginHandler) handleLogin(payload *router.Payload, p *sso
 		}
 	}
 
-	if modifiedUser, err := userRecordContext.execute(
+	modifiedUser, err := userRecordContext.execute(
 		authinfo,
 		skydb.AuthData{},
 		p.Claims.Profile,
-	); err != nil {
+	)
+	if err != nil {
 		return skyerr.MakeError(err)
-	} else {
-		*user = *modifiedUser
 	}
 
+	*user = *modifiedUser
 	return nil
 }
