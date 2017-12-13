@@ -31,6 +31,7 @@ type MapConn struct {
 	recordDefaultAccessMap map[string]skydb.RecordACL
 	fieldAccess            skydb.FieldACL
 	OAuthMap               map[string]skydb.OAuthInfo
+	CustomTokenInfoMap     map[string]skydb.CustomTokenInfo
 	skydb.Conn
 }
 
@@ -43,6 +44,7 @@ func NewMapConn() *MapConn {
 		fieldAccess:            skydb.FieldACL{},
 		AssetMap:               map[string]skydb.Asset{},
 		OAuthMap:               map[string]skydb.OAuthInfo{},
+		CustomTokenInfoMap:     map[string]skydb.CustomTokenInfo{},
 	}
 }
 
@@ -313,6 +315,26 @@ func (conn *MapConn) DeleteOAuth(provider string, principalID string) error {
 	}
 
 	delete(conn.OAuthMap, key)
+	return nil
+}
+
+func (conn *MapConn) GetCustomTokenInfo(principalID string, tokenInfo *skydb.CustomTokenInfo) error {
+	info, ok := conn.CustomTokenInfoMap[principalID]
+	if !ok {
+		return skydb.ErrUserNotFound
+	}
+
+	*tokenInfo = info
+	return nil
+}
+
+func (conn *MapConn) CreateCustomTokenInfo(tokenInfo *skydb.CustomTokenInfo) error {
+	conn.CustomTokenInfoMap[tokenInfo.PrincipalID] = *tokenInfo
+	return nil
+}
+
+func (conn *MapConn) DeleteCustomTokenInfo(principalID string) error {
+	delete(conn.CustomTokenInfoMap, principalID)
 	return nil
 }
 
