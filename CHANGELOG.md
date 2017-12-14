@@ -1,3 +1,20 @@
+## 1.2.0 (2017-12-11)
+
+### Features
+
+- Add SSO core support
+  Refs spec documentation:
+  https://github.com/SkygearIO/features/blob/38cde8abc8baec26dd67fd38acd6bd4fd3491dac/features/5-basic-sso/api.md
+  Four new `handler sso:oauth:login`, `sso:oauth:signup`, `sso:oauth:link`,
+  `sso:oauth:unlink` for sso plugin to call. Main data flow controls by plugin
+  and possible for developer to alter it according to specific provider.
+
+#### Other notes
+
+- Rename docker-compose.{dev,make}.yml
+- Update comment for login action in auth.go
+- Fix port no. in docker-compose example
+
 ## 1.1.3 (2017-10-25)
 
 ### Features
