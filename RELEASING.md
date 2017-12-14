@@ -68,6 +68,8 @@ $ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
 $ make update-version VERSION=$SKYGEAR_VERSION
 $ git add CHANGELOG.md setup.py skygear/__version__.py
 $ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
+### For alpha
+## git commit -m "Bump for for $SKYGEAR_VERSION"
 
 ## Release to pypi (Only for official release)
 $ python3 setup.py sdist upload
@@ -137,12 +139,17 @@ $ make update-version VERSION=$SKYGEAR_VERSION
 $ npm run lerna bootstrap # make sure dependencies are linked
 $ npm run prepublish # Build all packages
 $ npm run lerna publish -- --skip-git --repo-version $SKYGEAR_VERSION # Publish all packages
+## For publishing with 2FA channel
+## $ npm run lerna publish -- --skip-git --skip-npm --repo-version $SKYGEAR_VERSION
+## You need to cd into all sub directories at `packages` to run npm publish
 ## For publishing to alpha channel
 ## $ npm run lerna publish -- --skip-git --npm-tag=alpha --repo-version $SKYGEAR_VERSION
 
 ## Tag and push commit
 $ git add CHANGELOG.md lerna.json gulp/context.js packages/*/package.json
 $ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
+### For alpha
+## git commit -m "Bump for for $SKYGEAR_VERSION"
 $ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
 
 ### If the release is latest (official release with the highest version number)
