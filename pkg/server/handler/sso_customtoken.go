@@ -91,15 +91,40 @@ func (payload *ssoCustomTokenLoginPayload) Validate() skyerr.Error {
 }
 
 /*
-SSOCustomTokenLoginHandler authenticate user with password
+SSOCustomTokenLoginHandler authenticates the user with a custom token
 
-The user can be either identified by username or password.
+An external server is responsible for generating the custom token which
+contains a Principal ID and a signature. It is required that the token
+has issued-at and expired-at claims.
+
+The custom token is signed by a shared secret and encoded in JWT format.
+
+The claims of the custom token is as follows:
+
+    {
+      "sub": "id1234567800",
+      "iat": 1513316033,
+      "exp": 1828676033,
+      "skyprofile": {
+        "name": "John Doe"
+      }
+    }
+
+When signing the above claims with the custom token secret `ssosecret` using
+HS256 as algorithm, the following JWT token is produced:
+
+	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpZDEyMzQ1Njc4MDAiLCJpYXQiOjE1MTMzMTYwMzMsImV4cCI6MTgyODY3NjAzMywic2t5cHJvZmlsZSI6eyJuYW1lIjoiSm9obiBEb2UifX0.JRAwXPF4CDWCpMCvemCBPrUAQAXPV9qVWeAYo1vBAqQ
+
+This token can be used to log in to Skygear Server. If there is no user
+associated with the Principal ID (the subject/sub claim), a new user is
+created.
+
 
 curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
 	"action": "sso:custom_token:login",
-	"token": "eyXXXXXXX",
+	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJpZDEyMzQ1Njc4MDAiLCJpYXQiOjE1MTMzMTYwMzMsImV4cCI6MTgyODY3NjAzMywic2t5cHJvZmlsZSI6eyJuYW1lIjoiSm9obiBEb2UifX0.JRAwXPF4CDWCpMCvemCBPrUAQAXPV9qVWeAYo1vBAqQ"
 }
 EOF
 */
