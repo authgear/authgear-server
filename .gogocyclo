@@ -8,3 +8,4 @@ ignores = `zmq`.(*Broker).Run
 ignores = `skyconv`.(*JSONRecord).MarshalJSON
 ignores = `skydb`.DeriveFieldType
 ignores = `handler`.recordSaveHandler
+ignores = `skyconfig`.(*Configuration).ReadFromEnv
