@@ -102,6 +102,8 @@ func (f *UserAuthFetcher) buildAuthDataQuery(authData skydb.AuthData) skydb.Quer
 
 // createUserWithRecordContext is a context for creating a new user with
 // database record
+//
+// DEPRECATED: Do not use. Use authUserRecordContext instead.
 type createUserWithRecordContext struct {
 	DBConn         skydb.Conn
 	Database       skydb.Database
@@ -137,13 +139,25 @@ func (ctx *createUserWithRecordContext) execute(info *skydb.AuthInfo, authData s
 // authUserRecordContext is a context for manipulating a user with
 // database record
 type authUserRecordContext struct {
-	DBConn           skydb.Conn
-	Database         skydb.Database
-	AssetStore       asset.Store
-	HookRegistry     *hook.Registry
-	AuthRecordKeys   [][]string
-	Context          context.Context
-	BeforeSaveFunc   func(conn skydb.Conn, info *skydb.AuthInfo) error
+	DBConn         skydb.Conn
+	Database       skydb.Database
+	AssetStore     asset.Store
+	HookRegistry   *hook.Registry
+	AuthRecordKeys [][]string
+	Context        context.Context
+
+	// BeforeSaveFunc is a function that is called before saving the user
+	// record to the database. This function is called in the same transaction
+	// of saving the user record.
+	//
+	// The before save func is useful for saving the pass AuthInfo.
+	BeforeSaveFunc func(conn skydb.Conn, info *skydb.AuthInfo) error
+
+	// BeforeCommitFunc is a function that is called after saving the user
+	// record to the database, but before the transaction is committed.
+	//
+	// The before commit func is useful for saving other data in the
+	// same transaction.
 	BeforeCommitFunc func(conn skydb.Conn, user *skydb.Record) error
 }
 
