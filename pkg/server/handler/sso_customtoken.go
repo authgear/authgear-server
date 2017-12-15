@@ -235,12 +235,17 @@ func (h *SSOCustomTokenLoginHandler) handleLogin(payload *router.Payload, p *sso
 	principalID := p.Claims.Subject
 	var customTokenInfo skydb.CustomTokenInfo
 	createNewUser := false
+	createNewCustomToken := false
 
 	if err := payload.DBConn.GetCustomTokenInfo(principalID, &customTokenInfo); err != nil {
 		if err != skydb.ErrUserNotFound {
 			return skyerr.MakeError(err)
 		}
+
+		// Custom token info does not exist. We always create a new user in
+		// this case.
 		createNewUser = true
+		createNewCustomToken = true
 		*authinfo = skydb.NewAnonymousAuthInfo()
 	}
 
@@ -249,8 +254,13 @@ func (h *SSOCustomTokenLoginHandler) handleLogin(payload *router.Payload, p *sso
 			if err != skydb.ErrUserNotFound {
 				return skyerr.MakeError(err)
 			}
+
+			// There is a custom token but the user does not exist.
+			// Creating the new user anyway, using the ID in the custom token.
 			createNewUser = true
-			*authinfo = skydb.NewAnonymousAuthInfo()
+			*authinfo = skydb.AuthInfo{
+				ID: customTokenInfo.UserID,
+			}
 		}
 	}
 
@@ -262,6 +272,9 @@ func (h *SSOCustomTokenLoginHandler) handleLogin(payload *router.Payload, p *sso
 		AuthRecordKeys: h.AuthRecordKeys,
 		Context:        payload.Context,
 	}
+
+	// Create a new AuthInfo if we are creating a new user, otherwise
+	// update the AuthInfo.
 	if createNewUser {
 		userRecordContext.BeforeSaveFunc = func(conn skydb.Conn, info *skydb.AuthInfo) error {
 			if err := conn.CreateAuth(info); err != nil {
@@ -273,18 +286,6 @@ func (h *SSOCustomTokenLoginHandler) handleLogin(payload *router.Payload, p *sso
 			}
 			return nil
 		}
-		userRecordContext.BeforeCommitFunc = func(conn skydb.Conn, user *skydb.Record) error {
-			now := timeNow()
-			if err := conn.CreateCustomTokenInfo(&skydb.CustomTokenInfo{
-				UserID:      user.ID.Key,
-				PrincipalID: principalID,
-				CreatedAt:   &now,
-			}); err != nil {
-				return skyerr.MakeError(err)
-			}
-			return nil
-		}
-
 	} else {
 		userRecordContext.BeforeSaveFunc = func(conn skydb.Conn, info *skydb.AuthInfo) error {
 			if err := conn.UpdateAuth(info); err != nil {
@@ -292,6 +293,10 @@ func (h *SSOCustomTokenLoginHandler) handleLogin(payload *router.Payload, p *sso
 			}
 			return nil
 		}
+	}
+
+	// Create a new CustomTokenInfo if it doesn't exist.
+	if createNewCustomToken {
 		userRecordContext.BeforeCommitFunc = func(conn skydb.Conn, user *skydb.Record) error {
 			now := timeNow()
 			if err := conn.CreateCustomTokenInfo(&skydb.CustomTokenInfo{
