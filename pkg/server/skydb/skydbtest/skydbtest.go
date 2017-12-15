@@ -329,11 +329,17 @@ func (conn *MapConn) GetCustomTokenInfo(principalID string, tokenInfo *skydb.Cus
 }
 
 func (conn *MapConn) CreateCustomTokenInfo(tokenInfo *skydb.CustomTokenInfo) error {
+	if _, ok := conn.CustomTokenInfoMap[tokenInfo.PrincipalID]; ok {
+		return skydb.ErrUserDuplicated
+	}
 	conn.CustomTokenInfoMap[tokenInfo.PrincipalID] = *tokenInfo
 	return nil
 }
 
 func (conn *MapConn) DeleteCustomTokenInfo(principalID string) error {
+	if _, ok := conn.CustomTokenInfoMap[principalID]; !ok {
+		return skydb.ErrUserNotFound
+	}
 	delete(conn.CustomTokenInfoMap, principalID)
 	return nil
 }
