@@ -211,14 +211,13 @@ type Conn interface {
 	// for the supplied provider and userID.
 	GetOAuthInfoByProviderAndUserID(provider string, userID string, oauthinfo *OAuthInfo) error
 
-	//
 	// UpdateOAuthInfo updates an existing OAuthInfo matched by the
 	// provider and principalID.
 	//
 	// UpdateOAuthInfo returns ErrUserNotFound if such OAuthInfo does not
 	// exist in the container.
 	UpdateOAuthInfo(oauthinfo *OAuthInfo) error
-	//
+
 	// DeleteOAuth removes OAuthInfo with the
 	// supplied provider and principalID in the container for unlink provider.
 	//
@@ -227,6 +226,14 @@ type Conn interface {
 	DeleteOAuth(provider string, principalID string) error
 
 	Close() error
+
+	CustomTokenConn
+}
+
+type CustomTokenConn interface {
+	GetCustomTokenInfo(principalID string, tokenInfo *CustomTokenInfo) error
+	CreateCustomTokenInfo(tokenInfo *CustomTokenInfo) error
+	DeleteCustomTokenInfo(principalID string) error
 }
 
 // AccessModel indicates the type of access control model while db query.
