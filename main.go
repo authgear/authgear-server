@@ -647,9 +647,7 @@ func initLogger(config skyconfig.Configuration) {
 		initSentry(config)
 	}
 
-	if config.UserAudit.Enabled {
-		audit.SetTrailEnabled(true)
-	}
+	audit.InitTrailHandler(config.UserAudit.Enabled, config.UserAudit.TrailHandlerURL)
 }
 
 func higherLogLevels(minLevel logrus.Level) []logrus.Level {

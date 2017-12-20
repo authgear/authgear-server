@@ -182,6 +182,7 @@ func TestRequiredConfig(t *testing.T) {
 			config := NewConfigurationWithKeys()
 			config.readUserAudit()
 			So(config.UserAudit.Enabled, ShouldEqual, false)
+			So(config.UserAudit.TrailHandlerURL, ShouldEqual, "")
 			So(config.UserAudit.PwMinLength, ShouldEqual, 0)
 			So(config.UserAudit.PwUppercaseRequired, ShouldEqual, false)
 			So(config.UserAudit.PwLowercaseRequired, ShouldEqual, false)
@@ -197,7 +198,9 @@ func TestRequiredConfig(t *testing.T) {
 
 		Convey("Read user audit config correctly", func() {
 			config := NewConfigurationWithKeys()
+			handlerURLString := "file:///var/log/skygear/audit.log"
 			os.Setenv("USER_AUDIT_ENABLED", "true")
+			os.Setenv("USER_AUDIT_TRAIL_HANDLER_URL", handlerURLString)
 			os.Setenv("USER_AUDIT_PW_MIN_LENGTH", "1")
 			os.Setenv("USER_AUDIT_PW_UPPERCASE_REQUIRED", "yes")
 			os.Setenv("USER_AUDIT_PW_LOWERCASE_REQUIRED", "y")
@@ -212,6 +215,7 @@ func TestRequiredConfig(t *testing.T) {
 
 			config.readUserAudit()
 			So(config.UserAudit.Enabled, ShouldEqual, true)
+			So(config.UserAudit.TrailHandlerURL, ShouldEqual, handlerURLString)
 			So(config.UserAudit.PwMinLength, ShouldEqual, 1)
 			So(config.UserAudit.PwUppercaseRequired, ShouldEqual, true)
 			So(config.UserAudit.PwLowercaseRequired, ShouldEqual, true)
@@ -230,6 +234,7 @@ func TestRequiredConfig(t *testing.T) {
 			So(config.UserAudit.PwExpiryDays, ShouldEqual, 4)
 
 			os.Setenv("USER_AUDIT_ENABLED", "")
+			os.Setenv("USER_AUDIT_TRAIL_HANDLER_URL", "")
 			os.Setenv("USER_AUDIT_PW_MIN_LENGTH", "")
 			os.Setenv("USER_AUDIT_PW_UPPERCASE_REQUIRED", "")
 			os.Setenv("USER_AUDIT_PW_LOWERCASE_REQUIRED", "")

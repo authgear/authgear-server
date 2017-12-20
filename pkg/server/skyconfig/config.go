@@ -213,6 +213,7 @@ type Configuration struct {
 	Plugin    map[string]*PluginConfig `json:"-"`
 	UserAudit struct {
 		Enabled             bool     `json:"enabled"`
+		TrailHandlerURL     string   `json:"trail_handler_url"`
 		PwMinLength         int      `json:"pw_min_length"`
 		PwUppercaseRequired bool     `json:"pw_uppercase_required"`
 		PwLowercaseRequired bool     `json:"pw_lowercase_required"`
@@ -626,6 +627,7 @@ func (config *Configuration) readUserAudit() {
 	if v, err := parseBool(os.Getenv("USER_AUDIT_ENABLED")); err == nil {
 		config.UserAudit.Enabled = v
 	}
+	config.UserAudit.TrailHandlerURL = os.Getenv("USER_AUDIT_TRAIL_HANDLER_URL")
 	if v, err := strconv.ParseInt(os.Getenv("USER_AUDIT_PW_MIN_LENGTH"), 10, 0); err == nil && v > 0 {
 		config.UserAudit.PwMinLength = int(v)
 	}

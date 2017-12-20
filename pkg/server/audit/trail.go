@@ -126,10 +126,11 @@ func Trail(entry Entry) {
 	trailLogger.WithFields(entry.toLogrusFields()).Info("audit_trail")
 }
 
-func SetTrailEnabled(enabled bool) {
+func InitTrailHandler(enabled bool, handlerURL string) {
 	if enabled {
 		trailLogger.Level = enabledLevel
 	} else {
 		trailLogger.Level = disabledLevel
 	}
+	// TODO: initialize hook based on handlerURL
 }
