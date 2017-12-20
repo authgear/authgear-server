@@ -15,19 +15,15 @@
 package audit
 
 import (
-	"context"
 	"regexp"
 	"strings"
 
 	"github.com/nbutton23/zxcvbn-go"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
-
-var log = logging.LoggerEntry("audit")
 
 func isUpperRune(r rune) bool {
 	// NOTE: Intentionally not use unicode.IsUpper
@@ -181,45 +177,6 @@ type ValidatePasswordPayload struct {
 	PlainPassword string
 	UserData      map[string]interface{}
 	Conn          skydb.Conn
-}
-
-type PwHousekeeper struct {
-	AppName       string
-	AccessControl string
-	DBOpener      skydb.DBOpener
-	DBImpl        string
-	Option        string
-	DBConfig      skydb.DBConfig
-
-	PwHistorySize          int
-	PwHistoryDays          int
-	PasswordHistoryEnabled bool
-}
-
-func (p *PwHousekeeper) doHousekeep(authID string) {
-	if !p.enabled() {
-		return
-	}
-
-	conn, err := p.DBOpener(context.Background(), p.DBImpl, p.AppName, p.AccessControl, p.Option, p.DBConfig)
-	if err != nil {
-		log.Warnf(`Unable to housekeep password history`)
-		return
-	}
-	defer conn.Close()
-
-	err = conn.RemovePasswordHistory(authID, p.PwHistorySize, p.PwHistoryDays)
-	if err != nil {
-		log.Warnf(`Unable to housekeep password history`)
-	}
-}
-
-func (p *PwHousekeeper) enabled() bool {
-	return p.PasswordHistoryEnabled
-}
-
-func (p *PwHousekeeper) Housekeep(authID string) {
-	go p.doHousekeep(authID)
 }
 
 type PasswordChecker struct {
