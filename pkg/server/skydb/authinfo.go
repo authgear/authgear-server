@@ -238,12 +238,13 @@ func (info *AuthInfo) IsPasswordChanged() bool {
 
 // IsPasswordExpired determines whether the password is expired
 // It returns false if the authinfo is not password-based.
-func (info *AuthInfo) IsPasswordExpired(expiryDays int, t time.Time) bool {
+func (info *AuthInfo) IsPasswordExpired(expiryDays int) bool {
 	if expiryDays > 0 &&
 		len(info.HashedPassword) > 0 &&
 		info.TokenValidSince != nil &&
 		!info.TokenValidSince.IsZero() {
 		validUntil := info.TokenValidSince.AddDate(0, 0, expiryDays)
+		t := timeNow()
 		return t.After(validUntil)
 	}
 	return false

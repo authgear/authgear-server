@@ -16,6 +16,8 @@ package skydb
 
 import (
 	"github.com/skygeario/skygear-server/pkg/server/logging"
+	"time"
 )
 
 var log = logging.LoggerEntry("skydb")
+var timeNow = func() time.Time { return time.Now().UTC() }
