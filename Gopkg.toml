@@ -130,3 +130,7 @@ required = [
 [[constraint]]
   name = "github.com/nbutton23/zxcvbn-go"
   revision = "eafdab6b0663b4b528c35975c8b0e78be6e25261"
+
+[[constraint]]
+  name = "github.com/rifflock/lfshook"
+  version = "2.2.0"

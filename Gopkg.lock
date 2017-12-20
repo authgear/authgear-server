@@ -25,6 +25,12 @@
   version = "v3.1.0"
 
 [[projects]]
+  name = "github.com/evalphobia/logrus_fluent"
+  packages = ["."]
+  revision = "76779e73f35d90f5a873e7feaf6691999b2c5db4"
+  version = "v0.4.0"
+
+[[projects]]
   name = "github.com/evalphobia/logrus_sentry"
   packages = ["."]
   revision = "13ba9278e2adf1537fd94143a6b6a1c0dc008ac7"
@@ -39,6 +45,12 @@
   name = "github.com/facebookgo/structtag"
   packages = ["."]
   revision = "217e25fb96916cc60332e399c9aa63f5c422ceed"
+
+[[projects]]
+  name = "github.com/fluent/fluent-logger-golang"
+  packages = ["fluent"]
+  revision = "8bbc2356beaf021b04c9bd5cdc76ea5a7ccb40ec"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/franela/goreq"
@@ -203,6 +215,12 @@
   version = "v1.1"
 
 [[projects]]
+  name = "github.com/philhofer/fwd"
+  packages = ["."]
+  revision = "bb6d471dc95d4fe11e432687f8b70ff496cf3136"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
@@ -213,6 +231,12 @@
   name = "github.com/rickmak/gocyclo"
   packages = ["."]
   revision = "38adf1a47a4c4718e4b6df55431783540db69e01"
+
+[[projects]]
+  name = "github.com/rifflock/lfshook"
+  packages = ["."]
+  revision = "1fdc019a35147ddbb3d25aedf713ad6d1430c144"
+  version = "v2.2"
 
 [[projects]]
   name = "github.com/robfig/cron"
@@ -236,6 +260,12 @@
   packages = ["convey","convey/gotest","convey/reporting"]
   revision = "9e8dc3f972df6c8fcc0375ef492c24d0bb204857"
   version = "1.6.3"
+
+[[projects]]
+  name = "github.com/tinylib/msgp"
+  packages = ["msgp"]
+  revision = "b2b6a672cf1e5b90748f79b8b81fc8c5cf0571a1"
+  version = "1.0.2"
 
 [[projects]]
   name = "github.com/twinj/uuid"
@@ -298,6 +328,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "452203866049ced3330a0bfe7d9503fff4a8f19f3882fe6ac2d15affd65133a9"
+  inputs-digest = "0835c0fe2b39cce5554a5c64506d66ecf2fb1bb7848fe36299c1a2caf8cd12b9"
   solver-name = "gps-cdcl"
   solver-version = 1

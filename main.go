@@ -647,7 +647,11 @@ func initLogger(config skyconfig.Configuration) {
 		initSentry(config)
 	}
 
-	audit.InitTrailHandler(config.UserAudit.Enabled, config.UserAudit.TrailHandlerURL)
+	err := audit.InitTrailHandler(config.UserAudit.Enabled, config.UserAudit.TrailHandlerURL)
+	if err != nil {
+		log.Fatalf("user-audit: error when initializing trail handler %v", err)
+		return
+	}
 }
 
 func higherLogLevels(minLevel logrus.Level) []logrus.Level {

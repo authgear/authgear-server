@@ -15,7 +15,12 @@
 package audit
 
 import (
+	"fmt"
+	"github.com/evalphobia/logrus_fluent"
+	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
+	"net/url"
+	"strconv"
 
 	"github.com/skygeario/skygear-server/pkg/server/router"
 )
@@ -126,11 +131,80 @@ func Trail(entry Entry) {
 	trailLogger.WithFields(entry.toLogrusFields()).Info("audit_trail")
 }
 
-func InitTrailHandler(enabled bool, handlerURL string) {
+func createLFSHook(parsedURL *url.URL) (logrus.Hook, error) {
+	if parsedURL.Host != "" || parsedURL.Path == "" {
+		return nil, fmt.Errorf("malformed file url: %v", parsedURL)
+	}
+	pathMap := lfshook.PathMap{
+		enabledLevel: parsedURL.Path,
+	}
+	hook := lfshook.NewHook(
+		pathMap,
+		&logrus.JSONFormatter{},
+	)
+	return hook, nil
+}
+
+func createFluentdHook(parsedURL *url.URL) (logrus.Hook, error) {
+	hostname := parsedURL.Hostname()
+	if hostname == "" {
+		return nil, fmt.Errorf("malformed fluentd url: %v", parsedURL)
+	}
+
+	portString := parsedURL.Port()
+	var port int
+	if portString != "" {
+		p, err := strconv.Atoi(portString)
+		if err != nil {
+			return nil, err
+		}
+		port = p
+	} else {
+		port = 24224
+	}
+
+	hook, err := logrus_fluent.NewWithConfig(logrus_fluent.Config{
+		Host:         hostname,
+		Port:         port,
+		AsyncConnect: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	hook.SetLevels([]logrus.Level{enabledLevel})
+	hook.SetTag("skygear.audit")
+	return hook, nil
+}
+
+func createHook(handlerURL string) (logrus.Hook, error) {
+	parsedURL, err := url.Parse(handlerURL)
+	if err != nil {
+		return nil, err
+	}
+	scheme := parsedURL.Scheme
+	switch scheme {
+	case "file":
+		return createLFSHook(parsedURL)
+	case "fluentd":
+		return createFluentdHook(parsedURL)
+	}
+	return nil, fmt.Errorf("unknown handler: %v", scheme)
+}
+
+func InitTrailHandler(enabled bool, handlerURL string) error {
 	if enabled {
 		trailLogger.Level = enabledLevel
 	} else {
 		trailLogger.Level = disabledLevel
 	}
-	// TODO: initialize hook based on handlerURL
+	if handlerURL != "" {
+		hook, err := createHook(handlerURL)
+		if err != nil {
+			return err
+		}
+		if hook != nil {
+			trailLogger.Hooks.Add(hook)
+		}
+	}
+	return nil
 }
