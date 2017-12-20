@@ -270,9 +270,10 @@ func (c *conn) doQueryPasswordHistory(builder sq.SelectBuilder) ([]skydb.Passwor
 	return out, nil
 }
 
-func (c *conn) GetPasswordHistory(authID string, historySize, historyDays int, t time.Time) ([]skydb.PasswordHistory, error) {
+func (c *conn) GetPasswordHistory(authID string, historySize, historyDays int) ([]skydb.PasswordHistory, error) {
 	var err error
 	var sizeHistory, daysHistory []skydb.PasswordHistory
+	t := timeNow()
 
 	if historySize > 0 {
 		sizeBuilder := c.basePasswordHistoryBuilder(authID).Limit(uint64(historySize))
@@ -300,8 +301,8 @@ func (c *conn) GetPasswordHistory(authID string, historySize, historyDays int, t
 	return daysHistory, nil
 }
 
-func (c *conn) RemovePasswordHistory(authID string, historySize, historyDays int, t time.Time) error {
-	history, err := c.GetPasswordHistory(authID, historySize, historyDays, t)
+func (c *conn) RemovePasswordHistory(authID string, historySize, historyDays int) error {
+	history, err := c.GetPasswordHistory(authID, historySize, historyDays)
 	if err != nil {
 		return err
 	}

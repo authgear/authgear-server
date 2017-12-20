@@ -20,6 +20,7 @@ import (
 	"net"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -30,6 +31,8 @@ import (
 )
 
 var log = logging.LoggerEntry("skydb")
+
+var timeNow = func() time.Time { return time.Now().UTC() }
 
 var underscoreRe = regexp.MustCompile(`[.:]`)
 

@@ -18,7 +18,6 @@ import (
 	"context"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/nbutton23/zxcvbn-go"
 	"golang.org/x/crypto/bcrypt"
@@ -209,8 +208,7 @@ func (p *PwHousekeeper) doHousekeep(authID string) {
 	}
 	defer conn.Close()
 
-	t := time.Now().UTC()
-	err = conn.RemovePasswordHistory(authID, p.PwHistorySize, p.PwHistoryDays, t)
+	err = conn.RemovePasswordHistory(authID, p.PwHistorySize, p.PwHistoryDays)
 	if err != nil {
 		log.Warnf(`Unable to housekeep password history`)
 	}
@@ -352,12 +350,10 @@ func (ua *PasswordChecker) checkPasswordHistory(password, authID string, conn sk
 	}
 
 	if ua.shouldCheckPasswordHistory() && authID != "" {
-		now := time.Now().UTC()
 		history, err := conn.GetPasswordHistory(
 			authID,
 			ua.PwHistorySize,
 			ua.PwHistoryDays,
-			now,
 		)
 		if err != nil {
 			return makeErr()

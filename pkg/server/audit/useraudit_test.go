@@ -271,7 +271,7 @@ func TestValidatePassword(t *testing.T) {
 
 		conn := mock_skydb.NewMockConn(ctrl)
 		conn.EXPECT().
-			GetPasswordHistory(authID, historySize, historyDays, gomock.Any()).
+			GetPasswordHistory(authID, historySize, historyDays).
 			MinTimes(1).
 			Return([]skydb.PasswordHistory{
 				skydb.PasswordHistory{
