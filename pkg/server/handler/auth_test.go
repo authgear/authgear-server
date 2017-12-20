@@ -1245,7 +1245,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 				{
 					"error": {
-						"code": 125,
+						"code": 126,
 						"name": "PasswordTooShort",
 						"message": "password too short",
 						"info": {
