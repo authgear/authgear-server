@@ -76,13 +76,15 @@ func TestAuthCRUD(t *testing.T) {
 
 		Convey("creates user with password history", func() {
 			tokenValidSince := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
-			authInfoWithHistory := skydb.AuthInfo{
-				ID:                     "userid",
-				HashedPassword:         []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
-				PasswordHistoryEnabled: true,
-			}
-			authInfoWithHistory.TokenValidSince = &tokenValidSince
-			err := c.CreateAuth(&authInfoWithHistory)
+			authInfoWithPassword := skydb.NewAuthInfo("secret")
+			authInfoWithPassword.ID = "userid"
+			authInfoWithPassword.TokenValidSince = &tokenValidSince
+			originalEnabled := c.passwordHistoryEnabled
+			defer func() {
+				c.passwordHistoryEnabled = originalEnabled
+			}()
+			c.passwordHistoryEnabled = true
+			err := c.CreateAuth(&authInfoWithPassword)
 			So(err, ShouldBeNil)
 
 			var count int

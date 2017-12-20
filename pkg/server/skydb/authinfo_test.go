@@ -157,19 +157,9 @@ func TestSetPassword(t *testing.T) {
 	if info.TokenValidSince.IsZero() {
 		t.Fatalf("got info.TokenValidSince.IsZero = true, want false")
 	}
-}
-
-func TestShouldSavePasswordHistory(t *testing.T) {
-	Convey("ShouldSavePasswordHistory", t, func() {
-		info := AuthInfo{}
-		So(info.ShouldSavePasswordHistory(), ShouldBeFalse)
-
-		info.SetPassword("secret")
-		So(info.ShouldSavePasswordHistory(), ShouldBeFalse)
-
-		info.PasswordHistoryEnabled = true
-		So(info.ShouldSavePasswordHistory(), ShouldBeTrue)
-	})
+	if !info.IsPasswordSet {
+		t.Fatalf("got info.IsPasswordSet = false, want true")
+	}
 }
 
 func TestIsPasswordExpired(t *testing.T) {

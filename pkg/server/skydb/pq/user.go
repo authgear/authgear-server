@@ -27,6 +27,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
+func (c *conn) shouldSavePasswordHistory(authinfo *skydb.AuthInfo) bool {
+	return c.passwordHistoryEnabled && authinfo.IsPasswordChanged()
+}
+
 func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
@@ -64,7 +68,7 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 		return skydb.ErrRoleUpdatesFailed
 	}
 
-	if authinfo.ShouldSavePasswordHistory() {
+	if c.shouldSavePasswordHistory(authinfo) {
 		builder = c.insertPasswordHistoryBuilder(
 			authinfo.ID,
 			authinfo.HashedPassword,
@@ -118,7 +122,7 @@ func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 		return skydb.ErrRoleUpdatesFailed
 	}
 
-	if authinfo.ShouldSavePasswordHistory() {
+	if c.shouldSavePasswordHistory(authinfo) {
 		updateBuilder := c.insertPasswordHistoryBuilder(
 			authinfo.ID,
 			authinfo.HashedPassword,
