@@ -72,8 +72,8 @@ func isNetworkError(err error) bool {
 }
 
 // Open returns a new connection to postgresql implementation
-func Open(ctx context.Context, appName string, accessModel skydb.AccessModel, connString string, migrate bool) (skydb.Conn, error) {
-	db, err := getDB(appName, connString, migrate)
+func Open(ctx context.Context, appName string, accessModel skydb.AccessModel, connString string, config skydb.DBConfig) (skydb.Conn, error) {
+	db, err := getDB(appName, connString, config.CanMigrate)
 	if err != nil {
 		return nil, err
 	}
@@ -82,13 +82,14 @@ func Open(ctx context.Context, appName string, accessModel skydb.AccessModel, co
 	}
 
 	return &conn{
-		db:           db,
-		RecordSchema: map[string]skydb.RecordSchema{},
-		appName:      appName,
-		option:       connString,
-		accessModel:  accessModel,
-		canMigrate:   migrate,
-		context:      ctx,
+		db:                     db,
+		RecordSchema:           map[string]skydb.RecordSchema{},
+		appName:                appName,
+		option:                 connString,
+		accessModel:            accessModel,
+		canMigrate:             config.CanMigrate,
+		passwordHistoryEnabled: config.PasswordHistoryEnabled,
+		context:                ctx,
 	}, nil
 }
 

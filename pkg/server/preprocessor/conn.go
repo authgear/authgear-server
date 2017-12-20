@@ -15,7 +15,6 @@
 package preprocessor
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/server/router"
@@ -26,17 +25,20 @@ import (
 type ConnPreprocessor struct {
 	AppName       string
 	AccessControl string
-	DBOpener      func(context.Context, string, string, string, string, bool) (skydb.Conn, error)
+	DBOpener      skydb.DBOpener
 	DBImpl        string
 	Option        string
-	DevMode       bool
+	DBConfig      skydb.DBConfig
 }
 
 func (p ConnPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
 	log.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, p.AppName, p.Option)
 
-	canMigrate := payload.HasMasterKey() || p.DevMode
-	conn, err := p.DBOpener(payload.Context, p.DBImpl, p.AppName, p.AccessControl, p.Option, canMigrate)
+	dbConfig := p.DBConfig
+	if payload.HasMasterKey() {
+		dbConfig.CanMigrate = true
+	}
+	conn, err := p.DBOpener(payload.Context, p.DBImpl, p.AppName, p.AccessControl, p.Option, dbConfig)
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedUnableToOpenDatabase, err.Error())
 		return http.StatusServiceUnavailable

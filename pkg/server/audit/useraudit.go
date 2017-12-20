@@ -187,12 +187,14 @@ type ValidatePasswordPayload struct {
 type PwHousekeeper struct {
 	AppName       string
 	AccessControl string
-	DBOpener      func(context.Context, string, string, string, string, bool) (skydb.Conn, error)
+	DBOpener      skydb.DBOpener
 	DBImpl        string
 	Option        string
+	DBConfig      skydb.DBConfig
 
-	PwHistorySize int
-	PwHistoryDays int
+	PwHistorySize          int
+	PwHistoryDays          int
+	PasswordHistoryEnabled bool
 }
 
 func (p *PwHousekeeper) doHousekeep(authID string) {
@@ -200,7 +202,7 @@ func (p *PwHousekeeper) doHousekeep(authID string) {
 		return
 	}
 
-	conn, err := p.DBOpener(context.Background(), p.DBImpl, p.AppName, p.AccessControl, p.Option, false)
+	conn, err := p.DBOpener(context.Background(), p.DBImpl, p.AppName, p.AccessControl, p.Option, p.DBConfig)
 	if err != nil {
 		log.Warnf(`Unable to housekeep password history`)
 		return
@@ -215,7 +217,7 @@ func (p *PwHousekeeper) doHousekeep(authID string) {
 }
 
 func (p *PwHousekeeper) enabled() bool {
-	return isPasswordHistoryEnabled(p.PwHistorySize, p.PwHistoryDays)
+	return p.PasswordHistoryEnabled
 }
 
 func (p *PwHousekeeper) Housekeep(authID string) {
@@ -223,16 +225,17 @@ func (p *PwHousekeeper) Housekeep(authID string) {
 }
 
 type PasswordChecker struct {
-	PwMinLength         int
-	PwUppercaseRequired bool
-	PwLowercaseRequired bool
-	PwDigitRequired     bool
-	PwSymbolRequired    bool
-	PwMinGuessableLevel int
-	PwExcludedKeywords  []string
-	PwExcludedFields    []string
-	PwHistorySize       int
-	PwHistoryDays       int
+	PwMinLength            int
+	PwUppercaseRequired    bool
+	PwLowercaseRequired    bool
+	PwDigitRequired        bool
+	PwSymbolRequired       bool
+	PwMinGuessableLevel    int
+	PwExcludedKeywords     []string
+	PwExcludedFields       []string
+	PwHistorySize          int
+	PwHistoryDays          int
+	PasswordHistoryEnabled bool
 }
 
 func (ua *PasswordChecker) checkPasswordLength(password string) skyerr.Error {
@@ -401,7 +404,7 @@ func (ua *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) sky
 }
 
 func (ua *PasswordChecker) ShouldSavePasswordHistory() bool {
-	return isPasswordHistoryEnabled(ua.PwHistorySize, ua.PwHistoryDays)
+	return ua.PasswordHistoryEnabled
 }
 
 func (ua *PasswordChecker) shouldCheckPasswordHistory() bool {
@@ -410,8 +413,4 @@ func (ua *PasswordChecker) shouldCheckPasswordHistory() bool {
 
 func IsSamePassword(hashedPassword []byte, password string) bool {
 	return bcrypt.CompareHashAndPassword(hashedPassword, []byte(password)) == nil
-}
-
-func isPasswordHistoryEnabled(historySize, historyDays int) bool {
-	return historySize > 0 || historyDays > 0
 }

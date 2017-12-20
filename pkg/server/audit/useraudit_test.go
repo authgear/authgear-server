@@ -283,8 +283,9 @@ func TestValidatePassword(t *testing.T) {
 			}, nil)
 
 		ua := &PasswordChecker{
-			PwHistorySize: historySize,
-			PwHistoryDays: historyDays,
+			PwHistorySize:          historySize,
+			PwHistoryDays:          historyDays,
+			PasswordHistoryEnabled: true,
 		}
 
 		So(
