@@ -109,7 +109,7 @@ binaries.
 
 ```
 $ brew install dep
-$ brew install vg
+$ go get -u github.com/GetStream/vg
 $ vg setup
 $ source ~/.bashrc  # assuming your shell is bash
 $ vg init
