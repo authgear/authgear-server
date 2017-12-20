@@ -138,11 +138,11 @@ func TestGetDictionary(t *testing.T) {
 func TestValidatePassword(t *testing.T) {
 	Convey("validate short password", t, func() {
 		password := "1"
-		ua := &PasswordChecker{
+		pc := &PasswordChecker{
 			PwMinLength: 2,
 		}
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
@@ -156,11 +156,11 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate uppercase password", t, func() {
 		password := "a"
-		ua := &PasswordChecker{
+		pc := &PasswordChecker{
 			PwUppercaseRequired: true,
 		}
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
@@ -170,11 +170,11 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate lowercase password", t, func() {
 		password := "A"
-		ua := &PasswordChecker{
+		pc := &PasswordChecker{
 			PwLowercaseRequired: true,
 		}
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
@@ -184,11 +184,11 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate digit password", t, func() {
 		password := "-"
-		ua := &PasswordChecker{
+		pc := &PasswordChecker{
 			PwDigitRequired: true,
 		}
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
@@ -198,11 +198,11 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate symbol password", t, func() {
 		password := "azAZ09"
-		ua := &PasswordChecker{
+		pc := &PasswordChecker{
 			PwSymbolRequired: true,
 		}
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
@@ -212,11 +212,11 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate excluded keywords password", t, func() {
 		password := "useradmin1"
-		ua := &PasswordChecker{
+		pc := &PasswordChecker{
 			PwExcludedKeywords: []string{"user"},
 		}
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
@@ -226,7 +226,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate excluded fields password", t, func() {
 		password := "adalovelace"
-		ua := &PasswordChecker{
+		pc := &PasswordChecker{
 			PwExcludedFields: []string{"first_name"},
 		}
 		userData := map[string]interface{}{
@@ -234,7 +234,7 @@ func TestValidatePassword(t *testing.T) {
 			"last_name":  "Lovelace",
 		}
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 				UserData:      userData,
 			}),
@@ -245,11 +245,11 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate guessable password", t, func() {
 		password := "abcde123456"
-		ua := &PasswordChecker{
+		pc := &PasswordChecker{
 			PwMinGuessableLevel: 5,
 		}
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
@@ -282,14 +282,14 @@ func TestValidatePassword(t *testing.T) {
 				},
 			}, nil)
 
-		ua := &PasswordChecker{
+		pc := &PasswordChecker{
 			PwHistorySize:          historySize,
 			PwHistoryDays:          historyDays,
 			PasswordHistoryEnabled: true,
 		}
 
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: "chima",
 				AuthID:        authID,
 				Conn:          conn,
@@ -304,7 +304,7 @@ func TestValidatePassword(t *testing.T) {
 		)
 
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: "faseng",
 				AuthID:        authID,
 				Conn:          conn,
@@ -314,7 +314,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 	Convey("validate strong password", t, func() {
 		password := "N!hon-no-tsuk!-wa-seka!-1ban-k!re!desu" // 日本の月は世界一番きれいです
-		ua := &PasswordChecker{
+		pc := &PasswordChecker{
 			PwMinLength:         8,
 			PwUppercaseRequired: true,
 			PwLowercaseRequired: true,
@@ -329,7 +329,7 @@ func TestValidatePassword(t *testing.T) {
 			"last_name":  "Souseki",
 		}
 		So(
-			ua.ValidatePassword(ValidatePasswordPayload{
+			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: password,
 				UserData:      userData,
 			}),
