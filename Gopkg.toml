@@ -126,3 +126,7 @@ required = [
 [[constraint]]
   name = "golang.org/x/crypto"
   revision = "173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/pebbe/zmq4"
