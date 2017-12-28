@@ -22,14 +22,18 @@ import (
 	"testing"
 	"time"
 
+	zmq "github.com/pebbe/zmq4"
 	"github.com/skygeario/skygear-server/pkg/server/router"
-	"github.com/zeromq/goczmq"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func workerSock(t *testing.T, id string, addr string) *goczmq.Sock {
-	sock := goczmq.NewSock(goczmq.Dealer)
+func workerSock(t *testing.T, id string, addr string) *zmq.Socket {
+	sock, err := zmq.NewSocket(zmq.DEALER)
+	if err != nil {
+		t.Fatal("Failed to create worker socket")
+	}
+
 	sock.SetIdentity(id)
 	if err := sock.Connect(addr); err != nil {
 		t.Fatalf("Failed to create worker to addr = %s", addr)
@@ -37,8 +41,12 @@ func workerSock(t *testing.T, id string, addr string) *goczmq.Sock {
 	return sock
 }
 
-func clientSock(t *testing.T, id string, addr string) *goczmq.Sock {
-	sock := goczmq.NewSock(goczmq.Dealer)
+func clientSock(t *testing.T, id string, addr string) *zmq.Socket {
+	sock, err := zmq.NewSocket(zmq.DEALER)
+	if err != nil {
+		t.Fatal("Failed to create client socket")
+	}
+
 	sock.SetIdentity(id)
 	if err := sock.Connect(addr); err != nil {
 		t.Fatalf("Failed to create client to addr = %s", addr)
@@ -46,10 +54,10 @@ func clientSock(t *testing.T, id string, addr string) *goczmq.Sock {
 	return sock
 }
 
-func recvNonControlFrame(w *goczmq.Sock) [][]byte {
+func recvNonControlFrame(w *zmq.Socket) [][]byte {
 	var msg [][]byte
 	for {
-		msg, _ = w.RecvMessage()
+		msg, _ = w.RecvMessageBytes(0)
 		if len(msg) != 1 {
 			break
 		}
@@ -62,6 +70,12 @@ func bytesArray(ss ...string) (bs [][]byte) {
 		bs = append(bs, []byte(s))
 	}
 	return
+}
+
+func mustCloseSock(t *testing.T, sock *zmq.Socket) {
+	if err := sock.Close(); err != nil {
+		t.Fatalf("Failed to close socket")
+	}
 }
 
 func TestWorker(t *testing.T) {
@@ -163,7 +177,7 @@ func TestBrokerWorker(t *testing.T) {
 			w := workerSock(t, "ready", workerAddr)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
-				w.Destroy()
+				mustCloseSock(t, w)
 			}()
 			w.SendMessage(bytesArray(Ready))
 			time.Sleep(HeartbeatInterval)
@@ -176,13 +190,13 @@ func TestBrokerWorker(t *testing.T) {
 			w1 := workerSock(t, "ready1", workerAddr)
 			defer func() {
 				w1.SendMessage(bytesArray(Shutdown))
-				w1.Destroy()
+				mustCloseSock(t, w1)
 			}()
 			w1.SendMessage(bytesArray(Ready))
 			w2 := workerSock(t, "ready2", workerAddr)
 			defer func() {
 				w2.SendMessage(bytesArray(Shutdown))
-				w2.Destroy()
+				mustCloseSock(t, w2)
 			}()
 			w2.SendMessage(bytesArray(Ready))
 			time.Sleep(HeartbeatInterval)
@@ -196,7 +210,7 @@ func TestBrokerWorker(t *testing.T) {
 			w := workerSock(t, "heartbeat", workerAddr)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
-				w.Destroy()
+				mustCloseSock(t, w)
 			}()
 			w.SendMessage(bytesArray(Heartbeat))
 			// Wait the poller to get the message
@@ -208,7 +222,7 @@ func TestBrokerWorker(t *testing.T) {
 			w := workerSock(t, "unregistered", workerAddr)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
-				w.Destroy()
+				mustCloseSock(t, w)
 			}()
 			w.SendMessage([][]byte{
 				[]byte("unregistered"),
@@ -226,10 +240,10 @@ func TestBrokerWorker(t *testing.T) {
 
 		Convey("receive RPC will timeout", func() {
 			w := workerSock(t, "timeout", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS)
+			w.SetRcvtimeo(HeartbeatInterval)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
-				w.Destroy()
+				mustCloseSock(t, w)
 			}()
 			w.SendMessage(bytesArray(Ready))
 			time.Sleep(HeartbeatInterval)
@@ -260,10 +274,10 @@ func TestBrokerWorker(t *testing.T) {
 			time.Sleep(HeartbeatInterval)
 
 			w := workerSock(t, "lateworker", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			w.SetRcvtimeo(HeartbeatInterval * 2)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
-				w.Destroy()
+				mustCloseSock(t, w)
 			}()
 			w.SendMessage(bytesArray(Ready))
 
@@ -280,10 +294,10 @@ func TestBrokerWorker(t *testing.T) {
 
 		Convey("broker RPC receive worker reply", func() {
 			w := workerSock(t, "worker", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			w.SetRcvtimeo(HeartbeatInterval * 2)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
-				w.Destroy()
+				mustCloseSock(t, w)
 			}()
 			w.SendMessage(bytesArray(Ready))
 
@@ -304,10 +318,10 @@ func TestBrokerWorker(t *testing.T) {
 
 		Convey("broker RPC receive worker request", func() {
 			w := workerSock(t, "worker", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			w.SetRcvtimeo(HeartbeatInterval * 2)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
-				w.Destroy()
+				mustCloseSock(t, w)
 			}()
 			w.SendMessage(bytesArray(Ready))
 
@@ -345,11 +359,11 @@ func TestBrokerWorker(t *testing.T) {
 		Convey("send message from server to multiple plugin", func(c C) {
 			go func() {
 				w := workerSock(t, "worker1", workerAddr)
-				w.SetRcvtimeo(heartbeatIntervalMS * 2)
+				w.SetRcvtimeo(HeartbeatInterval * 2)
 				defer func() {
 					w.SendMessage(bytesArray(Shutdown))
 					time.Sleep((HeartbeatLiveness + 1) * HeartbeatInterval)
-					w.Destroy()
+					mustCloseSock(t, w)
 				}()
 				w.SendMessage(bytesArray(Ready))
 				msg := recvNonControlFrame(w)
@@ -363,11 +377,11 @@ func TestBrokerWorker(t *testing.T) {
 
 			go func() {
 				w2 := workerSock(t, "worker2", workerAddr)
-				w2.SetRcvtimeo(heartbeatIntervalMS * 2)
+				w2.SetRcvtimeo(HeartbeatInterval * 2)
 				defer func() {
 					w2.SendMessage(bytesArray(Shutdown))
 					time.Sleep((HeartbeatLiveness + 1) * HeartbeatInterval)
-					w2.Destroy()
+					mustCloseSock(t, w2)
 				}()
 				w2.SendMessage(bytesArray(Ready))
 				msg := recvNonControlFrame(w2)
@@ -389,10 +403,10 @@ func TestBrokerWorker(t *testing.T) {
 		Convey("send multiple message from server to multple plugin", func(c C) {
 			go func() {
 				w := workerSock(t, "mworker1", workerAddr)
-				w.SetRcvtimeo(heartbeatIntervalMS * 2)
+				w.SetRcvtimeo(HeartbeatInterval * 2)
 				defer func() {
 					w.SendMessage(bytesArray(Shutdown))
-					w.Destroy()
+					mustCloseSock(t, w)
 				}()
 				w.SendMessage(bytesArray(Ready))
 
@@ -405,10 +419,10 @@ func TestBrokerWorker(t *testing.T) {
 
 			go func() {
 				w2 := workerSock(t, "mworker2", workerAddr)
-				w2.SetRcvtimeo(heartbeatIntervalMS * 2)
+				w2.SetRcvtimeo(HeartbeatInterval * 2)
 				defer func() {
 					w2.SendMessage(bytesArray(Shutdown))
-					w2.Destroy()
+					mustCloseSock(t, w2)
 				}()
 				w2.SendMessage(bytesArray(Ready))
 
@@ -442,10 +456,10 @@ func TestBrokerWorker(t *testing.T) {
 
 		Convey("broker RPC handle nested request", func() {
 			w := workerSock(t, "worker", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			w.SetRcvtimeo(HeartbeatInterval * 2)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
-				w.Destroy()
+				mustCloseSock(t, w)
 			}()
 			w.SendMessage(bytesArray(Ready))
 
@@ -507,10 +521,10 @@ func TestBrokerWorker(t *testing.T) {
 
 		Convey("broker returns error when bounce count is over maximum", func() {
 			w := workerSock(t, "worker", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			w.SetRcvtimeo(HeartbeatInterval * 2)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
-				w.Destroy()
+				mustCloseSock(t, w)
 			}()
 			w.SendMessage(bytesArray(Ready))
 
@@ -530,10 +544,10 @@ func TestBrokerWorker(t *testing.T) {
 
 		Convey("Parcel should create payload", func() {
 			w := workerSock(t, "worker", workerAddr)
-			w.SetRcvtimeo(heartbeatIntervalMS * 2)
+			w.SetRcvtimeo(HeartbeatInterval * 2)
 			defer func() {
 				w.SendMessage(bytesArray(Shutdown))
-				w.Destroy()
+				mustCloseSock(t, w)
 			}()
 			w.SendMessage(bytesArray(Ready))
 
