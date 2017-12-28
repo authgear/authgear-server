@@ -93,12 +93,12 @@ If you have any fixes or suggestions, simply send us a pull request!
 * Golang 1.8
 * PostgreSQL 9.5 with PostGIS extension
 * Redis
-* libsodium, zeromq and czmq if using ZeroMQ as a plugin transport
+* libsodium and zeromq if using ZeroMQ as a plugin transport
 
 If using Mac OS X, you can get the ZeroMQ dependencies using Homebrew:
 
 ```shell
-$ brew install libsodium zeromq czmq
+$ brew install libsodium zeromq
 ```
 
 ### Building from source

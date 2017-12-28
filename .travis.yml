@@ -25,7 +25,6 @@ before_install:
   - pushd $LD_INSTALL_PREFIX/src
   - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/jedisct1/libsodium.git 1.0.8
   - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/zeromq4-1.git v4.1.4
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/czmq.git v4.0.2
   - popd
   - go get -u github.com/golang/dep/cmd/dep
   - go get -u github.com/GetStream/vg

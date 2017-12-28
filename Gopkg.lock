@@ -299,12 +299,6 @@
   revision = "b505f2cca343b7b21416b27b1f2ad88469800892"
 
 [[projects]]
-  name = "github.com/zeromq/goczmq"
-  packages = ["."]
-  revision = "faef36c9feea28111fd413ea29ea99d80ef54e7b"
-  version = "v4.0.2"
-
-[[projects]]
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
@@ -406,6 +400,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "933820c4eb0b67066dddec0d942a86eb34320067ad0dde5a9082d50152d48aef"
+  inputs-digest = "89556af40093d5d8db823987087620eb4b67677f3218691bbeeb85829e736f65"
   solver-name = "gps-cdcl"
   solver-version = 1
