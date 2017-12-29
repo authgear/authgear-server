@@ -308,10 +308,7 @@ func (lb *Broker) Run() {
 		for _, polled := range polleds {
 			switch s := polled.Socket; s {
 			case backend:
-				frames, err := backend.RecvMessageBytes(0)
-				if err != nil {
-					panic(err)
-				}
+				frames := mustReceiveMessage(backend)
 
 				address := string(frames[0])
 				msg := frames[1:]
@@ -330,11 +327,8 @@ func (lb *Broker) Run() {
 					lb.logger.Debugf("zmq/broker: plugin => server: %q, %s\n", msg[0:6], msg[6])
 				}
 			case pull:
-				frames, err := pull.RecvMessageBytes(0)
-				if err != nil {
-					panic(err)
-				}
-				backend.SendMessage(frames)
+				frames := mustReceiveMessage(pull)
+				mustSendMessage(backend, frames)
 			default:
 				panic("zmq/broker: received unknown socket")
 			}
@@ -346,7 +340,7 @@ func (lb *Broker) Run() {
 					[]byte(worker.address),
 					[]byte(Heartbeat),
 				}
-				backend.SendMessage(msg)
+				mustSendMessage(backend, msg)
 			}
 			heartbeatAt = time.Now().Add(HeartbeatInterval)
 		}
@@ -384,7 +378,7 @@ func (lb *Broker) Channeler() {
 		case p := <-lb.recvChan:
 			lb.sendChannelParcelToZMQ(p, push)
 		case frames := <-lb.respChan:
-			push.SendMessage(frames)
+			mustSendMessage(push, frames)
 		case key := <-lb.timeout:
 			parcel, ok := lb.parcelChan[key]
 			if !ok {
@@ -509,7 +503,7 @@ func (lb *Broker) sendChannelParcelToZMQ(p *parcel, push *zmq.Socket) {
 	}
 	key := requestToChannelKey(requestID, bounceCount)
 	lb.parcelChan[key] = p
-	push.SendMessage(frames)
+	mustSendMessage(push, frames)
 	lb.logger.Debugf("zmq/broker: channel => zmq: %q, %s\n", frames[0:7], frames[7])
 	go lb.setTimeout(key)
 }
@@ -691,5 +685,21 @@ func (q *workerQueue) Remove(address string) {
 			q.pworkers = append(workers[:i], workers[i+1:]...)
 			break
 		}
+	}
+}
+
+func mustReceiveMessage(socket *zmq.Socket) [][]byte {
+	frames, err := socket.RecvMessageBytes(0)
+	if err != nil {
+		panic(err)
+	}
+
+	return frames
+}
+
+func mustSendMessage(socket *zmq.Socket, message [][]byte) {
+	_, err := socket.SendMessage(message)
+	if err != nil {
+		panic(err)
 	}
 }
