@@ -6,7 +6,6 @@ in
 , fetchgit       ? pkgs.fetchgit
 , libsodium      ? pkgs.libsodium
 , zeromq         ? pkgs.zeromq
-, czmq           ? pkgs.czmq
 , glide          ? pkgs.glide
 , git            ? pkgs.git
 , pkgconfig      ? pkgs.pkgconfig
@@ -28,7 +27,7 @@ buildGoPackage rec {
   #   sha256 = "hash here";
   # };
   buildInputs = [ git glide ]
-    ++ (if withZMQ then [ libsodium zeromq czmq pkgconfig ] else []);
+    ++ (if withZMQ then [ libsodium zeromq pkgconfig ] else []);
 
   buildFlags = if withZMQ then "--tags zmq" else "";
 

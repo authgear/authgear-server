@@ -29,9 +29,9 @@ import (
 	"sync"
 	"time"
 
+	zmq "github.com/pebbe/zmq4"
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/server/router"
-	"github.com/zeromq/goczmq"
 )
 
 const (
@@ -43,8 +43,6 @@ const (
 	// reconnecting.
 	HeartbeatLiveness = 3
 )
-
-var heartbeatIntervalMS = int(HeartbeatInterval.Seconds() * 1000)
 
 const (
 	// Ready is sent by worker to signal broker that it is ready to receive
@@ -275,61 +273,65 @@ func NewBroker(name, backendAddr string, timeoutInterval int, maxBounce int) (*B
 
 // Run the Broker and listens for zmq requests.
 func (lb *Broker) Run() {
-	backend, err := goczmq.NewRouter(lb.backendAddr)
+	backend, err := zmq.NewSocket(zmq.ROUTER)
 	if err != nil {
 		panic(err)
 	}
-	defer backend.Destroy()
+	defer backend.Close()
 
-	pull, err := goczmq.NewPull(fmt.Sprintf("inproc://chanpipeline%d", lb.name))
-	if err != nil {
+	if err := backend.Bind(lb.backendAddr); err != nil {
 		panic(err)
 	}
-	defer pull.Destroy()
 
-	backendPoller, err := goczmq.NewPoller(backend, pull)
+	pull, err := zmq.NewSocket(zmq.PULL)
 	if err != nil {
 		panic(err)
 	}
+	defer pull.Close()
+
+	if err := pull.Bind(fmt.Sprintf("inproc://chanpipeline%d", lb.name)); err != nil {
+		panic(err)
+	}
+
+	backendPoller := zmq.NewPoller()
+	_ = backendPoller.Add(backend, zmq.POLLIN)
+	_ = backendPoller.Add(pull, zmq.POLLIN)
 
 	heartbeatAt := time.Now().Add(HeartbeatInterval)
 	for {
-		sock := backendPoller.Wait(heartbeatIntervalMS)
+		polleds, err := backendPoller.Poll(HeartbeatInterval)
+		if err != nil {
+			panic(err)
+		}
+
 		lb.workers.Lock()
+		for _, polled := range polleds {
+			switch s := polled.Socket; s {
+			case backend:
+				frames := mustReceiveMessage(backend)
 
-		switch sock {
-		case backend:
-			frames, err := backend.RecvMessage()
-			if err != nil {
-				panic(err)
-			}
-
-			address := string(frames[0])
-			msg := frames[1:]
-			if len(msg) == 1 {
-				tErr := lb.workers.Tick(newWorker(address))
-				if tErr != nil {
-					status := string(msg[0])
-					if status != Ready {
-						lb.logger.Warnln(tErr)
+				address := string(frames[0])
+				msg := frames[1:]
+				if len(msg) == 1 {
+					tErr := lb.workers.Tick(newWorker(address))
+					if tErr != nil {
+						status := string(msg[0])
+						if status != Ready {
+							lb.logger.Warnln(tErr)
+						}
 					}
+					status := string(msg[0])
+					lb.handleWorkerStatus(address, status)
+				} else {
+					lb.frontend <- msg
+					lb.logger.Debugf("zmq/broker: plugin => server: %q, %s\n", msg[0:6], msg[6])
 				}
-				status := string(msg[0])
-				lb.handleWorkerStatus(address, status)
-			} else {
-				lb.frontend <- msg
-				lb.logger.Debugf("zmq/broker: plugin => server: %q, %s\n", msg[0:6], msg[6])
+			case pull:
+				frames := mustReceiveMessage(pull)
+				mustSendMessage(backend, frames)
+			default:
+				panic("zmq/broker: received unknown socket")
 			}
-		case pull:
-			frames, err := pull.RecvMessage()
-			if err != nil {
-				panic(err)
-			}
-			backend.SendMessage(frames)
-		case nil:
-			// do nothing
-		default:
-			panic("zmq/broker: received unknown socket")
 		}
 
 		if heartbeatAt.Before(time.Now()) {
@@ -338,7 +340,7 @@ func (lb *Broker) Run() {
 					[]byte(worker.address),
 					[]byte(Heartbeat),
 				}
-				backend.SendMessage(msg)
+				mustSendMessage(backend, msg)
 			}
 			heartbeatAt = time.Now().Add(HeartbeatInterval)
 		}
@@ -358,11 +360,17 @@ func (lb *Broker) Run() {
 func (lb *Broker) Channeler() {
 	lb.logger.Infof("zmq channeler running %p\n", lb)
 	defer lb.logger.Infof("zmq channeler stopped %p!\n", lb)
-	push, err := goczmq.NewPush(fmt.Sprintf("inproc://chanpipeline%d", lb.name))
+
+	push, err := zmq.NewSocket(zmq.PUSH)
 	if err != nil {
 		panic(err)
 	}
-	defer push.Destroy()
+	defer push.Close()
+
+	if err := push.Connect(fmt.Sprintf("inproc://chanpipeline%d", lb.name)); err != nil {
+		panic(err)
+	}
+
 	for {
 		select {
 		case frames := <-lb.frontend:
@@ -370,7 +378,7 @@ func (lb *Broker) Channeler() {
 		case p := <-lb.recvChan:
 			lb.sendChannelParcelToZMQ(p, push)
 		case frames := <-lb.respChan:
-			push.SendMessage(frames)
+			mustSendMessage(push, frames)
 		case key := <-lb.timeout:
 			parcel, ok := lb.parcelChan[key]
 			if !ok {
@@ -445,7 +453,7 @@ func (lb *Broker) sendZMQFramesToChannel(frames [][]byte) {
 	}
 }
 
-func (lb *Broker) sendChannelParcelToZMQ(p *parcel, push *goczmq.Sock) {
+func (lb *Broker) sendChannelParcelToZMQ(p *parcel, push *zmq.Socket) {
 	// Save the chan and dispatch the message to zmq
 	// If current no worker ready, will retry after HeartbeatInterval.
 	// Retry for HeartbeatLiveness times
@@ -495,7 +503,7 @@ func (lb *Broker) sendChannelParcelToZMQ(p *parcel, push *goczmq.Sock) {
 	}
 	key := requestToChannelKey(requestID, bounceCount)
 	lb.parcelChan[key] = p
-	push.SendMessage(frames)
+	mustSendMessage(push, frames)
 	lb.logger.Debugf("zmq/broker: channel => zmq: %q, %s\n", frames[0:7], frames[7])
 	go lb.setTimeout(key)
 }
@@ -677,5 +685,21 @@ func (q *workerQueue) Remove(address string) {
 			q.pworkers = append(workers[:i], workers[i+1:]...)
 			break
 		}
+	}
+}
+
+func mustReceiveMessage(socket *zmq.Socket) [][]byte {
+	frames, err := socket.RecvMessageBytes(0)
+	if err != nil {
+		panic(err)
+	}
+
+	return frames
+}
+
+func mustSendMessage(socket *zmq.Socket, message [][]byte) {
+	_, err := socket.SendMessage(message)
+	if err != nil {
+		panic(err)
 	}
 }

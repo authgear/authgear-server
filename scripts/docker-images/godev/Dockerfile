@@ -2,7 +2,7 @@ FROM golang:1.8.3-stretch
 
 RUN \
     apt-get update && \
-    apt-get install --no-install-recommends -y libtool-bin automake pkg-config libsodium-dev libzmq3-dev libczmq-dev && \
+    apt-get install --no-install-recommends -y libtool-bin automake pkg-config libsodium-dev libzmq3-dev && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /go/src/app

@@ -120,9 +120,9 @@ required = [
   revision = "b505f2cca343b7b21416b27b1f2ad88469800892"
 
 [[constraint]]
-  name = "github.com/zeromq/goczmq"
-  version = "=4.0.2"
-
-[[constraint]]
   name = "golang.org/x/crypto"
   revision = "173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/pebbe/zmq4"
