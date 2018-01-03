@@ -91,7 +91,7 @@ func (p InjectAuthIfPresent) Preprocess(payload *router.Payload, response *route
 			response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
 			return http.StatusUnauthorized
 		}
-		if authinfo.IsPasswordExpired(p.PwExpiryDays, timeNow()) {
+		if authinfo.IsPasswordExpired(p.PwExpiryDays) {
 			response.Err = skyerr.NewError(skyerr.PasswordExpired, "password expired")
 			return http.StatusUnauthorized
 		}

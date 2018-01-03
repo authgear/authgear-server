@@ -20,14 +20,14 @@ import (
 
 // Driver opens an connection to the underlying database.
 type Driver interface {
-	Open(ctx context.Context, appName string, accessModel AccessModel, optionString string, migrate bool) (Conn, error)
+	Open(ctx context.Context, appName string, accessModel AccessModel, optionString string, config DBConfig) (Conn, error)
 }
 
 // The DriverFunc type is an adapter such that an ordinary function
 // can be used as a Driver.
-type DriverFunc func(ctx context.Context, appName string, accessModel AccessModel, optionString string, migrate bool) (Conn, error)
+type DriverFunc func(ctx context.Context, appName string, accessModel AccessModel, optionString string, config DBConfig) (Conn, error)
 
 // Open returns a Conn by calling the DriverFunc itself.
-func (f DriverFunc) Open(ctx context.Context, appName string, accessModel AccessModel, name string, migrate bool) (Conn, error) {
-	return f(ctx, appName, accessModel, name, migrate)
+func (f DriverFunc) Open(ctx context.Context, appName string, accessModel AccessModel, name string, config DBConfig) (Conn, error) {
+	return f(ctx, appName, accessModel, name, config)
 }

@@ -59,15 +59,25 @@ func GetAccessModel(accessString string) AccessModel {
 	return model
 }
 
+// DBConfig represents optional configuration.
+// The zero value is sensible defaults.
+type DBConfig struct {
+	CanMigrate             bool
+	PasswordHistoryEnabled bool
+}
+
+// DBOpener aliases the function for opening Conn
+type DBOpener func(context.Context, string, string, string, string, DBConfig) (Conn, error)
+
 // Open returns an implementation of Conn to use w.r.t implName.
 //
 // optionString is passed to the driver and is implementation specific.
 // For example, in a SQL implementation it will be something
 // like "sql://localhost/db0"
-func Open(ctx context.Context, implName string, appName string, accessString string, optionString string, migrate bool) (Conn, error) {
+func Open(ctx context.Context, implName string, appName string, accessString string, optionString string, config DBConfig) (Conn, error) {
 	accessModel := GetAccessModel(accessString)
 	if driver, ok := drivers[implName]; ok {
-		return driver.Open(ctx, appName, accessModel, optionString, migrate)
+		return driver.Open(ctx, appName, accessModel, optionString, config)
 	}
 
 	return nil, fmt.Errorf("Implementation not registered: %v", implName)

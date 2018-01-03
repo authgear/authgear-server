@@ -12,40 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package preprocessor
+package audit
 
 import (
-	"net/http"
+	"context"
 
-	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-type ConnPreprocessor struct {
+type PwHousekeeper struct {
 	AppName       string
 	AccessControl string
 	DBOpener      skydb.DBOpener
 	DBImpl        string
 	Option        string
 	DBConfig      skydb.DBConfig
+
+	PwHistorySize          int
+	PwHistoryDays          int
+	PasswordHistoryEnabled bool
 }
 
-func (p ConnPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	log.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, p.AppName, p.Option)
-
-	dbConfig := p.DBConfig
-	if payload.HasMasterKey() {
-		dbConfig.CanMigrate = true
+func (p *PwHousekeeper) doHousekeep(authID string) {
+	if !p.enabled() {
+		return
 	}
-	conn, err := p.DBOpener(payload.Context, p.DBImpl, p.AppName, p.AccessControl, p.Option, dbConfig)
+
+	conn, err := p.DBOpener(context.Background(), p.DBImpl, p.AppName, p.AccessControl, p.Option, p.DBConfig)
 	if err != nil {
-		response.Err = skyerr.NewError(skyerr.UnexpectedUnableToOpenDatabase, err.Error())
-		return http.StatusServiceUnavailable
+		log.Warnf(`Unable to housekeep password history`)
+		return
 	}
-	payload.DBConn = conn
+	defer conn.Close()
 
-	log.Debugf("Get DB OK")
+	err = conn.RemovePasswordHistory(authID, p.PwHistorySize, p.PwHistoryDays)
+	if err != nil {
+		log.Warnf(`Unable to housekeep password history`)
+	}
+}
 
-	return http.StatusOK
+func (p *PwHousekeeper) enabled() bool {
+	return p.PasswordHistoryEnabled
+}
+
+func (p *PwHousekeeper) Housekeep(authID string) {
+	go p.doHousekeep(authID)
 }

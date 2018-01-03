@@ -53,7 +53,11 @@ func getTestConn(t *testing.T) *conn {
 	defaultTo("PGDATABASE", "skygear_test")
 	defaultTo("PGSSLMODE", "disable")
 	appName := testAppName()
-	c, err := Open(context.Background(), appName, skydb.RoleBasedAccess, "", true)
+	dbConfig := skydb.DBConfig{
+		CanMigrate:             true,
+		PasswordHistoryEnabled: false,
+	}
+	c, err := Open(context.Background(), appName, skydb.RoleBasedAccess, "", dbConfig)
 	if err != nil {
 		t.Fatal(err)
 	}

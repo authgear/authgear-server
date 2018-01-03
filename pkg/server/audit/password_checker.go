@@ -15,20 +15,15 @@
 package audit
 
 import (
-	"context"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/nbutton23/zxcvbn-go"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
-
-var log = logging.LoggerEntry("audit")
 
 func isUpperRune(r rune) bool {
 	// NOTE: Intentionally not use unicode.IsUpper
@@ -184,59 +179,22 @@ type ValidatePasswordPayload struct {
 	Conn          skydb.Conn
 }
 
-type PwHousekeeper struct {
-	AppName       string
-	AccessControl string
-	DBOpener      func(context.Context, string, string, string, string, bool) (skydb.Conn, error)
-	DBImpl        string
-	Option        string
-
-	PwHistorySize int
-	PwHistoryDays int
-}
-
-func (p *PwHousekeeper) doHousekeep(authID string) {
-	if !p.enabled() {
-		return
-	}
-
-	conn, err := p.DBOpener(context.Background(), p.DBImpl, p.AppName, p.AccessControl, p.Option, false)
-	if err != nil {
-		log.Warnf(`Unable to housekeep password history`)
-		return
-	}
-	defer conn.Close()
-
-	t := time.Now().UTC()
-	err = conn.RemovePasswordHistory(authID, p.PwHistorySize, p.PwHistoryDays, t)
-	if err != nil {
-		log.Warnf(`Unable to housekeep password history`)
-	}
-}
-
-func (p *PwHousekeeper) enabled() bool {
-	return isPasswordHistoryEnabled(p.PwHistorySize, p.PwHistoryDays)
-}
-
-func (p *PwHousekeeper) Housekeep(authID string) {
-	go p.doHousekeep(authID)
-}
-
 type PasswordChecker struct {
-	PwMinLength         int
-	PwUppercaseRequired bool
-	PwLowercaseRequired bool
-	PwDigitRequired     bool
-	PwSymbolRequired    bool
-	PwMinGuessableLevel int
-	PwExcludedKeywords  []string
-	PwExcludedFields    []string
-	PwHistorySize       int
-	PwHistoryDays       int
+	PwMinLength            int
+	PwUppercaseRequired    bool
+	PwLowercaseRequired    bool
+	PwDigitRequired        bool
+	PwSymbolRequired       bool
+	PwMinGuessableLevel    int
+	PwExcludedKeywords     []string
+	PwExcludedFields       []string
+	PwHistorySize          int
+	PwHistoryDays          int
+	PasswordHistoryEnabled bool
 }
 
-func (ua *PasswordChecker) checkPasswordLength(password string) skyerr.Error {
-	minLength := ua.PwMinLength
+func (pc *PasswordChecker) checkPasswordLength(password string) skyerr.Error {
+	minLength := pc.PwMinLength
 	if minLength > 0 && !checkPasswordLength(password, minLength) {
 		return skyerr.NewErrorWithInfo(
 			skyerr.PasswordTooShort,
@@ -250,8 +208,8 @@ func (ua *PasswordChecker) checkPasswordLength(password string) skyerr.Error {
 	return nil
 }
 
-func (ua *PasswordChecker) checkPasswordUppercase(password string) skyerr.Error {
-	if ua.PwUppercaseRequired && !checkPasswordUppercase(password) {
+func (pc *PasswordChecker) checkPasswordUppercase(password string) skyerr.Error {
+	if pc.PwUppercaseRequired && !checkPasswordUppercase(password) {
 		return skyerr.NewError(
 			skyerr.PasswordUppercaseRequired,
 			"password uppercase required",
@@ -260,8 +218,8 @@ func (ua *PasswordChecker) checkPasswordUppercase(password string) skyerr.Error 
 	return nil
 }
 
-func (ua *PasswordChecker) checkPasswordLowercase(password string) skyerr.Error {
-	if ua.PwLowercaseRequired && !checkPasswordLowercase(password) {
+func (pc *PasswordChecker) checkPasswordLowercase(password string) skyerr.Error {
+	if pc.PwLowercaseRequired && !checkPasswordLowercase(password) {
 		return skyerr.NewError(
 			skyerr.PasswordLowercaseRequired,
 			"password lowercase required",
@@ -270,8 +228,8 @@ func (ua *PasswordChecker) checkPasswordLowercase(password string) skyerr.Error 
 	return nil
 }
 
-func (ua *PasswordChecker) checkPasswordDigit(password string) skyerr.Error {
-	if ua.PwDigitRequired && !checkPasswordDigit(password) {
+func (pc *PasswordChecker) checkPasswordDigit(password string) skyerr.Error {
+	if pc.PwDigitRequired && !checkPasswordDigit(password) {
 		return skyerr.NewError(
 			skyerr.PasswordDigitRequired,
 			"password digit required",
@@ -280,8 +238,8 @@ func (ua *PasswordChecker) checkPasswordDigit(password string) skyerr.Error {
 	return nil
 }
 
-func (ua *PasswordChecker) checkPasswordSymbol(password string) skyerr.Error {
-	if ua.PwSymbolRequired && !checkPasswordSymbol(password) {
+func (pc *PasswordChecker) checkPasswordSymbol(password string) skyerr.Error {
+	if pc.PwSymbolRequired && !checkPasswordSymbol(password) {
 		return skyerr.NewError(
 			skyerr.PasswordSymbolRequired,
 			"password symbol required",
@@ -290,8 +248,8 @@ func (ua *PasswordChecker) checkPasswordSymbol(password string) skyerr.Error {
 	return nil
 }
 
-func (ua *PasswordChecker) checkPasswordExcludedKeywords(password string) skyerr.Error {
-	keywords := ua.PwExcludedKeywords
+func (pc *PasswordChecker) checkPasswordExcludedKeywords(password string) skyerr.Error {
+	keywords := pc.PwExcludedKeywords
 	if len(keywords) > 0 && !checkPasswordExcludedKeywords(password, keywords) {
 		return skyerr.NewError(
 			skyerr.PasswordContainingExcludedKeywords,
@@ -301,8 +259,8 @@ func (ua *PasswordChecker) checkPasswordExcludedKeywords(password string) skyerr
 	return nil
 }
 
-func (ua *PasswordChecker) checkPasswordExcludedFields(password string, userData map[string]interface{}) skyerr.Error {
-	fields := ua.PwExcludedFields
+func (pc *PasswordChecker) checkPasswordExcludedFields(password string, userData map[string]interface{}) skyerr.Error {
+	fields := pc.PwExcludedFields
 	if len(fields) > 0 {
 		dict := userDataToStringStringMap(userData)
 		keywords := filterDictionaryByKeys(dict, fields)
@@ -316,8 +274,8 @@ func (ua *PasswordChecker) checkPasswordExcludedFields(password string, userData
 	return nil
 }
 
-func (ua *PasswordChecker) checkPasswordGuessableLevel(password string, userData map[string]interface{}) skyerr.Error {
-	minLevel := ua.PwMinGuessableLevel
+func (pc *PasswordChecker) checkPasswordGuessableLevel(password string, userData map[string]interface{}) skyerr.Error {
+	minLevel := pc.PwMinGuessableLevel
 	if minLevel > 0 {
 		dict := userDataToStringStringMap(userData)
 		userInputs := filterDictionaryTakeAll(dict)
@@ -336,25 +294,23 @@ func (ua *PasswordChecker) checkPasswordGuessableLevel(password string, userData
 	return nil
 }
 
-func (ua *PasswordChecker) checkPasswordHistory(password, authID string, conn skydb.Conn) skyerr.Error {
+func (pc *PasswordChecker) checkPasswordHistory(password, authID string, conn skydb.Conn) skyerr.Error {
 	makeErr := func() skyerr.Error {
 		return skyerr.NewErrorWithInfo(
 			skyerr.PasswordReused,
 			"password reused",
 			map[string]interface{}{
-				"history_size": ua.PwHistorySize,
-				"history_days": ua.PwHistoryDays,
+				"history_size": pc.PwHistorySize,
+				"history_days": pc.PwHistoryDays,
 			},
 		)
 	}
 
-	if ua.shouldCheckPasswordHistory() && authID != "" {
-		now := time.Now().UTC()
+	if pc.shouldCheckPasswordHistory() && authID != "" {
 		history, err := conn.GetPasswordHistory(
 			authID,
-			ua.PwHistorySize,
-			ua.PwHistoryDays,
-			now,
+			pc.PwHistorySize,
+			pc.PwHistoryDays,
 		)
 		if err != nil {
 			return makeErr()
@@ -368,50 +324,46 @@ func (ua *PasswordChecker) checkPasswordHistory(password, authID string, conn sk
 	return nil
 }
 
-func (ua *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) skyerr.Error {
+func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) skyerr.Error {
 	password := payload.PlainPassword
 	userData := payload.UserData
 	conn := payload.Conn
 	authID := payload.AuthID
-	if err := ua.checkPasswordLength(password); err != nil {
+	if err := pc.checkPasswordLength(password); err != nil {
 		return err
 	}
-	if err := ua.checkPasswordUppercase(password); err != nil {
+	if err := pc.checkPasswordUppercase(password); err != nil {
 		return err
 	}
-	if err := ua.checkPasswordLowercase(password); err != nil {
+	if err := pc.checkPasswordLowercase(password); err != nil {
 		return err
 	}
-	if err := ua.checkPasswordDigit(password); err != nil {
+	if err := pc.checkPasswordDigit(password); err != nil {
 		return err
 	}
-	if err := ua.checkPasswordSymbol(password); err != nil {
+	if err := pc.checkPasswordSymbol(password); err != nil {
 		return err
 	}
-	if err := ua.checkPasswordExcludedKeywords(password); err != nil {
+	if err := pc.checkPasswordExcludedKeywords(password); err != nil {
 		return err
 	}
-	if err := ua.checkPasswordExcludedFields(password, userData); err != nil {
+	if err := pc.checkPasswordExcludedFields(password, userData); err != nil {
 		return err
 	}
-	if err := ua.checkPasswordGuessableLevel(password, userData); err != nil {
+	if err := pc.checkPasswordGuessableLevel(password, userData); err != nil {
 		return err
 	}
-	return ua.checkPasswordHistory(password, authID, conn)
+	return pc.checkPasswordHistory(password, authID, conn)
 }
 
-func (ua *PasswordChecker) ShouldSavePasswordHistory() bool {
-	return isPasswordHistoryEnabled(ua.PwHistorySize, ua.PwHistoryDays)
+func (pc *PasswordChecker) ShouldSavePasswordHistory() bool {
+	return pc.PasswordHistoryEnabled
 }
 
-func (ua *PasswordChecker) shouldCheckPasswordHistory() bool {
-	return ua.ShouldSavePasswordHistory()
+func (pc *PasswordChecker) shouldCheckPasswordHistory() bool {
+	return pc.ShouldSavePasswordHistory()
 }
 
 func IsSamePassword(hashedPassword []byte, password string) bool {
 	return bcrypt.CompareHashAndPassword(hashedPassword, []byte(password)) == nil
-}
-
-func isPasswordHistoryEnabled(historySize, historyDays int) bool {
-	return historySize > 0 || historyDays > 0
 }
