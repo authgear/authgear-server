@@ -1,3 +1,11 @@
+## 1.3.1 (2018-01-04)
+
+### Other notes
+
+This minor version is mainly to update the build script for docker images
+- Update to use alpine:3.7 in release image
+- Remove deps image Dockerfile
+
 ## 1.3.0 (2018-01-04)
 
 ### Features
