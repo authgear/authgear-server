@@ -1,3 +1,19 @@
+## 1.3.0 (2018-01-04)
+
+### Features
+
+- Add new sso:custom_token:login handler #494
+- Record acl for transient fields (#496)
+
+### Bug Fixes
+
+- Fix timeNow does not return the current time in preprocessor
+
+### Other notes
+
+- Remove dependency on czmq
+- Use go dep to manage dependencies
+
 ## 1.2.0 (2017-12-11)
 
 ### Features
