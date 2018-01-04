@@ -35,22 +35,13 @@ branch is the same as the `origin/master`.
 ## Draft new release changelog
 $ git log --first-parent `git describe --abbrev=0`.. > new-release
 $ edit new-release
-$ github-release release -u skygeario -r skygear-server --draft --tag v$SKYGEAR_VERSION --name "v$SKYGEAR_VERSION" --description "`cat new-release`"
 
-## Update changelog
-$ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ make update-version VERSION=$SKYGEAR_VERSION
-$ git add CHANGELOG.md pkg/server/skyversion/version.go
-$ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
-
-## Tag commit
-$ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
+## Update changelog, version.go, release commit and tag
+$ make release-commit
 
 ### If the release is latest (official release with the highest version number)
-$ git tag -f latest
-$ git push origin :latest
-
-$ git push --follow-tags origin master v$SKYGEAR_VERSION latest
+$ git tag -f latest && git push git@github.com:SkygearIO/skygear-server.git :latest
+$ git push --follow-tags git@github.com:SkygearIO/skygear-server.git master v$SKYGEAR_VERSION latest
 
 ## Click `Publish release` in github release page
 ```
@@ -61,28 +52,19 @@ $ git push --follow-tags origin master v$SKYGEAR_VERSION latest
 ## Draft new release changelog
 $ git log --first-parent `git describe --abbrev=0`.. > new-release
 $ edit new-release
-$ github-release release -u skygeario -r py-skygear --draft --tag v$SKYGEAR_VERSION --name "v$SKYGEAR_VERSION" --description "`cat new-release`"
 
-## Update changelog and version number
-$ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ make update-version VERSION=$SKYGEAR_VERSION
-$ git add CHANGELOG.md setup.py skygear/__version__.py
-$ git commit -m "Update CHANGELOG for v$SKYGEAR_VERSION"
+## Update changelog, version, release commit and tag
+$ make release-commit
+
 ### For alpha
 ## git commit -m "Bump for for $SKYGEAR_VERSION"
 
+### If the release is latest (official release with the highest version number)
+$ git tag -f latest && git push git@github.com:SkygearIO/py-skygear.git :latest
+$ git push --follow-tags git@github.com:SkygearIO/py-skygear.git master v$SKYGEAR_VERSION latest
+
 ## Release to pypi (Only for official release)
 $ python3 setup.py sdist upload
-
-## Tag and push commit
-$ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
-
-### If the release is latest (official release with the highest version number)
-$ git tag -f latest
-$ git push origin :latest
-
-$ git push --follow-tags origin master v$SKYGEAR_VERSION latest
-
 
 ## Click `Publish release` in github release page
 ```
@@ -99,22 +81,13 @@ it will accept a new release.
 ## Draft new release changelog
 $ git log --first-parent `git describe --abbrev=0`.. > new-release
 $ edit new-release
-$ github-release release -u skygeario -r skygear-SDK-iOS --draft --tag $SKYGEAR_VERSION --name "$SKYGEAR_VERSION" --description "`cat new-release`"
 
-## Update changelog and version number
-$ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ make update-version VERSION=$SKYGEAR_VERSION
-$ git add CHANGELOG.md SKYKit.podspec Pod/Classes/SKYKit+version.h
-$ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
-
-## Tag and push commit
-$ git tag -a $SKYGEAR_VERSION -s -u $KEY_ID -m "Release $SKYGEAR_VERSION"
+## Update changelog, version, release commit and tag
+$ make release-commit
 
 ### If the release is latest (official release with the highest version number)
-$ git tag -f latest
-$ git push origin :latest
-
-$ git push --follow-tags origin master $SKYGEAR_VERSION latest
+$ git tag -f latest && git push git@github.com:SkygearIO/skygear-SDK-iOS.git :latest
+$ git push --follow-tags git@github.com:SkygearIO/skygear-SDK-iOS.git master $SKYGEAR_VERSION latest
 
 ## Push commit to Cocoapods (Only for official release)
 $ pod trunk push SKYKit.podspec --allow-warnings
@@ -128,35 +101,22 @@ $ pod trunk push SKYKit.podspec --allow-warnings
 ## Draft new release changelog
 $ git log --first-parent `git describe --abbrev=0`.. > new-release
 $ edit new-release
-$ github-release release -u skygeario -r skygear-SDK-JS --draft --tag v$SKYGEAR_VERSION --name "v$SKYGEAR_VERSION" --description "`cat new-release`"
 
-## Update changelog
-$ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ git add CHANGELOG.md
+## Update changelog, verion, release commit and tag
+$ make release-commit
 
-## Changing the version number and releasing all packages to npm using lerna.
-$ make update-version VERSION=$SKYGEAR_VERSION
-$ npm run lerna bootstrap # make sure dependencies are linked
-$ npm run prepublish # Build all packages
-$ npm run lerna publish -- --skip-git --repo-version $SKYGEAR_VERSION # Publish all packages
-## For publishing with 2FA channel
-## $ npm run lerna publish -- --skip-git --skip-npm --repo-version $SKYGEAR_VERSION
-## You need to cd into all sub directories at `packages` to run npm publish
-## For publishing to alpha channel
-## $ npm run lerna publish -- --skip-git --npm-tag=alpha --repo-version $SKYGEAR_VERSION
-
-## Tag and push commit
-$ git add CHANGELOG.md lerna.json gulp/context.js packages/*/package.json
-$ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
 ### For alpha
 ## git commit -m "Bump for for $SKYGEAR_VERSION"
-$ git tag -a v$SKYGEAR_VERSION -s -u $KEY_ID -m "Release v$SKYGEAR_VERSION"
 
 ### If the release is latest (official release with the highest version number)
-$ git tag -f latest
-$ git push origin :latest
+$ git tag -f latest && git push git@github.com:SkygearIO/skygear-SDK-JS.git :latest
+$ git push --follow-tags git@github.com:SkygearIO/skygear-SDK-JS.git master v$SKYGEAR_VERSION latest
 
-$ git push --follow-tags origin master v$SKYGEAR_VERSION latest
+## Release to npm (Only for official release)
+$ npm run lerna exec 'npm publish'
+## You will prompt for OTP in each package if you enabled 2FA
+## For publishing to alpha channel
+$ npm run lerna publish -- --skip-git --npm-tag=alpha --repo-version $SKYGEAR_VERSION
 
 ## Click `Publish release` in github release page
 ```
@@ -167,22 +127,13 @@ $ git push --follow-tags origin master v$SKYGEAR_VERSION latest
 ## Draft new release notes
 $ git log --first-parent `git describe --abbrev=0`.. > new-release
 $ edit new-release
-$ github-release release -u skygeario -r skygear-SDK-Android --draft --tag $SKYGEAR_VERSION --name "$SKYGEAR_VERSION" --description "`cat new-release`"
 
-## Update changelog
-$ cat CHANGELOG.md >> new-release && mv new-release CHANGELOG.md
-$ make update-version VERSION=$SKYGEAR_VERSION
-$ git add CHANGELOG.md skygear/build.gradle
-$ git commit -m "Update CHANGELOG for $SKYGEAR_VERSION"
-
-## Tag and push commit
-$ git tag -a $SKYGEAR_VERSION -s -u $KEY_ID -m "Release $SKYGEAR_VERSION"
+## Update changelog, version, release commit and tag
+$ make release-commit
 
 ### If the release is latest (official release with the highest version number)
-$ git tag -f latest
-$ git push origin :latest
-
-$ git push --follow-tags origin master $SKYGEAR_VERSION latest
+$ git tag -f latest && git push git@github.com:SkygearIO/skygear-SDK-Android.git :latest
+$ git push --follow-tags git@github.com:SkygearIO/skygear-SDK-Android.git master $SKYGEAR_VERSION latest
 
 ## Click `Publish release` in github release page
 ```
