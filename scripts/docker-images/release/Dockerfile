@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM alpine:3.7
 
 RUN apk --update --no-cache add libc6-compat libstdc++ zlib ca-certificates \
         libsodium libzmq && \
