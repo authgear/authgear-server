@@ -100,3 +100,7 @@ docker-push:
 .PHONY: release-commit
 release-commit:
 	./scripts/release-commit.sh
+
+.PHONY: update-version
+update-version:
+	sed -i "" "s/version = \".*\"/version = \"v$(VERSION)\"/" pkg/server/skyversion/version.go
