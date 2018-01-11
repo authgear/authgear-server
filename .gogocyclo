@@ -1,5 +1,6 @@
 [gogocyclo]
 ignores = `skyconfig`.ReadFileInto
+ignores = `skyconfig`.(*Configuration).readUserAudit
 ignores = `pq`.(*recordScanner).Scan
 ignores = `pq`.(*database).RemoteColumnTypes
 ignores = `skydb`.(Predicate).Validate

@@ -8,35 +8,7 @@
 
 [[projects]]
   name = "github.com/aws/aws-sdk-go"
-  packages = [
-    "aws",
-    "aws/awserr",
-    "aws/awsutil",
-    "aws/client",
-    "aws/client/metadata",
-    "aws/corehandlers",
-    "aws/credentials",
-    "aws/credentials/ec2rolecreds",
-    "aws/credentials/endpointcreds",
-    "aws/credentials/stscreds",
-    "aws/defaults",
-    "aws/ec2metadata",
-    "aws/endpoints",
-    "aws/request",
-    "aws/session",
-    "aws/signer/v4",
-    "internal/shareddefaults",
-    "private/protocol",
-    "private/protocol/query",
-    "private/protocol/query/queryutil",
-    "private/protocol/rest",
-    "private/protocol/restxml",
-    "private/protocol/xml/xmlutil",
-    "service/s3",
-    "service/s3/s3iface",
-    "service/s3/s3manager",
-    "service/sts"
-  ]
+  packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restxml","private/protocol/xml/xmlutil","service/s3","service/s3/s3iface","service/s3/s3manager","service/sts"]
   revision = "b69f447375c7fa0047ebcdd8ae5d585d5aac2f71"
   version = "v1.10.51"
 
@@ -51,6 +23,12 @@
   packages = ["."]
   revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
   version = "v3.1.0"
+
+[[projects]]
+  name = "github.com/evalphobia/logrus_fluent"
+  packages = ["."]
+  revision = "76779e73f35d90f5a873e7feaf6691999b2c5db4"
+  version = "v0.4.0"
 
 [[projects]]
   name = "github.com/evalphobia/logrus_sentry"
@@ -69,16 +47,19 @@
   revision = "217e25fb96916cc60332e399c9aa63f5c422ceed"
 
 [[projects]]
+  name = "github.com/fluent/fluent-logger-golang"
+  packages = ["fluent"]
+  revision = "8bbc2356beaf021b04c9bd5cdc76ea5a7ccb40ec"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/franela/goreq"
   packages = ["."]
   revision = "b5b0f5eb2d16f20345cce0a544a75163579c0b00"
 
 [[projects]]
   name = "github.com/garyburd/redigo"
-  packages = [
-    "internal",
-    "redis"
-  ]
+  packages = ["internal","redis"]
   revision = "6ece6e0a09f28cc399b21550cbf37ab39ba63cce"
 
 [[projects]]
@@ -96,19 +77,12 @@
 [[projects]]
   branch = "master"
   name = "github.com/golang/lint"
-  packages = [
-    ".",
-    "golint"
-  ]
+  packages = [".","golint"]
   revision = "6aaf7c34af0f4c36a57e0c429bace4d706d8e931"
 
 [[projects]]
   name = "github.com/golang/mock"
-  packages = [
-    "gomock",
-    "mockgen",
-    "mockgen/model"
-  ]
+  packages = ["gomock","mockgen","mockgen/model"]
   revision = "13f360950a79f5864a972c786a10a50e44b69541"
   version = "v1.0.0"
 
@@ -141,10 +115,7 @@
 
 [[projects]]
   name = "github.com/jmoiron/sqlx"
-  packages = [
-    ".",
-    "reflectx"
-  ]
+  packages = [".","reflectx"]
   revision = "d9bd385d68c068f1fabb5057e3dedcbcbb039d0f"
 
 [[projects]]
@@ -167,10 +138,7 @@
 [[projects]]
   branch = "master"
   name = "github.com/kisielk/gotool"
-  packages = [
-    ".",
-    "internal/load"
-  ]
+  packages = [".","internal/load"]
   revision = "d6ce6262d87e3a4e153e86023ff56ae771554a41"
 
 [[projects]]
@@ -192,10 +160,7 @@
 
 [[projects]]
   name = "github.com/lib/pq"
-  packages = [
-    ".",
-    "oid"
-  ]
+  packages = [".","oid"]
   revision = "8c6ee72f3e6bcb1542298dd5f76cb74af9742cec"
 
 [[projects]]
@@ -220,6 +185,11 @@
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   revision = "281073eb9eb092240d33ef253c404f1cca550309"
+
+[[projects]]
+  name = "github.com/nbutton23/zxcvbn-go"
+  packages = [".","adjacency","data","entropy","frequency","match","matching","scoring","utils/math"]
+  revision = "eafdab6b0663b4b528c35975c8b0e78be6e25261"
 
 [[projects]]
   branch = "master"
@@ -251,6 +221,12 @@
   revision = "230ecd8dddd0f31ec76da33d8ff4277887ca773e"
 
 [[projects]]
+  name = "github.com/philhofer/fwd"
+  packages = ["."]
+  revision = "bb6d471dc95d4fe11e432687f8b70ff496cf3136"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/pkg/errors"
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
@@ -261,6 +237,12 @@
   name = "github.com/rickmak/gocyclo"
   packages = ["."]
   revision = "38adf1a47a4c4718e4b6df55431783540db69e01"
+
+[[projects]]
+  name = "github.com/rifflock/lfshook"
+  packages = ["."]
+  revision = "1fdc019a35147ddbb3d25aedf713ad6d1430c144"
+  version = "v2.2"
 
 [[projects]]
   name = "github.com/robfig/cron"
@@ -275,23 +257,21 @@
 
 [[projects]]
   name = "github.com/smartystreets/assertions"
-  packages = [
-    ".",
-    "internal/go-render/render",
-    "internal/oglematchers"
-  ]
+  packages = [".","internal/go-render/render","internal/oglematchers"]
   revision = "ff1918e1e5a13a74014644ae7c1e0ba2f791364d"
   version = "1.8.0"
 
 [[projects]]
   name = "github.com/smartystreets/goconvey"
-  packages = [
-    "convey",
-    "convey/gotest",
-    "convey/reporting"
-  ]
+  packages = ["convey","convey/gotest","convey/reporting"]
   revision = "9e8dc3f972df6c8fcc0375ef492c24d0bb204857"
   version = "1.6.3"
+
+[[projects]]
+  name = "github.com/tinylib/msgp"
+  packages = ["msgp"]
+  revision = "b2b6a672cf1e5b90748f79b8b81fc8c5cf0571a1"
+  version = "1.0.2"
 
 [[projects]]
   name = "github.com/twinj/uuid"
@@ -300,22 +280,13 @@
 
 [[projects]]
   name = "golang.org/x/crypto"
-  packages = [
-    "bcrypt",
-    "blowfish",
-    "ssh/terminal"
-  ]
+  packages = ["bcrypt","blowfish","ssh/terminal"]
   revision = "173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = [
-    "http2",
-    "http2/hpack",
-    "idna",
-    "lex/httplex"
-  ]
+  packages = ["http2","http2/hpack","idna","lex/httplex"]
   revision = "9dfe39835686865bff950a07b394c12a98ddc811"
 
 [[projects]]
@@ -327,48 +298,18 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
-  packages = [
-    "collate",
-    "collate/build",
-    "internal/colltab",
-    "internal/gen",
-    "internal/tag",
-    "internal/triegen",
-    "internal/ucd",
-    "language",
-    "secure/bidirule",
-    "transform",
-    "unicode/bidi",
-    "unicode/cldr",
-    "unicode/norm",
-    "unicode/rangetable"
-  ]
+  packages = ["collate","collate/build","internal/colltab","internal/gen","internal/tag","internal/triegen","internal/ucd","language","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable"]
   revision = "88f656faf3f37f690df1a32515b479415e1a6769"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/tools"
-  packages = [
-    "cmd/cover",
-    "cmd/stringer",
-    "cover",
-    "go/ast/astutil",
-    "go/buildutil",
-    "go/gcexportdata",
-    "go/gcimporter15",
-    "go/loader",
-    "go/types/typeutil"
-  ]
+  packages = ["cmd/cover","cmd/stringer","cover","go/ast/astutil","go/buildutil","go/gcexportdata","go/gcimporter15","go/loader","go/types/typeutil"]
   revision = "6d70fb2e85323e81c89374331d3d2b93304faa36"
 
 [[projects]]
   name = "gopkg.in/gcfg.v1"
-  packages = [
-    ".",
-    "scanner",
-    "token",
-    "types"
-  ]
+  packages = [".","scanner","token","types"]
   revision = "298b7a6a3838f79debfaee8bd3bfb2b8d779e756"
   version = "v1.2.1"
 
@@ -380,26 +321,13 @@
 
 [[projects]]
   name = "honnef.co/go/tools"
-  packages = [
-    "callgraph",
-    "callgraph/static",
-    "cmd/staticcheck",
-    "functions",
-    "internal/sharedcheck",
-    "lint",
-    "lint/lintutil",
-    "ssa",
-    "ssa/ssautil",
-    "staticcheck",
-    "staticcheck/vrp",
-    "version"
-  ]
+  packages = ["callgraph","callgraph/static","cmd/staticcheck","functions","internal/sharedcheck","lint","lint/lintutil","ssa","ssa/ssautil","staticcheck","staticcheck/vrp","version"]
   revision = "e5147431c7c056bd6ef33ad2f23c846f835571dd"
   version = "2017.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "89556af40093d5d8db823987087620eb4b67677f3218691bbeeb85829e736f65"
+  inputs-digest = "857eabfa15be3c0a031733cd90edf8f1212939e6cf525a8a118245bd89548ceb"
   solver-name = "gps-cdcl"
   solver-version = 1

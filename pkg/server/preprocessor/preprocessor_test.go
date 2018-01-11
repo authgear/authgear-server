@@ -27,6 +27,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skydbtest"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 )
 
 type injectDatabasePreprocessorConn struct {
@@ -235,6 +236,22 @@ func TestInjectAuthProcessor(t *testing.T) {
 		}
 		So(conn.CreateAuth(&withFutureTokenValidSince), ShouldBeNil)
 
+		validPasswordSince := time.Date(2017, 12, 1, 0, 0, 0, 0, time.UTC)
+		validPassword := skydb.AuthInfo{
+			ID:              "valid_password",
+			HashedPassword:  []byte("unimportant"),
+			TokenValidSince: &validPasswordSince,
+		}
+		So(conn.CreateAuth(&validPassword), ShouldBeNil)
+
+		invalidPasswordSince := time.Date(2017, 10, 1, 0, 0, 0, 0, time.UTC)
+		invalidPassword := skydb.AuthInfo{
+			ID:              "invalid_password",
+			HashedPassword:  []byte("unimportant"),
+			TokenValidSince: &invalidPasswordSince,
+		}
+		So(conn.CreateAuth(&invalidPassword), ShouldBeNil)
+
 		Convey("should inject user with access token", func() {
 			payload := router.Payload{
 				Data:        map[string]interface{}{},
@@ -298,6 +315,45 @@ func TestInjectAuthProcessor(t *testing.T) {
 
 			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusUnauthorized)
 			So(resp.Err.Code(), ShouldEqual, skyerr.AccessTokenNotAccepted)
+		})
+
+		Convey("should check password expiry", func() {
+			timeNow = func() time.Time { return time.Date(2017, 12, 2, 0, 0, 0, 0, time.UTC) }
+			restore := skydb.MockTimeNowForTestingOnly(timeNow)
+			defer restore()
+			ppWithPasswordExpiryDays := InjectAuthIfPresent{
+				PwExpiryDays: 30,
+			}
+
+			payload1 := router.Payload{
+				Data:       map[string]interface{}{},
+				Meta:       map[string]interface{}{},
+				DBConn:     conn,
+				AuthInfoID: "valid_password",
+				AccessToken: injectUserPreprocessorAccessToken{
+					issuedAt: time.Now(),
+				},
+			}
+			resp1 := router.Response{}
+
+			So(ppWithPasswordExpiryDays.Preprocess(&payload1, &resp1), ShouldEqual, http.StatusOK)
+			So(resp1.Err, ShouldBeNil)
+			So(payload1.AuthInfo.ID, ShouldEqual, "valid_password")
+
+			payload2 := router.Payload{
+				Data:       map[string]interface{}{},
+				Meta:       map[string]interface{}{},
+				DBConn:     conn,
+				AuthInfoID: "invalid_password",
+				AccessToken: injectUserPreprocessorAccessToken{
+					issuedAt: time.Now(),
+				},
+			}
+			resp2 := router.Response{}
+
+			So(ppWithPasswordExpiryDays.Preprocess(&payload2, &resp2), ShouldEqual, http.StatusUnauthorized)
+			So(resp2.Err, ShouldNotBeNil)
+			So(resp2.Err, ShouldEqualSkyError, skyerr.PasswordExpired, "password expired")
 		})
 
 		Convey("should create and inject user when master key is used", func() {

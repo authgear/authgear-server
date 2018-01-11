@@ -16,6 +16,7 @@ package pq
 
 import (
 	"database/sql"
+	"sort"
 	"testing"
 	"time"
 
@@ -71,6 +72,28 @@ func TestAuthCRUD(t *testing.T) {
 					"number": float64(1),
 				},
 			})
+		})
+
+		Convey("creates user with password history", func() {
+			tokenValidSince := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+			authInfoWithPassword := skydb.NewAuthInfo("secret")
+			authInfoWithPassword.ID = "userid"
+			authInfoWithPassword.TokenValidSince = &tokenValidSince
+			originalEnabled := c.passwordHistoryEnabled
+			defer func() {
+				c.passwordHistoryEnabled = originalEnabled
+			}()
+			c.passwordHistoryEnabled = true
+			err := c.CreateAuth(&authInfoWithPassword)
+			So(err, ShouldBeNil)
+
+			var count int
+			c.QueryRowx(`
+				SELECT COUNT(1)
+				FROM _password_history
+				WHERE auth_id = 'userid'
+			`).Scan(&count)
+			So(count, ShouldEqual, 1)
 		})
 
 		Convey("returns ErrUserDuplicated when user to create already exists", func() {
@@ -196,6 +219,163 @@ func TestAuthCRUD(t *testing.T) {
 
 			c.QueryRowx("SELECT COUNT(*) FROM _auth").Scan(&count)
 			So(count, ShouldEqual, 1) // including default admin user
+		})
+	})
+}
+
+type passwordHistoryByLoggedAt []skydb.PasswordHistory
+
+func (a passwordHistoryByLoggedAt) Len() int      { return len(a) }
+func (a passwordHistoryByLoggedAt) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a passwordHistoryByLoggedAt) Less(i, j int) bool {
+	return !a[i].LoggedAt.Before(a[j].LoggedAt)
+}
+
+func TestPasswordHistoryCRUD(t *testing.T) {
+	var c *conn
+
+	Convey("Conn", t, func() {
+		c = getTestConn(t)
+		defer cleanupConn(t, c)
+
+		authID := "user1"
+		hashedPassword := []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO")
+		fixtures := []skydb.PasswordHistory{
+			skydb.PasswordHistory{
+				ID:             "1",
+				LoggedAt:       time.Date(2017, 12, 1, 0, 0, 0, 0, time.UTC),
+				AuthID:         authID,
+				HashedPassword: hashedPassword,
+			},
+			skydb.PasswordHistory{
+				ID:             "2",
+				LoggedAt:       time.Date(2017, 12, 2, 0, 0, 0, 0, time.UTC),
+				AuthID:         authID,
+				HashedPassword: hashedPassword,
+			},
+			skydb.PasswordHistory{
+				ID:             "3",
+				LoggedAt:       time.Date(2017, 12, 3, 0, 0, 0, 0, time.UTC),
+				AuthID:         authID,
+				HashedPassword: hashedPassword,
+			},
+		}
+		for _, f := range fixtures {
+			_, err := c.db.NamedExec(`
+				INSERT INTO _password_history
+				(id, auth_id, password, logged_at) VALUES
+				(:id, :auth_id, :password, :logged_at)
+			`, map[string]interface{}{
+				"id":        f.ID,
+				"auth_id":   f.AuthID,
+				"password":  f.HashedPassword,
+				"logged_at": f.LoggedAt,
+			})
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		queryIDs := func() []string {
+			rows, err := c.db.NamedQuery(`
+				SELECT id FROM _password_history
+				WHERE auth_id = :auth_id
+				ORDER BY logged_at DESC
+			`, map[string]interface{}{
+				"auth_id": authID,
+			})
+			if err != nil {
+				panic(err)
+			}
+			defer rows.Close()
+
+			ids := []string{}
+			for rows.Next() {
+				var id string
+				if err := rows.Scan(&id); err != nil {
+					panic(err)
+				}
+				ids = append(ids, id)
+			}
+
+			return ids
+		}
+
+		Convey("Query password history by size", func() {
+			h1, err := c.GetPasswordHistory(authID, 4, 0)
+			So(err, ShouldBeNil)
+			So(len(h1), ShouldEqual, 3)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h1)), ShouldBeTrue)
+
+			h2, err := c.GetPasswordHistory(authID, 2, 0)
+			So(err, ShouldBeNil)
+			So(len(h2), ShouldEqual, 2)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h2)), ShouldBeTrue)
+		})
+
+		Convey("Query password history by days", func() {
+			mockedTime := time.Date(2017, 12, 4, 1, 2, 3, 0, time.UTC)
+			originalTimeNow := timeNow
+			defer func() {
+				timeNow = originalTimeNow
+			}()
+			timeNow = func() time.Time {
+				return mockedTime
+			}
+
+			h1, err := c.GetPasswordHistory(authID, 0, 1)
+			So(err, ShouldBeNil)
+			So(len(h1), ShouldEqual, 1)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h1)), ShouldBeTrue)
+
+			h2, err := c.GetPasswordHistory(authID, 0, 2)
+			So(err, ShouldBeNil)
+			So(len(h2), ShouldEqual, 2)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h2)), ShouldBeTrue)
+
+			h3, err := c.GetPasswordHistory(authID, 0, 10)
+			So(err, ShouldBeNil)
+			So(len(h3), ShouldEqual, 3)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h3)), ShouldBeTrue)
+		})
+
+		Convey("Query password history by size and days", func() {
+			mockedTime := time.Date(2017, 12, 4, 1, 2, 3, 0, time.UTC)
+			originalTimeNow := timeNow
+			defer func() {
+				timeNow = originalTimeNow
+			}()
+			timeNow = func() time.Time {
+				return mockedTime
+			}
+
+			h1, err := c.GetPasswordHistory(authID, 1, 2)
+			So(err, ShouldBeNil)
+			So(len(h1), ShouldEqual, 2)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h1)), ShouldBeTrue)
+
+			h2, err := c.GetPasswordHistory(authID, 2, 1)
+			So(err, ShouldBeNil)
+			So(len(h2), ShouldEqual, 2)
+			So(sort.IsSorted(passwordHistoryByLoggedAt(h2)), ShouldBeTrue)
+		})
+
+		Convey("Remove password history", func() {
+			mockedTime := time.Date(2017, 12, 4, 1, 2, 3, 0, time.UTC)
+			originalTimeNow := timeNow
+			defer func() {
+				timeNow = originalTimeNow
+			}()
+			timeNow = func() time.Time {
+				return mockedTime
+			}
+
+			err := c.RemovePasswordHistory(authID, 1, 0)
+			So(err, ShouldBeNil)
+
+			ids := queryIDs()
+			So(len(ids), ShouldEqual, 1)
+			So(ids, ShouldResemble, []string{"3"})
 		})
 	})
 }

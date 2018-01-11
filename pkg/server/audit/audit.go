@@ -12,21 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package skydb
+package audit
 
 import (
 	"github.com/skygeario/skygear-server/pkg/server/logging"
-	"time"
 )
 
-var log = logging.LoggerEntry("skydb")
-var timeNow = func() time.Time { return time.Now().UTC() }
-
-func MockTimeNowForTestingOnly(f func() time.Time) func() {
-	timeNow = f
-	return restoreMockTimeNowForTestingOnly
-}
-
-func restoreMockTimeNowForTestingOnly() {
-	timeNow = func() time.Time { return time.Now().UTC() }
-}
+var log = logging.LoggerEntry("audit")

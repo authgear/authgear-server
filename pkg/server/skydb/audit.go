@@ -15,18 +15,13 @@
 package skydb
 
 import (
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"time"
 )
 
-var log = logging.LoggerEntry("skydb")
-var timeNow = func() time.Time { return time.Now().UTC() }
-
-func MockTimeNowForTestingOnly(f func() time.Time) func() {
-	timeNow = f
-	return restoreMockTimeNowForTestingOnly
-}
-
-func restoreMockTimeNowForTestingOnly() {
-	timeNow = func() time.Time { return time.Now().UTC() }
+// PasswordHistory contains a password history of a user
+type PasswordHistory struct {
+	ID             string
+	AuthID         string
+	HashedPassword []byte
+	LoggedAt       time.Time
 }

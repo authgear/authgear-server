@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken/authtokentest"
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
@@ -130,8 +131,9 @@ func TestSignupHandler(t *testing.T) {
 
 		db := mock_skydb.NewMockTxDatabase(ctrl)
 		handler := &SignupHandler{
-			TokenStore:     &tokenStore,
-			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
+			TokenStore:      &tokenStore,
+			AuthRecordKeys:  [][]string{[]string{"username"}, []string{"email"}},
+			PasswordChecker: &audit.PasswordChecker{},
 		}
 
 		Convey("sign up new account", func() {
@@ -396,9 +398,10 @@ func TestSignupHandler(t *testing.T) {
 			}
 			resp := router.Response{}
 			signupHandler := &SignupHandler{
-				TokenStore:     &tokenStore,
-				AccessModel:    skydb.RoleBasedAccess,
-				AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
+				TokenStore:      &tokenStore,
+				AccessModel:     skydb.RoleBasedAccess,
+				AuthRecordKeys:  [][]string{[]string{"username"}, []string{"email"}},
+				PasswordChecker: &audit.PasswordChecker{},
 			}
 			signupHandler.Handle(&req, &resp)
 			authResp := resp.Result.(AuthResponse)
@@ -839,8 +842,9 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 		txdb := skydbtest.NewMockTxDatabase(db)
 
 		r := handlertest.NewSingleRouteRouter(&SignupHandler{
-			TokenStore:     &tokenStore,
-			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
+			TokenStore:      &tokenStore,
+			AuthRecordKeys:  [][]string{[]string{"username"}, []string{"email"}},
+			PasswordChecker: &audit.PasswordChecker{},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
@@ -949,6 +953,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 			TokenStore:       &tokenStore,
 			ProviderRegistry: providerRegistry,
 			AuthRecordKeys:   [][]string{[]string{"username"}, []string{"email"}},
+			PasswordChecker:  &audit.PasswordChecker{},
 		}, func(p *router.Payload) {
 			p.DBConn = &conn
 			p.Database = txdb
@@ -1024,6 +1029,47 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 }`))
 			So(resp.Code, ShouldEqual, 401)
 		})
+	})
+}
+
+func TestSignupHandlerWithUserAuditor(t *testing.T) {
+	Convey("SignupHandler with PasswordChecker", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+		conn := skydbtest.NewMapConn()
+		tokenStore := authtokentest.SingleTokenStore{}
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		db := mock_skydb.NewMockTxDatabase(ctrl)
+		handler := &SignupHandler{
+			TokenStore:     &tokenStore,
+			AuthRecordKeys: [][]string{[]string{"username"}, []string{"email"}},
+			PasswordChecker: &audit.PasswordChecker{
+				PwUppercaseRequired: true,
+			},
+		}
+		req := router.Payload{
+			Data: map[string]interface{}{
+				"auth_data": map[string]interface{}{
+					"username": "john.doe",
+					"email":    "john.doe@example.com",
+				},
+				"password": "secret",
+			},
+			DBConn:   conn,
+			Database: db,
+		}
+		resp := router.Response{}
+		handler.Handle(&req, &resp)
+
+		So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
+		errorResponse := resp.Err.(skyerr.Error)
+		So(errorResponse.Code(), ShouldEqual, skyerr.PasswordUppercaseRequired)
 	})
 }
 
@@ -1103,6 +1149,8 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		tokenStore := authtokentest.SingleTokenStore{}
 		token := authtoken.New("_", authinfo.ID, time.Time{})
 		tokenStore.Put(&token)
+		passwordChecker := audit.PasswordChecker{}
+		housekeeper := audit.PwHousekeeper{}
 
 		user := skydb.Record{
 			ID: skydb.NewRecordID("user", "tester-1"),
@@ -1114,7 +1162,9 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 
 		Convey("change password success", func() {
 			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
-				TokenStore: &tokenStore,
+				TokenStore:      &tokenStore,
+				PasswordChecker: &passwordChecker,
+				PwHousekeeper:   &housekeeper,
 			}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.User = &user
@@ -1147,7 +1197,9 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 
 		Convey("change password success, without user", func() {
 			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
-				TokenStore: &tokenStore,
+				TokenStore:      &tokenStore,
+				PasswordChecker: &passwordChecker,
+				PwHousekeeper:   &housekeeper,
 			}, func(p *router.Payload) {
 				p.DBConn = &conn
 				p.AuthInfo = &authinfo
@@ -1169,6 +1221,41 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 					}
 				}`, tokenStore.Token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("change to a weak password", func() {
+			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
+				TokenStore: &tokenStore,
+				PasswordChecker: &audit.PasswordChecker{
+					PwMinLength: 8,
+				},
+				PwHousekeeper: &housekeeper,
+			}, func(p *router.Payload) {
+				p.DBConn = &conn
+				p.AuthInfo = &authinfo
+			})
+
+			resp := r.POST(fmt.Sprintf(`
+				{
+					"access_token": "%s",
+					"old_password": "chima",
+					"password": "faseng"
+				}`, token.AccessToken))
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+				{
+					"error": {
+						"code": 126,
+						"name": "PasswordTooShort",
+						"message": "password too short",
+						"info": {
+							"min_length": 8,
+							"pw_length": 6
+						}
+					}
+				}
+			`)
+			So(resp.Code, ShouldEqual, 500)
 		})
 
 	})

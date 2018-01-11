@@ -94,6 +94,21 @@ type Conn interface {
 	// exist in the container.
 	DeleteAuth(id string) error
 
+	// GetPasswordHistory returns a slice of PasswordHistory of the given user
+	//
+	// If historySize is greater than 0, the returned slice contains history
+	// of that size.
+	// If historyDays is greater than 0, the returned slice contains history
+	// up to now.
+	//
+	// If both historySize and historyDays are greater than 0, the returned slice
+	// is the longer of the result.
+	GetPasswordHistory(authID string, historySize, historyDays int) ([]PasswordHistory, error)
+
+	// RemovePasswordHistory removes old password history.
+	// It uses GetPasswordHistory to query active history and then purge old history.
+	RemovePasswordHistory(authID string, historySize, historyDays int) error
+
 	// GetAdminRoles return the current admine roles
 	GetAdminRoles() ([]string, error)
 

@@ -20,6 +20,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/provider"
@@ -38,6 +39,7 @@ type signupPayload struct {
 	Provider         string                 `mapstructure:"provider"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
 	Profile          skydb.Data             `mapstructure:"profile"`
+	passwordChecker  *audit.PasswordChecker
 }
 
 func (payload *signupPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -64,6 +66,14 @@ func (payload *signupPayload) Validate() skyerr.Error {
 		if payload.Password == "" {
 			return skyerr.NewInvalidArgument("empty password", []string{"password"})
 		}
+
+		err := payload.passwordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+			PlainPassword: payload.Password,
+			UserData:      payload.mergedUserData(),
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -83,6 +93,18 @@ func (payload *signupPayload) duplicatedKeysInAuthDataAndProfile() []string {
 	}
 
 	return keys
+}
+
+func (payload *signupPayload) mergedUserData() map[string]interface{} {
+	// Assume duplicatedKeysInAuthDataAndProfile is called before this
+	userData := make(map[string]interface{})
+	for key, value := range payload.AuthData.GetData() {
+		userData[key] = value
+	}
+	for key, value := range payload.Profile {
+		userData[key] = value
+	}
+	return userData
 }
 
 // SignupHandler creates an AuthInfo with the supplied information.
@@ -112,16 +134,17 @@ func (payload *signupPayload) duplicatedKeysInAuthDataAndProfile() []string {
 //  }
 //  EOF
 type SignupHandler struct {
-	TokenStore       authtoken.Store    `inject:"TokenStore"`
-	ProviderRegistry *provider.Registry `inject:"ProviderRegistry"`
-	HookRegistry     *hook.Registry     `inject:"HookRegistry"`
-	AssetStore       asset.Store        `inject:"AssetStore"`
-	AccessModel      skydb.AccessModel  `inject:"AccessModel"`
-	AuthRecordKeys   [][]string         `inject:"AuthRecordKeys"`
-	AccessKey        router.Processor   `preprocessor:"accesskey"`
-	DBConn           router.Processor   `preprocessor:"dbconn"`
-	InjectPublicDB   router.Processor   `preprocessor:"inject_public_db"`
-	PluginReady      router.Processor   `preprocessor:"plugin_ready"`
+	TokenStore       authtoken.Store        `inject:"TokenStore"`
+	ProviderRegistry *provider.Registry     `inject:"ProviderRegistry"`
+	HookRegistry     *hook.Registry         `inject:"HookRegistry"`
+	AssetStore       asset.Store            `inject:"AssetStore"`
+	AccessModel      skydb.AccessModel      `inject:"AccessModel"`
+	AuthRecordKeys   [][]string             `inject:"AuthRecordKeys"`
+	PasswordChecker  *audit.PasswordChecker `inject:"PasswordChecker"`
+	AccessKey        router.Processor       `preprocessor:"accesskey"`
+	DBConn           router.Processor       `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor       `preprocessor:"inject_public_db"`
+	PluginReady      router.Processor       `preprocessor:"plugin_ready"`
 	preprocessors    []router.Processor
 }
 
@@ -140,7 +163,8 @@ func (h *SignupHandler) GetPreprocessors() []router.Processor {
 
 func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
 	p := &signupPayload{
-		AuthRecordKeys: h.AuthRecordKeys,
+		AuthRecordKeys:  h.AuthRecordKeys,
+		passwordChecker: h.PasswordChecker,
 	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
@@ -224,6 +248,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	// Populate the activity time to user
 	now := timeNow()
 	info.LastSeenAt = &now
+	info.IsPasswordSet = false
 	if err := payload.DBConn.UpdateAuth(&info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -239,6 +264,11 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 	}
 
 	response.Result = authResponse
+
+	audit.Trail(audit.Entry{
+		AuthID: info.ID,
+		Event:  audit.EventSignup,
+	}.WithRouterPayload(payload))
 }
 
 type loginPayload struct {
@@ -313,6 +343,22 @@ func (h *LoginHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response) {
+	info := skydb.AuthInfo{}
+
+	defer func() {
+		if response.Err != nil {
+			audit.Trail(audit.Entry{
+				AuthID: info.ID,
+				Event:  audit.EventLoginFailure,
+			}.WithRouterPayload(payload))
+		} else {
+			audit.Trail(audit.Entry{
+				AuthID: info.ID,
+				Event:  audit.EventLoginSuccess,
+			}.WithRouterPayload(payload))
+		}
+	}()
+
 	p := &loginPayload{
 		AuthRecordKeys: h.AuthRecordKeys,
 	}
@@ -327,7 +373,6 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 	}
 	store := h.TokenStore
 
-	info := skydb.AuthInfo{}
 	user := skydb.Record{}
 
 	var handleLoginFunc func(*router.Payload, *loginPayload, *skydb.AuthInfo, *skydb.Record) skyerr.Error
@@ -504,13 +549,22 @@ func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Respons
 			"OK",
 		}
 	}
+
+	audit.Trail(audit.Entry{
+		AuthID: payload.AuthInfoID,
+		Event:  audit.EventLogout,
+	}.WithRouterPayload(payload))
 }
 
 // Define the playload that change password handler will process
 type passwordPayload struct {
-	OldPassword string `mapstructure:"old_password"`
-	NewPassword string `mapstructure:"password"`
-	Invalidate  bool   `mapstructure:"invalidate"`
+	OldPassword     string `mapstructure:"old_password"`
+	NewPassword     string `mapstructure:"password"`
+	Invalidate      bool   `mapstructure:"invalidate"`
+	passwordChecker *audit.PasswordChecker
+	userRecord      *skydb.Record
+	authInfo        *skydb.AuthInfo
+	conn            skydb.Conn
 }
 
 func (payload *passwordPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -521,7 +575,16 @@ func (payload *passwordPayload) Decode(data map[string]interface{}) skyerr.Error
 }
 
 func (payload *passwordPayload) Validate() skyerr.Error {
-	return nil
+	var userData map[string]interface{}
+	if payload.userRecord != nil {
+		userData = map[string]interface{}(payload.userRecord.Data)
+	}
+	return payload.passwordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+		AuthID:        payload.authInfo.ID,
+		PlainPassword: payload.NewPassword,
+		UserData:      userData,
+		Conn:          payload.conn,
+	})
 }
 
 // PasswordHandler change the current user password
@@ -551,15 +614,17 @@ func (payload *passwordPayload) Validate() skyerr.Error {
 // accept `invalidate` and invaldate all existing access token.
 // Return authInfoID with new AccessToken if the invalidate is true
 type PasswordHandler struct {
-	TokenStore    authtoken.Store  `inject:"TokenStore"`
-	AssetStore    asset.Store      `inject:"AssetStore"`
-	Authenticator router.Processor `preprocessor:"authenticator"`
-	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectAuth    router.Processor `preprocessor:"inject_auth"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
-	RequireAuth   router.Processor `preprocessor:"require_auth"`
-	PluginReady   router.Processor `preprocessor:"plugin_ready"`
-	preprocessors []router.Processor
+	TokenStore      authtoken.Store        `inject:"TokenStore"`
+	AssetStore      asset.Store            `inject:"AssetStore"`
+	PasswordChecker *audit.PasswordChecker `inject:"PasswordChecker"`
+	PwHousekeeper   *audit.PwHousekeeper   `inject:"PwHousekeeper"`
+	Authenticator   router.Processor       `preprocessor:"authenticator"`
+	DBConn          router.Processor       `preprocessor:"dbconn"`
+	InjectAuth      router.Processor       `preprocessor:"inject_auth"`
+	InjectUser      router.Processor       `preprocessor:"inject_user"`
+	RequireAuth     router.Processor       `preprocessor:"require_auth"`
+	PluginReady     router.Processor       `preprocessor:"plugin_ready"`
+	preprocessors   []router.Processor
 }
 
 func (h *PasswordHandler) Setup() {
@@ -579,7 +644,12 @@ func (h *PasswordHandler) GetPreprocessors() []router.Processor {
 
 func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Response) {
 	log.Debugf("changing password")
-	p := &passwordPayload{}
+	p := &passwordPayload{
+		passwordChecker: h.PasswordChecker,
+		userRecord:      payload.User,
+		authInfo:        payload.AuthInfo,
+		conn:            payload.DBConn,
+	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
@@ -628,4 +698,10 @@ func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Respo
 	}
 
 	response.Result = authResponse
+
+	audit.Trail(audit.Entry{
+		AuthID: info.ID,
+		Event:  audit.EventChangePassword,
+	}.WithRouterPayload(payload))
+	h.PwHousekeeper.Housekeep(info.ID)
 }

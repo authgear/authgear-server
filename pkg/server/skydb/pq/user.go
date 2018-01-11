@@ -24,7 +24,12 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
+
+func (c *conn) shouldSavePasswordHistory(authinfo *skydb.AuthInfo) bool {
+	return c.passwordHistoryEnabled && authinfo.IsPasswordChanged()
+}
 
 func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 	var (
@@ -62,6 +67,16 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 	if err := c.UpdateUserRoles(authinfo); err != nil {
 		return skydb.ErrRoleUpdatesFailed
 	}
+
+	if c.shouldSavePasswordHistory(authinfo) {
+		builder = c.insertPasswordHistoryBuilder(
+			authinfo.ID,
+			authinfo.HashedPassword,
+			authinfo.TokenValidSince,
+		)
+		_, err = c.ExecWith(builder)
+	}
+
 	return err
 }
 
@@ -106,7 +121,33 @@ func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 	if err := c.UpdateUserRoles(authinfo); err != nil {
 		return skydb.ErrRoleUpdatesFailed
 	}
+
+	if c.shouldSavePasswordHistory(authinfo) {
+		updateBuilder := c.insertPasswordHistoryBuilder(
+			authinfo.ID,
+			authinfo.HashedPassword,
+			authinfo.TokenValidSince,
+		)
+		if _, err := c.ExecWith(updateBuilder); err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (c *conn) insertPasswordHistoryBuilder(authID string, hashedPassword []byte, loggedAt *time.Time) sq.InsertBuilder {
+	return psql.Insert(c.tableName("_password_history")).Columns(
+		"id",
+		"auth_id",
+		"password",
+		"logged_at",
+	).Values(
+		uuid.New(),
+		authID,
+		hashedPassword,
+		loggedAt,
+	)
 }
 
 func (c *conn) baseUserBuilder() sq.SelectBuilder {
@@ -192,6 +233,97 @@ func (c *conn) DeleteAuth(id string) error {
 	}
 
 	return nil
+}
+
+func (c *conn) basePasswordHistoryBuilder(authID string) sq.SelectBuilder {
+	return psql.Select("id", "auth_id", "password", "logged_at").
+		From(c.tableName("_password_history")).
+		Where("auth_id = ?", authID).
+		OrderBy("logged_at DESC")
+}
+
+func (c *conn) doQueryPasswordHistory(builder sq.SelectBuilder) ([]skydb.PasswordHistory, error) {
+	rows, err := c.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []skydb.PasswordHistory{}
+	for rows.Next() {
+		var (
+			id                string
+			authID            string
+			hashedPasswordStr string
+			loggedAt          time.Time
+		)
+		if err := rows.Scan(&id, &authID, &hashedPasswordStr, &loggedAt); err != nil {
+			return nil, err
+		}
+		passwordHistory := skydb.PasswordHistory{
+			ID:             id,
+			AuthID:         authID,
+			HashedPassword: []byte(hashedPasswordStr),
+			LoggedAt:       loggedAt,
+		}
+		out = append(out, passwordHistory)
+	}
+	return out, nil
+}
+
+func (c *conn) GetPasswordHistory(authID string, historySize, historyDays int) ([]skydb.PasswordHistory, error) {
+	var err error
+	var sizeHistory, daysHistory []skydb.PasswordHistory
+	t := timeNow()
+
+	if historySize > 0 {
+		sizeBuilder := c.basePasswordHistoryBuilder(authID).Limit(uint64(historySize))
+		sizeHistory, err = c.doQueryPasswordHistory(sizeBuilder)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if historyDays > 0 {
+		startOfDay := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+		since := startOfDay.AddDate(0, 0, -historyDays)
+		daysBuilder := c.basePasswordHistoryBuilder(authID).
+			Where("logged_at >= ?", since)
+		daysHistory, err = c.doQueryPasswordHistory(daysBuilder)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(sizeHistory) > len(daysHistory) {
+		return sizeHistory, nil
+	}
+
+	return daysHistory, nil
+}
+
+func (c *conn) RemovePasswordHistory(authID string, historySize, historyDays int) error {
+	history, err := c.GetPasswordHistory(authID, historySize, historyDays)
+	if err != nil {
+		return err
+	}
+
+	if len(history) <= 0 {
+		return nil
+	}
+
+	oldestTime := history[len(history)-1].LoggedAt
+	ids := []interface{}{}
+	for _, h := range history {
+		ids = append(ids, h.ID)
+	}
+
+	builder := psql.Delete(c.tableName("_password_history")).
+		Where("auth_id = ?", authID).
+		Where("id NOT IN ("+sq.Placeholders(len(ids))+")", ids...).
+		Where("logged_at < ?", oldestTime)
+
+	_, err = c.ExecWith(builder)
+	return err
 }
 
 func (c *conn) EnsureAuthRecordKeysExist(authRecordKeys [][]string) error {

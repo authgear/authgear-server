@@ -31,7 +31,7 @@ type fakeDriver struct {
 	Driver
 }
 
-func (driver fakeDriver) Open(ctx context.Context, appName string, accessModel AccessModel, optionString string, migrate bool) (Conn, error) {
+func (driver fakeDriver) Open(ctx context.Context, appName string, accessModel AccessModel, optionString string, config DBConfig) (Conn, error) {
 	return fakeConn{
 		AppName:      appName,
 		AccessModel:  accessModel,
@@ -50,7 +50,11 @@ func TestOpen(t *testing.T) {
 
 	ctx := context.WithValue(context.Background(), FakeValueContextKey, true)
 
-	if driver, err := Open(ctx, "fakeImpl", "com.example.app.test", "role", "fakeOption", true); err != nil {
+	dbConfig := DBConfig{
+		CanMigrate:             true,
+		PasswordHistoryEnabled: false,
+	}
+	if driver, err := Open(ctx, "fakeImpl", "com.example.app.test", "role", "fakeOption", dbConfig); err != nil {
 		t.Fatalf("got err: %v, want a driver", err.Error())
 	} else {
 		if driver, ok := driver.(fakeConn); !ok {

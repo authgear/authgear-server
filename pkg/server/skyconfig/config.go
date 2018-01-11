@@ -42,6 +42,20 @@ func parseBool(str string) (bool, error) {
 	}
 }
 
+// parseCommaSeparatedString parses a string representation of a comma separated list
+// into a slice of string, omitting empty strings.
+func parseCommaSeparatedString(str string) []string {
+	splits := strings.Split(str, ",")
+	results := make([]string, 0, len(splits))
+	for _, split := range splits {
+		split = strings.TrimSpace(split)
+		if split != "" {
+			results = append(results, split)
+		}
+	}
+	return results
+}
+
 // parseAuthRecordKeys parses a string representation of a comma separated list
 // to keys and key tuples
 //
@@ -196,7 +210,22 @@ type Configuration struct {
 		Timeout   int `json:"timeout"`
 		MaxBounce int `json:"max_bounce"`
 	} `json:"zmq"`
-	Plugin map[string]*PluginConfig `json:"-"`
+	Plugin    map[string]*PluginConfig `json:"-"`
+	UserAudit struct {
+		Enabled             bool     `json:"enabled"`
+		TrailHandlerURL     string   `json:"trail_handler_url"`
+		PwMinLength         int      `json:"pw_min_length"`
+		PwUppercaseRequired bool     `json:"pw_uppercase_required"`
+		PwLowercaseRequired bool     `json:"pw_lowercase_required"`
+		PwDigitRequired     bool     `json:"pw_digit_required"`
+		PwSymbolRequired    bool     `json:"pw_symbol_required"`
+		PwMinGuessableLevel int      `json:"pw_min_guessable_level"`
+		PwExcludedKeywords  []string `json:"pw_excluded_keywords"`
+		PwExcludedFields    []string `json:"pw_excluded_fields"`
+		PwHistorySize       int      `json:"pw_history_size"`
+		PwHistoryDays       int      `json:"pw_history_days"`
+		PwExpiryDays        int      `json:"pw_expiry_days"`
+	} `json:"user_audit"`
 }
 
 func NewConfiguration() Configuration {
@@ -350,6 +379,7 @@ func (config *Configuration) ReadFromEnv() {
 	config.readGCM()
 	config.readLog()
 	config.readPlugins()
+	config.readUserAudit()
 }
 
 func (config *Configuration) readHost() {
@@ -590,5 +620,45 @@ func (config *Configuration) readPlugins() {
 			pluginConfig.Args = strings.Split(args, ",")
 		}
 		config.Plugin[p] = pluginConfig
+	}
+}
+
+func (config *Configuration) readUserAudit() {
+	if v, err := parseBool(os.Getenv("USER_AUDIT_ENABLED")); err == nil {
+		config.UserAudit.Enabled = v
+	}
+	config.UserAudit.TrailHandlerURL = os.Getenv("USER_AUDIT_TRAIL_HANDLER_URL")
+	if v, err := strconv.ParseInt(os.Getenv("USER_AUDIT_PW_MIN_LENGTH"), 10, 0); err == nil && v > 0 {
+		config.UserAudit.PwMinLength = int(v)
+	}
+	if v, err := parseBool(os.Getenv("USER_AUDIT_PW_UPPERCASE_REQUIRED")); err == nil {
+		config.UserAudit.PwUppercaseRequired = v
+	}
+	if v, err := parseBool(os.Getenv("USER_AUDIT_PW_LOWERCASE_REQUIRED")); err == nil {
+		config.UserAudit.PwLowercaseRequired = v
+	}
+	if v, err := parseBool(os.Getenv("USER_AUDIT_PW_DIGIT_REQUIRED")); err == nil {
+		config.UserAudit.PwDigitRequired = v
+	}
+	if v, err := parseBool(os.Getenv("USER_AUDIT_PW_SYMBOL_REQUIRED")); err == nil {
+		config.UserAudit.PwSymbolRequired = v
+	}
+	if v, err := strconv.ParseInt(os.Getenv("USER_AUDIT_PW_MIN_GUESSABLE_LEVEL"), 10, 0); err == nil && v > 0 && v <= 5 {
+		config.UserAudit.PwMinGuessableLevel = int(v)
+	}
+	if v := parseCommaSeparatedString(os.Getenv("USER_AUDIT_PW_EXCLUDED_KEYWORDS")); len(v) > 0 {
+		config.UserAudit.PwExcludedKeywords = v
+	}
+	if v := parseCommaSeparatedString(os.Getenv("USER_AUDIT_PW_EXCLUDED_FIELDS")); len(v) > 0 {
+		config.UserAudit.PwExcludedFields = v
+	}
+	if v, err := strconv.ParseInt(os.Getenv("USER_AUDIT_PW_HISTORY_SIZE"), 10, 0); err == nil && v > 0 {
+		config.UserAudit.PwHistorySize = int(v)
+	}
+	if v, err := strconv.ParseInt(os.Getenv("USER_AUDIT_PW_HISTORY_DAYS"), 10, 0); err == nil && v > 0 {
+		config.UserAudit.PwHistoryDays = int(v)
+	}
+	if v, err := strconv.ParseInt(os.Getenv("USER_AUDIT_PW_EXPIRY_DAYS"), 10, 0); err == nil && v > 0 {
+		config.UserAudit.PwExpiryDays = int(v)
 	}
 }

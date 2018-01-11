@@ -17,6 +17,7 @@ package skydb
 import (
 	"bytes"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/crypto/bcrypt"
@@ -156,6 +157,59 @@ func TestSetPassword(t *testing.T) {
 	if info.TokenValidSince.IsZero() {
 		t.Fatalf("got info.TokenValidSince.IsZero = true, want false")
 	}
+	if !info.IsPasswordSet {
+		t.Fatalf("got info.IsPasswordSet = false, want true")
+	}
+}
+
+func TestIsPasswordExpired(t *testing.T) {
+	mockedNow := time.Date(2017, 12, 2, 0, 0, 0, 0, time.UTC)
+	originalTimeNow := timeNow
+	defer func() {
+		timeNow = originalTimeNow
+	}()
+	timeNow = func() time.Time {
+		return mockedNow
+	}
+	Convey("IsPasswordExpired", t, func() {
+		Convey("return false if authinfo is not password based", func() {
+			info := AuthInfo{}
+			So(info.IsPasswordExpired(1), ShouldBeFalse)
+		})
+		Convey("return false if expiryDays is not positive", func() {
+			info := AuthInfo{}
+			info.HashedPassword = []byte("unimportant")
+			tokenValidSince := time.Date(2017, 12, 1, 0, 0, 0, 0, time.UTC)
+			info.TokenValidSince = &tokenValidSince
+			So(info.IsPasswordExpired(0), ShouldBeFalse)
+		})
+		Convey("return false if password is indeed valid", func() {
+			info := AuthInfo{}
+			info.HashedPassword = []byte("unimportant")
+			tokenValidSince := time.Date(2017, 12, 1, 0, 0, 0, 0, time.UTC)
+			info.TokenValidSince = &tokenValidSince
+			So(info.IsPasswordExpired(30), ShouldBeFalse)
+		})
+		Convey("return true if password is indeed expired", func() {
+			info := AuthInfo{}
+			info.HashedPassword = []byte("unimportant")
+			tokenValidSince := time.Date(2017, 12, 1, 0, 0, 0, 0, time.UTC)
+			info.TokenValidSince = &tokenValidSince
+			originalMockedNow := mockedNow
+			defer func() {
+				mockedNow = originalMockedNow
+			}()
+
+			mockedNow = info.TokenValidSince.AddDate(0, 0, 29)
+			So(info.IsPasswordExpired(30), ShouldBeFalse)
+
+			mockedNow = info.TokenValidSince.AddDate(0, 0, 30)
+			So(info.IsPasswordExpired(30), ShouldBeFalse)
+
+			mockedNow = info.TokenValidSince.AddDate(0, 0, 31)
+			So(info.IsPasswordExpired(30), ShouldBeTrue)
+		})
+	})
 }
 
 func TestIsSamePassword(t *testing.T) {

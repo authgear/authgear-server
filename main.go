@@ -29,6 +29,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/handler"
 	"github.com/skygeario/skygear-server/pkg/server/logging"
@@ -92,6 +93,35 @@ func main() {
 		Secret:         config.TokenStore.Secret,
 	})
 
+	dbConfig := baseDBConfig(config)
+
+	passwordChecker := &audit.PasswordChecker{
+		PwMinLength:            config.UserAudit.PwMinLength,
+		PwUppercaseRequired:    config.UserAudit.PwUppercaseRequired,
+		PwLowercaseRequired:    config.UserAudit.PwLowercaseRequired,
+		PwDigitRequired:        config.UserAudit.PwDigitRequired,
+		PwSymbolRequired:       config.UserAudit.PwSymbolRequired,
+		PwMinGuessableLevel:    config.UserAudit.PwMinGuessableLevel,
+		PwExcludedKeywords:     config.UserAudit.PwExcludedKeywords,
+		PwExcludedFields:       config.UserAudit.PwExcludedFields,
+		PwHistorySize:          config.UserAudit.PwHistorySize,
+		PwHistoryDays:          config.UserAudit.PwHistoryDays,
+		PasswordHistoryEnabled: dbConfig.PasswordHistoryEnabled,
+	}
+
+	pwHousekeeper := &audit.PwHousekeeper{
+		AppName:       config.App.Name,
+		AccessControl: config.App.AccessControl,
+		DBOpener:      skydb.Open,
+		DBImpl:        config.DB.ImplName,
+		Option:        config.DB.Option,
+		DBConfig:      dbConfig,
+
+		PwHistorySize:          config.UserAudit.PwHistorySize,
+		PwHistoryDays:          config.UserAudit.PwHistoryDays,
+		PasswordHistoryEnabled: dbConfig.PasswordHistoryEnabled,
+	}
+
 	preprocessorRegistry := router.PreprocessorRegistry{}
 
 	var cronjob *cron.Cron
@@ -144,14 +174,16 @@ func main() {
 		DBOpener:      skydb.Open,
 		DBImpl:        config.DB.ImplName,
 		Option:        config.DB.Option,
-		DevMode:       config.App.DevMode,
+		DBConfig:      dbConfig,
 	}
 	preprocessorRegistry["plugin_ready"] = &pp.EnsurePluginReadyPreprocessor{
 		PluginContext: &pluginContext,
 		ClientKey:     config.App.APIKey,
 		MasterKey:     config.App.MasterKey,
 	}
-	preprocessorRegistry["inject_auth"] = &pp.InjectAuthIfPresent{}
+	preprocessorRegistry["inject_auth"] = &pp.InjectAuthIfPresent{
+		PwExpiryDays: config.UserAudit.PwExpiryDays,
+	}
 	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
 	preprocessorRegistry["require_auth"] = &pp.RequireAuth{}
 	preprocessorRegistry["require_admin"] = &pp.RequireAdminOrMasterKey{}
@@ -203,6 +235,16 @@ func main() {
 			Value:    config.App.AuthRecordKeys,
 			Complete: true,
 			Name:     "AuthRecordKeys",
+		},
+		&inject.Object{
+			Value:    passwordChecker,
+			Complete: true,
+			Name:     "PasswordChecker",
+		},
+		&inject.Object{
+			Value:    pwHousekeeper,
+			Complete: true,
+			Name:     "PwHousekeeper",
 		},
 	)
 	if injectErr != nil {
@@ -340,6 +382,16 @@ func main() {
 	}
 }
 
+func baseDBConfig(config skyconfig.Configuration) skydb.DBConfig {
+	passwordHistoryEnabled := config.UserAudit.PwHistorySize > 0 ||
+		config.UserAudit.PwHistoryDays > 0
+
+	return skydb.DBConfig{
+		CanMigrate:             config.App.DevMode,
+		PasswordHistoryEnabled: passwordHistoryEnabled,
+	}
+}
+
 func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 	connOpener := func() (skydb.Conn, error) {
 		return skydb.Open(
@@ -348,7 +400,7 @@ func ensureDB(config skyconfig.Configuration) func() (skydb.Conn, error) {
 			config.App.Name,
 			config.App.AccessControl,
 			config.DB.Option,
-			config.App.DevMode,
+			baseDBConfig(config),
 		)
 	}
 
@@ -593,6 +645,12 @@ func initLogger(config skyconfig.Configuration) {
 
 	if config.LogHook.SentryDSN != "" {
 		initSentry(config)
+	}
+
+	err := audit.InitTrailHandler(config.UserAudit.Enabled, config.UserAudit.TrailHandlerURL)
+	if err != nil {
+		log.Fatalf("user-audit: error when initializing trail handler %v", err)
+		return
 	}
 }
 

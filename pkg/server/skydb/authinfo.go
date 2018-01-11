@@ -48,6 +48,7 @@ type AuthInfo struct {
 	ProviderInfo    ProviderInfo `json:"provider_info,omitempty"` // auth data for alternative methods
 	TokenValidSince *time.Time   `json:"token_valid_since,omitempty"`
 	LastSeenAt      *time.Time   `json:"last_seen_at,omitempty"`
+	IsPasswordSet   bool
 }
 
 // AuthData contains the unique authentication data of a user
@@ -222,6 +223,31 @@ func (info *AuthInfo) SetPassword(password string) {
 	// access token should be invalidated.
 	timeNow := time.Now().UTC()
 	info.TokenValidSince = &timeNow
+	info.IsPasswordSet = true
+}
+
+// IsPasswordChanged determines password was changed with SetPassword.
+// It is useful for auditing since password history
+// must be saved when password is changed.
+func (info *AuthInfo) IsPasswordChanged() bool {
+	return info.IsPasswordSet &&
+		info.HashedPassword != nil &&
+		info.TokenValidSince != nil &&
+		!info.TokenValidSince.IsZero()
+}
+
+// IsPasswordExpired determines whether the password is expired
+// It returns false if the authinfo is not password-based.
+func (info *AuthInfo) IsPasswordExpired(expiryDays int) bool {
+	if expiryDays > 0 &&
+		len(info.HashedPassword) > 0 &&
+		info.TokenValidSince != nil &&
+		!info.TokenValidSince.IsZero() {
+		validUntil := info.TokenValidSince.AddDate(0, 0, expiryDays)
+		t := timeNow()
+		return t.After(validUntil)
+	}
+	return false
 }
 
 // IsSamePassword determines whether the specified password is the same

@@ -74,16 +74,17 @@ type ExtContext interface {
 }
 
 type conn struct {
-	db             *sqlx.DB // database wrapper
-	tx             *sqlx.Tx // transaction wrapper, nil when no transaction
-	RecordSchema   map[string]skydb.RecordSchema
-	FieldACL       *skydb.FieldACL
-	appName        string
-	option         string
-	statementCount uint64
-	accessModel    skydb.AccessModel
-	canMigrate     bool
-	context        context.Context
+	db                     *sqlx.DB // database wrapper
+	tx                     *sqlx.Tx // transaction wrapper, nil when no transaction
+	RecordSchema           map[string]skydb.RecordSchema
+	FieldACL               *skydb.FieldACL
+	appName                string
+	option                 string
+	statementCount         uint64
+	accessModel            skydb.AccessModel
+	canMigrate             bool
+	passwordHistoryEnabled bool
+	context                context.Context
 }
 
 // Db returns the current database wrapper, or a transaction wrapper when
