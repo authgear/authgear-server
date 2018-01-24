@@ -189,6 +189,15 @@ func TestRecordSaveHandler(t *testing.T) {
 			}
 		})
 
+		adminRouter := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, func(payload *router.Payload) {
+			payload.DBConn = conn
+			payload.Database = db
+			payload.AuthInfo = &skydb.AuthInfo{
+				ID: "admin",
+				Roles: []string{"admin"},
+			}
+		})
+
 		Convey("Saves multiple records", func() {
 			resp := r.POST(`{
 				"records": [{
@@ -240,6 +249,30 @@ func TestRecordSaveHandler(t *testing.T) {
 						"code": 102,
 						"message": "no permission to create",
 						"name": "PermissionDenied"
+					}
+				]
+			}`)
+		})
+
+		Convey("Should be able to create record when have permission", func() {
+			resp := adminRouter.POST(`{
+				"records": [{
+					"_id": "report/id1",
+					"k1": "v1",
+					"k2": "v2"
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [
+					{
+						"_id": "report/id1",
+						"_type": "record",
+						"_access": null,
+						"_created_by":"admin",
+						"_updated_by":"admin",
+						"_ownerID": "admin",
+						"k1":"v1",
+						"k2":"v2"
 					}
 				]
 			}`)

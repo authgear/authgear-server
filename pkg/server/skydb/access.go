@@ -102,6 +102,9 @@ func (ace *RecordACLEntry) AccessibleLevel(level RecordACLLevel) bool {
 	if level == ace.Level && level == WriteLevel {
 		return true
 	}
+	if level == ace.Level && level == CreateLevel {
+		return true
+	}
 	return false
 }
 
