@@ -269,14 +269,17 @@ func TestSignupHandler(t *testing.T) {
 			txBegin := db.EXPECT().Begin().AnyTimes()
 			db.EXPECT().Commit().After(txBegin)
 
+			now := timeNow()
 			skydbtest.ExpectDBSaveUser(db, &skydb.RecordSchema{
 				"username": skydb.FieldType{Type: skydb.TypeString},
 				"email":    skydb.FieldType{Type: skydb.TypeString},
 				"nickname": skydb.FieldType{Type: skydb.TypeString},
+				"birthday": skydb.FieldType{Type: skydb.TypeDateTime},
 			}, MakeUserRecordAssertion(skydb.NewAuthData(map[string]interface{}{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 				"nickname": "iamyourfather",
+				"birthday": now,
 			}, authRecordKeys)), nil)
 
 			req := router.Payload{
@@ -288,6 +291,10 @@ func TestSignupHandler(t *testing.T) {
 					"profile": skydb.Data{
 						"email":    "john.doe@example.com",
 						"nickname": "iamyourfather",
+						"birthday": map[string]interface{}{
+							"$date": "2006-01-02T15:04:05Z",
+							"$type": "date",
+						},
 					},
 				},
 				DBConn:   conn,
@@ -298,7 +305,6 @@ func TestSignupHandler(t *testing.T) {
 
 			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
 
-			now := timeNow()
 			authResp := resp.Result.(AuthResponse)
 			So(authResp.Profile.ID, ShouldResemble, skydb.NewRecordID("user", authResp.UserID))
 			So(authResp.Profile.DatabaseID, ShouldResemble, "_public")
@@ -311,6 +317,7 @@ func TestSignupHandler(t *testing.T) {
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 				"nickname": "iamyourfather",
+				"birthday": now,
 			})
 			So(authResp.AccessToken, ShouldNotBeEmpty)
 			So(authResp.LastSeenAt, ShouldNotBeEmpty)

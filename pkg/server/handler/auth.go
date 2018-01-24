@@ -26,6 +26,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/plugin/provider"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -38,7 +39,8 @@ type signupPayload struct {
 	Password         string                 `mapstructure:"password"`
 	Provider         string                 `mapstructure:"provider"`
 	ProviderAuthData map[string]interface{} `mapstructure:"provider_auth_data"`
-	Profile          skydb.Data             `mapstructure:"profile"`
+	RawProfile       map[string]interface{} `mapstructure:"profile"`
+	Profile          skydb.Data
 	passwordChecker  *audit.PasswordChecker
 }
 
@@ -46,6 +48,11 @@ func (payload *signupPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+
+	if err := (*skyconv.MapData)(&payload.Profile).FromMap(payload.RawProfile); err != nil {
+		return skyerr.NewError(skyerr.InvalidArgument, err.Error())
+	}
+
 	payload.AuthData = skydb.NewAuthData(payload.AuthDataData, payload.AuthRecordKeys)
 	return payload.Validate()
 }
