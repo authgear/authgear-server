@@ -1,4 +1,4 @@
-FROM golang:1.8.3-stretch as godev
+FROM golang:1.9.3-stretch as godev
 
 RUN \
     apt-get update && \

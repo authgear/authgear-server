@@ -90,7 +90,7 @@ If you have any fixes or suggestions, simply send us a pull request!
 
 ### Dependencies
 
-* Golang 1.8
+* Golang 1.9
 * PostgreSQL 9.5 with PostGIS extension
 * Redis
 * libsodium and zeromq if using ZeroMQ as a plugin transport
