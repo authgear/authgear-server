@@ -1,11 +1,14 @@
 DIST_DIR = ./dist/
 DIST := skygear-server
 VERSION := $(shell git describe --always)
+GIT_SHA := $(shell git rev-parse HEAD)
+BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
 GO_TEST_TIMEOUT := 1m30s
 OSARCHS := linux/amd64 linux/386 linux/arm windows/amd64 windows/386 darwin/amd64
 GO_TEST_CPU := 1,4
 GO_TEST_PACKAGE := ./pkg/...
+SHELL := /bin/bash
 
 ifeq (1,${WITH_ZMQ})
 GO_BUILD_TAGS := --tags zmq
@@ -13,17 +16,24 @@ endif
 
 DOCKER_COMPOSE_CMD := docker-compose \
 	-f docker-compose.make.yml \
+
+DOCKER_COMPOSE_CMD_TEST := docker-compose \
+	-f docker-compose.test.yml \
 	-p skygear-server-test
 
 ifeq (1,${WITH_DOCKER})
-DOCKER_RUN := docker run --rm -i \
-	-v `pwd`:/go/src/github.com/skygeario/skygear-server \
-	-w /go/src/github.com/skygeario/skygear-server \
-	skygeario/skygear-godev:go1.8
-DOCKER_COMPOSE_RUN := ${DOCKER_COMPOSE_CMD} run --rm app
-DOCKER_COMPOSE_RUN_DB := ${DOCKER_COMPOSE_CMD} run --rm db_cmd
+DOCKER_RUN := ${DOCKER_COMPOSE_CMD} run --rm app
+DOCKER_RUN_DB := ${DOCKER_COMPOSE_CMD_TEST} run --rm db_cmd
+DOCKER_RUN_TEST := ${DOCKER_COMPOSE_CMD_TEST} run --rm app
 GO_TEST_TIMEOUT := 5m
 endif
+
+DOCKER_REGISTRY :=
+DOCKER_ORG_NAME := skygeario
+DOCKER_IMAGE := skygear-server
+DOCKER_TAG := git-$(shell git rev-parse --short HEAD)
+PUSH_DOCKER_TAG := $(VERSION)
+IMAGE_NAME := $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(DOCKER_IMAGE):$(DOCKER_TAG)
 
 GO_BUILD_ARGS := $(GO_BUILD_TAGS) $(GO_BUILD_LDFLAGS)
 
@@ -43,19 +53,19 @@ build:
 
 .PHONY: before-docker-test
 before-docker-test:
-	-$(DOCKER_COMPOSE_CMD) up -d db redis
+	-$(DOCKER_COMPOSE_CMD_TEST) up -d db redis
 	sleep 20
 	make before-test WITH_DOCKER=1
 
 .PHONY: before-test
 before-test:
-	-$(DOCKER_COMPOSE_RUN_DB) psql -c 'CREATE DATABASE skygear_test;'
+	-$(DOCKER_RUN_DB) psql -c 'CREATE DATABASE skygear_test;'
 
 .PHONY: test
 test:
 # Run `go install` to compile packages for caching and catch compilation error.
-	$(DOCKER_COMPOSE_RUN) go install $(GO_BUILD_ARGS)
-	$(DOCKER_COMPOSE_RUN) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -p 1 -cpu $(GO_TEST_CPU) $(GO_TEST_PACKAGE)
+	$(DOCKER_RUN_TEST) go install $(GO_BUILD_ARGS)
+	$(DOCKER_RUN_TEST) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -p 1 -cpu $(GO_TEST_CPU) $(GO_TEST_PACKAGE)
 
 .PHONY: lint
 lint:
@@ -69,7 +79,7 @@ fmt:
 
 .PHONY: after-docker-test
 after-docker-test:
-	-$(DOCKER_COMPOSE_CMD) down -v
+	-$(DOCKER_COMPOSE_CMD_TEST) down -v
 
 .PHONY: clean
 clean:
@@ -93,13 +103,21 @@ archive:
 		find . -maxdepth 1 -type f -name 'skygear-server-*.exe' -not -exec zip -r {}.zip {} \;
 
 .PHONY: docker-build
-docker-build: build
-	cp skygear-server scripts/docker-images/release/
-	make -C scripts/docker-images/release docker-build
+docker-build:
+	docker build -t $(IMAGE_NAME) \
+		--build-arg sha=$(GIT_SHA) \
+		--build-arg version=$(VERSION) \
+		--build-arg build_date=$(BUILD_DATE) \
+		.
 
 .PHONY: docker-push
 docker-push:
-	make -C scripts/docker-images/release docker-push
+	docker push $(IMAGE_NAME)
+
+.PHONY: docker-push-version
+docker-push-version:
+	docker tag $(IMAGE_NAME) $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(DOCKER_IMAGE):$(PUSH_DOCKER_TAG)
+	docker push $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(DOCKER_IMAGE):$(PUSH_DOCKER_TAG)
 
 .PHONY: release-commit
 release-commit:
