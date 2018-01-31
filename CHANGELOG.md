@@ -1,3 +1,19 @@
+## 1.3.2 (2018-01-31)
+
+### Features
+
+- Support for Security Audit Feature
+
+### Bug Fixes
+
+- Fix signup profile fail to save various field type due to incorrect serialization (#524)
+- Fix fail to create record for user who have create access role (#527)
+
+### Other notes
+
+- Update golang to 1.9
+- Use multi-stage build for docker release image
+
 ## 1.3.1 (2018-01-04)
 
 ### Other notes
