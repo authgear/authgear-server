@@ -27,6 +27,7 @@ services:
     - db
     command: skygear-server
     restart: always
+    tty: true
     environment:
       # `db` in the following string should match the name of the database
       # container above.
