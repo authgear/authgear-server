@@ -1,3 +1,11 @@
+## 1.3.3 (2018-02-05)
+
+### Bug Fixes
+
+- Fix docker image missing ZMQ transport
+
+### Other Notes
+- Add tty: true to docker-compose.yml
 ## 1.3.2 (2018-01-31)
 
 ### Features

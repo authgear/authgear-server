@@ -15,7 +15,7 @@
 package skyversion
 
 // This will be overwrite on build time.
-var version = "v1.3.2"
+var version = "v1.3.3"
 
 // Version returns the version of Skygear
 func Version() string {
