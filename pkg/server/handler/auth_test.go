@@ -1076,7 +1076,7 @@ func TestSignupHandlerWithUserAuditor(t *testing.T) {
 
 		So(resp.Err, ShouldImplement, (*skyerr.Error)(nil))
 		errorResponse := resp.Err.(skyerr.Error)
-		So(errorResponse.Code(), ShouldEqual, skyerr.PasswordUppercaseRequired)
+		So(errorResponse.Code(), ShouldEqual, skyerr.PasswordPolicyViolated)
 	})
 }
 
@@ -1253,9 +1253,10 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 				{
 					"error": {
 						"code": 126,
-						"name": "PasswordTooShort",
+						"name": "PasswordPolicyViolated",
 						"message": "password too short",
 						"info": {
+							"reason": "PasswordTooShort",
 							"min_length": 8,
 							"pw_length": 6
 						}

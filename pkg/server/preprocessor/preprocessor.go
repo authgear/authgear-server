@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/recordutil"
@@ -92,7 +93,7 @@ func (p InjectAuthIfPresent) Preprocess(payload *router.Payload, response *route
 			return http.StatusUnauthorized
 		}
 		if authinfo.IsPasswordExpired(p.PwExpiryDays) {
-			response.Err = skyerr.NewError(skyerr.PasswordExpired, "password expired")
+			response.Err = audit.MakePasswordError(audit.PasswordExpired, "password expired", nil)
 			return http.StatusUnauthorized
 		}
 	}

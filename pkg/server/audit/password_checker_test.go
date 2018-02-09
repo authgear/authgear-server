@@ -146,9 +146,10 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
-			skyerr.PasswordTooShort,
+			skyerr.PasswordPolicyViolated,
 			"password too short",
 			map[string]interface{}{
+				"reason":     PasswordTooShort.String(),
 				"min_length": 2,
 				"pw_length":  1,
 			},
@@ -164,8 +165,11 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
-			skyerr.PasswordUppercaseRequired,
+			skyerr.PasswordPolicyViolated,
 			"password uppercase required",
+			map[string]interface{}{
+				"reason": PasswordUppercaseRequired.String(),
+			},
 		)
 	})
 	Convey("validate lowercase password", t, func() {
@@ -178,8 +182,11 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
-			skyerr.PasswordLowercaseRequired,
+			skyerr.PasswordPolicyViolated,
 			"password lowercase required",
+			map[string]interface{}{
+				"reason": PasswordLowercaseRequired.String(),
+			},
 		)
 	})
 	Convey("validate digit password", t, func() {
@@ -192,8 +199,11 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
-			skyerr.PasswordDigitRequired,
+			skyerr.PasswordPolicyViolated,
 			"password digit required",
+			map[string]interface{}{
+				"reason": PasswordDigitRequired.String(),
+			},
 		)
 	})
 	Convey("validate symbol password", t, func() {
@@ -206,8 +216,11 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
-			skyerr.PasswordSymbolRequired,
+			skyerr.PasswordPolicyViolated,
 			"password symbol required",
+			map[string]interface{}{
+				"reason": PasswordSymbolRequired.String(),
+			},
 		)
 	})
 	Convey("validate excluded keywords password", t, func() {
@@ -220,8 +233,11 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
-			skyerr.PasswordContainingExcludedKeywords,
+			skyerr.PasswordPolicyViolated,
 			"password containing excluded keywords",
+			map[string]interface{}{
+				"reason": PasswordContainingExcludedKeywords.String(),
+			},
 		)
 	})
 	Convey("validate excluded fields password", t, func() {
@@ -239,8 +255,11 @@ func TestValidatePassword(t *testing.T) {
 				UserData:      userData,
 			}),
 			ShouldEqualSkyError,
-			skyerr.PasswordContainingExcludedKeywords,
+			skyerr.PasswordPolicyViolated,
 			"password containing excluded keywords",
+			map[string]interface{}{
+				"reason": PasswordContainingExcludedKeywords.String(),
+			},
 		)
 	})
 	Convey("validate guessable password", t, func() {
@@ -253,9 +272,10 @@ func TestValidatePassword(t *testing.T) {
 				PlainPassword: password,
 			}),
 			ShouldEqualSkyError,
-			skyerr.PasswordBelowGuessableLevel,
+			skyerr.PasswordPolicyViolated,
 			"password below guessable level",
 			map[string]interface{}{
+				"reason":    PasswordBelowGuessableLevel.String(),
 				"min_level": 5,
 				"pw_level":  1,
 			},
@@ -295,9 +315,10 @@ func TestValidatePassword(t *testing.T) {
 				Conn:          conn,
 			}),
 			ShouldEqualSkyError,
-			skyerr.PasswordReused,
+			skyerr.PasswordPolicyViolated,
 			"password reused",
 			map[string]interface{}{
+				"reason":       PasswordReused.String(),
 				"history_size": historySize,
 				"history_days": historyDays,
 			},

@@ -22,6 +22,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/mock_skydb"
@@ -353,7 +354,15 @@ func TestInjectAuthProcessor(t *testing.T) {
 
 			So(ppWithPasswordExpiryDays.Preprocess(&payload2, &resp2), ShouldEqual, http.StatusUnauthorized)
 			So(resp2.Err, ShouldNotBeNil)
-			So(resp2.Err, ShouldEqualSkyError, skyerr.PasswordExpired, "password expired")
+			So(
+				resp2.Err,
+				ShouldEqualSkyError,
+				skyerr.PasswordPolicyViolated,
+				"password expired",
+				map[string]interface{}{
+					"reason": audit.PasswordExpired.String(),
+				},
+			)
 		})
 
 		Convey("should create and inject user when master key is used", func() {

@@ -146,40 +146,9 @@ const (
 	// and the required configuration is missing.
 	NotConfigured
 
-	// PasswordTooShort is returned when the password is too short.
-	PasswordTooShort
-
-	// PasswordUppercaseRequired is returned when the password
-	// does not contain ASCII uppercase character
-	PasswordUppercaseRequired
-
-	// PasswordLowercaseRequired is returned when the password
-	// does not contain ASCII lowercase character
-	PasswordLowercaseRequired
-
-	// PasswordDigitRequired is returned when the password
-	// does not contain ASCII digit character
-	PasswordDigitRequired
-
-	// PasswordSymbolRequired is returned when the password
-	// does not contain ASCII non-alphanumeric character
-	PasswordSymbolRequired
-
-	// PasswordBelowGuessableLevel is returned when the password
-	// guessable level is below configured level
-	PasswordBelowGuessableLevel
-
-	// PasswordContainingExcludedKeywords is returned when the password
-	// contains configured excluded keywords
-	PasswordContainingExcludedKeywords
-
-	// PasswordReused is returned when the password
-	// is the same as a historical password.
-	PasswordReused
-
-	// PasswordExpired is returned when the password
-	// is expired
-	PasswordExpired
+	// PasswordPolicyViolated is returned when the password violates
+	// a configured policy.
+	PasswordPolicyViolated
 
 	// Error codes for expected error condition should be placed
 	// above this line.

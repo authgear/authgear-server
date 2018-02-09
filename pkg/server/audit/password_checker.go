@@ -25,6 +25,66 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+// PasswordViolationReason is a detailed explaination
+// of skyerr.PasswordPolicyViolated
+type PasswordViolationReason int
+
+const (
+	// PasswordTooShort is self-explanatory
+	PasswordTooShort PasswordViolationReason = iota
+	// PasswordUppercaseRequired means the password does not contain ASCII uppercase character
+	PasswordUppercaseRequired
+	// PasswordLowercaseRequired means the password does not contain ASCII lowercase character
+	PasswordLowercaseRequired
+	// PasswordDigitRequired means the password does not contain ASCII digit character
+	PasswordDigitRequired
+	// PasswordSymbolRequired means the password does not contain ASCII non-alphanumeric character
+	PasswordSymbolRequired
+	// PasswordContainingExcludedKeywords means the password contains configured excluded keywords
+	PasswordContainingExcludedKeywords
+	// PasswordBelowGuessableLevel means the password's guessable level is below configured level.
+	// The current implementation uses Dropbox's zxcvbn.
+	PasswordBelowGuessableLevel
+	// PasswordReused is self-explanatory
+	PasswordReused
+	// PasswordExpired is self-explanatory
+	PasswordExpired
+)
+
+func (r PasswordViolationReason) String() string {
+	switch r {
+	case PasswordTooShort:
+		return "PasswordTooShort"
+	case PasswordUppercaseRequired:
+		return "PasswordUppercaseRequired"
+	case PasswordLowercaseRequired:
+		return "PasswordLowercaseRequired"
+	case PasswordDigitRequired:
+		return "PasswordDigitRequired"
+	case PasswordSymbolRequired:
+		return "PasswordSymbolRequired"
+	case PasswordContainingExcludedKeywords:
+		return "PasswordContainingExcludedKeywords"
+	case PasswordBelowGuessableLevel:
+		return "PasswordBelowGuessableLevel"
+	case PasswordReused:
+		return "PasswordReused"
+	case PasswordExpired:
+		return "PasswordExpired"
+	default:
+		panic("unreachable")
+	}
+}
+
+func MakePasswordError(reason PasswordViolationReason, message string, info map[string]interface{}) skyerr.Error {
+	newInfo := make(map[string]interface{})
+	newInfo["reason"] = reason.String()
+	for key, value := range info {
+		newInfo[key] = value
+	}
+	return skyerr.NewErrorWithInfo(skyerr.PasswordPolicyViolated, message, newInfo)
+}
+
 func isUpperRune(r rune) bool {
 	// NOTE: Intentionally not use unicode.IsUpper
 	// because it take other languages into account.
@@ -196,8 +256,8 @@ type PasswordChecker struct {
 func (pc *PasswordChecker) checkPasswordLength(password string) skyerr.Error {
 	minLength := pc.PwMinLength
 	if minLength > 0 && !checkPasswordLength(password, minLength) {
-		return skyerr.NewErrorWithInfo(
-			skyerr.PasswordTooShort,
+		return MakePasswordError(
+			PasswordTooShort,
 			"password too short",
 			map[string]interface{}{
 				"min_length": minLength,
@@ -210,9 +270,10 @@ func (pc *PasswordChecker) checkPasswordLength(password string) skyerr.Error {
 
 func (pc *PasswordChecker) checkPasswordUppercase(password string) skyerr.Error {
 	if pc.PwUppercaseRequired && !checkPasswordUppercase(password) {
-		return skyerr.NewError(
-			skyerr.PasswordUppercaseRequired,
+		return MakePasswordError(
+			PasswordUppercaseRequired,
 			"password uppercase required",
+			nil,
 		)
 	}
 	return nil
@@ -220,9 +281,10 @@ func (pc *PasswordChecker) checkPasswordUppercase(password string) skyerr.Error 
 
 func (pc *PasswordChecker) checkPasswordLowercase(password string) skyerr.Error {
 	if pc.PwLowercaseRequired && !checkPasswordLowercase(password) {
-		return skyerr.NewError(
-			skyerr.PasswordLowercaseRequired,
+		return MakePasswordError(
+			PasswordLowercaseRequired,
 			"password lowercase required",
+			nil,
 		)
 	}
 	return nil
@@ -230,9 +292,10 @@ func (pc *PasswordChecker) checkPasswordLowercase(password string) skyerr.Error 
 
 func (pc *PasswordChecker) checkPasswordDigit(password string) skyerr.Error {
 	if pc.PwDigitRequired && !checkPasswordDigit(password) {
-		return skyerr.NewError(
-			skyerr.PasswordDigitRequired,
+		return MakePasswordError(
+			PasswordDigitRequired,
 			"password digit required",
+			nil,
 		)
 	}
 	return nil
@@ -240,9 +303,10 @@ func (pc *PasswordChecker) checkPasswordDigit(password string) skyerr.Error {
 
 func (pc *PasswordChecker) checkPasswordSymbol(password string) skyerr.Error {
 	if pc.PwSymbolRequired && !checkPasswordSymbol(password) {
-		return skyerr.NewError(
-			skyerr.PasswordSymbolRequired,
+		return MakePasswordError(
+			PasswordSymbolRequired,
 			"password symbol required",
+			nil,
 		)
 	}
 	return nil
@@ -251,9 +315,10 @@ func (pc *PasswordChecker) checkPasswordSymbol(password string) skyerr.Error {
 func (pc *PasswordChecker) checkPasswordExcludedKeywords(password string) skyerr.Error {
 	keywords := pc.PwExcludedKeywords
 	if len(keywords) > 0 && !checkPasswordExcludedKeywords(password, keywords) {
-		return skyerr.NewError(
-			skyerr.PasswordContainingExcludedKeywords,
+		return MakePasswordError(
+			PasswordContainingExcludedKeywords,
 			"password containing excluded keywords",
+			nil,
 		)
 	}
 	return nil
@@ -265,9 +330,10 @@ func (pc *PasswordChecker) checkPasswordExcludedFields(password string, userData
 		dict := userDataToStringStringMap(userData)
 		keywords := filterDictionaryByKeys(dict, fields)
 		if !checkPasswordExcludedKeywords(password, keywords) {
-			return skyerr.NewError(
-				skyerr.PasswordContainingExcludedKeywords,
+			return MakePasswordError(
+				PasswordContainingExcludedKeywords,
 				"password containing excluded keywords",
+				nil,
 			)
 		}
 	}
@@ -281,8 +347,8 @@ func (pc *PasswordChecker) checkPasswordGuessableLevel(password string, userData
 		userInputs := filterDictionaryTakeAll(dict)
 		level, ok := checkPasswordGuessableLevel(password, minLevel, userInputs)
 		if !ok {
-			return skyerr.NewErrorWithInfo(
-				skyerr.PasswordBelowGuessableLevel,
+			return MakePasswordError(
+				PasswordBelowGuessableLevel,
 				"password below guessable level",
 				map[string]interface{}{
 					"min_level": minLevel,
@@ -296,8 +362,8 @@ func (pc *PasswordChecker) checkPasswordGuessableLevel(password string, userData
 
 func (pc *PasswordChecker) checkPasswordHistory(password, authID string, conn skydb.Conn) skyerr.Error {
 	makeErr := func() skyerr.Error {
-		return skyerr.NewErrorWithInfo(
-			skyerr.PasswordReused,
+		return MakePasswordError(
+			PasswordReused,
 			"password reused",
 			map[string]interface{}{
 				"history_size": pc.PwHistorySize,
