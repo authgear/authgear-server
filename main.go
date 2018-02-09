@@ -508,6 +508,10 @@ func initPushSender(config skyconfig.Configuration, connOpener func() (skydb.Con
 		routeSender.Route("gcm", gcm)
 		routeSender.Route("android", gcm)
 	}
+	if config.Baidu.Enable {
+		baidu := initBaiduPusher(config)
+		routeSender.Route("baidu-android", baidu)
+	}
 	return routeSender
 }
 
@@ -593,6 +597,10 @@ func initTokenBasedAPNSPusher(
 
 func initGCMPusher(config skyconfig.Configuration) *push.GCMPusher {
 	return &push.GCMPusher{APIKey: config.GCM.APIKey}
+}
+
+func initBaiduPusher(config skyconfig.Configuration) *push.BaiduPusher {
+	return push.NewBaiduPusher(config.Baidu.APIKey, config.Baidu.SecretKey)
 }
 
 func initSubscription(config skyconfig.Configuration, connOpener func() (skydb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
