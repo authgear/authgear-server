@@ -188,7 +188,7 @@ func createHook(handlerURL string) (logrus.Hook, error) {
 	case "fluentd":
 		return createFluentdHook(parsedURL)
 	}
-	return nil, fmt.Errorf("unknown handler: %v", scheme)
+	return nil, fmt.Errorf("unknown handler: %v, %v", scheme, handlerURL)
 }
 
 func InitTrailHandler(enabled bool, handlerURL string) error {

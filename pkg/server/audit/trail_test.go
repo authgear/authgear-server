@@ -24,6 +24,7 @@ func TestCreateHook(t *testing.T) {
 	Convey("createHook with unsupported scheme", t, func() {
 		hook, err := createHook("http://is-not-supported")
 		So(err, ShouldNotBeNil)
+		So(err.Error(), ShouldEqual, "unknown handler: http, http://is-not-supported")
 		So(hook, ShouldBeNil)
 	})
 
