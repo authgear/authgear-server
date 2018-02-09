@@ -84,6 +84,21 @@ func (p InjectAuthIfPresent) Preprocess(payload *router.Payload, response *route
 		}
 	}
 
+	if authinfo.IsDisabled() {
+		log.Info("User is disabled")
+		info := map[string]interface{}{}
+		if authinfo.DisabledExpiry != nil {
+			info["expiry"] = authinfo.DisabledExpiry.Format(time.RFC3339)
+		}
+		if authinfo.DisabledMessage != "" {
+			info["message"] = authinfo.DisabledMessage
+		}
+		response.Err = skyerr.NewErrorWithInfo(skyerr.UserDisabled, "user is disabled", info)
+		return http.StatusForbidden
+	}
+
+	authinfo.RefreshDisabledStatus()
+
 	if payload.AccessToken != nil {
 		// If an access token exists checks if the access token has an IssuedAt
 		// time that is later than the user's TokenValidSince time. This

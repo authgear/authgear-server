@@ -365,6 +365,27 @@ func TestInjectAuthProcessor(t *testing.T) {
 			)
 		})
 
+		Convey("should deny disabled user", func() {
+			disabledUser := skydb.AuthInfo{
+				ID:             "some-uuid",
+				HashedPassword: []byte("unimportant"),
+				Disabled:       true,
+			}
+			So(conn.CreateAuth(&disabledUser), ShouldBeNil)
+
+			payload := router.Payload{
+				Data:       map[string]interface{}{},
+				Meta:       map[string]interface{}{},
+				DBConn:     conn,
+				AuthInfoID: "some-uuid",
+			}
+			resp := router.Response{}
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusForbidden)
+
+			So(resp.Err, ShouldNotBeNil)
+			So(resp.Err.Code(), ShouldEqual, skyerr.UserDisabled)
+		})
+
 		Convey("should create and inject user when master key is used", func() {
 			// Note: AuthInfoID can be set by master key, hence without
 			// access token.

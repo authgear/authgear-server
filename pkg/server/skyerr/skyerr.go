@@ -150,6 +150,9 @@ const (
 	// a configured policy.
 	PasswordPolicyViolated
 
+	// UserDisabled is returned when the user account is disabled.
+	UserDisabled
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )
