@@ -264,6 +264,7 @@ func main() {
 	r.Map("auth:logout", injector.Inject(&handler.LogoutHandler{}))
 	r.Map("auth:password", injector.Inject(&handler.ChangePasswordHandler{}))
 	r.Map("auth:reset_password", injector.Inject(&handler.ResetPasswordHandler{}))
+	r.Map("auth:disable:set", injector.Inject(&handler.SetDisableUserHandler{}))
 	r.Map("sso:oauth:login", injector.Inject(&handler.LoginProviderHandler{}))
 	r.Map("sso:oauth:signup", injector.Inject(&handler.SignupProviderHandler{}))
 	r.Map("sso:oauth:link", injector.Inject(&handler.LinkProviderHandler{}))
