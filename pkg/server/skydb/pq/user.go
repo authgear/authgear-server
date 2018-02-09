@@ -35,6 +35,8 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
 		lastSeenAt      *time.Time
+		disabledReason  *string
+		disabledExpiry  *time.Time
 	)
 	tokenValidSince = authinfo.TokenValidSince
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
@@ -44,6 +46,14 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
 	}
+	disabledReason = &authinfo.DisabledMessage
+	if *disabledReason == "" {
+		disabledReason = nil
+	}
+	disabledExpiry = authinfo.DisabledExpiry
+	if disabledExpiry != nil && disabledExpiry.IsZero() {
+		disabledExpiry = nil
+	}
 
 	builder := psql.Insert(c.tableName("_auth")).Columns(
 		"id",
@@ -51,12 +61,18 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 		"provider_info",
 		"token_valid_since",
 		"last_seen_at",
+		"disabled",
+		"disabled_message",
+		"disabled_expiry",
 	).Values(
 		authinfo.ID,
 		authinfo.HashedPassword,
 		providerInfoValue{authinfo.ProviderInfo, true},
 		tokenValidSince,
 		lastSeenAt,
+		authinfo.Disabled,
+		disabledReason,
+		disabledExpiry,
 	)
 
 	_, err = c.ExecWith(builder)
@@ -84,6 +100,8 @@ func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
 		lastSeenAt      *time.Time
+		disabledReason  *string
+		disabledExpiry  *time.Time
 	)
 	tokenValidSince = authinfo.TokenValidSince
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
@@ -93,12 +111,23 @@ func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
 	}
+	disabledReason = &authinfo.DisabledMessage
+	if *disabledReason == "" {
+		disabledReason = nil
+	}
+	disabledExpiry = authinfo.DisabledExpiry
+	if disabledExpiry != nil && disabledExpiry.IsZero() {
+		disabledExpiry = nil
+	}
 
 	builder := psql.Update(c.tableName("_auth")).
 		Set("password", authinfo.HashedPassword).
 		Set("provider_info", providerInfoValue{authinfo.ProviderInfo, true}).
 		Set("token_valid_since", tokenValidSince).
 		Set("last_seen_at", lastSeenAt).
+		Set("disabled", authinfo.Disabled).
+		Set("disabled_message", disabledReason).
+		Set("disabled_expiry", disabledExpiry).
 		Where("id = ?", authinfo.ID)
 
 	result, err := c.ExecWith(builder)
@@ -153,6 +182,7 @@ func (c *conn) insertPasswordHistoryBuilder(authID string, hashedPassword []byte
 func (c *conn) baseUserBuilder() sq.SelectBuilder {
 	return psql.Select("id", "password", "provider_info",
 		"token_valid_since", "last_seen_at",
+		"disabled", "disabled_message", "disabled_expiry",
 		"array_to_json(array_agg(role_id)) AS roles").
 		From(c.tableName("_auth")).
 		LeftJoin(c.tableName("_auth_role") + " ON id = auth_id").
@@ -165,6 +195,9 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 		tokenValidSince pq.NullTime
 		lastSeenAt      pq.NullTime
 		roles           nullJSONStringSlice
+		disabled        bool
+		disabledReason  sql.NullString
+		disabledExpiry  pq.NullTime
 	)
 	password, providerInfo := []byte{}, providerInfoValue{}
 
@@ -174,6 +207,9 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 		&providerInfo,
 		&tokenValidSince,
 		&lastSeenAt,
+		&disabled,
+		&disabledReason,
+		&disabledExpiry,
 		&roles,
 	)
 	if err != nil {
@@ -196,6 +232,24 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 	} else {
 		authinfo.LastSeenAt = nil
 	}
+	authinfo.Disabled = disabled
+	if disabled {
+		if disabledReason.Valid {
+			authinfo.DisabledMessage = disabledReason.String
+		} else {
+			authinfo.DisabledMessage = ""
+		}
+		if disabledExpiry.Valid {
+			expiry := disabledExpiry.Time.UTC()
+			authinfo.DisabledExpiry = &expiry
+		} else {
+			authinfo.DisabledExpiry = nil
+		}
+	} else {
+		authinfo.DisabledMessage = ""
+		authinfo.DisabledExpiry = nil
+	}
+
 	authinfo.Roles = roles.slice
 
 	return err

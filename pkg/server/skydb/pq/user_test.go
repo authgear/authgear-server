@@ -31,6 +31,16 @@ func TestAuthCRUD(t *testing.T) {
 		c = getTestConn(t)
 		defer cleanupConn(t, c)
 
+		mockedTime := time.Date(2017, 12, 4, 1, 2, 3, 0, time.UTC)
+		originalTimeNow := timeNow
+		defer func() {
+			timeNow = originalTimeNow
+		}()
+		timeNow = func() time.Time {
+			return mockedTime
+		}
+
+		expiry := mockedTime.Add(time.Hour)
 		authinfo := skydb.AuthInfo{
 			ID:             "userid",
 			HashedPassword: []byte("$2a$10$RbmNb3Rw.PONA2QTcpjBg.1E00zdSI6dWTUwZi.XC0wZm9OhOEvKO"),
@@ -42,6 +52,9 @@ func TestAuthCRUD(t *testing.T) {
 					"number": float64(1),
 				},
 			},
+			Disabled:        true,
+			DisabledMessage: "some reason",
+			DisabledExpiry:  &expiry,
 		}
 
 		Convey("default admin role", func() {
