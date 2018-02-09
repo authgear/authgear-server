@@ -712,3 +712,152 @@ func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router
 	}.WithRouterPayload(payload))
 	h.PwHousekeeper.Housekeep(info.ID)
 }
+
+type resetPasswordPayload struct {
+	OldPassword     string `mapstructure:"old_password"`
+	NewPassword     string `mapstructure:"password"`
+	Invalidate      bool   `mapstructure:"invalidate"`
+	passwordChecker *audit.PasswordChecker
+	userRecord      *skydb.Record
+	authInfo        *skydb.AuthInfo
+	conn            skydb.Conn
+}
+
+func (payload *resetPasswordPayload) Decode(data map[string]interface{}) skyerr.Error {
+	if err := mapstructure.Decode(data, payload); err != nil {
+		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+	return payload.Validate()
+}
+
+func (payload *resetPasswordPayload) Validate() skyerr.Error {
+	var userData map[string]interface{}
+	if payload.userRecord != nil {
+		userData = map[string]interface{}(payload.userRecord.Data)
+	}
+	return payload.passwordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+		AuthID:        payload.authInfo.ID,
+		PlainPassword: payload.NewPassword,
+		UserData:      userData,
+		Conn:          payload.conn,
+	})
+}
+
+// ResetPasswordHandler change the current user password
+//
+// ResetPasswordHandler receives three parameters:
+//
+// * old_password (string, required)
+// * password (string, required)
+//
+// If user is not logged in, an 404 not found will return.
+//
+//  Current implementation
+//  curl -X POST -H "Content-Type: application/json" \
+//    -d @- http://localhost:3000/ <<EOF
+//  {
+//      "action": "auth:password",
+//      "old_password": "rick.mak@gmail.com",
+//      "password": "123456"
+//  }
+//  EOF
+// Response
+// return existing access toektn if not invalidate
+//
+// TODO:
+// Input accept `user_id` and `invalidate`.
+// If `user_id` is supplied, will check authorization policy and see if existing
+// accept `invalidate` and invaldate all existing access token.
+// Return authInfoID with new AccessToken if the invalidate is true
+type ResetPasswordHandler struct {
+	TokenStore      authtoken.Store        `inject:"TokenStore"`
+	AssetStore      asset.Store            `inject:"AssetStore"`
+	PasswordChecker *audit.PasswordChecker `inject:"PasswordChecker"`
+	PwHousekeeper   *audit.PwHousekeeper   `inject:"PwHousekeeper"`
+	Authenticator   router.Processor       `preprocessor:"authenticator"`
+	DBConn          router.Processor       `preprocessor:"dbconn"`
+	InjectAuth      router.Processor       `preprocessor:"inject_auth"`
+	InjectUser      router.Processor       `preprocessor:"inject_user"`
+	RequireAuth     router.Processor       `preprocessor:"require_auth"`
+	PluginReady     router.Processor       `preprocessor:"plugin_ready"`
+	preprocessors   []router.Processor
+}
+
+func (h *ResetPasswordHandler) Setup() {
+	h.preprocessors = []router.Processor{
+		h.Authenticator,
+		h.DBConn,
+		h.InjectAuth,
+		h.InjectUser,
+		h.RequireAuth,
+		h.PluginReady,
+	}
+}
+
+func (h *ResetPasswordHandler) GetPreprocessors() []router.Processor {
+	return h.preprocessors
+}
+
+func (h *ResetPasswordHandler) Handle(payload *router.Payload, response *router.Response) {
+	log.Debugf("changing password")
+	p := &changePasswordPayload{
+		passwordChecker: h.PasswordChecker,
+		userRecord:      payload.User,
+		authInfo:        payload.AuthInfo,
+		conn:            payload.DBConn,
+	}
+	skyErr := p.Decode(payload.Data)
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
+	info := payload.AuthInfo
+	if !info.IsSamePassword(p.OldPassword) {
+		log.Debug("Incorrect old password")
+		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
+		return
+	}
+	info.SetPassword(p.NewPassword)
+	if err := payload.DBConn.UpdateAuth(info); err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	if p.Invalidate {
+		log.Warningf("Invalidate is not yet implement")
+		// TODO: invalidate all existing token and generate a new one for response
+	}
+	// Generate new access-token. Because InjectAuthIfPresent preprocessor
+	// will expire existing access-token.
+	store := h.TokenStore
+	token, err := store.NewToken(payload.AppName, info.ID)
+	if err != nil {
+		panic(err)
+	}
+	if err = store.Put(&token); err != nil {
+		panic(err)
+	}
+
+	user := payload.User
+	if user == nil {
+		user = &skydb.Record{}
+	}
+
+	authResponse, err := AuthResponseFactory{
+		AssetStore: h.AssetStore,
+		Conn:       payload.DBConn,
+	}.NewAuthResponse(*info, *user, token.AccessToken, payload.HasMasterKey())
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
+	response.Result = authResponse
+
+	audit.Trail(audit.Entry{
+		AuthID: info.ID,
+		Event:  audit.EventChangePassword,
+	}.WithRouterPayload(payload))
+	h.PwHousekeeper.Housekeep(info.ID)
+}
