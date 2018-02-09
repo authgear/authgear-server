@@ -147,6 +147,11 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 		return
 	}
 
+	if err := checkUserIsNotDisabled(&info); err != nil {
+		response.Err = err
+		return
+	}
+
 	// generate access-token
 	token, err := store.NewToken(payload.AppName, oauth.UserID)
 	if err != nil {

@@ -192,6 +192,11 @@ func (h *SSOCustomTokenLoginHandler) Handle(payload *router.Payload, response *r
 		return
 	}
 
+	if err := checkUserIsNotDisabled(&info); err != nil {
+		response.Err = err
+		return
+	}
+
 	// generate access-token
 	token, err := store.NewToken(payload.AppName, info.ID)
 	if err != nil {
