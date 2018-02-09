@@ -714,20 +714,41 @@ func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router
 }
 
 type resetPasswordPayload struct {
-	OldPassword     string `mapstructure:"old_password"`
+	AuthID          string `mapstructure:"auth_id"`
 	NewPassword     string `mapstructure:"password"`
 	Invalidate      bool   `mapstructure:"invalidate"`
 	passwordChecker *audit.PasswordChecker
+	conn            skydb.Conn
+	db              skydb.Database
 	userRecord      *skydb.Record
 	authInfo        *skydb.AuthInfo
-	conn            skydb.Conn
 }
 
 func (payload *resetPasswordPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+	if err := payload.inject(); err != nil {
+		return err
+	}
 	return payload.Validate()
+}
+
+func (payload *resetPasswordPayload) inject() skyerr.Error {
+	// We cannot use preprocessor to inject user
+	// because we accepts AuthID in the payload
+	// instead of from access token header.
+	// We assume ResetPasswordHandler requires master key
+	// so that this injection is safe
+	payload.authInfo = &skydb.AuthInfo{}
+	payload.userRecord = &skydb.Record{}
+	if err := payload.conn.GetAuth(payload.AuthID, payload.authInfo); err != nil {
+		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, err.Error())
+	}
+	if err := payload.db.Get(skydb.NewRecordID("user", payload.AuthID), payload.userRecord); err != nil {
+		return skyerr.NewError(skyerr.UnexpectedUserNotFound, err.Error())
+	}
+	return nil
 }
 
 func (payload *resetPasswordPayload) Validate() skyerr.Error {
@@ -736,18 +757,18 @@ func (payload *resetPasswordPayload) Validate() skyerr.Error {
 		userData = map[string]interface{}(payload.userRecord.Data)
 	}
 	return payload.passwordChecker.ValidatePassword(audit.ValidatePasswordPayload{
-		AuthID:        payload.authInfo.ID,
+		AuthID:        payload.AuthID,
 		PlainPassword: payload.NewPassword,
 		UserData:      userData,
 		Conn:          payload.conn,
 	})
 }
 
-// ResetPasswordHandler change the current user password
+// ResetPasswordHandler resets the current user password
 //
-// ResetPasswordHandler receives three parameters:
+// ResetPasswordHandler receives two parameter:
 //
-// * old_password (string, required)
+// * auth_id  (string, required)
 // * password (string, required)
 //
 // If user is not logged in, an 404 not found will return.
@@ -756,13 +777,13 @@ func (payload *resetPasswordPayload) Validate() skyerr.Error {
 //  curl -X POST -H "Content-Type: application/json" \
 //    -d @- http://localhost:3000/ <<EOF
 //  {
-//      "action": "auth:password",
-//      "old_password": "rick.mak@gmail.com",
+//      "action": "auth:reset_password",
+//      "auth_id": "some-id",
 //      "password": "123456"
 //  }
 //  EOF
 // Response
-// return existing access toektn if not invalidate
+// return existing access token if not invalidate
 //
 // TODO:
 // Input accept `user_id` and `invalidate`.
@@ -770,27 +791,25 @@ func (payload *resetPasswordPayload) Validate() skyerr.Error {
 // accept `invalidate` and invaldate all existing access token.
 // Return authInfoID with new AccessToken if the invalidate is true
 type ResetPasswordHandler struct {
-	TokenStore      authtoken.Store        `inject:"TokenStore"`
-	AssetStore      asset.Store            `inject:"AssetStore"`
-	PasswordChecker *audit.PasswordChecker `inject:"PasswordChecker"`
-	PwHousekeeper   *audit.PwHousekeeper   `inject:"PwHousekeeper"`
-	Authenticator   router.Processor       `preprocessor:"authenticator"`
-	DBConn          router.Processor       `preprocessor:"dbconn"`
-	InjectAuth      router.Processor       `preprocessor:"inject_auth"`
-	InjectUser      router.Processor       `preprocessor:"inject_user"`
-	RequireAuth     router.Processor       `preprocessor:"require_auth"`
-	PluginReady     router.Processor       `preprocessor:"plugin_ready"`
-	preprocessors   []router.Processor
+	TokenStore       authtoken.Store        `inject:"TokenStore"`
+	AssetStore       asset.Store            `inject:"AssetStore"`
+	PasswordChecker  *audit.PasswordChecker `inject:"PasswordChecker"`
+	PwHousekeeper    *audit.PwHousekeeper   `inject:"PwHousekeeper"`
+	AccessKey        router.Processor       `preprocessor:"accesskey"`
+	DBConn           router.Processor       `preprocessor:"dbconn"`
+	InjectPublicDB   router.Processor       `preprocessor:"inject_public_db"`
+	PluginReady      router.Processor       `preprocessor:"plugin_ready"`
+	RequireMasterKey router.Processor       `preprocessor:"require_master_key"`
+	preprocessors    []router.Processor
 }
 
 func (h *ResetPasswordHandler) Setup() {
 	h.preprocessors = []router.Processor{
-		h.Authenticator,
+		h.AccessKey,
 		h.DBConn,
-		h.InjectAuth,
-		h.InjectUser,
-		h.RequireAuth,
+		h.InjectPublicDB,
 		h.PluginReady,
+		h.RequireMasterKey,
 	}
 }
 
@@ -799,12 +818,11 @@ func (h *ResetPasswordHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *ResetPasswordHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("changing password")
-	p := &changePasswordPayload{
+	log.Debugf("resetting password")
+	p := &resetPasswordPayload{
 		passwordChecker: h.PasswordChecker,
-		userRecord:      payload.User,
-		authInfo:        payload.AuthInfo,
 		conn:            payload.DBConn,
+		db:              payload.Database,
 	}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
@@ -812,12 +830,7 @@ func (h *ResetPasswordHandler) Handle(payload *router.Payload, response *router.
 		return
 	}
 
-	info := payload.AuthInfo
-	if !info.IsSamePassword(p.OldPassword) {
-		log.Debug("Incorrect old password")
-		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
-		return
-	}
+	info := p.authInfo
 	info.SetPassword(p.NewPassword)
 	if err := payload.DBConn.UpdateAuth(info); err != nil {
 		response.Err = skyerr.MakeError(err)
@@ -839,10 +852,7 @@ func (h *ResetPasswordHandler) Handle(payload *router.Payload, response *router.
 		panic(err)
 	}
 
-	user := payload.User
-	if user == nil {
-		user = &skydb.Record{}
-	}
+	user := p.userRecord
 
 	authResponse, err := AuthResponseFactory{
 		AssetStore: h.AssetStore,
@@ -857,7 +867,7 @@ func (h *ResetPasswordHandler) Handle(payload *router.Payload, response *router.
 
 	audit.Trail(audit.Entry{
 		AuthID: info.ID,
-		Event:  audit.EventChangePassword,
+		Event:  audit.EventResetPassword,
 	}.WithRouterPayload(payload))
 	h.PwHousekeeper.Housekeep(info.ID)
 }
