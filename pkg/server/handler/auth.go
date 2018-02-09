@@ -594,9 +594,9 @@ func (payload *changePasswordPayload) Validate() skyerr.Error {
 	})
 }
 
-// PasswordHandler change the current user password
+// ChangePasswordHandler change the current user password
 //
-// PasswordHandler receives three parameters:
+// ChangePasswordHandler receives three parameters:
 //
 // * old_password (string, required)
 // * password (string, required)
@@ -620,7 +620,7 @@ func (payload *changePasswordPayload) Validate() skyerr.Error {
 // If `user_id` is supplied, will check authorization policy and see if existing
 // accept `invalidate` and invaldate all existing access token.
 // Return authInfoID with new AccessToken if the invalidate is true
-type PasswordHandler struct {
+type ChangePasswordHandler struct {
 	TokenStore      authtoken.Store        `inject:"TokenStore"`
 	AssetStore      asset.Store            `inject:"AssetStore"`
 	PasswordChecker *audit.PasswordChecker `inject:"PasswordChecker"`
@@ -634,7 +634,7 @@ type PasswordHandler struct {
 	preprocessors   []router.Processor
 }
 
-func (h *PasswordHandler) Setup() {
+func (h *ChangePasswordHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
@@ -645,11 +645,11 @@ func (h *PasswordHandler) Setup() {
 	}
 }
 
-func (h *PasswordHandler) GetPreprocessors() []router.Processor {
+func (h *ChangePasswordHandler) GetPreprocessors() []router.Processor {
 	return h.preprocessors
 }
 
-func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Response) {
+func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router.Response) {
 	log.Debugf("changing password")
 	p := &changePasswordPayload{
 		passwordChecker: h.PasswordChecker,

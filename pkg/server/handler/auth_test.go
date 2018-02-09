@@ -1168,7 +1168,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		}
 
 		Convey("change password success", func() {
-			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
+			r := handlertest.NewSingleRouteRouter(&ChangePasswordHandler{
 				TokenStore:      &tokenStore,
 				PasswordChecker: &passwordChecker,
 				PwHousekeeper:   &housekeeper,
@@ -1203,7 +1203,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("change password success, without user", func() {
-			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
+			r := handlertest.NewSingleRouteRouter(&ChangePasswordHandler{
 				TokenStore:      &tokenStore,
 				PasswordChecker: &passwordChecker,
 				PwHousekeeper:   &housekeeper,
@@ -1231,7 +1231,7 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 		})
 
 		Convey("change to a weak password", func() {
-			r := handlertest.NewSingleRouteRouter(&PasswordHandler{
+			r := handlertest.NewSingleRouteRouter(&ChangePasswordHandler{
 				TokenStore: &tokenStore,
 				PasswordChecker: &audit.PasswordChecker{
 					PwMinLength: 8,
