@@ -49,6 +49,9 @@ type AuthInfo struct {
 	TokenValidSince *time.Time   `json:"token_valid_since,omitempty"`
 	LastSeenAt      *time.Time   `json:"last_seen_at,omitempty"`
 	IsPasswordSet   bool
+	Disabled        bool       `json:"disabled"`
+	DisabledMessage string     `json:"disabled_message,omitempty"`
+	DisabledExpiry  *time.Time `json:"disabled_expiry,omitempty"`
 }
 
 // AuthData contains the unique authentication data of a user
@@ -287,5 +290,29 @@ func (info *AuthInfo) GetProviderInfoData(principalID string) map[string]interfa
 func (info *AuthInfo) RemoveProviderInfoData(principalID string) {
 	if info.ProviderInfo != nil {
 		delete(info.ProviderInfo, principalID)
+	}
+}
+
+// IsDisabled returns true if the user is disabled.
+//
+// This function checks whether the user is disabled by also considering the
+// expiry of disabling the user account. Use this function instead of using
+// the Disabled field.
+func (info *AuthInfo) IsDisabled() bool {
+	if info.Disabled {
+		if expiry := info.DisabledExpiry; expiry != nil {
+			return expiry.After(timeNow())
+		}
+		return true
+	}
+	return false
+}
+
+// RefreshDisabledStatus set the auth info as not disabled.
+func (info *AuthInfo) RefreshDisabledStatus() {
+	info.Disabled = info.IsDisabled()
+	if !info.Disabled {
+		info.DisabledMessage = ""
+		info.DisabledExpiry = nil
 	}
 }
