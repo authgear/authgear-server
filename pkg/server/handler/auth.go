@@ -564,7 +564,7 @@ func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Respons
 }
 
 // Define the playload that change password handler will process
-type passwordPayload struct {
+type changePasswordPayload struct {
 	OldPassword     string `mapstructure:"old_password"`
 	NewPassword     string `mapstructure:"password"`
 	Invalidate      bool   `mapstructure:"invalidate"`
@@ -574,14 +574,14 @@ type passwordPayload struct {
 	conn            skydb.Conn
 }
 
-func (payload *passwordPayload) Decode(data map[string]interface{}) skyerr.Error {
+func (payload *changePasswordPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 	return payload.Validate()
 }
 
-func (payload *passwordPayload) Validate() skyerr.Error {
+func (payload *changePasswordPayload) Validate() skyerr.Error {
 	var userData map[string]interface{}
 	if payload.userRecord != nil {
 		userData = map[string]interface{}(payload.userRecord.Data)
@@ -651,7 +651,7 @@ func (h *PasswordHandler) GetPreprocessors() []router.Processor {
 
 func (h *PasswordHandler) Handle(payload *router.Payload, response *router.Response) {
 	log.Debugf("changing password")
-	p := &passwordPayload{
+	p := &changePasswordPayload{
 		passwordChecker: h.PasswordChecker,
 		userRecord:      payload.User,
 		authInfo:        payload.AuthInfo,
