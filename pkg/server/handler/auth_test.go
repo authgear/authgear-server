@@ -1147,8 +1147,8 @@ func TestLogoutHandler(t *testing.T) {
 	})
 }
 
-func TestPasswordHandlerWithProvider(t *testing.T) {
-	Convey("PasswordHandler", t, func() {
+func TestChangePasswordHandlerWithProvider(t *testing.T) {
+	Convey("ChangePasswordHandler", t, func() {
 		conn := singleUserConn{}
 		authinfo := skydb.NewAuthInfo("chima")
 		authinfo.ID = "user-uuid"
@@ -1266,5 +1266,100 @@ func TestPasswordHandlerWithProvider(t *testing.T) {
 			So(resp.Code, ShouldEqual, 500)
 		})
 
+	})
+}
+
+func TestResetPasswordHandler(t *testing.T) {
+	Convey("ResetPasswordHandler", t, func() {
+		tokenStore := authtokentest.SingleTokenStore{}
+		conn := skydbtest.NewMapConn()
+		db := skydbtest.NewMapDB()
+		txdb := skydbtest.NewMockTxDatabase(db)
+
+		authinfo := skydb.NewAuthInfo("old_password")
+		authinfo.ID = "userid"
+		conn.CreateAuth(&authinfo)
+
+		passwordChecker := audit.PasswordChecker{}
+		housekeeper := audit.PwHousekeeper{}
+
+		userRecordID := skydb.NewRecordID("user", "userid")
+		userRecord := skydb.Record{
+			ID: userRecordID,
+			Data: map[string]interface{}{
+				"username": "tester1",
+				"email":    "tester1@example.com",
+			},
+		}
+		db.Save(&userRecord)
+
+		Convey("reset password success", func() {
+			r := handlertest.NewSingleRouteRouter(&ResetPasswordHandler{
+				TokenStore:      &tokenStore,
+				PasswordChecker: &passwordChecker,
+				PwHousekeeper:   &housekeeper,
+			}, func(p *router.Payload) {
+				p.AccessKey = router.MasterAccessKey
+				p.DBConn = conn
+				p.Database = txdb
+			})
+
+			resp := r.POST(fmt.Sprintf(`
+				{
+					"auth_id": "%s",
+					"password": "new_password"
+				}`, authinfo.ID))
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`
+				{
+					"result": {
+						"user_id": "userid",
+						"access_token": "%s",
+						"profile": {
+							"_type": "record",
+							"_id": "user/userid",
+							"_access": null,
+							"email": "tester1@example.com",
+							"username": "tester1"
+						}
+					}
+				}`, tokenStore.Token.AccessToken))
+			So(resp.Code, ShouldEqual, 200)
+		})
+
+		Convey("reset to a weak password", func() {
+			r := handlertest.NewSingleRouteRouter(&ResetPasswordHandler{
+				TokenStore: &tokenStore,
+				PasswordChecker: &audit.PasswordChecker{
+					PwMinLength: 8,
+				},
+				PwHousekeeper: &housekeeper,
+			}, func(p *router.Payload) {
+				p.AccessKey = router.MasterAccessKey
+				p.DBConn = conn
+				p.Database = txdb
+			})
+
+			resp := r.POST(fmt.Sprintf(`
+				{
+					"auth_id": "%s",
+					"password": "1234567"
+				}`, authinfo.ID))
+
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+				{
+					"error": {
+						"code": 126,
+						"name": "PasswordTooShort",
+						"message": "password too short",
+						"info": {
+							"min_length": 8,
+							"pw_length": 7
+						}
+					}
+				}
+			`)
+			So(resp.Code, ShouldEqual, 500)
+		})
 	})
 }
