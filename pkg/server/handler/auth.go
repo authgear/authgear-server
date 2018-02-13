@@ -718,54 +718,25 @@ func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router
 }
 
 type resetPasswordPayload struct {
-	AuthID          string `mapstructure:"auth_id"`
-	NewPassword     string `mapstructure:"password"`
-	Invalidate      bool   `mapstructure:"invalidate"`
-	passwordChecker *audit.PasswordChecker
-	conn            skydb.Conn
-	db              skydb.Database
-	userRecord      *skydb.Record
-	authInfo        *skydb.AuthInfo
+	AuthID      string `mapstructure:"auth_id"`
+	NewPassword string `mapstructure:"password"`
 }
 
 func (payload *resetPasswordPayload) Decode(data map[string]interface{}) skyerr.Error {
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
-	if err := payload.inject(); err != nil {
-		return err
-	}
 	return payload.Validate()
 }
 
-func (payload *resetPasswordPayload) inject() skyerr.Error {
-	// We cannot use preprocessor to inject user
-	// because we accepts AuthID in the payload
-	// instead of from access token header.
-	// We assume ResetPasswordHandler requires master key
-	// so that this injection is safe
-	payload.authInfo = &skydb.AuthInfo{}
-	payload.userRecord = &skydb.Record{}
-	if err := payload.conn.GetAuth(payload.AuthID, payload.authInfo); err != nil {
-		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, err.Error())
+func (payload *resetPasswordPayload) Validate() skyerr.Error {
+	if payload.AuthID == "" {
+		return skyerr.NewInvalidArgument("empty auth_id", []string{"auth_id"})
 	}
-	if err := payload.db.Get(skydb.NewRecordID("user", payload.AuthID), payload.userRecord); err != nil {
-		return skyerr.NewError(skyerr.UnexpectedUserNotFound, err.Error())
+	if payload.NewPassword == "" {
+		return skyerr.NewInvalidArgument("empty password", []string{"password"})
 	}
 	return nil
-}
-
-func (payload *resetPasswordPayload) Validate() skyerr.Error {
-	var userData map[string]interface{}
-	if payload.userRecord != nil {
-		userData = map[string]interface{}(payload.userRecord.Data)
-	}
-	return payload.passwordChecker.ValidatePassword(audit.ValidatePasswordPayload{
-		AuthID:        payload.AuthID,
-		PlainPassword: payload.NewPassword,
-		UserData:      userData,
-		Conn:          payload.conn,
-	})
 }
 
 // ResetPasswordHandler resets the current user password
@@ -788,12 +759,6 @@ func (payload *resetPasswordPayload) Validate() skyerr.Error {
 //  EOF
 // Response
 // return existing access token if not invalidate
-//
-// TODO:
-// Input accept `user_id` and `invalidate`.
-// If `user_id` is supplied, will check authorization policy and see if existing
-// accept `invalidate` and invaldate all existing access token.
-// Return authInfoID with new AccessToken if the invalidate is true
 type ResetPasswordHandler struct {
 	TokenStore       authtoken.Store        `inject:"TokenStore"`
 	AssetStore       asset.Store            `inject:"AssetStore"`
@@ -823,28 +788,45 @@ func (h *ResetPasswordHandler) GetPreprocessors() []router.Processor {
 
 func (h *ResetPasswordHandler) Handle(payload *router.Payload, response *router.Response) {
 	log.Debugf("resetting password")
-	p := &resetPasswordPayload{
-		passwordChecker: h.PasswordChecker,
-		conn:            payload.DBConn,
-		db:              payload.Database,
-	}
+	p := &resetPasswordPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
 		return
 	}
 
-	info := p.authInfo
+	authID := p.AuthID
+	info := &skydb.AuthInfo{}
+	user := &skydb.Record{}
+	if err := payload.DBConn.GetAuth(authID, info); err != nil {
+		response.Err = skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, err.Error())
+		return
+	}
+	if err := payload.Database.Get(skydb.NewRecordID("user", authID), user); err != nil {
+		response.Err = skyerr.NewError(skyerr.UnexpectedUserNotFound, err.Error())
+		return
+	}
+	var userData map[string]interface{}
+	if payload.User != nil {
+		userData = map[string]interface{}(payload.User.Data)
+	}
+	skyErr = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+		AuthID:        authID,
+		PlainPassword: p.NewPassword,
+		UserData:      userData,
+		Conn:          payload.DBConn,
+	})
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
 	info.SetPassword(p.NewPassword)
 	if err := payload.DBConn.UpdateAuth(info); err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
 
-	if p.Invalidate {
-		log.Warningf("Invalidate is not yet implement")
-		// TODO: invalidate all existing token and generate a new one for response
-	}
 	// Generate new access-token. Because InjectAuthIfPresent preprocessor
 	// will expire existing access-token.
 	store := h.TokenStore
@@ -855,8 +837,6 @@ func (h *ResetPasswordHandler) Handle(payload *router.Payload, response *router.
 	if err = store.Put(&token); err != nil {
 		panic(err)
 	}
-
-	user := p.userRecord
 
 	authResponse, err := AuthResponseFactory{
 		AssetStore: h.AssetStore,
