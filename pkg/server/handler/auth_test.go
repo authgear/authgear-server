@@ -1350,9 +1350,10 @@ func TestResetPasswordHandler(t *testing.T) {
 				{
 					"error": {
 						"code": 126,
-						"name": "PasswordTooShort",
+						"name": "PasswordPolicyViolated",
 						"message": "password too short",
 						"info": {
+							"reason": "PasswordTooShort",
 							"min_length": 8,
 							"pw_length": 7
 						}
