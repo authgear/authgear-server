@@ -565,13 +565,9 @@ func (h *LogoutHandler) Handle(payload *router.Payload, response *router.Respons
 
 // Define the playload that change password handler will process
 type changePasswordPayload struct {
-	OldPassword     string `mapstructure:"old_password"`
-	NewPassword     string `mapstructure:"password"`
-	Invalidate      bool   `mapstructure:"invalidate"`
-	passwordChecker *audit.PasswordChecker
-	userRecord      *skydb.Record
-	authInfo        *skydb.AuthInfo
-	conn            skydb.Conn
+	OldPassword string `mapstructure:"old_password"`
+	NewPassword string `mapstructure:"password"`
+	Invalidate  bool   `mapstructure:"invalidate"`
 }
 
 func (payload *changePasswordPayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -582,16 +578,13 @@ func (payload *changePasswordPayload) Decode(data map[string]interface{}) skyerr
 }
 
 func (payload *changePasswordPayload) Validate() skyerr.Error {
-	var userData map[string]interface{}
-	if payload.userRecord != nil {
-		userData = map[string]interface{}(payload.userRecord.Data)
+	if payload.OldPassword == "" {
+		return skyerr.NewInvalidArgument("empty old password", []string{"old_password"})
 	}
-	return payload.passwordChecker.ValidatePassword(audit.ValidatePasswordPayload{
-		AuthID:        payload.authInfo.ID,
-		PlainPassword: payload.NewPassword,
-		UserData:      userData,
-		Conn:          payload.conn,
-	})
+	if payload.NewPassword == "" {
+		return skyerr.NewInvalidArgument("empty password", []string{"password"})
+	}
+	return nil
 }
 
 // ChangePasswordHandler change the current user password
@@ -651,12 +644,7 @@ func (h *ChangePasswordHandler) GetPreprocessors() []router.Processor {
 
 func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router.Response) {
 	log.Debugf("changing password")
-	p := &changePasswordPayload{
-		passwordChecker: h.PasswordChecker,
-		userRecord:      payload.User,
-		authInfo:        payload.AuthInfo,
-		conn:            payload.DBConn,
-	}
+	p := &changePasswordPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
 		response.Err = skyErr
@@ -669,6 +657,22 @@ func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router
 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
 		return
 	}
+
+	var userData map[string]interface{}
+	if payload.User != nil {
+		userData = map[string]interface{}(payload.User.Data)
+	}
+	skyErr = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+		AuthID:        info.ID,
+		PlainPassword: p.NewPassword,
+		UserData:      userData,
+		Conn:          payload.DBConn,
+	})
+	if skyErr != nil {
+		response.Err = skyErr
+		return
+	}
+
 	info.SetPassword(p.NewPassword)
 	if err := payload.DBConn.UpdateAuth(info); err != nil {
 		response.Err = skyerr.MakeError(err)
