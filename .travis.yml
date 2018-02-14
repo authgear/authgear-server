@@ -28,6 +28,7 @@ before_install:
   - popd
   - sudo curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64
   - sudo curl -fsSL -o /usr/local/bin/vg https://github.com/GetStream/vg/releases/download/v0.8.0/vg-linux-amd64
+  - curl -fsSL https://github.com/alecthomas/gometalinter/releases/download/v2.0.4/gometalinter-2.0.4-linux-amd64.tar.gz | sudo tar --strip-components 1 -C /usr/local/bin -zx
   - sudo chmod +x /usr/local/bin/dep /usr/local/bin/vg
   - 'eval "$(vg eval --shell bash)"'
   - vg init

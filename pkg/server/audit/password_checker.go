@@ -25,7 +25,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-// PasswordViolationReason is a detailed explaination
+// PasswordViolationReason is a detailed explanation
 // of skyerr.PasswordPolicyViolated
 type PasswordViolationReason int
 

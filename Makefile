@@ -41,10 +41,22 @@ GO_BUILD_ARGS := $(GO_BUILD_TAGS) $(GO_BUILD_LDFLAGS)
 vendor:
 	$(DOCKER_RUN) dep ensure
 
+.PHONY: go-install
+go-install:
+	$(DOCKER_RUN) go install $(GO_BUILD_ARGS) ./...
+
+.PHONY: go-generate
+go-generate: go-install
+	$(DOCKER_RUN) find pkg -type f -name "mock_*.go" -delete
+	$(DOCKER_RUN) go generate ./pkg/...
+
+.PHONY: go-lint
+go-lint: go-install
+	$(DOCKER_RUN) gometalinter --disable-all --enable=gocyclo --enable=staticcheck --enable=golint --enable=misspell ./...
+	$(DOCKER_RUN) gometalinter ./... || true
+
 .PHONY: generate
-generate:
-# go install is required before go generate.
-	$(DOCKER_RUN) sh -c 'go install $(GO_BUILD_ARGS) && find pkg -type f -name "mock_*.go" -delete && go generate ./pkg/...'
+generate: go-generate
 
 .PHONY: build
 build:
@@ -68,10 +80,7 @@ test:
 	$(DOCKER_RUN_TEST) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -p 1 -cpu $(GO_TEST_CPU) $(GO_TEST_PACKAGE)
 
 .PHONY: lint
-lint:
-	$(DOCKER_RUN) sh -c 'golint ./pkg/... | grep -v -f .golint.exclude; test $$? -eq 1'
-	$(DOCKER_RUN) sh -c 'gocyclo -over 15 pkg | gogocyclo'
-	$(DOCKER_RUN) sh -c 'staticcheck ./pkg/...'
+lint: go-lint
 
 .PHONY: fmt
 fmt:

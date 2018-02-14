@@ -75,12 +75,6 @@
   version = "v1.31.1"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/golang/lint"
-  packages = [".","golint"]
-  revision = "6aaf7c34af0f4c36a57e0c429bace4d706d8e931"
-
-[[projects]]
   name = "github.com/golang/mock"
   packages = ["gomock","mockgen","mockgen/model"]
   revision = "13f360950a79f5864a972c786a10a50e44b69541"
@@ -137,12 +131,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/kisielk/gotool"
-  packages = [".","internal/load"]
-  revision = "d6ce6262d87e3a4e153e86023ff56ae771554a41"
-
-[[projects]]
-  branch = "master"
   name = "github.com/lann/builder"
   packages = ["."]
   revision = "f22ce00fd9394014049dad11c244859432bd6820"
@@ -192,12 +180,6 @@
   revision = "eafdab6b0663b4b528c35975c8b0e78be6e25261"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/oursky/gogocyclo"
-  packages = ["."]
-  revision = "38cdae112011b01b3bed71286eb68a27b4a5e9cc"
-
-[[projects]]
   name = "github.com/paulmach/go.geo"
   packages = ["."]
   revision = "c84b6002b0f727d4a2d40e05466dfc3cc54eb329"
@@ -231,12 +213,6 @@
   packages = ["."]
   revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
   version = "v0.8.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/rickmak/gocyclo"
-  packages = ["."]
-  revision = "38adf1a47a4c4718e4b6df55431783540db69e01"
 
 [[projects]]
   name = "github.com/rifflock/lfshook"
@@ -309,30 +285,12 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/tools"
-  packages = ["cmd/cover","cmd/stringer","cover","go/ast/astutil","go/buildutil","go/gcexportdata","go/gcimporter15","go/loader","go/types/typeutil"]
+  packages = ["cmd/cover","cmd/stringer","cover"]
   revision = "6d70fb2e85323e81c89374331d3d2b93304faa36"
-
-[[projects]]
-  name = "gopkg.in/gcfg.v1"
-  packages = [".","scanner","token","types"]
-  revision = "298b7a6a3838f79debfaee8bd3bfb2b8d779e756"
-  version = "v1.2.1"
-
-[[projects]]
-  name = "gopkg.in/warnings.v0"
-  packages = ["."]
-  revision = "ec4a0fea49c7b46c2aeb0b51aac55779c607e52b"
-  version = "v0.1.2"
-
-[[projects]]
-  name = "honnef.co/go/tools"
-  packages = ["callgraph","callgraph/static","cmd/staticcheck","functions","internal/sharedcheck","lint","lint/lintutil","ssa","ssa/ssautil","staticcheck","staticcheck/vrp","version"]
-  revision = "e5147431c7c056bd6ef33ad2f23c846f835571dd"
-  version = "2017.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a3b0db368400036dc9f5e4cf25c22d46c02af7dbf6357de6f76baefeebcb5d7c"
+  inputs-digest = "86d928622cd2be79f6268ddd85888a5470b0a78cab6184bc5d609111550e80c3"
   solver-name = "gps-cdcl"
   solver-version = 1

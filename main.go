@@ -489,7 +489,7 @@ func initAssetStore(config skyconfig.Configuration) asset.Store {
 
 func initDevice(config skyconfig.Configuration, connOpener func() (skydb.Conn, error)) {
 	// TODO: Create a device service to check APNs to remove obsolete devices.
-	// The current implementaion deletes pubsub devices if the last registered
+	// The current implementation deletes pubsub devices if the last registered
 	// time is more than 1 day old.
 	conn, err := connOpener()
 	if err != nil {

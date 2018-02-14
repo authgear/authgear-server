@@ -184,7 +184,7 @@ func requestToChannelKey(requestID string, bounceCount int) string {
 //
 // # About multiple plugins
 // When multiple plugins are involved, both request ID and bounce-count is accumulated
-// accross plugins. For example, this is what happens when Plugin A calls Plugin B
+// across plugins. For example, this is what happens when Plugin A calls Plugin B
 //
 // PluginA code:
 // ```
@@ -272,6 +272,7 @@ func NewBroker(name, backendAddr string, timeoutInterval int, maxBounce int) (*B
 }
 
 // Run the Broker and listens for zmq requests.
+// nolint: gocyclo
 func (lb *Broker) Run() {
 	backend, err := zmq.NewSocket(zmq.ROUTER)
 	if err != nil {
@@ -396,7 +397,7 @@ func (lb *Broker) Channeler() {
 
 func (lb *Broker) sendZMQFramesToChannel(frames [][]byte) {
 	lb.logger.Debugf("zmq/broker: zmq => channel %q, %s\n", frames[0:6], frames[6])
-	// Dispacth back to the channel based on the zmq first frame
+	// Dispatch back to the channel based on the zmq first frame
 	address := string(frames[0])
 	messageType := string(frames[2])
 	bounceCount, err := strconv.Atoi(string(frames[3]))
@@ -560,10 +561,10 @@ func newWorker(address string) pworker {
 // Worker is expect to register itself on ready. Tick itself when it is
 // available. The most recently Tick worker will got the job.
 // A worker do not Tick itself within the expiry will regard as disconnected
-// and requires to Add itself again to become avaliable.
+// and requires to Add itself again to become available.
 //
 // workerQueue is not goroutine safe. To use it safely across goroutine.
-// Please use the Lock/Unlock interace before manupliate the queue item via
+// Please use the Lock/Unlock interface before manupliate the queue item via
 // methods like Add/Tick/Purge.
 // Consuming the queue using Next is the only method will acquire the mutex lock
 // by itself.
@@ -595,7 +596,7 @@ func (q *workerQueue) Len() int {
 	return len(q.pworkers)
 }
 
-// Next will pop the next avaliable worker, and the worker will not avalible
+// Next will pop the next available worker, and the worker will not available
 // until it Tick back to the workerQueue again.
 // This method for consuming the queue will acquire mutex lock.
 func (q *workerQueue) Next() string {

@@ -442,6 +442,7 @@ func walkSlice(items []interface{}) []interface{} {
 
 // ParseLiteral deduces whether i is a skydb data value and returns a
 // parsed value.
+// nolint: gocyclo
 func ParseLiteral(i interface{}) interface{} {
 	switch value := i.(type) {
 	default:

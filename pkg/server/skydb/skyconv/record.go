@@ -26,6 +26,7 @@ import (
 type JSONRecord skydb.Record
 
 // MarshalJSON implements json.Marshaler
+// nolint: gocyclo
 func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 	data := map[string]interface{}{}
 	for key, value := range record.Data {

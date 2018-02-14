@@ -313,6 +313,8 @@ func (config *Configuration) checkAuthRecordKeysDuplication() error {
 	return nil
 }
 
+// ReadFromEnv reads from environment variable and update the configuration.
+// nolint: gocyclo
 func (config *Configuration) ReadFromEnv() {
 	envErr := godotenv.Load()
 	if envErr != nil {
@@ -646,6 +648,7 @@ func (config *Configuration) readPlugins() {
 	}
 }
 
+// nolint: gocyclo
 func (config *Configuration) readUserAudit() {
 	if v, err := parseBool(os.Getenv("USER_AUDIT_ENABLED")); err == nil {
 		config.UserAudit.Enabled = v

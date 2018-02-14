@@ -73,7 +73,7 @@ func TestNormalSubscription(t *testing.T) {
 
 			select {
 			case <-conn.Send:
-				t.Fatal("received more than one message for mulitple subscriptions")
+				t.Fatal("received more than one message for multiple subscriptions")
 			case <-time.After(50 * time.Millisecond):
 				// do nothing
 			}

@@ -414,6 +414,7 @@ func newRecordScanner(recordType string, typemap skydb.RecordSchema, cs columnsS
 	return &recordScanner{recordType, typemap, cs, columns, err, nil}
 }
 
+// nolint: gocyclo
 func (rs *recordScanner) Scan(record *skydb.Record) error {
 	if rs.err != nil {
 		return rs.err

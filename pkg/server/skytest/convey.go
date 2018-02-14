@@ -110,7 +110,7 @@ func ShouldEqualStringSliceWithoutOrder(actual interface{}, expected ...interfac
 	return ""
 }
 
-// ShouldEqualJSON asserts eqaulity of two JSON bytes or strings by
+// ShouldEqualJSON asserts equality of two JSON bytes or strings by
 // their key / value, regardless of the actual position of those
 // key-value pairs
 func ShouldEqualJSON(actual interface{}, expected ...interface{}) string {

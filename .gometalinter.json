@@ -1,0 +1,27 @@
+{
+    "Enable": [
+        "deadcode",
+        "gas",
+        "goconst",
+        "gocyclo",
+        "gofmt",
+        "golint",
+        "ineffassign",
+        "megacheck",
+        "misspell",
+        "nakedret",
+        "vet",
+        "vetshadow"
+    ],
+    "Exclude": [
+        "should have comment or be unexported",
+        "method ToSql should be ToSQL",
+        "composite literal uses unkeyed fields"
+    ],
+    "Skip": [
+        "pkg/server/skydb/mock_skydb",
+        "pkg/server/skydb/pq/migration",
+        "vendor"
+    ],
+    "Cyclo": 15
+}

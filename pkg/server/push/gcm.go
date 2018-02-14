@@ -39,7 +39,7 @@ func (p *GCMPusher) Send(m Mapper, device skydb.Device) error {
 	message.To = device.Token
 	message.RegistrationIds = nil
 
-	// NOTE(limouren): might need to check repsonse for deleted / invalid
+	// NOTE(limouren): might need to check response for deleted / invalid
 	// device here
 	if _, err := gcmSendHTTP(p.APIKey, message); err != nil {
 		log.Errorf("Failed to send GCM Notification: %v", err)

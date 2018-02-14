@@ -4,7 +4,10 @@ RUN \
     apt-get update && \
     apt-get install --no-install-recommends -y libtool-bin automake pkg-config libsodium-dev libzmq3-dev && \
     rm -rf /var/lib/apt/lists/* && \
-    go get github.com/golang/dep/cmd/dep
+    curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64 && \
+    curl -fsSL -o /usr/local/bin/vg https://github.com/GetStream/vg/releases/download/v0.8.0/vg-linux-amd64 && \
+    chmod +x /usr/local/bin/dep /usr/local/bin/vg && \
+    curl -fsSL https://github.com/alecthomas/gometalinter/releases/download/v2.0.4/gometalinter-2.0.4-linux-amd64.tar.gz | tar --strip-components 1 -C /usr/local/bin -zx
 
 RUN mkdir -p /go/src/github.com/skygeario/skygear-server
 WORKDIR /go/src/github.com/skygeario/skygear-server
@@ -21,12 +24,8 @@ RUN \
     for pkg in \
         "golang.org/x/tools/cmd/stringer" \
         "golang.org/x/tools/cmd/cover" \
-        "github.com/golang/lint/golint" \
-        "github.com/rickmak/gocyclo" \
-        "github.com/oursky/gogocyclo" \
         "github.com/mitchellh/gox" \
         "github.com/golang/mock/mockgen" \
-        "honnef.co/go/tools/cmd/staticcheck" \
         ; do \
         pushd $pkg; \
         go install .; \

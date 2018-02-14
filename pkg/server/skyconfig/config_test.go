@@ -281,7 +281,7 @@ func TestParseAuthRecordKeys(t *testing.T) {
 }
 
 func TestParseCommaSeparatedString(t *testing.T) {
-	Convey("Parse comma seperated string correctly", t, func() {
+	Convey("Parse comma separated string correctly", t, func() {
 		result := parseCommaSeparatedString(" , , ")
 		So(result, ShouldResemble, []string{})
 

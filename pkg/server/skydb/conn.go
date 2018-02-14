@@ -255,7 +255,7 @@ type CustomTokenConn interface {
 //go:generate stringer -type=AccessModel
 type AccessModel int
 
-// RoleBasedAccess is tranditional Role based Access Control
+// RoleBasedAccess is traditional Role based Access Control
 // RelationBasedAccess is Access Control determine by the user-user relation
 // between creator and accessor
 const (

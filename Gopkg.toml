@@ -23,12 +23,8 @@
 required = [
   "golang.org/x/tools/cmd/stringer",
   "golang.org/x/tools/cmd/cover",
-  "github.com/golang/lint/golint",
-  "github.com/rickmak/gocyclo",
-  "github.com/oursky/gogocyclo",
   "github.com/mitchellh/gox",
-  "github.com/golang/mock/mockgen",
-  "honnef.co/go/tools/cmd/staticcheck"
+  "github.com/golang/mock/mockgen"
 ]
 
 [[constraint]]

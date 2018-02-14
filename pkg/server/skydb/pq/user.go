@@ -96,6 +96,7 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 	return err
 }
 
+// nolint: gocyclo
 func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time

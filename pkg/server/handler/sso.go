@@ -77,7 +77,7 @@ func (payload *loginProviderPayload) Validate() skyerr.Error {
 // Response
 // if login exist
 // 		return user and token
-// eles
+// else
 // 		return skyerr.InvalidCredentials
 //
 

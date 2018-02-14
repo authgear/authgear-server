@@ -1,7 +1,0 @@
-^pkg/server/skydb/mock_skydb/mock_[^/]*\.go
-^pkg/server/skydb/mock_[^/]*_test\.go
-^pkg/server/.*_string\.go
-should have comment or be unexported$
-method ToSql should be ToSQL$
-^pkg/server/skydb/pq/migration/.*don't use underscores in Go names; type revision_
-^vendor

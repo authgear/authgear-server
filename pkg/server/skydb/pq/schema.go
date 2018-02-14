@@ -284,6 +284,7 @@ func (db *database) getSequences(recordType string) ([]string, error) {
 // WHERE constraint_type = 'FOREIGN KEY'
 // AND tc.table_schema = 'app__'
 // AND tc.table_name = 'note';
+// nolint: gocyclo
 func (db *database) RemoteColumnTypes(recordType string) (skydb.RecordSchema, error) {
 	typemap := skydb.RecordSchema{}
 	var err error

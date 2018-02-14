@@ -400,7 +400,7 @@ type FieldType struct {
 	UnderlyingType string     // indicates the underlying (pq) type
 }
 
-// DefinitionCompatibleTo returns if a value of the specifed FieldType can
+// DefinitionCompatibleTo returns if a value of the specified FieldType can
 // be saved to a database column of this FieldType.
 //
 // When a FieldType is compatible with another FieldType, it also means
@@ -534,6 +534,8 @@ func SimpleNameToFieldType(s string) (result FieldType, err error) {
 	return
 }
 
+// DeriveFieldType finds the FieldType of the specified value.
+// nolint: gocyclo
 func DeriveFieldType(value interface{}) (fieldType FieldType, err error) {
 	switch val := value.(type) {
 	default:
