@@ -52,6 +52,7 @@ type AuthInfo struct {
 	Disabled        bool       `json:"disabled"`
 	DisabledMessage string     `json:"disabled_message,omitempty"`
 	DisabledExpiry  *time.Time `json:"disabled_expiry,omitempty"`
+	Verified        bool       `json:"verified"`
 }
 
 // AuthData contains the unique authentication data of a user
