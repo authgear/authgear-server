@@ -62,6 +62,9 @@ const (
 
 	// EventChangeRoles represents Change Roles
 	EventChangeRoles
+
+	// EventResetPassword represents Reset Password
+	EventResetPassword
 )
 
 func (e Event) String() string {
@@ -78,6 +81,8 @@ func (e Event) String() string {
 		return "change_password"
 	case EventChangeRoles:
 		return "change_roles"
+	case EventResetPassword:
+		return "reset_password"
 	default:
 		return ""
 	}
