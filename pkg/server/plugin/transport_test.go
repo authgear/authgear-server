@@ -115,10 +115,26 @@ func TestContextMap(t *testing.T) {
 	Convey("UserID", t, func() {
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, router.UserIDContextKey, "42")
+		So(ContextMap(ctx), ShouldResemble, map[string]interface{}{
+			"user_id": "42",
+		})
+	})
+
+	Convey("AccessKeyType", t, func() {
+		ctx := context.Background()
 		ctx = context.WithValue(ctx, router.AccessKeyTypeContextKey, router.MasterAccessKey)
 		So(ContextMap(ctx), ShouldResemble, map[string]interface{}{
-			"user_id":         "42",
 			"access_key_type": "master",
+		})
+	})
+
+	Convey("Verified", t, func() {
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, router.AuthInfoContextKey, skydb.AuthInfo{
+			Verified: true,
+		})
+		So(ContextMap(ctx), ShouldResemble, map[string]interface{}{
+			"verified": true,
 		})
 	})
 }

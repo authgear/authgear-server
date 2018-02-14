@@ -114,6 +114,7 @@ func (p InjectAuthIfPresent) Preprocess(payload *router.Payload, response *route
 	}
 
 	payload.AuthInfo = &authinfo
+	payload.Context = context.WithValue(payload.Context, router.AuthInfoContextKey, authinfo)
 
 	return http.StatusOK
 }
