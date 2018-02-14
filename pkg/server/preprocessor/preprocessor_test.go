@@ -506,7 +506,7 @@ func TestInjectUserProcessor(t *testing.T) {
 
 		db := mock_skydb.NewMockTxDatabase(ctrl)
 
-		pp := InjectUserIfPresent{}
+		pp := InjectUser{}
 		conn := skydbtest.NewMapConn()
 		conn.InternalPublicDB = db
 

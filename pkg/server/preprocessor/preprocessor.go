@@ -162,31 +162,26 @@ func (p InjectAuth) Preprocess(payload *router.Payload, response *router.Respons
 	return
 }
 
-// InjectUserIfPresent injects a user record to the payload
+// InjectUser injects a user record to the payload
 //
 // An AuthInfo must be injected before this, if it is not found, the preprocessor
 // would just skip the injection
 //
 // If AuthInfo is injected but a user record is not found, the preprocessor would
 // create a new user record and inject it to the payload
-type InjectUserIfPresent struct {
-	HookRegistry        *hook.Registry `inject:"HookRegistry"`
-	AssetStore          asset.Store    `inject:"AssetStore"`
-	RequireVerification bool
+type InjectUser struct {
+	HookRegistry      *hook.Registry `inject:"HookRegistry"`
+	AssetStore        asset.Store    `inject:"AssetStore"`
+	Required          bool
+	CheckVerification bool
 }
 
-func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
-	authInfo := payload.AuthInfo
+func (p InjectUser) Preprocess(payload *router.Payload, response *router.Response) int {
 	db := payload.DBConn.PublicDB()
 
-	if authInfo == nil {
-		log.Debugln("injectUser: empty AuthInfo, skipping")
-		return http.StatusOK
-	}
-
-	if payload.User == nil {
+	if payload.User == nil && payload.AuthInfo != nil {
 		user := skydb.Record{}
-		err := db.Get(skydb.NewRecordID("user", authInfo.ID), &user)
+		err := db.Get(skydb.NewRecordID("user", payload.AuthInfo.ID), &user)
 
 		if err == skydb.ErrRecordNotFound {
 			user, err = p.createUser(payload)
@@ -200,8 +195,13 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 		payload.User = &user
 	}
 
-	if p.RequireVerification {
-		if val, ok := payload.User.Data[field].(bool); !ok || !val {
+	if p.Required && payload.User == nil {
+		response.Err = skyerr.NewError(skyerr.UnexpectedUserNotFound, "user not found")
+		return http.StatusInternalServerError
+	}
+
+	if p.CheckVerification && payload.User != nil {
+		if val, ok := payload.User.Data["is_verified"].(bool); !ok || !val {
 			response.Err = skyerr.NewError(
 				skyerr.VerificationRequired,
 				"User is not yet verified",
@@ -213,7 +213,7 @@ func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *route
 	return http.StatusOK
 }
 
-func (p InjectUserIfPresent) createUser(payload *router.Payload) (skydb.Record, error) {
+func (p InjectUser) createUser(payload *router.Payload) (skydb.Record, error) {
 	authInfo := payload.AuthInfo
 	db := payload.DBConn.PublicDB()
 	txDB, ok := db.(skydb.Transactional)

@@ -188,7 +188,18 @@ func main() {
 		PwExpiryDays: config.UserAudit.PwExpiryDays,
 		Required:     true,
 	}
-	preprocessorRegistry["inject_user"] = &pp.InjectUserIfPresent{}
+	preprocessorRegistry["require_user"] = &pp.InjectUser{
+		Required:          true,
+		CheckVerification: config.Verification.Required,
+	}
+	if config.Verification.Required {
+		preprocessorRegistry["check_user"] = &pp.InjectUser{
+			Required:          false,
+			CheckVerification: true,
+		}
+	} else {
+		preprocessorRegistry["check_user"] = &pp.Null{}
+	}
 	preprocessorRegistry["require_admin"] = &pp.RequireAdminOrMasterKey{}
 	preprocessorRegistry["require_master_key"] = &pp.RequireMasterKey{}
 	preprocessorRegistry["inject_db"] = &pp.InjectDatabase{}

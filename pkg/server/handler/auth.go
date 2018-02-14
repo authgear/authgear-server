@@ -629,7 +629,7 @@ type ChangePasswordHandler struct {
 	Authenticator   router.Processor       `preprocessor:"authenticator"`
 	DBConn          router.Processor       `preprocessor:"dbconn"`
 	InjectAuth      router.Processor       `preprocessor:"require_auth"`
-	InjectUser      router.Processor       `preprocessor:"inject_user"`
+	InjectUser      router.Processor       `preprocessor:"require_user"`
 	PluginReady     router.Processor       `preprocessor:"plugin_ready"`
 	preprocessors   []router.Processor
 }

@@ -59,6 +59,7 @@ func (h *Handler) Setup() {
 			"authenticator",
 			"dbconn",
 			"require_auth",
+			"check_user",
 			"plugin_ready",
 		)
 	} else if h.AccessKeyRequired {
