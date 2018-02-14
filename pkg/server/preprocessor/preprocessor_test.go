@@ -430,6 +430,31 @@ func TestInjectAuthProcessor(t *testing.T) {
 	})
 }
 
+func TestRequireAuthProcessor(t *testing.T) {
+	Convey("RequireAuth", t, func() {
+		pp := RequireAuth{}
+		Convey("should deny unverified user if verification is required", func() {
+			pp.VerificationRequired = true
+
+			payload := router.Payload{
+				Data:       map[string]interface{}{},
+				Meta:       map[string]interface{}{},
+				AuthInfoID: "some-uuid",
+				AuthInfo: &skydb.AuthInfo{
+					ID:             "some-uuid",
+					HashedPassword: []byte("unimportant"),
+					Verified:       false,
+				},
+			}
+			resp := router.Response{}
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusForbidden)
+
+			So(resp.Err, ShouldNotBeNil)
+			So(resp.Err.Code(), ShouldEqual, skyerr.VerificationRequired)
+		})
+	})
+}
+
 func TestRequireAdminOrMasterKey(t *testing.T) {
 	Convey("RequireAdminOrMasterKey", t, func() {
 		pp := RequireAdminOrMasterKey{}
