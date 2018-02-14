@@ -231,6 +231,9 @@ type Configuration struct {
 		PwHistoryDays       int      `json:"pw_history_days"`
 		PwExpiryDays        int      `json:"pw_expiry_days"`
 	} `json:"user_audit"`
+	Verification struct {
+		Required bool `json:"required"`
+	} `json:"verification"`
 }
 
 func NewConfiguration() Configuration {
@@ -389,6 +392,7 @@ func (config *Configuration) ReadFromEnv() {
 	config.readLog()
 	config.readPlugins()
 	config.readUserAudit()
+	config.readUserVerification()
 }
 
 func (config *Configuration) readHost() {
@@ -686,5 +690,11 @@ func (config *Configuration) readUserAudit() {
 	}
 	if v, err := strconv.ParseInt(os.Getenv("USER_AUDIT_PW_EXPIRY_DAYS"), 10, 0); err == nil && v > 0 {
 		config.UserAudit.PwExpiryDays = int(v)
+	}
+}
+
+func (config *Configuration) readUserVerification() {
+	if v, err := parseBool(os.Getenv("VERIFY_REQUIRED")); err == nil {
+		config.Verification.Required = v
 	}
 }
