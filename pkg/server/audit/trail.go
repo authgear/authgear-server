@@ -65,6 +65,12 @@ const (
 
 	// EventResetPassword represents Reset Password
 	EventResetPassword
+
+	// EventDisableUser represents Disable User
+	EventDisableUser
+
+	// EventEnableUser represents Enable User
+	EventEnableUser
 )
 
 func (e Event) String() string {
@@ -83,6 +89,10 @@ func (e Event) String() string {
 		return "change_roles"
 	case EventResetPassword:
 		return "reset_password"
+	case EventDisableUser:
+		return "disable_user"
+	case EventEnableUser:
+		return "enable_user"
 	default:
 		return ""
 	}

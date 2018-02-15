@@ -459,6 +459,10 @@ func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *login
 
 		*user = *createdUser
 	} else {
+		if err := checkUserIsNotDisabled(authinfo); err != nil {
+			return err
+		}
+
 		authinfo.SetProviderInfoData(principalID, providerAuthData)
 		if err := payload.DBConn.UpdateAuth(authinfo); err != nil {
 			return skyerr.MakeError(err)
@@ -489,6 +493,10 @@ func (h *LoginHandler) handleLoginWithAuthData(payload *router.Payload, p *login
 
 		// TODO: more error handling here if necessary
 		return skyerr.NewResourceFetchFailureErr("auth_data", p.AuthData)
+	}
+
+	if err := checkUserIsNotDisabled(&fetchedAuthInfo); err != nil {
+		return err
 	}
 
 	*authinfo = fetchedAuthInfo

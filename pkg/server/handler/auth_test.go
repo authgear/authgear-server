@@ -596,6 +596,71 @@ func TestLoginHandler(t *testing.T) {
 			errorResponse := resp.Err.(skyerr.Error)
 			So(errorResponse.Code(), ShouldEqual, skyerr.ResourceNotFound)
 		})
+
+		Convey("login user disabled", func() {
+			authinfo := skydb.NewAuthInfo("secret")
+			authinfo.Disabled = true
+			authinfo.DisabledMessage = "some reason"
+			conn.CreateAuth(&authinfo)
+
+			db.EXPECT().
+				Query(gomock.Any(), gomock.Any()).
+				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
+					ID:   skydb.NewRecordID("user", authinfo.ID),
+					Data: map[string]interface{}{"username": "john.doe"},
+				}})), nil).
+				AnyTimes()
+
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"auth_data": map[string]interface{}{
+						"username": "john.doe",
+					},
+					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: db,
+			}
+			resp := router.Response{}
+			handler.Handle(&req, &resp)
+
+			So(resp.Err.Code(), ShouldEqual, skyerr.UserDisabled)
+			So(resp.Err.Info()["message"], ShouldEqual, "some reason")
+		})
+
+		Convey("login user disabled but expired", func() {
+			authinfo := skydb.NewAuthInfo("secret")
+			authinfo.Disabled = true
+			authinfo.DisabledMessage = "some reason"
+			expiry := time.Now().Add(-1 * time.Hour)
+			authinfo.DisabledExpiry = &expiry
+			conn.CreateAuth(&authinfo)
+
+			db.EXPECT().
+				Query(gomock.Any(), gomock.Any()).
+				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
+				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
+					ID:   skydb.NewRecordID("user", authinfo.ID),
+					Data: map[string]interface{}{"username": "john.doe"},
+				}})), nil).
+				AnyTimes()
+
+			req := router.Payload{
+				Data: map[string]interface{}{
+					"auth_data": map[string]interface{}{
+						"username": "john.doe",
+					},
+					"password": "secret",
+				},
+				DBConn:   conn,
+				Database: db,
+			}
+			resp := router.Response{}
+			handler.Handle(&req, &resp)
+			So(resp.Err, ShouldBeNil)
+			So(resp.Result, ShouldHaveSameTypeAs, AuthResponse{})
+		})
 	})
 }
 

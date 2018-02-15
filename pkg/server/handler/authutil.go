@@ -17,6 +17,9 @@ package handler
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
@@ -271,4 +274,25 @@ func getAuthDataFromUser(authData skydb.AuthData, user skydb.Record) {
 	}
 
 	authData.UpdateFromRecordData(user.Data)
+}
+
+// checkUserIsNotDisabled is used by login handlers to check if the user is
+// not disabled.
+func checkUserIsNotDisabled(authInfo *skydb.AuthInfo) skyerr.Error {
+	if authInfo.IsDisabled() {
+		log.WithFields(logrus.Fields{
+			"auth_id": authInfo.ID,
+		}).Info("User is disabled")
+		info := map[string]interface{}{}
+		if authInfo.DisabledExpiry != nil {
+			info["expiry"] = authInfo.DisabledExpiry.Format(time.RFC3339)
+		}
+		if authInfo.DisabledMessage != "" {
+			info["message"] = authInfo.DisabledMessage
+		}
+		return skyerr.NewErrorWithInfo(skyerr.UserDisabled, "user is disabled", info)
+	}
+
+	authInfo.RefreshDisabledStatus()
+	return nil
 }
