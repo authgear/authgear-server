@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	baidu "github.com/skygeario/go-baidupush"
+
 	"github.com/mitchellh/mapstructure"
-	"github.com/skygeario/skygear-server/pkg/server/push/baidu"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
