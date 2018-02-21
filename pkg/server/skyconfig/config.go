@@ -197,6 +197,11 @@ type Configuration struct {
 		Enable bool   `json:"enable"`
 		APIKey string `json:"api_key"`
 	} `json:"gcm"`
+	Baidu struct {
+		Enable    bool   `json:"enable"`
+		APIKey    string `json:"api_key"`
+		SecretKey string `json:"secret_key"`
+	} `json:"baidu"`
 	LOG struct {
 		Level           string            `json:"-"`
 		LoggersLevel    map[string]string `json:"-"`
@@ -250,6 +255,7 @@ func NewConfiguration() Configuration {
 	config.APNS.Type = "cert"
 	config.APNS.Env = "sandbox"
 	config.GCM.Enable = false
+	config.Baidu.Enable = false
 	config.LOG.Level = "debug"
 	config.LOG.LoggersLevel = map[string]string{
 		"plugin": "info",
@@ -377,6 +383,7 @@ func (config *Configuration) ReadFromEnv() {
 	config.readAssetStore()
 	config.readAPNS()
 	config.readGCM()
+	config.readBaidu()
 	config.readLog()
 	config.readPlugins()
 	config.readUserAudit()
@@ -563,6 +570,22 @@ func (config *Configuration) readGCM() {
 	gcmAPIKey := os.Getenv("GCM_APIKEY")
 	if gcmAPIKey != "" {
 		config.GCM.APIKey = gcmAPIKey
+	}
+}
+
+func (config *Configuration) readBaidu() {
+	if shouldEnableBaidu, err := parseBool(os.Getenv("BAIDU_ENABLE")); err == nil {
+		config.Baidu.Enable = shouldEnableBaidu
+	}
+
+	baiduAPIKey := os.Getenv("BAIDU_API_KEY")
+	if baiduAPIKey != "" {
+		config.Baidu.APIKey = baiduAPIKey
+	}
+
+	baiduSecretKey := os.Getenv("BAIDU_SECRET_KEY")
+	if baiduSecretKey != "" {
+		config.Baidu.SecretKey = baiduSecretKey
 	}
 }
 

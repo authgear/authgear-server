@@ -43,7 +43,7 @@ func (payload *deviceRegisterPayload) Decode(data map[string]interface{}) skyerr
 func (payload *deviceRegisterPayload) Validate() skyerr.Error {
 	if payload.Type == "" {
 		return skyerr.NewInvalidArgument("empty device type", []string{"type"})
-	} else if payload.Type != "ios" && payload.Type != "android" {
+	} else if payload.Type != "ios" && payload.Type != "android" && payload.Type != "baidu-android" {
 		return skyerr.NewInvalidArgument(fmt.Sprintf("unknown device type = %v", payload.Type), []string{"type"})
 	}
 

@@ -256,6 +256,11 @@
   version = "v1.0.3"
 
 [[projects]]
+  name = "github.com/skygeario/go-baidupush"
+  packages = ["."]
+  revision = "0b8ba42f25af6f9937df8843820a009c38bee333"
+
+[[projects]]
   name = "github.com/smartystreets/assertions"
   packages = [".","internal/go-render/render","internal/oglematchers"]
   revision = "ff1918e1e5a13a74014644ae7c1e0ba2f791364d"
@@ -328,6 +333,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "857eabfa15be3c0a031733cd90edf8f1212939e6cf525a8a118245bd89548ceb"
+  inputs-digest = "a3b0db368400036dc9f5e4cf25c22d46c02af7dbf6357de6f76baefeebcb5d7c"
   solver-name = "gps-cdcl"
   solver-version = 1
