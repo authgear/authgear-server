@@ -65,7 +65,7 @@ func main() {
 	config.ReadFromEnv()
 	if err := config.Validate(); err != nil {
 		fmt.Println(err.Error())
-		return
+		os.Exit(1)
 	}
 
 	initLogger(config)
@@ -381,6 +381,7 @@ func main() {
 	err := http.ListenAndServe(config.HTTP.Host, finalMux)
 	if err != nil {
 		log.Printf("Failed: %v", err)
+		os.Exit(1)
 	}
 }
 
