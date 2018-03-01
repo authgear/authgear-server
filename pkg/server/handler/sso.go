@@ -22,6 +22,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/provider"
 	"github.com/skygeario/skygear-server/pkg/server/router"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -195,7 +196,8 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 type signupProviderPayload struct {
 	Provider        string                 `mapstructure:"provider"`
 	PrincipalID     string                 `mapstructure:"principal_id"`
-	Profile         skydb.Data             `mapstructure:"profile"`
+	RawProfile      map[string]interface{} `mapstructure:"profile"`
+	Profile         skydb.Data
 	TokenResponse   map[string]interface{} `mapstructure:"token_response"`
 	ProviderProfile map[string]interface{} `mapstructure:"provider_profile"`
 }
@@ -204,6 +206,11 @@ func (payload *signupProviderPayload) Decode(data map[string]interface{}) skyerr
 	if err := mapstructure.Decode(data, payload); err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
+
+	if err := (*skyconv.MapData)(&payload.Profile).FromMap(payload.RawProfile); err != nil {
+		return skyerr.NewError(skyerr.InvalidArgument, err.Error())
+	}
+
 	return payload.Validate()
 }
 

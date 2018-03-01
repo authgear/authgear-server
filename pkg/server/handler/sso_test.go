@@ -187,7 +187,13 @@ func TestSignupProviderHandler(t *testing.T) {
 					"provider": "skygear",
 					"provider_profile": {"name": "chima ceo", "email": "chima@skygeario.com"},
 					"token_response": {"access_token": "token"},
-					"profile": {"email": "chima@skygeario.com"}
+					"profile": {
+						"email": "chima@skygeario.com",
+						"birthday": {
+							"$date": "2006-01-02T15:04:05Z",
+							"$type": "date"
+						}
+					}
 				}`)
 
 			token := tokenStore.Token
@@ -214,7 +220,11 @@ func TestSignupProviderHandler(t *testing.T) {
 									"_type": "record",
 									"_updated_at": "2006-01-02T15:04:05Z",
 									"_updated_by": "%v",
-									"email": "chima@skygeario.com"
+									"email": "chima@skygeario.com",
+									"birthday": {
+										"$date": "2006-01-02T15:04:05Z",
+										"$type": "date"
+									}
 							},
 							"user_id": "%v"
 					}
