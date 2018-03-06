@@ -1,3 +1,21 @@
+## 1.4.0 (2018-03-06)
+
+### Features
+
+- Support enable/disable user account
+- Add auth:reset_password handler
+- Add Baidu Push Notification Service
+
+### Bug Fixes
+
+- Deserialize profile for oauth signup api (#550)
+
+### Other notes
+
+- Collapse fine grained password policy errors
+- Exit with non-zero status if encountering error
+- Use gometalinter.v2
+
 ## 1.3.3 (2018-02-05)
 
 ### Bug Fixes
@@ -6,6 +24,7 @@
 
 ### Other Notes
 - Add tty: true to docker-compose.yml
+
 ## 1.3.2 (2018-01-31)
 
 ### Features
