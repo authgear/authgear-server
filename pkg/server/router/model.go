@@ -27,6 +27,7 @@ import (
 type ContextKey string
 
 var UserIDContextKey ContextKey = "UserID"
+var AuthInfoContextKey ContextKey = "AuthInfo"
 var AccessKeyTypeContextKey ContextKey = "AccessKeyType"
 
 // HandlerFunc specifies the function signature of a request handler function

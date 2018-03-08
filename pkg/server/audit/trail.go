@@ -71,6 +71,12 @@ const (
 
 	// EventEnableUser represents Enable User
 	EventEnableUser
+
+	// EventVerifyUser represents Verify User
+	EventVerifyUser
+
+	// EventUnverifyUser represents Unverify User
+	EventUnverifyUser
 )
 
 func (e Event) String() string {
@@ -93,6 +99,10 @@ func (e Event) String() string {
 		return "disable_user"
 	case EventEnableUser:
 		return "enable_user"
+	case EventVerifyUser:
+		return "verify_user"
+	case EventUnverifyUser:
+		return "unverify_user"
 	default:
 		return ""
 	}

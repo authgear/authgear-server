@@ -64,6 +64,7 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 		"disabled",
 		"disabled_message",
 		"disabled_expiry",
+		"verified",
 	).Values(
 		authinfo.ID,
 		authinfo.HashedPassword,
@@ -73,6 +74,7 @@ func (c *conn) CreateAuth(authinfo *skydb.AuthInfo) (err error) {
 		authinfo.Disabled,
 		disabledReason,
 		disabledExpiry,
+		authinfo.Verified,
 	)
 
 	_, err = c.ExecWith(builder)
@@ -129,6 +131,7 @@ func (c *conn) UpdateAuth(authinfo *skydb.AuthInfo) (err error) {
 		Set("disabled", authinfo.Disabled).
 		Set("disabled_message", disabledReason).
 		Set("disabled_expiry", disabledExpiry).
+		Set("verified", authinfo.Verified).
 		Where("id = ?", authinfo.ID)
 
 	result, err := c.ExecWith(builder)
@@ -184,6 +187,7 @@ func (c *conn) baseUserBuilder() sq.SelectBuilder {
 	return psql.Select("id", "password", "provider_info",
 		"token_valid_since", "last_seen_at",
 		"disabled", "disabled_message", "disabled_expiry",
+		"verified",
 		"array_to_json(array_agg(role_id)) AS roles").
 		From(c.tableName("_auth")).
 		LeftJoin(c.tableName("_auth_role") + " ON id = auth_id").
@@ -199,6 +203,7 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 		disabled        bool
 		disabledReason  sql.NullString
 		disabledExpiry  pq.NullTime
+		verified        bool
 	)
 	password, providerInfo := []byte{}, providerInfoValue{}
 
@@ -211,6 +216,7 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 		&disabled,
 		&disabledReason,
 		&disabledExpiry,
+		&verified,
 		&roles,
 	)
 	if err != nil {
@@ -250,6 +256,7 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 		authinfo.DisabledMessage = ""
 		authinfo.DisabledExpiry = nil
 	}
+	authinfo.Verified = verified
 
 	authinfo.Roles = roles.slice
 
