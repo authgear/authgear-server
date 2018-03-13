@@ -23,7 +23,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "b3163d49bd6d" }
+func (r *fullMigration) Version() string { return "7469be11899e" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -209,6 +209,17 @@ CREATE TABLE _password_history (
 	logged_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 CREATE INDEX ON _password_history (auth_id, logged_at DESC);
+
+CREATE TABLE _verify_code (
+	id TEXT PRIMARY KEY,
+	auth_id TEXT NOT NULL,
+	record_key TEXT NOT NULL,
+	record_value TEXT NOT NULL,
+	code TEXT NOT NULL,
+	consumed BOOLEAN NOT NULL DEFAULT FALSE,
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
+);
+CREATE INDEX ON _verify_code (auth_id, code, consumed);
 `
 	_, err := tx.Exec(stmt)
 	return err
