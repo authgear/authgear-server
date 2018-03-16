@@ -119,8 +119,5 @@ func ContextMap(ctx context.Context) map[string]interface{} {
 			pluginCtx["access_key_type"] = "master"
 		}
 	}
-	if authInfo, ok := ctx.Value(router.AuthInfoContextKey).(skydb.AuthInfo); ok {
-		pluginCtx["verified"] = authInfo.Verified
-	}
 	return pluginCtx
 }

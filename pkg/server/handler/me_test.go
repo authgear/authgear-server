@@ -50,7 +50,6 @@ func TestMeHandler(t *testing.T) {
 				"Programmer",
 			},
 			LastSeenAt: &anHourAgo,
-			Verified:   true,
 		}
 		user := skydb.Record{
 			ID: skydb.RecordID{
@@ -111,8 +110,7 @@ func TestMeHandler(t *testing.T) {
 							},
 							"roles": ["Test", "Programmer"],
 							"last_login_at": "2006-01-02T14:04:05Z",
-							"last_seen_at": "2006-01-02T14:04:05Z",
-							"verified": true
+							"last_seen_at": "2006-01-02T14:04:05Z"
 						}
 					}`,
 					tokenStore.Token.AccessToken,

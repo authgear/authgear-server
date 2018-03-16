@@ -145,8 +145,7 @@ func TestLoginProviderHandler(t *testing.T) {
 						},
 						"access_token": "%v",
 						"last_login_at": "2006-01-02T14:04:05Z",
-						"last_seen_at": "2006-01-02T14:04:05Z",
-						"verified": false
+						"last_seen_at": "2006-01-02T14:04:05Z"
 					}
 				}`,
 				authinfo.ID,
@@ -227,8 +226,7 @@ func TestSignupProviderHandler(t *testing.T) {
 										"$type": "date"
 									}
 							},
-							"user_id": "%v",
-							"verified": false
+							"user_id": "%v"
 					}
 				}`,
 				token.AccessToken,

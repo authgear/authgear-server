@@ -37,7 +37,6 @@ type AuthResponse struct {
 	AccessToken string              `json:"access_token,omitempty"`
 	LastLoginAt *time.Time          `json:"last_login_at,omitempty"`
 	LastSeenAt  *time.Time          `json:"last_seen_at,omitempty"`
-	Verified    bool                `json:"verified"`
 }
 
 type AuthResponseFactory struct {
@@ -68,6 +67,5 @@ func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Rec
 		AccessToken: accessToken,
 		LastLoginAt: lastLoginAt,
 		LastSeenAt:  info.LastSeenAt,
-		Verified:    info.Verified,
 	}, nil
 }

@@ -181,7 +181,6 @@ func TestSignupHandler(t *testing.T) {
 			So(authResp.AccessToken, ShouldNotBeEmpty)
 			So(authResp.LastSeenAt, ShouldNotBeEmpty)
 			So(authResp.LastLoginAt, ShouldBeNil)
-			So(authResp.Verified, ShouldBeFalse)
 
 			token := tokenStore.Token
 			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
@@ -255,7 +254,6 @@ func TestSignupHandler(t *testing.T) {
 			So(authResp.AccessToken, ShouldNotBeEmpty)
 			So(authResp.LastSeenAt, ShouldNotBeEmpty)
 			So(authResp.LastLoginAt, ShouldBeNil)
-			So(authResp.Verified, ShouldBeFalse)
 
 			token := tokenStore.Token
 			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
@@ -324,7 +322,6 @@ func TestSignupHandler(t *testing.T) {
 			So(authResp.AccessToken, ShouldNotBeEmpty)
 			So(authResp.LastSeenAt, ShouldNotBeEmpty)
 			So(authResp.LastLoginAt, ShouldBeNil)
-			So(authResp.Verified, ShouldBeFalse)
 
 			token := tokenStore.Token
 			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
@@ -484,7 +481,6 @@ func TestLoginHandler(t *testing.T) {
 				"Programmer",
 				"Tester",
 			}
-			authinfo.Verified = true
 			conn.CreateAuth(&authinfo)
 
 			db.EXPECT().
@@ -520,7 +516,6 @@ func TestLoginHandler(t *testing.T) {
 			So(authResp.AccessToken, ShouldNotBeEmpty)
 			So(authResp.Roles, ShouldContain, "Programmer")
 			So(authResp.Roles, ShouldContain, "Tester")
-			So(authResp.Verified, ShouldBeTrue)
 
 			token := tokenStore.Token
 			So(token.AuthInfoID, ShouldEqual, authResp.UserID)
@@ -723,7 +718,6 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 
 			anHourAgo := timeNow().Add(-1 * time.Hour)
 			authinfo.LastSeenAt = &anHourAgo
-			authinfo.Verified = true
 
 			conn.authinfo = &authinfo
 			defer func() {
@@ -780,8 +774,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 						},
 						"access_token": "%v",
 						"last_login_at": "2006-01-02T14:04:05Z",
-						"last_seen_at": "2006-01-02T14:04:05Z",
-						"verified": true
+						"last_seen_at": "2006-01-02T14:04:05Z"
 					}
 				}`,
 				authinfo.ID,
@@ -834,8 +827,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 							"_created_at": "2006-01-02T15:04:05Z",
 							"_updated_at": "2006-01-02T15:04:05Z"
 						},
-						"access_token": "%v",
-						"verified": false
+						"access_token": "%v"
 					}
 				}`,
 				authinfo.ID,
@@ -957,8 +949,7 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 							"_created_at": "2006-01-02T15:04:05Z",
 							"_updated_at": "2006-01-02T15:04:05Z"
 						},
-						"access_token": "%v",
-						"verified": false
+						"access_token": "%v"
 					}
 				}`,
 				authinfo.ID,
@@ -1083,8 +1074,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 							"_created_at": "2006-01-02T15:04:05Z",
 							"_updated_at": "2006-01-02T15:04:05Z"
 						},
-						"access_token": "%v",
-						"verified": false
+						"access_token": "%v"
 					}
 				}`,
 				authinfo.ID,
@@ -1271,8 +1261,7 @@ func TestChangePasswordHandlerWithProvider(t *testing.T) {
 							"_access": null,
 							"email": "tester1@example.com",
 							"username": "tester1"
-						},
-						"verified": false
+						}
 					}
 				}`, tokenStore.Token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
@@ -1300,8 +1289,7 @@ func TestChangePasswordHandlerWithProvider(t *testing.T) {
 					"result": {
 						"user_id": "user-uuid",
 						"access_token": "%s",
-						"profile": null,
-						"verified": false
+						"profile": null
 					}
 				}`, tokenStore.Token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)
@@ -1398,8 +1386,7 @@ func TestResetPasswordHandler(t *testing.T) {
 							"_access": null,
 							"email": "tester1@example.com",
 							"username": "tester1"
-						},
-						"verified": false
+						}
 					}
 				}`, tokenStore.Token.AccessToken))
 			So(resp.Code, ShouldEqual, 200)

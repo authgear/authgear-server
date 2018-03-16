@@ -55,7 +55,6 @@ func TestAuthCRUD(t *testing.T) {
 			Disabled:        true,
 			DisabledMessage: "some reason",
 			DisabledExpiry:  &expiry,
-			Verified:        true,
 		}
 
 		Convey("default admin role", func() {

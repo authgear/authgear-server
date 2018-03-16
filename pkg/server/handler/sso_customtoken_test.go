@@ -103,8 +103,7 @@ func TestSSOCustomTokenLoginHandler(t *testing.T) {
 							"_updated_by": "%v",
 							"name": "John Doe"
 						},
-						"user_id": "%v",
-						"verified": false
+						"user_id": "%v"
 					}
 				}`,
 				token.AccessToken,

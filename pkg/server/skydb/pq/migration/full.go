@@ -23,7 +23,7 @@ import (
 type fullMigration struct {
 }
 
-func (r *fullMigration) Version() string { return "df95984b298d" }
+func (r *fullMigration) Version() string { return "b3163d49bd6d" }
 
 func (r *fullMigration) createTable(tx *sqlx.Tx) error {
 	const stmt = `
@@ -62,8 +62,7 @@ CREATE TABLE _auth (
 	last_seen_at timestamp without time zone,
 	disabled boolean NOT NULL DEFAULT FALSE,
 	disabled_message text,
-	disabled_expiry timestamp without time zone,
-	verified boolean NOT NULL DEFAULT FALSE
+	disabled_expiry timestamp without time zone
 );
 
 CREATE TABLE _role (

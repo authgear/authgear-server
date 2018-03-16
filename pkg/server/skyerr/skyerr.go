@@ -153,10 +153,6 @@ const (
 	// UserDisabled is returned when the user account is disabled.
 	UserDisabled
 
-	// VerificationRequired is returned when verification is required but the
-	// user is not verified.
-	VerificationRequired
-
 	// Error codes for expected error condition should be placed
 	// above this line.
 )

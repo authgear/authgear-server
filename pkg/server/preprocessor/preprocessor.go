@@ -114,7 +114,6 @@ func (p InjectAuthIfPresent) Preprocess(payload *router.Payload, response *route
 	}
 
 	payload.AuthInfo = &authinfo
-	payload.Context = context.WithValue(payload.Context, router.AuthInfoContextKey, authinfo)
 
 	return http.StatusOK
 }
@@ -260,19 +259,12 @@ func (p InjectPublicDatabase) Preprocess(payload *router.Payload, response *rout
 }
 
 type RequireAuth struct {
-	VerificationRequired bool
 }
 
 func (p RequireAuth) Preprocess(payload *router.Payload, response *router.Response) int {
 	if payload.AuthInfo == nil {
 		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is required for this action, please login.")
 		return http.StatusUnauthorized
-	}
-
-	if p.VerificationRequired && !payload.AuthInfo.Verified {
-		log.Info("User is not verified and verification is required")
-		response.Err = skyerr.NewError(skyerr.VerificationRequired, "User is not verified and verification is required")
-		return http.StatusForbidden
 	}
 
 	return http.StatusOK
