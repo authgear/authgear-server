@@ -644,7 +644,7 @@ EOF
 type SchemaFieldAccessGetHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	RequireAdmin  router.Processor `preprocessor:"require_admin"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -654,7 +654,7 @@ func (h *SchemaFieldAccessGetHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.RequireAdmin,
 		h.PluginReady,
 	}
@@ -732,7 +732,7 @@ EOF
 type SchemaFieldAccessUpdateHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
+	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	RequireAdmin  router.Processor `preprocessor:"require_admin"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -742,7 +742,7 @@ func (h *SchemaFieldAccessUpdateHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
-		h.InjectUser,
+		h.InjectAuth,
 		h.RequireAdmin,
 		h.PluginReady,
 	}
