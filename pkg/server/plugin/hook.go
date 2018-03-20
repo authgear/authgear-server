@@ -16,8 +16,10 @@ package plugin
 
 import (
 	"context"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
+	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -43,8 +45,22 @@ func CreateHookFunc(p *Plugin, hookInfo pluginHookInfo) hook.Func {
 	}
 	if hookInfo.Async {
 		return func(ctx context.Context, record *skydb.Record, oldRecord *skydb.Record) skyerr.Error {
+			asyncContext, _ := context.WithTimeout(
+				context.Background(),
+				time.Second*60,
+			)
+			asyncContext = context.WithValue(
+				asyncContext,
+				router.UserIDContextKey,
+				ctx.Value(router.UserIDContextKey),
+			)
+			asyncContext = context.WithValue(
+				asyncContext,
+				router.AccessKeyTypeContextKey,
+				ctx.Value(router.AccessKeyTypeContextKey),
+			)
 			// TODO(limouren): think of a way to test this go routine
-			go hookFunc(ctx, record, oldRecord)
+			go hookFunc(asyncContext, record, oldRecord)
 			return nil
 		}
 	}

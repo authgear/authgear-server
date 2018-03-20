@@ -24,6 +24,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+// TODO(cheungpat): We should put these values into a struct that is stored
+// in context.Context, rather than storing individual values. Before this
+// happens, this list should be keep in sync with the following locations:
+// - pkg/server/plugin/hook.go
+// - pkg/server/plugin/transport.go
+
+// ContextKey is the name of the values that are saved to context.Context.
 type ContextKey string
 
 var UserIDContextKey ContextKey = "UserID"
