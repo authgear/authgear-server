@@ -215,7 +215,9 @@ func (t injectUserPreprocessorAccessToken) IssuedAt() time.Time {
 
 func TestInjectAuthProcessor(t *testing.T) {
 	Convey("InjectAuth", t, func() {
-		pp := InjectAuthIfPresent{}
+		pp := InjectAuth{
+			Required: true,
+		}
 		conn := skydbtest.NewMapConn()
 
 		withoutTokenValidSince := skydb.AuthInfo{
@@ -322,8 +324,9 @@ func TestInjectAuthProcessor(t *testing.T) {
 			timeNow = func() time.Time { return time.Date(2017, 12, 2, 0, 0, 0, 0, time.UTC) }
 			restore := skydb.MockTimeNowForTestingOnly(timeNow)
 			defer restore()
-			ppWithPasswordExpiryDays := InjectAuthIfPresent{
+			ppWithPasswordExpiryDays := InjectAuth{
 				PwExpiryDays: 30,
+				Required:     true,
 			}
 
 			payload1 := router.Payload{

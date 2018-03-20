@@ -246,9 +246,8 @@ type RecordSaveHandler struct {
 	AuthRecordKeys [][]string         `inject:"AuthRecordKeys"`
 	Authenticator  router.Processor   `preprocessor:"authenticator"`
 	DBConn         router.Processor   `preprocessor:"dbconn"`
-	InjectAuth     router.Processor   `preprocessor:"inject_auth"`
+	InjectAuth     router.Processor   `preprocessor:"require_auth"`
 	InjectDB       router.Processor   `preprocessor:"inject_db"`
-	RequireAuth    router.Processor   `preprocessor:"require_auth"`
 	PluginReady    router.Processor   `preprocessor:"plugin_ready"`
 	preprocessors  []router.Processor
 }
@@ -259,7 +258,6 @@ func (h *RecordSaveHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
-		h.RequireAuth,
 		h.PluginReady,
 	}
 }
@@ -720,9 +718,8 @@ type RecordDeleteHandler struct {
 	AccessModel   skydb.AccessModel `inject:"AccessModel"`
 	Authenticator router.Processor  `preprocessor:"authenticator"`
 	DBConn        router.Processor  `preprocessor:"dbconn"`
-	InjectAuth    router.Processor  `preprocessor:"inject_auth"`
+	InjectAuth    router.Processor  `preprocessor:"require_auth"`
 	InjectDB      router.Processor  `preprocessor:"inject_db"`
-	RequireAuth   router.Processor  `preprocessor:"require_auth"`
 	PluginReady   router.Processor  `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -733,7 +730,6 @@ func (h *RecordDeleteHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
-		h.RequireAuth,
 		h.PluginReady,
 	}
 }

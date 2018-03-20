@@ -58,7 +58,6 @@ func (h *Handler) Setup() {
 		h.preprocessors = h.PreprocessorList.GetByNames(
 			"authenticator",
 			"dbconn",
-			"inject_auth",
 			"require_auth",
 			"plugin_ready",
 		)
