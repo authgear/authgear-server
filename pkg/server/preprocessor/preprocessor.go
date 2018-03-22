@@ -67,7 +67,6 @@ func (p InjectAuth) Preprocess(payload *router.Payload, response *router.Respons
 		payload.Context = context.WithValue(payload.Context, router.UserIDContextKey, "_god")
 	}
 
-	conn := payload.DBConn
 	authinfo := skydb.AuthInfo{}
 	var lastError skyerr.Error
 
@@ -103,43 +102,16 @@ func (p InjectAuth) Preprocess(payload *router.Payload, response *router.Respons
 	// If an error occurred at this stage, Internal Server Error is returned.
 	if payload.AuthInfoID == "" {
 		return
-	} else {
-		var err error
-		err = conn.GetAuth(payload.AuthInfoID, &authinfo)
-		if err == skydb.ErrUserNotFound && payload.HasMasterKey() {
-			authinfo = skydb.AuthInfo{
-				ID: payload.AuthInfoID,
-			}
-			err = payload.DBConn.CreateAuth(&authinfo)
-			if err == skydb.ErrUserDuplicated {
-				// user already exists, error can be ignored
-				err = nil
-			}
-		}
-
-		if err != nil {
-			log.Errorf("Cannot find AuthInfo.ID = %#v\n", payload.AuthInfoID)
-			lastError = skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, err.Error())
-			status = http.StatusInternalServerError
-			return
-		}
 	}
 
-	// Check if user is disabled
-	if authinfo.IsDisabled() {
-		log.Info("User is disabled")
-		info := map[string]interface{}{}
-		if authinfo.DisabledExpiry != nil {
-			info["expiry"] = authinfo.DisabledExpiry.Format(time.RFC3339)
-		}
-		if authinfo.DisabledMessage != "" {
-			info["message"] = authinfo.DisabledMessage
-		}
-		lastError = skyerr.NewErrorWithInfo(skyerr.UserDisabled, "user is disabled", info)
-		status = http.StatusForbidden
+	lastError, status = p.fetchOrCreateAuth(payload, &authinfo)
+	if status != 0 {
 		return
-	} else {
-		authinfo.RefreshDisabledStatus()
+	}
+
+	lastError, status = p.checkDisabledStatus(payload, &authinfo)
+	if status != 0 {
+		return
 	}
 
 	// If an access token exists checks if the access token has an IssuedAt
@@ -160,6 +132,44 @@ func (p InjectAuth) Preprocess(payload *router.Payload, response *router.Respons
 
 	payload.AuthInfo = &authinfo
 	return
+}
+
+func (p InjectAuth) fetchOrCreateAuth(payload *router.Payload, authInfo *skydb.AuthInfo) (skyerr.Error, int) {
+	var err error
+	err = payload.DBConn.GetAuth(payload.AuthInfoID, authInfo)
+	if err == skydb.ErrUserNotFound && payload.HasMasterKey() {
+		*authInfo = skydb.AuthInfo{
+			ID: payload.AuthInfoID,
+		}
+		err = payload.DBConn.CreateAuth(authInfo)
+		if err == skydb.ErrUserDuplicated {
+			// user already exists, error can be ignored
+			err = nil
+		}
+	}
+
+	if err != nil {
+		log.Errorf("Cannot find AuthInfo.ID = %#v\n", payload.AuthInfoID)
+		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, err.Error()), http.StatusInternalServerError
+	}
+	return nil, 0
+}
+
+func (p InjectAuth) checkDisabledStatus(payload *router.Payload, authInfo *skydb.AuthInfo) (skyerr.Error, int) {
+	// Check if user is disabled
+	if authInfo.IsDisabled() {
+		log.Info("User is disabled")
+		info := map[string]interface{}{}
+		if authInfo.DisabledExpiry != nil {
+			info["expiry"] = authInfo.DisabledExpiry.Format(time.RFC3339)
+		}
+		if authInfo.DisabledMessage != "" {
+			info["message"] = authInfo.DisabledMessage
+		}
+		return skyerr.NewErrorWithInfo(skyerr.UserDisabled, "user is disabled", info), http.StatusForbidden
+	}
+	authInfo.RefreshDisabledStatus()
+	return nil, 0
 }
 
 // InjectUser injects a user record to the payload
