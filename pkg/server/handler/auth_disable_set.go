@@ -92,7 +92,6 @@ type SetDisableUserHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectAuth    router.Processor `preprocessor:"inject_auth"`
-	InjectUser    router.Processor `preprocessor:"inject_user"`
 	RequireAdmin  router.Processor `preprocessor:"require_admin"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
@@ -103,7 +102,6 @@ func (h *SetDisableUserHandler) Setup() {
 		h.Authenticator,
 		h.DBConn,
 		h.InjectAuth,
-		h.InjectUser,
 		h.RequireAdmin,
 		h.PluginReady,
 	}

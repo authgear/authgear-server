@@ -628,9 +628,8 @@ type ChangePasswordHandler struct {
 	PwHousekeeper   *audit.PwHousekeeper   `inject:"PwHousekeeper"`
 	Authenticator   router.Processor       `preprocessor:"authenticator"`
 	DBConn          router.Processor       `preprocessor:"dbconn"`
-	InjectAuth      router.Processor       `preprocessor:"inject_auth"`
-	InjectUser      router.Processor       `preprocessor:"inject_user"`
-	RequireAuth     router.Processor       `preprocessor:"require_auth"`
+	InjectAuth      router.Processor       `preprocessor:"require_auth"`
+	InjectUser      router.Processor       `preprocessor:"require_user"`
 	PluginReady     router.Processor       `preprocessor:"plugin_ready"`
 	preprocessors   []router.Processor
 }
@@ -641,7 +640,6 @@ func (h *ChangePasswordHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectUser,
-		h.RequireAuth,
 		h.PluginReady,
 	}
 }

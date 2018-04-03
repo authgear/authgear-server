@@ -34,8 +34,11 @@ var timeNow = func() time.Time { return time.Now().UTC() }
 
 var log = logging.LoggerEntry("preprocessor")
 
-type InjectAuthIfPresent struct {
+// InjectAuth preprocessor checks the auth_id in the request and get the auth
+// object from the database. It can be configured to
+type InjectAuth struct {
 	PwExpiryDays int
+	Required     bool
 }
 
 func isTokenStillValid(token router.AccessToken, authInfo skydb.AuthInfo) bool {
@@ -56,108 +59,172 @@ func isTokenStillValid(token router.AccessToken, authInfo skydb.AuthInfo) bool {
 	return token.IssuedAt().After(tokenValidSince.Add(-1 * time.Second))
 }
 
-func (p InjectAuthIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
-	if payload.AuthInfoID == "" {
-		if !payload.HasMasterKey() {
-			log.Debugln("injectUser: empty AuthInfoID, skipping")
-			return http.StatusOK
-		}
+func (p InjectAuth) Preprocess(payload *router.Payload, response *router.Response) (status int) {
+	// If the payload does not already have auth_id, and if the request
+	// is authenticated with master key, assume the user is _god.
+	if payload.AuthInfoID == "" && payload.HasMasterKey() {
 		payload.AuthInfoID = "_god"
 		payload.Context = context.WithValue(payload.Context, router.UserIDContextKey, "_god")
 	}
 
-	conn := payload.DBConn
 	authinfo := skydb.AuthInfo{}
+	var lastError skyerr.Error
 
-	if err := conn.GetAuth(payload.AuthInfoID, &authinfo); err != nil {
-		if err == skydb.ErrUserNotFound && payload.HasMasterKey() {
-			authinfo = skydb.AuthInfo{
-				ID: payload.AuthInfoID,
+	defer func() {
+		// If auth info is required but missing, return an error instead of
+		// allowing the request to continue.
+		// If there is an existing error, use that. If there is none, return
+		// a generic error.
+		if p.Required && payload.AuthInfo == nil {
+			if lastError == nil {
+				lastError = skyerr.NewError(
+					skyerr.NotAuthenticated,
+					"Authentication is required for this action, please login.",
+				)
 			}
-			if err := payload.DBConn.CreateAuth(&authinfo); err != nil && err != skydb.ErrUserDuplicated {
-				return http.StatusInternalServerError
+			response.Err = lastError
+			if status == 0 {
+				status = http.StatusUnauthorized
 			}
-		} else {
-			log.Errorf("Cannot find AuthInfo.ID = %#v\n", payload.AuthInfoID)
-			response.Err = skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, err.Error())
-			return http.StatusInternalServerError
+			return
 		}
+
+		if status == http.StatusInternalServerError {
+			response.Err = lastError
+			return
+		}
+
+		// If auth info is not requird, any problems with the user is silently
+		// ignored.
+		status = http.StatusOK
+	}()
+
+	// Query database to get auth info
+	// If an error occurred at this stage, Internal Server Error is returned.
+	if payload.AuthInfoID == "" {
+		return
 	}
 
-	if authinfo.IsDisabled() {
-		log.Info("User is disabled")
-		info := map[string]interface{}{}
-		if authinfo.DisabledExpiry != nil {
-			info["expiry"] = authinfo.DisabledExpiry.Format(time.RFC3339)
-		}
-		if authinfo.DisabledMessage != "" {
-			info["message"] = authinfo.DisabledMessage
-		}
-		response.Err = skyerr.NewErrorWithInfo(skyerr.UserDisabled, "user is disabled", info)
-		return http.StatusForbidden
+	lastError, status = p.fetchOrCreateAuth(payload, &authinfo)
+	if status != 0 {
+		return
 	}
 
-	authinfo.RefreshDisabledStatus()
+	lastError, status = p.checkDisabledStatus(payload, &authinfo)
+	if status != 0 {
+		return
+	}
 
-	if payload.AccessToken != nil {
-		// If an access token exists checks if the access token has an IssuedAt
-		// time that is later than the user's TokenValidSince time. This
-		// allows user to invalidate previously issued access token.
-		if !isTokenStillValid(payload.AccessToken, authinfo) {
-			response.Err = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
-			return http.StatusUnauthorized
-		}
-		if authinfo.IsPasswordExpired(p.PwExpiryDays) {
-			response.Err = audit.MakePasswordError(audit.PasswordExpired, "password expired", nil)
-			return http.StatusUnauthorized
-		}
+	// If an access token exists checks if the access token has an IssuedAt
+	// time that is later than the user's TokenValidSince time. This
+	// allows user to invalidate previously issued access token.
+	if payload.AccessToken != nil && !isTokenStillValid(payload.AccessToken, authinfo) {
+		lastError = skyerr.NewError(skyerr.AccessTokenNotAccepted, "token does not exist or it has expired")
+		status = http.StatusUnauthorized
+		return
+	}
+
+	// Check if password is expired according to policy
+	if authinfo.IsPasswordExpired(p.PwExpiryDays) {
+		lastError = audit.MakePasswordError(audit.PasswordExpired, "password expired", nil)
+		status = http.StatusUnauthorized
+		return
 	}
 
 	payload.AuthInfo = &authinfo
-
-	return http.StatusOK
+	return
 }
 
-// InjectUserIfPresent injects a user record to the payload
+func (p InjectAuth) fetchOrCreateAuth(payload *router.Payload, authInfo *skydb.AuthInfo) (skyerr.Error, int) {
+	var err error
+	err = payload.DBConn.GetAuth(payload.AuthInfoID, authInfo)
+	if err == skydb.ErrUserNotFound && payload.HasMasterKey() {
+		*authInfo = skydb.AuthInfo{
+			ID: payload.AuthInfoID,
+		}
+		err = payload.DBConn.CreateAuth(authInfo)
+		if err == skydb.ErrUserDuplicated {
+			// user already exists, error can be ignored
+			err = nil
+		}
+	}
+
+	if err != nil {
+		log.Errorf("Cannot find AuthInfo.ID = %#v\n", payload.AuthInfoID)
+		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, err.Error()), http.StatusInternalServerError
+	}
+	return nil, 0
+}
+
+func (p InjectAuth) checkDisabledStatus(payload *router.Payload, authInfo *skydb.AuthInfo) (skyerr.Error, int) {
+	// Check if user is disabled
+	if authInfo.IsDisabled() {
+		log.Info("User is disabled")
+		info := map[string]interface{}{}
+		if authInfo.DisabledExpiry != nil {
+			info["expiry"] = authInfo.DisabledExpiry.Format(time.RFC3339)
+		}
+		if authInfo.DisabledMessage != "" {
+			info["message"] = authInfo.DisabledMessage
+		}
+		return skyerr.NewErrorWithInfo(skyerr.UserDisabled, "user is disabled", info), http.StatusForbidden
+	}
+	authInfo.RefreshDisabledStatus()
+	return nil, 0
+}
+
+// InjectUser injects a user record to the payload
 //
 // An AuthInfo must be injected before this, if it is not found, the preprocessor
 // would just skip the injection
 //
 // If AuthInfo is injected but a user record is not found, the preprocessor would
 // create a new user record and inject it to the payload
-type InjectUserIfPresent struct {
-	HookRegistry *hook.Registry `inject:"HookRegistry"`
-	AssetStore   asset.Store    `inject:"AssetStore"`
+type InjectUser struct {
+	HookRegistry      *hook.Registry `inject:"HookRegistry"`
+	AssetStore        asset.Store    `inject:"AssetStore"`
+	Required          bool
+	CheckVerification bool
 }
 
-func (p InjectUserIfPresent) Preprocess(payload *router.Payload, response *router.Response) int {
-	authInfo := payload.AuthInfo
+func (p InjectUser) Preprocess(payload *router.Payload, response *router.Response) int {
 	db := payload.DBConn.PublicDB()
 
-	if authInfo == nil {
-		log.Debugln("injectUser: empty AuthInfo, skipping")
-		return http.StatusOK
+	if payload.User == nil && payload.AuthInfo != nil {
+		user := skydb.Record{}
+		err := db.Get(skydb.NewRecordID("user", payload.AuthInfo.ID), &user)
+
+		if err == skydb.ErrRecordNotFound {
+			user, err = p.createUser(payload)
+		}
+
+		if err != nil {
+			log.Error("injectUser: unable to find or create user record", err)
+			response.Err = skyerr.NewError(skyerr.UnexpectedUserNotFound, err.Error())
+			return http.StatusInternalServerError
+		}
+		payload.User = &user
 	}
 
-	user := skydb.Record{}
-	err := db.Get(skydb.NewRecordID("user", authInfo.ID), &user)
-
-	if err == skydb.ErrRecordNotFound {
-		user, err = p.createUser(payload)
-	}
-
-	if err != nil {
-		log.Error("injectUser: unable to find or create user record", err)
-		response.Err = skyerr.NewError(skyerr.UnexpectedUserNotFound, err.Error())
+	if p.Required && payload.User == nil {
+		response.Err = skyerr.NewError(skyerr.UnexpectedUserNotFound, "user not found")
 		return http.StatusInternalServerError
 	}
 
-	payload.User = &user
+	if p.CheckVerification && payload.User != nil {
+		if val, ok := payload.User.Data["is_verified"].(bool); !ok || !val {
+			response.Err = skyerr.NewError(
+				skyerr.VerificationRequired,
+				"User is not yet verified",
+			)
+			return http.StatusForbidden
+		}
+	}
 
 	return http.StatusOK
 }
 
-func (p InjectUserIfPresent) createUser(payload *router.Payload) (skydb.Record, error) {
+func (p InjectUser) createUser(payload *router.Payload) (skydb.Record, error) {
 	authInfo := payload.AuthInfo
 	db := payload.DBConn.PublicDB()
 	txDB, ok := db.(skydb.Transactional)
@@ -258,18 +325,6 @@ func (p InjectPublicDatabase) Preprocess(payload *router.Payload, response *rout
 	return http.StatusOK
 }
 
-type RequireAuth struct {
-}
-
-func (p RequireAuth) Preprocess(payload *router.Payload, response *router.Response) int {
-	if payload.AuthInfo == nil {
-		response.Err = skyerr.NewError(skyerr.NotAuthenticated, "Authentication is required for this action, please login.")
-		return http.StatusUnauthorized
-	}
-
-	return http.StatusOK
-}
-
 type RequireAdminOrMasterKey struct {
 }
 
@@ -312,5 +367,12 @@ func (p RequireMasterKey) Preprocess(payload *router.Payload, response *router.R
 		return http.StatusUnauthorized
 	}
 
+	return http.StatusOK
+}
+
+type Null struct {
+}
+
+func (p Null) Preprocess(payload *router.Payload, response *router.Response) int {
 	return http.StatusOK
 }

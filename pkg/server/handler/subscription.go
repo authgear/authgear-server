@@ -245,9 +245,9 @@ func (payload *subscriptionPayload) Validate() skyerr.Error {
 type SubscriptionFetchHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectAuth    router.Processor `preprocessor:"inject_auth"`
+	InjectAuth    router.Processor `preprocessor:"require_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireAuth   router.Processor `preprocessor:"require_auth"`
+	CheckUser     router.Processor `preprocessor:"check_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -258,7 +258,7 @@ func (h *SubscriptionFetchHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
-		h.RequireAuth,
+		h.CheckUser,
 		h.PluginReady,
 	}
 }
@@ -320,9 +320,9 @@ func (h *SubscriptionFetchHandler) Handle(rpayload *router.Payload, response *ro
 type SubscriptionFetchAllHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectAuth    router.Processor `preprocessor:"inject_auth"`
+	InjectAuth    router.Processor `preprocessor:"require_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireAuth   router.Processor `preprocessor:"require_auth"`
+	CheckUser     router.Processor `preprocessor:"check_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -333,7 +333,7 @@ func (h *SubscriptionFetchAllHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
-		h.RequireAuth,
+		h.CheckUser,
 		h.PluginReady,
 	}
 }
@@ -448,9 +448,9 @@ func (payload *subscriptionSavePayload) Validate() skyerr.Error {
 type SubscriptionSaveHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectAuth    router.Processor `preprocessor:"inject_auth"`
+	InjectAuth    router.Processor `preprocessor:"require_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireAuth   router.Processor `preprocessor:"require_auth"`
+	CheckUser     router.Processor `preprocessor:"check_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -461,7 +461,7 @@ func (h *SubscriptionSaveHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
-		h.RequireAuth,
+		h.CheckUser,
 		h.PluginReady,
 	}
 }
@@ -520,9 +520,9 @@ func (h *SubscriptionSaveHandler) Handle(rpayload *router.Payload, response *rou
 type SubscriptionDeleteHandler struct {
 	Authenticator router.Processor `preprocessor:"authenticator"`
 	DBConn        router.Processor `preprocessor:"dbconn"`
-	InjectAuth    router.Processor `preprocessor:"inject_auth"`
+	InjectAuth    router.Processor `preprocessor:"require_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
-	RequireAuth   router.Processor `preprocessor:"require_auth"`
+	CheckUser     router.Processor `preprocessor:"check_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -533,7 +533,7 @@ func (h *SubscriptionDeleteHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
-		h.RequireAuth,
+		h.CheckUser,
 		h.PluginReady,
 	}
 }

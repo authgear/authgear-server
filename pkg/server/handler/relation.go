@@ -117,6 +117,7 @@ type RelationQueryHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
+	CheckUser     router.Processor `preprocessor:"check_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -127,6 +128,7 @@ func (h *RelationQueryHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
+		h.CheckUser,
 		h.PluginReady,
 	}
 }
@@ -253,6 +255,7 @@ type RelationAddHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
+	CheckUser     router.Processor `preprocessor:"check_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -263,6 +266,7 @@ func (h *RelationAddHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
+		h.CheckUser,
 		h.PluginReady,
 	}
 }
@@ -336,6 +340,7 @@ type RelationRemoveHandler struct {
 	DBConn        router.Processor `preprocessor:"dbconn"`
 	InjectAuth    router.Processor `preprocessor:"inject_auth"`
 	InjectDB      router.Processor `preprocessor:"inject_db"`
+	CheckUser     router.Processor `preprocessor:"check_user"`
 	PluginReady   router.Processor `preprocessor:"plugin_ready"`
 	preprocessors []router.Processor
 }
@@ -346,6 +351,7 @@ func (h *RelationRemoveHandler) Setup() {
 		h.DBConn,
 		h.InjectAuth,
 		h.InjectDB,
+		h.CheckUser,
 		h.PluginReady,
 	}
 }

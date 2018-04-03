@@ -215,7 +215,9 @@ func (t injectUserPreprocessorAccessToken) IssuedAt() time.Time {
 
 func TestInjectAuthProcessor(t *testing.T) {
 	Convey("InjectAuth", t, func() {
-		pp := InjectAuthIfPresent{}
+		pp := InjectAuth{
+			Required: true,
+		}
 		conn := skydbtest.NewMapConn()
 
 		withoutTokenValidSince := skydb.AuthInfo{
@@ -322,8 +324,9 @@ func TestInjectAuthProcessor(t *testing.T) {
 			timeNow = func() time.Time { return time.Date(2017, 12, 2, 0, 0, 0, 0, time.UTC) }
 			restore := skydb.MockTimeNowForTestingOnly(timeNow)
 			defer restore()
-			ppWithPasswordExpiryDays := InjectAuthIfPresent{
+			ppWithPasswordExpiryDays := InjectAuth{
 				PwExpiryDays: 30,
+				Required:     true,
 			}
 
 			payload1 := router.Payload{
@@ -380,10 +383,18 @@ func TestInjectAuthProcessor(t *testing.T) {
 				AuthInfoID: "some-uuid",
 			}
 			resp := router.Response{}
-			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusForbidden)
 
-			So(resp.Err, ShouldNotBeNil)
-			So(resp.Err.Code(), ShouldEqual, skyerr.UserDisabled)
+			Convey("when user is required", func() {
+				So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusForbidden)
+				So(resp.Err, ShouldNotBeNil)
+				So(resp.Err.Code(), ShouldEqual, skyerr.UserDisabled)
+			})
+
+			Convey("when user is not required", func() {
+				pp.Required = false
+				So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusOK)
+				So(resp.Err, ShouldBeNil)
+			})
 		})
 
 		Convey("should create and inject user when master key is used", func() {
@@ -503,7 +514,7 @@ func TestInjectUserProcessor(t *testing.T) {
 
 		db := mock_skydb.NewMockTxDatabase(ctrl)
 
-		pp := InjectUserIfPresent{}
+		pp := InjectUser{}
 		conn := skydbtest.NewMapConn()
 		conn.InternalPublicDB = db
 
@@ -513,8 +524,9 @@ func TestInjectUserProcessor(t *testing.T) {
 		user := skydb.Record{
 			ID: skydb.NewRecordID("user", "userid1"),
 			Data: map[string]interface{}{
-				"username": "john.doe",
-				"email":    "john.doe@example.com",
+				"username":    "john.doe",
+				"email":       "john.doe@example.com",
+				"is_verified": false,
 			},
 		}
 
@@ -604,6 +616,34 @@ func TestInjectUserProcessor(t *testing.T) {
 				UpdaterID:  "userid2",
 			}
 			So(*payload.User, ShouldResemble, user)
+		})
+
+		Convey("should deny when user is required and check verified flag", func() {
+			pp.Required = true
+			pp.CheckVerification = true
+
+			payload := router.Payload{
+				Data:        map[string]interface{}{},
+				Meta:        map[string]interface{}{},
+				DBConn:      conn,
+				Database:    db,
+				AuthInfoID:  "userid1",
+				AuthInfo:    &authInfo,
+				AccessToken: injectUserPreprocessorAccessToken{},
+				User:        nil,
+			}
+			resp := router.Response{}
+
+			db.EXPECT().
+				Get(skydb.NewRecordID("user", "userid1"), gomock.Any()).
+				SetArg(1, user).
+				Return(nil).
+				AnyTimes()
+
+			So(pp.Preprocess(&payload, &resp), ShouldEqual, http.StatusForbidden)
+			So(resp.Err, ShouldNotBeNil)
+			So(resp.Err.Code(), ShouldEqual, skyerr.VerificationRequired)
+
 		})
 	})
 }

@@ -58,8 +58,8 @@ func (h *Handler) Setup() {
 		h.preprocessors = h.PreprocessorList.GetByNames(
 			"authenticator",
 			"dbconn",
-			"inject_auth",
 			"require_auth",
+			"check_user",
 			"plugin_ready",
 		)
 	} else if h.AccessKeyRequired {
