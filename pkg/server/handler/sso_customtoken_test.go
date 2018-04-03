@@ -62,8 +62,12 @@ func TestSSOCustomTokenLoginHandler(t *testing.T) {
 						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 						Subject:   "otherid1",
 					},
-					Profile: skydb.Data{
+					RawProfile: skydb.Data{
 						"name": "John Doe",
+						"birthday": map[string]interface{}{
+							"$date": "2006-01-02T15:04:05Z",
+							"$type": "date",
+						},
 					},
 				},
 			).SignedString([]byte("ssosecret"))
@@ -101,7 +105,11 @@ func TestSSOCustomTokenLoginHandler(t *testing.T) {
 							"_type": "record",
 							"_updated_at": "2006-01-02T15:04:05Z",
 							"_updated_by": "%v",
-							"name": "John Doe"
+							"name": "John Doe",
+							"birthday": {
+								"$date": "2006-01-02T15:04:05Z",
+								"$type": "date"
+							}
 						},
 						"user_id": "%v"
 					}
@@ -124,7 +132,7 @@ func TestSSOCustomTokenLoginHandler(t *testing.T) {
 						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 						Subject:   "otherid1",
 					},
-					Profile: skydb.Data{
+					RawProfile: skydb.Data{
 						"name": "John Doe",
 					},
 				},
@@ -166,7 +174,7 @@ func TestSSOCustomTokenLoginHandler(t *testing.T) {
 						ExpiresAt: time.Now().Add(-time.Minute * 30).Unix(),
 						Subject:   "otherid1",
 					},
-					Profile: skydb.Data{
+					RawProfile: skydb.Data{
 						"name": "John Doe",
 					},
 				},

@@ -24,11 +24,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/plugin/provider"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 type ssoCustomTokenClaims struct {
-	Profile skydb.Data `json:"skyprofile"`
+	RawProfile	map[string]interface{} `json:"skyprofile"`
+	Profile 	skydb.Data 
 	jwt.StandardClaims
 }
 
@@ -51,6 +53,10 @@ func (payload *ssoCustomTokenLoginPayload) Decode(data map[string]interface{}) s
 	)
 	if err != nil {
 		return skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+
+	if err := (*skyconv.MapData)(&payload.Claims.Profile).FromMap(payload.Claims.RawProfile); err != nil {
+		return skyerr.NewError(skyerr.InvalidArgument, err.Error())
 	}
 
 	payload.Token = parsedToken
