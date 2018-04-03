@@ -90,6 +90,7 @@ func (p InjectAuth) Preprocess(payload *router.Payload, response *router.Respons
 		}
 
 		if status == http.StatusInternalServerError {
+			response.Err = lastError
 			return
 		}
 
