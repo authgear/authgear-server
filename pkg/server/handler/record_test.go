@@ -2738,8 +2738,6 @@ func TestHookExecution(t *testing.T) {
 		}
 		assetStore := &urlOnlyAssetStore{}
 
-		fmt.Println("assetStore %v", assetStore)
-
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{
 			HookRegistry: registry,
 			AssetStore: assetStore,
