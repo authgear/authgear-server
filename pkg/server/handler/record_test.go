@@ -2549,6 +2549,14 @@ func (db erroneousDB) Save(*skydb.Record) error {
 }
 
 func TestHookExecution(t *testing.T) {
+	realTimeNow := timeNow
+	timeNow = func() time.Time {
+		return ZeroTime
+	}
+	defer func() {
+		timeNow = realTimeNow
+	}()
+
 	Convey("Record(Save|Delete)Handler", t, func() {
 		registry := hook.NewRegistry()
 		handlerTests := []struct {
@@ -2715,6 +2723,71 @@ func TestHookExecution(t *testing.T) {
 			}`)
 
 			So(called, ShouldBeTrue)
+		})
+	})
+
+	Convey("HookRegistry with asset", t, func() {
+		registry := hook.NewRegistry()
+		db := skydbtest.NewMapDB()
+		conn := skydbtest.NewMapConn()
+		conn.AssetMap = map[string]skydb.Asset{
+			"asset-name": skydb.Asset{
+				Name:        "asset-name",
+				ContentType: "plain/text",
+			},
+		}
+		assetStore := &urlOnlyAssetStore{}
+
+		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{
+			HookRegistry: registry,
+			AssetStore: assetStore,
+		}, func(p *router.Payload) {
+			p.DBConn = conn
+			p.Database = db
+			p.AuthInfo = &skydb.AuthInfo{
+				ID: "user0",
+			}
+		})
+
+		Convey("BeforeSave should have signed url for asset", func() {
+			called := false
+			var signer asset.URLSigner
+			var signedURL string
+			registry.Register(hook.BeforeSave, "record", func(ctx context.Context, record *skydb.Record, originalRecord *skydb.Record) skyerr.Error {
+				called = true
+				asset, _ := record.Data["asset"].(*skydb.Asset)
+				signer = asset.Signer
+				signedURL = asset.SignedURL()
+				return nil
+			})
+
+			resp := r.POST(`{
+				"records": [{
+					"_id": "record/id",
+					"asset": {"$type": "asset", "$name": "asset-name", "$content_type":"plain/text"}
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [
+					{
+						"_access": null,
+						"_created_by": "user0",
+						"_id": "record/id",
+						"_ownerID": "user0",
+						"_type": "record",
+						"_updated_by": "user0",
+						"asset": {
+							"$content_type": "plain/text",
+							"$name": "asset-name",
+							"$type": "asset",
+							"$url": "http://skygear.test/asset/asset-name?expiredAt=1997-07-01T00:00:00"
+						}
+					}
+				]
+			}`)
+			So(called, ShouldBeTrue)
+			So(signer, ShouldNotBeNil)
+			So(signedURL, ShouldNotBeNil)
 		})
 	})
 }

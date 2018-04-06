@@ -278,6 +278,8 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 		return nil
 	})
 
+	makeAssetsCompleteAndInjectSigner(db, req.Conn, records, req.AssetStore)
+
 	// execute before save hooks
 	if req.HookRegistry != nil {
 		records = newSaveHookTriggerer(req.Context, req.HookRegistry, originalRecordMap, resp.ErrMap, false).
