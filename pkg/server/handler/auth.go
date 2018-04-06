@@ -628,7 +628,7 @@ type ChangePasswordHandler struct {
 	PwHousekeeper   *audit.PwHousekeeper   `inject:"PwHousekeeper"`
 	Authenticator   router.Processor       `preprocessor:"authenticator"`
 	DBConn          router.Processor       `preprocessor:"dbconn"`
-	InjectAuth      router.Processor       `preprocessor:"require_auth"`
+	InjectAuth      router.Processor       `preprocessor:"require_auth_skip_pwexpiry"`
 	InjectUser      router.Processor       `preprocessor:"require_user"`
 	PluginReady     router.Processor       `preprocessor:"plugin_ready"`
 	preprocessors   []router.Processor

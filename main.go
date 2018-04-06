@@ -188,6 +188,10 @@ func main() {
 		PwExpiryDays: config.UserAudit.PwExpiryDays,
 		Required:     true,
 	}
+	preprocessorRegistry["require_auth_skip_pwexpiry"] = &pp.InjectAuth{
+		PwExpiryDays: 0, // skipping password expiry check
+		Required:     true,
+	}
 	preprocessorRegistry["require_user"] = &pp.InjectUser{
 		Required:          true,
 		CheckVerification: config.Verification.Required,
