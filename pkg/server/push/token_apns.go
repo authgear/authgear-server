@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
+	"net/http"
 	"sync"
 	"time"
 
@@ -215,12 +216,18 @@ func (pusher *tokenBasedAPNSPusher) Send(m Mapper, device skydb.Device) error {
 	if err != nil {
 		if pushError, ok := err.(*push.Error); ok && pushError != nil {
 			// We recognize the error, and that error comes from APNS
-			logger.WithFields(logrus.Fields{
+			pushLogger := logger.WithFields(logrus.Fields{
 				"apnsErrorReason":    pushError.Reason,
 				"apnsErrorStatus":    pushError.Status,
 				"apnsErrorTimestamp": pushError.Timestamp,
-			}).Error("push/apns: failed to send push notification")
-			queueFailedNotification(pusher, device.Token, *pushError)
+			})
+			if pushError.Status == http.StatusGone ||
+				pushError.Reason.Error() == "BadDeviceToken" {
+				pushLogger.Info("push/apns: device token is no longer valid")
+				queueFailedNotification(pusher, device.Token, *pushError)
+			} else {
+				pushLogger.Error("push/apns: failed to send push notification")
+			}
 			return err
 		}
 
