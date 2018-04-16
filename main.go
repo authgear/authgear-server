@@ -676,6 +676,17 @@ func initLogger(config skyconfig.Configuration) {
 		initSentry(config)
 	}
 
+	var formatter logrus.Formatter
+	if config.LOG.Formatter == "text" {
+		formatter = &logrus.TextFormatter{}
+	} else if config.LOG.Formatter == "json" {
+		formatter = &logrus.JSONFormatter{}
+	} else {
+		log.Warnf("log: Formatter '%s' is not defined, default to 'text'.", config.LOG.Formatter)
+		formatter = &logrus.TextFormatter{}
+	}
+	logging.SetFormatter(formatter)
+
 	err := audit.InitTrailHandler(config.UserAudit.Enabled, config.UserAudit.TrailHandlerURL)
 	if err != nil {
 		log.Fatalf("user-audit: error when initializing trail handler %v", err)
