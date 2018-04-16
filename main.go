@@ -678,12 +678,16 @@ func initLogger(config skyconfig.Configuration) {
 
 	var formatter logrus.Formatter
 	if config.LOG.Formatter == "text" {
-		formatter = &logrus.TextFormatter{}
+		formatter = &logging.TextFormatter{
+			ForceColors: true,
+		}
 	} else if config.LOG.Formatter == "json" {
 		formatter = &logrus.JSONFormatter{}
 	} else {
 		log.Warnf("log: Formatter '%s' is not defined, default to 'text'.", config.LOG.Formatter)
-		formatter = &logrus.TextFormatter{}
+		formatter = &logging.TextFormatter{
+			ForceColors: true,
+		}
 	}
 	logging.SetFormatter(formatter)
 

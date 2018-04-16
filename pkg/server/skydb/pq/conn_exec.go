@@ -20,13 +20,15 @@ import (
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 func (c *conn) Get(dest interface{}, query string, args ...interface{}) (err error) {
 	c.statementCount++
 	err = c.Db().GetContext(c.context, dest, query, args...)
 	logFields := logrus.Fields{
-		"sql":            query,
+		"sql":            logging.StringValueFormatter(query),
 		"args":           args,
 		"error":          err,
 		"executionCount": c.statementCount,
@@ -63,7 +65,7 @@ func (c *conn) Exec(query string, args ...interface{}) (result sql.Result, err e
 	}
 
 	logFields := logrus.Fields{
-		"sql":            query,
+		"sql":            logging.StringValueFormatter(query),
 		"args":           args,
 		"error":          err,
 		"executionCount": c.statementCount,
@@ -89,7 +91,7 @@ func (c *conn) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err e
 	c.statementCount++
 	rows, err = c.Db().QueryxContext(c.context, query, args...)
 	logFields := logrus.Fields{
-		"sql":            query,
+		"sql":            logging.StringValueFormatter(query),
 		"args":           args,
 		"error":          err,
 		"executionCount": c.statementCount,
@@ -114,7 +116,7 @@ func (c *conn) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
 	c.statementCount++
 	row = c.Db().QueryRowxContext(c.context, query, args...)
 	log.WithFields(logrus.Fields{
-		"sql":            query,
+		"sql":            logging.StringValueFormatter(query),
 		"args":           args,
 		"executionCount": c.statementCount,
 	}).Debugln("Executed SQL with sql.QueryRowx")

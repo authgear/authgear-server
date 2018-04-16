@@ -134,3 +134,7 @@ required = [
 [[constraint]]
   name = "github.com/skygeario/go-baidupush"
   revision = "0b8ba42f25af6f9937df8843820a009c38bee333"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kr/text"

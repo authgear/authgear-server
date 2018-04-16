@@ -25,6 +25,8 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 type responseLogger struct {
@@ -100,7 +102,7 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		l.isConcernType(r.Header.Get("Content-Type")) &&
 		(l.ByteLimit == nil || *l.ByteLimit >= requestBodyLength)
 	if shouldLogRequestBody {
-		requestFields["body"] = string(body)
+		requestFields["body"] = logging.StringValueFormatter(body)
 	}
 
 	log.WithFields(requestFields).Debugf("Request %v %v", r.Method, r.RequestURI)
@@ -113,12 +115,13 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	responseFields := logrus.Fields{}
 	responseBodyLength := rlogger.Size()
 	responseFields["bodyLength"] = responseBodyLength
+	responseFields["requestID"] = requestID
 
 	var shouldLogResponseBody = !skipBody &&
 		l.isConcernType(w.Header().Get("Content-Type")) &&
 		(l.ByteLimit == nil || *l.ByteLimit >= responseBodyLength)
 	if shouldLogResponseBody {
-		responseFields["body"] = rlogger.String()
+		responseFields["body"] = logging.StringValueFormatter(rlogger.String())
 	}
 	log.WithFields(responseFields).Debugf("Response %v %v", r.Method, r.RequestURI)
 }
