@@ -35,6 +35,7 @@ type ContextKey string
 
 var UserIDContextKey ContextKey = "UserID"
 var AccessKeyTypeContextKey ContextKey = "AccessKeyType"
+var RequestIDContextKey ContextKey = "RequestID"
 
 // HandlerFunc specifies the function signature of a request handler function
 type HandlerFunc func(*Payload, *Response)

@@ -15,7 +15,6 @@
 package router
 
 import (
-	"context"
 	"net/http"
 	"regexp"
 )
@@ -98,11 +97,7 @@ func (g *Gateway) newPayload(req *http.Request) (p *Payload, err error) {
 		Params:  params,
 		Meta:    map[string]interface{}{},
 		Data:    map[string]interface{}{},
-		Context: req.Context(),
-	}
-
-	if p.Context == nil {
-		p.Context = context.Background()
+		Context: req.Context(), // always non-nil
 	}
 
 	query := req.URL.Query()
