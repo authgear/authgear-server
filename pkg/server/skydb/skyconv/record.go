@@ -28,6 +28,12 @@ type JSONRecord skydb.Record
 // MarshalJSON implements json.Marshaler
 // nolint: gocyclo
 func (record *JSONRecord) MarshalJSON() ([]byte, error) {
+	m := map[string]interface{}{}
+	record.ToMap(m)
+	return json.Marshal(m)
+}
+
+func (record *JSONRecord) ToMap(m map[string]interface{}) {
 	data := map[string]interface{}{}
 	for key, value := range record.Data {
 		switch v := value.(type) {
@@ -52,7 +58,6 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 		}
 	}
 
-	m := map[string]interface{}{}
 	MapData(data).ToMap(m)
 
 	m["_id"] = record.ID.String()
@@ -79,8 +84,6 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 	if len(transient) > 0 {
 		m["_transient"] = transient
 	}
-
-	return json.Marshal(m)
 }
 
 func (record *JSONRecord) marshalTransient(transient map[string]interface{}) map[string]interface{} {

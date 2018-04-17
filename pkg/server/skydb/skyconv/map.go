@@ -501,6 +501,10 @@ func ParseLiteral(i interface{}) interface{} {
 			var rel MapRelation
 			mapFromOrPanic((*MapRelation)(&rel), value)
 			return &rel
+		case "record":
+			var record skydb.Record
+			mapFromOrPanic((*JSONRecord)(&record), value)
+			return &record
 		default:
 			panic(fmt.Errorf("unknown $type = %s", kind))
 		}
