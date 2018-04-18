@@ -247,7 +247,7 @@ func walkData(m map[string]interface{}) (mapReturned map[string]interface{}, err
 		}
 	}()
 
-	return walkMap(m), err
+	return walkMap(m, ParseLiteral), err
 }
 
 // MapKeyPath is string keypath that can be converted from a map
@@ -424,17 +424,17 @@ func (ace *MapFieldACLEntry) FromMap(m map[string]interface{}) error {
 	return nil
 }
 
-func walkMap(m map[string]interface{}) map[string]interface{} {
+func walkMap(m map[string]interface{}, fn func(interface{}) interface{}) map[string]interface{} {
 	for key, value := range m {
-		m[key] = ParseLiteral(value)
+		m[key] = fn(value)
 	}
 
 	return m
 }
 
-func walkSlice(items []interface{}) []interface{} {
+func walkSlice(items []interface{}, fn func(interface{}) interface{}) []interface{} {
 	for i, item := range items {
-		items[i] = ParseLiteral(item)
+		items[i] = fn(item)
 	}
 
 	return items
@@ -456,7 +456,7 @@ func ParseLiteral(i interface{}) interface{} {
 		kindi, typed := value["$type"]
 		if !typed {
 			// regular dictionary, go deeper
-			return walkMap(value)
+			return walkMap(value, ParseLiteral)
 		}
 
 		kind, ok := kindi.(string)
@@ -509,7 +509,7 @@ func ParseLiteral(i interface{}) interface{} {
 			panic(fmt.Errorf("unknown $type = %s", kind))
 		}
 	case []interface{}:
-		return walkSlice(value)
+		return walkSlice(value, ParseLiteral)
 	}
 }
 
