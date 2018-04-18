@@ -513,6 +513,47 @@ func ParseLiteral(i interface{}) interface{} {
 	}
 }
 
+// ToLiteral converts a primitive type or a skydb type into a map.
+// This is the opposite of ParseLiteral.
+// nolint: gocyclo
+func ToLiteral(i interface{}) interface{} {
+	switch value := i.(type) {
+	default:
+		// considered a bug if this line is reached
+		panic(fmt.Errorf("unsupported value = %T", value))
+	case nil, bool, float64, string, int, int64:
+		return value
+	case map[string]interface{}:
+		return walkMap(value, ToLiteral)
+	case []interface{}:
+		return walkSlice(value, ToLiteral)
+	case *skydb.Asset:
+		return ToMap((*MapAsset)(value))
+	case skydb.Reference:
+		return ToMap((MapReference)(value))
+	case time.Time:
+		return ToMap((MapTime)(value))
+	case skydb.Location:
+		return ToMap((MapLocation)(value))
+	case *skydb.Location:
+		return ToMap((*MapLocation)(value))
+	case skydb.Geometry:
+		return ToMap((MapGeometry)(value))
+	case skydb.Sequence:
+		return ToMap((MapSequence)(value))
+	case skydb.Unknown:
+		return ToMap((MapUnknown)(value))
+	case skydb.Record:
+		return ToMap((*JSONRecord)(&value))
+	case *skydb.Record:
+		return ToMap((*JSONRecord)(value))
+	case JSONRecord:
+		return ToMap(&value)
+	case *JSONRecord:
+		return ToMap(value)
+	}
+}
+
 func mapFromOrPanic(fromMapper FromMapper, m map[string]interface{}) {
 	if err := fromMapper.FromMap(m); err != nil {
 		panic(err)

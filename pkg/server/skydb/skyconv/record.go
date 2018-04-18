@@ -17,7 +17,6 @@ package skyconv
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
@@ -34,31 +33,9 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 }
 
 func (record *JSONRecord) ToMap(m map[string]interface{}) {
-	data := map[string]interface{}{}
 	for key, value := range record.Data {
-		switch v := value.(type) {
-		case time.Time:
-			data[key] = (MapTime)(v)
-		case skydb.Reference:
-			data[key] = (MapReference)(v)
-		case skydb.Location:
-			data[key] = (MapLocation)(v)
-		case *skydb.Location:
-			data[key] = (*MapLocation)(v)
-		case skydb.Geometry:
-			data[key] = (MapGeometry)(v)
-		case *skydb.Asset:
-			data[key] = (*MapAsset)(v)
-		case skydb.Sequence:
-			data[key] = (MapSequence)(v)
-		case skydb.Unknown:
-			data[key] = (MapUnknown)(v)
-		default:
-			data[key] = value
-		}
+		m[key] = ToLiteral(value)
 	}
-
-	MapData(data).ToMap(m)
 
 	m["_id"] = record.ID.String()
 	m["_type"] = "record"
@@ -89,12 +66,7 @@ func (record *JSONRecord) ToMap(m map[string]interface{}) {
 func (record *JSONRecord) marshalTransient(transient map[string]interface{}) map[string]interface{} {
 	m := map[string]interface{}{}
 	for key, value := range transient {
-		switch v := value.(type) {
-		case skydb.Record:
-			m[key] = (*JSONRecord)(&v)
-		default:
-			m[key] = v
-		}
+		m[key] = ToLiteral(value)
 	}
 	return m
 }
