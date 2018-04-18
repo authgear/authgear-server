@@ -440,6 +440,23 @@ func walkSlice(items []interface{}, fn func(interface{}) interface{}) []interfac
 	return items
 }
 
+// TryParseLiteral deduces whether i is a skydb data value and returns a
+// parsed value.
+// nolint: gocyclo
+func TryParseLiteral(i interface{}) (out interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if _, ok := r.(runtime.Error); ok {
+				panic(r)
+			}
+			err = r.(error)
+		}
+	}()
+
+	out = ParseLiteral(i)
+	return
+}
+
 // ParseLiteral deduces whether i is a skydb data value and returns a
 // parsed value.
 // nolint: gocyclo

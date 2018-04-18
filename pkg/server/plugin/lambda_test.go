@@ -19,11 +19,12 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/skygeario/skygear-server/pkg/server/skytest"
+	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/server/handler/handlertest"
 	"github.com/skygeario/skygear-server/pkg/server/router"
+	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 )
 
 func TestLambdaCreation(t *testing.T) {
@@ -57,56 +58,117 @@ func TestLambdaCreation(t *testing.T) {
 }
 
 func TestLambdaHandler(t *testing.T) {
-	Convey("test args and stdout", t, func() {
-		transport := &nullTransport{}
-		plugin := Plugin{
-			transport: transport,
-		}
+	Convey("Given a LambdaHandler", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		transport := NewMockTransport(ctrl)
+
 		handler := LambdaHandler{
-			Plugin: &plugin,
-			Name:   "hello:world",
+			Plugin: &Plugin{
+				transport: transport,
+			},
+			Name: "hello:world",
 		}
 		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
 			p.Context = context.Background()
 			p.Context = context.WithValue(p.Context, HelloContextKey, "world")
 		})
 
-		Convey("handle", func() {
+		Convey("should pass input and output", func(c C) {
+			transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Do(
+				func(ctx context.Context, name string, in []byte) {
+					c.So(in, ShouldEqualJSON, `{"args":["bob"]}`)
+				},
+			).Return([]byte(`{"args":["bob"]}`), nil)
+
 			resp := r.POST(`{
 	"args": ["bob"]
 }`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-	"result": {"args":["bob"]}
-}`)
-			So(transport.lastContext.Value(HelloContextKey), ShouldEqual, "world")
+			c.So(resp.Body.Bytes(), ShouldEqualJSON, `{"result":{"args":["bob"]}}`)
 		})
 
-	})
+		Convey("should pass context", func(c C) {
+			transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Do(
+				func(ctx context.Context, name string, in []byte) {
+					c.So(ctx.Value(HelloContextKey), ShouldEqual, "world")
+				},
+			).Return([]byte(`{}`), nil)
 
-	Convey("test handle error", t, func() {
-		transport := &fakeTransport{}
-		transport.outErr = fmt.Errorf("an error")
-		plugin := Plugin{
-			transport: transport,
-		}
-		handler := LambdaHandler{
-			Plugin: &plugin,
-			Name:   "hello:world",
-		}
-		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
-			p.Context = context.Background()
-			p.Context = context.WithValue(p.Context, HelloContextKey, "world")
+			r.POST(`{}`)
 		})
 
-		Convey("init", func() {
-			resp := r.POST(`{
-	"args": ["bob"]
-}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+		Convey("should return error", func(c C) {
+			transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Return(
+				[]byte{}, fmt.Errorf("an error"),
+			)
+
+			resp := r.POST(`{}`)
+			c.So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"error":{"code":10000,"message":"an error","name":"UnexpectedError"}
 }`)
-			So(transport.lastContext.Value(HelloContextKey), ShouldEqual, "world")
 		})
 
+		Convey("should return empty result", func(c C) {
+			transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Return(
+				[]byte("null"), nil,
+			)
+
+			resp := r.POST(`{}`)
+			c.So(resp.Body.Bytes(), ShouldEqualJSON, `{}`)
+		})
+	})
+
+	Convey("Given a LambdaHandler with various types", t, func() {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		transport := NewMockTransport(ctrl)
+
+		handler := LambdaHandler{
+			Plugin: &Plugin{
+				transport: transport,
+			},
+			Name: "hello:world",
+		}
+		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
+			p.Context = context.Background()
+			p.Context = context.WithValue(p.Context, HelloContextKey, "world")
+		})
+
+		fixtures := map[string]string{
+			"integer": "42",
+			"date":    `{"$type": "date", "$date": "2016-09-08T06:42:59.871181Z"}`,
+			"array":   `["a", "b"]`,
+			"map":     `{"a": 1, "b": 2}`,
+		}
+
+		for k, v := range fixtures {
+			Convey(fmt.Sprintf("should pass %s in array args", k), func(c C) {
+				transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Do(
+					func(ctx context.Context, name string, in []byte) {
+						c.So(in, ShouldEqualJSON, fmt.Sprintf(`{"args":[%s]}`, v))
+					},
+				).Return(
+					[]byte(v), nil,
+				)
+
+				resp := r.POST(fmt.Sprintf(`{"args":[%s]}`, v))
+				c.So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{"result":%v}`, v))
+			})
+
+			Convey(fmt.Sprintf("should pass %s in map args", k), func(c C) {
+				transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Do(
+					func(ctx context.Context, name string, in []byte) {
+						c.So(in, ShouldEqualJSON, fmt.Sprintf(`{"args":{"first_arg":%s}}`, v))
+					},
+				).Return(
+					[]byte(v), nil,
+				)
+
+				resp := r.POST(fmt.Sprintf(`{"args":{"first_arg":%s}}`, v))
+				c.So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{"result":%v}`, v))
+			})
+		}
 	})
 }

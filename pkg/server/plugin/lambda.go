@@ -20,6 +20,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/router"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -76,7 +77,13 @@ func (h *LambdaHandler) GetPreprocessors() []router.Processor {
 
 // Handle executes lambda function implemented by the plugin.
 func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Response) {
-	inbytes, err := json.Marshal(payload.Data)
+	in, err := skyconv.TryParseLiteral(payload.Data)
+	if err != nil {
+		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
+		return
+	}
+
+	inbytes, err := json.Marshal(skyconv.ToLiteral(in))
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
@@ -93,18 +100,23 @@ func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Respons
 		return
 	}
 
-	result := map[string]interface{}{}
-	err = json.Unmarshal(outbytes, &result)
+	var outjson interface{}
+	err = json.Unmarshal(outbytes, &outjson)
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
 	}
+
+	out, err := skyconv.TryParseLiteral(outjson)
+	if err != nil {
+		response.Err = skyerr.MakeError(err)
+		return
+	}
+
 	log.WithFields(logrus.Fields{
-		"name":   h.Name,
-		"input":  payload.Data,
-		"result": result,
-		"err":    err,
+		"name": h.Name,
+		"err":  err,
 	}).Debugf("Executed a lambda with result")
 
-	response.Result = result
+	response.Result = skyconv.ToLiteral(out)
 }
