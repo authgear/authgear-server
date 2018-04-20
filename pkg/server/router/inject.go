@@ -30,7 +30,13 @@ type HandlerInjector struct {
 }
 
 func (i *HandlerInjector) InjectServices(h Handler) Handler {
-	err := i.ServiceGraph.Provide(&inject.Object{Value: h})
+	// NOTE: inject need a unique name for each handler especially when
+	// handlers are of the same type. This can occur for plugin.Handler, which
+	// is shared among all plugin handlers.
+	err := i.ServiceGraph.Provide(&inject.Object{
+		Value: h,                          // handler to inject services to
+		Name:  fmt.Sprintf("%T@%p", h, h), // give unique name to each handler (e.g. plugin.AcmeHandler@0x1040a0d0)
+	})
 	if err != nil {
 		panic(fmt.Sprintf("Unable to set up handler: %v", err))
 	}
@@ -54,6 +60,9 @@ func (i *HandlerInjector) InjectProcessors(h Handler) Handler {
 		if found {
 			processorField := reflectValue.Elem().Field(c)
 			processor := reflect.ValueOf((*i.PreprocessorMap)[value])
+			if !processor.IsValid() {
+				panic(fmt.Sprintf(`Preprocessor "%s" does not exist`, value))
+			}
 			processorField.Set(processor)
 		}
 	}

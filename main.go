@@ -131,7 +131,6 @@ func main() {
 	pluginContext := plugin.Context{
 		Router:           r,
 		Mux:              serveMux,
-		Preprocessors:    preprocessorRegistry,
 		HookRegistry:     hook.NewRegistry(),
 		ProviderRegistry: provider.NewRegistry(),
 		Scheduler:        cronjob,
@@ -273,6 +272,7 @@ func main() {
 		ServiceGraph:    g,
 		PreprocessorMap: &preprocessorRegistry,
 	}
+	pluginContext.HandlerInjector = injector
 
 	r.Map("", &handler.HomeHandler{})
 	r.Map("_status:healthz", injector.Inject(&handler.HealthzHandler{}))

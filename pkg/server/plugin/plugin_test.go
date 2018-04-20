@@ -18,9 +18,9 @@ import (
 	"net/http"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
-
+	"github.com/facebookgo/inject"
 	"github.com/robfig/cron"
+	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
@@ -46,6 +46,13 @@ type MockAccessKeyPreprocessor struct{}
 
 func (p MockAccessKeyPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
 	payload.AccessKey = router.ClientAccessKey
+	return http.StatusOK
+}
+
+type MockNullPreprocessor struct {
+}
+
+func (p MockNullPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
 	return http.StatusOK
 }
 
@@ -88,9 +95,16 @@ func TestPlugin(t *testing.T) {
 		plugin := NewPlugin("null", "/tmp/nonexistent", []string{}, config)
 		Convey("init correctly with one handler", func() {
 			mux := http.NewServeMux()
-			plugin.initHandler(mux, router.PreprocessorRegistry{
-				"inject_auth_id": MockInjectAuthIDPreprocessor{},
-				"plugin_ready":   MockPluginReadyPreprocessor{},
+			plugin.initHandler(mux, router.HandlerInjector{
+				ServiceGraph: &inject.Graph{},
+				PreprocessorMap: &router.PreprocessorRegistry{
+					"inject_auth_id": MockInjectAuthIDPreprocessor{},
+					"plugin_ready":   MockPluginReadyPreprocessor{},
+					"authenticator":  MockNullPreprocessor{},
+					"dbconn":         MockNullPreprocessor{},
+					"require_auth":   MockNullPreprocessor{},
+					"check_user":     MockNullPreprocessor{},
+				},
 			}, []pluginHandlerInfo{
 				pluginHandlerInfo{
 					Name: "chima:echo",
@@ -102,9 +116,16 @@ func TestPlugin(t *testing.T) {
 
 		Convey("init correctly with multiple handler", func() {
 			mux := http.NewServeMux()
-			plugin.initHandler(mux, router.PreprocessorRegistry{
-				"inject_auth_id": MockInjectAuthIDPreprocessor{},
-				"plugin_ready":   MockPluginReadyPreprocessor{},
+			plugin.initHandler(mux, router.HandlerInjector{
+				ServiceGraph: &inject.Graph{},
+				PreprocessorMap: &router.PreprocessorRegistry{
+					"inject_auth_id": MockInjectAuthIDPreprocessor{},
+					"plugin_ready":   MockPluginReadyPreprocessor{},
+					"authenticator":  MockNullPreprocessor{},
+					"dbconn":         MockNullPreprocessor{},
+					"require_auth":   MockNullPreprocessor{},
+					"check_user":     MockNullPreprocessor{},
+				},
 			}, []pluginHandlerInfo{
 				pluginHandlerInfo{
 					Name: "chima:echo",

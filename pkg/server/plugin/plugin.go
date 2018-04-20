@@ -118,7 +118,7 @@ type Context struct {
 	plugins          []*Plugin
 	Router           *router.Router
 	Mux              *http.ServeMux
-	Preprocessors    router.PreprocessorRegistry
+	HandlerInjector  router.HandlerInjector
 	HookRegistry     *hook.Registry
 	ProviderRegistry *provider.Registry
 	Scheduler        *cron.Cron
@@ -289,8 +289,8 @@ func (p *Plugin) processRegistrationInfo(context *Context, regInfo registrationI
 		"regInfo":   regInfo,
 		"transport": p.transport,
 	}).Debugln("Got configuration from plugin, registering")
-	p.initHandler(context.Mux, context.Preprocessors, regInfo.Handlers, context.Config)
-	p.initLambda(context.Router, context.Preprocessors, regInfo.Lambdas)
+	p.initHandler(context.Mux, context.HandlerInjector, regInfo.Handlers, context.Config)
+	p.initLambda(context.Router, context.HandlerInjector, regInfo.Lambdas)
 	p.initHook(context.HookRegistry, regInfo.Hooks)
 	if context.Scheduler != nil {
 		p.initTimer(context.Scheduler, regInfo.Timers)
@@ -300,9 +300,10 @@ func (p *Plugin) processRegistrationInfo(context *Context, regInfo registrationI
 	p.initProvider(context.ProviderRegistry, regInfo.Providers)
 }
 
-func (p *Plugin) initHandler(mux *http.ServeMux, ppreg router.PreprocessorRegistry, handlers []pluginHandlerInfo, config skyconfig.Configuration) {
+func (p *Plugin) initHandler(mux *http.ServeMux, injector router.HandlerInjector, handlers []pluginHandlerInfo, config skyconfig.Configuration) {
 	for _, handler := range handlers {
-		h := NewPluginHandler(handler, ppreg, p)
+		h := NewPluginHandler(handler, p)
+		injector.Inject(h)
 		h.Setup()
 		name := h.Name
 		name = strings.Replace(name, ":", "/", -1)
@@ -323,9 +324,10 @@ func (p *Plugin) initHandler(mux *http.ServeMux, ppreg router.PreprocessorRegist
 	}
 }
 
-func (p *Plugin) initLambda(r *router.Router, ppreg router.PreprocessorRegistry, lambdas []map[string]interface{}) {
+func (p *Plugin) initLambda(r *router.Router, injector router.HandlerInjector, lambdas []map[string]interface{}) {
 	for _, lambda := range lambdas {
-		handler := NewLambdaHandler(lambda, ppreg, p)
+		handler := NewLambdaHandler(lambda, p)
+		injector.Inject(handler)
 		handler.Setup()
 		r.Map(handler.Name, handler)
 		log.Debugf(`Registered lambda "%s" with router.`, handler.Name)

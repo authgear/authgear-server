@@ -30,7 +30,7 @@ func TestLambdaCreation(t *testing.T) {
 	Convey("create simple lambda", t, func() {
 		handler := NewLambdaHandler(map[string]interface{}{
 			"name": "hello:world",
-		}, nil, nil)
+		}, nil)
 
 		So(handler.Name, ShouldEqual, "hello:world")
 		So(handler.AccessKeyRequired, ShouldBeFalse)
@@ -41,7 +41,7 @@ func TestLambdaCreation(t *testing.T) {
 		handler := NewLambdaHandler(map[string]interface{}{
 			"name":          "hello:world",
 			"user_required": true,
-		}, nil, nil)
+		}, nil)
 
 		So(handler.UserRequired, ShouldBeTrue)
 	})
@@ -50,7 +50,7 @@ func TestLambdaCreation(t *testing.T) {
 		handler := NewLambdaHandler(map[string]interface{}{
 			"name":         "hello:world",
 			"key_required": true,
-		}, nil, nil)
+		}, nil)
 
 		So(handler.AccessKeyRequired, ShouldBeTrue)
 	})

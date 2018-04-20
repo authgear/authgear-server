@@ -28,15 +28,20 @@ type LambdaHandler struct {
 	Name              string
 	AccessKeyRequired bool
 	UserRequired      bool
-	PreprocessorList  router.PreprocessorRegistry
-	preprocessors     []router.Processor
+
+	Authenticator         router.Processor `preprocessor:"authenticator"`
+	InjectIDAuthenticator router.Processor `preprocessor:"inject_auth_id"`
+	DBConn                router.Processor `preprocessor:"dbconn"`
+	InjectAuth            router.Processor `preprocessor:"require_auth"`
+	CheckUser             router.Processor `preprocessor:"check_user"`
+	PluginReady           router.Processor `preprocessor:"plugin_ready"`
+	preprocessors         []router.Processor
 }
 
-func NewLambdaHandler(info map[string]interface{}, ppreg router.PreprocessorRegistry, p *Plugin) *LambdaHandler {
+func NewLambdaHandler(info map[string]interface{}, p *Plugin) *LambdaHandler {
 	handler := &LambdaHandler{
-		Plugin:           p,
-		Name:             info["name"].(string),
-		PreprocessorList: ppreg,
+		Plugin: p,
+		Name:   info["name"].(string),
 	}
 	handler.AccessKeyRequired, _ = info["key_required"].(bool)
 	handler.UserRequired, _ = info["user_required"].(bool)
@@ -45,23 +50,23 @@ func NewLambdaHandler(info map[string]interface{}, ppreg router.PreprocessorRegi
 
 func (h *LambdaHandler) Setup() {
 	if h.UserRequired {
-		h.preprocessors = h.PreprocessorList.GetByNames(
-			"authenticator",
-			"dbconn",
-			"require_auth",
-			"check_user",
-			"plugin_ready",
-		)
+		h.preprocessors = []router.Processor{
+			h.Authenticator,
+			h.DBConn,
+			h.InjectAuth,
+			h.CheckUser,
+			h.PluginReady,
+		}
 	} else if h.AccessKeyRequired {
-		h.preprocessors = h.PreprocessorList.GetByNames(
-			"authenticator",
-			"plugin_ready",
-		)
+		h.preprocessors = []router.Processor{
+			h.Authenticator,
+			h.PluginReady,
+		}
 	} else {
-		h.preprocessors = h.PreprocessorList.GetByNames(
-			"inject_auth_id",
-			"plugin_ready",
-		)
+		h.preprocessors = []router.Processor{
+			h.InjectIDAuthenticator,
+			h.PluginReady,
+		}
 	}
 }
 

@@ -16,7 +16,7 @@ func TestHandlerCreation(t *testing.T) {
 	Convey("create simple handler", t, func() {
 		handler := NewPluginHandler(pluginHandlerInfo{
 			Name: "hello:world",
-		}, nil, nil)
+		}, nil)
 
 		So(handler.Name, ShouldEqual, "hello:world")
 		So(handler.AccessKeyRequired, ShouldBeFalse)
@@ -27,7 +27,7 @@ func TestHandlerCreation(t *testing.T) {
 		handler := NewPluginHandler(pluginHandlerInfo{
 			Name:         "hello:world",
 			UserRequired: true,
-		}, nil, nil)
+		}, nil)
 
 		So(handler.UserRequired, ShouldBeTrue)
 	})
@@ -36,7 +36,7 @@ func TestHandlerCreation(t *testing.T) {
 		handler := NewPluginHandler(pluginHandlerInfo{
 			Name:        "hello:world",
 			KeyRequired: true,
-		}, nil, nil)
+		}, nil)
 
 		So(handler.AccessKeyRequired, ShouldBeTrue)
 	})
