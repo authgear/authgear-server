@@ -1,3 +1,20 @@
+## 1.5.0 (2018-4-23)
+
+### Features
+
+- Update logic for user checking in preprocessors to support checking user
+    verify
+
+### Bug Fixes
+
+- Fix async hook not executed
+- Deserialize profile for login with custom token api
+- Inject assets signer before calling before_save hook
+- Password policy bug fixes, skip expiry check for change password handler
+- Update log level on apns token invalid error. If the error occurred for
+    sending push notification is `Gone` or `BadDeviceToken`, the log level will
+    be Info instead of Error.
+
 ## 1.4.0 (2018-03-06)
 
 ### Features
