@@ -250,5 +250,89 @@ func TestLambdaHandler(t *testing.T) {
 			resp := r.POST(fmt.Sprintf(`{"args":[%s]}`, minimalAssetPayload))
 			c.So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{"result":%s}`, minimalAssetPayload))
 		})
+
+		Convey("should pass minimal record content", func(c C) {
+			recordID := "note/73ce6795-7304-476b-943e-aa33da076c31"
+			minimalRecordPayload := fmt.Sprintf(`{
+				"$type": "record",
+				"$record": {
+					"_id": "%s"
+				}
+			}`, recordID)
+
+			fullRecordPayload := fmt.Sprintf(`{
+				"$type": "record",
+				"$record": {
+					"_id": "%s",
+					"_access": null,
+					"_type": "record"
+				}
+			}`, recordID)
+
+			transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Do(
+				func(ctx context.Context, name string, in []byte) {
+					c.So(in, ShouldEqualJSON, fmt.Sprintf(`{"args":[%s]}`, fullRecordPayload))
+				},
+			).Return(
+				[]byte(minimalRecordPayload), nil,
+			)
+			resp := r.POST(fmt.Sprintf(`{"args":[%s]}`, minimalRecordPayload))
+			c.So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{"result":%s}`, fullRecordPayload))
+		})
+
+		Convey("should pass record content", func(c C) {
+			recordID := "note/73ce6795-7304-476b-943e-aa33da076c31"
+			assetName := "73ce6795-7304-476b-943e-aa33da076c31"
+			inputRecordPayload := fmt.Sprintf(`{
+				"$type": "record",
+				"$record": {
+					"_id": "%s",
+					"_ownerID": "john.doe@example.com",
+					"_created_at": "2017-07-23T19:30:24Z",
+					"_created_by": "john.doe@example.com",
+					"_updated_at": "2017-07-23T19:30:24Z",
+					"_updated_by": "john.doe@example.com",
+					"_access": [{"relation": "friend", "level": "write"}],
+					"asset": {"$type": "asset", "$name": "%s"},
+					"_transient": {
+						"asset": {"$type": "asset", "$name": "%s"}
+					}
+				}
+			}`, recordID, assetName, assetName)
+			outputRecordPayload := fmt.Sprintf(`{
+				"$type": "record",
+				"$record": {
+					"_id": "%s",
+					"_type": "record",
+					"_ownerID": "john.doe@example.com",
+					"_created_at": "2017-07-23T19:30:24Z",
+					"_created_by": "john.doe@example.com",
+					"_updated_at": "2017-07-23T19:30:24Z",
+					"_updated_by": "john.doe@example.com",
+					"_access": [{"relation": "friend", "level": "write"}],
+					"asset": {"$content_type":"text/plain","$name":"%s","$type":"asset","$url":"signed-url"},
+					"_transient": {
+						"asset": {"$content_type":"text/plain","$name":"%s","$type":"asset","$url":"signed-url"}
+					}
+				}
+			}`, recordID, assetName, assetName)
+
+			conn.AssetMap[assetName] = skydb.Asset{
+				Name:        assetName,
+				ContentType: "text/plain",
+				Size:        12,
+			}
+			store.EXPECT().SignedURL(assetName).Return("signed-url", nil).Times(4)
+
+			transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Do(
+				func(ctx context.Context, name string, in []byte) {
+					c.So(in, ShouldEqualJSON, fmt.Sprintf(`{"args":[%s]}`, outputRecordPayload))
+				},
+			).Return(
+				[]byte(inputRecordPayload), nil,
+			)
+			resp := r.POST(fmt.Sprintf(`{"args":[%s]}`, inputRecordPayload))
+			c.So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{"result":%s}`, outputRecordPayload))
+		})
 	})
 }

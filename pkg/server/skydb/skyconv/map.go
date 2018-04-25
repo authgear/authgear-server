@@ -426,6 +426,33 @@ func (ace *MapFieldACLEntry) FromMap(m map[string]interface{}) error {
 	return nil
 }
 
+// MapWrappedRecord is skydb.Record that can be converted from and to a map.
+type MapWrappedRecord skydb.Record
+
+// FromMap implements FromMapper
+func (t *MapWrappedRecord) FromMap(m map[string]interface{}) error {
+	recordi, ok := m["$record"]
+	if !ok {
+		return errors.New("missing compulsory field $record")
+	}
+
+	recordm, ok := recordi.(map[string]interface{})
+	if !ok {
+		return errors.New("$record is not a map")
+	}
+
+	//	tt := (*skydb.Record)(t)
+	return (*JSONRecord)(t).FromMap(recordm)
+}
+
+// ToMap implements ToMapper
+func (t *MapWrappedRecord) ToMap(m map[string]interface{}) {
+	m["$type"] = "record"
+	mm := map[string]interface{}{}
+	(*JSONRecord)(t).ToMap(mm)
+	m["$record"] = mm
+}
+
 func walkMap(m map[string]interface{}, fn func(interface{}) interface{}) map[string]interface{} {
 	for key, value := range m {
 		m[key] = fn(value)
@@ -522,7 +549,7 @@ func ParseLiteral(i interface{}) interface{} {
 			return &rel
 		case "record":
 			var record skydb.Record
-			mapFromOrPanic((*JSONRecord)(&record), value)
+			mapFromOrPanic((*MapWrappedRecord)(&record), value)
 			return &record
 		default:
 			panic(fmt.Errorf("unknown $type = %s", kind))
@@ -563,9 +590,9 @@ func ToLiteral(i interface{}) interface{} {
 	case skydb.Unknown:
 		return ToMap((MapUnknown)(value))
 	case skydb.Record:
-		return ToMap((*JSONRecord)(&value))
+		return ToMap((*MapWrappedRecord)(&value))
 	case *skydb.Record:
-		return ToMap((*JSONRecord)(value))
+		return ToMap((*MapWrappedRecord)(value))
 	case JSONRecord:
 		return ToMap(&value)
 	case *JSONRecord:
