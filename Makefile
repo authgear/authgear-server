@@ -14,6 +14,10 @@ ifeq (1,${WITH_ZMQ})
 GO_BUILD_TAGS := --tags zmq
 endif
 
+ifeq (1,${GO_TEST_VERBOSE})
+GO_TEST_ARGS_VERBOSE := -v
+endif
+
 DOCKER_COMPOSE_CMD := docker-compose \
 	-f docker-compose.make.yml \
 
@@ -36,6 +40,7 @@ PUSH_DOCKER_TAG := $(VERSION)
 IMAGE_NAME := $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(DOCKER_IMAGE):$(DOCKER_TAG)
 
 GO_BUILD_ARGS := $(GO_BUILD_TAGS) $(GO_BUILD_LDFLAGS)
+GO_TEST_ARGS := $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) $(GO_TEST_ARGS_VERBOSE) -p 1 -cpu $(GO_TEST_CPU)
 
 .PHONY: vendor
 vendor:
@@ -77,7 +82,7 @@ before-test:
 test:
 # Run `go install` to compile packages for caching and catch compilation error.
 	$(DOCKER_RUN_TEST) go install $(GO_BUILD_ARGS)
-	$(DOCKER_RUN_TEST) go test $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) -p 1 -cpu $(GO_TEST_CPU) $(GO_TEST_PACKAGE)
+	$(DOCKER_RUN_TEST) go test $(GO_TEST_ARGS) $(GO_TEST_PACKAGE)
 
 .PHONY: lint
 lint: go-lint
