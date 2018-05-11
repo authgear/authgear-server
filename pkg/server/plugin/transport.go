@@ -120,7 +120,7 @@ func ContextMap(ctx context.Context) map[string]interface{} {
 			pluginCtx["access_key_type"] = "master"
 		}
 	}
-	if requestID, ok := ctx.Value(router.RequestIDContextKey).(string); ok {
+	if requestID, ok := ctx.Value("RequestID").(string); ok {
 		pluginCtx["request_id"] = requestID
 	}
 	return pluginCtx

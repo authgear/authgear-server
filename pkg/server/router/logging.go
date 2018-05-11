@@ -17,7 +17,6 @@ package router
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"fmt"
 	"io/ioutil"
 	"mime"
@@ -28,7 +27,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/logging"
-	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
 type responseLogger struct {
@@ -85,10 +83,6 @@ type LoggingMiddleware struct {
 func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	skipBody := l.skipBody(r.URL.Path)
 
-	requestID := uuid.New()
-	newContext := context.WithValue(r.Context(), RequestIDContextKey, requestID)
-	r = r.WithContext(newContext)
-
 	// Log request
 	requestFields := logrus.Fields{}
 
@@ -97,7 +91,6 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	requestBodyLength := len(body)
 	requestFields["bodyLength"] = requestBodyLength
-	requestFields["requestID"] = requestID
 
 	var headers []string
 	for key, value := range r.Header {
@@ -115,7 +108,6 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.WithFields(requestFields).Debugf("Request %v %v", r.Method, r.RequestURI)
 
 	// Serve request by passing to next middleware or router
-	w.Header().Set("X-Skygear-Request-Id", requestID)
 	rlogger := &responseLogger{w: w}
 	l.Next.ServeHTTP(rlogger, r)
 
@@ -123,7 +115,6 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	responseFields := logrus.Fields{}
 	responseBodyLength := rlogger.Size()
 	responseFields["bodyLength"] = responseBodyLength
-	responseFields["requestID"] = requestID
 
 	var shouldLogResponseBody = !skipBody &&
 		l.isConcernType(w.Header().Get("Content-Type")) &&

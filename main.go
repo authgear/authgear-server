@@ -392,6 +392,10 @@ func main() {
 		finalMux = loggingMiddleware
 	}
 
+	finalMux = &router.RequestIDMiddleware{
+		Next: finalMux,
+	}
+
 	// Bootstrap finished, starting services
 	initPlugin(config, &pluginContext)
 
