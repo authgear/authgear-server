@@ -15,6 +15,7 @@
 package router
 
 import (
+	"errors"
 	"net/http"
 	"regexp"
 )
@@ -32,13 +33,15 @@ type Gateway struct {
 	commonRouter
 	ParamMatch  *regexp.Regexp
 	methodPaths map[string]pathRoute
+	Tag         string
 }
 
-func NewGateway(pattern string, path string, mux *http.ServeMux) *Gateway {
+func NewGateway(pattern string, path string, tag string, mux *http.ServeMux) *Gateway {
 	match := regexp.MustCompile(`\A/` + pattern + `\z`)
 	g := &Gateway{
 		ParamMatch:  match,
 		methodPaths: map[string]pathRoute{},
+		Tag:         tag,
 	}
 	if path != "" && mux != nil {
 		mux.Handle(path, g)
@@ -79,13 +82,16 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	g.commonRouter.ServeHTTP(w, req)
 }
 
-func (g *Gateway) matchHandler(p *Payload) (h Handler, pp []Processor) {
+func (g *Gateway) matchHandler(p *Payload) (routeConfig, error) {
 	method := p.Meta["method"].(string)
 	if pathRoute, ok := g.methodPaths[method]; ok {
-		h = pathRoute.Handler
-		pp = pathRoute.Preprocessors
+		return routeConfig{
+			Tag:           g.Tag,
+			Handler:       pathRoute.Handler,
+			Preprocessors: pathRoute.Preprocessors,
+		}, nil
 	}
-	return
+	return routeConfig{}, errors.New("route unmatched")
 }
 
 func (g *Gateway) newPayload(req *http.Request) (p *Payload, err error) {

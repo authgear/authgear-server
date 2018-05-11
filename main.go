@@ -274,82 +274,82 @@ func main() {
 	}
 	pluginContext.HandlerInjector = injector
 
-	r.Map("", &handler.HomeHandler{})
-	r.Map("_status:healthz", injector.Inject(&handler.HealthzHandler{}))
+	r.Map("", "", &handler.HomeHandler{})
+	r.Map("_status:healthz", "", injector.Inject(&handler.HealthzHandler{}))
 
-	r.Map("auth:signup", injector.Inject(&handler.SignupHandler{}))
-	r.Map("auth:login", injector.Inject(&handler.LoginHandler{}))
-	r.Map("auth:logout", injector.Inject(&handler.LogoutHandler{}))
-	r.Map("auth:password", injector.Inject(&handler.ChangePasswordHandler{}))
-	r.Map("auth:reset_password", injector.Inject(&handler.ResetPasswordHandler{}))
-	r.Map("auth:disable:set", injector.Inject(&handler.SetDisableUserHandler{}))
-	r.Map("sso:oauth:login", injector.Inject(&handler.LoginProviderHandler{}))
-	r.Map("sso:oauth:signup", injector.Inject(&handler.SignupProviderHandler{}))
-	r.Map("sso:oauth:link", injector.Inject(&handler.LinkProviderHandler{}))
-	r.Map("sso:oauth:unlink", injector.Inject(&handler.UnlinkProviderHandler{}))
-	r.Map("sso:custom_token:login", injector.Inject(&handler.SSOCustomTokenLoginHandler{
+	r.Map("auth:signup", "auth", injector.Inject(&handler.SignupHandler{}))
+	r.Map("auth:login", "auth", injector.Inject(&handler.LoginHandler{}))
+	r.Map("auth:logout", "auth", injector.Inject(&handler.LogoutHandler{}))
+	r.Map("auth:password", "auth", injector.Inject(&handler.ChangePasswordHandler{}))
+	r.Map("auth:reset_password", "auth", injector.Inject(&handler.ResetPasswordHandler{}))
+	r.Map("auth:disable:set", "auth", injector.Inject(&handler.SetDisableUserHandler{}))
+	r.Map("sso:oauth:login", "sso", injector.Inject(&handler.LoginProviderHandler{}))
+	r.Map("sso:oauth:signup", "sso", injector.Inject(&handler.SignupProviderHandler{}))
+	r.Map("sso:oauth:link", "sso", injector.Inject(&handler.LinkProviderHandler{}))
+	r.Map("sso:oauth:unlink", "sso", injector.Inject(&handler.UnlinkProviderHandler{}))
+	r.Map("sso:custom_token:login", "sso", injector.Inject(&handler.SSOCustomTokenLoginHandler{
 		CustomTokenSecret: config.Auth.CustomTokenSecret,
 	}))
 
-	r.Map("asset:put", injector.Inject(&handler.AssetUploadHandler{}))
+	r.Map("asset:put", "asset", injector.Inject(&handler.AssetUploadHandler{}))
 
-	r.Map("record:fetch", injector.Inject(&handler.RecordFetchHandler{}))
-	r.Map("record:query", injector.Inject(&handler.RecordQueryHandler{}))
-	r.Map("record:save", injector.Inject(&handler.RecordSaveHandler{}))
-	r.Map("record:delete", injector.Inject(&handler.RecordDeleteHandler{}))
+	r.Map("record:fetch", "record", injector.Inject(&handler.RecordFetchHandler{}))
+	r.Map("record:query", "record", injector.Inject(&handler.RecordQueryHandler{}))
+	r.Map("record:save", "record", injector.Inject(&handler.RecordSaveHandler{}))
+	r.Map("record:delete", "record", injector.Inject(&handler.RecordDeleteHandler{}))
 
-	r.Map("device:register", injector.Inject(&handler.DeviceRegisterHandler{}))
-	r.Map("device:unregister", injector.Inject(&handler.DeviceUnregisterHandler{}))
+	r.Map("device:register", "device", injector.Inject(&handler.DeviceRegisterHandler{}))
+	r.Map("device:unregister", "device", injector.Inject(&handler.DeviceUnregisterHandler{}))
 
 	// subscription shares the same set of preprocessor as record read at the moment
-	r.Map("subscription:fetch_all", injector.Inject(&handler.SubscriptionFetchAllHandler{}))
-	r.Map("subscription:fetch", injector.Inject(&handler.SubscriptionFetchHandler{}))
-	r.Map("subscription:save", injector.Inject(&handler.SubscriptionSaveHandler{}))
-	r.Map("subscription:delete", injector.Inject(&handler.SubscriptionDeleteHandler{}))
+	r.Map("subscription:fetch_all", "subscription", injector.Inject(&handler.SubscriptionFetchAllHandler{}))
+	r.Map("subscription:fetch", "subscription", injector.Inject(&handler.SubscriptionFetchHandler{}))
+	r.Map("subscription:save", "subscription", injector.Inject(&handler.SubscriptionSaveHandler{}))
+	r.Map("subscription:delete", "subscription", injector.Inject(&handler.SubscriptionDeleteHandler{}))
 
 	// relation shares the same setof preprocessor
-	r.Map("relation:query", injector.Inject(&handler.RelationQueryHandler{}))
-	r.Map("relation:add", injector.Inject(&handler.RelationAddHandler{}))
-	r.Map("relation:remove", injector.Inject(&handler.RelationRemoveHandler{}))
+	r.Map("relation:query", "relation", injector.Inject(&handler.RelationQueryHandler{}))
+	r.Map("relation:add", "relation", injector.Inject(&handler.RelationAddHandler{}))
+	r.Map("relation:remove", "relation", injector.Inject(&handler.RelationRemoveHandler{}))
 
-	r.Map("me", injector.Inject(&handler.MeHandler{}))
+	r.Map("me", "", injector.Inject(&handler.MeHandler{}))
 
-	r.Map("role:default", injector.Inject(&handler.RoleDefaultHandler{}))
-	r.Map("role:admin", injector.Inject(&handler.RoleAdminHandler{}))
-	r.Map("role:assign", injector.Inject(&handler.RoleAssignHandler{}))
-	r.Map("role:revoke", injector.Inject(&handler.RoleRevokeHandler{}))
-	r.Map("role:get", injector.Inject(&handler.RoleGetHandler{}))
+	r.Map("role:default", "role", injector.Inject(&handler.RoleDefaultHandler{}))
+	r.Map("role:admin", "role", injector.Inject(&handler.RoleAdminHandler{}))
+	r.Map("role:assign", "role", injector.Inject(&handler.RoleAssignHandler{}))
+	r.Map("role:revoke", "role", injector.Inject(&handler.RoleRevokeHandler{}))
+	r.Map("role:get", "role", injector.Inject(&handler.RoleGetHandler{}))
 
-	r.Map("push:user", injector.Inject(&handler.PushToUserHandler{}))
-	r.Map("push:device", injector.Inject(&handler.PushToDeviceHandler{}))
+	r.Map("push:user", "push", injector.Inject(&handler.PushToUserHandler{}))
+	r.Map("push:device", "push", injector.Inject(&handler.PushToDeviceHandler{}))
 
-	r.Map("schema:rename", injector.Inject(&handler.SchemaRenameHandler{}))
-	r.Map("schema:delete", injector.Inject(&handler.SchemaDeleteHandler{}))
-	r.Map("schema:create", injector.Inject(&handler.SchemaCreateHandler{}))
-	r.Map("schema:fetch", injector.Inject(&handler.SchemaFetchHandler{}))
-	r.Map("schema:access", injector.Inject(&handler.SchemaAccessHandler{}))
-	r.Map("schema:default_access", injector.Inject(&handler.SchemaDefaultAccessHandler{}))
-	r.Map("schema:field_access:get", injector.Inject(&handler.SchemaFieldAccessGetHandler{}))
-	r.Map("schema:field_access:update", injector.Inject(&handler.SchemaFieldAccessUpdateHandler{}))
+	r.Map("schema:rename", "schema", injector.Inject(&handler.SchemaRenameHandler{}))
+	r.Map("schema:delete", "schema", injector.Inject(&handler.SchemaDeleteHandler{}))
+	r.Map("schema:create", "schema", injector.Inject(&handler.SchemaCreateHandler{}))
+	r.Map("schema:fetch", "schema", injector.Inject(&handler.SchemaFetchHandler{}))
+	r.Map("schema:access", "schema", injector.Inject(&handler.SchemaAccessHandler{}))
+	r.Map("schema:default_access", "schema", injector.Inject(&handler.SchemaDefaultAccessHandler{}))
+	r.Map("schema:field_access:get", "schema", injector.Inject(&handler.SchemaFieldAccessGetHandler{}))
+	r.Map("schema:field_access:update", "schema", injector.Inject(&handler.SchemaFieldAccessUpdateHandler{}))
 
 	serveMux.Handle("/", r)
 
 	// Following section is for Gateway
 	if !config.App.Slave {
 		pubSub := pubsub.NewWsPubsub(nil)
-		pubSubGateway := router.NewGateway("", "/pubsub", serveMux)
+		pubSubGateway := router.NewGateway("", "/pubsub", "pubsub", serveMux)
 		pubSubGateway.GET(injector.InjectProcessors(&handler.PubSubHandler{
 			WebSocket: pubSub,
 		}))
 
 		internalPubSub := pubsub.NewWsPubsub(internalHub)
-		internalPubSubGateway := router.NewGateway("", "/_/pubsub", serveMux)
+		internalPubSubGateway := router.NewGateway("", "/_/pubsub", "pubsub", serveMux)
 		internalPubSubGateway.GET(injector.InjectProcessors(&handler.PubSubHandler{
 			WebSocket: internalPubSub,
 		}))
 	}
 
-	fileGateway := router.NewGateway("files/(.+)", "/files/", serveMux)
+	fileGateway := router.NewGateway("files/(.+)", "/files/", "asset", serveMux)
 	fileGateway.ResponseTimeout = time.Duration(config.App.ResponseTimeout) * time.Second
 	fileGateway.GET(injector.Inject(&handler.GetFileHandler{}))
 

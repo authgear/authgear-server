@@ -31,7 +31,7 @@ import (
 // to Router and Gateway.
 type commonRouter struct {
 	payloadFunc      func(req *http.Request) (p *Payload, err error)
-	matchHandlerFunc func(p *Payload) (h Handler, pp []Processor)
+	matchHandlerFunc func(p *Payload) (routeConfig, error)
 	ResponseTimeout  time.Duration
 }
 
@@ -59,10 +59,8 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 	var (
-		httpStatus    = http.StatusOK
-		handler       Handler
-		preprocessors []Processor
-		timedOut      bool
+		httpStatus = http.StatusOK
+		timedOut   bool
 	)
 
 	defer func() {
@@ -97,10 +95,10 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 		}
 	}()
 
-	handler, preprocessors = r.matchHandlerFunc(payload)
-	if handler == nil {
+	rc, err := r.matchHandlerFunc(payload)
+	if err != nil {
 		httpStatus = http.StatusNotFound
-		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, "route unmatched")
+		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, err.Error())
 		return
 	}
 
@@ -108,9 +106,15 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 	var cancelFunc context.CancelFunc
 	payload.Context, cancelFunc = context.WithCancel(payload.Context)
 	defer cancelFunc()
+	payload.Context = context.WithValue(payload.Context, "RequestTag", rc.Tag)
 
 	go func() {
-		httpStatus = r.callHandler(handler, preprocessors, payload, resp)
+		httpStatus = r.callHandler(
+			rc.Handler,
+			rc.Preprocessors,
+			payload,
+			resp,
+		)
 		cancelFunc()
 	}()
 
@@ -162,4 +166,10 @@ func getTimeoutChan(timeout time.Duration) <-chan time.Time {
 		return time.After(timeout)
 	}
 	return make(chan time.Time)
+}
+
+type routeConfig struct {
+	Tag           string
+	Preprocessors []Processor
+	Handler
 }

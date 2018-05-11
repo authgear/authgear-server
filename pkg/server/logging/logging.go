@@ -15,6 +15,7 @@
 package logging
 
 import (
+	"context"
 	"io"
 	"sync"
 
@@ -104,4 +105,29 @@ func LoggerEntry(name string) *logrus.Entry {
 	return logger.WithFields(logrus.Fields{
 		"logger": name,
 	})
+}
+
+func LoggerEntryWithTag(name string, tag string) *logrus.Entry {
+	logger := Logger(name)
+	fields := logrus.Fields{}
+	if name != "" {
+		fields["logger"] = name
+	}
+	if tag != "" {
+		fields["tag"] = tag
+	}
+	return logger.WithFields(fields)
+}
+
+func CreateLogger(ctx context.Context, logger string) *logrus.Entry {
+	var requestTag string
+	if tag, ok := ctx.Value("RequestTag").(string); ok {
+		requestTag = tag
+	}
+
+	fields := logrus.Fields{}
+	if requestID, ok := ctx.Value("RequestID").(string); ok {
+		fields["request_id"] = requestID
+	}
+	return LoggerEntryWithTag(logger, requestTag).WithFields(fields)
 }

@@ -313,7 +313,7 @@ func (p *Plugin) initHandler(mux *http.ServeMux, injector router.HandlerInjector
 		var handlerGateway *router.Gateway
 		handlerGateway, ok := p.gatewayMap[name]
 		if !ok {
-			handlerGateway = router.NewGateway("", name, mux)
+			handlerGateway = router.NewGateway("", name, "plugin", mux)
 			handlerGateway.ResponseTimeout = time.Duration(config.App.ResponseTimeout) * time.Second
 			p.gatewayMap[name] = handlerGateway
 		}
@@ -329,7 +329,7 @@ func (p *Plugin) initLambda(r *router.Router, injector router.HandlerInjector, l
 		handler := NewLambdaHandler(lambda, p)
 		injector.Inject(handler)
 		handler.Setup()
-		r.Map(handler.Name, handler)
+		r.Map(handler.Name, "plugin", handler)
 		log.Debugf(`Registered lambda "%s" with router.`, handler.Name)
 	}
 }

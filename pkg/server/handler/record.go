@@ -292,7 +292,8 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	log.Debugf("Working with accessModel %v", h.AccessModel)
+	logger := router.CreateLogger(payload.Context, "handler")
+	logger.Debugf("Working with accessModel %v", h.AccessModel)
 
 	req := recordutil.RecordModifyRequest{
 		Db:            payload.Database,
@@ -331,7 +332,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 	// hotfix (Steven-Chan): moved outside of the transaction to prevent deadlock
 	schemaUpdated, err := recordutil.ExtendRecordSchema(payload.Database, p.Records)
 	if err != nil {
-		log.WithField("err", err).Errorln("failed to migrate record schema")
+		logger.WithError(err).Errorln("failed to migrate record schema")
 		if myerr, ok := err.(skyerr.Error); ok {
 			response.Err = myerr
 			return
@@ -342,25 +343,25 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	if err := saveFunc(&req, &resp); err != nil {
-		log.Debugf("Failed to save records: %v", err)
+		logger.Debugf("Failed to save records: %v", err)
 		response.Err = err
 		return
 	}
 
 	results := make([]interface{}, 0, p.ItemLen())
-	h.makeResultsFromIncomingItem(p.IncomingItems, resp, resultFilter, &results)
+	h.makeResultsFromIncomingItem(payload.Context, p.IncomingItems, resp, resultFilter, &results)
 
 	response.Result = results
 
 	if schemaUpdated && h.EventSender != nil {
 		err := sendSchemaChangedEvent(h.EventSender, payload.Database)
 		if err != nil {
-			log.WithField("err", err).Warn("Fail to send schema changed event")
+			logger.WithError(err).Warn("Fail to send schema changed event")
 		}
 	}
 }
 
-func (h *RecordSaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, resp recordutil.RecordModifyResponse, resultFilter recordutil.RecordResultFilter, results *[]interface{}) {
+func (h *RecordSaveHandler) makeResultsFromIncomingItem(ctx context.Context, incomingItems []interface{}, resp recordutil.RecordModifyResponse, resultFilter recordutil.RecordResultFilter, results *[]interface{}) {
 	currRecordIdx := 0
 	for _, itemi := range incomingItems {
 		var result interface{}
@@ -370,7 +371,8 @@ func (h *RecordSaveHandler) makeResultsFromIncomingItem(incomingItems []interfac
 			result = newSerializedError("", item)
 		case skydb.RecordID:
 			if err, ok := resp.ErrMap[item]; ok {
-				log.WithFields(logrus.Fields{
+				logger := router.CreateLogger(ctx, "handler")
+				logger.WithFields(logrus.Fields{
 					"recordID": item,
 					"err":      err,
 				}).Debugln("failed to save record")
@@ -780,8 +782,9 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		deleteFunc = recordutil.RecordDeleteHandler
 	}
 
+	logger := router.CreateLogger(payload.Context, "handler")
 	if err := deleteFunc(&req, &resp); err != nil {
-		log.Debugf("Failed to delete records: %v", err)
+		logger.WithError(err).Debugf("Failed to delete records")
 		response.Err = err
 		return
 	}
@@ -791,7 +794,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		var result interface{}
 
 		if err, ok := resp.ErrMap[recordID]; ok {
-			log.WithFields(logrus.Fields{
+			logger.WithFields(logrus.Fields{
 				"recordID": recordID,
 				"err":      err,
 			}).Debugln("failed to delete record")

@@ -123,5 +123,8 @@ func ContextMap(ctx context.Context) map[string]interface{} {
 	if requestID, ok := ctx.Value("RequestID").(string); ok {
 		pluginCtx["request_id"] = requestID
 	}
+	if requestTag, ok := ctx.Value("RequestTag").(string); ok {
+		pluginCtx["request_tag"] = requestTag
+	}
 	return pluginCtx
 }
