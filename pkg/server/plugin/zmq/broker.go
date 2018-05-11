@@ -290,7 +290,7 @@ func (lb *Broker) Run() {
 	}
 	defer pull.Close()
 
-	if err := pull.Bind(fmt.Sprintf("inproc://chanpipeline%d", lb.name)); err != nil {
+	if err := pull.Bind(fmt.Sprintf("inproc://chanpipeline%s", lb.name)); err != nil {
 		panic(err)
 	}
 
@@ -368,7 +368,7 @@ func (lb *Broker) Channeler() {
 	}
 	defer push.Close()
 
-	if err := push.Connect(fmt.Sprintf("inproc://chanpipeline%d", lb.name)); err != nil {
+	if err := push.Connect(fmt.Sprintf("inproc://chanpipeline%s", lb.name)); err != nil {
 		panic(err)
 	}
 

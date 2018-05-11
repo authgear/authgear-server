@@ -514,7 +514,7 @@ func (m *schemaMerger) Extend(schema skydb.RecordSchema) {
 	for key, dataType := range schema {
 		if originalType, ok := m.finalSchema[key]; ok {
 			if originalType != dataType {
-				m.err = fmt.Errorf("type conflict on column = %s, %s -> %s", key, originalType, dataType)
+				m.err = fmt.Errorf("type conflict on column = %s, %#v -> %#v", key, originalType, dataType)
 				return
 			}
 		}
