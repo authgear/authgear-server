@@ -140,7 +140,9 @@ func (asset *MapAsset) FromMap(m map[string]interface{}) error {
 func (asset *MapAsset) ToMap(m map[string]interface{}) {
 	m["$type"] = "asset"
 	m["$name"] = asset.Name
-	m["$content_type"] = asset.ContentType
+	if asset.ContentType != "" {
+		m["$content_type"] = asset.ContentType
+	}
 	url := (*skydb.Asset)(asset).SignedURL()
 	if url != "" {
 		m["$url"] = url
@@ -247,7 +249,7 @@ func walkData(m map[string]interface{}) (mapReturned map[string]interface{}, err
 		}
 	}()
 
-	return walkMap(m), err
+	return walkMap(m, ParseLiteral), err
 }
 
 // MapKeyPath is string keypath that can be converted from a map
@@ -424,20 +426,64 @@ func (ace *MapFieldACLEntry) FromMap(m map[string]interface{}) error {
 	return nil
 }
 
-func walkMap(m map[string]interface{}) map[string]interface{} {
+// MapWrappedRecord is skydb.Record that can be converted from and to a map.
+type MapWrappedRecord skydb.Record
+
+// FromMap implements FromMapper
+func (t *MapWrappedRecord) FromMap(m map[string]interface{}) error {
+	recordi, ok := m["$record"]
+	if !ok {
+		return errors.New("missing compulsory field $record")
+	}
+
+	recordm, ok := recordi.(map[string]interface{})
+	if !ok {
+		return errors.New("$record is not a map")
+	}
+
+	//	tt := (*skydb.Record)(t)
+	return (*JSONRecord)(t).FromMap(recordm)
+}
+
+// ToMap implements ToMapper
+func (t *MapWrappedRecord) ToMap(m map[string]interface{}) {
+	m["$type"] = "record"
+	mm := map[string]interface{}{}
+	(*JSONRecord)(t).ToMap(mm)
+	m["$record"] = mm
+}
+
+func walkMap(m map[string]interface{}, fn func(interface{}) interface{}) map[string]interface{} {
 	for key, value := range m {
-		m[key] = ParseLiteral(value)
+		m[key] = fn(value)
 	}
 
 	return m
 }
 
-func walkSlice(items []interface{}) []interface{} {
+func walkSlice(items []interface{}, fn func(interface{}) interface{}) []interface{} {
 	for i, item := range items {
-		items[i] = ParseLiteral(item)
+		items[i] = fn(item)
 	}
 
 	return items
+}
+
+// TryParseLiteral deduces whether i is a skydb data value and returns a
+// parsed value.
+// nolint: gocyclo
+func TryParseLiteral(i interface{}) (out interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if _, ok := r.(runtime.Error); ok {
+				panic(r)
+			}
+			err = r.(error)
+		}
+	}()
+
+	out = ParseLiteral(i)
+	return
 }
 
 // ParseLiteral deduces whether i is a skydb data value and returns a
@@ -456,7 +502,7 @@ func ParseLiteral(i interface{}) interface{} {
 		kindi, typed := value["$type"]
 		if !typed {
 			// regular dictionary, go deeper
-			return walkMap(value)
+			return walkMap(value, ParseLiteral)
 		}
 
 		kind, ok := kindi.(string)
@@ -501,11 +547,56 @@ func ParseLiteral(i interface{}) interface{} {
 			var rel MapRelation
 			mapFromOrPanic((*MapRelation)(&rel), value)
 			return &rel
+		case "record":
+			var record skydb.Record
+			mapFromOrPanic((*MapWrappedRecord)(&record), value)
+			return &record
 		default:
 			panic(fmt.Errorf("unknown $type = %s", kind))
 		}
 	case []interface{}:
-		return walkSlice(value)
+		return walkSlice(value, ParseLiteral)
+	}
+}
+
+// ToLiteral converts a primitive type or a skydb type into a map.
+// This is the opposite of ParseLiteral.
+// nolint: gocyclo
+func ToLiteral(i interface{}) interface{} {
+	switch value := i.(type) {
+	default:
+		// considered a bug if this line is reached
+		panic(fmt.Errorf("unsupported value = %T", value))
+	case nil, bool, float64, string, int, int64:
+		return value
+	case map[string]interface{}:
+		return walkMap(value, ToLiteral)
+	case []interface{}:
+		return walkSlice(value, ToLiteral)
+	case *skydb.Asset:
+		return ToMap((*MapAsset)(value))
+	case skydb.Reference:
+		return ToMap((MapReference)(value))
+	case time.Time:
+		return ToMap((MapTime)(value))
+	case skydb.Location:
+		return ToMap((MapLocation)(value))
+	case *skydb.Location:
+		return ToMap((*MapLocation)(value))
+	case skydb.Geometry:
+		return ToMap((MapGeometry)(value))
+	case skydb.Sequence:
+		return ToMap((MapSequence)(value))
+	case skydb.Unknown:
+		return ToMap((MapUnknown)(value))
+	case skydb.Record:
+		return ToMap((*MapWrappedRecord)(&value))
+	case *skydb.Record:
+		return ToMap((*MapWrappedRecord)(value))
+	case JSONRecord:
+		return ToMap(&value)
+	case *JSONRecord:
+		return ToMap(value)
 	}
 }
 

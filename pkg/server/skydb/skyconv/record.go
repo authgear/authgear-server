@@ -28,32 +28,15 @@ type JSONRecord skydb.Record
 // MarshalJSON implements json.Marshaler
 // nolint: gocyclo
 func (record *JSONRecord) MarshalJSON() ([]byte, error) {
-	data := map[string]interface{}{}
-	for key, value := range record.Data {
-		switch v := value.(type) {
-		case time.Time:
-			data[key] = (MapTime)(v)
-		case skydb.Reference:
-			data[key] = (MapReference)(v)
-		case skydb.Location:
-			data[key] = (MapLocation)(v)
-		case *skydb.Location:
-			data[key] = (*MapLocation)(v)
-		case skydb.Geometry:
-			data[key] = (MapGeometry)(v)
-		case *skydb.Asset:
-			data[key] = (*MapAsset)(v)
-		case skydb.Sequence:
-			data[key] = (MapSequence)(v)
-		case skydb.Unknown:
-			data[key] = (MapUnknown)(v)
-		default:
-			data[key] = value
-		}
-	}
-
 	m := map[string]interface{}{}
-	MapData(data).ToMap(m)
+	record.ToMap(m)
+	return json.Marshal(m)
+}
+
+func (record *JSONRecord) ToMap(m map[string]interface{}) {
+	for key, value := range record.Data {
+		m[key] = ToLiteral(value)
+	}
 
 	m["_id"] = record.ID.String()
 	m["_type"] = "record"
@@ -79,19 +62,12 @@ func (record *JSONRecord) MarshalJSON() ([]byte, error) {
 	if len(transient) > 0 {
 		m["_transient"] = transient
 	}
-
-	return json.Marshal(m)
 }
 
 func (record *JSONRecord) marshalTransient(transient map[string]interface{}) map[string]interface{} {
 	m := map[string]interface{}{}
 	for key, value := range transient {
-		switch v := value.(type) {
-		case skydb.Record:
-			m[key] = (*JSONRecord)(&v)
-		default:
-			m[key] = v
-		}
+		m[key] = ToLiteral(value)
 	}
 	return m
 }
@@ -107,20 +83,47 @@ func (record *JSONRecord) UnmarshalJSON(data []byte) (err error) {
 
 func (record *JSONRecord) FromMap(m map[string]interface{}) error {
 	var (
-		id      skydb.RecordID
-		acl     skydb.RecordACL
-		dataMap map[string]interface{}
+		id               skydb.RecordID
+		acl              skydb.RecordACL
+		ownerID          string
+		createdAt        time.Time
+		creatorID        string
+		updatedAt        time.Time
+		updaterID        string
+		dataMap          map[string]interface{}
+		transientDataMap map[string]interface{}
 	)
 
 	extractor := newMapExtractor(m)
 	extractor.DoString("_id", func(s string) error {
 		return id.UnmarshalText([]byte(s))
-	})
-	acl = skydb.RecordACL{}
+	}, true)
+	extractor.DoString("_ownerID", func(s string) error {
+		ownerID = s
+		return nil
+	}, false)
+	extractor.DoTime("_created_at", func(t time.Time) error {
+		createdAt = t
+		return nil
+	}, false)
+	extractor.DoString("_created_by", func(s string) error {
+		creatorID = s
+		return nil
+	}, false)
+	extractor.DoTime("_updated_at", func(t time.Time) error {
+		updatedAt = t
+		return nil
+	}, false)
+	extractor.DoString("_updated_by", func(s string) error {
+		updaterID = s
+		return nil
+	}, false)
 	extractor.DoSliceMap("_access", func(slice []map[string]interface{}) error {
 		if slice == nil {
-			acl = nil
+			return nil
 		}
+
+		acl = skydb.RecordACL{}
 		for i, v := range slice {
 			ace := skydb.RecordACLEntry{}
 			if err := (*MapACLEntry)(&ace).FromMap(v); err != nil {
@@ -129,23 +132,35 @@ func (record *JSONRecord) FromMap(m map[string]interface{}) error {
 			acl = append(acl, ace)
 		}
 		return nil
-	})
+	}, false)
+	extractor.DoMap("_transient", func(theMap map[string]interface{}) error {
+		if theMap == nil {
+			return nil
+		}
+		return (*MapData)(&transientDataMap).FromMap(theMap)
+	}, false)
 	if extractor.Err() != nil {
 		return extractor.Err()
 	}
 
-	m = sanitizedDataMap(m)
+	m = removeReserved(m)
 	if err := (*MapData)(&dataMap).FromMap(m); err != nil {
 		return err
 	}
 
 	record.ID = id
+	record.OwnerID = ownerID
+	record.CreatedAt = createdAt
+	record.CreatorID = creatorID
+	record.UpdatedAt = updatedAt
+	record.UpdaterID = updaterID
 	record.ACL = acl
+	record.Transient = transientDataMap
 	record.Data = dataMap
 	return nil
 }
 
-func sanitizedDataMap(m map[string]interface{}) map[string]interface{} {
+func removeReserved(m map[string]interface{}) map[string]interface{} {
 	mm := map[string]interface{}{}
 	for key, value := range m {
 		if key[0] != '_' {
@@ -169,7 +184,7 @@ func newMapExtractor(m map[string]interface{}) *mapExtractor {
 
 // Do execute doFunc if key exists in the map
 // The key will always be removed no matter error occurred previously
-func (e *mapExtractor) Do(key string, doFunc func(interface{}) error) {
+func (e *mapExtractor) Do(key string, doFunc func(interface{}) error, required bool) {
 	value, ok := e.m[key]
 	delete(e.m, key)
 
@@ -180,30 +195,45 @@ func (e *mapExtractor) Do(key string, doFunc func(interface{}) error) {
 	if ok {
 		e.err = doFunc(value)
 		delete(e.m, key)
-	} else {
+	} else if required {
 		e.err = fmt.Errorf(`no key "%s" in map`, key)
 	}
 }
 
-func (e *mapExtractor) DoString(key string, doFunc func(string) error) {
+func (e *mapExtractor) DoString(key string, doFunc func(string) error, required bool) {
 	e.Do(key, func(i interface{}) error {
 		if m, ok := i.(string); ok {
 			return doFunc(m)
 		}
 		return fmt.Errorf("key %s is of type %T, not string", key, i)
-	})
+	}, required)
 }
 
-func (e *mapExtractor) DoMap(key string, doFunc func(map[string]interface{}) error) {
+func (e *mapExtractor) DoTime(key string, doFunc func(time.Time) error, required bool) {
+	e.Do(key, func(i interface{}) error {
+		dateStr, ok := i.(string)
+		if !ok {
+			return fmt.Errorf("key %s is of type %T, not string", key, i)
+		}
+		dt, err := time.Parse(time.RFC3339Nano, dateStr)
+		if err != nil {
+			return fmt.Errorf("key %s is not a time: %s", key, err)
+		}
+
+		return doFunc(dt)
+	}, required)
+}
+
+func (e *mapExtractor) DoMap(key string, doFunc func(map[string]interface{}) error, required bool) {
 	e.Do(key, func(i interface{}) error {
 		if m, ok := i.(map[string]interface{}); ok {
 			return doFunc(m)
 		}
 		return fmt.Errorf("key %s is of type %T, not map[string]interface{}", key, i)
-	})
+	}, required)
 }
 
-func (e *mapExtractor) DoSlice(key string, doFunc func([]interface{}) error) {
+func (e *mapExtractor) DoSlice(key string, doFunc func([]interface{}) error, required bool) {
 	e.Do(key, func(i interface{}) error {
 		switch slice := i.(type) {
 		case []interface{}:
@@ -213,10 +243,10 @@ func (e *mapExtractor) DoSlice(key string, doFunc func([]interface{}) error) {
 		default:
 			return fmt.Errorf("key %s is of type %T, not []interface{}", key, i)
 		}
-	})
+	}, required)
 }
 
-func (e *mapExtractor) DoSliceMap(key string, doFunc func([]map[string]interface{}) error) {
+func (e *mapExtractor) DoSliceMap(key string, doFunc func([]map[string]interface{}) error, required bool) {
 	e.Do(key, func(i interface{}) error {
 		switch slice := i.(type) {
 		case []interface{}:
@@ -234,7 +264,7 @@ func (e *mapExtractor) DoSliceMap(key string, doFunc func([]map[string]interface
 		default:
 			return fmt.Errorf("key %s is of type %T, not []map[string]interface{}", key, i)
 		}
-	})
+	}, required)
 }
 
 func (e *mapExtractor) Err() error {

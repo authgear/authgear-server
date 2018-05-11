@@ -45,6 +45,13 @@ type URLSigner interface {
 	IsSignatureRequired() bool
 }
 
+// URLSignerStore is an interface that is a union of Store and URLSigner.
+//go:generate mockgen -destination=mock_asset/mock_url_signer_store.go github.com/skygeario/skygear-server/pkg/server/asset URLSignerStore
+type URLSignerStore interface {
+	Store
+	URLSigner
+}
+
 // SignatureParser parses a signed signature string
 type SignatureParser interface {
 	ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error)
