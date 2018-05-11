@@ -165,7 +165,6 @@ type Response struct {
 	Info       interface{}         `json:"info,omitempty"`
 	Result     interface{}         `json:"result,omitempty"`
 	Err        skyerr.Error        `json:"error,omitempty"`
-	RequestID  string              `json:"request_id,omitempty"`
 	DatabaseID string              `json:"database_id,omitempty"`
 	writer     http.ResponseWriter
 	writerOnce sync.Once
