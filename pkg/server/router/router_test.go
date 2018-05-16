@@ -94,7 +94,7 @@ func TestRouterMap(t *testing.T) {
 		outputs: mockResp,
 	}
 	r := NewRouter()
-	r.Map("mock:map", &mockHandler)
+	r.Map("mock:map", "tag", &mockHandler)
 	var mockJSON = `{
 	"action": "mock:map"
 }`
@@ -129,7 +129,7 @@ func TestRouterMapMissing(t *testing.T) {
 		outputs: Response{},
 	}
 	r := NewRouter()
-	r.Map("mock:map", &mockHandler)
+	r.Map("mock:map", "tag", &mockHandler)
 	var mockJSON = `{
 	"action": "missing"
 }`
@@ -181,7 +181,7 @@ func TestURLRouting(t *testing.T) {
 			}
 
 			r := NewRouter()
-			r.Map("mock:map", &mockHandler)
+			r.Map("mock:map", "tag", &mockHandler)
 
 			req, _ := http.NewRequest(
 				"POST",
@@ -208,7 +208,7 @@ func TestErrorHandler(t *testing.T) {
 			errHandler := &ErrHandler{
 				Err: skyerr.NewError(skyerr.UnexpectedError, "some error"),
 			}
-			r.Map("mock:handler", errHandler)
+			r.Map("mock:handler", "tag", errHandler)
 
 			req, _ := http.NewRequest(
 				"POST",
@@ -233,7 +233,7 @@ func TestPreprocess(t *testing.T) {
 	}}
 	mockPreprocessor := getPreprocessor{}
 
-	r.Map("mock:preprocess", &mockHandler, &mockPreprocessor)
+	r.Map("mock:preprocess", "tag", &mockHandler, &mockPreprocessor)
 
 	Convey("Given a router with a preprocessor", t, func() {
 		req, _ := http.NewRequest(
@@ -325,7 +325,7 @@ func TestTimeout(t *testing.T) {
 				},
 				delay: 20 * time.Millisecond,
 			}
-			r.Map("delay:handler", delayHandler)
+			r.Map("delay:handler", "tag", delayHandler)
 
 			req, _ := http.NewRequest(
 				"POST",
@@ -353,7 +353,7 @@ func TestRouterRequest(t *testing.T) {
 			}
 
 			r := NewRouter()
-			r.Map("mock:callback", &callbackHandler)
+			r.Map("mock:callback", "tag", &callbackHandler)
 
 			req, _ := http.NewRequest(
 				"POST",
