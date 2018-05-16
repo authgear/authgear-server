@@ -21,6 +21,7 @@ import (
 
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
@@ -124,7 +125,7 @@ func (c *conn) doScanOAuthInfo(oauthinfo *skydb.OAuthInfo, scanner sq.RowScanner
 		&updatedAt,
 	)
 	if err != nil {
-		log.Infof(err.Error())
+		logrus.Infof(err.Error())
 	}
 	if err == sql.ErrNoRows {
 		return skydb.ErrUserNotFound

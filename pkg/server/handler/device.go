@@ -20,6 +20,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -129,6 +130,7 @@ func (h *DeviceRegisterHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	logger := logging.CreateLogger(rpayload.Context, "handler")
 	payload := deviceRegisterPayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -149,7 +151,7 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 				return
 			}
 
-			log.WithFields(logrus.Fields{
+			logger.WithFields(logrus.Fields{
 				"deviceID": deviceID,
 				"err":      err,
 			}).Errorln("Fail to get device")
@@ -174,7 +176,7 @@ func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *route
 	device.LastRegisteredAt = timeNow()
 
 	if err := conn.SaveDevice(&device); err != nil {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"deviceID": deviceID,
 			"device":   device,
 			"err":      err,
@@ -226,6 +228,7 @@ func (h *DeviceUnregisterHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *DeviceUnregisterHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	logger := logging.CreateLogger(rpayload.Context, "handler")
 	payload := deviceUnregisterPayload{}
 	if err := payload.Decode(rpayload.Data); err != nil {
 		response.Err = err
@@ -241,7 +244,7 @@ func (h *DeviceUnregisterHandler) Handle(rpayload *router.Payload, response *rou
 			return
 		}
 
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"deviceID": payload.ID,
 			"err":      err,
 		}).Errorln("Fail to get device")
@@ -260,7 +263,7 @@ func (h *DeviceUnregisterHandler) Handle(rpayload *router.Payload, response *rou
 
 	device.AuthInfoID = ""
 	if err := conn.SaveDevice(&device); err != nil {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"deviceID": payload.ID,
 			"device":   device,
 			"err":      err,

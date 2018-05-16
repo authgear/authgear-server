@@ -24,6 +24,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
+	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
@@ -56,7 +59,7 @@ func (auth *providerInfoValue) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		log.Errorf("skydb: unsupported Scan pair: %T -> %T", value, auth.ProviderInfo)
+		logrus.Errorf("skydb: unsupported Scan pair: %T -> %T", value, auth.ProviderInfo)
 	}
 
 	err := json.Unmarshal(b, &auth.ProviderInfo)
@@ -98,48 +101,51 @@ func (c *conn) Db() ExtContext {
 
 // Begin begins a transaction.
 func (c *conn) Begin() error {
-	log.Debugf("%p: Beginning transaction", c)
+	logger := logging.CreateLogger(c.context, "skydb")
+	logger.Debugf("%p: Beginning transaction", c)
 	if c.tx != nil {
 		return skydb.ErrDatabaseTxDidBegin
 	}
 
 	tx, err := c.db.Beginx()
 	if err != nil {
-		log.Debugf("%p: Unable to begin transaction %p: %v", c, err)
+		logger.Debugf("%p: Unable to begin transaction %p: %v", c, err)
 		return err
 	}
 	c.tx = tx
-	log.Debugf("%p: Done beginning transaction %p", c, c.tx)
+	logger.Debugf("%p: Done beginning transaction %p", c, c.tx)
 	return nil
 }
 
 // Commit commits a transaction.
 func (c *conn) Commit() error {
+	logger := logging.CreateLogger(c.context, "skydb")
 	if c.tx == nil {
 		return skydb.ErrDatabaseTxDidNotBegin
 	}
 
 	if err := c.tx.Commit(); err != nil {
-		log.Errorf("%p: Unable to commit transaction %p: %v", c, c.tx, err)
+		logger.Errorf("%p: Unable to commit transaction %p: %v", c, c.tx, err)
 		return err
 	}
 	c.tx = nil
-	log.Debugf("%p: Committed transaction", c)
+	logger.Debugf("%p: Committed transaction", c)
 	return nil
 }
 
 // Rollback rollbacks a transaction.
 func (c *conn) Rollback() error {
+	logger := logging.CreateLogger(c.context, "skydb")
 	if c.tx == nil {
 		return skydb.ErrDatabaseTxDidNotBegin
 	}
 
 	if err := c.tx.Rollback(); err != nil {
-		log.Errorf("%p: Unable to rollback transaction %p: %v", c, c.tx, err)
+		logger.Errorf("%p: Unable to rollback transaction %p: %v", c, c.tx, err)
 		return err
 	}
 	c.tx = nil
-	log.Debugf("%p: Rolled back transaction", c)
+	logger.Debugf("%p: Rolled back transaction", c)
 	return nil
 }
 

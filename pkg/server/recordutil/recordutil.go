@@ -9,8 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
-	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -147,7 +147,7 @@ func (f RecordFetcher) FetchRecord(recordID skydb.RecordID, authInfo *skydb.Auth
 		if dbErr == skydb.ErrRecordNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "record not found")
 		} else {
-			logger := router.CreateLogger(f.context, "handler")
+			logger := logging.CreateLogger(f.context, "handler")
 			logger.WithFields(logrus.Fields{
 				"recordID": recordID,
 				"err":      dbErr,
@@ -434,7 +434,7 @@ func ExtendRecordSchema(ctx context.Context, db skydb.Database, records []*skydb
 			return false, err
 		}
 		if schemaExtended {
-			logger := router.CreateLogger(ctx, "handler")
+			logger := logging.CreateLogger(ctx, "handler")
 			logger.
 				WithField("type", recordType).
 				WithField("schema", schema).
@@ -490,7 +490,7 @@ func RecordDeleteHandler(req *RecordModifyRequest, resp *RecordModifyResponse) s
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 			err = req.HookRegistry.ExecuteHooks(req.Context, hook.AfterDelete, record, nil)
 			if err != nil {
-				logger := router.CreateLogger(req.Context, "handler", "record")
+				logger := logging.CreateLogger(req.Context, "handler")
 				logger.Errorf("Error occurred while executing hooks: %s", err)
 			}
 			return
@@ -535,7 +535,6 @@ func (m schemaMerger) Schema() (skydb.RecordSchema, error) {
 
 func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 	schema := skydb.RecordSchema{}
-	logrus.Debugf("%v", m)
 	for key, value := range m {
 		if value == nil {
 			continue
@@ -605,7 +604,7 @@ func getReferenceWithKeyPath(db skydb.Database, record *skydb.Record, keyPath st
 
 func DoQueryEager(ctx context.Context, db skydb.Database, eagersIDs map[string][]skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) map[string]map[string]*skydb.Record {
 	eagerRecords := map[string]map[string]*skydb.Record{}
-	logger := router.CreateLogger(ctx, "handler")
+	logger := logging.CreateLogger(ctx, "handler")
 	for keyPath, ids := range eagersIDs {
 		logger.Debugf("Getting value for keypath %v", keyPath)
 		eagerScanner, err := db.GetByIDs(ids, accessControlOptions)

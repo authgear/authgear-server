@@ -18,6 +18,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/skygeario/skygear-server/pkg/server/audit"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -82,7 +83,8 @@ func (h *RoleDefaultHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RoleDefaultHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	log.Debugf("RoleDefaultHandler %v", h)
+	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger.Debugf("RoleDefaultHandler %v", h)
 	payload := &rolePayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -140,7 +142,8 @@ func (h *RoleAdminHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RoleAdminHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	log.Debugf("RoleAdminHandler %v", h)
+	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger.Debugf("RoleAdminHandler %v", h)
 	payload := &rolePayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -228,7 +231,8 @@ func (h *RoleAssignHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RoleAssignHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	log.Debugf("RoleAssignHandler %v", h)
+	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger.Debugf("RoleAssignHandler %v", h)
 	payload := &roleBatchPayload{}
 
 	defer func() {
@@ -309,7 +313,8 @@ func (h *RoleRevokeHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RoleRevokeHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	log.Debugf("RoleRevokeHandler %v", h)
+	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger.Debugf("RoleRevokeHandler %v", h)
 	payload := &roleBatchPayload{}
 
 	defer func() {

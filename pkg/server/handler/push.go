@@ -19,6 +19,8 @@ import (
 	"fmt"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/server/push"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -28,13 +30,13 @@ import (
 // Remarks: this variable is for mocking in test cases
 var sendPushNotification = func(sender push.Sender, device skydb.Device, m push.Mapper) {
 	go func() {
-		log.Infof("Sending notification to device token = %s", device.Token)
+		logrus.Infof("Sending notification to device token = %s", device.Token)
 		err := sender.Send(m, device)
 
 		if err != nil {
-			log.Warnf("Failed to send notification: %v\n", err)
+			logrus.Warnf("Failed to send notification: %v\n", err)
 		} else {
-			log.Infof("Sent notification to device token = %s", device.Token)
+			logrus.Infof("Sent notification to device token = %s", device.Token)
 		}
 	}()
 }

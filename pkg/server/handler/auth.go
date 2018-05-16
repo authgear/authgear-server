@@ -22,6 +22,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/provider"
 	"github.com/skygeario/skygear-server/pkg/server/router"
@@ -169,6 +170,7 @@ func (h *SignupHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
+	logger := logging.CreateLogger(payload.Context, "handler")
 	p := &signupPayload{
 		AuthRecordKeys:  h.AuthRecordKeys,
 		passwordChecker: h.PasswordChecker,
@@ -188,7 +190,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		info = skydb.NewAnonymousAuthInfo()
 	} else if p.Provider != "" {
 		// Get AuthProvider and authenticates the user
-		log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
+		logger.Debugf(`Client requested auth provider: "%v".`, p.Provider)
 		authProvider, err := h.ProviderRegistry.GetAuthProvider(p.Provider)
 		if err != nil {
 			response.Err = skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
@@ -199,7 +201,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
 			return
 		}
-		log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
+		logger.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
 
 		// Create new user info and set updated auth data
 		info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
@@ -510,7 +512,8 @@ func (h *LoginHandler) handleLoginWithAuthData(payload *router.Payload, p *login
 }
 
 func (h *LoginHandler) authPrincipal(ctx context.Context, p *loginPayload) (string, map[string]interface{}, skyerr.Error) {
-	log.Debugf(`Client requested auth provider: "%v".`, p.Provider)
+	logger := logging.CreateLogger(ctx, "handler")
+	logger.Debugf(`Client requested auth provider: "%v".`, p.Provider)
 	authProvider, err := h.ProviderRegistry.GetAuthProvider(p.Provider)
 	if err != nil {
 		skyErr := skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
@@ -521,7 +524,7 @@ func (h *LoginHandler) authPrincipal(ctx context.Context, p *loginPayload) (stri
 		skyErr := skyerr.NewError(skyerr.InvalidCredentials, "invalid authentication information")
 		return "", nil, skyErr
 	}
-	log.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
+	logger.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
 	return principalID, authData, nil
 }
 
@@ -649,7 +652,8 @@ func (h *ChangePasswordHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("changing password")
+	logger := logging.CreateLogger(payload.Context, "handler")
+	logger.Debugf("changing password")
 	p := &changePasswordPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
@@ -659,7 +663,7 @@ func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router
 
 	info := payload.AuthInfo
 	if !info.IsSamePassword(p.OldPassword) {
-		log.Debug("Incorrect old password")
+		logger.Debug("Incorrect old password")
 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
 		return
 	}
@@ -686,7 +690,7 @@ func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router
 	}
 
 	if p.Invalidate {
-		log.Warningf("Invalidate is not yet implement")
+		logger.Warningf("Invalidate is not yet implement")
 		// TODO: invalidate all existing token and generate a new one for response
 	}
 	// Generate new access-token. Because InjectAuthIfPresent preprocessor
@@ -793,7 +797,8 @@ func (h *ResetPasswordHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *ResetPasswordHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("resetting password")
+	logger := logging.CreateLogger(payload.Context, "handler")
+	logger.Debugf("resetting password")
 	p := &resetPasswordPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {

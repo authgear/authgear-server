@@ -18,6 +18,8 @@ import (
 	"errors"
 	"net/http"
 	"regexp"
+
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 // pathRoute is the path matching version of pipeline. Instead of storing the action
@@ -95,9 +97,10 @@ func (g *Gateway) matchHandler(p *Payload) (routeConfig, error) {
 }
 
 func (g *Gateway) newPayload(req *http.Request) (p *Payload, err error) {
+	logger := logging.CreateLogger(p.Context, "router")
 	indices := g.ParamMatch.FindAllStringSubmatchIndex(req.URL.Path, -1)
 	params := submatchesFromIndices(req.URL.Path, indices)
-	log.Debugf("Matched params: %v", params)
+	logger.Debugf("Matched params: %v", params)
 	p = &Payload{
 		Req:     req,
 		Params:  params,

@@ -17,6 +17,7 @@ package preprocessor
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -32,7 +33,8 @@ type ConnPreprocessor struct {
 }
 
 func (p ConnPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	log.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, p.AppName, p.Option)
+	logger := logging.CreateLogger(payload.Context, "preprocessor")
+	logger.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, p.AppName, p.Option)
 
 	dbConfig := p.DBConfig
 	if payload.HasMasterKey() {
@@ -45,7 +47,7 @@ func (p ConnPreprocessor) Preprocess(payload *router.Payload, response *router.R
 	}
 	payload.DBConn = conn
 
-	log.Debugf("Get DB OK")
+	logger.Debugf("Get DB OK")
 
 	return http.StatusOK
 }

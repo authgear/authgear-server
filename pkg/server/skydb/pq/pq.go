@@ -24,13 +24,11 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/migration"
 )
-
-var log = logging.LoggerEntry("skydb")
 
 var timeNow = func() time.Time { return time.Now().UTC() }
 
@@ -155,7 +153,7 @@ func mustInitDB(db *sqlx.DB, appName string, migrate bool) error {
 		if isNetworkError(err) {
 			return fmt.Errorf("skydb/pq: unable to connect to database because of a network error = %v", err)
 		} else if err == migration.ErrMigrationDisabled {
-			log.Warnf(`Schema does not match required version and migration ` +
+			logrus.Warnf(`Schema does not match required version and migration ` +
 				`is disabled. Database schema can only be modified in dev-mode.`)
 			return fmt.Errorf("skydb/pq: unable to open database because schema does not match required version")
 		} else {

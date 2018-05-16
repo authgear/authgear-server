@@ -83,6 +83,8 @@ type LoggingMiddleware struct {
 func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	skipBody := l.skipBody(r.URL.Path)
 
+	logger := logging.CreateLogger(r.Context(), "router")
+
 	// Log request
 	requestFields := logrus.Fields{}
 
@@ -105,7 +107,7 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		requestFields["body"] = logging.StringValueFormatter(body)
 	}
 
-	log.WithFields(requestFields).Debugf("Request %v %v", r.Method, r.RequestURI)
+	logger.WithFields(requestFields).Debugf("Request %v %v", r.Method, r.RequestURI)
 
 	// Serve request by passing to next middleware or router
 	rlogger := &responseLogger{w: w}
@@ -122,7 +124,7 @@ func (l *LoggingMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if shouldLogResponseBody {
 		responseFields["body"] = logging.StringValueFormatter(rlogger.String())
 	}
-	log.WithFields(responseFields).Debugf("Response %v %v", r.Method, r.RequestURI)
+	logger.WithFields(responseFields).Debugf("Response %v %v", r.Method, r.RequestURI)
 }
 
 func (l *LoggingMiddleware) skipBody(urlPath string) bool {

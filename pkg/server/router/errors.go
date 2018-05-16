@@ -18,6 +18,8 @@ import (
 	"net/http"
 	"runtime/debug"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -52,7 +54,7 @@ func defaultStatusCode(err skyerr.Error) int {
 	}[err.Code()]
 	if !ok {
 		if err.Code() < 10000 {
-			log.Warnf("Error code %d (%v) does not have a default status code set. Assumed 500.", err.Code(), err.Code())
+			logrus.Warnf("Error code %d (%v) does not have a default status code set. Assumed 500.", err.Code(), err.Code())
 		}
 		httpStatus = http.StatusInternalServerError
 	}
@@ -64,10 +66,10 @@ func errorFromRecoveringPanic(r interface{}) skyerr.Error {
 	case skyerr.Error:
 		return err
 	case error:
-		log.Errorf("%s", debug.Stack())
+		logrus.Errorf("%s", debug.Stack())
 		return skyerr.NewErrorf(skyerr.UnexpectedError, "panic occurred while handling request: %v", err.Error())
 	default:
-		log.Warnf("router: unexpected type when recovering from panic: %v", err)
+		logrus.Warnf("router: unexpected type when recovering from panic: %v", err)
 		return skyerr.NewErrorf(skyerr.UnexpectedError, "an panic occurred and the error is not known")
 	}
 }

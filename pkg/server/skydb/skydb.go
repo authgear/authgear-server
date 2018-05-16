@@ -15,11 +15,12 @@
 package skydb
 
 import (
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"time"
+
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
-var log = logging.LoggerEntry("skydb")
+var log = logging.LoggerEntryWithTag("skydb", "skydb")
 var timeNow = func() time.Time { return time.Now().UTC() }
 
 func MockTimeNowForTestingOnly(f func() time.Time) func() {

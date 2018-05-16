@@ -32,7 +32,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyconfig"
 )
 
-var log = logging.LoggerEntry("plugin")
+var log = logging.LoggerEntryWithTag("plugin", "plugin")
 
 const (
 	// PluginInitMaxRetryCount defines the maximum retries for plugin initialization
@@ -160,7 +160,7 @@ func (c *Context) InitPlugins() {
 
 		data, err := c.getInitPayload()
 		if err != nil {
-			log.WithField("error", err).Warning("Fail to get init payload")
+			log.WithError(err).Warning("Fail to get init payload")
 			data = []byte{}
 		}
 		c.SendEvent("before-plugins-ready", data, false)
@@ -216,7 +216,7 @@ func (c *Context) SendEvent(name string, data []byte, async bool) {
 func (p *Plugin) Init(context *Context) {
 	data, err := context.getInitPayload()
 	if err != nil {
-		log.WithField("error", err).Panic("Fail to get init payload")
+		log.WithError(err).Panic("Fail to get init payload")
 	}
 
 	transport := p.transport

@@ -33,7 +33,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 )
 
-var log = logging.LoggerEntry("plugin")
+var log = logging.LoggerEntryWithTag("plugin", "plugin")
 
 type httpTransport struct {
 	URL         string

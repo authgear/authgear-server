@@ -14,10 +14,6 @@
 
 package event
 
-import "github.com/skygeario/skygear-server/pkg/server/logging"
-
-var log = logging.LoggerEntry("plugin-event")
-
 // Sender defines an interface for sending events to plugins
 type Sender interface {
 	Send(name string, data []byte, async bool)

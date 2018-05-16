@@ -14,6 +14,10 @@
 
 package router
 
+import (
+	"fmt"
+)
+
 //
 // PreprocessorRegistry is holding all preprocessors and their mapping with
 // a string name.
@@ -25,7 +29,7 @@ func (r PreprocessorRegistry) GetByNames(names ...string) []Processor {
 	for i, name := range names {
 		pp, ok := r[name]
 		if !ok {
-			log.Fatalf("preprocessor %s is not defined", name)
+			panic(fmt.Sprintf("preprocessor %s is not defined", name))
 		}
 		preprocessors[i] = pp
 	}

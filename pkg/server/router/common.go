@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	"github.com/skygeario/skygear-server/pkg/server/skyversion"
 )
@@ -63,10 +64,12 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 		timedOut   bool
 	)
 
+	logger := logging.CreateLogger(payload.Context, "router")
+
 	defer func() {
 		if r := recover(); r != nil {
 			resp.Err = errorFromRecoveringPanic(r)
-			log.WithField("recovered", r).Errorln("panic occurred while handling request")
+			logger.WithField("recovered", r).Errorln("panic occurred while handling request")
 		}
 
 		writer := resp.Writer()
@@ -82,7 +85,7 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 				skyerr.ResponseTimeout,
 				"Service taking too long to respond.",
 			)
-			log.Errorln("timed out serving request")
+			logger.Errorln("timed out serving request")
 		}
 
 		if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
@@ -129,11 +132,12 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 }
 
 func (r *commonRouter) callHandler(handler Handler, pp []Processor, payload *Payload, resp *Response) (httpStatus int) {
+	logger := logging.CreateLogger(payload.Context, "router")
 	httpStatus = http.StatusOK
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.WithField("recovered", r).Errorln("panic occurred while handling request")
+			logger.WithField("recovered", r).Errorln("panic occurred while handling request")
 
 			resp.Err = errorFromRecoveringPanic(r)
 			httpStatus = defaultStatusCode(resp.Err)

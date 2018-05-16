@@ -23,11 +23,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
-
-var log = logging.LoggerEntry("router")
 
 // pipeline encapsulates a transformation which a request will come through
 // from preprocessors to the actual handler. (and postprocessor later)

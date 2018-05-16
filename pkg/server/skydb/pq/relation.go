@@ -18,12 +18,14 @@ import (
 	"fmt"
 
 	sq "github.com/lann/squirrel"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
 
 func (c *conn) QueryRelation(user string, name string, direction string, config skydb.QueryConfig) []skydb.AuthInfo {
-	log.Debugf("Query Relation: %v, %v", user, name)
+	logger := logging.CreateLogger(c.context, "skydb")
+	logger.Debugf("Query Relation: %v, %v", user, name)
 	var selectBuilder sq.SelectBuilder
 
 	if direction == "outward" {
@@ -73,7 +75,8 @@ func (c *conn) QueryRelation(user string, name string, direction string, config 
 }
 
 func (c *conn) QueryRelationCount(user string, name string, direction string) (uint64, error) {
-	log.Debugf("Query Relation Count: %v, %v, %v", user, name, direction)
+	logger := logging.CreateLogger(c.context, "skydb")
+	logger.Debugf("Query Relation Count: %v, %v, %v", user, name, direction)
 	query := psql.Select("COUNT(*)").From(c.tableName(name) + "AS _primary")
 	if direction == "outward" {
 		query = query.Where("_primary.left_id = ?", user)

@@ -23,6 +23,7 @@ import (
 
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
@@ -191,6 +192,7 @@ func (c *conn) baseUserBuilder() sq.SelectBuilder {
 }
 
 func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error {
+	logger := logging.CreateLogger(c.context, "skydb")
 	var (
 		id              string
 		tokenValidSince pq.NullTime
@@ -214,7 +216,7 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 		&roles,
 	)
 	if err != nil {
-		log.Infof(err.Error())
+		logger.Infof(err.Error())
 	}
 	if err == sql.ErrNoRows {
 		return skydb.ErrUserNotFound
@@ -257,7 +259,6 @@ func (c *conn) doScanAuth(authinfo *skydb.AuthInfo, scanner sq.RowScanner) error
 }
 
 func (c *conn) GetAuth(id string, authinfo *skydb.AuthInfo) error {
-	log.Warnf(id)
 	builder := c.baseUserBuilder().Where("id = ?", id)
 	scanner := c.QueryRowWith(builder)
 	return c.doScanAuth(authinfo, scanner)

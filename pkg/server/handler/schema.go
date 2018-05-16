@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	pluginEvent "github.com/skygeario/skygear-server/pkg/server/plugin/event"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -108,6 +109,7 @@ func (payload *schemaRenamePayload) Validate() skyerr.Error {
 }
 
 func (h *SchemaRenameHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	logger := logging.CreateLogger(rpayload.Context, "handler")
 	payload := &schemaRenamePayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -133,7 +135,7 @@ func (h *SchemaRenameHandler) Handle(rpayload *router.Payload, response *router.
 	if h.EventSender != nil {
 		err := sendSchemaChangedEvent(h.EventSender, db)
 		if err != nil {
-			log.WithField("err", err).Warn("Fail to send schema changed event")
+			logger.WithError(err).Warn("Fail to send schema changed event")
 		}
 	}
 }
@@ -208,6 +210,7 @@ func (payload *schemaDeletePayload) Validate() skyerr.Error {
 }
 
 func (h *SchemaDeleteHandler) Handle(rpayload *router.Payload, response *router.Response) {
+	logger := logging.CreateLogger(rpayload.Context, "handler")
 	payload := &schemaDeletePayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -233,7 +236,7 @@ func (h *SchemaDeleteHandler) Handle(rpayload *router.Payload, response *router.
 	if h.EventSender != nil {
 		err := sendSchemaChangedEvent(h.EventSender, db)
 		if err != nil {
-			log.WithField("err", err).Warn("Fail to send schema changed event")
+			logger.WithError(err).Warn("Fail to send schema changed event")
 		}
 	}
 }
@@ -321,7 +324,8 @@ func (payload *schemaCreatePayload) Validate() skyerr.Error {
 }
 
 func (h *SchemaCreateHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	log.Debugf("%+v\n", rpayload)
+	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger.Debugf("%+v\n", rpayload)
 
 	payload := &schemaCreatePayload{}
 	skyErr := payload.Decode(rpayload.Data)
@@ -351,7 +355,7 @@ func (h *SchemaCreateHandler) Handle(rpayload *router.Payload, response *router.
 	if h.EventSender != nil {
 		err := sendSchemaChangedEvent(h.EventSender, db)
 		if err != nil {
-			log.WithField("err", err).Warn("Fail to send schema changed event")
+			logger.WithError(err).Warn("Fail to send schema changed event")
 		}
 	}
 }

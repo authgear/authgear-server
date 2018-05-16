@@ -19,11 +19,12 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/provider"
 	"github.com/skygeario/skygear-server/pkg/server/router"
-	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -111,7 +112,8 @@ func (h *LoginProviderHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("Login provider")
+	logger := logging.CreateLogger(payload.Context, "handler")
+	logger.Debugf("Login provider")
 	p := &loginProviderPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
@@ -286,7 +288,8 @@ func (h *SignupProviderHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("Signup provider")
+	logger := logging.CreateLogger(payload.Context, "handler")
+	logger.Debugf("Signup provider")
 	p := &signupProviderPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
@@ -470,7 +473,8 @@ func (h *LinkProviderHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("Link provider")
+	logger := logging.CreateLogger(payload.Context, "handler")
+	logger.Debugf("Link provider")
 	p := &linkProviderPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
@@ -594,7 +598,8 @@ func (h *UnlinkProviderHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *UnlinkProviderHandler) Handle(payload *router.Payload, response *router.Response) {
-	log.Debugf("Unlink provider")
+	logger := logging.CreateLogger(payload.Context, "handler")
+	logger.Debugf("Unlink provider")
 	p := &unlinkProviderPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {

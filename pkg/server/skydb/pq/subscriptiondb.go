@@ -25,6 +25,7 @@ import (
 
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
@@ -57,7 +58,7 @@ func (ni *nullNotificationInfo) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		log.Errorf("skydb: unsupported Scan pair: %T -> %T", value, ni.NotificationInfo)
+		logrus.Errorf("skydb: unsupported Scan pair: %T -> %T", value, ni.NotificationInfo)
 	}
 
 	if err := json.Unmarshal(b, &ni.NotificationInfo); err != nil {
@@ -82,7 +83,7 @@ func (query *queryValue) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		log.Errorf("skydb: unsupported Scan pair: %T -> %T", value, query)
+		logrus.Errorf("skydb: unsupported Scan pair: %T -> %T", value, query)
 	}
 
 	v := struct {
@@ -245,8 +246,9 @@ func (db *database) DeleteSubscription(key string, deviceID string) error {
 }
 
 func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions []skydb.Subscription) {
+	logger := logging.CreateLogger(db.c.context, "skydb")
 	if db.DatabaseType() == skydb.UnionDatabase {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"auth_id":  db.userID,
 			"deviceID": deviceID,
 		}).Errorln("GetSubscriptionsByDeviceID on union database is not implemented")
@@ -259,7 +261,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 	)
 
 	if err != nil {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"auth_id":  db.userID,
 			"deviceID": deviceID,
 			"err":      err,
@@ -274,7 +276,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 		var nullinfo nullNotificationInfo
 		err := rows.Scan(&s.ID, &s.Type, &nullinfo, (*queryValue)(&s.Query))
 		if err != nil {
-			log.WithFields(logrus.Fields{
+			logger.WithFields(logrus.Fields{
 				"userID":   db.userID,
 				"deviceID": deviceID,
 				"err":      err,
@@ -294,7 +296,7 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 	}
 
 	if rows.Err() != nil {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"userID":   db.userID,
 			"deviceID": deviceID,
 			"err":      rows.Err(),
@@ -303,13 +305,14 @@ func (db *database) GetSubscriptionsByDeviceID(deviceID string) (subscriptions [
 		return nil
 	}
 
-	log.Debug(subscriptions)
+	logger.Debug(subscriptions)
 	return subscriptions
 }
 
 func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscriptions []skydb.Subscription) {
+	logger := logging.CreateLogger(db.c.context, "skydb")
 	if db.DatabaseType() == skydb.UnionDatabase {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"auth_id": db.userID,
 		}).Errorln("GetMatchingSubscriptions on union database is not implemented")
 		return nil
@@ -320,7 +323,7 @@ func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscription
 
 	rows, err := db.c.QueryWith(builder)
 	if err != nil {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"record": record,
 			"userID": db.userID,
 			"err":    err,
@@ -334,7 +337,7 @@ func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscription
 		var nullinfo nullNotificationInfo
 		err := rows.Scan(&s.ID, &s.DeviceID, &s.Type, &nullinfo, (*queryValue)(&s.Query))
 		if err != nil {
-			log.WithField("err", err).Errorln("failed to scan a subscription row, skipping...")
+			logger.WithError(err).Errorln("failed to scan a subscription row, skipping...")
 			continue
 		}
 
@@ -356,7 +359,7 @@ func (db *database) GetMatchingSubscriptions(record *skydb.Record) (subscription
 	}
 
 	if rows.Err() != nil {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"record": record,
 			"userID": db.userID,
 			"err":    rows.Err(),
@@ -405,14 +408,14 @@ func predMatchRecord(p *skydb.Predicate, record *skydb.Record) (b bool) {
 		lv, rv := extractBinaryOperands(p.GetExpressions(), record)
 		haystack, ok := rv.([]interface{})
 		if !ok {
-			log.Panicf("unknown value in right hand side of `In` operand = %v", rv)
+			logrus.Panicf("unknown value in right hand side of `In` operand = %v", rv)
 		}
 
 		return deepEqualIn(lv, haystack)
 	// case skydb.Like:
 	// case skydb.ILike:
 	default:
-		log.Panicf("unknown Predicate.Operator = %v", p.Operator)
+		logrus.Panicf("unknown Predicate.Operator = %v", p.Operator)
 	}
 
 	return

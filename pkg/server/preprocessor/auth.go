@@ -21,6 +21,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -83,6 +84,7 @@ type UserAuthenticator struct {
 }
 
 func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router.Response) int {
+	logger := logging.CreateLogger(payload.Context, "preprocessor")
 	if err := checkRequestAccessKey(payload, p.ClientKey, p.MasterKey); err != nil {
 		if p.BypassUnauthorized {
 			return http.StatusOK
@@ -102,7 +104,7 @@ func (p *UserAuthenticator) Preprocess(payload *router.Payload, response *router
 				return http.StatusOK
 			}
 			if _, ok := err.(*authtoken.NotFoundError); ok {
-				log.WithFields(logrus.Fields{
+				logger.WithFields(logrus.Fields{
 					"token": tokenString,
 					"err":   err,
 				}).Infoln("Token not found")

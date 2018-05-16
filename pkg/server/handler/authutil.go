@@ -22,6 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/recordutil"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -178,9 +179,10 @@ func (ctx *authUserRecordContext) execute(info *skydb.AuthInfo, authData skydb.A
 
 	// derive and extend record schema
 	// hotfix (Steven-Chan): moved outside of the transaction to prevent deadlock
-	_, err := recordutil.ExtendRecordSchema(db, []*skydb.Record{&userRecord})
+	_, err := recordutil.ExtendRecordSchema(ctx.Context, db, []*skydb.Record{&userRecord})
 	if err != nil {
-		log.WithField("err", err).Errorln("failed to migrate record schema")
+		logger := logging.CreateLogger(ctx.Context, "handler")
+		logger.WithError(err).Errorln("failed to migrate record schema")
 		if myerr, ok := err.(skyerr.Error); ok {
 			return nil, myerr
 		}
@@ -280,7 +282,7 @@ func getAuthDataFromUser(authData skydb.AuthData, user skydb.Record) {
 // not disabled.
 func checkUserIsNotDisabled(authInfo *skydb.AuthInfo) skyerr.Error {
 	if authInfo.IsDisabled() {
-		log.WithFields(logrus.Fields{
+		logrus.WithFields(logrus.Fields{
 			"auth_id": authInfo.ID,
 		}).Info("User is disabled")
 		info := map[string]interface{}{}
