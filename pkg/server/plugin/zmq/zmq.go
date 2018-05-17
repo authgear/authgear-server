@@ -18,4 +18,4 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
-var log = logging.LoggerEntryWithTag("plugin", "plugin")
+var log = logging.LoggerEntry("plugin")

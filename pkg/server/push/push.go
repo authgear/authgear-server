@@ -23,7 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
-var log = logging.LoggerEntryWithTag("push", "push")
+var log = logging.LoggerEntry("push")
 
 // EmptyMapper is a Mapper which always returns a empty map.
 const EmptyMapper = emptyMapper(0)

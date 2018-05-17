@@ -98,13 +98,7 @@ func AddHook(hook logrus.Hook) {
 }
 
 func LoggerEntry(name string) *logrus.Entry {
-	logger := Logger(name)
-	if name == "" {
-		return logger.WithFields(logrus.Fields{})
-	}
-	return logger.WithFields(logrus.Fields{
-		"logger": name,
-	})
+	return LoggerEntryWithTag(name, name)
 }
 
 func LoggerEntryWithTag(name string, tag string) *logrus.Entry {

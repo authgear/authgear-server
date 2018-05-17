@@ -31,7 +31,7 @@ func NewSender(ctx *plugin.Context) Sender {
 }
 
 func (s defaultEventSender) Send(name string, data []byte, async bool) {
-	logger := logging.LoggerEntryWithTag("plugin", "plugin")
+	logger := logging.LoggerEntry("plugin")
 	logger.
 		WithField("name", name).
 		WithField("date", string(data)).
