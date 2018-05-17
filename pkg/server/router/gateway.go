@@ -97,7 +97,7 @@ func (g *Gateway) matchHandler(p *Payload) (routeConfig, error) {
 }
 
 func (g *Gateway) newPayload(req *http.Request) (p *Payload, err error) {
-	logger := logging.CreateLogger(p.Context, "router")
+	logger := logging.CreateLogger(req.Context(), "router")
 	indices := g.ParamMatch.FindAllStringSubmatchIndex(req.URL.Path, -1)
 	params := submatchesFromIndices(req.URL.Path, indices)
 	logger.Debugf("Matched params: %v", params)

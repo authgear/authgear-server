@@ -37,7 +37,7 @@ import (
 type modGateway router.Gateway
 
 func newmodGateway(pattern string) *modGateway {
-	return (*modGateway)(router.NewGateway(pattern, "/", nil))
+	return (*modGateway)(router.NewGateway(pattern, "tag", "/", nil))
 }
 
 func (g *modGateway) Handle(method string, handler router.Handler, prepareFunc func(*router.Payload)) {

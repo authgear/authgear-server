@@ -121,13 +121,15 @@ func LoggerEntryWithTag(name string, tag string) *logrus.Entry {
 
 func CreateLogger(ctx context.Context, logger string) *logrus.Entry {
 	var requestTag string
-	if tag, ok := ctx.Value("RequestTag").(string); ok {
-		requestTag = tag
-	}
-
 	fields := logrus.Fields{}
-	if requestID, ok := ctx.Value("RequestID").(string); ok {
-		fields["request_id"] = requestID
+	if ctx != nil {
+		if tag, ok := ctx.Value("RequestTag").(string); ok {
+			requestTag = tag
+		}
+
+		if requestID, ok := ctx.Value("RequestID").(string); ok {
+			fields["request_id"] = requestID
+		}
 	}
 	return LoggerEntryWithTag(logger, requestTag).WithFields(fields)
 }
