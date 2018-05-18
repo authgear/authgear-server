@@ -342,7 +342,7 @@ func mustDoSlice(m map[string]interface{}, key string, do func(value []interface
 			}
 		} else {
 			panic(skyerr.NewInvalidArgument(
-				fmt.Sprintf(`expecting "%#s" to be an array`, key),
+				fmt.Sprintf(`expecting "%s" to be an array`, key),
 				[]string{key}))
 
 		}
