@@ -170,7 +170,7 @@ func (h *SignupHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SignupHandler) Handle(payload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	p := &signupPayload{
 		AuthRecordKeys:  h.AuthRecordKeys,
 		passwordChecker: h.PasswordChecker,
@@ -196,7 +196,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 			response.Err = skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
 			return
 		}
-		principalID, providerAuthData, err := authProvider.Login(payload.Context, p.ProviderAuthData)
+		principalID, providerAuthData, err := authProvider.Login(payload.Context(), p.ProviderAuthData)
 		if err != nil {
 			response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
 			return
@@ -226,7 +226,7 @@ func (h *SignupHandler) Handle(payload *router.Payload, response *router.Respons
 		h.AssetStore,
 		h.HookRegistry,
 		h.AuthRecordKeys,
-		payload.Context,
+		payload.Context(),
 	}
 
 	user, skyErr := createContext.execute(&info, authdata, p.Profile)
@@ -436,7 +436,7 @@ func (h *LoginHandler) Handle(payload *router.Payload, response *router.Response
 }
 
 func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *loginPayload, authinfo *skydb.AuthInfo, user *skydb.Record) skyerr.Error {
-	principalID, providerAuthData, skyErr := h.authPrincipal(payload.Context, p)
+	principalID, providerAuthData, skyErr := h.authPrincipal(payload.Context(), p)
 	if skyErr != nil {
 		return skyErr
 	}
@@ -451,7 +451,7 @@ func (h *LoginHandler) handleLoginWithProvider(payload *router.Payload, p *login
 		*authinfo = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
 
 		createContext := createUserWithRecordContext{
-			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context,
+			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context(),
 		}
 
 		createdUser, err := createContext.execute(authinfo, skydb.AuthData{}, skydb.Data{})
@@ -652,7 +652,7 @@ func (h *ChangePasswordHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	logger.Debugf("changing password")
 	p := &changePasswordPayload{}
 	skyErr := p.Decode(payload.Data)
@@ -797,7 +797,7 @@ func (h *ResetPasswordHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *ResetPasswordHandler) Handle(payload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	logger.Debugf("resetting password")
 	p := &resetPasswordPayload{}
 	skyErr := p.Decode(payload.Data)

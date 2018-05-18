@@ -573,7 +573,7 @@ func TestBrokerWorker(t *testing.T) {
 			So(payload.Data["key"], ShouldResemble, "value")
 			So(payload.AccessKey, ShouldEqual, router.MasterAccessKey)
 
-			ctx := payload.Context
+			ctx := payload.Context()
 			So(ctx.Value(ZMQRequestIDContextKey), ShouldEqual, "request-id")
 			So(ctx.Value(ZMQBounceCountContextKey), ShouldEqual, 0)
 			So(ctx.Value(ZMQWorkerIDsContextKey), ShouldResemble, map[string]string{

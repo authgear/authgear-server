@@ -294,7 +294,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		return
 	}
 
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	logger.Debugf("Working with accessModel %v", h.AccessModel)
 
 	req := recordutil.RecordModifyRequest{
@@ -306,7 +306,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 		RecordsToSave: p.Records,
 		Atomic:        p.Atomic,
 		WithMasterKey: payload.HasMasterKey(),
-		Context:       payload.Context,
+		Context:       payload.Context(),
 		ModifyAt:      timeNow(),
 	}
 	resp := recordutil.RecordModifyResponse{
@@ -332,7 +332,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 
 	// derive and extend record schema
 	// hotfix (Steven-Chan): moved outside of the transaction to prevent deadlock
-	schemaUpdated, err := recordutil.ExtendRecordSchema(payload.Context, payload.Database, p.Records)
+	schemaUpdated, err := recordutil.ExtendRecordSchema(payload.Context(), payload.Database, p.Records)
 	if err != nil {
 		logger.WithError(err).Errorln("failed to migrate record schema")
 		if myerr, ok := err.(skyerr.Error); ok {
@@ -351,7 +351,7 @@ func (h *RecordSaveHandler) Handle(payload *router.Payload, response *router.Res
 	}
 
 	results := make([]interface{}, 0, p.ItemLen())
-	h.makeResultsFromIncomingItem(payload.Context, p.IncomingItems, resp, resultFilter, &results)
+	h.makeResultsFromIncomingItem(payload.Context(), p.IncomingItems, resp, resultFilter, &results)
 
 	response.Result = results
 
@@ -487,7 +487,7 @@ func (h *RecordFetchHandler) Handle(payload *router.Payload, response *router.Re
 		return
 	}
 
-	fetcher := recordutil.NewRecordFetcher(payload.Context, db, payload.DBConn, payload.HasMasterKey())
+	fetcher := recordutil.NewRecordFetcher(payload.Context(), db, payload.DBConn, payload.HasMasterKey())
 
 	results := make([]interface{}, p.ItemLen(), p.ItemLen())
 	for i, recordID := range p.RecordIDs {
@@ -634,7 +634,7 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	// so we replace them with some complete assets.
 	recordutil.MakeAssetsComplete(db, payload.DBConn, records)
 
-	eagerRecords := recordutil.DoQueryEager(payload.Context, db, recordutil.EagerIDs(db, records, p.Query), accessControlOptions)
+	eagerRecords := recordutil.DoQueryEager(payload.Context(), db, recordutil.EagerIDs(db, records, p.Query), accessControlOptions)
 
 	recordResultFilter, err := recordutil.NewRecordResultFilter(
 		payload.DBConn,
@@ -770,7 +770,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		RecordIDsToDelete: p.RecordIDs,
 		Atomic:            p.Atomic,
 		WithMasterKey:     payload.HasMasterKey(),
-		Context:           payload.Context,
+		Context:           payload.Context(),
 		AuthInfo:          payload.AuthInfo,
 	}
 	resp := recordutil.RecordModifyResponse{
@@ -784,7 +784,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		deleteFunc = recordutil.RecordDeleteHandler
 	}
 
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	if err := deleteFunc(&req, &resp); err != nil {
 		logger.WithError(err).Debugf("Failed to delete records")
 		response.Err = err

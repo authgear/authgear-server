@@ -33,14 +33,14 @@ type ConnPreprocessor struct {
 }
 
 func (p ConnPreprocessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	logger := logging.CreateLogger(payload.Context, "preprocessor")
+	logger := logging.CreateLogger(payload.Context(), "preprocessor")
 	logger.Debugf("Opening DBConn: {%v %v %v}", p.DBImpl, p.AppName, p.Option)
 
 	dbConfig := p.DBConfig
 	if payload.HasMasterKey() {
 		dbConfig.CanMigrate = true
 	}
-	conn, err := p.DBOpener(payload.Context, p.DBImpl, p.AppName, p.AccessControl, p.Option, dbConfig)
+	conn, err := p.DBOpener(payload.Context(), p.DBImpl, p.AppName, p.AccessControl, p.Option, dbConfig)
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.UnexpectedUnableToOpenDatabase, err.Error())
 		return http.StatusServiceUnavailable

@@ -89,7 +89,7 @@ func (h *LambdaHandler) Handle(payload *router.Payload, response *router.Respons
 		return
 	}
 
-	outbytes, transportErr := h.Plugin.transport.RunLambda(payload.Context, h.Name, inbytes)
+	outbytes, transportErr := h.Plugin.transport.RunLambda(payload.Context(), h.Name, inbytes)
 	if transportErr != nil {
 		switch e := transportErr.(type) {
 		case skyerr.Error:

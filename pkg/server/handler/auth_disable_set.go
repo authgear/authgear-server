@@ -113,7 +113,7 @@ func (h *SetDisableUserHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SetDisableUserHandler) Handle(payload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	p := &setDisableUserPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {

@@ -90,7 +90,7 @@ func (h *GetFileHandler) GetPreprocessors() []router.Processor {
 
 // Handle handles the get request for asset file
 func (h *GetFileHandler) Handle(payload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	payload.Req.ParseForm()
 
 	store := h.AssetStore
@@ -193,7 +193,7 @@ func (h *UploadFileHandler) Handle(
 	response *router.Response,
 ) {
 
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	uploadRequest, err := parseUploadFileRequest(payload)
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
@@ -265,7 +265,7 @@ func (h *UploadFileHandler) Handle(
 // parseUploadFileRequest tries to parse the payload from router to be compatible
 // with both PUT requests and multiparts POST request
 func parseUploadFileRequest(payload *router.Payload) (*uploadFileRequest, error) {
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	httpRequest := payload.Req
 	method := httpRequest.Method
 

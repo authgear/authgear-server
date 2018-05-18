@@ -109,7 +109,7 @@ func (payload *schemaRenamePayload) Validate() skyerr.Error {
 }
 
 func (h *SchemaRenameHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	payload := &schemaRenamePayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -210,7 +210,7 @@ func (payload *schemaDeletePayload) Validate() skyerr.Error {
 }
 
 func (h *SchemaDeleteHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	payload := &schemaDeletePayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -324,7 +324,7 @@ func (payload *schemaCreatePayload) Validate() skyerr.Error {
 }
 
 func (h *SchemaCreateHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	logger.Debugf("%+v\n", rpayload)
 
 	payload := &schemaCreatePayload{}

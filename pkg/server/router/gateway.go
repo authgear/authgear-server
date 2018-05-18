@@ -102,12 +102,12 @@ func (g *Gateway) newPayload(req *http.Request) (p *Payload, err error) {
 	params := submatchesFromIndices(req.URL.Path, indices)
 	logger.Debugf("Matched params: %v", params)
 	p = &Payload{
-		Req:     req,
-		Params:  params,
-		Meta:    map[string]interface{}{},
-		Data:    map[string]interface{}{},
-		Context: req.Context(), // always non-nil
+		Req:    req,
+		Params: params,
+		Meta:   map[string]interface{}{},
+		Data:   map[string]interface{}{},
 	}
+	p.SetContext(req.Context())
 
 	query := req.URL.Query()
 	if apiKey := req.Header.Get("X-Skygear-Api-Key"); apiKey != "" {

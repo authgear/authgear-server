@@ -83,7 +83,7 @@ func (h *RoleDefaultHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RoleDefaultHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	logger.Debugf("RoleDefaultHandler %v", h)
 	payload := &rolePayload{}
 	skyErr := payload.Decode(rpayload.Data)
@@ -142,7 +142,7 @@ func (h *RoleAdminHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RoleAdminHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	logger.Debugf("RoleAdminHandler %v", h)
 	payload := &rolePayload{}
 	skyErr := payload.Decode(rpayload.Data)
@@ -231,7 +231,7 @@ func (h *RoleAssignHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RoleAssignHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	logger.Debugf("RoleAssignHandler %v", h)
 	payload := &roleBatchPayload{}
 
@@ -313,7 +313,7 @@ func (h *RoleRevokeHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RoleRevokeHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	logger.Debugf("RoleRevokeHandler %v", h)
 	payload := &roleBatchPayload{}
 

@@ -130,7 +130,7 @@ func (h *DeviceRegisterHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *DeviceRegisterHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	payload := deviceRegisterPayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -228,7 +228,7 @@ func (h *DeviceUnregisterHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *DeviceUnregisterHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	payload := deviceUnregisterPayload{}
 	if err := payload.Decode(rpayload.Data); err != nil {
 		response.Err = err

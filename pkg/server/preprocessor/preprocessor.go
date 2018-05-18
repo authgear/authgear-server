@@ -62,7 +62,7 @@ func (p InjectAuth) Preprocess(payload *router.Payload, response *router.Respons
 	// is authenticated with master key, assume the user is _god.
 	if payload.AuthInfoID == "" && payload.HasMasterKey() {
 		payload.AuthInfoID = "_god"
-		payload.Context = context.WithValue(payload.Context, router.UserIDContextKey, "_god")
+		payload.SetContext(context.WithValue(payload.Context(), router.UserIDContextKey, "_god"))
 	}
 
 	authinfo := skydb.AuthInfo{}
@@ -134,7 +134,7 @@ func (p InjectAuth) Preprocess(payload *router.Payload, response *router.Respons
 }
 
 func (p InjectAuth) fetchOrCreateAuth(payload *router.Payload, authInfo *skydb.AuthInfo) (skyerr.Error, int) {
-	logger := logging.CreateLogger(payload.Context, "preprocessor")
+	logger := logging.CreateLogger(payload.Context(), "preprocessor")
 	var err error
 	err = payload.DBConn.GetAuth(payload.AuthInfoID, authInfo)
 	if err == skydb.ErrUserNotFound && payload.HasMasterKey() {
@@ -156,7 +156,7 @@ func (p InjectAuth) fetchOrCreateAuth(payload *router.Payload, authInfo *skydb.A
 }
 
 func (p InjectAuth) checkDisabledStatus(payload *router.Payload, authInfo *skydb.AuthInfo) (skyerr.Error, int) {
-	logger := logging.CreateLogger(payload.Context, "preprocessor")
+	logger := logging.CreateLogger(payload.Context(), "preprocessor")
 	// Check if user is disabled
 	if authInfo.IsDisabled() {
 		logger.Info("User is disabled")
@@ -188,7 +188,7 @@ type InjectUser struct {
 }
 
 func (p InjectUser) Preprocess(payload *router.Payload, response *router.Response) int {
-	logger := logging.CreateLogger(payload.Context, "preprocessor")
+	logger := logging.CreateLogger(payload.Context(), "preprocessor")
 	db := payload.DBConn.PublicDB()
 
 	if payload.User == nil && payload.AuthInfo != nil {
@@ -245,7 +245,7 @@ func (p InjectUser) createUser(payload *router.Payload) (skydb.Record, error) {
 			AssetStore:   p.AssetStore,
 			HookRegistry: p.HookRegistry,
 			Atomic:       true,
-			Context:      payload.Context,
+			Context:      payload.Context(),
 			AuthInfo:     authInfo,
 			ModifyAt:     timeNow(),
 			RecordsToSave: []*skydb.Record{

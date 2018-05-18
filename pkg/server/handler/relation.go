@@ -139,7 +139,7 @@ func (h *RelationQueryHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	logger.Debug("RelationQueryHandler")
 	payload := &relationQueryPayload{}
 	skyErr := payload.Decode(rpayload.Data)
@@ -278,7 +278,7 @@ func (h *RelationAddHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	logger.Debug("RelationAddHandler")
 	payload := relationChangePayload{}
 	skyErr := payload.Decode(rpayload.Data)
@@ -364,7 +364,7 @@ func (h *RelationRemoveHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(rpayload.Context, "handler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
 	logger.Debug("RelationRemoveHandler")
 	payload := relationChangePayload{}
 	skyErr := payload.Decode(rpayload.Data)

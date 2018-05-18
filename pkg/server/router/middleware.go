@@ -27,7 +27,7 @@ type RequestIDMiddleware struct {
 
 func (m *RequestIDMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	requestID := uuid.New()
-	newContext := context.WithValue(r.Context(), "RequestID", requestID)
+	newContext := context.WithValue(r.Context(), "RequestID", requestID) // nolint: golint
 	r = r.WithContext(newContext)
 
 	w.Header().Set("X-Skygear-Request-Id", requestID)

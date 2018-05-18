@@ -112,7 +112,7 @@ func (h *LoginProviderHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	logger.Debugf("Login provider")
 	p := &loginProviderPayload{}
 	skyErr := p.Decode(payload.Data)
@@ -288,7 +288,7 @@ func (h *SignupProviderHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	logger.Debugf("Signup provider")
 	p := &signupProviderPayload{}
 	skyErr := p.Decode(payload.Data)
@@ -316,7 +316,7 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 		// create new user with anonymous authInfo
 		info = skydb.NewAnonymousAuthInfo()
 		createContext := createUserWithRecordContext{
-			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context,
+			payload.DBConn, payload.Database, h.AssetStore, h.HookRegistry, h.AuthRecordKeys, payload.Context(),
 		}
 		createdUser, err := createContext.execute(&info, skydb.AuthData{}, p.Profile)
 		if err != nil {
@@ -473,7 +473,7 @@ func (h *LinkProviderHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *LinkProviderHandler) Handle(payload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	logger.Debugf("Link provider")
 	p := &linkProviderPayload{}
 	skyErr := p.Decode(payload.Data)
@@ -598,7 +598,7 @@ func (h *UnlinkProviderHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *UnlinkProviderHandler) Handle(payload *router.Payload, response *router.Response) {
-	logger := logging.CreateLogger(payload.Context, "handler")
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	logger.Debugf("Unlink provider")
 	p := &unlinkProviderPayload{}
 	skyErr := p.Decode(payload.Data)

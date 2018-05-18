@@ -120,7 +120,7 @@ func (h *AssetUploadHandler) Handle(
 	if signer, ok := assetStore.(skyAsset.URLSigner); ok {
 		asset.Signer = signer
 	} else {
-		logger := logging.CreateLogger(payload.Context, "handler")
+		logger := logging.CreateLogger(payload.Context(), "handler")
 		logger.Warnf("Failed to acquire asset URLSigner, please check configuration")
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, "Failed to sign the url")
 		return

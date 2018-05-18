@@ -123,10 +123,10 @@ func (r *Router) newPayload(req *http.Request) (p *Payload, err error) {
 	}
 
 	p = &Payload{
-		Data:    data,
-		Meta:    map[string]interface{}{},
-		Context: req.Context(), // always non-nil
+		Data: data,
+		Meta: map[string]interface{}{},
 	}
+	p.SetContext(req.Context())
 
 	if apiKey := req.Header.Get("X-Skygear-Api-Key"); apiKey != "" {
 		p.Data["api_key"] = apiKey

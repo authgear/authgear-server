@@ -27,7 +27,7 @@ type DevOnlyProcessor struct {
 }
 
 func (p DevOnlyProcessor) Preprocess(payload *router.Payload, response *router.Response) int {
-	logger := logging.CreateLogger(payload.Context, "preprocessor")
+	logger := logging.CreateLogger(payload.Context(), "preprocessor")
 	if payload.HasMasterKey() {
 		return http.StatusOK
 	}

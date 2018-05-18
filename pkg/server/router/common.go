@@ -64,7 +64,7 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 		timedOut   bool
 	)
 
-	logger := logging.CreateLogger(payload.Context, "router")
+	logger := logging.CreateLogger(payload.Context(), "router")
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -107,9 +107,14 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 
 	// Call handler
 	var cancelFunc context.CancelFunc
-	payload.Context, cancelFunc = context.WithCancel(payload.Context)
+	ctx := payload.Context()
+	ctx, cancelFunc = context.WithCancel(ctx)
 	defer cancelFunc()
-	payload.Context = context.WithValue(payload.Context, "RequestTag", rc.Tag)
+	// We use a string for context key here (instead of type) because the same
+	// keys have to be shared better the `router` and the `logging` package.
+	// This key is supposed to be in `router` package, but declaring this
+	// key in the `router` package introduce a circular dependency.
+	payload.SetContext(context.WithValue(ctx, "RequestTag", rc.Tag)) // nolint: golint
 
 	go func() {
 		httpStatus = r.callHandler(
@@ -123,7 +128,7 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 
 	// This function will return in one of the following conditions:
 	select {
-	case <-payload.Context.Done():
+	case <-payload.Context().Done():
 		// request conext cancelled or response generated
 	case <-getTimeoutChan(r.ResponseTimeout):
 		// timeout exceeded
@@ -132,7 +137,7 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 }
 
 func (r *commonRouter) callHandler(handler Handler, pp []Processor, payload *Payload, resp *Response) (httpStatus int) {
-	logger := logging.CreateLogger(payload.Context, "router")
+	logger := logging.CreateLogger(payload.Context(), "router")
 	httpStatus = http.StatusOK
 
 	defer func() {
