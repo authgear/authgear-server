@@ -110,6 +110,7 @@ func LoggerEntryWithTag(name string, tag string) *logrus.Entry {
 	if tag != "" {
 		fields["tag"] = tag
 	}
+	fields["process"] = "server"
 	return logger.WithFields(fields)
 }
 
