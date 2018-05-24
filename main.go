@@ -666,48 +666,78 @@ func initPlugin(config skyconfig.Configuration, ctx *plugin.Context) {
 }
 
 func initLogger(config skyconfig.Configuration) {
-	// Setup Logging
-	logger := logging.LoggerEntryWithTag("main", "") // untagged logger
-	logging.SetOutput(os.Stderr)
-	if level, err := logrus.ParseLevel(config.LOG.Level); err == nil {
-		logging.SetLevel(level)
-	} else {
-		logger.Warnf("log: error parsing config: %v", err)
-		logger.Warnln("log: fall back to `debug`")
-		logging.SetLevel(logrus.DebugLevel)
+	mainLogger := logging.LoggerEntryWithTag("main", "") // untagged logger
+
+	// Create a sentry hook. This hook will be shared among all
+	// loggers.
+	var sentryHook logrus.Hook
+	if config.LogHook.SentryDSN != "" {
+		hook, err := newSentryHook(config)
+		if err != nil {
+			mainLogger.WithError(err).Panicf("Unable to configure sentry hook")
+		}
+
+		sentryHook = hook
 	}
 
-	for loggerName, logger := range logging.Loggers() {
-		sanitized := strings.Replace(strings.ToLower(loggerName), ".", "_", -1)
+	// Create a function for configuring logger, this will be used
+	// to configure the standard logger and configure all other loggers
+	// created via the `logging` package.
+	configure := func(name string, logger *logrus.Logger) {
+		// Set stderr
+		logger.Out = os.Stderr
+
+		// Set global log level
+		if level, err := logrus.ParseLevel(config.LOG.Level); err == nil {
+			logger.Level = level
+		} else {
+			logger.Warnf("log: error parsing config: %v", err)
+			logger.Warnln("log: fall back to `debug`")
+			logger.Level = logrus.DebugLevel
+		}
+
+		// Set logger specific level
+		sanitized := strings.Replace(strings.ToLower(name), ".", "_", -1)
 		if loggerLevel, ok := config.LOG.LoggersLevel[sanitized]; ok {
 			if level, err := logrus.ParseLevel(loggerLevel); err == nil {
 				logger.Level = level
 			}
 		}
-	}
 
-	if config.LogHook.SentryDSN != "" {
-		initSentry(config)
-	}
-
-	var formatter logrus.Formatter
-	if config.LOG.Formatter == "text" {
-		formatter = &logging.TextFormatter{
-			ForceColors: true,
+		// Set format
+		var formatter logrus.Formatter
+		if config.LOG.Formatter == "text" {
+			formatter = &logging.TextFormatter{
+				ForceColors: true,
+			}
+		} else if config.LOG.Formatter == "json" {
+			formatter = &logrus.JSONFormatter{}
+		} else {
+			mainLogger.Warnf("log: Formatter '%s' is not defined, default to 'text'.", config.LOG.Formatter)
+			formatter = &logging.TextFormatter{
+				ForceColors: true,
+			}
 		}
-	} else if config.LOG.Formatter == "json" {
-		formatter = &logrus.JSONFormatter{}
-	} else {
-		logger.Warnf("log: Formatter '%s' is not defined, default to 'text'.", config.LOG.Formatter)
-		formatter = &logging.TextFormatter{
-			ForceColors: true,
+		logger.Formatter = formatter
+
+		// Set sentry hook
+		if sentryHook != nil {
+			logger.Hooks.Add(sentryHook)
 		}
 	}
-	logging.SetFormatter(formatter)
 
+	// Register the function, and the update the standard logger and all
+	// loggers configured before.
+	logging.SetConfigureLoggerHandler(configure)
+	configure("", logrus.StandardLogger())
+	for loggerName, logger := range logging.Loggers() {
+		configure(loggerName, logger)
+	}
+
+	// Configure audit handlers.
 	err := audit.InitTrailHandler(config.UserAudit.Enabled, config.UserAudit.TrailHandlerURL)
 	if err != nil {
-		logger.Fatalf("user-audit: error when initializing trail handler %v", err)
+		mainLogger.Fatalf("user-audit: error when initializing trail handler %v", err)
 		return
 	}
 }
@@ -731,12 +761,10 @@ func higherLogLevels(minLevel logrus.Level) []logrus.Level {
 	return output
 }
 
-func initSentry(config skyconfig.Configuration) {
-	logger := logging.LoggerEntryWithTag("main", "") // untagged logger
+func newSentryHook(config skyconfig.Configuration) (logrus.Hook, error) {
 	level, err := logrus.ParseLevel(config.LogHook.SentryLevel)
 	if err != nil {
-		logger.Fatalf("log-hook: error parsing sentry-level: %v", err)
-		return
+		return nil, fmt.Errorf("log-hook: error parsing sentry-level: %v", err)
 	}
 
 	levels := higherLogLevels(level)
@@ -749,10 +777,8 @@ func initSentry(config skyconfig.Configuration) {
 		tags,
 		levels)
 	if err != nil {
-		logger.Errorf("Failed to initialize Sentry: %v", err)
-		return
+		return nil, fmt.Errorf("Failed to initialize Sentry: %v", err)
 	}
 	hook.Timeout = 1 * time.Second
-	logger.Infof("Logging to Sentry: %v", levels)
-	logging.AddHook(hook)
+	return hook, nil
 }

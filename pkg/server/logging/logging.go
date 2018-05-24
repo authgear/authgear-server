@@ -16,20 +16,24 @@ package logging
 
 import (
 	"context"
-	"io"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 )
 
 var (
-	loggers map[string]*logrus.Logger
-	lock    sync.Mutex
+	loggers                map[string]*logrus.Logger
+	lock                   sync.Mutex
+	configureLoggerHandler func(string, *logrus.Logger)
 )
 
 func init() {
 	loggers = map[string]*logrus.Logger{}
 	loggers[""] = logrus.StandardLogger()
+}
+
+func SetConfigureLoggerHandler(handler func(string, *logrus.Logger)) {
+	configureLoggerHandler = handler
 }
 
 func Logger(name string) *logrus.Logger {
@@ -42,6 +46,11 @@ func Logger(name string) *logrus.Logger {
 
 		if logger == nil {
 			panic("logrus.New() returns nil")
+		}
+
+		handler := configureLoggerHandler
+		if handler != nil {
+			handler(name, logger)
 		}
 
 		loggers[name] = logger
@@ -59,42 +68,6 @@ func Loggers() map[string]*logrus.Logger {
 		ret[loggerName] = logger
 	}
 	return ret
-}
-
-func SetFormatter(formatter logrus.Formatter) {
-	lock.Lock()
-	defer lock.Unlock()
-
-	for _, logger := range loggers {
-		logger.Formatter = formatter
-	}
-}
-
-func SetLevel(level logrus.Level) {
-	lock.Lock()
-	defer lock.Unlock()
-
-	for _, logger := range loggers {
-		logger.Level = level
-	}
-}
-
-func SetOutput(out io.Writer) {
-	lock.Lock()
-	defer lock.Unlock()
-
-	for _, logger := range loggers {
-		logger.Out = out
-	}
-}
-
-func AddHook(hook logrus.Hook) {
-	lock.Lock()
-	defer lock.Unlock()
-
-	for _, logger := range loggers {
-		logger.Hooks.Add(hook)
-	}
 }
 
 func LoggerEntry(name string) *logrus.Entry {
