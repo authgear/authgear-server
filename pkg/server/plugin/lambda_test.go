@@ -77,8 +77,7 @@ func TestLambdaHandler(t *testing.T) {
 		}
 		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
 			p.DBConn = conn
-			p.Context = context.Background()
-			p.Context = context.WithValue(p.Context, HelloContextKey, "world")
+			p.SetContext(context.WithValue(p.Context(), HelloContextKey, "world"))
 		})
 		Convey("should pass input and output", func(c C) {
 			transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Do(
@@ -140,8 +139,7 @@ func TestLambdaHandler(t *testing.T) {
 		}
 		r := handlertest.NewSingleRouteRouter(&handler, func(p *router.Payload) {
 			p.DBConn = conn
-			p.Context = context.Background()
-			p.Context = context.WithValue(p.Context, HelloContextKey, "world")
+			p.SetContext(context.WithValue(p.Context(), HelloContextKey, "world"))
 		})
 
 		fixtures := map[string]string{

@@ -15,6 +15,7 @@
 package preprocessor
 
 import (
+	//"context"
 	"net/http"
 	"testing"
 	"time"
@@ -428,6 +429,7 @@ func TestInjectAuthProcessor(t *testing.T) {
 				AuthInfoID:  "",
 				AccessToken: nil,
 				AccessKey:   router.MasterAccessKey,
+				//Context:     context.Background(),
 			}
 			resp := router.Response{}
 

@@ -21,6 +21,7 @@ import (
 	"text/template"
 
 	sq "github.com/lann/squirrel"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	"github.com/skygeario/skygear-server/pkg/server/utils"
@@ -207,7 +208,8 @@ func (c *conn) GetAdminRoles() ([]string, error) {
 }
 
 func (c *conn) SetAdminRoles(roles []string) error {
-	log.Debugf("SetAdminRoles %v", roles)
+	logger := logging.CreateLogger(c.context, "skydb")
+	logger.Debugf("SetAdminRoles %v", roles)
 	c.ensureRole(roles)
 	return c.setRoleType(roles, "is_admin")
 }
@@ -217,7 +219,8 @@ func (c *conn) GetDefaultRoles() ([]string, error) {
 }
 
 func (c *conn) SetDefaultRoles(roles []string) error {
-	log.Debugf("SetDefaultRoles %v", roles)
+	logger := logging.CreateLogger(c.context, "skydb")
+	logger.Debugf("SetDefaultRoles %v", roles)
 	c.ensureRole(roles)
 	return c.setRoleType(roles, "by_default")
 }
@@ -248,7 +251,8 @@ func (c *conn) setRoleType(roles []string, col string) error {
 }
 
 func (c *conn) UpdateUserRoles(authinfo *skydb.AuthInfo) error {
-	log.Debugf("UpdateRoles %v", authinfo)
+	logger := logging.CreateLogger(c.context, "skydb")
+	logger.Debugf("UpdateRoles %v", authinfo)
 	builder := psql.Delete(c.tableName("_auth_role")).Where("auth_id = ?", authinfo.ID)
 	_, err := c.ExecWith(builder)
 	if err != nil {
@@ -280,7 +284,8 @@ func (c *conn) UpdateUserRoles(authinfo *skydb.AuthInfo) error {
 }
 
 func (c *conn) AssignRoles(userIDs []string, roles []string) error {
-	log.Debugf("AssignRoles %v to %v", roles, userIDs)
+	logger := logging.CreateLogger(c.context, "skydb")
+	logger.Debugf("AssignRoles %v to %v", roles, userIDs)
 	c.ensureRole(roles)
 	sql, args := c.assignUserRoleSQL(userIDs, roles)
 	_, err := c.Exec(sql, args...)
@@ -291,7 +296,8 @@ func (c *conn) AssignRoles(userIDs []string, roles []string) error {
 }
 
 func (c *conn) RevokeRoles(userIDs []string, roles []string) error {
-	log.Debugf("RevokeRoles %v to %v", roles, userIDs)
+	logger := logging.CreateLogger(c.context, "skydb")
+	logger.Debugf("RevokeRoles %v to %v", roles, userIDs)
 	sql, args := c.revokeUserRoleSQL(userIDs, roles)
 	_, err := c.Exec(sql, args...)
 	if err != nil {
@@ -338,7 +344,8 @@ func (c *conn) GetRoles(userIDs []string) (map[string][]string, error) {
 }
 
 func (c *conn) createRoles(roles []string) error {
-	log.Debugf("createRole %v", roles)
+	logger := logging.CreateLogger(c.context, "skydb")
+	logger.Debugf("createRole %v", roles)
 	for _, role := range roles {
 		builder := psql.Insert(c.tableName("_role")).Columns(
 			"id",
@@ -383,6 +390,7 @@ func (c *conn) queryRoles(roles []string) ([]string, error) {
 }
 
 func (c *conn) ensureRole(roles []string) ([]string, error) {
+	logger := logging.CreateLogger(c.context, "skydb")
 	if roles == nil || len(roles) == 0 {
 		return nil, nil
 	}
@@ -393,7 +401,7 @@ func (c *conn) ensureRole(roles []string) ([]string, error) {
 	if len(existedRole) == len(roles) {
 		return nil, nil
 	}
-	log.Debugf("Diffing the roles not exist in DB")
+	logger.Debugf("Diffing the roles not exist in DB")
 	absenceRoles := utils.StringSliceExcept(roles, existedRole)
 	return absenceRoles, c.createRoles(absenceRoles)
 }

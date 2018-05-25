@@ -27,7 +27,7 @@ func TestRouterMatchByURL(t *testing.T) {
 	Convey("Gateway", t, func() {
 
 		Convey("matches simple url action", func() {
-			g := NewGateway("endpoint", "/endpoint", nil)
+			g := NewGateway("endpoint", "/endpoint", "tag", nil)
 			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
 				writeEntity(resp.Writer(), struct {
 					Status string `json:"status"`
@@ -41,7 +41,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		})
 
 		Convey("don't matches simple url action with wrong method", func() {
-			g := NewGateway("endpoint", "/endpoint", nil)
+			g := NewGateway("endpoint", "/endpoint", "tag", nil)
 			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
 				writeEntity(resp.Writer(), struct {
 					Status string `json:"status"`
@@ -56,7 +56,7 @@ func TestRouterMatchByURL(t *testing.T) {
 
 		Convey("matches simple url action with passin ServeMux", func() {
 			mux := http.NewServeMux()
-			g := NewGateway("endpoint", "/endpoint", mux)
+			g := NewGateway("endpoint", "/endpoint", "tag", mux)
 			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
 				writeEntity(resp.Writer(), struct {
 					Status string `json:"status"`
@@ -71,7 +71,7 @@ func TestRouterMatchByURL(t *testing.T) {
 
 		Convey("don't matches simple url action with passin ServeMux", func() {
 			mux := http.NewServeMux()
-			g := NewGateway("endpoint", "/endpoint", mux)
+			g := NewGateway("endpoint", "/endpoint", "tag", mux)
 			g.POST(NewFuncHandler(func(payload *Payload, resp *Response) {
 				writeEntity(resp.Writer(), struct {
 					Status string `json:"status"`
@@ -85,7 +85,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		})
 
 		Convey("matches url with parameters", func() {
-			g := NewGateway(`(?:entity|model)/([0-9a-zA-Z\-_]+)`, "/model", nil)
+			g := NewGateway(`(?:entity|model)/([0-9a-zA-Z\-_]+)`, "/model", "tag", nil)
 			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
 				writeEntity(resp.Writer(), p.Params)
 			}))
@@ -98,7 +98,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		})
 
 		Convey("help url handler fill in payload from Header", func() {
-			g := NewGateway("endpoint", "/endpoint", nil)
+			g := NewGateway("endpoint", "/endpoint", "tag", nil)
 			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
 				writeEntity(resp.Writer(), struct {
 					APIKey      string `json:"api-key"`
@@ -120,7 +120,7 @@ func TestRouterMatchByURL(t *testing.T) {
 		})
 
 		Convey("fill in api key from query string", func() {
-			g := NewGateway("endpoint", "/endpoint", nil)
+			g := NewGateway("endpoint", "/endpoint", "tag", nil)
 			g.POST(NewFuncHandler(func(p *Payload, resp *Response) {
 				writeEntity(resp.Writer(), struct {
 					APIKey      string `json:"api-key"`

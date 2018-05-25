@@ -15,9 +15,11 @@
 package router
 
 import (
-	"context"
+	"errors"
 	"net/http"
 	"regexp"
+
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 // pathRoute is the path matching version of pipeline. Instead of storing the action
@@ -33,13 +35,15 @@ type Gateway struct {
 	commonRouter
 	ParamMatch  *regexp.Regexp
 	methodPaths map[string]pathRoute
+	Tag         string
 }
 
-func NewGateway(pattern string, path string, mux *http.ServeMux) *Gateway {
+func NewGateway(pattern string, path string, tag string, mux *http.ServeMux) *Gateway {
 	match := regexp.MustCompile(`\A/` + pattern + `\z`)
 	g := &Gateway{
 		ParamMatch:  match,
 		methodPaths: map[string]pathRoute{},
+		Tag:         tag,
 	}
 	if path != "" && mux != nil {
 		mux.Handle(path, g)
@@ -80,30 +84,30 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	g.commonRouter.ServeHTTP(w, req)
 }
 
-func (g *Gateway) matchHandler(p *Payload) (h Handler, pp []Processor) {
+func (g *Gateway) matchHandler(p *Payload) (routeConfig, error) {
 	method := p.Meta["method"].(string)
 	if pathRoute, ok := g.methodPaths[method]; ok {
-		h = pathRoute.Handler
-		pp = pathRoute.Preprocessors
+		return routeConfig{
+			Tag:           g.Tag,
+			Handler:       pathRoute.Handler,
+			Preprocessors: pathRoute.Preprocessors,
+		}, nil
 	}
-	return
+	return routeConfig{}, errors.New("route unmatched")
 }
 
 func (g *Gateway) newPayload(req *http.Request) (p *Payload, err error) {
+	logger := logging.CreateLogger(req.Context(), "router")
 	indices := g.ParamMatch.FindAllStringSubmatchIndex(req.URL.Path, -1)
 	params := submatchesFromIndices(req.URL.Path, indices)
-	log.Debugf("Matched params: %v", params)
+	logger.Debugf("Matched params: %v", params)
 	p = &Payload{
-		Req:     req,
-		Params:  params,
-		Meta:    map[string]interface{}{},
-		Data:    map[string]interface{}{},
-		Context: req.Context(),
+		Req:    req,
+		Params: params,
+		Meta:   map[string]interface{}{},
+		Data:   map[string]interface{}{},
 	}
-
-	if p.Context == nil {
-		p.Context = context.Background()
-	}
+	p.SetContext(req.Context())
 
 	query := req.URL.Query()
 	if apiKey := req.Header.Get("X-Skygear-Api-Key"); apiKey != "" {

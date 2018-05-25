@@ -32,8 +32,6 @@ import (
 
 var timeNow = func() time.Time { return time.Now().UTC() }
 
-var log = logging.LoggerEntry("preprocessor")
-
 // InjectAuth preprocessor checks the auth_id in the request and get the auth
 // object from the database. It can be configured to
 type InjectAuth struct {
@@ -64,7 +62,7 @@ func (p InjectAuth) Preprocess(payload *router.Payload, response *router.Respons
 	// is authenticated with master key, assume the user is _god.
 	if payload.AuthInfoID == "" && payload.HasMasterKey() {
 		payload.AuthInfoID = "_god"
-		payload.Context = context.WithValue(payload.Context, router.UserIDContextKey, "_god")
+		payload.SetContext(context.WithValue(payload.Context(), router.UserIDContextKey, "_god"))
 	}
 
 	authinfo := skydb.AuthInfo{}
@@ -136,6 +134,7 @@ func (p InjectAuth) Preprocess(payload *router.Payload, response *router.Respons
 }
 
 func (p InjectAuth) fetchOrCreateAuth(payload *router.Payload, authInfo *skydb.AuthInfo) (skyerr.Error, int) {
+	logger := logging.CreateLogger(payload.Context(), "preprocessor")
 	var err error
 	err = payload.DBConn.GetAuth(payload.AuthInfoID, authInfo)
 	if err == skydb.ErrUserNotFound && payload.HasMasterKey() {
@@ -150,16 +149,17 @@ func (p InjectAuth) fetchOrCreateAuth(payload *router.Payload, authInfo *skydb.A
 	}
 
 	if err != nil {
-		log.Errorf("Cannot find AuthInfo.ID = %#v\n", payload.AuthInfoID)
+		logger.Errorf("Cannot find AuthInfo.ID = %#v\n", payload.AuthInfoID)
 		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, err.Error()), http.StatusInternalServerError
 	}
 	return nil, 0
 }
 
 func (p InjectAuth) checkDisabledStatus(payload *router.Payload, authInfo *skydb.AuthInfo) (skyerr.Error, int) {
+	logger := logging.CreateLogger(payload.Context(), "preprocessor")
 	// Check if user is disabled
 	if authInfo.IsDisabled() {
-		log.Info("User is disabled")
+		logger.Info("User is disabled")
 		info := map[string]interface{}{}
 		if authInfo.DisabledExpiry != nil {
 			info["expiry"] = authInfo.DisabledExpiry.Format(time.RFC3339)
@@ -188,6 +188,7 @@ type InjectUser struct {
 }
 
 func (p InjectUser) Preprocess(payload *router.Payload, response *router.Response) int {
+	logger := logging.CreateLogger(payload.Context(), "preprocessor")
 	db := payload.DBConn.PublicDB()
 
 	if payload.User == nil && payload.AuthInfo != nil {
@@ -199,7 +200,7 @@ func (p InjectUser) Preprocess(payload *router.Payload, response *router.Respons
 		}
 
 		if err != nil {
-			log.Error("injectUser: unable to find or create user record", err)
+			logger.Error("injectUser: unable to find or create user record", err)
 			response.Err = skyerr.NewError(skyerr.UnexpectedUserNotFound, err.Error())
 			return http.StatusInternalServerError
 		}
@@ -244,7 +245,7 @@ func (p InjectUser) createUser(payload *router.Payload) (skydb.Record, error) {
 			AssetStore:   p.AssetStore,
 			HookRegistry: p.HookRegistry,
 			Atomic:       true,
-			Context:      payload.Context,
+			Context:      payload.Context(),
 			AuthInfo:     authInfo,
 			ModifyAt:     timeNow(),
 			RecordsToSave: []*skydb.Record{

@@ -99,7 +99,6 @@ func (p *parcel) makePayload() (*router.Payload, error) {
 	ctx = context.WithValue(ctx, ZMQBounceCountContextKey, p.bounceCount)
 
 	payload := &router.Payload{
-		Context: ctx,
 		Meta: map[string]interface{}{
 			"method": method,
 			"path":   path,
@@ -107,6 +106,7 @@ func (p *parcel) makePayload() (*router.Payload, error) {
 		Data:      payloadData,
 		AccessKey: router.MasterAccessKey,
 	}
+	payload.SetContext(ctx)
 
 	return payload, nil
 }

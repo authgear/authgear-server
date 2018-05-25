@@ -16,6 +16,8 @@ package router
 
 import (
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 type CORSMiddleware struct {
@@ -24,6 +26,7 @@ type CORSMiddleware struct {
 }
 
 func (cors *CORSMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	logger := logging.CreateLogger(r.Context(), "router")
 	requestMethod := r.Method
 	corsMethod := r.Header.Get("Access-Control-Request-Method")
 	corsHeaders := r.Header.Get("Access-Control-Request-Headers")
@@ -32,12 +35,12 @@ func (cors *CORSMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	if corsMethod != "" {
-		log.Debugf("CORS Method: %s", corsMethod)
+		logger.Debugf("CORS Method: %s", corsMethod)
 		w.Header().Set("Access-Control-Allow-Methods", corsMethod)
 	}
 
 	if corsHeaders != "" {
-		log.Debugf("CORS Headers: %s", corsHeaders)
+		logger.Debugf("CORS Headers: %s", corsHeaders)
 		w.Header().Set("Access-Control-Allow-Headers", corsHeaders)
 	}
 

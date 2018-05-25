@@ -19,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/recordutil"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -138,7 +139,8 @@ func (h *RelationQueryHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	log.Debug("RelationQueryHandler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
+	logger.Debug("RelationQueryHandler")
 	payload := &relationQueryPayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -176,7 +178,7 @@ func (h *RelationQueryHandler) Handle(rpayload *router.Payload, response *router
 	count, countErr := rpayload.DBConn.QueryRelationCount(
 		rpayload.AuthInfoID, payload.Name, payload.Direction)
 	if countErr != nil {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"err": countErr,
 		}).Warnf("Relation Count Query fails")
 		count = 0
@@ -276,7 +278,8 @@ func (h *RelationAddHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	log.Debug("RelationAddHandler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
+	logger.Debug("RelationAddHandler")
 	payload := relationChangePayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -289,7 +292,7 @@ func (h *RelationAddHandler) Handle(rpayload *router.Payload, response *router.R
 		target := payload.Target[s]
 		err := rpayload.DBConn.AddRelation(rpayload.AuthInfoID, payload.Name, target)
 		if err != nil {
-			log.WithFields(logrus.Fields{
+			logger.WithFields(logrus.Fields{
 				"target": target,
 				"err":    err,
 			}).Debugln("failed to add relation")
@@ -361,7 +364,8 @@ func (h *RelationRemoveHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *router.Response) {
-	log.Debug("RelationRemoveHandler")
+	logger := logging.CreateLogger(rpayload.Context(), "handler")
+	logger.Debug("RelationRemoveHandler")
 	payload := relationChangePayload{}
 	skyErr := payload.Decode(rpayload.Data)
 	if skyErr != nil {
@@ -374,7 +378,7 @@ func (h *RelationRemoveHandler) Handle(rpayload *router.Payload, response *route
 		target := payload.Target[s]
 		err := rpayload.DBConn.RemoveRelation(rpayload.AuthInfoID, payload.Name, target)
 		if err != nil {
-			log.WithFields(logrus.Fields{
+			logger.WithFields(logrus.Fields{
 				"target": target,
 				"err":    err,
 			}).Debugln("failed to remmove user")

@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	skyAsset "github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
@@ -119,7 +120,8 @@ func (h *AssetUploadHandler) Handle(
 	if signer, ok := assetStore.(skyAsset.URLSigner); ok {
 		asset.Signer = signer
 	} else {
-		log.Warnf("Failed to acquire asset URLSigner, please check configuration")
+		logger := logging.CreateLogger(payload.Context(), "handler")
+		logger.Warnf("Failed to acquire asset URLSigner, please check configuration")
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, "Failed to sign the url")
 		return
 	}

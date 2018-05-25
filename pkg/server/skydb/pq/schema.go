@@ -16,6 +16,7 @@ package pq
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -24,11 +25,14 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (extended bool, err error) {
+	logger := logging.CreateLogger(db.c.context, "skydb")
+
 	remoteRecordSchema, err := db.RemoteColumnTypes(recordType)
 	if err != nil {
 		return
@@ -58,7 +62,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (
 	defer tx.Rollback()
 
 	if len(remoteRecordSchema) == 0 {
-		if err := createTable(tx, db.TableName(recordType)); err != nil {
+		if err := createTable(db.c.context, tx, db.TableName(recordType)); err != nil {
 			return false, fmt.Errorf("failed to create table: %s", err)
 		}
 		extended = true
@@ -82,7 +86,7 @@ func (db *database) Extend(recordType string, recordSchema skydb.RecordSchema) (
 	if len(updatingSchema) > 0 {
 		stmt := db.addColumnStmt(recordType, updatingSchema)
 
-		log.WithField("stmt", stmt).Debugln("Adding columns to table")
+		logger.WithField("stmt", stmt).Debugln("Adding columns to table")
 		if _, err := tx.Exec(stmt); err != nil {
 			return false, fmt.Errorf("failed to alter table: %s", err)
 		}
@@ -143,6 +147,7 @@ func (db *database) GetSchema(recordType string) (skydb.RecordSchema, error) {
 }
 
 func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
+	logger := logging.CreateLogger(db.c.context, "skydb")
 	schemaName := db.schemaName()
 
 	rows, err := db.c.Queryx(`
@@ -161,7 +166,7 @@ func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 			return nil, err
 		}
 
-		log.Debugf("%s\n", recordType)
+		logger.Debugf("%s\n", recordType)
 		schema, err := db.GetSchema(recordType)
 		if err != nil {
 			return nil, err
@@ -169,14 +174,15 @@ func (db *database) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
 
 		result[recordType] = schema
 	}
-	log.Debugf("GetRecordSchemas Success")
+	logger.Debugf("GetRecordSchemas Success")
 
 	return result, nil
 }
 
-func createTable(tx *sqlx.Tx, tableName string) error {
+func createTable(ctx context.Context, tx *sqlx.Tx, tableName string) error {
+	logger := logging.CreateLogger(ctx, "skydb")
 	stmt := createTableStmt(tableName)
-	log.WithField("stmt", stmt).Debugln("Creating table")
+	logger.WithField("stmt", stmt).Debugln("Creating table")
 	if _, err := tx.Exec(stmt); err != nil {
 		return err
 	}
@@ -186,7 +192,7 @@ func createTable(tx *sqlx.Tx, tableName string) error {
 		AFTER INSERT OR UPDATE OR DELETE ON %s FOR EACH ROW
 		EXECUTE PROCEDURE public.notify_record_change();
 	`, tableName)
-	log.WithField("stmt", stmt).Debugln("Creating trigger")
+	logger.WithField("stmt", stmt).Debugln("Creating trigger")
 	if _, err := tx.Exec(stmt); err != nil {
 		return err
 	}
@@ -194,13 +200,14 @@ func createTable(tx *sqlx.Tx, tableName string) error {
 	return nil
 }
 
-func dropTable(tx *sqlx.Tx, tableName string) error {
+func dropTable(ctx context.Context, tx *sqlx.Tx, tableName string) error {
+	logger := logging.CreateLogger(ctx, "skydb")
 	stmt := fmt.Sprintf(`
 		DROP TRIGGER IF EXISTS trigger_notify_record_change
 		ON %s
 		CASCADE
 	`, tableName)
-	log.WithField("stmt", stmt).Debugln("Deleting trigger")
+	logger.WithField("stmt", stmt).Debugln("Deleting trigger")
 	if _, err := tx.Exec(stmt); err != nil {
 		return err
 	}
@@ -209,7 +216,7 @@ func dropTable(tx *sqlx.Tx, tableName string) error {
 		DROP TABLE IF EXISTS %s
 		CASCADE
 	`, tableName)
-	log.WithField("stmt", stmt).Debugln("Deleting table")
+	logger.WithField("stmt", stmt).Debugln("Deleting table")
 	if _, err := tx.Exec(stmt); err != nil {
 		return err
 	}
@@ -286,14 +293,15 @@ func (db *database) getSequences(recordType string) ([]string, error) {
 // AND tc.table_name = 'note';
 // nolint: gocyclo
 func (db *database) RemoteColumnTypes(recordType string) (skydb.RecordSchema, error) {
+	logger := logging.CreateLogger(db.c.context, "skydb")
 	typemap := skydb.RecordSchema{}
 	var err error
 	// STEP 0: Return the cached ColumnType
 	if schema, ok := db.c.RecordSchema[recordType]; ok {
-		log.Debugf("Using cached remoteColumnTypes %s", recordType)
+		logger.Debugf("Using cached remoteColumnTypes %s", recordType)
 		return schema, nil
 	}
-	log.Debugf("Querying remoteColumnTypes %s", recordType)
+	logger.Debugf("Querying remoteColumnTypes %s", recordType)
 	// STEP 1: Get the oid of the current table
 	var oid int
 	err = db.c.QueryRowx(`
@@ -306,11 +314,11 @@ WHERE c.relname = $1
 
 	if err == sql.ErrNoRows {
 		db.c.RecordSchema[recordType] = nil
-		log.Debugf("Cache remoteColumnTypes %s (no table)", recordType)
+		logger.Debugf("Cache remoteColumnTypes %s (no table)", recordType)
 		return nil, nil
 	}
 	if err != nil {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"schemaName": db.schemaName(),
 			"recordType": recordType,
 			"err":        err,
@@ -327,7 +335,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		oid)
 
 	if err != nil {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"schemaName": db.schemaName(),
 			"recordType": recordType,
 			"oid":        oid,
@@ -410,7 +418,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 
 	refs, err := db.c.QueryWith(builder)
 	if err != nil {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"schemaName": db.schemaName(),
 			"recordType": recordType,
 			"err":        err,
@@ -423,7 +431,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		s := skydb.FieldType{}
 		var primaryColumn, referencedTable string
 		if err := refs.Scan(&primaryColumn, &referencedTable); err != nil {
-			log.Debugf("err %v", err)
+			logger.Debugf("err %v", err)
 			return nil, err
 		}
 		switch referencedTable {
@@ -437,7 +445,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 	}
 
 	db.c.RecordSchema[recordType] = typemap
-	log.Debugf("Cache remoteColumnTypes %s", recordType)
+	logger.Debugf("Cache remoteColumnTypes %s", recordType)
 	return typemap, nil
 }
 
@@ -535,6 +543,7 @@ GROUP BY
 }
 
 func (db *database) SaveIndex(recordType, indexName string, index skydb.Index) error {
+	logger := logging.CreateLogger(db.c.context, "skydb")
 	quotedColumns := []string{}
 	for _, col := range index.Fields {
 		quotedColumns = append(quotedColumns, fmt.Sprintf("%s", col))
@@ -544,7 +553,7 @@ func (db *database) SaveIndex(recordType, indexName string, index skydb.Index) e
 		ALTER TABLE "%s"."%s" ADD CONSTRAINT %s UNIQUE (%s);
 	`, db.schemaName(), recordType, indexName, strings.Join(quotedColumns, ","))
 	fmt.Println("Save Index", stmt)
-	log.WithField("stmt", stmt).Debugln("Creating unique constraint")
+	logger.WithField("stmt", stmt).Debugln("Creating unique constraint")
 	if _, err := db.c.Exec(stmt); err != nil {
 		return err
 	}
@@ -553,10 +562,11 @@ func (db *database) SaveIndex(recordType, indexName string, index skydb.Index) e
 }
 
 func (db *database) DeleteIndex(recordType string, indexName string) error {
+	logger := logging.CreateLogger(db.c.context, "skydb")
 	stmt := fmt.Sprintf(`
 		ALTER TABLE "%s"."%s" DROP CONSTRAINT %s;
 	`, db.schemaName(), recordType, indexName)
-	log.WithField("stmt", stmt).Debugln("Dropping unique constraint")
+	logger.WithField("stmt", stmt).Debugln("Dropping unique constraint")
 	if _, err := db.c.Exec(stmt); err != nil {
 		return err
 	}

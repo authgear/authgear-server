@@ -22,6 +22,8 @@ import (
 	"fmt"
 
 	"github.com/paulmach/go.geo"
+	"github.com/sirupsen/logrus"
+
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
@@ -271,7 +273,7 @@ func (v *tokenResponseValue) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		log.Errorf("skydb: unsupported Scan pair: %T -> %T", value, v.TokenResponse)
+		logrus.Errorf("skydb: unsupported Scan pair: %T -> %T", value, v.TokenResponse)
 	}
 
 	err := json.Unmarshal(b, &v.TokenResponse)
@@ -306,7 +308,7 @@ func (v *providerProfileValue) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		log.Errorf("skydb: unsupported Scan pair: %T -> %T", value, v.ProviderProfile)
+		logrus.Errorf("skydb: unsupported Scan pair: %T -> %T", value, v.ProviderProfile)
 	}
 
 	err := json.Unmarshal(b, &v.ProviderProfile)

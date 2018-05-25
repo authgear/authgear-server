@@ -15,8 +15,9 @@
 package skydb
 
 import (
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"time"
+
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 var log = logging.LoggerEntry("skydb")

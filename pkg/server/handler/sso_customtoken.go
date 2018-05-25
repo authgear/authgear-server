@@ -29,8 +29,8 @@ import (
 )
 
 type ssoCustomTokenClaims struct {
-	RawProfile	map[string]interface{} `json:"skyprofile"`
-	Profile 	skydb.Data 
+	RawProfile map[string]interface{} `json:"skyprofile"`
+	Profile    skydb.Data
 	jwt.StandardClaims
 }
 
@@ -281,7 +281,7 @@ func (h *SSOCustomTokenLoginHandler) handleLogin(payload *router.Payload, p *sso
 		AssetStore:     h.AssetStore,
 		HookRegistry:   h.HookRegistry,
 		AuthRecordKeys: h.AuthRecordKeys,
-		Context:        payload.Context,
+		Context:        payload.Context(),
 	}
 
 	// Create a new AuthInfo if we are creating a new user, otherwise

@@ -17,6 +17,8 @@ package skydb
 import (
 	"context"
 	"fmt"
+
+	"github.com/sirupsen/logrus"
 )
 
 var drivers = map[string]Driver{}
@@ -54,7 +56,7 @@ func GetAccessModel(accessString string) AccessModel {
 		ok    bool
 	)
 	if model, ok = accessModelMap[accessString]; !ok {
-		log.Errorf("Received a not supported Access Contol option: %v", accessString)
+		logrus.Errorf("Received a not supported Access Contol option: %v", accessString)
 	}
 	return model
 }

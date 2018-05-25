@@ -131,6 +131,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/kr/text"
+  packages = ["."]
+  revision = "7cafcd837844e784b526369c9bce262804aebc60"
+
+[[projects]]
+  branch = "master"
   name = "github.com/lann/builder"
   packages = ["."]
   revision = "f22ce00fd9394014049dad11c244859432bd6820"
@@ -291,6 +297,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "86d928622cd2be79f6268ddd85888a5470b0a78cab6184bc5d609111550e80c3"
+  inputs-digest = "cc27a02be360d51d17f186c2ecce9be217e046b56f2fbdcd6089c8f0193ce951"
   solver-name = "gps-cdcl"
   solver-version = 1

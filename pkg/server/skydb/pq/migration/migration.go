@@ -24,7 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
-var log = logging.LoggerEntry("skydb")
+var log = logging.LoggerEntryWithTag("skydb", "migration")
 
 const VersionTableName = "_version"
 

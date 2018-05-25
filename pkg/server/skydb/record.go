@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 // RecordID identifies an unique record in a Database
@@ -80,14 +81,15 @@ type Asset struct {
 
 // SignedURL will try to return a signedURL with the injected Signer.
 func (a *Asset) SignedURL() string {
+	logger := logging.LoggerEntry("skydb")
 	if a.Signer == nil {
-		log.Warnf("Unable to generate signed url of asset because no singer is injected.")
+		logger.Warnf("Unable to generate signed url of asset because no singer is injected.")
 		return ""
 	}
 
 	url, err := a.Signer.SignedURL(a.Name)
 	if err != nil {
-		log.Warnf("Unable to generate signed url: %v", err)
+		logger.Warnf("Unable to generate signed url: %v", err)
 	}
 	return url
 }

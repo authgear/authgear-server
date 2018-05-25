@@ -32,7 +32,7 @@ type SingleRouteRouter router.Router
 // handler as the only route.
 func NewSingleRouteRouter(handler router.Handler, prepareFunc func(*router.Payload)) *SingleRouteRouter {
 	r := router.NewRouter()
-	r.Map("", handler, &FuncProcessor{prepareFunc})
+	r.Map("", "tag", handler, &FuncProcessor{prepareFunc})
 	return (*SingleRouteRouter)(r)
 }
 
@@ -57,7 +57,7 @@ func (r *SingleRouteRouter) POST(body string) *httptest.ResponseRecorder {
 type MockGateway router.Gateway
 
 func NewMockGateway(pattern string, path string, methods []string, handler router.Handler, prepareFunc func(*router.Payload)) *MockGateway {
-	g := router.NewGateway(pattern, path, nil)
+	g := router.NewGateway(pattern, "tag", path, nil)
 	pp := &FuncProcessor{prepareFunc}
 	for _, method := range methods {
 		g.Handle(method, handler, pp)

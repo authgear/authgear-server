@@ -160,7 +160,7 @@ func (c *Context) InitPlugins() {
 
 		data, err := c.getInitPayload()
 		if err != nil {
-			log.WithField("error", err).Warning("Fail to get init payload")
+			log.WithError(err).Warning("Fail to get init payload")
 			data = []byte{}
 		}
 		c.SendEvent("before-plugins-ready", data, false)
@@ -216,7 +216,7 @@ func (c *Context) SendEvent(name string, data []byte, async bool) {
 func (p *Plugin) Init(context *Context) {
 	data, err := context.getInitPayload()
 	if err != nil {
-		log.WithField("error", err).Panic("Fail to get init payload")
+		log.WithError(err).Panic("Fail to get init payload")
 	}
 
 	transport := p.transport
@@ -313,7 +313,7 @@ func (p *Plugin) initHandler(mux *http.ServeMux, injector router.HandlerInjector
 		var handlerGateway *router.Gateway
 		handlerGateway, ok := p.gatewayMap[name]
 		if !ok {
-			handlerGateway = router.NewGateway("", name, mux)
+			handlerGateway = router.NewGateway("", name, "plugin", mux)
 			handlerGateway.ResponseTimeout = time.Duration(config.App.ResponseTimeout) * time.Second
 			p.gatewayMap[name] = handlerGateway
 		}
@@ -329,7 +329,7 @@ func (p *Plugin) initLambda(r *router.Router, injector router.HandlerInjector, l
 		handler := NewLambdaHandler(lambda, p)
 		injector.Inject(handler)
 		handler.Setup()
-		r.Map(handler.Name, handler)
+		r.Map(handler.Name, "plugin", handler)
 		log.Debugf(`Registered lambda "%s" with router.`, handler.Name)
 	}
 }

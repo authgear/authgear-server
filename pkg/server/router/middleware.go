@@ -12,10 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package handler
+package router
 
 import (
-	"github.com/skygeario/skygear-server/pkg/server/logging"
+	"context"
+	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
-var log = logging.LoggerEntry("handler")
+type RequestIDMiddleware struct {
+	Next http.Handler
+}
+
+func (m *RequestIDMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	requestID := uuid.New()
+	newContext := context.WithValue(r.Context(), "RequestID", requestID) // nolint: golint
+	r = r.WithContext(newContext)
+
+	w.Header().Set("X-Skygear-Request-Id", requestID)
+	m.Next.ServeHTTP(w, r)
+}

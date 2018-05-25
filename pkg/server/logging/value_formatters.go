@@ -12,10 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package audit
+package logging
 
 import (
-	"github.com/skygeario/skygear-server/pkg/server/logging"
+	"bytes"
 )
 
-var log = logging.LoggerEntry("audit")
+// StringValueFormatter is a string that provides value formatting for logging
+// multiline string value.
+type StringValueFormatter string
+
+// Print prints the string value to bytes buffer.
+func (f StringValueFormatter) Print(b *bytes.Buffer) {
+	b.WriteString(string(f))
+}

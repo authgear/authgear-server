@@ -20,21 +20,23 @@ import (
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 func (c *conn) Get(dest interface{}, query string, args ...interface{}) (err error) {
+	logger := logging.CreateLogger(c.context, "skydb").WithField("tag", "sql")
 	c.statementCount++
 	err = c.Db().GetContext(c.context, dest, query, args...)
 	logFields := logrus.Fields{
-		"sql":            query,
+		"sql":            logging.StringValueFormatter(query),
 		"args":           args,
-		"error":          err,
 		"executionCount": c.statementCount,
 	}
 	if err != nil {
-		log.WithFields(logFields).Errorln("Failed to execute SQL with sql.Get")
+		logger.WithFields(logFields).WithError(err).Errorln("Failed to execute SQL with sql.Get")
 	} else {
-		log.WithFields(logFields).Debugln("Executed SQL successfully with sql.Get")
+		logger.WithFields(logFields).Debugln("Executed SQL successfully with sql.Get")
 	}
 	return
 }
@@ -48,6 +50,7 @@ func (c *conn) GetWith(dest interface{}, sqlizeri sq.Sqlizer) (err error) {
 }
 
 func (c *conn) Exec(query string, args ...interface{}) (result sql.Result, err error) {
+	logger := logging.CreateLogger(c.context, "skydb").WithField("tag", "sql")
 	c.statementCount++
 	result, err = c.Db().ExecContext(c.context, query, args...)
 
@@ -58,21 +61,20 @@ func (c *conn) Exec(query string, args ...interface{}) (result sql.Result, err e
 		if rowsAffectedError != nil {
 			// because the row affected is only used for logging here
 			// it is okay to ignore if RowsAffected() returns error
-			log.Debugf("conn: unable to get rows affected: %s", rowsAffectedError)
+			logger.Debugf("conn: unable to get rows affected: %s", rowsAffectedError)
 		}
 	}
 
 	logFields := logrus.Fields{
-		"sql":            query,
+		"sql":            logging.StringValueFormatter(query),
 		"args":           args,
-		"error":          err,
 		"executionCount": c.statementCount,
 		"rowsAffected":   rowsAffected,
 	}
 	if err != nil {
-		log.WithFields(logFields).Errorln("Failed to execute SQL with sql.Exec")
+		logger.WithFields(logFields).WithError(err).Errorln("Failed to execute SQL with sql.Exec")
 	} else {
-		log.WithFields(logFields).Debugln("Executed SQL successfully with sql.Exec")
+		logger.WithFields(logFields).Debugln("Executed SQL successfully with sql.Exec")
 	}
 	return
 }
@@ -86,18 +88,18 @@ func (c *conn) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 }
 
 func (c *conn) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
+	logger := logging.CreateLogger(c.context, "skydb").WithField("tag", "sql")
 	c.statementCount++
 	rows, err = c.Db().QueryxContext(c.context, query, args...)
 	logFields := logrus.Fields{
-		"sql":            query,
+		"sql":            logging.StringValueFormatter(query),
 		"args":           args,
-		"error":          err,
 		"executionCount": c.statementCount,
 	}
 	if err != nil {
-		log.WithFields(logFields).Errorln("Failed to execute SQL with sql.Queryx")
+		logger.WithFields(logFields).WithError(err).Errorln("Failed to execute SQL with sql.Queryx")
 	} else {
-		log.WithFields(logFields).Debugln("Executed SQL successfully with sql.Queryx")
+		logger.WithFields(logFields).Debugln("Executed SQL successfully with sql.Queryx")
 	}
 	return
 }
@@ -111,10 +113,11 @@ func (c *conn) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 }
 
 func (c *conn) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
+	logger := logging.CreateLogger(c.context, "skydb").WithField("tag", "sql")
 	c.statementCount++
 	row = c.Db().QueryRowxContext(c.context, query, args...)
-	log.WithFields(logrus.Fields{
-		"sql":            query,
+	logger.WithFields(logrus.Fields{
+		"sql":            logging.StringValueFormatter(query),
 		"args":           args,
 		"executionCount": c.statementCount,
 	}).Debugln("Executed SQL with sql.QueryRowx")

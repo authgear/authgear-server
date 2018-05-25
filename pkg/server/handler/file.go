@@ -27,7 +27,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	skyAsset "github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
@@ -55,7 +58,7 @@ func validateAssetGetRequest(assetStore skyAsset.Store, fileName string, expired
 	signatureParser := assetStore.(skyAsset.SignatureParser)
 	valid, err := signatureParser.ParseSignature(signature, fileName, expiredAt)
 	if err != nil {
-		log.Errorf("Failed to parse signature: %v", err)
+		logrus.WithError(err).Errorf("Failed to parse signature")
 
 		return skyerr.NewError(skyerr.PermissionDenied, "Access denied")
 	}
@@ -87,6 +90,7 @@ func (h *GetFileHandler) GetPreprocessors() []router.Processor {
 
 // Handle handles the get request for asset file
 func (h *GetFileHandler) Handle(payload *router.Payload, response *router.Response) {
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	payload.Req.ParseForm()
 
 	store := h.AssetStore
@@ -111,7 +115,7 @@ func (h *GetFileHandler) Handle(payload *router.Payload, response *router.Respon
 	conn := payload.DBConn
 	asset := skydb.Asset{}
 	if err := conn.GetAsset(fileName, &asset); err != nil {
-		log.Errorf("Failed to get asset: %v", err)
+		logger.WithError(err).Errorf("Failed to get asset")
 
 		response.Err = skyerr.NewResourceFetchFailureErr("asset", fileName)
 		return
@@ -119,7 +123,7 @@ func (h *GetFileHandler) Handle(payload *router.Payload, response *router.Respon
 
 	reader, err := store.GetFileReader(fileName)
 	if err != nil {
-		log.Errorf("Failed to get file reader: %v", err)
+		logger.WithError(err).Errorf("Failed to get file reader")
 
 		response.Err = skyerr.NewResourceFetchFailureErr("asset", fileName)
 		return
@@ -138,7 +142,7 @@ func (h *GetFileHandler) Handle(payload *router.Payload, response *router.Respon
 	if _, err := io.Copy(writer, reader); err != nil {
 		// there is nothing we can do if error occurred after started
 		// writing a response. Log.
-		log.Errorf("Error writing file to response: %v", err)
+		logger.WithError(err).Errorf("Error writing file to response")
 	}
 }
 
@@ -189,6 +193,7 @@ func (h *UploadFileHandler) Handle(
 	response *router.Response,
 ) {
 
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	uploadRequest, err := parseUploadFileRequest(payload)
 	if err != nil {
 		response.Err = skyerr.NewError(skyerr.BadRequest, err.Error())
@@ -250,7 +255,7 @@ func (h *UploadFileHandler) Handle(
 	if signer, ok := h.AssetStore.(skyAsset.URLSigner); ok {
 		asset.Signer = signer
 	} else {
-		log.Warnf("Failed to acquire asset URLSigner, please check configuration")
+		logger.Warnf("Failed to acquire asset URLSigner, please check configuration")
 		response.Err = skyerr.NewError(skyerr.UnexpectedError, "Failed to sign the url")
 		return
 	}
@@ -260,6 +265,7 @@ func (h *UploadFileHandler) Handle(
 // parseUploadFileRequest tries to parse the payload from router to be compatible
 // with both PUT requests and multiparts POST request
 func parseUploadFileRequest(payload *router.Payload) (*uploadFileRequest, error) {
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	httpRequest := payload.Req
 	method := httpRequest.Method
 
@@ -272,8 +278,8 @@ func parseUploadFileRequest(payload *router.Payload) (*uploadFileRequest, error)
 		// use 100 MB max memory to parse the multiparts Form
 		err := httpRequest.ParseMultipartForm(100 << 20)
 		if err != nil {
-			log.
-				WithField("error", err).
+			logger.
+				WithError(err).
 				Error("Fail to parse multiparts form for asset upload")
 
 			return nil, err
@@ -282,7 +288,7 @@ func parseUploadFileRequest(payload *router.Payload) (*uploadFileRequest, error)
 		form := httpRequest.MultipartForm
 		fileHeader := form.File["file"]
 		if fileHeader == nil || len(fileHeader) == 0 {
-			log.Error("Missing file in multiparts form")
+			logger.Error("Missing file in multiparts form")
 
 			return nil, errors.New("Missing file in multiparts form")
 		}
@@ -334,12 +340,12 @@ func copyToTempFile(src io.Reader) (written int64, tempFile *os.File, err error)
 func cleanupFile(f *os.File) error {
 	closeErr := f.Close()
 	if closeErr != nil {
-		log.Errorf("Failed to close tempFile %s: %v", f.Name(), closeErr)
+		logrus.WithError(closeErr).Errorf("Failed to close tempFile %s", f.Name())
 		return closeErr
 	}
 
 	if err := os.Remove(f.Name()); err != nil {
-		log.Errorf("Failed to remove file %s: %v", f.Name(), err)
+		logrus.WithError(err).Errorf("Failed to remove file %s: %v", f.Name())
 		return err
 	}
 

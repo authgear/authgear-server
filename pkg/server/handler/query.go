@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
@@ -268,10 +269,10 @@ func (parser *QueryParser) queryFromRaw(rawQuery map[string]interface{}, query *
 				err = queryErr.(skyerr.Error)
 				return
 			case error:
-				log.WithField("rawQuery", rawQuery).Debugln("failed to construct query")
+				logrus.WithField("rawQuery", rawQuery).Debugln("failed to construct query")
 				err = skyerr.NewErrorf(skyerr.InvalidArgument, "failed to construct query: %v", queryErr.Error())
 			default:
-				log.WithField("recovered", r).Errorln("panic recovered while constructing query")
+				logrus.WithField("recovered", r).Errorln("panic recovered while constructing query")
 				err = skyerr.NewError(skyerr.InvalidArgument, "error occurred while constructing query")
 			}
 		}

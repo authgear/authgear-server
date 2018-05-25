@@ -21,6 +21,7 @@ import (
 
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
@@ -53,6 +54,7 @@ func (c *conn) customTokenBuilder() sq.SelectBuilder {
 }
 
 func (c *conn) doScanCustomTokenInfo(tokenInfo *skydb.CustomTokenInfo, scanner sq.RowScanner) error {
+	logger := logging.CreateLogger(c.context, "skydb")
 	var (
 		userID      string
 		principalID string
@@ -65,7 +67,7 @@ func (c *conn) doScanCustomTokenInfo(tokenInfo *skydb.CustomTokenInfo, scanner s
 		&createdAt,
 	)
 	if err != nil {
-		log.Infof(err.Error())
+		logger.Infof(err.Error())
 	}
 	if err == sql.ErrNoRows {
 		return skydb.ErrUserNotFound

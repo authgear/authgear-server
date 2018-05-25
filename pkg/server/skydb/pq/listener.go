@@ -26,6 +26,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
@@ -77,21 +78,23 @@ type rawNotification struct {
 type recordListener struct {
 	option string
 	db     *sqlx.DB
+	logger *logrus.Entry
 }
 
 func newRecordListener(option string) *recordListener {
 	return &recordListener{
 		option: option,
 		db:     sqlx.MustOpen("postgres", option),
+		logger: logging.LoggerEntry("skydb"),
 	}
 }
 
 func (l *recordListener) Listen() {
 	eventCallback := func(event pq.ListenerEventType, err error) {
 		if err != nil {
-			log.WithField("err", err).Errorf("pq/listener: Received an error")
+			l.logger.WithError(err).Errorf("pq/listener: Received an error")
 		} else {
-			log.WithField("event", event).Infof("pq/listener: Received an event")
+			l.logger.WithField("event", event).Infof("pq/listener: Received an event")
 		}
 	}
 
@@ -102,23 +105,23 @@ func (l *recordListener) Listen() {
 		eventCallback)
 
 	if err := listener.Listen(recordChangeChannel); err != nil {
-		log.WithFields(logrus.Fields{
+		l.logger.WithFields(logrus.Fields{
 			"channel": recordChangeChannel,
 			"err":     err,
 		}).Errorln("pq/listener: got an err while trying to listen")
 		return
 	}
 
-	log.Infof("pq/listener: Listening to %s...", recordChangeChannel)
+	l.logger.Infof("pq/listener: Listening to %s...", recordChangeChannel)
 
 	for {
 		select {
 		case pqNotification := <-listener.Notify:
-			log.WithField("pqNotification", pqNotification).Infoln("Received a notify")
+			l.logger.WithField("pqNotification", pqNotification).Infoln("Received a notify")
 
 			n := notification{}
 			if err := l.fetchNotification(pqNotification.Extra, &n); err != nil {
-				log.WithFields(logrus.Fields{
+				l.logger.WithFields(logrus.Fields{
 					"pqNotification": pqNotification,
 					"err":            err,
 				}).Errorln("pq/listener: failed to fetch notification")
@@ -132,7 +135,7 @@ func (l *recordListener) Listen() {
 		case <-time.After(60 * time.Second):
 			go func() {
 				if err := listener.Ping(); err != nil {
-					log.WithField("err", err).Errorln("pq/listener: got an err while pinging connection")
+					l.logger.WithError(err).Errorln("pq/listener: got an err while pinging connection")
 				}
 			}()
 		}
@@ -145,7 +148,7 @@ func (l *recordListener) fetchNotification(notificationID string, n *notificatio
 	err := l.db.QueryRowx("SELECT op, appname, recordtype, record FROM public.pending_notification WHERE id = $1", notificationID).
 		StructScan(&rawNoti)
 	if err != nil {
-		log.WithFields(logrus.Fields{
+		l.logger.WithFields(logrus.Fields{
 			"notificationID": notificationID,
 			"err":            err,
 		}).Errorln("Failed to fetch pending notification")
@@ -158,7 +161,7 @@ func (l *recordListener) fetchNotification(notificationID string, n *notificatio
 func (l *recordListener) deleteNotification(notificationID string) {
 	result, err := l.db.Exec("DELETE FROM public.pending_notification WHERE id = $1", notificationID)
 	if err != nil {
-		log.WithFields(logrus.Fields{
+		l.logger.WithFields(logrus.Fields{
 			"notificationID": notificationID,
 			"err":            err,
 		}).Errorln("Failed to delete notification")
@@ -168,7 +171,7 @@ func (l *recordListener) deleteNotification(notificationID string) {
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.WithFields(logrus.Fields{
+		l.logger.WithFields(logrus.Fields{
 			"notificationID": notificationID,
 			"err":            err,
 			"rowsAffected":   rowsAffected,
@@ -178,7 +181,7 @@ func (l *recordListener) deleteNotification(notificationID string) {
 	}
 
 	if rowsAffected != 1 {
-		log.WithFields(logrus.Fields{
+		l.logger.WithFields(logrus.Fields{
 			"notificationID": notificationID,
 			"rowsAffected":   rowsAffected,
 		}).Errorln("Zero or more than one notification deleted")

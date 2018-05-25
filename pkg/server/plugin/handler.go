@@ -102,7 +102,7 @@ func (h *Handler) Handle(payload *router.Payload, response *router.Response) {
 		panic(err)
 	}
 
-	outbytes, err := h.Plugin.transport.RunHandler(payload.Context, h.Name, inbytes)
+	outbytes, err := h.Plugin.transport.RunHandler(payload.Context(), h.Name, inbytes)
 	log.WithFields(logrus.Fields{
 		"name": h.Name,
 		"err":  err,

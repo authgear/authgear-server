@@ -27,6 +27,7 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -57,6 +58,7 @@ func (db *database) Get(id skydb.RecordID, record *skydb.Record) error {
 // array of ids belongs to different type, you need to call this method multiple
 // time.
 func (db *database) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
+	logger := logging.CreateLogger(db.c.context, "skydb")
 	if len(ids) == 0 {
 		return nil, errors.New("db.GetByIDs received empty array")
 	}
@@ -71,13 +73,13 @@ func (db *database) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb.A
 		}
 	}
 
-	log.Debugf("GetByIDs Type: %s", recordType)
+	logger.Debugf("GetByIDs Type: %s", recordType)
 	typemap, err := db.RemoteColumnTypes(recordType)
 	if err != nil {
 		return nil, err
 	}
 	if len(typemap) == 0 {
-		log.Debugf("Record Type has not been created")
+		logger.Debugf("Record Type has not been created")
 		return nil, skydb.ErrRecordNotFound
 	}
 
@@ -96,7 +98,7 @@ func (db *database) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb.A
 
 	rows, err := db.c.QueryWith(query)
 	if err != nil {
-		log.Debugf("Getting records by ID failed %v", err)
+		logger.Debugf("Getting records by ID failed %v", err)
 		return nil, err
 	}
 	return newRows(recordType, typemap, rows, err)
@@ -230,6 +232,7 @@ func convert(r *skydb.Record) map[string]interface{} {
 }
 
 func (db *database) Delete(id skydb.RecordID) error {
+	logger := logging.CreateLogger(db.c.context, "skydb")
 	builder := psql.Delete(db.TableName(id.Type)).
 		Where("_id = ?", id.Key)
 
@@ -262,7 +265,7 @@ func (db *database) Delete(id skydb.RecordID) error {
 	if rowsAffected == 0 {
 		return skydb.ErrRecordNotFound
 	} else if rowsAffected > 1 {
-		log.WithFields(logrus.Fields{
+		logger.WithFields(logrus.Fields{
 			"id":           id,
 			"rowsAffected": rowsAffected,
 			"err":          err,

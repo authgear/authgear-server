@@ -109,7 +109,7 @@ type Payload struct {
 	// Map of action payload
 	Data map[string]interface{}
 
-	Context context.Context
+	context context.Context
 
 	AppName    string
 	AuthInfoID string
@@ -158,13 +158,31 @@ func (p *Payload) HasMasterKey() bool {
 	return p.AccessKey == MasterAccessKey
 }
 
+// Context returns the payload context.
+//
+// If the context is nil, the background context will be used. The background
+// context will also be set to the payload. In other words this function
+// has side effect.
+func (p *Payload) Context() context.Context {
+	if p.context == nil {
+		p.context = context.Background()
+	}
+	return p.context
+}
+
+// SetContext sets the specified context to the payload.
+func (p *Payload) SetContext(ctx context.Context) {
+	// It is okay to set nil context here assuming Context() function
+	// will update the context to a background context if it is nil
+	p.context = ctx
+}
+
 // Response is interface for handler to write response to router
 type Response struct {
 	Meta       map[string][]string `json:"-"`
 	Info       interface{}         `json:"info,omitempty"`
 	Result     interface{}         `json:"result,omitempty"`
 	Err        skyerr.Error        `json:"error,omitempty"`
-	RequestID  string              `json:"request_id,omitempty"`
 	DatabaseID string              `json:"database_id,omitempty"`
 	writer     http.ResponseWriter
 	writerOnce sync.Once

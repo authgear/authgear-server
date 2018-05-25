@@ -67,8 +67,7 @@ func TestHandler(t *testing.T) {
 			[]string{"POST"},
 			&handler,
 			func(p *router.Payload) {
-				p.Context = context.Background()
-				p.Context = context.WithValue(p.Context, HelloContextKey, "world")
+				p.SetContext(context.WithValue(p.Context(), HelloContextKey, "world"))
 			},
 		)
 

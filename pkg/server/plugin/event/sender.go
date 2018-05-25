@@ -14,7 +14,10 @@
 
 package event
 
-import "github.com/skygeario/skygear-server/pkg/server/plugin"
+import (
+	"github.com/skygeario/skygear-server/pkg/server/logging"
+	"github.com/skygeario/skygear-server/pkg/server/plugin"
+)
 
 type defaultEventSender struct {
 	pluginContext *plugin.Context
@@ -28,7 +31,8 @@ func NewSender(ctx *plugin.Context) Sender {
 }
 
 func (s defaultEventSender) Send(name string, data []byte, async bool) {
-	log.
+	logger := logging.LoggerEntry("plugin")
+	logger.
 		WithField("name", name).
 		WithField("date", string(data)).
 		Info("Sending plugin event")

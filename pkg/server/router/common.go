@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	"github.com/skygeario/skygear-server/pkg/server/skyversion"
 )
@@ -31,7 +32,7 @@ import (
 // to Router and Gateway.
 type commonRouter struct {
 	payloadFunc      func(req *http.Request) (p *Payload, err error)
-	matchHandlerFunc func(p *Payload) (h Handler, pp []Processor)
+	matchHandlerFunc func(p *Payload) (routeConfig, error)
 	ResponseTimeout  time.Duration
 }
 
@@ -59,16 +60,16 @@ func (r *commonRouter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 	var (
-		httpStatus    = http.StatusOK
-		handler       Handler
-		preprocessors []Processor
-		timedOut      bool
+		httpStatus = http.StatusOK
+		timedOut   bool
 	)
+
+	logger := logging.CreateLogger(payload.Context(), "router")
 
 	defer func() {
 		if r := recover(); r != nil {
 			resp.Err = errorFromRecoveringPanic(r)
-			log.WithField("recovered", r).Errorln("panic occurred while handling request")
+			logger.WithField("recovered", r).Errorln("panic occurred while handling request")
 		}
 
 		writer := resp.Writer()
@@ -84,7 +85,7 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 				skyerr.ResponseTimeout,
 				"Service taking too long to respond.",
 			)
-			log.Errorln("timed out serving request")
+			logger.Errorln("timed out serving request")
 		}
 
 		if resp.Err != nil && httpStatus >= 200 && httpStatus <= 299 {
@@ -97,26 +98,37 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 		}
 	}()
 
-	handler, preprocessors = r.matchHandlerFunc(payload)
-	if handler == nil {
+	rc, err := r.matchHandlerFunc(payload)
+	if err != nil {
 		httpStatus = http.StatusNotFound
-		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, "route unmatched")
+		resp.Err = skyerr.NewError(skyerr.UndefinedOperation, err.Error())
 		return
 	}
 
 	// Call handler
 	var cancelFunc context.CancelFunc
-	payload.Context, cancelFunc = context.WithCancel(payload.Context)
+	ctx := payload.Context()
+	ctx, cancelFunc = context.WithCancel(ctx)
 	defer cancelFunc()
+	// We use a string for context key here (instead of type) because the same
+	// keys have to be shared better the `router` and the `logging` package.
+	// This key is supposed to be in `router` package, but declaring this
+	// key in the `router` package introduce a circular dependency.
+	payload.SetContext(context.WithValue(ctx, "RequestTag", rc.Tag)) // nolint: golint
 
 	go func() {
-		httpStatus = r.callHandler(handler, preprocessors, payload, resp)
+		httpStatus = r.callHandler(
+			rc.Handler,
+			rc.Preprocessors,
+			payload,
+			resp,
+		)
 		cancelFunc()
 	}()
 
 	// This function will return in one of the following conditions:
 	select {
-	case <-payload.Context.Done():
+	case <-payload.Context().Done():
 		// request conext cancelled or response generated
 	case <-getTimeoutChan(r.ResponseTimeout):
 		// timeout exceeded
@@ -125,11 +137,12 @@ func (r *commonRouter) HandlePayload(payload *Payload, resp *Response) {
 }
 
 func (r *commonRouter) callHandler(handler Handler, pp []Processor, payload *Payload, resp *Response) (httpStatus int) {
+	logger := logging.CreateLogger(payload.Context(), "router")
 	httpStatus = http.StatusOK
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.WithField("recovered", r).Errorln("panic occurred while handling request")
+			logger.WithField("recovered", r).Errorln("panic occurred while handling request")
 
 			resp.Err = errorFromRecoveringPanic(r)
 			httpStatus = defaultStatusCode(resp.Err)
@@ -162,4 +175,10 @@ func getTimeoutChan(timeout time.Duration) <-chan time.Time {
 		return time.After(timeout)
 	}
 	return make(chan time.Time)
+}
+
+type routeConfig struct {
+	Tag           string
+	Preprocessors []Processor
+	Handler
 }

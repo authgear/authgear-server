@@ -19,6 +19,8 @@ package skydb
 import (
 	"errors"
 	"io"
+
+	"github.com/sirupsen/logrus"
 )
 
 // ErrRecordNotFound is returned from Get and Delete when Database
@@ -189,7 +191,7 @@ func WithTransaction(tx Transactional, do func() error) (err error) {
 	err = do()
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
-			log.Errorf("Failed to rollback: %v", rbErr)
+			logrus.Errorf("Failed to rollback: %v", rbErr)
 		}
 	} else {
 		err = tx.Commit()

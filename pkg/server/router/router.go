@@ -16,23 +16,19 @@ package router
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"sync"
-
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
-
-var log = logging.LoggerEntry("router")
 
 // pipeline encapsulates a transformation which a request will come through
 // from preprocessors to the actual handler. (and postprocessor later)
 type pipeline struct {
-	Action        string
+	Tag           string
 	Preprocessors []Processor
 	Handler
 }
@@ -62,14 +58,14 @@ func NewRouter() *Router {
 }
 
 // Map to register action to handle mapping
-func (r *Router) Map(action string, handler Handler, preprocessors ...Processor) {
+func (r *Router) Map(action, tag string, handler Handler, preprocessors ...Processor) {
 	r.actions.Lock()
 	defer r.actions.Unlock()
 	if len(preprocessors) == 0 {
 		preprocessors = handler.GetPreprocessors()
 	}
 	r.actions.m[action] = pipeline{
-		Action:        action,
+		Tag:           tag,
 		Preprocessors: preprocessors,
 		Handler:       handler,
 	}
@@ -79,7 +75,7 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	r.commonRouter.ServeHTTP(w, req)
 }
 
-func (r *Router) matchHandler(p *Payload) (h Handler, pp []Processor) {
+func (r *Router) matchHandler(p *Payload) (routeConfig, error) {
 	r.actions.RLock()
 	defer r.actions.RUnlock()
 
@@ -90,22 +86,28 @@ func (r *Router) matchHandler(p *Payload) (h Handler, pp []Processor) {
 	}
 
 	action = strings.Replace(action, "/", ":", -1)
+	var matchedPipeline *pipeline
 	if len(action) > 0 { // prevent matching HomeHandler
 		if pipeline, ok := r.actions.m[action]; ok {
-			h = pipeline.Handler
-			pp = pipeline.Preprocessors
+			matchedPipeline = &pipeline
 		}
 	}
 
-	// matching using payload if needed
-	if h == nil {
+	if matchedPipeline == nil {
 		if pipeline, ok := r.actions.m[p.RouteAction()]; ok {
-			h = pipeline.Handler
-			pp = pipeline.Preprocessors
+			matchedPipeline = &pipeline
 		}
 	}
 
-	return
+	if matchedPipeline == nil {
+		return routeConfig{}, errors.New("route unmatched")
+	}
+
+	return routeConfig{
+		Tag:           matchedPipeline.Tag,
+		Preprocessors: matchedPipeline.Preprocessors,
+		Handler:       matchedPipeline.Handler,
+	}, nil
 }
 
 func (r *Router) newPayload(req *http.Request) (p *Payload, err error) {
@@ -121,14 +123,10 @@ func (r *Router) newPayload(req *http.Request) (p *Payload, err error) {
 	}
 
 	p = &Payload{
-		Data:    data,
-		Meta:    map[string]interface{}{},
-		Context: req.Context(),
+		Data: data,
+		Meta: map[string]interface{}{},
 	}
-
-	if p.Context == nil {
-		p.Context = context.Background()
-	}
+	p.SetContext(req.Context())
 
 	if apiKey := req.Header.Get("X-Skygear-Api-Key"); apiKey != "" {
 		p.Data["api_key"] = apiKey

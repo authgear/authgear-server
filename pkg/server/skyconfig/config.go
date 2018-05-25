@@ -206,6 +206,7 @@ type Configuration struct {
 		Level           string            `json:"-"`
 		LoggersLevel    map[string]string `json:"-"`
 		RouterByteLimit int64             `json:"-"`
+		Formatter       string            `json:"-"`
 	} `json:"log"`
 	LogHook struct {
 		SentryDSN   string
@@ -264,6 +265,7 @@ func NewConfiguration() Configuration {
 		"plugin": "info",
 	}
 	config.LOG.RouterByteLimit = 100000
+	config.LOG.Formatter = "text"
 	config.LogHook.SentryLevel = "error"
 	config.Zmq.Timeout = 30
 	config.Zmq.MaxBounce = 10
@@ -624,6 +626,10 @@ func (config *Configuration) readLog() {
 	sentryLevel := os.Getenv("SENTRY_LEVEL")
 	if sentryLevel != "" {
 		config.LogHook.SentryLevel = sentryLevel
+	}
+
+	if formatter := os.Getenv("LOG_FORMATTER"); formatter != "" {
+		config.LOG.Formatter = formatter
 	}
 }
 

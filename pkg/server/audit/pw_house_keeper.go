@@ -17,6 +17,7 @@ package audit
 import (
 	"context"
 
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
@@ -34,20 +35,23 @@ type PwHousekeeper struct {
 }
 
 func (p *PwHousekeeper) doHousekeep(authID string) {
+	ctx := context.Background()
+	logger := logging.CreateLogger(ctx, "audit")
+
 	if !p.enabled() {
 		return
 	}
 
-	conn, err := p.DBOpener(context.Background(), p.DBImpl, p.AppName, p.AccessControl, p.Option, p.DBConfig)
+	conn, err := p.DBOpener(ctx, p.DBImpl, p.AppName, p.AccessControl, p.Option, p.DBConfig)
 	if err != nil {
-		log.Warnf(`Unable to housekeep password history`)
+		logger.Warnf(`Unable to housekeep password history`)
 		return
 	}
 	defer conn.Close()
 
 	err = conn.RemovePasswordHistory(authID, p.PwHistorySize, p.PwHistoryDays)
 	if err != nil {
-		log.Warnf(`Unable to housekeep password history`)
+		logger.Warnf(`Unable to housekeep password history`)
 	}
 }
 

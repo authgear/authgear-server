@@ -6,9 +6,10 @@ import (
 	"reflect"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
@@ -22,7 +23,7 @@ func injectSigner(record *skydb.Record, store asset.Store) {
 			if signer, ok := store.(asset.URLSigner); ok {
 				v.Signer = signer
 			} else {
-				log.Warnf("Failed to acquire asset URLSigner, please check configuration")
+				logrus.Warnf("Failed to acquire asset URLSigner, please check configuration")
 			}
 		}
 	}
@@ -97,16 +98,18 @@ type RecordFetcher struct {
 	withMasterKey          bool
 	creationAccessCacheMap map[string]skydb.RecordACL
 	defaultAccessCacheMap  map[string]skydb.RecordACL
+	context                context.Context
 }
 
 // NewRecordFetcher provide a convenient FetchOrCreateRecord method
-func NewRecordFetcher(db skydb.Database, conn skydb.Conn, withMasterKey bool) RecordFetcher {
+func NewRecordFetcher(ctx context.Context, db skydb.Database, conn skydb.Conn, withMasterKey bool) RecordFetcher {
 	return RecordFetcher{
 		db:                     db,
 		conn:                   conn,
 		withMasterKey:          withMasterKey,
 		creationAccessCacheMap: map[string]skydb.RecordACL{},
 		defaultAccessCacheMap:  map[string]skydb.RecordACL{},
+		context:                ctx,
 	}
 }
 
@@ -144,7 +147,8 @@ func (f RecordFetcher) FetchRecord(recordID skydb.RecordID, authInfo *skydb.Auth
 		if dbErr == skydb.ErrRecordNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "record not found")
 		} else {
-			log.WithFields(log.Fields{
+			logger := logging.CreateLogger(f.context, "handler")
+			logger.WithFields(logrus.Fields{
 				"recordID": recordID,
 				"err":      dbErr,
 			}).Errorln("Failed to fetch record")
@@ -218,7 +222,7 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 	db := req.Db
 	records := req.RecordsToSave
 
-	fetcher := NewRecordFetcher(db, req.Conn, req.WithMasterKey)
+	fetcher := NewRecordFetcher(req.Context, db, req.Conn, req.WithMasterKey)
 	fieldACL, err := req.Conn.GetRecordFieldAccess()
 	if err != nil {
 		return skyerr.MakeError(err)
@@ -345,7 +349,7 @@ func (t saveHookTriggerer) trigger(records []*skydb.Record, kind hook.Kind) []*s
 		originalRecord, _ := t.OriginalRecordMap[record.ID]
 		err = t.HookRegistry.ExecuteHooks(t.Context, kind, record, originalRecord)
 		if t.ShouldLogErr && err != nil {
-			log.Errorf("Error occurred while executing hooks: %s", err)
+			logrus.Errorf("Error occurred while executing hooks: %s", err)
 		}
 		return
 	})
@@ -401,7 +405,7 @@ func DeriveDeltaRecord(dst, base, delta *skydb.Record) {
 	}
 }
 
-func ExtendRecordSchema(db skydb.Database, records []*skydb.Record) (bool, error) {
+func ExtendRecordSchema(ctx context.Context, db skydb.Database, records []*skydb.Record) (bool, error) {
 	recordSchemaMergerMap := map[string]schemaMerger{}
 	for _, record := range records {
 		recordType := record.ID.Type
@@ -430,7 +434,8 @@ func ExtendRecordSchema(db skydb.Database, records []*skydb.Record) (bool, error
 			return false, err
 		}
 		if schemaExtended {
-			log.
+			logger := logging.CreateLogger(ctx, "handler")
+			logger.
 				WithField("type", recordType).
 				WithField("schema", schema).
 				Info("Schema Extended")
@@ -445,7 +450,7 @@ func RecordDeleteHandler(req *RecordModifyRequest, resp *RecordModifyResponse) s
 	db := req.Db
 	recordIDs := req.RecordIDsToDelete
 
-	fetcher := NewRecordFetcher(db, req.Conn, req.WithMasterKey)
+	fetcher := NewRecordFetcher(req.Context, db, req.Conn, req.WithMasterKey)
 
 	var records []*skydb.Record
 	for _, recordID := range recordIDs {
@@ -485,7 +490,8 @@ func RecordDeleteHandler(req *RecordModifyRequest, resp *RecordModifyResponse) s
 		records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
 			err = req.HookRegistry.ExecuteHooks(req.Context, hook.AfterDelete, record, nil)
 			if err != nil {
-				log.Errorf("Error occurred while executing hooks: %s", err)
+				logger := logging.CreateLogger(req.Context, "handler")
+				logger.Errorf("Error occurred while executing hooks: %s", err)
 			}
 			return
 		})
@@ -529,7 +535,6 @@ func (m schemaMerger) Schema() (skydb.RecordSchema, error) {
 
 func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 	schema := skydb.RecordSchema{}
-	log.Debugf("%v", m)
 	for key, value := range m {
 		if value == nil {
 			continue
@@ -537,7 +542,7 @@ func deriveRecordSchema(m skydb.Data) skydb.RecordSchema {
 
 		fieldType, err := skydb.DeriveFieldType(value)
 		if err != nil {
-			log.WithFields(log.Fields{
+			logrus.WithFields(logrus.Fields{
 				"key":   key,
 				"value": value,
 			}).Panicf("unable to derive record schema: %s", err)
@@ -597,13 +602,14 @@ func getReferenceWithKeyPath(db skydb.Database, record *skydb.Record, keyPath st
 	}
 }
 
-func DoQueryEager(db skydb.Database, eagersIDs map[string][]skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) map[string]map[string]*skydb.Record {
+func DoQueryEager(ctx context.Context, db skydb.Database, eagersIDs map[string][]skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) map[string]map[string]*skydb.Record {
 	eagerRecords := map[string]map[string]*skydb.Record{}
+	logger := logging.CreateLogger(ctx, "handler")
 	for keyPath, ids := range eagersIDs {
-		log.Debugf("Getting value for keypath %v", keyPath)
+		logger.Debugf("Getting value for keypath %v", keyPath)
 		eagerScanner, err := db.GetByIDs(ids, accessControlOptions)
 		if err != nil {
-			log.Debugf("No Records found in the eager load key path: %s", keyPath)
+			logger.Debugf("No Records found in the eager load key path: %s", keyPath)
 			eagerRecords[keyPath] = map[string]*skydb.Record{}
 			continue
 		}

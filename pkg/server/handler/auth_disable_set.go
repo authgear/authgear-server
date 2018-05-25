@@ -23,6 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 	"github.com/skygeario/skygear-server/pkg/server/router"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -112,6 +113,7 @@ func (h *SetDisableUserHandler) GetPreprocessors() []router.Processor {
 }
 
 func (h *SetDisableUserHandler) Handle(payload *router.Payload, response *router.Response) {
+	logger := logging.CreateLogger(payload.Context(), "handler")
 	p := &setDisableUserPayload{}
 	skyErr := p.Decode(payload.Data)
 	if skyErr != nil {
@@ -119,19 +121,19 @@ func (h *SetDisableUserHandler) Handle(payload *router.Payload, response *router
 		return
 	}
 
-	log = log.WithFields(logrus.Fields{
+	logger = logger.WithFields(logrus.Fields{
 		"auth_id": p.AuthInfoID,
 	})
-	log.Debug("Handler called to set disabled user status")
+	logger.Debug("Handler called to set disabled user status")
 
 	authinfo := skydb.AuthInfo{}
 	if err := payload.DBConn.GetAuth(p.AuthInfoID, &authinfo); err != nil {
 		if err == skydb.ErrUserNotFound {
-			log.Info("Auth info not found when setting disabled user status")
+			logger.Info("Auth info not found when setting disabled user status")
 			response.Err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
 			return
 		}
-		log.WithError(err).Error("Unable to get auth info when setting disabled user status")
+		logger.WithError(err).Error("Unable to get auth info when setting disabled user status")
 		response.Err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
 		return
 	}
@@ -140,19 +142,19 @@ func (h *SetDisableUserHandler) Handle(payload *router.Payload, response *router
 	authinfo.DisabledMessage = p.Message
 	authinfo.DisabledExpiry = p.expiry
 
-	log.WithFields(logrus.Fields{
+	logger.WithFields(logrus.Fields{
 		"disabled": authinfo.Disabled,
 		"message":  authinfo.DisabledMessage,
 		"expiry":   authinfo.DisabledExpiry,
 	}).Debug("Will set disabled user status")
 
 	if err := payload.DBConn.UpdateAuth(&authinfo); err != nil {
-		log.WithError(err).Error("Unable to update auth info when setting disabled user status")
+		logger.WithError(err).Error("Unable to update auth info when setting disabled user status")
 		response.Err = skyerr.MakeError(err)
 		return
 	}
 
-	log.Info("Successfully set disabled user status")
+	logger.Info("Successfully set disabled user status")
 
 	h.logAuditTrail(payload, p)
 
