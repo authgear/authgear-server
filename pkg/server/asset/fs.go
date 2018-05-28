@@ -77,7 +77,7 @@ func (s *fileStore) PutFileReader(name string, src io.Reader, length int64, cont
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
-func (s *fileStore) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
+func (s *fileStore) GeneratePostFileRequest(name string, contentType string, length int64) (*PostFileRequest, error) {
 	return &PostFileRequest{
 		Action: "/files/" + name,
 	}, nil
