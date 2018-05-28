@@ -129,7 +129,7 @@ func (store *bufferedAssetStore) PutFileReader(name string, src io.Reader, lengt
 	return nil
 }
 
-func (store *bufferedAssetStore) GeneratePostFileRequest(name string) (*asset.PostFileRequest, error) {
+func (store *bufferedAssetStore) GeneratePostFileRequest(name string, contentType string, length int64) (*asset.PostFileRequest, error) {
 	return &asset.PostFileRequest{
 		Action: "http://skygear.test/files/" + name,
 		ExtraFields: map[string]interface{}{

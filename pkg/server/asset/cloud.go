@@ -175,7 +175,7 @@ func (s cloudStore) PutFileReader(
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
-func (s cloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
+func (s cloudStore) GeneratePostFileRequest(name string, contentType string, length int64) (*PostFileRequest, error) {
 	log.
 		WithField("name", name).
 		Info("Start generate post file request for Cloud Asset")
@@ -189,6 +189,13 @@ func (s cloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, erro
 		Method:  http.MethodPut,
 		Uri:     urlString,
 		Timeout: 10 * time.Second,
+		Body: struct {
+			ContentType string `json:"content-type,omitempty"`
+			Length      int64  `json:"content-size,omitempty"`
+		}{
+			ContentType: contentType,
+			Length:      length,
+		},
 	}.WithHeader("Authorization", "Bearer "+s.authToken)
 
 	res, err := req.Do()
