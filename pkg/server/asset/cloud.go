@@ -186,9 +186,10 @@ func (s cloudStore) GeneratePostFileRequest(name string, contentType string, len
 	)
 
 	req := goreq.Request{
-		Method:  http.MethodPut,
-		Uri:     urlString,
-		Timeout: 10 * time.Second,
+		Method:      http.MethodPut,
+		Uri:         urlString,
+		Timeout:     10 * time.Second,
+		ContentType: "application/json",
 		Body: struct {
 			ContentType string `json:"content-type,omitempty"`
 			Length      int64  `json:"content-size,omitempty"`
@@ -203,6 +204,17 @@ func (s cloudStore) GeneratePostFileRequest(name string, contentType string, len
 		log.WithFields(logrus.Fields{
 			"url":   urlString,
 			"error": err,
+		}).Error("Fail to request for pre-signed POST request")
+
+		return nil, errors.New("Fail to request for pre-signed POST request")
+	}
+
+	if res.StatusCode != http.StatusOK {
+		body, _ := res.Body.ToString()
+		log.WithFields(logrus.Fields{
+			"url":    urlString,
+			"status": res.StatusCode,
+			"body":   body,
 		}).Error("Fail to request for pre-signed POST request")
 
 		return nil, errors.New("Fail to request for pre-signed POST request")
