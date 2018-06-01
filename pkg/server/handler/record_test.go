@@ -193,7 +193,7 @@ func TestRecordSaveHandler(t *testing.T) {
 			payload.DBConn = conn
 			payload.Database = db
 			payload.AuthInfo = &skydb.AuthInfo{
-				ID: "admin",
+				ID:    "admin",
 				Roles: []string{"admin"},
 			}
 		})
@@ -2019,7 +2019,7 @@ func (s *urlOnlyAssetStore) PutFileReader(name string, src io.Reader, length int
 	panic("not implemented")
 }
 
-func (s *urlOnlyAssetStore) GeneratePostFileRequest(name string) (*asset.PostFileRequest, error) {
+func (s *urlOnlyAssetStore) GeneratePostFileRequest(name string, contentType string, length int64) (*asset.PostFileRequest, error) {
 	panic("not implemented")
 }
 
@@ -2740,7 +2740,7 @@ func TestHookExecution(t *testing.T) {
 
 		r := handlertest.NewSingleRouteRouter(&RecordSaveHandler{
 			HookRegistry: registry,
-			AssetStore: assetStore,
+			AssetStore:   assetStore,
 		}, func(p *router.Payload) {
 			p.DBConn = conn
 			p.Database = db

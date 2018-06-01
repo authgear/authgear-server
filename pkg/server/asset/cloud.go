@@ -175,7 +175,7 @@ func (s cloudStore) PutFileReader(
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
-func (s cloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
+func (s cloudStore) GeneratePostFileRequest(name string, contentType string, length int64) (*PostFileRequest, error) {
 	log.
 		WithField("name", name).
 		Info("Start generate post file request for Cloud Asset")
@@ -186,9 +186,17 @@ func (s cloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, erro
 	)
 
 	req := goreq.Request{
-		Method:  http.MethodPut,
-		Uri:     urlString,
-		Timeout: 10 * time.Second,
+		Method:      http.MethodPut,
+		Uri:         urlString,
+		Timeout:     10 * time.Second,
+		ContentType: "application/json",
+		Body: struct {
+			ContentType string `json:"content-type,omitempty"`
+			Length      int64  `json:"content-size,omitempty"`
+		}{
+			ContentType: contentType,
+			Length:      length,
+		},
 	}.WithHeader("Authorization", "Bearer "+s.authToken)
 
 	res, err := req.Do()
@@ -196,6 +204,17 @@ func (s cloudStore) GeneratePostFileRequest(name string) (*PostFileRequest, erro
 		log.WithFields(logrus.Fields{
 			"url":   urlString,
 			"error": err,
+		}).Error("Fail to request for pre-signed POST request")
+
+		return nil, errors.New("Fail to request for pre-signed POST request")
+	}
+
+	if res.StatusCode != http.StatusOK {
+		body, _ := res.Body.ToString()
+		log.WithFields(logrus.Fields{
+			"url":    urlString,
+			"status": res.StatusCode,
+			"body":   body,
 		}).Error("Fail to request for pre-signed POST request")
 
 		return nil, errors.New("Fail to request for pre-signed POST request")

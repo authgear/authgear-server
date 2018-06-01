@@ -99,7 +99,7 @@ func (s *s3Store) PutFileReader(
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
-func (s *s3Store) GeneratePostFileRequest(name string) (*PostFileRequest, error) {
+func (s *s3Store) GeneratePostFileRequest(name string, contentType string, length int64) (*PostFileRequest, error) {
 	return &PostFileRequest{
 		Action: "/files/" + name,
 	}, nil
