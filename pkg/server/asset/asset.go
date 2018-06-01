@@ -33,7 +33,7 @@ type PostFileRequest struct {
 type Store interface {
 	GetFileReader(name string) (io.ReadCloser, error)
 	PutFileReader(name string, src io.Reader, length int64, contentType string) error
-	GeneratePostFileRequest(name string, contentType string, length int64) (*PostFileRequest, error)
+	GeneratePostFileRequest(name string) (*PostFileRequest, error)
 }
 
 // URLSigner signs a signature and returns a URL accessible to that asset.

@@ -47,8 +47,6 @@ func (s generatePostFileRequestAssetStore) PutFileReader(
 
 func (s generatePostFileRequestAssetStore) GeneratePostFileRequest(
 	name string,
-	contentType string,
-	length int64,
 ) (*asset.PostFileRequest, error) {
 	return &asset.PostFileRequest{
 		Action: "http://skygear.dev/files/" + name,

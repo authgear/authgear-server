@@ -95,7 +95,7 @@ func (h *AssetUploadHandler) Handle(
 
 	// Generate POST File Request
 	assetStore := h.AssetStore
-	postRequest, err := assetStore.GeneratePostFileRequest(filename, contentType, contentSize)
+	postRequest, err := assetStore.GeneratePostFileRequest(filename)
 	if err != nil {
 		response.Err = skyerr.NewError(
 			skyerr.UnexpectedError,

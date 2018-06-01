@@ -1,7 +1,6 @@
 package asset
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -9,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -251,38 +249,32 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 }
 
 func TestCloudStoreGeneratePostFileRequest(t *testing.T) {
-	Convey("Generate Post File Request", t, func(c C) {
-		testServer := httptest.NewServer(
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				path := r.URL.Path
-				method := r.Method
-				authHeader := r.Header.Get("Authorization")
+	testServer := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			path := r.URL.Path
+			method := r.Method
+			authHeader := r.Header.Get("Authorization")
 
-				if method == http.MethodPut &&
-					path == "/asset/testapp/file001" &&
-					authHeader == "Bearer correct-auth-token" {
+			if method == http.MethodPut &&
+				path == "/asset/testapp/file001" &&
+				authHeader == "Bearer correct-auth-token" {
 
-					reqBody, _ := ioutil.ReadAll(r.Body)
-					c.So(string(reqBody), ShouldEqualJSON, `{
-						"content-type": "application/pdf",
-						"content-size": 24
-					}`)
-
-					w.WriteHeader(http.StatusOK)
-					w.Write([]byte(`{
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte(`{
 					"action": "http://skygear.dev/files/file001",
 					"extra-fields": {
 						"X-Extra-Field-1": "extra-value-1",
 						"X-Extra-Field-2": "extra-value-2"
 					}
 				}`))
-				} else {
-					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte("Bad Request"))
-				}
-			}),
-		)
+			} else {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("Bad Request"))
+			}
+		}),
+	)
 
+	Convey("Generate Post File Request", t, func() {
 		Convey("Success on normal flow", func() {
 			store := &cloudStore{
 				appName:   "testapp",
@@ -291,7 +283,7 @@ func TestCloudStoreGeneratePostFileRequest(t *testing.T) {
 				urlPrefix: "http://localhost:12345/public",
 				public:    true,
 			}
-			postRequest, err := store.GeneratePostFileRequest("file001", "application/pdf", 24)
+			postRequest, err := store.GeneratePostFileRequest("file001")
 
 			So(err, ShouldBeNil)
 			So(postRequest, ShouldNotBeNil)
