@@ -636,7 +636,7 @@ func initBaiduPusher(config skyconfig.Configuration) *push.BaiduPusher {
 }
 
 func initSubscription(config skyconfig.Configuration, connOpener func() (skydb.Conn, error), hub *pubsub.Hub, pushSender push.Sender) {
-	logger := logging.LoggerEntryWithTag("main", "subscriiption")
+	logger := logging.LoggerEntryWithTag("main", "subscription")
 	notifiers := []subscription.Notifier{subscription.NewHubNotifier(hub)}
 	if pushSender != nil {
 		notifiers = append(notifiers, subscription.NewPushNotifier(pushSender))
