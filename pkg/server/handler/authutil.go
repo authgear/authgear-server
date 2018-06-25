@@ -60,11 +60,16 @@ func (f *UserAuthFetcher) FetchAuth(authData skydb.AuthData) (authInfo skydb.Aut
 	return
 }
 
+// FetchUser fetches user record by AuthData for auth, e.g. login
+// The query should not be affected by the user record acl
+// so this function bypasses access control
 func (f *UserAuthFetcher) FetchUser(authData skydb.AuthData) (user skydb.Record, err error) {
 	query := f.buildAuthDataQuery(authData)
 
 	var results *skydb.Rows
-	results, err = f.Database.Query(&query, &skydb.AccessControlOptions{})
+	results, err = f.Database.Query(&query, &skydb.AccessControlOptions{
+		BypassAccessControl: true,
+	})
 	if err != nil {
 		return
 	}

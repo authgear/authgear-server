@@ -65,6 +65,9 @@ func MakeUsernameEmailQueryAssertion(username string, email string) func(query *
 	return func(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) {
 		So(query.Type, ShouldEqual, "user")
 
+		// User query should not be affected by the user record acl
+		So(accessControlOptions.BypassAccessControl, ShouldEqual, true)
+
 		predicate := query.Predicate
 		So(predicate.Operator, ShouldEqual, skydb.And)
 
