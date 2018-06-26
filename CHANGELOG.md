@@ -1,3 +1,22 @@
+## 1.6.0 (2018-6-26)
+
+### Features
+
+- Add Lambda support for Skygear Data Type
+- Support structural logging with JSON formatter
+
+### Bug Fixes
+
+- Fix content-type not sent to assetd
+- Fix cannot login user if user record is not public read
+
+### Other notes
+
+- Refactor how processors are injected to plugin handlers/lambdas
+- Add GO_TEST_VERBOSE=1 to print verbose go test log
+- Add go1.10.1 to build target
+- Fix go1.10 compatibility and fix some string format
+
 ## 1.5.0 (2018-4-23)
 
 ### Features
