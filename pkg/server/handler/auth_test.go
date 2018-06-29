@@ -471,12 +471,6 @@ func TestLoginHandler(t *testing.T) {
 		defer ctrl.Finish()
 		db := mock_skydb.NewMockDatabase(ctrl)
 		db.EXPECT().Save(gomock.Any()).Return(nil).AnyTimes()
-		db.EXPECT().UserRecordType().Return("user").AnyTimes()
-		db.EXPECT().GetSchema("user").Return(skydb.RecordSchema{
-			"username": skydb.FieldType{Type: skydb.TypeString},
-			"email":    skydb.FieldType{Type: skydb.TypeString},
-			"picture":  skydb.FieldType{Type: skydb.TypeAsset},
-		}, nil).AnyTimes()
 
 		tokenStore := authtokentest.SingleTokenStore{}
 		handler := &LoginHandler{
@@ -491,25 +485,13 @@ func TestLoginHandler(t *testing.T) {
 				"Tester",
 			}
 			conn.CreateAuth(&authinfo)
-			conn.AssetMap = map[string]skydb.Asset{
-				"asset-name": skydb.Asset{
-					Name:        "asset-name",
-					ContentType: "image/png",
-				},
-			}
 
 			db.EXPECT().
 				Query(gomock.Any(), gomock.Any()).
 				Do(MakeUsernameEmailQueryAssertion("john.doe", "")).
 				Return(skydb.NewRows(skydb.NewMemoryRows([]skydb.Record{skydb.Record{
-					ID: skydb.NewRecordID("user", authinfo.ID),
-					Data: map[string]interface{}{
-						"username": "john.doe",
-						"email":    "john.doe@example.com",
-						"picture": &skydb.Asset{
-							Name: "asset-name",
-						},
-					},
+					ID:   skydb.NewRecordID("user", authinfo.ID),
+					Data: map[string]interface{}{"username": "john.doe", "email": "john.doe@example.com"},
 				}})), nil).
 				AnyTimes()
 
@@ -533,10 +515,6 @@ func TestLoginHandler(t *testing.T) {
 			So(authResp.Profile.Data, ShouldResemble, skydb.Data{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
-				"picture": &skydb.Asset{
-					Name:        "asset-name",
-					ContentType: "image/png",
-				},
 			})
 			So(authResp.AccessToken, ShouldNotBeEmpty)
 			So(authResp.Roles, ShouldContain, "Programmer")

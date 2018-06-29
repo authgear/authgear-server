@@ -486,7 +486,7 @@ func (h *LoginHandler) handleLoginWithAuthData(payload *router.Payload, p *login
 		return skyerr.NewInvalidArgument("Unexpected key found", []string{"authdata"})
 	}
 
-	fetcher := newUserAuthFetcher(payload.Database, payload.DBConn, h.AssetStore)
+	fetcher := newUserAuthFetcher(payload.Database, payload.DBConn)
 	fetchedAuthInfo, fetchedUser, err := fetcher.FetchAuth(authdata)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
