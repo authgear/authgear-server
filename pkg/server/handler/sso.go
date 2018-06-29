@@ -168,6 +168,7 @@ func (h *LoginProviderHandler) Handle(payload *router.Payload, response *router.
 	authResponse, err := AuthResponseFactory{
 		AssetStore: h.AssetStore,
 		Conn:       payload.DBConn,
+		Database:   payload.Database,
 	}.NewAuthResponse(info, user, token.AccessToken, payload.HasMasterKey())
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
@@ -358,6 +359,7 @@ func (h *SignupProviderHandler) Handle(payload *router.Payload, response *router
 	authResponse, err := AuthResponseFactory{
 		AssetStore: h.AssetStore,
 		Conn:       payload.DBConn,
+		Database:   payload.Database,
 	}.NewAuthResponse(info, user, token.AccessToken, payload.HasMasterKey())
 	if err != nil {
 		response.Err = skyerr.MakeError(err)

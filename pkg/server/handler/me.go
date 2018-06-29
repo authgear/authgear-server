@@ -95,6 +95,7 @@ func (h *MeHandler) Handle(payload *router.Payload, response *router.Response) {
 	authResponse, err := AuthResponseFactory{
 		AssetStore: h.AssetStore,
 		Conn:       payload.DBConn,
+		Database:   payload.Database,
 	}.NewAuthResponse(*info, *user, token.AccessToken, payload.HasMasterKey())
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
