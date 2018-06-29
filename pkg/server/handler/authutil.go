@@ -38,14 +38,16 @@ const (
 // UserAuthFetcher provides helper functions to fetch AuthInfo and user Record
 // with AuthData in a single structs
 type UserAuthFetcher struct {
-	DBConn   skydb.Conn
-	Database skydb.Database
+	DBConn     skydb.Conn
+	Database   skydb.Database
+	AssetStore asset.Store
 }
 
-func newUserAuthFetcher(db skydb.Database, conn skydb.Conn) UserAuthFetcher {
+func newUserAuthFetcher(db skydb.Database, conn skydb.Conn, assetStore asset.Store) UserAuthFetcher {
 	return UserAuthFetcher{
-		DBConn:   conn,
-		Database: db,
+		DBConn:     conn,
+		Database:   db,
+		AssetStore: assetStore,
 	}
 }
 
@@ -94,6 +96,8 @@ func (f *UserAuthFetcher) FetchUser(authData skydb.AuthData) (user skydb.Record,
 	}
 
 	user = records[0]
+	recordutil.MakeAssetsCompleteAndInjectSigner(f.Database, f.DBConn, []*skydb.Record{&user}, f.AssetStore)
+
 	getAuthDataFromUser(authData, user)
 
 	return

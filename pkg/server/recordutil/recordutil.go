@@ -282,7 +282,7 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 		return nil
 	})
 
-	makeAssetsCompleteAndInjectSigner(db, req.Conn, records, req.AssetStore)
+	MakeAssetsCompleteAndInjectSigner(db, req.Conn, records, req.AssetStore)
 
 	// execute before save hooks
 	if req.HookRegistry != nil {
@@ -313,7 +313,7 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 		return skyerr.NewError(skyerr.UnexpectedError, "atomic operation failed")
 	}
 
-	makeAssetsCompleteAndInjectSigner(db, req.Conn, records, req.AssetStore)
+	MakeAssetsCompleteAndInjectSigner(db, req.Conn, records, req.AssetStore)
 
 	// execute after save hooks
 	if req.HookRegistry != nil {
@@ -702,7 +702,7 @@ func MakeAssetsComplete(db skydb.Database, conn skydb.Conn, records []skydb.Reco
 	return nil
 }
 
-func makeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, records []*skydb.Record, store asset.Store) error {
+func MakeAssetsCompleteAndInjectSigner(db skydb.Database, conn skydb.Conn, records []*skydb.Record, store asset.Store) error {
 	recordArr := []skydb.Record{}
 	for _, v := range records {
 		recordArr = append(recordArr, *v)
