@@ -123,6 +123,7 @@ type Context struct {
 	ProviderRegistry *provider.Registry
 	Scheduler        *cron.Cron
 	Config           skyconfig.Configuration
+	sync.Mutex
 }
 
 // AddPluginConfiguration creates and appends a plugin
@@ -285,6 +286,8 @@ func (p *Plugin) IsReady() bool {
 }
 
 func (p *Plugin) processRegistrationInfo(context *Context, regInfo registrationInfo) {
+	context.Lock()
+	defer context.Unlock()
 	log.WithFields(logrus.Fields{
 		"regInfo":   regInfo,
 		"transport": p.transport,
