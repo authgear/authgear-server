@@ -34,16 +34,16 @@ func (_m *MockURLSignerStore) EXPECT() *MockURLSignerStoreMockRecorder {
 }
 
 // GeneratePostFileRequest mocks base method
-func (_m *MockURLSignerStore) GeneratePostFileRequest(_param0 string) (*asset.PostFileRequest, error) {
-	ret := _m.ctrl.Call(_m, "GeneratePostFileRequest", _param0)
+func (_m *MockURLSignerStore) GeneratePostFileRequest(_param0 string, _param1 string, _param2 int64) (*asset.PostFileRequest, error) {
+	ret := _m.ctrl.Call(_m, "GeneratePostFileRequest", _param0, _param1, _param2)
 	ret0, _ := ret[0].(*asset.PostFileRequest)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GeneratePostFileRequest indicates an expected call of GeneratePostFileRequest
-func (_mr *MockURLSignerStoreMockRecorder) GeneratePostFileRequest(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GeneratePostFileRequest", reflect.TypeOf((*MockURLSignerStore)(nil).GeneratePostFileRequest), arg0)
+func (_mr *MockURLSignerStoreMockRecorder) GeneratePostFileRequest(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCallWithMethodType(_mr.mock, "GeneratePostFileRequest", reflect.TypeOf((*MockURLSignerStore)(nil).GeneratePostFileRequest), arg0, arg1, arg2)
 }
 
 // GetFileReader mocks base method

@@ -157,6 +157,10 @@ const (
 	// user is not verified.
 	VerificationRequired
 
+	// AssetSizeTooLarge is returned when size of asset to be uploaded is larger
+	// than limit
+	AssetSizeTooLarge
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )
