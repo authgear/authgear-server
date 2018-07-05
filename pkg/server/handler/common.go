@@ -40,8 +40,9 @@ type AuthResponse struct {
 }
 
 type AuthResponseFactory struct {
-	AssetStore asset.Store
 	Conn       skydb.Conn
+	Database   skydb.Database
+	AssetStore asset.Store
 }
 
 func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Record, accessToken string, hasMasterKey bool) (AuthResponse, error) {
@@ -49,6 +50,11 @@ func (f AuthResponseFactory) NewAuthResponse(info skydb.AuthInfo, user skydb.Rec
 	var lastLoginAt *time.Time
 
 	if user.ID.Type != "" {
+		err := recordutil.MakeAssetsComplete(f.Database, f.Conn, []skydb.Record{user})
+		if err != nil {
+			return AuthResponse{}, err
+		}
+
 		filter, err := recordutil.NewRecordResultFilter(f.Conn, f.AssetStore, &info, hasMasterKey)
 		if err != nil {
 			return AuthResponse{}, err

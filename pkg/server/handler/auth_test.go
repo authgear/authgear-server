@@ -1240,6 +1240,8 @@ func TestLogoutHandler(t *testing.T) {
 func TestChangePasswordHandlerWithProvider(t *testing.T) {
 	Convey("ChangePasswordHandler", t, func() {
 		conn := singleUserConn{}
+		db := skydbtest.NewMapDB()
+		txdb := skydbtest.NewMockTxDatabase(db)
 		authinfo := skydb.NewAuthInfo("chima")
 		authinfo.ID = "user-uuid"
 		conn.CreateAuth(&authinfo)
@@ -1264,6 +1266,7 @@ func TestChangePasswordHandlerWithProvider(t *testing.T) {
 				PwHousekeeper:   &housekeeper,
 			}, func(p *router.Payload) {
 				p.DBConn = &conn
+				p.Database = txdb
 				p.User = &user
 				p.AuthInfo = &authinfo
 			})
