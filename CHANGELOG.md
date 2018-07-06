@@ -1,3 +1,10 @@
+## 1.6.1 (2018-7-06)
+
+### Bug Fixes
+
+- Fix user profile's asset missing content type in auth api
+- Fix fatal error, concurrent map iteration and map write when init plugins
+
 ## 1.6.0 (2018-6-26)
 
 ### Features
