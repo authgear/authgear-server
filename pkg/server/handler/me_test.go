@@ -96,6 +96,8 @@ func TestMeHandler(t *testing.T) {
 							"profile": {
 								"_type": "record",
 								"_id": "user/tester-1",
+								"_recordType": "user",
+								"_recordID": "tester-1",
 								"_access": null,
 								"_created_at": "2006-01-02T14:04:05Z",
 								"_created_by": "tester-1",

@@ -154,28 +154,42 @@ type MapReference skydb.Reference
 
 // FromMap implements FromMapper
 func (ref *MapReference) FromMap(m map[string]interface{}) error {
-	idi, ok := m["$id"]
-	if !ok {
-		return errors.New("referencing without $id")
+	if recordType, ok := m["recordType"].(string); ok {
+		ref.ID.Type = recordType
 	}
-	id, ok := idi.(string)
-	if !ok {
-		return fmt.Errorf("got reference type($id) = %T, want string", idi)
-	}
-	ss := strings.SplitN(id, "/", 2)
-	if len(ss) == 1 {
-		return fmt.Errorf(`ref: "_id" should be of format '{type}/{id}', got %#v`, id)
+	if recordID, ok := m["recordID"].(string); ok {
+		ref.ID.Key = recordID
 	}
 
-	ref.ID.Type = ss[0]
-	ref.ID.Key = ss[1]
+	if ref.ID.Type == "" || ref.ID.Key == "" {
+		// NOTE(cheungpat): Handling for deprecated fields.
+		if deprecatedID, ok := m["$id"].(string); ok {
+			ss := strings.SplitN(deprecatedID, "/", 2)
+			if len(ss) == 1 {
+				return fmt.Errorf(`ref: "_id" should be of format '{type}/{id}', got %#v`, deprecatedID)
+			}
+			ref.ID.Type = ss[0]
+			ref.ID.Key = ss[1]
+		}
+	}
+
+	if ref.ID.Type == "" {
+		return errors.New("missing $recordType, expecting string")
+	}
+
+	if ref.ID.Key == "" {
+		return errors.New("missing $recordID, expecting string")
+	}
+
 	return nil
 }
 
 // ToMap implements ToMapper
 func (ref MapReference) ToMap(m map[string]interface{}) {
 	m["$type"] = "ref"
-	m["$id"] = ref.ID
+	m["$id"] = ref.ID // NOTE(cheungpat): Fields to be deprecated.
+	m["$recordID"] = ref.ID.Key
+	m["$recordType"] = ref.ID.Type
 }
 
 // MapLocation is skydb.Location that can be converted from and to a map.

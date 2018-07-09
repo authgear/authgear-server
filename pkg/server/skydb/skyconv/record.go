@@ -16,6 +16,7 @@ package skyconv
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -38,8 +39,11 @@ func (record *JSONRecord) ToMap(m map[string]interface{}) {
 		m[key] = ToLiteral(value)
 	}
 
-	m["_id"] = record.ID.String()
+	m["_id"] = record.ID.String() // NOTE(cheungpat): Fields to be deprecated.
 	m["_type"] = "record"
+
+	m["_recordID"] = record.ID.Key
+	m["_recordType"] = record.ID.Type
 	m["_access"] = record.ACL
 
 	if record.OwnerID != "" {
@@ -95,9 +99,31 @@ func (record *JSONRecord) FromMap(m map[string]interface{}) error {
 	)
 
 	extractor := newMapExtractor(m)
-	extractor.DoString("_id", func(s string) error {
-		return id.UnmarshalText([]byte(s))
-	}, true)
+	extractor.DoString("_recordID", func(s string) error {
+		id.Key = s
+		return nil
+	}, false)
+	extractor.DoString("_recordType", func(s string) error {
+		id.Type = s
+		return nil
+	}, false)
+	if id.Key == "" && id.Type == "" {
+		// NOTE(cheungpat): Handling for deprecated fields.
+		if _, ok := m["_id"]; ok {
+			extractor.DoString("_id", func(s string) error {
+				return id.UnmarshalText([]byte(s))
+			}, true)
+			if extractor.Err() != nil {
+				return extractor.Err()
+			}
+		}
+	}
+	if id.Type == "" {
+		return errors.New("missing _recordType, expecting string")
+	}
+	if id.Key == "" {
+		return errors.New("missing _recordID, expecting string")
+	}
 	extractor.DoString("_ownerID", func(s string) error {
 		ownerID = s
 		return nil
