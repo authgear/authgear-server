@@ -622,9 +622,11 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 }
 
 type recordDeletePayload struct {
-	RawIDs    []string `mapstructure:"ids"`
-	Atomic    bool     `mapstructure:"atomic"`
-	RecordIDs []skydb.RecordID
+	DeprecatedIDs   []string `mapstructure:"ids"`
+	RecordType      string   `mapstructure:"recordType"`
+	RecordIDs       []string `mapstructure:"recordIDs"`
+	Atomic          bool     `mapstructure:"atomic"`
+	parsedRecordIDs []skydb.RecordID
 }
 
 func (payload *recordDeletePayload) Decode(data map[string]interface{}) skyerr.Error {
@@ -635,33 +637,64 @@ func (payload *recordDeletePayload) Decode(data map[string]interface{}) skyerr.E
 }
 
 func (payload *recordDeletePayload) Validate() skyerr.Error {
-	if len(payload.RawIDs) == 0 {
-		return skyerr.NewInvalidArgument("expected list of id", []string{"ids"})
+	if payload.RecordType == "" {
+		// NOTE(cheungpat): Handling for deprecated fields.
+		if len(payload.DeprecatedIDs) == 0 {
+			return skyerr.NewInvalidArgument("expected list of id", []string{"ids"})
+		}
+
+		length := len(payload.DeprecatedIDs)
+		payload.parsedRecordIDs = make([]skydb.RecordID, length, length)
+		for i, rawID := range payload.DeprecatedIDs {
+			ss := strings.SplitN(rawID, "/", 2)
+			if len(ss) == 1 {
+				return skyerr.NewInvalidArgument(
+					`record: "_id" should be of format '{type}/{id}', got "`+rawID+`"`,
+					[]string{"ids"},
+				)
+			}
+
+			payload.parsedRecordIDs[i].Type = ss[0]
+			payload.parsedRecordIDs[i].Key = ss[1]
+		}
+		return nil
 	}
 
-	length := payload.ItemLen()
-	payload.RecordIDs = make([]skydb.RecordID, length, length)
-	for i, rawID := range payload.RawIDs {
-		ss := strings.SplitN(rawID, "/", 2)
-		if len(ss) == 1 {
+	if len(payload.RecordIDs) == 0 {
+		return skyerr.NewInvalidArgument("expected list of id", []string{"recordIDs"})
+	}
+
+	length := len(payload.RecordIDs)
+	payload.parsedRecordIDs = make([]skydb.RecordID, length, length)
+	for i, recordKey := range payload.RecordIDs {
+		if recordKey == "" {
 			return skyerr.NewInvalidArgument(
-				`record: "_id" should be of format '{type}/{id}', got "`+rawID+`"`,
+				`record: "recordID" should be non-empty`,
 				[]string{"ids"},
 			)
 		}
 
-		payload.RecordIDs[i].Type = ss[0]
-		payload.RecordIDs[i].Key = ss[1]
+		payload.parsedRecordIDs[i].Type = payload.RecordType
+		payload.parsedRecordIDs[i].Key = recordKey
 	}
-	return nil
-}
 
-func (payload *recordDeletePayload) ItemLen() int {
-	return len(payload.RawIDs)
+	return nil
 }
 
 /*
 RecordDeleteHandler is dummy implementation on delete Records
+curl -X POST -H "Content-Type: application/json" \
+  -d @- http://localhost:3000/ <<EOF
+{
+    "action": "record:delete",
+    "access_token": "validToken",
+    "database_id": "_private",
+    "recordType": "note",
+    "recordIDs": ["EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8"]
+}
+EOF
+
+Deprecated format:
 curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/ <<EOF
 {
@@ -716,7 +749,7 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		Db:                payload.Database,
 		Conn:              payload.DBConn,
 		HookRegistry:      h.HookRegistry,
-		RecordIDsToDelete: p.RecordIDs,
+		RecordIDsToDelete: p.parsedRecordIDs,
 		Atomic:            p.Atomic,
 		WithMasterKey:     payload.HasMasterKey(),
 		Context:           payload.Context(),
@@ -740,8 +773,8 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 		return
 	}
 
-	results := make([]interface{}, 0, p.ItemLen())
-	for _, recordID := range p.RecordIDs {
+	results := make([]interface{}, 0, len(p.parsedRecordIDs))
+	for _, recordID := range p.parsedRecordIDs {
 		var result interface{}
 
 		if err, ok := resp.ErrMap[recordID]; ok {

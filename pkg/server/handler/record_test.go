@@ -83,6 +83,19 @@ func TestRecordDeleteHandler(t *testing.T) {
 
 		Convey("deletes existing records", func() {
 			resp := router.POST(`{
+	"recordIDs": ["0", "1"],
+	"recordType": "note"
+}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+	"result": [
+		{"_id": "note/0","_recordType": "note","_recordID": "0", "_type": "record"},
+		{"_id": "note/1","_recordType": "note","_recordID": "1", "_type": "record"}
+	]
+}`)
+		})
+
+		Convey("DEPRECATED: deletes existing records with deprecated IDs", func() {
+			resp := router.POST(`{
 	"ids": ["note/0", "note/1"]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
@@ -95,7 +108,8 @@ func TestRecordDeleteHandler(t *testing.T) {
 
 		Convey("returns error when record doesn't exist", func() {
 			resp := router.POST(`{
-	"ids": ["note/0", "note/notexistid"]
+	"recordIDs": ["0", "notexistid"],
+	"recordType": "note"
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
@@ -108,7 +122,8 @@ func TestRecordDeleteHandler(t *testing.T) {
 
 		Convey("cannot delete user record", func() {
 			resp := router.POST(`{
-	"ids": ["user/0"]
+	"recordIDs": ["0"],
+	"recordType": "user"
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
@@ -120,7 +135,8 @@ func TestRecordDeleteHandler(t *testing.T) {
 
 		Convey("permission denied on delete a readonly record", func() {
 			resp := router.POST(`{
-				"ids": ["note/readonly"]
+				"recordIDs": ["readonly"],
+				"recordType": "note"
 			}}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
