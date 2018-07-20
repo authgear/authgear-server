@@ -621,11 +621,22 @@ func (h *RecordQueryHandler) Handle(payload *router.Payload, response *router.Re
 	}
 }
 
+type recordDeleteRecordPayload struct {
+	Type string `mapstructure:"_recordType"`
+	Key  string `mapstructure:"_recordID"`
+}
+
+func (p recordDeleteRecordPayload) RecordID() skydb.RecordID {
+	return skydb.RecordID{
+		Type: p.Type,
+		Key:  p.Key,
+	}
+}
+
 type recordDeletePayload struct {
-	DeprecatedIDs   []string `mapstructure:"ids"`
-	RecordType      string   `mapstructure:"recordType"`
-	RecordIDs       []string `mapstructure:"recordIDs"`
-	Atomic          bool     `mapstructure:"atomic"`
+	DeprecatedIDs   []string                    `mapstructure:"ids"`
+	RawRecords      []recordDeleteRecordPayload `mapstructure:"records"`
+	Atomic          bool                        `mapstructure:"atomic"`
 	parsedRecordIDs []skydb.RecordID
 }
 
@@ -637,12 +648,14 @@ func (payload *recordDeletePayload) Decode(data map[string]interface{}) skyerr.E
 }
 
 func (payload *recordDeletePayload) Validate() skyerr.Error {
-	if payload.RecordType == "" {
-		// NOTE(cheungpat): Handling for deprecated fields.
-		if len(payload.DeprecatedIDs) == 0 {
-			return skyerr.NewInvalidArgument("expected list of id", []string{"ids"})
+	if len(payload.RawRecords) > 0 {
+		length := len(payload.RawRecords)
+		payload.parsedRecordIDs = make([]skydb.RecordID, length, length)
+		for i, rawRecord := range payload.RawRecords {
+			payload.parsedRecordIDs[i] = rawRecord.RecordID()
 		}
-
+	} else if len(payload.DeprecatedIDs) > 0 {
+		// NOTE(cheungpat): Handling for deprecated fields.
 		length := len(payload.DeprecatedIDs)
 		payload.parsedRecordIDs = make([]skydb.RecordID, length, length)
 		for i, rawID := range payload.DeprecatedIDs {
@@ -658,24 +671,8 @@ func (payload *recordDeletePayload) Validate() skyerr.Error {
 			payload.parsedRecordIDs[i].Key = ss[1]
 		}
 		return nil
-	}
-
-	if len(payload.RecordIDs) == 0 {
-		return skyerr.NewInvalidArgument("expected list of id", []string{"recordIDs"})
-	}
-
-	length := len(payload.RecordIDs)
-	payload.parsedRecordIDs = make([]skydb.RecordID, length, length)
-	for i, recordKey := range payload.RecordIDs {
-		if recordKey == "" {
-			return skyerr.NewInvalidArgument(
-				`record: "recordID" should be non-empty`,
-				[]string{"ids"},
-			)
-		}
-
-		payload.parsedRecordIDs[i].Type = payload.RecordType
-		payload.parsedRecordIDs[i].Key = recordKey
+	} else {
+		return skyerr.NewInvalidArgument("expected list of records", []string{"records"})
 	}
 
 	return nil
@@ -689,8 +686,12 @@ curl -X POST -H "Content-Type: application/json" \
     "action": "record:delete",
     "access_token": "validToken",
     "database_id": "_private",
-    "recordType": "note",
-    "recordIDs": ["EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8"]
+    "records": [
+        {
+            "_recordType": "note",
+            "_recordID": "EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8"
+        }
+    ]
 }
 EOF
 

@@ -83,8 +83,10 @@ func TestRecordDeleteHandler(t *testing.T) {
 
 		Convey("deletes existing records", func() {
 			resp := router.POST(`{
-	"recordIDs": ["0", "1"],
-	"recordType": "note"
+	"records": [
+		{ "_recordType": "note", "_recordID": "0" },
+		{ "_recordType": "note", "_recordID": "1" }
+	]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
@@ -108,8 +110,10 @@ func TestRecordDeleteHandler(t *testing.T) {
 
 		Convey("returns error when record doesn't exist", func() {
 			resp := router.POST(`{
-	"recordIDs": ["0", "notexistid"],
-	"recordType": "note"
+	"records": [
+		{ "_recordType": "note", "_recordID": "0" },
+		{ "_recordType": "note", "_recordID": "notexistid" }
+	]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
@@ -122,8 +126,9 @@ func TestRecordDeleteHandler(t *testing.T) {
 
 		Convey("cannot delete user record", func() {
 			resp := router.POST(`{
-	"recordIDs": ["0"],
-	"recordType": "user"
+	"records": [
+		{ "_recordType": "user", "_recordID": "0" }
+	]
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
@@ -135,9 +140,10 @@ func TestRecordDeleteHandler(t *testing.T) {
 
 		Convey("permission denied on delete a readonly record", func() {
 			resp := router.POST(`{
-				"recordIDs": ["readonly"],
-				"recordType": "note"
-			}}`)
+				"records": [
+					{ "_recordType": "note", "_recordID": "readonly" }
+				]
+			}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/readonly",
