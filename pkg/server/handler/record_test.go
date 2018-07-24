@@ -87,8 +87,8 @@ func TestRecordDeleteHandler(t *testing.T) {
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
-		{"_id": "note/0", "_type": "record"},
-		{"_id": "note/1", "_type": "record"}
+		{"_id": "note/0","_recordType": "note","_recordID": "0", "_type": "record"},
+		{"_id": "note/1","_recordType": "note","_recordID": "1", "_type": "record"}
 	]
 }`)
 		})
@@ -99,8 +99,8 @@ func TestRecordDeleteHandler(t *testing.T) {
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
-		{"_id": "note/0", "_type": "record"},
-		{"_id": "note/notexistid", "_type": "error", "code": 110, "message": "record not found", "name": "ResourceNotFound"}
+		{"_id": "note/0","_recordType": "note","_recordID": "0", "_type": "record"},
+		{"_id": "note/notexistid","_recordType": "note","_recordID": "notexistid", "_type": "error", "code": 110, "message": "record not found", "name": "ResourceNotFound"}
 	]
 }`)
 
@@ -112,7 +112,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 }`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [
-		{"_id":"user/0","_type":"error","code":102,"message":"cannot delete user record","name":"PermissionDenied"}
+		{"_id":"user/0","_recordType":"user","_recordID":"0","_type":"error","code":102,"message":"cannot delete user record","name":"PermissionDenied"}
 	]
 }`)
 
@@ -125,6 +125,8 @@ func TestRecordDeleteHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/readonly",
+					"_recordType": "note",
+					"_recordID": "readonly",
 					"_type": "error",
 					"code":102,
 					"message": "no permission to perform operation",
@@ -205,7 +207,8 @@ func TestRecordSaveHandler(t *testing.T) {
 					"k1": "v1",
 					"k2": "v2"
 				}, {
-					"_id": "type2/id2",
+					"_recordType": "type2",
+					"_recordID": "id2",
 					"k3": "v3",
 					"k4": "v4"
 				}]
@@ -213,6 +216,8 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "type1/id1",
+					"_recordType": "type1",
+					"_recordID": "id1",
 					"_type": "record",
 					"_access": null,
 					"k1": "v1",
@@ -222,6 +227,8 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_ownerID": "user0"
 				}, {
 					"_id": "type2/id2",
+					"_recordType": "type2",
+					"_recordID": "id2",
 					"_type": "record",
 					"_access": null,
 					"k3": "v3",
@@ -236,7 +243,8 @@ func TestRecordSaveHandler(t *testing.T) {
 		Convey("Should not be able to create record when no permission", func() {
 			resp := r.POST(`{
 				"records": [{
-					"_id": "report/id1",
+					"_recordType": "report",
+					"_recordID": "id1",
 					"k1": "v1",
 					"k2": "v2"
 				}]
@@ -245,6 +253,8 @@ func TestRecordSaveHandler(t *testing.T) {
 				"result": [
 					{
 						"_id": "report/id1",
+						"_recordType": "report",
+						"_recordID": "id1",
 						"_type": "error",
 						"code": 102,
 						"message": "no permission to create",
@@ -257,7 +267,8 @@ func TestRecordSaveHandler(t *testing.T) {
 		Convey("Should be able to create record when have permission", func() {
 			resp := adminRouter.POST(`{
 				"records": [{
-					"_id": "report/id1",
+					"_recordType": "report",
+					"_recordID": "id1",
 					"k1": "v1",
 					"k2": "v2"
 				}]
@@ -266,6 +277,8 @@ func TestRecordSaveHandler(t *testing.T) {
 				"result": [
 					{
 						"_id": "report/id1",
+						"_recordType": "report",
+						"_recordID": "id1",
 						"_type": "record",
 						"_access": null,
 						"_created_by":"admin",
@@ -281,7 +294,8 @@ func TestRecordSaveHandler(t *testing.T) {
 		Convey("Removes reserved keys on save", func() {
 			resp := r.POST(`{
 				"records": [{
-					"_id": "type1/id1",
+					"_recordType": "type1",
+					"_recordID": "id1",
 					"floatkey": 1,
 					"_reserved_key": "reserved_value"
 				}]
@@ -289,6 +303,8 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "type1/id1",
+					"_recordType": "type1",
+					"_recordID": "id1",
 					"_type": "record",
 					"_access":null,
 					"floatkey": 1,
@@ -311,27 +327,81 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_type": "error",
 					"name": "InvalidArgument",
 					"code": 108,
-					"message": "missing required fields",
-					"info": {"arguments":["id"]}
+					"message": "missing _recordType, expecting string"
 				},{
 					"_type": "error",
 					"name": "InvalidArgument",
 					"code": 108,
-					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\"",
-					"info": {"arguments":["id"]}
-			}]}`)
+					"message": "invalid record id"
+				}]
+			}`)
+		})
+
+		Convey("Returns error if _recordType/recordID is missing or malformated", func() {
+			resp := r.POST(`{
+				"records": [{
+				}, {
+					"_recordType": "note"
+				}, {
+					"_recordID": "1234"
+				}, {
+					"_recordType": "note",
+					"_recordID": ""
+				}, {
+					"_recordType": "note",
+					"_recordID": 1234
+				}]
+			}`)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": [
+				{
+					"_type": "error",
+					"code": 108,
+					"message": "missing _recordType, expecting string",
+					"name": "InvalidArgument"
+				},
+				{
+					"_type": "error",
+					"code": 108,
+					"message": "missing _recordID, expecting string",
+					"name": "InvalidArgument"
+				},
+				{
+					"_type": "error",
+					"code": 108,
+					"message": "missing _recordType, expecting string",
+					"name": "InvalidArgument"
+				},
+				{
+					"_type": "error",
+					"code": 108,
+					"message": "missing _recordID, expecting string",
+					"name": "InvalidArgument"
+				},
+				{
+					"_type": "error",
+					"code": 108,
+					"message": "missing _recordType, expecting string",
+					"name": "InvalidArgument"
+				}
+				]
+			}`)
 		})
 
 		Convey("Permission denied on saving a read only record", func() {
 			resp := r.POST(`{
 				"records": [{
 					"_id": "note/readonly",
+					"_recordType": "note",
+					"_recordID": "readonly",
 					"content": "hello"
 				}]
 			}`)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/readonly",
+					"_recordType": "note",
+					"_recordID": "readonly",
 					"_type": "error",
 					"code": 102,
 					"message": "no permission to perform operation",
@@ -339,33 +409,11 @@ func TestRecordSaveHandler(t *testing.T) {
 				}]
 			}`)
 		})
-		Convey("REGRESSION #119: Returns record invalid error if _id is missing or malformated", func() {
-			resp := r.POST(`{
-				"records": [{
-				}, {
-					"_id": "invalidkey"
-				}]
-			}`)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": [{
-					"_type": "error",
-					"name": "InvalidArgument",
-					"code": 108,
-					"message": "missing required fields",
-					"info": {"arguments":["id"]}
-				},{
-					"_type": "error",
-					"name": "InvalidArgument",
-					"code": 108,
-					"message": "record: \"_id\" should be of format '{type}/{id}', got \"invalidkey\"",
-					"info": {"arguments":["id"]}
-			}]}`)
-		})
-
 		Convey("REGRESSION #140: Save record correctly when record._access is null", func() {
 			resp := r.POST(`{
 				"records": [{
-					"_id": "type/id",
+					"_recordType": "type",
+					"_recordID": "id",
 					"_access": null
 				}]
 			}`)
@@ -374,6 +422,8 @@ func TestRecordSaveHandler(t *testing.T) {
 				"result": [{
 					"_type": "record",
 					"_id": "type/id",
+					"_recordType": "type",
+					"_recordID": "id",
 					"_access": null,
 					"_created_by":"user0",
 					"_updated_by":"user0",
@@ -385,8 +435,8 @@ func TestRecordSaveHandler(t *testing.T) {
 		Convey("REGRESSION #333: Save record with empty key be ignored as start with _", func() {
 			resp := r.POST(`{
 				"records": [{
-					"_id": "type/id",
-					"": ""
+					"_recordType": "type",
+					"_recordID": "id"
 				}]
 			}`)
 
@@ -394,6 +444,8 @@ func TestRecordSaveHandler(t *testing.T) {
 				"result": [{
 					"_type": "record",
 					"_id": "type/id",
+					"_recordType": "type",
+					"_recordID": "id",
 					"_access": null,
 					"_created_by":"user0",
 					"_updated_by":"user0",
@@ -475,7 +527,8 @@ func TestRecordSaveHandler(t *testing.T) {
 		Convey("should not save to read only field", func() {
 			resp := r.POST(`{
 				"records": [{
-					"_id": "note/note0",
+					"_recordType": "note",
+					"_recordID": "note0",
 					"content": "Bye World!",
 					"favorite": false
 				}]
@@ -483,6 +536,8 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note0",
+					"_recordType": "note",
+					"_recordID": "note0",
 					"_type": "record",
 					"_access": null,
 					"content": "Hello World!",
@@ -500,7 +555,8 @@ func TestRecordSaveHandler(t *testing.T) {
 			resp := r.POST(`{
 				"api_key": "master",
 				"records": [{
-					"_id": "note/note0",
+					"_recordType": "note",
+					"_recordID": "note0",
 					"content": "Bye World!",
 					"favorite": false
 				}]
@@ -508,6 +564,8 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note0",
+					"_recordType": "note",
+					"_recordID": "note0",
 					"_type": "record",
 					"_access": null,
 					"content": "Bye World!",
@@ -526,7 +584,8 @@ func TestRecordSaveHandler(t *testing.T) {
 			resp := r.POST(`{
 				"atomic": true,
 				"records": [{
-					"_id": "note/note0",
+					"_recordType": "note",
+					"_recordID": "note0",
 					"content": "Bye World!",
 					"favorite": false
 				}]
@@ -554,7 +613,8 @@ func TestRecordSaveHandler(t *testing.T) {
 			resp := r.POST(`{
 				"atomic": true,
 				"records": [{
-					"_id": "note/note0",
+					"_recordType": "note",
+					"_recordID": "note0",
 					"content": "Hello World!",
 					"favorite": false
 				}]
@@ -562,6 +622,8 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note0",
+					"_recordType": "note",
+					"_recordID": "note0",
 					"_type": "record",
 					"_access": null,
 					"content": "Hello World!",
@@ -579,7 +641,8 @@ func TestRecordSaveHandler(t *testing.T) {
 			resp := r.POST(`{
 				"atomic": true,
 				"records": [{
-					"_id": "note/new-note",
+					"_recordType": "note",
+					"_recordID": "new-note",
 					"category": "nice",
 					"favorite": true
 				}]
@@ -588,6 +651,8 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/new-note",
+					"_recordType": "note",
+					"_recordID": "new-note",
 					"_type": "record",
 					"_access": null,
 					"favorite": true,
@@ -630,7 +695,8 @@ func TestRecordSaveDataType(t *testing.T) {
 		Convey("Parses date", func() {
 			resp := r.POST(`{
 	"records": [{
-		"_id": "type1/id1",
+		"_recordType": "type1",
+		"_recordID": "id1",
 		"date_value": {"$type": "date", "$date": "2015-04-10T17:35:20+08:00"}
 	}]
 }`)
@@ -638,6 +704,8 @@ func TestRecordSaveDataType(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"_id": "type1/id1",
+		"_recordType": "type1",
+		"_recordID": "id1",
 		"_type": "record",
 		"_access": null,
 		"date_value": {"$type": "date", "$date": "2015-04-10T09:35:20Z"},
@@ -663,7 +731,8 @@ func TestRecordSaveDataType(t *testing.T) {
 		Convey("Parses Asset", func() {
 			resp := r.POST(`{
 	"records": [{
-		"_id": "type1/id1",
+		"_recordType": "type1",
+		"_recordID": "id1",
 		"asset": {"$type": "asset", "$name": "asset-name", "$content_type":"plain/text"}
 	}]
 }`)
@@ -671,6 +740,8 @@ func TestRecordSaveDataType(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"_id": "type1/id1",
+		"_recordType": "type1",
+		"_recordID": "id1",
 		"_type": "record",
 		"_access": null,
 		"asset": {"$type": "asset", "$name": "asset-name", "$content_type":"plain/text"},
@@ -699,17 +770,20 @@ func TestRecordSaveDataType(t *testing.T) {
 		Convey("Parses Reference", func() {
 			resp := r.POST(`{
 	"records": [{
-		"_id": "type1/id1",
-		"ref": {"$type": "ref", "$id": "type2/id2"}
+		"_recordType": "type1",
+		"_recordID": "id1",
+		"ref": {"$id": "type2/id2", "$recordType": "type2", "$recordID": "id2", "$type": "ref"}
 	}]
 }`)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"_id": "type1/id1",
+		"_recordType": "type1",
+		"_recordID": "id1",
 		"_type": "record",
 		"_access": null,
-		"ref": {"$type": "ref", "$id": "type2/id2"},
+		"ref": {"$id": "type2/id2","$recordType": "type2","$recordID": "id2", "$type": "ref"},
 		"_created_by":"user0",
 		"_updated_by":"user0",
 		"_ownerID": "user0"
@@ -732,7 +806,8 @@ func TestRecordSaveDataType(t *testing.T) {
 		Convey("Parses Location", func() {
 			resp := r.POST(`{
 	"records": [{
-		"_id": "type1/id1",
+		"_recordType": "type1",
+		"_recordID": "id1",
 		"geo": {"$type": "geo", "$lng": 1, "$lat": 2}
 	}]
 }`)
@@ -740,6 +815,8 @@ func TestRecordSaveDataType(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 	"result": [{
 		"_id": "type1/id1",
+		"_recordType": "type1",
+		"_recordID": "id1",
 		"_type": "record",
 		"_access": null,
 		"geo": {"$type": "geo", "$lng": 1, "$lat": 2},
@@ -850,7 +927,8 @@ func TestRecordSaveBogusField(t *testing.T) {
 
 			resp := r.POST(`{
 				"records": [{
-					"_id": "record/id",
+					"_recordType": "record",
+					"_recordID": "id",
 					"seq": {"$type": "seq"}
 				}]
 			}`)
@@ -858,6 +936,8 @@ func TestRecordSaveBogusField(t *testing.T) {
 			So(resp.Body.String(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "record/id",
+					"_recordType": "record",
+					"_recordID": "id",
 					"_type": "record",
 					"_access": null,
 					"seq": 1,
@@ -896,13 +976,16 @@ func TestRecordSaveBogusField(t *testing.T) {
 
 			resp := r.POST(`{
 				"records": [{
-					"_id": "record/id"
+					"_recordType": "record",
+					"_recordID": "id"
 				}]
 			}`)
 
 			So(resp.Body.String(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "record/id",
+					"_recordType": "record",
+					"_recordID": "id",
 					"_type": "record",
 					"_access": null,
 					"seq": 2,
@@ -941,7 +1024,8 @@ func TestRecordSaveNoExtendIfRecordMalformed(t *testing.T) {
 			r.POST(`{
 				"records": [{
 				}, {
-					"_id": "invalidkey"
+					"_recordType": "",
+					"_recordID": "invalidkey",
 				}]
 			}`)
 			So(noExtendDB.calledExtend, ShouldBeFalse)
@@ -1035,16 +1119,22 @@ func TestRecordQueryResults(t *testing.T) {
 				"result": [{
 					"_type": "record",
 					"_id": "note/1",
+					"_recordType": "note",
+					"_recordID": "1",
 					"_access": null
 				},
 				{
 					"_type": "record",
 					"_id": "note/0",
+					"_recordType": "note",
+					"_recordID": "0",
 					"_access": null
 				},
 				{
 					"_type": "record",
 					"_id": "note/2",
+					"_recordType": "note",
+					"_recordID": "2",
 					"_access": null
 				}]
 			}`)
@@ -1812,6 +1902,8 @@ func TestRecordFetchHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note0",
+					"_recordType": "note",
+					"_recordID": "note0",
 					"_type": "record",
 					"_access": null,
 					"content": "Hello World!",
@@ -1830,6 +1922,8 @@ func TestRecordFetchHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note0",
+					"_recordType": "note",
+					"_recordID": "note0",
 					"_type": "record",
 					"_access": null,
 					"content": "Hello World!",
@@ -1877,6 +1971,8 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "type/id",
+					"_recordType": "type",
+					"_recordID": "id",
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID"
@@ -1887,13 +1983,16 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 		Convey("saved record serializes owner id correctly", func() {
 			resp := handlertest.NewSingleRouteRouter(&RecordSaveHandler{}, injectDBFunc).POST(`{
 				"records": [{
-					"_id": "type/id"
+					"_recordType": "type",
+					"_recordID": "id"
 				}]
 			}`)
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "type/id",
+					"_recordType": "type",
+					"_recordID": "id",
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID"
@@ -1909,6 +2008,8 @@ func TestRecordOwnerIDSerialization(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "type/id",
+					"_recordType": "type",
+					"_recordID": "id",
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID"
@@ -1939,12 +2040,15 @@ func TestRecordMetaData(t *testing.T) {
 		Convey("on a newly created record", func() {
 			req := r.POST(`{
 				"records": [{
-					"_id": "record/id"
+					"_recordType": "record",
+					"_recordID": "id"
 				}]
 			}`)
 			So(req.Body.String(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "record/id",
+					"_recordType": "record",
+					"_recordID": "id",
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "requestUserID",
@@ -1979,12 +2083,15 @@ func TestRecordMetaData(t *testing.T) {
 
 			req := r.POST(`{
 				"records": [{
-					"_id": "record/id"
+					"_recordType": "record",
+					"_recordID": "id"
 				}]
 			}`)
 			So(req.Body.String(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "record/id",
+					"_recordType": "record",
+					"_recordID": "id",
 					"_type": "record",
 					"_access": null,
 					"_created_at": "2006-01-02T15:04:04Z",
@@ -2061,6 +2168,8 @@ func TestRecordAssetSerialization(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "record/id",
+					"_recordType": "record",
+					"_recordID": "id",
 					"_type": "record",
 					"_access": null,
 					"asset": {
@@ -2105,6 +2214,8 @@ func TestRecordAssetSerialization(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "record/id",
+					"_recordType": "record",
+					"_recordID": "id",
 					"_type": "record",
 					"_access": null,
 					"asset": {
@@ -2298,14 +2409,16 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note1",
+					"_recordType": "note",
+					"_recordID": "note1",
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID",
-					"category": {"$id":"category/important","$type":"ref"},
-					"city": {"$id":"city/beautiful","$type":"ref"},
-					"secret":{"$id":"secret/secretID","$type":"ref"},
+					"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
 					"_transient": {
-						"category": {"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID", "title": "This is important."}
+						"category": {"_access":null,"_id":"category/important","_recordType":"category","_recordID":"important","_type":"record","_ownerID":"ownerID", "title": "This is important."}
 					}
 				}]
 			}`)
@@ -2323,15 +2436,17 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note1",
+					"_recordType": "note",
+					"_recordID": "note1",
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID",
-					"category": {"$id":"category/important","$type":"ref"},
-					"city": {"$id":"city/beautiful","$type":"ref"},
-					"secret":{"$id":"secret/secretID","$type":"ref"},
+					"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
 					"_transient": {
-						"category": {"_access":null,"_id":"category/important","_type":"record","_ownerID":"ownerID", "title": "This is important."},
-						"city": {"_access":null,"_id":"city/beautiful","_type":"record","_ownerID":"ownerID", "name": "This is beautiful."}
+						"category": {"_access":null,"_id":"category/important","_recordType":"category","_recordID":"important","_type":"record","_ownerID":"ownerID", "title": "This is important."},
+						"city": {"_access":null,"_id":"city/beautiful","_recordType":"city","_recordID":"beautiful","_type":"record","_ownerID":"ownerID", "name": "This is beautiful."}
 					}
 				}]
 			}`)
@@ -2346,14 +2461,16 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note1",
+					"_recordType": "note",
+					"_recordID": "note1",
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID",
-					"category": {"$id":"category/important","$type":"ref"},
-					"city": {"$id":"city/beautiful","$type":"ref"},
-					"secret":{"$id":"secret/secretID","$type":"ref"},
+					"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
 					"_transient": {
-						"user": {"_access":null,"_id":"user/ownerID","_type":"record","_ownerID":"ownerID", "name": "Owner"}
+						"user": {"_access":null,"_id":"user/ownerID","_recordType":"user","_recordID":"ownerID","_type":"record","_ownerID":"ownerID", "name": "Owner"}
 					}
 				}]
 			}`)
@@ -2376,12 +2493,14 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note1",
+					"_recordType": "note",
+					"_recordID": "note1",
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID",
-					"category": {"$id":"category/important","$type":"ref"},
-					"city": {"$id":"city/beautiful","$type":"ref"},
-					"secret":{"$id":"secret/secretID","$type":"ref"},
+					"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
 					"_transient": {"secret":null}
 				}]
 			}`)
@@ -2404,14 +2523,16 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note1",
+					"_recordType": "note",
+					"_recordID": "note1",
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID",
-					"category": {"$id":"category/important","$type":"ref"},
-					"city": {"$id":"city/beautiful","$type":"ref"},
-					"secret":{"$id":"secret/secretID","$type":"ref"},
+					"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+					"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
+					"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
 					"_transient": {
-						"secret": {"_access":[{"level":"write","relation":"$direct","user_id":"ownerID"}],"_id":"secret/secretID","_type":"record","_ownerID":"ownerID", "content": "Secret of the note"}
+						"secret": {"_access":[{"level":"write","relation":"$direct","user_id":"ownerID"}],"_id":"secret/secretID","_recordType":"secret","_recordID":"secretID","_type":"record","_ownerID":"ownerID", "content": "Secret of the note"}
 					}
 				}]
 			}`)
@@ -2460,10 +2581,12 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_id": "note/note1",
+					"_recordType": "note",
+					"_recordID": "note1",
 					"_type": "record",
 					"_access": null,
 					"_ownerID": "ownerID",
-					"category": {"$id":"category/important","$type":"ref"},
+					"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
 					"city": null,
 					"_transient": {
 						"city": null
@@ -2511,16 +2634,22 @@ func TestRecordQueryWithCount(t *testing.T) {
 				"result": [{
 					"_type": "record",
 					"_id": "note/1",
+					"_recordType": "note",
+					"_recordID": "1",
 					"_access": null
 				},
 				{
 					"_type": "record",
 					"_id": "note/0",
+					"_recordType": "note",
+					"_recordID": "0",
 					"_access": null
 				},
 				{
 					"_type": "record",
 					"_id": "note/2",
+					"_recordType": "note",
+					"_recordID": "2",
 					"_access": null
 				}
 				]
@@ -2573,7 +2702,7 @@ func TestHookExecution(t *testing.T) {
 				},
 				hook.BeforeSave,
 				hook.AfterSave,
-				`{"records": [{"_id": "record/id"}]}`,
+				`{"records": [{"_recordType": "record", "_recordID": "id"}]}`,
 			},
 			{
 				"Delete",
@@ -2654,7 +2783,8 @@ func TestHookExecution(t *testing.T) {
 			})
 			r.POST(`{
 				"records": [{
-					"_id": "record/id"
+					"_recordType": "record",
+					"_recordID": "id",
 				}]
 			}`)
 
@@ -2692,7 +2822,8 @@ func TestHookExecution(t *testing.T) {
 
 			r.POST(`{
 				"records": [{
-					"_id": "record/id",
+					"_recordType": "record",
+					"_recordID": "id",
 					"new": true
 				}]
 			}`)
@@ -2717,7 +2848,8 @@ func TestHookExecution(t *testing.T) {
 
 			r.POST(`{
 				"records": [{
-					"_id": "record/id",
+					"_recordType": "record",
+					"_recordID": "id",
 					"new": true
 				}]
 			}`)
@@ -2763,7 +2895,8 @@ func TestHookExecution(t *testing.T) {
 
 			resp := r.POST(`{
 				"records": [{
-					"_id": "record/id",
+					"_recordType": "record",
+					"_recordID": "id",
 					"asset": {"$type": "asset", "$name": "asset-name", "$content_type":"plain/text"}
 				}]
 			}`)
@@ -2773,6 +2906,8 @@ func TestHookExecution(t *testing.T) {
 						"_access": null,
 						"_created_by": "user0",
 						"_id": "record/id",
+						"_recordType": "record",
+						"_recordID": "id",
 						"_ownerID": "user0",
 						"_type": "record",
 						"_updated_by": "user0",
@@ -2882,15 +3017,18 @@ func TestAtomicOperation(t *testing.T) {
 
 				resp := r.POST(`{
 					"records": [{
-						"_id": "note/0",
+						"_recordType": "note",
+						"_recordID": "0",
 						"_type": "record"
 					},
 					{
-						"_id": "note/1",
+						"_recordType": "note",
+						"_recordID": "1",
 						"_type": "record"
 					},
 					{
-						"_id": "note/2",
+						"_recordType": "note",
+						"_recordID": "2",
 						"_type": "record"
 					}],
 					"atomic": true
@@ -2923,11 +3061,13 @@ func TestAtomicOperation(t *testing.T) {
 
 				resp := r.POST(`{
 					"records": [{
-						"_id": "note/0",
+						"_recordType": "note",
+						"_recordID": "0",
 						"_type": "record"
 					},
 					{
-						"_id": "note/1",
+						"_recordType": "note",
+						"_recordID": "1",
 						"_type": "record"
 					}],
 					"atomic": true
@@ -2936,6 +3076,8 @@ func TestAtomicOperation(t *testing.T) {
 				So(resp.Body.String(), ShouldEqualJSON, `{
 					"result": [{
 							"_id": "note/0",
+							"_recordType": "note",
+							"_recordID": "0",
 							"_type": "record",
 							"_access": null,
 							"_created_by":"user0",
@@ -2943,6 +3085,8 @@ func TestAtomicOperation(t *testing.T) {
 							"_ownerID": "user0"
 						}, {
 							"_id": "note/1",
+							"_recordType": "note",
+							"_recordID": "1",
 							"_type": "record",
 							"_access": null,
 							"_created_by":"user0",
@@ -2981,11 +3125,12 @@ func TestAtomicOperation(t *testing.T) {
 
 				resp := r.POST(`{
 					"records": [{
-						"_id": "note0",
+						"_recordType": "note0","_id": "note0",
 						"_type": "record"
 					},
 					{
-						"_id": "note/1",
+						"_recordType": "note",
+						"_recordID": "1",
 						"_access": "note/1"
 					}],
 					"atomic": true
@@ -2998,13 +3143,11 @@ func TestAtomicOperation(t *testing.T) {
 							"arguments": "records",
 							"errors": [{
 								"code": 108,
-								"info": {"arguments":["id"]},
-								"message": "record: \"_id\" should be of format '{type}/{id}', got \"note0\"",
+								"message": "missing _recordID, expecting string",
 								"name": "InvalidArgument"
 							}, {
 								"code": 108,
-								"info": {"arguments":["_access"]},
-								"message": "_access must be an array",
+								"message": "key _access is of type string, not []map[string]interface{}",
 								"name": "InvalidArgument"
 							}]
 						},
@@ -3090,9 +3233,9 @@ func TestAtomicOperation(t *testing.T) {
 
 				So(resp.Body.String(), ShouldEqualJSON, `{
 					"result": [
-						{"_type": "record", "_id": "note/0"},
-						{"_type": "record", "_id": "note/1"},
-						{"_type": "record", "_id": "note/2"}
+						{"_type": "record", "_id": "note/0", "_recordType": "note", "_recordID": "0"},
+						{"_type": "record", "_id": "note/1", "_recordType": "note", "_recordID": "1"},
+						{"_type": "record", "_id": "note/2", "_recordType": "note", "_recordID": "2"}
 					]
 				}`)
 

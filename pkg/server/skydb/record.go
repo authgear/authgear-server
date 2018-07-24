@@ -347,6 +347,18 @@ func (r *Record) MergedCopy(merge *Record) Record {
 	return dst
 }
 
+// SanitizeForInput removes server side data from a record. These data
+// can be generated from the server side and does not depend on user input.
+func (r *Record) SanitizeForInput() {
+	r.DatabaseID = ""
+	r.OwnerID = ""
+	r.CreatedAt = time.Time{}
+	r.CreatorID = ""
+	r.UpdatedAt = time.Time{}
+	r.UpdaterID = ""
+	r.Transient = nil
+}
+
 // Index indicates the value of fields within a record type cannot be duplicated
 type Index struct {
 	Fields []string

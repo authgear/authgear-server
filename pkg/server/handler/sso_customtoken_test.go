@@ -101,6 +101,8 @@ func TestSSOCustomTokenLoginHandler(t *testing.T) {
 							"_created_at": "2006-01-02T15:04:05Z",
 							"_created_by": "%v",
 							"_id": "user/%v",
+							"_recordType": "user",
+							"_recordID": "%v",
 							"_ownerID": "%v",
 							"_type": "record",
 							"_updated_at": "2006-01-02T15:04:05Z",
@@ -115,6 +117,7 @@ func TestSSOCustomTokenLoginHandler(t *testing.T) {
 					}
 				}`,
 				token.AccessToken,
+				newAuthInfo.ID,
 				newAuthInfo.ID,
 				newAuthInfo.ID,
 				newAuthInfo.ID,

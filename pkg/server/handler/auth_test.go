@@ -786,6 +786,8 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 						"profile": {
 							"_type": "record",
 							"_id": "user/%v",
+							"_recordType": "user",
+							"_recordID": "%v",
 							"_created_by": "%v",
 							"_ownerID": "%v",
 							"_updated_by": "%v",
@@ -802,6 +804,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 						"last_seen_at": "2006-01-02T14:04:05Z"
 					}
 				}`,
+				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
@@ -845,6 +848,8 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 						"profile": {
 							"_type": "record",
 							"_id": "user/%v",
+							"_recordType": "user",
+							"_recordID": "%v",
 							"_created_by": "%v",
 							"_ownerID": "%v",
 							"_updated_by": "%v",
@@ -855,6 +860,7 @@ func TestLoginHandlerWithProvider(t *testing.T) {
 						"access_token": "%v"
 					}
 				}`,
+				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
@@ -967,6 +973,8 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 						"profile": {
 							"_type": "record",
 							"_id": "user/%v",
+							"_recordType": "user",
+							"_recordID": "%v",
 							"_created_by": "%v",
 							"_ownerID": "%v",
 							"_updated_by": "%v",
@@ -977,6 +985,7 @@ func TestSignupHandlerAsAnonymous(t *testing.T) {
 						"access_token": "%v"
 					}
 				}`,
+				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
@@ -1092,6 +1101,8 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 						"profile": {
 							"_type": "record",
 							"_id": "user/%v",
+							"_recordType": "user",
+							"_recordID": "%v",
 							"_created_by": "%v",
 							"_ownerID": "%v",
 							"_updated_by": "%v",
@@ -1102,6 +1113,7 @@ func TestSignupHandlerWithProvider(t *testing.T) {
 						"access_token": "%v"
 					}
 				}`,
+				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
@@ -1286,6 +1298,8 @@ func TestChangePasswordHandlerWithProvider(t *testing.T) {
 						"profile": {
 							"_type": "record",
 							"_id": "user/tester-1",
+							"_recordType": "user",
+							"_recordID": "tester-1",
 							"_access": null,
 							"email": "tester1@example.com",
 							"username": "tester1"
@@ -1411,6 +1425,8 @@ func TestResetPasswordHandler(t *testing.T) {
 						"profile": {
 							"_type": "record",
 							"_id": "user/userid",
+							"_recordType": "user",
+							"_recordID": "userid",
 							"_access": null,
 							"email": "tester1@example.com",
 							"username": "tester1"

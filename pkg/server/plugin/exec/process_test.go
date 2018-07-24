@@ -250,6 +250,8 @@ func TestRun(t *testing.T) {
 				So(in, ShouldEqualJSON, `{
 					"record": {
 						"_id": "note/id",
+						"_recordType": "note",
+						"_recordID": "id",
 						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"content": "some note content",
@@ -261,7 +263,9 @@ func TestRun(t *testing.T) {
 						},
 						"ref": {
 							"$type": "ref",
-							"$id": "category/1"
+							"$id": "category/1",
+							"$recordType": "category",
+							"$recordID": "1"
 						},
 						"asset": {
 							"$type": "asset",
@@ -282,6 +286,8 @@ func TestRun(t *testing.T) {
 					},
 					"original": {
 						"_id": "note/id",
+						"_recordType": "note",
+						"_recordID": "id",
 						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"content": "original content",
@@ -305,6 +311,8 @@ func TestRun(t *testing.T) {
 				return []byte(`{
 					"result": {
 						"_id": "note/id",
+						"_recordType": "note",
+						"_recordID": "id",
 						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"content": "content has been modified",
@@ -316,7 +324,9 @@ func TestRun(t *testing.T) {
 						},
 						"ref": {
 							"$type": "ref",
-							"$id": "category/1"
+							"$id": "category/1",
+							"$recordType": "category",
+							"$recordID": "1"
 						},
 						"asset": {
 							"$type": "asset",
@@ -399,6 +409,8 @@ func TestRun(t *testing.T) {
 				So(in, ShouldEqualJSON, `{
 					"record": {
 						"_id": "note/id",
+						"_recordType": "note",
+						"_recordID": "id",
 						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"content": "some note content",
@@ -410,7 +422,9 @@ func TestRun(t *testing.T) {
 						},
 						"ref": {
 							"$type": "ref",
-							"$id": "category/1"
+							"$id": "category/1",
+							"$recordType": "category",
+							"$recordID": "1"
 						},
 						"asset": {
 							"$type": "asset",
@@ -435,6 +449,8 @@ func TestRun(t *testing.T) {
 				return []byte(`{
 					"result": {
 						"_id": "note/id",
+						"_recordType": "note",
+						"_recordID": "id",
 						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"content": "content has been modified",
@@ -446,7 +462,9 @@ func TestRun(t *testing.T) {
 						},
 						"ref": {
 							"$type": "ref",
-							"$id": "category/1"
+							"$id": "category/1",
+							"$recordType": "category",
+							"$recordID": "1"
 						},
 						"asset":{
 							"$type": "asset",
@@ -537,6 +555,8 @@ func TestRun(t *testing.T) {
 				So(string(in), ShouldEqualJSON, `{
 					"record": {
 						"_id": "note/id",
+						"_recordType": "note",
+						"_recordID": "id",
 						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"_ownerID": "john.doe@example.com",
@@ -551,6 +571,8 @@ func TestRun(t *testing.T) {
 				return []byte(`{
 					"result": {
 						"_id": "note/id",
+						"_recordType": "note",
+						"_recordID": "id",
 						"_ownerID": "john.doe@example.com",
 						"_access": null
 					}
@@ -578,6 +600,8 @@ func TestRun(t *testing.T) {
 				So(string(in), ShouldEqualJSON, `{
 					"record": {
 						"_id": "note/id",
+						"_recordType": "note",
+						"_recordID": "id",
 						"_type": "record",
 						"_ownerID": "john.doe@example.com",
 						"_access": null
@@ -587,6 +611,8 @@ func TestRun(t *testing.T) {
 				return []byte(`{
 					"result": {
 						"_id": "note/id",
+						"_recordType": "note",
+						"_recordID": "id",
 						"_ownerID": "john.doe@example.com",
 						"_access": null
 					}

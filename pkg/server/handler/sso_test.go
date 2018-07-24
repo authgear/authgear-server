@@ -132,6 +132,8 @@ func TestLoginProviderHandler(t *testing.T) {
 						"profile": {
 							"_type": "record",
 							"_id": "user/%v",
+							"_recordType": "user",
+							"_recordID": "%v",
 							"_created_by": "%v",
 							"_ownerID": "%v",
 							"_updated_by": "%v",
@@ -148,6 +150,7 @@ func TestLoginProviderHandler(t *testing.T) {
 						"last_seen_at": "2006-01-02T14:04:05Z"
 					}
 				}`,
+				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
 				authinfo.ID,
@@ -216,6 +219,8 @@ func TestSignupProviderHandler(t *testing.T) {
 									"_created_at": "2006-01-02T15:04:05Z",
 									"_created_by": "%v",
 									"_id": "user/%v",
+									"_recordType": "user",
+									"_recordID": "%v",
 									"_ownerID": "%v",
 									"_type": "record",
 									"_updated_at": "2006-01-02T15:04:05Z",
@@ -230,6 +235,7 @@ func TestSignupProviderHandler(t *testing.T) {
 					}
 				}`,
 				token.AccessToken,
+				newAuthInfo.ID,
 				newAuthInfo.ID,
 				newAuthInfo.ID,
 				newAuthInfo.ID,

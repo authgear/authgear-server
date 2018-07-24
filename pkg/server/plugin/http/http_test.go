@@ -180,6 +180,8 @@ func TestRun(t *testing.T) {
 						"param":{
 							"record": {
 								"_id": "note/id",
+								"_recordType": "note",
+								"_recordID": "id",
 								"_type": "record",
 								"_ownerID": "john.doe@example.com",
 								"content": "some note content",
@@ -191,7 +193,9 @@ func TestRun(t *testing.T) {
 								},
 								"ref": {
 									"$type": "ref",
-									"$id": "category/1"
+									"$id": "category/1",
+									"$recordType": "category",
+									"$recordID": "1"
 								},
 								"asset":{
 									"$type": "asset",
@@ -209,6 +213,8 @@ func TestRun(t *testing.T) {
 							},
 							"original": {
 								"_id": "note/id",
+								"_recordType": "note",
+								"_recordID": "id",
 								"_type": "record",
 								"_ownerID": "john.doe@example.com",
 								"content": "original content",
@@ -233,6 +239,8 @@ func TestRun(t *testing.T) {
 					return httpmock.NewStringResponse(200, `{
 						"result": {
 							"_id": "note/id",
+							"_recordType": "note",
+							"_recordID": "id",
 							"_type": "record",
 							"_ownerID": "john.doe@example.com",
 							"content": "content has been modified",
@@ -244,7 +252,9 @@ func TestRun(t *testing.T) {
 							},
 							"ref": {
 								"$type": "ref",
-								"$id": "category/1"
+								"$id": "category/1",
+								"$recordType": "category",
+								"$recordID": "1"
 							},
 							"asset":{
 								"$type": "asset",

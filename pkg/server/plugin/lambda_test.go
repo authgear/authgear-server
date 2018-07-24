@@ -250,22 +250,24 @@ func TestLambdaHandler(t *testing.T) {
 		})
 
 		Convey("should pass minimal record content", func(c C) {
-			recordID := "note/73ce6795-7304-476b-943e-aa33da076c31"
-			minimalRecordPayload := fmt.Sprintf(`{
+			minimalRecordPayload := `{
 				"$type": "record",
 				"$record": {
-					"_id": "%s"
+					"_recordType": "note",
+					"_recordID": "73ce6795-7304-476b-943e-aa33da076c31"
 				}
-			}`, recordID)
+			}`
 
-			fullRecordPayload := fmt.Sprintf(`{
+			fullRecordPayload := `{
 				"$type": "record",
 				"$record": {
-					"_id": "%s",
+					"_id": "note/73ce6795-7304-476b-943e-aa33da076c31",
+					"_recordType": "note",
+					"_recordID": "73ce6795-7304-476b-943e-aa33da076c31",
 					"_access": null,
 					"_type": "record"
 				}
-			}`, recordID)
+			}`
 
 			transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Do(
 				func(ctx context.Context, name string, in []byte) {
@@ -279,28 +281,30 @@ func TestLambdaHandler(t *testing.T) {
 		})
 
 		Convey("should pass record content", func(c C) {
-			recordID := "note/73ce6795-7304-476b-943e-aa33da076c31"
-			assetName := "73ce6795-7304-476b-943e-aa33da076c31"
-			inputRecordPayload := fmt.Sprintf(`{
+			inputRecordPayload := `{
 				"$type": "record",
 				"$record": {
-					"_id": "%s",
+					"_id": "note/73ce6795-7304-476b-943e-aa33da076c31",
+					"_recordType": "note",
+					"_recordID": "73ce6795-7304-476b-943e-aa33da076c31",
 					"_ownerID": "john.doe@example.com",
 					"_created_at": "2017-07-23T19:30:24Z",
 					"_created_by": "john.doe@example.com",
 					"_updated_at": "2017-07-23T19:30:24Z",
 					"_updated_by": "john.doe@example.com",
 					"_access": [{"relation": "friend", "level": "write"}],
-					"asset": {"$type": "asset", "$name": "%s"},
+					"asset": {"$type": "asset", "$name": "73ce6795-7304-476b-943e-aa33da076c31"},
 					"_transient": {
-						"asset": {"$type": "asset", "$name": "%s"}
+						"asset": {"$type": "asset", "$name": "73ce6795-7304-476b-943e-aa33da076c31"}
 					}
 				}
-			}`, recordID, assetName, assetName)
-			outputRecordPayload := fmt.Sprintf(`{
+			}`
+			outputRecordPayload := `{
 				"$type": "record",
 				"$record": {
-					"_id": "%s",
+					"_id": "note/73ce6795-7304-476b-943e-aa33da076c31",
+					"_recordType": "note",
+					"_recordID": "73ce6795-7304-476b-943e-aa33da076c31",
 					"_type": "record",
 					"_ownerID": "john.doe@example.com",
 					"_created_at": "2017-07-23T19:30:24Z",
@@ -308,19 +312,29 @@ func TestLambdaHandler(t *testing.T) {
 					"_updated_at": "2017-07-23T19:30:24Z",
 					"_updated_by": "john.doe@example.com",
 					"_access": [{"relation": "friend", "level": "write"}],
-					"asset": {"$content_type":"text/plain","$name":"%s","$type":"asset","$url":"signed-url"},
+					"asset": {
+						"$content_type": "text/plain",
+						"$name": "73ce6795-7304-476b-943e-aa33da076c31",
+						"$type": "asset", 
+						"$url": "signed-url"
+					},
 					"_transient": {
-						"asset": {"$content_type":"text/plain","$name":"%s","$type":"asset","$url":"signed-url"}
+						"asset": {
+							"$content_type": "text/plain",
+							"$name": "73ce6795-7304-476b-943e-aa33da076c31",
+							"$type": "asset",
+							"$url": "signed-url"
+						}
 					}
 				}
-			}`, recordID, assetName, assetName)
+			}`
 
-			conn.AssetMap[assetName] = skydb.Asset{
-				Name:        assetName,
+			conn.AssetMap["73ce6795-7304-476b-943e-aa33da076c31"] = skydb.Asset{
+				Name:        "73ce6795-7304-476b-943e-aa33da076c31",
 				ContentType: "text/plain",
 				Size:        12,
 			}
-			store.EXPECT().SignedURL(assetName).Return("signed-url", nil).Times(4)
+			store.EXPECT().SignedURL("73ce6795-7304-476b-943e-aa33da076c31").Return("signed-url", nil).Times(4)
 
 			transport.EXPECT().RunLambda(gomock.Any(), "hello:world", gomock.Any()).Do(
 				func(ctx context.Context, name string, in []byte) {

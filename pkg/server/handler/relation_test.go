@@ -141,6 +141,8 @@ func TestRelationHandler(t *testing.T) {
         "type": "user",
         "data": {
             "_id": "user/some-friend",
+            "_recordType": "user",
+            "_recordID": "some-friend",
             "_type": "record",
             "_access": null,
             "username": "testRelationConn"
@@ -222,6 +224,8 @@ func TestRelationHandler(t *testing.T) {
         "type": "user",
         "data":{
             "_id": "user/101",
+            "_recordType": "user",
+            "_recordID": "101",
             "_type": "record",
             "_access": null,
             "email": "user101@skygear.io",
@@ -310,6 +314,8 @@ func TestRelationHandler(t *testing.T) {
         "type": "user",
         "data":{
             "_id": "user/101",
+            "_recordType": "user",
+            "_recordID": "101",
             "_type": "record",
             "_access": null,
             "email": "user101@skygear.io",
@@ -352,6 +358,8 @@ func TestRelationHandler(t *testing.T) {
         "type": "user",
         "data":{
             "_id": "user/102",
+            "_recordType": "user",
+            "_recordID": "102",
             "_type": "record",
             "_access": null,
             "email": "user102@skygear.io",

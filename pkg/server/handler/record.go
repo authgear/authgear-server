@@ -69,6 +69,12 @@ func (s serializedError) MarshalJSON() ([]byte, error) {
 	}
 	if s.id != "" {
 		m["_id"] = s.id
+
+		ss := strings.SplitN(s.id, "/", 2)
+		if len(ss) == 2 {
+			m["_recordType"] = ss[0]
+			m["_recordID"] = ss[1]
+		}
 	}
 	if s.err.Info() != nil {
 		m["info"] = s.err.Info()
@@ -101,14 +107,6 @@ type recordSavePayload struct {
 	Clean bool
 }
 
-func (payload *recordSavePayload) purgeReservedKey(m map[string]interface{}) {
-	for key := range m {
-		if key == "" || key[0] == '_' {
-			delete(m, key)
-		}
-	}
-}
-
 func (payload *recordSavePayload) ItemLen() int {
 	return len(payload.RawMaps)
 }
@@ -131,66 +129,17 @@ func (payload *recordSavePayload) Validate() skyerr.Error {
 	payload.Records = []*skydb.Record{}
 	for _, recordMap := range payload.RawMaps {
 		var record skydb.Record
-		if err := payload.InitRecord(recordMap, &record); err != nil {
+		if err := (*skyconv.JSONRecord)(&record).FromMap(recordMap); err != nil {
 			payload.Clean = false
-			payload.Errs = append(payload.Errs, err)
-			payload.IncomingItems = append(payload.IncomingItems, err)
+			skyErr := skyerr.NewError(skyerr.InvalidArgument, err.Error())
+			payload.Errs = append(payload.Errs, skyErr)
+			payload.IncomingItems = append(payload.IncomingItems, skyErr)
 		} else {
+			record.SanitizeForInput()
 			payload.IncomingItems = append(payload.IncomingItems, record.ID)
 			payload.Records = append(payload.Records, &record)
 		}
 	}
-
-	return nil
-}
-
-// InitRecord is duplicated of skyconv.record FromMap FIXME
-func (payload *recordSavePayload) InitRecord(m map[string]interface{}, r *skydb.Record) skyerr.Error {
-	rawID, ok := m["_id"].(string)
-	if !ok {
-		return skyerr.NewInvalidArgument("missing required fields", []string{"id"})
-	}
-
-	ss := strings.SplitN(rawID, "/", 2)
-	if len(ss) == 1 {
-		return skyerr.NewInvalidArgument(
-			`record: "_id" should be of format '{type}/{id}', got "`+rawID+`"`,
-			[]string{"id"},
-		)
-	}
-
-	recordType, id := ss[0], ss[1]
-
-	r.ID.Key = id
-	r.ID.Type = recordType
-
-	aclData, ok := m["_access"]
-	if ok && aclData != nil {
-		aclSlice, ok := aclData.([]interface{})
-		if !ok {
-			return skyerr.NewInvalidArgument("_access must be an array", []string{"_access"})
-		}
-		acl := skydb.RecordACL{}
-		for _, v := range aclSlice {
-			ace := skydb.RecordACLEntry{}
-			typed, ok := v.(map[string]interface{})
-			if !ok {
-				return skyerr.NewInvalidArgument("invalid _access entry", []string{"_access"})
-			}
-			if err := (*skyconv.MapACLEntry)(&ace).FromMap(typed); err != nil {
-				return skyerr.NewInvalidArgument("invalid _access entry", []string{"_access"})
-			}
-			acl = append(acl, ace)
-		}
-		r.ACL = acl
-	}
-
-	payload.purgeReservedKey(m)
-	data := map[string]interface{}{}
-	if err := (*skyconv.MapData)(&data).FromMap(m); err != nil {
-		return skyerr.NewError(skyerr.InvalidArgument, err.Error())
-	}
-	r.Data = data
 
 	return nil
 }
@@ -806,9 +755,11 @@ func (h *RecordDeleteHandler) Handle(payload *router.Payload, response *router.R
 			)
 		} else {
 			result = struct {
-				ID   skydb.RecordID `json:"_id"`
-				Type string         `json:"_type"`
-			}{recordID, "record"}
+				ID         skydb.RecordID `json:"_id"`
+				RecordKey  string         `json:"_recordID"`
+				RecordType string         `json:"_recordType"`
+				Type       string         `json:"_type"`
+			}{recordID, recordID.Key, recordID.Type, "record"}
 		}
 
 		results = append(results, result)
