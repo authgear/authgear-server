@@ -4,7 +4,7 @@
 # file for local development--create `docker-compose.override.yml` to override
 # settings here.
 
-version: '2'
+version: '2.3'
 
 services:
   db:
