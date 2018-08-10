@@ -29,11 +29,58 @@ type PostFileRequest struct {
 	ExtraFields map[string]interface{} `json:"extra-fields,omitempty"`
 }
 
+// FileRange models a byte range of a file
+type FileRange struct {
+	From int64
+	To   int64
+}
+
+// FileRangedGetResult models the result of getting a ranged file
+type FileRangedGetResult struct {
+	ReadCloser    io.ReadCloser
+	AcceptedRange FileRange
+	TotalSize     int64
+}
+
+// FileGetter defines the interface of a getter for files
+type FileGetter interface {
+	GetFileReader(name string) (io.ReadCloser, error)
+}
+
+// FileRangedGetter defines the interface of a getter for files supportting
+// getting file within a byte range
+type FileRangedGetter interface {
+	GetRangedFileReader(
+		name string,
+		fileRange FileRange,
+	) (*FileRangedGetResult, error)
+}
+
+// FilePutter defines the interface of a putter for files
+type FilePutter interface {
+	PutFileReader(
+		name string,
+		src io.Reader,
+		length int64,
+		contentType string,
+	) error
+}
+
+// FilePostRequestGenerator defines the interface of a generator
+// for post file request
+type FilePostRequestGenerator interface {
+	GeneratePostFileRequest(
+		name string,
+		contentType string,
+		length int64,
+	) (*PostFileRequest, error)
+}
+
 // Store specify the interfaces of an asset store
 type Store interface {
-	GetFileReader(name string) (io.ReadCloser, error)
-	PutFileReader(name string, src io.Reader, length int64, contentType string) error
-	GeneratePostFileRequest(name string, contentType string, length int64) (*PostFileRequest, error)
+	FileGetter
+	FilePutter
+	FilePostRequestGenerator
 }
 
 // URLSigner signs a signature and returns a URL accessible to that asset.
