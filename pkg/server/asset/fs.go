@@ -49,6 +49,49 @@ func (s *fileStore) GetFileReader(name string) (io.ReadCloser, error) {
 	return os.Open(path)
 }
 
+// GetRangedFileReader returns a reader for reading files within
+// the specified byte range
+func (s *fileStore) GetRangedFileReader(name string, fileRange FileRange) (
+	*FileRangedGetResult,
+	error,
+) {
+	path := filepath.Join(s.dir, name)
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	fileStat, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	fileSize := fileStat.Size()
+	if fileRange.From >= fileSize {
+		return nil, FileRangeNotAcceptedError{fileRange}
+	}
+
+	if _, err = file.Seek(fileRange.From, 0); err != nil {
+		return nil, err
+	}
+
+	acceptedRange := FileRange{
+		From: fileRange.From,
+		To:   fileRange.To,
+	}
+
+	if acceptedRange.To > fileSize-1 {
+		acceptedRange.To = fileSize - 1
+	}
+
+	return &FileRangedGetResult{
+		ReadCloser:    file,
+		AcceptedRange: acceptedRange,
+		TotalSize:     fileSize,
+	}, nil
+}
+
 // PutFileReader stores a file from reader onto file system
 func (s *fileStore) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
 	path := filepath.Join(s.dir, name)

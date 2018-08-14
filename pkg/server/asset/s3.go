@@ -16,7 +16,9 @@ package asset
 
 import (
 	"errors"
+	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
@@ -78,6 +80,39 @@ func (s *s3Store) GetFileReader(name string) (io.ReadCloser, error) {
 	}
 	objOutput, err := s.svc.GetObject(input)
 	return objOutput.Body, err
+}
+
+func (s *s3Store) GetRangedFileReader(
+	name string,
+	fileRange FileRange,
+) (*FileRangedGetResult, error) {
+	key := aws.String(name)
+	rangeHeader := fmt.Sprintf("bytes=%d-%d", fileRange.From, fileRange.To)
+	input := &s3.GetObjectInput{
+		Bucket: s.bucket,
+		Key:    key,
+		Range:  &rangeHeader,
+	}
+
+	output, err := s.svc.GetObject(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output.ContentRange == nil {
+		return nil, errors.New("missing content ranges header")
+	}
+
+	acceptedRange, totalSize, err := parseContentRange(*output.ContentRange)
+	if err != nil {
+		return nil, err
+	}
+
+	return &FileRangedGetResult{
+		ReadCloser:    output.Body,
+		AcceptedRange: acceptedRange,
+		TotalSize:     totalSize,
+	}, nil
 }
 
 // PutFileReader uploads a file to s3 with content from io.Reader
@@ -145,4 +180,43 @@ func (s *s3Store) ParseSignature(
 	return false, errors.New(
 		"Asset signature parsing for s3-based asset store is not available",
 	)
+}
+
+// parseContentRange parses the content range string
+// in the format of something like `bytes 123-567/1024`
+//
+func parseContentRange(contentRangeString string) (FileRange, int64, error) {
+	splits := strings.SplitN(contentRangeString, " ", 2)
+	if len(splits) != 2 {
+		return FileRange{}, 0, errors.New("content range is malformed")
+	}
+
+	if strings.ToLower(splits[0]) != "bytes" {
+		return FileRange{}, 0, errors.New(
+			"only support content range in unit of bytes",
+		)
+	}
+
+	compSplits := strings.SplitN(splits[1], "/", 2)
+	if len(compSplits) != 2 {
+		return FileRange{}, 0, errors.New("content range is malformed")
+	}
+
+	rangeSplits := strings.SplitN(compSplits[0], "-", 2)
+	if len(rangeSplits) != 2 {
+		return FileRange{}, 0, errors.New("content range is malformed")
+	}
+
+	rangeFrom, err1 := strconv.ParseInt(rangeSplits[0], 10, 64)
+	rangeTo, err2 := strconv.ParseInt(rangeSplits[1], 10, 64)
+	totalSize, err3 := strconv.ParseInt(compSplits[1], 10, 64)
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		return FileRange{}, 0, errors.New("content range is malformed")
+	}
+
+	return FileRange{
+		From: rangeFrom,
+		To:   rangeTo,
+	}, totalSize, nil
 }

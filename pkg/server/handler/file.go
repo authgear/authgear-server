@@ -16,6 +16,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -69,6 +70,39 @@ func validateAssetGetRequest(assetStore skyAsset.Store, fileName string, expired
 	return nil
 }
 
+func parseRangeHeader(rangeHeader string) (skyAsset.FileRange, error) {
+	splits := strings.SplitN(rangeHeader, "=", 2)
+	if len(splits) != 2 {
+		return skyAsset.FileRange{}, errors.New("range header is malformed")
+	}
+
+	if strings.ToLower(splits[0]) != "bytes" {
+		return skyAsset.FileRange{}, errors.New(
+			"only support range in unit of bytes",
+		)
+	}
+
+	rangeSplits := strings.SplitN(splits[1], "-", 2)
+	if len(rangeSplits) != 2 {
+		return skyAsset.FileRange{}, errors.New("the byte range is malformed")
+	}
+
+	rangeFrom, err1 := strconv.ParseInt(rangeSplits[0], 10, 64)
+	rangeTo, err2 := strconv.ParseInt(rangeSplits[1], 10, 64)
+	if err1 != nil || err2 != nil {
+		return skyAsset.FileRange{}, errors.New("the byte range is malformed")
+	}
+
+	if rangeTo < rangeFrom {
+		rangeTo = rangeFrom
+	}
+
+	return skyAsset.FileRange{
+		From: rangeFrom,
+		To:   rangeTo,
+	}, nil
+}
+
 // GetFileHandler models the handler for getting asset file
 type GetFileHandler struct {
 	AssetStore    skyAsset.Store   `inject:"AssetStore"`
@@ -111,16 +145,97 @@ func (h *GetFileHandler) Handle(payload *router.Payload, response *router.Respon
 	}
 
 	// everything's right, proceed with the request
-
-	conn := payload.DBConn
-	asset := skydb.Asset{}
-	if err := conn.GetAsset(fileName, &asset); err != nil {
+	asset := &skydb.Asset{}
+	if err := payload.DBConn.GetAsset(fileName, asset); err != nil {
 		logger.WithError(err).Errorf("Failed to get asset")
 
 		response.Err = skyerr.NewResourceFetchFailureErr("asset", fileName)
 		return
 	}
 
+	rangeHeader := payload.Req.Header.Get("Range")
+	if rangeHeader != "" {
+		byteRange, err := parseRangeHeader(payload.Req.Header.Get("Range"))
+		if err == nil {
+			h.handlePartialRangedRequest(asset, byteRange, payload, response, logger)
+			return
+		}
+
+		logger.WithError(err).Error("Error in parsing range header")
+	}
+
+	h.handleFullRangedRequest(asset, payload, response, logger)
+}
+
+func (h *GetFileHandler) handlePartialRangedRequest(
+	asset *skydb.Asset,
+	byteRange skyAsset.FileRange,
+	payload *router.Payload,
+	response *router.Response,
+	logger *logrus.Entry,
+) {
+	store := h.AssetStore
+	fileName := asset.Name
+
+	fileRangedGetter, supported := store.(skyAsset.FileRangedGetter)
+	if !supported {
+		response.Err = skyerr.NewError(
+			skyerr.NotSupported,
+			"Getting asset with a byte range is supported",
+		)
+		return
+	}
+
+	writer := response.Writer()
+	result, err := fileRangedGetter.GetRangedFileReader(fileName, byteRange)
+	if err != nil {
+		notAcceptedError, isNotAccepted := err.(skyAsset.FileRangeNotAcceptedError)
+		if isNotAccepted {
+			writer.Header().Set("Content-Type", "text/plain")
+			writer.Header().Set("Content-Length", "0")
+			writer.WriteHeader(http.StatusRequestedRangeNotSatisfiable)
+
+			writer.Write([]byte(notAcceptedError.Error()))
+
+			return
+		}
+
+		logger.WithError(err).Error("Error when getting ranged file reader")
+		response.Err = skyerr.NewResourceFetchFailureErr("asset", fileName)
+		return
+	}
+
+	readCloser := result.ReadCloser
+	defer readCloser.Close()
+
+	contentLength := result.AcceptedRange.To - result.AcceptedRange.From + 1
+	contentRange := fmt.Sprintf(
+		"bytes %d-%d/%d",
+		result.AcceptedRange.From,
+		result.AcceptedRange.To,
+		result.TotalSize,
+	)
+
+	writer.Header().Set("Content-Type", asset.ContentType)
+	writer.Header().Set("Content-Range", contentRange)
+	writer.Header().Set("Content-Length", strconv.FormatInt(contentLength, 10))
+	writer.WriteHeader(http.StatusPartialContent)
+
+	if _, err := io.CopyN(writer, readCloser, contentLength); err != nil {
+		// there is nothing we can do if error occurred after started
+		// writing a response. Log.
+		logger.WithError(err).Errorf("Error writing file to response")
+	}
+}
+
+func (h *GetFileHandler) handleFullRangedRequest(
+	asset *skydb.Asset,
+	payload *router.Payload,
+	response *router.Response,
+	logger *logrus.Entry,
+) {
+	store := h.AssetStore
+	fileName := asset.Name
 	reader, err := store.GetFileReader(fileName)
 	if err != nil {
 		logger.WithError(err).Errorf("Failed to get file reader")

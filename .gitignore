@@ -3,6 +3,7 @@
 /dist
 data
 .env
+skygear-server
 
 # golang
 vendor
