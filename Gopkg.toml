@@ -28,10 +28,6 @@ required = [
 ]
 
 [[constraint]]
-  name = "github.com/SkygearIO/buford"
-  revision = "3b55ce646fcee15aeaff656fad74506459dfa8f6"
-
-[[constraint]]
   name = "github.com/aws/aws-sdk-go"
   version = "~1.10.50"
 
@@ -106,6 +102,10 @@ required = [
 [[constraint]]
   name = "github.com/sirupsen/logrus"
   version = "1.0.1"
+
+[[constraint]]
+  name = "github.com/skygeario/buford"
+  revision = "3b55ce646fcee15aeaff656fad74506459dfa8f6"
 
 [[constraint]]
   name = "github.com/smartystreets/goconvey"

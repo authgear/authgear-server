@@ -3,7 +3,7 @@
 
 [[projects]]
   digest = "1:1fd88d3ff234e279084ffffc82ef09f1e22e94a26d9046d1ffaeae797e3d38c8"
-  name = "github.com/SkygearIO/buford"
+  name = "github.com/skygeario/buford"
   packages = ["push"]
   pruneopts = ""
   revision = "3b55ce646fcee15aeaff656fad74506459dfa8f6"
@@ -489,7 +489,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/SkygearIO/buford/push",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/session",
@@ -520,6 +519,7 @@
     "github.com/rifflock/lfshook",
     "github.com/robfig/cron",
     "github.com/sirupsen/logrus",
+    "github.com/skygeario/buford/push",
     "github.com/skygeario/go-baidupush",
     "github.com/smartystreets/goconvey/convey",
     "github.com/twinj/uuid",

@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/SkygearIO/buford/push"
+	"github.com/skygeario/buford/push"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	. "github.com/smartystreets/goconvey/convey"
 )

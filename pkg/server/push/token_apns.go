@@ -25,9 +25,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SkygearIO/buford/push"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/buford/push"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 

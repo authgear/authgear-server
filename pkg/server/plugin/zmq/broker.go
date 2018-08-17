@@ -135,7 +135,7 @@ func requestToChannelKey(requestID string, bounceCount int) string {
 // 1. Shutdown signal, which signifies a normal termination of worker to provide
 //    a fast path of worker removal
 // 2. Extra frames for bidirectional and multiplexing, see below
-//    Related issue: https://github.com/SkygearIO/skygear-server/issues/295
+//    Related issue: https://github.com/skygeario/skygear-server/issues/295
 //
 // TODO: channeler can be separated into a separate struct, communiate with
 // broker using frontend chan, workers and pull/push sock address.
