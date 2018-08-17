@@ -181,7 +181,12 @@ func (s cloudStore) GeneratePostFileRequest(name string, contentType string, len
 		Info("Start generate post file request for Cloud Asset")
 
 	urlString := strings.Join(
-		[]string{s.host, "asset", s.appName, name},
+		[]string{
+			s.host,
+			"asset",
+			url.PathEscape(s.appName),
+			url.PathEscape(name),
+		},
 		"/",
 	)
 
