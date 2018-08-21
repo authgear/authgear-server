@@ -200,12 +200,12 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 			defer publicStore.signer.refreshTicker.Stop()
 
 			time.Sleep(100 * time.Millisecond)
-			signedURL, err := publicStore.SignedURL("file001")
+			signedURL, err := publicStore.SignedURL("file:%251")
 			So(err, ShouldBeNil)
 			So(
 				signedURL,
 				ShouldEqual,
-				"http://localhost:12345/public/testapp/file001",
+				"http://localhost:12345/public/testapp/file:%25251",
 			)
 		})
 
@@ -222,14 +222,14 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 			defer publicStore.signer.refreshTicker.Stop()
 
 			time.Sleep(100 * time.Millisecond)
-			signedURL, err := publicStore.SignedURL("file001")
+			signedURL, err := publicStore.SignedURL("file:%251")
 			So(err, ShouldBeNil)
 
 			parsed, err := url.Parse(signedURL)
 			So(err, ShouldBeNil)
 			So(parsed, ShouldNotBeNil)
 			So(parsed.Host, ShouldEqual, "localhost:12345")
-			So(parsed.Path, ShouldEqual, "/private/testapp/file001")
+			So(parsed.Path, ShouldEqual, "/private/testapp/file:%251")
 
 			expiredAtString := parsed.Query().Get("expired_at")
 			So(expiredAtString, ShouldNotBeEmpty)
