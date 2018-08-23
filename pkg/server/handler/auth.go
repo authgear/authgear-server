@@ -633,6 +633,7 @@ type ChangePasswordHandler struct {
 	PwHousekeeper   *audit.PwHousekeeper   `inject:"PwHousekeeper"`
 	Authenticator   router.Processor       `preprocessor:"authenticator"`
 	DBConn          router.Processor       `preprocessor:"dbconn"`
+	InjectPublicDB  router.Processor       `preprocessor:"inject_public_db"`
 	InjectAuth      router.Processor       `preprocessor:"require_auth_skip_pwexpiry"`
 	InjectUser      router.Processor       `preprocessor:"require_user"`
 	PluginReady     router.Processor       `preprocessor:"plugin_ready"`
@@ -643,6 +644,7 @@ func (h *ChangePasswordHandler) Setup() {
 	h.preprocessors = []router.Processor{
 		h.Authenticator,
 		h.DBConn,
+		h.InjectPublicDB,
 		h.InjectAuth,
 		h.InjectUser,
 		h.PluginReady,
@@ -674,6 +676,7 @@ func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router
 	if payload.User != nil {
 		userData = map[string]interface{}(payload.User.Data)
 	}
+
 	skyErr = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
 		AuthID:        info.ID,
 		PlainPassword: p.NewPassword,
@@ -716,6 +719,7 @@ func (h *ChangePasswordHandler) Handle(payload *router.Payload, response *router
 		Conn:       payload.DBConn,
 		Database:   payload.Database,
 	}.NewAuthResponse(*info, *user, token.AccessToken, payload.HasMasterKey())
+
 	if err != nil {
 		response.Err = skyerr.MakeError(err)
 		return
