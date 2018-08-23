@@ -111,7 +111,11 @@ func (s *cloudStore) refreshSignerToken() {
 	log.Info("Start refresh Cloud Asset Signer Token")
 
 	urlString := strings.Join(
-		[]string{s.host, "token", s.appName},
+		[]string{
+			s.host,
+			"token",
+			url.PathEscape(s.appName),
+		},
 		"/",
 	)
 	expiredAt := time.Now().
@@ -181,7 +185,12 @@ func (s cloudStore) GeneratePostFileRequest(name string, contentType string, len
 		Info("Start generate post file request for Cloud Asset")
 
 	urlString := strings.Join(
-		[]string{s.host, "asset", s.appName, name},
+		[]string{
+			s.host,
+			"asset",
+			url.PathEscape(s.appName),
+			url.PathEscape(name),
+		},
 		"/",
 	)
 
@@ -237,7 +246,11 @@ func (s cloudStore) GeneratePostFileRequest(name string, contentType string, len
 // SignedURL return a signed URL with expiry date
 func (s cloudStore) SignedURL(name string) (string, error) {
 	targetURLString := strings.Join(
-		[]string{s.urlPrefix, s.appName, name},
+		[]string{
+			s.urlPrefix,
+			url.PathEscape(s.appName),
+			url.PathEscape(name),
+		},
 		"/",
 	)
 
