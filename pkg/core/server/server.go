@@ -47,21 +47,20 @@ func (s *Server) SetDBProvider(dbProvider db.DBProvider) {
 }
 
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
-func (s *Server) Handle(path string, hf handler.HandlerFactory) *mux.Route {
+func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 	return s.router.NewRoute().Path(path).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		// mock tenant configuration
 		configuration := config.TenantConfiguration{
 			DBConnectionStr: "public",
 		}
 
-		h := hf.NewHandler()
+		h := hf.NewHandler(configuration)
 
 		s.injectDependency(&h, configuration)
 
 		h.Handle(handler.Context{
-			ResponseWriter:      rw,
-			Request:             r,
-			TenantConfiguration: configuration,
+			ResponseWriter: rw,
+			Request:        r,
 		})
 	}))
 }

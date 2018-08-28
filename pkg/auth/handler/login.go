@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
 
 type LoginHandlerFactory struct{}
 
-func (f LoginHandlerFactory) NewHandler() handler.Handler {
+func (f LoginHandlerFactory) NewHandler(tenantConfig config.TenantConfiguration) handler.Handler {
 	return &LoginHandler{}
 }
 

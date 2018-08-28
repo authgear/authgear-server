@@ -1,5 +1,9 @@
 package handler
 
-type HandlerFactory interface {
-	NewHandler() Handler
+import (
+	"github.com/skygeario/skygear-server/pkg/core/config"
+)
+
+type Factory interface {
+	NewHandler(config.TenantConfiguration) Handler
 }
