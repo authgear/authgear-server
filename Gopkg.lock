@@ -2,13 +2,6 @@
 
 
 [[projects]]
-  digest = "1:1fd88d3ff234e279084ffffc82ef09f1e22e94a26d9046d1ffaeae797e3d38c8"
-  name = "github.com/skygeario/buford"
-  packages = ["push"]
-  pruneopts = ""
-  revision = "3b55ce646fcee15aeaff656fad74506459dfa8f6"
-
-[[projects]]
   digest = "1:261d95f4464744d542759a7a33846f56f24113f5a93c7577f4cd7044f7cb3d76"
   name = "github.com/aws/aws-sdk-go"
   packages = [
@@ -157,6 +150,22 @@
   packages = ["js"]
   pruneopts = ""
   revision = "444abdf920945de5d4a977b572bcc6c674d1e4eb"
+
+[[projects]]
+  digest = "1:dbbeb8ddb0be949954c8157ee8439c2adfd8dc1c9510eb44a6e58cb68c3dce28"
+  name = "github.com/gorilla/context"
+  packages = ["."]
+  pruneopts = ""
+  revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:c2c8666b4836c81a1d247bdf21c6a6fc1ab586538ab56f74437c2e0df5c375e1"
+  name = "github.com/gorilla/mux"
+  packages = ["."]
+  pruneopts = ""
+  revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
+  version = "v1.6.2"
 
 [[projects]]
   digest = "1:d9f29de6a1b882486d72b6071d49314432aeb31c7518a8b96c59668d4e4c4ebf"
@@ -373,6 +382,13 @@
   version = "v1.0.3"
 
 [[projects]]
+  digest = "1:1fd88d3ff234e279084ffffc82ef09f1e22e94a26d9046d1ffaeae797e3d38c8"
+  name = "github.com/skygeario/buford"
+  packages = ["push"]
+  pruneopts = ""
+  revision = "3b55ce646fcee15aeaff656fad74506459dfa8f6"
+
+[[projects]]
   digest = "1:8b88f62afde63c92df385482d05002bf265266caa8e64791d8a7699ccb4be454"
   name = "github.com/skygeario/go-baidupush"
   packages = ["."]
@@ -504,6 +520,7 @@
     "github.com/golang/mock/gomock",
     "github.com/golang/mock/mockgen",
     "github.com/google/go-gcm",
+    "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
     "github.com/jarcoal/httpmock",
     "github.com/jmoiron/sqlx",
