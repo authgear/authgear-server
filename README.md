@@ -8,6 +8,28 @@ Next is the V2 of Skygear that aim to follow
   developer.
 - Drop zmq and model against HTTP semantics.
 
+## Project structure
+
+```
+.
+├── pkg
+│   ├── server    <-- original skygear-server code
+│   ├── auth
+│   ├── record
+│   ├── gateway
+│   └── core
+│
+└── cmd
+    ├── auth
+    │   └── main.go
+    │
+    ├── record
+    │   └── main.go
+    │
+    └── gateway
+        └── main.go
+```
+
 ## License & Copyright
 
 ```
