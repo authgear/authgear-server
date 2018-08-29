@@ -7,7 +7,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
 
@@ -16,15 +15,15 @@ type Server struct {
 	*http.Server
 
 	router          *mux.Router
-	dependencyGraph dependencyGraph
+	dependencyGraph DependencyGraph
 }
 
-type dependencyGraph struct {
-	dbProvider *db.DBProvider
+type DependencyGraph interface {
+	Provide(name string, configuration config.TenantConfiguration) interface{}
 }
 
 // NewServer create a new Server
-func NewServer(addr string) Server {
+func NewServer(addr string, dependencyGraph DependencyGraph) Server {
 	router := mux.NewRouter()
 
 	srv := &http.Server{
@@ -36,14 +35,10 @@ func NewServer(addr string) Server {
 	}
 
 	return Server{
-		router: router,
-		Server: srv,
+		router:          router,
+		Server:          srv,
+		dependencyGraph: dependencyGraph,
 	}
-}
-
-// SetDBProvider set a DB provider implementation to dependency graph
-func (s *Server) SetDBProvider(dbProvider db.DBProvider) {
-	s.dependencyGraph.dbProvider = &dbProvider
 }
 
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
@@ -66,29 +61,14 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 }
 
 func (s Server) injectDependency(h *handler.Handler, configuration config.TenantConfiguration) {
-	t := reflect.TypeOf(h).Elem()
-	v := reflect.ValueOf(h).Elem()
+	t := reflect.TypeOf(*h).Elem()
+	v := reflect.ValueOf(*h).Elem()
 
 	numField := t.NumField()
 	for i := 0; i < numField; i++ {
 		dependencyName := t.Field(i).Tag.Get("dependency")
 		field := v.Field(i)
-		field.Set(reflect.ValueOf(s.newGet(dependencyName, configuration)))
-	}
-}
-
-func (s *Server) newGet(dependencyName string, tConfig config.TenantConfiguration) interface{} {
-	switch dependencyName {
-	case "DB":
-		return func() db.IDB {
-			dbProvider := s.dependencyGraph.dbProvider
-			if dbProvider == nil {
-				return nil
-			}
-
-			return (*dbProvider).GetDB(tConfig)
-		}
-	default:
-		return nil
+		dependency := s.dependencyGraph.Provide(dependencyName, configuration)
+		field.Set(reflect.ValueOf(dependency))
 	}
 }
