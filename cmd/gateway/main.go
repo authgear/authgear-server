@@ -6,10 +6,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 	"time"
 
-	"github.com/gorilla/handlers"
 	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
 
 	"github.com/gorilla/mux"
@@ -27,12 +25,10 @@ func init() {
 func main() {
 	r := mux.NewRouter()
 
-	r.Use(LoggingMiddleware{}.Handle)
-	r.Use(middleware.APIKeyMiddleware{}.Handle)
-	r.Use(middleware.ConfigMiddleware{}.Handle)
+	r.Use(middleware.TenantMiddleware{}.Handle)
 
 	proxy := NewReverseProxy()
-	r.HandleFunc("/{module}/{rest:.*}", rewriteHandler(proxy))
+	r.HandleFunc("/{gear}/{rest:.*}", rewriteHandler(proxy))
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:3001",
@@ -52,7 +48,7 @@ func main() {
 func NewReverseProxy() *httputil.ReverseProxy {
 	director := func(req *http.Request) {
 		path := req.URL.Path
-		req.URL = routerMap[req.Header.Get("X-Skygear-Module")]
+		req.URL = routerMap[req.Header.Get("X-Skygear-Gear")]
 		req.URL.Path = path
 	}
 	return &httputil.ReverseProxy{Director: director}
@@ -60,14 +56,8 @@ func NewReverseProxy() *httputil.ReverseProxy {
 
 func rewriteHandler(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.Header.Set("X-Skygear-Module", mux.Vars(r)["module"])
+		r.Header.Set("X-Skygear-Gear", mux.Vars(r)["gear"])
 		r.URL.Path = "/" + mux.Vars(r)["rest"]
 		p.ServeHTTP(w, r)
 	}
-}
-
-type LoggingMiddleware struct{}
-
-func (m LoggingMiddleware) Handle(next http.Handler) http.Handler {
-	return handlers.LoggingHandler(os.Stdout, next)
 }

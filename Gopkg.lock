@@ -539,6 +539,7 @@
     "github.com/skygeario/buford/push",
     "github.com/skygeario/go-baidupush",
     "github.com/smartystreets/goconvey/convey",
+    "github.com/tinylib/msgp/msgp",
     "github.com/twinj/uuid",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/tools/cmd/cover",
