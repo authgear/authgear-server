@@ -8,14 +8,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
+	"github.com/skygeario/skygear-server/pkg/auth/provider"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
 func main() {
-	authDependency := dependency.AuthDependency{
+	authDependency := provider.AuthProviders{
 		DB: &db.DBProvider{},
 	}
 

@@ -10,13 +10,13 @@ type Factory interface {
 	NewHandler(config.TenantConfiguration) Handler
 }
 
-type DependencyGraph interface {
+type ProviderGraph interface {
 	Provide(name string, configuration config.TenantConfiguration) interface{}
 }
 
 func DefaultInject(
 	h Handler,
-	dependencyGraph DependencyGraph,
+	dependencyGraph ProviderGraph,
 	configuration config.TenantConfiguration,
 ) {
 	t := reflect.TypeOf(h).Elem()
