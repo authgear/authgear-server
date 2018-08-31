@@ -2,7 +2,6 @@ package server
 
 import (
 	"net/http"
-	"reflect"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -14,16 +13,11 @@ import (
 type Server struct {
 	*http.Server
 
-	router          *mux.Router
-	dependencyGraph DependencyGraph
-}
-
-type DependencyGraph interface {
-	Provide(name string, configuration config.TenantConfiguration) interface{}
+	router *mux.Router
 }
 
 // NewServer create a new Server
-func NewServer(addr string, dependencyGraph DependencyGraph) Server {
+func NewServer(addr string) Server {
 	router := mux.NewRouter()
 
 	srv := &http.Server{
@@ -35,9 +29,8 @@ func NewServer(addr string, dependencyGraph DependencyGraph) Server {
 	}
 
 	return Server{
-		router:          router,
-		Server:          srv,
-		dependencyGraph: dependencyGraph,
+		router: router,
+		Server: srv,
 	}
 }
 
@@ -51,24 +44,9 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 		h := hf.NewHandler(configuration)
 
-		s.injectDependency(&h, configuration)
-
 		h.Handle(handler.Context{
 			ResponseWriter: rw,
 			Request:        r,
 		})
 	}))
-}
-
-func (s Server) injectDependency(h *handler.Handler, configuration config.TenantConfiguration) {
-	t := reflect.TypeOf(*h).Elem()
-	v := reflect.ValueOf(*h).Elem()
-
-	numField := t.NumField()
-	for i := 0; i < numField; i++ {
-		dependencyName := t.Field(i).Tag.Get("dependency")
-		field := v.Field(i)
-		dependency := s.dependencyGraph.Provide(dependencyName, configuration)
-		field.Set(reflect.ValueOf(dependency))
-	}
 }

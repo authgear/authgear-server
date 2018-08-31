@@ -15,12 +15,13 @@ import (
 )
 
 func main() {
-	authDependency := dependency.AuthDependency{}
-	authDependency.SetDBProvider(db.RealDBProvider{})
+	authDependency := dependency.AuthDependency{
+		DB: &db.DBProvider{},
+	}
 
-	server := server.NewServer("localhost:3000", authDependency)
+	server := server.NewServer("localhost:3000")
 
-	server.Handle("/", &handler.LoginHandlerFactory{}).Methods("POST")
+	handler.AttachLoginHandler(&server, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")
