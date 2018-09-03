@@ -10,18 +10,21 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
 func main() {
 	authDependency := provider.AuthProviders{
-		DB: &db.DBProvider{},
+		DB:         &db.DBProvider{},
+		TokenStore: &auth.TokenStoreProvider{},
 	}
 
 	server := server.NewServer("localhost:3000")
 
 	handler.AttachLoginHandler(&server, authDependency)
+	handler.AttachMeHandler(&server, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

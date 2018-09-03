@@ -15,7 +15,7 @@ func AttachLoginHandler(
 	server *server.Server,
 	authDependency provider.AuthProviders,
 ) *server.Server {
-	server.Handle("/", &LoginHandlerFactory{
+	server.Handle("/login", &LoginHandlerFactory{
 		authDependency,
 	}).Methods("POST")
 	return server
