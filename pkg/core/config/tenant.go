@@ -13,6 +13,7 @@ type TenantConfiguration struct {
 	DBConnectionStr string `msg:"DATABASE_URL" envconfig:"DATABASE_URL"`
 	APIKey          string `msg:"API_KEY" envconfig:"API_KEY"`
 	MasterKey       string `msg:"MASRER_KEY" envconfig:"MASRER_KEY"`
+	AppName         string `msg:"APP_NAME" envconfig:"APP_NAME"`
 	TokenStore      struct {
 		Secret string `msg:"TOKEN_STORE_SECRET" envconfig:"TOKEN_STORE_SECRET"`
 		Expiry int64  `msg:"TOKEN_STORE_EXPIRY" envconfig:"TOKEN_STORE_EXPIRY"`

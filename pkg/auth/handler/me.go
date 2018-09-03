@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
 
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
@@ -27,15 +30,16 @@ type MeHandlerFactory struct {
 	Dependency provider.AuthProviders
 }
 
-func (f MeHandlerFactory) NewHandler(tenantConfig config.TenantConfiguration) handler.Handler {
+func (f MeHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.TenantConfiguration) handler.Handler {
 	h := &MeHandler{}
-	handler.DefaultInject(h, f.Dependency, tenantConfig)
+	handler.DefaultInject(h, f.Dependency, ctx, tenantConfig)
 	return h
 }
 
 // MeHandler handles me request
 type MeHandler struct {
 	auth.TokenResolver `dependency:"TokenResolver"`
+	auth.AuthInfoStore `dependency:"AuthInfoStore"`
 }
 
 func (h MeHandler) Handle(ctx handler.Context) {
@@ -50,7 +54,15 @@ func (h MeHandler) Handle(ctx handler.Context) {
 		panic(err)
 	}
 
-	output, err := json.Marshal(token)
+	authInfo := skydb.AuthInfo{}
+	err = h.AuthInfoStore.GetAuth(token.AuthInfoID, &authInfo)
+	if err != nil {
+		// TODO:
+		// handle error properly
+		panic(err)
+	}
+
+	output, err := json.Marshal(authInfo)
 	if err != nil {
 		// TODO:
 		// handle error properly

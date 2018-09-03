@@ -56,7 +56,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 			configuration = config.GetTenantConfig(r)
 		}
 
-		h := hf.NewHandler(configuration)
+		h := hf.NewHandler(r.Context(), configuration)
 		h = middleware.ApplyMiddlewares(h, s.middlewares...)
 
 		h.Handle(handler.Context{

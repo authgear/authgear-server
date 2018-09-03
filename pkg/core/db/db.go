@@ -1,10 +1,14 @@
 package db
 
-import "github.com/skygeario/skygear-server/pkg/core/config"
+import (
+	"context"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
+)
 
 type DBProvider struct{}
 
-func (p DBProvider) Provide(tConfig config.TenantConfiguration) IDB {
+func (p DBProvider) Provide(ctx context.Context, tConfig config.TenantConfiguration) IDB {
 	return &DB{tConfig.DBConnectionStr}
 }
 
