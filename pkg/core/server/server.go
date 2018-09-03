@@ -7,17 +7,20 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/middleware"
 )
 
 // Server embeds a net/http server and has a gorillax mux internally
 type Server struct {
 	*http.Server
 
-	router *mux.Router
+	router      *mux.Router
+	middlewares []middleware.Middleware
+	devMode     bool
 }
 
 // NewServer create a new Server
-func NewServer(addr string) Server {
+func NewServer(addr string, devMode bool) Server {
 	router := mux.NewRouter()
 
 	srv := &http.Server{
@@ -29,24 +32,40 @@ func NewServer(addr string) Server {
 	}
 
 	return Server{
-		router: router,
-		Server: srv,
+		router:      router,
+		Server:      srv,
+		middlewares: []middleware.Middleware{},
+		devMode:     devMode,
 	}
 }
 
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
 func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
+	// if devMode is true, read configuration from environment variables
+	var envConfiguration config.TenantConfiguration
+	if s.devMode {
+		envConfiguration = config.TenantConfiguration{}
+		envConfiguration.ReadFromEnv()
+	}
+
 	return s.router.NewRoute().Path(path).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		// mock tenant configuration
-		configuration := config.TenantConfiguration{
-			DBConnectionStr: "public",
+		var configuration config.TenantConfiguration
+		if s.devMode {
+			configuration = envConfiguration
+		} else {
+			configuration = config.GetTenantConfig(r)
 		}
 
 		h := hf.NewHandler(configuration)
+		h = middleware.ApplyMiddlewares(h, s.middlewares...)
 
 		h.Handle(handler.Context{
 			ResponseWriter: rw,
 			Request:        r,
 		})
 	}))
+}
+
+func (s *Server) Use(middlewares ...middleware.Middleware) {
+	s.middlewares = append(s.middlewares, middlewares...)
 }

@@ -3,14 +3,24 @@ package config
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/kelseyhightower/envconfig"
 )
 
 // TenantConfiguration is a mock struct of tenant configuration
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	DBConnectionStr string `msg:"DATABASE_URL"`
-	APIKey          string `msg:"API_KEY"`
-	MasterKey       string `msg:"MASRER_KEY"`
+	DBConnectionStr string `msg:"DATABASE_URL" envconfig:"DATABASE_URL"`
+	APIKey          string `msg:"API_KEY" envconfig:"API_KEY"`
+	MasterKey       string `msg:"MASRER_KEY" envconfig:"MASRER_KEY"`
+	TokenStore      struct {
+		Secret string `msg:"TOKEN_STORE_SECRET" envconfig:"TOKEN_STORE_SECRET"`
+		Expiry int64  `msg:"TOKEN_STORE_EXPIRY" envconfig:"TOKEN_STORE_EXPIRY"`
+	}
+}
+
+func (c *TenantConfiguration) ReadFromEnv() error {
+	return envconfig.Process("", c)
 }
 
 func header(i interface{}) http.Header {

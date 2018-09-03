@@ -8,9 +8,7 @@ import (
 type TokenStoreProvider struct{}
 
 func (p TokenStoreProvider) Provide(tConfig config.TenantConfiguration) interface{} {
-	// TODO:
-	// mock token store
-	return authtoken.NewJWTStore("my_skygear_jwt_secret", 3600)
+	return authtoken.NewJWTStore(tConfig.TokenStore.Secret, tConfig.TokenStore.Expiry)
 }
 
 type TokenResolver interface {

@@ -223,6 +223,14 @@
   version = "v4.2.1"
 
 [[projects]]
+  digest = "1:b60a24f942c7031ece6c48bcab0b683c7d3d6aa9fd17e21459d9ae604da258fa"
+  name = "github.com/kelseyhightower/envconfig"
+  packages = ["."]
+  pruneopts = ""
+  revision = "f611eb38b3875cc3bd991ca91c51d06446afa14c"
+  version = "v1.3.0"
+
+[[projects]]
   branch = "master"
   digest = "1:109e0a9b9e74c5c8adf94a2dc4dd4a9ca2a183d4d87ffecd4e62db69a5ede55a"
   name = "github.com/kr/text"
@@ -525,6 +533,7 @@
     "github.com/jarcoal/httpmock",
     "github.com/jmoiron/sqlx",
     "github.com/joho/godotenv",
+    "github.com/kelseyhightower/envconfig",
     "github.com/kr/text",
     "github.com/lann/squirrel",
     "github.com/lib/pq",
