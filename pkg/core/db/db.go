@@ -2,18 +2,11 @@ package db
 
 import "github.com/skygeario/skygear-server/pkg/core/config"
 
-// DBProvider is the interface to get db with configuration
-type DBProvider interface {
-	GetDB(config.TenantConfiguration) IDB
-}
+type DBProvider struct{}
 
-type RealDBProvider struct{}
-
-func (p RealDBProvider) GetDB(tConfig config.TenantConfiguration) IDB {
+func (p DBProvider) Provide(tConfig config.TenantConfiguration) IDB {
 	return &DB{tConfig.DBConnectionStr}
 }
-
-type GetDB func() IDB
 
 type IDB interface {
 	GetRecord(string) string

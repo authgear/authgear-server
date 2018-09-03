@@ -8,19 +8,20 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
+	"github.com/skygeario/skygear-server/pkg/auth/provider"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
 func main() {
-	authDependency := dependency.AuthDependency{}
-	authDependency.SetDBProvider(db.RealDBProvider{})
+	authDependency := provider.AuthProviders{
+		DB: &db.DBProvider{},
+	}
 
-	server := server.NewServer("localhost:3000", authDependency)
+	server := server.NewServer("localhost:3000")
 
-	server.Handle("/", &handler.LoginHandlerFactory{}).Methods("POST")
+	handler.AttachLoginHandler(&server, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")
