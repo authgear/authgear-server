@@ -43,7 +43,14 @@ func (f MeHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.Te
 type MeHandler struct {
 	auth.TokenStore    `dependency:"TokenStore"`
 	auth.AuthInfoStore `dependency:"AuthInfoStore"`
-	authz.Policy       `allow:"apikey,authenticated" deny:"disabled"`
+}
+
+func (h MeHandler) ProvideAuthzPolicy(r *http.Request) authz.Policy {
+	return authz.NewAllOfPolicy(
+		authz.PolicyFunc(authz.RequireAPIKey),
+		authz.PolicyFunc(authz.RequireAuthenticated),
+		authz.PolicyFunc(authz.DenyDisabledUser),
+	)
 }
 
 func (h MeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx handler.AuthenticationContext) {
