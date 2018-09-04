@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -55,9 +57,17 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 		h := hf.NewHandler(r.Context(), configuration)
 
-		h.Handle(handler.Context{
-			ResponseWriter: rw,
-			Request:        r,
-		})
+		ctx := handler.AuthenticationContext{}
+
+		if policy, ok := h.(authz.Policy); ok {
+			if err := policy.IsAllowed(r, ctx); err != nil {
+				// TODO:
+				// handle error properly
+				http.Error(rw, err.Error(), http.StatusUnauthorized)
+				return
+			}
+		}
+
+		h.ServeHTTP(rw, r, ctx)
 	}))
 }

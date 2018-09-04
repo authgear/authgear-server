@@ -1,10 +1,12 @@
 package handler
 
 import (
-	"net/http"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
+
+	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 )
 
-type Context struct {
-	ResponseWriter http.ResponseWriter
-	Request        *http.Request
+type AuthenticationContext struct {
+	Token    *authtoken.Token
+	AuthInfo *skydb.AuthInfo
 }
