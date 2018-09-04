@@ -18,7 +18,7 @@ func (d AuthProviders) Provide(dependencyName string, ctx context.Context, tConf
 	switch dependencyName {
 	case "DB":
 		return d.DB.Provide(ctx, tConfig)
-	case "TokenResolver":
+	case "TokenStore":
 		return d.TokenStore.Provide(ctx, tConfig)
 	case "AuthInfoStore":
 		return d.AuthInfoStore.Provide(ctx, tConfig)

@@ -13,6 +13,9 @@ func (p TokenStoreProvider) Provide(ctx context.Context, tConfig config.TenantCo
 	return authtoken.NewJWTStore(tConfig.TokenStore.Secret, tConfig.TokenStore.Expiry)
 }
 
-type TokenResolver interface {
+type TokenStore interface {
+	NewToken(appName string, authInfoID string) (authtoken.Token, error)
 	Get(accessToken string, token *authtoken.Token) error
+	Put(token *authtoken.Token) error
+	Delete(accessToken string) error
 }

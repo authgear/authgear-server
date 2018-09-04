@@ -38,7 +38,7 @@ func (f MeHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.Te
 
 // MeHandler handles me request
 type MeHandler struct {
-	auth.TokenResolver `dependency:"TokenResolver"`
+	auth.TokenStore    `dependency:"TokenStore"`
 	auth.AuthInfoStore `dependency:"AuthInfoStore"`
 }
 
@@ -47,7 +47,7 @@ func (h MeHandler) Handle(ctx handler.Context) {
 
 	token := authtoken.Token{}
 
-	err := h.TokenResolver.Get(string(input), &token)
+	err := h.TokenStore.Get(string(input), &token)
 	if err != nil {
 		// TODO:
 		// handle error properly
