@@ -32,7 +32,7 @@ func main() {
 	envconfig.Process("", &configuration)
 
 	authDependency := provider.AuthProviders{
-		DB:            &db.DBProvider{},
+		DB:            db.NewDBProvider("auth"),
 		TokenStore:    &auth.TokenStoreProvider{},
 		AuthInfoStore: &auth.AuthInfoStoreProvider{CanMigrate: true},
 	}

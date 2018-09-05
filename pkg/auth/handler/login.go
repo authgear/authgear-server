@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/skygeario/skygear-server/pkg/auth/db"
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
@@ -34,7 +34,7 @@ func (f LoginHandlerFactory) NewHandler(ctx context.Context, tenantConfig config
 
 // LoginHandler handles login request
 type LoginHandler struct {
-	DB db.IDB `dependency:"DB"`
+	DB *db.DBConn `dependency:"DB"`
 }
 
 func (h LoginHandler) Handle(ctx handler.Context) {
