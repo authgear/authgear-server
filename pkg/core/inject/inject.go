@@ -9,22 +9,22 @@ import (
 )
 
 func DefaultInject(
-	h handler.Handler,
+	i interface{},
 	dependencyGraph handler.ProviderGraph,
 	ctx context.Context,
 	configuration config.TenantConfiguration,
 ) {
-	injectDependency(h, dependencyGraph, ctx, configuration)
+	injectDependency(i, dependencyGraph, ctx, configuration)
 }
 
 func injectDependency(
-	h handler.Handler,
+	i interface{},
 	dependencyGraph handler.ProviderGraph,
 	ctx context.Context,
 	configuration config.TenantConfiguration,
 ) {
-	t := reflect.TypeOf(h).Elem()
-	v := reflect.ValueOf(h).Elem()
+	t := reflect.TypeOf(i).Elem()
+	v := reflect.ValueOf(i).Elem()
 
 	numField := t.NumField()
 	for i := 0; i < numField; i++ {

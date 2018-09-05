@@ -8,9 +8,10 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/db"
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/handler/inject"
+	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
@@ -37,6 +38,10 @@ func (f LoginHandlerFactory) NewHandler(ctx context.Context, tenantConfig config
 // LoginHandler handles login request
 type LoginHandler struct {
 	DB *db.DBConn `dependency:"DB"`
+}
+
+func (h LoginHandler) ProvideAuthzPolicy(r *http.Request) authz.Policy {
+	return authz.PolicyFunc(authz.RequireAPIKey)
 }
 
 func (h LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx handler.AuthenticationContext) {

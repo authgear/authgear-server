@@ -8,6 +8,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
+
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/joho/godotenv"
@@ -38,6 +40,10 @@ func main() {
 	}
 
 	srv := server.NewServer("localhost:3000", configuration.DevMode)
+
+	srv.SetAuthInfoResolverFactory(
+		authn.StatefulJWTAuthInfoResolverFactory{ProviderGraph: authDependency},
+	)
 
 	handler.AttachLoginHandler(&srv, authDependency)
 	handler.AttachMeHandler(&srv, authDependency)

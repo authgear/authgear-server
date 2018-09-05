@@ -4,19 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
 
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/handler/inject"
+	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 )
 
 func AttachMeHandler(
@@ -54,26 +50,7 @@ func (h MeHandler) ProvideAuthzPolicy(r *http.Request) authz.Policy {
 }
 
 func (h MeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx handler.AuthenticationContext) {
-	input, _ := ioutil.ReadAll(r.Body)
-
-	token := authtoken.Token{}
-
-	err := h.TokenStore.Get(string(input), &token)
-	if err != nil {
-		// TODO:
-		// handle error properly
-		panic(err)
-	}
-
-	authInfo := skydb.AuthInfo{}
-	err = h.AuthInfoStore.GetAuth(token.AuthInfoID, &authInfo)
-	if err != nil {
-		// TODO:
-		// handle error properly
-		panic(err)
-	}
-
-	output, err := json.Marshal(authInfo)
+	output, err := json.Marshal(ctx.AuthInfo)
 	if err != nil {
 		// TODO:
 		// handle error properly

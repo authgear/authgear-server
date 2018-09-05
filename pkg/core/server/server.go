@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 
 	"github.com/gorilla/mux"
@@ -15,8 +16,9 @@ import (
 type Server struct {
 	*http.Server
 
-	router  *mux.Router
-	devMode bool
+	router                  *mux.Router
+	authInfoResolverFactory authn.AuthInfoResolverFactory
+	devMode                 bool
 }
 
 // NewServer create a new Server
@@ -36,6 +38,10 @@ func NewServer(addr string, devMode bool) Server {
 		Server:  srv,
 		devMode: devMode,
 	}
+}
+
+func (s *Server) SetAuthInfoResolverFactory(factory authn.AuthInfoResolverFactory) {
+	s.authInfoResolverFactory = factory
 }
 
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
@@ -58,6 +64,13 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 		h := hf.NewHandler(r.Context(), configuration)
 
 		ctx := handler.AuthenticationContext{}
+
+		if s.authInfoResolverFactory != nil {
+			resolver := s.authInfoResolverFactory.NewResolver(r.Context(), configuration)
+			token, authInfo, _ := resolver.Resolve(r)
+			ctx.Token = token
+			ctx.AuthInfo = authInfo
+		}
 
 		if policyProvider, ok := h.(authz.PolicyProvider); ok {
 			policy := policyProvider.ProvideAuthzPolicy(r)
