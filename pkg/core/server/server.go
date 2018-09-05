@@ -7,16 +7,14 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/middleware"
 )
 
 // Server embeds a net/http server and has a gorillax mux internally
 type Server struct {
 	*http.Server
 
-	router      *mux.Router
-	middlewares []middleware.Middleware
-	devMode     bool
+	router  *mux.Router
+	devMode bool
 }
 
 // NewServer create a new Server
@@ -32,10 +30,9 @@ func NewServer(addr string, devMode bool) Server {
 	}
 
 	return Server{
-		router:      router,
-		Server:      srv,
-		middlewares: []middleware.Middleware{},
-		devMode:     devMode,
+		router:  router,
+		Server:  srv,
+		devMode: devMode,
 	}
 }
 
@@ -57,15 +54,10 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 		}
 
 		h := hf.NewHandler(r.Context(), configuration)
-		h = middleware.ApplyMiddlewares(h, s.middlewares...)
 
 		h.Handle(handler.Context{
 			ResponseWriter: rw,
 			Request:        r,
 		})
 	}))
-}
-
-func (s *Server) Use(middlewares ...middleware.Middleware) {
-	s.middlewares = append(s.middlewares, middlewares...)
 }
