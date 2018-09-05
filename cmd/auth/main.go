@@ -8,24 +8,43 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/kelseyhightower/envconfig"
+
+	"github.com/joho/godotenv"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
+type configuration struct {
+	DevMode bool `envconfig:"DEV_MODE"`
+}
+
 func main() {
-	authDependency := provider.AuthProviders{
-		DB: &db.DBProvider{},
+	envErr := godotenv.Load()
+	if envErr != nil {
+		log.Print("Error in loading .env file")
 	}
 
-	server := server.NewServer("localhost:3000")
+	configuration := configuration{}
+	envconfig.Process("", &configuration)
 
-	handler.AttachLoginHandler(&server, authDependency)
+	authDependency := provider.AuthProviders{
+		DB:            &db.DBProvider{},
+		TokenStore:    &auth.TokenStoreProvider{},
+		AuthInfoStore: &auth.AuthInfoStoreProvider{CanMigrate: true},
+	}
+
+	srv := server.NewServer("localhost:3000", configuration.DevMode)
+
+	handler.AttachLoginHandler(&srv, authDependency)
+	handler.AttachMeHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")
-		if err := server.ListenAndServe(); err != nil {
+		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
 	}()
@@ -44,7 +63,7 @@ func main() {
 	defer cancel()
 
 	// shutdown the server
-	err := server.Shutdown(ctx)
+	err := srv.Shutdown(ctx)
 	if err != nil {
 		log.Printf("Shutdown request error: %v\n", err)
 	}

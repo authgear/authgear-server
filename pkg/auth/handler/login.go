@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 
@@ -15,7 +16,7 @@ func AttachLoginHandler(
 	server *server.Server,
 	authDependency provider.AuthProviders,
 ) *server.Server {
-	server.Handle("/", &LoginHandlerFactory{
+	server.Handle("/login", &LoginHandlerFactory{
 		authDependency,
 	}).Methods("POST")
 	return server
@@ -25,9 +26,9 @@ type LoginHandlerFactory struct {
 	Dependency provider.AuthProviders
 }
 
-func (f LoginHandlerFactory) NewHandler(tenantConfig config.TenantConfiguration) handler.Handler {
+func (f LoginHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.TenantConfiguration) handler.Handler {
 	h := &LoginHandler{}
-	handler.DefaultInject(h, f.Dependency, tenantConfig)
+	handler.DefaultInject(h, f.Dependency, ctx, tenantConfig)
 	return h
 }
 
