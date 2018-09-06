@@ -32,7 +32,7 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
-		case "MASRER_KEY":
+		case "MASTER_KEY":
 			z.MasterKey, err = dc.ReadString()
 			if err != nil {
 				return
@@ -103,8 +103,8 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	// write "MASRER_KEY"
-	err = en.Append(0xaa, 0x4d, 0x41, 0x53, 0x52, 0x45, 0x52, 0x5f, 0x4b, 0x45, 0x59)
+	// write "MASTER_KEY"
+	err = en.Append(0xaa, 0x4d, 0x41, 0x53, 0x54, 0x45, 0x52, 0x5f, 0x4b, 0x45, 0x59)
 	if err != nil {
 		return
 	}
@@ -154,8 +154,8 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "API_KEY"
 	o = append(o, 0xa7, 0x41, 0x50, 0x49, 0x5f, 0x4b, 0x45, 0x59)
 	o = msgp.AppendString(o, z.APIKey)
-	// string "MASRER_KEY"
-	o = append(o, 0xaa, 0x4d, 0x41, 0x53, 0x52, 0x45, 0x52, 0x5f, 0x4b, 0x45, 0x59)
+	// string "MASTER_KEY"
+	o = append(o, 0xaa, 0x4d, 0x41, 0x53, 0x54, 0x45, 0x52, 0x5f, 0x4b, 0x45, 0x59)
 	o = msgp.AppendString(o, z.MasterKey)
 	// string "APP_NAME"
 	o = append(o, 0xa8, 0x41, 0x50, 0x50, 0x5f, 0x4e, 0x41, 0x4d, 0x45)
@@ -197,7 +197,7 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				return
 			}
-		case "MASRER_KEY":
+		case "MASTER_KEY":
 			z.MasterKey, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				return
