@@ -43,7 +43,7 @@ func SetAccessKeyType(i interface{}, kt KeyType) {
 }
 
 func GetAPIKey(i interface{}) string {
-	return header(i).Get("X-Skygear-APIKey")
+	return header(i).Get("X-Skygear-Api-Key")
 }
 
 func CheckAccessKeyType(config config.TenantConfiguration, apiKey string) KeyType {
