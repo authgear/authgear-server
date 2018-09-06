@@ -30,6 +30,33 @@ Next is the V2 of Skygear that aim to follow
         └── main.go
 ```
 
+## Gateway
+
+### Migration
+
+To provide db url by `MIGRATION_DB=`, default is `postgres://postgres:@localhost/postgres?sslmode=disable` for developement
+
+**Add a version**
+
+```
+cd ./scripts/gateway
+$ make add-version REVISION=<revision_description>
+```
+
+**Run migration**
+
+```
+cd ./scripts/gateway
+$ make migrate-up
+```
+
+**Check current db version**
+
+```
+cd ./scripts/gateway
+$ make migrate-version
+```
+
 ## License & Copyright
 
 ```
