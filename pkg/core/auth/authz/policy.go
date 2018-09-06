@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
@@ -15,13 +15,13 @@ type PolicyProvider interface {
 }
 
 type Policy interface {
-	IsAllowed(r *http.Request, ctx handler.AuthenticationContext) error
+	IsAllowed(r *http.Request, authInfo auth.AuthInfo) error
 }
 
-type PolicyFunc func(r *http.Request, ctx handler.AuthenticationContext) error
+type PolicyFunc func(r *http.Request, authInfo auth.AuthInfo) error
 
-func (f PolicyFunc) IsAllowed(r *http.Request, ctx handler.AuthenticationContext) error {
-	return f(r, ctx)
+func (f PolicyFunc) IsAllowed(r *http.Request, authInfo auth.AuthInfo) error {
+	return f(r, authInfo)
 }
 
 type AllOfPolicy struct {
@@ -32,9 +32,9 @@ func NewAllOfPolicy(policies ...Policy) Policy {
 	return AllOfPolicy{policies: policies}
 }
 
-func (p AllOfPolicy) IsAllowed(r *http.Request, ctx handler.AuthenticationContext) error {
+func (p AllOfPolicy) IsAllowed(r *http.Request, authInfo auth.AuthInfo) error {
 	for _, policy := range p.policies {
-		if err := policy.IsAllowed(r, ctx); err != nil {
+		if err := policy.IsAllowed(r, authInfo); err != nil {
 			return err
 		}
 	}
@@ -46,7 +46,7 @@ type EverybodyPolicy struct {
 	allow bool
 }
 
-func (p EverybodyPolicy) IsAllowed(r *http.Request, ctx handler.AuthenticationContext) error {
+func (p EverybodyPolicy) IsAllowed(r *http.Request, authInfo auth.AuthInfo) error {
 	if !p.allow {
 		// TODO:
 		// return proper error code
@@ -56,7 +56,7 @@ func (p EverybodyPolicy) IsAllowed(r *http.Request, ctx handler.AuthenticationCo
 	return nil
 }
 
-func RequireAPIKey(r *http.Request, ctx handler.AuthenticationContext) error {
+func DenyNoAccessKey(r *http.Request, authInfo auth.AuthInfo) error {
 	keyType := model.GetAccessKeyType(r)
 	if keyType == model.NoAccessKey {
 		return skyerr.NewError(skyerr.AccessKeyNotAccepted, "api key required")
@@ -65,7 +65,7 @@ func RequireAPIKey(r *http.Request, ctx handler.AuthenticationContext) error {
 	return nil
 }
 
-func RequireMasterKey(r *http.Request, ctx handler.AuthenticationContext) error {
+func RequireMasterKey(r *http.Request, authInfo auth.AuthInfo) error {
 	keyType := model.GetAccessKeyType(r)
 	if keyType != model.MasterAccessKey {
 		return skyerr.NewError(skyerr.AccessKeyNotAccepted, "master key required")
@@ -74,13 +74,13 @@ func RequireMasterKey(r *http.Request, ctx handler.AuthenticationContext) error 
 	return nil
 }
 
-func RequireAuthenticated(r *http.Request, ctx handler.AuthenticationContext) error {
-	if ctx.AuthInfo == nil {
+func RequireAuthenticated(r *http.Request, authInfo auth.AuthInfo) error {
+	if authInfo.AuthInfo == nil {
 		return skyerr.NewError(skyerr.NotAuthenticated, "require authenticated user")
 	}
 
-	if ctx.AuthInfo.TokenValidSince != nil {
-		tokenValidSince := *ctx.AuthInfo.TokenValidSince
+	if authInfo.TokenValidSince != nil {
+		tokenValidSince := *authInfo.TokenValidSince
 
 		// Not all types of access token support this field. The token is
 		// still considered if it does not have an issue time.
@@ -88,8 +88,8 @@ func RequireAuthenticated(r *http.Request, ctx handler.AuthenticationContext) er
 		// Due to precision, the issue time of the token can be before
 		// AuthInfo.TokenValidSince. We consider the token still valid
 		// if the token is issued within 1 second before tokenValidSince.
-		if !ctx.Token.IssuedAt().IsZero() &&
-			ctx.Token.IssuedAt().After(tokenValidSince.Add(-1*time.Second)) {
+		if !authInfo.Token.IssuedAt().IsZero() &&
+			authInfo.Token.IssuedAt().After(tokenValidSince.Add(-1*time.Second)) {
 			return skyerr.NewError(skyerr.NotAuthenticated, "require authenticated user")
 		}
 	}
@@ -97,12 +97,12 @@ func RequireAuthenticated(r *http.Request, ctx handler.AuthenticationContext) er
 	return nil
 }
 
-func DenyDisabledUser(r *http.Request, ctx handler.AuthenticationContext) error {
-	if ctx.AuthInfo == nil {
+func DenyDisabledUser(r *http.Request, authInfo auth.AuthInfo) error {
+	if authInfo.AuthInfo == nil {
 		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, "user authentication info not found")
 	}
 
-	if ctx.AuthInfo.Disabled {
+	if authInfo.Disabled {
 		// TODO:
 		// return proper error code
 		return skyerr.NewError(skyerr.UnexpectedError, "user disabled")
@@ -116,13 +116,13 @@ type RolePolicy struct {
 	allow bool
 }
 
-func (p RolePolicy) IsAllowed(r *http.Request, ctx handler.AuthenticationContext) error {
-	if ctx.AuthInfo == nil {
+func (p RolePolicy) IsAllowed(r *http.Request, authInfo auth.AuthInfo) error {
+	if authInfo.AuthInfo == nil {
 		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, "user authentication info not found")
 	}
 
 	containsRole := false
-	for _, role := range ctx.AuthInfo.Roles {
+	for _, role := range authInfo.Roles {
 		if role == p.role {
 			containsRole = true
 			break

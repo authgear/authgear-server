@@ -18,7 +18,7 @@ type AuthInfoResolverFactory interface {
 }
 
 type AuthInfoResolver interface {
-	Resolve(*http.Request) (*authtoken.Token, *skydb.AuthInfo, error)
+	Resolve(*http.Request) (auth.AuthInfo, error)
 }
 
 type StatefulJWTAuthInfoResolverFactory struct {
@@ -36,26 +36,28 @@ type StatefulJWTAuthInfoResolver struct {
 	auth.AuthInfoStore `dependency:"AuthInfoStore"`
 }
 
-func (r StatefulJWTAuthInfoResolver) Resolve(req *http.Request) (token *authtoken.Token, authInfo *skydb.AuthInfo, err error) {
+func (r StatefulJWTAuthInfoResolver) Resolve(req *http.Request) (authInfo auth.AuthInfo, err error) {
 	tokenStr := auth.GetAccessToken(req)
 
-	token = &authtoken.Token{}
+	token := &authtoken.Token{}
 	err = r.TokenStore.Get(tokenStr, token)
 	if err != nil {
 		// TODO:
 		// handle error properly
-		token = nil
 		return
 	}
 
-	authInfo = &skydb.AuthInfo{}
-	err = r.AuthInfoStore.GetAuth(token.AuthInfoID, authInfo)
+	authInfo.Token = token
+
+	info := &skydb.AuthInfo{}
+	err = r.AuthInfoStore.GetAuth(token.AuthInfoID, info)
 	if err != nil {
 		// TODO:
 		// handle error properly
-		authInfo = nil
 		return
 	}
+
+	authInfo.AuthInfo = info
 
 	return
 }

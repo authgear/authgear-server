@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 
@@ -63,18 +64,15 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 		h := hf.NewHandler(r.Context(), configuration)
 
-		ctx := handler.AuthenticationContext{}
-
+		var authInfo auth.AuthInfo
 		if s.authInfoResolverFactory != nil {
 			resolver := s.authInfoResolverFactory.NewResolver(r.Context(), configuration)
-			token, authInfo, _ := resolver.Resolve(r)
-			ctx.Token = token
-			ctx.AuthInfo = authInfo
+			authInfo, _ = resolver.Resolve(r)
 		}
 
 		if policyProvider, ok := h.(authz.PolicyProvider); ok {
 			policy := policyProvider.ProvideAuthzPolicy(r)
-			if err := policy.IsAllowed(r, ctx); err != nil {
+			if err := policy.IsAllowed(r, authInfo); err != nil {
 				// TODO:
 				// handle error properly
 				http.Error(rw, err.Error(), http.StatusUnauthorized)
@@ -82,6 +80,6 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 			}
 		}
 
-		h.ServeHTTP(rw, r, ctx)
+		h.ServeHTTP(rw, r, authInfo)
 	}))
 }
