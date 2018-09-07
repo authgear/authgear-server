@@ -57,7 +57,7 @@ func (p EverybodyPolicy) IsAllowed(r *http.Request, authInfo auth.AuthInfo) erro
 }
 
 func DenyNoAccessKey(r *http.Request, authInfo auth.AuthInfo) error {
-	keyType := model.GetAccessKeyType(r)
+	keyType := authInfo.AccessKeyType
 	if keyType == model.NoAccessKey {
 		return skyerr.NewError(skyerr.AccessKeyNotAccepted, "api key required")
 	}
@@ -66,7 +66,7 @@ func DenyNoAccessKey(r *http.Request, authInfo auth.AuthInfo) error {
 }
 
 func RequireMasterKey(r *http.Request, authInfo auth.AuthInfo) error {
-	keyType := model.GetAccessKeyType(r)
+	keyType := authInfo.AccessKeyType
 	if keyType != model.MasterAccessKey {
 		return skyerr.NewError(skyerr.AccessKeyNotAccepted, "master key required")
 	}
