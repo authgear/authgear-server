@@ -38,7 +38,7 @@ func (f MeHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.Te
 // MeHandler handles me request
 type MeHandler struct{}
 
-func (h MeHandler) ProvideAuthzPolicy(r *http.Request) authz.Policy {
+func (h MeHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.NewAllOfPolicy(
 		authz.PolicyFunc(authz.DenyNoAccessKey),
 		authz.PolicyFunc(authz.RequireAuthenticated),

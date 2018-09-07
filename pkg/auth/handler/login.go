@@ -41,7 +41,7 @@ type LoginHandler struct {
 	DB *db.DBConn `dependency:"DB"`
 }
 
-func (h LoginHandler) ProvideAuthzPolicy(r *http.Request) authz.Policy {
+func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(authz.DenyNoAccessKey)
 }
 

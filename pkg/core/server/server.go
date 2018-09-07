@@ -71,7 +71,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 		}
 
 		if policyProvider, ok := h.(authz.PolicyProvider); ok {
-			policy := policyProvider.ProvideAuthzPolicy(r)
+			policy := policyProvider.ProvideAuthzPolicy()
 			if err := policy.IsAllowed(r, authInfo); err != nil {
 				// TODO:
 				// handle error properly

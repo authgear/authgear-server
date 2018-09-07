@@ -11,7 +11,7 @@ import (
 )
 
 type PolicyProvider interface {
-	ProvideAuthzPolicy(*http.Request) Policy
+	ProvideAuthzPolicy() Policy
 }
 
 type Policy interface {
