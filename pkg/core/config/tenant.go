@@ -57,3 +57,10 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 	}
 	header(i).Set("X-Skygear-App-Config", base64.StdEncoding.EncodeToString(out))
 }
+
+// NewTenantConfigurationFromEnv implements ConfigurationProvider
+func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error) {
+	c := TenantConfiguration{}
+	err := envconfig.Process("", &c)
+	return c, err
+}

@@ -7,12 +7,27 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
-type EnvTenantMiddleware struct{}
+type ConfigurationProvider interface {
+	ProvideConfig(r *http.Request) (config.TenantConfiguration, error)
+}
 
-func (m EnvTenantMiddleware) Handle(next http.Handler) http.Handler {
+type ConfigurationProviderFunc func(r *http.Request) (config.TenantConfiguration, error)
+
+func (f ConfigurationProviderFunc) ProvideConfig(r *http.Request) (config.TenantConfiguration, error) {
+	return f(r)
+}
+
+type TenantConfigurationMiddleware struct {
+	ConfigurationProvider
+}
+
+func (m TenantConfigurationMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		configuration := config.TenantConfiguration{}
-		configuration.ReadFromEnv()
+		configuration, err := m.ProvideConfig(r)
+		if err != nil {
+			http.Error(w, "Unable to retrieve configuration", http.StatusInternalServerError)
+			return
+		}
 
 		// Tenant authentication
 		// Set key type to header only, no rejection
