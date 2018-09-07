@@ -1,7 +1,7 @@
 package config
 
 import (
-	"fmt"
+	"encoding/base64"
 	"net/http"
 
 	"github.com/kelseyhightower/envconfig"
@@ -38,8 +38,12 @@ func header(i interface{}) http.Header {
 func GetTenantConfig(i interface{}) TenantConfiguration {
 	s := header(i).Get("X-Skygear-App-Config")
 	var t TenantConfiguration
-	data := []byte(s)
-	data, err := t.UnmarshalMsg(data)
+	data, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+
+	data, err = t.UnmarshalMsg(data)
 	if err != nil {
 		panic(err)
 	}
@@ -51,5 +55,5 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 	if err != nil {
 		panic(err)
 	}
-	header(i).Set("X-Skygear-App-Config", fmt.Sprintf("%s", out))
+	header(i).Set("X-Skygear-App-Config", base64.StdEncoding.EncodeToString(out))
 }
