@@ -36,9 +36,10 @@ func main() {
 	envconfig.Process("", &configuration)
 
 	authDependency := provider.AuthProviders{
-		DB:            db.NewDBProvider("auth"),
-		TokenStore:    &auth.TokenStoreProvider{},
-		AuthInfoStore: &auth.AuthInfoStoreProvider{CanMigrate: true},
+		DB:              db.NewDBProvider("auth"),
+		TokenStore:      &auth.TokenStoreProvider{},
+		AuthInfoStore:   &auth.AuthInfoStoreProvider{CanMigrate: true},
+		AuthDataChecker: &provider.AuthDataCheckerProvider{},
 	}
 
 	srv := server.NewServer("localhost:3000")

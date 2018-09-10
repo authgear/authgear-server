@@ -10,9 +10,10 @@ import (
 )
 
 type AuthProviders struct {
-	DB            *coreDB.DBProvider
-	TokenStore    *auth.TokenStoreProvider
-	AuthInfoStore *auth.AuthInfoStoreProvider
+	DB              *coreDB.DBProvider
+	TokenStore      *auth.TokenStoreProvider
+	AuthInfoStore   *auth.AuthInfoStoreProvider
+	AuthDataChecker *AuthDataCheckerProvider
 }
 
 func (d AuthProviders) Provide(dependencyName string, ctx context.Context, tConfig config.TenantConfiguration) interface{} {
@@ -23,6 +24,8 @@ func (d AuthProviders) Provide(dependencyName string, ctx context.Context, tConf
 		return d.TokenStore.Provide(ctx, tConfig)
 	case "AuthInfoStore":
 		return d.AuthInfoStore.Provide(ctx, tConfig)
+	case "AuthDataChecker":
+		return d.AuthDataChecker.Provide(ctx, tConfig)
 	default:
 		return nil
 	}

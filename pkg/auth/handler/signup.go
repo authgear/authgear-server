@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func AttachSignupHandler(
@@ -35,19 +36,26 @@ func (f SignupHandlerFactory) NewHandler(ctx context.Context, tenantConfig confi
 }
 
 type SignupRequestPayload struct {
-	AuthDataData     map[string]interface{} `json:"auth_data"`
+	AuthData         map[string]interface{} `json:"auth_data"`
 	Password         string                 `json:"password"`
 	Provider         string                 `json:"provider"`
 	ProviderAuthData map[string]interface{} `json:"provider_auth_data"`
-	RawProfile       map[string]interface{} `json:"profile"`
+	// TODO:
+	// RawProfile       map[string]interface{} `json:"profile"`
 }
 
 func (p SignupRequestPayload) Validate() error {
+	if p.Password == "" {
+		return skyerr.NewInvalidArgument("empty password", []string{"password"})
+	}
+
 	return nil
 }
 
 // SignupHandler handles signup request
-type SignupHandler struct{}
+type SignupHandler struct {
+	AuthDataChecker provider.AuthDataChecker `dependency:"AuthDataChecker"`
+}
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(authz.DenyNoAccessKey)
@@ -61,6 +69,12 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 
 func (h SignupHandler) Handle(req interface{}, authInfo auth.AuthInfo) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
+
+	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
+		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
+		return
+	}
+
 	// TODO:
 	resp = payload
 	return
