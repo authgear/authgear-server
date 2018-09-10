@@ -53,6 +53,7 @@ func main() {
 		authn.StatefulJWTAuthInfoResolverFactory{ProviderGraph: authDependency},
 	)
 
+	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)
 	handler.AttachMeHandler(&srv, authDependency)
 

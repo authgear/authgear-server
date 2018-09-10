@@ -2,8 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
@@ -32,7 +30,7 @@ type MeHandlerFactory struct {
 func (f MeHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.TenantConfiguration) handler.Handler {
 	h := &MeHandler{}
 	inject.DefaultInject(h, f.Dependency, ctx, tenantConfig)
-	return h
+	return handler.APIHandlerToHandler(h)
 }
 
 // MeHandler handles me request
@@ -46,13 +44,12 @@ func (h MeHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-func (h MeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
-	output, err := json.Marshal(authInfo.AuthInfo)
-	if err != nil {
-		// TODO:
-		// handle error properly
-		panic(err)
-	}
+func (h MeHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {
+	payload = handler.EmptyRequestPayload{}
+	return
+}
 
-	fmt.Fprint(rw, string(output))
+func (h MeHandler) Handle(req interface{}, authInfo auth.AuthInfo) (resp interface{}, err error) {
+	resp = authInfo.AuthInfo
+	return
 }

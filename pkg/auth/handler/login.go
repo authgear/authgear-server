@@ -2,8 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/db"
@@ -33,7 +31,7 @@ type LoginHandlerFactory struct {
 func (f LoginHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.TenantConfiguration) handler.Handler {
 	h := &LoginHandler{}
 	inject.DefaultInject(h, f.Dependency, ctx, tenantConfig)
-	return h
+	return handler.APIHandlerToHandler(h)
 }
 
 // LoginHandler handles login request
@@ -45,7 +43,12 @@ func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(authz.DenyNoAccessKey)
 }
 
-func (h LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
-	input, _ := ioutil.ReadAll(r.Body)
-	fmt.Fprintln(rw, `{"user": "`+h.DB.GetRecord("user:"+string(input))+`"}`)
+func (h LoginHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {
+	payload = handler.EmptyRequestPayload{}
+	return
+}
+
+func (h LoginHandler) Handle(req interface{}, authInfo auth.AuthInfo) (resp interface{}, err error) {
+	resp = h.DB.GetRecord("user:abc")
+	return
 }
