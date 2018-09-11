@@ -2,10 +2,15 @@ package auth
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 )
+
+func GetAccessToken(r *http.Request) string {
+	return r.Header.Get("X-Skygear-Access-Token")
+}
 
 type TokenStoreProvider struct{}
 
