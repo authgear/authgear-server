@@ -61,6 +61,7 @@ $ make migrate-version
 
 1. Add migration to update plan table with gear enabled column
 2. Update `Plan` struct and `CanAccessGear` func in `pkg/gateway/model/plan.go`
+3. Update `RouterConfig` and `GetRouterMap` func in `pkg/gateway/config/config.go`
 
 ## License & Copyright
 
