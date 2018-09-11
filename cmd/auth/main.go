@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
+	"github.com/skygeario/skygear-server/pkg/core/auth/token"
 
 	"github.com/kelseyhightower/envconfig"
 
@@ -37,7 +38,7 @@ func main() {
 
 	authDependency := provider.AuthProviders{
 		DB:              db.NewDBProvider("auth"),
-		TokenStore:      &auth.TokenStoreProvider{},
+		TokenStore:      &token.TokenStoreProvider{},
 		AuthInfoStore:   &auth.AuthInfoStoreProvider{CanMigrate: true},
 		AuthDataChecker: &provider.AuthDataCheckerProvider{},
 		PasswordChecker: &provider.PasswordCheckerProvider{},

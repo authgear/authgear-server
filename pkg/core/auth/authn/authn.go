@@ -5,13 +5,12 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/token"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
-
-	"github.com/skygeario/skygear-server/pkg/server/authtoken"
 )
 
 type AuthInfoResolverFactory interface {
@@ -33,7 +32,7 @@ func (f StatefulJWTAuthInfoResolverFactory) NewResolver(ctx context.Context, ten
 }
 
 type StatefulJWTAuthInfoResolver struct {
-	auth.TokenStore    `dependency:"TokenStore"`
+	token.TokenStore   `dependency:"TokenStore"`
 	auth.AuthInfoStore `dependency:"AuthInfoStore"`
 }
 
@@ -59,14 +58,18 @@ func (r StatefulJWTAuthInfoResolver) Resolve(req *http.Request) (authInfo auth.A
 	return
 }
 
+func GetAccessToken(r *http.Request) string {
+	return r.Header.Get("X-Skygear-Access-Token")
+}
+
 type masterkeyAuthInfoResolver struct {
-	auth.TokenStore    `dependency:"TokenStore"`
+	token.TokenStore   `dependency:"TokenStore"`
 	auth.AuthInfoStore `dependency:"AuthInfoStore"`
 }
 
 func (r masterkeyAuthInfoResolver) Resolve(req *http.Request) (authInfo auth.AuthInfo, err error) {
-	tokenStr := auth.GetAccessToken(req)
-	token := &authtoken.Token{}
+	tokenStr := GetAccessToken(req)
+	token := &token.Token{}
 	r.TokenStore.Get(tokenStr, token)
 
 	if token.AuthInfoID == "" {
@@ -89,25 +92,25 @@ func (r masterkeyAuthInfoResolver) Resolve(req *http.Request) (authInfo auth.Aut
 }
 
 type nonMasterkeyAuthInfoResolver struct {
-	auth.TokenStore    `dependency:"TokenStore"`
+	token.TokenStore   `dependency:"TokenStore"`
 	auth.AuthInfoStore `dependency:"AuthInfoStore"`
 }
 
 func (r nonMasterkeyAuthInfoResolver) Resolve(req *http.Request) (authInfo auth.AuthInfo, err error) {
-	tokenStr := auth.GetAccessToken(req)
+	tokenStr := GetAccessToken(req)
 
-	token := &authtoken.Token{}
-	err = r.TokenStore.Get(tokenStr, token)
+	tkn := &token.Token{}
+	err = r.TokenStore.Get(tokenStr, tkn)
 	if err != nil {
 		// TODO:
 		// handle error properly
 		return
 	}
 
-	authInfo.Token = token
+	authInfo.Token = tkn
 
 	info := &skydb.AuthInfo{}
-	err = r.AuthInfoStore.GetAuth(token.AuthInfoID, info)
+	err = r.AuthInfoStore.GetAuth(tkn.AuthInfoID, info)
 	if err != nil {
 		// TODO:
 		// handle error properly

@@ -6,10 +6,13 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/server/audit"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
 
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/auth/token"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -54,10 +57,16 @@ func (p SignupRequestPayload) Validate() error {
 	return nil
 }
 
+func (p SignupRequestPayload) isAnonymous() bool {
+	return len(p.AuthData) == 0 && p.Password == "" && p.Provider == ""
+}
+
 // SignupHandler handles signup request
 type SignupHandler struct {
 	AuthDataChecker provider.AuthDataChecker `dependency:"AuthDataChecker"`
 	PasswordChecker provider.PasswordChecker `dependency:"PasswordChecker"`
+	TokenStore      token.TokenStore         `dependency:"TokenStore"`
+	AuthInfoStore   auth.AuthInfoStore       `dependency:"AuthInfoStore"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -70,7 +79,7 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, err
 }
 
-func (h SignupHandler) Handle(req interface{}, authInfo auth.AuthInfo) (resp interface{}, err error) {
+func (h SignupHandler) Handle(req interface{}, _ auth.AuthInfo) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
 	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
@@ -87,7 +96,72 @@ func (h SignupHandler) Handle(req interface{}, authInfo auth.AuthInfo) (resp int
 		return
 	}
 
-	// TODO:
-	resp = payload
+	authInfo := auth.AuthInfo{}
+	info := skydb.AuthInfo{}
+
+	if payload.isAnonymous() {
+		info = skydb.NewAnonymousAuthInfo()
+	} else if payload.Provider != "" {
+		panic("Unsupported signup with provider")
+		// 	// Get AuthProvider and authenticates the user
+		// 	logger.Debugf(`Client requested auth provider: "%v".`, p.Provider)
+		// 	authProvider, err := h.ProviderRegistry.GetAuthProvider(p.Provider)
+		// 	if err != nil {
+		// 		response.Err = skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
+		// 		return
+		// 	}
+		// 	principalID, providerAuthData, err := authProvider.Login(payload.Context(), p.ProviderAuthData)
+		// 	if err != nil {
+		// 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
+		// 		return
+		// 	}
+		// 	logger.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
+
+		// 	// Create new user info and set updated auth data
+		// 	info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
+	} else {
+		info = skydb.NewAuthInfo(payload.Password)
+	}
+
+	authInfo.AuthInfo = &info
+
+	// TODO: create user profile
+
+	// Create AuthInfo
+	if err = h.AuthInfoStore.CreateAuth(authInfo.AuthInfo); err != nil {
+		if err == skydb.ErrUserDuplicated {
+			err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
+			return
+		}
+
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save auth info")
+		return
+	}
+
+	tkn, err := h.TokenStore.NewToken(info.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = h.TokenStore.Put(&tkn); err != nil {
+		panic(err)
+	}
+
+	resp = response.NewAuthResponse(authInfo, skydb.Record{}, tkn.AccessToken)
+
+	// Populate the activity time to user
+	now := timeNow()
+	authInfo.AuthInfo.LastSeenAt = &now
+	authInfo.AuthInfo.IsPasswordSet = false
+	if err = h.AuthInfoStore.UpdateAuth(authInfo.AuthInfo); err != nil {
+		err = skyerr.MakeError(err)
+		return
+	}
+
+	// TODO: Update user last login time
+	// TODO: Audit
+
 	return
 }
