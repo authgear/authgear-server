@@ -40,6 +40,7 @@ func main() {
 		TokenStore:      &auth.TokenStoreProvider{},
 		AuthInfoStore:   &auth.AuthInfoStoreProvider{CanMigrate: true},
 		AuthDataChecker: &provider.AuthDataCheckerProvider{},
+		PasswordChecker: &provider.PasswordCheckerProvider{},
 	}
 
 	srv := server.NewServer("localhost:3000")

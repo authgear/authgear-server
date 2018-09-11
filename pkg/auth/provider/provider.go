@@ -14,6 +14,7 @@ type AuthProviders struct {
 	TokenStore      *auth.TokenStoreProvider
 	AuthInfoStore   *auth.AuthInfoStoreProvider
 	AuthDataChecker *AuthDataCheckerProvider
+	PasswordChecker *PasswordCheckerProvider
 }
 
 func (d AuthProviders) Provide(dependencyName string, ctx context.Context, tConfig config.TenantConfiguration) interface{} {
@@ -26,6 +27,8 @@ func (d AuthProviders) Provide(dependencyName string, ctx context.Context, tConf
 		return d.AuthInfoStore.Provide(ctx, tConfig)
 	case "AuthDataChecker":
 		return d.AuthDataChecker.Provide(ctx, tConfig)
+	case "PasswordChecker":
+		return d.PasswordChecker.Provide(ctx, tConfig)
 	default:
 		return nil
 	}

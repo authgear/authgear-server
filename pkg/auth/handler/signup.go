@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/server/audit"
+
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -55,6 +57,7 @@ func (p SignupRequestPayload) Validate() error {
 // SignupHandler handles signup request
 type SignupHandler struct {
 	AuthDataChecker provider.AuthDataChecker `dependency:"AuthDataChecker"`
+	PasswordChecker provider.PasswordChecker `dependency:"PasswordChecker"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -72,6 +75,15 @@ func (h SignupHandler) Handle(req interface{}, authInfo auth.AuthInfo) (resp int
 
 	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
 		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
+		return
+	}
+
+	// TODO: check duplicated keys in auth data and profile
+
+	// validate password
+	if err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+		PlainPassword: payload.Password,
+	}); err != nil {
 		return
 	}
 
