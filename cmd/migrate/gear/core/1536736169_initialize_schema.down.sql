@@ -1,0 +1,5 @@
+BEGIN;
+
+DROP TABLE _user CASCADE;
+
+END;

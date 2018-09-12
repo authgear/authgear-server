@@ -63,6 +63,37 @@ $ make migrate-version
 2. Update `Plan` struct and `CanAccessGear` func in `pkg/gateway/model/plan.go`
 3. Update `RouterConfig` and `GetRouterMap` func in `pkg/gateway/config/config.go`
 
+## Gear DB migration
+
+**Add a version**
+
+```
+$ export GEAR=<gear_name>
+$ export REVISION=<revision_description>
+$ make -f scripts/gateway/Makefile add-version MIGRATION_DIR=cmd/migrate/gear/${GEAR} REVISION=${REVISION}
+```
+
+**Run migration**
+
+```
+$ export GEAR="gear name"
+$ export APPNAME="app name"
+$ go run cmd/migrate/main.go -path cmd/migrate/gear/${GEAR} -schema app_${APPNAME} -gear ${GEAR} up 1
+```
+
+**Migration notes**
+
+- `core` migration must run before `auth`
+
+
+**Check current db version**
+
+```
+$ export GEAR="gear name"
+$ export APPNAME="app name"
+$ go run cmd/migrate/main.go -path cmd/migrate/gear/${GEAR} -schema app_${APPNAME} -gear ${GEAR} version
+```
+
 ## License & Copyright
 
 ```

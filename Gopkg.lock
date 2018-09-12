@@ -125,6 +125,20 @@
   version = "v1.31.1"
 
 [[projects]]
+  digest = "1:a53effe959542818285d7adee00ee2807babee2ea8b82956fe4a4cab60c34bd5"
+  name = "github.com/golang-migrate/migrate"
+  packages = [
+    ".",
+    "database",
+    "database/postgres",
+    "source",
+    "source/file",
+  ]
+  pruneopts = ""
+  revision = "22f249514de9aa3f8a720a7cabbdd45d294f83a1"
+  version = "v3.2.0"
+
+[[projects]]
   digest = "1:a1bad350477afbc84e8cbe5c78be4579478c55335377239631ff0adb985fbabc"
   name = "github.com/golang/mock"
   packages = [
@@ -525,6 +539,9 @@
     "github.com/facebookgo/structtag",
     "github.com/franela/goreq",
     "github.com/garyburd/redigo/redis",
+    "github.com/golang-migrate/migrate",
+    "github.com/golang-migrate/migrate/database/postgres",
+    "github.com/golang-migrate/migrate/source/file",
     "github.com/golang/mock/gomock",
     "github.com/golang/mock/mockgen",
     "github.com/google/go-gcm",
