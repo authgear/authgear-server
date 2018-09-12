@@ -3,12 +3,9 @@ package model
 import (
 	"net/http"
 	"strconv"
-)
 
-type Key struct {
-	APIKey    string
-	MasterKey string
-}
+	"github.com/skygeario/skygear-server/pkg/core/config"
+)
 
 type KeyType int
 
@@ -46,23 +43,15 @@ func SetAccessKeyType(i interface{}, kt KeyType) {
 }
 
 func GetAPIKey(i interface{}) string {
-	return header(i).Get("X-Skygear-APIKey")
+	return header(i).Get("X-Skygear-Api-Key")
 }
 
-func GetAppName(i interface{}) string {
-	return header(i).Get("X-Skygear-AppName")
-}
-
-func SetAppName(i interface{}, appName string) {
-	header(i).Set("X-Skygear-AppName", appName)
-}
-
-func CheckAccessKeyType(app App, apiKey string) KeyType {
-	if apiKey == app.Config.APIKey {
+func CheckAccessKeyType(config config.TenantConfiguration, apiKey string) KeyType {
+	if apiKey == config.APIKey {
 		return APIAccessKey
 	}
 
-	if apiKey == app.Config.MasterKey {
+	if apiKey == config.MasterKey {
 		return MasterAccessKey
 	}
 

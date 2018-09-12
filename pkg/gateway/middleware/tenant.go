@@ -5,27 +5,16 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/skygeario/skygear-server/pkg/gateway/model"
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
-type TenantMiddleware struct {
+type TenantAuthzMiddleware struct {
 }
 
-func (a TenantMiddleware) Handle(next http.Handler) http.Handler {
+func (a TenantAuthzMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		host := r.Host
-		app := model.GetApp(host)
-		if app == nil {
-			http.Error(w, "App not found", http.StatusNotFound)
-			return
-		}
-
-		// Tenant authentication
-		// Set key type to header only, no rejection
-		apiKey := model.GetAPIKey(r)
-		apiKeyType := model.CheckAccessKeyType(*app, apiKey)
-		model.SetAccessKeyType(r, apiKeyType)
+		app := gatewayModel.GetApp(host)
 
 		// Tenant authorization
 		gear := mux.Vars(r)["gear"]
@@ -34,8 +23,6 @@ func (a TenantMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		// Tenant configuration
-		config.SetTenantConfig(r, app.Config)
 		next.ServeHTTP(w, r)
 	})
 }

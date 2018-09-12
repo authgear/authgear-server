@@ -16,7 +16,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
@@ -39,7 +41,13 @@ func main() {
 		AuthInfoStore: &auth.AuthInfoStoreProvider{CanMigrate: true},
 	}
 
-	srv := server.NewServer("localhost:3000", configuration.DevMode)
+	srv := server.NewServer("localhost:3000")
+
+	if configuration.DevMode {
+		srv.Use(middleware.TenantConfigurationMiddleware{
+			ConfigurationProvider: middleware.ConfigurationProviderFunc(config.NewTenantConfigurationFromEnv),
+		}.Handle)
+	}
 
 	srv.SetAuthInfoResolverFactory(
 		authn.StatefulJWTAuthInfoResolverFactory{ProviderGraph: authDependency},

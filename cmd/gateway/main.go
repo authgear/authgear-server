@@ -8,7 +8,9 @@ import (
 	"net/url"
 	"time"
 
+	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
+	"github.com/skygeario/skygear-server/pkg/gateway/provider"
 
 	"github.com/gorilla/mux"
 )
@@ -25,7 +27,10 @@ func init() {
 func main() {
 	r := mux.NewRouter()
 
-	r.Use(middleware.TenantMiddleware{}.Handle)
+	r.Use(coreMiddleware.TenantConfigurationMiddleware{
+		ConfigurationProvider: coreMiddleware.ConfigurationProviderFunc(provider.NewTenantConfigurationFromRequest),
+	}.Handle)
+	r.Use(middleware.TenantAuthzMiddleware{}.Handle)
 
 	proxy := NewReverseProxy()
 	r.HandleFunc("/{gear}/{rest:.*}", rewriteHandler(proxy))

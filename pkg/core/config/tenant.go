@@ -12,7 +12,7 @@ import (
 type TenantConfiguration struct {
 	DBConnectionStr string `msg:"DATABASE_URL" envconfig:"DATABASE_URL"`
 	APIKey          string `msg:"API_KEY" envconfig:"API_KEY"`
-	MasterKey       string `msg:"MASRER_KEY" envconfig:"MASRER_KEY"`
+	MasterKey       string `msg:"MASTER_KEY" envconfig:"MASTER_KEY"`
 	AppName         string `msg:"APP_NAME" envconfig:"APP_NAME"`
 	TokenStore      struct {
 		Secret string `msg:"TOKEN_STORE_SECRET" envconfig:"TOKEN_STORE_SECRET"`
@@ -56,4 +56,11 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 		panic(err)
 	}
 	header(i).Set("X-Skygear-App-Config", base64.StdEncoding.EncodeToString(out))
+}
+
+// NewTenantConfigurationFromEnv implements ConfigurationProvider
+func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error) {
+	c := TenantConfiguration{}
+	err := envconfig.Process("", &c)
+	return c, err
 }

@@ -19,11 +19,10 @@ type Server struct {
 
 	router                  *mux.Router
 	authInfoResolverFactory authn.AuthInfoResolverFactory
-	devMode                 bool
 }
 
 // NewServer create a new Server
-func NewServer(addr string, devMode bool) Server {
+func NewServer(addr string) Server {
 	router := mux.NewRouter()
 
 	srv := &http.Server{
@@ -35,9 +34,8 @@ func NewServer(addr string, devMode bool) Server {
 	}
 
 	return Server{
-		router:  router,
-		Server:  srv,
-		devMode: devMode,
+		router: router,
+		Server: srv,
 	}
 }
 
@@ -47,20 +45,8 @@ func (s *Server) SetAuthInfoResolverFactory(factory authn.AuthInfoResolverFactor
 
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
 func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
-	// if devMode is true, read configuration from environment variables
-	var envConfiguration config.TenantConfiguration
-	if s.devMode {
-		envConfiguration = config.TenantConfiguration{}
-		envConfiguration.ReadFromEnv()
-	}
-
 	return s.router.NewRoute().Path(path).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		var configuration config.TenantConfiguration
-		if s.devMode {
-			configuration = envConfiguration
-		} else {
-			configuration = config.GetTenantConfig(r)
-		}
+		configuration := config.GetTenantConfig(r)
 
 		h := hf.NewHandler(r.Context(), configuration)
 
@@ -82,4 +68,9 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 		h.ServeHTTP(rw, r, authInfo)
 	}))
+}
+
+// Use set middlewares to underlying router
+func (s *Server) Use(mwf ...mux.MiddlewareFunc) {
+	s.router.Use(mwf...)
 }

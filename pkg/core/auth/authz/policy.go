@@ -5,9 +5,8 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
-
-	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
 type PolicyProvider interface {
