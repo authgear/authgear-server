@@ -6,6 +6,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -36,10 +37,10 @@ func (f MeHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.Te
 type MeHandler struct{}
 
 func (h MeHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.NewAllOfPolicy(
-		authz.PolicyFunc(authz.DenyNoAccessKey),
-		authz.PolicyFunc(authz.RequireAuthenticated),
-		authz.PolicyFunc(authz.DenyDisabledUser),
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }
 

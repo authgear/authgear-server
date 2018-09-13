@@ -1,18 +1,28 @@
-package authz
+package policy
 
 import (
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-type RolePolicy struct {
+type Role struct {
 	role  string
 	allow bool
 }
 
-func (p RolePolicy) IsAllowed(r *http.Request, ctx handler.AuthContext) error {
+func NewAllowRole(role string) authz.Policy {
+	return Role{role: role, allow: true}
+}
+
+func NewDenyRole(role string) authz.Policy {
+	return Role{role: role, allow: false}
+}
+
+func (p Role) IsAllowed(r *http.Request, ctx handler.AuthContext) error {
 	if ctx.AuthInfo == nil {
 		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, "user authentication info not found")
 	}

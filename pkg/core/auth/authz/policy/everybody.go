@@ -1,4 +1,4 @@
-package authz
+package policy
 
 import (
 	"net/http"
@@ -7,11 +7,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-type EverybodyPolicy struct {
+type Everybody struct {
 	allow bool
 }
 
-func (p EverybodyPolicy) IsAllowed(r *http.Request, ctx handler.AuthContext) error {
+func (p Everybody) IsAllowed(r *http.Request, ctx handler.AuthContext) error {
 	if !p.allow {
 		// TODO:
 		// return proper error code
