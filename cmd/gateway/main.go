@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"context"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -11,6 +10,8 @@ import (
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
 	"github.com/skygeario/skygear-server/pkg/gateway/provider"
+	"github.com/skygeario/skygear-server/pkg/gateway/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 
 	"github.com/gorilla/mux"
 )
@@ -25,12 +26,30 @@ func init() {
 }
 
 func main() {
-	r := mux.NewRouter()
+	logger := logging.CreateLogger("gateway")
 
+	// create gateway store
+	store, connErr := db.NewGatewayStore(
+		context.Background(),
+		"postgres://postgres:@localhost/postgres?sslmode=disable",
+	)
+	defer store.Close()
+	if connErr != nil {
+		logger.WithError(connErr).Panic("Fail to create db conn")
+	}
+
+	r := mux.NewRouter()
+	// TODO:
+	// Currently both config and authz middleware both query store to get
+	// app, see how to reduce query to optimize the performance
 	r.Use(coreMiddleware.TenantConfigurationMiddleware{
-		ConfigurationProvider: coreMiddleware.ConfigurationProviderFunc(provider.NewTenantConfigurationFromRequest),
+		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
+			Store: store,
+		},
 	}.Handle)
-	r.Use(middleware.TenantAuthzMiddleware{}.Handle)
+	r.Use(middleware.TenantAuthzMiddleware{
+		Store: store,
+	}.Handle)
 
 	proxy := NewReverseProxy()
 	r.HandleFunc("/{gear}/{rest:.*}", rewriteHandler(proxy))
@@ -44,9 +63,9 @@ func main() {
 		Handler:      r, // Pass our instance of gorilla/mux in.
 	}
 
-	fmt.Println("Start gateway server")
+	logger.Info("Start gateway server")
 	if err := srv.ListenAndServe(); err != nil {
-		log.Println(err)
+		logger.Errorf("Fail to start gateway server %v", err)
 	}
 }
 

@@ -16,12 +16,3 @@ type App struct {
 func (a *App) CanAccessGear(gear string) bool {
 	return a.Plan.CanAccessGear(gear)
 }
-
-func GetApp(domain string) *App {
-	return &App{
-		Config: config.TenantConfiguration{
-			APIKey: "api-key",
-			MasterKey: "master-key",
-		},
-	}
-}
