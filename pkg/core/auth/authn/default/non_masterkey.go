@@ -10,12 +10,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
-type NonMasterkeyAuthContextResolver struct {
+type nonMasterkeyAuthContextResolver struct {
 	TokenStore    authtoken.Store `dependency:"TokenStore"`
 	AuthInfoStore authinfo.Store  `dependency:"AuthInfoStore"`
 }
 
-func (r NonMasterkeyAuthContextResolver) Resolve(req *http.Request) (ctx handler.AuthContext, err error) {
+func (r nonMasterkeyAuthContextResolver) Resolve(req *http.Request) (ctx handler.AuthContext, err error) {
 	tokenStr := model.GetAccessToken(req)
 
 	token := &authtoken.Token{}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -12,11 +13,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
-type DefaultAuthContextResolverFactory struct {
+type AuthContextResolverFactory struct {
 	inject.ProviderGraph
 }
 
-func (f DefaultAuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfig config.TenantConfiguration) AuthContextResolver {
+func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfig config.TenantConfiguration) authn.AuthContextResolver {
 	r := &DefaultAuthContextResolver{}
 	inject.DefaultInject(r, f.ProviderGraph, ctx, tenantConfig)
 	return r
@@ -30,14 +31,14 @@ type DefaultAuthContextResolver struct {
 func (r DefaultAuthContextResolver) Resolve(req *http.Request) (ctx handler.AuthContext, err error) {
 	keyType := model.GetAccessKeyType(req)
 
-	var resolver AuthContextResolver
+	var resolver authn.AuthContextResolver
 	if keyType == model.MasterAccessKey {
-		resolver = MasterkeyAuthContextResolver{
+		resolver = masterkeyAuthContextResolver{
 			TokenStore:    r.TokenStore,
 			AuthInfoStore: r.AuthInfoStore,
 		}
 	} else {
-		resolver = NonMasterkeyAuthContextResolver{
+		resolver = nonMasterkeyAuthContextResolver{
 			TokenStore:    r.TokenStore,
 			AuthInfoStore: r.AuthInfoStore,
 		}
