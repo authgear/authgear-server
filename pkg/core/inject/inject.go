@@ -5,12 +5,15 @@ import (
 	"reflect"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 )
+
+type ProviderGraph interface {
+	Provide(name string, ctx context.Context, configuration config.TenantConfiguration) interface{}
+}
 
 func DefaultInject(
 	i interface{},
-	dependencyGraph handler.ProviderGraph,
+	dependencyGraph ProviderGraph,
 	ctx context.Context,
 	configuration config.TenantConfiguration,
 ) {
@@ -19,7 +22,7 @@ func DefaultInject(
 
 func injectDependency(
 	i interface{},
-	dependencyGraph handler.ProviderGraph,
+	dependencyGraph ProviderGraph,
 	ctx context.Context,
 	configuration config.TenantConfiguration,
 ) {

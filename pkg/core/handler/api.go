@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 type APIHandler interface {
 	DecodeRequest(request *http.Request) (RequestPayload, error)
-	Handle(requestPayload interface{}, authInfo auth.AuthInfo) (interface{}, error)
+	Handle(requestPayload interface{}, ctx AuthContext) (interface{}, error)
 }
 
 type APIResponse struct {
@@ -19,7 +18,7 @@ type APIResponse struct {
 }
 
 func APIHandlerToHandler(apiHandler APIHandler) Handler {
-	return HandlerFunc(func(rw http.ResponseWriter, r *http.Request, authInfo auth.AuthInfo) {
+	return HandlerFunc(func(rw http.ResponseWriter, r *http.Request, ctx AuthContext) {
 		payload, err := apiHandler.DecodeRequest(r)
 		if err != nil {
 			// TODO:
@@ -35,7 +34,7 @@ func APIHandlerToHandler(apiHandler APIHandler) Handler {
 			return
 		}
 
-		responsePayload, err := apiHandler.Handle(payload, authInfo)
+		responsePayload, err := apiHandler.Handle(payload, ctx)
 		response := APIResponse{}
 		encoder := json.NewEncoder(rw)
 		if err == nil {

@@ -4,16 +4,16 @@ import (
 	"context"
 
 	"github.com/skygeario/skygear-server/pkg/auth/db"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/token"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	coreDB "github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 type AuthProviders struct {
 	DB              *coreDB.DBProvider
-	TokenStore      *token.TokenStoreProvider
-	AuthInfoStore   *auth.AuthInfoStoreProvider
+	TokenStore      *authtoken.StoreProvider
+	AuthInfoStore   *authinfo.StoreProvider
 	AuthDataChecker *AuthDataCheckerProvider
 	PasswordChecker *PasswordCheckerProvider
 }

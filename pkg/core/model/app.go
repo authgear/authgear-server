@@ -57,3 +57,7 @@ func CheckAccessKeyType(config config.TenantConfiguration, apiKey string) KeyTyp
 
 	return NoAccessKey
 }
+
+func GetAccessToken(r *http.Request) string {
+	return r.Header.Get("X-Skygear-Access-Token")
+}

@@ -1,43 +1,16 @@
-package auth
+package authinfo
 
 import (
 	"context"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/token"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/model"
+
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq"
 )
 
-type AuthInfo struct {
-	*skydb.AuthInfo
-
-	AccessKeyType model.KeyType
-	Token         *token.Token
-}
-
-type AuthInfoStoreProvider struct {
-	CanMigrate bool
-}
-
-func (p AuthInfoStoreProvider) Provide(ctx context.Context, tConfig config.TenantConfiguration) interface{} {
-	// TODO:
-	// mock config
-	dbConn, err := pq.Open(ctx, tConfig.AppName, skydb.RoleBasedAccess, tConfig.DBConnectionStr, skydb.DBConfig{
-		CanMigrate: p.CanMigrate,
-	})
-	if err != nil {
-		// TODO:
-		// handle error properly
-		panic(err)
-	}
-
-	return dbConn
-}
-
-// AuthInfoStore encapsulates the interface of an Skygear Server connection to a container.
-type AuthInfoStore interface {
+// Store encapsulates the interface of an Skygear Server connection to a container.
+type Store interface {
 	// CRUD of AuthInfo, smell like a bad design to attach these onto
 	// a Conn, but looks very convenient to user.
 
@@ -73,4 +46,23 @@ type AuthInfoStore interface {
 	// DeleteAuth returns ErrUserNotFound if such AuthInfo does not
 	// exist in the container.
 	DeleteAuth(id string) error
+}
+
+type StoreProvider struct {
+	CanMigrate bool
+}
+
+func (p StoreProvider) Provide(ctx context.Context, tConfig config.TenantConfiguration) interface{} {
+	// TODO:
+	// mock config
+	dbConn, err := pq.Open(ctx, tConfig.AppName, skydb.RoleBasedAccess, tConfig.DBConnectionStr, skydb.DBConfig{
+		CanMigrate: p.CanMigrate,
+	})
+	if err != nil {
+		// TODO:
+		// handle error properly
+		panic(err)
+	}
+
+	return dbConn
 }

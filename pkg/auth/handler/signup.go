@@ -5,18 +5,17 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/server/audit"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
-
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/auth/token"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/server/audit"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -65,8 +64,8 @@ func (p SignupRequestPayload) isAnonymous() bool {
 type SignupHandler struct {
 	AuthDataChecker provider.AuthDataChecker `dependency:"AuthDataChecker"`
 	PasswordChecker provider.PasswordChecker `dependency:"PasswordChecker"`
-	TokenStore      token.TokenStore         `dependency:"TokenStore"`
-	AuthInfoStore   auth.AuthInfoStore       `dependency:"AuthInfoStore"`
+	TokenStore      authtoken.Store          `dependency:"TokenStore"`
+	AuthInfoStore   authinfo.Store           `dependency:"AuthInfoStore"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -79,7 +78,7 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, err
 }
 
-func (h SignupHandler) Handle(req interface{}, _ auth.AuthInfo) (resp interface{}, err error) {
+func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
 	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
@@ -96,7 +95,7 @@ func (h SignupHandler) Handle(req interface{}, _ auth.AuthInfo) (resp interface{
 		return
 	}
 
-	authInfo := auth.AuthInfo{}
+	authContext := handler.AuthContext{}
 	info := skydb.AuthInfo{}
 
 	if payload.isAnonymous() {
@@ -123,12 +122,12 @@ func (h SignupHandler) Handle(req interface{}, _ auth.AuthInfo) (resp interface{
 		info = skydb.NewAuthInfo(payload.Password)
 	}
 
-	authInfo.AuthInfo = &info
+	authContext.AuthInfo = &info
 
 	// TODO: create user profile
 
 	// Create AuthInfo
-	if err = h.AuthInfoStore.CreateAuth(authInfo.AuthInfo); err != nil {
+	if err = h.AuthInfoStore.CreateAuth(authContext.AuthInfo); err != nil {
 		if err == skydb.ErrUserDuplicated {
 			err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 			return
@@ -140,7 +139,7 @@ func (h SignupHandler) Handle(req interface{}, _ auth.AuthInfo) (resp interface{
 		return
 	}
 
-	tkn, err := h.TokenStore.NewToken(info.ID)
+	tkn, err := h.TokenStore.NewToken(authContext.AuthInfo.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -149,13 +148,13 @@ func (h SignupHandler) Handle(req interface{}, _ auth.AuthInfo) (resp interface{
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(authInfo, skydb.Record{}, tkn.AccessToken)
+	resp = response.NewAuthResponse(authContext, skydb.Record{}, tkn.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()
-	authInfo.AuthInfo.LastSeenAt = &now
-	authInfo.AuthInfo.IsPasswordSet = false
-	if err = h.AuthInfoStore.UpdateAuth(authInfo.AuthInfo); err != nil {
+	authContext.AuthInfo.LastSeenAt = &now
+	authContext.AuthInfo.IsPasswordSet = false
+	if err = h.AuthInfoStore.UpdateAuth(authContext.AuthInfo); err != nil {
 		err = skyerr.MakeError(err)
 		return
 	}
