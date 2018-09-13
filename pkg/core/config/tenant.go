@@ -10,13 +10,13 @@ import (
 // TenantConfiguration is a mock struct of tenant configuration
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	DBConnectionStr string `msg:"DATABASE_URL" envconfig:"DATABASE_URL"`
-	APIKey          string `msg:"API_KEY" envconfig:"API_KEY"`
-	MasterKey       string `msg:"MASTER_KEY" envconfig:"MASTER_KEY"`
-	AppName         string `msg:"APP_NAME" envconfig:"APP_NAME"`
+	DBConnectionStr string `msg:"DATABASE_URL" envconfig:"DATABASE_URL" json:"DATABASE_URL"`
+	APIKey          string `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
+	MasterKey       string `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
+	AppName         string `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
 	TokenStore      struct {
-		Secret string `msg:"TOKEN_STORE_SECRET" envconfig:"TOKEN_STORE_SECRET"`
-		Expiry int64  `msg:"TOKEN_STORE_EXPIRY" envconfig:"TOKEN_STORE_EXPIRY"`
+		Secret string `msg:"TOKEN_STORE_SECRET" envconfig:"TOKEN_STORE_SECRET" json:"TOKEN_STORE_SECRET"`
+		Expiry int64  `msg:"TOKEN_STORE_EXPIRY" envconfig:"TOKEN_STORE_EXPIRY" json:"TOKEN_STORE_EXPIRY"`
 	}
 }
 
