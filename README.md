@@ -57,6 +57,11 @@ cd ./scripts/gateway
 $ make migrate-version
 ```
 
+### To add a new gear
+
+1. Add migration to update plan table with gear enabled column
+2. Update `Plan` struct and `CanAccessGear` func in `pkg/gateway/model/plan.go`
+
 ## License & Copyright
 
 ```
