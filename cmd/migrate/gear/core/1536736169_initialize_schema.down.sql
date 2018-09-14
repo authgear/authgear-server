@@ -1,5 +1,5 @@
 BEGIN;
 
-DROP TABLE _user CASCADE;
+DROP TABLE _sky_user CASCADE;
 
 END;
