@@ -1,4 +1,4 @@
-package sql
+package db
 
 import (
 	"regexp"
@@ -14,25 +14,25 @@ func toLowerAndUnderscore(s string) string {
 	return underscoreRe.ReplaceAllLiteralString(strings.ToLower(s), "_")
 }
 
-type Builder struct {
+type SQLBuilder struct {
 	sq.StatementBuilderType
 
 	namespace string
 	appName   string
 }
 
-func NewBuilder(namespace string, appName string) Builder {
-	return Builder{
+func NewSQLBuilder(namespace string, appName string) SQLBuilder {
+	return SQLBuilder{
 		StatementBuilderType: sq.StatementBuilder.PlaceholderFormat(sq.Dollar),
 		namespace:            namespace,
 		appName:              appName,
 	}
 }
 
-func (b Builder) TableName(table string) string {
+func (b SQLBuilder) TableName(table string) string {
 	return pq.QuoteIdentifier(b.schemaName()) + "." + pq.QuoteIdentifier(table)
 }
 
-func (b Builder) schemaName() string {
+func (b SQLBuilder) schemaName() string {
 	return "app_" + toLowerAndUnderscore(b.appName)
 }

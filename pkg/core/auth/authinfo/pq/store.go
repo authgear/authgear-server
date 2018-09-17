@@ -26,14 +26,13 @@ import (
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	skySql "github.com/skygeario/skygear-server/pkg/core/db/sql"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
 type AuthInfoStore struct {
 	db          *sqlx.DB
-	sqlBuilder  skySql.Builder
-	sqlExecutor skySql.Executor
+	sqlBuilder  db.SQLBuilder
+	sqlExecutor db.SQLExecutor
 	logger      *logrus.Entry
 }
 

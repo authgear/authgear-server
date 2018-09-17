@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package sql
+package db
 
 import (
 	"context"
@@ -25,13 +25,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
-type Executor struct {
+type SQLExecutor struct {
 	context        context.Context
 	db             *sqlx.DB
 	statementCount int
 }
 
-func (e *Executor) Get(dest interface{}, query string, args ...interface{}) (err error) {
+func (e *SQLExecutor) Get(dest interface{}, query string, args ...interface{}) (err error) {
 	logger := logging.CreateLogger(e.context, "skydb").WithField("tag", "sql")
 	e.statementCount++
 	err = e.db.GetContext(e.context, dest, query, args...)
@@ -48,7 +48,7 @@ func (e *Executor) Get(dest interface{}, query string, args ...interface{}) (err
 	return
 }
 
-func (e *Executor) GetWith(dest interface{}, sqlizeri sq.Sqlizer) (err error) {
+func (e *SQLExecutor) GetWith(dest interface{}, sqlizeri sq.Sqlizer) (err error) {
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		panic(err)
@@ -56,7 +56,7 @@ func (e *Executor) GetWith(dest interface{}, sqlizeri sq.Sqlizer) (err error) {
 	return e.Get(dest, sql, args...)
 }
 
-func (e *Executor) Exec(query string, args ...interface{}) (result sql.Result, err error) {
+func (e *SQLExecutor) Exec(query string, args ...interface{}) (result sql.Result, err error) {
 	logger := logging.CreateLogger(e.context, "skydb").WithField("tag", "sql")
 	e.statementCount++
 	result, err = e.db.ExecContext(e.context, query, args...)
@@ -86,7 +86,7 @@ func (e *Executor) Exec(query string, args ...interface{}) (result sql.Result, e
 	return
 }
 
-func (e *Executor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
+func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		panic(err)
@@ -94,7 +94,7 @@ func (e *Executor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 	return e.Exec(sql, args...)
 }
 
-func (e *Executor) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
+func (e *SQLExecutor) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
 	logger := logging.CreateLogger(e.context, "skydb").WithField("tag", "sql")
 	e.statementCount++
 	rows, err = e.db.QueryxContext(e.context, query, args...)
@@ -111,7 +111,7 @@ func (e *Executor) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, e
 	return
 }
 
-func (e *Executor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
+func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		panic(err)
@@ -119,7 +119,7 @@ func (e *Executor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 	return e.Queryx(sql, args...)
 }
 
-func (e *Executor) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
+func (e *SQLExecutor) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
 	logger := logging.CreateLogger(e.context, "skydb").WithField("tag", "sql")
 	e.statementCount++
 	row = e.db.QueryRowxContext(e.context, query, args...)
@@ -131,7 +131,7 @@ func (e *Executor) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) 
 	return
 }
 
-func (e *Executor) QueryRowWith(sqlizeri sq.Sqlizer) *sqlx.Row {
+func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) *sqlx.Row {
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		panic(err)
