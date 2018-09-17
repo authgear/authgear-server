@@ -30,7 +30,8 @@ func NewSQLBuilder(namespace string, appName string) SQLBuilder {
 }
 
 func (b SQLBuilder) TableName(table string) string {
-	return pq.QuoteIdentifier(b.schemaName()) + "." + pq.QuoteIdentifier(table)
+	tableName := "_" + b.namespace + "_" + table
+	return pq.QuoteIdentifier(b.schemaName()) + "." + pq.QuoteIdentifier(tableName)
 }
 
 func (b SQLBuilder) schemaName() string {

@@ -21,7 +21,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 
-	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
@@ -30,10 +29,17 @@ import (
 )
 
 type AuthInfoStore struct {
-	db          *sqlx.DB
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 	logger      *logrus.Entry
+}
+
+func NewAuthInfoStore(appName string, executor db.SQLExecutor, logger *logrus.Entry) AuthInfoStore {
+	return AuthInfoStore{
+		sqlBuilder:  db.NewSQLBuilder("sky", appName),
+		sqlExecutor: executor,
+		logger:      logger,
+	}
 }
 
 func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {

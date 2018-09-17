@@ -31,6 +31,18 @@ type SQLExecutor struct {
 	statementCount int
 }
 
+func NewSQLExecutor(ctx context.Context, driverName string, dataSourceName string) SQLExecutor {
+	db, err := sqlx.Open(driverName, dataSourceName)
+	if err != nil {
+		panic(err)
+	}
+
+	return SQLExecutor{
+		context: ctx,
+		db:      db,
+	}
+}
+
 func (e *SQLExecutor) Get(dest interface{}, query string, args ...interface{}) (err error) {
 	logger := logging.CreateLogger(e.context, "skydb").WithField("tag", "sql")
 	e.statementCount++

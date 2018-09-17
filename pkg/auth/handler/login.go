@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/db"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -35,9 +34,7 @@ func (f LoginHandlerFactory) NewHandler(ctx context.Context, tenantConfig config
 }
 
 // LoginHandler handles login request
-type LoginHandler struct {
-	DB *db.DBConn `dependency:"DB"`
-}
+type LoginHandler struct{}
 
 func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
@@ -49,6 +46,6 @@ func (h LoginHandler) DecodeRequest(request *http.Request) (payload handler.Requ
 }
 
 func (h LoginHandler) Handle(req interface{}, ctx handler.AuthContext) (resp interface{}, err error) {
-	resp = h.DB.GetRecord("user:abc")
+	resp = map[string]interface{}{"user": "user:abc"}
 	return
 }
