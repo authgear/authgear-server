@@ -30,14 +30,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
-type Store struct {
+type AuthInfoStore struct {
 	db          *sqlx.DB
 	sqlBuilder  skySql.Builder
 	sqlExecutor skySql.Executor
 	logger      *logrus.Entry
 }
 
-func (s *Store) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
+func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
 		lastSeenAt      *time.Time
@@ -91,7 +91,7 @@ func (s *Store) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 }
 
 // nolint: gocyclo
-func (s *Store) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
+func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
 		lastSeenAt      *time.Time
@@ -148,7 +148,7 @@ func (s *Store) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	return nil
 }
 
-func (s *Store) baseUserBuilder() sq.SelectBuilder {
+func (s AuthInfoStore) baseUserBuilder() sq.SelectBuilder {
 	// TODO:
 	return s.sqlBuilder.Select("id",
 		"token_valid_since", "last_seen_at",
@@ -159,7 +159,7 @@ func (s *Store) baseUserBuilder() sq.SelectBuilder {
 		GroupBy("id")
 }
 
-func (s *Store) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
+func (s AuthInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
 	logger := s.logger
 	var (
 		id              string
@@ -221,13 +221,13 @@ func (s *Store) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) e
 	return err
 }
 
-func (s *Store) GetAuth(id string, authinfo *authinfo.AuthInfo) error {
+func (s AuthInfoStore) GetAuth(id string, authinfo *authinfo.AuthInfo) error {
 	builder := s.baseUserBuilder().Where("id = ?", id)
 	scanner := s.sqlExecutor.QueryRowWith(builder)
 	return s.doScanAuth(authinfo, scanner)
 }
 
-func (s *Store) DeleteAuth(id string) error {
+func (s AuthInfoStore) DeleteAuth(id string) error {
 	builder := s.sqlBuilder.Delete(s.sqlBuilder.TableName("user")).
 		Where("id = ?", id)
 

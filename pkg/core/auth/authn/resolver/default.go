@@ -5,22 +5,25 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
-type AuthContextResolverFactory struct {
-	TokenStore    *authtoken.StoreProvider
-	AuthInfoStore *authinfo.StoreProvider
-}
+type AuthContextResolverFactory struct{}
 
 func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfig config.TenantConfiguration) authn.AuthContextResolver {
 	r := &DefaultAuthContextResolver{
-		TokenStore:    f.TokenStore.Provide(ctx, tenantConfig).(authtoken.Store),
-		AuthInfoStore: f.AuthInfoStore.Provide(ctx, tenantConfig).(authinfo.Store),
+		TokenStore: authtoken.NewJWTStore(tenantConfig.AppName, tenantConfig.TokenStore.Secret, tenantConfig.TokenStore.Expiry),
+		AuthInfoStore: pq.NewAuthInfoStore(
+			tenantConfig.AppName,
+			db.NewSQLExecutor(ctx, "postgres", tenantConfig.DBConnectionStr),
+			nil,
+		),
 	}
 	return r
 }

@@ -3,14 +3,14 @@ package handler
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/model"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
 type AuthContext struct {
 	AccessKeyType model.KeyType
-	AuthInfo      *skydb.AuthInfo
+	AuthInfo      *authinfo.AuthInfo
 	Token         *authtoken.Token
 }
 

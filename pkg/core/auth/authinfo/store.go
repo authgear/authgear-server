@@ -1,13 +1,5 @@
 package authinfo
 
-import (
-	"context"
-
-	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"github.com/skygeario/skygear-server/pkg/server/skydb/pq"
-)
-
 // Store encapsulates the interface of an Skygear Server connection to a container.
 type Store interface {
 	// CreateAuth creates a new AuthInfo in the container
@@ -36,19 +28,4 @@ type Store interface {
 
 type StoreProvider struct {
 	CanMigrate bool
-}
-
-func (p StoreProvider) Provide(ctx context.Context, tConfig config.TenantConfiguration) interface{} {
-	// TODO:
-	// mock config
-	dbConn, err := pq.Open(ctx, tConfig.AppName, skydb.RoleBasedAccess, tConfig.DBConnectionStr, skydb.DBConfig{
-		CanMigrate: p.CanMigrate,
-	})
-	if err != nil {
-		// TODO:
-		// handle error properly
-		panic(err)
-	}
-
-	return dbConn
 }
