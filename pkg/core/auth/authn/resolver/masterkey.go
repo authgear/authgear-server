@@ -1,4 +1,4 @@
-package authn
+package resolver
 
 import (
 	"net/http"
