@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
+	"github.com/skygeario/skygear-server/pkg/core/auth/token"
 
 	"github.com/kelseyhightower/envconfig"
 
@@ -36,9 +37,11 @@ func main() {
 	envconfig.Process("", &configuration)
 
 	authDependency := provider.AuthProviders{
-		DB:            db.NewDBProvider("auth"),
-		TokenStore:    &auth.TokenStoreProvider{},
-		AuthInfoStore: &auth.AuthInfoStoreProvider{CanMigrate: true},
+		DB:              db.NewDBProvider("auth"),
+		TokenStore:      &token.TokenStoreProvider{},
+		AuthInfoStore:   &auth.AuthInfoStoreProvider{CanMigrate: true},
+		AuthDataChecker: &provider.AuthDataCheckerProvider{},
+		PasswordChecker: &provider.PasswordCheckerProvider{},
 	}
 
 	srv := server.NewServer("localhost:3000")
@@ -53,6 +56,7 @@ func main() {
 		authn.StatefulJWTAuthInfoResolverFactory{ProviderGraph: authDependency},
 	)
 
+	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)
 	handler.AttachMeHandler(&srv, authDependency)
 
