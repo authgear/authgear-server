@@ -65,6 +65,42 @@ $ make migrate-version
 
 ## Gear DB migration
 
+The following part is about gear db migration.
+
+If you come from skygear-server 0.x to 1.x, the biggest difference is that skygear next would not offer JIT db migration in most gears.
+
+DB migration must be run before server boot up. And since we do not have a full featured db management tool for skygear yet, here is a general guide for new comers of skygear next user.
+
+1. Create a schema for your app.
+1. Run core migration.
+1. Run gear(s) migration.
+
+*See previous section if you also need to run db migration for gateway.*
+
+For example, the app name is `helloworld` and you want to run `auth` gear and `chat` gear.
+
+```
+# Create a schema for your app, with name app_{name}
+# Run the following SQL in any postgresql client, like Postico
+CREATE SCHEMA app_helloworld;
+
+# If you have psql cli
+$ psql ${DATABASE_URL} -c "CREATE SCHEMA app_helloworld;"
+
+# Run core migration
+$ go run cmd/migrate/main.go -path cmd/migrate/gear/core -schema app_helloworld -gear core up
+
+# Run auth gear migration
+$ go run cmd/migrate/main.go -path cmd/migrate/gear/auth -schema app_helloworld -gear auth up
+
+# Run chat gear migration
+$ go run cmd/migrate/main.go -path cmd/migrate/gear/chat -schema app_helloworld -gear chat up
+```
+
+See below sections for more commands about db migration.
+
+### Commands
+
 **Add a version**
 
 ```
@@ -80,11 +116,6 @@ $ export GEAR="gear name"
 $ export APPNAME="app name"
 $ go run cmd/migrate/main.go -path cmd/migrate/gear/${GEAR} -schema app_${APPNAME} -gear ${GEAR} up 1
 ```
-
-**Migration notes**
-
-- `core` migration must run before `auth`
-
 
 **Check current db version**
 
