@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -69,7 +70,7 @@ type SignupHandler struct {
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(authz.DenyNoAccessKey)
+	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
 func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
