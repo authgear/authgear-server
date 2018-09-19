@@ -21,7 +21,10 @@ type Server struct {
 }
 
 // NewServer create a new Server
-func NewServer(addr string) Server {
+func NewServer(
+	addr string,
+	authContextResolverFactory authn.AuthContextResolverFactory,
+) Server {
 	router := mux.NewRouter()
 
 	srv := &http.Server{
@@ -33,13 +36,10 @@ func NewServer(addr string) Server {
 	}
 
 	return Server{
-		router: router,
-		Server: srv,
+		router:                     router,
+		Server:                     srv,
+		authContextResolverFactory: authContextResolverFactory,
 	}
-}
-
-func (s *Server) SetAuthContextResolverFactory(factory authn.AuthContextResolverFactory) {
-	s.authContextResolverFactory = factory
 }
 
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
@@ -49,11 +49,8 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 		h := hf.NewHandler(r.Context(), configuration)
 
-		var ctx handler.AuthContext
-		if s.authContextResolverFactory != nil {
-			resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)
-			ctx, _ = resolver.Resolve(r)
-		}
+		resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)
+		ctx, _ := resolver.Resolve(r)
 
 		if policyProvider, ok := h.(authz.PolicyProvider); ok {
 			policy := policyProvider.ProvideAuthzPolicy()
