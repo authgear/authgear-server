@@ -8,15 +8,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
-	"github.com/skygeario/skygear-server/pkg/core/auth/token"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authn/resolver"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/joho/godotenv"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
@@ -38,8 +38,8 @@ func main() {
 
 	authDependency := provider.AuthProviders{
 		DB:              db.NewDBProvider("auth"),
-		TokenStore:      &token.TokenStoreProvider{},
-		AuthInfoStore:   &auth.AuthInfoStoreProvider{CanMigrate: true},
+		TokenStore:      &authtoken.StoreProvider{},
+		AuthInfoStore:   &authinfo.StoreProvider{CanMigrate: true},
 		AuthDataChecker: &provider.AuthDataCheckerProvider{},
 		PasswordChecker: &provider.PasswordCheckerProvider{},
 	}
@@ -52,8 +52,8 @@ func main() {
 		}.Handle)
 	}
 
-	srv.SetAuthInfoResolverFactory(
-		authn.StatefulJWTAuthInfoResolverFactory{ProviderGraph: authDependency},
+	srv.SetAuthContextResolverFactory(
+		resolver.AuthContextResolverFactory{ProviderGraph: authDependency},
 	)
 
 	handler.AttachSignupHandler(&srv, authDependency)

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 
@@ -17,8 +16,8 @@ import (
 type Server struct {
 	*http.Server
 
-	router                  *mux.Router
-	authInfoResolverFactory authn.AuthInfoResolverFactory
+	router                     *mux.Router
+	authContextResolverFactory authn.AuthContextResolverFactory
 }
 
 // NewServer create a new Server
@@ -39,8 +38,8 @@ func NewServer(addr string) Server {
 	}
 }
 
-func (s *Server) SetAuthInfoResolverFactory(factory authn.AuthInfoResolverFactory) {
-	s.authInfoResolverFactory = factory
+func (s *Server) SetAuthContextResolverFactory(factory authn.AuthContextResolverFactory) {
+	s.authContextResolverFactory = factory
 }
 
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
@@ -50,15 +49,15 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 		h := hf.NewHandler(r.Context(), configuration)
 
-		var authInfo auth.AuthInfo
-		if s.authInfoResolverFactory != nil {
-			resolver := s.authInfoResolverFactory.NewResolver(r.Context(), configuration)
-			authInfo, _ = resolver.Resolve(r)
+		var ctx handler.AuthContext
+		if s.authContextResolverFactory != nil {
+			resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)
+			ctx, _ = resolver.Resolve(r)
 		}
 
 		if policyProvider, ok := h.(authz.PolicyProvider); ok {
 			policy := policyProvider.ProvideAuthzPolicy()
-			if err := policy.IsAllowed(r, authInfo); err != nil {
+			if err := policy.IsAllowed(r, ctx); err != nil {
 				// TODO:
 				// handle error properly
 				http.Error(rw, err.Error(), http.StatusUnauthorized)
@@ -66,7 +65,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 			}
 		}
 
-		h.ServeHTTP(rw, r, authInfo)
+		h.ServeHTTP(rw, r, ctx)
 	}))
 }
 
