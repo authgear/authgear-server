@@ -44,7 +44,10 @@ func main() {
 		PasswordChecker: &provider.PasswordCheckerProvider{},
 	}
 
-	authContextResolverFactory := resolver.AuthContextResolverFactory{ProviderGraph: authDependency}
+	authContextResolverFactory := resolver.AuthContextResolverFactory{
+		TokenStore:    authDependency.TokenStore,
+		AuthInfoStore: authDependency.AuthInfoStore,
+	}
 	srv := server.NewServer("localhost:3000", authContextResolverFactory)
 
 	if configuration.DevMode {
