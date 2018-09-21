@@ -44,17 +44,17 @@ func main() {
 		PasswordChecker: &provider.PasswordCheckerProvider{},
 	}
 
-	srv := server.NewServer("localhost:3000")
+	authContextResolverFactory := resolver.AuthContextResolverFactory{
+		TokenStore:    authDependency.TokenStore,
+		AuthInfoStore: authDependency.AuthInfoStore,
+	}
+	srv := server.NewServer("localhost:3000", authContextResolverFactory)
 
 	if configuration.DevMode {
 		srv.Use(middleware.TenantConfigurationMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(config.NewTenantConfigurationFromEnv),
 		}.Handle)
 	}
-
-	srv.SetAuthContextResolverFactory(
-		resolver.AuthContextResolverFactory{ProviderGraph: authDependency},
-	)
 
 	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)

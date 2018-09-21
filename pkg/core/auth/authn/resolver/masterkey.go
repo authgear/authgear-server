@@ -11,8 +11,8 @@ import (
 )
 
 type masterkeyAuthContextResolver struct {
-	TokenStore    authtoken.Store `dependency:"TokenStore"`
-	AuthInfoStore authinfo.Store  `dependency:"AuthInfoStore"`
+	TokenStore    authtoken.Store
+	AuthInfoStore authinfo.Store
 }
 
 func (r masterkeyAuthContextResolver) Resolve(req *http.Request) (ctx handler.AuthContext, err error) {

@@ -9,23 +9,25 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
 type AuthContextResolverFactory struct {
-	inject.ProviderGraph
+	TokenStore    *authtoken.StoreProvider
+	AuthInfoStore *authinfo.StoreProvider
 }
 
 func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfig config.TenantConfiguration) authn.AuthContextResolver {
-	r := &DefaultAuthContextResolver{}
-	inject.DefaultInject(r, f.ProviderGraph, ctx, tenantConfig)
+	r := &DefaultAuthContextResolver{
+		TokenStore:    f.TokenStore.Provide(ctx, tenantConfig).(authtoken.Store),
+		AuthInfoStore: f.AuthInfoStore.Provide(ctx, tenantConfig).(authinfo.Store),
+	}
 	return r
 }
 
 type DefaultAuthContextResolver struct {
-	TokenStore    authtoken.Store `dependency:"TokenStore"`
-	AuthInfoStore authinfo.Store  `dependency:"AuthInfoStore"`
+	TokenStore    authtoken.Store
+	AuthInfoStore authinfo.Store
 }
 
 func (r DefaultAuthContextResolver) Resolve(req *http.Request) (ctx handler.AuthContext, err error) {
