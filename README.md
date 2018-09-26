@@ -88,7 +88,7 @@ CREATE SCHEMA app_helloworld;
 $ psql ${DATABASE_URL} -c "CREATE SCHEMA app_helloworld;"
 
 # Run core migration
-$ go run cmd/migrate/main.go -path cmd/migrate/gear/core -schema app_helloworld -gear core up
+$ go run cmd/migrate/main.go -path cmd/migrate/core -schema app_helloworld -core up
 
 # Run auth gear migration
 $ go run cmd/migrate/main.go -path cmd/migrate/gear/auth -schema app_helloworld -gear auth up
