@@ -1,21 +1,5 @@
 package provider
 
-import (
-	"context"
-
-	"github.com/skygeario/skygear-server/pkg/core/config"
-)
-
-type AuthDataCheckerProvider struct{}
-
-func (p AuthDataCheckerProvider) Provide(ctx context.Context, tConfig config.TenantConfiguration) interface{} {
-	return &DefaultAuthDataChecker{
-		//TODO:
-		// from tConfig
-		AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
-	}
-}
-
 type AuthDataChecker interface {
 	IsValid(authData map[string]interface{}) bool
 }
