@@ -3,11 +3,8 @@ package auth
 import (
 	"context"
 
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-
-	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
 type DependencyMap struct{}
@@ -19,13 +16,9 @@ func NewDependencyMap() DependencyMap {
 func (m DependencyMap) Provide(dependencyName string, ctx context.Context, tConfig config.TenantConfiguration) interface{} {
 	switch dependencyName {
 	case "TokenStore":
-		return authtoken.NewJWTStore(tConfig.AppName, tConfig.TokenStore.Secret, tConfig.TokenStore.Expiry)
+		return coreAuth.NewDefaultTokenStore(ctx, tConfig)
 	case "AuthInfoStore":
-		return pq.NewAuthInfoStore(
-			tConfig.AppName,
-			db.NewSQLExecutor(ctx, "postgres", tConfig.DBConnectionStr),
-			nil,
-		)
+		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
 	default:
 		return nil
 	}

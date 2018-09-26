@@ -34,9 +34,9 @@ type AuthInfoStore struct {
 	logger      *logrus.Entry
 }
 
-func NewAuthInfoStore(appName string, executor db.SQLExecutor, logger *logrus.Entry) AuthInfoStore {
-	return AuthInfoStore{
-		sqlBuilder:  db.NewSQLBuilder("sky", appName),
+func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *AuthInfoStore {
+	return &AuthInfoStore{
+		sqlBuilder:  builder,
 		sqlExecutor: executor,
 		logger:      logger,
 	}
