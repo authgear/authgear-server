@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -66,11 +68,12 @@ func (p SignupRequestPayload) isAnonymous() bool {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	AuthDataChecker    dependency.AuthDataChecker `dependency:"AuthDataChecker"`
-	PasswordChecker    dependency.PasswordChecker `dependency:"PasswordChecker"`
-	TokenStore         authtoken.Store            `dependency:"TokenStore"`
-	AuthInfoStore      authinfo.Store             `dependency:"AuthInfoStore"`
-	AuthPrincipalStore principal.Store            `dependency:"AuthPrincipalStore"`
+	AuthDataChecker      dependency.AuthDataChecker `dependency:"AuthDataChecker"`
+	PasswordChecker      dependency.PasswordChecker `dependency:"PasswordChecker"`
+	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	AuthPrincipalStore   principal.Store            `dependency:"AuthPrincipalStore"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -153,6 +156,11 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 		return
 	}
 
+	err = h.createProviderEntry(payload, principal)
+	if err != nil {
+		return
+	}
+
 	tkn, err := h.TokenStore.NewToken(authContext.AuthInfo.ID)
 	if err != nil {
 		panic(err)
@@ -175,6 +183,20 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 
 	// TODO: Update user last login time
 	// TODO: Audit
+
+	return
+}
+
+func (h SignupHandler) createProviderEntry(payload SignupRequestPayload, prin principal.Principal) (err error) {
+	if payload.isAnonymous() {
+		return
+	}
+
+	if payload.Provider != "" {
+		panic("Unsupported signup with provider")
+	} else {
+		err = h.PasswordAuthProvider.CreateEntry(prin.ID, payload.AuthData, payload.Password)
+	}
 
 	return
 }
