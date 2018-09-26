@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	"github.com/skygeario/skygear-server/pkg/auth/provider"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
@@ -22,7 +22,7 @@ func (m DependencyMap) Provide(dependencyName string, ctx context.Context, tConf
 	case "AuthInfoStore":
 		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
 	case "AuthDataChecker":
-		return &provider.DefaultAuthDataChecker{
+		return &dependency.DefaultAuthDataChecker{
 			//TODO:
 			// from tConfig
 			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},

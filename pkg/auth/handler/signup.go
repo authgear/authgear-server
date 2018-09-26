@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/provider"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -64,10 +64,10 @@ func (p SignupRequestPayload) isAnonymous() bool {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	AuthDataChecker provider.AuthDataChecker `dependency:"AuthDataChecker"`
-	PasswordChecker provider.PasswordChecker `dependency:"PasswordChecker"`
-	TokenStore      authtoken.Store          `dependency:"TokenStore"`
-	AuthInfoStore   authinfo.Store           `dependency:"AuthInfoStore"`
+	AuthDataChecker dependency.AuthDataChecker `dependency:"AuthDataChecker"`
+	PasswordChecker dependency.PasswordChecker `dependency:"PasswordChecker"`
+	TokenStore      authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore   authinfo.Store             `dependency:"AuthInfoStore"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {

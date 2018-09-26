@@ -1,4 +1,4 @@
-package provider
+package dependency
 
 type AuthDataChecker interface {
 	IsValid(authData map[string]interface{}) bool
