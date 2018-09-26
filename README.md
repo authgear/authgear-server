@@ -109,7 +109,14 @@ $ export REVISION=<revision_description>
 $ make -f scripts/gateway/Makefile add-version MIGRATION_DIR=cmd/migrate/gear/${GEAR} REVISION=${REVISION}
 ```
 
-**Run migration**
+**Run core migration**
+
+```
+$ export APPNAME="app name"
+$ go run cmd/migrate/main.go -path cmd/migrate/core -schema app_${APPNAME} -core up 1
+```
+
+**Run gear migration**
 
 ```
 $ export GEAR="gear name"

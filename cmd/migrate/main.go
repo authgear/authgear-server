@@ -17,6 +17,7 @@ func main() {
 
 	pathPtr := flag.String("path", "", "")
 	gearPtr := flag.String("gear", "", "")
+	corePtr := flag.Bool("core", false, "")
 	databasePtr := flag.String("database", "postgres://postgres:@localhost/postgres?sslmode=disable", "")
 	schemaPtr := flag.String("schema", "app__", "")
 
@@ -32,8 +33,19 @@ func main() {
 		panic(err)
 	}
 
+	if *corePtr && *gearPtr != "" {
+		panic("-core and -gear XXX cannot be set together")
+	}
+
+	var targetTable string
+	if *corePtr {
+		targetTable = "core"
+	} else {
+		targetTable = *gearPtr
+	}
+
 	config := postgres.Config{
-		MigrationsTable: fmt.Sprintf("_%s_version", *gearPtr),
+		MigrationsTable: fmt.Sprintf("_%s_version", targetTable),
 	}
 	driver, err := postgres.WithInstance(db, &config)
 	if err != nil {
@@ -47,7 +59,7 @@ func main() {
 	}
 
 	fmt.Println("Path: " + *pathPtr)
-	fmt.Println("Gear: " + *gearPtr)
+	fmt.Println("Target table namespace: " + targetTable)
 	fmt.Println("Database: " + *databasePtr)
 	fmt.Println("Schema: " + *schemaPtr)
 

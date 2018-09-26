@@ -1,5 +1,0 @@
-BEGIN;
-
-DROP TABLE _sky_user CASCADE;
-
-END;

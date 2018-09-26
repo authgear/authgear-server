@@ -3,7 +3,7 @@ BEGIN;
 CREATE TABLE _auth_principal (
   id text PRIMARY KEY, -- anonymous|abc, password|abc, custom_token|abc, oauth:facebook|abc, custom:code|abc
   provider text NOT NULL, -- anonymous, password, custom_token, oauth:facebook, oauth:google, custom:code
-  user_id text REFERENCES _sky_user(id),
+  user_id text REFERENCES _core_user(id),
   CONSTRAINT _auth_principal_user_id_provider_key UNIQUE (user_id, provider)
 );
 
