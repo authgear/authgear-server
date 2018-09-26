@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
@@ -64,10 +66,11 @@ func (p SignupRequestPayload) isAnonymous() bool {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	AuthDataChecker dependency.AuthDataChecker `dependency:"AuthDataChecker"`
-	PasswordChecker dependency.PasswordChecker `dependency:"PasswordChecker"`
-	TokenStore      authtoken.Store            `dependency:"TokenStore"`
-	AuthInfoStore   authinfo.Store             `dependency:"AuthInfoStore"`
+	AuthDataChecker    dependency.AuthDataChecker `dependency:"AuthDataChecker"`
+	PasswordChecker    dependency.PasswordChecker `dependency:"PasswordChecker"`
+	TokenStore         authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore      authinfo.Store             `dependency:"AuthInfoStore"`
+	AuthPrincipalStore principal.Store            `dependency:"AuthPrincipalStore"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -98,7 +101,26 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 	}
 
 	authContext := handler.AuthContext{}
-	info := authinfo.AuthInfo{}
+	info := authinfo.NewAuthInfo()
+
+	authContext.AuthInfo = &info
+
+	// TODO: create user profile
+
+	// Create AuthInfo
+	if err = h.AuthInfoStore.CreateAuth(authContext.AuthInfo); err != nil {
+		if err == skydb.ErrUserDuplicated {
+			err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
+			return
+		}
+
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save auth info")
+		return
+	}
+
+	principal := principal.New()
 
 	if payload.isAnonymous() {
 		panic("Unsupported signup anonymously")
@@ -122,23 +144,12 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 		// 	// Create new user info and set updated auth data
 		// 	info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
 	} else {
-		info = authinfo.NewAuthInfo()
+		principal.Provider = "password"
+		principal.UserID = info.ID
 	}
 
-	authContext.AuthInfo = &info
-
-	// TODO: create user profile
-
-	// Create AuthInfo
-	if err = h.AuthInfoStore.CreateAuth(authContext.AuthInfo); err != nil {
-		if err == skydb.ErrUserDuplicated {
-			err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
-			return
-		}
-
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save auth info")
+	err = h.AuthPrincipalStore.CreatePrincipal(principal)
+	if err != nil {
 		return
 	}
 
