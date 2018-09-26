@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/provider"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -22,7 +23,7 @@ import (
 
 func AttachSignupHandler(
 	server *server.Server,
-	authDependency provider.AuthProviders,
+	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/signup", &SignupHandlerFactory{
 		authDependency,
@@ -31,7 +32,7 @@ func AttachSignupHandler(
 }
 
 type SignupHandlerFactory struct {
-	Dependency provider.AuthProviders
+	Dependency auth.DependencyMap
 }
 
 func (f SignupHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.TenantConfiguration) handler.Handler {
@@ -97,10 +98,11 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 	}
 
 	authContext := handler.AuthContext{}
-	info := skydb.AuthInfo{}
+	info := authinfo.AuthInfo{}
 
 	if payload.isAnonymous() {
-		info = skydb.NewAnonymousAuthInfo()
+		panic("Unsupported signup anonymously")
+		// info = authinfo.NewAnonymousAuthInfo()
 	} else if payload.Provider != "" {
 		panic("Unsupported signup with provider")
 		// 	// Get AuthProvider and authenticates the user
@@ -120,7 +122,7 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 		// 	// Create new user info and set updated auth data
 		// 	info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
 	} else {
-		info = skydb.NewAuthInfo(payload.Password)
+		info = authinfo.NewAuthInfo()
 	}
 
 	authContext.AuthInfo = &info
@@ -154,7 +156,7 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 	// Populate the activity time to user
 	now := timeNow()
 	authContext.AuthInfo.LastSeenAt = &now
-	authContext.AuthInfo.IsPasswordSet = false
+	// authContext.AuthInfo.IsPasswordSet = false
 	if err = h.AuthInfoStore.UpdateAuth(authContext.AuthInfo); err != nil {
 		err = skyerr.MakeError(err)
 		return

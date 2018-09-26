@@ -24,7 +24,7 @@ func (r masterkeyAuthContextResolver) Resolve(req *http.Request) (ctx handler.Au
 		token.AuthInfoID = "_god"
 	}
 
-	info := &skydb.AuthInfo{}
+	info := &authinfo.AuthInfo{}
 	if err = r.AuthInfoStore.GetAuth(token.AuthInfoID, info); err == skydb.ErrUserNotFound {
 		info.ID = token.AuthInfoID
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/provider"
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -15,7 +15,7 @@ import (
 
 func AttachMeHandler(
 	server *server.Server,
-	authDependency provider.AuthProviders,
+	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/me", &MeHandlerFactory{
 		authDependency,
@@ -24,7 +24,7 @@ func AttachMeHandler(
 }
 
 type MeHandlerFactory struct {
-	Dependency provider.AuthProviders
+	Dependency auth.DependencyMap
 }
 
 func (f MeHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.TenantConfiguration) handler.Handler {

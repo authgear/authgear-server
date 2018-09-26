@@ -4,8 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/db"
-	"github.com/skygeario/skygear-server/pkg/auth/provider"
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -16,7 +15,7 @@ import (
 
 func AttachLoginHandler(
 	server *server.Server,
-	authDependency provider.AuthProviders,
+	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/login", &LoginHandlerFactory{
 		authDependency,
@@ -25,7 +24,7 @@ func AttachLoginHandler(
 }
 
 type LoginHandlerFactory struct {
-	Dependency provider.AuthProviders
+	Dependency auth.DependencyMap
 }
 
 func (f LoginHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.TenantConfiguration) handler.Handler {
@@ -35,9 +34,7 @@ func (f LoginHandlerFactory) NewHandler(ctx context.Context, tenantConfig config
 }
 
 // LoginHandler handles login request
-type LoginHandler struct {
-	DB *db.DBConn `dependency:"DB"`
-}
+type LoginHandler struct{}
 
 func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
@@ -49,6 +46,6 @@ func (h LoginHandler) DecodeRequest(request *http.Request) (payload handler.Requ
 }
 
 func (h LoginHandler) Handle(req interface{}, ctx handler.AuthContext) (resp interface{}, err error) {
-	resp = h.DB.GetRecord("user:abc")
+	resp = map[string]interface{}{"user": "user:abc"}
 	return
 }

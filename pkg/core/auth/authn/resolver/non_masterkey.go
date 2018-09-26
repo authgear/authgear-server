@@ -7,7 +7,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/model"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
 type nonMasterkeyAuthContextResolver struct {
@@ -28,7 +27,7 @@ func (r nonMasterkeyAuthContextResolver) Resolve(req *http.Request) (ctx handler
 
 	ctx.Token = token
 
-	info := &skydb.AuthInfo{}
+	info := &authinfo.AuthInfo{}
 	err = r.AuthInfoStore.GetAuth(token.AuthInfoID, info)
 	if err != nil {
 		// TODO:

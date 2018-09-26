@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -12,15 +13,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
-type AuthContextResolverFactory struct {
-	TokenStore    *authtoken.StoreProvider
-	AuthInfoStore *authinfo.StoreProvider
-}
+type AuthContextResolverFactory struct{}
 
 func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfig config.TenantConfiguration) authn.AuthContextResolver {
 	r := &DefaultAuthContextResolver{
-		TokenStore:    f.TokenStore.Provide(ctx, tenantConfig).(authtoken.Store),
-		AuthInfoStore: f.AuthInfoStore.Provide(ctx, tenantConfig).(authinfo.Store),
+		TokenStore:    auth.NewDefaultTokenStore(ctx, tenantConfig),
+		AuthInfoStore: auth.NewDefaultAuthInfoStore(ctx, tenantConfig),
 	}
 	return r
 }

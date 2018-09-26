@@ -7,22 +7,22 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-type ProviderGraph interface {
+type Map interface {
 	Provide(name string, ctx context.Context, configuration config.TenantConfiguration) interface{}
 }
 
 func DefaultInject(
 	i interface{},
-	dependencyGraph ProviderGraph,
+	dependencyMap Map,
 	ctx context.Context,
 	configuration config.TenantConfiguration,
 ) {
-	injectDependency(i, dependencyGraph, ctx, configuration)
+	injectDependency(i, dependencyMap, ctx, configuration)
 }
 
 func injectDependency(
 	i interface{},
-	dependencyGraph ProviderGraph,
+	dependencyMap Map,
 	ctx context.Context,
 	configuration config.TenantConfiguration,
 ) {
@@ -37,7 +37,7 @@ func injectDependency(
 		}
 
 		field := v.Field(i)
-		dependency := dependencyGraph.Provide(dependencyName, ctx, configuration)
+		dependency := dependencyMap.Provide(dependencyName, ctx, configuration)
 		field.Set(reflect.ValueOf(dependency))
 	}
 }
