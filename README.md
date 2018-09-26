@@ -67,7 +67,7 @@ $ make migrate-version
 
 The following part is about gear db migration.
 
-If you come from skygear-server 0.x to 1.x, the biggest difference is that skygear next would not offer JIT db migration in most gears.
+If you come from skygear-server 0.x to 1.x, the biggest difference is that gears in skygear next would not support auto db migration in server boot time.
 
 DB migration must be run before server boot up. And since we do not have a full featured db management tool for skygear yet, here is a general guide for new comers of skygear next user.
 
