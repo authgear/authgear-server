@@ -15,9 +15,9 @@ type TenantConfiguration struct {
 	MasterKey       string `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
 	AppName         string `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
 	TokenStore      struct {
-		Secret string `msg:"TOKEN_STORE_SECRET" envconfig:"TOKEN_STORE_SECRET" json:"TOKEN_STORE_SECRET"`
-		Expiry int64  `msg:"TOKEN_STORE_EXPIRY" envconfig:"TOKEN_STORE_EXPIRY" json:"TOKEN_STORE_EXPIRY"`
-	}
+		Secret string `msg:"SECRET" envconfig:"TOKEN_STORE_SECRET" json:"SECRET"`
+		Expiry int64  `msg:"EXPIRY" envconfig:"TOKEN_STORE_EXPIRY" json:"EXPIRY"`
+	} `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
 }
 
 func (c *TenantConfiguration) ReadFromEnv() error {

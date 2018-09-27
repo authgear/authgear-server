@@ -42,7 +42,7 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
-		case "TokenStore":
+		case "TOKEN_STORE":
 			var zb0002 uint32
 			zb0002, err = dc.ReadMapHeader()
 			if err != nil {
@@ -55,12 +55,12 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					return
 				}
 				switch msgp.UnsafeString(field) {
-				case "TOKEN_STORE_SECRET":
+				case "SECRET":
 					z.TokenStore.Secret, err = dc.ReadString()
 					if err != nil {
 						return
 					}
-				case "TOKEN_STORE_EXPIRY":
+				case "EXPIRY":
 					z.TokenStore.Expiry, err = dc.ReadInt64()
 					if err != nil {
 						return
@@ -121,10 +121,10 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	// write "TokenStore"
+	// write "TOKEN_STORE"
 	// map header, size 2
-	// write "TOKEN_STORE_SECRET"
-	err = en.Append(0xaa, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x82, 0xb2, 0x54, 0x4f, 0x4b, 0x45, 0x4e, 0x5f, 0x53, 0x54, 0x4f, 0x52, 0x45, 0x5f, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54)
+	// write "SECRET"
+	err = en.Append(0xab, 0x54, 0x4f, 0x4b, 0x45, 0x4e, 0x5f, 0x53, 0x54, 0x4f, 0x52, 0x45, 0x82, 0xa6, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54)
 	if err != nil {
 		return
 	}
@@ -132,8 +132,8 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	// write "TOKEN_STORE_EXPIRY"
-	err = en.Append(0xb2, 0x54, 0x4f, 0x4b, 0x45, 0x4e, 0x5f, 0x53, 0x54, 0x4f, 0x52, 0x45, 0x5f, 0x45, 0x58, 0x50, 0x49, 0x52, 0x59)
+	// write "EXPIRY"
+	err = en.Append(0xa6, 0x45, 0x58, 0x50, 0x49, 0x52, 0x59)
 	if err != nil {
 		return
 	}
@@ -160,13 +160,13 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "APP_NAME"
 	o = append(o, 0xa8, 0x41, 0x50, 0x50, 0x5f, 0x4e, 0x41, 0x4d, 0x45)
 	o = msgp.AppendString(o, z.AppName)
-	// string "TokenStore"
+	// string "TOKEN_STORE"
 	// map header, size 2
-	// string "TOKEN_STORE_SECRET"
-	o = append(o, 0xaa, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x53, 0x74, 0x6f, 0x72, 0x65, 0x82, 0xb2, 0x54, 0x4f, 0x4b, 0x45, 0x4e, 0x5f, 0x53, 0x54, 0x4f, 0x52, 0x45, 0x5f, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54)
+	// string "SECRET"
+	o = append(o, 0xab, 0x54, 0x4f, 0x4b, 0x45, 0x4e, 0x5f, 0x53, 0x54, 0x4f, 0x52, 0x45, 0x82, 0xa6, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54)
 	o = msgp.AppendString(o, z.TokenStore.Secret)
-	// string "TOKEN_STORE_EXPIRY"
-	o = append(o, 0xb2, 0x54, 0x4f, 0x4b, 0x45, 0x4e, 0x5f, 0x53, 0x54, 0x4f, 0x52, 0x45, 0x5f, 0x45, 0x58, 0x50, 0x49, 0x52, 0x59)
+	// string "EXPIRY"
+	o = append(o, 0xa6, 0x45, 0x58, 0x50, 0x49, 0x52, 0x59)
 	o = msgp.AppendInt64(o, z.TokenStore.Expiry)
 	return
 }
@@ -207,7 +207,7 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				return
 			}
-		case "TokenStore":
+		case "TOKEN_STORE":
 			var zb0002 uint32
 			zb0002, bts, err = msgp.ReadMapHeaderBytes(bts)
 			if err != nil {
@@ -220,12 +220,12 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 				switch msgp.UnsafeString(field) {
-				case "TOKEN_STORE_SECRET":
+				case "SECRET":
 					z.TokenStore.Secret, bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
 						return
 					}
-				case "TOKEN_STORE_EXPIRY":
+				case "EXPIRY":
 					z.TokenStore.Expiry, bts, err = msgp.ReadInt64Bytes(bts)
 					if err != nil {
 						return
@@ -250,6 +250,6 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TenantConfiguration) Msgsize() (s int) {
-	s = 1 + 13 + msgp.StringPrefixSize + len(z.DBConnectionStr) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.MasterKey) + 9 + msgp.StringPrefixSize + len(z.AppName) + 11 + 1 + 19 + msgp.StringPrefixSize + len(z.TokenStore.Secret) + 19 + msgp.Int64Size
+	s = 1 + 13 + msgp.StringPrefixSize + len(z.DBConnectionStr) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.MasterKey) + 9 + msgp.StringPrefixSize + len(z.AppName) + 12 + 1 + 7 + msgp.StringPrefixSize + len(z.TokenStore.Secret) + 7 + msgp.Int64Size
 	return
 }
