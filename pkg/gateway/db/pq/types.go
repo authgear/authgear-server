@@ -36,7 +36,7 @@ func (v *tenantConfigurationValue) Scan(value interface{}) error {
 
 	b, ok := value.([]byte)
 	if !ok {
-		logger := logging.CreateLogger("gateway")
+		logger := logging.LoggerEntry("gateway")
 		logger.Errorf("Unsupported Scan pair: %T -> %T", value, v.TenantConfiguration)
 	}
 

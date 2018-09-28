@@ -22,7 +22,7 @@ type Configuration struct {
 
 // ReadFromEnv reads from environment variable and update the configuration.
 func (c *Configuration) ReadFromEnv() error {
-	logger := logging.CreateLogger("gateway")
+	logger := logging.LoggerEntry("gateway")
 	if err := godotenv.Load(); err != nil {
 		logger.WithError(err).Info(
 			"Error in loading .env file, continue without .env")

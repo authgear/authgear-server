@@ -18,7 +18,7 @@ type GatewayTenantConfigurationProvider struct {
 
 // ProvideConfig function query the tenant config from db by request
 func (p GatewayTenantConfigurationProvider) ProvideConfig(r *http.Request) (config.TenantConfiguration, error) {
-	logger := logging.CreateLogger("gateway")
+	logger := logging.LoggerEntry("gateway")
 
 	host := r.Host
 	app := model.App{}

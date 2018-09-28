@@ -9,7 +9,7 @@ import (
 )
 
 func (s *store) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
-	logger := logging.CreateLogger("gateway")
+	logger := logging.LoggerEntry("gateway")
 	row = s.DB.QueryRowxContext(s.context, query, args...)
 	logger.WithFields(logrus.Fields{
 		"sql":            query,
