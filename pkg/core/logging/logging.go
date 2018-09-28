@@ -25,6 +25,7 @@ var (
 	loggers                map[string]*logrus.Logger
 	lock                   sync.Mutex
 	configureLoggerHandler func(string, *logrus.Logger)
+	gearModule                 string
 )
 
 func init() {
@@ -34,6 +35,10 @@ func init() {
 
 func SetConfigureLoggerHandler(handler func(string, *logrus.Logger)) {
 	configureLoggerHandler = handler
+}
+
+func SetModule(module string) {
+	gearModule = module
 }
 
 func Logger(name string) *logrus.Logger {
@@ -83,7 +88,9 @@ func LoggerEntryWithTag(name string, tag string) *logrus.Entry {
 	if tag != "" {
 		fields["tag"] = tag
 	}
-	fields["process"] = "server"
+	if gearModule != "" {
+		fields["module"] = gearModule
+	}
 	return logger.WithFields(fields)
 }
 
