@@ -8,8 +8,8 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 type DependencyMap struct{}
@@ -42,6 +42,8 @@ func (m DependencyMap) Provide(dependencyName string, ctx context.Context, tConf
 			db.NewSQLExecutor(ctx, "postgres", tConfig.DBConnectionStr),
 			logging.CreateLogger(ctx, "provider_password"),
 		)
+	case "HandlerLogger":
+		return logging.CreateLogger(ctx, "handler")
 	default:
 		return nil
 	}

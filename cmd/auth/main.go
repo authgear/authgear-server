@@ -48,6 +48,8 @@ func main() {
 		}.Handle)
 	}
 
+	srv.Use(middleware.RequestIDMiddleware{}.Handle)
+
 	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)
 	handler.AttachMeHandler(&srv, authDependency)
