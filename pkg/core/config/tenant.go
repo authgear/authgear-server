@@ -17,7 +17,10 @@ type TenantConfiguration struct {
 	TokenStore      struct {
 		Secret string `msg:"SECRET" envconfig:"TOKEN_STORE_SECRET" json:"SECRET"`
 		Expiry int64  `msg:"EXPIRY" envconfig:"TOKEN_STORE_EXPIRY" json:"EXPIRY"`
-	} `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
+	} `msg:"TOKEN_STORE" json:"TOKEN_STORE"`
+	UserProfile struct {
+		ImplName string `msg:"IMPLEMENTATION" envconfig:"USER_PROFILE_IMPL_NAME" json:"IMPLEMENTATION"`
+	} `msg:"USER_PROFILE" json:"USER_PROFILE"`
 }
 
 func (c *TenantConfiguration) ReadFromEnv() error {
