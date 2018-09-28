@@ -47,6 +47,7 @@ func main() {
 	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)
 	handler.AttachMeHandler(&srv, authDependency)
+	handler.AttachSetDisableHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

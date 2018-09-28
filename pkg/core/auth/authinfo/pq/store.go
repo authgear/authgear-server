@@ -154,13 +154,12 @@ func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 }
 
 func (s AuthInfoStore) baseUserBuilder() sq.SelectBuilder {
-	// TODO:
+	// TODO: update sql to fetch roles
 	return s.sqlBuilder.Select("id",
 		"token_valid_since", "last_seen_at",
 		"disabled", "disabled_message", "disabled_expiry",
-		"array_to_json(array_agg(role_id)) AS roles").
+		"'[]' AS roles").
 		From(s.sqlBuilder.TableName("user")).
-		LeftJoin(s.sqlBuilder.TableName("_auth_role") + " ON id = auth_id").
 		GroupBy("id")
 }
 
