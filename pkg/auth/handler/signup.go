@@ -67,7 +67,7 @@ func (p SignupRequestPayload) isAnonymous() bool {
 type SignupHandler struct {
 	AuthDataChecker      dependency.AuthDataChecker  `dependency:"AuthDataChecker"`
 	PasswordChecker      dependency.PasswordChecker  `dependency:"PasswordChecker"`
-	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore"`
+	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
 	TokenStore           authtoken.Store             `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
