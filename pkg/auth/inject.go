@@ -42,6 +42,15 @@ func (m DependencyMap) Provide(dependencyName string, ctx context.Context, tConf
 			db.NewSQLExecutor(ctx, "postgres", tConfig.DBConnectionStr),
 			logging.CreateLogger(ctx, "provider_password"),
 		)
+	case "UserProfileStore":
+		switch tConfig.UserProfile.ImplName {
+		default:
+			panic("unrecgonized user profile store implementation: " + tConfig.UserProfile.ImplName)
+		case "":
+			return nil
+			// case "skygear":
+			// 	return XXX
+		}
 	default:
 		return nil
 	}

@@ -38,6 +38,8 @@ func injectDependency(
 
 		field := v.Field(i)
 		dependency := dependencyMap.Provide(dependencyName, ctx, configuration)
-		field.Set(reflect.ValueOf(dependency))
+		if dependency != nil {
+			field.Set(reflect.ValueOf(dependency))
+		}
 	}
 }
