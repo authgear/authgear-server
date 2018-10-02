@@ -78,13 +78,6 @@ func (h SetDisableHandler) DecodeRequest(request *http.Request) (handler.Request
 		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
 
-	if !payload.Disabled {
-		payload.Message = ""
-		payload.ExpiryString = ""
-		payload.expiry = nil
-		return payload, nil
-	}
-
 	if payload.ExpiryString != "" {
 		if expiry, err := time.Parse(time.RFC3339, payload.ExpiryString); err == nil {
 			payload.expiry = &expiry
@@ -113,8 +106,13 @@ func (h SetDisableHandler) Handle(req interface{}, ctx handler.AuthContext) (res
 	}
 
 	authinfo.Disabled = p.Disabled
-	authinfo.DisabledMessage = p.Message
-	authinfo.DisabledExpiry = p.expiry
+	if !authinfo.Disabled {
+		authinfo.DisabledMessage = ""
+		authinfo.DisabledExpiry = nil
+	} else {
+		authinfo.DisabledMessage = p.Message
+		authinfo.DisabledExpiry = p.expiry
+	}
 
 	// logger.WithFields(logrus.Fields{
 	// 	"disabled": authinfo.Disabled,
