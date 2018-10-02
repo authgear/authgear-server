@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -37,12 +36,6 @@ func (m DependencyMap) Provide(dependencyName string, ctx context.Context, tConf
 			// from tConfig
 			PwMinLength: 6,
 		}
-	case "AuthPrincipalStore":
-		return principal.NewStore(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, "postgres", tConfig.DBConnectionStr),
-			logging.CreateLogger(ctx, "auth_principal"),
-		)
 	case "PasswordAuthProvider":
 		return password.NewProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),

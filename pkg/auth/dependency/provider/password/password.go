@@ -9,8 +9,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const providerPassword string = "password"
+
 type Provider interface {
-	CreateEntry(principalID string, authData interface{}, hashedPassword string) error
+	CreatePrincipal(principal Principal) error
 }
 
 type ProviderImpl struct {
@@ -27,28 +29,43 @@ func NewProvider(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.
 	}
 }
 
-func (p ProviderImpl) CreateEntry(
-	principalID string,
-	authData interface{},
-	plainPassword string,
-) error {
-	var authDataBytes []byte
-	authDataBytes, err := json.Marshal(authData)
+func (p ProviderImpl) CreatePrincipal(principal Principal) (err error) {
+	// TODO: log
+
+	// Create principal
+	builder := p.sqlBuilder.Insert(p.sqlBuilder.TableName("principal")).Columns(
+		"id",
+		"provider",
+		"user_id",
+	).Values(
+		principal.ID,
+		providerPassword,
+		principal.UserID,
+	)
+
+	_, err = p.sqlExecutor.ExecWith(builder)
 	if err != nil {
-		return err
+		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
+	// Create password type provider data
+	var authDataBytes []byte
+	authDataBytes, err = json.Marshal(principal.AuthData)
+	if err != nil {
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(principal.PlainPassword), bcrypt.DefaultCost)
 	if err != nil {
 		panic("provider_password: Failed to hash password")
 	}
 
-	builder := p.sqlBuilder.Insert(p.sqlBuilder.TableName("provider_password")).Columns(
+	builder = p.sqlBuilder.Insert(p.sqlBuilder.TableName("provider_password")).Columns(
 		"principal_id",
 		"auth_data",
 		"password",
 	).Values(
-		principalID,
+		principal.ID,
 		authDataBytes,
 		hashedPassword,
 	)
@@ -60,5 +77,5 @@ func (p ProviderImpl) CreateEntry(
 		}
 	}
 
-	return err
+	return
 }
