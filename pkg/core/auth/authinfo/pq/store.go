@@ -46,6 +46,7 @@ func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
 		lastSeenAt      *time.Time
+		lastLoginAt     *time.Time
 		disabledReason  *string
 		disabledExpiry  *time.Time
 	)
@@ -56,6 +57,10 @@ func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	lastSeenAt = authinfo.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
+	}
+	lastLoginAt = authinfo.LastLoginAt
+	if lastLoginAt != nil && lastLoginAt.IsZero() {
+		lastLoginAt = nil
 	}
 	disabledReason = &authinfo.DisabledMessage
 	if *disabledReason == "" {
@@ -70,6 +75,7 @@ func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		"id",
 		"token_valid_since",
 		"last_seen_at",
+		"last_login_at",
 		"disabled",
 		"disabled_message",
 		"disabled_expiry",
@@ -77,6 +83,7 @@ func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		authinfo.ID,
 		tokenValidSince,
 		lastSeenAt,
+		lastLoginAt,
 		authinfo.Disabled,
 		disabledReason,
 		disabledExpiry,
@@ -100,6 +107,7 @@ func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
 		lastSeenAt      *time.Time
+		lastLoginAt     *time.Time
 		disabledReason  *string
 		disabledExpiry  *time.Time
 	)
@@ -110,6 +118,10 @@ func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	lastSeenAt = authinfo.LastSeenAt
 	if lastSeenAt != nil && lastSeenAt.IsZero() {
 		lastSeenAt = nil
+	}
+	lastLoginAt = authinfo.LastLoginAt
+	if lastLoginAt != nil && lastLoginAt.IsZero() {
+		lastLoginAt = nil
 	}
 	disabledReason = &authinfo.DisabledMessage
 	if *disabledReason == "" {
@@ -123,6 +135,7 @@ func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	builder := s.sqlBuilder.Update(s.sqlBuilder.TableName("user")).
 		Set("token_valid_since", tokenValidSince).
 		Set("last_seen_at", lastSeenAt).
+		Set("last_login_at", lastLoginAt).
 		Set("disabled", authinfo.Disabled).
 		Set("disabled_message", disabledReason).
 		Set("disabled_expiry", disabledExpiry).
@@ -156,7 +169,7 @@ func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 func (s AuthInfoStore) baseUserBuilder() sq.SelectBuilder {
 	// TODO: update sql to fetch roles
 	return s.sqlBuilder.Select("id",
-		"token_valid_since", "last_seen_at",
+		"token_valid_since", "last_seen_at", "last_login_at",
 		"disabled", "disabled_message", "disabled_expiry",
 		"'[]' AS roles").
 		From(s.sqlBuilder.TableName("user")).
@@ -169,6 +182,7 @@ func (s AuthInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		id              string
 		tokenValidSince pq.NullTime
 		lastSeenAt      pq.NullTime
+		lastLoginAt     pq.NullTime
 		roles           db.NullJSONStringSlice
 		disabled        bool
 		disabledReason  sql.NullString
@@ -179,6 +193,7 @@ func (s AuthInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		&id,
 		&tokenValidSince,
 		&lastSeenAt,
+		&lastLoginAt,
 		&disabled,
 		&disabledReason,
 		&disabledExpiry,
@@ -201,6 +216,11 @@ func (s AuthInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		authinfo.LastSeenAt = &lastSeenAt.Time
 	} else {
 		authinfo.LastSeenAt = nil
+	}
+	if lastLoginAt.Valid {
+		authinfo.LastLoginAt = &lastLoginAt.Time
+	} else {
+		authinfo.LastLoginAt = nil
 	}
 	authinfo.Disabled = disabled
 	if disabled {

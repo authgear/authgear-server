@@ -29,6 +29,7 @@ type AuthInfo struct {
 	Roles           []string   `json:"roles,omitempty"`
 	TokenValidSince *time.Time `json:"token_valid_since,omitempty"`
 	LastSeenAt      *time.Time `json:"last_seen_at,omitempty"`
+	LastLoginAt     *time.Time `json:"last_login_at,omitempty"`
 	Disabled        bool       `json:"disabled"`
 	DisabledMessage string     `json:"disabled_message,omitempty"`
 	DisabledExpiry  *time.Time `json:"disabled_expiry,omitempty"`
