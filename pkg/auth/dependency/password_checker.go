@@ -1,4 +1,4 @@
-package provider
+package dependency
 
 import (
 	"github.com/skygeario/skygear-server/pkg/server/audit"

@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/provider"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -64,10 +66,11 @@ func (p SignupRequestPayload) isAnonymous() bool {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	AuthDataChecker provider.AuthDataChecker `dependency:"AuthDataChecker"`
-	PasswordChecker provider.PasswordChecker `dependency:"PasswordChecker"`
-	TokenStore      authtoken.Store          `dependency:"TokenStore"`
-	AuthInfoStore   authinfo.Store           `dependency:"AuthInfoStore"`
+	AuthDataChecker      dependency.AuthDataChecker `dependency:"AuthDataChecker"`
+	PasswordChecker      dependency.PasswordChecker `dependency:"PasswordChecker"`
+	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -98,32 +101,7 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 	}
 
 	authContext := handler.AuthContext{}
-	info := authinfo.AuthInfo{}
-
-	if payload.isAnonymous() {
-		panic("Unsupported signup anonymously")
-		// info = authinfo.NewAnonymousAuthInfo()
-	} else if payload.Provider != "" {
-		panic("Unsupported signup with provider")
-		// 	// Get AuthProvider and authenticates the user
-		// 	logger.Debugf(`Client requested auth provider: "%v".`, p.Provider)
-		// 	authProvider, err := h.ProviderRegistry.GetAuthProvider(p.Provider)
-		// 	if err != nil {
-		// 		response.Err = skyerr.NewInvalidArgument(err.Error(), []string{"provider"})
-		// 		return
-		// 	}
-		// 	principalID, providerAuthData, err := authProvider.Login(payload.Context(), p.ProviderAuthData)
-		// 	if err != nil {
-		// 		response.Err = skyerr.NewError(skyerr.InvalidCredentials, "unable to login with the given credentials")
-		// 		return
-		// 	}
-		// 	logger.Infof(`Client authenticated as principal: "%v" (provider: "%v").`, principalID, p.Provider)
-
-		// 	// Create new user info and set updated auth data
-		// 	info = skydb.NewProviderInfoAuthInfo(principalID, providerAuthData)
-	} else {
-		info = authinfo.NewAuthInfo()
-	}
+	info := authinfo.NewAuthInfo()
 
 	authContext.AuthInfo = &info
 
@@ -142,6 +120,25 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 		return
 	}
 
+	// Create Principal
+	principal := password.NewPrincipal()
+
+	if payload.isAnonymous() {
+		panic("Unsupported signup anonymously")
+	} else if payload.Provider != "" {
+		panic("Unsupported signup with provider")
+	} else {
+		principal.UserID = info.ID
+		principal.AuthData = payload.AuthData
+		principal.PlainPassword = payload.Password
+	}
+
+	err = h.PasswordAuthProvider.CreatePrincipal(principal)
+	if err != nil {
+		return
+	}
+
+	// Create auth token
 	tkn, err := h.TokenStore.NewToken(authContext.AuthInfo.ID)
 	if err != nil {
 		panic(err)

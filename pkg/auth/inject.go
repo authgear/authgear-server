@@ -3,10 +3,13 @@ package auth
 import (
 	"context"
 
-	"github.com/skygeario/skygear-server/pkg/auth/provider"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
+	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 type DependencyMap struct{}
@@ -22,7 +25,7 @@ func (m DependencyMap) Provide(dependencyName string, ctx context.Context, tConf
 	case "AuthInfoStore":
 		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
 	case "AuthDataChecker":
-		return &provider.DefaultAuthDataChecker{
+		return &dependency.DefaultAuthDataChecker{
 			//TODO:
 			// from tConfig
 			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
@@ -33,6 +36,12 @@ func (m DependencyMap) Provide(dependencyName string, ctx context.Context, tConf
 			// from tConfig
 			PwMinLength: 6,
 		}
+	case "PasswordAuthProvider":
+		return password.NewProvider(
+			db.NewSQLBuilder("auth", tConfig.AppName),
+			db.NewSQLExecutor(ctx, "postgres", tConfig.DBConnectionStr),
+			logging.CreateLogger(ctx, "provider_password"),
+		)
 	default:
 		return nil
 	}
