@@ -107,6 +107,9 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 
 	if h.UserProfileStore != nil {
 		if err = h.UserProfileStore.CreateUserProfile(payload.RawProfile); err != nil {
+			// TODO:
+			// return proper error
+			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
 			return
 		}
 	}
