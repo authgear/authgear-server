@@ -27,13 +27,7 @@ func (p Role) IsAllowed(r *http.Request, ctx context.AuthContext) error {
 		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, "user authentication info not found")
 	}
 
-	containsRole := false
-	for _, role := range ctx.AuthInfo.Roles {
-		if role == p.role {
-			containsRole = true
-			break
-		}
-	}
+	containsRole := ctx.AuthInfo.HasAnyRoles([]string{p.role})
 
 	if p.allow && !containsRole {
 		// TODO:
