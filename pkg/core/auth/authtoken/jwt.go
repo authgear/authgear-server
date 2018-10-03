@@ -106,9 +106,9 @@ func (r *JWTStore) setTokenFromClaims(claims jwt.StandardClaims, token *Token) {
 		token.ExpiredAt = time.Time{}
 	}
 	if claims.IssuedAt > 0 {
-		token.issuedAt = time.Unix(claims.IssuedAt, 0)
+		token.IssuedAt = time.Unix(claims.IssuedAt, 0)
 	} else {
-		token.issuedAt = time.Time{}
+		token.IssuedAt = time.Time{}
 	}
 	token.AppName = claims.Issuer
 	token.AuthInfoID = claims.Subject
