@@ -101,7 +101,10 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 	}
 
 	authContext := handler.AuthContext{}
+
+	now := timeNow()
 	info := authinfo.NewAuthInfo()
+	info.LastLoginAt = &now
 
 	authContext.AuthInfo = &info
 
@@ -151,15 +154,12 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 	resp = response.NewAuthResponse(authContext, skydb.Record{}, tkn.AccessToken)
 
 	// Populate the activity time to user
-	now := timeNow()
 	authContext.AuthInfo.LastSeenAt = &now
-	// authContext.AuthInfo.IsPasswordSet = false
 	if err = h.AuthInfoStore.UpdateAuth(authContext.AuthInfo); err != nil {
 		err = skyerr.MakeError(err)
 		return
 	}
 
-	// TODO: Update user last login time
 	// TODO: Audit
 
 	return
