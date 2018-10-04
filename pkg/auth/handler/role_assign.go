@@ -36,10 +36,10 @@ func (f RoleAssignHandlerFactory) NewHandler(request *http.Request) handler.Hand
 }
 
 func (f RoleAssignHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	// TODO: require admin role
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.RequireAdminRole),
 		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }
