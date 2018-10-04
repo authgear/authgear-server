@@ -1,6 +1,7 @@
 package password
 
 import (
+	"database/sql"
 	"encoding/json"
 
 	"github.com/sirupsen/logrus"
@@ -13,6 +14,7 @@ const providerPassword string = "password"
 
 type Provider interface {
 	CreatePrincipal(principal Principal) error
+	GetPrincipal(authData interface{}, principal *Principal) error
 }
 
 type ProviderImpl struct {
@@ -75,6 +77,44 @@ func (p ProviderImpl) CreatePrincipal(principal Principal) (err error) {
 		if db.IsUniqueViolated(err) {
 			err = skydb.ErrUserDuplicated
 		}
+	}
+
+	return
+}
+
+func (p ProviderImpl) GetPrincipal(authData interface{}, principal *Principal) (err error) {
+	authDataBytes, err := json.Marshal(authData)
+	if err != nil {
+		return
+	}
+	builder := p.sqlBuilder.Select("principal_id", "auth_data", "password").
+		From(p.sqlBuilder.TableName("provider_password")).
+		Where(`auth_data @> ?::jsonb`, authDataBytes)
+	scanner := p.sqlExecutor.QueryRowWith(builder)
+
+	err = scanner.Scan(
+		&principal.ID,
+		&principal.AuthData,
+		&principal.HashedPassword,
+	)
+
+	if err == sql.ErrNoRows {
+		err = skydb.ErrUserNotFound
+	}
+
+	if err != nil {
+		return
+	}
+
+	builder = p.sqlBuilder.Select("user_id").
+		From(p.sqlBuilder.TableName("principal")).
+		Where("id = ? AND provider = 'password'", principal.ID)
+	scanner = p.sqlExecutor.QueryRowWith(builder)
+	err = scanner.Scan(&principal.UserID)
+
+	if err == sql.ErrNoRows {
+		p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
+		err = skydb.ErrUserNotFound
 	}
 
 	return
