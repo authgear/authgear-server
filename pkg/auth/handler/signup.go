@@ -46,8 +46,7 @@ type SignupRequestPayload struct {
 	Password         string                 `json:"password"`
 	Provider         string                 `json:"provider"`
 	ProviderAuthData map[string]interface{} `json:"provider_auth_data"`
-	// TODO:
-	// RawProfile       map[string]interface{} `json:"profile"`
+	RawProfile       map[string]interface{} `json:"profile"`
 }
 
 func (p SignupRequestPayload) Validate() error {
@@ -64,11 +63,12 @@ func (p SignupRequestPayload) isAnonymous() bool {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	AuthDataChecker      dependency.AuthDataChecker `dependency:"AuthDataChecker"`
-	PasswordChecker      dependency.PasswordChecker `dependency:"PasswordChecker"`
-	TokenStore           authtoken.Store            `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	AuthDataChecker      dependency.AuthDataChecker  `dependency:"AuthDataChecker"`
+	PasswordChecker      dependency.PasswordChecker  `dependency:"PasswordChecker"`
+	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
+	TokenStore           authtoken.Store             `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
 }
 
 func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
@@ -106,7 +106,14 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 
 	authContext.AuthInfo = &info
 
-	// TODO: create user profile
+	if h.UserProfileStore != nil {
+		if err = h.UserProfileStore.CreateUserProfile(payload.RawProfile); err != nil {
+			// TODO:
+			// return proper error
+			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
+			return
+		}
+	}
 
 	// Create AuthInfo
 	if err = h.AuthInfoStore.CreateAuth(authContext.AuthInfo); err != nil {

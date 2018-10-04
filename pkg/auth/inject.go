@@ -47,6 +47,15 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		)
 	case "HandlerLogger":
 		return logging.CreateLogger(r, "handler")
+	case "UserProfileStore":
+		switch tConfig.UserProfile.ImplName {
+		default:
+			panic("unrecgonized user profile store implementation: " + tConfig.UserProfile.ImplName)
+		case "":
+			return nil
+			// case "skygear":
+			// 	return XXX
+		}
 	default:
 		return nil
 	}
