@@ -1,11 +1,9 @@
 package handler
 
 import (
-	"context"
-
-	"github.com/skygeario/skygear-server/pkg/core/config"
+	"net/http"
 )
 
 type Factory interface {
-	NewHandler(context.Context, config.TenantConfiguration) Handler
+	NewHandler(request *http.Request) Handler
 }

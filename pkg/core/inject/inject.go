@@ -1,30 +1,26 @@
 package inject
 
 import (
-	"context"
+	"net/http"
 	"reflect"
-
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type Map interface {
-	Provide(name string, ctx context.Context, configuration config.TenantConfiguration) interface{}
+	Provide(name string, request *http.Request) interface{}
 }
 
 func DefaultInject(
 	i interface{},
 	dependencyMap Map,
-	ctx context.Context,
-	configuration config.TenantConfiguration,
+	request *http.Request,
 ) {
-	injectDependency(i, dependencyMap, ctx, configuration)
+	injectDependency(i, dependencyMap, request)
 }
 
 func injectDependency(
 	i interface{},
 	dependencyMap Map,
-	ctx context.Context,
-	configuration config.TenantConfiguration,
+	request *http.Request,
 ) {
 	t := reflect.TypeOf(i).Elem()
 	v := reflect.ValueOf(i).Elem()
@@ -37,7 +33,7 @@ func injectDependency(
 		}
 
 		field := v.Field(i)
-		dependency := dependencyMap.Provide(dependencyName, ctx, configuration)
+		dependency := dependencyMap.Provide(dependencyName, request)
 		field.Set(reflect.ValueOf(dependency))
 	}
 }

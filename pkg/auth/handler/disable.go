@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"time"
 	"encoding/json"
 	"net/http"
@@ -10,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -35,9 +33,9 @@ type SetDisableHandlerFactory struct {
 }
 
 // NewHandler creates new SetDisableHandler
-func (f SetDisableHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.TenantConfiguration) handler.Handler {
+func (f SetDisableHandlerFactory) NewHandler(request *http.Request) handler.Handler {
 	h := &SetDisableHandler{}
-	inject.DefaultInject(h, f.Dependency, ctx, tenantConfig)
+	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h)
 }
 
