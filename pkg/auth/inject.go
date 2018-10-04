@@ -43,10 +43,10 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		return password.NewProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), "postgres", tConfig.DBConnectionStr),
-			logging.CreateLogger(r.Context(), "provider_password"),
+			logging.CreateLogger(r, "provider_password"),
 		)
 	case "HandlerLogger":
-		return logging.CreateLogger(r.Context(), "handler")
+		return logging.CreateLogger(r, "handler")
 	default:
 		return nil
 	}

@@ -15,7 +15,7 @@
 package logging
 
 import (
-	"context"
+	"net/http"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -94,17 +94,10 @@ func LoggerEntryWithTag(name string, tag string) *logrus.Entry {
 	return logger.WithFields(fields)
 }
 
-func CreateLogger(ctx context.Context, logger string) *logrus.Entry {
-	var requestTag string
+func CreateLogger(r *http.Request, logger string) *logrus.Entry {
 	fields := logrus.Fields{}
-	if ctx != nil {
-		if tag, ok := ctx.Value("RequestTag").(string); ok {
-			requestTag = tag
-		}
-
-		if requestID, ok := ctx.Value("RequestID").(string); ok {
-			fields["request_id"] = requestID
-		}
+	if requestID := r.Header.Get("X-Skygear-Request-ID"); requestID != "" {
+		fields["request_id"] = requestID
 	}
-	return LoggerEntryWithTag(logger, requestTag).WithFields(fields)
+	return LoggerEntry(logger).WithFields(fields)
 }
