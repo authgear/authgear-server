@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
-
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type Map interface {
