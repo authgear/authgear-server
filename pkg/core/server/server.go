@@ -36,8 +36,8 @@ func NewServer(
 	}
 
 	return Server{
-		router:                     router,
-		Server:                     srv,
+		router: router,
+		Server: srv,
 		authContextResolverFactory: authContextResolverFactory,
 	}
 }
@@ -52,7 +52,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 		resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)
 		ctx, _ := resolver.Resolve(r)
 
-		if policyProvider, ok := h.(authz.PolicyProvider); ok {
+		if policyProvider, ok := hf.(authz.PolicyProvider); ok {
 			policy := policyProvider.ProvideAuthzPolicy()
 			if err := policy.IsAllowed(r, ctx); err != nil {
 				// TODO:

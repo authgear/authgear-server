@@ -31,16 +31,16 @@ func (f MeHandlerFactory) NewHandler(request *http.Request) handler.Handler {
 	return handler.APIHandlerToHandler(h)
 }
 
-// MeHandler handles me request
-type MeHandler struct{}
-
-func (h MeHandler) ProvideAuthzPolicy() authz.Policy {
+func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
 		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }
+
+// MeHandler handles me request
+type MeHandler struct{}
 
 func (h MeHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {
 	payload = handler.EmptyRequestPayload{}

@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"time"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -12,8 +12,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 // AttachSetDisableHandler attaches SetDisableHandler to server
@@ -39,6 +39,16 @@ func (f SetDisableHandlerFactory) NewHandler(request *http.Request) handler.Hand
 	return handler.APIHandlerToHandler(h)
 }
 
+// ProvideAuthzPolicy provides authorization policy of handler
+func (f SetDisableHandlerFactory) ProvideAuthzPolicy() authz.Policy {
+	// FIXME: Admin only after adding admin role
+	return policy.AllOf(
+		authz.PolicyFunc(policy.DenyNoAccessKey),
+		authz.PolicyFunc(policy.RequireAuthenticated),
+		authz.PolicyFunc(policy.DenyDisabledUser),
+	)
+}
+
 type setDisableUserPayload struct {
 	AuthInfoID   string `json:"auth_id"`
 	Disabled     bool   `json:"disabled"`
@@ -55,18 +65,8 @@ func (payload setDisableUserPayload) Validate() error {
 }
 
 // SetDisableHandler handles set disable request
-type SetDisableHandler struct{
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-}
-
-// ProvideAuthzPolicy provides authorization policy of handler
-func (h SetDisableHandler) ProvideAuthzPolicy() authz.Policy {
-	// FIXME: Admin only after adding admin role
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+type SetDisableHandler struct {
+	AuthInfoStore authinfo.Store `dependency:"AuthInfoStore"`
 }
 
 // DecodeRequest decode request payload

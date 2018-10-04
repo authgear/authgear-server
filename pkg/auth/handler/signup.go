@@ -41,6 +41,10 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) handler.Handler 
 	return handler.APIHandlerToHandler(h)
 }
 
+func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
+	return authz.PolicyFunc(policy.DenyNoAccessKey)
+}
+
 type SignupRequestPayload struct {
 	AuthData         map[string]interface{} `json:"auth_data"`
 	Password         string                 `json:"password"`
@@ -69,10 +73,6 @@ type SignupHandler struct {
 	TokenStore           authtoken.Store             `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
-}
-
-func (h SignupHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
 func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {

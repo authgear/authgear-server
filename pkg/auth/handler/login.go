@@ -31,12 +31,12 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) handler.Handler {
 	return handler.APIHandlerToHandler(h)
 }
 
-// LoginHandler handles login request
-type LoginHandler struct{}
-
-func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
+func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
+
+// LoginHandler handles login request
+type LoginHandler struct{}
 
 func (h LoginHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {
 	payload = handler.EmptyRequestPayload{}
