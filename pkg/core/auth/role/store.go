@@ -5,9 +5,15 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/utils"
 )
 
+type Role struct {
+	Name      string
+	IsAdmin   bool
+	IsDefault bool
+}
+
 type Store interface {
 	CreateRoles(roles []string) error
-	QueryRoles(roles []string) ([]string, error)
+	QueryRoles(roles []string) ([]Role, error)
 }
 
 func EnsureRole(store Store, logger *logrus.Entry, roles []string) ([]string, error) {
@@ -21,7 +27,13 @@ func EnsureRole(store Store, logger *logrus.Entry, roles []string) ([]string, er
 	if len(existedRole) == len(roles) {
 		return nil, nil
 	}
+
+	existedRoleNames := make([]string, len(existedRole))
+	for _, v := range existedRole {
+		existedRoleNames = append(existedRoleNames, v.Name)
+	}
+
 	logger.Debugf("Diffing the roles not exist in DB")
-	absenceRoles := utils.StringSliceExcept(roles, existedRole)
+	absenceRoles := utils.StringSliceExcept(roles, existedRoleNames)
 	return absenceRoles, store.CreateRoles(absenceRoles)
 }

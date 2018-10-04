@@ -5,6 +5,7 @@ import (
 
 	sq "github.com/lann/squirrel"
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -40,16 +41,20 @@ func (s RoleStore) CreateRoles(roles []string) error {
 	return nil
 }
 
-func (s RoleStore) QueryRoles(roles []string) ([]string, error) {
+func (s RoleStore) QueryRoles(roles []string) ([]role.Role, error) {
 	if roles == nil {
 		return nil, nil
+	}
+
+	if len(roles) == 0 {
+		return []role.Role{}, nil
 	}
 
 	roleArgs := make([]interface{}, len(roles))
 	for i, v := range roles {
 		roleArgs[i] = interface{}(v)
 	}
-	builder := s.sqlBuilder.Select("id").
+	builder := s.sqlBuilder.Select("id", "is_admin", "by_default").
 		From(s.sqlBuilder.TableName("role")).
 		Where("id IN ("+sq.Placeholders(len(roles))+")", roleArgs...)
 	rows, err := s.sqlExecutor.QueryWith(builder)
@@ -57,13 +62,13 @@ func (s RoleStore) QueryRoles(roles []string) ([]string, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	existedRoles := []string{}
+	existedRoles := []role.Role{}
 	for rows.Next() {
-		var roleStr string
-		if err := rows.Scan(&roleStr); err != nil {
+		role := role.Role{}
+		if err := rows.Scan(&role.Name, &role.IsAdmin, &role.IsDefault); err != nil {
 			panic(err)
 		}
-		existedRoles = append(existedRoles, roleStr)
+		existedRoles = append(existedRoles, role)
 	}
 	return existedRoles, nil
 }
