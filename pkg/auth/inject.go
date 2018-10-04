@@ -1,15 +1,15 @@
 package auth
 
 import (
-	"context"
+	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 type DependencyMap struct{}
@@ -18,12 +18,14 @@ func NewDependencyMap() DependencyMap {
 	return DependencyMap{}
 }
 
-func (m DependencyMap) Provide(dependencyName string, ctx context.Context, tConfig config.TenantConfiguration) interface{} {
+func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface{} {
 	switch dependencyName {
 	case "TokenStore":
-		return coreAuth.NewDefaultTokenStore(ctx, tConfig)
+		tConfig := config.GetTenantConfig(r)
+		return coreAuth.NewDefaultTokenStore(r.Context(), tConfig)
 	case "AuthInfoStore":
-		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
+		tConfig := config.GetTenantConfig(r)
+		return coreAuth.NewDefaultAuthInfoStore(r.Context(), tConfig)
 	case "AuthDataChecker":
 		return &dependency.DefaultAuthDataChecker{
 			//TODO:
@@ -37,11 +39,14 @@ func (m DependencyMap) Provide(dependencyName string, ctx context.Context, tConf
 			PwMinLength: 6,
 		}
 	case "PasswordAuthProvider":
+		tConfig := config.GetTenantConfig(r)
 		return password.NewProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, "postgres", tConfig.DBConnectionStr),
-			logging.CreateLogger(ctx, "provider_password"),
+			db.NewSQLExecutor(r.Context(), "postgres", tConfig.DBConnectionStr),
+			logging.CreateLogger(r, "provider_password"),
 		)
+	case "HandlerLogger":
+		return logging.CreateLogger(r, "handler")
 	default:
 		return nil
 	}

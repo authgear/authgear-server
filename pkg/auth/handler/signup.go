@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 
@@ -14,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -37,9 +35,9 @@ type SignupHandlerFactory struct {
 	Dependency auth.DependencyMap
 }
 
-func (f SignupHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.TenantConfiguration) handler.Handler {
+func (f SignupHandlerFactory) NewHandler(request *http.Request) handler.Handler {
 	h := &SignupHandler{}
-	inject.DefaultInject(h, f.Dependency, ctx, tenantConfig)
+	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h)
 }
 

@@ -1,13 +1,11 @@
 package handler
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -27,9 +25,9 @@ type MeHandlerFactory struct {
 	Dependency auth.DependencyMap
 }
 
-func (f MeHandlerFactory) NewHandler(ctx context.Context, tenantConfig config.TenantConfiguration) handler.Handler {
+func (f MeHandlerFactory) NewHandler(request *http.Request) handler.Handler {
 	h := &MeHandler{}
-	inject.DefaultInject(h, f.Dependency, ctx, tenantConfig)
+	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h)
 }
 

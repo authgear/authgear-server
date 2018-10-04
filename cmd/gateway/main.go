@@ -19,7 +19,10 @@ import (
 var config gatewayConfig.Configuration
 
 func init() {
-	logger := logging.CreateLogger("gateway")
+	// logging initialization
+	logging.SetModule("gateway")
+
+	logger := logging.LoggerEntry("gateway")
 	if err := config.ReadFromEnv(); err != nil {
 		logger.WithError(err).Panic(
 			"Fail to load config for starting gateway server")
@@ -29,7 +32,7 @@ func init() {
 }
 
 func main() {
-	logger := logging.CreateLogger("gateway")
+	logger := logging.LoggerEntry("gateway")
 
 	// create gateway store
 	store, connErr := db.NewGatewayStore(

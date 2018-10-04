@@ -18,7 +18,7 @@ var ErrConfigNotFound = errors.New("Tenant config not found")
 
 
 func (s *store) GetAppByDomain(domain string, app *model.App) error {
-	logger := logging.CreateLogger("gateway")
+	logger := logging.LoggerEntry("gateway")
 	builder := psql.Select("app.id", "app.name", "app.config_id", "app.plan_id").
 		From(s.tableName("app")).
 		Join(s.tableName("domain") + " ON app.id = domain.app_id").

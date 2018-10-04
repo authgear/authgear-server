@@ -47,7 +47,7 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 	return s.router.NewRoute().Path(path).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		configuration := config.GetTenantConfig(r)
 
-		h := hf.NewHandler(r.Context(), configuration)
+		h := hf.NewHandler(r)
 
 		resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)
 		ctx, _ := resolver.Resolve(r)

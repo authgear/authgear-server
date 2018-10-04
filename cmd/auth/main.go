@@ -18,6 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type configuration struct {
@@ -33,6 +34,9 @@ func main() {
 	configuration := configuration{}
 	envconfig.Process("", &configuration)
 
+	// logging initialization
+	logging.SetModule("auth")
+
 	authDependency := auth.NewDependencyMap()
 
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
@@ -43,6 +47,8 @@ func main() {
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(config.NewTenantConfigurationFromEnv),
 		}.Handle)
 	}
+
+	srv.Use(middleware.RequestIDMiddleware{}.Handle)
 
 	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)
