@@ -11,6 +11,17 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+func (s AuthInfoStore) AssignRoles(userIDs []string, roles []string) error {
+	s.logger.Debugf("AssignRoles %v to %v", roles, userIDs)
+	role.EnsureRole(s.roleStore, s.logger, roles)
+	sql, args := s.assignUserRoleSQL(userIDs, roles)
+	_, err := s.sqlExecutor.Exec(sql, args...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s AuthInfoStore) updateUserRoles(authinfo *authinfo.AuthInfo) error {
 	s.logger.Debugf("UpdateRoles %v", authinfo)
 	builder := s.sqlBuilder.Delete(s.sqlBuilder.TableName("user_role")).Where("user_id = ?", authinfo.ID)
@@ -41,6 +52,66 @@ func (s AuthInfoStore) updateUserRoles(authinfo *authinfo.AuthInfo) error {
 	}
 
 	return nil
+}
+
+const assignUserRoleInsertTemplate = `
+{{ $userLen := len .Users }}
+INSERT INTO {{.UserRoleTable}} (user_id, role_id)
+SELECT "user"."id", "role"."id"
+FROM {{.UserTable}} AS "user", {{.RoleTable}} AS "role"
+WHERE
+  "user"."id" IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  AND
+  "role"."id" IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
+  AND ("role"."id", "user"."id") NOT IN (
+    SELECT role_id, user_id
+  FROM {{.UserRoleTable}}
+  WHERE
+    user_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  AND
+    role_id IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
+  );
+`
+
+var assignUserRoleInsert = template.Must(
+	template.New("assignUserRole").Funcs(template.FuncMap{
+		"inDollar": func(offset int, n int) string {
+			dollar := "$" + strconv.Itoa(n+offset+1)
+			if n > 0 {
+				dollar = "," + dollar
+			}
+			return dollar
+		},
+	}).Parse(assignUserRoleInsertTemplate))
+
+type assignUserRole struct {
+	UserRoleTable string
+	RoleTable     string
+	UserTable     string
+	Roles         []string
+	Users         []string
+}
+
+func (s AuthInfoStore) assignUserRoleSQL(users []string, roles []string) (string, []interface{}) {
+	b := bytes.Buffer{}
+	assignUserRoleInsert.Execute(&b, assignUserRole{
+		s.sqlBuilder.TableName("user_role"),
+		s.sqlBuilder.TableName("role"),
+		s.sqlBuilder.TableName("user"),
+		roles,
+		users,
+	})
+
+	args := make([]interface{}, len(users)+len(roles))
+	for i := range users {
+		args[i] = users[i]
+	}
+	offset := len(users)
+	for i := range roles {
+		args[i+offset] = roles[i]
+	}
+	return b.String(), args
+
 }
 
 const batchUserRoleInsertTemplate = `
