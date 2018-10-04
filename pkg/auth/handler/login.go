@@ -113,10 +113,9 @@ func (h LoginHandler) Handle(req interface{}, ctx handler.AuthContext) (resp int
 		return
 	}
 
-	// TODO: Disable user
-	// if err := checkUserIsNotDisabled(&fetchedAuthInfo); err != nil {
-	// 	return err
-	// }
+	if err = checkUserIsNotDisabled(&fetchedAuthInfo); err != nil {
+		return
+	}
 
 	// generate access-token
 	token, err := h.TokenStore.NewToken(fetchedAuthInfo.ID)
