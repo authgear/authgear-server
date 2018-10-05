@@ -50,6 +50,10 @@ type SignupRequestPayload struct {
 }
 
 func (p SignupRequestPayload) Validate() error {
+	if len(p.AuthData) == 0 {
+		return skyerr.NewInvalidArgument("empty auth data", []string{"auth_data"})
+	}
+
 	if p.Password == "" {
 		return skyerr.NewInvalidArgument("empty password", []string{"password"})
 	}
