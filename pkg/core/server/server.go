@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -52,14 +51,12 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 		resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)
 		ctx, _ := resolver.Resolve(r)
 
-		if policyProvider, ok := hf.(authz.PolicyProvider); ok {
-			policy := policyProvider.ProvideAuthzPolicy()
-			if err := policy.IsAllowed(r, ctx); err != nil {
-				// TODO:
-				// handle error properly
-				http.Error(rw, err.Error(), http.StatusUnauthorized)
-				return
-			}
+		policy := hf.ProvideAuthzPolicy()
+		if err := policy.IsAllowed(r, ctx); err != nil {
+			// TODO:
+			// handle error properly
+			http.Error(rw, err.Error(), http.StatusUnauthorized)
+			return
 		}
 
 		h.ServeHTTP(rw, r, ctx)
