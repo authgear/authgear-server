@@ -42,6 +42,9 @@ func main() {
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
 	srv := server.NewServer("localhost:3000", authContextResolverFactory)
 
+	// RecoverMiddleware must come first
+	srv.Use(middleware.RecoverMiddleware{}.Handle)
+
 	if configuration.DevMode {
 		srv.Use(middleware.TenantConfigurationMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(config.NewTenantConfigurationFromEnv),

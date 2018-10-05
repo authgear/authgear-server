@@ -7,7 +7,7 @@ import (
 )
 
 // RequestIDMiddleware add random request id to request context
-type RequestIDMiddleware struct {}
+type RequestIDMiddleware struct{}
 
 func (m RequestIDMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

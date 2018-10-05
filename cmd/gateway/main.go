@@ -8,12 +8,12 @@ import (
 
 	"github.com/gorilla/mux"
 
-	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
+	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
+	"github.com/skygeario/skygear-server/pkg/gateway/db"
 	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
 	"github.com/skygeario/skygear-server/pkg/gateway/provider"
-	"github.com/skygeario/skygear-server/pkg/gateway/db"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 var config gatewayConfig.Configuration
@@ -45,6 +45,9 @@ func main() {
 	}
 
 	r := mux.NewRouter()
+
+	// RecoverMiddleware must come first
+	r.Use(coreMiddleware.RecoverMiddleware{}.Handle)
 	// TODO:
 	// Currently both config and authz middleware both query store to get
 	// app, see how to reduce query to optimize the performance
