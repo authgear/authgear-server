@@ -66,6 +66,7 @@ type LoginHandler struct{
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
 }
 
 // ProvideAuthzPolicy provides authorization policy
@@ -115,6 +116,18 @@ func (h LoginHandler) Handle(req interface{}, ctx handler.AuthContext) (resp int
 		// TODO: more error handling here if necessary
 		err = skyerr.NewResourceFetchFailureErr("auth_data", payload.AuthData)
 		return
+	}
+
+	// TODO:
+	// define user profile and update auth response
+	var userProfile interface{}
+	if h.UserProfileStore != nil {
+		if err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID, &userProfile); err != nil {
+			// TODO:
+			// return proper error
+			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+			return
+		}
 	}
 
 	if err = checkUserIsNotDisabled(&fetchedAuthInfo); err != nil {
