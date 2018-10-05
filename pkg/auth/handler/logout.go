@@ -53,6 +53,9 @@ type LogoutRequestPayload struct {
 
 // Validate request payload
 func (p LogoutRequestPayload) Validate() error {
+	if p.AccessToken == "" {
+		return skyerr.NewError(skyerr.AccessTokenNotAccepted, "missing access token")
+	}
 	return nil
 }
 
