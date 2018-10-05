@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-func RequireAuthenticated(r *http.Request, ctx handler.AuthContext) error {
+func RequireAuthenticated(r *http.Request, ctx context.AuthContext) error {
 	if ctx.AuthInfo == nil {
 		return skyerr.NewError(skyerr.NotAuthenticated, "require authenticated user")
 	}

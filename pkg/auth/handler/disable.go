@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -88,7 +89,7 @@ func (h SetDisableHandler) DecodeRequest(request *http.Request) (handler.Request
 }
 
 // Handle function handle set disabled request
-func (h SetDisableHandler) Handle(req interface{}, ctx handler.AuthContext) (resp interface{}, err error) {
+func (h SetDisableHandler) Handle(req interface{}, ctx context.AuthContext) (resp interface{}, err error) {
 	p := req.(setDisableUserPayload)
 
 	authinfo := authinfo.AuthInfo{}

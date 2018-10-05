@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
@@ -81,7 +82,7 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, err
 }
 
-func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp interface{}, err error) {
+func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
 	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
@@ -98,7 +99,7 @@ func (h SignupHandler) Handle(req interface{}, _ handler.AuthContext) (resp inte
 		return
 	}
 
-	authContext := handler.AuthContext{}
+	authContext := context.AuthContext{}
 
 	now := timeNow()
 	info := authinfo.NewAuthInfo()

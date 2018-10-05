@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
@@ -47,7 +48,7 @@ func (h MeHandler) DecodeRequest(request *http.Request) (payload handler.Request
 	return
 }
 
-func (h MeHandler) Handle(req interface{}, ctx handler.AuthContext) (resp interface{}, err error) {
+func (h MeHandler) Handle(req interface{}, ctx context.AuthContext) (resp interface{}, err error) {
 	resp = ctx.AuthInfo
 	return
 }
