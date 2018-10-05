@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -48,7 +49,7 @@ func (f LogoutHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LogoutRequestPayload is request payload of logout handler
 type LogoutRequestPayload struct {
-	AccessToken         string
+	AccessToken string
 }
 
 // Validate request payload
@@ -60,8 +61,8 @@ func (p LogoutRequestPayload) Validate() error {
 }
 
 // LogoutHandler handles logout request
-type LogoutHandler struct{
-	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+type LogoutHandler struct {
+	TokenStore authtoken.Store `dependency:"TokenStore"`
 }
 
 // DecodeRequest decode request payload
@@ -72,7 +73,7 @@ func (h LogoutHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 }
 
 // Handle api request
-func (h LogoutHandler) Handle(req interface{}, ctx handler.AuthContext) (resp interface{}, err error) {
+func (h LogoutHandler) Handle(req interface{}, ctx context.AuthContext) (resp interface{}, err error) {
 	payload := req.(LogoutRequestPayload)
 
 	accessToken := payload.AccessToken

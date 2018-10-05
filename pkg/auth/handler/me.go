@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
@@ -31,10 +32,7 @@ func (f MeHandlerFactory) NewHandler(request *http.Request) handler.Handler {
 	return handler.APIHandlerToHandler(h)
 }
 
-// MeHandler handles me request
-type MeHandler struct{}
-
-func (h MeHandler) ProvideAuthzPolicy() authz.Policy {
+func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
@@ -42,12 +40,15 @@ func (h MeHandler) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
+// MeHandler handles me request
+type MeHandler struct{}
+
 func (h MeHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {
 	payload = handler.EmptyRequestPayload{}
 	return
 }
 
-func (h MeHandler) Handle(req interface{}, ctx handler.AuthContext) (resp interface{}, err error) {
+func (h MeHandler) Handle(req interface{}, ctx context.AuthContext) (resp interface{}, err error) {
 	resp = ctx.AuthInfo
 	return
 }

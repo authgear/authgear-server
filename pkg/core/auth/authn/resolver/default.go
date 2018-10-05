@@ -9,7 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
+	skyContext "github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
@@ -28,7 +28,7 @@ type DefaultAuthContextResolver struct {
 	AuthInfoStore authinfo.Store
 }
 
-func (r DefaultAuthContextResolver) Resolve(req *http.Request) (ctx handler.AuthContext, err error) {
+func (r DefaultAuthContextResolver) Resolve(req *http.Request) (ctx skyContext.AuthContext, err error) {
 	keyType := model.GetAccessKeyType(req)
 
 	var resolver authn.AuthContextResolver
