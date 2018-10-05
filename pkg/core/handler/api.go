@@ -14,39 +14,36 @@ type APIHandler interface {
 }
 
 type APIResponse struct {
-	Result interface{} `json:"result,omitempty"`
-	Err    error       `json:"error,omitempty"`
+	Result interface{}  `json:"result,omitempty"`
+	Err    skyerr.Error `json:"error,omitempty"`
 }
 
 func APIHandlerToHandler(apiHandler APIHandler) Handler {
 	return HandlerFunc(func(rw http.ResponseWriter, r *http.Request, ctx context.AuthContext) {
+		response := APIResponse{}
+		encoder := json.NewEncoder(rw)
+
+		defer func() {
+			rw.Header().Set("Content-Type", "application/json")
+			encoder.Encode(response)
+		}()
+
 		payload, err := apiHandler.DecodeRequest(r)
 		if err != nil {
-			// TODO:
-			// handle error properly
-			http.Error(rw, err.Error(), http.StatusBadRequest)
+			response.Err = skyerr.MakeError(err)
 			return
 		}
 
 		if err := payload.Validate(); err != nil {
-			// TODO:
-			// handle error properly
-			http.Error(rw, err.Error(), http.StatusBadRequest)
+			response.Err = skyerr.MakeError(err)
 			return
 		}
 
 		responsePayload, err := apiHandler.Handle(payload, ctx)
-		response := APIResponse{}
-		encoder := json.NewEncoder(rw)
 		if err == nil {
 			response.Result = responsePayload
 		} else {
-			// TODO:
-			// update error handling
 			response.Err = skyerr.MakeError(err)
 		}
-
-		rw.Header().Set("Content-Type", "application/json")
-		encoder.Encode(response)
 	})
 }
