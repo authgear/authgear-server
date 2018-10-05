@@ -50,16 +50,20 @@ type SignupRequestPayload struct {
 }
 
 func (p SignupRequestPayload) Validate() error {
-	if len(p.AuthData) == 0 {
-		return skyerr.NewInvalidArgument("empty auth data", []string{"auth_data"})
-	}
+	if p.isAnonymous() {
+		//no validation logic for anonymous sign up
+	} else {
+		if len(p.AuthData) == 0 {
+			return skyerr.NewInvalidArgument("empty auth data", []string{"auth_data"})
+		}
 
-	if duplicatedKeys := p.duplicatedKeysInAuthDataAndProfile(); len(duplicatedKeys) > 0 {
-		return skyerr.NewInvalidArgument("duplicated keys found in auth data in profile", duplicatedKeys)
-	}
+		if duplicatedKeys := p.duplicatedKeysInAuthDataAndProfile(); len(duplicatedKeys) > 0 {
+			return skyerr.NewInvalidArgument("duplicated keys found in auth data in profile", duplicatedKeys)
+		}
 
-	if p.Password == "" {
-		return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		if p.Password == "" {
+			return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		}
 	}
 
 	return nil
