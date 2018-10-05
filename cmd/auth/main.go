@@ -16,9 +16,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type configuration struct {
