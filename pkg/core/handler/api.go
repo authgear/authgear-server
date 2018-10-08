@@ -20,21 +20,7 @@ type APIResponse struct {
 }
 
 func APIHandlerToHandler(apiHandler APIHandler) Handler {
-	return HandlerFunc(func(rw http.ResponseWriter, r *http.Request, ctx context.AuthContext) {
-		httpStatus := http.StatusOK
-		response := APIResponse{}
-		encoder := json.NewEncoder(rw)
-
-		defer func() {
-			if response.Err != nil {
-				httpStatus = nextSkyerr.ErrorDefaultStatusCode(response.Err)
-			}
-
-			rw.Header().Set("Content-Type", "application/json")
-			rw.WriteHeader(httpStatus)
-			encoder.Encode(response)
-		}()
-
+	handleAPICall := func(r *http.Request, ctx context.AuthContext) (response APIResponse) {
 		payload, err := apiHandler.DecodeRequest(r)
 		if err != nil {
 			response.Err = skyerr.MakeError(err)
@@ -52,5 +38,25 @@ func APIHandlerToHandler(apiHandler APIHandler) Handler {
 		} else {
 			response.Err = skyerr.MakeError(err)
 		}
+
+		return
+	}
+
+	return HandlerFunc(func(rw http.ResponseWriter, r *http.Request, ctx context.AuthContext) {
+		response := handleAPICall(r, ctx)
+		writeResponse(rw, response)
 	})
+}
+
+func writeResponse(rw http.ResponseWriter, response APIResponse) {
+	httpStatus := http.StatusOK
+	encoder := json.NewEncoder(rw)
+
+	if response.Err != nil {
+		httpStatus = nextSkyerr.ErrorDefaultStatusCode(response.Err)
+	}
+
+	rw.Header().Set("Content-Type", "application/json")
+	rw.WriteHeader(httpStatus)
+	encoder.Encode(response)
 }
