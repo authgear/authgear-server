@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -63,6 +64,7 @@ func (p LogoutRequestPayload) Validate() error {
 // LogoutHandler handles logout request
 type LogoutHandler struct {
 	TokenStore authtoken.Store `dependency:"TokenStore"`
+	AuditTrail *audit.Trail    `dependency:"AuditTrail,optional"`
 }
 
 // DecodeRequest decode request payload
@@ -89,6 +91,12 @@ func (h LogoutHandler) Handle(req interface{}, ctx context.AuthContext) (resp in
 		resp = "OK"
 	}
 
-	// TODO: Audit
+	if h.AuditTrail != nil {
+		h.AuditTrail.Log(audit.Entry{
+			AuthID: ctx.AuthInfo.ID,
+			Event:  audit.EventLoginFailure,
+		})
+	}
+
 	return
 }
