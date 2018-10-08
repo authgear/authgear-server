@@ -19,26 +19,14 @@ import (
 	"github.com/evalphobia/logrus_fluent"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
+	"net/http"
 	"net/url"
 	"strconv"
-
-	"github.com/skygeario/skygear-server/pkg/server/router"
 )
-
-// We do not acquire a logger from our logging package
-// because the log level of this logger
-// should not be affected the global log level
-var trailLogger = logrus.New()
 
 const (
 	enabledLevel  = logrus.InfoLevel
-	disabledLevel = logrus.PanicLevel
 )
-
-func init() {
-	trailLogger.Formatter = &logrus.JSONFormatter{}
-	trailLogger.Level = disabledLevel
-}
 
 type Event int
 
@@ -98,36 +86,18 @@ func (e Event) String() string {
 	}
 }
 
-type Entry struct {
-	Event         Event
-	Admin         bool
-	AuthID        string
-	Data          map[string]interface{}
-	RemoteAddr    string
-	XForwardedFor string
-	XRealIP       string
-	Forwarded     string
+type Trail struct {
+	logger *logrus.Entry
 }
 
-func (e Entry) WithRouterPayload(payload *router.Payload) Entry {
-	// If we directly assign to e, we will have an ineffective
-	// assignment lint error
-	ee := e
-	if payload != nil {
-		if remoteAddr, ok := payload.Meta["remote_addr"].(string); ok {
-			ee.RemoteAddr = remoteAddr
-		}
-		if xff, ok := payload.Meta["x_forwarded_for"].(string); ok {
-			ee.XForwardedFor = xff
-		}
-		if xri, ok := payload.Meta["x_real_ip"].(string); ok {
-			ee.XRealIP = xri
-		}
-		if forwarded, ok := payload.Meta["forwarded"].(string); ok {
-			ee.Forwarded = forwarded
-		}
-	}
-	return ee
+func (t Trail) Log(entry Entry) {
+	t.logger.WithFields(entry.toLogrusFields()).Info("audit_trail")
+}
+
+type Entry struct {
+	Event         Event
+	AuthID        string
+	Data          map[string]interface{}
 }
 
 func (e *Entry) toLogrusFields() logrus.Fields {
@@ -135,15 +105,7 @@ func (e *Entry) toLogrusFields() logrus.Fields {
 		"event":                e.Event.String(),
 		"auth_id":              e.AuthID,
 		"data":                 e.Data,
-		"tcp_remote_addr":      e.RemoteAddr,
-		"http_x_forwarded_for": e.XForwardedFor,
-		"http_x_real_ip":       e.XRealIP,
-		"http_forwarded":       e.Forwarded,
 	}
-}
-
-func Trail(entry Entry) {
-	trailLogger.WithFields(entry.toLogrusFields()).Info("audit_trail")
 }
 
 func createLFSHook(parsedURL *url.URL) (logrus.Hook, error) {
@@ -206,20 +168,27 @@ func createHook(handlerURL string) (logrus.Hook, error) {
 	return nil, fmt.Errorf("unknown handler: %v, %v", scheme, handlerURL)
 }
 
-func InitTrailHandler(enabled bool, handlerURL string) error {
-	if enabled {
-		trailLogger.Level = enabledLevel
-	} else {
-		trailLogger.Level = disabledLevel
-	}
+func NewTrail(handlerURL string, req *http.Request) (*Trail, error) {
+	var trailLogger = logrus.New()
+	trailLogger.Formatter = &logrus.JSONFormatter{}
+	trailLogger.Level = enabledLevel
 	if handlerURL != "" {
 		hook, err := createHook(handlerURL)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if hook != nil {
 			trailLogger.Hooks.Add(hook)
 		}
 	}
-	return nil
+
+	fields := logrus.Fields{}
+	fields["remote_addr"] = req.RemoteAddr
+	fields["x_forwarded_for"] = req.Header.Get("x-forwarded-for")
+	fields["x_real_ip"] = req.Header.Get("x-real-ip")
+	fields["forwarded"] = req.Header.Get("forwarded")
+
+	return &Trail{
+		logger: trailLogger.WithFields(fields),
+	}, nil
 }
