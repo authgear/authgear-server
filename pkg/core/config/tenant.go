@@ -16,6 +16,7 @@ type TenantConfiguration struct {
 	AppName         string                   `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
 	TokenStore      TokenStoreConfiguration  `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
 	UserProfile     UserProfileConfiguration `json:"USER_PROFILE" msg:"USER_PROFILE"`
+	UserAudit       UserAuditConfiguration   `json:"USER_AUDIT" msg:"USER_AUDIT"`
 }
 
 type TokenStoreConfiguration struct {
@@ -25,6 +26,11 @@ type TokenStoreConfiguration struct {
 
 type UserProfileConfiguration struct {
 	ImplName string `msg:"IMPLEMENTATION" envconfig:"USER_PROFILE_IMPL_NAME" json:"IMPLEMENTATION"`
+}
+
+type UserAuditConfiguration struct {
+	Enabled         bool `msg:"ENABLED" envconfig:"USER_AUDIT_ENABLED" json:"ENABLED"`
+	TrailHandlerURL string `msg:"TRAIL_HANDLER_URL" envconfig:"USER_AUDIT_TRAIL_HANDLER_URL" json:"TRAIL_HANDLER_URL"`
 }
 
 func (c *TenantConfiguration) ReadFromEnv() error {
