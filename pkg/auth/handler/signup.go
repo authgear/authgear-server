@@ -53,11 +53,35 @@ type SignupRequestPayload struct {
 }
 
 func (p SignupRequestPayload) Validate() error {
-	if p.Password == "" {
-		return skyerr.NewInvalidArgument("empty password", []string{"password"})
+	if p.isAnonymous() {
+		//no validation logic for anonymous sign up
+	} else {
+		if len(p.AuthData) == 0 {
+			return skyerr.NewInvalidArgument("empty auth data", []string{"auth_data"})
+		}
+
+		if duplicatedKeys := p.duplicatedKeysInAuthDataAndProfile(); len(duplicatedKeys) > 0 {
+			return skyerr.NewInvalidArgument("duplicated keys found in auth data in profile", duplicatedKeys)
+		}
+
+		if p.Password == "" {
+			return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		}
 	}
 
 	return nil
+}
+
+func (p SignupRequestPayload) duplicatedKeysInAuthDataAndProfile() []string {
+	keys := []string{}
+
+	for k := range p.AuthData {
+		if _, found := p.RawProfile[k]; found {
+			keys = append(keys, k)
+		}
+	}
+
+	return keys
 }
 
 func (p SignupRequestPayload) isAnonymous() bool {
@@ -87,8 +111,6 @@ func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp inte
 		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
 		return
 	}
-
-	// TODO: check duplicated keys in auth data and profile
 
 	// validate password
 	if err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
