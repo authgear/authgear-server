@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -12,7 +12,7 @@ import (
 func TestDenyNoAccessKey(t *testing.T) {
 	Convey("should return error if auth context has no access key", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{
+		ctx := context.AuthContext{
 			AccessKeyType: model.NoAccessKey,
 		}
 
@@ -22,7 +22,7 @@ func TestDenyNoAccessKey(t *testing.T) {
 
 	Convey("should not return error if auth context has api key ", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{
+		ctx := context.AuthContext{
 			AccessKeyType: model.APIAccessKey,
 		}
 
@@ -32,7 +32,7 @@ func TestDenyNoAccessKey(t *testing.T) {
 
 	Convey("should not return error if auth context has master key ", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{
+		ctx := context.AuthContext{
 			AccessKeyType: model.MasterAccessKey,
 		}
 
@@ -44,7 +44,7 @@ func TestDenyNoAccessKey(t *testing.T) {
 func TestRequireMasterKey(t *testing.T) {
 	Convey("should return error if auth context has no access key", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{
+		ctx := context.AuthContext{
 			AccessKeyType: model.NoAccessKey,
 		}
 
@@ -54,7 +54,7 @@ func TestRequireMasterKey(t *testing.T) {
 
 	Convey("should return error if auth context has api key ", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{
+		ctx := context.AuthContext{
 			AccessKeyType: model.APIAccessKey,
 		}
 
@@ -64,7 +64,7 @@ func TestRequireMasterKey(t *testing.T) {
 
 	Convey("should not return error if auth context has master key ", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{
+		ctx := context.AuthContext{
 			AccessKeyType: model.MasterAccessKey,
 		}
 

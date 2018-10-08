@@ -5,15 +5,15 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestRolePolicy(t *testing.T) {
 	Convey("should return error if auth context has no auth info", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{}
+		ctx := context.AuthContext{}
 
 		err := NewAllowRole("roleA").IsAllowed(req, ctx)
 		So(err, ShouldNotBeEmpty)
@@ -21,7 +21,7 @@ func TestRolePolicy(t *testing.T) {
 
 	Convey("should return error if specified allowed role does not exist", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{
+		ctx := context.AuthContext{
 			AuthInfo: &authinfo.AuthInfo{
 				ID:    "ID",
 				Roles: []string{"roleA", "roleB"},
@@ -34,7 +34,7 @@ func TestRolePolicy(t *testing.T) {
 
 	Convey("should pass if specified allowed role exists", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{
+		ctx := context.AuthContext{
 			AuthInfo: &authinfo.AuthInfo{
 				ID:    "ID",
 				Roles: []string{"roleA", "roleB"},
@@ -47,7 +47,7 @@ func TestRolePolicy(t *testing.T) {
 
 	Convey("should return error if specified denied role exists", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{
+		ctx := context.AuthContext{
 			AuthInfo: &authinfo.AuthInfo{
 				ID:    "ID",
 				Roles: []string{"roleA", "roleB"},
@@ -60,7 +60,7 @@ func TestRolePolicy(t *testing.T) {
 
 	Convey("should pass if specified denied role does not exist", t, func() {
 		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := handler.AuthContext{
+		ctx := context.AuthContext{
 			AuthInfo: &authinfo.AuthInfo{
 				ID:    "ID",
 				Roles: []string{"roleA", "roleB"},

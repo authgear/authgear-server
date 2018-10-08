@@ -2,6 +2,7 @@ package inject
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -22,26 +23,29 @@ func (s store) get() string {
 
 type dmap struct{}
 
-func (s dmap) Provide(name string, ctx context.Context, configuration config.TenantConfiguration) interface{} {
+func (s dmap) Provide(name string, req *http.Request) interface{} {
+	conf := req.Context().Value("configuration").(config.TenantConfiguration)
 	switch name {
 	case "str":
 		return "string"
 	case "int":
 		return 1
 	case "store":
-		return store{configuration.AppName}
+		return store{conf.AppName}
 	case "istore":
-		return &store{configuration.AppName}
+		return &store{conf.AppName}
 	default:
 		return nil
 	}
 }
 
 func TestInjectDependency(t *testing.T) {
-	ctx := context.Background()
-	config := config.TenantConfiguration{
+	conf := config.TenantConfiguration{
 		AppName: "TestApp",
 	}
+
+	req, _ := http.NewRequest("POST", "", nil)
+	req = req.WithContext(context.WithValue(req.Context(), "configuration", conf))
 
 	Convey("inject to target struct", t, func() {
 		type targetStruct struct {
@@ -50,7 +54,7 @@ func TestInjectDependency(t *testing.T) {
 		}
 
 		target := targetStruct{}
-		injectDependency(&target, dmap{}, ctx, config)
+		injectDependency(&target, dmap{}, req)
 		So(target.Str, ShouldEqual, "string")
 		So(target.Int, ShouldEqual, 1)
 	})
@@ -61,7 +65,7 @@ func TestInjectDependency(t *testing.T) {
 		}
 
 		target := targetStruct{}
-		injectDependency(&target, dmap{}, ctx, config)
+		injectDependency(&target, dmap{}, req)
 		So(target.Store, ShouldImplement, (*istore)(nil))
 		So(target.Store.get(), ShouldEqual, "TestApp")
 	})
@@ -72,7 +76,7 @@ func TestInjectDependency(t *testing.T) {
 		}
 
 		target := targetStruct{}
-		injectDependency(&target, dmap{}, ctx, config)
+		injectDependency(&target, dmap{}, req)
 		So(target.Store, ShouldHaveSameTypeAs, store{})
 		So(target.Store.get(), ShouldEqual, "TestApp")
 	})
@@ -84,7 +88,7 @@ func TestInjectDependency(t *testing.T) {
 		}
 
 		target := targetStruct{}
-		injectDependency(&target, dmap{}, ctx, config)
+		injectDependency(&target, dmap{}, req)
 		So(target.Str, ShouldEqual, "string")
 		So(target.str, ShouldBeEmpty)
 	})
@@ -96,7 +100,7 @@ func TestInjectDependency(t *testing.T) {
 
 		target := targetStruct{}
 		So(func() {
-			injectDependency(&target, dmap{}, ctx, config)
+			injectDependency(&target, dmap{}, req)
 		}, ShouldPanic)
 	})
 
@@ -107,7 +111,7 @@ func TestInjectDependency(t *testing.T) {
 
 		target := targetStruct{}
 		So(func() {
-			injectDependency(&target, dmap{}, ctx, config)
+			injectDependency(&target, dmap{}, req)
 		}, ShouldPanic)
 	})
 }
