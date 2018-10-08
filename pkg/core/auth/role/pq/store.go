@@ -10,6 +10,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+type roleType string
+
+const (
+	roleTypeDefault = roleType("default")
+)
+
 type RoleStore struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
@@ -71,4 +77,35 @@ func (s RoleStore) QueryRoles(roles []string) ([]role.Role, error) {
 		existedRoles = append(existedRoles, role)
 	}
 	return existedRoles, nil
+}
+
+func (s RoleStore) GetDefaultRoles() ([]string, error) {
+	return s.getRolesByType(roleTypeDefault)
+}
+
+func (s RoleStore) getRolesByType(rtype roleType) ([]string, error) {
+	var col string
+	switch rtype {
+	case roleTypeDefault:
+		col = "by_default"
+	default:
+		panic("Unknow role type")
+	}
+	builder := s.sqlBuilder.Select("id").
+		From(s.sqlBuilder.TableName("role")).
+		Where(col + " = true")
+	rows, err := s.sqlExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	roles := []string{}
+	for rows.Next() {
+		var roleStr string
+		if err := rows.Scan(&roleStr); err != nil {
+			panic(err)
+		}
+		roles = append(roles, roleStr)
+	}
+	return roles, nil
 }

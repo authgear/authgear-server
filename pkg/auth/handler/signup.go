@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -73,6 +74,7 @@ type SignupHandler struct {
 	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
 	TokenStore           authtoken.Store             `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
+	RoleStore            role.Store                  `dependency:"RoleStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
 }
 
@@ -105,8 +107,6 @@ func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp inte
 	info := authinfo.NewAuthInfo()
 	info.LastLoginAt = &now
 
-	authContext.AuthInfo = &info
-
 	if h.UserProfileStore != nil {
 		if err = h.UserProfileStore.CreateUserProfile(payload.RawProfile); err != nil {
 			// TODO:
@@ -115,6 +115,18 @@ func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp inte
 			return
 		}
 	}
+
+	// Get default roles
+	defaultRoles, err := h.RoleStore.GetDefaultRoles()
+	if err != nil {
+		err = skyerr.NewError(skyerr.InternalQueryInvalid, "unable to query default roles")
+		return
+	}
+
+	// Assign default roles
+	info.Roles = defaultRoles
+
+	authContext.AuthInfo = &info
 
 	// Create AuthInfo
 	if err = h.AuthInfoStore.CreateAuth(authContext.AuthInfo); err != nil {

@@ -57,6 +57,9 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			// case "skygear":
 			// 	return XXX
 		}
+	case "RoleStore":
+		tConfig := config.GetTenantConfig(r)
+		return coreAuth.NewDefaultRoleStore(r.Context(), tConfig)
 	default:
 		return nil
 	}
