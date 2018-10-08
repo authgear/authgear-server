@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 type APIHandler interface {
 	DecodeRequest(request *http.Request) (RequestPayload, error)
-	Handle(requestPayload interface{}, ctx context.AuthContext) (interface{}, error)
+	Handle(requestPayload interface{}) (interface{}, error)
 }
 
 type APIResponse struct {
@@ -18,8 +17,8 @@ type APIResponse struct {
 	Err    error       `json:"error,omitempty"`
 }
 
-func APIHandlerToHandler(apiHandler APIHandler) Handler {
-	return HandlerFunc(func(rw http.ResponseWriter, r *http.Request, ctx context.AuthContext) {
+func APIHandlerToHandler(apiHandler APIHandler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		payload, err := apiHandler.DecodeRequest(r)
 		if err != nil {
 			// TODO:
@@ -35,7 +34,7 @@ func APIHandlerToHandler(apiHandler APIHandler) Handler {
 			return
 		}
 
-		responsePayload, err := apiHandler.Handle(payload, ctx)
+		responsePayload, err := apiHandler.Handle(payload)
 		response := APIResponse{}
 		encoder := json.NewEncoder(rw)
 		if err == nil {

@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
@@ -26,7 +26,7 @@ type MeHandlerFactory struct {
 	Dependency auth.DependencyMap
 }
 
-func (f MeHandlerFactory) NewHandler(request *http.Request) handler.Handler {
+func (f MeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &MeHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h)
@@ -41,14 +41,16 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 // MeHandler handles me request
-type MeHandler struct{}
+type MeHandler struct {
+	AuthContext coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+}
 
 func (h MeHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {
 	payload = handler.EmptyRequestPayload{}
 	return
 }
 
-func (h MeHandler) Handle(req interface{}, ctx context.AuthContext) (resp interface{}, err error) {
-	resp = ctx.AuthInfo
+func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
+	resp = h.AuthContext.AuthInfo()
 	return
 }

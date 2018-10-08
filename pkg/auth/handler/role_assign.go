@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -29,7 +28,7 @@ type RoleAssignHandlerFactory struct {
 	Dependency auth.DependencyMap
 }
 
-func (f RoleAssignHandlerFactory) NewHandler(request *http.Request) handler.Handler {
+func (f RoleAssignHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RoleAssignHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h)
@@ -94,7 +93,7 @@ func (h RoleAssignHandler) DecodeRequest(request *http.Request) (handler.Request
 	return payload, err
 }
 
-func (h RoleAssignHandler) Handle(req interface{}, ctx context.AuthContext) (resp interface{}, err error) {
+func (h RoleAssignHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(RoleAssignRequestPayload)
 	if err = h.AuthInfoStore.AssignRoles(payload.UserIDs, payload.Roles); err != nil {
 		err = skyerr.MakeError(err)

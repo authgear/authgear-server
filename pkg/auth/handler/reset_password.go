@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
@@ -36,7 +35,7 @@ type ResetPasswordHandlerFactory struct {
 	Dependency auth.DependencyMap
 }
 
-func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) handler.Handler {
+func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ResetPasswordHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h)
@@ -81,7 +80,7 @@ func (h ResetPasswordHandler) DecodeRequest(request *http.Request) (handler.Requ
 	return payload, err
 }
 
-func (h ResetPasswordHandler) Handle(req interface{}, _ context.AuthContext) (resp interface{}, err error) {
+func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(ResetPasswordRequestPayload)
 
 	authinfo := authinfo.AuthInfo{}
@@ -128,10 +127,7 @@ func (h ResetPasswordHandler) Handle(req interface{}, _ context.AuthContext) (re
 		panic(err)
 	}
 
-	authContext := context.AuthContext{}
-	authContext.AuthInfo = &authinfo
-
-	resp = response.NewAuthResponse(authContext, skydb.Record{}, token.AccessToken)
+	resp = response.NewAuthResponse(authinfo, skydb.Record{}, token.AccessToken)
 
 	// TODO: Audit
 

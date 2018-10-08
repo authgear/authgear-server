@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	skyContext "github.com/skygeario/skygear-server/pkg/core/handler/context"
 )
 
 type AuthContextResolverFactory interface {
@@ -13,5 +13,5 @@ type AuthContextResolverFactory interface {
 }
 
 type AuthContextResolver interface {
-	Resolve(*http.Request) (skyContext.AuthContext, error)
+	Resolve(*http.Request, auth.ContextSetter) error
 }

@@ -1,10 +1,15 @@
 package db
 
 import (
+	"errors"
 	"net"
 
 	"github.com/lib/pq"
 )
+
+var ErrDatabaseTxDidBegin = errors.New("skydb: a transaction has already begun")
+var ErrDatabaseTxDidNotBegin = errors.New("skydb: a transaction has not begun")
+var ErrDatabaseTxDone = errors.New("skydb: Database's transaction has already committed or rolled back")
 
 func IsForeignKeyViolated(err error) bool {
 	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23503" {

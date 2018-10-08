@@ -11,7 +11,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	skyContext "github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
@@ -32,27 +31,35 @@ type DefaultAuthContextResolver struct {
 	RoleStore     role.Store
 }
 
-func (r DefaultAuthContextResolver) Resolve(req *http.Request) (ctx skyContext.AuthContext, err error) {
+func (r DefaultAuthContextResolver) Resolve(req *http.Request, ctx auth.ContextSetter) (err error) {
 	keyType := model.GetAccessKeyType(req)
 
-	var resolver authn.AuthContextResolver
+	var (
+		token    *authtoken.Token
+		authInfo *authinfo.AuthInfo
+		roles    []role.Role
+	)
+
 	if keyType == model.MasterAccessKey {
-		resolver = masterkeyAuthContextResolver{
+		token, authInfo, err = masterkeyAuthContextResolver{
 			TokenStore:    r.TokenStore,
 			AuthInfoStore: r.AuthInfoStore,
-		}
+		}.Resolve(req)
 	} else {
-		resolver = nonMasterkeyAuthContextResolver{
+		token, authInfo, err = nonMasterkeyAuthContextResolver{
 			TokenStore:    r.TokenStore,
 			AuthInfoStore: r.AuthInfoStore,
-		}
+		}.Resolve(req)
 	}
 
-	ctx, err = resolver.Resolve(req)
-	ctx.AccessKeyType = keyType
-
-	if ctx.AuthInfo != nil {
-		ctx.Roles, err = r.RoleStore.QueryRoles(ctx.AuthInfo.Roles)
+	if authInfo != nil {
+		roles, err = r.RoleStore.QueryRoles(authInfo.Roles)
 	}
+
+	ctx.SetAccessKeyType(keyType)
+	ctx.SetAuthInfo(authInfo)
+	ctx.SetRoles(roles)
+	ctx.SetToken(token)
+
 	return
 }

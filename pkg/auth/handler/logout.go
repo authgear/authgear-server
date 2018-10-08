@@ -5,11 +5,11 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -33,7 +33,7 @@ type LogoutHandlerFactory struct {
 }
 
 // NewHandler creates new handler
-func (f LogoutHandlerFactory) NewHandler(request *http.Request) handler.Handler {
+func (f LogoutHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LogoutHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h)
@@ -63,8 +63,9 @@ func (p LogoutRequestPayload) Validate() error {
 
 // LogoutHandler handles logout request
 type LogoutHandler struct {
-	TokenStore authtoken.Store `dependency:"TokenStore"`
-	AuditTrail *audit.Trail    `dependency:"AuditTrail"`
+	AuthContext coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	TokenStore  authtoken.Store        `dependency:"TokenStore"`
+	AuditTrail  *audit.Trail           `dependency:"AuditTrail"`
 }
 
 // DecodeRequest decode request payload
@@ -75,7 +76,7 @@ func (h LogoutHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 }
 
 // Handle api request
-func (h LogoutHandler) Handle(req interface{}, ctx context.AuthContext) (resp interface{}, err error) {
+func (h LogoutHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(LogoutRequestPayload)
 
 	accessToken := payload.AccessToken
@@ -92,7 +93,7 @@ func (h LogoutHandler) Handle(req interface{}, ctx context.AuthContext) (resp in
 	}
 
 	h.AuditTrail.Log(audit.Entry{
-		AuthID: ctx.AuthInfo.ID,
+		AuthID: h.AuthContext.AuthInfo().ID,
 		Event:  audit.EventLoginFailure,
 	})
 

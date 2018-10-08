@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 
 	"github.com/gorilla/mux"
@@ -44,22 +45,24 @@ func NewServer(
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
 func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 	return s.router.NewRoute().Path(path).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		r = auth.InitRequestAuthContext(r)
+
 		configuration := config.GetTenantConfig(r)
 
 		h := hf.NewHandler(r)
 
 		resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)
-		ctx, _ := resolver.Resolve(r)
+		resolver.Resolve(r, auth.NewContextSetterWithContext(r.Context()))
 
 		policy := hf.ProvideAuthzPolicy()
-		if err := policy.IsAllowed(r, ctx); err != nil {
+		if err := policy.IsAllowed(r, auth.NewContextGetterWithContext(r.Context())); err != nil {
 			// TODO:
 			// handle error properly
 			http.Error(rw, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
-		h.ServeHTTP(rw, r, ctx)
+		h.ServeHTTP(rw, r)
 	}))
 }
 

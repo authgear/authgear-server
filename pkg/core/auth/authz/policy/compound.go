@@ -3,8 +3,8 @@ package policy
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 )
 
 type All struct {
@@ -15,7 +15,7 @@ func AllOf(policies ...authz.Policy) authz.Policy {
 	return All{policies: policies}
 }
 
-func (p All) IsAllowed(r *http.Request, ctx context.AuthContext) error {
+func (p All) IsAllowed(r *http.Request, ctx auth.ContextGetter) error {
 	for _, policy := range p.policies {
 		if err := policy.IsAllowed(r, ctx); err != nil {
 			return err
