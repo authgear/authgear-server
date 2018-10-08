@@ -10,17 +10,21 @@ import (
 // TenantConfiguration is a mock struct of tenant configuration
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	DBConnectionStr string `msg:"DATABASE_URL" envconfig:"DATABASE_URL" json:"DATABASE_URL"`
-	APIKey          string `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
-	MasterKey       string `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
-	AppName         string `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
-	TokenStore      struct {
-		Secret string `msg:"SECRET" envconfig:"TOKEN_STORE_SECRET" json:"SECRET"`
-		Expiry int64  `msg:"EXPIRY" envconfig:"TOKEN_STORE_EXPIRY" json:"EXPIRY"`
-	} `msg:"TOKEN_STORE" json:"TOKEN_STORE"`
-	UserProfile struct {
-		ImplName string `msg:"IMPLEMENTATION" envconfig:"USER_PROFILE_IMPL_NAME" json:"IMPLEMENTATION"`
-	} `msg:"USER_PROFILE" json:"USER_PROFILE"`
+	DBConnectionStr string                   `msg:"DATABASE_URL" envconfig:"DATABASE_URL" json:"DATABASE_URL"`
+	APIKey          string                   `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
+	MasterKey       string                   `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
+	AppName         string                   `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
+	TokenStore      TokenStoreConfiguration  `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
+	UserProfile     UserProfileConfiguration `json:"USER_PROFILE" msg:"USER_PROFILE"`
+}
+
+type TokenStoreConfiguration struct {
+	Secret string `msg:"SECRET" envconfig:"TOKEN_STORE_SECRET" json:"SECRET"`
+	Expiry int64  `msg:"EXPIRY" envconfig:"TOKEN_STORE_EXPIRY" json:"EXPIRY"`
+}
+
+type UserProfileConfiguration struct {
+	ImplName string `msg:"IMPLEMENTATION" envconfig:"USER_PROFILE_IMPL_NAME" json:"IMPLEMENTATION"`
 }
 
 func (c *TenantConfiguration) ReadFromEnv() error {

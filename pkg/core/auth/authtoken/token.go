@@ -28,7 +28,7 @@ type Token struct {
 	ExpiredAt   time.Time `json:"expiredAt" redis:"expiredAt"`
 	AppName     string    `json:"appName" redis:"appName"`
 	AuthInfoID  string    `json:"authInfoID" redis:"authInfoID"`
-	issuedAt    time.Time `json:"issuedAt" redis:"issuedAt"`
+	IssuedAt    time.Time `json:"issuedAt" redis:"issuedAt"`
 }
 
 // MarshalJSON implements the json.Marshaler interface.
@@ -37,8 +37,8 @@ func (t Token) MarshalJSON() ([]byte, error) {
 	if !t.ExpiredAt.IsZero() {
 		expireAt = jsonStamp(t.ExpiredAt)
 	}
-	if !t.issuedAt.IsZero() {
-		issuedAt = jsonStamp(t.issuedAt)
+	if !t.IssuedAt.IsZero() {
+		issuedAt = jsonStamp(t.IssuedAt)
 	}
 	return json.Marshal(&jsonToken{
 		t.AccessToken,
@@ -66,12 +66,8 @@ func (t *Token) UnmarshalJSON(data []byte) (err error) {
 	t.ExpiredAt = expireAt
 	t.AppName = token.AppName
 	t.AuthInfoID = token.AuthInfoID
-	t.issuedAt = issuedAt
+	t.IssuedAt = issuedAt
 	return nil
-}
-
-func (t Token) IssuedAt() time.Time {
-	return t.issuedAt
 }
 
 type jsonToken struct {
@@ -119,7 +115,7 @@ func New(appName string, authInfoID string, expiredAt time.Time) Token {
 		ExpiredAt:   expiredAt,
 		AppName:     appName,
 		AuthInfoID:  authInfoID,
-		issuedAt:    time.Now(),
+		IssuedAt:    time.Now(),
 	}
 }
 
