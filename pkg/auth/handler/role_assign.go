@@ -60,15 +60,15 @@ func (p RoleAssignRequestPayload) Validate() error {
 	return nil
 }
 
-// RoleAssignHandler allow system administractor to batch assign roles to
+// RoleAssignHandler allow system administrator to batch assign roles to
 // users
 //
 // RoleAssignHandler required user with admin role.
 // All specified users will assign to all roles specified. Roles not already
-// exisited in DB will be created. Users not already existed will be ignored.
+// existed in DB will be created. Users not already existed will be ignored.
 //
 // curl -X POST -H "Content-Type: application/json" \
-//   -d @- http://localhost:3000/ <<EOF
+//   -d @- http://localhost:3000/role/assign <<EOF
 // {
 //     "roles": [
 //        "writer",
