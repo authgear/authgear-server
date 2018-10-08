@@ -24,12 +24,12 @@ func TestDisabled(t *testing.T) {
 		return mockedNow
 	}
 
-	Convey("Test default is not disabled", t, func() {
+	Convey("Test default AuthInfo is not disabled", t, func() {
 		info := AuthInfo{}
 		So(info.IsDisabled(), ShouldBeFalse)
 	})
 
-	Convey("Test IsDisabled", t, func() {
+	Convey("Test AuthInfo.IsDisabled", t, func() {
 		info := AuthInfo{}
 
 		Convey("default should be false", func() {
@@ -56,7 +56,7 @@ func TestDisabled(t *testing.T) {
 		})
 	})
 
-	Convey("Test RefreshDisabledStatus", t, func() {
+	Convey("Test AuthInfo.RefreshDisabledStatus", t, func() {
 		info := AuthInfo{}
 
 		Convey("should set Disabled to false when expiry is in the past", func() {

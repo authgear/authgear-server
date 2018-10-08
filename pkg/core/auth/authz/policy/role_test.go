@@ -11,63 +11,66 @@ import (
 )
 
 func TestRolePolicy(t *testing.T) {
-	Convey("should return error if auth context has no auth info", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{}
+	Convey("Test RolePolicy", t, func() {
+		Convey("should return error if auth context has no auth info", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{}
 
-		err := NewAllowRole("roleA").IsAllowed(req, ctx)
-		So(err, ShouldNotBeEmpty)
-	})
+			err := NewAllowRole("roleA").IsAllowed(req, ctx)
+			So(err, ShouldNotBeEmpty)
+		})
 
-	Convey("should return error if specified allowed role does not exist", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AuthInfo: &authinfo.AuthInfo{
-				ID:    "ID",
-				Roles: []string{"roleA", "roleB"},
-			},
-		}
+		Convey("should return error if specified allowed role does not exist", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AuthInfo: &authinfo.AuthInfo{
+					ID:    "ID",
+					Roles: []string{"roleA", "roleB"},
+				},
+			}
 
-		err := NewAllowRole("admin").IsAllowed(req, ctx)
-		So(err, ShouldNotBeEmpty)
-	})
+			err := NewAllowRole("admin").IsAllowed(req, ctx)
+			So(err, ShouldNotBeEmpty)
+		})
 
-	Convey("should pass if specified allowed role exists", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AuthInfo: &authinfo.AuthInfo{
-				ID:    "ID",
-				Roles: []string{"roleA", "roleB"},
-			},
-		}
+		Convey("should pass if specified allowed role exists", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AuthInfo: &authinfo.AuthInfo{
+					ID:    "ID",
+					Roles: []string{"roleA", "roleB"},
+				},
+			}
 
-		err := NewAllowRole("roleA").IsAllowed(req, ctx)
-		So(err, ShouldBeEmpty)
-	})
+			err := NewAllowRole("roleA").IsAllowed(req, ctx)
+			So(err, ShouldBeEmpty)
+		})
 
-	Convey("should return error if specified denied role exists", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AuthInfo: &authinfo.AuthInfo{
-				ID:    "ID",
-				Roles: []string{"roleA", "roleB"},
-			},
-		}
+		Convey("should return error if specified denied role exists", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AuthInfo: &authinfo.AuthInfo{
+					ID:    "ID",
+					Roles: []string{"roleA", "roleB"},
+				},
+			}
 
-		err := NewDenyRole("roleA").IsAllowed(req, ctx)
-		So(err, ShouldNotBeEmpty)
-	})
+			err := NewDenyRole("roleA").IsAllowed(req, ctx)
+			So(err, ShouldNotBeEmpty)
+		})
 
-	Convey("should pass if specified denied role does not exist", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AuthInfo: &authinfo.AuthInfo{
-				ID:    "ID",
-				Roles: []string{"roleA", "roleB"},
-			},
-		}
+		Convey("should pass if specified denied role does not exist", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AuthInfo: &authinfo.AuthInfo{
+					ID:    "ID",
+					Roles: []string{"roleA", "roleB"},
+				},
+			}
 
-		err := NewDenyRole("admin").IsAllowed(req, ctx)
-		So(err, ShouldBeEmpty)
+			err := NewDenyRole("admin").IsAllowed(req, ctx)
+			So(err, ShouldBeEmpty)
+		})
+
 	})
 }

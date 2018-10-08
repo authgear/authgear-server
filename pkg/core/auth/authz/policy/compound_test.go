@@ -9,25 +9,28 @@ import (
 )
 
 func TestAllOfPolicy(t *testing.T) {
-	Convey("should pass if all pass", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{}
+	Convey("Test AllOfPolicy", t, func() {
+		Convey("should pass if all pass", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{}
 
-		err := AllOf(
-			Everybody{allow: true},
-			Everybody{allow: true},
-		).IsAllowed(req, ctx)
-		So(err, ShouldBeEmpty)
-	})
+			err := AllOf(
+				Everybody{allow: true},
+				Everybody{allow: true},
+			).IsAllowed(req, ctx)
+			So(err, ShouldBeEmpty)
+		})
 
-	Convey("should return error if one of them return error", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{}
+		Convey("should return error if one of them return error", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{}
 
-		err := AllOf(
-			Everybody{allow: true},
-			Everybody{allow: false},
-		).IsAllowed(req, ctx)
-		So(err, ShouldNotBeEmpty)
+			err := AllOf(
+				Everybody{allow: true},
+				Everybody{allow: false},
+			).IsAllowed(req, ctx)
+			So(err, ShouldNotBeEmpty)
+		})
+
 	})
 }

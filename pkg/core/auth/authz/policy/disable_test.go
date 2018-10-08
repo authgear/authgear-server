@@ -11,37 +11,40 @@ import (
 )
 
 func TestDenyDisabledUser(t *testing.T) {
-	Convey("should return error if auth context has no auth info", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{}
+	Convey("Test DenyDisabledUser", t, func() {
+		Convey("should return error if auth context has no auth info", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{}
 
-		err := DenyDisabledUser(req, ctx)
-		So(err, ShouldNotBeEmpty)
-	})
+			err := DenyDisabledUser(req, ctx)
+			So(err, ShouldNotBeEmpty)
+		})
 
-	Convey("should return error if user is disabled", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AuthInfo: &authinfo.AuthInfo{
-				ID:       "ID",
-				Disabled: true,
-			},
-		}
+		Convey("should return error if user is disabled", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AuthInfo: &authinfo.AuthInfo{
+					ID:       "ID",
+					Disabled: true,
+				},
+			}
 
-		err := DenyDisabledUser(req, ctx)
-		So(err, ShouldNotBeEmpty)
-	})
+			err := DenyDisabledUser(req, ctx)
+			So(err, ShouldNotBeEmpty)
+		})
 
-	Convey("should pass if user is not disabled", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AuthInfo: &authinfo.AuthInfo{
-				ID:       "ID",
-				Disabled: false,
-			},
-		}
+		Convey("should pass if user is not disabled", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AuthInfo: &authinfo.AuthInfo{
+					ID:       "ID",
+					Disabled: false,
+				},
+			}
 
-		err := DenyDisabledUser(req, ctx)
-		So(err, ShouldBeEmpty)
+			err := DenyDisabledUser(req, ctx)
+			So(err, ShouldBeEmpty)
+		})
+
 	})
 }

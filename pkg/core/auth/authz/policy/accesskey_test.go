@@ -10,65 +10,69 @@ import (
 )
 
 func TestDenyNoAccessKey(t *testing.T) {
-	Convey("should return error if auth context has no access key", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AccessKeyType: model.NoAccessKey,
-		}
+	Convey("Test DenyNoAccessKey", t, func() {
+		Convey("should return error if auth context has no access key", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AccessKeyType: model.NoAccessKey,
+			}
 
-		err := DenyNoAccessKey(req, ctx)
-		So(err, ShouldNotBeEmpty)
-	})
+			err := DenyNoAccessKey(req, ctx)
+			So(err, ShouldNotBeEmpty)
+		})
 
-	Convey("should not return error if auth context has api key ", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AccessKeyType: model.APIAccessKey,
-		}
+		Convey("should not return error if auth context has api key ", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AccessKeyType: model.APIAccessKey,
+			}
 
-		err := DenyNoAccessKey(req, ctx)
-		So(err, ShouldBeEmpty)
-	})
+			err := DenyNoAccessKey(req, ctx)
+			So(err, ShouldBeEmpty)
+		})
 
-	Convey("should not return error if auth context has master key ", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AccessKeyType: model.MasterAccessKey,
-		}
+		Convey("should not return error if auth context has master key ", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AccessKeyType: model.MasterAccessKey,
+			}
 
-		err := DenyNoAccessKey(req, ctx)
-		So(err, ShouldBeEmpty)
+			err := DenyNoAccessKey(req, ctx)
+			So(err, ShouldBeEmpty)
+		})
 	})
 }
 
 func TestRequireMasterKey(t *testing.T) {
-	Convey("should return error if auth context has no access key", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AccessKeyType: model.NoAccessKey,
-		}
+	Convey("Test RequireMasterKey", t, func() {
+		Convey("should return error if auth context has no access key", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AccessKeyType: model.NoAccessKey,
+			}
 
-		err := RequireMasterKey(req, ctx)
-		So(err, ShouldNotBeEmpty)
-	})
+			err := RequireMasterKey(req, ctx)
+			So(err, ShouldNotBeEmpty)
+		})
 
-	Convey("should return error if auth context has api key ", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AccessKeyType: model.APIAccessKey,
-		}
+		Convey("should return error if auth context has api key ", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AccessKeyType: model.APIAccessKey,
+			}
 
-		err := RequireMasterKey(req, ctx)
-		So(err, ShouldNotBeEmpty)
-	})
+			err := RequireMasterKey(req, ctx)
+			So(err, ShouldNotBeEmpty)
+		})
 
-	Convey("should not return error if auth context has master key ", t, func() {
-		req, _ := http.NewRequest("POST", "/", nil)
-		ctx := context.AuthContext{
-			AccessKeyType: model.MasterAccessKey,
-		}
+		Convey("should not return error if auth context has master key ", func() {
+			req, _ := http.NewRequest("POST", "/", nil)
+			ctx := context.AuthContext{
+				AccessKeyType: model.MasterAccessKey,
+			}
 
-		err := RequireMasterKey(req, ctx)
-		So(err, ShouldBeEmpty)
+			err := RequireMasterKey(req, ctx)
+			So(err, ShouldBeEmpty)
+		})
 	})
 }

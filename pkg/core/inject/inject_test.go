@@ -47,71 +47,73 @@ func TestInjectDependency(t *testing.T) {
 	req, _ := http.NewRequest("POST", "", nil)
 	req = req.WithContext(context.WithValue(req.Context(), "configuration", conf))
 
-	Convey("inject to target struct", t, func() {
-		type targetStruct struct {
-			Str string `dependency:"str"`
-			Int int    `dependency:"int"`
-		}
+	Convey("Test injectDependency", t, func() {
+		Convey("should inject simple type", func() {
+			type targetStruct struct {
+				Str string `dependency:"str"`
+				Int int    `dependency:"int"`
+			}
 
-		target := targetStruct{}
-		injectDependency(&target, dmap{}, req)
-		So(target.Str, ShouldEqual, "string")
-		So(target.Int, ShouldEqual, 1)
-	})
-
-	Convey("inject to target struct with interface", t, func() {
-		type targetStruct struct {
-			Store istore `dependency:"istore"`
-		}
-
-		target := targetStruct{}
-		injectDependency(&target, dmap{}, req)
-		So(target.Store, ShouldImplement, (*istore)(nil))
-		So(target.Store.get(), ShouldEqual, "TestApp")
-	})
-
-	Convey("inject tot target struct with struct", t, func() {
-		type targetStruct struct {
-			Store store `dependency:"store"`
-		}
-
-		target := targetStruct{}
-		injectDependency(&target, dmap{}, req)
-		So(target.Store, ShouldHaveSameTypeAs, store{})
-		So(target.Store.get(), ShouldEqual, "TestApp")
-	})
-
-	Convey("inject to target struct mixed with field without tag", t, func() {
-		type targetStruct struct {
-			Str string `dependency:"str"`
-			str string
-		}
-
-		target := targetStruct{}
-		injectDependency(&target, dmap{}, req)
-		So(target.Str, ShouldEqual, "string")
-		So(target.str, ShouldBeEmpty)
-	})
-
-	Convey("inject to target with wrong type", t, func() {
-		type targetStruct struct {
-			Str int `dependency:"str"`
-		}
-
-		target := targetStruct{}
-		So(func() {
+			target := targetStruct{}
 			injectDependency(&target, dmap{}, req)
-		}, ShouldPanic)
-	})
+			So(target.Str, ShouldEqual, "string")
+			So(target.Int, ShouldEqual, 1)
+		})
 
-	Convey("inject to target with non existing dependency name", t, func() {
-		type targetStruct struct {
-			Str int `dependency:"i_am_your_father"`
-		}
+		Convey("should inject interface", func() {
+			type targetStruct struct {
+				Store istore `dependency:"istore"`
+			}
 
-		target := targetStruct{}
-		So(func() {
+			target := targetStruct{}
 			injectDependency(&target, dmap{}, req)
-		}, ShouldPanic)
+			So(target.Store, ShouldImplement, (*istore)(nil))
+			So(target.Store.get(), ShouldEqual, "TestApp")
+		})
+
+		Convey("should inject struct", func() {
+			type targetStruct struct {
+				Store store `dependency:"store"`
+			}
+
+			target := targetStruct{}
+			injectDependency(&target, dmap{}, req)
+			So(target.Store, ShouldHaveSameTypeAs, store{})
+			So(target.Store.get(), ShouldEqual, "TestApp")
+		})
+
+		Convey("should not inject to with field without tag", func() {
+			type targetStruct struct {
+				Str string `dependency:"str"`
+				str string
+			}
+
+			target := targetStruct{}
+			injectDependency(&target, dmap{}, req)
+			So(target.Str, ShouldEqual, "string")
+			So(target.str, ShouldBeEmpty)
+		})
+
+		Convey("should panic if field type is wrong", func() {
+			type targetStruct struct {
+				Str int `dependency:"str"`
+			}
+
+			target := targetStruct{}
+			So(func() {
+				injectDependency(&target, dmap{}, req)
+			}, ShouldPanic)
+		})
+
+		Convey("should panic dependency name is wrong", func() {
+			type targetStruct struct {
+				Str int `dependency:"i_am_your_father"`
+			}
+
+			target := targetStruct{}
+			So(func() {
+				injectDependency(&target, dmap{}, req)
+			}, ShouldPanic)
+		})
 	})
 }
