@@ -24,6 +24,10 @@ type Store interface {
 	// DeleteAuth returns ErrUserNotFound if such AuthInfo does not
 	// exist in the container.
 	DeleteAuth(id string) error
+
+	// AssignRoles accepts array of roles and userID, the supplied roles will
+	// be assigned to all passed in users
+	AssignRoles(userIDs []string, roles []string) error
 }
 
 type StoreProvider struct {

@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	pqRole "github.com/skygeario/skygear-server/pkg/core/auth/role/pq"
 
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
@@ -29,6 +30,8 @@ import (
 )
 
 type AuthInfoStore struct {
+	roleStore pqRole.RoleStore
+
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 	logger      *logrus.Entry
@@ -36,6 +39,7 @@ type AuthInfoStore struct {
 
 func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *AuthInfoStore {
 	return &AuthInfoStore{
+		roleStore:   *pqRole.NewRoleStore(builder, executor, logger),
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 		logger:      logger,
@@ -94,10 +98,9 @@ func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		return skydb.ErrUserDuplicated
 	}
 
-	// TODO:
-	// if err := s.UpdateUserRoles(authinfo); err != nil {
-	// 	return skydb.ErrRoleUpdatesFailed
-	// }
+	if err := s.updateUserRoles(authinfo); err != nil {
+		return skydb.ErrRoleUpdatesFailed
+	}
 
 	return err
 }
@@ -158,21 +161,20 @@ func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
 	}
 
-	// TODO:
-	// if err := c.UpdateUserRoles(authinfo); err != nil {
-	// 	return skydb.ErrRoleUpdatesFailed
-	// }
+	if err := s.updateUserRoles(authinfo); err != nil {
+		return skydb.ErrRoleUpdatesFailed
+	}
 
 	return nil
 }
 
 func (s AuthInfoStore) baseUserBuilder() sq.SelectBuilder {
-	// TODO: update sql to fetch roles
 	return s.sqlBuilder.Select("id",
 		"token_valid_since", "last_seen_at", "last_login_at",
 		"disabled", "disabled_message", "disabled_expiry",
-		"'[]' AS roles").
+		"array_to_json(array_agg(role_id)) AS roles").
 		From(s.sqlBuilder.TableName("user")).
+		LeftJoin(s.sqlBuilder.TableName("user_role") + " ON id = user_id").
 		GroupBy("id")
 }
 

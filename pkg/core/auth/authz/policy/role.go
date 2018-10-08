@@ -43,3 +43,25 @@ func (p Role) IsAllowed(r *http.Request, ctx context.AuthContext) error {
 
 	return nil
 }
+
+func RequireAdminRole(r *http.Request, ctx context.AuthContext) error {
+	err := skyerr.NewError(
+		skyerr.PermissionDenied,
+		"no permission to perform this action",
+	)
+
+	if len(ctx.Roles) == 0 {
+		return err
+	}
+
+	isAdmin := false
+	for _, v := range ctx.Roles {
+		isAdmin = isAdmin || v.IsAdmin
+	}
+
+	if !isAdmin {
+		return err
+	}
+
+	return nil
+}

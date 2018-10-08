@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/role"
+
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
@@ -19,6 +21,7 @@ func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfi
 	r := &DefaultAuthContextResolver{
 		TokenStore:    auth.NewDefaultTokenStore(ctx, tenantConfig),
 		AuthInfoStore: auth.NewDefaultAuthInfoStore(ctx, tenantConfig),
+		RoleStore:     auth.NewDefaultRoleStore(ctx, tenantConfig),
 	}
 	return r
 }
@@ -26,6 +29,7 @@ func (f AuthContextResolverFactory) NewResolver(ctx context.Context, tenantConfi
 type DefaultAuthContextResolver struct {
 	TokenStore    authtoken.Store
 	AuthInfoStore authinfo.Store
+	RoleStore     role.Store
 }
 
 func (r DefaultAuthContextResolver) Resolve(req *http.Request) (ctx skyContext.AuthContext, err error) {
@@ -47,5 +51,8 @@ func (r DefaultAuthContextResolver) Resolve(req *http.Request) (ctx skyContext.A
 	ctx, err = resolver.Resolve(req)
 	ctx.AccessKeyType = keyType
 
+	if ctx.AuthInfo != nil {
+		ctx.Roles, err = r.RoleStore.QueryRoles(ctx.AuthInfo.Roles)
+	}
 	return
 }
