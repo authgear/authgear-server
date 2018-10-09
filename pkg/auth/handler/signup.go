@@ -99,7 +99,7 @@ type SignupHandler struct {
 	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
 	RoleStore            role.Store                  `dependency:"RoleStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
-	AuditTrail           *coreAudit.Trail            `dependency:"AuditTrail,optional"`
+	AuditTrail           *coreAudit.Trail            `dependency:"AuditTrail"`
 }
 
 func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
@@ -198,12 +198,10 @@ func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp inte
 		return
 	}
 
-	if h.AuditTrail != nil {
-		h.AuditTrail.Log(coreAudit.Entry{
-			AuthID: info.ID,
-			Event:  coreAudit.EventSignup,
-		})
-	}
+	h.AuditTrail.Log(coreAudit.Entry{
+		AuthID: info.ID,
+		Event:  coreAudit.EventSignup,
+	})
 
 	return
 }

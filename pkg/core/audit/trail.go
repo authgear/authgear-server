@@ -26,6 +26,7 @@ import (
 
 const (
 	enabledLevel  = logrus.InfoLevel
+	disabledLevel = logrus.PanicLevel
 )
 
 type Event int
@@ -168,10 +169,14 @@ func createHook(handlerURL string) (logrus.Hook, error) {
 	return nil, fmt.Errorf("unknown handler: %v, %v", scheme, handlerURL)
 }
 
-func NewTrail(handlerURL string, req *http.Request) (*Trail, error) {
+func NewTrail(enabled bool, handlerURL string, req *http.Request) (*Trail, error) {
 	var trailLogger = logrus.New()
 	trailLogger.Formatter = &logrus.JSONFormatter{}
-	trailLogger.Level = enabledLevel
+	if enabled {
+		trailLogger.Level = enabledLevel
+	} else {
+		trailLogger.Level = disabledLevel
+	}
 	if handlerURL != "" {
 		hook, err := createHook(handlerURL)
 		if err != nil {

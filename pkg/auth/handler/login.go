@@ -73,7 +73,7 @@ type LoginHandler struct {
 	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
 	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
-	AuditTrail           *audit.Trail                 `dependency:"AuditTrail,optional"`
+	AuditTrail           *audit.Trail                `dependency:"AuditTrail"`
 }
 
 // ProvideAuthzPolicy provides authorization policy
@@ -94,9 +94,6 @@ func (h LoginHandler) Handle(req interface{}, ctx context.AuthContext) (resp int
 	fetchedAuthInfo := authinfo.AuthInfo{}
 
 	defer func() {
-		if h.AuditTrail == nil {
-			return
-		}
 		if err != nil {
 			h.AuditTrail.Log(audit.Entry{
 				AuthID: fetchedAuthInfo.ID,

@@ -63,14 +63,11 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		return coreAuth.NewDefaultRoleStore(r.Context(), tConfig)
 	case "AuditTrail":
 		tConfig := config.GetTenantConfig(r)
-		if tConfig.UserAudit.Enabled && tConfig.UserAudit.TrailHandlerURL != "" {
-			trail, err := coreAudit.NewTrail(tConfig.UserAudit.TrailHandlerURL, r)
-			if err != nil {
-				panic(err)
-			}
-			return trail
+		trail, err := coreAudit.NewTrail(tConfig.UserAudit.Enabled, tConfig.UserAudit.TrailHandlerURL, r)
+		if err != nil {
+			panic(err)
 		}
-		return nil
+		return trail
 	default:
 		return nil
 	}

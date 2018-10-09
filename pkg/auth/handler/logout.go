@@ -64,7 +64,7 @@ func (p LogoutRequestPayload) Validate() error {
 // LogoutHandler handles logout request
 type LogoutHandler struct {
 	TokenStore authtoken.Store `dependency:"TokenStore"`
-	AuditTrail *audit.Trail    `dependency:"AuditTrail,optional"`
+	AuditTrail *audit.Trail    `dependency:"AuditTrail"`
 }
 
 // DecodeRequest decode request payload
@@ -91,12 +91,10 @@ func (h LogoutHandler) Handle(req interface{}, ctx context.AuthContext) (resp in
 		resp = "OK"
 	}
 
-	if h.AuditTrail != nil {
-		h.AuditTrail.Log(audit.Entry{
-			AuthID: ctx.AuthInfo.ID,
-			Event:  audit.EventLoginFailure,
-		})
-	}
+	h.AuditTrail.Log(audit.Entry{
+		AuthID: ctx.AuthInfo.ID,
+		Event:  audit.EventLoginFailure,
+	})
 
 	return
 }
