@@ -14,7 +14,8 @@ const providerPassword string = "password"
 
 type Provider interface {
 	CreatePrincipal(principal Principal) error
-	GetPrincipal(authData interface{}, principal *Principal) error
+	GetPrincipalByAuthData(authData interface{}, principal *Principal) error
+	GetPrincipalByUserID(userID string, principal *Principal) error
 }
 
 type ProviderImpl struct {
@@ -82,7 +83,7 @@ func (p ProviderImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p ProviderImpl) GetPrincipal(authData interface{}, principal *Principal) (err error) {
+func (p ProviderImpl) GetPrincipalByAuthData(authData interface{}, principal *Principal) (err error) {
 	authDataBytes, err := json.Marshal(authData)
 	if err != nil {
 		return
@@ -119,3 +120,38 @@ func (p ProviderImpl) GetPrincipal(authData interface{}, principal *Principal) (
 
 	return
 }
+
+func (p ProviderImpl) GetPrincipalByUserID(userID string, principal *Principal) (err error) {
+	builder := p.sqlBuilder.Select("id", "user_id").
+		From(p.sqlBuilder.TableName("principal")).
+		Where("user_id = ? AND provider = 'password'", userID)
+	scanner := p.sqlExecutor.QueryRowWith(builder)
+	err = scanner.Scan(
+		&principal.ID,
+		&principal.UserID,
+	)
+
+	if err == sql.ErrNoRows {
+		err = skydb.ErrUserNotFound
+	}
+
+	if err != nil {
+		return
+	}
+
+	builder = p.sqlBuilder.Select("auth_data", "password").
+		From(p.sqlBuilder.TableName("provider_password")).
+		Where(`principal_id = ?`, principal.ID)
+	scanner = p.sqlExecutor.QueryRowWith(builder)
+	err = scanner.Scan(
+		&principal.AuthData,
+		&principal.HashedPassword,
+	)
+
+	if err == sql.ErrNoRows {
+		err = skydb.ErrUserNotFound
+	}
+
+	return
+}
+
