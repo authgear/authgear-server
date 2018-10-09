@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -68,6 +69,7 @@ func (payload setDisableUserPayload) Validate() error {
 // SetDisableHandler handles set disable request
 type SetDisableHandler struct {
 	AuthInfoStore authinfo.Store `dependency:"AuthInfoStore"`
+	AuditTrail    *audit.Trail   `dependency:"AuditTrail"`
 }
 
 // DecodeRequest decode request payload
@@ -127,9 +129,23 @@ func (h SetDisableHandler) Handle(req interface{}, ctx context.AuthContext) (res
 
 	// logger.Info("Successfully set disabled user status")
 
-	// h.logAuditTrail(payload, p)
+	h.logAuditTrail(p)
 
 	resp = "OK"
 
 	return
+}
+
+func (h SetDisableHandler) logAuditTrail(p setDisableUserPayload) {
+	var event audit.Event
+	if p.Disabled {
+		event = audit.EventDisableUser
+	} else {
+		event = audit.EventEnableUser
+	}
+
+	h.AuditTrail.Log(audit.Entry{
+		AuthID: p.AuthInfoID,
+		Event:  event,
+	})
 }
