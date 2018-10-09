@@ -16,6 +16,7 @@ type Provider interface {
 	CreatePrincipal(principal Principal) error
 	GetPrincipalByAuthData(authData interface{}, principal *Principal) error
 	GetPrincipalByUserID(userID string, principal *Principal) error
+	UpdatePrincipal(principal Principal) error
 }
 
 type ProviderImpl struct {
@@ -155,3 +156,25 @@ func (p ProviderImpl) GetPrincipalByUserID(userID string, principal *Principal) 
 	return
 }
 
+func (p ProviderImpl) UpdatePrincipal(principal Principal) (err error) {
+	// TODO: log
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(principal.PlainPassword), bcrypt.DefaultCost)
+	if err != nil {
+		panic("provider_password: Failed to hash password")
+	}
+
+	builder := p.sqlBuilder.Update(p.sqlBuilder.TableName("provider_password")).
+		Set("auth_data", principal.AuthData).
+		Set("password", hashedPassword).
+		Where("principal_id = ?", principal.ID)
+
+	_, err = p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		if db.IsUniqueViolated(err) {
+			err = skydb.ErrUserDuplicated
+		}
+	}
+
+	return
+}
