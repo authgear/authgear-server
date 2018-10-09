@@ -26,6 +26,7 @@ RUN \
         "golang.org/x/tools/cmd/cover" \
         "github.com/mitchellh/gox" \
         "github.com/golang/mock/mockgen" \
+        "github.com/tinylib/msgp" \
         ; do \
         pushd $pkg; \
         go install .; \
