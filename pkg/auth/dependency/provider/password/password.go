@@ -89,14 +89,13 @@ func (p ProviderImpl) GetPrincipalByAuthData(authData interface{}, principal *Pr
 	if err != nil {
 		return
 	}
-	builder := p.sqlBuilder.Select("principal_id", "auth_data", "password").
+	builder := p.sqlBuilder.Select("principal_id", "password").
 		From(p.sqlBuilder.TableName("provider_password")).
 		Where(`auth_data @> ?::jsonb`, authDataBytes)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
 	err = scanner.Scan(
 		&principal.ID,
-		&principal.AuthData,
 		&principal.HashedPassword,
 	)
 
@@ -107,6 +106,8 @@ func (p ProviderImpl) GetPrincipalByAuthData(authData interface{}, principal *Pr
 	if err != nil {
 		return
 	}
+
+	principal.AuthData = authData
 
 	builder = p.sqlBuilder.Select("user_id").
 		From(p.sqlBuilder.TableName("principal")).
@@ -144,8 +145,9 @@ func (p ProviderImpl) GetPrincipalByUserID(userID string, principal *Principal) 
 		From(p.sqlBuilder.TableName("provider_password")).
 		Where(`principal_id = ?`, principal.ID)
 	scanner = p.sqlExecutor.QueryRowWith(builder)
+	var authDataBytes []byte
 	err = scanner.Scan(
-		&principal.AuthData,
+		&authDataBytes,
 		&principal.HashedPassword,
 	)
 
@@ -153,11 +155,24 @@ func (p ProviderImpl) GetPrincipalByUserID(userID string, principal *Principal) 
 		err = skydb.ErrUserNotFound
 	}
 
+	if err != nil {
+		return
+	}
+
+	err = json.Unmarshal(authDataBytes, &principal.AuthData)
+
 	return
 }
 
 func (p ProviderImpl) UpdatePrincipal(principal Principal) (err error) {
 	// TODO: log
+
+	// Create password type provider data
+	var authDataBytes []byte
+	authDataBytes, err = json.Marshal(principal.AuthData)
+	if err != nil {
+		return
+	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(principal.PlainPassword), bcrypt.DefaultCost)
 	if err != nil {
@@ -165,7 +180,7 @@ func (p ProviderImpl) UpdatePrincipal(principal Principal) (err error) {
 	}
 
 	builder := p.sqlBuilder.Update(p.sqlBuilder.TableName("provider_password")).
-		Set("auth_data", principal.AuthData).
+		Set("auth_data", authDataBytes).
 		Set("password", hashedPassword).
 		Where("principal_id = ?", principal.ID)
 
