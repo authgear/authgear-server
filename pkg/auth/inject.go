@@ -6,6 +6,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -60,6 +61,13 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	case "RoleStore":
 		tConfig := config.GetTenantConfig(r)
 		return coreAuth.NewDefaultRoleStore(r.Context(), tConfig)
+	case "AuditTrail":
+		tConfig := config.GetTenantConfig(r)
+		trail, err := coreAudit.NewTrail(tConfig.UserAudit.Enabled, tConfig.UserAudit.TrailHandlerURL, r)
+		if err != nil {
+			panic(err)
+		}
+		return trail
 	default:
 		return nil
 	}

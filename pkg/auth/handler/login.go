@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -72,6 +73,7 @@ type LoginHandler struct {
 	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
 	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
+	AuditTrail           *audit.Trail                `dependency:"AuditTrail"`
 }
 
 // ProvideAuthzPolicy provides authorization policy
@@ -89,6 +91,21 @@ func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPaylo
 // Handle api request
 func (h LoginHandler) Handle(req interface{}, ctx context.AuthContext) (resp interface{}, err error) {
 	payload := req.(LoginRequestPayload)
+	fetchedAuthInfo := authinfo.AuthInfo{}
+
+	defer func() {
+		if err != nil {
+			h.AuditTrail.Log(audit.Entry{
+				AuthID: fetchedAuthInfo.ID,
+				Event:  audit.EventLoginFailure,
+			})
+		} else {
+			h.AuditTrail.Log(audit.Entry{
+				AuthID: fetchedAuthInfo.ID,
+				Event:  audit.EventLoginSuccess,
+			})
+		}
+	}()
 
 	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
 		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
@@ -112,7 +129,6 @@ func (h LoginHandler) Handle(req interface{}, ctx context.AuthContext) (resp int
 		return
 	}
 
-	fetchedAuthInfo := authinfo.AuthInfo{}
 	if err = h.AuthInfoStore.GetAuth(principal.UserID, &fetchedAuthInfo); err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
@@ -162,8 +178,6 @@ func (h LoginHandler) Handle(req interface{}, ctx context.AuthContext) (resp int
 		err = skyerr.MakeError(err)
 		return
 	}
-
-	// TODO: Audit
 
 	return
 }

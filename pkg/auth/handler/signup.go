@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -98,6 +99,7 @@ type SignupHandler struct {
 	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
 	RoleStore            role.Store                  `dependency:"RoleStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
+	AuditTrail           *coreAudit.Trail            `dependency:"AuditTrail"`
 }
 
 func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
@@ -196,7 +198,10 @@ func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp inte
 		return
 	}
 
-	// TODO: Audit
+	h.AuditTrail.Log(coreAudit.Entry{
+		AuthID: info.ID,
+		Event:  coreAudit.EventSignup,
+	})
 
 	return
 }
