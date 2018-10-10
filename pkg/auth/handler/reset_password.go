@@ -133,15 +133,6 @@ func (h ResetPasswordHandler) Handle(req interface{}, _ context.AuthContext) (re
 
 	resp = response.NewAuthResponse(authContext, skydb.Record{}, token.AccessToken)
 
-	// Populate the activity time to user
-	now := timeNow()
-	authContext.AuthInfo.LastLoginAt = &now
-	authContext.AuthInfo.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(authContext.AuthInfo); err != nil {
-		err = skyerr.MakeError(err)
-		return
-	}
-
 	// TODO: Audit
 
 	return
