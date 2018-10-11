@@ -7,7 +7,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -16,7 +15,7 @@ func TestRequireAuthenticated(t *testing.T) {
 	Convey("Test RequireAuthenticated", t, func() {
 		Convey("should return error if auth context has no auth info", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{}
+			ctx := MemoryContextGetter{}
 
 			err := RequireAuthenticated(req, ctx)
 			So(err, ShouldNotBeEmpty)
@@ -25,12 +24,12 @@ func TestRequireAuthenticated(t *testing.T) {
 		Convey("should return error if token is not valid", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
 			validSince := time.Date(2017, 10, 1, 0, 0, 0, 0, time.UTC)
-			ctx := context.AuthContext{
-				AuthInfo: &authinfo.AuthInfo{
+			ctx := MemoryContextGetter{
+				mAuthInfo: &authinfo.AuthInfo{
 					ID:              "ID",
 					TokenValidSince: &validSince,
 				},
-				Token: &authtoken.Token{
+				mToken: &authtoken.Token{
 					IssuedAt: time.Date(2016, 10, 1, 0, 0, 0, 0, time.UTC),
 				},
 			}
@@ -41,11 +40,11 @@ func TestRequireAuthenticated(t *testing.T) {
 
 		Convey("should pass if valid auth info exist", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{
-				AuthInfo: &authinfo.AuthInfo{
+			ctx := MemoryContextGetter{
+				mAuthInfo: &authinfo.AuthInfo{
 					ID: "ID",
 				},
-				Token: &authtoken.Token{
+				mToken: &authtoken.Token{
 					IssuedAt: time.Date(2016, 10, 1, 0, 0, 0, 0, time.UTC),
 				},
 			}
