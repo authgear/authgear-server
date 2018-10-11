@@ -14,7 +14,7 @@ const providerPassword string = "password"
 
 type Provider interface {
 	CreatePrincipal(principal Principal) error
-	GetPrincipalByAuthData(authData interface{}, principal *Principal) error
+	GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) error
 	GetPrincipalByUserID(userID string, principal *Principal) error
 	UpdatePrincipal(principal Principal) error
 }
@@ -84,7 +84,7 @@ func (p ProviderImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p ProviderImpl) GetPrincipalByAuthData(authData interface{}, principal *Principal) (err error) {
+func (p ProviderImpl) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) (err error) {
 	authDataBytes, err := json.Marshal(authData)
 	if err != nil {
 		return
