@@ -113,7 +113,7 @@ func (h LoginHandler) Handle(req interface{}, ctx context.AuthContext) (resp int
 	}
 
 	principal := password.Principal{}
-	err = h.PasswordAuthProvider.GetPrincipal(payload.AuthData, &principal)
+	err = h.PasswordAuthProvider.GetPrincipalByAuthData(payload.AuthData, &principal)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
