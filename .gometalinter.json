@@ -16,7 +16,8 @@
     "Exclude": [
         "should have comment or be unexported",
         "method ToSql should be ToSQL",
-        "composite literal uses unkeyed fields"
+        "composite literal uses unkeyed fields",
+        "_gen\\.go"
     ],
     "Skip": [
         "pkg/server/skydb/mock_skydb",
