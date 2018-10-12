@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
@@ -37,7 +36,7 @@ type LoginHandlerFactory struct {
 	Dependency auth.DependencyMap
 }
 
-func (f LoginHandlerFactory) NewHandler(request *http.Request) handler.Handler {
+func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h)
@@ -89,7 +88,7 @@ func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPaylo
 }
 
 // Handle api request
-func (h LoginHandler) Handle(req interface{}, ctx context.AuthContext) (resp interface{}, err error) {
+func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(LoginRequestPayload)
 	fetchedAuthInfo := authinfo.AuthInfo{}
 
@@ -165,16 +164,13 @@ func (h LoginHandler) Handle(req interface{}, ctx context.AuthContext) (resp int
 		panic(err)
 	}
 
-	authContext := context.AuthContext{}
-	authContext.AuthInfo = &fetchedAuthInfo
-
-	resp = response.NewAuthResponse(authContext, skydb.Record{}, token.AccessToken)
+	resp = response.NewAuthResponse(fetchedAuthInfo, skydb.Record{}, token.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()
-	authContext.AuthInfo.LastLoginAt = &now
-	authContext.AuthInfo.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(authContext.AuthInfo); err != nil {
+	fetchedAuthInfo.LastLoginAt = &now
+	fetchedAuthInfo.LastSeenAt = &now
+	if err = h.AuthInfoStore.UpdateAuth(&fetchedAuthInfo); err != nil {
 		err = skyerr.MakeError(err)
 		return
 	}

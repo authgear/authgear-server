@@ -16,7 +16,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
@@ -38,7 +37,7 @@ type SignupHandlerFactory struct {
 	Dependency auth.DependencyMap
 }
 
-func (f SignupHandlerFactory) NewHandler(request *http.Request) handler.Handler {
+func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h)
@@ -108,7 +107,7 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, err
 }
 
-func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp interface{}, err error) {
+func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
 	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
@@ -122,8 +121,6 @@ func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp inte
 	}); err != nil {
 		return
 	}
-
-	authContext := context.AuthContext{}
 
 	now := timeNow()
 	info := authinfo.NewAuthInfo()
@@ -148,10 +145,8 @@ func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp inte
 	// Assign default roles
 	info.Roles = defaultRoles
 
-	authContext.AuthInfo = &info
-
 	// Create AuthInfo
-	if err = h.AuthInfoStore.CreateAuth(authContext.AuthInfo); err != nil {
+	if err = h.AuthInfoStore.CreateAuth(&info); err != nil {
 		if err == skydb.ErrUserDuplicated {
 			err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 			return
@@ -180,7 +175,7 @@ func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp inte
 	}
 
 	// Create auth token
-	tkn, err := h.TokenStore.NewToken(authContext.AuthInfo.ID)
+	tkn, err := h.TokenStore.NewToken(info.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -189,11 +184,11 @@ func (h SignupHandler) Handle(req interface{}, _ context.AuthContext) (resp inte
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(authContext, skydb.Record{}, tkn.AccessToken)
+	resp = response.NewAuthResponse(info, skydb.Record{}, tkn.AccessToken)
 
 	// Populate the activity time to user
-	authContext.AuthInfo.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(authContext.AuthInfo); err != nil {
+	info.LastSeenAt = &now
+	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
 		err = skyerr.MakeError(err)
 		return
 	}

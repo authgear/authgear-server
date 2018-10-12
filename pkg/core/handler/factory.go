@@ -8,5 +8,5 @@ import (
 
 type Factory interface {
 	authz.PolicyProvider
-	NewHandler(request *http.Request) Handler
+	NewHandler(request *http.Request) http.Handler
 }

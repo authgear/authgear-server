@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -12,7 +11,7 @@ func TestAllOfPolicy(t *testing.T) {
 	Convey("Test AllOfPolicy", t, func() {
 		Convey("should pass if all pass", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{}
+			ctx := MemoryContextGetter{}
 
 			err := AllOf(
 				Everybody{allow: true},
@@ -23,7 +22,7 @@ func TestAllOfPolicy(t *testing.T) {
 
 		Convey("should return error if one of them return error", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{}
+			ctx := MemoryContextGetter{}
 
 			err := AllOf(
 				Everybody{allow: true},

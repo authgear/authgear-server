@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -14,7 +13,7 @@ func TestDenyDisabledUser(t *testing.T) {
 	Convey("Test DenyDisabledUser", t, func() {
 		Convey("should return error if auth context has no auth info", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{}
+			ctx := MemoryContextGetter{}
 
 			err := DenyDisabledUser(req, ctx)
 			So(err, ShouldNotBeEmpty)
@@ -22,8 +21,8 @@ func TestDenyDisabledUser(t *testing.T) {
 
 		Convey("should return error if user is disabled", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{
-				AuthInfo: &authinfo.AuthInfo{
+			ctx := MemoryContextGetter{
+				mAuthInfo: &authinfo.AuthInfo{
 					ID:       "ID",
 					Disabled: true,
 				},
@@ -35,8 +34,8 @@ func TestDenyDisabledUser(t *testing.T) {
 
 		Convey("should pass if user is not disabled", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{
-				AuthInfo: &authinfo.AuthInfo{
+			ctx := MemoryContextGetter{
+				mAuthInfo: &authinfo.AuthInfo{
 					ID:       "ID",
 					Disabled: false,
 				},

@@ -5,8 +5,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
-	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -21,6 +21,8 @@ func NewDependencyMap() DependencyMap {
 
 func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface{} {
 	switch dependencyName {
+	case "AuthContextGetter":
+		return coreAuth.NewContextGetterWithContext(r.Context())
 	case "TokenStore":
 		tConfig := config.GetTenantConfig(r)
 		return coreAuth.NewDefaultTokenStore(r.Context(), tConfig)

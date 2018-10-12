@@ -5,7 +5,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	skyContext "github.com/skygeario/skygear-server/pkg/core/handler/context"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
@@ -15,9 +14,9 @@ type masterkeyAuthContextResolver struct {
 	AuthInfoStore authinfo.Store
 }
 
-func (r masterkeyAuthContextResolver) Resolve(req *http.Request) (ctx skyContext.AuthContext, err error) {
+func (r masterkeyAuthContextResolver) Resolve(req *http.Request) (token *authtoken.Token, authInfo *authinfo.AuthInfo, err error) {
 	tokenStr := model.GetAccessToken(req)
-	token := &authtoken.Token{}
+	token = &authtoken.Token{}
 	r.TokenStore.Get(tokenStr, token)
 
 	if token.AuthInfoID == "" {
@@ -34,7 +33,7 @@ func (r masterkeyAuthContextResolver) Resolve(req *http.Request) (ctx skyContext
 		}
 	}
 
-	ctx.AuthInfo = info
+	authInfo = info
 
 	return
 }

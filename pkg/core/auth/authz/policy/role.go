@@ -3,8 +3,8 @@ package policy
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -22,12 +22,13 @@ func NewDenyRole(role string) authz.Policy {
 	return Role{role: role, allow: false}
 }
 
-func (p Role) IsAllowed(r *http.Request, ctx context.AuthContext) error {
-	if ctx.AuthInfo == nil {
+func (p Role) IsAllowed(r *http.Request, ctx auth.ContextGetter) error {
+	authInfo := ctx.AuthInfo()
+	if authInfo == nil {
 		return skyerr.NewError(skyerr.UnexpectedAuthInfoNotFound, "user authentication info not found")
 	}
 
-	containsRole := ctx.AuthInfo.HasAnyRoles([]string{p.role})
+	containsRole := authInfo.HasAnyRoles([]string{p.role})
 
 	if p.allow && !containsRole {
 		// TODO:
@@ -44,18 +45,19 @@ func (p Role) IsAllowed(r *http.Request, ctx context.AuthContext) error {
 	return nil
 }
 
-func RequireAdminRole(r *http.Request, ctx context.AuthContext) error {
+func RequireAdminRole(r *http.Request, ctx auth.ContextGetter) error {
 	err := skyerr.NewError(
 		skyerr.PermissionDenied,
 		"no permission to perform this action",
 	)
 
-	if len(ctx.Roles) == 0 {
+	roles := ctx.Roles()
+	if len(roles) == 0 {
 		return err
 	}
 
 	isAdmin := false
-	for _, v := range ctx.Roles {
+	for _, v := range roles {
 		isAdmin = isAdmin || v.IsAdmin
 	}
 

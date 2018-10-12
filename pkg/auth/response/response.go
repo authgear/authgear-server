@@ -17,7 +17,8 @@ package response
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/uuid"
@@ -38,7 +39,7 @@ type AuthResponse struct {
 	LastSeenAt  *time.Time          `json:"last_seen_at,omitempty"`
 }
 
-func NewAuthResponse(ctx context.AuthContext, user skydb.Record, accessToken string) AuthResponse {
+func NewAuthResponse(authInfo authinfo.AuthInfo, user skydb.Record, accessToken string) AuthResponse {
 	var jsonUser *skyconv.JSONRecord
 	var lastLoginAt *time.Time
 
@@ -47,11 +48,11 @@ func NewAuthResponse(ctx context.AuthContext, user skydb.Record, accessToken str
 	}
 
 	return AuthResponse{
-		UserID:      ctx.AuthInfo.ID,
+		UserID:      authInfo.ID,
 		Profile:     jsonUser,
-		Roles:       ctx.AuthInfo.Roles,
+		Roles:       authInfo.Roles,
 		AccessToken: accessToken,
 		LastLoginAt: lastLoginAt,
-		LastSeenAt:  ctx.AuthInfo.LastSeenAt,
+		LastSeenAt:  authInfo.LastSeenAt,
 	}
 }

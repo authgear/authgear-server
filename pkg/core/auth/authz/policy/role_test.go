@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/handler/context"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -14,7 +13,7 @@ func TestRolePolicy(t *testing.T) {
 	Convey("Test RolePolicy", t, func() {
 		Convey("should return error if auth context has no auth info", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{}
+			ctx := MemoryContextGetter{}
 
 			err := NewAllowRole("roleA").IsAllowed(req, ctx)
 			So(err, ShouldNotBeEmpty)
@@ -22,8 +21,8 @@ func TestRolePolicy(t *testing.T) {
 
 		Convey("should return error if specified allowed role does not exist", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{
-				AuthInfo: &authinfo.AuthInfo{
+			ctx := MemoryContextGetter{
+				mAuthInfo: &authinfo.AuthInfo{
 					ID:    "ID",
 					Roles: []string{"roleA", "roleB"},
 				},
@@ -35,8 +34,8 @@ func TestRolePolicy(t *testing.T) {
 
 		Convey("should pass if specified allowed role exists", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{
-				AuthInfo: &authinfo.AuthInfo{
+			ctx := MemoryContextGetter{
+				mAuthInfo: &authinfo.AuthInfo{
 					ID:    "ID",
 					Roles: []string{"roleA", "roleB"},
 				},
@@ -48,8 +47,8 @@ func TestRolePolicy(t *testing.T) {
 
 		Convey("should return error if specified denied role exists", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{
-				AuthInfo: &authinfo.AuthInfo{
+			ctx := MemoryContextGetter{
+				mAuthInfo: &authinfo.AuthInfo{
 					ID:    "ID",
 					Roles: []string{"roleA", "roleB"},
 				},
@@ -61,8 +60,8 @@ func TestRolePolicy(t *testing.T) {
 
 		Convey("should pass if specified denied role does not exist", func() {
 			req, _ := http.NewRequest("POST", "/", nil)
-			ctx := context.AuthContext{
-				AuthInfo: &authinfo.AuthInfo{
+			ctx := MemoryContextGetter{
+				mAuthInfo: &authinfo.AuthInfo{
 					ID:    "ID",
 					Roles: []string{"roleA", "roleB"},
 				},
