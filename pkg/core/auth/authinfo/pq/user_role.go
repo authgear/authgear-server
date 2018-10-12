@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"text/template"
 
+	sq "github.com/lann/squirrel"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -152,4 +153,36 @@ func (s AuthInfoStore) batchUserRoleSQL(id string, roles []string) (string, []in
 		args[i+1] = roles[i]
 	}
 	return b.String(), args
+}
+
+func (s AuthInfoStore) GetRoles(userIDs []string) (map[string][]string, error) {
+	userIDArgs := make([]interface{}, len(userIDs))
+	for i, v := range userIDs {
+		userIDArgs[i] = interface{}(v)
+	}
+	builder := s.sqlBuilder.Select("user_id", "role_id").
+		From(s.sqlBuilder.TableName("user_role")).
+		Where("user_id IN ("+sq.Placeholders(len(userIDs))+")", userIDArgs...)
+	rows, err := s.sqlExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	roleMap := map[string][]string{}
+	for _, eachUserID := range userIDs {
+		// keep an empty array even no roles found for that user
+		roleMap[eachUserID] = []string{}
+	}
+	for rows.Next() {
+		userID := ""
+		roleID := ""
+		if err := rows.Scan(&userID, &roleID); err != nil {
+			panic(err)
+		}
+		userRoleMap := roleMap[userID]
+		roleMap[userID] = append(userRoleMap, roleID)
+	}
+
+	return roleMap, nil
 }
