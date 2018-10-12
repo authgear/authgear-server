@@ -6,6 +6,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
+	"github.com/skygeario/skygear-server/pkg/core/middleware"
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -20,26 +21,45 @@ type Server struct {
 	authContextResolverFactory authn.AuthContextResolverFactory
 }
 
-// NewServer create a new Server
+// NewServer create a new Server with default option
 func NewServer(
 	addr string,
 	authContextResolverFactory authn.AuthContextResolverFactory,
 ) Server {
+	return NewServerWithOption(
+		addr,
+		authContextResolverFactory,
+		DefaultOption(),
+	)
+}
+
+// NewServerWithOption create a new Server
+func NewServerWithOption(
+	addr string,
+	authContextResolverFactory authn.AuthContextResolverFactory,
+	option Option,
+) Server {
 	router := mux.NewRouter()
 
-	srv := &http.Server{
-		Addr:         addr,
-		WriteTimeout: time.Second * 15,
-		ReadTimeout:  time.Second * 15,
-		IdleTimeout:  time.Second * 60,
-		Handler:      router,
-	}
-
-	return Server{
+	srv := Server{
 		router: router,
-		Server: srv,
+		Server: &http.Server{
+			Addr:         addr,
+			WriteTimeout: time.Second * 15,
+			ReadTimeout:  time.Second * 15,
+			IdleTimeout:  time.Second * 60,
+			Handler:      router,
+		},
 		authContextResolverFactory: authContextResolverFactory,
 	}
+
+	if option.RecoverPanic {
+		srv.Use(middleware.RecoverMiddleware{
+			RecoverHandler: option.RecoverPanicHandler,
+		}.Handle)
+	}
+
+	return srv
 }
 
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
