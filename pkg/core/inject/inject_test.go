@@ -9,6 +9,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+type contextKey string
+
+var (
+	configurationKey = contextKey("configuration")
+)
+
 type istore interface {
 	get() string
 }
@@ -24,7 +30,7 @@ func (s store) get() string {
 type dmap struct{}
 
 func (s dmap) Provide(name string, req *http.Request) interface{} {
-	conf := req.Context().Value("configuration").(config.TenantConfiguration)
+	conf := req.Context().Value(configurationKey).(config.TenantConfiguration)
 	switch name {
 	case "str":
 		return "string"
@@ -45,7 +51,7 @@ func TestInjectDependency(t *testing.T) {
 	}
 
 	req, _ := http.NewRequest("POST", "", nil)
-	req = req.WithContext(context.WithValue(req.Context(), "configuration", conf))
+	req = req.WithContext(context.WithValue(req.Context(), configurationKey, conf))
 
 	Convey("Test injectDependency", t, func() {
 		Convey("should inject simple type", func() {

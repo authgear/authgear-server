@@ -13,12 +13,12 @@ var (
 	keyContainer = contextKey("container")
 )
 
-// DB provides the interface for retrieving an interface to execute sql
+// Context provides db with the interface for retrieving an interface to execute sql
 type Context interface {
 	DB() ExtContext
 }
 
-// Tx provides the interface for managing transaction
+// TxContext provides the interface for managing transaction
 type TxContext interface {
 	HasTx() bool
 	BeginTx() error

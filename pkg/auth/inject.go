@@ -26,6 +26,8 @@ func openDB(tConfig config.TenantConfiguration) func() (*sqlx.DB, error) {
 	}
 }
 
+// Provide provides dependency instance by name
+// nolint: gocyclo
 func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface{} {
 	switch dependencyName {
 	case "AuthContextGetter":
