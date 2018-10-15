@@ -18,7 +18,7 @@ type RecoverMiddleware struct {
 func (m RecoverMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
-			if rec := recover(); r != nil {
+			if rec := recover(); rec != nil {
 				err := nextSkyerr.ErrorFromRecoveringPanic(rec)
 				if m.RecoverHandler != nil {
 					m.RecoverHandler(w, r, err)
