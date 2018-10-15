@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -10,6 +11,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/record"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func AttachSaveHandler(
@@ -38,6 +42,35 @@ func (f RecordHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 		authz.PolicyFunc(policy.RequireAuthenticated),
 		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
+}
+
+type SaveRequestPayload struct {
+	Atomic bool `json:"atomic"`
+
+	// RawMaps stores the original incoming `records`.
+	RawMaps []map[string]interface{} `json:"records"`
+
+	// IncomigItems contains de-serialized recordID or de-serialization error,
+	// the item is one-one corresponding to RawMaps.
+	IncomingItems []interface{}
+
+	// Records contains the successfully de-serialized record
+	Records []*skydb.Record
+
+	// Errs is the array of de-serialization errors
+	Errs []skyerr.Error
+}
+
+func (s SaveRequestPayload) Validate() error {
+	if len(s.RawMaps) == 0 {
+		return skyerr.NewInvalidArgument("expected list of record", []string{"records"})
+	}
+
+	return nil
+}
+
+func (s SaveRequestPayload) isClean() bool {
+	return len(s.Errs) == 0
 }
 
 /*
@@ -87,11 +120,33 @@ func (h SaveHandler) WithTx() bool {
 	return false
 }
 
-func (h SaveHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {
-	payload = handler.EmptyRequestPayload{}
-	return
+func (h SaveHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+	payload := SaveRequestPayload{}
+	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
+		return nil, err
+	}
+
+	for _, recordMap := range payload.RawMaps {
+		var record skydb.Record
+		if err := (*skyconv.JSONRecord)(&record).FromMap(recordMap); err != nil {
+			skyErr := skyerr.NewError(skyerr.InvalidArgument, err.Error())
+			payload.Errs = append(payload.Errs, skyErr)
+			payload.IncomingItems = append(payload.IncomingItems, skyErr)
+		} else {
+			record.SanitizeForInput()
+			payload.IncomingItems = append(payload.IncomingItems, record.ID)
+			payload.Records = append(payload.Records, &record)
+		}
+	}
+
+	return payload, nil
 }
 
 func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(SaveRequestPayload)
+
+	// TODO: Implement record save handler
+	resp = payload
+
 	return
 }
