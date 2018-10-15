@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	nextSkyerr "github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 type APIHandler interface {
 	DecodeRequest(request *http.Request) (RequestPayload, error)
+	WithTx() bool
 	Handle(requestPayload interface{}) (interface{}, error)
 }
 
@@ -18,7 +20,7 @@ type APIResponse struct {
 	Err    skyerr.Error `json:"error,omitempty"`
 }
 
-func APIHandlerToHandler(apiHandler APIHandler) http.Handler {
+func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Handler {
 	handleAPICall := func(r *http.Request) (response APIResponse) {
 		payload, err := apiHandler.DecodeRequest(r)
 		if err != nil {
@@ -31,10 +33,27 @@ func APIHandlerToHandler(apiHandler APIHandler) http.Handler {
 			return
 		}
 
+		if apiHandler.WithTx() {
+			// assume txContext != nil if apiHandler.WithTx() is true
+			if err := txContext.BeginTx(); err != nil {
+				panic(err)
+			}
+
+			defer func() {
+				if txContext.HasTx() {
+					txContext.RollbackTx()
+				}
+			}()
+		}
+
 		responsePayload, err := apiHandler.Handle(payload)
 
 		if err == nil {
 			response.Result = responsePayload
+
+			if txContext != nil {
+				txContext.CommitTx()
+			}
 		} else {
 			response.Err = skyerr.MakeError(err)
 		}

@@ -30,6 +30,9 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	switch dependencyName {
 	case "AuthContextGetter":
 		return coreAuth.NewContextGetterWithContext(r.Context())
+	case "TxContext":
+		tConfig := config.GetTenantConfig(r)
+		return db.NewTxContextWithContext(r.Context(), openDB(tConfig))
 	case "TokenStore":
 		tConfig := config.GetTenantConfig(r)
 		return coreAuth.NewDefaultTokenStore(r.Context(), tConfig)

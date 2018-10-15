@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/model"
@@ -36,7 +37,7 @@ type LogoutHandlerFactory struct {
 func (f LogoutHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LogoutHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h)
+	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -66,6 +67,11 @@ type LogoutHandler struct {
 	AuthContext coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	TokenStore  authtoken.Store        `dependency:"TokenStore"`
 	AuditTrail  *audit.Trail           `dependency:"AuditTrail"`
+	TxContext   db.TxContext           `dependency:"TxContext"`
+}
+
+func (h LogoutHandler) WithTx() bool {
+	return true
 }
 
 // DecodeRequest decode request payload

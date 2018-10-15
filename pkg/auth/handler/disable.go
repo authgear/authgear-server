@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -37,7 +38,7 @@ type SetDisableHandlerFactory struct {
 func (f SetDisableHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SetDisableHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h)
+	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
 // ProvideAuthzPolicy provides authorization policy of handler
@@ -69,6 +70,11 @@ func (payload setDisableUserPayload) Validate() error {
 type SetDisableHandler struct {
 	AuthInfoStore authinfo.Store `dependency:"AuthInfoStore"`
 	AuditTrail    *audit.Trail   `dependency:"AuditTrail"`
+	TxContext     db.TxContext   `dependency:"TxContext"`
+}
+
+func (h SetDisableHandler) WithTx() bool {
+	return true
 }
 
 // DecodeRequest decode request payload

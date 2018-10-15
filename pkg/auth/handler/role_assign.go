@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -31,7 +32,7 @@ type RoleAssignHandlerFactory struct {
 func (f RoleAssignHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RoleAssignHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h)
+	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
 func (f RoleAssignHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -85,6 +86,11 @@ func (p RoleAssignRequestPayload) Validate() error {
 // }
 type RoleAssignHandler struct {
 	AuthInfoStore authinfo.Store `dependency:"AuthInfoStore"`
+	TxContext     db.TxContext   `dependency:"TxContext"`
+}
+
+func (h RoleAssignHandler) WithTx() bool {
+	return true
 }
 
 func (h RoleAssignHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
