@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
@@ -55,13 +56,15 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		}
 	case "PasswordAuthProvider":
 		tConfig := config.GetTenantConfig(r)
+		maskFormatter := logging.CreateMaskFormatter(sensitiveLoggerValues(r), &logrus.TextFormatter{})
 		return password.NewProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
-			logging.CreateLogger(r, "provider_password"),
+			logging.CreateLogger(r, "provider_password", maskFormatter),
 		)
 	case "HandlerLogger":
-		return logging.CreateLogger(r, "handler")
+		maskFormatter := logging.CreateMaskFormatter(sensitiveLoggerValues(r), &logrus.TextFormatter{})
+		return logging.CreateLogger(r, "handler", maskFormatter)
 	case "UserProfileStore":
 		tConfig := config.GetTenantConfig(r)
 		switch tConfig.UserProfile.ImplName {
@@ -84,5 +87,13 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		return trail
 	default:
 		return nil
+	}
+}
+
+func sensitiveLoggerValues(r *http.Request) []string {
+	tConfig := config.GetTenantConfig(r)
+	return []string{
+		tConfig.APIKey,
+		tConfig.MasterKey,
 	}
 }
