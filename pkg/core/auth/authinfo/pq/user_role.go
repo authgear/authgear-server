@@ -23,6 +23,48 @@ func (s AuthInfoStore) AssignRoles(userIDs []string, roles []string) error {
 	return nil
 }
 
+func (s AuthInfoStore) GetRoles(userIDs []string) (map[string][]string, error) {
+	userIDArgs := make([]interface{}, len(userIDs))
+	for i, v := range userIDs {
+		userIDArgs[i] = interface{}(v)
+	}
+	builder := s.sqlBuilder.Select("user_id", "role_id").
+		From(s.sqlBuilder.TableName("user_role")).
+		Where("user_id IN ("+sq.Placeholders(len(userIDs))+")", userIDArgs...)
+	rows, err := s.sqlExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	roleMap := map[string][]string{}
+	for _, eachUserID := range userIDs {
+		// keep an empty array even no roles found for that user
+		roleMap[eachUserID] = []string{}
+	}
+	for rows.Next() {
+		userID := ""
+		roleID := ""
+		if err := rows.Scan(&userID, &roleID); err != nil {
+			panic(err)
+		}
+		userRoleMap := roleMap[userID]
+		roleMap[userID] = append(userRoleMap, roleID)
+	}
+
+	return roleMap, nil
+}
+
+func (s AuthInfoStore) RevokeRoles(userIDs []string, roles []string) error {
+	s.logger.Debugf("RevokeRoles %v to %v", roles, userIDs)
+	sql, args := s.revokeUserRoleSQL(userIDs, roles)
+	_, err := s.sqlExecutor.Exec(sql, args...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s AuthInfoStore) updateUserRoles(authinfo *authinfo.AuthInfo) error {
 	s.logger.Debugf("UpdateRoles %v", authinfo)
 	builder := s.sqlBuilder.Delete(s.sqlBuilder.TableName("user_role")).Where("user_id = ?", authinfo.ID)
@@ -155,34 +197,48 @@ func (s AuthInfoStore) batchUserRoleSQL(id string, roles []string) (string, []in
 	return b.String(), args
 }
 
-func (s AuthInfoStore) GetRoles(userIDs []string) (map[string][]string, error) {
-	userIDArgs := make([]interface{}, len(userIDs))
-	for i, v := range userIDs {
-		userIDArgs[i] = interface{}(v)
-	}
-	builder := s.sqlBuilder.Select("user_id", "role_id").
-		From(s.sqlBuilder.TableName("user_role")).
-		Where("user_id IN ("+sq.Placeholders(len(userIDs))+")", userIDArgs...)
-	rows, err := s.sqlExecutor.QueryWith(builder)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+const revokeUserRoleDeleteTemplate = `
+{{ $userLen := len .Users }}
+DELETE FROM {{.UserRoleTable}}
+WHERE
+  auth_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  AND
+  role_id IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
+;
+`
 
-	roleMap := map[string][]string{}
-	for _, eachUserID := range userIDs {
-		// keep an empty array even no roles found for that user
-		roleMap[eachUserID] = []string{}
-	}
-	for rows.Next() {
-		userID := ""
-		roleID := ""
-		if err := rows.Scan(&userID, &roleID); err != nil {
-			panic(err)
-		}
-		userRoleMap := roleMap[userID]
-		roleMap[userID] = append(userRoleMap, roleID)
-	}
+var revokeUserRoleDelete = template.Must(
+	template.New("revokeUserRole").Funcs(template.FuncMap{
+		"inDollar": func(offset int, n int) string {
+			dollar := "$" + strconv.Itoa(n+offset+1)
+			if n > 0 {
+				dollar = "," + dollar
+			}
+			return dollar
+		},
+	}).Parse(revokeUserRoleDeleteTemplate))
 
-	return roleMap, nil
+type revokeUserRole struct {
+	UserRoleTable string
+	Roles         []string
+	Users         []string
+}
+
+func (s AuthInfoStore) revokeUserRoleSQL(users []string, roles []string) (string, []interface{}) {
+	b := bytes.Buffer{}
+	revokeUserRoleDelete.Execute(&b, revokeUserRole{
+		s.sqlBuilder.TableName("user_role"),
+		roles,
+		users,
+	})
+
+	args := make([]interface{}, len(users)+len(roles))
+	for i := range users {
+		args[i] = users[i]
+	}
+	offset := len(users)
+	for i := range roles {
+		args[i+offset] = roles[i]
+	}
+	return b.String(), args
 }
