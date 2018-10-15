@@ -6,6 +6,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 
 	"github.com/gorilla/mux"
@@ -66,6 +67,7 @@ func NewServerWithOption(
 func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 	return s.router.NewRoute().Path(path).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		r = auth.InitRequestAuthContext(r)
+		r = db.InitRequestDBContext(r)
 
 		configuration := config.GetTenantConfig(r)
 

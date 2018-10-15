@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -38,7 +39,7 @@ type ResetPasswordHandlerFactory struct {
 func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ResetPasswordHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h)
+	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
 func (f ResetPasswordHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -72,6 +73,11 @@ type ResetPasswordHandler struct {
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	TxContext            db.TxContext               `dependency:"TxContext"`
+}
+
+func (h ResetPasswordHandler) WithTx() bool {
+	return true
 }
 
 func (h ResetPasswordHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {

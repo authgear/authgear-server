@@ -7,6 +7,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -29,7 +30,7 @@ type MeHandlerFactory struct {
 func (f MeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &MeHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h)
+	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
 func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -43,6 +44,11 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 // MeHandler handles me request
 type MeHandler struct {
 	AuthContext coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	TxContext   db.TxContext           `dependency:"TxContext"`
+}
+
+func (h MeHandler) WithTx() bool {
+	return true
 }
 
 func (h MeHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {

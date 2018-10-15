@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -39,7 +40,7 @@ type LoginHandlerFactory struct {
 func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h)
+	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
 func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -73,6 +74,11 @@ type LoginHandler struct {
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
 	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
 	AuditTrail           *audit.Trail                `dependency:"AuditTrail"`
+	TxContext            db.TxContext                `dependency:"TxContext"`
+}
+
+func (h LoginHandler) WithTx() bool {
+	return true
 }
 
 // ProvideAuthzPolicy provides authorization policy

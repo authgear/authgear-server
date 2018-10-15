@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -40,7 +41,7 @@ type SignupHandlerFactory struct {
 func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
-	return handler.APIHandlerToHandler(h)
+	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
 func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -99,6 +100,11 @@ type SignupHandler struct {
 	RoleStore            role.Store                  `dependency:"RoleStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
 	AuditTrail           *coreAudit.Trail            `dependency:"AuditTrail"`
+	TxContext            db.TxContext                `dependency:"TxContext"`
+}
+
+func (h SignupHandler) WithTx() bool {
+	return true
 }
 
 func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
