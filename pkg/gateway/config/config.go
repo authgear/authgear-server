@@ -12,7 +12,8 @@ import (
 // Configuration is gateway startup configuration
 type Configuration struct {
 	HTTP struct {
-		Host string `envconfig:"HOST" default:"localhost:3001"`
+		Host     string `envconfig:"HOST" default:"localhost:3001"`
+		CORSHost string `envconfig:"CORSHost" default:"*"`
 	}
 	DB struct {
 		ConnectionStr string `envconfig:"DATABASE_URL" required:"true"`
