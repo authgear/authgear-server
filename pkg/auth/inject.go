@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
@@ -17,6 +18,12 @@ type DependencyMap struct{}
 
 func NewDependencyMap() DependencyMap {
 	return DependencyMap{}
+}
+
+func openDB(tConfig config.TenantConfiguration) func() (*sqlx.DB, error) {
+	return func() (*sqlx.DB, error) {
+		return sqlx.Open("postgres", tConfig.DBConnectionStr)
+	}
 }
 
 func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface{} {
@@ -45,7 +52,7 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		tConfig := config.GetTenantConfig(r)
 		return password.NewProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(r.Context(), "postgres", tConfig.DBConnectionStr),
+			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
 			logging.CreateLogger(r, "provider_password"),
 		)
 	case "HandlerLogger":
