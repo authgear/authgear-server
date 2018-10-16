@@ -26,6 +26,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	dbPq "github.com/skygeario/skygear-server/pkg/core/db/pq"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
@@ -186,7 +187,7 @@ func (s AuthInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		tokenValidSince pq.NullTime
 		lastSeenAt      pq.NullTime
 		lastLoginAt     pq.NullTime
-		roles           db.NullJSONStringSlice
+		roles           dbPq.NullJSONStringSlice
 		disabled        bool
 		disabledReason  sql.NullString
 		disabledExpiry  pq.NullTime
