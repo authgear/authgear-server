@@ -98,8 +98,9 @@ func (h GetRoleHandler) DecodeRequest(request *http.Request) (handler.RequestPay
 	return payload, err
 }
 
-// TODO: Handle getting roles of users specified by user IDs. Users can only
+// Handle getting roles of users specified by user IDs. Users can only
 // get his own roles except that administrators can query roles of other users.
+// TODO: currently not able to query role of oneself.
 func (h GetRoleHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(GetRoleRequestPayload)
 	roleMap, err := h.AuthInfoStore.GetRoles(payload.UserIDs)
