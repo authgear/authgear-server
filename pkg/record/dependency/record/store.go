@@ -1,6 +1,11 @@
 package record
 
-import "github.com/skygeario/skygear-server/pkg/server/skydb"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
+)
 
 type Store interface {
 	// SetRecordAccess sets default record access of a specific type
@@ -82,4 +87,36 @@ type Store interface {
 
 	// GetSchema returns the record schema of a record type
 	GetSchema(recordType string) (skydb.RecordSchema, error)
+}
+
+// TraverseColumnTypes traverse the field type of a key path from database table.
+func TraverseColumnTypes(store Store, recordType string, keyPath string) ([]skydb.FieldType, error) {
+	fields := []skydb.FieldType{}
+	components := strings.Split(keyPath, ".")
+	for i, component := range components {
+		field := skydb.FieldType{}
+		isLast := (i == len(components)-1)
+
+		schema, err := store.RemoteColumnTypes(recordType)
+		if err != nil {
+			return fields, fmt.Errorf(`record type "%s" does not exist`, recordType)
+		}
+
+		if f, ok := schema[component]; ok {
+			field = f
+		} else {
+			return fields, fmt.Errorf(`keypath "%s" does not exist`, keyPath)
+		}
+
+		if field.Type != skydb.TypeReference && !isLast {
+			return fields, fmt.Errorf(`field "%s" in keypath "%s" is not a reference`, component, keyPath)
+		}
+
+		fields = append(fields, field)
+
+		if field.Type == skydb.TypeReference {
+			recordType = field.ReferenceType
+		}
+	}
+	return fields, nil
 }

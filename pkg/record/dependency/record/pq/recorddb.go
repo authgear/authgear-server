@@ -29,8 +29,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	dbPq "github.com/skygeario/skygear-server/pkg/core/db/pq"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record/pq/builder"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -87,15 +87,14 @@ func (s *RecordStore) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb
 	query := s.selectQuery(s.sqlBuilder.Select(), recordType, typemap).
 		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
 
-	// TODO:
-	// if !accessControlOptions.BypassAccessControl {
-	// 	factory := builder.NewPredicateSqlizerFactory(db, recordType)
-	// 	aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, skydb.ReadLevel)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	query = query.Where(aclSqlizer)
-	// }
+	if !accessControlOptions.BypassAccessControl {
+		factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, recordType)
+		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, skydb.ReadLevel)
+		if err != nil {
+			return nil, err
+		}
+		query = query.Where(aclSqlizer)
+	}
 
 	rows, err := s.sqlExecutor.QueryWith(query)
 	if err != nil {
@@ -268,14 +267,13 @@ func (s *RecordStore) applyQueryPredicate(q sq.SelectBuilder, factory builder.Pr
 		q = factory.AddJoinsToSelectBuilder(q)
 	}
 
-	// TODO:
-	// if !accessControlOptions.BypassAccessControl {
-	// 	aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, skydb.ReadLevel)
-	// 	if err != nil {
-	// 		return q, err
-	// 	}
-	// 	q = q.Where(aclSqlizer)
-	// }
+	if !accessControlOptions.BypassAccessControl {
+		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, skydb.ReadLevel)
+		if err != nil {
+			return q, err
+		}
+		q = q.Where(aclSqlizer)
+	}
 
 	return q, nil
 }
@@ -295,9 +293,8 @@ func (s *RecordStore) Query(query *skydb.Query, accessControlOptions *skydb.Acce
 	}
 
 	q := s.sqlBuilder.Select()
-	// TODO:
-	// factory := builder.NewPredicateSqlizerFactory(db, query.Type)
-	// q, err = s.applyQueryPredicate(q, factory, query, accessControlOptions)
+	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, query.Type)
+	q, err = s.applyQueryPredicate(q, factory, query, accessControlOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -325,8 +322,8 @@ func (s *RecordStore) Query(query *skydb.Query, accessControlOptions *skydb.Acce
 	if err != nil {
 		return nil, err
 	}
-	// TODO:
-	// typemap = factory.UpdateTypemap(typemap)
+
+	typemap = factory.UpdateTypemap(typemap)
 	q = s.selectQuery(q, query.Type, typemap)
 
 	rows, err := s.sqlExecutor.QueryWith(q)
@@ -356,9 +353,8 @@ func (s *RecordStore) QueryCount(query *skydb.Query, accessControlOptions *skydb
 	}
 
 	q := s.selectQuery(s.sqlBuilder.Select(), query.Type, typemap)
-	// TODO:
-	// factory := builder.NewPredicateSqlizerFactory(db, query.Type)
-	// q, err = s.applyQueryPredicate(q, factory, query, accessControlOptions)
+	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, query.Type)
+	q, err = s.applyQueryPredicate(q, factory, query, accessControlOptions)
 	if err != nil {
 		return 0, err
 	}
