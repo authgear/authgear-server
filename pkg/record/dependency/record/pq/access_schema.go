@@ -9,14 +9,13 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	dbPq "github.com/skygeario/skygear-server/pkg/core/db/pq"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	"github.com/skygeario/skygear-server/pkg/server/utils"
 )
 
-func (s *RecordStore) SetRecordAccess(recordType string, acl skydb.RecordACL) error {
+func (s *RecordStore) SetRecordAccess(recordType string, acl record.ACL) error {
 	creationRoles := []string{}
 	for _, ace := range acl {
 		if ace.Role != "" {
@@ -54,7 +53,7 @@ func (s *RecordStore) SetRecordAccess(recordType string, acl skydb.RecordACL) er
 	return err
 }
 
-func (s *RecordStore) GetRecordAccess(recordType string) (skydb.RecordACL, error) {
+func (s *RecordStore) GetRecordAccess(recordType string) (record.ACL, error) {
 	// TODO: can't join with role table
 	builder := s.sqlBuilder.
 		Select("role_id").
@@ -71,17 +70,17 @@ func (s *RecordStore) GetRecordAccess(recordType string) (skydb.RecordACL, error
 
 	defer rows.Close()
 
-	currentCreationRoles := []skydb.RecordACLEntry{}
+	currentCreationRoles := []record.ACLEntry{}
 	for rows.Next() {
 		roleStr := ""
 		if err := rows.Scan(&roleStr); err != nil {
 			return nil, err
 		}
 		currentCreationRoles = append(currentCreationRoles,
-			skydb.NewRecordACLEntryRole(roleStr, skydb.CreateLevel))
+			record.NewACLEntryRole(roleStr, record.CreateLevel))
 	}
 
-	return skydb.NewRecordACL(currentCreationRoles), nil
+	return record.NewACL(currentCreationRoles), nil
 }
 
 func (s *RecordStore) deleteRecordCreationAccess(recordType string, roles []string) error {
@@ -126,12 +125,12 @@ func (s *RecordStore) insertRecordCreationAccess(recordType string, roles []stri
 	return nil
 }
 
-func (s *RecordStore) SetRecordDefaultAccess(recordType string, acl skydb.RecordACL) error {
+func (s *RecordStore) SetRecordDefaultAccess(recordType string, acl record.ACL) error {
 	pkData := map[string]interface{}{
 		"record_type": recordType,
 	}
 	values := map[string]interface{}{
-		"default_access": dbPq.AclValue(acl),
+		"default_access": aclValue(acl),
 	}
 
 	upsert := builder.UpsertQuery(s.sqlBuilder.TableName("_record_default_access"), pkData, values)
@@ -144,7 +143,7 @@ func (s *RecordStore) SetRecordDefaultAccess(recordType string, acl skydb.Record
 	return nil
 }
 
-func (s *RecordStore) GetRecordDefaultAccess(recordType string) (skydb.RecordACL, error) {
+func (s *RecordStore) GetRecordDefaultAccess(recordType string) (record.ACL, error) {
 	builder := s.sqlBuilder.
 		Select("default_access").
 		From(s.sqlBuilder.TableName("_record_default_access")).
@@ -156,7 +155,7 @@ func (s *RecordStore) GetRecordDefaultAccess(recordType string) (skydb.RecordACL
 		return nil, err
 	}
 
-	acl := skydb.RecordACL{}
+	acl := record.ACL{}
 	if nullableACLString.Valid {
 		json.Unmarshal([]byte(nullableACLString.String), &acl)
 		return acl, nil
@@ -164,7 +163,7 @@ func (s *RecordStore) GetRecordDefaultAccess(recordType string) (skydb.RecordACL
 	return nil, nil
 }
 
-func (s *RecordStore) SetRecordFieldAccess(acl skydb.FieldACL) (err error) {
+func (s *RecordStore) SetRecordFieldAccess(acl record.FieldACL) (err error) {
 	// defer func() {
 	// 	c.FieldACL = nil // invalidate cached FieldACL
 	// }()
@@ -210,7 +209,7 @@ func (s *RecordStore) SetRecordFieldAccess(acl skydb.FieldACL) (err error) {
 	return
 }
 
-func (s *RecordStore) GetRecordFieldAccess() (skydb.FieldACL, error) {
+func (s *RecordStore) GetRecordFieldAccess() (record.FieldACL, error) {
 	// if c.FieldACL != nil {
 	// 	return *c.FieldACL, nil
 	// }
@@ -237,11 +236,11 @@ func (s *RecordStore) GetRecordFieldAccess() (skydb.FieldACL, error) {
 
 	rows, err := s.sqlExecutor.QueryWith(builder)
 	if err != nil {
-		return skydb.FieldACL{}, err
+		return record.FieldACL{}, err
 	}
 
-	entries := []skydb.FieldACLEntry{}
-	var entry skydb.FieldACLEntry
+	entries := []record.FieldACLEntry{}
+	var entry record.FieldACLEntry
 	for rows.Next() {
 		err := rows.Scan(
 			&recordTypeString,
@@ -253,12 +252,12 @@ func (s *RecordStore) GetRecordFieldAccess() (skydb.FieldACL, error) {
 			&discoverableBoolean,
 		)
 		if err != nil {
-			return skydb.FieldACL{}, err
+			return record.FieldACL{}, err
 		}
 
 		entry.RecordType = recordTypeString
 		entry.RecordField = recordFieldString
-		entry.UserRole = skydb.NewFieldUserRole(userRoleString)
+		entry.UserRole = record.NewFieldUserRole(userRoleString)
 		entry.Writable = writableBoolean
 		entry.Readable = readableBoolean
 		entry.Comparable = comparableBoolean
@@ -266,7 +265,7 @@ func (s *RecordStore) GetRecordFieldAccess() (skydb.FieldACL, error) {
 		entries = append(entries, entry)
 	}
 
-	acl := skydb.NewFieldACL(skydb.FieldACLEntryList(entries))
+	acl := record.NewFieldACL(record.FieldACLEntryList(entries))
 
 	// c.FieldACL = &acl
 	return acl, nil

@@ -26,13 +26,12 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	dbPq "github.com/skygeario/skygear-server/pkg/core/db/pq"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 	"github.com/skygeario/skygear-server/pkg/server/logging"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-func (s *RecordStore) Extend(recordType string, recordSchema skydb.RecordSchema) (extended bool, err error) {
+func (s *RecordStore) Extend(recordType string, recordSchema record.Schema) (extended bool, err error) {
 	remoteRecordSchema, err := s.RemoteColumnTypes(recordType)
 	if err != nil {
 		return
@@ -62,7 +61,7 @@ func (s *RecordStore) Extend(recordType string, recordSchema skydb.RecordSchema)
 	}
 
 	// Find new columns
-	updatingSchema := skydb.RecordSchema{}
+	updatingSchema := record.Schema{}
 	for key, fieldType := range recordSchema {
 		if remoteFieldType, ok := remoteRecordSchema[key]; ok {
 			if !remoteFieldType.DefinitionCompatibleTo(fieldType) {
@@ -127,7 +126,7 @@ func (s *RecordStore) DeleteSchema(recordType, columnName string) error {
 	return nil
 }
 
-func (s *RecordStore) GetSchema(recordType string) (skydb.RecordSchema, error) {
+func (s *RecordStore) GetSchema(recordType string) (record.Schema, error) {
 	remoteRecordSchema, err := s.RemoteColumnTypes(recordType)
 	if err != nil {
 		return nil, err
@@ -135,7 +134,7 @@ func (s *RecordStore) GetSchema(recordType string) (skydb.RecordSchema, error) {
 	return remoteRecordSchema, nil
 }
 
-func (s *RecordStore) GetRecordSchemas() (map[string]skydb.RecordSchema, error) {
+func (s *RecordStore) GetRecordSchemas() (map[string]record.Schema, error) {
 	schemaName := s.sqlBuilder.SchemaName()
 
 	rows, err := s.sqlExecutor.Queryx(`
@@ -147,7 +146,7 @@ func (s *RecordStore) GetRecordSchemas() (map[string]skydb.RecordSchema, error) 
 		return nil, err
 	}
 
-	result := map[string]skydb.RecordSchema{}
+	result := map[string]record.Schema{}
 	for rows.Next() {
 		var recordType string
 		if err := rows.Scan(&recordType); err != nil {
@@ -279,8 +278,8 @@ func (s *RecordStore) getSequences(recordType string) ([]string, error) {
 // AND tc.table_schema = 'app__'
 // AND tc.table_name = 'note';
 // nolint: gocyclo
-func (s *RecordStore) RemoteColumnTypes(recordType string) (skydb.RecordSchema, error) {
-	typemap := skydb.RecordSchema{}
+func (s *RecordStore) RemoteColumnTypes(recordType string) (record.Schema, error) {
+	typemap := record.Schema{}
 	var err error
 	// STEP 0: Return the cached ColumnType
 	// if schema, ok := db.c.RecordSchema[recordType]; ok {
@@ -337,37 +336,37 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 			return nil, err
 		}
 
-		schema := skydb.FieldType{
+		schema := record.FieldType{
 			UnderlyingType: pqType,
 		}
 		switch pqType {
-		case dbPq.TypeCaseInsensitiveString:
+		case TypeCaseInsensitiveString:
 			fallthrough
-		case dbPq.TypeString:
-			schema.Type = skydb.TypeString
-		case dbPq.TypeNumber:
-			schema.Type = skydb.TypeNumber
-		case dbPq.TypeTimestamp:
-			schema.Type = skydb.TypeDateTime
-		case dbPq.TypeBoolean:
-			schema.Type = skydb.TypeBoolean
-		case dbPq.TypeJSON:
+		case TypeString:
+			schema.Type = record.TypeString
+		case TypeNumber:
+			schema.Type = record.TypeNumber
+		case TypeTimestamp:
+			schema.Type = record.TypeDateTime
+		case TypeBoolean:
+			schema.Type = record.TypeBoolean
+		case TypeJSON:
 			if columnName == "_access" {
-				schema.Type = skydb.TypeACL
+				schema.Type = record.TypeACL
 			} else {
-				schema.Type = skydb.TypeJSON
+				schema.Type = record.TypeJSON
 			}
-		case dbPq.TypeLocation:
-			schema.Type = skydb.TypeLocation
-		case dbPq.TypeBigInteger:
+		case TypeLocation:
+			schema.Type = record.TypeLocation
+		case TypeBigInteger:
 			fallthrough
-		case dbPq.TypeInteger:
-			schema.Type = skydb.TypeInteger
+		case TypeInteger:
+			schema.Type = record.TypeInteger
 			integerColumns = append(integerColumns, columnName)
-		case dbPq.TypeGeometry:
-			schema.Type = skydb.TypeGeometry
+		case TypeGeometry:
+			schema.Type = record.TypeGeometry
 		default:
-			schema.Type = skydb.TypeUnknown
+			schema.Type = record.TypeUnknown
 		}
 
 		typemap[columnName] = schema
@@ -388,7 +387,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		for _, perIntColumn := range integerColumns {
 			if _, ok := sequenceMap[perIntColumn]; ok {
 				schema := typemap[perIntColumn]
-				schema.Type = skydb.TypeSequence
+				schema.Type = record.TypeSequence
 
 				typemap[perIntColumn] = schema
 			}
@@ -414,7 +413,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 	}
 
 	for refs.Next() {
-		ft := skydb.FieldType{}
+		ft := record.FieldType{}
 		var primaryColumn, referencedTable string
 		if err := refs.Scan(&primaryColumn, &referencedTable); err != nil {
 			s.logger.Debugf("err %v", err)
@@ -422,9 +421,9 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		}
 		switch referencedTable {
 		case "_asset":
-			ft.Type = skydb.TypeAsset
+			ft.Type = record.TypeAsset
 		default:
-			ft.Type = skydb.TypeReference
+			ft.Type = record.TypeReference
 			ft.ReferenceType = referencedTable
 		}
 		typemap[primaryColumn] = ft
@@ -440,7 +439,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 // ADD CONSTRAINT fk_note_collection_collection
 // FOREIGN KEY (collection)
 // REFERENCES app__.collection(_id);
-func (s *RecordStore) addColumnStmt(recordType string, recordSchema skydb.RecordSchema) string {
+func (s *RecordStore) addColumnStmt(recordType string, recordSchema record.Schema) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("ALTER TABLE "))
 	buf.WriteString(s.sqlBuilder.TableName(recordType))
@@ -449,12 +448,12 @@ func (s *RecordStore) addColumnStmt(recordType string, recordSchema skydb.Record
 		buf.Write([]byte("ADD "))
 		buf.WriteString(pq.QuoteIdentifier(column))
 		buf.WriteByte(' ')
-		buf.WriteString(dbPq.DataType(schema.Type))
+		buf.WriteString(pqDataType(schema.Type))
 		buf.WriteByte(',')
 		switch schema.Type {
-		case skydb.TypeAsset:
+		case record.TypeAsset:
 			s.writeForeignKeyConstraint(&buf, column, "_asset", "id")
-		case skydb.TypeReference:
+		case record.TypeReference:
 			s.writeForeignKeyConstraint(&buf, column, schema.ReferenceType, "_id")
 		}
 	}
@@ -477,7 +476,7 @@ func (s *RecordStore) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, ref
 	buf.Write([]byte(`),`))
 }
 
-func (s *RecordStore) GetIndexesByRecordType(recordType string) (indexes map[string]skydb.Index, err error) {
+func (s *RecordStore) GetIndexesByRecordType(recordType string) (indexes map[string]record.Index, err error) {
 	schemaName := s.sqlBuilder.SchemaName()
 	rows, err := s.sqlExecutor.Queryx(`
 SELECT
@@ -511,7 +510,7 @@ GROUP BY
 		return
 	}
 
-	indexes = map[string]skydb.Index{}
+	indexes = map[string]record.Index{}
 	for rows.Next() {
 		var table string
 		var name string
@@ -520,7 +519,7 @@ GROUP BY
 			return
 		}
 
-		indexes[name] = skydb.Index{
+		indexes[name] = record.Index{
 			Fields: strings.Split(columnNames, ","),
 		}
 	}
@@ -528,7 +527,7 @@ GROUP BY
 	return
 }
 
-func (s *RecordStore) SaveIndex(recordType, indexName string, index skydb.Index) error {
+func (s *RecordStore) SaveIndex(recordType, indexName string, index record.Index) error {
 	quotedColumns := []string{}
 	for _, col := range index.Fields {
 		quotedColumns = append(quotedColumns, fmt.Sprintf("%s", col))

@@ -18,18 +18,18 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 )
 
-func SortOrderBySQL(alias string, sort skydb.Sort) (string, error) {
+func SortOrderBySQL(alias string, sort record.Sort) (string, error) {
 	var expr string
 
 	switch sort.Expression.Type {
-	case skydb.KeyPath:
+	case record.KeyPath:
 		expr = fullQuoteIdentifier(alias, sort.Expression.Value.(string))
-	case skydb.Function:
+	case record.Function:
 		var err error
-		expr, err = funcOrderBySQL(alias, sort.Expression.Value.(skydb.Func))
+		expr, err = funcOrderBySQL(alias, sort.Expression.Value.(record.Func))
 		if err != nil {
 			return "", err
 		}
@@ -46,9 +46,9 @@ func SortOrderBySQL(alias string, sort skydb.Sort) (string, error) {
 }
 
 // due to sq not being able to pass args in OrderBy, we can't re-use funcToSQLOperand
-func funcOrderBySQL(alias string, fun skydb.Func) (string, error) {
+func funcOrderBySQL(alias string, fun record.Func) (string, error) {
 	switch f := fun.(type) {
-	case skydb.DistanceFunc:
+	case record.DistanceFunc:
 		sql := fmt.Sprintf(
 			"ST_Distance_Sphere(%s, ST_MakePoint(%f, %f))",
 			fullQuoteIdentifier(alias, f.Field),
@@ -57,15 +57,15 @@ func funcOrderBySQL(alias string, fun skydb.Func) (string, error) {
 		)
 		return sql, nil
 	default:
-		return "", fmt.Errorf("got unrecgonized skydb.Func = %T", fun)
+		return "", fmt.Errorf("got unrecgonized record.Func = %T", fun)
 	}
 }
 
-func sortOrderOrderBySQL(order skydb.SortOrder) (string, error) {
+func sortOrderOrderBySQL(order record.SortOrder) (string, error) {
 	switch order {
-	case skydb.Asc:
+	case record.Asc:
 		return "ASC", nil
-	case skydb.Desc:
+	case record.Desc:
 		return "DESC", nil
 	default:
 		return "", fmt.Errorf("unknown sort order = %v", order)

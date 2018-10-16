@@ -20,7 +20,8 @@ import (
 	"fmt"
 
 	sq "github.com/lann/squirrel"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 )
 
 // accessPredicateSqlizer build the json matching expression base on user's
@@ -36,8 +37,8 @@ import (
 // `"_access" @> '[{"role":"rickmak"}]' OR "_access" @> '[{"role":"admin"}]'`¬
 type accessPredicateSqlizer struct {
 	alias string
-	user  *skydb.AuthInfo
-	level skydb.RecordACLLevel
+	user  *authinfo.AuthInfo
+	level record.ACLLevel
 }
 
 func (p accessPredicateSqlizer) ToSql() (string, []interface{}, error) {
@@ -68,9 +69,9 @@ func (p accessPredicateSqlizer) ToSql() (string, []interface{}, error) {
 		args = append(args, p.user.ID)
 	}
 
-	if p.level == skydb.ReadLevel {
+	if p.level == record.ReadLevel {
 		b.WriteString(fmt.Sprintf(`%s @> '[{"public": true}]' OR `, fullQuoteIdentifier(p.alias, "_access")))
-	} else if p.level == skydb.WriteLevel {
+	} else if p.level == record.WriteLevel {
 		b.WriteString(fmt.Sprintf(`%s @> '[{"public": true, "level": "write"}]' OR `, fullQuoteIdentifier(p.alias, "_access")))
 	}
 
@@ -137,7 +138,7 @@ func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interfa
 
 		sql = buffer.String()
 		return sql, args, err
-	} else if lhs.Type == skydb.Literal && rhs.Type == skydb.KeyPath {
+	} else if lhs.Type == record.Literal && rhs.Type == record.KeyPath {
 		buffer.WriteString(`jsonb_exists(`)
 
 		sqlOperand, opArgs, err := rhs.ToSql()
@@ -160,7 +161,7 @@ func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interfa
 
 		sql = buffer.String()
 		return sql, args, err
-	} else if lhs.Type == skydb.KeyPath && rhs.Type == skydb.Literal {
+	} else if lhs.Type == record.KeyPath && rhs.Type == record.Literal {
 		sqlOperand, opArgs, err := lhs.ToSql()
 		if err != nil {
 			return "", nil, err
@@ -190,7 +191,7 @@ func (p *containsComparisonPredicateSqlizer) ToSql() (sql string, args []interfa
 
 type comparisonPredicateSqlizer struct {
 	sqlizers []expressionSqlizer
-	operator skydb.Operator
+	operator record.Operator
 }
 
 func (p *comparisonPredicateSqlizer) ToSql() (sql string, args []interface{}, err error) {
@@ -243,21 +244,21 @@ func (p *comparisonPredicateSqlizer) writeOperator(buffer *bytes.Buffer) error {
 	switch p.operator {
 	default:
 		return fmt.Errorf("comparison operator `%v` is not supported", p.operator)
-	case skydb.Equal:
+	case record.Equal:
 		buffer.WriteString(`=`)
-	case skydb.GreaterThan:
+	case record.GreaterThan:
 		buffer.WriteString(`>`)
-	case skydb.LessThan:
+	case record.LessThan:
 		buffer.WriteString(`<`)
-	case skydb.GreaterThanOrEqual:
+	case record.GreaterThanOrEqual:
 		buffer.WriteString(`>=`)
-	case skydb.LessThanOrEqual:
+	case record.LessThanOrEqual:
 		buffer.WriteString(`<=`)
-	case skydb.NotEqual:
+	case record.NotEqual:
 		buffer.WriteString(`<>`)
-	case skydb.Like:
+	case record.Like:
 		buffer.WriteString(` LIKE `)
-	case skydb.ILike:
+	case record.ILike:
 		buffer.WriteString(` ILIKE `)
 	}
 	return nil
@@ -267,9 +268,9 @@ func (p *comparisonPredicateSqlizer) writeOperatorForNullOperand(buffer *bytes.B
 	switch p.operator {
 	default:
 		return p.writeOperator(buffer)
-	case skydb.Equal:
+	case record.Equal:
 		buffer.WriteString(` IS `)
-	case skydb.NotEqual:
+	case record.NotEqual:
 		buffer.WriteString(` IS NOT `)
 	}
 	return nil
@@ -304,7 +305,7 @@ func (s FalseSqlizer) ToSql() (sql string, args []interface{}, err error) {
 type distancePredicateSqlizer struct {
 	alias    string
 	field    string
-	location skydb.Location
+	location record.Location
 	distance expressionSqlizer
 }
 

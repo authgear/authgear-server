@@ -20,10 +20,10 @@ import (
 	"fmt"
 
 	sq "github.com/lann/squirrel"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 )
 
-// expressionSqlizer generates an SQL expression from a skydb.Expression. A SQL
+// expressionSqlizer generates an SQL expression from a record.Expression. A SQL
 // expression are those found in SELECT clause or in the WHERE clause.
 //
 // In addition to generating literal value such as string (`"hello"`) or integer (`1`),
@@ -48,18 +48,18 @@ type expressionSqlizer struct {
 	// expression is a literal or is a computed value (such as function),
 	// the field type maybe derived from the expression value. If not
 	// available, the field type may be empty.
-	fieldType skydb.FieldType
+	fieldType record.FieldType
 
-	skydb.Expression
+	record.Expression
 }
 
-func NewExpressionSqlizer(alias string, fieldType skydb.FieldType, expr skydb.Expression) sq.Sqlizer {
+func NewExpressionSqlizer(alias string, fieldType record.FieldType, expr record.Expression) sq.Sqlizer {
 	return newExpressionSqlizer(alias, fieldType, expr)
 }
 
-func newExpressionSqlizer(alias string, fieldType skydb.FieldType, expr skydb.Expression) expressionSqlizer {
+func newExpressionSqlizer(alias string, fieldType record.FieldType, expr record.Expression) expressionSqlizer {
 	requireCast := false
-	if fieldType.Type.IsGeometryCompatibleType() && expr.Type == skydb.Literal {
+	if fieldType.Type.IsGeometryCompatibleType() && expr.Type == record.Literal {
 		requireCast = true
 	}
 
@@ -73,7 +73,7 @@ func newExpressionSqlizer(alias string, fieldType skydb.FieldType, expr skydb.Ex
 
 func (expr expressionSqlizer) ToSql() (sql string, args []interface{}, err error) {
 	switch expr.Type {
-	case skydb.KeyPath:
+	case record.KeyPath:
 		components := expr.KeyPathComponents()
 		lastComponent := components[len(components)-1]
 		sql = fullQuoteIdentifier(expr.alias, lastComponent)
@@ -81,12 +81,12 @@ func (expr expressionSqlizer) ToSql() (sql string, args []interface{}, err error
 
 		if expr.requireCast {
 			switch expr.fieldType.Type {
-			case skydb.TypeLocation, skydb.TypeGeometry:
+			case record.TypeLocation, record.TypeGeometry:
 				sql = fmt.Sprintf("ST_AsGeoJSON(%s)", sql)
 			}
 		}
-	case skydb.Function:
-		sql, args = funcToSQLOperand(expr.alias, expr.Value.(skydb.Func))
+	case record.Function:
+		sql, args = funcToSQLOperand(expr.alias, expr.Value.(record.Func))
 	default:
 		sql, args = LiteralToSQLOperand(expr.Value)
 	}
@@ -103,14 +103,14 @@ func RequireCast(sqlizer sq.Sqlizer) (sq.Sqlizer, error) {
 	return expr, nil
 }
 
-func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
+func funcToSQLOperand(alias string, fun record.Func) (string, []interface{}) {
 	switch f := fun.(type) {
-	case skydb.DistanceFunc:
+	case record.DistanceFunc:
 		sql := fmt.Sprintf("ST_Distance_Sphere(%s, ST_MakePoint(?, ?))",
 			fullQuoteIdentifier(alias, f.Field))
 		args := []interface{}{f.Location.Lng(), f.Location.Lat()}
 		return sql, args
-	case skydb.CountFunc:
+	case record.CountFunc:
 		var sql string
 		if f.OverallRecords {
 			sql = fmt.Sprintf("COUNT(*) OVER()")
@@ -120,20 +120,20 @@ func funcToSQLOperand(alias string, fun skydb.Func) (string, []interface{}) {
 		args := []interface{}{}
 		return sql, args
 	default:
-		panic(fmt.Errorf("got unrecgonized skydb.Func = %T", fun))
+		panic(fmt.Errorf("got unrecgonized record.Func = %T", fun))
 	}
 }
 
 func LiteralToSQLOperand(literal interface{}) (string, []interface{}) {
 	// Array detection is borrowed from squirrel's expr.go
 	switch literalValue := literal.(type) {
-	case skydb.Geometry:
+	case record.Geometry:
 		valueInJSON, err := json.Marshal(literalValue)
 		if err != nil {
-			panic(fmt.Sprintf("unable to marshal skydb.Geometry: %s", err))
+			panic(fmt.Sprintf("unable to marshal record.Geometry: %s", err))
 		}
 		return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", sq.Placeholders(1)), []interface{}{valueInJSON}
-	case skydb.Location:
+	case record.Location:
 		return fmt.Sprintf("ST_MakePoint(%s)", sq.Placeholders(2)), []interface{}{literalValue.Lng(), literalValue.Lat()}
 	case []interface{}:
 		argCount := len(literalValue)
@@ -159,7 +159,7 @@ func LiteralToSQLOperand(literal interface{}) (string, []interface{}) {
 
 func literalToSQLValue(value interface{}) interface{} {
 	switch v := value.(type) {
-	case skydb.Reference:
+	case record.Reference:
 		return v.ID.Key
 	default:
 		return value

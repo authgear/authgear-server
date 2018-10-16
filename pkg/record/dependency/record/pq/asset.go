@@ -19,11 +19,11 @@ import (
 
 	sq "github.com/lann/squirrel"
 
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
 
-func (s *RecordStore) GetAsset(name string, asset *skydb.Asset) error {
+func (s *RecordStore) GetAsset(name string, asset *record.Asset) error {
 	assets, err := s.GetAssets([]string{name})
 
 	if len(assets) == 0 {
@@ -35,9 +35,9 @@ func (s *RecordStore) GetAsset(name string, asset *skydb.Asset) error {
 	return err
 }
 
-func (s *RecordStore) GetAssets(names []string) ([]skydb.Asset, error) {
+func (s *RecordStore) GetAssets(names []string) ([]record.Asset, error) {
 	if len(names) == 0 {
-		return []skydb.Asset{}, nil
+		return []record.Asset{}, nil
 	}
 
 	nameArgs := make([]interface{}, len(names))
@@ -55,9 +55,9 @@ func (s *RecordStore) GetAssets(names []string) ([]skydb.Asset, error) {
 	}
 	defer rows.Close()
 
-	results := []skydb.Asset{}
+	results := []record.Asset{}
 	for rows.Next() {
-		a := skydb.Asset{}
+		a := record.Asset{}
 		if err := rows.Scan(
 			&a.Name,
 			&a.ContentType,
@@ -71,7 +71,7 @@ func (s *RecordStore) GetAssets(names []string) ([]skydb.Asset, error) {
 	return results, nil
 }
 
-func (s *RecordStore) SaveAsset(asset *skydb.Asset) error {
+func (s *RecordStore) SaveAsset(asset *record.Asset) error {
 	pkData := map[string]interface{}{
 		"id": asset.Name,
 	}

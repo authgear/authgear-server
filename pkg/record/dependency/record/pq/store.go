@@ -15,3 +15,19 @@ type RecordStore struct {
 	sqlExecutor db.SQLExecutor
 	logger      *logrus.Entry
 }
+
+func NewRecordStore(
+	roleStore role.Store,
+	canMigrate bool,
+	sqlBuilder db.SQLBuilder,
+	sqlExecutor db.SQLExecutor,
+	logger *logrus.Entry,
+) *RecordStore {
+	return &RecordStore{
+		roleStore:   roleStore,
+		canMigrate:  canMigrate,
+		sqlBuilder:  sqlBuilder,
+		sqlExecutor: sqlExecutor,
+		logger:      logger,
+	}
+}

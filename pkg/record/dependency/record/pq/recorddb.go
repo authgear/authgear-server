@@ -28,26 +28,25 @@ import (
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	dbPq "github.com/skygeario/skygear-server/pkg/core/db/pq"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record/pq/builder"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-func (s *RecordStore) Get(id skydb.RecordID, record *skydb.Record) error {
+func (s *RecordStore) Get(id record.ID, r *record.Record) error {
 	typemap, err := s.RemoteColumnTypes(id.Type)
 	if err != nil {
 		return err
 	}
 
 	if len(typemap) == 0 { // record type has not been created
-		return skydb.ErrRecordNotFound
+		return record.ErrRecordNotFound
 	}
 
 	builder := s.selectQuery(s.sqlBuilder.Select(), id.Type, typemap).Where("_id = ?", id.Key)
 	row := s.sqlExecutor.QueryRowWith(builder)
-	if err := newRecordScanner(id.Type, typemap, row).Scan(record); err == sql.ErrNoRows {
-		return skydb.ErrRecordNotFound
+	if err := newRecordScanner(id.Type, typemap, row).Scan(r); err == sql.ErrNoRows {
+		return record.ErrRecordNotFound
 	} else if err != nil {
 		return err
 	}
@@ -58,7 +57,7 @@ func (s *RecordStore) Get(id skydb.RecordID, record *skydb.Record) error {
 // GetByIDs only support one type of records at a time. If you want to query
 // array of ids belongs to different type, you need to call this method multiple
 // time.
-func (s *RecordStore) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
+func (s *RecordStore) GetByIDs(ids []record.ID, accessControlOptions *record.AccessControlOptions) (*record.Rows, error) {
 	if len(ids) == 0 {
 		return nil, errors.New("db.GetByIDs received empty array")
 	}
@@ -80,7 +79,7 @@ func (s *RecordStore) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb
 	}
 	if len(typemap) == 0 {
 		s.logger.Debugf("Record Type has not been created")
-		return nil, skydb.ErrRecordNotFound
+		return nil, record.ErrRecordNotFound
 	}
 
 	inCause, inArgs := builder.LiteralToSQLOperand(idStrs)
@@ -89,7 +88,7 @@ func (s *RecordStore) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb
 
 	if !accessControlOptions.BypassAccessControl {
 		factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, recordType)
-		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, skydb.ReadLevel)
+		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, record.ReadLevel)
 		if err != nil {
 			return nil, err
 		}
@@ -105,36 +104,36 @@ func (s *RecordStore) GetByIDs(ids []skydb.RecordID, accessControlOptions *skydb
 }
 
 // Save attempts to do a upsert
-func (s *RecordStore) Save(record *skydb.Record) error {
-	if record.ID.Key == "" {
+func (s *RecordStore) Save(r *record.Record) error {
+	if r.ID.Key == "" {
 		return errors.New("db.save: got empty record id")
 	}
-	if record.ID.Type == "" {
-		return fmt.Errorf("db.save %s: got empty record type", record.ID.Key)
+	if r.ID.Type == "" {
+		return fmt.Errorf("db.save %s: got empty record type", r.ID.Key)
 	}
-	if record.OwnerID == "" {
-		return fmt.Errorf("db.save %s: got empty OwnerID", record.ID.Key)
+	if r.OwnerID == "" {
+		return fmt.Errorf("db.save %s: got empty OwnerID", r.ID.Key)
 	}
 
 	pkData := map[string]interface{}{
-		"_id": record.ID.Key,
+		"_id": r.ID.Key,
 	}
 
-	typemap, err := s.RemoteColumnTypes(record.ID.Type)
+	typemap, err := s.RemoteColumnTypes(r.ID.Type)
 	if err != nil {
 		return err
 	}
 
 	wrappers := map[string]func(string) string{}
 	for column, fieldType := range typemap {
-		if fieldType.Type == skydb.TypeGeometry {
+		if fieldType.Type == record.TypeGeometry {
 			wrappers[column] = func(val string) string {
 				return fmt.Sprintf("ST_GeomFromGeoJSON(%s)", val)
 			}
 		}
 	}
 
-	upsert := builder.UpsertQueryWithWrappers(s.sqlBuilder.TableName(record.ID.Type), pkData, convert(record), wrappers).
+	upsert := builder.UpsertQueryWithWrappers(s.sqlBuilder.TableName(r.ID.Type), pkData, convert(r), wrappers).
 		IgnoreKeyOnUpdate("_owner_id").
 		IgnoreKeyOnUpdate("_created_at").
 		IgnoreKeyOnUpdate("_created_by")
@@ -147,12 +146,12 @@ func (s *RecordStore) Save(record *skydb.Record) error {
 		upsert = upsert.SelectColumn(column, sqlizer)
 	}
 
-	if err := s.preSave(typemap, record); err != nil {
+	if err := s.preSave(typemap, r); err != nil {
 		return err
 	}
 
 	row := s.sqlExecutor.QueryRowWith(upsert)
-	if err = newRecordScanner(record.ID.Type, typemap, row).Scan(record); err != nil {
+	if err = newRecordScanner(r.ID.Type, typemap, row).Scan(r); err != nil {
 		if db.IsUniqueViolated(err) {
 			return skyerr.NewErrorf(
 				skyerr.Duplicated,
@@ -163,7 +162,7 @@ func (s *RecordStore) Save(record *skydb.Record) error {
 		if db.IsInvalidInputSyntax(err) {
 			return skyerr.NewErrorf(
 				skyerr.InvalidArgument,
-				fmt.Sprintf("failed to save %s: %s", record.ID, err),
+				fmt.Sprintf("failed to save %s: %s", r.ID, err),
 			)
 		}
 		return skyerr.MakeError(err)
@@ -172,14 +171,14 @@ func (s *RecordStore) Save(record *skydb.Record) error {
 	return nil
 }
 
-func (s *RecordStore) preSave(schema skydb.RecordSchema, record *skydb.Record) error {
+func (s *RecordStore) preSave(schema record.Schema, r *record.Record) error {
 	const SetSequenceMaxValue = `SELECT setval($1, GREATEST(max(%v), $2)) FROM %v;`
 
-	for key, value := range record.Data {
+	for key, value := range r.Data {
 		// we are setting a sequence field
-		if schema[key].Type == skydb.TypeSequence {
-			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), s.sqlBuilder.TableName(record.ID.Type))
-			seqName := s.sqlBuilder.TableName(fmt.Sprintf(`%v_%v_seq`, record.ID.Type, key))
+		if schema[key].Type == record.TypeSequence {
+			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), s.sqlBuilder.TableName(r.ID.Type))
+			seqName := s.sqlBuilder.TableName(fmt.Sprintf(`%v_%v_seq`, r.ID.Type, key))
 			if _, err := s.sqlExecutor.Exec(selectSQL, seqName, value); err != nil {
 				return err
 			}
@@ -189,23 +188,23 @@ func (s *RecordStore) preSave(schema skydb.RecordSchema, record *skydb.Record) e
 	return nil
 }
 
-func convert(r *skydb.Record) map[string]interface{} {
+func convert(r *record.Record) map[string]interface{} {
 	m := map[string]interface{}{}
 	for key, rawValue := range r.Data {
 		switch value := rawValue.(type) {
 		case []interface{}:
-			m[key] = dbPq.JsonSliceValue(value)
+			m[key] = jsonSliceValue(value)
 		case map[string]interface{}:
-			m[key] = dbPq.JsonMapValue(value)
-		case *skydb.Asset:
-			m[key] = dbPq.AssetValue(*value)
-		case skydb.Reference:
-			m[key] = dbPq.ReferenceValue(value)
-		case skydb.Location:
-			m[key] = dbPq.LocationValue(value)
-		case skydb.Geometry:
-			m[key] = dbPq.GeometryValue(value)
-		case skydb.Unknown:
+			m[key] = jsonMapValue(value)
+		case *record.Asset:
+			m[key] = assetValue(*value)
+		case record.Reference:
+			m[key] = referenceValue(value)
+		case record.Location:
+			m[key] = locationValue(value)
+		case record.Geometry:
+			m[key] = geometryValue(value)
+		case record.Unknown:
 			// Do not modify columns with unknown type because they are
 			// managed by the developer.
 		default:
@@ -213,7 +212,7 @@ func convert(r *skydb.Record) map[string]interface{} {
 		}
 	}
 	m["_owner_id"] = r.OwnerID
-	m["_access"] = dbPq.AclValue(r.ACL)
+	m["_access"] = aclValue(r.ACL)
 	m["_created_at"] = r.CreatedAt
 	m["_created_by"] = r.CreatorID
 	m["_updated_at"] = r.UpdatedAt
@@ -221,14 +220,14 @@ func convert(r *skydb.Record) map[string]interface{} {
 	return m
 }
 
-func (s *RecordStore) Delete(id skydb.RecordID) error {
+func (s *RecordStore) Delete(id record.ID) error {
 	// logger := logging.CreateLogger(db.c.context, "skydb")
 	builder := s.sqlBuilder.Delete(s.sqlBuilder.TableName(id.Type)).
 		Where("_id = ?", id.Key)
 
 	result, err := s.sqlExecutor.ExecWith(builder)
 	if db.IsUndefinedTable(err) {
-		return skydb.ErrRecordNotFound
+		return record.ErrRecordNotFound
 	} else if db.IsForeignKeyViolated(err) {
 		return skyerr.NewError(
 			skyerr.ConstraintViolated,
@@ -244,7 +243,7 @@ func (s *RecordStore) Delete(id skydb.RecordID) error {
 	}
 
 	if rowsAffected == 0 {
-		return skydb.ErrRecordNotFound
+		return record.ErrRecordNotFound
 	} else if rowsAffected > 1 {
 		s.logger.WithFields(logrus.Fields{
 			"id":           id,
@@ -257,7 +256,7 @@ func (s *RecordStore) Delete(id skydb.RecordID) error {
 	return err
 }
 
-func (s *RecordStore) applyQueryPredicate(q sq.SelectBuilder, factory builder.PredicateSqlizerFactory, query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (sq.SelectBuilder, error) {
+func (s *RecordStore) applyQueryPredicate(q sq.SelectBuilder, factory builder.PredicateSqlizerFactory, query *record.Query, accessControlOptions *record.AccessControlOptions) (sq.SelectBuilder, error) {
 	if p := query.Predicate; !p.IsEmpty() {
 		sqlizer, err := factory.NewPredicateSqlizer(p)
 		if err != nil {
@@ -268,7 +267,7 @@ func (s *RecordStore) applyQueryPredicate(q sq.SelectBuilder, factory builder.Pr
 	}
 
 	if !accessControlOptions.BypassAccessControl {
-		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, skydb.ReadLevel)
+		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, record.ReadLevel)
 		if err != nil {
 			return q, err
 		}
@@ -278,7 +277,7 @@ func (s *RecordStore) applyQueryPredicate(q sq.SelectBuilder, factory builder.Pr
 	return q, nil
 }
 
-func (s *RecordStore) Query(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (*skydb.Rows, error) {
+func (s *RecordStore) Query(query *record.Query, accessControlOptions *record.AccessControlOptions) (*record.Rows, error) {
 	if query.Type == "" {
 		return nil, errors.New("got empty query type")
 	}
@@ -289,7 +288,7 @@ func (s *RecordStore) Query(query *skydb.Query, accessControlOptions *skydb.Acce
 	}
 
 	if len(typemap) == 0 { // record type has not been created
-		return skydb.EmptyRows, nil
+		return record.EmptyRows, nil
 	}
 
 	q := s.sqlBuilder.Select()
@@ -330,7 +329,7 @@ func (s *RecordStore) Query(query *skydb.Query, accessControlOptions *skydb.Acce
 	return newRows(query.Type, typemap, rows, err)
 }
 
-func (s *RecordStore) QueryCount(query *skydb.Query, accessControlOptions *skydb.AccessControlOptions) (uint64, error) {
+func (s *RecordStore) QueryCount(query *record.Query, accessControlOptions *record.AccessControlOptions) (uint64, error) {
 	if query.Type == "" {
 		return 0, errors.New("got empty query type")
 	}
@@ -340,12 +339,12 @@ func (s *RecordStore) QueryCount(query *skydb.Query, accessControlOptions *skydb
 		return 0, err
 	}
 
-	typemap = skydb.RecordSchema{
-		"_record_count": skydb.FieldType{
-			Type: skydb.TypeNumber,
-			Expression: skydb.Expression{
-				Type: skydb.Function,
-				Value: skydb.CountFunc{
+	typemap = record.Schema{
+		"_record_count": record.FieldType{
+			Type: record.TypeNumber,
+			Expression: record.Expression{
+				Type: record.Function,
+				Value: record.CountFunc{
 					OverallRecords: false,
 				},
 			},
@@ -387,20 +386,20 @@ type columnsScanner interface {
 
 type recordScanner struct {
 	recordType  string
-	typemap     skydb.RecordSchema
+	typemap     record.Schema
 	cs          columnsScanner
 	columns     []string
 	err         error
 	recordCount *uint64
 }
 
-func newRecordScanner(recordType string, typemap skydb.RecordSchema, cs columnsScanner) *recordScanner {
+func newRecordScanner(recordType string, typemap record.Schema, cs columnsScanner) *recordScanner {
 	columns, err := cs.Columns()
 	return &recordScanner{recordType, typemap, cs, columns, err, nil}
 }
 
 // nolint: gocyclo
-func (rs *recordScanner) Scan(record *skydb.Record) error {
+func (rs *recordScanner) Scan(r *record.Record) error {
 	if rs.err != nil {
 		return rs.err
 	}
@@ -412,37 +411,37 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 			return fmt.Errorf("received unknown column = %s", column)
 		}
 		switch schema.Type {
-		case skydb.TypeNumber:
+		case record.TypeNumber:
 			var number sql.NullFloat64
 			values = append(values, &number)
-		case skydb.TypeString, skydb.TypeReference, skydb.TypeACL:
+		case record.TypeString, record.TypeReference, record.TypeACL:
 			var str sql.NullString
 			values = append(values, &str)
-		case skydb.TypeDateTime:
+		case record.TypeDateTime:
 			var ts pq.NullTime
 			values = append(values, &ts)
-		case skydb.TypeBoolean:
+		case record.TypeBoolean:
 			var boolean sql.NullBool
 			values = append(values, &boolean)
-		case skydb.TypeAsset:
-			var asset dbPq.NullAsset
+		case record.TypeAsset:
+			var asset nullAsset
 			values = append(values, &asset)
-		case skydb.TypeJSON:
-			var j dbPq.NullJSON
+		case record.TypeJSON:
+			var j nullJSON
 			values = append(values, &j)
-		case skydb.TypeLocation:
-			var l dbPq.NullLocation
+		case record.TypeLocation:
+			var l nullLocation
 			values = append(values, &l)
-		case skydb.TypeSequence:
+		case record.TypeSequence:
 			fallthrough
-		case skydb.TypeInteger:
+		case record.TypeInteger:
 			var i sql.NullInt64
 			values = append(values, &i)
-		case skydb.TypeGeometry:
-			var g dbPq.NullGeometry
+		case record.TypeGeometry:
+			var g nullGeometry
 			values = append(values, &g)
-		case skydb.TypeUnknown:
-			var u dbPq.NullUnknown
+		case record.TypeUnknown:
+			var u nullUnknown
 			values = append(values, &u)
 		default:
 			return fmt.Errorf("received unknown data type = %v for column = %s", schema.Type, column)
@@ -454,8 +453,8 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 		return err
 	}
 
-	record.ID.Type = rs.recordType
-	record.Data = map[string]interface{}{}
+	r.ID.Type = rs.recordType
+	r.Data = map[string]interface{}{}
 
 	for i, column := range rs.columns {
 		value := values[i]
@@ -476,19 +475,19 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 			return fmt.Errorf("received unexpected scanned type = %T for column = %s", value, column)
 		case *sql.NullFloat64:
 			if svalue.Valid {
-				record.Set(column, svalue.Float64)
+				r.Set(column, svalue.Float64)
 			}
 		case *sql.NullString:
 			if svalue.Valid {
 				schema := rs.typemap[column]
-				if schema.Type == skydb.TypeReference {
-					record.Set(column, skydb.NewReference(schema.ReferenceType, svalue.String))
-				} else if schema.Type == skydb.TypeACL {
-					acl := skydb.RecordACL{}
+				if schema.Type == record.TypeReference {
+					r.Set(column, record.NewReference(schema.ReferenceType, svalue.String))
+				} else if schema.Type == record.TypeACL {
+					acl := record.ACL{}
 					json.Unmarshal([]byte(svalue.String), &acl)
-					record.Set(column, acl)
+					r.Set(column, acl)
 				} else {
-					record.Set(column, svalue.String)
+					r.Set(column, svalue.String)
 				}
 			}
 		case *pq.NullTime:
@@ -496,42 +495,42 @@ func (rs *recordScanner) Scan(record *skydb.Record) error {
 				// it is to support direct deep-equal of value between
 				// a empty record and a record materialized from the database
 				if svalue.Time.IsZero() {
-					record.Set(column, time.Time{})
+					r.Set(column, time.Time{})
 				} else {
-					record.Set(column, svalue.Time.In(time.UTC))
+					r.Set(column, svalue.Time.In(time.UTC))
 				}
 			}
 		case *sql.NullBool:
 			if svalue.Valid {
-				record.Set(column, svalue.Bool)
+				r.Set(column, svalue.Bool)
 			}
-		case *dbPq.NullAsset:
+		case *nullAsset:
 			if svalue.Valid {
-				record.Set(column, svalue.Asset)
+				r.Set(column, svalue.Asset)
 			}
-		case *dbPq.NullJSON:
+		case *nullJSON:
 			if svalue.Valid {
-				record.Set(column, svalue.JSON)
+				r.Set(column, svalue.JSON)
 			}
-		case *dbPq.NullLocation:
+		case *nullLocation:
 			if svalue.Valid {
-				record.Set(column, svalue.Location)
+				r.Set(column, svalue.Location)
 			}
-		case *dbPq.NullGeometry:
+		case *nullGeometry:
 			if svalue.Valid {
-				record.Set(column, svalue.Geometry)
+				r.Set(column, svalue.Geometry)
 			}
-		case *dbPq.NullUnknown:
+		case *nullUnknown:
 			if svalue.Valid {
-				val := skydb.Unknown{}
+				val := record.Unknown{}
 				if schema, ok := rs.typemap[column]; ok {
 					val.UnderlyingType = schema.UnderlyingType
 				}
-				record.Set(column, val)
+				r.Set(column, val)
 			}
 		case *sql.NullInt64:
 			if svalue.Valid {
-				record.Set(column, svalue.Int64)
+				r.Set(column, svalue.Int64)
 			}
 		}
 
@@ -549,7 +548,7 @@ func (rowsi rowsIter) Close() error {
 	return rowsi.rows.Close()
 }
 
-func (rowsi rowsIter) Next(record *skydb.Record) error {
+func (rowsi rowsIter) Next(record *record.Record) error {
 	if rowsi.rows.Next() {
 		return rowsi.rs.Scan(record)
 	} else if rowsi.rows.Err() != nil {
@@ -563,27 +562,27 @@ func (rowsi rowsIter) OverallRecordCount() *uint64 {
 	return rowsi.rs.recordCount
 }
 
-func newRows(recordType string, typemap skydb.RecordSchema, rows *sqlx.Rows, err error) (*skydb.Rows, error) {
+func newRows(recordType string, typemap record.Schema, rows *sqlx.Rows, err error) (*record.Rows, error) {
 	if err != nil {
 		return nil, err
 	}
 	rs := newRecordScanner(recordType, typemap, rows)
-	return skydb.NewRows(rowsIter{rows, rs}), nil
+	return record.NewRows(rowsIter{rows, rs}), nil
 }
 
-func columnSqlizersForSelect(recordType string, typemap skydb.RecordSchema) map[string]sq.Sqlizer {
+func columnSqlizersForSelect(recordType string, typemap record.Schema) map[string]sq.Sqlizer {
 	sqlizers := map[string]sq.Sqlizer{}
 	for column, fieldType := range typemap {
 		expr := fieldType.Expression
 		if expr.IsEmpty() {
-			expr = skydb.Expression{
-				Type:  skydb.KeyPath,
+			expr = record.Expression{
+				Type:  record.KeyPath,
 				Value: column,
 			}
 		}
 
 		sqlizer := builder.NewExpressionSqlizer(recordType, fieldType, expr)
-		if fieldType.Type == skydb.TypeGeometry {
+		if fieldType.Type == record.TypeGeometry {
 			sqlizer, _ = builder.RequireCast(sqlizer)
 		}
 		sqlizers[column] = sqlizer
@@ -591,7 +590,7 @@ func columnSqlizersForSelect(recordType string, typemap skydb.RecordSchema) map[
 	return sqlizers
 }
 
-func (s *RecordStore) selectQuery(q sq.SelectBuilder, recordType string, typemap skydb.RecordSchema) sq.SelectBuilder {
+func (s *RecordStore) selectQuery(q sq.SelectBuilder, recordType string, typemap record.Schema) sq.SelectBuilder {
 	for column, e := range columnSqlizersForSelect(recordType, typemap) {
 		sqlOperand, opArgs, _ := e.ToSql()
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
@@ -602,7 +601,7 @@ func (s *RecordStore) selectQuery(q sq.SelectBuilder, recordType string, typemap
 	return q
 }
 
-func updateTypemapForQuery(query *skydb.Query, typemap skydb.RecordSchema) (skydb.RecordSchema, error) {
+func updateTypemapForQuery(query *record.Query, typemap record.Schema) (record.Schema, error) {
 	if query.DesiredKeys != nil {
 		newtypemap, err := whitelistedRecordSchema(typemap, query.DesiredKeys)
 		if err != nil {
@@ -612,24 +611,24 @@ func updateTypemapForQuery(query *skydb.Query, typemap skydb.RecordSchema) (skyd
 	}
 
 	for key, value := range query.ComputedKeys {
-		if value.Type == skydb.KeyPath {
+		if value.Type == record.KeyPath {
 			// recorddb does not support querying with computed keys
 			continue
 		}
 
 		v := value // because value will be overwritten in the next loop
-		typemap["_transient_"+key] = skydb.FieldType{
-			Type:       skydb.TypeNumber,
+		typemap["_transient_"+key] = record.FieldType{
+			Type:       record.TypeNumber,
 			Expression: v,
 		}
 	}
 
 	if query.GetCount {
-		typemap["_record_count"] = skydb.FieldType{
-			Type: skydb.TypeNumber,
-			Expression: skydb.Expression{
-				Type: skydb.Function,
-				Value: skydb.CountFunc{
+		typemap["_record_count"] = record.FieldType{
+			Type: record.TypeNumber,
+			Expression: record.Expression{
+				Type: record.Function,
+				Value: record.CountFunc{
 					OverallRecords: true,
 				},
 			},
@@ -638,8 +637,8 @@ func updateTypemapForQuery(query *skydb.Query, typemap skydb.RecordSchema) (skyd
 	return typemap, nil
 }
 
-func whitelistedRecordSchema(schema skydb.RecordSchema, whitelistKeys []string) (skydb.RecordSchema, error) {
-	wlSchema := skydb.RecordSchema{}
+func whitelistedRecordSchema(schema record.Schema, whitelistKeys []string) (record.Schema, error) {
+	wlSchema := record.Schema{}
 
 	for _, key := range whitelistKeys {
 		columnType, ok := schema[key]

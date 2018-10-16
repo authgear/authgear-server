@@ -8,18 +8,19 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	recordGear "github.com/skygeario/skygear-server/pkg/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record/recordconv"
 	"github.com/skygeario/skygear-server/pkg/server/asset"
-	"github.com/skygeario/skygear-server/pkg/server/plugin/hook"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -62,7 +63,7 @@ type SaveRequestPayload struct {
 	IncomingItems []interface{}
 
 	// Records contains the successfully de-serialized record
-	Records []*skydb.Record
+	Records []*record.Record
 
 	// Errs is the array of de-serialization errors
 	Errs []skyerr.Error
@@ -120,7 +121,9 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SaveHandler struct {
-	TxContext db.TxContext `dependency:"TxContext"`
+	AuthContext auth.ContextGetter `dependency:"AuthContextGetter"`
+	TxContext   db.TxContext       `dependency:"TxContext"`
+	RecordStore record.Store       `dependency:"RecordStore"`
 }
 
 func (h SaveHandler) WithTx() bool {
@@ -134,15 +137,15 @@ func (h SaveHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 	}
 
 	for _, recordMap := range payload.RawMaps {
-		var record skydb.Record
-		if err := (*skyconv.JSONRecord)(&record).FromMap(recordMap); err != nil {
+		var r record.Record
+		if err := (*recordconv.JSONRecord)(&r).FromMap(recordMap); err != nil {
 			skyErr := skyerr.NewError(skyerr.InvalidArgument, err.Error())
 			payload.Errs = append(payload.Errs, skyErr)
 			payload.IncomingItems = append(payload.IncomingItems, skyErr)
 		} else {
-			record.SanitizeForInput()
-			payload.IncomingItems = append(payload.IncomingItems, record.ID)
-			payload.Records = append(payload.Records, &record)
+			r.SanitizeForInput()
+			payload.IncomingItems = append(payload.IncomingItems, r.ID)
+			payload.Records = append(payload.Records, &r)
 		}
 	}
 
@@ -151,6 +154,24 @@ func (h SaveHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 
 func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(SaveRequestPayload)
+
+	modifyReq := RecordModifyRequest{
+		RecordStore: h.RecordStore,
+		// TODO:
+		AssetStore:    nil,
+		AuthInfo:      h.AuthContext.AuthInfo(),
+		RecordsToSave: payload.Records,
+		Atomic:        payload.Atomic,
+		WithMasterKey: h.AuthContext.AccessKeyType() == model.MasterAccessKey,
+		// TODO:
+		Context:  context.Background(),
+		ModifyAt: timeNow(),
+	}
+	modifyResp := RecordModifyResponse{
+		ErrMap: map[record.ID]skyerr.Error{},
+	}
+
+	RecordSaveHandler(&modifyReq, &modifyResp)
 
 	// TODO: Implement record save handler
 	resp = payload
@@ -161,31 +182,30 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 type RecordModifyRequest struct {
 	RecordStore   record.Store
 	AssetStore    asset.Store
-	HookRegistry  *hook.Registry
 	Atomic        bool
 	WithMasterKey bool
 	Context       context.Context
-	AuthInfo      *skydb.AuthInfo
+	AuthInfo      *authinfo.AuthInfo
 	ModifyAt      time.Time
 
 	// Save only
-	RecordsToSave []*skydb.Record
+	RecordsToSave []*record.Record
 
 	// Delete Only
-	RecordIDsToDelete []skydb.RecordID
+	RecordIDsToDelete []record.ID
 }
 
 type RecordModifyResponse struct {
-	ErrMap           map[skydb.RecordID]skyerr.Error
-	SavedRecords     []*skydb.Record
-	DeletedRecordIDs []skydb.RecordID
+	ErrMap           map[record.ID]skyerr.Error
+	SavedRecords     []*record.Record
+	DeletedRecordIDs []record.ID
 }
 
 type RecordFetcher struct {
 	recordStore            record.Store
 	withMasterKey          bool
-	creationAccessCacheMap map[string]skydb.RecordACL
-	defaultAccessCacheMap  map[string]skydb.RecordACL
+	creationAccessCacheMap map[string]record.ACL
+	defaultAccessCacheMap  map[string]record.ACL
 	context                context.Context
 	logger                 *logrus.Logger
 }
@@ -195,13 +215,13 @@ func NewRecordFetcher(ctx context.Context, recordStore record.Store, withMasterK
 	return RecordFetcher{
 		recordStore:            recordStore,
 		withMasterKey:          withMasterKey,
-		creationAccessCacheMap: map[string]skydb.RecordACL{},
-		defaultAccessCacheMap:  map[string]skydb.RecordACL{},
+		creationAccessCacheMap: map[string]record.ACL{},
+		defaultAccessCacheMap:  map[string]record.ACL{},
 		context:                ctx,
 	}
 }
 
-func (f RecordFetcher) getCreationAccess(recordType string) skydb.RecordACL {
+func (f RecordFetcher) getCreationAccess(recordType string) record.ACL {
 	creationAccess, creationAccessCached := f.creationAccessCacheMap[recordType]
 	if creationAccessCached == false {
 		var err error
@@ -215,7 +235,7 @@ func (f RecordFetcher) getCreationAccess(recordType string) skydb.RecordACL {
 	return creationAccess
 }
 
-func (f RecordFetcher) getDefaultAccess(recordType string) skydb.RecordACL {
+func (f RecordFetcher) getDefaultAccess(recordType string) record.ACL {
 	defaultAccess, defaultAccessCached := f.defaultAccessCacheMap[recordType]
 	if defaultAccessCached == false {
 		var err error
@@ -229,10 +249,10 @@ func (f RecordFetcher) getDefaultAccess(recordType string) skydb.RecordACL {
 	return defaultAccess
 }
 
-func (f RecordFetcher) FetchRecord(recordID skydb.RecordID, authInfo *skydb.AuthInfo, accessLevel skydb.RecordACLLevel) (record *skydb.Record, err skyerr.Error) {
-	dbRecord := skydb.Record{}
+func (f RecordFetcher) FetchRecord(recordID record.ID, authInfo *authinfo.AuthInfo, accessLevel record.ACLLevel) (r *record.Record, err skyerr.Error) {
+	dbRecord := record.Record{}
 	if dbErr := f.recordStore.Get(recordID, &dbRecord); dbErr != nil {
-		if dbErr == skydb.ErrRecordNotFound {
+		if dbErr == record.ErrRecordNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "record not found")
 		} else {
 			f.logger.WithFields(logrus.Fields{
@@ -244,7 +264,7 @@ func (f RecordFetcher) FetchRecord(recordID skydb.RecordID, authInfo *skydb.Auth
 		return
 	}
 
-	record = &dbRecord
+	r = &dbRecord
 	if !f.withMasterKey && !dbRecord.Accessible(authInfo, accessLevel) {
 		err = skyerr.NewError(
 			skyerr.PermissionDenied,
@@ -255,10 +275,10 @@ func (f RecordFetcher) FetchRecord(recordID skydb.RecordID, authInfo *skydb.Auth
 	return
 }
 
-func (f RecordFetcher) FetchOrCreateRecord(recordID skydb.RecordID, authInfo *skydb.AuthInfo) (record skydb.Record, created bool, err skyerr.Error) {
-	fetchedRecord, err := f.FetchRecord(recordID, authInfo, skydb.WriteLevel)
+func (f RecordFetcher) FetchOrCreateRecord(recordID record.ID, authInfo *authinfo.AuthInfo) (r record.Record, created bool, err skyerr.Error) {
+	fetchedRecord, err := f.FetchRecord(recordID, authInfo, record.WriteLevel)
 	if err == nil {
-		record = *fetchedRecord
+		r = *fetchedRecord
 		return
 	}
 
@@ -269,7 +289,7 @@ func (f RecordFetcher) FetchOrCreateRecord(recordID skydb.RecordID, authInfo *sk
 			}
 
 			creationAccess := f.getCreationAccess(recordID.Type)
-			return creationAccess.Accessible(authInfo, skydb.CreateLevel)
+			return creationAccess.Accessible(authInfo, record.CreateLevel)
 		}()
 
 		if !allowCreation {
@@ -280,7 +300,7 @@ func (f RecordFetcher) FetchOrCreateRecord(recordID skydb.RecordID, authInfo *sk
 			return
 		}
 
-		record = skydb.Record{}
+		r = record.Record{}
 		created = true
 		err = nil
 	}
@@ -304,16 +324,16 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 	}
 
 	// fetch records
-	originalRecordMap := map[skydb.RecordID]*skydb.Record{}
-	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-		dbRecord, created, err := fetcher.FetchOrCreateRecord(record.ID, req.AuthInfo)
+	originalRecordMap := map[record.ID]*record.Record{}
+	records = executeRecordFunc(records, resp.ErrMap, func(r *record.Record) (err skyerr.Error) {
+		dbRecord, created, err := fetcher.FetchOrCreateRecord(r.ID, req.AuthInfo)
 		if err != nil {
 			return err
 		}
 
 		now := req.ModifyAt
 		if created {
-			dbRecord.ID = record.ID
+			dbRecord.ID = r.ID
 			dbRecord.OwnerID = req.AuthInfo.ID
 			dbRecord.CreatedAt = now
 			dbRecord.CreatorID = req.AuthInfo.ID
@@ -324,7 +344,7 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 		if !req.WithMasterKey {
 			if err = scrubRecordFieldsForWrite(
 				req.AuthInfo,
-				record,
+				r,
 				&dbRecord,
 				fieldACL,
 				req.Atomic,
@@ -339,19 +359,19 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 			originalRecordMap[origRecord.ID] = &origRecord
 		}
 
-		dbRecord.Apply(record)
-		*record = dbRecord
-		record.UpdatedAt = now
-		record.UpdaterID = req.AuthInfo.ID
+		dbRecord.Apply(r)
+		*r = dbRecord
+		r.UpdatedAt = now
+		r.UpdaterID = req.AuthInfo.ID
 
 		return
 	})
 
 	// Apply default access
-	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) skyerr.Error {
-		if record.ACL == nil {
-			defaultACL := fetcher.getDefaultAccess(record.ID.Type)
-			record.ACL = defaultACL
+	records = executeRecordFunc(records, resp.ErrMap, func(r *record.Record) skyerr.Error {
+		if r.ACL == nil {
+			defaultACL := fetcher.getDefaultAccess(r.ID.Type)
+			r.ACL = defaultACL
 		}
 		return nil
 	})
@@ -366,15 +386,15 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 	}
 
 	// save records
-	records = executeRecordFunc(records, resp.ErrMap, func(record *skydb.Record) (err skyerr.Error) {
-		var deltaRecord skydb.Record
-		originalRecord, _ := originalRecordMap[record.ID]
-		DeriveDeltaRecord(&deltaRecord, originalRecord, record)
+	records = executeRecordFunc(records, resp.ErrMap, func(r *record.Record) (err skyerr.Error) {
+		var deltaRecord record.Record
+		originalRecord, _ := originalRecordMap[r.ID]
+		DeriveDeltaRecord(&deltaRecord, originalRecord, r)
 
 		if dbErr := req.RecordStore.Save(&deltaRecord); dbErr != nil {
 			err = skyerr.MakeError(dbErr)
 		}
-		*record = deltaRecord
+		*r = deltaRecord
 
 		return
 	})
@@ -392,9 +412,9 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 	return nil
 }
 
-type recordFunc func(*skydb.Record) skyerr.Error
+type recordFunc func(*record.Record) skyerr.Error
 
-func executeRecordFunc(recordsIn []*skydb.Record, errMap map[skydb.RecordID]skyerr.Error, rFunc recordFunc) (recordsOut []*skydb.Record) {
+func executeRecordFunc(recordsIn []*record.Record, errMap map[record.ID]skyerr.Error, rFunc recordFunc) (recordsOut []*record.Record) {
 	for _, record := range recordsIn {
 		if err := rFunc(record); err != nil {
 			errMap[record.ID] = err
@@ -410,14 +430,14 @@ func executeRecordFunc(recordsIn []*skydb.Record, errMap map[skydb.RecordID]skye
 // Depending on whether the request is an atomic one, this function
 // will either remove the fields if the user is not allowed access if atomic
 // is false, or will return an error.
-func scrubRecordFieldsForWrite(authInfo *skydb.AuthInfo, record *skydb.Record, origRecord *skydb.Record, fieldACL skydb.FieldACL, atomic bool) skyerr.Error {
+func scrubRecordFieldsForWrite(authInfo *authinfo.AuthInfo, r *record.Record, origRecord *record.Record, fieldACL record.FieldACL, atomic bool) skyerr.Error {
 	nonWritableFields := []string{}
 
-	var deltaRecord skydb.Record
-	DeriveDeltaRecord(&deltaRecord, origRecord, record)
+	var deltaRecord record.Record
+	DeriveDeltaRecord(&deltaRecord, origRecord, r)
 
 	for key := range deltaRecord.Data {
-		if fieldACL.Accessible(record.ID.Type, key, skydb.WriteFieldAccessMode, authInfo, origRecord) {
+		if fieldACL.Accessible(r.ID.Type, key, record.WriteFieldAccessMode, authInfo, origRecord) {
 			continue
 		}
 
@@ -426,7 +446,7 @@ func scrubRecordFieldsForWrite(authInfo *skydb.AuthInfo, record *skydb.Record, o
 			continue
 		}
 
-		record.Remove(key)
+		r.Remove(key)
 	}
 
 	if len(nonWritableFields) > 0 {
@@ -435,10 +455,10 @@ func scrubRecordFieldsForWrite(authInfo *skydb.AuthInfo, record *skydb.Record, o
 	return nil
 }
 
-func injectSigner(record *skydb.Record, store asset.Store) {
-	for _, value := range record.Data {
+func injectSigner(r *record.Record, store asset.Store) {
+	for _, value := range r.Data {
 		switch v := value.(type) {
-		case *skydb.Asset:
+		case *record.Asset:
 			if signer, ok := store.(asset.URLSigner); ok {
 				v.Signer = signer
 			} else {
@@ -448,8 +468,8 @@ func injectSigner(record *skydb.Record, store asset.Store) {
 	}
 }
 
-func makeAssetsCompleteAndInjectSigner(recordStore record.Store, records []*skydb.Record, store asset.Store) error {
-	recordArr := []skydb.Record{}
+func makeAssetsCompleteAndInjectSigner(recordStore record.Store, records []*record.Record, store asset.Store) error {
+	recordArr := []record.Record{}
 	for _, v := range records {
 		recordArr = append(recordArr, *v)
 	}
@@ -463,7 +483,7 @@ func makeAssetsCompleteAndInjectSigner(recordStore record.Store, records []*skyd
 	return nil
 }
 
-func MakeAssetsComplete(recordStore record.Store, records []skydb.Record) error {
+func MakeAssetsComplete(recordStore record.Store, records []record.Record) error {
 	if len(records) == 0 {
 		return nil
 	}
@@ -474,14 +494,14 @@ func MakeAssetsComplete(recordStore record.Store, records []skydb.Record) error 
 	assetNames := []string{}
 
 	for column, schema := range typemap {
-		if schema.Type == skydb.TypeAsset {
+		if schema.Type == record.TypeAsset {
 			assetColumns = append(assetColumns, column)
 		}
 	}
 
-	for _, record := range records {
+	for _, r := range records {
 		for _, assetColumn := range assetColumns {
-			if thisAsset, ok := record.Get(assetColumn).(*skydb.Asset); ok {
+			if thisAsset, ok := r.Get(assetColumn).(*record.Asset); ok {
 				assetNames = append(assetNames, thisAsset.Name)
 			}
 		}
@@ -496,15 +516,15 @@ func MakeAssetsComplete(recordStore record.Store, records []skydb.Record) error 
 		return err
 	}
 
-	assetsByName := map[string]skydb.Asset{}
+	assetsByName := map[string]record.Asset{}
 	for _, asset := range assets {
 		assetsByName[asset.Name] = asset
 	}
-	for _, record := range records {
+	for _, r := range records {
 		for _, assetColumn := range assetColumns {
-			if thisAsset, ok := record.Get(assetColumn).(*skydb.Asset); ok {
+			if thisAsset, ok := r.Get(assetColumn).(*record.Asset); ok {
 				completeAsset := assetsByName[thisAsset.Name]
-				record.Set(assetColumn, &completeAsset)
+				r.Set(assetColumn, &completeAsset)
 			}
 		}
 	}
@@ -516,7 +536,7 @@ func MakeAssetsComplete(recordStore record.Store, records []skydb.Record) error 
 //
 // It is the caller's reponsibility to ensure that base and delta identify
 // the same record
-func DeriveDeltaRecord(dst, base, delta *skydb.Record) {
+func DeriveDeltaRecord(dst, base, delta *record.Record) {
 	if base == nil {
 		*dst = *delta
 		return
@@ -547,12 +567,12 @@ func DeriveDeltaRecord(dst, base, delta *skydb.Record) {
 	}
 }
 
-func removeRecordFieldTypeHints(r *skydb.Record) {
+func removeRecordFieldTypeHints(r *record.Record) {
 	for k, v := range r.Data {
 		switch v.(type) {
-		case skydb.Sequence:
+		case record.Sequence:
 			delete(r.Data, k)
-		case skydb.Unknown:
+		case record.Unknown:
 			delete(r.Data, k)
 		}
 	}
