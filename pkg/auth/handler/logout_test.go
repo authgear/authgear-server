@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -28,6 +29,7 @@ func TestLogoutHandler(t *testing.T) {
 
 	Convey("Test LogoutHandler", t, func() {
 		h := &LogoutHandler{}
+		h.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		h.TokenStore = authtoken.NewJWTStore("myApp", "secret", 0)
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 
