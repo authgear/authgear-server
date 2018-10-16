@@ -24,7 +24,8 @@ required = [
   "golang.org/x/tools/cmd/stringer",
   "golang.org/x/tools/cmd/cover",
   "github.com/mitchellh/gox",
-  "github.com/golang/mock/mockgen"
+  "github.com/golang/mock/mockgen",
+  "github.com/tinylib/msgp"
 ]
 
 [[constraint]]

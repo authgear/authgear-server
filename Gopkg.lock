@@ -444,10 +444,24 @@
 [[projects]]
   digest = "1:cae65c1f3471b1f456a9d8a160440f4824ad50c718a15da4144490fbc3b12e49"
   name = "github.com/tinylib/msgp"
-  packages = ["msgp"]
+  packages = [
+    ".",
+    "gen",
+    "msgp",
+    "parse",
+    "printer",
+  ]
   pruneopts = ""
   revision = "b2b6a672cf1e5b90748f79b8b81fc8c5cf0571a1"
   version = "1.0.2"
+
+[[projects]]
+  digest = "1:ccbb809cca94fd697821dced4515c88a1ed45f3d063b3f921b134b63d4311dc2"
+  name = "github.com/ttacon/chalk"
+  packages = ["."]
+  pruneopts = ""
+  revision = "76b3c8b611dea8f83e49e9ce81fc2b189e0ef3d2"
+  version = "v0.1"
 
 [[projects]]
   digest = "1:8aca1243481ad054210f5b997c70656ce32ece00b0cfdebc816ed515c81e76ea"
@@ -519,6 +533,8 @@
     "cmd/cover",
     "cmd/stringer",
     "cover",
+    "go/ast/astutil",
+    "imports",
   ]
   pruneopts = ""
   revision = "6d70fb2e85323e81c89374331d3d2b93304faa36"
@@ -565,6 +581,7 @@
     "github.com/skygeario/buford/push",
     "github.com/skygeario/go-baidupush",
     "github.com/smartystreets/goconvey/convey",
+    "github.com/tinylib/msgp",
     "github.com/tinylib/msgp/msgp",
     "github.com/twinj/uuid",
     "golang.org/x/crypto/bcrypt",

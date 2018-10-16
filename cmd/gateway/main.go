@@ -11,7 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
-	"github.com/skygeario/skygear-server/pkg/gateway/db"
+	pqStore "github.com/skygeario/skygear-server/pkg/gateway/db/pq"
 	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
 	"github.com/skygeario/skygear-server/pkg/gateway/provider"
 )
@@ -35,14 +35,14 @@ func main() {
 	logger := logging.LoggerEntry("gateway")
 
 	// create gateway store
-	store, connErr := db.NewGatewayStore(
+	store, connErr := pqStore.NewGatewayStore(
 		context.Background(),
 		config.DB.ConnectionStr,
 	)
-	defer store.Close()
 	if connErr != nil {
 		logger.WithError(connErr).Panic("Fail to create db conn")
 	}
+	defer store.Close()
 
 	r := mux.NewRouter()
 

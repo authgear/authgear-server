@@ -88,9 +88,9 @@ func runCommand(m *migrate.Migrate) (err error) {
 			err = m.Steps(-step)
 		}
 	case "force":
-		v, err := strconv.ParseInt(flag.Arg(1), 10, 64)
-		if err != nil {
-			panic(err)
+		v, e := strconv.ParseInt(flag.Arg(1), 10, 64)
+		if e != nil {
+			panic(e)
 		}
 
 		err = m.Force(int(v))

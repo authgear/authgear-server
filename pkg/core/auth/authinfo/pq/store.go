@@ -105,6 +105,7 @@ func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	return err
 }
 
+// UpdateAuth updates an existing AuthInfo matched by the ID field.
 // nolint: gocyclo
 func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	var (

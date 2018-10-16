@@ -43,9 +43,9 @@ func NewAuthResponse(authInfo authinfo.AuthInfo, user skydb.Record, accessToken 
 	var jsonUser *skyconv.JSONRecord
 	var lastLoginAt *time.Time
 
-	if user.ID.Type != "" {
-		// TODO: handle user record
-	}
+	// if user.ID.Type != "" {
+	// 	// TODO: handle user record
+	// }
 
 	return AuthResponse{
 		UserID:      authInfo.ID,

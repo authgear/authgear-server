@@ -29,7 +29,7 @@ type UserProfileConfiguration struct {
 }
 
 type UserAuditConfiguration struct {
-	Enabled         bool `msg:"ENABLED" envconfig:"USER_AUDIT_ENABLED" json:"ENABLED"`
+	Enabled         bool   `msg:"ENABLED" envconfig:"USER_AUDIT_ENABLED" json:"ENABLED"`
 	TrailHandlerURL string `msg:"TRAIL_HANDLER_URL" envconfig:"USER_AUDIT_TRAIL_HANDLER_URL" json:"TRAIL_HANDLER_URL"`
 }
 
@@ -56,7 +56,7 @@ func GetTenantConfig(i interface{}) TenantConfiguration {
 		panic(err)
 	}
 
-	data, err = t.UnmarshalMsg(data)
+	_, err = t.UnmarshalMsg(data)
 	if err != nil {
 		panic(err)
 	}
