@@ -4,12 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -51,9 +51,6 @@ func TestLoginHandler(t *testing.T) {
 	})
 
 	Convey("Test LoginHandler", t, func() {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
 		realTime := timeNow
 		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 		defer func() {
@@ -91,6 +88,7 @@ func TestLoginHandler(t *testing.T) {
 		h.TokenStore = tokenStore
 		h.AuthDataChecker = authChecker
 		h.PasswordAuthProvider = passwordAuthProvider
+		h.AuditTrail = coreAudit.NewMockTrail(t)
 
 		Convey("login user with auth data", func() {
 			authData := map[string]interface{}{
@@ -148,6 +146,36 @@ func TestLoginHandler(t *testing.T) {
 			}
 			_, err := h.Handle(payload)
 			So(err.Error(), ShouldEqual, "InvalidArgument: invalid auth data")
+		})
+
+		Convey("log audit trail when login success", func() {
+			authData := map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			}
+			payload := LoginRequestPayload{
+				AuthData: authData,
+				Password: "123456",
+			}
+			h.Handle(payload)
+			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
+			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
+			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "login_success")
+		})
+
+		Convey("log audit trail when login fail", func() {
+			authData := map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			}
+			payload := LoginRequestPayload{
+				AuthData: authData,
+				Password: "wrong_password",
+			}
+			h.Handle(payload)
+			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
+			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
+			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "login_failure")
 		})
 	})
 }

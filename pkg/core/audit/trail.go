@@ -87,25 +87,29 @@ func (e Event) String() string {
 	}
 }
 
-type Trail struct {
+type Trail interface {
+	Log(entry Entry)
+}
+
+type LoggerTrail struct {
 	logger *logrus.Entry
 }
 
-func (t Trail) Log(entry Entry) {
+func (t LoggerTrail) Log(entry Entry) {
 	t.logger.WithFields(entry.toLogrusFields()).Info("audit_trail")
 }
 
 type Entry struct {
-	Event         Event
-	AuthID        string
-	Data          map[string]interface{}
+	Event  Event
+	AuthID string
+	Data   map[string]interface{}
 }
 
 func (e *Entry) toLogrusFields() logrus.Fields {
 	return logrus.Fields{
-		"event":                e.Event.String(),
-		"auth_id":              e.AuthID,
-		"data":                 e.Data,
+		"event":   e.Event.String(),
+		"auth_id": e.AuthID,
+		"data":    e.Data,
 	}
 }
 
@@ -169,7 +173,7 @@ func createHook(handlerURL string) (logrus.Hook, error) {
 	return nil, fmt.Errorf("unknown handler: %v, %v", scheme, handlerURL)
 }
 
-func NewTrail(enabled bool, handlerURL string, req *http.Request) (*Trail, error) {
+func NewTrail(enabled bool, handlerURL string, req *http.Request) (Trail, error) {
 	var trailLogger = logrus.New()
 	trailLogger.Formatter = &logrus.JSONFormatter{}
 	if enabled {
@@ -193,7 +197,7 @@ func NewTrail(enabled bool, handlerURL string, req *http.Request) (*Trail, error
 	fields["x_real_ip"] = req.Header.Get("x-real-ip")
 	fields["forwarded"] = req.Header.Get("forwarded")
 
-	return &Trail{
+	return &LoggerTrail{
 		logger: trailLogger.WithFields(fields),
 	}, nil
 }

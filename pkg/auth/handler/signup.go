@@ -99,7 +99,7 @@ type SignupHandler struct {
 	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
 	RoleStore            role.Store                  `dependency:"RoleStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
-	AuditTrail           *coreAudit.Trail            `dependency:"AuditTrail"`
+	AuditTrail           coreAudit.Trail             `dependency:"AuditTrail"`
 	TxContext            db.TxContext                `dependency:"TxContext"`
 }
 

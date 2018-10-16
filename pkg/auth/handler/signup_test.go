@@ -4,12 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
@@ -71,9 +71,6 @@ func TestSingupHandler(t *testing.T) {
 	})
 
 	Convey("Test SignupHandler", t, func() {
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-
 		realTime := timeNow
 		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 		defer func() {
@@ -110,6 +107,7 @@ func TestSingupHandler(t *testing.T) {
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.RoleStore = roleStore
+		h.AuditTrail = coreAudit.NewMockTrail(t)
 
 		Convey("signup user with auth data", func() {
 			authData := map[string]interface{}{
@@ -179,5 +177,19 @@ func TestSingupHandler(t *testing.T) {
 			So(err.Error(), ShouldEqual, "PasswordPolicyViolated: password too short")
 		})
 
+		Convey("log audit trail when signup success", func() {
+			authData := map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			}
+			payload := SignupRequestPayload{
+				AuthData: authData,
+				Password: "123456",
+			}
+			h.Handle(payload)
+			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
+			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
+			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "signup")
+		})
 	})
 }

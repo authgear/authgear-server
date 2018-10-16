@@ -66,7 +66,7 @@ func (p LogoutRequestPayload) Validate() error {
 type LogoutHandler struct {
 	AuthContext coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	TokenStore  authtoken.Store        `dependency:"TokenStore"`
-	AuditTrail  *audit.Trail           `dependency:"AuditTrail"`
+	AuditTrail  audit.Trail            `dependency:"AuditTrail"`
 	TxContext   db.TxContext           `dependency:"TxContext"`
 }
 
@@ -100,7 +100,7 @@ func (h LogoutHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: h.AuthContext.AuthInfo().ID,
-		Event:  audit.EventLoginFailure,
+		Event:  audit.EventLogout,
 	})
 
 	return

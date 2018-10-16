@@ -8,6 +8,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -42,6 +43,7 @@ func TestSetDisableHandler(t *testing.T) {
 		)
 		h := &SetDisableHandler{}
 		h.AuthInfoStore = authInfoStore
+		h.AuditTrail = coreAudit.NewMockTrail(t)
 
 		Convey("decode valid request", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -118,6 +120,21 @@ func TestSetDisableHandler(t *testing.T) {
 			So(a.Disabled, ShouldBeFalse)
 			So(a.DisabledMessage, ShouldBeEmpty)
 			So(a.DisabledExpiry, ShouldBeNil)
+		})
+
+		Convey("log audit trail when disable user", func() {
+			expiry := time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)
+			userID := "john.doe.id"
+			payload := setDisableUserPayload{
+				AuthInfoID: userID,
+				Disabled:   true,
+				Message:    "Temporarily disable",
+				expiry:     &expiry,
+			}
+			h.Handle(payload)
+			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
+			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
+			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "disable_user")
 		})
 	})
 }

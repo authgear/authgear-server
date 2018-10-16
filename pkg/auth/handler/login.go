@@ -73,7 +73,7 @@ type LoginHandler struct {
 	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
 	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
-	AuditTrail           *audit.Trail                `dependency:"AuditTrail"`
+	AuditTrail           audit.Trail                 `dependency:"AuditTrail"`
 	TxContext            db.TxContext                `dependency:"TxContext"`
 }
 

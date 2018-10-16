@@ -4,6 +4,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
+	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -28,8 +29,9 @@ func TestLogoutHandler(t *testing.T) {
 	Convey("Test LogoutHandler", t, func() {
 		h := &LogoutHandler{}
 		h.TokenStore = authtoken.NewJWTStore("myApp", "secret", 0)
+		h.AuditTrail = coreAudit.NewMockTrail(t)
 
-		Convey("Test LogoutHandler", func() {
+		Convey("logout user successfully", func() {
 			token := "test_token"
 			payload := LogoutRequestPayload{
 				AccessToken: token,
@@ -37,6 +39,16 @@ func TestLogoutHandler(t *testing.T) {
 			resp, err := h.Handle(payload)
 			So(resp, ShouldEqual, "OK")
 			So(err, ShouldBeNil)
+		})
+
+		Convey("log audit trail when logout", func() {
+			payload := LogoutRequestPayload{
+				AccessToken: "test_token",
+			}
+			h.Handle(payload)
+			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
+			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
+			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "logout")
 		})
 	})
 }
