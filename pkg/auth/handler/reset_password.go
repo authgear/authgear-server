@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -17,7 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/server/audit"
+	passwordAudit "github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -73,6 +74,7 @@ type ResetPasswordHandler struct {
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	AuditTrail           *audit.Trail               `dependency:"AuditTrail"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 }
 
@@ -101,7 +103,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	if err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+	if err = h.PasswordChecker.ValidatePassword(passwordAudit.ValidatePasswordPayload{
 		PlainPassword: payload.Password,
 	}); err != nil {
 		return
@@ -134,8 +136,10 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	resp = response.NewAuthResponse(authinfo, skydb.Record{}, token.AccessToken)
-
-	// TODO: Audit
+	h.AuditTrail.Log(audit.Entry{
+		AuthID: authinfo.ID,
+		Event:  audit.EventResetPassword,
+	})
 
 	return
 }
