@@ -20,7 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	recordGear "github.com/skygeario/skygear-server/pkg/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
-	"github.com/skygeario/skygear-server/pkg/record/dependency/record/recordconv"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/recordconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
