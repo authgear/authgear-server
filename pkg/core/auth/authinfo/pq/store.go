@@ -76,7 +76,7 @@ func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		disabledExpiry = nil
 	}
 
-	builder := s.sqlBuilder.Insert(s.sqlBuilder.TableName("user")).Columns(
+	builder := s.sqlBuilder.Insert(s.sqlBuilder.FullTableName("user")).Columns(
 		"id",
 		"token_valid_since",
 		"last_seen_at",
@@ -137,7 +137,7 @@ func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		disabledExpiry = nil
 	}
 
-	builder := s.sqlBuilder.Update(s.sqlBuilder.TableName("user")).
+	builder := s.sqlBuilder.Update(s.sqlBuilder.FullTableName("user")).
 		Set("token_valid_since", tokenValidSince).
 		Set("last_seen_at", lastSeenAt).
 		Set("last_login_at", lastLoginAt).
@@ -175,8 +175,8 @@ func (s AuthInfoStore) baseUserBuilder() sq.SelectBuilder {
 		"token_valid_since", "last_seen_at", "last_login_at",
 		"disabled", "disabled_message", "disabled_expiry",
 		"array_to_json(array_agg(role_id)) AS roles").
-		From(s.sqlBuilder.TableName("user")).
-		LeftJoin(s.sqlBuilder.TableName("user_role") + " ON id = user_id").
+		From(s.sqlBuilder.FullTableName("user")).
+		LeftJoin(s.sqlBuilder.FullTableName("user_role") + " ON id = user_id").
 		GroupBy("id")
 }
 
@@ -256,7 +256,7 @@ func (s AuthInfoStore) GetAuth(id string, authinfo *authinfo.AuthInfo) error {
 }
 
 func (s AuthInfoStore) DeleteAuth(id string) error {
-	builder := s.sqlBuilder.Delete(s.sqlBuilder.TableName("user")).
+	builder := s.sqlBuilder.Delete(s.sqlBuilder.FullTableName("user")).
 		Where("id = ?", id)
 
 	result, err := s.sqlExecutor.ExecWith(builder)

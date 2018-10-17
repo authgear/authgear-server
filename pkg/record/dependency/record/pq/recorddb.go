@@ -133,7 +133,7 @@ func (s *RecordStore) Save(r *record.Record) error {
 		}
 	}
 
-	upsert := builder.UpsertQueryWithWrappers(s.sqlBuilder.TableName(r.ID.Type), pkData, convert(r), wrappers).
+	upsert := builder.UpsertQueryWithWrappers(s.sqlBuilder.FullTableName(r.ID.Type), pkData, convert(r), wrappers).
 		IgnoreKeyOnUpdate("_owner_id").
 		IgnoreKeyOnUpdate("_created_at").
 		IgnoreKeyOnUpdate("_created_by")
@@ -177,8 +177,8 @@ func (s *RecordStore) preSave(schema record.Schema, r *record.Record) error {
 	for key, value := range r.Data {
 		// we are setting a sequence field
 		if schema[key].Type == record.TypeSequence {
-			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), s.sqlBuilder.TableName(r.ID.Type))
-			seqName := s.sqlBuilder.TableName(fmt.Sprintf(`%v_%v_seq`, r.ID.Type, key))
+			selectSQL := fmt.Sprintf(SetSequenceMaxValue, pq.QuoteIdentifier(key), s.sqlBuilder.FullTableName(r.ID.Type))
+			seqName := s.sqlBuilder.FullTableName(fmt.Sprintf(`%v_%v_seq`, r.ID.Type, key))
 			if _, err := s.sqlExecutor.Exec(selectSQL, seqName, value); err != nil {
 				return err
 			}
@@ -222,7 +222,7 @@ func convert(r *record.Record) map[string]interface{} {
 
 func (s *RecordStore) Delete(id record.ID) error {
 	// logger := logging.CreateLogger(db.c.context, "skydb")
-	builder := s.sqlBuilder.Delete(s.sqlBuilder.TableName(id.Type)).
+	builder := s.sqlBuilder.Delete(s.sqlBuilder.FullTableName(id.Type)).
 		Where("_id = ?", id.Key)
 
 	result, err := s.sqlExecutor.ExecWith(builder)
@@ -596,7 +596,7 @@ func (s *RecordStore) selectQuery(q sq.SelectBuilder, recordType string, typemap
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)
 	}
 
-	q = q.From(s.sqlBuilder.TableName(recordType))
+	q = q.From(s.sqlBuilder.FullTableName(recordType))
 
 	return q
 }

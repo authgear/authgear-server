@@ -29,7 +29,7 @@ func NewSQLBuilder(namespace string, appName string) SQLBuilder {
 	}
 }
 
-func (b SQLBuilder) TableName(table string) string {
+func (b SQLBuilder) FullTableName(table string) string {
 	tableName := "_" + b.namespace + "_" + table
 	return pq.QuoteIdentifier(b.SchemaName()) + "." + pq.QuoteIdentifier(tableName)
 }

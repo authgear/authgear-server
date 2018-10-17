@@ -54,7 +54,7 @@ func (s *RecordStore) Extend(recordType string, recordSchema record.Schema) (ext
 	}
 
 	if len(remoteRecordSchema) == 0 {
-		if err := createTable(s.logger, s.sqlExecutor, s.sqlBuilder.TableName(recordType)); err != nil {
+		if err := createTable(s.logger, s.sqlExecutor, s.sqlBuilder.FullTableName(recordType)); err != nil {
 			return false, fmt.Errorf("failed to create table: %s", err)
 		}
 		extended = true
@@ -98,7 +98,7 @@ func (s *RecordStore) RenameSchema(recordType, oldName, newName string) error {
 		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
 	}
 
-	tableName := s.sqlBuilder.TableName(recordType)
+	tableName := s.sqlBuilder.FullTableName(recordType)
 	oldName = pq.QuoteIdentifier(oldName)
 	newName = pq.QuoteIdentifier(newName)
 
@@ -116,7 +116,7 @@ func (s *RecordStore) DeleteSchema(recordType, columnName string) error {
 		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
 	}
 
-	tableName := s.sqlBuilder.TableName(recordType)
+	tableName := s.sqlBuilder.FullTableName(recordType)
 	columnName = pq.QuoteIdentifier(columnName)
 
 	stmt := fmt.Sprintf("ALTER TABLE %s DROP %s", tableName, columnName)
@@ -443,7 +443,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 func (s *RecordStore) addColumnStmt(recordType string, recordSchema record.Schema) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("ALTER TABLE "))
-	buf.WriteString(s.sqlBuilder.TableName(recordType))
+	buf.WriteString(s.sqlBuilder.FullTableName(recordType))
 	buf.WriteByte(' ')
 	for column, schema := range recordSchema {
 		buf.Write([]byte("ADD "))
@@ -471,7 +471,7 @@ func (s *RecordStore) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, ref
 	buf.Write([]byte(` FOREIGN KEY (`))
 	buf.WriteString(pq.QuoteIdentifier(localCol))
 	buf.Write([]byte(`) REFERENCES `))
-	buf.WriteString(s.sqlBuilder.TableName(referent))
+	buf.WriteString(s.sqlBuilder.FullTableName(referent))
 	buf.Write([]byte(` (`))
 	buf.WriteString(pq.QuoteIdentifier(remoteCol))
 	buf.Write([]byte(`),`))

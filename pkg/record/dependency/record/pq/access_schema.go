@@ -56,7 +56,7 @@ func (s *RecordStore) SetRecordAccess(recordType string, acl record.ACL) error {
 func (s *RecordStore) GetRecordAccess(recordType string) (record.ACL, error) {
 	builder := s.sqlBuilder.
 		Select("role_id").
-		From(s.sqlBuilder.TableName("creation")).
+		From(s.sqlBuilder.FullTableName("creation")).
 		Where(sq.Eq{"record_type": recordType})
 
 	rows, err := s.sqlExecutor.QueryWith(builder)
@@ -89,7 +89,7 @@ func (s *RecordStore) deleteRecordCreationAccess(recordType string, roles []stri
 	}
 
 	builder := s.sqlBuilder.
-		Delete(s.sqlBuilder.TableName("creation")).
+		Delete(s.sqlBuilder.FullTableName("creation")).
 		Where("role_id IN ("+sq.Placeholders(len(roles))+")", roleArgs...)
 
 	_, err := s.sqlExecutor.ExecWith(builder)
@@ -103,7 +103,7 @@ func (s *RecordStore) insertRecordCreationAccess(recordType string, roles []stri
 
 	for _, perRole := range roles {
 		builder := s.sqlBuilder.
-			Insert(s.sqlBuilder.TableName("creation")).
+			Insert(s.sqlBuilder.FullTableName("creation")).
 			Columns("record_type", "role_id").
 			Values(recordType, perRole)
 
@@ -129,7 +129,7 @@ func (s *RecordStore) SetRecordDefaultAccess(recordType string, acl record.ACL) 
 		"default_access": aclValue(acl),
 	}
 
-	upsert := builder.UpsertQuery(s.sqlBuilder.TableName("default_access"), pkData, values)
+	upsert := builder.UpsertQuery(s.sqlBuilder.FullTableName("default_access"), pkData, values)
 	_, err := s.sqlExecutor.ExecWith(upsert)
 
 	if err != nil {
@@ -142,7 +142,7 @@ func (s *RecordStore) SetRecordDefaultAccess(recordType string, acl record.ACL) 
 func (s *RecordStore) GetRecordDefaultAccess(recordType string) (record.ACL, error) {
 	builder := s.sqlBuilder.
 		Select("default_access").
-		From(s.sqlBuilder.TableName("default_access")).
+		From(s.sqlBuilder.FullTableName("default_access")).
 		Where(sq.Eq{"record_type": recordType})
 
 	nullableACLString := sql.NullString{}
@@ -165,7 +165,7 @@ func (s *RecordStore) SetRecordFieldAccess(acl record.FieldACL) (err error) {
 	// }()
 
 	deleteBuilder := s.sqlBuilder.
-		Delete(s.sqlBuilder.TableName("field_access"))
+		Delete(s.sqlBuilder.FullTableName("field_access"))
 
 	if _, err = s.sqlExecutor.ExecWith(deleteBuilder); err != nil {
 		return
@@ -178,7 +178,7 @@ func (s *RecordStore) SetRecordFieldAccess(acl record.FieldACL) (err error) {
 	}
 
 	builder := s.sqlBuilder.
-		Insert(s.sqlBuilder.TableName("field_access")).
+		Insert(s.sqlBuilder.FullTableName("field_access")).
 		Columns(
 			"record_type",
 			"record_field",
@@ -220,7 +220,7 @@ func (s *RecordStore) GetRecordFieldAccess() (record.FieldACL, error) {
 			"comparable",
 			"discoverable",
 		).
-		From(s.sqlBuilder.TableName("field_access"))
+		From(s.sqlBuilder.FullTableName("field_access"))
 
 	var recordTypeString string
 	var recordFieldString string
