@@ -1,33 +1,33 @@
 package pq
 
 import (
-	"errors"
 	"database/sql"
+	"errors"
 
 	"github.com/sirupsen/logrus"
-	"github.com/skygeario/skygear-server/pkg/gateway/model"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
 // ErrAppNotFound is returned by Conn.GetAppByDomain when App cannot be found
 // by given domain
 var ErrAppNotFound = errors.New("App not found")
+
 // ErrConfigNotFound is returned by Conn.GetAppByDomain when tenant config
 // cannot be found
 var ErrConfigNotFound = errors.New("Tenant config not found")
-
 
 func (s *store) GetAppByDomain(domain string, app *model.App) error {
 	logger := logging.LoggerEntry("gateway")
 	builder := psql.Select("app.id", "app.name", "app.config_id", "app.plan_id").
 		From(s.tableName("app")).
-		Join(s.tableName("domain") + " ON app.id = domain.app_id").
+		Join(s.tableName("domain")+" ON app.id = domain.app_id").
 		Where("domain.domain = ?", domain)
 	scanner := s.QueryRowWith(builder)
 
 	var (
 		configID string
-		planID string
+		planID   string
 	)
 
 	if err := scanner.Scan(

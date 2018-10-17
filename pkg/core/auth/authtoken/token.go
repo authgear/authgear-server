@@ -59,8 +59,8 @@ func (t *Token) UnmarshalJSON(data []byte) (err error) {
 	if !time.Time(token.ExpiredAt).IsZero() {
 		expireAt = time.Time(token.ExpiredAt)
 	}
-	if !time.Time(token.issuedAt).IsZero() {
-		issuedAt = time.Time(token.issuedAt)
+	if !time.Time(token.IssuedAt).IsZero() {
+		issuedAt = time.Time(token.IssuedAt)
 	}
 	t.AccessToken = token.AccessToken
 	t.ExpiredAt = expireAt
@@ -75,7 +75,7 @@ type jsonToken struct {
 	ExpiredAt   jsonStamp `json:"expiredAt"`
 	AppName     string    `json:"appName"`
 	AuthInfoID  string    `json:"authInfoID"`
-	issuedAt    jsonStamp `json:"issuedAt"`
+	IssuedAt    jsonStamp `json:"issuedAt"`
 }
 
 type jsonStamp time.Time

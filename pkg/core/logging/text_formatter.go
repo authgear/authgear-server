@@ -17,6 +17,7 @@ import (
 
 const defaultTimestampFormat = time.RFC3339
 
+// nolint: deadcode
 const (
 	nocolor = 0
 	red     = 31
@@ -28,7 +29,6 @@ const (
 
 var (
 	baseTimestamp time.Time
-	emptyFieldMap logrus.FieldMap
 )
 
 func init() {
@@ -82,6 +82,7 @@ func (f *TextFormatter) init(entry *logrus.Entry) {
 }
 
 // Format renders a single log entry
+// nolint: gocyclo
 func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	var b *bytes.Buffer
 	keys := []string{}

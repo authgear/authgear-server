@@ -57,8 +57,12 @@ go-generate: go-install
 
 .PHONY: go-lint
 go-lint: go-install
-	$(DOCKER_RUN) gometalinter --disable-all --enable=gocyclo --enable=staticcheck --enable=golint --enable=misspell ./...
-	$(DOCKER_RUN) gometalinter ./... || true
+	$(DOCKER_RUN) gometalinter --disable-all \
+		-enable=staticcheck --enable=golint --enable=misspell --enable=gocyclo \
+		--linter='gocyclo:gocyclo -over 15:^(?P<cyclo>\d+)\s+\S+\s(?P<function>\S+)\s+(?P<path>.*?\.go):(?P<line>\d+):(\d+)$'' \
+		./...
+# Next linter have stricter rule
+	$(DOCKER_RUN) gometalinter ./pkg/auth/... ./pkg/core/... ./pkg/gateway/... 
 
 .PHONY: generate
 generate: go-generate
