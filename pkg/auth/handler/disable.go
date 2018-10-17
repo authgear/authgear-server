@@ -69,7 +69,7 @@ func (payload setDisableUserPayload) Validate() error {
 // SetDisableHandler handles set disable request
 type SetDisableHandler struct {
 	AuthInfoStore authinfo.Store `dependency:"AuthInfoStore"`
-	AuditTrail    *audit.Trail   `dependency:"AuditTrail"`
+	AuditTrail    audit.Trail    `dependency:"AuditTrail"`
 	TxContext     db.TxContext   `dependency:"TxContext"`
 }
 

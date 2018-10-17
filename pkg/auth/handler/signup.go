@@ -99,7 +99,7 @@ type SignupHandler struct {
 	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
 	RoleStore            role.Store                  `dependency:"RoleStore"`
 	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
-	AuditTrail           *coreAudit.Trail            `dependency:"AuditTrail"`
+	AuditTrail           coreAudit.Trail             `dependency:"AuditTrail"`
 	TxContext            db.TxContext                `dependency:"TxContext"`
 }
 
@@ -115,6 +115,10 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 
 func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
+
+	if payload.isAnonymous() {
+		panic("Unsupported signup anonymously")
+	}
 
 	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
 		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
@@ -166,14 +170,9 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	// Create Principal
 	principal := password.NewPrincipal()
-
-	if payload.isAnonymous() {
-		panic("Unsupported signup anonymously")
-	} else {
-		principal.UserID = info.ID
-		principal.AuthData = payload.AuthData
-		principal.PlainPassword = payload.Password
-	}
+	principal.UserID = info.ID
+	principal.AuthData = payload.AuthData
+	principal.PlainPassword = payload.Password
 
 	err = h.PasswordAuthProvider.CreatePrincipal(principal)
 	if err != nil {
