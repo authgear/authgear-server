@@ -5,6 +5,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/core/asset/fs"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -44,7 +46,10 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			logging.CreateLogger(r, "record", createLoggerMaskFormatter(r)),
 		)
 	case "HandlerLogger":
-		return logging.CreateLogger(r, "record")
+		return logging.CreateLogger(r, "record", createLoggerMaskFormatter(r))
+	case "AssetStore":
+		// TODO: get from tConfig
+		return fs.NewAssetStore("", "", "", true, logging.CreateLogger(r, "record", createLoggerMaskFormatter(r)))
 	default:
 		return nil
 	}

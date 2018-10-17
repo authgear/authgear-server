@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/core/asset"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -20,7 +21,6 @@ import (
 	recordGear "github.com/skygeario/skygear-server/pkg/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record/recordconv"
-	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -125,6 +125,7 @@ type SaveHandler struct {
 	TxContext   db.TxContext       `dependency:"TxContext"`
 	RecordStore record.Store       `dependency:"RecordStore"`
 	Logger      *logrus.Entry      `dependency:"HandlerLogger"`
+	AssetStore  asset.Store        `dependency:"AssetStore"`
 }
 
 func (h SaveHandler) WithTx() bool {
@@ -158,8 +159,7 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	resultFilter, err := NewRecordResultFilter(
 		h.RecordStore,
-		// TODO:
-		nil,
+		h.AssetStore,
 		h.AuthContext.AuthInfo(),
 		h.AuthContext.AccessKeyType() == model.MasterAccessKey,
 	)
@@ -169,9 +169,8 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	modifyReq := RecordModifyRequest{
-		RecordStore: h.RecordStore,
-		// TODO:
-		AssetStore:    nil,
+		RecordStore:   h.RecordStore,
+		AssetStore:    h.AssetStore,
 		Logger:        h.Logger,
 		AuthInfo:      h.AuthContext.AuthInfo(),
 		RecordsToSave: payload.Records,
