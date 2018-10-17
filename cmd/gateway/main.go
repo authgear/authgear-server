@@ -48,9 +48,6 @@ func main() {
 
 	// RecoverMiddleware must come first
 	r.Use(coreMiddleware.RecoverMiddleware{}.Handle)
-	r.Use(middleware.CORSMiddleware{
-		Origin: config.HTTP.CORSHost,
-	}.Handle)
 	// TODO:
 	// Currently both config and authz middleware both query store to get
 	// app, see how to reduce query to optimize the performance
