@@ -82,6 +82,7 @@ func (f *TextFormatter) init(entry *logrus.Entry) {
 }
 
 // Format renders a single log entry
+// nolint: gocyclo
 func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	var b *bytes.Buffer
 	keys := []string{}
