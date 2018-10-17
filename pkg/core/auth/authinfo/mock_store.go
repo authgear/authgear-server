@@ -81,3 +81,14 @@ func (s *MockStore) AssignRoles(userIDs []string, roles []string) error {
 	}
 	return nil
 }
+
+// GetRoles accepts array of userID, and return corresponding roles
+func (s *MockStore) GetRoles(userIDs []string) (roleMap map[string][]string, err error) {
+	for _, userID := range userIDs {
+		authInfo, existed := s.AuthInfoMap[userID]
+		if existed {
+			roleMap[userID] = authInfo.Roles
+		}
+	}
+	return roleMap, nil
+}
