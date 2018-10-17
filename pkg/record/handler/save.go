@@ -184,6 +184,19 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 		ErrMap: map[record.ID]skyerr.Error{},
 	}
 
+	// TODO: emit schema updated event
+	_, err = ExtendRecordSchema(context.Background(), h.RecordStore, payload.Records)
+	if err != nil {
+		// logger.WithError(err).Errorln("failed to migrate record schema")
+		if myerr, ok := err.(skyerr.Error); ok {
+			err = myerr
+			return
+		}
+
+		err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
+		return
+	}
+
 	if err = RecordSaveHandler(&modifyReq, &modifyResp); err != nil {
 		return
 	}
@@ -682,4 +695,95 @@ func scrubRecordFieldsForRead(authInfo *authinfo.AuthInfo, r *record.Record, fie
 			r.Remove(key)
 		}
 	}
+}
+
+func ExtendRecordSchema(ctx context.Context, recordStore record.Store, records []*record.Record) (bool, error) {
+	recordSchemaMergerMap := map[string]schemaMerger{}
+	for _, record := range records {
+		recordType := record.ID.Type
+		merger, ok := recordSchemaMergerMap[recordType]
+		if !ok {
+			merger = newSchemaMerger()
+		}
+
+		merger.Extend(deriveRecordSchema(record.Data))
+
+		// The map hold the value of Schema Merger. After we have
+		// updated the Schema Merger, we have to copy the value
+		// of Schema Merger back to the map.
+		recordSchemaMergerMap[recordType] = merger
+	}
+
+	extended := false
+	for recordType, merger := range recordSchemaMergerMap {
+		schema, err := merger.Schema()
+		if err != nil {
+			return false, err
+		}
+
+		schemaExtended, err := recordStore.Extend(recordType, schema)
+		if err != nil {
+			return false, err
+		}
+		if schemaExtended {
+			// logger := logging.CreateLogger(ctx, "handler")
+			// logger.
+			// 	WithField("type", recordType).
+			// 	WithField("schema", schema).
+			// 	Info("Schema Extended")
+			extended = true
+		}
+	}
+
+	return extended, nil
+}
+
+type schemaMerger struct {
+	finalSchema record.Schema
+	err         error
+}
+
+func newSchemaMerger() schemaMerger {
+	return schemaMerger{finalSchema: record.Schema{}}
+}
+
+func (m *schemaMerger) Extend(schema record.Schema) {
+	if m.err != nil {
+		return
+	}
+
+	for key, dataType := range schema {
+		if originalType, ok := m.finalSchema[key]; ok {
+			if originalType != dataType {
+				m.err = fmt.Errorf("type conflict on column = %s, %#v -> %#v", key, originalType, dataType)
+				return
+			}
+		}
+
+		m.finalSchema[key] = dataType
+	}
+}
+
+func (m schemaMerger) Schema() (record.Schema, error) {
+	return m.finalSchema, m.err
+}
+
+func deriveRecordSchema(m record.Data) record.Schema {
+	schema := record.Schema{}
+	for key, value := range m {
+		if value == nil {
+			continue
+		}
+
+		fieldType, err := record.DeriveFieldType(value)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"key":   key,
+				"value": value,
+			}).Panicf("unable to derive record schema: %s", err)
+		}
+		schema[key] = fieldType
+	}
+
+	return schema
 }
