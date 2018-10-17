@@ -14,6 +14,7 @@ type TenantConfiguration struct {
 	APIKey          string                   `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
 	MasterKey       string                   `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
 	AppName         string                   `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
+	CORSHost        string                   `msg:"CORS_HOST" envconfig:"CORS_HOST" default:"*"`
 	TokenStore      TokenStoreConfiguration  `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
 	UserProfile     UserProfileConfiguration `json:"USER_PROFILE" msg:"USER_PROFILE"`
 	UserAudit       UserAuditConfiguration   `json:"USER_AUDIT" msg:"USER_AUDIT"`
