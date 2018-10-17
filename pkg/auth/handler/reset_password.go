@@ -28,7 +28,7 @@ func AttachResetPasswordHandler(
 ) *server.Server {
 	server.Handle("/reset_password", &ResetPasswordHandlerFactory{
 		authDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

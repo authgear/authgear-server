@@ -30,7 +30,7 @@ func AttachSignupHandler(
 ) *server.Server {
 	server.Handle("/signup", &SignupHandlerFactory{
 		authDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 
