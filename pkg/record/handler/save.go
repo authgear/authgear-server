@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
 	"time"
@@ -155,6 +156,18 @@ func (h SaveHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(SaveRequestPayload)
 
+	resultFilter, err := NewRecordResultFilter(
+		h.RecordStore,
+		// TODO:
+		nil,
+		h.AuthContext.AuthInfo(),
+		h.AuthContext.AccessKeyType() == model.MasterAccessKey,
+	)
+	if err != nil {
+		err = skyerr.MakeError(err)
+		return
+	}
+
 	modifyReq := RecordModifyRequest{
 		RecordStore: h.RecordStore,
 		// TODO:
@@ -171,12 +184,46 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 		ErrMap: map[record.ID]skyerr.Error{},
 	}
 
-	RecordSaveHandler(&modifyReq, &modifyResp)
+	if err = RecordSaveHandler(&modifyReq, &modifyResp); err != nil {
+		return
+	}
 
-	// TODO: Implement record save handler
-	resp = payload
+	results := make([]interface{}, 0, len(payload.RawMaps))
+	h.makeResultsFromIncomingItem(payload.IncomingItems, modifyResp, resultFilter, &results)
+
+	resp = results
 
 	return
+}
+
+func (h SaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, resp RecordModifyResponse, resultFilter RecordResultFilter, results *[]interface{}) {
+	currRecordIdx := 0
+	for _, itemi := range incomingItems {
+		var result interface{}
+
+		switch item := itemi.(type) {
+		case skyerr.Error:
+			result = newSerializedError("", item)
+		case record.ID:
+			if err, ok := resp.ErrMap[item]; ok {
+				// logger := logging.CreateLogger(ctx, "handler")
+				// logger.WithFields(logrus.Fields{
+				// 	"recordID": item,
+				// 	"err":      err,
+				// }).Debugln("failed to save record")
+
+				result = newSerializedError(item.String(), err)
+			} else {
+				record := resp.SavedRecords[currRecordIdx]
+				currRecordIdx++
+				result = resultFilter.JSONResult(record)
+			}
+		default:
+			panic(fmt.Sprintf("unknown type of incoming item: %T", itemi))
+		}
+
+		*results = append(*results, result)
+	}
 }
 
 type RecordModifyRequest struct {
@@ -574,6 +621,65 @@ func removeRecordFieldTypeHints(r *record.Record) {
 			delete(r.Data, k)
 		case record.Unknown:
 			delete(r.Data, k)
+		}
+	}
+}
+
+// RecordResultFilter is for processing Record into results.
+//
+// 1. Apply field-based acl, remove fields that are not accessible to the
+//    provided authInfo
+// 2. Inject asset
+// 3. Return JSONRecord that is a copy of passed in Record that is ready to
+//    be serialized
+type RecordResultFilter struct {
+	AssetStore          asset.Store
+	FieldACL            record.FieldACL
+	AuthInfo            *authinfo.AuthInfo
+	BypassAccessControl bool
+}
+
+// NewRecordResultFilter return a RecordResultFilter.
+func NewRecordResultFilter(recordStore record.Store, assetStore asset.Store, authInfo *authinfo.AuthInfo, bypassAccessControl bool) (RecordResultFilter, error) {
+	var (
+		acl record.FieldACL
+		err error
+	)
+
+	if !bypassAccessControl {
+		acl, err = recordStore.GetRecordFieldAccess()
+		if err != nil {
+			return RecordResultFilter{}, err
+		}
+	}
+
+	return RecordResultFilter{
+		AssetStore:          assetStore,
+		AuthInfo:            authInfo,
+		FieldACL:            acl,
+		BypassAccessControl: bypassAccessControl,
+	}, nil
+}
+
+func (f *RecordResultFilter) JSONResult(r *record.Record) *recordconv.JSONRecord {
+	if r == nil {
+		return nil
+	}
+
+	recordCopy := r.Copy()
+	if !f.BypassAccessControl {
+		scrubRecordFieldsForRead(f.AuthInfo, &recordCopy, f.FieldACL)
+	}
+	injectSigner(r, f.AssetStore)
+	return (*recordconv.JSONRecord)(&recordCopy)
+}
+
+// scrubRecordFieldsForRead checks the field ACL to remove the fields
+// from a record.Record that the user is not allowed to read.
+func scrubRecordFieldsForRead(authInfo *authinfo.AuthInfo, r *record.Record, fieldACL record.FieldACL) {
+	for _, key := range r.UserKeys() {
+		if !fieldACL.Accessible(r.ID.Type, key, record.ReadFieldAccessMode, authInfo, r) {
+			r.Remove(key)
 		}
 	}
 }
