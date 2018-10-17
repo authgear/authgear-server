@@ -96,7 +96,7 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	now := timeNow()
 	authInfo.LastSeenAt = &now
-	if err := h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
+	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
 		err = skyerr.MakeError(err)
 	}
 
