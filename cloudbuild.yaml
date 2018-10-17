@@ -1,0 +1,28 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+    - 'build'
+    - '-f'
+    - './cmd/auth/Dockerfile'
+    - '-t'
+    - 'gcr.io/$PROJECT_ID/skygear-auth:git-$SHORT_SHA'
+    - '-t'
+    - 'gcr.io/$PROJECT_ID/skygear-auth:next'
+    - '.'
+    id: 'skygear-auth'
+  - name: gcr.io/cloud-builders/docker
+    args:
+    - 'build'
+    - '-f'
+    - './cmd/gateway/Dockerfile'
+    - '-t'
+    - 'gcr.io/$PROJECT_ID/skygear-gateway:git-$SHORT_SHA'
+    - '-t'
+    - 'gcr.io/$PROJECT_ID/skygear-gateway:next'
+    - '.'
+    id: 'skygear-gateway'
+images:
+- 'gcr.io/$PROJECT_ID/skygear-auth:git-$SHORT_SHA'
+- 'gcr.io/$PROJECT_ID/skygear-auth:next'
+- 'gcr.io/$PROJECT_ID/skygear-gateway:git-$SHORT_SHA'
+- 'gcr.io/$PROJECT_ID/skygear-gateway:next'
