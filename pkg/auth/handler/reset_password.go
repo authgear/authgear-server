@@ -74,7 +74,7 @@ type ResetPasswordHandler struct {
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	AuditTrail           *audit.Trail               `dependency:"AuditTrail"`
+	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 }
 
