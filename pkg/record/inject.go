@@ -43,6 +43,8 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
 			logging.CreateLogger(r, "record", createLoggerMaskFormatter(r)),
 		)
+	case "HandlerLogger":
+		return logging.CreateLogger(r, "record")
 	default:
 		return nil
 	}
