@@ -16,10 +16,11 @@ package middleware
 
 import (
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type CORSMiddleware struct {
-	Origin string
 }
 
 func (cors CORSMiddleware) Handle(next http.Handler) http.Handler {
@@ -28,7 +29,8 @@ func (cors CORSMiddleware) Handle(next http.Handler) http.Handler {
 		corsMethod := r.Header.Get("Access-Control-Request-Method")
 		corsHeaders := r.Header.Get("Access-Control-Request-Headers")
 
-		w.Header().Set("Access-Control-Allow-Origin", cors.Origin)
+		tConfig := config.GetTenantConfig(r)
+		w.Header().Set("Access-Control-Allow-Origin", tConfig.CORSHost)
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		if corsMethod != "" {
