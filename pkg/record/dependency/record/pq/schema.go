@@ -214,14 +214,13 @@ func createTableStmt(tableName string) string {
 	return fmt.Sprintf(`
 CREATE TABLE %s (
     _id text,
-    _database_id text,
     _owner_id text,
     _access jsonb,
     _created_at timestamp without time zone NOT NULL,
     _created_by text,
     _updated_at timestamp without time zone NOT NULL,
     _updated_by text,
-    PRIMARY KEY(_id, _database_id, _owner_id),
+    PRIMARY KEY(_id, _owner_id),
     UNIQUE (_id)
 );
 `, tableName)
