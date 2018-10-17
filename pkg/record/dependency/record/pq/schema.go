@@ -31,6 +31,18 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+func (s *RecordStore) recordTableNameValue(recordType string) string {
+	return s.sqlBuilder.Relname("_" + recordType)
+}
+
+func (s *RecordStore) recordTableName(recordType string) string {
+	return s.sqlBuilder.TableName("_" + recordType)
+}
+
+func (s *RecordStore) recordFullTableName(recordType string) string {
+	return s.sqlBuilder.FullTableName("_" + recordType)
+}
+
 func (s *RecordStore) Extend(recordType string, recordSchema record.Schema) (extended bool, err error) {
 	remoteRecordSchema, err := s.RemoteColumnTypes(recordType)
 	if err != nil {
@@ -54,7 +66,7 @@ func (s *RecordStore) Extend(recordType string, recordSchema record.Schema) (ext
 	}
 
 	if len(remoteRecordSchema) == 0 {
-		if err := createTable(s.logger, s.sqlExecutor, s.sqlBuilder.FullTableName(recordType)); err != nil {
+		if err := createTable(s.logger, s.sqlExecutor, s.recordFullTableName(recordType)); err != nil {
 			return false, fmt.Errorf("failed to create table: %s", err)
 		}
 		extended = true
@@ -98,7 +110,7 @@ func (s *RecordStore) RenameSchema(recordType, oldName, newName string) error {
 		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
 	}
 
-	tableName := s.sqlBuilder.FullTableName(recordType)
+	tableName := s.recordFullTableName(recordType)
 	oldName = pq.QuoteIdentifier(oldName)
 	newName = pq.QuoteIdentifier(newName)
 
@@ -116,7 +128,7 @@ func (s *RecordStore) DeleteSchema(recordType, columnName string) error {
 		return skyerr.NewError(skyerr.IncompatibleSchema, "Record schema requires migration but migration is disabled.")
 	}
 
-	tableName := s.sqlBuilder.FullTableName(recordType)
+	tableName := s.recordFullTableName(recordType)
 	columnName = pq.QuoteIdentifier(columnName)
 
 	stmt := fmt.Sprintf("ALTER TABLE %s DROP %s", tableName, columnName)
@@ -140,7 +152,7 @@ func (s *RecordStore) GetRecordSchemas() (map[string]record.Schema, error) {
 	rows, err := s.sqlExecutor.Queryx(`
 	SELECT table_name
 	FROM information_schema.tables
-	WHERE (table_name NOT LIKE '\_%') AND (table_schema=$1)
+	WHERE (table_name LIKE '\_record\_\_%') AND (table_schema=$1)
 	`, schemaName)
 	if err != nil {
 		return nil, err
@@ -148,12 +160,14 @@ func (s *RecordStore) GetRecordSchemas() (map[string]record.Schema, error) {
 
 	result := map[string]record.Schema{}
 	for rows.Next() {
-		var recordType string
-		if err := rows.Scan(&recordType); err != nil {
+		var recordTable string
+		if err := rows.Scan(&recordTable); err != nil {
 			return nil, err
 		}
 
-		s.logger.Debugf("%s\n", recordType)
+		s.logger.Debugf("%s\n", recordTable)
+
+		recordType := strings.TrimPrefix(recordTable, "_record__")
 		schema, err := s.GetSchema(recordType)
 		if err != nil {
 			return nil, err
@@ -295,7 +309,7 @@ FROM pg_catalog.pg_class c
      LEFT JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
 WHERE c.relname = $1
   AND n.nspname = $2`,
-		recordType, s.sqlBuilder.SchemaName()).Scan(&oid)
+		s.recordTableNameValue(recordType), s.sqlBuilder.SchemaName()).Scan(&oid)
 
 	if err == sql.ErrNoRows {
 		// db.c.RecordSchema[recordType] = nil
@@ -399,7 +413,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		From("information_schema.table_constraints AS tc").
 		Join("information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name").
 		Join("information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name").
-		Where("constraint_type = 'FOREIGN KEY' AND tc.table_schema = ? AND tc.table_name = ?", s.sqlBuilder.SchemaName(), recordType)
+		Where("constraint_type = 'FOREIGN KEY' AND tc.table_schema = ? AND tc.table_name = ?", s.sqlBuilder.SchemaName(), s.recordTableName(recordType))
 
 	refs, err := s.sqlExecutor.QueryWith(builder)
 	if err != nil {
@@ -442,7 +456,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 func (s *RecordStore) addColumnStmt(recordType string, recordSchema record.Schema) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("ALTER TABLE "))
-	buf.WriteString(s.sqlBuilder.FullTableName(recordType))
+	buf.WriteString(s.recordFullTableName(recordType))
 	buf.WriteByte(' ')
 	for column, schema := range recordSchema {
 		buf.Write([]byte("ADD "))
@@ -470,7 +484,7 @@ func (s *RecordStore) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, ref
 	buf.Write([]byte(` FOREIGN KEY (`))
 	buf.WriteString(pq.QuoteIdentifier(localCol))
 	buf.Write([]byte(`) REFERENCES `))
-	buf.WriteString(s.sqlBuilder.FullTableName(referent))
+	buf.WriteString(s.recordFullTableName(referent))
 	buf.Write([]byte(` (`))
 	buf.WriteString(pq.QuoteIdentifier(remoteCol))
 	buf.Write([]byte(`),`))
@@ -504,7 +518,7 @@ GROUP BY
     ns.nspname,
     t.relname,
     i.relname;`,
-		schemaName, recordType)
+		schemaName, s.recordTableNameValue(recordType))
 
 	if err != nil {
 		return
@@ -535,7 +549,7 @@ func (s *RecordStore) SaveIndex(recordType, indexName string, index record.Index
 
 	stmt := fmt.Sprintf(`
 		ALTER TABLE "%s"."%s" ADD CONSTRAINT %s UNIQUE (%s);
-	`, s.sqlBuilder.SchemaName(), recordType, indexName, strings.Join(quotedColumns, ","))
+	`, s.sqlBuilder.SchemaName(), s.recordTableName(recordType), indexName, strings.Join(quotedColumns, ","))
 	fmt.Println("Save Index", stmt)
 	s.logger.WithField("stmt", stmt).Debugln("Creating unique constraint")
 	if _, err := s.sqlExecutor.Exec(stmt); err != nil {
@@ -548,7 +562,7 @@ func (s *RecordStore) SaveIndex(recordType, indexName string, index record.Index
 func (s *RecordStore) DeleteIndex(recordType string, indexName string) error {
 	stmt := fmt.Sprintf(`
 		ALTER TABLE "%s"."%s" DROP CONSTRAINT %s;
-	`, s.sqlBuilder.SchemaName(), recordType, indexName)
+	`, s.sqlBuilder.SchemaName(), s.recordTableName(recordType), indexName)
 	s.logger.WithField("stmt", stmt).Debugln("Dropping unique constraint")
 	if _, err := s.sqlExecutor.Exec(stmt); err != nil {
 		return err

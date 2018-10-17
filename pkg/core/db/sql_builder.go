@@ -29,9 +29,16 @@ func NewSQLBuilder(namespace string, appName string) SQLBuilder {
 	}
 }
 
+func (b SQLBuilder) Relname(table string) string {
+	return "_" + b.namespace + "_" + table
+}
+
+func (b SQLBuilder) TableName(table string) string {
+	return pq.QuoteIdentifier(b.Relname(table))
+}
+
 func (b SQLBuilder) FullTableName(table string) string {
-	tableName := "_" + b.namespace + "_" + table
-	return pq.QuoteIdentifier(b.SchemaName()) + "." + pq.QuoteIdentifier(tableName)
+	return pq.QuoteIdentifier(b.SchemaName()) + "." + b.TableName(table)
 }
 
 func (b SQLBuilder) SchemaName() string {
