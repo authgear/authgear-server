@@ -6,6 +6,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/core/audit"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -71,7 +73,9 @@ func TestRoleRevokeHandler(t *testing.T) {
 		)
 
 		h := &RoleRevokeHandler{}
+		h.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		h.AuthInfoStore = authInfoStore
+		h.AuditTrail = audit.NewMockTrail(t)
 
 		Convey("should revoke existing user and roles", func() {
 			payload := RoleRevokeRequestPayload{
@@ -93,5 +97,22 @@ func TestRoleRevokeHandler(t *testing.T) {
 			authInfoStore.GetAuth("john.doe.id", &a)
 			So(a.Roles, ShouldResemble, []string{"human"})
 		})
+
+		Convey("should log audit trail when role revoked", func() {
+			payload := RoleRevokeRequestPayload{
+				Roles: []string{
+					"admin",
+					"developer",
+				},
+				UserIDs: []string{
+					"john.doe.id",
+				},
+			}
+			h.Handle(payload)
+			mockTrail, _ := h.AuditTrail.(*audit.MockTrail)
+			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
+			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "change_roles")
+		})
+
 	})
 }

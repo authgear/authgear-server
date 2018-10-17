@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -87,8 +89,10 @@ func (p RoleRevokeRequestPayload) Validate() error {
 //     "result": "OK"
 // }
 type RoleRevokeHandler struct {
-	AuthInfoStore authinfo.Store `dependency:"AuthInfoStore"`
-	TxContext     db.TxContext   `dependency:"TxContext"`
+	AuthContext   coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	AuthInfoStore authinfo.Store         `dependency:"AuthInfoStore"`
+	AuditTrail    audit.Trail            `dependency:"AuditTrail"`
+	TxContext     db.TxContext           `dependency:"TxContext"`
 }
 
 func (h RoleRevokeHandler) WithTx() bool {
@@ -103,6 +107,22 @@ func (h RoleRevokeHandler) DecodeRequest(request *http.Request) (handler.Request
 
 func (h RoleRevokeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(RoleRevokeRequestPayload)
+	authInfo := h.AuthContext.AuthInfo()
+
+	defer func() {
+		if err == nil {
+			h.AuditTrail.Log(audit.Entry{
+				AuthID: authInfo.ID,
+				Event:  audit.EventChangeRoles,
+				Data: map[string]interface{}{
+					"type":     "revoke",
+					"user_ids": payload.UserIDs,
+					"roles":    payload.Roles,
+				},
+			})
+		}
+	}()
+
 	if err = h.AuthInfoStore.RevokeRoles(payload.UserIDs, payload.Roles); err != nil {
 		err = skyerr.MakeError(err)
 		return
