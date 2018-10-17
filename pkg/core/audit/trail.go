@@ -96,16 +96,16 @@ func (t Trail) Log(entry Entry) {
 }
 
 type Entry struct {
-	Event         Event
-	AuthID        string
-	Data          map[string]interface{}
+	Event  Event
+	AuthID string
+	Data   map[string]interface{}
 }
 
 func (e *Entry) toLogrusFields() logrus.Fields {
 	return logrus.Fields{
-		"event":                e.Event.String(),
-		"auth_id":              e.AuthID,
-		"data":                 e.Data,
+		"event":   e.Event.String(),
+		"auth_id": e.AuthID,
+		"data":    e.Data,
 	}
 }
 

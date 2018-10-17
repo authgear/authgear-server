@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/gateway/model"
-	"github.com/skygeario/skygear-server/pkg/gateway/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
+	"github.com/skygeario/skygear-server/pkg/gateway/db"
+	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
 // GatewayTenantConfigurationProvider provide tenlent config from request

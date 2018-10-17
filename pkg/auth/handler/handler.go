@@ -3,9 +3,9 @@ package handler
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/server/uuid"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
 var (

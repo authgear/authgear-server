@@ -1,4 +1,3 @@
-
 package pq
 
 import (
@@ -10,10 +9,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
-
 type tenantConfigurationValue struct {
 	TenantConfiguration config.TenantConfiguration
-	Valid         bool
+	Valid               bool
 }
 
 func (v tenantConfigurationValue) Value() (driver.Value, error) {

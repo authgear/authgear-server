@@ -25,7 +25,7 @@ var (
 	loggers                map[string]*logrus.Logger
 	lock                   sync.Mutex
 	configureLoggerHandler func(string, *logrus.Logger)
-	gearModule                 string
+	gearModule             string
 )
 
 func init() {

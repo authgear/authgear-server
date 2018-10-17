@@ -23,15 +23,15 @@ import (
 
 // MeHandler handles the me request
 type MeHandler struct {
-	TokenStore       authtoken.Store  `inject:"TokenStore"`
-	AssetStore       asset.Store      `inject:"AssetStore"`
-	Authenticator    router.Processor `preprocessor:"authenticator"`
-	DBConn           router.Processor `preprocessor:"dbconn"`
-	InjectAuth       router.Processor `preprocessor:"require_auth"`
-	InjectUser       router.Processor `preprocessor:"require_user"`
-	InjectPublicDB   router.Processor `preprocessor:"inject_public_db"`
-	PluginReady      router.Processor `preprocessor:"plugin_ready"`
-	preprocessors    []router.Processor
+	TokenStore     authtoken.Store  `inject:"TokenStore"`
+	AssetStore     asset.Store      `inject:"AssetStore"`
+	Authenticator  router.Processor `preprocessor:"authenticator"`
+	DBConn         router.Processor `preprocessor:"dbconn"`
+	InjectAuth     router.Processor `preprocessor:"require_auth"`
+	InjectUser     router.Processor `preprocessor:"require_user"`
+	InjectPublicDB router.Processor `preprocessor:"inject_public_db"`
+	PluginReady    router.Processor `preprocessor:"plugin_ready"`
+	preprocessors  []router.Processor
 }
 
 // Setup adds injected pre-processors to preprocessors array
