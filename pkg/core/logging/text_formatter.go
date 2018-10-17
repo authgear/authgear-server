@@ -17,6 +17,7 @@ import (
 
 const defaultTimestampFormat = time.RFC3339
 
+// nolint: deadcode
 const (
 	nocolor = 0
 	red     = 31
@@ -28,7 +29,6 @@ const (
 
 var (
 	baseTimestamp time.Time
-	emptyFieldMap logrus.FieldMap
 )
 
 func init() {

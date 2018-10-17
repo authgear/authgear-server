@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
+// nolint: deadcode
 var (
 	uuidNew = uuid.New
 	timeNow = func() time.Time { return time.Now().UTC() }

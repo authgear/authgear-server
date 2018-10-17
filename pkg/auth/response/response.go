@@ -21,12 +21,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
-	"github.com/skygeario/skygear-server/pkg/server/uuid"
-)
-
-var (
-	uuidNew = uuid.New
-	timeNow = func() time.Time { return time.Now().UTC() }
 )
 
 // AuthResponse is the unify way of returing a AuthInfo with AuthData to SDK
