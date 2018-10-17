@@ -169,16 +169,15 @@ type Data map[string]interface{}
 
 // Record is the primary entity of storage in Skygear.
 type Record struct {
-	ID         ID
-	DatabaseID string `json:"-"`
-	OwnerID    string
-	CreatedAt  time.Time
-	CreatorID  string
-	UpdatedAt  time.Time
-	UpdaterID  string
-	ACL        ACL
-	Data       Data
-	Transient  Data `json:"-"`
+	ID        ID
+	OwnerID   string
+	CreatedAt time.Time
+	CreatorID string
+	UpdatedAt time.Time
+	UpdaterID string
+	ACL       ACL
+	Data      Data
+	Transient Data `json:"-"`
 }
 
 // Copy makes a shadow copy of itself
@@ -202,8 +201,6 @@ func (r *Record) Get(key string) interface{} {
 			return r.ID.Type
 		case "_id":
 			return r.ID.Key
-		case "_database_id":
-			return r.DatabaseID
 		case "_owner_id":
 			return r.OwnerID
 		case "_access":
@@ -240,8 +237,6 @@ func (r *Record) Set(key string, i interface{}) {
 			r.ID.Type = i.(string)
 		case "_id":
 			r.ID.Key = i.(string)
-		case "_database_id":
-			r.DatabaseID = i.(string)
 		case "_owner_id":
 			r.OwnerID = i.(string)
 		case "_access":
@@ -294,9 +289,6 @@ func (r *Record) Accessible(authinfo *authinfo.AuthInfo, level ACLLevel) bool {
 	userID := ""
 	if authinfo != nil {
 		userID = authinfo.ID
-	}
-	if r.DatabaseID != "" && r.DatabaseID != userID {
-		return false
 	}
 	if r.OwnerID == userID {
 		return true
@@ -355,7 +347,6 @@ func (r *Record) MergedCopy(merge *Record) Record {
 // SanitizeForInput removes server side data from a record. These data
 // can be generated from the server side and does not depend on user input.
 func (r *Record) SanitizeForInput() {
-	r.DatabaseID = ""
 	r.OwnerID = ""
 	r.CreatedAt = time.Time{}
 	r.CreatorID = ""
