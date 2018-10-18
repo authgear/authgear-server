@@ -21,6 +21,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// nolint: gosec
 const (
 	maskedResult                 = "********"
 	maskJWTAccessTokenPatternStr = "[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*"
