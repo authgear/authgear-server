@@ -24,7 +24,7 @@ func AttachMeHandler(
 ) *server.Server {
 	server.Handle("/me", &MeHandlerFactory{
 		authDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

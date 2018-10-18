@@ -24,7 +24,7 @@ func AttachLogoutHandler(
 ) *server.Server {
 	server.Handle("/logout", &LogoutHandlerFactory{
 		authDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

@@ -49,7 +49,7 @@ func main() {
 	}
 
 	srv.Use(middleware.RequestIDMiddleware{}.Handle)
-
+	srv.Use(middleware.CORSMiddleware{}.Handle)
 	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)
 	handler.AttachLogoutHandler(&srv, authDependency)

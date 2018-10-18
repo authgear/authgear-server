@@ -21,7 +21,7 @@ func AttachRoleAssignHandler(
 ) *server.Server {
 	server.Handle("/role/assign", &RoleAssignHandlerFactory{
 		authDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

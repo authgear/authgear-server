@@ -25,7 +25,7 @@ func AttachSetDisableHandler(
 ) *server.Server {
 	server.Handle("/disable/set", &SetDisableHandlerFactory{
 		authDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 
