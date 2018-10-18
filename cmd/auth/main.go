@@ -22,7 +22,8 @@ import (
 )
 
 type configuration struct {
-	DevMode bool `envconfig:"DEV_MODE"`
+	DevMode bool   `envconfig:"DEV_MODE"`
+	Host    string `envconfig:"HOST" default:"localhost:3000"`
 }
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 	authDependency := auth.NewDependencyMap()
 
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
-	srv := server.NewServer("localhost:3000", authContextResolverFactory)
+	srv := server.NewServer(configuration.Host, authContextResolverFactory)
 
 	if configuration.DevMode {
 		srv.Use(middleware.TenantConfigurationMiddleware{
