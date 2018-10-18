@@ -8,17 +8,16 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/core/auth/authn/resolver"
-
+	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
-	"github.com/joho/godotenv"
-	"github.com/skygeario/skygear-server/pkg/auth/handler"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authn/resolver"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/record"
+	"github.com/skygeario/skygear-server/pkg/record/handler"
 )
 
 type configuration struct {
@@ -36,9 +35,9 @@ func main() {
 	envconfig.Process("", &configuration)
 
 	// logging initialization
-	logging.SetModule("auth")
+	logging.SetModule("record")
 
-	authDependency := auth.NewDependencyMap()
+	recordDependency := record.NewDependencyMap()
 
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
 	srv := server.NewServer(configuration.Host, authContextResolverFactory)
@@ -50,19 +49,11 @@ func main() {
 	}
 
 	srv.Use(middleware.RequestIDMiddleware{}.Handle)
-	srv.Use(middleware.CORSMiddleware{}.Handle)
-	handler.AttachSignupHandler(&srv, authDependency)
-	handler.AttachLoginHandler(&srv, authDependency)
-	handler.AttachLogoutHandler(&srv, authDependency)
-	handler.AttachMeHandler(&srv, authDependency)
-	handler.AttachSetDisableHandler(&srv, authDependency)
-	handler.AttachRoleAssignHandler(&srv, authDependency)
-	handler.AttachRoleRevokeHandler(&srv, authDependency)
-	handler.AttachResetPasswordHandler(&srv, authDependency)
-	handler.AttachGetRoleHandler(&srv, authDependency)
+
+	handler.AttachSaveHandler(&srv, recordDependency)
 
 	go func() {
-		log.Printf("Auth gear boot")
+		log.Printf("Record gear boot")
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
