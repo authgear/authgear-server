@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -92,15 +93,16 @@ func (p SignupRequestPayload) isAnonymous() bool {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	AuthDataChecker      dependency.AuthDataChecker  `dependency:"AuthDataChecker"`
-	PasswordChecker      dependency.PasswordChecker  `dependency:"PasswordChecker"`
-	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
-	TokenStore           authtoken.Store             `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
-	RoleStore            role.Store                  `dependency:"RoleStore"`
-	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
-	AuditTrail           coreAudit.Trail             `dependency:"AuditTrail"`
-	TxContext            db.TxContext                `dependency:"TxContext"`
+	AuthDataChecker       dependency.AuthDataChecker  `dependency:"AuthDataChecker"`
+	PasswordChecker       dependency.PasswordChecker  `dependency:"PasswordChecker"`
+	UserProfileStore      dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
+	TokenStore            authtoken.Store             `dependency:"TokenStore"`
+	AuthInfoStore         authinfo.Store              `dependency:"AuthInfoStore"`
+	RoleStore             role.Store                  `dependency:"RoleStore"`
+	PasswordAuthProvider  password.Provider           `dependency:"PasswordAuthProvider"`
+	AnonymousAuthProvider anonymous.Provider          `dependency:"AnonymousAuthProvider"`
+	AuditTrail            coreAudit.Trail             `dependency:"AuditTrail"`
+	TxContext             db.TxContext                `dependency:"TxContext"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -116,19 +118,8 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
-	if payload.isAnonymous() {
-		panic("Unsupported signup anonymously")
-	}
-
-	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
-		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
-		return
-	}
-
-	// validate password
-	if err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
-		PlainPassword: payload.Password,
-	}); err != nil {
+	err = h.verifyPayload(payload)
+	if err != nil {
 		return
 	}
 
@@ -169,12 +160,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	// Create Principal
-	principal := password.NewPrincipal()
-	principal.UserID = info.ID
-	principal.AuthData = payload.AuthData
-	principal.PlainPassword = payload.Password
-
-	err = h.PasswordAuthProvider.CreatePrincipal(principal)
+	err = h.createPrincipal(payload, info)
 	if err != nil {
 		return
 	}
@@ -202,6 +188,42 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		AuthID: info.ID,
 		Event:  coreAudit.EventSignup,
 	})
+
+	return
+}
+
+func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
+	if payload.isAnonymous() {
+		return
+	}
+
+	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
+		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
+		return
+	}
+
+	// validate password
+	err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+		PlainPassword: payload.Password,
+	})
+
+	return
+}
+
+func (h SignupHandler) createPrincipal(payload SignupRequestPayload, info authinfo.AuthInfo) (err error) {
+	if !payload.isAnonymous() {
+		principal := password.NewPrincipal()
+		principal.UserID = info.ID
+		principal.AuthData = payload.AuthData
+		principal.PlainPassword = payload.Password
+
+		err = h.PasswordAuthProvider.CreatePrincipal(principal)
+	} else {
+		principal := anonymous.NewPrincipal()
+		principal.UserID = info.ID
+
+		err = h.AnonymousAuthProvider.CreatePrincipal(principal)
+	}
 
 	return
 }

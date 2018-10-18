@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -61,6 +62,13 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
 			logging.CreateLogger(r, "provider_password", maskFormatter),
+		)
+	case "AnonymousAuthProvider":
+		tConfig := config.GetTenantConfig(r)
+		return anonymous.NewProvider(
+			db.NewSQLBuilder("auth", tConfig.AppName),
+			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
+			logging.CreateLogger(r, "provider_anonymous"),
 		)
 	case "HandlerLogger":
 		maskFormatter := logging.CreateMaskFormatter(sensitiveLoggerValues(r), &logrus.TextFormatter{})
