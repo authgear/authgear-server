@@ -109,3 +109,34 @@ func (s RoleStore) getRolesByType(rtype roleType) ([]string, error) {
 	}
 	return roles, nil
 }
+
+func (s RoleStore) SetAdminRoles(roles []string) error {
+	return s.setRoleType(roles, "is_admin")
+}
+
+func (s RoleStore) setRoleType(roles []string, col string) error {
+	resetSQL := s.sqlBuilder.
+		Update(s.sqlBuilder.TableName("role")).
+		Where(col+" = ?", true).Set(col, false)
+	_, err := s.sqlExecutor.ExecWith(resetSQL)
+	if err != nil {
+		return err
+	}
+	if len(roles) == 0 {
+		return nil
+	}
+	roleArgs := make([]interface{}, len(roles))
+	for i, v := range roles {
+		roleArgs[i] = interface{}(v)
+	}
+
+	updateSQL := s.sqlBuilder.
+		Update(s.sqlBuilder.TableName("role")).
+		Where("id IN ("+sq.Placeholders(len(roles))+")", roleArgs...).
+		Set(col, true)
+	_, err = s.sqlExecutor.ExecWith(updateSQL)
+	if err != nil {
+		return err
+	}
+	return nil
+}

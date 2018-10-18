@@ -60,6 +60,7 @@ func main() {
 	handler.AttachRoleRevokeHandler(&srv, authDependency)
 	handler.AttachResetPasswordHandler(&srv, authDependency)
 	handler.AttachGetRoleHandler(&srv, authDependency)
+	handler.AttachRoleAdminHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

@@ -15,6 +15,7 @@ type Store interface {
 	CreateRoles(roles []string) error
 	QueryRoles(roles []string) ([]Role, error)
 	GetDefaultRoles() ([]string, error)
+	SetAdminRoles(roles []string) error
 }
 
 func EnsureRole(store Store, logger *logrus.Entry, roles []string) ([]string, error) {

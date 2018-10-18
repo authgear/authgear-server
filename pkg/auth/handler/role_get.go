@@ -21,7 +21,7 @@ func AttachGetRoleHandler(
 ) *server.Server {
 	server.Handle("/role/get", &GetRoleHandlerFactory{
 		authDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

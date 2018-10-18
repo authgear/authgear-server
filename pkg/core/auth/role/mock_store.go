@@ -2,6 +2,7 @@ package role
 
 import (
 	"fmt"
+
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -66,4 +67,37 @@ func (m *MockStore) GetDefaultRoles() ([]string, error) {
 		}
 	}
 	return defaultRoles, nil
+}
+
+// SetAdminRoles set role type to true
+func (m *MockStore) SetAdminRoles(roles []string) error {
+	return m.setRoleType(roles, "is_admin")
+}
+
+func (m *MockStore) setRoleType(roles []string, col string) error {
+	isAdmin := false
+	isDefault := false
+
+	if col == "is_admin" {
+		isAdmin = true
+	} else if col == "is_default" {
+		isDefault = true
+	}
+
+	// reset current roles
+	for _, role := range m.RoleMap {
+		role.IsAdmin = false
+		role.IsDefault = false
+	}
+
+	// update roles
+	for _, role := range roles {
+		m.RoleMap[role] = Role{
+			Name:      role,
+			IsAdmin:   isAdmin,
+			IsDefault: isDefault,
+		}
+	}
+
+	return nil
 }
