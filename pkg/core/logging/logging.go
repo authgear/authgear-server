@@ -16,6 +16,7 @@ package logging
 
 import (
 	"net/http"
+	"regexp"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -94,10 +95,25 @@ func LoggerEntryWithTag(name string, tag string) *logrus.Entry {
 	return logger.WithFields(fields)
 }
 
-func CreateLogger(r *http.Request, logger string) *logrus.Entry {
+func CreateLogger(r *http.Request, logger string, formatter logrus.Formatter) *logrus.Entry {
 	fields := logrus.Fields{}
 	if requestID := r.Header.Get("X-Skygear-Request-ID"); requestID != "" {
 		fields["request_id"] = requestID
 	}
-	return LoggerEntry(logger).WithFields(fields)
+	entry := LoggerEntry(logger).WithFields(fields)
+	entry.Logger.Formatter = formatter
+	return entry
+}
+
+func CreateMaskFormatter(maskValues []string, defaultFormatter logrus.Formatter) logrus.Formatter {
+	patterns := []*regexp.Regexp{}
+	for _, v := range maskValues {
+		if p, e := MakeMaskPattern(v); e == nil {
+			patterns = append(patterns, p)
+		}
+	}
+	return &MaskFormatter{
+		MaskPatterns:     patterns,
+		DefaultFormatter: defaultFormatter,
+	}
 }
