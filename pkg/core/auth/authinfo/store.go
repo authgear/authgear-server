@@ -31,6 +31,10 @@ type Store interface {
 
 	// GetRoles accepts array of userID, and return corresponding roles
 	GetRoles(userIDs []string) (map[string][]string, error)
+
+	// RevokeRoles accepts array of roles and userID, the supplied roles will
+	// be revoked from all passed in users
+	RevokeRoles(userIDs []string, roles []string) error
 }
 
 type StoreProvider struct {

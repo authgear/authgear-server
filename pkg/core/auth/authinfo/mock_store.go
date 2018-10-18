@@ -82,8 +82,10 @@ func (s *MockStore) AssignRoles(userIDs []string, roles []string) error {
 	return nil
 }
 
-// GetRoles accepts array of userID, and return corresponding roles
+// GetRoles accepts array of userID, and return corresponding roles from the
+// AuthInfoMap
 func (s *MockStore) GetRoles(userIDs []string) (roleMap map[string][]string, err error) {
+	roleMap = map[string][]string{}
 	for _, userID := range userIDs {
 		authInfo, existed := s.AuthInfoMap[userID]
 		if existed {
@@ -91,4 +93,28 @@ func (s *MockStore) GetRoles(userIDs []string) (roleMap map[string][]string, err
 		}
 	}
 	return roleMap, nil
+}
+
+// RevokeRoles accepts array of roles and userID, the supplied roles in
+// AuthInfoMap will be revoked from all passed in users
+func (s *MockStore) RevokeRoles(userIDs []string, roles []string) error {
+	for _, userID := range userIDs {
+		authInfo, existed := s.AuthInfoMap[userID]
+		if !existed {
+			continue
+		}
+		role2revoke := make(map[string]interface{})
+		for _, role := range roles {
+			role2revoke[role] = struct{}{}
+		}
+		oldRoles := append(authInfo.Roles[:0:0], authInfo.Roles...)
+		authInfo.Roles = []string{}
+		for _, r := range oldRoles {
+			if _, existed := role2revoke[r]; !existed {
+				authInfo.Roles = append(authInfo.Roles, r)
+			}
+		}
+		s.AuthInfoMap[userID] = authInfo
+	}
+	return nil
 }
