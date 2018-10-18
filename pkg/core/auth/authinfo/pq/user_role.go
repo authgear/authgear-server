@@ -201,7 +201,7 @@ const revokeUserRoleDeleteTemplate = `
 {{ $userLen := len .Users }}
 DELETE FROM {{.UserRoleTable}}
 WHERE
-  auth_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
+  user_id IN ({{range $i, $_ := .Users}}{{inDollar 0 $i}}{{end}})
   AND
   role_id IN ({{range $i, $_ := .Roles}}{{inDollar $userLen $i}}{{end}})
 ;
