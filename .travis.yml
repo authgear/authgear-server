@@ -3,6 +3,7 @@ language: go
 go:
   - 1.9.4
   - 1.10.2
+  - 1.11
 
 addons:
   postgresql: "9.5"
