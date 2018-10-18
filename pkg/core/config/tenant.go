@@ -38,6 +38,13 @@ func (c *TenantConfiguration) ReadFromEnv() error {
 	return envconfig.Process("", c)
 }
 
+func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
+	return []string{
+		c.APIKey,
+		c.MasterKey,
+	}
+}
+
 func header(i interface{}) http.Header {
 	switch i.(type) {
 	case *http.Request:

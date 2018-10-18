@@ -92,8 +92,5 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 
 func sensitiveLoggerValues(r *http.Request) []string {
 	tConfig := config.GetTenantConfig(r)
-	return []string{
-		tConfig.APIKey,
-		tConfig.MasterKey,
-	}
+	return tConfig.DefaultSensitiveLoggerValues()
 }
