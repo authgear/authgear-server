@@ -62,7 +62,7 @@ func (m *MockProvider) GetPrincipalByAuthData(authData map[string]interface{}, p
 // GetPrincipalByUserID get principal in PrincipalMap by userID
 func (m *MockProvider) GetPrincipalByUserID(userID string, principal *Principal) error {
 	for _, p := range m.PrincipalMap {
-		if principal.UserID == userID {
+		if p.UserID == userID {
 			*principal = p
 			return nil
 		}
