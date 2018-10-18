@@ -67,3 +67,9 @@ func RequireAdminRole(r *http.Request, ctx auth.ContextGetter) error {
 
 	return nil
 }
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ authz.Policy     = &Role{}
+	_ authz.PolicyFunc = RequireAdminRole
+)

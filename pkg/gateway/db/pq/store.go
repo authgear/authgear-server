@@ -11,7 +11,7 @@ import (
 )
 
 // NewGatewayStore create new gateway store by db connection url
-func NewGatewayStore(ctx context.Context, connString string) (db.GatewayStore, error) {
+func NewGatewayStore(ctx context.Context, connString string) (*store, error) {
 	return Connect(ctx, connString)
 }
 
@@ -36,7 +36,7 @@ func (s *store) tableName(table string) string {
 }
 
 // Connect returns a new connection to postgresql implementation
-func Connect(ctx context.Context, connString string) (db.GatewayStore, error) {
+func Connect(ctx context.Context, connString string) (*store, error) {
 	db, err := sqlx.Connect("postgres", connString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open connection: %s", err)
@@ -47,3 +47,8 @@ func Connect(ctx context.Context, connString string) (db.GatewayStore, error) {
 		context: ctx,
 	}, nil
 }
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ db.GatewayStore = &store{}
+)

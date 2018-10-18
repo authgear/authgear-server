@@ -193,3 +193,8 @@ func (p ProviderImpl) UpdatePrincipal(principal Principal) (err error) {
 
 	return
 }
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ Provider = &ProviderImpl{}
+)

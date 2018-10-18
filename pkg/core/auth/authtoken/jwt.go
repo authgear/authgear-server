@@ -123,3 +123,8 @@ func (r *JWTStore) Put(token *Token) error {
 func (r *JWTStore) Delete(accessToken string) error {
 	return nil
 }
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ Store = &JWTStore{}
+)

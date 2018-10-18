@@ -274,3 +274,8 @@ func (s AuthInfoStore) DeleteAuth(id string) error {
 
 	return nil
 }
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ authinfo.Store = &AuthInfoStore{}
+)

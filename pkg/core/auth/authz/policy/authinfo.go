@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -32,3 +33,8 @@ func RequireAuthenticated(r *http.Request, ctx auth.ContextGetter) error {
 
 	return nil
 }
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ authz.PolicyFunc = RequireAuthenticated
+)

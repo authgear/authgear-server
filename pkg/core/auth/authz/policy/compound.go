@@ -24,3 +24,8 @@ func (p All) IsAllowed(r *http.Request, ctx auth.ContextGetter) error {
 
 	return nil
 }
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ authz.Policy = &All{}
+)

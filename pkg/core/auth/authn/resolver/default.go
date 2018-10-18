@@ -63,3 +63,8 @@ func (r DefaultAuthContextResolver) Resolve(req *http.Request, ctx auth.ContextS
 
 	return
 }
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ authn.AuthContextResolver = &DefaultAuthContextResolver{}
+)

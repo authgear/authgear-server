@@ -60,3 +60,8 @@ func (c DefaultAuthDataChecker) usingKeys(authData map[string]interface{}) []str
 
 	return []string{}
 }
+
+// this ensures that our structure conform to certain interfaces.
+var (
+	_ AuthDataChecker = &DefaultAuthDataChecker{}
+)
