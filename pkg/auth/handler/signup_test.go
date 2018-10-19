@@ -7,6 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
@@ -79,6 +80,7 @@ func TestSingupHandler(t *testing.T) {
 
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider()
+		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 		authChecker := &dependency.DefaultAuthDataChecker{
 			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
@@ -106,6 +108,7 @@ func TestSingupHandler(t *testing.T) {
 		h.AuthDataChecker = authChecker
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider
+		h.AnonymousAuthProvider = anonymousAuthProvider
 		h.RoleStore = roleStore
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 
@@ -144,12 +147,27 @@ func TestSingupHandler(t *testing.T) {
 		Convey("anonymous singup is not supported yet", func() {
 			payload := SignupRequestPayload{}
 
-			defer func() {
-				err := recover()
-				So(err, ShouldEqual, "Unsupported signup anonymously")
-			}()
+			resp, err := h.Handle(payload)
 
-			h.Handle(payload)
+			authResp, ok := resp.(response.AuthResponse)
+			So(ok, ShouldBeTrue)
+			So(err, ShouldBeNil)
+
+			userID := authResp.UserID
+			// check the authinfo store data
+			a := authinfo.AuthInfo{}
+			authInfoStore.GetAuth(userID, &a)
+			So(a.ID, ShouldEqual, userID)
+			So(len(a.Roles), ShouldEqual, 1)
+			So(a.Roles[0], ShouldEqual, "user")
+			So(a.LastLoginAt.Equal(time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)), ShouldBeTrue)
+
+			// check the token
+			tokenStr := authResp.AccessToken
+			token := authtoken.Token{}
+			tokenStore.Get(tokenStr, &token)
+			So(token.AuthInfoID, ShouldEqual, userID)
+			So(!token.IsExpired(), ShouldBeTrue)
 		})
 
 		Convey("signup with incorrect auth data", func() {
