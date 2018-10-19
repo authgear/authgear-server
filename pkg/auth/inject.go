@@ -57,22 +57,20 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		}
 	case "PasswordAuthProvider":
 		tConfig := config.GetTenantConfig(r)
-		maskFormatter := logging.CreateMaskFormatter(sensitiveLoggerValues(r), &logrus.TextFormatter{})
 		return password.NewProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
-			logging.CreateLogger(r, "provider_password", maskFormatter),
+			logging.CreateLogger(r, "provider_password", createLoggerMaskFormatter(r)),
 		)
 	case "AnonymousAuthProvider":
 		tConfig := config.GetTenantConfig(r)
 		return anonymous.NewProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
-			logging.CreateLogger(r, "provider_anonymous"),
+			logging.CreateLogger(r, "provider_anonymous", createLoggerMaskFormatter(r)),
 		)
 	case "HandlerLogger":
-		maskFormatter := logging.CreateMaskFormatter(sensitiveLoggerValues(r), &logrus.TextFormatter{})
-		return logging.CreateLogger(r, "handler", maskFormatter)
+		return logging.CreateLogger(r, "handler", createLoggerMaskFormatter(r))
 	case "UserProfileStore":
 		tConfig := config.GetTenantConfig(r)
 		switch tConfig.UserProfile.ImplName {
@@ -98,7 +96,7 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	}
 }
 
-func sensitiveLoggerValues(r *http.Request) []string {
+func createLoggerMaskFormatter(r *http.Request) logrus.Formatter {
 	tConfig := config.GetTenantConfig(r)
-	return tConfig.DefaultSensitiveLoggerValues()
+	return logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
 }
