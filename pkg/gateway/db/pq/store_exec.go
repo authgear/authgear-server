@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
-func (s *store) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
+func (s *Store) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
 	logger := logging.LoggerEntry("gateway")
 	row = s.DB.QueryRowxContext(s.context, query, args...)
 	logger.WithFields(logrus.Fields{
@@ -18,7 +18,7 @@ func (s *store) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
 	return
 }
 
-func (s *store) QueryRowWith(sqlizeri sq.Sqlizer) *sqlx.Row {
+func (s *Store) QueryRowWith(sqlizeri sq.Sqlizer) *sqlx.Row {
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		panic(err)

@@ -17,7 +17,7 @@ var ErrAppNotFound = errors.New("App not found")
 // cannot be found
 var ErrConfigNotFound = errors.New("Tenant config not found")
 
-func (s *store) GetAppByDomain(domain string, app *model.App) error {
+func (s *Store) GetAppByDomain(domain string, app *model.App) error {
 	logger := logging.LoggerEntry("gateway")
 	builder := psql.Select("app.id", "app.name", "app.config_id", "app.plan_id").
 		From(s.tableName("app")).
@@ -63,7 +63,7 @@ func (s *store) GetAppByDomain(domain string, app *model.App) error {
 	return nil
 }
 
-func (s *store) getConfigByID(id string, configValue *tenantConfigurationValue) error {
+func (s *Store) getConfigByID(id string, configValue *tenantConfigurationValue) error {
 	builder := psql.Select("config.config").
 		From(s.tableName("config")).
 		Where("config.id = ?", id)
@@ -80,7 +80,7 @@ func (s *store) getConfigByID(id string, configValue *tenantConfigurationValue) 
 	return err
 }
 
-func (s *store) getPlanByID(id string, plan *model.Plan) error {
+func (s *Store) getPlanByID(id string, plan *model.Plan) error {
 	builder := psql.Select("*").
 		From(s.tableName("plan")).
 		Where("plan.id = ?", id)
