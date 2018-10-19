@@ -114,6 +114,10 @@ func (s RoleStore) SetAdminRoles(roles []string) error {
 	return s.setRoleType(roles, "is_admin")
 }
 
+func (s RoleStore) SetDefaultRoles(roles []string) error {
+	return s.setRoleType(roles, "by_default")
+}
+
 func (s RoleStore) setRoleType(roles []string, col string) error {
 	resetSQL := s.sqlBuilder.
 		Update(s.sqlBuilder.TableName("role")).
