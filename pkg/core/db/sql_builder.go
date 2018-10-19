@@ -31,9 +31,9 @@ func NewSQLBuilder(namespace string, appName string) SQLBuilder {
 
 func (b SQLBuilder) TableName(table string) string {
 	tableName := "_" + b.namespace + "_" + table
-	return pq.QuoteIdentifier(b.schemaName()) + "." + pq.QuoteIdentifier(tableName)
+	return pq.QuoteIdentifier(b.SchemaName()) + "." + pq.QuoteIdentifier(tableName)
 }
 
-func (b SQLBuilder) schemaName() string {
+func (b SQLBuilder) SchemaName() string {
 	return "app_" + toLowerAndUnderscore(b.appName)
 }
