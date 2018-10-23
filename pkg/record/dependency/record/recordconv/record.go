@@ -28,47 +28,47 @@ type JSONRecord record.Record
 
 // MarshalJSON implements json.Marshaler
 // nolint: gocyclo
-func (record *JSONRecord) MarshalJSON() ([]byte, error) {
+func (r *JSONRecord) MarshalJSON() ([]byte, error) {
 	m := map[string]interface{}{}
-	record.ToMap(m)
+	r.ToMap(m)
 	return json.Marshal(m)
 }
 
-func (record *JSONRecord) ToMap(m map[string]interface{}) {
-	for key, value := range record.Data {
+func (r *JSONRecord) ToMap(m map[string]interface{}) {
+	for key, value := range r.Data {
 		m[key] = ToLiteral(value)
 	}
 
-	m["_id"] = record.ID.String() // NOTE(cheungpat): Fields to be deprecated.
+	m["_id"] = r.ID.String() // NOTE(cheungpat): Fields to be deprecated.
 	m["_type"] = "record"
 
-	m["_recordID"] = record.ID.Key
-	m["_recordType"] = record.ID.Type
-	m["_access"] = record.ACL
+	m["_recordID"] = r.ID.Key
+	m["_recordType"] = r.ID.Type
+	m["_access"] = r.ACL
 
-	if record.OwnerID != "" {
-		m["_ownerID"] = record.OwnerID
+	if r.OwnerID != "" {
+		m["_ownerID"] = r.OwnerID
 	}
-	if !record.CreatedAt.IsZero() {
-		m["_created_at"] = record.CreatedAt
+	if !r.CreatedAt.IsZero() {
+		m["_created_at"] = r.CreatedAt
 	}
-	if record.CreatorID != "" {
-		m["_created_by"] = record.CreatorID
+	if r.CreatorID != "" {
+		m["_created_by"] = r.CreatorID
 	}
-	if !record.UpdatedAt.IsZero() {
-		m["_updated_at"] = record.UpdatedAt
+	if !r.UpdatedAt.IsZero() {
+		m["_updated_at"] = r.UpdatedAt
 	}
-	if record.UpdaterID != "" {
-		m["_updated_by"] = record.UpdaterID
+	if r.UpdaterID != "" {
+		m["_updated_by"] = r.UpdaterID
 	}
 
-	transient := record.marshalTransient(record.Transient)
+	transient := r.marshalTransient(r.Transient)
 	if len(transient) > 0 {
 		m["_transient"] = transient
 	}
 }
 
-func (record *JSONRecord) marshalTransient(transient map[string]interface{}) map[string]interface{} {
+func (r *JSONRecord) marshalTransient(transient map[string]interface{}) map[string]interface{} {
 	m := map[string]interface{}{}
 	for key, value := range transient {
 		m[key] = ToLiteral(value)
@@ -77,12 +77,12 @@ func (record *JSONRecord) marshalTransient(transient map[string]interface{}) map
 }
 
 // UnmarshalJSON implements json.Unmarshaler
-func (record *JSONRecord) UnmarshalJSON(data []byte) (err error) {
+func (r *JSONRecord) UnmarshalJSON(data []byte) (err error) {
 	m := map[string]interface{}{}
 	if err := json.Unmarshal(data, &m); err != nil {
 		return err
 	}
-	return record.FromMap(m)
+	return r.FromMap(m)
 }
 
 func (r *JSONRecord) FromMap(m map[string]interface{}) error {

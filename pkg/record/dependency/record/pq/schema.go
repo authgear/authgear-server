@@ -261,6 +261,7 @@ func (s *RecordStore) getSequences(recordType string) ([]string, error) {
 	return seqList, nil
 }
 
+// RemoteColumnTypes returns a typemap of a database table.
 // STEP 1 & 2 are obtained by reverse engineering psql \d with -E option
 //
 // STEP 3: example of getting foreign keys
