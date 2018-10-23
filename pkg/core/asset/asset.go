@@ -17,11 +17,7 @@ package asset
 import (
 	"io"
 	"time"
-
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
-
-var log = logging.LoggerEntry("asset")
 
 // PostFileRequest models the POST request for upload asset file
 type PostFileRequest struct {

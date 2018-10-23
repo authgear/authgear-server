@@ -30,8 +30,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/asset"
 )
 
-// s3Store implements Store by storing files on S3
-type s3Store struct {
+// AssetStore implements Store by storing files on S3
+type AssetStore struct {
 	svc       *s3.S3
 	uploader  *s3manager.Uploader
 	bucket    *string
@@ -39,7 +39,7 @@ type s3Store struct {
 	public    bool
 }
 
-// NewAssetStore returns a new s3Store
+// NewAssetStore returns a new s3 asset store
 func NewAssetStore(
 	accessKey string,
 	secretKey string,
@@ -47,7 +47,7 @@ func NewAssetStore(
 	bucketName string,
 	urlPrefix string,
 	public bool,
-) (*s3Store, error) {
+) (*AssetStore, error) {
 	creds := credentials.NewStaticCredentials(
 		accessKey,
 		secretKey,
@@ -62,7 +62,7 @@ func NewAssetStore(
 
 	bucket := aws.String(bucketName)
 
-	return &s3Store{
+	return &AssetStore{
 		svc:       svc,
 		uploader:  uploader,
 		bucket:    bucket,
@@ -72,7 +72,7 @@ func NewAssetStore(
 }
 
 // GetFileReader returns a reader for files
-func (s *s3Store) GetFileReader(name string) (io.ReadCloser, error) {
+func (s *AssetStore) GetFileReader(name string) (io.ReadCloser, error) {
 	key := aws.String(name)
 	input := &s3.GetObjectInput{
 		Bucket: s.bucket,
@@ -82,7 +82,7 @@ func (s *s3Store) GetFileReader(name string) (io.ReadCloser, error) {
 	return objOutput.Body, err
 }
 
-func (s *s3Store) GetRangedFileReader(
+func (s *AssetStore) GetRangedFileReader(
 	name string,
 	fileRange asset.FileRange,
 ) (*asset.FileRangedGetResult, error) {
@@ -116,7 +116,7 @@ func (s *s3Store) GetRangedFileReader(
 }
 
 // PutFileReader uploads a file to s3 with content from io.Reader
-func (s *s3Store) PutFileReader(
+func (s *AssetStore) PutFileReader(
 	name string,
 	src io.Reader,
 	length int64,
@@ -134,14 +134,14 @@ func (s *s3Store) PutFileReader(
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
-func (s *s3Store) GeneratePostFileRequest(name string, contentType string, length int64) (*asset.PostFileRequest, error) {
+func (s *AssetStore) GeneratePostFileRequest(name string, contentType string, length int64) (*asset.PostFileRequest, error) {
 	return &asset.PostFileRequest{
 		Action: "/files/" + name,
 	}, nil
 }
 
 // SignedURL return a signed s3 URL with expiry date
-func (s *s3Store) SignedURL(name string) (string, error) {
+func (s *AssetStore) SignedURL(name string) (string, error) {
 	if !s.IsSignatureRequired() {
 		if s.urlPrefix != "" {
 			return strings.Join([]string{s.urlPrefix, name}, "/"), nil
@@ -166,12 +166,12 @@ func (s *s3Store) SignedURL(name string) (string, error) {
 }
 
 // IsSignatureRequired indicates whether a signature is required
-func (s *s3Store) IsSignatureRequired() bool {
+func (s *AssetStore) IsSignatureRequired() bool {
 	return !s.public
 }
 
 // ParseSignature tries to parse the asset signature
-func (s *s3Store) ParseSignature(
+func (s *AssetStore) ParseSignature(
 	signed string,
 	name string,
 	expiredAt time.Time,

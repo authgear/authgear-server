@@ -34,8 +34,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/asset"
 )
 
-// fileStore implements Store by storing files on file system
-type fileStore struct {
+// AssetStore implements Store by storing files on file system
+type AssetStore struct {
 	dir    string
 	prefix string
 	secret string
@@ -43,26 +43,26 @@ type fileStore struct {
 	logger *logrus.Entry
 }
 
-// NewFileStore creates a new fileStore
-func NewAssetStore(dir, prefix, secret string, public bool, logger *logrus.Entry) *fileStore {
-	return &fileStore{dir, prefix, secret, public, logger}
+// NewAssetStore creates a new file asset store
+func NewAssetStore(dir, prefix, secret string, public bool, logger *logrus.Entry) *AssetStore {
+	return &AssetStore{dir, prefix, secret, public, logger}
 }
 
 // GetFileReader returns a reader for reading files
-func (s *fileStore) GetFileReader(name string) (io.ReadCloser, error) {
+func (s *AssetStore) GetFileReader(name string) (io.ReadCloser, error) {
 	path := filepath.Join(s.dir, name)
-	return os.Open(path)
+	return os.Open(filepath.Clean(path))
 }
 
 // GetRangedFileReader returns a reader for reading files within
 // the specified byte range
-func (s *fileStore) GetRangedFileReader(name string, fileRange asset.FileRange) (
+func (s *AssetStore) GetRangedFileReader(name string, fileRange asset.FileRange) (
 	*asset.FileRangedGetResult,
 	error,
 ) {
 	path := filepath.Join(s.dir, name)
 
-	file, err := os.Open(path)
+	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (s *fileStore) GetRangedFileReader(name string, fileRange asset.FileRange) 
 }
 
 // PutFileReader stores a file from reader onto file system
-func (s *fileStore) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
+func (s *AssetStore) PutFileReader(name string, src io.Reader, length int64, contentType string) error {
 	path := filepath.Join(s.dir, name)
 
 	dir := filepath.Dir(path)
@@ -125,14 +125,14 @@ func (s *fileStore) PutFileReader(name string, src io.Reader, length int64, cont
 }
 
 // GeneratePostFileRequest return a PostFileRequest for uploading asset
-func (s *fileStore) GeneratePostFileRequest(name string, contentType string, length int64) (*asset.PostFileRequest, error) {
+func (s *AssetStore) GeneratePostFileRequest(name string, contentType string, length int64) (*asset.PostFileRequest, error) {
 	return &asset.PostFileRequest{
 		Action: "/files/" + name,
 	}, nil
 }
 
 // SignedURL returns a signed url with expiry date
-func (s *fileStore) SignedURL(name string) (string, error) {
+func (s *AssetStore) SignedURL(name string) (string, error) {
 	if !s.IsSignatureRequired() {
 		return fmt.Sprintf("%s/%s", s.prefix, name), nil
 	}
@@ -156,7 +156,7 @@ func (s *fileStore) SignedURL(name string) (string, error) {
 }
 
 // ParseSignature tries to parse the asset signature
-func (s *fileStore) ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error) {
+func (s *AssetStore) ParseSignature(signed string, name string, expiredAt time.Time) (valid bool, err error) {
 	base64Decoder := base64.NewDecoder(base64.URLEncoding, strings.NewReader(signed))
 	remoteSignature, err := ioutil.ReadAll(base64Decoder)
 	if err != nil {
@@ -172,6 +172,6 @@ func (s *fileStore) ParseSignature(signed string, name string, expiredAt time.Ti
 }
 
 // IsSignatureRequired indicates whether a signature is required
-func (s *fileStore) IsSignatureRequired() bool {
+func (s *AssetStore) IsSignatureRequired() bool {
 	return !s.public
 }
