@@ -95,6 +95,7 @@ func NewAssetStore(
 		authToken: authToken,
 		public:    public,
 		urlPrefix: urlPrefix,
+		logger:    logger,
 	}
 
 	store.signer = newCloudStoreSigner(

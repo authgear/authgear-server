@@ -10,8 +10,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+var testLogger = logging.LoggerEntry("asset")
 
 func TestCloudStoreCreation(t *testing.T) {
 	testServer := httptest.NewServer(
@@ -46,7 +49,7 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				true,
-				nil,
+				testLogger,
 			)
 			defer store.signer.refreshTicker.Stop()
 
@@ -72,7 +75,7 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				false,
-				nil,
+				testLogger,
 			)
 			defer store.signer.refreshTicker.Stop()
 
@@ -98,7 +101,7 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				true,
-				nil,
+				testLogger,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -113,7 +116,7 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				true,
-				nil,
+				testLogger,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -128,7 +131,7 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				true,
-				nil,
+				testLogger,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -143,7 +146,7 @@ func TestCloudStoreCreation(t *testing.T) {
 				"",
 				"http://localhost:12345/private",
 				true,
-				nil,
+				testLogger,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -158,7 +161,7 @@ func TestCloudStoreCreation(t *testing.T) {
 				"http://localhost:12345/public",
 				"",
 				false,
-				nil,
+				testLogger,
 			)
 
 			So(err, ShouldNotBeNil)
@@ -200,7 +203,7 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				true,
-				nil,
+				testLogger,
 			)
 			defer publicStore.signer.refreshTicker.Stop()
 
@@ -222,7 +225,7 @@ func TestCloudStoreGetSignedURL(t *testing.T) {
 				"http://localhost:12345/public",
 				"http://localhost:12345/private",
 				false,
-				nil,
+				testLogger,
 			)
 			defer publicStore.signer.refreshTicker.Stop()
 
@@ -319,12 +322,13 @@ func TestCloudStoreGeneratePostFileRequest(t *testing.T) {
 		)
 
 		Convey("Success on normal flow", func() {
-			store := &cloudStore{
+			store := &AssetStore{
 				appName:   "testapp",
 				host:      testServer.URL,
 				authToken: "correct-auth-token",
 				urlPrefix: "http://localhost:12345/public",
 				public:    true,
+				logger:    testLogger,
 			}
 			postRequest, err := store.GeneratePostFileRequest(
 				"file:%251",

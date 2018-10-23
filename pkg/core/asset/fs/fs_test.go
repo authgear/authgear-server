@@ -6,18 +6,21 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+var testLogger = logging.LoggerEntry("asset")
 
 func TestFileStore(t *testing.T) {
 
 	Convey("FS Asset Store", t, func() {
-		fsStore := &fileStore{
+		fsStore := &AssetStore{
 			"data/asset",
 			"http://skygear.dev/files",
 			"asset_secret",
 			false,
-			nil,
+			testLogger,
 		}
 		Convey("Sign the Parse Signature correctly", func() {
 			s, err := fsStore.SignedURL("index.html")

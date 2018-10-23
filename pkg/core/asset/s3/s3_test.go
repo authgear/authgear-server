@@ -10,7 +10,7 @@ func TestS3Store(t *testing.T) {
 
 	Convey("S3 Asset Store", t, func() {
 		Convey("able to create bucket with us-west-1", func() {
-			_, err := NewS3Store(
+			_, err := NewAssetStore(
 				"access_token",
 				"secret_token",
 				"us-west-1",
@@ -23,7 +23,7 @@ func TestS3Store(t *testing.T) {
 		})
 
 		Convey("able to create bucket with us-east-2", func() {
-			_, err := NewS3Store(
+			_, err := NewAssetStore(
 				"access_token",
 				"secret_token",
 				"us-east-2",
