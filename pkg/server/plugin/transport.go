@@ -67,7 +67,7 @@ type TransportInitHandler func([]byte, error) error
 
 // A Transport represents the interface of data transfer between skygear
 // and remote process.
-//go:generate mockgen -package plugin -source=transport.go -destination=mock_transport_test.go
+//go:generate mockgen -package plugin -source=transport.go -destination=mockgen_transport_test.go
 type Transport interface {
 	State() TransportState
 	SetState(TransportState)
