@@ -102,7 +102,7 @@ func (s *AssetStore) PutFileReader(name string, src io.Reader, length int64, con
 	path := filepath.Join(s.dir, name)
 
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0750); err != nil {
 		return err
 	}
 
