@@ -74,13 +74,18 @@ func (m *MockStore) SetAdminRoles(roles []string) error {
 	return m.setRoleType(roles, "is_admin")
 }
 
+// SetDefaultRoles set role type to true
+func (m *MockStore) SetDefaultRoles(roles []string) error {
+	return m.setRoleType(roles, "by_default")
+}
+
 func (m *MockStore) setRoleType(roles []string, col string) error {
 	isAdmin := false
 	isDefault := false
 
 	if col == "is_admin" {
 		isAdmin = true
-	} else if col == "is_default" {
+	} else if col == "by_default" {
 		isDefault = true
 	}
 
