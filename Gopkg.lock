@@ -139,7 +139,7 @@
   version = "v3.2.0"
 
 [[projects]]
-  digest = "1:a1bad350477afbc84e8cbe5c78be4579478c55335377239631ff0adb985fbabc"
+  digest = "1:73a7106c799f98af4f3da7552906efc6a2570329f4cd2d2f5fb8f9d6c053ff2f"
   name = "github.com/golang/mock"
   packages = [
     "gomock",
@@ -147,8 +147,8 @@
     "mockgen/model",
   ]
   pruneopts = ""
-  revision = "13f360950a79f5864a972c786a10a50e44b69541"
-  version = "v1.0.0"
+  revision = "c34cdb4725f4c3844d095133c6e40e448b86589b"
+  version = "v1.1.1"
 
 [[projects]]
   digest = "1:348b8f460dd2b48cd7eeedacc82d9da6ecacb10a0dc1e5637ebb8bf42756124f"
@@ -398,7 +398,10 @@
 [[projects]]
   digest = "1:3ac248add5bb40a3c631c5334adcd09aa72d15af2768a5bc0274084ea7b2e5ba"
   name = "github.com/sirupsen/logrus"
-  packages = ["."]
+  packages = [
+    ".",
+    "hooks/test",
+  ]
   pruneopts = ""
   revision = "f006c2ac4710855cf0f916dd6b77acf6b048dc6e"
   version = "v1.0.3"
@@ -486,6 +489,7 @@
   digest = "1:130b1bec86c62e121967ee0c69d9c263dc2d3ffe6c7c9a82aca4071c4d068861"
   name = "golang.org/x/net"
   packages = [
+    "context",
     "http2",
     "http2/hpack",
     "idna",
@@ -578,6 +582,7 @@
     "github.com/rifflock/lfshook",
     "github.com/robfig/cron",
     "github.com/sirupsen/logrus",
+    "github.com/sirupsen/logrus/hooks/test",
     "github.com/skygeario/buford/push",
     "github.com/skygeario/go-baidupush",
     "github.com/smartystreets/goconvey/convey",
