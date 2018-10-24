@@ -52,6 +52,7 @@ go-install:
 
 .PHONY: go-generate
 go-generate: go-install
+	$(DOCKER_RUN) find pkg -type f -name "*_gen.go" -delete
 	$(DOCKER_RUN) find pkg -type f -name "mockgen_*.go" -delete
 	$(DOCKER_RUN) go generate ./pkg/...
 
