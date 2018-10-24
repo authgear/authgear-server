@@ -187,6 +187,19 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
+	// Early return if error exists in atomic save
+	if payload.Atomic && len(modifyResp.ErrMap) > 0 {
+		info := map[string]interface{}{}
+		for recordID, err := range modifyResp.ErrMap {
+			info[recordID.String()] = err
+		}
+
+		err = skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
+			"Atomic Operation rolled back due to one or more errors",
+			info)
+		return
+	}
+
 	results := make([]interface{}, 0, len(payload.RawMaps))
 	h.makeResultsFromIncomingItem(payload.IncomingItems, modifyResp, resultFilter, &results)
 
