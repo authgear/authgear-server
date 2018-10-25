@@ -29,7 +29,7 @@ func (p ProviderImpl) CreatePrincipal(principal Principal) (err error) {
 	// TODO: log
 
 	// Create principal
-	builder := p.sqlBuilder.Insert(p.sqlBuilder.TableName("principal")).Columns(
+	builder := p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("principal")).Columns(
 		"id",
 		"provider",
 		"user_id",

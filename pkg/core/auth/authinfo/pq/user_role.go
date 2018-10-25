@@ -29,7 +29,7 @@ func (s AuthInfoStore) GetRoles(userIDs []string) (map[string][]string, error) {
 		userIDArgs[i] = interface{}(v)
 	}
 	builder := s.sqlBuilder.Select("user_id", "role_id").
-		From(s.sqlBuilder.TableName("user_role")).
+		From(s.sqlBuilder.FullTableName("user_role")).
 		Where("user_id IN ("+sq.Placeholders(len(userIDs))+")", userIDArgs...)
 	rows, err := s.sqlExecutor.QueryWith(builder)
 	if err != nil {
@@ -67,7 +67,7 @@ func (s AuthInfoStore) RevokeRoles(userIDs []string, roles []string) error {
 
 func (s AuthInfoStore) updateUserRoles(authinfo *authinfo.AuthInfo) error {
 	s.logger.Debugf("UpdateRoles %v", authinfo)
-	builder := s.sqlBuilder.Delete(s.sqlBuilder.TableName("user_role")).Where("user_id = ?", authinfo.ID)
+	builder := s.sqlBuilder.Delete(s.sqlBuilder.FullTableName("user_role")).Where("user_id = ?", authinfo.ID)
 	_, err := s.sqlExecutor.ExecWith(builder)
 	if err != nil {
 		return skyerr.NewError(skyerr.ConstraintViolated,
@@ -138,9 +138,9 @@ type assignUserRole struct {
 func (s AuthInfoStore) assignUserRoleSQL(users []string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	assignUserRoleInsert.Execute(&b, assignUserRole{
-		s.sqlBuilder.TableName("user_role"),
-		s.sqlBuilder.TableName("role"),
-		s.sqlBuilder.TableName("user"),
+		s.sqlBuilder.FullTableName("user_role"),
+		s.sqlBuilder.FullTableName("role"),
+		s.sqlBuilder.FullTableName("user"),
 		roles,
 		users,
 	})
@@ -184,8 +184,8 @@ type batchUserRole struct {
 func (s AuthInfoStore) batchUserRoleSQL(id string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	batchUserRoleInsert.Execute(&b, batchUserRole{
-		s.sqlBuilder.TableName("user_role"),
-		s.sqlBuilder.TableName("role"),
+		s.sqlBuilder.FullTableName("user_role"),
+		s.sqlBuilder.FullTableName("role"),
 		roles,
 	})
 
@@ -227,7 +227,7 @@ type revokeUserRole struct {
 func (s AuthInfoStore) revokeUserRoleSQL(users []string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	revokeUserRoleDelete.Execute(&b, revokeUserRole{
-		s.sqlBuilder.TableName("user_role"),
+		s.sqlBuilder.FullTableName("user_role"),
 		roles,
 		users,
 	})

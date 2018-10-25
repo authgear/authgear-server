@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/core/asset"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -20,8 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	recordGear "github.com/skygeario/skygear-server/pkg/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
-	"github.com/skygeario/skygear-server/pkg/record/dependency/record/recordconv"
-	"github.com/skygeario/skygear-server/pkg/server/asset"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/recordconv"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -125,6 +124,8 @@ type SaveHandler struct {
 	AuthContext auth.ContextGetter `dependency:"AuthContextGetter"`
 	TxContext   db.TxContext       `dependency:"TxContext"`
 	RecordStore record.Store       `dependency:"RecordStore"`
+	Logger      *logrus.Entry      `dependency:"HandlerLogger"`
+	AssetStore  asset.Store        `dependency:"AssetStore"`
 }
 
 func (h SaveHandler) WithTx() bool {
@@ -158,8 +159,7 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	resultFilter, err := NewRecordResultFilter(
 		h.RecordStore,
-		// TODO:
-		nil,
+		h.AssetStore,
 		h.AuthContext.AuthInfo(),
 		h.AuthContext.AccessKeyType() == model.MasterAccessKey,
 	)
@@ -169,19 +169,30 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	modifyReq := RecordModifyRequest{
-		RecordStore: h.RecordStore,
-		// TODO:
-		AssetStore:    nil,
+		RecordStore:   h.RecordStore,
+		AssetStore:    h.AssetStore,
+		Logger:        h.Logger,
 		AuthInfo:      h.AuthContext.AuthInfo(),
 		RecordsToSave: payload.Records,
 		Atomic:        payload.Atomic,
 		WithMasterKey: h.AuthContext.AccessKeyType() == model.MasterAccessKey,
-		// TODO:
-		Context:  context.Background(),
-		ModifyAt: timeNow(),
+		ModifyAt:      timeNow(),
 	}
 	modifyResp := RecordModifyResponse{
 		ErrMap: map[record.ID]skyerr.Error{},
+	}
+
+	// TODO: emit schema updated event
+	_, err = ExtendRecordSchema(h.RecordStore, h.Logger, payload.Records)
+	if err != nil {
+		h.Logger.WithError(err).Errorln("failed to migrate record schema")
+		if myerr, ok := err.(skyerr.Error); ok {
+			err = myerr
+			return
+		}
+
+		err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
+		return
 	}
 
 	if err = RecordSaveHandler(&modifyReq, &modifyResp); err != nil {
@@ -206,11 +217,10 @@ func (h SaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, re
 			result = newSerializedError("", item)
 		case record.ID:
 			if err, ok := resp.ErrMap[item]; ok {
-				// logger := logging.CreateLogger(ctx, "handler")
-				// logger.WithFields(logrus.Fields{
-				// 	"recordID": item,
-				// 	"err":      err,
-				// }).Debugln("failed to save record")
+				h.Logger.WithFields(logrus.Fields{
+					"recordID": item,
+					"err":      err,
+				}).Debugln("failed to save record")
 
 				result = newSerializedError(item.String(), err)
 			} else {
@@ -229,9 +239,9 @@ func (h SaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, re
 type RecordModifyRequest struct {
 	RecordStore   record.Store
 	AssetStore    asset.Store
+	Logger        *logrus.Entry
 	Atomic        bool
 	WithMasterKey bool
-	Context       context.Context
 	AuthInfo      *authinfo.AuthInfo
 	ModifyAt      time.Time
 
@@ -253,18 +263,17 @@ type RecordFetcher struct {
 	withMasterKey          bool
 	creationAccessCacheMap map[string]record.ACL
 	defaultAccessCacheMap  map[string]record.ACL
-	context                context.Context
-	logger                 *logrus.Logger
+	logger                 *logrus.Entry
 }
 
 // NewRecordFetcher provide a convenient FetchOrCreateRecord method
-func NewRecordFetcher(ctx context.Context, recordStore record.Store, withMasterKey bool) RecordFetcher {
+func NewRecordFetcher(recordStore record.Store, logger *logrus.Entry, withMasterKey bool) RecordFetcher {
 	return RecordFetcher{
 		recordStore:            recordStore,
 		withMasterKey:          withMasterKey,
 		creationAccessCacheMap: map[string]record.ACL{},
 		defaultAccessCacheMap:  map[string]record.ACL{},
-		context:                ctx,
+		logger:                 logger,
 	}
 }
 
@@ -364,7 +373,7 @@ func (f RecordFetcher) FetchOrCreateRecord(recordID record.ID, authInfo *authinf
 func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) skyerr.Error {
 	records := req.RecordsToSave
 
-	fetcher := NewRecordFetcher(req.Context, req.RecordStore, req.WithMasterKey)
+	fetcher := NewRecordFetcher(req.RecordStore, req.Logger, req.WithMasterKey)
 	fieldACL, err := req.RecordStore.GetRecordFieldAccess()
 	if err != nil {
 		return skyerr.MakeError(err)
@@ -682,4 +691,94 @@ func scrubRecordFieldsForRead(authInfo *authinfo.AuthInfo, r *record.Record, fie
 			r.Remove(key)
 		}
 	}
+}
+
+func ExtendRecordSchema(recordStore record.Store, logger *logrus.Entry, records []*record.Record) (bool, error) {
+	recordSchemaMergerMap := map[string]schemaMerger{}
+	for _, record := range records {
+		recordType := record.ID.Type
+		merger, ok := recordSchemaMergerMap[recordType]
+		if !ok {
+			merger = newSchemaMerger()
+		}
+
+		merger.Extend(deriveRecordSchema(record.Data))
+
+		// The map hold the value of Schema Merger. After we have
+		// updated the Schema Merger, we have to copy the value
+		// of Schema Merger back to the map.
+		recordSchemaMergerMap[recordType] = merger
+	}
+
+	extended := false
+	for recordType, merger := range recordSchemaMergerMap {
+		schema, err := merger.Schema()
+		if err != nil {
+			return false, err
+		}
+
+		schemaExtended, err := recordStore.Extend(recordType, schema)
+		if err != nil {
+			return false, err
+		}
+		if schemaExtended {
+			logger.
+				WithField("type", recordType).
+				WithField("schema", schema).
+				Info("Schema Extended")
+			extended = true
+		}
+	}
+
+	return extended, nil
+}
+
+type schemaMerger struct {
+	finalSchema record.Schema
+	err         error
+}
+
+func newSchemaMerger() schemaMerger {
+	return schemaMerger{finalSchema: record.Schema{}}
+}
+
+func (m *schemaMerger) Extend(schema record.Schema) {
+	if m.err != nil {
+		return
+	}
+
+	for key, dataType := range schema {
+		if originalType, ok := m.finalSchema[key]; ok {
+			if originalType != dataType {
+				m.err = fmt.Errorf("type conflict on column = %s, %#v -> %#v", key, originalType, dataType)
+				return
+			}
+		}
+
+		m.finalSchema[key] = dataType
+	}
+}
+
+func (m schemaMerger) Schema() (record.Schema, error) {
+	return m.finalSchema, m.err
+}
+
+func deriveRecordSchema(m record.Data) record.Schema {
+	schema := record.Schema{}
+	for key, value := range m {
+		if value == nil {
+			continue
+		}
+
+		fieldType, err := record.DeriveFieldType(value)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"key":   key,
+				"value": value,
+			}).Panicf("unable to derive record schema: %s", err)
+		}
+		schema[key] = fieldType
+	}
+
+	return schema
 }

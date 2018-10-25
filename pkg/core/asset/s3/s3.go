@@ -1,0 +1,222 @@
+// Copyright 2015-present Oursky Ltd.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package s3
+
+import (
+	"errors"
+	"fmt"
+	"io"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/skygeario/skygear-server/pkg/core/asset"
+)
+
+// AssetStore implements Store by storing files on S3
+type AssetStore struct {
+	svc       *s3.S3
+	uploader  *s3manager.Uploader
+	bucket    *string
+	urlPrefix string
+	public    bool
+}
+
+// NewAssetStore returns a new s3 asset store
+func NewAssetStore(
+	accessKey string,
+	secretKey string,
+	regionName string,
+	bucketName string,
+	urlPrefix string,
+	public bool,
+) (*AssetStore, error) {
+	creds := credentials.NewStaticCredentials(
+		accessKey,
+		secretKey,
+		"",
+	)
+	sess := session.Must(session.NewSession())
+	svc := s3.New(sess, &aws.Config{
+		Region:      aws.String(regionName),
+		Credentials: creds,
+	})
+	uploader := s3manager.NewUploaderWithClient(svc)
+
+	bucket := aws.String(bucketName)
+
+	return &AssetStore{
+		svc:       svc,
+		uploader:  uploader,
+		bucket:    bucket,
+		urlPrefix: urlPrefix,
+		public:    public,
+	}, nil
+}
+
+// GetFileReader returns a reader for files
+func (s *AssetStore) GetFileReader(name string) (io.ReadCloser, error) {
+	key := aws.String(name)
+	input := &s3.GetObjectInput{
+		Bucket: s.bucket,
+		Key:    key,
+	}
+	objOutput, err := s.svc.GetObject(input)
+	return objOutput.Body, err
+}
+
+func (s *AssetStore) GetRangedFileReader(
+	name string,
+	fileRange asset.FileRange,
+) (*asset.FileRangedGetResult, error) {
+	key := aws.String(name)
+	rangeHeader := fmt.Sprintf("bytes=%d-%d", fileRange.From, fileRange.To)
+	input := &s3.GetObjectInput{
+		Bucket: s.bucket,
+		Key:    key,
+		Range:  &rangeHeader,
+	}
+
+	output, err := s.svc.GetObject(input)
+	if err != nil {
+		return nil, err
+	}
+
+	if output.ContentRange == nil {
+		return nil, errors.New("missing content ranges header")
+	}
+
+	acceptedRange, totalSize, err := parseContentRange(*output.ContentRange)
+	if err != nil {
+		return nil, err
+	}
+
+	return &asset.FileRangedGetResult{
+		ReadCloser:    output.Body,
+		AcceptedRange: acceptedRange,
+		TotalSize:     totalSize,
+	}, nil
+}
+
+// PutFileReader uploads a file to s3 with content from io.Reader
+func (s *AssetStore) PutFileReader(
+	name string,
+	src io.Reader,
+	length int64,
+	contentType string,
+) error {
+	key := aws.String(name)
+	input := &s3manager.UploadInput{
+		Body:        src,
+		Bucket:      s.bucket,
+		Key:         key,
+		ContentType: aws.String(contentType),
+	}
+	_, err := s.uploader.Upload(input)
+	return err
+}
+
+// GeneratePostFileRequest return a PostFileRequest for uploading asset
+func (s *AssetStore) GeneratePostFileRequest(name string, contentType string, length int64) (*asset.PostFileRequest, error) {
+	return &asset.PostFileRequest{
+		Action: "/files/" + name,
+	}, nil
+}
+
+// SignedURL return a signed s3 URL with expiry date
+func (s *AssetStore) SignedURL(name string) (string, error) {
+	if !s.IsSignatureRequired() {
+		if s.urlPrefix != "" {
+			return strings.Join([]string{s.urlPrefix, name}, "/"), nil
+		}
+		key := aws.String(name)
+		input := &s3.GetObjectInput{
+			Bucket: s.bucket,
+			Key:    key,
+		}
+		req, _ := s.svc.GetObjectRequest(input)
+		// Sign will interpolate the URL String, otherwise the URL will be %bucket%
+		req.Sign()
+		return req.HTTPRequest.URL.String(), nil
+	}
+	key := aws.String(name)
+	input := &s3.GetObjectInput{
+		Bucket: s.bucket,
+		Key:    key,
+	}
+	req, _ := s.svc.GetObjectRequest(input)
+	return req.Presign(time.Minute * time.Duration(15))
+}
+
+// IsSignatureRequired indicates whether a signature is required
+func (s *AssetStore) IsSignatureRequired() bool {
+	return !s.public
+}
+
+// ParseSignature tries to parse the asset signature
+func (s *AssetStore) ParseSignature(
+	signed string,
+	name string,
+	expiredAt time.Time,
+) (bool, error) {
+
+	return false, errors.New(
+		"Asset signature parsing for s3-based asset store is not available",
+	)
+}
+
+// parseContentRange parses the content range string
+// in the format of something like `bytes 123-567/1024`
+//
+func parseContentRange(contentRangeString string) (asset.FileRange, int64, error) {
+	splits := strings.SplitN(contentRangeString, " ", 2)
+	if len(splits) != 2 {
+		return asset.FileRange{}, 0, errors.New("content range is malformed")
+	}
+
+	if strings.ToLower(splits[0]) != "bytes" {
+		return asset.FileRange{}, 0, errors.New(
+			"only support content range in unit of bytes",
+		)
+	}
+
+	compSplits := strings.SplitN(splits[1], "/", 2)
+	if len(compSplits) != 2 {
+		return asset.FileRange{}, 0, errors.New("content range is malformed")
+	}
+
+	rangeSplits := strings.SplitN(compSplits[0], "-", 2)
+	if len(rangeSplits) != 2 {
+		return asset.FileRange{}, 0, errors.New("content range is malformed")
+	}
+
+	rangeFrom, err1 := strconv.ParseInt(rangeSplits[0], 10, 64)
+	rangeTo, err2 := strconv.ParseInt(rangeSplits[1], 10, 64)
+	totalSize, err3 := strconv.ParseInt(compSplits[1], 10, 64)
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		return asset.FileRange{}, 0, errors.New("content range is malformed")
+	}
+
+	return asset.FileRange{
+		From: rangeFrom,
+		To:   rangeTo,
+	}, totalSize, nil
+}

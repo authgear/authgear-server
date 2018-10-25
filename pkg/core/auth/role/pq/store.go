@@ -33,7 +33,7 @@ func NewRoleStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus
 func (s RoleStore) CreateRoles(roles []string) error {
 	s.logger.Debugf("createRole %v", roles)
 	for _, role := range roles {
-		builder := s.sqlBuilder.Insert(s.sqlBuilder.TableName("role")).Columns(
+		builder := s.sqlBuilder.Insert(s.sqlBuilder.FullTableName("role")).Columns(
 			"id",
 		).Values(
 			role,
@@ -61,7 +61,7 @@ func (s RoleStore) QueryRoles(roles []string) ([]role.Role, error) {
 		roleArgs[i] = interface{}(v)
 	}
 	builder := s.sqlBuilder.Select("id", "is_admin", "by_default").
-		From(s.sqlBuilder.TableName("role")).
+		From(s.sqlBuilder.FullTableName("role")).
 		Where("id IN ("+sq.Placeholders(len(roles))+")", roleArgs...)
 	rows, err := s.sqlExecutor.QueryWith(builder)
 	if err != nil {
@@ -92,7 +92,7 @@ func (s RoleStore) getRolesByType(rtype roleType) ([]string, error) {
 		panic("Unknow role type")
 	}
 	builder := s.sqlBuilder.Select("id").
-		From(s.sqlBuilder.TableName("role")).
+		From(s.sqlBuilder.FullTableName("role")).
 		Where(col + " = true")
 	rows, err := s.sqlExecutor.QueryWith(builder)
 	if err != nil {
@@ -120,7 +120,7 @@ func (s RoleStore) SetDefaultRoles(roles []string) error {
 
 func (s RoleStore) setRoleType(roles []string, col string) error {
 	resetSQL := s.sqlBuilder.
-		Update(s.sqlBuilder.TableName("role")).
+		Update(s.sqlBuilder.FullTableName("role")).
 		Where(col+" = ?", true).Set(col, false)
 	_, err := s.sqlExecutor.ExecWith(resetSQL)
 	if err != nil {
@@ -135,7 +135,7 @@ func (s RoleStore) setRoleType(roles []string, col string) error {
 	}
 
 	updateSQL := s.sqlBuilder.
-		Update(s.sqlBuilder.TableName("role")).
+		Update(s.sqlBuilder.FullTableName("role")).
 		Where("id IN ("+sq.Placeholders(len(roles))+")", roleArgs...).
 		Set(col, true)
 	_, err = s.sqlExecutor.ExecWith(updateSQL)

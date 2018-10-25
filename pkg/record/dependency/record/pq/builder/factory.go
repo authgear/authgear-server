@@ -291,7 +291,7 @@ func (f *predicateSqlizerFactory) AddJoinsToSelectBuilder(q sq.SelectBuilder) sq
 	for i, alias := range f.joinedTables {
 		aliasName := f.aliasName(alias.secondaryTable, i)
 		joinClause := fmt.Sprintf("%s AS %s ON %s = %s",
-			f.sqlBuilder.TableName(alias.secondaryTable), pq.QuoteIdentifier(aliasName),
+			f.sqlBuilder.FullTableName(alias.secondaryTable), pq.QuoteIdentifier(aliasName),
 			fullQuoteIdentifier(f.primaryTable, alias.primaryColumn),
 			fullQuoteIdentifier(aliasName, alias.secondaryColumn))
 		q = q.LeftJoin(joinClause)

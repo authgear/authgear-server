@@ -37,7 +37,7 @@ func (p ProviderImpl) CreatePrincipal(principal Principal) (err error) {
 	// TODO: log
 
 	// Create principal
-	builder := p.sqlBuilder.Insert(p.sqlBuilder.TableName("principal")).Columns(
+	builder := p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("principal")).Columns(
 		"id",
 		"provider",
 		"user_id",
@@ -64,7 +64,7 @@ func (p ProviderImpl) CreatePrincipal(principal Principal) (err error) {
 		panic("provider_password: Failed to hash password")
 	}
 
-	builder = p.sqlBuilder.Insert(p.sqlBuilder.TableName("provider_password")).Columns(
+	builder = p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("provider_password")).Columns(
 		"principal_id",
 		"auth_data",
 		"password",
@@ -90,7 +90,7 @@ func (p ProviderImpl) GetPrincipalByAuthData(authData map[string]interface{}, pr
 		return
 	}
 	builder := p.sqlBuilder.Select("principal_id", "password").
-		From(p.sqlBuilder.TableName("provider_password")).
+		From(p.sqlBuilder.FullTableName("provider_password")).
 		Where(`auth_data @> ?::jsonb`, authDataBytes)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
@@ -110,7 +110,7 @@ func (p ProviderImpl) GetPrincipalByAuthData(authData map[string]interface{}, pr
 	principal.AuthData = authData
 
 	builder = p.sqlBuilder.Select("user_id").
-		From(p.sqlBuilder.TableName("principal")).
+		From(p.sqlBuilder.FullTableName("principal")).
 		Where("id = ? AND provider = 'password'", principal.ID)
 	scanner = p.sqlExecutor.QueryRowWith(builder)
 	err = scanner.Scan(&principal.UserID)
@@ -125,7 +125,7 @@ func (p ProviderImpl) GetPrincipalByAuthData(authData map[string]interface{}, pr
 
 func (p ProviderImpl) GetPrincipalByUserID(userID string, principal *Principal) (err error) {
 	builder := p.sqlBuilder.Select("id", "user_id").
-		From(p.sqlBuilder.TableName("principal")).
+		From(p.sqlBuilder.FullTableName("principal")).
 		Where("user_id = ? AND provider = 'password'", userID)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 	err = scanner.Scan(
@@ -142,7 +142,7 @@ func (p ProviderImpl) GetPrincipalByUserID(userID string, principal *Principal) 
 	}
 
 	builder = p.sqlBuilder.Select("auth_data", "password").
-		From(p.sqlBuilder.TableName("provider_password")).
+		From(p.sqlBuilder.FullTableName("provider_password")).
 		Where(`principal_id = ?`, principal.ID)
 	scanner = p.sqlExecutor.QueryRowWith(builder)
 	var authDataBytes []byte
@@ -179,7 +179,7 @@ func (p ProviderImpl) UpdatePrincipal(principal Principal) (err error) {
 		panic("provider_password: Failed to hash password")
 	}
 
-	builder := p.sqlBuilder.Update(p.sqlBuilder.TableName("provider_password")).
+	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_password")).
 		Set("auth_data", authDataBytes).
 		Set("password", hashedPassword).
 		Where("principal_id = ?", principal.ID)

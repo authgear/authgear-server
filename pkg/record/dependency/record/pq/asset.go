@@ -46,7 +46,7 @@ func (s *RecordStore) GetAssets(names []string) ([]record.Asset, error) {
 	}
 
 	builder := s.sqlBuilder.Select("id", "content_type", "size").
-		From(s.sqlBuilder.TableName("asset")).
+		From(s.sqlBuilder.FullTableName("asset")).
 		Where("id IN ("+sq.Placeholders(len(names))+")", nameArgs...)
 
 	rows, err := s.sqlExecutor.QueryWith(builder)
@@ -79,7 +79,7 @@ func (s *RecordStore) SaveAsset(asset *record.Asset) error {
 		"content_type": asset.ContentType,
 		"size":         asset.Size,
 	}
-	upsert := builder.UpsertQuery(s.sqlBuilder.TableName("asset"), pkData, data)
+	upsert := builder.UpsertQuery(s.sqlBuilder.FullTableName("asset"), pkData, data)
 	_, err := s.sqlExecutor.ExecWith(upsert)
 	return err
 }
