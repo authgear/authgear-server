@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:generate mockgen -package skydb -source=query.go -destination=mock_query_test.go
+//go:generate mockgen -package skydb -source=query.go -destination=mockgen_query_test.go
 
 package skydb
 

@@ -66,14 +66,14 @@ func (njss *NullJSONStringSlice) Scan(value interface{}) error {
 	return err
 }
 
-type JsonSliceValue []interface{}
+type JSONSliceValue []interface{}
 
-func (s JsonSliceValue) Value() (driver.Value, error) {
+func (s JSONSliceValue) Value() (driver.Value, error) {
 	return json.Marshal([]interface{}(s))
 }
 
-type JsonMapValue map[string]interface{}
+type JSONMapValue map[string]interface{}
 
-func (m JsonMapValue) Value() (driver.Value, error) {
+func (m JSONMapValue) Value() (driver.Value, error) {
 	return json.Marshal(map[string]interface{}(m))
 }

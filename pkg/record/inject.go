@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -40,9 +41,14 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			true,
 			db.NewSQLBuilder("record", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
-			logging.CreateLogger(r, "record"),
+			logging.CreateLogger(r, "record", createLoggerMaskFormatter(r)),
 		)
 	default:
 		return nil
 	}
+}
+
+func createLoggerMaskFormatter(r *http.Request) logrus.Formatter {
+	tConfig := config.GetTenantConfig(r)
+	return logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
 }

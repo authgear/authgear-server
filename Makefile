@@ -52,7 +52,8 @@ go-install:
 
 .PHONY: go-generate
 go-generate: go-install
-	$(DOCKER_RUN) find pkg -type f -name "mock_*.go" -delete
+	$(DOCKER_RUN) find pkg -type f -name "*_gen.go" -delete
+	$(DOCKER_RUN) find pkg -type f -name "mockgen_*.go" -delete
 	$(DOCKER_RUN) go generate ./pkg/...
 
 .PHONY: go-lint
@@ -62,7 +63,7 @@ go-lint: go-install
 		--linter='gocyclo:gocyclo -over 15:^(?P<cyclo>\d+)\s+\S+\s(?P<function>\S+)\s+(?P<path>.*?\.go):(?P<line>\d+):(\d+)$'' \
 		./...
 # Next linter have stricter rule
-	$(DOCKER_RUN) gometalinter ./pkg/auth/... ./pkg/core/... ./pkg/gateway/... 
+	$(DOCKER_RUN) gometalinter ./pkg/auth/... ./pkg/core/... ./pkg/gateway/...
 
 .PHONY: generate
 generate: go-generate
