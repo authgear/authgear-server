@@ -20,3 +20,6 @@ docker-compose.override.yml
 
 # nix
 result-bin
+
+# vs code
+.vscode
