@@ -170,7 +170,6 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	modifyReq := RecordModifyRequest{
 		RecordStore:   h.RecordStore,
-		TxContext:     h.TxContext,
 		AssetStore:    h.AssetStore,
 		Logger:        h.Logger,
 		AuthInfo:      h.AuthContext.AuthInfo(),
@@ -181,6 +180,53 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 	modifyResp := RecordModifyResponse{
 		ErrMap: map[record.ID]skyerr.Error{},
+	}
+
+	// atomic: Open transaction for all operation
+	// inatomic: Open transaction for extending schema
+	if err = h.TxContext.BeginTx(); err != nil {
+		return
+	}
+
+	// atomic: Close trasaction at the end of function
+	//
+	// inatomic: Transaction should have been closed after extending schema,
+	//           so just handle early return
+	if payload.Atomic {
+		defer func() {
+			if err != nil || len(modifyResp.ErrMap) > 0 {
+				err = h.TxContext.RollbackTx()
+			} else {
+				err = h.TxContext.CommitTx()
+			}
+		}()
+	} else {
+		defer func() {
+			// handle early return
+			if h.TxContext.HasTx() {
+				err = h.TxContext.RollbackTx()
+			}
+		}()
+	}
+
+	// TODO: emit schema updated event
+	_, err = ExtendRecordSchema(h.RecordStore, h.Logger, payload.Records)
+	if err != nil {
+		h.Logger.WithError(err).Errorln("failed to migrate record schema")
+		if myerr, ok := err.(skyerr.Error); ok {
+			err = myerr
+			return
+		}
+
+		err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
+		return
+	}
+
+	// When inatomic save: Commit transaction for extending schema
+	if !payload.Atomic {
+		if err = h.TxContext.CommitTx(); err != nil {
+			return
+		}
 	}
 
 	if err = RecordSaveHandler(&modifyReq, &modifyResp); err != nil {
@@ -239,7 +285,6 @@ func (h SaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, re
 
 type RecordModifyRequest struct {
 	RecordStore   record.Store
-	TxContext     db.TxContext
 	AssetStore    asset.Store
 	Logger        *logrus.Entry
 	Atomic        bool
@@ -374,54 +419,6 @@ func (f RecordFetcher) FetchOrCreateRecord(recordID record.ID, authInfo *authinf
 // 5. Execute after save hooks with original record and new record
 func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) (err error) {
 	records := req.RecordsToSave
-
-	// Open trasaction for whole record save operation
-	if req.Atomic {
-		if err = req.TxContext.BeginTx(); err != nil {
-			return
-		}
-
-		defer func() {
-			if err != nil || len(resp.ErrMap) > 0 {
-				err = req.TxContext.RollbackTx()
-			} else {
-				err = req.TxContext.CommitTx()
-			}
-		}()
-	}
-
-	// When inatomic save: Open transaction for extending schema
-	if !req.Atomic {
-		if err = req.TxContext.BeginTx(); err != nil {
-			return
-		}
-
-		defer func() {
-			if req.TxContext.HasTx() {
-				err = req.TxContext.RollbackTx()
-			}
-		}()
-	}
-
-	// TODO: emit schema updated event
-	_, err = ExtendRecordSchema(req.RecordStore, req.Logger, records)
-	if err != nil {
-		req.Logger.WithError(err).Errorln("failed to migrate record schema")
-		if myerr, ok := err.(skyerr.Error); ok {
-			err = myerr
-			return
-		}
-
-		err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
-		return
-	}
-
-	// When inatomic save: Commit transaction for extending schema
-	if !req.Atomic {
-		if err = req.TxContext.CommitTx(); err != nil {
-			return
-		}
-	}
 
 	fetcher := NewRecordFetcher(req.RecordStore, req.Logger, req.WithMasterKey)
 	fieldACL, err := req.RecordStore.GetRecordFieldAccess()
