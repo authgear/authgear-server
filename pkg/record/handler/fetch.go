@@ -6,11 +6,15 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/core/asset"
+	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	recordGear "github.com/skygeario/skygear-server/pkg/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
@@ -68,7 +72,11 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type FetchHandler struct {
-	TxContext db.TxContext `dependency:"TxContext"`
+	AuthContext auth.ContextGetter `dependency:"AuthContextGetter"`
+	TxContext   db.TxContext       `dependency:"TxContext"`
+	RecordStore record.Store       `dependency:"RecordStore"`
+	Logger      *logrus.Entry      `dependency:"HandlerLogger"`
+	AssetStore  asset.Store        `dependency:"AssetStore"`
 }
 
 func (h FetchHandler) WithTx() bool {
@@ -97,5 +105,40 @@ func (h FetchHandler) DecodeRequest(request *http.Request) (handler.RequestPaylo
 }
 
 func (h FetchHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(FetchRequestPayload)
+
+	resultFilter, err := NewRecordResultFilter(
+		h.RecordStore,
+		h.TxContext,
+		h.AssetStore,
+		h.AuthContext.AuthInfo(),
+		h.AuthContext.AccessKeyType() == model.MasterAccessKey,
+	)
+	if err != nil {
+		err = skyerr.MakeError(err)
+		return
+	}
+
+	fetcher := NewRecordFetcher(
+		h.RecordStore,
+		h.Logger,
+		h.AuthContext.AccessKeyType() == model.MasterAccessKey,
+	)
+
+	results := make([]interface{}, len(payload.RecordIDs), len(payload.RecordIDs))
+	for i, recordID := range payload.RecordIDs {
+		r, err := fetcher.FetchRecord(recordID, h.AuthContext.AuthInfo(), record.ReadLevel)
+		if err != nil {
+			results[i] = newSerializedError(
+				recordID.String(),
+				err,
+			)
+			continue
+		}
+		results[i] = resultFilter.JSONResult(r)
+	}
+
+	resp = results
+
 	return
 }
