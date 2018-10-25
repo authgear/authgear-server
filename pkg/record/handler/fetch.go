@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -11,6 +13,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	recordGear "github.com/skygeario/skygear-server/pkg/record"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func AttachFetchHandler(
@@ -42,9 +46,15 @@ func (f FetchHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type FetchRequestPayload struct {
+	RecordIDs []record.ID
+	RawIDs    []string `json:"ids"`
 }
 
-func (s FetchRequestPayload) Validate() error {
+func (p FetchRequestPayload) Validate() error {
+	if len(p.RecordIDs) == 0 {
+		return skyerr.NewInvalidArgument("expected list of id", []string{"ids"})
+	}
+
 	return nil
 }
 
@@ -69,6 +79,18 @@ func (h FetchHandler) DecodeRequest(request *http.Request) (handler.RequestPaylo
 	payload := FetchRequestPayload{}
 	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
 		return nil, err
+	}
+
+	length := len(payload.RawIDs)
+	payload.RecordIDs = make([]record.ID, length, length)
+	for i, rawID := range payload.RawIDs {
+		ss := strings.SplitN(rawID, "/", 2)
+		if len(ss) == 1 {
+			return nil, skyerr.NewInvalidArgument(fmt.Sprintf("invalid id format: %v", rawID), []string{"ids"})
+		}
+
+		payload.RecordIDs[i].Type = ss[0]
+		payload.RecordIDs[i].Key = ss[1]
 	}
 
 	return payload, nil
