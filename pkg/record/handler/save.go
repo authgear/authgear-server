@@ -28,23 +28,23 @@ func AttachSaveHandler(
 	server *server.Server,
 	recordDependency recordGear.DependencyMap,
 ) *server.Server {
-	server.Handle("/save", &RecordHandlerFactory{
+	server.Handle("/save", &SaveHandlerFactory{
 		recordDependency,
 	}).Methods("POST")
 	return server
 }
 
-type RecordHandlerFactory struct {
+type SaveHandlerFactory struct {
 	Dependency recordGear.DependencyMap
 }
 
-func (f RecordHandlerFactory) NewHandler(request *http.Request) http.Handler {
+func (f SaveHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SaveHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
-func (f RecordHandlerFactory) ProvideAuthzPolicy() authz.Policy {
+func (f SaveHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
