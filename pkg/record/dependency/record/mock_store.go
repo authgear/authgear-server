@@ -24,6 +24,9 @@ type MockStore struct {
 // NewMockStore returns a new MockStore ready for use.
 func NewMockStore() *MockStore {
 	return &MockStore{
+		AssetMap:               map[string]Asset{},
+		recordAccessMap:        map[string]ACL{},
+		recordDefaultAccessMap: map[string]ACL{},
 		Map:       Map{},
 		SchemaMap: SchemaMap{},
 	}

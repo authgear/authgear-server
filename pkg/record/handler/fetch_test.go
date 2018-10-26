@@ -24,53 +24,57 @@ func TestRecordFetchHandler(t *testing.T) {
 		timeNow = realTime
 	}()
 
-	recordStore := record.NewMockStore()
-	recordStore.SchemaMap = record.SchemaMap{
-		"note": {
-			"content":  record.FieldType{Type: record.TypeString},
-			"favorite": record.FieldType{Type: record.TypeBoolean},
-			"category": record.FieldType{Type: record.TypeString},
-		},
+	getRecordStore := func() (recordStore *record.MockStore) {
+		recordStore = record.NewMockStore()
+		recordStore.SchemaMap = record.SchemaMap{
+			"note": {
+				"content":  record.FieldType{Type: record.TypeString},
+				"favorite": record.FieldType{Type: record.TypeBoolean},
+				"category": record.FieldType{Type: record.TypeString},
+			},
+		}
+
+		publicRole := record.FieldUserRole{
+			Type: record.PublicFieldUserRoleType,
+			Data: "",
+		}
+
+		recordStore.Save(&record.Record{
+			ID:        record.NewRecordID("note", "note0"),
+			OwnerID:   "user0",
+			CreatorID: "user0",
+			CreatedAt: timeNow(),
+			UpdaterID: "user0",
+			UpdatedAt: timeNow(),
+			Data: map[string]interface{}{
+				"content":  "Hello World!",
+				"category": "interesting",
+			},
+		})
+
+		recordStore.SetRecordFieldAccess(record.NewFieldACL(record.FieldACLEntryList{
+			{
+				RecordType:  "*",
+				RecordField: "*",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    true,
+			},
+			{
+				RecordType:  "note",
+				RecordField: "category",
+				UserRole:    publicRole,
+				Writable:    true,
+				Readable:    false,
+			},
+		}))
+
+		return
 	}
-
-	publicRole := record.FieldUserRole{
-		Type: record.PublicFieldUserRoleType,
-		Data: "",
-	}
-
-	recordStore.Save(&record.Record{
-		ID:        record.NewRecordID("note", "note0"),
-		OwnerID:   "user0",
-		CreatorID: "user0",
-		CreatedAt: timeNow(),
-		UpdaterID: "user0",
-		UpdatedAt: timeNow(),
-		Data: map[string]interface{}{
-			"content":  "Hello World!",
-			"category": "interesting",
-		},
-	})
-
-	recordStore.SetRecordFieldAccess(record.NewFieldACL(record.FieldACLEntryList{
-		{
-			RecordType:  "*",
-			RecordField: "*",
-			UserRole:    publicRole,
-			Writable:    true,
-			Readable:    true,
-		},
-		{
-			RecordType:  "note",
-			RecordField: "category",
-			UserRole:    publicRole,
-			Writable:    true,
-			Readable:    false,
-		},
-	}))
 
 	Convey("Test FetchHandler", t, func() {
 		fh := &FetchHandler{}
-		fh.RecordStore = recordStore
+		fh.RecordStore = getRecordStore()
 		fh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		fh.Logger = logging.LoggerEntry("handler")
 		// TODO:
@@ -139,7 +143,7 @@ func TestRecordFetchHandler(t *testing.T) {
 
 	Convey("Test FetchHandler with master key", t, func() {
 		fh := &FetchHandler{}
-		fh.RecordStore = recordStore
+		fh.RecordStore = getRecordStore()
 		fh.AuthContext = auth.NewMockContextGetterWithMasterkeyDefaultUser()
 		fh.Logger = logging.LoggerEntry("handler")
 		// TODO:
