@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"time"
@@ -45,23 +46,26 @@ func main() {
 	defer store.Close()
 
 	r := mux.NewRouter()
+	r.HandleFunc("/healthz", HealthCheckHandler)
+
+	proxy := NewReverseProxy()
+	gr := r.PathPrefix("/{gear}").Subrouter()
 
 	// RecoverMiddleware must come first
-	r.Use(coreMiddleware.RecoverMiddleware{}.Handle)
+	gr.Use(coreMiddleware.RecoverMiddleware{}.Handle)
 	// TODO:
 	// Currently both config and authz middleware both query store to get
 	// app, see how to reduce query to optimize the performance
-	r.Use(coreMiddleware.TenantConfigurationMiddleware{
+	gr.Use(coreMiddleware.TenantConfigurationMiddleware{
 		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
 			Store: store,
 		},
 	}.Handle)
-	r.Use(middleware.TenantAuthzMiddleware{
+	gr.Use(middleware.TenantAuthzMiddleware{
 		Store: store,
 	}.Handle)
 
-	proxy := NewReverseProxy()
-	r.HandleFunc("/{gear}/{rest:.*}", rewriteHandler(proxy))
+	gr.HandleFunc("/{rest:.*}", rewriteHandler(proxy))
 
 	srv := &http.Server{
 		Addr: config.HTTP.Host,
@@ -95,4 +99,11 @@ func rewriteHandler(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Re
 		r.URL.Path = "/" + mux.Vars(r)["rest"]
 		p.ServeHTTP(w, r)
 	}
+}
+
+// HealthCheckHandler is basic handler for server health check
+func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	io.WriteString(w, "OK")
 }
