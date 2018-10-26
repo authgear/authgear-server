@@ -1,6 +1,7 @@
 package server
 
 import (
+	"io"
 	"net/http"
 	"time"
 
@@ -60,6 +61,8 @@ func NewServerWithOption(
 		}.Handle)
 	}
 
+	srv.router.HandleFunc("/healthz", HealthCheckHandler)
+
 	return srv
 }
 
@@ -91,4 +94,11 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 // Use set middlewares to underlying router
 func (s *Server) Use(mwf ...mux.MiddlewareFunc) {
 	s.router.Use(mwf...)
+}
+
+// HealthCheckHandler is basic handler for server health check
+func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	io.WriteString(w, "OK")
 }
