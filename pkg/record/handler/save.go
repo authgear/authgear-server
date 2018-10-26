@@ -182,29 +182,59 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 		ErrMap: map[record.ID]skyerr.Error{},
 	}
 
-	// atomic: Open transaction for all operation
-	// inatomic: Open transaction for extending schema
-	if err = h.TxContext.BeginTx(); err != nil {
+	// Open transaction for whole operation if atomic save
+	if payload.Atomic {
+		if err = h.TxContext.BeginTx(); err != nil {
+			return
+		}
+
+		defer func() {
+			if txErr := db.EndTx(h.TxContext, err); txErr != nil {
+				err = txErr
+			}
+		}()
+	}
+
+	if err = h.ExtendRecordSchemaWithTx(payload); err != nil {
 		return
 	}
 
-	// atomic: Close trasaction at the end of function
-	//
-	// inatomic: Transaction should have been closed after extending schema,
-	//           so just handle early return
-	if payload.Atomic {
-		defer func() {
-			if err != nil || len(modifyResp.ErrMap) > 0 {
-				err = h.TxContext.RollbackTx()
-			} else {
-				err = h.TxContext.CommitTx()
+	if err = RecordSaveHandler(&modifyReq, &modifyResp); err != nil {
+		// Override error in atomic save
+		if payload.Atomic && len(modifyResp.ErrMap) > 0 {
+			info := map[string]interface{}{}
+			for recordID, err := range modifyResp.ErrMap {
+				info[recordID.String()] = err
 			}
-		}()
-	} else {
+
+			err = skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
+				"Atomic Operation rolled back due to one or more errors",
+				info)
+			return
+		}
+
+		return
+	}
+
+	results := make([]interface{}, 0, len(payload.RawMaps))
+	h.makeResultsFromIncomingItem(payload.IncomingItems, modifyResp, resultFilter, &results)
+
+	resp = results
+
+	return
+}
+
+// ExtendRecordSchemaWithTx ensure the operation is within a transaction.
+// When the request is inatomic, the operation would be wrapped in a new transaction.
+func (h SaveHandler) ExtendRecordSchemaWithTx(payload SaveRequestPayload) (err error) {
+	if !payload.Atomic {
+		if err = h.TxContext.BeginTx(); err != nil {
+			return
+		}
+
 		defer func() {
-			// handle early return
-			if h.TxContext.HasTx() {
-				err = h.TxContext.RollbackTx()
+			if txErr := db.EndTx(h.TxContext, err); txErr != nil {
+				err = txErr
 			}
 		}()
 	}
@@ -213,43 +243,12 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 	_, err = ExtendRecordSchema(h.RecordStore, h.Logger, payload.Records)
 	if err != nil {
 		h.Logger.WithError(err).Errorln("failed to migrate record schema")
-		if myerr, ok := err.(skyerr.Error); ok {
-			err = myerr
-			return
+		if _, ok := err.(skyerr.Error); !ok {
+			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
 		}
 
-		err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
 		return
 	}
-
-	// When inatomic save: Commit transaction for extending schema
-	if !payload.Atomic {
-		if err = h.TxContext.CommitTx(); err != nil {
-			return
-		}
-	}
-
-	if err = RecordSaveHandler(&modifyReq, &modifyResp); err != nil {
-		return
-	}
-
-	// Early return if error exists in atomic save
-	if payload.Atomic && len(modifyResp.ErrMap) > 0 {
-		info := map[string]interface{}{}
-		for recordID, err := range modifyResp.ErrMap {
-			info[recordID.String()] = err
-		}
-
-		err = skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
-			"Atomic Operation rolled back due to one or more errors",
-			info)
-		return
-	}
-
-	results := make([]interface{}, 0, len(payload.RawMaps))
-	h.makeResultsFromIncomingItem(payload.IncomingItems, modifyResp, resultFilter, &results)
-
-	resp = results
 
 	return
 }

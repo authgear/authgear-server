@@ -26,6 +26,16 @@ type TxContext interface {
 	RollbackTx() error
 }
 
+// EndTx implements a common pattern that commit a transaction if no error is
+// presented, otherwise rollback the transaction.
+func EndTx(tx TxContext, err error) error {
+	if err != nil {
+		return tx.RollbackTx()
+	}
+
+	return tx.CommitTx()
+}
+
 // TODO: handle thread safety
 type contextContainer struct {
 	db *sqlx.DB
