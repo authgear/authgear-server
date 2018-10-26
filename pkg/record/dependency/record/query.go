@@ -255,7 +255,7 @@ func (p Predicate) validateFunctionalPredicate(parentPredicate *Predicate) skyer
 	case UserRelationFunc:
 		if f.RelationName != "_friend" && f.RelationName != "_follow" {
 			return skyerr.NewErrorf(skyerr.NotSupported,
-				`user relation predicate with "%d" relation is not supported`,
+				`user relation predicate with "%s" relation is not supported`,
 				f.RelationName)
 		}
 	default:
