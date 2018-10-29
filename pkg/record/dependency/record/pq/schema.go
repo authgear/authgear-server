@@ -31,19 +31,19 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-func (s *RecordStore) recordTableNameValue(recordType string) string {
+func (s *recordStore) recordTableNameValue(recordType string) string {
 	return s.sqlBuilder.Relname("_" + recordType)
 }
 
-func (s *RecordStore) recordTableName(recordType string) string {
+func (s *recordStore) recordTableName(recordType string) string {
 	return s.sqlBuilder.TableName("_" + recordType)
 }
 
-func (s *RecordStore) recordFullTableName(recordType string) string {
+func (s *recordStore) recordFullTableName(recordType string) string {
 	return s.sqlBuilder.FullTableName("_" + recordType)
 }
 
-func (s *RecordStore) Extend(recordType string, recordSchema record.Schema) (extended bool, err error) {
+func (s *recordStore) Extend(recordType string, recordSchema record.Schema) (extended bool, err error) {
 	remoteRecordSchema, err := s.RemoteColumnTypes(recordType)
 	if err != nil {
 		return
@@ -103,7 +103,7 @@ func (s *RecordStore) Extend(recordType string, recordSchema record.Schema) (ext
 	return
 }
 
-func (s *RecordStore) RenameSchema(recordType, oldName, newName string) error {
+func (s *recordStore) RenameSchema(recordType, oldName, newName string) error {
 	if !s.canMigrate {
 		// The record schemas are different, but the database connection
 		// does not allow migration.
@@ -121,7 +121,7 @@ func (s *RecordStore) RenameSchema(recordType, oldName, newName string) error {
 	return nil
 }
 
-func (s *RecordStore) DeleteSchema(recordType, columnName string) error {
+func (s *recordStore) DeleteSchema(recordType, columnName string) error {
 	if !s.canMigrate {
 		// The record schemas are different, but the database connection
 		// does not allow migration.
@@ -138,7 +138,7 @@ func (s *RecordStore) DeleteSchema(recordType, columnName string) error {
 	return nil
 }
 
-func (s *RecordStore) GetSchema(recordType string) (record.Schema, error) {
+func (s *recordStore) GetSchema(recordType string) (record.Schema, error) {
 	remoteRecordSchema, err := s.RemoteColumnTypes(recordType)
 	if err != nil {
 		return nil, err
@@ -146,7 +146,7 @@ func (s *RecordStore) GetSchema(recordType string) (record.Schema, error) {
 	return remoteRecordSchema, nil
 }
 
-func (s *RecordStore) GetRecordSchemas() (map[string]record.Schema, error) {
+func (s *recordStore) GetRecordSchemas() (map[string]record.Schema, error) {
 	schemaName := s.sqlBuilder.SchemaName()
 
 	rows, err := s.sqlExecutor.Queryx(`
@@ -240,7 +240,7 @@ CREATE TABLE %s (
 `, tableName)
 }
 
-func (s *RecordStore) getSequences(recordType string) ([]string, error) {
+func (s *recordStore) getSequences(recordType string) ([]string, error) {
 	const queryString = `
 		SELECT c.relname
 		FROM pg_catalog.pg_class c
@@ -292,7 +292,7 @@ func (s *RecordStore) getSequences(recordType string) ([]string, error) {
 // AND tc.table_schema = 'app__'
 // AND tc.table_name = 'note';
 // nolint: gocyclo
-func (s *RecordStore) RemoteColumnTypes(recordType string) (record.Schema, error) {
+func (s *recordStore) RemoteColumnTypes(recordType string) (record.Schema, error) {
 	typemap := record.Schema{}
 	var err error
 	// STEP 0: Return the cached ColumnType
@@ -453,7 +453,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 // ADD CONSTRAINT fk_note_collection_collection
 // FOREIGN KEY (collection)
 // REFERENCES app__.collection(_id);
-func (s *RecordStore) addColumnStmt(recordType string, recordSchema record.Schema) string {
+func (s *recordStore) addColumnStmt(recordType string, recordSchema record.Schema) string {
 	buf := bytes.Buffer{}
 	buf.Write([]byte("ALTER TABLE "))
 	buf.WriteString(s.recordFullTableName(recordType))
@@ -478,7 +478,7 @@ func (s *RecordStore) addColumnStmt(recordType string, recordSchema record.Schem
 	return buf.String()
 }
 
-func (s *RecordStore) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, referent, remoteCol string) {
+func (s *recordStore) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, referent, remoteCol string) {
 	buf.Write([]byte(`ADD CONSTRAINT `))
 	buf.WriteString(pq.QuoteIdentifier(fmt.Sprintf(`fk_%s_%s_%s`, localCol, referent, remoteCol)))
 	buf.Write([]byte(` FOREIGN KEY (`))
@@ -490,7 +490,7 @@ func (s *RecordStore) writeForeignKeyConstraint(buf *bytes.Buffer, localCol, ref
 	buf.Write([]byte(`),`))
 }
 
-func (s *RecordStore) GetIndexesByRecordType(recordType string) (indexes map[string]record.Index, err error) {
+func (s *recordStore) GetIndexesByRecordType(recordType string) (indexes map[string]record.Index, err error) {
 	schemaName := s.sqlBuilder.SchemaName()
 	rows, err := s.sqlExecutor.Queryx(`
 SELECT
@@ -541,7 +541,7 @@ GROUP BY
 	return
 }
 
-func (s *RecordStore) SaveIndex(recordType, indexName string, index record.Index) error {
+func (s *recordStore) SaveIndex(recordType, indexName string, index record.Index) error {
 	quotedColumns := []string{}
 	for _, col := range index.Fields {
 		quotedColumns = append(quotedColumns, fmt.Sprintf("%s", col))
@@ -559,7 +559,7 @@ func (s *RecordStore) SaveIndex(recordType, indexName string, index record.Index
 	return nil
 }
 
-func (s *RecordStore) DeleteIndex(recordType string, indexName string) error {
+func (s *recordStore) DeleteIndex(recordType string, indexName string) error {
 	stmt := fmt.Sprintf(`
 		ALTER TABLE "%s"."%s" DROP CONSTRAINT %s;
 	`, s.sqlBuilder.SchemaName(), s.recordTableName(recordType), indexName)

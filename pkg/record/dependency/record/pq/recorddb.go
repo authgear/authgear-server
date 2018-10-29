@@ -33,7 +33,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-func (s *RecordStore) Get(id record.ID, r *record.Record) error {
+func (s *recordStore) Get(id record.ID, r *record.Record) error {
 	typemap, err := s.RemoteColumnTypes(id.Type)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (s *RecordStore) Get(id record.ID, r *record.Record) error {
 // GetByIDs only support one type of records at a time. If you want to query
 // array of ids belongs to different type, you need to call this method multiple
 // time.
-func (s *RecordStore) GetByIDs(ids []record.ID, accessControlOptions *record.AccessControlOptions) (*record.Rows, error) {
+func (s *recordStore) GetByIDs(ids []record.ID, accessControlOptions *record.AccessControlOptions) (*record.Rows, error) {
 	if len(ids) == 0 {
 		return nil, errors.New("db.GetByIDs received empty array")
 	}
@@ -104,7 +104,7 @@ func (s *RecordStore) GetByIDs(ids []record.ID, accessControlOptions *record.Acc
 }
 
 // Save attempts to do a upsert
-func (s *RecordStore) Save(r *record.Record) error {
+func (s *recordStore) Save(r *record.Record) error {
 	if r.ID.Key == "" {
 		return errors.New("db.save: got empty record id")
 	}
@@ -171,7 +171,7 @@ func (s *RecordStore) Save(r *record.Record) error {
 	return nil
 }
 
-func (s *RecordStore) preSave(schema record.Schema, r *record.Record) error {
+func (s *recordStore) preSave(schema record.Schema, r *record.Record) error {
 	const SetSequenceMaxValue = `SELECT setval($1, GREATEST(max(%v), $2)) FROM %v;`
 
 	for key, value := range r.Data {
@@ -220,7 +220,7 @@ func convert(r *record.Record) map[string]interface{} {
 	return m
 }
 
-func (s *RecordStore) Delete(id record.ID) error {
+func (s *recordStore) Delete(id record.ID) error {
 	// logger := logging.CreateLogger(db.c.context, "skydb")
 	builder := s.sqlBuilder.Delete(s.sqlBuilder.FullTableName(id.Type)).
 		Where("_id = ?", id.Key)
@@ -256,7 +256,7 @@ func (s *RecordStore) Delete(id record.ID) error {
 	return err
 }
 
-func (s *RecordStore) applyQueryPredicate(q sq.SelectBuilder, factory builder.PredicateSqlizerFactory, query *record.Query, accessControlOptions *record.AccessControlOptions) (sq.SelectBuilder, error) {
+func (s *recordStore) applyQueryPredicate(q sq.SelectBuilder, factory builder.PredicateSqlizerFactory, query *record.Query, accessControlOptions *record.AccessControlOptions) (sq.SelectBuilder, error) {
 	if p := query.Predicate; !p.IsEmpty() {
 		sqlizer, err := factory.NewPredicateSqlizer(p)
 		if err != nil {
@@ -277,7 +277,7 @@ func (s *RecordStore) applyQueryPredicate(q sq.SelectBuilder, factory builder.Pr
 	return q, nil
 }
 
-func (s *RecordStore) Query(query *record.Query, accessControlOptions *record.AccessControlOptions) (*record.Rows, error) {
+func (s *recordStore) Query(query *record.Query, accessControlOptions *record.AccessControlOptions) (*record.Rows, error) {
 	if query.Type == "" {
 		return nil, errors.New("got empty query type")
 	}
@@ -329,7 +329,7 @@ func (s *RecordStore) Query(query *record.Query, accessControlOptions *record.Ac
 	return newRows(query.Type, typemap, rows, err)
 }
 
-func (s *RecordStore) QueryCount(query *record.Query, accessControlOptions *record.AccessControlOptions) (uint64, error) {
+func (s *recordStore) QueryCount(query *record.Query, accessControlOptions *record.AccessControlOptions) (uint64, error) {
 	if query.Type == "" {
 		return 0, errors.New("got empty query type")
 	}
@@ -590,7 +590,7 @@ func columnSqlizersForSelect(alias string, typemap record.Schema) map[string]sq.
 	return sqlizers
 }
 
-func (s *RecordStore) selectQuery(q sq.SelectBuilder, recordType string, typemap record.Schema) sq.SelectBuilder {
+func (s *recordStore) selectQuery(q sq.SelectBuilder, recordType string, typemap record.Schema) sq.SelectBuilder {
 	for column, e := range columnSqlizersForSelect(s.recordTableNameValue(recordType), typemap) {
 		sqlOperand, opArgs, _ := e.ToSql()
 		q = q.Column(sqlOperand+" as "+pq.QuoteIdentifier(column), opArgs...)

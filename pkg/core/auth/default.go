@@ -25,17 +25,19 @@ func NewDefaultTokenStore(ctx context.Context, tConfig config.TenantConfiguratio
 }
 
 func NewDefaultAuthInfoStore(ctx context.Context, tConfig config.TenantConfiguration) authinfo.Store {
-	return pqAuthInfo.NewAuthInfoStore(
+	return pqAuthInfo.NewSafeAuthInfoStore(
 		db.NewSQLBuilder("core", tConfig.AppName),
 		db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, openDB(tConfig))),
 		logging.CreateLogger(ctx, "authinfo"),
+		db.NewSafeTxContextWithContext(ctx, openDB(tConfig)),
 	)
 }
 
 func NewDefaultRoleStore(ctx context.Context, tConfig config.TenantConfiguration) role.Store {
-	return pqRole.NewRoleStore(
+	return pqRole.NewSafeRoleStore(
 		db.NewSQLBuilder("core", tConfig.AppName),
 		db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, openDB(tConfig))),
 		logging.CreateLogger(ctx, "role"),
+		db.NewSafeTxContextWithContext(ctx, openDB(tConfig)),
 	)
 }

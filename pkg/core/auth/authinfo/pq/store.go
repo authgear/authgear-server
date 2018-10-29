@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	pqRole "github.com/skygeario/skygear-server/pkg/core/auth/role/pq"
 
 	sq "github.com/lann/squirrel"
@@ -30,24 +31,24 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 )
 
-type AuthInfoStore struct {
-	roleStore pqRole.RoleStore
+type authInfoStore struct {
+	roleStore role.Store
 
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 	logger      *logrus.Entry
 }
 
-func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *AuthInfoStore {
-	return &AuthInfoStore{
-		roleStore:   *pqRole.NewRoleStore(builder, executor, logger),
+func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) authinfo.Store {
+	return &authInfoStore{
+		roleStore:   pqRole.NewRoleStore(builder, executor, logger),
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 		logger:      logger,
 	}
 }
 
-func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
+func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
 		lastSeenAt      *time.Time
@@ -108,7 +109,7 @@ func (s AuthInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 
 // UpdateAuth updates an existing AuthInfo matched by the ID field.
 // nolint: gocyclo
-func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
+func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	var (
 		tokenValidSince *time.Time
 		lastSeenAt      *time.Time
@@ -170,7 +171,7 @@ func (s AuthInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 	return nil
 }
 
-func (s AuthInfoStore) baseUserBuilder() sq.SelectBuilder {
+func (s authInfoStore) baseUserBuilder() sq.SelectBuilder {
 	return s.sqlBuilder.Select("id",
 		"token_valid_since", "last_seen_at", "last_login_at",
 		"disabled", "disabled_message", "disabled_expiry",
@@ -180,7 +181,7 @@ func (s AuthInfoStore) baseUserBuilder() sq.SelectBuilder {
 		GroupBy("id")
 }
 
-func (s AuthInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
+func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
 	logger := s.logger
 	var (
 		id              string
@@ -249,13 +250,13 @@ func (s AuthInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 	return err
 }
 
-func (s AuthInfoStore) GetAuth(id string, authinfo *authinfo.AuthInfo) error {
+func (s authInfoStore) GetAuth(id string, authinfo *authinfo.AuthInfo) error {
 	builder := s.baseUserBuilder().Where("id = ?", id)
 	scanner := s.sqlExecutor.QueryRowWith(builder)
 	return s.doScanAuth(authinfo, scanner)
 }
 
-func (s AuthInfoStore) DeleteAuth(id string) error {
+func (s authInfoStore) DeleteAuth(id string) error {
 	builder := s.sqlBuilder.Delete(s.sqlBuilder.FullTableName("user")).
 		Where("id = ?", id)
 
@@ -278,5 +279,5 @@ func (s AuthInfoStore) DeleteAuth(id string) error {
 
 // this ensures that our structure conform to certain interfaces.
 var (
-	_ authinfo.Store = &AuthInfoStore{}
+	_ authinfo.Store = &authInfoStore{}
 )

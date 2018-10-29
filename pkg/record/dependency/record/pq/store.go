@@ -4,9 +4,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 )
 
-type RecordStore struct {
+type recordStore struct {
 	roleStore role.Store
 
 	canMigrate bool
@@ -22,8 +23,8 @@ func NewRecordStore(
 	sqlBuilder db.SQLBuilder,
 	sqlExecutor db.SQLExecutor,
 	logger *logrus.Entry,
-) *RecordStore {
-	return &RecordStore{
+) record.Store {
+	return &recordStore{
 		roleStore:   roleStore,
 		canMigrate:  canMigrate,
 		sqlBuilder:  sqlBuilder,

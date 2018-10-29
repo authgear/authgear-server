@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
@@ -21,10 +22,17 @@ type Context interface {
 
 // TxContext provides the interface for managing transaction
 type TxContext interface {
-	HasTx() bool
+	SafeTxContext
+
 	BeginTx() error
 	CommitTx() error
 	RollbackTx() error
+}
+
+// SafeTxContext only provides interface to check existence of transaction
+type SafeTxContext interface {
+	HasTx() bool
+	EnsureTx()
 }
 
 // EndTx implements a common pattern that commit a transaction if no error is
@@ -73,6 +81,14 @@ func NewTxContextWithContext(ctx context.Context, dbOpener func() (*sqlx.DB, err
 	}
 }
 
+// NewSafeTxContextWithContext creates a new context.Tx from context
+func NewSafeTxContextWithContext(ctx context.Context, dbOpener func() (*sqlx.DB, error)) SafeTxContext {
+	return &dbContext{
+		Context:  ctx,
+		dbOpener: dbOpener,
+	}
+}
+
 func (d *dbContext) DB() ExtContext {
 	if d.tx() != nil {
 		return d.tx()
@@ -83,6 +99,12 @@ func (d *dbContext) DB() ExtContext {
 
 func (d *dbContext) HasTx() bool {
 	return d.tx() != nil
+}
+
+func (d *dbContext) EnsureTx() {
+	if d.tx() == nil {
+		panic(errors.New("unexpected transaction not began"))
+	}
 }
 
 func (d *dbContext) BeginTx() (err error) {

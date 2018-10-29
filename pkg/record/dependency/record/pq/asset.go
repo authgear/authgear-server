@@ -23,7 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
 
-func (s *RecordStore) GetAsset(name string, asset *record.Asset) error {
+func (s *recordStore) GetAsset(name string, asset *record.Asset) error {
 	assets, err := s.GetAssets([]string{name})
 
 	if len(assets) == 0 {
@@ -35,7 +35,7 @@ func (s *RecordStore) GetAsset(name string, asset *record.Asset) error {
 	return err
 }
 
-func (s *RecordStore) GetAssets(names []string) ([]record.Asset, error) {
+func (s *recordStore) GetAssets(names []string) ([]record.Asset, error) {
 	if len(names) == 0 {
 		return []record.Asset{}, nil
 	}
@@ -71,7 +71,7 @@ func (s *RecordStore) GetAssets(names []string) ([]record.Asset, error) {
 	return results, nil
 }
 
-func (s *RecordStore) SaveAsset(asset *record.Asset) error {
+func (s *recordStore) SaveAsset(asset *record.Asset) error {
 	pkData := map[string]interface{}{
 		"id": asset.Name,
 	}

@@ -57,17 +57,19 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		}
 	case "PasswordAuthProvider":
 		tConfig := config.GetTenantConfig(r)
-		return password.NewProvider(
+		return password.NewSafeProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
 			logging.CreateLogger(r, "provider_password", createLoggerMaskFormatter(r)),
+			db.NewSafeTxContextWithContext(r.Context(), openDB(tConfig)),
 		)
 	case "AnonymousAuthProvider":
 		tConfig := config.GetTenantConfig(r)
-		return anonymous.NewProvider(
+		return anonymous.NewSafeProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
 			logging.CreateLogger(r, "provider_anonymous", createLoggerMaskFormatter(r)),
+			db.NewSafeTxContextWithContext(r.Context(), openDB(tConfig)),
 		)
 	case "HandlerLogger":
 		return logging.CreateLogger(r, "handler", createLoggerMaskFormatter(r))

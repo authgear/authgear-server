@@ -16,21 +16,21 @@ const (
 	roleTypeDefault = roleType("default")
 )
 
-type RoleStore struct {
+type roleStore struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 	logger      *logrus.Entry
 }
 
-func NewRoleStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *RoleStore {
-	return &RoleStore{
+func NewRoleStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) role.Store {
+	return &roleStore{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 		logger:      logger,
 	}
 }
 
-func (s RoleStore) CreateRoles(roles []string) error {
+func (s roleStore) CreateRoles(roles []string) error {
 	s.logger.Debugf("createRole %v", roles)
 	for _, role := range roles {
 		builder := s.sqlBuilder.Insert(s.sqlBuilder.FullTableName("role")).Columns(
@@ -47,7 +47,7 @@ func (s RoleStore) CreateRoles(roles []string) error {
 	return nil
 }
 
-func (s RoleStore) QueryRoles(roles []string) ([]role.Role, error) {
+func (s roleStore) QueryRoles(roles []string) ([]role.Role, error) {
 	if roles == nil {
 		return nil, nil
 	}
@@ -79,11 +79,11 @@ func (s RoleStore) QueryRoles(roles []string) ([]role.Role, error) {
 	return existedRoles, nil
 }
 
-func (s RoleStore) GetDefaultRoles() ([]string, error) {
+func (s roleStore) GetDefaultRoles() ([]string, error) {
 	return s.getRolesByType(roleTypeDefault)
 }
 
-func (s RoleStore) getRolesByType(rtype roleType) ([]string, error) {
+func (s roleStore) getRolesByType(rtype roleType) ([]string, error) {
 	var col string
 	switch rtype {
 	case roleTypeDefault:
@@ -110,15 +110,15 @@ func (s RoleStore) getRolesByType(rtype roleType) ([]string, error) {
 	return roles, nil
 }
 
-func (s RoleStore) SetAdminRoles(roles []string) error {
+func (s roleStore) SetAdminRoles(roles []string) error {
 	return s.setRoleType(roles, "is_admin")
 }
 
-func (s RoleStore) SetDefaultRoles(roles []string) error {
+func (s roleStore) SetDefaultRoles(roles []string) error {
 	return s.setRoleType(roles, "by_default")
 }
 
-func (s RoleStore) setRoleType(roles []string, col string) error {
+func (s roleStore) setRoleType(roles []string, col string) error {
 	resetSQL := s.sqlBuilder.
 		Update(s.sqlBuilder.FullTableName("role")).
 		Where(col+" = ?", true).Set(col, false)
@@ -147,5 +147,5 @@ func (s RoleStore) setRoleType(roles []string, col string) error {
 
 // this ensures that our structure conform to certain interfaces.
 var (
-	_ role.Store = &RoleStore{}
+	_ role.Store = &roleStore{}
 )

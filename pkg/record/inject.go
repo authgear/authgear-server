@@ -37,13 +37,14 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	case "RecordStore":
 		tConfig := config.GetTenantConfig(r)
 		roleStore := auth.NewDefaultRoleStore(r.Context(), tConfig)
-		return pq.NewRecordStore(
+		return pq.NewSafeRecordStore(
 			roleStore,
 			// TODO: get from tconfig
 			true,
 			db.NewSQLBuilder("record", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
 			logging.CreateLogger(r, "record", createLoggerMaskFormatter(r)),
+			db.NewSafeTxContextWithContext(r.Context(), openDB(tConfig)),
 		)
 	case "HandlerLogger":
 		return logging.CreateLogger(r, "record", createLoggerMaskFormatter(r))
