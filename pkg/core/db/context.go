@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 )
 
 type contextKey string
@@ -30,7 +31,10 @@ type TxContext interface {
 // presented, otherwise rollback the transaction.
 func EndTx(tx TxContext, err error) error {
 	if err != nil {
-		return tx.RollbackTx()
+		if rbErr := tx.RollbackTx(); rbErr != nil {
+			logrus.Errorf("Failed to rollback: %v", rbErr)
+		}
+		return err
 	}
 
 	return tx.CommitTx()

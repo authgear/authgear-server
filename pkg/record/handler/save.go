@@ -187,19 +187,24 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 		if err = h.TxContext.BeginTx(); err != nil {
 			return
 		}
-
-		defer func() {
-			if txErr := db.EndTx(h.TxContext, err); txErr != nil {
-				err = txErr
-			}
-		}()
 	}
 
-	if err = h.ExtendRecordSchemaWithTx(payload); err != nil {
+	var opErr error
+	defer func() {
+		if payload.Atomic {
+			if txErr := db.EndTx(h.TxContext, opErr); txErr != nil {
+				err = txErr
+			}
+		} else {
+			err = opErr
+		}
+	}()
+
+	if opErr = h.ExtendRecordSchemaWithTx(payload); opErr != nil {
 		return
 	}
 
-	if err = RecordSaveHandler(&modifyReq, &modifyResp); err != nil {
+	if opErr = RecordSaveHandler(&modifyReq, &modifyResp); opErr != nil {
 		// Override error in atomic save
 		if payload.Atomic && len(modifyResp.ErrMap) > 0 {
 			info := map[string]interface{}{}
@@ -207,7 +212,7 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 				info[recordID.String()] = err
 			}
 
-			err = skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
+			opErr = skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
 				"Atomic Operation rolled back due to one or more errors",
 				info)
 			return
