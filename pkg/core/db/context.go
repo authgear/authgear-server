@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 )
 
 type contextKey string
@@ -24,6 +25,19 @@ type TxContext interface {
 	BeginTx() error
 	CommitTx() error
 	RollbackTx() error
+}
+
+// EndTx implements a common pattern that commit a transaction if no error is
+// presented, otherwise rollback the transaction.
+func EndTx(tx TxContext, err error) error {
+	if err != nil {
+		if rbErr := tx.RollbackTx(); rbErr != nil {
+			logrus.Errorf("Failed to rollback: %v", rbErr)
+		}
+		return err
+	}
+
+	return tx.CommitTx()
 }
 
 // TODO: handle thread safety

@@ -182,20 +182,42 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 		ErrMap: map[record.ID]skyerr.Error{},
 	}
 
-	// TODO: emit schema updated event
-	_, err = ExtendRecordSchema(h.RecordStore, h.Logger, payload.Records)
-	if err != nil {
-		h.Logger.WithError(err).Errorln("failed to migrate record schema")
-		if myerr, ok := err.(skyerr.Error); ok {
-			err = myerr
+	// Open transaction for whole operation if atomic save
+	if payload.Atomic {
+		if err = h.TxContext.BeginTx(); err != nil {
 			return
 		}
+	}
 
-		err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
+	var opErr error
+	defer func() {
+		if payload.Atomic {
+			if txErr := db.EndTx(h.TxContext, opErr); txErr != nil {
+				err = txErr
+			}
+		} else {
+			err = opErr
+		}
+	}()
+
+	if opErr = h.ExtendRecordSchemaWithTx(payload); opErr != nil {
 		return
 	}
 
-	if err = RecordSaveHandler(&modifyReq, &modifyResp); err != nil {
+	if opErr = RecordSaveHandler(&modifyReq, &modifyResp); opErr != nil {
+		// Override error in atomic save
+		if payload.Atomic && len(modifyResp.ErrMap) > 0 {
+			info := map[string]interface{}{}
+			for recordID, err := range modifyResp.ErrMap {
+				info[recordID.String()] = err
+			}
+
+			opErr = skyerr.NewErrorWithInfo(skyerr.AtomicOperationFailure,
+				"Atomic Operation rolled back due to one or more errors",
+				info)
+			return
+		}
+
 		return
 	}
 
@@ -203,6 +225,35 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 	h.makeResultsFromIncomingItem(payload.IncomingItems, modifyResp, resultFilter, &results)
 
 	resp = results
+
+	return
+}
+
+// ExtendRecordSchemaWithTx ensure the operation is within a transaction.
+// When the request is inatomic, the operation would be wrapped in a new transaction.
+func (h SaveHandler) ExtendRecordSchemaWithTx(payload SaveRequestPayload) (err error) {
+	if !payload.Atomic {
+		if err = h.TxContext.BeginTx(); err != nil {
+			return
+		}
+
+		defer func() {
+			if txErr := db.EndTx(h.TxContext, err); txErr != nil {
+				err = txErr
+			}
+		}()
+	}
+
+	// TODO: emit schema updated event
+	_, err = ExtendRecordSchema(h.RecordStore, h.Logger, payload.Records)
+	if err != nil {
+		h.Logger.WithError(err).Errorln("failed to migrate record schema")
+		if _, ok := err.(skyerr.Error); !ok {
+			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
+		}
+
+		return
+	}
 
 	return
 }
@@ -370,13 +421,13 @@ func (f RecordFetcher) FetchOrCreateRecord(recordID record.ID, authInfo *authinf
 // 3. Clean up some transport only data (sequence for example) away from record
 // 4. Populate meta data and save the record (like updated_at/by)
 // 5. Execute after save hooks with original record and new record
-func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) skyerr.Error {
+func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) (err error) {
 	records := req.RecordsToSave
 
 	fetcher := NewRecordFetcher(req.RecordStore, req.Logger, req.WithMasterKey)
 	fieldACL, err := req.RecordStore.GetRecordFieldAccess()
 	if err != nil {
-		return skyerr.MakeError(err)
+		return
 	}
 
 	// fetch records
@@ -456,7 +507,8 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 	})
 
 	if req.Atomic && len(resp.ErrMap) > 0 {
-		return skyerr.NewError(skyerr.UnexpectedError, "atomic operation failed")
+		err = skyerr.NewError(skyerr.UnexpectedError, "atomic operation failed")
+		return
 	}
 
 	makeAssetsCompleteAndInjectSigner(req.RecordStore, records, req.AssetStore)
@@ -465,7 +517,7 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) sky
 
 	resp.SavedRecords = records
 
-	return nil
+	return
 }
 
 type recordFunc func(*record.Record) skyerr.Error
