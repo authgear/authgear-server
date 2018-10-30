@@ -52,6 +52,7 @@ func main() {
 
 	handler.AttachSaveHandler(&srv, recordDependency)
 	handler.AttachFetchHandler(&srv, recordDependency)
+	handler.AttachQueryHandler(&srv, recordDependency)
 
 	go func() {
 		log.Printf("Record gear boot")
