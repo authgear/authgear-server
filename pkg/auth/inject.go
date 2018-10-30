@@ -3,7 +3,6 @@ package auth
 import (
 	"net/http"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
@@ -22,12 +21,6 @@ func NewDependencyMap() DependencyMap {
 	return DependencyMap{}
 }
 
-func openDB(tConfig config.TenantConfiguration) func() (*sqlx.DB, error) {
-	return func() (*sqlx.DB, error) {
-		return sqlx.Open("postgres", tConfig.DBConnectionStr)
-	}
-}
-
 // Provide provides dependency instance by name
 // nolint: gocyclo
 func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface{} {
@@ -36,7 +29,7 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		return coreAuth.NewContextGetterWithContext(r.Context())
 	case "TxContext":
 		tConfig := config.GetTenantConfig(r)
-		return db.NewTxContextWithContext(r.Context(), openDB(tConfig))
+		return db.NewTxContextWithContext(r.Context(), tConfig)
 	case "TokenStore":
 		tConfig := config.GetTenantConfig(r)
 		return coreAuth.NewDefaultTokenStore(r.Context(), tConfig)
@@ -59,17 +52,17 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		tConfig := config.GetTenantConfig(r)
 		return password.NewSafeProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
+			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
 			logging.CreateLogger(r, "provider_password", createLoggerMaskFormatter(r)),
-			db.NewSafeTxContextWithContext(r.Context(), openDB(tConfig)),
+			db.NewSafeTxContextWithContext(r.Context(), tConfig),
 		)
 	case "AnonymousAuthProvider":
 		tConfig := config.GetTenantConfig(r)
 		return anonymous.NewSafeProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
+			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
 			logging.CreateLogger(r, "provider_anonymous", createLoggerMaskFormatter(r)),
-			db.NewSafeTxContextWithContext(r.Context(), openDB(tConfig)),
+			db.NewSafeTxContextWithContext(r.Context(), tConfig),
 		)
 	case "HandlerLogger":
 		return logging.CreateLogger(r, "handler", createLoggerMaskFormatter(r))

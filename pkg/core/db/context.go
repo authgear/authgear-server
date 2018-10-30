@@ -7,6 +7,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type contextKey string
@@ -66,26 +67,26 @@ func InitRequestDBContext(req *http.Request) *http.Request {
 }
 
 // NewContextWithContext creates a new context.DB from context
-func NewContextWithContext(ctx context.Context, dbOpener func() (*sqlx.DB, error)) Context {
+func NewContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) Context {
 	return &dbContext{
 		Context:  ctx,
-		dbOpener: dbOpener,
+		dbOpener: OpenDB(tConfig),
 	}
 }
 
 // NewTxContextWithContext creates a new context.Tx from context
-func NewTxContextWithContext(ctx context.Context, dbOpener func() (*sqlx.DB, error)) TxContext {
+func NewTxContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) TxContext {
 	return &dbContext{
 		Context:  ctx,
-		dbOpener: dbOpener,
+		dbOpener: OpenDB(tConfig),
 	}
 }
 
 // NewSafeTxContextWithContext creates a new context.Tx from context
-func NewSafeTxContextWithContext(ctx context.Context, dbOpener func() (*sqlx.DB, error)) SafeTxContext {
+func NewSafeTxContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) SafeTxContext {
 	return &dbContext{
 		Context:  ctx,
-		dbOpener: dbOpener,
+		dbOpener: OpenDB(tConfig),
 	}
 }
 
