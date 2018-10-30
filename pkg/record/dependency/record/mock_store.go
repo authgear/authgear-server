@@ -29,6 +29,11 @@ func NewMockStore() *MockStore {
 	}
 }
 
+// UserRecordType returns name of the user record type.
+func (s *MockStore) UserRecordType() string {
+	return "user"
+}
+
 // SetRecordAccess sets record creation access
 func (s *MockStore) SetRecordAccess(recordType string, acl ACL) error {
 	s.recordAccessMap[recordType] = acl

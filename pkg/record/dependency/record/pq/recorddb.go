@@ -33,6 +33,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+func (s *recordStore) UserRecordType() string {
+	return "user"
+}
+
 func (s *recordStore) Get(id record.ID, r *record.Record) error {
 	typemap, err := s.RemoteColumnTypes(id.Type)
 	if err != nil {
@@ -291,15 +295,18 @@ func (s *recordStore) Query(query *record.Query, accessControlOptions *record.Ac
 		return record.EmptyRows, nil
 	}
 
+	tableName := s.recordTableNameValue(query.Type)
+	// tableName := query.Type
+
 	q := s.sqlBuilder.Select()
-	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, query.Type)
+	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, tableName)
 	q, err = s.applyQueryPredicate(q, factory, query, accessControlOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, sort := range query.Sorts {
-		orderBy, err := builder.SortOrderBySQL(query.Type, sort)
+		orderBy, err := builder.SortOrderBySQL(tableName, sort)
 		if err != nil {
 			return nil, err
 		}

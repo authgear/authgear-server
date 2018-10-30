@@ -26,6 +26,10 @@ func NewSafeRecordStore(
 	}
 }
 
+func (s *safeRecordStore) UserRecordType() string {
+	return s.impl.UserRecordType()
+}
+
 func (s *safeRecordStore) SetRecordAccess(recordType string, acl record.ACL) error {
 	s.txContext.EnsureTx()
 	return s.impl.SetRecordAccess(recordType, acl)
