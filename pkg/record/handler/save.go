@@ -159,6 +159,7 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	resultFilter, err := NewRecordResultFilter(
 		h.RecordStore,
+		h.TxContext,
 		h.AssetStore,
 		h.AuthContext.AuthInfo(),
 		h.AuthContext.AccessKeyType() == model.MasterAccessKey,
@@ -170,6 +171,7 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	modifyReq := RecordModifyRequest{
 		RecordStore:   h.RecordStore,
+		TxContext:     h.TxContext,
 		AssetStore:    h.AssetStore,
 		Logger:        h.Logger,
 		AuthInfo:      h.AuthContext.AuthInfo(),
@@ -231,31 +233,21 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 // ExtendRecordSchemaWithTx ensure the operation is within a transaction.
 // When the request is inatomic, the operation would be wrapped in a new transaction.
-func (h SaveHandler) ExtendRecordSchemaWithTx(payload SaveRequestPayload) (err error) {
-	if !payload.Atomic {
-		if err = h.TxContext.BeginTx(); err != nil {
+func (h SaveHandler) ExtendRecordSchemaWithTx(payload SaveRequestPayload) error {
+	return executeFuncInTx(h.TxContext, payload.Atomic, func() (err error) {
+		// TODO: emit schema updated event
+		_, err = ExtendRecordSchema(h.RecordStore, h.Logger, payload.Records)
+		if err != nil {
+			h.Logger.WithError(err).Errorln("failed to migrate record schema")
+			if _, ok := err.(skyerr.Error); !ok {
+				err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
+			}
+
 			return
 		}
 
-		defer func() {
-			if txErr := db.EndTx(h.TxContext, err); txErr != nil {
-				err = txErr
-			}
-		}()
-	}
-
-	// TODO: emit schema updated event
-	_, err = ExtendRecordSchema(h.RecordStore, h.Logger, payload.Records)
-	if err != nil {
-		h.Logger.WithError(err).Errorln("failed to migrate record schema")
-		if _, ok := err.(skyerr.Error); !ok {
-			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate record schema")
-		}
-
 		return
-	}
-
-	return
+	})
 }
 
 func (h SaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, resp RecordModifyResponse, resultFilter RecordResultFilter, results *[]interface{}) {
@@ -291,6 +283,7 @@ type RecordModifyRequest struct {
 	RecordStore   record.Store
 	AssetStore    asset.Store
 	Logger        *logrus.Entry
+	TxContext     db.TxContext
 	Atomic        bool
 	WithMasterKey bool
 	AuthInfo      *authinfo.AuthInfo
@@ -425,14 +418,20 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) (er
 	records := req.RecordsToSave
 
 	fetcher := NewRecordFetcher(req.RecordStore, req.Logger, req.WithMasterKey)
-	fieldACL, err := req.RecordStore.GetRecordFieldAccess()
+	var fieldACL record.FieldACL
+
+	err = executeFuncInTx(req.TxContext, req.Atomic, func() (doErr error) {
+		fieldACL, doErr = req.RecordStore.GetRecordFieldAccess()
+		return doErr
+	})
+
 	if err != nil {
 		return
 	}
 
 	// fetch records
 	originalRecordMap := map[record.ID]*record.Record{}
-	records = executeRecordFunc(records, resp.ErrMap, func(r *record.Record) (err skyerr.Error) {
+	records = executeRecordsFunc(records, resp.ErrMap, req.TxContext, req.Atomic, func(r *record.Record) (err skyerr.Error) {
 		dbRecord, created, err := fetcher.FetchOrCreateRecord(r.ID, req.AuthInfo)
 		if err != nil {
 			return err
@@ -475,7 +474,7 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) (er
 	})
 
 	// Apply default access
-	records = executeRecordFunc(records, resp.ErrMap, func(r *record.Record) skyerr.Error {
+	records = executeRecordsFunc(records, resp.ErrMap, req.TxContext, req.Atomic, func(r *record.Record) skyerr.Error {
 		if r.ACL == nil {
 			defaultACL := fetcher.getDefaultAccess(r.ID.Type)
 			r.ACL = defaultACL
@@ -483,7 +482,9 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) (er
 		return nil
 	})
 
-	makeAssetsCompleteAndInjectSigner(req.RecordStore, records, req.AssetStore)
+	err = executeFuncInTx(req.TxContext, req.Atomic, func() error {
+		return makeAssetsCompleteAndInjectSigner(req.RecordStore, records, req.AssetStore)
+	})
 
 	// TODO: before save hook
 
@@ -493,7 +494,7 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) (er
 	}
 
 	// save records
-	records = executeRecordFunc(records, resp.ErrMap, func(r *record.Record) (err skyerr.Error) {
+	records = executeRecordsFunc(records, resp.ErrMap, req.TxContext, req.Atomic, func(r *record.Record) (err skyerr.Error) {
 		var deltaRecord record.Record
 		originalRecord, _ := originalRecordMap[r.ID]
 		DeriveDeltaRecord(&deltaRecord, originalRecord, r)
@@ -511,7 +512,9 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) (er
 		return
 	}
 
-	makeAssetsCompleteAndInjectSigner(req.RecordStore, records, req.AssetStore)
+	err = executeFuncInTx(req.TxContext, req.Atomic, func() error {
+		return makeAssetsCompleteAndInjectSigner(req.RecordStore, records, req.AssetStore)
+	})
 
 	// TODO: after save hook
 
@@ -522,10 +525,44 @@ func RecordSaveHandler(req *RecordModifyRequest, resp *RecordModifyResponse) (er
 
 type recordFunc func(*record.Record) skyerr.Error
 
-func executeRecordFunc(recordsIn []*record.Record, errMap map[record.ID]skyerr.Error, rFunc recordFunc) (recordsOut []*record.Record) {
+// executeFuncInTx ensure provided function to be run in a transaction
+// so if atomic is false, it would begin a new transaction
+func executeFuncInTx(
+	txContext db.TxContext,
+	atomic bool,
+	do func() error,
+) (err error) {
+	// Wrap function in transaction when inatomic
+	// because when atomic, there would be a transaction wrapped across all functions
+	if !atomic {
+		txErr := db.WithTx(txContext, func() error {
+			return do()
+		})
+		if txErr != nil {
+			err = txErr
+		}
+
+		return
+	}
+
+	err = do()
+	return
+}
+
+func executeRecordsFunc(
+	recordsIn []*record.Record,
+	errMap map[record.ID]skyerr.Error,
+	txContext db.TxContext,
+	atomic bool,
+	rFunc recordFunc,
+) (recordsOut []*record.Record) {
 	for _, record := range recordsIn {
-		if err := rFunc(record); err != nil {
-			errMap[record.ID] = err
+		doErr := executeFuncInTx(txContext, atomic, func() error {
+			return rFunc(record)
+		})
+
+		if doErr != nil {
+			errMap[record.ID] = skyerr.MakeError(doErr)
 		} else {
 			recordsOut = append(recordsOut, record)
 		}
@@ -695,20 +732,31 @@ func removeRecordFieldTypeHints(r *record.Record) {
 //    be serialized
 type RecordResultFilter struct {
 	AssetStore          asset.Store
+	TxContext           db.TxContext
 	FieldACL            record.FieldACL
 	AuthInfo            *authinfo.AuthInfo
 	BypassAccessControl bool
 }
 
 // NewRecordResultFilter return a RecordResultFilter.
-func NewRecordResultFilter(recordStore record.Store, assetStore asset.Store, authInfo *authinfo.AuthInfo, bypassAccessControl bool) (RecordResultFilter, error) {
+func NewRecordResultFilter(
+	recordStore record.Store,
+	txContext db.TxContext,
+	assetStore asset.Store,
+	authInfo *authinfo.AuthInfo,
+	bypassAccessControl bool,
+) (RecordResultFilter, error) {
 	var (
 		acl record.FieldACL
 		err error
 	)
 
 	if !bypassAccessControl {
-		acl, err = recordStore.GetRecordFieldAccess()
+		err = db.WithTx(txContext, func() (doErr error) {
+			acl, doErr = recordStore.GetRecordFieldAccess()
+			return
+		})
+
 		if err != nil {
 			return RecordResultFilter{}, err
 		}
