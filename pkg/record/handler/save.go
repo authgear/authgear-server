@@ -154,15 +154,20 @@ func (h SaveHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(SaveRequestPayload)
 
-	resultFilter, err := NewRecordResultFilter(
-		h.RecordStore,
-		h.TxContext,
-		h.AssetStore,
-		h.AuthContext.AuthInfo(),
-		h.AuthContext.AccessKeyType() == model.MasterAccessKey,
-	)
+	var resultFilter RecordResultFilter
+	err = db.WithTx(h.TxContext, func() (doErr error) {
+		resultFilter, doErr = NewRecordResultFilter(
+			h.RecordStore,
+			h.TxContext,
+			h.AssetStore,
+			h.AuthContext.AuthInfo(),
+			h.AuthContext.AccessKeyType() == model.MasterAccessKey,
+		)
+
+		return
+	})
+
 	if err != nil {
-		err = skyerr.MakeError(err)
 		return
 	}
 
