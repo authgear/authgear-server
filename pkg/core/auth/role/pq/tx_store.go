@@ -7,7 +7,7 @@ import (
 )
 
 type safeRoleStore struct {
-	impl      role.Store
+	impl      *roleStore
 	txContext db.SafeTxContext
 }
 
@@ -18,7 +18,7 @@ func NewSafeRoleStore(
 	txContext db.SafeTxContext,
 ) role.Store {
 	return &safeRoleStore{
-		impl:      NewRoleStore(builder, executor, logger),
+		impl:      newRoleStore(builder, executor, logger),
 		txContext: txContext,
 	}
 }

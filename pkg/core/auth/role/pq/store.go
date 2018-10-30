@@ -22,12 +22,16 @@ type roleStore struct {
 	logger      *logrus.Entry
 }
 
-func NewRoleStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) role.Store {
+func newRoleStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *roleStore {
 	return &roleStore{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 		logger:      logger,
 	}
+}
+
+func NewRoleStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) role.Store {
+	return newRoleStore(builder, executor, logger)
 }
 
 func (s roleStore) CreateRoles(roles []string) error {

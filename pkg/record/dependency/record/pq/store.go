@@ -17,13 +17,13 @@ type recordStore struct {
 	logger      *logrus.Entry
 }
 
-func NewRecordStore(
+func newRecordStore(
 	roleStore role.Store,
 	canMigrate bool,
 	sqlBuilder db.SQLBuilder,
 	sqlExecutor db.SQLExecutor,
 	logger *logrus.Entry,
-) record.Store {
+) *recordStore {
 	return &recordStore{
 		roleStore:   roleStore,
 		canMigrate:  canMigrate,
@@ -31,4 +31,14 @@ func NewRecordStore(
 		sqlExecutor: sqlExecutor,
 		logger:      logger,
 	}
+}
+
+func NewRecordStore(
+	roleStore role.Store,
+	canMigrate bool,
+	sqlBuilder db.SQLBuilder,
+	sqlExecutor db.SQLExecutor,
+	logger *logrus.Entry,
+) record.Store {
+	return newRecordStore(roleStore, canMigrate, sqlBuilder, sqlExecutor, logger)
 }

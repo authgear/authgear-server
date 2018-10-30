@@ -6,7 +6,7 @@ import (
 )
 
 type safeProviderImpl struct {
-	impl      Provider
+	impl      *providerImpl
 	txContext db.SafeTxContext
 }
 
@@ -17,7 +17,7 @@ func NewSafeProvider(
 	txContext db.SafeTxContext,
 ) Provider {
 	return &safeProviderImpl{
-		impl:      NewProvider(builder, executor, logger),
+		impl:      newProvider(builder, executor, logger),
 		txContext: txContext,
 	}
 }

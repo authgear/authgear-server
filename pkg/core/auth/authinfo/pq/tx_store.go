@@ -7,7 +7,7 @@ import (
 )
 
 type safeAuthInfoStore struct {
-	impl      authinfo.Store
+	impl      *authInfoStore
 	txContext db.SafeTxContext
 }
 
@@ -18,7 +18,7 @@ func NewSafeAuthInfoStore(
 	txContext db.SafeTxContext,
 ) authinfo.Store {
 	return &safeAuthInfoStore{
-		impl:      NewAuthInfoStore(builder, executor, logger),
+		impl:      newAuthInfoStore(builder, executor, logger),
 		txContext: txContext,
 	}
 }

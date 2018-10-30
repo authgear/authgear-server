@@ -39,13 +39,17 @@ type authInfoStore struct {
 	logger      *logrus.Entry
 }
 
-func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) authinfo.Store {
+func newAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *authInfoStore {
 	return &authInfoStore{
 		roleStore:   pqRole.NewRoleStore(builder, executor, logger),
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 		logger:      logger,
 	}
+}
+
+func NewAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) authinfo.Store {
+	return newAuthInfoStore(builder, executor, logger)
 }
 
 func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {

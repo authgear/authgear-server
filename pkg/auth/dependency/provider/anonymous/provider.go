@@ -11,12 +11,16 @@ type providerImpl struct {
 	logger      *logrus.Entry
 }
 
-func NewProvider(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) Provider {
+func newProvider(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *providerImpl {
 	return &providerImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 		logger:      logger,
 	}
+}
+
+func NewProvider(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) Provider {
+	return newProvider(builder, executor, logger)
 }
 
 func (p providerImpl) CreatePrincipal(principal Principal) (err error) {

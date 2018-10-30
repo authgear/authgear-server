@@ -21,7 +21,7 @@ func NewSafeRecordStore(
 	txContext db.SafeTxContext,
 ) record.Store {
 	return &safeRecordStore{
-		impl:      NewRecordStore(roleStore, canMigrate, sqlBuilder, sqlExecutor, logger),
+		impl:      newRecordStore(roleStore, canMigrate, sqlBuilder, sqlExecutor, logger),
 		txContext: txContext,
 	}
 }
