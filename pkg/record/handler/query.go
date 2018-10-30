@@ -46,6 +46,7 @@ func (f QueryHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type QueryRequestPayload struct {
+	Query record.Query
 }
 
 func (p QueryRequestPayload) Validate() error {
@@ -78,7 +79,10 @@ func (h QueryHandler) WithTx() bool {
 
 func (h QueryHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := QueryRequestPayload{}
-	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
+	parser := QueryParser{UserID: h.AuthContext.AuthInfo().ID}
+	data := map[string]interface{}{}
+	json.NewDecoder(request.Body).Decode(&data)
+	if err := parser.queryFromRaw(data, &payload.Query); err != nil {
 		return nil, err
 	}
 
