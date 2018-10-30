@@ -49,6 +49,16 @@ func EndTx(tx TxContext, err error) error {
 	return tx.CommitTx()
 }
 
+// WithTx provides a convenient way to wrap a function within a transaction
+func WithTx(tx TxContext, do func() error) (err error) {
+	if err = tx.BeginTx(); err != nil {
+		return
+	}
+
+	err = do()
+	return EndTx(tx, err)
+}
+
 // TODO: handle thread safety
 type contextContainer struct {
 	db *sqlx.DB

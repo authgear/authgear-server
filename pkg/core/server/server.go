@@ -76,8 +76,11 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 		h := hf.NewHandler(r)
 
+		txContext := db.NewTxContextWithContext(r.Context(), configuration)
 		resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)
-		resolver.Resolve(r, auth.NewContextSetterWithContext(r.Context()))
+		db.WithTx(txContext, func() error {
+			return resolver.Resolve(r, auth.NewContextSetterWithContext(r.Context()))
+		})
 
 		policy := hf.ProvideAuthzPolicy()
 		if err := policy.IsAllowed(r, auth.NewContextGetterWithContext(r.Context())); err != nil {
