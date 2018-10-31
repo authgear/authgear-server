@@ -70,12 +70,13 @@ func (p ResetPasswordRequestPayload) Validate() error {
 
 // ResetPasswordHandler handles signup request
 type ResetPasswordHandler struct {
-	PasswordChecker      dependency.PasswordChecker `dependency:"PasswordChecker"`
-	TokenStore           authtoken.Store            `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
-	TxContext            db.TxContext               `dependency:"TxContext"`
+	PasswordChecker      dependency.PasswordChecker  `dependency:"PasswordChecker"`
+	TokenStore           authtoken.Store             `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
+	AuditTrail           audit.Trail                 `dependency:"AuditTrail"`
+	TxContext            db.TxContext                `dependency:"TxContext"`
+	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore"`
 }
 
 func (h ResetPasswordHandler) WithTx() bool {
@@ -135,7 +136,16 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(authinfo, map[string]interface{}{}, token.AccessToken)
+	// Get Profile
+	userProfile := map[string]interface{}{}
+	if err = h.UserProfileStore.GetUserProfile(authinfo.ID, &userProfile); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+		return
+	}
+
+	resp = response.NewAuthResponse(authinfo, userProfile, token.AccessToken)
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authinfo.ID,
 		Event:  audit.EventResetPassword,
