@@ -111,6 +111,7 @@ func TestSingupHandler(t *testing.T) {
 		h.AnonymousAuthProvider = anonymousAuthProvider
 		h.RoleStore = roleStore
 		h.AuditTrail = coreAudit.NewMockTrail(t)
+		h.UserProfileStore = dependency.NewMockUserProfileStore()
 
 		Convey("signup user with auth data", func() {
 			authData := map[string]interface{}{

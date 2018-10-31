@@ -3,6 +3,7 @@ package handler
 import (
 	"testing"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
@@ -76,6 +77,7 @@ func TestResetPasswordHandler(t *testing.T) {
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AuditTrail = coreAudit.NewMockTrail(t)
+		h.UserProfileStore = dependency.NewMockUserProfileStore()
 
 		Convey("should reset password by user id", func() {
 			userID := "john.doe.id"

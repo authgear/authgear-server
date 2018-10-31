@@ -89,6 +89,7 @@ func TestLoginHandler(t *testing.T) {
 		h.AuthDataChecker = authChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AuditTrail = coreAudit.NewMockTrail(t)
+		h.UserProfileStore = dependency.NewMockUserProfileStore()
 
 		Convey("login user with auth data", func() {
 			authData := map[string]interface{}{
