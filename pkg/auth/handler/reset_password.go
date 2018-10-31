@@ -135,7 +135,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(authinfo, skydb.Record{}, token.AccessToken)
+	resp = response.NewAuthResponse(authinfo, map[string]interface{}{}, token.AccessToken)
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authinfo.ID,
 		Event:  audit.EventResetPassword,

@@ -163,7 +163,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(fetchedAuthInfo, skydb.Record{}, token.AccessToken)
+	resp = response.NewAuthResponse(fetchedAuthInfo, map[string]interface{}{}, token.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()

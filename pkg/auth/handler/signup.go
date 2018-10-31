@@ -175,7 +175,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(info, skydb.Record{}, tkn.AccessToken)
+	resp = response.NewAuthResponse(info, map[string]interface{}{}, tkn.AccessToken)
 
 	// Populate the activity time to user
 	info.LastSeenAt = &now

@@ -14,7 +14,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -92,7 +91,7 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(*authInfo, skydb.Record{}, token.AccessToken)
+	resp = response.NewAuthResponse(*authInfo, map[string]interface{}{}, token.AccessToken)
 
 	now := timeNow()
 	authInfo.LastSeenAt = &now
