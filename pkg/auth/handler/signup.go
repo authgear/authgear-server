@@ -91,6 +91,18 @@ func (p SignupRequestPayload) isAnonymous() bool {
 	return len(p.AuthData) == 0 && p.Password == ""
 }
 
+func (p SignupRequestPayload) mergedProfile() map[string]interface{} {
+	// Assume duplicatedKeysInAuthDataAndProfile is called before this
+	profile := make(map[string]interface{})
+	for k := range p.AuthData {
+		profile[k] = p.AuthData[k]
+	}
+	for k := range p.RawProfile {
+		profile[k] = p.RawProfile[k]
+	}
+	return profile
+}
+
 // SignupHandler handles signup request
 type SignupHandler struct {
 	AuthDataChecker       dependency.AuthDataChecker  `dependency:"AuthDataChecker"`
@@ -152,7 +164,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	// Create Profile
 	if h.UserProfileStore != nil {
-		if err = h.UserProfileStore.CreateUserProfile(info.ID, payload.RawProfile); err != nil {
+		if err = h.UserProfileStore.CreateUserProfile(info.ID, payload.mergedProfile()); err != nil {
 			// TODO:
 			// return proper error
 			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
