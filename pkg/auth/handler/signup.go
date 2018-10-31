@@ -127,15 +127,6 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	info := authinfo.NewAuthInfo()
 	info.LastLoginAt = &now
 
-	if h.UserProfileStore != nil {
-		if err = h.UserProfileStore.CreateUserProfile(payload.RawProfile); err != nil {
-			// TODO:
-			// return proper error
-			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
-			return
-		}
-	}
-
 	// Get default roles
 	defaultRoles, err := h.RoleStore.GetDefaultRoles()
 	if err != nil {
@@ -157,6 +148,16 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save auth info")
 		return
+	}
+
+	// Create Profile
+	if h.UserProfileStore != nil {
+		if err = h.UserProfileStore.CreateUserProfile(info.ID, payload.RawProfile); err != nil {
+			// TODO:
+			// return proper error
+			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
+			return
+		}
 	}
 
 	// Create Principal
