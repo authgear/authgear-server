@@ -413,7 +413,7 @@ WHERE a.attrelid = $1 AND a.attnum > 0 AND NOT a.attisdropped`,
 		From("information_schema.table_constraints AS tc").
 		Join("information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name").
 		Join("information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name").
-		Where("constraint_type = 'FOREIGN KEY' AND tc.table_schema = ? AND tc.table_name = ?", s.sqlBuilder.SchemaName(), s.recordTableName(recordType))
+		Where("constraint_type = 'FOREIGN KEY' AND tc.table_schema = ? AND tc.table_name = ?", s.sqlBuilder.SchemaName(), s.recordTableNameValue(recordType))
 
 	refs, err := s.sqlExecutor.QueryWith(builder)
 	if err != nil {
