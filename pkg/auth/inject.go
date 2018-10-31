@@ -72,7 +72,12 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		default:
 			panic("unrecgonized user profile store implementation: " + tConfig.UserProfile.ImplName)
 		case "":
-			return nil
+			// use auth default profile store
+			return dependency.NewUserProfileStore(
+				db.NewSQLBuilder("auth", tConfig.AppName),
+				db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
+				logging.CreateLogger(r, "auth_user_profile", createLoggerMaskFormatter(r)),
+			)
 			// case "skygear":
 			// 	return XXX
 		}
