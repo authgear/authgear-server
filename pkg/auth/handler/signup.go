@@ -107,7 +107,7 @@ func (p SignupRequestPayload) mergedProfile() map[string]interface{} {
 type SignupHandler struct {
 	AuthDataChecker       dependency.AuthDataChecker  `dependency:"AuthDataChecker"`
 	PasswordChecker       dependency.PasswordChecker  `dependency:"PasswordChecker"`
-	UserProfileStore      dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
+	UserProfileStore      dependency.UserProfileStore `dependency:"UserProfileStore"`
 	TokenStore            authtoken.Store             `dependency:"TokenStore"`
 	AuthInfoStore         authinfo.Store              `dependency:"AuthInfoStore"`
 	RoleStore             role.Store                  `dependency:"RoleStore"`
@@ -163,13 +163,11 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	// Create Profile
-	if h.UserProfileStore != nil {
-		if err = h.UserProfileStore.CreateUserProfile(info.ID, payload.mergedProfile()); err != nil {
-			// TODO:
-			// return proper error
-			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
-			return
-		}
+	if err = h.UserProfileStore.CreateUserProfile(info.ID, payload.mergedProfile()); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
+		return
 	}
 
 	// Create Principal
@@ -188,7 +186,16 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(info, map[string]interface{}{}, tkn.AccessToken)
+	// Get Profile
+	userProfile := map[string]interface{}{}
+	if err = h.UserProfileStore.GetUserProfile(info.ID, &userProfile); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+		return
+	}
+
+	resp = response.NewAuthResponse(info, userProfile, tkn.AccessToken)
 
 	// Populate the activity time to user
 	info.LastSeenAt = &now

@@ -60,5 +60,35 @@ func (u UserProfileStoreImpl) CreateUserProfile(userID string, userProfile map[s
 }
 
 func (u UserProfileStoreImpl) GetUserProfile(userID string, userProfile *map[string]interface{}) (err error) {
+	builder := u.sqlBuilder.Select("created_at", "updated_at", "data").
+		From(u.sqlBuilder.FullTableName("user_profile")).
+		Where("user_id = ?", userID)
+	scanner := u.sqlExecutor.QueryRowWith(builder)
+	var createdAt time.Time
+	var updatedAt time.Time
+	var dataBytes []byte
+	err = scanner.Scan(
+		&createdAt,
+		&updatedAt,
+		&dataBytes,
+	)
+
+	if err != nil {
+		return
+	}
+
+	// generate default record attributes
+	err = json.Unmarshal(dataBytes, &userProfile)
+	(*userProfile)["_id"] = "user/" + userID
+	(*userProfile)["_type"] = "record"
+	(*userProfile)["_recordID"] = userID
+	(*userProfile)["_recordType"] = "user"
+	(*userProfile)["_access"] = nil
+	(*userProfile)["_ownerID"] = userID
+	(*userProfile)["_created_at"] = createdAt
+	(*userProfile)["_created_by"] = userID
+	(*userProfile)["_updated_at"] = updatedAt
+	(*userProfile)["_updated_by"] = userID
+
 	return
 }
