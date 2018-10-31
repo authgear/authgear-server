@@ -90,8 +90,9 @@ func (s *recordStore) GetByIDs(ids []record.ID, accessControlOptions *record.Acc
 	query := s.selectQuery(s.sqlBuilder.Select(), recordType, typemap).
 		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
 
+	tableName := s.recordTableNameValue(recordType)
 	if !accessControlOptions.BypassAccessControl {
-		factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, recordType)
+		factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, recordType, tableName)
 		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, record.ReadLevel)
 		if err != nil {
 			return nil, err
@@ -299,7 +300,7 @@ func (s *recordStore) Query(query *record.Query, accessControlOptions *record.Ac
 	// tableName := query.Type
 
 	q := s.sqlBuilder.Select()
-	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, tableName)
+	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, query.Type, tableName)
 	q, err = s.applyQueryPredicate(q, factory, query, accessControlOptions)
 	if err != nil {
 		return nil, err
@@ -358,8 +359,9 @@ func (s *recordStore) QueryCount(query *record.Query, accessControlOptions *reco
 		},
 	}
 
+	tableName := s.recordTableNameValue(query.Type)
 	q := s.selectQuery(s.sqlBuilder.Select(), query.Type, typemap)
-	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, query.Type)
+	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, query.Type, tableName)
 	q, err = s.applyQueryPredicate(q, factory, query, accessControlOptions)
 	if err != nil {
 		return 0, err

@@ -37,15 +37,22 @@ type PredicateSqlizerFactory interface {
 type predicateSqlizerFactory struct {
 	recordStore  record.Store
 	sqlBuilder   db.SQLBuilder
+	recordType   string
 	primaryTable string
 	joinedTables []joinedTable
 	extraColumns map[string]record.FieldType
 }
 
-func NewPredicateSqlizerFactory(recordStore record.Store, sqlBuilder db.SQLBuilder, primaryTable string) PredicateSqlizerFactory {
+func NewPredicateSqlizerFactory(
+	recordStore record.Store,
+	sqlBuilder db.SQLBuilder,
+	recordType string,
+	primaryTable string,
+) PredicateSqlizerFactory {
 	return &predicateSqlizerFactory{
 		recordStore:  recordStore,
 		sqlBuilder:   sqlBuilder,
+		recordType:   recordType,
 		primaryTable: primaryTable,
 		joinedTables: []joinedTable{},
 	}
@@ -247,7 +254,7 @@ func (f *predicateSqlizerFactory) newExpressionSqlizerForKeyPath(expr record.Exp
 	}
 
 	alias := f.primaryTable
-	fields, err := record.TraverseColumnTypes(f.recordStore, f.primaryTable, keyPath)
+	fields, err := record.TraverseColumnTypes(f.recordStore, f.recordType, keyPath)
 	if err != nil {
 		return expressionSqlizer{}, skyerr.NewError(skyerr.RecordQueryInvalid, err.Error())
 	}
