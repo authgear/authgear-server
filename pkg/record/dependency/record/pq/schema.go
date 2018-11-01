@@ -158,6 +158,7 @@ func (s *recordStore) GetRecordSchemas() (map[string]record.Schema, error) {
 		return nil, err
 	}
 
+	tables := []string{}
 	result := map[string]record.Schema{}
 	for rows.Next() {
 		var recordTable string
@@ -166,7 +167,10 @@ func (s *recordStore) GetRecordSchemas() (map[string]record.Schema, error) {
 		}
 
 		s.logger.Debugf("%s\n", recordTable)
+		tables = append(tables, recordTable)
+	}
 
+	for _, recordTable := range tables {
 		recordType := strings.TrimPrefix(recordTable, "_record__")
 		schema, err := s.GetSchema(recordType)
 		if err != nil {
