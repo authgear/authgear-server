@@ -2,10 +2,12 @@ package db
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type contextKey string
@@ -21,10 +23,17 @@ type Context interface {
 
 // TxContext provides the interface for managing transaction
 type TxContext interface {
-	HasTx() bool
+	SafeTxContext
+
 	BeginTx() error
 	CommitTx() error
 	RollbackTx() error
+}
+
+// SafeTxContext only provides interface to check existence of transaction
+type SafeTxContext interface {
+	HasTx() bool
+	EnsureTx()
 }
 
 // EndTx implements a common pattern that commit a transaction if no error is
@@ -38,6 +47,16 @@ func EndTx(tx TxContext, err error) error {
 	}
 
 	return tx.CommitTx()
+}
+
+// WithTx provides a convenient way to wrap a function within a transaction
+func WithTx(tx TxContext, do func() error) (err error) {
+	if err = tx.BeginTx(); err != nil {
+		return
+	}
+
+	err = do()
+	return EndTx(tx, err)
 }
 
 // TODO: handle thread safety
@@ -58,18 +77,26 @@ func InitRequestDBContext(req *http.Request) *http.Request {
 }
 
 // NewContextWithContext creates a new context.DB from context
-func NewContextWithContext(ctx context.Context, dbOpener func() (*sqlx.DB, error)) Context {
+func NewContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) Context {
 	return &dbContext{
 		Context:  ctx,
-		dbOpener: dbOpener,
+		dbOpener: OpenDB(tConfig),
 	}
 }
 
 // NewTxContextWithContext creates a new context.Tx from context
-func NewTxContextWithContext(ctx context.Context, dbOpener func() (*sqlx.DB, error)) TxContext {
+func NewTxContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) TxContext {
 	return &dbContext{
 		Context:  ctx,
-		dbOpener: dbOpener,
+		dbOpener: OpenDB(tConfig),
+	}
+}
+
+// NewSafeTxContextWithContext creates a new context.Tx from context
+func NewSafeTxContextWithContext(ctx context.Context, tConfig config.TenantConfiguration) SafeTxContext {
+	return &dbContext{
+		Context:  ctx,
+		dbOpener: OpenDB(tConfig),
 	}
 }
 
@@ -83,6 +110,12 @@ func (d *dbContext) DB() ExtContext {
 
 func (d *dbContext) HasTx() bool {
 	return d.tx() != nil
+}
+
+func (d *dbContext) EnsureTx() {
+	if d.tx() == nil {
+		panic(errors.New("unexpected transaction not began"))
+	}
 }
 
 func (d *dbContext) BeginTx() (err error) {

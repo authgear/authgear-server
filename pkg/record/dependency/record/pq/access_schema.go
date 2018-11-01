@@ -15,7 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/utils"
 )
 
-func (s *RecordStore) SetRecordAccess(recordType string, acl record.ACL) error {
+func (s *recordStore) SetRecordAccess(recordType string, acl record.ACL) error {
 	creationRoles := []string{}
 	for _, ace := range acl {
 		if ace.Role != "" {
@@ -53,7 +53,7 @@ func (s *RecordStore) SetRecordAccess(recordType string, acl record.ACL) error {
 	return err
 }
 
-func (s *RecordStore) GetRecordAccess(recordType string) (record.ACL, error) {
+func (s *recordStore) GetRecordAccess(recordType string) (record.ACL, error) {
 	builder := s.sqlBuilder.
 		Select("role_id").
 		From(s.sqlBuilder.FullTableName("creation")).
@@ -79,7 +79,7 @@ func (s *RecordStore) GetRecordAccess(recordType string) (record.ACL, error) {
 	return record.NewACL(currentCreationRoles), nil
 }
 
-func (s *RecordStore) deleteRecordCreationAccess(recordType string, roles []string) error {
+func (s *recordStore) deleteRecordCreationAccess(recordType string, roles []string) error {
 	if len(roles) == 0 {
 		return nil
 	}
@@ -96,7 +96,7 @@ func (s *RecordStore) deleteRecordCreationAccess(recordType string, roles []stri
 	return err
 }
 
-func (s *RecordStore) insertRecordCreationAccess(recordType string, roles []string) error {
+func (s *recordStore) insertRecordCreationAccess(recordType string, roles []string) error {
 	if len(roles) == 0 {
 		return nil
 	}
@@ -121,7 +121,7 @@ func (s *RecordStore) insertRecordCreationAccess(recordType string, roles []stri
 	return nil
 }
 
-func (s *RecordStore) SetRecordDefaultAccess(recordType string, acl record.ACL) error {
+func (s *recordStore) SetRecordDefaultAccess(recordType string, acl record.ACL) error {
 	pkData := map[string]interface{}{
 		"record_type": recordType,
 	}
@@ -139,7 +139,7 @@ func (s *RecordStore) SetRecordDefaultAccess(recordType string, acl record.ACL) 
 	return nil
 }
 
-func (s *RecordStore) GetRecordDefaultAccess(recordType string) (record.ACL, error) {
+func (s *recordStore) GetRecordDefaultAccess(recordType string) (record.ACL, error) {
 	builder := s.sqlBuilder.
 		Select("default_access").
 		From(s.sqlBuilder.FullTableName("default_access")).
@@ -159,7 +159,7 @@ func (s *RecordStore) GetRecordDefaultAccess(recordType string) (record.ACL, err
 	return nil, nil
 }
 
-func (s *RecordStore) SetRecordFieldAccess(acl record.FieldACL) (err error) {
+func (s *recordStore) SetRecordFieldAccess(acl record.FieldACL) (err error) {
 	// defer func() {
 	// 	c.FieldACL = nil // invalidate cached FieldACL
 	// }()
@@ -205,7 +205,7 @@ func (s *RecordStore) SetRecordFieldAccess(acl record.FieldACL) (err error) {
 	return
 }
 
-func (s *RecordStore) GetRecordFieldAccess() (record.FieldACL, error) {
+func (s *recordStore) GetRecordFieldAccess() (record.FieldACL, error) {
 	// if c.FieldACL != nil {
 	// 	return *c.FieldACL, nil
 	// }

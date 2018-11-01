@@ -12,7 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-func (s AuthInfoStore) AssignRoles(userIDs []string, roles []string) error {
+func (s authInfoStore) AssignRoles(userIDs []string, roles []string) error {
 	s.logger.Debugf("AssignRoles %v to %v", roles, userIDs)
 	role.EnsureRole(s.roleStore, s.logger, roles)
 	sql, args := s.assignUserRoleSQL(userIDs, roles)
@@ -23,7 +23,7 @@ func (s AuthInfoStore) AssignRoles(userIDs []string, roles []string) error {
 	return nil
 }
 
-func (s AuthInfoStore) GetRoles(userIDs []string) (map[string][]string, error) {
+func (s authInfoStore) GetRoles(userIDs []string) (map[string][]string, error) {
 	userIDArgs := make([]interface{}, len(userIDs))
 	for i, v := range userIDs {
 		userIDArgs[i] = interface{}(v)
@@ -55,7 +55,7 @@ func (s AuthInfoStore) GetRoles(userIDs []string) (map[string][]string, error) {
 	return roleMap, nil
 }
 
-func (s AuthInfoStore) RevokeRoles(userIDs []string, roles []string) error {
+func (s authInfoStore) RevokeRoles(userIDs []string, roles []string) error {
 	s.logger.Debugf("RevokeRoles %v to %v", roles, userIDs)
 	sql, args := s.revokeUserRoleSQL(userIDs, roles)
 	_, err := s.sqlExecutor.Exec(sql, args...)
@@ -65,7 +65,7 @@ func (s AuthInfoStore) RevokeRoles(userIDs []string, roles []string) error {
 	return nil
 }
 
-func (s AuthInfoStore) updateUserRoles(authinfo *authinfo.AuthInfo) error {
+func (s authInfoStore) updateUserRoles(authinfo *authinfo.AuthInfo) error {
 	s.logger.Debugf("UpdateRoles %v", authinfo)
 	builder := s.sqlBuilder.Delete(s.sqlBuilder.FullTableName("user_role")).Where("user_id = ?", authinfo.ID)
 	_, err := s.sqlExecutor.ExecWith(builder)
@@ -135,7 +135,7 @@ type assignUserRole struct {
 	Users         []string
 }
 
-func (s AuthInfoStore) assignUserRoleSQL(users []string, roles []string) (string, []interface{}) {
+func (s authInfoStore) assignUserRoleSQL(users []string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	assignUserRoleInsert.Execute(&b, assignUserRole{
 		s.sqlBuilder.FullTableName("user_role"),
@@ -181,7 +181,7 @@ type batchUserRole struct {
 	In            []string
 }
 
-func (s AuthInfoStore) batchUserRoleSQL(id string, roles []string) (string, []interface{}) {
+func (s authInfoStore) batchUserRoleSQL(id string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	batchUserRoleInsert.Execute(&b, batchUserRole{
 		s.sqlBuilder.FullTableName("user_role"),
@@ -224,7 +224,7 @@ type revokeUserRole struct {
 	Users         []string
 }
 
-func (s AuthInfoStore) revokeUserRoleSQL(users []string, roles []string) (string, []interface{}) {
+func (s authInfoStore) revokeUserRoleSQL(users []string, roles []string) (string, []interface{}) {
 	b := bytes.Buffer{}
 	revokeUserRoleDelete.Execute(&b, revokeUserRole{
 		s.sqlBuilder.FullTableName("user_role"),

@@ -3,7 +3,6 @@ package record
 import (
 	"net/http"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/core/asset/fs"
@@ -21,29 +20,24 @@ func NewDependencyMap() DependencyMap {
 	return DependencyMap{}
 }
 
-func openDB(tConfig config.TenantConfiguration) func() (*sqlx.DB, error) {
-	return func() (*sqlx.DB, error) {
-		return sqlx.Open("postgres", tConfig.DBConnectionStr)
-	}
-}
-
 func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface{} {
 	switch dependencyName {
 	case "AuthContextGetter":
 		return coreAuth.NewContextGetterWithContext(r.Context())
 	case "TxContext":
 		tConfig := config.GetTenantConfig(r)
-		return db.NewTxContextWithContext(r.Context(), openDB(tConfig))
+		return db.NewTxContextWithContext(r.Context(), tConfig)
 	case "RecordStore":
 		tConfig := config.GetTenantConfig(r)
 		roleStore := auth.NewDefaultRoleStore(r.Context(), tConfig)
-		return pq.NewRecordStore(
+		return pq.NewSafeRecordStore(
 			roleStore,
 			// TODO: get from tconfig
 			true,
 			db.NewSQLBuilder("record", tConfig.AppName),
-			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
+			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
 			logging.CreateLogger(r, "record", createLoggerMaskFormatter(r)),
+			db.NewSafeTxContextWithContext(r.Context(), tConfig),
 		)
 	case "HandlerLogger":
 		return logging.CreateLogger(r, "record", createLoggerMaskFormatter(r))
