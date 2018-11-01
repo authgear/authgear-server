@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -111,7 +112,7 @@ func TestSingupHandler(t *testing.T) {
 		h.AnonymousAuthProvider = anonymousAuthProvider
 		h.RoleStore = roleStore
 		h.AuditTrail = coreAudit.NewMockTrail(t)
-		h.UserProfileStore = dependency.NewMockUserProfileStore()
+		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 
 		Convey("signup user with auth data", func() {
 			authData := map[string]interface{}{
@@ -143,6 +144,11 @@ func TestSingupHandler(t *testing.T) {
 			tokenStore.Get(tokenStr, &token)
 			So(token.AuthInfoID, ShouldEqual, userID)
 			So(!token.IsExpired(), ShouldBeTrue)
+
+			// check user profile
+			profile := authResp.Profile
+			So(profile["username"], ShouldEqual, "john.doe")
+			So(profile["email"], ShouldEqual, "john.doe@example.com")
 		})
 
 		Convey("anonymous singup is not supported yet", func() {

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -65,11 +65,11 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 //   "roles": []
 // }
 type MeHandler struct {
-	AuthContext      coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
-	TxContext        db.TxContext                `dependency:"TxContext"`
-	TokenStore       authtoken.Store             `dependency:"TokenStore"`
-	AuthInfoStore    authinfo.Store              `dependency:"AuthInfoStore"`
-	UserProfileStore dependency.UserProfileStore `dependency:"UserProfileStore"`
+	AuthContext      coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
+	TxContext        db.TxContext                 `dependency:"TxContext"`
+	TokenStore       authtoken.Store              `dependency:"TokenStore"`
+	AuthInfoStore    authinfo.Store               `dependency:"AuthInfoStore"`
+	UserProfileStore userprofile.UserProfileStore `dependency:"UserProfileStore"`
 }
 
 func (h MeHandler) WithTx() bool {

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
@@ -70,13 +71,13 @@ func (p ResetPasswordRequestPayload) Validate() error {
 
 // ResetPasswordHandler handles signup request
 type ResetPasswordHandler struct {
-	PasswordChecker      dependency.PasswordChecker  `dependency:"PasswordChecker"`
-	TokenStore           authtoken.Store             `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
-	AuditTrail           audit.Trail                 `dependency:"AuditTrail"`
-	TxContext            db.TxContext                `dependency:"TxContext"`
-	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore"`
+	PasswordChecker      dependency.PasswordChecker   `dependency:"PasswordChecker"`
+	TokenStore           authtoken.Store              `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store               `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider            `dependency:"PasswordAuthProvider"`
+	AuditTrail           audit.Trail                  `dependency:"AuditTrail"`
+	TxContext            db.TxContext                 `dependency:"TxContext"`
+	UserProfileStore     userprofile.UserProfileStore `dependency:"UserProfileStore"`
 }
 
 func (h ResetPasswordHandler) WithTx() bool {

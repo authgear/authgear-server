@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -73,10 +74,11 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			panic("unrecgonized user profile store implementation: " + tConfig.UserProfile.ImplName)
 		case "":
 			// use auth default profile store
-			return dependency.NewUserProfileStore(
+			return userprofile.NewSafeProvider(
 				db.NewSQLBuilder("auth", tConfig.AppName),
-				db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), openDB(tConfig))),
+				db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
 				logging.CreateLogger(r, "auth_user_profile", createLoggerMaskFormatter(r)),
+				db.NewSafeTxContextWithContext(r.Context(), tConfig),
 			)
 			// case "skygear":
 			// 	return XXX

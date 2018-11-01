@@ -1,4 +1,4 @@
-package dependency
+package userprofile
 
 import (
 	"encoding/json"
@@ -8,26 +8,21 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
-type UserProfileStore interface {
-	CreateUserProfile(userID string, userProfile map[string]interface{}) error
-	GetUserProfile(userID string, userProfile *map[string]interface{}) error
-}
-
-type UserProfileStoreImpl struct {
+type userProfileStoreImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 	logger      *logrus.Entry
 }
 
-func NewUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *UserProfileStoreImpl {
-	return &UserProfileStoreImpl{
+func newUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *userProfileStoreImpl {
+	return &userProfileStoreImpl{
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 		logger:      logger,
 	}
 }
 
-func (u UserProfileStoreImpl) CreateUserProfile(userID string, userProfile map[string]interface{}) (err error) {
+func (u userProfileStoreImpl) CreateUserProfile(userID string, userProfile map[string]interface{}) (err error) {
 	now := time.Now().UTC()
 	var userProfileBytes []byte
 	userProfileBytes, err = json.Marshal(userProfile)
@@ -59,7 +54,7 @@ func (u UserProfileStoreImpl) CreateUserProfile(userID string, userProfile map[s
 	return
 }
 
-func (u UserProfileStoreImpl) GetUserProfile(userID string, userProfile *map[string]interface{}) (err error) {
+func (u userProfileStoreImpl) GetUserProfile(userID string, userProfile *map[string]interface{}) (err error) {
 	builder := u.sqlBuilder.Select("created_at", "updated_at", "data").
 		From(u.sqlBuilder.FullTableName("user_profile")).
 		Where("user_id = ?", userID)

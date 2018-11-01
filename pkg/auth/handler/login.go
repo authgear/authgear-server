@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -68,13 +69,13 @@ func (p LoginRequestPayload) Validate() error {
 
 // LoginHandler handles login request
 type LoginHandler struct {
-	AuthDataChecker      dependency.AuthDataChecker  `dependency:"AuthDataChecker"`
-	TokenStore           authtoken.Store             `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
-	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore"`
-	AuditTrail           audit.Trail                 `dependency:"AuditTrail"`
-	TxContext            db.TxContext                `dependency:"TxContext"`
+	AuthDataChecker      dependency.AuthDataChecker   `dependency:"AuthDataChecker"`
+	TokenStore           authtoken.Store              `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store               `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider            `dependency:"PasswordAuthProvider"`
+	UserProfileStore     userprofile.UserProfileStore `dependency:"UserProfileStore"`
+	AuditTrail           audit.Trail                  `dependency:"AuditTrail"`
+	TxContext            db.TxContext                 `dependency:"TxContext"`
 }
 
 func (h LoginHandler) WithTx() bool {

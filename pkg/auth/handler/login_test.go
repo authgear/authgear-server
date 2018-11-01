@@ -8,6 +8,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -89,7 +90,7 @@ func TestLoginHandler(t *testing.T) {
 		h.AuthDataChecker = authChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AuditTrail = coreAudit.NewMockTrail(t)
-		h.UserProfileStore = dependency.NewMockUserProfileStore()
+		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 
 		Convey("login user with auth data", func() {
 			authData := map[string]interface{}{
