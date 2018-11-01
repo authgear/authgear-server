@@ -53,6 +53,8 @@ func main() {
 	handler.AttachSaveHandler(&srv, recordDependency)
 	handler.AttachFetchHandler(&srv, recordDependency)
 
+	handler.AttachSchemaCreateHandler(&srv, recordDependency)
+
 	go func() {
 		log.Printf("Record gear boot")
 		if err := srv.ListenAndServe(); err != nil {
