@@ -66,3 +66,13 @@ func encodeRecordSchemas(data map[string]record.Schema) map[string]schemaFieldLi
 
 	return schemaMap
 }
+
+type SchemaResponse struct {
+	Schemas map[string]schemaFieldList `json:"record_types"`
+}
+
+func NewSchemaResponse(schemas map[string]schemaFieldList) SchemaResponse {
+	return SchemaResponse{
+		Schemas: schemas,
+	}
+}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -80,7 +81,9 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type SchemaCreateHandler struct {
-	TxContext db.TxContext `dependency:"TxContext"`
+	TxContext   db.TxContext  `dependency:"TxContext"`
+	RecordStore record.Store  `dependency:"RecordStore"`
+	Logger      *logrus.Entry `dependency:"HandlerLogger"`
 }
 
 func (h SchemaCreateHandler) WithTx() bool {
@@ -109,5 +112,29 @@ func (h SchemaCreateHandler) DecodeRequest(request *http.Request) (handler.Reque
 }
 
 func (h SchemaCreateHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(SchemaCreateRequestPayload)
+
+	for recordType, recordSchema := range payload.Schemas {
+		_, err = h.RecordStore.Extend(recordType, recordSchema)
+		if err != nil {
+			h.Logger.WithFields(logrus.Fields{
+				"error": err,
+				"field": recordType,
+			}).Error("fail to extend schema")
+			err = skyerr.NewError(skyerr.IncompatibleSchema, err.Error())
+			return
+		}
+	}
+
+	schemas, err := h.RecordStore.GetRecordSchemas()
+	if err != nil {
+		h.Logger.WithError(err).Error("fail to get record schemas")
+		return
+	}
+
+	resp = NewSchemaResponse(encodeRecordSchemas(schemas))
+
+	// TODO: send schema change event
+
 	return
 }
