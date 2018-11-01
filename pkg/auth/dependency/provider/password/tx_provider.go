@@ -24,7 +24,7 @@ func NewSafeProvider(
 
 func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
 	p.txContext.EnsureTx()
-	return p.CreatePrincipal(principal)
+	return p.impl.CreatePrincipal(principal)
 }
 
 func (p *safeProviderImpl) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) error {
