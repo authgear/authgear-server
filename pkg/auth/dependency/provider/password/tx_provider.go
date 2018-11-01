@@ -29,15 +29,15 @@ func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
 
 func (p *safeProviderImpl) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) error {
 	p.txContext.EnsureTx()
-	return p.GetPrincipalByAuthData(authData, principal)
+	return p.impl.GetPrincipalByAuthData(authData, principal)
 }
 
 func (p *safeProviderImpl) GetPrincipalByUserID(userID string, principal *Principal) error {
 	p.txContext.EnsureTx()
-	return p.GetPrincipalByUserID(userID, principal)
+	return p.impl.GetPrincipalByUserID(userID, principal)
 }
 
 func (p *safeProviderImpl) UpdatePrincipal(principal Principal) error {
 	p.txContext.EnsureTx()
-	return p.UpdatePrincipal(principal)
+	return p.impl.UpdatePrincipal(principal)
 }
