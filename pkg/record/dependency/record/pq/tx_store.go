@@ -125,3 +125,8 @@ func (s *safeRecordStore) GetSchema(recordType string) (record.Schema, error) {
 	s.txContext.EnsureTx()
 	return s.impl.GetSchema(recordType)
 }
+
+func (s *safeRecordStore) GetRecordSchemas() (map[string]record.Schema, error) {
+	s.txContext.EnsureTx()
+	return s.impl.GetRecordSchemas()
+}

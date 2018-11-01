@@ -85,6 +85,9 @@ type Store interface {
 
 	// GetSchema returns the record schema of a record type
 	GetSchema(recordType string) (Schema, error)
+
+	// FetchRecordTypes returns a list of all existing record type
+	GetRecordSchemas() (map[string]Schema, error)
 }
 
 // TraverseColumnTypes traverse the field type of a key path from database table.
