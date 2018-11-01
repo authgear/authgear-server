@@ -65,11 +65,11 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 //   "roles": []
 // }
 type MeHandler struct {
-	AuthContext      coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
-	TxContext        db.TxContext                 `dependency:"TxContext"`
-	TokenStore       authtoken.Store              `dependency:"TokenStore"`
-	AuthInfoStore    authinfo.Store               `dependency:"AuthInfoStore"`
-	UserProfileStore userprofile.UserProfileStore `dependency:"UserProfileStore"`
+	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	TxContext        db.TxContext           `dependency:"TxContext"`
+	TokenStore       authtoken.Store        `dependency:"TokenStore"`
+	AuthInfoStore    authinfo.Store         `dependency:"AuthInfoStore"`
+	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
 }
 
 func (h MeHandler) WithTx() bool {

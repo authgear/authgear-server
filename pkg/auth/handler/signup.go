@@ -106,16 +106,16 @@ func (p SignupRequestPayload) mergedProfile() map[string]interface{} {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	AuthDataChecker       dependency.AuthDataChecker   `dependency:"AuthDataChecker"`
-	PasswordChecker       dependency.PasswordChecker   `dependency:"PasswordChecker"`
-	UserProfileStore      userprofile.UserProfileStore `dependency:"UserProfileStore"`
-	TokenStore            authtoken.Store              `dependency:"TokenStore"`
-	AuthInfoStore         authinfo.Store               `dependency:"AuthInfoStore"`
-	RoleStore             role.Store                   `dependency:"RoleStore"`
-	PasswordAuthProvider  password.Provider            `dependency:"PasswordAuthProvider"`
-	AnonymousAuthProvider anonymous.Provider           `dependency:"AnonymousAuthProvider"`
-	AuditTrail            coreAudit.Trail              `dependency:"AuditTrail"`
-	TxContext             db.TxContext                 `dependency:"TxContext"`
+	AuthDataChecker       dependency.AuthDataChecker `dependency:"AuthDataChecker"`
+	PasswordChecker       dependency.PasswordChecker `dependency:"PasswordChecker"`
+	UserProfileStore      userprofile.Store          `dependency:"UserProfileStore"`
+	TokenStore            authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore         authinfo.Store             `dependency:"AuthInfoStore"`
+	RoleStore             role.Store                 `dependency:"RoleStore"`
+	PasswordAuthProvider  password.Provider          `dependency:"PasswordAuthProvider"`
+	AnonymousAuthProvider anonymous.Provider         `dependency:"AnonymousAuthProvider"`
+	AuditTrail            coreAudit.Trail            `dependency:"AuditTrail"`
+	TxContext             db.TxContext               `dependency:"TxContext"`
 }
 
 func (h SignupHandler) WithTx() bool {

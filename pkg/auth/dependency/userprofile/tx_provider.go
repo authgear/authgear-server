@@ -6,7 +6,7 @@ import (
 )
 
 type safeUserProfileImpl struct {
-	impl      *userProfileStoreImpl
+	impl      *storeImpl
 	txContext db.SafeTxContext
 }
 
@@ -15,7 +15,7 @@ func NewSafeProvider(
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
 	txContext db.SafeTxContext,
-) UserProfileStore {
+) Store {
 	return &safeUserProfileImpl{
 		impl:      newUserProfileStore(builder, executor, logger),
 		txContext: txContext,

@@ -71,13 +71,13 @@ func (p ResetPasswordRequestPayload) Validate() error {
 
 // ResetPasswordHandler handles signup request
 type ResetPasswordHandler struct {
-	PasswordChecker      dependency.PasswordChecker   `dependency:"PasswordChecker"`
-	TokenStore           authtoken.Store              `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store               `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider            `dependency:"PasswordAuthProvider"`
-	AuditTrail           audit.Trail                  `dependency:"AuditTrail"`
-	TxContext            db.TxContext                 `dependency:"TxContext"`
-	UserProfileStore     userprofile.UserProfileStore `dependency:"UserProfileStore"`
+	PasswordChecker      dependency.PasswordChecker `dependency:"PasswordChecker"`
+	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
+	TxContext            db.TxContext               `dependency:"TxContext"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 }
 
 func (h ResetPasswordHandler) WithTx() bool {

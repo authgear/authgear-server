@@ -69,13 +69,13 @@ func (p LoginRequestPayload) Validate() error {
 
 // LoginHandler handles login request
 type LoginHandler struct {
-	AuthDataChecker      dependency.AuthDataChecker   `dependency:"AuthDataChecker"`
-	TokenStore           authtoken.Store              `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store               `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider            `dependency:"PasswordAuthProvider"`
-	UserProfileStore     userprofile.UserProfileStore `dependency:"UserProfileStore"`
-	AuditTrail           audit.Trail                  `dependency:"AuditTrail"`
-	TxContext            db.TxContext                 `dependency:"TxContext"`
+	AuthDataChecker      dependency.AuthDataChecker `dependency:"AuthDataChecker"`
+	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
+	TxContext            db.TxContext               `dependency:"TxContext"`
 }
 
 func (h LoginHandler) WithTx() bool {
