@@ -38,6 +38,13 @@ func NewMockContextGetterWithDefaultUser() ContextGetter {
 	return &MockContext{container: container}
 }
 
+// NewMockContextGetterWithMasterkeyDefaultUser creates auth context with default user and master key
+func NewMockContextGetterWithMasterkeyDefaultUser() ContextGetter {
+	ctx := NewMockContextGetterWithDefaultUser().(*MockContext)
+	ctx.container.accessKeyType = model.MasterAccessKey
+	return ctx
+}
+
 // NewMockContextGetterWithAdminUser creates auth context with admin user
 func NewMockContextGetterWithAdminUser() ContextGetter {
 	container := &contextContainer{

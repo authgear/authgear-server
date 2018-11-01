@@ -51,6 +51,7 @@ func main() {
 	srv.Use(middleware.RequestIDMiddleware{}.Handle)
 
 	handler.AttachSaveHandler(&srv, recordDependency)
+	handler.AttachFetchHandler(&srv, recordDependency)
 
 	go func() {
 		log.Printf("Record gear boot")
