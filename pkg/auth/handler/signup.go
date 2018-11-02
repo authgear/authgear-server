@@ -164,7 +164,8 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	// Create Profile
-	if err = h.UserProfileStore.CreateUserProfile(info.ID, payload.mergedProfile()); err != nil {
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, payload.mergedProfile()); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
@@ -185,15 +186,6 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	if err = h.TokenStore.Put(&tkn); err != nil {
 		panic(err)
-	}
-
-	// Get Profile
-	userProfile := map[string]interface{}{}
-	if err = h.UserProfileStore.GetUserProfile(info.ID, &userProfile); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
-		return
 	}
 
 	resp = response.NewAuthResponse(info, userProfile, tkn.AccessToken)

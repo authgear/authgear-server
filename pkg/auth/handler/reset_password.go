@@ -138,8 +138,8 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	// Get Profile
-	userProfile := map[string]interface{}{}
-	if err = h.UserProfileStore.GetUserProfile(authinfo.ID, &userProfile); err != nil {
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
