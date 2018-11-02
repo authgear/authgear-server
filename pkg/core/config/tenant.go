@@ -26,7 +26,8 @@ type TokenStoreConfiguration struct {
 }
 
 type UserProfileConfiguration struct {
-	ImplName string `msg:"IMPLEMENTATION" envconfig:"USER_PROFILE_IMPL_NAME" json:"IMPLEMENTATION"`
+	ImplName     string `msg:"IMPLEMENTATION" envconfig:"USER_PROFILE_IMPL_NAME" json:"IMPLEMENTATION"`
+	ImplStoreURL string `msg:"IMPL_STORE_URL" envconfig:"USER_PROFILE_IMPL_STORE_URL" json:"IMPL_STORE_URL"`
 }
 
 type UserAuditConfiguration struct {
