@@ -1029,3 +1029,75 @@ func (s *referencedRecordStore) GetSchema(recordType string) (record.Schema, err
 	}
 	return typemap[recordType], nil
 }
+
+func TestRecordQueryWithCount(t *testing.T) {
+	getRecordStore := func() (recordStore *queryResultsRecordStore) {
+		return &queryResultsRecordStore{
+			records: []record.Record{
+				record.Record{
+					ID: record.NewRecordID("note", "1"),
+				},
+				record.Record{
+					ID: record.NewRecordID("note", "0"),
+				},
+				record.Record{
+					ID: record.NewRecordID("note", "2"),
+				},
+			},
+			typemap: map[string]record.Schema{
+				"note": record.Schema{},
+			},
+			MockStore: record.NewMockStore(),
+		}
+	}
+
+	Convey("Test QueryHandler count", t, func() {
+		qh := &QueryHandler{}
+		recordStore := getRecordStore()
+		qh.RecordStore = recordStore
+		qh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		qh.Logger = logging.LoggerEntry("handler")
+		qh.TxContext = db.NewMockTxContext()
+
+		Convey("get count of records", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+				{
+					"record_type": "note",
+					"count": true
+				}
+			`))
+			resp := httptest.NewRecorder()
+			h := handler.APIHandlerToHandler(qh, qh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.String(), ShouldEqualJSON, `{
+				"result": {
+					"info": {
+						"count": 3
+					},
+					"records": [{
+						"_type": "record",
+						"_id": "note/1",
+						"_recordType": "note",
+						"_recordID": "1",
+						"_access": null
+					},
+					{
+						"_type": "record",
+						"_id": "note/0",
+						"_recordType": "note",
+						"_recordID": "0",
+						"_access": null
+					},
+					{
+						"_type": "record",
+						"_id": "note/2",
+						"_recordType": "note",
+						"_recordID": "2",
+						"_access": null
+					}]
+				}
+			}`)
+			So(resp.Code, ShouldEqual, 200)
+		})
+	})
+}
