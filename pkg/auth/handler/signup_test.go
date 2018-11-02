@@ -147,8 +147,8 @@ func TestSingupHandler(t *testing.T) {
 
 			// check user profile
 			profile := authResp.Profile
-			So(profile["username"], ShouldEqual, "john.doe")
-			So(profile["email"], ShouldEqual, "john.doe@example.com")
+			So(profile.Data["username"], ShouldEqual, "john.doe")
+			So(profile.Data["email"], ShouldEqual, "john.doe@example.com")
 		})
 
 		Convey("anonymous singup is not supported yet", func() {

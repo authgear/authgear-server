@@ -14,13 +14,6 @@ type storeImpl struct {
 	logger      *logrus.Entry
 }
 
-type userProfile struct {
-	userID    string
-	createdAt time.Time
-	updatedAt time.Time
-	data      map[string]interface{}
-}
-
 func newUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *storeImpl {
 	return &storeImpl{
 		sqlBuilder:  builder,
@@ -58,12 +51,21 @@ func (u storeImpl) CreateUserProfile(userID string, data Data) (profile UserProf
 		return
 	}
 
-	profile = userProfile{
-		userID:    userID,
-		createdAt: now,
-		updatedAt: now,
-		data:      data,
-	}.unmarshal()
+	profile = UserProfile{
+		Meta: Meta{
+			ID:         "user/" + userID,
+			Type:       "record",
+			RecordID:   userID,
+			RecordType: "user",
+			Access:     nil,
+			OwnerID:    userID,
+			CreatedAt:  now,
+			CreatedBy:  userID,
+			UpdatedAt:  now,
+			UpdatedBy:  userID,
+		},
+		Data: data,
+	}
 
 	return
 }
@@ -92,32 +94,21 @@ func (u storeImpl) GetUserProfile(userID string) (profile UserProfile, err error
 		return
 	}
 
-	profile = userProfile{
-		userID:    userID,
-		createdAt: createdAt,
-		updatedAt: updatedAt,
-		data:      data,
-	}.unmarshal()
-
-	return
-}
-
-func (u userProfile) unmarshal() UserProfile {
-	profile := make(map[string]interface{})
-
-	profile["_id"] = "user/" + u.userID
-	profile["_type"] = "record"
-	profile["_recordID"] = u.userID
-	profile["_recordType"] = "user"
-	profile["_access"] = nil
-	profile["_ownerID"] = u.userID
-	profile["_created_at"] = u.createdAt
-	profile["_created_by"] = u.userID
-	profile["_updated_at"] = u.updatedAt
-	profile["_updated_by"] = u.userID
-	for k, v := range u.data {
-		profile[k] = v
+	profile = UserProfile{
+		Meta: Meta{
+			ID:         "user/" + userID,
+			Type:       "record",
+			RecordID:   userID,
+			RecordType: "user",
+			Access:     nil,
+			OwnerID:    userID,
+			CreatedAt:  createdAt,
+			CreatedBy:  userID,
+			UpdatedAt:  updatedAt,
+			UpdatedBy:  userID,
+		},
+		Data: data,
 	}
 
-	return profile
+	return
 }

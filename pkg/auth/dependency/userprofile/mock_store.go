@@ -13,30 +13,42 @@ func NewMockUserProfileStore() *MockUserProfileStoreImpl {
 func (u MockUserProfileStoreImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
 	u.Data[userID] = make(map[string]interface{})
 	u.Data[userID] = data
-	profile = toProfile(userID, data)
+	now := timeNow()
+	profile = UserProfile{
+		Meta: Meta{
+			ID:         "user/" + userID,
+			Type:       "record",
+			RecordID:   userID,
+			RecordType: "user",
+			Access:     nil,
+			OwnerID:    userID,
+			CreatedAt:  now,
+			CreatedBy:  userID,
+			UpdatedAt:  now,
+			UpdatedBy:  userID,
+		},
+		Data: data,
+	}
 	return
 }
 
 func (u MockUserProfileStoreImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
 	data := u.Data[userID]
-	profile = toProfile(userID, data)
-	return
-}
-
-func toProfile(userID string, data Data) map[string]interface{} {
-	profile := make(map[string]interface{})
-
-	profile["_id"] = "user/" + userID
-	profile["_type"] = "record"
-	profile["_recordID"] = userID
-	profile["_recordType"] = "user"
-	profile["_access"] = nil
-	profile["_ownerID"] = userID
-	profile["_created_by"] = userID
-	profile["_updated_by"] = userID
-	for k, v := range data {
-		profile[k] = v
+	now := timeNow()
+	profile = UserProfile{
+		Meta: Meta{
+			ID:         "user/" + userID,
+			Type:       "record",
+			RecordID:   userID,
+			RecordType: "user",
+			Access:     nil,
+			OwnerID:    userID,
+			CreatedAt:  now,
+			CreatedBy:  userID,
+			UpdatedAt:  now,
+			UpdatedBy:  userID,
+		},
+		Data: data,
 	}
-
-	return profile
+	return
 }
