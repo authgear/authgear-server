@@ -14,6 +14,13 @@ type storeImpl struct {
 	logger      *logrus.Entry
 }
 
+type userProfile struct {
+	userID    string
+	createdAt time.Time
+	updatedAt time.Time
+	data      map[string]interface{}
+}
+
 func newUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *storeImpl {
 	return &storeImpl{
 		sqlBuilder:  builder,
@@ -22,10 +29,10 @@ func newUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, logger 
 	}
 }
 
-func (u storeImpl) CreateUserProfile(userID string, userProfile map[string]interface{}) (err error) {
+func (u storeImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
 	now := timeNow()
-	var userProfileBytes []byte
-	userProfileBytes, err = json.Marshal(userProfile)
+	var dataBytes []byte
+	dataBytes, err = json.Marshal(data)
 	if err != nil {
 		return
 	}
@@ -43,7 +50,7 @@ func (u storeImpl) CreateUserProfile(userID string, userProfile map[string]inter
 		userID,
 		now,
 		userID,
-		userProfileBytes,
+		dataBytes,
 	)
 
 	_, err = u.sqlExecutor.ExecWith(builder)
@@ -51,10 +58,17 @@ func (u storeImpl) CreateUserProfile(userID string, userProfile map[string]inter
 		return
 	}
 
+	profile = userProfile{
+		userID:    userID,
+		createdAt: now,
+		updatedAt: now,
+		data:      data,
+	}.unmarshal()
+
 	return
 }
 
-func (u storeImpl) GetUserProfile(userID string, userProfile *map[string]interface{}) (err error) {
+func (u storeImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
 	builder := u.sqlBuilder.Select("created_at", "updated_at", "data").
 		From(u.sqlBuilder.FullTableName("user_profile")).
 		Where("user_id = ?", userID)
@@ -72,18 +86,38 @@ func (u storeImpl) GetUserProfile(userID string, userProfile *map[string]interfa
 		return
 	}
 
-	// generate default record attributes
-	err = json.Unmarshal(dataBytes, &userProfile)
-	(*userProfile)["_id"] = "user/" + userID
-	(*userProfile)["_type"] = "record"
-	(*userProfile)["_recordID"] = userID
-	(*userProfile)["_recordType"] = "user"
-	(*userProfile)["_access"] = nil
-	(*userProfile)["_ownerID"] = userID
-	(*userProfile)["_created_at"] = createdAt
-	(*userProfile)["_created_by"] = userID
-	(*userProfile)["_updated_at"] = updatedAt
-	(*userProfile)["_updated_by"] = userID
+	var data map[string]interface{}
+	err = json.Unmarshal(dataBytes, &data)
+	if err != nil {
+		return
+	}
+
+	profile = userProfile{
+		userID:    userID,
+		createdAt: createdAt,
+		updatedAt: updatedAt,
+		data:      data,
+	}.unmarshal()
 
 	return
+}
+
+func (u userProfile) unmarshal() UserProfile {
+	profile := make(map[string]interface{})
+
+	profile["_id"] = "user/" + u.userID
+	profile["_type"] = "record"
+	profile["_recordID"] = u.userID
+	profile["_recordType"] = "user"
+	profile["_access"] = nil
+	profile["_ownerID"] = u.userID
+	profile["_created_at"] = u.createdAt
+	profile["_created_by"] = u.userID
+	profile["_updated_at"] = u.updatedAt
+	profile["_updated_by"] = u.userID
+	for k, v := range u.data {
+		profile[k] = v
+	}
+
+	return profile
 }

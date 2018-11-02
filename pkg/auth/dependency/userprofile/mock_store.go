@@ -10,25 +10,33 @@ func NewMockUserProfileStore() *MockUserProfileStoreImpl {
 	}
 }
 
-func (u MockUserProfileStoreImpl) CreateUserProfile(userID string, userProfile map[string]interface{}) (err error) {
+func (u MockUserProfileStoreImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
 	u.Data[userID] = make(map[string]interface{})
-	u.Data[userID] = userProfile
+	u.Data[userID] = data
+	profile = toProfile(userID, data)
 	return
 }
 
-func (u MockUserProfileStoreImpl) GetUserProfile(userID string, userProfile *map[string]interface{}) (err error) {
-	*userProfile = make(map[string]interface{})
+func (u MockUserProfileStoreImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
 	data := u.Data[userID]
-	for k := range data {
-		(*userProfile)[k] = data[k]
-	}
-	(*userProfile)["_id"] = "user/" + userID
-	(*userProfile)["_type"] = "record"
-	(*userProfile)["_recordID"] = userID
-	(*userProfile)["_recordType"] = "user"
-	(*userProfile)["_access"] = nil
-	(*userProfile)["_ownerID"] = userID
-	(*userProfile)["_created_by"] = userID
-	(*userProfile)["_updated_by"] = userID
+	profile = toProfile(userID, data)
 	return
+}
+
+func toProfile(userID string, data Data) map[string]interface{} {
+	profile := make(map[string]interface{})
+
+	profile["_id"] = "user/" + userID
+	profile["_type"] = "record"
+	profile["_recordID"] = userID
+	profile["_recordType"] = "user"
+	profile["_access"] = nil
+	profile["_ownerID"] = userID
+	profile["_created_by"] = userID
+	profile["_updated_by"] = userID
+	for k, v := range data {
+		profile[k] = v
+	}
+
+	return profile
 }

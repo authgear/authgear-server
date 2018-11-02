@@ -22,12 +22,12 @@ func NewSafeProvider(
 	}
 }
 
-func (s *safeUserProfileImpl) CreateUserProfile(userID string, userProfile map[string]interface{}) (err error) {
+func (s *safeUserProfileImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
 	s.txContext.EnsureTx()
-	return s.impl.CreateUserProfile(userID, userProfile)
+	return s.impl.CreateUserProfile(userID, data)
 }
 
-func (s *safeUserProfileImpl) GetUserProfile(userID string, userProfile *map[string]interface{}) (err error) {
+func (s *safeUserProfileImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
 	s.txContext.EnsureTx()
-	return s.impl.GetUserProfile(userID, userProfile)
+	return s.impl.GetUserProfile(userID)
 }
