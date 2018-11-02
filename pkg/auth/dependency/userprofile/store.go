@@ -23,7 +23,7 @@ func newUserProfileStore(builder db.SQLBuilder, executor db.SQLExecutor, logger 
 }
 
 func (u storeImpl) CreateUserProfile(userID string, userProfile map[string]interface{}) (err error) {
-	now := time.Now().UTC()
+	now := timeNow()
 	var userProfileBytes []byte
 	userProfileBytes, err = json.Marshal(userProfile)
 	if err != nil {
