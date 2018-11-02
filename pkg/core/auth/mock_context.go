@@ -20,10 +20,15 @@ func NewMockContextGetter() ContextGetter {
 
 // NewMockContextGetterWithDefaultUser creates auth context with default user
 func NewMockContextGetterWithDefaultUser() ContextGetter {
+	return NewMockContextGetterWithUser("faseng.cat.id")
+}
+
+// NewMockContextGetterWithUser creates auth context with user
+func NewMockContextGetterWithUser(userID string) ContextGetter {
 	container := &contextContainer{
 		accessKeyType: model.APIAccessKey,
 		authInfo: &authinfo.AuthInfo{
-			ID:    "faseng.cat.id",
+			ID:    userID,
 			Roles: []string{"user"},
 		},
 		roles: []role.Role{
@@ -70,6 +75,14 @@ func NewMockContextGetterWithAdminUser() ContextGetter {
 func NewMockContextGetterWithMasterKey() ContextGetter {
 	container := &contextContainer{
 		accessKeyType: model.MasterAccessKey,
+	}
+	return &MockContext{container: container}
+}
+
+// NewMockContextGetterWithAPIKey creates auth context with api key
+func NewMockContextGetterWithAPIKey() ContextGetter {
+	container := &contextContainer{
+		accessKeyType: model.APIAccessKey,
 	}
 	return &MockContext{container: container}
 }

@@ -639,3 +639,393 @@ func (s *queryResultsRecordStore) Query(query *record.Query, accessControlOption
 func (s *queryResultsRecordStore) GetSchema(recordType string) (record.Schema, error) {
 	return s.typemap[recordType], nil
 }
+
+func TestRecordQueryWithEagerLoad(t *testing.T) {
+	getRecordStore := func() (recordStore *referencedRecordStore) {
+		return &referencedRecordStore{
+			note: record.Record{
+				ID:      record.NewRecordID("note", "note1"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"category": record.NewReference("category", "important"),
+					"city":     record.NewReference("city", "beautiful"),
+					"secret":   record.NewReference("secret", "secretID"),
+				},
+			},
+			category: record.Record{
+				ID:      record.NewRecordID("category", "important"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"title": "This is important.",
+				},
+			},
+			city: record.Record{
+				ID:      record.NewRecordID("city", "beautiful"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"name": "This is beautiful.",
+				},
+			},
+			user: record.Record{
+				ID:      record.NewRecordID("user", "ownerID"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"name": "Owner",
+				},
+			},
+			secret: record.Record{
+				ID:      record.NewRecordID("secret", "secretID"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"content": "Secret of the note",
+				},
+				ACL: record.ACL{
+					record.NewACLEntryDirect("ownerID", record.WriteLevel),
+				},
+			},
+			MockStore: record.NewMockStore(),
+		}
+	}
+
+	Convey("Test QueryHandler with eager load", t, func() {
+		qh := &QueryHandler{}
+		recordStore := getRecordStore()
+		qh.RecordStore = recordStore
+		qh.AuthContext = auth.NewMockContextGetterWithAPIKey()
+		qh.Logger = logging.LoggerEntry("handler")
+		qh.TxContext = db.NewMockTxContext()
+
+		Convey("query record with eager load", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+				{
+					"record_type": "note",
+					"include": {"category": {"$type": "keypath", "$val": "category"}}
+				}
+			`))
+			resp := httptest.NewRecorder()
+			h := handler.APIHandlerToHandler(qh, qh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"records": [{
+						"_id": "note/note1",
+						"_recordType": "note",
+						"_recordID": "note1",
+						"_type": "record",
+						"_access": null,
+						"_ownerID": "ownerID",
+						"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+						"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
+						"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
+						"_transient": {
+							"category": {"_access":null,"_id":"category/important","_recordType":"category","_recordID":"important","_type":"record","_ownerID":"ownerID", "title": "This is important."}
+						}
+					}]
+				}
+			}`)
+		})
+
+		Convey("query record with multiple eager load", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+				{
+					"record_type": "note",
+					"include": {
+						"category": {"$type": "keypath", "$val": "category"},
+						"city": {"$type": "keypath", "$val": "city"}
+					}
+				}
+			`))
+			resp := httptest.NewRecorder()
+			h := handler.APIHandlerToHandler(qh, qh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"records": [{
+						"_id": "note/note1",
+						"_recordType": "note",
+						"_recordID": "note1",
+						"_type": "record",
+						"_access": null,
+						"_ownerID": "ownerID",
+						"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+						"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
+						"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
+						"_transient": {
+							"category": {"_access":null,"_id":"category/important","_recordType":"category","_recordID":"important","_type":"record","_ownerID":"ownerID", "title": "This is important."},
+							"city": {"_access":null,"_id":"city/beautiful","_recordType":"city","_recordID":"beautiful","_type":"record","_ownerID":"ownerID", "name": "This is beautiful."}
+						}
+					}]
+				}
+			}`)
+		})
+
+		Convey("query record with eager load on user", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+				{
+					"record_type": "note",
+					"include": {"user": {"$type": "keypath", "$val": "_owner"}}
+				}
+			`))
+			resp := httptest.NewRecorder()
+			h := handler.APIHandlerToHandler(qh, qh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"records": [{
+						"_id": "note/note1",
+						"_recordType": "note",
+						"_recordID": "note1",
+						"_type": "record",
+						"_access": null,
+						"_ownerID": "ownerID",
+						"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+						"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
+						"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
+						"_transient": {
+							"user": {"_access":null,"_id":"user/ownerID","_recordType":"user","_recordID":"ownerID","_type":"record","_ownerID":"ownerID", "name": "Owner"}
+						}
+					}]
+				}
+			}`)
+		})
+
+		Convey("query record with eager load on non public record", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+				{
+					"record_type": "note",
+					"include": {
+						"secret": {"$type": "keypath", "$val": "secret"}
+					}
+				}
+			`))
+			resp := httptest.NewRecorder()
+			qh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+			h := handler.APIHandlerToHandler(qh, qh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"records": [{
+						"_id": "note/note1",
+						"_recordType": "note",
+						"_recordID": "note1",
+						"_type": "record",
+						"_access": null,
+						"_ownerID": "ownerID",
+						"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+						"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
+						"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
+						"_transient": {"secret":null}
+					}]
+				}
+			}`)
+		})
+
+		Convey("query record with eager load on non public record with permission", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+				{
+					"record_type": "note",
+					"include": {
+						"secret": {"$type": "keypath", "$val": "secret"}
+					}
+				}
+			`))
+			resp := httptest.NewRecorder()
+			qh.AuthContext = auth.NewMockContextGetterWithUser("ownerID")
+			h := handler.APIHandlerToHandler(qh, qh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"records": [{
+						"_id": "note/note1",
+						"_recordType": "note",
+						"_recordID": "note1",
+						"_type": "record",
+						"_access": null,
+						"_ownerID": "ownerID",
+						"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+						"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
+						"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
+						"_transient": {
+							"secret": {"_access":[{"level":"write","relation":"$direct","user_id":"ownerID"}],"_id":"secret/secretID","_recordType":"secret","_recordID":"secretID","_type":"record","_ownerID":"ownerID", "content": "Secret of the note"}
+						}
+					}]
+				}
+			}`)
+		})
+	})
+
+	getRecordStoreNullRef := func() (recordStore *referencedRecordStore) {
+		return &referencedRecordStore{
+			note: record.Record{
+				ID:      record.NewRecordID("note", "note1"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"category": record.NewReference("category", "important"),
+					"city":     nil,
+				},
+			},
+			category: record.Record{
+				ID:      record.NewRecordID("category", "important"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"title": "This is important.",
+				},
+			},
+			city: record.Record{
+				ID:      record.NewRecordID("city", "beautiful"),
+				OwnerID: "ownerID",
+				Data: map[string]interface{}{
+					"name": "This is beautiful.",
+				},
+			},
+			MockStore: record.NewMockStore(),
+		}
+	}
+
+	Convey("Test QueryHandler with eager load but null reference in DB", t, func() {
+		qh := &QueryHandler{}
+		recordStore := getRecordStoreNullRef()
+		qh.RecordStore = recordStore
+		qh.AuthContext = auth.NewMockContextGetterWithAPIKey()
+		qh.Logger = logging.LoggerEntry("handler")
+		qh.TxContext = db.NewMockTxContext()
+
+		Convey("query record with eager load", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+				{
+					"record_type": "note",
+					"include": {"city": {"$type": "keypath", "$val": "city"}}
+				}
+			`))
+			resp := httptest.NewRecorder()
+			h := handler.APIHandlerToHandler(qh, qh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+					"result": {
+						"records": [{
+							"_id": "note/note1",
+							"_recordType": "note",
+							"_recordID": "note1",
+							"_type": "record",
+							"_access": null,
+							"_ownerID": "ownerID",
+							"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+							"city": null,
+							"_transient": {
+								"city": null
+							}
+						}]
+					}
+				}`)
+		})
+	})
+}
+
+// a very naive Database that alway returns the single record set onto it
+type referencedRecordStore struct {
+	note     record.Record
+	category record.Record
+	city     record.Record
+	user     record.Record
+	secret   record.Record
+	*record.MockStore
+}
+
+func (s *referencedRecordStore) UserRecordType() string { return "user" }
+
+func (s *referencedRecordStore) Get(id record.ID, record *record.Record) error {
+	switch id.String() {
+	case "note/note1":
+		*record = s.note
+	case "category/important":
+		*record = s.category
+	case "city/beautiful":
+		*record = s.city
+	case "user/ownerID":
+		*record = s.user
+	}
+	return nil
+}
+
+func (s *referencedRecordStore) GetByIDs(ids []record.ID, accessControlOptions *record.AccessControlOptions) (*record.Rows, error) {
+	records := []record.Record{}
+	for _, id := range ids {
+		var record *record.Record
+		switch id.String() {
+		case "note/note1":
+			record = &s.note
+		case "category/important":
+			record = &s.category
+		case "city/beautiful":
+			record = &s.city
+		case "user/ownerID":
+			record = &s.user
+		case "secret/secretID":
+			record = &s.secret
+		}
+
+		// mock the acl query
+		// it will only consider direct record acl entry
+		if record != nil {
+			if record.ACL == nil || len(record.ACL) == 0 {
+				records = append(records, *record)
+				continue
+			}
+			for _, aclEntry := range record.ACL {
+				if aclEntry.Relation == "$direct" &&
+					aclEntry.UserID == accessControlOptions.ViewAsUser.ID {
+					records = append(records, s.secret)
+					continue
+				}
+			}
+		}
+	}
+	return record.NewRows(record.NewMemoryRows(records)), nil
+}
+
+func (s *referencedRecordStore) Save(record *record.Record) error {
+	return nil
+}
+
+func (s *referencedRecordStore) QueryCount(query *record.Query, accessControlOptions *record.AccessControlOptions) (uint64, error) {
+	return uint64(1), nil
+}
+
+func (s *referencedRecordStore) Query(query *record.Query, accessControlOptions *record.AccessControlOptions) (*record.Rows, error) {
+	return record.NewRows(record.NewMemoryRows([]record.Record{s.note})), nil
+}
+
+func (s *referencedRecordStore) Extend(recordType string, schema record.Schema) (bool, error) {
+	return false, nil
+}
+
+func (s *referencedRecordStore) GetSchema(recordType string) (record.Schema, error) {
+	typemap := map[string]record.Schema{
+		"note": record.Schema{
+			"category": record.FieldType{
+				Type:          record.TypeReference,
+				ReferenceType: "category",
+			},
+			"city": record.FieldType{
+				Type:          record.TypeReference,
+				ReferenceType: "city",
+			},
+		},
+		"category": record.Schema{
+			"title": record.FieldType{
+				Type: record.TypeString,
+			},
+		},
+		"city": record.Schema{
+			"name": record.FieldType{
+				Type: record.TypeString,
+			},
+		},
+		"user": record.Schema{
+			"name": record.FieldType{
+				Type: record.TypeString,
+			},
+		},
+	}
+	return typemap[recordType], nil
+}
