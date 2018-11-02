@@ -18,8 +18,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-// TODO: TestRecordQueryResult
-
 func TestRecordQuery(t *testing.T) {
 	getRecordStore := func() (recordStore *queryRecordStore) {
 		return &queryRecordStore{
@@ -556,4 +554,88 @@ func (s *queryRecordStore) Query(query *record.Query, accessControlOptions *reco
 	s.lastquery = query
 	s.lastAccessControlOptions = accessControlOptions
 	return record.EmptyRows, nil
+}
+
+func TestRecordQueryResults(t *testing.T) {
+	getRecordStore := func() (recordStore *queryResultsRecordStore) {
+		return &queryResultsRecordStore{
+			records: []record.Record{
+				record.Record{
+					ID: record.NewRecordID("note", "1"),
+				},
+				record.Record{
+					ID: record.NewRecordID("note", "0"),
+				},
+				record.Record{
+					ID: record.NewRecordID("note", "2"),
+				},
+			},
+			MockStore: record.NewMockStore(),
+		}
+	}
+
+	Convey("Test QueryHandler query result", t, func() {
+		qh := &QueryHandler{}
+		recordStore := getRecordStore()
+		qh.RecordStore = recordStore
+		qh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		qh.Logger = logging.LoggerEntry("handler")
+		qh.TxContext = db.NewMockTxContext()
+
+		Convey("REGRESSION #227: query returns correct results from db", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+				{
+					"record_type": "note"
+				}
+			`))
+
+			resp := httptest.NewRecorder()
+			h := handler.APIHandlerToHandler(qh, qh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": {
+					"records": [{
+						"_type": "record",
+						"_id": "note/1",
+						"_recordType": "note",
+						"_recordID": "1",
+						"_access": null
+					},
+					{
+						"_type": "record",
+						"_id": "note/0",
+						"_recordType": "note",
+						"_recordID": "0",
+						"_access": null
+					},
+					{
+						"_type": "record",
+						"_id": "note/2",
+						"_recordType": "note",
+						"_recordID": "2",
+						"_access": null
+					}]
+				}
+			}`)
+			So(resp.Code, ShouldEqual, 200)
+		})
+	})
+}
+
+type queryResultsRecordStore struct {
+	records []record.Record
+	typemap map[string]record.Schema
+	*record.MockStore
+}
+
+func (s *queryResultsRecordStore) QueryCount(query *record.Query, accessControlOptions *record.AccessControlOptions) (uint64, error) {
+	return uint64(len(s.records)), nil
+}
+
+func (s *queryResultsRecordStore) Query(query *record.Query, accessControlOptions *record.AccessControlOptions) (*record.Rows, error) {
+	return record.NewRows(record.NewMemoryRows(s.records)), nil
+}
+
+func (s *queryResultsRecordStore) GetSchema(recordType string) (record.Schema, error) {
+	return s.typemap[recordType], nil
 }
