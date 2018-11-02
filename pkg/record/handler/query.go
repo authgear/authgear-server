@@ -86,7 +86,11 @@ func (h QueryHandler) WithTx() bool {
 
 func (h QueryHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := QueryRequestPayload{}
-	parser := QueryParser{UserID: h.AuthContext.AuthInfo().ID}
+	parser := QueryParser{}
+	authInfo := h.AuthContext.AuthInfo()
+	if authInfo != nil {
+		parser.UserID = authInfo.ID
+	}
 	data := map[string]interface{}{}
 	json.NewDecoder(request.Body).Decode(&data)
 	if err := parser.queryFromRaw(data, &payload.Query); err != nil {
