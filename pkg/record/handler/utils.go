@@ -495,6 +495,53 @@ func removeRecordFieldTypeHints(r *record.Record) {
 	}
 }
 
+func RecordDeleteHandler(req *RecordModifyRequest, resp *RecordModifyResponse) skyerr.Error {
+	recordStore := req.RecordStore
+	recordIDs := req.RecordIDsToDelete
+
+	fetcher := NewRecordFetcher(recordStore, req.Logger, req.WithMasterKey)
+
+	var records []*record.Record
+	for _, recordID := range recordIDs {
+		if recordID.Type == recordStore.UserRecordType() {
+			resp.ErrMap[recordID] = skyerr.NewError(skyerr.PermissionDenied, "cannot delete user record")
+			continue
+		}
+
+		var r *record.Record
+		err := executeFuncInTx(req.TxContext, req.Atomic, func() (doErr error) {
+			r, doErr = fetcher.FetchRecord(recordID, req.AuthInfo, record.WriteLevel)
+			return
+		})
+
+		if err != nil {
+			resp.ErrMap[recordID] = skyerr.MakeError(err)
+			continue
+		}
+		records = append(records, r)
+	}
+
+	// TODO: before delete hook
+
+	records = executeRecordsFunc(records, resp.ErrMap, req.TxContext, req.Atomic, func(record *record.Record) (err skyerr.Error) {
+		if dbErr := recordStore.Delete(record.ID); dbErr != nil {
+			return skyerr.MakeError(dbErr)
+		}
+		return nil
+	})
+
+	if req.Atomic && len(resp.ErrMap) > 0 {
+		return skyerr.NewError(skyerr.UnexpectedError, "atomic operation failed")
+	}
+
+	// TODO: after delete hook
+
+	for _, record := range records {
+		resp.DeletedRecordIDs = append(resp.DeletedRecordIDs, record.ID)
+	}
+	return nil
+}
+
 // RecordResultFilter is for processing Record into results.
 //
 // 1. Apply field-based acl, remove fields that are not accessible to the
