@@ -513,7 +513,6 @@ type RecordResultFilter struct {
 // NewRecordResultFilter return a RecordResultFilter.
 func NewRecordResultFilter(
 	recordStore record.Store,
-	txContext db.TxContext,
 	assetStore asset.Store,
 	authInfo *authinfo.AuthInfo,
 	bypassAccessControl bool,

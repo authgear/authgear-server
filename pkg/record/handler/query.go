@@ -161,7 +161,6 @@ func (h QueryHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	recordResultFilter, err := NewRecordResultFilter(
 		h.RecordStore,
-		h.TxContext,
 		h.AssetStore,
 		h.AuthContext.AuthInfo(),
 		h.AuthContext.AccessKeyType() == model.MasterAccessKey,

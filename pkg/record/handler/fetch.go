@@ -109,7 +109,6 @@ func (h FetchHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	resultFilter, err := NewRecordResultFilter(
 		h.RecordStore,
-		h.TxContext,
 		h.AssetStore,
 		h.AuthContext.AuthInfo(),
 		h.AuthContext.AccessKeyType() == model.MasterAccessKey,
