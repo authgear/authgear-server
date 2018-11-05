@@ -158,6 +158,7 @@ func (s *recordStore) GetRecordSchemas() (map[string]record.Schema, error) {
 		return nil, err
 	}
 
+	tables := []string{}
 	result := map[string]record.Schema{}
 	for rows.Next() {
 		var recordTable string
@@ -166,7 +167,10 @@ func (s *recordStore) GetRecordSchemas() (map[string]record.Schema, error) {
 		}
 
 		s.logger.Debugf("%s\n", recordTable)
+		tables = append(tables, recordTable)
+	}
 
+	for _, recordTable := range tables {
 		recordType := strings.TrimPrefix(recordTable, "_record__")
 		schema, err := s.GetSchema(recordType)
 		if err != nil {
@@ -187,32 +191,13 @@ func createTable(logger *logrus.Entry, sqlExecutor db.SQLExecutor, tableName str
 		return err
 	}
 
-	stmt = fmt.Sprintf(`
-		CREATE TRIGGER trigger_notify_record_change
-		AFTER INSERT OR UPDATE OR DELETE ON %s FOR EACH ROW
-		EXECUTE PROCEDURE public.notify_record_change();
-	`, tableName)
-	logger.WithField("stmt", stmt).Debugln("Creating trigger")
-	if _, err := sqlExecutor.Exec(stmt); err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func dropTable(ctx context.Context, tx *sqlx.Tx, tableName string) error {
 	logger := logging.CreateLogger(ctx, "skydb")
-	stmt := fmt.Sprintf(`
-		DROP TRIGGER IF EXISTS trigger_notify_record_change
-		ON %s
-		CASCADE
-	`, tableName)
-	logger.WithField("stmt", stmt).Debugln("Deleting trigger")
-	if _, err := tx.Exec(stmt); err != nil {
-		return err
-	}
 
-	stmt = fmt.Sprintf(`
+	stmt := fmt.Sprintf(`
 		DROP TABLE IF EXISTS %s
 		CASCADE
 	`, tableName)
