@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -68,13 +69,13 @@ func (p LoginRequestPayload) Validate() error {
 
 // LoginHandler handles login request
 type LoginHandler struct {
-	AuthDataChecker      dependency.AuthDataChecker  `dependency:"AuthDataChecker"`
-	TokenStore           authtoken.Store             `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store              `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider           `dependency:"PasswordAuthProvider"`
-	UserProfileStore     dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
-	AuditTrail           audit.Trail                 `dependency:"AuditTrail"`
-	TxContext            db.TxContext                `dependency:"TxContext"`
+	AuthDataChecker      dependency.AuthDataChecker `dependency:"AuthDataChecker"`
+	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
+	TxContext            db.TxContext               `dependency:"TxContext"`
 }
 
 func (h LoginHandler) WithTx() bool {
@@ -144,8 +145,12 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	// TODO:
-	if _, err = h.getUserProfile(fetchedAuthInfo); err != nil {
+	// Get Profile
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
 		return
 	}
 
@@ -163,7 +168,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(fetchedAuthInfo, skydb.Record{}, token.AccessToken)
+	resp = response.NewAuthResponse(fetchedAuthInfo, userProfile, token.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()
@@ -174,19 +179,5 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	return
-}
-func (h LoginHandler) getUserProfile(fetchedAuthInfo authinfo.AuthInfo) (userProfile interface{}, err error) {
-	// TODO:
-	// define user profile and update auth response
-
-	if h.UserProfileStore != nil {
-		if err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID, &userProfile); err != nil {
-			// TODO:
-			// return proper error
-			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
-			return
-		}
-	}
 	return
 }

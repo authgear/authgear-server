@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
@@ -76,6 +77,7 @@ type ResetPasswordHandler struct {
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 }
 
 func (h ResetPasswordHandler) WithTx() bool {
@@ -135,7 +137,16 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(authinfo, skydb.Record{}, token.AccessToken)
+	// Get Profile
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+		return
+	}
+
+	resp = response.NewAuthResponse(authinfo, userProfile, token.AccessToken)
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authinfo.ID,
 		Event:  audit.EventResetPassword,

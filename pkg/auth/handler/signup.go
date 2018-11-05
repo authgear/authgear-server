@@ -6,6 +6,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
@@ -91,18 +92,30 @@ func (p SignupRequestPayload) isAnonymous() bool {
 	return len(p.AuthData) == 0 && p.Password == ""
 }
 
+func (p SignupRequestPayload) mergedProfile() map[string]interface{} {
+	// Assume duplicatedKeysInAuthDataAndProfile is called before this
+	profile := make(map[string]interface{})
+	for k := range p.AuthData {
+		profile[k] = p.AuthData[k]
+	}
+	for k := range p.RawProfile {
+		profile[k] = p.RawProfile[k]
+	}
+	return profile
+}
+
 // SignupHandler handles signup request
 type SignupHandler struct {
-	AuthDataChecker       dependency.AuthDataChecker  `dependency:"AuthDataChecker"`
-	PasswordChecker       dependency.PasswordChecker  `dependency:"PasswordChecker"`
-	UserProfileStore      dependency.UserProfileStore `dependency:"UserProfileStore,optional"`
-	TokenStore            authtoken.Store             `dependency:"TokenStore"`
-	AuthInfoStore         authinfo.Store              `dependency:"AuthInfoStore"`
-	RoleStore             role.Store                  `dependency:"RoleStore"`
-	PasswordAuthProvider  password.Provider           `dependency:"PasswordAuthProvider"`
-	AnonymousAuthProvider anonymous.Provider          `dependency:"AnonymousAuthProvider"`
-	AuditTrail            coreAudit.Trail             `dependency:"AuditTrail"`
-	TxContext             db.TxContext                `dependency:"TxContext"`
+	AuthDataChecker       dependency.AuthDataChecker `dependency:"AuthDataChecker"`
+	PasswordChecker       dependency.PasswordChecker `dependency:"PasswordChecker"`
+	UserProfileStore      userprofile.Store          `dependency:"UserProfileStore"`
+	TokenStore            authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore         authinfo.Store             `dependency:"AuthInfoStore"`
+	RoleStore             role.Store                 `dependency:"RoleStore"`
+	PasswordAuthProvider  password.Provider          `dependency:"PasswordAuthProvider"`
+	AnonymousAuthProvider anonymous.Provider         `dependency:"AnonymousAuthProvider"`
+	AuditTrail            coreAudit.Trail            `dependency:"AuditTrail"`
+	TxContext             db.TxContext               `dependency:"TxContext"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -127,15 +140,6 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	info := authinfo.NewAuthInfo()
 	info.LastLoginAt = &now
 
-	if h.UserProfileStore != nil {
-		if err = h.UserProfileStore.CreateUserProfile(payload.RawProfile); err != nil {
-			// TODO:
-			// return proper error
-			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
-			return
-		}
-	}
-
 	// Get default roles
 	defaultRoles, err := h.RoleStore.GetDefaultRoles()
 	if err != nil {
@@ -159,6 +163,15 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
+	// Create Profile
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, payload.mergedProfile()); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
+		return
+	}
+
 	// Create Principal
 	err = h.createPrincipal(payload, info)
 	if err != nil {
@@ -175,7 +188,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(info, skydb.Record{}, tkn.AccessToken)
+	resp = response.NewAuthResponse(info, userProfile, tkn.AccessToken)
 
 	// Populate the activity time to user
 	info.LastSeenAt = &now

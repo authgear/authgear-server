@@ -17,24 +17,21 @@ package response
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"github.com/skygeario/skygear-server/pkg/server/skydb/skyconv"
 )
 
 // AuthResponse is the unify way of returing a AuthInfo with AuthData to SDK
 type AuthResponse struct {
-	UserID      string              `json:"user_id,omitempty"`
-	Profile     *skyconv.JSONRecord `json:"profile"`
-	Roles       []string            `json:"roles,omitempty"`
-	AccessToken string              `json:"access_token,omitempty"`
-	LastLoginAt *time.Time          `json:"last_login_at,omitempty"`
-	LastSeenAt  *time.Time          `json:"last_seen_at,omitempty"`
+	UserID      string                  `json:"user_id,omitempty"`
+	Profile     userprofile.UserProfile `json:"profile"`
+	Roles       []string                `json:"roles,omitempty"`
+	AccessToken string                  `json:"access_token,omitempty"`
+	LastLoginAt *time.Time              `json:"last_login_at,omitempty"`
+	LastSeenAt  *time.Time              `json:"last_seen_at,omitempty"`
 }
 
-func NewAuthResponse(authInfo authinfo.AuthInfo, user skydb.Record, accessToken string) AuthResponse {
-	var jsonUser *skyconv.JSONRecord
+func NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile, accessToken string) AuthResponse {
 	var lastLoginAt *time.Time
 
 	// if user.ID.Type != "" {
@@ -43,7 +40,7 @@ func NewAuthResponse(authInfo authinfo.AuthInfo, user skydb.Record, accessToken 
 
 	return AuthResponse{
 		UserID:      authInfo.ID,
-		Profile:     jsonUser,
+		Profile:     userProfile,
 		Roles:       authInfo.Roles,
 		AccessToken: accessToken,
 		LastLoginAt: lastLoginAt,

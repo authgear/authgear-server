@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -14,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -65,10 +65,11 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 //   "roles": []
 // }
 type MeHandler struct {
-	AuthContext   coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	TxContext     db.TxContext           `dependency:"TxContext"`
-	TokenStore    authtoken.Store        `dependency:"TokenStore"`
-	AuthInfoStore authinfo.Store         `dependency:"AuthInfoStore"`
+	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	TxContext        db.TxContext           `dependency:"TxContext"`
+	TokenStore       authtoken.Store        `dependency:"TokenStore"`
+	AuthInfoStore    authinfo.Store         `dependency:"AuthInfoStore"`
+	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
 }
 
 func (h MeHandler) WithTx() bool {
@@ -92,7 +93,16 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
-	resp = response.NewAuthResponse(*authInfo, skydb.Record{}, token.AccessToken)
+	// Get Profile
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+		return
+	}
+
+	resp = response.NewAuthResponse(*authInfo, userProfile, token.AccessToken)
 
 	now := timeNow()
 	authInfo.LastSeenAt = &now
