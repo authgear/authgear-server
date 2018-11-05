@@ -53,6 +53,7 @@ func main() {
 	handler.AttachSaveHandler(&srv, recordDependency)
 	handler.AttachFetchHandler(&srv, recordDependency)
 	handler.AttachQueryHandler(&srv, recordDependency)
+	handler.AttachDeleteHandler(&srv, recordDependency)
 
 	handler.AttachSchemaCreateHandler(&srv, recordDependency)
 
