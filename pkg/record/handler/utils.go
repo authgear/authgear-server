@@ -513,7 +513,6 @@ type RecordResultFilter struct {
 // NewRecordResultFilter return a RecordResultFilter.
 func NewRecordResultFilter(
 	recordStore record.Store,
-	txContext db.TxContext,
 	assetStore asset.Store,
 	authInfo *authinfo.AuthInfo,
 	bypassAccessControl bool,
@@ -649,4 +648,94 @@ func deriveRecordSchema(m record.Data) record.Schema {
 	}
 
 	return schema
+}
+
+type QueryResultFilter struct {
+	RecordStore        record.Store
+	Query              record.Query
+	EagerRecords       map[string]map[string]*record.Record
+	RecordResultFilter RecordResultFilter
+}
+
+func (f *QueryResultFilter) JSONResult(r *record.Record) *recordconv.JSONRecord {
+	if r == nil {
+		return nil
+	}
+
+	recordCopy := r.Copy()
+	for transientKey, transientExpression := range f.Query.ComputedKeys {
+		if transientExpression.Type != record.KeyPath {
+			continue
+		}
+
+		keyPath := transientExpression.Value.(string)
+		ref := getReferenceWithKeyPath(f.RecordStore, &recordCopy, keyPath)
+		var transientValue interface{}
+		eagerRecord := f.EagerRecords[keyPath][ref.ID.Key]
+		if eagerRecord != nil {
+			transientValue = f.RecordResultFilter.JSONResult(eagerRecord)
+		}
+
+		if recordCopy.Transient == nil {
+			recordCopy.Transient = map[string]interface{}{}
+		}
+		recordCopy.Transient[transientKey] = transientValue
+	}
+
+	return f.RecordResultFilter.JSONResult(&recordCopy)
+}
+
+// getReferenceWithKeyPath returns a reference for use in eager loading
+// It handles the case where reserved attribute is a string ID instead of
+// a referenced ID.
+func getReferenceWithKeyPath(recordStore record.Store, r *record.Record, keyPath string) record.Reference {
+	valueAtKeyPath := r.Get(keyPath)
+	if valueAtKeyPath == nil {
+		return record.NewEmptyReference()
+	}
+
+	if ref, ok := valueAtKeyPath.(record.Reference); ok {
+		return ref
+	}
+
+	// If the value at key path is not a reference, it could be a string
+	// ID of a user record.
+	switch keyPath {
+	case "_owner_id", "_created_by", "_updated_by":
+		strID, ok := valueAtKeyPath.(string)
+		if !ok {
+			return record.NewEmptyReference()
+		}
+		return record.NewReference(recordStore.UserRecordType(), strID)
+	default:
+		return record.NewEmptyReference()
+	}
+}
+
+func getRecordCount(recordStore record.Store, query *record.Query, accessControlOptions *record.AccessControlOptions, results *record.Rows) (uint64, error) {
+	if results != nil {
+		recordCount := results.OverallRecordCount()
+		if recordCount != nil {
+			return *recordCount, nil
+		}
+	}
+
+	recordCount, err := recordStore.QueryCount(query, accessControlOptions)
+	if err != nil {
+		return 0, err
+	}
+
+	return recordCount, nil
+}
+
+func QueryResultInfo(recordStore record.Store, query *record.Query, accessControlOptions *record.AccessControlOptions, results *record.Rows) (map[string]interface{}, error) {
+	resultInfo := map[string]interface{}{}
+	if query.GetCount {
+		recordCount, err := getRecordCount(recordStore, query, accessControlOptions, results)
+		if err != nil {
+			return nil, err
+		}
+		resultInfo["count"] = recordCount
+	}
+	return resultInfo, nil
 }

@@ -33,6 +33,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
+func (s *recordStore) UserRecordType() string {
+	return "user"
+}
+
 func (s *recordStore) Get(id record.ID, r *record.Record) error {
 	typemap, err := s.RemoteColumnTypes(id.Type)
 	if err != nil {
@@ -86,8 +90,9 @@ func (s *recordStore) GetByIDs(ids []record.ID, accessControlOptions *record.Acc
 	query := s.selectQuery(s.sqlBuilder.Select(), recordType, typemap).
 		Where(pq.QuoteIdentifier("_id")+" IN "+inCause, inArgs...)
 
+	tableName := s.recordTableNameValue(recordType)
 	if !accessControlOptions.BypassAccessControl {
-		factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, recordType)
+		factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, recordType, tableName)
 		aclSqlizer, err := factory.NewAccessControlSqlizer(accessControlOptions.ViewAsUser, record.ReadLevel)
 		if err != nil {
 			return nil, err
@@ -291,15 +296,18 @@ func (s *recordStore) Query(query *record.Query, accessControlOptions *record.Ac
 		return record.EmptyRows, nil
 	}
 
+	tableName := s.recordTableNameValue(query.Type)
+	// tableName := query.Type
+
 	q := s.sqlBuilder.Select()
-	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, query.Type)
+	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, query.Type, tableName)
 	q, err = s.applyQueryPredicate(q, factory, query, accessControlOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, sort := range query.Sorts {
-		orderBy, err := builder.SortOrderBySQL(query.Type, sort)
+		orderBy, err := builder.SortOrderBySQL(tableName, sort)
 		if err != nil {
 			return nil, err
 		}
@@ -351,8 +359,9 @@ func (s *recordStore) QueryCount(query *record.Query, accessControlOptions *reco
 		},
 	}
 
+	tableName := s.recordTableNameValue(query.Type)
 	q := s.selectQuery(s.sqlBuilder.Select(), query.Type, typemap)
-	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, query.Type)
+	factory := builder.NewPredicateSqlizerFactory(s, s.sqlBuilder, query.Type, tableName)
 	q, err = s.applyQueryPredicate(q, factory, query, accessControlOptions)
 	if err != nil {
 		return 0, err

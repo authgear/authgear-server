@@ -6,6 +6,9 @@ import (
 )
 
 type Store interface {
+	// UserRecordType returns name of the user record type.
+	UserRecordType() string
+
 	// SetRecordAccess sets default record access of a specific type
 	SetRecordAccess(recordType string, acl ACL) error
 

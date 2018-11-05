@@ -158,7 +158,6 @@ func (h SaveHandler) Handle(req interface{}) (resp interface{}, err error) {
 	err = db.WithTx(h.TxContext, func() (doErr error) {
 		resultFilter, doErr = NewRecordResultFilter(
 			h.RecordStore,
-			h.TxContext,
 			h.AssetStore,
 			h.AuthContext.AuthInfo(),
 			h.AuthContext.AccessKeyType() == model.MasterAccessKey,

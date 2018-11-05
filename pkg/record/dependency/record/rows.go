@@ -108,3 +108,36 @@ type RowsIter interface {
 
 	OverallRecordCount() *uint64
 }
+
+// MemoryRows is a native implementation of RowIter.
+// Can be used in test not support cursor.
+type MemoryRows struct {
+	CurrentRowIndex int
+	Records         []Record
+}
+
+func NewMemoryRows(records []Record) *MemoryRows {
+	return &MemoryRows{0, records}
+}
+
+func (rs *MemoryRows) Close() error {
+	return nil
+}
+
+func (rs *MemoryRows) Next(record *Record) error {
+	if rs.CurrentRowIndex >= len(rs.Records) {
+		return io.EOF
+	}
+
+	*record = rs.Records[rs.CurrentRowIndex]
+	rs.CurrentRowIndex = rs.CurrentRowIndex + 1
+	return nil
+}
+
+func (rs *MemoryRows) OverallRecordCount() *uint64 {
+	result := uint64(len(rs.Records))
+	if result == 0 {
+		return nil
+	}
+	return &result
+}
