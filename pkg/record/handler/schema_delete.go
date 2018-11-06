@@ -40,8 +40,6 @@ func (f SchemaDeleteHandlerFactory) NewHandler(request *http.Request) http.Handl
 func (f SchemaDeleteHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.RequireMasterKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }
 
