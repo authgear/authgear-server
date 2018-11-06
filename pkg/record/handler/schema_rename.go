@@ -110,5 +110,26 @@ func (h SchemaRenameHandler) DecodeRequest(request *http.Request) (handler.Reque
 }
 
 func (h SchemaRenameHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(SchemaRenameRequestPayload)
+
+	if err = h.RecordStore.RenameSchema(payload.RecordType, payload.OldName, payload.NewName); err != nil {
+		h.Logger.WithFields(logrus.Fields{
+			"error": err,
+			"field": payload.RecordType,
+		}).Error("fail to rename schema")
+		err = skyerr.NewError(skyerr.ResourceNotFound, err.Error())
+		return
+	}
+
+	schemas, err := h.RecordStore.GetRecordSchemas()
+	if err != nil {
+		h.Logger.WithError(err).Error("fail to get record schemas")
+		return
+	}
+
+	resp = NewSchemaResponse(encodeRecordSchemas(schemas))
+
+	// TODO: send schema change event
+
 	return
 }
