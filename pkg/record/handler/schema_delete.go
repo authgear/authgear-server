@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -13,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	recordGear "github.com/skygeario/skygear-server/pkg/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func AttachSchemaDeleteHandler(
@@ -44,9 +46,29 @@ func (f SchemaDeleteHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type SchemaDeleteRequestPayload struct {
+	RecordType string `json:"record_type"`
+	ColumnName string `json:"item_name"`
 }
 
-func (s SchemaDeleteRequestPayload) Validate() error {
+func (p SchemaDeleteRequestPayload) Validate() error {
+	missingArgs := []string{}
+	if p.RecordType == "" {
+		missingArgs = append(missingArgs, "record_type")
+	}
+	if p.ColumnName == "" {
+		missingArgs = append(missingArgs, "item_name")
+	}
+	if len(missingArgs) > 0 {
+		return skyerr.NewInvalidArgument("missing required fields", missingArgs)
+	}
+
+	if strings.HasPrefix(p.RecordType, "_") {
+		return skyerr.NewInvalidArgument("attempts to change reserved table", []string{"record_type"})
+	}
+
+	if strings.HasPrefix(p.ColumnName, "_") {
+		return skyerr.NewInvalidArgument("attempts to change reserved key", []string{"item_name"})
+	}
 	return nil
 }
 
