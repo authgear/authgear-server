@@ -55,6 +55,7 @@ func main() {
 	handler.AttachQueryHandler(&srv, recordDependency)
 
 	handler.AttachSchemaCreateHandler(&srv, recordDependency)
+	handler.AttachSchemaRenameHandler(&srv, recordDependency)
 
 	go func() {
 		log.Printf("Record gear boot")
