@@ -40,8 +40,6 @@ func (f SchemaRenameHandlerFactory) NewHandler(request *http.Request) http.Handl
 func (f SchemaRenameHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.RequireMasterKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }
 
