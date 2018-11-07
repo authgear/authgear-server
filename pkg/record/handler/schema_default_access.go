@@ -13,6 +13,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	recordGear "github.com/skygeario/skygear-server/pkg/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/recordconv"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func AttachSchemaDefaultAccessHandler(
@@ -42,9 +44,16 @@ func (f SchemaDefaultAccessHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type SchemaDefaultAccessRequestPayload struct {
+	Type             string                   `json:"type"`
+	RawDefaultAccess []map[string]interface{} `json:"default_access"`
+	ACL              record.ACL
 }
 
-func (s SchemaDefaultAccessRequestPayload) Validate() error {
+func (p SchemaDefaultAccessRequestPayload) Validate() error {
+	if p.Type == "" {
+		return skyerr.NewInvalidArgument("missing required fields", []string{"type"})
+	}
+
 	return nil
 }
 
@@ -75,6 +84,18 @@ func (h SchemaDefaultAccessHandler) DecodeRequest(request *http.Request) (handle
 	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
 		return nil, err
 	}
+
+	acl := record.ACL{}
+	for _, v := range payload.RawDefaultAccess {
+		ace := record.ACLEntry{}
+		if err := (*recordconv.MapACLEntry)(&ace).FromMap(v); err != nil {
+			return nil, skyerr.NewInvalidArgument("invalid default_access entry", []string{"default_access"})
+		}
+
+		acl = append(acl, ace)
+	}
+
+	payload.ACL = acl
 
 	return payload, nil
 }
