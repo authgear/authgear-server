@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	recordGear "github.com/skygeario/skygear-server/pkg/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func AttachCreationAccessHandler(
@@ -42,9 +43,16 @@ func (f CreationAccessHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type CreationAccessRequestPayload struct {
+	Type           string   `json:"type"`
+	RawCreateRoles []string `json:"create_roles"`
+	ACL            record.ACL
 }
 
-func (s CreationAccessRequestPayload) Validate() error {
+func (p CreationAccessRequestPayload) Validate() error {
+	if p.Type == "" {
+		return skyerr.NewInvalidArgument("missing required fields", []string{"type"})
+	}
+
 	return nil
 }
 
@@ -76,6 +84,13 @@ func (h CreationAccessHandler) DecodeRequest(request *http.Request) (handler.Req
 	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
 		return nil, err
 	}
+
+	acl := record.ACL{}
+	for _, perRoleName := range payload.RawCreateRoles {
+		acl = append(acl, record.NewACLEntryRole(perRoleName, record.CreateLevel))
+	}
+
+	payload.ACL = acl
 
 	return payload, nil
 }
