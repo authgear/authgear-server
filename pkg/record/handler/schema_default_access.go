@@ -101,5 +101,21 @@ func (h SchemaDefaultAccessHandler) DecodeRequest(request *http.Request) (handle
 }
 
 func (h SchemaDefaultAccessHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(SchemaDefaultAccessRequestPayload)
+
+	err = h.RecordStore.SetRecordDefaultAccess(payload.Type, payload.ACL)
+	if err != nil {
+		h.Logger.WithFields(logrus.Fields{
+			"error": err,
+			"field": payload.Type,
+		}).Error("fail to set default access")
+		return
+	}
+
+	resp = struct {
+		Type          string                   `json:"type"`
+		DefaultAccess []map[string]interface{} `json:"default_access,omitempty"`
+	}{payload.Type, payload.RawDefaultAccess}
+
 	return
 }
