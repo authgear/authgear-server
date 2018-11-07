@@ -15,16 +15,16 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestSchemaDefaultAccessHandler(t *testing.T) {
-	getRecordStore := func() (recordStore *mockSchemaDefaultAccessRecordStore) {
-		return &mockSchemaDefaultAccessRecordStore{
+func TestDefaultAccessHandler(t *testing.T) {
+	getRecordStore := func() (recordStore *mockDefaultAccessRecordStore) {
+		return &mockDefaultAccessRecordStore{
 			Store: record.NewMockStore(),
 		}
 	}
 
-	Convey("Test SchemaDefaultAccessHandler", t, func() {
+	Convey("Test DefaultAccessHandler", t, func() {
 		// fixture
-		sh := &SchemaDefaultAccessHandler{}
+		sh := &DefaultAccessHandler{}
 		recordStore := getRecordStore()
 		sh.RecordStore = recordStore
 		sh.Logger = logging.LoggerEntry("handler")
@@ -63,14 +63,14 @@ func TestSchemaDefaultAccessHandler(t *testing.T) {
 	})
 }
 
-type mockSchemaDefaultAccessRecordStore struct {
+type mockDefaultAccessRecordStore struct {
 	recordType string
 	acl        record.ACL
 
 	record.Store
 }
 
-func (s *mockSchemaDefaultAccessRecordStore) SetRecordDefaultAccess(recordType string, acl record.ACL) error {
+func (s *mockDefaultAccessRecordStore) SetRecordDefaultAccess(recordType string, acl record.ACL) error {
 	s.recordType = recordType
 	s.acl = acl
 	return s.Store.SetRecordDefaultAccess(recordType, acl)

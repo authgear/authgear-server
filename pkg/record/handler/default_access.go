@@ -17,39 +17,39 @@ import (
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-func AttachSchemaDefaultAccessHandler(
+func AttachDefaultAccessHandler(
 	server *server.Server,
 	recordDependency recordGear.DependencyMap,
 ) *server.Server {
-	server.Handle("/schema/default_access", &SchemaDefaultAccessHandlerFactory{
+	server.Handle("/schema/default_access", &DefaultAccessHandlerFactory{
 		recordDependency,
 	}).Methods("POST")
 	return server
 }
 
-type SchemaDefaultAccessHandlerFactory struct {
+type DefaultAccessHandlerFactory struct {
 	Dependency recordGear.DependencyMap
 }
 
-func (f SchemaDefaultAccessHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &SchemaDefaultAccessHandler{}
+func (f DefaultAccessHandlerFactory) NewHandler(request *http.Request) http.Handler {
+	h := &DefaultAccessHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
-func (f SchemaDefaultAccessHandlerFactory) ProvideAuthzPolicy() authz.Policy {
+func (f DefaultAccessHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.RequireMasterKey),
 	)
 }
 
-type SchemaDefaultAccessRequestPayload struct {
+type DefaultAccessRequestPayload struct {
 	Type             string                   `json:"type"`
 	RawDefaultAccess []map[string]interface{} `json:"default_access"`
 	ACL              record.ACL
 }
 
-func (p SchemaDefaultAccessRequestPayload) Validate() error {
+func (p DefaultAccessRequestPayload) Validate() error {
 	if p.Type == "" {
 		return skyerr.NewInvalidArgument("missing required fields", []string{"type"})
 	}
@@ -58,7 +58,7 @@ func (p SchemaDefaultAccessRequestPayload) Validate() error {
 }
 
 /*
-SchemaDefaultAccessHandler handles the update of creation access of record
+DefaultAccessHandler handles the update of creation access of record
 curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/schema/default_access <<EOF
 {
@@ -69,18 +69,18 @@ curl -X POST -H "Content-Type: application/json" \
 }
 EOF
 */
-type SchemaDefaultAccessHandler struct {
+type DefaultAccessHandler struct {
 	TxContext   db.TxContext  `dependency:"TxContext"`
 	RecordStore record.Store  `dependency:"RecordStore"`
 	Logger      *logrus.Entry `dependency:"HandlerLogger"`
 }
 
-func (h SchemaDefaultAccessHandler) WithTx() bool {
+func (h DefaultAccessHandler) WithTx() bool {
 	return true
 }
 
-func (h SchemaDefaultAccessHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := SchemaDefaultAccessRequestPayload{}
+func (h DefaultAccessHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+	payload := DefaultAccessRequestPayload{}
 	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
 		return nil, err
 	}
@@ -100,8 +100,8 @@ func (h SchemaDefaultAccessHandler) DecodeRequest(request *http.Request) (handle
 	return payload, nil
 }
 
-func (h SchemaDefaultAccessHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(SchemaDefaultAccessRequestPayload)
+func (h DefaultAccessHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(DefaultAccessRequestPayload)
 
 	err = h.RecordStore.SetRecordDefaultAccess(payload.Type, payload.ACL)
 	if err != nil {

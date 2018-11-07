@@ -55,7 +55,8 @@ func main() {
 	handler.AttachQueryHandler(&srv, recordDependency)
 	handler.AttachDeleteHandler(&srv, recordDependency)
 
-	handler.AttachSchemaDefaultAccessHandler(&srv, recordDependency)
+	handler.AttachDefaultAccessHandler(&srv, recordDependency)
+
 	handler.AttachSchemaCreateHandler(&srv, recordDependency)
 	handler.AttachSchemaDeleteHandler(&srv, recordDependency)
 	handler.AttachSchemaRenameHandler(&srv, recordDependency)
