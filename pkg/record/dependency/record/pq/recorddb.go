@@ -226,8 +226,7 @@ func convert(r *record.Record) map[string]interface{} {
 }
 
 func (s *recordStore) Delete(id record.ID) error {
-	// logger := logging.CreateLogger(db.c.context, "skydb")
-	builder := s.sqlBuilder.Delete(s.sqlBuilder.FullTableName(id.Type)).
+	builder := s.sqlBuilder.Delete(s.recordFullTableName(id.Type)).
 		Where("_id = ?", id.Key)
 
 	result, err := s.sqlExecutor.ExecWith(builder)
