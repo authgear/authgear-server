@@ -96,5 +96,21 @@ func (h CreationAccessHandler) DecodeRequest(request *http.Request) (handler.Req
 }
 
 func (h CreationAccessHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(CreationAccessRequestPayload)
+
+	err = h.RecordStore.SetRecordAccess(payload.Type, payload.ACL)
+	if err != nil {
+		h.Logger.WithFields(logrus.Fields{
+			"error": err,
+			"field": payload.Type,
+		}).Error("fail to set creation access")
+		return
+	}
+
+	resp = struct {
+		Type        string   `json:"type"`
+		CreateRoles []string `json:"create_roles,omitempty"`
+	}{payload.Type, payload.RawCreateRoles}
+
 	return
 }
