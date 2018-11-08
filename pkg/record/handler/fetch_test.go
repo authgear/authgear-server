@@ -127,7 +127,6 @@ func TestRecordFetchHandler(t *testing.T) {
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
-					"_id": "note/note0",
 					"_recordType": "note",
 					"_recordID": "note0",
 					"_type": "record",
@@ -163,7 +162,6 @@ func TestRecordFetchHandler(t *testing.T) {
 
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
-					"_id": "note/note0",
 					"_recordType": "note",
 					"_recordID": "note0",
 					"_type": "record",

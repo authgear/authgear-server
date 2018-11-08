@@ -60,7 +60,8 @@ func TestRecordSaveHandler(t *testing.T) {
 		Convey("Saves multiple records", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"records": [{
-					"_id": "type1/id1",
+					"_recordType": "type1",
+					"_recordID": "id1",
 					"k1": "v1",
 					"k2": "v2"
 				}, {
@@ -74,7 +75,6 @@ func TestRecordSaveHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
-					"_id": "type1/id1",
 					"_recordType": "type1",
 					"_recordID": "id1",
 					"_type": "record",
@@ -85,7 +85,6 @@ func TestRecordSaveHandler(t *testing.T) {
 					"_updated_by":"faseng.cat.id",
 					"_ownerID": "faseng.cat.id"
 				}, {
-					"_id": "type2/id2",
 					"_recordType": "type2",
 					"_recordID": "id2",
 					"_type": "record",
@@ -113,7 +112,6 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [
 					{
-						"_id": "report/id1",
 						"_recordType": "report",
 						"_recordID": "id1",
 						"_type": "error",
@@ -138,7 +136,6 @@ func TestRecordSaveHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
-					"_id": "type1/id1",
 					"_recordType": "type1",
 					"_recordID": "id1",
 					"_type": "record",
@@ -151,11 +148,9 @@ func TestRecordSaveHandler(t *testing.T) {
 			}`)
 		})
 
-		Convey("Returns error if _id is missing or malformated", func() {
+		Convey("Returns error if _recordID is missing or malformated", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"records": [{
-				}, {
-					"_id": "invalidkey"
 				}]
 			}`))
 			resp := httptest.NewRecorder()
@@ -166,11 +161,6 @@ func TestRecordSaveHandler(t *testing.T) {
 					"name": "InvalidArgument",
 					"code": 108,
 					"message": "missing _recordType, expecting string"
-				},{
-					"_type": "error",
-					"name": "InvalidArgument",
-					"code": 108,
-					"message": "invalid record id"
 				}]
 			}`)
 		})
@@ -231,7 +221,6 @@ func TestRecordSaveHandler(t *testing.T) {
 		Convey("Permission denied on saving a read only record", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"records": [{
-					"_id": "note/readonly",
 					"_recordType": "note",
 					"_recordID": "readonly",
 					"content": "hello"
@@ -241,7 +230,6 @@ func TestRecordSaveHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
-					"_id": "note/readonly",
 					"_recordType": "note",
 					"_recordID": "readonly",
 					"_type": "error",
@@ -264,7 +252,6 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_type": "record",
-					"_id": "type/id",
 					"_recordType": "type",
 					"_recordID": "id",
 					"_access": null,
@@ -287,7 +274,6 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
 					"_type": "record",
-					"_id": "type/id",
 					"_recordType": "type",
 					"_recordID": "id",
 					"_access": null,
@@ -324,7 +310,6 @@ func TestRecordSaveHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [
 					{
-						"_id": "report/id1",
 						"_recordType": "report",
 						"_recordID": "id1",
 						"_type": "record",
@@ -435,7 +420,6 @@ func TestRecordSaveHandlerWithFieldACL(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
-					"_id": "note/note0",
 					"_recordType": "note",
 					"_recordID": "note0",
 					"_type": "record",
@@ -496,7 +480,6 @@ func TestRecordSaveHandlerWithFieldACL(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 					"result": [{
-						"_id": "note/note0",
 						"_recordType": "note",
 						"_recordID": "note0",
 						"_type": "record",
@@ -526,7 +509,6 @@ func TestRecordSaveHandlerWithFieldACL(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 					"result": [{
-						"_id": "note/new-note",
 						"_recordType": "note",
 						"_recordID": "new-note",
 						"_type": "record",
@@ -567,7 +549,6 @@ func TestRecordSaveHandlerWithFieldACL(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 					"result": [{
-						"_id": "note/note0",
 						"_recordType": "note",
 						"_recordID": "note0",
 						"_type": "record",
