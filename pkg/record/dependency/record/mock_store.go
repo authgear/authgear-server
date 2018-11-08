@@ -16,7 +16,7 @@ type MockStore struct {
 	AssetMap               map[string]Asset
 	recordAccessMap        map[string]ACL
 	recordDefaultAccessMap map[string]ACL
-	fieldAccess            FieldACL
+	FieldAccess            FieldACL
 	Map                    Map
 	SchemaMap              SchemaMap
 }
@@ -70,13 +70,13 @@ func (s *MockStore) GetRecordDefaultAccess(recordType string) (ACL, error) {
 
 // SetRecordFieldAccess sets record field access for all types
 func (s *MockStore) SetRecordFieldAccess(acl FieldACL) error {
-	s.fieldAccess = acl
+	s.FieldAccess = acl
 	return nil
 }
 
 // GetRecordFieldAccess returns record field access for all types
 func (s *MockStore) GetRecordFieldAccess() (FieldACL, error) {
-	return s.fieldAccess, nil
+	return s.FieldAccess, nil
 }
 
 // GetAsset is not implemented.
