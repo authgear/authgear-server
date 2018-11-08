@@ -62,6 +62,7 @@ func main() {
 	handler.AttachSchemaRenameHandler(&srv, recordDependency)
 	handler.AttachSchemaFetchHandler(&srv, recordDependency)
 
+	handler.AttachFieldAccessGetHandler(&srv, recordDependency)
 	handler.AttachFieldAccessUpdateHandler(&srv, recordDependency)
 
 	go func() {
