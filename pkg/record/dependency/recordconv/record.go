@@ -39,7 +39,6 @@ func (r *JSONRecord) ToMap(m map[string]interface{}) {
 		m[key] = ToLiteral(value)
 	}
 
-	m["_id"] = r.ID.String() // NOTE(cheungpat): Fields to be deprecated.
 	m["_type"] = "record"
 
 	m["_recordID"] = r.ID.Key
@@ -107,17 +106,6 @@ func (r *JSONRecord) FromMap(m map[string]interface{}) error {
 		id.Type = s
 		return nil
 	}, false)
-	if id.Key == "" && id.Type == "" {
-		// NOTE(cheungpat): Handling for deprecated fields.
-		if _, ok := m["_id"]; ok {
-			extractor.DoString("_id", func(s string) error {
-				return id.UnmarshalText([]byte(s))
-			}, true)
-			if extractor.Err() != nil {
-				return extractor.Err()
-			}
-		}
-	}
 	if id.Type == "" {
 		return errors.New("missing _recordType, expecting string")
 	}
