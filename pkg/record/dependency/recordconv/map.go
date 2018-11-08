@@ -154,10 +154,10 @@ type MapReference record.Reference
 
 // FromMap implements FromMapper
 func (ref *MapReference) FromMap(m map[string]interface{}) error {
-	if recordType, ok := m["recordType"].(string); ok {
+	if recordType, ok := m["$recordType"].(string); ok {
 		ref.ID.Type = recordType
 	}
-	if recordID, ok := m["recordID"].(string); ok {
+	if recordID, ok := m["$recordID"].(string); ok {
 		ref.ID.Key = recordID
 	}
 
