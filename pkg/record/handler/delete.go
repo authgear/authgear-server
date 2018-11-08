@@ -187,10 +187,7 @@ func (h DeleteHandler) makeResultsForRecordIDs(recordIDs []record.ID, resp Recor
 				"recordID": recordID,
 				"err":      err,
 			}).Debugln("failed to delete record")
-			result = newSerializedError(
-				recordID.String(),
-				err,
-			)
+			result = serializedError{&recordID, err}
 		} else {
 			result = struct {
 				RecordKey  string `json:"_recordID"`

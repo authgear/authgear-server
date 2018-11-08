@@ -258,7 +258,7 @@ func (h SaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, re
 
 		switch item := itemi.(type) {
 		case skyerr.Error:
-			result = newSerializedError("", item)
+			result = newSerializedError(item)
 		case record.ID:
 			if err, ok := resp.ErrMap[item]; ok {
 				h.Logger.WithFields(logrus.Fields{
@@ -266,7 +266,7 @@ func (h SaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, re
 					"err":      err,
 				}).Debugln("failed to save record")
 
-				result = newSerializedError(item.String(), err)
+				result = serializedError{&item, err}
 			} else {
 				record := resp.SavedRecords[currRecordIdx]
 				currRecordIdx++
