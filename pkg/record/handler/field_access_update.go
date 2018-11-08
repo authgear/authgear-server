@@ -102,5 +102,15 @@ func (h FieldAccessUpdateHandler) DecodeRequest(request *http.Request) (handler.
 }
 
 func (h FieldAccessUpdateHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(FieldAccessUpdateRequestPayload)
+
+	err = h.RecordStore.SetRecordFieldAccess(payload.FieldACL)
+	if err != nil {
+		h.Logger.WithError(err).Error("fail to update field access")
+		return
+	}
+
+	resp = NewFieldAccessResponse(payload.FieldACL)
+
 	return
 }
