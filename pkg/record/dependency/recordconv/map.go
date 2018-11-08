@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
@@ -161,18 +160,6 @@ func (ref *MapReference) FromMap(m map[string]interface{}) error {
 		ref.ID.Key = recordID
 	}
 
-	if ref.ID.Type == "" || ref.ID.Key == "" {
-		// NOTE(cheungpat): Handling for deprecated fields.
-		if deprecatedID, ok := m["$id"].(string); ok {
-			ss := strings.SplitN(deprecatedID, "/", 2)
-			if len(ss) == 1 {
-				return fmt.Errorf(`ref: "_id" should be of format '{type}/{id}', got %#v`, deprecatedID)
-			}
-			ref.ID.Type = ss[0]
-			ref.ID.Key = ss[1]
-		}
-	}
-
 	if ref.ID.Type == "" {
 		return errors.New("missing $recordType, expecting string")
 	}
@@ -187,7 +174,6 @@ func (ref *MapReference) FromMap(m map[string]interface{}) error {
 // ToMap implements ToMapper
 func (ref MapReference) ToMap(m map[string]interface{}) {
 	m["$type"] = "ref"
-	m["$id"] = ref.ID // NOTE(cheungpat): Fields to be deprecated.
 	m["$recordID"] = ref.ID.Key
 	m["$recordType"] = ref.ID.Type
 }
