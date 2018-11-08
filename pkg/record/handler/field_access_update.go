@@ -13,6 +13,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	recordGear "github.com/skygeario/skygear-server/pkg/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/recordconv"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func AttachFieldAccessUpdateHandler(
@@ -42,9 +44,11 @@ func (f FieldAccessUpdateHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type FieldAccessUpdateRequestPayload struct {
+	RawAccess []map[string]interface{} `json:"access"`
+	FieldACL  record.FieldACL
 }
 
-func (s FieldAccessUpdateRequestPayload) Validate() error {
+func (p FieldAccessUpdateRequestPayload) Validate() error {
 	return nil
 }
 
@@ -82,6 +86,17 @@ func (h FieldAccessUpdateHandler) DecodeRequest(request *http.Request) (handler.
 	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
 		return nil, err
 	}
+
+	entries := record.FieldACLEntryList{}
+	for _, v := range payload.RawAccess {
+		ace := record.FieldACLEntry{}
+		if err := (*recordconv.MapFieldACLEntry)(&ace).FromMap(v); err != nil {
+			return nil, skyerr.NewInvalidArgument("invalid access entry", []string{"access"})
+		}
+		entries = append(entries, ace)
+	}
+
+	payload.FieldACL = record.NewFieldACL(entries)
 
 	return payload, nil
 }
