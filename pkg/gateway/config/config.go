@@ -33,7 +33,8 @@ func (c *Configuration) ReadFromEnv() error {
 
 // RouterConfig contain gears url
 type RouterConfig struct {
-	AuthGearURL string `envconfig:"AUTH_GEAR_URL" required:"true"`
+	AuthGearURL   string `envconfig:"AUTH_GEAR_URL" required:"true"`
+	RecordGearURL string `envconfig:"RECORD_GEAR_URL"`
 
 	routerMap map[string]*url.URL `ignored:"true"`
 }
@@ -42,8 +43,10 @@ type RouterConfig struct {
 func (r *RouterConfig) GetRouterMap() map[string]*url.URL {
 	if r.routerMap == nil {
 		auth, _ := url.Parse(r.AuthGearURL)
+		record, _ := url.Parse(r.RecordGearURL)
 		r.routerMap = map[string]*url.URL{
-			"auth": auth,
+			"auth":   auth,
+			"record": record,
 		}
 	}
 	return r.routerMap
