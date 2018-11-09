@@ -1,8 +1,5 @@
 BEGIN;
 
-CREATE SCHEMA app_config;
-SET search_path TO app_config;
-
 CREATE TABLE config (
 	id uuid PRIMARY KEY,
 	created_at timestamp WITHOUT TIME ZONE NOT NULL,
@@ -36,7 +33,5 @@ CREATE TABLE domain (
 	domain text NOT NULL,
 	app_id uuid REFERENCES app(id) NOT NULL
 );
-
-SET search_path TO DEFAULT;
 
 END;
