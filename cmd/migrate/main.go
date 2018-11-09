@@ -23,6 +23,19 @@ func main() {
 
 	flag.Parse()
 
+	schema := *schemaPtr
+	if *modulePtr == "gateway" {
+		schema = "app_config"
+	}
+
+	if schema == "" {
+		panic("missing schema")
+	}
+
+	if *modulePtr == "" {
+		panic("missing module")
+	}
+
 	filePath := fmt.Sprintf("file://%s", path.Join(*dirPtr, *modulePtr))
 	versionTable := fmt.Sprintf("_%s_version", *modulePtr)
 
@@ -31,7 +44,7 @@ func main() {
 		panic(err)
 	}
 
-	_, err = db.Exec(fmt.Sprintf("SET search_path TO %s", *schemaPtr))
+	_, err = db.Exec(fmt.Sprintf("SET search_path TO %s", schema))
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +65,7 @@ func main() {
 	fmt.Println("Path: " + filePath)
 	fmt.Println("Module namespace: " + *modulePtr)
 	fmt.Println("Database: " + *databasePtr)
-	fmt.Println("Schema: " + *schemaPtr)
+	fmt.Println("Schema: " + schema)
 
 	err = runCommand(m)
 	if err != nil {
