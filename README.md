@@ -110,6 +110,24 @@ $ export APPNAME="app name"
 $ go run cmd/migrate/main.go -module ${GEAR} -schema app_${APPNAME} version
 ```
 
+**(Optional) Use docker to run migration**
+
+```
+# Build the docker image
+docker build -f ./cmd/migrate/Dockerfile -t skygear-migrate .
+
+# Run migration
+docker run --rm --network=host skygear-migrate -module=gateway up
+docker run --rm --network=host skygear-migrate -module=core -schema=app_${APPNAME} up
+
+# Run migration to remote db
+docker run --rm --network=host skygear-migrate \
+        -module=core \
+        -schema=app_${APPNAME} \
+        -database=${DATABASE_URL} \
+        up
+```
+
 ## License & Copyright
 
 ```
