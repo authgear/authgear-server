@@ -53,7 +53,7 @@ func (p FieldAccessUpdateRequestPayload) Validate() error {
 }
 
 /*
-FieldAccessUpdateHandler fetches the entire Field ACL settings.
+FieldAccessUpdateHandler updates the Field ACL settings.
 curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/schema/field_access/update <<EOF
 {
