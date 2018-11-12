@@ -3,6 +3,8 @@ package auth
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
@@ -13,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
 )
 
@@ -93,6 +96,13 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			panic(err)
 		}
 		return trail
+	case "WelcomeEmailSender":
+		tConfig := config.GetTenantConfig(r)
+		if !tConfig.WelcomeEmail.Enabled {
+			return nil
+		}
+
+		return welcemail.NewDefaultSender(tConfig.WelcomeEmail, mail.NewDialer(tConfig.SMTP))
 	default:
 		return nil
 	}

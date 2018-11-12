@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -115,7 +118,9 @@ type SignupHandler struct {
 	PasswordAuthProvider  password.Provider          `dependency:"PasswordAuthProvider"`
 	AnonymousAuthProvider anonymous.Provider         `dependency:"AnonymousAuthProvider"`
 	AuditTrail            coreAudit.Trail            `dependency:"AuditTrail"`
+	WelcomeEmailSender    welcemail.Sender           `dependency:"WelcomeEmailSender,optional"`
 	TxContext             db.TxContext               `dependency:"TxContext"`
+	Logger                *logrus.Entry              `dependency:"HandlerLogger"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -201,6 +206,21 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		AuthID: info.ID,
 		Event:  coreAudit.EventSignup,
 	})
+
+	if h.WelcomeEmailSender != nil {
+		if email, ok := userProfile.Data["email"].(string); ok {
+			// send welcome email async
+			go func() {
+				if emailErr := h.WelcomeEmailSender.Send(email, userProfile); emailErr != nil {
+					h.Logger.WithFields(logrus.Fields{
+						"error":  emailErr,
+						"email":  email,
+						"userID": info.ID,
+					}).Error("fail to send welcome email")
+				}
+			}()
+		}
+	}
 
 	return
 }
