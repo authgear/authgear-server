@@ -18,6 +18,7 @@ type TenantConfiguration struct {
 	TokenStore      TokenStoreConfiguration   `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
 	UserProfile     UserProfileConfiguration  `json:"USER_PROFILE" msg:"USER_PROFILE"`
 	UserAudit       UserAuditConfiguration    `json:"USER_AUDIT" msg:"USER_AUDIT"`
+	SMTP            SMTPConfiguration         `json:"SMTP" msg:"SMTP"`
 	WelcomeEmail    WelcomeEmailConfiguration `json:"WELCOME_EMAIL" msg:"WELCOME_EMAIL"`
 }
 
@@ -34,6 +35,14 @@ type UserProfileConfiguration struct {
 type UserAuditConfiguration struct {
 	Enabled         bool   `msg:"ENABLED" envconfig:"USER_AUDIT_ENABLED" json:"ENABLED"`
 	TrailHandlerURL string `msg:"TRAIL_HANDLER_URL" envconfig:"USER_AUDIT_TRAIL_HANDLER_URL" json:"TRAIL_HANDLER_URL"`
+}
+
+type SMTPConfiguration struct {
+	Host     string `msg:"HOST" envconfig:"SMTP_HOST" json:"HOST"`
+	Port     int    `msg:"PORT" envconfig:"SMTP_PORT" json:"PORT" default:"25"`
+	Mode     string `msg:"MODE" envconfig:"SMTP_MODE" json:"MODE" default:"normal"`
+	Login    string `msg:"LOGIN" envconfig:"SMTP_LOGIN" json:"LOGIN"`
+	Password string `msg:"PASSWORD" envconfig:"SMTP_PASSWORD" json:"PASSWORD"`
 }
 
 type WelcomeEmailConfiguration struct {
