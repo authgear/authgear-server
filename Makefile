@@ -49,6 +49,7 @@ vendor:
 .PHONY: go-install
 go-install:
 	$(DOCKER_RUN) go install $(GO_BUILD_ARGS) ./...
+	$(DOCKER_RUN) go install tools/nextimportslint.go
 
 .PHONY: go-generate
 go-generate: go-install
@@ -64,6 +65,7 @@ go-lint: go-install
 		./...
 # Next linter have stricter rule
 	$(DOCKER_RUN) gometalinter ./pkg/auth/... ./pkg/core/... ./pkg/gateway/...
+	$(DOCKER_RUN) nextimportslint
 
 .PHONY: generate
 generate: go-generate
