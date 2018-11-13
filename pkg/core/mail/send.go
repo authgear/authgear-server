@@ -18,18 +18,28 @@ type SendRequest struct {
 	HTMLBody    string
 }
 
-func (r *SendRequest) Execute() error {
+type updateMessageFunc func(*gomail.Message) error
+
+func (r *SendRequest) Execute() (err error) {
 	message := gomail.NewMessage()
 
-	r.applyFrom(message)
-	r.applyTo(message)
-	r.applyReplyTo(message)
-	r.applySubject(message)
+	funcs := []updateMessageFunc{
+		r.applyFrom,
+		r.applyTo,
+		r.applyReplyTo,
+		r.applySubject,
+		r.applyTextBody,
+		r.applyHTMLBody,
+	}
 
-	r.applyTextBody(message)
-	r.applyHTMLBody(message)
+	for _, f := range funcs {
+		if err = f(message); err != nil {
+			return
+		}
+	}
 
-	return r.Dialer.DialAndSend(message)
+	err = r.Dialer.DialAndSend(message)
+	return
 }
 
 func (r *SendRequest) applyFrom(message *gomail.Message) error {
