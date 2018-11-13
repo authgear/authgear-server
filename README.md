@@ -64,14 +64,16 @@ CREATE SCHEMA app_helloworld;
 # If you have psql cli
 $ psql ${DATABASE_URL} -c "CREATE SCHEMA app_helloworld;"
 
+# Run migration
+# MODULE can be gateway, core, auth, record...
+$ export MODULE=<module_name>
+$ go run cmd/migrate/main.go -module ${MODULE} -schema app_helloworld up
+
 # Run core migration
 $ go run cmd/migrate/main.go -module core -schema app_helloworld up
 
 # Run auth gear migration
-$ go run cmd/migrate/main.go -module core -schema app_helloworld -gear auth up
-
-# Run chat gear migration
-$ go run cmd/migrate/main.go -path cmd/migrate/gear/chat -schema app_helloworld -gear chat up
+$ go run cmd/migrate/main.go -module auth -schema app_helloworld up
 ```
 
 See below sections for more commands about db migration.
