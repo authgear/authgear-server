@@ -34,28 +34,7 @@ Next is the V2 of Skygear that aim to follow
 
 ### Migration
 
-To provide db url by `MIGRATION_DB=`, default is `postgres://postgres:@localhost/postgres?sslmode=disable` for developement
-
-**Add a version**
-
-```
-cd ./scripts/gateway
-$ make add-version REVISION=<revision_description>
-```
-
-**Run migration**
-
-```
-cd ./scripts/gateway
-$ make migrate-up
-```
-
-**Check current db version**
-
-```
-cd ./scripts/gateway
-$ make migrate-version
-```
+- See [DB migration](#db-migration), use `gateway` for `module`.
 
 ### To add a new gear
 
@@ -63,9 +42,9 @@ $ make migrate-version
 2. Update `Plan` struct and `CanAccessGear` func in `pkg/gateway/model/plan.go`
 3. Update `RouterConfig` and `GetRouterMap` func in `pkg/gateway/config/config.go`
 
-## Gear DB migration
+## DB migration
 
-The following part is about gear db migration.
+The following part is about gateway and gears db migration.
 
 If you come from skygear-server 0.x to 1.x, the biggest difference is that gears in skygear next would not support auto db migration in server boot time.
 
@@ -74,8 +53,6 @@ DB migration must be run before server boot up. And since we do not have a full 
 1. Create a schema for your app.
 1. Run core migration.
 1. Run gear(s) migration.
-
-*See previous section if you also need to run db migration for gateway.*
 
 For example, the app name is `helloworld` and you want to run `auth` gear and `chat` gear.
 
@@ -87,14 +64,16 @@ CREATE SCHEMA app_helloworld;
 # If you have psql cli
 $ psql ${DATABASE_URL} -c "CREATE SCHEMA app_helloworld;"
 
+# Run migration
+# MODULE can be gateway, core, auth, record...
+$ export MODULE=<module_name>
+$ go run cmd/migrate/main.go -module ${MODULE} -schema app_helloworld up
+
 # Run core migration
-$ go run cmd/migrate/main.go -path cmd/migrate/core -schema app_helloworld -core up
+$ go run cmd/migrate/main.go -module core -schema app_helloworld up
 
 # Run auth gear migration
-$ go run cmd/migrate/main.go -path cmd/migrate/gear/auth -schema app_helloworld -gear auth up
-
-# Run chat gear migration
-$ go run cmd/migrate/main.go -path cmd/migrate/gear/chat -schema app_helloworld -gear chat up
+$ go run cmd/migrate/main.go -module auth -schema app_helloworld up
 ```
 
 See below sections for more commands about db migration.
@@ -103,17 +82,18 @@ See below sections for more commands about db migration.
 
 **Add a version**
 
-```
-$ export GEAR=<gear_name>
+```sh
+# MODULE can be gateway, core, auth, record...
+$ export MODULE=<module_name>
 $ export REVISION=<revision_description>
-$ make -f scripts/gateway/Makefile add-version MIGRATION_DIR=cmd/migrate/gear/${GEAR} REVISION=${REVISION}
+$ make -f scripts/migrate/Makefile add-version MODULE=${MODULE} REVISION=${REVISION}
 ```
 
 **Run core migration**
 
 ```
 $ export APPNAME="app name"
-$ go run cmd/migrate/main.go -path cmd/migrate/core -schema app_${APPNAME} -core up 1
+$ go run cmd/migrate/main.go -module core -schema app_${APPNAME} up
 ```
 
 **Run gear migration**
@@ -121,7 +101,7 @@ $ go run cmd/migrate/main.go -path cmd/migrate/core -schema app_${APPNAME} -core
 ```
 $ export GEAR="gear name"
 $ export APPNAME="app name"
-$ go run cmd/migrate/main.go -path cmd/migrate/gear/${GEAR} -schema app_${APPNAME} -gear ${GEAR} up 1
+$ go run cmd/migrate/main.go -module ${GEAR} -schema app_${APPNAME} up
 ```
 
 **Check current db version**
@@ -129,7 +109,25 @@ $ go run cmd/migrate/main.go -path cmd/migrate/gear/${GEAR} -schema app_${APPNAM
 ```
 $ export GEAR="gear name"
 $ export APPNAME="app name"
-$ go run cmd/migrate/main.go -path cmd/migrate/gear/${GEAR} -schema app_${APPNAME} -gear ${GEAR} version
+$ go run cmd/migrate/main.go -module ${GEAR} -schema app_${APPNAME} version
+```
+
+**(Optional) Use docker to run migration**
+
+```
+# Build the docker image
+docker build -f ./cmd/migrate/Dockerfile -t skygear-migrate .
+
+# Run migration
+docker run --rm --network=host skygear-migrate -module=gateway up
+docker run --rm --network=host skygear-migrate -module=core -schema=app_${APPNAME} up
+
+# Run migration to remote db
+docker run --rm --network=host skygear-migrate \
+        -module=core \
+        -schema=app_${APPNAME} \
+        -database=${DATABASE_URL} \
+        up
 ```
 
 ## License & Copyright

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"path"
 	"strconv"
 
 	"github.com/golang-migrate/migrate"
@@ -15,53 +16,56 @@ import (
 func main() {
 	var err error
 
-	pathPtr := flag.String("path", "", "")
-	gearPtr := flag.String("gear", "", "")
-	corePtr := flag.Bool("core", false, "")
-	databasePtr := flag.String("database", "postgres://postgres:@localhost/postgres?sslmode=disable", "")
-	schemaPtr := flag.String("schema", "app__", "")
+	modulePtr := flag.String("module", "", "module name, e.g. gateway, core, auth, record")
+	databasePtr := flag.String("database", "postgres://postgres:@localhost/postgres?sslmode=disable", "migration db url")
+	schemaPtr := flag.String("schema", "app__", "migration schema")
+	dirPtr := flag.String("dir", "cmd/migrate/revisions", "(optional) directory of revisions files")
 
 	flag.Parse()
+
+	schema := *schemaPtr
+	if *modulePtr == "gateway" {
+		schema = "app_config"
+	}
+
+	if schema == "" {
+		panic("missing schema")
+	}
+
+	if *modulePtr == "" {
+		panic("missing module")
+	}
+
+	filePath := fmt.Sprintf("file://%s", path.Join(*dirPtr, *modulePtr))
+	versionTable := fmt.Sprintf("_%s_version", *modulePtr)
 
 	db, err := sql.Open("postgres", *databasePtr)
 	if err != nil {
 		panic(err)
 	}
 
-	_, err = db.Exec(fmt.Sprintf("SET search_path TO %s", *schemaPtr))
+	_, err = db.Exec(fmt.Sprintf("SET search_path TO %s", schema))
 	if err != nil {
 		panic(err)
 	}
 
-	if *corePtr && *gearPtr != "" {
-		panic("-core and -gear XXX cannot be set together")
-	}
-
-	var targetTable string
-	if *corePtr {
-		targetTable = "core"
-	} else {
-		targetTable = *gearPtr
-	}
-
 	config := postgres.Config{
-		MigrationsTable: fmt.Sprintf("_%s_version", targetTable),
+		MigrationsTable: versionTable,
 	}
 	driver, err := postgres.WithInstance(db, &config)
 	if err != nil {
 		panic(err)
 	}
 
-	path := fmt.Sprintf("file://%s", *pathPtr)
-	m, err := migrate.NewWithDatabaseInstance(path, "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance(filePath, "postgres", driver)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Path: " + *pathPtr)
-	fmt.Println("Target table namespace: " + targetTable)
+	fmt.Println("Path: " + filePath)
+	fmt.Println("Module namespace: " + *modulePtr)
 	fmt.Println("Database: " + *databasePtr)
-	fmt.Println("Schema: " + *schemaPtr)
+	fmt.Println("Schema: " + schema)
 
 	err = runCommand(m)
 	if err != nil {
