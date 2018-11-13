@@ -103,6 +103,9 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		}
 
 		return welcemail.NewDefaultSender(tConfig.WelcomeEmail, mail.NewDialer(tConfig.SMTP))
+	case "TestWelcomeEmailSender":
+		tConfig := config.GetTenantConfig(r)
+		return welcemail.NewDefaultTestSender(tConfig.WelcomeEmail, mail.NewDialer(tConfig.SMTP))
 	default:
 		return nil
 	}
