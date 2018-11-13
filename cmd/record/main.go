@@ -63,6 +63,9 @@ func main() {
 	handler.AttachSchemaRenameHandler(&srv, recordDependency)
 	handler.AttachSchemaFetchHandler(&srv, recordDependency)
 
+	handler.AttachFieldAccessGetHandler(&srv, recordDependency)
+	handler.AttachFieldAccessUpdateHandler(&srv, recordDependency)
+
 	go func() {
 		log.Printf("Record gear boot")
 		if err := srv.ListenAndServe(); err != nil {
