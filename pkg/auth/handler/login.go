@@ -145,15 +145,6 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	// Get Profile
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
-		return
-	}
-
 	if err = checkUserIsNotDisabled(&fetchedAuthInfo); err != nil {
 		return
 	}
@@ -166,6 +157,15 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	if err = h.TokenStore.Put(&token); err != nil {
 		panic(err)
+	}
+
+	// Get Profile
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID, token.AccessToken); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+		return
 	}
 
 	resp = response.NewAuthResponse(fetchedAuthInfo, userProfile, token.AccessToken)

@@ -10,12 +10,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/core/asset/fs"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/record/dependency/record/pq" // tolerant nextimportslint: record
 	"github.com/skygeario/skygear-server/pkg/server/audit"
 )
 
@@ -75,6 +77,29 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		switch tConfig.UserProfile.ImplName {
 		default:
 			panic("unrecgonized user profile store implementation: " + tConfig.UserProfile.ImplName)
+		case "record":
+			// use record based profile store
+			roleStore := coreAuth.NewDefaultRoleStore(r.Context(), tConfig)
+			recordStore := pq.NewSafeRecordStore(
+				roleStore,
+				// TODO: get from tconfig
+				true,
+				db.NewSQLBuilder("record", tConfig.AppName),
+				db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
+				logging.CreateLogger(r, "record", createLoggerMaskFormatter(r)),
+				db.NewSafeTxContextWithContext(r.Context(), tConfig),
+			)
+			// TODO: get from tConfig
+			assetStore := fs.NewAssetStore("", "", "", true, logging.CreateLogger(r, "record", createLoggerMaskFormatter(r)))
+			return userprofile.NewUserProfileRecordStore(
+				tConfig.UserProfile.ImplStoreURL,
+				tConfig.APIKey,
+				coreAuth.NewContextGetterWithContext(r.Context()),
+				db.NewTxContextWithContext(r.Context(), tConfig),
+				recordStore,
+				assetStore,
+				logging.CreateLogger(r, "auth_user_profile", createLoggerMaskFormatter(r)),
+			)
 		case "":
 			// use auth default profile store
 			return userprofile.NewSafeProvider(

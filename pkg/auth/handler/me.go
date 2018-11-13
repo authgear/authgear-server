@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -46,6 +47,19 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
+// MeRequestPayload is request payload of logout handler
+type MeRequestPayload struct {
+	AccessToken string
+}
+
+// Validate request payload
+func (p MeRequestPayload) Validate() error {
+	if p.AccessToken == "" {
+		return skyerr.NewError(skyerr.AccessTokenNotAccepted, "missing access token")
+	}
+	return nil
+}
+
 // MeHandler handles method of the me request, responds with current user data.
 //
 // The handler also:
@@ -76,12 +90,14 @@ func (h MeHandler) WithTx() bool {
 	return true
 }
 
-func (h MeHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {
-	payload = handler.EmptyRequestPayload{}
-	return
+func (h MeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+	payload := MeRequestPayload{}
+	payload.AccessToken = model.GetAccessToken(request)
+	return payload, nil
 }
 
 func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(MeRequestPayload)
 	authInfo := h.AuthContext.AuthInfo()
 
 	token, err := h.TokenStore.NewToken(authInfo.ID)
@@ -95,7 +111,7 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	// Get Profile
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID, payload.AccessToken); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
