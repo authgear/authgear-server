@@ -17,10 +17,10 @@ type Meta struct {
 	RecordType string                 `json:"_recordType"`
 	Access     map[string]interface{} `json:"_access"`
 	OwnerID    string                 `json:"_ownerID"`
-	CreatedAt  time.Time              `json:"_createdAt"`
-	CreatedBy  string                 `json:"_createdBy"`
-	UpdatedAt  time.Time              `json:"_updatedAt"`
-	UpdatedBy  string                 `json:"_updatedBy"`
+	CreatedAt  time.Time              `json:"_created_at"`
+	CreatedBy  string                 `json:"_created_by"`
+	UpdatedAt  time.Time              `json:"_updated_at"`
+	UpdatedBy  string                 `json:"_updated_by"`
 }
 
 // Data refers the profile info of a user,
