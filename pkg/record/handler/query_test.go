@@ -596,21 +596,18 @@ func TestRecordQueryResults(t *testing.T) {
 				"result": {
 					"records": [{
 						"_type": "record",
-						"_id": "note/1",
 						"_recordType": "note",
 						"_recordID": "1",
 						"_access": null
 					},
 					{
 						"_type": "record",
-						"_id": "note/0",
 						"_recordType": "note",
 						"_recordID": "0",
 						"_access": null
 					},
 					{
 						"_type": "record",
-						"_id": "note/2",
 						"_recordType": "note",
 						"_recordID": "2",
 						"_access": null
@@ -708,17 +705,16 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
 					"records": [{
-						"_id": "note/note1",
 						"_recordType": "note",
 						"_recordID": "note1",
 						"_type": "record",
 						"_access": null,
 						"_ownerID": "ownerID",
-						"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
-						"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
-						"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
+						"category": {"$recordType":"category","$recordID":"important","$type":"ref"},
+						"city": {"$recordType":"city","$recordID":"beautiful","$type":"ref"},
+						"secret":{"$recordType":"secret","$recordID":"secretID","$type":"ref"},
 						"_transient": {
-							"category": {"_access":null,"_id":"category/important","_recordType":"category","_recordID":"important","_type":"record","_ownerID":"ownerID", "title": "This is important."}
+							"category": {"_access":null,"_recordType":"category","_recordID":"important","_type":"record","_ownerID":"ownerID", "title": "This is important."}
 						}
 					}]
 				}
@@ -741,18 +737,17 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
 					"records": [{
-						"_id": "note/note1",
 						"_recordType": "note",
 						"_recordID": "note1",
 						"_type": "record",
 						"_access": null,
 						"_ownerID": "ownerID",
-						"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
-						"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
-						"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
+						"category": {"$recordType":"category","$recordID":"important","$type":"ref"},
+						"city": {"$recordType":"city","$recordID":"beautiful","$type":"ref"},
+						"secret":{"$recordType":"secret","$recordID":"secretID","$type":"ref"},
 						"_transient": {
-							"category": {"_access":null,"_id":"category/important","_recordType":"category","_recordID":"important","_type":"record","_ownerID":"ownerID", "title": "This is important."},
-							"city": {"_access":null,"_id":"city/beautiful","_recordType":"city","_recordID":"beautiful","_type":"record","_ownerID":"ownerID", "name": "This is beautiful."}
+							"category": {"_access":null,"_recordType":"category","_recordID":"important","_type":"record","_ownerID":"ownerID", "title": "This is important."},
+							"city": {"_access":null,"_recordType":"city","_recordID":"beautiful","_type":"record","_ownerID":"ownerID", "name": "This is beautiful."}
 						}
 					}]
 				}
@@ -772,17 +767,16 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
 					"records": [{
-						"_id": "note/note1",
 						"_recordType": "note",
 						"_recordID": "note1",
 						"_type": "record",
 						"_access": null,
 						"_ownerID": "ownerID",
-						"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
-						"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
-						"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
+						"category": {"$recordType":"category","$recordID":"important","$type":"ref"},
+						"city": {"$recordType":"city","$recordID":"beautiful","$type":"ref"},
+						"secret":{"$recordType":"secret","$recordID":"secretID","$type":"ref"},
 						"_transient": {
-							"user": {"_access":null,"_id":"user/ownerID","_recordType":"user","_recordID":"ownerID","_type":"record","_ownerID":"ownerID", "name": "Owner"}
+							"user": {"_access":null,"_recordType":"user","_recordID":"ownerID","_type":"record","_ownerID":"ownerID", "name": "Owner"}
 						}
 					}]
 				}
@@ -805,15 +799,14 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
 					"records": [{
-						"_id": "note/note1",
 						"_recordType": "note",
 						"_recordID": "note1",
 						"_type": "record",
 						"_access": null,
 						"_ownerID": "ownerID",
-						"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
-						"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
-						"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
+						"category": {"$recordType":"category","$recordID":"important","$type":"ref"},
+						"city": {"$recordType":"city","$recordID":"beautiful","$type":"ref"},
+						"secret":{"$recordType":"secret","$recordID":"secretID","$type":"ref"},
 						"_transient": {"secret":null}
 					}]
 				}
@@ -836,17 +829,16 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": {
 					"records": [{
-						"_id": "note/note1",
 						"_recordType": "note",
 						"_recordID": "note1",
 						"_type": "record",
 						"_access": null,
 						"_ownerID": "ownerID",
-						"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
-						"city": {"$id":"city/beautiful","$recordType":"city","$recordID":"beautiful","$type":"ref"},
-						"secret":{"$id":"secret/secretID","$recordType":"secret","$recordID":"secretID","$type":"ref"},
+						"category": {"$recordType":"category","$recordID":"important","$type":"ref"},
+						"city": {"$recordType":"city","$recordID":"beautiful","$type":"ref"},
+						"secret":{"$recordType":"secret","$recordID":"secretID","$type":"ref"},
 						"_transient": {
-							"secret": {"_access":[{"level":"write","relation":"$direct","user_id":"ownerID"}],"_id":"secret/secretID","_recordType":"secret","_recordID":"secretID","_type":"record","_ownerID":"ownerID", "content": "Secret of the note"}
+							"secret": {"_access":[{"level":"write","relation":"$direct","user_id":"ownerID"}],"_recordType":"secret","_recordID":"secretID","_type":"record","_ownerID":"ownerID", "content": "Secret of the note"}
 						}
 					}]
 				}
@@ -903,13 +895,12 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 					"result": {
 						"records": [{
-							"_id": "note/note1",
 							"_recordType": "note",
 							"_recordID": "note1",
 							"_type": "record",
 							"_access": null,
 							"_ownerID": "ownerID",
-							"category": {"$id":"category/important","$recordType":"category","$recordID":"important","$type":"ref"},
+							"category": {"$recordType":"category","$recordID":"important","$type":"ref"},
 							"city": null,
 							"_transient": {
 								"city": null
@@ -1076,21 +1067,18 @@ func TestRecordQueryWithCount(t *testing.T) {
 					},
 					"records": [{
 						"_type": "record",
-						"_id": "note/1",
 						"_recordType": "note",
 						"_recordID": "1",
 						"_access": null
 					},
 					{
 						"_type": "record",
-						"_id": "note/0",
 						"_recordType": "note",
 						"_recordID": "0",
 						"_access": null
 					},
 					{
 						"_type": "record",
-						"_id": "note/2",
 						"_recordType": "note",
 						"_recordID": "2",
 						"_access": null

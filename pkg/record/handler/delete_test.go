@@ -62,8 +62,8 @@ func TestRecordDeleteHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 				{
 					"records": [
-						{ "_recordType": "note", "_recordID": "0" },
-						{ "_recordType": "note", "_recordID": "1" }
+						{"_recordType": "note", "_recordID": "0" },
+						{"_recordType": "note", "_recordID": "1" }
 					]
 				}
 			`))
@@ -72,25 +72,8 @@ func TestRecordDeleteHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [
-					{"_id": "note/0","_recordType": "note","_recordID": "0", "_type": "record"},
-					{"_id": "note/1","_recordType": "note","_recordID": "1", "_type": "record"}
-				]
-			}`)
-		})
-
-		Convey("DEPRECATED: deletes existing records with deprecated IDs", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-				{
-					"ids": ["note/0", "note/1"]
-				}
-			`))
-			resp := httptest.NewRecorder()
-			h := handler.APIHandlerToHandler(dh, dh.TxContext)
-			h.ServeHTTP(resp, req)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": [
-					{"_id": "note/0","_recordType": "note","_recordID": "0", "_type": "record"},
-					{"_id": "note/1","_recordType": "note","_recordID": "1", "_type": "record"}
+					{"_recordType": "note","_recordID": "0", "_type": "record"},
+					{"_recordType": "note","_recordID": "1", "_type": "record"}
 				]
 			}`)
 		})
@@ -109,8 +92,8 @@ func TestRecordDeleteHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [
-					{"_id": "note/0","_recordType": "note","_recordID": "0", "_type": "record"},
-					{"_id": "note/notexistid","_recordType": "note","_recordID": "notexistid", "_type": "error", "code": 110, "message": "record not found", "name": "ResourceNotFound"}
+					{"_recordType": "note","_recordID": "0", "_type": "record"},
+					{"_recordType": "note","_recordID": "notexistid", "_type": "error", "code": 110, "message": "record not found", "name": "ResourceNotFound"}
 				]
 			}`)
 		})
@@ -128,7 +111,7 @@ func TestRecordDeleteHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [
-					{"_id":"user/0","_recordType":"user","_recordID":"0","_type":"error","code":102,"message":"cannot delete user record","name":"PermissionDenied"}
+					{"_recordType":"user","_recordID":"0","_type":"error","code":102,"message":"cannot delete user record","name":"PermissionDenied"}
 				]
 			}`)
 		})
@@ -146,7 +129,6 @@ func TestRecordDeleteHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": [{
-					"_id": "note/readonly",
 					"_recordType": "note",
 					"_recordID": "readonly",
 					"_type": "error",

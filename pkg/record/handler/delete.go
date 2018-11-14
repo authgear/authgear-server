@@ -3,7 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/asset"
@@ -61,7 +60,6 @@ func (p RecordDeleteRecordPayload) RecordID() record.ID {
 }
 
 type DeleteRequestPayload struct {
-	DeprecatedIDs   []string                    `json:"ids"`
 	RawRecords      []RecordDeleteRecordPayload `json:"records"`
 	Atomic          bool                        `json:"atomic"`
 	parsedRecordIDs []record.ID
@@ -70,6 +68,16 @@ type DeleteRequestPayload struct {
 func (p DeleteRequestPayload) Validate() error {
 	if len(p.parsedRecordIDs) == 0 {
 		return skyerr.NewInvalidArgument("expected list of records", []string{"records"})
+	}
+
+	for _, id := range p.parsedRecordIDs {
+		if id.Type == "" {
+			return skyerr.NewInvalidArgument("expected record type", []string{"_recordType"})
+		}
+
+		if id.Key == "" {
+			return skyerr.NewInvalidArgument("expected record id", []string{"_recordID"})
+		}
 	}
 
 	return nil
@@ -86,14 +94,6 @@ curl -X POST -H "Content-Type: application/json" \
             "_recordID": "EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8"
         }
     ]
-}
-EOF
-
-Deprecated format:
-curl -X POST -H "Content-Type: application/json" \
-  -d @- http://localhost:3000/delete <<EOF
-{
-    "ids": ["note/EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8"]
 }
 EOF
 */
@@ -120,22 +120,6 @@ func (h DeleteHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 		payload.parsedRecordIDs = make([]record.ID, length, length)
 		for i, rawRecord := range payload.RawRecords {
 			payload.parsedRecordIDs[i] = rawRecord.RecordID()
-		}
-	} else if len(payload.DeprecatedIDs) > 0 {
-		// NOTE(cheungpat): Handling for deprecated fields.
-		length := len(payload.DeprecatedIDs)
-		payload.parsedRecordIDs = make([]record.ID, length, length)
-		for i, rawID := range payload.DeprecatedIDs {
-			ss := strings.SplitN(rawID, "/", 2)
-			if len(ss) == 1 {
-				return nil, skyerr.NewInvalidArgument(
-					`record: "_id" should be of format '{type}/{id}', got "`+rawID+`"`,
-					[]string{"ids"},
-				)
-			}
-
-			payload.parsedRecordIDs[i].Type = ss[0]
-			payload.parsedRecordIDs[i].Key = ss[1]
 		}
 	}
 
@@ -213,17 +197,14 @@ func (h DeleteHandler) makeResultsForRecordIDs(recordIDs []record.ID, resp Recor
 				"recordID": recordID,
 				"err":      err,
 			}).Debugln("failed to delete record")
-			result = newSerializedError(
-				recordID.String(),
-				err,
-			)
+			id := recordID
+			result = serializedError{&id, err}
 		} else {
 			result = struct {
-				ID         record.ID `json:"_id"`
-				RecordKey  string    `json:"_recordID"`
-				RecordType string    `json:"_recordType"`
-				Type       string    `json:"_type"`
-			}{recordID, recordID.Key, recordID.Type, "record"}
+				RecordKey  string `json:"_recordID"`
+				RecordType string `json:"_recordType"`
+				Type       string `json:"_type"`
+			}{recordID.Key, recordID.Type, "record"}
 		}
 
 		*results = append(*results, result)

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -17,13 +16,13 @@ import (
 )
 
 type serializedError struct {
-	id  string
+	id  *record.ID
 	err skyerr.Error
 }
 
-func newSerializedError(id string, err skyerr.Error) serializedError {
+func newSerializedError(err skyerr.Error) serializedError {
 	return serializedError{
-		id:  id,
+		id:  nil,
 		err: err,
 	}
 }
@@ -35,14 +34,9 @@ func (s serializedError) MarshalJSON() ([]byte, error) {
 		"code":    s.err.Code(),
 		"message": s.err.Message(),
 	}
-	if s.id != "" {
-		m["_id"] = s.id
-
-		ss := strings.SplitN(s.id, "/", 2)
-		if len(ss) == 2 {
-			m["_recordType"] = ss[0]
-			m["_recordID"] = ss[1]
-		}
+	if s.id != nil {
+		m["_recordType"] = s.id.Type
+		m["_recordID"] = s.id.Key
 	}
 	if s.err.Info() != nil {
 		m["info"] = s.err.Info()

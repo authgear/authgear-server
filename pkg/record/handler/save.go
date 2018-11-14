@@ -84,7 +84,8 @@ curl -X POST -H "Content-Type: application/json" \
   -d @- http://localhost:3000/save <<EOF
 {
     "records": [{
-        "_id": "note/EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
+				"_recordType": "note",
+				"_recordID": "EA6A3E68-90F3-49B5-B470-5FFDB7A0D4E8",
         "content": "ewdsa",
         "_access": [{
             "role": "admin",
@@ -102,15 +103,17 @@ curl -X POST -H "Content-Type: application/json" \
     {
       "collection": {
         "$type": "ref",
-        "$id": "collection/10"
+        "$recordType": "collection",
+        "$recordID": "10"
       },
       "noteOrder": 1,
       "content": "hi",
-      "_id": "note/71BAE736-E9C5-43CB-ADD1-D8633B80CAFA",
+      "_recordType": "note",
+      "_recordID": "71BAE736-E9C5-43CB-ADD1-D8633B80CAFA",
       "_type": "record",
       "_access": [{
-          "role": "admin",
-          "level": "write"
+        "role": "admin",
+        "level": "write"
       }]
     }
   ]
@@ -258,7 +261,7 @@ func (h SaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, re
 
 		switch item := itemi.(type) {
 		case skyerr.Error:
-			result = newSerializedError("", item)
+			result = newSerializedError(item)
 		case record.ID:
 			if err, ok := resp.ErrMap[item]; ok {
 				h.Logger.WithFields(logrus.Fields{
@@ -266,7 +269,7 @@ func (h SaveHandler) makeResultsFromIncomingItem(incomingItems []interface{}, re
 					"err":      err,
 				}).Debugln("failed to save record")
 
-				result = newSerializedError(item.String(), err)
+				result = serializedError{&item, err}
 			} else {
 				record := resp.SavedRecords[currRecordIdx]
 				currRecordIdx++
