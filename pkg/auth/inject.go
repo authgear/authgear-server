@@ -94,11 +94,11 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			return userprofile.NewUserProfileRecordStore(
 				tConfig.UserProfile.ImplStoreURL,
 				tConfig.APIKey,
+				logging.CreateLogger(r, "auth_user_profile", createLoggerMaskFormatter(r)),
 				coreAuth.NewContextGetterWithContext(r.Context()),
 				db.NewTxContextWithContext(r.Context(), tConfig),
 				recordStore,
 				assetStore,
-				logging.CreateLogger(r, "auth_user_profile", createLoggerMaskFormatter(r)),
 			)
 		case "":
 			// use auth default profile store

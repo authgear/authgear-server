@@ -17,29 +17,40 @@ import (
 )
 
 type recordStoreImpl struct {
-	storeURL    string
-	apiKey      string
+	storeURL string
+	apiKey   string
+	logger   *logrus.Entry
+
+	// followings are for record gear utilities
 	authContext auth.ContextGetter
 	txContext   db.TxContext
 	recordStore record.Store
 	assetStore  asset.Store
-	logger      *logrus.Entry
 }
 
 // NewUserProfileRecordStore returns a record-gear based user profile store implementation
-func NewUserProfileRecordStore(storeURL string, apiKey string, authContext auth.ContextGetter, txContext db.TxContext, recordStore record.Store, assetStore asset.Store, logger *logrus.Entry) Store {
+func NewUserProfileRecordStore(
+	storeURL string,
+	apiKey string,
+	logger *logrus.Entry,
+	authContext auth.ContextGetter,
+	txContext db.TxContext,
+	recordStore record.Store,
+	assetStore asset.Store,
+) Store {
 	return &recordStoreImpl{
 		storeURL:    storeURL,
 		apiKey:      apiKey,
+		logger:      logger,
 		authContext: authContext,
 		txContext:   txContext,
 		recordStore: recordStore,
-		assetStore:  assetStore,
-		logger:      logger,
 	}
 }
 
 func (u *recordStoreImpl) CreateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (profile UserProfile, err error) {
+	// for keeping integrity of authentication info (email, username, ...), writing on user record is banned by record gear,
+	// so here, CreateUserProfile uses record gear utilities to save record directly rather than through public API.
 	profileRecord := record.Record{
 		ID: record.ID{
 			Type: "user",
