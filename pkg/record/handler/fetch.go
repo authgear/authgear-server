@@ -128,7 +128,8 @@ func (h FetchHandler) Handle(req interface{}) (resp interface{}, err error) {
 	for i, recordID := range payload.RecordIDs {
 		r, err := fetcher.FetchRecord(recordID, h.AuthContext.AuthInfo(), record.ReadLevel)
 		if err != nil {
-			results[i] = serializedError{&recordID, err}
+			id := recordID
+			results[i] = serializedError{&id, err}
 			continue
 		}
 		results[i] = resultFilter.JSONResult(r)
