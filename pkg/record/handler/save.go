@@ -137,14 +137,24 @@ func (h SaveHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
 		return nil, err
 	}
+	var addErrReocrd = func(errMsg string) {
+		skyErr := skyerr.NewError(skyerr.InvalidArgument, errMsg)
+		payload.Errs = append(payload.Errs, skyErr)
+		payload.IncomingItems = append(payload.IncomingItems, skyErr)
+	}
 
 	for _, recordMap := range payload.RawMaps {
 		var r record.Record
 		if err := (*recordconv.JSONRecord)(&r).FromMap(recordMap); err != nil {
-			skyErr := skyerr.NewError(skyerr.InvalidArgument, err.Error())
-			payload.Errs = append(payload.Errs, skyErr)
-			payload.IncomingItems = append(payload.IncomingItems, skyErr)
+			addErrReocrd(err.Error())
 		} else {
+			// do not allow to save on user record for auth info integrity
+			// (auth info could be corrupted if username, email is updated),
+			// user should update auth info through auth gear instead
+			if r.ID.Type == "user" {
+				addErrReocrd("use auth gear to update user record")
+				continue
+			}
 			r.SanitizeForInput()
 			payload.IncomingItems = append(payload.IncomingItems, r.ID)
 			payload.Records = append(payload.Records, &r)
