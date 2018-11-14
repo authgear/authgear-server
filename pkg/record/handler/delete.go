@@ -70,6 +70,16 @@ func (p DeleteRequestPayload) Validate() error {
 		return skyerr.NewInvalidArgument("expected list of records", []string{"records"})
 	}
 
+	for _, id := range p.parsedRecordIDs {
+		if id.Type == "" {
+			return skyerr.NewInvalidArgument("expected record type", []string{"_recordType"})
+		}
+
+		if id.Key == "" {
+			return skyerr.NewInvalidArgument("expected record id", []string{"_recordID"})
+		}
+	}
+
 	return nil
 }
 
