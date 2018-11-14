@@ -102,18 +102,18 @@ curl -X POST -H "Content-Type: application/json" \
   "records": [
     {
       "collection": {
-				"$type": "ref",
-				"$recordType": "collection",
+        "$type": "ref",
+        "$recordType": "collection",
         "$recordID": "10"
       },
       "noteOrder": 1,
       "content": "hi",
-			"_recordType": "note",
-			"_recordID": "71BAE736-E9C5-43CB-ADD1-D8633B80CAFA",
+      "_recordType": "note",
+      "_recordID": "71BAE736-E9C5-43CB-ADD1-D8633B80CAFA",
       "_type": "record",
       "_access": [{
-          "role": "admin",
-          "level": "write"
+        "role": "admin",
+        "level": "write"
       }]
     }
   ]
