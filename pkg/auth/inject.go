@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/asset/fs"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
@@ -131,6 +132,14 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	case "TestWelcomeEmailSender":
 		tConfig := config.GetTenantConfig(r)
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
+	case "GoogleSSOProvider":
+		return sso.GoogleImpl{}
+	case "FacebookSSOProvider":
+		return sso.FacebookImpl{}
+	case "InstagramSSOProvider":
+		return sso.InstagramImpl{}
+	case "LinkedInSSOProvider":
+		return sso.LinkedInImpl{}
 	default:
 		return nil
 	}
