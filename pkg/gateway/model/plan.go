@@ -16,11 +16,11 @@ type Plan struct {
 }
 
 // CanAccessGear determine whether the app plan can access the given gear
-func (p *Plan) CanAccessGear(gear string) bool {
+func (p *Plan) CanAccessGear(gear Gear) bool {
 	switch gear {
-	case "auth":
+	case AuthGear:
 		return p.AuthEnabled
-	case "record":
+	case RecordGear:
 		return p.RecordEnabled
 	default:
 		return false
