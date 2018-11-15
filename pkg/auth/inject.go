@@ -121,13 +121,15 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			panic(err)
 		}
 		return trail
-	case "WelcomeEmailSender":
+	case "WelcomeEmailSendTask":
 		tConfig := config.GetTenantConfig(r)
 		if !tConfig.WelcomeEmail.Enabled {
 			return nil
 		}
 
-		return welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP))
+		task := welcemail.NewSendTask(welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP)))
+		task.WaitForRequest(r.Context())
+		return task
 	case "TestWelcomeEmailSender":
 		tConfig := config.GetTenantConfig(r)
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))

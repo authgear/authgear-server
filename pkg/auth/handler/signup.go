@@ -118,7 +118,7 @@ type SignupHandler struct {
 	PasswordAuthProvider  password.Provider          `dependency:"PasswordAuthProvider"`
 	AnonymousAuthProvider anonymous.Provider         `dependency:"AnonymousAuthProvider"`
 	AuditTrail            coreAudit.Trail            `dependency:"AuditTrail"`
-	WelcomeEmailSender    welcemail.Sender           `dependency:"WelcomeEmailSender,optional"`
+	WelcomeEmailSendTask  *welcemail.SendTask        `dependency:"WelcomeEmailSendTask,optional"`
 	TxContext             db.TxContext               `dependency:"TxContext"`
 	Logger                *logrus.Entry              `dependency:"HandlerLogger"`
 }
@@ -207,18 +207,13 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		Event:  coreAudit.EventSignup,
 	})
 
-	if h.WelcomeEmailSender != nil {
+	if h.WelcomeEmailSendTask != nil {
 		if email, ok := userProfile.Data["email"].(string); ok {
-			// send welcome email async
-			go func() {
-				if emailErr := h.WelcomeEmailSender.Send(email, userProfile); emailErr != nil {
-					h.Logger.WithFields(logrus.Fields{
-						"error":  emailErr,
-						"email":  email,
-						"userID": info.ID,
-					}).Error("fail to send welcome email")
-				}
-			}()
+			h.WelcomeEmailSendTask.Request <- welcemail.SendTaskRequest{
+				Email:       email,
+				UserProfile: userProfile,
+				Logger:      h.Logger,
+			}
 		}
 	}
 
