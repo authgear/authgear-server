@@ -1,8 +1,13 @@
 package handler
 
 import (
+	"context"
 	"testing"
 	"time"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -113,6 +118,8 @@ func TestSingupHandler(t *testing.T) {
 		h.RoleStore = roleStore
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
+		h.Logger = logrus.NewEntry(logrus.New())
+		welcomeEmailSender := welcemail.NewMockSender()
 
 		Convey("signup user with auth data", func() {
 			authData := map[string]interface{}{
@@ -200,6 +207,26 @@ func TestSingupHandler(t *testing.T) {
 			}
 			_, err := h.Handle(payload)
 			So(err.Error(), ShouldEqual, "PasswordPolicyViolated: password too short")
+		})
+
+		Convey("signup with email, send welcome email", func() {
+			h.WelcomeEmailSendTask = welcemail.NewSendTask(welcomeEmailSender)
+			h.WelcomeEmailSendTask.WaitForRequest(context.Background())
+			authData := map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			}
+			payload := SignupRequestPayload{
+				AuthData: authData,
+				Password: "12345678",
+			}
+			_, err := h.Handle(payload)
+			So(err, ShouldBeNil)
+
+			emailErr := <-h.WelcomeEmailSendTask.Response
+			So(emailErr, ShouldBeNil)
+			So(welcomeEmailSender.LastEmail, ShouldEqual, "john.doe@example.com")
+			So(welcomeEmailSender.LastUserProfile, ShouldNotBeNil)
 		})
 
 		Convey("log audit trail when signup success", func() {

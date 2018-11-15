@@ -209,10 +209,14 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	if h.WelcomeEmailSendTask != nil {
 		if email, ok := userProfile.Data["email"].(string); ok {
-			h.WelcomeEmailSendTask.Request <- welcemail.SendTaskRequest{
+			select {
+			case h.WelcomeEmailSendTask.Request <- welcemail.SendTaskRequest{
 				Email:       email,
 				UserProfile: userProfile,
 				Logger:      h.Logger,
+			}:
+			default:
+				panic("unexpcted send welcome email request no receiver")
 			}
 		}
 	}
