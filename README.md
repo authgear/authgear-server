@@ -38,9 +38,13 @@ Next is the V2 of Skygear that aim to follow
 
 ### To add a new gear
 
-1. Add migration to update plan table with gear enabled column
-2. Update `Plan` struct and `CanAccessGear` func in `pkg/gateway/model/plan.go`
-3. Update `RouterConfig` and `GetRouterMap` func in `pkg/gateway/config/config.go`
+1. Add db migration to config db
+    - Add enabled column to plan table
+    - Add version column to app table
+1. Update `pkg/gateway/model/app.go` with new gear in `Gear`, `App` and `GetGearVersion`.
+1. Update `GetAppByDomain` in `pkg/gateway/db/app.go` with the new gear version column.
+1. Update `Plan` struct and `CanAccessGear` func in `pkg/gateway/model/plan.go`
+1. Update `GearURLConfig` and `GetGearURL` func in `pkg/gateway/config/config.go`
 
 ## DB migration
 
