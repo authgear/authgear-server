@@ -20,6 +20,7 @@ type TenantConfiguration struct {
 	UserAudit       UserAuditConfiguration    `json:"USER_AUDIT" msg:"USER_AUDIT"`
 	SMTP            SMTPConfiguration         `json:"SMTP" msg:"SMTP"`
 	WelcomeEmail    WelcomeEmailConfiguration `json:"WELCOME_EMAIL" msg:"WELCOME_EMAIL"`
+	SSOConfigs      []SSOConfiguration        `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
 }
 
 type TokenStoreConfiguration struct {
@@ -54,6 +55,14 @@ type WelcomeEmailConfiguration struct {
 	ReplyTo     string `msg:"REPLY_TO" envconfig:"WELCOME_EMAIL_REPLY_TO" json:"REPLY_TO"`
 	TextURL     string `msg:"TEXT_URL" envconfig:"WELCOME_EMAIL_TEXT_URL" json:"TEXT_URL"`
 	HTMLURL     string `msg:"HTML_URL" envconfig:"WELCOME_EMAIL_HTML_URL" json:"HTML_URL"`
+}
+
+type SSOConfiguration struct {
+	Name         string `msg:"NAME" envconfig:"SSO_CONFIG_NAME" json:"NAME"`
+	Enabled      bool   `msg:"ENABLED" envconfig:"SSO_CONFIG_ENABLED" json:"ENABLED"`
+	ClientID     string `msg:"CLIENT_ID" envconfig:"SSO_CONFIG_CLIENT_ID" json:"CLIENT_ID"`
+	ClientSecret string `msg:"CLIENT_SECRET" envconfig:"SSO_CONFIG_CLIENT_SECRET" json:"CLIENT_SECRET"`
+	Scope        string `msg:"SCOPE" envconfig:"SSO_CONFIG_SCOPE" json:"SCOPE"`
 }
 
 func (c *TenantConfiguration) ReadFromEnv() error {
