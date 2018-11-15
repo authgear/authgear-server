@@ -76,6 +76,15 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	}
 }
 
+func (c *TenantConfiguration) GetSSOConfigByName(name string) (config SSOConfiguration) {
+	for _, SSOConfig := range c.SSOConfigs {
+		if SSOConfig.Name == name {
+			return SSOConfig
+		}
+	}
+	return
+}
+
 func header(i interface{}) http.Header {
 	switch i.(type) {
 	case *http.Request:

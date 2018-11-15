@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
@@ -132,14 +133,18 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	case "TestWelcomeEmailSender":
 		tConfig := config.GetTenantConfig(r)
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
-	case "GoogleSSOProvider":
-		return sso.GoogleImpl{}
-	case "FacebookSSOProvider":
-		return sso.FacebookImpl{}
-	case "InstagramSSOProvider":
-		return sso.InstagramImpl{}
-	case "LinkedInSSOProvider":
-		return sso.LinkedInImpl{}
+	case "GoogleSSOProvider", "FacebookSSOProvider", "InstagramSSOProvider", "LinkedInSSOProvider":
+		lowerDependencyName := strings.ToLower(dependencyName)
+		providerName := strings.Replace(lowerDependencyName, "ssoprovider", "", 1)
+		tConfig := config.GetTenantConfig(r)
+		SSOConf := tConfig.GetSSOConfigByName(providerName)
+		return sso.NewProvider(
+			SSOConf.Name,
+			SSOConf.Enabled,
+			SSOConf.ClientID,
+			SSOConf.ClientSecret,
+			SSOConf.Scope,
+		)
 	default:
 		return nil
 	}

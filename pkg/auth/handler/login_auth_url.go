@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -114,11 +115,12 @@ func (p LoginAuthURLRequestPayload) Validate() error {
 //     }
 // }
 type LoginAuthURLHandler struct {
-	TxContext         db.TxContext `dependency:"TxContext"`
-	GoogleProvider    sso.Provider `dependency:"GoogleSSOProvider"`
-	FacebookProvider  sso.Provider `dependency:"FacebookSSOProvider"`
-	InstagramProvider sso.Provider `dependency:"InstagramSSOProvider"`
-	LinkedInProvider  sso.Provider `dependency:"LinkedInSSOProvider"`
+	TxContext         db.TxContext           `dependency:"TxContext"`
+	GoogleProvider    sso.Provider           `dependency:"GoogleSSOProvider,optional"`
+	FacebookProvider  sso.Provider           `dependency:"FacebookSSOProvider,optional"`
+	InstagramProvider sso.Provider           `dependency:"InstagramSSOProvider,optional"`
+	LinkedInProvider  sso.Provider           `dependency:"LinkedInSSOProvider,optional"`
+	AuthContext       coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	ProviderName      string
 	Provider          sso.Provider
 }
@@ -134,16 +136,21 @@ func (h LoginAuthURLHandler) DecodeRequest(request *http.Request) (handler.Reque
 }
 
 func (h LoginAuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
-	/*
-		payload := req.(LoginAuthURLRequestPayload)
-		roleMap, err := h.AuthInfoStore.LoginAuthURLs(payload.UserIDs)
-		if err != nil {
-			err = skyerr.NewError(skyerr.UnexpectedError, "LoginAuthURLs failed")
-			return
-		}
-		resp = roleMap
-	*/
-	params := sso.GetURLParams{}
+	if h.Provider == nil {
+		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
+		return
+	}
+	payload := req.(LoginAuthURLRequestPayload)
+	params := sso.GetURLParams{
+		Scope:       payload.Scope,
+		Options:     payload.Options,
+		CallbackURL: payload.CallbackURL,
+		UXMode:      payload.UXMode,
+		Action:      "login",
+	}
+	if h.AuthContext.AuthInfo() != nil {
+		params.UserID = h.AuthContext.AuthInfo().ID
+	}
 	url, err := h.Provider.GetAuthURL(params)
 	if err != nil {
 		return
