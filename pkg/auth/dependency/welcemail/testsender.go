@@ -2,6 +2,7 @@ package welcemail
 
 import (
 	"github.com/go-gomail/gomail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 )
@@ -20,14 +21,16 @@ type TestSender interface {
 }
 
 type DefaultTestSender struct {
-	Config config.WelcomeEmailConfiguration
-	Dialer *gomail.Dialer
+	AppName string
+	Config  config.WelcomeEmailConfiguration
+	Dialer  *gomail.Dialer
 }
 
-func NewDefaultTestSender(config config.WelcomeEmailConfiguration, dialer *gomail.Dialer) TestSender {
+func NewDefaultTestSender(config config.TenantConfiguration, dialer *gomail.Dialer) TestSender {
 	return &DefaultTestSender{
-		Config: config,
-		Dialer: dialer,
+		AppName: config.AppName,
+		Config:  config.WelcomeEmail,
+		Dialer:  dialer,
 	}
 }
 
@@ -40,13 +43,36 @@ func (d *DefaultTestSender) Send(
 	replyTo string,
 	senderName string,
 	replyToName string,
-) error {
+) (err error) {
 	check := func(test, a, b string) string {
 		if test != "" {
 			return a
 		}
 
 		return b
+	}
+
+	userProfile := userprofile.UserProfile{
+		Meta: userprofile.Meta{
+			ID: "dummy-id",
+		},
+	}
+	context := map[string]interface{}{
+		"appname": d.AppName,
+		"email":   userProfile.Data["email"],
+		"user_id": userProfile.ID,
+		"user":    userProfile.ToMap(),
+		// TODO: url prefix
+	}
+
+	var textBody string
+	if textBody, err = parseTextTemplate(textTemplate, context); err != nil {
+		return
+	}
+
+	var htmlBody string
+	if htmlBody, err = parseHTMLTemplate(htmlTemplate, context); err != nil {
+		return
 	}
 
 	sendReq := mail.SendRequest{
@@ -57,11 +83,10 @@ func (d *DefaultTestSender) Send(
 		Subject:     check(subject, subject, d.Config.Subject),
 		ReplyTo:     check(replyTo, replyTo, d.Config.ReplyTo),
 		ReplyToName: check(replyTo, replyToName, d.Config.ReplyToName),
-		// TODO: read email text body from template
-		TextBody: textTemplate,
-		// TODO: read email html body from template
-		HTMLBody: htmlTemplate,
+		TextBody:    textBody,
+		HTMLBody:    htmlBody,
 	}
 
-	return sendReq.Execute()
+	err = sendReq.Execute()
+	return
 }

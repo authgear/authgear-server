@@ -155,3 +155,7 @@ required = [
 [[constraint]]
   name = "github.com/go-gomail/gomail"
   version = "2.0.0"
+
+[[constraint]]
+  name = "github.com/flosch/pongo2"
+  version = "3.0.0"
