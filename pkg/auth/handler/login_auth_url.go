@@ -123,7 +123,11 @@ func (h LoginAuthURLHandler) WithTx() bool {
 }
 
 func (h LoginAuthURLHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := LoginAuthURLRequestPayload{}
+	payload := LoginAuthURLRequestPayload{
+		// avoid nil pointer
+		Scope:   make([]string, 0),
+		Options: make(sso.Options),
+	}
 	err := json.NewDecoder(request.Body).Decode(&payload)
 	return payload, err
 }
