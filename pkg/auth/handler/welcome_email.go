@@ -44,21 +44,6 @@ func (f WelcomeEmailHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
-// WelcomeEmailPayload send a dummy welcome email to given email.
-//
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/welcome_email/test <<EOF
-//  {
-//     "email": "xxx@oursky.com",
-//     "text_template": "xxx",
-//     "html_template": "xxx",
-//     "subject": "xxx",
-//     "sender": "xxx",
-//     "reply_to": "xxx",
-//     "sender_name": "xxx",
-//     "reply_to_name": "xxx"
-//  }
-//  EOF
 type WelcomeEmailPayload struct {
 	Email        string `json:"email"`
 	TextTemplate string `json:"text_template"`
@@ -78,7 +63,21 @@ func (payload WelcomeEmailPayload) Validate() error {
 	return nil
 }
 
-// WelcomeEmailHandler handles set disable request
+// WelcomeEmailHandler send a dummy welcome email to given email.
+//
+//  curl -X POST -H "Content-Type: application/json" \
+//    -d @- http://localhost:3000/welcome_email/test <<EOF
+//  {
+//     "email": "xxx@oursky.com",
+//     "text_template": "xxx",
+//     "html_template": "xxx",
+//     "subject": "xxx",
+//     "sender": "xxx",
+//     "reply_to": "xxx",
+//     "sender_name": "xxx",
+//     "reply_to_name": "xxx"
+//  }
+//  EOF
 type WelcomeEmailHandler struct {
 	WelcomeEmailSender welcemail.TestSender `dependency:"TestWelcomeEmailSender"`
 }
