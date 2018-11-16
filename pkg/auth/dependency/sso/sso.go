@@ -24,18 +24,30 @@ const (
 
 func (m UXMode) String() string {
 	names := [...]string{
-		"undefined",
 		"web_redirect",
 		"web_popup",
 		"ios",
 		"android",
 	}
 
-	if m < Undefined || m > Android {
+	if m < WebRedirect || m > Android {
 		return "undefined"
 	}
 
-	return names[m]
+	return names[m-1]
+}
+
+// UXModeFromString converts string to UXMode
+func UXModeFromString(input string) (u UXMode) {
+	UXModes := [...]UXMode{WebRedirect, WebPopup, IOS, Android}
+	for _, v := range UXModes {
+		if input == v.String() {
+			u = v
+			return
+		}
+	}
+
+	return
 }
 
 // GetURLParams structs parameters for GetLoginAuthURL

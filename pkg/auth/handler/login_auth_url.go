@@ -70,14 +70,6 @@ func (p LoginAuthURLRequestPayload) Validate() error {
 		return skyerr.NewInvalidArgument("Callback url is required", []string{"callback_url"})
 	}
 
-	UXModeName := [...]string{"", "web_redirect", "web_popup", "ios", "android"}
-	for k, v := range UXModeName {
-		if p.RawUXMode == v {
-			p.UXMode = sso.UXMode(k)
-			break
-		}
-	}
-
 	if p.UXMode == sso.Undefined {
 		return skyerr.NewInvalidArgument("UX mode is required", []string{"ux_mode"})
 	}
@@ -129,6 +121,8 @@ func (h LoginAuthURLHandler) DecodeRequest(request *http.Request) (handler.Reque
 		Options: make(sso.Options),
 	}
 	err := json.NewDecoder(request.Body).Decode(&payload)
+	payload.UXMode = sso.UXModeFromString(payload.RawUXMode)
+
 	return payload, err
 }
 
