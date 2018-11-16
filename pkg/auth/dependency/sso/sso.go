@@ -6,6 +6,14 @@ type Scope []string
 // Options parameter allows additional options for getting auth url
 type Options map[string]interface{}
 
+// State parameter refers parameter of auth url
+type State struct {
+	UXMode      string `json:"ux_mode"`
+	CallbackURL string `json:"callback_url"`
+	Action      string `json:"action"`
+	UserID      string `json:"user_id,omitempty"`
+}
+
 // UXMode indicates how the URL is used
 type UXMode int
 
