@@ -117,6 +117,14 @@
   revision = "69575a0ac5e58bfe052d600d894f01af2a1dd9c9"
 
 [[projects]]
+  digest = "1:cba75ccf02d7b1d508f860e1f579a986e6b94ccc26841d6dd67d18cd1196e132"
+  name = "github.com/go-gomail/gomail"
+  packages = ["."]
+  pruneopts = ""
+  revision = "41f3572897373c5538c50a2402db15db079fa4fd"
+  version = "2.0.0"
+
+[[projects]]
   digest = "1:f3c498cfe3758b828f1fd3272ad5d6ddf0ecf1a9dfbb7e4573c153b858338717"
   name = "github.com/go-ini/ini"
   packages = ["."]
@@ -543,6 +551,14 @@
   pruneopts = ""
   revision = "6d70fb2e85323e81c89374331d3d2b93304faa36"
 
+[[projects]]
+  branch = "v3"
+  digest = "1:fa33d1dde8ce5b0b37c38c767c250a7684ecd385f9dbabe594ea8543e4d55807"
+  name = "gopkg.in/alexcesaro/quotedprintable.v3"
+  packages = ["."]
+  pruneopts = ""
+  revision = "2caba252f4dc53eaf6b553000885530023f54623"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -559,6 +575,7 @@
     "github.com/facebookgo/structtag",
     "github.com/franela/goreq",
     "github.com/garyburd/redigo/redis",
+    "github.com/go-gomail/gomail",
     "github.com/golang-migrate/migrate",
     "github.com/golang-migrate/migrate/database/postgres",
     "github.com/golang-migrate/migrate/source/file",

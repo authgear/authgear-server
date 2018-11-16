@@ -10,14 +10,16 @@ import (
 // TenantConfiguration is a mock struct of tenant configuration
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	DBConnectionStr string                   `msg:"DATABASE_URL" envconfig:"DATABASE_URL" json:"DATABASE_URL"`
-	APIKey          string                   `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
-	MasterKey       string                   `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
-	AppName         string                   `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
-	CORSHost        string                   `msg:"CORS_HOST" envconfig:"CORS_HOST" default:"*"`
-	TokenStore      TokenStoreConfiguration  `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
-	UserProfile     UserProfileConfiguration `json:"USER_PROFILE" msg:"USER_PROFILE"`
-	UserAudit       UserAuditConfiguration   `json:"USER_AUDIT" msg:"USER_AUDIT"`
+	DBConnectionStr string                    `msg:"DATABASE_URL" envconfig:"DATABASE_URL" json:"DATABASE_URL"`
+	APIKey          string                    `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
+	MasterKey       string                    `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
+	AppName         string                    `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
+	CORSHost        string                    `msg:"CORS_HOST" envconfig:"CORS_HOST" json:"CORS_HOST" default:"*"`
+	TokenStore      TokenStoreConfiguration   `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
+	UserProfile     UserProfileConfiguration  `json:"USER_PROFILE" msg:"USER_PROFILE"`
+	UserAudit       UserAuditConfiguration    `json:"USER_AUDIT" msg:"USER_AUDIT"`
+	SMTP            SMTPConfiguration         `json:"SMTP" msg:"SMTP"`
+	WelcomeEmail    WelcomeEmailConfiguration `json:"WELCOME_EMAIL" msg:"WELCOME_EMAIL"`
 }
 
 type TokenStoreConfiguration struct {
@@ -33,6 +35,25 @@ type UserProfileConfiguration struct {
 type UserAuditConfiguration struct {
 	Enabled         bool   `msg:"ENABLED" envconfig:"USER_AUDIT_ENABLED" json:"ENABLED"`
 	TrailHandlerURL string `msg:"TRAIL_HANDLER_URL" envconfig:"USER_AUDIT_TRAIL_HANDLER_URL" json:"TRAIL_HANDLER_URL"`
+}
+
+type SMTPConfiguration struct {
+	Host     string `msg:"HOST" envconfig:"SMTP_HOST" json:"HOST"`
+	Port     int    `msg:"PORT" envconfig:"SMTP_PORT" json:"PORT" default:"25"`
+	Mode     string `msg:"MODE" envconfig:"SMTP_MODE" json:"MODE" default:"normal"`
+	Login    string `msg:"LOGIN" envconfig:"SMTP_LOGIN" json:"LOGIN"`
+	Password string `msg:"PASSWORD" envconfig:"SMTP_PASSWORD" json:"PASSWORD"`
+}
+
+type WelcomeEmailConfiguration struct {
+	Enabled     bool   `msg:"ENABLED" envconfig:"WELCOME_EMAIL_ENABLED" json:"ENABLED" default:"false"`
+	SenderName  string `msg:"SENDER_NAME" envconfig:"WELCOME_EMAIL_SENDER_NAME" json:"SENDER_NAME"`
+	Sender      string `msg:"SENDER" envconfig:"WELCOME_EMAIL_SENDER" json:"SENDER" default:"no-reply@skygeario.com"`
+	Subject     string `msg:"SUBJECT" envconfig:"WELCOME_EMAIL_SUBJECT" json:"SUBJECT" default:"Welcome!"`
+	ReplyToName string `msg:"REPLY_TO_NAME" envconfig:"WELCOME_EMAIL_REPLY_TO_NAME" json:"REPLY_TO_NAME"`
+	ReplyTo     string `msg:"REPLY_TO" envconfig:"WELCOME_EMAIL_REPLY_TO" json:"REPLY_TO"`
+	TextURL     string `msg:"TEXT_URL" envconfig:"WELCOME_EMAIL_TEXT_URL" json:"TEXT_URL"`
+	HTMLURL     string `msg:"HTML_URL" envconfig:"WELCOME_EMAIL_HTML_URL" json:"HTML_URL"`
 }
 
 func (c *TenantConfiguration) ReadFromEnv() error {

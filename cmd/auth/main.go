@@ -62,6 +62,7 @@ func main() {
 	handler.AttachGetRoleHandler(&srv, authDependency)
 	handler.AttachRoleAdminHandler(&srv, authDependency)
 	handler.AttachRoleDefaultHandler(&srv, authDependency)
+	handler.AttachWelcomeEmailHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

@@ -151,3 +151,7 @@ required = [
 [[constraint]]
   name = "github.com/tinylib/msgp"
   version = "1.0.2"
+
+[[constraint]]
+  name = "github.com/go-gomail/gomail"
+  version = "2.0.0"
