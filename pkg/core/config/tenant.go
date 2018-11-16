@@ -20,6 +20,7 @@ type TenantConfiguration struct {
 	UserAudit       UserAuditConfiguration    `json:"USER_AUDIT" msg:"USER_AUDIT"`
 	SMTP            SMTPConfiguration         `json:"SMTP" msg:"SMTP"`
 	WelcomeEmail    WelcomeEmailConfiguration `json:"WELCOME_EMAIL" msg:"WELCOME_EMAIL"`
+	SSOSetting      SSOSetting                `json:"SSO_SETTING" msg:"SSO_SETTING"`
 	SSOConfigs      []SSOConfiguration        `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
 }
 
@@ -55,6 +56,14 @@ type WelcomeEmailConfiguration struct {
 	ReplyTo     string `msg:"REPLY_TO" envconfig:"WELCOME_EMAIL_REPLY_TO" json:"REPLY_TO"`
 	TextURL     string `msg:"TEXT_URL" envconfig:"WELCOME_EMAIL_TEXT_URL" json:"TEXT_URL"`
 	HTMLURL     string `msg:"HTML_URL" envconfig:"WELCOME_EMAIL_HTML_URL" json:"HTML_URL"`
+}
+
+type SSOSetting struct {
+	URLPrefix            string   `msg:"URL_PREFIX" envconfig:"SSO_SETTING_URL_PREFIX" json:"URL_PREFIX"`
+	JSSDKCDNURL          string   `msg:"JS_SDK_CDN_URL" envconfig:"SSO_SETTING_JS_SDK_CDN_URL" json:"JS_SDK_CDN_URL"`
+	StateJWTSecret       string   `msg:"STATE_JWT_SECRET" envconfig:"SSO_SETTING_STATE_JET_SECRET" json:"STATE_JWT_SECRET"`
+	AutoLinkProviderKeys []string `msg:"AUTO_LINK_PROVIDER_KEYS" envconfig:"SSO_SETTING_AUTO_LINK_PROVIDER_KEYS" json:"AUTO_LINK_PROVIDER_KEYS"`
+	AllowedCallbackURLs  []string `msg:"ALLOWED_CALLBACK_URLS" envconfig:"SSO_SETTING_ALLOWED_CALLBACK_URLS" json:"ALLOWED_CALLBACK_URLS"`
 }
 
 type SSOConfiguration struct {
