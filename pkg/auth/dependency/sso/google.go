@@ -1,7 +1,8 @@
 package sso
 
 type GoogleImpl struct {
-	Config Config
+	Setting Setting
+	Config  Config
 }
 
 func (f *GoogleImpl) GetAuthURL(params GetURLParams) (url string, err error) {

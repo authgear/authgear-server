@@ -1,7 +1,5 @@
 package sso
 
-import "strings"
-
 // Scope parameter allows the application to express the desired scope of the access request.
 type Scope []string
 
@@ -50,6 +48,15 @@ type GetURLParams struct {
 	Action      string
 }
 
+// Setting is the base settings for SSO
+type Setting struct {
+	URLPrefix            string
+	JSSDKCDNURL          string
+	StateJWTSecret       string
+	AutoLinkProviderKeys []string
+	AllowedCallbackURLs  []string
+}
+
 // Config is the base config of a SSO provider
 type Config struct {
 	Name         string
@@ -66,38 +73,32 @@ type Provider interface {
 
 // NewProvider is the provider factory
 func NewProvider(
-	name string,
-	enabled bool,
-	clientID string,
-	clientSecret string,
-	scopeStr string,
+	setting Setting,
+	config Config,
 ) Provider {
-	if !enabled {
+	if !config.Enabled {
 		return nil
 	}
-	config := Config{
-		Name:         name,
-		Enabled:      enabled,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		Scope:        strings.Split(scopeStr, ","),
-	}
-	switch name {
+	switch config.Name {
 	case "google":
 		return &GoogleImpl{
-			Config: config,
+			Setting: setting,
+			Config:  config,
 		}
 	case "facebook":
 		return &FacebookImpl{
-			Config: config,
+			Setting: setting,
+			Config:  config,
 		}
 	case "instagram":
 		return &InstagramImpl{
-			Config: config,
+			Setting: setting,
+			Config:  config,
 		}
 	case "linkedin":
 		return &LinkedInImpl{
-			Config: config,
+			Setting: setting,
+			Config:  config,
 		}
 	}
 	return nil

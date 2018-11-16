@@ -138,13 +138,22 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		providerName := strings.Replace(lowerDependencyName, "ssoprovider", "", 1)
 		tConfig := config.GetTenantConfig(r)
 		SSOConf := tConfig.GetSSOConfigByName(providerName)
-		return sso.NewProvider(
-			SSOConf.Name,
-			SSOConf.Enabled,
-			SSOConf.ClientID,
-			SSOConf.ClientSecret,
-			SSOConf.Scope,
-		)
+		SSOSetting := tConfig.SSOSetting
+		setting := sso.Setting{
+			URLPrefix:            SSOSetting.URLPrefix,
+			JSSDKCDNURL:          SSOSetting.JSSDKCDNURL,
+			StateJWTSecret:       SSOSetting.StateJWTSecret,
+			AutoLinkProviderKeys: SSOSetting.AutoLinkProviderKeys,
+			AllowedCallbackURLs:  SSOSetting.AllowedCallbackURLs,
+		}
+		config := sso.Config{
+			Name:         SSOConf.Name,
+			Enabled:      SSOConf.Enabled,
+			ClientID:     SSOConf.ClientID,
+			ClientSecret: SSOConf.ClientSecret,
+			Scope:        strings.Split(SSOConf.Scope, ","),
+		}
+		return sso.NewProvider(setting, config)
 	default:
 		return nil
 	}

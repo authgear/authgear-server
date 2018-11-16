@@ -1,7 +1,8 @@
 package sso
 
 type InstagramImpl struct {
-	Config Config
+	Setting Setting
+	Config  Config
 }
 
 func (f *InstagramImpl) GetAuthURL(params GetURLParams) (url string, err error) {
