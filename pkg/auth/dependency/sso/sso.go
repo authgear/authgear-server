@@ -72,6 +72,9 @@ func NewProvider(
 	clientSecret string,
 	scopeStr string,
 ) Provider {
+	if !enabled {
+		return nil
+	}
 	config := Config{
 		Name:         name,
 		Enabled:      enabled,
