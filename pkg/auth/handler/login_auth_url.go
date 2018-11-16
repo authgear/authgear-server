@@ -85,8 +85,7 @@ func (p LoginAuthURLRequestPayload) Validate() error {
 	return nil
 }
 
-// LoginAuthURLHandler returns roles of users specified by user IDs. Users can only
-// get his own roles except that administrators can query roles of other users.
+// LoginAuthURLHandler returns the SSO auth url by provider.
 //
 // curl \
 //   -X POST \
@@ -98,7 +97,7 @@ func (p LoginAuthURLRequestPayload) Validate() error {
 // {
 //     "scope": ["openid", "profile"],
 //     "options": {
-//
+//       "prompt": "select_account"
 //     },
 //     callback_url: <url>,
 //     ux_mode: <ux_mode>
@@ -106,13 +105,7 @@ func (p LoginAuthURLRequestPayload) Validate() error {
 // EOF
 //
 // {
-//     "result": {
-//         "user_id_1": [
-//             "developer",
-//         ],
-//         "user_id_2": [
-//         ],
-//     }
+//     "result": "<auth_url>"
 // }
 type LoginAuthURLHandler struct {
 	TxContext         db.TxContext           `dependency:"TxContext"`
