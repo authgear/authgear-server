@@ -1,10 +1,8 @@
 package userprofile
 
 import (
-	"encoding/json"
 	"time"
 
-	"github.com/franela/goreq"
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/asset"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
@@ -97,74 +95,85 @@ func (u *recordStoreImpl) CreateUserProfile(userID string, authInfo *authinfo.Au
 	if err = recordHandler.RecordSaveHandler(&modifyReq, &modifyResp); err != nil {
 		u.logger.WithError(err).Errorln("failed to save profile record")
 		if _, ok := err.(skyerr.Error); !ok {
-			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to migrate profile record schema")
+			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to save profile record")
 		}
 
 		return
 	}
 
-	respProfileRecord := modifyResp.SavedRecords[0]
-	profile = UserProfile{
-		Meta: Meta{
-			ID:         respProfileRecord.ID.String(),
-			Type:       "record",
-			RecordID:   userID,
-			RecordType: respProfileRecord.ID.Type,
-			Access:     nil,
-			OwnerID:    respProfileRecord.OwnerID,
-			CreatedAt:  respProfileRecord.CreatedAt,
-			CreatedBy:  respProfileRecord.CreatorID,
-			UpdatedAt:  respProfileRecord.UpdatedAt,
-			UpdatedBy:  respProfileRecord.UpdaterID,
-		},
-		Data: Data(respProfileRecord.Data),
-	}
+	profile = u.toUserProfile(*modifyResp.SavedRecords[0])
 	return
 }
 
 func (u *recordStoreImpl) GetUserProfile(userID string, accessToken string) (profile UserProfile, err error) {
-	body := make(map[string]interface{})
-	body["record_type"] = "user"
-	predicate := []interface{}{
-		"eq",
-		map[string]interface{}{
-			"$val":  "_id",
-			"$type": "keypath",
-		},
-		userID,
+	accessControlOptions := &record.AccessControlOptions{
+		ViewAsUser:          u.authContext.AuthInfo(),
+		BypassAccessControl: u.authContext.AccessKeyType() == model.MasterAccessKey,
 	}
-	body["predicate"] = predicate
+	predicate := record.Predicate{
+		Operator: record.Equal,
+		Children: make([]interface{}, 0),
+	}
+	predicate.Children = append(predicate.Children, record.Expression{
+		Type:  record.KeyPath,
+		Value: "_id",
+	})
+	predicate.Children = append(predicate.Children, record.Expression{
+		Type:  record.Literal,
+		Value: userID,
+	})
+	query := record.Query{
+		Type:      "user",
+		Predicate: predicate,
+		Limit:     new(uint64),
+	}
+	*query.Limit = 1
 
-	resp, err := goreq.Request{
-		Method: "POST",
-		Uri:    u.storeURL + "query",
-		Body:   body,
-	}.
-		WithHeader("X-Skygear-Api-Key", u.apiKey).
-		WithHeader("X-Skygear-Access-Token", accessToken).
-		Do()
+	// TODO: maybe need ACL checking before query
 
+	results, err := u.recordStore.Query(&query, accessControlOptions)
 	if err != nil {
+		u.logger.WithError(err).Errorln("failed to get profile record")
+		if _, ok := err.(skyerr.Error); !ok {
+			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to get profile record")
+		}
 		return
 	}
+	defer results.Close()
 
-	var bodyMap map[string]map[string][]Record
-	err = resp.Body.FromJsonTo(&bodyMap)
+	records := []record.Record{}
+	for results.Scan() {
+		record := results.Record()
+		records = append(records, record)
+	}
+
+	err = results.Err()
 	if err != nil {
+		u.logger.WithError(err).Errorln("failed to scan profile record")
+		if _, ok := err.(skyerr.Error); !ok {
+			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to scan profile record")
+		}
 		return
 	}
 
-	records, ok := bodyMap["result"]["records"]
-	if !ok || len(records) < 1 {
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
-		return
-	}
-
-	jsonRecord, err := json.Marshal(records[0])
-	err = json.Unmarshal(jsonRecord, &profile)
-	if err != nil {
-		return
-	}
-
+	profile = u.toUserProfile(records[0])
 	return
+}
+
+func (u *recordStoreImpl) toUserProfile(profileReocrd record.Record) UserProfile {
+	return UserProfile{
+		Meta: Meta{
+			ID:         profileReocrd.ID.String(),
+			Type:       "record",
+			RecordID:   profileReocrd.ID.Key,
+			RecordType: profileReocrd.ID.Type,
+			Access:     nil,
+			OwnerID:    profileReocrd.OwnerID,
+			CreatedAt:  profileReocrd.CreatedAt,
+			CreatedBy:  profileReocrd.CreatorID,
+			UpdatedAt:  profileReocrd.UpdatedAt,
+			UpdatedBy:  profileReocrd.UpdaterID,
+		},
+		Data: Data(profileReocrd.Data),
+	}
 }
