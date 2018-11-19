@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	"github.com/sirupsen/logrus"
@@ -129,6 +130,9 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			panic(err)
 		}
 		return trail
+	case "ForgotPasswordEmailSender":
+		tConfig := config.GetTenantConfig(r)
+		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP))
 	case "WelcomeEmailSendTask":
 		tConfig := config.GetTenantConfig(r)
 		if !tConfig.WelcomeEmail.Enabled {

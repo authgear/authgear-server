@@ -5,12 +5,17 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -46,9 +51,14 @@ func (f ForgotPasswordHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type ForgotPasswordPayload struct {
+	Email string `json:"email"`
 }
 
 func (payload ForgotPasswordPayload) Validate() error {
+	if payload.Email == "" {
+		return skyerr.NewInvalidArgument("empty email", []string{"email"})
+	}
+
 	return nil
 }
 
@@ -61,7 +71,11 @@ func (payload ForgotPasswordPayload) Validate() error {
 //  }
 //  EOF
 type ForgotPasswordHandler struct {
-	TxContext db.TxContext `dependency:"TxContext"`
+	TxContext                 db.TxContext          `dependency:"TxContext"`
+	ForgotPasswordEmailSender forgotpwdemail.Sender `dependency:"ForgotPasswordEmailSender"`
+	PasswordAuthProvider      password.Provider     `dependency:"PasswordAuthProvider"`
+	AuthInfoStore             authinfo.Store        `dependency:"AuthInfoStore"`
+	UserProfileStore          userprofile.Store     `dependency:"UserProfileStore"`
 }
 
 func (h ForgotPasswordHandler) WithTx() bool {
@@ -78,8 +92,55 @@ func (h ForgotPasswordHandler) DecodeRequest(request *http.Request) (handler.Req
 	return payload, nil
 }
 
-// Handle function handle set disabled request
 func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(ForgotPasswordPayload)
+	authData := map[string]interface{}{
+		"email": payload.Email,
+	}
+
+	principals, err := h.PasswordAuthProvider.GetPrincipalsByEmail(payload.Email)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+			return
+		}
+		// TODO: more error handling here if necessary
+		err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
+		return
+	}
+
+	userID := principals[0].UserID
+	hashedPassword := principals[0].HashedPassword
+
+	fetchedAuthInfo := authinfo.AuthInfo{}
+	if err = h.AuthInfoStore.GetAuth(userID, &fetchedAuthInfo); err != nil {
+		if err == skydb.ErrUserNotFound {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+			return
+		}
+		// TODO: more error handling here if necessary
+		err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
+		return
+	}
+
+	// Get Profile
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID, ""); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+		return
+	}
+
+	if err = h.ForgotPasswordEmailSender.Send(
+		payload.Email,
+		fetchedAuthInfo,
+		userProfile,
+		hashedPassword,
+	); err == nil {
+		resp = "OK"
+	}
+
 	return
 }
 
@@ -141,7 +202,6 @@ func (h ForgotPasswordTestHandler) DecodeRequest(request *http.Request) (handler
 	return payload, nil
 }
 
-// Handle function handle set disabled request
 func (h ForgotPasswordTestHandler) Handle(req interface{}) (resp interface{}, err error) {
 	return
 }
