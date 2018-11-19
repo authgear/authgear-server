@@ -8,9 +8,10 @@ import (
 	"strconv"
 
 	"github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
 	_ "github.com/lib/pq"
+
+	"github.com/skygeario/skygear-server/pkg/migrate/database/postgres"
 )
 
 func main() {
@@ -56,6 +57,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer driver.Close()
 
 	m, err := migrate.NewWithDatabaseInstance(filePath, "postgres", driver)
 	if err != nil {

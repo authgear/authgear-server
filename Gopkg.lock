@@ -577,6 +577,7 @@
     "github.com/garyburd/redigo/redis",
     "github.com/go-gomail/gomail",
     "github.com/golang-migrate/migrate",
+    "github.com/golang-migrate/migrate/database",
     "github.com/golang-migrate/migrate/database/postgres",
     "github.com/golang-migrate/migrate/source/file",
     "github.com/golang/mock/gomock",

@@ -39,7 +39,9 @@ type Config struct {
 
 type Postgres struct {
 	// Locking and unlocking need to use the same connection
-	conn     *sql.Conn
+	conn *sql.Conn
+	// Ensure whole migration run in the same transaction and support dry run
+	tx       *sql.Tx
 	db       *sql.DB
 	isLocked bool
 
@@ -78,13 +80,19 @@ func WithInstance(instance *sql.DB, config *Config) (database.Driver, error) {
 		return nil, err
 	}
 
+	tx, err := conn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return nil, &database.Error{OrigErr: err, Err: "transaction start failed"}
+	}
+
 	px := &Postgres{
 		conn:   conn,
+		tx:     tx,
 		db:     instance,
 		config: config,
 	}
 
-	if err := px.ensureVersionTable(); err != nil {
+	if err = px.ensureVersionTable(); err != nil {
 		return nil, err
 	}
 
@@ -119,6 +127,9 @@ func (p *Postgres) Open(url string) (database.Driver, error) {
 }
 
 func (p *Postgres) Close() error {
+	if err := p.tx.Commit(); err != nil {
+		return &database.Error{OrigErr: err, Err: "transaction commit failed"}
+	}
 	connErr := p.conn.Close()
 	dbErr := p.db.Close()
 	if connErr != nil || dbErr != nil {
@@ -142,7 +153,7 @@ func (p *Postgres) Lock() error {
 	// This will either obtain the lock immediately and return true,
 	// or return false if the lock cannot be acquired immediately.
 	query := `SELECT pg_advisory_lock($1)`
-	if _, err := p.conn.ExecContext(context.Background(), query, aid); err != nil {
+	if _, err := p.tx.ExecContext(context.Background(), query, aid); err != nil {
 		return &database.Error{OrigErr: err, Err: "try lock failed", Query: []byte(query)}
 	}
 
@@ -161,7 +172,7 @@ func (p *Postgres) Unlock() error {
 	}
 
 	query := `SELECT pg_advisory_unlock($1)`
-	if _, err := p.conn.ExecContext(context.Background(), query, aid); err != nil {
+	if _, err := p.tx.ExecContext(context.Background(), query, aid); err != nil {
 		return &database.Error{OrigErr: err, Query: []byte(query)}
 	}
 	p.isLocked = false
@@ -176,7 +187,7 @@ func (p *Postgres) Run(migration io.Reader) error {
 
 	// run migration
 	query := string(migr[:])
-	if _, err := p.conn.ExecContext(context.Background(), query); err != nil {
+	if _, err := p.tx.ExecContext(context.Background(), query); err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			var line uint
 			var col uint
@@ -237,27 +248,18 @@ func runesLastIndex(input []rune, target rune) int {
 }
 
 func (p *Postgres) SetVersion(version int, dirty bool) error {
-	tx, err := p.conn.BeginTx(context.Background(), &sql.TxOptions{})
-	if err != nil {
-		return &database.Error{OrigErr: err, Err: "transaction start failed"}
-	}
-
 	query := `TRUNCATE "` + p.config.MigrationsTable + `"`
-	if _, err := tx.Exec(query); err != nil {
-		tx.Rollback()
+	if _, err := p.tx.Exec(query); err != nil {
+		p.tx.Rollback()
 		return &database.Error{OrigErr: err, Query: []byte(query)}
 	}
 
 	if version >= 0 {
 		query = `INSERT INTO "` + p.config.MigrationsTable + `" (version, dirty) VALUES ($1, $2)`
-		if _, err := tx.Exec(query, version, dirty); err != nil {
-			tx.Rollback()
+		if _, err := p.tx.Exec(query, version, dirty); err != nil {
+			p.tx.Rollback()
 			return &database.Error{OrigErr: err, Query: []byte(query)}
 		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		return &database.Error{OrigErr: err, Err: "transaction commit failed"}
 	}
 
 	return nil
@@ -265,7 +267,7 @@ func (p *Postgres) SetVersion(version int, dirty bool) error {
 
 func (p *Postgres) Version() (version int, dirty bool, err error) {
 	query := `SELECT version, dirty FROM "` + p.config.MigrationsTable + `" LIMIT 1`
-	err = p.conn.QueryRowContext(context.Background(), query).Scan(&version, &dirty)
+	err = p.tx.QueryRowContext(context.Background(), query).Scan(&version, &dirty)
 	switch {
 	case err == sql.ErrNoRows:
 		return database.NilVersion, false, nil
@@ -286,7 +288,7 @@ func (p *Postgres) Version() (version int, dirty bool, err error) {
 func (p *Postgres) Drop() error {
 	// select all tables in current schema
 	query := `SELECT table_name FROM information_schema.tables WHERE table_schema=(SELECT current_schema()) AND table_type='BASE TABLE'`
-	tables, err := p.conn.QueryContext(context.Background(), query)
+	tables, err := p.tx.QueryContext(context.Background(), query)
 	if err != nil {
 		return &database.Error{OrigErr: err, Query: []byte(query)}
 	}
@@ -308,7 +310,7 @@ func (p *Postgres) Drop() error {
 		// delete one by one ...
 		for _, t := range tableNames {
 			query = `DROP TABLE IF EXISTS ` + t + ` CASCADE`
-			if _, err := p.conn.ExecContext(context.Background(), query); err != nil {
+			if _, err := p.tx.ExecContext(context.Background(), query); err != nil {
 				return &database.Error{OrigErr: err, Query: []byte(query)}
 			}
 		}
@@ -324,7 +326,7 @@ func (p *Postgres) ensureVersionTable() error {
 	// check if migration table exists
 	var count int
 	query := `SELECT COUNT(1) FROM information_schema.tables WHERE table_name = $1 AND table_schema = (SELECT current_schema()) LIMIT 1`
-	if err := p.conn.QueryRowContext(context.Background(), query, p.config.MigrationsTable).Scan(&count); err != nil {
+	if err := p.tx.QueryRowContext(context.Background(), query, p.config.MigrationsTable).Scan(&count); err != nil {
 		return &database.Error{OrigErr: err, Query: []byte(query)}
 	}
 	if count == 1 {
@@ -333,7 +335,7 @@ func (p *Postgres) ensureVersionTable() error {
 
 	// if not, create the empty migration table
 	query = `CREATE TABLE "` + p.config.MigrationsTable + `" (version bigint not null primary key, dirty boolean not null)`
-	if _, err := p.conn.ExecContext(context.Background(), query); err != nil {
+	if _, err := p.tx.ExecContext(context.Background(), query); err != nil {
 		return &database.Error{OrigErr: err, Query: []byte(query)}
 	}
 	return nil
