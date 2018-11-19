@@ -14,19 +14,20 @@ import (
 // TenantConfiguration is a mock struct of tenant configuration
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	DBConnectionStr string                    `msg:"DATABASE_URL" envconfig:"DATABASE_URL" json:"DATABASE_URL"`
-	APIKey          string                    `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
-	MasterKey       string                    `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
-	AppName         string                    `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
-	CORSHost        string                    `msg:"CORS_HOST" envconfig:"CORS_HOST" json:"CORS_HOST"`
-	TokenStore      TokenStoreConfiguration   `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
-	UserProfile     UserProfileConfiguration  `json:"USER_PROFILE" msg:"USER_PROFILE"`
-	UserAudit       UserAuditConfiguration    `json:"USER_AUDIT" msg:"USER_AUDIT"`
-	SMTP            SMTPConfiguration         `json:"SMTP" msg:"SMTP"`
-	WelcomeEmail    WelcomeEmailConfiguration `json:"WELCOME_EMAIL" msg:"WELCOME_EMAIL"`
-	SSOSetting      SSOSetting                `json:"SSO_SETTING" msg:"SSO_SETTING"`
-	SSOProviders    []string                  `json:"SSO_PROVIDERS" envconfig:"SSO_PROVIDERS" msg:"SSO_PROVIDERS"`
-	SSOConfigs      []SSOConfiguration        `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
+	DBConnectionStr string                      `msg:"DATABASE_URL" envconfig:"DATABASE_URL" json:"DATABASE_URL"`
+	APIKey          string                      `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
+	MasterKey       string                      `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
+	AppName         string                      `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
+	CORSHost        string                      `msg:"CORS_HOST" envconfig:"CORS_HOST" json:"CORS_HOST"`
+	TokenStore      TokenStoreConfiguration     `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
+	UserProfile     UserProfileConfiguration    `json:"USER_PROFILE" msg:"USER_PROFILE"`
+	UserAudit       UserAuditConfiguration      `json:"USER_AUDIT" msg:"USER_AUDIT"`
+	SMTP            SMTPConfiguration           `json:"SMTP" msg:"SMTP"`
+	ForgotPassword  ForgotPasswordConfiguration `json:"FORGOT_PASSWORD" msg:"FORGOT_PASSWORD"`
+	WelcomeEmail    WelcomeEmailConfiguration   `json:"WELCOME_EMAIL" msg:"WELCOME_EMAIL"`
+	SSOSetting      SSOSetting                  `json:"SSO_SETTING" msg:"SSO_SETTING"`
+	SSOProviders    []string                    `json:"SSO_PROVIDERS" envconfig:"SSO_PROVIDERS" msg:"SSO_PROVIDERS"`
+	SSOConfigs      []SSOConfiguration          `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
 }
 
 type TokenStoreConfiguration struct {
@@ -61,6 +62,25 @@ type SMTPConfiguration struct {
 	Mode     string `msg:"MODE" envconfig:"SMTP_MODE" json:"MODE"`
 	Login    string `msg:"LOGIN" envconfig:"SMTP_LOGIN" json:"LOGIN"`
 	Password string `msg:"PASSWORD" envconfig:"SMTP_PASSWORD" json:"PASSWORD"`
+}
+
+type ForgotPasswordConfiguration struct {
+	AppName             string `msg:"APP_NAME" envconfig:"FORGOT_PASSWORD_APP_NAME" json:"APP_NAME"`
+	URLPrefix           string `msg:"URL_PREFIX" envconfig:"FORGOT_PASSWORD_URL_PREFIX" json:"URL_PREFIX"`
+	SecureMatch         bool   `msg:"SECURE_MATCH" envconfig:"FORGOT_PASSWORD_SECURE_MATCH" json:"SECURE_MATCH"`
+	SenderName          string `msg:"SENDER_NAME" envconfig:"FORGOT_PASSWORD_SENDER_NAME" json:"SENDER_NAME"`
+	Sender              string `msg:"SENDER" envconfig:"FORGOT_PASSWORD_SENDER" json:"SENDER"`
+	Subject             string `msg:"SUBJECT" envconfig:"FORGOT_PASSWORD_SUBJECT" json:"SUBJECT"`
+	ReplyToName         string `msg:"REPLY_TO_NAME" envconfig:"FORGOT_PASSWORD_REPLY_TO_NAME" json:"REPLY_TO_NAME"`
+	ReplyTo             string `msg:"REPLY_TO" envconfig:"FORGOT_PASSWORD_REPLY_TO" json:"REPLY_TO"`
+	ResetURLLifeTime    int    `msg:"RESET_URL_LIFE_TIME" envconfig:"FORGOT_PASSWORD_RESET_URL_LIFE_TIME" json:"RESET_URL_LIFE_TIME"`
+	SuccessRedirect     string `msg:"SUCCESS_REDIRECT" envconfig:"FORGOT_PASSWORD_SUCCESS_REDIRECT" json:"SUCCESS_REDIRECT"`
+	ErrorRedirect       string `msg:"ERROR_REDIRECT" envconfig:"FORGOT_PASSWORD_ERROR_REDIRECT" json:"ERROR_REDIRECT"`
+	EmailTextURL        string `msg:"EMAIL_TEXT_URL" envconfig:"FORGOT_PASSWORD_EMAIL_TEXT_URL" json:"EMAIL_TEXT_URL"`
+	EmailHTMLURL        string `msg:"EMAIL_HTML_URL" envconfig:"FORGOT_PASSWORD_EMAIL_HTML_URL" json:"EMAIL_HTML_URL"`
+	ResetHTMLURL        string `msg:"RESET_HTML_URL" envconfig:"FORGOT_PASSWORD_RESET_HTML_URL" json:"RESET_HTML_URL"`
+	ResetSuccessHTMLURL string `msg:"RESET_SUCCESS_HTML_URL" envconfig:"FORGOT_PASSWORD_RESET_SUCCESS_HTML_URL" json:"RESET_SUCCESS_HTML_URL"`
+	ResetErrorHTMLURL   string `msg:"RESET_ERROR_HTML_URL" envconfig:"FORGOT_PASSWORD_RESET_ERROR_HTML_URL" json:"RESET_ERROR_HTML_URL"`
 }
 
 type WelcomeEmailConfiguration struct {
