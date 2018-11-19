@@ -2,14 +2,18 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"flag"
 	"fmt"
+	nurl "net/url"
+	"os"
 	"path"
 	"strconv"
 
 	"github.com/golang-migrate/migrate"
 	_ "github.com/golang-migrate/migrate/source/file"
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/migrate/database/postgres"
 )
@@ -66,21 +70,30 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Path: " + filePath)
-	fmt.Println("Module namespace: " + *modulePtr)
-	fmt.Println("Database: " + *databasePtr)
-	fmt.Println("Schema: " + schema)
-
+	purl, err := nurl.Parse(*databasePtr)
+	l := log.WithFields(log.Fields{
+		"module":  *modulePtr,
+		"db_name": purl.EscapedPath(),
+		"db_host": purl.Hostname(),
+		"schema":  schema,
+	})
 	err = runCommand(m)
 	if err != nil {
-		panic(err)
+		l.WithField("error", err).Error(err.Error())
+		os.Exit(1)
 	}
+
+	l.Info("done")
 }
 
 func runCommand(m *migrate.Migrate) (err error) {
 	switch flag.Arg(0) {
 	case "up":
-		step := getStep()
+		step, e := getStep()
+		if e != nil {
+			err = e
+			return
+		}
 
 		if step == -1 {
 			err = m.Up()
@@ -88,7 +101,11 @@ func runCommand(m *migrate.Migrate) (err error) {
 			err = m.Steps(step)
 		}
 	case "down":
-		step := getStep()
+		step, e := getStep()
+		if e != nil {
+			err = e
+			return
+		}
 
 		if step == -1 {
 			err = m.Down()
@@ -98,34 +115,38 @@ func runCommand(m *migrate.Migrate) (err error) {
 	case "force":
 		v, e := strconv.ParseInt(flag.Arg(1), 10, 64)
 		if e != nil {
-			panic(e)
+			err = e
+			return
 		}
 
 		err = m.Force(int(v))
 	case "version":
-		version, dirty, err := m.Version()
-		if err != nil {
-			panic(err)
+		version, dirty, e := m.Version()
+		if e != nil {
+			err = e
+			return
 		}
 
-		fmt.Println("Version: " + strconv.FormatInt(int64(version), 10))
-		fmt.Println("Dirty: " + strconv.FormatBool(dirty))
+		log.WithFields(log.Fields{
+			"version": strconv.FormatInt(int64(version), 10),
+			"dirty":   strconv.FormatBool(dirty),
+		}).Info("checking version")
 	default:
-		panic("Undefined command")
+		err = errors.New("undefined command")
 	}
 
 	return
 }
 
-func getStep() int {
+func getStep() (int, error) {
 	if flag.Arg(1) == "" {
-		return -1
+		return -1, nil
 	}
 
 	n, err := strconv.ParseUint(flag.Arg(1), 10, 64)
 	if err != nil {
-		panic(err)
+		return -1, errors.New("invalid step")
 	}
 
-	return int(n)
+	return int(n), nil
 }
