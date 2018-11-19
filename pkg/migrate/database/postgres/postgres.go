@@ -35,6 +35,7 @@ var (
 type Config struct {
 	MigrationsTable string
 	DatabaseName    string
+	DryRun          bool
 }
 
 type Postgres struct {
@@ -127,9 +128,16 @@ func (p *Postgres) Open(url string) (database.Driver, error) {
 }
 
 func (p *Postgres) Close() error {
-	if err := p.tx.Commit(); err != nil {
-		return &database.Error{OrigErr: err, Err: "transaction commit failed"}
+	if p.config.DryRun {
+		if err := p.tx.Rollback(); err != nil {
+			return &database.Error{OrigErr: err, Err: "transaction rollback failed"}
+		}
+	} else {
+		if err := p.tx.Commit(); err != nil {
+			return &database.Error{OrigErr: err, Err: "transaction commit failed"}
+		}
 	}
+
 	connErr := p.conn.Close()
 	dbErr := p.db.Close()
 	if connErr != nil || dbErr != nil {

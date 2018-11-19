@@ -21,6 +21,7 @@ func main() {
 	databasePtr := flag.String("database", "postgres://postgres:@localhost/postgres?sslmode=disable", "migration db url")
 	schemaPtr := flag.String("schema", "app__", "migration schema")
 	dirPtr := flag.String("dir", "cmd/migrate/revisions", "(optional) directory of revisions files")
+	dryRunPtr := flag.Bool("dry-run", false, "enable dry run will rollback the transaction")
 
 	flag.Parse()
 
@@ -52,6 +53,7 @@ func main() {
 
 	config := postgres.Config{
 		MigrationsTable: versionTable,
+		DryRun:          *dryRunPtr,
 	}
 	driver, err := postgres.WithInstance(db, &config)
 	if err != nil {
