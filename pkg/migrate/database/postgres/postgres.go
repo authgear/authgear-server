@@ -127,6 +127,7 @@ func (p *Postgres) Close() error {
 	return nil
 }
 
+// nolint: golint
 // https://www.postgresql.org/docs/9.6/static/explicit-locking.html#ADVISORY-LOCKS
 func (p *Postgres) Lock() error {
 	if p.isLocked {
