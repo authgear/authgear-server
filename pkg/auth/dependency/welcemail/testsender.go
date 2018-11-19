@@ -5,6 +5,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
 type TestSender interface {
@@ -66,12 +67,12 @@ func (d *DefaultTestSender) Send(
 	}
 
 	var textBody string
-	if textBody, err = parseTextTemplate(textTemplate, context); err != nil {
+	if textBody, err = template.ParseTextTemplate(textTemplate, context); err != nil {
 		return
 	}
 
 	var htmlBody string
-	if htmlBody, err = parseHTMLTemplate(htmlTemplate, context); err != nil {
+	if htmlBody, err = template.ParseHTMLTemplate(htmlTemplate, context); err != nil {
 		return
 	}
 
