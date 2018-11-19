@@ -67,11 +67,11 @@ type SSOSetting struct {
 }
 
 type SSOConfiguration struct {
-	Name         string `msg:"NAME" envconfig:"SSO_CONFIG_NAME" json:"NAME"`
-	Enabled      bool   `msg:"ENABLED" envconfig:"SSO_CONFIG_ENABLED" json:"ENABLED"`
-	ClientID     string `msg:"CLIENT_ID" envconfig:"SSO_CONFIG_CLIENT_ID" json:"CLIENT_ID"`
-	ClientSecret string `msg:"CLIENT_SECRET" envconfig:"SSO_CONFIG_CLIENT_SECRET" json:"CLIENT_SECRET"`
-	Scope        string `msg:"SCOPE" envconfig:"SSO_CONFIG_SCOPE" json:"SCOPE"`
+	Name         string `msg:"NAME" ignored:"true" json:"NAME"`
+	Enabled      bool   `msg:"ENABLED" envconfig:"ENABLED" json:"ENABLED"`
+	ClientID     string `msg:"CLIENT_ID" envconfig:"CLIENT_ID" json:"CLIENT_ID"`
+	ClientSecret string `msg:"CLIENT_SECRET" envconfig:"CLIENT_SECRET" json:"CLIENT_SECRET"`
+	Scope        string `msg:"SCOPE" envconfig:"SCOPE" json:"SCOPE"`
 }
 
 func (c *TenantConfiguration) ReadFromEnv() error {
@@ -132,5 +132,27 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error) {
 	c := TenantConfiguration{}
 	err := envconfig.Process("", &c)
+	c.SSOConfigs = appendSSOConfigs()
+
 	return c, err
+}
+
+func appendSSOConfigs() []SSOConfiguration {
+	configs := make([]SSOConfiguration, 0)
+	SSOProviderNames := []string{
+		"google",
+		"facebook",
+		"instagram",
+		"linkedin",
+	}
+	for _, name := range SSOProviderNames {
+		config := SSOConfiguration{
+			Name: name,
+		}
+		if err := envconfig.Process("sso_"+name, &config); err == nil {
+			configs = append(configs, config)
+		}
+	}
+
+	return configs
 }
