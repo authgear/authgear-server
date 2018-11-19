@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE _auth_principal (
   id text PRIMARY KEY, -- anonymous|abc, password|abc, custom_token|abc, oauth:facebook|abc, custom:code|abc
   provider text NOT NULL, -- anonymous, password, custom_token, oauth:facebook, oauth:google, custom:code
@@ -28,5 +26,3 @@ CREATE TABLE _auth_password_history (
   password text NOT NULL,
   logged_at timestamp without time zone NOT NULL
 );
-
-END;

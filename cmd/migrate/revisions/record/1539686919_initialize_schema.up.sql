@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE _record_asset (
   id text PRIMARY KEY,
   content_type text NOT NULL,
@@ -31,5 +29,3 @@ CREATE TABLE _record_field_access (
   discoverable boolean NOT NULL,
   PRIMARY KEY (record_type, record_field, user_role)
 );
-
-END;

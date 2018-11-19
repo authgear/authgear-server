@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE config (
 	id uuid PRIMARY KEY,
 	created_at timestamp WITHOUT TIME ZONE NOT NULL,
@@ -33,5 +31,3 @@ CREATE TABLE domain (
 	domain text NOT NULL,
 	app_id uuid REFERENCES app(id) NOT NULL
 );
-
-END;
