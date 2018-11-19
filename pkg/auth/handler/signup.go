@@ -170,7 +170,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	// Create Profile
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, payload.mergedProfile()); err != nil {
+	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, payload.mergedProfile()); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
