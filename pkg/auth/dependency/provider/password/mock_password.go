@@ -113,6 +113,24 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Princ
 	return
 }
 
+// GetPrincipalsByEmail get principal in PrincipalMap by userID
+func (m *MockProvider) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
+	for _, p := range m.PrincipalMap {
+		if authData, isMap := p.AuthData.(map[string]interface{}); isMap {
+			if e, found := authData["email"].(string); found && e == email {
+				principal := p
+				principals = append(principals, &principal)
+			}
+		}
+	}
+
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+	}
+
+	return
+}
+
 // UpdatePrincipal update principal in PrincipalMap
 func (m *MockProvider) UpdatePrincipal(principal Principal) error {
 	if _, existed := m.PrincipalMap[principal.ID]; !existed {
