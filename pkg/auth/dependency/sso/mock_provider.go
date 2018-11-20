@@ -30,7 +30,7 @@ func (f *MockSSOProverImpl) GetAuthURL(params GetURLParams) (string, error) {
 	for k, o := range params.Options {
 		v.Add(k, fmt.Sprintf("%v", o))
 	}
-	v.Add("scope", strings.Join(params.Scope, " "))
+	v.Add("scope", strings.Join(GetScope(params.Scope, f.Config.Scope), " "))
 	v.Add("state", encodedState)
 	return f.BaseURL + "?" + v.Encode(), nil
 }

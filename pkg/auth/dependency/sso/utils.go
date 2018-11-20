@@ -50,6 +50,14 @@ func EncodeState(secret string, state State) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
+// GetScope returns parameter scope or default scope
+func GetScope(scope Scope, defaultScope Scope) Scope {
+	if len(scope) != 0 {
+		return scope
+	}
+	return defaultScope
+}
+
 // RedirectURI generates redirect uri from URLPrefix and provider name
 func RedirectURI(URLPrefix string, providerName string) string {
 	u, _ := url.Parse(URLPrefix)

@@ -27,7 +27,7 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 	v.Add("client_id", f.Config.ClientID)
 	v.Add("redirect_uri", RedirectURI(f.Setting.URLPrefix, f.Config.Name))
 	v.Add("state", encodedState)
-	v.Add("scope", strings.Join(params.Scope, " "))
+	v.Add("scope", strings.Join(GetScope(params.Scope, f.Config.Scope), " "))
 	v.Add("access_type", "offline")
 	v.Add("prompt", "select_account")
 	for k, o := range params.Options {

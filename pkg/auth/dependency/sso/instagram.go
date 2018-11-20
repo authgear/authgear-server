@@ -29,7 +29,7 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 	for k, o := range params.Options {
 		v.Add(k, fmt.Sprintf("%v", o))
 	}
-	v.Add("scope", strings.Join(params.Scope, " "))
+	v.Add("scope", strings.Join(GetScope(params.Scope, f.Config.Scope), " "))
 	// Instagram non-compliance fix
 	// if we don't put state as the last parameter
 	// instagram will convert the state value to lower case

@@ -130,4 +130,43 @@ func TestLoginAuthURLHandler(t *testing.T) {
 		So(claims.State.Action, ShouldEqual, "login")
 		So(claims.State.UserID, ShouldEqual, "faseng.cat.id")
 	})
+
+	Convey("should use default scope when param scope is empty", t, func() {
+		h := &LoginAuthURLHandler{}
+		h.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		setting := sso.Setting{
+			URLPrefix:      "http://localhost:3000",
+			StateJWTSecret: "secret",
+		}
+		config := sso.Config{
+			Name:         "mock",
+			Enabled:      true,
+			ClientID:     "mock_client_id",
+			ClientSecret: "mock_client_secret",
+			Scope: []string{
+				"openid",
+				"profile",
+				"email",
+			},
+		}
+		mockProvider := sso.MockSSOProverImpl{
+			BaseURL: "http://mock/auth",
+			Setting: setting,
+			Config:  config,
+		}
+		h.Provider = &mockProvider
+
+		payload := LoginAuthURLRequestPayload{
+			CallbackURL: "callbackURL",
+			UXMode:      sso.WebRedirect,
+		}
+		resp, err := h.Handle(payload)
+		So(resp, ShouldNotBeNil)
+		So(err, ShouldBeNil)
+
+		// check querys
+		u, _ := url.Parse(resp.(string))
+		q := u.Query()
+		So(q.Get("scope"), ShouldEqual, "openid profile email")
+	})
 }
