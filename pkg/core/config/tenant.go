@@ -59,11 +59,11 @@ type WelcomeEmailConfiguration struct {
 }
 
 type SSOSetting struct {
-	URLPrefix            string   `msg:"URL_PREFIX" envconfig:"SSO_SETTING_URL_PREFIX" json:"URL_PREFIX"`
-	JSSDKCDNURL          string   `msg:"JS_SDK_CDN_URL" envconfig:"SSO_SETTING_JS_SDK_CDN_URL" json:"JS_SDK_CDN_URL"`
-	StateJWTSecret       string   `msg:"STATE_JWT_SECRET" envconfig:"SSO_SETTING_STATE_JET_SECRET" json:"STATE_JWT_SECRET"`
-	AutoLinkProviderKeys []string `msg:"AUTO_LINK_PROVIDER_KEYS" envconfig:"SSO_SETTING_AUTO_LINK_PROVIDER_KEYS" json:"AUTO_LINK_PROVIDER_KEYS"`
-	AllowedCallbackURLs  []string `msg:"ALLOWED_CALLBACK_URLS" envconfig:"SSO_SETTING_ALLOWED_CALLBACK_URLS" json:"ALLOWED_CALLBACK_URLS"`
+	URLPrefix            string   `msg:"URL_PREFIX" envconfig:"SSO_URL_PRRFIX" json:"URL_PREFIX"`
+	JSSDKCDNURL          string   `msg:"JS_SDK_CDN_URL" envconfig:"SSO_JS_SDK_CDN_URL" json:"JS_SDK_CDN_URL"`
+	StateJWTSecret       string   `msg:"STATE_JWT_SECRET" envconfig:"SSO_STATE_JWT_SECRET" json:"STATE_JWT_SECRET"`
+	AutoLinkProviderKeys []string `msg:"AUTO_LINK_PROVIDER_KEYS" envconfig:"SSO_AUTO_LINK_PROVIDER_KEYS" json:"AUTO_LINK_PROVIDER_KEYS"`
+	AllowedCallbackURLs  []string `msg:"ALLOWED_CALLBACK_URLS" envconfig:"SSO_ALLOWED_CALLBACK_URLS" json:"ALLOWED_CALLBACK_URLS"`
 }
 
 type SSOConfiguration struct {
@@ -132,9 +132,15 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error) {
 	c := TenantConfiguration{}
 	err := envconfig.Process("", &c)
+	c.SSOSetting = appendSSOSetting()
 	c.SSOConfigs = appendSSOConfigs()
 
 	return c, err
+}
+
+func appendSSOSetting() (setting SSOSetting) {
+	envconfig.Process("", &setting)
+	return
 }
 
 func appendSSOConfigs() []SSOConfiguration {
