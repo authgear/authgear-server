@@ -29,15 +29,14 @@ func BaseURL(providerName string) (u string) {
 	return
 }
 
-// ToEncodedState encodes state for login_auth_url
-func ToEncodedState(secret string, params GetURLParams) (string, error) {
-	state := State{
+// NewState constructs a new state
+func NewState(params GetURLParams) State {
+	return State{
 		UXMode:      params.UXMode.String(),
 		CallbackURL: params.CallbackURL,
 		Action:      params.Action,
 		UserID:      params.UserID,
 	}
-	return EncodeState(secret, state)
 }
 
 // EncodeState encodes state by JWT

@@ -1,12 +1,6 @@
 package sso
 
-import (
-	"fmt"
-	"net/url"
-	"strings"
-
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
-)
+import "github.com/skygeario/skygear-server/pkg/server/skyerr"
 
 type GoogleImpl struct {
 	Setting Setting
@@ -18,20 +12,17 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
 		return "", skyErr
 	}
-	encodedState, err := ToEncodedState(f.Setting.StateJWTSecret, params)
-	if err != nil {
-		return "", err
+	params.Options["access_type"] = "offline"
+	params.Options["prompt"] = "select_account"
+	p := authURLParams{
+		prividerName:   f.Config.Name,
+		clientID:       f.Config.ClientID,
+		urlPrefix:      f.Setting.URLPrefix,
+		scope:          GetScope(params.Scope, f.Config.Scope),
+		options:        params.Options,
+		stateJWTSecret: f.Setting.StateJWTSecret,
+		state:          NewState(params),
+		baseURL:        BaseURL(f.Config.Name),
 	}
-	v := url.Values{}
-	v.Set("response_type", "code")
-	v.Add("client_id", f.Config.ClientID)
-	v.Add("redirect_uri", RedirectURI(f.Setting.URLPrefix, f.Config.Name))
-	v.Add("state", encodedState)
-	v.Add("scope", strings.Join(GetScope(params.Scope, f.Config.Scope), " "))
-	v.Add("access_type", "offline")
-	v.Add("prompt", "select_account")
-	for k, o := range params.Options {
-		v.Add(k, fmt.Sprintf("%v", o))
-	}
-	return BaseURL(f.Config.Name) + "?" + v.Encode(), nil
+	return authURL(p)
 }

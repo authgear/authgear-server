@@ -18,7 +18,7 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
 		return "", skyErr
 	}
-	encodedState, err := ToEncodedState(f.Setting.StateJWTSecret, params)
+	encodedState, err := EncodeState(f.Setting.StateJWTSecret, NewState(params))
 	if err != nil {
 		return "", err
 	}
