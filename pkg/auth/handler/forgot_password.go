@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -164,9 +165,21 @@ func (f ForgotPasswordTestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type ForgotPasswordTestPayload struct {
+	Email        string `json:"email"`
+	TextTemplate string `json:"text_template"`
+	HTMLTemplate string `json:"html_template"`
+	Subject      string `json:"subject"`
+	Sender       string `json:"sender"`
+	ReplyTo      string `json:"reply_to"`
+	SenderName   string `json:"sender_name"`
+	ReplyToName  string `json:"reply_to_name"`
 }
 
 func (payload ForgotPasswordTestPayload) Validate() error {
+	if payload.Email == "" {
+		return skyerr.NewInvalidArgument("empty email", []string{"email"})
+	}
+
 	return nil
 }
 
@@ -186,6 +199,7 @@ func (payload ForgotPasswordTestPayload) Validate() error {
 //  }
 //  EOF
 type ForgotPasswordTestHandler struct {
+	ForgotPasswordEmailSender welcemail.TestSender `dependency:"TestForgotPasswordEmailSender"`
 }
 
 func (h ForgotPasswordTestHandler) WithTx() bool {
@@ -203,5 +217,19 @@ func (h ForgotPasswordTestHandler) DecodeRequest(request *http.Request) (handler
 }
 
 func (h ForgotPasswordTestHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(ForgotPasswordTestPayload)
+	if err = h.ForgotPasswordEmailSender.Send(
+		payload.Email,
+		payload.TextTemplate,
+		payload.HTMLTemplate,
+		payload.Subject,
+		payload.Sender,
+		payload.ReplyTo,
+		payload.SenderName,
+		payload.ReplyToName,
+	); err == nil {
+		resp = "OK"
+	}
+
 	return
 }
