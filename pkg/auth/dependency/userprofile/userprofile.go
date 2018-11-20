@@ -51,9 +51,16 @@ func (u UserProfile) MarshalJSON() ([]byte, error) {
 func (u UserProfile) ToMap() map[string]interface{} {
 	var metaJSON, _ = json.Marshal(u.Meta)
 	var dataJSON, _ = json.Marshal(u.Data)
-	var result map[string]interface{}
-	json.Unmarshal(metaJSON, &result)
-	json.Unmarshal(dataJSON, &result)
+	var metaMap map[string]interface{}
+	json.Unmarshal(metaJSON, &metaMap)
+	var dataMap map[string]interface{}
+	json.Unmarshal(dataJSON, &dataMap)
+
+	// Merge meta and data into one map
+	var result = metaMap
+	for k, v := range dataMap {
+		metaMap[k] = v
+	}
 	return result
 }
 
