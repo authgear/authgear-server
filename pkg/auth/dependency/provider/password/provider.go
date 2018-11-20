@@ -218,6 +218,48 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 	return
 }
 
+func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
+	builder := p.sqlBuilder.Select("auth_data", "principal_id", "password").
+		From(p.sqlBuilder.FullTableName("provider_password")).
+		Where(`auth_data->>'email' = ?`, email)
+	rows, err := p.sqlExecutor.QueryWith(builder)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var principal Principal
+		if err = rows.Scan(
+			&principal.AuthData,
+			&principal.ID,
+			&principal.HashedPassword,
+		); err != nil {
+			return
+		}
+
+		principals = append(principals, &principal)
+	}
+
+	for _, principal := range principals {
+		builder = p.sqlBuilder.Select("user_id").
+			From(p.sqlBuilder.FullTableName("principal")).
+			Where("id = ? AND provider = 'password'", principal.ID)
+		scanner := p.sqlExecutor.QueryRowWith(builder)
+		err = scanner.Scan(&principal.UserID)
+
+		if err == sql.ErrNoRows {
+			p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
+			err = skydb.ErrUserNotFound
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return
+}
+
 func (p providerImpl) UpdatePrincipal(principal Principal) (err error) {
 	// TODO: log
 
