@@ -17,11 +17,19 @@ var (
 	}
 )
 
+// CustomCliams is the type for jwt encoded
+type CustomCliams struct {
+	State
+	jwt.StandardClaims
+}
+
+// BaseURL returns base URL by provider name
 func BaseURL(providerName string) (u string) {
 	u = BaseURLs[providerName]
 	return
 }
 
+// ToEncodedState encodes state for login_auth_url
 func ToEncodedState(secret string, params GetURLParams) (string, error) {
 	state := State{
 		UXMode:      params.UXMode.String(),
@@ -34,11 +42,7 @@ func ToEncodedState(secret string, params GetURLParams) (string, error) {
 
 // EncodeState encodes state by JWT
 func EncodeState(secret string, state State) (string, error) {
-	type SSOCustomCliams struct {
-		State
-		jwt.StandardClaims
-	}
-	claims := SSOCustomCliams{
+	claims := CustomCliams{
 		state,
 		jwt.StandardClaims{},
 	}
