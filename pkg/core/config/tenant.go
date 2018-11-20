@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/kelseyhightower/envconfig"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso" // tolerant nextimportslint: auth
 )
 
 // TenantConfiguration is a mock struct of tenant configuration
@@ -145,12 +146,7 @@ func appendSSOSetting() (setting SSOSetting) {
 
 func appendSSOConfigs() []SSOConfiguration {
 	configs := make([]SSOConfiguration, 0)
-	SSOProviderNames := []string{
-		"google",
-		"facebook",
-		"instagram",
-		"linkedin",
-	}
+	SSOProviderNames := sso.ProviderNames()
 	for _, name := range SSOProviderNames {
 		config := SSOConfiguration{
 			Name: name,

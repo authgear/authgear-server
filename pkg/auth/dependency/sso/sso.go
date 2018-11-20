@@ -91,6 +91,16 @@ type Provider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
 }
 
+// ProviderNames return current supported providers
+func ProviderNames() []string {
+	return []string{
+		"google",
+		"facebook",
+		"instagram",
+		"linkedin",
+	}
+}
+
 // NewProvider is the provider factory
 func NewProvider(
 	setting Setting,
