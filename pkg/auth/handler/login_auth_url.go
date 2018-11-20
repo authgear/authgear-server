@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -38,13 +39,8 @@ func (f LoginAuthURLHandlerFactory) NewHandler(request *http.Request) http.Handl
 
 	vars := mux.Vars(request)
 	h.ProviderName = vars["provider"]
-	providers := map[string]sso.Provider{
-		"google":    h.GoogleProvider,
-		"facebook":  h.FacebookProvider,
-		"instagram": h.InstagramProvider,
-		"linkedin":  h.LinkedInProvider,
-	}
-	if provider, ok := providers[h.ProviderName]; ok {
+	providerDependencyName := strings.Title(h.ProviderName) + "SSOProvider"
+	if provider, ok := f.Dependency.Provide(providerDependencyName, request).(sso.Provider); ok {
 		h.Provider = provider
 	}
 
@@ -100,14 +96,10 @@ func (p LoginAuthURLRequestPayload) Validate() error {
 //     "result": "<auth_url>"
 // }
 type LoginAuthURLHandler struct {
-	TxContext         db.TxContext           `dependency:"TxContext"`
-	GoogleProvider    sso.Provider           `dependency:"GoogleSSOProvider,optional"`
-	FacebookProvider  sso.Provider           `dependency:"FacebookSSOProvider,optional"`
-	InstagramProvider sso.Provider           `dependency:"InstagramSSOProvider,optional"`
-	LinkedInProvider  sso.Provider           `dependency:"LinkedInSSOProvider,optional"`
-	AuthContext       coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	ProviderName      string
-	Provider          sso.Provider
+	TxContext    db.TxContext           `dependency:"TxContext"`
+	AuthContext  coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	ProviderName string
+	Provider     sso.Provider
 }
 
 func (h LoginAuthURLHandler) WithTx() bool {
