@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -62,7 +63,8 @@ func main() {
 		},
 	}.Handle)
 	gr.Use(middleware.TenantAuthzMiddleware{
-		Store: store,
+		Store:        store,
+		RouterConfig: config.Router,
 	}.Handle)
 
 	gr.HandleFunc("/{rest:.*}", rewriteHandler(proxy))
@@ -87,7 +89,12 @@ func main() {
 func NewReverseProxy() *httputil.ReverseProxy {
 	director := func(req *http.Request) {
 		path := req.URL.Path
-		req.URL = config.Router.GetRouterMap()[req.Header.Get("X-Skygear-Gear")]
+		var err error
+		u, err := url.Parse(req.Header.Get("X-Skygear-Gear-Endpoint"))
+		if err != nil {
+			panic(err)
+		}
+		req.URL = u
 		req.URL.Path = path
 	}
 	return &httputil.ReverseProxy{Director: director}
@@ -95,7 +102,6 @@ func NewReverseProxy() *httputil.ReverseProxy {
 
 func rewriteHandler(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.Header.Set("X-Skygear-Gear", mux.Vars(r)["gear"])
 		r.URL.Path = "/" + mux.Vars(r)["rest"]
 		p.ServeHTTP(w, r)
 	}

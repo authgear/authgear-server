@@ -1,12 +1,13 @@
 package config
 
 import (
-	"net/url"
+	"errors"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/skygeario/skygear-server/pkg/core/logging"
+	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
 // Configuration is gateway startup configuration
@@ -28,26 +29,46 @@ func (c *Configuration) ReadFromEnv() error {
 			"Error in loading .env file, continue without .env")
 	}
 	err := envconfig.Process("", c)
+	if err != nil {
+		return err
+	}
+
+	err = envconfig.Process("", &c.Router)
 	return err
+}
+
+type GearURLConfig struct {
+	Live     string `envconfig:"LIVE_URL"`
+	Previous string `envconfig:"PREVIOUS_URL"`
+	Nightly  string `envconfig:"NIGHTLY_URL"`
 }
 
 // RouterConfig contain gears url
 type RouterConfig struct {
-	AuthGearURL   string `envconfig:"AUTH_GEAR_URL" required:"true"`
-	RecordGearURL string `envconfig:"RECORD_GEAR_URL"`
-
-	routerMap map[string]*url.URL `ignored:"true"`
+	Auth   GearURLConfig `envconfig:"AUTH"`
+	Record GearURLConfig `envconfig:"RECORD"`
 }
 
-// GetRouterMap provide router map from RouterConfig
-func (r *RouterConfig) GetRouterMap() map[string]*url.URL {
-	if r.routerMap == nil {
-		auth, _ := url.Parse(r.AuthGearURL)
-		record, _ := url.Parse(r.RecordGearURL)
-		r.routerMap = map[string]*url.URL{
-			"auth":   auth,
-			"record": record,
-		}
+// GetGearURL provide router map from RouterConfig
+func (r *RouterConfig) GetGearURL(gear model.Gear, version model.GearVersion) (string, error) {
+	var g GearURLConfig
+	switch gear {
+	case model.AuthGear:
+		g = r.Auth
+	case model.RecordGear:
+		g = r.Record
+	default:
+		return "", errors.New("invalid gear")
 	}
-	return r.routerMap
+
+	switch version {
+	case model.LiveVersion:
+		return g.Live, nil
+	case model.PreviousVersion:
+		return g.Previous, nil
+	case model.NightlyVersion:
+		return g.Nightly, nil
+	default:
+		return "", errors.New("gear is suspended")
+	}
 }
