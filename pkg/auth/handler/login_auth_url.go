@@ -3,12 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
+	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 
-	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -36,14 +35,8 @@ type LoginAuthURLHandlerFactory struct {
 func (f LoginAuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginAuthURLHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
-
 	vars := mux.Vars(request)
 	h.ProviderName = vars["provider"]
-	providerDependencyName := strings.Title(h.ProviderName) + "SSOProvider"
-	if provider, ok := f.Dependency.Provide(providerDependencyName, request).(sso.Provider); ok {
-		h.Provider = provider
-	}
-
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
@@ -98,8 +91,8 @@ func (p LoginAuthURLRequestPayload) Validate() error {
 type LoginAuthURLHandler struct {
 	TxContext    db.TxContext           `dependency:"TxContext"`
 	AuthContext  coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	Provider     sso.Provider           `dependency:"SSOProvider,optional"`
 	ProviderName string
-	Provider     sso.Provider
 }
 
 func (h LoginAuthURLHandler) WithTx() bool {

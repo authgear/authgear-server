@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	"github.com/sirupsen/logrus"
@@ -133,9 +134,9 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	case "TestWelcomeEmailSender":
 		tConfig := config.GetTenantConfig(r)
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
-	case "GoogleSSOProvider", "FacebookSSOProvider", "InstagramSSOProvider", "LinkedInSSOProvider":
-		lowerDependencyName := strings.ToLower(dependencyName)
-		providerName := strings.Replace(lowerDependencyName, "ssoprovider", "", 1)
+	case "SSOProvider":
+		vars := mux.Vars(r)
+		providerName := vars["provider"]
 		tConfig := config.GetTenantConfig(r)
 		SSOConf := tConfig.GetSSOConfigByName(providerName)
 		SSOSetting := tConfig.SSOSetting
