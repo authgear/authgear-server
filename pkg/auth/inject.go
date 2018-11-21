@@ -42,9 +42,13 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	case "AuthInfoStore":
 		tConfig := config.GetTenantConfig(r)
 		return coreAuth.NewDefaultAuthInfoStore(r.Context(), tConfig)
+	case "AuthDataKeys":
+		// TODO:
+		// from tConfig
+		return [][]string{[]string{"email"}, []string{"username"}}
 	case "AuthDataChecker":
 		return &dependency.DefaultAuthDataChecker{
-			//TODO:
+			// TODO:
 			// from tConfig
 			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
 		}

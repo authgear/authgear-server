@@ -109,6 +109,7 @@ func (p SignupRequestPayload) mergedProfile() map[string]interface{} {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
+	AuthDataKeys          [][]string                 `dependency:"AuthDataKeys"`
 	AuthDataChecker       dependency.AuthDataChecker `dependency:"AuthDataChecker"`
 	PasswordChecker       dependency.PasswordChecker `dependency:"PasswordChecker"`
 	UserProfileStore      userprofile.Store          `dependency:"UserProfileStore"`
@@ -243,17 +244,24 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 	return
 }
 
-func (h SignupHandler) createPrincipal(payload SignupRequestPayload, info authinfo.AuthInfo) (err error) {
+func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (err error) {
 	if !payload.isAnonymous() {
-		principal := password.NewPrincipal()
-		principal.UserID = info.ID
-		principal.AuthData = payload.AuthData
-		principal.PlainPassword = payload.Password
+		authDataList := password.NewUniqueAuthData(h.AuthDataKeys, payload.AuthData)
 
-		err = h.PasswordAuthProvider.CreatePrincipal(principal)
+		for _, a := range authDataList {
+			principal := password.NewPrincipal()
+			principal.UserID = authInfo.ID
+			principal.AuthData = a
+			principal.PlainPassword = payload.Password
+			err = h.PasswordAuthProvider.CreatePrincipal(principal)
+
+			if err != nil {
+				return
+			}
+		}
 	} else {
 		principal := anonymous.NewPrincipal()
-		principal.UserID = info.ID
+		principal.UserID = authInfo.ID
 
 		err = h.AnonymousAuthProvider.CreatePrincipal(principal)
 	}
