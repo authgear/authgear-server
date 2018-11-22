@@ -208,17 +208,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	})
 
 	if h.WelcomeEmailSendTask != nil {
-		if email, ok := userProfile.Data["email"].(string); ok {
-			select {
-			case h.WelcomeEmailSendTask.Request <- welcemail.SendTaskRequest{
-				Email:       email,
-				UserProfile: userProfile,
-				Logger:      h.Logger,
-			}:
-			default:
-				panic("unexpcted send welcome email request no receiver")
-			}
-		}
+		h.sendWelcomeEmail(userProfile)
 	}
 
 	return
@@ -258,4 +248,18 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, info authin
 	}
 
 	return
+}
+
+func (h SignupHandler) sendWelcomeEmail(userProfile userprofile.UserProfile) {
+	if email, ok := userProfile.Data["email"].(string); ok {
+		select {
+		case h.WelcomeEmailSendTask.Request <- welcemail.SendTaskRequest{
+			Email:       email,
+			UserProfile: userProfile,
+			Logger:      h.Logger,
+		}:
+		default:
+			panic("unexpcted send welcome email request no receiver")
+		}
+	}
 }
