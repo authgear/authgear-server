@@ -20,6 +20,13 @@ func NewPrincipal() Principal {
 	}
 }
 
+// NewUniqueAuthData converts authData by a list of authData depending on authRecordKeys
+// example 1: authRecordKeys = username, email
+// - if authData is { "username": "john.doe" }, output is [{ "username": "john.doe" }]
+// - if authData is { "username": "john.doe", "email": "john.doe@example.com" }, output is [{ "username": "john.doe" }, { "email": "john.doe@example.com" }]
+// example 2: authRecordKeys = (username, nickname), email
+// - if authData is { "username": "john.doe", "email": "john.doe@example.com", "nickname": "john.doe" },
+// output is [{ "username": "john.doe", "nickname": "john.doe" }, { "email": "john.doe@example.com" }]
 func NewUniqueAuthData(authRecordKeys [][]string, authData map[string]interface{}) []map[string]interface{} {
 	outputs := make([]map[string]interface{}, 0)
 
