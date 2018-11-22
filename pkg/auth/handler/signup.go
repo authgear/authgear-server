@@ -246,7 +246,7 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 
 func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (err error) {
 	if !payload.isAnonymous() {
-		authDataList := password.NewUniqueAuthData(h.AuthDataKeys, payload.AuthData)
+		authDataList := password.ToValidAuthDataList(h.AuthDataKeys, payload.AuthData)
 
 		for _, a := range authDataList {
 			principal := password.NewPrincipal()

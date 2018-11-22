@@ -173,7 +173,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 func (h LoginHandler) getPrincipal(pwd string, authData map[string]interface{}) (principal password.Principal, err error) {
 	// principal will be the last principal of the user
-	authDataList := password.NewUniqueAuthData(h.AuthDataKeys, authData)
+	authDataList := password.ToValidAuthDataList(h.AuthDataKeys, authData)
 	for _, authData := range authDataList {
 		err = h.PasswordAuthProvider.GetPrincipalByAuthData(authData, &principal)
 		if err != nil {
