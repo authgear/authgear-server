@@ -68,20 +68,28 @@ func TestLoginHandler(t *testing.T) {
 		)
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			map[string]password.Principal{
-				"john.doe.principal.id": password.Principal{
-					ID:     "john.doe.principal.id",
+				"john.doe.principal.id0": password.Principal{
+					ID:     "john.doe.principal.id0",
 					UserID: "john.doe.id",
 					AuthData: map[string]interface{}{
 						"username": "john.doe",
-						"email":    "john.doe@example.com",
+					},
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"john.doe.principal.id1": password.Principal{
+					ID:     "john.doe.principal.id1",
+					UserID: "john.doe.id",
+					AuthData: map[string]interface{}{
+						"email": "john.doe@example.com",
 					},
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
 		)
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
+		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
 		authChecker := &dependency.DefaultAuthDataChecker{
-			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
+			AuthRecordKeys: authRecordKeys,
 		}
 
 		h := &LoginHandler{}
@@ -91,6 +99,7 @@ func TestLoginHandler(t *testing.T) {
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
+		h.AuthDataKeys = authRecordKeys
 
 		Convey("login user with auth data", func() {
 			authData := map[string]interface{}{
@@ -122,6 +131,19 @@ func TestLoginHandler(t *testing.T) {
 			tokenStore.Get(tokenStr, &token)
 			So(token.AuthInfoID, ShouldEqual, userID)
 			So(!token.IsExpired(), ShouldBeTrue)
+		})
+
+		Convey("should login successfully only provides partial auth data keys", func() {
+			authData := map[string]interface{}{
+				"username": "john.doe",
+			}
+			payload := LoginRequestPayload{
+				AuthData: authData,
+				Password: "123456",
+			}
+
+			_, err := h.Handle(payload)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("login user with incorrect password", func() {

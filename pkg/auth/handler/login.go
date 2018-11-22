@@ -69,6 +69,7 @@ func (p LoginRequestPayload) Validate() error {
 
 // LoginHandler handles login request
 type LoginHandler struct {
+	AuthDataKeys         [][]string                 `dependency:"AuthDataKeys"`
 	AuthDataChecker      dependency.AuthDataChecker `dependency:"AuthDataChecker"`
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
@@ -118,20 +119,8 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	principal := password.Principal{}
-	err = h.PasswordAuthProvider.GetPrincipalByAuthData(payload.AuthData, &principal)
+	principal, err := h.getPrincipal(payload.Password, payload.AuthData)
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-			return
-		}
-		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("auth_data", payload.AuthData)
-		return
-	}
-
-	if !principal.IsSamePassword(payload.Password) {
-		err = skyerr.NewError(skyerr.InvalidCredentials, "auth_data or password incorrect")
 		return
 	}
 
@@ -177,6 +166,30 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if err = h.AuthInfoStore.UpdateAuth(&fetchedAuthInfo); err != nil {
 		err = skyerr.MakeError(err)
 		return
+	}
+
+	return
+}
+
+func (h LoginHandler) getPrincipal(pwd string, authData map[string]interface{}) (principal password.Principal, err error) {
+	// principal will be the last principal of the user
+	authDataList := password.NewUniqueAuthData(h.AuthDataKeys, authData)
+	for _, authData := range authDataList {
+		err = h.PasswordAuthProvider.GetPrincipalByAuthData(authData, &principal)
+		if err != nil {
+			if err == skydb.ErrUserNotFound {
+				err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+				return
+			}
+			// TODO: more error handling here if necessary
+			err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
+			return
+		}
+
+		if !principal.IsSamePassword(pwd) {
+			err = skyerr.NewError(skyerr.InvalidCredentials, "auth_data or password incorrect")
+			return
+		}
 	}
 
 	return
