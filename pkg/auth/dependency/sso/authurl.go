@@ -28,8 +28,6 @@ func authURL(params authURLParams) (string, error) {
 	v.Add("redirect_uri", RedirectURI(params.urlPrefix, params.prividerName))
 	v.Add("state", encodedState)
 	v.Add("scope", strings.Join(params.scope, " "))
-	v.Add("access_type", "offline")
-	v.Add("prompt", "select_account")
 	for k, o := range params.options {
 		v.Add(k, fmt.Sprintf("%v", o))
 	}
