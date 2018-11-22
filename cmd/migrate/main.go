@@ -48,7 +48,8 @@ func main() {
 		databaseURL,
 		filePath,
 		dryRun,
-		flag.Args(),
+		flag.Arg(0),
+		flag.Arg(1),
 	)
 
 	if err != nil {

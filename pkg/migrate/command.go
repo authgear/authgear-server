@@ -12,7 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/migrate/database/postgres"
 )
 
-func Run(module string, schema string, databaseURL string, sourceURL string, dryRun bool, commandArgs []string) (err error) {
+func Run(module string, schema string, databaseURL string, sourceURL string, dryRun bool, command string, commandArg string) (err error) {
 	if schema == "" {
 		err = errors.New("missing schema")
 		return
@@ -60,22 +60,14 @@ func Run(module string, schema string, databaseURL string, sourceURL string, dry
 		return
 	}
 
-	var arg0, arg1 string
-	if len(commandArgs) > 1 {
-		arg1 = commandArgs[1]
-	}
-	if len(commandArgs) > 0 {
-		arg0 = commandArgs[0]
-	}
-
-	err = runCommand(m, arg0, arg1)
+	err = runCommand(m, command, commandArg)
 	return
 }
 
-func runCommand(m *migrate.Migrate, arg0 string, arg1 string) (err error) {
-	switch arg0 {
+func runCommand(m *migrate.Migrate, command string, commandArg string) (err error) {
+	switch command {
 	case "up":
-		step, e := getStep(arg1)
+		step, e := getStep(commandArg)
 		if e != nil {
 			err = e
 			return
@@ -87,7 +79,7 @@ func runCommand(m *migrate.Migrate, arg0 string, arg1 string) (err error) {
 			err = m.Steps(step)
 		}
 	case "down":
-		step, e := getStep(arg1)
+		step, e := getStep(commandArg)
 		if e != nil {
 			err = e
 			return
@@ -99,7 +91,7 @@ func runCommand(m *migrate.Migrate, arg0 string, arg1 string) (err error) {
 			err = m.Steps(-step)
 		}
 	case "force":
-		v, e := strconv.ParseInt(arg1, 10, 64)
+		v, e := strconv.ParseInt(commandArg, 10, 64)
 		if e != nil {
 			err = e
 			return
