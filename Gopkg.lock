@@ -84,6 +84,14 @@
   revision = "217e25fb96916cc60332e399c9aa63f5c422ceed"
 
 [[projects]]
+  digest = "1:9fdd67ccb34e94602b72547c9943981458e76ba8eb6e43a5876a48dc7af1e5cb"
+  name = "github.com/flosch/pongo2"
+  packages = ["."]
+  pruneopts = ""
+  revision = "5e81b817a0c48c1c57cdf1a9056cf76bdee02ca9"
+  version = "v3.0"
+
+[[projects]]
   digest = "1:3ad34cc6c4c4e20a1baa51379b0161b57f91864b5b9c7885734bcd8c8ba12c56"
   name = "github.com/fluent/fluent-logger-golang"
   packages = ["fluent"]
@@ -573,6 +581,7 @@
     "github.com/evalphobia/logrus_sentry",
     "github.com/facebookgo/inject",
     "github.com/facebookgo/structtag",
+    "github.com/flosch/pongo2",
     "github.com/franela/goreq",
     "github.com/garyburd/redigo/redis",
     "github.com/go-gomail/gomail",

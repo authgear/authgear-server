@@ -1,6 +1,8 @@
 package welcemail
 
 import (
+	"errors"
+
 	"github.com/go-gomail/gomail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -12,18 +14,44 @@ type Sender interface {
 }
 
 type DefaultSender struct {
-	Config config.WelcomeEmailConfiguration
-	Dialer *gomail.Dialer
+	AppName string
+	Config  config.WelcomeEmailConfiguration
+	Dialer  *gomail.Dialer
 }
 
-func NewDefaultSender(config config.WelcomeEmailConfiguration, dialer *gomail.Dialer) Sender {
+func NewDefaultSender(config config.TenantConfiguration, dialer *gomail.Dialer) Sender {
 	return &DefaultSender{
-		Config: config,
-		Dialer: dialer,
+		AppName: config.AppName,
+		Config:  config.WelcomeEmail,
+		Dialer:  dialer,
 	}
 }
 
-func (d *DefaultSender) Send(email string, userProfile userprofile.UserProfile) error {
+func (d *DefaultSender) Send(email string, userProfile userprofile.UserProfile) (err error) {
+	if d.Config.TextURL == "" {
+		return errors.New("welcome email text template url is empty")
+	}
+
+	context := map[string]interface{}{
+		"appname": d.AppName,
+		"email":   email,
+		"user_id": userProfile.ID,
+		"user":    userProfile.ToMap(),
+		// TODO: url prefix
+	}
+
+	var textBody string
+	if textBody, err = parseTextTemplateFromURL(d.Config.TextURL, context); err != nil {
+		return
+	}
+
+	var htmlBody string
+	if d.Config.HTMLURL != "" {
+		if htmlBody, err = parseHTMLTemplateFromURL(d.Config.HTMLURL, context); err != nil {
+			return
+		}
+	}
+
 	sendReq := mail.SendRequest{
 		Dialer:      d.Dialer,
 		Sender:      d.Config.Sender,
@@ -32,11 +60,10 @@ func (d *DefaultSender) Send(email string, userProfile userprofile.UserProfile) 
 		Subject:     d.Config.Subject,
 		ReplyTo:     d.Config.ReplyTo,
 		ReplyToName: d.Config.ReplyToName,
-		// TODO: read email text body from template
-		TextBody: "TODO",
-		// TODO: read email html body from template
-		HTMLBody: "<h1>TODO</h1>",
+		TextBody:    textBody,
+		HTMLBody:    htmlBody,
 	}
 
-	return sendReq.Execute()
+	err = sendReq.Execute()
+	return
 }

@@ -45,12 +45,16 @@ type Store interface {
 }
 
 func (u UserProfile) MarshalJSON() ([]byte, error) {
+	return json.Marshal(u.ToMap())
+}
+
+func (u UserProfile) ToMap() map[string]interface{} {
 	var metaJSON, _ = json.Marshal(u.Meta)
 	var dataJSON, _ = json.Marshal(u.Data)
 	var result map[string]interface{}
 	json.Unmarshal(metaJSON, &result)
 	json.Unmarshal(dataJSON, &result)
-	return json.Marshal(result)
+	return result
 }
 
 func (u *UserProfile) UnmarshalJSON(b []byte) error {
