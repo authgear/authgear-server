@@ -118,43 +118,53 @@ func (p providerImpl) GetPrincipalByAuthData(authData map[string]interface{}, pr
 	return
 }
 
-func (p providerImpl) GetPrincipalByUserID(userID string, principal *Principal) (err error) {
+func (p providerImpl) GetPrincipalByUserID(userID string) (principals []*Principal, err error) {
 	builder := p.sqlBuilder.Select("id", "user_id").
 		From(p.sqlBuilder.FullTableName("principal")).
 		Where("user_id = ? AND provider = 'password'", userID)
-	scanner := p.sqlExecutor.QueryRowWith(builder)
-	err = scanner.Scan(
-		&principal.ID,
-		&principal.UserID,
-	)
-
-	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
-	}
-
+	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return
 	}
+	defer rows.Close()
 
-	builder = p.sqlBuilder.Select("auth_data", "password").
-		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`principal_id = ?`, principal.ID)
-	scanner = p.sqlExecutor.QueryRowWith(builder)
-	var authDataBytes []byte
-	err = scanner.Scan(
-		&authDataBytes,
-		&principal.HashedPassword,
-	)
+	for rows.Next() {
+		var principal Principal
+		if err := rows.Scan(
+			&principal.ID,
+			&principal.UserID,
+		); err != nil {
+			panic(err)
+		}
 
-	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
+		principals = append(principals, &principal)
 	}
 
-	if err != nil {
-		return
-	}
+	for _, principal := range principals {
+		builder = p.sqlBuilder.Select("auth_data", "password").
+			From(p.sqlBuilder.FullTableName("provider_password")).
+			Where(`principal_id = ?`, principal.ID)
+		scanner := p.sqlExecutor.QueryRowWith(builder)
+		var authDataBytes []byte
+		err = scanner.Scan(
+			&authDataBytes,
+			&principal.HashedPassword,
+		)
 
-	err = json.Unmarshal(authDataBytes, &principal.AuthData)
+		if err == sql.ErrNoRows {
+			err = skydb.ErrUserNotFound
+		}
+
+		if err != nil {
+			return
+		}
+
+		err = json.Unmarshal(authDataBytes, &principal.AuthData)
+
+		if err != nil {
+			return
+		}
+	}
 
 	return
 }
