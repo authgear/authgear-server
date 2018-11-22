@@ -256,14 +256,14 @@ func runesLastIndex(input []rune, target rune) int {
 }
 
 func (p *Postgres) SetVersion(version int, dirty bool) error {
-	query := `TRUNCATE "` + p.config.MigrationsTable + `"`
+	query := `TRUNCATE ` + pq.QuoteIdentifier(p.config.MigrationsTable)
 	if _, err := p.tx.Exec(query); err != nil {
 		p.tx.Rollback()
 		return &database.Error{OrigErr: err, Query: []byte(query)}
 	}
 
 	if version >= 0 {
-		query = `INSERT INTO "` + p.config.MigrationsTable + `" (version, dirty) VALUES ($1, $2)`
+		query = `INSERT INTO ` + pq.QuoteIdentifier(p.config.MigrationsTable) + ` (version, dirty) VALUES ($1, $2)`
 		if _, err := p.tx.Exec(query, version, dirty); err != nil {
 			p.tx.Rollback()
 			return &database.Error{OrigErr: err, Query: []byte(query)}
@@ -274,7 +274,7 @@ func (p *Postgres) SetVersion(version int, dirty bool) error {
 }
 
 func (p *Postgres) Version() (version int, dirty bool, err error) {
-	query := `SELECT version, dirty FROM "` + p.config.MigrationsTable + `" LIMIT 1`
+	query := `SELECT version, dirty FROM ` + pq.QuoteIdentifier(p.config.MigrationsTable) + ` LIMIT 1`
 	err = p.tx.QueryRowContext(context.Background(), query).Scan(&version, &dirty)
 	switch {
 	case err == sql.ErrNoRows:
@@ -342,7 +342,7 @@ func (p *Postgres) ensureVersionTable() error {
 	}
 
 	// if not, create the empty migration table
-	query = `CREATE TABLE "` + p.config.MigrationsTable + `" (version bigint not null primary key, dirty boolean not null)`
+	query = `CREATE TABLE ` + pq.QuoteIdentifier(p.config.MigrationsTable) + ` (version bigint not null primary key, dirty boolean not null)`
 	if _, err := p.tx.ExecContext(context.Background(), query); err != nil {
 		return &database.Error{OrigErr: err, Query: []byte(query)}
 	}

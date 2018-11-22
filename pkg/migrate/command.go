@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/golang-migrate/migrate"
+	"github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/migrate/database/postgres"
@@ -40,7 +41,7 @@ func Run(module string, schema string, databaseURL string, sourceURL string, dry
 		return
 	}
 
-	_, err = db.Exec(fmt.Sprintf("SET search_path TO %s", schema))
+	_, err = db.Exec(fmt.Sprintf("SET search_path TO %s", pq.QuoteIdentifier(schema)))
 	if err != nil {
 		return
 	}
