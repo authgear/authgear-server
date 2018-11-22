@@ -1,7 +1,7 @@
 package forgotpwdemail
 
 import (
-	"crypto/sha1"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"time"
@@ -21,7 +21,7 @@ func (c *CodeGenerator) Generate(
 	hashedPassword []byte,
 	expireAt time.Time,
 ) string {
-	h := sha1.New()
+	h := sha256.New()
 	io.WriteString(h, c.MasterKey)
 	io.WriteString(h, authInfo.ID)
 	if email, ok := userProfile.Data["email"].(string); ok {
