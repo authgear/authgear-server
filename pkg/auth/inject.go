@@ -45,10 +45,19 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		tConfig := config.GetTenantConfig(r)
 		return coreAuth.NewDefaultAuthInfoStore(r.Context(), tConfig)
 	case "PasswordChecker":
+		tConfig := config.GetTenantConfig(r)
 		return &audit.PasswordChecker{
-			// TODO:
-			// from tConfig
-			PwMinLength: 6,
+			PwMinLength:            tConfig.UserAudit.PwMinLength,
+			PwUppercaseRequired:    tConfig.UserAudit.PwUppercaseRequired,
+			PwLowercaseRequired:    tConfig.UserAudit.PwLowercaseRequired,
+			PwDigitRequired:        tConfig.UserAudit.PwDigitRequired,
+			PwSymbolRequired:       tConfig.UserAudit.PwSymbolRequired,
+			PwMinGuessableLevel:    tConfig.UserAudit.PwMinGuessableLevel,
+			PwExcludedKeywords:     tConfig.UserAudit.PwExcludedKeywords,
+			PwExcludedFields:       tConfig.UserAudit.PwExcludedFields,
+			PwHistorySize:          tConfig.UserAudit.PwHistorySize,
+			PwHistoryDays:          tConfig.UserAudit.PwHistoryDays,
+			PasswordHistoryEnabled: tConfig.UserAudit.PwHistorySize > 0 || tConfig.UserAudit.PwHistoryDays > 0,
 		}
 	case "PasswordAuthProvider":
 		tConfig := config.GetTenantConfig(r)

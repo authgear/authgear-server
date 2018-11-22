@@ -36,8 +36,19 @@ type UserProfileConfiguration struct {
 }
 
 type UserAuditConfiguration struct {
-	Enabled         bool   `msg:"ENABLED" envconfig:"USER_AUDIT_ENABLED" json:"ENABLED"`
-	TrailHandlerURL string `msg:"TRAIL_HANDLER_URL" envconfig:"USER_AUDIT_TRAIL_HANDLER_URL" json:"TRAIL_HANDLER_URL"`
+	Enabled             bool     `msg:"ENABLED" envconfig:"USER_AUDIT_ENABLED" json:"ENABLED"`
+	TrailHandlerURL     string   `msg:"TRAIL_HANDLER_URL" envconfig:"USER_AUDIT_TRAIL_HANDLER_URL" json:"TRAIL_HANDLER_URL"`
+	PwMinLength         int      `msg:"PW_MIN_LENGTH" envconfig:"USER_AUDIT_PW_MIN_LENGTH" json:"PW_MIN_LENGTH"`
+	PwUppercaseRequired bool     `msg:"PW_UPPERCASE_REQUIRED" envconfig:"USER_AUDIT_PW_UPPERCASE_REQUIRED" json:"PW_UPPERCASE_REQUIRED"`
+	PwLowercaseRequired bool     `msg:"PW_LOWERCASE_REQUIRED" envconfig:"USER_AUDIT_PW_LOWERCASE_REQUIRED" json:"PW_LOWERCASE_REQUIRED"`
+	PwDigitRequired     bool     `msg:"PW_DIGIT_REQUIRED" envconfig:"USER_AUDIT_PW_DIGIT_REQUIRED" json:"PW_DIGIT_REQUIRED"`
+	PwSymbolRequired    bool     `msg:"PW_SYMBOL_REQUIRED" envconfig:"USER_AUDIT_PW_SYMBOL_REQUIRED" json:"PW_SYMBOL_REQUIRED"`
+	PwMinGuessableLevel int      `msg:"PW_MIN_GUESSABLE_LEVEL" envconfig:"USER_AUDIT_PW_MIN_GUESSABLE_LEVEL" json:"PW_MIN_GUESSABLE_LEVEL"`
+	PwExcludedKeywords  []string `msg:"PW_EXCLUDED_KEYWORDS" envconfig:"USER_AUDIT_PW_EXCLUDED_KEYWORDS" json:"PW_EXCLUDED_KEYWORDS"`
+	PwExcludedFields    []string `msg:"PW_EXCLUDED_FIELDS" envconfig:"USER_AUDIT_PW_EXCLUDED_FIELDS" json:"PW_EXCLUDED_FIELDS"`
+	PwHistorySize       int      `msg:"PW_HISTORY_SIZE" envconfig:"USER_AUDIT_PW_HISTORY_SIZE" json:"PW_HISTORY_SIZE"`
+	PwHistoryDays       int      `msg:"PW_HISTORY_DAYS" envconfig:"USER_AUDIT_PW_HISTORY_DAYS" json:"PW_HISTORY_DAYS"`
+	PwExpiryDays        int      `msg:"PW_EXPIRY_DAYS" envconfig:"USER_AUDIT_PW_EXPIRY_DAYS" json:"PW_EXPIRY_DAYS"`
 }
 
 type SMTPConfiguration struct {
