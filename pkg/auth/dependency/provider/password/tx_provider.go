@@ -38,14 +38,14 @@ func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
 	return p.impl.CreatePrincipal(principal)
 }
 
-func (p *safeProviderImpl) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) error {
+func (p *safeProviderImpl) GetPrincipalsByAuthData(authData map[string]interface{}) ([]*Principal, error) {
 	p.txContext.EnsureTx()
-	return p.impl.GetPrincipalByAuthData(authData, principal)
+	return p.impl.GetPrincipalsByAuthData(authData)
 }
 
-func (p *safeProviderImpl) GetPrincipalByUserID(userID string) ([]*Principal, error) {
+func (p *safeProviderImpl) GetPrincipalsByUserID(userID string) ([]*Principal, error) {
 	p.txContext.EnsureTx()
-	return p.impl.GetPrincipalByUserID(userID)
+	return p.impl.GetPrincipalsByUserID(userID)
 }
 
 func (p *safeProviderImpl) UpdatePrincipal(principal Principal) error {

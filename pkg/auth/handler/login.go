@@ -116,12 +116,12 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	principal, err := h.getPrincipal(payload.Password, payload.AuthData)
+	userID, err := h.getUserID(payload.Password, payload.AuthData)
 	if err != nil {
 		return
 	}
 
-	if err = h.AuthInfoStore.GetAuth(principal.UserID, &fetchedAuthInfo); err != nil {
+	if err = h.AuthInfoStore.GetAuth(userID, &fetchedAuthInfo); err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			return
@@ -168,8 +168,8 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	return
 }
 
-func (h LoginHandler) getPrincipal(pwd string, authData map[string]interface{}) (principal password.Principal, err error) {
-	err = h.PasswordAuthProvider.GetPrincipalByAuthData(authData, &principal)
+func (h LoginHandler) getUserID(pwd string, authData map[string]interface{}) (userID string, err error) {
+	principals, err := h.PasswordAuthProvider.GetPrincipalsByAuthData(authData)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
@@ -180,10 +180,19 @@ func (h LoginHandler) getPrincipal(pwd string, authData map[string]interface{}) 
 		return
 	}
 
-	if !principal.IsSamePassword(pwd) {
-		err = skyerr.NewError(skyerr.InvalidCredentials, "auth_data or password incorrect")
+	if len(principals) == 0 {
+		err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		return
 	}
+
+	for _, principal := range principals {
+		if !principal.IsSamePassword(pwd) {
+			err = skyerr.NewError(skyerr.InvalidCredentials, "auth_data or password incorrect")
+			return
+		}
+	}
+
+	userID = principals[0].UserID
 
 	return
 }

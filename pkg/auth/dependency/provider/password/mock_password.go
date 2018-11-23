@@ -77,24 +77,28 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 	return nil
 }
 
-// GetPrincipalByAuthData get principal in PrincipalMap by auth data
-func (m *MockProvider) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) error {
+// GetPrincipalsByAuthData get principal in PrincipalMap by auth data
+func (m *MockProvider) GetPrincipalsByAuthData(authData map[string]interface{}) (principals []*Principal, err error) {
 	authDataList := toValidAuthDataList(m.authRecordKeys, authData)
 
 	for _, a := range authDataList {
 		for _, p := range m.PrincipalMap {
 			if reflect.DeepEqual(a, p.AuthData) {
-				*principal = p
-				return nil
+				principal := p
+				principals = append(principals, &principal)
 			}
 		}
 	}
 
-	return skydb.ErrUserNotFound
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+	}
+
+	return
 }
 
-// GetPrincipalByUserID get principals in PrincipalMap by userID
-func (m *MockProvider) GetPrincipalByUserID(userID string) (principals []*Principal, err error) {
+// GetPrincipalsByUserID get principals in PrincipalMap by userID
+func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
 	for _, p := range m.PrincipalMap {
 		if p.UserID == userID {
 			principal := p

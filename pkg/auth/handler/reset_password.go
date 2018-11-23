@@ -112,7 +112,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	// reset password
-	principals, err := h.PasswordAuthProvider.GetPrincipalByUserID(authinfo.ID)
+	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")

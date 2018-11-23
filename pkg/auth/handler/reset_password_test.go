@@ -111,7 +111,7 @@ func TestResetPasswordHandler(t *testing.T) {
 			So(!token.IsExpired(), ShouldBeTrue)
 
 			// should update all principals of a user
-			principals, err := h.PasswordAuthProvider.GetPrincipalByUserID(userID)
+			principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)
 			So(err, ShouldBeNil)
 			for _, p := range principals {
 				So(p.IsSamePassword(newPassword), ShouldEqual, true)
