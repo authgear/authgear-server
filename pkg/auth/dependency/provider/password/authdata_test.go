@@ -6,7 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestSingupHandler(t *testing.T) {
+func TestAuthData(t *testing.T) {
 	Convey("Test toValidAuthDataList with different keys", t, func() {
 		Convey("should generate authData list by keys: [[username], [email]]", func() {
 			keys := [][]string{[]string{"username"}, []string{"email"}}

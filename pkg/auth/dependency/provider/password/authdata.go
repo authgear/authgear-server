@@ -9,56 +9,7 @@ type defaultAuthDataChecker struct {
 }
 
 func (c defaultAuthDataChecker) isValid(authData map[string]interface{}) bool {
-	for dk := range authData {
-		found := false
-		for _, k := range c.allKeys() {
-			if dk == k {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			return false
-		}
-	}
-
-	return len(c.usingKeys(authData)) > 0
-}
-
-func (c defaultAuthDataChecker) allKeys() []string {
-	keyMap := map[string]bool{}
-	for _, keys := range c.authRecordKeys {
-		for _, key := range keys {
-			keyMap[key] = true
-		}
-	}
-
-	keys := []string{}
-	for k := range keyMap {
-		keys = append(keys, k)
-	}
-
-	return keys
-}
-
-func (c defaultAuthDataChecker) usingKeys(authData map[string]interface{}) []string {
-	for _, ks := range c.authRecordKeys {
-		count := 0
-		for _, k := range ks {
-			for dk := range authData {
-				if k == dk && authData[dk] != nil {
-					count = count + 1
-				}
-			}
-		}
-
-		if len(ks) == count {
-			return ks
-		}
-	}
-
-	return []string{}
+	return len(toValidAuthDataList(c.authRecordKeys, authData)) > 0
 }
 
 // this ensures that our structure conform to certain interfaces.
