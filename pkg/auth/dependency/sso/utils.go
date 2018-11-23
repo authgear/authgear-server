@@ -17,8 +17,8 @@ var (
 	}
 )
 
-// CustomCliams is the type for jwt encoded
-type CustomCliams struct {
+// CustomClaims is the type for jwt encoded
+type CustomClaims struct {
 	State
 	jwt.StandardClaims
 }
@@ -41,7 +41,7 @@ func NewState(params GetURLParams) State {
 
 // EncodeState encodes state by JWT
 func EncodeState(secret string, state State) (string, error) {
-	claims := CustomCliams{
+	claims := CustomClaims{
 		state,
 		jwt.StandardClaims{},
 	}

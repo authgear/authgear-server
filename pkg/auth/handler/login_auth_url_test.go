@@ -120,7 +120,7 @@ func TestLoginAuthURLHandler(t *testing.T) {
 
 		// check encoded state
 		s := q.Get("state")
-		claims := sso.CustomCliams{}
+		claims := sso.CustomClaims{}
 		_, err = jwt.ParseWithClaims(s, &claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte("secret"), nil
 		})
