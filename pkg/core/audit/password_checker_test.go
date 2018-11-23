@@ -312,7 +312,6 @@ func TestValidatePassword(t *testing.T) {
 			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: "chima",
 				AuthID:        authID,
-				Conn:          conn,
 			}),
 			ShouldEqualSkyError,
 			skyerr.PasswordPolicyViolated,
@@ -328,7 +327,6 @@ func TestValidatePassword(t *testing.T) {
 			pc.ValidatePassword(ValidatePasswordPayload{
 				PlainPassword: "faseng",
 				AuthID:        authID,
-				Conn:          conn,
 			}),
 			ShouldBeNil,
 		)
