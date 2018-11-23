@@ -149,7 +149,6 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		}
 		config := sso.Config{
 			Name:         SSOConf.Name,
-			Enabled:      SSOConf.Enabled,
 			ClientID:     SSOConf.ClientID,
 			ClientSecret: SSOConf.ClientSecret,
 			Scope:        strings.Split(SSOConf.Scope, ","),

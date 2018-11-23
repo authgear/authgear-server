@@ -74,7 +74,6 @@ func TestLoginAuthURLHandler(t *testing.T) {
 		}
 		config := sso.Config{
 			Name:         "mock",
-			Enabled:      true,
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
@@ -140,7 +139,6 @@ func TestLoginAuthURLHandler(t *testing.T) {
 		}
 		config := sso.Config{
 			Name:         "mock",
-			Enabled:      true,
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 			Scope: []string{

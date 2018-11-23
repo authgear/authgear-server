@@ -80,7 +80,6 @@ type Setting struct {
 // Config is the base config of a SSO provider
 type Config struct {
 	Name         string
-	Enabled      bool
 	ClientID     string
 	ClientSecret string
 	Scope        Scope
@@ -91,24 +90,11 @@ type Provider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
 }
 
-// ProviderNames return current supported providers
-func ProviderNames() []string {
-	return []string{
-		"google",
-		"facebook",
-		"instagram",
-		"linkedin",
-	}
-}
-
 // NewProvider is the provider factory
 func NewProvider(
 	setting Setting,
 	config Config,
 ) Provider {
-	if !config.Enabled {
-		return nil
-	}
 	switch config.Name {
 	case "google":
 		return &GoogleImpl{

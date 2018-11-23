@@ -211,11 +211,6 @@ func (z *SSOConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
-		case "ENABLED":
-			z.Enabled, err = dc.ReadBool()
-			if err != nil {
-				return
-			}
 		case "CLIENT_ID":
 			z.ClientID, err = dc.ReadString()
 			if err != nil {
@@ -243,22 +238,13 @@ func (z *SSOConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *SSOConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
+	// map header, size 4
 	// write "NAME"
-	err = en.Append(0x85, 0xa4, 0x4e, 0x41, 0x4d, 0x45)
+	err = en.Append(0x84, 0xa4, 0x4e, 0x41, 0x4d, 0x45)
 	if err != nil {
 		return err
 	}
 	err = en.WriteString(z.Name)
-	if err != nil {
-		return
-	}
-	// write "ENABLED"
-	err = en.Append(0xa7, 0x45, 0x4e, 0x41, 0x42, 0x4c, 0x45, 0x44)
-	if err != nil {
-		return err
-	}
-	err = en.WriteBool(z.Enabled)
 	if err != nil {
 		return
 	}
@@ -295,13 +281,10 @@ func (z *SSOConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *SSOConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
+	// map header, size 4
 	// string "NAME"
-	o = append(o, 0x85, 0xa4, 0x4e, 0x41, 0x4d, 0x45)
+	o = append(o, 0x84, 0xa4, 0x4e, 0x41, 0x4d, 0x45)
 	o = msgp.AppendString(o, z.Name)
-	// string "ENABLED"
-	o = append(o, 0xa7, 0x45, 0x4e, 0x41, 0x42, 0x4c, 0x45, 0x44)
-	o = msgp.AppendBool(o, z.Enabled)
 	// string "CLIENT_ID"
 	o = append(o, 0xa9, 0x43, 0x4c, 0x49, 0x45, 0x4e, 0x54, 0x5f, 0x49, 0x44)
 	o = msgp.AppendString(o, z.ClientID)
@@ -335,11 +318,6 @@ func (z *SSOConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				return
 			}
-		case "ENABLED":
-			z.Enabled, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				return
-			}
 		case "CLIENT_ID":
 			z.ClientID, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
@@ -368,7 +346,7 @@ func (z *SSOConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *SSOConfiguration) Msgsize() (s int) {
-	s = 1 + 5 + msgp.StringPrefixSize + len(z.Name) + 8 + msgp.BoolSize + 10 + msgp.StringPrefixSize + len(z.ClientID) + 14 + msgp.StringPrefixSize + len(z.ClientSecret) + 6 + msgp.StringPrefixSize + len(z.Scope)
+	s = 1 + 5 + msgp.StringPrefixSize + len(z.Name) + 10 + msgp.StringPrefixSize + len(z.ClientID) + 14 + msgp.StringPrefixSize + len(z.ClientSecret) + 6 + msgp.StringPrefixSize + len(z.Scope)
 	return
 }
 
@@ -631,13 +609,13 @@ func (z *SSOSetting) Msgsize() (s int) {
 func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
-	var zcxo uint32
-	zcxo, err = dc.ReadMapHeader()
+	var zeff uint32
+	zeff, err = dc.ReadMapHeader()
 	if err != nil {
 		return
 	}
-	for zcxo > 0 {
-		zcxo--
+	for zeff > 0 {
+		zeff--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -669,13 +647,13 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				return
 			}
 		case "TOKEN_STORE":
-			var zeff uint32
-			zeff, err = dc.ReadMapHeader()
+			var zrsw uint32
+			zrsw, err = dc.ReadMapHeader()
 			if err != nil {
 				return
 			}
-			for zeff > 0 {
-				zeff--
+			for zrsw > 0 {
+				zrsw--
 				field, err = dc.ReadMapKeyPtr()
 				if err != nil {
 					return
@@ -699,13 +677,13 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				}
 			}
 		case "USER_PROFILE":
-			var zrsw uint32
-			zrsw, err = dc.ReadMapHeader()
+			var zxpk uint32
+			zxpk, err = dc.ReadMapHeader()
 			if err != nil {
 				return
 			}
-			for zrsw > 0 {
-				zrsw--
+			for zxpk > 0 {
+				zxpk--
 				field, err = dc.ReadMapKeyPtr()
 				if err != nil {
 					return
@@ -729,13 +707,13 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 				}
 			}
 		case "USER_AUDIT":
-			var zxpk uint32
-			zxpk, err = dc.ReadMapHeader()
+			var zdnj uint32
+			zdnj, err = dc.ReadMapHeader()
 			if err != nil {
 				return
 			}
-			for zxpk > 0 {
-				zxpk--
+			for zdnj > 0 {
+				zdnj--
 				field, err = dc.ReadMapKeyPtr()
 				if err != nil {
 					return
@@ -773,19 +751,36 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
-		case "SSO_CONFIGS":
-			var zdnj uint32
-			zdnj, err = dc.ReadArrayHeader()
+		case "SSO_PROVIDERS":
+			var zobc uint32
+			zobc, err = dc.ReadArrayHeader()
 			if err != nil {
 				return
 			}
-			if cap(z.SSOConfigs) >= int(zdnj) {
-				z.SSOConfigs = (z.SSOConfigs)[:zdnj]
+			if cap(z.SSOProviders) >= int(zobc) {
+				z.SSOProviders = (z.SSOProviders)[:zobc]
 			} else {
-				z.SSOConfigs = make([]SSOConfiguration, zdnj)
+				z.SSOProviders = make([]string, zobc)
 			}
-			for zjfb := range z.SSOConfigs {
-				err = z.SSOConfigs[zjfb].DecodeMsg(dc)
+			for zjfb := range z.SSOProviders {
+				z.SSOProviders[zjfb], err = dc.ReadString()
+				if err != nil {
+					return
+				}
+			}
+		case "SSO_CONFIGS":
+			var zsnv uint32
+			zsnv, err = dc.ReadArrayHeader()
+			if err != nil {
+				return
+			}
+			if cap(z.SSOConfigs) >= int(zsnv) {
+				z.SSOConfigs = (z.SSOConfigs)[:zsnv]
+			} else {
+				z.SSOConfigs = make([]SSOConfiguration, zsnv)
+			}
+			for zcxo := range z.SSOConfigs {
+				err = z.SSOConfigs[zcxo].DecodeMsg(dc)
 				if err != nil {
 					return
 				}
@@ -802,9 +797,9 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 12
+	// map header, size 13
 	// write "DATABASE_URL"
-	err = en.Append(0x8c, 0xac, 0x44, 0x41, 0x54, 0x41, 0x42, 0x41, 0x53, 0x45, 0x5f, 0x55, 0x52, 0x4c)
+	err = en.Append(0x8d, 0xac, 0x44, 0x41, 0x54, 0x41, 0x42, 0x41, 0x53, 0x45, 0x5f, 0x55, 0x52, 0x4c)
 	if err != nil {
 		return err
 	}
@@ -935,6 +930,21 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
+	// write "SSO_PROVIDERS"
+	err = en.Append(0xad, 0x53, 0x53, 0x4f, 0x5f, 0x50, 0x52, 0x4f, 0x56, 0x49, 0x44, 0x45, 0x52, 0x53)
+	if err != nil {
+		return err
+	}
+	err = en.WriteArrayHeader(uint32(len(z.SSOProviders)))
+	if err != nil {
+		return
+	}
+	for zjfb := range z.SSOProviders {
+		err = en.WriteString(z.SSOProviders[zjfb])
+		if err != nil {
+			return
+		}
+	}
 	// write "SSO_CONFIGS"
 	err = en.Append(0xab, 0x53, 0x53, 0x4f, 0x5f, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x53)
 	if err != nil {
@@ -944,8 +954,8 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	for zjfb := range z.SSOConfigs {
-		err = z.SSOConfigs[zjfb].EncodeMsg(en)
+	for zcxo := range z.SSOConfigs {
+		err = z.SSOConfigs[zcxo].EncodeMsg(en)
 		if err != nil {
 			return
 		}
@@ -956,9 +966,9 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 12
+	// map header, size 13
 	// string "DATABASE_URL"
-	o = append(o, 0x8c, 0xac, 0x44, 0x41, 0x54, 0x41, 0x42, 0x41, 0x53, 0x45, 0x5f, 0x55, 0x52, 0x4c)
+	o = append(o, 0x8d, 0xac, 0x44, 0x41, 0x54, 0x41, 0x42, 0x41, 0x53, 0x45, 0x5f, 0x55, 0x52, 0x4c)
 	o = msgp.AppendString(o, z.DBConnectionStr)
 	// string "API_KEY"
 	o = append(o, 0xa7, 0x41, 0x50, 0x49, 0x5f, 0x4b, 0x45, 0x59)
@@ -1014,11 +1024,17 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	if err != nil {
 		return
 	}
+	// string "SSO_PROVIDERS"
+	o = append(o, 0xad, 0x53, 0x53, 0x4f, 0x5f, 0x50, 0x52, 0x4f, 0x56, 0x49, 0x44, 0x45, 0x52, 0x53)
+	o = msgp.AppendArrayHeader(o, uint32(len(z.SSOProviders)))
+	for zjfb := range z.SSOProviders {
+		o = msgp.AppendString(o, z.SSOProviders[zjfb])
+	}
 	// string "SSO_CONFIGS"
 	o = append(o, 0xab, 0x53, 0x53, 0x4f, 0x5f, 0x43, 0x4f, 0x4e, 0x46, 0x49, 0x47, 0x53)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.SSOConfigs)))
-	for zjfb := range z.SSOConfigs {
-		o, err = z.SSOConfigs[zjfb].MarshalMsg(o)
+	for zcxo := range z.SSOConfigs {
+		o, err = z.SSOConfigs[zcxo].MarshalMsg(o)
 		if err != nil {
 			return
 		}
@@ -1030,13 +1046,13 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zobc uint32
-	zobc, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zkgt uint32
+	zkgt, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zobc > 0 {
-		zobc--
+	for zkgt > 0 {
+		zkgt--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -1068,13 +1084,13 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				return
 			}
 		case "TOKEN_STORE":
-			var zsnv uint32
-			zsnv, bts, err = msgp.ReadMapHeaderBytes(bts)
+			var zema uint32
+			zema, bts, err = msgp.ReadMapHeaderBytes(bts)
 			if err != nil {
 				return
 			}
-			for zsnv > 0 {
-				zsnv--
+			for zema > 0 {
+				zema--
 				field, bts, err = msgp.ReadMapKeyZC(bts)
 				if err != nil {
 					return
@@ -1098,13 +1114,13 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				}
 			}
 		case "USER_PROFILE":
-			var zkgt uint32
-			zkgt, bts, err = msgp.ReadMapHeaderBytes(bts)
+			var zpez uint32
+			zpez, bts, err = msgp.ReadMapHeaderBytes(bts)
 			if err != nil {
 				return
 			}
-			for zkgt > 0 {
-				zkgt--
+			for zpez > 0 {
+				zpez--
 				field, bts, err = msgp.ReadMapKeyZC(bts)
 				if err != nil {
 					return
@@ -1128,13 +1144,13 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				}
 			}
 		case "USER_AUDIT":
-			var zema uint32
-			zema, bts, err = msgp.ReadMapHeaderBytes(bts)
+			var zqke uint32
+			zqke, bts, err = msgp.ReadMapHeaderBytes(bts)
 			if err != nil {
 				return
 			}
-			for zema > 0 {
-				zema--
+			for zqke > 0 {
+				zqke--
 				field, bts, err = msgp.ReadMapKeyZC(bts)
 				if err != nil {
 					return
@@ -1172,19 +1188,36 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				return
 			}
-		case "SSO_CONFIGS":
-			var zpez uint32
-			zpez, bts, err = msgp.ReadArrayHeaderBytes(bts)
+		case "SSO_PROVIDERS":
+			var zqyh uint32
+			zqyh, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				return
 			}
-			if cap(z.SSOConfigs) >= int(zpez) {
-				z.SSOConfigs = (z.SSOConfigs)[:zpez]
+			if cap(z.SSOProviders) >= int(zqyh) {
+				z.SSOProviders = (z.SSOProviders)[:zqyh]
 			} else {
-				z.SSOConfigs = make([]SSOConfiguration, zpez)
+				z.SSOProviders = make([]string, zqyh)
 			}
-			for zjfb := range z.SSOConfigs {
-				bts, err = z.SSOConfigs[zjfb].UnmarshalMsg(bts)
+			for zjfb := range z.SSOProviders {
+				z.SSOProviders[zjfb], bts, err = msgp.ReadStringBytes(bts)
+				if err != nil {
+					return
+				}
+			}
+		case "SSO_CONFIGS":
+			var zyzr uint32
+			zyzr, bts, err = msgp.ReadArrayHeaderBytes(bts)
+			if err != nil {
+				return
+			}
+			if cap(z.SSOConfigs) >= int(zyzr) {
+				z.SSOConfigs = (z.SSOConfigs)[:zyzr]
+			} else {
+				z.SSOConfigs = make([]SSOConfiguration, zyzr)
+			}
+			for zcxo := range z.SSOConfigs {
+				bts, err = z.SSOConfigs[zcxo].UnmarshalMsg(bts)
 				if err != nil {
 					return
 				}
@@ -1202,9 +1235,13 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TenantConfiguration) Msgsize() (s int) {
-	s = 1 + 13 + msgp.StringPrefixSize + len(z.DBConnectionStr) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.MasterKey) + 9 + msgp.StringPrefixSize + len(z.AppName) + 10 + msgp.StringPrefixSize + len(z.CORSHost) + 12 + 1 + 7 + msgp.StringPrefixSize + len(z.TokenStore.Secret) + 7 + msgp.Int64Size + 13 + 1 + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplName) + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplStoreURL) + 11 + 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL) + 5 + z.SMTP.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 12 + z.SSOSetting.Msgsize() + 12 + msgp.ArrayHeaderSize
-	for zjfb := range z.SSOConfigs {
-		s += z.SSOConfigs[zjfb].Msgsize()
+	s = 1 + 13 + msgp.StringPrefixSize + len(z.DBConnectionStr) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.MasterKey) + 9 + msgp.StringPrefixSize + len(z.AppName) + 10 + msgp.StringPrefixSize + len(z.CORSHost) + 12 + 1 + 7 + msgp.StringPrefixSize + len(z.TokenStore.Secret) + 7 + msgp.Int64Size + 13 + 1 + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplName) + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplStoreURL) + 11 + 1 + 8 + msgp.BoolSize + 18 + msgp.StringPrefixSize + len(z.UserAudit.TrailHandlerURL) + 5 + z.SMTP.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 12 + z.SSOSetting.Msgsize() + 14 + msgp.ArrayHeaderSize
+	for zjfb := range z.SSOProviders {
+		s += msgp.StringPrefixSize + len(z.SSOProviders[zjfb])
+	}
+	s += 12 + msgp.ArrayHeaderSize
+	for zcxo := range z.SSOConfigs {
+		s += z.SSOConfigs[zcxo].Msgsize()
 	}
 	return
 }
@@ -1213,13 +1250,13 @@ func (z *TenantConfiguration) Msgsize() (s int) {
 func (z *TokenStoreConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
-	var zqke uint32
-	zqke, err = dc.ReadMapHeader()
+	var zywj uint32
+	zywj, err = dc.ReadMapHeader()
 	if err != nil {
 		return
 	}
-	for zqke > 0 {
-		zqke--
+	for zywj > 0 {
+		zywj--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -1286,13 +1323,13 @@ func (z TokenStoreConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 func (z *TokenStoreConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zqyh uint32
-	zqyh, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zjpj uint32
+	zjpj, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zqyh > 0 {
-		zqyh--
+	for zjpj > 0 {
+		zjpj--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -1329,13 +1366,13 @@ func (z TokenStoreConfiguration) Msgsize() (s int) {
 func (z *UserAuditConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
-	var zyzr uint32
-	zyzr, err = dc.ReadMapHeader()
+	var zzpf uint32
+	zzpf, err = dc.ReadMapHeader()
 	if err != nil {
 		return
 	}
-	for zyzr > 0 {
-		zyzr--
+	for zzpf > 0 {
+		zzpf--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -1402,13 +1439,13 @@ func (z UserAuditConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 func (z *UserAuditConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zywj uint32
-	zywj, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zrfe uint32
+	zrfe, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zywj > 0 {
-		zywj--
+	for zrfe > 0 {
+		zrfe--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -1445,13 +1482,13 @@ func (z UserAuditConfiguration) Msgsize() (s int) {
 func (z *UserProfileConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
-	var zjpj uint32
-	zjpj, err = dc.ReadMapHeader()
+	var zgmo uint32
+	zgmo, err = dc.ReadMapHeader()
 	if err != nil {
 		return
 	}
-	for zjpj > 0 {
-		zjpj--
+	for zgmo > 0 {
+		zgmo--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -1518,13 +1555,13 @@ func (z UserProfileConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 func (z *UserProfileConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zzpf uint32
-	zzpf, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var ztaf uint32
+	ztaf, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zzpf > 0 {
-		zzpf--
+	for ztaf > 0 {
+		ztaf--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -1561,13 +1598,13 @@ func (z UserProfileConfiguration) Msgsize() (s int) {
 func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
-	var zrfe uint32
-	zrfe, err = dc.ReadMapHeader()
+	var zeth uint32
+	zeth, err = dc.ReadMapHeader()
 	if err != nil {
 		return
 	}
-	for zrfe > 0 {
-		zrfe--
+	for zeth > 0 {
+		zeth--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -1736,13 +1773,13 @@ func (z *WelcomeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zgmo uint32
-	zgmo, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zsbz uint32
+	zsbz, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zgmo > 0 {
-		zgmo--
+	for zsbz > 0 {
+		zsbz--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return

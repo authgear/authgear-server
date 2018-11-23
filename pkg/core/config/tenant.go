@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/kelseyhightower/envconfig"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso" // tolerant nextimportslint: auth
 )
 
 // TenantConfiguration is a mock struct of tenant configuration
@@ -22,6 +21,7 @@ type TenantConfiguration struct {
 	SMTP            SMTPConfiguration         `json:"SMTP" msg:"SMTP"`
 	WelcomeEmail    WelcomeEmailConfiguration `json:"WELCOME_EMAIL" msg:"WELCOME_EMAIL"`
 	SSOSetting      SSOSetting                `json:"SSO_SETTING" msg:"SSO_SETTING"`
+	SSOProviders    []string                  `json:"SSO_PROVIDERS" envconfig:"SSO_PROVIDERS" msg:"SSO_PROVIDERS"`
 	SSOConfigs      []SSOConfiguration        `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
 }
 
@@ -69,7 +69,6 @@ type SSOSetting struct {
 
 type SSOConfiguration struct {
 	Name         string `msg:"NAME" ignored:"true" json:"NAME"`
-	Enabled      bool   `msg:"ENABLED" envconfig:"ENABLED" json:"ENABLED"`
 	ClientID     string `msg:"CLIENT_ID" envconfig:"CLIENT_ID" json:"CLIENT_ID"`
 	ClientSecret string `msg:"CLIENT_SECRET" envconfig:"CLIENT_SECRET" json:"CLIENT_SECRET"`
 	Scope        string `msg:"SCOPE" envconfig:"SCOPE" json:"SCOPE"`
@@ -133,21 +132,20 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error) {
 	c := TenantConfiguration{}
 	err := envconfig.Process("", &c)
-	c.SSOSetting = appendSSOSetting()
-	c.SSOConfigs = appendSSOConfigs()
+	c.SSOSetting = getSSOSetting()
+	c.SSOConfigs = getSSOConfigs(c.SSOProviders)
 
 	return c, err
 }
 
-func appendSSOSetting() (setting SSOSetting) {
+func getSSOSetting() (setting SSOSetting) {
 	envconfig.Process("", &setting)
 	return
 }
 
-func appendSSOConfigs() []SSOConfiguration {
+func getSSOConfigs(prividers []string) []SSOConfiguration {
 	configs := make([]SSOConfiguration, 0)
-	SSOProviderNames := sso.ProviderNames()
-	for _, name := range SSOProviderNames {
+	for _, name := range prividers {
 		config := SSOConfiguration{
 			Name: name,
 		}
