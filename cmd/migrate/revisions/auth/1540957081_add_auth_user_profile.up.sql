@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE _auth_user_profile (
   user_id text REFERENCES _core_user(id),
   created_at timestamp without time zone NOT NULL,
@@ -10,5 +8,3 @@ CREATE TABLE _auth_user_profile (
   PRIMARY KEY(user_id),
   UNIQUE (user_id)
 );
-
-END;

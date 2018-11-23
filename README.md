@@ -116,6 +116,16 @@ $ export APPNAME="app name"
 $ go run cmd/migrate/main.go -module ${GEAR} -schema app_${APPNAME} version
 ```
 
+**Dry run the migration**
+
+- Transaction will be rollback
+
+```
+$ export GEAR="gear name"
+$ export APPNAME="app name"
+$ go run cmd/migrate/main.go -module ${GEAR} -schema app_${APPNAME} -dry-run up
+```
+
 **(Optional) Use docker to run migration**
 
 ```
