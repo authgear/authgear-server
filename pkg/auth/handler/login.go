@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
@@ -69,14 +68,12 @@ func (p LoginRequestPayload) Validate() error {
 
 // LoginHandler handles login request
 type LoginHandler struct {
-	AuthDataKeys         [][]string                 `dependency:"AuthDataKeys"`
-	AuthDataChecker      dependency.AuthDataChecker `dependency:"AuthDataChecker"`
-	TokenStore           authtoken.Store            `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
-	TxContext            db.TxContext               `dependency:"TxContext"`
+	TokenStore           authtoken.Store   `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store    `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider `dependency:"PasswordAuthProvider"`
+	UserProfileStore     userprofile.Store `dependency:"UserProfileStore"`
+	AuditTrail           audit.Trail       `dependency:"AuditTrail"`
+	TxContext            db.TxContext      `dependency:"TxContext"`
 }
 
 func (h LoginHandler) WithTx() bool {
@@ -114,7 +111,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		}
 	}()
 
-	if valid := h.AuthDataChecker.IsValid(payload.AuthData); !valid {
+	if valid := h.PasswordAuthProvider.IsAuthDataValid(payload.AuthData); !valid {
 		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
 		return
 	}
@@ -172,24 +169,20 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 }
 
 func (h LoginHandler) getPrincipal(pwd string, authData map[string]interface{}) (principal password.Principal, err error) {
-	// principal will be the last principal of the user
-	authDataList := password.ToValidAuthDataList(h.AuthDataKeys, authData)
-	for _, authData := range authDataList {
-		err = h.PasswordAuthProvider.GetPrincipalByAuthData(authData, &principal)
-		if err != nil {
-			if err == skydb.ErrUserNotFound {
-				err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-				return
-			}
-			// TODO: more error handling here if necessary
-			err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
+	err = h.PasswordAuthProvider.GetPrincipalByAuthData(authData, &principal)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			return
 		}
+		// TODO: more error handling here if necessary
+		err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
+		return
+	}
 
-		if !principal.IsSamePassword(pwd) {
-			err = skyerr.NewError(skyerr.InvalidCredentials, "auth_data or password incorrect")
-			return
-		}
+	if !principal.IsSamePassword(pwd) {
+		err = skyerr.NewError(skyerr.InvalidCredentials, "auth_data or password incorrect")
+		return
 	}
 
 	return

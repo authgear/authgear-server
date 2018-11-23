@@ -11,21 +11,59 @@ import (
 )
 
 type providerImpl struct {
-	sqlBuilder  db.SQLBuilder
-	sqlExecutor db.SQLExecutor
-	logger      *logrus.Entry
+	sqlBuilder      db.SQLBuilder
+	sqlExecutor     db.SQLExecutor
+	logger          *logrus.Entry
+	authRecordKeys  [][]string
+	authDataChecker authDataChecker
 }
 
-func newProvider(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *providerImpl {
+func newProvider(
+	builder db.SQLBuilder,
+	executor db.SQLExecutor,
+	logger *logrus.Entry,
+	authRecordKeys [][]string,
+) *providerImpl {
 	return &providerImpl{
-		sqlBuilder:  builder,
-		sqlExecutor: executor,
-		logger:      logger,
+		sqlBuilder:     builder,
+		sqlExecutor:    executor,
+		logger:         logger,
+		authRecordKeys: authRecordKeys,
+		authDataChecker: defaultAuthDataChecker{
+			authRecordKeys: authRecordKeys,
+		},
 	}
 }
 
-func NewProvider(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) Provider {
-	return newProvider(builder, executor, logger)
+func NewProvider(
+	builder db.SQLBuilder,
+	executor db.SQLExecutor,
+	logger *logrus.Entry,
+	authRecordKeys [][]string,
+) Provider {
+	return newProvider(builder, executor, logger, authRecordKeys)
+}
+
+func (p providerImpl) IsAuthDataValid(authData map[string]interface{}) bool {
+	return p.authDataChecker.isValid(authData)
+}
+
+func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]interface{}) (err error) {
+	authDataList := toValidAuthDataList(p.authRecordKeys, authData)
+
+	for _, a := range authDataList {
+		principal := NewPrincipal()
+		principal.UserID = authInfoID
+		principal.AuthData = a
+		principal.PlainPassword = password
+		err = p.CreatePrincipal(principal)
+
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
@@ -79,40 +117,50 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p providerImpl) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) (err error) {
-	authDataBytes, err := json.Marshal(authData)
-	if err != nil {
-		return
-	}
-	builder := p.sqlBuilder.Select("principal_id", "password").
-		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`auth_data @> ?::jsonb`, authDataBytes)
-	scanner := p.sqlExecutor.QueryRowWith(builder)
+func (p providerImpl) GetPrincipalByAuthData(inputAuthData map[string]interface{}, principal *Principal) (err error) {
+	authDataList := toValidAuthDataList(p.authRecordKeys, inputAuthData)
 
-	err = scanner.Scan(
-		&principal.ID,
-		&principal.HashedPassword,
-	)
+	// principal will be the last principal of the user's
+	// this is because auth needs to make sure every authData can find corresponding principal
+	for _, authData := range authDataList {
+		authDataBytes, err := json.Marshal(authData)
+		if err != nil {
+			return err
+		}
+		builder := p.sqlBuilder.Select("principal_id", "password").
+			From(p.sqlBuilder.FullTableName("provider_password")).
+			Where(`auth_data @> ?::jsonb`, authDataBytes)
+		scanner := p.sqlExecutor.QueryRowWith(builder)
 
-	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
-	}
+		err = scanner.Scan(
+			&principal.ID,
+			&principal.HashedPassword,
+		)
 
-	if err != nil {
-		return
-	}
+		if err == sql.ErrNoRows {
+			err = skydb.ErrUserNotFound
+		}
 
-	principal.AuthData = authData
+		if err != nil {
+			return err
+		}
 
-	builder = p.sqlBuilder.Select("user_id").
-		From(p.sqlBuilder.FullTableName("principal")).
-		Where("id = ? AND provider = 'password'", principal.ID)
-	scanner = p.sqlExecutor.QueryRowWith(builder)
-	err = scanner.Scan(&principal.UserID)
+		principal.AuthData = authData
 
-	if err == sql.ErrNoRows {
-		p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
-		err = skydb.ErrUserNotFound
+		builder = p.sqlBuilder.Select("user_id").
+			From(p.sqlBuilder.FullTableName("principal")).
+			Where("id = ? AND provider = 'password'", principal.ID)
+		scanner = p.sqlExecutor.QueryRowWith(builder)
+		err = scanner.Scan(&principal.UserID)
+
+		if err == sql.ErrNoRows {
+			p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
+			err = skydb.ErrUserNotFound
+		}
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return

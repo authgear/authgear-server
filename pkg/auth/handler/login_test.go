@@ -6,7 +6,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
@@ -66,7 +65,9 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
+		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			authRecordKeys,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
 					ID:     "john.doe.principal.id0",
@@ -87,19 +88,13 @@ func TestLoginHandler(t *testing.T) {
 			},
 		)
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
-		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
-		authChecker := &dependency.DefaultAuthDataChecker{
-			AuthRecordKeys: authRecordKeys,
-		}
 
 		h := &LoginHandler{}
 		h.AuthInfoStore = authInfoStore
 		h.TokenStore = tokenStore
-		h.AuthDataChecker = authChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
-		h.AuthDataKeys = authRecordKeys
 
 		Convey("login user with auth data", func() {
 			authData := map[string]interface{}{

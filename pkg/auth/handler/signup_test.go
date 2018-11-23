@@ -6,7 +6,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -80,14 +79,11 @@ func TestSingupHandler(t *testing.T) {
 			timeNow = realTime
 		}()
 
+		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider()
+		passwordAuthProvider := password.NewMockProvider(authRecordKeys)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
-		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
-		authChecker := &dependency.DefaultAuthDataChecker{
-			AuthRecordKeys: authRecordKeys,
-		}
 
 		passwordChecker := &audit.PasswordChecker{
 			PwMinLength: 6,
@@ -108,14 +104,12 @@ func TestSingupHandler(t *testing.T) {
 		h := &SignupHandler{}
 		h.AuthInfoStore = authInfoStore
 		h.TokenStore = tokenStore
-		h.AuthDataChecker = authChecker
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AnonymousAuthProvider = anonymousAuthProvider
 		h.RoleStore = roleStore
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
-		h.AuthDataKeys = authRecordKeys
 
 		Convey("signup user with auth data", func() {
 			authData := map[string]interface{}{
