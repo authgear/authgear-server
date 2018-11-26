@@ -112,8 +112,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	// reset password
-	principal := password.Principal{}
-	err = h.PasswordAuthProvider.GetPrincipalByUserID(authinfo.ID, &principal)
+	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
@@ -121,10 +120,12 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		}
 		return
 	}
-	principal.PlainPassword = payload.Password
-	err = h.PasswordAuthProvider.UpdatePrincipal(principal)
-	if err != nil {
-		return
+	for _, p := range principals {
+		p.PlainPassword = payload.Password
+		err = h.PasswordAuthProvider.UpdatePrincipal(*p)
+		if err != nil {
+			return
+		}
 	}
 
 	// generate access-token

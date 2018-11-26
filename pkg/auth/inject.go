@@ -6,7 +6,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	"github.com/sirupsen/logrus"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -42,12 +41,6 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	case "AuthInfoStore":
 		tConfig := config.GetTenantConfig(r)
 		return coreAuth.NewDefaultAuthInfoStore(r.Context(), tConfig)
-	case "AuthDataChecker":
-		return &dependency.DefaultAuthDataChecker{
-			//TODO:
-			// from tConfig
-			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
-		}
 	case "PasswordChecker":
 		return &audit.PasswordChecker{
 			// TODO:
@@ -56,10 +49,14 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		}
 	case "PasswordAuthProvider":
 		tConfig := config.GetTenantConfig(r)
+		// TODO:
+		// from tConfig
+		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
 		return password.NewSafeProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
 			logging.CreateLogger(r, "provider_password", createLoggerMaskFormatter(r)),
+			authRecordKeys,
 			db.NewSafeTxContextWithContext(r.Context(), tConfig),
 		)
 	case "AnonymousAuthProvider":

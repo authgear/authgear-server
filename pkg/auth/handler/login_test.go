@@ -6,7 +6,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
@@ -66,28 +65,33 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
+		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			authRecordKeys,
 			map[string]password.Principal{
-				"john.doe.principal.id": password.Principal{
-					ID:     "john.doe.principal.id",
+				"john.doe.principal.id0": password.Principal{
+					ID:     "john.doe.principal.id0",
 					UserID: "john.doe.id",
 					AuthData: map[string]interface{}{
 						"username": "john.doe",
-						"email":    "john.doe@example.com",
+					},
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"john.doe.principal.id1": password.Principal{
+					ID:     "john.doe.principal.id1",
+					UserID: "john.doe.id",
+					AuthData: map[string]interface{}{
+						"email": "john.doe@example.com",
 					},
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
 		)
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
-		authChecker := &dependency.DefaultAuthDataChecker{
-			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
-		}
 
 		h := &LoginHandler{}
 		h.AuthInfoStore = authInfoStore
 		h.TokenStore = tokenStore
-		h.AuthDataChecker = authChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
@@ -122,6 +126,19 @@ func TestLoginHandler(t *testing.T) {
 			tokenStore.Get(tokenStr, &token)
 			So(token.AuthInfoID, ShouldEqual, userID)
 			So(!token.IsExpired(), ShouldBeTrue)
+		})
+
+		Convey("should login successfully only provides partial auth data keys", func() {
+			authData := map[string]interface{}{
+				"username": "john.doe",
+			}
+			payload := LoginRequestPayload{
+				AuthData: authData,
+				Password: "123456",
+			}
+
+			_, err := h.Handle(payload)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("login user with incorrect password", func() {

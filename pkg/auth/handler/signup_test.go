@@ -6,7 +6,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -16,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/server/audit"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -79,13 +79,11 @@ func TestSingupHandler(t *testing.T) {
 			timeNow = realTime
 		}()
 
+		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider()
+		passwordAuthProvider := password.NewMockProvider(authRecordKeys)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
-		authChecker := &dependency.DefaultAuthDataChecker{
-			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
-		}
 
 		passwordChecker := &audit.PasswordChecker{
 			PwMinLength: 6,
@@ -106,7 +104,6 @@ func TestSingupHandler(t *testing.T) {
 		h := &SignupHandler{}
 		h.AuthInfoStore = authInfoStore
 		h.TokenStore = tokenStore
-		h.AuthDataChecker = authChecker
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AnonymousAuthProvider = anonymousAuthProvider
@@ -149,6 +146,27 @@ func TestSingupHandler(t *testing.T) {
 			profile := authResp.Profile
 			So(profile.Data["username"], ShouldEqual, "john.doe")
 			So(profile.Data["email"], ShouldEqual, "john.doe@example.com")
+		})
+
+		Convey("auth data key combination should be unique", func() {
+			authData := map[string]interface{}{
+				"username": "john.doe",
+				"email":    "john.doe@example.com",
+			}
+			payload := SignupRequestPayload{
+				AuthData: authData,
+				Password: "123456",
+			}
+			_, err := h.Handle(payload)
+			So(err, ShouldBeNil)
+
+			// change email only
+			authData["email"] = "john.doe1@example.com"
+			resp, err := h.Handle(payload)
+
+			So(resp, ShouldBeNil)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, skydb.ErrUserDuplicated)
 		})
 
 		Convey("anonymous singup is not supported yet", func() {

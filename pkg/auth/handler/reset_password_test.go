@@ -53,14 +53,23 @@ func TestResetPasswordHandler(t *testing.T) {
 				},
 			},
 		)
+		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			authRecordKeys,
 			map[string]password.Principal{
-				"john.doe.principal.id": password.Principal{
-					ID:     "john.doe.principal.id",
+				"john.doe.principal.id0": password.Principal{
+					ID:     "john.doe.principal.id0",
 					UserID: "john.doe.id",
 					AuthData: map[string]interface{}{
 						"username": "john.doe",
-						"email":    "john.doe@example.com",
+					},
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"john.doe.principal.id1": password.Principal{
+					ID:     "john.doe.principal.id1",
+					UserID: "john.doe.id",
+					AuthData: map[string]interface{}{
+						"email": "john.doe@example.com",
 					},
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
@@ -81,9 +90,10 @@ func TestResetPasswordHandler(t *testing.T) {
 
 		Convey("should reset password by user id", func() {
 			userID := "john.doe.id"
+			newPassword := "234567"
 			payload := ResetPasswordRequestPayload{
 				AuthInfoID: userID,
-				Password:   "123456",
+				Password:   newPassword,
 			}
 
 			resp, err := h.Handle(payload)
@@ -99,6 +109,13 @@ func TestResetPasswordHandler(t *testing.T) {
 			tokenStore.Get(tokenStr, &token)
 			So(token.AuthInfoID, ShouldEqual, userID)
 			So(!token.IsExpired(), ShouldBeTrue)
+
+			// should update all principals of a user
+			principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)
+			So(err, ShouldBeNil)
+			for _, p := range principals {
+				So(p.IsSamePassword(newPassword), ShouldEqual, true)
+			}
 		})
 
 		Convey("should not reset password by wrong user id", func() {

@@ -11,21 +11,59 @@ import (
 )
 
 type providerImpl struct {
-	sqlBuilder  db.SQLBuilder
-	sqlExecutor db.SQLExecutor
-	logger      *logrus.Entry
+	sqlBuilder      db.SQLBuilder
+	sqlExecutor     db.SQLExecutor
+	logger          *logrus.Entry
+	authRecordKeys  [][]string
+	authDataChecker authDataChecker
 }
 
-func newProvider(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *providerImpl {
+func newProvider(
+	builder db.SQLBuilder,
+	executor db.SQLExecutor,
+	logger *logrus.Entry,
+	authRecordKeys [][]string,
+) *providerImpl {
 	return &providerImpl{
-		sqlBuilder:  builder,
-		sqlExecutor: executor,
-		logger:      logger,
+		sqlBuilder:     builder,
+		sqlExecutor:    executor,
+		logger:         logger,
+		authRecordKeys: authRecordKeys,
+		authDataChecker: defaultAuthDataChecker{
+			authRecordKeys: authRecordKeys,
+		},
 	}
 }
 
-func NewProvider(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) Provider {
-	return newProvider(builder, executor, logger)
+func NewProvider(
+	builder db.SQLBuilder,
+	executor db.SQLExecutor,
+	logger *logrus.Entry,
+	authRecordKeys [][]string,
+) Provider {
+	return newProvider(builder, executor, logger, authRecordKeys)
+}
+
+func (p providerImpl) IsAuthDataValid(authData map[string]interface{}) bool {
+	return p.authDataChecker.isValid(authData)
+}
+
+func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]interface{}) (err error) {
+	authDataList := toValidAuthDataList(p.authRecordKeys, authData)
+
+	for _, a := range authDataList {
+		principal := NewPrincipal()
+		principal.UserID = authInfoID
+		principal.AuthData = a
+		principal.PlainPassword = password
+		err = p.CreatePrincipal(principal)
+
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
@@ -79,82 +117,103 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p providerImpl) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) (err error) {
-	authDataBytes, err := json.Marshal(authData)
-	if err != nil {
-		return
-	}
-	builder := p.sqlBuilder.Select("principal_id", "password").
-		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`auth_data @> ?::jsonb`, authDataBytes)
-	scanner := p.sqlExecutor.QueryRowWith(builder)
+func (p providerImpl) GetPrincipalsByAuthData(inputAuthData map[string]interface{}) (principals []*Principal, err error) {
+	authDataList := toValidAuthDataList(p.authRecordKeys, inputAuthData)
 
-	err = scanner.Scan(
-		&principal.ID,
-		&principal.HashedPassword,
-	)
+	for _, authData := range authDataList {
+		authDataBytes, err := json.Marshal(authData)
+		if err != nil {
+			return nil, err
+		}
+		builder := p.sqlBuilder.Select("principal_id", "password").
+			From(p.sqlBuilder.FullTableName("provider_password")).
+			Where(`auth_data @> ?::jsonb`, authDataBytes)
+		rows, err := p.sqlExecutor.QueryWith(builder)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
 
-	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
-	}
+		for rows.Next() {
+			var principal Principal
 
-	if err != nil {
-		return
-	}
+			if err = rows.Scan(
+				&principal.ID,
+				&principal.HashedPassword,
+			); err != nil {
+				return nil, err
+			}
+			principal.AuthData = authData
+			principals = append(principals, &principal)
+		}
 
-	principal.AuthData = authData
+		for _, principal := range principals {
+			builder = p.sqlBuilder.Select("user_id").
+				From(p.sqlBuilder.FullTableName("principal")).
+				Where("id = ? AND provider = 'password'", principal.ID)
+			scanner := p.sqlExecutor.QueryRowWith(builder)
+			err = scanner.Scan(&principal.UserID)
 
-	builder = p.sqlBuilder.Select("user_id").
-		From(p.sqlBuilder.FullTableName("principal")).
-		Where("id = ? AND provider = 'password'", principal.ID)
-	scanner = p.sqlExecutor.QueryRowWith(builder)
-	err = scanner.Scan(&principal.UserID)
-
-	if err == sql.ErrNoRows {
-		p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
-		err = skydb.ErrUserNotFound
+			if err == sql.ErrNoRows {
+				p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
+				err = skydb.ErrUserNotFound
+			}
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return
 }
 
-func (p providerImpl) GetPrincipalByUserID(userID string, principal *Principal) (err error) {
+func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
 	builder := p.sqlBuilder.Select("id", "user_id").
 		From(p.sqlBuilder.FullTableName("principal")).
 		Where("user_id = ? AND provider = 'password'", userID)
-	scanner := p.sqlExecutor.QueryRowWith(builder)
-	err = scanner.Scan(
-		&principal.ID,
-		&principal.UserID,
-	)
-
-	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
-	}
-
+	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return
 	}
+	defer rows.Close()
 
-	builder = p.sqlBuilder.Select("auth_data", "password").
-		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`principal_id = ?`, principal.ID)
-	scanner = p.sqlExecutor.QueryRowWith(builder)
-	var authDataBytes []byte
-	err = scanner.Scan(
-		&authDataBytes,
-		&principal.HashedPassword,
-	)
+	for rows.Next() {
+		var principal Principal
+		if err = rows.Scan(
+			&principal.ID,
+			&principal.UserID,
+		); err != nil {
+			return nil, err
+		}
 
-	if err == sql.ErrNoRows {
-		err = skydb.ErrUserNotFound
+		principals = append(principals, &principal)
 	}
 
-	if err != nil {
-		return
-	}
+	for _, principal := range principals {
+		builder = p.sqlBuilder.Select("auth_data", "password").
+			From(p.sqlBuilder.FullTableName("provider_password")).
+			Where(`principal_id = ?`, principal.ID)
+		scanner := p.sqlExecutor.QueryRowWith(builder)
+		var authDataBytes []byte
+		err = scanner.Scan(
+			&authDataBytes,
+			&principal.HashedPassword,
+		)
 
-	err = json.Unmarshal(authDataBytes, &principal.AuthData)
+		if err == sql.ErrNoRows {
+			err = skydb.ErrUserNotFound
+		}
+
+		if err != nil {
+			return
+		}
+
+		err = json.Unmarshal(authDataBytes, &principal.AuthData)
+
+		if err != nil {
+			return
+		}
+	}
 
 	return
 }

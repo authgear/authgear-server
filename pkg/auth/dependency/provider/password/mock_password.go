@@ -10,19 +10,49 @@ import (
 // MockProvider is the memory implementation of password provider
 type MockProvider struct {
 	Provider
-	PrincipalMap map[string]Principal
+	PrincipalMap    map[string]Principal
+	authRecordKeys  [][]string
+	authDataChecker authDataChecker
 }
 
 // NewMockProvider creates a new instance of mock provider
-func NewMockProvider() *MockProvider {
-	return NewMockProviderWithPrincipalMap(map[string]Principal{})
+func NewMockProvider(authRecordKeys [][]string) *MockProvider {
+	return NewMockProviderWithPrincipalMap(authRecordKeys, map[string]Principal{})
 }
 
 // NewMockProviderWithPrincipalMap creates a new instance of mock provider with PrincipalMap
-func NewMockProviderWithPrincipalMap(principalMap map[string]Principal) *MockProvider {
+func NewMockProviderWithPrincipalMap(authRecordKeys [][]string, principalMap map[string]Principal) *MockProvider {
 	return &MockProvider{
+		authRecordKeys: authRecordKeys,
+		authDataChecker: defaultAuthDataChecker{
+			authRecordKeys: authRecordKeys,
+		},
 		PrincipalMap: principalMap,
 	}
+}
+
+// IsAuthDataValid validates authData
+func (m *MockProvider) IsAuthDataValid(authData map[string]interface{}) bool {
+	return m.authDataChecker.isValid(authData)
+}
+
+// CreatePrincipalsByAuthData creates principals by authData
+func (m *MockProvider) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]interface{}) (err error) {
+	authDataList := toValidAuthDataList(m.authRecordKeys, authData)
+
+	for _, a := range authDataList {
+		principal := NewPrincipal()
+		principal.UserID = authInfoID
+		principal.AuthData = a
+		principal.PlainPassword = password
+		err = m.CreatePrincipal(principal)
+
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 // CreatePrincipal creates principal in PrincipalMap
@@ -47,28 +77,40 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 	return nil
 }
 
-// GetPrincipalByAuthData get principal in PrincipalMap by auth data
-func (m *MockProvider) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) error {
-	for _, p := range m.PrincipalMap {
-		if reflect.DeepEqual(authData, p.AuthData) {
-			*principal = p
-			return nil
+// GetPrincipalsByAuthData get principal in PrincipalMap by auth data
+func (m *MockProvider) GetPrincipalsByAuthData(authData map[string]interface{}) (principals []*Principal, err error) {
+	authDataList := toValidAuthDataList(m.authRecordKeys, authData)
+
+	for _, a := range authDataList {
+		for _, p := range m.PrincipalMap {
+			if reflect.DeepEqual(a, p.AuthData) {
+				principal := p
+				principals = append(principals, &principal)
+			}
 		}
 	}
 
-	return skydb.ErrUserNotFound
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+	}
+
+	return
 }
 
-// GetPrincipalByUserID get principal in PrincipalMap by userID
-func (m *MockProvider) GetPrincipalByUserID(userID string, principal *Principal) error {
+// GetPrincipalsByUserID get principals in PrincipalMap by userID
+func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
 	for _, p := range m.PrincipalMap {
 		if p.UserID == userID {
-			*principal = p
-			return nil
+			principal := p
+			principals = append(principals, &principal)
 		}
 	}
 
-	return skydb.ErrUserNotFound
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+	}
+
+	return
 }
 
 // UpdatePrincipal update principal in PrincipalMap
