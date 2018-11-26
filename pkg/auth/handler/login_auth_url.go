@@ -91,7 +91,7 @@ func (p LoginAuthURLRequestPayload) Validate() error {
 type LoginAuthURLHandler struct {
 	TxContext    db.TxContext           `dependency:"TxContext"`
 	AuthContext  coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	Provider     sso.Provider           `dependency:"SSOProvider,optional"`
+	Provider     sso.Provider           `dependency:"SSOProvider"`
 	ProviderName string
 }
 

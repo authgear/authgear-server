@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -111,15 +112,15 @@ func TestInjectDependency(t *testing.T) {
 			}, ShouldPanic)
 		})
 
-		Convey("should panic dependency name is wrong", func() {
+		Convey("should return error dependency name is wrong", func() {
 			type targetStruct struct {
 				Str int `dependency:"i_am_your_father"`
 			}
 
 			target := targetStruct{}
-			So(func() {
-				injectDependency(&target, dmap{}, req)
-			}, ShouldPanic)
+			err := injectDependency(&target, dmap{}, req)
+			errResponse := err.(skyerr.Error)
+			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
 		})
 	})
 }
