@@ -12,7 +12,8 @@ import (
 )
 
 type CodeSender interface {
-	Send(userProfile userprofile.UserProfile) error
+	CodeGenerator
+	Send(code string, userProfile userprofile.UserProfile) error
 }
 
 type EmailCodeSender struct {
@@ -23,7 +24,7 @@ type EmailCodeSender struct {
 	CodeGenerator
 }
 
-func (e *EmailCodeSender) Send(userProfile userprofile.UserProfile) (err error) {
+func (e *EmailCodeSender) Send(code string, userProfile userprofile.UserProfile) (err error) {
 	var recordValue string
 	var ok bool
 	if recordValue, ok = userProfile.Data[e.Key].(string); !ok {
@@ -37,7 +38,6 @@ func (e *EmailCodeSender) Send(userProfile userprofile.UserProfile) (err error) 
 
 	providerConfig := keyConfig.ProviderConfig
 
-	code := e.CodeGenerator.Generate()
 	context := map[string]interface{}{
 		"appname":      e.AppName,
 		"record_key":   e.Key,

@@ -3,10 +3,12 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -76,6 +78,7 @@ type VerifyRequestHandler struct {
 	AuthContext       coreAuth.ContextGetter           `dependency:"AuthContextGetter"`
 	CodeSenderFactory auth.UserVerifyCodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
 	UserProfileStore  userprofile.Store                `dependency:"UserProfileStore"`
+	VerifyCodeStore   verifycode.Store                 `dependency:"VerifyCodeStore"`
 	Logger            *logrus.Entry                    `dependency:"HandlerLogger"`
 }
 
@@ -111,12 +114,32 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	if err = codeSender.Send(userProfile); err != nil {
+	var value string
+	var ok bool
+	if value, ok = userProfile.Data[payload.RecordKey].(string); !ok {
+		err = skyerr.NewError(skyerr.UnexpectedError, "Value of "+payload.RecordKey+" is not string")
+		return
+	}
+
+	code := codeSender.Generate()
+	if err = codeSender.Send(code, userProfile); err != nil {
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,
 			"record_key":   payload.RecordKey,
 			"record_value": userProfile.Data[payload.RecordKey],
 		}).Error("fail to send verify request")
+		return
+	}
+
+	verifyCode := verifycode.NewVerifyCode()
+	verifyCode.UserID = authInfo.ID
+	verifyCode.RecordKey = payload.RecordKey
+	verifyCode.RecordValue = value
+	verifyCode.Code = code
+	verifyCode.Consumed = false
+	verifyCode.CreatedAt = time.Now()
+
+	if err = h.VerifyCodeStore.CreateVerifyCode(&verifyCode); err != nil {
 		return
 	}
 

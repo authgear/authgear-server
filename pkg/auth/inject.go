@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	"github.com/sirupsen/logrus"
@@ -173,6 +174,13 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			Scope:        strings.Split(SSOConf.Scope, ","),
 		}
 		return sso.NewProvider(setting, config)
+	case "VerifyCodeStore":
+		tConfig := config.GetTenantConfig(r)
+		return verifycode.NewStore(
+			db.NewSQLBuilder("auth", tConfig.AppName),
+			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
+			logging.CreateLogger(r, "verify_code", createLoggerMaskFormatter(r)),
+		)
 	case "UserVerifyCodeSenderFactory":
 		tConfig := config.GetTenantConfig(r)
 		return NewDefaultUserVerifyCodeSenderFactory(tConfig)
