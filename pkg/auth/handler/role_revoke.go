@@ -23,7 +23,7 @@ func AttachRoleRevokeHandler(
 ) *server.Server {
 	server.Handle("/role/revoke", &RoleRevokeHandlerFactory{
 		authDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

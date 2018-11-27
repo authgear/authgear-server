@@ -27,7 +27,7 @@ func AttachFetchHandler(
 ) *server.Server {
 	server.Handle("/fetch", &FetchHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

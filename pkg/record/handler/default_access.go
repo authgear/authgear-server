@@ -23,7 +23,7 @@ func AttachDefaultAccessHandler(
 ) *server.Server {
 	server.Handle("/schema/default_access", &DefaultAccessHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

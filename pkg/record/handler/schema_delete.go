@@ -23,7 +23,7 @@ func AttachSchemaDeleteHandler(
 ) *server.Server {
 	server.Handle("/schema/delete", &SchemaDeleteHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

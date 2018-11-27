@@ -22,7 +22,7 @@ func AttachCreationAccessHandler(
 ) *server.Server {
 	server.Handle("/schema/access", &CreationAccessHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

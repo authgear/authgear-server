@@ -20,7 +20,7 @@ func AttachFieldAccessGetHandler(
 ) *server.Server {
 	server.Handle("/schema/field_access/get", &FieldAccessGetHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

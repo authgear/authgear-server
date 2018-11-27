@@ -20,7 +20,7 @@ func AttachSchemaFetchHandler(
 ) *server.Server {
 	server.Handle("/schema/fetch", &SchemaFetchHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

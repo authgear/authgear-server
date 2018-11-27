@@ -25,7 +25,7 @@ func AttachQueryHandler(
 ) *server.Server {
 	server.Handle("/query", &QueryHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

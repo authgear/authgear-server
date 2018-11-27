@@ -27,7 +27,7 @@ func AttachSaveHandler(
 ) *server.Server {
 	server.Handle("/save", &SaveHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

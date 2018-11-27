@@ -23,7 +23,7 @@ func AttachFieldAccessUpdateHandler(
 ) *server.Server {
 	server.Handle("/schema/field_access/update", &FieldAccessUpdateHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

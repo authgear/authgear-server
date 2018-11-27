@@ -23,7 +23,7 @@ func AttachSchemaCreateHandler(
 ) *server.Server {
 	server.Handle("/schema/create", &SchemaCreateHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

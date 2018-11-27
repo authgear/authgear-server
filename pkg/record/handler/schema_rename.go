@@ -23,7 +23,7 @@ func AttachSchemaRenameHandler(
 ) *server.Server {
 	server.Handle("/schema/rename", &SchemaRenameHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 

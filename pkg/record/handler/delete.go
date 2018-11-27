@@ -25,7 +25,7 @@ func AttachDeleteHandler(
 ) *server.Server {
 	server.Handle("/delete", &DeleteHandlerFactory{
 		recordDependency,
-	}).Methods("POST")
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 
