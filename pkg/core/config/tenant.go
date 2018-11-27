@@ -20,6 +20,9 @@ type TenantConfiguration struct {
 	UserAudit       UserAuditConfiguration    `json:"USER_AUDIT" msg:"USER_AUDIT"`
 	SMTP            SMTPConfiguration         `json:"SMTP" msg:"SMTP"`
 	WelcomeEmail    WelcomeEmailConfiguration `json:"WELCOME_EMAIL" msg:"WELCOME_EMAIL"`
+	SSOSetting      SSOSetting                `json:"SSO_SETTING" msg:"SSO_SETTING"`
+	SSOProviders    []string                  `json:"SSO_PROVIDERS" envconfig:"SSO_PROVIDERS" msg:"SSO_PROVIDERS"`
+	SSOConfigs      []SSOConfiguration        `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
 }
 
 type TokenStoreConfiguration struct {
@@ -56,6 +59,21 @@ type WelcomeEmailConfiguration struct {
 	HTMLURL     string `msg:"HTML_URL" envconfig:"WELCOME_EMAIL_HTML_URL" json:"HTML_URL"`
 }
 
+type SSOSetting struct {
+	URLPrefix            string   `msg:"URL_PREFIX" envconfig:"SSO_URL_PRRFIX" json:"URL_PREFIX"`
+	JSSDKCDNURL          string   `msg:"JS_SDK_CDN_URL" envconfig:"SSO_JS_SDK_CDN_URL" json:"JS_SDK_CDN_URL"`
+	StateJWTSecret       string   `msg:"STATE_JWT_SECRET" envconfig:"SSO_STATE_JWT_SECRET" json:"STATE_JWT_SECRET"`
+	AutoLinkProviderKeys []string `msg:"AUTO_LINK_PROVIDER_KEYS" envconfig:"SSO_AUTO_LINK_PROVIDER_KEYS" json:"AUTO_LINK_PROVIDER_KEYS"`
+	AllowedCallbackURLs  []string `msg:"ALLOWED_CALLBACK_URLS" envconfig:"SSO_ALLOWED_CALLBACK_URLS" json:"ALLOWED_CALLBACK_URLS"`
+}
+
+type SSOConfiguration struct {
+	Name         string `msg:"NAME" ignored:"true" json:"NAME"`
+	ClientID     string `msg:"CLIENT_ID" envconfig:"CLIENT_ID" json:"CLIENT_ID"`
+	ClientSecret string `msg:"CLIENT_SECRET" envconfig:"CLIENT_SECRET" json:"CLIENT_SECRET"`
+	Scope        string `msg:"SCOPE" envconfig:"SCOPE" json:"SCOPE"`
+}
+
 func (c *TenantConfiguration) ReadFromEnv() error {
 	return envconfig.Process("", c)
 }
@@ -65,6 +83,15 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 		c.APIKey,
 		c.MasterKey,
 	}
+}
+
+func (c *TenantConfiguration) GetSSOConfigByName(name string) (config SSOConfiguration) {
+	for _, SSOConfig := range c.SSOConfigs {
+		if SSOConfig.Name == name {
+			return SSOConfig
+		}
+	}
+	return
 }
 
 func header(i interface{}) http.Header {
@@ -105,5 +132,27 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error) {
 	c := TenantConfiguration{}
 	err := envconfig.Process("", &c)
+	c.SSOSetting = getSSOSetting()
+	c.SSOConfigs = getSSOConfigs(c.SSOProviders)
+
 	return c, err
+}
+
+func getSSOSetting() (setting SSOSetting) {
+	envconfig.Process("", &setting)
+	return
+}
+
+func getSSOConfigs(prividers []string) []SSOConfiguration {
+	configs := make([]SSOConfiguration, 0)
+	for _, name := range prividers {
+		config := SSOConfiguration{
+			Name: name,
+		}
+		if err := envconfig.Process("sso_"+name, &config); err == nil {
+			configs = append(configs, config)
+		}
+	}
+
+	return configs
 }

@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 type Map interface {
@@ -14,15 +16,15 @@ func DefaultInject(
 	i interface{},
 	dependencyMap Map,
 	request *http.Request,
-) {
-	injectDependency(i, dependencyMap, request)
+) (err error) {
+	return injectDependency(i, dependencyMap, request)
 }
 
 func injectDependency(
 	i interface{},
 	dependencyMap Map,
 	request *http.Request,
-) {
+) (err error) {
 	t := reflect.TypeOf(i).Elem()
 	v := reflect.ValueOf(i).Elem()
 
@@ -42,13 +44,15 @@ func injectDependency(
 		dependency := dependencyMap.Provide(dependencyName, request)
 
 		if optionSet["optional"] == nil && dependency == nil {
-			panic(`Dependency "` + dependencyName + `" is nil, but does not mark as optional`)
+			err = skyerr.NewError(skyerr.InvalidArgument, `Dependency "`+dependencyName+`" is nil, but does not mark as optional`)
+			return
 		}
 
 		if dependency != nil {
 			field.Set(reflect.ValueOf(dependency))
 		}
 	}
+	return
 }
 
 func arrayToSet(array []string) (set map[string]interface{}) {

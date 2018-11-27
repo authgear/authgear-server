@@ -2,12 +2,15 @@ package auth
 
 import (
 	"net/http"
+	"strings"
 
+	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/asset/fs"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
@@ -128,6 +131,26 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	case "TestWelcomeEmailSender":
 		tConfig := config.GetTenantConfig(r)
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
+	case "SSOProvider":
+		vars := mux.Vars(r)
+		providerName := vars["provider"]
+		tConfig := config.GetTenantConfig(r)
+		SSOConf := tConfig.GetSSOConfigByName(providerName)
+		SSOSetting := tConfig.SSOSetting
+		setting := sso.Setting{
+			URLPrefix:            SSOSetting.URLPrefix,
+			JSSDKCDNURL:          SSOSetting.JSSDKCDNURL,
+			StateJWTSecret:       SSOSetting.StateJWTSecret,
+			AutoLinkProviderKeys: SSOSetting.AutoLinkProviderKeys,
+			AllowedCallbackURLs:  SSOSetting.AllowedCallbackURLs,
+		}
+		config := sso.Config{
+			Name:         SSOConf.Name,
+			ClientID:     SSOConf.ClientID,
+			ClientSecret: SSOConf.ClientSecret,
+			Scope:        strings.Split(SSOConf.Scope, ","),
+		}
+		return sso.NewProvider(setting, config)
 	default:
 		return nil
 	}
