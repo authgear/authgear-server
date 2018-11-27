@@ -1,4 +1,4 @@
-package handler
+package ssohandler
 
 import (
 	"net/http"
@@ -27,8 +27,8 @@ func provideConfiguration(r *http.Request) (config.TenantConfiguration, error) {
 	return sampleConfig, nil
 }
 
-func TestSSOConfigHandler(t *testing.T) {
-	Convey("Test SSOConfigHandler", t, func() {
+func TestConfigHandler(t *testing.T) {
+	Convey("Test ConfigHandler", t, func() {
 		targetMiddleware := middleware.TenantConfigurationMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(provideConfiguration),
 		}
@@ -37,7 +37,7 @@ func TestSSOConfigHandler(t *testing.T) {
 			r, _ := http.NewRequest("POST", "", nil)
 			rw := httptest.NewRecorder()
 
-			var testingHandler SSOConfigHandler
+			var testingHandler ConfigHandler
 			reqHandler := targetMiddleware.Handle(testingHandler.NewHandler(r))
 			reqHandler.ServeHTTP(rw, r)
 

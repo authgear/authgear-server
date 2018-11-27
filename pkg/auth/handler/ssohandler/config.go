@@ -1,4 +1,4 @@
-package handler
+package ssohandler
 
 import (
 	"net/http"
@@ -11,17 +11,17 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
-func AttachSSOConfigHandler(
+func AttachConfigHandler(
 	server *server.Server,
 	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.
-		Handle("/sso/config", &SSOConfigHandler{}).
+		Handle("/sso/config", &ConfigHandler{}).
 		Methods("OPTIONS", "POST")
 	return server
 }
 
-type SSOConfigHandler struct {
+type ConfigHandler struct {
 }
 
 // NewHandler returns the SSO configs.
@@ -43,7 +43,7 @@ type SSOConfigHandler struct {
 //         "http://127.0.0.1"
 //     ]
 // }
-func (f SSOConfigHandler) NewHandler(request *http.Request) http.Handler {
+func (f ConfigHandler) NewHandler(request *http.Request) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		tConfig := config.GetTenantConfig(r)
 		var response handler.APIResponse
@@ -52,6 +52,6 @@ func (f SSOConfigHandler) NewHandler(request *http.Request) http.Handler {
 	})
 }
 
-func (f SSOConfigHandler) ProvideAuthzPolicy() authz.Policy {
+func (f ConfigHandler) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }

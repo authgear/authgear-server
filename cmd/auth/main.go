@@ -15,6 +15,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
+	"github.com/skygeario/skygear-server/pkg/auth/handler/ssohandler"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
@@ -63,8 +64,8 @@ func main() {
 	handler.AttachRoleAdminHandler(&srv, authDependency)
 	handler.AttachRoleDefaultHandler(&srv, authDependency)
 	handler.AttachWelcomeEmailHandler(&srv, authDependency)
-	handler.AttachLoginAuthURLHandler(&srv, authDependency)
-	handler.AttachSSOConfigHandler(&srv, authDependency)
+	ssohandler.AttachLoginAuthURLHandler(&srv, authDependency)
+	ssohandler.AttachConfigHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")
