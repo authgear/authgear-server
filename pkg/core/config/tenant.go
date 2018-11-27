@@ -23,11 +23,14 @@ type TenantConfiguration struct {
 	UserProfile     UserProfileConfiguration    `json:"USER_PROFILE" msg:"USER_PROFILE"`
 	UserAudit       UserAuditConfiguration      `json:"USER_AUDIT" msg:"USER_AUDIT"`
 	SMTP            SMTPConfiguration           `json:"SMTP" msg:"SMTP"`
+	Twilio          TwilioConfiguration         `json:"TWILIO" msg:"TWILIO"`
+	Nexmo           NexmoConfiguration          `json:"NEXMO" msg:"NEXMO"`
 	ForgotPassword  ForgotPasswordConfiguration `json:"FORGOT_PASSWORD" msg:"FORGOT_PASSWORD"`
 	WelcomeEmail    WelcomeEmailConfiguration   `json:"WELCOME_EMAIL" msg:"WELCOME_EMAIL"`
 	SSOSetting      SSOSetting                  `json:"SSO_SETTING" msg:"SSO_SETTING"`
 	SSOProviders    []string                    `json:"SSO_PROVIDERS" envconfig:"SSO_PROVIDERS" msg:"SSO_PROVIDERS"`
 	SSOConfigs      []SSOConfiguration          `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
+	UserVerify      UserVerifyConfiguration     `json:"USER_VERIFY" msg:"USER_VERIFY"`
 }
 
 type TokenStoreConfiguration struct {
@@ -109,6 +112,65 @@ type SSOConfiguration struct {
 	Scope        string `msg:"SCOPE" envconfig:"SCOPE" json:"SCOPE"`
 }
 
+type UserVerifyConfiguration struct {
+	URLPrefix        string                       `msg:"URL_PREFIX" envconfig:"VERIFY_URL_PREFIX" json:"URL_PREFIX"`
+	AutoUpdate       bool                         `msg:"AUTO_UPDATE" envconfig:"VERIFY_AUTO_UPDATE" json:"AUTO_UPDATE"`
+	AutoSendOnSignup bool                         `msg:"AUTO_SEND_SIGNUP" envconfig:"VERIFY_AUTO_SEND_SIGNUP" json:"AUTO_SEND_SIGNUP"`
+	AutoSendOnUpdate bool                         `msg:"AUTO_SEND_UPDATE" envconfig:"VERIFY_AUTO_SEND_UPDATE" json:"AUTO_SEND_UPDATE"`
+	Required         bool                         `msg:"REQUIRED" envconfig:"VERIFY_REQUIRED" json:"REQUIRED"`
+	Criteria         string                       `msg:"CRITERIA" envconfig:"VERIFY_CRITERIA" json:"CRITERIA"`
+	ErrorRedirect    string                       `msg:"ERROR_REDIRECT" envconfig:"VERIFY_ERROR_REDIRECT" json:"ERROR_REDIRECT"`
+	ErrorHTMLURL     string                       `msg:"ERROR_HTML_URL" envconfig:"VERIFY_ERROR_HTML_URL" json:"ERROR_HTML_URL"`
+	Keys             []string                     `msg:"KEYS" envconfig:"VERIFY_KEYS" json:"KEYS"`
+	KeyConfigs       []UserVerifyKeyConfiguration `msg:"KEY_CONFIGS" json:"KEY_CONFIGS"`
+}
+
+func (u *UserVerifyConfiguration) ConfigForKey(key string) (UserVerifyKeyConfiguration, bool) {
+	for _, c := range u.KeyConfigs {
+		if c.Key == key {
+			return c, true
+		}
+	}
+
+	return UserVerifyKeyConfiguration{}, false
+}
+
+type UserVerifyKeyConfiguration struct {
+	Key             string `msg:"KEY" ignored:"true" json:"KEY"`
+	CodeFormat      string `msg:"CODE_FORMAT" envconfig:"CODE_FORMAT" json:"CODE_FORMAT"`
+	Expiry          int64  `msg:"EXPIRY" envconfig:"EXPIRY" json:"EXPIRY"`
+	SuccessRedirect string `msg:"SUCCESS_REDIRECT" envconfig:"SUCCESS_REDIRECT" json:"SUCCESS_REDIRECT"`
+	SuccessHTMLURL  string `msg:"SUCCESS_HTML_URL" envconfig:"SUCCESS_HTML_URL" json:"SUCCESS_HTML_URL"`
+	ErrorRedirect   string `msg:"ERROR_REDIRECT" envconfig:"ERROR_REDIRECT" json:"ERROR_REDIRECT"`
+	ErrorHTMLURL    string `msg:"ERROR_HTML_URL" envconfig:"ERROR_HTML_URL" json:"ERROR_HTML_URL"`
+	Provider        string `msg:"PROVIDER" envconfig:"PROVIDER" json:"PROVIDER"`
+
+	// provider config
+	ProviderConfig UserVerifyKeyProviderConfiguration `msg:"PROVIDER_CONFIG" json:"PROVIDER_CONFIG"`
+}
+
+type UserVerifyKeyProviderConfiguration struct {
+	Subject     string `msg:"SUBJECT" envconfig:"SUBJECT" json:"SUBJECT"`
+	Sender      string `msg:"SENDER" envconfig:"SENDER" json:"SENDER"`
+	SenderName  string `msg:"SENDER_NAME" envconfig:"SENDER_NAME" json:"SENDER_NAME"`
+	ReplyTo     string `msg:"REPLY_TO" envconfig:"REPLY_TO" json:"REPLY_TO"`
+	ReplyToName string `msg:"REPLY_TO_NAME" envconfig:"REPLY_TO_NAME" json:"REPLY_TO_NAME"`
+	TextURL     string `msg:"TEXT_URL" envconfig:"TEXT_URL" json:"TEXT_URL"`
+	HTMLURL     string `msg:"HTML_URL" envconfig:"HTML_URL" json:"HTML_URL"`
+}
+
+type TwilioConfiguration struct {
+	AccountSID string `msg:"ACCOUNT_SID" envconfig:"TWILIO_ACCOUNT_SID" json:"ACCOUNT_SID"`
+	AuthToken  string `msg:"AUTH_TOKEN" envconfig:"TWILIO_AUTH_TOKEN" json:"AUTH_TOKEN"`
+	From       string `msg:"FROM" envconfig:"TWILIO_FROM" json:"FROM"`
+}
+
+type NexmoConfiguration struct {
+	APIKey    string `msg:"API_KEY" envconfig:"NEXMO_API_KEY" json:"API_KEY"`
+	AuthToken string `msg:"AUTH_TOKEN" envconfig:"NEXMO_AUTH_TOKEN" json:"AUTH_TOKEN"`
+	From      string `msg:"FROM" envconfig:"NEXMO_FROM" json:"FROM"`
+}
+
 func NewTenantConfiguration() TenantConfiguration {
 	return TenantConfiguration{
 		DBConnectionStr: "postgres://postgres:@localhost/postgres?sslmode=disable",
@@ -162,7 +224,6 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		c.ForgotPassword.AppName = c.AppName
 	}
 }
-
 func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	return []string{
 		c.APIKey,
@@ -223,6 +284,21 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 	header(i).Set("X-Skygear-App-Config", base64.StdEncoding.EncodeToString(out))
 }
 
+func GetUserVerifyKeyConfigFromEnv(key string) (config UserVerifyKeyConfiguration, err error) {
+	config.Key = key
+	prefix := "verify_keys_" + key
+	if err = envconfig.Process(prefix, &config); err != nil {
+		return
+	}
+
+	prefix = "verify_keys_" + key + "_provider"
+	if err = envconfig.Process(prefix, &config.ProviderConfig); err != nil {
+		return
+	}
+
+	return
+}
+
 // NewTenantConfigurationFromEnv implements ConfigurationProvider
 func NewTenantConfigurationFromEnv(_ *http.Request) (c TenantConfiguration, err error) {
 	c = NewTenantConfiguration()
@@ -232,6 +308,16 @@ func NewTenantConfigurationFromEnv(_ *http.Request) (c TenantConfiguration, err 
 	}
 	c.SSOSetting = getSSOSetting()
 	c.SSOConfigs = getSSOConfigs(c.SSOProviders)
+
+	// Read user verify config
+	for _, userVerifyKey := range c.UserVerify.Keys {
+		var keyConfig UserVerifyKeyConfiguration
+		if keyConfig, err = GetUserVerifyKeyConfigFromEnv(userVerifyKey); err != nil {
+			return
+		}
+
+		c.UserVerify.KeyConfigs = append(c.UserVerify.KeyConfigs, keyConfig)
+	}
 
 	c.AfterUnmarshal()
 	err = c.Validate()
