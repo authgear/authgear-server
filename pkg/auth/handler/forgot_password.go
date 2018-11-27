@@ -110,6 +110,11 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
+	if len(principals) == 0 {
+		err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+		return
+	}
+
 	userID := principals[0].UserID
 	hashedPassword := principals[0].HashedPassword
 
