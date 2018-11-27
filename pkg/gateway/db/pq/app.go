@@ -44,7 +44,7 @@ func (s *Store) GetAppByDomain(domain string, app *model.App) error {
 		return err
 	}
 
-	configValue := tenantConfigurationValue{}
+	configValue := newTenantConfigurationValue()
 	if err := s.getConfigByID(configID, &configValue); err != nil {
 		logger.WithError(err).Error("Fail to get app tenant config")
 		return err
