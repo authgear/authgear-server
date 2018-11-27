@@ -1,11 +1,13 @@
 package auth
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	"github.com/sirupsen/logrus"
@@ -171,6 +173,9 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			Scope:        strings.Split(SSOConf.Scope, ","),
 		}
 		return sso.NewProvider(setting, config)
+	case "UserVerifyCodeSenderFactory":
+		tConfig := config.GetTenantConfig(r)
+		return NewDefaultUserVerifyCodeSenderFactory(tConfig)
 	default:
 		return nil
 	}
@@ -179,4 +184,43 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 func createLoggerMaskFormatter(r *http.Request) logrus.Formatter {
 	tConfig := config.GetTenantConfig(r)
 	return logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
+}
+
+type UserVerifyCodeSenderFactory interface {
+	NewCodeSender(key string) userverify.CodeSender
+}
+
+type DefaultUserVerifyCodeSenderFactory struct {
+	CodeSenderMap map[string]userverify.CodeSender
+}
+
+func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration) UserVerifyCodeSenderFactory {
+	userVerifyConfig := c.UserVerify
+	f := DefaultUserVerifyCodeSenderFactory{
+		CodeSenderMap: map[string]userverify.CodeSender{},
+	}
+	for _, keyConfig := range userVerifyConfig.KeyConfigs {
+		switch keyConfig.Provider {
+		case "smtp":
+			f.CodeSenderMap[keyConfig.Key] = &userverify.EmailCodeSender{
+				AppName:       c.AppName,
+				Key:           keyConfig.Key,
+				Config:        userVerifyConfig,
+				Dialer:        mail.NewDialer(c.SMTP),
+				CodeGenerator: userverify.NewCodeGenerator(keyConfig.CodeFormat),
+			}
+		case "twilio":
+			// TODO:
+		case "nexmo":
+			// TODO:
+		default:
+			panic(errors.New("invalid user verify provider: " + keyConfig.Provider))
+		}
+	}
+
+	return &f
+}
+
+func (d *DefaultUserVerifyCodeSenderFactory) NewCodeSender(key string) userverify.CodeSender {
+	return d.CodeSenderMap[key]
 }

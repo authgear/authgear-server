@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -48,9 +51,14 @@ func (f VerifyRequestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type VerifyRequestPayload struct {
+	RecordKey string `json:"record_key"`
 }
 
 func (payload VerifyRequestPayload) Validate() error {
+	if payload.RecordKey == "" {
+		return skyerr.NewInvalidArgument("empty record_key", []string{"record_key"})
+	}
+
 	return nil
 }
 
@@ -64,7 +72,11 @@ func (payload VerifyRequestPayload) Validate() error {
 //  EOF
 //
 type VerifyRequestHandler struct {
-	TxContext db.TxContext `dependency:"TxContext"`
+	TxContext         db.TxContext                     `dependency:"TxContext"`
+	AuthContext       coreAuth.ContextGetter           `dependency:"AuthContextGetter"`
+	CodeSenderFactory auth.UserVerifyCodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
+	UserProfileStore  userprofile.Store                `dependency:"UserProfileStore"`
+	Logger            *logrus.Entry                    `dependency:"HandlerLogger"`
 }
 
 func (h VerifyRequestHandler) WithTx() bool {
@@ -82,5 +94,32 @@ func (h VerifyRequestHandler) DecodeRequest(request *http.Request) (handler.Requ
 }
 
 func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(VerifyRequestPayload)
+	authInfo := h.AuthContext.AuthInfo()
+	accessToken := h.AuthContext.Token()
+	codeSender := h.CodeSenderFactory.NewCodeSender(payload.RecordKey)
+	if codeSender == nil {
+		err = skyerr.NewInvalidArgument("invalid record_key", []string{payload.RecordKey})
+	}
+
+	// Get Profile
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID, accessToken.AccessToken); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+		return
+	}
+
+	if err = codeSender.Send(userProfile); err != nil {
+		h.Logger.WithFields(logrus.Fields{
+			"error":        err,
+			"record_key":   payload.RecordKey,
+			"record_value": userProfile.Data[payload.RecordKey],
+		}).Error("fail to send verify request")
+		return
+	}
+
+	resp = "OK"
 	return
 }
