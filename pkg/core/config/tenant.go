@@ -2,7 +2,11 @@ package config
 
 import (
 	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/kelseyhightower/envconfig"
 )
@@ -90,6 +94,34 @@ func NewTenantConfiguration() TenantConfiguration {
 	}
 }
 
+func (c *TenantConfiguration) Validate() error {
+	if c.DBConnectionStr == "" {
+		return errors.New("DATABASE_URL is not set")
+	}
+	if c.AppName == "" {
+		return errors.New("APP_NAME is not set")
+	}
+	if c.APIKey == "" {
+		return errors.New("API_KEY is not set")
+	}
+	if c.MasterKey == "" {
+		return errors.New("MASTER_KEY is not set")
+	}
+	if c.APIKey == c.MasterKey {
+		return errors.New("MASTER_KEY cannot be the same as API_KEY")
+	}
+	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(c.AppName) {
+		return fmt.Errorf("APP_NAME '%s' contains invalid characters other than alphanumerics or underscores", c.AppName)
+	}
+	return nil
+}
+
+func (c *TenantConfiguration) AfterUnmarshal() {
+	if c.TokenStore.Secret == "" {
+		c.TokenStore.Secret = c.MasterKey
+	}
+}
+
 func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	return []string{
 		c.APIKey,
@@ -104,6 +136,16 @@ func (c *TenantConfiguration) GetSSOConfigByName(name string) (config SSOConfigu
 		}
 	}
 	return
+}
+
+func (c *TenantConfiguration) UnmarshalJSON(b []byte) error {
+	type configAlias TenantConfiguration
+	if err := json.Unmarshal(b, (*configAlias)(c)); err != nil {
+		return err
+	}
+	c.AfterUnmarshal()
+	err := c.Validate()
+	return err
 }
 
 func header(i interface{}) http.Header {
@@ -141,13 +183,19 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 }
 
 // NewTenantConfigurationFromEnv implements ConfigurationProvider
-func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error) {
-	c := NewTenantConfiguration()
-	err := envconfig.Process("", &c)
+func NewTenantConfigurationFromEnv(_ *http.Request) (c TenantConfiguration, err error) {
+	c = NewTenantConfiguration()
+	err = envconfig.Process("", &c)
+	if err != nil {
+		return
+	}
 	c.SSOSetting = getSSOSetting()
 	c.SSOConfigs = getSSOConfigs(c.SSOProviders)
 
-	return c, err
+	c.AfterUnmarshal()
+	err = c.Validate()
+
+	return
 }
 
 func getSSOSetting() (setting SSOSetting) {
