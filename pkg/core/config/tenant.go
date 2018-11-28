@@ -2,7 +2,11 @@ package config
 
 import (
 	"encoding/base64"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/kelseyhightower/envconfig"
 )
@@ -14,7 +18,7 @@ type TenantConfiguration struct {
 	APIKey          string                    `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
 	MasterKey       string                    `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
 	AppName         string                    `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
-	CORSHost        string                    `msg:"CORS_HOST" envconfig:"CORS_HOST" json:"CORS_HOST" default:"*"`
+	CORSHost        string                    `msg:"CORS_HOST" envconfig:"CORS_HOST" json:"CORS_HOST"`
 	TokenStore      TokenStoreConfiguration   `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
 	UserProfile     UserProfileConfiguration  `json:"USER_PROFILE" msg:"USER_PROFILE"`
 	UserAudit       UserAuditConfiguration    `json:"USER_AUDIT" msg:"USER_AUDIT"`
@@ -53,17 +57,17 @@ type UserAuditConfiguration struct {
 
 type SMTPConfiguration struct {
 	Host     string `msg:"HOST" envconfig:"SMTP_HOST" json:"HOST"`
-	Port     int    `msg:"PORT" envconfig:"SMTP_PORT" json:"PORT" default:"25"`
-	Mode     string `msg:"MODE" envconfig:"SMTP_MODE" json:"MODE" default:"normal"`
+	Port     int    `msg:"PORT" envconfig:"SMTP_PORT" json:"PORT"`
+	Mode     string `msg:"MODE" envconfig:"SMTP_MODE" json:"MODE"`
 	Login    string `msg:"LOGIN" envconfig:"SMTP_LOGIN" json:"LOGIN"`
 	Password string `msg:"PASSWORD" envconfig:"SMTP_PASSWORD" json:"PASSWORD"`
 }
 
 type WelcomeEmailConfiguration struct {
-	Enabled     bool   `msg:"ENABLED" envconfig:"WELCOME_EMAIL_ENABLED" json:"ENABLED" default:"false"`
+	Enabled     bool   `msg:"ENABLED" envconfig:"WELCOME_EMAIL_ENABLED" json:"ENABLED"`
 	SenderName  string `msg:"SENDER_NAME" envconfig:"WELCOME_EMAIL_SENDER_NAME" json:"SENDER_NAME"`
-	Sender      string `msg:"SENDER" envconfig:"WELCOME_EMAIL_SENDER" json:"SENDER" default:"no-reply@skygeario.com"`
-	Subject     string `msg:"SUBJECT" envconfig:"WELCOME_EMAIL_SUBJECT" json:"SUBJECT" default:"Welcome!"`
+	Sender      string `msg:"SENDER" envconfig:"WELCOME_EMAIL_SENDER" json:"SENDER"`
+	Subject     string `msg:"SUBJECT" envconfig:"WELCOME_EMAIL_SUBJECT" json:"SUBJECT"`
 	ReplyToName string `msg:"REPLY_TO_NAME" envconfig:"WELCOME_EMAIL_REPLY_TO_NAME" json:"REPLY_TO_NAME"`
 	ReplyTo     string `msg:"REPLY_TO" envconfig:"WELCOME_EMAIL_REPLY_TO" json:"REPLY_TO"`
 	TextURL     string `msg:"TEXT_URL" envconfig:"WELCOME_EMAIL_TEXT_URL" json:"TEXT_URL"`
@@ -85,8 +89,48 @@ type SSOConfiguration struct {
 	Scope        string `msg:"SCOPE" envconfig:"SCOPE" json:"SCOPE"`
 }
 
-func (c *TenantConfiguration) ReadFromEnv() error {
-	return envconfig.Process("", c)
+func NewTenantConfiguration() TenantConfiguration {
+	return TenantConfiguration{
+		DBConnectionStr: "postgres://postgres:@localhost/postgres?sslmode=disable",
+		CORSHost:        "*",
+		SMTP: SMTPConfiguration{
+			Port: 25,
+			Mode: "normal",
+		},
+		WelcomeEmail: WelcomeEmailConfiguration{
+			Enabled: false,
+			Sender:  "no-reply@skygeario.com",
+			Subject: "Welcome!",
+		},
+	}
+}
+
+func (c *TenantConfiguration) Validate() error {
+	if c.DBConnectionStr == "" {
+		return errors.New("DATABASE_URL is not set")
+	}
+	if c.AppName == "" {
+		return errors.New("APP_NAME is not set")
+	}
+	if c.APIKey == "" {
+		return errors.New("API_KEY is not set")
+	}
+	if c.MasterKey == "" {
+		return errors.New("MASTER_KEY is not set")
+	}
+	if c.APIKey == c.MasterKey {
+		return errors.New("MASTER_KEY cannot be the same as API_KEY")
+	}
+	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(c.AppName) {
+		return fmt.Errorf("APP_NAME '%s' contains invalid characters other than alphanumerics or underscores", c.AppName)
+	}
+	return nil
+}
+
+func (c *TenantConfiguration) AfterUnmarshal() {
+	if c.TokenStore.Secret == "" {
+		c.TokenStore.Secret = c.MasterKey
+	}
 }
 
 func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
@@ -103,6 +147,16 @@ func (c *TenantConfiguration) GetSSOConfigByName(name string) (config SSOConfigu
 		}
 	}
 	return
+}
+
+func (c *TenantConfiguration) UnmarshalJSON(b []byte) error {
+	type configAlias TenantConfiguration
+	if err := json.Unmarshal(b, (*configAlias)(c)); err != nil {
+		return err
+	}
+	c.AfterUnmarshal()
+	err := c.Validate()
+	return err
 }
 
 func header(i interface{}) http.Header {
@@ -140,13 +194,19 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 }
 
 // NewTenantConfigurationFromEnv implements ConfigurationProvider
-func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error) {
-	c := TenantConfiguration{}
-	err := envconfig.Process("", &c)
+func NewTenantConfigurationFromEnv(_ *http.Request) (c TenantConfiguration, err error) {
+	c = NewTenantConfiguration()
+	err = envconfig.Process("", &c)
+	if err != nil {
+		return
+	}
 	c.SSOSetting = getSSOSetting()
 	c.SSOConfigs = getSSOConfigs(c.SSOProviders)
 
-	return c, err
+	c.AfterUnmarshal()
+	err = c.Validate()
+
+	return
 }
 
 func getSSOSetting() (setting SSOSetting) {

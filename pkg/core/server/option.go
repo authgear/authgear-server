@@ -19,19 +19,21 @@ type RecoveredResponse struct {
 	Err skyerr.Error `json:"error,omitempty"`
 }
 
+func DefaultRecoverPanicHandler(w http.ResponseWriter, r *http.Request, err skyerr.Error) {
+	httpStatus := nextSkyerr.ErrorDefaultStatusCode(err)
+
+	// TODO: log
+
+	response := RecoveredResponse{Err: err}
+	encoder := json.NewEncoder(w)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(httpStatus)
+	encoder.Encode(response)
+}
+
 func DefaultOption() Option {
 	return Option{
-		RecoverPanic: true,
-		RecoverPanicHandler: func(w http.ResponseWriter, r *http.Request, err skyerr.Error) {
-			httpStatus := nextSkyerr.ErrorDefaultStatusCode(err)
-
-			// TODO: log
-
-			response := RecoveredResponse{Err: err}
-			encoder := json.NewEncoder(w)
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(httpStatus)
-			encoder.Encode(response)
-		},
+		RecoverPanic:        true,
+		RecoverPanicHandler: DefaultRecoverPanicHandler,
 	}
 }

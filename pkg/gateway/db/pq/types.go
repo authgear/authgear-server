@@ -14,6 +14,12 @@ type tenantConfigurationValue struct {
 	Valid               bool
 }
 
+func newTenantConfigurationValue() tenantConfigurationValue {
+	return tenantConfigurationValue{
+		TenantConfiguration: config.NewTenantConfiguration(),
+	}
+}
+
 func (v tenantConfigurationValue) Value() (driver.Value, error) {
 	if !v.Valid {
 		return nil, nil

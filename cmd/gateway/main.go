@@ -12,6 +12,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
+	"github.com/skygeario/skygear-server/pkg/core/server"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
 	pqStore "github.com/skygeario/skygear-server/pkg/gateway/db/pq"
 	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
@@ -53,7 +54,9 @@ func main() {
 	gr := r.PathPrefix("/{gear}").Subrouter()
 
 	// RecoverMiddleware must come first
-	gr.Use(coreMiddleware.RecoverMiddleware{}.Handle)
+	gr.Use(coreMiddleware.RecoverMiddleware{
+		RecoverHandler: server.DefaultRecoverPanicHandler,
+	}.Handle)
 	// TODO:
 	// Currently both config and authz middleware both query store to get
 	// app, see how to reduce query to optimize the performance
