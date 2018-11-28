@@ -146,7 +146,6 @@
   packages = [
     ".",
     "database",
-    "database/postgres",
     "source",
     "source/file",
   ]
@@ -196,6 +195,14 @@
   pruneopts = ""
   revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
   version = "v1.6.2"
+
+[[projects]]
+  digest = "1:529dd39ce1a3837709c5f1dbf0a803ecb22e4fef79c722cdd9805e2a63ca686e"
+  name = "github.com/gorilla/schema"
+  packages = ["."]
+  pruneopts = ""
+  revision = "d0e4c24cff97ae983e9847e0ed5a02dc10013d41"
+  version = "v1.0.2"
 
 [[projects]]
   digest = "1:d9f29de6a1b882486d72b6071d49314432aeb31c7518a8b96c59668d4e4c4ebf"
@@ -412,6 +419,14 @@
   revision = "67823cd24dece1b04cced3a0a0b3ca2bc84d875e"
 
 [[projects]]
+  branch = "master"
+  digest = "1:2ac1e872ebd6b3904dfde61cbeaea124b3e3d51393966819a104a84642a5b325"
+  name = "github.com/sfreiberg/gotwilio"
+  packages = ["."]
+  pruneopts = ""
+  revision = "a13e5b0d458a0a7d43d24d118af756822d02d26c"
+
+[[projects]]
   digest = "1:3ac248add5bb40a3c631c5334adcd09aa72d15af2768a5bc0274084ea7b2e5ba"
   name = "github.com/sirupsen/logrus"
   packages = [
@@ -587,7 +602,6 @@
     "github.com/go-gomail/gomail",
     "github.com/golang-migrate/migrate",
     "github.com/golang-migrate/migrate/database",
-    "github.com/golang-migrate/migrate/database/postgres",
     "github.com/golang-migrate/migrate/source/file",
     "github.com/golang/mock/gomock",
     "github.com/golang/mock/mockgen",
@@ -608,6 +622,7 @@
     "github.com/pebbe/zmq4",
     "github.com/rifflock/lfshook",
     "github.com/robfig/cron",
+    "github.com/sfreiberg/gotwilio",
     "github.com/sirupsen/logrus",
     "github.com/sirupsen/logrus/hooks/test",
     "github.com/skygeario/buford/push",

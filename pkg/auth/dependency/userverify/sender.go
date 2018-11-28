@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/core/sms"
+
 	"github.com/go-gomail/gomail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -36,22 +38,16 @@ func (e *EmailCodeSender) Send(code string, userProfile userprofile.UserProfile)
 		return errors.New("provider for " + e.Key + " not found")
 	}
 
-	providerConfig := keyConfig.ProviderConfig
+	context := prepareVerifyRequestContext(
+		e.Key,
+		recordValue,
+		e.AppName,
+		e.Config,
+		code,
+		userProfile,
+	)
 
-	context := map[string]interface{}{
-		"appname":      e.AppName,
-		"record_key":   e.Key,
-		"record_value": recordValue,
-		"user_id":      userProfile.RecordID,
-		"user":         userProfile.ToMap(),
-		"code":         code,
-		"link": fmt.Sprintf(
-			"%s/auth/verify-code/form?code=%s&user_id=%s",
-			e.Config.URLPrefix,
-			code,
-			userProfile.RecordID,
-		),
-	}
+	providerConfig := keyConfig.ProviderConfig
 
 	var textBody string
 	if textBody, err = template.ParseTextTemplateFromURL(providerConfig.TextURL, context); err != nil {
@@ -79,4 +75,77 @@ func (e *EmailCodeSender) Send(code string, userProfile userprofile.UserProfile)
 
 	err = sendReq.Execute()
 	return
+}
+
+type TwilioCodeSender struct {
+	Key          string
+	AppName      string
+	Config       config.UserVerifyConfiguration
+	TwilioClient *sms.TwilioClient
+	CodeGenerator
+}
+
+func (t *TwilioCodeSender) Send(code string, userProfile userprofile.UserProfile) (err error) {
+	var recordValue string
+	var ok bool
+	if recordValue, ok = userProfile.Data[t.Key].(string); !ok {
+		return errors.New(t.Key + " is invalid in user data")
+	}
+
+	var keyConfig config.UserVerifyKeyConfiguration
+	if keyConfig, ok = t.Config.ConfigForKey(t.Key); !ok {
+		return errors.New("provider for " + t.Key + " not found")
+	}
+
+	context := prepareVerifyRequestContext(
+		t.Key,
+		recordValue,
+		t.AppName,
+		t.Config,
+		code,
+		userProfile,
+	)
+
+	providerConfig := keyConfig.ProviderConfig
+
+	var textBody string
+	if textBody, err = template.ParseTextTemplateFromURL(providerConfig.TextURL, context); err != nil {
+		return
+	}
+
+	_, exception, err := t.TwilioClient.SendSMS(t.TwilioClient.From, recordValue, textBody, "", "")
+	if err != nil {
+		return
+	}
+
+	if exception != nil {
+		err = errors.New(exception.Message)
+		return
+	}
+
+	return
+}
+
+func prepareVerifyRequestContext(
+	key string,
+	value string,
+	appName string,
+	config config.UserVerifyConfiguration,
+	code string,
+	userProfile userprofile.UserProfile,
+) map[string]interface{} {
+	return map[string]interface{}{
+		"appname":      appName,
+		"record_key":   key,
+		"record_value": value,
+		"user_id":      userProfile.RecordID,
+		"user":         userProfile.ToMap(),
+		"code":         code,
+		"link": fmt.Sprintf(
+			"%s/auth/verify-code/form?code=%s&user_id=%s",
+			config.URLPrefix,
+			code,
+			userProfile.RecordID,
+		),
+	}
 }

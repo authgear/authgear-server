@@ -159,3 +159,7 @@ required = [
 [[constraint]]
   name = "github.com/flosch/pongo2"
   version = "3.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/sfreiberg/gotwilio"
