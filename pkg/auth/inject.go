@@ -228,7 +228,13 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration) UserVer
 				CodeGenerator: userverify.NewCodeGenerator(keyConfig.CodeFormat),
 			}
 		case "nexmo":
-			// TODO:
+			codeSender = &userverify.NexmoCodeSender{
+				AppName:       c.AppName,
+				Key:           keyConfig.Key,
+				Config:        userVerifyConfig,
+				NexmoClient:   sms.NewNexmoClient(c.Nexmo),
+				CodeGenerator: userverify.NewCodeGenerator(keyConfig.CodeFormat),
+			}
 		default:
 			panic(errors.New("invalid user verify provider: " + keyConfig.Provider))
 		}

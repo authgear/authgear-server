@@ -357,6 +357,14 @@
   revision = "eafdab6b0663b4b528c35975c8b0e78be6e25261"
 
 [[projects]]
+  digest = "1:f722fdc18c97d7ab558b3600d67a29613d5a177b562b6550a01210ea1f228181"
+  name = "github.com/njern/gonexmo"
+  packages = ["."]
+  pruneopts = ""
+  revision = "decd62febd9bd8900d1e5b896dd8573ec9cff48d"
+  version = "v2.0.0"
+
+[[projects]]
   digest = "1:8b4b7a90de0fd96f41327fb48cc47a9616337ac5c6c1a4f0c54315d39309d1d8"
   name = "github.com/paulmach/go.geo"
   packages = ["."]
@@ -618,6 +626,7 @@
     "github.com/mitchellh/gox",
     "github.com/mitchellh/mapstructure",
     "github.com/nbutton23/zxcvbn-go",
+    "github.com/njern/gonexmo",
     "github.com/paulmach/go.geo",
     "github.com/pebbe/zmq4",
     "github.com/rifflock/lfshook",

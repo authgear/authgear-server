@@ -163,3 +163,7 @@ required = [
 [[constraint]]
   branch = "master"
   name = "github.com/sfreiberg/gotwilio"
+
+[[constraint]]
+  name = "github.com/njern/gonexmo"
+  version = "2.0.0"
