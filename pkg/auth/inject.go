@@ -220,19 +220,19 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration) UserVer
 				CodeGenerator: userverify.NewCodeGenerator(keyConfig.CodeFormat),
 			}
 		case "twilio":
-			codeSender = &userverify.TwilioCodeSender{
+			codeSender = &userverify.SMSCodeSender{
 				AppName:       c.AppName,
 				Key:           keyConfig.Key,
 				Config:        userVerifyConfig,
-				TwilioClient:  sms.NewTwilioClient(c.Twilio),
+				SMSClient:     sms.NewTwilioClient(c.Twilio),
 				CodeGenerator: userverify.NewCodeGenerator(keyConfig.CodeFormat),
 			}
 		case "nexmo":
-			codeSender = &userverify.NexmoCodeSender{
+			codeSender = &userverify.SMSCodeSender{
 				AppName:       c.AppName,
 				Key:           keyConfig.Key,
 				Config:        userVerifyConfig,
-				NexmoClient:   sms.NewNexmoClient(c.Nexmo),
+				SMSClient:     sms.NewNexmoClient(c.Nexmo),
 				CodeGenerator: userverify.NewCodeGenerator(keyConfig.CodeFormat),
 			}
 		default:

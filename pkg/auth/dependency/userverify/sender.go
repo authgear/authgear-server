@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	nexmo "github.com/njern/gonexmo"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 
 	"github.com/go-gomail/gomail"
@@ -78,15 +77,15 @@ func (e *EmailCodeSender) Send(code string, userProfile userprofile.UserProfile)
 	return
 }
 
-type TwilioCodeSender struct {
-	Key          string
-	AppName      string
-	Config       config.UserVerifyConfiguration
-	TwilioClient *sms.TwilioClient
+type SMSCodeSender struct {
+	Key       string
+	AppName   string
+	Config    config.UserVerifyConfiguration
+	SMSClient sms.Client
 	CodeGenerator
 }
 
-func (t *TwilioCodeSender) Send(code string, userProfile userprofile.UserProfile) (err error) {
+func (t *SMSCodeSender) Send(code string, userProfile userprofile.UserProfile) (err error) {
 	var recordValue string
 	var ok bool
 	if recordValue, ok = userProfile.Data[t.Key].(string); !ok {
@@ -114,73 +113,7 @@ func (t *TwilioCodeSender) Send(code string, userProfile userprofile.UserProfile
 		return
 	}
 
-	_, exception, err := t.TwilioClient.SendSMS(t.TwilioClient.From, recordValue, textBody, "", "")
-	if err != nil {
-		return
-	}
-
-	if exception != nil {
-		err = errors.New(exception.Message)
-		return
-	}
-
-	return
-}
-
-type NexmoCodeSender struct {
-	Key         string
-	AppName     string
-	Config      config.UserVerifyConfiguration
-	NexmoClient *sms.NexmoClient
-	CodeGenerator
-}
-
-func (n *NexmoCodeSender) Send(code string, userProfile userprofile.UserProfile) (err error) {
-	var recordValue string
-	var ok bool
-	if recordValue, ok = userProfile.Data[n.Key].(string); !ok {
-		return errors.New(n.Key + " is invalid in user data")
-	}
-
-	var keyConfig config.UserVerifyKeyConfiguration
-	if keyConfig, ok = n.Config.ConfigForKey(n.Key); !ok {
-		return errors.New("provider for " + n.Key + " not found")
-	}
-
-	context := prepareVerifyRequestContext(
-		n.Key,
-		recordValue,
-		n.AppName,
-		n.Config,
-		code,
-		userProfile,
-	)
-
-	providerConfig := keyConfig.ProviderConfig
-
-	var textBody string
-	if textBody, err = template.ParseTextTemplateFromURL(providerConfig.TextURL, context); err != nil {
-		return
-	}
-
-	message := nexmo.SMSMessage{
-		From:  n.NexmoClient.From,
-		To:    recordValue,
-		Type:  nexmo.Text,
-		Text:  textBody,
-		Class: nexmo.Standard,
-	}
-
-	resp, err := n.NexmoClient.SMS.Send(&message)
-	if err != nil {
-		return
-	}
-
-	if resp.MessageCount == 0 {
-		err = errors.New("Unable to send sms")
-		return
-	}
-
+	err = t.SMSClient.Send(recordValue, textBody)
 	return
 }
 
