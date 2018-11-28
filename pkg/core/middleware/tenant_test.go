@@ -77,11 +77,15 @@ func TestMiddleware(t *testing.T) {
 		errHandler := targetErrMiddleware.Handle(GetTestHandler())
 
 		Convey("should handle request with error config provider", func() {
+			defer func() {
+				r := recover()
+				err, _ := r.(error)
+				So(err.Error(), ShouldEqual, "Unable to retrieve configuration: feature not supported")
+			}()
+
 			req := newReq()
 			resp := httptest.NewRecorder()
 			errHandler.ServeHTTP(resp, req)
-			So(resp.Code, ShouldEqual, http.StatusInternalServerError)
-			So(resp.Body.String(), ShouldEqual, "Unable to retrieve configuration\n")
 		})
 	})
 }
