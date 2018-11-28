@@ -14,7 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
-	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -24,7 +24,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -116,7 +115,7 @@ type SignupHandler struct {
 	RoleStore             role.Store                 `dependency:"RoleStore"`
 	PasswordAuthProvider  password.Provider          `dependency:"PasswordAuthProvider"`
 	AnonymousAuthProvider anonymous.Provider         `dependency:"AnonymousAuthProvider"`
-	AuditTrail            coreAudit.Trail            `dependency:"AuditTrail"`
+	AuditTrail            audit.Trail                `dependency:"AuditTrail"`
 	WelcomeEmailSendTask  *welcemail.SendTask        `dependency:"WelcomeEmailSendTask,optional"`
 	TxContext             db.TxContext               `dependency:"TxContext"`
 	Logger                *logrus.Entry              `dependency:"HandlerLogger"`
@@ -201,9 +200,9 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	h.AuditTrail.Log(coreAudit.Entry{
+	h.AuditTrail.Log(audit.Entry{
 		AuthID: info.ID,
-		Event:  coreAudit.EventSignup,
+		Event:  audit.EventSignup,
 	})
 
 	if h.WelcomeEmailSendTask != nil {

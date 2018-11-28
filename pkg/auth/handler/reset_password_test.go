@@ -6,10 +6,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
-	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -85,7 +84,7 @@ func TestResetPasswordHandler(t *testing.T) {
 		h.TokenStore = tokenStore
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider
-		h.AuditTrail = coreAudit.NewMockTrail(t)
+		h.AuditTrail = audit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 
 		Convey("should reset password by user id", func() {
@@ -148,7 +147,7 @@ func TestResetPasswordHandler(t *testing.T) {
 			}
 
 			h.Handle(payload)
-			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
+			mockTrail, _ := h.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
 			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "reset_password")
 		})

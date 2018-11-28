@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
-	passwordAudit "github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -105,7 +104,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	if err = h.PasswordChecker.ValidatePassword(passwordAudit.ValidatePasswordPayload{
+	if err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
 		PlainPassword: payload.Password,
 	}); err != nil {
 		return

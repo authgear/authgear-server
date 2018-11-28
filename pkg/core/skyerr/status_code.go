@@ -33,6 +33,7 @@ func ErrorDefaultStatusCode(err skyerr.Error) int {
 		skyerr.DeniedArgument:          http.StatusForbidden,
 		skyerr.RecordQueryDenied:       http.StatusForbidden,
 		skyerr.NotConfigured:           http.StatusServiceUnavailable,
+		skyerr.PasswordPolicyViolated:  http.StatusBadRequest,
 		skyerr.UserDisabled:            http.StatusForbidden,
 		skyerr.VerificationRequired:    http.StatusForbidden,
 	}[err.Code()]

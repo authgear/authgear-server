@@ -13,14 +13,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/asset/fs"
-	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record/pq" // tolerant nextimportslint: record
-	"github.com/skygeario/skygear-server/pkg/server/audit"
 )
 
 type DependencyMap struct{}
@@ -45,10 +44,19 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		tConfig := config.GetTenantConfig(r)
 		return coreAuth.NewDefaultAuthInfoStore(r.Context(), tConfig)
 	case "PasswordChecker":
+		tConfig := config.GetTenantConfig(r)
 		return &audit.PasswordChecker{
-			// TODO:
-			// from tConfig
-			PwMinLength: 6,
+			PwMinLength:            tConfig.UserAudit.PwMinLength,
+			PwUppercaseRequired:    tConfig.UserAudit.PwUppercaseRequired,
+			PwLowercaseRequired:    tConfig.UserAudit.PwLowercaseRequired,
+			PwDigitRequired:        tConfig.UserAudit.PwDigitRequired,
+			PwSymbolRequired:       tConfig.UserAudit.PwSymbolRequired,
+			PwMinGuessableLevel:    tConfig.UserAudit.PwMinGuessableLevel,
+			PwExcludedKeywords:     tConfig.UserAudit.PwExcludedKeywords,
+			PwExcludedFields:       tConfig.UserAudit.PwExcludedFields,
+			PwHistorySize:          tConfig.UserAudit.PwHistorySize,
+			PwHistoryDays:          tConfig.UserAudit.PwHistoryDays,
+			PasswordHistoryEnabled: tConfig.UserAudit.PwHistorySize > 0 || tConfig.UserAudit.PwHistoryDays > 0,
 		}
 	case "PasswordAuthProvider":
 		tConfig := config.GetTenantConfig(r)
@@ -116,7 +124,7 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 		return coreAuth.NewDefaultRoleStore(r.Context(), tConfig)
 	case "AuditTrail":
 		tConfig := config.GetTenantConfig(r)
-		trail, err := coreAudit.NewTrail(tConfig.UserAudit.Enabled, tConfig.UserAudit.TrailHandlerURL, r)
+		trail, err := audit.NewTrail(tConfig.UserAudit.Enabled, tConfig.UserAudit.TrailHandlerURL, r)
 		if err != nil {
 			panic(err)
 		}

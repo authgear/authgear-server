@@ -15,11 +15,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
-	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
-	"github.com/skygeario/skygear-server/pkg/server/audit"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
@@ -113,7 +112,7 @@ func TestSingupHandler(t *testing.T) {
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AnonymousAuthProvider = anonymousAuthProvider
 		h.RoleStore = roleStore
-		h.AuditTrail = coreAudit.NewMockTrail(t)
+		h.AuditTrail = audit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.Logger = logrus.NewEntry(logrus.New())
 		welcomeEmailSender := welcemail.NewMockSender()
@@ -257,7 +256,7 @@ func TestSingupHandler(t *testing.T) {
 				Password: "123456",
 			}
 			h.Handle(payload)
-			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
+			mockTrail, _ := h.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
 			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "signup")
 		})
