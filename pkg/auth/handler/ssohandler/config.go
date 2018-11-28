@@ -24,6 +24,10 @@ func AttachConfigHandler(
 type ConfigHandler struct {
 }
 
+type ConfigResp struct {
+	AuthorizedURLS []string `json:"authorized_urls,omitempty"`
+}
+
 // NewHandler returns the SSO configs.
 //
 // curl \
@@ -38,16 +42,26 @@ type ConfigHandler struct {
 // EOF
 //
 // {
-//     "result": [
-//         "http://localhost",
-//         "http://127.0.0.1"
-//     ]
+//     "result": {
+//         "authorized_urls": [
+//             "http://localhost",
+//             "http://127.0.0.1"
+//         }
+//     }
 // }
 func (f ConfigHandler) NewHandler(request *http.Request) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+	handleAPICall := func(r *http.Request) (apiResp handler.APIResponse) {
 		tConfig := config.GetTenantConfig(r)
-		var response handler.APIResponse
-		response.Result = tConfig.SSOSetting.AllowedCallbackURLs
+		resp := ConfigResp{
+			AuthorizedURLS: tConfig.SSOSetting.AllowedCallbackURLs,
+		}
+		apiResp.Result = resp
+
+		return
+	}
+
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		response := handleAPICall(r)
 		handler.WriteResponse(rw, response)
 	})
 }

@@ -42,10 +42,12 @@ func TestConfigHandler(t *testing.T) {
 			reqHandler.ServeHTTP(rw, r)
 
 			So(rw.Body.Bytes(), ShouldEqualJSON, `{
-				"result": [
-					"http://localhost",
-					"http://127.0.0.1"
-				]
+				"result": {
+					"authorized_urls": [
+						"http://localhost",
+						"http://127.0.0.1"
+					]
+				}
 			}`)
 		})
 	})
