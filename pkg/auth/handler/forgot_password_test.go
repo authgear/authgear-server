@@ -37,12 +37,36 @@ func TestForgotPasswordHandler(t *testing.T) {
 					},
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
+				"john.doe2.principal.id": password.Principal{
+					ID:     "john.doe2.principal.id",
+					UserID: "john.doe2.id",
+					AuthData: map[string]interface{}{
+						"username": "john.doe2",
+						"email":    "john.doe@example.com",
+					},
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"chima.principal.id": password.Principal{
+					ID:     "chima.principal.id",
+					UserID: "chima.id",
+					AuthData: map[string]interface{}{
+						"username": "chima",
+						"email":    "chima@example.com",
+					},
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
 			},
 		)
 		fh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				"john.doe.id": authinfo.AuthInfo{
 					ID: "john.doe.id",
+				},
+				"john.doe2.id": authinfo.AuthInfo{
+					ID: "john.doe2.id",
+				},
+				"chima.id": authinfo.AuthInfo{
+					ID: "chima.id",
 				},
 			},
 		)
@@ -51,11 +75,39 @@ func TestForgotPasswordHandler(t *testing.T) {
 			"username": "john.doe",
 			"email":    "john.doe@example.com",
 		}
+		userProfileStore.Data["john.doe2.id"] = map[string]interface{}{
+			"username": "john.doe2",
+			"email":    "john.doe@example.com",
+		}
+		userProfileStore.Data["chima.id"] = map[string]interface{}{
+			"username": "chima",
+			"email":    "chima@example.com",
+		}
 		fh.UserProfileStore = userProfileStore
 		sender := getSender()
 		fh.ForgotPasswordEmailSender = sender
 
 		Convey("send email to user", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"email": "chima@example.com"
+			}`))
+			resp := httptest.NewRecorder()
+			h := handler.APIHandlerToHandler(fh, fh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"result": "OK"
+			}`)
+			So(sender.emails, ShouldResemble, []string{"chima@example.com"})
+			So(sender.userProfiles, ShouldHaveLength, 1)
+			So(sender.userProfiles[0].ID, ShouldEqual, "user/chima.id")
+			So(sender.authInfos, ShouldHaveLength, 1)
+			So(sender.authInfos[0].ID, ShouldEqual, "chima.id")
+			So(sender.hashedPasswords, ShouldResemble, [][]byte{
+				[]byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"),
+			})
+		})
+
+		Convey("send email to users with the same email", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"email": "john.doe@example.com"
 			}`))
@@ -65,10 +117,17 @@ func TestForgotPasswordHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"result": "OK"
 			}`)
-			So(sender.lastEmail, ShouldEqual, "john.doe@example.com")
-			So(sender.lastUserProfile.ID, ShouldEqual, "user/john.doe.id")
-			So(sender.lastAuthInfo.ID, ShouldEqual, "john.doe.id")
-			So(sender.lastHashedPassword, ShouldResemble, []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"))
+			So(sender.emails, ShouldResemble, []string{"john.doe@example.com", "john.doe@example.com"})
+			So(sender.userProfiles, ShouldHaveLength, 2)
+			So(sender.userProfiles[0].ID, ShouldEqual, "user/john.doe.id")
+			So(sender.userProfiles[1].ID, ShouldEqual, "user/john.doe2.id")
+			So(sender.authInfos, ShouldHaveLength, 2)
+			So(sender.authInfos[0].ID, ShouldEqual, "john.doe.id")
+			So(sender.authInfos[1].ID, ShouldEqual, "john.doe2.id")
+			So(sender.hashedPasswords, ShouldResemble, [][]byte{
+				[]byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"),
+				[]byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"),
+			})
 		})
 
 		Convey("throw error for empty email", func() {
@@ -109,10 +168,10 @@ func TestForgotPasswordHandler(t *testing.T) {
 }
 
 type MockForgotPasswordEmailSender struct {
-	lastEmail          string
-	lastAuthInfo       authinfo.AuthInfo
-	lastUserProfile    userprofile.UserProfile
-	lastHashedPassword []byte
+	emails          []string
+	authInfos       []authinfo.AuthInfo
+	userProfiles    []userprofile.UserProfile
+	hashedPasswords [][]byte
 }
 
 func (m *MockForgotPasswordEmailSender) Send(
@@ -121,9 +180,9 @@ func (m *MockForgotPasswordEmailSender) Send(
 	userProfile userprofile.UserProfile,
 	hashedPassword []byte,
 ) (err error) {
-	m.lastEmail = email
-	m.lastAuthInfo = authInfo
-	m.lastUserProfile = userProfile
-	m.lastHashedPassword = hashedPassword
+	m.emails = append(m.emails, email)
+	m.authInfos = append(m.authInfos, authInfo)
+	m.userProfiles = append(m.userProfiles, userProfile)
+	m.hashedPasswords = append(m.hashedPasswords, hashedPassword)
 	return nil
 }

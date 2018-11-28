@@ -115,38 +115,45 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	userID := principals[0].UserID
-	hashedPassword := principals[0].HashedPassword
+	principalMap := map[string]*password.Principal{}
+	for _, principal := range principals {
+		principalMap[principal.UserID] = principal
+	}
 
-	fetchedAuthInfo := authinfo.AuthInfo{}
-	if err = h.AuthInfoStore.GetAuth(userID, &fetchedAuthInfo); err != nil {
-		if err == skydb.ErrUserNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+	for userID, principal := range principalMap {
+		hashedPassword := principal.HashedPassword
+
+		fetchedAuthInfo := authinfo.AuthInfo{}
+		if err = h.AuthInfoStore.GetAuth(userID, &fetchedAuthInfo); err != nil {
+			if err == skydb.ErrUserNotFound {
+				err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+				return
+			}
+			// TODO: more error handling here if necessary
+			err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
 			return
 		}
-		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
-		return
+
+		// Get Profile
+		var userProfile userprofile.UserProfile
+		if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID, ""); err != nil {
+			// TODO:
+			// return proper error
+			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+			return
+		}
+
+		if err = h.ForgotPasswordEmailSender.Send(
+			payload.Email,
+			fetchedAuthInfo,
+			userProfile,
+			hashedPassword,
+		); err != nil {
+			return
+		}
 	}
 
-	// Get Profile
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID, ""); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
-		return
-	}
-
-	if err = h.ForgotPasswordEmailSender.Send(
-		payload.Email,
-		fetchedAuthInfo,
-		userProfile,
-		hashedPassword,
-	); err == nil {
-		resp = "OK"
-	}
-
+	resp = "OK"
 	return
 }
 
