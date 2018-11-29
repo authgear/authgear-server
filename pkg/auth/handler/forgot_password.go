@@ -110,11 +110,6 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	if len(principals) == 0 {
-		err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-		return
-	}
-
 	principalMap := map[string]*password.Principal{}
 	for _, principal := range principals {
 		principalMap[principal.UserID] = principal

@@ -164,6 +164,11 @@ func (p providerImpl) GetPrincipalsByAuthData(inputAuthData map[string]interface
 		}
 	}
 
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+		return
+	}
+
 	return
 }
 
@@ -187,6 +192,11 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 		}
 
 		principals = append(principals, &principal)
+	}
+
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+		return
 	}
 
 	for _, principal := range principals {
@@ -239,6 +249,11 @@ func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principa
 		}
 
 		principals = append(principals, &principal)
+	}
+
+	if len(principals) == 0 {
+		err = skydb.ErrUserNotFound
+		return
 	}
 
 	for _, principal := range principals {
