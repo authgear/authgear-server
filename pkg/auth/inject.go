@@ -13,6 +13,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -81,6 +82,15 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
 			logging.CreateLogger(r, "provider_anonymous", createLoggerMaskFormatter(r)),
+			db.NewSafeTxContextWithContext(r.Context(), tConfig),
+		)
+	case "CustomTokenAuthProvider":
+		tConfig := config.GetTenantConfig(r)
+		return customtoken.NewSafeProvider(
+			db.NewSQLBuilder("auth", tConfig.AppName),
+			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
+			logging.CreateLogger(r, "provider_custom_token", createLoggerMaskFormatter(r)),
+			tConfig.Auth.CustomTokenSecret,
 			db.NewSafeTxContextWithContext(r.Context(), tConfig),
 		)
 	case "HandlerLogger":

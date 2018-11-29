@@ -39,6 +39,17 @@ func NewProvider(
 }
 
 func (p providerImpl) Decode(tokenString string) (claims SSOCustomTokenClaims, err error) {
+	_, err = jwt.ParseWithClaims(
+		tokenString,
+		&claims,
+		func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("fails to parse token")
+			}
+			return []byte(p.secret), nil
+		},
+	)
+
 	return
 }
 
