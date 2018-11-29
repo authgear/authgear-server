@@ -77,6 +77,7 @@ type ForgotPasswordHandler struct {
 	PasswordAuthProvider      password.Provider     `dependency:"PasswordAuthProvider"`
 	AuthInfoStore             authinfo.Store        `dependency:"AuthInfoStore"`
 	UserProfileStore          userprofile.Store     `dependency:"UserProfileStore"`
+	SecureMatch               bool                  `dependency:"ForgotPasswordSecureMatch"`
 }
 
 func (h ForgotPasswordHandler) WithTx() bool {
@@ -99,10 +100,15 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		"email": payload.Email,
 	}
 
-	principals, err := h.PasswordAuthProvider.GetPrincipalsByEmail(payload.Email)
-	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+	principals, principalErr := h.PasswordAuthProvider.GetPrincipalsByEmail(payload.Email)
+	if principalErr != nil {
+		if principalErr == skydb.ErrUserNotFound {
+			if h.SecureMatch {
+				resp = "OK"
+			} else {
+				err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+			}
+
 			return
 		}
 		// TODO: more error handling here if necessary

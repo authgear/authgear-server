@@ -136,6 +136,9 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 	case "TestForgotPasswordEmailSender":
 		tConfig := config.GetTenantConfig(r)
 		return forgotpwdemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
+	case "ForgotPasswordSecureMatch":
+		tConfig := config.GetTenantConfig(r)
+		return tConfig.ForgotPassword.SecureMatch
 	case "WelcomeEmailSendTask":
 		tConfig := config.GetTenantConfig(r)
 		if !tConfig.WelcomeEmail.Enabled {
