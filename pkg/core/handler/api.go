@@ -63,11 +63,11 @@ func APIHandlerToHandler(apiHandler APIHandler, txContext db.TxContext) http.Han
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		response := handleAPICall(r)
-		writeResponse(rw, response)
+		WriteResponse(rw, response)
 	})
 }
 
-func writeResponse(rw http.ResponseWriter, response APIResponse) {
+func WriteResponse(rw http.ResponseWriter, response APIResponse) {
 	httpStatus := http.StatusOK
 	encoder := json.NewEncoder(rw)
 
