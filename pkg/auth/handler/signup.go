@@ -116,7 +116,8 @@ type SignupHandler struct {
 	PasswordAuthProvider  password.Provider          `dependency:"PasswordAuthProvider"`
 	AnonymousAuthProvider anonymous.Provider         `dependency:"AnonymousAuthProvider"`
 	AuditTrail            audit.Trail                `dependency:"AuditTrail"`
-	WelcomeEmailSendTask  *welcemail.SendTask        `dependency:"WelcomeEmailSendTask,optional"`
+	WelcomeEmailEnabled   bool                       `dependency:"WelcomeEmailEnabled"`
+	WelcomeEmailSendTask  *welcemail.SendTask        `dependency:"WelcomeEmailSendTask"`
 	TxContext             db.TxContext               `dependency:"TxContext"`
 	Logger                *logrus.Entry              `dependency:"HandlerLogger"`
 }
@@ -205,7 +206,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		Event:  audit.EventSignup,
 	})
 
-	if h.WelcomeEmailSendTask != nil {
+	if h.WelcomeEmailEnabled {
 		h.sendWelcomeEmail(userProfile)
 	}
 
@@ -245,14 +246,6 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo au
 
 func (h SignupHandler) sendWelcomeEmail(userProfile userprofile.UserProfile) {
 	if email, ok := userProfile.Data["email"].(string); ok {
-		select {
-		case h.WelcomeEmailSendTask.Request <- welcemail.SendTaskRequest{
-			Email:       email,
-			UserProfile: userProfile,
-			Logger:      h.Logger,
-		}:
-		default:
-			panic("unexpcted send welcome email request no receiver")
-		}
+		h.WelcomeEmailSendTask.Execute(email, userProfile, h.Logger)
 	}
 }
