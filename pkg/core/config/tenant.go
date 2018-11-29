@@ -19,6 +19,7 @@ type TenantConfiguration struct {
 	MasterKey       string                      `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
 	AppName         string                      `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
 	CORSHost        string                      `msg:"CORS_HOST" envconfig:"CORS_HOST" json:"CORS_HOST"`
+	Auth            AuthConfiguration           `msg:"AUTH" json:"AUTH"`
 	TokenStore      TokenStoreConfiguration     `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
 	UserProfile     UserProfileConfiguration    `json:"USER_PROFILE" msg:"USER_PROFILE"`
 	UserAudit       UserAuditConfiguration      `json:"USER_AUDIT" msg:"USER_AUDIT"`
@@ -36,6 +37,10 @@ type TenantConfiguration struct {
 type TokenStoreConfiguration struct {
 	Secret string `msg:"SECRET" envconfig:"TOKEN_STORE_SECRET" json:"SECRET"`
 	Expiry int64  `msg:"EXPIRY" envconfig:"TOKEN_STORE_EXPIRY" json:"EXPIRY"`
+}
+
+type AuthConfiguration struct {
+	CustomTokenSecret string `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
 }
 
 type UserProfileConfiguration struct {
