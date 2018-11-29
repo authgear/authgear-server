@@ -117,6 +117,12 @@ func NewTenantConfiguration() TenantConfiguration {
 			Port: 25,
 			Mode: "normal",
 		},
+		ForgotPassword: ForgotPasswordConfiguration{
+			SecureMatch:      false,
+			Sender:           "no-reply@skygeario.com",
+			Subject:          "Reset password instruction",
+			ResetURLLifeTime: 43200,
+		},
 		WelcomeEmail: WelcomeEmailConfiguration{
 			Enabled: false,
 			Sender:  "no-reply@skygeario.com",
@@ -150,6 +156,10 @@ func (c *TenantConfiguration) Validate() error {
 func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.TokenStore.Secret == "" {
 		c.TokenStore.Secret = c.MasterKey
+	}
+
+	if c.ForgotPassword.AppName == "" {
+		c.ForgotPassword.AppName = c.AppName
 	}
 }
 
