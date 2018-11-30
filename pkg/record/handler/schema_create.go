@@ -33,7 +33,7 @@ type SchemaCreateHandlerFactory struct {
 
 func (f SchemaCreateHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SchemaCreateHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

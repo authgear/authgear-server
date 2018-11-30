@@ -23,7 +23,7 @@ import (
 // AttachForgotPasswordHandler attaches ForgotPasswordHandler to server
 func AttachForgotPasswordHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/forgot_password", &ForgotPasswordHandlerFactory{
 		authDependency,
@@ -36,13 +36,13 @@ func AttachForgotPasswordHandler(
 
 // ForgotPasswordHandlerFactory creates ForgotPasswordHandler
 type ForgotPasswordHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 // NewHandler creates new ForgotPasswordHandler
 func (f ForgotPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
@@ -160,13 +160,13 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 
 // ForgotPasswordTestHandlerFactory creates ForgotPasswordTestHandler
 type ForgotPasswordTestHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 // NewHandler creates new ForgotPasswordTestHandler
 func (f ForgotPasswordTestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordTestHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, nil)
 }
 

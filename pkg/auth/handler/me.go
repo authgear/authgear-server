@@ -21,7 +21,7 @@ import (
 
 func AttachMeHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/me", &MeHandlerFactory{
 		authDependency,
@@ -30,12 +30,12 @@ func AttachMeHandler(
 }
 
 type MeHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 func (f MeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &MeHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

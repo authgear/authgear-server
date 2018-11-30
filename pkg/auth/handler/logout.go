@@ -20,7 +20,7 @@ import (
 // AttachLogoutHandler attach logout handler to server
 func AttachLogoutHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/logout", &LogoutHandlerFactory{
 		authDependency,
@@ -30,13 +30,13 @@ func AttachLogoutHandler(
 
 // LogoutHandlerFactory creates new handler
 type LogoutHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 // NewHandler creates new handler
 func (f LogoutHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LogoutHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

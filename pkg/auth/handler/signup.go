@@ -30,7 +30,7 @@ import (
 
 func AttachSignupHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/signup", &SignupHandlerFactory{
 		authDependency,
@@ -39,12 +39,12 @@ func AttachSignupHandler(
 }
 
 type SignupHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

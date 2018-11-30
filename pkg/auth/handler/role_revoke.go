@@ -19,7 +19,7 @@ import (
 
 func AttachRoleRevokeHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/role/revoke", &RoleRevokeHandlerFactory{
 		authDependency,
@@ -28,12 +28,12 @@ func AttachRoleRevokeHandler(
 }
 
 type RoleRevokeHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 func (f RoleRevokeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RoleRevokeHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

@@ -25,7 +25,7 @@ import (
 
 func AttachResetPasswordHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/reset_password", &ResetPasswordHandlerFactory{
 		authDependency,
@@ -34,12 +34,12 @@ func AttachResetPasswordHandler(
 }
 
 type ResetPasswordHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ResetPasswordHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

@@ -20,7 +20,7 @@ import (
 
 func AttachAuthURLHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/sso/{provider}/login_auth_url", &AuthURLHandlerFactory{
 		Dependency: authDependency,
@@ -34,13 +34,13 @@ func AttachAuthURLHandler(
 }
 
 type AuthURLHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 	Action     string
 }
 
 func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &AuthURLHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderName = vars["provider"]
 	h.Action = f.Action

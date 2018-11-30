@@ -62,7 +62,7 @@ func TestInjectDependency(t *testing.T) {
 			}
 
 			target := targetStruct{}
-			injectDependency(&target, dmap{}, req)
+			DefaultRequestInject(&target, dmap{}, req)
 			So(target.Str, ShouldEqual, "string")
 			So(target.Int, ShouldEqual, 1)
 		})
@@ -73,7 +73,7 @@ func TestInjectDependency(t *testing.T) {
 			}
 
 			target := targetStruct{}
-			injectDependency(&target, dmap{}, req)
+			DefaultRequestInject(&target, dmap{}, req)
 			So(target.Store, ShouldImplement, (*istore)(nil))
 			So(target.Store.get(), ShouldEqual, "TestApp")
 		})
@@ -84,7 +84,7 @@ func TestInjectDependency(t *testing.T) {
 			}
 
 			target := targetStruct{}
-			injectDependency(&target, dmap{}, req)
+			DefaultRequestInject(&target, dmap{}, req)
 			So(target.Store, ShouldHaveSameTypeAs, store{})
 			So(target.Store.get(), ShouldEqual, "TestApp")
 		})
@@ -96,7 +96,7 @@ func TestInjectDependency(t *testing.T) {
 			}
 
 			target := targetStruct{}
-			injectDependency(&target, dmap{}, req)
+			DefaultRequestInject(&target, dmap{}, req)
 			So(target.Str, ShouldEqual, "string")
 			So(target.str, ShouldBeEmpty)
 		})
@@ -108,7 +108,7 @@ func TestInjectDependency(t *testing.T) {
 
 			target := targetStruct{}
 			So(func() {
-				injectDependency(&target, dmap{}, req)
+				DefaultRequestInject(&target, dmap{}, req)
 			}, ShouldPanic)
 		})
 
@@ -118,7 +118,7 @@ func TestInjectDependency(t *testing.T) {
 			}
 
 			target := targetStruct{}
-			err := injectDependency(&target, dmap{}, req)
+			err := DefaultRequestInject(&target, dmap{}, req)
 			errResponse := err.(skyerr.Error)
 			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
 		})

@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -22,7 +23,7 @@ import (
 // AttachVerifyRequestHandler attaches VerifyRequestHandler to server
 func AttachVerifyRequestHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/verify_request", &VerifyRequestHandlerFactory{
 		authDependency,
@@ -32,13 +33,13 @@ func AttachVerifyRequestHandler(
 
 // VerifyRequestHandlerFactory creates VerifyRequestHandler
 type VerifyRequestHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 // NewHandler creates new VerifyRequestHandler
 func (f VerifyRequestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyRequestHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

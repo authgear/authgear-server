@@ -14,7 +14,7 @@ import (
 
 func AttachIFrameHandlerFactory(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/sso/iframe_handler", &IFrameHandlerFactory{
 		authDependency,
@@ -23,12 +23,12 @@ func AttachIFrameHandlerFactory(
 }
 
 type IFrameHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 func (f IFrameHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &IFrameHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return h
 }
 

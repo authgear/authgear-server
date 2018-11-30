@@ -33,7 +33,7 @@ type SchemaRenameHandlerFactory struct {
 
 func (f SchemaRenameHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SchemaRenameHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

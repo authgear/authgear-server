@@ -33,7 +33,7 @@ type DefaultAccessHandlerFactory struct {
 
 func (f DefaultAccessHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &DefaultAccessHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

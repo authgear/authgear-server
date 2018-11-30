@@ -17,7 +17,7 @@ import (
 
 func AttachRoleAssignHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/role/assign", &RoleAssignHandlerFactory{
 		authDependency,
@@ -26,12 +26,12 @@ func AttachRoleAssignHandler(
 }
 
 type RoleAssignHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 func (f RoleAssignHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RoleAssignHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

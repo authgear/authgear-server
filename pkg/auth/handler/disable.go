@@ -21,7 +21,7 @@ import (
 // AttachSetDisableHandler attaches SetDisableHandler to server
 func AttachSetDisableHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/disable/set", &SetDisableHandlerFactory{
 		authDependency,
@@ -31,13 +31,13 @@ func AttachSetDisableHandler(
 
 // SetDisableHandlerFactory creates SetDisableHandler
 type SetDisableHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 // NewHandler creates new SetDisableHandler
 func (f SetDisableHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SetDisableHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

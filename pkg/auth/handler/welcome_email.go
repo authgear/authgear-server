@@ -17,7 +17,7 @@ import (
 // AttachWelcomeEmailHandler attaches WelcomeEmailHandler to server
 func AttachWelcomeEmailHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/welcome_email/test", &WelcomeEmailHandlerFactory{
 		authDependency,
@@ -27,13 +27,13 @@ func AttachWelcomeEmailHandler(
 
 // WelcomeEmailHandlerFactory creates WelcomeEmailHandler
 type WelcomeEmailHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 // NewHandler creates new WelcomeEmailHandler
 func (f WelcomeEmailHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &WelcomeEmailHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, nil)
 }
 

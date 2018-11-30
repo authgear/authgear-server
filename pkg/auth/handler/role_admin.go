@@ -18,7 +18,7 @@ import (
 
 func AttachRoleAdminHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.Handle("/role/admin", &RoleAdminHandlerFactory{
 		authDependency,
@@ -27,12 +27,12 @@ func AttachRoleAdminHandler(
 }
 
 type RoleAdminHandlerFactory struct {
-	Dependency auth.DependencyMap
+	Dependency auth.RequestDependencyMap
 }
 
 func (f RoleAdminHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RoleAdminHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

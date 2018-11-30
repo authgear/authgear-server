@@ -37,7 +37,7 @@ type FetchHandlerFactory struct {
 
 func (f FetchHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &FetchHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

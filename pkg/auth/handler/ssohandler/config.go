@@ -13,7 +13,7 @@ import (
 
 func AttachConfigHandler(
 	server *server.Server,
-	authDependency auth.DependencyMap,
+	authDependency auth.RequestDependencyMap,
 ) *server.Server {
 	server.
 		Handle("/sso/config", &ConfigHandler{}).
