@@ -51,22 +51,7 @@ func (u storeImpl) CreateUserProfile(userID string, data Data) (profile UserProf
 		return
 	}
 
-	profile = UserProfile{
-		Meta: Meta{
-			ID:         "user/" + userID,
-			Type:       "record",
-			RecordID:   userID,
-			RecordType: "user",
-			Access:     nil,
-			OwnerID:    userID,
-			CreatedAt:  now,
-			CreatedBy:  userID,
-			UpdatedAt:  now,
-			UpdatedBy:  userID,
-		},
-		Data: data,
-	}
-
+	profile = u.toUserProfile(userID, data, now, now)
 	return
 }
 
@@ -94,7 +79,43 @@ func (u storeImpl) GetUserProfile(userID string) (profile UserProfile, err error
 		return
 	}
 
-	profile = UserProfile{
+	profile = u.toUserProfile(userID, data, createdAt, updatedAt)
+	return
+}
+
+func (u storeImpl) UpdateUserProfile(userID string, data Data) (profile UserProfile, err error) {
+	profile, err = u.GetUserProfile(userID)
+	if err != nil {
+		return
+	}
+
+	for k := range data {
+		profile.Data[k] = data[k]
+	}
+
+	var dataBytes []byte
+	dataBytes, err = json.Marshal(profile.Data)
+	if err != nil {
+		return
+	}
+
+	now := timeNow()
+	builder := u.sqlBuilder.Update(u.sqlBuilder.FullTableName("user_profile")).
+		Set("updated_at", now).
+		Set("data", dataBytes).
+		Where("user_id = ?", userID)
+
+	_, err = u.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return
+	}
+
+	profile = u.toUserProfile(userID, profile.Data, profile.CreatedAt, now)
+	return
+}
+
+func (u storeImpl) toUserProfile(userID string, data Data, createdAt time.Time, updatedAt time.Time) UserProfile {
+	return UserProfile{
 		Meta: Meta{
 			ID:         "user/" + userID,
 			Type:       "record",
@@ -109,6 +130,4 @@ func (u storeImpl) GetUserProfile(userID string) (profile UserProfile, err error
 		},
 		Data: data,
 	}
-
-	return
 }

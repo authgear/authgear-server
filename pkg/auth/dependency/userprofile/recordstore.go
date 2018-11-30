@@ -46,7 +46,70 @@ func NewUserProfileRecordStore(
 	}
 }
 
-func (u *recordStoreImpl) CreateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (profile UserProfile, err error) {
+func (u *recordStoreImpl) CreateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (UserProfile, error) {
+	return u.saveUserProfile(userID, authInfo, data)
+}
+
+func (u *recordStoreImpl) GetUserProfile(userID string, accessToken string) (profile UserProfile, err error) {
+	accessControlOptions := &record.AccessControlOptions{
+		ViewAsUser:          u.authContext.AuthInfo(),
+		BypassAccessControl: u.authContext.AccessKeyType() == model.MasterAccessKey,
+	}
+	predicate := record.Predicate{
+		Operator: record.Equal,
+		Children: make([]interface{}, 0),
+	}
+	predicate.Children = append(predicate.Children, record.Expression{
+		Type:  record.KeyPath,
+		Value: "_id",
+	})
+	predicate.Children = append(predicate.Children, record.Expression{
+		Type:  record.Literal,
+		Value: userID,
+	})
+	query := record.Query{
+		Type:      "user",
+		Predicate: predicate,
+		Limit:     new(uint64),
+	}
+	*query.Limit = 1
+
+	// TODO: maybe need ACL checking before query
+
+	results, err := u.recordStore.Query(&query, accessControlOptions)
+	if err != nil {
+		u.logger.WithError(err).Errorln("failed to get profile record")
+		if _, ok := err.(skyerr.Error); !ok {
+			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to get profile record")
+		}
+		return
+	}
+	defer results.Close()
+
+	records := []record.Record{}
+	for results.Scan() {
+		record := results.Record()
+		records = append(records, record)
+	}
+
+	err = results.Err()
+	if err != nil {
+		u.logger.WithError(err).Errorln("failed to scan profile record")
+		if _, ok := err.(skyerr.Error); !ok {
+			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to scan profile record")
+		}
+		return
+	}
+
+	profile = u.toUserProfile(records[0])
+	return
+}
+
+func (u *recordStoreImpl) UpdateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (UserProfile, error) {
+	return u.saveUserProfile(userID, authInfo, data)
+}
+
+func (u *recordStoreImpl) saveUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (profile UserProfile, err error) {
 	// for keeping integrity of authentication info (email, username, ...), writing on user record is banned by record gear,
 	// so here, CreateUserProfile uses record gear utilities to save record directly rather than through public API.
 	profileRecord := record.Record{
@@ -102,61 +165,6 @@ func (u *recordStoreImpl) CreateUserProfile(userID string, authInfo *authinfo.Au
 	}
 
 	profile = u.toUserProfile(*modifyResp.SavedRecords[0])
-	return
-}
-
-func (u *recordStoreImpl) GetUserProfile(userID string, accessToken string) (profile UserProfile, err error) {
-	accessControlOptions := &record.AccessControlOptions{
-		ViewAsUser:          u.authContext.AuthInfo(),
-		BypassAccessControl: u.authContext.AccessKeyType() == model.MasterAccessKey,
-	}
-	predicate := record.Predicate{
-		Operator: record.Equal,
-		Children: make([]interface{}, 0),
-	}
-	predicate.Children = append(predicate.Children, record.Expression{
-		Type:  record.KeyPath,
-		Value: "_id",
-	})
-	predicate.Children = append(predicate.Children, record.Expression{
-		Type:  record.Literal,
-		Value: userID,
-	})
-	query := record.Query{
-		Type:      "user",
-		Predicate: predicate,
-		Limit:     new(uint64),
-	}
-	*query.Limit = 1
-
-	// TODO: maybe need ACL checking before query
-
-	results, err := u.recordStore.Query(&query, accessControlOptions)
-	if err != nil {
-		u.logger.WithError(err).Errorln("failed to get profile record")
-		if _, ok := err.(skyerr.Error); !ok {
-			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to get profile record")
-		}
-		return
-	}
-	defer results.Close()
-
-	records := []record.Record{}
-	for results.Scan() {
-		record := results.Record()
-		records = append(records, record)
-	}
-
-	err = results.Err()
-	if err != nil {
-		u.logger.WithError(err).Errorln("failed to scan profile record")
-		if _, ok := err.(skyerr.Error); !ok {
-			err = skyerr.NewError(skyerr.IncompatibleSchema, "failed to scan profile record")
-		}
-		return
-	}
-
-	profile = u.toUserProfile(records[0])
 	return
 }
 

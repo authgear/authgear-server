@@ -33,3 +33,8 @@ func (s *safeUserProfileImpl) GetUserProfile(userID string, accessToken string) 
 	s.txContext.EnsureTx()
 	return s.impl.GetUserProfile(userID)
 }
+
+func (s *safeUserProfileImpl) UpdateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (profile UserProfile, err error) {
+	s.txContext.EnsureTx()
+	return s.impl.UpdateUserProfile(userID, data)
+}
