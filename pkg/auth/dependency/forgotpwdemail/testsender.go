@@ -1,6 +1,9 @@
-package welcemail
+package forgotpwdemail
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/go-gomail/gomail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -22,16 +25,14 @@ type TestSender interface {
 }
 
 type DefaultTestSender struct {
-	AppName string
-	Config  config.WelcomeEmailConfiguration
-	Dialer  *gomail.Dialer
+	Config config.ForgotPasswordConfiguration
+	Dialer *gomail.Dialer
 }
 
 func NewDefaultTestSender(config config.TenantConfiguration, dialer *gomail.Dialer) TestSender {
 	return &DefaultTestSender{
-		AppName: config.AppName,
-		Config:  config.WelcomeEmail,
-		Dialer:  dialer,
+		Config: config.ForgotPassword,
+		Dialer: dialer,
 	}
 }
 
@@ -45,6 +46,10 @@ func (d *DefaultTestSender) Send(
 	senderName string,
 	replyToName string,
 ) (err error) {
+	expireAt :=
+		time.Now().UTC().
+			Truncate(time.Second * 1).
+			Add(time.Second * time.Duration(d.Config.ResetURLLifeTime))
 	check := func(test, a, b string) string {
 		if test != "" {
 			return a
@@ -59,11 +64,17 @@ func (d *DefaultTestSender) Send(
 		},
 	}
 	context := map[string]interface{}{
-		"appname": d.AppName,
-		"email":   userProfile.Data["email"],
-		"user_id": userProfile.ID,
-		"user":    userProfile.ToMap(),
-		// TODO: url prefix
+		"appname": d.Config.AppName,
+		"link": fmt.Sprintf(
+			"%s/example-reset-password-link",
+			d.Config.URLPrefix,
+		),
+		"email":      email,
+		"user_id":    userProfile.ID,
+		"user":       userProfile.ToMap(),
+		"url_prefix": d.Config.URLPrefix,
+		"code":       "dummy-reset-code",
+		"expire_at":  expireAt,
 	}
 
 	var textBody string

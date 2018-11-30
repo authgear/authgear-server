@@ -180,11 +180,6 @@ func (h LoginHandler) getUserID(pwd string, authData map[string]interface{}) (us
 		return
 	}
 
-	if len(principals) == 0 {
-		err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-		return
-	}
-
 	for _, principal := range principals {
 		if !principal.IsSamePassword(pwd) {
 			err = skyerr.NewError(skyerr.InvalidCredentials, "auth_data or password incorrect")

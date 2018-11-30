@@ -1,4 +1,4 @@
-package welcemail
+package template
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/franela/goreq"
 )
 
-func downloadTemplateFromURL(url string) (string, error) {
+func DownloadTemplateFromURL(url string) (string, error) {
 	req := goreq.Request{
 		Method: "GET",
 		Uri:    url,
@@ -27,27 +27,27 @@ func downloadTemplateFromURL(url string) (string, error) {
 	return body, nil
 }
 
-func parseTextTemplateFromURL(url string, context map[string]interface{}) (string, error) {
+func ParseTextTemplateFromURL(url string, context map[string]interface{}) (string, error) {
 	var body string
 	var err error
-	if body, err = downloadTemplateFromURL(url); err != nil {
+	if body, err = DownloadTemplateFromURL(url); err != nil {
 		return "", err
 	}
 
-	return parseTextTemplate(body, context)
+	return ParseTextTemplate(body, context)
 }
 
-func parseHTMLTemplateFromURL(url string, context map[string]interface{}) (string, error) {
+func ParseHTMLTemplateFromURL(url string, context map[string]interface{}) (string, error) {
 	var body string
 	var err error
-	if body, err = downloadTemplateFromURL(url); err != nil {
+	if body, err = DownloadTemplateFromURL(url); err != nil {
 		return "", err
 	}
 
-	return parseHTMLTemplate(body, context)
+	return ParseHTMLTemplate(body, context)
 }
 
-func parseTextTemplate(templateString string, context map[string]interface{}) (out string, err error) {
+func ParseTextTemplate(templateString string, context map[string]interface{}) (out string, err error) {
 	if templateString == "" {
 		return
 	}
@@ -56,10 +56,10 @@ func parseTextTemplate(templateString string, context map[string]interface{}) (o
 	autoEscapeOffTemplate := `{%% autoescape off %%}%s{%% endautoescape %%}`
 	autoEscapeOffTemplateString := fmt.Sprintf(autoEscapeOffTemplate, templateString)
 
-	return parseHTMLTemplate(autoEscapeOffTemplateString, context)
+	return ParseHTMLTemplate(autoEscapeOffTemplateString, context)
 }
 
-func parseHTMLTemplate(templateString string, context map[string]interface{}) (out string, err error) {
+func ParseHTMLTemplate(templateString string, context map[string]interface{}) (out string, err error) {
 	if templateString == "" {
 		return
 	}

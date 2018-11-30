@@ -48,6 +48,11 @@ func (p *safeProviderImpl) GetPrincipalsByUserID(userID string) ([]*Principal, e
 	return p.impl.GetPrincipalsByUserID(userID)
 }
 
+func (p *safeProviderImpl) GetPrincipalsByEmail(email string) ([]*Principal, error) {
+	p.txContext.EnsureTx()
+	return p.impl.GetPrincipalsByEmail(email)
+}
+
 func (p *safeProviderImpl) UpdatePrincipal(principal Principal) error {
 	p.txContext.EnsureTx()
 	return p.impl.UpdatePrincipal(principal)
