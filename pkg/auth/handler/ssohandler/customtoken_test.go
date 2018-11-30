@@ -50,6 +50,10 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 						Subject:   "otherid1",
 					},
+					RawProfile: map[string]interface{}{
+						"name":  "John Doe",
+						"email": "John@skygear.io",
+					},
 				},
 			).SignedString([]byte("ssosecret"))
 			So(err, ShouldBeNil)
@@ -71,22 +75,64 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 					"profile": {
 						"_access": null,
 						"_created_at": "0001-01-01T00:00:00Z",
-						"_created_by": "",
-						"_id": "",
-						"_ownerID": "",
-						"_recordID": "",
-						"_recordType": "",
-						"_type": "",
+						"_created_by": "%s",
+						"_id": "user/%s",
+						"_ownerID": "%s",
+						"_recordID": "%s",
+						"_recordType": "user",
+						"_type": "record",
 						"_updated_at": "0001-01-01T00:00:00Z",
-						"_updated_by": ""
+						"_updated_by": "%s",
+						"email": "John@skygear.io",
+						"name": "John Doe"
 					},
 					"access_token": "%s"
 				}
-			}`, p.UserID, token.AccessToken))
+			}`,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				token.AccessToken))
 
 			mockTrail, _ := lh.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
 			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "signup")
+		})
+
+		Convey("update user account with custom token", func(c C) {
+			tokenString, err := jwt.NewWithClaims(
+				jwt.SigningMethodHS256,
+				customtoken.SSOCustomTokenClaims{
+					StandardClaims: jwt.StandardClaims{
+						IssuedAt:  time.Now().Unix(),
+						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
+						Subject:   "otherid1",
+					},
+					RawProfile: map[string]interface{}{
+						"name":  "John Doe",
+						"email": "John@skygear.io",
+					},
+				},
+			).SignedString([]byte("ssosecret"))
+			So(err, ShouldBeNil)
+
+			req, _ := http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
+			{
+				"token": "%s"
+			}`, tokenString)))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			p, _ := lh.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID("otherid1")
+			profile, _ := lh.UserProfileStore.GetUserProfile(p.UserID, "")
+
+			So(profile.Data, ShouldResemble, userprofile.Data{
+				"name":  "John Doe",
+				"email": "John@skygear.io",
+			})
 		})
 
 		Convey("check whether token is invalid", func(c C) {
