@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
@@ -14,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/core/async/client"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -108,18 +112,22 @@ func (p SignupRequestPayload) mergedProfile() map[string]interface{} {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	PasswordChecker       dependency.PasswordChecker `dependency:"PasswordChecker"`
-	UserProfileStore      userprofile.Store          `dependency:"UserProfileStore"`
-	TokenStore            authtoken.Store            `dependency:"TokenStore"`
-	AuthInfoStore         authinfo.Store             `dependency:"AuthInfoStore"`
-	RoleStore             role.Store                 `dependency:"RoleStore"`
-	PasswordAuthProvider  password.Provider          `dependency:"PasswordAuthProvider"`
-	AnonymousAuthProvider anonymous.Provider         `dependency:"AnonymousAuthProvider"`
-	AuditTrail            audit.Trail                `dependency:"AuditTrail"`
-	WelcomeEmailEnabled   bool                       `dependency:"WelcomeEmailEnabled"`
-	WelcomeEmailSendTask  *welcemail.SendTask        `dependency:"WelcomeEmailSendTask"`
-	TxContext             db.TxContext               `dependency:"TxContext"`
-	Logger                *logrus.Entry              `dependency:"HandlerLogger"`
+	PasswordChecker        dependency.PasswordChecker `dependency:"PasswordChecker"`
+	UserProfileStore       userprofile.Store          `dependency:"UserProfileStore"`
+	TokenStore             authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore          authinfo.Store             `dependency:"AuthInfoStore"`
+	RoleStore              role.Store                 `dependency:"RoleStore"`
+	PasswordAuthProvider   password.Provider          `dependency:"PasswordAuthProvider"`
+	AnonymousAuthProvider  anonymous.Provider         `dependency:"AnonymousAuthProvider"`
+	AuditTrail             audit.Trail                `dependency:"AuditTrail"`
+	WelcomeEmailEnabled    bool                       `dependency:"WelcomeEmailEnabled"`
+	WelcomeEmailSendTask   *welcemail.SendTask        `dependency:"WelcomeEmailSendTask"`
+	AutoSendUserVerifyCode bool                       `dependency:"AutoSendUserVerifyCodeOnSignup"`
+	UserVerifyKeys         []string                   `dependency:"UserVerifyKeys"`
+	VerifyCodeStore        verifycode.Store           `dependency:"VerifyCodeStore"`
+	TxContext              db.TxContext               `dependency:"TxContext"`
+	Logger                 *logrus.Entry              `dependency:"HandlerLogger"`
+	TaskClient             *client.TaskClient         `dependency:"AsyncTaskClient"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -210,6 +218,10 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		h.sendWelcomeEmail(userProfile)
 	}
 
+	if h.AutoSendUserVerifyCode {
+		h.sendUserVerifyRequest(userProfile)
+	}
+
 	return
 }
 
@@ -247,5 +259,17 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo au
 func (h SignupHandler) sendWelcomeEmail(userProfile userprofile.UserProfile) {
 	if email, ok := userProfile.Data["email"].(string); ok {
 		h.WelcomeEmailSendTask.Execute(email, userProfile, h.Logger)
+	}
+}
+
+func (h SignupHandler) sendUserVerifyRequest(userProfile userprofile.UserProfile) {
+	for _, key := range h.UserVerifyKeys {
+		if value, ok := userProfile.Data[key].(string); ok {
+			h.TaskClient.Submit(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
+				Key:         key,
+				Value:       value,
+				UserProfile: userProfile,
+			}, nil)
+		}
 	}
 }

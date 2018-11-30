@@ -16,6 +16,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/ssohandler"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
 	asyncServer "github.com/skygeario/skygear-server/pkg/core/async/server"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -43,6 +44,7 @@ func main() {
 	authDependency := auth.DependencyMap{}
 
 	asyncTaskServer := asyncServer.NewTaskServer()
+	task.AttachVerifyCodeSendTask(asyncTaskServer, authDependency)
 
 	authRequestDependency := auth.RequestDependencyMap{
 		DependencyMap:   authDependency,
