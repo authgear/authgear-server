@@ -70,10 +70,14 @@ type dbContext struct {
 	dbOpener func() (*sqlx.DB, error)
 }
 
+func InitDBContext(ctx context.Context) context.Context {
+	container := &contextContainer{}
+	return context.WithValue(ctx, keyContainer, container)
+}
+
 // InitRequestDBContext initialize db context for the request
 func InitRequestDBContext(req *http.Request) *http.Request {
-	container := &contextContainer{}
-	return req.WithContext(context.WithValue(req.Context(), keyContainer, container))
+	return req.WithContext(InitDBContext(req.Context()))
 }
 
 // NewContextWithContext creates a new context.DB from context
