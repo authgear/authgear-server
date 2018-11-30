@@ -74,12 +74,12 @@ func (payload VerifyRequestPayload) Validate() error {
 //  EOF
 //
 type VerifyRequestHandler struct {
-	TxContext         db.TxContext                     `dependency:"TxContext"`
-	AuthContext       coreAuth.ContextGetter           `dependency:"AuthContextGetter"`
-	CodeSenderFactory auth.UserVerifyCodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
-	UserProfileStore  userprofile.Store                `dependency:"UserProfileStore"`
-	VerifyCodeStore   verifycode.Store                 `dependency:"VerifyCodeStore"`
-	Logger            *logrus.Entry                    `dependency:"HandlerLogger"`
+	TxContext         db.TxContext                 `dependency:"TxContext"`
+	AuthContext       coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
+	CodeSenderFactory userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
+	UserProfileStore  userprofile.Store            `dependency:"UserProfileStore"`
+	VerifyCodeStore   verifycode.Store             `dependency:"VerifyCodeStore"`
+	Logger            *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
 func (h VerifyRequestHandler) WithTx() bool {
