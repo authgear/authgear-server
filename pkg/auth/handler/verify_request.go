@@ -122,11 +122,11 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	code := codeSender.Generate()
-	if err = codeSender.Send(code, userProfile); err != nil {
+	if err = codeSender.Send(code, payload.RecordKey, value, userProfile); err != nil {
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,
 			"record_key":   payload.RecordKey,
-			"record_value": userProfile.Data[payload.RecordKey],
+			"record_value": value,
 		}).Error("fail to send verify request")
 		return
 	}

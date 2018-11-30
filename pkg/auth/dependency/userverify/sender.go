@@ -15,32 +15,26 @@ import (
 
 type CodeSender interface {
 	CodeGenerator
-	Send(code string, userProfile userprofile.UserProfile) error
+	Send(code string, key string, value string, userProfile userprofile.UserProfile) error
 }
 
 type EmailCodeSender struct {
-	Key     string
 	AppName string
 	Config  config.UserVerifyConfiguration
 	Dialer  *gomail.Dialer
 	CodeGenerator
 }
 
-func (e *EmailCodeSender) Send(code string, userProfile userprofile.UserProfile) (err error) {
-	var recordValue string
-	var ok bool
-	if recordValue, ok = userProfile.Data[e.Key].(string); !ok {
-		return errors.New(e.Key + " is invalid in user data")
-	}
-
+func (e *EmailCodeSender) Send(code string, key string, value string, userProfile userprofile.UserProfile) (err error) {
 	var keyConfig config.UserVerifyKeyConfiguration
-	if keyConfig, ok = e.Config.ConfigForKey(e.Key); !ok {
-		return errors.New("provider for " + e.Key + " not found")
+	var ok bool
+	if keyConfig, ok = e.Config.ConfigForKey(key); !ok {
+		return errors.New("provider for " + key + " not found")
 	}
 
 	context := prepareVerifyRequestContext(
-		e.Key,
-		recordValue,
+		key,
+		value,
 		e.AppName,
 		e.Config,
 		code,
@@ -65,7 +59,7 @@ func (e *EmailCodeSender) Send(code string, userProfile userprofile.UserProfile)
 		Dialer:      e.Dialer,
 		Sender:      providerConfig.Sender,
 		SenderName:  providerConfig.SenderName,
-		Recipient:   recordValue,
+		Recipient:   value,
 		Subject:     providerConfig.Subject,
 		ReplyTo:     providerConfig.ReplyTo,
 		ReplyToName: providerConfig.ReplyToName,
@@ -78,28 +72,22 @@ func (e *EmailCodeSender) Send(code string, userProfile userprofile.UserProfile)
 }
 
 type SMSCodeSender struct {
-	Key       string
 	AppName   string
 	Config    config.UserVerifyConfiguration
 	SMSClient sms.Client
 	CodeGenerator
 }
 
-func (t *SMSCodeSender) Send(code string, userProfile userprofile.UserProfile) (err error) {
-	var recordValue string
-	var ok bool
-	if recordValue, ok = userProfile.Data[t.Key].(string); !ok {
-		return errors.New(t.Key + " is invalid in user data")
-	}
-
+func (t *SMSCodeSender) Send(code string, key string, value string, userProfile userprofile.UserProfile) (err error) {
 	var keyConfig config.UserVerifyKeyConfiguration
-	if keyConfig, ok = t.Config.ConfigForKey(t.Key); !ok {
-		return errors.New("provider for " + t.Key + " not found")
+	var ok bool
+	if keyConfig, ok = t.Config.ConfigForKey(key); !ok {
+		return errors.New("provider for " + key + " not found")
 	}
 
 	context := prepareVerifyRequestContext(
-		t.Key,
-		recordValue,
+		key,
+		value,
 		t.AppName,
 		t.Config,
 		code,
@@ -113,7 +101,7 @@ func (t *SMSCodeSender) Send(code string, userProfile userprofile.UserProfile) (
 		return
 	}
 
-	err = t.SMSClient.Send(recordValue, textBody)
+	err = t.SMSClient.Send(value, textBody)
 	return
 }
 
