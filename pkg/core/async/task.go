@@ -16,6 +16,12 @@ type Task interface {
 	Run(param interface{}) error
 }
 
+type TaskFunc func(param interface{}) error
+
+func (t TaskFunc) Run(param interface{}) error {
+	return t(param)
+}
+
 type TaskContext struct {
 	context.Context
 	RequestID    string

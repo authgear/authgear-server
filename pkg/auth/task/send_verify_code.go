@@ -6,6 +6,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/async/server"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 
 	"github.com/sirupsen/logrus"
@@ -36,12 +37,13 @@ type VerifyCodeSendTaskFactory struct {
 func (c *VerifyCodeSendTaskFactory) NewTask(context async.TaskContext) async.Task {
 	task := &VerifyCodeSendTask{}
 	inject.DefaultTaskInject(task, c.DependencyMap, context)
-	return task
+	return async.TxTaskToTask(task, task.TxContext)
 }
 
 type VerifyCodeSendTask struct {
 	CodeSenderFactory userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
 	VerifyCodeStore   verifycode.Store             `dependency:"VerifyCodeStore"`
+	TxContext         db.TxContext                 `dependency:"TxContext"`
 	Logger            *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
@@ -51,17 +53,21 @@ type VerifyCodeSendTaskParam struct {
 	UserProfile userprofile.UserProfile
 }
 
-func (c *VerifyCodeSendTask) Run(param interface{}) (err error) {
-	taskParam := param.(VerifyCodeSendTaskParam)
-	codeSender := c.CodeSenderFactory.NewCodeSender(taskParam.Key)
+func (v *VerifyCodeSendTask) WithTx() bool {
+	return true
+}
 
-	c.Logger.WithFields(logrus.Fields{
+func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
+	taskParam := param.(VerifyCodeSendTaskParam)
+	codeSender := v.CodeSenderFactory.NewCodeSender(taskParam.Key)
+
+	v.Logger.WithFields(logrus.Fields{
 		"userID": taskParam.UserProfile.ID,
 	}).Info("start sending user verify requests")
 
 	code := codeSender.Generate()
 	if err = codeSender.Send(code, taskParam.Key, taskParam.Value, taskParam.UserProfile); err != nil {
-		c.Logger.WithFields(logrus.Fields{
+		v.Logger.WithFields(logrus.Fields{
 			"error":        err,
 			"record_key":   taskParam.Key,
 			"record_value": taskParam.Value,
@@ -77,7 +83,7 @@ func (c *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	verifyCode.Consumed = false
 	verifyCode.CreatedAt = time.Now()
 
-	if err = c.VerifyCodeStore.CreateVerifyCode(&verifyCode); err != nil {
+	if err = v.VerifyCodeStore.CreateVerifyCode(&verifyCode); err != nil {
 		return
 	}
 
