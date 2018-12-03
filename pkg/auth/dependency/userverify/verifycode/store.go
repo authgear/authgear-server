@@ -47,5 +47,5 @@ func (s *storeImpl) CreateVerifyCode(code *VerifyCode) (err error) {
 	)
 
 	_, err = s.sqlExecutor.ExecWith(builder)
-	return nil
+	return
 }
