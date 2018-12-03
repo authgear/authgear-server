@@ -13,6 +13,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
@@ -37,6 +38,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		lh.TokenStore = mockTokenStore
 		lh.RoleStore = role.NewMockStore()
+		lh.AuditTrail = audit.NewMockTrail(t)
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("create user account with custom token", func(c C) {
@@ -81,6 +83,10 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 					"access_token": "%s"
 				}
 			}`, p.UserID, token.AccessToken))
+
+			mockTrail, _ := lh.AuditTrail.(*audit.MockTrail)
+			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
+			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "signup")
 		})
 
 		Convey("check whether token is invalid", func(c C) {
@@ -105,6 +111,10 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 
 			c.Printf("Response: %s", string(resp.Body.Bytes()))
 			So(resp.Code, ShouldEqual, 400)
+
+			mockTrail, _ := lh.AuditTrail.(*audit.MockTrail)
+			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
+			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "login_failure")
 		})
 	})
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -72,6 +73,7 @@ type CustomTokenLoginHandler struct {
 	TokenStore              authtoken.Store      `dependency:"TokenStore"`
 	AuthInfoStore           authinfo.Store       `dependency:"AuthInfoStore"`
 	CustomTokenAuthProvider customtoken.Provider `dependency:"CustomTokenAuthProvider"`
+	AuditTrail              audit.Trail          `dependency:"AuditTrail"`
 }
 
 func (h CustomTokenLoginHandler) WithTx() bool {
@@ -82,6 +84,18 @@ func (h CustomTokenLoginHandler) WithTx() bool {
 func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := customTokenLoginPayload{}
 	var err error
+
+	defer func() {
+		if err != nil {
+			h.AuditTrail.Log(audit.Entry{
+				Event: audit.EventLoginFailure,
+				Data: map[string]interface{}{
+					"type": "custom_token",
+				},
+			})
+		}
+	}()
+
 	if err = json.NewDecoder(request.Body).Decode(&payload); err != nil {
 		return nil, err
 	}
@@ -98,8 +112,33 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 	payload := req.(customTokenLoginPayload)
 	var info authinfo.AuthInfo
 	var userProfile userprofile.UserProfile
+	var createNewUser bool
 
-	h.handleLogin(payload, &info, &userProfile)
+	defer func() {
+		var event audit.Event
+		if err != nil {
+			event = audit.EventLoginFailure
+		} else {
+			if createNewUser {
+				event = audit.EventSignup
+			} else {
+				event = audit.EventLoginSuccess
+			}
+		}
+
+		h.AuditTrail.Log(audit.Entry{
+			AuthID: info.ID,
+			Event:  event,
+			Data: map[string]interface{}{
+				"type": "custom_token",
+			},
+		})
+	}()
+
+	createNewUser, err = h.handleLogin(payload, &info, &userProfile)
+	if err != nil {
+		return
+	}
 
 	// TODO: check disable
 
@@ -130,8 +169,8 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 	return
 }
 
-func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, info *authinfo.AuthInfo, userProfile *userprofile.UserProfile) (err error) {
-	createNewUser := false
+func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, info *authinfo.AuthInfo, userProfile *userprofile.UserProfile) (createNewUser bool, err error) {
+	createNewUser = false
 	principal, err := h.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID(payload.Claims.Subject)
 	if err != nil {
 		if err != skydb.ErrUserNotFound {
