@@ -122,7 +122,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	payload := req.(ForgotPasswordResetPayload)
 
 	// check code expiration
-	if time.Now().UTC().After(payload.ExpireAtTime) {
+	if timeNow().After(payload.ExpireAtTime) {
 		h.Logger.Error("forgot password code expired")
 		err = h.genericError()
 		return
