@@ -15,6 +15,12 @@ var (
 		"instagram": "https://api.instagram.com/oauth/authorize",
 		"linkedin":  "https://www.linkedin.com/oauth/v2/authorization",
 	}
+	AccessTokenURLs = map[string]string{
+		"google":    "https://www.googleapis.com/oauth2/v4/token",
+		"facebook":  "https://graph.facebook.com/v2.10/oauth/access_token",
+		"instagram": "https://api.instagram.com/oauth/access_token",
+		"linkedin":  "https://www.linkedin.com/v1/people/~?format=json",
+	}
 )
 
 // CustomClaims is the type for jwt encoded
@@ -26,6 +32,12 @@ type CustomClaims struct {
 // BaseURL returns base URL by provider name
 func BaseURL(providerName string) (u string) {
 	u = BaseURLs[providerName]
+	return
+}
+
+// AccessTokenURL returns base URL by provider name
+func AccessTokenURL(providerName string) (u string) {
+	u = AccessTokenURLs[providerName]
 	return
 }
 
@@ -47,6 +59,15 @@ func EncodeState(secret string, state State) (string, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
+}
+
+// DecodeState decodes state by JWT
+func DecodeState(secret string, encoded string) (State, error) {
+	claims := CustomClaims{}
+	_, err := jwt.ParseWithClaims(encoded, &claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secret), nil
+	})
+	return claims.State, err
 }
 
 // GetScope returns parameter scope or default scope

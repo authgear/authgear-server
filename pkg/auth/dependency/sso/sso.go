@@ -94,6 +94,7 @@ type Config struct {
 // Provider defines SSO interface
 type Provider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
+	HandleAuthzResp(code string, scope Scope, encodedState string) (token string, err error)
 }
 
 type ProviderFactory struct {

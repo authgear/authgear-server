@@ -37,3 +37,18 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 	v.Add("state", encodedState)
 	return BaseURL(f.Config.Name) + "?" + v.Encode(), nil
 }
+
+func (f *InstagramImpl) HandleAuthzResp(code string, scope Scope, encodedState string) (string, error) {
+	p := authHandlerParams{
+		prividerName:   f.Config.Name,
+		clientID:       f.Config.ClientID,
+		clientSecret:   f.Config.ClientSecret,
+		urlPrefix:      f.Setting.URLPrefix,
+		code:           code,
+		scope:          scope,
+		stateJWTSecret: f.Setting.StateJWTSecret,
+		encodedState:   encodedState,
+		accessTokenURL: AccessTokenURL(f.Config.Name),
+	}
+	return authHandler(p)
+}

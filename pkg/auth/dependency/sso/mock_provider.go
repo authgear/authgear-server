@@ -27,3 +27,7 @@ func (f *MockSSOProverImpl) GetAuthURL(params GetURLParams) (string, error) {
 	}
 	return authURL(p)
 }
+
+func (f *MockSSOProverImpl) HandleAuthzResp(code string, scope Scope, encodedState string) (string, error) {
+	return "", nil
+}
