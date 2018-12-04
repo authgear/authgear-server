@@ -30,7 +30,7 @@ func DefaultRequestInject(
 	})
 }
 
-func DefaultTaskInject(
+func DefaultTaskInject( // nolint: golint
 	i interface{},
 	dependencyMap DependencyMap,
 	ctx context.Context,

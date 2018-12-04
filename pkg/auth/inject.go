@@ -36,7 +36,7 @@ type RequestDependencyMap struct {
 type DependencyMap struct{}
 
 // Provide provides dependency instance by name
-// nolint: gocyclo
+// nolint: gocyclo, golint
 func (m DependencyMap) Provide(
 	dependencyName string,
 	ctx context.Context,
