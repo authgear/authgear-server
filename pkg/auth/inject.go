@@ -39,8 +39,8 @@ type DependencyMap struct{}
 // nolint: gocyclo
 func (m DependencyMap) Provide(
 	dependencyName string,
-	requestID string,
 	ctx context.Context,
+	requestID string,
 	tConfig config.TenantConfiguration,
 ) interface{} {
 	switch dependencyName {
@@ -205,8 +205,8 @@ func (m RequestDependencyMap) Provide(dependencyName string, r *http.Request) in
 	default:
 		return m.DependencyMap.Provide(
 			dependencyName,
-			r.Header.Get("X-Skygear-Request-ID"),
 			r.Context(),
+			r.Header.Get("X-Skygear-Request-ID"),
 			config.GetTenantConfig(r),
 		)
 	}

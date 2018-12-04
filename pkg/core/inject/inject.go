@@ -17,7 +17,7 @@ type RequestDependencyMap interface {
 }
 
 type DependencyMap interface {
-	Provide(name string, requestID string, ctx context.Context, tenantConfig config.TenantConfiguration) interface{}
+	Provide(name string, ctx context.Context, requestID string, tenantConfig config.TenantConfiguration) interface{}
 }
 
 func DefaultRequestInject(
@@ -33,10 +33,11 @@ func DefaultRequestInject(
 func DefaultTaskInject(
 	i interface{},
 	dependencyMap DependencyMap,
-	taskContext async.TaskContext,
+	ctx context.Context,
+	taskCtx async.TaskContext,
 ) (err error) {
 	return injectDependency(i, func(name string) interface{} {
-		return dependencyMap.Provide(name, taskContext.RequestID, taskContext.Context, taskContext.TenantConfig)
+		return dependencyMap.Provide(name, ctx, taskCtx.RequestID, taskCtx.TenantConfig)
 	})
 }
 

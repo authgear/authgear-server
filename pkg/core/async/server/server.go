@@ -1,10 +1,12 @@
 package server
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
@@ -22,12 +24,13 @@ func (t *TaskServer) Register(name string, taskFactory async.TaskFactory) {
 	t.taskFactoryMap[name] = taskFactory
 }
 
-func (t *TaskServer) Handle(ctx async.TaskContext, name string, param interface{}, response chan error) {
+func (t *TaskServer) Handle(taskCtx async.TaskContext, name string, param interface{}, response chan error) {
 	factory := t.taskFactoryMap[name]
-	task := factory.NewTask(ctx)
+	ctx := db.InitDBContext(context.Background())
+	task := factory.NewTask(ctx, taskCtx)
 
-	formatter := logging.CreateMaskFormatter(ctx.TenantConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
-	logger := logging.CreateLoggerWithRequestID(ctx.RequestID, "async_task_server", formatter)
+	formatter := logging.CreateMaskFormatter(taskCtx.TenantConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
+	logger := logging.CreateLoggerWithRequestID(taskCtx.RequestID, "async_task_server", formatter)
 	go func() {
 		defer func() {
 			if rec := recover(); rec != nil {

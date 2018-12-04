@@ -1,6 +1,7 @@
 package task
 
 import (
+	"context"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -34,9 +35,9 @@ type VerifyCodeSendTaskFactory struct {
 	DependencyMap auth.DependencyMap
 }
 
-func (c *VerifyCodeSendTaskFactory) NewTask(context async.TaskContext) async.Task {
+func (c *VerifyCodeSendTaskFactory) NewTask(ctx context.Context, taskCtx async.TaskContext) async.Task {
 	task := &VerifyCodeSendTask{}
-	inject.DefaultTaskInject(task, c.DependencyMap, context)
+	inject.DefaultTaskInject(task, c.DependencyMap, ctx, taskCtx)
 	return async.TxTaskToTask(task, task.TxContext)
 }
 
