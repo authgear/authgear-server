@@ -190,6 +190,9 @@ func NewTenantConfiguration() TenantConfiguration {
 			Sender:  "no-reply@skygeario.com",
 			Subject: "Welcome!",
 		},
+		SSOSetting: SSOSetting{
+			JSSDKCDNURL: "https://code.skygear.io/js/skygear/latest/skygear.min.js",
+		},
 	}
 }
 
@@ -306,8 +309,8 @@ func NewTenantConfigurationFromEnv(_ *http.Request) (c TenantConfiguration, err 
 	if err != nil {
 		return
 	}
-	c.SSOSetting = getSSOSetting()
-	c.SSOConfigs = getSSOConfigs(c.SSOProviders)
+	getSSOSetting(&c.SSOSetting)
+	getSSOConfigs(c.SSOProviders, &c.SSOConfigs)
 
 	// Read user verify config
 	for _, userVerifyKey := range c.UserVerify.Keys {
@@ -325,12 +328,12 @@ func NewTenantConfigurationFromEnv(_ *http.Request) (c TenantConfiguration, err 
 	return
 }
 
-func getSSOSetting() (setting SSOSetting) {
-	envconfig.Process("", &setting)
+func getSSOSetting(ssoSetting *SSOSetting) {
+	envconfig.Process("", ssoSetting)
 	return
 }
 
-func getSSOConfigs(prividers []string) []SSOConfiguration {
+func getSSOConfigs(prividers []string, ssoConfigs *[]SSOConfiguration) {
 	configs := make([]SSOConfiguration, 0)
 	for _, name := range prividers {
 		config := SSOConfiguration{
@@ -340,6 +343,6 @@ func getSSOConfigs(prividers []string) []SSOConfiguration {
 			configs = append(configs, config)
 		}
 	}
-
-	return configs
+	*ssoConfigs = configs
+	return
 }
