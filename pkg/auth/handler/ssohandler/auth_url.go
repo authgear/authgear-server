@@ -18,34 +18,41 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
 
-func AttachLoginAuthURLHandler(
+func AttachAuthURLHandler(
 	server *server.Server,
 	authDependency auth.DependencyMap,
 ) *server.Server {
-	server.Handle("/sso/{provider}/login_auth_url", &LoginAuthURLHandlerFactory{
-		authDependency,
+	server.Handle("/sso/{provider}/login_auth_url", &AuthURLHandlerFactory{
+		Dependency: authDependency,
+		Action:     "login",
+	}).Methods("OPTIONS", "POST")
+	server.Handle("/sso/{provider}/link_auth_url", &AuthURLHandlerFactory{
+		Dependency: authDependency,
+		Action:     "link",
 	}).Methods("OPTIONS", "POST")
 	return server
 }
 
-type LoginAuthURLHandlerFactory struct {
+type AuthURLHandlerFactory struct {
 	Dependency auth.DependencyMap
+	Action     string
 }
 
-func (f LoginAuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
-	h := &LoginAuthURLHandler{}
+func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
+	h := &AuthURLHandler{}
 	inject.DefaultInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderName = vars["provider"]
+	h.Action = f.Action
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
-func (f LoginAuthURLHandlerFactory) ProvideAuthzPolicy() authz.Policy {
+func (f AuthURLHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
-// LoginAuthURLRequestPayload login handler request payload
-type LoginAuthURLRequestPayload struct {
+// AuthURLRequestPayload login handler request payload
+type AuthURLRequestPayload struct {
 	Scope       []string               `json:"scope"`
 	Options     map[string]interface{} `json:"options"`
 	CallbackURL string                 `json:"callback_url"`
@@ -54,7 +61,7 @@ type LoginAuthURLRequestPayload struct {
 }
 
 // Validate request payload
-func (p LoginAuthURLRequestPayload) Validate() error {
+func (p AuthURLRequestPayload) Validate() error {
 	if p.CallbackURL == "" {
 		return skyerr.NewInvalidArgument("Callback url is required", []string{"callback_url"})
 	}
@@ -66,7 +73,7 @@ func (p LoginAuthURLRequestPayload) Validate() error {
 	return nil
 }
 
-// LoginAuthURLHandler returns the SSO auth url by provider.
+// AuthURLHandler returns the SSO auth url by provider.
 //
 // curl \
 //   -X POST \
@@ -88,19 +95,41 @@ func (p LoginAuthURLRequestPayload) Validate() error {
 // {
 //     "result": "<auth_url>"
 // }
-type LoginAuthURLHandler struct {
+//
+// curl \
+//   -X POST \
+//   -H "Content-Type: application/json" \
+//   -H "X-Skygear-Api-Key: API_KEY" \
+//   -d @- \
+//   http://localhost:3000/sso/<provider>/link_auth_url \
+// <<EOF
+// {
+//     "scope": ["openid", "profile"],
+//     "options": {
+//       "prompt": "select_account"
+//     },
+//     callback_url: <url>,
+//     ux_mode: <ux_mode>
+// }
+// EOF
+//
+// {
+//     "result": "<auth_url>"
+// }
+type AuthURLHandler struct {
 	TxContext    db.TxContext           `dependency:"TxContext"`
 	AuthContext  coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	Provider     sso.Provider           `dependency:"SSOProvider"`
 	ProviderName string
+	Action       string
 }
 
-func (h LoginAuthURLHandler) WithTx() bool {
+func (h AuthURLHandler) WithTx() bool {
 	return true
 }
 
-func (h LoginAuthURLHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := LoginAuthURLRequestPayload{
+func (h AuthURLHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+	payload := AuthURLRequestPayload{
 		// avoid nil pointer
 		Scope:   make([]string, 0),
 		Options: make(sso.Options),
@@ -111,18 +140,18 @@ func (h LoginAuthURLHandler) DecodeRequest(request *http.Request) (handler.Reque
 	return payload, err
 }
 
-func (h LoginAuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
+func (h AuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if h.Provider == nil {
 		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
 		return
 	}
-	payload := req.(LoginAuthURLRequestPayload)
+	payload := req.(AuthURLRequestPayload)
 	params := sso.GetURLParams{
 		Scope:       payload.Scope,
 		Options:     payload.Options,
 		CallbackURL: payload.CallbackURL,
 		UXMode:      payload.UXMode,
-		Action:      "login",
+		Action:      h.Action,
 	}
 	if h.AuthContext.AuthInfo() != nil {
 		params.UserID = h.AuthContext.AuthInfo().ID
