@@ -1,0 +1,60 @@
+package sso
+
+import (
+	"net/url"
+
+	"github.com/franela/goreq"
+)
+
+type accessToken struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in,omitempty"`
+	// Facebook uses "expires" instead of "expires_in"
+	Expires      int    `json:"expires,omitempty"`
+	Scope        Scope  `json:"scope"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+func fetchAccessToken(
+	code string,
+	clientID string,
+	urlPrefix string,
+	providerName string,
+	clientSecret string,
+	accessTokenURL string,
+) (accessToken accessToken, err error) {
+	v := url.Values{}
+	v.Set("grant_type", "authorization_code")
+	v.Add("code", code)
+	v.Add("redirect_uri", RedirectURI(urlPrefix, providerName))
+	v.Add("client_id", clientID)
+	v.Add("client_secret", clientSecret)
+
+	res, err := goreq.Request{
+		Uri:         accessTokenURL,
+		Method:      "POST",
+		Body:        v.Encode(),
+		ContentType: "application/x-www-form-urlencoded; charset=UTF-8",
+	}.Do()
+
+	if err != nil {
+		return
+	}
+
+	if res.StatusCode == 200 {
+		err = res.Body.FromJsonTo(&accessToken)
+		if err != nil {
+			return
+		}
+	} else { // normally 400 Bad Request
+		var errResp ErrorResp
+		err = res.Body.FromJsonTo(&errResp)
+		if err != nil {
+			return
+		}
+		err = RespToError(errResp)
+	}
+
+	return
+}
