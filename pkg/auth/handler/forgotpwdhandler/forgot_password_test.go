@@ -1,4 +1,4 @@
-package handler
+package forgotpwdhandler
 
 import (
 	"net/http"

@@ -16,6 +16,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
+	"github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwdhandler"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/ssohandler"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/verifyhandler"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
@@ -74,8 +75,8 @@ func main() {
 	handler.AttachRoleAdminHandler(&srv, authDependency)
 	handler.AttachRoleDefaultHandler(&srv, authDependency)
 	handler.AttachWelcomeEmailHandler(&srv, authDependency)
-	handler.AttachForgotPasswordHandler(&srv, authDependency)
-	handler.AttachForgotPasswordResetHandler(&srv, authDependency)
+	forgotpwdhandler.AttachForgotPasswordHandler(&srv, authDependency)
+	forgotpwdhandler.AttachForgotPasswordResetHandler(&srv, authDependency)
 	verifyhandler.AttachVerifyRequestHandler(&srv, authDependency)
 	verifyhandler.AttachVerifyCodeHandler(&srv, authDependency)
 	ssohandler.AttachAuthURLHandler(&srv, authDependency)
