@@ -15,7 +15,7 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 	params.Options["access_type"] = "offline"
 	params.Options["prompt"] = "select_account"
 	p := authURLParams{
-		prividerName:   f.Config.Name,
+		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
 		urlPrefix:      f.Setting.URLPrefix,
 		scope:          GetScope(params.Scope, f.Config.Scope),

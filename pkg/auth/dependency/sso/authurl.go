@@ -7,7 +7,7 @@ import (
 )
 
 type authURLParams struct {
-	prividerName   string
+	providerName   string
 	clientID       string
 	urlPrefix      string
 	scope          Scope
@@ -25,7 +25,7 @@ func authURL(params authURLParams) (string, error) {
 	v := url.Values{}
 	v.Set("response_type", "code")
 	v.Add("client_id", params.clientID)
-	v.Add("redirect_uri", RedirectURI(params.urlPrefix, params.prividerName))
+	v.Add("redirect_uri", RedirectURI(params.urlPrefix, params.providerName))
 	v.Add("state", encodedState)
 	v.Add("scope", strings.Join(params.scope, " "))
 	for k, o := range params.options {

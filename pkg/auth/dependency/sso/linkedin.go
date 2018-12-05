@@ -15,7 +15,7 @@ func (f *LinkedInImpl) GetAuthURL(params GetURLParams) (string, error) {
 		return "", skyErr
 	}
 	p := authURLParams{
-		prividerName:   f.Config.Name,
+		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
 		urlPrefix:      f.Setting.URLPrefix,
 		scope:          GetScope(params.Scope, f.Config.Scope),

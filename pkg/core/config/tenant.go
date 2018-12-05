@@ -351,9 +351,9 @@ func getSSOSetting(ssoSetting *SSOSetting) {
 	return
 }
 
-func getSSOConfigs(prividers []string, ssoConfigs *[]SSOConfiguration) {
+func getSSOConfigs(providers []string, ssoConfigs *[]SSOConfiguration) {
 	configs := make([]SSOConfiguration, 0)
-	for _, name := range prividers {
+	for _, name := range providers {
 		config := SSOConfiguration{
 			Name: name,
 		}

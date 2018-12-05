@@ -39,8 +39,8 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *InstagramImpl) HandleAuthzResp(code string, scope Scope, encodedState string) (string, error) {
-	p := authHandlerParams{
-		prividerName:   f.Config.Name,
+	h := authHandler{
+		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
 		clientSecret:   f.Config.ClientSecret,
 		urlPrefix:      f.Setting.URLPrefix,

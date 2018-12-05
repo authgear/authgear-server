@@ -19,7 +19,7 @@ func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 		params.Options["display"] = "popup"
 	}
 	p := authURLParams{
-		prividerName:   f.Config.Name,
+		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
 		urlPrefix:      f.Setting.URLPrefix,
 		scope:          GetScope(params.Scope, f.Config.Scope),
