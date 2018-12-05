@@ -1,9 +1,5 @@
 package sso
 
-import (
-	"fmt"
-)
-
 type authHandler struct {
 	providerName   string
 	clientID       string
@@ -16,12 +12,12 @@ type authHandler struct {
 	accessTokenURL string
 	userProfileURL string
 
-	processAccessToken func(a accessToken) accessToken
+	processAccessToken func(a AccessToken) AccessToken
 	processPrincipalID func(p map[string]interface{}) string
 	processAuthData    func(p map[string]interface{}) map[string]interface{}
 }
 
-func (h authHandler) handle() (string, error) {
+func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 	accessToken, err := fetchAccessToken(
 		h.code,
 		h.clientID,
@@ -31,7 +27,7 @@ func (h authHandler) handle() (string, error) {
 		h.accessTokenURL,
 	)
 	if err != nil {
-		return "", err
+		return
 	}
 
 	if h.processAccessToken != nil {
@@ -40,7 +36,7 @@ func (h authHandler) handle() (string, error) {
 
 	userProfile, err := fetchUserProfile(accessToken, h.userProfileURL)
 	if err != nil {
-		return "", err
+		return
 	}
 
 	if h.processPrincipalID == nil {
@@ -49,14 +45,26 @@ func (h authHandler) handle() (string, error) {
 	if h.processAuthData == nil {
 		h.processAuthData = processAuthData
 	}
+	// TODO: handle processAuthData hook function
 
 	principalID := h.processPrincipalID(userProfile)
 	authData := h.processAuthData(userProfile)
 
-	fmt.Printf("principalID = %s\n", principalID)
-	fmt.Printf("authData = %v\n", authData)
+	state, err := DecodeState(h.encodedState, h.stateJWTSecret)
+	if err != nil {
+		return
+	}
 
-	return "", nil
+	authInfo = AuthInfo{
+		Action:      state.Action,
+		UXMode:      UXModeFromString(state.UXMode),
+		PrincipalID: principalID,
+		AuthData:    authData,
+		UserProfile: userProfile,
+		Token:       accessToken,
+	}
+
+	return
 }
 
 func processPrincipalID(userProfile map[string]interface{}) string {

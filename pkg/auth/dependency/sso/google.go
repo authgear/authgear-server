@@ -27,7 +27,7 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
-func (f *GoogleImpl) HandleAuthzResp(code string, scope Scope, encodedState string) (string, error) {
+func (f *GoogleImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
 	h := authHandler{
 		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
@@ -40,5 +40,5 @@ func (f *GoogleImpl) HandleAuthzResp(code string, scope Scope, encodedState stri
 		accessTokenURL: AccessTokenURL(f.Config.Name),
 		userProfileURL: UserProfileURL(f.Config.Name),
 	}
-	return h.handle()
+	return h.getAuthInfo()
 }

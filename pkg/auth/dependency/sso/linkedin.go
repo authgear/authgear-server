@@ -27,7 +27,7 @@ func (f *LinkedInImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
-func (f *LinkedInImpl) HandleAuthzResp(code string, scope Scope, encodedState string) (string, error) {
+func (f *LinkedInImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
 	h := authHandler{
 		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
@@ -40,5 +40,5 @@ func (f *LinkedInImpl) HandleAuthzResp(code string, scope Scope, encodedState st
 		accessTokenURL: AccessTokenURL(f.Config.Name),
 		userProfileURL: UserProfileURL(f.Config.Name),
 	}
-	return h.handle()
+	return h.getAuthInfo()
 }

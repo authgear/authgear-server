@@ -98,7 +98,9 @@ func (h AuthHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	payload := req.(AuthRequestPayload)
 
-	if _, err = h.Provider.HandleAuthzResp(payload.Code, payload.Scope, payload.EncodedState); err != nil {
+	_, err = h.Provider.GetAuthInfo(payload.Code, payload.Scope, payload.EncodedState)
+
+	if err != nil {
 		if ssoErr, ok := err.(sso.Error); ok {
 			switch ssoErr.Code() {
 			case sso.InvalidGrant:

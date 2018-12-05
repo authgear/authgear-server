@@ -8,7 +8,7 @@ import (
 )
 
 func fetchUserProfile(
-	accessToken accessToken,
+	accessToken AccessToken,
 	userProfileURL string,
 ) (userProfile map[string]interface{}, err error) {
 	tokenType := accessToken.TokenType

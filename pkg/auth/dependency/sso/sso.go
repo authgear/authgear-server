@@ -91,10 +91,20 @@ type Config struct {
 	Scope        Scope
 }
 
+// AuthInfo contains auth info from HandleAuthzResp
+type AuthInfo struct {
+	Action      string
+	UXMode      UXMode
+	PrincipalID string
+	AuthData    map[string]interface{}
+	UserProfile map[string]interface{}
+	Token       AccessToken
+}
+
 // Provider defines SSO interface
 type Provider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
-	HandleAuthzResp(code string, scope Scope, encodedState string) (token string, err error)
+	GetAuthInfo(code string, scope Scope, encodedState string) (auth AuthInfo, err error)
 }
 
 type ProviderFactory struct {

@@ -33,7 +33,7 @@ func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
-func (f *FacebookImpl) HandleAuthzResp(code string, scope Scope, encodedState string) (string, error) {
+func (f *FacebookImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
 	h := authHandler{
 		providerName:       f.Config.Name,
 		clientID:           f.Config.ClientID,
@@ -47,10 +47,10 @@ func (f *FacebookImpl) HandleAuthzResp(code string, scope Scope, encodedState st
 		userProfileURL:     UserProfileURL(f.Config.Name),
 		processAccessToken: f.processAccessToken,
 	}
-	return h.handle()
+	return h.getAuthInfo()
 }
 
-func (f *FacebookImpl) processAccessToken(a accessToken) accessToken {
+func (f *FacebookImpl) processAccessToken(a AccessToken) AccessToken {
 	if a.ExpiresIn == 0 && a.RawExpires != 0 {
 		a.ExpiresIn = a.RawExpires
 	}

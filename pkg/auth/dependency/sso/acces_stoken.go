@@ -7,7 +7,7 @@ import (
 	"github.com/franela/goreq"
 )
 
-type accessToken struct {
+type AccessToken struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int    `json:"expires_in,omitempty"`
@@ -25,7 +25,7 @@ func fetchAccessToken(
 	providerName string,
 	clientSecret string,
 	accessTokenURL string,
-) (accessToken accessToken, err error) {
+) (accessToken AccessToken, err error) {
 	v := url.Values{}
 	v.Set("grant_type", "authorization_code")
 	v.Add("code", code)
