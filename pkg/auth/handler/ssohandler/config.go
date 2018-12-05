@@ -67,5 +67,5 @@ func (f ConfigHandler) NewHandler(request *http.Request) http.Handler {
 }
 
 func (f ConfigHandler) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return policy.AllOf()
 }
