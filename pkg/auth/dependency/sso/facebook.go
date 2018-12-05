@@ -35,22 +35,22 @@ func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 
 func (f *FacebookImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
 	h := authHandler{
-		providerName:       f.Config.Name,
-		clientID:           f.Config.ClientID,
-		clientSecret:       f.Config.ClientSecret,
-		urlPrefix:          f.Setting.URLPrefix,
-		code:               code,
-		scope:              scope,
-		stateJWTSecret:     f.Setting.StateJWTSecret,
-		encodedState:       encodedState,
-		accessTokenURL:     AccessTokenURL(f.Config.Name),
-		userProfileURL:     UserProfileURL(f.Config.Name),
-		processAccessToken: f.processAccessToken,
+		providerName:           f.Config.Name,
+		clientID:               f.Config.ClientID,
+		clientSecret:           f.Config.ClientSecret,
+		urlPrefix:              f.Setting.URLPrefix,
+		code:                   code,
+		scope:                  scope,
+		stateJWTSecret:         f.Setting.StateJWTSecret,
+		encodedState:           encodedState,
+		accessTokenURL:         AccessTokenURL(f.Config.Name),
+		userProfileURL:         UserProfileURL(f.Config.Name),
+		processAccessTokenResp: f.processAccessTokenResp,
 	}
 	return h.getAuthInfo()
 }
 
-func (f *FacebookImpl) processAccessToken(a AccessToken) AccessToken {
+func (f *FacebookImpl) processAccessTokenResp(a AccessTokenResp) AccessTokenResp {
 	if a.ExpiresIn == 0 && a.RawExpires != 0 {
 		a.ExpiresIn = a.RawExpires
 	}

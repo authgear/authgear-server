@@ -50,11 +50,12 @@ func (f *InstagramImpl) GetAuthInfo(code string, scope Scope, encodedState strin
 		encodedState:   encodedState,
 		accessTokenURL: AccessTokenURL(f.Config.Name),
 		userProfileURL: UserProfileURL(f.Config.Name),
+		processUserID:  f.processUserID,
 	}
 	return h.getAuthInfo()
 }
 
-func (f *InstagramImpl) processPrincipalID(userProfile map[string]interface{}) string {
+func (f *InstagramImpl) processUserID(userProfile map[string]interface{}) string {
 	// Check GET /users/self response
 	// https://www.instagram.com/developer/endpoints/users/
 	data, ok := userProfile["data"].(map[string]interface{})
@@ -66,18 +67,4 @@ func (f *InstagramImpl) processPrincipalID(userProfile map[string]interface{}) s
 		return ""
 	}
 	return id
-}
-
-func (f *InstagramImpl) processAuthData(userProfile map[string]interface{}) map[string]interface{} {
-	// Check GET /users/self response
-	// https://www.instagram.com/developer/endpoints/users/
-	authData := make(map[string]interface{})
-	data, ok := userProfile["data"].(map[string]interface{})
-	if !ok {
-		return authData
-	}
-	if email, ok := data["email"].(string); ok {
-		authData["email"] = email
-	}
-	return authData
 }

@@ -12,13 +12,12 @@ type authHandler struct {
 	accessTokenURL string
 	userProfileURL string
 
-	processAccessToken func(a AccessToken) AccessToken
-	processPrincipalID func(p map[string]interface{}) string
-	processAuthData    func(p map[string]interface{}) map[string]interface{}
+	processAccessTokenResp func(a AccessTokenResp) AccessTokenResp
+	processUserID          func(p map[string]interface{}) string
 }
 
 func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
-	accessToken, err := fetchAccessToken(
+	accessTokenResp, err := fetchAccessTokenResp(
 		h.code,
 		h.clientID,
 		h.urlPrefix,
@@ -30,25 +29,19 @@ func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 		return
 	}
 
-	if h.processAccessToken != nil {
-		accessToken = h.processAccessToken(accessToken)
+	if h.processAccessTokenResp != nil {
+		accessTokenResp = h.processAccessTokenResp(accessTokenResp)
 	}
 
-	userProfile, err := fetchUserProfile(accessToken, h.userProfileURL)
+	userProfile, err := fetchUserProfile(accessTokenResp, h.userProfileURL)
 	if err != nil {
 		return
 	}
 
-	if h.processPrincipalID == nil {
-		h.processPrincipalID = processPrincipalID
+	if h.processUserID == nil {
+		h.processUserID = processUserID
 	}
-	if h.processAuthData == nil {
-		h.processAuthData = processAuthData
-	}
-	// TODO: handle processAuthData hook function
-
-	principalID := h.processPrincipalID(userProfile)
-	authData := h.processAuthData(userProfile)
+	userID := h.processUserID(userProfile)
 
 	state, err := DecodeState(h.encodedState, h.stateJWTSecret)
 	if err != nil {
@@ -56,29 +49,21 @@ func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 	}
 
 	authInfo = AuthInfo{
-		Action:      state.Action,
-		UXMode:      UXModeFromString(state.UXMode),
-		PrincipalID: principalID,
-		AuthData:    authData,
-		UserProfile: userProfile,
-		Token:       accessToken,
+		ProviderName:    h.providerName,
+		Action:          state.Action,
+		UXMode:          UXModeFromString(state.UXMode),
+		UserID:          userID,
+		UserProfile:     userProfile,
+		AccessTokenResp: accessTokenResp,
 	}
 
 	return
 }
 
-func processPrincipalID(userProfile map[string]interface{}) string {
+func processUserID(userProfile map[string]interface{}) string {
 	id, ok := userProfile["id"].(string)
 	if !ok {
 		return ""
 	}
 	return id
-}
-
-func processAuthData(userProfile map[string]interface{}) map[string]interface{} {
-	authData := make(map[string]interface{})
-	if email, ok := userProfile["email"].(string); ok {
-		authData["email"] = email
-	}
-	return authData
 }
