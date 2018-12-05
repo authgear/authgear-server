@@ -44,6 +44,7 @@ func (f *FacebookImpl) HandleAuthzResp(code string, scope Scope, encodedState st
 		stateJWTSecret:     f.Setting.StateJWTSecret,
 		encodedState:       encodedState,
 		accessTokenURL:     AccessTokenURL(f.Config.Name),
+		userProfileURL:     UserProfileURL(f.Config.Name),
 		processAccessToken: f.processAccessToken,
 	}
 	return h.handle()

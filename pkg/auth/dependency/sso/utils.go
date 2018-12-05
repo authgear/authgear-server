@@ -15,10 +15,18 @@ var (
 		"instagram": "https://api.instagram.com/oauth/authorize",
 		"linkedin":  "https://www.linkedin.com/oauth/v2/authorization",
 	}
+	// AccessTokenURLs is a map of request access token url
 	AccessTokenURLs = map[string]string{
 		"google":    "https://www.googleapis.com/oauth2/v4/token",
 		"facebook":  "https://graph.facebook.com/v2.10/oauth/access_token",
 		"instagram": "https://api.instagram.com/oauth/access_token",
+		"linkedin":  "https://www.linkedin.com/oauth/v2/accessToken",
+	}
+	// UserProfileURLs is a map of request ursr profile with access token
+	UserProfileURLs = map[string]string{
+		"google":    "https://www.googleapis.com/oauth2/v1/userinfo",
+		"facebook":  "https://graph.facebook.com/v2.10/me",
+		"instagram": "https://api.instagram.com/v1/users/self",
 		"linkedin":  "https://www.linkedin.com/v1/people/~?format=json",
 	}
 )
@@ -35,9 +43,15 @@ func BaseURL(providerName string) (u string) {
 	return
 }
 
-// AccessTokenURL returns base URL by provider name
+// AccessTokenURL returns access token URL by provider name
 func AccessTokenURL(providerName string) (u string) {
 	u = AccessTokenURLs[providerName]
+	return
+}
+
+// UserProfileURL returns user profile URL by provider name
+func UserProfileURL(providerName string) (u string) {
+	u = UserProfileURLs[providerName]
 	return
 }
 

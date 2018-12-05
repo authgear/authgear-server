@@ -38,6 +38,7 @@ func (f *GoogleImpl) HandleAuthzResp(code string, scope Scope, encodedState stri
 		stateJWTSecret: f.Setting.StateJWTSecret,
 		encodedState:   encodedState,
 		accessTokenURL: AccessTokenURL(f.Config.Name),
+		userProfileURL: UserProfileURL(f.Config.Name),
 	}
 	return h.handle()
 }

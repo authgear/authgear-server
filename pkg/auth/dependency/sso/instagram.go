@@ -49,6 +49,21 @@ func (f *InstagramImpl) HandleAuthzResp(code string, scope Scope, encodedState s
 		stateJWTSecret: f.Setting.StateJWTSecret,
 		encodedState:   encodedState,
 		accessTokenURL: AccessTokenURL(f.Config.Name),
+		userProfileURL: UserProfileURL(f.Config.Name),
 	}
 	return h.handle()
+}
+
+func (f *InstagramImpl) processPrincipalID(userProfile map[string]interface{}) string {
+	// Check GET /users/self response
+	// https://www.instagram.com/developer/endpoints/users/
+	d, ok := userProfile["data"].(map[string]interface{})
+	if !ok {
+		return ""
+	}
+	id, ok := d["id"].(string)
+	if !ok {
+		return ""
+	}
+	return id
 }
