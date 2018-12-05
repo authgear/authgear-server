@@ -33,6 +33,9 @@ func AttachForgotPasswordResetHandler(
 	server.Handle("/forgot_password/reset_password", &ForgotPasswordResetHandlerFactory{
 		authDependency,
 	}).Methods("OPTIONS", "POST")
+	server.Handle("/forgot_password/reset_password_form", &ForgotPasswordResetPostFormHandlerFactory{
+		authDependency,
+	}).Methods("POST")
 	return server
 }
 
@@ -127,7 +130,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	// check code expiration
 	if timeNow().After(payload.ExpireAtTime) {
 		h.Logger.Error("forgot password code expired")
-		err = h.genericError()
+		err = genericResetPasswordError()
 		return
 	}
 
@@ -136,7 +139,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(e).Error("user not found")
-		err = h.genericError()
+		err = genericResetPasswordError()
 		return
 	}
 
@@ -152,7 +155,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(err).Error("unable to get user profile")
-		err = h.genericError()
+		err = genericResetPasswordError()
 		return
 	}
 
@@ -162,7 +165,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(err).Error("unable to get password auth principals")
-		err = h.genericError()
+		err = genericResetPasswordError()
 		return
 	}
 
@@ -174,7 +177,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 			"code":          payload.Code,
 			"expected_code": expectedCode,
 		}).Error("wrong forgot password reset password code")
-		err = h.genericError()
+		err = genericResetPasswordError()
 		return
 	}
 
@@ -216,6 +219,6 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	return
 }
 
-func (h ForgotPasswordResetHandler) genericError() error {
+func genericResetPasswordError() skyerr.Error {
 	return skyerr.NewError(skyerr.ResourceNotFound, "user not found or code invalid")
 }
