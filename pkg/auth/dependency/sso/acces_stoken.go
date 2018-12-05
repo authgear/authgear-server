@@ -2,6 +2,7 @@ package sso
 
 import (
 	"net/url"
+	"strings"
 
 	"github.com/franela/goreq"
 )
@@ -11,8 +12,9 @@ type accessToken struct {
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int    `json:"expires_in,omitempty"`
 	// Facebook uses "expires" instead of "expires_in"
-	Expires      int    `json:"expires,omitempty"`
-	Scope        Scope  `json:"scope"`
+	RawExpires   int `json:"expires,omitempty"`
+	Scope        Scope
+	RawScope     string `json:"scope"`
 	RefreshToken string `json:"refresh_token"`
 }
 
@@ -47,6 +49,7 @@ func fetchAccessToken(
 		if err != nil {
 			return
 		}
+		accessToken.Scope = strings.Split(accessToken.RawScope, " ")
 	} else { // normally 400 Bad Request
 		var errResp ErrorResp
 		err = res.Body.FromJsonTo(&errResp)

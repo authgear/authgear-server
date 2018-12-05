@@ -50,8 +50,8 @@ func (f *FacebookImpl) HandleAuthzResp(code string, scope Scope, encodedState st
 }
 
 func (f *FacebookImpl) processAccessToken(a accessToken) accessToken {
-	if a.ExpiresIn == 0 && a.Expires != 0 {
-		a.ExpiresIn = a.Expires
+	if a.ExpiresIn == 0 && a.RawExpires != 0 {
+		a.ExpiresIn = a.RawExpires
 	}
 	if strings.ToLower(a.TokenType) == "bearer" {
 		a.TokenType = "Bearer"
