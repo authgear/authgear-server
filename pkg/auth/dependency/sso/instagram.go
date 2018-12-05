@@ -57,13 +57,27 @@ func (f *InstagramImpl) HandleAuthzResp(code string, scope Scope, encodedState s
 func (f *InstagramImpl) processPrincipalID(userProfile map[string]interface{}) string {
 	// Check GET /users/self response
 	// https://www.instagram.com/developer/endpoints/users/
-	d, ok := userProfile["data"].(map[string]interface{})
+	data, ok := userProfile["data"].(map[string]interface{})
 	if !ok {
 		return ""
 	}
-	id, ok := d["id"].(string)
+	id, ok := data["id"].(string)
 	if !ok {
 		return ""
 	}
 	return id
+}
+
+func (f *InstagramImpl) processAuthData(userProfile map[string]interface{}) map[string]interface{} {
+	// Check GET /users/self response
+	// https://www.instagram.com/developer/endpoints/users/
+	authData := make(map[string]interface{})
+	data, ok := userProfile["data"].(map[string]interface{})
+	if !ok {
+		return authData
+	}
+	if email, ok := data["email"].(string); ok {
+		authData["email"] = email
+	}
+	return authData
 }

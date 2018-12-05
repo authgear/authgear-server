@@ -1,5 +1,9 @@
 package sso
 
+import (
+	"fmt"
+)
+
 type authHandler struct {
 	providerName   string
 	clientID       string
@@ -14,6 +18,7 @@ type authHandler struct {
 
 	processAccessToken func(a accessToken) accessToken
 	processPrincipalID func(p map[string]interface{}) string
+	processAuthData    func(p map[string]interface{}) map[string]interface{}
 }
 
 func (h authHandler) handle() (string, error) {
@@ -38,12 +43,18 @@ func (h authHandler) handle() (string, error) {
 		return "", err
 	}
 
-	principalID := ""
-	if h.processPrincipalID != nil {
-		principalID = h.processPrincipalID(userProfile)
-	} else {
-		principalID = processPrincipalID(userProfile)
+	if h.processPrincipalID == nil {
+		h.processPrincipalID = processPrincipalID
 	}
+	if h.processAuthData == nil {
+		h.processAuthData = processAuthData
+	}
+
+	principalID := h.processPrincipalID(userProfile)
+	authData := h.processAuthData(userProfile)
+
+	fmt.Printf("principalID = %s\n", principalID)
+	fmt.Printf("authData = %v\n", authData)
 
 	return "", nil
 }
@@ -54,4 +65,12 @@ func processPrincipalID(userProfile map[string]interface{}) string {
 		return ""
 	}
 	return id
+}
+
+func processAuthData(userProfile map[string]interface{}) map[string]interface{} {
+	authData := make(map[string]interface{})
+	if email, ok := userProfile["email"].(string); ok {
+		authData["email"] = email
+	}
+	return authData
 }
