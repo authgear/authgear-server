@@ -28,8 +28,8 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *GoogleImpl) HandleAuthzResp(code string, scope Scope, encodedState string) (string, error) {
-	p := authHandlerParams{
-		prividerName:   f.Config.Name,
+	h := authHandler{
+		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
 		clientSecret:   f.Config.ClientSecret,
 		urlPrefix:      f.Setting.URLPrefix,
@@ -39,5 +39,5 @@ func (f *GoogleImpl) HandleAuthzResp(code string, scope Scope, encodedState stri
 		encodedState:   encodedState,
 		accessTokenURL: AccessTokenURL(f.Config.Name),
 	}
-	return authHandler(p)
+	return h.handle()
 }

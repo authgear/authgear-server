@@ -50,5 +50,5 @@ func (f *InstagramImpl) HandleAuthzResp(code string, scope Scope, encodedState s
 		encodedState:   encodedState,
 		accessTokenURL: AccessTokenURL(f.Config.Name),
 	}
-	return authHandler(p)
+	return h.handle()
 }

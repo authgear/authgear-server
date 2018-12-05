@@ -1,6 +1,8 @@
 package sso
 
 import (
+	"strings"
+
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -32,16 +34,27 @@ func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *FacebookImpl) HandleAuthzResp(code string, scope Scope, encodedState string) (string, error) {
-	p := authHandlerParams{
-		prividerName:   f.Config.Name,
-		clientID:       f.Config.ClientID,
-		clientSecret:   f.Config.ClientSecret,
-		urlPrefix:      f.Setting.URLPrefix,
-		code:           code,
-		scope:          scope,
-		stateJWTSecret: f.Setting.StateJWTSecret,
-		encodedState:   encodedState,
-		accessTokenURL: AccessTokenURL(f.Config.Name),
+	h := authHandler{
+		providerName:       f.Config.Name,
+		clientID:           f.Config.ClientID,
+		clientSecret:       f.Config.ClientSecret,
+		urlPrefix:          f.Setting.URLPrefix,
+		code:               code,
+		scope:              scope,
+		stateJWTSecret:     f.Setting.StateJWTSecret,
+		encodedState:       encodedState,
+		accessTokenURL:     AccessTokenURL(f.Config.Name),
+		processAccessToken: f.processAccessToken,
 	}
-	return authHandler(p)
+	return h.handle()
+}
+
+func (f *FacebookImpl) processAccessToken(a accessToken) accessToken {
+	if a.ExpiresIn == 0 && a.Expires != 0 {
+		a.ExpiresIn = a.Expires
+	}
+	if strings.ToLower(a.TokenType) == "bearer" {
+		a.TokenType = "Bearer"
+	}
+	return a
 }
