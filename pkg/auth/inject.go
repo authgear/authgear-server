@@ -174,6 +174,9 @@ func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface
 			Scope:        strings.Split(SSOConf.Scope, ","),
 		}
 		return sso.NewProvider(setting, config)
+	case "IFrameHTMLProvider":
+		tConfig := config.GetTenantConfig(r)
+		return sso.NewIFrameHTMLProvider(tConfig.SSOSetting.URLPrefix, tConfig.SSOSetting.JSSDKCDNURL)
 	case "VerifyCodeStore":
 		tConfig := config.GetTenantConfig(r)
 		return verifycode.NewStore(

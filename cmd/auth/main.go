@@ -68,6 +68,7 @@ func main() {
 	handler.AttachVerifyRequestHandler(&srv, authDependency)
 	ssohandler.AttachAuthURLHandler(&srv, authDependency)
 	ssohandler.AttachConfigHandler(&srv, authDependency)
+	ssohandler.AttachIFrameHandlerFactory(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")
