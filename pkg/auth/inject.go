@@ -64,11 +64,13 @@ func (m DependencyMap) Provide(
 		// TODO:
 		// from tConfig
 		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
+		passwordHistoryEnabled := tConfig.UserAudit.PwHistorySize > 0 || tConfig.UserAudit.PwHistoryDays > 0
 		return password.NewSafeProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 			logging.CreateLoggerWithRequestID(requestID, "provider_password", createLoggerMaskFormatter(tConfig)),
 			authRecordKeys,
+			passwordHistoryEnabled,
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	case "AnonymousAuthProvider":
