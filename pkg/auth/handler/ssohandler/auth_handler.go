@@ -64,6 +64,10 @@ func (p AuthRequestPayload) Validate() error {
 		return skyerr.NewInvalidArgument("Authorization Code is required", []string{"code"})
 	}
 
+	if p.EncodedState == "" {
+		return skyerr.NewInvalidArgument("EncodedState is required", []string{"state"})
+	}
+
 	return nil
 }
 
@@ -91,7 +95,6 @@ type AuthHandler struct {
 	RoleStore         role.Store             `dependency:"RoleStore"`
 	TokenStore        authtoken.Store        `dependency:"TokenStore"`
 	ProviderName      string
-	Action            string
 }
 
 func (h AuthHandler) WithTx() bool {
