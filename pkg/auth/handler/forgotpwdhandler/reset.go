@@ -143,15 +143,9 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		return
 	}
 
-	// generate access-token
-	token, err := h.TokenStore.NewToken(authInfo.ID)
-	if err != nil {
-		return
-	}
-
 	// Get Profile
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID, token.AccessToken); err != nil {
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(err).Error("unable to get user profile")

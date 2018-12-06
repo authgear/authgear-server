@@ -50,7 +50,7 @@ func (u *recordStoreImpl) CreateUserProfile(userID string, authInfo *authinfo.Au
 	return u.saveUserProfile(userID, authInfo, data)
 }
 
-func (u *recordStoreImpl) GetUserProfile(userID string, accessToken string) (profile UserProfile, err error) {
+func (u *recordStoreImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
 	accessControlOptions := &record.AccessControlOptions{
 		ViewAsUser:          u.authContext.AuthInfo(),
 		BypassAccessControl: u.authContext.AccessKeyType() == model.MasterAccessKey,

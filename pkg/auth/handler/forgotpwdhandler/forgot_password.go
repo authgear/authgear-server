@@ -137,7 +137,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 
 		// Get Profile
 		var userProfile userprofile.UserProfile
-		if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID, ""); err != nil {
+		if userProfile, err = h.UserProfileStore.GetUserProfile(fetchedAuthInfo.ID); err != nil {
 			// TODO:
 			// return proper error
 			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")

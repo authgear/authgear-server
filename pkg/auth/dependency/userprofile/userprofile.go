@@ -41,7 +41,7 @@ type UserProfile struct {
 
 type Store interface {
 	CreateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (UserProfile, error)
-	GetUserProfile(userID string, accessToken string) (UserProfile, error)
+	GetUserProfile(userID string) (UserProfile, error)
 	UpdateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (UserProfile, error)
 }
 

@@ -41,7 +41,7 @@ func (u MockUserProfileStoreImpl) CreateUserProfile(userID string, authInfo *aut
 	return
 }
 
-func (u MockUserProfileStoreImpl) GetUserProfile(userID string, accessToken string) (profile UserProfile, err error) {
+func (u MockUserProfileStoreImpl) GetUserProfile(userID string) (profile UserProfile, err error) {
 	data := u.Data[userID]
 	now := u.TimeNowfunc()
 	profile = UserProfile{

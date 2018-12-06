@@ -125,15 +125,8 @@ func (h ForgotPasswordResetPostFormHandler) ServeHTTP(rw http.ResponseWriter, r 
 		return
 	}
 
-	// generate access-token
-	token, err := h.TokenStore.NewToken(authInfo.ID)
-	if err != nil {
-		result.err = skyerr.MakeError(err)
-		return
-	}
-
 	// Get Profile
-	if result.userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID, token.AccessToken); err != nil {
+	if result.userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(err).Error("unable to get user profile")
@@ -178,10 +171,5 @@ func (h ForgotPasswordResetPostFormHandler) ServeHTTP(rw http.ResponseWriter, r 
 			result.err = skyerr.MakeError(err)
 			return
 		}
-	}
-
-	if err = h.TokenStore.Put(&token); err != nil {
-		result.err = skyerr.MakeError(err)
-		return
 	}
 }
