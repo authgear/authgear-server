@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -37,6 +38,57 @@ func (f ForgotPasswordResetPostFormHandlerFactory) ProvideAuthzPolicy() authz.Po
 	return policy.Everybody{Allow: true}
 }
 
+type ForgotPasswordResetFormPayload struct {
+	UserID          string
+	Code            string
+	ExpireAt        int64
+	ExpireAtTime    time.Time
+	NewPassword     string
+	ConfirmPassword string
+}
+
+func decodeForgotPasswordResetFormRequest(request *http.Request) (payload ForgotPasswordResetFormPayload, err error) {
+	if err = request.ParseForm(); err != nil {
+		return
+	}
+
+	p := ForgotPasswordResetFormPayload{}
+	p.UserID = request.Form.Get("user_id")
+	p.Code = request.Form.Get("code")
+	p.NewPassword = request.Form.Get("password")
+	p.ConfirmPassword = request.Form.Get("confirm")
+
+	expireAtStr := request.Form.Get("expire_at")
+	var expireAt int64
+	if expireAtStr != "" {
+		if expireAt, err = strconv.ParseInt(expireAtStr, 10, 64); err != nil {
+			return
+		}
+	}
+
+	p.ExpireAt = expireAt
+	p.ExpireAtTime = time.Unix(expireAt, 0).UTC()
+
+	payload = p
+	return
+}
+
+func (payload *ForgotPasswordResetFormPayload) Validate() error {
+	if payload.UserID == "" {
+		return skyerr.NewInvalidArgument("empty user_id", []string{"user_id"})
+	}
+
+	if payload.Code == "" {
+		return skyerr.NewInvalidArgument("empty code", []string{"code"})
+	}
+
+	if payload.ExpireAt == 0 {
+		return skyerr.NewInvalidArgument("empty expire_at", []string{"expire_at"})
+	}
+
+	return nil
+}
+
 // ForgotPasswordResetPostFormHandler reset user password with given code from email.
 type ForgotPasswordResetPostFormHandler struct {
 	CodeGenerator             *forgotpwdemail.CodeGenerator             `dependency:"ForgotPasswordCodeGenerator"`
@@ -52,7 +104,7 @@ type ForgotPasswordResetPostFormHandler struct {
 
 type resultTemplateContext struct {
 	err         skyerr.Error
-	payload     ForgotPasswordResetPayload
+	payload     ForgotPasswordResetFormPayload
 	userProfile userprofile.UserProfile
 }
 
@@ -61,7 +113,7 @@ func (h ForgotPasswordResetPostFormHandler) WithTx() bool {
 }
 
 func (h ForgotPasswordResetPostFormHandler) prepareResultTemplateContext(r *http.Request) (ctx resultTemplateContext, err error) {
-	var payload ForgotPasswordResetPayload
+	var payload ForgotPasswordResetFormPayload
 	payload, err = decodeForgotPasswordResetFormRequest(r)
 	if err != nil {
 		return
@@ -221,15 +273,30 @@ func (h ForgotPasswordResetPostFormHandler) ServeHTTP(rw http.ResponseWriter, r 
 }
 
 func (h ForgotPasswordResetPostFormHandler) resetPassword(rw http.ResponseWriter, templateCtx resultTemplateContext, principals []*password.Principal) {
+	var err error
+	defer func() {
+		if err != nil {
+			templateCtx.err = skyerr.MakeError(err)
+			h.RenderErrorHTML(rw, templateCtx)
+		} else {
+			h.RenderSuccessHTML(rw, templateCtx)
+		}
+	}()
+
 	resetPwdCtx := password.ResetPasswordRequestContext{
 		PasswordChecker:      h.PasswordChecker,
 		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
 
-	if err := resetPwdCtx.ExecuteWithPrincipals(templateCtx.payload.NewPassword, principals); err != nil {
-		templateCtx.err = skyerr.MakeError(err)
-		h.RenderErrorHTML(rw, templateCtx)
-	} else {
-		h.RenderSuccessHTML(rw, templateCtx)
+	if templateCtx.payload.NewPassword == "" {
+		err = skyerr.NewInvalidArgument("empty password", []string{"password"})
+		return
 	}
+
+	if templateCtx.payload.NewPassword != templateCtx.payload.ConfirmPassword {
+		err = skyerr.NewInvalidArgument("confirm password does not match the password", []string{"password", "confirm"})
+		return
+	}
+
+	err = resetPwdCtx.ExecuteWithPrincipals(templateCtx.payload.NewPassword, principals)
 }
