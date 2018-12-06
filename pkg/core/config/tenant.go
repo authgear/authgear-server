@@ -167,7 +167,7 @@ type TwilioConfiguration struct {
 
 type NexmoConfiguration struct {
 	APIKey    string `msg:"API_KEY" envconfig:"NEXMO_API_KEY" json:"API_KEY"`
-	AuthToken string `msg:"AUTH_TOKEN" envconfig:"NEXMO_AUTH_TOKEN" json:"AUTH_TOKEN"`
+	APISecret string `msg:"API_SECRET" envconfig:"NEXMO_API_SECRET" json:"API_SECRET"`
 	From      string `msg:"FROM" envconfig:"NEXMO_FROM" json:"FROM"`
 }
 

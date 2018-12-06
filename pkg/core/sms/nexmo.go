@@ -13,7 +13,7 @@ type NexmoClient struct {
 }
 
 func NewNexmoClient(c config.NexmoConfiguration) *NexmoClient {
-	client, err := nexmo.NewClient(c.APIKey, c.AuthToken)
+	client, err := nexmo.NewClient(c.APIKey, c.APISecret)
 	if err != nil {
 		return nil
 	}
