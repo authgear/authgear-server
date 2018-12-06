@@ -145,6 +145,8 @@ func (m DependencyMap) Provide(
 		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.MasterKey}
 	case "ForgotPasswordSecureMatch":
 		return tConfig.ForgotPassword.SecureMatch
+	case "ResetPasswordHTMLProvider":
+		return forgotpwdemail.NewResetPasswordHTMLProvider(tConfig.ForgotPassword)
 	case "WelcomeEmailEnabled":
 		return tConfig.WelcomeEmail.Enabled
 	case "WelcomeEmailSendTask":
