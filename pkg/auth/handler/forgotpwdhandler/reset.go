@@ -175,19 +175,13 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		return
 	}
 
-	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
-		PlainPassword: payload.NewPassword,
-	}); err != nil {
-		return
+	resetPwdCtx := password.ResetPasswordRequestContext{
+		PasswordChecker:      h.PasswordChecker,
+		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
 
-	// reset password
-	for _, p := range principals {
-		p.PlainPassword = payload.NewPassword
-		err = h.PasswordAuthProvider.UpdatePrincipal(*p)
-		if err != nil {
-			return
-		}
+	if err = resetPwdCtx.ExecuteWithPrincipals(payload.NewPassword, principals); err != nil {
+		return
 	}
 
 	if err = h.TokenStore.Put(&token); err != nil {

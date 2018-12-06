@@ -10,7 +10,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -92,7 +91,9 @@ func (h ForgotPasswordResetPostFormHandler) ServeHTTP(rw http.ResponseWriter, r 
 		return
 	}
 
-	result := ForgotPasswordResetPostFormHandlerResult{}
+	result := ForgotPasswordResetPostFormHandlerResult{
+		payload: payload,
+	}
 	defer func() {
 		if result.err != nil {
 			h.RenderErrorHTML(rw, result)
@@ -156,20 +157,13 @@ func (h ForgotPasswordResetPostFormHandler) ServeHTTP(rw http.ResponseWriter, r 
 		return
 	}
 
-	if err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
-		PlainPassword: payload.NewPassword,
-	}); err != nil {
-		result.err = skyerr.MakeError(err)
-		return
+	resetPwdCtx := password.ResetPasswordRequestContext{
+		PasswordChecker:      h.PasswordChecker,
+		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
 
-	// reset password
-	for _, p := range principals {
-		p.PlainPassword = payload.NewPassword
-		err = h.PasswordAuthProvider.UpdatePrincipal(*p)
-		if err != nil {
-			result.err = skyerr.MakeError(err)
-			return
-		}
+	if err := resetPwdCtx.ExecuteWithPrincipals(payload.NewPassword, principals); err != nil {
+		result.err = skyerr.MakeError(err)
+		return
 	}
 }

@@ -1,0 +1,46 @@
+package password
+
+import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+)
+
+type ResetPasswordRequestContext struct {
+	PasswordChecker      dependency.PasswordChecker
+	PasswordAuthProvider Provider
+}
+
+func (r *ResetPasswordRequestContext) ExecuteWithPrincipals(newPassword string, principals []*Principal) (err error) {
+	if err = r.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+		PlainPassword: newPassword,
+	}); err != nil {
+		return
+	}
+
+	for _, p := range principals {
+		p.PlainPassword = newPassword
+		err = r.PasswordAuthProvider.UpdatePrincipal(*p)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (r *ResetPasswordRequestContext) ExecuteWithUserID(newPassword string, userID string) (err error) {
+	principals, err := r.PasswordAuthProvider.GetPrincipalsByUserID(userID)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+			return
+		}
+
+		return
+	}
+
+	err = r.ExecuteWithPrincipals(newPassword, principals)
+	return
+}
