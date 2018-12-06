@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	"github.com/sirupsen/logrus"
+	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
@@ -47,7 +48,7 @@ func (m DependencyMap) Provide(
 	case "AuthInfoStore":
 		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
 	case "PasswordChecker":
-		return &audit.PasswordChecker{
+		return &authAudit.PasswordChecker{
 			PwMinLength:            tConfig.UserAudit.PwMinLength,
 			PwUppercaseRequired:    tConfig.UserAudit.PwUppercaseRequired,
 			PwLowercaseRequired:    tConfig.UserAudit.PwLowercaseRequired,

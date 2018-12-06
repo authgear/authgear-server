@@ -11,6 +11,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -89,7 +90,7 @@ func TestSingupHandler(t *testing.T) {
 		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 
-		passwordChecker := &audit.PasswordChecker{
+		passwordChecker := &authAudit.PasswordChecker{
 			PwMinLength: 6,
 		}
 		roleStore := role.NewMockStoreWithRoleMap(

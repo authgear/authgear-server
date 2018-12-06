@@ -15,7 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
+	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -113,7 +113,7 @@ func (p SignupRequestPayload) mergedProfile() map[string]interface{} {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	PasswordChecker        dependency.PasswordChecker `dependency:"PasswordChecker"`
+	PasswordChecker        *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	UserProfileStore       userprofile.Store          `dependency:"UserProfileStore"`
 	TokenStore             authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore          authinfo.Store             `dependency:"AuthInfoStore"`
@@ -237,7 +237,7 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 	}
 
 	// validate password
-	err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+	err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 		PlainPassword: payload.Password,
 	})
 
