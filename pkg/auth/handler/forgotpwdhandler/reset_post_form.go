@@ -137,7 +137,8 @@ func (h ForgotPasswordResetPostFormHandler) prepareResultTemplateContext(r *http
 	return
 }
 
-func (h ForgotPasswordResetPostFormHandler) RenderRequestError(rw http.ResponseWriter, err skyerr.Error) {
+// HandleRequestError handle the case when the given data in the form is wrong, e.g. code, user_id, expire_at
+func (h ForgotPasswordResetPostFormHandler) HandleRequestError(rw http.ResponseWriter, err skyerr.Error) {
 	context := map[string]interface{}{
 		"error": err.Message(),
 	}
@@ -158,7 +159,8 @@ func (h ForgotPasswordResetPostFormHandler) RenderRequestError(rw http.ResponseW
 	io.WriteString(rw, html)
 }
 
-func (h ForgotPasswordResetPostFormHandler) RenderErrorHTML(rw http.ResponseWriter, templateCtx resultTemplateContext) {
+// HandleResetError handle the case when the user input data in the form is wrong, e.g. password, confirm
+func (h ForgotPasswordResetPostFormHandler) HandleResetError(rw http.ResponseWriter, templateCtx resultTemplateContext) {
 	context := map[string]interface{}{
 		"error":     templateCtx.err.Message(),
 		"code":      templateCtx.payload.Code,
@@ -185,7 +187,7 @@ func (h ForgotPasswordResetPostFormHandler) RenderErrorHTML(rw http.ResponseWrit
 	io.WriteString(rw, html)
 }
 
-func (h ForgotPasswordResetPostFormHandler) RenderSuccessHTML(rw http.ResponseWriter, templateCtx resultTemplateContext) {
+func (h ForgotPasswordResetPostFormHandler) HandleResetSuccess(rw http.ResponseWriter, templateCtx resultTemplateContext) {
 	context := map[string]interface{}{
 		"code":      templateCtx.payload.Code,
 		"user_id":   templateCtx.payload.UserID,
@@ -212,7 +214,7 @@ func (h ForgotPasswordResetPostFormHandler) RenderSuccessHTML(rw http.ResponseWr
 
 func (h ForgotPasswordResetPostFormHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if err := h.TxContext.BeginTx(); err != nil {
-		h.RenderRequestError(rw, skyerr.MakeError(err))
+		h.HandleRequestError(rw, skyerr.MakeError(err))
 		return
 	}
 
@@ -227,14 +229,14 @@ func (h ForgotPasswordResetPostFormHandler) ServeHTTP(rw http.ResponseWriter, r 
 
 	var templateCtx resultTemplateContext
 	if templateCtx, err = h.prepareResultTemplateContext(r); err != nil {
-		h.RenderRequestError(rw, skyerr.MakeError(err))
+		h.HandleRequestError(rw, skyerr.MakeError(err))
 		return
 	}
 
 	// check code expiration
 	if timeNow().After(templateCtx.payload.ExpireAtTime) {
 		h.Logger.Error("forgot password code expired")
-		h.RenderRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(rw, genericResetPasswordError())
 		return
 	}
 
@@ -243,7 +245,7 @@ func (h ForgotPasswordResetPostFormHandler) ServeHTTP(rw http.ResponseWriter, r 
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": templateCtx.payload.UserID,
 		}).WithError(e).Error("user not found")
-		h.RenderRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(rw, genericResetPasswordError())
 		return
 	}
 
@@ -253,7 +255,7 @@ func (h ForgotPasswordResetPostFormHandler) ServeHTTP(rw http.ResponseWriter, r 
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": templateCtx.payload.UserID,
 		}).WithError(err).Error("unable to get password auth principals")
-		h.RenderRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(rw, genericResetPasswordError())
 		return
 	}
 
@@ -265,7 +267,7 @@ func (h ForgotPasswordResetPostFormHandler) ServeHTTP(rw http.ResponseWriter, r 
 			"code":          templateCtx.payload.Code,
 			"expected_code": expectedCode,
 		}).Error("wrong forgot password reset password code")
-		h.RenderRequestError(rw, genericResetPasswordError())
+		h.HandleRequestError(rw, genericResetPasswordError())
 		return
 	}
 
@@ -277,9 +279,9 @@ func (h ForgotPasswordResetPostFormHandler) resetPassword(rw http.ResponseWriter
 	defer func() {
 		if err != nil {
 			templateCtx.err = skyerr.MakeError(err)
-			h.RenderErrorHTML(rw, templateCtx)
+			h.HandleResetError(rw, templateCtx)
 		} else {
-			h.RenderSuccessHTML(rw, templateCtx)
+			h.HandleResetSuccess(rw, templateCtx)
 		}
 	}()
 
