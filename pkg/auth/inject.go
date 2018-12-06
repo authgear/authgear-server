@@ -10,6 +10,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
@@ -48,6 +49,11 @@ func (m DependencyMap) Provide(
 	case "AuthInfoStore":
 		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
 	case "PasswordChecker":
+		passwordHistoryStore := pqPWHistory.NewPasswordHistoryStore(
+			db.NewSQLBuilder("auth", tConfig.AppName),
+			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+			logging.CreateLoggerWithRequestID(requestID, "auth_password_history", createLoggerMaskFormatter(tConfig)),
+		)
 		return &authAudit.PasswordChecker{
 			PwMinLength:            tConfig.UserAudit.PwMinLength,
 			PwUppercaseRequired:    tConfig.UserAudit.PwUppercaseRequired,
@@ -60,6 +66,7 @@ func (m DependencyMap) Provide(
 			PwHistorySize:          tConfig.UserAudit.PwHistorySize,
 			PwHistoryDays:          tConfig.UserAudit.PwHistoryDays,
 			PasswordHistoryEnabled: tConfig.UserAudit.PwHistorySize > 0 || tConfig.UserAudit.PwHistoryDays > 0,
+			PasswordHistoryStore:   passwordHistoryStore,
 		}
 	case "PasswordAuthProvider":
 		// TODO:

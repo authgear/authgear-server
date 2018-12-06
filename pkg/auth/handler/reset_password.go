@@ -107,6 +107,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 
 	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 		PlainPassword: payload.Password,
+		AuthID:        payload.AuthInfoID,
 	}); err != nil {
 		return
 	}
