@@ -18,8 +18,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/asset/fs"
-	"github.com/skygeario/skygear-server/pkg/core/async/client"
-	"github.com/skygeario/skygear-server/pkg/core/async/server"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -31,7 +30,7 @@ import (
 
 type RequestDependencyMap struct {
 	DependencyMap
-	AsyncTaskServer *server.TaskServer
+	AsyncTaskExecutor *async.Executor
 }
 type DependencyMap struct{}
 
@@ -200,8 +199,8 @@ func (m RequestDependencyMap) Provide(dependencyName string, r *http.Request) in
 			Scope:        strings.Split(SSOConf.Scope, ","),
 		}
 		return sso.NewProvider(setting, config)
-	case "AsyncTaskClient":
-		return client.NewTaskClient(r, m.AsyncTaskServer)
+	case "AsyncTaskQueue":
+		return async.NewQueue(r, m.AsyncTaskExecutor)
 	default:
 		return m.DependencyMap.Provide(
 			dependencyName,

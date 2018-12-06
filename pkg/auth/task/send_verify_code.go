@@ -6,7 +6,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/async"
-	"github.com/skygeario/skygear-server/pkg/core/async/server"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 
@@ -22,13 +21,13 @@ const (
 )
 
 func AttachVerifyCodeSendTask(
-	server *server.TaskServer,
+	executor *async.Executor,
 	authDependency auth.DependencyMap,
-) *server.TaskServer {
-	server.Register(VerifyCodeSendTaskName, &VerifyCodeSendTaskFactory{
+) *async.Executor {
+	executor.Register(VerifyCodeSendTaskName, &VerifyCodeSendTaskFactory{
 		authDependency,
 	})
-	return server
+	return executor
 }
 
 type VerifyCodeSendTaskFactory struct {

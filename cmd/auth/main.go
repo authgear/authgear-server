@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn/resolver"
 
 	"github.com/kelseyhightower/envconfig"
@@ -17,7 +18,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/ssohandler"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
-	asyncServer "github.com/skygeario/skygear-server/pkg/core/async/server"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
@@ -43,12 +43,12 @@ func main() {
 
 	authDependency := auth.DependencyMap{}
 
-	asyncTaskServer := asyncServer.NewTaskServer()
-	task.AttachVerifyCodeSendTask(asyncTaskServer, authDependency)
+	asyncTaskExecutor := async.NewExecutor()
+	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
 
 	authRequestDependency := auth.RequestDependencyMap{
-		DependencyMap:   authDependency,
-		AsyncTaskServer: asyncTaskServer,
+		DependencyMap:     authDependency,
+		AsyncTaskExecutor: asyncTaskExecutor,
 	}
 
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}

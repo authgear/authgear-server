@@ -17,7 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
-	"github.com/skygeario/skygear-server/pkg/core/async/client"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -127,7 +127,7 @@ type SignupHandler struct {
 	VerifyCodeStore        verifycode.Store           `dependency:"VerifyCodeStore"`
 	TxContext              db.TxContext               `dependency:"TxContext"`
 	Logger                 *logrus.Entry              `dependency:"HandlerLogger"`
-	TaskClient             *client.TaskClient         `dependency:"AsyncTaskClient"`
+	TaskQueue              *async.Queue               `dependency:"AsyncTaskQueue"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -265,7 +265,7 @@ func (h SignupHandler) sendWelcomeEmail(userProfile userprofile.UserProfile) {
 func (h SignupHandler) sendUserVerifyRequest(userProfile userprofile.UserProfile) {
 	for _, key := range h.UserVerifyKeys {
 		if value, ok := userProfile.Data[key].(string); ok {
-			h.TaskClient.Submit(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
+			h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
 				Key:         key,
 				Value:       value,
 				UserProfile: userProfile,

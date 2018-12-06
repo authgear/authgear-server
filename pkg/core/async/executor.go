@@ -1,31 +1,30 @@
-package server
+package async
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
-	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
-type TaskServer struct {
-	taskFactoryMap map[string]async.TaskFactory
+type Executor struct {
+	taskFactoryMap map[string]TaskFactory
 }
 
-func NewTaskServer() *TaskServer {
-	return &TaskServer{
-		taskFactoryMap: map[string]async.TaskFactory{},
+func NewExecutor() *Executor {
+	return &Executor{
+		taskFactoryMap: map[string]TaskFactory{},
 	}
 }
 
-func (t *TaskServer) Register(name string, taskFactory async.TaskFactory) {
-	t.taskFactoryMap[name] = taskFactory
+func (e *Executor) Register(name string, taskFactory TaskFactory) {
+	e.taskFactoryMap[name] = taskFactory
 }
 
-func (t *TaskServer) Handle(taskCtx async.TaskContext, name string, param interface{}, response chan error) {
-	factory := t.taskFactoryMap[name]
+func (e *Executor) Execute(taskCtx TaskContext, name string, param interface{}, response chan error) {
+	factory := e.taskFactoryMap[name]
 	ctx := db.InitDBContext(context.Background())
 	task := factory.NewTask(ctx, taskCtx)
 
