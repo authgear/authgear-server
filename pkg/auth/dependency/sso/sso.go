@@ -98,7 +98,7 @@ type AuthInfo struct {
 	UXMode          UXMode
 	UserID          string
 	UserProfile     interface{}
-	AccessTokenResp AccessTokenResp
+	AccessTokenResp interface{}
 }
 
 // Provider defines SSO interface

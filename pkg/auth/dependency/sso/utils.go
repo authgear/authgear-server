@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -79,6 +80,9 @@ func EncodeState(secret string, state State) (string, error) {
 func DecodeState(secret string, encoded string) (State, error) {
 	claims := CustomClaims{}
 	_, err := jwt.ParseWithClaims(encoded, &claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("fails to parse token")
+		}
 		return []byte(secret), nil
 	})
 	return claims.State, err

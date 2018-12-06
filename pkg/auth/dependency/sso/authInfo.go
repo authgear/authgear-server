@@ -43,7 +43,7 @@ func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 	}
 	userID := h.processUserID(userProfile)
 
-	state, err := DecodeState(h.encodedState, h.stateJWTSecret)
+	state, err := DecodeState(h.stateJWTSecret, h.encodedState)
 	if err != nil {
 		return
 	}

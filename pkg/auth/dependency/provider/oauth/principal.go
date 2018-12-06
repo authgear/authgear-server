@@ -1,16 +1,20 @@
 package oauth
 
 import (
+	"time"
+
 	"github.com/skygeario/skygear-server/pkg/server/uuid"
 )
 
 type Principal struct {
-	ID             string
-	UserID         string
-	ProviderName   string
-	ProviderUserID string
-	AccessToken    interface{}
-	UserProfile    interface{}
+	ID              string
+	UserID          string
+	ProviderName    string
+	ProviderUserID  string
+	AccessTokenResp interface{}
+	UserProfile     interface{}
+	CreatedAt       *time.Time
+	UpdatedAt       *time.Time
 }
 
 func NewPrincipal() Principal {

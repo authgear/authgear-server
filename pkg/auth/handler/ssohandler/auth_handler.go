@@ -5,13 +5,20 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -64,16 +71,27 @@ func (p AuthRequestPayload) Validate() error {
 //
 // curl http://localhost:3000/sso/<provider>/auth_handler?code=<code>&state=<state>
 //
-// {
-//     "result": "<auth_url>"
-// }
+// For ux_mode is 'ios' or 'android',
+// it creates a 302 response, and Location points to:
+// myapp://user.skygear.io/sso/{provider}/auth_handler?result=
+//
+// Fox ux_mode is 'web_redirect',
+// it creates a 302 response, and Location points to: sso_callback_url
+// and set cookie in the response.
+//
+// For ux_mode is 'web_popup',
+// it will render a html page and set cookie in the response.
 //
 type AuthHandler struct {
-	TxContext    db.TxContext           `dependency:"TxContext"`
-	AuthContext  coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	Provider     sso.Provider           `dependency:"SSOProvider"`
-	ProviderName string
-	Action       string
+	TxContext         db.TxContext           `dependency:"TxContext"`
+	AuthContext       coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	Provider          sso.Provider           `dependency:"SSOProvider"`
+	OAuthAuthProvider oauth.Provider         `dependency:"OAuthAuthProvider"`
+	AuthInfoStore     authinfo.Store         `dependency:"AuthInfoStore"`
+	RoleStore         role.Store             `dependency:"RoleStore"`
+	TokenStore        authtoken.Store        `dependency:"TokenStore"`
+	ProviderName      string
+	Action            string
 }
 
 func (h AuthHandler) WithTx() bool {
@@ -98,8 +116,7 @@ func (h AuthHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	payload := req.(AuthRequestPayload)
 
-	_, err = h.Provider.GetAuthInfo(payload.Code, payload.Scope, payload.EncodedState)
-
+	oauthAuthInfo, err := h.Provider.GetAuthInfo(payload.Code, payload.Scope, payload.EncodedState)
 	if err != nil {
 		if ssoErr, ok := err.(sso.Error); ok {
 			switch ssoErr.Code() {
@@ -115,5 +132,107 @@ func (h AuthHandler) Handle(req interface{}) (resp interface{}, err error) {
 		}
 	}
 
+	if oauthAuthInfo.Action == "login" {
+		var info authinfo.AuthInfo
+		err = h.handleLogin(&info, oauthAuthInfo)
+		if err != nil {
+			return
+		}
+
+		// Create auth token
+		var token authtoken.Token
+		token, err = h.TokenStore.NewToken(info.ID)
+		if err != nil {
+			panic(err)
+		}
+		if err = h.TokenStore.Put(&token); err != nil {
+			panic(err)
+		}
+
+		// TODO: convert oauthAuthInfo.UserProfile to userprofile.UserProfile
+		var userProfile userprofile.UserProfile
+		resp = response.NewAuthResponse(info, userProfile, token.AccessToken)
+
+		// Populate the activity time to user
+		now := timeNow()
+		info.LastSeenAt = &now
+		if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
+			err = skyerr.MakeError(err)
+			return
+		}
+	} else {
+		// TODO: handle link action
+	}
+
+	return
+}
+
+func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.AuthInfo) (err error) {
+	createNewUser := false
+	now := timeNow()
+
+	principal, err := h.OAuthAuthProvider.GetPrincipalByUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.UserID)
+	if err != nil {
+		if err != skydb.ErrUserNotFound {
+			return
+		}
+		err = nil
+		createNewUser = true
+	}
+
+	if createNewUser {
+		*info = authinfo.NewAuthInfo()
+		info.LastLoginAt = &now
+
+		// Get default roles
+		defaultRoles, e := h.RoleStore.GetDefaultRoles()
+		if e != nil {
+			err = skyerr.NewError(skyerr.InternalQueryInvalid, "unable to query default roles")
+			return
+		}
+
+		// Assign default roles
+		info.Roles = defaultRoles
+
+		// Create AuthInfo
+		if e = h.AuthInfoStore.CreateAuth(info); e != nil {
+			if e == skydb.ErrUserDuplicated {
+				err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
+				return
+			}
+			// TODO:
+			// return proper error
+			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save auth info")
+			return
+		}
+
+		principal := oauth.NewPrincipal()
+		principal.UserID = info.ID
+		principal.ProviderName = oauthAuthInfo.ProviderName
+		principal.ProviderUserID = oauthAuthInfo.UserID
+		principal.AccessTokenResp = oauthAuthInfo.AccessTokenResp
+		principal.UserProfile = oauthAuthInfo.UserProfile
+		principal.CreatedAt = &now
+		principal.UpdatedAt = &now
+		err = h.OAuthAuthProvider.CreatePrincipal(principal)
+	} else {
+		principal.AccessTokenResp = oauthAuthInfo.AccessTokenResp
+		principal.UserProfile = oauthAuthInfo.UserProfile
+		principal.UpdatedAt = &now
+
+		if err = h.OAuthAuthProvider.UpdatePrincipal(principal); err != nil {
+			err = skyerr.MakeError(err)
+			return
+		}
+
+		if e := h.AuthInfoStore.GetAuth(principal.UserID, info); e != nil {
+			if err == skydb.ErrUserNotFound {
+				err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
+				return
+			}
+			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
+			return
+		}
+	}
 	return
 }

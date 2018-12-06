@@ -12,8 +12,8 @@ type AccessTokenResp struct {
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int    `json:"expires_in,omitempty"`
 	// Facebook uses "expires" instead of "expires_in"
-	RawExpires   int `json:"expires,omitempty"`
-	Scope        Scope
+	RawExpires   int    `json:"expires,omitempty"`
+	Scope        Scope  `json:"-"`
 	RawScope     string `json:"scope"`
 	RefreshToken string `json:"refresh_token"`
 }

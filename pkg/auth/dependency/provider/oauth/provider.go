@@ -2,7 +2,9 @@ package oauth
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -43,7 +45,7 @@ func (p providerImpl) GetPrincipalByUserID(providerName string, userID string) (
 	builder := p.sqlBuilder.Select("p.id", "p.user_id").
 		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
 		Join(p.sqlBuilder.FullTableName("provider_oauth")+" AS oauth ON p.id = oauth.principal_id").
-		Where("oauth.oauth_provider = ? AND oauth.user_id = ? AND p.provider = 'oauth'", providerName, userID)
+		Where("oauth.oauth_provider = ? AND oauth.provider_user_id = ? AND p.provider = 'oauth'", providerName, userID)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
 	err := scanner.Scan(
@@ -60,6 +62,124 @@ func (p providerImpl) GetPrincipalByUserID(providerName string, userID string) (
 	}
 
 	return &principal, nil
+}
+
+func (p *providerImpl) CreatePrincipal(principal Principal) (err error) {
+	var (
+		createdAt *time.Time
+		updatedAt *time.Time
+	)
+	createdAt = principal.CreatedAt
+	if createdAt != nil && createdAt.IsZero() {
+		createdAt = nil
+	}
+	updatedAt = principal.UpdatedAt
+	if updatedAt != nil && updatedAt.IsZero() {
+		updatedAt = nil
+	}
+
+	// Create principal
+	builder := p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("principal")).Columns(
+		"id",
+		"provider",
+		"user_id",
+	).Values(
+		principal.ID,
+		providerName,
+		principal.UserID,
+	)
+
+	_, err = p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return
+	}
+
+	var accessTokenRespBytes []byte
+	accessTokenRespBytes, err = json.Marshal(principal.AccessTokenResp)
+	if err != nil {
+		return
+	}
+
+	var userProfileBytes []byte
+	userProfileBytes, err = json.Marshal(principal.UserProfile)
+	if err != nil {
+		return
+	}
+
+	builder = p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("provider_oauth")).Columns(
+		"principal_id",
+		"oauth_provider",
+		"provider_user_id",
+		"token_response",
+		"profile",
+		"_created_at",
+		"_updated_at",
+	).Values(
+		principal.ID,
+		principal.ProviderName,
+		principal.ProviderUserID,
+		accessTokenRespBytes,
+		userProfileBytes,
+		createdAt,
+		updatedAt,
+	)
+
+	_, err = p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		if db.IsUniqueViolated(err) {
+			err = skydb.ErrUserDuplicated
+		}
+	}
+
+	return
+}
+
+func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
+	var (
+		updatedAt *time.Time
+	)
+	updatedAt = principal.UpdatedAt
+	if updatedAt != nil && updatedAt.IsZero() {
+		updatedAt = nil
+	}
+
+	var accessTokenRespBytes []byte
+	accessTokenRespBytes, err = json.Marshal(principal.AccessTokenResp)
+	if err != nil {
+		return
+	}
+
+	var userProfileBytes []byte
+	userProfileBytes, err = json.Marshal(principal.UserProfile)
+	if err != nil {
+		return
+	}
+
+	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_oauth")).
+		Set("token_response", accessTokenRespBytes).
+		Set("profile", userProfileBytes).
+		Set("_updated_at", updatedAt).
+		Where("oauth_provider = ? and principal_id = ?", principal.ProviderName, principal.ID)
+
+	result, err := p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		if db.IsUniqueViolated(err) {
+			err = skydb.ErrUserDuplicated
+		}
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return skydb.ErrUserNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+	}
+
+	return nil
 }
 
 // this ensures that our structure conform to certain interfaces.
