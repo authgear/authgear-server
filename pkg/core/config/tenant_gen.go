@@ -453,8 +453,8 @@ func (z *NexmoConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
-		case "AUTH_TOKEN":
-			z.AuthToken, err = dc.ReadString()
+		case "API_SECRET":
+			z.APISecret, err = dc.ReadString()
 			if err != nil {
 				return
 			}
@@ -485,12 +485,12 @@ func (z NexmoConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	// write "AUTH_TOKEN"
-	err = en.Append(0xaa, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x54, 0x4f, 0x4b, 0x45, 0x4e)
+	// write "API_SECRET"
+	err = en.Append(0xaa, 0x41, 0x50, 0x49, 0x5f, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54)
 	if err != nil {
 		return err
 	}
-	err = en.WriteString(z.AuthToken)
+	err = en.WriteString(z.APISecret)
 	if err != nil {
 		return
 	}
@@ -513,9 +513,9 @@ func (z NexmoConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "API_KEY"
 	o = append(o, 0x83, 0xa7, 0x41, 0x50, 0x49, 0x5f, 0x4b, 0x45, 0x59)
 	o = msgp.AppendString(o, z.APIKey)
-	// string "AUTH_TOKEN"
-	o = append(o, 0xaa, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x54, 0x4f, 0x4b, 0x45, 0x4e)
-	o = msgp.AppendString(o, z.AuthToken)
+	// string "API_SECRET"
+	o = append(o, 0xaa, 0x41, 0x50, 0x49, 0x5f, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54)
+	o = msgp.AppendString(o, z.APISecret)
 	// string "FROM"
 	o = append(o, 0xa4, 0x46, 0x52, 0x4f, 0x4d)
 	o = msgp.AppendString(o, z.From)
@@ -543,8 +543,8 @@ func (z *NexmoConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				return
 			}
-		case "AUTH_TOKEN":
-			z.AuthToken, bts, err = msgp.ReadStringBytes(bts)
+		case "API_SECRET":
+			z.APISecret, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				return
 			}
@@ -566,7 +566,7 @@ func (z *NexmoConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z NexmoConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.AuthToken) + 5 + msgp.StringPrefixSize + len(z.From)
+	s = 1 + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.APISecret) + 5 + msgp.StringPrefixSize + len(z.From)
 	return
 }
 
@@ -1331,8 +1331,8 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 					if err != nil {
 						return
 					}
-				case "AUTH_TOKEN":
-					z.Nexmo.AuthToken, err = dc.ReadString()
+				case "API_SECRET":
+					z.Nexmo.APISecret, err = dc.ReadString()
 					if err != nil {
 						return
 					}
@@ -1558,12 +1558,12 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	// write "AUTH_TOKEN"
-	err = en.Append(0xaa, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x54, 0x4f, 0x4b, 0x45, 0x4e)
+	// write "API_SECRET"
+	err = en.Append(0xaa, 0x41, 0x50, 0x49, 0x5f, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54)
 	if err != nil {
 		return err
 	}
-	err = en.WriteString(z.Nexmo.AuthToken)
+	err = en.WriteString(z.Nexmo.APISecret)
 	if err != nil {
 		return
 	}
@@ -1708,9 +1708,9 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "API_KEY"
 	o = append(o, 0xa5, 0x4e, 0x45, 0x58, 0x4d, 0x4f, 0x83, 0xa7, 0x41, 0x50, 0x49, 0x5f, 0x4b, 0x45, 0x59)
 	o = msgp.AppendString(o, z.Nexmo.APIKey)
-	// string "AUTH_TOKEN"
-	o = append(o, 0xaa, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x54, 0x4f, 0x4b, 0x45, 0x4e)
-	o = msgp.AppendString(o, z.Nexmo.AuthToken)
+	// string "API_SECRET"
+	o = append(o, 0xaa, 0x41, 0x50, 0x49, 0x5f, 0x53, 0x45, 0x43, 0x52, 0x45, 0x54)
+	o = msgp.AppendString(o, z.Nexmo.APISecret)
 	// string "FROM"
 	o = append(o, 0xa4, 0x46, 0x52, 0x4f, 0x4d)
 	o = msgp.AppendString(o, z.Nexmo.From)
@@ -1920,8 +1920,8 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					if err != nil {
 						return
 					}
-				case "AUTH_TOKEN":
-					z.Nexmo.AuthToken, bts, err = msgp.ReadStringBytes(bts)
+				case "API_SECRET":
+					z.Nexmo.APISecret, bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
 						return
 					}
@@ -2004,7 +2004,7 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TenantConfiguration) Msgsize() (s int) {
-	s = 3 + 13 + msgp.StringPrefixSize + len(z.DBConnectionStr) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.MasterKey) + 9 + msgp.StringPrefixSize + len(z.AppName) + 10 + msgp.StringPrefixSize + len(z.CORSHost) + 12 + 1 + 7 + msgp.StringPrefixSize + len(z.TokenStore.Secret) + 7 + msgp.Int64Size + 13 + 1 + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplName) + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplStoreURL) + 11 + z.UserAudit.Msgsize() + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 11 + msgp.StringPrefixSize + len(z.Nexmo.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From) + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 12 + z.SSOSetting.Msgsize() + 14 + msgp.ArrayHeaderSize
+	s = 3 + 13 + msgp.StringPrefixSize + len(z.DBConnectionStr) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.MasterKey) + 9 + msgp.StringPrefixSize + len(z.AppName) + 10 + msgp.StringPrefixSize + len(z.CORSHost) + 12 + 1 + 7 + msgp.StringPrefixSize + len(z.TokenStore.Secret) + 7 + msgp.Int64Size + 13 + 1 + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplName) + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplStoreURL) + 11 + z.UserAudit.Msgsize() + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 11 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From) + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 12 + z.SSOSetting.Msgsize() + 14 + msgp.ArrayHeaderSize
 	for zxpk := range z.SSOProviders {
 		s += msgp.StringPrefixSize + len(z.SSOProviders[zxpk])
 	}

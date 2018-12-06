@@ -23,6 +23,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record/pq" // tolerant nextimportslint: record
 )
 
@@ -211,9 +212,10 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration) UserVer
 		CodeSenderMap: map[string]userverify.CodeSender{},
 	}
 	for _, keyConfig := range userVerifyConfig.KeyConfigs {
+		var codeSender userverify.CodeSender
 		switch keyConfig.Provider {
 		case "smtp":
-			f.CodeSenderMap[keyConfig.Key] = &userverify.EmailCodeSender{
+			codeSender = &userverify.EmailCodeSender{
 				AppName:       c.AppName,
 				Key:           keyConfig.Key,
 				Config:        userVerifyConfig,
@@ -221,12 +223,25 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration) UserVer
 				CodeGenerator: userverify.NewCodeGenerator(keyConfig.CodeFormat),
 			}
 		case "twilio":
-			// TODO:
+			codeSender = &userverify.SMSCodeSender{
+				AppName:       c.AppName,
+				Key:           keyConfig.Key,
+				Config:        userVerifyConfig,
+				SMSClient:     sms.NewTwilioClient(c.Twilio),
+				CodeGenerator: userverify.NewCodeGenerator(keyConfig.CodeFormat),
+			}
 		case "nexmo":
-			// TODO:
+			codeSender = &userverify.SMSCodeSender{
+				AppName:       c.AppName,
+				Key:           keyConfig.Key,
+				Config:        userVerifyConfig,
+				SMSClient:     sms.NewNexmoClient(c.Nexmo),
+				CodeGenerator: userverify.NewCodeGenerator(keyConfig.CodeFormat),
+			}
 		default:
 			panic(errors.New("invalid user verify provider: " + keyConfig.Provider))
 		}
+		f.CodeSenderMap[keyConfig.Key] = codeSender
 	}
 
 	return &f
