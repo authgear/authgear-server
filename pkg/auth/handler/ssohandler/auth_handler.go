@@ -44,7 +44,9 @@ func (f AuthHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderName = vars["provider"]
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	// since auth_hander need create different responses depends on ux_mode,
+	// so here has a APIHandler to handle those different situation.
+	return h.APIHandler()
 }
 
 func (f AuthHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -111,7 +113,63 @@ func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 	return payload, nil
 }
 
-func (h AuthHandler) Handle(req interface{}) (resp interface{}, err error) {
+func (h AuthHandler) APIHandler() http.Handler {
+	// reference from APIHandlerToHandler
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		redirect := false
+		var response handler.APIResponse
+
+		defer func() {
+			if !redirect {
+				handler.WriteResponse(rw, response)
+			}
+		}()
+
+		payload, err := h.DecodeRequest(r)
+		if err != nil {
+			response.Err = skyerr.MakeError(err)
+			return
+		}
+
+		if err := payload.Validate(); err != nil {
+			response.Err = skyerr.MakeError(err)
+			return
+		}
+
+		if h.WithTx() {
+			// assume txContext != nil if apiHandler.WithTx() is true
+			if err := h.TxContext.BeginTx(); err != nil {
+				panic(err)
+			}
+
+			defer func() {
+				if h.TxContext.HasTx() {
+					h.TxContext.RollbackTx()
+				}
+			}()
+		}
+
+		_, oauthAuthInfo, err := h.Handle(payload)
+		if err != nil {
+			response.Err = skyerr.MakeError(err)
+			return
+		}
+		if h.TxContext != nil {
+			h.TxContext.CommitTx()
+		}
+
+		if oauthAuthInfo.State.UXMode == sso.WebRedirect.String() {
+			// TODO: Check CallbackURL is valid or not
+			redirect = true
+			http.Redirect(rw, r, oauthAuthInfo.State.CallbackURL, 302)
+		}
+		// TODO: oauthAuthInfo.State.UXMode == sso.WebPopup.String()
+		// TODO: oauthAuthInfo.State.UXMode == sso.IOS.String()
+		// TODO: oauthAuthInfo.State.UXMode == sso.Android.String()
+	})
+}
+
+func (h AuthHandler) Handle(req interface{}) (resp response.AuthResponse, oauthAuthInfo sso.AuthInfo, err error) {
 	if h.Provider == nil {
 		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
 		return
@@ -119,7 +177,7 @@ func (h AuthHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	payload := req.(AuthRequestPayload)
 
-	oauthAuthInfo, err := h.Provider.GetAuthInfo(payload.Code, payload.Scope, payload.EncodedState)
+	oauthAuthInfo, err = h.Provider.GetAuthInfo(payload.Code, payload.Scope, payload.EncodedState)
 	if err != nil {
 		if ssoErr, ok := err.(sso.Error); ok {
 			switch ssoErr.Code() {
@@ -135,7 +193,7 @@ func (h AuthHandler) Handle(req interface{}) (resp interface{}, err error) {
 		}
 	}
 
-	if oauthAuthInfo.Action == "login" {
+	if oauthAuthInfo.State.Action == "login" {
 		var info authinfo.AuthInfo
 		err = h.handleLogin(&info, oauthAuthInfo)
 		if err != nil {
@@ -184,6 +242,13 @@ func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 	}
 
 	if createNewUser {
+		// TODO: check auto connect user flow
+		// 1. find existed user
+		// 2. link user
+		// 3. login user
+
+		// if there is no existed user
+		// signup a new user
 		*info = authinfo.NewAuthInfo()
 		info.LastLoginAt = &now
 

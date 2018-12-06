@@ -36,8 +36,7 @@ func (f *MockSSOProverImpl) GetAuthInfo(code string, scope Scope, encodedState s
 
 	authInfo = AuthInfo{
 		ProviderName:    f.Config.Name,
-		Action:          state.Action,
-		UXMode:          UXModeFromString(state.UXMode),
+		State:           state,
 		UserID:          "mock_user_id",
 		AccessTokenResp: map[string]interface{}{},
 		UserProfile:     map[string]interface{}{},

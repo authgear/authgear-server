@@ -94,8 +94,7 @@ type Config struct {
 // AuthInfo contains auth info from HandleAuthzResp
 type AuthInfo struct {
 	ProviderName    string
-	Action          string
-	UXMode          UXMode
+	State           State
 	UserID          string
 	UserProfile     interface{}
 	AccessTokenResp interface{}

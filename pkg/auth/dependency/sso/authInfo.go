@@ -50,8 +50,7 @@ func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 
 	authInfo = AuthInfo{
 		ProviderName:    h.providerName,
-		Action:          state.Action,
-		UXMode:          UXModeFromString(state.UXMode),
+		State:           state,
 		UserID:          userID,
 		UserProfile:     userProfile,
 		AccessTokenResp: accessTokenResp,

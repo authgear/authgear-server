@@ -13,7 +13,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -86,11 +85,12 @@ func TestAuthHandler(t *testing.T) {
 			mockTokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 			sh.TokenStore = mockTokenStore
 			sh.RoleStore = role.NewMockStore()
-			h := handler.APIHandlerToHandler(sh, sh.TxContext)
+			h := sh.APIHandler()
 
 			state := sso.State{
-				UXMode: UXMode,
-				Action: action,
+				CallbackURL: "callbackURL",
+				UXMode:      UXMode,
+				Action:      action,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -104,10 +104,10 @@ func TestAuthHandler(t *testing.T) {
 
 				req, _ := http.NewRequest("GET", u.RequestURI(), nil)
 				resp := httptest.NewRecorder()
-				h.ServeHTTP(resp, req)
-				So(resp.Code, ShouldEqual, 200)
 
-				// TODO: handle result
+				h.ServeHTTP(resp, req)
+				// for web_redirect, it should redirect to original callback url
+				So(resp.Code, ShouldEqual, 302)
 			})
 		})
 	})
