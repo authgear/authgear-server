@@ -13,6 +13,10 @@ type TwilioClient struct {
 }
 
 func NewTwilioClient(c config.TwilioConfiguration) *TwilioClient {
+	if c.AccountSID == "" || c.AuthToken == "" {
+		panic(errors.New("Twilio account sid or auth token is empty"))
+	}
+
 	return &TwilioClient{
 		From:   c.From,
 		Twilio: gotwilio.NewTwilioClient(c.AccountSID, c.AuthToken),

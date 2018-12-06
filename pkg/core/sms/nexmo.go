@@ -13,11 +13,11 @@ type NexmoClient struct {
 }
 
 func NewNexmoClient(c config.NexmoConfiguration) *NexmoClient {
-	client, err := nexmo.NewClient(c.APIKey, c.APISecret)
-	if err != nil {
-		return nil
+	if c.APIKey == "" || c.APISecret == "" {
+		panic(errors.New("Nexmo api key or secret is empty"))
 	}
 
+	client, _ := nexmo.NewClient(c.APIKey, c.APISecret)
 	return &NexmoClient{
 		From:   c.From,
 		Client: client,
