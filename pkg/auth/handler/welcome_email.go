@@ -17,7 +17,7 @@ import (
 // AttachWelcomeEmailHandler attaches WelcomeEmailHandler to server
 func AttachWelcomeEmailHandler(
 	server *server.Server,
-	authDependency auth.RequestDependencyMap,
+	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/welcome_email/test", &WelcomeEmailHandlerFactory{
 		authDependency,
@@ -27,7 +27,7 @@ func AttachWelcomeEmailHandler(
 
 // WelcomeEmailHandlerFactory creates WelcomeEmailHandler
 type WelcomeEmailHandlerFactory struct {
-	Dependency auth.RequestDependencyMap
+	Dependency auth.DependencyMap
 }
 
 // NewHandler creates new WelcomeEmailHandler

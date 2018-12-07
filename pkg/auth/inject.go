@@ -2,10 +2,7 @@ package auth
 
 import (
 	"context"
-	"net/http"
-	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
@@ -28,11 +25,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record/pq" // tolerant nextimportslint: record
 )
 
-type RequestDependencyMap struct {
-	DependencyMap
+type DependencyMap struct {
 	AsyncTaskExecutor *async.Executor
 }
-type DependencyMap struct{}
 
 // Provide provides dependency instance by name
 // nolint: gocyclo, golint
@@ -84,13 +79,12 @@ func (m DependencyMap) Provide(
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	case "CustomTokenAuthProvider":
-		tConfig := config.GetTenantConfig(r)
 		return customtoken.NewSafeProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
-			logging.CreateLogger(r, "provider_custom_token", createLoggerMaskFormatter(r)),
+			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+			logging.CreateLoggerWithRequestID(requestID, "provider_custom_token", createLoggerMaskFormatter(tConfig)),
 			tConfig.Auth.CustomTokenSecret,
-			db.NewSafeTxContextWithContext(r.Context(), tConfig),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	case "HandlerLogger":
 		return logging.CreateLoggerWithRequestID(requestID, "handler", createLoggerMaskFormatter(tConfig))
@@ -163,51 +157,18 @@ func (m DependencyMap) Provide(
 		return tConfig.UserVerify.AutoSendOnSignup
 	case "UserVerifyKeys":
 		return tConfig.UserVerify.Keys
-	default:
-		return nil
-	}
-}
-
-// Provide provides dependency instance by name
-// nolint: gocyclo
-func (m RequestDependencyMap) Provide(dependencyName string, r *http.Request) interface{} {
-	switch dependencyName {
 	case "AuditTrail":
-		tConfig := config.GetTenantConfig(r)
-		trail, err := audit.NewTrail(tConfig.UserAudit.Enabled, tConfig.UserAudit.TrailHandlerURL, r)
+		trail, err := audit.NewTrail(tConfig.UserAudit.Enabled, tConfig.UserAudit.TrailHandlerURL)
 		if err != nil {
 			panic(err)
 		}
 		return trail
-	case "SSOProvider":
-		vars := mux.Vars(r)
-		providerName := vars["provider"]
-		tConfig := config.GetTenantConfig(r)
-		SSOConf := tConfig.GetSSOConfigByName(providerName)
-		SSOSetting := tConfig.SSOSetting
-		setting := sso.Setting{
-			URLPrefix:            SSOSetting.URLPrefix,
-			JSSDKCDNURL:          SSOSetting.JSSDKCDNURL,
-			StateJWTSecret:       SSOSetting.StateJWTSecret,
-			AutoLinkProviderKeys: SSOSetting.AutoLinkProviderKeys,
-			AllowedCallbackURLs:  SSOSetting.AllowedCallbackURLs,
-		}
-		config := sso.Config{
-			Name:         SSOConf.Name,
-			ClientID:     SSOConf.ClientID,
-			ClientSecret: SSOConf.ClientSecret,
-			Scope:        strings.Split(SSOConf.Scope, ","),
-		}
-		return sso.NewProvider(setting, config)
+	case "SSOProviderFactory":
+		return sso.NewProviderFactory(tConfig)
 	case "AsyncTaskQueue":
-		return async.NewQueue(r, m.AsyncTaskExecutor)
+		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	default:
-		return m.DependencyMap.Provide(
-			dependencyName,
-			r.Context(),
-			r.Header.Get("X-Skygear-Request-ID"),
-			config.GetTenantConfig(r),
-		)
+		return nil
 	}
 }
 

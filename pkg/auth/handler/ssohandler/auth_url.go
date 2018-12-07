@@ -20,7 +20,7 @@ import (
 
 func AttachAuthURLHandler(
 	server *server.Server,
-	authDependency auth.RequestDependencyMap,
+	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/sso/{provider}/login_auth_url", &AuthURLHandlerFactory{
 		Dependency: authDependency,
@@ -34,7 +34,7 @@ func AttachAuthURLHandler(
 }
 
 type AuthURLHandlerFactory struct {
-	Dependency auth.RequestDependencyMap
+	Dependency auth.DependencyMap
 	Action     string
 }
 
@@ -43,6 +43,7 @@ func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderName = vars["provider"]
+	h.Provider = h.ProviderFactory.NewProvider(h.ProviderName)
 	h.Action = f.Action
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
@@ -117,11 +118,12 @@ func (p AuthURLRequestPayload) Validate() error {
 //     "result": "<auth_url>"
 // }
 type AuthURLHandler struct {
-	TxContext    db.TxContext           `dependency:"TxContext"`
-	AuthContext  coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	Provider     sso.Provider           `dependency:"SSOProvider"`
-	ProviderName string
-	Action       string
+	TxContext       db.TxContext           `dependency:"TxContext"`
+	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	ProviderFactory sso.ProviderFactory    `dependency:"SSOProviderFactory"`
+	Provider        sso.Provider
+	ProviderName    string
+	Action          string
 }
 
 func (h AuthURLHandler) WithTx() bool {

@@ -16,12 +16,13 @@ package audit
 
 import (
 	"fmt"
-	"github.com/evalphobia/logrus_fluent"
-	"github.com/rifflock/lfshook"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/evalphobia/logrus_fluent"
+	"github.com/rifflock/lfshook"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -88,6 +89,7 @@ func (e Event) String() string {
 }
 
 type Trail interface {
+	WithRequest(request *http.Request) Trail
 	Log(entry Entry)
 }
 
@@ -97,6 +99,18 @@ type LoggerTrail struct {
 
 func (t LoggerTrail) Log(entry Entry) {
 	t.logger.WithFields(entry.toLogrusFields()).Info("audit_trail")
+}
+
+func (t LoggerTrail) WithRequest(req *http.Request) Trail {
+	fields := logrus.Fields{}
+	fields["remote_addr"] = req.RemoteAddr
+	fields["x_forwarded_for"] = req.Header.Get("x-forwarded-for")
+	fields["x_real_ip"] = req.Header.Get("x-real-ip")
+	fields["forwarded"] = req.Header.Get("forwarded")
+
+	return &LoggerTrail{
+		logger: t.logger.WithFields(fields),
+	}
 }
 
 type Entry struct {
@@ -173,7 +187,7 @@ func createHook(handlerURL string) (logrus.Hook, error) {
 	return nil, fmt.Errorf("unknown handler: %v, %v", scheme, handlerURL)
 }
 
-func NewTrail(enabled bool, handlerURL string, req *http.Request) (Trail, error) {
+func NewTrail(enabled bool, handlerURL string) (Trail, error) {
 	var trailLogger = logrus.New()
 	trailLogger.Formatter = &logrus.JSONFormatter{}
 	if enabled {
@@ -191,13 +205,7 @@ func NewTrail(enabled bool, handlerURL string, req *http.Request) (Trail, error)
 		}
 	}
 
-	fields := logrus.Fields{}
-	fields["remote_addr"] = req.RemoteAddr
-	fields["x_forwarded_for"] = req.Header.Get("x-forwarded-for")
-	fields["x_real_ip"] = req.Header.Get("x-real-ip")
-	fields["forwarded"] = req.Header.Get("forwarded")
-
 	return &LoggerTrail{
-		logger: trailLogger.WithFields(fields),
+		logger: logrus.NewEntry(trailLogger),
 	}, nil
 }

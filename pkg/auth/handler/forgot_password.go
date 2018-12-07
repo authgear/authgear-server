@@ -23,7 +23,7 @@ import (
 // AttachForgotPasswordHandler attaches ForgotPasswordHandler to server
 func AttachForgotPasswordHandler(
 	server *server.Server,
-	authDependency auth.RequestDependencyMap,
+	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/forgot_password", &ForgotPasswordHandlerFactory{
 		authDependency,
@@ -36,7 +36,7 @@ func AttachForgotPasswordHandler(
 
 // ForgotPasswordHandlerFactory creates ForgotPasswordHandler
 type ForgotPasswordHandlerFactory struct {
-	Dependency auth.RequestDependencyMap
+	Dependency auth.DependencyMap
 }
 
 // NewHandler creates new ForgotPasswordHandler
@@ -160,7 +160,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 
 // ForgotPasswordTestHandlerFactory creates ForgotPasswordTestHandler
 type ForgotPasswordTestHandlerFactory struct {
-	Dependency auth.RequestDependencyMap
+	Dependency auth.DependencyMap
 }
 
 // NewHandler creates new ForgotPasswordTestHandler

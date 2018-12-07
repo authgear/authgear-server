@@ -17,7 +17,7 @@ import (
 
 func AttachGetRoleHandler(
 	server *server.Server,
-	authDependency auth.RequestDependencyMap,
+	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/role/get", &GetRoleHandlerFactory{
 		authDependency,
@@ -26,7 +26,7 @@ func AttachGetRoleHandler(
 }
 
 type GetRoleHandlerFactory struct {
-	Dependency auth.RequestDependencyMap
+	Dependency auth.DependencyMap
 }
 
 func (f GetRoleHandlerFactory) NewHandler(request *http.Request) http.Handler {

@@ -24,7 +24,7 @@ import (
 // AttachLoginHandler attach login handler to server
 func AttachLoginHandler(
 	server *server.Server,
-	authDependency auth.RequestDependencyMap,
+	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/login", &LoginHandlerFactory{
 		authDependency,
@@ -34,12 +34,13 @@ func AttachLoginHandler(
 
 // LoginHandlerFactory creates new handler
 type LoginHandlerFactory struct {
-	Dependency auth.RequestDependencyMap
+	Dependency auth.DependencyMap
 }
 
 func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
+	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

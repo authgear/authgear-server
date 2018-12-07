@@ -23,7 +23,7 @@ import (
 // AttachVerifyRequestHandler attaches VerifyRequestHandler to server
 func AttachVerifyRequestHandler(
 	server *server.Server,
-	authDependency auth.RequestDependencyMap,
+	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/verify_request", &VerifyRequestHandlerFactory{
 		authDependency,
@@ -33,7 +33,7 @@ func AttachVerifyRequestHandler(
 
 // VerifyRequestHandlerFactory creates VerifyRequestHandler
 type VerifyRequestHandlerFactory struct {
-	Dependency auth.RequestDependencyMap
+	Dependency auth.DependencyMap
 }
 
 // NewHandler creates new VerifyRequestHandler

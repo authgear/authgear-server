@@ -22,11 +22,16 @@ type DependencyMap interface {
 
 func DefaultRequestInject(
 	i interface{},
-	dependencyMap RequestDependencyMap,
+	dependencyMap DependencyMap,
 	request *http.Request,
 ) (err error) {
 	return injectDependency(i, func(name string) interface{} {
-		return dependencyMap.Provide(name, request)
+		return dependencyMap.Provide(
+			name,
+			request.Context(),
+			request.Header.Get("X-Skygear-Request-ID"),
+			config.GetTenantConfig(request),
+		)
 	})
 }
 

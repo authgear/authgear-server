@@ -2,7 +2,8 @@ package async
 
 import (
 	"context"
-	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type Queue struct {
@@ -12,10 +13,18 @@ type Queue struct {
 	taskExecutor *Executor
 }
 
-func NewQueue(r *http.Request, taskExecutor *Executor) *Queue {
+func NewQueue(
+	ctx context.Context,
+	requestID string,
+	tenantConfig config.TenantConfiguration,
+	taskExecutor *Executor,
+) *Queue {
 	return &Queue{
-		context:      r.Context(),
-		taskContext:  NewTaskContext(r),
+		context: ctx,
+		taskContext: TaskContext{
+			RequestID:    requestID,
+			TenantConfig: tenantConfig,
+		},
 		taskExecutor: taskExecutor,
 	}
 }

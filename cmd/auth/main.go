@@ -41,15 +41,12 @@ func main() {
 	// logging initialization
 	logging.SetModule("auth")
 
-	authDependency := auth.DependencyMap{}
-
 	asyncTaskExecutor := async.NewExecutor()
-	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
-
-	authRequestDependency := auth.RequestDependencyMap{
-		DependencyMap:     authDependency,
+	authDependency := auth.DependencyMap{
 		AsyncTaskExecutor: asyncTaskExecutor,
 	}
+
+	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
 
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
 	srv := server.NewServer(configuration.Host, authContextResolverFactory)
@@ -63,24 +60,24 @@ func main() {
 	srv.Use(middleware.RequestIDMiddleware{}.Handle)
 	srv.Use(middleware.CORSMiddleware{}.Handle)
 
-	handler.AttachSignupHandler(&srv, authRequestDependency)
-	handler.AttachLoginHandler(&srv, authRequestDependency)
-	handler.AttachLogoutHandler(&srv, authRequestDependency)
-	handler.AttachMeHandler(&srv, authRequestDependency)
-	handler.AttachSetDisableHandler(&srv, authRequestDependency)
-	handler.AttachRoleAssignHandler(&srv, authRequestDependency)
-	handler.AttachRoleRevokeHandler(&srv, authRequestDependency)
-	handler.AttachResetPasswordHandler(&srv, authRequestDependency)
-	handler.AttachGetRoleHandler(&srv, authRequestDependency)
-	handler.AttachRoleAdminHandler(&srv, authRequestDependency)
-	handler.AttachRoleDefaultHandler(&srv, authRequestDependency)
-	handler.AttachWelcomeEmailHandler(&srv, authRequestDependency)
-	handler.AttachForgotPasswordHandler(&srv, authRequestDependency)
-	handler.AttachVerifyRequestHandler(&srv, authRequestDependency)
-	ssohandler.AttachAuthURLHandler(&srv, authRequestDependency)
-	ssohandler.AttachConfigHandler(&srv, authRequestDependency)
-	ssohandler.AttachIFrameHandlerFactory(&srv, authRequestDependency)
-	ssohandler.AttachCustomTokenLoginHandler(&srv, authRequestDependency)
+	handler.AttachSignupHandler(&srv, authDependency)
+	handler.AttachLoginHandler(&srv, authDependency)
+	handler.AttachLogoutHandler(&srv, authDependency)
+	handler.AttachMeHandler(&srv, authDependency)
+	handler.AttachSetDisableHandler(&srv, authDependency)
+	handler.AttachRoleAssignHandler(&srv, authDependency)
+	handler.AttachRoleRevokeHandler(&srv, authDependency)
+	handler.AttachResetPasswordHandler(&srv, authDependency)
+	handler.AttachGetRoleHandler(&srv, authDependency)
+	handler.AttachRoleAdminHandler(&srv, authDependency)
+	handler.AttachRoleDefaultHandler(&srv, authDependency)
+	handler.AttachWelcomeEmailHandler(&srv, authDependency)
+	handler.AttachForgotPasswordHandler(&srv, authDependency)
+	handler.AttachVerifyRequestHandler(&srv, authDependency)
+	ssohandler.AttachAuthURLHandler(&srv, authDependency)
+	ssohandler.AttachConfigHandler(&srv, authDependency)
+	ssohandler.AttachIFrameHandlerFactory(&srv, authDependency)
+	ssohandler.AttachCustomTokenLoginHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

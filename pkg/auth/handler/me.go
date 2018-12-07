@@ -21,7 +21,7 @@ import (
 
 func AttachMeHandler(
 	server *server.Server,
-	authDependency auth.RequestDependencyMap,
+	authDependency auth.DependencyMap,
 ) *server.Server {
 	server.Handle("/me", &MeHandlerFactory{
 		authDependency,
@@ -30,7 +30,7 @@ func AttachMeHandler(
 }
 
 type MeHandlerFactory struct {
-	Dependency auth.RequestDependencyMap
+	Dependency auth.DependencyMap
 }
 
 func (f MeHandlerFactory) NewHandler(request *http.Request) http.Handler {

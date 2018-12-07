@@ -2,7 +2,6 @@ package async
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -24,11 +23,4 @@ func (t TaskFunc) Run(param interface{}) error {
 type TaskContext struct {
 	RequestID    string
 	TenantConfig config.TenantConfiguration
-}
-
-func NewTaskContext(r *http.Request) TaskContext {
-	return TaskContext{
-		RequestID:    r.Header.Get("X-Skygear-Request-ID"),
-		TenantConfig: config.GetTenantConfig(r),
-	}
 }

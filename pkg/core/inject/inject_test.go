@@ -30,17 +30,23 @@ func (s store) get() string {
 
 type dmap struct{}
 
-func (s dmap) Provide(name string, req *http.Request) interface{} {
-	conf := req.Context().Value(configurationKey).(config.TenantConfiguration)
-	switch name {
+// Provide provides dependency instance by name
+// nolint: golint
+func (s dmap) Provide(
+	dependencyName string,
+	ctx context.Context,
+	requestID string,
+	tConfig config.TenantConfiguration,
+) interface{} {
+	switch dependencyName {
 	case "str":
 		return "string"
 	case "int":
 		return 1
 	case "store":
-		return store{conf.AppName}
+		return store{tConfig.AppName}
 	case "istore":
-		return &store{conf.AppName}
+		return &store{tConfig.AppName}
 	default:
 		return nil
 	}
