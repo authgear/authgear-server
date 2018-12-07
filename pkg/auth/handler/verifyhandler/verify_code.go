@@ -2,9 +2,13 @@ package verifyhandler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -47,9 +51,14 @@ func (f VerifyCodeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type VerifyCodePayload struct {
+	Code string `json:"code"`
 }
 
 func (payload VerifyCodePayload) Validate() error {
+	if payload.Code == "" {
+		return skyerr.NewInvalidArgument("empty code", []string{"code"})
+	}
+
 	return nil
 }
 
@@ -63,7 +72,10 @@ func (payload VerifyCodePayload) Validate() error {
 //  EOF
 //
 type VerifyCodeHandler struct {
-	TxContext db.TxContext `dependency:"TxContext"`
+	TxContext       db.TxContext           `dependency:"TxContext"`
+	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	VerifyCodeStore verifycode.Store       `dependency:"VerifyCodeStore"`
+	Logger          *logrus.Entry          `dependency:"HandlerLogger"`
 }
 
 func (h VerifyCodeHandler) WithTx() bool {
@@ -81,5 +93,33 @@ func (h VerifyCodeHandler) DecodeRequest(request *http.Request) (handler.Request
 }
 
 func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(VerifyCodePayload)
+	code := verifycode.VerifyCode{}
+
+	if err = h.VerifyCodeStore.GetVerifyCodeByCode(payload.Code, &code); err != nil {
+		h.Logger.WithFields(map[string]interface{}{
+			"code":  payload.Code,
+			"error": err,
+		}).Error("failed to get verify code")
+		err = h.invalidCodeError(payload.Code)
+		return
+	}
+	if code.Consumed {
+		h.Logger.WithField("code", payload.Code).Error("code has been consumed")
+		err = h.invalidCodeError(payload.Code)
+		return
+	}
+
+	// TODO: update user verification state
+
+	resp = "OK"
 	return
+}
+
+func (h VerifyCodeHandler) invalidCodeError(code string) error {
+	msg := fmt.Sprintf(
+		"the code `%s` is not valid for user `%s`",
+		code, h.AuthContext.AuthInfo().ID,
+	)
+	return skyerr.NewInvalidArgument(msg, []string{"code"})
 }
