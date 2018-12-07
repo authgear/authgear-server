@@ -28,13 +28,13 @@ func (m *MockProvider) GetPrincipalByUserID(providerName string, userID string) 
 }
 
 func (m *MockProvider) CreatePrincipal(principal Principal) error {
-	key := m.genKey(principal.ProviderName, principal.UserID)
+	key := m.genKey(principal.ProviderName, principal.ProviderUserID)
 	m.PrincipalMap[key] = principal
 	return nil
 }
 
 func (m *MockProvider) UpdatePrincipal(principal *Principal) error {
-	key := m.genKey(principal.ProviderName, principal.UserID)
+	key := m.genKey(principal.ProviderName, principal.ProviderUserID)
 	m.PrincipalMap[key] = *principal
 	return nil
 }

@@ -197,6 +197,8 @@ func (m DependencyMap) Provide(
 			logging.CreateLoggerWithRequestID(requestID, "provider_oauth", createLoggerMaskFormatter(tConfig)),
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
+	case "AuthHandlerHTMLProvider":
+		return sso.NewAuthHandlerHTMLProvider(tConfig.SSOSetting.URLPrefix, tConfig.SSOSetting.JSSDKCDNURL)
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	default:

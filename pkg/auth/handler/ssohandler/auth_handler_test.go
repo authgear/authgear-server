@@ -3,10 +3,13 @@ package ssohandler
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"regexp"
 	"testing"
+	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -17,6 +20,7 @@ import (
 	tenantConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -52,6 +56,12 @@ func TestAuthPayload(t *testing.T) {
 }
 
 func TestAuthHandler(t *testing.T) {
+	realTime := timeNow
+	timeNow = func() time.Time { return zeroTime }
+	defer func() {
+		timeNow = realTime
+	}()
+
 	Convey("Test TestAuthURLHandler", t, func() {
 		stateJWTSecret := "secret"
 		sh := &AuthHandler{}
@@ -83,9 +93,13 @@ func TestAuthHandler(t *testing.T) {
 			map[string]authinfo.AuthInfo{},
 		)
 		sh.AuthInfoStore = authInfoStore
-		mockTokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
+		mockTokenStore := authtoken.NewMockStore()
 		sh.TokenStore = mockTokenStore
 		sh.RoleStore = role.NewMockStore()
+		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
+			"https://api.example.com",
+			"https://api.example.com/skygear.js",
+		)
 		h := sh.Handler()
 
 		// tenant config
@@ -126,6 +140,12 @@ func TestAuthHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 302)
 			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
 
+			// check cookies
+			// it should have following format
+			// {
+			// 	"callback_url": "callback_url"
+			// 	"result": authResp
+			// }
 			cookies := resp.Result().Cookies()
 			So(cookies, ShouldNotBeEmpty)
 			var ssoDataCookie *http.Cookie
@@ -136,16 +156,74 @@ func TestAuthHandler(t *testing.T) {
 				}
 			}
 			So(ssoDataCookie, ShouldNotBeNil)
+
+			// decoded it first
 			decoded, err := base64.StdEncoding.DecodeString(ssoDataCookie.Value)
 			So(err, ShouldBeNil)
 			So(decoded, ShouldNotBeNil)
+
+			// Unmarshal to map
 			data := make(map[string]interface{})
 			err = json.Unmarshal(decoded, &data)
 			So(err, ShouldBeNil)
+
+			// check callback_url
 			So(data["callback_url"], ShouldEqual, "http://localhost:3000")
-			// TODO: check authResp by ShouldEqualJSON
-			// So(data["result"], ShouldEqualJSON, `{
-			// }`)
+
+			// check result(authResp)
+			authResp, err := json.Marshal(data["result"])
+			So(err, ShouldBeNil)
+			p, err := sh.OAuthAuthProvider.GetPrincipalByUserID("mock", "mock_user_id")
+			So(err, ShouldBeNil)
+			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
+			So(authResp, ShouldEqualJSON, fmt.Sprintf(`{
+				"user_id": "%s",
+				"profile": {
+					"_access": null,
+					"_created_at": "0001-01-01T00:00:00Z",
+					"_created_by": "",
+					"_id": "",
+					"_ownerID": "",
+					"_recordID": "",
+					"_recordType": "",
+					"_type": "",
+					"_updated_at": "0001-01-01T00:00:00Z",
+					"_updated_by": ""
+				},
+				"access_token": "%s"
+			}`, p.UserID, token.AccessToken))
+		})
+
+		Convey("should return html page when ux_mode is web_popup and action is login", func() {
+			action := "login"
+			UXMode := "web_popup"
+
+			// oauth state
+			state := sso.State{
+				CallbackURL: "http://localhost:3000",
+				UXMode:      UXMode,
+				Action:      action,
+			}
+			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
+			}
+
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			tenantConfig.SetTenantConfig(req, tConfig)
+			resp := httptest.NewRecorder()
+
+			h.ServeHTTP(resp, req)
+			// for web_redirect, it should redirect to original callback url
+			So(resp.Code, ShouldEqual, 200)
+			JSSKDURLPattern := `<script type="text/javascript" src="https://api.example.com/skygear.js"></script>`
+			matched, err := regexp.MatchString(JSSKDURLPattern, resp.Body.String())
+			So(err, ShouldBeNil)
+			So(matched, ShouldBeTrue)
 		})
 	})
 }

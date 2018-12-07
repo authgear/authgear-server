@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strings"
 
@@ -93,14 +94,15 @@ func (p AuthRequestPayload) Validate() error {
 // it will render a html page and set cookie in the response.
 //
 type AuthHandler struct {
-	TxContext         db.TxContext           `dependency:"TxContext"`
-	AuthContext       coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	Provider          sso.Provider           `dependency:"SSOProvider"`
-	OAuthAuthProvider oauth.Provider         `dependency:"OAuthAuthProvider"`
-	AuthInfoStore     authinfo.Store         `dependency:"AuthInfoStore"`
-	RoleStore         role.Store             `dependency:"RoleStore"`
-	TokenStore        authtoken.Store        `dependency:"TokenStore"`
-	ProviderName      string
+	TxContext               db.TxContext                `dependency:"TxContext"`
+	AuthContext             coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
+	Provider                sso.Provider                `dependency:"SSOProvider"`
+	OAuthAuthProvider       oauth.Provider              `dependency:"OAuthAuthProvider"`
+	AuthInfoStore           authinfo.Store              `dependency:"AuthInfoStore"`
+	RoleStore               role.Store                  `dependency:"RoleStore"`
+	TokenStore              authtoken.Store             `dependency:"TokenStore"`
+	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
+	ProviderName            string
 }
 
 func (h AuthHandler) WithTx() bool {
@@ -370,7 +372,9 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 		http.SetCookie(rw, &cookie)
 		http.Redirect(rw, r, callbackURL, http.StatusFound)
 	} else {
-
+		html, _ := h.AuthHandlerHTMLProvider.HTML()
+		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
+		io.WriteString(rw, html)
 	}
 }
 
