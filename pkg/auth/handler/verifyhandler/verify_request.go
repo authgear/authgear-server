@@ -1,4 +1,4 @@
-package handler
+package verifyhandler
 
 import (
 	"encoding/json"
