@@ -16,7 +16,9 @@ package audit
 
 import (
 	"testing"
+	"time"
 
+	ph "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -131,6 +133,35 @@ func TestGetDictionary(t *testing.T) {
 }
 
 func TestValidatePassword(t *testing.T) {
+	// fixture
+	authID := "chima"
+	phData := map[string][]ph.PasswordHistory{
+		authID: []ph.PasswordHistory{
+			ph.PasswordHistory{
+				ID:             "1",
+				UserID:         authID,
+				HashedPassword: []byte("$2a$10$EazYxG5cUdf99wGXDU1fguNxvCe7xQLEgr/Ay6VS9fkkVjHZtpJfm"), // "chima"
+				LoggedAt:       time.Date(2017, 11, 3, 0, 0, 0, 0, time.UTC),
+			},
+			ph.PasswordHistory{
+				ID:             "2",
+				UserID:         authID,
+				HashedPassword: []byte("$2a$10$8Z0zqmCZ3pZUlvLD8lN.B.ecN7MX8uVcZooPUFnCcB8tWR6diVc1a"), // "faseng"
+				LoggedAt:       time.Date(2017, 11, 2, 0, 0, 0, 0, time.UTC),
+			},
+			ph.PasswordHistory{
+				ID:             "3",
+				UserID:         authID,
+				HashedPassword: []byte("$2a$10$qzmi8TkYosj66xHvc9EfEulKjGoZswJSyNVEmmbLDxNGP/lMm6UXC"), // "coffee"
+				LoggedAt:       time.Date(2017, 11, 1, 0, 0, 0, 0, time.UTC),
+			},
+		},
+	}
+	phStore := ph.NewMockPasswordHistoryStoreWithData(
+		phData,
+		func() time.Time { return time.Date(2017, 11, 4, 0, 0, 0, 0, time.UTC) },
+	)
+
 	Convey("validate short password", t, func() {
 		password := "1"
 		pc := &PasswordChecker{
@@ -276,57 +307,127 @@ func TestValidatePassword(t *testing.T) {
 			},
 		)
 	})
-	// TODO: password history
-	// Convey("validate password history", t, func() {
-	// 	ctrl := gomock.NewController(t)
-	// 	defer ctrl.Finish()
 
-	// 	authID := "chima"
-	// 	historySize := 12
-	// 	historyDays := 365
+	Convey("validate password history", t, func(c C) {
+		historySize := 12
+		historyDays := 365
 
-	// 	conn := mock_skydb.NewMockConn(ctrl)
-	// 	conn.EXPECT().
-	// 		GetPasswordHistory(authID, historySize, historyDays).
-	// 		MinTimes(1).
-	// 		Return([]skydb.PasswordHistory{
-	// 			skydb.PasswordHistory{
-	// 				ID:             "1",
-	// 				AuthID:         authID,
-	// 				HashedPassword: []byte("$2a$10$EazYxG5cUdf99wGXDU1fguNxvCe7xQLEgr/Ay6VS9fkkVjHZtpJfm"), // "chima"
-	// 				LoggedAt:       time.Date(2017, 11, 1, 0, 0, 0, 0, time.UTC),
-	// 			},
-	// 		}, nil)
+		pc := &PasswordChecker{
+			PwHistorySize:          historySize,
+			PwHistoryDays:          historyDays,
+			PasswordHistoryEnabled: true,
+			PasswordHistoryStore:   phStore,
+		}
 
-	// 	pc := &PasswordChecker{
-	// 		PwHistorySize:          historySize,
-	// 		PwHistoryDays:          historyDays,
-	// 		PasswordHistoryEnabled: true,
-	// 	}
+		So(
+			pc.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: "chima",
+				AuthID:        authID,
+			}),
+			ShouldEqualSkyError,
+			skyerr.PasswordPolicyViolated,
+			"password reused",
+			map[string]interface{}{
+				"reason":       PasswordReused.String(),
+				"history_size": historySize,
+				"history_days": historyDays,
+			},
+		)
 
-	// 	So(
-	// 		pc.ValidatePassword(ValidatePasswordPayload{
-	// 			PlainPassword: "chima",
-	// 			AuthID:        authID,
-	// 		}),
-	// 		ShouldEqualSkyError,
-	// 		skyerr.PasswordPolicyViolated,
-	// 		"password reused",
-	// 		map[string]interface{}{
-	// 			"reason":       PasswordReused.String(),
-	// 			"history_size": historySize,
-	// 			"history_days": historyDays,
-	// 		},
-	// 	)
+		So(
+			pc.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: "coffee",
+				AuthID:        authID,
+			}),
+			ShouldEqualSkyError,
+			skyerr.PasswordPolicyViolated,
+			"password reused",
+			map[string]interface{}{
+				"reason":       PasswordReused.String(),
+				"history_size": historySize,
+				"history_days": historyDays,
+			},
+		)
 
-	// 	So(
-	// 		pc.ValidatePassword(ValidatePasswordPayload{
-	// 			PlainPassword: "faseng",
-	// 			AuthID:        authID,
-	// 		}),
-	// 		ShouldBeNil,
-	// 	)
-	// })
+		So(
+			pc.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: "milktea",
+				AuthID:        authID,
+			}),
+			ShouldBeNil,
+		)
+	})
+
+	Convey("validate password history by size", t, func(c C) {
+		historySize := 2
+		historyDays := 0
+
+		pc := &PasswordChecker{
+			PwHistorySize:          historySize,
+			PwHistoryDays:          historyDays,
+			PasswordHistoryEnabled: true,
+			PasswordHistoryStore:   phStore,
+		}
+
+		So(
+			pc.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: "chima",
+				AuthID:        authID,
+			}),
+			ShouldEqualSkyError,
+			skyerr.PasswordPolicyViolated,
+			"password reused",
+			map[string]interface{}{
+				"reason":       PasswordReused.String(),
+				"history_size": historySize,
+				"history_days": historyDays,
+			},
+		)
+
+		So(
+			pc.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: "coffee",
+				AuthID:        authID,
+			}),
+			ShouldBeNil,
+		)
+	})
+
+	Convey("validate password history by days", t, func(c C) {
+		historySize := 0
+		historyDays := 2
+
+		pc := &PasswordChecker{
+			PwHistorySize:          historySize,
+			PwHistoryDays:          historyDays,
+			PasswordHistoryEnabled: true,
+			PasswordHistoryStore:   phStore,
+		}
+
+		So(
+			pc.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: "chima",
+				AuthID:        authID,
+			}),
+			ShouldEqualSkyError,
+			skyerr.PasswordPolicyViolated,
+			"password reused",
+			map[string]interface{}{
+				"reason":       PasswordReused.String(),
+				"history_size": historySize,
+				"history_days": historyDays,
+			},
+		)
+
+		So(
+			pc.ValidatePassword(ValidatePasswordPayload{
+				PlainPassword: "coffee",
+				AuthID:        authID,
+			}),
+			ShouldBeNil,
+		)
+	})
+
 	Convey("validate strong password", t, func() {
 		password := "N!hon-no-tsuk!-wa-seka!-1ban-k!re!desu" // 日本の月は世界一番きれいです
 		pc := &PasswordChecker{
