@@ -117,7 +117,7 @@ func TestAuthURLHandler(t *testing.T) {
 			// check redirect_uri
 			r, _ := url.Parse(q.Get("redirect_uri"))
 			So(r.Host, ShouldEqual, "localhost:3000")
-			So(r.Path, ShouldEqual, "/sso/mock/auth_handler")
+			So(r.Path, ShouldEqual, "/auth/sso/mock/auth_handler")
 
 			// check encoded state
 			s := q.Get("state")
