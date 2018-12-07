@@ -76,6 +76,7 @@ func main() {
 	handler.AttachForgotPasswordHandler(&srv, authDependency)
 	handler.AttachForgotPasswordResetHandler(&srv, authDependency)
 	verifyhandler.AttachVerifyRequestHandler(&srv, authDependency)
+	verifyhandler.AttachVerifyCodeHandler(&srv, authDependency)
 	ssohandler.AttachAuthURLHandler(&srv, authDependency)
 	ssohandler.AttachConfigHandler(&srv, authDependency)
 	ssohandler.AttachIFrameHandlerFactory(&srv, authDependency)

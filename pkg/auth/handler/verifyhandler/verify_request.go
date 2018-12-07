@@ -45,7 +45,6 @@ func (f VerifyRequestHandlerFactory) NewHandler(request *http.Request) http.Hand
 
 // ProvideAuthzPolicy provides authorization policy of handler
 func (f VerifyRequestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	// FIXME: Admin only after adding admin role
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
