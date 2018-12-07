@@ -258,7 +258,22 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 			return
 		}
 	}
-	// TODO: profile
+
+	// Create Profile
+	userProfileFunc := func(userID string, authInfo *authinfo.AuthInfo, data userprofile.Data) (userprofile.UserProfile, error) {
+		if createNewUser {
+			return h.UserProfileStore.CreateUserProfile(userID, authInfo, data)
+		}
+
+		return h.UserProfileStore.UpdateUserProfile(userID, authInfo, data)
+	}
+
+	if *userProfile, err = userProfileFunc(info.ID, info, payload.Claims.RawProfile); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
+		return
+	}
 
 	return
 }
