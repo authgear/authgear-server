@@ -120,6 +120,11 @@ func (h AuthHandler) Handler() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		var respErr skyerr.Error
 
+		if h.Provider == nil {
+			respErr = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
+			return
+		}
+
 		defer func() {
 			if respErr != nil {
 				response := handler.APIResponse{
@@ -153,11 +158,13 @@ func (h AuthHandler) Handler() http.Handler {
 			}()
 		}
 
-		_, oauthAuthInfo, err := h.getAuthResp(payload)
+		reqPayload := payload.(AuthRequestPayload)
+		oauthAuthInfo, err := h.getAuthInfo(reqPayload)
 		if err != nil {
 			respErr = skyerr.MakeError(err)
 			return
 		}
+		_, err = h.getAuthResp(oauthAuthInfo)
 		if h.TxContext != nil {
 			h.TxContext.CommitTx()
 		}
@@ -187,14 +194,7 @@ func (h AuthHandler) Handler() http.Handler {
 	})
 }
 
-func (h AuthHandler) getAuthResp(req interface{}) (resp response.AuthResponse, oauthAuthInfo sso.AuthInfo, err error) {
-	if h.Provider == nil {
-		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
-		return
-	}
-
-	payload := req.(AuthRequestPayload)
-
+func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.AuthInfo, err error) {
 	oauthAuthInfo, err = h.Provider.GetAuthInfo(payload.Code, payload.Scope, payload.EncodedState)
 	if err != nil {
 		if ssoErr, ok := err.(sso.Error); ok {
@@ -210,7 +210,10 @@ func (h AuthHandler) getAuthResp(req interface{}) (resp response.AuthResponse, o
 			return
 		}
 	}
+	return
+}
 
+func (h AuthHandler) getAuthResp(oauthAuthInfo sso.AuthInfo) (resp response.AuthResponse, err error) {
 	if oauthAuthInfo.State.Action == "login" {
 		var info authinfo.AuthInfo
 		err = h.handleLogin(&info, oauthAuthInfo)
