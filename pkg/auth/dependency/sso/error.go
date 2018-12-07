@@ -26,6 +26,8 @@ const (
 	// UnsupportedTokenType - "unsupported_token_type"
 	// The Authorization Server does not support revocation of the presented token type.
 	UnsupportedTokenType
+	// MissingAccessToken - Missing access token parameter
+	MissingAccessToken
 )
 
 func (e ErrorCode) String() string {
@@ -36,9 +38,10 @@ func (e ErrorCode) String() string {
 		"unauthorized_client",
 		"unsupported_grant_type",
 		"invalid_scope",
+		"missing_access_token",
 	}
 
-	if e < InvalidRequest || e > InvalidScope {
+	if e < InvalidRequest || e > MissingAccessToken {
 		return "undefined"
 	}
 

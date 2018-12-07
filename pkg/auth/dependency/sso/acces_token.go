@@ -49,6 +49,13 @@ func fetchAccessTokenResp(
 		if err != nil {
 			return
 		}
+		if accessToken.AccessToken == "" {
+			err = ssoError{
+				code:    MissingAccessToken,
+				message: " Missing access token parameter",
+			}
+			return
+		}
 		accessToken.Scope = strings.Split(accessToken.RawScope, " ")
 	} else { // normally 400 Bad Request
 		var errResp ErrorResp
