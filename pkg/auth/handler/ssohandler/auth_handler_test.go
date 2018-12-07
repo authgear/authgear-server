@@ -53,45 +53,54 @@ func TestAuthPayload(t *testing.T) {
 
 func TestAuthHandler(t *testing.T) {
 	Convey("Test TestAuthURLHandler", t, func() {
-		Convey("when user is not existed", func() {
-			code := "code"
+		stateJWTSecret := "secret"
+		sh := &AuthHandler{}
+		sh.TxContext = db.NewMockTxContext()
+		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		setting := sso.Setting{
+			URLPrefix:      "http://localhost:3000",
+			StateJWTSecret: stateJWTSecret,
+			AllowedCallbackURLs: []string{
+				"http://localhost",
+			},
+		}
+		config := sso.Config{
+			Name:         "mock",
+			ClientID:     "mock_client_id",
+			ClientSecret: "mock_client_secret",
+		}
+		mockProvider := sso.MockSSOProverImpl{
+			BaseURL: "http://mock/auth",
+			Setting: setting,
+			Config:  config,
+		}
+		sh.Provider = &mockProvider
+		mockOAuthProvider := oauth.NewMockProvider(
+			map[string]oauth.Principal{},
+		)
+		sh.OAuthAuthProvider = mockOAuthProvider
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{},
+		)
+		sh.AuthInfoStore = authInfoStore
+		mockTokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
+		sh.TokenStore = mockTokenStore
+		sh.RoleStore = role.NewMockStore()
+		h := sh.Handler()
+
+		// tenant config
+		tConfig := tenantConfig.NewTenantConfiguration()
+		tConfig.SSOSetting = tenantConfig.SSOSetting{
+			URLPrefix:      "http://localhost:3000",
+			StateJWTSecret: stateJWTSecret,
+			AllowedCallbackURLs: []string{
+				"http://localhost",
+			},
+		}
+
+		Convey("should return callback url when ux_mode is web_redirect and action is login", func() {
 			action := "login"
 			UXMode := "web_redirect"
-			stateJWTSecret := "secret"
-
-			sh := &AuthHandler{}
-			sh.TxContext = db.NewMockTxContext()
-			sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
-			setting := sso.Setting{
-				URLPrefix:      "http://localhost:3000",
-				StateJWTSecret: stateJWTSecret,
-				AllowedCallbackURLs: []string{
-					"http://localhost",
-				},
-			}
-			config := sso.Config{
-				Name:         "mock",
-				ClientID:     "mock_client_id",
-				ClientSecret: "mock_client_secret",
-			}
-			mockProvider := sso.MockSSOProverImpl{
-				BaseURL: "http://mock/auth",
-				Setting: setting,
-				Config:  config,
-			}
-			sh.Provider = &mockProvider
-			mockOAuthProvider := oauth.NewMockProvider(
-				map[string]oauth.Principal{},
-			)
-			sh.OAuthAuthProvider = mockOAuthProvider
-			authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
-				map[string]authinfo.AuthInfo{},
-			)
-			sh.AuthInfoStore = authInfoStore
-			mockTokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
-			sh.TokenStore = mockTokenStore
-			sh.RoleStore = role.NewMockStore()
-			h := sh.Handler()
 
 			// oauth state
 			state := sso.State{
@@ -101,54 +110,42 @@ func TestAuthHandler(t *testing.T) {
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
-			// tenant config
-			tConfig := tenantConfig.NewTenantConfiguration()
-			tConfig.SSOSetting = tenantConfig.SSOSetting{
-				URLPrefix:      "http://localhost:3000",
-				StateJWTSecret: stateJWTSecret,
-				AllowedCallbackURLs: []string{
-					"http://localhost",
-				},
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
 			}
 
-			Convey("should return login auth response", func() {
-				v := url.Values{}
-				v.Set("code", code)
-				v.Add("state", encodedState)
-				u := url.URL{
-					RawQuery: v.Encode(),
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			tenantConfig.SetTenantConfig(req, tConfig)
+			resp := httptest.NewRecorder()
+
+			h.ServeHTTP(resp, req)
+			// for web_redirect, it should redirect to original callback url
+			So(resp.Code, ShouldEqual, 302)
+			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
+
+			cookies := resp.Result().Cookies()
+			So(cookies, ShouldNotBeEmpty)
+			var ssoDataCookie *http.Cookie
+			for _, c := range cookies {
+				if c.Name == "sso_data" {
+					ssoDataCookie = c
+					break
 				}
-
-				req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-				tenantConfig.SetTenantConfig(req, tConfig)
-				resp := httptest.NewRecorder()
-
-				h.ServeHTTP(resp, req)
-				// for web_redirect, it should redirect to original callback url
-				So(resp.Code, ShouldEqual, 302)
-				So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
-
-				cookies := resp.Result().Cookies()
-				So(cookies, ShouldNotBeEmpty)
-				var ssoDataCookie *http.Cookie
-				for _, c := range cookies {
-					if c.Name == "sso_data" {
-						ssoDataCookie = c
-						break
-					}
-				}
-				So(ssoDataCookie, ShouldNotBeNil)
-				decoded, err := base64.StdEncoding.DecodeString(ssoDataCookie.Value)
-				So(err, ShouldBeNil)
-				So(decoded, ShouldNotBeNil)
-				data := make(map[string]interface{})
-				err = json.Unmarshal(decoded, &data)
-				So(err, ShouldBeNil)
-				So(data["callback_url"], ShouldEqual, "http://localhost:3000")
-				// TODO: check authResp by ShouldEqualJSON
-				// So(data["result"], ShouldEqualJSON, `{
-				// }`)
-			})
+			}
+			So(ssoDataCookie, ShouldNotBeNil)
+			decoded, err := base64.StdEncoding.DecodeString(ssoDataCookie.Value)
+			So(err, ShouldBeNil)
+			So(decoded, ShouldNotBeNil)
+			data := make(map[string]interface{})
+			err = json.Unmarshal(decoded, &data)
+			So(err, ShouldBeNil)
+			So(data["callback_url"], ShouldEqual, "http://localhost:3000")
+			// TODO: check authResp by ShouldEqualJSON
+			// So(data["result"], ShouldEqualJSON, `{
+			// }`)
 		})
 	})
 }
