@@ -1,6 +1,7 @@
 package ssohandler
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 
@@ -46,7 +48,7 @@ func (f AuthHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h.ProviderName = vars["provider"]
 	// since auth_hander need create different responses depends on ux_mode,
 	// so here has a APIHandler to handle those different situation.
-	return h.APIHandler()
+	return h.Handler()
 }
 
 func (f AuthHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -113,26 +115,28 @@ func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 	return payload, nil
 }
 
-func (h AuthHandler) APIHandler() http.Handler {
+func (h AuthHandler) Handler() http.Handler {
 	// reference from APIHandlerToHandler
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		redirect := false
-		var response handler.APIResponse
+		var respErr skyerr.Error
 
 		defer func() {
-			if !redirect {
+			if respErr != nil {
+				response := handler.APIResponse{
+					Err: respErr,
+				}
 				handler.WriteResponse(rw, response)
 			}
 		}()
 
 		payload, err := h.DecodeRequest(r)
 		if err != nil {
-			response.Err = skyerr.MakeError(err)
+			respErr = skyerr.MakeError(err)
 			return
 		}
 
 		if err := payload.Validate(); err != nil {
-			response.Err = skyerr.MakeError(err)
+			respErr = skyerr.MakeError(err)
 			return
 		}
 
@@ -149,19 +153,33 @@ func (h AuthHandler) APIHandler() http.Handler {
 			}()
 		}
 
-		_, oauthAuthInfo, err := h.Handle(payload)
+		_, oauthAuthInfo, err := h.getAuthResp(payload)
 		if err != nil {
-			response.Err = skyerr.MakeError(err)
+			respErr = skyerr.MakeError(err)
 			return
 		}
 		if h.TxContext != nil {
 			h.TxContext.CommitTx()
 		}
 
+		// handle callback url by ux_mode
+		tConfig := config.GetTenantConfig(r)
+		SSOSetting := tConfig.SSOSetting
+		err = h.validateCallbackURL(SSOSetting.AllowedCallbackURLs, oauthAuthInfo.State.CallbackURL)
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		/*
+		   In JS oauth flow, result send through cookies and handler by js script
+
+		   Session data:
+		   sso_callback_url -- callback url for ux_mode == web_redirect
+		   sso_result       -- response json
+		*/
 		if oauthAuthInfo.State.UXMode == sso.WebRedirect.String() {
-			// TODO: Check CallbackURL is valid or not
-			redirect = true
-			http.Redirect(rw, r, oauthAuthInfo.State.CallbackURL, 302)
+			http.Redirect(rw, r, oauthAuthInfo.State.CallbackURL, http.StatusFound)
 		}
 		// TODO: oauthAuthInfo.State.UXMode == sso.WebPopup.String()
 		// TODO: oauthAuthInfo.State.UXMode == sso.IOS.String()
@@ -169,7 +187,7 @@ func (h AuthHandler) APIHandler() http.Handler {
 	})
 }
 
-func (h AuthHandler) Handle(req interface{}) (resp response.AuthResponse, oauthAuthInfo sso.AuthInfo, err error) {
+func (h AuthHandler) getAuthResp(req interface{}) (resp response.AuthResponse, oauthAuthInfo sso.AuthInfo, err error) {
 	if h.Provider == nil {
 		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
 		return
@@ -302,5 +320,29 @@ func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 			return
 		}
 	}
+	return
+}
+
+func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
+	if callbackURL == "" {
+		err = errors.New("Missing callback url")
+		return
+	}
+	if len(allowedCallbackURLs) != 0 {
+		found := false
+		lowerCallbackURL := strings.ToLower(callbackURL)
+		for _, v := range allowedCallbackURLs {
+			lowerAllowed := strings.ToLower(v)
+			if strings.HasPrefix(lowerCallbackURL, lowerAllowed) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			err = errors.New("The callback url is not whitelisted in the social login setting")
+		}
+	}
+
 	return
 }
