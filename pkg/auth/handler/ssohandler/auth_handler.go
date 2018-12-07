@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -387,4 +388,11 @@ func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request,
 	   Example:
 	   myapp://user.skygear.io/sso/{provider}/auth_handler?result=
 	*/
+	authRespBytes, _ := json.Marshal(authResp)
+	encodedResult := base64.StdEncoding.EncodeToString(authRespBytes)
+	v := url.Values{}
+	v.Set("result", encodedResult)
+	u, _ := url.Parse(callbackURL)
+	u.RawQuery = v.Encode()
+	http.Redirect(rw, r, u.String(), http.StatusFound)
 }

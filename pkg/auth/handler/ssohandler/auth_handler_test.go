@@ -194,7 +194,7 @@ func TestAuthHandler(t *testing.T) {
 			}`, p.UserID, token.AccessToken))
 		})
 
-		Convey("should return html page when ux_mode is web_popup and action is login", func() {
+		Convey("should return html page when ux_mode is web_popup", func() {
 			action := "login"
 			UXMode := "web_popup"
 
@@ -224,6 +224,57 @@ func TestAuthHandler(t *testing.T) {
 			matched, err := regexp.MatchString(JSSKDURLPattern, resp.Body.String())
 			So(err, ShouldBeNil)
 			So(matched, ShouldBeTrue)
+		})
+
+		Convey("should return callback url with result query parameter when ux_mode is ios or android", func() {
+			action := "login"
+			UXMode := "ios"
+
+			// oauth state
+			state := sso.State{
+				CallbackURL: "http://localhost:3000",
+				UXMode:      UXMode,
+				Action:      action,
+			}
+			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
+			}
+
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			tenantConfig.SetTenantConfig(req, tConfig)
+			resp := httptest.NewRecorder()
+
+			h.ServeHTTP(resp, req)
+			// for ios or android, it should redirect to original callback url
+			So(resp.Code, ShouldEqual, 302)
+			// check location result query parameter
+			location, _ := url.Parse(resp.Header().Get("Location"))
+			q := location.Query()
+			result := q.Get("result")
+			decoded, _ := base64.StdEncoding.DecodeString(result)
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByUserID("mock", "mock_user_id")
+			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
+			So(decoded, ShouldEqualJSON, fmt.Sprintf(`{
+				"user_id": "%s",
+				"profile": {
+					"_access": null,
+					"_created_at": "0001-01-01T00:00:00Z",
+					"_created_by": "",
+					"_id": "",
+					"_ownerID": "",
+					"_recordID": "",
+					"_recordType": "",
+					"_type": "",
+					"_updated_at": "0001-01-01T00:00:00Z",
+					"_updated_by": ""
+				},
+				"access_token": "%s"
+			}`, p.UserID, token.AccessToken))
 		})
 	})
 }
