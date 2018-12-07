@@ -15,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 
@@ -50,6 +49,8 @@ func (f AuthHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderName = vars["provider"]
+	h.Provider = h.ProviderFactory.NewProvider(h.ProviderName)
+	h.SSOSetting = h.ProviderFactory.Setting()
 	return h
 }
 
@@ -95,12 +96,14 @@ func (p AuthRequestPayload) Validate() error {
 type AuthHandler struct {
 	TxContext               db.TxContext                `dependency:"TxContext"`
 	AuthContext             coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
-	Provider                sso.Provider                `dependency:"SSOProvider"`
 	OAuthAuthProvider       oauth.Provider              `dependency:"OAuthAuthProvider"`
 	AuthInfoStore           authinfo.Store              `dependency:"AuthInfoStore"`
 	RoleStore               role.Store                  `dependency:"RoleStore"`
 	TokenStore              authtoken.Store             `dependency:"TokenStore"`
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
+	ProviderFactory         sso.ProviderFactory         `dependency:"SSOProviderFactory"`
+	Provider                sso.Provider
+	SSOSetting              sso.Setting
 	ProviderName            string
 }
 
@@ -165,11 +168,9 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	// handle callback url by ux_mode
-	tConfig := config.GetTenantConfig(r)
-	SSOSetting := tConfig.SSOSetting
 	UXMode := oauthAuthInfo.State.UXMode
 	callbackURL := oauthAuthInfo.State.CallbackURL
-	allowedCallbackURLs := SSOSetting.AllowedCallbackURLs
+	allowedCallbackURLs := h.SSOSetting.AllowedCallbackURLs
 	err = h.validateCallbackURL(allowedCallbackURLs, callbackURL)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -197,8 +198,6 @@ func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.
 			default:
 				err = skyerr.NewError(skyerr.InvalidCredentials, ssoErr.Error())
 			}
-		} else {
-			return
 		}
 	}
 	return

@@ -157,3 +157,14 @@ func (p *ProviderFactory) NewProvider(name string) Provider {
 	}
 	return nil
 }
+
+func (p *ProviderFactory) Setting() Setting {
+	SSOSetting := p.tenantConfig.SSOSetting
+	return Setting{
+		URLPrefix:            SSOSetting.URLPrefix,
+		JSSDKCDNURL:          SSOSetting.JSSDKCDNURL,
+		StateJWTSecret:       SSOSetting.StateJWTSecret,
+		AutoLinkProviderKeys: SSOSetting.AutoLinkProviderKeys,
+		AllowedCallbackURLs:  SSOSetting.AllowedCallbackURLs,
+	}
+}

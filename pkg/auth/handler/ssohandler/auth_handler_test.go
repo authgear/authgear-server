@@ -17,7 +17,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
-	tenantConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
@@ -100,10 +99,7 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com",
 			"https://api.example.com/skygear.js",
 		)
-
-		// tenant config
-		tConfig := tenantConfig.NewTenantConfiguration()
-		tConfig.SSOSetting = tenantConfig.SSOSetting{
+		sh.SSOSetting = sso.Setting{
 			URLPrefix:      "http://localhost:3000",
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
@@ -131,7 +127,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			tenantConfig.SetTenantConfig(req, tConfig)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -213,7 +208,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			tenantConfig.SetTenantConfig(req, tConfig)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -245,7 +239,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			tenantConfig.SetTenantConfig(req, tConfig)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
