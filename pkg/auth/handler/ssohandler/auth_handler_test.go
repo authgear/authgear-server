@@ -100,7 +100,6 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com",
 			"https://api.example.com/skygear.js",
 		)
-		h := sh.Handler()
 
 		// tenant config
 		tConfig := tenantConfig.NewTenantConfiguration()
@@ -135,7 +134,7 @@ func TestAuthHandler(t *testing.T) {
 			tenantConfig.SetTenantConfig(req, tConfig)
 			resp := httptest.NewRecorder()
 
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			// for web_redirect, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 302)
 			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
@@ -217,7 +216,7 @@ func TestAuthHandler(t *testing.T) {
 			tenantConfig.SetTenantConfig(req, tConfig)
 			resp := httptest.NewRecorder()
 
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			// for web_redirect, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 200)
 			JSSKDURLPattern := `<script type="text/javascript" src="https://api.example.com/skygear.js"></script>`
@@ -249,7 +248,7 @@ func TestAuthHandler(t *testing.T) {
 			tenantConfig.SetTenantConfig(req, tConfig)
 			resp := httptest.NewRecorder()
 
-			h.ServeHTTP(resp, req)
+			sh.ServeHTTP(resp, req)
 			// for ios or android, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 302)
 			// check location result query parameter
