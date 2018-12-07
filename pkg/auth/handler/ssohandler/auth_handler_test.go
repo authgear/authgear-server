@@ -1,6 +1,8 @@
 package ssohandler
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -125,6 +127,27 @@ func TestAuthHandler(t *testing.T) {
 				// for web_redirect, it should redirect to original callback url
 				So(resp.Code, ShouldEqual, 302)
 				So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
+
+				cookies := resp.Result().Cookies()
+				So(cookies, ShouldNotBeEmpty)
+				var ssoDataCookie *http.Cookie
+				for _, c := range cookies {
+					if c.Name == "sso_data" {
+						ssoDataCookie = c
+						break
+					}
+				}
+				So(ssoDataCookie, ShouldNotBeNil)
+				decoded, err := base64.StdEncoding.DecodeString(ssoDataCookie.Value)
+				So(err, ShouldBeNil)
+				So(decoded, ShouldNotBeNil)
+				data := make(map[string]interface{})
+				err = json.Unmarshal(decoded, &data)
+				So(err, ShouldBeNil)
+				So(data["callback_url"], ShouldEqual, "http://localhost:3000")
+				// TODO: check authResp by ShouldEqualJSON
+				// So(data["result"], ShouldEqualJSON, `{
+				// }`)
 			})
 		})
 	})

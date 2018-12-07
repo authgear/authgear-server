@@ -1,6 +1,8 @@
 package ssohandler
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -164,7 +166,7 @@ func (h AuthHandler) Handler() http.Handler {
 			respErr = skyerr.MakeError(err)
 			return
 		}
-		_, err = h.getAuthResp(oauthAuthInfo)
+		authResp, err := h.getAuthResp(oauthAuthInfo)
 		if h.TxContext != nil {
 			h.TxContext.CommitTx()
 		}
@@ -172,25 +174,22 @@ func (h AuthHandler) Handler() http.Handler {
 		// handle callback url by ux_mode
 		tConfig := config.GetTenantConfig(r)
 		SSOSetting := tConfig.SSOSetting
-		err = h.validateCallbackURL(SSOSetting.AllowedCallbackURLs, oauthAuthInfo.State.CallbackURL)
+		UXMode := oauthAuthInfo.State.UXMode
+		callbackURL := oauthAuthInfo.State.CallbackURL
+		allowedCallbackURLs := SSOSetting.AllowedCallbackURLs
+		err = h.validateCallbackURL(allowedCallbackURLs, callbackURL)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		/*
-		   In JS oauth flow, result send through cookies and handler by js script
-
-		   Session data:
-		   sso_callback_url -- callback url for ux_mode == web_redirect
-		   sso_result       -- response json
-		*/
-		if oauthAuthInfo.State.UXMode == sso.WebRedirect.String() {
-			http.Redirect(rw, r, oauthAuthInfo.State.CallbackURL, http.StatusFound)
+		// handle authResp by UXMode
+		switch oauthAuthInfo.State.UXMode {
+		case sso.WebRedirect.String(), sso.WebPopup.String():
+			h.handleSessionResp(rw, r, UXMode, callbackURL, authResp)
+		case sso.IOS.String(), sso.Android.String():
+			h.handleRedirectResp(rw, r, UXMode, callbackURL, authResp)
 		}
-		// TODO: oauthAuthInfo.State.UXMode == sso.WebPopup.String()
-		// TODO: oauthAuthInfo.State.UXMode == sso.IOS.String()
-		// TODO: oauthAuthInfo.State.UXMode == sso.Android.String()
 	})
 }
 
@@ -348,4 +347,40 @@ func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackU
 	}
 
 	return
+}
+
+func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, authResp response.AuthResponse) {
+	/*
+	   In JS oauth flow, result send through cookies and handler by js script
+
+	   Session data:
+	   sso_callback_url -- callback url for ux_mode == web_redirect
+	   sso_result       -- response json
+	*/
+	data := make(map[string]interface{})
+	data["result"] = authResp
+	data["callback_url"] = callbackURL
+	msg, _ := json.Marshal(data)
+	encoded := base64.StdEncoding.EncodeToString([]byte(msg))
+	cookie := http.Cookie{
+		Name:  "sso_data",
+		Value: encoded,
+	}
+	if UXMode == sso.WebRedirect.String() {
+		http.SetCookie(rw, &cookie)
+		http.Redirect(rw, r, callbackURL, http.StatusFound)
+	} else {
+
+	}
+}
+
+func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, authResp response.AuthResponse) {
+	/*
+	   In ios and android oauth flow, after auth flow complete will redirect
+	   client back to the app with custom scheme
+	   result will be added to the url by query
+
+	   Example:
+	   myapp://user.skygear.io/sso/{provider}/auth_handler?result=
+	*/
 }
