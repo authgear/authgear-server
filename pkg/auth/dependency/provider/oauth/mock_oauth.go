@@ -27,6 +27,10 @@ func (m *MockProvider) GetPrincipalByProviderUserID(providerName string, provide
 	return nil, skydb.ErrUserNotFound
 }
 
+func (m *MockProvider) GetPrincipalByUserID(userID string) (*Principal, error) {
+	return nil, skydb.ErrUserNotFound
+}
+
 func (m *MockProvider) CreatePrincipal(principal Principal) error {
 	key := m.genKey(principal.ProviderName, principal.ProviderUserID)
 	m.PrincipalMap[key] = principal
