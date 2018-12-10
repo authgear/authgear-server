@@ -14,10 +14,17 @@ type VerifyCode struct {
 	Code        string
 	Consumed    bool
 	CreatedAt   time.Time
+
+	// cached value, by computing CreatedAt + expiry
+	expireAt *time.Time
 }
 
 func NewVerifyCode() VerifyCode {
 	return VerifyCode{
 		ID: uuid.New(),
 	}
+}
+
+func (v *VerifyCode) ExpireAt() *time.Time {
+	return v.expireAt
 }

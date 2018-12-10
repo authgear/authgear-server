@@ -16,6 +16,8 @@ type storeImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 	logger      *logrus.Entry
+
+	expiry int64
 }
 
 func newStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *storeImpl {
@@ -48,6 +50,11 @@ func (s *storeImpl) CreateVerifyCode(code *VerifyCode) (err error) {
 		code.Consumed,
 		code.CreatedAt,
 	)
+
+	if s.expiry > 0 {
+		expireAt := code.CreatedAt.Add(time.Second * time.Duration(s.expiry))
+		code.expireAt = &expireAt
+	}
 
 	_, err = s.sqlExecutor.ExecWith(builder)
 	return

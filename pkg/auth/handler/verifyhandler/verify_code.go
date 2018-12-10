@@ -130,6 +130,10 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 		return
 	}
 
+	if code.ExpireAt() != nil && timeNow().After(*code.ExpireAt()) {
+		err = skyerr.NewError(skyerr.InvalidArgument, "the code has expired")
+		return
+	}
 	resp = "OK"
 	return
 }
