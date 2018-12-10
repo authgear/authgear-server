@@ -8,7 +8,7 @@ type TxTask interface {
 }
 
 func TxTaskToTask(t TxTask, txContext db.TxContext) Task {
-	return TaskFunc(func(param interface{}) error {
+	return TaskFunc(func(param interface{}) (err error) {
 		if t.WithTx() {
 			// assume txContext != nil if apiHandler.WithTx() is true
 			if err := txContext.BeginTx(); err != nil {
@@ -16,12 +16,15 @@ func TxTaskToTask(t TxTask, txContext db.TxContext) Task {
 			}
 
 			defer func() {
-				if txContext.HasTx() {
+				if err != nil {
 					txContext.RollbackTx()
+				} else {
+					txContext.CommitTx()
 				}
 			}()
 		}
 
-		return t.Run(param)
+		err = t.Run(param)
+		return
 	})
 }
