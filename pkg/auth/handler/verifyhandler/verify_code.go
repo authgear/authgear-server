@@ -10,6 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -73,11 +74,14 @@ func (payload VerifyCodePayload) Validate() error {
 //  EOF
 //
 type VerifyCodeHandler struct {
-	TxContext        db.TxContext           `dependency:"TxContext"`
-	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
-	VerifyCodeStore  verifycode.Store       `dependency:"VerifyCodeStore"`
-	Logger           *logrus.Entry          `dependency:"HandlerLogger"`
+	TxContext              db.TxContext           `dependency:"TxContext"`
+	AuthContext            coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	UserProfileStore       userprofile.Store      `dependency:"UserProfileStore"`
+	VerifyCodeStore        verifycode.Store       `dependency:"VerifyCodeStore"`
+	AuthInfoStore          authinfo.Store         `dependency:"AuthInfoStore"`
+	AutoUpdateUserVerified bool                   `dependency:"AutoUpdateUserVerified"`
+	UserVerifyKeys         []string               `dependency:"UserVerifyKeys"`
+	Logger                 *logrus.Entry          `dependency:"HandlerLogger"`
 }
 
 func (h VerifyCodeHandler) WithTx() bool {
@@ -112,7 +116,6 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 		return
 	}
 
-	// TODO: update user verification state
 	authInfo := h.AuthContext.AuthInfo()
 	token := h.AuthContext.Token()
 	var userProfile userprofile.UserProfile
@@ -134,6 +137,23 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 		err = skyerr.NewError(skyerr.InvalidArgument, "the code has expired")
 		return
 	}
+
+	// Update code
+	code.Consumed = true
+	if err = h.VerifyCodeStore.UpdateVerifyCode(&code); err != nil {
+		return
+	}
+
+	// Update user
+	authInfo.VerifyInfo[code.RecordKey] = true
+	if h.AutoUpdateUserVerified {
+		h.updateVerified(authInfo)
+	}
+
+	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
+		return
+	}
+
 	resp = "OK"
 	return
 }
@@ -144,4 +164,16 @@ func (h VerifyCodeHandler) invalidCodeError(code string) error {
 		code, h.AuthContext.AuthInfo().ID,
 	)
 	return skyerr.NewInvalidArgument(msg, []string{"code"})
+}
+
+func (h VerifyCodeHandler) updateVerified(authInfo *authinfo.AuthInfo) {
+	allVerified := true
+	for _, key := range h.UserVerifyKeys {
+		if !authInfo.VerifyInfo[key] {
+			allVerified = false
+			break
+		}
+	}
+
+	authInfo.Verified = allVerified
 }

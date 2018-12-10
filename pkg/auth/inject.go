@@ -169,6 +169,8 @@ func (m DependencyMap) Provide(
 		return tConfig.UserVerify.AutoSendOnSignup
 	case "UserVerifyKeys":
 		return tConfig.UserVerify.Keys
+	case "AutoUpdateUserVerified":
+		return tConfig.UserVerify.AutoUpdate
 	case "AuditTrail":
 		trail, err := audit.NewTrail(tConfig.UserAudit.Enabled, tConfig.UserAudit.TrailHandlerURL)
 		if err != nil {

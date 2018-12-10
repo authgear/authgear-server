@@ -9,6 +9,7 @@ import (
 
 type Store interface {
 	CreateVerifyCode(code *VerifyCode) error
+	UpdateVerifyCode(code *VerifyCode) error
 	GetVerifyCodeByCode(code string, vCode *VerifyCode) error
 }
 
@@ -51,12 +52,28 @@ func (s *storeImpl) CreateVerifyCode(code *VerifyCode) (err error) {
 		code.CreatedAt,
 	)
 
-	if s.expiry > 0 {
-		expireAt := code.CreatedAt.Add(time.Second * time.Duration(s.expiry))
-		code.expireAt = &expireAt
-	}
+	s.updateCodeExpiry(code)
 
 	_, err = s.sqlExecutor.ExecWith(builder)
+	return
+}
+
+func (s *storeImpl) UpdateVerifyCode(code *VerifyCode) (err error) {
+	builder := s.sqlBuilder.Update(s.sqlBuilder.FullTableName("verify_code")).
+		Set("user_id", code.UserID).
+		Set("record_key", code.RecordKey).
+		Set("record_value", code.RecordValue).
+		Set("code", code.Code).
+		Set("consumed", code.Consumed).
+		Set("created_at", code.CreatedAt).
+		Where("id = ?", code.ID)
+
+	if _, err = s.sqlExecutor.ExecWith(builder); err != nil {
+		return
+	}
+
+	s.updateCodeExpiry(code)
+
 	return
 }
 
@@ -102,4 +119,13 @@ func (s *storeImpl) GetVerifyCodeByCode(code string, vCode *VerifyCode) (err err
 	vCode.CreatedAt = createdAt
 
 	return
+}
+
+func (s *storeImpl) updateCodeExpiry(code *VerifyCode) {
+	if s.expiry > 0 {
+		expireAt := code.CreatedAt.Add(time.Second * time.Duration(s.expiry))
+		code.expireAt = &expireAt
+	} else {
+		code.expireAt = nil
+	}
 }
