@@ -25,14 +25,16 @@ var timeNow = func() time.Time { return time.Now().UTC() }
 
 // AuthInfo contains a user's information for authentication purpose
 type AuthInfo struct {
-	ID              string     `json:"_id"`
-	Roles           []string   `json:"roles,omitempty"`
-	TokenValidSince *time.Time `json:"token_valid_since,omitempty"`
-	LastSeenAt      *time.Time `json:"last_seen_at,omitempty"`
-	LastLoginAt     *time.Time `json:"last_login_at,omitempty"`
-	Disabled        bool       `json:"disabled"`
-	DisabledMessage string     `json:"disabled_message,omitempty"`
-	DisabledExpiry  *time.Time `json:"disabled_expiry,omitempty"`
+	ID              string          `json:"_id"`
+	Roles           []string        `json:"roles,omitempty"`
+	TokenValidSince *time.Time      `json:"token_valid_since,omitempty"`
+	LastSeenAt      *time.Time      `json:"last_seen_at,omitempty"`
+	LastLoginAt     *time.Time      `json:"last_login_at,omitempty"`
+	Disabled        bool            `json:"disabled"`
+	DisabledMessage string          `json:"disabled_message,omitempty"`
+	DisabledExpiry  *time.Time      `json:"disabled_expiry,omitempty"`
+	Verified        bool            `json:"verified,omitempty"`
+	VerifyInfo      map[string]bool `json:"verify_info,omitempty"`
 }
 
 // NewAuthInfo returns a new AuthInfo with specified password.

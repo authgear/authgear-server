@@ -38,6 +38,25 @@ func (nj *NullJSON) Scan(value interface{}) error {
 	return err
 }
 
+type NullJSONMapBoolean struct {
+	JSON  map[string]bool
+	Valid bool
+}
+
+func (nj *NullJSONMapBoolean) Scan(value interface{}) error {
+	data, ok := value.([]byte)
+	if value == nil || !ok {
+		nj.JSON = nil
+		nj.Valid = false
+		return nil
+	}
+
+	err := json.Unmarshal(data, &nj.JSON)
+	nj.Valid = err == nil
+
+	return err
+}
+
 // NullJSONStringSlice will reject empty member, since pq will give [null]
 // array if we use `array_to_json` on null column. So the result slice will be
 // []string{}, but not []string{""}
@@ -76,4 +95,10 @@ type JSONMapValue map[string]interface{}
 
 func (m JSONMapValue) Value() (driver.Value, error) {
 	return json.Marshal(map[string]interface{}(m))
+}
+
+type JSONMapBooleanValue map[string]bool
+
+func (m JSONMapBooleanValue) Value() (driver.Value, error) {
+	return json.Marshal(map[string]bool(m))
 }
