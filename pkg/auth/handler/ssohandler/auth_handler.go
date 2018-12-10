@@ -162,9 +162,13 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		respErr = skyerr.MakeError(err)
 		return
 	}
-	authResp, err := h.getAuthResp(oauthAuthInfo)
+	resp, err := h.getResp(oauthAuthInfo)
 	if h.TxContext != nil {
 		h.TxContext.CommitTx()
+	}
+	if err != nil {
+		respErr = skyerr.MakeError(err)
+		return
 	}
 
 	// handle callback url by ux_mode
@@ -180,9 +184,9 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	// handle authResp by UXMode
 	switch oauthAuthInfo.State.UXMode {
 	case sso.WebRedirect.String(), sso.WebPopup.String():
-		h.handleSessionResp(rw, r, UXMode, callbackURL, authResp)
+		h.handleSessionResp(rw, r, UXMode, callbackURL, resp)
 	case sso.IOS.String(), sso.Android.String():
-		h.handleRedirectResp(rw, r, UXMode, callbackURL, authResp)
+		h.handleRedirectResp(rw, r, UXMode, callbackURL, resp)
 	}
 }
 
@@ -203,8 +207,9 @@ func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.
 	return
 }
 
-func (h AuthHandler) getAuthResp(oauthAuthInfo sso.AuthInfo) (resp response.AuthResponse, err error) {
+func (h AuthHandler) getResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
 	if oauthAuthInfo.State.Action == "login" {
+		// action => login
 		var info authinfo.AuthInfo
 		err = h.handleLogin(&info, oauthAuthInfo)
 		if err != nil {
@@ -223,7 +228,7 @@ func (h AuthHandler) getAuthResp(oauthAuthInfo sso.AuthInfo) (resp response.Auth
 
 		// TODO: convert oauthAuthInfo.UserProfile to userprofile.UserProfile
 		var userProfile userprofile.UserProfile
-		resp = response.NewAuthResponse(info, userProfile, token.AccessToken)
+		authResp := response.NewAuthResponse(info, userProfile, token.AccessToken)
 
 		// Populate the activity time to user
 		now := timeNow()
@@ -232,8 +237,50 @@ func (h AuthHandler) getAuthResp(oauthAuthInfo sso.AuthInfo) (resp response.Auth
 			err = skyerr.MakeError(err)
 			return
 		}
+
+		resp = map[string]interface{}{
+			"result": authResp,
+		}
 	} else {
-		// TODO: handle link action
+		// action => link
+		// check if provider user is already linked
+		_, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserID)
+		if err == nil {
+			err = skyerr.NewError(skyerr.InvalidArgument, "user linked to the provider already")
+			return resp, err
+		}
+
+		if err != skydb.ErrUserNotFound {
+			// some other error
+			return resp, err
+		}
+
+		// check if user is already linked
+		userID := oauthAuthInfo.State.UserID // skygear userID
+		_, err = h.OAuthAuthProvider.GetPrincipalByUserID(userID)
+		if err == nil {
+			err = skyerr.NewError(skyerr.InvalidArgument, "provider account already linked with existing user")
+			return resp, err
+		}
+
+		if err != skydb.ErrUserNotFound {
+			// some other error
+			return resp, err
+		}
+
+		var info authinfo.AuthInfo
+		if err = h.AuthInfoStore.GetAuth(userID, &info); err != nil {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+			return resp, err
+		}
+
+		err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
+		if err != nil {
+			return resp, err
+		}
+		resp = map[string]interface{}{
+			"result": "OK",
+		}
 	}
 
 	return
@@ -285,15 +332,7 @@ func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 			return
 		}
 
-		principal := oauth.NewPrincipal()
-		principal.UserID = info.ID
-		principal.ProviderName = oauthAuthInfo.ProviderName
-		principal.ProviderUserID = oauthAuthInfo.ProviderUserID
-		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
-		principal.UserProfile = oauthAuthInfo.ProviderUserProfile
-		principal.CreatedAt = &now
-		principal.UpdatedAt = &now
-		err = h.OAuthAuthProvider.CreatePrincipal(principal)
+		err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
 	} else {
 		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
 		principal.UserProfile = oauthAuthInfo.ProviderUserProfile
@@ -314,6 +353,19 @@ func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 		}
 	}
 	return
+}
+
+func (h AuthHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) error {
+	now := timeNow()
+	principal := oauth.NewPrincipal()
+	principal.UserID = userID
+	principal.ProviderName = oauthAuthInfo.ProviderName
+	principal.ProviderUserID = oauthAuthInfo.ProviderUserID
+	principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
+	principal.UserProfile = oauthAuthInfo.ProviderUserProfile
+	principal.CreatedAt = &now
+	principal.UpdatedAt = &now
+	return h.OAuthAuthProvider.CreatePrincipal(principal)
 }
 
 func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
@@ -340,7 +392,7 @@ func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackU
 	return
 }
 
-func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, authResp response.AuthResponse) {
+func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, resp interface{}) {
 	/*
 	   In JS oauth flow, result send through cookies and handler by js script
 
@@ -349,7 +401,7 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 	   sso_result       -- response json
 	*/
 	data := make(map[string]interface{})
-	data["result"] = authResp
+	data["result"] = resp
 	data["callback_url"] = callbackURL
 	msg, _ := json.Marshal(data)
 	encoded := base64.StdEncoding.EncodeToString([]byte(msg))
@@ -367,7 +419,7 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 	}
 }
 
-func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, authResp response.AuthResponse) {
+func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, resp interface{}) {
 	/*
 	   In ios and android oauth flow, after auth flow complete will redirect
 	   client back to the app with custom scheme
@@ -376,7 +428,7 @@ func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request,
 	   Example:
 	   myapp://user.skygear.io/sso/{provider}/auth_handler?result=
 	*/
-	authRespBytes, _ := json.Marshal(authResp)
+	authRespBytes, _ := json.Marshal(resp)
 	encodedResult := base64.StdEncoding.EncodeToString(authRespBytes)
 	v := url.Values{}
 	v.Set("result", encodedResult)

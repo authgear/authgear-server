@@ -19,6 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+
 	. "github.com/skygeario/skygear-server/pkg/server/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -61,7 +62,8 @@ func TestAuthHandler(t *testing.T) {
 		timeNow = realTime
 	}()
 
-	Convey("Test TestAuthURLHandler", t, func() {
+	Convey("Test TestAuthURLHandler with login action", t, func() {
+		action := "login"
 		stateJWTSecret := "secret"
 		sh := &AuthHandler{}
 		sh.TxContext = db.NewMockTxContext()
@@ -85,6 +87,7 @@ func TestAuthHandler(t *testing.T) {
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(
+			map[string]string{},
 			map[string]oauth.Principal{},
 		)
 		sh.OAuthAuthProvider = mockOAuthProvider
@@ -99,16 +102,9 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com",
 			"https://api.example.com/skygear.js",
 		)
-		sh.SSOSetting = sso.Setting{
-			URLPrefix:      "http://localhost:3000",
-			StateJWTSecret: stateJWTSecret,
-			AllowedCallbackURLs: []string{
-				"http://localhost",
-			},
-		}
+		sh.SSOSetting = setting
 
-		Convey("should return callback url when ux_mode is web_redirect and action is login", func() {
-			action := "login"
+		Convey("should return callback url when ux_mode is web_redirect", func() {
 			UXMode := "web_redirect"
 
 			// oauth state
@@ -171,25 +167,26 @@ func TestAuthHandler(t *testing.T) {
 			So(err, ShouldBeNil)
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(authResp, ShouldEqualJSON, fmt.Sprintf(`{
-				"user_id": "%s",
-				"profile": {
-					"_access": null,
-					"_created_at": "0001-01-01T00:00:00Z",
-					"_created_by": "",
-					"_id": "",
-					"_ownerID": "",
-					"_recordID": "",
-					"_recordType": "",
-					"_type": "",
-					"_updated_at": "0001-01-01T00:00:00Z",
-					"_updated_by": ""
-				},
-				"access_token": "%s"
-			}`, p.UserID, token.AccessToken))
+					"result": {
+						"user_id": "%s",
+						"profile": {
+							"_access": null,
+							"_created_at": "0001-01-01T00:00:00Z",
+							"_created_by": "",
+							"_id": "",
+							"_ownerID": "",
+							"_recordID": "",
+							"_recordType": "",
+							"_type": "",
+							"_updated_at": "0001-01-01T00:00:00Z",
+							"_updated_by": ""
+						},
+						"access_token": "%s"
+					}
+				}`, p.UserID, token.AccessToken))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
-			action := "login"
 			UXMode := "web_popup"
 
 			// oauth state
@@ -220,7 +217,6 @@ func TestAuthHandler(t *testing.T) {
 		})
 
 		Convey("should return callback url with result query parameter when ux_mode is ios or android", func() {
-			action := "login"
 			UXMode := "ios"
 
 			// oauth state
@@ -252,21 +248,185 @@ func TestAuthHandler(t *testing.T) {
 			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID("mock", "mock_user_id")
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(decoded, ShouldEqualJSON, fmt.Sprintf(`{
-				"user_id": "%s",
-				"profile": {
-					"_access": null,
-					"_created_at": "0001-01-01T00:00:00Z",
-					"_created_by": "",
-					"_id": "",
-					"_ownerID": "",
-					"_recordID": "",
-					"_recordType": "",
-					"_type": "",
-					"_updated_at": "0001-01-01T00:00:00Z",
-					"_updated_by": ""
+					"result": {
+						"user_id": "%s",
+						"profile": {
+							"_access": null,
+							"_created_at": "0001-01-01T00:00:00Z",
+							"_created_by": "",
+							"_id": "",
+							"_ownerID": "",
+							"_recordID": "",
+							"_recordType": "",
+							"_type": "",
+							"_updated_at": "0001-01-01T00:00:00Z",
+							"_updated_by": ""
+						},
+						"access_token": "%s"
+					}
+				}`, p.UserID, token.AccessToken))
+		})
+	})
+
+	Convey("Test TestAuthURLHandler with link action", t, func() {
+		action := "link"
+		stateJWTSecret := "secret"
+		sh := &AuthHandler{}
+		sh.TxContext = db.NewMockTxContext()
+		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		setting := sso.Setting{
+			URLPrefix:      "http://localhost:3000",
+			StateJWTSecret: stateJWTSecret,
+			AllowedCallbackURLs: []string{
+				"http://localhost",
+			},
+		}
+		config := sso.Config{
+			Name:         "mock",
+			ClientID:     "mock_client_id",
+			ClientSecret: "mock_client_secret",
+		}
+		mockProvider := sso.MockSSOProverImpl{
+			BaseURL: "http://mock/auth",
+			Setting: setting,
+			Config:  config,
+		}
+		sh.Provider = &mockProvider
+		mockOAuthProvider := oauth.NewMockProvider(
+			map[string]string{
+				"jane.doe.id": "jane.doe.id",
+			},
+			map[string]oauth.Principal{
+				"jane.doe.id": oauth.Principal{},
+			},
+		)
+		sh.OAuthAuthProvider = mockOAuthProvider
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{
+				"john.doe.id": authinfo.AuthInfo{
+					ID: "john.doe.id",
+					Roles: []string{
+						"admin",
+						"developer",
+						"human",
+					},
 				},
-				"access_token": "%s"
-			}`, p.UserID, token.AccessToken))
+				"jane.doe.id": authinfo.AuthInfo{
+					ID: "jane.doe.id",
+					Roles: []string{
+						"human",
+					},
+				},
+			},
+		)
+		sh.AuthInfoStore = authInfoStore
+		mockTokenStore := authtoken.NewMockStore()
+		sh.TokenStore = mockTokenStore
+		sh.RoleStore = role.NewMockStore()
+		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
+			"https://api.example.com",
+			"https://api.example.com/skygear.js",
+		)
+		sh.SSOSetting = setting
+
+		Convey("should return callback url when ux_mode is web_redirect", func() {
+			UXMode := "web_redirect"
+
+			// oauth state
+			state := sso.State{
+				CallbackURL: "http://localhost:3000",
+				UXMode:      UXMode,
+				Action:      action,
+				UserID:      "john.doe.id",
+			}
+			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
+			}
+
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			resp := httptest.NewRecorder()
+
+			sh.ServeHTTP(resp, req)
+			// for web_redirect, it should redirect to original callback url
+			So(resp.Code, ShouldEqual, 302)
+			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
+
+			// check cookies
+			// it should have following format
+			// {
+			// 	"callback_url": "callback_url"
+			// 	"result": authResp
+			// }
+			cookies := resp.Result().Cookies()
+			So(cookies, ShouldNotBeEmpty)
+			var ssoDataCookie *http.Cookie
+			for _, c := range cookies {
+				if c.Name == "sso_data" {
+					ssoDataCookie = c
+					break
+				}
+			}
+			So(ssoDataCookie, ShouldNotBeNil)
+
+			// decoded it first
+			decoded, err := base64.StdEncoding.DecodeString(ssoDataCookie.Value)
+			So(err, ShouldBeNil)
+			So(decoded, ShouldNotBeNil)
+
+			// Unmarshal to map
+			data := make(map[string]interface{})
+			err = json.Unmarshal(decoded, &data)
+			So(err, ShouldBeNil)
+
+			// check callback_url
+			So(data["callback_url"], ShouldEqual, "http://localhost:3000")
+
+			// check result(resp)
+			result, err := json.Marshal(data["result"])
+			So(err, ShouldBeNil)
+			So(string(result), ShouldEqualJSON, `{
+				"result": "OK"
+			}`)
+		})
+
+		Convey("should get err if user is already linked", func() {
+			UXMode := "web_redirect"
+
+			// oauth state
+			state := sso.State{
+				CallbackURL: "http://localhost:3000",
+				UXMode:      UXMode,
+				Action:      action,
+				UserID:      "jane.doe.id",
+			}
+			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
+			}
+
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			resp := httptest.NewRecorder()
+
+			sh.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.String(), ShouldEqualJSON, `
+					{
+						"error":{
+							"name": "InvalidArgument",
+							"code": 108,
+							"message": "provider account already linked with existing user"
+						}
+					}
+				`)
 		})
 	})
 }
