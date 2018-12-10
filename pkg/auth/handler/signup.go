@@ -201,6 +201,12 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
+	// Initialise verify state
+	info.VerifyInfo = map[string]bool{}
+	for _, key := range h.UserVerifyKeys {
+		info.VerifyInfo[key] = false
+	}
+
 	resp = response.NewAuthResponse(info, userProfile, tkn.AccessToken)
 
 	// Populate the activity time to user
