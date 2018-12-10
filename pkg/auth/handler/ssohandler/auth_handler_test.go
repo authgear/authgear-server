@@ -167,7 +167,7 @@ func TestAuthHandler(t *testing.T) {
 			// check result(authResp)
 			authResp, err := json.Marshal(data["result"])
 			So(err, ShouldBeNil)
-			p, err := sh.OAuthAuthProvider.GetPrincipalByUserID("mock", "mock_user_id")
+			p, err := sh.OAuthAuthProvider.GetPrincipalByProviderUserID("mock", "mock_user_id")
 			So(err, ShouldBeNil)
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(authResp, ShouldEqualJSON, fmt.Sprintf(`{
@@ -249,7 +249,7 @@ func TestAuthHandler(t *testing.T) {
 			q := location.Query()
 			result := q.Get("result")
 			decoded, _ := base64.StdEncoding.DecodeString(result)
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByUserID("mock", "mock_user_id")
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID("mock", "mock_user_id")
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(decoded, ShouldEqualJSON, fmt.Sprintf(`{
 				"user_id": "%s",

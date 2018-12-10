@@ -49,11 +49,11 @@ func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 	}
 
 	authInfo = AuthInfo{
-		ProviderName:    h.providerName,
-		State:           state,
-		UserID:          userID,
-		UserProfile:     userProfile,
-		AccessTokenResp: accessTokenResp,
+		ProviderName:            h.providerName,
+		State:                   state,
+		ProviderUserID:          userID,
+		ProviderUserProfile:     userProfile,
+		ProviderAccessTokenResp: accessTokenResp,
 	}
 
 	return

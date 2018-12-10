@@ -93,11 +93,11 @@ type Config struct {
 
 // AuthInfo contains auth info from HandleAuthzResp
 type AuthInfo struct {
-	ProviderName    string
-	State           State
-	UserID          string
-	UserProfile     interface{}
-	AccessTokenResp interface{}
+	ProviderName            string
+	ProviderUserID          string
+	ProviderUserProfile     interface{}
+	ProviderAccessTokenResp interface{}
+	State                   State
 }
 
 // Provider defines SSO interface

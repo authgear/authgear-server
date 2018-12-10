@@ -243,7 +243,7 @@ func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 	createNewUser := false
 	now := timeNow()
 
-	principal, err := h.OAuthAuthProvider.GetPrincipalByUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.UserID)
+	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserID)
 	if err != nil {
 		if err != skydb.ErrUserNotFound {
 			return
@@ -288,15 +288,15 @@ func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 		principal := oauth.NewPrincipal()
 		principal.UserID = info.ID
 		principal.ProviderName = oauthAuthInfo.ProviderName
-		principal.ProviderUserID = oauthAuthInfo.UserID
-		principal.AccessTokenResp = oauthAuthInfo.AccessTokenResp
-		principal.UserProfile = oauthAuthInfo.UserProfile
+		principal.ProviderUserID = oauthAuthInfo.ProviderUserID
+		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
+		principal.UserProfile = oauthAuthInfo.ProviderUserProfile
 		principal.CreatedAt = &now
 		principal.UpdatedAt = &now
 		err = h.OAuthAuthProvider.CreatePrincipal(principal)
 	} else {
-		principal.AccessTokenResp = oauthAuthInfo.AccessTokenResp
-		principal.UserProfile = oauthAuthInfo.UserProfile
+		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
+		principal.UserProfile = oauthAuthInfo.ProviderUserProfile
 		principal.UpdatedAt = &now
 
 		if err = h.OAuthAuthProvider.UpdatePrincipal(principal); err != nil {

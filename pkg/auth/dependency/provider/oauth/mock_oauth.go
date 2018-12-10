@@ -14,12 +14,12 @@ func NewMockProvider(principalMap map[string]Principal) *MockProvider {
 	}
 }
 
-func (m *MockProvider) genKey(providerName string, userID string) string {
-	return providerName + "." + userID
+func (m *MockProvider) genKey(providerName string, providerUserID string) string {
+	return providerName + "." + providerUserID
 }
 
-func (m *MockProvider) GetPrincipalByUserID(providerName string, userID string) (*Principal, error) {
-	key := m.genKey(providerName, userID)
+func (m *MockProvider) GetPrincipalByProviderUserID(providerName string, providerUserID string) (*Principal, error) {
+	key := m.genKey(providerName, providerUserID)
 	if principal, ok := m.PrincipalMap[key]; ok {
 		return &principal, nil
 	}

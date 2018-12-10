@@ -22,9 +22,9 @@ func NewSafeProvider(
 	}
 }
 
-func (p *safeProviderImpl) GetPrincipalByUserID(providerName string, userID string) (*Principal, error) {
+func (p *safeProviderImpl) GetPrincipalByProviderUserID(providerName string, providerUserID string) (*Principal, error) {
 	p.txContext.EnsureTx()
-	return p.impl.GetPrincipalByUserID(providerName, userID)
+	return p.impl.GetPrincipalByProviderUserID(providerName, providerUserID)
 }
 
 func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
