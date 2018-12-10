@@ -7,6 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -72,10 +73,11 @@ func (payload VerifyCodePayload) Validate() error {
 //  EOF
 //
 type VerifyCodeHandler struct {
-	TxContext       db.TxContext           `dependency:"TxContext"`
-	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	VerifyCodeStore verifycode.Store       `dependency:"VerifyCodeStore"`
-	Logger          *logrus.Entry          `dependency:"HandlerLogger"`
+	TxContext        db.TxContext           `dependency:"TxContext"`
+	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
+	VerifyCodeStore  verifycode.Store       `dependency:"VerifyCodeStore"`
+	Logger           *logrus.Entry          `dependency:"HandlerLogger"`
 }
 
 func (h VerifyCodeHandler) WithTx() bool {
@@ -111,6 +113,22 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 	}
 
 	// TODO: update user verification state
+	authInfo := h.AuthContext.AuthInfo()
+	token := h.AuthContext.Token()
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID, token.AccessToken); err != nil {
+		h.Logger.WithField("user_id", authInfo.ID).Error("unexpected user not found")
+		err = skyerr.NewError(skyerr.UnexpectedUserNotFound, "user not found")
+		return
+	}
+
+	if userProfile.Data[code.RecordKey] != code.RecordValue {
+		err = skyerr.NewError(
+			skyerr.InvalidArgument,
+			"the user data has since been modified, a new verification is required",
+		)
+		return
+	}
 
 	resp = "OK"
 	return
