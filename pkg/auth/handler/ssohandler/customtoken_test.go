@@ -39,6 +39,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh.TokenStore = mockTokenStore
 		lh.RoleStore = role.NewMockStore()
 		lh.AuditTrail = audit.NewMockTrail(t)
+		lh.UserVerifyKeys = []string{"email"}
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("create user account with custom token", func(c C) {
@@ -86,7 +87,9 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						"email": "John@skygear.io",
 						"name": "John Doe"
 					},
-					"access_token": "%s"
+					"access_token": "%s",
+					"verified": false,
+					"verify_info": {"email": false}
 				}
 			}`,
 				p.UserID,
