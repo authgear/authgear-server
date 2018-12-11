@@ -1,4 +1,4 @@
-package ssohandler
+package sso
 
 import (
 	"net/url"
