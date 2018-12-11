@@ -19,6 +19,10 @@ func DownloadTemplateFromURL(url string) (string, error) {
 		return "", err
 	}
 
+	if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
+		return "", fmt.Errorf("unsuccessful request: %s", resp.Status)
+	}
+
 	var body string
 	if body, err = resp.Body.ToString(); err != nil {
 		return "", err
