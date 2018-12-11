@@ -11,6 +11,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -90,6 +91,7 @@ func (p ChangePasswordRequestPayload) Validate() error {
 type ChangePasswordHandler struct {
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	PasswordChecker      dependency.PasswordChecker `dependency:"PasswordChecker"`
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
@@ -137,6 +139,13 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		if err != nil {
 			return
 		}
+	}
+
+	now := timeNow()
+	authinfo.TokenValidSince = &now
+	err = h.AuthInfoStore.UpdateAuth(authinfo)
+	if err != nil {
+		return
 	}
 
 	// generate access-token
