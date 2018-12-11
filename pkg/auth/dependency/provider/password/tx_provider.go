@@ -15,10 +15,11 @@ func NewSafeProvider(
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
 	authRecordKeys [][]string,
+	passwordHistoryEnabled bool,
 	txContext db.SafeTxContext,
 ) Provider {
 	return &safeProviderImpl{
-		impl:      newProvider(builder, executor, logger, authRecordKeys),
+		impl:      newProvider(builder, executor, logger, authRecordKeys, passwordHistoryEnabled),
 		txContext: txContext,
 	}
 }

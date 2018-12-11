@@ -3,19 +3,29 @@ package password
 import (
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
+	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	timeNow = func() time.Time { return time.Now().UTC() }
 )
 
 type providerImpl struct {
-	sqlBuilder      db.SQLBuilder
-	sqlExecutor     db.SQLExecutor
-	logger          *logrus.Entry
-	authRecordKeys  [][]string
-	authDataChecker authDataChecker
+	sqlBuilder             db.SQLBuilder
+	sqlExecutor            db.SQLExecutor
+	logger                 *logrus.Entry
+	authRecordKeys         [][]string
+	authDataChecker        authDataChecker
+	passwordHistoryEnabled bool
+	passwordHistoryStore   passwordhistory.Store
 }
 
 func newProvider(
@@ -23,6 +33,7 @@ func newProvider(
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
 	authRecordKeys [][]string,
+	passwordHistoryEnabled bool,
 ) *providerImpl {
 	return &providerImpl{
 		sqlBuilder:     builder,
@@ -32,6 +43,10 @@ func newProvider(
 		authDataChecker: defaultAuthDataChecker{
 			authRecordKeys: authRecordKeys,
 		},
+		passwordHistoryEnabled: passwordHistoryEnabled,
+		passwordHistoryStore: pqPWHistory.NewPasswordHistoryStore(
+			builder, executor, logger,
+		),
 	}
 }
 
@@ -40,8 +55,9 @@ func NewProvider(
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
 	authRecordKeys [][]string,
+	passwordHistoryEnabled bool,
 ) Provider {
-	return newProvider(builder, executor, logger, authRecordKeys)
+	return newProvider(builder, executor, logger, authRecordKeys, passwordHistoryEnabled)
 }
 
 func (p providerImpl) IsAuthDataValid(authData map[string]interface{}) bool {
@@ -112,6 +128,12 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 		if db.IsUniqueViolated(err) {
 			err = skydb.ErrUserDuplicated
 		}
+	}
+
+	if p.passwordHistoryEnabled {
+		p.passwordHistoryStore.CreatePasswordHistory(
+			principal.UserID, hashedPassword, timeNow(),
+		)
 	}
 
 	return
@@ -300,6 +322,17 @@ func (p providerImpl) UpdatePrincipal(principal Principal) (err error) {
 		if db.IsUniqueViolated(err) {
 			err = skydb.ErrUserDuplicated
 		}
+
+		return
+	}
+
+	var isPasswordChanged = !principal.IsSamePassword(principal.PlainPassword)
+	principal.HashedPassword = hashedPassword
+
+	if p.passwordHistoryEnabled && isPasswordChanged {
+		err = p.passwordHistoryStore.CreatePasswordHistory(
+			principal.UserID, hashedPassword, timeNow(),
+		)
 	}
 
 	return

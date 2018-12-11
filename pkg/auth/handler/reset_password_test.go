@@ -3,6 +3,7 @@ package handler
 import (
 	"testing"
 
+	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
@@ -75,7 +76,7 @@ func TestResetPasswordHandler(t *testing.T) {
 			},
 		)
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
-		passwordChecker := &audit.PasswordChecker{
+		passwordChecker := &authAudit.PasswordChecker{
 			PwMinLength: 6,
 		}
 

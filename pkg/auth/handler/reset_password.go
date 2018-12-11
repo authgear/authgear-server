@@ -8,7 +8,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
+	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -71,7 +71,7 @@ func (p ResetPasswordRequestPayload) Validate() error {
 
 // ResetPasswordHandler handles signup request
 type ResetPasswordHandler struct {
-	PasswordChecker      dependency.PasswordChecker `dependency:"PasswordChecker"`
+	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
@@ -105,8 +105,9 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	if err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 		PlainPassword: payload.Password,
+		AuthID:        payload.AuthInfoID,
 	}); err != nil {
 		return
 	}

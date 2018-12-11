@@ -21,6 +21,7 @@ import (
 	"github.com/nbutton23/zxcvbn-go"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
@@ -235,9 +236,6 @@ type ValidatePasswordPayload struct {
 	AuthID        string
 	PlainPassword string
 	UserData      map[string]interface{}
-
-	// TODO: password history
-	// Conn skydb.Conn
 }
 
 type PasswordChecker struct {
@@ -252,6 +250,7 @@ type PasswordChecker struct {
 	PwHistorySize          int
 	PwHistoryDays          int
 	PasswordHistoryEnabled bool
+	PasswordHistoryStore   passwordhistory.Store
 }
 
 func (pc *PasswordChecker) checkPasswordLength(password string) skyerr.Error {
@@ -361,40 +360,41 @@ func (pc *PasswordChecker) checkPasswordGuessableLevel(password string, userData
 	return nil
 }
 
-// TODO: password history
-// func (pc *PasswordChecker) checkPasswordHistory(password, authID string, conn skydb.Conn) skyerr.Error {
-// 	makeErr := func() skyerr.Error {
-// 		return MakePasswordError(
-// 			PasswordReused,
-// 			"password reused",
-// 			map[string]interface{}{
-// 				"history_size": pc.PwHistorySize,
-// 				"history_days": pc.PwHistoryDays,
-// 			},
-// 		)
-// 	}
+func (pc *PasswordChecker) checkPasswordHistory(password, authID string) skyerr.Error {
+	makeErr := func() skyerr.Error {
+		return MakePasswordError(
+			PasswordReused,
+			"password reused",
+			map[string]interface{}{
+				"history_size": pc.PwHistorySize,
+				"history_days": pc.PwHistoryDays,
+			},
+		)
+	}
 
-// 	if pc.shouldCheckPasswordHistory() && authID != "" {
-// 		history, err := conn.GetPasswordHistory(
-// 			authID,
-// 			pc.PwHistorySize,
-// 			pc.PwHistoryDays,
-// 		)
-// 		if err != nil {
-// 			return makeErr()
-// 		}
-// 		for _, ph := range history {
-// 			if IsSamePassword(ph.HashedPassword, password) {
-// 				return makeErr()
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
+	if pc.shouldCheckPasswordHistory() && authID != "" {
+		history, err := pc.PasswordHistoryStore.GetPasswordHistory(
+			authID,
+			pc.PwHistorySize,
+			pc.PwHistoryDays,
+		)
+		if err != nil {
+			return makeErr()
+		}
+		for _, ph := range history {
+			if IsSamePassword(ph.HashedPassword, password) {
+				return makeErr()
+			}
+		}
+	}
+	return nil
+}
 
 func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) skyerr.Error {
 	password := payload.PlainPassword
 	userData := payload.UserData
+	authID := payload.AuthID
+
 	if err := pc.checkPasswordLength(password); err != nil {
 		return err
 	}
@@ -420,9 +420,7 @@ func (pc *PasswordChecker) ValidatePassword(payload ValidatePasswordPayload) sky
 		return err
 	}
 
-	// TODO: password history
-
-	return nil
+	return pc.checkPasswordHistory(password, authID)
 }
 
 func (pc *PasswordChecker) ShouldSavePasswordHistory() bool {
