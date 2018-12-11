@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
@@ -125,7 +125,7 @@ type SignupHandler struct {
 	WelcomeEmailSendTask   *welcemail.SendTask        `dependency:"WelcomeEmailSendTask"`
 	AutoSendUserVerifyCode bool                       `dependency:"AutoSendUserVerifyCodeOnSignup"`
 	UserVerifyKeys         []string                   `dependency:"UserVerifyKeys"`
-	VerifyCodeStore        verifycode.Store           `dependency:"VerifyCodeStore"`
+	VerifyCodeStore        userverify.Store           `dependency:"VerifyCodeStore"`
 	TxContext              db.TxContext               `dependency:"TxContext"`
 	Logger                 *logrus.Entry              `dependency:"HandlerLogger"`
 	TaskQueue              *async.Queue               `dependency:"AsyncTaskQueue"`

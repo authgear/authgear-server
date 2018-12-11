@@ -5,7 +5,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	"github.com/sirupsen/logrus"
@@ -158,11 +157,13 @@ func (m DependencyMap) Provide(
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(tConfig.SSOSetting.URLPrefix, tConfig.SSOSetting.JSSDKCDNURL)
 	case "VerifyCodeStore":
-		return verifycode.NewStore(
+		return userverify.NewStore(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 			logging.CreateLoggerWithRequestID(requestID, "verify_code", createLoggerMaskFormatter(tConfig)),
 		)
+	case "VerifyCodeCodeGeneratorFactory":
+		return userverify.NewDefaultCodeGeneratorFactory(tConfig)
 	case "UserVerifyCodeSenderFactory":
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig)
 	case "AutoSendUserVerifyCodeOnSignup":

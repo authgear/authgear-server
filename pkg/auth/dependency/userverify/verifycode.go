@@ -1,4 +1,4 @@
-package verifycode
+package userverify
 
 import (
 	"time"

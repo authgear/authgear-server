@@ -12,7 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
 )
 
 const (
@@ -41,10 +40,11 @@ func (c *VerifyCodeSendTaskFactory) NewTask(ctx context.Context, taskCtx async.T
 }
 
 type VerifyCodeSendTask struct {
-	CodeSenderFactory userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
-	VerifyCodeStore   verifycode.Store             `dependency:"VerifyCodeStore"`
-	TxContext         db.TxContext                 `dependency:"TxContext"`
-	Logger            *logrus.Entry                `dependency:"HandlerLogger"`
+	CodeSenderFactory    userverify.CodeSenderFactory    `dependency:"UserVerifyCodeSenderFactory"`
+	CodeGeneratorFactory userverify.CodeGeneratorFactory `dependency:"VerifyCodeCodeGeneratorFactory"`
+	VerifyCodeStore      userverify.Store                `dependency:"VerifyCodeStore"`
+	TxContext            db.TxContext                    `dependency:"TxContext"`
+	Logger               *logrus.Entry                   `dependency:"HandlerLogger"`
 }
 
 type VerifyCodeSendTaskParam struct {
@@ -65,17 +65,10 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 		"userID": taskParam.UserProfile.ID,
 	}).Info("start sending user verify requests")
 
-	code := codeSender.Generate()
-	if err = codeSender.Send(code, taskParam.Key, taskParam.Value, taskParam.UserProfile); err != nil {
-		v.Logger.WithFields(logrus.Fields{
-			"error":        err,
-			"record_key":   taskParam.Key,
-			"record_value": taskParam.Value,
-		}).Error("fail to send verify request")
-		return
-	}
+	codeGenerator := v.CodeGeneratorFactory.NewCodeGenerator(taskParam.Key)
+	code := codeGenerator.Generate()
 
-	verifyCode := verifycode.NewVerifyCode()
+	verifyCode := userverify.NewVerifyCode()
 	verifyCode.UserID = taskParam.UserProfile.RecordID
 	verifyCode.RecordKey = taskParam.Key
 	verifyCode.RecordValue = taskParam.Value
@@ -84,6 +77,15 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	verifyCode.CreatedAt = time.Now()
 
 	if err = v.VerifyCodeStore.CreateVerifyCode(&verifyCode); err != nil {
+		return
+	}
+
+	if err = codeSender.Send(verifyCode, taskParam.UserProfile); err != nil {
+		v.Logger.WithFields(logrus.Fields{
+			"error":        err,
+			"record_key":   taskParam.Key,
+			"record_value": taskParam.Value,
+		}).Error("fail to send verify request")
 		return
 	}
 

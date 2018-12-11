@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -77,7 +77,7 @@ type VerifyCodeHandler struct {
 	TxContext              db.TxContext           `dependency:"TxContext"`
 	AuthContext            coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	UserProfileStore       userprofile.Store      `dependency:"UserProfileStore"`
-	VerifyCodeStore        verifycode.Store       `dependency:"VerifyCodeStore"`
+	VerifyCodeStore        userverify.Store       `dependency:"VerifyCodeStore"`
 	AuthInfoStore          authinfo.Store         `dependency:"AuthInfoStore"`
 	AutoUpdateUserVerified bool                   `dependency:"AutoUpdateUserVerified"`
 	UserVerifyKeys         []string               `dependency:"UserVerifyKeys"`
@@ -100,7 +100,7 @@ func (h VerifyCodeHandler) DecodeRequest(request *http.Request) (handler.Request
 
 func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyCodePayload)
-	code := verifycode.VerifyCode{}
+	code := userverify.VerifyCode{}
 
 	if err = h.VerifyCodeStore.GetVerifyCodeByCode(payload.Code, &code); err != nil {
 		h.Logger.WithFields(map[string]interface{}{
