@@ -2,10 +2,20 @@ package template
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"github.com/flosch/pongo2"
 	"github.com/franela/goreq"
 )
+
+func DownloadTemplateFromFilePath(filepath string) (string, error) {
+	buf, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return "", err
+	}
+
+	return string(buf), nil
+}
 
 func DownloadTemplateFromURL(url string) (string, error) {
 	req := goreq.Request{
