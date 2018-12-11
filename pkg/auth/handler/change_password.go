@@ -5,12 +5,21 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/core/audit"
+	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func AttachChangePasswordHandler(
@@ -45,17 +54,47 @@ func (f ChangePasswordHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type ChangePasswordRequestPayload struct {
-	Password    string `json:"password"`
+	NewPassword string `json:"password"`
 	OldPassword string `json:"old_password"`
 }
 
 func (p ChangePasswordRequestPayload) Validate() error {
+	if p.OldPassword == "" {
+		return skyerr.NewInvalidArgument("empty old password", []string{"old_password"})
+	}
+	if p.NewPassword == "" {
+		return skyerr.NewInvalidArgument("empty password", []string{"password"})
+	}
 	return nil
 }
 
-// ChangePasswordHandler handles change password request
+// ChangePasswordHandler change the current user password
+//
+// ChangePasswordHandler receives old and new password:
+//
+// * old_password (string, required)
+// * password (string, required)
+//
+// If user is not logged in, an 401 unauthorized will return.
+//
+//  Current implementation
+//  curl -X POST -H "Content-Type: application/json" \
+//    -d @- http://localhost:3000/change_password <<EOF
+//  {
+//      "old_password": "oldpassword",
+//      "password": "newpassword"
+//  }
+//  EOF
+// Response
+// return auth response with new access token
 type ChangePasswordHandler struct {
-	TxContext db.TxContext `dependency:"TxContext"`
+	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
+	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	PasswordChecker      dependency.PasswordChecker `dependency:"PasswordChecker"`
+	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	TxContext            db.TxContext               `dependency:"TxContext"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 }
 
 func (h ChangePasswordHandler) WithTx() bool {
@@ -69,7 +108,61 @@ func (h ChangePasswordHandler) DecodeRequest(request *http.Request) (handler.Req
 	return payload, err
 }
 
-// Handle function handles the request
 func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(ChangePasswordRequestPayload)
+	authinfo := h.AuthContext.AuthInfo()
+
+	if err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+		PlainPassword: payload.NewPassword,
+	}); err != nil {
+		return
+	}
+
+	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+			return
+		}
+		return
+	}
+
+	for _, p := range principals {
+		if !p.IsSamePassword(payload.OldPassword) {
+			err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
+			return
+		}
+		p.PlainPassword = payload.NewPassword
+		err = h.PasswordAuthProvider.UpdatePrincipal(*p)
+		if err != nil {
+			return
+		}
+	}
+
+	// generate access-token
+	token, err := h.TokenStore.NewToken(authinfo.ID)
+	if err != nil {
+		panic(err)
+	}
+
+	if err = h.TokenStore.Put(&token); err != nil {
+		panic(err)
+	}
+
+	// Get Profile
+	var userProfile userprofile.UserProfile
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authinfo.ID, token.AccessToken); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
+		return
+	}
+
+	resp = response.NewAuthResponse(*authinfo, userProfile, token.AccessToken)
+	h.AuditTrail.Log(audit.Entry{
+		AuthID: authinfo.ID,
+		Event:  audit.EventChangePassword,
+	})
+
 	return
 }
