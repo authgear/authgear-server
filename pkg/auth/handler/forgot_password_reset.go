@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
@@ -201,7 +202,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		return
 	}
 
-	resp = "OK"
+	resp = response.NewAuthResponse(authInfo, userProfile, token.AccessToken)
 	return
 }
 
