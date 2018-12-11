@@ -45,6 +45,7 @@ type ForgotPasswordResetHandlerFactory struct {
 func (f ForgotPasswordResetHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordResetHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
+	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
@@ -99,6 +100,7 @@ type ForgotPasswordResetHandler struct {
 	AuthInfoStore        authinfo.Store                `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider             `dependency:"PasswordAuthProvider"`
 	UserProfileStore     userprofile.Store             `dependency:"UserProfileStore"`
+	AuditTrail           audit.Trail                   `dependency:"AuditTrail"`
 	TxContext            db.TxContext                  `dependency:"TxContext"`
 	Logger               *logrus.Entry                 `dependency:"HandlerLogger"`
 }
@@ -203,6 +205,14 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	}
 
 	resp = response.NewAuthResponse(authInfo, userProfile, token.AccessToken)
+	h.AuditTrail.Log(audit.Entry{
+		AuthID: authInfo.ID,
+		Event:  audit.EventResetPassword,
+		Data: map[string]interface{}{
+			"type": "forgot_password",
+		},
+	})
+
 	return
 }
 
