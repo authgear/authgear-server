@@ -127,6 +127,13 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		}
 	}
 
+	now := timeNow()
+	authinfo.TokenValidSince = &now
+	err = h.AuthInfoStore.UpdateAuth(&authinfo)
+	if err != nil {
+		return
+	}
+
 	// generate access-token
 	token, err := h.TokenStore.NewToken(authinfo.ID)
 	if err != nil {
