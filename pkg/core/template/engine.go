@@ -4,6 +4,11 @@ import (
 	"fmt"
 )
 
+var (
+	downloadFromFilePath = DownloadTemplateFromFilePath
+	downloadFromURL      = DownloadTemplateFromURL
+)
+
 // Engine parse templates with given url, and fallback to a default one if the
 // given one not found
 type Engine struct {
@@ -56,7 +61,7 @@ func (e *Engine) parseWithDefaultFallback(
 	var templateBody string
 	url, found := e.urlMap[templateName]
 	if found {
-		if templateBody, err = DownloadTemplateFromURL(url); err == nil {
+		if templateBody, err = downloadFromURL(url); err == nil {
 			out, err = parseFunc(templateBody, context)
 			return
 		}
@@ -73,7 +78,7 @@ func (e *Engine) parseWithDefaultFallback(
 		panic(fmt.Errorf("unexpected default template with name `%s` not found", templateName))
 	}
 
-	if templateBody, err = DownloadTemplateFromFilePath(url); err != nil {
+	if templateBody, err = downloadFromFilePath(url); err != nil {
 		panic(fmt.Errorf("unexpected unable to get content of default template with name `%s`", templateName))
 	}
 
