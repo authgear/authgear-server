@@ -39,7 +39,8 @@ type LoginHandlerFactory struct {
 
 func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
+	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

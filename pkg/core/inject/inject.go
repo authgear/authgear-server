@@ -1,29 +1,54 @@
 package inject
 
 import (
+	"context"
 	"net/http"
 	"reflect"
 	"strings"
 
+	"github.com/skygeario/skygear-server/pkg/core/async"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
-type Map interface {
+type RequestDependencyMap interface {
 	Provide(name string, request *http.Request) interface{}
 }
 
-func DefaultInject(
+type DependencyMap interface {
+	Provide(name string, ctx context.Context, requestID string, tenantConfig config.TenantConfiguration) interface{}
+}
+
+func DefaultRequestInject(
 	i interface{},
-	dependencyMap Map,
+	dependencyMap DependencyMap,
 	request *http.Request,
 ) (err error) {
-	return injectDependency(i, dependencyMap, request)
+	return injectDependency(i, func(name string) interface{} {
+		return dependencyMap.Provide(
+			name,
+			request.Context(),
+			request.Header.Get("X-Skygear-Request-ID"),
+			config.GetTenantConfig(request),
+		)
+	})
+}
+
+func DefaultTaskInject( // nolint: golint
+	i interface{},
+	dependencyMap DependencyMap,
+	ctx context.Context,
+	taskCtx async.TaskContext,
+) (err error) {
+	return injectDependency(i, func(name string) interface{} {
+		return dependencyMap.Provide(name, ctx, taskCtx.RequestID, taskCtx.TenantConfig)
+	})
 }
 
 func injectDependency(
 	i interface{},
-	dependencyMap Map,
-	request *http.Request,
+	injectFunc func(name string) interface{},
 ) (err error) {
 	t := reflect.TypeOf(i).Elem()
 	v := reflect.ValueOf(i).Elem()
@@ -41,7 +66,7 @@ func injectDependency(
 		optionSet := arrayToSet(options)
 
 		field := v.Field(i)
-		dependency := dependencyMap.Provide(dependencyName, request)
+		dependency := injectFunc(dependencyName)
 
 		if optionSet["optional"] == nil && dependency == nil {
 			err = skyerr.NewError(skyerr.InvalidArgument, `Dependency "`+dependencyName+`" is nil, but does not mark as optional`)

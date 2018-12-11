@@ -116,6 +116,7 @@ func TestSingupHandler(t *testing.T) {
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.Logger = logrus.NewEntry(logrus.New())
 		welcomeEmailSender := welcemail.NewMockSender()
+		h.WelcomeEmailSendTask = welcemail.NewSendTask(context.Background(), welcomeEmailSender)
 
 		Convey("signup user with auth data", func() {
 			authData := map[string]interface{}{
@@ -227,8 +228,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup with email, send welcome email", func() {
-			h.WelcomeEmailSendTask = welcemail.NewSendTask(welcomeEmailSender)
-			h.WelcomeEmailSendTask.WaitForRequest(context.Background())
+			h.WelcomeEmailEnabled = true
 			authData := map[string]interface{}{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",

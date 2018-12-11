@@ -33,7 +33,7 @@ type WelcomeEmailHandlerFactory struct {
 // NewHandler creates new WelcomeEmailHandler
 func (f WelcomeEmailHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &WelcomeEmailHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, nil)
 }
 

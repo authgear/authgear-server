@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
@@ -14,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -44,7 +48,8 @@ type SignupHandlerFactory struct {
 
 func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
+	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
@@ -108,17 +113,22 @@ func (p SignupRequestPayload) mergedProfile() map[string]interface{} {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	PasswordChecker       dependency.PasswordChecker `dependency:"PasswordChecker"`
-	UserProfileStore      userprofile.Store          `dependency:"UserProfileStore"`
-	TokenStore            authtoken.Store            `dependency:"TokenStore"`
-	AuthInfoStore         authinfo.Store             `dependency:"AuthInfoStore"`
-	RoleStore             role.Store                 `dependency:"RoleStore"`
-	PasswordAuthProvider  password.Provider          `dependency:"PasswordAuthProvider"`
-	AnonymousAuthProvider anonymous.Provider         `dependency:"AnonymousAuthProvider"`
-	AuditTrail            audit.Trail                `dependency:"AuditTrail"`
-	WelcomeEmailSendTask  *welcemail.SendTask        `dependency:"WelcomeEmailSendTask,optional"`
-	TxContext             db.TxContext               `dependency:"TxContext"`
-	Logger                *logrus.Entry              `dependency:"HandlerLogger"`
+	PasswordChecker        dependency.PasswordChecker `dependency:"PasswordChecker"`
+	UserProfileStore       userprofile.Store          `dependency:"UserProfileStore"`
+	TokenStore             authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore          authinfo.Store             `dependency:"AuthInfoStore"`
+	RoleStore              role.Store                 `dependency:"RoleStore"`
+	PasswordAuthProvider   password.Provider          `dependency:"PasswordAuthProvider"`
+	AnonymousAuthProvider  anonymous.Provider         `dependency:"AnonymousAuthProvider"`
+	AuditTrail             audit.Trail                `dependency:"AuditTrail"`
+	WelcomeEmailEnabled    bool                       `dependency:"WelcomeEmailEnabled"`
+	WelcomeEmailSendTask   *welcemail.SendTask        `dependency:"WelcomeEmailSendTask"`
+	AutoSendUserVerifyCode bool                       `dependency:"AutoSendUserVerifyCodeOnSignup"`
+	UserVerifyKeys         []string                   `dependency:"UserVerifyKeys"`
+	VerifyCodeStore        verifycode.Store           `dependency:"VerifyCodeStore"`
+	TxContext              db.TxContext               `dependency:"TxContext"`
+	Logger                 *logrus.Entry              `dependency:"HandlerLogger"`
+	TaskQueue              *async.Queue               `dependency:"AsyncTaskQueue"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -205,8 +215,12 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		Event:  audit.EventSignup,
 	})
 
-	if h.WelcomeEmailSendTask != nil {
+	if h.WelcomeEmailEnabled {
 		h.sendWelcomeEmail(userProfile)
+	}
+
+	if h.AutoSendUserVerifyCode {
+		h.sendUserVerifyRequest(userProfile)
 	}
 
 	return
@@ -245,14 +259,18 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo au
 
 func (h SignupHandler) sendWelcomeEmail(userProfile userprofile.UserProfile) {
 	if email, ok := userProfile.Data["email"].(string); ok {
-		select {
-		case h.WelcomeEmailSendTask.Request <- welcemail.SendTaskRequest{
-			Email:       email,
-			UserProfile: userProfile,
-			Logger:      h.Logger,
-		}:
-		default:
-			panic("unexpcted send welcome email request no receiver")
+		h.WelcomeEmailSendTask.Execute(email, userProfile, h.Logger)
+	}
+}
+
+func (h SignupHandler) sendUserVerifyRequest(userProfile userprofile.UserProfile) {
+	for _, key := range h.UserVerifyKeys {
+		if value, ok := userProfile.Data[key].(string); ok {
+			h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
+				Key:         key,
+				Value:       value,
+				UserProfile: userProfile,
+			}, nil)
 		}
 	}
 }

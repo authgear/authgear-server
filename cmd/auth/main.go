@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn/resolver"
 
 	"github.com/kelseyhightower/envconfig"
@@ -16,6 +17,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/ssohandler"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
@@ -39,7 +41,12 @@ func main() {
 	// logging initialization
 	logging.SetModule("auth")
 
-	authDependency := auth.NewDependencyMap()
+	asyncTaskExecutor := async.NewExecutor()
+	authDependency := auth.DependencyMap{
+		AsyncTaskExecutor: asyncTaskExecutor,
+	}
+
+	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
 
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
 	srv := server.NewServer(configuration.Host, authContextResolverFactory)
@@ -52,6 +59,7 @@ func main() {
 
 	srv.Use(middleware.RequestIDMiddleware{}.Handle)
 	srv.Use(middleware.CORSMiddleware{}.Handle)
+
 	handler.AttachSignupHandler(&srv, authDependency)
 	handler.AttachLoginHandler(&srv, authDependency)
 	handler.AttachLogoutHandler(&srv, authDependency)

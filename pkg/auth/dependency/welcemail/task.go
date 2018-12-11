@@ -2,57 +2,56 @@ package welcemail
 
 import (
 	"context"
+	"errors"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 )
 
-type SendTaskRequest struct {
-	Email       string
-	UserProfile userprofile.UserProfile
-	Logger      *logrus.Entry
-}
-
 type SendTask struct {
-	Request  chan SendTaskRequest
 	Response chan error
 
+	Context context.Context
 	Sender
+
+	executed bool
 }
 
-func NewSendTask(sender Sender) *SendTask {
+func NewSendTask(ctx context.Context, sender Sender) *SendTask {
 	return &SendTask{
-		Request:  make(chan SendTaskRequest),
 		Response: make(chan error),
+		Context:  ctx,
 		Sender:   sender,
+		executed: false,
 	}
 }
 
-func (s *SendTask) WaitForRequest(ctx context.Context) {
-	go func() {
-		var req SendTaskRequest
-		select {
-		case req = <-s.Request:
-		case <-ctx.Done():
-			// early return if context is cancelled
-			return
-		}
+func (s *SendTask) Execute(
+	email string,
+	userProfile userprofile.UserProfile,
+	logger *logrus.Entry,
+) {
+	if s.executed {
+		panic(errors.New("SendTask cannot be executed more than once"))
+	}
+	s.executed = true
 
-		req.Logger.WithFields(logrus.Fields{
-			"email": req.Email,
+	go func() {
+		logger.WithFields(logrus.Fields{
+			"email": email,
 		}).Info("start sending welcome email")
 
 		var err error
-		if err = s.Send(req.Email, req.UserProfile); err != nil {
-			req.Logger.WithFields(logrus.Fields{
+		if err = s.Send(email, userProfile); err != nil {
+			logger.WithFields(logrus.Fields{
 				"error":  err,
-				"email":  req.Email,
-				"userID": req.UserProfile.ID,
+				"email":  email,
+				"userID": userProfile.ID,
 			}).Error("fail to send welcome email")
 		}
 
 		select {
-		case <-ctx.Done(): // return if no one receive the error
+		case <-s.Context.Done(): // return if no one receive the error
 		default:
 			s.Response <- err
 		}

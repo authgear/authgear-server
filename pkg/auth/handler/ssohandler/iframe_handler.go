@@ -28,7 +28,7 @@ type IFrameHandlerFactory struct {
 
 func (f IFrameHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &IFrameHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return h
 }
 

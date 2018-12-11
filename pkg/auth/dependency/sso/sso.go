@@ -1,5 +1,11 @@
 package sso
 
+import (
+	"strings"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
+)
+
 // Scope parameter allows the application to express the desired scope of the access request.
 type Scope []string
 
@@ -90,12 +96,34 @@ type Provider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
 }
 
-// NewProvider is the provider factory
-func NewProvider(
-	setting Setting,
-	config Config,
-) Provider {
-	switch config.Name {
+type ProviderFactory struct {
+	tenantConfig config.TenantConfiguration
+}
+
+func NewProviderFactory(tenantConfig config.TenantConfiguration) *ProviderFactory {
+	return &ProviderFactory{
+		tenantConfig: tenantConfig,
+	}
+}
+
+func (p *ProviderFactory) NewProvider(name string) Provider {
+	SSOConf := p.tenantConfig.GetSSOConfigByName(name)
+	SSOSetting := p.tenantConfig.SSOSetting
+	setting := Setting{
+		URLPrefix:            SSOSetting.URLPrefix,
+		JSSDKCDNURL:          SSOSetting.JSSDKCDNURL,
+		StateJWTSecret:       SSOSetting.StateJWTSecret,
+		AutoLinkProviderKeys: SSOSetting.AutoLinkProviderKeys,
+		AllowedCallbackURLs:  SSOSetting.AllowedCallbackURLs,
+	}
+	config := Config{
+		Name:         SSOConf.Name,
+		ClientID:     SSOConf.ClientID,
+		ClientSecret: SSOConf.ClientSecret,
+		Scope:        strings.Split(SSOConf.Scope, ","),
+	}
+
+	switch name {
 	case "google":
 		return &GoogleImpl{
 			Setting: setting,

@@ -32,7 +32,7 @@ type RoleDefaultHandlerFactory struct {
 
 func (f RoleDefaultHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &RoleDefaultHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

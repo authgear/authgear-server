@@ -33,7 +33,7 @@ type SchemaDeleteHandlerFactory struct {
 
 func (f SchemaDeleteHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SchemaDeleteHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

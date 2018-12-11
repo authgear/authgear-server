@@ -40,9 +40,10 @@ type AuthURLHandlerFactory struct {
 
 func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &AuthURLHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
 	h.ProviderName = vars["provider"]
+	h.Provider = h.ProviderFactory.NewProvider(h.ProviderName)
 	h.Action = f.Action
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
@@ -117,11 +118,12 @@ func (p AuthURLRequestPayload) Validate() error {
 //     "result": "<auth_url>"
 // }
 type AuthURLHandler struct {
-	TxContext    db.TxContext           `dependency:"TxContext"`
-	AuthContext  coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	Provider     sso.Provider           `dependency:"SSOProvider"`
-	ProviderName string
-	Action       string
+	TxContext       db.TxContext           `dependency:"TxContext"`
+	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	ProviderFactory sso.ProviderFactory    `dependency:"SSOProviderFactory"`
+	Provider        sso.Provider
+	ProviderName    string
+	Action          string
 }
 
 func (h AuthURLHandler) WithTx() bool {

@@ -1,7 +1,7 @@
 package record
 
 import (
-	"net/http"
+	"context"
 
 	"github.com/sirupsen/logrus"
 
@@ -20,36 +20,40 @@ func NewDependencyMap() DependencyMap {
 	return DependencyMap{}
 }
 
-func (m DependencyMap) Provide(dependencyName string, r *http.Request) interface{} {
+// Provide provides dependency instance by name
+// nolint: gocyclo, golint
+func (m DependencyMap) Provide(
+	dependencyName string,
+	ctx context.Context,
+	requestID string,
+	tConfig config.TenantConfiguration,
+) interface{} {
 	switch dependencyName {
 	case "AuthContextGetter":
-		return coreAuth.NewContextGetterWithContext(r.Context())
+		return coreAuth.NewContextGetterWithContext(ctx)
 	case "TxContext":
-		tConfig := config.GetTenantConfig(r)
-		return db.NewTxContextWithContext(r.Context(), tConfig)
+		return db.NewTxContextWithContext(ctx, tConfig)
 	case "RecordStore":
-		tConfig := config.GetTenantConfig(r)
-		roleStore := auth.NewDefaultRoleStore(r.Context(), tConfig)
+		roleStore := auth.NewDefaultRoleStore(ctx, tConfig)
 		return pq.NewSafeRecordStore(
 			roleStore,
 			// TODO: get from tconfig
 			true,
 			db.NewSQLBuilder("record", tConfig.AppName),
-			db.NewSQLExecutor(r.Context(), db.NewContextWithContext(r.Context(), tConfig)),
-			logging.CreateLogger(r, "record", createLoggerMaskFormatter(r)),
-			db.NewSafeTxContextWithContext(r.Context(), tConfig),
+			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+			logging.CreateLoggerWithRequestID(requestID, "record", createLoggerMaskFormatter(tConfig)),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	case "HandlerLogger":
-		return logging.CreateLogger(r, "record", createLoggerMaskFormatter(r))
+		return logging.CreateLoggerWithRequestID(requestID, "record", createLoggerMaskFormatter(tConfig))
 	case "AssetStore":
 		// TODO: get from tConfig
-		return fs.NewAssetStore("", "", "", true, logging.CreateLogger(r, "record", createLoggerMaskFormatter(r)))
+		return fs.NewAssetStore("", "", "", true, logging.CreateLoggerWithRequestID(requestID, "record", createLoggerMaskFormatter(tConfig)))
 	default:
 		return nil
 	}
 }
 
-func createLoggerMaskFormatter(r *http.Request) logrus.Formatter {
-	tConfig := config.GetTenantConfig(r)
+func createLoggerMaskFormatter(tConfig config.TenantConfiguration) logrus.Formatter {
 	return logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
 }

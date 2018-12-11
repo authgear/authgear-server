@@ -95,14 +95,18 @@ func LoggerEntryWithTag(name string, tag string) *logrus.Entry {
 	return logger.WithFields(fields)
 }
 
-func CreateLogger(r *http.Request, logger string, formatter logrus.Formatter) *logrus.Entry {
+func CreateLoggerWithRequestID(requestID string, logger string, formatter logrus.Formatter) *logrus.Entry {
 	fields := logrus.Fields{}
-	if requestID := r.Header.Get("X-Skygear-Request-ID"); requestID != "" {
+	if requestID != "" {
 		fields["request_id"] = requestID
 	}
 	entry := LoggerEntry(logger).WithFields(fields)
 	entry.Logger.Formatter = formatter
 	return entry
+}
+
+func CreateLogger(r *http.Request, logger string, formatter logrus.Formatter) *logrus.Entry {
+	return CreateLoggerWithRequestID(r.Header.Get("X-Skygear-Request-ID"), logger, formatter)
 }
 
 func CreateMaskFormatter(maskValues []string, defaultFormatter logrus.Formatter) logrus.Formatter {

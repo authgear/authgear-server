@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -38,7 +39,7 @@ type VerifyRequestHandlerFactory struct {
 // NewHandler creates new VerifyRequestHandler
 func (f VerifyRequestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &VerifyRequestHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
@@ -74,12 +75,12 @@ func (payload VerifyRequestPayload) Validate() error {
 //  EOF
 //
 type VerifyRequestHandler struct {
-	TxContext         db.TxContext                     `dependency:"TxContext"`
-	AuthContext       coreAuth.ContextGetter           `dependency:"AuthContextGetter"`
-	CodeSenderFactory auth.UserVerifyCodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
-	UserProfileStore  userprofile.Store                `dependency:"UserProfileStore"`
-	VerifyCodeStore   verifycode.Store                 `dependency:"VerifyCodeStore"`
-	Logger            *logrus.Entry                    `dependency:"HandlerLogger"`
+	TxContext         db.TxContext                 `dependency:"TxContext"`
+	AuthContext       coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
+	CodeSenderFactory userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
+	UserProfileStore  userprofile.Store            `dependency:"UserProfileStore"`
+	VerifyCodeStore   verifycode.Store             `dependency:"VerifyCodeStore"`
+	Logger            *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
 func (h VerifyRequestHandler) WithTx() bool {
@@ -122,11 +123,11 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	code := codeSender.Generate()
-	if err = codeSender.Send(code, userProfile); err != nil {
+	if err = codeSender.Send(code, payload.RecordKey, value, userProfile); err != nil {
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,
 			"record_key":   payload.RecordKey,
-			"record_value": userProfile.Data[payload.RecordKey],
+			"record_value": value,
 		}).Error("fail to send verify request")
 		return
 	}

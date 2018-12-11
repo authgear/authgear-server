@@ -42,7 +42,7 @@ type ForgotPasswordHandlerFactory struct {
 // NewHandler creates new ForgotPasswordHandler
 func (f ForgotPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
@@ -166,7 +166,7 @@ type ForgotPasswordTestHandlerFactory struct {
 // NewHandler creates new ForgotPasswordTestHandler
 func (f ForgotPasswordTestHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ForgotPasswordTestHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, nil)
 }
 

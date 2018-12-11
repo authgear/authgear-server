@@ -35,7 +35,7 @@ type DeleteHandlerFactory struct {
 
 func (f DeleteHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &DeleteHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

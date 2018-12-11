@@ -37,7 +37,8 @@ type SetDisableHandlerFactory struct {
 // NewHandler creates new SetDisableHandler
 func (f SetDisableHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SetDisableHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
+	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

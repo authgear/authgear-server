@@ -31,7 +31,7 @@ type GetRoleHandlerFactory struct {
 
 func (f GetRoleHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &GetRoleHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

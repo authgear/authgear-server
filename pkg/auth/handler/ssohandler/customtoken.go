@@ -41,7 +41,7 @@ type CustomTokenLoginHandlerFactory struct {
 // NewHandler creates new CustomTokenLoginHandler
 func (f CustomTokenLoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &CustomTokenLoginHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

@@ -39,7 +39,8 @@ type ResetPasswordHandlerFactory struct {
 
 func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ResetPasswordHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
+	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

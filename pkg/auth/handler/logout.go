@@ -36,7 +36,8 @@ type LogoutHandlerFactory struct {
 // NewHandler creates new handler
 func (f LogoutHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LogoutHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
+	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

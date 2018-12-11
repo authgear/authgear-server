@@ -30,7 +30,7 @@ type SchemaFetchHandlerFactory struct {
 
 func (f SchemaFetchHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SchemaFetchHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

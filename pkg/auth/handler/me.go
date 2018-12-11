@@ -35,7 +35,7 @@ type MeHandlerFactory struct {
 
 func (f MeHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &MeHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 

@@ -33,7 +33,7 @@ type FieldAccessUpdateHandlerFactory struct {
 
 func (f FieldAccessUpdateHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &FieldAccessUpdateHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
