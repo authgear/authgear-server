@@ -97,6 +97,7 @@ type AuthInfo struct {
 	ProviderUserID          string
 	ProviderUserProfile     interface{}
 	ProviderAccessTokenResp interface{}
+	ProviderAuthData        map[string]interface{}
 	State                   State
 }
 

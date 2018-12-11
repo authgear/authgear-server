@@ -14,6 +14,7 @@ type authHandler struct {
 
 	processAccessTokenResp func(a AccessTokenResp) AccessTokenResp
 	processUserID          func(p map[string]interface{}) string
+	processAuthData        func(p map[string]interface{}) map[string]interface{}
 }
 
 func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
@@ -41,7 +42,13 @@ func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 	if h.processUserID == nil {
 		h.processUserID = processUserID
 	}
+	if h.processAuthData == nil {
+		h.processAuthData = processAuthData
+	}
+
 	userID := h.processUserID(userProfile)
+	// TODO: process process_userinfo_hook
+	authData := h.processAuthData(userProfile)
 
 	state, err := DecodeState(h.stateJWTSecret, h.encodedState)
 	if err != nil {
@@ -54,6 +61,7 @@ func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 		ProviderUserID:          userID,
 		ProviderUserProfile:     userProfile,
 		ProviderAccessTokenResp: accessTokenResp,
+		ProviderAuthData:        authData,
 	}
 
 	return
@@ -65,4 +73,12 @@ func processUserID(userProfile map[string]interface{}) string {
 		return ""
 	}
 	return id
+}
+
+func processAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
+	email, ok := userProfile["email"].(string)
+	if ok {
+		authData["email"] = email
+	}
+	return
 }

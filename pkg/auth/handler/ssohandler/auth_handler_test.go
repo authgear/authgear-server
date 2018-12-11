@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -62,9 +63,11 @@ func TestAuthHandler(t *testing.T) {
 		timeNow = realTime
 	}()
 
-	Convey("Test TestAuthURLHandler with login action", t, func() {
+	Convey("Test AuthHandler with login action", t, func() {
 		action := "login"
 		stateJWTSecret := "secret"
+		providerName := "mock"
+		providerUserID := "mock_user_id"
 		sh := &AuthHandler{}
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
@@ -76,14 +79,15 @@ func TestAuthHandler(t *testing.T) {
 			},
 		}
 		config := sso.Config{
-			Name:         "mock",
+			Name:         providerName,
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProverImpl{
-			BaseURL: "http://mock/auth",
-			Setting: setting,
-			Config:  config,
+			BaseURL:    "http://mock/auth",
+			Setting:    setting,
+			Config:     config,
+			MockUserID: providerUserID,
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(
@@ -103,6 +107,12 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
+		authRecordKeys := [][]string{[]string{"email"}}
+		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			authRecordKeys,
+			map[string]password.Principal{},
+		)
+		sh.PasswordAuthProvider = passwordAuthProvider
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
 			UXMode := "web_redirect"
@@ -163,27 +173,27 @@ func TestAuthHandler(t *testing.T) {
 			// check result(authResp)
 			authResp, err := json.Marshal(data["result"])
 			So(err, ShouldBeNil)
-			p, err := sh.OAuthAuthProvider.GetPrincipalByProviderUserID("mock", "mock_user_id")
+			p, err := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
 			So(err, ShouldBeNil)
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(authResp, ShouldEqualJSON, fmt.Sprintf(`{
-					"result": {
-						"user_id": "%s",
-						"profile": {
-							"_access": null,
-							"_created_at": "0001-01-01T00:00:00Z",
-							"_created_by": "",
-							"_id": "",
-							"_ownerID": "",
-							"_recordID": "",
-							"_recordType": "",
-							"_type": "",
-							"_updated_at": "0001-01-01T00:00:00Z",
-							"_updated_by": ""
-						},
-						"access_token": "%s"
-					}
-				}`, p.UserID, token.AccessToken))
+				"result": {
+					"user_id": "%s",
+					"profile": {
+						"_access": null,
+						"_created_at": "0001-01-01T00:00:00Z",
+						"_created_by": "",
+						"_id": "",
+						"_ownerID": "",
+						"_recordID": "",
+						"_recordType": "",
+						"_type": "",
+						"_updated_at": "0001-01-01T00:00:00Z",
+						"_updated_by": ""
+					},
+					"access_token": "%s"
+				}
+			}`, p.UserID, token.AccessToken))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
@@ -245,30 +255,30 @@ func TestAuthHandler(t *testing.T) {
 			q := location.Query()
 			result := q.Get("result")
 			decoded, _ := base64.StdEncoding.DecodeString(result)
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID("mock", "mock_user_id")
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(decoded, ShouldEqualJSON, fmt.Sprintf(`{
-					"result": {
-						"user_id": "%s",
-						"profile": {
-							"_access": null,
-							"_created_at": "0001-01-01T00:00:00Z",
-							"_created_by": "",
-							"_id": "",
-							"_ownerID": "",
-							"_recordID": "",
-							"_recordType": "",
-							"_type": "",
-							"_updated_at": "0001-01-01T00:00:00Z",
-							"_updated_by": ""
-						},
-						"access_token": "%s"
-					}
-				}`, p.UserID, token.AccessToken))
+				"result": {
+					"user_id": "%s",
+					"profile": {
+						"_access": null,
+						"_created_at": "0001-01-01T00:00:00Z",
+						"_created_by": "",
+						"_id": "",
+						"_ownerID": "",
+						"_recordID": "",
+						"_recordType": "",
+						"_type": "",
+						"_updated_at": "0001-01-01T00:00:00Z",
+						"_updated_by": ""
+					},
+					"access_token": "%s"
+				}
+			}`, p.UserID, token.AccessToken))
 		})
 	})
 
-	Convey("Test TestAuthURLHandler with link action", t, func() {
+	Convey("Test AuthHandler with link action", t, func() {
 		action := "link"
 		stateJWTSecret := "secret"
 		sh := &AuthHandler{}
@@ -328,6 +338,12 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
+		authRecordKeys := [][]string{[]string{"email"}}
+		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			authRecordKeys,
+			map[string]password.Principal{},
+		)
+		sh.PasswordAuthProvider = passwordAuthProvider
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
 			UXMode := "web_redirect"
@@ -418,15 +434,164 @@ func TestAuthHandler(t *testing.T) {
 
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.String(), ShouldEqualJSON, `
-					{
-						"error":{
-							"name": "InvalidArgument",
-							"code": 108,
-							"message": "provider account already linked with existing user"
-						}
-					}
-				`)
+			So(resp.Body.String(), ShouldEqualJSON, `{
+				"error":{
+					"name": "InvalidArgument",
+					"code": 108,
+					"message": "provider account already linked with existing user"
+				}
+			}`)
+		})
+	})
+
+	Convey("Test AuthHandler with login action", t, func() {
+		action := "login"
+		stateJWTSecret := "secret"
+		providerName := "mock"
+		providerUserID := "mock_user_id"
+		providerAuthData := map[string]interface{}{
+			"email": "john.doe@example.com",
+		}
+		sh := &AuthHandler{}
+		sh.TxContext = db.NewMockTxContext()
+		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		setting := sso.Setting{
+			URLPrefix:      "http://localhost:3000",
+			StateJWTSecret: stateJWTSecret,
+			AllowedCallbackURLs: []string{
+				"http://localhost",
+			},
+		}
+		config := sso.Config{
+			Name:         providerName,
+			ClientID:     "mock_client_id",
+			ClientSecret: "mock_client_secret",
+		}
+		mockProvider := sso.MockSSOProverImpl{
+			BaseURL:      "http://mock/auth",
+			Setting:      setting,
+			Config:       config,
+			MockUserID:   providerUserID,
+			MockAuthData: providerAuthData,
+		}
+		sh.Provider = &mockProvider
+		mockOAuthProvider := oauth.NewMockProvider(
+			map[string]string{},
+			map[string]oauth.Principal{},
+		)
+		sh.OAuthAuthProvider = mockOAuthProvider
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{
+				"john.doe.id": authinfo.AuthInfo{
+					ID: "john.doe.id",
+				},
+			},
+		)
+		sh.AuthInfoStore = authInfoStore
+		mockTokenStore := authtoken.NewMockStore()
+		sh.TokenStore = mockTokenStore
+		sh.RoleStore = role.NewMockStore()
+		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
+			"https://api.example.com",
+			"https://api.example.com/skygear.js",
+		)
+		sh.SSOSetting = setting
+		authRecordKeys := [][]string{[]string{"email"}}
+		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			authRecordKeys,
+			map[string]password.Principal{
+				"john.doe.principal.id": password.Principal{
+					ID:     "john.doe.principal.id",
+					UserID: "john.doe.id",
+					AuthData: map[string]interface{}{
+						"email": "john.doe@example.com",
+					},
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+			},
+		)
+		sh.PasswordAuthProvider = passwordAuthProvider
+
+		Convey("should auto link user", func() {
+			UXMode := "web_redirect"
+
+			// oauth state
+			state := sso.State{
+				CallbackURL: "http://localhost:3000",
+				UXMode:      UXMode,
+				Action:      action,
+			}
+			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
+			}
+
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			resp := httptest.NewRecorder()
+
+			sh.ServeHTTP(resp, req)
+			// for web_redirect, it should redirect to original callback url
+			So(resp.Code, ShouldEqual, 302)
+			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
+
+			// check cookies
+			// it should have following format
+			// {
+			// 	"callback_url": "callback_url"
+			// 	"result": authResp
+			// }
+			cookies := resp.Result().Cookies()
+			So(cookies, ShouldNotBeEmpty)
+			var ssoDataCookie *http.Cookie
+			for _, c := range cookies {
+				if c.Name == "sso_data" {
+					ssoDataCookie = c
+					break
+				}
+			}
+			So(ssoDataCookie, ShouldNotBeNil)
+
+			// decoded it first
+			decoded, err := base64.StdEncoding.DecodeString(ssoDataCookie.Value)
+			So(err, ShouldBeNil)
+			So(decoded, ShouldNotBeNil)
+
+			// Unmarshal to map
+			data := make(map[string]interface{})
+			err = json.Unmarshal(decoded, &data)
+			So(err, ShouldBeNil)
+
+			// check callback_url
+			So(data["callback_url"], ShouldEqual, "http://localhost:3000")
+
+			// check result(authResp)
+			authResp, err := json.Marshal(data["result"])
+			So(err, ShouldBeNil)
+			p, err := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			So(err, ShouldBeNil)
+			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
+			So(authResp, ShouldEqualJSON, fmt.Sprintf(`{
+				"result": {
+					"user_id": "%s",
+					"profile": {
+						"_access": null,
+						"_created_at": "0001-01-01T00:00:00Z",
+						"_created_by": "",
+						"_id": "",
+						"_ownerID": "",
+						"_recordID": "",
+						"_recordType": "",
+						"_type": "",
+						"_updated_at": "0001-01-01T00:00:00Z",
+						"_updated_by": ""
+					},
+					"access_token": "%s"
+				}
+			}`, p.UserID, token.AccessToken))
 		})
 	})
 }

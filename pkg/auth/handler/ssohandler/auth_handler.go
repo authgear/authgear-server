@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
@@ -97,6 +98,7 @@ type AuthHandler struct {
 	TxContext               db.TxContext                `dependency:"TxContext"`
 	AuthContext             coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
 	OAuthAuthProvider       oauth.Provider              `dependency:"OAuthAuthProvider"`
+	PasswordAuthProvider    password.Provider           `dependency:"PasswordAuthProvider"`
 	AuthInfoStore           authinfo.Store              `dependency:"AuthInfoStore"`
 	RoleStore               role.Store                  `dependency:"RoleStore"`
 	TokenStore              authtoken.Store             `dependency:"TokenStore"`
@@ -274,7 +276,7 @@ func (h AuthHandler) getResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err 
 			return resp, err
 		}
 
-		err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
+		_, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
 		if err != nil {
 			return resp, err
 		}
@@ -287,7 +289,6 @@ func (h AuthHandler) getResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err 
 }
 
 func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.AuthInfo) (err error) {
-	createNewUser := false
 	now := timeNow()
 
 	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserID)
@@ -296,15 +297,16 @@ func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 			return
 		}
 		err = nil
-		createNewUser = true
 	}
 
-	if createNewUser {
-		// TODO: check auto connect user flow
-		// 1. find existed user
-		// 2. link user
-		// 3. login user
+	if principal == nil {
+		principal, err = h.authLinkUser(oauthAuthInfo)
+		if err != nil {
+			return
+		}
+	}
 
+	if principal == nil {
 		// if there is no existed user
 		// signup a new user
 		*info = authinfo.NewAuthInfo()
@@ -332,7 +334,7 @@ func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 			return
 		}
 
-		err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
+		_, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
 	} else {
 		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
 		principal.UserProfile = oauthAuthInfo.ProviderUserProfile
@@ -355,7 +357,22 @@ func (h AuthHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 	return
 }
 
-func (h AuthHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) error {
+func (h AuthHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
+	principals, e := h.PasswordAuthProvider.GetPrincipalsByAuthData(oauthAuthInfo.ProviderAuthData)
+	if e == nil && len(principals) > 0 {
+		userID := principals[0].UserID
+		// link user
+		principal, err := h.createPrincipalByOAuthInfo(userID, oauthAuthInfo)
+		if err != nil {
+			return nil, err
+		}
+		return &principal, nil
+	}
+
+	return nil, nil
+}
+
+func (h AuthHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (oauth.Principal, error) {
 	now := timeNow()
 	principal := oauth.NewPrincipal()
 	principal.UserID = userID
@@ -365,7 +382,8 @@ func (h AuthHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 	principal.UserProfile = oauthAuthInfo.ProviderUserProfile
 	principal.CreatedAt = &now
 	principal.UpdatedAt = &now
-	return h.OAuthAuthProvider.CreatePrincipal(principal)
+	err := h.OAuthAuthProvider.CreatePrincipal(principal)
+	return principal, err
 }
 
 func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
