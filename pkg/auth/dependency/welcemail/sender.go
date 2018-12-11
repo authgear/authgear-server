@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-gomail/gomail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/template"
@@ -15,16 +16,22 @@ type Sender interface {
 }
 
 type DefaultSender struct {
-	AppName string
-	Config  config.WelcomeEmailConfiguration
-	Dialer  *gomail.Dialer
+	AppName        string
+	Config         config.WelcomeEmailConfiguration
+	Dialer         *gomail.Dialer
+	TemplateEngine *template.Engine
 }
 
-func NewDefaultSender(config config.TenantConfiguration, dialer *gomail.Dialer) Sender {
+func NewDefaultSender(
+	config config.TenantConfiguration,
+	dialer *gomail.Dialer,
+	templateEngine *template.Engine,
+) Sender {
 	return &DefaultSender{
-		AppName: config.AppName,
-		Config:  config.WelcomeEmail,
-		Dialer:  dialer,
+		AppName:        config.AppName,
+		Config:         config.WelcomeEmail,
+		Dialer:         dialer,
+		TemplateEngine: templateEngine,
 	}
 }
 
@@ -42,15 +49,13 @@ func (d *DefaultSender) Send(email string, userProfile userprofile.UserProfile) 
 	}
 
 	var textBody string
-	if textBody, err = template.ParseTextTemplateFromURL(d.Config.TextURL, context); err != nil {
+	if textBody, err = d.TemplateEngine.ParseTextTemplate(authTemplate.TemplateNameWelcomeEmailText, context, true); err != nil {
 		return
 	}
 
 	var htmlBody string
-	if d.Config.HTMLURL != "" {
-		if htmlBody, err = template.ParseHTMLTemplateFromURL(d.Config.HTMLURL, context); err != nil {
-			return
-		}
+	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(authTemplate.TemplateNameWelcomeEmailHTML, context, false); err != nil {
+		return
 	}
 
 	sendReq := mail.SendRequest{

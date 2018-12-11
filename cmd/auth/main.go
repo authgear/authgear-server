@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn/resolver"
+	"github.com/skygeario/skygear-server/pkg/core/template"
 
 	"github.com/kelseyhightower/envconfig"
 
@@ -26,8 +28,9 @@ import (
 )
 
 type configuration struct {
-	DevMode bool   `envconfig:"DEV_MODE"`
-	Host    string `envconfig:"HOST" default:"localhost:3000"`
+	DevMode         bool   `envconfig:"DEV_MODE"`
+	Host            string `envconfig:"HOST" default:"localhost:3000"`
+	TemplateDirPath string `envconfig:"TEMPLATE_DIR" default:"./template"`
 }
 
 func main() {
@@ -39,12 +42,17 @@ func main() {
 	configuration := configuration{}
 	envconfig.Process("", &configuration)
 
+	// default template initialization
+	templateEngine := template.NewEngine()
+	authTemplate.RegisterDefaultTemplates(templateEngine, configuration.TemplateDirPath)
+
 	// logging initialization
 	logging.SetModule("auth")
 
 	asyncTaskExecutor := async.NewExecutor()
 	authDependency := auth.DependencyMap{
 		AsyncTaskExecutor: asyncTaskExecutor,
+		TemplateEngine:    templateEngine,
 	}
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)

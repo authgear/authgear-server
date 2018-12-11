@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/asset/fs"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -23,10 +24,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/core/template"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record/pq" // tolerant nextimportslint: record
 )
 
 type DependencyMap struct {
+	TemplateEngine    *template.Engine
 	AsyncTaskExecutor *async.Executor
 }
 
@@ -148,9 +151,10 @@ func (m DependencyMap) Provide(
 	case "WelcomeEmailEnabled":
 		return tConfig.WelcomeEmail.Enabled
 	case "WelcomeEmailSendTask":
+		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return welcemail.NewSendTask(
 			ctx,
-			welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP)),
+			welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP), templateEngine),
 		)
 	case "TestWelcomeEmailSender":
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
