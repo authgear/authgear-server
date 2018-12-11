@@ -50,8 +50,10 @@ func TestRecordQuery(t *testing.T) {
 			})
 			So(recordStore.lastAccessControlOptions, ShouldResemble, &record.AccessControlOptions{
 				ViewAsUser: &authinfo.AuthInfo{
-					ID:    "faseng.cat.id",
-					Roles: []string{"user"},
+					ID:         "faseng.cat.id",
+					Roles:      []string{"user"},
+					Verified:   true,
+					VerifyInfo: map[string]bool{},
 				},
 			})
 		})
@@ -360,8 +362,10 @@ func TestRecordQuery(t *testing.T) {
 			})
 			So(recordStore.lastAccessControlOptions, ShouldResemble, &record.AccessControlOptions{
 				ViewAsUser: &authinfo.AuthInfo{
-					ID:    "faseng.cat.id",
-					Roles: []string{"user"},
+					ID:         "faseng.cat.id",
+					Roles:      []string{"user"},
+					Verified:   true,
+					VerifyInfo: map[string]bool{},
 				},
 				BypassAccessControl: true,
 			})
@@ -823,7 +827,7 @@ func TestRecordQueryWithEagerLoad(t *testing.T) {
 				}
 			`))
 			resp := httptest.NewRecorder()
-			qh.AuthContext = auth.NewMockContextGetterWithUser("ownerID")
+			qh.AuthContext = auth.NewMockContextGetterWithUser("ownerID", true, map[string]bool{})
 			h := handler.APIHandlerToHandler(qh, qh.TxContext)
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
