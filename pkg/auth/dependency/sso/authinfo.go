@@ -37,6 +37,10 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 		return
 	}
 
+	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
+}
+
+func (h getAuthInfoRequest) getAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	userProfile, err := fetchUserProfile(accessTokenResp, h.userProfileURL)
 	if err != nil {
 		return
@@ -46,14 +50,17 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 	// TODO: process process_userinfo_hook
 	authData := h.processor.DecodeAuthData(userProfile)
 
-	state, err := DecodeState(h.stateJWTSecret, h.encodedState)
-	if err != nil {
-		return
+	var decodedState State
+	if h.encodedState != "" {
+		decodedState, err = DecodeState(h.stateJWTSecret, h.encodedState)
+		if err != nil {
+			return AuthInfo{}, err
+		}
 	}
 
 	authInfo = AuthInfo{
 		ProviderName:            h.providerName,
-		State:                   state,
+		State:                   decodedState,
 		ProviderUserID:          userID,
 		ProviderUserProfile:     userProfile,
 		ProviderAccessTokenResp: accessTokenResp,

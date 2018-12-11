@@ -94,6 +94,7 @@ func main() {
 	ssohandler.AttachCustomTokenLoginHandler(&srv, authDependency)
 	ssohandler.AttachAuthHandler(&srv, authDependency)
 	ssohandler.AttachProviderProfilesHandler(&srv, authDependency)
+	ssohandler.AttachLinkHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")

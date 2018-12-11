@@ -104,7 +104,8 @@ type AuthInfo struct {
 // Provider defines SSO interface
 type Provider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
-	GetAuthInfo(code string, scope Scope, encodedState string) (auth AuthInfo, err error)
+	GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error)
+	GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error)
 }
 
 type ProviderFactory struct {

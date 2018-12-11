@@ -43,3 +43,16 @@ func (f *GoogleImpl) GetAuthInfo(code string, scope Scope, encodedState string) 
 	}
 	return h.getAuthInfo()
 }
+
+func (f *GoogleImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+	h := getAuthInfoRequest{
+		providerName:   f.Config.Name,
+		clientID:       f.Config.ClientID,
+		clientSecret:   f.Config.ClientSecret,
+		urlPrefix:      f.Setting.URLPrefix,
+		accessTokenURL: AccessTokenURL(f.Config.Name),
+		userProfileURL: UserProfileURL(f.Config.Name),
+		processor:      newDefaultAuthInfoProcessor(),
+	}
+	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
+}

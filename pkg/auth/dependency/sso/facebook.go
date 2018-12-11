@@ -71,3 +71,18 @@ func (f facebookAuthInfoProcessor) DecodeAccessTokenResp(r io.Reader) (AccessTok
 	}
 	return accessTokenResp, nil
 }
+
+func (f *FacebookImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+	p := facebookAuthInfoProcessor{}
+	h := getAuthInfoRequest{
+		providerName:   f.Config.Name,
+		clientID:       f.Config.ClientID,
+		clientSecret:   f.Config.ClientSecret,
+		urlPrefix:      f.Setting.URLPrefix,
+		stateJWTSecret: f.Setting.StateJWTSecret,
+		accessTokenURL: AccessTokenURL(f.Config.Name),
+		userProfileURL: UserProfileURL(f.Config.Name),
+		processor:      p,
+	}
+	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
+}
