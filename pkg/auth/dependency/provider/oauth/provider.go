@@ -64,14 +64,14 @@ func (p providerImpl) GetPrincipalByProviderUserID(providerName string, provider
 	return &principal, nil
 }
 
-func (p providerImpl) GetPrincipalByUserID(userID string) (*Principal, error) {
+func (p providerImpl) GetPrincipalByUserID(providerName string, userID string) (*Principal, error) {
 	principal := Principal{}
 	principal.UserID = userID
 
 	builder := p.sqlBuilder.Select("p.id", "oauth.oauth_provider", "oauth.provider_user_id").
 		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
 		Join(p.sqlBuilder.FullTableName("provider_oauth")+" AS oauth ON p.id = oauth.principal_id").
-		Where("p.user_id = ? AND p.provider = 'oauth'", userID)
+		Where("oauth.oauth_provider = ? AND p.user_id = ? AND p.provider = 'oauth'", providerName, userID)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
 	err := scanner.Scan(

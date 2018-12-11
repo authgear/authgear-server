@@ -87,7 +87,7 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 
 	// check if user is already linked
 	userID := oauthAuthInfo.State.UserID // skygear userID
-	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(userID)
+	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(oauthAuthInfo.ProviderName, userID)
 	if err == nil {
 		err = skyerr.NewError(skyerr.InvalidArgument, "provider account already linked with existing user")
 		return resp, err

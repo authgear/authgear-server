@@ -43,7 +43,7 @@ func (m *MockProvider) GetPrincipalByProviderUserID(providerName string, provide
 	return nil, skydb.ErrUserNotFound
 }
 
-func (m *MockProvider) GetPrincipalByUserID(userID string) (*Principal, error) {
+func (m *MockProvider) GetPrincipalByUserID(providerName string, userID string) (*Principal, error) {
 	if oauthKey, ok := m.PrincipalMap[userID]; ok {
 		principal := m.OAuthMap[oauthKey]
 		return &principal, nil

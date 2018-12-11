@@ -136,7 +136,7 @@ func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	// check if user is already linked
 	userID := h.AuthContext.AuthInfo().ID
-	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(userID)
+	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(h.ProviderName, userID)
 	if err == nil {
 		err = skyerr.NewError(skyerr.InvalidArgument, "provider account already linked with existing user")
 		return
