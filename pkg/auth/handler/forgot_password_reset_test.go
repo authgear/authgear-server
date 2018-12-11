@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -36,6 +37,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		fh := &ForgotPasswordResetHandler{}
 		logger, hook := test.NewNullLogger()
 		fh.Logger = logrus.NewEntry(logger)
+		fh.AuditTrail = audit.NewMockTrail(t)
 		fh.TxContext = db.NewMockTxContext()
 		authRecordKeys := [][]string{[]string{"email", "username"}}
 		hashedPassword := []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi") // 123456
@@ -132,9 +134,12 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
-			}`)
+			var respBody map[string]interface{}
+			err := json.Unmarshal(resp.Body.Bytes(), &respBody)
+			So(err, ShouldBeNil)
+			So(respBody, ShouldNotContainKey, "error")
+			So(respBody["result"], ShouldContainKey, "access_token")
+			So(respBody["result"], ShouldContainKey, "user_id")
 		})
 	})
 }
