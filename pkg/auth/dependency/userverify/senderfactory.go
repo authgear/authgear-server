@@ -6,6 +6,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
+	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
 type CodeSenderFactory interface {
@@ -16,7 +17,7 @@ type DefaultCodeSenderFactory struct {
 	CodeSenderMap map[string]CodeSender
 }
 
-func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration) CodeSenderFactory {
+func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templateEngine *template.Engine) CodeSenderFactory {
 	userVerifyConfig := c.UserVerify
 	f := DefaultCodeSenderFactory{
 		CodeSenderMap: map[string]CodeSender{},
@@ -26,21 +27,24 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration) CodeSen
 		switch keyConfig.Provider {
 		case "smtp":
 			codeSender = &EmailCodeSender{
-				AppName: c.AppName,
-				Config:  userVerifyConfig,
-				Dialer:  mail.NewDialer(c.SMTP),
+				AppName:        c.AppName,
+				Config:         userVerifyConfig,
+				Dialer:         mail.NewDialer(c.SMTP),
+				TemplateEngine: templateEngine,
 			}
 		case "twilio":
 			codeSender = &SMSCodeSender{
-				AppName:   c.AppName,
-				Config:    userVerifyConfig,
-				SMSClient: sms.NewTwilioClient(c.Twilio),
+				AppName:        c.AppName,
+				Config:         userVerifyConfig,
+				SMSClient:      sms.NewTwilioClient(c.Twilio),
+				TemplateEngine: templateEngine,
 			}
 		case "nexmo":
 			codeSender = &SMSCodeSender{
-				AppName:   c.AppName,
-				Config:    userVerifyConfig,
-				SMSClient: sms.NewNexmoClient(c.Nexmo),
+				AppName:        c.AppName,
+				Config:         userVerifyConfig,
+				SMSClient:      sms.NewNexmoClient(c.Nexmo),
+				TemplateEngine: templateEngine,
 			}
 		default:
 			panic(errors.New("invalid user verify provider: " + keyConfig.Provider))

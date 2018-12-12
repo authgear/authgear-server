@@ -43,30 +43,37 @@ func TestEngine(t *testing.T) {
 	emptyContext := map[string]interface{}{}
 
 	Convey("return content from loader when both exist", t, func() {
-		out, err := engine.ParseTextTemplate("name1", emptyContext, true)
+		out, err := engine.ParseTextTemplate("name1", emptyContext, ParseOption{Required: true})
 		So(err, ShouldBeNil)
 		So(out, ShouldEqual, "load content from name1")
 	})
+
 	Convey("return content from default if loader does not have template", t, func() {
-		out, err := engine.ParseTextTemplate("name2", emptyContext, true)
+		out, err := engine.ParseTextTemplate("name2", emptyContext, ParseOption{Required: true})
 		So(err, ShouldBeNil)
 		So(out, ShouldEqual, "default content from name2")
 	})
 
+	Convey("return content from default in default if loader does not have template", t, func() {
+		out, err := engine.ParseTextTemplate("name2", emptyContext, ParseOption{Required: true, DefaultTemplateName: "name1"})
+		So(err, ShouldBeNil)
+		So(out, ShouldEqual, "default content from name1")
+	})
+
 	Convey("return content from loader even default not set", t, func() {
-		out, err := engine.ParseTextTemplate("name3", emptyContext, true)
+		out, err := engine.ParseTextTemplate("name3", emptyContext, ParseOption{Required: true})
 		So(err, ShouldBeNil)
 		So(out, ShouldEqual, "load content from name3")
 	})
 
 	Convey("return empty string for name not registered and required is false", t, func() {
-		out, err := engine.ParseTextTemplate("random", emptyContext, false)
+		out, err := engine.ParseTextTemplate("random", emptyContext, ParseOption{Required: false})
 		So(err, ShouldBeNil)
 		So(out, ShouldEqual, "")
 	})
 
 	Convey("panic for name not registered and required is true", t, func() {
-		_, err := engine.ParseTextTemplate("random", emptyContext, true)
+		_, err := engine.ParseTextTemplate("random", emptyContext, ParseOption{Required: true})
 		So(err, ShouldNotBeNil)
 	})
 }

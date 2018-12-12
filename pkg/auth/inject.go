@@ -170,7 +170,8 @@ func (m DependencyMap) Provide(
 	case "VerifyCodeCodeGeneratorFactory":
 		return userverify.NewDefaultCodeGeneratorFactory(tConfig)
 	case "UserVerifyCodeSenderFactory":
-		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig)
+		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
+		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, templateEngine)
 	case "AutoSendUserVerifyCodeOnSignup":
 		return tConfig.UserVerify.AutoSendOnSignup
 	case "UserVerifyKeys":

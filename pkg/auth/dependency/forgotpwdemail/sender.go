@@ -71,12 +71,20 @@ func (d *DefaultSender) Send(
 	}
 
 	var textBody string
-	if textBody, err = d.TemplateEngine.ParseTextTemplate(authTemplate.TemplateNameForgotPasswordEmailText, context, true); err != nil {
+	if textBody, err = d.TemplateEngine.ParseTextTemplate(
+		authTemplate.TemplateNameForgotPasswordEmailText,
+		context,
+		template.ParseOption{Required: true},
+	); err != nil {
 		return
 	}
 
 	var htmlBody string
-	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(authTemplate.TemplateNameForgotPasswordEmailHTML, context, false); err != nil {
+	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(
+		authTemplate.TemplateNameForgotPasswordEmailHTML,
+		context,
+		template.ParseOption{Required: false},
+	); err != nil {
 		return
 	}
 

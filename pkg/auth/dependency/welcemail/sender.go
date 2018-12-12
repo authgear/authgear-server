@@ -49,12 +49,20 @@ func (d *DefaultSender) Send(email string, userProfile userprofile.UserProfile) 
 	}
 
 	var textBody string
-	if textBody, err = d.TemplateEngine.ParseTextTemplate(authTemplate.TemplateNameWelcomeEmailText, context, true); err != nil {
+	if textBody, err = d.TemplateEngine.ParseTextTemplate(
+		authTemplate.TemplateNameWelcomeEmailText,
+		context,
+		template.ParseOption{Required: true},
+	); err != nil {
 		return
 	}
 
 	var htmlBody string
-	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(authTemplate.TemplateNameWelcomeEmailHTML, context, false); err != nil {
+	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(
+		authTemplate.TemplateNameWelcomeEmailHTML,
+		context,
+		template.ParseOption{Required: false},
+	); err != nil {
 		return
 	}
 
