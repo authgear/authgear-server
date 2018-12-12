@@ -162,9 +162,6 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp, err := h.getResp(oauthAuthInfo)
-	if h.TxContext != nil {
-		h.TxContext.CommitTx()
-	}
 	if err != nil {
 		respErr = skyerr.MakeError(err)
 		return
@@ -191,6 +188,10 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		h.handleSessionResp(rw, r, UXMode, callbackURL, resp)
 	case sso.IOS.String(), sso.Android.String():
 		h.handleRedirectResp(rw, r, UXMode, callbackURL, resp)
+	}
+
+	if h.TxContext != nil {
+		h.TxContext.CommitTx()
 	}
 }
 
