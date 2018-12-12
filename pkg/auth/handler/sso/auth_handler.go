@@ -214,6 +214,7 @@ func (h AuthHandler) getResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err 
 		OAuthAuthProvider:    h.OAuthAuthProvider,
 		PasswordAuthProvider: h.PasswordAuthProvider,
 		UserProfileStore:     h.UserProfileStore,
+		UserID:               oauthAuthInfo.State.UserID,
 	}
 
 	if oauthAuthInfo.State.Action == "login" {

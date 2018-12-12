@@ -8,7 +8,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -134,40 +133,12 @@ func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	// check if user is already linked
-	userID := h.AuthContext.AuthInfo().ID
-	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(h.ProviderName, userID)
-	if err == nil {
-		err = skyerr.NewError(skyerr.InvalidArgument, "provider account already linked with existing user")
-		return
+	handler := respHandler{
+		AuthInfoStore:     h.AuthInfoStore,
+		OAuthAuthProvider: h.OAuthAuthProvider,
+		UserID:            h.AuthContext.AuthInfo().ID,
 	}
-
-	if err != skydb.ErrUserNotFound {
-		// some other error
-		return
-	}
-
-	var info authinfo.AuthInfo
-	if err = h.AuthInfoStore.GetAuth(userID, &info); err != nil {
-		err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-		return
-	}
-
-	now := timeNow()
-	principal := oauth.NewPrincipal()
-	principal.UserID = userID
-	principal.ProviderName = oauthAuthInfo.ProviderName
-	principal.ProviderUserID = oauthAuthInfo.ProviderUserID
-	principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
-	principal.UserProfile = oauthAuthInfo.ProviderUserProfile
-	principal.CreatedAt = &now
-	principal.UpdatedAt = &now
-	err = h.OAuthAuthProvider.CreatePrincipal(principal)
-	if err != nil {
-		return
-	}
-
-	resp = "OK"
+	resp, err = handler.linkActionResp(oauthAuthInfo)
 
 	return
 }
