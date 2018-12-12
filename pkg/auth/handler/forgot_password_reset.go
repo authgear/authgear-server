@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -95,7 +95,7 @@ func (payload ForgotPasswordResetPayload) Validate() error {
 //  EOF
 type ForgotPasswordResetHandler struct {
 	CodeGenerator        *forgotpwdemail.CodeGenerator `dependency:"ForgotPasswordCodeGenerator"`
-	PasswordChecker      dependency.PasswordChecker    `dependency:"PasswordChecker"`
+	PasswordChecker      *authAudit.PasswordChecker    `dependency:"PasswordChecker"`
 	TokenStore           authtoken.Store               `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store                `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider             `dependency:"PasswordAuthProvider"`
@@ -178,7 +178,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		return
 	}
 
-	if err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 		PlainPassword: payload.NewPassword,
 	}); err != nil {
 		return
