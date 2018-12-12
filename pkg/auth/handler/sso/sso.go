@@ -106,12 +106,7 @@ func (h respHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 		err = nil
 	}
 
-	if principal == nil {
-		principal, err = h.authLinkUser(oauthAuthInfo)
-		if err != nil {
-			return
-		}
-	}
+	// TODO: handle auto link user
 
 	if principal == nil {
 		// if there is no existed user
@@ -162,21 +157,6 @@ func (h respHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 		}
 	}
 	return
-}
-
-func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
-	principals, e := h.PasswordAuthProvider.GetPrincipalsByAuthData(oauthAuthInfo.ProviderAuthData)
-	if e == nil && len(principals) > 0 {
-		userID := principals[0].UserID
-		// link user
-		principal, err := h.createPrincipalByOAuthInfo(userID, oauthAuthInfo)
-		if err != nil {
-			return nil, err
-		}
-		return &principal, nil
-	}
-
-	return nil, nil
 }
 
 func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (oauth.Principal, error) {
