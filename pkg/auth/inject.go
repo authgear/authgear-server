@@ -170,6 +170,8 @@ func (m DependencyMap) Provide(
 		return tConfig.UserVerify.AutoSendOnSignup
 	case "UserVerifyKeys":
 		return tConfig.UserVerify.Keys
+	case "AutoUpdateUserVerifyFunc":
+		return userverify.CreateAutoUpdateUserVerifyfunc(tConfig)
 	case "AutoUpdateUserVerified":
 		return tConfig.UserVerify.AutoUpdate
 	case "AuditTrail":

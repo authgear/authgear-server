@@ -74,14 +74,13 @@ func (payload VerifyCodePayload) Validate() error {
 //  EOF
 //
 type VerifyCodeHandler struct {
-	TxContext              db.TxContext           `dependency:"TxContext"`
-	AuthContext            coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	UserProfileStore       userprofile.Store      `dependency:"UserProfileStore"`
-	VerifyCodeStore        userverify.Store       `dependency:"VerifyCodeStore"`
-	AuthInfoStore          authinfo.Store         `dependency:"AuthInfoStore"`
-	AutoUpdateUserVerified bool                   `dependency:"AutoUpdateUserVerified"`
-	UserVerifyKeys         []string               `dependency:"UserVerifyKeys"`
-	Logger                 *logrus.Entry          `dependency:"HandlerLogger"`
+	TxContext                db.TxContext                        `dependency:"TxContext"`
+	AuthContext              coreAuth.ContextGetter              `dependency:"AuthContextGetter"`
+	UserProfileStore         userprofile.Store                   `dependency:"UserProfileStore"`
+	VerifyCodeStore          userverify.Store                    `dependency:"VerifyCodeStore"`
+	AuthInfoStore            authinfo.Store                      `dependency:"AuthInfoStore"`
+	AutoUpdateUserVerifyFunc userverify.AutoUpdateUserVerifyFunc `dependency:"AutoUpdateUserVerifyFunc,optional"`
+	Logger                   *logrus.Entry                       `dependency:"HandlerLogger"`
 }
 
 func (h VerifyCodeHandler) WithTx() bool {
@@ -146,8 +145,8 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 
 	// Update user
 	authInfo.VerifyInfo[code.RecordKey] = true
-	if h.AutoUpdateUserVerified {
-		h.updateVerified(authInfo)
+	if h.AutoUpdateUserVerifyFunc != nil {
+		h.AutoUpdateUserVerifyFunc(authInfo)
 	}
 
 	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
@@ -164,16 +163,4 @@ func (h VerifyCodeHandler) invalidCodeError(code string) error {
 		code, h.AuthContext.AuthInfo().ID,
 	)
 	return skyerr.NewInvalidArgument(msg, []string{"code"})
-}
-
-func (h VerifyCodeHandler) updateVerified(authInfo *authinfo.AuthInfo) {
-	allVerified := true
-	for _, key := range h.UserVerifyKeys {
-		if !authInfo.VerifyInfo[key] {
-			allVerified = false
-			break
-		}
-	}
-
-	authInfo.Verified = allVerified
 }

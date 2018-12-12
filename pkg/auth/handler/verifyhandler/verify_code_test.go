@@ -21,6 +21,20 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func mockCreateAutoUpdateUserVerifyfunc(keys []string) userverify.AutoUpdateUserVerifyFunc {
+	return func(authInfo *authinfo.AuthInfo) {
+		allVerified := true
+		for _, key := range keys {
+			if !authInfo.VerifyInfo[key] {
+				allVerified = false
+				break
+			}
+		}
+
+		authInfo.Verified = allVerified
+	}
+}
+
 func TestForgotPasswordResetHandler(t *testing.T) {
 	realTime := timeNow
 	timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
@@ -77,8 +91,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				},
 			},
 		}
-		vh.AutoUpdateUserVerified = true
-		vh.UserVerifyKeys = []string{"email"}
+		vh.AutoUpdateUserVerifyFunc = mockCreateAutoUpdateUserVerifyfunc([]string{"email"})
 
 		authInfo := authinfo.AuthInfo{
 			ID: "faseng.cat.id",
@@ -110,7 +123,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		})
 
 		Convey("verify with correct code but not all verified", func() {
-			vh.UserVerifyKeys = []string{"email", "phone"}
+			vh.AutoUpdateUserVerifyFunc = mockCreateAutoUpdateUserVerifyfunc([]string{"email", "phone"})
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
