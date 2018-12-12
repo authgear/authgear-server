@@ -19,29 +19,29 @@ func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfigura
 	loader := template.NewHTTPLoader()
 
 	if tConfig.WelcomeEmail.TextURL != "" {
-		loader.UrlMap[TemplateNameWelcomeEmailText] = tConfig.WelcomeEmail.TextURL
+		loader.URLMap[TemplateNameWelcomeEmailText] = tConfig.WelcomeEmail.TextURL
 	}
 
 	if tConfig.WelcomeEmail.HTMLURL != "" {
-		loader.UrlMap[TemplateNameWelcomeEmailHTML] = tConfig.WelcomeEmail.HTMLURL
+		loader.URLMap[TemplateNameWelcomeEmailHTML] = tConfig.WelcomeEmail.HTMLURL
 	}
 
 	if tConfig.ForgotPassword.EmailTextURL != "" {
-		loader.UrlMap[TemplateNameForgotPasswordEmailText] = tConfig.ForgotPassword.EmailTextURL
+		loader.URLMap[TemplateNameForgotPasswordEmailText] = tConfig.ForgotPassword.EmailTextURL
 	}
 
 	if tConfig.ForgotPassword.EmailHTMLURL != "" {
-		loader.UrlMap[TemplateNameForgotPasswordEmailHTML] = tConfig.ForgotPassword.EmailHTMLURL
+		loader.URLMap[TemplateNameForgotPasswordEmailHTML] = tConfig.ForgotPassword.EmailHTMLURL
 	}
 
 	for _, keyConfig := range tConfig.UserVerify.KeyConfigs {
 		providerConfig := keyConfig.ProviderConfig
 		if providerConfig.TextURL != "" {
-			loader.UrlMap[VerifyTextTemplateNameForKey(keyConfig.Key)] = providerConfig.TextURL
+			loader.URLMap[VerifyTextTemplateNameForKey(keyConfig.Key)] = providerConfig.TextURL
 		}
 
 		if providerConfig.HTMLURL != "" {
-			loader.UrlMap[VerifyHTMLTemplateNameForKey(keyConfig.Key)] = providerConfig.HTMLURL
+			loader.URLMap[VerifyHTMLTemplateNameForKey(keyConfig.Key)] = providerConfig.HTMLURL
 		}
 	}
 

@@ -3,13 +3,14 @@ package template
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 
 	"github.com/flosch/pongo2"
 	"github.com/franela/goreq"
 )
 
-func DownloadTemplateFromFilePath(filepath string) (string, error) {
-	buf, err := ioutil.ReadFile(filepath)
+func DownloadTemplateFromFilePath(filePath string) (string, error) {
+	buf, err := ioutil.ReadFile(filepath.Clean(filePath))
 	if err != nil {
 		return "", err
 	}

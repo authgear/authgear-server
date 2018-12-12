@@ -5,13 +5,26 @@ import (
 )
 
 const (
-	TemplateNameWelcomeEmailText        = "welcome_email_text"
-	TemplateNameWelcomeEmailHTML        = "welcome_email_html"
+	// TemplateNameWelcomeEmailText is the template name of welcome email text
+	TemplateNameWelcomeEmailText = "welcome_email_text"
+
+	// TemplateNameWelcomeEmailHTML is the template name of welcome email html
+	TemplateNameWelcomeEmailHTML = "welcome_email_html"
+
+	// TemplateNameForgotPasswordEmailText is the template name of forgot password email text
 	TemplateNameForgotPasswordEmailText = "forgot_password_email_text"
+
+	// TemplateNameForgotPasswordEmailHTML is the template name of forgot password email html
 	TemplateNameForgotPasswordEmailHTML = "forgot_password_email_html"
-	TemplateNameVerifyEmailText         = "verify_email_text"
-	TemplateNameVerifyEmailHTML         = "verify_email_html"
-	TemplateNameVerifySMSText           = "verify_sms_text"
+
+	// TemplateNameVerifyEmailText is the template name of verify email text
+	TemplateNameVerifyEmailText = "verify_email_text"
+
+	// TemplateNameVerifyEmailHTML is the template name of verify email html
+	TemplateNameVerifyEmailHTML = "verify_email_html"
+
+	// TemplateNameVerifySMSText is the template name of verify sms text
+	TemplateNameVerifySMSText = "verify_sms_text"
 )
 
 func VerifyTextTemplateNameForKey(key string) string {

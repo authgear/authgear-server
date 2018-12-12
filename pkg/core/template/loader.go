@@ -43,15 +43,15 @@ func (f *FSLoader) Load(name string) (string, error) {
 }
 
 type HTTPLoader struct {
-	UrlMap map[string]string
+	URLMap map[string]string
 }
 
 func NewHTTPLoader() *HTTPLoader {
-	return &HTTPLoader{UrlMap: make(map[string]string)}
+	return &HTTPLoader{URLMap: make(map[string]string)}
 }
 
 func (h *HTTPLoader) Load(name string) (string, error) {
-	url, found := h.UrlMap[name]
+	url, found := h.URLMap[name]
 	if !found {
 		return "", fmt.Errorf("template with name `%s` not found", name)
 	}
