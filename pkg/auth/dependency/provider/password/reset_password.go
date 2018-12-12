@@ -1,14 +1,13 @@
 package password
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
-	"github.com/skygeario/skygear-server/pkg/core/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/server/skydb"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 type ResetPasswordRequestContext struct {
-	PasswordChecker      dependency.PasswordChecker
+	PasswordChecker      *audit.PasswordChecker
 	PasswordAuthProvider Provider
 }
 

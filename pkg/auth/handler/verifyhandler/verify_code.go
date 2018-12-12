@@ -116,9 +116,8 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 	}
 
 	authInfo := h.AuthContext.AuthInfo()
-	token := h.AuthContext.Token()
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID, token.AccessToken); err != nil {
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
 		h.Logger.WithField("user_id", authInfo.ID).Error("unexpected user not found")
 		err = skyerr.NewError(skyerr.UnexpectedUserNotFound, "user not found")
 		return

@@ -8,7 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -23,7 +23,7 @@ import (
 
 // ForgotPasswordResetFormHandlerFactory creates ForgotPasswordResetFormHandler
 type ForgotPasswordResetFormHandlerFactory struct {
-	Dependency auth.RequestDependencyMap
+	Dependency auth.DependencyMap
 }
 
 // NewHandler creates new ForgotPasswordResetFormHandler
@@ -92,7 +92,7 @@ func (payload *ForgotPasswordResetFormPayload) Validate() error {
 // ForgotPasswordResetFormHandler reset user password with given code from email.
 type ForgotPasswordResetFormHandler struct {
 	CodeGenerator             *forgotpwdemail.CodeGenerator             `dependency:"ForgotPasswordCodeGenerator"`
-	PasswordChecker           dependency.PasswordChecker                `dependency:"PasswordChecker"`
+	PasswordChecker           *audit.PasswordChecker                    `dependency:"PasswordChecker"`
 	TokenStore                authtoken.Store                           `dependency:"TokenStore"`
 	AuthInfoStore             authinfo.Store                            `dependency:"AuthInfoStore"`
 	PasswordAuthProvider      password.Provider                         `dependency:"PasswordAuthProvider"`

@@ -130,7 +130,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 
 			p, _ := lh.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID("otherid1")
-			profile, _ := lh.UserProfileStore.GetUserProfile(p.UserID, "")
+			profile, _ := lh.UserProfileStore.GetUserProfile(p.UserID)
 
 			So(profile.Data, ShouldResemble, userprofile.Data{
 				"name":  "John Doe",

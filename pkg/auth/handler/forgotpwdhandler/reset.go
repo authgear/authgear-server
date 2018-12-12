@@ -184,6 +184,12 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		return
 	}
 
+	// generate access-token
+	token, err := h.TokenStore.NewToken(authInfo.ID)
+	if err != nil {
+		panic(err)
+	}
+
 	if err = h.TokenStore.Put(&token); err != nil {
 		return
 	}
