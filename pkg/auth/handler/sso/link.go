@@ -90,7 +90,7 @@ type LinkHandler struct {
 	AuthContext       coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	OAuthAuthProvider oauth.Provider         `dependency:"OAuthAuthProvider"`
 	AuthInfoStore     authinfo.Store         `dependency:"AuthInfoStore"`
-	ProviderFactory   sso.ProviderFactory    `dependency:"SSOProviderFactory"`
+	ProviderFactory   *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
 	Provider          sso.Provider
 	ProviderName      string
 }

@@ -209,6 +209,50 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 	return nil
 }
 
+func (p *providerImpl) DeletePrincipal(providerName string, principal *Principal) (err error) {
+	// Delete provider_oauth
+	builder := p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("provider_oauth")).
+		Where("oauth_provider = ? and principal_id = ?", providerName, principal.ID)
+
+	result, err := p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return skydb.ErrUserNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows deleted, got %v", rowsAffected))
+	}
+
+	// Delete principal
+	builder = p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("principal")).
+		Where("id = ? and provider = ?", principal.ID, providerName)
+
+	result, err = p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return skydb.ErrUserNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows deleted, got %v", rowsAffected))
+	}
+
+	return
+}
+
 func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
 	builder := p.sqlBuilder.Select("p.id", "oauth.oauth_provider", "oauth.provider_user_id", "oauth.profile").
 		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).

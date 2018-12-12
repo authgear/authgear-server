@@ -91,7 +91,7 @@ func TestLinkHandler(t *testing.T) {
 		sh.AuthInfoStore = authInfoStore
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
-		Convey("link user with access token", func() {
+		Convey("should link user id with oauth principal", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"access_token": "token"
 			}`))
