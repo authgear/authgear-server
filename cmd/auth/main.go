@@ -73,6 +73,7 @@ func main() {
 	handler.AttachRoleDefaultHandler(&srv, authDependency)
 	handler.AttachWelcomeEmailHandler(&srv, authDependency)
 	handler.AttachForgotPasswordHandler(&srv, authDependency)
+	handler.AttachForgotPasswordResetHandler(&srv, authDependency)
 	handler.AttachVerifyRequestHandler(&srv, authDependency)
 	ssohandler.AttachAuthURLHandler(&srv, authDependency)
 	ssohandler.AttachConfigHandler(&srv, authDependency)

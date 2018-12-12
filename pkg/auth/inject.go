@@ -142,6 +142,8 @@ func (m DependencyMap) Provide(
 		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP))
 	case "TestForgotPasswordEmailSender":
 		return forgotpwdemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
+	case "ForgotPasswordCodeGenerator":
+		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.MasterKey}
 	case "ForgotPasswordSecureMatch":
 		return tConfig.ForgotPassword.SecureMatch
 	case "WelcomeEmailEnabled":
