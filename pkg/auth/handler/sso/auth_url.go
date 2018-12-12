@@ -120,7 +120,7 @@ func (p AuthURLRequestPayload) Validate() error {
 type AuthURLHandler struct {
 	TxContext       db.TxContext           `dependency:"TxContext"`
 	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	ProviderFactory sso.ProviderFactory    `dependency:"SSOProviderFactory"`
+	ProviderFactory *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
 	Provider        sso.Provider
 	ProviderName    string
 	Action          string

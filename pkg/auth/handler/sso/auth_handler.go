@@ -103,7 +103,7 @@ type AuthHandler struct {
 	RoleStore               role.Store                  `dependency:"RoleStore"`
 	TokenStore              authtoken.Store             `dependency:"TokenStore"`
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
-	ProviderFactory         sso.ProviderFactory         `dependency:"SSOProviderFactory"`
+	ProviderFactory         *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
 	Provider                sso.Provider
 	SSOSetting              sso.Setting
 	ProviderName            string
