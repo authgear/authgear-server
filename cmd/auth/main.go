@@ -28,9 +28,8 @@ import (
 )
 
 type configuration struct {
-	DevMode         bool   `envconfig:"DEV_MODE"`
-	Host            string `envconfig:"HOST" default:"localhost:3000"`
-	TemplateDirPath string `envconfig:"TEMPLATE_DIR" default:"./template"`
+	DevMode bool   `envconfig:"DEV_MODE"`
+	Host    string `envconfig:"HOST" default:"localhost:3000"`
 }
 
 func main() {
@@ -44,7 +43,7 @@ func main() {
 
 	// default template initialization
 	templateEngine := template.NewEngine()
-	authTemplate.RegisterDefaultTemplates(templateEngine, configuration.TemplateDirPath)
+	authTemplate.RegisterDefaultTemplates(templateEngine)
 
 	// logging initialization
 	logging.SetModule("auth")
