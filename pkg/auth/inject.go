@@ -141,7 +141,8 @@ func (m DependencyMap) Provide(
 	case "RoleStore":
 		return coreAuth.NewDefaultRoleStore(ctx, tConfig)
 	case "ForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP))
+		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
+		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP), templateEngine)
 	case "TestForgotPasswordEmailSender":
 		return forgotpwdemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
 	case "ForgotPasswordCodeGenerator":

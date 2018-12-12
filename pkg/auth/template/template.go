@@ -7,6 +7,7 @@ import (
 
 func RegisterDefaultTemplates(engine *template.Engine) {
 	engine.RegisterDefaultTemplate(TemplateNameWelcomeEmailText, templateWelcomeEmailTxt)
+	engine.RegisterDefaultTemplate(TemplateNameForgotPasswordEmailText, templateForgotPasswordEmailTxt)
 }
 
 func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfiguration) *template.Engine {
@@ -21,6 +22,14 @@ func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfigura
 
 	if tConfig.WelcomeEmail.HTMLURL != "" {
 		loader.UrlMap[TemplateNameWelcomeEmailHTML] = tConfig.WelcomeEmail.HTMLURL
+	}
+
+	if tConfig.ForgotPassword.EmailTextURL != "" {
+		loader.UrlMap[TemplateNameForgotPasswordEmailText] = tConfig.ForgotPassword.EmailTextURL
+	}
+
+	if tConfig.ForgotPassword.EmailHTMLURL != "" {
+		loader.UrlMap[TemplateNameForgotPasswordEmailHTML] = tConfig.ForgotPassword.EmailHTMLURL
 	}
 
 	return newEngine
