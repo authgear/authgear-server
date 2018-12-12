@@ -99,7 +99,7 @@ func GetScope(scope Scope, defaultScope Scope) Scope {
 // RedirectURI generates redirect uri from URLPrefix and provider name
 func RedirectURI(URLPrefix string, providerName string) string {
 	u, _ := url.Parse(URLPrefix)
-	path := fmt.Sprintf("/auth/sso/%s/auth_handler", providerName)
+	path := fmt.Sprintf("%s/sso/%s/auth_handler", u.Path, providerName)
 	u.Path = path
 	return u.String()
 }

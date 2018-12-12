@@ -69,7 +69,7 @@ func TestAuthURLHandler(t *testing.T) {
 		h := &AuthURLHandler{}
 		h.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		setting := sso.Setting{
-			URLPrefix:      "http://localhost:3000",
+			URLPrefix:      "http://localhost:3000/auth",
 			StateJWTSecret: "secret",
 		}
 		config := sso.Config{
