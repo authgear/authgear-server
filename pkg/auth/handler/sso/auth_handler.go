@@ -118,30 +118,28 @@ func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 
 func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	// reference from APIHandlerToHandler
-	var respErr skyerr.Error
-
-	if h.Provider == nil {
-		respErr = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
-		return
-	}
+	var err error
 
 	defer func() {
-		if respErr != nil {
+		if err != nil {
 			response := handler.APIResponse{
-				Err: respErr,
+				Err: skyerr.MakeError(err),
 			}
 			handler.WriteResponse(rw, response)
 		}
 	}()
 
-	payload, err := h.DecodeRequest(r)
-	if err != nil {
-		respErr = skyerr.MakeError(err)
+	if h.Provider == nil {
+		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
 		return
 	}
 
-	if err := payload.Validate(); err != nil {
-		respErr = skyerr.MakeError(err)
+	payload, err := h.DecodeRequest(r)
+	if err != nil {
+		return
+	}
+
+	if err = payload.Validate(); err != nil {
 		return
 	}
 
@@ -158,12 +156,10 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	reqPayload := payload.(AuthRequestPayload)
 	oauthAuthInfo, err := h.getAuthInfo(reqPayload)
 	if err != nil {
-		respErr = skyerr.MakeError(err)
 		return
 	}
 	resp, err := h.getResp(oauthAuthInfo)
 	if err != nil {
-		respErr = skyerr.MakeError(err)
 		return
 	}
 
@@ -178,6 +174,7 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	allowedCallbackURLs := h.SSOSetting.AllowedCallbackURLs
 	err = h.validateCallbackURL(allowedCallbackURLs, callbackURL)
 	if err != nil {
+		err = nil
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
