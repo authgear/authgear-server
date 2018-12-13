@@ -191,7 +191,9 @@ func TestAuthHandler(t *testing.T) {
 						"_updated_at": "0001-01-01T00:00:00Z",
 						"_updated_by": ""
 					},
-					"access_token": "%s"
+					"access_token": "%s",
+					"verified": false,
+					"verify_info": null
 				}
 			}`, p.UserID, token.AccessToken))
 		})
@@ -272,7 +274,9 @@ func TestAuthHandler(t *testing.T) {
 						"_updated_at": "0001-01-01T00:00:00Z",
 						"_updated_by": ""
 					},
-					"access_token": "%s"
+					"access_token": "%s",
+					"verified": false,
+					"verify_info":  null
 				}
 			}`, p.UserID, token.AccessToken))
 		})
