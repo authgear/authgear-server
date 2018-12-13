@@ -68,6 +68,7 @@ func main() {
 	handler.AttachSetDisableHandler(&srv, authDependency)
 	handler.AttachRoleAssignHandler(&srv, authDependency)
 	handler.AttachRoleRevokeHandler(&srv, authDependency)
+	handler.AttachChangePasswordHandler(&srv, authDependency)
 	handler.AttachResetPasswordHandler(&srv, authDependency)
 	handler.AttachGetRoleHandler(&srv, authDependency)
 	handler.AttachRoleAdminHandler(&srv, authDependency)

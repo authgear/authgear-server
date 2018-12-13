@@ -14,6 +14,15 @@ func NewMockStore() *MockStore {
 	return NewMockStoreWithAuthInfoMap(map[string]AuthInfo{})
 }
 
+// NewMockStoreWithUser create mock store with user
+func NewMockStoreWithUser(userID string) *MockStore {
+	return NewMockStoreWithAuthInfoMap(map[string]AuthInfo{
+		userID: AuthInfo{
+			ID: userID,
+		},
+	})
+}
+
 // NewMockStoreWithAuthInfoMap create mock store with AuthInfoMap fixture
 func NewMockStoreWithAuthInfoMap(authInfoMap map[string]AuthInfo) *MockStore {
 	return &MockStore{
