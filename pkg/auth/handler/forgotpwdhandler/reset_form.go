@@ -108,10 +108,6 @@ type resultTemplateContext struct {
 	userProfile userprofile.UserProfile
 }
 
-func (h ForgotPasswordResetFormHandler) WithTx() bool {
-	return true
-}
-
 func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Request) (ctx resultTemplateContext, err error) {
 	var payload ForgotPasswordResetFormPayload
 	payload, err = decodeForgotPasswordResetFormRequest(r)
