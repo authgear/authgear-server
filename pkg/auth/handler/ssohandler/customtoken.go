@@ -108,6 +108,7 @@ type CustomTokenLoginHandler struct {
 	TokenStore              authtoken.Store      `dependency:"TokenStore"`
 	AuthInfoStore           authinfo.Store       `dependency:"AuthInfoStore"`
 	CustomTokenAuthProvider customtoken.Provider `dependency:"CustomTokenAuthProvider"`
+	UserVerifyKeys          []string             `dependency:"UserVerifyKeys"`
 	AuditTrail              audit.Trail          `dependency:"AuditTrail"`
 }
 
@@ -230,6 +231,12 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 
 		// Assign default roles
 		info.Roles = defaultRoles
+
+		// Initialise verify state
+		info.VerifyInfo = map[string]bool{}
+		for _, key := range h.UserVerifyKeys {
+			info.VerifyInfo[key] = false
+		}
 
 		// Create AuthInfo
 		if e = h.AuthInfoStore.CreateAuth(info); e != nil {

@@ -27,26 +27,20 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration) CodeSen
 		case "smtp":
 			codeSender = &EmailCodeSender{
 				AppName: c.AppName,
-				// Key:           keyConfig.Key,
-				Config:        userVerifyConfig,
-				Dialer:        mail.NewDialer(c.SMTP),
-				CodeGenerator: NewCodeGenerator(keyConfig.CodeFormat),
+				Config:  userVerifyConfig,
+				Dialer:  mail.NewDialer(c.SMTP),
 			}
 		case "twilio":
 			codeSender = &SMSCodeSender{
-				AppName: c.AppName,
-				// Key:           keyConfig.Key,
-				Config:        userVerifyConfig,
-				SMSClient:     sms.NewTwilioClient(c.Twilio),
-				CodeGenerator: NewCodeGenerator(keyConfig.CodeFormat),
+				AppName:   c.AppName,
+				Config:    userVerifyConfig,
+				SMSClient: sms.NewTwilioClient(c.Twilio),
 			}
 		case "nexmo":
 			codeSender = &SMSCodeSender{
-				AppName: c.AppName,
-				// Key:           keyConfig.Key,
-				Config:        userVerifyConfig,
-				SMSClient:     sms.NewNexmoClient(c.Nexmo),
-				CodeGenerator: NewCodeGenerator(keyConfig.CodeFormat),
+				AppName:   c.AppName,
+				Config:    userVerifyConfig,
+				SMSClient: sms.NewNexmoClient(c.Nexmo),
 			}
 		default:
 			panic(errors.New("invalid user verify provider: " + keyConfig.Provider))

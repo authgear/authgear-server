@@ -14,30 +14,26 @@ import (
 )
 
 type CodeSender interface {
-	CodeGenerator
-	Send(code string, key string, value string, userProfile userprofile.UserProfile) error
+	Send(verifyCode VerifyCode, userProfile userprofile.UserProfile) error
 }
 
 type EmailCodeSender struct {
 	AppName string
 	Config  config.UserVerifyConfiguration
 	Dialer  *gomail.Dialer
-	CodeGenerator
 }
 
-func (e *EmailCodeSender) Send(code string, key string, value string, userProfile userprofile.UserProfile) (err error) {
+func (e *EmailCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.UserProfile) (err error) {
 	var keyConfig config.UserVerifyKeyConfiguration
 	var ok bool
-	if keyConfig, ok = e.Config.ConfigForKey(key); !ok {
-		return errors.New("provider for " + key + " not found")
+	if keyConfig, ok = e.Config.ConfigForKey(verifyCode.RecordKey); !ok {
+		return errors.New("provider for " + verifyCode.RecordKey + " not found")
 	}
 
 	context := prepareVerifyRequestContext(
-		key,
-		value,
+		verifyCode,
 		e.AppName,
 		e.Config,
-		code,
 		userProfile,
 	)
 
@@ -59,7 +55,7 @@ func (e *EmailCodeSender) Send(code string, key string, value string, userProfil
 		Dialer:      e.Dialer,
 		Sender:      providerConfig.Sender,
 		SenderName:  providerConfig.SenderName,
-		Recipient:   value,
+		Recipient:   verifyCode.RecordValue,
 		Subject:     providerConfig.Subject,
 		ReplyTo:     providerConfig.ReplyTo,
 		ReplyToName: providerConfig.ReplyToName,
@@ -75,22 +71,19 @@ type SMSCodeSender struct {
 	AppName   string
 	Config    config.UserVerifyConfiguration
 	SMSClient sms.Client
-	CodeGenerator
 }
 
-func (t *SMSCodeSender) Send(code string, key string, value string, userProfile userprofile.UserProfile) (err error) {
+func (t *SMSCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.UserProfile) (err error) {
 	var keyConfig config.UserVerifyKeyConfiguration
 	var ok bool
-	if keyConfig, ok = t.Config.ConfigForKey(key); !ok {
-		return errors.New("provider for " + key + " not found")
+	if keyConfig, ok = t.Config.ConfigForKey(verifyCode.RecordKey); !ok {
+		return errors.New("provider for " + verifyCode.RecordKey + " not found")
 	}
 
 	context := prepareVerifyRequestContext(
-		key,
-		value,
+		verifyCode,
 		t.AppName,
 		t.Config,
-		code,
 		userProfile,
 	)
 
@@ -101,29 +94,27 @@ func (t *SMSCodeSender) Send(code string, key string, value string, userProfile 
 		return
 	}
 
-	err = t.SMSClient.Send(value, textBody)
+	err = t.SMSClient.Send(verifyCode.RecordValue, textBody)
 	return
 }
 
 func prepareVerifyRequestContext(
-	key string,
-	value string,
+	verifyCode VerifyCode,
 	appName string,
 	config config.UserVerifyConfiguration,
-	code string,
 	userProfile userprofile.UserProfile,
 ) map[string]interface{} {
 	return map[string]interface{}{
 		"appname":      appName,
-		"record_key":   key,
-		"record_value": value,
+		"record_key":   verifyCode.RecordKey,
+		"record_value": verifyCode.RecordValue,
 		"user_id":      userProfile.RecordID,
 		"user":         userProfile.ToMap(),
-		"code":         code,
+		"code":         verifyCode.Code,
 		"link": fmt.Sprintf(
-			"%s/auth/verify-code/form?code=%s&user_id=%s",
+			"%s/auth/verify-verifyCode.Code/form?verifyCode.Code=%s&user_id=%s",
 			config.URLPrefix,
-			code,
+			verifyCode.Code,
 			userProfile.RecordID,
 		),
 	}

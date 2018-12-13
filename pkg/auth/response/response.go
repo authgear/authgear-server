@@ -29,6 +29,8 @@ type AuthResponse struct {
 	AccessToken string                  `json:"access_token,omitempty"`
 	LastLoginAt *time.Time              `json:"last_login_at,omitempty"`
 	LastSeenAt  *time.Time              `json:"last_seen_at,omitempty"`
+	Verified    bool                    `json:"verified"`
+	VerifyInfo  map[string]bool         `json:"verify_info"`
 }
 
 func NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile, accessToken string) AuthResponse {
@@ -45,5 +47,7 @@ func NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserPro
 		AccessToken: accessToken,
 		LastLoginAt: lastLoginAt,
 		LastSeenAt:  authInfo.LastSeenAt,
+		Verified:    authInfo.Verified,
+		VerifyInfo:  authInfo.VerifyInfo,
 	}
 }

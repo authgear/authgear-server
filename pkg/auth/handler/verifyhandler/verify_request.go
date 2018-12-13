@@ -1,4 +1,4 @@
-package handler
+package verifyhandler
 
 import (
 	"encoding/json"
@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify/verifycode"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -45,7 +44,6 @@ func (f VerifyRequestHandlerFactory) NewHandler(request *http.Request) http.Hand
 
 // ProvideAuthzPolicy provides authorization policy of handler
 func (f VerifyRequestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	// FIXME: Admin only after adding admin role
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
@@ -75,12 +73,13 @@ func (payload VerifyRequestPayload) Validate() error {
 //  EOF
 //
 type VerifyRequestHandler struct {
-	TxContext         db.TxContext                 `dependency:"TxContext"`
-	AuthContext       coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
-	CodeSenderFactory userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
-	UserProfileStore  userprofile.Store            `dependency:"UserProfileStore"`
-	VerifyCodeStore   verifycode.Store             `dependency:"VerifyCodeStore"`
-	Logger            *logrus.Entry                `dependency:"HandlerLogger"`
+	TxContext            db.TxContext                    `dependency:"TxContext"`
+	AuthContext          coreAuth.ContextGetter          `dependency:"AuthContextGetter"`
+	CodeSenderFactory    userverify.CodeSenderFactory    `dependency:"UserVerifyCodeSenderFactory"`
+	CodeGeneratorFactory userverify.CodeGeneratorFactory `dependency:"VerifyCodeCodeGeneratorFactory"`
+	UserProfileStore     userprofile.Store               `dependency:"UserProfileStore"`
+	VerifyCodeStore      userverify.Store                `dependency:"VerifyCodeStore"`
+	Logger               *logrus.Entry                   `dependency:"HandlerLogger"`
 }
 
 func (h VerifyRequestHandler) WithTx() bool {
@@ -122,17 +121,10 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	code := codeSender.Generate()
-	if err = codeSender.Send(code, payload.RecordKey, value, userProfile); err != nil {
-		h.Logger.WithFields(logrus.Fields{
-			"error":        err,
-			"record_key":   payload.RecordKey,
-			"record_value": value,
-		}).Error("fail to send verify request")
-		return
-	}
+	codeGenerator := h.CodeGeneratorFactory.NewCodeGenerator(payload.RecordKey)
+	code := codeGenerator.Generate()
 
-	verifyCode := verifycode.NewVerifyCode()
+	verifyCode := userverify.NewVerifyCode()
 	verifyCode.UserID = authInfo.ID
 	verifyCode.RecordKey = payload.RecordKey
 	verifyCode.RecordValue = value
@@ -141,6 +133,15 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	verifyCode.CreatedAt = time.Now()
 
 	if err = h.VerifyCodeStore.CreateVerifyCode(&verifyCode); err != nil {
+		return
+	}
+
+	if err = codeSender.Send(verifyCode, userProfile); err != nil {
+		h.Logger.WithFields(logrus.Fields{
+			"error":        err,
+			"record_key":   payload.RecordKey,
+			"record_value": value,
+		}).Error("fail to send verify request")
 		return
 	}
 

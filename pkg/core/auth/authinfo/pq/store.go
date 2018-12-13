@@ -59,6 +59,7 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		lastLoginAt     *time.Time
 		disabledReason  *string
 		disabledExpiry  *time.Time
+		verifyInfo      dbPq.JSONMapBooleanValue
 	)
 	tokenValidSince = authinfo.TokenValidSince
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
@@ -81,6 +82,8 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		disabledExpiry = nil
 	}
 
+	verifyInfo = authinfo.VerifyInfo
+
 	builder := s.sqlBuilder.Insert(s.sqlBuilder.FullTableName("user")).Columns(
 		"id",
 		"token_valid_since",
@@ -89,6 +92,8 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		"disabled",
 		"disabled_message",
 		"disabled_expiry",
+		"verified",
+		"verify_info",
 	).Values(
 		authinfo.ID,
 		tokenValidSince,
@@ -97,6 +102,8 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		authinfo.Disabled,
 		disabledReason,
 		disabledExpiry,
+		authinfo.Verified,
+		verifyInfo,
 	)
 
 	_, err = s.sqlExecutor.ExecWith(builder)
@@ -120,6 +127,7 @@ func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		lastLoginAt     *time.Time
 		disabledReason  *string
 		disabledExpiry  *time.Time
+		verifyInfo      dbPq.JSONMapBooleanValue
 	)
 	tokenValidSince = authinfo.TokenValidSince
 	if tokenValidSince != nil && tokenValidSince.IsZero() {
@@ -142,6 +150,8 @@ func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		disabledExpiry = nil
 	}
 
+	verifyInfo = authinfo.VerifyInfo
+
 	builder := s.sqlBuilder.Update(s.sqlBuilder.FullTableName("user")).
 		Set("token_valid_since", tokenValidSince).
 		Set("last_seen_at", lastSeenAt).
@@ -149,6 +159,8 @@ func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		Set("disabled", authinfo.Disabled).
 		Set("disabled_message", disabledReason).
 		Set("disabled_expiry", disabledExpiry).
+		Set("verified", authinfo.Verified).
+		Set("verify_info", verifyInfo).
 		Where("id = ?", authinfo.ID)
 
 	result, err := s.sqlExecutor.ExecWith(builder)
@@ -179,6 +191,7 @@ func (s authInfoStore) baseUserBuilder() sq.SelectBuilder {
 	return s.sqlBuilder.Select("id",
 		"token_valid_since", "last_seen_at", "last_login_at",
 		"disabled", "disabled_message", "disabled_expiry",
+		"verified", "verify_info",
 		"array_to_json(array_agg(role_id)) AS roles").
 		From(s.sqlBuilder.FullTableName("user")).
 		LeftJoin(s.sqlBuilder.FullTableName("user_role") + " ON id = user_id").
@@ -196,6 +209,8 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		disabled        bool
 		disabledReason  sql.NullString
 		disabledExpiry  pq.NullTime
+		verified        bool
+		verifyInfo      dbPq.NullJSONMapBoolean
 	)
 
 	err := scanner.Scan(
@@ -206,6 +221,8 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		&disabled,
 		&disabledReason,
 		&disabledExpiry,
+		&verified,
+		&verifyInfo,
 		&roles,
 	)
 	if err != nil {
@@ -250,6 +267,8 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 	}
 
 	authinfo.Roles = roles.Slice
+	authinfo.Verified = verified
+	authinfo.VerifyInfo = verifyInfo.JSON
 
 	return err
 }
