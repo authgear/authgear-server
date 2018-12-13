@@ -92,6 +92,7 @@ func main() {
 	ssohandler.AttachIFrameHandlerFactory(&srv, authDependency)
 	ssohandler.AttachCustomTokenLoginHandler(&srv, authDependency)
 	ssohandler.AttachAuthHandler(&srv, authDependency)
+	ssohandler.AttachProviderProfilesHandler(&srv, authDependency)
 
 	go func() {
 		log.Printf("Auth gear boot")
