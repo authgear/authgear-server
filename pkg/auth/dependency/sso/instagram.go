@@ -72,6 +72,7 @@ func (f *InstagramImpl) processUserID(userProfile map[string]interface{}) string
 func (f *InstagramImpl) processAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
 	// Check GET /users/self response
 	// https://www.instagram.com/developer/endpoints/users/
+	authData = make(map[string]interface{})
 	data, ok := userProfile["data"].(map[string]interface{})
 	if !ok {
 		return

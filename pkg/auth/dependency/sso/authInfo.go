@@ -76,6 +76,7 @@ func processUserID(userProfile map[string]interface{}) string {
 }
 
 func processAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
+	authData = make(map[string]interface{})
 	email, ok := userProfile["email"].(string)
 	if ok {
 		authData["email"] = email
