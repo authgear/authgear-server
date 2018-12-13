@@ -7,4 +7,5 @@ type Provider interface {
 	GetPrincipalByUserID(userID string) (*Principal, error)
 	CreatePrincipal(principal Principal) error
 	UpdatePrincipal(principal *Principal) error
+	GetPrincipalsByUserID(userID string) ([]*Principal, error)
 }
