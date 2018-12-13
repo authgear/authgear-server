@@ -16,7 +16,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/skygeario/skygear-server/pkg/auth/handler"
-	"github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwdhandler"
+	forgotpwdhandler "github.com/skygeario/skygear-server/pkg/auth/handler/forgotpwd"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/ssohandler"
 	"github.com/skygeario/skygear-server/pkg/auth/handler/verifyhandler"
 	"github.com/skygeario/skygear-server/pkg/auth/task"

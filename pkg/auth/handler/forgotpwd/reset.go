@@ -1,4 +1,4 @@
-package forgotpwdhandler
+package forgotpwd
 
 import (
 	"encoding/json"
