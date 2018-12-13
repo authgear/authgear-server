@@ -40,7 +40,8 @@ type TokenStoreConfiguration struct {
 }
 
 type AuthConfiguration struct {
-	CustomTokenSecret string `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
+	AuthRecordKeys    [][]string `msg:"AUTH_RECORD_KEYS" envconfig:"AUTH_RECORD_KEYS" json:"AUTH_RECORD_KEYS"`
+	CustomTokenSecret string     `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
 }
 
 type UserProfileConfiguration struct {
@@ -180,6 +181,9 @@ func NewTenantConfiguration() TenantConfiguration {
 	return TenantConfiguration{
 		DBConnectionStr: "postgres://postgres:@localhost/postgres?sslmode=disable",
 		CORSHost:        "*",
+		Auth: AuthConfiguration{
+			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
+		},
 		SMTP: SMTPConfiguration{
 			Port: 25,
 			Mode: "normal",
