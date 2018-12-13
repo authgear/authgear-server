@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
@@ -99,7 +100,8 @@ func GetScope(scope Scope, defaultScope Scope) Scope {
 // RedirectURI generates redirect uri from URLPrefix and provider name
 func RedirectURI(URLPrefix string, providerName string) string {
 	u, _ := url.Parse(URLPrefix)
-	path := fmt.Sprintf("%s/sso/%s/auth_handler", u.Path, providerName)
+	orgPath := strings.TrimRight(u.Path, "/")
+	path := fmt.Sprintf("%s/sso/%s/auth_handler", orgPath, providerName)
 	u.Path = path
 	return u.String()
 }
