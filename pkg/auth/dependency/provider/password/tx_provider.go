@@ -39,9 +39,9 @@ func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
 	return p.impl.CreatePrincipal(principal)
 }
 
-func (p *safeProviderImpl) GetPrincipalsByAuthData(authData map[string]interface{}) ([]*Principal, error) {
+func (p *safeProviderImpl) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) (err error) {
 	p.txContext.EnsureTx()
-	return p.impl.GetPrincipalsByAuthData(authData)
+	return p.impl.GetPrincipalByAuthData(authData, principal)
 }
 
 func (p *safeProviderImpl) GetPrincipalsByUserID(userID string) ([]*Principal, error) {
