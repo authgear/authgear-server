@@ -3,7 +3,6 @@ package sso
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -14,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	nextSkyerr "github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -122,10 +122,9 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if err != nil {
-			response := handler.APIResponse{
-				Err: skyerr.MakeError(err),
-			}
-			handler.WriteResponse(rw, response)
+			e := skyerr.MakeError(err)
+			statusCode := nextSkyerr.ErrorDefaultStatusCode(e)
+			http.Error(rw, err.Error(), statusCode)
 		}
 	}()
 
@@ -174,8 +173,6 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	allowedCallbackURLs := h.SSOSetting.AllowedCallbackURLs
 	err = h.validateCallbackURL(allowedCallbackURLs, callbackURL)
 	if err != nil {
-		err = nil
-		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -227,7 +224,7 @@ func (h AuthHandler) getResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err 
 
 func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
 	if callbackURL == "" {
-		err = errors.New("Missing callback url")
+		err = skyerr.NewError(skyerr.BadRequest, "Missing callback url")
 		return
 	}
 	if len(allowedCallbackURLs) != 0 {
@@ -242,7 +239,7 @@ func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackU
 		}
 
 		if !found {
-			err = errors.New("The callback url is not whitelisted in the social login setting")
+			err = skyerr.NewError(skyerr.BadRequest, "The callback url is not whitelisted in the social login setting")
 		}
 	}
 

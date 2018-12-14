@@ -438,13 +438,7 @@ func TestAuthHandler(t *testing.T) {
 
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.String(), ShouldEqualJSON, `{
-				"error":{
-					"name": "InvalidArgument",
-					"code": 108,
-					"message": "provider account already linked with existing user"
-				}
-			}`)
+			So(resp.Body.String(), ShouldEqual, "InvalidArgument: provider account already linked with existing user\n")
 		})
 	})
 }
