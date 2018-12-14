@@ -28,7 +28,7 @@ func (f *LinkedInImpl) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *LinkedInImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
-	h := authHandler{
+	h := getAuthInfoRequest{
 		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
 		clientSecret:   f.Config.ClientSecret,
@@ -39,6 +39,7 @@ func (f *LinkedInImpl) GetAuthInfo(code string, scope Scope, encodedState string
 		encodedState:   encodedState,
 		accessTokenURL: AccessTokenURL(f.Config.Name),
 		userProfileURL: UserProfileURL(f.Config.Name),
+		processor:      newDefaultAuthInfoProcessor(),
 	}
 	return h.getAuthInfo()
 }

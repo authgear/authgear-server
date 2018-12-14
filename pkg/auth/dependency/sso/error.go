@@ -83,7 +83,7 @@ type ssoError struct {
 	message string
 }
 
-func RespToError(errorResp ErrorResp) Error {
+func respToError(errorResp ErrorResp) Error {
 	return ssoError{
 		code:    errorCodeFromString(errorResp.Error),
 		message: errorResp.ErrorDescription,

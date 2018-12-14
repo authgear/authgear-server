@@ -13,6 +13,10 @@ type InstagramImpl struct {
 	Config  Config
 }
 
+type instagramAuthInfoProcessor struct {
+	defaultAuthInfoProcessor
+}
+
 func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 	if f.Config.ClientID == "" {
 		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
@@ -39,7 +43,8 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *InstagramImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
-	h := authHandler{
+	p := instagramAuthInfoProcessor{}
+	h := getAuthInfoRequest{
 		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
 		clientSecret:   f.Config.ClientSecret,
@@ -50,12 +55,12 @@ func (f *InstagramImpl) GetAuthInfo(code string, scope Scope, encodedState strin
 		encodedState:   encodedState,
 		accessTokenURL: AccessTokenURL(f.Config.Name),
 		userProfileURL: UserProfileURL(f.Config.Name),
-		processUserID:  f.processUserID,
+		processor:      p,
 	}
 	return h.getAuthInfo()
 }
 
-func (f *InstagramImpl) processUserID(userProfile map[string]interface{}) string {
+func (i instagramAuthInfoProcessor) processUserID(userProfile map[string]interface{}) string {
 	// Check GET /users/self response
 	// https://www.instagram.com/developer/endpoints/users/
 	data, ok := userProfile["data"].(map[string]interface{})
@@ -69,7 +74,7 @@ func (f *InstagramImpl) processUserID(userProfile map[string]interface{}) string
 	return id
 }
 
-func (f *InstagramImpl) processAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
+func (i instagramAuthInfoProcessor) processAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
 	// Check GET /users/self response
 	// https://www.instagram.com/developer/endpoints/users/
 	authData = make(map[string]interface{})

@@ -2,7 +2,6 @@ package sso
 
 import (
 	"net/url"
-	"strings"
 
 	"github.com/franela/goreq"
 )
@@ -25,7 +24,7 @@ func fetchAccessTokenResp(
 	providerName string,
 	clientSecret string,
 	accessTokenURL string,
-) (accessToken AccessTokenResp, err error) {
+) (resp []byte, err error) {
 	v := url.Values{}
 	v.Set("grant_type", "authorization_code")
 	v.Add("code", code)
@@ -45,25 +44,19 @@ func fetchAccessTokenResp(
 	}
 
 	if res.StatusCode == 200 {
-		err = res.Body.FromJsonTo(&accessToken)
+		var body string
+		body, err = res.Body.ToString()
 		if err != nil {
 			return
 		}
-		if accessToken.AccessToken == "" {
-			err = ssoError{
-				code:    MissingAccessToken,
-				message: " Missing access token parameter",
-			}
-			return
-		}
-		accessToken.Scope = strings.Split(accessToken.RawScope, " ")
+		resp = []byte(body)
 	} else { // normally 400 Bad Request
 		var errResp ErrorResp
 		err = res.Body.FromJsonTo(&errResp)
 		if err != nil {
 			return
 		}
-		err = RespToError(errResp)
+		err = respToError(errResp)
 	}
 
 	return

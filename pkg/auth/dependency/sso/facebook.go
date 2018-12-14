@@ -11,6 +11,10 @@ type FacebookImpl struct {
 	Config  Config
 }
 
+type facebookAuthInfoProcessor struct {
+	defaultAuthInfoProcessor
+}
+
 func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 	if f.Config.ClientID == "" {
 		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
@@ -34,28 +38,35 @@ func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *FacebookImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
-	h := authHandler{
-		providerName:           f.Config.Name,
-		clientID:               f.Config.ClientID,
-		clientSecret:           f.Config.ClientSecret,
-		urlPrefix:              f.Setting.URLPrefix,
-		code:                   code,
-		scope:                  scope,
-		stateJWTSecret:         f.Setting.StateJWTSecret,
-		encodedState:           encodedState,
-		accessTokenURL:         AccessTokenURL(f.Config.Name),
-		userProfileURL:         UserProfileURL(f.Config.Name),
-		processAccessTokenResp: f.processAccessTokenResp,
+	p := facebookAuthInfoProcessor{}
+	h := getAuthInfoRequest{
+		providerName:   f.Config.Name,
+		clientID:       f.Config.ClientID,
+		clientSecret:   f.Config.ClientSecret,
+		urlPrefix:      f.Setting.URLPrefix,
+		code:           code,
+		scope:          scope,
+		stateJWTSecret: f.Setting.StateJWTSecret,
+		encodedState:   encodedState,
+		accessTokenURL: AccessTokenURL(f.Config.Name),
+		userProfileURL: UserProfileURL(f.Config.Name),
+		processor:      p,
 	}
 	return h.getAuthInfo()
 }
 
-func (f *FacebookImpl) processAccessTokenResp(a AccessTokenResp) AccessTokenResp {
-	if a.ExpiresIn == 0 && a.RawExpires != 0 {
-		a.ExpiresIn = a.RawExpires
+func (f facebookAuthInfoProcessor) decodeAccessTokenResp(respBytes []byte) (AccessTokenResp, error) {
+	accessTokenResp, err := f.defaultAuthInfoProcessor.decodeAccessTokenResp(respBytes)
+	if err != nil {
+		return accessTokenResp, err
 	}
-	if strings.ToLower(a.TokenType) == "bearer" {
-		a.TokenType = "Bearer"
+
+	// special handling for facebook access token
+	if accessTokenResp.ExpiresIn == 0 && accessTokenResp.RawExpires != 0 {
+		accessTokenResp.ExpiresIn = accessTokenResp.RawExpires
 	}
-	return a
+	if strings.ToLower(accessTokenResp.TokenType) == "bearer" {
+		accessTokenResp.TokenType = "Bearer"
+	}
+	return accessTokenResp, nil
 }

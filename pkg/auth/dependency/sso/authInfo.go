@@ -1,6 +1,24 @@
 package sso
 
-type authHandler struct {
+import (
+	"encoding/json"
+	"strings"
+)
+
+type authInfoProcessor interface {
+	decodeAccessTokenResp(respBytes []byte) (AccessTokenResp, error)
+	validateAccessTokenResp(accessTokenResp AccessTokenResp) error
+	processUserID(p map[string]interface{}) string
+	processAuthData(p map[string]interface{}) map[string]interface{}
+}
+
+type defaultAuthInfoProcessor struct{}
+
+func newDefaultAuthInfoProcessor() defaultAuthInfoProcessor {
+	return defaultAuthInfoProcessor{}
+}
+
+type getAuthInfoRequest struct {
 	providerName   string
 	clientID       string
 	clientSecret   string
@@ -11,14 +29,11 @@ type authHandler struct {
 	encodedState   string
 	accessTokenURL string
 	userProfileURL string
-
-	processAccessTokenResp func(a AccessTokenResp) AccessTokenResp
-	processUserID          func(p map[string]interface{}) string
-	processAuthData        func(p map[string]interface{}) map[string]interface{}
+	processor      authInfoProcessor
 }
 
-func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
-	accessTokenResp, err := fetchAccessTokenResp(
+func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
+	respBytes, err := fetchAccessTokenResp(
 		h.code,
 		h.clientID,
 		h.urlPrefix,
@@ -30,8 +45,14 @@ func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 		return
 	}
 
-	if h.processAccessTokenResp != nil {
-		accessTokenResp = h.processAccessTokenResp(accessTokenResp)
+	accessTokenResp, err := h.processor.decodeAccessTokenResp(respBytes)
+	if err != nil {
+		return
+	}
+
+	err = h.processor.validateAccessTokenResp(accessTokenResp)
+	if err != nil {
+		return
 	}
 
 	userProfile, err := fetchUserProfile(accessTokenResp, h.userProfileURL)
@@ -39,16 +60,9 @@ func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 		return
 	}
 
-	if h.processUserID == nil {
-		h.processUserID = processUserID
-	}
-	if h.processAuthData == nil {
-		h.processAuthData = processAuthData
-	}
-
-	userID := h.processUserID(userProfile)
+	userID := h.processor.processUserID(userProfile)
 	// TODO: process process_userinfo_hook
-	authData := h.processAuthData(userProfile)
+	authData := h.processor.processAuthData(userProfile)
 
 	state, err := DecodeState(h.stateJWTSecret, h.encodedState)
 	if err != nil {
@@ -67,7 +81,29 @@ func (h authHandler) getAuthInfo() (authInfo AuthInfo, err error) {
 	return
 }
 
-func processUserID(userProfile map[string]interface{}) string {
+func (d defaultAuthInfoProcessor) decodeAccessTokenResp(respBytes []byte) (AccessTokenResp, error) {
+	var accessTokenResp AccessTokenResp
+	err := json.Unmarshal(respBytes, &accessTokenResp)
+	if err != nil {
+		return accessTokenResp, err
+	}
+	accessTokenResp.Scope = strings.Split(accessTokenResp.RawScope, " ")
+	return accessTokenResp, err
+}
+
+func (d defaultAuthInfoProcessor) validateAccessTokenResp(accessTokenResp AccessTokenResp) error {
+	if accessTokenResp.AccessToken == "" {
+		err := ssoError{
+			code:    MissingAccessToken,
+			message: " Missing access token parameter",
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (d defaultAuthInfoProcessor) processUserID(userProfile map[string]interface{}) string {
 	id, ok := userProfile["id"].(string)
 	if !ok {
 		return ""
@@ -75,7 +111,7 @@ func processUserID(userProfile map[string]interface{}) string {
 	return id
 }
 
-func processAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
+func (d defaultAuthInfoProcessor) processAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
 	authData = make(map[string]interface{})
 	email, ok := userProfile["email"].(string)
 	if ok {
