@@ -10,6 +10,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -36,12 +37,12 @@ func TestChangePasswordHandler(t *testing.T) {
 
 		lh := &ChangePasswordHandler{}
 		lh.AuditTrail = audit.NewMockTrail(t)
-		lh.AuthContext = auth.NewMockContextGetterWithUser(userID)
+		lh.AuthContext = auth.NewMockContextGetterWithUser(userID, true, map[string]bool{})
 		lh.AuthInfoStore = authinfo.NewMockStoreWithUser(userID)
 		lh.TokenStore = mockTokenStore
 		lh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		lh.TxContext = db.NewMockTxContext()
-		lh.PasswordChecker = &audit.PasswordChecker{
+		lh.PasswordChecker = &authAudit.PasswordChecker{
 			PwMinLength: 6,
 		}
 		lh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
@@ -95,7 +96,9 @@ func TestChangePasswordHandler(t *testing.T) {
 						"_updated_by": "%s"
 					},
 					"roles":["user"],
-					"access_token": "%s"
+					"access_token": "%s",
+					"verified":true,
+					"verify_info":{}
 				}
 			}`,
 				userID,

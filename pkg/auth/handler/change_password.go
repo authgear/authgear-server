@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency"
+	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
@@ -41,7 +41,7 @@ type ChangePasswordHandlerFactory struct {
 // NewHandler creates new handler
 func (f ChangePasswordHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &ChangePasswordHandler{}
-	inject.DefaultInject(h, f.Dependency, request)
+	inject.DefaultRequestInject(h, f.Dependency, request)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
@@ -93,7 +93,7 @@ type ChangePasswordHandler struct {
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
-	PasswordChecker      dependency.PasswordChecker `dependency:"PasswordChecker"`
+	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
@@ -114,8 +114,9 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 	payload := req.(ChangePasswordRequestPayload)
 	authinfo := h.AuthContext.AuthInfo()
 
-	if err = h.PasswordChecker.ValidatePassword(audit.ValidatePasswordPayload{
+	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 		PlainPassword: payload.NewPassword,
+		AuthID:        authinfo.ID,
 	}); err != nil {
 		return
 	}
