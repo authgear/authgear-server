@@ -9,8 +9,8 @@ import (
 type AuthInfoProcessor interface {
 	DecodeAccessTokenResp(r io.Reader) (AccessTokenResp, error)
 	ValidateAccessTokenResp(accessTokenResp AccessTokenResp) error
-	ProcessUserID(p map[string]interface{}) string
-	ProcessAuthData(p map[string]interface{}) map[string]interface{}
+	DecodeUserID(p map[string]interface{}) string
+	DecodeAuthData(p map[string]interface{}) map[string]interface{}
 }
 
 type defaultAuthInfoProcessor struct{}
@@ -33,7 +33,7 @@ func (d defaultAuthInfoProcessor) ValidateAccessTokenResp(accessTokenResp Access
 	if accessTokenResp.AccessToken == "" {
 		err := ssoError{
 			code:    MissingAccessToken,
-			message: " Missing access token parameter",
+			message: "Missing access token parameter",
 		}
 		return err
 	}
@@ -41,7 +41,7 @@ func (d defaultAuthInfoProcessor) ValidateAccessTokenResp(accessTokenResp Access
 	return nil
 }
 
-func (d defaultAuthInfoProcessor) ProcessUserID(userProfile map[string]interface{}) string {
+func (d defaultAuthInfoProcessor) DecodeUserID(userProfile map[string]interface{}) string {
 	id, ok := userProfile["id"].(string)
 	if !ok {
 		return ""
@@ -49,7 +49,7 @@ func (d defaultAuthInfoProcessor) ProcessUserID(userProfile map[string]interface
 	return id
 }
 
-func (d defaultAuthInfoProcessor) ProcessAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
+func (d defaultAuthInfoProcessor) DecodeAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
 	authData = make(map[string]interface{})
 	email, ok := userProfile["email"].(string)
 	if ok {

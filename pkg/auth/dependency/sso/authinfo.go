@@ -42,9 +42,9 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 		return
 	}
 
-	userID := h.processor.ProcessUserID(userProfile)
+	userID := h.processor.DecodeUserID(userProfile)
 	// TODO: process process_userinfo_hook
-	authData := h.processor.ProcessAuthData(userProfile)
+	authData := h.processor.DecodeAuthData(userProfile)
 
 	state, err := DecodeState(h.stateJWTSecret, h.encodedState)
 	if err != nil {
