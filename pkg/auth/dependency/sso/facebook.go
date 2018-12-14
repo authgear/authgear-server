@@ -56,8 +56,8 @@ func (f *FacebookImpl) GetAuthInfo(code string, scope Scope, encodedState string
 	return h.getAuthInfo()
 }
 
-func (f facebookAuthInfoProcessor) decodeAccessTokenResp(r io.Reader) (AccessTokenResp, error) {
-	accessTokenResp, err := f.defaultAuthInfoProcessor.decodeAccessTokenResp(r)
+func (f facebookAuthInfoProcessor) DecodeAccessTokenResp(r io.Reader) (AccessTokenResp, error) {
+	accessTokenResp, err := f.defaultAuthInfoProcessor.DecodeAccessTokenResp(r)
 	if err != nil {
 		return accessTokenResp, err
 	}
