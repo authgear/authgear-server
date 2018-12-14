@@ -2,11 +2,12 @@ package sso
 
 import (
 	"encoding/json"
+	"io"
 	"strings"
 )
 
 type authInfoProcessor interface {
-	decodeAccessTokenResp(respBytes []byte) (AccessTokenResp, error)
+	decodeAccessTokenResp(r io.Reader) (AccessTokenResp, error)
 	validateAccessTokenResp(accessTokenResp AccessTokenResp) error
 	processUserID(p map[string]interface{}) string
 	processAuthData(p map[string]interface{}) map[string]interface{}
@@ -33,7 +34,7 @@ type getAuthInfoRequest struct {
 }
 
 func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
-	respBytes, err := fetchAccessTokenResp(
+	r, err := fetchAccessTokenResp(
 		h.code,
 		h.clientID,
 		h.urlPrefix,
@@ -45,7 +46,7 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 		return
 	}
 
-	accessTokenResp, err := h.processor.decodeAccessTokenResp(respBytes)
+	accessTokenResp, err := h.processor.decodeAccessTokenResp(r)
 	if err != nil {
 		return
 	}
@@ -81,9 +82,9 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 	return
 }
 
-func (d defaultAuthInfoProcessor) decodeAccessTokenResp(respBytes []byte) (AccessTokenResp, error) {
+func (d defaultAuthInfoProcessor) decodeAccessTokenResp(r io.Reader) (AccessTokenResp, error) {
 	var accessTokenResp AccessTokenResp
-	err := json.Unmarshal(respBytes, &accessTokenResp)
+	err := json.NewDecoder(r).Decode(&accessTokenResp)
 	if err != nil {
 		return accessTokenResp, err
 	}

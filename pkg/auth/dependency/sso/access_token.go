@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"io"
 	"net/url"
 
 	"github.com/franela/goreq"
@@ -24,7 +25,7 @@ func fetchAccessTokenResp(
 	providerName string,
 	clientSecret string,
 	accessTokenURL string,
-) (resp []byte, err error) {
+) (r io.Reader, err error) {
 	v := url.Values{}
 	v.Set("grant_type", "authorization_code")
 	v.Add("code", code)
@@ -44,12 +45,7 @@ func fetchAccessTokenResp(
 	}
 
 	if res.StatusCode == 200 {
-		var body string
-		body, err = res.Body.ToString()
-		if err != nil {
-			return
-		}
-		resp = []byte(body)
+		r = res.Body
 	} else { // normally 400 Bad Request
 		var errResp ErrorResp
 		err = res.Body.FromJsonTo(&errResp)
