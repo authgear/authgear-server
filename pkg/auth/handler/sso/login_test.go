@@ -28,7 +28,9 @@ func TestLoginPayload(t *testing.T) {
 		// callback URL and ux_mode is required
 		Convey("validate valid payload", func() {
 			payload := LoginRequestPayload{
-				AccessToken: "token",
+				AccessTokenResp: sso.AccessTokenResp{
+					AccessToken: "token",
+				},
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
@@ -76,6 +78,8 @@ func TestLoginHandler(t *testing.T) {
 			MockUserID: providerUserID,
 		}
 		sh.Provider = &mockProvider
+		ssoProviderFactory := sso.ProviderFactory{}
+		sh.AuthInfoProcessor = ssoProviderFactory.NewAuthInfoProcessor(providerName)
 		mockOAuthProvider := oauth.NewMockProvider(
 			map[string]string{},
 			map[string]oauth.Principal{},
@@ -88,7 +92,6 @@ func TestLoginHandler(t *testing.T) {
 		mockTokenStore := authtoken.NewMockStore()
 		sh.TokenStore = mockTokenStore
 		sh.RoleStore = role.NewMockStore()
-		sh.SSOSetting = setting
 		authRecordKeys := [][]string{[]string{"email"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			authRecordKeys,

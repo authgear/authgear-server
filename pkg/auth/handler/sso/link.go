@@ -1,9 +1,7 @@
 package sso
 
 import (
-	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
@@ -41,6 +39,7 @@ func (f LinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderName = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderName)
+	h.AuthInfoProcessor = h.ProviderFactory.NewAuthInfoProcessor(h.ProviderName)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
@@ -53,11 +52,13 @@ func (f LinkHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 // LinkRequestPayload login handler request payload
-type LinkRequestPayload sso.AccessTokenResp
+type LinkRequestPayload struct {
+	AccessTokenResp sso.AccessTokenResp
+}
 
 // Validate request payload
 func (p LinkRequestPayload) Validate() error {
-	if p.AccessToken == "" {
+	if p.AccessTokenResp.AccessToken == "" {
 		return skyerr.NewInvalidArgument("empty access token", []string{"access_token"})
 	}
 
@@ -91,6 +92,7 @@ type LinkHandler struct {
 	AuthInfoStore     authinfo.Store         `dependency:"AuthInfoStore"`
 	ProviderFactory   *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
 	Provider          sso.Provider
+	AuthInfoProcessor sso.AuthInfoProcessor
 	ProviderName      string
 }
 
@@ -98,19 +100,13 @@ func (h LinkHandler) WithTx() bool {
 	return true
 }
 
-func (h LinkHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
-	payload := LinkRequestPayload{}
-	err := json.NewDecoder(request.Body).Decode(&payload)
+func (h LinkHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {
+	accessTokenResp, err := h.AuthInfoProcessor.DecodeAccessTokenResp(request.Body)
 	if err != nil {
-		return payload, err
+		return
 	}
-	payload.Scope = strings.Split(payload.RawScope, " ")
-	// some special handlings for facebook
-	if payload.ExpiresIn == 0 && payload.RawExpires != 0 {
-		payload.ExpiresIn = payload.RawExpires
-	}
-	if strings.ToLower(payload.TokenType) == "bearer" {
-		payload.TokenType = "Bearer"
+	payload = LinkRequestPayload{
+		AccessTokenResp: accessTokenResp,
 	}
 	return payload, nil
 }
@@ -122,13 +118,7 @@ func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	payload := req.(LinkRequestPayload)
-	oauthAuthInfo, err := h.Provider.GetAuthInfoByAccessTokenResp(sso.AccessTokenResp{
-		AccessToken:  payload.AccessToken,
-		TokenType:    payload.TokenType,
-		ExpiresIn:    payload.ExpiresIn,
-		Scope:        payload.Scope,
-		RefreshToken: payload.RefreshToken,
-	})
+	oauthAuthInfo, err := h.Provider.GetAuthInfoByAccessTokenResp(payload.AccessTokenResp)
 	if err != nil {
 		return
 	}

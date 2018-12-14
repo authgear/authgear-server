@@ -17,6 +17,10 @@ type instagramAuthInfoProcessor struct {
 	defaultAuthInfoProcessor
 }
 
+func newInstagramAuthInfoProcessor() instagramAuthInfoProcessor {
+	return instagramAuthInfoProcessor{}
+}
+
 func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 	if f.Config.ClientID == "" {
 		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
@@ -43,7 +47,7 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *InstagramImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
-	p := instagramAuthInfoProcessor{}
+	p := newInstagramAuthInfoProcessor()
 	h := getAuthInfoRequest{
 		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
@@ -90,7 +94,7 @@ func (i instagramAuthInfoProcessor) DecodeAuthData(userProfile map[string]interf
 }
 
 func (f *InstagramImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
-	p := instagramAuthInfoProcessor{}
+	p := newInstagramAuthInfoProcessor()
 	h := getAuthInfoRequest{
 		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,

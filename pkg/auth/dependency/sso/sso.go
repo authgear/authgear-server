@@ -170,3 +170,14 @@ func (p *ProviderFactory) Setting() Setting {
 		AllowedCallbackURLs:  SSOSetting.AllowedCallbackURLs,
 	}
 }
+
+func (p *ProviderFactory) NewAuthInfoProcessor(name string) AuthInfoProcessor {
+	switch name {
+	case "facebook":
+		return newFacebookAuthInfoProcessor()
+	case "instagram":
+		return newInstagramAuthInfoProcessor()
+	default:
+		return newDefaultAuthInfoProcessor()
+	}
+}
