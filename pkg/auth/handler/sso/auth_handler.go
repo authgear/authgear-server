@@ -147,8 +147,10 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	defer func() {
-		if h.TxContext.HasTx() {
+		if err != nil {
 			h.TxContext.RollbackTx()
+		} else {
+			h.TxContext.CommitTx()
 		}
 	}()
 
@@ -179,13 +181,9 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	// handle authResp by UXMode
 	switch oauthAuthInfo.State.UXMode {
 	case sso.WebRedirect.String(), sso.WebPopup.String():
-		h.handleSessionResp(rw, r, UXMode, callbackURL, resp)
+		err = h.handleSessionResp(rw, r, UXMode, callbackURL, resp)
 	case sso.IOS.String(), sso.Android.String():
-		h.handleRedirectResp(rw, r, UXMode, callbackURL, resp)
-	}
-
-	if h.TxContext != nil {
-		h.TxContext.CommitTx()
+		err = h.handleRedirectResp(rw, r, UXMode, callbackURL, resp)
 	}
 }
 
@@ -246,7 +244,7 @@ func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackU
 	return
 }
 
-func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, resp interface{}) {
+func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, resp interface{}) (err error) {
 	/*
 	   In JS oauth flow, result send through cookies and handler by js script
 
@@ -257,7 +255,10 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 	data := make(map[string]interface{})
 	data["result"] = resp
 	data["callback_url"] = callbackURL
-	msg, _ := json.Marshal(data)
+	msg, err := json.Marshal(data)
+	if err != nil {
+		return
+	}
 	encoded := base64.StdEncoding.EncodeToString([]byte(msg))
 	cookie := http.Cookie{
 		Name:  "sso_data",
@@ -267,13 +268,17 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 		http.SetCookie(rw, &cookie)
 		http.Redirect(rw, r, callbackURL, http.StatusFound)
 	} else {
-		html, _ := h.AuthHandlerHTMLProvider.HTML()
+		html, err := h.AuthHandlerHTMLProvider.HTML()
+		if err != nil {
+			return err
+		}
 		rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 		io.WriteString(rw, html)
 	}
+	return
 }
 
-func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, resp interface{}) {
+func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, resp interface{}) (err error) {
 	/*
 	   In ios and android oauth flow, after auth flow complete will redirect
 	   client back to the app with custom scheme
@@ -282,11 +287,18 @@ func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request,
 	   Example:
 	   myapp://user.skygear.io/sso/{provider}/auth_handler?result=
 	*/
-	authRespBytes, _ := json.Marshal(resp)
+	authRespBytes, err := json.Marshal(resp)
+	if err != nil {
+		return
+	}
 	encodedResult := base64.StdEncoding.EncodeToString(authRespBytes)
 	v := url.Values{}
 	v.Set("result", encodedResult)
-	u, _ := url.Parse(callbackURL)
+	u, err := url.Parse(callbackURL)
+	if err != nil {
+		return
+	}
 	u.RawQuery = v.Encode()
 	http.Redirect(rw, r, u.String(), http.StatusFound)
+	return
 }
