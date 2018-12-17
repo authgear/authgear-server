@@ -1,4 +1,4 @@
-package verifyhandler
+package userverify
 
 import (
 	"encoding/json"
