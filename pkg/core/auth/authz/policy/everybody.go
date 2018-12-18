@@ -9,11 +9,11 @@ import (
 )
 
 type Everybody struct {
-	allow bool
+	Allow bool
 }
 
 func (p Everybody) IsAllowed(r *http.Request, ctx auth.ContextGetter) error {
-	if !p.allow {
+	if !p.Allow {
 		// TODO:
 		// return proper error code
 		return skyerr.NewError(skyerr.UnexpectedError, "everybody is denied")

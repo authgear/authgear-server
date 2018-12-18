@@ -105,28 +105,13 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
-		PlainPassword: payload.Password,
-		AuthID:        payload.AuthInfoID,
-	}); err != nil {
-		return
+	resetPwdCtx := password.ResetPasswordRequestContext{
+		PasswordChecker:      h.PasswordChecker,
+		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
 
-	// reset password
-	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID)
-	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-			return
-		}
+	if err = resetPwdCtx.ExecuteWithUserID(payload.Password, authinfo.ID); err != nil {
 		return
-	}
-	for _, p := range principals {
-		p.PlainPassword = payload.Password
-		err = h.PasswordAuthProvider.UpdatePrincipal(*p)
-		if err != nil {
-			return
-		}
 	}
 
 	now := timeNow()
@@ -148,7 +133,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 
 	// Get Profile
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authinfo.ID, token.AccessToken); err != nil {
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")

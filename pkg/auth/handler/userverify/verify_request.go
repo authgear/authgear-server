@@ -1,4 +1,4 @@
-package verifyhandler
+package userverify
 
 import (
 	"encoding/json"
@@ -99,7 +99,6 @@ func (h VerifyRequestHandler) DecodeRequest(request *http.Request) (handler.Requ
 func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyRequestPayload)
 	authInfo := h.AuthContext.AuthInfo()
-	accessToken := h.AuthContext.Token()
 	codeSender := h.CodeSenderFactory.NewCodeSender(payload.RecordKey)
 	if codeSender == nil {
 		err = skyerr.NewInvalidArgument("invalid record_key", []string{payload.RecordKey})
@@ -107,7 +106,7 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 
 	// Get Profile
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID, accessToken.AccessToken); err != nil {
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")

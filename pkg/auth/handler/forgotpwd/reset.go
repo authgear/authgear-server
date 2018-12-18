@@ -1,4 +1,4 @@
-package handler
+package forgotpwd
 
 import (
 	"encoding/json"
@@ -33,6 +33,9 @@ func AttachForgotPasswordResetHandler(
 	server.Handle("/forgot_password/reset_password", &ForgotPasswordResetHandlerFactory{
 		authDependency,
 	}).Methods("OPTIONS", "POST")
+	server.Handle("/forgot_password/reset_password_form", &ForgotPasswordResetFormHandlerFactory{
+		authDependency,
+	}).Methods("POST", "GET")
 	return server
 }
 
@@ -127,7 +130,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	// check code expiration
 	if timeNow().After(payload.ExpireAtTime) {
 		h.Logger.Error("forgot password code expired")
-		err = h.genericError()
+		err = genericResetPasswordError()
 		return
 	}
 
@@ -136,23 +139,17 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(e).Error("user not found")
-		err = h.genericError()
-		return
-	}
-
-	// generate access-token
-	token, err := h.TokenStore.NewToken(authInfo.ID)
-	if err != nil {
+		err = genericResetPasswordError()
 		return
 	}
 
 	// Get Profile
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID, token.AccessToken); err != nil {
+	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(err).Error("unable to get user profile")
-		err = h.genericError()
+		err = genericResetPasswordError()
 		return
 	}
 
@@ -162,7 +159,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(err).Error("unable to get password auth principals")
-		err = h.genericError()
+		err = genericResetPasswordError()
 		return
 	}
 
@@ -174,23 +171,23 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 			"code":          payload.Code,
 			"expected_code": expectedCode,
 		}).Error("wrong forgot password reset password code")
-		err = h.genericError()
+		err = genericResetPasswordError()
 		return
 	}
 
-	if err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
-		PlainPassword: payload.NewPassword,
-	}); err != nil {
+	resetPwdCtx := password.ResetPasswordRequestContext{
+		PasswordChecker:      h.PasswordChecker,
+		PasswordAuthProvider: h.PasswordAuthProvider,
+	}
+
+	if err = resetPwdCtx.ExecuteWithPrincipals(payload.NewPassword, principals); err != nil {
 		return
 	}
 
-	// reset password
-	for _, p := range principals {
-		p.PlainPassword = payload.NewPassword
-		err = h.PasswordAuthProvider.UpdatePrincipal(*p)
-		if err != nil {
-			return
-		}
+	// generate access-token
+	token, err := h.TokenStore.NewToken(authInfo.ID)
+	if err != nil {
+		panic(err)
 	}
 
 	if err = h.TokenStore.Put(&token); err != nil {
@@ -216,6 +213,6 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	return
 }
 
-func (h ForgotPasswordResetHandler) genericError() error {
+func genericResetPasswordError() skyerr.Error {
 	return skyerr.NewError(skyerr.ResourceNotFound, "user not found or code invalid")
 }

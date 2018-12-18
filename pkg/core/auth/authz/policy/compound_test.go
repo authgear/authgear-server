@@ -14,8 +14,8 @@ func TestAllOfPolicy(t *testing.T) {
 			ctx := MemoryContextGetter{}
 
 			err := AllOf(
-				Everybody{allow: true},
-				Everybody{allow: true},
+				Everybody{Allow: true},
+				Everybody{Allow: true},
 			).IsAllowed(req, ctx)
 			So(err, ShouldBeEmpty)
 		})
@@ -25,8 +25,8 @@ func TestAllOfPolicy(t *testing.T) {
 			ctx := MemoryContextGetter{}
 
 			err := AllOf(
-				Everybody{allow: true},
-				Everybody{allow: false},
+				Everybody{Allow: true},
+				Everybody{Allow: false},
 			).IsAllowed(req, ctx)
 			So(err, ShouldNotBeEmpty)
 		})
