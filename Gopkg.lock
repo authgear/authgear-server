@@ -212,6 +212,14 @@
   revision = "b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5"
 
 [[projects]]
+  digest = "1:6a8a36d8b25b669d77ff638f7acdf4d3439ce6c349461f246b2c450b0b4b3bc8"
+  name = "github.com/h2non/gock"
+  packages = ["."]
+  pruneopts = ""
+  revision = "a6029d17e101ac1594adafea9e63fd8c988a8701"
+  version = "v1.0.12"
+
+[[projects]]
   digest = "1:6b7c9cf3b2135a42605e356d8cdfedeb2deac3cfba710834ad5cc63f91ea89d3"
   name = "github.com/jarcoal/httpmock"
   packages = ["."]
@@ -616,6 +624,7 @@
     "github.com/google/go-gcm",
     "github.com/gorilla/mux",
     "github.com/gorilla/websocket",
+    "github.com/h2non/gock",
     "github.com/jarcoal/httpmock",
     "github.com/jmoiron/sqlx",
     "github.com/joho/godotenv",
