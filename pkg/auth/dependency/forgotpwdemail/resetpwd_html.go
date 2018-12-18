@@ -1,6 +1,7 @@
 package forgotpwdemail
 
 import (
+	"fmt"
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -14,6 +15,8 @@ type ResetPasswordHTMLProvider struct {
 
 	successRedirect *url.URL
 	errorRedirect   *url.URL
+
+	config config.ForgotPasswordConfiguration
 }
 
 func NewResetPasswordHTMLProvider(c config.ForgotPasswordConfiguration) *ResetPasswordHTMLProvider {
@@ -38,19 +41,28 @@ func NewResetPasswordHTMLProvider(c config.ForgotPasswordConfiguration) *ResetPa
 		formHTMLURL:     c.ResetHTMLURL,
 		successRedirect: successRedirect,
 		errorRedirect:   errorRedirect,
+		config:          c,
 	}
 }
 
 func (r *ResetPasswordHTMLProvider) SuccessHTML(context map[string]interface{}) (string, error) {
+	r.injectContext(context)
 	return template.ParseHTMLTemplateFromURL(r.successHTMLURL, context)
 }
 
 func (r *ResetPasswordHTMLProvider) ErrorHTML(context map[string]interface{}) (string, error) {
+	r.injectContext(context)
 	return template.ParseHTMLTemplateFromURL(r.errorHTMLURL, context)
 }
 
 func (r *ResetPasswordHTMLProvider) FormHTML(context map[string]interface{}) (string, error) {
+	r.injectContext(context)
 	return template.ParseHTMLTemplateFromURL(r.formHTMLURL, context)
+}
+
+func (r *ResetPasswordHTMLProvider) injectContext(context map[string]interface{}) {
+	context["url_prefix"] = r.config.URLPrefix
+	context["action_url"] = fmt.Sprintf("%s/forgot_password/reset_password_form", r.config.URLPrefix)
 }
 
 func (r *ResetPasswordHTMLProvider) SuccessRedirect(context map[string]interface{}) *url.URL {
