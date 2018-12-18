@@ -112,8 +112,8 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		}
 	}()
 
-	if valid := h.PasswordAuthProvider.IsAuthDataValid(payload.AuthData); !valid {
-		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
+	if valid := h.PasswordAuthProvider.IsAuthDataMatching(payload.AuthData); !valid {
+		err = skyerr.NewInvalidArgument("invalid auth data, check your AUTH_RECORD_KEYS setting", []string{"auth_data"})
 		return
 	}
 

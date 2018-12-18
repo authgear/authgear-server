@@ -64,6 +64,10 @@ func (p providerImpl) IsAuthDataValid(authData map[string]interface{}) bool {
 	return p.authDataChecker.isValid(authData)
 }
 
+func (p providerImpl) IsAuthDataMatching(authData map[string]interface{}) bool {
+	return p.authDataChecker.isMatching(authData)
+}
+
 func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]interface{}) (err error) {
 	authDataList := toValidAuthDataList(p.authRecordKeys, authData)
 

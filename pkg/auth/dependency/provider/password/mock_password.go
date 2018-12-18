@@ -36,6 +36,10 @@ func (m *MockProvider) IsAuthDataValid(authData map[string]interface{}) bool {
 	return m.authDataChecker.isValid(authData)
 }
 
+func (m *MockProvider) IsAuthDataMatching(authData map[string]interface{}) bool {
+	return m.authDataChecker.isMatching(authData)
+}
+
 // CreatePrincipalsByAuthData creates principals by authData
 func (m *MockProvider) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]interface{}) (err error) {
 	authDataList := toValidAuthDataList(m.authRecordKeys, authData)
