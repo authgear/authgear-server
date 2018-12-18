@@ -45,5 +45,6 @@ func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfigura
 		}
 	}
 
+	newEngine.SetLoaders([]template.Loader{loader})
 	return newEngine
 }
