@@ -28,6 +28,9 @@ func AttachVerifyCodeHandler(
 	server.Handle("/verify_code", &VerifyCodeHandlerFactory{
 		authDependency,
 	}).Methods("OPTIONS", "POST")
+	server.Handle("/verify_code_form", &VerifyCodeFormHandlerFactory{
+		authDependency,
+	}).Methods("POST", "GET")
 	return server
 }
 
