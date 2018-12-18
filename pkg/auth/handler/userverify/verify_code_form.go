@@ -2,11 +2,14 @@ package userverify
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -62,9 +65,12 @@ func (payload *VerifyCodeFormPayload) Validate() error {
 
 // VerifyCodeFormHandler reset user password with given code from email.
 type VerifyCodeFormHandler struct {
-	UserProfileStore userprofile.Store `dependency:"UserProfileStore"`
-	TxContext        db.TxContext      `dependency:"TxContext"`
-	Logger           *logrus.Entry     `dependency:"HandlerLogger"`
+	VerifyCodeStore          userverify.Store                    `dependency:"VerifyCodeStore"`
+	UserProfileStore         userprofile.Store                   `dependency:"UserProfileStore"`
+	AuthInfoStore            authinfo.Store                      `dependency:"AuthInfoStore"`
+	AutoUpdateUserVerifyFunc userverify.AutoUpdateUserVerifyFunc `dependency:"AutoUpdateUserVerifyFunc,optional"`
+	TxContext                db.TxContext                        `dependency:"TxContext"`
+	Logger                   *logrus.Entry                       `dependency:"HandlerLogger"`
 }
 
 type resultTemplateContext struct {
@@ -73,7 +79,7 @@ type resultTemplateContext struct {
 	userProfile userprofile.UserProfile
 }
 
-func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request) (ctx resultTemplateContext, err error) {
+func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx *resultTemplateContext) (err error) {
 	var payload VerifyCodeFormPayload
 	payload, err = decodeVerifyCodeFormRequest(r)
 	if err != nil {
@@ -97,13 +103,70 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request) (ct
 	return
 }
 
+// HandleVerifyError handle the case when the given data (code, user_id) in the form is wrong
+func (h VerifyCodeFormHandler) HandleVerifyError(rw http.ResponseWriter, templateCtx resultTemplateContext) {
+	context := map[string]interface{}{
+		"error": templateCtx.err.Message(),
+	}
+
+	if templateCtx.payload.Code != "" {
+		context["code"] = templateCtx.payload.Code
+	}
+
+	if templateCtx.payload.UserID != "" {
+		context["user_id"] = templateCtx.payload.UserID
+	}
+
+	// TODO: redirect
+
+	if templateCtx.userProfile.ID != "" {
+		context["user"] = templateCtx.userProfile.ToMap()
+	}
+
+	// TODO: render html
+
+	html := fmt.Sprintf("%+v", context)
+
+	rw.WriteHeader(http.StatusBadRequest)
+	io.WriteString(rw, html)
+}
+
+func (h VerifyCodeFormHandler) HandleVerifySuccess(rw http.ResponseWriter, templateCtx resultTemplateContext) {
+	context := map[string]interface{}{
+		"code":    templateCtx.payload.Code,
+		"user_id": templateCtx.payload.UserID,
+	}
+
+	// TODO: redirect
+
+	context["user"] = templateCtx.userProfile.ToMap()
+
+	// TODO: render html
+
+	html := fmt.Sprintf("%+v", context)
+
+	rw.WriteHeader(http.StatusOK)
+	io.WriteString(rw, html)
+}
+
 func (h VerifyCodeFormHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	if err := h.TxContext.BeginTx(); err != nil {
-		// handle error
+	templateCtx := resultTemplateContext{}
+
+	var err error
+	defer func() {
+		// result handling
+		if err != nil {
+			templateCtx.err = skyerr.MakeError(err)
+			h.HandleVerifyError(rw, templateCtx)
+		} else {
+			h.HandleVerifySuccess(rw, templateCtx)
+		}
+	}()
+
+	if err = h.TxContext.BeginTx(); err != nil {
 		return
 	}
 
-	var err error
 	defer func() {
 		if err != nil {
 			h.TxContext.RollbackTx()
@@ -112,13 +175,40 @@ func (h VerifyCodeFormHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request
 		}
 	}()
 
-	var templateCtx resultTemplateContext
-	if templateCtx, err = h.prepareResultTemplateContext(r); err != nil {
-		// handle error
+	if err = h.prepareResultTemplateContext(r, &templateCtx); err != nil {
 		return
 	}
 
-	fmt.Fprintf(rw, "%+v", templateCtx)
+	authInfo := &authinfo.AuthInfo{}
+	if err = h.AuthInfoStore.GetAuth(templateCtx.payload.UserID, authInfo); err != nil {
+		return
+	}
 
-	// Handle logic
+	verifyCodeReq := getAndValidateCodeRequest{
+		VerifyCodeStore: h.VerifyCodeStore,
+		Logger:          h.Logger,
+	}
+
+	var code userverify.VerifyCode
+	if code, err = verifyCodeReq.execute(templateCtx.payload.Code, templateCtx.userProfile); err != nil {
+		return
+	}
+
+	// Update code
+	code.Consumed = true
+	if err = h.VerifyCodeStore.UpdateVerifyCode(&code); err != nil {
+		return
+	}
+
+	// Update user
+	authInfo.VerifyInfo[code.RecordKey] = true
+	if h.AutoUpdateUserVerifyFunc != nil {
+		h.AutoUpdateUserVerifyFunc(authInfo)
+	}
+
+	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
+		return
+	}
+
+	return
 }

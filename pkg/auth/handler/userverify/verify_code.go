@@ -2,7 +2,6 @@ package userverify
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -102,21 +101,6 @@ func (h VerifyCodeHandler) DecodeRequest(request *http.Request) (handler.Request
 
 func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyCodePayload)
-	code := userverify.VerifyCode{}
-
-	if err = h.VerifyCodeStore.GetVerifyCodeByCode(payload.Code, &code); err != nil {
-		h.Logger.WithFields(map[string]interface{}{
-			"code":  payload.Code,
-			"error": err,
-		}).Error("failed to get verify code")
-		err = h.invalidCodeError(payload.Code)
-		return
-	}
-	if code.Consumed {
-		h.Logger.WithField("code", payload.Code).Error("code has been consumed")
-		err = h.invalidCodeError(payload.Code)
-		return
-	}
 
 	authInfo := h.AuthContext.AuthInfo()
 	var userProfile userprofile.UserProfile
@@ -126,16 +110,13 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 		return
 	}
 
-	if userProfile.Data[code.RecordKey] != code.RecordValue {
-		err = skyerr.NewError(
-			skyerr.InvalidArgument,
-			"the user data has since been modified, a new verification is required",
-		)
-		return
+	verifyCodeReq := getAndValidateCodeRequest{
+		VerifyCodeStore: h.VerifyCodeStore,
+		Logger:          h.Logger,
 	}
 
-	if code.ExpireAt() != nil && timeNow().After(*code.ExpireAt()) {
-		err = skyerr.NewError(skyerr.InvalidArgument, "the code has expired")
+	var code userverify.VerifyCode
+	if code, err = verifyCodeReq.execute(payload.Code, userProfile); err != nil {
 		return
 	}
 
@@ -157,12 +138,4 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 
 	resp = "OK"
 	return
-}
-
-func (h VerifyCodeHandler) invalidCodeError(code string) error {
-	msg := fmt.Sprintf(
-		"the code `%s` is not valid for user `%s`",
-		code, h.AuthContext.AuthInfo().ID,
-	)
-	return skyerr.NewInvalidArgument(msg, []string{"code"})
 }
