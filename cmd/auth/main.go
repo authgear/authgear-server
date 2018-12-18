@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn/resolver"
+	"github.com/skygeario/skygear-server/pkg/core/template"
 
 	"github.com/kelseyhightower/envconfig"
 
@@ -40,12 +42,17 @@ func main() {
 	configuration := configuration{}
 	envconfig.Process("", &configuration)
 
+	// default template initialization
+	templateEngine := template.NewEngine()
+	authTemplate.RegisterDefaultTemplates(templateEngine)
+
 	// logging initialization
 	logging.SetModule("auth")
 
 	asyncTaskExecutor := async.NewExecutor()
 	authDependency := auth.DependencyMap{
 		AsyncTaskExecutor: asyncTaskExecutor,
+		TemplateEngine:    templateEngine,
 	}
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)

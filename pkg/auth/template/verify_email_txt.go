@@ -1,4 +1,6 @@
-Dear {{ record_value }},
+package template
+
+var templateVerifyEmailTxt = `Dear {{ record_value }},
 
 You received this email because {{ appname }} would like to verify your email address. If you have recently signed up for this app or if you have recently made changes to your account, click the following link:
 
@@ -6,4 +8,4 @@ You received this email because {{ appname }} would like to verify your email ad
 
 If you are unsure why you received this email, please ignore this email and you do not need to take any action.
 
-Thanks.
+Thanks.`

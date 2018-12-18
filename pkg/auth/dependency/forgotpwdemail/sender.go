@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-gomail/gomail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -22,16 +23,22 @@ type Sender interface {
 }
 
 type DefaultSender struct {
-	Config        config.ForgotPasswordConfiguration
-	Dialer        *gomail.Dialer
-	CodeGenerator *CodeGenerator
+	Config         config.ForgotPasswordConfiguration
+	Dialer         *gomail.Dialer
+	CodeGenerator  *CodeGenerator
+	TemplateEngine *template.Engine
 }
 
-func NewDefaultSender(config config.TenantConfiguration, dialer *gomail.Dialer) Sender {
+func NewDefaultSender(
+	config config.TenantConfiguration,
+	dialer *gomail.Dialer,
+	templateEngine *template.Engine,
+) Sender {
 	return &DefaultSender{
-		Config:        config.ForgotPassword,
-		Dialer:        dialer,
-		CodeGenerator: &CodeGenerator{config.MasterKey},
+		Config:         config.ForgotPassword,
+		Dialer:         dialer,
+		CodeGenerator:  &CodeGenerator{config.MasterKey},
+		TemplateEngine: templateEngine,
 	}
 }
 
@@ -64,15 +71,21 @@ func (d *DefaultSender) Send(
 	}
 
 	var textBody string
-	if textBody, err = template.ParseTextTemplateFromURL(d.Config.EmailTextURL, context); err != nil {
+	if textBody, err = d.TemplateEngine.ParseTextTemplate(
+		authTemplate.TemplateNameForgotPasswordEmailText,
+		context,
+		template.ParseOption{Required: true},
+	); err != nil {
 		return
 	}
 
 	var htmlBody string
-	if d.Config.EmailHTMLURL != "" {
-		if htmlBody, err = template.ParseHTMLTemplateFromURL(d.Config.EmailHTMLURL, context); err != nil {
-			return
-		}
+	if htmlBody, err = d.TemplateEngine.ParseHTMLTemplate(
+		authTemplate.TemplateNameForgotPasswordEmailHTML,
+		context,
+		template.ParseOption{Required: false},
+	); err != nil {
+		return
 	}
 
 	sendReq := mail.SendRequest{

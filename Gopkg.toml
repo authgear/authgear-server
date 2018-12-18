@@ -167,3 +167,7 @@ required = [
 [[constraint]]
   name = "github.com/njern/gonexmo"
   version = "2.0.0"
+
+[[constraint]]
+  name = "github.com/h2non/gock"
+  version = "1.0.12"

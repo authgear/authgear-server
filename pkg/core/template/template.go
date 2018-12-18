@@ -2,10 +2,21 @@ package template
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
 
 	"github.com/flosch/pongo2"
 	"github.com/franela/goreq"
 )
+
+func DownloadTemplateFromFilePath(filePath string) (string, error) {
+	buf, err := ioutil.ReadFile(filepath.Clean(filePath))
+	if err != nil {
+		return "", err
+	}
+
+	return string(buf), nil
+}
 
 func DownloadTemplateFromURL(url string) (string, error) {
 	req := goreq.Request{
@@ -17,6 +28,10 @@ func DownloadTemplateFromURL(url string) (string, error) {
 	var resp *goreq.Response
 	if resp, err = req.Do(); err != nil {
 		return "", err
+	}
+
+	if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
+		return "", fmt.Errorf("unsuccessful request: %s", resp.Status)
 	}
 
 	var body string

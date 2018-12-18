@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-gomail/gomail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/template"
@@ -18,9 +19,10 @@ type CodeSender interface {
 }
 
 type EmailCodeSender struct {
-	AppName string
-	Config  config.UserVerifyConfiguration
-	Dialer  *gomail.Dialer
+	AppName        string
+	Config         config.UserVerifyConfiguration
+	Dialer         *gomail.Dialer
+	TemplateEngine *template.Engine
 }
 
 func (e *EmailCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.UserProfile) (err error) {
@@ -40,15 +42,21 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.Us
 	providerConfig := keyConfig.ProviderConfig
 
 	var textBody string
-	if textBody, err = template.ParseTextTemplateFromURL(providerConfig.TextURL, context); err != nil {
+	if textBody, err = e.TemplateEngine.ParseTextTemplate(
+		authTemplate.VerifyTextTemplateNameForKey(verifyCode.RecordKey),
+		context,
+		template.ParseOption{Required: true, DefaultTemplateName: authTemplate.TemplateNameVerifyEmailText},
+	); err != nil {
 		return
 	}
 
 	var htmlBody string
-	if providerConfig.HTMLURL != "" {
-		if htmlBody, err = template.ParseHTMLTemplateFromURL(providerConfig.HTMLURL, context); err != nil {
-			return
-		}
+	if htmlBody, err = e.TemplateEngine.ParseTextTemplate(
+		authTemplate.VerifyHTMLTemplateNameForKey(verifyCode.RecordKey),
+		context,
+		template.ParseOption{Required: false, DefaultTemplateName: authTemplate.TemplateNameVerifyEmailHTML},
+	); err != nil {
+		return
 	}
 
 	sendReq := mail.SendRequest{
@@ -68,18 +76,13 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.Us
 }
 
 type SMSCodeSender struct {
-	AppName   string
-	Config    config.UserVerifyConfiguration
-	SMSClient sms.Client
+	AppName        string
+	Config         config.UserVerifyConfiguration
+	SMSClient      sms.Client
+	TemplateEngine *template.Engine
 }
 
 func (t *SMSCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.UserProfile) (err error) {
-	var keyConfig config.UserVerifyKeyConfiguration
-	var ok bool
-	if keyConfig, ok = t.Config.ConfigForKey(verifyCode.RecordKey); !ok {
-		return errors.New("provider for " + verifyCode.RecordKey + " not found")
-	}
-
 	context := prepareVerifyRequestContext(
 		verifyCode,
 		t.AppName,
@@ -87,10 +90,12 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.User
 		userProfile,
 	)
 
-	providerConfig := keyConfig.ProviderConfig
-
 	var textBody string
-	if textBody, err = template.ParseTextTemplateFromURL(providerConfig.TextURL, context); err != nil {
+	if textBody, err = t.TemplateEngine.ParseTextTemplate(
+		authTemplate.VerifyTextTemplateNameForKey(verifyCode.RecordKey),
+		context,
+		template.ParseOption{Required: true, DefaultTemplateName: authTemplate.TemplateNameVerifySMSText},
+	); err != nil {
 		return
 	}
 
