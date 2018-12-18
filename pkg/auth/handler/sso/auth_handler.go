@@ -264,8 +264,8 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 		Name:  "sso_data",
 		Value: encoded,
 	}
+	http.SetCookie(rw, &cookie)
 	if UXMode == sso.WebRedirect.String() {
-		http.SetCookie(rw, &cookie)
 		http.Redirect(rw, r, callbackURL, http.StatusFound)
 	} else {
 		html, err := h.AuthHandlerHTMLProvider.HTML()
