@@ -65,23 +65,16 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
-		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
+		authRecordKeys := [][]string{[]string{"email", "username"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			authRecordKeys,
 			map[string]password.Principal{
-				"john.doe.principal.id0": password.Principal{
-					ID:     "john.doe.principal.id0",
+				"john.doe.principal.id": password.Principal{
+					ID:     "john.doe.principal.id",
 					UserID: "john.doe.id",
 					AuthData: map[string]interface{}{
 						"username": "john.doe",
-					},
-					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
-				},
-				"john.doe.principal.id1": password.Principal{
-					ID:     "john.doe.principal.id1",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"email": "john.doe@example.com",
+						"email":    "john.doe@example.com",
 					},
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
@@ -128,19 +121,6 @@ func TestLoginHandler(t *testing.T) {
 			So(!token.IsExpired(), ShouldBeTrue)
 		})
 
-		Convey("should login successfully only provides partial auth data keys", func() {
-			authData := map[string]interface{}{
-				"username": "john.doe",
-			}
-			payload := LoginRequestPayload{
-				AuthData: authData,
-				Password: "123456",
-			}
-
-			_, err := h.Handle(payload)
-			So(err, ShouldBeNil)
-		})
-
 		Convey("login user with incorrect password", func() {
 			authData := map[string]interface{}{
 				"username": "john.doe",
@@ -164,7 +144,7 @@ func TestLoginHandler(t *testing.T) {
 				Password: "123456",
 			}
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidArgument: invalid auth data")
+			So(err.Error(), ShouldEqual, "InvalidArgument: invalid auth data, check your AUTH_RECORD_KEYS setting")
 		})
 
 		Convey("log audit trail when login success", func() {

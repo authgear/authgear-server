@@ -2,6 +2,7 @@ package password
 
 type authDataChecker interface {
 	isValid(authData map[string]interface{}) bool
+	isMatching(authData map[string]interface{}) bool
 }
 
 type defaultAuthDataChecker struct {
@@ -10,6 +11,30 @@ type defaultAuthDataChecker struct {
 
 func (c defaultAuthDataChecker) isValid(authData map[string]interface{}) bool {
 	return len(toValidAuthDataList(c.authRecordKeys, authData)) > 0
+}
+
+func (c defaultAuthDataChecker) isMatching(authData map[string]interface{}) bool {
+	// authData requires exactly match to current authRecordKeys setting
+	// if authRecordKeys is [["username"], ["email"]]
+	// it will match authData is {"username": "someusername"} or {"email": "someemail@example.com"}
+	// and will not match authData is {"username": "someusername", "email": "someemail@example.com"}
+	for _, authRecordKeys := range c.authRecordKeys {
+		if len(authRecordKeys) != len(authData) {
+			continue
+		}
+		matched := true
+		for _, key := range authRecordKeys {
+			if _, ok := authData[key]; !ok {
+				matched = false
+				break
+			}
+		}
+		if matched {
+			return matched
+		}
+	}
+
+	return false
 }
 
 // this ensures that our structure conform to certain interfaces.

@@ -29,6 +29,11 @@ func (p *safeProviderImpl) IsAuthDataValid(authData map[string]interface{}) bool
 	return p.impl.IsAuthDataValid(authData)
 }
 
+func (p *safeProviderImpl) IsAuthDataMatching(authData map[string]interface{}) bool {
+	p.txContext.EnsureTx()
+	return p.impl.IsAuthDataMatching(authData)
+}
+
 func (p *safeProviderImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]interface{}) error {
 	p.txContext.EnsureTx()
 	return p.impl.CreatePrincipalsByAuthData(authInfoID, password, authData)
@@ -39,9 +44,9 @@ func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
 	return p.impl.CreatePrincipal(principal)
 }
 
-func (p *safeProviderImpl) GetPrincipalsByAuthData(authData map[string]interface{}) ([]*Principal, error) {
+func (p *safeProviderImpl) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) (err error) {
 	p.txContext.EnsureTx()
-	return p.impl.GetPrincipalsByAuthData(authData)
+	return p.impl.GetPrincipalByAuthData(authData, principal)
 }
 
 func (p *safeProviderImpl) GetPrincipalsByUserID(userID string) ([]*Principal, error) {

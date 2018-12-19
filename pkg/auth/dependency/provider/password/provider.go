@@ -64,6 +64,10 @@ func (p providerImpl) IsAuthDataValid(authData map[string]interface{}) bool {
 	return p.authDataChecker.isValid(authData)
 }
 
+func (p providerImpl) IsAuthDataMatching(authData map[string]interface{}) bool {
+	return p.authDataChecker.isMatching(authData)
+}
+
 func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]interface{}) (err error) {
 	authDataList := toValidAuthDataList(p.authRecordKeys, authData)
 
@@ -139,56 +143,44 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p providerImpl) GetPrincipalsByAuthData(inputAuthData map[string]interface{}) (principals []*Principal, err error) {
-	authDataList := toValidAuthDataList(p.authRecordKeys, inputAuthData)
+func (p providerImpl) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) (err error) {
+	authDataBytes, err := json.Marshal(authData)
+	if err != nil {
+		return
+	}
+	builder := p.sqlBuilder.Select("principal_id", "password").
+		From(p.sqlBuilder.FullTableName("provider_password")).
+		Where(`auth_data = ?::jsonb`, authDataBytes)
+	scanner := p.sqlExecutor.QueryRowWith(builder)
 
-	for _, authData := range authDataList {
-		authDataBytes, err := json.Marshal(authData)
-		if err != nil {
-			return nil, err
-		}
-		builder := p.sqlBuilder.Select("principal_id", "password").
-			From(p.sqlBuilder.FullTableName("provider_password")).
-			Where(`auth_data @> ?::jsonb`, authDataBytes)
-		rows, err := p.sqlExecutor.QueryWith(builder)
-		if err != nil {
-			return nil, err
-		}
-		defer rows.Close()
+	err = scanner.Scan(
+		&principal.ID,
+		&principal.HashedPassword,
+	)
 
-		for rows.Next() {
-			var principal Principal
-
-			if err = rows.Scan(
-				&principal.ID,
-				&principal.HashedPassword,
-			); err != nil {
-				return nil, err
-			}
-			principal.AuthData = authData
-			principals = append(principals, &principal)
-		}
-
-		for _, principal := range principals {
-			builder = p.sqlBuilder.Select("user_id").
-				From(p.sqlBuilder.FullTableName("principal")).
-				Where("id = ? AND provider = 'password'", principal.ID)
-			scanner := p.sqlExecutor.QueryRowWith(builder)
-			err = scanner.Scan(&principal.UserID)
-
-			if err == sql.ErrNoRows {
-				p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
-				err = skydb.ErrUserNotFound
-			}
-			if err != nil {
-				return nil, err
-			}
-		}
+	if err == sql.ErrNoRows {
+		err = skydb.ErrUserNotFound
 	}
 
-	if len(principals) == 0 {
-		err = skydb.ErrUserNotFound
+	if err != nil {
 		return
+	}
+
+	principal.AuthData = authData
+
+	builder = p.sqlBuilder.Select("user_id").
+		From(p.sqlBuilder.FullTableName("principal")).
+		Where("id = ? AND provider = 'password'", principal.ID)
+	scanner = p.sqlExecutor.QueryRowWith(builder)
+	err = scanner.Scan(&principal.UserID)
+
+	if err == sql.ErrNoRows {
+		p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
+		err = skydb.ErrUserNotFound
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return

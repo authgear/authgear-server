@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"sort"
+	"strings"
 
 	"github.com/kelseyhightower/envconfig"
 )
@@ -40,7 +42,11 @@ type TokenStoreConfiguration struct {
 }
 
 type AuthConfiguration struct {
-	CustomTokenSecret string `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
+	// RawAuthRecordKeys is used when parsing from environment variables
+	RawAuthRecordKeys string `msg:"-" envconfig:"RAW_AUTH_RECORD_KEYS" json:"-"`
+	// AuthRecordKeys is used when unmarshal from json
+	AuthRecordKeys    [][]string `msg:"AUTH_RECORD_KEYS" json:"AUTH_RECORD_KEYS"`
+	CustomTokenSecret string     `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
 }
 
 type UserProfileConfiguration struct {
@@ -180,6 +186,9 @@ func NewTenantConfiguration() TenantConfiguration {
 	return TenantConfiguration{
 		DBConnectionStr: "postgres://postgres:@localhost/postgres?sslmode=disable",
 		CORSHost:        "*",
+		Auth: AuthConfiguration{
+			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
+		},
 		SMTP: SMTPConfiguration{
 			Port: 25,
 			Mode: "normal",
@@ -314,6 +323,10 @@ func NewTenantConfigurationFromEnv(_ *http.Request) (c TenantConfiguration, err 
 	if err != nil {
 		return
 	}
+	err = parseAuthRecordKeys(&c.Auth)
+	if err != nil {
+		return
+	}
 	getSSOSetting(&c.SSOSetting)
 	getSSOConfigs(c.SSOProviders, &c.SSOConfigs)
 
@@ -350,4 +363,50 @@ func getSSOConfigs(prividers []string, ssoConfigs *[]SSOConfiguration) {
 	}
 	*ssoConfigs = configs
 	return
+}
+
+func parseAuthRecordKeys(authConfiguration *AuthConfiguration) error {
+	if authConfiguration.RawAuthRecordKeys == "" {
+		// use default setting
+		return nil
+	}
+
+	splits := strings.Split(authConfiguration.RawAuthRecordKeys, ",")
+	results := [][]string{}
+	container := []string{}
+	level := 0
+	for _, split := range splits {
+		split = strings.TrimSpace(split)
+		content := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(split, "("), ")"))
+
+		isGroupOpening := strings.HasPrefix(split, "(")
+		isGroupClosing := strings.HasSuffix(split, ")")
+
+		// validation
+		if strings.Contains(content, "(") || strings.Contains(content, ")") || (level > 0 && isGroupOpening) {
+			return errors.New("Unexpected char in " + content)
+		}
+
+		if isGroupOpening {
+			container = []string{}
+			level++
+		}
+
+		container = append(container, content)
+
+		if isGroupClosing {
+			level--
+			sort.Strings(container)
+			results = append(results, container)
+		}
+
+		if !isGroupOpening && !isGroupClosing && level == 0 {
+			results = append(results, container)
+			container = []string{}
+		}
+	}
+
+	authConfiguration.AuthRecordKeys = results
+
+	return nil
 }
