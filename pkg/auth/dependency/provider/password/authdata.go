@@ -22,12 +22,16 @@ func (c defaultAuthDataChecker) isMatching(authData map[string]interface{}) bool
 		if len(authRecordKeys) != len(authData) {
 			continue
 		}
+		matched := true
 		for _, key := range authRecordKeys {
 			if _, ok := authData[key]; !ok {
-				continue
+				matched = false
+				break
 			}
 		}
-		return true
+		if matched {
+			return matched
+		}
 	}
 
 	return false
