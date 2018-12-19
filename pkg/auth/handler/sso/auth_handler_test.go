@@ -14,6 +14,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -101,6 +102,7 @@ func TestAuthHandler(t *testing.T) {
 		sh.AuthInfoStore = authInfoStore
 		mockTokenStore := authtoken.NewMockStore()
 		sh.TokenStore = mockTokenStore
+		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.RoleStore = role.NewMockStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
@@ -182,20 +184,27 @@ func TestAuthHandler(t *testing.T) {
 					"profile": {
 						"_access": null,
 						"_created_at": "0001-01-01T00:00:00Z",
-						"_created_by": "",
-						"_id": "",
-						"_ownerID": "",
-						"_recordID": "",
-						"_recordType": "",
-						"_type": "",
+						"_created_by": "%s",
+						"_id": "user/%s",
+						"_ownerID": "%s",
+						"_recordID": "%s",
+						"_recordType": "user",
+						"_type": "record",
 						"_updated_at": "0001-01-01T00:00:00Z",
-						"_updated_by": ""
+						"_updated_by": "%s"
 					},
 					"access_token": "%s",
 					"verified": false,
 					"verify_info": null
 				}
-			}`, p.UserID, token.AccessToken))
+			}`,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				token.AccessToken))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
@@ -265,20 +274,27 @@ func TestAuthHandler(t *testing.T) {
 					"profile": {
 						"_access": null,
 						"_created_at": "0001-01-01T00:00:00Z",
-						"_created_by": "",
-						"_id": "",
-						"_ownerID": "",
-						"_recordID": "",
-						"_recordType": "",
-						"_type": "",
+						"_created_by": "%s",
+						"_id": "user/%s",
+						"_ownerID": "%s",
+						"_recordID": "%s",
+						"_recordType": "user",
+						"_type": "record",
 						"_updated_at": "0001-01-01T00:00:00Z",
-						"_updated_by": ""
+						"_updated_by": "%s"
 					},
 					"access_token": "%s",
 					"verified": false,
 					"verify_info":  null
 				}
-			}`, p.UserID, token.AccessToken))
+			}`,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				p.UserID,
+				token.AccessToken))
 		})
 	})
 

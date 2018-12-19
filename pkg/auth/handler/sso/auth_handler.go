@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	nextSkyerr "github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
@@ -101,6 +102,7 @@ type AuthHandler struct {
 	TokenStore              authtoken.Store             `dependency:"TokenStore"`
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
 	ProviderFactory         *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
+	UserProfileStore        userprofile.Store           `dependency:"UserProfileStore"`
 	Provider                sso.Provider
 	SSOSetting              sso.Setting
 	ProviderName            string
@@ -211,6 +213,7 @@ func (h AuthHandler) getResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err 
 		AuthInfoStore:        h.AuthInfoStore,
 		OAuthAuthProvider:    h.OAuthAuthProvider,
 		PasswordAuthProvider: h.PasswordAuthProvider,
+		UserProfileStore:     h.UserProfileStore,
 	}
 
 	if oauthAuthInfo.State.Action == "login" {

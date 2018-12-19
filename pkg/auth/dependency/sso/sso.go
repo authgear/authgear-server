@@ -95,7 +95,7 @@ type Config struct {
 type AuthInfo struct {
 	ProviderName            string
 	ProviderUserID          string
-	ProviderUserProfile     interface{}
+	ProviderUserProfile     map[string]interface{}
 	ProviderAccessTokenResp interface{}
 	ProviderAuthData        map[string]interface{}
 	State                   State

@@ -19,13 +19,29 @@ type respHandler struct {
 	AuthInfoStore        authinfo.Store
 	OAuthAuthProvider    oauth.Provider
 	PasswordAuthProvider password.Provider
+	UserProfileStore     userprofile.Store
 }
 
 func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
 	// action => login
 	var info authinfo.AuthInfo
-	err = h.handleLogin(&info, oauthAuthInfo)
+	createNewUser, err := h.handleLogin(oauthAuthInfo, &info)
 	if err != nil {
+		return
+	}
+
+	// Create or update user profile
+	var userProfile userprofile.UserProfile
+	providerUserProfile := oauthAuthInfo.ProviderUserProfile
+	if createNewUser {
+		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, providerUserProfile)
+	} else {
+		userProfile, err = h.UserProfileStore.UpdateUserProfile(info.ID, &info, providerUserProfile)
+	}
+	if err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
 		return
 	}
 
@@ -39,8 +55,6 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 		panic(err)
 	}
 
-	// TODO: convert oauthAuthInfo.UserProfile to userprofile.UserProfile
-	var userProfile userprofile.UserProfile
 	resp = response.NewAuthResponse(info, userProfile, token.AccessToken)
 
 	// Populate the activity time to user
@@ -95,7 +109,10 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 	return
 }
 
-func (h respHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.AuthInfo) (err error) {
+func (h respHandler) handleLogin(
+	oauthAuthInfo sso.AuthInfo,
+	info *authinfo.AuthInfo,
+) (createNewUser bool, err error) {
 	now := timeNow()
 
 	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserID)
@@ -109,6 +126,7 @@ func (h respHandler) handleLogin(info *authinfo.AuthInfo, oauthAuthInfo sso.Auth
 	// TODO: handle auto link user
 
 	if principal == nil {
+		createNewUser = true
 		// if there is no existed user
 		// signup a new user
 		*info = authinfo.NewAuthInfo()
