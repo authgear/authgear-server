@@ -263,6 +263,7 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 	cookie := http.Cookie{
 		Name:  "sso_data",
 		Value: encoded,
+		Path:  "/",
 	}
 	http.SetCookie(rw, &cookie)
 	if UXMode == sso.WebRedirect.String() {
