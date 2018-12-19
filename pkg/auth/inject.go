@@ -150,7 +150,8 @@ func (m DependencyMap) Provide(
 	case "ForgotPasswordSecureMatch":
 		return tConfig.ForgotPassword.SecureMatch
 	case "ResetPasswordHTMLProvider":
-		return forgotpwdemail.NewResetPasswordHTMLProvider(tConfig.ForgotPassword)
+		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
+		return forgotpwdemail.NewResetPasswordHTMLProvider(tConfig.ForgotPassword, templateEngine)
 	case "WelcomeEmailEnabled":
 		return tConfig.WelcomeEmail.Enabled
 	case "WelcomeEmailSendTask":
