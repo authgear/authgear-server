@@ -162,7 +162,7 @@ func (m DependencyMap) Provide(
 	case "TestWelcomeEmailSender":
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
 	case "IFrameHTMLProvider":
-		return sso.NewIFrameHTMLProvider(tConfig.SSOSetting.URLPrefix, tConfig.SSOSetting.JSSDKCDNURL)
+		return sso.NewIFrameHTMLProvider(tConfig.SSOSetting.APIEndpoint(), tConfig.SSOSetting.JSSDKCDNURL)
 	case "VerifyCodeStore":
 		return userverify.NewStore(
 			db.NewSQLBuilder("auth", tConfig.AppName),
@@ -198,7 +198,7 @@ func (m DependencyMap) Provide(
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	case "AuthHandlerHTMLProvider":
-		return sso.NewAuthHandlerHTMLProvider(tConfig.SSOSetting.URLPrefix, tConfig.SSOSetting.JSSDKCDNURL)
+		return sso.NewAuthHandlerHTMLProvider(tConfig.SSOSetting.APIEndpoint(), tConfig.SSOSetting.JSSDKCDNURL)
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	default:
