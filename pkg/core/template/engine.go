@@ -14,8 +14,8 @@ type Engine struct {
 }
 
 type ParseOption struct {
-	Required            bool
-	DefaultTemplateName string
+	Required             bool
+	FallbackTemplateName string
 }
 
 func NewEngine() *Engine {
@@ -58,16 +58,19 @@ func (e *Engine) ParseHTMLTemplate(templateName string, context map[string]inter
 }
 
 func (e *Engine) downloadContent(templateName string, option ParseOption) (templateBody string, err error) {
-	defer func() {
-		if option.Required && err != nil {
-			// return error if required but template not found
-			err = fmt.Errorf("template with name `%s` not found", templateName)
-		} else if !option.Required && err != nil {
-			// no error if not required
-			err = nil
-			templateBody = ""
-		}
-	}()
+	// skip error handling if there is a fallback template name
+	if option.FallbackTemplateName == "" {
+		defer func() {
+			if option.Required && err != nil {
+				// return error if required but template not found
+				err = fmt.Errorf("template with name `%s` not found", templateName)
+			} else if !option.Required && err != nil {
+				// no error if not required
+				err = nil
+				templateBody = ""
+			}
+		}()
+	}
 
 	for _, loader := range e.loaders {
 		if templateBody, err = loader.Load(templateName); err == nil {
@@ -75,11 +78,16 @@ func (e *Engine) downloadContent(templateName string, option ParseOption) (templ
 		}
 	}
 
-	defaultTemplateName := templateName
-	if option.DefaultTemplateName != "" {
-		defaultTemplateName = option.DefaultTemplateName
+	// try with default loader
+	templateBody, err = e.defaultLoader.Load(templateName)
+
+	if option.FallbackTemplateName != "" && err != nil {
+		// download with fallback template name
+		templateBody, err = e.downloadContent(option.FallbackTemplateName, ParseOption{
+			Required:             option.Required,
+			FallbackTemplateName: "",
+		})
 	}
 
-	templateBody, err = e.defaultLoader.Load(defaultTemplateName)
 	return
 }
