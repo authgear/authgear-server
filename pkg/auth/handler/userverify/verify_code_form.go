@@ -1,7 +1,6 @@
 package userverify
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 
@@ -65,6 +64,7 @@ func (payload *VerifyCodeFormPayload) Validate() error {
 
 // VerifyCodeFormHandler reset user password with given code from email.
 type VerifyCodeFormHandler struct {
+	VerifyHTMLProvider       *userverify.VerifyHTMLProvider      `dependency:"VerifyHTMLProvider"`
 	VerifyCodeStore          userverify.Store                    `dependency:"VerifyCodeStore"`
 	UserProfileStore         userprofile.Store                   `dependency:"UserProfileStore"`
 	AuthInfoStore            authinfo.Store                      `dependency:"AuthInfoStore"`
@@ -76,6 +76,7 @@ type VerifyCodeFormHandler struct {
 type resultTemplateContext struct {
 	err         skyerr.Error
 	payload     VerifyCodeFormPayload
+	verifyCode  userverify.VerifyCode
 	userProfile userprofile.UserProfile
 }
 
@@ -100,6 +101,16 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 		return
 	}
 
+	// Get verify code
+	verifyCodeReq := getAndValidateCodeRequest{
+		VerifyCodeStore: h.VerifyCodeStore,
+		Logger:          h.Logger,
+	}
+
+	if ctx.verifyCode, err = verifyCodeReq.execute(payload.Code, ctx.userProfile); err != nil {
+		return
+	}
+
 	return
 }
 
@@ -117,15 +128,21 @@ func (h VerifyCodeFormHandler) HandleVerifyError(rw http.ResponseWriter, templat
 		context["user_id"] = templateCtx.payload.UserID
 	}
 
-	// TODO: redirect
+	url := h.VerifyHTMLProvider.ErrorRedirect(templateCtx.verifyCode.RecordKey, context)
+	if url != nil {
+		rw.Header().Set("Location", url.String())
+		rw.WriteHeader(http.StatusFound)
+		return
+	}
 
 	if templateCtx.userProfile.ID != "" {
 		context["user"] = templateCtx.userProfile.ToMap()
 	}
 
-	// TODO: render html
-
-	html := fmt.Sprintf("%+v", context)
+	html, htmlErr := h.VerifyHTMLProvider.ErrorHTML(templateCtx.verifyCode.RecordKey, context)
+	if htmlErr != nil {
+		panic(htmlErr)
+	}
 
 	rw.WriteHeader(http.StatusBadRequest)
 	io.WriteString(rw, html)
@@ -137,13 +154,19 @@ func (h VerifyCodeFormHandler) HandleVerifySuccess(rw http.ResponseWriter, templ
 		"user_id": templateCtx.payload.UserID,
 	}
 
-	// TODO: redirect
+	url := h.VerifyHTMLProvider.SuccessRedirect(templateCtx.verifyCode.RecordKey, context)
+	if url != nil {
+		rw.Header().Set("Location", url.String())
+		rw.WriteHeader(http.StatusFound)
+		return
+	}
 
 	context["user"] = templateCtx.userProfile.ToMap()
 
-	// TODO: render html
-
-	html := fmt.Sprintf("%+v", context)
+	html, htmlErr := h.VerifyHTMLProvider.SuccessHTML(templateCtx.verifyCode.RecordKey, context)
+	if htmlErr != nil {
+		panic(htmlErr)
+	}
 
 	rw.WriteHeader(http.StatusOK)
 	io.WriteString(rw, html)
@@ -179,29 +202,19 @@ func (h VerifyCodeFormHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Update code
+	templateCtx.verifyCode.Consumed = true
+	if err = h.VerifyCodeStore.UpdateVerifyCode(&templateCtx.verifyCode); err != nil {
+		return
+	}
+
+	// Update user
 	authInfo := &authinfo.AuthInfo{}
 	if err = h.AuthInfoStore.GetAuth(templateCtx.payload.UserID, authInfo); err != nil {
 		return
 	}
 
-	verifyCodeReq := getAndValidateCodeRequest{
-		VerifyCodeStore: h.VerifyCodeStore,
-		Logger:          h.Logger,
-	}
-
-	var code userverify.VerifyCode
-	if code, err = verifyCodeReq.execute(templateCtx.payload.Code, templateCtx.userProfile); err != nil {
-		return
-	}
-
-	// Update code
-	code.Consumed = true
-	if err = h.VerifyCodeStore.UpdateVerifyCode(&code); err != nil {
-		return
-	}
-
-	// Update user
-	authInfo.VerifyInfo[code.RecordKey] = true
+	authInfo.VerifyInfo[templateCtx.verifyCode.RecordKey] = true
 	if h.AutoUpdateUserVerifyFunc != nil {
 		h.AutoUpdateUserVerifyFunc(authInfo)
 	}

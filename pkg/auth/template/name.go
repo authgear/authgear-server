@@ -34,6 +34,12 @@ const (
 
 	// TemplateNameResetPasswordHTML is the template name of reset password html
 	TemplateNameResetPasswordHTML = "reset_password_html"
+
+	// TemplateNameVerifySuccessHTML is the template name of verify success html
+	TemplateNameVerifySuccessHTML = "verify_success_html"
+
+	// TemplateNameVerifyErrorHTML is the template name of verify error html
+	TemplateNameVerifyErrorHTML = "verify_error_html"
 )
 
 func VerifyTextTemplateNameForKey(key string) string {
@@ -42,4 +48,12 @@ func VerifyTextTemplateNameForKey(key string) string {
 
 func VerifyHTMLTemplateNameForKey(key string) string {
 	return fmt.Sprintf("verify_%s_html", key)
+}
+
+func VerifySuccessHTMLTemplateNameForKey(key string) string {
+	return fmt.Sprintf("%s_verify_success_html", key)
+}
+
+func VerifyErrorHTMLTemplateNameForKey(key string) string {
+	return fmt.Sprintf("%s_verify_error_html", key)
 }

@@ -194,6 +194,9 @@ func (m DependencyMap) Provide(
 		return userverify.CreateAutoUpdateUserVerifyfunc(tConfig)
 	case "AutoUpdateUserVerified":
 		return tConfig.UserVerify.AutoUpdate
+	case "VerifyHTMLProvider":
+		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
+		return userverify.NewVerifyHTMLProvider(tConfig.UserVerify, templateEngine)
 	case "AuditTrail":
 		trail, err := audit.NewTrail(tConfig.UserAudit.Enabled, tConfig.UserAudit.TrailHandlerURL)
 		if err != nil {
