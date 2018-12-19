@@ -92,6 +92,7 @@ func main() {
 func NewReverseProxy() *httputil.ReverseProxy {
 	director := func(req *http.Request) {
 		path := req.URL.Path
+		query := req.URL.Query()
 		var err error
 		u, err := url.Parse(req.Header.Get("X-Skygear-Gear-Endpoint"))
 		if err != nil {
@@ -99,6 +100,7 @@ func NewReverseProxy() *httputil.ReverseProxy {
 		}
 		req.URL = u
 		req.URL.Path = path
+		req.URL.RawQuery = query.Encode()
 	}
 	return &httputil.ReverseProxy{Director: director}
 }
