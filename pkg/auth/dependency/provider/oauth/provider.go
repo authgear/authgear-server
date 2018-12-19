@@ -209,10 +209,10 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 	return nil
 }
 
-func (p *providerImpl) DeletePrincipal(providerName string, principal *Principal) (err error) {
+func (p *providerImpl) DeletePrincipal(principalProviderName string, principal *Principal) (err error) {
 	// Delete provider_oauth
 	builder := p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("provider_oauth")).
-		Where("oauth_provider = ? and principal_id = ?", providerName, principal.ID)
+		Where("oauth_provider = ? and principal_id = ?", principalProviderName, principal.ID)
 
 	result, err := p.sqlExecutor.ExecWith(builder)
 	if err != nil {
