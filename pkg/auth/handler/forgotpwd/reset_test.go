@@ -16,6 +16,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -35,6 +37,8 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 	codeGenerator := &forgotpwdemail.CodeGenerator{MasterKey: "master_key"}
 
 	Convey("Test ForgotPasswordResetHandler", t, func() {
+		mockTaskQueue := async.NewMockQueue()
+
 		fh := &ForgotPasswordResetHandler{}
 		logger, hook := test.NewNullLogger()
 		fh.Logger = logrus.NewEntry(logger)
@@ -73,6 +77,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		fh.TokenStore = authtoken.NewJWTStore("myApp", "secret", 0)
 		fh.CodeGenerator = codeGenerator
 		fh.PasswordChecker = &authAudit.PasswordChecker{}
+		fh.TaskQueue = mockTaskQueue
 
 		Convey("reset password after expiry", func() {
 			// expireAt := time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC)                                // 1104678245
@@ -141,6 +146,12 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			So(respBody, ShouldNotContainKey, "error")
 			So(respBody["result"], ShouldContainKey, "access_token")
 			So(respBody["result"], ShouldContainKey, "user_id")
+
+			// should enqueue pw housekeeper task
+			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)
+			So(mockTaskQueue.TasksParam[0], ShouldResemble, task.PwHousekeeperTaskParam{
+				AuthID: "john.doe.id",
+			})
 		})
 	})
 }

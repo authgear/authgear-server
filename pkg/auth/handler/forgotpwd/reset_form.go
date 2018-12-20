@@ -12,6 +12,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -100,6 +102,7 @@ type ForgotPasswordResetFormHandler struct {
 	ResetPasswordHTMLProvider *forgotpwdemail.ResetPasswordHTMLProvider `dependency:"ResetPasswordHTMLProvider"`
 	TxContext                 db.TxContext                              `dependency:"TxContext"`
 	Logger                    *logrus.Entry                             `dependency:"HandlerLogger"`
+	TaskQueue                 async.Queue                               `dependency:"AsyncTaskQueue"`
 }
 
 type resultTemplateContext struct {
@@ -290,6 +293,11 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 	}
 
 	h.resetPassword(rw, templateCtx, principals)
+
+	// password house keeper
+	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
+		AuthID: authInfo.ID,
+	}, nil)
 }
 
 func (h ForgotPasswordResetFormHandler) resetPassword(rw http.ResponseWriter, templateCtx resultTemplateContext, principals []*password.Principal) {
