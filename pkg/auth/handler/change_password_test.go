@@ -13,6 +13,8 @@ import (
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -34,6 +36,7 @@ func TestChangePasswordHandler(t *testing.T) {
 		// fixture
 		userID := "john.doe.id"
 		mockTokenStore := authtoken.NewMockStore()
+		mockTaskQueue := async.NewMockQueue()
 
 		lh := &ChangePasswordHandler{}
 		lh.AuditTrail = audit.NewMockTrail(t)
@@ -66,6 +69,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				},
 			},
 		)
+		lh.TaskQueue = mockTaskQueue
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("change password success", func(c C) {
@@ -108,6 +112,12 @@ func TestChangePasswordHandler(t *testing.T) {
 				userID,
 				userID,
 				token.AccessToken))
+
+			// should enqueue pw housekeeper task
+			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)
+			So(mockTaskQueue.TasksParam[0], ShouldResemble, task.PwHousekeeperTaskParam{
+				AuthID: userID,
+			})
 		})
 
 		Convey("change to a weak password", func(c C) {

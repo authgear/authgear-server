@@ -9,6 +9,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -97,6 +99,7 @@ type ChangePasswordHandler struct {
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
 }
 
 func (h ChangePasswordHandler) WithTx() bool {
@@ -173,6 +176,11 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		AuthID: authinfo.ID,
 		Event:  audit.EventChangePassword,
 	})
+
+	// password house keeper
+	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
+		AuthID: authinfo.ID,
+	}, nil)
 
 	return
 }
