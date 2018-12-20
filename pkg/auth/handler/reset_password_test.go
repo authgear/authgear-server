@@ -7,6 +7,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -79,6 +81,7 @@ func TestResetPasswordHandler(t *testing.T) {
 		passwordChecker := &authAudit.PasswordChecker{
 			PwMinLength: 6,
 		}
+		mockTaskQueue := async.NewMockQueue()
 
 		h := &ResetPasswordHandler{}
 		h.AuthInfoStore = authInfoStore
@@ -87,6 +90,7 @@ func TestResetPasswordHandler(t *testing.T) {
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AuditTrail = audit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
+		h.TaskQueue = mockTaskQueue
 
 		Convey("should reset password by user id", func() {
 			userID := "john.doe.id"
@@ -116,6 +120,12 @@ func TestResetPasswordHandler(t *testing.T) {
 			for _, p := range principals {
 				So(p.IsSamePassword(newPassword), ShouldEqual, true)
 			}
+
+			// should enqueue pw housekeeper task
+			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)
+			So(mockTaskQueue.TasksParam[0], ShouldResemble, task.PwHousekeeperTaskParam{
+				AuthID: userID,
+			})
 		})
 
 		Convey("should not reset password by wrong user id", func() {
