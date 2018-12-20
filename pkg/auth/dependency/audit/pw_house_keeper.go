@@ -15,52 +15,49 @@
 package audit
 
 import (
-	"context"
+	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/server/logging"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 )
 
-// TODO: Migrate from v1 to next
-
-type PwHousekeeper struct {
-	AppName       string
-	AccessControl string
-	DBOpener      skydb.DBOpener
-	DBImpl        string
-	Option        string
-	DBConfig      skydb.DBConfig
-
-	PwHistorySize          int
-	PwHistoryDays          int
-	PasswordHistoryEnabled bool
+func NewPwHousekeeper(
+	passwordHistoryStore passwordhistory.Store,
+	logger *logrus.Entry,
+	pwHistorySize int,
+	pwHistoryDays int,
+	passwordHistoryEnabled bool,
+) *PwHousekeeper {
+	return &PwHousekeeper{
+		passwordHistoryStore:   passwordHistoryStore,
+		logger:                 logger,
+		pwHistorySize:          pwHistorySize,
+		pwHistoryDays:          pwHistoryDays,
+		passwordHistoryEnabled: passwordHistoryEnabled,
+	}
 }
 
-func (p *PwHousekeeper) doHousekeep(authID string) {
-	ctx := context.Background()
-	logger := logging.CreateLogger(ctx, "audit")
+type PwHousekeeper struct {
+	passwordHistoryStore   passwordhistory.Store
+	logger                 *logrus.Entry
+	pwHistorySize          int
+	pwHistoryDays          int
+	passwordHistoryEnabled bool
+}
 
+func (p *PwHousekeeper) Housekeep(authID string) (err error) {
 	if !p.enabled() {
 		return
 	}
 
-	conn, err := p.DBOpener(ctx, p.DBImpl, p.AppName, p.AccessControl, p.Option, p.DBConfig)
+	p.logger.Info("Remove password history")
+	err = p.passwordHistoryStore.RemovePasswordHistory(authID, p.pwHistorySize, p.pwHistoryDays)
 	if err != nil {
-		logger.Warnf(`Unable to housekeep password history`)
-		return
+		p.logger.WithError(err).Error("Unable to housekeep password history")
 	}
-	defer conn.Close()
 
-	err = conn.RemovePasswordHistory(authID, p.PwHistorySize, p.PwHistoryDays)
-	if err != nil {
-		logger.Warnf(`Unable to housekeep password history`)
-	}
+	return
 }
 
 func (p *PwHousekeeper) enabled() bool {
-	return p.PasswordHistoryEnabled
-}
-
-func (p *PwHousekeeper) Housekeep(authID string) {
-	go p.doHousekeep(authID)
+	return p.passwordHistoryEnabled
 }

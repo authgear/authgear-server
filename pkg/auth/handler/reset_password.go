@@ -10,6 +10,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -78,6 +80,7 @@ type ResetPasswordHandler struct {
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
 }
 
 func (h ResetPasswordHandler) WithTx() bool {
@@ -145,6 +148,11 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		AuthID: authinfo.ID,
 		Event:  audit.EventResetPassword,
 	})
+
+	// password house keeper
+	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
+		AuthID: authinfo.ID,
+	}, nil)
 
 	return
 }

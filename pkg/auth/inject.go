@@ -71,6 +71,19 @@ func (m DependencyMap) Provide(
 			PasswordHistoryEnabled: tConfig.UserAudit.PwHistorySize > 0 || tConfig.UserAudit.PwHistoryDays > 0,
 			PasswordHistoryStore:   passwordHistoryStore,
 		}
+	case "PwHousekeeper":
+		passwordHistoryStore := pqPWHistory.NewPasswordHistoryStore(
+			db.NewSQLBuilder("auth", tConfig.AppName),
+			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+			logging.CreateLoggerWithRequestID(requestID, "auth_password_history", createLoggerMaskFormatter(tConfig)),
+		)
+		return authAudit.NewPwHousekeeper(
+			passwordHistoryStore,
+			logging.CreateLoggerWithRequestID(requestID, "audit", createLoggerMaskFormatter(tConfig)),
+			tConfig.UserAudit.PwHistorySize,
+			tConfig.UserAudit.PwHistoryDays,
+			tConfig.UserAudit.PwHistorySize > 0 || tConfig.UserAudit.PwHistoryDays > 0,
+		)
 	case "PasswordAuthProvider":
 		// TODO:
 		// from tConfig
