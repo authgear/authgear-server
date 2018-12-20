@@ -40,14 +40,14 @@ func (s *queue) Enqueue(name string, param interface{}, response chan error) {
 	}
 
 	taskResponse := make(chan error)
-	s.taskExecutor.Execute(s.taskContext, name, param, taskResponse)
 
 	go func() {
+		err := <-taskResponse
 		select {
 		case <-s.context.Done(): // return if no one receive the error
-		default:
-			err := <-taskResponse
-			response <- err
+		case response <- err:
 		}
 	}()
+
+	s.taskExecutor.Execute(s.taskContext, name, param, taskResponse)
 }
