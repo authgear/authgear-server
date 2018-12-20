@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -97,6 +98,7 @@ type LoginHandler struct {
 	RoleStore            role.Store             `dependency:"RoleStore"`
 	TokenStore           authtoken.Store        `dependency:"TokenStore"`
 	ProviderFactory      *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
+	UserProfileStore     userprofile.Store      `dependency:"UserProfileStore"`
 	Provider             sso.Provider
 	AuthInfoProcessor    sso.AuthInfoProcessor
 	ProviderName         string
@@ -135,6 +137,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		AuthInfoStore:        h.AuthInfoStore,
 		OAuthAuthProvider:    h.OAuthAuthProvider,
 		PasswordAuthProvider: h.PasswordAuthProvider,
+		UserProfileStore:     h.UserProfileStore,
 		UserID:               oauthAuthInfo.State.UserID,
 	}
 	resp, err = handler.loginActionResp(oauthAuthInfo)
