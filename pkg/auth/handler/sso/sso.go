@@ -32,7 +32,10 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 
 	// Create or update user profile
 	var userProfile userprofile.UserProfile
-	providerUserProfile := oauthAuthInfo.ProviderUserProfile
+	// oauthAuthInfo.ProviderUserProfile may contains attributes like "id",
+	// and it is not allowed to use it in SDK.
+	// so here we will save authData as providerUserProfile
+	providerUserProfile := oauthAuthInfo.ProviderAuthData
 	if createNewUser {
 		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, providerUserProfile)
 	} else {
