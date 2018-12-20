@@ -91,9 +91,20 @@ type Config struct {
 	Scope        Scope
 }
 
+// AuthInfo contains auth info from HandleAuthzResp
+type AuthInfo struct {
+	ProviderName            string
+	ProviderUserID          string
+	ProviderUserProfile     map[string]interface{}
+	ProviderAccessTokenResp interface{}
+	ProviderAuthData        map[string]interface{}
+	State                   State
+}
+
 // Provider defines SSO interface
 type Provider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
+	GetAuthInfo(code string, scope Scope, encodedState string) (auth AuthInfo, err error)
 }
 
 type ProviderFactory struct {
@@ -146,4 +157,15 @@ func (p *ProviderFactory) NewProvider(name string) Provider {
 		}
 	}
 	return nil
+}
+
+func (p *ProviderFactory) Setting() Setting {
+	SSOSetting := p.tenantConfig.SSOSetting
+	return Setting{
+		URLPrefix:            SSOSetting.URLPrefix,
+		JSSDKCDNURL:          SSOSetting.JSSDKCDNURL,
+		StateJWTSecret:       SSOSetting.StateJWTSecret,
+		AutoLinkProviderKeys: SSOSetting.AutoLinkProviderKeys,
+		AllowedCallbackURLs:  SSOSetting.AllowedCallbackURLs,
+	}
 }

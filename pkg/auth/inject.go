@@ -12,6 +12,7 @@ import (
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/customtoken"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -161,7 +162,7 @@ func (m DependencyMap) Provide(
 	case "TestWelcomeEmailSender":
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
 	case "IFrameHTMLProvider":
-		return sso.NewIFrameHTMLProvider(tConfig.SSOSetting.URLPrefix, tConfig.SSOSetting.JSSDKCDNURL)
+		return sso.NewIFrameHTMLProvider(tConfig.SSOSetting.APIEndpoint(), tConfig.SSOSetting.JSSDKCDNURL)
 	case "VerifyCodeStore":
 		return userverify.NewStore(
 			db.NewSQLBuilder("auth", tConfig.AppName),
@@ -189,6 +190,15 @@ func (m DependencyMap) Provide(
 		return trail
 	case "SSOProviderFactory":
 		return sso.NewProviderFactory(tConfig)
+	case "OAuthAuthProvider":
+		return oauth.NewSafeProvider(
+			db.NewSQLBuilder("auth", tConfig.AppName),
+			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+			logging.CreateLoggerWithRequestID(requestID, "provider_oauth", createLoggerMaskFormatter(tConfig)),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
+	case "AuthHandlerHTMLProvider":
+		return sso.NewAuthHandlerHTMLProvider(tConfig.SSOSetting.APIEndpoint(), tConfig.SSOSetting.JSSDKCDNURL)
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	default:

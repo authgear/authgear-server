@@ -15,7 +15,7 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 	params.Options["access_type"] = "offline"
 	params.Options["prompt"] = "select_account"
 	p := authURLParams{
-		prividerName:   f.Config.Name,
+		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
 		urlPrefix:      f.Setting.URLPrefix,
 		scope:          GetScope(params.Scope, f.Config.Scope),
@@ -25,4 +25,21 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 		baseURL:        BaseURL(f.Config.Name),
 	}
 	return authURL(p)
+}
+
+func (f *GoogleImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
+	h := getAuthInfoRequest{
+		providerName:   f.Config.Name,
+		clientID:       f.Config.ClientID,
+		clientSecret:   f.Config.ClientSecret,
+		urlPrefix:      f.Setting.URLPrefix,
+		code:           code,
+		scope:          scope,
+		stateJWTSecret: f.Setting.StateJWTSecret,
+		encodedState:   encodedState,
+		accessTokenURL: AccessTokenURL(f.Config.Name),
+		userProfileURL: UserProfileURL(f.Config.Name),
+		processor:      newDefaultAuthInfoProcessor(),
+	}
+	return h.getAuthInfo()
 }

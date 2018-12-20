@@ -1,4 +1,4 @@
-package ssohandler
+package sso
 
 import (
 	"net/url"
@@ -69,7 +69,7 @@ func TestAuthURLHandler(t *testing.T) {
 		h := &AuthURLHandler{}
 		h.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		setting := sso.Setting{
-			URLPrefix:      "http://localhost:3000",
+			URLPrefix:      "http://localhost:3000/auth",
 			StateJWTSecret: "secret",
 		}
 		config := sso.Config{
@@ -117,7 +117,7 @@ func TestAuthURLHandler(t *testing.T) {
 			// check redirect_uri
 			r, _ := url.Parse(q.Get("redirect_uri"))
 			So(r.Host, ShouldEqual, "localhost:3000")
-			So(r.Path, ShouldEqual, "/sso/mock/auth_handler")
+			So(r.Path, ShouldEqual, "/auth/sso/mock/auth_handler")
 
 			// check encoded state
 			s := q.Get("state")

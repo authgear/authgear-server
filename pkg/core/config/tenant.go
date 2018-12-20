@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"sort"
 	"strings"
@@ -351,9 +352,23 @@ func getSSOSetting(ssoSetting *SSOSetting) {
 	return
 }
 
-func getSSOConfigs(prividers []string, ssoConfigs *[]SSOConfiguration) {
+func (s SSOSetting) APIEndpoint() string {
+	// URLPrefix can't be seen as skygear endpoint.
+	// Consider URLPrefix = http://localhost:3001/auth
+	// and skygear SDK use is as base endpint URL (in iframe_html and auth_handler_html).
+	// And then, SDK may generate wrong action path base on this wrong endpoint (http://localhost:3001/auth).
+	// So, this function will remote path part of URLPrefix
+	u, err := url.Parse(s.URLPrefix)
+	if err != nil {
+		return s.URLPrefix
+	}
+	u.Path = ""
+	return u.String()
+}
+
+func getSSOConfigs(providers []string, ssoConfigs *[]SSOConfiguration) {
 	configs := make([]SSOConfiguration, 0)
-	for _, name := range prividers {
+	for _, name := range providers {
 		config := SSOConfiguration{
 			Name: name,
 		}

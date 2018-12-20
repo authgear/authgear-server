@@ -5,9 +5,11 @@ import (
 )
 
 type MockSSOProverImpl struct {
-	BaseURL string
-	Setting Setting
-	Config  Config
+	BaseURL      string
+	Setting      Setting
+	Config       Config
+	MockUserID   string
+	MockAuthData map[string]interface{}
 }
 
 func (f *MockSSOProverImpl) GetAuthURL(params GetURLParams) (string, error) {
@@ -16,7 +18,7 @@ func (f *MockSSOProverImpl) GetAuthURL(params GetURLParams) (string, error) {
 		return "", skyErr
 	}
 	p := authURLParams{
-		prividerName:   f.Config.Name,
+		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
 		urlPrefix:      f.Setting.URLPrefix,
 		scope:          GetScope(params.Scope, f.Config.Scope),
@@ -26,4 +28,21 @@ func (f *MockSSOProverImpl) GetAuthURL(params GetURLParams) (string, error) {
 		baseURL:        f.BaseURL,
 	}
 	return authURL(p)
+}
+
+func (f *MockSSOProverImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
+	state, err := DecodeState(f.Setting.StateJWTSecret, encodedState)
+	if err != nil {
+		return
+	}
+
+	authInfo = AuthInfo{
+		ProviderName:            f.Config.Name,
+		State:                   state,
+		ProviderUserID:          f.MockUserID,
+		ProviderAccessTokenResp: map[string]interface{}{},
+		ProviderUserProfile:     map[string]interface{}{},
+		ProviderAuthData:        f.MockAuthData,
+	}
+	return
 }
