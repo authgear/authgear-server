@@ -48,8 +48,12 @@ func (f ResetPasswordHandlerFactory) NewHandler(request *http.Request) http.Hand
 
 func (f ResetPasswordHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
-		authz.PolicyFunc(policy.RequireMasterKey),
+		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
+		policy.AnyOf(
+			authz.PolicyFunc(policy.RequireAdminRole),
+			authz.PolicyFunc(policy.RequireMasterKey),
+		),
 		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }

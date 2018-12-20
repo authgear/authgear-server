@@ -44,10 +44,13 @@ func (f SetDisableHandlerFactory) NewHandler(request *http.Request) http.Handler
 
 // ProvideAuthzPolicy provides authorization policy of handler
 func (f SetDisableHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	// FIXME: Admin only after adding admin role
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
+		policy.AnyOf(
+			authz.PolicyFunc(policy.RequireAdminRole),
+			authz.PolicyFunc(policy.RequireMasterKey),
+		),
 		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }
