@@ -128,7 +128,7 @@ type SignupHandler struct {
 	VerifyCodeStore        userverify.Store           `dependency:"VerifyCodeStore"`
 	TxContext              db.TxContext               `dependency:"TxContext"`
 	Logger                 *logrus.Entry              `dependency:"HandlerLogger"`
-	TaskQueue              *async.Queue               `dependency:"AsyncTaskQueue"`
+	TaskQueue              async.Queue                `dependency:"AsyncTaskQueue"`
 }
 
 func (h SignupHandler) WithTx() bool {

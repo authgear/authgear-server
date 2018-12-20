@@ -6,7 +6,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-type Queue struct {
+type Queue interface {
+	Enqueue(name string, param interface{}, response chan error)
+}
+
+type queue struct {
 	context     context.Context
 	taskContext TaskContext
 
@@ -18,8 +22,8 @@ func NewQueue(
 	requestID string,
 	tenantConfig config.TenantConfiguration,
 	taskExecutor *Executor,
-) *Queue {
-	return &Queue{
+) Queue {
+	return &queue{
 		context: ctx,
 		taskContext: TaskContext{
 			RequestID:    requestID,
@@ -29,7 +33,7 @@ func NewQueue(
 	}
 }
 
-func (s *Queue) Enqueue(name string, param interface{}, response chan error) {
+func (s *queue) Enqueue(name string, param interface{}, response chan error) {
 	if response == nil {
 		s.taskExecutor.Execute(s.taskContext, name, param, nil)
 		return
