@@ -85,10 +85,10 @@ func TestAuthHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProverImpl{
-			BaseURL:    "http://mock/auth",
-			Setting:    setting,
-			Config:     config,
-			MockUserID: providerUserID,
+			BaseURL: "http://mock/auth",
+			Setting: setting,
+			Config:  config,
+			UserID:  providerUserID,
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(
@@ -455,6 +455,190 @@ func TestAuthHandler(t *testing.T) {
 			sh.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 400)
 			So(resp.Body.String(), ShouldEqual, "InvalidArgument: provider account already linked with existing user\n")
+		})
+	})
+
+	Convey("Test AuthHandler's auto link procedure", t, func() {
+		action := "login"
+		UXMode := "web_redirect"
+
+		stateJWTSecret := "secret"
+		providerName := "mock"
+		providerUserID := "mock_user_id"
+		sh := &AuthHandler{}
+		sh.TxContext = db.NewMockTxContext()
+		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		setting := sso.Setting{
+			URLPrefix:      "http://localhost:3000",
+			StateJWTSecret: stateJWTSecret,
+			AllowedCallbackURLs: []string{
+				"http://localhost",
+			},
+		}
+		config := sso.Config{
+			Name:         providerName,
+			ClientID:     "mock_client_id",
+			ClientSecret: "mock_client_secret",
+		}
+		mockProvider := sso.MockSSOProverImpl{
+			BaseURL: "http://mock/auth",
+			Setting: setting,
+			Config:  config,
+			UserID:  providerUserID,
+			AuthData: map[string]interface{}{
+				"email": "john.doe@example.com",
+			},
+		}
+		sh.Provider = &mockProvider
+		mockOAuthProvider := oauth.NewMockProvider(
+			map[string]string{},
+			map[string]oauth.Principal{},
+		)
+		sh.OAuthAuthProvider = mockOAuthProvider
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{
+				"john.doe.id": authinfo.AuthInfo{
+					ID: "john.doe.id",
+				},
+			},
+		)
+		sh.AuthInfoStore = authInfoStore
+		mockTokenStore := authtoken.NewMockStore()
+		sh.TokenStore = mockTokenStore
+		profileData := map[string]map[string]interface{}{
+			"john.doe.id": map[string]interface{}{},
+		}
+		sh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
+		sh.RoleStore = role.NewMockStore()
+		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
+			"https://api.example.com",
+			"https://api.example.com/skygear.js",
+		)
+		sh.SSOSetting = setting
+		authRecordKeys := [][]string{[]string{"email"}}
+		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			authRecordKeys,
+			map[string]password.Principal{
+				"john.doe.principal.id": password.Principal{
+					ID:     "john.doe.principal.id",
+					UserID: "john.doe.id",
+					AuthData: map[string]interface{}{
+						"email": "john.doe@example.com",
+					},
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+			},
+		)
+		sh.PasswordAuthProvider = passwordAuthProvider
+
+		Convey("should auto-link password principal", func() {
+			// oauth state
+			state := sso.State{
+				CallbackURL: "http://localhost:3000",
+				UXMode:      UXMode,
+				Action:      action,
+			}
+			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
+			}
+
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			resp := httptest.NewRecorder()
+
+			sh.ServeHTTP(resp, req)
+
+			oauthPrincipal, err := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			So(err, ShouldBeNil)
+			So(oauthPrincipal.UserID, ShouldEqual, "john.doe.id")
+		})
+	})
+
+	Convey("Test AuthHandler's auto link procedure", t, func() {
+		action := "login"
+		UXMode := "web_redirect"
+
+		stateJWTSecret := "secret"
+		providerName := "mock"
+		providerUserID := "mock_user_id"
+		sh := &AuthHandler{}
+		sh.TxContext = db.NewMockTxContext()
+		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		setting := sso.Setting{
+			URLPrefix:      "http://localhost:3000",
+			StateJWTSecret: stateJWTSecret,
+			AllowedCallbackURLs: []string{
+				"http://localhost",
+			},
+		}
+		config := sso.Config{
+			Name:         providerName,
+			ClientID:     "mock_client_id",
+			ClientSecret: "mock_client_secret",
+		}
+		mockProvider := sso.MockSSOProverImpl{
+			BaseURL: "http://mock/auth",
+			Setting: setting,
+			Config:  config,
+			UserID:  providerUserID,
+			AuthData: map[string]interface{}{
+				"email": "john.doe@example.com",
+			},
+		}
+		sh.Provider = &mockProvider
+		mockOAuthProvider := oauth.NewMockProvider(
+			map[string]string{},
+			map[string]oauth.Principal{},
+		)
+		sh.OAuthAuthProvider = mockOAuthProvider
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{},
+		)
+		sh.AuthInfoStore = authInfoStore
+		mockTokenStore := authtoken.NewMockStore()
+		sh.TokenStore = mockTokenStore
+		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sh.RoleStore = role.NewMockStore()
+		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
+			"https://api.example.com",
+			"https://api.example.com/skygear.js",
+		)
+		sh.SSOSetting = setting
+		authRecordKeys := [][]string{[]string{"email"}}
+		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			authRecordKeys,
+			map[string]password.Principal{},
+		)
+		sh.PasswordAuthProvider = passwordAuthProvider
+
+		Convey("should also create an empty password principal", func() {
+			// oauth state
+			state := sso.State{
+				CallbackURL: "http://localhost:3000",
+				UXMode:      UXMode,
+				Action:      action,
+			}
+			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
+			}
+
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			resp := httptest.NewRecorder()
+
+			sh.ServeHTTP(resp, req)
+
+			oauthPrincipal, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			_, err := sh.PasswordAuthProvider.GetPrincipalsByUserID(oauthPrincipal.UserID)
+			So(err, ShouldBeNil)
 		})
 	})
 }

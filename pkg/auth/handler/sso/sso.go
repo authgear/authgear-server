@@ -126,7 +126,14 @@ func (h respHandler) handleLogin(
 		err = nil
 	}
 
-	// TODO: handle auto link user
+	if valid := h.PasswordAuthProvider.IsAuthDataMatching(oauthAuthInfo.ProviderAuthData); valid {
+		// provider authData match app authRecordKeys,
+		// start auto-connect procedure
+		principal, err = h.authLinkUser(oauthAuthInfo)
+		if err != nil {
+			return
+		}
+	}
 
 	if principal == nil {
 		createNewUser = true
@@ -158,6 +165,11 @@ func (h respHandler) handleLogin(
 		}
 
 		_, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
+		if err != nil {
+			return
+		}
+
+		err = h.createEmptyPasswordPrincipal(info.ID, oauthAuthInfo)
 	} else {
 		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
 		principal.UserProfile = oauthAuthInfo.ProviderUserProfile
@@ -180,6 +192,22 @@ func (h respHandler) handleLogin(
 	return
 }
 
+func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
+	principal := password.Principal{}
+	e := h.PasswordAuthProvider.GetPrincipalByAuthData(oauthAuthInfo.ProviderAuthData, &principal)
+	if e == nil {
+		userID := principal.UserID
+		// link user
+		principal, err := h.createPrincipalByOAuthInfo(userID, oauthAuthInfo)
+		if err != nil {
+			return nil, err
+		}
+		return &principal, nil
+	}
+
+	return nil, nil
+}
+
 func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (oauth.Principal, error) {
 	now := timeNow()
 	principal := oauth.NewPrincipal()
@@ -192,4 +220,14 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 	principal.UpdatedAt = &now
 	err := h.OAuthAuthProvider.CreatePrincipal(principal)
 	return principal, err
+}
+
+func (h respHandler) createEmptyPasswordPrincipal(userID string, oauthAuthInfo sso.AuthInfo) error {
+	if valid := h.PasswordAuthProvider.IsAuthDataMatching(oauthAuthInfo.ProviderAuthData); valid {
+		// if ProviderAuthData mastch authRecordKeys, also creates an empty password principal
+		// and later the user can set password to it
+		return h.PasswordAuthProvider.CreatePrincipalsByAuthData(userID, "", oauthAuthInfo.ProviderAuthData)
+	}
+
+	return nil
 }
