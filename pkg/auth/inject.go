@@ -177,10 +177,11 @@ func (m DependencyMap) Provide(
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(tConfig.SSOSetting.APIEndpoint(), tConfig.SSOSetting.JSSDKCDNURL)
 	case "VerifyCodeStore":
-		return userverify.NewStore(
+		return userverify.NewSafeStore(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 			logging.CreateLoggerWithRequestID(requestID, "verify_code", createLoggerMaskFormatter(tConfig)),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	case "VerifyCodeCodeGeneratorFactory":
 		return userverify.NewDefaultCodeGeneratorFactory(tConfig)

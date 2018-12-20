@@ -29,10 +29,6 @@ func newStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Ent
 	}
 }
 
-func NewStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) Store {
-	return newStore(builder, executor, logger)
-}
-
 func (s *storeImpl) CreateVerifyCode(code *VerifyCode) (err error) {
 	builder := s.sqlBuilder.Insert(s.sqlBuilder.FullTableName("verify_code")).Columns(
 		"id",
