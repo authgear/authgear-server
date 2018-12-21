@@ -50,10 +50,10 @@ func (f *MockSSOProverImpl) GetAuthInfo(code string, scope Scope, encodedState s
 func (f *MockSSOProverImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{
 		ProviderName:            f.Config.Name,
-		ProviderUserID:          f.MockUserID,
+		ProviderUserID:          f.UserID,
 		ProviderAccessTokenResp: map[string]interface{}{},
 		ProviderUserProfile:     map[string]interface{}{},
-		ProviderAuthData:        f.MockAuthData,
+		ProviderAuthData:        f.AuthData,
 	}
 	return
 }

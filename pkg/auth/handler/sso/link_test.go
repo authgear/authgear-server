@@ -71,11 +71,11 @@ func TestLinkHandler(t *testing.T) {
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProverImpl{
-			BaseURL:      "http://mock/auth",
-			Setting:      setting,
-			Config:       config,
-			MockUserID:   providerUserID,
-			MockAuthData: providerAuthData,
+			BaseURL:  "http://mock/auth",
+			Setting:  setting,
+			Config:   config,
+			UserID:   providerUserID,
+			AuthData: providerAuthData,
 		}
 		sh.Provider = &mockProvider
 		ssoProviderFactory := sso.ProviderFactory{}
