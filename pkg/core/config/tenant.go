@@ -21,6 +21,7 @@ type TenantConfiguration struct {
 	APIKey          string                      `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
 	MasterKey       string                      `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
 	AppName         string                      `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
+	URLPrefix       string                      `msg:"URL_PREFIX" envconfig:"URL_PREFIX" json:"URL_PREFIX"`
 	CORSHost        string                      `msg:"CORS_HOST" envconfig:"CORS_HOST" json:"CORS_HOST"`
 	Auth            AuthConfiguration           `msg:"AUTH" json:"AUTH"`
 	TokenStore      TokenStoreConfiguration     `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
@@ -242,7 +243,24 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.ForgotPassword.AppName == "" {
 		c.ForgotPassword.AppName = c.AppName
 	}
+
+	if c.ForgotPassword.URLPrefix == "" {
+		c.ForgotPassword.URLPrefix = c.URLPrefix
+	}
+
+	if c.WelcomeEmail.URLPrefix == "" {
+		c.WelcomeEmail.URLPrefix = c.URLPrefix
+	}
+
+	if c.UserVerify.URLPrefix == "" {
+		c.UserVerify.URLPrefix = c.URLPrefix
+	}
+
+	if c.SSOSetting.URLPrefix == "" {
+		c.SSOSetting.URLPrefix = c.URLPrefix
+	}
 }
+
 func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	return []string{
 		c.APIKey,
