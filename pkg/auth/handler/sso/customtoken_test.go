@@ -33,9 +33,28 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		mockTokenStore := authtoken.NewMockStore()
 		lh := &CustomTokenLoginHandler{}
 		lh.TxContext = db.NewMockTxContext()
-		lh.CustomTokenAuthProvider = customtoken.NewMockProvider("ssosecret")
-		lh.AuthInfoStore = authinfo.NewMockStore()
-		lh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		lh.CustomTokenAuthProvider = customtoken.NewMockProviderWithPrincipalMap("ssosecret", map[string]customtoken.Principal{
+			"uuid-chima-token": customtoken.Principal{
+				ID:               "uuid-chima-token",
+				TokenPrincipalID: "chima.customtoken.id",
+				UserID:           "chima",
+			},
+		})
+		lh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{
+				"chima": authinfo.AuthInfo{
+					ID: "chima",
+				},
+			},
+		)
+		userProfileStore := userprofile.NewMockUserProfileStore()
+		userProfileStore.Data = map[string]map[string]interface{}{}
+		userProfileStore.Data["chima"] = map[string]interface{}{
+			"name":  "chima",
+			"email": "chima@skygear.io",
+		}
+		userProfileStore.TimeNowfunc = timeNow
+		lh.UserProfileStore = userProfileStore
 		lh.TokenStore = mockTokenStore
 		lh.RoleStore = role.NewMockStore()
 		lh.AuditTrail = audit.NewMockTrail(t)
@@ -112,7 +131,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 					StandardClaims: jwt.StandardClaims{
 						IssuedAt:  time.Now().Unix(),
 						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
-						Subject:   "otherid1",
+						Subject:   "chima.customtoken.id",
 					},
 					RawProfile: map[string]interface{}{
 						"name":  "John Doe",
@@ -129,9 +148,10 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
-			p, _ := lh.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID("otherid1")
-			profile, _ := lh.UserProfileStore.GetUserProfile(p.UserID)
+			p, _ := lh.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID("chima.customtoken.id")
+			So(p.UserID, ShouldEqual, "chima")
 
+			profile, _ := lh.UserProfileStore.GetUserProfile(p.UserID)
 			So(profile.Data, ShouldResemble, userprofile.Data{
 				"name":  "John Doe",
 				"email": "John@skygear.io",
