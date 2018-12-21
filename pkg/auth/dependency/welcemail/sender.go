@@ -41,11 +41,11 @@ func (d *DefaultSender) Send(email string, userProfile userprofile.UserProfile) 
 	}
 
 	context := map[string]interface{}{
-		"appname": d.AppName,
-		"email":   email,
-		"user_id": userProfile.ID,
-		"user":    userProfile.ToMap(),
-		// TODO: url prefix
+		"appname":    d.AppName,
+		"email":      email,
+		"user_id":    userProfile.ID,
+		"user":       userProfile.ToMap(),
+		"url_prefix": d.Config.URLPrefix,
 	}
 
 	var textBody string

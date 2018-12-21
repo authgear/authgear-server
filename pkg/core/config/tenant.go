@@ -100,6 +100,7 @@ type ForgotPasswordConfiguration struct {
 
 type WelcomeEmailConfiguration struct {
 	Enabled     bool   `msg:"ENABLED" envconfig:"WELCOME_EMAIL_ENABLED" json:"ENABLED"`
+	URLPrefix   string `msg:"URL_PREFIX" envconfig:"WELCOME_EMAIL_PRRFIX" json:"URL_PREFIX"`
 	SenderName  string `msg:"SENDER_NAME" envconfig:"WELCOME_EMAIL_SENDER_NAME" json:"SENDER_NAME"`
 	Sender      string `msg:"SENDER" envconfig:"WELCOME_EMAIL_SENDER" json:"SENDER"`
 	Subject     string `msg:"SUBJECT" envconfig:"WELCOME_EMAIL_SUBJECT" json:"SUBJECT"`
