@@ -13,6 +13,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -59,6 +61,9 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh.RoleStore = role.NewMockStore()
 		lh.AuditTrail = audit.NewMockTrail(t)
 		lh.UserVerifyKeys = []string{"email"}
+		lh.WelcomeEmailEnabled = true
+		mockTaskQueue := async.NewMockQueue()
+		lh.TaskQueue = mockTaskQueue
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("create user account with custom token", func(c C) {
@@ -122,6 +127,13 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			mockTrail, _ := lh.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
 			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "signup")
+
+			So(mockTaskQueue.TasksParam, ShouldHaveLength, 1)
+			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
+			So(param.Email, ShouldEqual, "John@skygear.io")
+			So(param.UserProfile, ShouldNotBeNil)
+			So(param.UserProfile.Data["name"], ShouldEqual, "John Doe")
+			So(param.UserProfile.Data["email"], ShouldEqual, "John@skygear.io")
 		})
 
 		Convey("update user account with custom token", func(c C) {
@@ -156,6 +168,8 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"name":  "John Doe",
 				"email": "John@skygear.io",
 			})
+
+			So(mockTaskQueue.TasksParam, ShouldHaveLength, 0)
 		})
 
 		Convey("check whether token is invalid", func(c C) {
