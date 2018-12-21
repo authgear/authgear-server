@@ -1,8 +1,9 @@
 package userprofile
 
 import (
-	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"time"
+
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
 
 type MockUserProfileStoreImpl struct {
@@ -15,6 +16,13 @@ type MockTimeNowfunc func() time.Time
 func NewMockUserProfileStore() *MockUserProfileStoreImpl {
 	return &MockUserProfileStoreImpl{
 		Data:        map[string]map[string]interface{}{},
+		TimeNowfunc: func() time.Time { return time.Time{} },
+	}
+}
+
+func NewMockUserProfileStoreByData(data map[string]map[string]interface{}) *MockUserProfileStoreImpl {
+	return &MockUserProfileStoreImpl{
+		Data:        data,
 		TimeNowfunc: func() time.Time { return time.Time{} },
 	}
 }
