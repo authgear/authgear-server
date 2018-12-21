@@ -25,6 +25,15 @@ const (
 
 	// TemplateNameVerifySMSText is the template name of verify sms text
 	TemplateNameVerifySMSText = "verify_sms_text"
+
+	// TemplateNameResetPasswordErrorHTML is the template name of reset password error html
+	TemplateNameResetPasswordErrorHTML = "reset_password_error_html"
+
+	// TemplateNameResetPasswordSuccessHTML is the template name of reset password success html
+	TemplateNameResetPasswordSuccessHTML = "reset_password_success_html"
+
+	// TemplateNameResetPasswordHTML is the template name of reset password html
+	TemplateNameResetPasswordHTML = "reset_password_html"
 )
 
 func VerifyTextTemplateNameForKey(key string) string {

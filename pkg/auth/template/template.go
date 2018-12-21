@@ -10,6 +10,9 @@ func RegisterDefaultTemplates(engine *template.Engine) {
 	engine.RegisterDefaultTemplate(TemplateNameForgotPasswordEmailText, templateForgotPasswordEmailTxt)
 	engine.RegisterDefaultTemplate(TemplateNameVerifyEmailText, templateVerifyEmailTxt)
 	engine.RegisterDefaultTemplate(TemplateNameVerifySMSText, templateVerifySMSTxt)
+	engine.RegisterDefaultTemplate(TemplateNameResetPasswordErrorHTML, templateResetPasswordErrorHTML)
+	engine.RegisterDefaultTemplate(TemplateNameResetPasswordSuccessHTML, templateResetPasswordSuccessHTML)
+	engine.RegisterDefaultTemplate(TemplateNameResetPasswordHTML, templateResetPasswordHTML)
 }
 
 func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfiguration) *template.Engine {
@@ -43,6 +46,18 @@ func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfigura
 		if providerConfig.HTMLURL != "" {
 			loader.URLMap[VerifyHTMLTemplateNameForKey(keyConfig.Key)] = providerConfig.HTMLURL
 		}
+	}
+
+	if tConfig.ForgotPassword.ResetErrorHTMLURL != "" {
+		loader.URLMap[TemplateNameResetPasswordErrorHTML] = tConfig.ForgotPassword.ResetErrorHTMLURL
+	}
+
+	if tConfig.ForgotPassword.ResetSuccessHTMLURL != "" {
+		loader.URLMap[TemplateNameResetPasswordSuccessHTML] = tConfig.ForgotPassword.ResetSuccessHTMLURL
+	}
+
+	if tConfig.ForgotPassword.ResetHTMLURL != "" {
+		loader.URLMap[TemplateNameResetPasswordHTML] = tConfig.ForgotPassword.ResetHTMLURL
 	}
 
 	newEngine.SetLoaders([]template.Loader{loader})

@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+package template
+
+const templateResetPasswordHTML = `<!DOCTYPE html>
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,4 +17,4 @@
   <input type="hidden" name="user_id" value="{{ user_id }}">
   <input type="hidden" name="expire_at" value="{{ expire_at }}">
   <input type="submit" value="Submit">
-</form>
+</form>`

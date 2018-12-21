@@ -1,0 +1,8 @@
+package template
+
+const templateResetPasswordSuccessHTML = `<!DOCTYPE html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<p>Your password is reset successfully.</p>`

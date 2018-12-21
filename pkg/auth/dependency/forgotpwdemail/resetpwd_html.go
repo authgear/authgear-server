@@ -3,20 +3,19 @@ package forgotpwdemail
 import (
 	"net/url"
 
+	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
 type ResetPasswordHTMLProvider struct {
-	successHTMLURL string
-	errorHTMLURL   string
-	formHTMLURL    string
+	TemplateEngine *template.Engine
 
 	successRedirect *url.URL
 	errorRedirect   *url.URL
 }
 
-func NewResetPasswordHTMLProvider(c config.ForgotPasswordConfiguration) *ResetPasswordHTMLProvider {
+func NewResetPasswordHTMLProvider(c config.ForgotPasswordConfiguration, templateEngine *template.Engine) *ResetPasswordHTMLProvider {
 	var successRedirect *url.URL
 	var errorRedirect *url.URL
 	var err error
@@ -33,24 +32,34 @@ func NewResetPasswordHTMLProvider(c config.ForgotPasswordConfiguration) *ResetPa
 	}
 
 	return &ResetPasswordHTMLProvider{
-		successHTMLURL:  c.ResetSuccessHTMLURL,
-		errorHTMLURL:    c.ResetErrorHTMLURL,
-		formHTMLURL:     c.ResetHTMLURL,
+		TemplateEngine:  templateEngine,
 		successRedirect: successRedirect,
 		errorRedirect:   errorRedirect,
 	}
 }
 
 func (r *ResetPasswordHTMLProvider) SuccessHTML(context map[string]interface{}) (string, error) {
-	return template.ParseHTMLTemplateFromURL(r.successHTMLURL, context)
+	return r.TemplateEngine.ParseTextTemplate(
+		authTemplate.TemplateNameResetPasswordErrorHTML,
+		context,
+		template.ParseOption{Required: true},
+	)
 }
 
 func (r *ResetPasswordHTMLProvider) ErrorHTML(context map[string]interface{}) (string, error) {
-	return template.ParseHTMLTemplateFromURL(r.errorHTMLURL, context)
+	return r.TemplateEngine.ParseTextTemplate(
+		authTemplate.TemplateNameResetPasswordSuccessHTML,
+		context,
+		template.ParseOption{Required: true},
+	)
 }
 
 func (r *ResetPasswordHTMLProvider) FormHTML(context map[string]interface{}) (string, error) {
-	return template.ParseHTMLTemplateFromURL(r.formHTMLURL, context)
+	return r.TemplateEngine.ParseTextTemplate(
+		authTemplate.TemplateNameResetPasswordHTML,
+		context,
+		template.ParseOption{Required: true},
+	)
 }
 
 func (r *ResetPasswordHTMLProvider) SuccessRedirect(context map[string]interface{}) *url.URL {
