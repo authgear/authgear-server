@@ -57,6 +57,7 @@ func main() {
 
 	task.AttachVerifyCodeSendTask(asyncTaskExecutor, authDependency)
 	task.AttachPwHousekeeperTask(asyncTaskExecutor, authDependency)
+	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
 
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
 	srv := server.NewServer(configuration.Host, authContextResolverFactory)
