@@ -59,11 +59,11 @@ func (d *DefaultTestSender) Send(
 		},
 	}
 	context := map[string]interface{}{
-		"appname": d.AppName,
-		"email":   userProfile.Data["email"],
-		"user_id": userProfile.ID,
-		"user":    userProfile.ToMap(),
-		// TODO: url prefix
+		"appname":    d.AppName,
+		"email":      userProfile.Data["email"],
+		"user_id":    userProfile.ID,
+		"user":       userProfile.ToMap(),
+		"url_prefix": d.Config.URLPrefix,
 	}
 
 	var textBody string

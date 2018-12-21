@@ -1392,6 +1392,11 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
+		case "URL_PREFIX":
+			z.URLPrefix, err = dc.ReadString()
+			if err != nil {
+				return
+			}
 		case "CORS_HOST":
 			z.CORSHost, err = dc.ReadString()
 			if err != nil {
@@ -1608,9 +1613,9 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 18
+	// map header, size 19
 	// write "DATABASE_URL"
-	err = en.Append(0xde, 0x0, 0x12, 0xac, 0x44, 0x41, 0x54, 0x41, 0x42, 0x41, 0x53, 0x45, 0x5f, 0x55, 0x52, 0x4c)
+	err = en.Append(0xde, 0x0, 0x13, 0xac, 0x44, 0x41, 0x54, 0x41, 0x42, 0x41, 0x53, 0x45, 0x5f, 0x55, 0x52, 0x4c)
 	if err != nil {
 		return err
 	}
@@ -1642,6 +1647,15 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 		return err
 	}
 	err = en.WriteString(z.AppName)
+	if err != nil {
+		return
+	}
+	// write "URL_PREFIX"
+	err = en.Append(0xaa, 0x55, 0x52, 0x4c, 0x5f, 0x50, 0x52, 0x45, 0x46, 0x49, 0x58)
+	if err != nil {
+		return err
+	}
+	err = en.WriteString(z.URLPrefix)
 	if err != nil {
 		return
 	}
@@ -1851,9 +1865,9 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 18
+	// map header, size 19
 	// string "DATABASE_URL"
-	o = append(o, 0xde, 0x0, 0x12, 0xac, 0x44, 0x41, 0x54, 0x41, 0x42, 0x41, 0x53, 0x45, 0x5f, 0x55, 0x52, 0x4c)
+	o = append(o, 0xde, 0x0, 0x13, 0xac, 0x44, 0x41, 0x54, 0x41, 0x42, 0x41, 0x53, 0x45, 0x5f, 0x55, 0x52, 0x4c)
 	o = msgp.AppendString(o, z.DBConnectionStr)
 	// string "API_KEY"
 	o = append(o, 0xa7, 0x41, 0x50, 0x49, 0x5f, 0x4b, 0x45, 0x59)
@@ -1864,6 +1878,9 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "APP_NAME"
 	o = append(o, 0xa8, 0x41, 0x50, 0x50, 0x5f, 0x4e, 0x41, 0x4d, 0x45)
 	o = msgp.AppendString(o, z.AppName)
+	// string "URL_PREFIX"
+	o = append(o, 0xaa, 0x55, 0x52, 0x4c, 0x5f, 0x50, 0x52, 0x45, 0x46, 0x49, 0x58)
+	o = msgp.AppendString(o, z.URLPrefix)
 	// string "CORS_HOST"
 	o = append(o, 0xa9, 0x43, 0x4f, 0x52, 0x53, 0x5f, 0x48, 0x4f, 0x53, 0x54)
 	o = msgp.AppendString(o, z.CORSHost)
@@ -1998,6 +2015,11 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			}
 		case "APP_NAME":
 			z.AppName, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				return
+			}
+		case "URL_PREFIX":
+			z.URLPrefix, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				return
 			}
@@ -2218,7 +2240,7 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TenantConfiguration) Msgsize() (s int) {
-	s = 3 + 13 + msgp.StringPrefixSize + len(z.DBConnectionStr) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.MasterKey) + 9 + msgp.StringPrefixSize + len(z.AppName) + 10 + msgp.StringPrefixSize + len(z.CORSHost) + 5 + z.Auth.Msgsize() + 12 + 1 + 7 + msgp.StringPrefixSize + len(z.TokenStore.Secret) + 7 + msgp.Int64Size + 13 + 1 + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplName) + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplStoreURL) + 11 + z.UserAudit.Msgsize() + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 11 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From) + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 12 + z.SSOSetting.Msgsize() + 14 + msgp.ArrayHeaderSize
+	s = 3 + 13 + msgp.StringPrefixSize + len(z.DBConnectionStr) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.MasterKey) + 9 + msgp.StringPrefixSize + len(z.AppName) + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 10 + msgp.StringPrefixSize + len(z.CORSHost) + 5 + z.Auth.Msgsize() + 12 + 1 + 7 + msgp.StringPrefixSize + len(z.TokenStore.Secret) + 7 + msgp.Int64Size + 13 + 1 + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplName) + 15 + msgp.StringPrefixSize + len(z.UserProfile.ImplStoreURL) + 11 + z.UserAudit.Msgsize() + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 11 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From) + 16 + z.ForgotPassword.Msgsize() + 14 + z.WelcomeEmail.Msgsize() + 12 + z.SSOSetting.Msgsize() + 14 + msgp.ArrayHeaderSize
 	for zqyh := range z.SSOProviders {
 		s += msgp.StringPrefixSize + len(z.SSOProviders[zqyh])
 	}
@@ -3920,6 +3942,11 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
+		case "URL_PREFIX":
+			z.URLPrefix, err = dc.ReadString()
+			if err != nil {
+				return
+			}
 		case "SENDER_NAME":
 			z.SenderName, err = dc.ReadString()
 			if err != nil {
@@ -3967,13 +3994,22 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 8
+	// map header, size 9
 	// write "ENABLED"
-	err = en.Append(0x88, 0xa7, 0x45, 0x4e, 0x41, 0x42, 0x4c, 0x45, 0x44)
+	err = en.Append(0x89, 0xa7, 0x45, 0x4e, 0x41, 0x42, 0x4c, 0x45, 0x44)
 	if err != nil {
 		return err
 	}
 	err = en.WriteBool(z.Enabled)
+	if err != nil {
+		return
+	}
+	// write "URL_PREFIX"
+	err = en.Append(0xaa, 0x55, 0x52, 0x4c, 0x5f, 0x50, 0x52, 0x45, 0x46, 0x49, 0x58)
+	if err != nil {
+		return err
+	}
+	err = en.WriteString(z.URLPrefix)
 	if err != nil {
 		return
 	}
@@ -4046,10 +4082,13 @@ func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *WelcomeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 8
+	// map header, size 9
 	// string "ENABLED"
-	o = append(o, 0x88, 0xa7, 0x45, 0x4e, 0x41, 0x42, 0x4c, 0x45, 0x44)
+	o = append(o, 0x89, 0xa7, 0x45, 0x4e, 0x41, 0x42, 0x4c, 0x45, 0x44)
 	o = msgp.AppendBool(o, z.Enabled)
+	// string "URL_PREFIX"
+	o = append(o, 0xaa, 0x55, 0x52, 0x4c, 0x5f, 0x50, 0x52, 0x45, 0x46, 0x49, 0x58)
+	o = msgp.AppendString(o, z.URLPrefix)
 	// string "SENDER_NAME"
 	o = append(o, 0xab, 0x53, 0x45, 0x4e, 0x44, 0x45, 0x52, 0x5f, 0x4e, 0x41, 0x4d, 0x45)
 	o = msgp.AppendString(o, z.SenderName)
@@ -4092,6 +4131,11 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 		switch msgp.UnsafeString(field) {
 		case "ENABLED":
 			z.Enabled, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				return
+			}
+		case "URL_PREFIX":
+			z.URLPrefix, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				return
 			}
@@ -4143,6 +4187,6 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *WelcomeEmailConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.BoolSize + 12 + msgp.StringPrefixSize + len(z.SenderName) + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 14 + msgp.StringPrefixSize + len(z.ReplyToName) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 9 + msgp.StringPrefixSize + len(z.TextURL) + 9 + msgp.StringPrefixSize + len(z.HTMLURL)
+	s = 1 + 8 + msgp.BoolSize + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 12 + msgp.StringPrefixSize + len(z.SenderName) + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 14 + msgp.StringPrefixSize + len(z.ReplyToName) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 9 + msgp.StringPrefixSize + len(z.TextURL) + 9 + msgp.StringPrefixSize + len(z.HTMLURL)
 	return
 }

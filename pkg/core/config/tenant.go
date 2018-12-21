@@ -21,6 +21,7 @@ type TenantConfiguration struct {
 	APIKey          string                      `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
 	MasterKey       string                      `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
 	AppName         string                      `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
+	URLPrefix       string                      `msg:"URL_PREFIX" envconfig:"URL_PREFIX" json:"URL_PREFIX"`
 	CORSHost        string                      `msg:"CORS_HOST" envconfig:"CORS_HOST" json:"CORS_HOST"`
 	Auth            AuthConfiguration           `msg:"AUTH" json:"AUTH"`
 	TokenStore      TokenStoreConfiguration     `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
@@ -100,6 +101,7 @@ type ForgotPasswordConfiguration struct {
 
 type WelcomeEmailConfiguration struct {
 	Enabled     bool   `msg:"ENABLED" envconfig:"WELCOME_EMAIL_ENABLED" json:"ENABLED"`
+	URLPrefix   string `msg:"URL_PREFIX" envconfig:"WELCOME_EMAIL_PRRFIX" json:"URL_PREFIX"`
 	SenderName  string `msg:"SENDER_NAME" envconfig:"WELCOME_EMAIL_SENDER_NAME" json:"SENDER_NAME"`
 	Sender      string `msg:"SENDER" envconfig:"WELCOME_EMAIL_SENDER" json:"SENDER"`
 	Subject     string `msg:"SUBJECT" envconfig:"WELCOME_EMAIL_SUBJECT" json:"SUBJECT"`
@@ -241,7 +243,24 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.ForgotPassword.AppName == "" {
 		c.ForgotPassword.AppName = c.AppName
 	}
+
+	if c.ForgotPassword.URLPrefix == "" {
+		c.ForgotPassword.URLPrefix = c.URLPrefix
+	}
+
+	if c.WelcomeEmail.URLPrefix == "" {
+		c.WelcomeEmail.URLPrefix = c.URLPrefix
+	}
+
+	if c.UserVerify.URLPrefix == "" {
+		c.UserVerify.URLPrefix = c.URLPrefix
+	}
+
+	if c.SSOSetting.URLPrefix == "" {
+		c.SSOSetting.URLPrefix = c.URLPrefix
+	}
 }
+
 func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	return []string{
 		c.APIKey,
