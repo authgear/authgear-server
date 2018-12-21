@@ -8,6 +8,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -109,7 +111,9 @@ type CustomTokenLoginHandler struct {
 	AuthInfoStore           authinfo.Store       `dependency:"AuthInfoStore"`
 	CustomTokenAuthProvider customtoken.Provider `dependency:"CustomTokenAuthProvider"`
 	UserVerifyKeys          []string             `dependency:"UserVerifyKeys"`
+	WelcomeEmailEnabled     bool                 `dependency:"WelcomeEmailEnabled"`
 	AuditTrail              audit.Trail          `dependency:"AuditTrail"`
+	TaskQueue               async.Queue          `dependency:"AsyncTaskQueue"`
 }
 
 func (h CustomTokenLoginHandler) WithTx() bool {
@@ -200,7 +204,9 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 
 	// TODO: audit trail
 
-	// TODO: welcome email
+	if createNewUser && h.WelcomeEmailEnabled {
+		h.sendWelcomeEmail(userProfile)
+	}
 
 	return
 }
@@ -283,4 +289,13 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 	}
 
 	return
+}
+
+func (h CustomTokenLoginHandler) sendWelcomeEmail(userProfile userprofile.UserProfile) {
+	if email, ok := userProfile.Data["email"].(string); ok {
+		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
+			Email:       email,
+			UserProfile: userProfile,
+		}, nil)
+	}
 }

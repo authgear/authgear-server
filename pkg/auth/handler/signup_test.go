@@ -1,13 +1,12 @@
 package handler
 
 import (
-	"context"
 	"testing"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+	"github.com/sirupsen/logrus"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -116,8 +116,8 @@ func TestSingupHandler(t *testing.T) {
 		h.AuditTrail = audit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.Logger = logrus.NewEntry(logrus.New())
-		welcomeEmailSender := welcemail.NewMockSender()
-		h.WelcomeEmailSendTask = welcemail.NewSendTask(context.Background(), welcomeEmailSender)
+		mockTaskQueue := async.NewMockQueue()
+		h.TaskQueue = mockTaskQueue
 
 		Convey("signup user with auth data", func() {
 			authData := map[string]interface{}{
@@ -240,11 +240,14 @@ func TestSingupHandler(t *testing.T) {
 			}
 			_, err := h.Handle(payload)
 			So(err, ShouldBeNil)
+			So(mockTaskQueue.TasksName, ShouldResemble, []string{task.WelcomeEmailSendTaskName})
 
-			emailErr := <-h.WelcomeEmailSendTask.Response
-			So(emailErr, ShouldBeNil)
-			So(welcomeEmailSender.LastEmail, ShouldEqual, "john.doe@example.com")
-			So(welcomeEmailSender.LastUserProfile, ShouldNotBeNil)
+			So(mockTaskQueue.TasksParam, ShouldHaveLength, 1)
+			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
+			So(param.Email, ShouldEqual, "john.doe@example.com")
+			So(param.UserProfile, ShouldNotBeNil)
+			So(param.UserProfile.Data["username"], ShouldEqual, "john.doe")
+			So(param.UserProfile.Data["email"], ShouldEqual, "john.doe@example.com")
 		})
 
 		Convey("log audit trail when signup success", func() {

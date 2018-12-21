@@ -8,7 +8,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
@@ -122,7 +121,6 @@ type SignupHandler struct {
 	AnonymousAuthProvider  anonymous.Provider         `dependency:"AnonymousAuthProvider"`
 	AuditTrail             audit.Trail                `dependency:"AuditTrail"`
 	WelcomeEmailEnabled    bool                       `dependency:"WelcomeEmailEnabled"`
-	WelcomeEmailSendTask   *welcemail.SendTask        `dependency:"WelcomeEmailSendTask"`
 	AutoSendUserVerifyCode bool                       `dependency:"AutoSendUserVerifyCodeOnSignup"`
 	UserVerifyKeys         []string                   `dependency:"UserVerifyKeys"`
 	VerifyCodeStore        userverify.Store           `dependency:"VerifyCodeStore"`
@@ -265,7 +263,10 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo au
 
 func (h SignupHandler) sendWelcomeEmail(userProfile userprofile.UserProfile) {
 	if email, ok := userProfile.Data["email"].(string); ok {
-		h.WelcomeEmailSendTask.Execute(email, userProfile, h.Logger)
+		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
+			Email:       email,
+			UserProfile: userProfile,
+		}, nil)
 	}
 }
 
