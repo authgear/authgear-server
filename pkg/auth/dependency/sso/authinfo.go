@@ -15,6 +15,16 @@ type getAuthInfoRequest struct {
 }
 
 func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
+	authInfo = AuthInfo{
+		ProviderName: h.providerName,
+	}
+
+	state, err := DecodeState(h.stateJWTSecret, h.encodedState)
+	if err != nil {
+		return
+	}
+	authInfo.State = state
+
 	r, err := fetchAccessTokenResp(
 		h.code,
 		h.clientID,
@@ -31,6 +41,7 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 	if err != nil {
 		return
 	}
+	authInfo.ProviderAccessTokenResp = accessTokenResp
 
 	err = h.processor.ValidateAccessTokenResp(accessTokenResp)
 	if err != nil {
@@ -41,31 +52,29 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 }
 
 func (h getAuthInfoRequest) getAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+	authInfo = AuthInfo{
+		ProviderName: h.providerName,
+		// validated accessTokenResp
+		ProviderAccessTokenResp: accessTokenResp,
+	}
+
+	var state State
+	if h.encodedState != "" {
+		state, err = DecodeState(h.stateJWTSecret, h.encodedState)
+		if err != nil {
+			return
+		}
+	}
+	authInfo.State = state
+
 	userProfile, err := fetchUserProfile(accessTokenResp, h.userProfileURL)
 	if err != nil {
 		return
 	}
-
-	userID := h.processor.DecodeUserID(userProfile)
+	authInfo.ProviderUserProfile = userProfile
+	authInfo.ProviderUserID = h.processor.DecodeUserID(userProfile)
 	// TODO: process process_userinfo_hook
-	authData := h.processor.DecodeAuthData(userProfile)
-
-	var decodedState State
-	if h.encodedState != "" {
-		decodedState, err = DecodeState(h.stateJWTSecret, h.encodedState)
-		if err != nil {
-			return AuthInfo{}, err
-		}
-	}
-
-	authInfo = AuthInfo{
-		ProviderName:            h.providerName,
-		State:                   decodedState,
-		ProviderUserID:          userID,
-		ProviderUserProfile:     userProfile,
-		ProviderAccessTokenResp: accessTokenResp,
-		ProviderAuthData:        authData,
-	}
+	authInfo.ProviderAuthData = h.processor.DecodeAuthData(userProfile)
 
 	return
 }
