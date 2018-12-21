@@ -126,9 +126,13 @@ func (h respHandler) handleLogin(
 		err = nil
 	}
 
-	if valid := h.PasswordAuthProvider.IsAuthDataMatching(oauthAuthInfo.ProviderAuthData); valid {
-		// provider authData match app authRecordKeys,
-		// start auto-connect procedure
+	if valid := h.PasswordAuthProvider.IsAuthDataValid(oauthAuthInfo.ProviderAuthData); valid {
+		// provider authData matches app's authRecordKeys,
+		// then it starts auto-link procedure.
+		//
+		// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
+		// it will be a valid authData if authRecordKeys is [["username"], ["email"]] or [["email"]]
+		// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
 		principal, err = h.authLinkUser(oauthAuthInfo)
 		if err != nil {
 			return
@@ -223,9 +227,9 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 }
 
 func (h respHandler) createEmptyPasswordPrincipal(userID string, oauthAuthInfo sso.AuthInfo) error {
-	if valid := h.PasswordAuthProvider.IsAuthDataMatching(oauthAuthInfo.ProviderAuthData); valid {
-		// if ProviderAuthData mastch authRecordKeys, also creates an empty password principal
-		// and later the user can set password to it
+	if valid := h.PasswordAuthProvider.IsAuthDataValid(oauthAuthInfo.ProviderAuthData); valid {
+		// if ProviderAuthData mastches authRecordKeys, and it can't be link with current account,
+		// we also creates an empty password principal for later the user can set password to it
 		return h.PasswordAuthProvider.CreatePrincipalsByAuthData(userID, "", oauthAuthInfo.ProviderAuthData)
 	}
 
