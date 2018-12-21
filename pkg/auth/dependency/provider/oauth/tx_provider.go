@@ -42,9 +42,9 @@ func (p *safeProviderImpl) UpdatePrincipal(principal *Principal) error {
 	return p.impl.UpdatePrincipal(principal)
 }
 
-func (p *safeProviderImpl) DeletePrincipal(providerName string, principal *Principal) error {
+func (p *safeProviderImpl) DeletePrincipal(principal *Principal) error {
 	p.txContext.EnsureTx()
-	return p.impl.DeletePrincipal(providerName, principal)
+	return p.impl.DeletePrincipal(principal)
 }
 
 func (p *safeProviderImpl) GetPrincipalsByUserID(userID string) ([]*Principal, error) {

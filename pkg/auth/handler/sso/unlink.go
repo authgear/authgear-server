@@ -82,7 +82,7 @@ func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	err = h.OAuthAuthProvider.DeletePrincipal(h.ProviderName, principal)
+	err = h.OAuthAuthProvider.DeletePrincipal(principal)
 	if err != nil {
 		return
 	}

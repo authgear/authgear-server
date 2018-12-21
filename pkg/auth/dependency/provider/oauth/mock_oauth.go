@@ -65,8 +65,8 @@ func (m *MockProvider) UpdatePrincipal(principal *Principal) error {
 	return nil
 }
 
-func (m *MockProvider) DeletePrincipal(providerName string, principal *Principal) error {
-	key := NewMockProviderKey(providerName, principal.ProviderUserID)
+func (m *MockProvider) DeletePrincipal(principal *Principal) error {
+	key := NewMockProviderKey(principal.ProviderName, principal.ProviderUserID)
 	delete(m.OAuthMap, key)
 	delete(m.PrincipalMap, principal.UserID)
 	return nil
