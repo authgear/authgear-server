@@ -17,6 +17,7 @@ func TestTenantConfig(t *testing.T) {
 			os.Setenv("MASTER_KEY", "testmasterkey")
 			os.Setenv("APP_NAME", "testappname")
 			os.Setenv("WELCOME_EMAIL_ENABLED", "true")
+			os.Setenv("URL_PREFIX", "skygear.io/")
 
 			config, err := NewTenantConfigurationFromEnv(nil)
 
@@ -25,6 +26,7 @@ func TestTenantConfig(t *testing.T) {
 			So(config.MasterKey, ShouldEqual, "testmasterkey")
 			So(config.AppName, ShouldEqual, "testappname")
 			So(config.WelcomeEmail.Enabled, ShouldEqual, true)
+			So(config.URLPrefix, ShouldEqual, "skygear.io")
 		})
 
 		Convey("should have default value when load from env", func() {

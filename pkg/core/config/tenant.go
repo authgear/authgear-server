@@ -259,6 +259,20 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.SSOSetting.URLPrefix == "" {
 		c.SSOSetting.URLPrefix = c.URLPrefix
 	}
+
+	c.URLPrefix = c.sanitzeURL(c.URLPrefix)
+	c.ForgotPassword.URLPrefix = c.sanitzeURL(c.ForgotPassword.URLPrefix)
+	c.WelcomeEmail.URLPrefix = c.sanitzeURL(c.WelcomeEmail.URLPrefix)
+	c.UserVerify.URLPrefix = c.sanitzeURL(c.UserVerify.URLPrefix)
+	c.SSOSetting.URLPrefix = c.sanitzeURL(c.SSOSetting.URLPrefix)
+}
+
+func (c *TenantConfiguration) sanitzeURL(url string) string {
+	if strings.HasSuffix(url, "/") {
+		return url[:len(url)-1]
+	}
+
+	return url
 }
 
 func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
