@@ -39,7 +39,10 @@ func (f RoleAssignHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.RequireAdminRole),
+		policy.AnyOf(
+			authz.PolicyFunc(policy.RequireAdminRole),
+			authz.PolicyFunc(policy.RequireMasterKey),
+		),
 		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }

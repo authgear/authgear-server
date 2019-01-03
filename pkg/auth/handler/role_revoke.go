@@ -39,11 +39,13 @@ func (f RoleRevokeHandlerFactory) NewHandler(request *http.Request) http.Handler
 }
 
 func (f RoleRevokeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	// TODO: Add OR clause to allow  master key.
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.RequireAdminRole),
+		policy.AnyOf(
+			authz.PolicyFunc(policy.RequireAdminRole),
+			authz.PolicyFunc(policy.RequireMasterKey),
+		),
 		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }
