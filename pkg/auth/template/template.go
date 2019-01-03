@@ -17,6 +17,8 @@ func RegisterDefaultTemplates(engine *template.Engine) {
 	engine.RegisterDefaultTemplate(TemplateNameVerifySuccessHTML, templateVerifySuccessHTML)
 }
 
+// NewEngineWithConfig return new engine with loaders from the config
+// nolint: gocyclo
 func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfiguration) *template.Engine {
 	newEngine := template.NewEngine()
 	engine.CopyDefaultToEngine(newEngine)
