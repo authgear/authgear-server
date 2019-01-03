@@ -18,6 +18,18 @@ func NewMockProvider(principalMap map[string]string, oauthMap map[string]Princip
 	}
 }
 
+// NewMockProviderWithPrincipals creates a new instance of mock provider with principals
+func NewMockProviderWithPrincipals(principals []*Principal) *MockProvider {
+	provider := NewMockProvider(
+		map[string]string{},
+		map[string]Principal{},
+	)
+	for _, p := range principals {
+		provider.CreatePrincipal(*p)
+	}
+	return provider
+}
+
 func (m *MockProvider) genKey(providerName string, providerUserID string) string {
 	return providerName + "." + providerUserID
 }
@@ -51,4 +63,16 @@ func (m *MockProvider) UpdatePrincipal(principal *Principal) error {
 	key := m.genKey(principal.ProviderName, principal.ProviderUserID)
 	m.OAuthMap[key] = *principal
 	return nil
+}
+
+func (m *MockProvider) GetPrincipalsByUserID(userID string) ([]*Principal, error) {
+	var principals []*Principal
+	for _, p := range m.OAuthMap {
+		if p.UserID == userID {
+			var principal Principal
+			principal = p
+			principals = append(principals, &principal)
+		}
+	}
+	return principals, nil
 }

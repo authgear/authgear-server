@@ -41,3 +41,8 @@ func (p *safeProviderImpl) UpdatePrincipal(principal *Principal) error {
 	p.txContext.EnsureTx()
 	return p.impl.UpdatePrincipal(principal)
 }
+
+func (p *safeProviderImpl) GetPrincipalsByUserID(userID string) ([]*Principal, error) {
+	p.txContext.EnsureTx()
+	return p.impl.GetPrincipalsByUserID(userID)
+}

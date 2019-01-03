@@ -209,6 +209,41 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 	return nil
 }
 
+func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
+	builder := p.sqlBuilder.Select("p.id", "oauth.oauth_provider", "oauth.provider_user_id", "oauth.profile").
+		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
+		Join(p.sqlBuilder.FullTableName("provider_oauth")+" AS oauth ON p.id = oauth.principal_id").
+		Where("p.user_id = ? AND p.provider = 'oauth'", userID)
+	rows, err := p.sqlExecutor.QueryWith(builder)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var profileDataBytes []byte
+		var principal Principal
+		principal.UserID = userID
+		if err = rows.Scan(
+			&principal.ID,
+			&principal.ProviderName,
+			&principal.ProviderUserID,
+			&profileDataBytes,
+		); err != nil {
+			return
+		}
+
+		err = json.Unmarshal(profileDataBytes, &principal.UserProfile)
+		if err != nil {
+			return
+		}
+
+		principals = append(principals, &principal)
+	}
+
+	return
+}
+
 // this ensures that our structure conform to certain interfaces.
 var (
 	_ Provider = &providerImpl{}
