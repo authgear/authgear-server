@@ -30,12 +30,12 @@ func NewMockProviderWithPrincipals(principals []*Principal) *MockProvider {
 	return provider
 }
 
-func (m *MockProvider) genKey(providerName string, providerUserID string) string {
+func NewMockProviderKey(providerName string, providerUserID string) string {
 	return providerName + "." + providerUserID
 }
 
 func (m *MockProvider) GetPrincipalByProviderUserID(providerName string, providerUserID string) (*Principal, error) {
-	key := m.genKey(providerName, providerUserID)
+	key := NewMockProviderKey(providerName, providerUserID)
 	if principal, ok := m.OAuthMap[key]; ok {
 		return &principal, nil
 	}
@@ -43,7 +43,7 @@ func (m *MockProvider) GetPrincipalByProviderUserID(providerName string, provide
 	return nil, skydb.ErrUserNotFound
 }
 
-func (m *MockProvider) GetPrincipalByUserID(userID string) (*Principal, error) {
+func (m *MockProvider) GetPrincipalByUserID(providerName string, userID string) (*Principal, error) {
 	if oauthKey, ok := m.PrincipalMap[userID]; ok {
 		principal := m.OAuthMap[oauthKey]
 		return &principal, nil
@@ -53,15 +53,22 @@ func (m *MockProvider) GetPrincipalByUserID(userID string) (*Principal, error) {
 }
 
 func (m *MockProvider) CreatePrincipal(principal Principal) error {
-	key := m.genKey(principal.ProviderName, principal.ProviderUserID)
+	key := NewMockProviderKey(principal.ProviderName, principal.ProviderUserID)
 	m.OAuthMap[key] = principal
 	m.PrincipalMap[principal.UserID] = key
 	return nil
 }
 
 func (m *MockProvider) UpdatePrincipal(principal *Principal) error {
-	key := m.genKey(principal.ProviderName, principal.ProviderUserID)
+	key := NewMockProviderKey(principal.ProviderName, principal.ProviderUserID)
 	m.OAuthMap[key] = *principal
+	return nil
+}
+
+func (m *MockProvider) DeletePrincipal(principal *Principal) error {
+	key := NewMockProviderKey(principal.ProviderName, principal.ProviderUserID)
+	delete(m.OAuthMap, key)
+	delete(m.PrincipalMap, principal.UserID)
 	return nil
 }
 

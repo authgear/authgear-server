@@ -16,6 +16,10 @@ type facebookAuthInfoProcessor struct {
 	defaultAuthInfoProcessor
 }
 
+func newFacebookAuthInfoProcessor() facebookAuthInfoProcessor {
+	return facebookAuthInfoProcessor{}
+}
+
 func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 	if f.Config.ClientID == "" {
 		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
@@ -39,7 +43,7 @@ func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *FacebookImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
-	p := facebookAuthInfoProcessor{}
+	p := newFacebookAuthInfoProcessor()
 	h := getAuthInfoRequest{
 		providerName:   f.Config.Name,
 		clientID:       f.Config.ClientID,
@@ -70,4 +74,19 @@ func (f facebookAuthInfoProcessor) DecodeAccessTokenResp(r io.Reader) (AccessTok
 		accessTokenResp.TokenType = "Bearer"
 	}
 	return accessTokenResp, nil
+}
+
+func (f *FacebookImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+	p := newFacebookAuthInfoProcessor()
+	h := getAuthInfoRequest{
+		providerName:   f.Config.Name,
+		clientID:       f.Config.ClientID,
+		clientSecret:   f.Config.ClientSecret,
+		urlPrefix:      f.Setting.URLPrefix,
+		stateJWTSecret: f.Setting.StateJWTSecret,
+		accessTokenURL: AccessTokenURL(f.Config.Name),
+		userProfileURL: UserProfileURL(f.Config.Name),
+		processor:      p,
+	}
+	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }

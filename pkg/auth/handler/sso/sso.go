@@ -20,6 +20,7 @@ type respHandler struct {
 	OAuthAuthProvider    oauth.Provider
 	PasswordAuthProvider password.Provider
 	UserProfileStore     userprofile.Store
+	UserID               string
 }
 
 func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
@@ -86,8 +87,7 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 	}
 
 	// check if user is already linked
-	userID := oauthAuthInfo.State.UserID // skygear userID
-	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(userID)
+	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(oauthAuthInfo.ProviderName, h.UserID)
 	if err == nil {
 		err = skyerr.NewError(skyerr.InvalidArgument, "provider account already linked with existing user")
 		return resp, err
@@ -99,7 +99,7 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 	}
 
 	var info authinfo.AuthInfo
-	if err = h.AuthInfoStore.GetAuth(userID, &info); err != nil {
+	if err = h.AuthInfoStore.GetAuth(h.UserID, &info); err != nil {
 		err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		return resp, err
 	}

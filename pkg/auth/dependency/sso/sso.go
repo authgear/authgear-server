@@ -104,7 +104,8 @@ type AuthInfo struct {
 // Provider defines SSO interface
 type Provider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
-	GetAuthInfo(code string, scope Scope, encodedState string) (auth AuthInfo, err error)
+	GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error)
+	GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error)
 }
 
 type ProviderFactory struct {
@@ -167,5 +168,16 @@ func (p *ProviderFactory) Setting() Setting {
 		StateJWTSecret:       SSOSetting.StateJWTSecret,
 		AutoLinkProviderKeys: SSOSetting.AutoLinkProviderKeys,
 		AllowedCallbackURLs:  SSOSetting.AllowedCallbackURLs,
+	}
+}
+
+func (p *ProviderFactory) NewAuthInfoProcessor(name string) AuthInfoProcessor {
+	switch name {
+	case "facebook":
+		return newFacebookAuthInfoProcessor()
+	case "instagram":
+		return newInstagramAuthInfoProcessor()
+	default:
+		return newDefaultAuthInfoProcessor()
 	}
 }

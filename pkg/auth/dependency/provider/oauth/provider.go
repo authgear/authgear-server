@@ -64,14 +64,14 @@ func (p providerImpl) GetPrincipalByProviderUserID(providerName string, provider
 	return &principal, nil
 }
 
-func (p providerImpl) GetPrincipalByUserID(userID string) (*Principal, error) {
+func (p providerImpl) GetPrincipalByUserID(providerName string, userID string) (*Principal, error) {
 	principal := Principal{}
 	principal.UserID = userID
 
 	builder := p.sqlBuilder.Select("p.id", "oauth.oauth_provider", "oauth.provider_user_id").
 		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
 		Join(p.sqlBuilder.FullTableName("provider_oauth")+" AS oauth ON p.id = oauth.principal_id").
-		Where("p.user_id = ? AND p.provider = 'oauth'", userID)
+		Where("oauth.oauth_provider = ? AND p.user_id = ? AND p.provider = 'oauth'", providerName, userID)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
 	err := scanner.Scan(
@@ -207,6 +207,50 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 	}
 
 	return nil
+}
+
+func (p *providerImpl) DeletePrincipal(principal *Principal) (err error) {
+	// Delete provider_oauth
+	builder := p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("provider_oauth")).
+		Where("oauth_provider = ? and principal_id = ?", principal.ProviderName, principal.ID)
+
+	result, err := p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return skydb.ErrUserNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows deleted, got %v", rowsAffected))
+	}
+
+	// Delete principal
+	builder = p.sqlBuilder.Delete(p.sqlBuilder.FullTableName("principal")).
+		Where("id = ? and provider = ?", principal.ID, providerName)
+
+	result, err = p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err = result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return skydb.ErrUserNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows deleted, got %v", rowsAffected))
+	}
+
+	return
 }
 
 func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Principal, err error) {
