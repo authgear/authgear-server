@@ -8,7 +8,7 @@ const templateResetPasswordHTML = `<!DOCTYPE html>
 {% if error %}
 <p>{{ error }}</p>
 {% endif %}
-<form method="POST" action="/auth/fogot_password/reset_password">
+<form method="POST" action="{{ action_url }}">
   <label for="password">New Password</label>
   <input type="password" name="password"><br>
   <label for="confirm">Confirm Password</label>

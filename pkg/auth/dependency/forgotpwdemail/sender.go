@@ -56,7 +56,7 @@ func (d *DefaultSender) Send(
 	context := map[string]interface{}{
 		"appname": d.Config.AppName,
 		"link": fmt.Sprintf(
-			"%s/reset-password?code=%s&user_id=%s&expire_at=%d",
+			"%s/forgot_password/reset_password_form?code=%s&user_id=%s&expire_at=%d",
 			d.Config.URLPrefix,
 			code,
 			authInfo.ID,
