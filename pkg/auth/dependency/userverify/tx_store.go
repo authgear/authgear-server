@@ -17,7 +17,8 @@ func NewSafeStore(
 	txContext db.SafeTxContext,
 ) Store {
 	return &safeStoreImpl{
-		impl: newStore(builder, executor, logger),
+		impl:      newStore(builder, executor, logger),
+		txContext: txContext,
 	}
 }
 
