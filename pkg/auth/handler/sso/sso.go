@@ -116,29 +116,12 @@ func (h respHandler) handleLogin(
 	oauthAuthInfo sso.AuthInfo,
 	info *authinfo.AuthInfo,
 ) (createNewUser bool, err error) {
-	now := timeNow()
-
-	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserID)
+	principal, err := h.findPrincipal(oauthAuthInfo)
 	if err != nil {
-		if err != skydb.ErrUserNotFound {
-			return
-		}
-		err = nil
+		return
 	}
 
-	if valid := h.PasswordAuthProvider.IsAuthDataValid(oauthAuthInfo.ProviderAuthData); valid {
-		// provider authData matches app's authRecordKeys,
-		// then it starts auto-link procedure.
-		//
-		// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
-		// it will be a valid authData if authRecordKeys is [["username"], ["email"]] or [["email"]]
-		// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
-		principal, err = h.authLinkUser(oauthAuthInfo)
-		if err != nil {
-			return
-		}
-	}
-
+	now := timeNow()
 	if principal == nil {
 		createNewUser = true
 		// if there is no existed user
@@ -196,17 +179,42 @@ func (h respHandler) handleLogin(
 	return
 }
 
+func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
+	// find oauth principal from principal_oauth
+	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserID)
+	if err != nil {
+		if err != skydb.ErrUserNotFound {
+			return nil, err
+		}
+	} else {
+		return principal, nil
+	}
+
+	// if oauth principal doesn't exist, try to link existed password principal
+	if valid := h.PasswordAuthProvider.IsAuthDataValid(oauthAuthInfo.ProviderAuthData); valid {
+		// provider authData matches app's authRecordKeys,
+		// then it starts auto-link procedure.
+		//
+		// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
+		// it will be a valid authData if authRecordKeys is [["username"], ["email"]] or [["email"]]
+		// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
+		return h.authLinkUser(oauthAuthInfo)
+	}
+
+	return nil, nil
+}
+
 func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
-	principal := password.Principal{}
-	e := h.PasswordAuthProvider.GetPrincipalByAuthData(oauthAuthInfo.ProviderAuthData, &principal)
+	passwordPrincipal := password.Principal{}
+	e := h.PasswordAuthProvider.GetPrincipalByAuthData(oauthAuthInfo.ProviderAuthData, &passwordPrincipal)
 	if e == nil {
-		userID := principal.UserID
-		// link user
-		principal, err := h.createPrincipalByOAuthInfo(userID, oauthAuthInfo)
+		userID := passwordPrincipal.UserID
+		// link password principal to oauth principal
+		oauthPrincipal, err := h.createPrincipalByOAuthInfo(userID, oauthAuthInfo)
 		if err != nil {
 			return nil, err
 		}
-		return &principal, nil
+		return &oauthPrincipal, nil
 	}
 
 	return nil, nil
