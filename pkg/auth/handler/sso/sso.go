@@ -215,6 +215,8 @@ func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal,
 			return nil, err
 		}
 		return &oauthPrincipal, nil
+	} else if e != skydb.ErrUserNotFound {
+		return nil, e
 	}
 
 	return nil, nil
