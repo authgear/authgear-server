@@ -490,7 +490,7 @@ func TestAuthHandler(t *testing.T) {
 			result, err := json.Marshal(data["result"])
 			So(err, ShouldBeNil)
 			So(string(result), ShouldEqualJSON, `{
-				"error": "InvalidArgument: provider account already linked with existing user"
+				"error":{"code":108,"message":"provider account already linked with existing user","name":"InvalidArgument"}
 			}`)
 		})
 	})

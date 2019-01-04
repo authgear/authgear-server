@@ -303,9 +303,8 @@ func (c authHandlerRespContext) generateResp() interface{} {
 	// Redirect the result (both success and error) back to the app,
 	// so that user can go back to the original app.
 	if c.err != nil {
-		// generate error result map
-		return map[string]interface{}{
-			"error": c.err.Error(),
+		return handler.APIResponse{
+			Err: skyerr.MakeError(c.err),
 		}
 	}
 
