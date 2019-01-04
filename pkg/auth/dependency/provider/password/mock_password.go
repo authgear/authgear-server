@@ -32,16 +32,16 @@ func NewMockProviderWithPrincipalMap(authRecordKeys [][]string, principalMap map
 }
 
 // IsAuthDataValid validates authData
-func (m *MockProvider) IsAuthDataValid(authData map[string]interface{}) bool {
+func (m *MockProvider) IsAuthDataValid(authData map[string]string) bool {
 	return m.authDataChecker.isValid(authData)
 }
 
-func (m *MockProvider) IsAuthDataMatching(authData map[string]interface{}) bool {
+func (m *MockProvider) IsAuthDataMatching(authData map[string]string) bool {
 	return m.authDataChecker.isMatching(authData)
 }
 
 // CreatePrincipalsByAuthData creates principals by authData
-func (m *MockProvider) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]interface{}) (err error) {
+func (m *MockProvider) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
 	authDataList := toValidAuthDataList(m.authRecordKeys, authData)
 
 	for _, a := range authDataList {
@@ -82,7 +82,7 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 }
 
 // GetPrincipalByAuthData get principal in PrincipalMap by auth data
-func (m *MockProvider) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) (err error) {
+func (m *MockProvider) GetPrincipalByAuthData(authData map[string]string, principal *Principal) (err error) {
 	for _, p := range m.PrincipalMap {
 		if reflect.DeepEqual(authData, p.AuthData) {
 			*principal = p

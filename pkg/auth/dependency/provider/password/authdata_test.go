@@ -11,114 +11,114 @@ func TestAuthData(t *testing.T) {
 		Convey("should generate authData list by keys: [[username], [email]]", func() {
 			keys := [][]string{[]string{"username"}, []string{"email"}}
 
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "johndoe",
 				"email":    "johndoe@example.com",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{
-				map[string]interface{}{
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{
+				map[string]string{
 					"username": "johndoe",
 				},
-				map[string]interface{}{
+				map[string]string{
 					"email": "johndoe@example.com",
 				},
 			})
 
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"username": "johndoe",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{
-				map[string]interface{}{
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{
+				map[string]string{
 					"username": "johndoe",
 				},
 			})
 
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"email": "johndoe@example.com",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{
-				map[string]interface{}{
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{
+				map[string]string{
 					"email": "johndoe@example.com",
 				},
 			})
 
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"nickname": "johndoe",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{})
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{})
 		})
 
 		Convey("should generate authData list by keys: [[username, email], [username, phone]]", func() {
 			keys := [][]string{[]string{"username", "email"}, []string{"username", "phone"}}
 
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "johndoe",
 				"email":    "johndoe@example.com",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{
-				map[string]interface{}{
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{
+				map[string]string{
 					"username": "johndoe",
 					"email":    "johndoe@example.com",
 				},
 			})
 
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"username": "johndoe",
 				"phone":    "123456",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{
-				map[string]interface{}{
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{
+				map[string]string{
 					"username": "johndoe",
 					"phone":    "123456",
 				},
 			})
 
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"username": "johndoe",
 				"email":    "johndoe@example.com",
 				"phone":    "123456",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{
-				map[string]interface{}{
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{
+				map[string]string{
 					"username": "johndoe",
 					"email":    "johndoe@example.com",
 				},
-				map[string]interface{}{
+				map[string]string{
 					"username": "johndoe",
 					"phone":    "123456",
 				},
 			})
 
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"username": "johndoe",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{})
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{})
 		})
 
 		Convey("should generate authData list by keys: [[username, email], [email]]", func() {
 			keys := [][]string{[]string{"username", "email"}, []string{"email"}}
 
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "johndoe",
 				"email":    "johndoe@example.com",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{
-				map[string]interface{}{
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{
+				map[string]string{
 					"username": "johndoe",
 					"email":    "johndoe@example.com",
 				},
-				map[string]interface{}{
+				map[string]string{
 					"email": "johndoe@example.com",
 				},
 			})
 
 			keys = [][]string{[]string{"username", "email"}, []string{"nickname"}}
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"username": "johndoe",
 				"nickname": "johndoe",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{
-				map[string]interface{}{
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{
+				map[string]string{
 					"nickname": "johndoe",
 				},
 			})
@@ -135,15 +135,15 @@ func TestAuthData(t *testing.T) {
 				authRecordKeys: authRecordKeys,
 			}
 
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "mock_username",
 			}
 			So(authDataChecker.isMatching(authData), ShouldBeTrue)
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"email": "mock_email@example.com",
 			}
 			So(authDataChecker.isMatching(authData), ShouldBeTrue)
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"username": "mock_username",
 				"email":    "mock_email@example.com",
 			}
@@ -158,16 +158,16 @@ func TestAuthData(t *testing.T) {
 				authRecordKeys: authRecordKeys,
 			}
 
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "mock_username",
 				"email":    "mock_email@example.com",
 			}
 			So(authDataChecker.isMatching(authData), ShouldBeTrue)
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"username": "mock_username",
 			}
 			So(authDataChecker.isMatching(authData), ShouldBeFalse)
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"email": "mock_email@example.com",
 			}
 			So(authDataChecker.isMatching(authData), ShouldBeFalse)
@@ -182,16 +182,16 @@ func TestAuthData(t *testing.T) {
 				authRecordKeys: authRecordKeys,
 			}
 
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "mock_username",
 				"email":    "mock_email@example.com",
 			}
 			So(authDataChecker.isMatching(authData), ShouldBeTrue)
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"username": "mock_username",
 			}
 			So(authDataChecker.isMatching(authData), ShouldBeFalse)
-			authData = map[string]interface{}{
+			authData = map[string]string{
 				"email": "mock_email@example.com",
 			}
 			So(authDataChecker.isMatching(authData), ShouldBeTrue)
@@ -202,17 +202,17 @@ func TestAuthData(t *testing.T) {
 				[]string{"username"},
 				[]string{"email"},
 			}
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "",
 				"email":    "",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{})
-			authData = map[string]interface{}{
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{})
+			authData = map[string]string{
 				"username": "user",
 				"email":    "",
 			}
-			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{
-				map[string]interface{}{
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]string{
+				map[string]string{
 					"username": "user",
 				},
 			})

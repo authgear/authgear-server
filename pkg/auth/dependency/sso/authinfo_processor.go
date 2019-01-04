@@ -10,7 +10,7 @@ type AuthInfoProcessor interface {
 	DecodeAccessTokenResp(r io.Reader) (AccessTokenResp, error)
 	ValidateAccessTokenResp(accessTokenResp AccessTokenResp) error
 	DecodeUserID(p map[string]interface{}) string
-	DecodeAuthData(p map[string]interface{}) map[string]interface{}
+	DecodeAuthData(p map[string]interface{}) map[string]string
 }
 
 type defaultAuthInfoProcessor struct{}
@@ -49,8 +49,8 @@ func (d defaultAuthInfoProcessor) DecodeUserID(userProfile map[string]interface{
 	return id
 }
 
-func (d defaultAuthInfoProcessor) DecodeAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
-	authData = make(map[string]interface{})
+func (d defaultAuthInfoProcessor) DecodeAuthData(userProfile map[string]interface{}) (authData map[string]string) {
+	authData = make(map[string]string)
 	email, ok := userProfile["email"].(string)
 	if ok {
 		authData["email"] = email

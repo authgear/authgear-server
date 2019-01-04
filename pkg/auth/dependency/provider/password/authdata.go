@@ -1,21 +1,19 @@
 package password
 
-import "reflect"
-
 type authDataChecker interface {
-	isValid(authData map[string]interface{}) bool
-	isMatching(authData map[string]interface{}) bool
+	isValid(authData map[string]string) bool
+	isMatching(authData map[string]string) bool
 }
 
 type defaultAuthDataChecker struct {
 	authRecordKeys [][]string
 }
 
-func (c defaultAuthDataChecker) isValid(authData map[string]interface{}) bool {
+func (c defaultAuthDataChecker) isValid(authData map[string]string) bool {
 	return len(toValidAuthDataList(c.authRecordKeys, authData)) > 0
 }
 
-func (c defaultAuthDataChecker) isMatching(authData map[string]interface{}) bool {
+func (c defaultAuthDataChecker) isMatching(authData map[string]string) bool {
 	// authData requires exactly match to current authRecordKeys setting
 	// if authRecordKeys is [["username"], ["email"]]
 	// it will match authData is {"username": "someusername"} or {"email": "someemail@example.com"}
@@ -61,11 +59,11 @@ var (
 // example 4: authRecordKeys = [["username"], ["email"]]
 // - if authData is { "username": "john.doe", "emamil": "" },
 // output is [{ "username": "john.doe" }}]
-func toValidAuthDataList(authRecordKeys [][]string, authData map[string]interface{}) []map[string]interface{} {
-	outputs := make([]map[string]interface{}, 0)
+func toValidAuthDataList(authRecordKeys [][]string, authData map[string]string) []map[string]string {
+	outputs := make([]map[string]string, 0)
 
 	for _, ks := range authRecordKeys {
-		m := make(map[string]interface{})
+		m := make(map[string]string)
 		for _, k := range ks {
 			for dk := range authData {
 				if k == dk &&

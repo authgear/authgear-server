@@ -78,10 +78,10 @@ func (i instagramAuthInfoProcessor) DecodeUserID(userProfile map[string]interfac
 	return id
 }
 
-func (i instagramAuthInfoProcessor) DecodeAuthData(userProfile map[string]interface{}) (authData map[string]interface{}) {
+func (i instagramAuthInfoProcessor) DecodeAuthData(userProfile map[string]interface{}) (authData map[string]string) {
 	// Check GET /users/self response
 	// https://www.instagram.com/developer/endpoints/users/
-	authData = make(map[string]interface{})
+	authData = make(map[string]string)
 	data, ok := userProfile["data"].(map[string]interface{})
 	if !ok {
 		return

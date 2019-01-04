@@ -485,7 +485,7 @@ func TestAuthHandler(t *testing.T) {
 			Setting: setting,
 			Config:  config,
 			UserID:  providerUserID,
-			AuthData: map[string]interface{}{
+			AuthData: map[string]string{
 				"email": "john.doe@example.com",
 			},
 		}
@@ -522,7 +522,7 @@ func TestAuthHandler(t *testing.T) {
 				"john.doe.principal.id": password.Principal{
 					ID:     "john.doe.principal.id",
 					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
+					AuthData: map[string]string{
 						"email": "john.doe@example.com",
 					},
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
@@ -585,7 +585,7 @@ func TestAuthHandler(t *testing.T) {
 			Setting: setting,
 			Config:  config,
 			UserID:  providerUserID,
-			AuthData: map[string]interface{}{
+			AuthData: map[string]string{
 				"email": "john.doe@example.com",
 			},
 		}
@@ -669,7 +669,7 @@ func TestAuthHandler(t *testing.T) {
 			Setting: setting,
 			Config:  config,
 			UserID:  providerUserID,
-			AuthData: map[string]interface{}{
+			AuthData: map[string]string{
 				"email": "john.doe@example.com",
 			},
 		}
@@ -707,7 +707,7 @@ func TestAuthHandler(t *testing.T) {
 				"john.doe.principal.id": password.Principal{
 					ID:     "john.doe.principal.id",
 					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
+					AuthData: map[string]string{
 						"email":    "john.doe@example.com",
 						"username": "john.doe",
 					},
