@@ -453,8 +453,45 @@ func TestAuthHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
-			So(resp.Code, ShouldEqual, 400)
-			So(resp.Body.String(), ShouldEqual, "InvalidArgument: provider account already linked with existing user\n")
+			So(resp.Code, ShouldEqual, 302)
+			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
+
+			// check cookies
+			// it should have following format
+			// {
+			// 	"callback_url": "callback_url"
+			// 	"result": errorAuthResp
+			// }
+			cookies := resp.Result().Cookies()
+			So(cookies, ShouldNotBeEmpty)
+			var ssoDataCookie *http.Cookie
+			for _, c := range cookies {
+				if c.Name == "sso_data" {
+					ssoDataCookie = c
+					break
+				}
+			}
+			So(ssoDataCookie, ShouldNotBeNil)
+
+			// decoded it first
+			decoded, err := base64.StdEncoding.DecodeString(ssoDataCookie.Value)
+			So(err, ShouldBeNil)
+			So(decoded, ShouldNotBeNil)
+
+			// Unmarshal to map
+			data := make(map[string]interface{})
+			err = json.Unmarshal(decoded, &data)
+			So(err, ShouldBeNil)
+
+			// check callback_url
+			So(data["callback_url"], ShouldEqual, "http://localhost:3000")
+
+			// check result(resp)
+			result, err := json.Marshal(data["result"])
+			So(err, ShouldBeNil)
+			So(string(result), ShouldEqualJSON, `{
+				"error":{"code":108,"message":"provider account already linked with existing user","name":"InvalidArgument"}
+			}`)
 		})
 	})
 
