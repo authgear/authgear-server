@@ -42,12 +42,16 @@ const (
 	TemplateNameVerifyErrorHTML = "verify_error_html"
 )
 
+func VerifyTemplateNameForKey(key string, templateType string) string {
+	return fmt.Sprintf("verify_%s_%s", key, templateType)
+}
+
 func VerifyTextTemplateNameForKey(key string) string {
-	return fmt.Sprintf("verify_%s_text", key)
+	return VerifyTemplateNameForKey(key, "text")
 }
 
 func VerifyHTMLTemplateNameForKey(key string) string {
-	return fmt.Sprintf("verify_%s_html", key)
+	return VerifyTemplateNameForKey(key, "html")
 }
 
 func VerifySuccessHTMLTemplateNameForKey(key string) string {
