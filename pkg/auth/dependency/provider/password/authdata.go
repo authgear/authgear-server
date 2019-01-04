@@ -66,10 +66,7 @@ func toValidAuthDataList(authRecordKeys [][]string, authData map[string]string) 
 		m := make(map[string]string)
 		for _, k := range ks {
 			for dk := range authData {
-				if k == dk &&
-					authData[dk] != nil &&
-					// for non-nil interface but underlying value is a zero value, it won't be considered as a valid authData
-					!reflect.DeepEqual(authData[dk], reflect.Zero(reflect.TypeOf(authData[dk])).Interface()) {
+				if k == dk && authData[dk] != "" {
 					m[k] = authData[dk]
 				}
 			}
