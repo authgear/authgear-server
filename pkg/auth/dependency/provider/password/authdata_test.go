@@ -196,5 +196,26 @@ func TestAuthData(t *testing.T) {
 			}
 			So(authDataChecker.isMatching(authData), ShouldBeTrue)
 		})
+
+		Convey("shouldn't match zero value", func() {
+			keys := [][]string{
+				[]string{"username"},
+				[]string{"email"},
+			}
+			authData := map[string]interface{}{
+				"username": "",
+				"email":    "",
+			}
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{})
+			authData = map[string]interface{}{
+				"username": "user",
+				"email":    "",
+			}
+			So(toValidAuthDataList(keys, authData), ShouldResemble, []map[string]interface{}{
+				map[string]interface{}{
+					"username": "user",
+				},
+			})
+		})
 	})
 }

@@ -1,5 +1,7 @@
 package password
 
+import "reflect"
+
 type authDataChecker interface {
 	isValid(authData map[string]interface{}) bool
 	isMatching(authData map[string]interface{}) bool
@@ -55,6 +57,10 @@ var (
 // example 3: authRecordKeys = [["username", "email"], ["nickname"]]
 // - if authData is { "username": "john.doe", "nickname": "john.doe" },
 // output is [{ "nickname": "john.doe" }}]
+//
+// example 4: authRecordKeys = [["username"], ["email"]]
+// - if authData is { "username": "john.doe", "emamil": "" },
+// output is [{ "username": "john.doe" }}]
 func toValidAuthDataList(authRecordKeys [][]string, authData map[string]interface{}) []map[string]interface{} {
 	outputs := make([]map[string]interface{}, 0)
 
@@ -62,7 +68,10 @@ func toValidAuthDataList(authRecordKeys [][]string, authData map[string]interfac
 		m := make(map[string]interface{})
 		for _, k := range ks {
 			for dk := range authData {
-				if k == dk && authData[dk] != nil {
+				if k == dk &&
+					authData[dk] != nil &&
+					// for non-nil interface but underlying value is a zero value, it won't be considered as a valid authData
+					!reflect.DeepEqual(authData[dk], reflect.Zero(reflect.TypeOf(authData[dk])).Interface()) {
 					m[k] = authData[dk]
 				}
 			}
