@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
+	"github.com/skygeario/skygear-server/pkg/core/sms"
 	"github.com/skygeario/skygear-server/pkg/core/template"
 )
 
@@ -72,11 +73,31 @@ func (t *TestEmailCodeSender) Send(recordKey string, recordValue string) (err er
 	return
 }
 
-// TODO: TestSMSCodeSender
 type TestSMSCodeSender struct {
+	AppName        string
+	URLPrefix      string
+	SMSClient      sms.Client
+	TemplateEngine *template.Engine
 }
 
-func (t *TestSMSCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.UserProfile) (err error) {
+func (t *TestSMSCodeSender) Send(recordKey string, recordValue string) (err error) {
+	context := prepareVerifyTestRequestContext(
+		recordKey,
+		recordValue,
+		t.AppName,
+		t.URLPrefix,
+	)
+
+	var textBody string
+	if textBody, err = t.TemplateEngine.ParseTextTemplate(
+		authTemplate.VerifyTextTemplateNameForKey(recordKey),
+		context,
+		template.ParseOption{Required: true, DefaultTemplateName: authTemplate.TemplateNameVerifySMSText},
+	); err != nil {
+		return
+	}
+
+	err = t.SMSClient.Send(recordValue, textBody)
 	return
 }
 

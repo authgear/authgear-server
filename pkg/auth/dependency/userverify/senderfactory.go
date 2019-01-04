@@ -81,6 +81,16 @@ func NewDefaultUserVerifyTestCodeSenderFactory(c config.TenantConfiguration, tem
 			URLPrefix: c.URLPrefix,
 			Dialer:    mail.NewDialer(c.SMTP),
 		},
+		TwilioTestCodeSender: &TestSMSCodeSender{
+			AppName:   c.AppName,
+			URLPrefix: c.URLPrefix,
+			SMSClient: sms.NewTwilioClient(c.Twilio),
+		},
+		NexmoTestCodeSender: &TestSMSCodeSender{
+			AppName:   c.AppName,
+			URLPrefix: c.URLPrefix,
+			SMSClient: sms.NewNexmoClient(c.Nexmo),
+		},
 		BaseTemplateEngine: templateEngine,
 	}
 }
@@ -115,7 +125,30 @@ func (d *DefaultTestCodeSenderFactory) NewTestCodeSender(key string, providerSet
 			Dialer:         dialer,
 			TemplateEngine: templateEngine,
 		}
-	// TODO: twilio, nexmo
+	case "twilio":
+		smsClient := d.TwilioTestCodeSender.SMSClient
+		smsClientConfig := twilioSmsClientConfigFromProviderSettings(providerSettings)
+		if smsClientConfig != nil {
+			smsClient = sms.NewTwilioClient(*smsClientConfig)
+		}
+		return &TestSMSCodeSender{
+			AppName:        d.TwilioTestCodeSender.AppName,
+			URLPrefix:      d.TwilioTestCodeSender.URLPrefix,
+			SMSClient:      smsClient,
+			TemplateEngine: templateEngine,
+		}
+	case "nexmo":
+		smsClient := d.NexmoTestCodeSender.SMSClient
+		smsClientConfig := nexmoSmsClientConfigFromProviderSettings(providerSettings)
+		if smsClientConfig != nil {
+			smsClient = sms.NewNexmoClient(*smsClientConfig)
+		}
+		return &TestSMSCodeSender{
+			AppName:        d.NexmoTestCodeSender.AppName,
+			URLPrefix:      d.NexmoTestCodeSender.URLPrefix,
+			SMSClient:      smsClient,
+			TemplateEngine: templateEngine,
+		}
 	default:
 		return nil
 	}
@@ -137,5 +170,29 @@ func smtpConfigFromProviderSettings(providerSettings map[string]string) *config.
 		Mode:     providerSettings["smtp_mode"],
 		Login:    providerSettings["smtp_login"],
 		Password: providerSettings["smtp_password"],
+	}
+}
+
+func twilioSmsClientConfigFromProviderSettings(providerSettings map[string]string) *config.TwilioConfiguration {
+	if providerSettings["twilio_account_sid"] == "" {
+		return nil
+	}
+
+	return &config.TwilioConfiguration{
+		AccountSID: providerSettings["twilio_account_sid"],
+		AuthToken:  providerSettings["twilio_auth_token"],
+		From:       providerSettings["twilio_from"],
+	}
+}
+
+func nexmoSmsClientConfigFromProviderSettings(providerSettings map[string]string) *config.NexmoConfiguration {
+	if providerSettings["nexmo_api_key"] == "" {
+		return nil
+	}
+
+	return &config.NexmoConfiguration{
+		APIKey:    providerSettings["nexmo_api_key"],
+		APISecret: providerSettings["nexmo_api_secret"],
+		From:      providerSettings["nexmo_from"],
 	}
 }
