@@ -25,7 +25,7 @@ type ConfigHandler struct {
 }
 
 type ConfigResp struct {
-	AuthorizedURLS []string `json:"authorized_urls,omitempty"`
+	AuthorizedURLS []string `json:"authorized_urls"`
 }
 
 // NewHandler returns the SSO configs.
@@ -52,8 +52,12 @@ type ConfigResp struct {
 func (f ConfigHandler) NewHandler(request *http.Request) http.Handler {
 	handleAPICall := func(r *http.Request) (apiResp handler.APIResponse) {
 		tConfig := config.GetTenantConfig(r)
+		authorizedURLs := tConfig.SSOSetting.AllowedCallbackURLs
+		if authorizedURLs == nil {
+			authorizedURLs = []string{}
+		}
 		resp := ConfigResp{
-			AuthorizedURLS: tConfig.SSOSetting.AllowedCallbackURLs,
+			AuthorizedURLS: authorizedURLs,
 		}
 		apiResp.Result = resp
 
