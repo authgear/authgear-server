@@ -43,7 +43,7 @@ func (t *TestEmailCodeSender) Send(recordKey string, recordValue string) (err er
 	if textBody, err = t.TemplateEngine.ParseTextTemplate(
 		authTemplate.VerifyTextTemplateNameForKey(recordKey),
 		context,
-		template.ParseOption{Required: true, DefaultTemplateName: authTemplate.TemplateNameVerifyEmailText},
+		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailText},
 	); err != nil {
 		return
 	}
@@ -52,7 +52,7 @@ func (t *TestEmailCodeSender) Send(recordKey string, recordValue string) (err er
 	if htmlBody, err = t.TemplateEngine.ParseTextTemplate(
 		authTemplate.VerifyHTMLTemplateNameForKey(recordKey),
 		context,
-		template.ParseOption{Required: false, DefaultTemplateName: authTemplate.TemplateNameVerifyEmailHTML},
+		template.ParseOption{Required: false, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailHTML},
 	); err != nil {
 		return
 	}
@@ -92,7 +92,7 @@ func (t *TestSMSCodeSender) Send(recordKey string, recordValue string) (err erro
 	if textBody, err = t.TemplateEngine.ParseTextTemplate(
 		authTemplate.VerifyTextTemplateNameForKey(recordKey),
 		context,
-		template.ParseOption{Required: true, DefaultTemplateName: authTemplate.TemplateNameVerifySMSText},
+		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifySMSText},
 	); err != nil {
 		return
 	}
