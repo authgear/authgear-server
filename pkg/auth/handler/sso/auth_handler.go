@@ -181,7 +181,7 @@ func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.
 			case sso.InvalidGrant:
 				err = skyerr.NewError(skyerr.InvalidArgument, "Code was already redeemed")
 			case sso.InvalidClient:
-				err = skyerr.NewError(skyerr.InvalidCredentials, "auth_data or password incorrect")
+				err = skyerr.NewError(skyerr.InvalidCredentials, "Unauthorized, please check the app client id and secret")
 			default:
 				err = skyerr.NewError(skyerr.InvalidCredentials, ssoErr.Error())
 			}
