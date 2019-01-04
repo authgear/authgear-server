@@ -48,11 +48,7 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 }
 
 func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
-	)
+	return authz.PolicyFunc(policy.DenyNoAccessKey)
 }
 
 // LoginRequestPayload login handler request payload
