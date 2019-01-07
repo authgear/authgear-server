@@ -24,9 +24,7 @@ func TestLinkPayload(t *testing.T) {
 		// callback URL and ux_mode is required
 		Convey("validate valid payload", func() {
 			payload := LinkRequestPayload{
-				AccessTokenResp: sso.AccessTokenResp{
-					AccessToken: "token",
-				},
+				AccessToken: "token",
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
@@ -78,8 +76,6 @@ func TestLinkHandler(t *testing.T) {
 			AuthData: providerAuthData,
 		}
 		sh.Provider = &mockProvider
-		ssoProviderFactory := sso.ProviderFactory{}
-		sh.AuthInfoProcessor = ssoProviderFactory.NewAuthInfoProcessor(providerName)
 		mockOAuthProvider := oauth.NewMockProvider(
 			map[string]string{},
 			map[string]oauth.Principal{},

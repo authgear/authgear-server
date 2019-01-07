@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -39,7 +40,6 @@ func (f LinkHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	vars := mux.Vars(request)
 	h.ProviderName = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderName)
-	h.AuthInfoProcessor = h.ProviderFactory.NewAuthInfoProcessor(h.ProviderName)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
@@ -53,12 +53,12 @@ func (f LinkHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LinkRequestPayload login handler request payload
 type LinkRequestPayload struct {
-	AccessTokenResp sso.AccessTokenResp
+	AccessToken string `json:"access_token"`
 }
 
 // Validate request payload
 func (p LinkRequestPayload) Validate() error {
-	if p.AccessTokenResp.AccessToken == "" {
+	if p.AccessToken == "" {
 		return skyerr.NewInvalidArgument("empty access token", []string{"access_token"})
 	}
 
@@ -92,7 +92,6 @@ type LinkHandler struct {
 	AuthInfoStore     authinfo.Store         `dependency:"AuthInfoStore"`
 	ProviderFactory   *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
 	Provider          sso.Provider
-	AuthInfoProcessor sso.AuthInfoProcessor
 	ProviderName      string
 }
 
@@ -100,13 +99,11 @@ func (h LinkHandler) WithTx() bool {
 	return true
 }
 
-func (h LinkHandler) DecodeRequest(request *http.Request) (payload handler.RequestPayload, err error) {
-	accessTokenResp, err := h.AuthInfoProcessor.DecodeAccessTokenResp(request.Body)
+func (h LinkHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+	payload := LinkRequestPayload{}
+	err := json.NewDecoder(request.Body).Decode(&payload)
 	if err != nil {
-		return
-	}
-	payload = LinkRequestPayload{
-		AccessTokenResp: accessTokenResp,
+		return payload, err
 	}
 	return payload, nil
 }
@@ -118,7 +115,10 @@ func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	payload := req.(LinkRequestPayload)
-	oauthAuthInfo, err := h.Provider.GetAuthInfoByAccessTokenResp(payload.AccessTokenResp)
+	oauthAuthInfo, err := h.Provider.GetAuthInfoByAccessTokenResp(sso.AccessTokenResp{
+		AccessToken: payload.AccessToken,
+		TokenType:   "Bearer",
+	})
 	if err != nil {
 		return
 	}
