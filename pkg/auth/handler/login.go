@@ -50,8 +50,8 @@ func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
-	AuthData map[string]interface{} `json:"auth_data"`
-	Password string                 `json:"password"`
+	AuthData map[string]string `json:"auth_data"`
+	Password string            `json:"password"`
 }
 
 // Validate request payload
@@ -169,7 +169,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	return
 }
 
-func (h LoginHandler) getUserID(pwd string, authData map[string]interface{}) (userID string, err error) {
+func (h LoginHandler) getUserID(pwd string, authData map[string]string) (userID string, err error) {
 	principal := password.Principal{}
 	err = h.PasswordAuthProvider.GetPrincipalByAuthData(authData, &principal)
 	if err != nil {

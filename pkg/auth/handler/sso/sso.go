@@ -36,11 +36,16 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 	// oauthAuthInfo.ProviderUserProfile may contains attributes like "id",
 	// and it is not allowed to use it in SDK.
 	// so here we will save authData as providerUserProfile
+	data := make(map[string]interface{})
 	providerUserProfile := oauthAuthInfo.ProviderAuthData
+	// convert from map[string]string(sso.AuthInfo.ProviderAuthData) to map[string]interface(userprofile.Data)
+	for k, v := range providerUserProfile {
+		data[k] = v
+	}
 	if createNewUser {
-		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, providerUserProfile)
+		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, data)
 	} else {
-		userProfile, err = h.UserProfileStore.UpdateUserProfile(info.ID, &info, providerUserProfile)
+		userProfile, err = h.UserProfileStore.UpdateUserProfile(info.ID, &info, data)
 	}
 	if err != nil {
 		// TODO:

@@ -60,15 +60,15 @@ func NewProvider(
 	return newProvider(builder, executor, logger, authRecordKeys, passwordHistoryEnabled)
 }
 
-func (p providerImpl) IsAuthDataValid(authData map[string]interface{}) bool {
+func (p providerImpl) IsAuthDataValid(authData map[string]string) bool {
 	return p.authDataChecker.isValid(authData)
 }
 
-func (p providerImpl) IsAuthDataMatching(authData map[string]interface{}) bool {
+func (p providerImpl) IsAuthDataMatching(authData map[string]string) bool {
 	return p.authDataChecker.isMatching(authData)
 }
 
-func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]interface{}) (err error) {
+func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
 	authDataList := toValidAuthDataList(p.authRecordKeys, authData)
 
 	for _, a := range authDataList {
@@ -143,7 +143,7 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p providerImpl) GetPrincipalByAuthData(authData map[string]interface{}, principal *Principal) (err error) {
+func (p providerImpl) GetPrincipalByAuthData(authData map[string]string, principal *Principal) (err error) {
 	authDataBytes, err := json.Marshal(authData)
 	if err != nil {
 		return

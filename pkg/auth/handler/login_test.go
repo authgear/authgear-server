@@ -19,7 +19,7 @@ func TestLoginHandler(t *testing.T) {
 	Convey("Test LoginRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := LoginRequestPayload{
-				AuthData: map[string]interface{}{
+				AuthData: map[string]string{
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 				},
@@ -39,7 +39,7 @@ func TestLoginHandler(t *testing.T) {
 
 		Convey("validate payload without password", func() {
 			payload := LoginRequestPayload{
-				AuthData: map[string]interface{}{
+				AuthData: map[string]string{
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 				},
@@ -72,7 +72,7 @@ func TestLoginHandler(t *testing.T) {
 				"john.doe.principal.id": password.Principal{
 					ID:     "john.doe.principal.id",
 					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
+					AuthData: map[string]string{
 						"username": "john.doe",
 						"email":    "john.doe@example.com",
 					},
@@ -90,7 +90,7 @@ func TestLoginHandler(t *testing.T) {
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 
 		Convey("login user with auth data", func() {
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
@@ -122,7 +122,7 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("login user with incorrect password", func() {
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
@@ -136,7 +136,7 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("login with incorrect auth data", func() {
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"phone": "202-111-2222",
 			}
 			payload := LoginRequestPayload{
@@ -148,7 +148,7 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when login success", func() {
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
@@ -163,7 +163,7 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when login fail", func() {
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}

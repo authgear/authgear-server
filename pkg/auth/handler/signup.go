@@ -57,7 +57,7 @@ func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type SignupRequestPayload struct {
-	AuthData   map[string]interface{} `json:"auth_data"`
+	AuthData   map[string]string      `json:"auth_data"`
 	Password   string                 `json:"password"`
 	RawProfile map[string]interface{} `json:"profile"`
 }

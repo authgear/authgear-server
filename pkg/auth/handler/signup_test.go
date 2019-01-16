@@ -28,7 +28,7 @@ func TestSingupHandler(t *testing.T) {
 	Convey("Test SignupRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := SignupRequestPayload{
-				AuthData: map[string]interface{}{
+				AuthData: map[string]string{
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 				},
@@ -48,7 +48,7 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("validate payload without password", func() {
 			payload := SignupRequestPayload{
-				AuthData: map[string]interface{}{
+				AuthData: map[string]string{
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 				},
@@ -60,7 +60,7 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("validate duplicated keys found in auth data in profile", func() {
 			payload := SignupRequestPayload{
-				AuthData: map[string]interface{}{
+				AuthData: map[string]string{
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 				},
@@ -120,7 +120,7 @@ func TestSingupHandler(t *testing.T) {
 		h.TaskQueue = mockTaskQueue
 
 		Convey("signup user with auth data", func() {
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
@@ -157,7 +157,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("auth data key combination should be unique", func() {
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
@@ -204,7 +204,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup with incorrect auth data", func() {
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"phone": "202-111-2222",
 			}
 			payload := SignupRequestPayload{
@@ -216,7 +216,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup with weak password", func() {
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
@@ -230,7 +230,7 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("signup with email, send welcome email", func() {
 			h.WelcomeEmailEnabled = true
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
@@ -251,7 +251,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when signup success", func() {
-			authData := map[string]interface{}{
+			authData := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
