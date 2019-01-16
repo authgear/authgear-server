@@ -27,6 +27,9 @@ func AttachVerifyRequestHandler(
 	server.Handle("/verify_request", &VerifyRequestHandlerFactory{
 		authDependency,
 	}).Methods("OPTIONS", "POST")
+	server.Handle("/verify_request/test", &VerifyRequestTestHandlerFactory{
+		authDependency,
+	}).Methods("OPTIONS", "POST")
 	return server
 }
 
@@ -145,5 +148,115 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	resp = "OK"
+	return
+}
+
+// VerifyRequestTestHandlerFactory creates VerifyRequestTestHandler
+type VerifyRequestTestHandlerFactory struct {
+	Dependency auth.DependencyMap
+}
+
+// NewHandler creates new VerifyRequestTestHandler
+func (f VerifyRequestTestHandlerFactory) NewHandler(request *http.Request) http.Handler {
+	h := &VerifyRequestTestHandler{}
+	inject.DefaultRequestInject(h, f.Dependency, request)
+	return handler.APIHandlerToHandler(h, nil)
+}
+
+// ProvideAuthzPolicy provides authorization policy of handler
+func (f VerifyRequestTestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
+	return policy.AllOf(
+		authz.PolicyFunc(policy.RequireMasterKey),
+	)
+}
+
+type VerifyRequestTestPayload struct {
+	RecordKey        string            `json:"record_key"`
+	RecordValue      string            `json:"record_value"`
+	ProviderSettings map[string]string `json:"provider_settings"`
+	Templates        map[string]string `json:"templates"`
+}
+
+func (payload VerifyRequestTestPayload) Validate() error {
+	if payload.RecordKey == "" {
+		return skyerr.NewInvalidArgument("empty record_key", []string{"record_key"})
+	}
+
+	if payload.RecordValue == "" {
+		return skyerr.NewInvalidArgument("empty record_value", []string{"record_value"})
+	}
+
+	if payload.ProviderSettings == nil || payload.ProviderSettings["name"] == "" {
+		return skyerr.NewInvalidArgument("missing provider name", []string{"provider_settings.name"})
+	}
+
+	return nil
+}
+
+// VerifyRequestTestHandler sends a dummy verification request (i.e. email or SMS).
+//
+//  curl -X POST -H "Content-Type: application/json" \
+//    -d @- http://localhost:3000/verify_request/test <<EOF
+//  {
+//    "record_key": "email",
+//    "record_value": "test@example.com",
+//    "provider_settings": {
+//      "name": "smtp"
+//    },
+//    "templates": {
+//      "text": "testing",
+//      "html": "testing html"
+//    }
+//  }
+//  EOF
+//
+//  curl -X POST -H "Content-Type: application/json" \
+//    -d @- http://localhost:3000/verify_request/test <<EOF
+//  {
+//    "record_key": "phone",
+//    "record_value": "+15005550009",
+//    "provider_settings": {
+//      "name": "twilio",
+//      "twilio_from": "+15005550009",
+//      "twilio_account_sid": "",
+//      "twilio_auth_token": ""
+//    },
+//    "templates": {
+//      "text": "testing sms"
+//    }
+//  }
+//  EOF
+//
+type VerifyRequestTestHandler struct {
+	TestCodeSenderFactory userverify.TestCodeSenderFactory `dependency:"UserVerifyTestCodeSenderFactory"`
+	Logger                *logrus.Entry                    `dependency:"HandlerLogger"`
+}
+
+func (h VerifyRequestTestHandler) WithTx() bool {
+	return false
+}
+
+// DecodeRequest decode request payload
+func (h VerifyRequestTestHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+	payload := VerifyRequestTestPayload{}
+	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
+		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
+	}
+
+	return payload, nil
+}
+
+func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err error) {
+	payload := req.(VerifyRequestTestPayload)
+	codeSender := h.TestCodeSenderFactory.NewTestCodeSender(payload.RecordKey, payload.ProviderSettings, payload.Templates)
+	if codeSender == nil {
+		err = skyerr.NewInvalidArgument("invalid provider name", []string{"provider_settings.name"})
+		return
+	}
+
+	if err = codeSender.Send(payload.RecordKey, payload.RecordValue); err == nil {
+		resp = "OK"
+	}
+
 	return
 }

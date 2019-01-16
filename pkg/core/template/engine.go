@@ -35,6 +35,10 @@ func (e *Engine) SetLoaders(loaders []Loader) {
 	e.loaders = loaders
 }
 
+func (e *Engine) PrependLoader(loader Loader) {
+	e.loaders = append([]Loader{loader}, e.loaders...)
+}
+
 func (e *Engine) RegisterDefaultTemplate(templateName string, template string) {
 	e.defaultLoader.StringMap[templateName] = template
 }
