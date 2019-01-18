@@ -39,7 +39,13 @@ func (n *NexmoClient) Send(to string, body string) error {
 	}
 
 	if resp.MessageCount == 0 {
-		err = errors.New("Unable to send sms")
+		err = errors.New("No sms is sent")
+		return err
+	}
+
+	report := resp.Messages[0]
+	if report.ErrorText != "" {
+		err = errors.New(report.ErrorText)
 		return err
 	}
 
