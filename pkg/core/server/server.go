@@ -45,9 +45,11 @@ func NewServerWithOption(
 	option Option,
 ) Server {
 	router := mux.NewRouter()
+	router.HandleFunc("/healthz", HealthCheckHandler)
 
+	subRouter := router.NewRoute().Subrouter()
 	srv := Server{
-		router: router,
+		router: subRouter,
 		Server: &http.Server{
 			Addr:         addr,
 			WriteTimeout: time.Second * 15,
@@ -63,8 +65,6 @@ func NewServerWithOption(
 			RecoverHandler: option.RecoverPanicHandler,
 		}.Handle)
 	}
-
-	srv.router.HandleFunc("/healthz", HealthCheckHandler)
 
 	return srv
 }
