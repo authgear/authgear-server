@@ -23,8 +23,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/asset"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/server/asset"
 	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
