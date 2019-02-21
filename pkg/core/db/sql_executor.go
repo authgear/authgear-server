@@ -22,7 +22,7 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/sirupsen/logrus"
 
-	"github.com/skygeario/skygear-server/pkg/server/logging"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 type SQLExecutor struct {
@@ -39,7 +39,7 @@ func NewSQLExecutor(ctx context.Context, dbContext Context) SQLExecutor {
 }
 
 func (e *SQLExecutor) Get(dest interface{}, query string, args ...interface{}) (err error) {
-	logger := logging.CreateLogger(e.context, "skydb").WithField("tag", "sql")
+	logger := logging.CreateLoggerWithContext(e.context, "skydb").WithField("tag", "sql")
 	e.statementCount++
 	err = e.dbContext.DB().GetContext(e.context, dest, query, args...)
 	logFields := logrus.Fields{
@@ -64,7 +64,7 @@ func (e *SQLExecutor) GetWith(dest interface{}, sqlizeri sq.Sqlizer) (err error)
 }
 
 func (e *SQLExecutor) Exec(query string, args ...interface{}) (result sql.Result, err error) {
-	logger := logging.CreateLogger(e.context, "skydb").WithField("tag", "sql")
+	logger := logging.CreateLoggerWithContext(e.context, "skydb").WithField("tag", "sql")
 	e.statementCount++
 	result, err = e.dbContext.DB().ExecContext(e.context, query, args...)
 
@@ -102,7 +102,7 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 }
 
 func (e *SQLExecutor) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
-	logger := logging.CreateLogger(e.context, "skydb").WithField("tag", "sql")
+	logger := logging.CreateLoggerWithContext(e.context, "skydb").WithField("tag", "sql")
 	e.statementCount++
 	rows, err = e.dbContext.DB().QueryxContext(e.context, query, args...)
 	logFields := logrus.Fields{
@@ -127,7 +127,7 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 }
 
 func (e *SQLExecutor) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
-	logger := logging.CreateLogger(e.context, "skydb").WithField("tag", "sql")
+	logger := logging.CreateLoggerWithContext(e.context, "skydb").WithField("tag", "sql")
 	e.statementCount++
 	row = e.dbContext.DB().QueryRowxContext(e.context, query, args...)
 	logger.WithFields(logrus.Fields{

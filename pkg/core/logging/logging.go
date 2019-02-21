@@ -15,6 +15,7 @@
 package logging
 
 import (
+	"context"
 	"net/http"
 	"regexp"
 	"sync"
@@ -103,6 +104,21 @@ func CreateLoggerWithRequestID(requestID string, logger string, formatter logrus
 	entry := LoggerEntry(logger).WithFields(fields)
 	entry.Logger.Formatter = formatter
 	return entry
+}
+
+func CreateLoggerWithContext(ctx context.Context, logger string) *logrus.Entry {
+	var requestTag string
+	fields := logrus.Fields{}
+	if ctx != nil {
+		if tag, ok := ctx.Value("RequestTag").(string); ok {
+			requestTag = tag
+		}
+
+		if requestID, ok := ctx.Value("RequestID").(string); ok {
+			fields["request_id"] = requestID
+		}
+	}
+	return LoggerEntryWithTag(logger, requestTag).WithFields(fields)
 }
 
 func CreateLogger(r *http.Request, logger string, formatter logrus.Formatter) *logrus.Entry {

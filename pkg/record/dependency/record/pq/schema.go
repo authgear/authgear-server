@@ -26,9 +26,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
-	"github.com/skygeario/skygear-server/pkg/server/logging"
 )
 
 func (s *recordStore) recordTableNameValue(recordType string) string {
@@ -195,7 +195,7 @@ func createTable(logger *logrus.Entry, sqlExecutor db.SQLExecutor, tableName str
 }
 
 func dropTable(ctx context.Context, tx *sqlx.Tx, tableName string) error {
-	logger := logging.CreateLogger(ctx, "skydb")
+	logger := logging.CreateLoggerWithContext(ctx, "skydb")
 
 	stmt := fmt.Sprintf(`
 		DROP TABLE IF EXISTS %s

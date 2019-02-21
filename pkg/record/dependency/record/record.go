@@ -25,7 +25,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/asset"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/server/logging"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 )
 
 // ErrRecordNotFound is returned from Get and Delete when Database
