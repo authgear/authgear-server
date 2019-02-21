@@ -19,8 +19,8 @@ import (
 
 	sq "github.com/lann/squirrel"
 
+	"github.com/skygeario/skygear-server/pkg/core/skydb/pq/builder"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
-	"github.com/skygeario/skygear-server/pkg/server/skydb/pq/builder"
 )
 
 func (s *recordStore) GetAsset(name string, asset *record.Asset) error {
