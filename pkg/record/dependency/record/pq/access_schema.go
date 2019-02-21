@@ -11,8 +11,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb/pq/builder"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/utils"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
-	"github.com/skygeario/skygear-server/pkg/server/utils"
 )
 
 func (s *recordStore) SetRecordAccess(recordType string, acl record.ACL) error {

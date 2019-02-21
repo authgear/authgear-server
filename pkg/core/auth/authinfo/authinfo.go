@@ -17,8 +17,8 @@ package authinfo
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/utils"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
-	"github.com/skygeario/skygear-server/pkg/server/utils"
 )
 
 var timeNow = func() time.Time { return time.Now().UTC() }
