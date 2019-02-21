@@ -23,7 +23,7 @@ import (
 
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type PredicateSqlizerFactory interface {

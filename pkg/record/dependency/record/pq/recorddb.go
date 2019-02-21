@@ -28,9 +28,9 @@ import (
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record/pq/builder"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 func (s *recordStore) UserRecordType() string {

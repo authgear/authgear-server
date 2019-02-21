@@ -4,7 +4,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type FacebookImpl struct {

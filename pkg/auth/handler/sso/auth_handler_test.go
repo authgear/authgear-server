@@ -20,9 +20,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
-	. "github.com/skygeario/skygear-server/pkg/server/skytest"
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

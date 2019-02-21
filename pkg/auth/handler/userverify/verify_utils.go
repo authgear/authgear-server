@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type getAndValidateCodeRequest struct {

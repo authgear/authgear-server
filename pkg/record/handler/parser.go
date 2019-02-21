@@ -9,9 +9,9 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/recordconv"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 // QueryParser is a context for parsing raw query to record.Query

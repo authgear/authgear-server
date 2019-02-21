@@ -9,9 +9,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/model"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/record/dependency/record" // tolerant nextimportslint: record
 	recordHandler "github.com/skygeario/skygear-server/pkg/record/handler"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 type recordStoreImpl struct {

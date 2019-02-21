@@ -7,7 +7,7 @@ import (
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func TestLogoutHandler(t *testing.T) {

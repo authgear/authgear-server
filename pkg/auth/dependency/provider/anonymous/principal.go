@@ -1,7 +1,7 @@
 package anonymous
 
 import (
-	"github.com/skygeario/skygear-server/pkg/server/uuid"
+	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type Principal struct {

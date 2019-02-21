@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/franela/goreq"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func fetchUserProfile(

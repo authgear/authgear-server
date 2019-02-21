@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/server/uuid"
+	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 // Token is an expiry access token associated to a AuthInfo.

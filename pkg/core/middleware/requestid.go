@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/server/uuid"
+	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 // RequestIDMiddleware add random request id to request context

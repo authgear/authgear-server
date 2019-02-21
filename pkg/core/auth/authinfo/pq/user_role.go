@@ -9,7 +9,7 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/role"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func (s authInfoStore) AssignRoles(userIDs []string, roles []string) error {

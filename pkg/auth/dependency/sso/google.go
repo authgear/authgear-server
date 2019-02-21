@@ -1,6 +1,6 @@
 package sso
 
-import "github.com/skygeario/skygear-server/pkg/server/skyerr"
+import "github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 type GoogleImpl struct {
 	Setting Setting

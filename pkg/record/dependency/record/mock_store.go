@@ -27,8 +27,8 @@ func NewMockStore() *MockStore {
 		AssetMap:               map[string]Asset{},
 		recordAccessMap:        map[string]ACL{},
 		recordDefaultAccessMap: map[string]ACL{},
-		Map:       Map{},
-		SchemaMap: SchemaMap{},
+		Map:                    Map{},
+		SchemaMap:              SchemaMap{},
 	}
 }
 

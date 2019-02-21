@@ -3,7 +3,7 @@ package role
 import (
 	"fmt"
 
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 // MockStore is the memory implementation of role store
