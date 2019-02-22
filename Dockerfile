@@ -2,7 +2,7 @@ FROM golang:1.9.4-stretch as godev
 
 RUN \
     apt-get update && \
-    apt-get install --no-install-recommends -y libtool-bin automake pkg-config libsodium-dev libzmq3-dev && \
+    apt-get install --no-install-recommends -y libtool-bin automake pkg-config && \
     rm -rf /var/lib/apt/lists/* && \
     go get github.com/golang/dep/cmd/dep
 
@@ -21,8 +21,7 @@ RUN make build VERSION=$version
 
 FROM alpine:3.8
 
-RUN apk --update --no-cache add libc6-compat libstdc++ zlib ca-certificates \
-        libsodium libzmq && \
+RUN apk --update --no-cache add libc6-compat libstdc++ zlib ca-certificates && \
     ln -s /lib /lib64
 
 ARG version

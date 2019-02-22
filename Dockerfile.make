@@ -2,7 +2,7 @@ FROM golang:1.9.4-stretch as godev
 
 RUN \
     apt-get update && \
-    apt-get install --no-install-recommends -y libtool-bin automake pkg-config libsodium-dev libzmq3-dev && \
+    apt-get install --no-install-recommends -y libtool-bin automake pkg-config && \
     rm -rf /var/lib/apt/lists/* && \
     curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64 && \
     curl -fsSL -o /usr/local/bin/vg https://github.com/GetStream/vg/releases/download/v0.8.0/vg-linux-amd64 && \
