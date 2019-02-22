@@ -52,15 +52,6 @@ script:
   - make lint
   - make test
 
-jobs:
-  allow_failures:
-    - name: legacy
-  include:
-    - name: legacy
-      script:
-      - WITH_ZMQ=1 make generate
-      - WITH_ZMQ=1 make test GO_TEST_PACKAGE=./pkg/server/...
-
 before_deploy:
   - if [[ ! -z "$TRAVIS_TAG" ]]; then make all archive; fi
 
