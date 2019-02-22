@@ -17,7 +17,7 @@ RUN dep ensure --vendor-only
 ARG version
 
 COPY . .
-RUN make build VERSION=$version WITH_ZMQ=1
+RUN make build VERSION=$version
 
 FROM alpine:3.8
 

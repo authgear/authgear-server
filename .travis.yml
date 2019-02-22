@@ -45,12 +45,12 @@ before_script:
   - psql -c 'CREATE EXTENSION postgis;' -U postgres -d skygear_test
 
 script:
-  - WITH_ZMQ=1 make generate
+  - make generate
   - git status | grep "_gen.go$"; test $? -eq 1
   - git status | grep "_string.go$"; test $? -eq 1
   - git status | grep "mockgen.*go$"; test $? -eq 1
-  - WITH_ZMQ=1 make lint
-  - WITH_ZMQ=1 make test
+  - make lint
+  - make test
 
 jobs:
   allow_failures:

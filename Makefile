@@ -11,10 +11,6 @@ GO_TEST_CPU := 1,4
 GO_TEST_PACKAGE := ./pkg/core/... ./pkg/auth/... ./pkg/gateway/...
 SHELL := /bin/bash
 
-ifeq (1,${WITH_ZMQ})
-GO_BUILD_TAGS := --tags zmq
-endif
-
 ifeq (1,${GO_TEST_VERBOSE})
 GO_TEST_ARGS_VERBOSE := -v
 endif
@@ -115,7 +111,7 @@ clean:
 all:
 	mkdir -p $(DIST_DIR)
 	$(DOCKER_RUN) gox -osarch="$(OSARCHS)" -output="$(DIST_DIR)/{{.Dir}}-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS)
-	$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$(DIST_DIR)$(DIST)-zmq-linux-amd64 WITH_ZMQ=1
+	$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$(DIST_DIR)$(DIST)-linux-amd64
 	$(DOCKER_RUN) chmod +x $(DIST_DIR)/$(DIST)*
 
 .PHONY: update-version
