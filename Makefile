@@ -3,7 +3,7 @@ DIST := skygear-server
 VERSION := $(shell git describe --always)
 GIT_SHA := $(shell git rev-parse HEAD)
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-BUILD_TARGET_DIRS := ./cmd/gateway ./cmd/migrate ./cmd/auth
+TARGETS := gateway auth
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
 GO_TEST_TIMEOUT := 1m30s
 OSARCHS := linux/amd64 linux/386 linux/arm windows/amd64 windows/386 darwin/amd64
@@ -85,8 +85,8 @@ before-test:
 .PHONY: test
 test:
 # Run `go install` to compile packages for caching and catch compilation error.
-	for BUILD_TARGET_DIR in $(BUILD_TARGET_DIRS) ; do \
-		pushd $$BUILD_TARGET_DIR > /dev/null ; \
+	for TARGET in $(TARGETS) ; do \
+		pushd cmd/$$TARGET > /dev/null ; \
 		$(DOCKER_RUN_TEST) go install $(GO_BUILD_ARGS) ; \
 		popd > /dev/null ; \
 	done
@@ -109,10 +109,15 @@ clean:
 
 .PHONY: all
 all:
-	mkdir -p $(DIST_DIR)
-	$(DOCKER_RUN) gox -osarch="$(OSARCHS)" -output="$(DIST_DIR)/{{.Dir}}-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS)
-	$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$(DIST_DIR)$(DIST)-linux-amd64
-	$(DOCKER_RUN) chmod +x $(DIST_DIR)/$(DIST)*
+	for TARGET in $(TARGETS) ; do \
+		DIST_DIR=$(DIST_DIR)$$TARGET/ ; \
+		mkdir -p $$DIST_DIR ; \
+		cp cmd/$$TARGET/main.go . ; \
+		$(DOCKER_RUN) gox -osarch="$(OSARCHS)" -output="$$DIST_DIR/$$TARGET-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS) ; \
+		$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$$DIST_DIR$$TARGET-linux-amd64; \
+		$(DOCKER_RUN) chmod +x $$DIST_DIR$$TARGET* ; \
+		rm main.go ; \
+	done
 
 .PHONY: update-version
 update-version:
