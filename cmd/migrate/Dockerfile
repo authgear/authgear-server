@@ -9,7 +9,7 @@ RUN dep ensure --vendor-only
 COPY . .
 RUN cd cmd/migrate; make build; mv skygear-migrate /tmp/
 
-FROM alpine:3.4
+FROM alpine:3.8
 
 RUN apk add --update --no-cache libc6-compat ca-certificates && \
     ln -s /lib /lib64
