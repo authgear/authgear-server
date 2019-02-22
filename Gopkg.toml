@@ -37,44 +37,16 @@ required = [
   version = "~3.1.0"
 
 [[constraint]]
-  name = "github.com/evalphobia/logrus_sentry"
-  version = "0.4.1"
-
-[[constraint]]
   name = "github.com/evalphobia/logrus_fluent"
   version = "0.4.0"
-
-[[constraint]]
-  name = "github.com/facebookgo/inject"
-  revision = "d5029152fecb2a8e68f7f8eb3c6391fc8ee70496"
-
-[[constraint]]
-  name = "github.com/facebookgo/structtag"
-  revision = "217e25fb96916cc60332e399c9aa63f5c422ceed"
 
 [[constraint]]
   name = "github.com/franela/goreq"
   revision = "b5b0f5eb2d16f20345cce0a544a75163579c0b00"
 
 [[constraint]]
-  name = "github.com/garyburd/redigo"
-  revision = "6ece6e0a09f28cc399b21550cbf37ab39ba63cce"
-
-[[constraint]]
   name = "github.com/golang/mock"
   version = "~1.1.0"
-
-[[constraint]]
-  name = "github.com/google/go-gcm"
-  revision = "423613e2e8f11e71023c75ae2dd7e27105326cbf"
-
-[[constraint]]
-  name = "github.com/gorilla/websocket"
-  revision = "b6ab76f1fe9803ee1d59e7e5b2a797c1fe897ce5"
-
-[[constraint]]
-  name = "github.com/jarcoal/httpmock"
-  revision = "4442edb3db31196622da56482fd8d0fa375fba4d"
 
 [[constraint]]
   name = "github.com/jmoiron/sqlx"
@@ -101,16 +73,8 @@ required = [
   revision = "c84b6002b0f727d4a2d40e05466dfc3cc54eb329"
 
 [[constraint]]
-  name = "github.com/robfig/cron"
-  revision = "67823cd24dece1b04cced3a0a0b3ca2bc84d875e"
-
-[[constraint]]
   name = "github.com/sirupsen/logrus"
   version = "1.0.1"
-
-[[constraint]]
-  name = "github.com/skygeario/buford"
-  revision = "3b55ce646fcee15aeaff656fad74506459dfa8f6"
 
 [[constraint]]
   name = "github.com/smartystreets/goconvey"
@@ -125,20 +89,12 @@ required = [
   revision = "173ce04bfaf66c7bb0fa9d5c0bfd93e773909dbd"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/pebbe/zmq4"
-
-[[constraint]]
   name = "github.com/nbutton23/zxcvbn-go"
   revision = "eafdab6b0663b4b528c35975c8b0e78be6e25261"
 
 [[constraint]]
   name = "github.com/rifflock/lfshook"
   version = "2.2.0"
-
-[[constraint]]
-  name = "github.com/skygeario/go-baidupush"
-  revision = "0b8ba42f25af6f9937df8843820a009c38bee333"
 
 [[constraint]]
   branch = "master"
