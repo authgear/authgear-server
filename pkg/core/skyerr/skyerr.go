@@ -244,12 +244,6 @@ func NewDeniedArgument(message string, arguments []string) Error {
 	}
 }
 
-/*
-func newNotFoundErr(code ErrorCode, message string) Error {
-	return NewError(code, message)
-}
-*/
-
 // MakeError returns an Error interface with the specified error. If the
 // specified error already implements the Error interface, the specified error
 // is returned.
