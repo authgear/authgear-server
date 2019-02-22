@@ -3,6 +3,7 @@ DIST := skygear-server
 VERSION := $(shell git describe --always)
 GIT_SHA := $(shell git rev-parse HEAD)
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+BUILD_TARGET_DIRS := ./cmd/gateway ./cmd/migrate ./cmd/auth ./cmd/record
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
 GO_TEST_TIMEOUT := 1m30s
 OSARCHS := linux/amd64 linux/386 linux/arm windows/amd64 windows/386 darwin/amd64
@@ -88,7 +89,11 @@ before-test:
 .PHONY: test
 test:
 # Run `go install` to compile packages for caching and catch compilation error.
-	$(DOCKER_RUN_TEST) go install $(GO_BUILD_ARGS)
+	for BUILD_TARGET_DIR in $(BUILD_TARGET_DIRS) ; do \
+		pushd $$BUILD_TARGET_DIR > /dev/null ; \
+		$(DOCKER_RUN_TEST) go install $(GO_BUILD_ARGS) ; \
+		popd > /dev/null ; \
+	done
 	$(DOCKER_RUN_TEST) go test $(GO_TEST_ARGS) $(GO_TEST_PACKAGE)
 
 .PHONY: lint
