@@ -2,42 +2,6 @@
 
 
 [[projects]]
-  digest = "1:261d95f4464744d542759a7a33846f56f24113f5a93c7577f4cd7044f7cb3d76"
-  name = "github.com/aws/aws-sdk-go"
-  packages = [
-    "aws",
-    "aws/awserr",
-    "aws/awsutil",
-    "aws/client",
-    "aws/client/metadata",
-    "aws/corehandlers",
-    "aws/credentials",
-    "aws/credentials/ec2rolecreds",
-    "aws/credentials/endpointcreds",
-    "aws/credentials/stscreds",
-    "aws/defaults",
-    "aws/ec2metadata",
-    "aws/endpoints",
-    "aws/request",
-    "aws/session",
-    "aws/signer/v4",
-    "internal/shareddefaults",
-    "private/protocol",
-    "private/protocol/query",
-    "private/protocol/query/queryutil",
-    "private/protocol/rest",
-    "private/protocol/restxml",
-    "private/protocol/xml/xmlutil",
-    "service/s3",
-    "service/s3/s3iface",
-    "service/s3/s3manager",
-    "service/sts",
-  ]
-  pruneopts = ""
-  revision = "b69f447375c7fa0047ebcdd8ae5d585d5aac2f71"
-  version = "v1.10.51"
-
-[[projects]]
   digest = "1:3e93e899f8457138a891b3ccedcacf8fe9074865c848f7028e1892bdae280676"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -85,14 +49,6 @@
   version = "2.0.0"
 
 [[projects]]
-  digest = "1:f3c498cfe3758b828f1fd3272ad5d6ddf0ecf1a9dfbb7e4573c153b858338717"
-  name = "github.com/go-ini/ini"
-  packages = ["."]
-  pruneopts = ""
-  revision = "7e7da451323b6766da368f8a1e8ec9a88a16b4a0"
-  version = "v1.31.1"
-
-[[projects]]
   digest = "1:a53effe959542818285d7adee00ee2807babee2ea8b82956fe4a4cab60c34bd5"
   name = "github.com/golang-migrate/migrate"
   packages = [
@@ -109,7 +65,6 @@
   digest = "1:73a7106c799f98af4f3da7552906efc6a2570329f4cd2d2f5fb8f9d6c053ff2f"
   name = "github.com/golang/mock"
   packages = [
-    "gomock",
     "mockgen",
     "mockgen/model",
   ]
@@ -156,14 +111,6 @@
   pruneopts = ""
   revision = "a6029d17e101ac1594adafea9e63fd8c988a8701"
   version = "v1.0.12"
-
-[[projects]]
-  digest = "1:e6f0b9e4dced4b6b5fedb810e2125a9f74dfe2ef1598c55ecb25e8b3d8f514ea"
-  name = "github.com/jmespath/go-jmespath"
-  packages = ["."]
-  pruneopts = ""
-  revision = "3433f3ea46d9f8019119e7dd41274e112a2359a9"
-  version = "0.2.2"
 
 [[projects]]
   digest = "1:57fcf9db7cd7b5c885504e9f085c5b6d6bf5320f4dc6c74d0fce88b7f472a6eb"
@@ -256,13 +203,6 @@
   revision = "87b45ffd0e9581375c491fef3d32130bb15c5bd7"
 
 [[projects]]
-  digest = "1:ef2c25093248f6eb65ffd17f0ffe3b1c6f7c6a29deee72536e47a9be10db84fd"
-  name = "github.com/mitchellh/mapstructure"
-  packages = ["."]
-  pruneopts = ""
-  revision = "281073eb9eb092240d33ef253c404f1cca550309"
-
-[[projects]]
   digest = "1:9da71b9d17d6231f1486dc62d81af3f9d34535703ba9e7a60a902433c3091e3b"
   name = "github.com/nbutton23/zxcvbn-go"
   packages = [
@@ -286,21 +226,6 @@
   pruneopts = ""
   revision = "decd62febd9bd8900d1e5b896dd8573ec9cff48d"
   version = "v2.0.0"
-
-[[projects]]
-  digest = "1:8b4b7a90de0fd96f41327fb48cc47a9616337ac5c6c1a4f0c54315d39309d1d8"
-  name = "github.com/paulmach/go.geo"
-  packages = ["."]
-  pruneopts = ""
-  revision = "c84b6002b0f727d4a2d40e05466dfc3cc54eb329"
-
-[[projects]]
-  digest = "1:a648ca7f6c1430313327fa340e819808db0e17d009c985d31b837c7d16cd7632"
-  name = "github.com/paulmach/go.geojson"
-  packages = ["."]
-  pruneopts = ""
-  revision = "aa3713dea4327980f5891ac781c6f1a45ea75c0f"
-  version = "v1.3.1"
 
 [[projects]]
   digest = "1:210286d0cb60ffe28f1ca00b664029e8943009f95d06d8f8c336301b28e1aee5"
@@ -403,14 +328,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:130b1bec86c62e121967ee0c69d9c263dc2d3ffe6c7c9a82aca4071c4d068861"
-  name = "golang.org/x/net"
-  packages = ["context"]
-  pruneopts = ""
-  revision = "9dfe39835686865bff950a07b394c12a98ddc811"
-
-[[projects]]
-  branch = "master"
   digest = "1:9c286cf11d0ca56368185bada5dd6d97b6be4648fc26c354fcba8df7293718f7"
   name = "golang.org/x/sys"
   packages = ["unix"]
@@ -443,11 +360,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/aws/aws-sdk-go/aws",
-    "github.com/aws/aws-sdk-go/aws/credentials",
-    "github.com/aws/aws-sdk-go/aws/session",
-    "github.com/aws/aws-sdk-go/service/s3",
-    "github.com/aws/aws-sdk-go/service/s3/s3manager",
     "github.com/dgrijalva/jwt-go",
     "github.com/evalphobia/logrus_fluent",
     "github.com/flosch/pongo2",
@@ -456,7 +368,6 @@
     "github.com/golang-migrate/migrate",
     "github.com/golang-migrate/migrate/database",
     "github.com/golang-migrate/migrate/source/file",
-    "github.com/golang/mock/gomock",
     "github.com/golang/mock/mockgen",
     "github.com/gorilla/mux",
     "github.com/h2non/gock",
@@ -467,10 +378,8 @@
     "github.com/lann/squirrel",
     "github.com/lib/pq",
     "github.com/mitchellh/gox",
-    "github.com/mitchellh/mapstructure",
     "github.com/nbutton23/zxcvbn-go",
     "github.com/njern/gonexmo",
-    "github.com/paulmach/go.geo",
     "github.com/rifflock/lfshook",
     "github.com/sfreiberg/gotwilio",
     "github.com/sirupsen/logrus",
