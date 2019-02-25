@@ -126,8 +126,8 @@ update-version:
 .PHONY: archive
 archive:
 	cd $(DIST_DIR) ; \
-		find . -maxdepth 1 -type f -name 'skygear-server-*' -not -name '*.exe' -not -name '*.zip' -not -name '*.tar.gz' -exec tar -zcvf {}.tar.gz {} \; ; \
-		find . -maxdepth 1 -type f -name 'skygear-server-*.exe' -not -exec zip -r {}.zip {} \;
+		find . -maxdepth 2 -type f \( -name 'auth-*' -o -name 'gateway-*' \) -not -name '*.exe' -not -name '*.zip' -not -name '*.tar.gz' -exec tar -zcvf {}.tar.gz {} \; ; \
+		find . -maxdepth 2 -type f \( -name 'auth-*.exe' -o -name 'gateway-*.exe' \) -not -exec zip -r {}.zip {} \;
 
 .PHONY: docker-build
 docker-build:
