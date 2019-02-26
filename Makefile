@@ -31,10 +31,16 @@ endif
 
 DOCKER_REGISTRY :=
 DOCKER_ORG_NAME := skygeario
-DOCKER_IMAGE := skygear-server
+DOCKER_IMAGE_AUTH := skygear-auth
+DOCKER_IMAGE_GATEWAY := skygear-gateway
 DOCKER_TAG := git-$(shell git rev-parse --short HEAD)
 PUSH_DOCKER_TAG := $(VERSION)
-IMAGE_NAME := $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(DOCKER_IMAGE):$(DOCKER_TAG)
+IMAGE_NAME = $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(1):$(DOCKER_TAG)
+VERSIONED_IMAGE_NAME = $($(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(1):$(PUSH_DOCKER_TAG))
+AUTH_IMAGE_NAME = $(call IMAGE_NAME,$(DOCKER_IMAGE_AUTH))
+AUTH_VERSIONED_IMAGE_NAME = $(call VERSIONED_IMAGE_NAME,$(DOCKER_IMAGE_AUTH))
+GATEWAY_IMAGE_NAME = $(call IMAGE_NAME,$(DOCKER_IMAGE_GATEWAY))
+GATEWAY_VERSIONED_IMAGE_NAME = $(call VERSIONED_IMAGE_NAME,$(DOCKER_IMAGE_GATEWAY))
 
 GO_BUILD_ARGS := $(GO_BUILD_TAGS) $(GO_BUILD_LDFLAGS)
 GO_TEST_ARGS := $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) $(GO_TEST_ARGS_VERBOSE) -p 1 -cpu $(GO_TEST_CPU)
@@ -129,22 +135,38 @@ archive:
 		find . -maxdepth 2 -type f \( -name 'auth-*' -o -name 'gateway-*' \) -not -name '*.exe' -not -name '*.zip' -not -name '*.tar.gz' -exec tar -zcvf {}.tar.gz {} \; ; \
 		find . -maxdepth 2 -type f \( -name 'auth-*.exe' -o -name 'gateway-*.exe' \) -not -exec zip -r {}.zip {} \;
 
-.PHONY: docker-build
-docker-build:
-	docker build -t $(IMAGE_NAME) \
+.PHONY: docker-build-image
+docker-build-image:
+	docker build \
+	  -f $(DOCKER_FILE) \
+		-t $(IMAGE_NAME) \
 		--build-arg sha=$(GIT_SHA) \
 		--build-arg version=$(VERSION) \
 		--build-arg build_date=$(BUILD_DATE) \
 		.
 
+.PHONY: docker-build-auth
+docker-build-auth:
+	$(MAKE) docker-build-image DOCKER_FILE=cmd/auth/Dockerfile IMAGE_NAME=$(AUTH_IMAGE_NAME)
+
+.PHONY: docker-build-gateway
+docker-build-gateway:
+	$(MAKE) docker-build-image DOCKER_FILE=cmd/auth/Dockerfile IMAGE_NAME=$(GATEWAY_IMAGE_NAME)
+
+.PHONY: docker-build
+docker-build: docker-build-auth docker-build-gateway
+
 .PHONY: docker-push
 docker-push:
-	docker push $(IMAGE_NAME)
+	docker push $(AUTH_IMAGE_NAME)
+	docker push $(GATEWAY_IMAGE_NAME)
 
 .PHONY: docker-push-version
 docker-push-version:
-	docker tag $(IMAGE_NAME) $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(DOCKER_IMAGE):$(PUSH_DOCKER_TAG)
-	docker push $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(DOCKER_IMAGE):$(PUSH_DOCKER_TAG)
+	docker tag $(AUTH_IMAGE_NAME) $(AUTH_VERSIONED_IMAGE_NAME)
+	docker tag $(GATEWAY_IMAGE_NAME) $(GATEWAY_VERSIONED_IMAGE_NAME)
+	docker push $(AUTH_VERSIONED_IMAGE_NAME)
+	docker push $(GATEWAY_VERSIONED_IMAGE_NAME)
 
 .PHONY: release-commit
 release-commit:
