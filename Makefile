@@ -91,8 +91,8 @@ all:
 		DIST_DIR=$(DIST_DIR)$$TARGET/ ; \
 		mkdir -p $$DIST_DIR ; \
 		cp cmd/$$TARGET/main.go . ; \
-		gox -osarch="$(OSARCHS)" -output="$$DIST_DIR/$$TARGET-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS) ; \
-		$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$$DIST_DIR$$TARGET-linux-amd64; \
+		gox -osarch="$(OSARCHS)" -output="$${DIST_DIR}skygear-$$TARGET-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS) ; \
+		$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$${DIST_DIR}skygear-$$TARGET-linux-amd64; \
 		chmod +x $$DIST_DIR$$TARGET* ; \
 		rm main.go ; \
 	done
@@ -104,8 +104,8 @@ update-version:
 .PHONY: archive
 archive:
 	cd $(DIST_DIR) ; \
-		find . -maxdepth 2 -type f \( -name 'auth-*' -o -name 'gateway-*' \) -not -name '*.exe' -not -name '*.zip' -not -name '*.tar.gz' -exec tar -zcvf {}.tar.gz {} \; ; \
-		find . -maxdepth 2 -type f \( -name 'auth-*.exe' -o -name 'gateway-*.exe' \) -not -exec zip -r {}.zip {} \;
+		find . -maxdepth 2 -type f \( -name 'skygear-auth-*' -o -name 'skygear-gateway-*' \) -not -name '*.exe' -not -name '*.zip' -not -name '*.tar.gz' -exec tar -zcvf {}.tar.gz {} \; ; \
+		find . -maxdepth 2 -type f \( -name 'skygear-auth-*.exe' -o -name 'skygear-gateway-*.exe' \) -not -exec zip -r {}.zip {} \;
 
 .PHONY: docker-build-image
 docker-build-image:
