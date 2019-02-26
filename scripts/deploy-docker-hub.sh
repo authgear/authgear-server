@@ -1,7 +1,14 @@
 #!/bin/bash -e
 
-if [ -z "$DOCKER_HUB_TRIGGER_TOKEN" ]; then
-    >&2 echo "DOCKER_HUB_TRIGGER_TOKEN is required."
+if [ -z "$DOCKER_HUB_AUTH_TRIGGER_URL" ]; then
+    # DOCKER_HUB_AUTH_TRIGGER_URL is like: https://cloud.docker.com/api/build/v1/source/<uuid>/trigger/<uuid>/call/
+    >&2 echo "DOCKER_HUB_AUTH_TRIGGER_URL is required."
+    exit 1
+fi
+
+if [ -z "$DOCKER_HUB_GATEWAY_TRIGGER_URL" ]; then
+    # DOCKER_HUB_GATEWAY_TRIGGER_URL is like: https://cloud.docker.com/api/build/v1/source/<uuid>/trigger/<uuid>/call/
+    >&2 echo "DOCKER_HUB_GATEWAY_TRIGGER_URL is required."
     exit 1
 fi
 
@@ -9,16 +16,22 @@ fi
 [ -n "$TRAVIS_BRANCH" ] && SOURCE_BRANCH="$TRAVIS_BRANCH"
 [ -n "$TRAVIS_REPO_SLUG" ] && SOURCE_REPO="$TRAVIS_REPO_SLUG"
 
-DOCKER_HUB_REPO=skygeario/skygear-server
-DOCKER_HUB_TRIGGER_URL=https://registry.hub.docker.com/u/$DOCKER_HUB_REPO/trigger/$DOCKER_HUB_TRIGGER_TOKEN/
+declare -a TRIGGER_URLS=("$DOCKER_HUB_AUTH_TRIGGER_URL" "$DOCKER_HUB_GATEWAY_TRIGGER_URL")
+
+function push_trigger() {
+    for URL in "${TRIGGER_URLS[@]}"
+    do
+        curl -H "Content-Type: application/json" --data '{"source_type": "Tag", "source_name": "'$1'"}' -X POST $URL
+    done
+}
 
 if [ -n "$SOURCE_TAG" ]; then
     >&2 echo "Trigger build for tag $SOURCE_TAG on Docker Hub..."
-    curl -H "Content-Type: application/json" --data '{"source_type": "Tag", "source_name": "'$SOURCE_TAG'"}' -X POST $DOCKER_HUB_TRIGGER_URL
+    push_trigger $SOURCE_TAG
 elif [ -n "$SOURCE_BRANCH" ]; then
     >&2 echo "Trigger build for branch $SOURCE_BRANCH on Docker Hub..."
-    curl -H "Content-Type: application/json" --data '{"source_type": "Branch", "source_name": "'$SOURCE_BRANCH'"}' -X POST $DOCKER_HUB_TRIGGER_URL
+    push_trigger $SOURCE_BRANCH
 else
     >&2 echo "SOURCE_BRANCH is required."
-    >exit 1
+    exit 1
 fi
