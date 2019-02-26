@@ -15,20 +15,6 @@ ifeq (1,${GO_TEST_VERBOSE})
 GO_TEST_ARGS_VERBOSE := -v
 endif
 
-DOCKER_COMPOSE_CMD := docker-compose \
-	-f docker-compose.make.yml \
-
-DOCKER_COMPOSE_CMD_TEST := docker-compose \
-	-f docker-compose.test.yml \
-	-p skygear-server-test
-
-ifeq (1,${WITH_DOCKER})
-DOCKER_RUN := ${DOCKER_COMPOSE_CMD} run --rm app
-DOCKER_RUN_DB := ${DOCKER_COMPOSE_CMD_TEST} run --rm db_cmd
-DOCKER_RUN_TEST := ${DOCKER_COMPOSE_CMD_TEST} run --rm app
-GO_TEST_TIMEOUT := 5m
-endif
-
 DOCKER_REGISTRY :=
 DOCKER_ORG_NAME := skygeario
 DOCKER_IMAGE_AUTH := skygear-auth
@@ -47,67 +33,53 @@ GO_TEST_ARGS := $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) $(GO_TEST_AR
 
 .PHONY: vendor
 vendor:
-	$(DOCKER_RUN) dep ensure
+	dep ensure
 
 .PHONY: go-install
 go-install:
-	$(DOCKER_RUN) go install $(GO_BUILD_ARGS) ./...
-	$(DOCKER_RUN) go install tools/nextimportslint.go
+	go install $(GO_BUILD_ARGS) ./...
+	go install tools/nextimportslint.go
 
 .PHONY: go-generate
 go-generate: go-install
-	$(DOCKER_RUN) find pkg -type f -name "*_gen.go" -delete
-	$(DOCKER_RUN) find pkg -type f -name "mockgen_*.go" -delete
-	$(DOCKER_RUN) go generate ./pkg/...
+	find pkg -type f -name "*_gen.go" -delete
+	find pkg -type f -name "mockgen_*.go" -delete
+	go generate ./pkg/...
 
 .PHONY: go-lint
 go-lint: go-install
-	$(DOCKER_RUN) gometalinter --disable-all \
+	gometalinter --disable-all \
 		-enable=staticcheck --enable=golint --enable=misspell --enable=gocyclo \
 		--linter='gocyclo:gocyclo -over 15:^(?P<cyclo>\d+)\s+\S+\s(?P<function>\S+)\s+(?P<path>.*?\.go):(?P<line>\d+):(\d+)$'' \
 		./...
 # Next linter have stricter rule
-	$(DOCKER_RUN) gometalinter ./pkg/auth/... ./pkg/core/... ./pkg/gateway/...
-	$(DOCKER_RUN) nextimportslint
+	gometalinter ./pkg/auth/... ./pkg/core/... ./pkg/gateway/...
+	nextimportslint
 
 .PHONY: generate
 generate: go-generate
 
 .PHONY: build
 build:
-	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)
-	$(DOCKER_RUN) chmod +x $(DIST)
-
-.PHONY: before-docker-test
-before-docker-test:
-	-$(DOCKER_COMPOSE_CMD_TEST) up -d db redis
-	sleep 20
-	make before-test WITH_DOCKER=1
-
-.PHONY: before-test
-before-test:
-	-$(DOCKER_RUN_DB) psql -c 'CREATE DATABASE skygear_test;'
+	go build -o $(DIST) $(GO_BUILD_ARGS)
+	chmod +x $(DIST)
 
 .PHONY: test
 test:
 # Run `go install` to compile packages for caching and catch compilation error.
 	for TARGET in $(TARGETS) ; do \
 		pushd cmd/$$TARGET > /dev/null ; \
-		$(DOCKER_RUN_TEST) go install $(GO_BUILD_ARGS) ; \
+		go install $(GO_BUILD_ARGS) ; \
 		popd > /dev/null ; \
 	done
-	$(DOCKER_RUN_TEST) go test $(GO_TEST_ARGS) $(GO_TEST_PACKAGE)
+	go test $(GO_TEST_ARGS) $(GO_TEST_PACKAGE)
 
 .PHONY: lint
 lint: go-lint
 
 .PHONY: fmt
 fmt:
-	$(DOCKER_RUN) gofmt -w main.go ./pkg
-
-.PHONY: after-docker-test
-after-docker-test:
-	-$(DOCKER_COMPOSE_CMD_TEST) down -v
+	gofmt -w main.go ./pkg
 
 .PHONY: clean
 clean:
@@ -119,9 +91,9 @@ all:
 		DIST_DIR=$(DIST_DIR)$$TARGET/ ; \
 		mkdir -p $$DIST_DIR ; \
 		cp cmd/$$TARGET/main.go . ; \
-		$(DOCKER_RUN) gox -osarch="$(OSARCHS)" -output="$$DIST_DIR/$$TARGET-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS) ; \
+		gox -osarch="$(OSARCHS)" -output="$$DIST_DIR/$$TARGET-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS) ; \
 		$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$$DIST_DIR$$TARGET-linux-amd64; \
-		$(DOCKER_RUN) chmod +x $$DIST_DIR$$TARGET* ; \
+		chmod +x $$DIST_DIR$$TARGET* ; \
 		rm main.go ; \
 	done
 
