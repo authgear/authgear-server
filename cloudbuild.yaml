@@ -25,17 +25,6 @@ steps:
     args:
     - 'build'
     - '-f'
-    - './cmd/record/Dockerfile'
-    - '-t'
-    - 'gcr.io/$PROJECT_ID/skygear-record:git-$SHORT_SHA'
-    - '-t'
-    - 'gcr.io/$PROJECT_ID/skygear-record:next'
-    - '.'
-    id: 'skygear-record'
-  - name: gcr.io/cloud-builders/docker
-    args:
-    - 'build'
-    - '-f'
     - './cmd/migrate/Dockerfile'
     - '-t'
     - 'gcr.io/$PROJECT_ID/skygear-migrate:git-$SHORT_SHA'
@@ -48,7 +37,5 @@ images:
 - 'gcr.io/$PROJECT_ID/skygear-auth:next'
 - 'gcr.io/$PROJECT_ID/skygear-gateway:git-$SHORT_SHA'
 - 'gcr.io/$PROJECT_ID/skygear-gateway:next'
-- 'gcr.io/$PROJECT_ID/skygear-record:git-$SHORT_SHA'
-- 'gcr.io/$PROJECT_ID/skygear-record:next'
 - 'gcr.io/$PROJECT_ID/skygear-migrate:git-$SHORT_SHA'
 - 'gcr.io/$PROJECT_ID/skygear-migrate:next'
