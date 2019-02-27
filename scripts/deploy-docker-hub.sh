@@ -12,11 +12,21 @@ if [ -z "$DOCKER_HUB_GATEWAY_TRIGGER_URL" ]; then
     exit 1
 fi
 
+if [ -z "$DOCKER_HUB_MIGRATE_TRIGGER_URL" ]; then
+    # DOCKER_HUB_MIGRATE_TRIGGER_URL is like: https://cloud.docker.com/api/build/v1/source/<uuid>/trigger/<uuid>/call/
+    >&2 echo "DOCKER_HUB_MIGRATE_TRIGGER_URL is required."
+    exit 1
+fi
+
 [ -n "$TRAVIS_TAG" ] && SOURCE_TAG="$TRAVIS_TAG"
 [ -n "$TRAVIS_BRANCH" ] && SOURCE_BRANCH="$TRAVIS_BRANCH"
 [ -n "$TRAVIS_REPO_SLUG" ] && SOURCE_REPO="$TRAVIS_REPO_SLUG"
 
-declare -a TRIGGER_URLS=("$DOCKER_HUB_AUTH_TRIGGER_URL" "$DOCKER_HUB_GATEWAY_TRIGGER_URL")
+declare -a TRIGGER_URLS=(
+    "$DOCKER_HUB_AUTH_TRIGGER_URL"
+    "$DOCKER_HUB_GATEWAY_TRIGGER_URL"
+    "$DOCKER_HUB_MIGRATE_TRIGGER_URL"
+)
 
 function push_trigger() {
     for URL in "${TRIGGER_URLS[@]}"

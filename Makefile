@@ -3,7 +3,7 @@ DIST := skygear-server
 VERSION := $(shell git describe --always)
 GIT_SHA := $(shell git rev-parse HEAD)
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-TARGETS := gateway auth
+TARGETS := gateway auth migrate
 GO_BUILD_LDFLAGS := -ldflags "-X github.com/skygeario/skygear-server/pkg/server/skyversion.version=$(VERSION)"
 GO_TEST_TIMEOUT := 1m30s
 OSARCHS := linux/amd64 linux/386 linux/arm windows/amd64 windows/386 darwin/amd64
@@ -19,6 +19,7 @@ DOCKER_REGISTRY :=
 DOCKER_ORG_NAME := skygeario
 DOCKER_IMAGE_AUTH := skygear-auth
 DOCKER_IMAGE_GATEWAY := skygear-gateway
+DOCKER_IMAGE_MIGRATE := skygear-migrate
 DOCKER_TAG := git-$(shell git rev-parse --short HEAD)
 PUSH_DOCKER_TAG := $(VERSION)
 IMAGE_NAME = $(DOCKER_REGISTRY)$(DOCKER_ORG_NAME)/$(1):$(DOCKER_TAG)
@@ -27,6 +28,8 @@ AUTH_IMAGE_NAME = $(call IMAGE_NAME,$(DOCKER_IMAGE_AUTH))
 AUTH_VERSIONED_IMAGE_NAME = $(call VERSIONED_IMAGE_NAME,$(DOCKER_IMAGE_AUTH))
 GATEWAY_IMAGE_NAME = $(call IMAGE_NAME,$(DOCKER_IMAGE_GATEWAY))
 GATEWAY_VERSIONED_IMAGE_NAME = $(call VERSIONED_IMAGE_NAME,$(DOCKER_IMAGE_GATEWAY))
+MIGRATE_IMAGE_NAME = $(call IMAGE_NAME,$(DOCKER_IMAGE_MIGRATE))
+MIGRATE_VERSIONED_IMAGE_NAME = $(call VERSIONED_IMAGE_NAME,$(DOCKER_IMAGE_MIGRATE))
 
 GO_BUILD_ARGS := $(GO_BUILD_TAGS) $(GO_BUILD_LDFLAGS)
 GO_TEST_ARGS := $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) $(GO_TEST_ARGS_VERBOSE) -p 1 -cpu $(GO_TEST_CPU)
@@ -93,7 +96,7 @@ all:
 		cp cmd/$$TARGET/main.go . ; \
 		gox -osarch="$(OSARCHS)" -output="$${DIST_DIR}skygear-$$TARGET-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS) ; \
 		$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$${DIST_DIR}skygear-$$TARGET-linux-amd64; \
-		chmod +x $$DIST_DIR$$TARGET* ; \
+		chmod +x $${DIST_DIR}skygear-$$TARGET* ; \
 		rm main.go ; \
 	done
 
@@ -104,8 +107,8 @@ update-version:
 .PHONY: archive
 archive:
 	cd $(DIST_DIR) ; \
-		find . -maxdepth 2 -type f \( -name 'skygear-auth-*' -o -name 'skygear-gateway-*' \) -not -name '*.exe' -not -name '*.zip' -not -name '*.tar.gz' -exec tar -zcvf {}.tar.gz {} \; ; \
-		find . -maxdepth 2 -type f \( -name 'skygear-auth-*.exe' -o -name 'skygear-gateway-*.exe' \) -not -exec zip -r {}.zip {} \;
+		find . -maxdepth 2 -type f -name 'skygear-*' -not -name '*.exe' -not -name '*.zip' -not -name '*.tar.gz' -exec tar -zcvf {}.tar.gz {} \; ; \
+		find . -maxdepth 2 -type f -name 'skygear-*.exe' -not -exec zip -r {}.zip {} \;
 
 .PHONY: docker-build-image
 docker-build-image:
@@ -123,22 +126,29 @@ docker-build-auth:
 
 .PHONY: docker-build-gateway
 docker-build-gateway:
-	$(MAKE) docker-build-image DOCKER_FILE=cmd/auth/Dockerfile IMAGE_NAME=$(GATEWAY_IMAGE_NAME)
+	$(MAKE) docker-build-image DOCKER_FILE=cmd/gateway/Dockerfile IMAGE_NAME=$(GATEWAY_IMAGE_NAME)
+
+.PHONY: docker-build-migrate
+docker-build-migrate:
+	$(MAKE) docker-build-image DOCKER_FILE=cmd/migrate/Dockerfile IMAGE_NAME=$(MIGRATE_IMAGE_NAME)
 
 .PHONY: docker-build
-docker-build: docker-build-auth docker-build-gateway
+docker-build: docker-build-auth docker-build-gateway docker-build-migrate
 
 .PHONY: docker-push
 docker-push:
 	docker push $(AUTH_IMAGE_NAME)
 	docker push $(GATEWAY_IMAGE_NAME)
+	docker push $(MIGRATE_IMAGE_NAME)
 
 .PHONY: docker-push-version
 docker-push-version:
 	docker tag $(AUTH_IMAGE_NAME) $(AUTH_VERSIONED_IMAGE_NAME)
 	docker tag $(GATEWAY_IMAGE_NAME) $(GATEWAY_VERSIONED_IMAGE_NAME)
+	docker tag $(MIGRATE_IMAGE_NAME) $(MIGRATE_VERSIONED_IMAGE_NAME)
 	docker push $(AUTH_VERSIONED_IMAGE_NAME)
 	docker push $(GATEWAY_VERSIONED_IMAGE_NAME)
+	docker push $(MIGRATE_VERSIONED_IMAGE_NAME)
 
 .PHONY: release-commit
 release-commit:
