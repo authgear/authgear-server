@@ -8,8 +8,7 @@ type Gear string
 
 // Gear constant specific gear name
 const (
-	AuthGear   Gear = "auth"
-	RecordGear Gear = "record"
+	AuthGear Gear = "auth"
 )
 
 type GearVersion string
@@ -24,12 +23,11 @@ const (
 
 // App is skygear application
 type App struct {
-	ID            string
-	Name          string
-	Config        config.TenantConfiguration
-	Plan          Plan
-	AuthVersion   GearVersion
-	RecordVersion GearVersion
+	ID          string
+	Name        string
+	Config      config.TenantConfiguration
+	Plan        Plan
+	AuthVersion GearVersion
 }
 
 // CanAccessGear determine whether the app can access the given gear
@@ -41,8 +39,6 @@ func (a *App) GetGearVersion(gear Gear) GearVersion {
 	switch gear {
 	case AuthGear:
 		return a.AuthVersion
-	case RecordGear:
-		return a.RecordVersion
 	default:
 		return SuspendedVersion
 	}

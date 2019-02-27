@@ -45,8 +45,7 @@ type GearURLConfig struct {
 
 // RouterConfig contain gears url
 type RouterConfig struct {
-	Auth   GearURLConfig `envconfig:"AUTH"`
-	Record GearURLConfig `envconfig:"RECORD"`
+	Auth GearURLConfig `envconfig:"AUTH"`
 }
 
 // GetGearURL provide router map from RouterConfig
@@ -55,8 +54,6 @@ func (r *RouterConfig) GetGearURL(gear model.Gear, version model.GearVersion) (s
 	switch gear {
 	case model.AuthGear:
 		g = r.Auth
-	case model.RecordGear:
-		g = r.Record
 	default:
 		return "", errors.New("invalid gear")
 	}
