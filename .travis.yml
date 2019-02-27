@@ -53,7 +53,7 @@ script:
 before_deploy:
   - if [[ ! -z "$TRAVIS_TAG" ]]; then make all archive; fi
 
-#deploy:
+deploy:
   - provider: releases
     api-key: "$GITHUB_RELEASE_TOKEN"
     file:
