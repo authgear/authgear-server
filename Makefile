@@ -15,6 +15,12 @@ ifeq (1,${GO_TEST_VERBOSE})
 GO_TEST_ARGS_VERBOSE := -v
 endif
 
+DOCKER_COMPOSE_CMD := docker-compose -f docker-compose.make.yml
+
+ifeq (1,${WITH_DOCKER})	
+DOCKER_RUN := ${DOCKER_COMPOSE_CMD} run --rm app
+endif
+
 DOCKER_REGISTRY :=
 DOCKER_ORG_NAME := skygeario
 DOCKER_IMAGE_AUTH := skygear-auth
@@ -36,53 +42,49 @@ GO_TEST_ARGS := $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) $(GO_TEST_AR
 
 .PHONY: vendor
 vendor:
-	dep ensure
+	$(DOCKER_RUN) dep ensure
 
 .PHONY: go-install
 go-install:
-	go install $(GO_BUILD_ARGS) ./...
-	go install tools/nextimportslint.go
+	$(DOCKER_RUN) go install $(GO_BUILD_ARGS) ./...
+	$(DOCKER_RUN) go install tools/nextimportslint.go
 
 .PHONY: go-generate
 go-generate: go-install
-	find pkg -type f -name "*_gen.go" -delete
-	find pkg -type f -name "mockgen_*.go" -delete
-	go generate ./pkg/...
+	$(DOCKER_RUN) find pkg -type f -name "*_gen.go" -delete
+	$(DOCKER_RUN) find pkg -type f -name "mockgen_*.go" -delete
+	$(DOCKER_RUN) go generate ./pkg/...
 
 .PHONY: go-lint
 go-lint: go-install
-	gometalinter --disable-all \
+	$(DOCKER_RUN) gometalinter --disable-all \
 		-enable=staticcheck --enable=golint --enable=misspell --enable=gocyclo \
 		--linter='gocyclo:gocyclo -over 15:^(?P<cyclo>\d+)\s+\S+\s(?P<function>\S+)\s+(?P<path>.*?\.go):(?P<line>\d+):(\d+)$'' \
 		./...
 # Next linter have stricter rule
-	gometalinter ./pkg/auth/... ./pkg/core/... ./pkg/gateway/...
-	nextimportslint
+	$(DOCKER_RUN) gometalinter ./pkg/auth/... ./pkg/core/... ./pkg/gateway/...
+	$(DOCKER_RUN) nextimportslint
 
 .PHONY: generate
 generate: go-generate
 
 .PHONY: build
 build:
-	go build -o $(DIST) $(GO_BUILD_ARGS)
-	chmod +x $(DIST)
+	$(DOCKER_RUN) go build -o $(DIST) $(GO_BUILD_ARGS)
+	$(DOCKER_RUN) chmod +x $(DIST)
 
 .PHONY: test
 test:
 # Run `go install` to compile packages for caching and catch compilation error.
-	for TARGET in $(TARGETS) ; do \
-		pushd cmd/$$TARGET > /dev/null ; \
-		go install $(GO_BUILD_ARGS) ; \
-		popd > /dev/null ; \
-	done
-	go test $(GO_TEST_ARGS) $(GO_TEST_PACKAGE)
+	$(DOCKER_RUN) go install $(GO_BUILD_ARGS) ./...
+	$(DOCKER_RUN) go test $(GO_TEST_ARGS) $(GO_TEST_PACKAGE)
 
 .PHONY: lint
 lint: go-lint
 
 .PHONY: fmt
 fmt:
-	gofmt -w main.go ./pkg
+	${DOCKER_RUN} gofmt -w cmd/**/main.go ./pkg
 
 .PHONY: clean
 clean:
@@ -94,9 +96,9 @@ all:
 		DIST_DIR=$(DIST_DIR)$$TARGET/ ; \
 		mkdir -p $$DIST_DIR ; \
 		cp cmd/$$TARGET/main.go . ; \
-		gox -osarch="$(OSARCHS)" -output="$${DIST_DIR}skygear-$$TARGET-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS) ; \
+		$(DOCKER_RUN) gox -osarch="$(OSARCHS)" -output="$${DIST_DIR}skygear-$$TARGET-{{.OS}}-{{.Arch}}" $(GO_BUILD_ARGS) ; \
 		$(MAKE) build GOOS=linux GOARCH=amd64 DIST=$${DIST_DIR}skygear-$$TARGET-linux-amd64; \
-		chmod +x $${DIST_DIR}skygear-$$TARGET* ; \
+		$(DOCKER_RUN) chmod +x $${DIST_DIR}skygear-$$TARGET* ; \
 		rm main.go ; \
 	done
 
