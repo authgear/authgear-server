@@ -57,6 +57,15 @@ func main() {
 
 	r.Use(middleware.FindAppMiddleware{Store: store}.Handle)
 
+	cr := r.PathPrefix("/").Subrouter()
+
+	cr.Use(middleware.FindCloudCodeMiddleware{
+		RestPathIdentifier: "rest",
+		Store:              store,
+	}.Handle)
+
+	cr.HandleFunc("/{rest:.*}", handler.NewCloudCodeHandler(config.Router))
+
 	gr := r.PathPrefix("/_{gear}").Subrouter()
 
 	gr.Use(coreMiddleware.TenantConfigurationMiddleware{
