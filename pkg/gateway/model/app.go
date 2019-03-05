@@ -1,6 +1,8 @@
 package model
 
 import (
+	"context"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -28,6 +30,16 @@ type App struct {
 	Config      config.TenantConfiguration
 	Plan        Plan
 	AuthVersion GearVersion
+}
+
+const contextKeyApp contextKey = "app"
+
+func ContextWithApp(ctx context.Context, app *App) context.Context {
+	return context.WithValue(ctx, contextKeyApp, app)
+}
+
+func AppFromContext(ctx context.Context) *App {
+	return ctx.Value(contextKeyApp).(*App)
 }
 
 // CanAccessGear determine whether the app can access the given gear

@@ -21,12 +21,7 @@ type TenantAuthzMiddleware struct {
 // access gear
 func (a TenantAuthzMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		host := r.Host
-		app := gatewayModel.App{}
-		if err := a.Store.GetAppByDomain(host, &app); err != nil {
-			http.Error(w, "Fail to found app", http.StatusBadRequest)
-			return
-		}
+		app := gatewayModel.AppFromContext(r.Context())
 
 		// Tenant authorization
 		gear := gatewayModel.Gear(mux.Vars(r)["gear"])
