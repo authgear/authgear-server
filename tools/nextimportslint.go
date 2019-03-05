@@ -43,8 +43,6 @@ func getTolerantImports(gearName string, comments []*ast.CommentGroup) []string 
 	// core is default allow imports
 	rules := []string{
 		"core",
-		// use skyerr a lot, tolerance import server temporarily
-		"server",
 	}
 
 	// add except rules, like: "// tolerant nextimportslint: record, chat"

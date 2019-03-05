@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	nextSkyerr "github.com/skygeario/skygear-server/pkg/core/skyerr"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
 )
 
 type APIHandler interface {

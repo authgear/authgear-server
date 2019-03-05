@@ -4,7 +4,7 @@
 
 ```
 apt-get update
-apt-get install libsodium18 libzmq5 postgresql-9.5-postgis-2.2 redis-server
+apt-get install postgresql-9.5-postgis-2.2 redis-server
 ```
 
 ## Setup Database

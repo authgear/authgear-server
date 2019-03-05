@@ -28,7 +28,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	dbPq "github.com/skygeario/skygear-server/pkg/core/db/pq"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
 type authInfoStore struct {

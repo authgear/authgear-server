@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

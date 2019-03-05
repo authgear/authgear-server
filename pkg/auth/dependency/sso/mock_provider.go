@@ -1,7 +1,7 @@
 package sso
 
 import (
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type MockSSOProverImpl struct {

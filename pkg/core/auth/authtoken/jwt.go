@@ -19,7 +19,7 @@ import (
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/skygeario/skygear-server/pkg/server/uuid"
+	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 // JWTStore implements TokenStore by encoding user information into

@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type InstagramImpl struct {

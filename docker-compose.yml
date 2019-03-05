@@ -1,10 +1,10 @@
 # docker-compose.yml for Skygear
 #
-# This docker-compose.yml requries Docker Compose 1.6. Do not modify this
+# This docker-compose.yml requries Docker Compose 2.0. Do not modify this
 # file for local development--create `docker-compose.override.yml` to override
 # settings here.
 
-version: '2.3'
+version: '3'
 
 services:
   db:
@@ -13,40 +13,29 @@ services:
     - db_data:/var/lib/postgresql/data
     ports:
     - "5432:5432"
-
-  app:
+  gateway:
     build:
+      dockerfile: ./cmd/gateway/Dockerfile
       context: .
-      dockerfile: Dockerfile
-    ports:
-    - "3000:3000" # Skygear Server API Endpoint (HTTP)
-    - "5555:5555" # Skygear Server Plugin Endpoint (ZMQ)
-    volumes:
-    - app_data:/app/data
-    links:
-    - db
-    command: skygear-server
-    restart: always
-    tty: true
     environment:
-      # `db` in the following string should match the name of the database
-      # container above.
-      DATABASE_URL: postgresql://postgres:@db/postgres?sslmode=disable
-      REDISTEST: redis://redis:6379
-      API_KEY: changeme
-      MASTER_KEY: secret
-      APP_NAME: _
-      TOKEN_STORE: jwt
-      TOKEN_STORE_SECRET: my_skygear_jwt_secret
-      ZMQ_MAX_BOUNCE: 10
-      CUSTOM_TOKEN_SECRET: ssosecret
-      # GOMAXPROCS - The maximum number of Go threads for execution.
-      # When unspecified, the default is the number of CPU available, which
-      # is the recommended setting.
-      #GOMAXPROCS: 1
+    - "DATABASE_URL=postgres://postgres:@db/postgres?sslmode=disable"
+    - "HOST=0.0.0.0:3001"
+    - "AUTH_LIVE_URL=http://auth:3000"
+    ports:
+    - "3001:3001"
+    depends_on:
+    - db
+  auth:
+    build:
+      dockerfile: ./cmd/auth/Dockerfile
+      context: .
+    environment:
+    - "HOST=0.0.0.0:3000"
+    ports:
+    - "3000:3000"
+    depends_on:
+    - db
 
 volumes:
   db_data:
-    driver: local
-  app_data:
     driver: local

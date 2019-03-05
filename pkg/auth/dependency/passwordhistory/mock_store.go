@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/server/uuid"
+	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type MockPasswordHistoryStoreImpl struct {

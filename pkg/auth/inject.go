@@ -17,7 +17,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
-	"github.com/skygeario/skygear-server/pkg/core/asset/fs"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -26,7 +25,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/template"
-	"github.com/skygeario/skygear-server/pkg/record/dependency/record/pq" // tolerant nextimportslint: record
 )
 
 type DependencyMap struct {
@@ -117,29 +115,6 @@ func (m DependencyMap) Provide(
 		switch tConfig.UserProfile.ImplName {
 		default:
 			panic("unrecgonized user profile store implementation: " + tConfig.UserProfile.ImplName)
-		case "record":
-			// use record based profile store
-			roleStore := coreAuth.NewDefaultRoleStore(ctx, tConfig)
-			recordStore := pq.NewSafeRecordStore(
-				roleStore,
-				// TODO: get from tconfig
-				true,
-				db.NewSQLBuilder("record", tConfig.AppName),
-				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-				logging.CreateLoggerWithRequestID(requestID, "record", createLoggerMaskFormatter(tConfig)),
-				db.NewSafeTxContextWithContext(ctx, tConfig),
-			)
-			// TODO: get from tConfig
-			assetStore := fs.NewAssetStore("", "", "", true, logging.CreateLoggerWithRequestID(requestID, "record", createLoggerMaskFormatter(tConfig)))
-			return userprofile.NewUserProfileRecordStore(
-				tConfig.UserProfile.ImplStoreURL,
-				tConfig.APIKey,
-				logging.CreateLoggerWithRequestID(requestID, "auth_user_profile", createLoggerMaskFormatter(tConfig)),
-				coreAuth.NewContextGetterWithContext(ctx),
-				db.NewTxContextWithContext(ctx, tConfig),
-				recordStore,
-				assetStore,
-			)
 		case "":
 			// use auth default profile store
 			return userprofile.NewSafeProvider(

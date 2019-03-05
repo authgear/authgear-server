@@ -22,7 +22,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 // PasswordViolationReason is a detailed explanation

@@ -26,8 +26,6 @@ before_install:
   - export PKG_CONFIG_PATH=$LD_INSTALL_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH
   - mkdir -p $LD_INSTALL_PREFIX/src
   - pushd $LD_INSTALL_PREFIX/src
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/jedisct1/libsodium.git 1.0.8
-  - $TRAVIS_BUILD_DIR/scripts/build-git-lib.sh git://github.com/zeromq/zeromq4-1.git v4.1.4
   - popd
   - sudo curl -fsSL -o /usr/local/bin/dep https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64
   - sudo curl -fsSL -o /usr/local/bin/vg https://github.com/GetStream/vg/releases/download/v0.8.0/vg-linux-amd64
@@ -45,21 +43,12 @@ before_script:
   - psql -c 'CREATE EXTENSION postgis;' -U postgres -d skygear_test
 
 script:
-  - WITH_ZMQ=1 make generate
+  - make generate
   - git status | grep "_gen.go$"; test $? -eq 1
   - git status | grep "_string.go$"; test $? -eq 1
   - git status | grep "mockgen.*go$"; test $? -eq 1
-  - WITH_ZMQ=1 make lint
-  - WITH_ZMQ=1 make test
-
-jobs:
-  allow_failures:
-    - name: legacy
-  include:
-    - name: legacy
-      script:
-      - WITH_ZMQ=1 make generate
-      - WITH_ZMQ=1 make test GO_TEST_PACKAGE=./pkg/server/...
+  - make lint
+  - make test
 
 before_deploy:
   - if [[ ! -z "$TRAVIS_TAG" ]]; then make all archive; fi
@@ -68,8 +57,8 @@ deploy:
   - provider: releases
     api-key: "$GITHUB_RELEASE_TOKEN"
     file:
-      - "dist/skygear-server-*.tar.gz"
-      - "dist/skygear-server-*.zip"
+      - "dist/**/skygear-*.tar.gz"
+      - "dist/**/skygear-*.zip"
     skip_cleanup: true
     file_glob: true
     on:

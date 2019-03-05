@@ -2,7 +2,7 @@ package role
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/skygeario/skygear-server/pkg/server/utils"
+	"github.com/skygeario/skygear-server/pkg/core/utils"
 )
 
 type Role struct {

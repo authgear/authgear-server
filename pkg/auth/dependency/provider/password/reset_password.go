@@ -2,8 +2,8 @@ package password
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
-	"github.com/skygeario/skygear-server/pkg/server/skyerr"
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type ResetPasswordRequestContext struct {

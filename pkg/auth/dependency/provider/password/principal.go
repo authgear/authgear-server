@@ -3,7 +3,7 @@ package password
 import (
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/skygeario/skygear-server/pkg/server/uuid"
+	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
 type Principal struct {

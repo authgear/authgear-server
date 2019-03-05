@@ -3,7 +3,7 @@ package password
 import (
 	"reflect"
 
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"golang.org/x/crypto/bcrypt"
 )
 

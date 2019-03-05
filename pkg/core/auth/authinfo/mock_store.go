@@ -1,7 +1,7 @@
 package authinfo
 
 import (
-	"github.com/skygeario/skygear-server/pkg/server/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
 // MockStore is the memory implementation of authinfo store
