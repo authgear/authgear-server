@@ -15,16 +15,18 @@ type FindCloudCodeMiddleware struct {
 
 func (f FindCloudCodeMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		app := gatewayModel.AppFromContext(r.Context())
+		ctx := gatewayModel.GatewayContextFromContext(r.Context())
+		app := ctx.App
 		cloudCode := gatewayModel.CloudCode{}
 
 		path := "/" + mux.Vars(r)[f.RestPathIdentifier]
-		if err := f.Store.FindLongestMatchedCloudCode(path, *app, &cloudCode); err != nil {
+		if err := f.Store.FindLongestMatchedCloudCode(path, app, &cloudCode); err != nil {
 			http.Error(w, "Fail to found cloud code", http.StatusBadRequest)
 			return
 		}
 
-		r = r.WithContext(gatewayModel.ContextWithCloudCode(r.Context(), &cloudCode))
+		ctx.CloudCode = cloudCode
+		r = r.WithContext(gatewayModel.ContextWithGatewayContext(r.Context(), ctx))
 
 		next.ServeHTTP(w, r)
 	})

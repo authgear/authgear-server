@@ -21,7 +21,8 @@ type TenantAuthzMiddleware struct {
 // access gear
 func (a TenantAuthzMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		app := gatewayModel.AppFromContext(r.Context())
+		ctx := gatewayModel.GatewayContextFromContext(r.Context())
+		app := ctx.App
 
 		// Tenant authorization
 		gear := gatewayModel.Gear(mux.Vars(r)["gear"])

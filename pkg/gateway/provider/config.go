@@ -17,8 +17,9 @@ type GatewayTenantConfigurationProvider struct {
 
 // ProvideConfig function query the tenant config from db by request
 func (p GatewayTenantConfigurationProvider) ProvideConfig(r *http.Request) (config.TenantConfiguration, error) {
-	app := model.AppFromContext(r.Context())
-	if app == nil {
+	ctx := model.GatewayContextFromContext(r.Context())
+	app := ctx.App
+	if app.ID == "" {
 		panic("Unexpected app not found")
 	}
 

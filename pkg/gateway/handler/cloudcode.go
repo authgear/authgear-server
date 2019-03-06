@@ -23,7 +23,8 @@ func newCloudCodeReverseProxy(routerConfig config.RouterConfig) *httputil.Revers
 		if err != nil {
 			panic(err)
 		}
-		cloudCode := model.CloudCodeFromContext(req.Context())
+		ctx := model.GatewayContextFromContext(req.Context())
+		cloudCode := ctx.CloudCode
 		req.URL = u
 		req.URL.Path = "/function" + cloudCode.TargetPath
 		req.URL.RawQuery = query

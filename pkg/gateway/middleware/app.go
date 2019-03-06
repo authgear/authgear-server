@@ -20,7 +20,9 @@ func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		r = r.WithContext(gatewayModel.ContextWithApp(r.Context(), &app))
+		ctx := gatewayModel.GatewayContextFromContext(r.Context())
+		ctx.App = app
+		r = r.WithContext(gatewayModel.ContextWithGatewayContext(r.Context(), ctx))
 
 		next.ServeHTTP(w, r)
 	})
