@@ -47,7 +47,12 @@ func NewServerWithOption(
 	router := mux.NewRouter()
 	router.HandleFunc("/healthz", HealthCheckHandler)
 
-	subRouter := router.NewRoute().Subrouter()
+	var subRouter *mux.Router
+	if option.GearPathPrefix == "" {
+		subRouter = router.NewRoute().Subrouter()
+	} else {
+		subRouter = router.PathPrefix(option.GearPathPrefix).Subrouter()
+	}
 	srv := Server{
 		router: subRouter,
 		Server: &http.Server{
