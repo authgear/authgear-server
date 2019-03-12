@@ -4,8 +4,6 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -15,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
 	pqStore "github.com/skygeario/skygear-server/pkg/gateway/db/pq"
+	"github.com/skygeario/skygear-server/pkg/gateway/handler"
 	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
 	"github.com/skygeario/skygear-server/pkg/gateway/provider"
 )
@@ -50,16 +49,25 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/healthz", HealthCheckHandler)
 
-	proxy := NewReverseProxy()
-	gr := r.PathPrefix("/{gear}").Subrouter()
-
+	r = r.PathPrefix("/").Subrouter()
 	// RecoverMiddleware must come first
-	gr.Use(coreMiddleware.RecoverMiddleware{
+	r.Use(coreMiddleware.RecoverMiddleware{
 		RecoverHandler: server.DefaultRecoverPanicHandler,
 	}.Handle)
-	// TODO:
-	// Currently both config and authz middleware both query store to get
-	// app, see how to reduce query to optimize the performance
+
+	r.Use(middleware.FindAppMiddleware{Store: store}.Handle)
+
+	cr := r.PathPrefix("/").Subrouter()
+
+	cr.Use(middleware.FindCloudCodeMiddleware{
+		RestPathIdentifier: "rest",
+		Store:              store,
+	}.Handle)
+
+	cr.HandleFunc("/{rest:.*}", handler.NewCloudCodeHandler(config.Router))
+
+	gr := r.PathPrefix("/_{gear}").Subrouter()
+
 	gr.Use(coreMiddleware.TenantConfigurationMiddleware{
 		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
 			Store: store,
@@ -70,7 +78,7 @@ func main() {
 		RouterConfig: config.Router,
 	}.Handle)
 
-	gr.HandleFunc("/{rest:.*}", rewriteHandler(proxy))
+	gr.HandleFunc("/{rest:.*}", handler.NewGearHandler("rest"))
 
 	srv := &http.Server{
 		Addr: config.HTTP.Host,
@@ -84,33 +92,6 @@ func main() {
 	logger.Info("Start gateway server")
 	if err := srv.ListenAndServe(); err != nil {
 		logger.Errorf("Fail to start gateway server %v", err)
-	}
-}
-
-// NewReverseProxy takes an incoming request and sends it to coresponding
-// gear server
-func NewReverseProxy() *httputil.ReverseProxy {
-	director := func(req *http.Request) {
-		path := req.URL.Path
-		query := req.URL.RawQuery
-		fragment := req.URL.Fragment
-		var err error
-		u, err := url.Parse(req.Header.Get("X-Skygear-Gear-Endpoint"))
-		if err != nil {
-			panic(err)
-		}
-		req.URL = u
-		req.URL.Path = path
-		req.URL.RawQuery = query
-		req.URL.Fragment = fragment
-	}
-	return &httputil.ReverseProxy{Director: director}
-}
-
-func rewriteHandler(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = "/" + mux.Vars(r)["rest"]
-		p.ServeHTTP(w, r)
 	}
 }
 
