@@ -20,7 +20,7 @@ func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := gatewayModel.GatewayContextFromContext(r.Context())
+		ctx := gatewayModel.Context{}
 		ctx.App = app
 		r = r.WithContext(gatewayModel.ContextWithGatewayContext(r.Context(), ctx))
 
