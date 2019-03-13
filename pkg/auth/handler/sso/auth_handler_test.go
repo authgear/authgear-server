@@ -181,30 +181,20 @@ func TestAuthHandler(t *testing.T) {
 			So(authResp, ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user_id": "%s",
-					"profile": {
-						"_access": null,
-						"_created_at": "0001-01-01T00:00:00Z",
-						"_created_by": "%s",
-						"_id": "user/%s",
-						"_ownerID": "%s",
-						"_recordID": "%s",
-						"_recordType": "user",
-						"_type": "record",
-						"_updated_at": "0001-01-01T00:00:00Z",
-						"_updated_by": "%s"
-					},
 					"access_token": "%s",
 					"verified": false,
-					"verify_info": null
+					"verify_info": null,
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"metadata": {}
 				}
 			}`,
 				p.UserID,
+				token.AccessToken,
 				p.UserID,
-				p.UserID,
-				p.UserID,
-				p.UserID,
-				p.UserID,
-				token.AccessToken))
+				p.UserID))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
@@ -271,30 +261,20 @@ func TestAuthHandler(t *testing.T) {
 			So(decoded, ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user_id": "%s",
-					"profile": {
-						"_access": null,
-						"_created_at": "0001-01-01T00:00:00Z",
-						"_created_by": "%s",
-						"_id": "user/%s",
-						"_ownerID": "%s",
-						"_recordID": "%s",
-						"_recordType": "user",
-						"_type": "record",
-						"_updated_at": "0001-01-01T00:00:00Z",
-						"_updated_by": "%s"
-					},
 					"access_token": "%s",
 					"verified": false,
-					"verify_info":  null
+					"verify_info": null,
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"metadata": {}
 				}
 			}`,
 				p.UserID,
+				token.AccessToken,
 				p.UserID,
-				p.UserID,
-				p.UserID,
-				p.UserID,
-				p.UserID,
-				token.AccessToken))
+				p.UserID))
 		})
 	})
 

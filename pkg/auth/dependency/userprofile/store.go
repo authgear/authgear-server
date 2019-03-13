@@ -116,18 +116,11 @@ func (u storeImpl) UpdateUserProfile(userID string, data Data) (profile UserProf
 
 func (u storeImpl) toUserProfile(userID string, data Data, createdAt time.Time, updatedAt time.Time) UserProfile {
 	return UserProfile{
-		Meta: Meta{
-			ID:         "user/" + userID,
-			Type:       "record",
-			RecordID:   userID,
-			RecordType: "user",
-			Access:     nil,
-			OwnerID:    userID,
-			CreatedAt:  createdAt,
-			CreatedBy:  userID,
-			UpdatedAt:  updatedAt,
-			UpdatedBy:  userID,
-		},
-		Data: data,
+		ID:        userID,
+		CreatedAt: createdAt,
+		CreatedBy: userID,
+		UpdatedAt: updatedAt,
+		UpdatedBy: userID,
+		Data:      data,
 	}
 }

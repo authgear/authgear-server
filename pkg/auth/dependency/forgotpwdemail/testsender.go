@@ -59,9 +59,7 @@ func (d *DefaultTestSender) Send(
 	}
 
 	userProfile := userprofile.UserProfile{
-		Meta: userprofile.Meta{
-			ID: "dummy-id",
-		},
+		ID: "dummy-id",
 	}
 	context := map[string]interface{}{
 		"appname": d.Config.AppName,

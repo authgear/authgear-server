@@ -32,19 +32,12 @@ func (u MockUserProfileStoreImpl) CreateUserProfile(userID string, authInfo *aut
 	u.Data[userID] = data
 	now := u.TimeNowfunc()
 	profile = UserProfile{
-		Meta: Meta{
-			ID:         "user/" + userID,
-			Type:       "record",
-			RecordID:   userID,
-			RecordType: "user",
-			Access:     nil,
-			OwnerID:    userID,
-			CreatedAt:  now,
-			CreatedBy:  userID,
-			UpdatedAt:  now,
-			UpdatedBy:  userID,
-		},
-		Data: data,
+		ID:        userID,
+		CreatedAt: now,
+		CreatedBy: userID,
+		UpdatedAt: now,
+		UpdatedBy: userID,
+		Data:      data,
 	}
 	return
 }
@@ -53,19 +46,12 @@ func (u MockUserProfileStoreImpl) GetUserProfile(userID string) (profile UserPro
 	data := u.Data[userID]
 	now := u.TimeNowfunc()
 	profile = UserProfile{
-		Meta: Meta{
-			ID:         "user/" + userID,
-			Type:       "record",
-			RecordID:   userID,
-			RecordType: "user",
-			Access:     nil,
-			OwnerID:    userID,
-			CreatedAt:  now,
-			CreatedBy:  userID,
-			UpdatedAt:  now,
-			UpdatedBy:  userID,
-		},
-		Data: data,
+		ID:        userID,
+		CreatedAt: now,
+		CreatedBy: userID,
+		UpdatedAt: now,
+		UpdatedBy: userID,
+		Data:      data,
 	}
 	return
 }
@@ -79,19 +65,12 @@ func (u MockUserProfileStoreImpl) UpdateUserProfile(userID string, authInfo *aut
 	u.Data[userID] = newData
 	now := u.TimeNowfunc()
 	profile = UserProfile{
-		Meta: Meta{
-			ID:         "user/" + userID,
-			Type:       "record",
-			RecordID:   userID,
-			RecordType: "user",
-			Access:     nil,
-			OwnerID:    userID,
-			CreatedAt:  now,
-			CreatedBy:  userID,
-			UpdatedAt:  now,
-			UpdatedBy:  userID,
-		},
-		Data: newData,
+		ID:        userID,
+		CreatedAt: now,
+		CreatedBy: userID,
+		UpdatedAt: now,
+		UpdatedBy: userID,
+		Data:      newData,
 	}
 	return
 }

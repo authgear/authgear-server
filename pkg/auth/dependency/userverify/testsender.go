@@ -108,14 +108,7 @@ func prepareVerifyTestRequestContext(
 	urlPrefix string,
 ) map[string]interface{} {
 	userProfile := userprofile.UserProfile{
-		Meta: userprofile.Meta{
-			ID:         "user/dummy-id",
-			RecordID:   "dummy-id",
-			RecordType: "user",
-			OwnerID:    "dummy-id",
-			CreatedBy:  "dummy-id",
-			UpdatedBy:  "dummy-id",
-		},
+		ID:   "dummy-id",
 		Data: userprofile.Data{},
 	}
 	userProfile.Data[recordKey] = recordValue
@@ -132,7 +125,7 @@ func prepareVerifyTestRequestContext(
 			"%s/verify_code_form?code=%s&user_id=%s",
 			urlPrefix,
 			code,
-			userProfile.RecordID,
+			userProfile.ID,
 		),
 	}
 }
