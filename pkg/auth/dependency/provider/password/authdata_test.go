@@ -127,12 +127,12 @@ func TestAuthData(t *testing.T) {
 
 	Convey("Test defaultAuthDataChecker isMatching", t, func() {
 		Convey("should match is authData exactly match [\"username\"], [\"email\"]]", func() {
-			authRecordKeys := [][]string{
+			loginIDMetadataKeys := [][]string{
 				[]string{"username"},
 				[]string{"email"},
 			}
 			authDataChecker := defaultAuthDataChecker{
-				authRecordKeys: authRecordKeys,
+				loginIDMetadataKeys: loginIDMetadataKeys,
 			}
 
 			authData := map[string]string{
@@ -151,11 +151,11 @@ func TestAuthData(t *testing.T) {
 		})
 
 		Convey("should match is authData exactly match [\"username\", \"email\"]]", func() {
-			authRecordKeys := [][]string{
+			loginIDMetadataKeys := [][]string{
 				[]string{"username", "email"},
 			}
 			authDataChecker := defaultAuthDataChecker{
-				authRecordKeys: authRecordKeys,
+				loginIDMetadataKeys: loginIDMetadataKeys,
 			}
 
 			authData := map[string]string{
@@ -174,12 +174,12 @@ func TestAuthData(t *testing.T) {
 		})
 
 		Convey("should match is authData exactly match [\"username\", \"email\"], [\"email\"]]", func() {
-			authRecordKeys := [][]string{
+			loginIDMetadataKeys := [][]string{
 				[]string{"username", "email"},
 				[]string{"email"},
 			}
 			authDataChecker := defaultAuthDataChecker{
-				authRecordKeys: authRecordKeys,
+				loginIDMetadataKeys: loginIDMetadataKeys,
 			}
 
 			authData := map[string]string{

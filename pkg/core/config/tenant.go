@@ -351,7 +351,7 @@ func NewTenantConfigurationFromEnv(_ *http.Request) (c TenantConfiguration, err 
 	if err != nil {
 		return
 	}
-	err = parseAuthRecordKeys(&c.Auth)
+	err = parseLoginIDMetadataKeys(&c.Auth)
 	if err != nil {
 		return
 	}
@@ -407,7 +407,7 @@ func getSSOConfigs(providers []string, ssoConfigs *[]SSOConfiguration) {
 	return
 }
 
-func parseAuthRecordKeys(authConfiguration *AuthConfiguration) error {
+func parseLoginIDMetadataKeys(authConfiguration *AuthConfiguration) error {
 	if authConfiguration.RawLoginIDMetadataKeys == "" {
 		// use default setting
 		return nil

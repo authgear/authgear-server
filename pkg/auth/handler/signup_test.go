@@ -84,9 +84,9 @@ func TestSingupHandler(t *testing.T) {
 			timeNow = realTime
 		}()
 
-		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
+		loginIDMetadataKeys := [][]string{[]string{"email"}, []string{"username"}}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(authRecordKeys)
+		passwordAuthProvider := password.NewMockProvider(loginIDMetadataKeys)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 
