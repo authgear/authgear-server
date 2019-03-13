@@ -24,30 +24,30 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "AUTH_RECORD_KEYS":
+		case "LOGIN_ID_METADATA_KEYS":
 			var zcmr uint32
 			zcmr, err = dc.ReadArrayHeader()
 			if err != nil {
 				return
 			}
-			if cap(z.AuthRecordKeys) >= int(zcmr) {
-				z.AuthRecordKeys = (z.AuthRecordKeys)[:zcmr]
+			if cap(z.LoginIDMetadataKeys) >= int(zcmr) {
+				z.LoginIDMetadataKeys = (z.LoginIDMetadataKeys)[:zcmr]
 			} else {
-				z.AuthRecordKeys = make([][]string, zcmr)
+				z.LoginIDMetadataKeys = make([][]string, zcmr)
 			}
-			for zxvk := range z.AuthRecordKeys {
+			for zxvk := range z.LoginIDMetadataKeys {
 				var zajw uint32
 				zajw, err = dc.ReadArrayHeader()
 				if err != nil {
 					return
 				}
-				if cap(z.AuthRecordKeys[zxvk]) >= int(zajw) {
-					z.AuthRecordKeys[zxvk] = (z.AuthRecordKeys[zxvk])[:zajw]
+				if cap(z.LoginIDMetadataKeys[zxvk]) >= int(zajw) {
+					z.LoginIDMetadataKeys[zxvk] = (z.LoginIDMetadataKeys[zxvk])[:zajw]
 				} else {
-					z.AuthRecordKeys[zxvk] = make([]string, zajw)
+					z.LoginIDMetadataKeys[zxvk] = make([]string, zajw)
 				}
-				for zbzg := range z.AuthRecordKeys[zxvk] {
-					z.AuthRecordKeys[zxvk][zbzg], err = dc.ReadString()
+				for zbzg := range z.LoginIDMetadataKeys[zxvk] {
+					z.LoginIDMetadataKeys[zxvk][zbzg], err = dc.ReadString()
 					if err != nil {
 						return
 					}
@@ -71,22 +71,22 @@ func (z *AuthConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 // EncodeMsg implements msgp.Encodable
 func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	// map header, size 2
-	// write "AUTH_RECORD_KEYS"
-	err = en.Append(0x82, 0xb0, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x52, 0x45, 0x43, 0x4f, 0x52, 0x44, 0x5f, 0x4b, 0x45, 0x59, 0x53)
+	// write "LOGIN_ID_METADATA_KEYS"
+	err = en.Append(0x82, 0xb6, 0x4c, 0x4f, 0x47, 0x49, 0x4e, 0x5f, 0x49, 0x44, 0x5f, 0x4d, 0x45, 0x54, 0x41, 0x44, 0x41, 0x54, 0x41, 0x5f, 0x4b, 0x45, 0x59, 0x53)
 	if err != nil {
 		return err
 	}
-	err = en.WriteArrayHeader(uint32(len(z.AuthRecordKeys)))
+	err = en.WriteArrayHeader(uint32(len(z.LoginIDMetadataKeys)))
 	if err != nil {
 		return
 	}
-	for zxvk := range z.AuthRecordKeys {
-		err = en.WriteArrayHeader(uint32(len(z.AuthRecordKeys[zxvk])))
+	for zxvk := range z.LoginIDMetadataKeys {
+		err = en.WriteArrayHeader(uint32(len(z.LoginIDMetadataKeys[zxvk])))
 		if err != nil {
 			return
 		}
-		for zbzg := range z.AuthRecordKeys[zxvk] {
-			err = en.WriteString(z.AuthRecordKeys[zxvk][zbzg])
+		for zbzg := range z.LoginIDMetadataKeys[zxvk] {
+			err = en.WriteString(z.LoginIDMetadataKeys[zxvk][zbzg])
 			if err != nil {
 				return
 			}
@@ -108,13 +108,13 @@ func (z *AuthConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 func (z *AuthConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
 	// map header, size 2
-	// string "AUTH_RECORD_KEYS"
-	o = append(o, 0x82, 0xb0, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x52, 0x45, 0x43, 0x4f, 0x52, 0x44, 0x5f, 0x4b, 0x45, 0x59, 0x53)
-	o = msgp.AppendArrayHeader(o, uint32(len(z.AuthRecordKeys)))
-	for zxvk := range z.AuthRecordKeys {
-		o = msgp.AppendArrayHeader(o, uint32(len(z.AuthRecordKeys[zxvk])))
-		for zbzg := range z.AuthRecordKeys[zxvk] {
-			o = msgp.AppendString(o, z.AuthRecordKeys[zxvk][zbzg])
+	// string "LOGIN_ID_METADATA_KEYS"
+	o = append(o, 0x82, 0xb6, 0x4c, 0x4f, 0x47, 0x49, 0x4e, 0x5f, 0x49, 0x44, 0x5f, 0x4d, 0x45, 0x54, 0x41, 0x44, 0x41, 0x54, 0x41, 0x5f, 0x4b, 0x45, 0x59, 0x53)
+	o = msgp.AppendArrayHeader(o, uint32(len(z.LoginIDMetadataKeys)))
+	for zxvk := range z.LoginIDMetadataKeys {
+		o = msgp.AppendArrayHeader(o, uint32(len(z.LoginIDMetadataKeys[zxvk])))
+		for zbzg := range z.LoginIDMetadataKeys[zxvk] {
+			o = msgp.AppendString(o, z.LoginIDMetadataKeys[zxvk][zbzg])
 		}
 	}
 	// string "CUSTOM_TOKEN_SECRET"
@@ -139,30 +139,30 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "AUTH_RECORD_KEYS":
+		case "LOGIN_ID_METADATA_KEYS":
 			var zhct uint32
 			zhct, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
 				return
 			}
-			if cap(z.AuthRecordKeys) >= int(zhct) {
-				z.AuthRecordKeys = (z.AuthRecordKeys)[:zhct]
+			if cap(z.LoginIDMetadataKeys) >= int(zhct) {
+				z.LoginIDMetadataKeys = (z.LoginIDMetadataKeys)[:zhct]
 			} else {
-				z.AuthRecordKeys = make([][]string, zhct)
+				z.LoginIDMetadataKeys = make([][]string, zhct)
 			}
-			for zxvk := range z.AuthRecordKeys {
+			for zxvk := range z.LoginIDMetadataKeys {
 				var zcua uint32
 				zcua, bts, err = msgp.ReadArrayHeaderBytes(bts)
 				if err != nil {
 					return
 				}
-				if cap(z.AuthRecordKeys[zxvk]) >= int(zcua) {
-					z.AuthRecordKeys[zxvk] = (z.AuthRecordKeys[zxvk])[:zcua]
+				if cap(z.LoginIDMetadataKeys[zxvk]) >= int(zcua) {
+					z.LoginIDMetadataKeys[zxvk] = (z.LoginIDMetadataKeys[zxvk])[:zcua]
 				} else {
-					z.AuthRecordKeys[zxvk] = make([]string, zcua)
+					z.LoginIDMetadataKeys[zxvk] = make([]string, zcua)
 				}
-				for zbzg := range z.AuthRecordKeys[zxvk] {
-					z.AuthRecordKeys[zxvk][zbzg], bts, err = msgp.ReadStringBytes(bts)
+				for zbzg := range z.LoginIDMetadataKeys[zxvk] {
+					z.LoginIDMetadataKeys[zxvk][zbzg], bts, err = msgp.ReadStringBytes(bts)
 					if err != nil {
 						return
 					}
@@ -186,11 +186,11 @@ func (z *AuthConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *AuthConfiguration) Msgsize() (s int) {
-	s = 1 + 17 + msgp.ArrayHeaderSize
-	for zxvk := range z.AuthRecordKeys {
+	s = 1 + 23 + msgp.ArrayHeaderSize
+	for zxvk := range z.LoginIDMetadataKeys {
 		s += msgp.ArrayHeaderSize
-		for zbzg := range z.AuthRecordKeys[zxvk] {
-			s += msgp.StringPrefixSize + len(z.AuthRecordKeys[zxvk][zbzg])
+		for zbzg := range z.LoginIDMetadataKeys[zxvk] {
+			s += msgp.StringPrefixSize + len(z.LoginIDMetadataKeys[zxvk][zbzg])
 		}
 	}
 	s += 20 + msgp.StringPrefixSize + len(z.CustomTokenSecret)

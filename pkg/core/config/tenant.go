@@ -43,11 +43,11 @@ type TokenStoreConfiguration struct {
 }
 
 type AuthConfiguration struct {
-	// RawAuthRecordKeys is used when parsing from environment variables
-	RawAuthRecordKeys string `msg:"-" envconfig:"RAW_AUTH_RECORD_KEYS" json:"-"`
-	// AuthRecordKeys is used when unmarshal from json
-	AuthRecordKeys    [][]string `msg:"AUTH_RECORD_KEYS" json:"AUTH_RECORD_KEYS"`
-	CustomTokenSecret string     `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
+	// RawLoginIDMetadataKeys is used when parsing from environment variables
+	RawLoginIDMetadataKeys string `msg:"-" envconfig:"RAW_LOGIN_ID_METADATA_KEYS" json:"-"`
+	// LoginIDMetadataKeys is used when unmarshal from json
+	LoginIDMetadataKeys [][]string `msg:"LOGIN_ID_METADATA_KEYS" json:"LOGIN_ID_METADATA_KEYS"`
+	CustomTokenSecret   string     `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
 }
 
 type UserAuditConfiguration struct {
@@ -184,7 +184,7 @@ func NewTenantConfiguration() TenantConfiguration {
 		DBConnectionStr: "postgres://postgres:@localhost/postgres?sslmode=disable",
 		CORSHost:        "*",
 		Auth: AuthConfiguration{
-			AuthRecordKeys: [][]string{[]string{"email"}, []string{"username"}},
+			LoginIDMetadataKeys: [][]string{[]string{"email"}, []string{"username"}},
 		},
 		SMTP: SMTPConfiguration{
 			Port: 25,
@@ -408,12 +408,12 @@ func getSSOConfigs(providers []string, ssoConfigs *[]SSOConfiguration) {
 }
 
 func parseAuthRecordKeys(authConfiguration *AuthConfiguration) error {
-	if authConfiguration.RawAuthRecordKeys == "" {
+	if authConfiguration.RawLoginIDMetadataKeys == "" {
 		// use default setting
 		return nil
 	}
 
-	splits := strings.Split(authConfiguration.RawAuthRecordKeys, ",")
+	splits := strings.Split(authConfiguration.RawLoginIDMetadataKeys, ",")
 	results := [][]string{}
 	container := []string{}
 	level := 0
@@ -448,7 +448,7 @@ func parseAuthRecordKeys(authConfiguration *AuthConfiguration) error {
 		}
 	}
 
-	authConfiguration.AuthRecordKeys = results
+	authConfiguration.LoginIDMetadataKeys = results
 
 	return nil
 }
