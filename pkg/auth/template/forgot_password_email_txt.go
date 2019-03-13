@@ -1,6 +1,6 @@
 package template
 
-const templateForgotPasswordEmailTxt = `Dear {{ user.email }},
+const templateForgotPasswordEmailTxt = `Dear {{ user_metadata.email }},
 
 You received this email because someone tries to reset your account password on {{ appname }}. To reset your account password, click this link:
 

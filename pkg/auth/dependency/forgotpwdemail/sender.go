@@ -62,12 +62,12 @@ func (d *DefaultSender) Send(
 			authInfo.ID,
 			expireAt.UTC().Unix(),
 		),
-		"email":      email,
-		"user_id":    userProfile.ID,
-		"user":       userProfile.ToMap(),
-		"url_prefix": d.Config.URLPrefix,
-		"code":       code,
-		"expire_at":  expireAt,
+		"email":         email,
+		"user_id":       userProfile.ID,
+		"user_metadata": userProfile.Data,
+		"url_prefix":    d.Config.URLPrefix,
+		"code":          code,
+		"expire_at":     expireAt,
 	}
 
 	var textBody string

@@ -110,12 +110,12 @@ func prepareVerifyRequestContext(
 	userProfile userprofile.UserProfile,
 ) map[string]interface{} {
 	return map[string]interface{}{
-		"appname":      appName,
-		"record_key":   verifyCode.RecordKey,
-		"record_value": verifyCode.RecordValue,
-		"user_id":      userProfile.ID,
-		"user":         userProfile.ToMap(),
-		"code":         verifyCode.Code,
+		"appname":       appName,
+		"record_key":    verifyCode.RecordKey,
+		"record_value":  verifyCode.RecordValue,
+		"user_id":       userProfile.ID,
+		"user_metadata": userProfile.Data,
+		"code":          verifyCode.Code,
 		"link": fmt.Sprintf(
 			"%s/verify_code_form?code=%s&user_id=%s",
 			config.URLPrefix,

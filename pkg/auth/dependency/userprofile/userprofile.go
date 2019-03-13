@@ -1,7 +1,6 @@
 package userprofile
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -29,16 +28,4 @@ type Store interface {
 	CreateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (UserProfile, error)
 	GetUserProfile(userID string) (UserProfile, error)
 	UpdateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (UserProfile, error)
-}
-
-func (u UserProfile) MarshalJSON() ([]byte, error) {
-	return json.Marshal(u.Data)
-}
-
-func (u UserProfile) ToMap() map[string]interface{} {
-	return u.Data
-}
-
-func (u UserProfile) UnmarshalJSON(b []byte) error {
-	return json.Unmarshal(b, &u.Data)
 }

@@ -151,9 +151,9 @@ func TestSingupHandler(t *testing.T) {
 			So(!token.IsExpired(), ShouldBeTrue)
 
 			// check user profile
-			profile := authResp.Profile
-			So(profile.Data["username"], ShouldEqual, "john.doe")
-			So(profile.Data["email"], ShouldEqual, "john.doe@example.com")
+			metadata := authResp.Metadata
+			So(metadata["username"], ShouldEqual, "john.doe")
+			So(metadata["email"], ShouldEqual, "john.doe@example.com")
 		})
 
 		Convey("auth data key combination should be unique", func() {

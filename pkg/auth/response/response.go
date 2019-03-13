@@ -23,18 +23,18 @@ import (
 
 // AuthResponse is the unify way of returing a AuthInfo with AuthData to SDK
 type AuthResponse struct {
-	UserID      string                  `json:"user_id,omitempty"`
-	Profile     userprofile.UserProfile `json:"metadata,omitempty"`
-	Roles       []string                `json:"roles,omitempty"`
-	AccessToken string                  `json:"access_token,omitempty"`
-	LastLoginAt *time.Time              `json:"last_login_at,omitempty"`
-	LastSeenAt  *time.Time              `json:"last_seen_at,omitempty"`
-	CreatedAt   time.Time               `json:"created_at"`
-	CreatedBy   string                  `json:"created_by"`
-	UpdatedAt   time.Time               `json:"updated_at"`
-	UpdatedBy   string                  `json:"updated_by"`
-	Verified    bool                    `json:"verified"`
-	VerifyInfo  map[string]bool         `json:"verify_info"`
+	UserID      string           `json:"user_id,omitempty"`
+	Metadata    userprofile.Data `json:"metadata,omitempty"`
+	Roles       []string         `json:"roles,omitempty"`
+	AccessToken string           `json:"access_token,omitempty"`
+	LastLoginAt *time.Time       `json:"last_login_at,omitempty"`
+	LastSeenAt  *time.Time       `json:"last_seen_at,omitempty"`
+	CreatedAt   time.Time        `json:"created_at"`
+	CreatedBy   string           `json:"created_by"`
+	UpdatedAt   time.Time        `json:"updated_at"`
+	UpdatedBy   string           `json:"updated_by"`
+	Verified    bool             `json:"verified"`
+	VerifyInfo  map[string]bool  `json:"verify_info"`
 }
 
 func NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile, accessToken string) AuthResponse {
@@ -42,7 +42,7 @@ func NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserPro
 
 	return AuthResponse{
 		UserID:      authInfo.ID,
-		Profile:     userProfile,
+		Metadata:    userProfile.Data,
 		Roles:       authInfo.Roles,
 		AccessToken: accessToken,
 		LastLoginAt: lastLoginAt,

@@ -90,7 +90,6 @@ func TestChangePasswordHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user_id": "%s",
-					"metadata": {},
 					"roles":["user"],
 					"access_token": "%s",
 					"verified":true,
