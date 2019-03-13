@@ -112,20 +112,12 @@ func (m DependencyMap) Provide(
 	case "HandlerLogger":
 		return logging.CreateLoggerWithRequestID(requestID, "handler", createLoggerMaskFormatter(tConfig))
 	case "UserProfileStore":
-		switch tConfig.UserProfile.ImplName {
-		default:
-			panic("unrecgonized user profile store implementation: " + tConfig.UserProfile.ImplName)
-		case "":
-			// use auth default profile store
-			return userprofile.NewSafeProvider(
-				db.NewSQLBuilder("auth", tConfig.AppName),
-				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-				logging.CreateLoggerWithRequestID(requestID, "auth_user_profile", createLoggerMaskFormatter(tConfig)),
-				db.NewSafeTxContextWithContext(ctx, tConfig),
-			)
-			// case "skygear":
-			// 	return XXX
-		}
+		return userprofile.NewSafeProvider(
+			db.NewSQLBuilder("auth", tConfig.AppName),
+			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+			logging.CreateLoggerWithRequestID(requestID, "auth_user_profile", createLoggerMaskFormatter(tConfig)),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
 	case "RoleStore":
 		return coreAuth.NewDefaultRoleStore(ctx, tConfig)
 	case "ForgotPasswordEmailSender":

@@ -25,7 +25,6 @@ type TenantConfiguration struct {
 	CORSHost        string                      `msg:"CORS_HOST" envconfig:"CORS_HOST" json:"CORS_HOST"`
 	Auth            AuthConfiguration           `msg:"AUTH" json:"AUTH"`
 	TokenStore      TokenStoreConfiguration     `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
-	UserProfile     UserProfileConfiguration    `json:"USER_PROFILE" msg:"USER_PROFILE"`
 	UserAudit       UserAuditConfiguration      `json:"USER_AUDIT" msg:"USER_AUDIT"`
 	SMTP            SMTPConfiguration           `json:"SMTP" msg:"SMTP"`
 	Twilio          TwilioConfiguration         `json:"TWILIO" msg:"TWILIO"`
@@ -49,11 +48,6 @@ type AuthConfiguration struct {
 	// AuthRecordKeys is used when unmarshal from json
 	AuthRecordKeys    [][]string `msg:"AUTH_RECORD_KEYS" json:"AUTH_RECORD_KEYS"`
 	CustomTokenSecret string     `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
-}
-
-type UserProfileConfiguration struct {
-	ImplName     string `msg:"IMPLEMENTATION" envconfig:"USER_PROFILE_IMPL_NAME" json:"IMPLEMENTATION"`
-	ImplStoreURL string `msg:"IMPL_STORE_URL" envconfig:"USER_PROFILE_IMPL_STORE_URL" json:"IMPL_STORE_URL"`
 }
 
 type UserAuditConfiguration struct {
