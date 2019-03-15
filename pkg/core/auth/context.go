@@ -6,7 +6,6 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 )
 
@@ -20,7 +19,6 @@ var (
 type ContextGetter interface {
 	AccessKeyType() model.KeyType
 	AuthInfo() *authinfo.AuthInfo
-	Roles() []role.Role
 	Token() *authtoken.Token
 }
 
@@ -28,7 +26,6 @@ type ContextGetter interface {
 type ContextSetter interface {
 	SetAccessKeyType(model.KeyType)
 	SetAuthInfo(*authinfo.AuthInfo)
-	SetRoles([]role.Role)
 	SetToken(*authtoken.Token)
 }
 
@@ -36,7 +33,6 @@ type ContextSetter interface {
 type contextContainer struct {
 	accessKeyType model.KeyType
 	authInfo      *authinfo.AuthInfo
-	roles         []role.Role
 	token         *authtoken.Token
 }
 
@@ -69,11 +65,6 @@ func (a *authContext) AuthInfo() *authinfo.AuthInfo {
 	return container.authInfo
 }
 
-func (a *authContext) Roles() []role.Role {
-	container := a.container()
-	return container.roles
-}
-
 func (a *authContext) Token() *authtoken.Token {
 	container := a.container()
 	return container.token
@@ -87,11 +78,6 @@ func (a *authContext) SetAccessKeyType(keyType model.KeyType) {
 func (a *authContext) SetAuthInfo(authInfo *authinfo.AuthInfo) {
 	container := a.container()
 	container.authInfo = authInfo
-}
-
-func (a *authContext) SetRoles(roles []role.Role) {
-	container := a.container()
-	container.roles = roles
 }
 
 func (a *authContext) SetToken(token *authtoken.Token) {
