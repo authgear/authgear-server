@@ -21,7 +21,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -97,7 +96,6 @@ type AuthHandler struct {
 	OAuthAuthProvider       oauth.Provider              `dependency:"OAuthAuthProvider"`
 	PasswordAuthProvider    password.Provider           `dependency:"PasswordAuthProvider"`
 	AuthInfoStore           authinfo.Store              `dependency:"AuthInfoStore"`
-	RoleStore               role.Store                  `dependency:"RoleStore"`
 	TokenStore              authtoken.Store             `dependency:"TokenStore"`
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
 	ProviderFactory         *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
@@ -192,7 +190,6 @@ func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.
 
 func (h AuthHandler) getResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
 	respHandler := respHandler{
-		RoleStore:            h.RoleStore,
 		TokenStore:           h.TokenStore,
 		AuthInfoStore:        h.AuthInfoStore,
 		OAuthAuthProvider:    h.OAuthAuthProvider,

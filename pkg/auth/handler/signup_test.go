@@ -19,7 +19,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -93,18 +92,6 @@ func TestSingupHandler(t *testing.T) {
 		passwordChecker := &authAudit.PasswordChecker{
 			PwMinLength: 6,
 		}
-		roleStore := role.NewMockStoreWithRoleMap(
-			map[string]role.Role{
-				"admin": role.Role{
-					Name:    "admin",
-					IsAdmin: true,
-				},
-				"user": role.Role{
-					Name:      "user",
-					IsDefault: true,
-				},
-			},
-		)
 
 		h := &SignupHandler{}
 		h.AuthInfoStore = authInfoStore
@@ -112,7 +99,6 @@ func TestSingupHandler(t *testing.T) {
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AnonymousAuthProvider = anonymousAuthProvider
-		h.RoleStore = roleStore
 		h.AuditTrail = audit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.Logger = logrus.NewEntry(logrus.New())
@@ -139,8 +125,6 @@ func TestSingupHandler(t *testing.T) {
 			a := authinfo.AuthInfo{}
 			authInfoStore.GetAuth(userID, &a)
 			So(a.ID, ShouldEqual, userID)
-			So(len(a.Roles), ShouldEqual, 1)
-			So(a.Roles[0], ShouldEqual, "user")
 			So(a.LastLoginAt.Equal(time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)), ShouldBeTrue)
 
 			// check the token
@@ -191,8 +175,6 @@ func TestSingupHandler(t *testing.T) {
 			a := authinfo.AuthInfo{}
 			authInfoStore.GetAuth(userID, &a)
 			So(a.ID, ShouldEqual, userID)
-			So(len(a.Roles), ShouldEqual, 1)
-			So(a.Roles[0], ShouldEqual, "user")
 			So(a.LastLoginAt.Equal(time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)), ShouldBeTrue)
 
 			// check the token

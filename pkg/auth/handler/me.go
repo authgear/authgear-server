@@ -62,7 +62,6 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 //   "user_id": "3df4b52b-bd58-4fa2-8aee-3d44fd7f974d",
 //   "last_login_at": "2016-09-08T06:42:59.871181Z",
 //   "last_seen_at": "2016-09-08T07:15:18.026567355Z",
-//   "roles": []
 // }
 type MeHandler struct {
 	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`

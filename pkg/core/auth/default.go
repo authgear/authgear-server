@@ -6,8 +6,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	pqAuthInfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo/pq"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/auth/role"
-	pqRole "github.com/skygeario/skygear-server/pkg/core/auth/role/pq"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -22,15 +20,6 @@ func NewDefaultAuthInfoStore(ctx context.Context, tConfig config.TenantConfigura
 		db.NewSQLBuilder("core", tConfig.AppName),
 		db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 		logging.CreateLoggerWithContext(ctx, "authinfo"),
-		db.NewSafeTxContextWithContext(ctx, tConfig),
-	)
-}
-
-func NewDefaultRoleStore(ctx context.Context, tConfig config.TenantConfiguration) role.Store {
-	return pqRole.NewSafeRoleStore(
-		db.NewSQLBuilder("core", tConfig.AppName),
-		db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-		logging.CreateLoggerWithContext(ctx, "role"),
 		db.NewSafeTxContextWithContext(ctx, tConfig),
 	)
 }

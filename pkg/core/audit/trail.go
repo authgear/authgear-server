@@ -50,9 +50,6 @@ const (
 	// EventChangePassword represents Change Password
 	EventChangePassword
 
-	// EventChangeRoles represents Change Roles
-	EventChangeRoles
-
 	// EventResetPassword represents Reset Password
 	EventResetPassword
 
@@ -75,8 +72,6 @@ func (e Event) String() string {
 		return "signup"
 	case EventChangePassword:
 		return "change_password"
-	case EventChangeRoles:
-		return "change_roles"
 	case EventResetPassword:
 		return "reset_password"
 	case EventDisableUser:

@@ -47,10 +47,7 @@ func (f SetDisableHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf(
 		authz.PolicyFunc(policy.DenyNoAccessKey),
 		authz.PolicyFunc(policy.RequireAuthenticated),
-		policy.AnyOf(
-			authz.PolicyFunc(policy.RequireAdminRole),
-			authz.PolicyFunc(policy.RequireMasterKey),
-		),
+		authz.PolicyFunc(policy.RequireMasterKey),
 		authz.PolicyFunc(policy.DenyDisabledUser),
 	)
 }
