@@ -43,21 +43,6 @@ func (s *safeAuthInfoStore) DeleteAuth(id string) error {
 	return s.impl.DeleteAuth(id)
 }
 
-func (s *safeAuthInfoStore) AssignRoles(userIDs []string, roles []string) error {
-	s.txContext.EnsureTx()
-	return s.impl.AssignRoles(userIDs, roles)
-}
-
-func (s *safeAuthInfoStore) GetRoles(userIDs []string) (map[string][]string, error) {
-	s.txContext.EnsureTx()
-	return s.impl.GetRoles(userIDs)
-}
-
-func (s *safeAuthInfoStore) RevokeRoles(userIDs []string, roles []string) error {
-	s.txContext.EnsureTx()
-	return s.impl.RevokeRoles(userIDs, roles)
-}
-
 // this ensures that our structure conform to certain interfaces.
 var (
 	_ authinfo.Store = &safeAuthInfoStore{}

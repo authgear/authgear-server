@@ -17,7 +17,6 @@ package authinfo
 import (
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/core/utils"
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
@@ -26,7 +25,6 @@ var timeNow = func() time.Time { return time.Now().UTC() }
 // AuthInfo contains a user's information for authentication purpose
 type AuthInfo struct {
 	ID              string          `json:"_id"`
-	Roles           []string        `json:"roles,omitempty"`
 	TokenValidSince *time.Time      `json:"token_valid_since,omitempty"`
 	LastSeenAt      *time.Time      `json:"last_seen_at,omitempty"`
 	LastLoginAt     *time.Time      `json:"last_login_at,omitempty"`
@@ -45,16 +43,6 @@ func NewAuthInfo() AuthInfo {
 	}
 
 	return info
-}
-
-// HasAnyRoles return true if authinfo belongs to one of the supplied roles
-func (info *AuthInfo) HasAnyRoles(roles []string) bool {
-	return utils.StringSliceContainAny(info.Roles, roles)
-}
-
-// HasAllRoles return true if authinfo has all roles supplied
-func (info *AuthInfo) HasAllRoles(roles []string) bool {
-	return utils.StringSliceContainAll(info.Roles, roles)
 }
 
 // IsDisabled returns true if the user is disabled.
