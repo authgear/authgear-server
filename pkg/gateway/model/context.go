@@ -16,5 +16,8 @@ func ContextWithGatewayContext(ctx context.Context, gatewayContext Context) cont
 }
 
 func GatewayContextFromContext(ctx context.Context) Context {
-	return ctx.Value(contextKeyGatewayContext).(Context)
+	if c, ok := ctx.Value(contextKeyGatewayContext).(Context); ok {
+		return c
+	}
+	return Context{}
 }
