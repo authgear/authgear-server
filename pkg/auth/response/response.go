@@ -24,7 +24,7 @@ import (
 // AuthResponse is the unify way of returing a AuthInfo with AuthData to SDK
 type AuthResponse struct {
 	UserID      string           `json:"user_id,omitempty"`
-	Metadata    userprofile.Data `json:"metadata,omitempty"`
+	Metadata    userprofile.Data `json:"metadata"`
 	Roles       []string         `json:"roles,omitempty"`
 	AccessToken string           `json:"access_token,omitempty"`
 	LastLoginAt *time.Time       `json:"last_login_at,omitempty"`

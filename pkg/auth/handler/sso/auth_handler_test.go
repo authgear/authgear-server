@@ -187,7 +187,8 @@ func TestAuthHandler(t *testing.T) {
 					"created_at": "0001-01-01T00:00:00Z",
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s"
+					"updated_by": "%s",
+					"metadata": {}
 				}
 			}`,
 				p.UserID,
@@ -266,7 +267,8 @@ func TestAuthHandler(t *testing.T) {
 					"created_at": "0001-01-01T00:00:00Z",
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s"
+					"updated_by": "%s",
+					"metadata": {}
 				}
 			}`,
 				p.UserID,
