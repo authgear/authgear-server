@@ -57,11 +57,11 @@ func (d *DefaultTestSender) Send(
 		ID: "dummy-id",
 	}
 	context := map[string]interface{}{
-		"appname":       d.AppName,
-		"email":         userProfile.Data["email"],
-		"user_id":       userProfile.ID,
-		"user_metadata": userProfile.Data,
-		"url_prefix":    d.Config.URLPrefix,
+		"appname":    d.AppName,
+		"email":      userProfile.Data["email"],
+		"user_id":    userProfile.ID,
+		"user":       userProfile,
+		"url_prefix": d.Config.URLPrefix,
 	}
 
 	var textBody string

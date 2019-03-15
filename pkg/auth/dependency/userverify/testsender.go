@@ -115,12 +115,12 @@ func prepareVerifyTestRequestContext(
 	code := "testing-code"
 
 	return map[string]interface{}{
-		"appname":       appName,
-		"record_key":    recordKey,
-		"record_value":  recordValue,
-		"user_id":       "dummy-id",
-		"user_metadata": userProfile.Data,
-		"code":          code,
+		"appname":      appName,
+		"record_key":   recordKey,
+		"record_value": recordValue,
+		"user_id":      "dummy-id",
+		"user":         userProfile,
+		"code":         code,
 		"link": fmt.Sprintf(
 			"%s/verify_code_form?code=%s&user_id=%s",
 			urlPrefix,

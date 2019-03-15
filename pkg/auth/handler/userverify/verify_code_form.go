@@ -136,7 +136,7 @@ func (h VerifyCodeFormHandler) HandleVerifyError(rw http.ResponseWriter, templat
 	}
 
 	if templateCtx.userProfile.ID != "" {
-		context["user_metadata"] = templateCtx.userProfile.Data
+		context["user"] = templateCtx.userProfile
 	}
 
 	html, htmlErr := h.VerifyHTMLProvider.ErrorHTML(templateCtx.verifyCode.RecordKey, context)
@@ -161,7 +161,7 @@ func (h VerifyCodeFormHandler) HandleVerifySuccess(rw http.ResponseWriter, templ
 		return
 	}
 
-	context["user_metadata"] = templateCtx.userProfile.Data
+	context["user"] = templateCtx.userProfile
 
 	html, htmlErr := h.VerifyHTMLProvider.SuccessHTML(templateCtx.verifyCode.RecordKey, context)
 	if htmlErr != nil {
