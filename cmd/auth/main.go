@@ -60,12 +60,17 @@ func main() {
 	task.AttachWelcomeEmailSendTask(asyncTaskExecutor, authDependency)
 
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
-	srv := server.NewServer(configuration.Host, authContextResolverFactory)
 
+	var srv server.Server
 	if configuration.DevMode {
+		serverOption := server.DefaultOption()
+		serverOption.GearPathPrefix = "/_auth"
+		srv = server.NewServerWithOption(configuration.Host, authContextResolverFactory, serverOption)
 		srv.Use(middleware.TenantConfigurationMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(config.NewTenantConfigurationFromEnv),
 		}.Handle)
+	} else {
+		srv = server.NewServer(configuration.Host, authContextResolverFactory)
 	}
 
 	srv.Use(middleware.RequestIDMiddleware{}.Handle)

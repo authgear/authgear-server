@@ -12,6 +12,7 @@ import (
 type Option struct {
 	RecoverPanic        bool
 	RecoverPanicHandler middleware.RecoverHandler
+	GearPathPrefix      string
 }
 
 // RecoveredResponse is interface for the default RecoverPanicHandler to write response
@@ -35,5 +36,6 @@ func DefaultOption() Option {
 	return Option{
 		RecoverPanic:        true,
 		RecoverPanicHandler: DefaultRecoverPanicHandler,
+		GearPathPrefix:      "",
 	}
 }
