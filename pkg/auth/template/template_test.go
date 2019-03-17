@@ -34,8 +34,10 @@ func TestResetPasswordPayload(t *testing.T) {
 		templateEngine = NewEngineWithConfig(templateEngine, config)
 
 		context := map[string]interface{}{
-			"user": map[string]interface{}{
-				"name": "chima",
+			"user": map[string]map[string]interface{}{
+				"metadata": {
+					"name": "chima",
+				},
 			},
 		}
 

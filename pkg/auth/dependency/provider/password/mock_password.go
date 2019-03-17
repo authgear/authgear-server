@@ -10,22 +10,22 @@ import (
 // MockProvider is the memory implementation of password provider
 type MockProvider struct {
 	Provider
-	PrincipalMap    map[string]Principal
-	authRecordKeys  [][]string
-	authDataChecker authDataChecker
+	PrincipalMap        map[string]Principal
+	loginIDMetadataKeys [][]string
+	authDataChecker     authDataChecker
 }
 
 // NewMockProvider creates a new instance of mock provider
-func NewMockProvider(authRecordKeys [][]string) *MockProvider {
-	return NewMockProviderWithPrincipalMap(authRecordKeys, map[string]Principal{})
+func NewMockProvider(loginIDMetadataKeys [][]string) *MockProvider {
+	return NewMockProviderWithPrincipalMap(loginIDMetadataKeys, map[string]Principal{})
 }
 
 // NewMockProviderWithPrincipalMap creates a new instance of mock provider with PrincipalMap
-func NewMockProviderWithPrincipalMap(authRecordKeys [][]string, principalMap map[string]Principal) *MockProvider {
+func NewMockProviderWithPrincipalMap(loginIDMetadataKeys [][]string, principalMap map[string]Principal) *MockProvider {
 	return &MockProvider{
-		authRecordKeys: authRecordKeys,
+		loginIDMetadataKeys: loginIDMetadataKeys,
 		authDataChecker: defaultAuthDataChecker{
-			authRecordKeys: authRecordKeys,
+			loginIDMetadataKeys: loginIDMetadataKeys,
 		},
 		PrincipalMap: principalMap,
 	}
@@ -42,7 +42,7 @@ func (m *MockProvider) IsAuthDataMatching(authData map[string]string) bool {
 
 // CreatePrincipalsByAuthData creates principals by authData
 func (m *MockProvider) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
-	authDataList := toValidAuthDataList(m.authRecordKeys, authData)
+	authDataList := toValidAuthDataList(m.loginIDMetadataKeys, authData)
 
 	for _, a := range authDataList {
 		principal := NewPrincipal()

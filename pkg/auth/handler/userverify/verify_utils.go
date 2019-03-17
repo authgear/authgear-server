@@ -23,12 +23,12 @@ func (g *getAndValidateCodeRequest) execute(
 			"code":  codeStr,
 			"error": err,
 		}).Error("failed to get verify code")
-		err = g.invalidCodeError(codeStr, userProfile.RecordID)
+		err = g.invalidCodeError(codeStr, userProfile.ID)
 		return
 	}
 	if code.Consumed {
 		g.Logger.WithField("code", codeStr).Error("code has been consumed")
-		err = g.invalidCodeError(codeStr, userProfile.RecordID)
+		err = g.invalidCodeError(codeStr, userProfile.ID)
 		return
 	}
 

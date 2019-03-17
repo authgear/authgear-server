@@ -22,7 +22,7 @@ type providerImpl struct {
 	sqlBuilder             db.SQLBuilder
 	sqlExecutor            db.SQLExecutor
 	logger                 *logrus.Entry
-	authRecordKeys         [][]string
+	loginIDMetadataKeys    [][]string
 	authDataChecker        authDataChecker
 	passwordHistoryEnabled bool
 	passwordHistoryStore   passwordhistory.Store
@@ -32,16 +32,16 @@ func newProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	authRecordKeys [][]string,
+	loginIDMetadataKeys [][]string,
 	passwordHistoryEnabled bool,
 ) *providerImpl {
 	return &providerImpl{
-		sqlBuilder:     builder,
-		sqlExecutor:    executor,
-		logger:         logger,
-		authRecordKeys: authRecordKeys,
+		sqlBuilder:          builder,
+		sqlExecutor:         executor,
+		logger:              logger,
+		loginIDMetadataKeys: loginIDMetadataKeys,
 		authDataChecker: defaultAuthDataChecker{
-			authRecordKeys: authRecordKeys,
+			loginIDMetadataKeys: loginIDMetadataKeys,
 		},
 		passwordHistoryEnabled: passwordHistoryEnabled,
 		passwordHistoryStore: pqPWHistory.NewPasswordHistoryStore(
@@ -54,10 +54,10 @@ func NewProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	authRecordKeys [][]string,
+	loginIDMetadataKeys [][]string,
 	passwordHistoryEnabled bool,
 ) Provider {
-	return newProvider(builder, executor, logger, authRecordKeys, passwordHistoryEnabled)
+	return newProvider(builder, executor, logger, loginIDMetadataKeys, passwordHistoryEnabled)
 }
 
 func (p providerImpl) IsAuthDataValid(authData map[string]string) bool {
@@ -69,7 +69,7 @@ func (p providerImpl) IsAuthDataMatching(authData map[string]string) bool {
 }
 
 func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
-	authDataList := toValidAuthDataList(p.authRecordKeys, authData)
+	authDataList := toValidAuthDataList(p.loginIDMetadataKeys, authData)
 
 	for _, a := range authDataList {
 		principal := NewPrincipal()

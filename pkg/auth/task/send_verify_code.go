@@ -69,7 +69,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	code := codeGenerator.Generate()
 
 	verifyCode := userverify.NewVerifyCode()
-	verifyCode.UserID = taskParam.UserProfile.RecordID
+	verifyCode.UserID = taskParam.UserProfile.ID
 	verifyCode.RecordKey = taskParam.Key
 	verifyCode.RecordValue = taskParam.Value
 	verifyCode.Code = code

@@ -7,6 +7,7 @@ Next is the V2 of Skygear that aim to follow
 - Give back application lifecycle to cloud code developer and skygear
   developer.
 - Drop zmq and model against HTTP semantics.
+- Drop v1 Record class
 
 ## Project structure
 
@@ -15,17 +16,11 @@ Next is the V2 of Skygear that aim to follow
 ├── pkg
 │   ├── server    <-- original skygear-server code
 │   ├── auth
-│   ├── record
 │   ├── gateway
 │   └── core
-│
 └── cmd
     ├── auth
     │   └── main.go
-    │
-    ├── record
-    │   └── main.go
-    │
     └── gateway
         └── main.go
 ```
@@ -69,7 +64,7 @@ CREATE SCHEMA app_helloworld;
 $ psql ${DATABASE_URL} -c "CREATE SCHEMA app_helloworld;"
 
 # Run migration
-# MODULE can be gateway, core, auth, record...
+# MODULE can be gateway, core, auth...
 $ export MODULE=<module_name>
 $ go run cmd/migrate/main.go -module ${MODULE} -schema app_helloworld up
 
@@ -87,7 +82,7 @@ See below sections for more commands about db migration.
 **Add a version**
 
 ```sh
-# MODULE can be gateway, core, auth, record...
+# MODULE can be gateway, core, auth...
 $ export MODULE=<module_name>
 $ export REVISION=<revision_description>
 $ make -f scripts/migrate/Makefile add-version MODULE=${MODULE} REVISION=${REVISION}

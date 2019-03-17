@@ -109,9 +109,9 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		authRecordKeys := [][]string{[]string{"email"}}
+		loginIDMetadataKeys := [][]string{[]string{"email"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			authRecordKeys,
+			loginIDMetadataKeys,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -181,30 +181,20 @@ func TestAuthHandler(t *testing.T) {
 			So(authResp, ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user_id": "%s",
-					"profile": {
-						"_access": null,
-						"_created_at": "0001-01-01T00:00:00Z",
-						"_created_by": "%s",
-						"_id": "user/%s",
-						"_ownerID": "%s",
-						"_recordID": "%s",
-						"_recordType": "user",
-						"_type": "record",
-						"_updated_at": "0001-01-01T00:00:00Z",
-						"_updated_by": "%s"
-					},
 					"access_token": "%s",
 					"verified": false,
-					"verify_info": null
+					"verify_info": null,
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"metadata": {}
 				}
 			}`,
 				p.UserID,
+				token.AccessToken,
 				p.UserID,
-				p.UserID,
-				p.UserID,
-				p.UserID,
-				p.UserID,
-				token.AccessToken))
+				p.UserID))
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
@@ -271,30 +261,20 @@ func TestAuthHandler(t *testing.T) {
 			So(decoded, ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user_id": "%s",
-					"profile": {
-						"_access": null,
-						"_created_at": "0001-01-01T00:00:00Z",
-						"_created_by": "%s",
-						"_id": "user/%s",
-						"_ownerID": "%s",
-						"_recordID": "%s",
-						"_recordType": "user",
-						"_type": "record",
-						"_updated_at": "0001-01-01T00:00:00Z",
-						"_updated_by": "%s"
-					},
 					"access_token": "%s",
 					"verified": false,
-					"verify_info":  null
+					"verify_info": null,
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"metadata": {}
 				}
 			}`,
 				p.UserID,
+				token.AccessToken,
 				p.UserID,
-				p.UserID,
-				p.UserID,
-				p.UserID,
-				p.UserID,
-				token.AccessToken))
+				p.UserID))
 		})
 	})
 
@@ -358,9 +338,9 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		authRecordKeys := [][]string{[]string{"email"}}
+		loginIDMetadataKeys := [][]string{[]string{"email"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			authRecordKeys,
+			loginIDMetadataKeys,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -552,9 +532,9 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		authRecordKeys := [][]string{[]string{"email"}}
+		loginIDMetadataKeys := [][]string{[]string{"email"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			authRecordKeys,
+			loginIDMetadataKeys,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:     "john.doe.principal.id",
@@ -645,9 +625,9 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		authRecordKeys := [][]string{[]string{"email"}}
+		loginIDMetadataKeys := [][]string{[]string{"email"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			authRecordKeys,
+			loginIDMetadataKeys,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -736,10 +716,10 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		// providerAuthData wouldn't match authRecordKeys "["email", "username"]"
-		authRecordKeys := [][]string{[]string{"email", "username"}}
+		// providerAuthData wouldn't match loginIDMetadataKeys "["email", "username"]"
+		loginIDMetadataKeys := [][]string{[]string{"email", "username"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			authRecordKeys,
+			loginIDMetadataKeys,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:     "john.doe.principal.id",
@@ -754,7 +734,7 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
 
-		Convey("shouldn't auto-link password principal if authRecordKeys not matched", func() {
+		Convey("shouldn't auto-link password principal if loginIDMetadataKeys not matched", func() {
 			// oauth state
 			state := sso.State{
 				CallbackURL: "http://localhost:3000",

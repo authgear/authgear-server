@@ -90,7 +90,7 @@ func (m DependencyMap) Provide(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 			logging.CreateLoggerWithRequestID(requestID, "provider_password", createLoggerMaskFormatter(tConfig)),
-			tConfig.Auth.AuthRecordKeys,
+			tConfig.Auth.LoginIDMetadataKeys,
 			passwordHistoryEnabled,
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)

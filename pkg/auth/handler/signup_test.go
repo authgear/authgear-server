@@ -84,9 +84,9 @@ func TestSingupHandler(t *testing.T) {
 			timeNow = realTime
 		}()
 
-		authRecordKeys := [][]string{[]string{"email"}, []string{"username"}}
+		loginIDMetadataKeys := [][]string{[]string{"email"}, []string{"username"}}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(authRecordKeys)
+		passwordAuthProvider := password.NewMockProvider(loginIDMetadataKeys)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 
@@ -151,9 +151,9 @@ func TestSingupHandler(t *testing.T) {
 			So(!token.IsExpired(), ShouldBeTrue)
 
 			// check user profile
-			profile := authResp.Profile
-			So(profile.Data["username"], ShouldEqual, "john.doe")
-			So(profile.Data["email"], ShouldEqual, "john.doe@example.com")
+			metadata := authResp.Metadata
+			So(metadata["username"], ShouldEqual, "john.doe")
+			So(metadata["email"], ShouldEqual, "john.doe@example.com")
 		})
 
 		Convey("auth data key combination should be unique", func() {

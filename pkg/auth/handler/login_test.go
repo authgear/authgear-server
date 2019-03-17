@@ -65,9 +65,9 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
-		authRecordKeys := [][]string{[]string{"email", "username"}}
+		loginIDMetadataKeys := [][]string{[]string{"email", "username"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			authRecordKeys,
+			loginIDMetadataKeys,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:     "john.doe.principal.id",
@@ -144,7 +144,7 @@ func TestLoginHandler(t *testing.T) {
 				Password: "123456",
 			}
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidArgument: invalid auth data, check your AUTH_RECORD_KEYS setting")
+			So(err.Error(), ShouldEqual, "InvalidArgument: invalid auth data, check your LOGIN_ID_METADATA_KEYS setting")
 		})
 
 		Convey("log audit trail when login success", func() {

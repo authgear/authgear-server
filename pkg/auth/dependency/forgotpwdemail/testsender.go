@@ -59,9 +59,7 @@ func (d *DefaultTestSender) Send(
 	}
 
 	userProfile := userprofile.UserProfile{
-		Meta: userprofile.Meta{
-			ID: "dummy-id",
-		},
+		ID: "dummy-id",
 	}
 	context := map[string]interface{}{
 		"appname": d.Config.AppName,
@@ -71,7 +69,7 @@ func (d *DefaultTestSender) Send(
 		),
 		"email":      email,
 		"user_id":    userProfile.ID,
-		"user":       userProfile.ToMap(),
+		"user":       userProfile,
 		"url_prefix": d.Config.URLPrefix,
 		"code":       "dummy-reset-code",
 		"expire_at":  expireAt,

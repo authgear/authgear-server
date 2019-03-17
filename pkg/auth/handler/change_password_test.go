@@ -43,7 +43,10 @@ func TestChangePasswordHandler(t *testing.T) {
 		lh.AuthContext = auth.NewMockContextGetterWithUser(userID, true, map[string]bool{})
 		lh.AuthInfoStore = authinfo.NewMockStoreWithUser(userID)
 		lh.TokenStore = mockTokenStore
-		lh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		profileData := map[string]map[string]interface{}{
+			"john.doe.id": map[string]interface{}{},
+		}
+		lh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 		lh.TxContext = db.NewMockTxContext()
 		lh.PasswordChecker = &authAudit.PasswordChecker{
 			PwMinLength: 6,
@@ -87,31 +90,21 @@ func TestChangePasswordHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user_id": "%s",
-					"profile": {
-						"_access": null,
-						"_created_at": "0001-01-01T00:00:00Z",
-						"_created_by": "%s",
-						"_id": "user/%s",
-						"_ownerID": "%s",
-						"_recordID": "%s",
-						"_recordType": "user",
-						"_type": "record",
-						"_updated_at": "0001-01-01T00:00:00Z",
-						"_updated_by": "%s"
-					},
 					"roles":["user"],
 					"access_token": "%s",
 					"verified":true,
-					"verify_info":{}
+					"verify_info":{},
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"metadata": {}
 				}
 			}`,
 				userID,
+				token.AccessToken,
 				userID,
-				userID,
-				userID,
-				userID,
-				userID,
-				token.AccessToken))
+				userID))
 
 			// should enqueue pw housekeeper task
 			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)

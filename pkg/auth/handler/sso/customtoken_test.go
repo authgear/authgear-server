@@ -97,32 +97,23 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
 					"user_id": "%s",
-					"profile": {
-						"_access": null,
-						"_created_at": "0001-01-01T00:00:00Z",
-						"_created_by": "%s",
-						"_id": "user/%s",
-						"_ownerID": "%s",
-						"_recordID": "%s",
-						"_recordType": "user",
-						"_type": "record",
-						"_updated_at": "0001-01-01T00:00:00Z",
-						"_updated_by": "%s",
-						"email": "John@skygear.io",
-						"name": "John Doe"
+					"metadata": {
+						"email":"John@skygear.io",
+						"name":"John Doe"
 					},
 					"access_token": "%s",
 					"verified": false,
-					"verify_info": {"email": false}
+					"verify_info": {"email": false},
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s"
 				}
 			}`,
 				p.UserID,
+				token.AccessToken,
 				p.UserID,
-				p.UserID,
-				p.UserID,
-				p.UserID,
-				p.UserID,
-				token.AccessToken))
+				p.UserID))
 
 			mockTrail, _ := lh.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")

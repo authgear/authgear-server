@@ -113,14 +113,14 @@ func prepareVerifyRequestContext(
 		"appname":      appName,
 		"record_key":   verifyCode.RecordKey,
 		"record_value": verifyCode.RecordValue,
-		"user_id":      userProfile.RecordID,
-		"user":         userProfile.ToMap(),
+		"user_id":      userProfile.ID,
+		"user":         userProfile,
 		"code":         verifyCode.Code,
 		"link": fmt.Sprintf(
 			"%s/verify_code_form?code=%s&user_id=%s",
 			config.URLPrefix,
 			verifyCode.Code,
-			userProfile.RecordID,
+			userProfile.ID,
 		),
 	}
 }

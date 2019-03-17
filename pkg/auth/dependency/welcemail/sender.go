@@ -44,7 +44,7 @@ func (d *DefaultSender) Send(email string, userProfile userprofile.UserProfile) 
 		"appname":    d.AppName,
 		"email":      email,
 		"user_id":    userProfile.ID,
-		"user":       userProfile.ToMap(),
+		"user":       userProfile,
 		"url_prefix": d.Config.URLPrefix,
 	}
 

@@ -174,7 +174,7 @@ func (h ForgotPasswordResetFormHandler) HandleResetError(rw http.ResponseWriter,
 		return
 	}
 
-	context["user"] = templateCtx.userProfile.ToMap()
+	context["user"] = templateCtx.userProfile
 
 	// render the form again for failed post request
 	html, htmlErr := h.ResetPasswordHTMLProvider.FormHTML(context)
@@ -217,7 +217,7 @@ func (h ForgotPasswordResetFormHandler) HandleResetSuccess(rw http.ResponseWrite
 		return
 	}
 
-	context["user"] = templateCtx.userProfile.ToMap()
+	context["user"] = templateCtx.userProfile
 
 	html, htmlErr := h.ResetPasswordHTMLProvider.SuccessHTML(context)
 	if htmlErr != nil {

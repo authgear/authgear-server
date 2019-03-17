@@ -64,7 +64,7 @@ func (d *DefaultSender) Send(
 		),
 		"email":      email,
 		"user_id":    userProfile.ID,
-		"user":       userProfile.ToMap(),
+		"user":       userProfile,
 		"url_prefix": d.Config.URLPrefix,
 		"code":       code,
 		"expire_at":  expireAt,
