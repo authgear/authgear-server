@@ -84,6 +84,7 @@ func main() {
 	handler.AttachChangePasswordHandler(&srv, authDependency)
 	handler.AttachResetPasswordHandler(&srv, authDependency)
 	handler.AttachWelcomeEmailHandler(&srv, authDependency)
+	handler.AttachUpdateMetadataHandler(&srv, authDependency)
 	forgotpwdhandler.AttachForgotPasswordHandler(&srv, authDependency)
 	forgotpwdhandler.AttachForgotPasswordResetHandler(&srv, authDependency)
 	userverifyhandler.AttachVerifyRequestHandler(&srv, authDependency)
