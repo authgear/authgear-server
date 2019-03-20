@@ -14,6 +14,10 @@
 
 package utils
 
+import (
+	"reflect"
+)
+
 // StringSliceExcept return a new slice that without the element appears in the
 // second slice.
 func StringSliceExcept(slice []string, except []string) []string {
@@ -62,4 +66,27 @@ func strAt(slice []string, str string) int {
 		}
 	}
 	return -1
+}
+
+func SliceContains(in interface{}, elem interface{}) bool {
+	inValue := reflect.ValueOf(in)
+	inType := inValue.Type()
+
+	if inType.Kind() == reflect.Slice {
+		for i := 0; i < inValue.Len(); i++ {
+			if equal(inValue.Index(i).Interface(), elem) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func equal(expected, actual interface{}) bool {
+	if expected == nil || actual == nil {
+		return expected == actual
+	}
+
+	return reflect.DeepEqual(expected, actual)
 }

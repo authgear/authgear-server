@@ -15,8 +15,9 @@
 package utils
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestStringSliceExcept(t *testing.T) {
@@ -129,6 +130,58 @@ func TestStringSliceContainAll(t *testing.T) {
 				"devil",
 			})
 			So(result, ShouldEqual, false)
+		})
+	})
+}
+
+func TestSliceContains(t *testing.T) {
+	Convey("SliceContains", t, func() {
+		Convey("check if element not in a slice", func() {
+			result := SliceContains(
+				[]string{
+					"1",
+					"2",
+					"3",
+				},
+				"4",
+			)
+			So(result, ShouldEqual, false)
+		})
+
+		Convey("check if element in a slice", func() {
+			result := SliceContains(
+				[]string{
+					"1",
+					"2",
+					"3",
+				},
+				"1",
+			)
+			So(result, ShouldEqual, true)
+		})
+
+		Convey("check if different typed element in a slice", func() {
+			result := SliceContains(
+				[]string{
+					"1",
+					"2",
+					"3",
+				},
+				4,
+			)
+			So(result, ShouldEqual, false)
+		})
+
+		Convey("check if map element in a slice", func() {
+			result := SliceContains(
+				[]map[string]string{
+					map[string]string{"1": "1", "2": "2"},
+					map[string]string{"2": "2"},
+					map[string]string{"3": "3"},
+				},
+				map[string]string{"3": "3"},
+			)
+			So(result, ShouldEqual, true)
 		})
 	})
 }
