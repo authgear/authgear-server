@@ -10,4 +10,5 @@ type CloudCode struct {
 	Version    string
 	Path       string
 	TargetPath string
+	BackendURL string
 }
