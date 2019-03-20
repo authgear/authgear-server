@@ -12,6 +12,7 @@ import (
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/utils"
 )
 
 var (
@@ -66,6 +67,19 @@ func (p providerImpl) IsAuthDataValid(authData map[string]string) bool {
 
 func (p providerImpl) IsAuthDataMatching(authData map[string]string) bool {
 	return p.authDataChecker.isMatching(authData)
+}
+
+func (p providerImpl) GetLoginIDMetadataFlattenedKeys() []string {
+	var output []string
+	for _, keys := range p.loginIDMetadataKeys {
+		for _, key := range keys {
+			if !utils.SliceContains(output, key) {
+				output = append(output, key)
+			}
+		}
+	}
+
+	return output
 }
 
 func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {

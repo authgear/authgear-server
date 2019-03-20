@@ -45,20 +45,22 @@ var (
 // toValidAuthDataList converts authData to a list of authData depending on loginIDMetadataKeys
 //
 // example 1: loginIDMetadataKeys = [["username"], ["email"]]
-// - if authData is { "username": "john.doe" }, output is [{ "username": "john.doe" }]
-// - if authData is { "username": "john.doe", "email": "john.doe@example.com" }, output is [{ "username": "john.doe" }, { "email": "john.doe@example.com" }]
+// - if authData is { "username": "john.doe" },
+//   output is [{ "username": "john.doe" }]
+// - if authData is { "username": "john.doe", "email": "john.doe@example.com" },
+//   output is [{ "username": "john.doe" }, { "email": "john.doe@example.com" }]
 //
 // example 2: loginIDMetadataKeys = [["username", "nickname"], ["email"]]
 // - if authData is { "username": "john.doe", "email": "john.doe@example.com", "nickname": "john.doe" },
-// output is [{ "username": "john.doe", "nickname": "john.doe" }, { "email": "john.doe@example.com" }]
+//   output is [{ "username": "john.doe", "nickname": "john.doe" }, { "email": "john.doe@example.com" }]
 //
 // example 3: loginIDMetadataKeys = [["username", "email"], ["nickname"]]
 // - if authData is { "username": "john.doe", "nickname": "john.doe" },
-// output is [{ "nickname": "john.doe" }}]
+//   output is [{ "nickname": "john.doe" }}]
 //
 // example 4: loginIDMetadataKeys = [["username"], ["email"]]
 // - if authData is { "username": "john.doe", "emamil": "" },
-// output is [{ "username": "john.doe" }}]
+//   output is [{ "username": "john.doe" }}]
 func toValidAuthDataList(loginIDMetadataKeys [][]string, authData map[string]string) []map[string]string {
 	outputs := make([]map[string]string, 0)
 

@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
+	"github.com/skygeario/skygear-server/pkg/core/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -38,6 +39,19 @@ func (m *MockProvider) IsAuthDataValid(authData map[string]string) bool {
 
 func (m *MockProvider) IsAuthDataMatching(authData map[string]string) bool {
 	return m.authDataChecker.isMatching(authData)
+}
+
+func (m *MockProvider) GetLoginIDMetadataFlattenedKeys() []string {
+	var output []string
+	for _, keys := range m.loginIDMetadataKeys {
+		for _, key := range keys {
+			if !utils.SliceContains(output, key) {
+				output = append(output, key)
+			}
+		}
+	}
+
+	return output
 }
 
 // CreatePrincipalsByAuthData creates principals by authData
