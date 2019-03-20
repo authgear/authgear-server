@@ -45,8 +45,8 @@ type GearURLConfig struct {
 
 // RouterConfig contain gears url
 type RouterConfig struct {
-	Auth                GearURLConfig `envconfig:"AUTH"`
-	CloudCodeGatewayURL string        `envconfig:"CLOUD_CODE_GATEWAY_URL"`
+	Auth                       GearURLConfig `envconfig:"AUTH"`
+	DefaultCloudCodeBackendURL string        `envconfig:"DEFAULT_CLOUD_CODE_BACKEND_URL"`
 }
 
 // GetGearURL provide router map from RouterConfig
