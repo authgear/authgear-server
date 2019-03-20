@@ -20,8 +20,6 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
-	"github.com/skygeario/skygear-server/pkg/core/auth/role"
-	pqRole "github.com/skygeario/skygear-server/pkg/core/auth/role/pq"
 
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
@@ -32,8 +30,6 @@ import (
 )
 
 type authInfoStore struct {
-	roleStore role.Store
-
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 	logger      *logrus.Entry
@@ -41,7 +37,6 @@ type authInfoStore struct {
 
 func newAuthInfoStore(builder db.SQLBuilder, executor db.SQLExecutor, logger *logrus.Entry) *authInfoStore {
 	return &authInfoStore{
-		roleStore:   pqRole.NewRoleStore(builder, executor, logger),
 		sqlBuilder:  builder,
 		sqlExecutor: executor,
 		logger:      logger,
@@ -111,10 +106,6 @@ func (s authInfoStore) CreateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		return skydb.ErrUserDuplicated
 	}
 
-	if err := s.updateUserRoles(authinfo); err != nil {
-		return skydb.ErrRoleUpdatesFailed
-	}
-
 	return err
 }
 
@@ -180,10 +171,6 @@ func (s authInfoStore) UpdateAuth(authinfo *authinfo.AuthInfo) (err error) {
 		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
 	}
 
-	if err := s.updateUserRoles(authinfo); err != nil {
-		return skydb.ErrRoleUpdatesFailed
-	}
-
 	return nil
 }
 
@@ -191,11 +178,8 @@ func (s authInfoStore) baseUserBuilder() sq.SelectBuilder {
 	return s.sqlBuilder.Select("id",
 		"token_valid_since", "last_seen_at", "last_login_at",
 		"disabled", "disabled_message", "disabled_expiry",
-		"verified", "verify_info",
-		"array_to_json(array_agg(role_id)) AS roles").
-		From(s.sqlBuilder.FullTableName("user")).
-		LeftJoin(s.sqlBuilder.FullTableName("user_role") + " ON id = user_id").
-		GroupBy("id")
+		"verified", "verify_info").
+		From(s.sqlBuilder.FullTableName("user"))
 }
 
 func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowScanner) error {
@@ -205,7 +189,6 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		tokenValidSince pq.NullTime
 		lastSeenAt      pq.NullTime
 		lastLoginAt     pq.NullTime
-		roles           dbPq.NullJSONStringSlice
 		disabled        bool
 		disabledReason  sql.NullString
 		disabledExpiry  pq.NullTime
@@ -223,7 +206,6 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		&disabledExpiry,
 		&verified,
 		&verifyInfo,
-		&roles,
 	)
 	if err != nil {
 		logger.Infof(err.Error())
@@ -266,7 +248,6 @@ func (s authInfoStore) doScanAuth(authinfo *authinfo.AuthInfo, scanner sq.RowSca
 		authinfo.DisabledExpiry = nil
 	}
 
-	authinfo.Roles = roles.Slice
 	authinfo.Verified = verified
 	authinfo.VerifyInfo = verifyInfo.JSON
 

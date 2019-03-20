@@ -118,8 +118,6 @@ func (m DependencyMap) Provide(
 			logging.CreateLoggerWithRequestID(requestID, "auth_user_profile", createLoggerMaskFormatter(tConfig)),
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
-	case "RoleStore":
-		return coreAuth.NewDefaultRoleStore(ctx, tConfig)
 	case "ForgotPasswordEmailSender":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP), templateEngine)

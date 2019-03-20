@@ -3,7 +3,6 @@ package auth
 import (
 	authinfo "github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	authtoken "github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	role "github.com/skygeario/skygear-server/pkg/core/auth/role"
 	model "github.com/skygeario/skygear-server/pkg/core/model"
 )
 
@@ -34,14 +33,8 @@ func NewMockContextGetterWithUser(userID string, verified bool, verifyInfo map[s
 		accessKeyType: model.APIAccessKey,
 		authInfo: &authinfo.AuthInfo{
 			ID:         userID,
-			Roles:      []string{"user"},
 			Verified:   verified,
 			VerifyInfo: verifyInfo,
-		},
-		roles: []role.Role{
-			role.Role{
-				Name: "user",
-			},
 		},
 		token: &authtoken.Token{
 			AccessToken: "faseng_access_token",
@@ -62,14 +55,7 @@ func NewMockContextGetterWithAdminUser() ContextGetter {
 	container := &contextContainer{
 		accessKeyType: model.APIAccessKey,
 		authInfo: &authinfo.AuthInfo{
-			ID:    "chima.cat.id",
-			Roles: []string{"admin"},
-		},
-		roles: []role.Role{
-			role.Role{
-				Name:    "admin",
-				IsAdmin: true,
-			},
+			ID: "chima.cat.id",
 		},
 		token: &authtoken.Token{
 			AccessToken: "chima_access_token",
@@ -102,11 +88,6 @@ func (m *MockContext) AccessKeyType() model.KeyType {
 // AuthInfo returns auth info from mock context
 func (m *MockContext) AuthInfo() *authinfo.AuthInfo {
 	return m.container.authInfo
-}
-
-// Roles returns roles from mock context
-func (m *MockContext) Roles() []role.Role {
-	return m.container.roles
 }
 
 // Token returns token from mock context

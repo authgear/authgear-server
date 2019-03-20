@@ -25,7 +25,6 @@ import (
 type AuthResponse struct {
 	UserID      string           `json:"user_id,omitempty"`
 	Metadata    userprofile.Data `json:"metadata"`
-	Roles       []string         `json:"roles,omitempty"`
 	AccessToken string           `json:"access_token,omitempty"`
 	LastLoginAt *time.Time       `json:"last_login_at,omitempty"`
 	LastSeenAt  *time.Time       `json:"last_seen_at,omitempty"`
@@ -43,7 +42,6 @@ func NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserPro
 	return AuthResponse{
 		UserID:      authInfo.ID,
 		Metadata:    userProfile.Data,
-		Roles:       authInfo.Roles,
 		AccessToken: accessToken,
 		LastLoginAt: lastLoginAt,
 		LastSeenAt:  authInfo.LastSeenAt,

@@ -18,7 +18,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
@@ -103,7 +102,6 @@ func TestAuthHandler(t *testing.T) {
 		mockTokenStore := authtoken.NewMockStore()
 		sh.TokenStore = mockTokenStore
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
-		sh.RoleStore = role.NewMockStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
 			"https://api.example.com/skygear.js",
@@ -315,24 +313,15 @@ func TestAuthHandler(t *testing.T) {
 			map[string]authinfo.AuthInfo{
 				"john.doe.id": authinfo.AuthInfo{
 					ID: "john.doe.id",
-					Roles: []string{
-						"admin",
-						"developer",
-						"human",
-					},
 				},
 				"jane.doe.id": authinfo.AuthInfo{
 					ID: "jane.doe.id",
-					Roles: []string{
-						"human",
-					},
 				},
 			},
 		)
 		sh.AuthInfoStore = authInfoStore
 		mockTokenStore := authtoken.NewMockStore()
 		sh.TokenStore = mockTokenStore
-		sh.RoleStore = role.NewMockStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
 			"https://api.example.com/skygear.js",
@@ -526,7 +515,6 @@ func TestAuthHandler(t *testing.T) {
 			"john.doe.id": map[string]interface{}{},
 		}
 		sh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
-		sh.RoleStore = role.NewMockStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
 			"https://api.example.com/skygear.js",
@@ -619,7 +607,6 @@ func TestAuthHandler(t *testing.T) {
 		mockTokenStore := authtoken.NewMockStore()
 		sh.TokenStore = mockTokenStore
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
-		sh.RoleStore = role.NewMockStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
 			"https://api.example.com/skygear.js",
@@ -710,7 +697,6 @@ func TestAuthHandler(t *testing.T) {
 			"john.doe.id": map[string]interface{}{},
 		}
 		sh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
-		sh.RoleStore = role.NewMockStore()
 		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
 			"https://api.example.com",
 			"https://api.example.com/skygear.js",

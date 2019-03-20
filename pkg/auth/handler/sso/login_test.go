@@ -15,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -88,7 +87,6 @@ func TestLoginHandler(t *testing.T) {
 		sh.AuthInfoStore = authInfoStore
 		mockTokenStore := authtoken.NewMockStore()
 		sh.TokenStore = mockTokenStore
-		sh.RoleStore = role.NewMockStore()
 		loginIDMetadataKeys := [][]string{[]string{"email"}}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDMetadataKeys,

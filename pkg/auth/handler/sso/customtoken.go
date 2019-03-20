@@ -15,7 +15,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
-	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -106,7 +105,6 @@ EOF
 type CustomTokenLoginHandler struct {
 	TxContext               db.TxContext         `dependency:"TxContext"`
 	UserProfileStore        userprofile.Store    `dependency:"UserProfileStore"`
-	RoleStore               role.Store           `dependency:"RoleStore"`
 	TokenStore              authtoken.Store      `dependency:"TokenStore"`
 	AuthInfoStore           authinfo.Store       `dependency:"AuthInfoStore"`
 	CustomTokenAuthProvider customtoken.Provider `dependency:"CustomTokenAuthProvider"`
@@ -228,16 +226,6 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 		*info = authinfo.NewAuthInfo()
 		info.LastLoginAt = &now
 
-		// Get default roles
-		defaultRoles, e := h.RoleStore.GetDefaultRoles()
-		if e != nil {
-			err = skyerr.NewError(skyerr.InternalQueryInvalid, "unable to query default roles")
-			return
-		}
-
-		// Assign default roles
-		info.Roles = defaultRoles
-
 		// Initialise verify state
 		info.VerifyInfo = map[string]bool{}
 		for _, key := range h.UserVerifyKeys {
@@ -245,7 +233,7 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 		}
 
 		// Create AuthInfo
-		if e = h.AuthInfoStore.CreateAuth(info); e != nil {
+		if e := h.AuthInfoStore.CreateAuth(info); e != nil {
 			if e == skydb.ErrUserDuplicated {
 				err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 				return

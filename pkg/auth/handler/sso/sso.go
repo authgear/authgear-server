@@ -8,13 +8,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/auth/role"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type respHandler struct {
-	RoleStore            role.Store
 	TokenStore           authtoken.Store
 	AuthInfoStore        authinfo.Store
 	OAuthAuthProvider    oauth.Provider
@@ -134,18 +132,8 @@ func (h respHandler) handleLogin(
 		*info = authinfo.NewAuthInfo()
 		info.LastLoginAt = &now
 
-		// Get default roles
-		defaultRoles, e := h.RoleStore.GetDefaultRoles()
-		if e != nil {
-			err = skyerr.NewError(skyerr.InternalQueryInvalid, "unable to query default roles")
-			return
-		}
-
-		// Assign default roles
-		info.Roles = defaultRoles
-
 		// Create AuthInfo
-		if e = h.AuthInfoStore.CreateAuth(info); e != nil {
+		if e := h.AuthInfoStore.CreateAuth(info); e != nil {
 			if e == skydb.ErrUserDuplicated {
 				err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
 				return
