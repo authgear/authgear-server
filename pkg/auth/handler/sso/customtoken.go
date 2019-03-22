@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -235,7 +236,7 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 		// Create AuthInfo
 		if e := h.AuthInfoStore.CreateAuth(info); e != nil {
 			if e == skydb.ErrUserDuplicated {
-				err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
+				err = signUpHandler.ErrUserDuplicated
 				return
 			}
 

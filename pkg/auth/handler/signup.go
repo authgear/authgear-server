@@ -30,6 +30,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
+var ErrUserDuplicated = skyerr.NewError(skyerr.Duplicated, "user duplicated")
+
 func AttachSignupHandler(
 	server *server.Server,
 	authDependency auth.DependencyMap,
@@ -152,7 +154,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	// Create AuthInfo
 	if err = h.AuthInfoStore.CreateAuth(&info); err != nil {
 		if err == skydb.ErrUserDuplicated {
-			err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
+			err = ErrUserDuplicated
 			return
 		}
 
@@ -172,8 +174,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	// Create Principal
-	err = h.createPrincipal(payload, info)
-	if err != nil {
+	if err = h.createPrincipal(payload, info); err != nil {
 		return
 	}
 
@@ -239,6 +240,9 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (err error) {
 	if !payload.isAnonymous() {
 		err = h.PasswordAuthProvider.CreatePrincipalsByAuthData(authInfo.ID, payload.Password, payload.AuthData)
+		if err == skydb.ErrUserDuplicated {
+			err = ErrUserDuplicated
+		}
 	} else {
 		principal := anonymous.NewPrincipal()
 		principal.UserID = authInfo.ID

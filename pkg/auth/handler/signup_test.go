@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -8,6 +11,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
@@ -19,7 +25,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -140,27 +145,6 @@ func TestSingupHandler(t *testing.T) {
 			So(metadata["email"], ShouldEqual, "john.doe@example.com")
 		})
 
-		Convey("auth data key combination should be unique", func() {
-			authData := map[string]string{
-				"username": "john.doe",
-				"email":    "john.doe@example.com",
-			}
-			payload := SignupRequestPayload{
-				AuthData: authData,
-				Password: "123456",
-			}
-			_, err := h.Handle(payload)
-			So(err, ShouldBeNil)
-
-			// change email only
-			authData["email"] = "john.doe1@example.com"
-			resp, err := h.Handle(payload)
-
-			So(resp, ShouldBeNil)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, skydb.ErrUserDuplicated)
-		})
-
 		Convey("anonymous singup is not supported yet", func() {
 			payload := SignupRequestPayload{}
 
@@ -245,6 +229,71 @@ func TestSingupHandler(t *testing.T) {
 			mockTrail, _ := h.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
 			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "signup")
+		})
+	})
+
+	Convey("Test SignupHandler", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+
+		loginIDMetadataKeys := [][]string{[]string{"email"}, []string{"username"}}
+		authInfoStore := authinfo.NewMockStore()
+		passwordAuthProvider := password.NewMockProvider(loginIDMetadataKeys)
+		anonymousAuthProvider := anonymous.NewMockProvider()
+		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
+
+		passwordChecker := &authAudit.PasswordChecker{
+			PwMinLength: 6,
+		}
+
+		sh := &SignupHandler{}
+		sh.AuthInfoStore = authInfoStore
+		sh.TokenStore = tokenStore
+		sh.PasswordChecker = passwordChecker
+		sh.PasswordAuthProvider = passwordAuthProvider
+		sh.AnonymousAuthProvider = anonymousAuthProvider
+		sh.AuditTrail = audit.NewMockTrail(t)
+		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sh.Logger = logrus.NewEntry(logrus.New())
+		mockTaskQueue := async.NewMockQueue()
+		sh.TaskQueue = mockTaskQueue
+		sh.TxContext = db.NewMockTxContext()
+		h := handler.APIHandlerToHandler(sh, sh.TxContext)
+
+		Convey("duplicated user error format", func(c C) {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"auth_data": {
+					"username": "john.doe"
+				},
+				"password": "123456"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 200)
+
+			req, _ = http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"auth_data": {
+					"username": "john.doe"
+				},
+				"password": "1234567"
+			}`))
+			resp = httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 409)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"name": "Duplicated",
+					"code": 109,
+					"message": "user duplicated"
+				}
+			}
+			`)
 		})
 	})
 }

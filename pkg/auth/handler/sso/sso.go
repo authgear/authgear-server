@@ -5,6 +5,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -135,7 +136,7 @@ func (h respHandler) handleLogin(
 		// Create AuthInfo
 		if e := h.AuthInfoStore.CreateAuth(info); e != nil {
 			if e == skydb.ErrUserDuplicated {
-				err = skyerr.NewError(skyerr.Duplicated, "user duplicated")
+				err = signUpHandler.ErrUserDuplicated
 				return
 			}
 			// TODO:
@@ -150,6 +151,9 @@ func (h respHandler) handleLogin(
 		}
 
 		err = h.createEmptyPasswordPrincipal(info.ID, oauthAuthInfo)
+		if err == skydb.ErrUserDuplicated {
+			err = signUpHandler.ErrUserDuplicated
+		}
 	} else {
 		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
 		principal.UserProfile = oauthAuthInfo.ProviderUserProfile
