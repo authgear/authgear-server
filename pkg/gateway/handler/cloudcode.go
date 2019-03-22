@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"path"
 
 	"github.com/skygeario/skygear-server/pkg/gateway/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
@@ -18,17 +19,31 @@ func newCloudCodeReverseProxy(routerConfig config.RouterConfig) *httputil.Revers
 	director := func(req *http.Request) {
 		query := req.URL.RawQuery
 		fragment := req.URL.Fragment
+
+		backendURLStr := routerConfig.DefaultCloudCodeBackendURL
+
+		ctx := model.GatewayContextFromContext(req.Context())
+		cloudCode := ctx.CloudCode
+		if cloudCode.BackendURL != "" {
+			backendURLStr = cloudCode.BackendURL
+		}
+
 		var err error
-		u, err := url.Parse(routerConfig.CloudCodeGatewayURL)
+		backendURL, err := url.Parse(backendURLStr)
 		if err != nil {
 			panic(err)
 		}
-		ctx := model.GatewayContextFromContext(req.Context())
-		cloudCode := ctx.CloudCode
-		req.URL = u
-		req.URL.Path = "/function" + cloudCode.TargetPath
+
+		// Handle case that the backend URL does not have trailing slash
+		if backendURL.Path == "" {
+			backendURL.Path = "/"
+		}
+
+		req.URL = backendURL
+		req.URL.Path = path.Join(req.URL.Path, cloudCode.TargetPath)
 		req.URL.RawQuery = query
 		req.URL.Fragment = fragment
 	}
+
 	return &httputil.ReverseProxy{Director: director}
 }
