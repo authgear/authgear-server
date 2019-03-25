@@ -82,8 +82,9 @@ func (s *Store) getConfigByID(id string, configValue *tenantConfigurationValue) 
 }
 
 func (s *Store) getPlanByID(id string, plan *model.Plan) error {
-	builder := psql.Select("*").
-		From(s.tableName("plan")).
+	builder := psql.Select(
+		"id", "name", "auth_enabled", "created_at", "updated_at",
+	).From(s.tableName("plan")).
 		Where("plan.id = ?", id)
 	scanner := s.QueryRowWith(builder)
 
