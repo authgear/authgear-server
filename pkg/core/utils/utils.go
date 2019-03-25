@@ -70,13 +70,10 @@ func strAt(slice []string, str string) int {
 
 func SliceContains(in interface{}, elem interface{}) bool {
 	inValue := reflect.ValueOf(in)
-	inType := inValue.Type()
 
-	if inType.Kind() == reflect.Slice {
-		for i := 0; i < inValue.Len(); i++ {
-			if equal(inValue.Index(i).Interface(), elem) {
-				return true
-			}
+	for i := 0; i < inValue.Len(); i++ {
+		if equal(inValue.Index(i).Interface(), elem) {
+			return true
 		}
 	}
 
