@@ -125,11 +125,11 @@ func (h UpdateMetadataHandler) mergeMetadata(
 	loginIDMetadataKeys := h.PasswordAuthProvider.GetLoginIDMetadataFlattenedKeys()
 
 	output := make(map[string]interface{})
-	for k := range orgMetadata {
-		output[k] = orgMetadata[k]
-	}
 	for k, v := range inMetadata {
-		if !utils.StringSliceContains(loginIDMetadataKeys, k) {
+		output[k] = v
+	}
+	for k, v := range orgMetadata {
+		if utils.StringSliceContains(loginIDMetadataKeys, k) {
 			output[k] = v
 		}
 	}

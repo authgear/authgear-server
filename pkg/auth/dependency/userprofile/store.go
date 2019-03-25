@@ -89,9 +89,7 @@ func (u storeImpl) UpdateUserProfile(userID string, data Data) (profile UserProf
 		return
 	}
 
-	for k := range data {
-		profile.Data[k] = data[k]
-	}
+	profile.Data = data
 
 	var dataBytes []byte
 	dataBytes, err = json.Marshal(profile.Data)
