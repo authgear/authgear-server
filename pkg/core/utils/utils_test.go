@@ -134,10 +134,10 @@ func TestStringSliceContainAll(t *testing.T) {
 	})
 }
 
-func TestSliceContains(t *testing.T) {
-	Convey("SliceContains", t, func() {
-		Convey("check if element not in a slice", func() {
-			result := SliceContains(
+func TestStringSliceContains(t *testing.T) {
+	Convey("StringSliceContains", t, func() {
+		Convey("should check if a string not in a slice", func() {
+			result := StringSliceContains(
 				[]string{
 					"1",
 					"2",
@@ -148,8 +148,8 @@ func TestSliceContains(t *testing.T) {
 			So(result, ShouldEqual, false)
 		})
 
-		Convey("check if element in a slice", func() {
-			result := SliceContains(
+		Convey("should check if a string in a slice", func() {
+			result := StringSliceContains(
 				[]string{
 					"1",
 					"2",
@@ -160,28 +160,5 @@ func TestSliceContains(t *testing.T) {
 			So(result, ShouldEqual, true)
 		})
 
-		Convey("check if different typed element in a slice", func() {
-			result := SliceContains(
-				[]string{
-					"1",
-					"2",
-					"3",
-				},
-				4,
-			)
-			So(result, ShouldEqual, false)
-		})
-
-		Convey("check if map element in a slice", func() {
-			result := SliceContains(
-				[]map[string]string{
-					map[string]string{"1": "1", "2": "2"},
-					map[string]string{"2": "2"},
-					map[string]string{"3": "3"},
-				},
-				map[string]string{"3": "3"},
-			)
-			So(result, ShouldEqual, true)
-		})
 	})
 }

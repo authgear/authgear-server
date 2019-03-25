@@ -129,7 +129,7 @@ func (h UpdateMetadataHandler) mergeMetadata(
 		output[k] = orgMetadata[k]
 	}
 	for k, v := range inMetadata {
-		if !utils.SliceContains(loginIDMetadataKeys, k) {
+		if !utils.StringSliceContains(loginIDMetadataKeys, k) {
 			output[k] = v
 		}
 	}
