@@ -139,9 +139,74 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"metadata": {
-					"username": "mary.jane",
-					"email":    "mary.jane@example.com"
+					"username": "john.doe",
+					"email":    "john.doe@example.com",
+					"age":      30,
+					"love":     "cat"
 				}
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+				"result": {
+					"user_id": "%s",
+					"access_token": "faseng_access_token",
+					"verified":true,
+					"verify_info":{},
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"metadata": {
+						"username": "john.doe",
+						"email": "john.doe@example.com",
+						"age": 30,
+						"love": "cat"
+					}
+				}
+			}`,
+				userID,
+				userID,
+				userID))
+
+			req, _ = http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"metadata": {
+					"username": "john.doe",
+					"email":    "john.doe@example.com"
+				}
+			}`))
+			resp = httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 200)
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+				"result": {
+					"user_id": "%s",
+					"access_token": "faseng_access_token",
+					"verified":true,
+					"verify_info":{},
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"metadata": {
+						"username": "john.doe",
+						"email": "john.doe@example.com"
+					}
+				}
+			}`,
+				userID,
+				userID,
+				userID))
+		})
+
+		Convey("shouldn't allow to delete metadata in LOGIN_ID_METADATA_KEYS", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"metadata": {}
 			}`))
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
