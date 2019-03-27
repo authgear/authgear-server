@@ -10,12 +10,15 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/model"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	"github.com/skygeario/skygear-server/pkg/core/utils"
 )
@@ -49,6 +52,7 @@ func (f UpdateMetadataHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type UpdateMetadataRequestPayload struct {
+	UserID   string                 `json:"user_id"`
 	Metadata map[string]interface{} `json:"metadata"`
 }
 
@@ -75,6 +79,7 @@ func (p UpdateMetadataRequestPayload) Validate() error {
 // }
 type UpdateMetadataHandler struct {
 	AuthContext          coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	AuthInfoStore        authinfo.Store         `dependency:"AuthInfoStore"`
 	TxContext            db.TxContext           `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store      `dependency:"UserProfileStore"`
 	PasswordAuthProvider password.Provider      `dependency:"PasswordAuthProvider"`
@@ -92,8 +97,26 @@ func (h UpdateMetadataHandler) DecodeRequest(request *http.Request) (handler.Req
 
 func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(UpdateMetadataRequestPayload)
+	keyType := h.AuthContext.AccessKeyType()
+	currentUserID := h.AuthContext.AuthInfo().ID
+	updateUserID := payload.UserID
 	inMetadata := payload.Metadata
-	authInfo := h.AuthContext.AuthInfo()
+
+	if keyType == model.APIAccessKey && currentUserID != payload.UserID {
+		err = skyerr.NewError(skyerr.PermissionDenied, "Unable to update another user's metadata")
+		return
+	}
+
+	authInfo := authinfo.AuthInfo{}
+	if e := h.AuthInfoStore.GetAuth(updateUserID, &authInfo); e != nil {
+		if err == skydb.ErrUserNotFound {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
+			return
+		}
+		// TODO: more error handling here if necessary
+		err = skyerr.NewResourceFetchFailureErr("auth_data", payload.UserID)
+		return
+	}
 
 	// Get Profile
 	var profile userprofile.UserProfile
@@ -105,7 +128,7 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 	}
 
 	outMetadata := h.mergeMetadata(profile.Data, inMetadata)
-	if profile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, authInfo, outMetadata); err != nil {
+	if profile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, &authInfo, outMetadata); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to update user profile")
@@ -113,7 +136,7 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 	}
 
 	token := h.AuthContext.Token().AccessToken
-	resp = response.NewAuthResponse(*authInfo, profile, token)
+	resp = response.NewAuthResponse(authInfo, profile, token)
 
 	return
 }
