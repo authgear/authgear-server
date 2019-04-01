@@ -39,17 +39,20 @@ var (
 // example 3: loginIDsKeyWhitelist = ["email"]
 // - if authData is { "username": "john.doe" }, output is {}
 // - if authData is { "username": "john.doe", "email": "john.doe@example.com" }
-//   output is { "email": "john.doe@example.com" }
+//   output is { } // username is not in the list
 //
 func toValidAuthDataMap(loginIDsKeyWhitelist []string, authData map[string]string) map[string]string {
-	outputs := make(map[string]string)
 	for k, v := range authData {
 		// default is empty list, allows any authData keys
-		if (len(loginIDsKeyWhitelist) == 0 ||
-			utils.StringSliceContains(loginIDsKeyWhitelist, k)) &&
-			v != "" {
-			outputs[k] = v
+		// if loginIDsKeyWhitelist is not empty, reject any authDataKey that is not in the list
+		if len(loginIDsKeyWhitelist) != 0 &&
+			!utils.StringSliceContains(loginIDsKeyWhitelist, k) {
+			return map[string]string{}
+		}
+
+		if v == "" {
+			return map[string]string{}
 		}
 	}
-	return outputs
+	return authData
 }

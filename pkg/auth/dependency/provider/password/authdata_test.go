@@ -61,6 +61,11 @@ func TestAuthData(t *testing.T) {
 				"email":    "mock_email@example.com",
 			}
 			So(authDataChecker.isMatching(authData), ShouldBeFalse)
+			authData = map[string]string{
+				"role":  "mock_role",
+				"email": "mock_email@example.com",
+			}
+			So(authDataChecker.isMatching(authData), ShouldBeFalse)
 		})
 
 		Convey("shouldn't match zero value", func() {
@@ -74,9 +79,7 @@ func TestAuthData(t *testing.T) {
 				"username": "user",
 				"email":    "",
 			}
-			So(toValidAuthDataMap(keys, authData), ShouldResemble, map[string]string{
-				"username": "user",
-			})
+			So(toValidAuthDataMap(keys, authData), ShouldResemble, map[string]string{})
 		})
 	})
 }
