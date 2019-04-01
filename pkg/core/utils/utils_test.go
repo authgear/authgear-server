@@ -15,8 +15,9 @@
 package utils
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestStringSliceExcept(t *testing.T) {
@@ -130,5 +131,34 @@ func TestStringSliceContainAll(t *testing.T) {
 			})
 			So(result, ShouldEqual, false)
 		})
+	})
+}
+
+func TestStringSliceContains(t *testing.T) {
+	Convey("StringSliceContains", t, func() {
+		Convey("should check if a string not in a slice", func() {
+			result := StringSliceContains(
+				[]string{
+					"1",
+					"2",
+					"3",
+				},
+				"4",
+			)
+			So(result, ShouldEqual, false)
+		})
+
+		Convey("should check if a string in a slice", func() {
+			result := StringSliceContains(
+				[]string{
+					"1",
+					"2",
+					"3",
+				},
+				"1",
+			)
+			So(result, ShouldEqual, true)
+		})
+
 	})
 }

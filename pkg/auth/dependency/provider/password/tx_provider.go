@@ -34,6 +34,11 @@ func (p *safeProviderImpl) IsAuthDataMatching(authData map[string]string) bool {
 	return p.impl.IsAuthDataMatching(authData)
 }
 
+func (p *safeProviderImpl) GetLoginIDMetadataFlattenedKeys() []string {
+	p.txContext.EnsureTx()
+	return p.impl.GetLoginIDMetadataFlattenedKeys()
+}
+
 func (p *safeProviderImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) error {
 	p.txContext.EnsureTx()
 	return p.impl.CreatePrincipalsByAuthData(authInfoID, password, authData)

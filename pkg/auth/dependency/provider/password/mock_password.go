@@ -40,6 +40,22 @@ func (m *MockProvider) IsAuthDataMatching(authData map[string]string) bool {
 	return m.authDataChecker.isMatching(authData)
 }
 
+func (m *MockProvider) GetLoginIDMetadataFlattenedKeys() []string {
+	output := make([]string, 0, len(m.loginIDMetadataKeys))
+	bookkeeper := make(map[string]bool)
+
+	for _, keys := range m.loginIDMetadataKeys {
+		for _, key := range keys {
+			if _, ok := bookkeeper[key]; !ok {
+				bookkeeper[key] = true
+				output = append(output, key)
+			}
+		}
+	}
+
+	return output
+}
+
 // CreatePrincipalsByAuthData creates principals by authData
 func (m *MockProvider) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
 	authDataList := toValidAuthDataList(m.loginIDMetadataKeys, authData)

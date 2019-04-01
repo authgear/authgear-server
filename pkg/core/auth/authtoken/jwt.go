@@ -84,6 +84,7 @@ func (r *JWTStore) Get(accessToken string, token *Token) error {
 	}
 
 	if jwtToken.Valid {
+		token.AccessToken = accessToken
 		r.setTokenFromClaims(claims, token)
 	} else {
 		return &NotFoundError{accessToken, errors.New("invalid token")}

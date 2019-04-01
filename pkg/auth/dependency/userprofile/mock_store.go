@@ -57,12 +57,7 @@ func (u MockUserProfileStoreImpl) GetUserProfile(userID string) (profile UserPro
 }
 
 func (u MockUserProfileStoreImpl) UpdateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (profile UserProfile, err error) {
-	newData := u.Data[userID]
-	for k := range data {
-		newData[k] = data[k]
-	}
-
-	u.Data[userID] = newData
+	u.Data[userID] = data
 	now := u.TimeNowfunc()
 	profile = UserProfile{
 		ID:        userID,
@@ -70,7 +65,7 @@ func (u MockUserProfileStoreImpl) UpdateUserProfile(userID string, authInfo *aut
 		CreatedBy: userID,
 		UpdatedAt: now,
 		UpdatedBy: userID,
-		Data:      newData,
+		Data:      u.Data[userID],
 	}
 	return
 }

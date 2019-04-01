@@ -63,3 +63,13 @@ func strAt(slice []string, str string) int {
 	}
 	return -1
 }
+
+func StringSliceContains(in []string, elem string) bool {
+	for i := 0; i < len(in); i++ {
+		if in[i] == elem {
+			return true
+		}
+	}
+
+	return false
+}

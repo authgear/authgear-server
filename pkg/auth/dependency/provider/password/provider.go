@@ -68,6 +68,22 @@ func (p providerImpl) IsAuthDataMatching(authData map[string]string) bool {
 	return p.authDataChecker.isMatching(authData)
 }
 
+func (p providerImpl) GetLoginIDMetadataFlattenedKeys() []string {
+	output := make([]string, 0, len(p.loginIDMetadataKeys))
+	bookkeeper := make(map[string]bool)
+
+	for _, keys := range p.loginIDMetadataKeys {
+		for _, key := range keys {
+			if _, ok := bookkeeper[key]; !ok {
+				bookkeeper[key] = true
+				output = append(output, key)
+			}
+		}
+	}
+
+	return output
+}
+
 func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
 	authDataList := toValidAuthDataList(p.loginIDMetadataKeys, authData)
 
