@@ -74,11 +74,7 @@ func runCommand(m *migrate.Migrate, command string, commandArg string) (result s
 			return
 		}
 
-		if step == -1 {
-			err = m.Up()
-		} else {
-			err = m.Steps(step)
-		}
+		result, err = upCmd(m, step)
 	case "down":
 		step, e := getStep(commandArg)
 		if e != nil {
@@ -86,11 +82,7 @@ func runCommand(m *migrate.Migrate, command string, commandArg string) (result s
 			return
 		}
 
-		if step == -1 {
-			err = m.Down()
-		} else {
-			err = m.Steps(-step)
-		}
+		result, err = downCmd(m, step)
 	case "force":
 		v, e := strconv.ParseInt(commandArg, 10, 64)
 		if e != nil {
@@ -98,7 +90,7 @@ func runCommand(m *migrate.Migrate, command string, commandArg string) (result s
 			return
 		}
 
-		err = m.Force(int(v))
+		result, err = forceCmd(m, int(v))
 	case "version":
 		version, dirty, e := m.Version()
 		if e != nil {
@@ -116,10 +108,6 @@ func runCommand(m *migrate.Migrate, command string, commandArg string) (result s
 		err = errors.New("undefined command")
 	}
 
-	if err == nil && result == "" {
-		result = "OK"
-	}
-
 	return
 }
 
@@ -134,4 +122,48 @@ func getStep(stepStr string) (int, error) {
 	}
 
 	return int(n), nil
+}
+
+func upCmd(m *migrate.Migrate, step int) (result string, err error) {
+	var e error
+	if step == -1 {
+		e = m.Up()
+	} else {
+		e = m.Steps(step)
+	}
+
+	if e == nil {
+		result = "ok"
+	} else if e == migrate.ErrNoChange {
+		result = "no change"
+	} else {
+		err = e
+	}
+	return
+}
+
+func downCmd(m *migrate.Migrate, step int) (result string, err error) {
+	var e error
+	if step == -1 {
+		e = m.Down()
+	} else {
+		e = m.Steps(-step)
+	}
+
+	if e == nil {
+		result = "ok"
+	} else if e == migrate.ErrNoChange {
+		result = "no change"
+	} else {
+		err = e
+	}
+	return
+}
+
+func forceCmd(m *migrate.Migrate, v int) (result string, err error) {
+	if err = m.Force(v); err != nil {
+		return
+	}
+	result = "ok"
+	return
 }
