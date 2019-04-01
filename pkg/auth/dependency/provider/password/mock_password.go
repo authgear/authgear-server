@@ -10,22 +10,22 @@ import (
 // MockProvider is the memory implementation of password provider
 type MockProvider struct {
 	Provider
-	PrincipalMap        map[string]Principal
-	loginIDMetadataKeys [][]string
-	authDataChecker     authDataChecker
+	PrincipalMap         map[string]Principal
+	loginIDsKeyWhitelist []string
+	authDataChecker      authDataChecker
 }
 
 // NewMockProvider creates a new instance of mock provider
-func NewMockProvider(loginIDMetadataKeys [][]string) *MockProvider {
-	return NewMockProviderWithPrincipalMap(loginIDMetadataKeys, map[string]Principal{})
+func NewMockProvider(loginIDsKeyWhitelist []string) *MockProvider {
+	return NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist, map[string]Principal{})
 }
 
 // NewMockProviderWithPrincipalMap creates a new instance of mock provider with PrincipalMap
-func NewMockProviderWithPrincipalMap(loginIDMetadataKeys [][]string, principalMap map[string]Principal) *MockProvider {
+func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, principalMap map[string]Principal) *MockProvider {
 	return &MockProvider{
-		loginIDMetadataKeys: loginIDMetadataKeys,
+		loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		authDataChecker: defaultAuthDataChecker{
-			loginIDMetadataKeys: loginIDMetadataKeys,
+			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		},
 		PrincipalMap: principalMap,
 	}
@@ -58,11 +58,14 @@ func (m *MockProvider) GetLoginIDMetadataFlattenedKeys() []string {
 
 // CreatePrincipalsByAuthData creates principals by authData
 func (m *MockProvider) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
-	authDataList := toValidAuthDataList(m.loginIDMetadataKeys, authData)
+	authDataList := toValidAuthDataMap(m.loginIDsKeyWhitelist, authData)
 
-	for _, a := range authDataList {
+	for k, v := range authDataList {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
+		a := map[string]string{
+			k: v,
+		}
 		principal.AuthData = a
 		principal.PlainPassword = password
 		err = m.CreatePrincipal(principal)

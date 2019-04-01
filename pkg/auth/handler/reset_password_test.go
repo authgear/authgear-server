@@ -55,9 +55,9 @@ func TestResetPasswordHandler(t *testing.T) {
 				},
 			},
 		)
-		loginIDMetadataKeys := [][]string{[]string{"email"}, []string{"username"}}
+		loginIDsKeyWhitelist := []string{"email", "username"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
 					ID:     "john.doe.principal.id0",

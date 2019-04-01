@@ -88,9 +88,9 @@ func TestSingupHandler(t *testing.T) {
 			timeNow = realTime
 		}()
 
-		loginIDMetadataKeys := [][]string{[]string{"email"}, []string{"username"}}
+		loginIDsKeyWhitelist := []string{"email", "username"}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDMetadataKeys)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 
@@ -239,9 +239,9 @@ func TestSingupHandler(t *testing.T) {
 			timeNow = realTime
 		}()
 
-		loginIDMetadataKeys := [][]string{[]string{"email"}, []string{"username"}}
+		loginIDsKeyWhitelist := []string{"email", "username"}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDMetadataKeys)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 

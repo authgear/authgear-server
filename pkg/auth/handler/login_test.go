@@ -65,16 +65,23 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
-		loginIDMetadataKeys := [][]string{[]string{"email", "username"}}
+		loginIDsKeyWhitelist := []string{"email", "username"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{
-				"john.doe.principal.id": password.Principal{
-					ID:     "john.doe.principal.id",
+				"john.doe.principal.id1": password.Principal{
+					ID:     "john.doe.principal.id1",
+					UserID: "john.doe.id",
+					AuthData: map[string]string{
+						"email": "john.doe@example.com",
+					},
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"john.doe.principal.id2": password.Principal{
+					ID:     "john.doe.principal.id2",
 					UserID: "john.doe.id",
 					AuthData: map[string]string{
 						"username": "john.doe",
-						"email":    "john.doe@example.com",
 					},
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
@@ -91,8 +98,7 @@ func TestLoginHandler(t *testing.T) {
 
 		Convey("login user with auth data", func() {
 			authData := map[string]string{
-				"username": "john.doe",
-				"email":    "john.doe@example.com",
+				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
 				AuthData: authData,
@@ -123,8 +129,7 @@ func TestLoginHandler(t *testing.T) {
 
 		Convey("login user with incorrect password", func() {
 			authData := map[string]string{
-				"username": "john.doe",
-				"email":    "john.doe@example.com",
+				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
 				AuthData: authData,
@@ -144,13 +149,12 @@ func TestLoginHandler(t *testing.T) {
 				Password: "123456",
 			}
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidArgument: invalid auth data, check your LOGIN_ID_METADATA_KEYS setting")
+			So(err.Error(), ShouldEqual, "InvalidArgument: invalid auth data, check your LOGIN_IDS_KEY_WHITELIST setting")
 		})
 
 		Convey("log audit trail when login success", func() {
 			authData := map[string]string{
-				"username": "john.doe",
-				"email":    "john.doe@example.com",
+				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
 				AuthData: authData,
@@ -164,8 +168,7 @@ func TestLoginHandler(t *testing.T) {
 
 		Convey("log audit trail when login fail", func() {
 			authData := map[string]string{
-				"username": "john.doe",
-				"email":    "john.doe@example.com",
+				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
 				AuthData: authData,

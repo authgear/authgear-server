@@ -22,7 +22,7 @@ type providerImpl struct {
 	sqlBuilder             db.SQLBuilder
 	sqlExecutor            db.SQLExecutor
 	logger                 *logrus.Entry
-	loginIDMetadataKeys    [][]string
+	loginIDsKeyWhitelist   []string
 	authDataChecker        authDataChecker
 	passwordHistoryEnabled bool
 	passwordHistoryStore   passwordhistory.Store
@@ -32,16 +32,16 @@ func newProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	loginIDMetadataKeys [][]string,
+	loginIDsKeyWhitelist []string,
 	passwordHistoryEnabled bool,
 ) *providerImpl {
 	return &providerImpl{
-		sqlBuilder:          builder,
-		sqlExecutor:         executor,
-		logger:              logger,
-		loginIDMetadataKeys: loginIDMetadataKeys,
+		sqlBuilder:           builder,
+		sqlExecutor:          executor,
+		logger:               logger,
+		loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		authDataChecker: defaultAuthDataChecker{
-			loginIDMetadataKeys: loginIDMetadataKeys,
+			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		},
 		passwordHistoryEnabled: passwordHistoryEnabled,
 		passwordHistoryStore: pqPWHistory.NewPasswordHistoryStore(
@@ -54,10 +54,10 @@ func NewProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	loginIDMetadataKeys [][]string,
+	loginIDsKeyWhitelist []string,
 	passwordHistoryEnabled bool,
 ) Provider {
-	return newProvider(builder, executor, logger, loginIDMetadataKeys, passwordHistoryEnabled)
+	return newProvider(builder, executor, logger, loginIDsKeyWhitelist, passwordHistoryEnabled)
 }
 
 func (p providerImpl) IsAuthDataValid(authData map[string]string) bool {
@@ -85,11 +85,14 @@ func (p providerImpl) GetLoginIDMetadataFlattenedKeys() []string {
 }
 
 func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
-	authDataList := toValidAuthDataList(p.loginIDMetadataKeys, authData)
+	authDataList := toValidAuthDataMap(p.loginIDsKeyWhitelist, authData)
 
-	for _, a := range authDataList {
+	for k, v := range authDataList {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
+		a := map[string]string{
+			k: v,
+		}
 		principal.AuthData = a
 		principal.PlainPassword = password
 		err = p.CreatePrincipal(principal)

@@ -107,9 +107,9 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		loginIDMetadataKeys := [][]string{[]string{"email"}}
+		loginIDsKeyWhitelist := []string{"email"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -327,9 +327,9 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		loginIDMetadataKeys := [][]string{[]string{"email"}}
+		loginIDsKeyWhitelist := []string{"email"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -520,9 +520,9 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		loginIDMetadataKeys := [][]string{[]string{"email"}}
+		loginIDsKeyWhitelist := []string{"email"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:     "john.doe.principal.id",
@@ -612,9 +612,9 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		loginIDMetadataKeys := [][]string{[]string{"email"}}
+		loginIDsKeyWhitelist := []string{"email"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -702,16 +702,15 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		// providerAuthData wouldn't match loginIDMetadataKeys "["email", "username"]"
-		loginIDMetadataKeys := [][]string{[]string{"email", "username"}}
+		// providerAuthData wouldn't match loginIDsKeyWhitelist "["username"]"
+		loginIDsKeyWhitelist := []string{"username"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:     "john.doe.principal.id",
 					UserID: "john.doe.id",
 					AuthData: map[string]string{
-						"email":    "john.doe@example.com",
 						"username": "john.doe",
 					},
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
@@ -720,7 +719,7 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
 
-		Convey("shouldn't auto-link password principal if loginIDMetadataKeys not matched", func() {
+		Convey("shouldn't auto-link password principal if loginIDsKeyWhitelist not matched", func() {
 			// oauth state
 			state := sso.State{
 				CallbackURL: "http://localhost:3000",
