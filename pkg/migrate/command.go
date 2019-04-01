@@ -13,7 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/migrate/database/postgres"
 )
 
-func Run(module string, schema string, databaseURL string, sourceURL string, dryRun bool, command string, commandArg string) (err error) {
+func Run(module string, schema string, databaseURL string, sourceURL string, dryRun bool, command string, commandArg string) (result string, err error) {
 	if schema == "" {
 		err = errors.New("missing schema")
 		return
@@ -61,11 +61,11 @@ func Run(module string, schema string, databaseURL string, sourceURL string, dry
 		return
 	}
 
-	err = runCommand(m, command, commandArg)
+	result, err = runCommand(m, command, commandArg)
 	return
 }
 
-func runCommand(m *migrate.Migrate, command string, commandArg string) (err error) {
+func runCommand(m *migrate.Migrate, command string, commandArg string) (result string, err error) {
 	switch command {
 	case "up":
 		step, e := getStep(commandArg)
@@ -106,12 +106,18 @@ func runCommand(m *migrate.Migrate, command string, commandArg string) (err erro
 			return
 		}
 
+		result = fmt.Sprintf("%d", version)
+
 		log.WithFields(log.Fields{
 			"version": strconv.FormatInt(int64(version), 10),
 			"dirty":   strconv.FormatBool(dirty),
 		}).Info("checking version")
 	default:
 		err = errors.New("undefined command")
+	}
+
+	if err == nil && result == "" {
+		result = "OK"
 	}
 
 	return
