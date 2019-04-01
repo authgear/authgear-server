@@ -57,6 +57,10 @@ type UpdateMetadataRequestPayload struct {
 }
 
 func (p UpdateMetadataRequestPayload) Validate() error {
+	if p.UserID == "" {
+		return skyerr.NewInvalidArgument("empty user_id", []string{"user_id"})
+	}
+
 	return nil
 }
 
