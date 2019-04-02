@@ -203,7 +203,10 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 
 func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	passwordPrincipal := password.Principal{}
-	e := h.PasswordAuthProvider.GetPrincipalByAuthData(oauthAuthInfo.ProviderAuthData, &passwordPrincipal)
+	var e error
+	if email, ok := oauthAuthInfo.ProviderAuthData["email"]; ok {
+		e = h.PasswordAuthProvider.GetPrincipalByAuthData("email", email, &passwordPrincipal)
+	}
 	if e == nil {
 		userID := passwordPrincipal.UserID
 		// link password principal to oauth principal
