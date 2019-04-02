@@ -49,24 +49,22 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		}
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
-		loginIDMetadataKeys := [][]string{[]string{"email"}, []string{"username"}}
+		loginIDsKeyWhitelist := []string{}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
-					ID:     "john.doe.principal.id0",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"username": "john.doe",
-					},
+					ID:             "john.doe.principal.id0",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "username",
+					LoginID:        "john.doe",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id1": password.Principal{
-					ID:     "john.doe.principal.id1",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"email": "john.doe@example.com",
-					},
+					ID:             "john.doe.principal.id1",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -104,43 +102,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 						"username": "john.doe",
 						"email": "john.doe@example.com",
 						"age": 24
-					}
-				}
-			}`,
-				userID,
-				userID,
-				userID))
-		})
-
-		Convey("shouldn't update metadata in LOGIN_ID_METADATA_KEYS", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
-			{
-				"user_id": "%s",
-				"metadata": {
-					"username": "mary.jane",
-					"email":    "mary.jane@example.com",
-					"age": 25
-				}
-			}`,
-				userID)))
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-
-			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-				"result": {
-					"user_id": "%s",
-					"access_token": "faseng_access_token",
-					"verified":true,
-					"verify_info":{},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {
-						"username": "john.doe",
-						"email": "john.doe@example.com",
-						"age": 25
 					}
 				}
 			}`,
@@ -221,38 +182,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 				userID))
 		})
 
-		Convey("shouldn't allow to delete metadata in LOGIN_ID_METADATA_KEYS", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
-			{
-				"user_id": "%s",
-				"metadata": {}
-			}`,
-				userID)))
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-
-			So(resp.Code, ShouldEqual, 200)
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-				"result": {
-					"user_id": "%s",
-					"access_token": "faseng_access_token",
-					"verified":true,
-					"verify_info":{},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {
-						"username": "john.doe",
-						"email": "john.doe@example.com"
-					}
-				}
-			}`,
-				userID,
-				userID,
-				userID))
-		})
-
 		Convey("shouldn't update another user's metadata", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
@@ -301,24 +230,22 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		}
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
-		loginIDMetadataKeys := [][]string{[]string{"email"}, []string{"username"}}
+		loginIDsKeyWhitelist := []string{}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
-					ID:     "john.doe.principal.id0",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"username": "john.doe",
-					},
+					ID:             "john.doe.principal.id0",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "username",
+					LoginID:        "john.doe",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id1": password.Principal{
-					ID:     "john.doe.principal.id1",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"email": "john.doe@example.com",
-					},
+					ID:             "john.doe.principal.id1",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
