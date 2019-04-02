@@ -2,49 +2,49 @@ package password
 
 import "github.com/skygeario/skygear-server/pkg/core/utils"
 
-type authDataChecker interface {
-	isValid(authData map[string]string) bool
-	isMatching(authData map[string]string) bool
+type loginIDChecker interface {
+	isValid(loginID map[string]string) bool
+	isMatching(loginID map[string]string) bool
 }
 
-type defaultAuthDataChecker struct {
+type defaultLoginIDChecker struct {
 	loginIDsKeyWhitelist []string
 }
 
-func (c defaultAuthDataChecker) isValid(authData map[string]string) bool {
-	return len(toValidAuthDataMap(c.loginIDsKeyWhitelist, authData)) > 0
+func (c defaultLoginIDChecker) isValid(loginID map[string]string) bool {
+	return len(toValidLoginIDMap(c.loginIDsKeyWhitelist, loginID)) > 0
 }
 
-func (c defaultAuthDataChecker) isMatching(authData map[string]string) bool {
-	return len(authData) == 1 && len(toValidAuthDataMap(c.loginIDsKeyWhitelist, authData)) == 1
+func (c defaultLoginIDChecker) isMatching(loginID map[string]string) bool {
+	return len(loginID) == 1 && len(toValidLoginIDMap(c.loginIDsKeyWhitelist, loginID)) == 1
 }
 
 // this ensures that our structure conform to certain interfaces.
 var (
-	_ authDataChecker = &defaultAuthDataChecker{}
+	_ loginIDChecker = &defaultLoginIDChecker{}
 )
 
-// toValidAuthDataMap converts authData to a list of authData depending on loginIDsKeyWhitelist
+// toValidLoginIDMap converts loginID to a list of loginID depending on loginIDsKeyWhitelist
 // example 1: loginIDsKeyWhitelist = []
 // - allows to use any key
-// - if authData is { "username": "john.doe" }, output is { "username": "john.doe" }
-// - if authData is { "username": "john.doe", "email": "john.doe@example.com" }
+// - if loginID is { "username": "john.doe" }, output is { "username": "john.doe" }
+// - if loginID is { "username": "john.doe", "email": "john.doe@example.com" }
 //   output is { "username": "john.doe", "email": "john.doe@example.com" }
 //
 // example 2: loginIDsKeyWhitelist = ["username", "email"]
-// - if authData is { "username": "john.doe" }, output is { "username": "john.doe" }
-// - if authData is { "username": "john.doe", "email": "john.doe@example.com" }
+// - if loginID is { "username": "john.doe" }, output is { "username": "john.doe" }
+// - if loginID is { "username": "john.doe", "email": "john.doe@example.com" }
 //   output is { "username": "john.doe", "email": "john.doe@example.com" }
 //
 // example 3: loginIDsKeyWhitelist = ["email"]
-// - if authData is { "username": "john.doe" }, output is {}
-// - if authData is { "username": "john.doe", "email": "john.doe@example.com" }
+// - if loginID is { "username": "john.doe" }, output is {}
+// - if loginID is { "username": "john.doe", "email": "john.doe@example.com" }
 //   output is { } // username is not in the list
 //
-func toValidAuthDataMap(loginIDsKeyWhitelist []string, authData map[string]string) map[string]string {
-	for k, v := range authData {
-		// default is empty list, allows any authData keys
-		// if loginIDsKeyWhitelist is not empty, reject any authDataKey that is not in the list
+func toValidLoginIDMap(loginIDsKeyWhitelist []string, loginID map[string]string) map[string]string {
+	for k, v := range loginID {
+		// default is empty list, allows any loginID keys
+		// if loginIDsKeyWhitelist is not empty, reject any loginIDKey that is not in the list
 		if len(loginIDsKeyWhitelist) != 0 &&
 			!utils.StringSliceContains(loginIDsKeyWhitelist, k) {
 			return map[string]string{}
@@ -54,5 +54,5 @@ func toValidAuthDataMap(loginIDsKeyWhitelist []string, authData map[string]strin
 			return map[string]string{}
 		}
 	}
-	return authData
+	return loginID
 }

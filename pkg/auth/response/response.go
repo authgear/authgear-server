@@ -21,7 +21,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
 
-// AuthResponse is the unify way of returing a AuthInfo with AuthData to SDK
+// AuthResponse is the unify way of returning a AuthInfo with LoginID to SDK
 type AuthResponse struct {
 	UserID      string           `json:"user_id,omitempty"`
 	Metadata    userprofile.Data `json:"metadata"`

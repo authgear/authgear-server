@@ -32,7 +32,7 @@ func TestSingupHandler(t *testing.T) {
 	Convey("Test SignupRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := SignupRequestPayload{
-				AuthData: map[string]string{
+				LoginID: map[string]string{
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 				},
@@ -41,7 +41,7 @@ func TestSingupHandler(t *testing.T) {
 			So(payload.Validate(), ShouldBeNil)
 		})
 
-		Convey("validate payload without auth data", func() {
+		Convey("validate payload without login_id", func() {
 			payload := SignupRequestPayload{
 				Password: "123456",
 			}
@@ -52,7 +52,7 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("validate payload without password", func() {
 			payload := SignupRequestPayload{
-				AuthData: map[string]string{
+				LoginID: map[string]string{
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 				},
@@ -62,9 +62,9 @@ func TestSingupHandler(t *testing.T) {
 			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
 		})
 
-		Convey("validate duplicated keys found in auth data in profile", func() {
+		Convey("validate duplicated keys found in login_id in profile", func() {
 			payload := SignupRequestPayload{
-				AuthData: map[string]string{
+				LoginID: map[string]string{
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 				},
@@ -110,13 +110,13 @@ func TestSingupHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 		h.TaskQueue = mockTaskQueue
 
-		Convey("signup user with auth data", func() {
-			authData := map[string]string{
+		Convey("signup user with login_id", func() {
+			loginID := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
 			payload := SignupRequestPayload{
-				AuthData: authData,
+				LoginID:  loginID,
 				Password: "123456",
 			}
 			resp, err := h.Handle(payload)
@@ -169,25 +169,25 @@ func TestSingupHandler(t *testing.T) {
 			So(!token.IsExpired(), ShouldBeTrue)
 		})
 
-		Convey("signup with incorrect auth data", func() {
-			authData := map[string]string{
+		Convey("signup with incorrect login_id", func() {
+			loginID := map[string]string{
 				"phone": "202-111-2222",
 			}
 			payload := SignupRequestPayload{
-				AuthData: authData,
+				LoginID:  loginID,
 				Password: "123456",
 			}
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidArgument: invalid auth data")
+			So(err.Error(), ShouldEqual, "InvalidArgument: invalid login_id")
 		})
 
 		Convey("signup with weak password", func() {
-			authData := map[string]string{
+			loginID := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
 			payload := SignupRequestPayload{
-				AuthData: authData,
+				LoginID:  loginID,
 				Password: "1234",
 			}
 			_, err := h.Handle(payload)
@@ -196,12 +196,12 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("signup with email, send welcome email", func() {
 			h.WelcomeEmailEnabled = true
-			authData := map[string]string{
+			loginID := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
 			payload := SignupRequestPayload{
-				AuthData: authData,
+				LoginID:  loginID,
 				Password: "12345678",
 			}
 			_, err := h.Handle(payload)
@@ -217,12 +217,12 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when signup success", func() {
-			authData := map[string]string{
+			loginID := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
 			payload := SignupRequestPayload{
-				AuthData: authData,
+				LoginID:  loginID,
 				Password: "123456",
 			}
 			h.Handle(payload)
@@ -266,7 +266,7 @@ func TestSingupHandler(t *testing.T) {
 		Convey("duplicated user error format", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"auth_data": {
+				"login_id": {
 					"username": "john.doe"
 				},
 				"password": "123456"
@@ -277,7 +277,7 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ = http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"auth_data": {
+				"login_id": {
 					"username": "john.doe"
 				},
 				"password": "1234567"

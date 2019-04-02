@@ -57,15 +57,15 @@ func TestChangePasswordHandler(t *testing.T) {
 				"john.doe.principal.id0": password.Principal{
 					ID:             "john.doe.principal.id0",
 					UserID:         userID,
-					AuthDataKey:    "username",
-					AuthData:       "john.doe",
+					LoginIDKey:     "username",
+					LoginID:        "john.doe",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id1": password.Principal{
 					ID:             "john.doe.principal.id1",
 					UserID:         userID,
-					AuthDataKey:    "email",
-					AuthData:       "john.doe@example.com",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},

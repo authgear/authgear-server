@@ -12,7 +12,7 @@ type MockProvider struct {
 	Provider
 	PrincipalMap         map[string]Principal
 	loginIDsKeyWhitelist []string
-	authDataChecker      authDataChecker
+	loginIDChecker       loginIDChecker
 }
 
 // NewMockProvider creates a new instance of mock provider
@@ -24,20 +24,20 @@ func NewMockProvider(loginIDsKeyWhitelist []string) *MockProvider {
 func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, principalMap map[string]Principal) *MockProvider {
 	return &MockProvider{
 		loginIDsKeyWhitelist: loginIDsKeyWhitelist,
-		authDataChecker: defaultAuthDataChecker{
+		loginIDChecker: defaultLoginIDChecker{
 			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		},
 		PrincipalMap: principalMap,
 	}
 }
 
-// IsAuthDataValid validates authData
-func (m *MockProvider) IsAuthDataValid(authData map[string]string) bool {
-	return m.authDataChecker.isValid(authData)
+// IsLoginIDValid validates loginID
+func (m *MockProvider) IsLoginIDValid(loginID map[string]string) bool {
+	return m.loginIDChecker.isValid(loginID)
 }
 
-func (m *MockProvider) IsAuthDataMatching(authData map[string]string) bool {
-	return m.authDataChecker.isMatching(authData)
+func (m *MockProvider) IsLoginIDMatching(loginID map[string]string) bool {
+	return m.loginIDChecker.isMatching(loginID)
 }
 
 func (m *MockProvider) GetLoginIDMetadataFlattenedKeys() []string {
@@ -56,15 +56,15 @@ func (m *MockProvider) GetLoginIDMetadataFlattenedKeys() []string {
 	return output
 }
 
-// CreatePrincipalsByAuthData creates principals by authData
-func (m *MockProvider) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
-	authDataList := toValidAuthDataMap(m.loginIDsKeyWhitelist, authData)
+// CreatePrincipalsByLoginID creates principals by loginID
+func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) (err error) {
+	loginIDList := toValidLoginIDMap(m.loginIDsKeyWhitelist, loginID)
 
-	for k, v := range authDataList {
+	for k, v := range loginIDList {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
-		principal.AuthDataKey = k
-		principal.AuthData = v
+		principal.LoginIDKey = k
+		principal.LoginID = v
 		principal.PlainPassword = password
 		err = m.CreatePrincipal(principal)
 
@@ -83,7 +83,7 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 	}
 
 	for _, p := range m.PrincipalMap {
-		if reflect.DeepEqual(principal.AuthData, p.AuthData) {
+		if reflect.DeepEqual(principal.LoginID, p.LoginID) {
 			return skydb.ErrUserDuplicated
 		}
 	}
@@ -98,10 +98,10 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 	return nil
 }
 
-// GetPrincipalByAuthData get principal in PrincipalMap by auth data
-func (m *MockProvider) GetPrincipalByAuthData(authDataKey string, authData string, principal *Principal) (err error) {
+// GetPrincipalByLoginID get principal in PrincipalMap by login_id
+func (m *MockProvider) GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error) {
 	for _, p := range m.PrincipalMap {
-		if p.AuthDataKey == authDataKey && p.AuthData == authData {
+		if p.LoginIDKey == loginIDKey && p.LoginID == loginID {
 			*principal = p
 			return
 		}
@@ -129,7 +129,7 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Princ
 // GetPrincipalsByEmail get principal in PrincipalMap by userID
 func (m *MockProvider) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
 	for _, p := range m.PrincipalMap {
-		if p.AuthDataKey == "email" && p.AuthData == email {
+		if p.LoginIDKey == "email" && p.LoginID == email {
 			principal := p
 			principals = append(principals, &principal)
 		}

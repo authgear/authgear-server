@@ -58,7 +58,7 @@ func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type SignupRequestPayload struct {
-	AuthData   map[string]string      `json:"auth_data"`
+	LoginID    map[string]string      `json:"login_id"`
 	Password   string                 `json:"password"`
 	RawProfile map[string]interface{} `json:"profile"`
 }
@@ -67,12 +67,12 @@ func (p SignupRequestPayload) Validate() error {
 	if p.isAnonymous() {
 		//no validation logic for anonymous sign up
 	} else {
-		if len(p.AuthData) == 0 {
-			return skyerr.NewInvalidArgument("empty auth data", []string{"auth_data"})
+		if len(p.LoginID) == 0 {
+			return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
 		}
 
-		if duplicatedKeys := p.duplicatedKeysInAuthDataAndProfile(); len(duplicatedKeys) > 0 {
-			return skyerr.NewInvalidArgument("duplicated keys found in auth data in profile", duplicatedKeys)
+		if duplicatedKeys := p.duplicatedKeysInLoginIDAndProfile(); len(duplicatedKeys) > 0 {
+			return skyerr.NewInvalidArgument("duplicated keys found in login_id in profile", duplicatedKeys)
 		}
 
 		if p.Password == "" {
@@ -83,10 +83,10 @@ func (p SignupRequestPayload) Validate() error {
 	return nil
 }
 
-func (p SignupRequestPayload) duplicatedKeysInAuthDataAndProfile() []string {
+func (p SignupRequestPayload) duplicatedKeysInLoginIDAndProfile() []string {
 	keys := []string{}
 
-	for k := range p.AuthData {
+	for k := range p.LoginID {
 		if _, found := p.RawProfile[k]; found {
 			keys = append(keys, k)
 		}
@@ -96,14 +96,14 @@ func (p SignupRequestPayload) duplicatedKeysInAuthDataAndProfile() []string {
 }
 
 func (p SignupRequestPayload) isAnonymous() bool {
-	return len(p.AuthData) == 0 && p.Password == ""
+	return len(p.LoginID) == 0 && p.Password == ""
 }
 
 func (p SignupRequestPayload) mergedProfile() map[string]interface{} {
-	// Assume duplicatedKeysInAuthDataAndProfile is called before this
+	// Assume duplicatedKeysInLoginIDAndProfile is called before this
 	profile := make(map[string]interface{})
-	for k := range p.AuthData {
-		profile[k] = p.AuthData[k]
+	for k := range p.LoginID {
+		profile[k] = p.LoginID[k]
 	}
 	for k := range p.RawProfile {
 		profile[k] = p.RawProfile[k]
@@ -224,8 +224,8 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 		return
 	}
 
-	if valid := h.PasswordAuthProvider.IsAuthDataValid(payload.AuthData); !valid {
-		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
+	if valid := h.PasswordAuthProvider.IsLoginIDValid(payload.LoginID); !valid {
+		err = skyerr.NewInvalidArgument("invalid login_id", []string{"login_id"})
 		return
 	}
 
@@ -239,7 +239,7 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 
 func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (err error) {
 	if !payload.isAnonymous() {
-		err = h.PasswordAuthProvider.CreatePrincipalsByAuthData(authInfo.ID, payload.Password, payload.AuthData)
+		err = h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginID)
 		if err == skydb.ErrUserDuplicated {
 			err = ErrUserDuplicated
 		}

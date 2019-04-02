@@ -24,14 +24,14 @@ func NewSafeProvider(
 	}
 }
 
-func (p *safeProviderImpl) IsAuthDataValid(authData map[string]string) bool {
+func (p *safeProviderImpl) IsLoginIDValid(loginID map[string]string) bool {
 	p.txContext.EnsureTx()
-	return p.impl.IsAuthDataValid(authData)
+	return p.impl.IsLoginIDValid(loginID)
 }
 
-func (p *safeProviderImpl) IsAuthDataMatching(authData map[string]string) bool {
+func (p *safeProviderImpl) IsLoginIDMatching(loginID map[string]string) bool {
 	p.txContext.EnsureTx()
-	return p.impl.IsAuthDataMatching(authData)
+	return p.impl.IsLoginIDMatching(loginID)
 }
 
 func (p *safeProviderImpl) GetLoginIDMetadataFlattenedKeys() []string {
@@ -39,9 +39,9 @@ func (p *safeProviderImpl) GetLoginIDMetadataFlattenedKeys() []string {
 	return p.impl.GetLoginIDMetadataFlattenedKeys()
 }
 
-func (p *safeProviderImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) error {
+func (p *safeProviderImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) error {
 	p.txContext.EnsureTx()
-	return p.impl.CreatePrincipalsByAuthData(authInfoID, password, authData)
+	return p.impl.CreatePrincipalsByLoginID(authInfoID, password, loginID)
 }
 
 func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
@@ -49,9 +49,9 @@ func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
 	return p.impl.CreatePrincipal(principal)
 }
 
-func (p *safeProviderImpl) GetPrincipalByAuthData(authDataKey string, authData string, principal *Principal) (err error) {
+func (p *safeProviderImpl) GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error) {
 	p.txContext.EnsureTx()
-	return p.impl.GetPrincipalByAuthData(authDataKey, authData, principal)
+	return p.impl.GetPrincipalByLoginID(loginIDKey, loginID, principal)
 }
 
 func (p *safeProviderImpl) GetPrincipalsByUserID(userID string) ([]*Principal, error) {

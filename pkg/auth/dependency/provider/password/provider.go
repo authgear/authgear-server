@@ -22,7 +22,7 @@ type providerImpl struct {
 	sqlExecutor            db.SQLExecutor
 	logger                 *logrus.Entry
 	loginIDsKeyWhitelist   []string
-	authDataChecker        authDataChecker
+	loginIDChecker         loginIDChecker
 	passwordHistoryEnabled bool
 	passwordHistoryStore   passwordhistory.Store
 }
@@ -39,7 +39,7 @@ func newProvider(
 		sqlExecutor:          executor,
 		logger:               logger,
 		loginIDsKeyWhitelist: loginIDsKeyWhitelist,
-		authDataChecker: defaultAuthDataChecker{
+		loginIDChecker: defaultLoginIDChecker{
 			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		},
 		passwordHistoryEnabled: passwordHistoryEnabled,
@@ -59,12 +59,12 @@ func NewProvider(
 	return newProvider(builder, executor, logger, loginIDsKeyWhitelist, passwordHistoryEnabled)
 }
 
-func (p providerImpl) IsAuthDataValid(authData map[string]string) bool {
-	return p.authDataChecker.isValid(authData)
+func (p providerImpl) IsLoginIDValid(loginID map[string]string) bool {
+	return p.loginIDChecker.isValid(loginID)
 }
 
-func (p providerImpl) IsAuthDataMatching(authData map[string]string) bool {
-	return p.authDataChecker.isMatching(authData)
+func (p providerImpl) IsLoginIDMatching(loginID map[string]string) bool {
+	return p.loginIDChecker.isMatching(loginID)
 }
 
 func (p providerImpl) GetLoginIDMetadataFlattenedKeys() []string {
@@ -83,14 +83,14 @@ func (p providerImpl) GetLoginIDMetadataFlattenedKeys() []string {
 	return output
 }
 
-func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
-	authDataList := toValidAuthDataMap(p.loginIDsKeyWhitelist, authData)
+func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) (err error) {
+	loginIDList := toValidLoginIDMap(p.loginIDsKeyWhitelist, loginID)
 
-	for k, v := range authDataList {
+	for k, v := range loginIDList {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
-		principal.AuthDataKey = k
-		principal.AuthData = v
+		principal.LoginIDKey = k
+		principal.LoginID = v
 		principal.PlainPassword = password
 		err = p.CreatePrincipal(principal)
 
@@ -133,8 +133,8 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 		"password",
 	).Values(
 		principal.ID,
-		principal.AuthDataKey,
-		principal.AuthData,
+		principal.LoginIDKey,
+		principal.LoginID,
 		hashedPassword,
 	)
 
@@ -154,10 +154,10 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p providerImpl) GetPrincipalByAuthData(authDataKey string, authData string, principal *Principal) (err error) {
+func (p providerImpl) GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error) {
 	builder := p.sqlBuilder.Select("principal_id", "password").
 		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`login_id_key = ? AND login_id = ?`, authDataKey, authData)
+		Where(`login_id_key = ? AND login_id = ?`, loginIDKey, loginID)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
 	err = scanner.Scan(
@@ -173,8 +173,8 @@ func (p providerImpl) GetPrincipalByAuthData(authDataKey string, authData string
 		return
 	}
 
-	principal.AuthDataKey = authDataKey
-	principal.AuthData = authData
+	principal.LoginIDKey = loginIDKey
+	principal.LoginID = loginID
 
 	builder = p.sqlBuilder.Select("user_id").
 		From(p.sqlBuilder.FullTableName("principal")).
@@ -227,8 +227,8 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 			Where(`principal_id = ?`, principal.ID)
 		scanner := p.sqlExecutor.QueryRowWith(builder)
 		err = scanner.Scan(
-			&principal.AuthDataKey,
-			&principal.AuthData,
+			&principal.LoginIDKey,
+			&principal.LoginID,
 			&principal.HashedPassword,
 		)
 
@@ -256,8 +256,8 @@ func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principa
 
 	for rows.Next() {
 		var principal Principal
-		principal.AuthDataKey = "email"
-		principal.AuthData = email
+		principal.LoginIDKey = "email"
+		principal.LoginID = email
 		if err = rows.Scan(
 			&principal.ID,
 			&principal.HashedPassword,
@@ -301,8 +301,8 @@ func (p providerImpl) UpdatePrincipal(principal Principal) (err error) {
 	}
 
 	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_password")).
-		Set("login_id_key", principal.AuthDataKey).
-		Set("login_id", principal.AuthData).
+		Set("login_id_key", principal.LoginIDKey).
+		Set("login_id", principal.LoginID).
 		Set("password", hashedPassword).
 		Where("principal_id = ?", principal.ID)
 

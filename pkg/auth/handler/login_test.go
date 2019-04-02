@@ -19,17 +19,17 @@ func TestLoginHandler(t *testing.T) {
 	Convey("Test LoginRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := LoginRequestPayload{
-				RawAuthData: map[string]string{
+				RawLoginID: map[string]string{
 					"username": "john.doe",
 				},
-				AuthDataKey: "username",
-				AuthData:    "john.doe",
-				Password:    "123456",
+				LoginIDKey: "username",
+				LoginID:    "john.doe",
+				Password:   "123456",
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
 
-		Convey("validate payload without auth data", func() {
+		Convey("validate payload without login_id", func() {
 			payload := LoginRequestPayload{
 				Password: "123456",
 			}
@@ -40,21 +40,21 @@ func TestLoginHandler(t *testing.T) {
 
 		Convey("validate payload without password", func() {
 			payload := LoginRequestPayload{
-				RawAuthData: map[string]string{
+				RawLoginID: map[string]string{
 					"username": "john.doe",
 				},
-				AuthDataKey: "username",
-				AuthData:    "john.doe",
+				LoginIDKey: "username",
+				LoginID:    "john.doe",
 			}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
 			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
 		})
 
-		Convey("validate payload without auth data key", func() {
+		Convey("validate payload without login_id key", func() {
 			payload := LoginRequestPayload{
-				RawAuthData: map[string]string{},
-				Password:    "123456",
+				RawLoginID: map[string]string{},
+				Password:   "123456",
 			}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
@@ -84,15 +84,15 @@ func TestLoginHandler(t *testing.T) {
 				"john.doe.principal.id1": password.Principal{
 					ID:             "john.doe.principal.id1",
 					UserID:         "john.doe.id",
-					AuthDataKey:    "email",
-					AuthData:       "john.doe@example.com",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id2": password.Principal{
 					ID:             "john.doe.principal.id2",
 					UserID:         "john.doe.id",
-					AuthDataKey:    "username",
-					AuthData:       "john.doe",
+					LoginIDKey:     "username",
+					LoginID:        "john.doe",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -106,15 +106,15 @@ func TestLoginHandler(t *testing.T) {
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 
-		Convey("login user with auth data", func() {
-			authData := map[string]string{
+		Convey("login user with login_id", func() {
+			loginID := map[string]string{
 				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
-				RawAuthData: authData,
-				AuthDataKey: "email",
-				AuthData:    "john.doe@example.com",
-				Password:    "123456",
+				RawLoginID: loginID,
+				LoginIDKey: "email",
+				LoginID:    "john.doe@example.com",
+				Password:   "123456",
 			}
 			userID := "john.doe.id"
 
@@ -140,43 +140,43 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("login user with incorrect password", func() {
-			authData := map[string]string{
+			loginID := map[string]string{
 				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
-				RawAuthData: authData,
-				AuthDataKey: "email",
-				AuthData:    "john.doe@example.com",
-				Password:    "wrong_password",
+				RawLoginID: loginID,
+				LoginIDKey: "email",
+				LoginID:    "john.doe@example.com",
+				Password:   "wrong_password",
 			}
 
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidCredentials: auth_data or password incorrect")
+			So(err.Error(), ShouldEqual, "InvalidCredentials: login_id or password incorrect")
 		})
 
-		Convey("login with incorrect auth data", func() {
-			authData := map[string]string{
+		Convey("login with incorrect login_id", func() {
+			loginID := map[string]string{
 				"phone": "202-111-2222",
 			}
 			payload := LoginRequestPayload{
-				RawAuthData: authData,
-				AuthDataKey: "phone",
-				AuthData:    "202-111-2222",
-				Password:    "123456",
+				RawLoginID: loginID,
+				LoginIDKey: "phone",
+				LoginID:    "202-111-2222",
+				Password:   "123456",
 			}
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidArgument: invalid auth data, check your LOGIN_IDS_KEY_WHITELIST setting")
+			So(err.Error(), ShouldEqual, "InvalidArgument: invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting")
 		})
 
 		Convey("log audit trail when login success", func() {
-			authData := map[string]string{
+			loginID := map[string]string{
 				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
-				RawAuthData: authData,
-				AuthDataKey: "email",
-				AuthData:    "john.doe@example.com",
-				Password:    "123456",
+				RawLoginID: loginID,
+				LoginIDKey: "email",
+				LoginID:    "john.doe@example.com",
+				Password:   "123456",
 			}
 			h.Handle(payload)
 			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
@@ -185,14 +185,14 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when login fail", func() {
-			authData := map[string]string{
+			loginID := map[string]string{
 				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
-				RawAuthData: authData,
-				AuthDataKey: "email",
-				AuthData:    "john.doe@example.com",
-				Password:    "wrong_password",
+				RawLoginID: loginID,
+				LoginIDKey: "email",
+				LoginID:    "john.doe@example.com",
+				Password:   "wrong_password",
 			}
 			h.Handle(payload)
 			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)

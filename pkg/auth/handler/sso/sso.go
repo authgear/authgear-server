@@ -188,7 +188,7 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 	}
 
 	// if oauth principal doesn't exist, try to link existed password principal
-	if valid := h.PasswordAuthProvider.IsAuthDataValid(oauthAuthInfo.ProviderAuthData); valid {
+	if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
 		// provider authData matches app's loginIDsKeyWhitelist,
 		// then it starts auto-link procedure.
 		//
@@ -205,7 +205,7 @@ func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal,
 	passwordPrincipal := password.Principal{}
 	var e error
 	if email, ok := oauthAuthInfo.ProviderAuthData["email"]; ok {
-		e = h.PasswordAuthProvider.GetPrincipalByAuthData("email", email, &passwordPrincipal)
+		e = h.PasswordAuthProvider.GetPrincipalByLoginID("email", email, &passwordPrincipal)
 	}
 	if e == nil {
 		userID := passwordPrincipal.UserID
@@ -237,10 +237,10 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 }
 
 func (h respHandler) createEmptyPasswordPrincipal(userID string, oauthAuthInfo sso.AuthInfo) error {
-	if valid := h.PasswordAuthProvider.IsAuthDataValid(oauthAuthInfo.ProviderAuthData); valid {
+	if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
 		// if ProviderAuthData matches loginIDsKeyWhitelist, and it can't be link with current account,
 		// we also creates an empty password principal for later the user can set password to it
-		return h.PasswordAuthProvider.CreatePrincipalsByAuthData(userID, "", oauthAuthInfo.ProviderAuthData)
+		return h.PasswordAuthProvider.CreatePrincipalsByLoginID(userID, "", oauthAuthInfo.ProviderAuthData)
 	}
 
 	return nil

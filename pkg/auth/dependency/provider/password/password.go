@@ -3,12 +3,12 @@ package password
 const providerPassword string = "password"
 
 type Provider interface {
-	IsAuthDataValid(authData map[string]string) bool
-	IsAuthDataMatching(authData map[string]string) bool
+	IsLoginIDValid(loginID map[string]string) bool
+	IsLoginIDMatching(loginID map[string]string) bool
 	GetLoginIDMetadataFlattenedKeys() []string
-	CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) error
+	CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) error
 	CreatePrincipal(principal Principal) error
-	GetPrincipalByAuthData(authDataKey string, authData string, principal *Principal) (err error)
+	GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error)
 	GetPrincipalsByUserID(userID string) ([]*Principal, error)
 	GetPrincipalsByEmail(email string) ([]*Principal, error)
 	UpdatePrincipal(principal Principal) error

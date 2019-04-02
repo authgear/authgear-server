@@ -9,8 +9,8 @@ import (
 type Principal struct {
 	ID             string
 	UserID         string
-	AuthDataKey    string
-	AuthData       string
+	LoginIDKey     string
+	LoginID        string
 	PlainPassword  string
 	HashedPassword []byte
 }

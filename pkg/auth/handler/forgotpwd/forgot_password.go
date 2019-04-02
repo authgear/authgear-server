@@ -112,7 +112,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 			return
 		}
 		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
+		err = skyerr.NewResourceFetchFailureErr("login_id", authData)
 		return
 	}
 
@@ -131,7 +131,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 				return
 			}
 			// TODO: more error handling here if necessary
-			err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
+			err = skyerr.NewResourceFetchFailureErr("login_id", authData)
 			return
 		}
 
