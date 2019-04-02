@@ -19,11 +19,12 @@ func TestLoginHandler(t *testing.T) {
 	Convey("Test LoginRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := LoginRequestPayload{
-				AuthData: map[string]string{
+				RawAuthData: map[string]string{
 					"username": "john.doe",
-					"email":    "john.doe@example.com",
 				},
-				Password: "123456",
+				AuthDataKey: "username",
+				AuthData:    "john.doe",
+				Password:    "123456",
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
@@ -39,10 +40,21 @@ func TestLoginHandler(t *testing.T) {
 
 		Convey("validate payload without password", func() {
 			payload := LoginRequestPayload{
-				AuthData: map[string]string{
+				RawAuthData: map[string]string{
 					"username": "john.doe",
-					"email":    "john.doe@example.com",
 				},
+				AuthDataKey: "username",
+				AuthData:    "john.doe",
+			}
+			err := payload.Validate()
+			errResponse := err.(skyerr.Error)
+			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+		})
+
+		Convey("validate payload without auth data key", func() {
+			payload := LoginRequestPayload{
+				RawAuthData: map[string]string{},
+				Password:    "123456",
 			}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
@@ -70,19 +82,17 @@ func TestLoginHandler(t *testing.T) {
 			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id1": password.Principal{
-					ID:     "john.doe.principal.id1",
-					UserID: "john.doe.id",
-					AuthData: map[string]string{
-						"email": "john.doe@example.com",
-					},
+					ID:             "john.doe.principal.id1",
+					UserID:         "john.doe.id",
+					AuthDataKey:    "email",
+					AuthData:       "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id2": password.Principal{
-					ID:     "john.doe.principal.id2",
-					UserID: "john.doe.id",
-					AuthData: map[string]string{
-						"username": "john.doe",
-					},
+					ID:             "john.doe.principal.id2",
+					UserID:         "john.doe.id",
+					AuthDataKey:    "username",
+					AuthData:       "john.doe",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -101,8 +111,10 @@ func TestLoginHandler(t *testing.T) {
 				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
-				AuthData: authData,
-				Password: "123456",
+				RawAuthData: authData,
+				AuthDataKey: "email",
+				AuthData:    "john.doe@example.com",
+				Password:    "123456",
 			}
 			userID := "john.doe.id"
 
@@ -132,8 +144,10 @@ func TestLoginHandler(t *testing.T) {
 				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
-				AuthData: authData,
-				Password: "wrong_password",
+				RawAuthData: authData,
+				AuthDataKey: "email",
+				AuthData:    "john.doe@example.com",
+				Password:    "wrong_password",
 			}
 
 			_, err := h.Handle(payload)
@@ -145,8 +159,10 @@ func TestLoginHandler(t *testing.T) {
 				"phone": "202-111-2222",
 			}
 			payload := LoginRequestPayload{
-				AuthData: authData,
-				Password: "123456",
+				RawAuthData: authData,
+				AuthDataKey: "phone",
+				AuthData:    "202-111-2222",
+				Password:    "123456",
 			}
 			_, err := h.Handle(payload)
 			So(err.Error(), ShouldEqual, "InvalidArgument: invalid auth data, check your LOGIN_IDS_KEY_WHITELIST setting")
@@ -157,8 +173,10 @@ func TestLoginHandler(t *testing.T) {
 				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
-				AuthData: authData,
-				Password: "123456",
+				RawAuthData: authData,
+				AuthDataKey: "email",
+				AuthData:    "john.doe@example.com",
+				Password:    "123456",
 			}
 			h.Handle(payload)
 			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
@@ -171,8 +189,10 @@ func TestLoginHandler(t *testing.T) {
 				"email": "john.doe@example.com",
 			}
 			payload := LoginRequestPayload{
-				AuthData: authData,
-				Password: "wrong_password",
+				RawAuthData: authData,
+				AuthDataKey: "email",
+				AuthData:    "john.doe@example.com",
+				Password:    "wrong_password",
 			}
 			h.Handle(payload)
 			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
