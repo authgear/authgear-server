@@ -2,7 +2,6 @@ package password
 
 import (
 	"database/sql"
-	"encoding/json"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -90,10 +89,8 @@ func (p providerImpl) CreatePrincipalsByAuthData(authInfoID string, password str
 	for k, v := range authDataList {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
-		a := map[string]string{
-			k: v,
-		}
-		principal.AuthData = a
+		principal.AuthDataKey = k
+		principal.AuthData = v
 		principal.PlainPassword = password
 		err = p.CreatePrincipal(principal)
 
@@ -124,13 +121,6 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 		return
 	}
 
-	// Create password type provider data
-	var authDataBytes []byte
-	authDataBytes, err = json.Marshal(principal.AuthData)
-	if err != nil {
-		return
-	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(principal.PlainPassword), bcrypt.DefaultCost)
 	if err != nil {
 		panic("provider_password: Failed to hash password")
@@ -138,11 +128,13 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 
 	builder = p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("provider_password")).Columns(
 		"principal_id",
+		"auth_data_key",
 		"auth_data",
 		"password",
 	).Values(
 		principal.ID,
-		authDataBytes,
+		principal.AuthDataKey,
+		principal.AuthData,
 		hashedPassword,
 	)
 
@@ -162,14 +154,10 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p providerImpl) GetPrincipalByAuthData(authData map[string]string, principal *Principal) (err error) {
-	authDataBytes, err := json.Marshal(authData)
-	if err != nil {
-		return
-	}
+func (p providerImpl) GetPrincipalByAuthData(authDataKey string, authData string, principal *Principal) (err error) {
 	builder := p.sqlBuilder.Select("principal_id", "password").
 		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`auth_data = ?::jsonb`, authDataBytes)
+		Where(`auth_data_key = ? AND auth_data = ?`, authDataKey, authData)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
 	err = scanner.Scan(
@@ -185,6 +173,7 @@ func (p providerImpl) GetPrincipalByAuthData(authData map[string]string, princip
 		return
 	}
 
+	principal.AuthDataKey = authDataKey
 	principal.AuthData = authData
 
 	builder = p.sqlBuilder.Select("user_id").
@@ -233,13 +222,13 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 	}
 
 	for _, principal := range principals {
-		builder = p.sqlBuilder.Select("auth_data", "password").
+		builder = p.sqlBuilder.Select("auth_data_key", "auth_data", "password").
 			From(p.sqlBuilder.FullTableName("provider_password")).
 			Where(`principal_id = ?`, principal.ID)
 		scanner := p.sqlExecutor.QueryRowWith(builder)
-		var authDataBytes []byte
 		err = scanner.Scan(
-			&authDataBytes,
+			&principal.AuthDataKey,
+			&principal.AuthData,
 			&principal.HashedPassword,
 		)
 
@@ -250,21 +239,15 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 		if err != nil {
 			return
 		}
-
-		err = json.Unmarshal(authDataBytes, &principal.AuthData)
-
-		if err != nil {
-			return
-		}
 	}
 
 	return
 }
 
 func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
-	builder := p.sqlBuilder.Select("auth_data", "principal_id", "password").
+	builder := p.sqlBuilder.Select("principal_id", "password").
 		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`auth_data->>'email' = ?`, email)
+		Where(`auth_data_key = ? AND auth_data = ?`, "email", email)
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return
@@ -273,8 +256,9 @@ func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principa
 
 	for rows.Next() {
 		var principal Principal
+		principal.AuthDataKey = "email"
+		principal.AuthData = email
 		if err = rows.Scan(
-			&principal.AuthData,
 			&principal.ID,
 			&principal.HashedPassword,
 		); err != nil {
@@ -311,20 +295,14 @@ func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principa
 func (p providerImpl) UpdatePrincipal(principal Principal) (err error) {
 	// TODO: log
 
-	// Create password type provider data
-	var authDataBytes []byte
-	authDataBytes, err = json.Marshal(principal.AuthData)
-	if err != nil {
-		return
-	}
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(principal.PlainPassword), bcrypt.DefaultCost)
 	if err != nil {
 		panic("provider_password: Failed to hash password")
 	}
 
 	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_password")).
-		Set("auth_data", authDataBytes).
+		Set("auth_data_key", principal.AuthDataKey).
+		Set("auth_data", principal.AuthData).
 		Set("password", hashedPassword).
 		Where("principal_id = ?", principal.ID)
 

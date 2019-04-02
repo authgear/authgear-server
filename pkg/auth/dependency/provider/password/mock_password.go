@@ -63,10 +63,8 @@ func (m *MockProvider) CreatePrincipalsByAuthData(authInfoID string, password st
 	for k, v := range authDataList {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
-		a := map[string]string{
-			k: v,
-		}
-		principal.AuthData = a
+		principal.AuthDataKey = k
+		principal.AuthData = v
 		principal.PlainPassword = password
 		err = m.CreatePrincipal(principal)
 
@@ -101,9 +99,9 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 }
 
 // GetPrincipalByAuthData get principal in PrincipalMap by auth data
-func (m *MockProvider) GetPrincipalByAuthData(authData map[string]string, principal *Principal) (err error) {
+func (m *MockProvider) GetPrincipalByAuthData(authDataKey string, authData string, principal *Principal) (err error) {
 	for _, p := range m.PrincipalMap {
-		if reflect.DeepEqual(authData, p.AuthData) {
+		if p.AuthDataKey == authDataKey && p.AuthData == authData {
 			*principal = p
 			return
 		}
@@ -131,11 +129,9 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Princ
 // GetPrincipalsByEmail get principal in PrincipalMap by userID
 func (m *MockProvider) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
 	for _, p := range m.PrincipalMap {
-		if authData, isMap := p.AuthData.(map[string]interface{}); isMap {
-			if e, found := authData["email"].(string); found && e == email {
-				principal := p
-				principals = append(principals, &principal)
-			}
+		if p.AuthDataKey == "email" && p.AuthData == email {
+			principal := p
+			principals = append(principals, &principal)
 		}
 	}
 

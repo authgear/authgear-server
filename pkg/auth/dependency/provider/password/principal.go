@@ -9,7 +9,8 @@ import (
 type Principal struct {
 	ID             string
 	UserID         string
-	AuthData       interface{}
+	AuthDataKey    string
+	AuthData       string
 	PlainPassword  string
 	HashedPassword []byte
 }
