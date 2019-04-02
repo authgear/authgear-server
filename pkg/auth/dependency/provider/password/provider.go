@@ -128,8 +128,8 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 
 	builder = p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("provider_password")).Columns(
 		"principal_id",
-		"auth_data_key",
-		"auth_data",
+		"login_id_key",
+		"login_id",
 		"password",
 	).Values(
 		principal.ID,
@@ -157,7 +157,7 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 func (p providerImpl) GetPrincipalByAuthData(authDataKey string, authData string, principal *Principal) (err error) {
 	builder := p.sqlBuilder.Select("principal_id", "password").
 		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`auth_data_key = ? AND auth_data = ?`, authDataKey, authData)
+		Where(`login_id_key = ? AND login_id = ?`, authDataKey, authData)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
 	err = scanner.Scan(
@@ -222,7 +222,7 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 	}
 
 	for _, principal := range principals {
-		builder = p.sqlBuilder.Select("auth_data_key", "auth_data", "password").
+		builder = p.sqlBuilder.Select("login_id_key", "login_id", "password").
 			From(p.sqlBuilder.FullTableName("provider_password")).
 			Where(`principal_id = ?`, principal.ID)
 		scanner := p.sqlExecutor.QueryRowWith(builder)
@@ -247,7 +247,7 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
 	builder := p.sqlBuilder.Select("principal_id", "password").
 		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`auth_data_key = ? AND auth_data = ?`, "email", email)
+		Where(`login_id_key = ? AND login_id = ?`, "email", email)
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return
@@ -301,8 +301,8 @@ func (p providerImpl) UpdatePrincipal(principal Principal) (err error) {
 	}
 
 	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_password")).
-		Set("auth_data_key", principal.AuthDataKey).
-		Set("auth_data", principal.AuthData).
+		Set("login_id_key", principal.AuthDataKey).
+		Set("login_id", principal.AuthData).
 		Set("password", hashedPassword).
 		Where("principal_id = ?", principal.ID)
 
