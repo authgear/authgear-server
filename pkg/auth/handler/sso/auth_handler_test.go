@@ -525,11 +525,10 @@ func TestAuthHandler(t *testing.T) {
 			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
-					ID:     "john.doe.principal.id",
-					UserID: "john.doe.id",
-					AuthData: map[string]string{
-						"email": "john.doe@example.com",
-					},
+					ID:             "john.doe.principal.id",
+					UserID:         "john.doe.id",
+					AuthDataKey:    "email",
+					AuthData:       "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -708,11 +707,10 @@ func TestAuthHandler(t *testing.T) {
 			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
-					ID:     "john.doe.principal.id",
-					UserID: "john.doe.id",
-					AuthData: map[string]string{
-						"username": "john.doe",
-					},
+					ID:             "john.doe.principal.id",
+					UserID:         "john.doe.id",
+					AuthDataKey:    "username",
+					AuthData:       "john.doe",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},

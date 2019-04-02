@@ -29,27 +29,24 @@ func TestForgotPasswordHandler(t *testing.T) {
 			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
-					ID:     "john.doe.principal.id",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"email": "john.doe@example.com",
-					},
+					ID:             "john.doe.principal.id",
+					UserID:         "john.doe.id",
+					AuthDataKey:    "email",
+					AuthData:       "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe2.principal.id": password.Principal{
-					ID:     "john.doe2.principal.id",
-					UserID: "john.doe2.id",
-					AuthData: map[string]interface{}{
-						"email": "john.doe@example.com",
-					},
+					ID:             "john.doe2.principal.id",
+					UserID:         "john.doe2.id",
+					AuthDataKey:    "email",
+					AuthData:       "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"chima.principal.id": password.Principal{
-					ID:     "chima.principal.id",
-					UserID: "chima.id",
-					AuthData: map[string]interface{}{
-						"email": "chima@example.com",
-					},
+					ID:             "chima.principal.id",
+					UserID:         "chima.id",
+					AuthDataKey:    "email",
+					AuthData:       "chima@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},

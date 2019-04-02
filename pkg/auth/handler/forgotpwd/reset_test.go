@@ -50,19 +50,17 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id1": password.Principal{
-					ID:     "john.doe.principal.id1",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"username": "john.doe",
-					},
+					ID:             "john.doe.principal.id1",
+					UserID:         "john.doe.id",
+					AuthDataKey:    "username",
+					AuthData:       "john.doe",
 					HashedPassword: hashedPassword,
 				},
 				"john.doe.principal.id2": password.Principal{
-					ID:     "john.doe.principal.id2",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"email": "john.doe@example.com",
-					},
+					ID:             "john.doe.principal.id2",
+					UserID:         "john.doe.id",
+					AuthDataKey:    "email",
+					AuthData:       "john.doe@example.com",
 					HashedPassword: hashedPassword,
 				},
 			},
