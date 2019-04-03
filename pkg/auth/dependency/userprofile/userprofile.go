@@ -24,6 +24,18 @@ type UserProfile struct {
 	Data
 }
 
+func (in UserProfile) MergeLoginIDs(loginIDs map[string]string) (out UserProfile) {
+	out = in
+	out.Data = make(map[string]interface{})
+	for k, v := range in.Data {
+		out.Data[k] = v
+	}
+	for k, v := range loginIDs {
+		out.Data[k] = v
+	}
+	return out
+}
+
 type Store interface {
 	CreateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (UserProfile, error)
 	GetUserProfile(userID string) (UserProfile, error)

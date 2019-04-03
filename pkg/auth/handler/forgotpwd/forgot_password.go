@@ -116,6 +116,10 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
+	// Convert principals to loginIDs
+	// Email sender may need loginIDs to generate user.username text
+	loginIDs := password.PrincipalsToLoginIDs(principals)
+
 	principalMap := map[string]*password.Principal{}
 	for _, principal := range principals {
 		principalMap[principal.UserID] = principal
@@ -147,7 +151,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		if err = h.ForgotPasswordEmailSender.Send(
 			payload.Email,
 			fetchedAuthInfo,
-			userProfile,
+			userProfile.MergeLoginIDs(loginIDs),
 			hashedPassword,
 		); err != nil {
 			return

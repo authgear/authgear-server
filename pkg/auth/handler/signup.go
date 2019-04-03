@@ -182,11 +182,11 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	})
 
 	if h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(userProfile)
+		h.sendWelcomeEmail(userProfile.MergeLoginIDs(payload.LoginIDs))
 	}
 
 	if h.AutoSendUserVerifyCode {
-		h.sendUserVerifyRequest(userProfile)
+		h.sendUserVerifyRequest(userProfile.MergeLoginIDs(payload.LoginIDs))
 	}
 
 	return authResp, nil
