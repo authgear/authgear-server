@@ -32,7 +32,7 @@ func TestSingupHandler(t *testing.T) {
 	Convey("Test SignupRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := SignupRequestPayload{
-				LoginID: map[string]string{
+				LoginIDs: map[string]string{
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 				},
@@ -52,27 +52,9 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("validate payload without password", func() {
 			payload := SignupRequestPayload{
-				LoginID: map[string]string{
+				LoginIDs: map[string]string{
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
-				},
-			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
-		})
-
-		Convey("validate duplicated keys found in login_id in profile", func() {
-			payload := SignupRequestPayload{
-				LoginID: map[string]string{
-					"username": "john.doe",
-					"email":    "john.doe@example.com",
-				},
-				Password: "123456",
-				RawProfile: map[string]interface{}{
-					"username":  "john.doe",
-					"firstname": "john",
-					"lastname":  "doe",
 				},
 			}
 			err := payload.Validate()
@@ -111,12 +93,12 @@ func TestSingupHandler(t *testing.T) {
 		h.TaskQueue = mockTaskQueue
 
 		Convey("signup user with login_id", func() {
-			loginID := map[string]string{
+			loginIDs := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
 			payload := SignupRequestPayload{
-				LoginID:  loginID,
+				LoginIDs: loginIDs,
 				Password: "123456",
 			}
 			resp, err := h.Handle(payload)
@@ -140,9 +122,8 @@ func TestSingupHandler(t *testing.T) {
 			So(!token.IsExpired(), ShouldBeTrue)
 
 			// check user profile
-			metadata := authResp.Metadata
-			So(metadata["username"], ShouldEqual, "john.doe")
-			So(metadata["email"], ShouldEqual, "john.doe@example.com")
+			So(authResp.LoginIDs["username"], ShouldEqual, "john.doe")
+			So(authResp.LoginIDs["email"], ShouldEqual, "john.doe@example.com")
 		})
 
 		Convey("anonymous singup is not supported yet", func() {
@@ -170,24 +151,24 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("signup with incorrect login_id", func() {
-			loginID := map[string]string{
+			loginIDs := map[string]string{
 				"phone": "202-111-2222",
 			}
 			payload := SignupRequestPayload{
-				LoginID:  loginID,
+				LoginIDs: loginIDs,
 				Password: "123456",
 			}
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidArgument: invalid login_id")
+			So(err.Error(), ShouldEqual, "InvalidArgument: invalid login_ids")
 		})
 
 		Convey("signup with weak password", func() {
-			loginID := map[string]string{
+			loginIDs := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
 			payload := SignupRequestPayload{
-				LoginID:  loginID,
+				LoginIDs: loginIDs,
 				Password: "1234",
 			}
 			_, err := h.Handle(payload)
@@ -196,12 +177,12 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("signup with email, send welcome email", func() {
 			h.WelcomeEmailEnabled = true
-			loginID := map[string]string{
+			loginIDs := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
 			payload := SignupRequestPayload{
-				LoginID:  loginID,
+				LoginIDs: loginIDs,
 				Password: "12345678",
 			}
 			_, err := h.Handle(payload)
@@ -217,12 +198,12 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when signup success", func() {
-			loginID := map[string]string{
+			loginIDs := map[string]string{
 				"username": "john.doe",
 				"email":    "john.doe@example.com",
 			}
 			payload := SignupRequestPayload{
-				LoginID:  loginID,
+				LoginIDs: loginIDs,
 				Password: "123456",
 			}
 			h.Handle(payload)
@@ -266,7 +247,7 @@ func TestSingupHandler(t *testing.T) {
 		Convey("duplicated user error format", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_id": {
+				"login_ids": {
 					"username": "john.doe"
 				},
 				"password": "123456"
@@ -277,7 +258,7 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ = http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_id": {
+				"login_ids": {
 					"username": "john.doe"
 				},
 				"password": "1234567"

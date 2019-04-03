@@ -171,7 +171,13 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	resp = response.NewAuthResponse(*authinfo, userProfile, token.AccessToken)
+	authResp := response.NewAuthResponse(*authinfo, userProfile, token.AccessToken)
+	// Get all loginIDs
+	if principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID); err == nil {
+		loginIDs := password.PrincipalsToLoginIDs(principals)
+		authResp.LoginIDs = loginIDs
+	}
+
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authinfo.ID,
 		Event:  audit.EventChangePassword,
@@ -182,5 +188,5 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		AuthID: authinfo.ID,
 	}, nil)
 
-	return
+	return authResp, nil
 }

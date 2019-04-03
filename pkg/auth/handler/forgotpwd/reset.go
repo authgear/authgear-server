@@ -204,7 +204,13 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		return
 	}
 
-	resp = response.NewAuthResponse(authInfo, userProfile, token.AccessToken)
+	authResp := response.NewAuthResponse(authInfo, userProfile, token.AccessToken)
+	// Get all loginIDs
+	if principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID); err == nil {
+		loginIDs := password.PrincipalsToLoginIDs(principals)
+		authResp.LoginIDs = loginIDs
+	}
+
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authInfo.ID,
 		Event:  audit.EventResetPassword,
@@ -218,7 +224,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		AuthID: authInfo.ID,
 	}, nil)
 
-	return
+	return authResp, nil
 }
 
 func genericResetPasswordError() skyerr.Error {

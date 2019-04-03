@@ -95,7 +95,11 @@ func TestChangePasswordHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"metadata": {}
+					"metadata": {},
+					"login_ids": {
+						"email":"john.doe@example.com",
+						"username":"john.doe"
+					}
 				}
 			}`,
 				userID,

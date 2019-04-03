@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -64,11 +65,12 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 //   "last_seen_at": "2016-09-08T07:15:18.026567355Z",
 // }
 type MeHandler struct {
-	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	TxContext        db.TxContext           `dependency:"TxContext"`
-	TokenStore       authtoken.Store        `dependency:"TokenStore"`
-	AuthInfoStore    authinfo.Store         `dependency:"AuthInfoStore"`
-	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
+	AuthContext          coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	TxContext            db.TxContext           `dependency:"TxContext"`
+	TokenStore           authtoken.Store        `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store         `dependency:"AuthInfoStore"`
+	UserProfileStore     userprofile.Store      `dependency:"UserProfileStore"`
+	PasswordAuthProvider password.Provider      `dependency:"PasswordAuthProvider"`
 }
 
 func (h MeHandler) WithTx() bool {
@@ -100,13 +102,19 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	resp = response.NewAuthResponse(*authInfo, userProfile, token.AccessToken)
+	authResp := response.NewAuthResponse(*authInfo, userProfile, token.AccessToken)
+	// Get all loginIDs
+	if principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID); err == nil {
+		loginIDs := password.PrincipalsToLoginIDs(principals)
+		authResp.LoginIDs = loginIDs
+	}
 
 	now := timeNow()
 	authInfo.LastSeenAt = &now
 	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
 		err = skyerr.MakeError(err)
+		return
 	}
 
-	return
+	return authResp, nil
 }
