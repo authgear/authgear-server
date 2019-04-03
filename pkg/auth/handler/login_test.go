@@ -1,9 +1,14 @@
 package handler
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
@@ -12,6 +17,8 @@ import (
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -198,6 +205,95 @@ func TestLoginHandler(t *testing.T) {
 			mockTrail, _ := h.AuditTrail.(*coreAudit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
 			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "login_failure")
+		})
+	})
+
+	Convey("Test LoginHandler response", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+
+		// fixture
+		userID := "john.doe.id"
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{
+				userID: authinfo.AuthInfo{
+					ID:         userID,
+					Verified:   true,
+					VerifyInfo: map[string]bool{},
+				},
+			},
+		)
+		loginIDsKeyWhitelist := []string{"email", "username"}
+		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			loginIDsKeyWhitelist,
+			map[string]password.Principal{
+				"john.doe.principal.id1": password.Principal{
+					ID:             "john.doe.principal.id1",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"john.doe.principal.id2": password.Principal{
+					ID:             "john.doe.principal.id2",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "username",
+					LoginID:        "john.doe",
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+			},
+		)
+
+		lh := &LoginHandler{}
+		lh.AuthInfoStore = authInfoStore
+		mockTokenStore := authtoken.NewMockStore()
+		lh.TokenStore = mockTokenStore
+		lh.PasswordAuthProvider = passwordAuthProvider
+		lh.AuditTrail = coreAudit.NewMockTrail(t)
+		profileData := map[string]map[string]interface{}{
+			userID: map[string]interface{}{},
+		}
+		lh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
+		lh.TxContext = db.NewMockTxContext()
+		h := handler.APIHandlerToHandler(lh, lh.TxContext)
+
+		Convey("should contains multiple loginIDs", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_id": {
+					"email": "john.doe@example.com"
+				},
+				"password": "123456"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 200)
+			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+				"result": {
+					"user_id": "%s",
+					"access_token": "%s",
+					"verified": true,
+					"verify_info": {},
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"login_ids": {
+						"email":"john.doe@example.com",
+						"username":"john.doe"
+					},
+					"metadata": {}
+				}
+			}`,
+				userID,
+				token.AccessToken,
+				userID,
+				userID))
 		})
 	})
 }

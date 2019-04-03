@@ -58,9 +58,9 @@ func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type SignupRequestPayload struct {
-	LoginIDs   map[string]string      `json:"login_ids"`
-	Password   string                 `json:"password"`
-	RawProfile map[string]interface{} `json:"profile"`
+	LoginIDs map[string]string      `json:"login_ids"`
+	Password string                 `json:"password"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 func (p SignupRequestPayload) Validate() error {
@@ -108,6 +108,10 @@ func (h SignupHandler) WithTx() bool {
 func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := SignupRequestPayload{}
 	err := json.NewDecoder(request.Body).Decode(&payload)
+	// Avoid { metadata: null } in the response user object
+	if payload.Metadata == nil {
+		payload.Metadata = make(map[string]interface{})
+	}
 	return payload, err
 }
 
@@ -138,7 +142,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	// Create Profile
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, payload.RawProfile); err != nil {
+	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, payload.Metadata); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
