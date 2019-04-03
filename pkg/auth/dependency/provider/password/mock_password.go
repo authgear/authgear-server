@@ -36,15 +36,9 @@ func (m *MockProvider) IsLoginIDValid(loginID map[string]string) bool {
 	return m.loginIDChecker.isValid(loginID)
 }
 
-func (m *MockProvider) IsLoginIDMatching(loginID map[string]string) bool {
-	return m.loginIDChecker.isMatching(loginID)
-}
-
 // CreatePrincipalsByLoginID creates principals by loginID
-func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) (err error) {
-	loginIDList := toValidLoginIDMap(m.loginIDsKeyWhitelist, loginID)
-
-	for k, v := range loginIDList {
+func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs map[string]string) (err error) {
+	for k, v := range loginIDs {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
 		principal.LoginIDKey = k

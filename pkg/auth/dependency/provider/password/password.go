@@ -4,7 +4,6 @@ const providerPassword string = "password"
 
 type Provider interface {
 	IsLoginIDValid(loginID map[string]string) bool
-	IsLoginIDMatching(loginID map[string]string) bool
 	CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) error
 	CreatePrincipal(principal Principal) error
 	GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error)

@@ -63,14 +63,8 @@ func (p providerImpl) IsLoginIDValid(loginID map[string]string) bool {
 	return p.loginIDChecker.isValid(loginID)
 }
 
-func (p providerImpl) IsLoginIDMatching(loginID map[string]string) bool {
-	return p.loginIDChecker.isMatching(loginID)
-}
-
 func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) (err error) {
-	loginIDList := toValidLoginIDMap(p.loginIDsKeyWhitelist, loginID)
-
-	for k, v := range loginIDList {
+	for k, v := range loginID {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
 		principal.LoginIDKey = k

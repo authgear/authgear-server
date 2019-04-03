@@ -62,6 +62,10 @@ func (p LoginRequestPayload) Validate() error {
 		return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
 	}
 
+	if len(p.RawLoginID) > 1 {
+		return skyerr.NewInvalidArgument("allow one login_id only", []string{"login_id"})
+	}
+
 	if p.LoginIDKey == "" {
 		return skyerr.NewInvalidArgument("empty login ID key", []string{"login_id_key"})
 	}
@@ -128,7 +132,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		}
 	}()
 
-	if valid := h.PasswordAuthProvider.IsLoginIDMatching(payload.RawLoginID); !valid {
+	if valid := h.PasswordAuthProvider.IsLoginIDValid(payload.RawLoginID); !valid {
 		err = skyerr.NewInvalidArgument("invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting", []string{"login_id"})
 		return
 	}
