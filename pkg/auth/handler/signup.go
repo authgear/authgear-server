@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/utils"
+
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 
 	"github.com/sirupsen/logrus"
@@ -68,15 +70,35 @@ func (p SignupRequestPayload) Validate() error {
 		//no validation logic for anonymous sign up
 	} else {
 		if len(p.LoginIDs) == 0 {
-			return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
+			return skyerr.NewInvalidArgument("empty login_ids", []string{"login_ids"})
 		}
 
 		if p.Password == "" {
 			return skyerr.NewInvalidArgument("empty password", []string{"password"})
 		}
+
+		if p.duplicatedLoginIDs() {
+			return skyerr.NewInvalidArgument("duplicated login_ids", []string{"login_ids"})
+		}
 	}
 
 	return nil
+}
+
+func (p SignupRequestPayload) duplicatedLoginIDs() bool {
+	loginIDs := []string{}
+
+	for _, v := range p.LoginIDs {
+		found := utils.StringSliceContains(loginIDs, v)
+
+		if found {
+			return found
+		}
+
+		loginIDs = append(loginIDs, v)
+	}
+
+	return false
 }
 
 func (p SignupRequestPayload) isAnonymous() bool {

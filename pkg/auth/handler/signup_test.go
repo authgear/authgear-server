@@ -62,6 +62,18 @@ func TestSingupHandler(t *testing.T) {
 			errResponse := err.(skyerr.Error)
 			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
 		})
+
+		Convey("validate payload with duplicated loginIDs", func() {
+			payload := SignupRequestPayload{
+				LoginIDs: map[string]string{
+					"username": "john.doe",
+					"email":    "john.doe",
+				},
+			}
+			err := payload.Validate()
+			errResponse := err.(skyerr.Error)
+			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+		})
 	})
 
 	Convey("Test SignupHandler", t, func() {
