@@ -20,16 +20,11 @@ func newCloudCodeReverseProxy(routerConfig config.RouterConfig) *httputil.Revers
 		query := req.URL.RawQuery
 		fragment := req.URL.Fragment
 
-		backendURLStr := routerConfig.DefaultCloudCodeBackendURL
-
 		ctx := model.GatewayContextFromContext(req.Context())
 		cloudCode := ctx.CloudCode
-		if cloudCode.BackendURL != "" {
-			backendURLStr = cloudCode.BackendURL
-		}
 
 		var err error
-		backendURL, err := url.Parse(backendURLStr)
+		backendURL, err := url.Parse(cloudCode.BackendURL)
 		if err != nil {
 			panic(err)
 		}
