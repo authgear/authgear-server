@@ -175,13 +175,10 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	authResp := response.NewAuthResponse(fetchedAuthInfo, userProfile, token.AccessToken)
-
-	// Get all loginIDs
-	if principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID); err == nil {
-		loginIDs := password.PrincipalsToLoginIDs(principals)
-		authResp.LoginIDs = loginIDs
+	respFactory := response.AuthResponseFactory{
+		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
+	resp = respFactory.NewAuthResponse(fetchedAuthInfo, userProfile, token.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()
@@ -192,7 +189,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	return authResp, nil
+	return
 }
 
 func (h LoginHandler) getUserID(pwd string, loginIDKey string, loginID string) (userID string, err error) {

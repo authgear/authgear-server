@@ -102,12 +102,10 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	authResp := response.NewAuthResponse(*authInfo, userProfile, token.AccessToken)
-	// Get all loginIDs
-	if principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID); err == nil {
-		loginIDs := password.PrincipalsToLoginIDs(principals)
-		authResp.LoginIDs = loginIDs
+	respFactory := response.AuthResponseFactory{
+		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
+	resp = respFactory.NewAuthResponse(*authInfo, userProfile, token.AccessToken)
 
 	now := timeNow()
 	authInfo.LastSeenAt = &now
@@ -116,5 +114,5 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	return authResp, nil
+	return
 }

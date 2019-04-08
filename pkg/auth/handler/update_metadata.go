@@ -130,12 +130,11 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 	}
 
 	token := h.AuthContext.Token().AccessToken
-	authResp := response.NewAuthResponse(authInfo, profile, token)
-	// Get all loginIDs
-	if principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(updateUserID); err == nil {
-		loginIDs := password.PrincipalsToLoginIDs(principals)
-		authResp.LoginIDs = loginIDs
-	}
 
-	return authResp, nil
+	respFactory := response.AuthResponseFactory{
+		PasswordAuthProvider: h.PasswordAuthProvider,
+	}
+	resp = respFactory.NewAuthResponse(authInfo, profile, token)
+
+	return
 }

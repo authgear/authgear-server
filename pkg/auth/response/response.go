@@ -17,6 +17,7 @@ package response
 import (
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
@@ -37,11 +38,23 @@ type AuthResponse struct {
 	VerifyInfo  map[string]bool   `json:"verify_info"`
 }
 
-func NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile, accessToken string) AuthResponse {
+type AuthResponseFactory struct {
+	PasswordAuthProvider password.Provider
+}
+
+func (a AuthResponseFactory) NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile, accessToken string) AuthResponse {
 	var lastLoginAt *time.Time
+
+	var loginIDs map[string]string
+	if a.PasswordAuthProvider != nil {
+		if principals, err := a.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID); err == nil {
+			loginIDs = password.PrincipalsToLoginIDs(principals)
+		}
+	}
 
 	return AuthResponse{
 		UserID:      authInfo.ID,
+		LoginIDs:    loginIDs,
 		Metadata:    userProfile.Data,
 		AccessToken: accessToken,
 		LastLoginAt: lastLoginAt,

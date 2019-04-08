@@ -144,12 +144,10 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	authResp := response.NewAuthResponse(authinfo, userProfile, token.AccessToken)
-	// Get all loginIDs
-	if principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authinfo.ID); err == nil {
-		loginIDs := password.PrincipalsToLoginIDs(principals)
-		authResp.LoginIDs = loginIDs
+	respFactory := response.AuthResponseFactory{
+		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
+	resp = respFactory.NewAuthResponse(authinfo, userProfile, token.AccessToken)
 
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authinfo.ID,
@@ -161,5 +159,5 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		AuthID: authinfo.ID,
 	}, nil)
 
-	return authResp, nil
+	return
 }
