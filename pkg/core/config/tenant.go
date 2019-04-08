@@ -42,7 +42,7 @@ type TokenStoreConfiguration struct {
 }
 
 type AuthConfiguration struct {
-	LoginIDsKeyWhitelist []string `msg:"LOGIN_IDS_KEY_WHITELIST" json:"LOGIN_IDS_KEY_WHITELIST"`
+	LoginIDsKeyWhitelist []string `msg:"LOGIN_IDS_KEY_WHITELIST" envconfig:"LOGIN_IDS_KEY_WHITELIST" json:"LOGIN_IDS_KEY_WHITELIST"`
 	CustomTokenSecret    string   `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
 }
 
