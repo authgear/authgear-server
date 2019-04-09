@@ -86,7 +86,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 
 		Convey("reset password after expiry", func() {
 			// expireAt := time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC)                                // 1104678245
-			// expectedCode := codeGenerator.Generate(authInfo, userProfile, hashedPassword, expireAt) // ed3bce0b
+			// expectedCode := codeGenerator.Generate(authInfo, email, hashedPassword, expireAt)       // ed3bce0b
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"user_id": "john.doe.id",
@@ -110,7 +110,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 
 		Convey("reset password with unmatched code", func() {
 			// expireAt := time.Date(2006, 2, 2, 15, 4, 5, 0, time.UTC)                                // 1138892645
-			// expectedCode := codeGenerator.Generate(authInfo, userProfile, hashedPassword, expireAt) // 0e0e0776
+			// expectedCode := codeGenerator.Generate(authInfo, email, hashedPassword, expireAt)       // 0e0e0776
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"user_id": "john.doe.id",
@@ -134,7 +134,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 
 		Convey("reset password", func() {
 			// expireAt := time.Date(2006, 2, 2, 15, 4, 5, 0, time.UTC)                                // 1138892645
-			// expectedCode := codeGenerator.Generate(authInfo, userProfile, hashedPassword, expireAt) // 0e0e0776
+			// expectedCode := codeGenerator.Generate(authInfo, email, hashedPassword, expireAt)       // 0e0e0776
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"user_id": "john.doe.id",

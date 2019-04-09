@@ -6,8 +6,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
 
@@ -17,14 +15,14 @@ type CodeGenerator struct {
 
 func (c *CodeGenerator) Generate(
 	authInfo authinfo.AuthInfo,
-	userProfile userprofile.UserProfile,
+	email string,
 	hashedPassword []byte,
 	expireAt time.Time,
 ) string {
 	h := sha256.New()
 	io.WriteString(h, c.MasterKey)
 	io.WriteString(h, authInfo.ID)
-	if email, ok := userProfile.Data["email"].(string); ok {
+	if email != "" {
 		io.WriteString(h, email)
 	}
 	io.WriteString(h, expireAt.Format(time.RFC3339))
