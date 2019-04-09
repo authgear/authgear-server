@@ -177,8 +177,9 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	respFactory := response.AuthResponseFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
+		AccessToken:          token.AccessToken,
 	}
-	resp = respFactory.NewAuthResponse(fetchedAuthInfo, userProfile, token.AccessToken)
+	resp = respFactory.NewAuthResponse(fetchedAuthInfo, userProfile)
 
 	// Populate the activity time to user
 	now := timeNow()

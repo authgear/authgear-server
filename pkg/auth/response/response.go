@@ -40,9 +40,10 @@ type AuthResponse struct {
 
 type AuthResponseFactory struct {
 	PasswordAuthProvider password.Provider
+	AccessToken          string
 }
 
-func (a AuthResponseFactory) NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile, accessToken string) AuthResponse {
+func (a AuthResponseFactory) NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile) AuthResponse {
 	var lastLoginAt *time.Time
 
 	var loginIDs map[string]string
@@ -56,7 +57,7 @@ func (a AuthResponseFactory) NewAuthResponse(authInfo authinfo.AuthInfo, userPro
 		UserID:      authInfo.ID,
 		LoginIDs:    loginIDs,
 		Metadata:    userProfile.Data,
-		AccessToken: accessToken,
+		AccessToken: a.AccessToken,
 		LastLoginAt: lastLoginAt,
 		LastSeenAt:  authInfo.LastSeenAt,
 		CreatedAt:   userProfile.CreatedAt,

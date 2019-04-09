@@ -191,8 +191,10 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		panic(err)
 	}
 
-	respFactory := response.AuthResponseFactory{}
-	authResp := respFactory.NewAuthResponse(info, userProfile, tkn.AccessToken)
+	respFactory := response.AuthResponseFactory{
+		AccessToken: tkn.AccessToken,
+	}
+	authResp := respFactory.NewAuthResponse(info, userProfile)
 
 	// Populate the activity time to user
 	now := timeNow()

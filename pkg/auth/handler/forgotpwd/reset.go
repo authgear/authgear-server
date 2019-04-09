@@ -209,8 +209,9 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 
 	respFactory := response.AuthResponseFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
+		AccessToken:          token.AccessToken,
 	}
-	resp = respFactory.NewAuthResponse(authInfo, userProfile, token.AccessToken)
+	resp = respFactory.NewAuthResponse(authInfo, userProfile)
 
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authInfo.ID,

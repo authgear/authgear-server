@@ -148,7 +148,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		userObjectFactory := response.AuthResponseFactory{
 			PasswordAuthProvider: h.PasswordAuthProvider,
 		}
-		userObject := userObjectFactory.NewAuthResponse(fetchedAuthInfo, userProfile, "")
+		userObject := userObjectFactory.NewAuthResponse(fetchedAuthInfo, userProfile)
 
 		if err = h.ForgotPasswordEmailSender.Send(
 			payload.Email,

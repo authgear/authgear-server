@@ -173,8 +173,9 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 
 	respFactory := response.AuthResponseFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
+		AccessToken:          token.AccessToken,
 	}
-	resp = respFactory.NewAuthResponse(*authinfo, userProfile, token.AccessToken)
+	resp = respFactory.NewAuthResponse(*authinfo, userProfile)
 
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authinfo.ID,

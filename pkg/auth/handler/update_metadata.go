@@ -133,8 +133,9 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 
 	respFactory := response.AuthResponseFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
+		AccessToken:          token,
 	}
-	resp = respFactory.NewAuthResponse(authInfo, profile, token)
+	resp = respFactory.NewAuthResponse(authInfo, profile)
 
 	return
 }

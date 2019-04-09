@@ -194,8 +194,9 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	respFactory := response.AuthResponseFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
+		AccessToken:          tkn.AccessToken,
 	}
-	userObject := respFactory.NewAuthResponse(info, userProfile, tkn.AccessToken)
+	userObject := respFactory.NewAuthResponse(info, userProfile)
 
 	// Populate the activity time to user
 	info.LastSeenAt = &now
