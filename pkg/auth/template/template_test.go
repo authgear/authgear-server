@@ -35,8 +35,8 @@ func TestResetPasswordPayload(t *testing.T) {
 
 		context := map[string]interface{}{
 			"user": map[string]map[string]interface{}{
-				"metadata": {
-					"name": "chima",
+				"LoginIDs": {
+					"username": "chima",
 				},
 			},
 		}

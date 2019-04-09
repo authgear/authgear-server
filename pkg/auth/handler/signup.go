@@ -195,7 +195,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	respFactory := response.AuthResponseFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
-	resp = respFactory.NewAuthResponse(info, userProfile, tkn.AccessToken)
+	userObject := respFactory.NewAuthResponse(info, userProfile, tkn.AccessToken)
 
 	// Populate the activity time to user
 	info.LastSeenAt = &now
@@ -210,14 +210,14 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	})
 
 	if h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(userProfile.MergeLoginIDs(payload.LoginIDs))
+		h.sendWelcomeEmail(userObject)
 	}
 
 	if h.AutoSendUserVerifyCode {
 		h.sendUserVerifyRequest(userProfile.MergeLoginIDs(payload.LoginIDs))
 	}
 
-	return
+	return userObject, nil
 }
 
 func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
@@ -254,11 +254,11 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo au
 	return
 }
 
-func (h SignupHandler) sendWelcomeEmail(userProfile userprofile.UserProfile) {
-	if email, ok := userProfile.Data["email"].(string); ok {
+func (h SignupHandler) sendWelcomeEmail(userObject response.AuthResponse) {
+	if email, ok := userObject.LoginIDs["email"]; ok {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-			Email:       email,
-			UserProfile: userProfile,
+			Email:      email,
+			UserObject: userObject,
 		}, nil)
 	}
 }

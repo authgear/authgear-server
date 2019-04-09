@@ -192,7 +192,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 	}
 
 	respFactory := response.AuthResponseFactory{}
-	resp = respFactory.NewAuthResponse(info, userProfile, tkn.AccessToken)
+	authResp := respFactory.NewAuthResponse(info, userProfile, tkn.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()
@@ -205,10 +205,10 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 	// TODO: audit trail
 
 	if createNewUser && h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(userProfile)
+		h.sendWelcomeEmail(authResp)
 	}
 
-	return
+	return authResp, nil
 }
 
 func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, info *authinfo.AuthInfo, userProfile *userprofile.UserProfile) (createNewUser bool, err error) {
@@ -281,11 +281,11 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 	return
 }
 
-func (h CustomTokenLoginHandler) sendWelcomeEmail(userProfile userprofile.UserProfile) {
-	if email, ok := userProfile.Data["email"].(string); ok {
+func (h CustomTokenLoginHandler) sendWelcomeEmail(userObject response.AuthResponse) {
+	if email, ok := userObject.Metadata["email"].(string); ok {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-			Email:       email,
-			UserProfile: userProfile,
+			Email:      email,
+			UserObject: userObject,
 		}, nil)
 	}
 }
