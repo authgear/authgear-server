@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/skygeario/skygear-server/pkg/auth/response"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
@@ -92,8 +94,8 @@ func TestForgotPasswordHandler(t *testing.T) {
 				"result": "OK"
 			}`)
 			So(sender.emails, ShouldResemble, []string{"chima@example.com"})
-			So(sender.userProfiles, ShouldHaveLength, 1)
-			So(sender.userProfileIDs, ShouldContain, "chima.id")
+			So(sender.userObjects, ShouldHaveLength, 1)
+			So(sender.userObjectIDs, ShouldContain, "chima.id")
 			So(sender.authInfos, ShouldHaveLength, 1)
 			So(sender.authInfoIDs, ShouldContain, "chima.id")
 			So(sender.hashedPasswords, ShouldResemble, [][]byte{
@@ -112,9 +114,9 @@ func TestForgotPasswordHandler(t *testing.T) {
 				"result": "OK"
 			}`)
 			So(sender.emails, ShouldResemble, []string{"john.doe@example.com", "john.doe@example.com"})
-			So(sender.userProfiles, ShouldHaveLength, 2)
-			So(sender.userProfileIDs, ShouldContain, "john.doe.id")
-			So(sender.userProfileIDs, ShouldContain, "john.doe2.id")
+			So(sender.userObjects, ShouldHaveLength, 2)
+			So(sender.userObjectIDs, ShouldContain, "john.doe.id")
+			So(sender.userObjectIDs, ShouldContain, "john.doe2.id")
 			So(sender.authInfos, ShouldHaveLength, 2)
 			So(sender.authInfoIDs, ShouldContain, "john.doe.id")
 			So(sender.authInfoIDs, ShouldContain, "john.doe2.id")
@@ -165,22 +167,22 @@ type MockForgotPasswordEmailSender struct {
 	emails          []string
 	authInfos       []authinfo.AuthInfo
 	authInfoIDs     []string
-	userProfiles    []userprofile.UserProfile
-	userProfileIDs  []string
+	userObjects     []response.AuthResponse
+	userObjectIDs   []string
 	hashedPasswords [][]byte
 }
 
 func (m *MockForgotPasswordEmailSender) Send(
 	email string,
 	authInfo authinfo.AuthInfo,
-	userProfile userprofile.UserProfile,
+	userObject response.AuthResponse,
 	hashedPassword []byte,
 ) (err error) {
 	m.emails = append(m.emails, email)
 	m.authInfos = append(m.authInfos, authInfo)
 	m.authInfoIDs = append(m.authInfoIDs, authInfo.ID)
-	m.userProfiles = append(m.userProfiles, userProfile)
-	m.userProfileIDs = append(m.userProfileIDs, userProfile.ID)
+	m.userObjects = append(m.userObjects, userObject)
+	m.userObjectIDs = append(m.userObjectIDs, userObject.UserID)
 	m.hashedPasswords = append(m.hashedPasswords, hashedPassword)
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -116,10 +117,6 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	// Convert principals to loginIDs
-	// Email sender may need loginIDs to generate user.username text
-	loginIDs := password.PrincipalsToLoginIDs(principals)
-
 	principalMap := map[string]*password.Principal{}
 	for _, principal := range principals {
 		principalMap[principal.UserID] = principal
@@ -148,10 +145,15 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 			return
 		}
 
+		userObjectFactory := response.AuthResponseFactory{
+			PasswordAuthProvider: h.PasswordAuthProvider,
+		}
+		userObject := userObjectFactory.NewAuthResponse(fetchedAuthInfo, userProfile, "")
+
 		if err = h.ForgotPasswordEmailSender.Send(
 			payload.Email,
 			fetchedAuthInfo,
-			userProfile.MergeLoginIDs(loginIDs),
+			userObject,
 			hashedPassword,
 		); err != nil {
 			return

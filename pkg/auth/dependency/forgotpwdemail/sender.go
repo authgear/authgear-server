@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-gomail/gomail"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -17,7 +17,7 @@ type Sender interface {
 	Send(
 		email string,
 		authInfo authinfo.AuthInfo,
-		userProfile userprofile.UserProfile,
+		userObject response.AuthResponse,
 		hashedPassword []byte,
 	) error
 }
@@ -45,7 +45,7 @@ func NewDefaultSender(
 func (d *DefaultSender) Send(
 	email string,
 	authInfo authinfo.AuthInfo,
-	userProfile userprofile.UserProfile,
+	userObject response.AuthResponse,
 	hashedPassword []byte,
 ) (err error) {
 	expireAt :=
@@ -63,8 +63,8 @@ func (d *DefaultSender) Send(
 			expireAt.UTC().Unix(),
 		),
 		"email":      email,
-		"user_id":    userProfile.ID,
-		"user":       userProfile,
+		"user_id":    userObject.UserID,
+		"user":       userObject,
 		"url_prefix": d.Config.URLPrefix,
 		"code":       code,
 		"expire_at":  expireAt,
