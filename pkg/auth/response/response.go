@@ -27,7 +27,6 @@ type User struct {
 	UserID      string            `json:"user_id,omitempty"`
 	LoginIDs    map[string]string `json:"login_ids,omitempty"`
 	Metadata    userprofile.Data  `json:"metadata"`
-	AccessToken string            `json:"access_token,omitempty"`
 	LastLoginAt *time.Time        `json:"last_login_at,omitempty"`
 	LastSeenAt  *time.Time        `json:"last_seen_at,omitempty"`
 	CreatedAt   time.Time         `json:"created_at"`
@@ -40,15 +39,14 @@ type User struct {
 
 type UserFactory struct {
 	PasswordAuthProvider password.Provider
-	AccessToken          string
 }
 
-func (a UserFactory) NewUser(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile) User {
+func (u UserFactory) NewUser(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile) User {
 	var lastLoginAt *time.Time
 
 	var loginIDs map[string]string
-	if a.PasswordAuthProvider != nil {
-		if principals, err := a.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID); err == nil {
+	if u.PasswordAuthProvider != nil {
+		if principals, err := u.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID); err == nil {
 			loginIDs = password.PrincipalsToLoginIDs(principals)
 		}
 	}
@@ -57,7 +55,6 @@ func (a UserFactory) NewUser(authInfo authinfo.AuthInfo, userProfile userprofile
 		UserID:      authInfo.ID,
 		LoginIDs:    loginIDs,
 		Metadata:    userProfile.Data,
-		AccessToken: a.AccessToken,
 		LastLoginAt: lastLoginAt,
 		LastSeenAt:  authInfo.LastSeenAt,
 		CreatedAt:   userProfile.CreatedAt,
@@ -66,5 +63,32 @@ func (a UserFactory) NewUser(authInfo authinfo.AuthInfo, userProfile userprofile
 		UpdatedBy:   userProfile.UpdatedBy,
 		Verified:    authInfo.Verified,
 		VerifyInfo:  authInfo.VerifyInfo,
+	}
+}
+
+type AuthResponse struct {
+	User
+	AccessToken string `json:"access_token,omitempty"`
+}
+
+type AuthResponseFactory struct {
+	PasswordAuthProvider password.Provider
+}
+
+func (a AuthResponseFactory) NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile, accessToken string) AuthResponse {
+	userFactory := UserFactory{
+		PasswordAuthProvider: a.PasswordAuthProvider,
+	}
+
+	return AuthResponse{
+		User:        userFactory.NewUser(authInfo, userProfile),
+		AccessToken: accessToken,
+	}
+}
+
+func NewAuthResponseByUser(user User, accessToken string) AuthResponse {
+	return AuthResponse{
+		User:        user,
+		AccessToken: accessToken,
 	}
 }

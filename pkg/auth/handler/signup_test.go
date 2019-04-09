@@ -116,7 +116,7 @@ func TestSingupHandler(t *testing.T) {
 			}
 			resp, err := h.Handle(payload)
 
-			authResp, ok := resp.(response.User)
+			authResp, ok := resp.(response.AuthResponse)
 			So(ok, ShouldBeTrue)
 			So(err, ShouldBeNil)
 
@@ -144,7 +144,7 @@ func TestSingupHandler(t *testing.T) {
 
 			resp, err := h.Handle(payload)
 
-			authResp, ok := resp.(response.User)
+			authResp, ok := resp.(response.AuthResponse)
 			So(ok, ShouldBeTrue)
 			So(err, ShouldBeNil)
 

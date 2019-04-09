@@ -192,11 +192,10 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		info.VerifyInfo[key] = false
 	}
 
-	respFactory := response.UserFactory{
+	userFactory := response.UserFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
-		AccessToken:          tkn.AccessToken,
 	}
-	user := respFactory.NewUser(info, userProfile)
+	user := userFactory.NewUser(info, userProfile)
 
 	// Populate the activity time to user
 	info.LastSeenAt = &now
@@ -218,7 +217,9 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		h.sendUserVerifyRequest(userProfile.MergeLoginIDs(payload.LoginIDs))
 	}
 
-	return user, nil
+	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
+
+	return
 }
 
 func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {

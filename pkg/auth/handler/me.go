@@ -102,11 +102,10 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	respFactory := response.UserFactory{
+	respFactory := response.AuthResponseFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
-		AccessToken:          token.AccessToken,
 	}
-	resp = respFactory.NewUser(*authInfo, userProfile)
+	resp = respFactory.NewAuthResponse(*authInfo, userProfile, token.AccessToken)
 
 	now := timeNow()
 	authInfo.LastSeenAt = &now

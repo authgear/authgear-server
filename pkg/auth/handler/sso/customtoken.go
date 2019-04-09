@@ -191,10 +191,8 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		panic(err)
 	}
 
-	respFactory := response.UserFactory{
-		AccessToken: tkn.AccessToken,
-	}
-	authResp := respFactory.NewUser(info, userProfile)
+	userFactory := response.UserFactory{}
+	user := userFactory.NewUser(info, userProfile)
 
 	// Populate the activity time to user
 	now := timeNow()
@@ -205,12 +203,13 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 	}
 
 	// TODO: audit trail
-
 	if createNewUser && h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(authResp)
+		h.sendWelcomeEmail(user)
 	}
 
-	return authResp, nil
+	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
+
+	return
 }
 
 func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, info *authinfo.AuthInfo, userProfile *userprofile.UserProfile) (createNewUser bool, err error) {

@@ -63,10 +63,8 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 		panic(err)
 	}
 
-	respFactory := response.UserFactory{
-		AccessToken: token.AccessToken,
-	}
-	resp = respFactory.NewUser(info, userProfile)
+	respFactory := response.AuthResponseFactory{}
+	resp = respFactory.NewAuthResponse(info, userProfile, token.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()

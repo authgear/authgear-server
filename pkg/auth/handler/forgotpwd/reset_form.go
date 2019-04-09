@@ -142,10 +142,10 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 		return
 	}
 
-	userObjectFactory := response.UserFactory{
+	userFactory := response.UserFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
-	user := userObjectFactory.NewUser(authInfo, userProfile)
+	user := userFactory.NewUser(authInfo, userProfile)
 	ctx.user = user
 
 	return
