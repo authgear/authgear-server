@@ -17,7 +17,7 @@ type Sender interface {
 	Send(
 		email string,
 		authInfo authinfo.AuthInfo,
-		userObject response.AuthResponse,
+		user response.User,
 		hashedPassword []byte,
 	) error
 }
@@ -45,7 +45,7 @@ func NewDefaultSender(
 func (d *DefaultSender) Send(
 	email string,
 	authInfo authinfo.AuthInfo,
-	userObject response.AuthResponse,
+	user response.User,
 	hashedPassword []byte,
 ) (err error) {
 	expireAt :=
@@ -63,8 +63,8 @@ func (d *DefaultSender) Send(
 			expireAt.UTC().Unix(),
 		),
 		"email":      email,
-		"user_id":    userObject.UserID,
-		"user":       userObject,
+		"user_id":    user.UserID,
+		"user":       user,
 		"url_prefix": d.Config.URLPrefix,
 		"code":       code,
 		"expire_at":  expireAt,

@@ -167,7 +167,7 @@ type MockForgotPasswordEmailSender struct {
 	emails          []string
 	authInfos       []authinfo.AuthInfo
 	authInfoIDs     []string
-	userObjects     []response.AuthResponse
+	userObjects     []response.User
 	userObjectIDs   []string
 	hashedPasswords [][]byte
 }
@@ -175,14 +175,14 @@ type MockForgotPasswordEmailSender struct {
 func (m *MockForgotPasswordEmailSender) Send(
 	email string,
 	authInfo authinfo.AuthInfo,
-	userObject response.AuthResponse,
+	user response.User,
 	hashedPassword []byte,
 ) (err error) {
 	m.emails = append(m.emails, email)
 	m.authInfos = append(m.authInfos, authInfo)
 	m.authInfoIDs = append(m.authInfoIDs, authInfo.ID)
-	m.userObjects = append(m.userObjects, userObject)
-	m.userObjectIDs = append(m.userObjectIDs, userObject.UserID)
+	m.userObjects = append(m.userObjects, user)
+	m.userObjectIDs = append(m.userObjectIDs, user.UserID)
 	m.hashedPasswords = append(m.hashedPasswords, hashedPassword)
 	return nil
 }

@@ -47,8 +47,8 @@ type WelcomeEmailSendTask struct {
 }
 
 type WelcomeEmailSendTaskParam struct {
-	Email      string
-	UserObject response.AuthResponse
+	Email string
+	User  response.User
 }
 
 func (w *WelcomeEmailSendTask) WithTx() bool {
@@ -62,11 +62,11 @@ func (w *WelcomeEmailSendTask) Run(param interface{}) (err error) {
 		"email": taskParam.Email,
 	}).Info("start sending welcome email")
 
-	if err = w.WelcomeEmailSender.Send(taskParam.Email, taskParam.UserObject); err != nil {
+	if err = w.WelcomeEmailSender.Send(taskParam.Email, taskParam.User); err != nil {
 		w.Logger.WithFields(logrus.Fields{
 			"error":  err,
 			"email":  taskParam.Email,
-			"userID": taskParam.UserObject.UserID,
+			"userID": taskParam.User.UserID,
 		}).Error("fail to send welcome email")
 		return
 	}

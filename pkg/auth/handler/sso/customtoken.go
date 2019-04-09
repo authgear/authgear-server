@@ -191,10 +191,10 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		panic(err)
 	}
 
-	respFactory := response.AuthResponseFactory{
+	respFactory := response.UserFactory{
 		AccessToken: tkn.AccessToken,
 	}
-	authResp := respFactory.NewAuthResponse(info, userProfile)
+	authResp := respFactory.NewUser(info, userProfile)
 
 	// Populate the activity time to user
 	now := timeNow()
@@ -283,11 +283,11 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 	return
 }
 
-func (h CustomTokenLoginHandler) sendWelcomeEmail(userObject response.AuthResponse) {
-	if email, ok := userObject.Metadata["email"].(string); ok {
+func (h CustomTokenLoginHandler) sendWelcomeEmail(user response.User) {
+	if email, ok := user.Metadata["email"].(string); ok {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-			Email:      email,
-			UserObject: userObject,
+			Email: email,
+			User:  user,
 		}, nil)
 	}
 }

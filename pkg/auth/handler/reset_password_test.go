@@ -101,7 +101,7 @@ func TestResetPasswordHandler(t *testing.T) {
 			resp, err := h.Handle(payload)
 			So(err, ShouldBeNil)
 
-			authResp, ok := resp.(response.AuthResponse)
+			authResp, ok := resp.(response.User)
 			So(ok, ShouldBeTrue)
 			So(err, ShouldBeNil)
 

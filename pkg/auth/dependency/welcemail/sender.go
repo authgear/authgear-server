@@ -12,7 +12,7 @@ import (
 )
 
 type Sender interface {
-	Send(email string, userObject response.AuthResponse) error
+	Send(email string, user response.User) error
 }
 
 type DefaultSender struct {
@@ -35,7 +35,7 @@ func NewDefaultSender(
 	}
 }
 
-func (d *DefaultSender) Send(email string, userObject response.AuthResponse) (err error) {
+func (d *DefaultSender) Send(email string, user response.User) (err error) {
 	if d.Config.TextURL == "" {
 		return errors.New("welcome email text template url is empty")
 	}
@@ -43,8 +43,8 @@ func (d *DefaultSender) Send(email string, userObject response.AuthResponse) (er
 	context := map[string]interface{}{
 		"appname":    d.AppName,
 		"email":      email,
-		"user_id":    userObject.UserID,
-		"user":       userObject,
+		"user_id":    user.UserID,
+		"user":       user,
 		"url_prefix": d.Config.URLPrefix,
 	}
 

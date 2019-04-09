@@ -116,7 +116,7 @@ func TestSingupHandler(t *testing.T) {
 			}
 			resp, err := h.Handle(payload)
 
-			authResp, ok := resp.(response.AuthResponse)
+			authResp, ok := resp.(response.User)
 			So(ok, ShouldBeTrue)
 			So(err, ShouldBeNil)
 
@@ -144,7 +144,7 @@ func TestSingupHandler(t *testing.T) {
 
 			resp, err := h.Handle(payload)
 
-			authResp, ok := resp.(response.AuthResponse)
+			authResp, ok := resp.(response.User)
 			So(ok, ShouldBeTrue)
 			So(err, ShouldBeNil)
 
@@ -205,9 +205,9 @@ func TestSingupHandler(t *testing.T) {
 			So(mockTaskQueue.TasksParam, ShouldHaveLength, 1)
 			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
 			So(param.Email, ShouldEqual, "john.doe@example.com")
-			So(param.UserObject, ShouldNotBeNil)
-			So(param.UserObject.LoginIDs["username"], ShouldEqual, "john.doe")
-			So(param.UserObject.LoginIDs["email"], ShouldEqual, "john.doe@example.com")
+			So(param.User, ShouldNotBeNil)
+			So(param.User.LoginIDs["username"], ShouldEqual, "john.doe")
+			So(param.User.LoginIDs["email"], ShouldEqual, "john.doe@example.com")
 		})
 
 		Convey("log audit trail when signup success", func() {

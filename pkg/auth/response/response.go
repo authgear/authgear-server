@@ -22,8 +22,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 )
 
-// AuthResponse is the unify way of returning a AuthInfo with LoginID to SDK
-type AuthResponse struct {
+// User is the unify way of returning a AuthInfo with LoginID to SDK
+type User struct {
 	UserID      string            `json:"user_id,omitempty"`
 	LoginIDs    map[string]string `json:"login_ids,omitempty"`
 	Metadata    userprofile.Data  `json:"metadata"`
@@ -38,12 +38,12 @@ type AuthResponse struct {
 	VerifyInfo  map[string]bool   `json:"verify_info"`
 }
 
-type AuthResponseFactory struct {
+type UserFactory struct {
 	PasswordAuthProvider password.Provider
 	AccessToken          string
 }
 
-func (a AuthResponseFactory) NewAuthResponse(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile) AuthResponse {
+func (a UserFactory) NewUser(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile) User {
 	var lastLoginAt *time.Time
 
 	var loginIDs map[string]string
@@ -53,7 +53,7 @@ func (a AuthResponseFactory) NewAuthResponse(authInfo authinfo.AuthInfo, userPro
 		}
 	}
 
-	return AuthResponse{
+	return User{
 		UserID:      authInfo.ID,
 		LoginIDs:    loginIDs,
 		Metadata:    userProfile.Data,

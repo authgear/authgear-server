@@ -120,9 +120,9 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			So(mockTaskQueue.TasksParam, ShouldHaveLength, 1)
 			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
 			So(param.Email, ShouldEqual, "John@skygear.io")
-			So(param.UserObject, ShouldNotBeNil)
-			So(param.UserObject.Metadata["name"], ShouldEqual, "John Doe")
-			So(param.UserObject.Metadata["email"], ShouldEqual, "John@skygear.io")
+			So(param.User, ShouldNotBeNil)
+			So(param.User.Metadata["name"], ShouldEqual, "John Doe")
+			So(param.User.Metadata["email"], ShouldEqual, "John@skygear.io")
 		})
 
 		Convey("update user account with custom token", func(c C) {

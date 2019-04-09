@@ -108,9 +108,9 @@ type ForgotPasswordResetFormHandler struct {
 }
 
 type resultTemplateContext struct {
-	err        skyerr.Error
-	payload    ForgotPasswordResetFormPayload
-	userObject response.AuthResponse
+	err     skyerr.Error
+	payload ForgotPasswordResetFormPayload
+	user    response.User
 }
 
 func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Request) (ctx resultTemplateContext, err error) {
@@ -142,11 +142,11 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 		return
 	}
 
-	userObjectFactory := response.AuthResponseFactory{
+	userObjectFactory := response.UserFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
-	userObject := userObjectFactory.NewAuthResponse(authInfo, userProfile)
-	ctx.userObject = userObject
+	user := userObjectFactory.NewUser(authInfo, userProfile)
+	ctx.user = user
 
 	return
 }
@@ -189,7 +189,7 @@ func (h ForgotPasswordResetFormHandler) HandleResetError(rw http.ResponseWriter,
 		return
 	}
 
-	context["user"] = templateCtx.userObject
+	context["user"] = templateCtx.user
 
 	// render the form again for failed post request
 	html, htmlErr := h.ResetPasswordHTMLProvider.FormHTML(context)
@@ -205,7 +205,7 @@ func (h ForgotPasswordResetFormHandler) HandleGetForm(rw http.ResponseWriter, te
 	context := map[string]interface{}{
 		"code":      templateCtx.payload.Code,
 		"user_id":   templateCtx.payload.UserID,
-		"user":      templateCtx.userObject,
+		"user":      templateCtx.user,
 		"expire_at": strconv.FormatInt(templateCtx.payload.ExpireAt, 10),
 	}
 
@@ -232,7 +232,7 @@ func (h ForgotPasswordResetFormHandler) HandleResetSuccess(rw http.ResponseWrite
 		return
 	}
 
-	context["user"] = templateCtx.userObject
+	context["user"] = templateCtx.user
 
 	html, htmlErr := h.ResetPasswordHTMLProvider.SuccessHTML(context)
 	if htmlErr != nil {
@@ -291,7 +291,7 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 	}
 
 	hashedPassword := principals[0].HashedPassword
-	email := templateCtx.userObject.LoginIDs["email"]
+	email := templateCtx.user.LoginIDs["email"]
 	expectedCode := h.CodeGenerator.Generate(authInfo, email, hashedPassword, templateCtx.payload.ExpireAtTime)
 	if templateCtx.payload.Code != expectedCode {
 		h.Logger.WithFields(map[string]interface{}{
