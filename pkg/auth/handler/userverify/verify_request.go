@@ -7,8 +7,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -83,6 +85,7 @@ type VerifyRequestHandler struct {
 	UserProfileStore     userprofile.Store               `dependency:"UserProfileStore"`
 	VerifyCodeStore      userverify.Store                `dependency:"VerifyCodeStore"`
 	Logger               *logrus.Entry                   `dependency:"HandlerLogger"`
+	PasswordAuthProvider password.Provider               `dependency:"PasswordAuthProvider"`
 }
 
 func (h VerifyRequestHandler) WithTx() bool {
@@ -116,10 +119,15 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
+	userFactory := response.UserFactory{
+		PasswordAuthProvider: h.PasswordAuthProvider,
+	}
+	user := userFactory.NewUser(*authInfo, userProfile)
+
 	var value string
 	var ok bool
-	if value, ok = userProfile.Data[payload.RecordKey].(string); !ok {
-		err = skyerr.NewError(skyerr.UnexpectedError, "Value of "+payload.RecordKey+" is not string")
+	if value, ok = user.LoginIDs[payload.RecordKey]; !ok {
+		err = skyerr.NewError(skyerr.UnexpectedError, "Value of "+payload.RecordKey+" doesn't exist.")
 		return
 	}
 
@@ -138,7 +146,7 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	if err = codeSender.Send(verifyCode, userProfile); err != nil {
+	if err = codeSender.Send(verifyCode, user); err != nil {
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,
 			"record_key":   payload.RecordKey,

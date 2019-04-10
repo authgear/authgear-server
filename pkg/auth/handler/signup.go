@@ -186,7 +186,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
-	// Initialise verify state
+	// Initialize verify state
 	info.VerifyInfo = map[string]bool{}
 	for _, key := range h.UserVerifyKeys {
 		info.VerifyInfo[key] = false
@@ -214,7 +214,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	if h.AutoSendUserVerifyCode {
-		h.sendUserVerifyRequest(userProfile.MergeLoginIDs(payload.LoginIDs))
+		h.sendUserVerifyRequest(user)
 	}
 
 	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
@@ -265,13 +265,13 @@ func (h SignupHandler) sendWelcomeEmail(user response.User) {
 	}
 }
 
-func (h SignupHandler) sendUserVerifyRequest(userProfile userprofile.UserProfile) {
+func (h SignupHandler) sendUserVerifyRequest(user response.User) {
 	for _, key := range h.UserVerifyKeys {
-		if value, ok := userProfile.Data[key].(string); ok {
+		if value, ok := user.LoginIDs[key]; ok {
 			h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
-				Key:         key,
-				Value:       value,
-				UserProfile: userProfile,
+				Key:   key,
+				Value: value,
+				User:  user,
 			}, nil)
 		}
 	}
