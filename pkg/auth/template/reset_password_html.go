@@ -1,5 +1,6 @@
 package template
 
+/* #nosec */
 const templateResetPasswordHTML = `<!DOCTYPE html>
 
 <head>
