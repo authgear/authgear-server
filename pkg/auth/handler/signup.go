@@ -52,7 +52,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return auth.HookHandlerToAPIHandler(h, h.TxContext)
 }
 
 func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -137,7 +137,11 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, err
 }
 
-func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
+func (h SignupHandler) ExecBeforeHooks(req interface{}, user *response.User) error {
+	return nil
+}
+
+func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
 	err = h.verifyPayload(payload)
@@ -220,6 +224,10 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
 
 	return
+}
+
+func (h SignupHandler) ExecAfterHooks(req interface{}, user response.User) error {
+	return nil
 }
 
 func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {

@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -114,7 +114,8 @@ func TestSingupHandler(t *testing.T) {
 				LoginIDs: loginIDs,
 				Password: "123456",
 			}
-			resp, err := h.Handle(payload)
+			user := response.User{}
+			resp, err := h.HandleRequest(payload, &user)
 
 			authResp, ok := resp.(response.AuthResponse)
 			So(ok, ShouldBeTrue)
@@ -142,7 +143,8 @@ func TestSingupHandler(t *testing.T) {
 		Convey("anonymous singup is not supported yet", func() {
 			payload := SignupRequestPayload{}
 
-			resp, err := h.Handle(payload)
+			user := response.User{}
+			resp, err := h.HandleRequest(payload, &user)
 
 			authResp, ok := resp.(response.AuthResponse)
 			So(ok, ShouldBeTrue)
@@ -171,7 +173,8 @@ func TestSingupHandler(t *testing.T) {
 				LoginIDs: loginIDs,
 				Password: "123456",
 			}
-			_, err := h.Handle(payload)
+			user := response.User{}
+			_, err := h.HandleRequest(payload, &user)
 			So(err.Error(), ShouldEqual, "InvalidArgument: invalid login_ids")
 		})
 
@@ -184,7 +187,8 @@ func TestSingupHandler(t *testing.T) {
 				LoginIDs: loginIDs,
 				Password: "1234",
 			}
-			_, err := h.Handle(payload)
+			user := response.User{}
+			_, err := h.HandleRequest(payload, &user)
 			So(err.Error(), ShouldEqual, "PasswordPolicyViolated: password too short")
 		})
 
@@ -198,7 +202,8 @@ func TestSingupHandler(t *testing.T) {
 				LoginIDs: loginIDs,
 				Password: "12345678",
 			}
-			_, err := h.Handle(payload)
+			user := response.User{}
+			_, err := h.HandleRequest(payload, &user)
 			So(err, ShouldBeNil)
 			So(mockTaskQueue.TasksName, ShouldResemble, []string{task.WelcomeEmailSendTaskName})
 
@@ -219,7 +224,8 @@ func TestSingupHandler(t *testing.T) {
 				LoginIDs: loginIDs,
 				Password: "123456",
 			}
-			h.Handle(payload)
+			user := response.User{}
+			h.HandleRequest(payload, &user)
 			mockTrail, _ := h.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
 			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "signup")
@@ -255,7 +261,7 @@ func TestSingupHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
-		h := handler.APIHandlerToHandler(sh, sh.TxContext)
+		h := auth.APIHandlerToHookHandler(sh, sh.TxContext)
 
 		Convey("duplicated user error format", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -320,7 +326,7 @@ func TestSingupHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
-		h := handler.APIHandlerToHandler(sh, sh.TxContext)
+		h := auth.APIHandlerToHookHandler(sh, sh.TxContext)
 
 		Convey("should contains multiple loginIDs", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
