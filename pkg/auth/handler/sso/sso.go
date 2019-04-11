@@ -42,7 +42,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 		data[k] = v
 	}
 	if createNewUser {
-		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, data)
+		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, data)
 	} else {
 		userProfile, err = h.UserProfileStore.UpdateUserProfile(info.ID, &info, data)
 	}
