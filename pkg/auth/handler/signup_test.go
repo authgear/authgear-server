@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/task"
 
 	"github.com/sirupsen/logrus"
 
@@ -21,7 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -87,227 +86,6 @@ func TestSingupHandler(t *testing.T) {
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
 		anonymousAuthProvider := anonymous.NewMockProvider()
-		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
-
-		passwordChecker := &authAudit.PasswordChecker{
-			PwMinLength: 6,
-		}
-
-		h := &SignupHandler{}
-		h.AuthInfoStore = authInfoStore
-		h.TokenStore = tokenStore
-		h.PasswordChecker = passwordChecker
-		h.PasswordAuthProvider = passwordAuthProvider
-		h.AnonymousAuthProvider = anonymousAuthProvider
-		h.AuditTrail = audit.NewMockTrail(t)
-		h.UserProfileStore = userprofile.NewMockUserProfileStore()
-		h.Logger = logrus.NewEntry(logrus.New())
-		mockTaskQueue := async.NewMockQueue()
-		h.TaskQueue = mockTaskQueue
-
-		Convey("signup user with login_id", func() {
-			loginIDs := map[string]string{
-				"username": "john.doe",
-				"email":    "john.doe@example.com",
-			}
-			payload := SignupRequestPayload{
-				LoginIDs: loginIDs,
-				Password: "123456",
-			}
-			user := response.User{}
-			resp, err := h.HandleRequest(payload, &user)
-
-			authResp, ok := resp.(response.AuthResponse)
-			So(ok, ShouldBeTrue)
-			So(err, ShouldBeNil)
-
-			userID := authResp.UserID
-			// check the authinfo store data
-			a := authinfo.AuthInfo{}
-			authInfoStore.GetAuth(userID, &a)
-			So(a.ID, ShouldEqual, userID)
-			So(a.LastLoginAt.Equal(time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)), ShouldBeTrue)
-
-			// check the token
-			tokenStr := authResp.AccessToken
-			token := authtoken.Token{}
-			tokenStore.Get(tokenStr, &token)
-			So(token.AuthInfoID, ShouldEqual, userID)
-			So(!token.IsExpired(), ShouldBeTrue)
-
-			// check user profile
-			So(authResp.LoginIDs["username"], ShouldEqual, "john.doe")
-			So(authResp.LoginIDs["email"], ShouldEqual, "john.doe@example.com")
-		})
-
-		Convey("anonymous singup is not supported yet", func() {
-			payload := SignupRequestPayload{}
-
-			user := response.User{}
-			resp, err := h.HandleRequest(payload, &user)
-
-			authResp, ok := resp.(response.AuthResponse)
-			So(ok, ShouldBeTrue)
-			So(err, ShouldBeNil)
-
-			userID := authResp.UserID
-			// check the authinfo store data
-			a := authinfo.AuthInfo{}
-			authInfoStore.GetAuth(userID, &a)
-			So(a.ID, ShouldEqual, userID)
-			So(a.LastLoginAt.Equal(time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC)), ShouldBeTrue)
-
-			// check the token
-			tokenStr := authResp.AccessToken
-			token := authtoken.Token{}
-			tokenStore.Get(tokenStr, &token)
-			So(token.AuthInfoID, ShouldEqual, userID)
-			So(!token.IsExpired(), ShouldBeTrue)
-		})
-
-		Convey("signup with incorrect login_id", func() {
-			loginIDs := map[string]string{
-				"phone": "202-111-2222",
-			}
-			payload := SignupRequestPayload{
-				LoginIDs: loginIDs,
-				Password: "123456",
-			}
-			user := response.User{}
-			_, err := h.HandleRequest(payload, &user)
-			So(err.Error(), ShouldEqual, "InvalidArgument: invalid login_ids")
-		})
-
-		Convey("signup with weak password", func() {
-			loginIDs := map[string]string{
-				"username": "john.doe",
-				"email":    "john.doe@example.com",
-			}
-			payload := SignupRequestPayload{
-				LoginIDs: loginIDs,
-				Password: "1234",
-			}
-			user := response.User{}
-			_, err := h.HandleRequest(payload, &user)
-			So(err.Error(), ShouldEqual, "PasswordPolicyViolated: password too short")
-		})
-
-		Convey("signup with email, send welcome email", func() {
-			h.WelcomeEmailEnabled = true
-			loginIDs := map[string]string{
-				"username": "john.doe",
-				"email":    "john.doe@example.com",
-			}
-			payload := SignupRequestPayload{
-				LoginIDs: loginIDs,
-				Password: "12345678",
-			}
-			user := response.User{}
-			_, err := h.HandleRequest(payload, &user)
-			So(err, ShouldBeNil)
-			So(mockTaskQueue.TasksName, ShouldResemble, []string{task.WelcomeEmailSendTaskName})
-
-			So(mockTaskQueue.TasksParam, ShouldHaveLength, 1)
-			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
-			So(param.Email, ShouldEqual, "john.doe@example.com")
-			So(param.User, ShouldNotBeNil)
-			So(param.User.LoginIDs["username"], ShouldEqual, "john.doe")
-			So(param.User.LoginIDs["email"], ShouldEqual, "john.doe@example.com")
-		})
-
-		Convey("log audit trail when signup success", func() {
-			loginIDs := map[string]string{
-				"username": "john.doe",
-				"email":    "john.doe@example.com",
-			}
-			payload := SignupRequestPayload{
-				LoginIDs: loginIDs,
-				Password: "123456",
-			}
-			user := response.User{}
-			h.HandleRequest(payload, &user)
-			mockTrail, _ := h.AuditTrail.(*audit.MockTrail)
-			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
-			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "signup")
-		})
-	})
-
-	Convey("Test SignupHandler", t, func() {
-		realTime := timeNow
-		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
-		defer func() {
-			timeNow = realTime
-		}()
-
-		loginIDsKeyWhitelist := []string{"email", "username"}
-		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
-		anonymousAuthProvider := anonymous.NewMockProvider()
-		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
-
-		passwordChecker := &authAudit.PasswordChecker{
-			PwMinLength: 6,
-		}
-
-		sh := &SignupHandler{}
-		sh.AuthInfoStore = authInfoStore
-		sh.TokenStore = tokenStore
-		sh.PasswordChecker = passwordChecker
-		sh.PasswordAuthProvider = passwordAuthProvider
-		sh.AnonymousAuthProvider = anonymousAuthProvider
-		sh.AuditTrail = audit.NewMockTrail(t)
-		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
-		sh.Logger = logrus.NewEntry(logrus.New())
-		mockTaskQueue := async.NewMockQueue()
-		sh.TaskQueue = mockTaskQueue
-		sh.TxContext = db.NewMockTxContext()
-		h := auth.APIHandlerToHookHandler(sh, sh.TxContext)
-
-		Convey("duplicated user error format", func(c C) {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"login_ids": {
-					"username": "john.doe"
-				},
-				"password": "123456"
-			}`))
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-			So(resp.Code, ShouldEqual, 200)
-
-			req, _ = http.NewRequest("POST", "", strings.NewReader(`
-			{
-				"login_ids": {
-					"username": "john.doe"
-				},
-				"password": "1234567"
-			}`))
-			resp = httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-			So(resp.Code, ShouldEqual, 409)
-			So(resp.Body.Bytes(), ShouldEqualJSON, `
-			{
-				"error": {
-					"name": "Duplicated",
-					"code": 109,
-					"message": "user duplicated"
-				}
-			}
-			`)
-		})
-	})
-
-	Convey("Test SignupHandler response", t, func() {
-		realTime := timeNow
-		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
-		defer func() {
-			timeNow = realTime
-		}()
-
-		loginIDsKeyWhitelist := []string{}
-		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
-		anonymousAuthProvider := anonymous.NewMockProvider()
 
 		passwordChecker := &authAudit.PasswordChecker{
 			PwMinLength: 6,
@@ -326,9 +104,10 @@ func TestSingupHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
-		h := auth.APIHandlerToHookHandler(sh, sh.TxContext)
+		sh.WelcomeEmailEnabled = true
+		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
-		Convey("should contains multiple loginIDs", func() {
+		Convey("signup user with login_id", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": {
@@ -368,6 +147,194 @@ func TestSingupHandler(t *testing.T) {
 				token.AccessToken,
 				userID,
 				userID))
+		})
+
+		Convey("support anonymous singup", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader("{}"))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 200)
+
+			userID := anonymousAuthProvider.Principals[0].UserID
+			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+				"result": {
+					"user_id": "%s",
+					"access_token": "%s",
+					"verified": false,
+					"verify_info": {},
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"metadata": {}
+				}
+			}`,
+				userID,
+				token.AccessToken,
+				userID,
+				userID))
+		})
+
+		Convey("signup with incorrect login_id", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"phone": "202-111-2222"
+				},
+				"password": "123456"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"name": "InvalidArgument",
+					"code": 108,
+					"info":{
+						"arguments":["login_ids"]
+					},
+					"message": "invalid login_ids","name":"InvalidArgument"
+				}
+			}
+			`)
+		})
+
+		Convey("signup with weak password", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"username": "john.doe",
+					"email":    "john.doe@example.com"
+				},
+				"password": "1234"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"name": "PasswordPolicyViolated",
+					"code": 126,
+					"info":{
+							"min_length": 6,
+							"pw_length": 4,
+							"reason": "PasswordTooShort"
+					},
+					"message": "password too short"
+				}
+			}
+			`)
+		})
+
+		Convey("signup with email, send welcome email", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"username": "john.doe",
+					"email":    "john.doe@example.com"
+				},
+				"password": "12345678"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 200)
+
+			So(mockTaskQueue.TasksName, ShouldResemble, []string{task.WelcomeEmailSendTaskName})
+			So(mockTaskQueue.TasksParam, ShouldHaveLength, 1)
+			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
+			So(param.Email, ShouldEqual, "john.doe@example.com")
+			So(param.User, ShouldNotBeNil)
+			So(param.User.LoginIDs["username"], ShouldEqual, "john.doe")
+			So(param.User.LoginIDs["email"], ShouldEqual, "john.doe@example.com")
+		})
+
+		Convey("log audit trail when signup success", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"username": "john.doe",
+					"email":    "john.doe@example.com"
+				},
+				"password": "123456"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 200)
+
+			mockTrail, _ := sh.AuditTrail.(*audit.MockTrail)
+			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
+			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "signup")
+		})
+	})
+
+	Convey("Test SignupHandler", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+
+		loginIDsKeyWhitelist := []string{"email", "username"}
+		authInfoStore := authinfo.NewMockStore()
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
+		anonymousAuthProvider := anonymous.NewMockProvider()
+		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
+
+		passwordChecker := &authAudit.PasswordChecker{
+			PwMinLength: 6,
+		}
+
+		sh := &SignupHandler{}
+		sh.AuthInfoStore = authInfoStore
+		sh.TokenStore = tokenStore
+		sh.PasswordChecker = passwordChecker
+		sh.PasswordAuthProvider = passwordAuthProvider
+		sh.AnonymousAuthProvider = anonymousAuthProvider
+		sh.AuditTrail = audit.NewMockTrail(t)
+		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sh.Logger = logrus.NewEntry(logrus.New())
+		mockTaskQueue := async.NewMockQueue()
+		sh.TaskQueue = mockTaskQueue
+		sh.TxContext = db.NewMockTxContext()
+		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+
+		Convey("duplicated user error format", func(c C) {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"username": "john.doe"
+				},
+				"password": "123456"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 200)
+
+			req, _ = http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"username": "john.doe"
+				},
+				"password": "1234567"
+			}`))
+			resp = httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 409)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"name": "Duplicated",
+					"code": 109,
+					"message": "user duplicated"
+				}
+			}
+			`)
 		})
 	})
 }
