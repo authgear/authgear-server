@@ -52,22 +52,20 @@ func TestChangePasswordHandler(t *testing.T) {
 			PwMinLength: 6,
 		}
 		lh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			[][]string{[]string{"email"}, []string{"username"}},
+			[]string{},
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
-					ID:     "john.doe.principal.id0",
-					UserID: userID,
-					AuthData: map[string]interface{}{
-						"username": "john.doe",
-					},
+					ID:             "john.doe.principal.id0",
+					UserID:         userID,
+					LoginIDKey:     "username",
+					LoginID:        "john.doe",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id1": password.Principal{
-					ID:     "john.doe.principal.id1",
-					UserID: userID,
-					AuthData: map[string]interface{}{
-						"email": "john.doe@example.com",
-					},
+					ID:             "john.doe.principal.id1",
+					UserID:         userID,
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -97,7 +95,11 @@ func TestChangePasswordHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"metadata": {}
+					"metadata": {},
+					"login_ids": {
+						"email":"john.doe@example.com",
+						"username":"john.doe"
+					}
 				}
 			}`,
 				userID,

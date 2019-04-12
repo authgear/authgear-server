@@ -14,34 +14,24 @@ func NewSafeProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	loginIDMetadataKeys [][]string,
+	loginIDsKeyWhitelist []string,
 	passwordHistoryEnabled bool,
 	txContext db.SafeTxContext,
 ) Provider {
 	return &safeProviderImpl{
-		impl:      newProvider(builder, executor, logger, loginIDMetadataKeys, passwordHistoryEnabled),
+		impl:      newProvider(builder, executor, logger, loginIDsKeyWhitelist, passwordHistoryEnabled),
 		txContext: txContext,
 	}
 }
 
-func (p *safeProviderImpl) IsAuthDataValid(authData map[string]string) bool {
+func (p *safeProviderImpl) IsLoginIDValid(loginID map[string]string) bool {
 	p.txContext.EnsureTx()
-	return p.impl.IsAuthDataValid(authData)
+	return p.impl.IsLoginIDValid(loginID)
 }
 
-func (p *safeProviderImpl) IsAuthDataMatching(authData map[string]string) bool {
+func (p *safeProviderImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) error {
 	p.txContext.EnsureTx()
-	return p.impl.IsAuthDataMatching(authData)
-}
-
-func (p *safeProviderImpl) GetLoginIDMetadataFlattenedKeys() []string {
-	p.txContext.EnsureTx()
-	return p.impl.GetLoginIDMetadataFlattenedKeys()
-}
-
-func (p *safeProviderImpl) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) error {
-	p.txContext.EnsureTx()
-	return p.impl.CreatePrincipalsByAuthData(authInfoID, password, authData)
+	return p.impl.CreatePrincipalsByLoginID(authInfoID, password, loginID)
 }
 
 func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
@@ -49,9 +39,9 @@ func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
 	return p.impl.CreatePrincipal(principal)
 }
 
-func (p *safeProviderImpl) GetPrincipalByAuthData(authData map[string]string, principal *Principal) (err error) {
+func (p *safeProviderImpl) GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error) {
 	p.txContext.EnsureTx()
-	return p.impl.GetPrincipalByAuthData(authData, principal)
+	return p.impl.GetPrincipalByLoginID(loginIDKey, loginID, principal)
 }
 
 func (p *safeProviderImpl) GetPrincipalsByUserID(userID string) ([]*Principal, error) {

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/skygeario/skygear-server/pkg/auth/response"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
@@ -24,35 +26,29 @@ func TestForgotPasswordHandler(t *testing.T) {
 	Convey("Test ForgotPasswordHandler", t, func() {
 		fh := &ForgotPasswordHandler{}
 		fh.TxContext = db.NewMockTxContext()
-		loginIDMetadataKeys := [][]string{[]string{"email", "username"}}
+		loginIDsKeyWhitelist := []string{}
 		fh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
-					ID:     "john.doe.principal.id",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"username": "john.doe",
-						"email":    "john.doe@example.com",
-					},
+					ID:             "john.doe.principal.id",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe2.principal.id": password.Principal{
-					ID:     "john.doe2.principal.id",
-					UserID: "john.doe2.id",
-					AuthData: map[string]interface{}{
-						"username": "john.doe2",
-						"email":    "john.doe@example.com",
-					},
+					ID:             "john.doe2.principal.id",
+					UserID:         "john.doe2.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"chima.principal.id": password.Principal{
-					ID:     "chima.principal.id",
-					UserID: "chima.id",
-					AuthData: map[string]interface{}{
-						"username": "chima",
-						"email":    "chima@example.com",
-					},
+					ID:             "chima.principal.id",
+					UserID:         "chima.id",
+					LoginIDKey:     "email",
+					LoginID:        "chima@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -98,8 +94,8 @@ func TestForgotPasswordHandler(t *testing.T) {
 				"result": "OK"
 			}`)
 			So(sender.emails, ShouldResemble, []string{"chima@example.com"})
-			So(sender.userProfiles, ShouldHaveLength, 1)
-			So(sender.userProfileIDs, ShouldContain, "chima.id")
+			So(sender.userObjects, ShouldHaveLength, 1)
+			So(sender.userObjectIDs, ShouldContain, "chima.id")
 			So(sender.authInfos, ShouldHaveLength, 1)
 			So(sender.authInfoIDs, ShouldContain, "chima.id")
 			So(sender.hashedPasswords, ShouldResemble, [][]byte{
@@ -118,9 +114,9 @@ func TestForgotPasswordHandler(t *testing.T) {
 				"result": "OK"
 			}`)
 			So(sender.emails, ShouldResemble, []string{"john.doe@example.com", "john.doe@example.com"})
-			So(sender.userProfiles, ShouldHaveLength, 2)
-			So(sender.userProfileIDs, ShouldContain, "john.doe.id")
-			So(sender.userProfileIDs, ShouldContain, "john.doe2.id")
+			So(sender.userObjects, ShouldHaveLength, 2)
+			So(sender.userObjectIDs, ShouldContain, "john.doe.id")
+			So(sender.userObjectIDs, ShouldContain, "john.doe2.id")
 			So(sender.authInfos, ShouldHaveLength, 2)
 			So(sender.authInfoIDs, ShouldContain, "john.doe.id")
 			So(sender.authInfoIDs, ShouldContain, "john.doe2.id")
@@ -171,22 +167,22 @@ type MockForgotPasswordEmailSender struct {
 	emails          []string
 	authInfos       []authinfo.AuthInfo
 	authInfoIDs     []string
-	userProfiles    []userprofile.UserProfile
-	userProfileIDs  []string
+	userObjects     []response.User
+	userObjectIDs   []string
 	hashedPasswords [][]byte
 }
 
 func (m *MockForgotPasswordEmailSender) Send(
 	email string,
 	authInfo authinfo.AuthInfo,
-	userProfile userprofile.UserProfile,
+	user response.User,
 	hashedPassword []byte,
 ) (err error) {
 	m.emails = append(m.emails, email)
 	m.authInfos = append(m.authInfos, authInfo)
 	m.authInfoIDs = append(m.authInfoIDs, authInfo.ID)
-	m.userProfiles = append(m.userProfiles, userProfile)
-	m.userProfileIDs = append(m.userProfileIDs, userProfile.ID)
+	m.userObjects = append(m.userObjects, user)
+	m.userObjectIDs = append(m.userObjectIDs, user.UserID)
 	m.hashedPasswords = append(m.hashedPasswords, hashedPassword)
 	return nil
 }

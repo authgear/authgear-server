@@ -50,14 +50,28 @@ func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
-	AuthData map[string]string `json:"auth_data"`
-	Password string            `json:"password"`
+	RawLoginID map[string]string `json:"login_id"`
+	LoginIDKey string
+	LoginID    string
+	Password   string `json:"password"`
 }
 
 // Validate request payload
 func (p LoginRequestPayload) Validate() error {
-	if len(p.AuthData) == 0 {
-		return skyerr.NewInvalidArgument("empty auth data", []string{"auth_data"})
+	if len(p.RawLoginID) == 0 {
+		return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
+	}
+
+	if len(p.RawLoginID) > 1 {
+		return skyerr.NewInvalidArgument("allow one login_id only", []string{"login_id"})
+	}
+
+	if p.LoginIDKey == "" {
+		return skyerr.NewInvalidArgument("empty login ID key", []string{"login_id_key"})
+	}
+
+	if p.LoginID == "" {
+		return skyerr.NewInvalidArgument("empty login ID", []string{"login_id"})
 	}
 
 	if p.Password == "" {
@@ -90,6 +104,12 @@ func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := LoginRequestPayload{}
 	err := json.NewDecoder(request.Body).Decode(&payload)
+	// RawLoginID should contain only one key-value map
+	for k, v := range payload.RawLoginID {
+		payload.LoginIDKey = k
+		payload.LoginID = v
+		break
+	}
 	return payload, err
 }
 
@@ -112,12 +132,12 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		}
 	}()
 
-	if valid := h.PasswordAuthProvider.IsAuthDataMatching(payload.AuthData); !valid {
-		err = skyerr.NewInvalidArgument("invalid auth data, check your LOGIN_ID_METADATA_KEYS setting", []string{"auth_data"})
+	if valid := h.PasswordAuthProvider.IsLoginIDValid(payload.RawLoginID); !valid {
+		err = skyerr.NewInvalidArgument("invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting", []string{"login_id"})
 		return
 	}
 
-	userID, err := h.getUserID(payload.Password, payload.AuthData)
+	userID, err := h.getUserID(payload.Password, payload.LoginIDKey, payload.LoginID)
 	if err != nil {
 		return
 	}
@@ -128,7 +148,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 			return
 		}
 		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("auth_data", payload.AuthData)
+		err = skyerr.NewResourceFetchFailureErr("login_id", payload.LoginID)
 		return
 	}
 
@@ -155,7 +175,10 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	resp = response.NewAuthResponse(fetchedAuthInfo, userProfile, token.AccessToken)
+	respFactory := response.AuthResponseFactory{
+		PasswordAuthProvider: h.PasswordAuthProvider,
+	}
+	resp = respFactory.NewAuthResponse(fetchedAuthInfo, userProfile, token.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()
@@ -169,21 +192,21 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	return
 }
 
-func (h LoginHandler) getUserID(pwd string, authData map[string]string) (userID string, err error) {
+func (h LoginHandler) getUserID(pwd string, loginIDKey string, loginID string) (userID string, err error) {
 	principal := password.Principal{}
-	err = h.PasswordAuthProvider.GetPrincipalByAuthData(authData, &principal)
+	err = h.PasswordAuthProvider.GetPrincipalByLoginID(loginIDKey, loginID, &principal)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			return
 		}
 		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
+		err = skyerr.NewResourceFetchFailureErr("login_id", loginID)
 		return
 	}
 
 	if !principal.IsSamePassword(pwd) {
-		err = skyerr.NewError(skyerr.InvalidCredentials, "auth_data or password incorrect")
+		err = skyerr.NewError(skyerr.InvalidCredentials, "login_id or password incorrect")
 		return
 	}
 

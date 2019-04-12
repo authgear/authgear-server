@@ -20,6 +20,9 @@ var (
 			Secret: "Secret",
 			Expiry: 1000,
 		},
+		Auth: config.AuthConfiguration{
+			LoginIDsKeyWhitelist: []string{},
+		},
 	}
 )
 

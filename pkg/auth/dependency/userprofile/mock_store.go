@@ -28,7 +28,6 @@ func NewMockUserProfileStoreByData(data map[string]map[string]interface{}) *Mock
 }
 
 func (u MockUserProfileStoreImpl) CreateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (profile UserProfile, err error) {
-	u.Data[userID] = make(map[string]interface{})
 	u.Data[userID] = data
 	now := u.TimeNowfunc()
 	profile = UserProfile{

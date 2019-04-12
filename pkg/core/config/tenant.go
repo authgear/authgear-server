@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/kelseyhightower/envconfig"
@@ -43,11 +42,8 @@ type TokenStoreConfiguration struct {
 }
 
 type AuthConfiguration struct {
-	// RawLoginIDMetadataKeys is used when parsing from environment variables
-	RawLoginIDMetadataKeys string `msg:"-" envconfig:"RAW_LOGIN_ID_METADATA_KEYS" json:"-"`
-	// LoginIDMetadataKeys is used when unmarshal from json
-	LoginIDMetadataKeys [][]string `msg:"LOGIN_ID_METADATA_KEYS" json:"LOGIN_ID_METADATA_KEYS"`
-	CustomTokenSecret   string     `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
+	LoginIDsKeyWhitelist []string `msg:"LOGIN_IDS_KEY_WHITELIST" envconfig:"LOGIN_IDS_KEY_WHITELIST" json:"LOGIN_IDS_KEY_WHITELIST"`
+	CustomTokenSecret    string   `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
 }
 
 type UserAuditConfiguration struct {
@@ -184,7 +180,7 @@ func NewTenantConfiguration() TenantConfiguration {
 		DBConnectionStr: "postgres://postgres:@localhost/postgres?sslmode=disable",
 		CORSHost:        "*",
 		Auth: AuthConfiguration{
-			LoginIDMetadataKeys: [][]string{[]string{"email"}, []string{"username"}},
+			LoginIDsKeyWhitelist: []string{},
 		},
 		SMTP: SMTPConfiguration{
 			Port: 25,
@@ -318,6 +314,11 @@ func GetTenantConfig(i interface{}) TenantConfiguration {
 	if err != nil {
 		panic(err)
 	}
+	// msgp'issue: decode empty slices becomes nil
+	// https://github.com/tinylib/msgp/issues/247
+	if t.Auth.LoginIDsKeyWhitelist == nil {
+		t.Auth.LoginIDsKeyWhitelist = []string{}
+	}
 	return t
 }
 
@@ -348,10 +349,6 @@ func GetUserVerifyKeyConfigFromEnv(key string) (config UserVerifyKeyConfiguratio
 func NewTenantConfigurationFromEnv(_ *http.Request) (c TenantConfiguration, err error) {
 	c = NewTenantConfiguration()
 	err = envconfig.Process("", &c)
-	if err != nil {
-		return
-	}
-	err = parseLoginIDMetadataKeys(&c.Auth)
 	if err != nil {
 		return
 	}
@@ -405,50 +402,4 @@ func getSSOConfigs(providers []string, ssoConfigs *[]SSOConfiguration) {
 	}
 	*ssoConfigs = configs
 	return
-}
-
-func parseLoginIDMetadataKeys(authConfiguration *AuthConfiguration) error {
-	if authConfiguration.RawLoginIDMetadataKeys == "" {
-		// use default setting
-		return nil
-	}
-
-	splits := strings.Split(authConfiguration.RawLoginIDMetadataKeys, ",")
-	results := [][]string{}
-	container := []string{}
-	level := 0
-	for _, split := range splits {
-		split = strings.TrimSpace(split)
-		content := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(split, "("), ")"))
-
-		isGroupOpening := strings.HasPrefix(split, "(")
-		isGroupClosing := strings.HasSuffix(split, ")")
-
-		// validation
-		if strings.Contains(content, "(") || strings.Contains(content, ")") || (level > 0 && isGroupOpening) {
-			return errors.New("Unexpected char in " + content)
-		}
-
-		if isGroupOpening {
-			container = []string{}
-			level++
-		}
-
-		container = append(container, content)
-
-		if isGroupClosing {
-			level--
-			sort.Strings(container)
-			results = append(results, container)
-		}
-
-		if !isGroupOpening && !isGroupClosing && level == 0 {
-			results = append(results, container)
-			container = []string{}
-		}
-	}
-
-	authConfiguration.LoginIDMetadataKeys = results
-
-	return nil
 }

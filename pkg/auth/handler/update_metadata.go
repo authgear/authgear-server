@@ -20,7 +20,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
-	"github.com/skygeario/skygear-server/pkg/core/utils"
 )
 
 func AttachUpdateMetadataHandler(
@@ -122,17 +121,8 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	// Get Profile
 	var profile userprofile.UserProfile
-	if profile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
-		return
-	}
-
-	outMetadata := h.mergeMetadata(profile.Data, inMetadata)
-	if profile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, &authInfo, outMetadata); err != nil {
+	if profile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, &authInfo, inMetadata); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to update user profile")
@@ -140,29 +130,11 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 	}
 
 	token := h.AuthContext.Token().AccessToken
-	resp = response.NewAuthResponse(authInfo, profile, token)
+
+	respFactory := response.AuthResponseFactory{
+		PasswordAuthProvider: h.PasswordAuthProvider,
+	}
+	resp = respFactory.NewAuthResponse(authInfo, profile, token)
 
 	return
-}
-
-func (h UpdateMetadataHandler) mergeMetadata(
-	orgMetadata map[string]interface{},
-	inMetadata map[string]interface{},
-) map[string]interface{} {
-	loginIDMetadataKeys := h.PasswordAuthProvider.GetLoginIDMetadataFlattenedKeys()
-
-	output := make(map[string]interface{})
-	// copy loginID to the profile
-	for _, v := range loginIDMetadataKeys {
-		if pv, ok := orgMetadata[v]; ok {
-			output[v] = pv
-		}
-	}
-	// copy rest attributes to the profile
-	for k, v := range inMetadata {
-		if !utils.StringSliceContains(loginIDMetadataKeys, k) {
-			output[k] = v
-		}
-	}
-	return output
 }

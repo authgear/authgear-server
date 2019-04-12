@@ -10,8 +10,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 
 	"github.com/sirupsen/logrus"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
 )
 
 const (
@@ -48,9 +48,9 @@ type VerifyCodeSendTask struct {
 }
 
 type VerifyCodeSendTaskParam struct {
-	Key         string
-	Value       string
-	UserProfile userprofile.UserProfile
+	Key   string
+	Value string
+	User  response.User
 }
 
 func (v *VerifyCodeSendTask) WithTx() bool {
@@ -62,14 +62,14 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	codeSender := v.CodeSenderFactory.NewCodeSender(taskParam.Key)
 
 	v.Logger.WithFields(logrus.Fields{
-		"userID": taskParam.UserProfile.ID,
+		"userID": taskParam.User.UserID,
 	}).Info("start sending user verify requests")
 
 	codeGenerator := v.CodeGeneratorFactory.NewCodeGenerator(taskParam.Key)
 	code := codeGenerator.Generate()
 
 	verifyCode := userverify.NewVerifyCode()
-	verifyCode.UserID = taskParam.UserProfile.ID
+	verifyCode.UserID = taskParam.User.UserID
 	verifyCode.RecordKey = taskParam.Key
 	verifyCode.RecordValue = taskParam.Value
 	verifyCode.Code = code
@@ -80,7 +80,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 		return
 	}
 
-	if err = codeSender.Send(verifyCode, taskParam.UserProfile); err != nil {
+	if err = codeSender.Send(verifyCode, taskParam.User); err != nil {
 		v.Logger.WithFields(logrus.Fields{
 			"error":        err,
 			"record_key":   taskParam.Key,

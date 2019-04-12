@@ -55,24 +55,22 @@ func TestResetPasswordHandler(t *testing.T) {
 				},
 			},
 		)
-		loginIDMetadataKeys := [][]string{[]string{"email"}, []string{"username"}}
+		loginIDsKeyWhitelist := []string{"email", "username"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDMetadataKeys,
+			loginIDsKeyWhitelist,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
-					ID:     "john.doe.principal.id0",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"username": "john.doe",
-					},
+					ID:             "john.doe.principal.id0",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "username",
+					LoginID:        "john.doe",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id1": password.Principal{
-					ID:     "john.doe.principal.id1",
-					UserID: "john.doe.id",
-					AuthData: map[string]interface{}{
-						"email": "john.doe@example.com",
-					},
+					ID:             "john.doe.principal.id1",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},

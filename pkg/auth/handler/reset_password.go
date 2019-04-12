@@ -144,7 +144,11 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	resp = response.NewAuthResponse(authinfo, userProfile, token.AccessToken)
+	respFactory := response.AuthResponseFactory{
+		PasswordAuthProvider: h.PasswordAuthProvider,
+	}
+	resp = respFactory.NewAuthResponse(authinfo, userProfile, token.AccessToken)
+
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authinfo.ID,
 		Event:  audit.EventResetPassword,

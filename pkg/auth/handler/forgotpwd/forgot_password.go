@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -112,7 +113,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 			return
 		}
 		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
+		err = skyerr.NewResourceFetchFailureErr("login_id", authData)
 		return
 	}
 
@@ -131,7 +132,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 				return
 			}
 			// TODO: more error handling here if necessary
-			err = skyerr.NewResourceFetchFailureErr("auth_data", authData)
+			err = skyerr.NewResourceFetchFailureErr("login_id", authData)
 			return
 		}
 
@@ -144,10 +145,15 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 			return
 		}
 
+		userFactory := response.UserFactory{
+			PasswordAuthProvider: h.PasswordAuthProvider,
+		}
+		user := userFactory.NewUser(fetchedAuthInfo, userProfile)
+
 		if err = h.ForgotPasswordEmailSender.Send(
 			payload.Email,
 			fetchedAuthInfo,
-			userProfile,
+			user,
 			hashedPassword,
 		); err != nil {
 			return

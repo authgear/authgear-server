@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/core/utils"
+
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 
 	"github.com/sirupsen/logrus"
@@ -58,57 +60,49 @@ func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type SignupRequestPayload struct {
-	AuthData   map[string]string      `json:"auth_data"`
-	Password   string                 `json:"password"`
-	RawProfile map[string]interface{} `json:"profile"`
+	LoginIDs map[string]string      `json:"login_ids"`
+	Password string                 `json:"password"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 func (p SignupRequestPayload) Validate() error {
 	if p.isAnonymous() {
 		//no validation logic for anonymous sign up
 	} else {
-		if len(p.AuthData) == 0 {
-			return skyerr.NewInvalidArgument("empty auth data", []string{"auth_data"})
-		}
-
-		if duplicatedKeys := p.duplicatedKeysInAuthDataAndProfile(); len(duplicatedKeys) > 0 {
-			return skyerr.NewInvalidArgument("duplicated keys found in auth data in profile", duplicatedKeys)
+		if len(p.LoginIDs) == 0 {
+			return skyerr.NewInvalidArgument("empty login_ids", []string{"login_ids"})
 		}
 
 		if p.Password == "" {
 			return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		}
+
+		if p.duplicatedLoginIDs() {
+			return skyerr.NewInvalidArgument("duplicated login_ids", []string{"login_ids"})
 		}
 	}
 
 	return nil
 }
 
-func (p SignupRequestPayload) duplicatedKeysInAuthDataAndProfile() []string {
-	keys := []string{}
+func (p SignupRequestPayload) duplicatedLoginIDs() bool {
+	loginIDs := []string{}
 
-	for k := range p.AuthData {
-		if _, found := p.RawProfile[k]; found {
-			keys = append(keys, k)
+	for _, v := range p.LoginIDs {
+		found := utils.StringSliceContains(loginIDs, v)
+
+		if found {
+			return found
 		}
+
+		loginIDs = append(loginIDs, v)
 	}
 
-	return keys
+	return false
 }
 
 func (p SignupRequestPayload) isAnonymous() bool {
-	return len(p.AuthData) == 0 && p.Password == ""
-}
-
-func (p SignupRequestPayload) mergedProfile() map[string]interface{} {
-	// Assume duplicatedKeysInAuthDataAndProfile is called before this
-	profile := make(map[string]interface{})
-	for k := range p.AuthData {
-		profile[k] = p.AuthData[k]
-	}
-	for k := range p.RawProfile {
-		profile[k] = p.RawProfile[k]
-	}
-	return profile
+	return len(p.LoginIDs) == 0 && p.Password == ""
 }
 
 // SignupHandler handles signup request
@@ -136,6 +130,10 @@ func (h SignupHandler) WithTx() bool {
 func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := SignupRequestPayload{}
 	err := json.NewDecoder(request.Body).Decode(&payload)
+	// Avoid { metadata: null } in the response user object
+	if payload.Metadata == nil {
+		payload.Metadata = make(map[string]interface{})
+	}
 	return payload, err
 }
 
@@ -166,7 +164,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	// Create Profile
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, payload.mergedProfile()); err != nil {
+	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, payload.Metadata); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
@@ -188,13 +186,16 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		panic(err)
 	}
 
-	// Initialise verify state
+	// Initialize verify state
 	info.VerifyInfo = map[string]bool{}
 	for _, key := range h.UserVerifyKeys {
 		info.VerifyInfo[key] = false
 	}
 
-	resp = response.NewAuthResponse(info, userProfile, tkn.AccessToken)
+	userFactory := response.UserFactory{
+		PasswordAuthProvider: h.PasswordAuthProvider,
+	}
+	user := userFactory.NewUser(info, userProfile)
 
 	// Populate the activity time to user
 	info.LastSeenAt = &now
@@ -209,12 +210,14 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	})
 
 	if h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(userProfile)
+		h.sendWelcomeEmail(user)
 	}
 
 	if h.AutoSendUserVerifyCode {
-		h.sendUserVerifyRequest(userProfile)
+		h.sendUserVerifyRequest(user)
 	}
+
+	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
 
 	return
 }
@@ -224,8 +227,8 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 		return
 	}
 
-	if valid := h.PasswordAuthProvider.IsAuthDataValid(payload.AuthData); !valid {
-		err = skyerr.NewInvalidArgument("invalid auth data", []string{"auth_data"})
+	if valid := h.PasswordAuthProvider.IsLoginIDValid(payload.LoginIDs); !valid {
+		err = skyerr.NewInvalidArgument("invalid login_ids", []string{"login_ids"})
 		return
 	}
 
@@ -239,7 +242,7 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 
 func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (err error) {
 	if !payload.isAnonymous() {
-		err = h.PasswordAuthProvider.CreatePrincipalsByAuthData(authInfo.ID, payload.Password, payload.AuthData)
+		err = h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs)
 		if err == skydb.ErrUserDuplicated {
 			err = ErrUserDuplicated
 		}
@@ -253,22 +256,22 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo au
 	return
 }
 
-func (h SignupHandler) sendWelcomeEmail(userProfile userprofile.UserProfile) {
-	if email, ok := userProfile.Data["email"].(string); ok {
+func (h SignupHandler) sendWelcomeEmail(user response.User) {
+	if email, ok := user.LoginIDs["email"]; ok {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-			Email:       email,
-			UserProfile: userProfile,
+			Email: email,
+			User:  user,
 		}, nil)
 	}
 }
 
-func (h SignupHandler) sendUserVerifyRequest(userProfile userprofile.UserProfile) {
+func (h SignupHandler) sendUserVerifyRequest(user response.User) {
 	for _, key := range h.UserVerifyKeys {
-		if value, ok := userProfile.Data[key].(string); ok {
+		if value, ok := user.LoginIDs[key]; ok {
 			h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
-				Key:         key,
-				Value:       value,
-				UserProfile: userProfile,
+				Key:   key,
+				Value: value,
+				User:  user,
 			}, nil)
 		}
 	}

@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/go-gomail/gomail"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -12,7 +12,7 @@ import (
 )
 
 type Sender interface {
-	Send(email string, userProfile userprofile.UserProfile) error
+	Send(email string, user response.User) error
 }
 
 type DefaultSender struct {
@@ -35,7 +35,7 @@ func NewDefaultSender(
 	}
 }
 
-func (d *DefaultSender) Send(email string, userProfile userprofile.UserProfile) (err error) {
+func (d *DefaultSender) Send(email string, user response.User) (err error) {
 	if d.Config.TextURL == "" {
 		return errors.New("welcome email text template url is empty")
 	}
@@ -43,8 +43,8 @@ func (d *DefaultSender) Send(email string, userProfile userprofile.UserProfile) 
 	context := map[string]interface{}{
 		"appname":    d.AppName,
 		"email":      email,
-		"user_id":    userProfile.ID,
-		"user":       userProfile,
+		"user_id":    user.UserID,
+		"user":       user,
 		"url_prefix": d.Config.URLPrefix,
 	}
 

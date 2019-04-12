@@ -1,20 +1,18 @@
 package welcemail
 
-import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-)
+import "github.com/skygeario/skygear-server/pkg/auth/response"
 
 type MockSender struct {
-	LastEmail       string
-	LastUserProfile userprofile.UserProfile
+	LastEmail      string
+	LastUserObject response.User
 }
 
 func NewMockSender() *MockSender {
 	return &MockSender{}
 }
 
-func (m *MockSender) Send(email string, userProfile userprofile.UserProfile) error {
+func (m *MockSender) Send(email string, user response.User) error {
 	m.LastEmail = email
-	m.LastUserProfile = userProfile
+	m.LastUserObject = user
 	return nil
 }

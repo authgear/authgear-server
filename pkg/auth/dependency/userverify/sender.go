@@ -7,7 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 
 	"github.com/go-gomail/gomail"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/response"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -15,7 +15,7 @@ import (
 )
 
 type CodeSender interface {
-	Send(verifyCode VerifyCode, userProfile userprofile.UserProfile) error
+	Send(verifyCode VerifyCode, user response.User) error
 }
 
 type EmailCodeSender struct {
@@ -25,7 +25,7 @@ type EmailCodeSender struct {
 	TemplateEngine *template.Engine
 }
 
-func (e *EmailCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.UserProfile) (err error) {
+func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err error) {
 	var keyConfig config.UserVerifyKeyConfiguration
 	var ok bool
 	if keyConfig, ok = e.Config.ConfigForKey(verifyCode.RecordKey); !ok {
@@ -36,7 +36,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.Us
 		verifyCode,
 		e.AppName,
 		e.Config,
-		userProfile,
+		user,
 	)
 
 	providerConfig := keyConfig.ProviderConfig
@@ -82,12 +82,12 @@ type SMSCodeSender struct {
 	TemplateEngine *template.Engine
 }
 
-func (t *SMSCodeSender) Send(verifyCode VerifyCode, userProfile userprofile.UserProfile) (err error) {
+func (t *SMSCodeSender) Send(verifyCode VerifyCode, user response.User) (err error) {
 	context := prepareVerifyRequestContext(
 		verifyCode,
 		t.AppName,
 		t.Config,
-		userProfile,
+		user,
 	)
 
 	var textBody string
@@ -107,20 +107,20 @@ func prepareVerifyRequestContext(
 	verifyCode VerifyCode,
 	appName string,
 	config config.UserVerifyConfiguration,
-	userProfile userprofile.UserProfile,
+	user response.User,
 ) map[string]interface{} {
 	return map[string]interface{}{
 		"appname":      appName,
 		"record_key":   verifyCode.RecordKey,
 		"record_value": verifyCode.RecordValue,
-		"user_id":      userProfile.ID,
-		"user":         userProfile,
+		"user_id":      user.UserID,
+		"user":         user,
 		"code":         verifyCode.Code,
 		"link": fmt.Sprintf(
 			"%s/verify_code_form?code=%s&user_id=%s",
 			config.URLPrefix,
 			verifyCode.Code,
-			userProfile.ID,
+			user.UserID,
 		),
 	}
 }

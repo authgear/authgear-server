@@ -1,6 +1,6 @@
 package template
 
-const templateWelcomeEmailTxt = `Hello {% if user.metadata.name %}{{ user.metadata.name }}{% else %}{{ user.metadata.email }}{% endif %},
+const templateWelcomeEmailTxt = `Hello {% if user.LoginIDs.username %}{{ user.LoginIDs.username }}{% else %}{{ user.LoginIDs.email }}{% endif %},
 
 Welcome to Skygear.
 

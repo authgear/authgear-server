@@ -9,10 +9,13 @@ import (
 type Principal struct {
 	ID             string
 	UserID         string
-	AuthData       interface{}
+	LoginIDKey     string
+	LoginID        string
 	PlainPassword  string
 	HashedPassword []byte
 }
+
+type Principals []*Principal
 
 func NewPrincipal() Principal {
 	return Principal{
@@ -22,4 +25,12 @@ func NewPrincipal() Principal {
 
 func (p Principal) IsSamePassword(password string) bool {
 	return bcrypt.CompareHashAndPassword(p.HashedPassword, []byte(password)) == nil
+}
+
+func PrincipalsToLoginIDs(principals []*Principal) map[string]string {
+	output := make(map[string]string)
+	for _, p := range principals {
+		output[p.LoginIDKey] = p.LoginID
+	}
+	return output
 }

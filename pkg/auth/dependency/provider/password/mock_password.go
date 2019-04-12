@@ -10,60 +10,39 @@ import (
 // MockProvider is the memory implementation of password provider
 type MockProvider struct {
 	Provider
-	PrincipalMap        map[string]Principal
-	loginIDMetadataKeys [][]string
-	authDataChecker     authDataChecker
+	PrincipalMap         map[string]Principal
+	loginIDsKeyWhitelist []string
+	loginIDChecker       loginIDChecker
 }
 
 // NewMockProvider creates a new instance of mock provider
-func NewMockProvider(loginIDMetadataKeys [][]string) *MockProvider {
-	return NewMockProviderWithPrincipalMap(loginIDMetadataKeys, map[string]Principal{})
+func NewMockProvider(loginIDsKeyWhitelist []string) *MockProvider {
+	return NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist, map[string]Principal{})
 }
 
 // NewMockProviderWithPrincipalMap creates a new instance of mock provider with PrincipalMap
-func NewMockProviderWithPrincipalMap(loginIDMetadataKeys [][]string, principalMap map[string]Principal) *MockProvider {
+func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, principalMap map[string]Principal) *MockProvider {
 	return &MockProvider{
-		loginIDMetadataKeys: loginIDMetadataKeys,
-		authDataChecker: defaultAuthDataChecker{
-			loginIDMetadataKeys: loginIDMetadataKeys,
+		loginIDsKeyWhitelist: loginIDsKeyWhitelist,
+		loginIDChecker: defaultLoginIDChecker{
+			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		},
 		PrincipalMap: principalMap,
 	}
 }
 
-// IsAuthDataValid validates authData
-func (m *MockProvider) IsAuthDataValid(authData map[string]string) bool {
-	return m.authDataChecker.isValid(authData)
+// IsLoginIDValid validates loginID
+func (m *MockProvider) IsLoginIDValid(loginID map[string]string) bool {
+	return m.loginIDChecker.isValid(loginID)
 }
 
-func (m *MockProvider) IsAuthDataMatching(authData map[string]string) bool {
-	return m.authDataChecker.isMatching(authData)
-}
-
-func (m *MockProvider) GetLoginIDMetadataFlattenedKeys() []string {
-	output := make([]string, 0, len(m.loginIDMetadataKeys))
-	bookkeeper := make(map[string]bool)
-
-	for _, keys := range m.loginIDMetadataKeys {
-		for _, key := range keys {
-			if _, ok := bookkeeper[key]; !ok {
-				bookkeeper[key] = true
-				output = append(output, key)
-			}
-		}
-	}
-
-	return output
-}
-
-// CreatePrincipalsByAuthData creates principals by authData
-func (m *MockProvider) CreatePrincipalsByAuthData(authInfoID string, password string, authData map[string]string) (err error) {
-	authDataList := toValidAuthDataList(m.loginIDMetadataKeys, authData)
-
-	for _, a := range authDataList {
+// CreatePrincipalsByLoginID creates principals by loginID
+func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs map[string]string) (err error) {
+	for k, v := range loginIDs {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
-		principal.AuthData = a
+		principal.LoginIDKey = k
+		principal.LoginID = v
 		principal.PlainPassword = password
 		err = m.CreatePrincipal(principal)
 
@@ -82,7 +61,7 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 	}
 
 	for _, p := range m.PrincipalMap {
-		if reflect.DeepEqual(principal.AuthData, p.AuthData) {
+		if reflect.DeepEqual(principal.LoginID, p.LoginID) {
 			return skydb.ErrUserDuplicated
 		}
 	}
@@ -97,10 +76,10 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 	return nil
 }
 
-// GetPrincipalByAuthData get principal in PrincipalMap by auth data
-func (m *MockProvider) GetPrincipalByAuthData(authData map[string]string, principal *Principal) (err error) {
+// GetPrincipalByLoginID get principal in PrincipalMap by login_id
+func (m *MockProvider) GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error) {
 	for _, p := range m.PrincipalMap {
-		if reflect.DeepEqual(authData, p.AuthData) {
+		if p.LoginIDKey == loginIDKey && p.LoginID == loginID {
 			*principal = p
 			return
 		}
@@ -128,11 +107,9 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Princ
 // GetPrincipalsByEmail get principal in PrincipalMap by userID
 func (m *MockProvider) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
 	for _, p := range m.PrincipalMap {
-		if authData, isMap := p.AuthData.(map[string]interface{}); isMap {
-			if e, found := authData["email"].(string); found && e == email {
-				principal := p
-				principals = append(principals, &principal)
-			}
+		if p.LoginIDKey == "email" && p.LoginID == email {
+			principal := p
+			principals = append(principals, &principal)
 		}
 	}
 

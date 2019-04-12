@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/response"
+
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
@@ -106,9 +108,9 @@ type ForgotPasswordResetFormHandler struct {
 }
 
 type resultTemplateContext struct {
-	err         skyerr.Error
-	payload     ForgotPasswordResetFormPayload
-	userProfile userprofile.UserProfile
+	err     skyerr.Error
+	payload ForgotPasswordResetFormPayload
+	user    response.User
 }
 
 func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Request) (ctx resultTemplateContext, err error) {
@@ -124,14 +126,27 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 
 	ctx.payload = payload
 
+	authInfo := authinfo.AuthInfo{}
+	err = h.AuthInfoStore.GetAuth(payload.UserID, &authInfo)
+	if err != nil {
+		return
+	}
+
 	// Get Profile
-	if ctx.userProfile, err = h.UserProfileStore.GetUserProfile(payload.UserID); err != nil {
+	userProfile, err := h.UserProfileStore.GetUserProfile(payload.UserID)
+	if err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(err).Error("unable to get user profile")
 		err = genericResetPasswordError()
 		return
 	}
+
+	userFactory := response.UserFactory{
+		PasswordAuthProvider: h.PasswordAuthProvider,
+	}
+	user := userFactory.NewUser(authInfo, userProfile)
+	ctx.user = user
 
 	return
 }
@@ -174,7 +189,7 @@ func (h ForgotPasswordResetFormHandler) HandleResetError(rw http.ResponseWriter,
 		return
 	}
 
-	context["user"] = templateCtx.userProfile
+	context["user"] = templateCtx.user
 
 	// render the form again for failed post request
 	html, htmlErr := h.ResetPasswordHTMLProvider.FormHTML(context)
@@ -190,7 +205,7 @@ func (h ForgotPasswordResetFormHandler) HandleGetForm(rw http.ResponseWriter, te
 	context := map[string]interface{}{
 		"code":      templateCtx.payload.Code,
 		"user_id":   templateCtx.payload.UserID,
-		"user":      templateCtx.userProfile,
+		"user":      templateCtx.user,
 		"expire_at": strconv.FormatInt(templateCtx.payload.ExpireAt, 10),
 	}
 
@@ -217,7 +232,7 @@ func (h ForgotPasswordResetFormHandler) HandleResetSuccess(rw http.ResponseWrite
 		return
 	}
 
-	context["user"] = templateCtx.userProfile
+	context["user"] = templateCtx.user
 
 	html, htmlErr := h.ResetPasswordHTMLProvider.SuccessHTML(context)
 	if htmlErr != nil {
@@ -276,7 +291,8 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 	}
 
 	hashedPassword := principals[0].HashedPassword
-	expectedCode := h.CodeGenerator.Generate(authInfo, templateCtx.userProfile, hashedPassword, templateCtx.payload.ExpireAtTime)
+	email := templateCtx.user.LoginIDs["email"]
+	expectedCode := h.CodeGenerator.Generate(authInfo, email, hashedPassword, templateCtx.payload.ExpireAtTime)
 	if templateCtx.payload.Code != expectedCode {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id":       templateCtx.payload.UserID,
