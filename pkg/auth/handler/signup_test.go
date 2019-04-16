@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -379,26 +380,27 @@ func TestSingupHandler(t *testing.T) {
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
 		sh.WelcomeEmailEnabled = true
-		hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{
-			"before_signup_hook_url": hook.MockExecutorResult{
-				User: response.User{
-					Metadata: userprofile.Data{
-						"name": "john.doe",
-					},
-				},
-				Error: nil,
-			},
-		})
-		authHooks := []config.AuthHook{
-			config.AuthHook{
-				Event: hook.BeforeSignup,
-				URL:   "before_signup_hook_url",
-			},
-		}
-		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor, logrus.NewEntry(logrus.New()))
-		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
-		Convey("should invoke after signup hooks", func(c C) {
+		Convey("should invoke before signup hook", func(c C) {
+			hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{
+				"before_signup_hook_url": hook.MockExecutorResult{
+					User: response.User{
+						Metadata: userprofile.Data{
+							"name": "john.doe",
+						},
+					},
+					Error: nil,
+				},
+			})
+			authHooks := []config.AuthHook{
+				config.AuthHook{
+					Event: hook.BeforeSignup,
+					URL:   "before_signup_hook_url",
+				},
+			}
+			sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor, logrus.NewEntry(logrus.New()))
+			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": {
@@ -440,6 +442,44 @@ func TestSingupHandler(t *testing.T) {
 				token.AccessToken,
 				userID,
 				userID))
+		})
+
+		Convey("should stop signup if hook throws error", func(c C) {
+			hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{
+				"after_signup_hook_url": hook.MockExecutorResult{
+					Error: errors.New("after_signup_fail"),
+				},
+			})
+			authHooks := []config.AuthHook{
+				config.AuthHook{
+					Event: hook.AfterSignup,
+					URL:   "after_signup_hook_url",
+				},
+			}
+			sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor, logrus.NewEntry(logrus.New()))
+			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"email": "john.doe@example.com",
+					"username": "john.doe"
+				},
+				"password": "123456"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 500)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"name": "UnexpectedError",
+					"code": 10000,
+					"message": "after_signup_fail"
+				}
+			}
+			`)
 		})
 	})
 }
