@@ -16,14 +16,14 @@ var ErrCloudCodeNotFound = errors.New("CloudCode not found")
 func (s *Store) FindLongestMatchedCloudCode(path string, app model.App, cloudCode *model.CloudCode) error {
 	logger := logging.LoggerEntry("gateway")
 	builder := psql.Select(
-		"cloud_code.id",
-		"cloud_code.created_at",
-		"cloud_code.version",
-		"cloud_code.path",
-		"cloud_code.target_path",
-		"cloud_code.backend_url",
+		"cloud_code_route.id",
+		"cloud_code_route.created_at",
+		"cloud_code_route.version",
+		"cloud_code_route.path",
+		"cloud_code_route.target_path",
+		"cloud_code_route.backend_url",
 	).
-		From(s.tableName("cloud_code")).
+		From(s.tableName("cloud_code_route")).
 		Where("? LIKE path || '%'", path).
 		Where("app_id = ?", app.ID).
 		OrderBy("length(path) desc").
