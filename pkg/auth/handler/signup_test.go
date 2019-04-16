@@ -8,10 +8,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/response"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
@@ -105,6 +110,9 @@ func TestSingupHandler(t *testing.T) {
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
 		sh.WelcomeEmailEnabled = true
+		hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{})
+		authHooks := []config.AuthHook{}
+		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor)
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("signup user with login_id", func() {
@@ -302,6 +310,9 @@ func TestSingupHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
+		hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{})
+		authHooks := []config.AuthHook{}
+		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor)
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("duplicated user error format", func(c C) {
@@ -335,6 +346,100 @@ func TestSingupHandler(t *testing.T) {
 				}
 			}
 			`)
+		})
+	})
+
+	Convey("Test signup hooks", t, func() {
+		realTime := timeNow
+		timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
+		defer func() {
+			timeNow = realTime
+		}()
+
+		loginIDsKeyWhitelist := []string{"email", "username"}
+		authInfoStore := authinfo.NewMockStore()
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
+		anonymousAuthProvider := anonymous.NewMockProvider()
+
+		passwordChecker := &authAudit.PasswordChecker{
+			PwMinLength: 6,
+		}
+
+		sh := &SignupHandler{}
+		sh.AuthInfoStore = authInfoStore
+		mockTokenStore := authtoken.NewMockStore()
+		sh.TokenStore = mockTokenStore
+		sh.PasswordChecker = passwordChecker
+		sh.PasswordAuthProvider = passwordAuthProvider
+		sh.AnonymousAuthProvider = anonymousAuthProvider
+		sh.AuditTrail = audit.NewMockTrail(t)
+		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sh.Logger = logrus.NewEntry(logrus.New())
+		mockTaskQueue := async.NewMockQueue()
+		sh.TaskQueue = mockTaskQueue
+		sh.TxContext = db.NewMockTxContext()
+		sh.WelcomeEmailEnabled = true
+		hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{
+			"before_signup_hook_url": hook.MockExecutorResult{
+				User: response.User{
+					Metadata: userprofile.Data{
+						"name": "john.doe",
+					},
+				},
+				Error: nil,
+			},
+		})
+		authHooks := []config.AuthHook{
+			config.AuthHook{
+				Event: hook.BeforeSignup,
+				URL:   "before_signup_hook_url",
+			},
+		}
+		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor)
+		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+
+		Convey("should invoke after signup hooks", func(c C) {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"email": "john.doe@example.com",
+					"username": "john.doe"
+				},
+				"password": "123456"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 200)
+
+			var p password.Principal
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			So(err, ShouldBeNil)
+			userID := p.UserID
+			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+				"result": {
+					"user_id": "%s",
+					"access_token": "%s",
+					"verified": false,
+					"verify_info": {},
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"login_ids": {
+						"email":"john.doe@example.com",
+						"username":"john.doe"
+					},
+					"metadata": {
+						"name": "john.doe"
+					}
+				}
+			}`,
+				userID,
+				token.AccessToken,
+				userID,
+				userID))
 		})
 	})
 }

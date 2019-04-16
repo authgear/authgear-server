@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -121,6 +122,7 @@ type SignupHandler struct {
 	TxContext              db.TxContext               `dependency:"TxContext"`
 	Logger                 *logrus.Entry              `dependency:"HandlerLogger"`
 	TaskQueue              async.Queue                `dependency:"AsyncTaskQueue"`
+	AuthHooksStore         hook.Store                 `dependency:"AuthHooksStore"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -137,8 +139,11 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, err
 }
 
-func (h SignupHandler) ExecBeforeHooks(req interface{}, user *response.User) error {
-	return nil
+func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User) error {
+	payload := req.(SignupRequestPayload)
+	inputUser.Metadata = payload.Metadata
+	err := h.AuthHooksStore.ExecBeforeHooksByEvent(hook.BeforeSignup, inputUser)
+	return err
 }
 
 func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) (resp interface{}, err error) {
@@ -168,7 +173,11 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 
 	// Create Profile
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, payload.Metadata); err != nil {
+	metadata := payload.Metadata
+	if inputUser != nil {
+		metadata = inputUser.Metadata
+	}
+	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, metadata); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
@@ -213,6 +222,19 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 		Event:  audit.EventSignup,
 	})
 
+	*inputUser = user
+
+	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
+
+	return
+}
+
+func (h SignupHandler) ExecAfterHooks(req interface{}, user response.User) error {
+	err := h.AuthHooksStore.ExecAfterHooksByEvent(hook.AfterSignup, user)
+	if err != nil {
+		return err
+	}
+
 	if h.WelcomeEmailEnabled {
 		h.sendWelcomeEmail(user)
 	}
@@ -221,12 +243,6 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 		h.sendUserVerifyRequest(user)
 	}
 
-	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
-
-	return
-}
-
-func (h SignupHandler) ExecAfterHooks(req interface{}, user response.User) error {
 	return nil
 }
 
