@@ -2,6 +2,7 @@ package hook
 
 import (
 	"errors"
+	"time"
 
 	"github.com/franela/goreq"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
@@ -15,13 +16,14 @@ func (m ExecutorImpl) ExecHook(url string, timeOut int, user *response.User) err
 		Method:      "POST",
 		Uri:         url,
 		Body:        user,
+		Accept:      "application/json",
 		ContentType: "application/json",
+		Timeout:     time.Duration(timeOut) * time.Second,
 	}
 
 	var err error
 	var resp *goreq.Response
 	if resp, err = req.Do(); err != nil {
-		// TODO: handle timeout error
 		return err
 	}
 
