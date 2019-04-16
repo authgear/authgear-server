@@ -112,7 +112,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.WelcomeEmailEnabled = true
 		hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{})
 		authHooks := []config.AuthHook{}
-		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor)
+		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor, logrus.NewEntry(logrus.New()))
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("signup user with login_id", func() {
@@ -312,7 +312,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.TxContext = db.NewMockTxContext()
 		hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{})
 		authHooks := []config.AuthHook{}
-		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor)
+		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor, logrus.NewEntry(logrus.New()))
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("duplicated user error format", func(c C) {
@@ -395,7 +395,7 @@ func TestSingupHandler(t *testing.T) {
 				URL:   "before_signup_hook_url",
 			},
 		}
-		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor)
+		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor, logrus.NewEntry(logrus.New()))
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("should invoke after signup hooks", func(c C) {

@@ -186,7 +186,8 @@ func (m DependencyMap) Provide(
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	case "AuthHooksStore":
-		return hook.NewHookProvider(tConfig.AuthHooks, hook.ExecutorImpl{})
+		l := logging.CreateLoggerWithRequestID(requestID, "auth_hook", createLoggerMaskFormatter(tConfig))
+		return hook.NewHookProvider(tConfig.AuthHooks, hook.ExecutorImpl{}, l)
 	default:
 		return nil
 	}

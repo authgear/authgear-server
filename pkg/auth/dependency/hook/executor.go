@@ -10,6 +10,7 @@ import (
 type ExecutorImpl struct{}
 
 func (m ExecutorImpl) ExecHook(url string, timeOut int, user *response.User) error {
+	// TODO: set timeout
 	req := goreq.Request{
 		Method:      "POST",
 		Uri:         url,
@@ -20,6 +21,7 @@ func (m ExecutorImpl) ExecHook(url string, timeOut int, user *response.User) err
 	var err error
 	var resp *goreq.Response
 	if resp, err = req.Do(); err != nil {
+		// TODO: handle timeout error
 		return err
 	}
 
