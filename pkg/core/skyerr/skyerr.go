@@ -161,6 +161,9 @@ const (
 	// than limit
 	AssetSizeTooLarge
 
+	// HookTimeOut occurs when an hook operation timed out
+	HookTimeOut
+
 	// Error codes for expected error condition should be placed
 	// above this line.
 )

@@ -1,8 +1,9 @@
 package hook
 
 import (
-	"errors"
 	"time"
+
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/franela/goreq"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
@@ -24,20 +25,31 @@ func (m ExecutorImpl) ExecHook(url string, timeOut int, user *response.User) err
 	var err error
 	var resp *goreq.Response
 	if resp, err = req.Do(); err != nil {
-		return err
+		return handleReqErr(err)
 	}
 
-	if resp.StatusCode == 200 {
-		err = resp.Body.FromJsonTo(user)
-	} else {
-		var body string
-		var bodyErr error
-		body, bodyErr = resp.Body.ToString()
-		if bodyErr != nil {
-			return bodyErr
+	if resp.StatusCode != 200 {
+		return handleRespErr(resp)
+	}
+
+	return resp.Body.FromJsonTo(user)
+}
+
+func handleReqErr(err error) error {
+	if goreqerr, ok := err.(*goreq.Error); ok {
+		if goreqerr.Timeout() {
+			return skyerr.NewError(skyerr.HookTimeOut, "Hook time out")
 		}
-		err = errors.New(body)
 	}
-
 	return err
+}
+
+func handleRespErr(resp *goreq.Response) error {
+	var body string
+	var bodyErr error
+	body, bodyErr = resp.Body.ToString()
+	if bodyErr != nil {
+		return bodyErr
+	}
+	return skyerr.NewError(skyerr.UnexpectedError, body)
 }
