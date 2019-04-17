@@ -11,7 +11,7 @@ import (
 func NewMockHookUpdateMetaHandler(metadata userprofile.Data) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		decoder := json.NewDecoder(req.Body)
-		var payload Payload
+		var payload AuthPayload
 		err := decoder.Decode(&payload)
 		if err != nil {
 			panic(err)

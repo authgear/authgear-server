@@ -491,7 +491,7 @@ func TestSingupHandler(t *testing.T) {
 				c.So(req.Header["X-Skygear-Access-Token"][0], ShouldEqual, getAccessToken())
 
 				decoder := json.NewDecoder(req.Body)
-				var payload hook.Payload
+				var payload hook.AuthPayload
 				err := decoder.Decode(&payload)
 				if err != nil {
 					panic(err)

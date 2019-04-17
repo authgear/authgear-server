@@ -41,15 +41,22 @@ func NewHookProvider(
 func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, user *response.User, accessToken string) error {
 	hooks := h.authHookStore[event]
 	for _, v := range hooks {
-		p := ExecHookParam{
-			Event:          event,
-			URL:            v.URL,
-			TimeOut:        v.TimeOut,
-			User:           user,
-			AccessToken:    accessToken,
-			DecodeRespUser: true,
+		payload, err := NewDefaultAuthPayload(event, *user)
+		if err != nil {
+			h.logger.Warnf("Fail to generate auth hook payload")
+			return err
 		}
-		err := h.execHook(p, v.Async)
+		respDecoder := AuthRespPayload{
+			User: user,
+		}
+		p := ExecHookParam{
+			URL:         v.URL,
+			TimeOut:     v.TimeOut,
+			AccessToken: accessToken,
+			BodyEncoder: payload,
+			RespDecoder: &respDecoder,
+		}
+		err = h.execHook(p, v.Async)
 		if err != nil {
 			h.logger.Warnf("Exec %v(%v) hook failed: %v", event, v.URL, err)
 			return err
@@ -61,12 +68,16 @@ func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, user *response.User,
 func (h hookStoreImpl) ExecAfterHooksByEvent(event string, user response.User, accessToken string) error {
 	hooks := h.authHookStore[event]
 	for _, v := range hooks {
+		payload, err := NewDefaultAuthPayload(event, user)
+		if err != nil {
+			h.logger.Warnf("Fail to generate auth hook payload")
+			return err
+		}
 		p := ExecHookParam{
-			Event:       event,
 			URL:         v.URL,
 			TimeOut:     v.TimeOut,
-			User:        &user,
 			AccessToken: accessToken,
+			BodyEncoder: payload,
 		}
 		if err := h.execHook(p, v.Async); err != nil {
 			h.logger.Warnf("Exec %v(%v) hook failed: %v", event, v.URL, err)
@@ -83,7 +94,7 @@ func (h hookStoreImpl) execHookImpl(p ExecHookParam) error {
 
 func (h hookStoreImpl) execHook(p ExecHookParam, async bool) error {
 	if async {
-		// for async hook, result is omit
+		// for async hook, omit result from hook
 		go h.execHookImpl(p)
 		return nil
 	}

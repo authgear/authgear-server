@@ -1,38 +1,28 @@
 package hook
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/franela/goreq"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
 )
 
 type ExecutorImpl struct{}
 
 type ExecHookParam struct {
-	URL            string
-	TimeOut        int
-	Event          string
-	User           *response.User
-	AccessToken    string
-	DecodeRespUser bool
+	URL         string
+	TimeOut     int
+	AccessToken string
+	BodyEncoder ReqBodyEncoder
+	RespDecoder RespDecoder
 }
 
 func (m ExecutorImpl) ExecHook(p ExecHookParam) error {
-	var payload Payload
-	var err error
-	err = constructPayload(p, &payload)
-	if err != nil {
-		return err
-	}
-
 	req := goreq.Request{
 		Method:      "POST",
 		Uri:         p.URL,
-		Body:        payload,
+		Body:        p.BodyEncoder.Encode(),
 		Accept:      "application/json",
 		ContentType: "application/json",
 		Timeout:     time.Duration(p.TimeOut) * time.Second,
@@ -43,6 +33,7 @@ func (m ExecutorImpl) ExecHook(p ExecHookParam) error {
 	}
 
 	var resp *goreq.Response
+	var err error
 	if resp, err = req.Do(); err != nil {
 		return handleReqErr(err)
 	}
@@ -51,30 +42,8 @@ func (m ExecutorImpl) ExecHook(p ExecHookParam) error {
 		return handleRespErr(resp)
 	}
 
-	if p.DecodeRespUser {
-		return resp.Body.FromJsonTo(p.User)
-	}
-
-	return nil
-}
-
-func constructPayload(p ExecHookParam, payload *Payload) error {
-	// convert user to map[string]interface{}
-	var data map[string]interface{}
-	var userBytes []byte
-	var err error
-	userBytes, err = json.Marshal(p.User)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(userBytes, &data)
-	if err != nil {
-		return err
-	}
-
-	*payload = Payload{
-		Event: p.Event,
-		Data:  data,
+	if p.RespDecoder != nil {
+		return p.RespDecoder.Decode(resp.Body)
 	}
 
 	return nil
