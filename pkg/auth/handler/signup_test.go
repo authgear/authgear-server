@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -111,9 +110,9 @@ func TestSingupHandler(t *testing.T) {
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
 		sh.WelcomeEmailEnabled = true
-		hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{})
+		executor := hook.ExecutorImpl{}
 		authHooks := []config.AuthHook{}
-		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor, logrus.NewEntry(logrus.New()))
+		sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("signup user with login_id", func() {
@@ -311,9 +310,9 @@ func TestSingupHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
-		hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{})
+		executor := hook.ExecutorImpl{}
 		authHooks := []config.AuthHook{}
-		sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor, logrus.NewEntry(logrus.New()))
+		sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("duplicated user error format", func(c C) {
@@ -382,23 +381,24 @@ func TestSingupHandler(t *testing.T) {
 		sh.WelcomeEmailEnabled = true
 
 		Convey("should invoke before signup hook", func(c C) {
-			hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{
-				"before_signup_hook_url": hook.MockExecutorResult{
-					User: response.User{
-						Metadata: userprofile.Data{
-							"name": "john.doe",
-						},
-					},
-					Error: nil,
+			expectUser := response.User{
+				Metadata: userprofile.Data{
+					"name": "john.doe",
 				},
+			}
+			server := hook.NewMockHookHandler(hook.MockExecutorResult{
+				User: expectUser,
 			})
+			defer server.Close()
+
+			executor := hook.ExecutorImpl{}
 			authHooks := []config.AuthHook{
 				config.AuthHook{
 					Event: hook.BeforeSignup,
-					URL:   "before_signup_hook_url",
+					URL:   server.URL,
 				},
 			}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor, logrus.NewEntry(logrus.New()))
+			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -445,18 +445,19 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("should stop signup if hook throws error", func(c C) {
-			hookExecutor := hook.NewMockExecutorImpl(map[string]hook.MockExecutorResult{
-				"after_signup_hook_url": hook.MockExecutorResult{
-					Error: errors.New("after_signup_fail"),
-				},
+			server := hook.NewMockHookHandler(hook.MockExecutorResult{
+				ErrorMsg: "after_signup_fail",
 			})
+			defer server.Close()
+
 			authHooks := []config.AuthHook{
 				config.AuthHook{
 					Event: hook.AfterSignup,
-					URL:   "after_signup_hook_url",
+					URL:   server.URL,
 				},
 			}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, hookExecutor, logrus.NewEntry(logrus.New()))
+			executor := hook.ExecutorImpl{}
+			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
