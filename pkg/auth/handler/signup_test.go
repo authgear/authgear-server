@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -481,6 +482,77 @@ func TestSingupHandler(t *testing.T) {
 				}
 			}
 			`)
+		})
+
+		Convey("should include access token in after_signup hook headers", func(c C) {
+			getAccessToken := func() string {
+				var p password.Principal
+				err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+				if err != nil {
+					return ""
+				}
+				userID := p.UserID
+				token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
+				return token.AccessToken
+			}
+
+			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+				c.So(req.Header["X-Skygear-Access-Token"][0], ShouldEqual, getAccessToken())
+
+				body, _ := ioutil.ReadAll(req.Body)
+				rw.WriteHeader(http.StatusOK)
+				rw.Write(body)
+			}))
+			defer server.Close()
+
+			executor := hook.ExecutorImpl{}
+			authHooks := []config.AuthHook{
+				config.AuthHook{
+					Event: hook.AfterSignup,
+					URL:   server.URL,
+				},
+			}
+			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
+			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+							{
+								"login_ids": {
+									"email": "john.doe@example.com",
+									"username": "john.doe"
+								},
+								"password": "123456"
+							}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 200)
+
+			var p password.Principal
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			So(err, ShouldBeNil)
+			userID := p.UserID
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+								"result": {
+									"user_id": "%s",
+									"access_token": "%s",
+									"verified": false,
+									"verify_info": {},
+									"created_at": "0001-01-01T00:00:00Z",
+									"created_by": "%s",
+									"updated_at": "0001-01-01T00:00:00Z",
+									"updated_by": "%s",
+									"login_ids": {
+										"email":"john.doe@example.com",
+										"username":"john.doe"
+									},
+									"metadata": {}
+								}
+							}`,
+				userID,
+				getAccessToken(),
+				userID,
+				userID))
 		})
 	})
 }

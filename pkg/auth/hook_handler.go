@@ -15,7 +15,7 @@ type HookHandler interface {
 
 	ExecBeforeHooks(payload interface{}, user *response.User) error
 	HandleRequest(payload interface{}, user *response.User) (interface{}, error)
-	ExecAfterHooks(payload interface{}, user response.User) error
+	ExecAfterHooks(payload interface{}, resp interface{}, user response.User) error
 }
 
 type hookExecutor struct {
@@ -47,7 +47,7 @@ func (h hookExecutor) Handle(req interface{}) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = h.handler.ExecAfterHooks(req, user)
+	err = h.handler.ExecAfterHooks(req, resp, user)
 	if err != nil {
 		return nil, err
 	}

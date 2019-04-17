@@ -18,10 +18,10 @@ const (
 )
 
 type Store interface {
-	ExecBeforeHooksByEvent(event string, user *response.User) error
-	ExecAfterHooksByEvent(event string, user response.User) error
+	ExecBeforeHooksByEvent(event string, user *response.User, accessToken string) error
+	ExecAfterHooksByEvent(event string, user response.User, accessToken string) error
 }
 
 type Executor interface {
-	ExecHook(url string, timeOut int, user *response.User) error
+	ExecHook(p ExecHookParam) error
 }

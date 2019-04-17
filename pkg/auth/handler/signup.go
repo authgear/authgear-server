@@ -142,7 +142,7 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User) error {
 	payload := req.(SignupRequestPayload)
 	inputUser.Metadata = payload.Metadata
-	err := h.AuthHooksStore.ExecBeforeHooksByEvent(hook.BeforeSignup, inputUser)
+	err := h.AuthHooksStore.ExecBeforeHooksByEvent(hook.BeforeSignup, inputUser, "")
 	return err
 }
 
@@ -229,8 +229,9 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 	return
 }
 
-func (h SignupHandler) ExecAfterHooks(req interface{}, user response.User) error {
-	err := h.AuthHooksStore.ExecAfterHooksByEvent(hook.AfterSignup, user)
+func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user response.User) error {
+	respPayload := resp.(response.AuthResponse)
+	err := h.AuthHooksStore.ExecAfterHooksByEvent(hook.AfterSignup, user, respPayload.AccessToken)
 	if err != nil {
 		return err
 	}

@@ -11,15 +11,26 @@ import (
 
 type ExecutorImpl struct{}
 
-func (m ExecutorImpl) ExecHook(url string, timeOut int, user *response.User) error {
+type ExecHookParam struct {
+	URL         string
+	TimeOut     int
+	User        *response.User
+	AccessToken string
+}
+
+func (m ExecutorImpl) ExecHook(p ExecHookParam) error {
 	// TODO: set timeout
 	req := goreq.Request{
 		Method:      "POST",
-		Uri:         url,
-		Body:        user,
+		Uri:         p.URL,
+		Body:        p.User,
 		Accept:      "application/json",
 		ContentType: "application/json",
-		Timeout:     time.Duration(timeOut) * time.Second,
+		Timeout:     time.Duration(p.TimeOut) * time.Second,
+	}
+
+	if p.AccessToken != "" {
+		req.AddHeader("X-Skygear-Access-Token", p.AccessToken)
 	}
 
 	var err error
@@ -32,7 +43,7 @@ func (m ExecutorImpl) ExecHook(url string, timeOut int, user *response.User) err
 		return handleRespErr(resp)
 	}
 
-	return resp.Body.FromJsonTo(user)
+	return resp.Body.FromJsonTo(p.User)
 }
 
 func handleReqErr(err error) error {
