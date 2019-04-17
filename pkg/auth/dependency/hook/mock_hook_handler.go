@@ -5,29 +5,38 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 )
 
-type MockExecutorResult struct {
-	User     response.User
-	ErrorMsg string
-}
-
-func NewMockHookHandler(result MockExecutorResult) *httptest.Server {
+func NewMockHookUpdateMetaHandler(metadata userprofile.Data) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		if result.ErrorMsg != "" {
-			rw.WriteHeader(http.StatusInternalServerError)
-			rw.Write([]byte(result.ErrorMsg))
-			return
+		decoder := json.NewDecoder(req.Body)
+		var payload Payload
+		err := decoder.Decode(&payload)
+		if err != nil {
+			panic(err)
 		}
 
-		body, err := json.Marshal(result.User)
+		user := payload.Data
+		user["metadata"] = metadata
+
+		body, err := json.Marshal(user)
 		if err != nil {
 			panic(err)
 		}
 
 		rw.WriteHeader(http.StatusOK)
 		rw.Write(body)
+	}))
+
+	return server
+}
+
+func NewMockHookErrorHandler(errorMsg string) *httptest.Server {
+	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusInternalServerError)
+		rw.Write([]byte(errorMsg))
+		return
 	}))
 
 	return server

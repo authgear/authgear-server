@@ -1,6 +1,7 @@
 package hook
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -12,18 +13,26 @@ import (
 type ExecutorImpl struct{}
 
 type ExecHookParam struct {
-	URL         string
-	TimeOut     int
-	User        *response.User
-	AccessToken string
+	URL            string
+	TimeOut        int
+	Event          string
+	User           *response.User
+	AccessToken    string
+	DecodeRespUser bool
 }
 
 func (m ExecutorImpl) ExecHook(p ExecHookParam) error {
-	// TODO: set timeout
+	var payload Payload
+	var err error
+	err = constructPayload(p, &payload)
+	if err != nil {
+		return err
+	}
+
 	req := goreq.Request{
 		Method:      "POST",
 		Uri:         p.URL,
-		Body:        p.User,
+		Body:        payload,
 		Accept:      "application/json",
 		ContentType: "application/json",
 		Timeout:     time.Duration(p.TimeOut) * time.Second,
@@ -33,7 +42,6 @@ func (m ExecutorImpl) ExecHook(p ExecHookParam) error {
 		req.AddHeader("X-Skygear-Access-Token", p.AccessToken)
 	}
 
-	var err error
 	var resp *goreq.Response
 	if resp, err = req.Do(); err != nil {
 		return handleReqErr(err)
@@ -43,7 +51,33 @@ func (m ExecutorImpl) ExecHook(p ExecHookParam) error {
 		return handleRespErr(resp)
 	}
 
-	return resp.Body.FromJsonTo(p.User)
+	if p.DecodeRespUser {
+		return resp.Body.FromJsonTo(p.User)
+	}
+
+	return nil
+}
+
+func constructPayload(p ExecHookParam, payload *Payload) error {
+	// convert user to map[string]interface{}
+	var data map[string]interface{}
+	var userBytes []byte
+	var err error
+	userBytes, err = json.Marshal(p.User)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(userBytes, &data)
+	if err != nil {
+		return err
+	}
+
+	*payload = Payload{
+		Event: p.Event,
+		Data:  data,
+	}
+
+	return nil
 }
 
 func handleReqErr(err error) error {

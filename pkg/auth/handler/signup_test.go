@@ -1,15 +1,13 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/skygeario/skygear-server/pkg/auth/response"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 
@@ -382,13 +380,8 @@ func TestSingupHandler(t *testing.T) {
 		sh.WelcomeEmailEnabled = true
 
 		Convey("should invoke before signup hook", func(c C) {
-			expectUser := response.User{
-				Metadata: userprofile.Data{
-					"name": "john.doe",
-				},
-			}
-			server := hook.NewMockHookHandler(hook.MockExecutorResult{
-				User: expectUser,
+			server := hook.NewMockHookUpdateMetaHandler(userprofile.Data{
+				"name": "john.doe",
 			})
 			defer server.Close()
 
@@ -446,9 +439,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("should stop signup if hook throws error", func(c C) {
-			server := hook.NewMockHookHandler(hook.MockExecutorResult{
-				ErrorMsg: "after_signup_fail",
-			})
+			server := hook.NewMockHookErrorHandler("after_signup_fail")
 			defer server.Close()
 
 			authHooks := []config.AuthHook{
@@ -484,7 +475,7 @@ func TestSingupHandler(t *testing.T) {
 			`)
 		})
 
-		Convey("should include access token in after_signup hook headers", func(c C) {
+		Convey("should include access token in after_signup hook headers and correct payload body", func(c C) {
 			getAccessToken := func() string {
 				var p password.Principal
 				err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
@@ -499,9 +490,16 @@ func TestSingupHandler(t *testing.T) {
 			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 				c.So(req.Header["X-Skygear-Access-Token"][0], ShouldEqual, getAccessToken())
 
-				body, _ := ioutil.ReadAll(req.Body)
+				decoder := json.NewDecoder(req.Body)
+				var payload hook.Payload
+				err := decoder.Decode(&payload)
+				if err != nil {
+					panic(err)
+				}
+
+				c.So(payload.Event, ShouldEqual, hook.AfterSignup)
+
 				rw.WriteHeader(http.StatusOK)
-				rw.Write(body)
 			}))
 			defer server.Close()
 

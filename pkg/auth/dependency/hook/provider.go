@@ -41,7 +41,15 @@ func NewHookProvider(
 func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, user *response.User, accessToken string) error {
 	hooks := h.authHookStore[event]
 	for _, v := range hooks {
-		err := h.execHook(v, user, accessToken)
+		p := ExecHookParam{
+			Event:          event,
+			URL:            v.URL,
+			TimeOut:        v.TimeOut,
+			User:           user,
+			AccessToken:    accessToken,
+			DecodeRespUser: true,
+		}
+		err := h.execHook(p, v.Async)
 		if err != nil {
 			h.logger.Warnf("Exec %v(%v) hook failed: %v", event, v.URL, err)
 			return err
@@ -53,7 +61,14 @@ func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, user *response.User,
 func (h hookStoreImpl) ExecAfterHooksByEvent(event string, user response.User, accessToken string) error {
 	hooks := h.authHookStore[event]
 	for _, v := range hooks {
-		if err := h.execHook(v, &user, accessToken); err != nil {
+		p := ExecHookParam{
+			Event:       event,
+			URL:         v.URL,
+			TimeOut:     v.TimeOut,
+			User:        &user,
+			AccessToken: accessToken,
+		}
+		if err := h.execHook(p, v.Async); err != nil {
 			h.logger.Warnf("Exec %v(%v) hook failed: %v", event, v.URL, err)
 			return err
 		}
@@ -66,14 +81,8 @@ func (h hookStoreImpl) execHookImpl(p ExecHookParam) error {
 	return err
 }
 
-func (h hookStoreImpl) execHook(hook Hook, user *response.User, accessToken string) error {
-	p := ExecHookParam{
-		URL:         hook.URL,
-		TimeOut:     hook.TimeOut,
-		User:        user,
-		AccessToken: accessToken,
-	}
-	if hook.Async {
+func (h hookStoreImpl) execHook(p ExecHookParam, async bool) error {
+	if async {
 		// for async hook, result is omit
 		go h.execHookImpl(p)
 		return nil
