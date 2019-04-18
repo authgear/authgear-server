@@ -10,12 +10,14 @@ type hookStoreImpl struct {
 	authHookStore map[string][]Hook
 	executor      Executor
 	logger        *logrus.Entry
+	requestID     string
 }
 
 func NewHookProvider(
 	authHooks []config.AuthHook,
 	executor Executor,
 	logger *logrus.Entry,
+	requestID string,
 ) Store {
 	authHookStore := make(map[string][]Hook)
 	for _, v := range authHooks {
@@ -35,13 +37,14 @@ func NewHookProvider(
 		authHookStore: authHookStore,
 		executor:      executor,
 		logger:        logger,
+		requestID:     requestID,
 	}
 }
 
 func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, user *response.User, accessToken string) error {
 	hooks := h.authHookStore[event]
 	for _, v := range hooks {
-		payload, err := NewDefaultAuthPayload(event, *user)
+		payload, err := NewDefaultAuthPayload(event, *user, h.requestID)
 		if err != nil {
 			h.logger.Warnf("Fail to generate auth hook payload")
 			return err
@@ -68,7 +71,7 @@ func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, user *response.User,
 func (h hookStoreImpl) ExecAfterHooksByEvent(event string, user response.User, accessToken string) error {
 	hooks := h.authHookStore[event]
 	for _, v := range hooks {
-		payload, err := NewDefaultAuthPayload(event, user)
+		payload, err := NewDefaultAuthPayload(event, user, h.requestID)
 		if err != nil {
 			h.logger.Warnf("Fail to generate auth hook payload")
 			return err

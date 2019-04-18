@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -111,7 +111,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.WelcomeEmailEnabled = true
 		executor := hook.ExecutorImpl{}
 		authHooks := []config.AuthHook{}
-		sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
+		sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), "")
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("signup user with login_id", func() {
@@ -311,7 +311,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.TxContext = db.NewMockTxContext()
 		executor := hook.ExecutorImpl{}
 		authHooks := []config.AuthHook{}
-		sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
+		sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), "")
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("duplicated user error format", func(c C) {
@@ -378,6 +378,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
 		sh.WelcomeEmailEnabled = true
+		requestID := "request_id"
 
 		Convey("should invoke before signup hook", func(c C) {
 			server := hook.NewMockHookUpdateMetaHandler(userprofile.Data{
@@ -392,7 +393,7 @@ func TestSingupHandler(t *testing.T) {
 					URL:   server.URL,
 				},
 			}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
+			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -449,7 +450,7 @@ func TestSingupHandler(t *testing.T) {
 				},
 			}
 			executor := hook.ExecutorImpl{}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
+			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -475,29 +476,49 @@ func TestSingupHandler(t *testing.T) {
 			`)
 		})
 
-		Convey("should include access token in after_signup hook headers and correct payload body", func(c C) {
-			getAccessToken := func() string {
+		Convey("should invoke hook with correct formatted payload", func(c C) {
+			getAuthInfo := func() (string, string) {
 				var p password.Principal
 				err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
 				if err != nil {
-					return ""
+					return "", ""
 				}
 				userID := p.UserID
 				token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
-				return token.AccessToken
+				return userID, token.AccessToken
 			}
 
 			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-				c.So(req.Header["X-Skygear-Access-Token"][0], ShouldEqual, getAccessToken())
-
-				decoder := json.NewDecoder(req.Body)
-				var payload hook.AuthPayload
-				err := decoder.Decode(&payload)
-				if err != nil {
-					panic(err)
-				}
-
-				c.So(payload.Event, ShouldEqual, hook.AfterSignup)
+				userID, accessToken := getAuthInfo()
+				c.So(req.Header["X-Skygear-Access-Token"][0], ShouldEqual, accessToken)
+				body, err := ioutil.ReadAll(req.Body)
+				c.So(err, ShouldBeNil)
+				c.So(body, ShouldEqualJSON, fmt.Sprintf(`{
+					"context": {
+						"req": {
+							"id": "%s"
+						}
+					},
+					"data": {
+						"created_at": "0001-01-01T00:00:00Z",
+						"created_by": "%s",
+						"login_ids": {
+							"email": "john.doe@example.com",
+							"username": "john.doe"
+						},
+						"metadata": {},
+						"updated_at": "0001-01-01T00:00:00Z",
+						"updated_by": "%s",
+						"user_id": "%s",
+						"verified":false,
+						"verify_info":{}
+					},
+					"event": "after_signup"
+				}`,
+					requestID,
+					userID,
+					userID,
+					userID))
 
 				rw.WriteHeader(http.StatusOK)
 			}))
@@ -510,7 +531,7 @@ func TestSingupHandler(t *testing.T) {
 					URL:   server.URL,
 				},
 			}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
+			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -526,10 +547,7 @@ func TestSingupHandler(t *testing.T) {
 
 			So(resp.Code, ShouldEqual, 200)
 
-			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
-			So(err, ShouldBeNil)
-			userID := p.UserID
+			userID, accessToken := getAuthInfo()
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 								"result": {
 									"user_id": "%s",
@@ -548,7 +566,7 @@ func TestSingupHandler(t *testing.T) {
 								}
 							}`,
 				userID,
-				getAccessToken(),
+				accessToken,
 				userID,
 				userID))
 		})
@@ -565,7 +583,7 @@ func TestSingupHandler(t *testing.T) {
 				},
 			}
 			executor := hook.ExecutorImpl{}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
+			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -622,7 +640,7 @@ func TestSingupHandler(t *testing.T) {
 				},
 			}
 			executor := hook.ExecutorImpl{}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()))
+			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`

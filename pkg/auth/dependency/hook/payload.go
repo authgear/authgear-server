@@ -13,7 +13,11 @@ type AuthPayload struct {
 	Context map[string]interface{} `json:"context"`
 }
 
-func NewDefaultAuthPayload(event string, user response.User) (AuthPayload, error) {
+func NewDefaultAuthPayload(
+	event string,
+	user response.User,
+	requestID string,
+) (AuthPayload, error) {
 	var data map[string]interface{}
 	var userBytes []byte
 	var err error
@@ -27,9 +31,18 @@ func NewDefaultAuthPayload(event string, user response.User) (AuthPayload, error
 		return payload, err
 	}
 
+	reqContext := map[string]interface{}{
+		"id": requestID,
+	}
+
+	context := map[string]interface{}{
+		"req": reqContext,
+	}
+
 	payload = AuthPayload{
-		Event: event,
-		Data:  data,
+		Event:   event,
+		Data:    data,
+		Context: context,
 	}
 
 	return payload, nil
