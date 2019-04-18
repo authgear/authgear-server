@@ -55,6 +55,7 @@ func (m ExecutorImpl) ExecHook(p ExecHookParam) error {
 		return p.RespDecoder.Decode(resp.Body)
 	}
 
+	// caller doesn't care success result
 	return nil
 }
 
