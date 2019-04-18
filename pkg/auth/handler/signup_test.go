@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -496,7 +497,16 @@ func TestSingupHandler(t *testing.T) {
 				c.So(body, ShouldEqualJSON, fmt.Sprintf(`{
 					"context": {
 						"req": {
-							"id": "%s"
+							"id": "%s",
+							"path": "/auth/signup",
+							"payload": {
+								"login_ids": {
+									"email": "john.doe@example.com",
+									"username": "john.doe"
+								},
+								"password": "123456",
+								"metadata": {}
+							}
 						}
 					},
 					"data": {
@@ -532,6 +542,10 @@ func TestSingupHandler(t *testing.T) {
 				},
 			}
 			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
+			url, _ := url.Parse("http://skygear/auth/signup")
+			sh.AuthHooksStore = sh.AuthHooksStore.WithRequest(&http.Request{
+				URL: url,
+			})
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`

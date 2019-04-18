@@ -1,6 +1,9 @@
 package hook
 
 import (
+	"io"
+	"net/http"
+
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -11,6 +14,8 @@ type hookStoreImpl struct {
 	executor      Executor
 	logger        *logrus.Entry
 	requestID     string
+	path          string
+	payload       io.ReadCloser
 }
 
 func NewHookProvider(
@@ -41,10 +46,15 @@ func NewHookProvider(
 	}
 }
 
-func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, user *response.User, accessToken string) error {
+func (h hookStoreImpl) WithRequest(request *http.Request) Store {
+	h.path = request.URL.Path
+	return h
+}
+
+func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, reqPayload interface{}, user *response.User, accessToken string) error {
 	hooks := h.authHookStore[event]
 	for _, v := range hooks {
-		payload, err := NewDefaultAuthPayload(event, *user, h.requestID)
+		payload, err := NewDefaultAuthPayload(event, *user, h.requestID, h.path, reqPayload)
 		if err != nil {
 			h.logger.Warnf("Fail to generate auth hook payload")
 			return err
@@ -68,10 +78,10 @@ func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, user *response.User,
 	return nil
 }
 
-func (h hookStoreImpl) ExecAfterHooksByEvent(event string, user response.User, accessToken string) error {
+func (h hookStoreImpl) ExecAfterHooksByEvent(event string, reqPayload interface{}, user response.User, accessToken string) error {
 	hooks := h.authHookStore[event]
 	for _, v := range hooks {
-		payload, err := NewDefaultAuthPayload(event, user, h.requestID)
+		payload, err := NewDefaultAuthPayload(event, user, h.requestID, h.path, reqPayload)
 		if err != nil {
 			h.logger.Warnf("Fail to generate auth hook payload")
 			return err

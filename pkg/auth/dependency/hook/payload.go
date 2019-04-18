@@ -17,6 +17,8 @@ func NewDefaultAuthPayload(
 	event string,
 	user response.User,
 	requestID string,
+	path string,
+	reqPayload interface{},
 ) (AuthPayload, error) {
 	var data map[string]interface{}
 	var userBytes []byte
@@ -32,7 +34,9 @@ func NewDefaultAuthPayload(
 	}
 
 	reqContext := map[string]interface{}{
-		"id": requestID,
+		"id":      requestID,
+		"path":    path,
+		"payload": reqPayload,
 	}
 
 	context := map[string]interface{}{

@@ -53,6 +53,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
+	h.AuthHooksStore = h.AuthHooksStore.WithRequest(request)
 	return auth.HookHandlerToAPIHandler(h, h.TxContext)
 }
 
@@ -142,7 +143,7 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User) error {
 	payload := req.(SignupRequestPayload)
 	inputUser.Metadata = payload.Metadata
-	err := h.AuthHooksStore.ExecBeforeHooksByEvent(hook.BeforeSignup, inputUser, "")
+	err := h.AuthHooksStore.ExecBeforeHooksByEvent(hook.BeforeSignup, req, inputUser, "")
 	return err
 }
 
@@ -231,7 +232,7 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 
 func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user response.User) error {
 	respPayload := resp.(response.AuthResponse)
-	err := h.AuthHooksStore.ExecAfterHooksByEvent(hook.AfterSignup, user, respPayload.AccessToken)
+	err := h.AuthHooksStore.ExecAfterHooksByEvent(hook.AfterSignup, req, user, respPayload.AccessToken)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,8 @@
 package hook
 
 import (
+	"net/http"
+
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 )
 
@@ -18,8 +20,9 @@ const (
 )
 
 type Store interface {
-	ExecBeforeHooksByEvent(event string, user *response.User, accessToken string) error
-	ExecAfterHooksByEvent(event string, user response.User, accessToken string) error
+	WithRequest(request *http.Request) Store
+	ExecBeforeHooksByEvent(event string, reqPayload interface{}, user *response.User, accessToken string) error
+	ExecAfterHooksByEvent(event string, reqPayload interface{}, user response.User, accessToken string) error
 }
 
 type Executor interface {
