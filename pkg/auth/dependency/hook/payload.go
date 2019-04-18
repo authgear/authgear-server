@@ -7,14 +7,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 )
 
-type ReqBodyEncoder interface {
-	Encode() interface{}
-}
-
-type RespDecoder interface {
-	Decode(r io.Reader) error
-}
-
 type AuthPayload struct {
 	Event   string                 `json:"event"`
 	Data    map[string]interface{} `json:"data"`

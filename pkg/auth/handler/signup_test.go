@@ -439,7 +439,7 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("should stop signup if hook throws error", func(c C) {
-			server := hook.NewMockHookErrorHandler("after_signup_fail")
+			server := hook.NewMockHookErrorHandler(skyerr.NotSupported, "after_signup_fail")
 			defer server.Close()
 
 			authHooks := []config.AuthHook{
@@ -463,12 +463,12 @@ func TestSingupHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
-			So(resp.Code, ShouldEqual, 500)
+			So(resp.Code, ShouldEqual, 501)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `
 			{
 				"error": {
-					"name": "UnexpectedError",
-					"code": 10000,
+					"name": "NotSupported",
+					"code": 111,
 					"message": "after_signup_fail"
 				}
 			}

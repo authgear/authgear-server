@@ -1,6 +1,7 @@
 package hook
 
 import (
+	"io"
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -9,6 +10,14 @@ import (
 )
 
 type ExecutorImpl struct{}
+
+type ReqBodyEncoder interface {
+	Encode() interface{}
+}
+
+type RespDecoder interface {
+	Decode(r io.Reader) error
+}
 
 type ExecHookParam struct {
 	URL         string
@@ -58,12 +67,20 @@ func handleReqErr(err error) error {
 	return err
 }
 
+type ErrorResp struct {
+	Code    skyerr.ErrorCode       `json:"code,omitempty"`
+	Message string                 `json:"message"`
+	Info    map[string]interface{} `json:"info,omitempty"`
+}
+
 func handleRespErr(resp *goreq.Response) error {
-	var body string
-	var bodyErr error
-	body, bodyErr = resp.Body.ToString()
-	if bodyErr != nil {
-		return bodyErr
+	var errResp ErrorResp
+	err := resp.Body.FromJsonTo(&errResp)
+	if err != nil {
+		return err
 	}
-	return skyerr.NewError(skyerr.UnexpectedError, body)
+	if errResp.Code == 0 {
+		errResp.Code = skyerr.UnexpectedError
+	}
+	return skyerr.NewErrorWithInfo(errResp.Code, errResp.Message, errResp.Info)
 }

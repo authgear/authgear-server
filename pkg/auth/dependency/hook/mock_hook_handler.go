@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func NewMockHookUpdateMetaHandler(metadata userprofile.Data) *httptest.Server {
@@ -32,10 +33,18 @@ func NewMockHookUpdateMetaHandler(metadata userprofile.Data) *httptest.Server {
 	return server
 }
 
-func NewMockHookErrorHandler(errorMsg string) *httptest.Server {
+func NewMockHookErrorHandler(errorCode skyerr.ErrorCode, errorMsg string) *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusInternalServerError)
-		rw.Write([]byte(errorMsg))
+
+		errResp := ErrorResp{
+			Code:    errorCode,
+			Message: errorMsg,
+		}
+
+		if bytes, err := json.Marshal(errResp); err == nil {
+			rw.Write(bytes)
+		}
 		return
 	}))
 
