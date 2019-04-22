@@ -54,7 +54,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
 	h.HookStore = h.HookStore.WithRequest(request)
-	return auth.HookHandlerToAPIHandler(h, h.TxContext)
+	return auth.HookHandlerToHandler(h, h.TxContext)
 }
 
 func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {

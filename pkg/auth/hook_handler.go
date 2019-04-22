@@ -22,7 +22,7 @@ type hookExecutor struct {
 	handler HookHandler
 }
 
-func HookHandlerToAPIHandler(h HookHandler, txContext db.TxContext) http.Handler {
+func HookHandlerToHandler(h HookHandler, txContext db.TxContext) http.Handler {
 	executor := hookExecutor{
 		handler: h,
 	}

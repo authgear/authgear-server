@@ -113,7 +113,7 @@ func TestSingupHandler(t *testing.T) {
 		executor := hook.ExecutorImpl{}
 		hooks := []config.Hook{}
 		sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), "")
-		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+		h := auth.HookHandlerToHandler(sh, sh.TxContext)
 
 		Convey("signup user with login_id", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -313,7 +313,7 @@ func TestSingupHandler(t *testing.T) {
 		executor := hook.ExecutorImpl{}
 		hooks := []config.Hook{}
 		sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), "")
-		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+		h := auth.HookHandlerToHandler(sh, sh.TxContext)
 
 		Convey("duplicated user error format", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -395,7 +395,7 @@ func TestSingupHandler(t *testing.T) {
 				},
 			}
 			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
-			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+			h := auth.HookHandlerToHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
@@ -452,7 +452,7 @@ func TestSingupHandler(t *testing.T) {
 			}
 			executor := hook.ExecutorImpl{}
 			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
-			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+			h := auth.HookHandlerToHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
@@ -546,7 +546,7 @@ func TestSingupHandler(t *testing.T) {
 			sh.HookStore = sh.HookStore.WithRequest(&http.Request{
 				URL: url,
 			})
-			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+			h := auth.HookHandlerToHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 							{
@@ -598,7 +598,7 @@ func TestSingupHandler(t *testing.T) {
 			}
 			executor := hook.ExecutorImpl{}
 			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
-			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+			h := auth.HookHandlerToHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
@@ -655,7 +655,7 @@ func TestSingupHandler(t *testing.T) {
 			}
 			executor := hook.ExecutorImpl{}
 			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
-			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
+			h := auth.HookHandlerToHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
