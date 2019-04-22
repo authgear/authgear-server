@@ -52,6 +52,23 @@ func (h hookStoreImpl) WithRequest(request *http.Request) Store {
 }
 
 func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, reqPayload interface{}, user *response.User, accessToken string) error {
+	respDecoder := AuthRespPayload{
+		User: user,
+	}
+	return h.execHooks(event, reqPayload, user, accessToken, &respDecoder)
+}
+
+func (h hookStoreImpl) ExecAfterHooksByEvent(event string, reqPayload interface{}, user response.User, accessToken string) error {
+	return h.execHooks(event, reqPayload, &user, accessToken, nil)
+}
+
+func (h hookStoreImpl) execHooks(
+	event string,
+	reqPayload interface{},
+	user *response.User,
+	accessToken string,
+	respDecoder *AuthRespPayload,
+) error {
 	hooks := h.hookStore[event]
 	for _, v := range hooks {
 		payload, err := NewDefaultAuthPayload(event, *user, h.requestID, h.path, reqPayload)
@@ -59,38 +76,14 @@ func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, reqPayload interface
 			h.logger.Warnf("Fail to generate auth hook payload")
 			return err
 		}
-		respDecoder := AuthRespPayload{
-			User: user,
-		}
 		p := ExecHookParam{
 			URL:         v.URL,
 			TimeOut:     v.TimeOut,
 			AccessToken: accessToken,
 			BodyEncoder: payload,
-			RespDecoder: &respDecoder,
 		}
-		err = h.execHook(p, v.Async)
-		if err != nil {
-			h.logger.Warnf("Exec %v(%v) hook failed: %v", event, v.URL, err)
-			return err
-		}
-	}
-	return nil
-}
-
-func (h hookStoreImpl) ExecAfterHooksByEvent(event string, reqPayload interface{}, user response.User, accessToken string) error {
-	hooks := h.hookStore[event]
-	for _, v := range hooks {
-		payload, err := NewDefaultAuthPayload(event, user, h.requestID, h.path, reqPayload)
-		if err != nil {
-			h.logger.Warnf("Fail to generate auth hook payload")
-			return err
-		}
-		p := ExecHookParam{
-			URL:         v.URL,
-			TimeOut:     v.TimeOut,
-			AccessToken: accessToken,
-			BodyEncoder: payload,
+		if respDecoder != nil {
+			p.RespDecoder = respDecoder
 		}
 		if err := h.execHook(p, v.Async); err != nil {
 			h.logger.Warnf("Exec %v(%v) hook failed: %v", event, v.URL, err)
