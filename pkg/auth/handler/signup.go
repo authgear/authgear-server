@@ -53,7 +53,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	h.AuthHooksStore = h.AuthHooksStore.WithRequest(request)
+	h.HookStore = h.HookStore.WithRequest(request)
 	return auth.HookHandlerToAPIHandler(h, h.TxContext)
 }
 
@@ -123,7 +123,7 @@ type SignupHandler struct {
 	TxContext              db.TxContext               `dependency:"TxContext"`
 	Logger                 *logrus.Entry              `dependency:"HandlerLogger"`
 	TaskQueue              async.Queue                `dependency:"AsyncTaskQueue"`
-	AuthHooksStore         hook.Store                 `dependency:"AuthHooksStore"`
+	HookStore              hook.Store                 `dependency:"HookStore"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -143,7 +143,7 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User) error {
 	payload := req.(SignupRequestPayload)
 	inputUser.Metadata = payload.Metadata
-	err := h.AuthHooksStore.ExecBeforeHooksByEvent(hook.BeforeSignup, req, inputUser, "")
+	err := h.HookStore.ExecBeforeHooksByEvent(hook.BeforeSignup, req, inputUser, "")
 	return err
 }
 
@@ -232,7 +232,7 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 
 func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user response.User) error {
 	respPayload := resp.(response.AuthResponse)
-	err := h.AuthHooksStore.ExecAfterHooksByEvent(hook.AfterSignup, req, user, respPayload.AccessToken)
+	err := h.HookStore.ExecAfterHooksByEvent(hook.AfterSignup, req, user, respPayload.AccessToken)
 	if err != nil {
 		return err
 	}

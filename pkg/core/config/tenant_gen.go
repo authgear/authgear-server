@@ -162,7 +162,7 @@ func (z *AuthConfiguration) Msgsize() (s int) {
 }
 
 // DecodeMsg implements msgp.Decodable
-func (z *AuthHook) DecodeMsg(dc *msgp.Reader) (err error) {
+func (z *ForgotPasswordConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
 	var zwht uint32
@@ -172,188 +172,6 @@ func (z *AuthHook) DecodeMsg(dc *msgp.Reader) (err error) {
 	}
 	for zwht > 0 {
 		zwht--
-		field, err = dc.ReadMapKeyPtr()
-		if err != nil {
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "CLOUD_CODE_ID":
-			z.CloudCodeID, err = dc.ReadString()
-			if err != nil {
-				return
-			}
-		case "ASYNC":
-			z.Async, err = dc.ReadBool()
-			if err != nil {
-				return
-			}
-		case "EVENT":
-			z.Event, err = dc.ReadString()
-			if err != nil {
-				return
-			}
-		case "URL":
-			z.URL, err = dc.ReadString()
-			if err != nil {
-				return
-			}
-		case "TIME_OUT":
-			z.TimeOut, err = dc.ReadInt()
-			if err != nil {
-				return
-			}
-		default:
-			err = dc.Skip()
-			if err != nil {
-				return
-			}
-		}
-	}
-	return
-}
-
-// EncodeMsg implements msgp.Encodable
-func (z *AuthHook) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
-	// write "CLOUD_CODE_ID"
-	err = en.Append(0x85, 0xad, 0x43, 0x4c, 0x4f, 0x55, 0x44, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x49, 0x44)
-	if err != nil {
-		return err
-	}
-	err = en.WriteString(z.CloudCodeID)
-	if err != nil {
-		return
-	}
-	// write "ASYNC"
-	err = en.Append(0xa5, 0x41, 0x53, 0x59, 0x4e, 0x43)
-	if err != nil {
-		return err
-	}
-	err = en.WriteBool(z.Async)
-	if err != nil {
-		return
-	}
-	// write "EVENT"
-	err = en.Append(0xa5, 0x45, 0x56, 0x45, 0x4e, 0x54)
-	if err != nil {
-		return err
-	}
-	err = en.WriteString(z.Event)
-	if err != nil {
-		return
-	}
-	// write "URL"
-	err = en.Append(0xa3, 0x55, 0x52, 0x4c)
-	if err != nil {
-		return err
-	}
-	err = en.WriteString(z.URL)
-	if err != nil {
-		return
-	}
-	// write "TIME_OUT"
-	err = en.Append(0xa8, 0x54, 0x49, 0x4d, 0x45, 0x5f, 0x4f, 0x55, 0x54)
-	if err != nil {
-		return err
-	}
-	err = en.WriteInt(z.TimeOut)
-	if err != nil {
-		return
-	}
-	return
-}
-
-// MarshalMsg implements msgp.Marshaler
-func (z *AuthHook) MarshalMsg(b []byte) (o []byte, err error) {
-	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
-	// string "CLOUD_CODE_ID"
-	o = append(o, 0x85, 0xad, 0x43, 0x4c, 0x4f, 0x55, 0x44, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x49, 0x44)
-	o = msgp.AppendString(o, z.CloudCodeID)
-	// string "ASYNC"
-	o = append(o, 0xa5, 0x41, 0x53, 0x59, 0x4e, 0x43)
-	o = msgp.AppendBool(o, z.Async)
-	// string "EVENT"
-	o = append(o, 0xa5, 0x45, 0x56, 0x45, 0x4e, 0x54)
-	o = msgp.AppendString(o, z.Event)
-	// string "URL"
-	o = append(o, 0xa3, 0x55, 0x52, 0x4c)
-	o = msgp.AppendString(o, z.URL)
-	// string "TIME_OUT"
-	o = append(o, 0xa8, 0x54, 0x49, 0x4d, 0x45, 0x5f, 0x4f, 0x55, 0x54)
-	o = msgp.AppendInt(o, z.TimeOut)
-	return
-}
-
-// UnmarshalMsg implements msgp.Unmarshaler
-func (z *AuthHook) UnmarshalMsg(bts []byte) (o []byte, err error) {
-	var field []byte
-	_ = field
-	var zhct uint32
-	zhct, bts, err = msgp.ReadMapHeaderBytes(bts)
-	if err != nil {
-		return
-	}
-	for zhct > 0 {
-		zhct--
-		field, bts, err = msgp.ReadMapKeyZC(bts)
-		if err != nil {
-			return
-		}
-		switch msgp.UnsafeString(field) {
-		case "CLOUD_CODE_ID":
-			z.CloudCodeID, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				return
-			}
-		case "ASYNC":
-			z.Async, bts, err = msgp.ReadBoolBytes(bts)
-			if err != nil {
-				return
-			}
-		case "EVENT":
-			z.Event, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				return
-			}
-		case "URL":
-			z.URL, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				return
-			}
-		case "TIME_OUT":
-			z.TimeOut, bts, err = msgp.ReadIntBytes(bts)
-			if err != nil {
-				return
-			}
-		default:
-			bts, err = msgp.Skip(bts)
-			if err != nil {
-				return
-			}
-		}
-	}
-	o = bts
-	return
-}
-
-// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
-func (z *AuthHook) Msgsize() (s int) {
-	s = 1 + 14 + msgp.StringPrefixSize + len(z.CloudCodeID) + 6 + msgp.BoolSize + 6 + msgp.StringPrefixSize + len(z.Event) + 4 + msgp.StringPrefixSize + len(z.URL) + 9 + msgp.IntSize
-	return
-}
-
-// DecodeMsg implements msgp.Decodable
-func (z *ForgotPasswordConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
-	var field []byte
-	_ = field
-	var zcua uint32
-	zcua, err = dc.ReadMapHeader()
-	if err != nil {
-		return
-	}
-	for zcua > 0 {
-		zcua--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -658,13 +476,13 @@ func (z *ForgotPasswordConfiguration) MarshalMsg(b []byte) (o []byte, err error)
 func (z *ForgotPasswordConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zxhx uint32
-	zxhx, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zhct uint32
+	zhct, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zxhx > 0 {
-		zxhx--
+	for zhct > 0 {
+		zhct--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -764,6 +582,188 @@ func (z *ForgotPasswordConfiguration) UnmarshalMsg(bts []byte) (o []byte, err er
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *ForgotPasswordConfiguration) Msgsize() (s int) {
 	s = 3 + 9 + msgp.StringPrefixSize + len(z.AppName) + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 13 + msgp.BoolSize + 12 + msgp.StringPrefixSize + len(z.SenderName) + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 14 + msgp.StringPrefixSize + len(z.ReplyToName) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 20 + msgp.IntSize + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.EmailTextURL) + 15 + msgp.StringPrefixSize + len(z.EmailHTMLURL) + 15 + msgp.StringPrefixSize + len(z.ResetHTMLURL) + 23 + msgp.StringPrefixSize + len(z.ResetSuccessHTMLURL) + 21 + msgp.StringPrefixSize + len(z.ResetErrorHTMLURL)
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *Hook) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zcua uint32
+	zcua, err = dc.ReadMapHeader()
+	if err != nil {
+		return
+	}
+	for zcua > 0 {
+		zcua--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "CLOUD_CODE_ID":
+			z.CloudCodeID, err = dc.ReadString()
+			if err != nil {
+				return
+			}
+		case "ASYNC":
+			z.Async, err = dc.ReadBool()
+			if err != nil {
+				return
+			}
+		case "EVENT":
+			z.Event, err = dc.ReadString()
+			if err != nil {
+				return
+			}
+		case "URL":
+			z.URL, err = dc.ReadString()
+			if err != nil {
+				return
+			}
+		case "TIME_OUT":
+			z.TimeOut, err = dc.ReadInt()
+			if err != nil {
+				return
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z *Hook) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 5
+	// write "CLOUD_CODE_ID"
+	err = en.Append(0x85, 0xad, 0x43, 0x4c, 0x4f, 0x55, 0x44, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x49, 0x44)
+	if err != nil {
+		return err
+	}
+	err = en.WriteString(z.CloudCodeID)
+	if err != nil {
+		return
+	}
+	// write "ASYNC"
+	err = en.Append(0xa5, 0x41, 0x53, 0x59, 0x4e, 0x43)
+	if err != nil {
+		return err
+	}
+	err = en.WriteBool(z.Async)
+	if err != nil {
+		return
+	}
+	// write "EVENT"
+	err = en.Append(0xa5, 0x45, 0x56, 0x45, 0x4e, 0x54)
+	if err != nil {
+		return err
+	}
+	err = en.WriteString(z.Event)
+	if err != nil {
+		return
+	}
+	// write "URL"
+	err = en.Append(0xa3, 0x55, 0x52, 0x4c)
+	if err != nil {
+		return err
+	}
+	err = en.WriteString(z.URL)
+	if err != nil {
+		return
+	}
+	// write "TIME_OUT"
+	err = en.Append(0xa8, 0x54, 0x49, 0x4d, 0x45, 0x5f, 0x4f, 0x55, 0x54)
+	if err != nil {
+		return err
+	}
+	err = en.WriteInt(z.TimeOut)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z *Hook) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 5
+	// string "CLOUD_CODE_ID"
+	o = append(o, 0x85, 0xad, 0x43, 0x4c, 0x4f, 0x55, 0x44, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x49, 0x44)
+	o = msgp.AppendString(o, z.CloudCodeID)
+	// string "ASYNC"
+	o = append(o, 0xa5, 0x41, 0x53, 0x59, 0x4e, 0x43)
+	o = msgp.AppendBool(o, z.Async)
+	// string "EVENT"
+	o = append(o, 0xa5, 0x45, 0x56, 0x45, 0x4e, 0x54)
+	o = msgp.AppendString(o, z.Event)
+	// string "URL"
+	o = append(o, 0xa3, 0x55, 0x52, 0x4c)
+	o = msgp.AppendString(o, z.URL)
+	// string "TIME_OUT"
+	o = append(o, 0xa8, 0x54, 0x49, 0x4d, 0x45, 0x5f, 0x4f, 0x55, 0x54)
+	o = msgp.AppendInt(o, z.TimeOut)
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *Hook) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zxhx uint32
+	zxhx, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		return
+	}
+	for zxhx > 0 {
+		zxhx--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "CLOUD_CODE_ID":
+			z.CloudCodeID, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				return
+			}
+		case "ASYNC":
+			z.Async, bts, err = msgp.ReadBoolBytes(bts)
+			if err != nil {
+				return
+			}
+		case "EVENT":
+			z.Event, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				return
+			}
+		case "URL":
+			z.URL, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				return
+			}
+		case "TIME_OUT":
+			z.TimeOut, bts, err = msgp.ReadIntBytes(bts)
+			if err != nil {
+				return
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z *Hook) Msgsize() (s int) {
+	s = 1 + 14 + msgp.StringPrefixSize + len(z.CloudCodeID) + 6 + msgp.BoolSize + 6 + msgp.StringPrefixSize + len(z.Event) + 4 + msgp.StringPrefixSize + len(z.URL) + 9 + msgp.IntSize
 	return
 }
 
@@ -1760,13 +1760,13 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
-			if cap(z.AuthHooks) >= int(zawn) {
-				z.AuthHooks = (z.AuthHooks)[:zawn]
+			if cap(z.Hooks) >= int(zawn) {
+				z.Hooks = (z.Hooks)[:zawn]
 			} else {
-				z.AuthHooks = make([]AuthHook, zawn)
+				z.Hooks = make([]Hook, zawn)
 			}
-			for zywj := range z.AuthHooks {
-				err = z.AuthHooks[zywj].DecodeMsg(dc)
+			for zywj := range z.Hooks {
+				err = z.Hooks[zywj].DecodeMsg(dc)
 				if err != nil {
 					return
 				}
@@ -2031,12 +2031,12 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return err
 	}
-	err = en.WriteArrayHeader(uint32(len(z.AuthHooks)))
+	err = en.WriteArrayHeader(uint32(len(z.Hooks)))
 	if err != nil {
 		return
 	}
-	for zywj := range z.AuthHooks {
-		err = z.AuthHooks[zywj].EncodeMsg(en)
+	for zywj := range z.Hooks {
+		err = z.Hooks[zywj].EncodeMsg(en)
 		if err != nil {
 			return
 		}
@@ -2160,9 +2160,9 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	}
 	// string "AUTH_HOOKS"
 	o = append(o, 0xaa, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x48, 0x4f, 0x4f, 0x4b, 0x53)
-	o = msgp.AppendArrayHeader(o, uint32(len(z.AuthHooks)))
-	for zywj := range z.AuthHooks {
-		o, err = z.AuthHooks[zywj].MarshalMsg(o)
+	o = msgp.AppendArrayHeader(o, uint32(len(z.Hooks)))
+	for zywj := range z.Hooks {
+		o, err = z.Hooks[zywj].MarshalMsg(o)
 		if err != nil {
 			return
 		}
@@ -2428,13 +2428,13 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				return
 			}
-			if cap(z.AuthHooks) >= int(ztmt) {
-				z.AuthHooks = (z.AuthHooks)[:ztmt]
+			if cap(z.Hooks) >= int(ztmt) {
+				z.Hooks = (z.Hooks)[:ztmt]
 			} else {
-				z.AuthHooks = make([]AuthHook, ztmt)
+				z.Hooks = make([]Hook, ztmt)
 			}
-			for zywj := range z.AuthHooks {
-				bts, err = z.AuthHooks[zywj].UnmarshalMsg(bts)
+			for zywj := range z.Hooks {
+				bts, err = z.Hooks[zywj].UnmarshalMsg(bts)
 				if err != nil {
 					return
 				}
@@ -2465,8 +2465,8 @@ func (z *TenantConfiguration) Msgsize() (s int) {
 		s += z.SSOConfigs[zyzr].Msgsize()
 	}
 	s += 12 + z.UserVerify.Msgsize() + 11 + msgp.ArrayHeaderSize
-	for zywj := range z.AuthHooks {
-		s += z.AuthHooks[zywj].Msgsize()
+	for zywj := range z.Hooks {
+		s += z.Hooks[zywj].Msgsize()
 	}
 	return
 }

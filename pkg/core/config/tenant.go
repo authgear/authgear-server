@@ -34,7 +34,7 @@ type TenantConfiguration struct {
 	SSOProviders    []string                    `json:"SSO_PROVIDERS" envconfig:"SSO_PROVIDERS" msg:"SSO_PROVIDERS"`
 	SSOConfigs      []SSOConfiguration          `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
 	UserVerify      UserVerifyConfiguration     `json:"USER_VERIFY" msg:"USER_VERIFY"`
-	AuthHooks       []AuthHook                  `json:"AUTH_HOOKS" msg:"AUTH_HOOKS"`
+	Hooks           []Hook                      `json:"AUTH_HOOKS" msg:"AUTH_HOOKS"`
 }
 
 type TokenStoreConfiguration struct {
@@ -176,7 +176,7 @@ type NexmoConfiguration struct {
 	From      string `msg:"FROM" envconfig:"NEXMO_FROM" json:"FROM"`
 }
 
-type AuthHook struct {
+type Hook struct {
 	CloudCodeID string `msg:"CLOUD_CODE_ID" envconfig:"CLOUD_CODE_ID" json:"CLOUD_CODE_ID"`
 	Async       bool   `msg:"ASYNC" envconfig:"ASYNC" json:"ASYNC"`
 	Event       string `msg:"EVENT" envconfig:"EVENT" json:"EVENT"`

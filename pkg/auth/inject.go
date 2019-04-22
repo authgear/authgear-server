@@ -185,9 +185,9 @@ func (m DependencyMap) Provide(
 		return sso.NewAuthHandlerHTMLProvider(tConfig.SSOSetting.APIEndpoint(), tConfig.SSOSetting.JSSDKCDNURL)
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
-	case "AuthHooksStore":
+	case "HookStore":
 		l := logging.CreateLoggerWithRequestID(requestID, "auth_hook", createLoggerMaskFormatter(tConfig))
-		return hook.NewHookProvider(tConfig.AuthHooks, hook.ExecutorImpl{}, l, requestID)
+		return hook.NewHookProvider(tConfig.Hooks, hook.ExecutorImpl{}, l, requestID)
 	default:
 		return nil
 	}

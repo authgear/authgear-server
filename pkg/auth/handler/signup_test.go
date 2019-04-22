@@ -111,8 +111,8 @@ func TestSingupHandler(t *testing.T) {
 		sh.TxContext = db.NewMockTxContext()
 		sh.WelcomeEmailEnabled = true
 		executor := hook.ExecutorImpl{}
-		authHooks := []config.AuthHook{}
-		sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), "")
+		hooks := []config.Hook{}
+		sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), "")
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("signup user with login_id", func() {
@@ -311,8 +311,8 @@ func TestSingupHandler(t *testing.T) {
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
 		executor := hook.ExecutorImpl{}
-		authHooks := []config.AuthHook{}
-		sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), "")
+		hooks := []config.Hook{}
+		sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), "")
 		h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 		Convey("duplicated user error format", func(c C) {
@@ -388,13 +388,13 @@ func TestSingupHandler(t *testing.T) {
 			defer server.Close()
 
 			executor := hook.ExecutorImpl{}
-			authHooks := []config.AuthHook{
-				config.AuthHook{
+			hooks := []config.Hook{
+				config.Hook{
 					Event: hook.BeforeSignup,
 					URL:   server.URL,
 				},
 			}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
+			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -444,14 +444,14 @@ func TestSingupHandler(t *testing.T) {
 			server := hook.NewMockHookErrorHandler(skyerr.NotSupported, "after_signup_fail")
 			defer server.Close()
 
-			authHooks := []config.AuthHook{
-				config.AuthHook{
+			hooks := []config.Hook{
+				config.Hook{
 					Event: hook.AfterSignup,
 					URL:   server.URL,
 				},
 			}
 			executor := hook.ExecutorImpl{}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
+			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -535,15 +535,15 @@ func TestSingupHandler(t *testing.T) {
 			defer server.Close()
 
 			executor := hook.ExecutorImpl{}
-			authHooks := []config.AuthHook{
-				config.AuthHook{
+			hooks := []config.Hook{
+				config.Hook{
 					Event: hook.AfterSignup,
 					URL:   server.URL,
 				},
 			}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
+			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
 			url, _ := url.Parse("http://skygear/auth/signup")
-			sh.AuthHooksStore = sh.AuthHooksStore.WithRequest(&http.Request{
+			sh.HookStore = sh.HookStore.WithRequest(&http.Request{
 				URL: url,
 			})
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
@@ -589,15 +589,15 @@ func TestSingupHandler(t *testing.T) {
 			server := hook.NewMockHookErrorHandler(skyerr.NotSupported, "after_signup_fail")
 			defer server.Close()
 
-			authHooks := []config.AuthHook{
-				config.AuthHook{
+			hooks := []config.Hook{
+				config.Hook{
 					Async: true,
 					Event: hook.AfterSignup,
 					URL:   server.URL,
 				},
 			}
 			executor := hook.ExecutorImpl{}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
+			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -647,14 +647,14 @@ func TestSingupHandler(t *testing.T) {
 			})
 			defer server.Close()
 
-			authHooks := []config.AuthHook{
-				config.AuthHook{
+			hooks := []config.Hook{
+				config.Hook{
 					Event: hook.AfterSignup,
 					URL:   server.URL,
 				},
 			}
 			executor := hook.ExecutorImpl{}
-			sh.AuthHooksStore = hook.NewHookProvider(authHooks, executor, logrus.NewEntry(logrus.New()), requestID)
+			sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), requestID)
 			h := auth.HookHandlerToAPIHandler(sh, sh.TxContext)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`

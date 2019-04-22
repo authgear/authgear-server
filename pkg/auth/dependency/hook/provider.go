@@ -10,39 +10,39 @@ import (
 )
 
 type hookStoreImpl struct {
-	authHookStore map[string][]Hook
-	executor      Executor
-	logger        *logrus.Entry
-	requestID     string
-	path          string
-	payload       io.ReadCloser
+	hookStore map[string][]Hook
+	executor  Executor
+	logger    *logrus.Entry
+	requestID string
+	path      string
+	payload   io.ReadCloser
 }
 
 func NewHookProvider(
-	authHooks []config.AuthHook,
+	hooks []config.Hook,
 	executor Executor,
 	logger *logrus.Entry,
 	requestID string,
 ) Store {
-	authHookStore := make(map[string][]Hook)
-	for _, v := range authHooks {
+	hookStore := make(map[string][]Hook)
+	for _, v := range hooks {
 		hook := Hook{
 			Async:   v.Async,
 			URL:     v.URL,
 			TimeOut: v.TimeOut,
 		}
 
-		if hooks, ok := authHookStore[v.Event]; ok {
-			authHookStore[v.Event] = append(hooks, hook)
+		if hooks, ok := hookStore[v.Event]; ok {
+			hookStore[v.Event] = append(hooks, hook)
 		} else {
-			authHookStore[v.Event] = []Hook{hook}
+			hookStore[v.Event] = []Hook{hook}
 		}
 	}
 	return &hookStoreImpl{
-		authHookStore: authHookStore,
-		executor:      executor,
-		logger:        logger,
-		requestID:     requestID,
+		hookStore: hookStore,
+		executor:  executor,
+		logger:    logger,
+		requestID: requestID,
 	}
 }
 
@@ -52,7 +52,7 @@ func (h hookStoreImpl) WithRequest(request *http.Request) Store {
 }
 
 func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, reqPayload interface{}, user *response.User, accessToken string) error {
-	hooks := h.authHookStore[event]
+	hooks := h.hookStore[event]
 	for _, v := range hooks {
 		payload, err := NewDefaultAuthPayload(event, *user, h.requestID, h.path, reqPayload)
 		if err != nil {
@@ -79,7 +79,7 @@ func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, reqPayload interface
 }
 
 func (h hookStoreImpl) ExecAfterHooksByEvent(event string, reqPayload interface{}, user response.User, accessToken string) error {
-	hooks := h.authHookStore[event]
+	hooks := h.hookStore[event]
 	for _, v := range hooks {
 		payload, err := NewDefaultAuthPayload(event, user, h.requestID, h.path, reqPayload)
 		if err != nil {
