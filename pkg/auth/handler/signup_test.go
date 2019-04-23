@@ -31,6 +31,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -492,7 +493,7 @@ func TestSingupHandler(t *testing.T) {
 
 			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 				userID, accessToken := getAuthInfo()
-				c.So(req.Header["X-Skygear-Access-Token"][0], ShouldEqual, accessToken)
+				c.So(req.Header[coreHttp.HeaderAccessToken][0], ShouldEqual, accessToken)
 				body, err := ioutil.ReadAll(req.Body)
 				c.So(err, ShouldBeNil)
 				c.So(body, ShouldEqualJSON, fmt.Sprintf(`{

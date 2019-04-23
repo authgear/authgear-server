@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
+
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -129,10 +131,6 @@ type UserVerifyConfiguration struct {
 	Keys             []string                     `msg:"KEYS" envconfig:"VERIFY_KEYS" json:"KEYS"`
 	KeyConfigs       []UserVerifyKeyConfiguration `msg:"KEY_CONFIGS" json:"KEY_CONFIGS"`
 }
-
-const (
-	httpHeaderTenantConfig = "x-skygear-app-config"
-)
 
 func (u *UserVerifyConfiguration) ConfigForKey(key string) (UserVerifyKeyConfiguration, bool) {
 	for _, c := range u.KeyConfigs {
@@ -317,7 +315,7 @@ func header(i interface{}) http.Header {
 }
 
 func GetTenantConfig(i interface{}) TenantConfiguration {
-	s := header(i).Get(httpHeaderTenantConfig)
+	s := header(i).Get(coreHttp.HeaderTenantConfig)
 	var t TenantConfiguration
 	data, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
@@ -341,11 +339,11 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 	if err != nil {
 		panic(err)
 	}
-	header(i).Set(httpHeaderTenantConfig, base64.StdEncoding.EncodeToString(out))
+	header(i).Set(coreHttp.HeaderTenantConfig, base64.StdEncoding.EncodeToString(out))
 }
 
 func DelTenantConfig(i interface{}) {
-	header(i).Del(httpHeaderTenantConfig)
+	header(i).Del(coreHttp.HeaderTenantConfig)
 }
 
 func GetUserVerifyKeyConfigFromEnv(key string) (config UserVerifyKeyConfiguration, err error) {

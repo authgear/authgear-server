@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/async"
-
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -29,7 +29,7 @@ func DefaultRequestInject(
 		return dependencyMap.Provide(
 			name,
 			request.Context(),
-			request.Header.Get("X-Skygear-Request-ID"),
+			request.Header.Get(coreHttp.HeaderRequestID),
 			config.GetTenantConfig(request),
 		)
 	})

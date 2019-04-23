@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 // NewGearHandler takes an incoming request and sends it to coresponding
@@ -21,7 +22,7 @@ func newGearReverseProxy() *httputil.ReverseProxy {
 		query := req.URL.RawQuery
 		fragment := req.URL.Fragment
 		var err error
-		u, err := url.Parse(req.Header.Get("X-Skygear-Gear-Endpoint"))
+		u, err := url.Parse(req.Header.Get(coreHttp.HeaderGearEndpoint))
 		if err != nil {
 			panic(err)
 		}

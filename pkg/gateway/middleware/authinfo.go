@@ -7,13 +7,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/model"
-)
-
-const (
-	httpHeaderAuthInfoID       = "x-skygear-auth-userid"
-	httpHeaderAuthInfoVerified = "x-skygear-auth-verified"
-	httpHeaderAuthInfoDisabled = "x-skygear-auth-disabled"
 )
 
 // AuthInfoMiddleware injects auth info headers into the request
@@ -30,9 +25,9 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		defer next.ServeHTTP(w, r)
 
 		// Remove untrusted headers first.
-		r.Header.Del(httpHeaderAuthInfoID)
-		r.Header.Del(httpHeaderAuthInfoVerified)
-		r.Header.Del(httpHeaderAuthInfoDisabled)
+		r.Header.Del(coreHttp.HeaderAuthInfoID)
+		r.Header.Del(coreHttp.HeaderAuthInfoVerified)
+		r.Header.Del(coreHttp.HeaderAuthInfoDisabled)
 
 		accessToken := model.GetAccessToken(r)
 		// No access token found. Simply proceed.
@@ -63,8 +58,8 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 		disabled := authInfo.Disabled
 		verified := authInfo.Verified
 
-		r.Header.Set(httpHeaderAuthInfoID, id)
-		r.Header.Set(httpHeaderAuthInfoVerified, strconv.FormatBool(verified))
-		r.Header.Set(httpHeaderAuthInfoDisabled, strconv.FormatBool(disabled))
+		r.Header.Set(coreHttp.HeaderAuthInfoID, id)
+		r.Header.Set(coreHttp.HeaderAuthInfoVerified, strconv.FormatBool(verified))
+		r.Header.Set(coreHttp.HeaderAuthInfoDisabled, strconv.FormatBool(disabled))
 	})
 }

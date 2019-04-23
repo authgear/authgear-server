@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -60,7 +61,7 @@ func TestMiddleware(t *testing.T) {
 
 		Convey("should handle request with apikey", func() {
 			req := newReq()
-			req.Header.Set("X-Skygear-Api-Key", "APIKey")
+			req.Header.Set(coreHttp.HeaderAPIKey, "APIKey")
 			handler.ServeHTTP(nil, req)
 			So(model.GetAccessKeyType(req), ShouldEqual, model.APIAccessKey)
 			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
@@ -68,7 +69,7 @@ func TestMiddleware(t *testing.T) {
 
 		Convey("should handle request with masterkey", func() {
 			req := newReq()
-			req.Header.Set("X-Skygear-Api-Key", "MasterKey")
+			req.Header.Set(coreHttp.HeaderAPIKey, "MasterKey")
 			handler.ServeHTTP(nil, req)
 			So(model.GetAccessKeyType(req), ShouldEqual, model.MasterAccessKey)
 			So(config.GetTenantConfig(req), ShouldResemble, sampleConfig)
