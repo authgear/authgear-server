@@ -10,6 +10,7 @@ import (
 
 type DependencyMap struct{}
 
+// nolint: golint
 func (m DependencyMap) Provide(
 	dependencyName string,
 	ctx context.Context,
