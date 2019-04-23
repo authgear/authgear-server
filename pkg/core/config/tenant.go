@@ -130,6 +130,10 @@ type UserVerifyConfiguration struct {
 	KeyConfigs       []UserVerifyKeyConfiguration `msg:"KEY_CONFIGS" json:"KEY_CONFIGS"`
 }
 
+const (
+	httpHeaderTenantConfig = "x-skygear-app-config"
+)
+
 func (u *UserVerifyConfiguration) ConfigForKey(key string) (UserVerifyKeyConfiguration, bool) {
 	for _, c := range u.KeyConfigs {
 		if c.Key == key {
@@ -313,7 +317,7 @@ func header(i interface{}) http.Header {
 }
 
 func GetTenantConfig(i interface{}) TenantConfiguration {
-	s := header(i).Get("X-Skygear-App-Config")
+	s := header(i).Get(httpHeaderTenantConfig)
 	var t TenantConfiguration
 	data, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
@@ -337,7 +341,7 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 	if err != nil {
 		panic(err)
 	}
-	header(i).Set("X-Skygear-App-Config", base64.StdEncoding.EncodeToString(out))
+	header(i).Set(httpHeaderTenantConfig, base64.StdEncoding.EncodeToString(out))
 }
 
 func GetUserVerifyKeyConfigFromEnv(key string) (config UserVerifyKeyConfiguration, err error) {
