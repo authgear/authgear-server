@@ -493,7 +493,7 @@ func TestSingupHandler(t *testing.T) {
 
 			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 				userID, accessToken := getAuthInfo()
-				c.So(req.Header[coreHttp.HeaderAccessToken][0], ShouldEqual, accessToken)
+				c.So(req.Header.Get(coreHttp.HeaderAccessToken), ShouldEqual, accessToken)
 				body, err := ioutil.ReadAll(req.Body)
 				c.So(err, ShouldBeNil)
 				c.So(body, ShouldEqualJSON, fmt.Sprintf(`{
