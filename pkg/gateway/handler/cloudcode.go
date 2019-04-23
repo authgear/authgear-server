@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"path"
 
+	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
@@ -38,6 +39,7 @@ func newCloudCodeReverseProxy(routerConfig config.RouterConfig) *httputil.Revers
 		req.URL.Path = path.Join(req.URL.Path, cloudCode.TargetPath)
 		req.URL.RawQuery = query
 		req.URL.Fragment = fragment
+		coreConfig.DelTenantConfig(req)
 	}
 
 	return &httputil.ReverseProxy{Director: director}

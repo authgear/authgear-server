@@ -344,6 +344,10 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 	header(i).Set(httpHeaderTenantConfig, base64.StdEncoding.EncodeToString(out))
 }
 
+func DelTenantConfig(i interface{}) {
+	header(i).Del(httpHeaderTenantConfig)
+}
+
 func GetUserVerifyKeyConfigFromEnv(key string) (config UserVerifyKeyConfiguration, err error) {
 	config.Key = key
 	prefix := "verify_keys_" + key
