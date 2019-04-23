@@ -22,7 +22,12 @@ type AuthInfoMiddleware struct {
 // Handle implements InjectableMiddleware.
 func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer next.ServeHTTP(w, r)
+		var err error
+		defer func() {
+			if err == nil {
+				next.ServeHTTP(w, r)
+			}
+		}()
 
 		// Remove untrusted headers first.
 		r.Header.Del(coreHttp.HeaderAuthInfoID)
@@ -35,13 +40,13 @@ func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		if err := m.TxContext.BeginTx(); err != nil {
+		if err = m.TxContext.BeginTx(); err != nil {
 			panic(err)
 		}
 		defer m.TxContext.RollbackTx()
 
 		token := authtoken.Token{}
-		err := m.TokenStore.Get(accessToken, &token)
+		err = m.TokenStore.Get(accessToken, &token)
 		if err != nil {
 			http.Error(w, "invalid access token", http.StatusUnauthorized)
 			return
