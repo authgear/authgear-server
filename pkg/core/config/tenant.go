@@ -177,11 +177,12 @@ type NexmoConfiguration struct {
 }
 
 type Hook struct {
-	CloudCodeID string `msg:"CLOUD_CODE_ID" envconfig:"CLOUD_CODE_ID" json:"CLOUD_CODE_ID"`
-	Async       bool   `msg:"ASYNC" envconfig:"ASYNC" json:"ASYNC"`
-	Event       string `msg:"EVENT" envconfig:"EVENT" json:"EVENT"`
-	URL         string `msg:"URL" envconfig:"URL" json:"URL"`
-	TimeOut     int    `msg:"TIME_OUT" envconfig:"TIME_OUT" json:"TIME_OUT"`
+	CloudCodeID   string `msg:"CLOUD_CODE_ID" envconfig:"CLOUD_CODE_ID" json:"CLOUD_CODE_ID"`
+	CloudCodeName string `msg:"CLOUD_CODE_NAME" envconfig:"CLOUD_CODE_NAME" json:"CLOUD_CODE_NAME"`
+	Async         bool   `msg:"ASYNC" envconfig:"ASYNC" json:"ASYNC"`
+	Event         string `msg:"EVENT" envconfig:"EVENT" json:"EVENT"`
+	URL           string `msg:"URL" envconfig:"URL" json:"URL"`
+	TimeOut       int    `msg:"TIME_OUT" envconfig:"TIME_OUT" json:"TIME_OUT"`
 }
 
 func NewTenantConfiguration() TenantConfiguration {

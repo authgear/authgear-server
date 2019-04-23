@@ -606,6 +606,11 @@ func (z *Hook) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
+		case "CLOUD_CODE_NAME":
+			z.CloudCodeName, err = dc.ReadString()
+			if err != nil {
+				return
+			}
 		case "ASYNC":
 			z.Async, err = dc.ReadBool()
 			if err != nil {
@@ -638,13 +643,22 @@ func (z *Hook) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *Hook) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
+	// map header, size 6
 	// write "CLOUD_CODE_ID"
-	err = en.Append(0x85, 0xad, 0x43, 0x4c, 0x4f, 0x55, 0x44, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x49, 0x44)
+	err = en.Append(0x86, 0xad, 0x43, 0x4c, 0x4f, 0x55, 0x44, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x49, 0x44)
 	if err != nil {
 		return err
 	}
 	err = en.WriteString(z.CloudCodeID)
+	if err != nil {
+		return
+	}
+	// write "CLOUD_CODE_NAME"
+	err = en.Append(0xaf, 0x43, 0x4c, 0x4f, 0x55, 0x44, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x4e, 0x41, 0x4d, 0x45)
+	if err != nil {
+		return err
+	}
+	err = en.WriteString(z.CloudCodeName)
 	if err != nil {
 		return
 	}
@@ -690,10 +704,13 @@ func (z *Hook) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *Hook) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
+	// map header, size 6
 	// string "CLOUD_CODE_ID"
-	o = append(o, 0x85, 0xad, 0x43, 0x4c, 0x4f, 0x55, 0x44, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x49, 0x44)
+	o = append(o, 0x86, 0xad, 0x43, 0x4c, 0x4f, 0x55, 0x44, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x49, 0x44)
 	o = msgp.AppendString(o, z.CloudCodeID)
+	// string "CLOUD_CODE_NAME"
+	o = append(o, 0xaf, 0x43, 0x4c, 0x4f, 0x55, 0x44, 0x5f, 0x43, 0x4f, 0x44, 0x45, 0x5f, 0x4e, 0x41, 0x4d, 0x45)
+	o = msgp.AppendString(o, z.CloudCodeName)
 	// string "ASYNC"
 	o = append(o, 0xa5, 0x41, 0x53, 0x59, 0x4e, 0x43)
 	o = msgp.AppendBool(o, z.Async)
@@ -730,6 +747,11 @@ func (z *Hook) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				return
 			}
+		case "CLOUD_CODE_NAME":
+			z.CloudCodeName, bts, err = msgp.ReadStringBytes(bts)
+			if err != nil {
+				return
+			}
 		case "ASYNC":
 			z.Async, bts, err = msgp.ReadBoolBytes(bts)
 			if err != nil {
@@ -763,7 +785,7 @@ func (z *Hook) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *Hook) Msgsize() (s int) {
-	s = 1 + 14 + msgp.StringPrefixSize + len(z.CloudCodeID) + 6 + msgp.BoolSize + 6 + msgp.StringPrefixSize + len(z.Event) + 4 + msgp.StringPrefixSize + len(z.URL) + 9 + msgp.IntSize
+	s = 1 + 14 + msgp.StringPrefixSize + len(z.CloudCodeID) + 16 + msgp.StringPrefixSize + len(z.CloudCodeName) + 6 + msgp.BoolSize + 6 + msgp.StringPrefixSize + len(z.Event) + 4 + msgp.StringPrefixSize + len(z.URL) + 9 + msgp.IntSize
 	return
 }
 
