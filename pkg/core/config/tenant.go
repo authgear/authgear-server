@@ -34,6 +34,7 @@ type TenantConfiguration struct {
 	SSOProviders    []string                    `json:"SSO_PROVIDERS" envconfig:"SSO_PROVIDERS" msg:"SSO_PROVIDERS"`
 	SSOConfigs      []SSOConfiguration          `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
 	UserVerify      UserVerifyConfiguration     `json:"USER_VERIFY" msg:"USER_VERIFY"`
+	Hooks           []Hook                      `json:"AUTH_HOOKS" msg:"AUTH_HOOKS"`
 }
 
 type TokenStoreConfiguration struct {
@@ -173,6 +174,14 @@ type NexmoConfiguration struct {
 	APIKey    string `msg:"API_KEY" envconfig:"NEXMO_API_KEY" json:"API_KEY"`
 	APISecret string `msg:"API_SECRET" envconfig:"NEXMO_API_SECRET" json:"API_SECRET"`
 	From      string `msg:"FROM" envconfig:"NEXMO_FROM" json:"FROM"`
+}
+
+type Hook struct {
+	CloudCodeID string `msg:"CLOUD_CODE_ID" envconfig:"CLOUD_CODE_ID" json:"CLOUD_CODE_ID"`
+	Async       bool   `msg:"ASYNC" envconfig:"ASYNC" json:"ASYNC"`
+	Event       string `msg:"EVENT" envconfig:"EVENT" json:"EVENT"`
+	URL         string `msg:"URL" envconfig:"URL" json:"URL"`
+	TimeOut     int    `msg:"TIME_OUT" envconfig:"TIME_OUT" json:"TIME_OUT"`
 }
 
 func NewTenantConfiguration() TenantConfiguration {

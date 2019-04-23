@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
 
@@ -184,6 +185,9 @@ func (m DependencyMap) Provide(
 		return sso.NewAuthHandlerHTMLProvider(tConfig.SSOSetting.APIEndpoint(), tConfig.SSOSetting.JSSDKCDNURL)
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
+	case "HookStore":
+		l := logging.CreateLoggerWithRequestID(requestID, "auth_hook", createLoggerMaskFormatter(tConfig))
+		return hook.NewHookProvider(tConfig.Hooks, hook.ExecutorImpl{}, l, requestID)
 	default:
 		return nil
 	}

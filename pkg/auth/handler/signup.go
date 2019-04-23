@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -52,7 +53,8 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	h.HookStore = h.HookStore.WithRequest(request)
+	return auth.HookHandlerToHandler(h, h.TxContext)
 }
 
 func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -121,6 +123,7 @@ type SignupHandler struct {
 	TxContext              db.TxContext               `dependency:"TxContext"`
 	Logger                 *logrus.Entry              `dependency:"HandlerLogger"`
 	TaskQueue              async.Queue                `dependency:"AsyncTaskQueue"`
+	HookStore              hook.Store                 `dependency:"HookStore"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -137,7 +140,14 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, err
 }
 
-func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
+func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User) error {
+	payload := req.(SignupRequestPayload)
+	inputUser.Metadata = payload.Metadata
+	err := h.HookStore.ExecBeforeHooksByEvent(hook.BeforeSignup, req, inputUser, "")
+	return err
+}
+
+func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
 	err = h.verifyPayload(payload)
@@ -164,7 +174,11 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	// Create Profile
 	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, &info, payload.Metadata); err != nil {
+	metadata := payload.Metadata
+	if inputUser != nil {
+		metadata = inputUser.Metadata
+	}
+	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, metadata); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
@@ -209,6 +223,20 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		Event:  audit.EventSignup,
 	})
 
+	*inputUser = user
+
+	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
+
+	return
+}
+
+func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user response.User) error {
+	respPayload := resp.(response.AuthResponse)
+	err := h.HookStore.ExecAfterHooksByEvent(hook.AfterSignup, req, user, respPayload.AccessToken)
+	if err != nil {
+		return err
+	}
+
 	if h.WelcomeEmailEnabled {
 		h.sendWelcomeEmail(user)
 	}
@@ -217,9 +245,7 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		h.sendUserVerifyRequest(user)
 	}
 
-	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
-
-	return
+	return nil
 }
 
 func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {

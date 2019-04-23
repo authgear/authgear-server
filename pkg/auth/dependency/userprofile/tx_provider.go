@@ -24,7 +24,7 @@ func NewSafeProvider(
 	}
 }
 
-func (s *safeUserProfileImpl) CreateUserProfile(userID string, authInfo *authinfo.AuthInfo, data Data) (profile UserProfile, err error) {
+func (s *safeUserProfileImpl) CreateUserProfile(userID string, data Data) (profile UserProfile, err error) {
 	s.txContext.EnsureTx()
 	return s.impl.CreateUserProfile(userID, data)
 }

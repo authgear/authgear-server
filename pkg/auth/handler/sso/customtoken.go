@@ -266,7 +266,7 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 	// Create Profile
 	userProfileFunc := func(userID string, authInfo *authinfo.AuthInfo, data userprofile.Data) (userprofile.UserProfile, error) {
 		if createNewUser {
-			return h.UserProfileStore.CreateUserProfile(userID, authInfo, data)
+			return h.UserProfileStore.CreateUserProfile(userID, data)
 		}
 
 		return h.UserProfileStore.UpdateUserProfile(userID, authInfo, data)
