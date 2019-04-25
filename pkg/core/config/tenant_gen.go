@@ -1776,7 +1776,7 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
-		case "AUTH_HOOKS":
+		case "HOOKS":
 			var zawn uint32
 			zawn, err = dc.ReadArrayHeader()
 			if err != nil {
@@ -2048,8 +2048,8 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	// write "AUTH_HOOKS"
-	err = en.Append(0xaa, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x48, 0x4f, 0x4f, 0x4b, 0x53)
+	// write "HOOKS"
+	err = en.Append(0xa5, 0x48, 0x4f, 0x4f, 0x4b, 0x53)
 	if err != nil {
 		return err
 	}
@@ -2180,8 +2180,8 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	if err != nil {
 		return
 	}
-	// string "AUTH_HOOKS"
-	o = append(o, 0xaa, 0x41, 0x55, 0x54, 0x48, 0x5f, 0x48, 0x4f, 0x4f, 0x4b, 0x53)
+	// string "HOOKS"
+	o = append(o, 0xa5, 0x48, 0x4f, 0x4f, 0x4b, 0x53)
 	o = msgp.AppendArrayHeader(o, uint32(len(z.Hooks)))
 	for zywj := range z.Hooks {
 		o, err = z.Hooks[zywj].MarshalMsg(o)
@@ -2444,7 +2444,7 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				return
 			}
-		case "AUTH_HOOKS":
+		case "HOOKS":
 			var ztmt uint32
 			ztmt, bts, err = msgp.ReadArrayHeaderBytes(bts)
 			if err != nil {
@@ -2486,7 +2486,7 @@ func (z *TenantConfiguration) Msgsize() (s int) {
 	for zyzr := range z.SSOConfigs {
 		s += z.SSOConfigs[zyzr].Msgsize()
 	}
-	s += 12 + z.UserVerify.Msgsize() + 11 + msgp.ArrayHeaderSize
+	s += 12 + z.UserVerify.Msgsize() + 6 + msgp.ArrayHeaderSize
 	for zywj := range z.Hooks {
 		s += z.Hooks[zywj].Msgsize()
 	}

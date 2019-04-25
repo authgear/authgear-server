@@ -34,7 +34,7 @@ type TenantConfiguration struct {
 	SSOProviders    []string                    `json:"SSO_PROVIDERS" envconfig:"SSO_PROVIDERS" msg:"SSO_PROVIDERS"`
 	SSOConfigs      []SSOConfiguration          `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
 	UserVerify      UserVerifyConfiguration     `json:"USER_VERIFY" msg:"USER_VERIFY"`
-	Hooks           []Hook                      `json:"AUTH_HOOKS" msg:"AUTH_HOOKS"`
+	Hooks           []Hook                      `json:"HOOKS" msg:"HOOKS"`
 }
 
 type TokenStoreConfiguration struct {
