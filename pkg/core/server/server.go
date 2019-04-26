@@ -78,15 +78,21 @@ func NewServerWithOption(
 // Handle delegates gorilla mux Handler, and accept a HandlerFactory instead of Handler
 func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 	return s.router.NewRoute().Path(path).Handler(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		r = auth.InitRequestAuthContext(r)
-		r = db.InitRequestDBContext(r)
-
 		configuration := config.GetTenantConfig(r)
-
-		h := hf.NewHandler(r)
 
 		// TODO: improve the logger
 		log := logging.CreateLoggerWithContext(r.Context(), "server")
+
+		r = auth.InitRequestAuthContext(r)
+		r = db.InitRequestDBContext(r)
+		dbContext := db.NewContextWithContext(r.Context(), configuration)
+		defer func() {
+			if err := dbContext.Close(); err != nil {
+				log.WithError(err).Error("failed to close db connection")
+			}
+		}()
+
+		h := hf.NewHandler(r)
 
 		txContext := db.NewTxContextWithContext(r.Context(), configuration)
 		resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)

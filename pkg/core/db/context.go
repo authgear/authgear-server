@@ -19,6 +19,7 @@ var (
 // Context provides db with the interface for retrieving an interface to execute sql
 type Context interface {
 	DB() ExtContext
+	Close() error
 }
 
 // TxContext provides the interface for managing transaction
@@ -110,6 +111,15 @@ func (d *dbContext) DB() ExtContext {
 	}
 
 	return d.lazydb()
+}
+
+func (d *dbContext) Close() error {
+	db := d.db()
+	if db != nil {
+		return db.Close()
+	}
+
+	return nil
 }
 
 func (d *dbContext) HasTx() bool {
