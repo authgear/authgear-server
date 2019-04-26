@@ -19,6 +19,12 @@ func (r nonMasterkeyAuthContextResolver) Resolve(req *http.Request) (token *auth
 	token = &authtoken.Token{}
 	err = r.TokenStore.Get(tokenStr, token)
 	if err != nil {
+		if _, isNotFoundErr := err.(*authtoken.NotFoundError); isNotFoundErr {
+			// bypass token not found error
+			err = nil
+			return
+		}
+
 		// TODO:
 		// handle error properly
 		return
