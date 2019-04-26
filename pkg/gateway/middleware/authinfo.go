@@ -19,6 +19,14 @@ type AuthInfoMiddleware struct {
 	TxContext     db.TxContext    `dependency:"TxContext"`
 }
 
+// AuthInfoMiddlewareFactory creates AuthInfoMiddleware per request.
+type AuthInfoMiddlewareFactory struct{}
+
+// NewInjectableMiddleware implements InjectableMiddlewareFactory.
+func (f AuthInfoMiddlewareFactory) NewInjectableMiddleware() InjectableMiddleware {
+	return &AuthInfoMiddleware{}
+}
+
 // Handle implements InjectableMiddleware.
 func (m *AuthInfoMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

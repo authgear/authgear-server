@@ -96,8 +96,8 @@ func main() {
 	}.Handle)
 
 	cr.Use(middleware.Injecter{
-		Middleware: &middleware.AuthInfoMiddleware{},
-		Dependency: gatewayDependency,
+		MiddlewareFactory: middleware.AuthInfoMiddlewareFactory{},
+		Dependency:        gatewayDependency,
 	}.Handle)
 
 	cr.HandleFunc("/{rest:.*}", handler.NewCloudCodeHandler(config.Router))

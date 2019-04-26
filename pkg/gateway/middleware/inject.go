@@ -13,18 +13,25 @@ type InjectableMiddleware interface {
 	Handle(next http.Handler) http.Handler
 }
 
+// InjectableMiddlewareFactory allows creating
+// middleware per request.
+type InjectableMiddlewareFactory interface {
+	NewInjectableMiddleware() InjectableMiddleware
+}
+
 // Injecter injects dependencies from Dependency into
 // Middleware at request time.
 type Injecter struct {
-	Middleware InjectableMiddleware
-	Dependency gateway.DependencyMap
+	MiddlewareFactory InjectableMiddlewareFactory
+	Dependency        gateway.DependencyMap
 }
 
 // Handle implements gorilla middleware signature.
 func (m Injecter) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		inject.DefaultRequestInject(m.Middleware, m.Dependency, r)
-		actualHandler := m.Middleware.Handle(next)
+		middleware := m.MiddlewareFactory.NewInjectableMiddleware()
+		inject.DefaultRequestInject(middleware, m.Dependency, r)
+		actualHandler := middleware.Handle(next)
 		actualHandler.ServeHTTP(w, r)
 	})
 }
