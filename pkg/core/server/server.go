@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authn"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	nextSkyerr "github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -84,16 +85,26 @@ func (s *Server) Handle(path string, hf handler.Factory) *mux.Route {
 
 		h := hf.NewHandler(r)
 
+		// TODO: improve the logger
+		log := logging.CreateLoggerWithContext(r.Context(), "server")
+
 		txContext := db.NewTxContextWithContext(r.Context(), configuration)
 		resolver := s.authContextResolverFactory.NewResolver(r.Context(), configuration)
-		db.WithTx(txContext, func() error {
+		err := db.WithTx(txContext, func() error {
 			return resolver.Resolve(r, auth.NewContextSetterWithContext(r.Context()))
 		})
+		if err != nil {
+			// TODO: log
+			log.WithError(err).Error("failed to resolve auth")
+			s.handleError(rw, err)
+			return
+		}
 
 		policy := hf.ProvideAuthzPolicy()
-		if err := policy.IsAllowed(r, auth.NewContextGetterWithContext(r.Context())); err != nil {
+		if err = policy.IsAllowed(r, auth.NewContextGetterWithContext(r.Context())); err != nil {
 			// TODO: log
-			s.handleAuthzError(rw, err)
+			log.WithError(err).Error("authz not allowed")
+			s.handleError(rw, err)
 			return
 		}
 
@@ -106,10 +117,10 @@ func (s *Server) Use(mwf ...mux.MiddlewareFunc) {
 	s.router.Use(mwf...)
 }
 
-func (s *Server) handleAuthzError(rw http.ResponseWriter, err error) {
+func (s *Server) handleError(rw http.ResponseWriter, err error) {
 	skyErr := skyerr.MakeError(err)
 	httpStatus := nextSkyerr.ErrorDefaultStatusCode(skyErr)
-	response := authzErrorResponse{Err: skyErr}
+	response := errorResponse{Err: skyErr}
 	encoder := json.NewEncoder(rw)
 	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(httpStatus)
@@ -123,6 +134,6 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, "OK")
 }
 
-type authzErrorResponse struct {
+type errorResponse struct {
 	Err skyerr.Error `json:"error,omitempty"`
 }

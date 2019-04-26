@@ -128,10 +128,14 @@ func (d *dbContext) BeginTx() (err error) {
 		return err
 	}
 
-	if tx, err := d.lazydb().BeginTxx(d, nil); err == nil {
-		container := d.container()
-		container.tx = tx
+	var tx *sqlx.Tx
+	tx, err = d.lazydb().BeginTxx(d, nil)
+	if err != nil {
+		return err
 	}
+
+	container := d.container()
+	container.tx = tx
 
 	return
 }
