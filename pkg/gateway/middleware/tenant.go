@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/db"
 	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
@@ -43,9 +44,9 @@ func (a TenantAuthzMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		r.Header.Set("X-Skygear-Gear", string(gear))
-		r.Header.Set("X-Skygear-Gear-Version", string(gearVersion))
-		r.Header.Set("X-Skygear-Gear-Endpoint", url)
+		r.Header.Set(coreHttp.HeaderGear, string(gear))
+		r.Header.Set(coreHttp.HeaderGearVersion, string(gearVersion))
+		r.Header.Set(coreHttp.HeaderGearEndpoint, url)
 
 		next.ServeHTTP(w, r)
 	})

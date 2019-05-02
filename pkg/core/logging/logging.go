@@ -21,6 +21,8 @@ import (
 	"sync"
 
 	"github.com/sirupsen/logrus"
+
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 var (
@@ -122,7 +124,7 @@ func CreateLoggerWithContext(ctx context.Context, logger string) *logrus.Entry {
 }
 
 func CreateLogger(r *http.Request, logger string, formatter logrus.Formatter) *logrus.Entry {
-	return CreateLoggerWithRequestID(r.Header.Get("X-Skygear-Request-ID"), logger, formatter)
+	return CreateLoggerWithRequestID(r.Header.Get(coreHttp.HeaderRequestID), logger, formatter)
 }
 
 func CreateMaskFormatter(maskValues []string, defaultFormatter logrus.Formatter) logrus.Formatter {

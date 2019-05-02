@@ -8,9 +8,11 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/gateway"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
 	pqStore "github.com/skygeario/skygear-server/pkg/gateway/db/pq"
 	"github.com/skygeario/skygear-server/pkg/gateway/handler"
@@ -46,6 +48,8 @@ func main() {
 	}
 	defer store.Close()
 
+	gatewayDependency := gateway.DependencyMap{}
+
 	r := mux.NewRouter()
 	r.HandleFunc("/healthz", HealthCheckHandler)
 
@@ -73,9 +77,27 @@ func main() {
 
 	cr := r.PathPrefix("/").Subrouter()
 
+	cr.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r = db.InitRequestDBContext(r)
+			next.ServeHTTP(w, r)
+		})
+	})
+
+	cr.Use(coreMiddleware.TenantConfigurationMiddleware{
+		ConfigurationProvider: provider.GatewayTenantConfigurationProvider{
+			Store: store,
+		},
+	}.Handle)
+
 	cr.Use(middleware.FindCloudCodeMiddleware{
 		RestPathIdentifier: "rest",
 		Store:              store,
+	}.Handle)
+
+	cr.Use(middleware.Injecter{
+		MiddlewareFactory: middleware.AuthInfoMiddlewareFactory{},
+		Dependency:        gatewayDependency,
 	}.Handle)
 
 	cr.HandleFunc("/{rest:.*}", handler.NewCloudCodeHandler(config.Router))

@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 )
 
 type KeyType int
@@ -30,7 +31,7 @@ func header(i interface{}) http.Header {
 }
 
 func GetAccessKeyType(i interface{}) KeyType {
-	ktv, err := strconv.Atoi(header(i).Get("X-Skygear-AccessKeyType"))
+	ktv, err := strconv.Atoi(header(i).Get(coreHttp.HeaderAccesskeytype))
 	if err != nil {
 		return NoAccessKey
 	}
@@ -39,11 +40,11 @@ func GetAccessKeyType(i interface{}) KeyType {
 }
 
 func SetAccessKeyType(i interface{}, kt KeyType) {
-	header(i).Set("X-Skygear-AccessKeyType", strconv.Itoa(int(kt)))
+	header(i).Set(coreHttp.HeaderAccesskeytype, strconv.Itoa(int(kt)))
 }
 
 func GetAPIKey(i interface{}) string {
-	return header(i).Get("X-Skygear-Api-Key")
+	return header(i).Get(coreHttp.HeaderAPIKey)
 }
 
 func CheckAccessKeyType(config config.TenantConfiguration, apiKey string) KeyType {
@@ -59,5 +60,5 @@ func CheckAccessKeyType(config config.TenantConfiguration, apiKey string) KeyTyp
 }
 
 func GetAccessToken(r *http.Request) string {
-	return r.Header.Get("X-Skygear-Access-Token")
+	return r.Header.Get(coreHttp.HeaderAccessToken)
 }

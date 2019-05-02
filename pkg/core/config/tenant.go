@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
+
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -313,7 +315,7 @@ func header(i interface{}) http.Header {
 }
 
 func GetTenantConfig(i interface{}) TenantConfiguration {
-	s := header(i).Get("X-Skygear-App-Config")
+	s := header(i).Get(coreHttp.HeaderTenantConfig)
 	var t TenantConfiguration
 	data, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
@@ -337,7 +339,11 @@ func SetTenantConfig(i interface{}, t TenantConfiguration) {
 	if err != nil {
 		panic(err)
 	}
-	header(i).Set("X-Skygear-App-Config", base64.StdEncoding.EncodeToString(out))
+	header(i).Set(coreHttp.HeaderTenantConfig, base64.StdEncoding.EncodeToString(out))
+}
+
+func DelTenantConfig(i interface{}) {
+	header(i).Del(coreHttp.HeaderTenantConfig)
 }
 
 func GetUserVerifyKeyConfigFromEnv(key string) (config UserVerifyKeyConfiguration, err error) {

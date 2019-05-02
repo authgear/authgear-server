@@ -4,6 +4,7 @@ import (
 	"io"
 	"time"
 
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/franela/goreq"
@@ -38,7 +39,7 @@ func (m ExecutorImpl) ExecHook(p ExecHookParam) error {
 	}
 
 	if p.AccessToken != "" {
-		req.AddHeader("X-Skygear-Access-Token", p.AccessToken)
+		req.AddHeader(coreHttp.HeaderAccessToken, p.AccessToken)
 	}
 
 	var resp *goreq.Response
