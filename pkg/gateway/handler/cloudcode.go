@@ -7,6 +7,7 @@ import (
 	"path"
 
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/gateway/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
@@ -18,6 +19,7 @@ func NewCloudCodeHandler(routerConfig config.RouterConfig) http.HandlerFunc {
 
 func newCloudCodeReverseProxy(routerConfig config.RouterConfig) *httputil.ReverseProxy {
 	director := func(req *http.Request) {
+		originalPath := req.URL.Path
 		query := req.URL.RawQuery
 		fragment := req.URL.Fragment
 
@@ -39,6 +41,11 @@ func newCloudCodeReverseProxy(routerConfig config.RouterConfig) *httputil.Revers
 		req.URL.Path = path.Join(req.URL.Path, cloudCode.TargetPath)
 		req.URL.RawQuery = query
 		req.URL.Fragment = fragment
+		// Inject the original path so that
+		// downstream can reconstruct the original URL.
+		// It does not take backendURL into account.
+		req.Header.Add(coreHttp.HeaderHTTPPath, originalPath)
+		// Remove tenant config from header.
 		coreConfig.DelTenantConfig(req)
 	}
 
