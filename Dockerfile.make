@@ -1,11 +1,12 @@
-FROM golang:1.10.4-stretch
+FROM golang:1.12.5-stretch
+
+ENV GO111MODULE on
 
 WORKDIR /go/src/github.com/skygeario/skygear-server
 SHELL ["/bin/bash", "-c"]
-RUN go get github.com/golang/dep/cmd/dep
 
-COPY Gopkg.toml Gopkg.lock ./
-RUN dep ensure --vendor-only
+COPY go.mod go.sum ./
+RUN go mod download
 
 ENV GOBIN /go/bin
 COPY ./tools/nextimportslint.go ./tools/nextimportslint.go

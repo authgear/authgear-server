@@ -1,10 +1,11 @@
-FROM golang:1.10.4-stretch as godev
+FROM golang:1.12.5-stretch as godev
+
+ENV GO111MODULE on
 
 WORKDIR /go/src/github.com/skygeario/skygear-server
-RUN go get github.com/golang/dep/cmd/dep
 
-COPY Gopkg.toml Gopkg.lock ./
-RUN dep ensure --vendor-only
+COPY go.mod go.sum ./
+RUN go mod download
 
 COPY . .
 RUN cd cmd/gateway; make build; mv skygear-gateway /tmp/
