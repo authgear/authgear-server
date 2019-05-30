@@ -42,7 +42,7 @@ GO_TEST_ARGS := $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) $(GO_TEST_AR
 
 .PHONY: vendor
 vendor:
-	$(DOCKER_RUN) dep ensure
+	$(DOCKER_RUN) go mod download
 
 .PHONY: go-install
 go-install:
