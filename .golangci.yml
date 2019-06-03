@@ -1,0 +1,7 @@
+linters:
+  disable-all: true
+  enable:
+  - staticcheck
+  - golint
+  - misspell
+  - gocyclo

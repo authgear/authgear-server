@@ -29,7 +29,7 @@ before_install:
 
 install:
   - sudo apt-get install -y postgresql-9.5-postgis-2.3
-  - curl -fsSL https://github.com/alecthomas/gometalinter/releases/download/v2.0.11/gometalinter-2.0.11-linux-amd64.tar.gz | sudo tar --strip-components 1 -C /usr/local/bin -zx
+  - curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.16.0
   - make vendor
 
 before_script:

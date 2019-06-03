@@ -5,7 +5,7 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /go/src/github.com/skygeario/skygear-server
 
-RUN curl -fsSL https://github.com/alecthomas/gometalinter/releases/download/v2.0.11/gometalinter-2.0.11-linux-amd64.tar.gz | tar --strip-components 1 -C /usr/local/bin -zx
+RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.16.0
 
 COPY go.mod go.sum ./
 RUN go mod download

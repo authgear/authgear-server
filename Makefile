@@ -42,6 +42,7 @@ GO_TEST_ARGS := $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) $(GO_TEST_AR
 
 .PHONY: vendor
 vendor:
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $$(go env GOPATH)/bin v1.16.0
 	go mod download
 	go install golang.org/x/tools/cmd/stringer
 	go install golang.org/x/tools/cmd/cover
@@ -58,13 +59,7 @@ go-generate:
 
 .PHONY: go-lint
 go-lint:
-	$(DOCKER_RUN) gometalinter --disable-all \
-		-enable=staticcheck --enable=golint --enable=misspell --enable=gocyclo \
-		--linter='gocyclo:gocyclo -over 15:^(?P<cyclo>\d+)\s+\S+\s(?P<function>\S+)\s+(?P<path>.*?\.go):(?P<line>\d+):(\d+)$'' \
-		./cmd/... \
-		./pkg/...
-# Next linter have stricter rule
-	$(DOCKER_RUN) gometalinter ./pkg/auth/... ./pkg/core/... ./pkg/gateway/...
+	$(DOCKER_RUN) golangci-lint run ./cmd/... ./pkg/...
 	$(DOCKER_RUN) nextimportslint
 
 .PHONY: generate
