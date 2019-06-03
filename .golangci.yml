@@ -1,7 +1,12 @@
 linters:
   disable-all: true
   enable:
-  - staticcheck
-  - golint
-  - misspell
+  - deadcode
   - gocyclo
+  - gofmt
+  - golint
+  - gosec
+  - govet
+  - ineffassign
+  - misspell
+  - staticcheck
