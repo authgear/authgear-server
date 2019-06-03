@@ -26,11 +26,11 @@ before_install:
   - mkdir -p $LD_INSTALL_PREFIX/src
   - pushd $LD_INSTALL_PREFIX/src
   - popd
-  - curl -fsSL https://github.com/alecthomas/gometalinter/releases/download/v2.0.11/gometalinter-2.0.11-linux-amd64.tar.gz | sudo tar --strip-components 1 -C /usr/local/bin -zx
 
 install:
   - sudo apt-get install -y postgresql-9.5-postgis-2.3
-  - go mod download
+  - curl -fsSL https://github.com/alecthomas/gometalinter/releases/download/v2.0.11/gometalinter-2.0.11-linux-amd64.tar.gz | sudo tar --strip-components 1 -C /usr/local/bin -zx
+  - make vendor
 
 before_script:
   - psql -c 'CREATE DATABASE skygear_test;' -U postgres

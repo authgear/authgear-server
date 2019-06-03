@@ -13,6 +13,7 @@ require (
 	github.com/go-gomail/gomail v0.0.0-20150902115704-41f357289737
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/golang-migrate/migrate v3.2.0+incompatible
+	github.com/golang/mock v1.3.1
 	github.com/gopherjs/gopherjs v0.0.0-20171102034023-444abdf92094 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2
@@ -29,6 +30,7 @@ require (
 	github.com/lann/squirrel v0.0.0-20150302165045-e13dbacee404
 	github.com/lib/pq v0.0.0-20171113044440-8c6ee72f3e6b
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
+	github.com/mitchellh/gox v1.0.1
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/nbutton23/zxcvbn-go v0.0.0-20171102151520-eafdab6b0663
 	github.com/njern/gonexmo v2.0.0+incompatible
@@ -41,8 +43,10 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20170602164621-9e8dc3f972df
 	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/tinylib/msgp v1.0.2
+	github.com/ttacon/chalk v0.0.0-20160626202418-22c06c80ed31 // indirect
 	github.com/twinj/uuid v0.0.0-20160621131530-b505f2cca343
-	golang.org/x/crypto v0.0.0-20150812105753-173ce04bfaf6
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	golang.org/x/tools v0.0.0-20190602112858-2de7f9bf822c
 	google.golang.org/appengine v1.6.0 // indirect
 	gopkg.in/airbrake/gobrake.v2 v2.0.9 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
