@@ -13,6 +13,7 @@ import (
 type contextKey string
 
 var (
+	// nolint:deadcode
 	configurationKey = contextKey("configuration")
 )
 

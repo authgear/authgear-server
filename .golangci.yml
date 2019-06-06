@@ -1,0 +1,16 @@
+linters:
+  disable-all: true
+  enable:
+  - deadcode
+  - gocyclo
+  - gofmt
+  - golint
+  - gosec
+  - govet
+  - ineffassign
+  - misspell
+  - staticcheck
+
+linters-settings:
+  gofmt:
+    simplify: false

@@ -263,6 +263,7 @@ func (p *Postgres) SetVersion(version int, dirty bool) error {
 	}
 
 	if version >= 0 {
+		// nolint:gosec
 		query = `INSERT INTO ` + pq.QuoteIdentifier(p.config.MigrationsTable) + ` (version, dirty) VALUES ($1, $2)`
 		if _, err := p.tx.Exec(query, version, dirty); err != nil {
 			p.tx.Rollback()
@@ -274,6 +275,7 @@ func (p *Postgres) SetVersion(version int, dirty bool) error {
 }
 
 func (p *Postgres) Version() (version int, dirty bool, err error) {
+	// nolint:gosec
 	query := `SELECT version, dirty FROM ` + pq.QuoteIdentifier(p.config.MigrationsTable) + ` LIMIT 1`
 	err = p.tx.QueryRowContext(context.Background(), query).Scan(&version, &dirty)
 	switch {

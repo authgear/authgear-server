@@ -192,6 +192,7 @@ func (p *providerImpl) UpdatePrincipal(principal *Principal) (err error) {
 	if err != nil {
 		if db.IsUniqueViolated(err) {
 			err = skydb.ErrUserDuplicated
+			return
 		}
 	}
 

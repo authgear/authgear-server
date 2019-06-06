@@ -1,28 +1,21 @@
-FROM golang:1.10.4-stretch
+FROM golang:1.12.5-stretch
+
+ENV GO111MODULE on
+SHELL ["/bin/bash", "-c"]
 
 WORKDIR /go/src/github.com/skygeario/skygear-server
-SHELL ["/bin/bash", "-c"]
-RUN go get github.com/golang/dep/cmd/dep
 
-COPY Gopkg.toml Gopkg.lock ./
-RUN dep ensure --vendor-only
+RUN curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.16.0
 
-ENV GOBIN /go/bin
+COPY go.mod go.sum ./
+RUN go mod download
+
 COPY ./tools/nextimportslint.go ./tools/nextimportslint.go
 
-RUN \
-    cp -rf vendor/* /go/src; \
-    cd /go/src; \
-    for pkg in \
-        "golang.org/x/tools/cmd/stringer" \
-        "golang.org/x/tools/cmd/cover" \
-        "github.com/tinylib/msgp" \
-        "github.com/mitchellh/gox" \
-        "github.com/golang/mock/mockgen" \
-        ; do \
-        pushd $pkg; \
-        go install .; \
-        popd > /dev/null; \
-    done; \
-    go install ./github.com/skygeario/skygear-server/tools/nextimportslint.go; \
-    curl -fsSL https://github.com/alecthomas/gometalinter/releases/download/v2.0.11/gometalinter-2.0.11-linux-amd64.tar.gz | tar --strip-components 1 -C /usr/local/bin -zx;
+RUN go mod download
+RUN go install golang.org/x/tools/cmd/stringer
+RUN go install golang.org/x/tools/cmd/cover
+RUN go install github.com/tinylib/msgp
+RUN go install github.com/mitchellh/gox
+RUN go install github.com/golang/mock/mockgen
+RUN go install tools/nextimportslint.go

@@ -252,6 +252,12 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 		principal.TokenPrincipalID = payload.Claims.Subject
 		principal.UserID = info.ID
 		err = h.CustomTokenAuthProvider.CreatePrincipal(principal)
+		// TODO:
+		// return proper error
+		if err != nil {
+			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to create principal")
+			return
+		}
 	} else {
 		if e := h.AuthInfoStore.GetAuth(principal.UserID, info); e != nil {
 			if err == skydb.ErrUserNotFound {

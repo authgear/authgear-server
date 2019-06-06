@@ -4,6 +4,48 @@ package skyerr
 
 import "strconv"
 
+func _() {
+	// An "invalid array index" compiler error signifies that the constant values have changed.
+	// Re-run the stringer command to generate them again.
+	var x [1]struct{}
+	_ = x[NotAuthenticated-101]
+	_ = x[PermissionDenied-102]
+	_ = x[AccessKeyNotAccepted-103]
+	_ = x[AccessTokenNotAccepted-104]
+	_ = x[InvalidCredentials-105]
+	_ = x[InvalidSignature-106]
+	_ = x[BadRequest-107]
+	_ = x[InvalidArgument-108]
+	_ = x[Duplicated-109]
+	_ = x[ResourceNotFound-110]
+	_ = x[NotSupported-111]
+	_ = x[NotImplemented-112]
+	_ = x[ConstraintViolated-113]
+	_ = x[IncompatibleSchema-114]
+	_ = x[AtomicOperationFailure-115]
+	_ = x[PartialOperationFailure-116]
+	_ = x[UndefinedOperation-117]
+	_ = x[PluginUnavailable-118]
+	_ = x[PluginTimeout-119]
+	_ = x[RecordQueryInvalid-120]
+	_ = x[PluginInitializing-121]
+	_ = x[ResponseTimeout-122]
+	_ = x[DeniedArgument-123]
+	_ = x[RecordQueryDenied-124]
+	_ = x[NotConfigured-125]
+	_ = x[PasswordPolicyViolated-126]
+	_ = x[UserDisabled-127]
+	_ = x[VerificationRequired-128]
+	_ = x[AssetSizeTooLarge-129]
+	_ = x[HookTimeOut-130]
+	_ = x[UnexpectedError-10000]
+	_ = x[UnexpectedAuthInfoNotFound-10001]
+	_ = x[UnexpectedUnableToOpenDatabase-10002]
+	_ = x[UnexpectedPushNotificationNotConfigured-10003]
+	_ = x[InternalQueryInvalid-10004]
+	_ = x[UnexpectedUserNotFound-10005]
+}
+
 const (
 	_ErrorCode_name_0 = "NotAuthenticatedPermissionDeniedAccessKeyNotAcceptedAccessTokenNotAcceptedInvalidCredentialsInvalidSignatureBadRequestInvalidArgumentDuplicatedResourceNotFoundNotSupportedNotImplementedConstraintViolatedIncompatibleSchemaAtomicOperationFailurePartialOperationFailureUndefinedOperationPluginUnavailablePluginTimeoutRecordQueryInvalidPluginInitializingResponseTimeoutDeniedArgumentRecordQueryDeniedNotConfiguredPasswordPolicyViolatedUserDisabledVerificationRequiredAssetSizeTooLargeHookTimeOut"
 	_ErrorCode_name_1 = "UnexpectedErrorUnexpectedAuthInfoNotFoundUnexpectedUnableToOpenDatabaseUnexpectedPushNotificationNotConfiguredInternalQueryInvalidUnexpectedUserNotFound"

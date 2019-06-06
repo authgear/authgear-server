@@ -42,27 +42,24 @@ GO_TEST_ARGS := $(GO_BUILD_ARGS) -cover -timeout $(GO_TEST_TIMEOUT) $(GO_TEST_AR
 
 .PHONY: vendor
 vendor:
-	$(DOCKER_RUN) dep ensure
-
-.PHONY: go-install
-go-install:
-	$(DOCKER_RUN) go install $(GO_BUILD_ARGS) ./...
-	$(DOCKER_RUN) go install tools/nextimportslint.go
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $$(go env GOPATH)/bin v1.16.0
+	go mod download
+	go install golang.org/x/tools/cmd/stringer
+	go install golang.org/x/tools/cmd/cover
+	go install github.com/tinylib/msgp
+	go install github.com/mitchellh/gox
+	go install github.com/golang/mock/mockgen
+	go install tools/nextimportslint.go
 
 .PHONY: go-generate
-go-generate: go-install
+go-generate:
 	$(DOCKER_RUN) find pkg -type f -name "*_gen.go" -delete
 	$(DOCKER_RUN) find pkg -type f -name "mockgen_*.go" -delete
 	$(DOCKER_RUN) go generate ./pkg/...
 
 .PHONY: go-lint
-go-lint: go-install
-	$(DOCKER_RUN) gometalinter --disable-all \
-		-enable=staticcheck --enable=golint --enable=misspell --enable=gocyclo \
-		--linter='gocyclo:gocyclo -over 15:^(?P<cyclo>\d+)\s+\S+\s(?P<function>\S+)\s+(?P<path>.*?\.go):(?P<line>\d+):(\d+)$'' \
-		./...
-# Next linter have stricter rule
-	$(DOCKER_RUN) gometalinter ./pkg/auth/... ./pkg/core/... ./pkg/gateway/...
+go-lint:
+	$(DOCKER_RUN) golangci-lint run ./cmd/... ./pkg/...
 	$(DOCKER_RUN) nextimportslint
 
 .PHONY: generate
@@ -76,7 +73,7 @@ build:
 .PHONY: test
 test:
 # Run `go install` to compile packages for caching and catch compilation error.
-	$(DOCKER_RUN) go install $(GO_BUILD_ARGS) ./...
+	$(DOCKER_RUN) go install $(GO_BUILD_ARGS) ./cmd/...
 	$(DOCKER_RUN) go test $(GO_TEST_ARGS) $(GO_TEST_PACKAGE)
 
 .PHONY: lint

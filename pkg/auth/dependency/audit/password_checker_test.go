@@ -429,6 +429,7 @@ func TestValidatePassword(t *testing.T) {
 	})
 
 	Convey("validate strong password", t, func() {
+		// nolint:gosec
 		password := "N!hon-no-tsuk!-wa-seka!-1ban-k!re!desu" // 日本の月は世界一番きれいです
 		pc := &PasswordChecker{
 			PwMinLength:         8,
