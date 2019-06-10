@@ -5,6 +5,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"path"
+	"strings"
 
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -20,27 +21,16 @@ func NewCloudCodeHandler(routerConfig config.RouterConfig) http.HandlerFunc {
 func newCloudCodeReverseProxy(routerConfig config.RouterConfig) *httputil.ReverseProxy {
 	director := func(req *http.Request) {
 		originalPath := req.URL.Path
-		query := req.URL.RawQuery
-		fragment := req.URL.Fragment
 
 		ctx := model.GatewayContextFromContext(req.Context())
-		cloudCode := ctx.CloudCode
+		deploymentRoute := ctx.DeploymentRoute
 
-		var err error
-		backendURL, err := url.Parse(cloudCode.BackendURL)
+		forwardURL, err := getForwardURL(req.URL, deploymentRoute)
 		if err != nil {
 			panic(err)
 		}
 
-		// Handle case that the backend URL does not have trailing slash
-		if backendURL.Path == "" {
-			backendURL.Path = "/"
-		}
-
-		req.URL = backendURL
-		req.URL.Path = path.Join(req.URL.Path, cloudCode.TargetPath)
-		req.URL.RawQuery = query
-		req.URL.Fragment = fragment
+		req.URL = forwardURL
 		// Inject the original path so that
 		// downstream can reconstruct the original URL.
 		// It does not take backendURL into account.
@@ -50,4 +40,50 @@ func newCloudCodeReverseProxy(routerConfig config.RouterConfig) *httputil.Revers
 	}
 
 	return &httputil.ReverseProxy{Director: director}
+}
+
+func getForwardURL(reqURL *url.URL, route model.DeploymentRoute) (*url.URL, error) {
+	var forwardURL *url.URL
+	var err error
+	switch route.Type {
+	case model.DeploymentRouteTypeFunction, model.DeploymentRouteTypeHTTPHandler:
+		forwardURL, err = url.Parse(route.TypeConfig.BackendURL())
+		if err != nil {
+			return nil, err
+		}
+		// Handle case that the backend URL does not have trailing slash
+		if forwardURL.Path == "" {
+			forwardURL.Path = "/"
+		}
+		forwardURL.Path = path.Join(
+			forwardURL.Path,
+			route.TypeConfig.TargetPath(),
+		)
+		break
+	case model.DeploymentRouteTypeHTTPService:
+		forwardURL, err = url.Parse(route.TypeConfig.BackendURL())
+		if err != nil {
+			return nil, err
+		}
+		// Handle case that the backend URL does not have trailing slash
+		if forwardURL.Path == "" {
+			forwardURL.Path = "/"
+		}
+		// remove trailing slash to handle the case that route path has
+		// trailing slash but the request path doesn't
+		routePath := strings.TrimSuffix(route.Path, "/")
+		trimmedPath := strings.TrimPrefix(reqURL.Path, routePath)
+		forwardURL.Path = path.Join(
+			forwardURL.Path,
+			trimmedPath,
+		)
+		break
+	default:
+		panic("unexpected deployment route type")
+	}
+
+	forwardURL.RawQuery = reqURL.RawQuery
+	forwardURL.Fragment = reqURL.Fragment
+
+	return forwardURL, nil
 }
