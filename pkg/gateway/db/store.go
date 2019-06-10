@@ -14,5 +14,8 @@ type GatewayStore interface {
 	// given path
 	FindLongestMatchedCloudCode(path string, app model.App, cloudCode *model.CloudCode) error
 
+	// GetLastDeploymentRoutes return all routes of last deployment
+	GetLastDeploymentRoutes(app model.App) ([]*model.DeploymentRoute, error)
+
 	Close() error
 }
