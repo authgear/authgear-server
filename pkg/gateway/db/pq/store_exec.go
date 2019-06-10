@@ -9,9 +9,8 @@ import (
 )
 
 func (s *Store) QueryRowx(query string, args ...interface{}) (row *sqlx.Row) {
-	logger := logging.LoggerEntry("gateway")
 	row = s.DB.QueryRowxContext(s.context, query, args...)
-	logger.WithFields(logrus.Fields{
+	s.logger.WithFields(logrus.Fields{
 		"sql":  query,
 		"args": args,
 	}).Debugln("Executed SQL with sql.QueryRowx")

@@ -42,6 +42,7 @@ func main() {
 	store, connErr := pqStore.NewGatewayStore(
 		context.Background(),
 		config.DB.ConnectionStr,
+		logger,
 	)
 	if connErr != nil {
 		logger.WithError(connErr).Panic("Fail to create db conn")
