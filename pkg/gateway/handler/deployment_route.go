@@ -13,12 +13,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
-func NewCloudCodeHandler(routerConfig config.RouterConfig) http.HandlerFunc {
-	proxy := newCloudCodeReverseProxy(routerConfig)
+func NewDeploymentRouteHandler(routerConfig config.RouterConfig) http.HandlerFunc {
+	proxy := newDeploymentRouteReverseProxy(routerConfig)
 	return proxy.ServeHTTP
 }
 
-func newCloudCodeReverseProxy(routerConfig config.RouterConfig) *httputil.ReverseProxy {
+func newDeploymentRouteReverseProxy(routerConfig config.RouterConfig) *httputil.ReverseProxy {
 	director := func(req *http.Request) {
 		originalPath := req.URL.Path
 

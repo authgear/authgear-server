@@ -9,12 +9,12 @@ import (
 	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
-type FindCloudCodeMiddleware struct {
+type FindDeploymentRouteMiddleware struct {
 	RestPathIdentifier string
 	Store              db.GatewayStore
 }
 
-func (f FindCloudCodeMiddleware) Handle(next http.Handler) http.Handler {
+func (f FindDeploymentRouteMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := gatewayModel.GatewayContextFromContext(r.Context())
 		app := ctx.App
