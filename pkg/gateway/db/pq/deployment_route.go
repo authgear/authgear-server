@@ -10,7 +10,7 @@ func (s *Store) GetLastDeploymentRoutes(app model.App) (routes []*model.Deployme
 	builder := psql.Select(
 		"id",
 		"created_at",
-		"version",
+		"deployment_version",
 		"path",
 		"type",
 		"type_config",
