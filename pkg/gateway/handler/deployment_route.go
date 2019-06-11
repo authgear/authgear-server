@@ -77,6 +77,13 @@ func getForwardURL(reqURL *url.URL, route model.DeploymentRoute) (*url.URL, erro
 			forwardURL.Path,
 			trimmedPath,
 		)
+
+		// path.Join will clean the result and the returned path ends in a
+		// slash only if it is the root "/".
+		// check and add back the trailing slash if necessary
+		if trimmedPath != "/" && strings.HasSuffix(trimmedPath, "/") {
+			forwardURL.Path = forwardURL.Path + "/"
+		}
 		break
 	default:
 		panic("unexpected deployment route type")
