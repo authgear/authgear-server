@@ -22,13 +22,13 @@ func (f FindDeploymentRouteMiddleware) Handle(next http.Handler) http.Handler {
 		path := "/" + mux.Vars(r)[f.RestPathIdentifier]
 		routes, err := f.Store.GetLastDeploymentRoutes(app)
 		if err != nil {
-			http.Error(w, "Fail to get cloud code routes", http.StatusBadRequest)
+			http.Error(w, "Fail to get deployment routes", http.StatusInternalServerError)
 			return
 		}
 
 		matchedRoute := findMatchedRoute(path, routes)
 		if matchedRoute == nil {
-			http.Error(w, "Fail to match cloud code route", http.StatusBadRequest)
+			http.Error(w, "Fail to match deployment route", http.StatusNotFound)
 			return
 		}
 		ctx.DeploymentRoute = *matchedRoute
