@@ -7,8 +7,8 @@ type contextKey string
 const contextKeyGatewayContext contextKey = "gateway-context"
 
 type Context struct {
-	App       App
-	CloudCode CloudCode
+	App             App
+	DeploymentRoute DeploymentRoute
 }
 
 func ContextWithGatewayContext(ctx context.Context, gatewayContext Context) context.Context {

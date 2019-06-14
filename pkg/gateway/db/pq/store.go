@@ -7,12 +7,18 @@ import (
 	"github.com/jmoiron/sqlx"
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/gateway/db"
 )
 
 // NewGatewayStore create new gateway store by db connection url
-func NewGatewayStore(ctx context.Context, connString string) (*Store, error) {
-	return Connect(ctx, connString)
+func NewGatewayStore(ctx context.Context, connString string, logger *logrus.Entry) (*Store, error) {
+	s, err := Connect(ctx, connString)
+	if err != nil {
+		return nil, err
+	}
+	s.logger = logger
+	return s, nil
 }
 
 var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
@@ -20,6 +26,7 @@ var psql = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 type Store struct {
 	DB      *sqlx.DB
 	context context.Context
+	logger  *logrus.Entry
 }
 
 func (s *Store) Close() error { return s.DB.Close() }

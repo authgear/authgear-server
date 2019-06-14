@@ -42,6 +42,7 @@ func main() {
 	store, connErr := pqStore.NewGatewayStore(
 		context.Background(),
 		config.DB.ConnectionStr,
+		logger,
 	)
 	if connErr != nil {
 		logger.WithError(connErr).Panic("Fail to create db conn")
@@ -90,7 +91,7 @@ func main() {
 		},
 	}.Handle)
 
-	cr.Use(middleware.FindCloudCodeMiddleware{
+	cr.Use(middleware.FindDeploymentRouteMiddleware{
 		RestPathIdentifier: "rest",
 		Store:              store,
 	}.Handle)
@@ -100,7 +101,7 @@ func main() {
 		Dependency:        gatewayDependency,
 	}.Handle)
 
-	cr.HandleFunc("/{rest:.*}", handler.NewCloudCodeHandler(config.Router))
+	cr.HandleFunc("/{rest:.*}", handler.NewDeploymentRouteHandler(config.Router))
 
 	srv := &http.Server{
 		Addr: config.HTTP.Host,
