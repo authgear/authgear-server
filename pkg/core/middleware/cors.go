@@ -17,6 +17,7 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/iawaknahc/originmatcher"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -25,22 +26,29 @@ type CORSMiddleware struct {
 
 func (cors CORSMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestMethod := r.Method
-		corsMethod := r.Header.Get("Access-Control-Request-Method")
-		corsHeaders := r.Header.Get("Access-Control-Request-Headers")
-
 		tConfig := config.GetTenantConfig(r)
-		w.Header().Set("Access-Control-Allow-Origin", tConfig.CORSHost)
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		matcher, err := originmatcher.Parse(tConfig.CORSHost)
 
-		if corsMethod != "" {
-			w.Header().Set("Access-Control-Allow-Methods", corsMethod)
+		w.Header().Add("Vary", "Origin")
+
+		origin := r.Header.Get("Origin")
+		if origin != "" && err == nil && matcher.MatchOrigin(origin) {
+			corsMethod := r.Header.Get("Access-Control-Request-Method")
+			corsHeaders := r.Header.Get("Access-Control-Request-Headers")
+
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+			if corsMethod != "" {
+				w.Header().Set("Access-Control-Allow-Methods", corsMethod)
+			}
+
+			if corsHeaders != "" {
+				w.Header().Set("Access-Control-Allow-Headers", corsHeaders)
+			}
 		}
 
-		if corsHeaders != "" {
-			w.Header().Set("Access-Control-Allow-Headers", corsHeaders)
-		}
-
+		requestMethod := r.Method
 		if requestMethod == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte{})
