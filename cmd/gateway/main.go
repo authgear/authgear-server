@@ -73,6 +73,7 @@ func main() {
 		Store:        store,
 		RouterConfig: config.Router,
 	}.Handle)
+	gr.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
 	gr.HandleFunc("/{rest:.*}", handler.NewGearHandler("rest"))
 
@@ -100,6 +101,7 @@ func main() {
 		MiddlewareFactory: middleware.AuthInfoMiddlewareFactory{},
 		Dependency:        gatewayDependency,
 	}.Handle)
+	cr.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
 	cr.HandleFunc("/{rest:.*}", handler.NewDeploymentRouteHandler(config.Router))
 
