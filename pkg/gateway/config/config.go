@@ -12,13 +12,9 @@ import (
 
 // Configuration is gateway startup configuration
 type Configuration struct {
-	HTTP struct {
-		Host string `envconfig:"HOST" default:"localhost:3001"`
-	}
-	DB struct {
-		ConnectionStr string `envconfig:"DATABASE_URL" required:"true"`
-	}
-	Router RouterConfig
+	Host          string        `envconfig:"HOST" default:"localhost:3001"`
+	ConnectionStr string        `envconfig:"DATABASE_URL" required:"true"`
+	Auth          GearURLConfig `envconfig:"AUTH"`
 }
 
 // ReadFromEnv reads from environment variable and update the configuration.
@@ -32,9 +28,7 @@ func (c *Configuration) ReadFromEnv() error {
 	if err != nil {
 		return err
 	}
-
-	err = envconfig.Process("", &c.Router)
-	return err
+	return nil
 }
 
 type GearURLConfig struct {
@@ -43,17 +37,12 @@ type GearURLConfig struct {
 	Nightly  string `envconfig:"NIGHTLY_URL"`
 }
 
-// RouterConfig contain gears url
-type RouterConfig struct {
-	Auth GearURLConfig `envconfig:"AUTH"`
-}
-
-// GetGearURL provide router map from RouterConfig
-func (r *RouterConfig) GetGearURL(gear model.Gear, version model.GearVersion) (string, error) {
+// GetGearURL provide router map
+func (c *Configuration) GetGearURL(gear model.Gear, version model.GearVersion) (string, error) {
 	var g GearURLConfig
 	switch gear {
 	case model.AuthGear:
-		g = r.Auth
+		g = c.Auth
 	default:
 		return "", errors.New("invalid gear")
 	}

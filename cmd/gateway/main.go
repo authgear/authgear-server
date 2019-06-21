@@ -41,7 +41,7 @@ func main() {
 	// create gateway store
 	store, connErr := pqStore.NewGatewayStore(
 		context.Background(),
-		config.DB.ConnectionStr,
+		config.ConnectionStr,
 		logger,
 	)
 	if connErr != nil {
@@ -70,8 +70,8 @@ func main() {
 		},
 	}.Handle)
 	gr.Use(middleware.TenantAuthzMiddleware{
-		Store:        store,
-		RouterConfig: config.Router,
+		Store:         store,
+		Configuration: config,
 	}.Handle)
 	gr.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
@@ -103,10 +103,10 @@ func main() {
 	}.Handle)
 	cr.Use(coreMiddleware.CORSMiddleware{}.Handle)
 
-	cr.HandleFunc("/{rest:.*}", handler.NewDeploymentRouteHandler(config.Router))
+	cr.HandleFunc("/{rest:.*}", handler.NewDeploymentRouteHandler())
 
 	srv := &http.Server{
-		Addr: config.HTTP.Host,
+		Addr: config.Host,
 		// Good practice to set timeouts to avoid Slowloris attacks.
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,

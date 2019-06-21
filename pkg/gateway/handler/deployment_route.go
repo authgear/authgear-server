@@ -9,16 +9,15 @@ import (
 
 	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
-	"github.com/skygeario/skygear-server/pkg/gateway/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
-func NewDeploymentRouteHandler(routerConfig config.RouterConfig) http.HandlerFunc {
-	proxy := newDeploymentRouteReverseProxy(routerConfig)
+func NewDeploymentRouteHandler() http.HandlerFunc {
+	proxy := newDeploymentRouteReverseProxy()
 	return proxy.ServeHTTP
 }
 
-func newDeploymentRouteReverseProxy(routerConfig config.RouterConfig) *httputil.ReverseProxy {
+func newDeploymentRouteReverseProxy() *httputil.ReverseProxy {
 	director := func(req *http.Request) {
 		originalPath := req.URL.Path
 
