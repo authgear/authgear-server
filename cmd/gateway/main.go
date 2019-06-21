@@ -14,10 +14,10 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/server"
 	"github.com/skygeario/skygear-server/pkg/gateway"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
-	pqStore "github.com/skygeario/skygear-server/pkg/gateway/db/pq"
 	"github.com/skygeario/skygear-server/pkg/gateway/handler"
 	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
 	"github.com/skygeario/skygear-server/pkg/gateway/provider"
+	pqStore "github.com/skygeario/skygear-server/pkg/gateway/store/pq"
 )
 
 var config gatewayConfig.Configuration

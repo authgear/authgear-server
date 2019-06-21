@@ -3,12 +3,12 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/gateway/db"
 	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
+	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
 type FindAppMiddleware struct {
-	Store db.GatewayStore
+	Store store.GatewayStore
 }
 
 func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {

@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/skygeario/skygear-server/pkg/gateway/db"
 	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
+	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
 type FindDeploymentRouteMiddleware struct {
 	RestPathIdentifier string
-	Store              db.GatewayStore
+	Store              store.GatewayStore
 }
 
 func (f FindDeploymentRouteMiddleware) Handle(next http.Handler) http.Handler {

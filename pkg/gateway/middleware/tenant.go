@@ -7,14 +7,14 @@ import (
 	"github.com/gorilla/mux"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
-	"github.com/skygeario/skygear-server/pkg/gateway/db"
 	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
+	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
 // TenantAuthzMiddleware is middleware to check if the current app can access
 // gear
 type TenantAuthzMiddleware struct {
-	Store         db.GatewayStore
+	Store         store.GatewayStore
 	Configuration gatewayConfig.Configuration
 }
 
