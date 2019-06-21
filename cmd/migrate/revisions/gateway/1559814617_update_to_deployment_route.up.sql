@@ -19,19 +19,3 @@ ALTER TABLE deployment_route
 ALTER TABLE deployment_route
     DROP COLUMN "target_path",
     DROP COLUMN "backend_url";
-
--- Update deployment version with last deployment
-UPDATE
-	deployment_route SET deployment_version = sub.v
-FROM (
- 	SELECT
- 		COALESCE(deployment.version, '') as v,
- 		app.id as aid
- 	FROM
- 	    deployment
- 	RIGHT JOIN
- 		app
- 	ON app.last_deployment_id = deployment.id
-) as sub
-WHERE
-    sub.aid = deployment_route.app_id;
