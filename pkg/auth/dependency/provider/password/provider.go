@@ -108,11 +108,13 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 		"principal_id",
 		"login_id_key",
 		"login_id",
+		"realm",
 		"password",
 	).Values(
 		principal.ID,
 		principal.LoginIDKey,
 		principal.LoginID,
+		principal.Realm,
 		hashedPassword,
 	)
 
@@ -204,13 +206,14 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 	}
 
 	for _, principal := range principals {
-		builder = p.sqlBuilder.Select("login_id_key", "login_id", "password").
+		builder = p.sqlBuilder.Select("login_id_key", "login_id", "realm", "password").
 			From(p.sqlBuilder.FullTableName("provider_password")).
 			Where(`principal_id = ?`, principal.ID)
 		scanner := p.sqlExecutor.QueryRowWith(builder)
 		err = scanner.Scan(
 			&principal.LoginIDKey,
 			&principal.LoginID,
+			&principal.Realm,
 			&principal.HashedPassword,
 		)
 
@@ -227,7 +230,7 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 }
 
 func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
-	builder := p.sqlBuilder.Select("principal_id", "password").
+	builder := p.sqlBuilder.Select("principal_id", "realm", "password").
 		From(p.sqlBuilder.FullTableName("provider_password")).
 		Where(`login_id_key = ? AND login_id = ?`, "email", email)
 	rows, err := p.sqlExecutor.QueryWith(builder)
@@ -242,6 +245,7 @@ func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principa
 		principal.LoginID = email
 		if err = rows.Scan(
 			&principal.ID,
+			&principal.Realm,
 			&principal.HashedPassword,
 		); err != nil {
 			return
