@@ -29,9 +29,9 @@ func (p *safeProviderImpl) IsLoginIDValid(loginID map[string]string) bool {
 	return p.impl.IsLoginIDValid(loginID)
 }
 
-func (p *safeProviderImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) error {
+func (p *safeProviderImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) error {
 	p.txContext.EnsureTx()
-	return p.impl.CreatePrincipalsByLoginID(authInfoID, password, loginID)
+	return p.impl.CreatePrincipalsByLoginID(authInfoID, password, loginID, realm)
 }
 
 func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {

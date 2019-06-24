@@ -63,12 +63,13 @@ func (p providerImpl) IsLoginIDValid(loginID map[string]string) bool {
 	return p.loginIDChecker.isValid(loginID)
 }
 
-func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) (err error) {
+func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) (err error) {
 	for k, v := range loginID {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
 		principal.LoginIDKey = k
 		principal.LoginID = v
+		principal.Realm = realm
 		principal.PlainPassword = password
 		err = p.CreatePrincipal(principal)
 

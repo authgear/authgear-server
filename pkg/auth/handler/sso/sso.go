@@ -241,7 +241,7 @@ func (h respHandler) createEmptyPasswordPrincipal(userID string, oauthAuthInfo s
 	if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
 		// if ProviderAuthData matches loginIDsKeyWhitelist, and it can't be link with current account,
 		// we also creates an empty password principal for later the user can set password to it
-		return h.PasswordAuthProvider.CreatePrincipalsByLoginID(userID, "", oauthAuthInfo.ProviderAuthData)
+		return h.PasswordAuthProvider.CreatePrincipalsByLoginID(userID, "", oauthAuthInfo.ProviderAuthData, "")
 	}
 
 	return nil

@@ -37,12 +37,13 @@ func (m *MockProvider) IsLoginIDValid(loginID map[string]string) bool {
 }
 
 // CreatePrincipalsByLoginID creates principals by loginID
-func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs map[string]string) (err error) {
+func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs map[string]string, realm string) (err error) {
 	for k, v := range loginIDs {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
 		principal.LoginIDKey = k
 		principal.LoginID = v
+		principal.Realm = realm
 		principal.PlainPassword = password
 		err = m.CreatePrincipal(principal)
 

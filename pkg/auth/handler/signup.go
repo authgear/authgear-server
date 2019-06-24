@@ -64,6 +64,7 @@ func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 type SignupRequestPayload struct {
 	LoginIDs map[string]string      `json:"login_ids"`
+	Realm    string                 `json:"realm,omitempty"`
 	Password string                 `json:"password"`
 	Metadata map[string]interface{} `json:"metadata"`
 }
@@ -150,6 +151,10 @@ func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User
 
 func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
+
+	if payload.Realm == "" {
+		payload.Realm = password.DefaultRealm
+	}
 
 	err = h.verifyPayload(payload)
 	if err != nil {
@@ -269,7 +274,7 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 
 func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (err error) {
 	if !payload.isAnonymous() {
-		err = h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs)
+		err = h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs, payload.Realm)
 		if err == skydb.ErrUserDuplicated {
 			err = ErrUserDuplicated
 		}
