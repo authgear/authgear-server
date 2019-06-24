@@ -25,6 +25,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -109,21 +110,21 @@ func (p SignupRequestPayload) isAnonymous() bool {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	PasswordChecker        *authAudit.PasswordChecker `dependency:"PasswordChecker"`
-	UserProfileStore       userprofile.Store          `dependency:"UserProfileStore"`
-	TokenStore             authtoken.Store            `dependency:"TokenStore"`
-	AuthInfoStore          authinfo.Store             `dependency:"AuthInfoStore"`
-	PasswordAuthProvider   password.Provider          `dependency:"PasswordAuthProvider"`
-	AnonymousAuthProvider  anonymous.Provider         `dependency:"AnonymousAuthProvider"`
-	AuditTrail             audit.Trail                `dependency:"AuditTrail"`
-	WelcomeEmailEnabled    bool                       `dependency:"WelcomeEmailEnabled"`
-	AutoSendUserVerifyCode bool                       `dependency:"AutoSendUserVerifyCodeOnSignup"`
-	UserVerifyKeys         []string                   `dependency:"UserVerifyKeys"`
-	VerifyCodeStore        userverify.Store           `dependency:"VerifyCodeStore"`
-	TxContext              db.TxContext               `dependency:"TxContext"`
-	Logger                 *logrus.Entry              `dependency:"HandlerLogger"`
-	TaskQueue              async.Queue                `dependency:"AsyncTaskQueue"`
-	HookStore              hook.Store                 `dependency:"HookStore"`
+	PasswordChecker        *authAudit.PasswordChecker                `dependency:"PasswordChecker"`
+	UserProfileStore       userprofile.Store                         `dependency:"UserProfileStore"`
+	TokenStore             authtoken.Store                           `dependency:"TokenStore"`
+	AuthInfoStore          authinfo.Store                            `dependency:"AuthInfoStore"`
+	PasswordAuthProvider   password.Provider                         `dependency:"PasswordAuthProvider"`
+	AnonymousAuthProvider  anonymous.Provider                        `dependency:"AnonymousAuthProvider"`
+	AuditTrail             audit.Trail                               `dependency:"AuditTrail"`
+	WelcomeEmailEnabled    bool                                      `dependency:"WelcomeEmailEnabled"`
+	AutoSendUserVerifyCode bool                                      `dependency:"AutoSendUserVerifyCodeOnSignup"`
+	UserVerifyKeys         []config.UserVerificationKeyConfiguration `dependency:"UserVerifyKeys"`
+	VerifyCodeStore        userverify.Store                          `dependency:"VerifyCodeStore"`
+	TxContext              db.TxContext                              `dependency:"TxContext"`
+	Logger                 *logrus.Entry                             `dependency:"HandlerLogger"`
+	TaskQueue              async.Queue                               `dependency:"AsyncTaskQueue"`
+	HookStore              hook.Store                                `dependency:"HookStore"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -203,7 +204,7 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 	// Initialize verify state
 	info.VerifyInfo = map[string]bool{}
 	for _, key := range h.UserVerifyKeys {
-		info.VerifyInfo[key] = false
+		info.VerifyInfo[key.Key] = false
 	}
 
 	userFactory := response.UserFactory{
@@ -293,9 +294,9 @@ func (h SignupHandler) sendWelcomeEmail(user response.User) {
 
 func (h SignupHandler) sendUserVerifyRequest(user response.User) {
 	for _, key := range h.UserVerifyKeys {
-		if value, ok := user.LoginIDs[key]; ok {
+		if value, ok := user.LoginIDs[key.Key]; ok {
 			h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
-				Key:   key,
+				Key:   key.Key,
 				Value: value,
 				User:  user,
 			}, nil)

@@ -48,11 +48,11 @@ func GetAPIKey(i interface{}) string {
 }
 
 func CheckAccessKeyType(config config.TenantConfiguration, apiKey string) KeyType {
-	if apiKey == config.APIKey {
+	if apiKey == config.UserConfig.APIKey {
 		return APIAccessKey
 	}
 
-	if apiKey == config.MasterKey {
+	if apiKey == config.UserConfig.MasterKey {
 		return MasterAccessKey
 	}
 

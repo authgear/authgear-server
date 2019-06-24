@@ -36,7 +36,7 @@ func (m TenantConfigurationMiddleware) Handle(next http.Handler) http.Handler {
 		model.SetAccessKeyType(r, apiKeyType)
 
 		// Tenant configuration
-		config.SetTenantConfig(r, configuration)
+		config.SetTenantConfig(r, &configuration)
 		next.ServeHTTP(w, r)
 	})
 }

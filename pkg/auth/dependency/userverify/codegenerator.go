@@ -25,11 +25,11 @@ type DefaultCodeGeneratorFactory struct {
 }
 
 func NewDefaultCodeGeneratorFactory(c config.TenantConfiguration) CodeGeneratorFactory {
-	userVerifyConfig := c.UserVerify
+	userVerifyConfig := c.UserConfig.UserVerification
 	f := DefaultCodeGeneratorFactory{
 		CodeFormatMap: map[string]string{},
 	}
-	for _, keyConfig := range userVerifyConfig.KeyConfigs {
+	for _, keyConfig := range userVerifyConfig.Keys {
 		f.CodeFormatMap[keyConfig.Key] = keyConfig.CodeFormat
 	}
 

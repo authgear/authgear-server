@@ -25,27 +25,27 @@ func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfigura
 
 	loader := template.NewHTTPLoader()
 
-	if tConfig.WelcomeEmail.TextURL != "" {
-		loader.URLMap[TemplateNameWelcomeEmailText] = tConfig.WelcomeEmail.TextURL
+	if tConfig.UserConfig.WelcomeEmail.TextURL != "" {
+		loader.URLMap[TemplateNameWelcomeEmailText] = tConfig.UserConfig.WelcomeEmail.TextURL
 	}
 
-	if tConfig.WelcomeEmail.HTMLURL != "" {
-		loader.URLMap[TemplateNameWelcomeEmailHTML] = tConfig.WelcomeEmail.HTMLURL
+	if tConfig.UserConfig.WelcomeEmail.HTMLURL != "" {
+		loader.URLMap[TemplateNameWelcomeEmailHTML] = tConfig.UserConfig.WelcomeEmail.HTMLURL
 	}
 
-	if tConfig.ForgotPassword.EmailTextURL != "" {
-		loader.URLMap[TemplateNameForgotPasswordEmailText] = tConfig.ForgotPassword.EmailTextURL
+	if tConfig.UserConfig.ForgotPassword.EmailTextURL != "" {
+		loader.URLMap[TemplateNameForgotPasswordEmailText] = tConfig.UserConfig.ForgotPassword.EmailTextURL
 	}
 
-	if tConfig.ForgotPassword.EmailHTMLURL != "" {
-		loader.URLMap[TemplateNameForgotPasswordEmailHTML] = tConfig.ForgotPassword.EmailHTMLURL
+	if tConfig.UserConfig.ForgotPassword.EmailHTMLURL != "" {
+		loader.URLMap[TemplateNameForgotPasswordEmailHTML] = tConfig.UserConfig.ForgotPassword.EmailHTMLURL
 	}
 
-	if tConfig.UserVerify.ErrorHTMLURL != "" {
-		loader.URLMap[TemplateNameVerifyErrorHTML] = tConfig.UserVerify.ErrorHTMLURL
+	if tConfig.UserConfig.UserVerification.ErrorHTMLURL != "" {
+		loader.URLMap[TemplateNameVerifyErrorHTML] = tConfig.UserConfig.UserVerification.ErrorHTMLURL
 	}
 
-	for _, keyConfig := range tConfig.UserVerify.KeyConfigs {
+	for _, keyConfig := range tConfig.UserConfig.UserVerification.Keys {
 		if keyConfig.SuccessHTMLURL != "" {
 			loader.URLMap[VerifySuccessHTMLTemplateNameForKey(keyConfig.Key)] = keyConfig.SuccessHTMLURL
 		}
@@ -64,16 +64,16 @@ func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfigura
 		}
 	}
 
-	if tConfig.ForgotPassword.ResetErrorHTMLURL != "" {
-		loader.URLMap[TemplateNameResetPasswordErrorHTML] = tConfig.ForgotPassword.ResetErrorHTMLURL
+	if tConfig.UserConfig.ForgotPassword.ResetErrorHTMLURL != "" {
+		loader.URLMap[TemplateNameResetPasswordErrorHTML] = tConfig.UserConfig.ForgotPassword.ResetErrorHTMLURL
 	}
 
-	if tConfig.ForgotPassword.ResetSuccessHTMLURL != "" {
-		loader.URLMap[TemplateNameResetPasswordSuccessHTML] = tConfig.ForgotPassword.ResetSuccessHTMLURL
+	if tConfig.UserConfig.ForgotPassword.ResetSuccessHTMLURL != "" {
+		loader.URLMap[TemplateNameResetPasswordSuccessHTML] = tConfig.UserConfig.ForgotPassword.ResetSuccessHTMLURL
 	}
 
-	if tConfig.ForgotPassword.ResetHTMLURL != "" {
-		loader.URLMap[TemplateNameResetPasswordHTML] = tConfig.ForgotPassword.ResetHTMLURL
+	if tConfig.UserConfig.ForgotPassword.ResetHTMLURL != "" {
+		loader.URLMap[TemplateNameResetPasswordHTML] = tConfig.UserConfig.ForgotPassword.ResetHTMLURL
 	}
 
 	newEngine.SetLoaders([]template.Loader{loader})

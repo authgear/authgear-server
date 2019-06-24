@@ -27,7 +27,7 @@ type CORSMiddleware struct {
 func (cors CORSMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tConfig := config.GetTenantConfig(r)
-		matcher, err := originmatcher.Parse(tConfig.CORSHost)
+		matcher, err := originmatcher.Parse(tConfig.UserConfig.CORS.Origin)
 
 		w.Header().Add("Vary", "Origin")
 

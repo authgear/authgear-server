@@ -23,7 +23,7 @@ type Sender interface {
 }
 
 type DefaultSender struct {
-	Config         config.ForgotPasswordConfiguration
+	Config         config.NewForgotPasswordConfiguration
 	Dialer         *gomail.Dialer
 	CodeGenerator  *CodeGenerator
 	TemplateEngine *template.Engine
@@ -35,9 +35,9 @@ func NewDefaultSender(
 	templateEngine *template.Engine,
 ) Sender {
 	return &DefaultSender{
-		Config:         config.ForgotPassword,
+		Config:         config.UserConfig.ForgotPassword,
 		Dialer:         dialer,
-		CodeGenerator:  &CodeGenerator{config.MasterKey},
+		CodeGenerator:  &CodeGenerator{config.UserConfig.MasterKey},
 		TemplateEngine: templateEngine,
 	}
 }
@@ -51,7 +51,7 @@ func (d *DefaultSender) Send(
 	expireAt :=
 		time.Now().UTC().
 			Truncate(time.Second * 1).
-			Add(time.Second * time.Duration(d.Config.ResetURLLifeTime))
+			Add(time.Second * time.Duration(d.Config.ResetURLLifetime))
 	code := d.CodeGenerator.Generate(authInfo, email, hashedPassword, expireAt)
 	context := map[string]interface{}{
 		"appname": d.Config.AppName,

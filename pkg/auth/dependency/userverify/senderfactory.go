@@ -24,32 +24,32 @@ type DefaultCodeSenderFactory struct {
 }
 
 func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templateEngine *template.Engine) CodeSenderFactory {
-	userVerifyConfig := c.UserVerify
+	userVerifyConfig := c.UserConfig.UserVerification
 	f := DefaultCodeSenderFactory{
 		CodeSenderMap: map[string]CodeSender{},
 	}
-	for _, keyConfig := range userVerifyConfig.KeyConfigs {
+	for _, keyConfig := range userVerifyConfig.Keys {
 		var codeSender CodeSender
 		switch keyConfig.Provider {
 		case "smtp":
 			codeSender = &EmailCodeSender{
 				AppName:        c.AppName,
 				Config:         userVerifyConfig,
-				Dialer:         mail.NewDialer(c.SMTP),
+				Dialer:         mail.NewDialer(c.AppConfig.SMTP),
 				TemplateEngine: templateEngine,
 			}
 		case "twilio":
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
 				Config:         userVerifyConfig,
-				SMSClient:      sms.NewTwilioClient(c.Twilio),
+				SMSClient:      sms.NewTwilioClient(c.AppConfig.Twilio),
 				TemplateEngine: templateEngine,
 			}
 		case "nexmo":
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
 				Config:         userVerifyConfig,
-				SMSClient:      sms.NewNexmoClient(c.Nexmo),
+				SMSClient:      sms.NewNexmoClient(c.AppConfig.Nexmo),
 				TemplateEngine: templateEngine,
 			}
 		default:
@@ -78,18 +78,18 @@ func NewDefaultUserVerifyTestCodeSenderFactory(c config.TenantConfiguration, tem
 	return &DefaultTestCodeSenderFactory{
 		SMTPTestCodeSender: &TestEmailCodeSender{
 			AppName:   c.AppName,
-			URLPrefix: c.URLPrefix,
-			Dialer:    mail.NewDialer(c.SMTP),
+			URLPrefix: c.UserConfig.URLPrefix,
+			Dialer:    mail.NewDialer(c.AppConfig.SMTP),
 		},
 		TwilioTestCodeSender: &TestSMSCodeSender{
 			AppName:   c.AppName,
-			URLPrefix: c.URLPrefix,
-			SMSClient: sms.NewTwilioClient(c.Twilio),
+			URLPrefix: c.UserConfig.URLPrefix,
+			SMSClient: sms.NewTwilioClient(c.AppConfig.Twilio),
 		},
 		NexmoTestCodeSender: &TestSMSCodeSender{
 			AppName:   c.AppName,
-			URLPrefix: c.URLPrefix,
-			SMSClient: sms.NewNexmoClient(c.Nexmo),
+			URLPrefix: c.UserConfig.URLPrefix,
+			SMSClient: sms.NewNexmoClient(c.AppConfig.Nexmo),
 		},
 		BaseTemplateEngine: templateEngine,
 	}
@@ -154,7 +154,7 @@ func (d *DefaultTestCodeSenderFactory) NewTestCodeSender(key string, providerSet
 	}
 }
 
-func smtpConfigFromProviderSettings(providerSettings map[string]string) *config.SMTPConfiguration {
+func smtpConfigFromProviderSettings(providerSettings map[string]string) *config.NewSMTPConfiguration {
 	if providerSettings["smtp_host"] == "" {
 		return nil
 	}
@@ -164,7 +164,7 @@ func smtpConfigFromProviderSettings(providerSettings map[string]string) *config.
 		panic(errors.New("invalid smtp_port in provider settings"))
 	}
 
-	return &config.SMTPConfiguration{
+	return &config.NewSMTPConfiguration{
 		Host:     providerSettings["smtp_host"],
 		Port:     port,
 		Mode:     providerSettings["smtp_mode"],
@@ -173,24 +173,24 @@ func smtpConfigFromProviderSettings(providerSettings map[string]string) *config.
 	}
 }
 
-func twilioSmsClientConfigFromProviderSettings(providerSettings map[string]string) *config.TwilioConfiguration {
+func twilioSmsClientConfigFromProviderSettings(providerSettings map[string]string) *config.NewTwilioConfiguration {
 	if providerSettings["twilio_account_sid"] == "" {
 		return nil
 	}
 
-	return &config.TwilioConfiguration{
+	return &config.NewTwilioConfiguration{
 		AccountSID: providerSettings["twilio_account_sid"],
 		AuthToken:  providerSettings["twilio_auth_token"],
 		From:       providerSettings["twilio_from"],
 	}
 }
 
-func nexmoSmsClientConfigFromProviderSettings(providerSettings map[string]string) *config.NexmoConfiguration {
+func nexmoSmsClientConfigFromProviderSettings(providerSettings map[string]string) *config.NewNexmoConfiguration {
 	if providerSettings["nexmo_api_key"] == "" {
 		return nil
 	}
 
-	return &config.NexmoConfiguration{
+	return &config.NewNexmoConfiguration{
 		APIKey:    providerSettings["nexmo_api_key"],
 		APISecret: providerSettings["nexmo_api_secret"],
 		From:      providerSettings["nexmo_from"],

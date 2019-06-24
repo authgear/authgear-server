@@ -19,7 +19,7 @@ type verifyHTMLConfig struct {
 	errorRedirect   *url.URL
 }
 
-func newVerifyHTMLConfig(c config.UserVerifyKeyConfiguration) verifyHTMLConfig {
+func newVerifyHTMLConfig(c config.UserVerificationKeyConfiguration) verifyHTMLConfig {
 	var successRedirect *url.URL
 	var errorRedirect *url.URL
 	var err error
@@ -42,9 +42,9 @@ func newVerifyHTMLConfig(c config.UserVerifyKeyConfiguration) verifyHTMLConfig {
 	}
 }
 
-func NewVerifyHTMLProvider(c config.UserVerifyConfiguration, templateEngine *template.Engine) *VerifyHTMLProvider {
+func NewVerifyHTMLProvider(c config.UserVerificationConfiguration, templateEngine *template.Engine) *VerifyHTMLProvider {
 	configMap := map[string]verifyHTMLConfig{}
-	for _, keyConfig := range c.KeyConfigs {
+	for _, keyConfig := range c.Keys {
 		configMap[keyConfig.Key] = newVerifyHTMLConfig(keyConfig)
 	}
 

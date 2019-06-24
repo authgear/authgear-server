@@ -12,7 +12,7 @@ import (
 )
 
 func NewDefaultTokenStore(ctx context.Context, tConfig config.TenantConfiguration) authtoken.Store {
-	return authtoken.NewJWTStore(tConfig.AppName, tConfig.TokenStore.Secret, tConfig.TokenStore.Expiry)
+	return authtoken.NewJWTStore(tConfig.AppName, tConfig.UserConfig.TokenStore.Secret, tConfig.UserConfig.TokenStore.Expiry)
 }
 
 func NewDefaultAuthInfoStore(ctx context.Context, tConfig config.TenantConfiguration) authinfo.Store {

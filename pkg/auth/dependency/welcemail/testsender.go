@@ -23,14 +23,14 @@ type TestSender interface {
 
 type DefaultTestSender struct {
 	AppName string
-	Config  config.WelcomeEmailConfiguration
+	Config  config.NewWelcomeEmailConfiguration
 	Dialer  *gomail.Dialer
 }
 
 func NewDefaultTestSender(config config.TenantConfiguration, dialer *gomail.Dialer) TestSender {
 	return &DefaultTestSender{
 		AppName: config.AppName,
-		Config:  config.WelcomeEmail,
+		Config:  config.UserConfig.WelcomeEmail,
 		Dialer:  dialer,
 	}
 }

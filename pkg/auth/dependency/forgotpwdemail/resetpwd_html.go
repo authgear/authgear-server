@@ -15,10 +15,10 @@ type ResetPasswordHTMLProvider struct {
 	successRedirect *url.URL
 	errorRedirect   *url.URL
 
-	config config.ForgotPasswordConfiguration
+	config config.NewForgotPasswordConfiguration
 }
 
-func NewResetPasswordHTMLProvider(c config.ForgotPasswordConfiguration, templateEngine *template.Engine) *ResetPasswordHTMLProvider {
+func NewResetPasswordHTMLProvider(c config.NewForgotPasswordConfiguration, templateEngine *template.Engine) *ResetPasswordHTMLProvider {
 	var successRedirect *url.URL
 	var errorRedirect *url.URL
 	var err error

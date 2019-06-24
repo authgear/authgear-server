@@ -17,7 +17,7 @@ type Sender interface {
 
 type DefaultSender struct {
 	AppName        string
-	Config         config.WelcomeEmailConfiguration
+	Config         config.NewWelcomeEmailConfiguration
 	Dialer         *gomail.Dialer
 	TemplateEngine *template.Engine
 }
@@ -29,7 +29,7 @@ func NewDefaultSender(
 ) Sender {
 	return &DefaultSender{
 		AppName:        config.AppName,
-		Config:         config.WelcomeEmail,
+		Config:         config.UserConfig.WelcomeEmail,
 		Dialer:         dialer,
 		TemplateEngine: templateEngine,
 	}

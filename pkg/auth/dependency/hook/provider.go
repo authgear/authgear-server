@@ -29,7 +29,7 @@ func NewHookProvider(
 		hook := Hook{
 			Async:   v.Async,
 			URL:     v.URL,
-			TimeOut: v.TimeOut,
+			TimeOut: v.Timeout,
 		}
 
 		if hooks, ok := hookStore[v.Event]; ok {
