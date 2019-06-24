@@ -529,6 +529,7 @@ func TestAuthHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "email",
 					LoginID:        "john.doe@example.com",
+					Realm:          "default",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},

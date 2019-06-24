@@ -134,14 +134,13 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p providerImpl) GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error) {
+func (p providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error) {
 	builder := p.sqlBuilder.Select("principal_id", "login_id_key", "password").
 		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where("login_id = ?", loginID)
+		Where(`login_id = ? AND realm = ?`, loginID, realm)
 	if loginIDKey != "" {
 		builder = builder.Where("login_id_key = ?", loginIDKey)
 	}
-
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
 	err = scanner.Scan(
@@ -159,6 +158,7 @@ func (p providerImpl) GetPrincipalByLoginID(loginIDKey string, loginID string, p
 	}
 
 	principal.LoginID = loginID
+	principal.Realm = realm
 
 	builder = p.sqlBuilder.Select("user_id").
 		From(p.sqlBuilder.FullTableName("principal")).

@@ -77,9 +77,9 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 }
 
 // GetPrincipalByLoginID get principal in PrincipalMap by login_id
-func (m *MockProvider) GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error) {
+func (m *MockProvider) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error) {
 	for _, p := range m.PrincipalMap {
-		if (loginIDKey == "" || p.LoginIDKey == loginIDKey) && p.LoginID == loginID {
+		if (loginIDKey == "" || p.LoginIDKey == loginIDKey) && p.LoginID == loginID && p.Realm == realm {
 			*principal = p
 			return
 		}

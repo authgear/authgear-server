@@ -39,9 +39,9 @@ func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
 	return p.impl.CreatePrincipal(principal)
 }
 
-func (p *safeProviderImpl) GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error) {
+func (p *safeProviderImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error) {
 	p.txContext.EnsureTx()
-	return p.impl.GetPrincipalByLoginID(loginIDKey, loginID, principal)
+	return p.impl.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, principal)
 }
 
 func (p *safeProviderImpl) GetPrincipalsByUserID(userID string) ([]*Principal, error) {

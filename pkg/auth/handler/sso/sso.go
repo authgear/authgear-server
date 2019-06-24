@@ -206,7 +206,7 @@ func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal,
 	passwordPrincipal := password.Principal{}
 	var e error
 	if email, ok := oauthAuthInfo.ProviderAuthData["email"]; ok {
-		e = h.PasswordAuthProvider.GetPrincipalByLoginID("email", email, &passwordPrincipal)
+		e = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", email, password.DefaultRealm, &passwordPrincipal)
 	}
 	if e == nil {
 		userID := passwordPrincipal.UserID

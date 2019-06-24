@@ -132,7 +132,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
@@ -413,7 +413,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
@@ -482,7 +482,7 @@ func TestSingupHandler(t *testing.T) {
 		Convey("should invoke hook with correct formatted payload", func(c C) {
 			getAuthInfo := func() (string, string) {
 				var p password.Principal
-				err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+				err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 				if err != nil {
 					return "", ""
 				}
@@ -616,7 +616,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
@@ -673,7 +673,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
@@ -773,7 +773,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]

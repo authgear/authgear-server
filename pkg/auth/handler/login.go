@@ -52,6 +52,7 @@ func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 type LoginRequestPayload struct {
 	LoginIDKey string `json:"login_id_key,omitempty"`
 	LoginID    string `json:"login_id"`
+	Realm      string `json:"realm,omitempty"`
 	Password   string `json:"password"`
 }
 
@@ -97,6 +98,10 @@ func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPaylo
 // Handle api request
 func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(LoginRequestPayload)
+	if payload.Realm == "" {
+		payload.Realm = password.DefaultRealm
+	}
+
 	fetchedAuthInfo := authinfo.AuthInfo{}
 
 	defer func() {
@@ -122,7 +127,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		}
 	}
 
-	userID, err := h.getUserID(payload.Password, payload.LoginIDKey, payload.LoginID)
+	userID, err := h.getUserID(payload.Password, payload.LoginIDKey, payload.LoginID, payload.Realm)
 	if err != nil {
 		return
 	}
@@ -177,9 +182,9 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	return
 }
 
-func (h LoginHandler) getUserID(pwd string, loginIDKey string, loginID string) (userID string, err error) {
+func (h LoginHandler) getUserID(pwd string, loginIDKey string, loginID string, realm string) (userID string, err error) {
 	principal := password.Principal{}
-	err = h.PasswordAuthProvider.GetPrincipalByLoginID(loginIDKey, loginID, &principal)
+	err = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, &principal)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
