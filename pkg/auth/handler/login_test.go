@@ -59,6 +59,15 @@ func TestLoginHandler(t *testing.T) {
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
+
+		Convey("validate valid payload with realm", func() {
+			payload := LoginRequestPayload{
+				LoginID:  "john.doe",
+				Realm:    "admin",
+				Password: "123456",
+			}
+			So(payload.Validate(), ShouldBeNil)
+		})
 	})
 
 	Convey("Test LoginHandler", t, func() {
@@ -85,7 +94,7 @@ func TestLoginHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "email",
 					LoginID:        "john.doe@example.com",
-					Realm:          "default",
+					Realm:          password.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id2": password.Principal{
@@ -93,7 +102,15 @@ func TestLoginHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "username",
 					LoginID:        "john.doe",
-					Realm:          "default",
+					Realm:          password.DefaultRealm,
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"john.doe.principal.id3": password.Principal{
+					ID:             "john.doe.principal.id3",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe+1@example.com",
+					Realm:          "admin",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -144,6 +161,27 @@ func TestLoginHandler(t *testing.T) {
 
 			_, err := h.Handle(payload)
 			So(err, ShouldBeNil)
+		})
+
+		Convey("login user with login_id and realm", func() {
+			payload := LoginRequestPayload{
+				LoginID:  "john.doe+1@example.com",
+				Realm:    "admin",
+				Password: "123456",
+			}
+
+			_, err := h.Handle(payload)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("login user with incorrect realm", func() {
+			payload := LoginRequestPayload{
+				LoginID:  "john.doe+1@example.com",
+				Password: "123456",
+			}
+
+			_, err := h.Handle(payload)
+			So(err.Error(), ShouldEqual, "ResourceNotFound: user not found")
 		})
 
 		Convey("login user with incorrect password", func() {
