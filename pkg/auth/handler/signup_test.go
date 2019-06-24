@@ -48,6 +48,18 @@ func TestSingupHandler(t *testing.T) {
 			So(payload.Validate(), ShouldBeNil)
 		})
 
+		Convey("validate valid payload with realm", func() {
+			payload := SignupRequestPayload{
+				LoginIDs: map[string]string{
+					"username": "john.doe",
+					"email":    "john.doe@example.com",
+				},
+				Realm:    "admin",
+				Password: "123456",
+			}
+			So(payload.Validate(), ShouldBeNil)
+		})
+
 		Convey("validate payload without login_id", func() {
 			payload := SignupRequestPayload{
 				Password: "123456",
@@ -149,6 +161,47 @@ func TestSingupHandler(t *testing.T) {
 					"login_ids": {
 						"email":"john.doe@example.com",
 						"username":"john.doe"
+					},
+					"metadata": {}
+				}
+			}`,
+				userID,
+				token.AccessToken,
+				userID,
+				userID))
+		})
+
+		Convey("signup user with login_id with realm", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"email": "john.doe@example.com"
+				},
+				"realm": "admin",
+				"password": "123456"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 200)
+
+			var p password.Principal
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", "admin", &p)
+			So(err, ShouldBeNil)
+			userID := p.UserID
+			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+				"result": {
+					"user_id": "%s",
+					"access_token": "%s",
+					"verified": false,
+					"verify_info": {},
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
+					"login_ids": {
+						"email":"john.doe@example.com"
 					},
 					"metadata": {}
 				}
