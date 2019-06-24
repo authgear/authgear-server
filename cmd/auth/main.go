@@ -29,8 +29,9 @@ import (
 )
 
 type configuration struct {
-	DevMode bool   `envconfig:"DEV_MODE"`
-	Host    string `envconfig:"HOST" default:"localhost:3000"`
+	Standalone bool
+	PathPrefix string `envconfig:"PATH_PREFIX"`
+	Host       string `default:"localhost:3000"`
 }
 
 func main() {
@@ -62,9 +63,9 @@ func main() {
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
 
 	var srv server.Server
-	if configuration.DevMode {
+	if configuration.Standalone {
 		serverOption := server.DefaultOption()
-		serverOption.GearPathPrefix = "/_auth"
+		serverOption.GearPathPrefix = configuration.PathPrefix
 		srv = server.NewServerWithOption(configuration.Host, authContextResolverFactory, serverOption)
 		srv.Use(middleware.TenantConfigurationMiddleware{
 			ConfigurationProvider: middleware.ConfigurationProviderFunc(config.NewTenantConfigurationFromEnv),
