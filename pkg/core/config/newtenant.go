@@ -43,7 +43,6 @@ func defaultAppConfiguration() AppConfiguration {
 
 func defaultUserConfiguration() UserConfiguration {
 	return UserConfiguration{
-		Version: "1",
 		CORS: CORSConfiguration{
 			Origin: "*",
 		},
@@ -81,8 +80,6 @@ func NewTenantConfigurationFromScratch(options FromScratchOptions) TenantConfigu
 		UserConfig: defaultUserConfiguration(),
 	}
 	c.Version = "1"
-	c.AppConfig.Version = "1"
-	c.UserConfig.Version = "1"
 
 	c.AppName = options.AppName
 	c.AppConfig.DatabaseURL = options.DatabaseURL
@@ -172,7 +169,7 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 }
 
 func (c *TenantConfiguration) Validate() error {
-	if c.Version != "1" || c.AppConfig.Version != "1" || c.UserConfig.Version != "1" {
+	if c.Version != "1" {
 		return errors.New("Only version 1 is supported")
 	}
 	if c.AppConfig.DatabaseURL == "" {
@@ -194,14 +191,6 @@ func (c *TenantConfiguration) Validate() error {
 }
 
 func (c *TenantConfiguration) AfterUnmarshal() {
-	// Propagate Version
-	if c.UserConfig.Version == "" {
-		c.UserConfig.Version = c.Version
-	}
-	if c.AppConfig.Version == "" {
-		c.AppConfig.Version = c.Version
-	}
-
 	// Default token secret to master key
 	if c.UserConfig.TokenStore.Secret == "" {
 		c.UserConfig.TokenStore.Secret = c.UserConfig.MasterKey
@@ -265,7 +254,6 @@ func removeTrailingSlash(url string) string {
 
 // UserConfiguration represents user-editable configuration
 type UserConfiguration struct {
-	Version          string                         `json:"version" yaml:"version" msg:"version"`
 	APIKey           string                         `json:"api_key" yaml:"api_key" msg:"api_key"`
 	MasterKey        string                         `json:"master_key" yaml:"master_key" msg:"master_key"`
 	URLPrefix        string                         `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
@@ -426,7 +414,6 @@ type UserVerificationProviderConfiguration struct {
 
 // AppConfiguration is configuration kept secret from the developer.
 type AppConfiguration struct {
-	Version     string                 `json:"version" yaml:"version" msg:"version"`
 	DatabaseURL string                 `json:"database_url" yaml:"database_url" msg:"database_url"`
 	SMTP        NewSMTPConfiguration   `json:"smtp" yaml:"smtp" msg:"smtp"`
 	Twilio      NewTwilioConfiguration `json:"twilio" yaml:"twilio" msg:"twilio"`
