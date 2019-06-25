@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/name"
 )
 
+//go:generate msgp -tests=false
 type TenantConfiguration struct {
 	Version    string            `json:"version" yaml:"version" msg:"version"`
 	AppName    string            `json:"name" yaml:"name" msg:"name"`
