@@ -94,6 +94,9 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 }
 
 func (c *TenantConfiguration) Validate() error {
+	if c.Version != "1" || c.AppConfig.Version != "1" || c.UserConfig.Version != "1" {
+		return errors.New("Only version 1 is supported")
+	}
 	if c.AppConfig.DatabaseURL == "" {
 		return errors.New("DATABASE_URL is not set")
 	}
@@ -113,6 +116,15 @@ func (c *TenantConfiguration) Validate() error {
 }
 
 func (c *TenantConfiguration) AfterUnmarshal() {
+	// Propagate Version
+	if c.UserConfig.Version == "" {
+		c.UserConfig.Version = c.Version
+	}
+	if c.AppConfig.Version == "" {
+		c.AppConfig.Version = c.Version
+	}
+
+	// Default token secret to master key
 	if c.UserConfig.TokenStore.Secret == "" {
 		c.UserConfig.TokenStore.Secret = c.UserConfig.MasterKey
 	}
