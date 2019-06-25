@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -146,14 +145,13 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 }
 
 func GetTenantConfig(r *http.Request) TenantConfiguration {
-	// TODO: Use msgpack instead of JSON
 	s := r.Header.Get(coreHttp.HeaderTenantConfig)
 	bytes, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		panic(err)
 	}
 	var config TenantConfiguration
-	err = json.Unmarshal(bytes, &config)
+	_, err = config.UnmarshalMsg(bytes)
 	if err != nil {
 		panic(err)
 	}
@@ -161,8 +159,7 @@ func GetTenantConfig(r *http.Request) TenantConfiguration {
 }
 
 func SetTenantConfig(r *http.Request, config *TenantConfiguration) {
-	// TODO: Use msgpack instead of JSON
-	bytes, err := json.Marshal(*config)
+	bytes, err := config.MarshalMsg(nil)
 	if err != nil {
 		panic(err)
 	}
