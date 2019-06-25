@@ -401,6 +401,27 @@ func TestSingupHandler(t *testing.T) {
 				}
 			}
 			`)
+
+			req, _ = http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"username": "john.doe"
+				},
+				"realm": "test",
+				"password": "1234567"
+			}`))
+			resp = httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 409)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"name": "Duplicated",
+					"code": 109,
+					"message": "user duplicated"
+				}
+			}
+			`)
 		})
 	})
 

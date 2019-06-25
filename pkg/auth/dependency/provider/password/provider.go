@@ -64,6 +64,21 @@ func (p providerImpl) IsLoginIDValid(loginID map[string]string) bool {
 }
 
 func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) (err error) {
+	// do not create principal when there is login ID belongs to another user.
+	for _, v := range loginID {
+		principals, principalErr := p.GetPrincipalsByLoginID("", v)
+		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
+			err = principalErr
+			return
+		}
+		for _, principal := range principals {
+			if principal.UserID != authInfoID {
+				err = skydb.ErrUserDuplicated
+				return
+			}
+		}
+	}
+
 	for k, v := range loginID {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID

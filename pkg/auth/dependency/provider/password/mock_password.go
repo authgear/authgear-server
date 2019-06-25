@@ -38,6 +38,21 @@ func (m *MockProvider) IsLoginIDValid(loginID map[string]string) bool {
 
 // CreatePrincipalsByLoginID creates principals by loginID
 func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs map[string]string, realm string) (err error) {
+	// do not create principal when there is login ID belongs to another user.
+	for _, v := range loginIDs {
+		principals, principalErr := m.GetPrincipalsByLoginID("", v)
+		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
+			err = principalErr
+			return
+		}
+		for _, principal := range principals {
+			if principal.UserID != authInfoID {
+				err = skydb.ErrUserDuplicated
+				return
+			}
+		}
+	}
+
 	for k, v := range loginIDs {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
@@ -62,7 +77,8 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 	}
 
 	for _, p := range m.PrincipalMap {
-		if reflect.DeepEqual(principal.LoginID, p.LoginID) {
+		if reflect.DeepEqual(principal.LoginID, p.LoginID) &&
+			reflect.DeepEqual(principal.Realm, p.Realm) {
 			return skydb.ErrUserDuplicated
 		}
 	}
