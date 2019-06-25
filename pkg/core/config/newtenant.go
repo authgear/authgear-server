@@ -15,9 +15,9 @@ import (
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
 	Version    string            `json:"version" yaml:"version" msg:"version"`
-	AppName    string            `json:"name" yaml:"name" msg:"name"`
-	AppConfig  AppConfiguration  `json:"app" yaml:"app" msg:"app"`
-	UserConfig UserConfiguration `json:"user" yaml:"user" msg:"user"`
+	AppName    string            `json:"app_name" yaml:"app_name" msg:"app_name"`
+	AppConfig  AppConfiguration  `json:"app_config" yaml:"app_config" msg:"app_config"`
+	UserConfig UserConfiguration `json:"user_config" yaml:"user_config" msg:"user_config"`
 	Hooks      []Hook            `json:"hooks" yaml:"hooks" msg:"hooks"`
 }
 

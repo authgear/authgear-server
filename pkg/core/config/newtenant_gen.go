@@ -3012,17 +3012,17 @@ func (z *TenantConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
-		case "name":
+		case "app_name":
 			z.AppName, err = dc.ReadString()
 			if err != nil {
 				return
 			}
-		case "app":
+		case "app_config":
 			err = z.AppConfig.DecodeMsg(dc)
 			if err != nil {
 				return
 			}
-		case "user":
+		case "user_config":
 			err = z.UserConfig.DecodeMsg(dc)
 			if err != nil {
 				return
@@ -3066,8 +3066,8 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	// write "name"
-	err = en.Append(0xa4, 0x6e, 0x61, 0x6d, 0x65)
+	// write "app_name"
+	err = en.Append(0xa8, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	if err != nil {
 		return err
 	}
@@ -3075,8 +3075,8 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	// write "app"
-	err = en.Append(0xa3, 0x61, 0x70, 0x70)
+	// write "app_config"
+	err = en.Append(0xaa, 0x61, 0x70, 0x70, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
 	if err != nil {
 		return err
 	}
@@ -3084,8 +3084,8 @@ func (z *TenantConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	// write "user"
-	err = en.Append(0xa4, 0x75, 0x73, 0x65, 0x72)
+	// write "user_config"
+	err = en.Append(0xab, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
 	if err != nil {
 		return err
 	}
@@ -3118,17 +3118,17 @@ func (z *TenantConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "version"
 	o = append(o, 0x85, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
 	o = msgp.AppendString(o, z.Version)
-	// string "name"
-	o = append(o, 0xa4, 0x6e, 0x61, 0x6d, 0x65)
+	// string "app_name"
+	o = append(o, 0xa8, 0x61, 0x70, 0x70, 0x5f, 0x6e, 0x61, 0x6d, 0x65)
 	o = msgp.AppendString(o, z.AppName)
-	// string "app"
-	o = append(o, 0xa3, 0x61, 0x70, 0x70)
+	// string "app_config"
+	o = append(o, 0xaa, 0x61, 0x70, 0x70, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
 	o, err = z.AppConfig.MarshalMsg(o)
 	if err != nil {
 		return
 	}
-	// string "user"
-	o = append(o, 0xa4, 0x75, 0x73, 0x65, 0x72)
+	// string "user_config"
+	o = append(o, 0xab, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
 	o, err = z.UserConfig.MarshalMsg(o)
 	if err != nil {
 		return
@@ -3166,17 +3166,17 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				return
 			}
-		case "name":
+		case "app_name":
 			z.AppName, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
 				return
 			}
-		case "app":
+		case "app_config":
 			bts, err = z.AppConfig.UnmarshalMsg(bts)
 			if err != nil {
 				return
 			}
-		case "user":
+		case "user_config":
 			bts, err = z.UserConfig.UnmarshalMsg(bts)
 			if err != nil {
 				return
@@ -3211,7 +3211,7 @@ func (z *TenantConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *TenantConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 5 + msgp.StringPrefixSize + len(z.AppName) + 4 + z.AppConfig.Msgsize() + 5 + z.UserConfig.Msgsize() + 6 + msgp.ArrayHeaderSize
+	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 9 + msgp.StringPrefixSize + len(z.AppName) + 11 + z.AppConfig.Msgsize() + 12 + z.UserConfig.Msgsize() + 6 + msgp.ArrayHeaderSize
 	for ztyy := range z.Hooks {
 		s += z.Hooks[ztyy].Msgsize()
 	}
