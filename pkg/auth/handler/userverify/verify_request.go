@@ -57,12 +57,17 @@ func (f VerifyRequestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type VerifyRequestPayload struct {
-	RecordKey string `json:"record_key"`
+	LoginIDKey string `json:"login_id_key"`
+	LoginID    string `json:"login_id"`
 }
 
 func (payload VerifyRequestPayload) Validate() error {
-	if payload.RecordKey == "" {
-		return skyerr.NewInvalidArgument("empty record_key", []string{"record_key"})
+	if payload.LoginIDKey == "" {
+		return skyerr.NewInvalidArgument("empty login ID key", []string{"login_id_key"})
+	}
+
+	if payload.LoginID == "" {
+		return skyerr.NewInvalidArgument("empty login ID", []string{"login_id"})
 	}
 
 	return nil
@@ -73,7 +78,8 @@ func (payload VerifyRequestPayload) Validate() error {
 //  curl -X POST -H "Content-Type: application/json" \
 //    -d @- http://localhost:3000/verify_request <<EOF
 //  {
-//    "record_key": "email"
+//    "login_id_key": "email",
+//    "login_id": "user@example.com"
 //  }
 //  EOF
 //
@@ -105,9 +111,9 @@ func (h VerifyRequestHandler) DecodeRequest(request *http.Request) (handler.Requ
 func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyRequestPayload)
 	authInfo := h.AuthContext.AuthInfo()
-	codeSender := h.CodeSenderFactory.NewCodeSender(payload.RecordKey)
+	codeSender := h.CodeSenderFactory.NewCodeSender(payload.LoginIDKey)
 	if codeSender == nil {
-		err = skyerr.NewInvalidArgument("invalid record_key", []string{payload.RecordKey})
+		err = skyerr.NewInvalidArgument("invalid login_id_key", []string{payload.LoginIDKey})
 	}
 
 	// Get Profile
@@ -124,20 +130,30 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 	user := userFactory.NewUser(*authInfo, userProfile)
 
-	var value string
-	var ok bool
-	if value, ok = user.LoginIDs[payload.RecordKey]; !ok {
-		err = skyerr.NewError(skyerr.UnexpectedError, "Value of "+payload.RecordKey+" doesn't exist.")
+	principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID(payload.LoginIDKey, payload.LoginID)
+	if err != nil {
 		return
 	}
 
-	codeGenerator := h.CodeGeneratorFactory.NewCodeGenerator(payload.RecordKey)
+	var userPrincipal *password.Principal
+	for _, principal := range principals {
+		if principal.UserID == authInfo.ID {
+			userPrincipal = principal
+			break
+		}
+	}
+	if userPrincipal == nil {
+		err = skyerr.NewError(skyerr.UnexpectedError, "Value of "+payload.LoginID+" doesn't exist.")
+		return
+	}
+
+	codeGenerator := h.CodeGeneratorFactory.NewCodeGenerator(payload.LoginIDKey)
 	code := codeGenerator.Generate()
 
 	verifyCode := userverify.NewVerifyCode()
 	verifyCode.UserID = authInfo.ID
-	verifyCode.RecordKey = payload.RecordKey
-	verifyCode.RecordValue = value
+	verifyCode.RecordKey = userPrincipal.LoginIDKey
+	verifyCode.RecordValue = userPrincipal.LoginID
 	verifyCode.Code = code
 	verifyCode.Consumed = false
 	verifyCode.CreatedAt = time.Now()
@@ -149,8 +165,8 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	if err = codeSender.Send(verifyCode, user); err != nil {
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,
-			"record_key":   payload.RecordKey,
-			"record_value": value,
+			"login_id_key": userPrincipal.LoginIDKey,
+			"login_id":     userPrincipal.LoginID,
 		}).Error("fail to send verify request")
 		return
 	}
