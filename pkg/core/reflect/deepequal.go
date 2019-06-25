@@ -19,6 +19,7 @@ func NonRecursiveDataDeepEqual(a interface{}, b interface{}) bool {
 	return recur(v1, v2)
 }
 
+// nolint: gocyclo
 func recur(v1, v2 goreflect.Value) bool {
 	// either one is nil
 	if !v1.IsValid() || !v2.IsValid() {
