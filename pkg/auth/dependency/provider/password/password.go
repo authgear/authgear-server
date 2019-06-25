@@ -8,6 +8,6 @@ type Provider interface {
 	CreatePrincipal(principal Principal) error
 	GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error)
 	GetPrincipalsByUserID(userID string) ([]*Principal, error)
-	GetPrincipalsByEmail(email string) ([]*Principal, error)
+	GetPrincipalsByLoginID(loginIDKey string, loginID string) ([]*Principal, error)
 	UpdatePrincipal(principal Principal) error
 }

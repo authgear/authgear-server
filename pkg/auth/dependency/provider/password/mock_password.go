@@ -105,10 +105,10 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Princ
 	return
 }
 
-// GetPrincipalsByEmail get principal in PrincipalMap by userID
-func (m *MockProvider) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
+// GetPrincipalsByLoginID get principals in PrincipalMap by login ID
+func (m *MockProvider) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
 	for _, p := range m.PrincipalMap {
-		if p.LoginIDKey == "email" && p.LoginID == email {
+		if (loginIDKey == "" || p.LoginIDKey == loginIDKey) && p.LoginID == loginID {
 			principal := p
 			principals = append(principals, &principal)
 		}
