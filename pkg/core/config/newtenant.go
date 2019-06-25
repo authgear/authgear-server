@@ -13,18 +13,18 @@ import (
 )
 
 type TenantConfiguration struct {
-	Version    string            `json:"version"`
-	AppName    string            `json:"name"`
-	AppConfig  AppConfiguration  `json:"app"`
-	UserConfig UserConfiguration `json:"user"`
-	Hooks      []Hook            `json:"hooks"`
+	Version    string            `json:"version" yaml:"version" msg:"version"`
+	AppName    string            `json:"name" yaml:"name" msg:"name"`
+	AppConfig  AppConfiguration  `json:"app" yaml:"app" msg:"app"`
+	UserConfig UserConfiguration `json:"user" yaml:"user" msg:"user"`
+	Hooks      []Hook            `json:"hooks" yaml:"hooks" msg:"hooks"`
 }
 
 type Hook struct {
-	Async   bool   `json:"async"`
-	Event   string `json:"event"`
-	URL     string `json:"url"`
-	Timeout int    `json:"timeout"`
+	Async   bool   `json:"async" yaml:"async" msg:"async"`
+	Event   string `json:"event" yaml:"event" msg:"event"`
+	URL     string `json:"url" yaml:"url" msg:"url"`
+	Timeout int    `json:"timeout" yaml:"timeout" msg:"timeout"`
 }
 
 func NewTenantConfiguration() TenantConfiguration {
