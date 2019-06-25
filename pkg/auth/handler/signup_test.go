@@ -158,10 +158,6 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
 					"metadata": {}
 				}
 			}`,
@@ -200,9 +196,6 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com"
-					},
 					"metadata": {}
 				}
 			}`,
@@ -313,8 +306,6 @@ func TestSingupHandler(t *testing.T) {
 			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
 			So(param.Email, ShouldEqual, "john.doe@example.com")
 			So(param.User, ShouldNotBeNil)
-			So(param.User.LoginIDs["username"], ShouldEqual, "john.doe")
-			So(param.User.LoginIDs["email"], ShouldEqual, "john.doe@example.com")
 		})
 
 		Convey("log audit trail when signup success", func() {
@@ -501,10 +492,6 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
 					"metadata": {
 						"name": "john.doe"
 					}
@@ -588,10 +575,6 @@ func TestSingupHandler(t *testing.T) {
 					"data": {
 						"created_at": "0001-01-01T00:00:00Z",
 						"created_by": "%s",
-						"login_ids": {
-							"email": "john.doe@example.com",
-							"username": "john.doe"
-						},
 						"metadata": {},
 						"updated_at": "0001-01-01T00:00:00Z",
 						"updated_by": "%s",
@@ -648,10 +631,6 @@ func TestSingupHandler(t *testing.T) {
 									"created_by": "%s",
 									"updated_at": "0001-01-01T00:00:00Z",
 									"updated_by": "%s",
-									"login_ids": {
-										"email":"john.doe@example.com",
-										"username":"john.doe"
-									},
 									"metadata": {}
 								}
 							}`,
@@ -704,10 +683,6 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
 					"metadata": {}
 				}
 			}`,
@@ -761,10 +736,6 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
 					"metadata": {}
 				}
 			}`,
@@ -861,10 +832,6 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
 					"metadata": {
 						"name": "john.doe",
 						"email": "john.doe@example.com"

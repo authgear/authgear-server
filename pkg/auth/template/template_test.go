@@ -36,11 +36,7 @@ func TestResetPasswordPayload(t *testing.T) {
 		templateEngine = NewEngineWithConfig(templateEngine, config)
 
 		context := map[string]interface{}{
-			"user": map[string]map[string]interface{}{
-				"LoginIDs": {
-					"username": "chima",
-				},
-			},
+			"email": "chima@oursky.com",
 		}
 
 		gock.InterceptClient(goreq.DefaultClient)
@@ -50,7 +46,7 @@ func TestResetPasswordPayload(t *testing.T) {
 		Convey("render default template", func() {
 			out, err := templateEngine.ParseTextTemplate(TemplateNameWelcomeEmailText, context, template.ParseOption{})
 			So(err, ShouldBeNil)
-			So(out, ShouldEqual, `Hello chima,
+			So(out, ShouldEqual, `Hello chima@oursky.com,
 
 Welcome to Skygear.
 
