@@ -24,11 +24,6 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "version":
-			z.Version, err = dc.ReadString()
-			if err != nil {
-				return
-			}
 		case "database_url":
 			z.DatabaseURL, err = dc.ReadString()
 			if err != nil {
@@ -121,18 +116,9 @@ func (z *AppConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 5
-	// write "version"
-	err = en.Append(0x85, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
-	if err != nil {
-		return err
-	}
-	err = en.WriteString(z.Version)
-	if err != nil {
-		return
-	}
+	// map header, size 4
 	// write "database_url"
-	err = en.Append(0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+	err = en.Append(0x84, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
 	if err != nil {
 		return err
 	}
@@ -213,12 +199,9 @@ func (z *AppConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *AppConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 5
-	// string "version"
-	o = append(o, 0x85, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
-	o = msgp.AppendString(o, z.Version)
+	// map header, size 4
 	// string "database_url"
-	o = append(o, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
+	o = append(o, 0x84, 0xac, 0x64, 0x61, 0x74, 0x61, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x75, 0x72, 0x6c)
 	o = msgp.AppendString(o, z.DatabaseURL)
 	// string "smtp"
 	o = append(o, 0xa4, 0x73, 0x6d, 0x74, 0x70)
@@ -267,11 +250,6 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "version":
-			z.Version, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				return
-			}
 		case "database_url":
 			z.DatabaseURL, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
@@ -365,7 +343,7 @@ func (z *AppConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *AppConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 13 + msgp.StringPrefixSize + len(z.DatabaseURL) + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 7 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From)
+	s = 1 + 13 + msgp.StringPrefixSize + len(z.DatabaseURL) + 5 + z.SMTP.Msgsize() + 7 + 1 + 12 + msgp.StringPrefixSize + len(z.Twilio.AccountSID) + 11 + msgp.StringPrefixSize + len(z.Twilio.AuthToken) + 5 + msgp.StringPrefixSize + len(z.Twilio.From) + 6 + 1 + 8 + msgp.StringPrefixSize + len(z.Nexmo.APIKey) + 7 + msgp.StringPrefixSize + len(z.Nexmo.APISecret) + 5 + msgp.StringPrefixSize + len(z.Nexmo.From)
 	return
 }
 
@@ -3394,11 +3372,6 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "version":
-			z.Version, err = dc.ReadString()
-			if err != nil {
-				return
-			}
 		case "api_key":
 			z.APIKey, err = dc.ReadString()
 			if err != nil {
@@ -3578,18 +3551,9 @@ func (z *UserConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 12
-	// write "version"
-	err = en.Append(0x8c, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
-	if err != nil {
-		return err
-	}
-	err = en.WriteString(z.Version)
-	if err != nil {
-		return
-	}
+	// map header, size 11
 	// write "api_key"
-	err = en.Append(0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+	err = en.Append(0x8b, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
 	if err != nil {
 		return err
 	}
@@ -3743,12 +3707,9 @@ func (z *UserConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *UserConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 12
-	// string "version"
-	o = append(o, 0x8c, 0xa7, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e)
-	o = msgp.AppendString(o, z.Version)
+	// map header, size 11
 	// string "api_key"
-	o = append(o, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
+	o = append(o, 0x8b, 0xa7, 0x61, 0x70, 0x69, 0x5f, 0x6b, 0x65, 0x79)
 	o = msgp.AppendString(o, z.APIKey)
 	// string "master_key"
 	o = append(o, 0xaa, 0x6d, 0x61, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x6b, 0x65, 0x79)
@@ -3837,11 +3798,6 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
-		case "version":
-			z.Version, bts, err = msgp.ReadStringBytes(bts)
-			if err != nil {
-				return
-			}
 		case "api_key":
 			z.APIKey, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
@@ -4022,7 +3978,7 @@ func (z *UserConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.StringPrefixSize + len(z.Version) + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.MasterKey) + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin) + 5 + 1 + 14 + msgp.ArrayHeaderSize
+	s = 1 + 8 + msgp.StringPrefixSize + len(z.APIKey) + 11 + msgp.StringPrefixSize + len(z.MasterKey) + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 5 + 1 + 7 + msgp.StringPrefixSize + len(z.CORS.Origin) + 5 + 1 + 14 + msgp.ArrayHeaderSize
 	for zswy := range z.Auth.LoginIDKeys {
 		s += msgp.StringPrefixSize + len(z.Auth.LoginIDKeys[zswy])
 	}
