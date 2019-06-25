@@ -1,0 +1,7 @@
+version: '1'
+app_name: myapp
+app_config:
+  database_url: postgres://
+user_config:
+  api_key: apikey
+  master_key: masterkey

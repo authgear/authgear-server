@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -29,9 +30,10 @@ import (
 )
 
 type configuration struct {
-	Standalone bool
-	PathPrefix string `envconfig:"PATH_PREFIX"`
-	Host       string `default:"localhost:3000"`
+	Standalone                        bool
+	StandaloneTenantConfigurationFile string `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
+	PathPrefix                        string `envconfig:"PATH_PREFIX"`
+	Host                              string `default:"localhost:3000"`
 }
 
 func main() {
@@ -64,11 +66,24 @@ func main() {
 
 	var srv server.Server
 	if configuration.Standalone {
+		filename := configuration.StandaloneTenantConfigurationFile
+		r, err := os.Open(filename)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer r.Close()
+		tenantConfig, err := config.NewTenantConfigurationFromYAML(r)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		serverOption := server.DefaultOption()
 		serverOption.GearPathPrefix = configuration.PathPrefix
 		srv = server.NewServerWithOption(configuration.Host, authContextResolverFactory, serverOption)
 		srv.Use(middleware.TenantConfigurationMiddleware{
-			ConfigurationProvider: middleware.ConfigurationProviderFunc(config.NewTenantConfigurationFromEnv),
+			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
+				return *tenantConfig, nil
+			}),
 		}.Handle)
 	} else {
 		srv = server.NewServer(configuration.Host, authContextResolverFactory)

@@ -4,6 +4,7 @@
 data
 .env
 skygear-server
+standalone-tenant-config.yaml
 
 # golang
 vendor

@@ -98,13 +98,6 @@ func NewTenantConfigurationFromScratch(options FromScratchOptions) TenantConfigu
 	return c
 }
 
-func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error) {
-	// TODO: Remove this function
-	// Instead, we should call NewTenantConfigurationFromYAML once
-	// and consistently return the same configuration for every incoming request
-	return TenantConfiguration{}, errors.New("NewTenantConfigurationFromEnv")
-}
-
 func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
 	decoder := yaml.NewDecoder(r)
 	config := TenantConfiguration{
