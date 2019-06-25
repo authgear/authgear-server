@@ -21,6 +21,7 @@ import (
 	"reflect"
 	"sort"
 
+	coreReflect "github.com/skygeario/skygear-server/pkg/core/reflect"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
@@ -141,6 +142,21 @@ func ShouldEqualJSON(actual interface{}, expected ...interface{}) string {
 	if !reflect.DeepEqual(actualJSON, expectedJSON) {
 		return fmt.Sprintf(`Expected: '%s'
 Actual:   '%s'`, prettyPrintJSONMap(expectedJSON), prettyPrintJSONMap(actualJSON))
+	}
+
+	return ""
+}
+
+func ShouldNonRecursiveDataDeepEqual(actual interface{}, expected ...interface{}) string {
+	if len(expected) != 1 {
+		return fmt.Sprintf("ShouldNonRecursiveDataDeepEqual expects only 1 argument")
+	}
+	if !coreReflect.NonRecursiveDataDeepEqual(actual, expected[0]) {
+		return fmt.Sprintf(`Expected:
+%+v
+
+Actual:
+%+v`, expected[0], actual)
 	}
 
 	return ""
