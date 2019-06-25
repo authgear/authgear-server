@@ -2,11 +2,14 @@ package config
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/name"
@@ -28,41 +31,71 @@ type Hook struct {
 	Timeout int    `json:"timeout" yaml:"timeout" msg:"timeout"`
 }
 
-func NewTenantConfiguration() TenantConfiguration {
-	return TenantConfiguration{
-		Version: "1",
-		AppConfig: AppConfiguration{
-			Version:     "1",
-			DatabaseURL: "postgres://postgres:@localhost/postgres?sslmode=disable",
-			SMTP: NewSMTPConfiguration{
-				Port: 25,
-				Mode: "normal",
-			},
-		},
-		UserConfig: UserConfiguration{
-			Version: "1",
-			CORS: CORSConfiguration{
-				Origin: "*",
-			},
-			Auth: NewAuthConfiguration{
-				LoginIDKeys: []string{},
-			},
-			ForgotPassword: NewForgotPasswordConfiguration{
-				SecureMatch:      false,
-				Sender:           "no-reply@skygeario.com",
-				Subject:          "Reset password instruction",
-				ResetURLLifetime: 43200,
-			},
-			WelcomeEmail: NewWelcomeEmailConfiguration{
-				Enabled: false,
-				Sender:  "no-reply@skygeario.com",
-				Subject: "Welcome!",
-			},
-			SSO: NewSSOConfiguration{
-				JSSDKCDNURL: "https://code.skygear.io/js/skygear/latest/skygear.min.js",
-			},
+func defaultAppConfiguration() AppConfiguration {
+	return AppConfiguration{
+		DatabaseURL: "postgres://postgres:@localhost/postgres?sslmode=disable",
+		SMTP: NewSMTPConfiguration{
+			Port: 25,
+			Mode: "normal",
 		},
 	}
+}
+
+func defaultUserConfiguration() UserConfiguration {
+	return UserConfiguration{
+		Version: "1",
+		CORS: CORSConfiguration{
+			Origin: "*",
+		},
+		Auth: NewAuthConfiguration{
+			// Default to email and username
+			LoginIDKeys: []string{"email", "username"},
+		},
+		ForgotPassword: NewForgotPasswordConfiguration{
+			SecureMatch:      false,
+			Sender:           "no-reply@skygeario.com",
+			Subject:          "Reset password instruction",
+			ResetURLLifetime: 43200,
+		},
+		WelcomeEmail: NewWelcomeEmailConfiguration{
+			Enabled: false,
+			Sender:  "no-reply@skygeario.com",
+			Subject: "Welcome!",
+		},
+		SSO: NewSSOConfiguration{
+			JSSDKCDNURL: "https://code.skygear.io/js/skygear/latest/skygear.min.js",
+		},
+	}
+}
+
+type FromScratchOptions struct {
+	AppName     string
+	DatabaseURL string
+	APIKey      string
+	MasterKey   string
+}
+
+func NewTenantConfigurationFromScratch(options FromScratchOptions) TenantConfiguration {
+	c := TenantConfiguration{
+		AppConfig:  defaultAppConfiguration(),
+		UserConfig: defaultUserConfiguration(),
+	}
+	c.Version = "1"
+	c.AppConfig.Version = "1"
+	c.UserConfig.Version = "1"
+
+	c.AppName = options.AppName
+	c.AppConfig.DatabaseURL = options.DatabaseURL
+	c.UserConfig.APIKey = options.APIKey
+	c.UserConfig.MasterKey = options.MasterKey
+
+	c.AfterUnmarshal()
+	err := c.Validate()
+	if err != nil {
+		panic(err)
+	}
+
+	return c
 }
 
 func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error) {
@@ -72,9 +105,61 @@ func NewTenantConfigurationFromEnv(_ *http.Request) (TenantConfiguration, error)
 	return TenantConfiguration{}, errors.New("NewTenantConfigurationFromEnv")
 }
 
-func NewTenantConfigurationFromYAML(r io.Reader) (TenantConfiguration, error) {
-	// TODO: Load tenant config at filepath
-	return TenantConfiguration{}, errors.New("NewTenantConfigurationFromYAML")
+func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
+	decoder := yaml.NewDecoder(r)
+	config := TenantConfiguration{
+		AppConfig:  defaultAppConfiguration(),
+		UserConfig: defaultUserConfiguration(),
+	}
+	err := decoder.Decode(&config)
+	if err != nil {
+		return nil, err
+	}
+	config.AfterUnmarshal()
+	err = config.Validate()
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+func NewTenantConfigurationFromJSON(r io.Reader) (*TenantConfiguration, error) {
+	decoder := json.NewDecoder(r)
+	config := TenantConfiguration{
+		AppConfig:  defaultAppConfiguration(),
+		UserConfig: defaultUserConfiguration(),
+	}
+	err := decoder.Decode(&config)
+	if err != nil {
+		return nil, err
+	}
+	config.AfterUnmarshal()
+	err = config.Validate()
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+func NewTenantConfigurationFromStdBase64Msgpack(s string) (*TenantConfiguration, error) {
+	bytes, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+	var config TenantConfiguration
+	_, err = config.UnmarshalMsg(bytes)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+func (c *TenantConfiguration) StdBase64Msgpack() (string, error) {
+	bytes, err := c.MarshalMsg(nil)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(bytes), nil
 }
 
 func (c *TenantConfiguration) GetSSOProviderByName(name string) (SSOProviderConfiguration, bool) {
@@ -158,24 +243,19 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 
 func GetTenantConfig(r *http.Request) TenantConfiguration {
 	s := r.Header.Get(coreHttp.HeaderTenantConfig)
-	bytes, err := base64.StdEncoding.DecodeString(s)
+	config, err := NewTenantConfigurationFromStdBase64Msgpack(s)
 	if err != nil {
 		panic(err)
 	}
-	var config TenantConfiguration
-	_, err = config.UnmarshalMsg(bytes)
-	if err != nil {
-		panic(err)
-	}
-	return config
+	return *config
 }
 
 func SetTenantConfig(r *http.Request, config *TenantConfiguration) {
-	bytes, err := config.MarshalMsg(nil)
+	value, err := config.StdBase64Msgpack()
 	if err != nil {
 		panic(err)
 	}
-	r.Header.Set(coreHttp.HeaderTenantConfig, base64.StdEncoding.EncodeToString(bytes))
+	r.Header.Set(coreHttp.HeaderTenantConfig, value)
 }
 
 func DelTenantConfig(r *http.Request) {

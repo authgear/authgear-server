@@ -14,12 +14,6 @@ type tenantConfigurationValue struct {
 	Valid               bool
 }
 
-func newTenantConfigurationValue() tenantConfigurationValue {
-	return tenantConfigurationValue{
-		TenantConfiguration: config.NewTenantConfiguration(),
-	}
-}
-
 func (v tenantConfigurationValue) Value() (driver.Value, error) {
 	if !v.Valid {
 		return nil, nil
@@ -44,9 +38,13 @@ func (v *tenantConfigurationValue) Scan(value interface{}) error {
 		logger.Errorf("Unsupported Scan pair: %T -> %T", value, v.TenantConfiguration)
 	}
 
-	err := json.Unmarshal(b, &v.TenantConfiguration)
+	c, err := config.NewTenantConfigurationFromJSON(bytes.NewReader(b))
 	if err == nil {
 		v.Valid = true
+		v.TenantConfiguration = *c
+	} else {
+		v.Valid = false
 	}
+
 	return err
 }
