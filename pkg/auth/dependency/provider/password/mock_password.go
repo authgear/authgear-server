@@ -34,8 +34,8 @@ func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, allowedRealm
 }
 
 // IsLoginIDValid validates loginID
-func (m *MockProvider) IsLoginIDValid(loginID map[string]string) bool {
-	return m.loginIDChecker.isValid(loginID)
+func (m *MockProvider) IsLoginIDValid(loginIDs []LoginID) bool {
+	return m.loginIDChecker.isValid(loginIDs)
 }
 
 func (m *MockProvider) IsRealmValid(realm string) bool {
@@ -47,10 +47,10 @@ func (m *MockProvider) IsDefaultAllowedRealms() bool {
 }
 
 // CreatePrincipalsByLoginID creates principals by loginID
-func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs map[string]string, realm string) (err error) {
+func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (err error) {
 	// do not create principal when there is login ID belongs to another user.
-	for _, v := range loginIDs {
-		principals, principalErr := m.GetPrincipalsByLoginID("", v)
+	for _, loginID := range loginIDs {
+		principals, principalErr := m.GetPrincipalsByLoginID("", loginID.Value)
 		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
 			err = principalErr
 			return
@@ -63,11 +63,11 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 		}
 	}
 
-	for k, v := range loginIDs {
+	for _, loginID := range loginIDs {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
-		principal.LoginIDKey = k
-		principal.LoginID = v
+		principal.LoginIDKey = loginID.Key
+		principal.LoginID = loginID.Value
 		principal.Realm = realm
 		principal.PlainPassword = password
 		err = m.CreatePrincipal(principal)

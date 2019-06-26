@@ -51,35 +51,36 @@ func TestLoginID(t *testing.T) {
 			checker := defaultLoginIDChecker{
 				loginIDsKeyWhitelist: keys,
 			}
+			var loginIDs []LoginID
 
-			loginID := map[string]string{
-				"username": "johndoe",
-				"email":    "johndoe@example.com",
+			loginIDs = []LoginID{
+				LoginID{Key: "username", Value: "johndoe"},
+				LoginID{Key: "email", Value: "johndoe@example.com"},
 			}
-			So(checker.isValid(loginID), ShouldBeTrue)
+			So(checker.isValid(loginIDs), ShouldBeTrue)
 
-			loginID = map[string]string{
-				"username": "johndoe",
+			loginIDs = []LoginID{
+				LoginID{Key: "username", Value: "johndoe"},
 			}
-			So(checker.isValid(loginID), ShouldBeTrue)
+			So(checker.isValid(loginIDs), ShouldBeTrue)
 
-			loginID = map[string]string{
-				"email": "johndoe@example.com",
+			loginIDs = []LoginID{
+				LoginID{Key: "email", Value: "johndoe@example.com"},
 			}
-			So(checker.isValid(loginID), ShouldBeTrue)
+			So(checker.isValid(loginIDs), ShouldBeTrue)
 
-			loginID = map[string]string{
-				"nickname": "johndoe",
+			loginIDs = []LoginID{
+				LoginID{Key: "nickname", Value: "johndoe"},
 			}
-			So(checker.isValid(loginID), ShouldBeFalse)
+			So(checker.isValid(loginIDs), ShouldBeFalse)
 
-			loginID = map[string]string{
-				"email": "",
+			loginIDs = []LoginID{
+				LoginID{Key: "email", Value: ""},
 			}
-			So(checker.isValid(loginID), ShouldBeFalse)
+			So(checker.isValid(loginIDs), ShouldBeFalse)
 
-			loginID = map[string]string{}
-			So(checker.isValid(loginID), ShouldBeFalse)
+			loginIDs = []LoginID{}
+			So(checker.isValid(loginIDs), ShouldBeFalse)
 		})
 	})
 }

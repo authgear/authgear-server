@@ -39,9 +39,9 @@ func TestSingupHandler(t *testing.T) {
 	Convey("Test SignupRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := SignupRequestPayload{
-				LoginIDs: map[string]string{
-					"username": "john.doe",
-					"email":    "john.doe@example.com",
+				LoginIDs: []password.LoginID{
+					password.LoginID{Key: "username", Value: "john.doe"},
+					password.LoginID{Key: "email", Value: "john.doe@example.com"},
 				},
 				Password: "123456",
 			}
@@ -50,9 +50,9 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("validate valid payload with realm", func() {
 			payload := SignupRequestPayload{
-				LoginIDs: map[string]string{
-					"username": "john.doe",
-					"email":    "john.doe@example.com",
+				LoginIDs: []password.LoginID{
+					password.LoginID{Key: "username", Value: "john.doe"},
+					password.LoginID{Key: "email", Value: "john.doe@example.com"},
 				},
 				Realm:    "admin",
 				Password: "123456",
@@ -71,9 +71,9 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("validate payload without password", func() {
 			payload := SignupRequestPayload{
-				LoginIDs: map[string]string{
-					"username": "john.doe",
-					"email":    "john.doe@example.com",
+				LoginIDs: []password.LoginID{
+					password.LoginID{Key: "username", Value: "john.doe"},
+					password.LoginID{Key: "email", Value: "john.doe@example.com"},
 				},
 			}
 			err := payload.Validate()
@@ -83,9 +83,9 @@ func TestSingupHandler(t *testing.T) {
 
 		Convey("validate payload with duplicated loginIDs", func() {
 			payload := SignupRequestPayload{
-				LoginIDs: map[string]string{
-					"username": "john.doe",
-					"email":    "john.doe",
+				LoginIDs: []password.LoginID{
+					password.LoginID{Key: "username", Value: "john.doe"},
+					password.LoginID{Key: "email", Value: "john.doe"},
 				},
 			}
 			err := payload.Validate()
@@ -133,10 +133,10 @@ func TestSingupHandler(t *testing.T) {
 		Convey("signup user with login_id", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"email": "john.doe@example.com",
-					"username": "john.doe"
-				},
+				"login_ids": [
+					{ "email": "john.doe@example.com" },
+					{ "username": "john.doe" }
+				],
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
@@ -171,9 +171,9 @@ func TestSingupHandler(t *testing.T) {
 		Convey("signup user with login_id with realm", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"email": "john.doe@example.com"
-				},
+				"login_ids": [
+					{ "email": "john.doe@example.com" }
+				],
 				"realm": "admin",
 				"password": "123456"
 			}`))
@@ -237,9 +237,9 @@ func TestSingupHandler(t *testing.T) {
 		Convey("signup with incorrect login_id", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"phone": "202-111-2222"
-				},
+				"login_ids": [
+					{ "phone": "202-111-2222" }
+				],
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
@@ -263,10 +263,10 @@ func TestSingupHandler(t *testing.T) {
 		Convey("signup with weak password", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"username": "john.doe",
-					"email":    "john.doe@example.com"
-				},
+				"login_ids": [
+					{ "username": "john.doe" },
+					{ "email":    "john.doe@example.com" }
+				],
 				"password": "1234"
 			}`))
 			resp := httptest.NewRecorder()
@@ -292,10 +292,10 @@ func TestSingupHandler(t *testing.T) {
 		Convey("signup with email, send welcome email", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"username": "john.doe",
-					"email":    "john.doe@example.com"
-				},
+				"login_ids": [
+					{ "username": "john.doe" },
+					{ "email":    "john.doe@example.com" }
+				],
 				"password": "12345678"
 			}`))
 			resp := httptest.NewRecorder()
@@ -312,10 +312,10 @@ func TestSingupHandler(t *testing.T) {
 		Convey("log audit trail when signup success", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"username": "john.doe",
-					"email":    "john.doe@example.com"
-				},
+				"login_ids": [
+					{ "username": "john.doe" },
+					{ "email":    "john.doe@example.com" }
+				],
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
@@ -366,9 +366,9 @@ func TestSingupHandler(t *testing.T) {
 		Convey("duplicated user error format", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"username": "john.doe"
-				},
+				"login_ids": [
+					{ "username": "john.doe" }
+				],
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
@@ -377,9 +377,9 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ = http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"username": "john.doe"
-				},
+				"login_ids": [
+					{ "username": "john.doe" }
+				],
 				"password": "1234567"
 			}`))
 			resp = httptest.NewRecorder()
@@ -397,9 +397,9 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ = http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"username": "john.doe"
-				},
+				"login_ids": [
+					{ "username": "john.doe" }
+				],
 				"realm": "admin",
 				"password": "1234567"
 			}`))
@@ -418,9 +418,9 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ = http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"username": "john.doe"
-				},
+				"login_ids": [
+					{ "username": "john.doe" }
+				],
 				"realm": "test",
 				"password": "1234567"
 			}`))
@@ -493,10 +493,10 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"email": "john.doe@example.com",
-					"username": "john.doe"
-				},
+				"login_ids": [
+					{ "email": "john.doe@example.com" },
+					{ "username": "john.doe" }
+				],
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
@@ -546,10 +546,10 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"email": "john.doe@example.com",
-					"username": "john.doe"
-				},
+				"login_ids": [
+					{ "email": "john.doe@example.com" },
+					{ "username": "john.doe" }
+				],
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
@@ -590,10 +590,10 @@ func TestSingupHandler(t *testing.T) {
 							"id": "%s",
 							"path": "/auth/signup",
 							"payload": {
-								"login_ids": {
-									"email": "john.doe@example.com",
-									"username": "john.doe"
-								},
+								"login_ids": [
+									{ "email": "john.doe@example.com" },
+									{ "username": "john.doe" }
+								],
 								"realm": "default",
 								"password": "123456",
 								"metadata": {}
@@ -637,10 +637,10 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 							{
-								"login_ids": {
-									"email": "john.doe@example.com",
-									"username": "john.doe"
-								},
+								"login_ids": [
+									{ "email": "john.doe@example.com" },
+									{ "username": "john.doe" }
+								],
 								"password": "123456"
 							}`))
 			resp := httptest.NewRecorder()
@@ -685,10 +685,10 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"email": "john.doe@example.com",
-					"username": "john.doe"
-				},
+				"login_ids": [
+					{ "email": "john.doe@example.com" },
+					{ "username": "john.doe" }
+				],
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
@@ -738,10 +738,10 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"email": "john.doe@example.com",
-					"username": "john.doe"
-				},
+				"login_ids": [
+					{ "email": "john.doe@example.com" },
+					{ "username": "john.doe" }
+				],
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
@@ -834,10 +834,10 @@ func TestSingupHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_ids": {
-					"email": "john.doe@example.com",
-					"username": "john.doe"
-				},
+				"login_ids": [
+					{ "email": "john.doe@example.com" },
+					{ "username": "john.doe" }
+				],
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()

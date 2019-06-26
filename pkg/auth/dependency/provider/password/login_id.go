@@ -21,25 +21,25 @@ func ParseLoginIDs(rawLoginIDList []map[string]string) []LoginID {
 }
 
 type loginIDChecker interface {
-	isValid(loginID map[string]string) bool
+	isValid(loginIDs []LoginID) bool
 }
 
 type defaultLoginIDChecker struct {
 	loginIDsKeyWhitelist []string
 }
 
-func (c defaultLoginIDChecker) isValid(loginIDs map[string]string) bool {
+func (c defaultLoginIDChecker) isValid(loginIDs []LoginID) bool {
 	// default is empty list, allows any loginID keys
 	allowAll := len(c.loginIDsKeyWhitelist) == 0
-	for k, v := range loginIDs {
+	for _, loginID := range loginIDs {
 		// if loginIDsKeyWhitelist is not empty,
 		// reject any loginIDKey that is not in the list
 		if !allowAll &&
-			!utils.StringSliceContains(c.loginIDsKeyWhitelist, k) {
+			!utils.StringSliceContains(c.loginIDsKeyWhitelist, loginID.Key) {
 			return false
 		}
 
-		if v == "" {
+		if loginID.Value == "" {
 			return false
 		}
 	}

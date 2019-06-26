@@ -25,9 +25,9 @@ func NewSafeProvider(
 	}
 }
 
-func (p *safeProviderImpl) IsLoginIDValid(loginID map[string]string) bool {
+func (p *safeProviderImpl) IsLoginIDValid(loginIDs []LoginID) bool {
 	p.txContext.EnsureTx()
-	return p.impl.IsLoginIDValid(loginID)
+	return p.impl.IsLoginIDValid(loginIDs)
 }
 
 func (p safeProviderImpl) IsRealmValid(realm string) bool {
@@ -40,9 +40,9 @@ func (p *safeProviderImpl) IsDefaultAllowedRealms() bool {
 	return p.impl.IsDefaultAllowedRealms()
 }
 
-func (p *safeProviderImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) error {
+func (p *safeProviderImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) error {
 	p.txContext.EnsureTx()
-	return p.impl.CreatePrincipalsByLoginID(authInfoID, password, loginID, realm)
+	return p.impl.CreatePrincipalsByLoginID(authInfoID, password, loginIDs, realm)
 }
 
 func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {

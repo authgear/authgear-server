@@ -63,10 +63,11 @@ func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type SignupRequestPayload struct {
-	LoginIDs map[string]string      `json:"login_ids"`
-	Realm    string                 `json:"realm"`
-	Password string                 `json:"password"`
-	Metadata map[string]interface{} `json:"metadata"`
+	RawLoginIDs []map[string]string    `json:"login_ids"`
+	LoginIDs    []password.LoginID     `json:"-"`
+	Realm       string                 `json:"realm"`
+	Password    string                 `json:"password"`
+	Metadata    map[string]interface{} `json:"metadata"`
 }
 
 func (p SignupRequestPayload) Validate() error {
@@ -92,14 +93,14 @@ func (p SignupRequestPayload) Validate() error {
 func (p SignupRequestPayload) duplicatedLoginIDs() bool {
 	loginIDs := []string{}
 
-	for _, v := range p.LoginIDs {
-		found := utils.StringSliceContains(loginIDs, v)
+	for _, loginID := range p.LoginIDs {
+		found := utils.StringSliceContains(loginIDs, loginID.Value)
 
 		if found {
 			return found
 		}
 
-		loginIDs = append(loginIDs, v)
+		loginIDs = append(loginIDs, loginID.Value)
 	}
 
 	return false
@@ -147,6 +148,7 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	if payload.Realm == "" {
 		payload.Realm = password.DefaultRealm
 	}
+	payload.LoginIDs = password.ParseLoginIDs(payload.RawLoginIDs)
 	return payload, nil
 }
 
@@ -298,24 +300,29 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo au
 	return
 }
 
-func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs map[string]string) {
-	// TODO(login-id): use login ID key config
-	if email, ok := loginIDs["email"]; ok {
-		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-			Email: email,
-			User:  user,
-		}, nil)
+func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs []password.LoginID) {
+	for _, loginID := range loginIDs {
+		// TODO(login-id): use primary login IDs
+		if loginID.Key == "email" {
+			email := loginID.Value
+			h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
+				Email: email,
+				User:  user,
+			}, nil)
+		}
 	}
 }
 
-func (h SignupHandler) sendUserVerifyRequest(user response.User, loginIDs map[string]string) {
-	for _, key := range h.UserVerifyKeys {
-		if value, ok := loginIDs[key.Key]; ok {
-			h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
-				Key:   key.Key,
-				Value: value,
-				User:  user,
-			}, nil)
+func (h SignupHandler) sendUserVerifyRequest(user response.User, loginIDs []password.LoginID) {
+	for _, loginID := range loginIDs {
+		for _, verifyKey := range h.UserVerifyKeys {
+			if verifyKey.Key == loginID.Key {
+				h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
+					Key:   loginID.Key,
+					Value: loginID.Value,
+					User:  user,
+				}, nil)
+			}
 		}
 	}
 }

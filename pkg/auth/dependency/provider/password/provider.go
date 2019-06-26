@@ -65,8 +65,8 @@ func NewProvider(
 	return newProvider(builder, executor, logger, loginIDsKeyWhitelist, allowedRealms, passwordHistoryEnabled)
 }
 
-func (p providerImpl) IsLoginIDValid(loginID map[string]string) bool {
-	return p.loginIDChecker.isValid(loginID)
+func (p providerImpl) IsLoginIDValid(loginIDs []LoginID) bool {
+	return p.loginIDChecker.isValid(loginIDs)
 }
 
 func (p providerImpl) IsRealmValid(realm string) bool {
@@ -77,10 +77,10 @@ func (p *providerImpl) IsDefaultAllowedRealms() bool {
 	return len(p.allowedRealms) == 1 && p.allowedRealms[0] == DefaultRealm
 }
 
-func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) (err error) {
+func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (err error) {
 	// do not create principal when there is login ID belongs to another user.
-	for _, v := range loginID {
-		principals, principalErr := p.GetPrincipalsByLoginID("", v)
+	for _, loginID := range loginIDs {
+		principals, principalErr := p.GetPrincipalsByLoginID("", loginID.Value)
 		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
 			err = principalErr
 			return
@@ -93,11 +93,11 @@ func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password stri
 		}
 	}
 
-	for k, v := range loginID {
+	for _, loginID := range loginIDs {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
-		principal.LoginIDKey = k
-		principal.LoginID = v
+		principal.LoginIDKey = loginID.Key
+		principal.LoginID = loginID.Value
 		principal.Realm = realm
 		principal.PlainPassword = password
 		err = p.CreatePrincipal(principal)
