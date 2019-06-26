@@ -112,7 +112,7 @@ func TestLoginHandler(t *testing.T) {
 					"user_id": "%s",
 					"access_token": "%s",
 					"verified": false,
-					"verify_info": null,
+					"verify_info": {},
 					"created_at": "0001-01-01T00:00:00Z",
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",

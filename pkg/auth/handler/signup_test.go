@@ -608,7 +608,7 @@ func TestSingupHandler(t *testing.T) {
 						"updated_by": "%s",
 						"user_id": "%s",
 						"verified":false,
-						"verify_info":{}
+						"verify_info": {}
 					},
 					"event": "after_signup"
 				}`,

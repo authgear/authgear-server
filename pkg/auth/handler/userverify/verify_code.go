@@ -6,6 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
@@ -81,6 +82,7 @@ type VerifyCodeHandler struct {
 	UserProfileStore         userprofile.Store                   `dependency:"UserProfileStore"`
 	VerifyCodeStore          userverify.Store                    `dependency:"VerifyCodeStore"`
 	AuthInfoStore            authinfo.Store                      `dependency:"AuthInfoStore"`
+	PasswordAuthProvider     password.Provider                   `dependency:"PasswordAuthProvider"`
 	AutoUpdateUserVerifyFunc userverify.AutoUpdateUserVerifyFunc `dependency:"AutoUpdateUserVerifyFunc,optional"`
 	Logger                   *logrus.Entry                       `dependency:"HandlerLogger"`
 }
@@ -126,10 +128,15 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 		return
 	}
 
+	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID)
+	if err != nil {
+		return
+	}
+
 	// Update user
-	authInfo.VerifyInfo[code.RecordKey] = true
+	authInfo.VerifyInfo[code.RecordValue] = true
 	if h.AutoUpdateUserVerifyFunc != nil {
-		h.AutoUpdateUserVerifyFunc(authInfo)
+		h.AutoUpdateUserVerifyFunc(authInfo, principals)
 	}
 
 	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {

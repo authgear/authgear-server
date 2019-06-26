@@ -9,6 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -18,14 +19,18 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
+	"github.com/skygeario/skygear-server/pkg/core/utils"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func mockCreateAutoUpdateUserVerifyfunc(keys []string) userverify.AutoUpdateUserVerifyFunc {
-	return func(authInfo *authinfo.AuthInfo) {
+	return func(authInfo *authinfo.AuthInfo, principals []*password.Principal) {
 		allVerified := true
-		for _, key := range keys {
-			if !authInfo.VerifyInfo[key] {
+		for _, principal := range principals {
+			if !utils.StringSliceContains(keys, principal.LoginIDKey) {
+				continue
+			}
+			if !authInfo.VerifyInfo[principal.LoginID] {
 				allVerified = false
 				break
 			}
@@ -48,7 +53,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		vh.Logger = logrus.NewEntry(logger)
 		vh.TxContext = db.NewMockTxContext()
 		vh.AuthContext = auth.NewMockContextGetterWithUnverifiedUser(map[string]bool{
-			"email": false,
+			"faseng.cat.id@example.com": false,
 		})
 		vh.VerifyCodeStore = &userverify.MockStore{
 			Expiry: 12 * 60 * 60,
@@ -92,6 +97,36 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			},
 		}
 		vh.AutoUpdateUserVerifyFunc = mockCreateAutoUpdateUserVerifyfunc([]string{"email"})
+		vh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
+			[]string{"email"},
+			[]string{password.DefaultRealm},
+			map[string]password.Principal{
+				"faseng1": password.Principal{
+					ID:             "id1",
+					UserID:         "faseng.cat.id",
+					LoginIDKey:     "email",
+					LoginID:        "faseng.cat.id@example.com",
+					Realm:          "default",
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"faseng2": password.Principal{
+					ID:             "id2",
+					UserID:         "faseng.cat.id",
+					LoginIDKey:     "phone",
+					LoginID:        "+85299999999",
+					Realm:          "default",
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"chima1": password.Principal{
+					ID:             "id2",
+					UserID:         "chima.cat.id",
+					LoginIDKey:     "email",
+					LoginID:        "chima.cat.id@example.com",
+					Realm:          "default",
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+			},
+		)
 
 		authInfo := authinfo.AuthInfo{
 			ID: "faseng.cat.id",

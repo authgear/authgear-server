@@ -230,12 +230,6 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 		*info = authinfo.NewAuthInfo()
 		info.LastLoginAt = &now
 
-		// Initialise verify state
-		info.VerifyInfo = map[string]bool{}
-		for _, key := range h.UserVerifyKeys {
-			info.VerifyInfo[key.Key] = false
-		}
-
 		// Create AuthInfo
 		if e := h.AuthInfoStore.CreateAuth(info); e != nil {
 			if e == skydb.ErrUserDuplicated {

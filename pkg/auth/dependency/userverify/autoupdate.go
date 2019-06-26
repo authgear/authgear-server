@@ -3,11 +3,12 @@ package userverify
 import (
 	"fmt"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-type AutoUpdateUserVerifyFunc func(*authinfo.AuthInfo)
+type AutoUpdateUserVerifyFunc func(*authinfo.AuthInfo, []*password.Principal)
 
 func CreateAutoUpdateUserVerifyfunc(tConfig config.TenantConfiguration) AutoUpdateUserVerifyFunc {
 	if !tConfig.UserConfig.UserVerification.AutoUpdate {
@@ -16,23 +17,27 @@ func CreateAutoUpdateUserVerifyfunc(tConfig config.TenantConfiguration) AutoUpda
 
 	switch tConfig.UserConfig.UserVerification.Criteria {
 	case "all":
-		return func(authInfo *authinfo.AuthInfo) {
+		return func(authInfo *authinfo.AuthInfo, principals []*password.Principal) {
 			allVerified := true
-			for _, keyConfig := range tConfig.UserConfig.UserVerification.Keys {
-				if !authInfo.VerifyInfo[keyConfig.Key] {
-					allVerified = false
-					break
+			for _, principal := range principals {
+				for _, keyConfig := range tConfig.UserConfig.UserVerification.Keys {
+					if principal.LoginIDKey == keyConfig.Key && !authInfo.VerifyInfo[principal.LoginID] {
+						allVerified = false
+						break
+					}
 				}
 			}
 
 			authInfo.Verified = allVerified
 		}
 	case "any":
-		return func(authInfo *authinfo.AuthInfo) {
-			for _, keyConfig := range tConfig.UserConfig.UserVerification.Keys {
-				if authInfo.VerifyInfo[keyConfig.Key] {
-					authInfo.Verified = true
-					return
+		return func(authInfo *authinfo.AuthInfo, principals []*password.Principal) {
+			for _, principal := range principals {
+				for _, keyConfig := range tConfig.UserConfig.UserVerification.Keys {
+					if principal.LoginIDKey == keyConfig.Key && authInfo.VerifyInfo[principal.LoginID] {
+						authInfo.Verified = true
+						return
+					}
 				}
 			}
 

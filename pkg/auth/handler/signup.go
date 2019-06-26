@@ -212,12 +212,6 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 		panic(err)
 	}
 
-	// Initialize verify state
-	info.VerifyInfo = map[string]bool{}
-	for _, key := range h.UserVerifyKeys {
-		info.VerifyInfo[key.Key] = false
-	}
-
 	userFactory := response.UserFactory{
 		PasswordAuthProvider: h.PasswordAuthProvider,
 	}
