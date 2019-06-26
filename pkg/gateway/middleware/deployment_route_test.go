@@ -5,10 +5,10 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/gateway/model"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
-var mockRoutes = []*model.DeploymentRoute{
+var mockRoutes = []config.DeploymentRoute{
 	{
 		Path: "/api",
 	}, {
@@ -23,42 +23,46 @@ var mockRoutes = []*model.DeploymentRoute{
 var tests = []struct {
 	name         string
 	reqPath      string
-	routes       []*model.DeploymentRoute
-	matchedRoute *model.DeploymentRoute
+	routes       []config.DeploymentRoute
+	matchedRoute *config.DeploymentRoute
 }{
 	{
 		"api root without trailing slash",
 		"/api",
 		mockRoutes,
-		&model.DeploymentRoute{
+		&config.DeploymentRoute{
 			Path: "/api",
 		},
-	}, {
+	},
+	{
 		"api root with trailing slash",
 		"/api/",
 		mockRoutes,
-		&model.DeploymentRoute{
+		&config.DeploymentRoute{
 			Path: "/api/",
 		},
-	}, {
+	},
+	{
 		"api path",
 		"/api/user/1",
 		mockRoutes,
-		&model.DeploymentRoute{
+		&config.DeploymentRoute{
 			Path: "/api/",
 		},
-	}, {
+	},
+	{
 		"random path match root",
 		"/testing",
 		mockRoutes,
-		&model.DeploymentRoute{
+		&config.DeploymentRoute{
 			Path: "/",
 		},
-	}, {
+	},
+	{
 		"web path",
 		"/web/welcome",
 		mockRoutes,
-		&model.DeploymentRoute{
+		&config.DeploymentRoute{
 			Path: "/web",
 		},
 	},

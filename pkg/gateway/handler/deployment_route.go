@@ -41,12 +41,13 @@ func newDeploymentRouteReverseProxy() *httputil.ReverseProxy {
 	return &httputil.ReverseProxy{Director: director}
 }
 
-func getForwardURL(reqURL *url.URL, route model.DeploymentRoute) (*url.URL, error) {
+func getForwardURL(reqURL *url.URL, route coreConfig.DeploymentRoute) (*url.URL, error) {
 	var forwardURL *url.URL
 	var err error
+	typeConfig := model.RouteTypeConfig(route.TypeConfig)
 	switch route.Type {
 	case model.DeploymentRouteTypeFunction, model.DeploymentRouteTypeHTTPHandler:
-		forwardURL, err = url.Parse(route.TypeConfig.BackendURL())
+		forwardURL, err = url.Parse(typeConfig.BackendURL())
 		if err != nil {
 			return nil, err
 		}
@@ -56,11 +57,11 @@ func getForwardURL(reqURL *url.URL, route model.DeploymentRoute) (*url.URL, erro
 		}
 		forwardURL.Path = path.Join(
 			forwardURL.Path,
-			route.TypeConfig.TargetPath(),
+			typeConfig.TargetPath(),
 		)
 		break
 	case model.DeploymentRouteTypeHTTPService:
-		forwardURL, err = url.Parse(route.TypeConfig.BackendURL())
+		forwardURL, err = url.Parse(typeConfig.BackendURL())
 		if err != nil {
 			return nil, err
 		}
