@@ -50,26 +50,13 @@ func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
-	RawLoginID map[string]string `json:"login_id"`
-	LoginIDKey string
-	LoginID    string
+	LoginIDKey string `json:"login_id_key,omitempty"`
+	LoginID    string `json:"login_id"`
 	Password   string `json:"password"`
 }
 
 // Validate request payload
 func (p LoginRequestPayload) Validate() error {
-	if len(p.RawLoginID) == 0 {
-		return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
-	}
-
-	if len(p.RawLoginID) > 1 {
-		return skyerr.NewInvalidArgument("allow one login_id only", []string{"login_id"})
-	}
-
-	if p.LoginIDKey == "" {
-		return skyerr.NewInvalidArgument("empty login ID key", []string{"login_id_key"})
-	}
-
 	if p.LoginID == "" {
 		return skyerr.NewInvalidArgument("empty login ID", []string{"login_id"})
 	}
@@ -104,12 +91,6 @@ func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := LoginRequestPayload{}
 	err := json.NewDecoder(request.Body).Decode(&payload)
-	// RawLoginID should contain only one key-value map
-	for k, v := range payload.RawLoginID {
-		payload.LoginIDKey = k
-		payload.LoginID = v
-		break
-	}
 	return payload, err
 }
 
@@ -132,9 +113,13 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		}
 	}()
 
-	if valid := h.PasswordAuthProvider.IsLoginIDValid(payload.RawLoginID); !valid {
-		err = skyerr.NewInvalidArgument("invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting", []string{"login_id"})
-		return
+	if payload.LoginIDKey != "" {
+		loginIDMap := make(map[string]string)
+		loginIDMap[payload.LoginIDKey] = payload.LoginID
+		if valid := h.PasswordAuthProvider.IsLoginIDValid(loginIDMap); !valid {
+			err = skyerr.NewInvalidArgument("invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting", []string{"login_id"})
+			return
+		}
 	}
 
 	userID, err := h.getUserID(payload.Password, payload.LoginIDKey, payload.LoginID)

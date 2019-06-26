@@ -26,9 +26,6 @@ func TestLoginHandler(t *testing.T) {
 	Convey("Test LoginRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := LoginRequestPayload{
-				RawLoginID: map[string]string{
-					"username": "john.doe",
-				},
 				LoginIDKey: "username",
 				LoginID:    "john.doe",
 				Password:   "123456",
@@ -47,9 +44,6 @@ func TestLoginHandler(t *testing.T) {
 
 		Convey("validate payload without password", func() {
 			payload := LoginRequestPayload{
-				RawLoginID: map[string]string{
-					"username": "john.doe",
-				},
 				LoginIDKey: "username",
 				LoginID:    "john.doe",
 			}
@@ -58,14 +52,12 @@ func TestLoginHandler(t *testing.T) {
 			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
 		})
 
-		Convey("validate payload without login_id key", func() {
+		Convey("validate payload without login ID key", func() {
 			payload := LoginRequestPayload{
-				RawLoginID: map[string]string{},
-				Password:   "123456",
+				LoginID:  "john.doe",
+				Password: "123456",
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeNil)
 		})
 	})
 
@@ -114,11 +106,7 @@ func TestLoginHandler(t *testing.T) {
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 
 		Convey("login user with login_id", func() {
-			loginID := map[string]string{
-				"email": "john.doe@example.com",
-			}
 			payload := LoginRequestPayload{
-				RawLoginID: loginID,
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
 				Password:   "123456",
@@ -146,12 +134,18 @@ func TestLoginHandler(t *testing.T) {
 			So(!token.IsExpired(), ShouldBeTrue)
 		})
 
-		Convey("login user with incorrect password", func() {
-			loginID := map[string]string{
-				"email": "john.doe@example.com",
-			}
+		Convey("login user without login ID key", func() {
 			payload := LoginRequestPayload{
-				RawLoginID: loginID,
+				LoginID:  "john.doe@example.com",
+				Password: "123456",
+			}
+
+			_, err := h.Handle(payload)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("login user with incorrect password", func() {
+			payload := LoginRequestPayload{
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
 				Password:   "wrong_password",
@@ -162,11 +156,7 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("login with incorrect login_id", func() {
-			loginID := map[string]string{
-				"phone": "202-111-2222",
-			}
 			payload := LoginRequestPayload{
-				RawLoginID: loginID,
 				LoginIDKey: "phone",
 				LoginID:    "202-111-2222",
 				Password:   "123456",
@@ -176,11 +166,7 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when login success", func() {
-			loginID := map[string]string{
-				"email": "john.doe@example.com",
-			}
 			payload := LoginRequestPayload{
-				RawLoginID: loginID,
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
 				Password:   "123456",
@@ -192,11 +178,7 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when login fail", func() {
-			loginID := map[string]string{
-				"email": "john.doe@example.com",
-			}
 			payload := LoginRequestPayload{
-				RawLoginID: loginID,
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
 				Password:   "wrong_password",
@@ -263,9 +245,8 @@ func TestLoginHandler(t *testing.T) {
 		Convey("should contains multiple loginIDs", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_id": {
-					"email": "john.doe@example.com"
-				},
+				"login_id_key": "email",
+				"login_id": "john.doe@example.com",
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
