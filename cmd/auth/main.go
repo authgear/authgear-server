@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -67,12 +68,9 @@ func main() {
 	var srv server.Server
 	if configuration.Standalone {
 		filename := configuration.StandaloneTenantConfigurationFile
-		r, err := os.Open(filename)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer r.Close()
-		tenantConfig, err := config.NewTenantConfigurationFromYAML(r)
+		tenantConfig, err := config.NewTenantConfigurationFromYAMLAndEnv(func() (io.Reader, error) {
+			return os.Open(filename)
+		})
 		if err != nil {
 			log.Fatal(err)
 		}
