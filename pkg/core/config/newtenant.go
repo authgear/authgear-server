@@ -21,11 +21,12 @@ import (
 
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	Version    string            `json:"version" yaml:"version" msg:"version"`
-	AppName    string            `json:"app_name" yaml:"app_name" msg:"app_name"`
-	AppConfig  AppConfiguration  `json:"app_config" yaml:"app_config" msg:"app_config"`
-	UserConfig UserConfiguration `json:"user_config" yaml:"user_config" msg:"user_config"`
-	Hooks      []Hook            `json:"hooks" yaml:"hooks" msg:"hooks"`
+	Version          string            `json:"version" yaml:"version" msg:"version"`
+	AppName          string            `json:"app_name" yaml:"app_name" msg:"app_name"`
+	AppConfig        AppConfiguration  `json:"app_config" yaml:"app_config" msg:"app_config"`
+	UserConfig       UserConfiguration `json:"user_config" yaml:"user_config" msg:"user_config"`
+	Hooks            []Hook            `json:"hooks" yaml:"hooks" msg:"hooks"`
+	DeploymentRoutes []DeploymentRoute `json:"deployment_routes" yaml:"deployment_routes" msg:"deployment_routes"`
 }
 
 type Hook struct {
@@ -33,6 +34,13 @@ type Hook struct {
 	Event   string `json:"event" yaml:"event" msg:"event"`
 	URL     string `json:"url" yaml:"url" msg:"url"`
 	Timeout int    `json:"timeout" yaml:"timeout" msg:"timeout"`
+}
+
+type DeploymentRoute struct {
+	Version    string                 `json:"version" yaml:"version" msg:"version"`
+	Path       string                 `json:"path" yaml:"path" msg:"path"`
+	Type       string                 `json:"type" yaml:"type" msg:"type"`
+	TypeConfig map[string]interface{} `json:"type_config" yaml:"type_config" msg:"type_config"`
 }
 
 func defaultAppConfiguration() AppConfiguration {

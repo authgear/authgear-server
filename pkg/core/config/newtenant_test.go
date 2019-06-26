@@ -156,5 +156,38 @@ user_config:
 			So(err, ShouldBeNil)
 			So(c, ShouldNonRecursiveDataDeepEqual, *cc)
 		})
+		// DeploymentRoutes
+		Convey("should serialize deployment routes", func() {
+			c := NewTenantConfigurationFromScratch(FromScratchOptions{
+				AppName:     "myapp",
+				DatabaseURL: "postgres://",
+				APIKey:      "apikey",
+				MasterKey:   "masterkey",
+			})
+			c.DeploymentRoutes = []DeploymentRoute{
+				DeploymentRoute{
+					Version: "a",
+					Path:    "/",
+					Type:    "http-service",
+					TypeConfig: map[string]interface{}{
+						"backend_url": "http://localhost:3000",
+					},
+				},
+				DeploymentRoute{
+					Version: "a",
+					Path:    "/api",
+					Type:    "http-service",
+					TypeConfig: map[string]interface{}{
+						"backend_url": "http://localhost:3001",
+					},
+				},
+			}
+			b, err := yaml.Marshal(c)
+			So(err, ShouldBeNil)
+
+			cc, err := NewTenantConfigurationFromYAML(bytes.NewReader(b))
+			So(err, ShouldBeNil)
+			So(c, ShouldNonRecursiveDataDeepEqual, *cc)
+		})
 	})
 }
