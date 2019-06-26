@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
 
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
@@ -80,13 +81,13 @@ func defaultUserConfiguration() UserConfiguration {
 }
 
 type FromScratchOptions struct {
-	AppName     string
-	DatabaseURL string
-	APIKey      string
-	MasterKey   string
+	AppName     string `envconfig:"APP_NAME"`
+	DatabaseURL string `envconfig:"DATABASE_URL"`
+	APIKey      string `envconfig:"API_KEY"`
+	MasterKey   string `envconfig:"MASTER_KEY"`
 }
 
-func NewTenantConfigurationFromScratch(options FromScratchOptions) TenantConfiguration {
+func NewTenantConfigurationFromScratch(options FromScratchOptions) (*TenantConfiguration, error) {
 	c := TenantConfiguration{
 		AppConfig:  defaultAppConfiguration(),
 		UserConfig: defaultUserConfiguration(),
@@ -101,10 +102,10 @@ func NewTenantConfigurationFromScratch(options FromScratchOptions) TenantConfigu
 	c.AfterUnmarshal()
 	err := c.Validate()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return c
+	return &c, nil
 }
 
 func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
@@ -123,6 +124,55 @@ func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
 		return nil, err
 	}
 	return &config, nil
+}
+
+func NewTenantConfigurationFromEnv() (*TenantConfiguration, error) {
+	options := FromScratchOptions{}
+	err := envconfig.Process("", &options)
+	if err != nil {
+		return nil, err
+	}
+	return NewTenantConfigurationFromScratch(options)
+}
+
+func NewTenantConfigurationFromYAMLAndEnv(open func() (io.Reader, error)) (*TenantConfiguration, error) {
+	options := FromScratchOptions{}
+	err := envconfig.Process("", &options)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := open()
+	if err != nil {
+		// Load from env directly
+		return NewTenantConfigurationFromScratch(options)
+	}
+	defer func() {
+		if rc, ok := r.(io.Closer); ok {
+			rc.Close()
+		}
+	}()
+
+	c, err := NewTenantConfigurationFromYAML(r)
+	if err != nil {
+		return nil, err
+	}
+
+	// Allow override from env
+	if options.AppName != "" {
+		c.AppName = options.AppName
+	}
+	if options.DatabaseURL != "" {
+		c.AppConfig.DatabaseURL = options.DatabaseURL
+	}
+	if options.APIKey != "" {
+		c.UserConfig.APIKey = options.APIKey
+	}
+	if options.MasterKey != "" {
+		c.UserConfig.MasterKey = options.MasterKey
+	}
+
+	return c, nil
 }
 
 func NewTenantConfigurationFromJSON(r io.Reader) (*TenantConfiguration, error) {

@@ -3,6 +3,8 @@ package config
 import (
 	"bytes"
 	"encoding/json"
+	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -115,7 +117,7 @@ user_config:
 		})
 		// Conversion
 		Convey("should be losslessly converted between Go and msgpack", func() {
-			c := NewTenantConfigurationFromScratch(FromScratchOptions{
+			c, _ := NewTenantConfigurationFromScratch(FromScratchOptions{
 				AppName:     "myapp",
 				DatabaseURL: "postgres://",
 				APIKey:      "apikey",
@@ -126,10 +128,10 @@ user_config:
 
 			cc, err := NewTenantConfigurationFromStdBase64Msgpack(base64msgpack)
 			So(err, ShouldBeNil)
-			So(c, ShouldResemble, *cc)
+			So(c, ShouldResemble, cc)
 		})
 		Convey("should be losslessly converted between Go and JSON", func() {
-			c := NewTenantConfigurationFromScratch(FromScratchOptions{
+			c, _ := NewTenantConfigurationFromScratch(FromScratchOptions{
 				AppName:     "myapp",
 				DatabaseURL: "postgres://",
 				APIKey:      "apikey",
@@ -140,10 +142,10 @@ user_config:
 
 			cc, err := NewTenantConfigurationFromJSON(bytes.NewReader(b))
 			So(err, ShouldBeNil)
-			So(c, ShouldResemble, *cc)
+			So(c, ShouldResemble, cc)
 		})
 		Convey("should be losslessly converted between Go and YAML", func() {
-			c := NewTenantConfigurationFromScratch(FromScratchOptions{
+			c, _ := NewTenantConfigurationFromScratch(FromScratchOptions{
 				AppName:     "myapp",
 				DatabaseURL: "postgres://",
 				APIKey:      "apikey",
@@ -154,11 +156,11 @@ user_config:
 
 			cc, err := NewTenantConfigurationFromYAML(bytes.NewReader(b))
 			So(err, ShouldBeNil)
-			So(c, ShouldNonRecursiveDataDeepEqual, *cc)
+			So(c, ShouldNonRecursiveDataDeepEqual, cc)
 		})
 		// DeploymentRoutes
 		Convey("should serialize deployment routes", func() {
-			c := NewTenantConfigurationFromScratch(FromScratchOptions{
+			c, _ := NewTenantConfigurationFromScratch(FromScratchOptions{
 				AppName:     "myapp",
 				DatabaseURL: "postgres://",
 				APIKey:      "apikey",
@@ -187,7 +189,43 @@ user_config:
 
 			cc, err := NewTenantConfigurationFromYAML(bytes.NewReader(b))
 			So(err, ShouldBeNil)
-			So(c, ShouldNonRecursiveDataDeepEqual, *cc)
+			So(c, ShouldNonRecursiveDataDeepEqual, cc)
+		})
+		// Env
+		Convey("should load tenant config from env", func() {
+			os.Clearenv()
+			_, err := NewTenantConfigurationFromEnv()
+			So(err, ShouldBeError, "DATABASE_URL is not set")
+
+			os.Setenv("DATABASE_URL", "postgres://")
+			os.Setenv("APP_NAME", "myapp")
+			os.Setenv("API_KEY", "api_key")
+			os.Setenv("MASTER_KEY", "master_key")
+			c, err := NewTenantConfigurationFromEnv()
+
+			So(err, ShouldBeNil)
+			So(c.AppName, ShouldEqual, "myapp")
+			So(c.AppConfig.DatabaseURL, ShouldEqual, "postgres://")
+			So(c.UserConfig.APIKey, ShouldEqual, "api_key")
+			So(c.UserConfig.MasterKey, ShouldEqual, "master_key")
+		})
+		Convey("should load tenant config from yaml and env", func() {
+			os.Clearenv()
+
+			os.Setenv("DATABASE_URL", "postgres://remote")
+			os.Setenv("APP_NAME", "yourapp")
+			os.Setenv("API_KEY", "your_api_key")
+			os.Setenv("MASTER_KEY", "your_master_key")
+
+			c, err := NewTenantConfigurationFromYAMLAndEnv(func() (io.Reader, error) {
+				return strings.NewReader(inputMinimalYAML), nil
+			})
+
+			So(err, ShouldBeNil)
+			So(c.AppName, ShouldEqual, "yourapp")
+			So(c.AppConfig.DatabaseURL, ShouldEqual, "postgres://remote")
+			So(c.UserConfig.APIKey, ShouldEqual, "your_api_key")
+			So(c.UserConfig.MasterKey, ShouldEqual, "your_master_key")
 		})
 	})
 }
