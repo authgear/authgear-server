@@ -1,9 +1,13 @@
 package config
 
 import (
+	"bytes"
+	"database/sql"
+	"database/sql/driver"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -142,6 +146,30 @@ func NewTenantConfigurationFromStdBase64Msgpack(s string) (*TenantConfiguration,
 		return nil, err
 	}
 	return &config, nil
+}
+
+func (c *TenantConfiguration) Value() (driver.Value, error) {
+	bytes, err := json.Marshal(*c)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
+}
+
+func (c *TenantConfiguration) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("Cannot convert %T to TenantConfiguration", value)
+	}
+	config, err := NewTenantConfigurationFromJSON(bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	*c = *config
+	return nil
 }
 
 func (c *TenantConfiguration) StdBase64Msgpack() (string, error) {
@@ -439,3 +467,8 @@ type NewNexmoConfiguration struct {
 	APISecret string `json:"secret" yaml:"secret" msg:"secret"`
 	From      string `json:"from" yaml:"from" msg:"from"`
 }
+
+var (
+	_ sql.Scanner   = &TenantConfiguration{}
+	_ driver.Valuer = &TenantConfiguration{}
+)
