@@ -97,9 +97,6 @@ func (h ForgotPasswordHandler) DecodeRequest(request *http.Request) (handler.Req
 
 func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(ForgotPasswordPayload)
-	authData := map[string]interface{}{
-		"email": payload.Email,
-	}
 
 	// TODO(login-id): use login ID key config
 	principals, principalErr := h.PasswordAuthProvider.GetPrincipalsByLoginID("email", payload.Email)
@@ -114,7 +111,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 			return
 		}
 		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("login_id", authData)
+		err = skyerr.NewResourceFetchFailureErr("login_id", payload.Email)
 		return
 	}
 
@@ -133,7 +130,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 				return
 			}
 			// TODO: more error handling here if necessary
-			err = skyerr.NewResourceFetchFailureErr("login_id", authData)
+			err = skyerr.NewResourceFetchFailureErr("login_id", payload.Email)
 			return
 		}
 

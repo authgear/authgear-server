@@ -167,11 +167,8 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	}
 
 	// Get user email from loginIDs
-	loginIDs := password.PrincipalsToLoginIDs(principals)
-	// TODO(login-id): use login ID key config
-	email := loginIDs["email"]
 	hashedPassword := principals[0].HashedPassword
-	expectedCode := h.CodeGenerator.Generate(authInfo, email, hashedPassword, payload.ExpireAtTime)
+	expectedCode := h.CodeGenerator.Generate(authInfo, hashedPassword, payload.ExpireAtTime)
 	if payload.Code != expectedCode {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id":       payload.UserID,

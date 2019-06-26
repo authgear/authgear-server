@@ -307,7 +307,7 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 		return
 	}
 
-	expectedCode := h.CodeGenerator.Generate(authInfo, email, hashedPassword, templateCtx.payload.ExpireAtTime)
+	expectedCode := h.CodeGenerator.Generate(authInfo, hashedPassword, templateCtx.payload.ExpireAtTime)
 	if templateCtx.payload.Code != expectedCode {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id":       templateCtx.payload.UserID,

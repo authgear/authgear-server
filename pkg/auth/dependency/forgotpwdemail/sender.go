@@ -52,7 +52,7 @@ func (d *DefaultSender) Send(
 		time.Now().UTC().
 			Truncate(time.Second * 1).
 			Add(time.Second * time.Duration(d.Config.ResetURLLifetime))
-	code := d.CodeGenerator.Generate(authInfo, email, hashedPassword, expireAt)
+	code := d.CodeGenerator.Generate(authInfo, hashedPassword, expireAt)
 	context := map[string]interface{}{
 		"appname": d.Config.AppName,
 		"link": fmt.Sprintf(

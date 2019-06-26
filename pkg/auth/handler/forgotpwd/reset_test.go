@@ -90,7 +90,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"user_id": "john.doe.id",
-				"code": "ed3bce0b",
+				"code": "54edc977",
 				"expire_at": 1104678245,
 				"new_password": "xxx"
 			}`))
@@ -138,7 +138,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"user_id": "john.doe.id",
-				"code": "0e0e0776",
+				"code": "1398d567",
 				"expire_at": 1138892645,
 				"new_password": "xxx"
 			}`))
