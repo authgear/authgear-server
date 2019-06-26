@@ -5,3 +5,8 @@ app_config:
 user_config:
   api_key: apikey
   master_key: masterkey
+deployment_routes:
+- type: http-service
+  path: /
+  type_config:
+    backend_url: http://localhost:9999

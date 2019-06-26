@@ -12,9 +12,11 @@ import (
 
 // Configuration is gateway startup configuration
 type Configuration struct {
-	Host          string        `envconfig:"HOST" default:"localhost:3001"`
-	ConnectionStr string        `envconfig:"DATABASE_URL" required:"true"`
-	Auth          GearURLConfig `envconfig:"AUTH"`
+	Standalone                        bool
+	StandaloneTenantConfigurationFile string        `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
+	Host                              string        `envconfig:"HOST" default:"localhost:3001"`
+	ConnectionStr                     string        `envconfig:"DATABASE_URL"`
+	Auth                              GearURLConfig `envconfig:"AUTH"`
 }
 
 // ReadFromEnv reads from environment variable and update the configuration.

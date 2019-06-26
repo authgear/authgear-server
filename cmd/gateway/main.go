@@ -4,10 +4,12 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
 
+	coreConfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	coreMiddleware "github.com/skygeario/skygear-server/pkg/core/middleware"
@@ -17,7 +19,9 @@ import (
 	"github.com/skygeario/skygear-server/pkg/gateway/handler"
 	"github.com/skygeario/skygear-server/pkg/gateway/middleware"
 	"github.com/skygeario/skygear-server/pkg/gateway/provider"
+	"github.com/skygeario/skygear-server/pkg/gateway/store"
 	pqStore "github.com/skygeario/skygear-server/pkg/gateway/store/pq"
+	standaloneStore "github.com/skygeario/skygear-server/pkg/gateway/store/standalone"
 )
 
 var config gatewayConfig.Configuration
@@ -39,13 +43,28 @@ func main() {
 	logger := logging.LoggerEntry("gateway")
 
 	// create gateway store
-	store, connErr := pqStore.NewGatewayStore(
-		context.Background(),
-		config.ConnectionStr,
-		logger,
-	)
-	if connErr != nil {
-		logger.WithError(connErr).Panic("Fail to create db conn")
+	var store store.GatewayStore
+	var connErr error
+	if config.Standalone {
+		filename := config.StandaloneTenantConfigurationFile
+		tenantConfig, err := coreConfig.NewTenantConfigurationFromYAMLAndEnv(func() (io.Reader, error) {
+			return os.Open(filename)
+		})
+		if err != nil {
+			logger.WithError(err).Panic("Fail to load config")
+		}
+		store = &standaloneStore.Store{
+			TenantConfig: *tenantConfig,
+		}
+	} else {
+		store, connErr = pqStore.NewGatewayStore(
+			context.Background(),
+			config.ConnectionStr,
+			logger,
+		)
+		if connErr != nil {
+			logger.WithError(connErr).Panic("Fail to create db conn")
+		}
 	}
 	defer store.Close()
 
