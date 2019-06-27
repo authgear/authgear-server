@@ -21,8 +21,8 @@ type providerImpl struct {
 	sqlBuilder             db.SQLBuilder
 	sqlExecutor            db.SQLExecutor
 	logger                 *logrus.Entry
-	loginIDsKeyWhitelist   []string
 	loginIDChecker         loginIDChecker
+	realmChecker           realmChecker
 	passwordHistoryEnabled bool
 	passwordHistoryStore   passwordhistory.Store
 }
@@ -32,15 +32,18 @@ func newProvider(
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
 	loginIDsKeyWhitelist []string,
+	allowedRealms []string,
 	passwordHistoryEnabled bool,
 ) *providerImpl {
 	return &providerImpl{
-		sqlBuilder:           builder,
-		sqlExecutor:          executor,
-		logger:               logger,
-		loginIDsKeyWhitelist: loginIDsKeyWhitelist,
+		sqlBuilder:  builder,
+		sqlExecutor: executor,
+		logger:      logger,
 		loginIDChecker: defaultLoginIDChecker{
 			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
+		},
+		realmChecker: defaultRealmChecker{
+			allowedRealms: allowedRealms,
 		},
 		passwordHistoryEnabled: passwordHistoryEnabled,
 		passwordHistoryStore: pqPWHistory.NewPasswordHistoryStore(
@@ -54,13 +57,18 @@ func NewProvider(
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
 	loginIDsKeyWhitelist []string,
+	allowedRealms []string,
 	passwordHistoryEnabled bool,
 ) Provider {
-	return newProvider(builder, executor, logger, loginIDsKeyWhitelist, passwordHistoryEnabled)
+	return newProvider(builder, executor, logger, loginIDsKeyWhitelist, allowedRealms, passwordHistoryEnabled)
 }
 
 func (p providerImpl) IsLoginIDValid(loginID map[string]string) bool {
 	return p.loginIDChecker.isValid(loginID)
+}
+
+func (p providerImpl) IsRealmValid(realm string) bool {
+	return p.realmChecker.isValid(realm)
 }
 
 func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) (err error) {

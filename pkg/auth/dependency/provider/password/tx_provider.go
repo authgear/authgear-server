@@ -15,11 +15,12 @@ func NewSafeProvider(
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
 	loginIDsKeyWhitelist []string,
+	allowedRealms []string,
 	passwordHistoryEnabled bool,
 	txContext db.SafeTxContext,
 ) Provider {
 	return &safeProviderImpl{
-		impl:      newProvider(builder, executor, logger, loginIDsKeyWhitelist, passwordHistoryEnabled),
+		impl:      newProvider(builder, executor, logger, loginIDsKeyWhitelist, allowedRealms, passwordHistoryEnabled),
 		txContext: txContext,
 	}
 }
@@ -27,6 +28,11 @@ func NewSafeProvider(
 func (p *safeProviderImpl) IsLoginIDValid(loginID map[string]string) bool {
 	p.txContext.EnsureTx()
 	return p.impl.IsLoginIDValid(loginID)
+}
+
+func (p safeProviderImpl) IsRealmValid(realm string) bool {
+	p.txContext.EnsureTx()
+	return p.impl.IsRealmValid(realm)
 }
 
 func (p *safeProviderImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) error {

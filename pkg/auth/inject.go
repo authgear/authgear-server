@@ -92,6 +92,7 @@ func (m DependencyMap) Provide(
 			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 			logging.CreateLoggerWithRequestID(requestID, "provider_password", createLoggerMaskFormatter(tConfig)),
 			tConfig.UserConfig.Auth.LoginIDKeys,
+			tConfig.UserConfig.Auth.AllowedRealms,
 			passwordHistoryEnabled,
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
