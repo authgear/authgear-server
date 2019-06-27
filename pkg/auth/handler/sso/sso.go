@@ -190,13 +190,15 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 
 	// if oauth principal doesn't exist, try to link existed password principal
 	if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
-		// provider authData matches app's loginIDsKeyWhitelist,
-		// then it starts auto-link procedure.
-		//
-		// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
-		// it will be a valid authData if loginIDsKeyWhitelist is [](empty), ["username", "email"] or ["email"]
-		// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
-		return h.authLinkUser(oauthAuthInfo)
+		if valid := h.PasswordAuthProvider.IsRealmValid(password.DefaultRealm); valid {
+			// provider authData matches app's loginIDsKeyWhitelist,
+			// then it starts auto-link procedure.
+			//
+			// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
+			// it will be a valid authData if loginIDsKeyWhitelist is [](empty), ["username", "email"] or ["email"]
+			// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
+			return h.authLinkUser(oauthAuthInfo)
+		}
 	}
 
 	return nil, nil
@@ -239,9 +241,11 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 
 func (h respHandler) createEmptyPasswordPrincipal(userID string, oauthAuthInfo sso.AuthInfo) error {
 	if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
-		// if ProviderAuthData matches loginIDsKeyWhitelist, and it can't be link with current account,
-		// we also creates an empty password principal for later the user can set password to it
-		return h.PasswordAuthProvider.CreatePrincipalsByLoginID(userID, "", oauthAuthInfo.ProviderAuthData, "")
+		if valid := h.PasswordAuthProvider.IsRealmValid(password.DefaultRealm); valid {
+			// if ProviderAuthData matches loginIDsKeyWhitelist, and it can't be link with current account,
+			// we also creates an empty password principal for later the user can set password to it
+			return h.PasswordAuthProvider.CreatePrincipalsByLoginID(userID, "", oauthAuthInfo.ProviderAuthData, password.DefaultRealm)
+		}
 	}
 
 	return nil
