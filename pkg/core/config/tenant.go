@@ -47,7 +47,7 @@ type DeploymentRoute struct {
 func defaultAppConfiguration() AppConfiguration {
 	return AppConfiguration{
 		DatabaseURL: "postgres://postgres:@localhost/postgres?sslmode=disable",
-		SMTP: NewSMTPConfiguration{
+		SMTP: SMTPConfiguration{
 			Port: 25,
 			Mode: "normal",
 		},
@@ -59,22 +59,22 @@ func defaultUserConfiguration() UserConfiguration {
 		CORS: CORSConfiguration{
 			Origin: "*",
 		},
-		Auth: NewAuthConfiguration{
+		Auth: AuthConfiguration{
 			// Default to email and username
 			LoginIDKeys: []string{"email", "username"},
 		},
-		ForgotPassword: NewForgotPasswordConfiguration{
+		ForgotPassword: ForgotPasswordConfiguration{
 			SecureMatch:      false,
 			Sender:           "no-reply@skygeario.com",
 			Subject:          "Reset password instruction",
 			ResetURLLifetime: 43200,
 		},
-		WelcomeEmail: NewWelcomeEmailConfiguration{
+		WelcomeEmail: WelcomeEmailConfiguration{
 			Enabled: false,
 			Sender:  "no-reply@skygeario.com",
 			Subject: "Welcome!",
 		},
-		SSO: NewSSOConfiguration{
+		SSO: SSOConfiguration{
 			JSSDKCDNURL: "https://code.skygear.io/js/skygear/latest/skygear.min.js",
 		},
 	}
@@ -340,17 +340,17 @@ func removeTrailingSlash(url string) string {
 
 // UserConfiguration represents user-editable configuration
 type UserConfiguration struct {
-	APIKey           string                         `json:"api_key" yaml:"api_key" msg:"api_key"`
-	MasterKey        string                         `json:"master_key" yaml:"master_key" msg:"master_key"`
-	URLPrefix        string                         `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	CORS             CORSConfiguration              `json:"cors" yaml:"cors" msg:"cors"`
-	Auth             NewAuthConfiguration           `json:"auth" yaml:"auth" msg:"auth"`
-	TokenStore       NewTokenStoreConfiguration     `json:"token_store" yaml:"token_store" msg:"token_store"`
-	UserAudit        NewUserAuditConfiguration      `json:"user_audit" yaml:"user_audit" msg:"user_audit"`
-	ForgotPassword   NewForgotPasswordConfiguration `json:"forgot_password" yaml:"forgot_password" msg:"forgot_password"`
-	WelcomeEmail     NewWelcomeEmailConfiguration   `json:"welcome_email" yaml:"welcome_email" msg:"welcome_email"`
-	SSO              NewSSOConfiguration            `json:"sso" yaml:"sso" msg:"sso"`
-	UserVerification UserVerificationConfiguration  `json:"user_verification" yaml:"user_verification" msg:"user_verification"`
+	APIKey           string                        `json:"api_key" yaml:"api_key" msg:"api_key"`
+	MasterKey        string                        `json:"master_key" yaml:"master_key" msg:"master_key"`
+	URLPrefix        string                        `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	CORS             CORSConfiguration             `json:"cors" yaml:"cors" msg:"cors"`
+	Auth             AuthConfiguration             `json:"auth" yaml:"auth" msg:"auth"`
+	TokenStore       TokenStoreConfiguration       `json:"token_store" yaml:"token_store" msg:"token_store"`
+	UserAudit        UserAuditConfiguration        `json:"user_audit" yaml:"user_audit" msg:"user_audit"`
+	ForgotPassword   ForgotPasswordConfiguration   `json:"forgot_password" yaml:"forgot_password" msg:"forgot_password"`
+	WelcomeEmail     WelcomeEmailConfiguration     `json:"welcome_email" yaml:"welcome_email" msg:"welcome_email"`
+	SSO              SSOConfiguration              `json:"sso" yaml:"sso" msg:"sso"`
+	UserVerification UserVerificationConfiguration `json:"user_verification" yaml:"user_verification" msg:"user_verification"`
 }
 
 // CORSConfiguration represents CORS configuration.
@@ -362,17 +362,17 @@ type CORSConfiguration struct {
 	Origin string `json:"origin" yaml:"origin" msg:"origin"`
 }
 
-type NewAuthConfiguration struct {
+type AuthConfiguration struct {
 	LoginIDKeys       []string `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
 	CustomTokenSecret string   `json:"custom_token_secret" yaml:"custom_token_secret" msg:"custom_token_secret"`
 }
 
-type NewTokenStoreConfiguration struct {
+type TokenStoreConfiguration struct {
 	Secret string `json:"secret" yaml:"secret" msg:"secret"`
 	Expiry int64  `json:"expiry" yaml:"expiry" msg:"expiry"`
 }
 
-type NewUserAuditConfiguration struct {
+type UserAuditConfiguration struct {
 	Enabled         bool                  `json:"enabled" yaml:"enabled" msg:"enabled"`
 	TrailHandlerURL string                `json:"trail_handler_url" yaml:"trail_handler_url" msg:"trail_handler_url"`
 	Password        PasswordConfiguration `json:"password" yaml:"password" msg:"password"`
@@ -394,7 +394,7 @@ type PasswordConfiguration struct {
 	ExpiryDays  int `json:"expiry_days" yaml:"expiry_days" msg:"expiry_days"`
 }
 
-type NewForgotPasswordConfiguration struct {
+type ForgotPasswordConfiguration struct {
 	AppName             string `json:"app_name" yaml:"app_name" msg:"app_name"`
 	URLPrefix           string `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
 	SecureMatch         bool   `json:"secure_match" yaml:"secure_match" msg:"secure_match"`
@@ -413,7 +413,7 @@ type NewForgotPasswordConfiguration struct {
 	ResetErrorHTMLURL   string `json:"reset_error_html_url" yaml:"reset_error_html_url" msg:"reset_error_html_url"`
 }
 
-type NewWelcomeEmailConfiguration struct {
+type WelcomeEmailConfiguration struct {
 	Enabled     bool   `json:"enabled" yaml:"enabled" msg:"enabled"`
 	URLPrefix   string `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
 	SenderName  string `json:"sender_name" yaml:"sender_name" msg:"sender_name"`
@@ -425,7 +425,7 @@ type NewWelcomeEmailConfiguration struct {
 	HTMLURL     string `json:"html_url" yaml:"html_url" msg:"html_url"`
 }
 
-type NewSSOConfiguration struct {
+type SSOConfiguration struct {
 	URLPrefix            string                     `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
 	JSSDKCDNURL          string                     `json:"js_sdk_cdn_url" yaml:"js_sdk_cdn_url" msg:"js_sdk_cdn_url"`
 	StateJWTSecret       string                     `json:"state_jwt_secret" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
@@ -434,7 +434,7 @@ type NewSSOConfiguration struct {
 	Providers            []SSOProviderConfiguration `json:"providers" yaml:"providers" msg:"providers"`
 }
 
-func (s *NewSSOConfiguration) APIEndpoint() string {
+func (s *SSOConfiguration) APIEndpoint() string {
 	// URLPrefix can't be seen as skygear endpoint.
 	// Consider URLPrefix = http://localhost:3001/auth
 	// and skygear SDK use is as base endpint URL (in iframe_html and auth_handler_html).
@@ -500,13 +500,13 @@ type UserVerificationProviderConfiguration struct {
 
 // AppConfiguration is configuration kept secret from the developer.
 type AppConfiguration struct {
-	DatabaseURL string                 `json:"database_url" yaml:"database_url" msg:"database_url"`
-	SMTP        NewSMTPConfiguration   `json:"smtp" yaml:"smtp" msg:"smtp"`
-	Twilio      NewTwilioConfiguration `json:"twilio" yaml:"twilio" msg:"twilio"`
-	Nexmo       NewNexmoConfiguration  `json:"nexmo" yaml:"nexmo" msg:"nexmo"`
+	DatabaseURL string              `json:"database_url" yaml:"database_url" msg:"database_url"`
+	SMTP        SMTPConfiguration   `json:"smtp" yaml:"smtp" msg:"smtp"`
+	Twilio      TwilioConfiguration `json:"twilio" yaml:"twilio" msg:"twilio"`
+	Nexmo       NexmoConfiguration  `json:"nexmo" yaml:"nexmo" msg:"nexmo"`
 }
 
-type NewSMTPConfiguration struct {
+type SMTPConfiguration struct {
 	Host     string `json:"host" yaml:"host" msg:"host"`
 	Port     int    `json:"port" yaml:"port" msg:"port"`
 	Mode     string `json:"mode" yaml:"mode" msg:"mode"`
@@ -514,13 +514,13 @@ type NewSMTPConfiguration struct {
 	Password string `json:"password" yaml:"password" msg:"password"`
 }
 
-type NewTwilioConfiguration struct {
+type TwilioConfiguration struct {
 	AccountSID string `json:"account_sid" yaml:"account_sid" msg:"account_sid"`
 	AuthToken  string `json:"auth_token" yaml:"auth_token" msg:"auth_token"`
 	From       string `json:"from" yaml:"from" msg:"from"`
 }
 
-type NewNexmoConfiguration struct {
+type NexmoConfiguration struct {
 	APIKey    string `json:"api_key" yaml:"api_key" msg:"api_key"`
 	APISecret string `json:"secret" yaml:"secret" msg:"secret"`
 	From      string `json:"from" yaml:"from" msg:"from"`

@@ -17,7 +17,7 @@ type Sender interface {
 
 type DefaultSender struct {
 	AppName        string
-	Config         config.NewWelcomeEmailConfiguration
+	Config         config.WelcomeEmailConfiguration
 	Dialer         *gomail.Dialer
 	TemplateEngine *template.Engine
 }

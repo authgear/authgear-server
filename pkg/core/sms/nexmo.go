@@ -12,7 +12,7 @@ type NexmoClient struct {
 	*nexmo.Client
 }
 
-func NewNexmoClient(c config.NewNexmoConfiguration) *NexmoClient {
+func NewNexmoClient(c config.NexmoConfiguration) *NexmoClient {
 	if c.APIKey == "" || c.APISecret == "" {
 		panic(errors.New("Nexmo api key or secret is empty"))
 	}

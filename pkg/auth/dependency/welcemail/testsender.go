@@ -23,7 +23,7 @@ type TestSender interface {
 
 type DefaultTestSender struct {
 	AppName string
-	Config  config.NewWelcomeEmailConfiguration
+	Config  config.WelcomeEmailConfiguration
 	Dialer  *gomail.Dialer
 }
 

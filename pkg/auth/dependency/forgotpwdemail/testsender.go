@@ -25,7 +25,7 @@ type TestSender interface {
 }
 
 type DefaultTestSender struct {
-	Config config.NewForgotPasswordConfiguration
+	Config config.ForgotPasswordConfiguration
 	Dialer *gomail.Dialer
 }
 

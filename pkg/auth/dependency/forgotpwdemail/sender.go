@@ -23,7 +23,7 @@ type Sender interface {
 }
 
 type DefaultSender struct {
-	Config         config.NewForgotPasswordConfiguration
+	Config         config.ForgotPasswordConfiguration
 	Dialer         *gomail.Dialer
 	CodeGenerator  *CodeGenerator
 	TemplateEngine *template.Engine

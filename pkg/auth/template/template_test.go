@@ -15,7 +15,7 @@ func TestResetPasswordPayload(t *testing.T) {
 	Convey("Test auth template", t, func() {
 		config := config.TenantConfiguration{
 			UserConfig: config.UserConfiguration{
-				WelcomeEmail: config.NewWelcomeEmailConfiguration{
+				WelcomeEmail: config.WelcomeEmailConfiguration{
 					HTMLURL: "http://template.com/welcome-email-html-url",
 				},
 				UserVerification: config.UserVerificationConfiguration{

@@ -154,7 +154,7 @@ func (d *DefaultTestCodeSenderFactory) NewTestCodeSender(key string, providerSet
 	}
 }
 
-func smtpConfigFromProviderSettings(providerSettings map[string]string) *config.NewSMTPConfiguration {
+func smtpConfigFromProviderSettings(providerSettings map[string]string) *config.SMTPConfiguration {
 	if providerSettings["smtp_host"] == "" {
 		return nil
 	}
@@ -164,7 +164,7 @@ func smtpConfigFromProviderSettings(providerSettings map[string]string) *config.
 		panic(errors.New("invalid smtp_port in provider settings"))
 	}
 
-	return &config.NewSMTPConfiguration{
+	return &config.SMTPConfiguration{
 		Host:     providerSettings["smtp_host"],
 		Port:     port,
 		Mode:     providerSettings["smtp_mode"],
@@ -173,24 +173,24 @@ func smtpConfigFromProviderSettings(providerSettings map[string]string) *config.
 	}
 }
 
-func twilioSmsClientConfigFromProviderSettings(providerSettings map[string]string) *config.NewTwilioConfiguration {
+func twilioSmsClientConfigFromProviderSettings(providerSettings map[string]string) *config.TwilioConfiguration {
 	if providerSettings["twilio_account_sid"] == "" {
 		return nil
 	}
 
-	return &config.NewTwilioConfiguration{
+	return &config.TwilioConfiguration{
 		AccountSID: providerSettings["twilio_account_sid"],
 		AuthToken:  providerSettings["twilio_auth_token"],
 		From:       providerSettings["twilio_from"],
 	}
 }
 
-func nexmoSmsClientConfigFromProviderSettings(providerSettings map[string]string) *config.NewNexmoConfiguration {
+func nexmoSmsClientConfigFromProviderSettings(providerSettings map[string]string) *config.NexmoConfiguration {
 	if providerSettings["nexmo_api_key"] == "" {
 		return nil
 	}
 
-	return &config.NewNexmoConfiguration{
+	return &config.NexmoConfiguration{
 		APIKey:    providerSettings["nexmo_api_key"],
 		APISecret: providerSettings["nexmo_api_secret"],
 		From:      providerSettings["nexmo_from"],
