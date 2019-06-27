@@ -6,8 +6,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
-const DefaultRealm string = "default"
-
 type Principal struct {
 	ID             string
 	UserID         string

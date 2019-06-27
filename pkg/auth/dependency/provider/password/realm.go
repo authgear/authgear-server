@@ -2,6 +2,8 @@ package password
 
 import "github.com/skygeario/skygear-server/pkg/core/utils"
 
+const DefaultRealm string = "default"
+
 type realmChecker interface {
 	isValid(realm string) bool
 }
