@@ -293,6 +293,16 @@ func (c *TenantConfiguration) Validate() error {
 		}
 	}
 
+	for _, verifyConfig := range c.UserConfig.UserVerification.Keys {
+		keyConfig, ok := c.UserConfig.Auth.LoginIDKeys[verifyConfig.Key]
+		if !ok {
+			return errors.New("Cannot verify disallowed login ID key: " + verifyConfig.Key)
+		}
+		if metadataKey, valid := keyConfig.Type.MetadataKey(); !valid || (metadataKey != metadata.Email && metadataKey != metadata.Phone) {
+			return errors.New("Cannot verify login ID key with unknown type: " + verifyConfig.Key)
+		}
+	}
+
 	if err := name.ValidateAppName(c.AppName); err != nil {
 		return err
 	}
@@ -413,17 +423,18 @@ type LoginIDKeyType string
 
 const loginIDKeyTypeRaw LoginIDKeyType = "raw"
 
-func (t LoginIDKeyType) MetadataKey() *metadata.StandardKey {
+func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
 	for _, key := range metadata.AllKeys() {
 		if string(t) == string(key) {
-			return &key
+			return key, true
 		}
 	}
-	return nil
+	return "", false
 }
 
 func (t LoginIDKeyType) IsValid() bool {
-	return t == loginIDKeyTypeRaw || t.MetadataKey() != nil
+	_, validKey := t.MetadataKey()
+	return t == loginIDKeyTypeRaw || validKey
 }
 
 type LoginIDKeyConfiguration struct {
