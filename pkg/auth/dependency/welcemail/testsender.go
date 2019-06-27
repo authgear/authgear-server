@@ -30,7 +30,7 @@ type DefaultTestSender struct {
 func NewDefaultTestSender(config config.TenantConfiguration, dialer *gomail.Dialer) TestSender {
 	return &DefaultTestSender{
 		AppName: config.AppName,
-		Config:  config.WelcomeEmail,
+		Config:  config.UserConfig.WelcomeEmail,
 		Dialer:  dialer,
 	}
 }

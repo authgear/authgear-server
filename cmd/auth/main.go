@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -29,8 +31,10 @@ import (
 )
 
 type configuration struct {
-	DevMode bool   `envconfig:"DEV_MODE"`
-	Host    string `envconfig:"HOST" default:"localhost:3000"`
+	Standalone                        bool
+	StandaloneTenantConfigurationFile string `envconfig:"STANDALONE_TENANT_CONFIG_FILE" default:"standalone-tenant-config.yaml"`
+	PathPrefix                        string `envconfig:"PATH_PREFIX"`
+	Host                              string `default:"localhost:3000"`
 }
 
 func main() {
@@ -62,12 +66,22 @@ func main() {
 	authContextResolverFactory := resolver.AuthContextResolverFactory{}
 
 	var srv server.Server
-	if configuration.DevMode {
+	if configuration.Standalone {
+		filename := configuration.StandaloneTenantConfigurationFile
+		tenantConfig, err := config.NewTenantConfigurationFromYAMLAndEnv(func() (io.Reader, error) {
+			return os.Open(filename)
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		serverOption := server.DefaultOption()
-		serverOption.GearPathPrefix = "/_auth"
+		serverOption.GearPathPrefix = configuration.PathPrefix
 		srv = server.NewServerWithOption(configuration.Host, authContextResolverFactory, serverOption)
 		srv.Use(middleware.TenantConfigurationMiddleware{
-			ConfigurationProvider: middleware.ConfigurationProviderFunc(config.NewTenantConfigurationFromEnv),
+			ConfigurationProvider: middleware.ConfigurationProviderFunc(func(_ *http.Request) (config.TenantConfiguration, error) {
+				return *tenantConfig, nil
+			}),
 		}.Handle)
 	} else {
 		srv = server.NewServer(configuration.Host, authContextResolverFactory)

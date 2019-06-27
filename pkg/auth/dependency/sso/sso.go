@@ -119,8 +119,11 @@ func NewProviderFactory(tenantConfig config.TenantConfiguration) *ProviderFactor
 }
 
 func (p *ProviderFactory) NewProvider(name string) Provider {
-	SSOConf := p.tenantConfig.GetSSOConfigByName(name)
-	SSOSetting := p.tenantConfig.SSOSetting
+	SSOConf, ok := p.tenantConfig.GetSSOProviderByName(name)
+	if !ok {
+		return nil
+	}
+	SSOSetting := p.tenantConfig.UserConfig.SSO
 	setting := Setting{
 		URLPrefix:            SSOSetting.URLPrefix,
 		JSSDKCDNURL:          SSOSetting.JSSDKCDNURL,
@@ -161,7 +164,7 @@ func (p *ProviderFactory) NewProvider(name string) Provider {
 }
 
 func (p *ProviderFactory) Setting() Setting {
-	SSOSetting := p.tenantConfig.SSOSetting
+	SSOSetting := p.tenantConfig.UserConfig.SSO
 	return Setting{
 		URLPrefix:            SSOSetting.URLPrefix,
 		JSSDKCDNURL:          SSOSetting.JSSDKCDNURL,

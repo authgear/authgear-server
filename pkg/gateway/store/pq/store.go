@@ -8,7 +8,7 @@ import (
 	sq "github.com/lann/squirrel"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
-	"github.com/skygeario/skygear-server/pkg/gateway/db"
+	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
 // NewGatewayStore create new gateway store by db connection url
@@ -57,5 +57,5 @@ func Connect(ctx context.Context, connString string) (*Store, error) {
 
 // this ensures that our structure conform to certain interfaces.
 var (
-	_ db.GatewayStore = &Store{}
+	_ store.GatewayStore = &Store{}
 )

@@ -1,275 +1,336 @@
 package config
 
 import (
+	"bytes"
+	"database/sql"
+	"database/sql/driver"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 
-	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
-
 	"github.com/kelseyhightower/envconfig"
+	"gopkg.in/yaml.v2"
+
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
+	"github.com/skygeario/skygear-server/pkg/core/name"
 )
 
-// TenantConfiguration is a mock struct of tenant configuration
 //go:generate msgp -tests=false
 type TenantConfiguration struct {
-	DBConnectionStr string                      `msg:"DATABASE_URL" envconfig:"DATABASE_URL" json:"DATABASE_URL"`
-	APIKey          string                      `msg:"API_KEY" envconfig:"API_KEY" json:"API_KEY"`
-	MasterKey       string                      `msg:"MASTER_KEY" envconfig:"MASTER_KEY" json:"MASTER_KEY"`
-	AppName         string                      `msg:"APP_NAME" envconfig:"APP_NAME" json:"APP_NAME"`
-	URLPrefix       string                      `msg:"URL_PREFIX" envconfig:"URL_PREFIX" json:"URL_PREFIX"`
-	CORSHost        string                      `msg:"CORS_HOST" envconfig:"CORS_HOST" json:"CORS_HOST"`
-	Auth            AuthConfiguration           `msg:"AUTH" json:"AUTH"`
-	TokenStore      TokenStoreConfiguration     `json:"TOKEN_STORE" msg:"TOKEN_STORE"`
-	UserAudit       UserAuditConfiguration      `json:"USER_AUDIT" msg:"USER_AUDIT"`
-	SMTP            SMTPConfiguration           `json:"SMTP" msg:"SMTP"`
-	Twilio          TwilioConfiguration         `json:"TWILIO" msg:"TWILIO"`
-	Nexmo           NexmoConfiguration          `json:"NEXMO" msg:"NEXMO"`
-	ForgotPassword  ForgotPasswordConfiguration `json:"FORGOT_PASSWORD" msg:"FORGOT_PASSWORD"`
-	WelcomeEmail    WelcomeEmailConfiguration   `json:"WELCOME_EMAIL" msg:"WELCOME_EMAIL"`
-	SSOSetting      SSOSetting                  `json:"SSO_SETTING" msg:"SSO_SETTING"`
-	SSOProviders    []string                    `json:"SSO_PROVIDERS" envconfig:"SSO_PROVIDERS" msg:"SSO_PROVIDERS"`
-	SSOConfigs      []SSOConfiguration          `json:"SSO_CONFIGS" msg:"SSO_CONFIGS"`
-	UserVerify      UserVerifyConfiguration     `json:"USER_VERIFY" msg:"USER_VERIFY"`
-	Hooks           []Hook                      `json:"HOOKS" msg:"HOOKS"`
-}
-
-type TokenStoreConfiguration struct {
-	Secret string `msg:"SECRET" envconfig:"TOKEN_STORE_SECRET" json:"SECRET"`
-	Expiry int64  `msg:"EXPIRY" envconfig:"TOKEN_STORE_EXPIRY" json:"EXPIRY"`
-}
-
-type AuthConfiguration struct {
-	LoginIDsKeyWhitelist []string `msg:"LOGIN_IDS_KEY_WHITELIST" envconfig:"LOGIN_IDS_KEY_WHITELIST" json:"LOGIN_IDS_KEY_WHITELIST"`
-	CustomTokenSecret    string   `msg:"CUSTOM_TOKEN_SECRET" envconfig:"CUSTOM_TOKEN_SECRET" json:"CUSTOM_TOKEN_SECRET"`
-}
-
-type UserAuditConfiguration struct {
-	Enabled             bool     `msg:"ENABLED" envconfig:"USER_AUDIT_ENABLED" json:"ENABLED"`
-	TrailHandlerURL     string   `msg:"TRAIL_HANDLER_URL" envconfig:"USER_AUDIT_TRAIL_HANDLER_URL" json:"TRAIL_HANDLER_URL"`
-	PwMinLength         int      `msg:"PW_MIN_LENGTH" envconfig:"USER_AUDIT_PW_MIN_LENGTH" json:"PW_MIN_LENGTH"`
-	PwUppercaseRequired bool     `msg:"PW_UPPERCASE_REQUIRED" envconfig:"USER_AUDIT_PW_UPPERCASE_REQUIRED" json:"PW_UPPERCASE_REQUIRED"`
-	PwLowercaseRequired bool     `msg:"PW_LOWERCASE_REQUIRED" envconfig:"USER_AUDIT_PW_LOWERCASE_REQUIRED" json:"PW_LOWERCASE_REQUIRED"`
-	PwDigitRequired     bool     `msg:"PW_DIGIT_REQUIRED" envconfig:"USER_AUDIT_PW_DIGIT_REQUIRED" json:"PW_DIGIT_REQUIRED"`
-	PwSymbolRequired    bool     `msg:"PW_SYMBOL_REQUIRED" envconfig:"USER_AUDIT_PW_SYMBOL_REQUIRED" json:"PW_SYMBOL_REQUIRED"`
-	PwMinGuessableLevel int      `msg:"PW_MIN_GUESSABLE_LEVEL" envconfig:"USER_AUDIT_PW_MIN_GUESSABLE_LEVEL" json:"PW_MIN_GUESSABLE_LEVEL"`
-	PwExcludedKeywords  []string `msg:"PW_EXCLUDED_KEYWORDS" envconfig:"USER_AUDIT_PW_EXCLUDED_KEYWORDS" json:"PW_EXCLUDED_KEYWORDS"`
-	PwExcludedFields    []string `msg:"PW_EXCLUDED_FIELDS" envconfig:"USER_AUDIT_PW_EXCLUDED_FIELDS" json:"PW_EXCLUDED_FIELDS"`
-	PwHistorySize       int      `msg:"PW_HISTORY_SIZE" envconfig:"USER_AUDIT_PW_HISTORY_SIZE" json:"PW_HISTORY_SIZE"`
-	PwHistoryDays       int      `msg:"PW_HISTORY_DAYS" envconfig:"USER_AUDIT_PW_HISTORY_DAYS" json:"PW_HISTORY_DAYS"`
-	PwExpiryDays        int      `msg:"PW_EXPIRY_DAYS" envconfig:"USER_AUDIT_PW_EXPIRY_DAYS" json:"PW_EXPIRY_DAYS"`
-}
-
-type SMTPConfiguration struct {
-	Host     string `msg:"HOST" envconfig:"SMTP_HOST" json:"HOST"`
-	Port     int    `msg:"PORT" envconfig:"SMTP_PORT" json:"PORT"`
-	Mode     string `msg:"MODE" envconfig:"SMTP_MODE" json:"MODE"`
-	Login    string `msg:"LOGIN" envconfig:"SMTP_LOGIN" json:"LOGIN"`
-	Password string `msg:"PASSWORD" envconfig:"SMTP_PASSWORD" json:"PASSWORD"`
-}
-
-type ForgotPasswordConfiguration struct {
-	AppName             string `msg:"APP_NAME" envconfig:"FORGOT_PASSWORD_APP_NAME" json:"APP_NAME"`
-	URLPrefix           string `msg:"URL_PREFIX" envconfig:"FORGOT_PASSWORD_URL_PREFIX" json:"URL_PREFIX"`
-	SecureMatch         bool   `msg:"SECURE_MATCH" envconfig:"FORGOT_PASSWORD_SECURE_MATCH" json:"SECURE_MATCH"`
-	SenderName          string `msg:"SENDER_NAME" envconfig:"FORGOT_PASSWORD_SENDER_NAME" json:"SENDER_NAME"`
-	Sender              string `msg:"SENDER" envconfig:"FORGOT_PASSWORD_SENDER" json:"SENDER"`
-	Subject             string `msg:"SUBJECT" envconfig:"FORGOT_PASSWORD_SUBJECT" json:"SUBJECT"`
-	ReplyToName         string `msg:"REPLY_TO_NAME" envconfig:"FORGOT_PASSWORD_REPLY_TO_NAME" json:"REPLY_TO_NAME"`
-	ReplyTo             string `msg:"REPLY_TO" envconfig:"FORGOT_PASSWORD_REPLY_TO" json:"REPLY_TO"`
-	ResetURLLifeTime    int    `msg:"RESET_URL_LIFE_TIME" envconfig:"FORGOT_PASSWORD_RESET_URL_LIFE_TIME" json:"RESET_URL_LIFE_TIME"`
-	SuccessRedirect     string `msg:"SUCCESS_REDIRECT" envconfig:"FORGOT_PASSWORD_SUCCESS_REDIRECT" json:"SUCCESS_REDIRECT"`
-	ErrorRedirect       string `msg:"ERROR_REDIRECT" envconfig:"FORGOT_PASSWORD_ERROR_REDIRECT" json:"ERROR_REDIRECT"`
-	EmailTextURL        string `msg:"EMAIL_TEXT_URL" envconfig:"FORGOT_PASSWORD_EMAIL_TEXT_URL" json:"EMAIL_TEXT_URL"`
-	EmailHTMLURL        string `msg:"EMAIL_HTML_URL" envconfig:"FORGOT_PASSWORD_EMAIL_HTML_URL" json:"EMAIL_HTML_URL"`
-	ResetHTMLURL        string `msg:"RESET_HTML_URL" envconfig:"FORGOT_PASSWORD_RESET_HTML_URL" json:"RESET_HTML_URL"`
-	ResetSuccessHTMLURL string `msg:"RESET_SUCCESS_HTML_URL" envconfig:"FORGOT_PASSWORD_RESET_SUCCESS_HTML_URL" json:"RESET_SUCCESS_HTML_URL"`
-	ResetErrorHTMLURL   string `msg:"RESET_ERROR_HTML_URL" envconfig:"FORGOT_PASSWORD_RESET_ERROR_HTML_URL" json:"RESET_ERROR_HTML_URL"`
-}
-
-type WelcomeEmailConfiguration struct {
-	Enabled     bool   `msg:"ENABLED" envconfig:"WELCOME_EMAIL_ENABLED" json:"ENABLED"`
-	URLPrefix   string `msg:"URL_PREFIX" envconfig:"WELCOME_EMAIL_PRRFIX" json:"URL_PREFIX"`
-	SenderName  string `msg:"SENDER_NAME" envconfig:"WELCOME_EMAIL_SENDER_NAME" json:"SENDER_NAME"`
-	Sender      string `msg:"SENDER" envconfig:"WELCOME_EMAIL_SENDER" json:"SENDER"`
-	Subject     string `msg:"SUBJECT" envconfig:"WELCOME_EMAIL_SUBJECT" json:"SUBJECT"`
-	ReplyToName string `msg:"REPLY_TO_NAME" envconfig:"WELCOME_EMAIL_REPLY_TO_NAME" json:"REPLY_TO_NAME"`
-	ReplyTo     string `msg:"REPLY_TO" envconfig:"WELCOME_EMAIL_REPLY_TO" json:"REPLY_TO"`
-	TextURL     string `msg:"TEXT_URL" envconfig:"WELCOME_EMAIL_TEXT_URL" json:"TEXT_URL"`
-	HTMLURL     string `msg:"HTML_URL" envconfig:"WELCOME_EMAIL_HTML_URL" json:"HTML_URL"`
-}
-
-type SSOSetting struct {
-	URLPrefix            string   `msg:"URL_PREFIX" envconfig:"SSO_URL_PRRFIX" json:"URL_PREFIX"`
-	JSSDKCDNURL          string   `msg:"JS_SDK_CDN_URL" envconfig:"SSO_JS_SDK_CDN_URL" json:"JS_SDK_CDN_URL"`
-	StateJWTSecret       string   `msg:"STATE_JWT_SECRET" envconfig:"SSO_STATE_JWT_SECRET" json:"STATE_JWT_SECRET"`
-	AutoLinkProviderKeys []string `msg:"AUTO_LINK_PROVIDER_KEYS" envconfig:"SSO_AUTO_LINK_PROVIDER_KEYS" json:"AUTO_LINK_PROVIDER_KEYS"`
-	AllowedCallbackURLs  []string `msg:"ALLOWED_CALLBACK_URLS" envconfig:"SSO_ALLOWED_CALLBACK_URLS" json:"ALLOWED_CALLBACK_URLS"`
-}
-
-type SSOConfiguration struct {
-	Name         string `msg:"NAME" ignored:"true" json:"NAME"`
-	ClientID     string `msg:"CLIENT_ID" envconfig:"CLIENT_ID" json:"CLIENT_ID"`
-	ClientSecret string `msg:"CLIENT_SECRET" envconfig:"CLIENT_SECRET" json:"CLIENT_SECRET"`
-	Scope        string `msg:"SCOPE" envconfig:"SCOPE" json:"SCOPE"`
-}
-
-type UserVerifyConfiguration struct {
-	URLPrefix        string                       `msg:"URL_PREFIX" envconfig:"VERIFY_URL_PREFIX" json:"URL_PREFIX"`
-	AutoUpdate       bool                         `msg:"AUTO_UPDATE" envconfig:"VERIFY_AUTO_UPDATE" json:"AUTO_UPDATE"`
-	AutoSendOnSignup bool                         `msg:"AUTO_SEND_SIGNUP" envconfig:"VERIFY_AUTO_SEND_SIGNUP" json:"AUTO_SEND_SIGNUP"`
-	AutoSendOnUpdate bool                         `msg:"AUTO_SEND_UPDATE" envconfig:"VERIFY_AUTO_SEND_UPDATE" json:"AUTO_SEND_UPDATE"`
-	Required         bool                         `msg:"REQUIRED" envconfig:"VERIFY_REQUIRED" json:"REQUIRED"`
-	Criteria         string                       `msg:"CRITERIA" envconfig:"VERIFY_CRITERIA" json:"CRITERIA"`
-	ErrorRedirect    string                       `msg:"ERROR_REDIRECT" envconfig:"VERIFY_ERROR_REDIRECT" json:"ERROR_REDIRECT"`
-	ErrorHTMLURL     string                       `msg:"ERROR_HTML_URL" envconfig:"VERIFY_ERROR_HTML_URL" json:"ERROR_HTML_URL"`
-	Keys             []string                     `msg:"KEYS" envconfig:"VERIFY_KEYS" json:"KEYS"`
-	KeyConfigs       []UserVerifyKeyConfiguration `msg:"KEY_CONFIGS" json:"KEY_CONFIGS"`
-}
-
-func (u *UserVerifyConfiguration) ConfigForKey(key string) (UserVerifyKeyConfiguration, bool) {
-	for _, c := range u.KeyConfigs {
-		if c.Key == key {
-			return c, true
-		}
-	}
-
-	return UserVerifyKeyConfiguration{}, false
-}
-
-type UserVerifyKeyConfiguration struct {
-	Key             string `msg:"KEY" ignored:"true" json:"KEY"`
-	CodeFormat      string `msg:"CODE_FORMAT" envconfig:"CODE_FORMAT" json:"CODE_FORMAT"`
-	Expiry          int64  `msg:"EXPIRY" envconfig:"EXPIRY" json:"EXPIRY"`
-	SuccessRedirect string `msg:"SUCCESS_REDIRECT" envconfig:"SUCCESS_REDIRECT" json:"SUCCESS_REDIRECT"`
-	SuccessHTMLURL  string `msg:"SUCCESS_HTML_URL" envconfig:"SUCCESS_HTML_URL" json:"SUCCESS_HTML_URL"`
-	ErrorRedirect   string `msg:"ERROR_REDIRECT" envconfig:"ERROR_REDIRECT" json:"ERROR_REDIRECT"`
-	ErrorHTMLURL    string `msg:"ERROR_HTML_URL" envconfig:"ERROR_HTML_URL" json:"ERROR_HTML_URL"`
-	Provider        string `msg:"PROVIDER" envconfig:"PROVIDER" json:"PROVIDER"`
-
-	// provider config
-	ProviderConfig UserVerifyKeyProviderConfiguration `msg:"PROVIDER_CONFIG" json:"PROVIDER_CONFIG"`
-}
-
-type UserVerifyKeyProviderConfiguration struct {
-	Subject     string `msg:"SUBJECT" envconfig:"SUBJECT" json:"SUBJECT"`
-	Sender      string `msg:"SENDER" envconfig:"SENDER" json:"SENDER"`
-	SenderName  string `msg:"SENDER_NAME" envconfig:"SENDER_NAME" json:"SENDER_NAME"`
-	ReplyTo     string `msg:"REPLY_TO" envconfig:"REPLY_TO" json:"REPLY_TO"`
-	ReplyToName string `msg:"REPLY_TO_NAME" envconfig:"REPLY_TO_NAME" json:"REPLY_TO_NAME"`
-	TextURL     string `msg:"TEXT_URL" envconfig:"TEXT_URL" json:"TEXT_URL"`
-	HTMLURL     string `msg:"HTML_URL" envconfig:"HTML_URL" json:"HTML_URL"`
-}
-
-type TwilioConfiguration struct {
-	AccountSID string `msg:"ACCOUNT_SID" envconfig:"TWILIO_ACCOUNT_SID" json:"ACCOUNT_SID"`
-	AuthToken  string `msg:"AUTH_TOKEN" envconfig:"TWILIO_AUTH_TOKEN" json:"AUTH_TOKEN"`
-	From       string `msg:"FROM" envconfig:"TWILIO_FROM" json:"FROM"`
-}
-
-type NexmoConfiguration struct {
-	APIKey    string `msg:"API_KEY" envconfig:"NEXMO_API_KEY" json:"API_KEY"`
-	APISecret string `msg:"API_SECRET" envconfig:"NEXMO_API_SECRET" json:"API_SECRET"`
-	From      string `msg:"FROM" envconfig:"NEXMO_FROM" json:"FROM"`
+	Version          string            `json:"version" yaml:"version" msg:"version"`
+	AppName          string            `json:"app_name" yaml:"app_name" msg:"app_name"`
+	AppConfig        AppConfiguration  `json:"app_config" yaml:"app_config" msg:"app_config"`
+	UserConfig       UserConfiguration `json:"user_config" yaml:"user_config" msg:"user_config"`
+	Hooks            []Hook            `json:"hooks" yaml:"hooks" msg:"hooks"`
+	DeploymentRoutes []DeploymentRoute `json:"deployment_routes" yaml:"deployment_routes" msg:"deployment_routes"`
 }
 
 type Hook struct {
-	CloudCodeID   string `msg:"CLOUD_CODE_ID" envconfig:"CLOUD_CODE_ID" json:"CLOUD_CODE_ID"`
-	CloudCodeName string `msg:"CLOUD_CODE_NAME" envconfig:"CLOUD_CODE_NAME" json:"CLOUD_CODE_NAME"`
-	Async         bool   `msg:"ASYNC" envconfig:"ASYNC" json:"ASYNC"`
-	Event         string `msg:"EVENT" envconfig:"EVENT" json:"EVENT"`
-	URL           string `msg:"URL" envconfig:"URL" json:"URL"`
-	TimeOut       int    `msg:"TIME_OUT" envconfig:"TIME_OUT" json:"TIME_OUT"`
+	Async   bool   `json:"async" yaml:"async" msg:"async"`
+	Event   string `json:"event" yaml:"event" msg:"event"`
+	URL     string `json:"url" yaml:"url" msg:"url"`
+	Timeout int    `json:"timeout" yaml:"timeout" msg:"timeout"`
 }
 
-func NewTenantConfiguration() TenantConfiguration {
-	return TenantConfiguration{
-		DBConnectionStr: "postgres://postgres:@localhost/postgres?sslmode=disable",
-		CORSHost:        "*",
-		Auth: AuthConfiguration{
-			LoginIDsKeyWhitelist: []string{},
-		},
+type DeploymentRoute struct {
+	Version    string                 `json:"version" yaml:"version" msg:"version"`
+	Path       string                 `json:"path" yaml:"path" msg:"path"`
+	Type       string                 `json:"type" yaml:"type" msg:"type"`
+	TypeConfig map[string]interface{} `json:"type_config" yaml:"type_config" msg:"type_config"`
+}
+
+func defaultAppConfiguration() AppConfiguration {
+	return AppConfiguration{
+		DatabaseURL: "postgres://postgres:@localhost/postgres?sslmode=disable",
 		SMTP: SMTPConfiguration{
 			Port: 25,
 			Mode: "normal",
+		},
+	}
+}
+
+func defaultUserConfiguration() UserConfiguration {
+	return UserConfiguration{
+		CORS: CORSConfiguration{
+			Origin: "*",
+		},
+		Auth: AuthConfiguration{
+			// Default to email and username
+			LoginIDKeys: []string{"email", "username"},
 		},
 		ForgotPassword: ForgotPasswordConfiguration{
 			SecureMatch:      false,
 			Sender:           "no-reply@skygeario.com",
 			Subject:          "Reset password instruction",
-			ResetURLLifeTime: 43200,
+			ResetURLLifetime: 43200,
 		},
 		WelcomeEmail: WelcomeEmailConfiguration{
 			Enabled: false,
 			Sender:  "no-reply@skygeario.com",
 			Subject: "Welcome!",
 		},
-		SSOSetting: SSOSetting{
+		SSO: SSOConfiguration{
 			JSSDKCDNURL: "https://code.skygear.io/js/skygear/latest/skygear.min.js",
 		},
 	}
 }
 
+type FromScratchOptions struct {
+	AppName     string `envconfig:"APP_NAME"`
+	DatabaseURL string `envconfig:"DATABASE_URL"`
+	APIKey      string `envconfig:"API_KEY"`
+	MasterKey   string `envconfig:"MASTER_KEY"`
+}
+
+func NewTenantConfigurationFromScratch(options FromScratchOptions) (*TenantConfiguration, error) {
+	c := TenantConfiguration{
+		AppConfig:  defaultAppConfiguration(),
+		UserConfig: defaultUserConfiguration(),
+	}
+	c.Version = "1"
+
+	c.AppName = options.AppName
+	c.AppConfig.DatabaseURL = options.DatabaseURL
+	c.UserConfig.APIKey = options.APIKey
+	c.UserConfig.MasterKey = options.MasterKey
+
+	c.AfterUnmarshal()
+	err := c.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	return &c, nil
+}
+
+func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
+	decoder := yaml.NewDecoder(r)
+	config := TenantConfiguration{
+		AppConfig:  defaultAppConfiguration(),
+		UserConfig: defaultUserConfiguration(),
+	}
+	err := decoder.Decode(&config)
+	if err != nil {
+		return nil, err
+	}
+	config.AfterUnmarshal()
+	err = config.Validate()
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+func NewTenantConfigurationFromEnv() (*TenantConfiguration, error) {
+	options := FromScratchOptions{}
+	err := envconfig.Process("", &options)
+	if err != nil {
+		return nil, err
+	}
+	return NewTenantConfigurationFromScratch(options)
+}
+
+func NewTenantConfigurationFromYAMLAndEnv(open func() (io.Reader, error)) (*TenantConfiguration, error) {
+	options := FromScratchOptions{}
+	err := envconfig.Process("", &options)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := open()
+	if err != nil {
+		// Load from env directly
+		return NewTenantConfigurationFromScratch(options)
+	}
+	defer func() {
+		if rc, ok := r.(io.Closer); ok {
+			rc.Close()
+		}
+	}()
+
+	c, err := NewTenantConfigurationFromYAML(r)
+	if err != nil {
+		return nil, err
+	}
+
+	// Allow override from env
+	if options.AppName != "" {
+		c.AppName = options.AppName
+	}
+	if options.DatabaseURL != "" {
+		c.AppConfig.DatabaseURL = options.DatabaseURL
+	}
+	if options.APIKey != "" {
+		c.UserConfig.APIKey = options.APIKey
+	}
+	if options.MasterKey != "" {
+		c.UserConfig.MasterKey = options.MasterKey
+	}
+
+	return c, nil
+}
+
+func NewTenantConfigurationFromJSON(r io.Reader) (*TenantConfiguration, error) {
+	decoder := json.NewDecoder(r)
+	config := TenantConfiguration{
+		AppConfig:  defaultAppConfiguration(),
+		UserConfig: defaultUserConfiguration(),
+	}
+	err := decoder.Decode(&config)
+	if err != nil {
+		return nil, err
+	}
+	config.AfterUnmarshal()
+	err = config.Validate()
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+func NewTenantConfigurationFromStdBase64Msgpack(s string) (*TenantConfiguration, error) {
+	bytes, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+	var config TenantConfiguration
+	_, err = config.UnmarshalMsg(bytes)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+func (c *TenantConfiguration) Value() (driver.Value, error) {
+	bytes, err := json.Marshal(*c)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
+}
+
+func (c *TenantConfiguration) Scan(value interface{}) error {
+	if value == nil {
+		return nil
+	}
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("Cannot convert %T to TenantConfiguration", value)
+	}
+	config, err := NewTenantConfigurationFromJSON(bytes.NewReader(b))
+	if err != nil {
+		return err
+	}
+	*c = *config
+	return nil
+}
+
+func (c *TenantConfiguration) StdBase64Msgpack() (string, error) {
+	bytes, err := c.MarshalMsg(nil)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(bytes), nil
+}
+
+func (c *TenantConfiguration) GetSSOProviderByName(name string) (SSOProviderConfiguration, bool) {
+	for _, provider := range c.UserConfig.SSO.Providers {
+		if provider.Name == name {
+			return provider, true
+		}
+	}
+	return SSOProviderConfiguration{}, false
+}
+
+func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
+	return []string{
+		c.UserConfig.APIKey,
+		c.UserConfig.MasterKey,
+	}
+}
+
 func (c *TenantConfiguration) Validate() error {
-	if c.DBConnectionStr == "" {
+	if c.Version != "1" {
+		return errors.New("Only version 1 is supported")
+	}
+	if c.AppConfig.DatabaseURL == "" {
 		return errors.New("DATABASE_URL is not set")
 	}
 	if c.AppName == "" {
 		return errors.New("APP_NAME is not set")
 	}
-	if c.APIKey == "" {
+	if c.UserConfig.APIKey == "" {
 		return errors.New("API_KEY is not set")
 	}
-	if c.MasterKey == "" {
+	if c.UserConfig.MasterKey == "" {
 		return errors.New("MASTER_KEY is not set")
 	}
-	if c.APIKey == c.MasterKey {
+	if c.UserConfig.APIKey == c.UserConfig.MasterKey {
 		return errors.New("MASTER_KEY cannot be the same as API_KEY")
 	}
-	if !regexp.MustCompile("^[A-Za-z0-9_]+$").MatchString(c.AppName) {
-		return fmt.Errorf("APP_NAME '%s' contains invalid characters other than alphanumerics or underscores", c.AppName)
-	}
-	return nil
+	return name.ValidateAppName(c.AppName)
 }
 
 func (c *TenantConfiguration) AfterUnmarshal() {
-	if c.TokenStore.Secret == "" {
-		c.TokenStore.Secret = c.MasterKey
+	// Default token secret to master key
+	if c.UserConfig.TokenStore.Secret == "" {
+		c.UserConfig.TokenStore.Secret = c.UserConfig.MasterKey
 	}
 
-	if c.ForgotPassword.AppName == "" {
-		c.ForgotPassword.AppName = c.AppName
+	// Propagate AppName
+	if c.UserConfig.ForgotPassword.AppName == "" {
+		c.UserConfig.ForgotPassword.AppName = c.AppName
 	}
 
-	if c.ForgotPassword.URLPrefix == "" {
-		c.ForgotPassword.URLPrefix = c.URLPrefix
+	// Propagate URLPrefix
+	if c.UserConfig.ForgotPassword.URLPrefix == "" {
+		c.UserConfig.ForgotPassword.URLPrefix = c.UserConfig.URLPrefix
+	}
+	if c.UserConfig.WelcomeEmail.URLPrefix == "" {
+		c.UserConfig.WelcomeEmail.URLPrefix = c.UserConfig.URLPrefix
+	}
+	if c.UserConfig.SSO.URLPrefix == "" {
+		c.UserConfig.SSO.URLPrefix = c.UserConfig.URLPrefix
+	}
+	if c.UserConfig.UserVerification.URLPrefix == "" {
+		c.UserConfig.UserVerification.URLPrefix = c.UserConfig.URLPrefix
 	}
 
-	if c.WelcomeEmail.URLPrefix == "" {
-		c.WelcomeEmail.URLPrefix = c.URLPrefix
-	}
-
-	if c.UserVerify.URLPrefix == "" {
-		c.UserVerify.URLPrefix = c.URLPrefix
-	}
-
-	if c.SSOSetting.URLPrefix == "" {
-		c.SSOSetting.URLPrefix = c.URLPrefix
-	}
-
-	c.URLPrefix = c.sanitzeURL(c.URLPrefix)
-	c.ForgotPassword.URLPrefix = c.sanitzeURL(c.ForgotPassword.URLPrefix)
-	c.WelcomeEmail.URLPrefix = c.sanitzeURL(c.WelcomeEmail.URLPrefix)
-	c.UserVerify.URLPrefix = c.sanitzeURL(c.UserVerify.URLPrefix)
-	c.SSOSetting.URLPrefix = c.sanitzeURL(c.SSOSetting.URLPrefix)
+	// Remove trailing slash in URLs
+	c.UserConfig.URLPrefix = removeTrailingSlash(c.UserConfig.URLPrefix)
+	c.UserConfig.ForgotPassword.URLPrefix = removeTrailingSlash(c.UserConfig.ForgotPassword.URLPrefix)
+	c.UserConfig.WelcomeEmail.URLPrefix = removeTrailingSlash(c.UserConfig.WelcomeEmail.URLPrefix)
+	c.UserConfig.UserVerification.URLPrefix = removeTrailingSlash(c.UserConfig.UserVerification.URLPrefix)
+	c.UserConfig.SSO.URLPrefix = removeTrailingSlash(c.UserConfig.SSO.URLPrefix)
 }
 
-func (c *TenantConfiguration) sanitzeURL(url string) string {
+func GetTenantConfig(r *http.Request) TenantConfiguration {
+	s := r.Header.Get(coreHttp.HeaderTenantConfig)
+	config, err := NewTenantConfigurationFromStdBase64Msgpack(s)
+	if err != nil {
+		panic(err)
+	}
+	return *config
+}
+
+func SetTenantConfig(r *http.Request, config *TenantConfiguration) {
+	value, err := config.StdBase64Msgpack()
+	if err != nil {
+		panic(err)
+	}
+	r.Header.Set(coreHttp.HeaderTenantConfig, value)
+}
+
+func DelTenantConfig(r *http.Request) {
+	r.Header.Del(coreHttp.HeaderTenantConfig)
+}
+
+func removeTrailingSlash(url string) string {
 	if strings.HasSuffix(url, "/") {
 		return url[:len(url)-1]
 	}
@@ -277,122 +338,103 @@ func (c *TenantConfiguration) sanitzeURL(url string) string {
 	return url
 }
 
-func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
-	return []string{
-		c.APIKey,
-		c.MasterKey,
-	}
+// UserConfiguration represents user-editable configuration
+type UserConfiguration struct {
+	APIKey           string                        `json:"api_key" yaml:"api_key" msg:"api_key"`
+	MasterKey        string                        `json:"master_key" yaml:"master_key" msg:"master_key"`
+	URLPrefix        string                        `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	CORS             CORSConfiguration             `json:"cors" yaml:"cors" msg:"cors"`
+	Auth             AuthConfiguration             `json:"auth" yaml:"auth" msg:"auth"`
+	TokenStore       TokenStoreConfiguration       `json:"token_store" yaml:"token_store" msg:"token_store"`
+	UserAudit        UserAuditConfiguration        `json:"user_audit" yaml:"user_audit" msg:"user_audit"`
+	ForgotPassword   ForgotPasswordConfiguration   `json:"forgot_password" yaml:"forgot_password" msg:"forgot_password"`
+	WelcomeEmail     WelcomeEmailConfiguration     `json:"welcome_email" yaml:"welcome_email" msg:"welcome_email"`
+	SSO              SSOConfiguration              `json:"sso" yaml:"sso" msg:"sso"`
+	UserVerification UserVerificationConfiguration `json:"user_verification" yaml:"user_verification" msg:"user_verification"`
 }
 
-func (c *TenantConfiguration) GetSSOConfigByName(name string) (config SSOConfiguration) {
-	for _, SSOConfig := range c.SSOConfigs {
-		if SSOConfig.Name == name {
-			return SSOConfig
-		}
-	}
-	return
+// CORSConfiguration represents CORS configuration.
+// Currently we only support configuring origin.
+// We may allow to support other headers in the future.
+// The interpretation of origin is done by this library
+// https://github.com/iawaknahc/originmatcher
+type CORSConfiguration struct {
+	Origin string `json:"origin" yaml:"origin" msg:"origin"`
 }
 
-func (c *TenantConfiguration) UnmarshalJSON(b []byte) error {
-	type configAlias TenantConfiguration
-	if err := json.Unmarshal(b, (*configAlias)(c)); err != nil {
-		return err
-	}
-	c.AfterUnmarshal()
-	err := c.Validate()
-	return err
+type AuthConfiguration struct {
+	LoginIDKeys       []string `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
+	CustomTokenSecret string   `json:"custom_token_secret" yaml:"custom_token_secret" msg:"custom_token_secret"`
 }
 
-func header(i interface{}) http.Header {
-	switch i.(type) {
-	case *http.Request:
-		return (i.(*http.Request)).Header
-	case http.ResponseWriter:
-		return (i.(http.ResponseWriter)).Header()
-	default:
-		panic("Invalid type")
-	}
+type TokenStoreConfiguration struct {
+	Secret string `json:"secret" yaml:"secret" msg:"secret"`
+	Expiry int64  `json:"expiry" yaml:"expiry" msg:"expiry"`
 }
 
-func GetTenantConfig(i interface{}) TenantConfiguration {
-	s := header(i).Get(coreHttp.HeaderTenantConfig)
-	var t TenantConfiguration
-	data, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = t.UnmarshalMsg(data)
-	if err != nil {
-		panic(err)
-	}
-	// msgp'issue: decode empty slices becomes nil
-	// https://github.com/tinylib/msgp/issues/247
-	if t.Auth.LoginIDsKeyWhitelist == nil {
-		t.Auth.LoginIDsKeyWhitelist = []string{}
-	}
-	return t
+type UserAuditConfiguration struct {
+	Enabled         bool                  `json:"enabled" yaml:"enabled" msg:"enabled"`
+	TrailHandlerURL string                `json:"trail_handler_url" yaml:"trail_handler_url" msg:"trail_handler_url"`
+	Password        PasswordConfiguration `json:"password" yaml:"password" msg:"password"`
 }
 
-func SetTenantConfig(i interface{}, t TenantConfiguration) {
-	out, err := t.MarshalMsg(nil)
-	if err != nil {
-		panic(err)
-	}
-	header(i).Set(coreHttp.HeaderTenantConfig, base64.StdEncoding.EncodeToString(out))
+type PasswordConfiguration struct {
+	MinLength             int      `json:"min_length" yaml:"min_length" msg:"min_length"`
+	UppercaseRequired     bool     `json:"uppercase_required" yaml:"uppercase_required" msg:"uppercase_required"`
+	LowercaseRequired     bool     `json:"lowercase_required" yaml:"lowercase_required" msg:"lowercase_required"`
+	DigitRequired         bool     `json:"digit_required" yaml:"digit_required" msg:"digit_required"`
+	SymbolRequired        bool     `json:"symbol_required" yaml:"symbol_required" msg:"symbol_required"`
+	MinimumGuessableLevel int      `json:"minimum_guessable_level" yaml:"minimum_guessable_level" msg:"minimum_guessable_level"`
+	ExcludedKeywords      []string `json:"excluded_keywords" yaml:"excluded_keywords" msg:"excluded_keywords"`
+	// Do not know how to support fields because we do not
+	// have them now
+	// ExcludedFields     []string `json:"excluded_fields" yaml:"excluded_fields" msg:"excluded_fields"`
+	HistorySize int `json:"history_size" yaml:"history_size" msg:"history_size"`
+	HistoryDays int `json:"history_days" yaml:"history_days" msg:"history_days"`
+	ExpiryDays  int `json:"expiry_days" yaml:"expiry_days" msg:"expiry_days"`
 }
 
-func DelTenantConfig(i interface{}) {
-	header(i).Del(coreHttp.HeaderTenantConfig)
+type ForgotPasswordConfiguration struct {
+	AppName             string `json:"app_name" yaml:"app_name" msg:"app_name"`
+	URLPrefix           string `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	SecureMatch         bool   `json:"secure_match" yaml:"secure_match" msg:"secure_match"`
+	SenderName          string `json:"sender_name" yaml:"sender_name" msg:"sender_name"`
+	Sender              string `json:"sender" yaml:"sender" msg:"sender"`
+	Subject             string `json:"subject" yaml:"subject" msg:"subject"`
+	ReplyToName         string `json:"reply_to_name" yaml:"reply_to_name" msg:"reply_to_name"`
+	ReplyTo             string `json:"reply_to" yaml:"reply_to" msg:"reply_to"`
+	ResetURLLifetime    int    `json:"reset_url_lifetime" yaml:"reset_url_lifetime" msg:"reset_url_lifetime"`
+	SuccessRedirect     string `json:"success_redirect" yaml:"success_redirect" msg:"success_redirect"`
+	ErrorRedirect       string `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
+	EmailTextURL        string `json:"email_text_url" yaml:"email_text_url" msg:"email_text_url"`
+	EmailHTMLURL        string `json:"email_html_url" yaml:"email_html_url" msg:"email_html_url"`
+	ResetHTMLURL        string `json:"reset_html_url" yaml:"reset_html_url" msg:"reset_html_url"`
+	ResetSuccessHTMLURL string `json:"reset_success_html_url" yaml:"reset_success_html_url" msg:"reset_success_html_url"`
+	ResetErrorHTMLURL   string `json:"reset_error_html_url" yaml:"reset_error_html_url" msg:"reset_error_html_url"`
 }
 
-func GetUserVerifyKeyConfigFromEnv(key string) (config UserVerifyKeyConfiguration, err error) {
-	config.Key = key
-	prefix := "verify_keys_" + key
-	if err = envconfig.Process(prefix, &config); err != nil {
-		return
-	}
-
-	prefix = "verify_keys_" + key + "_provider"
-	if err = envconfig.Process(prefix, &config.ProviderConfig); err != nil {
-		return
-	}
-
-	return
+type WelcomeEmailConfiguration struct {
+	Enabled     bool   `json:"enabled" yaml:"enabled" msg:"enabled"`
+	URLPrefix   string `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	SenderName  string `json:"sender_name" yaml:"sender_name" msg:"sender_name"`
+	Sender      string `json:"sender" yaml:"sender" msg:"sender"`
+	Subject     string `json:"subject" yaml:"subject" msg:"subject"`
+	ReplyToName string `json:"reply_to_name" yaml:"reply_to_name" msg:"reply_to_name"`
+	ReplyTo     string `json:"reply_to" yaml:"reply_to" msg:"reply_to"`
+	TextURL     string `json:"text_url" yaml:"text_url" msg:"text_url"`
+	HTMLURL     string `json:"html_url" yaml:"html_url" msg:"html_url"`
 }
 
-// NewTenantConfigurationFromEnv implements ConfigurationProvider
-func NewTenantConfigurationFromEnv(_ *http.Request) (c TenantConfiguration, err error) {
-	c = NewTenantConfiguration()
-	err = envconfig.Process("", &c)
-	if err != nil {
-		return
-	}
-	getSSOSetting(&c.SSOSetting)
-	getSSOConfigs(c.SSOProviders, &c.SSOConfigs)
-
-	// Read user verify config
-	for _, userVerifyKey := range c.UserVerify.Keys {
-		var keyConfig UserVerifyKeyConfiguration
-		if keyConfig, err = GetUserVerifyKeyConfigFromEnv(userVerifyKey); err != nil {
-			return
-		}
-
-		c.UserVerify.KeyConfigs = append(c.UserVerify.KeyConfigs, keyConfig)
-	}
-
-	c.AfterUnmarshal()
-	err = c.Validate()
-
-	return
+type SSOConfiguration struct {
+	URLPrefix            string                     `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	JSSDKCDNURL          string                     `json:"js_sdk_cdn_url" yaml:"js_sdk_cdn_url" msg:"js_sdk_cdn_url"`
+	StateJWTSecret       string                     `json:"state_jwt_secret" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
+	AutoLinkProviderKeys []string                   `json:"auto_link_provider_keys" yaml:"auto_link_provider_keys" msg:"auto_link_provider_keys"`
+	AllowedCallbackURLs  []string                   `json:"allowed_callback_urls" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
+	Providers            []SSOProviderConfiguration `json:"providers" yaml:"providers" msg:"providers"`
 }
 
-func getSSOSetting(ssoSetting *SSOSetting) {
-	envconfig.Process("", ssoSetting)
-	return
-}
-
-func (s SSOSetting) APIEndpoint() string {
+func (s *SSOConfiguration) APIEndpoint() string {
 	// URLPrefix can't be seen as skygear endpoint.
 	// Consider URLPrefix = http://localhost:3001/auth
 	// and skygear SDK use is as base endpint URL (in iframe_html and auth_handler_html).
@@ -406,16 +448,85 @@ func (s SSOSetting) APIEndpoint() string {
 	return u.String()
 }
 
-func getSSOConfigs(providers []string, ssoConfigs *[]SSOConfiguration) {
-	configs := make([]SSOConfiguration, 0)
-	for _, name := range providers {
-		config := SSOConfiguration{
-			Name: name,
-		}
-		if err := envconfig.Process("sso_"+name, &config); err == nil {
-			configs = append(configs, config)
+type SSOProviderConfiguration struct {
+	Name         string `json:"name" yaml:"name" msg:"name"`
+	ClientID     string `json:"client_id" yaml:"client_id" msg:"client_id"`
+	ClientSecret string `json:"client_secret" yaml:"client_secret" msg:"client_secret"`
+	Scope        string `json:"scope" yaml:"scope" msg:"scope"`
+}
+
+type UserVerificationConfiguration struct {
+	URLPrefix        string                             `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	AutoUpdate       bool                               `json:"auto_update" yaml:"auto_update" msg:"auto_update"`
+	AutoSendOnSignup bool                               `json:"auto_send_on_signup" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
+	AutoSendOnUpdate bool                               `json:"auto_send_on_update" yaml:"auto_send_on_update" msg:"auto_send_on_update"`
+	Required         bool                               `json:"required" yaml:"required" msg:"required"`
+	Criteria         string                             `json:"criteria" yaml:"criteria" msg:"criteria"`
+	ErrorRedirect    string                             `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
+	ErrorHTMLURL     string                             `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
+	Keys             []UserVerificationKeyConfiguration `json:"keys" yaml:"keys" msg:"keys"`
+}
+
+func (c *UserVerificationConfiguration) ConfigForKey(key string) (UserVerificationKeyConfiguration, bool) {
+	for _, keyConfig := range c.Keys {
+		if keyConfig.Key == key {
+			return keyConfig, true
 		}
 	}
-	*ssoConfigs = configs
-	return
+	return UserVerificationKeyConfiguration{}, false
 }
+
+type UserVerificationKeyConfiguration struct {
+	Key             string                                `json:"key" yaml:"key" msg:"key"`
+	CodeFormat      string                                `json:"code_format" yaml:"code_format" msg:"code_format"`
+	Expiry          int64                                 `json:"expiry" yaml:"expiry" msg:"expiry"`
+	SuccessRedirect string                                `json:"success_redirect" yaml:"success_redirect" msg:"success_redirect"`
+	SuccessHTMLURL  string                                `json:"success_html_url" yaml:"success_html_url" msg:"success_html_url"`
+	ErrorRedirect   string                                `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
+	ErrorHTMLURL    string                                `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
+	Provider        string                                `json:"provider" yaml:"provider" msg:"provider"`
+	ProviderConfig  UserVerificationProviderConfiguration `json:"provider_config" yaml:"provider_config" msg:"provider_config"`
+}
+
+type UserVerificationProviderConfiguration struct {
+	Subject     string `json:"subject" yaml:"subject" msg:"subject"`
+	Sender      string `json:"sender" yaml:"sender" msg:"sender"`
+	SenderName  string `json:"sender_name" yaml:"sender_name" msg:"sender_name"`
+	ReplyTo     string `json:"reply_to" yaml:"reply_to" msg:"reply_to"`
+	ReplyToName string `json:"reply_to_name" yaml:"reply_to_name" msg:"reply_to_name"`
+	TextURL     string `json:"text_url" yaml:"text_url" msg:"text_url"`
+	HTMLURL     string `json:"html_url" yaml:"html_url" msg:"html_url"`
+}
+
+// AppConfiguration is configuration kept secret from the developer.
+type AppConfiguration struct {
+	DatabaseURL string              `json:"database_url" yaml:"database_url" msg:"database_url"`
+	SMTP        SMTPConfiguration   `json:"smtp" yaml:"smtp" msg:"smtp"`
+	Twilio      TwilioConfiguration `json:"twilio" yaml:"twilio" msg:"twilio"`
+	Nexmo       NexmoConfiguration  `json:"nexmo" yaml:"nexmo" msg:"nexmo"`
+}
+
+type SMTPConfiguration struct {
+	Host     string `json:"host" yaml:"host" msg:"host"`
+	Port     int    `json:"port" yaml:"port" msg:"port"`
+	Mode     string `json:"mode" yaml:"mode" msg:"mode"`
+	Login    string `json:"login" yaml:"login" msg:"login"`
+	Password string `json:"password" yaml:"password" msg:"password"`
+}
+
+type TwilioConfiguration struct {
+	AccountSID string `json:"account_sid" yaml:"account_sid" msg:"account_sid"`
+	AuthToken  string `json:"auth_token" yaml:"auth_token" msg:"auth_token"`
+	From       string `json:"from" yaml:"from" msg:"from"`
+}
+
+type NexmoConfiguration struct {
+	APIKey    string `json:"api_key" yaml:"api_key" msg:"api_key"`
+	APISecret string `json:"secret" yaml:"secret" msg:"secret"`
+	From      string `json:"from" yaml:"from" msg:"from"`
+}
+
+var (
+	_ sql.Scanner   = &TenantConfiguration{}
+	_ driver.Valuer = &TenantConfiguration{}
+)

@@ -13,16 +13,17 @@ import (
 
 var (
 	sampleConfig = config.TenantConfiguration{
-		DBConnectionStr: "DBConnectionStr",
-		APIKey:          "APIKey",
-		MasterKey:       "MasterKey",
-		AppName:         "AppName",
-		TokenStore: config.TokenStoreConfiguration{
-			Secret: "Secret",
-			Expiry: 1000,
+		AppName: "AppName",
+		AppConfig: config.AppConfiguration{
+			DatabaseURL: "DBConnectionStr",
 		},
-		Auth: config.AuthConfiguration{
-			LoginIDsKeyWhitelist: []string{},
+		UserConfig: config.UserConfiguration{
+			APIKey:    "APIKey",
+			MasterKey: "MasterKey",
+			TokenStore: config.TokenStoreConfiguration{
+				Secret: "Secret",
+				Expiry: 1000,
+			},
 		},
 	}
 )

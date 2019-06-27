@@ -5,6 +5,8 @@ import (
 	"errors"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
@@ -43,12 +45,12 @@ func (s *Store) GetAppByDomain(domain string, app *model.App) error {
 		return err
 	}
 
-	configValue := newTenantConfigurationValue()
+	configValue := config.TenantConfiguration{}
 	if err := s.getConfigByID(configID, &configValue); err != nil {
 		logger.WithError(err).Error("Fail to get app tenant config")
 		return err
 	}
-	app.Config = configValue.TenantConfiguration
+	app.Config = configValue
 
 	plan := model.Plan{}
 	if err := s.getPlanByID(planID, &plan); err != nil {
@@ -64,7 +66,7 @@ func (s *Store) GetAppByDomain(domain string, app *model.App) error {
 	return nil
 }
 
-func (s *Store) getConfigByID(id string, configValue *tenantConfigurationValue) error {
+func (s *Store) getConfigByID(id string, configValue *config.TenantConfiguration) error {
 	builder := psql.Select("config.config").
 		From(s.tableName("config")).
 		Where("config.id = ?", id)

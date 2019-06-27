@@ -4,12 +4,10 @@ import (
 	"time"
 )
 
-type DeploymentRouteType string
-
 const (
-	DeploymentRouteTypeFunction    DeploymentRouteType = "function"
-	DeploymentRouteTypeHTTPHandler DeploymentRouteType = "http-handler"
-	DeploymentRouteTypeHTTPService DeploymentRouteType = "http-service"
+	DeploymentRouteTypeFunction    string = "function"
+	DeploymentRouteTypeHTTPHandler string = "http-handler"
+	DeploymentRouteTypeHTTPService string = "http-service"
 )
 
 type DeploymentRoute struct {
@@ -17,7 +15,7 @@ type DeploymentRoute struct {
 	CreatedAt  *time.Time
 	Version    string
 	Path       string
-	Type       DeploymentRouteType
+	Type       string
 	TypeConfig RouteTypeConfig
 }
 

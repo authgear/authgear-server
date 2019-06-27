@@ -24,32 +24,32 @@ type DefaultCodeSenderFactory struct {
 }
 
 func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templateEngine *template.Engine) CodeSenderFactory {
-	userVerifyConfig := c.UserVerify
+	userVerifyConfig := c.UserConfig.UserVerification
 	f := DefaultCodeSenderFactory{
 		CodeSenderMap: map[string]CodeSender{},
 	}
-	for _, keyConfig := range userVerifyConfig.KeyConfigs {
+	for _, keyConfig := range userVerifyConfig.Keys {
 		var codeSender CodeSender
 		switch keyConfig.Provider {
 		case "smtp":
 			codeSender = &EmailCodeSender{
 				AppName:        c.AppName,
 				Config:         userVerifyConfig,
-				Dialer:         mail.NewDialer(c.SMTP),
+				Dialer:         mail.NewDialer(c.AppConfig.SMTP),
 				TemplateEngine: templateEngine,
 			}
 		case "twilio":
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
 				Config:         userVerifyConfig,
-				SMSClient:      sms.NewTwilioClient(c.Twilio),
+				SMSClient:      sms.NewTwilioClient(c.AppConfig.Twilio),
 				TemplateEngine: templateEngine,
 			}
 		case "nexmo":
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
 				Config:         userVerifyConfig,
-				SMSClient:      sms.NewNexmoClient(c.Nexmo),
+				SMSClient:      sms.NewNexmoClient(c.AppConfig.Nexmo),
 				TemplateEngine: templateEngine,
 			}
 		default:
@@ -78,18 +78,18 @@ func NewDefaultUserVerifyTestCodeSenderFactory(c config.TenantConfiguration, tem
 	return &DefaultTestCodeSenderFactory{
 		SMTPTestCodeSender: &TestEmailCodeSender{
 			AppName:   c.AppName,
-			URLPrefix: c.URLPrefix,
-			Dialer:    mail.NewDialer(c.SMTP),
+			URLPrefix: c.UserConfig.URLPrefix,
+			Dialer:    mail.NewDialer(c.AppConfig.SMTP),
 		},
 		TwilioTestCodeSender: &TestSMSCodeSender{
 			AppName:   c.AppName,
-			URLPrefix: c.URLPrefix,
-			SMSClient: sms.NewTwilioClient(c.Twilio),
+			URLPrefix: c.UserConfig.URLPrefix,
+			SMSClient: sms.NewTwilioClient(c.AppConfig.Twilio),
 		},
 		NexmoTestCodeSender: &TestSMSCodeSender{
 			AppName:   c.AppName,
-			URLPrefix: c.URLPrefix,
-			SMSClient: sms.NewNexmoClient(c.Nexmo),
+			URLPrefix: c.UserConfig.URLPrefix,
+			SMSClient: sms.NewNexmoClient(c.AppConfig.Nexmo),
 		},
 		BaseTemplateEngine: templateEngine,
 	}

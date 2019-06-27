@@ -20,13 +20,13 @@ type CodeSender interface {
 
 type EmailCodeSender struct {
 	AppName        string
-	Config         config.UserVerifyConfiguration
+	Config         config.UserVerificationConfiguration
 	Dialer         *gomail.Dialer
 	TemplateEngine *template.Engine
 }
 
 func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err error) {
-	var keyConfig config.UserVerifyKeyConfiguration
+	var keyConfig config.UserVerificationKeyConfiguration
 	var ok bool
 	if keyConfig, ok = e.Config.ConfigForKey(verifyCode.RecordKey); !ok {
 		return errors.New("provider for " + verifyCode.RecordKey + " not found")
@@ -77,7 +77,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err e
 
 type SMSCodeSender struct {
 	AppName        string
-	Config         config.UserVerifyConfiguration
+	Config         config.UserVerificationConfiguration
 	SMSClient      sms.Client
 	TemplateEngine *template.Engine
 }
@@ -106,7 +106,7 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user response.User) (err err
 func prepareVerifyRequestContext(
 	verifyCode VerifyCode,
 	appName string,
-	config config.UserVerifyConfiguration,
+	config config.UserVerificationConfiguration,
 	user response.User,
 ) map[string]interface{} {
 	return map[string]interface{}{

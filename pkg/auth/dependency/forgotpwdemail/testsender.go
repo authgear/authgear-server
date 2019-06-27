@@ -31,7 +31,7 @@ type DefaultTestSender struct {
 
 func NewDefaultTestSender(config config.TenantConfiguration, dialer *gomail.Dialer) TestSender {
 	return &DefaultTestSender{
-		Config: config.ForgotPassword,
+		Config: config.UserConfig.ForgotPassword,
 		Dialer: dialer,
 	}
 }
@@ -49,7 +49,7 @@ func (d *DefaultTestSender) Send(
 	expireAt :=
 		time.Now().UTC().
 			Truncate(time.Second * 1).
-			Add(time.Second * time.Duration(d.Config.ResetURLLifeTime))
+			Add(time.Second * time.Duration(d.Config.ResetURLLifetime))
 	check := func(test, a, b string) string {
 		if test != "" {
 			return a

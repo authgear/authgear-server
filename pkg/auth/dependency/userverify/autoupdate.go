@@ -10,16 +10,16 @@ import (
 type AutoUpdateUserVerifyFunc func(*authinfo.AuthInfo)
 
 func CreateAutoUpdateUserVerifyfunc(tConfig config.TenantConfiguration) AutoUpdateUserVerifyFunc {
-	if !tConfig.UserVerify.AutoUpdate {
+	if !tConfig.UserConfig.UserVerification.AutoUpdate {
 		return nil
 	}
 
-	switch tConfig.UserVerify.Criteria {
+	switch tConfig.UserConfig.UserVerification.Criteria {
 	case "all":
 		return func(authInfo *authinfo.AuthInfo) {
 			allVerified := true
-			for _, key := range tConfig.UserVerify.Keys {
-				if !authInfo.VerifyInfo[key] {
+			for _, keyConfig := range tConfig.UserConfig.UserVerification.Keys {
+				if !authInfo.VerifyInfo[keyConfig.Key] {
 					allVerified = false
 					break
 				}
@@ -29,8 +29,8 @@ func CreateAutoUpdateUserVerifyfunc(tConfig config.TenantConfiguration) AutoUpda
 		}
 	case "any":
 		return func(authInfo *authinfo.AuthInfo) {
-			for _, key := range tConfig.UserVerify.Keys {
-				if authInfo.VerifyInfo[key] {
+			for _, keyConfig := range tConfig.UserConfig.UserVerification.Keys {
+				if authInfo.VerifyInfo[keyConfig.Key] {
 					authInfo.Verified = true
 					return
 				}
@@ -39,6 +39,6 @@ func CreateAutoUpdateUserVerifyfunc(tConfig config.TenantConfiguration) AutoUpda
 			authInfo.Verified = false
 		}
 	default:
-		panic(fmt.Errorf("unexpected verify criteria `%s`", tConfig.UserVerify.Criteria))
+		panic(fmt.Errorf("unexpected verify criteria `%s`", tConfig.UserConfig.UserVerification.Criteria))
 	}
 }

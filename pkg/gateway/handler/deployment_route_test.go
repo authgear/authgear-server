@@ -6,6 +6,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/gateway/model"
 )
 
@@ -16,12 +17,12 @@ type testItem struct {
 
 var tests = []struct {
 	name         string
-	matchedRoute model.DeploymentRoute
+	matchedRoute config.DeploymentRoute
 	tests        []testItem
 }{
 	{
 		"http handler config without trailing slash",
-		model.DeploymentRoute{
+		config.DeploymentRoute{
 			Path: "/api",
 			Type: model.DeploymentRouteTypeHTTPHandler,
 			TypeConfig: map[string]interface{}{
@@ -45,7 +46,7 @@ var tests = []struct {
 		},
 	}, {
 		"http handler config with trailing slash",
-		model.DeploymentRoute{
+		config.DeploymentRoute{
 			Path: "/api/",
 			Type: model.DeploymentRouteTypeHTTPHandler,
 			TypeConfig: map[string]interface{}{
@@ -69,7 +70,7 @@ var tests = []struct {
 		},
 	}, {
 		"http service config without trailing slash",
-		model.DeploymentRoute{
+		config.DeploymentRoute{
 			Path: "/api",
 			Type: model.DeploymentRouteTypeHTTPService,
 			TypeConfig: map[string]interface{}{
@@ -96,7 +97,7 @@ var tests = []struct {
 		},
 	}, {
 		"http service config with trailing slash",
-		model.DeploymentRoute{
+		config.DeploymentRoute{
 			Path: "/api/",
 			Type: model.DeploymentRouteTypeHTTPService,
 			TypeConfig: map[string]interface{}{
@@ -124,7 +125,7 @@ var tests = []struct {
 	},
 	{
 		"http service with root path",
-		model.DeploymentRoute{
+		config.DeploymentRoute{
 			Path: "/",
 			Type: model.DeploymentRouteTypeHTTPService,
 			TypeConfig: map[string]interface{}{

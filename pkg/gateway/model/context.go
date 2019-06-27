@@ -1,6 +1,10 @@
 package model
 
-import "context"
+import (
+	"context"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
+)
 
 type contextKey string
 
@@ -8,7 +12,7 @@ const contextKeyGatewayContext contextKey = "gateway-context"
 
 type Context struct {
 	App             App
-	DeploymentRoute DeploymentRoute
+	DeploymentRoute config.DeploymentRoute
 }
 
 func ContextWithGatewayContext(ctx context.Context, gatewayContext Context) context.Context {

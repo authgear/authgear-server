@@ -7,6 +7,6 @@ import (
 
 func OpenDB(tConfig config.TenantConfiguration) func() (*sqlx.DB, error) {
 	return func() (*sqlx.DB, error) {
-		return sqlx.Open("postgres", tConfig.DBConnectionStr)
+		return sqlx.Open("postgres", tConfig.AppConfig.DatabaseURL)
 	}
 }

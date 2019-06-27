@@ -29,7 +29,7 @@ func NewDefaultSender(
 ) Sender {
 	return &DefaultSender{
 		AppName:        config.AppName,
-		Config:         config.WelcomeEmail,
+		Config:         config.UserConfig.WelcomeEmail,
 		Dialer:         dialer,
 		TemplateEngine: templateEngine,
 	}

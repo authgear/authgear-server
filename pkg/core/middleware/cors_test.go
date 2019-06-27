@@ -20,13 +20,17 @@ func getTestHandler() http.HandlerFunc {
 func TestCORSMiddleware(t *testing.T) {
 	newReq := func(method string, origin string, corsHost string) (req *http.Request) {
 		tenantConfig := config.TenantConfiguration{
-			CORSHost: corsHost,
+			UserConfig: config.UserConfiguration{
+				CORS: config.CORSConfiguration{
+					Origin: corsHost,
+				},
+			},
 		}
 		req, _ = http.NewRequest(method, "", nil)
 		if origin != "" {
 			req.Header.Set("Origin", origin)
 		}
-		config.SetTenantConfig(req, tenantConfig)
+		config.SetTenantConfig(req, &tenantConfig)
 		return
 	}
 

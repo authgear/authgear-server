@@ -57,17 +57,17 @@ func (m DependencyMap) Provide(
 			logging.CreateLoggerWithRequestID(requestID, "auth_password_history", createLoggerMaskFormatter(tConfig)),
 		)
 		return &authAudit.PasswordChecker{
-			PwMinLength:            tConfig.UserAudit.PwMinLength,
-			PwUppercaseRequired:    tConfig.UserAudit.PwUppercaseRequired,
-			PwLowercaseRequired:    tConfig.UserAudit.PwLowercaseRequired,
-			PwDigitRequired:        tConfig.UserAudit.PwDigitRequired,
-			PwSymbolRequired:       tConfig.UserAudit.PwSymbolRequired,
-			PwMinGuessableLevel:    tConfig.UserAudit.PwMinGuessableLevel,
-			PwExcludedKeywords:     tConfig.UserAudit.PwExcludedKeywords,
-			PwExcludedFields:       tConfig.UserAudit.PwExcludedFields,
-			PwHistorySize:          tConfig.UserAudit.PwHistorySize,
-			PwHistoryDays:          tConfig.UserAudit.PwHistoryDays,
-			PasswordHistoryEnabled: tConfig.UserAudit.PwHistorySize > 0 || tConfig.UserAudit.PwHistoryDays > 0,
+			PwMinLength:         tConfig.UserConfig.UserAudit.Password.MinLength,
+			PwUppercaseRequired: tConfig.UserConfig.UserAudit.Password.UppercaseRequired,
+			PwLowercaseRequired: tConfig.UserConfig.UserAudit.Password.LowercaseRequired,
+			PwDigitRequired:     tConfig.UserConfig.UserAudit.Password.DigitRequired,
+			PwSymbolRequired:    tConfig.UserConfig.UserAudit.Password.SymbolRequired,
+			PwMinGuessableLevel: tConfig.UserConfig.UserAudit.Password.MinimumGuessableLevel,
+			PwExcludedKeywords:  tConfig.UserConfig.UserAudit.Password.ExcludedKeywords,
+			//PwExcludedFields:       tConfig.UserConfig.UserAudit.Password.ExcludedFields,
+			PwHistorySize:          tConfig.UserConfig.UserAudit.Password.HistorySize,
+			PwHistoryDays:          tConfig.UserConfig.UserAudit.Password.HistoryDays,
+			PasswordHistoryEnabled: tConfig.UserConfig.UserAudit.Password.HistorySize > 0 || tConfig.UserConfig.UserAudit.Password.HistoryDays > 0,
 			PasswordHistoryStore:   passwordHistoryStore,
 		}
 	case "PwHousekeeper":
@@ -79,19 +79,19 @@ func (m DependencyMap) Provide(
 		return authAudit.NewPwHousekeeper(
 			passwordHistoryStore,
 			logging.CreateLoggerWithRequestID(requestID, "audit", createLoggerMaskFormatter(tConfig)),
-			tConfig.UserAudit.PwHistorySize,
-			tConfig.UserAudit.PwHistoryDays,
-			tConfig.UserAudit.PwHistorySize > 0 || tConfig.UserAudit.PwHistoryDays > 0,
+			tConfig.UserConfig.UserAudit.Password.HistorySize,
+			tConfig.UserConfig.UserAudit.Password.HistoryDays,
+			tConfig.UserConfig.UserAudit.Password.HistorySize > 0 || tConfig.UserConfig.UserAudit.Password.HistoryDays > 0,
 		)
 	case "PasswordAuthProvider":
 		// TODO:
 		// from tConfig
-		passwordHistoryEnabled := tConfig.UserAudit.PwHistorySize > 0 || tConfig.UserAudit.PwHistoryDays > 0
+		passwordHistoryEnabled := tConfig.UserConfig.UserAudit.Password.HistorySize > 0 || tConfig.UserConfig.UserAudit.Password.HistoryDays > 0
 		return password.NewSafeProvider(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 			logging.CreateLoggerWithRequestID(requestID, "provider_password", createLoggerMaskFormatter(tConfig)),
-			tConfig.Auth.LoginIDsKeyWhitelist,
+			tConfig.UserConfig.Auth.LoginIDKeys,
 			passwordHistoryEnabled,
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
@@ -107,7 +107,7 @@ func (m DependencyMap) Provide(
 			db.NewSQLBuilder("auth", tConfig.AppName),
 			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 			logging.CreateLoggerWithRequestID(requestID, "provider_custom_token", createLoggerMaskFormatter(tConfig)),
-			tConfig.Auth.CustomTokenSecret,
+			tConfig.UserConfig.Auth.CustomTokenSecret,
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	case "HandlerLogger":
@@ -121,25 +121,25 @@ func (m DependencyMap) Provide(
 		)
 	case "ForgotPasswordEmailSender":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP), templateEngine)
+		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), templateEngine)
 	case "TestForgotPasswordEmailSender":
-		return forgotpwdemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
+		return forgotpwdemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
 	case "ForgotPasswordCodeGenerator":
-		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.MasterKey}
+		return &forgotpwdemail.CodeGenerator{MasterKey: tConfig.UserConfig.MasterKey}
 	case "ForgotPasswordSecureMatch":
-		return tConfig.ForgotPassword.SecureMatch
+		return tConfig.UserConfig.ForgotPassword.SecureMatch
 	case "ResetPasswordHTMLProvider":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return forgotpwdemail.NewResetPasswordHTMLProvider(tConfig.ForgotPassword, templateEngine)
+		return forgotpwdemail.NewResetPasswordHTMLProvider(tConfig.UserConfig.ForgotPassword, templateEngine)
 	case "WelcomeEmailEnabled":
-		return tConfig.WelcomeEmail.Enabled
+		return tConfig.UserConfig.WelcomeEmail.Enabled
 	case "WelcomeEmailSender":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.SMTP), templateEngine)
+		return welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), templateEngine)
 	case "TestWelcomeEmailSender":
-		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.SMTP))
+		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
 	case "IFrameHTMLProvider":
-		return sso.NewIFrameHTMLProvider(tConfig.SSOSetting.APIEndpoint(), tConfig.SSOSetting.JSSDKCDNURL)
+		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.APIEndpoint(), tConfig.UserConfig.SSO.JSSDKCDNURL)
 	case "VerifyCodeStore":
 		return userverify.NewSafeStore(
 			db.NewSQLBuilder("auth", tConfig.AppName),
@@ -156,18 +156,18 @@ func (m DependencyMap) Provide(
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(tConfig, templateEngine)
 	case "AutoSendUserVerifyCodeOnSignup":
-		return tConfig.UserVerify.AutoSendOnSignup
+		return tConfig.UserConfig.UserVerification.AutoSendOnSignup
 	case "UserVerifyKeys":
-		return tConfig.UserVerify.Keys
+		return tConfig.UserConfig.UserVerification.Keys
 	case "AutoUpdateUserVerifyFunc":
 		return userverify.CreateAutoUpdateUserVerifyfunc(tConfig)
 	case "AutoUpdateUserVerified":
-		return tConfig.UserVerify.AutoUpdate
+		return tConfig.UserConfig.UserVerification.AutoUpdate
 	case "VerifyHTMLProvider":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return userverify.NewVerifyHTMLProvider(tConfig.UserVerify, templateEngine)
+		return userverify.NewVerifyHTMLProvider(tConfig.UserConfig.UserVerification, templateEngine)
 	case "AuditTrail":
-		trail, err := audit.NewTrail(tConfig.UserAudit.Enabled, tConfig.UserAudit.TrailHandlerURL)
+		trail, err := audit.NewTrail(tConfig.UserConfig.UserAudit.Enabled, tConfig.UserConfig.UserAudit.TrailHandlerURL)
 		if err != nil {
 			panic(err)
 		}
@@ -182,7 +182,7 @@ func (m DependencyMap) Provide(
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	case "AuthHandlerHTMLProvider":
-		return sso.NewAuthHandlerHTMLProvider(tConfig.SSOSetting.APIEndpoint(), tConfig.SSOSetting.JSSDKCDNURL)
+		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.APIEndpoint(), tConfig.UserConfig.SSO.JSSDKCDNURL)
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	case "HookStore":

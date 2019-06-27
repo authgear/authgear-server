@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -104,15 +105,15 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type CustomTokenLoginHandler struct {
-	TxContext               db.TxContext         `dependency:"TxContext"`
-	UserProfileStore        userprofile.Store    `dependency:"UserProfileStore"`
-	TokenStore              authtoken.Store      `dependency:"TokenStore"`
-	AuthInfoStore           authinfo.Store       `dependency:"AuthInfoStore"`
-	CustomTokenAuthProvider customtoken.Provider `dependency:"CustomTokenAuthProvider"`
-	UserVerifyKeys          []string             `dependency:"UserVerifyKeys"`
-	WelcomeEmailEnabled     bool                 `dependency:"WelcomeEmailEnabled"`
-	AuditTrail              audit.Trail          `dependency:"AuditTrail"`
-	TaskQueue               async.Queue          `dependency:"AsyncTaskQueue"`
+	TxContext               db.TxContext                              `dependency:"TxContext"`
+	UserProfileStore        userprofile.Store                         `dependency:"UserProfileStore"`
+	TokenStore              authtoken.Store                           `dependency:"TokenStore"`
+	AuthInfoStore           authinfo.Store                            `dependency:"AuthInfoStore"`
+	CustomTokenAuthProvider customtoken.Provider                      `dependency:"CustomTokenAuthProvider"`
+	UserVerifyKeys          []config.UserVerificationKeyConfiguration `dependency:"UserVerifyKeys"`
+	WelcomeEmailEnabled     bool                                      `dependency:"WelcomeEmailEnabled"`
+	AuditTrail              audit.Trail                               `dependency:"AuditTrail"`
+	TaskQueue               async.Queue                               `dependency:"AsyncTaskQueue"`
 }
 
 func (h CustomTokenLoginHandler) WithTx() bool {
@@ -232,7 +233,7 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 		// Initialise verify state
 		info.VerifyInfo = map[string]bool{}
 		for _, key := range h.UserVerifyKeys {
-			info.VerifyInfo[key] = false
+			info.VerifyInfo[key.Key] = false
 		}
 
 		// Create AuthInfo

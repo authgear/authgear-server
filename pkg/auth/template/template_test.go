@@ -14,15 +14,17 @@ import (
 func TestResetPasswordPayload(t *testing.T) {
 	Convey("Test auth template", t, func() {
 		config := config.TenantConfiguration{
-			WelcomeEmail: config.WelcomeEmailConfiguration{
-				HTMLURL: "http://template.com/welcome-email-html-url",
-			},
-			UserVerify: config.UserVerifyConfiguration{
-				KeyConfigs: []config.UserVerifyKeyConfiguration{
-					config.UserVerifyKeyConfiguration{
-						Key: "key1",
-						ProviderConfig: config.UserVerifyKeyProviderConfiguration{
-							TextURL: "http://template.com/userverify-key1-text-url",
+			UserConfig: config.UserConfiguration{
+				WelcomeEmail: config.WelcomeEmailConfiguration{
+					HTMLURL: "http://template.com/welcome-email-html-url",
+				},
+				UserVerification: config.UserVerificationConfiguration{
+					Keys: []config.UserVerificationKeyConfiguration{
+						config.UserVerificationKeyConfiguration{
+							Key: "key1",
+							ProviderConfig: config.UserVerificationProviderConfiguration{
+								TextURL: "http://template.com/userverify-key1-text-url",
+							},
 						},
 					},
 				},

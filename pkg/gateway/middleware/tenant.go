@@ -7,15 +7,15 @@ import (
 	"github.com/gorilla/mux"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	gatewayConfig "github.com/skygeario/skygear-server/pkg/gateway/config"
-	"github.com/skygeario/skygear-server/pkg/gateway/db"
 	gatewayModel "github.com/skygeario/skygear-server/pkg/gateway/model"
+	"github.com/skygeario/skygear-server/pkg/gateway/store"
 )
 
 // TenantAuthzMiddleware is middleware to check if the current app can access
 // gear
 type TenantAuthzMiddleware struct {
-	Store        db.GatewayStore
-	RouterConfig gatewayConfig.RouterConfig
+	Store         store.GatewayStore
+	Configuration gatewayConfig.Configuration
 }
 
 // Handle reject the request if the current app doesn't have permission to
@@ -33,7 +33,7 @@ func (a TenantAuthzMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		}
 
-		url, err := a.RouterConfig.GetGearURL(gear, gearVersion)
+		url, err := a.Configuration.GetGearURL(gear, gearVersion)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
