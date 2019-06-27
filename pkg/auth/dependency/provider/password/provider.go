@@ -9,6 +9,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
@@ -32,7 +33,7 @@ func newProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	loginIDsKeyWhitelist []string,
+	loginIDsKeys map[string]config.LoginIDKeyConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
 ) *providerImpl {
@@ -41,7 +42,7 @@ func newProvider(
 		sqlExecutor: executor,
 		logger:      logger,
 		loginIDChecker: defaultLoginIDChecker{
-			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
+			loginIDsKeys: loginIDsKeys,
 		},
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,
@@ -58,11 +59,11 @@ func NewProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	loginIDsKeyWhitelist []string,
+	loginIDsKeys map[string]config.LoginIDKeyConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
 ) Provider {
-	return newProvider(builder, executor, logger, loginIDsKeyWhitelist, allowedRealms, passwordHistoryEnabled)
+	return newProvider(builder, executor, logger, loginIDsKeys, allowedRealms, passwordHistoryEnabled)
 }
 
 func (p providerImpl) IsLoginIDValid(loginIDs []LoginID) bool {

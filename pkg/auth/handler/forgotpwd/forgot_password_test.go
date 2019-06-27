@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -27,7 +28,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 		fh := &ForgotPasswordHandler{}
 		fh.TxContext = db.NewMockTxContext()
 		fh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			[]string{},
+			map[string]config.LoginIDKeyConfiguration{},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{

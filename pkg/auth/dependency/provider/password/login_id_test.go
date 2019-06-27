@@ -3,8 +3,16 @@ package password
 import (
 	"testing"
 
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func newLoginIDKeyConfig(min int, max int) config.LoginIDKeyConfiguration {
+	return config.LoginIDKeyConfiguration{
+		Minimum: &min,
+		Maximum: &max,
+	}
+}
 
 func TestLoginID(t *testing.T) {
 	Convey("Test ParseLoginIDs", t, func() {
@@ -46,10 +54,12 @@ func TestLoginID(t *testing.T) {
 	})
 
 	Convey("Test isValid", t, func() {
-		Convey("validate by loginIDsKeyWhitelist: [username, email]", func() {
-			keys := []string{"username", "email"}
+		Convey("validate by config: username (0-1), email (0-1)", func() {
 			checker := defaultLoginIDChecker{
-				loginIDsKeyWhitelist: keys,
+				loginIDsKeys: map[string]config.LoginIDKeyConfiguration{
+					"username": newLoginIDKeyConfig(0, 1),
+					"email":    newLoginIDKeyConfig(0, 1),
+				},
 			}
 			var loginIDs []LoginID
 

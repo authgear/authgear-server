@@ -1,6 +1,7 @@
 package password
 
 import (
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,15 +16,15 @@ type MockProvider struct {
 }
 
 // NewMockProvider creates a new instance of mock provider
-func NewMockProvider(loginIDsKeyWhitelist []string, allowedRealms []string) *MockProvider {
-	return NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist, allowedRealms, map[string]Principal{})
+func NewMockProvider(loginIDsKeys map[string]config.LoginIDKeyConfiguration, allowedRealms []string) *MockProvider {
+	return NewMockProviderWithPrincipalMap(loginIDsKeys, allowedRealms, map[string]Principal{})
 }
 
 // NewMockProviderWithPrincipalMap creates a new instance of mock provider with PrincipalMap
-func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, allowedRealms []string, principalMap map[string]Principal) *MockProvider {
+func NewMockProviderWithPrincipalMap(loginIDsKeys map[string]config.LoginIDKeyConfiguration, allowedRealms []string, principalMap map[string]Principal) *MockProvider {
 	return &MockProvider{
 		loginIDChecker: defaultLoginIDChecker{
-			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
+			loginIDsKeys: loginIDsKeys,
 		},
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,

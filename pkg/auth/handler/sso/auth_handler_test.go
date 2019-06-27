@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -107,10 +108,14 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		loginIDsKeyWhitelist := []string{"email"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
+			"email": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{},
 		)
@@ -329,10 +334,14 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		loginIDsKeyWhitelist := []string{"email"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
+			"email": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{},
 		)
@@ -525,10 +534,14 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		loginIDsKeyWhitelist := []string{"email"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
+			"email": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
@@ -627,11 +640,15 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		// providerLoginID wouldn't match loginIDsKeyWhitelist "["username"]"
-		loginIDsKeyWhitelist := []string{"username"}
+		// providerLoginID wouldn't match loginIDsKeys username
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
+			"username": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
@@ -645,7 +662,7 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
 
-		Convey("shouldn't auto-link password principal if loginIDsKeyWhitelist not matched", func() {
+		Convey("shouldn't auto-link password principal if loginIDsKeys not matched", func() {
 			// oauth state
 			state := sso.State{
 				CallbackURL: "http://localhost:3000",

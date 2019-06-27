@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -49,10 +50,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		}
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
-		loginIDsKeyWhitelist := []string{}
+		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
@@ -232,10 +233,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		}
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
-		loginIDsKeyWhitelist := []string{}
+		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{

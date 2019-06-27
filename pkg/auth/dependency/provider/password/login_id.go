@@ -1,6 +1,8 @@
 package password
 
-import "github.com/skygeario/skygear-server/pkg/core/utils"
+import (
+	"github.com/skygeario/skygear-server/pkg/core/config"
+)
 
 type LoginID struct {
 	Key   string
@@ -25,24 +27,30 @@ type loginIDChecker interface {
 }
 
 type defaultLoginIDChecker struct {
-	loginIDsKeyWhitelist []string
+	loginIDsKeys map[string]config.LoginIDKeyConfiguration
 }
 
 func (c defaultLoginIDChecker) isValid(loginIDs []LoginID) bool {
-	// default is empty list, allows any loginID keys
-	allowAll := len(c.loginIDsKeyWhitelist) == 0
+	amounts := map[string]int{}
 	for _, loginID := range loginIDs {
-		// if loginIDsKeyWhitelist is not empty,
-		// reject any loginIDKey that is not in the list
-		if !allowAll &&
-			!utils.StringSliceContains(c.loginIDsKeyWhitelist, loginID.Key) {
+		_, allowed := c.loginIDsKeys[loginID.Key]
+		if !allowed {
 			return false
 		}
 
 		if loginID.Value == "" {
 			return false
 		}
+		amounts[loginID.Key]++
 	}
+
+	for key, keyConfig := range c.loginIDsKeys {
+		amount := amounts[key]
+		if amount > *keyConfig.Maximum || amount < *keyConfig.Minimum {
+			return false
+		}
+	}
+
 	return len(loginIDs) != 0
 }
 

@@ -101,10 +101,15 @@ func TestSingupHandler(t *testing.T) {
 			timeNow = realTime
 		}()
 
-		loginIDsKeyWhitelist := []string{"email", "username"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
+			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist, allowedRealms)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 
 		passwordChecker := &authAudit.PasswordChecker{
@@ -335,10 +340,15 @@ func TestSingupHandler(t *testing.T) {
 			timeNow = realTime
 		}()
 
-		loginIDsKeyWhitelist := []string{"email", "username"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
+			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist, allowedRealms)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 
@@ -449,10 +459,15 @@ func TestSingupHandler(t *testing.T) {
 			timeNow = realTime
 		}()
 
-		loginIDsKeyWhitelist := []string{"email", "username"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
+			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist, allowedRealms)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 
 		passwordChecker := &authAudit.PasswordChecker{

@@ -13,6 +13,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
 
@@ -61,7 +63,11 @@ func defaultUserConfiguration() UserConfiguration {
 		},
 		Auth: AuthConfiguration{
 			// Default to email and username
-			LoginIDKeys:   []string{"email", "username"},
+			LoginIDKeys: map[string]LoginIDKeyConfiguration{
+				"username": LoginIDKeyConfiguration{Type: loginIDKeyTypeRaw},
+				"email":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Email)},
+				"phone":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Phone)},
+			},
 			AllowedRealms: []string{"default"},
 		},
 		ForgotPassword: ForgotPasswordConfiguration{
@@ -274,7 +280,24 @@ func (c *TenantConfiguration) Validate() error {
 	if c.UserConfig.APIKey == c.UserConfig.MasterKey {
 		return errors.New("MASTER_KEY cannot be the same as API_KEY")
 	}
-	return name.ValidateAppName(c.AppName)
+
+	if len(c.UserConfig.Auth.LoginIDKeys) == 0 {
+		return errors.New("LoginIDKeys cannot be empty")
+	}
+	for _, loginIDKeyConfig := range c.UserConfig.Auth.LoginIDKeys {
+		if !loginIDKeyConfig.Type.IsValid() {
+			return errors.New("Invalid LoginIDKeys type: " + string(loginIDKeyConfig.Type))
+		}
+		if *loginIDKeyConfig.Minimum > *loginIDKeyConfig.Maximum || *loginIDKeyConfig.Maximum <= 0 {
+			return errors.New("Invalid LoginIDKeys amount range: " + string(loginIDKeyConfig.Type))
+		}
+	}
+
+	if err := name.ValidateAppName(c.AppName); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *TenantConfiguration) AfterUnmarshal() {
@@ -308,6 +331,23 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	c.UserConfig.WelcomeEmail.URLPrefix = removeTrailingSlash(c.UserConfig.WelcomeEmail.URLPrefix)
 	c.UserConfig.UserVerification.URLPrefix = removeTrailingSlash(c.UserConfig.UserVerification.URLPrefix)
 	c.UserConfig.SSO.URLPrefix = removeTrailingSlash(c.UserConfig.SSO.URLPrefix)
+
+	// Set default value for login ID keys config
+	for key, config := range c.UserConfig.Auth.LoginIDKeys {
+		if config.Minimum == nil {
+			config.Minimum = new(int)
+			*config.Minimum = 0
+		}
+		if config.Maximum == nil {
+			config.Maximum = new(int)
+			if *config.Minimum == 0 {
+				*config.Maximum = 1
+			} else {
+				*config.Maximum = *config.Minimum
+			}
+		}
+		c.UserConfig.Auth.LoginIDKeys[key] = config
+	}
 }
 
 func GetTenantConfig(r *http.Request) TenantConfiguration {
@@ -364,9 +404,32 @@ type CORSConfiguration struct {
 }
 
 type AuthConfiguration struct {
-	LoginIDKeys       []string `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
-	AllowedRealms     []string `json:"allowed_realms" yaml:"allowed_realms" msg:"allowed_realms"`
-	CustomTokenSecret string   `json:"custom_token_secret" yaml:"custom_token_secret" msg:"custom_token_secret"`
+	LoginIDKeys       map[string]LoginIDKeyConfiguration `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
+	AllowedRealms     []string                           `json:"allowed_realms" yaml:"allowed_realms" msg:"allowed_realms"`
+	CustomTokenSecret string                             `json:"custom_token_secret" yaml:"custom_token_secret" msg:"custom_token_secret"`
+}
+
+type LoginIDKeyType string
+
+const loginIDKeyTypeRaw LoginIDKeyType = "raw"
+
+func (t LoginIDKeyType) MetadataKey() *metadata.StandardKey {
+	for _, key := range metadata.AllKeys() {
+		if string(t) == string(key) {
+			return &key
+		}
+	}
+	return nil
+}
+
+func (t LoginIDKeyType) IsValid() bool {
+	return t == loginIDKeyTypeRaw || t.MetadataKey() != nil
+}
+
+type LoginIDKeyConfiguration struct {
+	Type    LoginIDKeyType `json:"type" yaml:"type" msg:"type"`
+	Minimum *int           `json:"minimum" yaml:"minimum" msg:"minimum"`
+	Maximum *int           `json:"maximum" yaml:"maximum" msg:"maximum"`
 }
 
 type TokenStoreConfiguration struct {

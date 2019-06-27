@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -85,10 +86,16 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
-		loginIDsKeyWhitelist := []string{"email", "username"}
+
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
+			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm, "admin"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id1": password.Principal{
@@ -267,10 +274,15 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
-		loginIDsKeyWhitelist := []string{"email", "username"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
+			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id1": password.Principal{

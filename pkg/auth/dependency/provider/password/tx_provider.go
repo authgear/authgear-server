@@ -2,6 +2,7 @@ package password
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
@@ -14,13 +15,13 @@ func NewSafeProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	loginIDsKeyWhitelist []string,
+	loginIDsKeys map[string]config.LoginIDKeyConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
 	txContext db.SafeTxContext,
 ) Provider {
 	return &safeProviderImpl{
-		impl:      newProvider(builder, executor, logger, loginIDsKeyWhitelist, allowedRealms, passwordHistoryEnabled),
+		impl:      newProvider(builder, executor, logger, loginIDsKeys, allowedRealms, passwordHistoryEnabled),
 		txContext: txContext,
 	}
 }
