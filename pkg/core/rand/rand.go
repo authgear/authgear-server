@@ -58,10 +58,12 @@ func (s *lockedMathRandSource) Uint64() uint64 {
 	return v
 }
 
-func RandStringWithCharset(length int, charset string, r *mrand.Rand) string {
+// StringWithAlphabet generates a random string of the specific length
+// with the given alphabet using the given RNG.
+func StringWithAlphabet(length int, alphabet string, r *mrand.Rand) string {
 	b := make([]byte, length)
 	for i := range b {
-		b[i] = charset[r.Intn(len(charset))]
+		b[i] = alphabet[r.Intn(len(alphabet))]
 	}
 	return string(b)
 }
