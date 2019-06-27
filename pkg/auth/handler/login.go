@@ -127,6 +127,11 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		}
 	}
 
+	if valid := h.PasswordAuthProvider.IsRealmValid(payload.Realm); !valid {
+		err = skyerr.NewInvalidArgument("realm is not allowed", []string{"realm"})
+		return
+	}
+
 	userID, err := h.getUserID(payload.Password, payload.LoginIDKey, payload.LoginID, payload.Realm)
 	if err != nil {
 		return

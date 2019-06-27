@@ -207,6 +207,16 @@ func TestLoginHandler(t *testing.T) {
 			So(err.Error(), ShouldEqual, "InvalidArgument: invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting")
 		})
 
+		Convey("login with disallowed realm", func() {
+			payload := LoginRequestPayload{
+				LoginID:  "john.doe+1@example.com",
+				Realm:    "test",
+				Password: "123456",
+			}
+			_, err := h.Handle(payload)
+			So(err.Error(), ShouldEqual, "InvalidArgument: realm is not allowed")
+		})
+
 		Convey("log audit trail when login success", func() {
 			payload := LoginRequestPayload{
 				LoginIDKey: "email",

@@ -265,6 +265,11 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 		return
 	}
 
+	if valid := h.PasswordAuthProvider.IsRealmValid(payload.Realm); !valid {
+		err = skyerr.NewInvalidArgument("realm is not allowed", []string{"realm"})
+		return
+	}
+
 	// validate password
 	err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 		PlainPassword: payload.Password,

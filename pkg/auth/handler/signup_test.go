@@ -336,7 +336,7 @@ func TestSingupHandler(t *testing.T) {
 		}()
 
 		loginIDsKeyWhitelist := []string{"email", "username"}
-		allowedRealms := []string{password.DefaultRealm}
+		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist, allowedRealms)
 		anonymousAuthProvider := anonymous.NewMockProvider()
@@ -400,7 +400,7 @@ func TestSingupHandler(t *testing.T) {
 				"login_ids": {
 					"username": "john.doe"
 				},
-				"realm": "test",
+				"realm": "admin",
 				"password": "1234567"
 			}`))
 			resp = httptest.NewRecorder()
@@ -412,6 +412,30 @@ func TestSingupHandler(t *testing.T) {
 					"name": "Duplicated",
 					"code": 109,
 					"message": "user duplicated"
+				}
+			}
+			`)
+
+			req, _ = http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"username": "john.doe"
+				},
+				"realm": "test",
+				"password": "1234567"
+			}`))
+			resp = httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"name": "InvalidArgument",
+					"code": 108,
+					"info":{
+						"arguments":["realm"]
+					},
+					"message": "realm is not allowed"
 				}
 			}
 			`)
