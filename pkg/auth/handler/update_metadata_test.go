@@ -50,8 +50,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
 		loginIDsKeyWhitelist := []string{}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
 					ID:             "john.doe.principal.id0",
@@ -231,8 +233,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
 		loginIDsKeyWhitelist := []string{}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
 					ID:             "john.doe.principal.id0",

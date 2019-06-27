@@ -26,9 +26,9 @@ func TestForgotPasswordHandler(t *testing.T) {
 	Convey("Test ForgotPasswordHandler", t, func() {
 		fh := &ForgotPasswordHandler{}
 		fh.TxContext = db.NewMockTxContext()
-		loginIDsKeyWhitelist := []string{}
 		fh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			[]string{},
+			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:             "john.doe.principal.id",

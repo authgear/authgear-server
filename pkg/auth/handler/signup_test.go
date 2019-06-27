@@ -102,8 +102,9 @@ func TestSingupHandler(t *testing.T) {
 		}()
 
 		loginIDsKeyWhitelist := []string{"email", "username"}
+		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist, allowedRealms)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 
 		passwordChecker := &authAudit.PasswordChecker{
@@ -335,8 +336,9 @@ func TestSingupHandler(t *testing.T) {
 		}()
 
 		loginIDsKeyWhitelist := []string{"email", "username"}
+		allowedRealms := []string{password.DefaultRealm}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist, allowedRealms)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 
@@ -424,8 +426,9 @@ func TestSingupHandler(t *testing.T) {
 		}()
 
 		loginIDsKeyWhitelist := []string{"email", "username"}
+		allowedRealms := []string{password.DefaultRealm}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist, allowedRealms)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 
 		passwordChecker := &authAudit.PasswordChecker{

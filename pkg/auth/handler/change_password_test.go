@@ -53,6 +53,7 @@ func TestChangePasswordHandler(t *testing.T) {
 		}
 		lh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
 			[]string{},
+			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
 					ID:             "john.doe.principal.id0",

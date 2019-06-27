@@ -108,8 +108,10 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.SSOSetting = setting
 		loginIDsKeyWhitelist := []string{"email"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -328,8 +330,10 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.SSOSetting = setting
 		loginIDsKeyWhitelist := []string{"email"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -521,8 +525,10 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.SSOSetting = setting
 		loginIDsKeyWhitelist := []string{"email"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:             "john.doe.principal.id",
@@ -613,8 +619,10 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.SSOSetting = setting
 		loginIDsKeyWhitelist := []string{"email"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -704,8 +712,10 @@ func TestAuthHandler(t *testing.T) {
 		sh.SSOSetting = setting
 		// providerLoginID wouldn't match loginIDsKeyWhitelist "["username"]"
 		loginIDsKeyWhitelist := []string{"username"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:             "john.doe.principal.id",

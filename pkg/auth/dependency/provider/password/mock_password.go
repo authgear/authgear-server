@@ -10,22 +10,24 @@ import (
 // MockProvider is the memory implementation of password provider
 type MockProvider struct {
 	Provider
-	PrincipalMap         map[string]Principal
-	loginIDsKeyWhitelist []string
-	loginIDChecker       loginIDChecker
+	PrincipalMap   map[string]Principal
+	loginIDChecker loginIDChecker
+	realmChecker   realmChecker
 }
 
 // NewMockProvider creates a new instance of mock provider
-func NewMockProvider(loginIDsKeyWhitelist []string) *MockProvider {
-	return NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist, map[string]Principal{})
+func NewMockProvider(loginIDsKeyWhitelist []string, allowedRealms []string) *MockProvider {
+	return NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist, allowedRealms, map[string]Principal{})
 }
 
 // NewMockProviderWithPrincipalMap creates a new instance of mock provider with PrincipalMap
-func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, principalMap map[string]Principal) *MockProvider {
+func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, allowedRealms []string, principalMap map[string]Principal) *MockProvider {
 	return &MockProvider{
-		loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		loginIDChecker: defaultLoginIDChecker{
 			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
+		},
+		realmChecker: defaultRealmChecker{
+			allowedRealms: allowedRealms,
 		},
 		PrincipalMap: principalMap,
 	}
@@ -34,6 +36,10 @@ func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, principalMap
 // IsLoginIDValid validates loginID
 func (m *MockProvider) IsLoginIDValid(loginID map[string]string) bool {
 	return m.loginIDChecker.isValid(loginID)
+}
+
+func (m *MockProvider) IsRealmValid(realm string) bool {
+	return m.realmChecker.isValid(realm)
 }
 
 // CreatePrincipalsByLoginID creates principals by loginID
