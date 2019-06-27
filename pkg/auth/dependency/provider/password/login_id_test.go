@@ -43,8 +43,8 @@ func TestLoginID(t *testing.T) {
 				map[string]string{"phone": "+85299999999"},
 			})
 			So(loginIDs, ShouldResemble, []LoginID{
-				LoginID{Key: "username", Value: "johndoe"},
 				LoginID{Key: "email", Value: "johndoe@example.com"},
+				LoginID{Key: "username", Value: "johndoe"},
 				LoginID{Key: "phone", Value: "+85299999999"},
 			})
 
@@ -67,30 +67,36 @@ func TestLoginID(t *testing.T) {
 				LoginID{Key: "username", Value: "johndoe"},
 				LoginID{Key: "email", Value: "johndoe@example.com"},
 			}
-			So(checker.isValid(loginIDs), ShouldBeTrue)
+			So(checker.validate(loginIDs), ShouldBeNil)
 
 			loginIDs = []LoginID{
 				LoginID{Key: "username", Value: "johndoe"},
 			}
-			So(checker.isValid(loginIDs), ShouldBeTrue)
+			So(checker.validate(loginIDs), ShouldBeNil)
 
 			loginIDs = []LoginID{
 				LoginID{Key: "email", Value: "johndoe@example.com"},
 			}
-			So(checker.isValid(loginIDs), ShouldBeTrue)
+			So(checker.validate(loginIDs), ShouldBeNil)
+
+			loginIDs = []LoginID{
+				LoginID{Key: "email", Value: "johndoe+1@example.com"},
+				LoginID{Key: "email", Value: "johndoe+2@example.com"},
+			}
+			So(checker.validate(loginIDs), ShouldBeError, "InvalidArgument: login ID is not valid")
 
 			loginIDs = []LoginID{
 				LoginID{Key: "nickname", Value: "johndoe"},
 			}
-			So(checker.isValid(loginIDs), ShouldBeFalse)
+			So(checker.validate(loginIDs), ShouldBeError, "InvalidArgument: login ID key is not allowed")
 
 			loginIDs = []LoginID{
 				LoginID{Key: "email", Value: ""},
 			}
-			So(checker.isValid(loginIDs), ShouldBeFalse)
+			So(checker.validate(loginIDs), ShouldBeError, "InvalidArgument: login ID is empty")
 
 			loginIDs = []LoginID{}
-			So(checker.isValid(loginIDs), ShouldBeFalse)
+			So(checker.validate(loginIDs), ShouldBeError, "InvalidArgument: no login ID is present")
 		})
 	})
 }

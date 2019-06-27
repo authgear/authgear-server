@@ -3,7 +3,7 @@ package password
 const providerPassword string = "password"
 
 type Provider interface {
-	IsLoginIDValid(loginIDs []LoginID) bool
+	ValidateLoginIDs(loginIDs []LoginID) error
 	IsRealmValid(realm string) bool
 	IsDefaultAllowedRealms() bool
 	CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) error

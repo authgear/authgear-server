@@ -1,7 +1,10 @@
 package password
 
 import (
+	"sort"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type LoginID struct {
@@ -12,10 +15,16 @@ type LoginID struct {
 func ParseLoginIDs(rawLoginIDList []map[string]string) []LoginID {
 	loginIDList := []LoginID{}
 	for _, loginIDs := range rawLoginIDList {
-		for loginIDKey, loginID := range loginIDs {
+		loginIDKeys := []string{}
+		for key := range loginIDs {
+			loginIDKeys = append(loginIDKeys, key)
+		}
+		sort.Strings(loginIDKeys)
+
+		for _, loginIDKey := range loginIDKeys {
 			loginIDList = append(loginIDList, LoginID{
 				Key:   loginIDKey,
-				Value: loginID,
+				Value: loginIDs[loginIDKey],
 			})
 		}
 	}
@@ -23,23 +32,23 @@ func ParseLoginIDs(rawLoginIDList []map[string]string) []LoginID {
 }
 
 type loginIDChecker interface {
-	isValid(loginIDs []LoginID) bool
+	validate(loginIDs []LoginID) error
 }
 
 type defaultLoginIDChecker struct {
 	loginIDsKeys map[string]config.LoginIDKeyConfiguration
 }
 
-func (c defaultLoginIDChecker) isValid(loginIDs []LoginID) bool {
+func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 	amounts := map[string]int{}
 	for _, loginID := range loginIDs {
 		_, allowed := c.loginIDsKeys[loginID.Key]
 		if !allowed {
-			return false
+			return skyerr.NewInvalidArgument("login ID key is not allowed", []string{loginID.Key})
 		}
 
 		if loginID.Value == "" {
-			return false
+			return skyerr.NewInvalidArgument("login ID is empty", []string{loginID.Key})
 		}
 		amounts[loginID.Key]++
 	}
@@ -47,11 +56,15 @@ func (c defaultLoginIDChecker) isValid(loginIDs []LoginID) bool {
 	for key, keyConfig := range c.loginIDsKeys {
 		amount := amounts[key]
 		if amount > *keyConfig.Maximum || amount < *keyConfig.Minimum {
-			return false
+			return skyerr.NewInvalidArgument("login ID is not valid", []string{key})
 		}
 	}
 
-	return len(loginIDs) != 0
+	if len(loginIDs) == 0 {
+		return skyerr.NewError(skyerr.InvalidArgument, "no login ID is present")
+	}
+
+	return nil
 }
 
 // this ensures that our structure conform to certain interfaces.

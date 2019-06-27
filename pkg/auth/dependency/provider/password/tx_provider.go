@@ -26,9 +26,9 @@ func NewSafeProvider(
 	}
 }
 
-func (p *safeProviderImpl) IsLoginIDValid(loginIDs []LoginID) bool {
+func (p *safeProviderImpl) ValidateLoginIDs(loginIDs []LoginID) error {
 	p.txContext.EnsureTx()
-	return p.impl.IsLoginIDValid(loginIDs)
+	return p.impl.ValidateLoginIDs(loginIDs)
 }
 
 func (p safeProviderImpl) IsRealmValid(realm string) bool {

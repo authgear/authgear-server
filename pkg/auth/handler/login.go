@@ -127,8 +127,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		loginIDs := []password.LoginID{
 			password.LoginID{Key: payload.LoginIDKey, Value: payload.LoginID},
 		}
-		if valid := h.PasswordAuthProvider.IsLoginIDValid(loginIDs); !valid {
-			err = skyerr.NewInvalidArgument("invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting", []string{"login_id"})
+		if err = h.PasswordAuthProvider.ValidateLoginIDs(loginIDs); err != nil {
 			return
 		}
 	}

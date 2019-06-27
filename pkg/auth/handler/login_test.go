@@ -216,7 +216,7 @@ func TestLoginHandler(t *testing.T) {
 				Password:   "123456",
 			}
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidArgument: invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting")
+			So(err.Error(), ShouldEqual, "InvalidArgument: login ID key is not allowed")
 		})
 
 		Convey("login with disallowed realm", func() {

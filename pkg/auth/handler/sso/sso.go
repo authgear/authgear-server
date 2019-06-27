@@ -188,7 +188,7 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 	// if oauth principal doesn't exist, try to link existed password principal
 	if h.Settings.AutoLinkEnabled && h.PasswordAuthProvider.IsDefaultAllowedRealms() {
 		loginIDs := password.ParseLoginIDs([]map[string]string{oauthAuthInfo.ProviderAuthData})
-		if valid := h.PasswordAuthProvider.IsLoginIDValid(loginIDs); valid {
+		if err := h.PasswordAuthProvider.ValidateLoginIDs(loginIDs); err == nil {
 			// provider authData matches app's loginIDsKeyWhitelist,
 			// then it starts auto-link procedure.
 			//

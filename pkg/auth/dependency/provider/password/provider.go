@@ -66,8 +66,8 @@ func NewProvider(
 	return newProvider(builder, executor, logger, loginIDsKeys, allowedRealms, passwordHistoryEnabled)
 }
 
-func (p providerImpl) IsLoginIDValid(loginIDs []LoginID) bool {
-	return p.loginIDChecker.isValid(loginIDs)
+func (p providerImpl) ValidateLoginIDs(loginIDs []LoginID) error {
+	return p.loginIDChecker.validate(loginIDs)
 }
 
 func (p providerImpl) IsRealmValid(realm string) bool {

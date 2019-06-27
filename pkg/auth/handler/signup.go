@@ -260,8 +260,7 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 		return
 	}
 
-	if valid := h.PasswordAuthProvider.IsLoginIDValid(payload.LoginIDs); !valid {
-		err = skyerr.NewInvalidArgument("invalid login_ids", []string{"login_ids"})
+	if err = h.PasswordAuthProvider.ValidateLoginIDs(payload.LoginIDs); err != nil {
 		return
 	}
 

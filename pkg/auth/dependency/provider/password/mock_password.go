@@ -34,9 +34,9 @@ func NewMockProviderWithPrincipalMap(loginIDsKeys map[string]config.LoginIDKeyCo
 	}
 }
 
-// IsLoginIDValid validates loginID
-func (m *MockProvider) IsLoginIDValid(loginIDs []LoginID) bool {
-	return m.loginIDChecker.isValid(loginIDs)
+// ValidateLoginIDs validates loginID
+func (m *MockProvider) ValidateLoginIDs(loginIDs []LoginID) error {
+	return m.loginIDChecker.validate(loginIDs)
 }
 
 func (m *MockProvider) IsRealmValid(realm string) bool {

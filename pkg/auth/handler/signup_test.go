@@ -257,9 +257,9 @@ func TestSingupHandler(t *testing.T) {
 					"name": "InvalidArgument",
 					"code": 108,
 					"info":{
-						"arguments":["login_ids"]
+						"arguments":["phone"]
 					},
-					"message": "invalid login_ids","name":"InvalidArgument"
+					"message": "login ID key is not allowed","name":"InvalidArgument"
 				}
 			}
 			`)
