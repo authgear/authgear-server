@@ -61,7 +61,8 @@ func defaultUserConfiguration() UserConfiguration {
 		},
 		Auth: AuthConfiguration{
 			// Default to email and username
-			LoginIDKeys: []string{"email", "username"},
+			LoginIDKeys:   []string{"email", "username"},
+			AllowedRealms: []string{"default"},
 		},
 		ForgotPassword: ForgotPasswordConfiguration{
 			SecureMatch:      false,
@@ -364,6 +365,7 @@ type CORSConfiguration struct {
 
 type AuthConfiguration struct {
 	LoginIDKeys       []string `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
+	AllowedRealms     []string `json:"allowed_realms" yaml:"allowed_realms" msg:"allowed_realms"`
 	CustomTokenSecret string   `json:"custom_token_secret" yaml:"custom_token_secret" msg:"custom_token_secret"`
 }
 
