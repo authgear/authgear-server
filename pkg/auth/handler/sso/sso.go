@@ -20,6 +20,7 @@ type respHandler struct {
 	PasswordAuthProvider password.Provider
 	UserProfileStore     userprofile.Store
 	UserID               string
+	Settings             sso.Setting
 }
 
 func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
@@ -189,15 +190,17 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 	}
 
 	// if oauth principal doesn't exist, try to link existed password principal
-	if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
-		if valid := h.PasswordAuthProvider.IsRealmValid(password.DefaultRealm); valid {
-			// provider authData matches app's loginIDsKeyWhitelist,
-			// then it starts auto-link procedure.
-			//
-			// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
-			// it will be a valid authData if loginIDsKeyWhitelist is [](empty), ["username", "email"] or ["email"]
-			// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
-			return h.authLinkUser(oauthAuthInfo)
+	if h.Settings.AutoLinkEnabled {
+		if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
+			if valid := h.PasswordAuthProvider.IsRealmValid(password.DefaultRealm); valid {
+				// provider authData matches app's loginIDsKeyWhitelist,
+				// then it starts auto-link procedure.
+				//
+				// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
+				// it will be a valid authData if loginIDsKeyWhitelist is [](empty), ["username", "email"] or ["email"]
+				// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
+				return h.authLinkUser(oauthAuthInfo)
+			}
 		}
 	}
 

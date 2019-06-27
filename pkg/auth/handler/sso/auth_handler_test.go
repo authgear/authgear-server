@@ -479,8 +479,9 @@ func TestAuthHandler(t *testing.T) {
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		setting := sso.Setting{
-			URLPrefix:      "http://localhost:3000",
-			StateJWTSecret: stateJWTSecret,
+			URLPrefix:       "http://localhost:3000",
+			StateJWTSecret:  stateJWTSecret,
+			AutoLinkEnabled: true,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
 			},
@@ -580,8 +581,9 @@ func TestAuthHandler(t *testing.T) {
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		setting := sso.Setting{
-			URLPrefix:      "http://localhost:3000",
-			StateJWTSecret: stateJWTSecret,
+			URLPrefix:       "http://localhost:3000",
+			StateJWTSecret:  stateJWTSecret,
+			AutoLinkEnabled: true,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
 			},
@@ -665,8 +667,9 @@ func TestAuthHandler(t *testing.T) {
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		setting := sso.Setting{
-			URLPrefix:      "http://localhost:3000",
-			StateJWTSecret: stateJWTSecret,
+			URLPrefix:       "http://localhost:3000",
+			StateJWTSecret:  stateJWTSecret,
+			AutoLinkEnabled: true,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
 			},

@@ -428,12 +428,12 @@ type WelcomeEmailConfiguration struct {
 }
 
 type SSOConfiguration struct {
-	URLPrefix            string                     `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	JSSDKCDNURL          string                     `json:"js_sdk_cdn_url" yaml:"js_sdk_cdn_url" msg:"js_sdk_cdn_url"`
-	StateJWTSecret       string                     `json:"state_jwt_secret" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
-	AutoLinkProviderKeys []string                   `json:"auto_link_provider_keys" yaml:"auto_link_provider_keys" msg:"auto_link_provider_keys"`
-	AllowedCallbackURLs  []string                   `json:"allowed_callback_urls" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
-	Providers            []SSOProviderConfiguration `json:"providers" yaml:"providers" msg:"providers"`
+	URLPrefix           string                     `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	JSSDKCDNURL         string                     `json:"js_sdk_cdn_url" yaml:"js_sdk_cdn_url" msg:"js_sdk_cdn_url"`
+	StateJWTSecret      string                     `json:"state_jwt_secret" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
+	AutoLinkEnabled     bool                       `json:"auto_link_enabled" yaml:"auto_link_enabled" msg:"auto_link_enabled"`
+	AllowedCallbackURLs []string                   `json:"allowed_callback_urls" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
+	Providers           []SSOProviderConfiguration `json:"providers" yaml:"providers" msg:"providers"`
 }
 
 func (s *SSOConfiguration) APIEndpoint() string {
