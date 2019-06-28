@@ -152,10 +152,6 @@ func (h respHandler) handleLogin(
 			return
 		}
 
-		err = h.createEmptyPasswordPrincipal(info.ID, oauthAuthInfo)
-		if err == skydb.ErrUserDuplicated {
-			err = signUpHandler.ErrUserDuplicated
-		}
 	} else {
 		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
 		principal.UserProfile = oauthAuthInfo.ProviderUserProfile
@@ -238,16 +234,4 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 	principal.UpdatedAt = &now
 	err := h.OAuthAuthProvider.CreatePrincipal(principal)
 	return principal, err
-}
-
-func (h respHandler) createEmptyPasswordPrincipal(userID string, oauthAuthInfo sso.AuthInfo) error {
-	if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
-		if valid := h.PasswordAuthProvider.IsRealmValid(password.DefaultRealm); valid {
-			// if ProviderAuthData matches loginIDsKeyWhitelist, and it can't be link with current account,
-			// we also creates an empty password principal for later the user can set password to it
-			return h.PasswordAuthProvider.CreatePrincipalsByLoginID(userID, "", oauthAuthInfo.ProviderAuthData, password.DefaultRealm)
-		}
-	}
-
-	return nil
 }
