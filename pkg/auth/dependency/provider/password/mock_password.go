@@ -1,8 +1,6 @@
 package password
 
 import (
-	"reflect"
-
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -89,8 +87,7 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 	}
 
 	for _, p := range m.PrincipalMap {
-		if reflect.DeepEqual(principal.LoginID, p.LoginID) &&
-			reflect.DeepEqual(principal.Realm, p.Realm) {
+		if principal.LoginID == p.LoginID && principal.Realm == p.Realm {
 			return skydb.ErrUserDuplicated
 		}
 	}
