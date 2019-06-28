@@ -23,6 +23,7 @@ type providerImpl struct {
 	logger                 *logrus.Entry
 	loginIDChecker         loginIDChecker
 	realmChecker           realmChecker
+	allowedRealms          []string
 	passwordHistoryEnabled bool
 	passwordHistoryStore   passwordhistory.Store
 }
@@ -45,6 +46,7 @@ func newProvider(
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,
 		},
+		allowedRealms:          allowedRealms,
 		passwordHistoryEnabled: passwordHistoryEnabled,
 		passwordHistoryStore: pqPWHistory.NewPasswordHistoryStore(
 			builder, executor, logger,
@@ -69,6 +71,10 @@ func (p providerImpl) IsLoginIDValid(loginID map[string]string) bool {
 
 func (p providerImpl) IsRealmValid(realm string) bool {
 	return p.realmChecker.isValid(realm)
+}
+
+func (p *providerImpl) IsDefaultAllowedRealms() bool {
+	return len(p.allowedRealms) == 1 && p.allowedRealms[0] == DefaultRealm
 }
 
 func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) (err error) {

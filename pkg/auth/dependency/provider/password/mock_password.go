@@ -13,6 +13,7 @@ type MockProvider struct {
 	PrincipalMap   map[string]Principal
 	loginIDChecker loginIDChecker
 	realmChecker   realmChecker
+	allowedRealms  []string
 }
 
 // NewMockProvider creates a new instance of mock provider
@@ -29,7 +30,8 @@ func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, allowedRealm
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,
 		},
-		PrincipalMap: principalMap,
+		allowedRealms: allowedRealms,
+		PrincipalMap:  principalMap,
 	}
 }
 
@@ -40,6 +42,10 @@ func (m *MockProvider) IsLoginIDValid(loginID map[string]string) bool {
 
 func (m *MockProvider) IsRealmValid(realm string) bool {
 	return m.realmChecker.isValid(realm)
+}
+
+func (m *MockProvider) IsDefaultAllowedRealms() bool {
+	return len(m.allowedRealms) == 1 && m.allowedRealms[0] == DefaultRealm
 }
 
 // CreatePrincipalsByLoginID creates principals by loginID

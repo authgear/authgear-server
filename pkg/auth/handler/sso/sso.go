@@ -190,17 +190,15 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 	}
 
 	// if oauth principal doesn't exist, try to link existed password principal
-	if h.Settings.AutoLinkEnabled {
+	if h.Settings.AutoLinkEnabled && h.PasswordAuthProvider.IsDefaultAllowedRealms() {
 		if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
-			if valid := h.PasswordAuthProvider.IsRealmValid(password.DefaultRealm); valid {
-				// provider authData matches app's loginIDsKeyWhitelist,
-				// then it starts auto-link procedure.
-				//
-				// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
-				// it will be a valid authData if loginIDsKeyWhitelist is [](empty), ["username", "email"] or ["email"]
-				// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
-				return h.authLinkUser(oauthAuthInfo)
-			}
+			// provider authData matches app's loginIDsKeyWhitelist,
+			// then it starts auto-link procedure.
+			//
+			// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
+			// it will be a valid authData if loginIDsKeyWhitelist is [](empty), ["username", "email"] or ["email"]
+			// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
+			return h.authLinkUser(oauthAuthInfo)
 		}
 	}
 

@@ -35,6 +35,11 @@ func (p safeProviderImpl) IsRealmValid(realm string) bool {
 	return p.impl.IsRealmValid(realm)
 }
 
+func (p *safeProviderImpl) IsDefaultAllowedRealms() bool {
+	p.txContext.EnsureTx()
+	return p.impl.IsDefaultAllowedRealms()
+}
+
 func (p *safeProviderImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) error {
 	p.txContext.EnsureTx()
 	return p.impl.CreatePrincipalsByLoginID(authInfoID, password, loginID, realm)
