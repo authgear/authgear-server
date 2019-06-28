@@ -9,6 +9,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -205,9 +206,11 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	passwordPrincipal := password.Principal{}
 	var e error
-	// TODO(login-id): use login ID key config
 	if email, ok := oauthAuthInfo.ProviderAuthData["email"]; ok {
-		e = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", email, password.DefaultRealm, &passwordPrincipal)
+		e = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", email, password.DefaultRealm, &passwordPrincipal)
+		if e == nil && !h.PasswordAuthProvider.CheckLoginIDKeyType(passwordPrincipal.LoginIDKey, metadata.Email) {
+			return nil, nil
+		}
 	}
 	if e == nil {
 		userID := passwordPrincipal.UserID

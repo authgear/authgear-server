@@ -4,13 +4,14 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"regexp"
 	"testing"
 	"time"
+
+	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
@@ -19,6 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
@@ -537,7 +539,11 @@ func TestAuthHandler(t *testing.T) {
 		zero := 0
 		one := 1
 		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
-			"email": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"email": coreconfig.LoginIDKeyConfiguration{
+				Type:    coreconfig.LoginIDKeyType(metadata.Email),
+				Minimum: &zero,
+				Maximum: &one,
+			},
 		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
