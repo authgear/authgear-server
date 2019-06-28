@@ -292,21 +292,6 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 
 	hashedPassword := principals[0].HashedPassword
 
-	email := ""
-	for _, principal := range principals {
-		// TODO(login-id): use login ID key config
-		if principal.LoginIDKey == "email" {
-			email = principal.LoginID
-		}
-	}
-	if email == "" {
-		h.Logger.WithFields(map[string]interface{}{
-			"user_id": templateCtx.payload.UserID,
-		}).WithError(err).Error("unable to find email in password auth principals")
-		h.HandleRequestError(rw, genericResetPasswordError())
-		return
-	}
-
 	expectedCode := h.CodeGenerator.Generate(authInfo, hashedPassword, templateCtx.payload.ExpireAtTime)
 	if templateCtx.payload.Code != expectedCode {
 		h.Logger.WithFields(map[string]interface{}{

@@ -9,6 +9,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
@@ -68,6 +69,10 @@ func NewProvider(
 
 func (p providerImpl) ValidateLoginIDs(loginIDs []LoginID) error {
 	return p.loginIDChecker.validate(loginIDs)
+}
+
+func (p providerImpl) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
+	return p.loginIDChecker.checkType(loginIDKey, standardKey)
 }
 
 func (p providerImpl) IsRealmValid(realm string) bool {

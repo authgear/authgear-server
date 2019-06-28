@@ -3,6 +3,7 @@ package password
 import (
 	"sort"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -33,6 +34,7 @@ func ParseLoginIDs(rawLoginIDList []map[string]string) []LoginID {
 
 type loginIDChecker interface {
 	validate(loginIDs []LoginID) error
+	checkType(loginIDKey string, standardKey metadata.StandardKey) bool
 }
 
 type defaultLoginIDChecker struct {
@@ -65,6 +67,16 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 	}
 
 	return nil
+}
+
+func (c defaultLoginIDChecker) checkType(loginIDKey string, standardKey metadata.StandardKey) bool {
+	config, ok := c.loginIDsKeys[loginIDKey]
+	if !ok {
+		return false
+	}
+
+	configStandardKey, ok := config.Type.MetadataKey()
+	return ok && configStandardKey == standardKey
 }
 
 // this ensures that our structure conform to certain interfaces.

@@ -2,6 +2,7 @@ package password
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
@@ -29,6 +30,11 @@ func NewSafeProvider(
 func (p *safeProviderImpl) ValidateLoginIDs(loginIDs []LoginID) error {
 	p.txContext.EnsureTx()
 	return p.impl.ValidateLoginIDs(loginIDs)
+}
+
+func (p *safeProviderImpl) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
+	p.txContext.EnsureTx()
+	return p.impl.CheckLoginIDKeyType(loginIDKey, standardKey)
 }
 
 func (p safeProviderImpl) IsRealmValid(realm string) bool {

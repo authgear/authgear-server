@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -98,8 +99,7 @@ func (h ForgotPasswordHandler) DecodeRequest(request *http.Request) (handler.Req
 func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(ForgotPasswordPayload)
 
-	// TODO(login-id): use login ID key config
-	principals, principalErr := h.PasswordAuthProvider.GetPrincipalsByLoginID("email", payload.Email)
+	principals, principalErr := h.PasswordAuthProvider.GetPrincipalsByLoginID("", payload.Email)
 	if principalErr != nil {
 		if principalErr == skydb.ErrUserNotFound {
 			if h.SecureMatch {
@@ -117,7 +117,19 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 
 	principalMap := map[string]*password.Principal{}
 	for _, principal := range principals {
-		principalMap[principal.UserID] = principal
+		if h.PasswordAuthProvider.CheckLoginIDKeyType(principal.LoginIDKey, metadata.Email) {
+			principalMap[principal.UserID] = principal
+		}
+	}
+
+	if len(principalMap) == 0 {
+		if h.SecureMatch {
+			resp = "OK"
+		} else {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+		}
+
+		return
 	}
 
 	for userID, principal := range principalMap {

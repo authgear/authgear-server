@@ -1,6 +1,7 @@
 package password
 
 import (
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"golang.org/x/crypto/bcrypt"
@@ -37,6 +38,10 @@ func NewMockProviderWithPrincipalMap(loginIDsKeys map[string]config.LoginIDKeyCo
 // ValidateLoginIDs validates loginID
 func (m *MockProvider) ValidateLoginIDs(loginIDs []LoginID) error {
 	return m.loginIDChecker.validate(loginIDs)
+}
+
+func (m *MockProvider) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
+	return m.loginIDChecker.checkType(loginIDKey, standardKey)
 }
 
 func (m *MockProvider) IsRealmValid(realm string) bool {
