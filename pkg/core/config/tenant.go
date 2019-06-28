@@ -307,6 +307,11 @@ func (c *TenantConfiguration) Validate() error {
 		return err
 	}
 
+	if c.UserConfig.UserVerification.Criteria != UserVerificationCriteriaAny &&
+		c.UserConfig.UserVerification.Criteria != UserVerificationCriteriaAll {
+		return errors.New("Invalid user verification criteria")
+	}
+
 	return nil
 }
 
@@ -357,6 +362,11 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 			}
 		}
 		c.UserConfig.Auth.LoginIDKeys[key] = config
+	}
+
+	// Set default user verification settings
+	if c.UserConfig.UserVerification.Criteria == "" {
+		c.UserConfig.UserVerification.Criteria = UserVerificationCriteriaAny
 	}
 }
 
@@ -531,13 +541,20 @@ type SSOProviderConfiguration struct {
 	Scope        string `json:"scope" yaml:"scope" msg:"scope"`
 }
 
+type UserVerificationCriteria string
+
+const (
+	UserVerificationCriteriaAny UserVerificationCriteria = "any"
+	UserVerificationCriteriaAll UserVerificationCriteria = "all"
+)
+
 type UserVerificationConfiguration struct {
 	URLPrefix        string                             `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
 	AutoUpdate       bool                               `json:"auto_update" yaml:"auto_update" msg:"auto_update"`
 	AutoSendOnSignup bool                               `json:"auto_send_on_signup" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
 	AutoSendOnUpdate bool                               `json:"auto_send_on_update" yaml:"auto_send_on_update" msg:"auto_send_on_update"`
 	Required         bool                               `json:"required" yaml:"required" msg:"required"`
-	Criteria         string                             `json:"criteria" yaml:"criteria" msg:"criteria"`
+	Criteria         UserVerificationCriteria           `json:"criteria" yaml:"criteria" msg:"criteria"`
 	ErrorRedirect    string                             `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
 	ErrorHTMLURL     string                             `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
 	Keys             []UserVerificationKeyConfiguration `json:"keys" yaml:"keys" msg:"keys"`
