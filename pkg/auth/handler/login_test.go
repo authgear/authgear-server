@@ -130,6 +130,7 @@ func TestLoginHandler(t *testing.T) {
 			payload := LoginRequestPayload{
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
+				Realm:      password.DefaultRealm,
 				Password:   "123456",
 			}
 			userID := "john.doe.id"
@@ -158,6 +159,7 @@ func TestLoginHandler(t *testing.T) {
 		Convey("login user without login ID key", func() {
 			payload := LoginRequestPayload{
 				LoginID:  "john.doe@example.com",
+				Realm:    password.DefaultRealm,
 				Password: "123456",
 			}
 
@@ -179,6 +181,7 @@ func TestLoginHandler(t *testing.T) {
 		Convey("login user with incorrect realm", func() {
 			payload := LoginRequestPayload{
 				LoginID:  "john.doe+1@example.com",
+				Realm:    password.DefaultRealm,
 				Password: "123456",
 			}
 
@@ -190,6 +193,7 @@ func TestLoginHandler(t *testing.T) {
 			payload := LoginRequestPayload{
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
+				Realm:      password.DefaultRealm,
 				Password:   "wrong_password",
 			}
 
@@ -201,6 +205,7 @@ func TestLoginHandler(t *testing.T) {
 			payload := LoginRequestPayload{
 				LoginIDKey: "phone",
 				LoginID:    "202-111-2222",
+				Realm:      password.DefaultRealm,
 				Password:   "123456",
 			}
 			_, err := h.Handle(payload)
@@ -221,6 +226,7 @@ func TestLoginHandler(t *testing.T) {
 			payload := LoginRequestPayload{
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
+				Realm:      password.DefaultRealm,
 				Password:   "123456",
 			}
 			h.Handle(payload)
@@ -233,6 +239,7 @@ func TestLoginHandler(t *testing.T) {
 			payload := LoginRequestPayload{
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
+				Realm:      password.DefaultRealm,
 				Password:   "wrong_password",
 			}
 			h.Handle(payload)

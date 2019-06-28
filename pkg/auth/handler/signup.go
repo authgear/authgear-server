@@ -64,7 +64,7 @@ func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 type SignupRequestPayload struct {
 	LoginIDs map[string]string      `json:"login_ids"`
-	Realm    string                 `json:"realm,omitempty"`
+	Realm    string                 `json:"realm"`
 	Password string                 `json:"password"`
 	Metadata map[string]interface{} `json:"metadata"`
 }
@@ -135,11 +135,19 @@ func (h SignupHandler) WithTx() bool {
 func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := SignupRequestPayload{}
 	err := json.NewDecoder(request.Body).Decode(&payload)
+
+	if err != nil {
+		return nil, err
+	}
+
 	// Avoid { metadata: null } in the response user object
 	if payload.Metadata == nil {
 		payload.Metadata = make(map[string]interface{})
 	}
-	return payload, err
+	if payload.Realm == "" {
+		payload.Realm = password.DefaultRealm
+	}
+	return payload, nil
 }
 
 func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User) error {
@@ -151,10 +159,6 @@ func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User
 
 func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
-
-	if payload.Realm == "" {
-		payload.Realm = password.DefaultRealm
-	}
 
 	err = h.verifyPayload(payload)
 	if err != nil {

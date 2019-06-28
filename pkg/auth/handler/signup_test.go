@@ -594,6 +594,7 @@ func TestSingupHandler(t *testing.T) {
 									"email": "john.doe@example.com",
 									"username": "john.doe"
 								},
+								"realm": "default",
 								"password": "123456",
 								"metadata": {}
 							}

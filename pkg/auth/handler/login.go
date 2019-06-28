@@ -50,9 +50,9 @@ func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
-	LoginIDKey string `json:"login_id_key,omitempty"`
+	LoginIDKey string `json:"login_id_key"`
 	LoginID    string `json:"login_id"`
-	Realm      string `json:"realm,omitempty"`
+	Realm      string `json:"realm"`
 	Password   string `json:"password"`
 }
 
@@ -92,15 +92,20 @@ func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := LoginRequestPayload{}
 	err := json.NewDecoder(request.Body).Decode(&payload)
-	return payload, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	if payload.Realm == "" {
+		payload.Realm = password.DefaultRealm
+	}
+	return payload, nil
 }
 
 // Handle api request
 func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(LoginRequestPayload)
-	if payload.Realm == "" {
-		payload.Realm = password.DefaultRealm
-	}
 
 	fetchedAuthInfo := authinfo.AuthInfo{}
 
