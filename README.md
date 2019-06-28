@@ -49,6 +49,7 @@ If you come from skygear-server 0.x to 1.x, the biggest difference is that gears
 
 DB migration must be run before server boot up. And since we do not have a full featured db management tool for skygear yet, here is a general guide for new comers of skygear next user.
 
+1. Create a schema for common gateway.
 1. Create a schema for your app.
 1. Run core migration.
 1. Run gear(s) migration.
@@ -56,6 +57,8 @@ DB migration must be run before server boot up. And since we do not have a full 
 For example, the app name is `helloworld` and you want to run `auth` gear and `chat` gear.
 
 ```
+# Base app_config schema for core gateway
+CREATE SCHEMA app_config;
 # Create a schema for your app, with name app_{name}
 # Run the following SQL in any postgresql client, like Postico
 CREATE SCHEMA app_helloworld;
