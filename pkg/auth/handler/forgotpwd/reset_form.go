@@ -294,6 +294,7 @@ func (h ForgotPasswordResetFormHandler) ServeHTTP(rw http.ResponseWriter, r *htt
 
 	email := ""
 	for _, principal := range principals {
+		// TODO(login-id): use login ID key config
 		if principal.LoginIDKey == "email" {
 			email = principal.LoginID
 		}

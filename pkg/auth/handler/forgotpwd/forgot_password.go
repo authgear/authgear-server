@@ -101,6 +101,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		"email": payload.Email,
 	}
 
+	// TODO(login-id): use login ID key config
 	principals, principalErr := h.PasswordAuthProvider.GetPrincipalsByLoginID("email", payload.Email)
 	if principalErr != nil {
 		if principalErr == skydb.ErrUserNotFound {

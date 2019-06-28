@@ -204,6 +204,7 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	passwordPrincipal := password.Principal{}
 	var e error
+	// TODO(login-id): use login ID key config
 	if email, ok := oauthAuthInfo.ProviderAuthData["email"]; ok {
 		e = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", email, password.DefaultRealm, &passwordPrincipal)
 	}

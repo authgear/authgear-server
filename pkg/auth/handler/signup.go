@@ -295,6 +295,7 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo au
 }
 
 func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs map[string]string) {
+	// TODO(login-id): use login ID key config
 	if email, ok := loginIDs["email"]; ok {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
 			Email: email,
