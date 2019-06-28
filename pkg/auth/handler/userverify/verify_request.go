@@ -130,6 +130,8 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 	user := userFactory.NewUser(*authInfo, userProfile)
 
+	// We don't check realms. i.e. Verifying a email means every email login IDs
+	// of that email is verified, regardless the realm.
 	principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID(payload.LoginIDKey, payload.LoginID)
 	if err != nil {
 		return
