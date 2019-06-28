@@ -34,15 +34,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 
 	// Create or update user profile
 	var userProfile userprofile.UserProfile
-	// oauthAuthInfo.ProviderUserProfile may contains attributes like "id",
-	// and it is not allowed to use it in SDK.
-	// so here we will save authData as providerUserProfile
-	data := make(map[string]interface{})
-	providerUserProfile := oauthAuthInfo.ProviderAuthData
-	// convert from map[string]string(sso.AuthInfo.ProviderAuthData) to map[string]interface(userprofile.Data)
-	for k, v := range providerUserProfile {
-		data[k] = v
-	}
+	data := oauthAuthInfo.ProviderUserProfile
 	if createNewUser {
 		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, data)
 	} else {
@@ -188,43 +180,39 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 
 	// if oauth principal doesn't exist, try to link existed password principal
 	if h.Settings.AutoLinkEnabled && h.PasswordAuthProvider.IsDefaultAllowedRealms() {
-		loginIDs := password.ParseLoginIDs([]map[string]string{oauthAuthInfo.ProviderAuthData})
-		if err := h.PasswordAuthProvider.ValidateLoginIDs(loginIDs); err == nil {
-			// provider authData matches app's loginIDsKeyWhitelist,
-			// then it starts auto-link procedure.
-			//
-			// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
-			// it will be a valid authData if loginIDsKeyWhitelist is [](empty), ["username", "email"] or ["email"]
-			// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
-			return h.authLinkUser(oauthAuthInfo)
-		}
+		return h.authLinkUser(oauthAuthInfo)
 	}
 
 	return nil, nil
 }
 
 func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
-	passwordPrincipal := password.Principal{}
-	var e error
-	if email, ok := oauthAuthInfo.ProviderAuthData["email"]; ok {
-		e = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", email, password.DefaultRealm, &passwordPrincipal)
-		if e == nil && !h.PasswordAuthProvider.CheckLoginIDKeyType(passwordPrincipal.LoginIDKey, metadata.Email) {
-			return nil, nil
-		}
-	}
-	if e == nil {
-		userID := passwordPrincipal.UserID
-		// link password principal to oauth principal
-		oauthPrincipal, err := h.createPrincipalByOAuthInfo(userID, oauthAuthInfo)
-		if err != nil {
-			return nil, err
-		}
-		return &oauthPrincipal, nil
-	} else if e != skydb.ErrUserNotFound {
-		return nil, e
+	email := oauthAuthInfo.ProviderAuthData.Email
+	if email == "" {
+		return nil, nil
 	}
 
-	return nil, nil
+	var err error
+	passwordPrincipal := password.Principal{}
+	err = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", email, password.DefaultRealm, &passwordPrincipal)
+	if err != nil {
+		if err == skydb.ErrUserNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	if !h.PasswordAuthProvider.CheckLoginIDKeyType(passwordPrincipal.LoginIDKey, metadata.Email) {
+		return nil, nil
+	}
+
+	userID := passwordPrincipal.UserID
+	// link password principal to oauth principal
+	oauthPrincipal, err := h.createPrincipalByOAuthInfo(userID, oauthAuthInfo)
+	if err != nil {
+		return nil, err
+	}
+	return &oauthPrincipal, nil
 }
 
 func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (oauth.Principal, error) {

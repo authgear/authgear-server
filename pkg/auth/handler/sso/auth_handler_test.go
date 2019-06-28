@@ -507,8 +507,8 @@ func TestAuthHandler(t *testing.T) {
 			Setting: setting,
 			Config:  config,
 			UserID:  providerUserID,
-			AuthData: map[string]string{
-				"email": "john.doe@example.com",
+			AuthData: sso.ProviderAuthKeys{
+				Email: "john.doe@example.com",
 			},
 		}
 		sh.Provider = &mockProvider
@@ -617,8 +617,8 @@ func TestAuthHandler(t *testing.T) {
 			Setting: setting,
 			Config:  config,
 			UserID:  providerUserID,
-			AuthData: map[string]string{
-				"email": "john.doe@example.com",
+			AuthData: sso.ProviderAuthKeys{
+				Email: "john.doe@example.com",
 			},
 		}
 		sh.Provider = &mockProvider
