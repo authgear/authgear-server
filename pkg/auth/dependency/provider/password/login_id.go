@@ -1,35 +1,18 @@
 package password
 
 import (
-	"sort"
-
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type LoginID struct {
-	Key   string
-	Value string
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
-func ParseLoginIDs(rawLoginIDList []map[string]string) []LoginID {
-	loginIDList := []LoginID{}
-	for _, loginIDs := range rawLoginIDList {
-		loginIDKeys := []string{}
-		for key := range loginIDs {
-			loginIDKeys = append(loginIDKeys, key)
-		}
-		sort.Strings(loginIDKeys)
-
-		for _, loginIDKey := range loginIDKeys {
-			loginIDList = append(loginIDList, LoginID{
-				Key:   loginIDKey,
-				Value: loginIDs[loginIDKey],
-			})
-		}
-	}
-	return loginIDList
+func (loginID LoginID) IsValid() bool {
+	return len(loginID.Key) != 0 && len(loginID.Value) != 0
 }
 
 type loginIDChecker interface {

@@ -139,8 +139,8 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "email": "john.doe@example.com" },
-					{ "username": "john.doe" }
+					{ "key": "email", "value": "john.doe@example.com" },
+					{ "key": "username", "value": "john.doe" }
 				],
 				"password": "123456"
 			}`))
@@ -177,7 +177,7 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "email": "john.doe@example.com" }
+					{ "key": "email", "value": "john.doe@example.com" }
 				],
 				"realm": "admin",
 				"password": "123456"
@@ -243,7 +243,7 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "phone": "202-111-2222" }
+					{ "key": "phone", "value": "202-111-2222" }
 				],
 				"password": "123456"
 			}`))
@@ -269,8 +269,8 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "username": "john.doe" },
-					{ "email":    "john.doe@example.com" }
+					{ "key": "username", "value": "john.doe" },
+					{ "key": "email", "value": "john.doe@example.com" }
 				],
 				"password": "1234"
 			}`))
@@ -298,8 +298,8 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "username": "john.doe" },
-					{ "email":    "john.doe@example.com" }
+					{ "key": "username", "value": "john.doe" },
+					{ "key": "email", "value": "john.doe@example.com" }
 				],
 				"password": "12345678"
 			}`))
@@ -318,8 +318,8 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "username": "john.doe" },
-					{ "email":    "john.doe@example.com" }
+					{ "key": "username", "value": "john.doe" },
+					{ "key": "email", "value": "john.doe@example.com" }
 				],
 				"password": "123456"
 			}`))
@@ -377,7 +377,7 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "username": "john.doe" }
+					{ "key": "username", "value": "john.doe" }
 				],
 				"password": "123456"
 			}`))
@@ -388,7 +388,7 @@ func TestSingupHandler(t *testing.T) {
 			req, _ = http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "username": "john.doe" }
+					{ "key": "username", "value": "john.doe" }
 				],
 				"password": "1234567"
 			}`))
@@ -408,7 +408,7 @@ func TestSingupHandler(t *testing.T) {
 			req, _ = http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "username": "john.doe" }
+					{ "key": "username", "value": "john.doe" }
 				],
 				"realm": "admin",
 				"password": "1234567"
@@ -429,7 +429,7 @@ func TestSingupHandler(t *testing.T) {
 			req, _ = http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "username": "john.doe" }
+					{ "key": "username", "value": "john.doe" }
 				],
 				"realm": "test",
 				"password": "1234567"
@@ -509,8 +509,8 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "email": "john.doe@example.com" },
-					{ "username": "john.doe" }
+					{ "key": "email", "value": "john.doe@example.com" },
+					{ "key": "username", "value": "john.doe" }
 				],
 				"password": "123456"
 			}`))
@@ -562,8 +562,8 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "email": "john.doe@example.com" },
-					{ "username": "john.doe" }
+					{ "key": "email", "value": "john.doe@example.com" },
+					{ "key": "username", "value": "john.doe" }
 				],
 				"password": "123456"
 			}`))
@@ -606,8 +606,8 @@ func TestSingupHandler(t *testing.T) {
 							"path": "/auth/signup",
 							"payload": {
 								"login_ids": [
-									{ "email": "john.doe@example.com" },
-									{ "username": "john.doe" }
+									{ "key": "email", "value": "john.doe@example.com" },
+									{ "key": "username", "value": "john.doe" }
 								],
 								"realm": "default",
 								"password": "123456",
@@ -653,8 +653,8 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 							{
 								"login_ids": [
-									{ "email": "john.doe@example.com" },
-									{ "username": "john.doe" }
+									{ "key": "email", "value": "john.doe@example.com" },
+									{ "key": "username", "value": "john.doe" }
 								],
 								"password": "123456"
 							}`))
@@ -701,8 +701,8 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "email": "john.doe@example.com" },
-					{ "username": "john.doe" }
+					{ "key": "email", "value": "john.doe@example.com" },
+					{ "key": "username", "value": "john.doe" }
 				],
 				"password": "123456"
 			}`))
@@ -754,8 +754,8 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "email": "john.doe@example.com" },
-					{ "username": "john.doe" }
+					{ "key": "email", "value": "john.doe@example.com" },
+					{ "key": "username", "value": "john.doe" }
 				],
 				"password": "123456"
 			}`))
@@ -850,8 +850,8 @@ func TestSingupHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
-					{ "email": "john.doe@example.com" },
-					{ "username": "john.doe" }
+					{ "key": "email", "value": "john.doe@example.com" },
+					{ "key": "username", "value": "john.doe" }
 				],
 				"password": "123456"
 			}`))

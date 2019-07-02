@@ -63,11 +63,10 @@ func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type SignupRequestPayload struct {
-	RawLoginIDs []map[string]string    `json:"login_ids"`
-	LoginIDs    []password.LoginID     `json:"-"`
-	Realm       string                 `json:"realm"`
-	Password    string                 `json:"password"`
-	Metadata    map[string]interface{} `json:"metadata"`
+	LoginIDs []password.LoginID     `json:"login_ids"`
+	Realm    string                 `json:"realm"`
+	Password string                 `json:"password"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 func (p SignupRequestPayload) Validate() error {
@@ -80,6 +79,12 @@ func (p SignupRequestPayload) Validate() error {
 
 		if p.Password == "" {
 			return skyerr.NewInvalidArgument("empty password", []string{"password"})
+		}
+
+		for _, loginID := range p.LoginIDs {
+			if !loginID.IsValid() {
+				return skyerr.NewInvalidArgument("invalid login_ids", []string{"login_ids"})
+			}
 		}
 
 		if p.duplicatedLoginIDs() {
@@ -148,7 +153,6 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	if payload.Realm == "" {
 		payload.Realm = password.DefaultRealm
 	}
-	payload.LoginIDs = password.ParseLoginIDs(payload.RawLoginIDs)
 	return payload, nil
 }
 
