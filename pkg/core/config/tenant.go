@@ -64,7 +64,7 @@ func defaultUserConfiguration() UserConfiguration {
 		Auth: AuthConfiguration{
 			// Default to email and username
 			LoginIDKeys: map[string]LoginIDKeyConfiguration{
-				"username": LoginIDKeyConfiguration{Type: loginIDKeyTypeRaw},
+				"username": LoginIDKeyConfiguration{Type: LoginIDKeyTypeRaw},
 				"email":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Email)},
 				"phone":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Phone)},
 			},
@@ -435,7 +435,7 @@ type AuthConfiguration struct {
 
 type LoginIDKeyType string
 
-const loginIDKeyTypeRaw LoginIDKeyType = "raw"
+const LoginIDKeyTypeRaw LoginIDKeyType = "raw"
 
 func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
 	for _, key := range metadata.AllKeys() {
@@ -448,7 +448,7 @@ func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
 
 func (t LoginIDKeyType) IsValid() bool {
 	_, validKey := t.MetadataKey()
-	return t == loginIDKeyTypeRaw || validKey
+	return t == LoginIDKeyTypeRaw || validKey
 }
 
 type LoginIDKeyConfiguration struct {
