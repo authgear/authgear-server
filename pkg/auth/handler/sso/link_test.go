@@ -48,8 +48,8 @@ func TestLinkHandler(t *testing.T) {
 	Convey("Test LinkHandler", t, func() {
 		stateJWTSecret := "secret"
 		providerName := "mock"
-		providerUserID := "mock_user_id"
-		providerAuthData := sso.ProviderAuthKeys{
+		providerUserInfo := sso.ProviderUserInfo{
+			ID:    "mock_user_id",
 			Email: "john.doe@example.com",
 		}
 
@@ -68,12 +68,11 @@ func TestLinkHandler(t *testing.T) {
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
-		mockProvider := sso.MockSSOProverImpl{
+		mockProvider := sso.MockSSOProvider{
 			BaseURL:  "http://mock/auth",
 			Setting:  setting,
 			Config:   config,
-			UserID:   providerUserID,
-			AuthData: providerAuthData,
+			UserInfo: providerUserInfo,
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(
@@ -102,7 +101,7 @@ func TestLinkHandler(t *testing.T) {
 				"result": "OK"
 			}`)
 
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserInfo.ID)
 			So(p.UserID, ShouldEqual, "faseng.cat.id")
 		})
 	})

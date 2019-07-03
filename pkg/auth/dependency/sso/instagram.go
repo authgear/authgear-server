@@ -64,32 +64,16 @@ func (f *InstagramImpl) GetAuthInfo(code string, scope Scope, encodedState strin
 	return h.getAuthInfo()
 }
 
-func (i instagramAuthInfoProcessor) DecodeUserID(userProfile map[string]interface{}) string {
+func (i instagramAuthInfoProcessor) DecodeUserInfo(userProfile map[string]interface{}) (info ProviderUserInfo) {
 	// Check GET /users/self response
 	// https://www.instagram.com/developer/endpoints/users/
-	data, ok := userProfile["data"].(map[string]interface{})
-	if !ok {
-		return ""
-	}
-	id, ok := data["id"].(string)
-	if !ok {
-		return ""
-	}
-	return id
-}
-
-func (i instagramAuthInfoProcessor) DecodeAuthData(userProfile map[string]interface{}) (authData ProviderAuthKeys) {
-	// Check GET /users/self response
-	// https://www.instagram.com/developer/endpoints/users/
-	authData = ProviderAuthKeys{}
 	data, ok := userProfile["data"].(map[string]interface{})
 	if !ok {
 		return
 	}
-	email, ok := data["email"].(string)
-	if ok {
-		authData.Email = email
-	}
+
+	info.ID, _ = data["id"].(string)
+	info.Email, _ = data["email"].(string)
 	return
 }
 

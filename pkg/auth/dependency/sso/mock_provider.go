@@ -4,15 +4,14 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
-type MockSSOProverImpl struct {
+type MockSSOProvider struct {
 	BaseURL  string
 	Setting  Setting
 	Config   Config
-	UserID   string
-	AuthData ProviderAuthKeys
+	UserInfo ProviderUserInfo
 }
 
-func (f *MockSSOProverImpl) GetAuthURL(params GetURLParams) (string, error) {
+func (f *MockSSOProvider) GetAuthURL(params GetURLParams) (string, error) {
 	if f.Config.ClientID == "" {
 		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
 		return "", skyErr
@@ -30,7 +29,7 @@ func (f *MockSSOProverImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
-func (f *MockSSOProverImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
+func (f *MockSSOProvider) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
 	state, err := DecodeState(f.Setting.StateJWTSecret, encodedState)
 	if err != nil {
 		return
@@ -39,21 +38,19 @@ func (f *MockSSOProverImpl) GetAuthInfo(code string, scope Scope, encodedState s
 	authInfo = AuthInfo{
 		ProviderName:            f.Config.Name,
 		State:                   state,
-		ProviderUserID:          f.UserID,
 		ProviderAccessTokenResp: map[string]interface{}{},
-		ProviderUserProfile:     map[string]interface{}{},
-		ProviderAuthData:        f.AuthData,
+		ProviderRawProfile:      map[string]interface{}{},
+		ProviderUserInfo:        f.UserInfo,
 	}
 	return
 }
 
-func (f *MockSSOProverImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+func (f *MockSSOProvider) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{
 		ProviderName:            f.Config.Name,
-		ProviderUserID:          f.UserID,
 		ProviderAccessTokenResp: map[string]interface{}{},
-		ProviderUserProfile:     map[string]interface{}{},
-		ProviderAuthData:        f.AuthData,
+		ProviderRawProfile:      map[string]interface{}{},
+		ProviderUserInfo:        f.UserInfo,
 	}
 	return
 }

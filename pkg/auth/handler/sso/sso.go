@@ -34,7 +34,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 
 	// Create or update user profile
 	var userProfile userprofile.UserProfile
-	data := oauthAuthInfo.ProviderUserProfile
+	data := oauthAuthInfo.ProviderRawProfile
 	if createNewUser {
 		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, data)
 	} else {
@@ -74,7 +74,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
 	// action => link
 	// check if provider user is already linked
-	_, err = h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserID)
+	_, err = h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserInfo.ID)
 	if err == nil {
 		err = skyerr.NewError(skyerr.InvalidArgument, "user linked to the provider already")
 		return resp, err
@@ -147,7 +147,7 @@ func (h respHandler) handleLogin(
 
 	} else {
 		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
-		principal.UserProfile = oauthAuthInfo.ProviderUserProfile
+		principal.UserProfile = oauthAuthInfo.ProviderRawProfile
 		principal.UpdatedAt = &now
 
 		if err = h.OAuthAuthProvider.UpdatePrincipal(principal); err != nil {
@@ -169,7 +169,7 @@ func (h respHandler) handleLogin(
 
 func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	// find oauth principal from principal_oauth
-	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserID)
+	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserInfo.ID)
 	if err != nil {
 		if err != skydb.ErrUserNotFound {
 			return nil, err
@@ -187,7 +187,7 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 }
 
 func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
-	email := oauthAuthInfo.ProviderAuthData.Email
+	email := oauthAuthInfo.ProviderUserInfo.Email
 	if email == "" {
 		return nil, nil
 	}
@@ -220,9 +220,9 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 	principal := oauth.NewPrincipal()
 	principal.UserID = userID
 	principal.ProviderName = oauthAuthInfo.ProviderName
-	principal.ProviderUserID = oauthAuthInfo.ProviderUserID
+	principal.ProviderUserID = oauthAuthInfo.ProviderUserInfo.ID
 	principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
-	principal.UserProfile = oauthAuthInfo.ProviderUserProfile
+	principal.UserProfile = oauthAuthInfo.ProviderRawProfile
 	principal.CreatedAt = &now
 	principal.UpdatedAt = &now
 	err := h.OAuthAuthProvider.CreatePrincipal(principal)

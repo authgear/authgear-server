@@ -71,10 +71,8 @@ func (h getAuthInfoRequest) getAuthInfoByAccessTokenResp(accessTokenResp AccessT
 	if err != nil {
 		return
 	}
-	authInfo.ProviderUserProfile = userProfile
-	authInfo.ProviderUserID = h.processor.DecodeUserID(userProfile)
-	// TODO: process process_userinfo_hook
-	authInfo.ProviderAuthData = h.processor.DecodeAuthData(userProfile)
+	authInfo.ProviderRawProfile = userProfile
+	authInfo.ProviderUserInfo = h.processor.DecodeUserInfo(userProfile)
 
 	return
 }

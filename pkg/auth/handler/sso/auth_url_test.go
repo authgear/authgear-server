@@ -77,7 +77,7 @@ func TestAuthURLHandler(t *testing.T) {
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
-		mockProvider := sso.MockSSOProverImpl{
+		mockProvider := sso.MockSSOProvider{
 			BaseURL: "http://mock/auth",
 			Setting: setting,
 			Config:  config,
