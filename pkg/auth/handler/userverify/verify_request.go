@@ -79,12 +79,15 @@ func (t loginIDType) MatchPrincipal(principal *password.Principal, provider pass
 }
 
 type VerifyRequestPayload struct {
-	RawLoginIDType string      `json:"login_id_type"`
-	LoginIDType    loginIDType `json:"-"`
-	LoginID        string      `json:"login_id"`
+	LoginIDType loginIDType `json:"login_id_type"`
+	LoginID     string      `json:"login_id"`
 }
 
 func (payload VerifyRequestPayload) Validate() error {
+	if !utils.StringSliceContains(allLoginIDTypes, string(payload.LoginIDType)) {
+		return skyerr.NewInvalidArgument("invalid login ID type", []string{"login_id_type"})
+	}
+
 	if payload.LoginID == "" {
 		return skyerr.NewInvalidArgument("empty login ID", []string{"login_id"})
 	}
@@ -123,11 +126,6 @@ func (h VerifyRequestHandler) DecodeRequest(request *http.Request) (handler.Requ
 	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
 		return nil, skyerr.NewError(skyerr.BadRequest, "fails to decode the request payload")
 	}
-
-	if !utils.StringSliceContains(allLoginIDTypes, payload.RawLoginIDType) {
-		return nil, skyerr.NewInvalidArgument("invalid login ID type", []string{"login_id_type"})
-	}
-	payload.LoginIDType = loginIDType(payload.RawLoginIDType)
 
 	return payload, nil
 }
