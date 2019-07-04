@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -85,10 +86,16 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
-		loginIDsKeyWhitelist := []string{"email", "username"}
+
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
+			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm, "admin"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id1": password.Principal{
@@ -209,7 +216,7 @@ func TestLoginHandler(t *testing.T) {
 				Password:   "123456",
 			}
 			_, err := h.Handle(payload)
-			So(err.Error(), ShouldEqual, "InvalidArgument: invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting")
+			So(err.Error(), ShouldEqual, "InvalidArgument: login ID key is not allowed")
 		})
 
 		Convey("login with disallowed realm", func() {
@@ -267,10 +274,15 @@ func TestLoginHandler(t *testing.T) {
 				},
 			},
 		)
-		loginIDsKeyWhitelist := []string{"email", "username"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
+			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id1": password.Principal{

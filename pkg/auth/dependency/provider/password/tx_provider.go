@@ -2,6 +2,8 @@ package password
 
 import (
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 )
 
@@ -14,20 +16,25 @@ func NewSafeProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	loginIDsKeyWhitelist []string,
+	loginIDsKeys map[string]config.LoginIDKeyConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
 	txContext db.SafeTxContext,
 ) Provider {
 	return &safeProviderImpl{
-		impl:      newProvider(builder, executor, logger, loginIDsKeyWhitelist, allowedRealms, passwordHistoryEnabled),
+		impl:      newProvider(builder, executor, logger, loginIDsKeys, allowedRealms, passwordHistoryEnabled),
 		txContext: txContext,
 	}
 }
 
-func (p *safeProviderImpl) IsLoginIDValid(loginID map[string]string) bool {
+func (p *safeProviderImpl) ValidateLoginIDs(loginIDs []LoginID) error {
 	p.txContext.EnsureTx()
-	return p.impl.IsLoginIDValid(loginID)
+	return p.impl.ValidateLoginIDs(loginIDs)
+}
+
+func (p *safeProviderImpl) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
+	p.txContext.EnsureTx()
+	return p.impl.CheckLoginIDKeyType(loginIDKey, standardKey)
 }
 
 func (p safeProviderImpl) IsRealmValid(realm string) bool {
@@ -40,9 +47,9 @@ func (p *safeProviderImpl) IsDefaultAllowedRealms() bool {
 	return p.impl.IsDefaultAllowedRealms()
 }
 
-func (p *safeProviderImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) error {
+func (p *safeProviderImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) error {
 	p.txContext.EnsureTx()
-	return p.impl.CreatePrincipalsByLoginID(authInfoID, password, loginID, realm)
+	return p.impl.CreatePrincipalsByLoginID(authInfoID, password, loginIDs, realm)
 }
 
 func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {

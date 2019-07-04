@@ -9,6 +9,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
@@ -32,7 +34,7 @@ func newProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	loginIDsKeyWhitelist []string,
+	loginIDsKeys map[string]config.LoginIDKeyConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
 ) *providerImpl {
@@ -41,7 +43,7 @@ func newProvider(
 		sqlExecutor: executor,
 		logger:      logger,
 		loginIDChecker: defaultLoginIDChecker{
-			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
+			loginIDsKeys: loginIDsKeys,
 		},
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,
@@ -58,15 +60,19 @@ func NewProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	loginIDsKeyWhitelist []string,
+	loginIDsKeys map[string]config.LoginIDKeyConfiguration,
 	allowedRealms []string,
 	passwordHistoryEnabled bool,
 ) Provider {
-	return newProvider(builder, executor, logger, loginIDsKeyWhitelist, allowedRealms, passwordHistoryEnabled)
+	return newProvider(builder, executor, logger, loginIDsKeys, allowedRealms, passwordHistoryEnabled)
 }
 
-func (p providerImpl) IsLoginIDValid(loginID map[string]string) bool {
-	return p.loginIDChecker.isValid(loginID)
+func (p providerImpl) ValidateLoginIDs(loginIDs []LoginID) error {
+	return p.loginIDChecker.validate(loginIDs)
+}
+
+func (p providerImpl) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
+	return p.loginIDChecker.checkType(loginIDKey, standardKey)
 }
 
 func (p providerImpl) IsRealmValid(realm string) bool {
@@ -77,10 +83,10 @@ func (p *providerImpl) IsDefaultAllowedRealms() bool {
 	return len(p.allowedRealms) == 1 && p.allowedRealms[0] == DefaultRealm
 }
 
-func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) (err error) {
+func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (err error) {
 	// do not create principal when there is login ID belongs to another user.
-	for _, v := range loginID {
-		principals, principalErr := p.GetPrincipalsByLoginID("", v)
+	for _, loginID := range loginIDs {
+		principals, principalErr := p.GetPrincipalsByLoginID("", loginID.Value)
 		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
 			err = principalErr
 			return
@@ -93,11 +99,11 @@ func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password stri
 		}
 	}
 
-	for k, v := range loginID {
+	for _, loginID := range loginIDs {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
-		principal.LoginIDKey = k
-		principal.LoginID = v
+		principal.LoginIDKey = loginID.Key
+		principal.LoginID = loginID.Value
 		principal.Realm = realm
 		principal.PlainPassword = password
 		err = p.CreatePrincipal(principal)

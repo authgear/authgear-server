@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -87,10 +88,10 @@ func TestLoginHandler(t *testing.T) {
 		sh.AuthInfoStore = authInfoStore
 		mockTokenStore := authtoken.NewMockStore()
 		sh.TokenStore = mockTokenStore
-		loginIDsKeyWhitelist := []string{}
+		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{},
 		)
@@ -112,7 +113,7 @@ func TestLoginHandler(t *testing.T) {
 					"user_id": "%s",
 					"access_token": "%s",
 					"verified": false,
-					"verify_info": null,
+					"verify_info": {},
 					"created_at": "0001-01-01T00:00:00Z",
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",

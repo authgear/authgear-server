@@ -97,8 +97,12 @@ type AuthInfo struct {
 	ProviderUserID          string
 	ProviderUserProfile     map[string]interface{}
 	ProviderAccessTokenResp interface{}
-	ProviderAuthData        map[string]string
+	ProviderAuthData        ProviderAuthKeys
 	State                   State
+}
+
+type ProviderAuthKeys struct {
+	Email string
 }
 
 // Provider defines SSO interface

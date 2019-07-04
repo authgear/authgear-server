@@ -15,16 +15,12 @@ type CodeGenerator struct {
 
 func (c *CodeGenerator) Generate(
 	authInfo authinfo.AuthInfo,
-	email string,
 	hashedPassword []byte,
 	expireAt time.Time,
 ) string {
 	h := sha256.New()
 	io.WriteString(h, c.MasterKey)
 	io.WriteString(h, authInfo.ID)
-	if email != "" {
-		io.WriteString(h, email)
-	}
 	io.WriteString(h, expireAt.Format(time.RFC3339))
 	if len(hashedPassword) > 0 {
 		h.Write(hashedPassword)

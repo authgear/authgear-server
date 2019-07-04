@@ -12,6 +12,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -27,7 +29,10 @@ func TestForgotPasswordHandler(t *testing.T) {
 		fh := &ForgotPasswordHandler{}
 		fh.TxContext = db.NewMockTxContext()
 		fh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			[]string{},
+			map[string]config.LoginIDKeyConfiguration{
+				"email": config.LoginIDKeyConfiguration{Type: config.LoginIDKeyType(metadata.Email)},
+				"phone": config.LoginIDKeyConfiguration{Type: config.LoginIDKeyType(metadata.Phone)},
+			},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
@@ -44,11 +49,18 @@ func TestForgotPasswordHandler(t *testing.T) {
 					LoginID:        "john.doe@example.com",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
-				"chima.principal.id": password.Principal{
-					ID:             "chima.principal.id",
+				"chima.principal1.id": password.Principal{
+					ID:             "chima.principal1.id",
 					UserID:         "chima.id",
 					LoginIDKey:     "email",
 					LoginID:        "chima@example.com",
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"chima.principal2.id": password.Principal{
+					ID:             "chima.principal2.id",
+					UserID:         "chima.id",
+					LoginIDKey:     "phone",
+					LoginID:        "+85299999999",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -148,6 +160,22 @@ func TestForgotPasswordHandler(t *testing.T) {
 		Convey("throw error for unknown email", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"email": "iamyourfather@example.com"
+			}`))
+			resp := httptest.NewRecorder()
+			h := handler.APIHandlerToHandler(fh, fh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 110,
+					"message": "user not found",
+					"name": "ResourceNotFound"
+				}
+			}`)
+		})
+
+		Convey("throw error for not supported key type", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"email": "+85299999999"
 			}`))
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)

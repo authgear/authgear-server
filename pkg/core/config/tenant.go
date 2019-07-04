@@ -13,6 +13,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+
 	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
 
@@ -61,7 +63,11 @@ func defaultUserConfiguration() UserConfiguration {
 		},
 		Auth: AuthConfiguration{
 			// Default to email and username
-			LoginIDKeys:   []string{"email", "username"},
+			LoginIDKeys: map[string]LoginIDKeyConfiguration{
+				"username": LoginIDKeyConfiguration{Type: loginIDKeyTypeRaw},
+				"email":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Email)},
+				"phone":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Phone)},
+			},
 			AllowedRealms: []string{"default"},
 		},
 		ForgotPassword: ForgotPasswordConfiguration{
@@ -274,7 +280,39 @@ func (c *TenantConfiguration) Validate() error {
 	if c.UserConfig.APIKey == c.UserConfig.MasterKey {
 		return errors.New("MASTER_KEY cannot be the same as API_KEY")
 	}
-	return name.ValidateAppName(c.AppName)
+
+	if len(c.UserConfig.Auth.LoginIDKeys) == 0 {
+		return errors.New("LoginIDKeys cannot be empty")
+	}
+	for _, loginIDKeyConfig := range c.UserConfig.Auth.LoginIDKeys {
+		if !loginIDKeyConfig.Type.IsValid() {
+			return errors.New("Invalid LoginIDKeys type: " + string(loginIDKeyConfig.Type))
+		}
+		if *loginIDKeyConfig.Minimum > *loginIDKeyConfig.Maximum || *loginIDKeyConfig.Maximum <= 0 {
+			return errors.New("Invalid LoginIDKeys amount range: " + string(loginIDKeyConfig.Type))
+		}
+	}
+
+	for _, verifyConfig := range c.UserConfig.UserVerification.Keys {
+		keyConfig, ok := c.UserConfig.Auth.LoginIDKeys[verifyConfig.Key]
+		if !ok {
+			return errors.New("Cannot verify disallowed login ID key: " + verifyConfig.Key)
+		}
+		if metadataKey, valid := keyConfig.Type.MetadataKey(); !valid || (metadataKey != metadata.Email && metadataKey != metadata.Phone) {
+			return errors.New("Cannot verify login ID key with unknown type: " + verifyConfig.Key)
+		}
+	}
+
+	if err := name.ValidateAppName(c.AppName); err != nil {
+		return err
+	}
+
+	if c.UserConfig.UserVerification.Criteria != UserVerificationCriteriaAny &&
+		c.UserConfig.UserVerification.Criteria != UserVerificationCriteriaAll {
+		return errors.New("Invalid user verification criteria")
+	}
+
+	return nil
 }
 
 func (c *TenantConfiguration) AfterUnmarshal() {
@@ -308,6 +346,28 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	c.UserConfig.WelcomeEmail.URLPrefix = removeTrailingSlash(c.UserConfig.WelcomeEmail.URLPrefix)
 	c.UserConfig.UserVerification.URLPrefix = removeTrailingSlash(c.UserConfig.UserVerification.URLPrefix)
 	c.UserConfig.SSO.URLPrefix = removeTrailingSlash(c.UserConfig.SSO.URLPrefix)
+
+	// Set default value for login ID keys config
+	for key, config := range c.UserConfig.Auth.LoginIDKeys {
+		if config.Minimum == nil {
+			config.Minimum = new(int)
+			*config.Minimum = 0
+		}
+		if config.Maximum == nil {
+			config.Maximum = new(int)
+			if *config.Minimum == 0 {
+				*config.Maximum = 1
+			} else {
+				*config.Maximum = *config.Minimum
+			}
+		}
+		c.UserConfig.Auth.LoginIDKeys[key] = config
+	}
+
+	// Set default user verification settings
+	if c.UserConfig.UserVerification.Criteria == "" {
+		c.UserConfig.UserVerification.Criteria = UserVerificationCriteriaAny
+	}
 }
 
 func GetTenantConfig(r *http.Request) TenantConfiguration {
@@ -364,9 +424,33 @@ type CORSConfiguration struct {
 }
 
 type AuthConfiguration struct {
-	LoginIDKeys       []string `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
-	AllowedRealms     []string `json:"allowed_realms" yaml:"allowed_realms" msg:"allowed_realms"`
-	CustomTokenSecret string   `json:"custom_token_secret" yaml:"custom_token_secret" msg:"custom_token_secret"`
+	LoginIDKeys       map[string]LoginIDKeyConfiguration `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
+	AllowedRealms     []string                           `json:"allowed_realms" yaml:"allowed_realms" msg:"allowed_realms"`
+	CustomTokenSecret string                             `json:"custom_token_secret" yaml:"custom_token_secret" msg:"custom_token_secret"`
+}
+
+type LoginIDKeyType string
+
+const loginIDKeyTypeRaw LoginIDKeyType = "raw"
+
+func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
+	for _, key := range metadata.AllKeys() {
+		if string(t) == string(key) {
+			return key, true
+		}
+	}
+	return "", false
+}
+
+func (t LoginIDKeyType) IsValid() bool {
+	_, validKey := t.MetadataKey()
+	return t == loginIDKeyTypeRaw || validKey
+}
+
+type LoginIDKeyConfiguration struct {
+	Type    LoginIDKeyType `json:"type" yaml:"type" msg:"type"`
+	Minimum *int           `json:"minimum" yaml:"minimum" msg:"minimum"`
+	Maximum *int           `json:"maximum" yaml:"maximum" msg:"maximum"`
 }
 
 type TokenStoreConfiguration struct {
@@ -457,13 +541,20 @@ type SSOProviderConfiguration struct {
 	Scope        string `json:"scope" yaml:"scope" msg:"scope"`
 }
 
+type UserVerificationCriteria string
+
+const (
+	UserVerificationCriteriaAny UserVerificationCriteria = "any"
+	UserVerificationCriteriaAll UserVerificationCriteria = "all"
+)
+
 type UserVerificationConfiguration struct {
 	URLPrefix        string                             `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
 	AutoUpdate       bool                               `json:"auto_update" yaml:"auto_update" msg:"auto_update"`
 	AutoSendOnSignup bool                               `json:"auto_send_on_signup" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
 	AutoSendOnUpdate bool                               `json:"auto_send_on_update" yaml:"auto_send_on_update" msg:"auto_send_on_update"`
 	Required         bool                               `json:"required" yaml:"required" msg:"required"`
-	Criteria         string                             `json:"criteria" yaml:"criteria" msg:"criteria"`
+	Criteria         UserVerificationCriteria           `json:"criteria" yaml:"criteria" msg:"criteria"`
 	ErrorRedirect    string                             `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
 	ErrorHTMLURL     string                             `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
 	Keys             []UserVerificationKeyConfiguration `json:"keys" yaml:"keys" msg:"keys"`

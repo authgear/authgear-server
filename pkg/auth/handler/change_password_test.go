@@ -19,6 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -52,7 +53,7 @@ func TestChangePasswordHandler(t *testing.T) {
 			PwMinLength: 6,
 		}
 		lh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			[]string{},
+			map[string]config.LoginIDKeyConfiguration{},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{

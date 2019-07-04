@@ -9,7 +9,7 @@ type MockSSOProverImpl struct {
 	Setting  Setting
 	Config   Config
 	UserID   string
-	AuthData map[string]string
+	AuthData ProviderAuthKeys
 }
 
 func (f *MockSSOProverImpl) GetAuthURL(params GetURLParams) (string, error) {

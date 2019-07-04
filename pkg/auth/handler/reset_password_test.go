@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -55,10 +56,15 @@ func TestResetPasswordHandler(t *testing.T) {
 				},
 			},
 		)
-		loginIDsKeyWhitelist := []string{"email", "username"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
+			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{

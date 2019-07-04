@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
@@ -18,6 +20,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
@@ -107,10 +110,14 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		loginIDsKeyWhitelist := []string{"email"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
+			"email": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{},
 		)
@@ -183,7 +190,7 @@ func TestAuthHandler(t *testing.T) {
 					"user_id": "%s",
 					"access_token": "%s",
 					"verified": false,
-					"verify_info": null,
+					"verify_info": {},
 					"created_at": "0001-01-01T00:00:00Z",
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
@@ -263,7 +270,7 @@ func TestAuthHandler(t *testing.T) {
 					"user_id": "%s",
 					"access_token": "%s",
 					"verified": false,
-					"verify_info": null,
+					"verify_info": {},
 					"created_at": "0001-01-01T00:00:00Z",
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
@@ -329,10 +336,14 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		loginIDsKeyWhitelist := []string{"email"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
+			"email": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{},
 		)
@@ -496,8 +507,8 @@ func TestAuthHandler(t *testing.T) {
 			Setting: setting,
 			Config:  config,
 			UserID:  providerUserID,
-			AuthData: map[string]string{
-				"email": "john.doe@example.com",
+			AuthData: sso.ProviderAuthKeys{
+				Email: "john.doe@example.com",
 			},
 		}
 		sh.Provider = &mockProvider
@@ -525,10 +536,18 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		loginIDsKeyWhitelist := []string{"email"}
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
+			"email": coreconfig.LoginIDKeyConfiguration{
+				Type:    coreconfig.LoginIDKeyType(metadata.Email),
+				Minimum: &zero,
+				Maximum: &one,
+			},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
@@ -598,8 +617,8 @@ func TestAuthHandler(t *testing.T) {
 			Setting: setting,
 			Config:  config,
 			UserID:  providerUserID,
-			AuthData: map[string]string{
-				"email": "john.doe@example.com",
+			AuthData: sso.ProviderAuthKeys{
+				Email: "john.doe@example.com",
 			},
 		}
 		sh.Provider = &mockProvider
@@ -627,11 +646,15 @@ func TestAuthHandler(t *testing.T) {
 			"https://api.example.com/skygear.js",
 		)
 		sh.SSOSetting = setting
-		// providerLoginID wouldn't match loginIDsKeyWhitelist "["username"]"
-		loginIDsKeyWhitelist := []string{"username"}
+		// providerLoginID wouldn't match loginIDsKeys username
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
+			"username": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+		}
 		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			loginIDsKeys,
 			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
@@ -645,7 +668,7 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
 
-		Convey("shouldn't auto-link password principal if loginIDsKeyWhitelist not matched", func() {
+		Convey("shouldn't auto-link password principal if loginIDsKeys not matched", func() {
 			// oauth state
 			state := sso.State{
 				CallbackURL: "http://localhost:3000",

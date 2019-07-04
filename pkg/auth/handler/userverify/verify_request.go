@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/utils"
+
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
@@ -14,6 +16,7 @@ import (
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -56,14 +59,33 @@ func (f VerifyRequestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	)
 }
 
+type loginIDType string
+
+const (
+	loginIDTypeEmail loginIDType = "email"
+)
+
+var allLoginIDTypes = []string{
+	string(loginIDTypeEmail),
+}
+
+func (t loginIDType) MatchPrincipal(principal *password.Principal, provider password.Provider) bool {
+	switch t {
+	case loginIDTypeEmail:
+		return provider.CheckLoginIDKeyType(principal.LoginIDKey, metadata.Email)
+	default:
+		return false
+	}
+}
+
 type VerifyRequestPayload struct {
-	LoginIDKey string `json:"login_id_key"`
-	LoginID    string `json:"login_id"`
+	LoginIDType loginIDType `json:"login_id_type"`
+	LoginID     string      `json:"login_id"`
 }
 
 func (payload VerifyRequestPayload) Validate() error {
-	if payload.LoginIDKey == "" {
-		return skyerr.NewInvalidArgument("empty login ID key", []string{"login_id_key"})
+	if !utils.StringSliceContains(allLoginIDTypes, string(payload.LoginIDType)) {
+		return skyerr.NewInvalidArgument("invalid login ID type", []string{"login_id_type"})
 	}
 
 	if payload.LoginID == "" {
@@ -78,7 +100,7 @@ func (payload VerifyRequestPayload) Validate() error {
 //  curl -X POST -H "Content-Type: application/json" \
 //    -d @- http://localhost:3000/verify_request <<EOF
 //  {
-//    "login_id_key": "email",
+//    "login_id_type": "email",
 //    "login_id": "user@example.com"
 //  }
 //  EOF
@@ -111,10 +133,6 @@ func (h VerifyRequestHandler) DecodeRequest(request *http.Request) (handler.Requ
 func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyRequestPayload)
 	authInfo := h.AuthContext.AuthInfo()
-	codeSender := h.CodeSenderFactory.NewCodeSender(payload.LoginIDKey)
-	if codeSender == nil {
-		err = skyerr.NewInvalidArgument("invalid login_id_key", []string{payload.LoginIDKey})
-	}
 
 	// Get Profile
 	var userProfile userprofile.UserProfile
@@ -132,14 +150,14 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 
 	// We don't check realms. i.e. Verifying a email means every email login IDs
 	// of that email is verified, regardless the realm.
-	principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID(payload.LoginIDKey, payload.LoginID)
+	principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID("", payload.LoginID)
 	if err != nil {
 		return
 	}
 
 	var userPrincipal *password.Principal
 	for _, principal := range principals {
-		if principal.UserID == authInfo.ID {
+		if principal.UserID == authInfo.ID && payload.LoginIDType.MatchPrincipal(principal, h.PasswordAuthProvider) {
 			userPrincipal = principal
 			break
 		}
@@ -149,7 +167,13 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	codeGenerator := h.CodeGeneratorFactory.NewCodeGenerator(payload.LoginIDKey)
+	codeSender := h.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
+	if codeSender == nil {
+		err = skyerr.NewError(skyerr.UnexpectedError, "User verification not configured for login ID key")
+		return
+	}
+
+	codeGenerator := h.CodeGeneratorFactory.NewCodeGenerator(userPrincipal.LoginIDKey)
 	code := codeGenerator.Generate()
 
 	verifyCode := userverify.NewVerifyCode()

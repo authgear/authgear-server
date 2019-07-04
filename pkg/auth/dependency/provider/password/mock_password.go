@@ -1,6 +1,8 @@
 package password
 
 import (
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,15 +17,15 @@ type MockProvider struct {
 }
 
 // NewMockProvider creates a new instance of mock provider
-func NewMockProvider(loginIDsKeyWhitelist []string, allowedRealms []string) *MockProvider {
-	return NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist, allowedRealms, map[string]Principal{})
+func NewMockProvider(loginIDsKeys map[string]config.LoginIDKeyConfiguration, allowedRealms []string) *MockProvider {
+	return NewMockProviderWithPrincipalMap(loginIDsKeys, allowedRealms, map[string]Principal{})
 }
 
 // NewMockProviderWithPrincipalMap creates a new instance of mock provider with PrincipalMap
-func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, allowedRealms []string, principalMap map[string]Principal) *MockProvider {
+func NewMockProviderWithPrincipalMap(loginIDsKeys map[string]config.LoginIDKeyConfiguration, allowedRealms []string, principalMap map[string]Principal) *MockProvider {
 	return &MockProvider{
 		loginIDChecker: defaultLoginIDChecker{
-			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
+			loginIDsKeys: loginIDsKeys,
 		},
 		realmChecker: defaultRealmChecker{
 			allowedRealms: allowedRealms,
@@ -33,9 +35,13 @@ func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, allowedRealm
 	}
 }
 
-// IsLoginIDValid validates loginID
-func (m *MockProvider) IsLoginIDValid(loginID map[string]string) bool {
-	return m.loginIDChecker.isValid(loginID)
+// ValidateLoginIDs validates loginID
+func (m *MockProvider) ValidateLoginIDs(loginIDs []LoginID) error {
+	return m.loginIDChecker.validate(loginIDs)
+}
+
+func (m *MockProvider) CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool {
+	return m.loginIDChecker.checkType(loginIDKey, standardKey)
 }
 
 func (m *MockProvider) IsRealmValid(realm string) bool {
@@ -47,10 +53,10 @@ func (m *MockProvider) IsDefaultAllowedRealms() bool {
 }
 
 // CreatePrincipalsByLoginID creates principals by loginID
-func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs map[string]string, realm string) (err error) {
+func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (err error) {
 	// do not create principal when there is login ID belongs to another user.
-	for _, v := range loginIDs {
-		principals, principalErr := m.GetPrincipalsByLoginID("", v)
+	for _, loginID := range loginIDs {
+		principals, principalErr := m.GetPrincipalsByLoginID("", loginID.Value)
 		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
 			err = principalErr
 			return
@@ -63,11 +69,11 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 		}
 	}
 
-	for k, v := range loginIDs {
+	for _, loginID := range loginIDs {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
-		principal.LoginIDKey = k
-		principal.LoginID = v
+		principal.LoginIDKey = loginID.Key
+		principal.LoginID = loginID.Value
 		principal.Realm = realm
 		principal.PlainPassword = password
 		err = m.CreatePrincipal(principal)

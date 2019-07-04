@@ -106,7 +106,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 					},
 					"access_token": "%s",
 					"verified": false,
-					"verify_info": {"email": false},
+					"verify_info": {},
 					"created_at": "0001-01-01T00:00:00Z",
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",

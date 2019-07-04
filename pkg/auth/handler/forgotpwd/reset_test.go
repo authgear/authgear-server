@@ -21,6 +21,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -46,7 +47,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		fh.TxContext = db.NewMockTxContext()
 		hashedPassword := []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi") // 123456
 		fh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			[]string{},
+			map[string]config.LoginIDKeyConfiguration{},
 			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"john.doe.principal.id1": password.Principal{
@@ -90,7 +91,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"user_id": "john.doe.id",
-				"code": "ed3bce0b",
+				"code": "54edc977",
 				"expire_at": 1104678245,
 				"new_password": "xxx"
 			}`))
@@ -138,7 +139,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"user_id": "john.doe.id",
-				"code": "0e0e0776",
+				"code": "1398d567",
 				"expire_at": 1138892645,
 				"new_password": "xxx"
 			}`))

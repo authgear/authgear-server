@@ -49,8 +49,8 @@ func TestLinkHandler(t *testing.T) {
 		stateJWTSecret := "secret"
 		providerName := "mock"
 		providerUserID := "mock_user_id"
-		providerAuthData := map[string]string{
-			"email": "john.doe@example.com",
+		providerAuthData := sso.ProviderAuthKeys{
+			Email: "john.doe@example.com",
 		}
 
 		sh := &LinkHandler{}

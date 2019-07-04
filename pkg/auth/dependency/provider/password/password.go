@@ -1,12 +1,15 @@
 package password
 
+import "github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+
 const providerPassword string = "password"
 
 type Provider interface {
-	IsLoginIDValid(loginID map[string]string) bool
+	ValidateLoginIDs(loginIDs []LoginID) error
+	CheckLoginIDKeyType(loginIDKey string, standardKey metadata.StandardKey) bool
 	IsRealmValid(realm string) bool
 	IsDefaultAllowedRealms() bool
-	CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) error
+	CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) error
 	CreatePrincipal(principal Principal) error
 	GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error)
 	GetPrincipalsByUserID(userID string) ([]*Principal, error)
