@@ -14,9 +14,10 @@ func IsUserVerified(
 	criteria config.UserVerificationCriteria,
 	verifyConfigs map[string]config.UserVerificationKeyConfiguration,
 ) (verified bool) {
+	verified = true
+
 	switch criteria {
 	case config.UserVerificationCriteriaAll:
-		verified = true
 		for _, principal := range principals {
 			for key := range verifyConfigs {
 				if principal.LoginIDKey == key && !authInfo.VerifyInfo[principal.LoginID] {
@@ -25,16 +26,20 @@ func IsUserVerified(
 				}
 			}
 		}
+
 	case config.UserVerificationCriteriaAny:
-		verified = false
 		for _, principal := range principals {
 			for key := range verifyConfigs {
-				if principal.LoginIDKey == key && authInfo.VerifyInfo[principal.LoginID] {
-					verified = true
-					return
+				if principal.LoginIDKey == key {
+					if authInfo.VerifyInfo[principal.LoginID] {
+						verified = true
+						return
+					}
+					verified = false
 				}
 			}
 		}
+
 	default:
 		panic(fmt.Errorf("unexpected verify criteria `%s`", criteria))
 	}
