@@ -105,15 +105,15 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type CustomTokenLoginHandler struct {
-	TxContext               db.TxContext                              `dependency:"TxContext"`
-	UserProfileStore        userprofile.Store                         `dependency:"UserProfileStore"`
-	TokenStore              authtoken.Store                           `dependency:"TokenStore"`
-	AuthInfoStore           authinfo.Store                            `dependency:"AuthInfoStore"`
-	CustomTokenAuthProvider customtoken.Provider                      `dependency:"CustomTokenAuthProvider"`
-	UserVerifyKeys          []config.UserVerificationKeyConfiguration `dependency:"UserVerifyKeys"`
-	WelcomeEmailEnabled     bool                                      `dependency:"WelcomeEmailEnabled"`
-	AuditTrail              audit.Trail                               `dependency:"AuditTrail"`
-	TaskQueue               async.Queue                               `dependency:"AsyncTaskQueue"`
+	TxContext               db.TxContext                                       `dependency:"TxContext"`
+	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`
+	TokenStore              authtoken.Store                                    `dependency:"TokenStore"`
+	AuthInfoStore           authinfo.Store                                     `dependency:"AuthInfoStore"`
+	CustomTokenAuthProvider customtoken.Provider                               `dependency:"CustomTokenAuthProvider"`
+	UserVerifyKeys          map[string]config.UserVerificationKeyConfiguration `dependency:"UserVerifyKeys"`
+	WelcomeEmailEnabled     bool                                               `dependency:"WelcomeEmailEnabled"`
+	AuditTrail              audit.Trail                                        `dependency:"AuditTrail"`
+	TaskQueue               async.Queue                                        `dependency:"AsyncTaskQueue"`
 }
 
 func (h CustomTokenLoginHandler) WithTx() bool {

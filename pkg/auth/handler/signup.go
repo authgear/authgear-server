@@ -118,22 +118,22 @@ func (p SignupRequestPayload) isAnonymous() bool {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	PasswordChecker         *authAudit.PasswordChecker                `dependency:"PasswordChecker"`
-	UserProfileStore        userprofile.Store                         `dependency:"UserProfileStore"`
-	TokenStore              authtoken.Store                           `dependency:"TokenStore"`
-	AuthInfoStore           authinfo.Store                            `dependency:"AuthInfoStore"`
-	PasswordAuthProvider    password.Provider                         `dependency:"PasswordAuthProvider"`
-	AnonymousAuthProvider   anonymous.Provider                        `dependency:"AnonymousAuthProvider"`
-	AuditTrail              audit.Trail                               `dependency:"AuditTrail"`
-	WelcomeEmailEnabled     bool                                      `dependency:"WelcomeEmailEnabled"`
-	WelcomeEmailDestination config.WelcomeEmailDestination            `dependency:"WelcomeEmailDestination"`
-	AutoSendUserVerifyCode  bool                                      `dependency:"AutoSendUserVerifyCodeOnSignup"`
-	UserVerifyKeys          []config.UserVerificationKeyConfiguration `dependency:"UserVerifyKeys"`
-	VerifyCodeStore         userverify.Store                          `dependency:"VerifyCodeStore"`
-	TxContext               db.TxContext                              `dependency:"TxContext"`
-	Logger                  *logrus.Entry                             `dependency:"HandlerLogger"`
-	TaskQueue               async.Queue                               `dependency:"AsyncTaskQueue"`
-	HookStore               hook.Store                                `dependency:"HookStore"`
+	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
+	UserProfileStore        userprofile.Store                                  `dependency:"UserProfileStore"`
+	TokenStore              authtoken.Store                                    `dependency:"TokenStore"`
+	AuthInfoStore           authinfo.Store                                     `dependency:"AuthInfoStore"`
+	PasswordAuthProvider    password.Provider                                  `dependency:"PasswordAuthProvider"`
+	AnonymousAuthProvider   anonymous.Provider                                 `dependency:"AnonymousAuthProvider"`
+	AuditTrail              audit.Trail                                        `dependency:"AuditTrail"`
+	WelcomeEmailEnabled     bool                                               `dependency:"WelcomeEmailEnabled"`
+	WelcomeEmailDestination config.WelcomeEmailDestination                     `dependency:"WelcomeEmailDestination"`
+	AutoSendUserVerifyCode  bool                                               `dependency:"AutoSendUserVerifyCodeOnSignup"`
+	UserVerifyKeys          map[string]config.UserVerificationKeyConfiguration `dependency:"UserVerifyKeys"`
+	VerifyCodeStore         userverify.Store                                   `dependency:"VerifyCodeStore"`
+	TxContext               db.TxContext                                       `dependency:"TxContext"`
+	Logger                  *logrus.Entry                                      `dependency:"HandlerLogger"`
+	TaskQueue               async.Queue                                        `dependency:"AsyncTaskQueue"`
+	HookStore               hook.Store                                         `dependency:"HookStore"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -327,8 +327,8 @@ func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs []password.
 
 func (h SignupHandler) sendUserVerifyRequest(user response.User, loginIDs []password.LoginID) {
 	for _, loginID := range loginIDs {
-		for _, verifyKey := range h.UserVerifyKeys {
-			if verifyKey.Key == loginID.Key {
+		for key := range h.UserVerifyKeys {
+			if key == loginID.Key {
 				h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
 					Key:   loginID.Key,
 					Value: loginID.Value,

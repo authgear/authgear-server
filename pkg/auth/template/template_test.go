@@ -19,9 +19,8 @@ func TestResetPasswordPayload(t *testing.T) {
 					HTMLURL: "http://template.com/welcome-email-html-url",
 				},
 				UserVerification: config.UserVerificationConfiguration{
-					Keys: []config.UserVerificationKeyConfiguration{
-						config.UserVerificationKeyConfiguration{
-							Key: "key1",
+					LoginIDKeys: map[string]config.UserVerificationKeyConfiguration{
+						"key1": config.UserVerificationKeyConfiguration{
 							ProviderConfig: config.UserVerificationProviderConfiguration{
 								TextURL: "http://template.com/userverify-key1-text-url",
 							},

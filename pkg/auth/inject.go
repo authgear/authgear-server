@@ -159,13 +159,11 @@ func (m DependencyMap) Provide(
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(tConfig, templateEngine)
 	case "AutoSendUserVerifyCodeOnSignup":
-		return tConfig.UserConfig.UserVerification.AutoSendOnSignup
+		return tConfig.UserConfig.UserVerification.AutoSendOnSignupDisabled
 	case "UserVerifyKeys":
-		return tConfig.UserConfig.UserVerification.Keys
+		return tConfig.UserConfig.UserVerification.LoginIDKeys
 	case "AutoUpdateUserVerifyFunc":
 		return userverify.CreateAutoUpdateUserVerifyfunc(tConfig)
-	case "AutoUpdateUserVerified":
-		return tConfig.UserConfig.UserVerification.AutoUpdate
 	case "VerifyHTMLProvider":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return userverify.NewVerifyHTMLProvider(tConfig.UserConfig.UserVerification, templateEngine)

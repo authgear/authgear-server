@@ -28,9 +28,9 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templat
 	f := DefaultCodeSenderFactory{
 		CodeSenderMap: map[string]CodeSender{},
 	}
-	for _, keyConfig := range userVerifyConfig.Keys {
+	for key, config := range userVerifyConfig.LoginIDKeys {
 		var codeSender CodeSender
-		switch keyConfig.Provider {
+		switch config.Provider {
 		case "smtp":
 			codeSender = &EmailCodeSender{
 				AppName:        c.AppName,
@@ -53,9 +53,9 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templat
 				TemplateEngine: templateEngine,
 			}
 		default:
-			panic(errors.New("invalid user verify provider: " + keyConfig.Provider))
+			panic(errors.New("invalid user verify provider: " + config.Provider))
 		}
-		f.CodeSenderMap[keyConfig.Key] = codeSender
+		f.CodeSenderMap[key] = codeSender
 	}
 
 	return &f

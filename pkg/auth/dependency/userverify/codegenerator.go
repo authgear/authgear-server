@@ -21,16 +21,16 @@ type CodeGenerator interface {
 }
 
 type DefaultCodeGeneratorFactory struct {
-	CodeFormatMap map[string]string
+	CodeFormatMap map[string]config.UserVerificationCodeFormat
 }
 
 func NewDefaultCodeGeneratorFactory(c config.TenantConfiguration) CodeGeneratorFactory {
 	userVerifyConfig := c.UserConfig.UserVerification
 	f := DefaultCodeGeneratorFactory{
-		CodeFormatMap: map[string]string{},
+		CodeFormatMap: map[string]config.UserVerificationCodeFormat{},
 	}
-	for _, keyConfig := range userVerifyConfig.Keys {
-		f.CodeFormatMap[keyConfig.Key] = keyConfig.CodeFormat
+	for key, config := range userVerifyConfig.LoginIDKeys {
+		f.CodeFormatMap[key] = config.CodeFormat
 	}
 
 	return &f
@@ -45,7 +45,7 @@ type defaultCodeGenerator struct {
 	charset string
 }
 
-func NewCodeGenerator(codeFormat string) CodeGenerator {
+func NewCodeGenerator(codeFormat config.UserVerificationCodeFormat) CodeGenerator {
 	switch codeFormat {
 	case "numeric":
 		return &defaultCodeGenerator{

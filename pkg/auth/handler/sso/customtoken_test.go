@@ -59,10 +59,8 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh.UserProfileStore = userProfileStore
 		lh.TokenStore = mockTokenStore
 		lh.AuditTrail = audit.NewMockTrail(t)
-		lh.UserVerifyKeys = []config.UserVerificationKeyConfiguration{
-			config.UserVerificationKeyConfiguration{
-				Key: "email",
-			},
+		lh.UserVerifyKeys = map[string]config.UserVerificationKeyConfiguration{
+			"email": config.UserVerificationKeyConfiguration{},
 		}
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()

@@ -70,7 +70,7 @@ type VerifyCodeFormHandler struct {
 	UserProfileStore         userprofile.Store                   `dependency:"UserProfileStore"`
 	AuthInfoStore            authinfo.Store                      `dependency:"AuthInfoStore"`
 	PasswordAuthProvider     password.Provider                   `dependency:"PasswordAuthProvider"`
-	AutoUpdateUserVerifyFunc userverify.AutoUpdateUserVerifyFunc `dependency:"AutoUpdateUserVerifyFunc,optional"`
+	AutoUpdateUserVerifyFunc userverify.AutoUpdateUserVerifyFunc `dependency:"AutoUpdateUserVerifyFunc"`
 	TxContext                db.TxContext                        `dependency:"TxContext"`
 	Logger                   *logrus.Entry                       `dependency:"HandlerLogger"`
 }

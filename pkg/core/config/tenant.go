@@ -294,13 +294,16 @@ func (c *TenantConfiguration) Validate() error {
 		}
 	}
 
-	for _, verifyConfig := range c.UserConfig.UserVerification.Keys {
-		keyConfig, ok := c.UserConfig.Auth.LoginIDKeys[verifyConfig.Key]
+	for key, verifyConfig := range c.UserConfig.UserVerification.LoginIDKeys {
+		keyConfig, ok := c.UserConfig.Auth.LoginIDKeys[key]
 		if !ok {
-			return errors.New("Cannot verify disallowed login ID key: " + verifyConfig.Key)
+			return errors.New("Cannot verify disallowed login ID key: " + key)
 		}
 		if metadataKey, valid := keyConfig.Type.MetadataKey(); !valid || (metadataKey != metadata.Email && metadataKey != metadata.Phone) {
-			return errors.New("Cannot verify login ID key with unknown type: " + verifyConfig.Key)
+			return errors.New("Cannot verify login ID key with unknown type: " + key)
+		}
+		if !verifyConfig.CodeFormat.IsValid() {
+			return errors.New("Invalid verify code format for login ID key: " + key)
 		}
 	}
 
@@ -371,6 +374,21 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	// Set default user verification settings
 	if c.UserConfig.UserVerification.Criteria == "" {
 		c.UserConfig.UserVerification.Criteria = UserVerificationCriteriaAny
+	}
+	for key, config := range c.UserConfig.UserVerification.LoginIDKeys {
+		if config.CodeFormat == "" {
+			config.CodeFormat = UserVerificationCodeFormatComplex
+		}
+		if config.Expiry == 0 {
+			config.Expiry = 3600 // 1 hour
+		}
+		if config.ProviderConfig.Sender == "" {
+			config.ProviderConfig.Sender = "no-reply@skygeario.com"
+		}
+		if config.ProviderConfig.Subject == "" {
+			config.ProviderConfig.Subject = "Verification instruction"
+		}
+		c.UserConfig.UserVerification.LoginIDKeys[key] = config
 	}
 
 	// Set default welcome email destination
@@ -574,29 +592,27 @@ func (criteria UserVerificationCriteria) IsValid() bool {
 }
 
 type UserVerificationConfiguration struct {
-	URLPrefix        string                             `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	AutoUpdate       bool                               `json:"auto_update" yaml:"auto_update" msg:"auto_update"`
-	AutoSendOnSignup bool                               `json:"auto_send_on_signup" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
-	AutoSendOnUpdate bool                               `json:"auto_send_on_update" yaml:"auto_send_on_update" msg:"auto_send_on_update"`
-	Required         bool                               `json:"required" yaml:"required" msg:"required"`
-	Criteria         UserVerificationCriteria           `json:"criteria" yaml:"criteria" msg:"criteria"`
-	ErrorRedirect    string                             `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
-	ErrorHTMLURL     string                             `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
-	Keys             []UserVerificationKeyConfiguration `json:"keys" yaml:"keys" msg:"keys"`
+	URLPrefix                string                                      `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	AutoSendOnSignupDisabled bool                                        `json:"auto_send_on_signup" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
+	Criteria                 UserVerificationCriteria                    `json:"criteria" yaml:"criteria" msg:"criteria"`
+	ErrorRedirect            string                                      `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
+	ErrorHTMLURL             string                                      `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
+	LoginIDKeys              map[string]UserVerificationKeyConfiguration `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
 }
 
-func (c *UserVerificationConfiguration) ConfigForKey(key string) (UserVerificationKeyConfiguration, bool) {
-	for _, keyConfig := range c.Keys {
-		if keyConfig.Key == key {
-			return keyConfig, true
-		}
-	}
-	return UserVerificationKeyConfiguration{}, false
+type UserVerificationCodeFormat string
+
+const (
+	UserVerificationCodeFormatNumeric UserVerificationCodeFormat = "numeric"
+	UserVerificationCodeFormatComplex UserVerificationCodeFormat = "complex"
+)
+
+func (format UserVerificationCodeFormat) IsValid() bool {
+	return format == UserVerificationCodeFormatNumeric || format == UserVerificationCodeFormatComplex
 }
 
 type UserVerificationKeyConfiguration struct {
-	Key             string                                `json:"key" yaml:"key" msg:"key"`
-	CodeFormat      string                                `json:"code_format" yaml:"code_format" msg:"code_format"`
+	CodeFormat      UserVerificationCodeFormat            `json:"code_format" yaml:"code_format" msg:"code_format"`
 	Expiry          int64                                 `json:"expiry" yaml:"expiry" msg:"expiry"`
 	SuccessRedirect string                                `json:"success_redirect" yaml:"success_redirect" msg:"success_redirect"`
 	SuccessHTMLURL  string                                `json:"success_html_url" yaml:"success_html_url" msg:"success_html_url"`

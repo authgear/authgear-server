@@ -26,9 +26,9 @@ type EmailCodeSender struct {
 }
 
 func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err error) {
-	var keyConfig config.UserVerificationKeyConfiguration
+	var config config.UserVerificationKeyConfiguration
 	var ok bool
-	if keyConfig, ok = e.Config.ConfigForKey(verifyCode.RecordKey); !ok {
+	if config, ok = e.Config.LoginIDKeys[verifyCode.RecordKey]; !ok {
 		return errors.New("provider for " + verifyCode.RecordKey + " not found")
 	}
 
@@ -39,7 +39,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err e
 		user,
 	)
 
-	providerConfig := keyConfig.ProviderConfig
+	providerConfig := config.ProviderConfig
 
 	var textBody string
 	if textBody, err = e.TemplateEngine.ParseTextTemplate(

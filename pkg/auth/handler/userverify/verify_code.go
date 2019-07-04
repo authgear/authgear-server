@@ -83,7 +83,7 @@ type VerifyCodeHandler struct {
 	VerifyCodeStore          userverify.Store                    `dependency:"VerifyCodeStore"`
 	AuthInfoStore            authinfo.Store                      `dependency:"AuthInfoStore"`
 	PasswordAuthProvider     password.Provider                   `dependency:"PasswordAuthProvider"`
-	AutoUpdateUserVerifyFunc userverify.AutoUpdateUserVerifyFunc `dependency:"AutoUpdateUserVerifyFunc,optional"`
+	AutoUpdateUserVerifyFunc userverify.AutoUpdateUserVerifyFunc `dependency:"AutoUpdateUserVerifyFunc"`
 	Logger                   *logrus.Entry                       `dependency:"HandlerLogger"`
 }
 

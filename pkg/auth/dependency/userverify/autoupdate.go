@@ -11,17 +11,13 @@ import (
 type AutoUpdateUserVerifyFunc func(*authinfo.AuthInfo, []*password.Principal)
 
 func CreateAutoUpdateUserVerifyfunc(tConfig config.TenantConfiguration) AutoUpdateUserVerifyFunc {
-	if !tConfig.UserConfig.UserVerification.AutoUpdate {
-		return nil
-	}
-
 	switch tConfig.UserConfig.UserVerification.Criteria {
 	case "all":
 		return func(authInfo *authinfo.AuthInfo, principals []*password.Principal) {
 			allVerified := true
 			for _, principal := range principals {
-				for _, keyConfig := range tConfig.UserConfig.UserVerification.Keys {
-					if principal.LoginIDKey == keyConfig.Key && !authInfo.VerifyInfo[principal.LoginID] {
+				for key := range tConfig.UserConfig.UserVerification.LoginIDKeys {
+					if principal.LoginIDKey == key && !authInfo.VerifyInfo[principal.LoginID] {
 						allVerified = false
 						break
 					}
@@ -33,8 +29,8 @@ func CreateAutoUpdateUserVerifyfunc(tConfig config.TenantConfiguration) AutoUpda
 	case "any":
 		return func(authInfo *authinfo.AuthInfo, principals []*password.Principal) {
 			for _, principal := range principals {
-				for _, keyConfig := range tConfig.UserConfig.UserVerification.Keys {
-					if principal.LoginIDKey == keyConfig.Key && authInfo.VerifyInfo[principal.LoginID] {
+				for key := range tConfig.UserConfig.UserVerification.LoginIDKeys {
+					if principal.LoginIDKey == key && authInfo.VerifyInfo[principal.LoginID] {
 						authInfo.Verified = true
 						return
 					}
