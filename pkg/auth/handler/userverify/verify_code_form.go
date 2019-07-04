@@ -65,14 +65,14 @@ func (payload *VerifyCodeFormPayload) Validate() error {
 
 // VerifyCodeFormHandler reset user password with given code from email.
 type VerifyCodeFormHandler struct {
-	VerifyHTMLProvider       *userverify.VerifyHTMLProvider      `dependency:"VerifyHTMLProvider"`
-	VerifyCodeStore          userverify.Store                    `dependency:"VerifyCodeStore"`
-	UserProfileStore         userprofile.Store                   `dependency:"UserProfileStore"`
-	AuthInfoStore            authinfo.Store                      `dependency:"AuthInfoStore"`
-	PasswordAuthProvider     password.Provider                   `dependency:"PasswordAuthProvider"`
-	AutoUpdateUserVerifyFunc userverify.AutoUpdateUserVerifyFunc `dependency:"AutoUpdateUserVerifyFunc"`
-	TxContext                db.TxContext                        `dependency:"TxContext"`
-	Logger                   *logrus.Entry                       `dependency:"HandlerLogger"`
+	VerifyHTMLProvider     *userverify.VerifyHTMLProvider    `dependency:"VerifyHTMLProvider"`
+	VerifyCodeStore        userverify.Store                  `dependency:"VerifyCodeStore"`
+	UserProfileStore       userprofile.Store                 `dependency:"UserProfileStore"`
+	AuthInfoStore          authinfo.Store                    `dependency:"AuthInfoStore"`
+	PasswordAuthProvider   password.Provider                 `dependency:"PasswordAuthProvider"`
+	UpdateVerifiedFlagFunc userverify.UpdateVerifiedFlagFunc `dependency:"UpdateVerifiedFlagFunc"`
+	TxContext              db.TxContext                      `dependency:"TxContext"`
+	Logger                 *logrus.Entry                     `dependency:"HandlerLogger"`
 }
 
 type resultTemplateContext struct {
@@ -222,9 +222,7 @@ func (h VerifyCodeFormHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request
 	}
 
 	authInfo.VerifyInfo[templateCtx.verifyCode.RecordValue] = true
-	if h.AutoUpdateUserVerifyFunc != nil {
-		h.AutoUpdateUserVerifyFunc(authInfo, principals)
-	}
+	h.UpdateVerifiedFlagFunc(authInfo, principals)
 
 	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
 		return

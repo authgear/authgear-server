@@ -20,24 +20,22 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
-	"github.com/skygeario/skygear-server/pkg/core/utils"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func mockCreateAutoUpdateUserVerifyfunc(keys []string) userverify.AutoUpdateUserVerifyFunc {
-	return func(authInfo *authinfo.AuthInfo, principals []*password.Principal) {
-		allVerified := true
-		for _, principal := range principals {
-			if !utils.StringSliceContains(keys, principal.LoginIDKey) {
-				continue
-			}
-			if !authInfo.VerifyInfo[principal.LoginID] {
-				allVerified = false
-				break
-			}
-		}
+func mockCreateUpdateVerifiedFlagFunc(keys []string) userverify.UpdateVerifiedFlagFunc {
+	verifyConfigs :=map[string]config.UserVerificationKeyConfiguration{}
+	for _, key := range keys {
+		verifyConfigs[key] = config.UserVerificationKeyConfiguration{}
+	}
 
-		authInfo.Verified = allVerified
+	return func(authInfo *authinfo.AuthInfo, principals []*password.Principal) {
+		authInfo.Verified = userverify.IsUserVerified(
+			authInfo,
+			principals,
+			config.UserVerificationCriteriaAll,
+			verifyConfigs,
+		)
 	}
 }
 
@@ -97,7 +95,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				},
 			},
 		}
-		vh.AutoUpdateUserVerifyFunc = mockCreateAutoUpdateUserVerifyfunc([]string{"email"})
+		vh.UpdateVerifiedFlagFunc = mockCreateUpdateVerifiedFlagFunc([]string{"email"})
 		zero := 0
 		one := 1
 		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
@@ -164,7 +162,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		})
 
 		Convey("verify with correct code but not all verified", func() {
-			vh.AutoUpdateUserVerifyFunc = mockCreateAutoUpdateUserVerifyfunc([]string{"email", "phone"})
+			vh.UpdateVerifiedFlagFunc = mockCreateUpdateVerifiedFlagFunc([]string{"email", "phone"})
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
