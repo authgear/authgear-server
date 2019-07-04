@@ -108,8 +108,10 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.SSOSetting = setting
 		loginIDsKeyWhitelist := []string{"email"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -328,8 +330,10 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.SSOSetting = setting
 		loginIDsKeyWhitelist := []string{"email"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
@@ -475,8 +479,9 @@ func TestAuthHandler(t *testing.T) {
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		setting := sso.Setting{
-			URLPrefix:      "http://localhost:3000",
-			StateJWTSecret: stateJWTSecret,
+			URLPrefix:       "http://localhost:3000",
+			StateJWTSecret:  stateJWTSecret,
+			AutoLinkEnabled: true,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
 			},
@@ -521,14 +526,17 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.SSOSetting = setting
 		loginIDsKeyWhitelist := []string{"email"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:             "john.doe.principal.id",
 					UserID:         "john.doe.id",
 					LoginIDKey:     "email",
 					LoginID:        "john.doe@example.com",
+					Realm:          "default",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -573,91 +581,9 @@ func TestAuthHandler(t *testing.T) {
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		setting := sso.Setting{
-			URLPrefix:      "http://localhost:3000",
-			StateJWTSecret: stateJWTSecret,
-			AllowedCallbackURLs: []string{
-				"http://localhost",
-			},
-		}
-		config := sso.Config{
-			Name:         providerName,
-			ClientID:     "mock_client_id",
-			ClientSecret: "mock_client_secret",
-		}
-		mockProvider := sso.MockSSOProverImpl{
-			BaseURL: "http://mock/auth",
-			Setting: setting,
-			Config:  config,
-			UserID:  providerUserID,
-			AuthData: map[string]string{
-				"email": "john.doe@example.com",
-			},
-		}
-		sh.Provider = &mockProvider
-		mockOAuthProvider := oauth.NewMockProvider(
-			map[string]string{},
-			map[string]oauth.Principal{},
-		)
-		sh.OAuthAuthProvider = mockOAuthProvider
-		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
-			map[string]authinfo.AuthInfo{},
-		)
-		sh.AuthInfoStore = authInfoStore
-		mockTokenStore := authtoken.NewMockStore()
-		sh.TokenStore = mockTokenStore
-		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
-		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
-			"https://api.example.com",
-			"https://api.example.com/skygear.js",
-		)
-		sh.SSOSetting = setting
-		loginIDsKeyWhitelist := []string{"email"}
-		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
-			map[string]password.Principal{},
-		)
-		sh.PasswordAuthProvider = passwordAuthProvider
-
-		Convey("should also create an empty password principal", func() {
-			// oauth state
-			state := sso.State{
-				CallbackURL: "http://localhost:3000",
-				UXMode:      UXMode,
-				Action:      action,
-			}
-			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
-
-			v := url.Values{}
-			v.Set("code", "code")
-			v.Add("state", encodedState)
-			u := url.URL{
-				RawQuery: v.Encode(),
-			}
-
-			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-			resp := httptest.NewRecorder()
-
-			sh.ServeHTTP(resp, req)
-
-			oauthPrincipal, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
-			_, err := sh.PasswordAuthProvider.GetPrincipalsByUserID(oauthPrincipal.UserID)
-			So(err, ShouldBeNil)
-		})
-	})
-
-	Convey("Test AuthHandler's auto link procedure", t, func() {
-		action := "login"
-		UXMode := "web_redirect"
-
-		stateJWTSecret := "secret"
-		providerName := "mock"
-		providerUserID := "mock_user_id"
-		sh := &AuthHandler{}
-		sh.TxContext = db.NewMockTxContext()
-		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
-		setting := sso.Setting{
-			URLPrefix:      "http://localhost:3000",
-			StateJWTSecret: stateJWTSecret,
+			URLPrefix:       "http://localhost:3000",
+			StateJWTSecret:  stateJWTSecret,
+			AutoLinkEnabled: true,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
 			},
@@ -703,8 +629,10 @@ func TestAuthHandler(t *testing.T) {
 		sh.SSOSetting = setting
 		// providerLoginID wouldn't match loginIDsKeyWhitelist "["username"]"
 		loginIDsKeyWhitelist := []string{"username"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id": password.Principal{
 					ID:             "john.doe.principal.id",

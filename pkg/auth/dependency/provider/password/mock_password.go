@@ -1,8 +1,6 @@
 package password
 
 import (
-	"reflect"
-
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -10,24 +8,28 @@ import (
 // MockProvider is the memory implementation of password provider
 type MockProvider struct {
 	Provider
-	PrincipalMap         map[string]Principal
-	loginIDsKeyWhitelist []string
-	loginIDChecker       loginIDChecker
+	PrincipalMap   map[string]Principal
+	loginIDChecker loginIDChecker
+	realmChecker   realmChecker
+	allowedRealms  []string
 }
 
 // NewMockProvider creates a new instance of mock provider
-func NewMockProvider(loginIDsKeyWhitelist []string) *MockProvider {
-	return NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist, map[string]Principal{})
+func NewMockProvider(loginIDsKeyWhitelist []string, allowedRealms []string) *MockProvider {
+	return NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist, allowedRealms, map[string]Principal{})
 }
 
 // NewMockProviderWithPrincipalMap creates a new instance of mock provider with PrincipalMap
-func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, principalMap map[string]Principal) *MockProvider {
+func NewMockProviderWithPrincipalMap(loginIDsKeyWhitelist []string, allowedRealms []string, principalMap map[string]Principal) *MockProvider {
 	return &MockProvider{
-		loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		loginIDChecker: defaultLoginIDChecker{
 			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		},
-		PrincipalMap: principalMap,
+		realmChecker: defaultRealmChecker{
+			allowedRealms: allowedRealms,
+		},
+		allowedRealms: allowedRealms,
+		PrincipalMap:  principalMap,
 	}
 }
 
@@ -36,13 +38,37 @@ func (m *MockProvider) IsLoginIDValid(loginID map[string]string) bool {
 	return m.loginIDChecker.isValid(loginID)
 }
 
+func (m *MockProvider) IsRealmValid(realm string) bool {
+	return m.realmChecker.isValid(realm)
+}
+
+func (m *MockProvider) IsDefaultAllowedRealms() bool {
+	return len(m.allowedRealms) == 1 && m.allowedRealms[0] == DefaultRealm
+}
+
 // CreatePrincipalsByLoginID creates principals by loginID
-func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs map[string]string) (err error) {
+func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs map[string]string, realm string) (err error) {
+	// do not create principal when there is login ID belongs to another user.
+	for _, v := range loginIDs {
+		principals, principalErr := m.GetPrincipalsByLoginID("", v)
+		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
+			err = principalErr
+			return
+		}
+		for _, principal := range principals {
+			if principal.UserID != authInfoID {
+				err = skydb.ErrUserDuplicated
+				return
+			}
+		}
+	}
+
 	for k, v := range loginIDs {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
 		principal.LoginIDKey = k
 		principal.LoginID = v
+		principal.Realm = realm
 		principal.PlainPassword = password
 		err = m.CreatePrincipal(principal)
 
@@ -61,7 +87,7 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 	}
 
 	for _, p := range m.PrincipalMap {
-		if reflect.DeepEqual(principal.LoginID, p.LoginID) {
+		if principal.LoginID == p.LoginID && principal.Realm == p.Realm {
 			return skydb.ErrUserDuplicated
 		}
 	}
@@ -77,9 +103,9 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 }
 
 // GetPrincipalByLoginID get principal in PrincipalMap by login_id
-func (m *MockProvider) GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error) {
+func (m *MockProvider) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error) {
 	for _, p := range m.PrincipalMap {
-		if p.LoginIDKey == loginIDKey && p.LoginID == loginID {
+		if (loginIDKey == "" || p.LoginIDKey == loginIDKey) && p.LoginID == loginID && p.Realm == realm {
 			*principal = p
 			return
 		}
@@ -104,10 +130,10 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) (principals []*Princ
 	return
 }
 
-// GetPrincipalsByEmail get principal in PrincipalMap by userID
-func (m *MockProvider) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
+// GetPrincipalsByLoginID get principals in PrincipalMap by login ID
+func (m *MockProvider) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
 	for _, p := range m.PrincipalMap {
-		if p.LoginIDKey == "email" && p.LoginID == email {
+		if (loginIDKey == "" || p.LoginIDKey == loginIDKey) && p.LoginID == loginID {
 			principal := p
 			principals = append(principals, &principal)
 		}

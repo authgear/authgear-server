@@ -44,10 +44,10 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		fh.Logger = logrus.NewEntry(logger)
 		fh.AuditTrail = audit.NewMockTrail(t)
 		fh.TxContext = db.NewMockTxContext()
-		loginIDsKeyWhitelist := []string{}
 		hashedPassword := []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi") // 123456
 		fh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
-			loginIDsKeyWhitelist,
+			[]string{},
+			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"john.doe.principal.id1": password.Principal{
 					ID:             "john.doe.principal.id1",

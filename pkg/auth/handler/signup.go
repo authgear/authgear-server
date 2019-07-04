@@ -64,6 +64,7 @@ func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 type SignupRequestPayload struct {
 	LoginIDs map[string]string      `json:"login_ids"`
+	Realm    string                 `json:"realm"`
 	Password string                 `json:"password"`
 	Metadata map[string]interface{} `json:"metadata"`
 }
@@ -134,11 +135,19 @@ func (h SignupHandler) WithTx() bool {
 func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := SignupRequestPayload{}
 	err := json.NewDecoder(request.Body).Decode(&payload)
+
+	if err != nil {
+		return nil, err
+	}
+
 	// Avoid { metadata: null } in the response user object
 	if payload.Metadata == nil {
 		payload.Metadata = make(map[string]interface{})
 	}
-	return payload, err
+	if payload.Realm == "" {
+		payload.Realm = password.DefaultRealm
+	}
+	return payload, nil
 }
 
 func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User) error {
@@ -232,6 +241,7 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 }
 
 func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user response.User) error {
+	reqPayload := req.(SignupRequestPayload)
 	respPayload := resp.(response.AuthResponse)
 	err := h.HookStore.ExecAfterHooksByEvent(hook.AfterSignup, req, user, respPayload.AccessToken)
 	if err != nil {
@@ -239,11 +249,11 @@ func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user re
 	}
 
 	if h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(user)
+		h.sendWelcomeEmail(user, reqPayload.LoginIDs)
 	}
 
 	if h.AutoSendUserVerifyCode {
-		h.sendUserVerifyRequest(user)
+		h.sendUserVerifyRequest(user, reqPayload.LoginIDs)
 	}
 
 	return nil
@@ -259,6 +269,11 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 		return
 	}
 
+	if valid := h.PasswordAuthProvider.IsRealmValid(payload.Realm); !valid {
+		err = skyerr.NewInvalidArgument("realm is not allowed", []string{"realm"})
+		return
+	}
+
 	// validate password
 	err = h.PasswordChecker.ValidatePassword(authAudit.ValidatePasswordPayload{
 		PlainPassword: payload.Password,
@@ -269,7 +284,7 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 
 func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (err error) {
 	if !payload.isAnonymous() {
-		err = h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs)
+		err = h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs, payload.Realm)
 		if err == skydb.ErrUserDuplicated {
 			err = ErrUserDuplicated
 		}
@@ -283,8 +298,9 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo au
 	return
 }
 
-func (h SignupHandler) sendWelcomeEmail(user response.User) {
-	if email, ok := user.LoginIDs["email"]; ok {
+func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs map[string]string) {
+	// TODO(login-id): use login ID key config
+	if email, ok := loginIDs["email"]; ok {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
 			Email: email,
 			User:  user,
@@ -292,9 +308,9 @@ func (h SignupHandler) sendWelcomeEmail(user response.User) {
 	}
 }
 
-func (h SignupHandler) sendUserVerifyRequest(user response.User) {
+func (h SignupHandler) sendUserVerifyRequest(user response.User, loginIDs map[string]string) {
 	for _, key := range h.UserVerifyKeys {
-		if value, ok := user.LoginIDs[key.Key]; ok {
+		if value, ok := loginIDs[key.Key]; ok {
 			h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
 				Key:   key.Key,
 				Value: value,

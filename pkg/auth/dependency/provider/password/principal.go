@@ -11,6 +11,7 @@ type Principal struct {
 	UserID         string
 	LoginIDKey     string
 	LoginID        string
+	Realm          string
 	PlainPassword  string
 	HashedPassword []byte
 }

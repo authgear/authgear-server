@@ -50,26 +50,14 @@ func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
-	RawLoginID map[string]string `json:"login_id"`
-	LoginIDKey string
-	LoginID    string
+	LoginIDKey string `json:"login_id_key"`
+	LoginID    string `json:"login_id"`
+	Realm      string `json:"realm"`
 	Password   string `json:"password"`
 }
 
 // Validate request payload
 func (p LoginRequestPayload) Validate() error {
-	if len(p.RawLoginID) == 0 {
-		return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
-	}
-
-	if len(p.RawLoginID) > 1 {
-		return skyerr.NewInvalidArgument("allow one login_id only", []string{"login_id"})
-	}
-
-	if p.LoginIDKey == "" {
-		return skyerr.NewInvalidArgument("empty login ID key", []string{"login_id_key"})
-	}
-
 	if p.LoginID == "" {
 		return skyerr.NewInvalidArgument("empty login ID", []string{"login_id"})
 	}
@@ -104,18 +92,21 @@ func (h LoginHandler) ProvideAuthzPolicy() authz.Policy {
 func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := LoginRequestPayload{}
 	err := json.NewDecoder(request.Body).Decode(&payload)
-	// RawLoginID should contain only one key-value map
-	for k, v := range payload.RawLoginID {
-		payload.LoginIDKey = k
-		payload.LoginID = v
-		break
+
+	if err != nil {
+		return nil, err
 	}
-	return payload, err
+
+	if payload.Realm == "" {
+		payload.Realm = password.DefaultRealm
+	}
+	return payload, nil
 }
 
 // Handle api request
 func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(LoginRequestPayload)
+
 	fetchedAuthInfo := authinfo.AuthInfo{}
 
 	defer func() {
@@ -132,12 +123,21 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		}
 	}()
 
-	if valid := h.PasswordAuthProvider.IsLoginIDValid(payload.RawLoginID); !valid {
-		err = skyerr.NewInvalidArgument("invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting", []string{"login_id"})
+	if payload.LoginIDKey != "" {
+		loginIDMap := make(map[string]string)
+		loginIDMap[payload.LoginIDKey] = payload.LoginID
+		if valid := h.PasswordAuthProvider.IsLoginIDValid(loginIDMap); !valid {
+			err = skyerr.NewInvalidArgument("invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting", []string{"login_id"})
+			return
+		}
+	}
+
+	if valid := h.PasswordAuthProvider.IsRealmValid(payload.Realm); !valid {
+		err = skyerr.NewInvalidArgument("realm is not allowed", []string{"realm"})
 		return
 	}
 
-	userID, err := h.getUserID(payload.Password, payload.LoginIDKey, payload.LoginID)
+	userID, err := h.getUserID(payload.Password, payload.LoginIDKey, payload.LoginID, payload.Realm)
 	if err != nil {
 		return
 	}
@@ -192,9 +192,9 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	return
 }
 
-func (h LoginHandler) getUserID(pwd string, loginIDKey string, loginID string) (userID string, err error) {
+func (h LoginHandler) getUserID(pwd string, loginIDKey string, loginID string, realm string) (userID string, err error) {
 	principal := password.Principal{}
-	err = h.PasswordAuthProvider.GetPrincipalByLoginID(loginIDKey, loginID, &principal)
+	err = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, &principal)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")

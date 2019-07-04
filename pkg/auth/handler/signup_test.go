@@ -48,6 +48,18 @@ func TestSingupHandler(t *testing.T) {
 			So(payload.Validate(), ShouldBeNil)
 		})
 
+		Convey("validate valid payload with realm", func() {
+			payload := SignupRequestPayload{
+				LoginIDs: map[string]string{
+					"username": "john.doe",
+					"email":    "john.doe@example.com",
+				},
+				Realm:    "admin",
+				Password: "123456",
+			}
+			So(payload.Validate(), ShouldBeNil)
+		})
+
 		Convey("validate payload without login_id", func() {
 			payload := SignupRequestPayload{
 				Password: "123456",
@@ -90,8 +102,9 @@ func TestSingupHandler(t *testing.T) {
 		}()
 
 		loginIDsKeyWhitelist := []string{"email", "username"}
+		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist, allowedRealms)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 
 		passwordChecker := &authAudit.PasswordChecker{
@@ -132,7 +145,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
@@ -146,10 +159,44 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
+					"metadata": {}
+				}
+			}`,
+				userID,
+				token.AccessToken,
+				userID,
+				userID))
+		})
+
+		Convey("signup user with login_id with realm", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"email": "john.doe@example.com"
+				},
+				"realm": "admin",
+				"password": "123456"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 200)
+
+			var p password.Principal
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", "admin", &p)
+			So(err, ShouldBeNil)
+			userID := p.UserID
+			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
+			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
+				"result": {
+					"user_id": "%s",
+					"access_token": "%s",
+					"verified": false,
+					"verify_info": {},
+					"created_at": "0001-01-01T00:00:00Z",
+					"created_by": "%s",
+					"updated_at": "0001-01-01T00:00:00Z",
+					"updated_by": "%s",
 					"metadata": {}
 				}
 			}`,
@@ -260,8 +307,6 @@ func TestSingupHandler(t *testing.T) {
 			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
 			So(param.Email, ShouldEqual, "john.doe@example.com")
 			So(param.User, ShouldNotBeNil)
-			So(param.User.LoginIDs["username"], ShouldEqual, "john.doe")
-			So(param.User.LoginIDs["email"], ShouldEqual, "john.doe@example.com")
 		})
 
 		Convey("log audit trail when signup success", func() {
@@ -291,8 +336,9 @@ func TestSingupHandler(t *testing.T) {
 		}()
 
 		loginIDsKeyWhitelist := []string{"email", "username"}
+		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist, allowedRealms)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 
@@ -348,6 +394,51 @@ func TestSingupHandler(t *testing.T) {
 				}
 			}
 			`)
+
+			req, _ = http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"username": "john.doe"
+				},
+				"realm": "admin",
+				"password": "1234567"
+			}`))
+			resp = httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 409)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"name": "Duplicated",
+					"code": 109,
+					"message": "user duplicated"
+				}
+			}
+			`)
+
+			req, _ = http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": {
+					"username": "john.doe"
+				},
+				"realm": "test",
+				"password": "1234567"
+			}`))
+			resp = httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 400)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `
+			{
+				"error": {
+					"name": "InvalidArgument",
+					"code": 108,
+					"info":{
+						"arguments":["realm"]
+					},
+					"message": "realm is not allowed"
+				}
+			}
+			`)
 		})
 	})
 
@@ -359,8 +450,9 @@ func TestSingupHandler(t *testing.T) {
 		}()
 
 		loginIDsKeyWhitelist := []string{"email", "username"}
+		allowedRealms := []string{password.DefaultRealm}
 		authInfoStore := authinfo.NewMockStore()
-		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist)
+		passwordAuthProvider := password.NewMockProvider(loginIDsKeyWhitelist, allowedRealms)
 		anonymousAuthProvider := anonymous.NewMockProvider()
 
 		passwordChecker := &authAudit.PasswordChecker{
@@ -413,7 +505,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
@@ -427,10 +519,6 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
 					"metadata": {
 						"name": "john.doe"
 					}
@@ -482,7 +570,7 @@ func TestSingupHandler(t *testing.T) {
 		Convey("should invoke hook with correct formatted payload", func(c C) {
 			getAuthInfo := func() (string, string) {
 				var p password.Principal
-				err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+				err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 				if err != nil {
 					return "", ""
 				}
@@ -506,6 +594,7 @@ func TestSingupHandler(t *testing.T) {
 									"email": "john.doe@example.com",
 									"username": "john.doe"
 								},
+								"realm": "default",
 								"password": "123456",
 								"metadata": {}
 							}
@@ -514,10 +603,6 @@ func TestSingupHandler(t *testing.T) {
 					"data": {
 						"created_at": "0001-01-01T00:00:00Z",
 						"created_by": "%s",
-						"login_ids": {
-							"email": "john.doe@example.com",
-							"username": "john.doe"
-						},
 						"metadata": {},
 						"updated_at": "0001-01-01T00:00:00Z",
 						"updated_by": "%s",
@@ -574,10 +659,6 @@ func TestSingupHandler(t *testing.T) {
 									"created_by": "%s",
 									"updated_at": "0001-01-01T00:00:00Z",
 									"updated_by": "%s",
-									"login_ids": {
-										"email":"john.doe@example.com",
-										"username":"john.doe"
-									},
 									"metadata": {}
 								}
 							}`,
@@ -616,7 +697,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
@@ -630,10 +711,6 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
 					"metadata": {}
 				}
 			}`,
@@ -673,7 +750,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
@@ -687,10 +764,6 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
 					"metadata": {}
 				}
 			}`,
@@ -773,7 +846,7 @@ func TestSingupHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 
 			var p password.Principal
-			err := sh.PasswordAuthProvider.GetPrincipalByLoginID("email", "john.doe@example.com", &p)
+			err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 			So(err, ShouldBeNil)
 			userID := p.UserID
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
@@ -787,10 +860,6 @@ func TestSingupHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
 					"metadata": {
 						"name": "john.doe",
 						"email": "john.doe@example.com"

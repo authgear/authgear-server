@@ -76,11 +76,11 @@ type GetURLParams struct {
 
 // Setting is the base settings for SSO
 type Setting struct {
-	URLPrefix            string
-	JSSDKCDNURL          string
-	StateJWTSecret       string
-	AutoLinkProviderKeys []string
-	AllowedCallbackURLs  []string
+	URLPrefix           string
+	JSSDKCDNURL         string
+	StateJWTSecret      string
+	AutoLinkEnabled     bool
+	AllowedCallbackURLs []string
 }
 
 // Config is the base config of a SSO provider
@@ -125,11 +125,11 @@ func (p *ProviderFactory) NewProvider(name string) Provider {
 	}
 	SSOSetting := p.tenantConfig.UserConfig.SSO
 	setting := Setting{
-		URLPrefix:            SSOSetting.URLPrefix,
-		JSSDKCDNURL:          SSOSetting.JSSDKCDNURL,
-		StateJWTSecret:       SSOSetting.StateJWTSecret,
-		AutoLinkProviderKeys: SSOSetting.AutoLinkProviderKeys,
-		AllowedCallbackURLs:  SSOSetting.AllowedCallbackURLs,
+		URLPrefix:           SSOSetting.URLPrefix,
+		JSSDKCDNURL:         SSOSetting.JSSDKCDNURL,
+		StateJWTSecret:      SSOSetting.StateJWTSecret,
+		AutoLinkEnabled:     SSOSetting.AutoLinkEnabled,
+		AllowedCallbackURLs: SSOSetting.AllowedCallbackURLs,
 	}
 	config := Config{
 		Name:         SSOConf.Name,
@@ -166,10 +166,10 @@ func (p *ProviderFactory) NewProvider(name string) Provider {
 func (p *ProviderFactory) Setting() Setting {
 	SSOSetting := p.tenantConfig.UserConfig.SSO
 	return Setting{
-		URLPrefix:            SSOSetting.URLPrefix,
-		JSSDKCDNURL:          SSOSetting.JSSDKCDNURL,
-		StateJWTSecret:       SSOSetting.StateJWTSecret,
-		AutoLinkProviderKeys: SSOSetting.AutoLinkProviderKeys,
-		AllowedCallbackURLs:  SSOSetting.AllowedCallbackURLs,
+		URLPrefix:           SSOSetting.URLPrefix,
+		JSSDKCDNURL:         SSOSetting.JSSDKCDNURL,
+		StateJWTSecret:      SSOSetting.StateJWTSecret,
+		AutoLinkEnabled:     SSOSetting.AutoLinkEnabled,
+		AllowedCallbackURLs: SSOSetting.AllowedCallbackURLs,
 	}
 }

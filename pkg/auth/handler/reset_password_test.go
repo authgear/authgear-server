@@ -56,8 +56,10 @@ func TestResetPasswordHandler(t *testing.T) {
 			},
 		)
 		loginIDsKeyWhitelist := []string{"email", "username"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
 					ID:             "john.doe.principal.id0",

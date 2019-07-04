@@ -21,8 +21,9 @@ type providerImpl struct {
 	sqlBuilder             db.SQLBuilder
 	sqlExecutor            db.SQLExecutor
 	logger                 *logrus.Entry
-	loginIDsKeyWhitelist   []string
 	loginIDChecker         loginIDChecker
+	realmChecker           realmChecker
+	allowedRealms          []string
 	passwordHistoryEnabled bool
 	passwordHistoryStore   passwordhistory.Store
 }
@@ -32,16 +33,20 @@ func newProvider(
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
 	loginIDsKeyWhitelist []string,
+	allowedRealms []string,
 	passwordHistoryEnabled bool,
 ) *providerImpl {
 	return &providerImpl{
-		sqlBuilder:           builder,
-		sqlExecutor:          executor,
-		logger:               logger,
-		loginIDsKeyWhitelist: loginIDsKeyWhitelist,
+		sqlBuilder:  builder,
+		sqlExecutor: executor,
+		logger:      logger,
 		loginIDChecker: defaultLoginIDChecker{
 			loginIDsKeyWhitelist: loginIDsKeyWhitelist,
 		},
+		realmChecker: defaultRealmChecker{
+			allowedRealms: allowedRealms,
+		},
+		allowedRealms:          allowedRealms,
 		passwordHistoryEnabled: passwordHistoryEnabled,
 		passwordHistoryStore: pqPWHistory.NewPasswordHistoryStore(
 			builder, executor, logger,
@@ -54,21 +59,46 @@ func NewProvider(
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
 	loginIDsKeyWhitelist []string,
+	allowedRealms []string,
 	passwordHistoryEnabled bool,
 ) Provider {
-	return newProvider(builder, executor, logger, loginIDsKeyWhitelist, passwordHistoryEnabled)
+	return newProvider(builder, executor, logger, loginIDsKeyWhitelist, allowedRealms, passwordHistoryEnabled)
 }
 
 func (p providerImpl) IsLoginIDValid(loginID map[string]string) bool {
 	return p.loginIDChecker.isValid(loginID)
 }
 
-func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string) (err error) {
+func (p providerImpl) IsRealmValid(realm string) bool {
+	return p.realmChecker.isValid(realm)
+}
+
+func (p *providerImpl) IsDefaultAllowedRealms() bool {
+	return len(p.allowedRealms) == 1 && p.allowedRealms[0] == DefaultRealm
+}
+
+func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginID map[string]string, realm string) (err error) {
+	// do not create principal when there is login ID belongs to another user.
+	for _, v := range loginID {
+		principals, principalErr := p.GetPrincipalsByLoginID("", v)
+		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
+			err = principalErr
+			return
+		}
+		for _, principal := range principals {
+			if principal.UserID != authInfoID {
+				err = skydb.ErrUserDuplicated
+				return
+			}
+		}
+	}
+
 	for k, v := range loginID {
 		principal := NewPrincipal()
 		principal.UserID = authInfoID
 		principal.LoginIDKey = k
 		principal.LoginID = v
+		principal.Realm = realm
 		principal.PlainPassword = password
 		err = p.CreatePrincipal(principal)
 
@@ -108,11 +138,13 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 		"principal_id",
 		"login_id_key",
 		"login_id",
+		"realm",
 		"password",
 	).Values(
 		principal.ID,
 		principal.LoginIDKey,
 		principal.LoginID,
+		principal.Realm,
 		hashedPassword,
 	)
 
@@ -132,14 +164,18 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	return
 }
 
-func (p providerImpl) GetPrincipalByLoginID(loginIDKey string, loginID string, principal *Principal) (err error) {
-	builder := p.sqlBuilder.Select("principal_id", "password").
+func (p providerImpl) GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error) {
+	builder := p.sqlBuilder.Select("principal_id", "login_id_key", "password").
 		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`login_id_key = ? AND login_id = ?`, loginIDKey, loginID)
+		Where(`login_id = ? AND realm = ?`, loginID, realm)
+	if loginIDKey != "" {
+		builder = builder.Where("login_id_key = ?", loginIDKey)
+	}
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
 	err = scanner.Scan(
 		&principal.ID,
+		&principal.LoginIDKey,
 		&principal.HashedPassword,
 	)
 
@@ -151,8 +187,8 @@ func (p providerImpl) GetPrincipalByLoginID(loginIDKey string, loginID string, p
 		return
 	}
 
-	principal.LoginIDKey = loginIDKey
 	principal.LoginID = loginID
+	principal.Realm = realm
 
 	builder = p.sqlBuilder.Select("user_id").
 		From(p.sqlBuilder.FullTableName("principal")).
@@ -200,13 +236,14 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 	}
 
 	for _, principal := range principals {
-		builder = p.sqlBuilder.Select("login_id_key", "login_id", "password").
+		builder = p.sqlBuilder.Select("login_id_key", "login_id", "realm", "password").
 			From(p.sqlBuilder.FullTableName("provider_password")).
 			Where(`principal_id = ?`, principal.ID)
 		scanner := p.sqlExecutor.QueryRowWith(builder)
 		err = scanner.Scan(
 			&principal.LoginIDKey,
 			&principal.LoginID,
+			&principal.Realm,
 			&principal.HashedPassword,
 		)
 
@@ -222,10 +259,13 @@ func (p providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princi
 	return
 }
 
-func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principal, err error) {
-	builder := p.sqlBuilder.Select("principal_id", "password").
+func (p providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) (principals []*Principal, err error) {
+	builder := p.sqlBuilder.Select("principal_id", "realm", "login_id_key", "password").
 		From(p.sqlBuilder.FullTableName("provider_password")).
-		Where(`login_id_key = ? AND login_id = ?`, "email", email)
+		Where("login_id = ?", loginID)
+	if loginIDKey != "" {
+		builder = builder.Where("login_id_key = ?", loginIDKey)
+	}
 	rows, err := p.sqlExecutor.QueryWith(builder)
 	if err != nil {
 		return
@@ -234,10 +274,11 @@ func (p providerImpl) GetPrincipalsByEmail(email string) (principals []*Principa
 
 	for rows.Next() {
 		var principal Principal
-		principal.LoginIDKey = "email"
-		principal.LoginID = email
+		principal.LoginID = loginID
 		if err = rows.Scan(
 			&principal.ID,
+			&principal.Realm,
+			&principal.LoginIDKey,
 			&principal.HashedPassword,
 		); err != nil {
 			return

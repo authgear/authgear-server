@@ -50,8 +50,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
 		loginIDsKeyWhitelist := []string{}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
 					ID:             "john.doe.principal.id0",
@@ -102,10 +104,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 						"username": "john.doe",
 						"email": "john.doe@example.com",
 						"age": 24
-					},
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
 					}
 				}
 			}`,
@@ -145,10 +143,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 						"email": "john.doe@example.com",
 						"age": 30,
 						"love": "cat"
-					},
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
 					}
 				}
 			}`,
@@ -182,10 +176,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"metadata": {
 						"username": "john.doe",
 						"email": "john.doe@example.com"
-					},
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
 					}
 				}
 			}`,
@@ -243,8 +233,10 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		uh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 
 		loginIDsKeyWhitelist := []string{}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
 					ID:             "john.doe.principal.id0",
@@ -295,10 +287,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 						"username": "john.doe",
 						"email": "john.doe@example.com",
 						"age": 25
-					},
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
 					}
 				}
 			}`,

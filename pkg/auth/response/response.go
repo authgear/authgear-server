@@ -24,17 +24,16 @@ import (
 
 // User is the unify way of returning a AuthInfo with LoginID to SDK
 type User struct {
-	UserID      string            `json:"user_id,omitempty"`
-	LoginIDs    map[string]string `json:"login_ids,omitempty"`
-	Metadata    userprofile.Data  `json:"metadata"`
-	LastLoginAt *time.Time        `json:"last_login_at,omitempty"`
-	LastSeenAt  *time.Time        `json:"last_seen_at,omitempty"`
-	CreatedAt   time.Time         `json:"created_at"`
-	CreatedBy   string            `json:"created_by"`
-	UpdatedAt   time.Time         `json:"updated_at"`
-	UpdatedBy   string            `json:"updated_by"`
-	Verified    bool              `json:"verified"`
-	VerifyInfo  map[string]bool   `json:"verify_info"`
+	UserID      string           `json:"user_id,omitempty"`
+	Metadata    userprofile.Data `json:"metadata"`
+	LastLoginAt *time.Time       `json:"last_login_at,omitempty"`
+	LastSeenAt  *time.Time       `json:"last_seen_at,omitempty"`
+	CreatedAt   time.Time        `json:"created_at"`
+	CreatedBy   string           `json:"created_by"`
+	UpdatedAt   time.Time        `json:"updated_at"`
+	UpdatedBy   string           `json:"updated_by"`
+	Verified    bool             `json:"verified"`
+	VerifyInfo  map[string]bool  `json:"verify_info"`
 }
 
 type UserFactory struct {
@@ -44,16 +43,8 @@ type UserFactory struct {
 func (u UserFactory) NewUser(authInfo authinfo.AuthInfo, userProfile userprofile.UserProfile) User {
 	var lastLoginAt *time.Time
 
-	var loginIDs map[string]string
-	if u.PasswordAuthProvider != nil {
-		if principals, err := u.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID); err == nil {
-			loginIDs = password.PrincipalsToLoginIDs(principals)
-		}
-	}
-
 	return User{
 		UserID:      authInfo.ID,
-		LoginIDs:    loginIDs,
 		Metadata:    userProfile.Data,
 		LastLoginAt: lastLoginAt,
 		LastSeenAt:  authInfo.LastSeenAt,

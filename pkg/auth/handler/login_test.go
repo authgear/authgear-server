@@ -26,9 +26,6 @@ func TestLoginHandler(t *testing.T) {
 	Convey("Test LoginRequestPayload", t, func() {
 		Convey("validate valid payload", func() {
 			payload := LoginRequestPayload{
-				RawLoginID: map[string]string{
-					"username": "john.doe",
-				},
 				LoginIDKey: "username",
 				LoginID:    "john.doe",
 				Password:   "123456",
@@ -47,9 +44,6 @@ func TestLoginHandler(t *testing.T) {
 
 		Convey("validate payload without password", func() {
 			payload := LoginRequestPayload{
-				RawLoginID: map[string]string{
-					"username": "john.doe",
-				},
 				LoginIDKey: "username",
 				LoginID:    "john.doe",
 			}
@@ -58,14 +52,21 @@ func TestLoginHandler(t *testing.T) {
 			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
 		})
 
-		Convey("validate payload without login_id key", func() {
+		Convey("validate payload without login ID key", func() {
 			payload := LoginRequestPayload{
-				RawLoginID: map[string]string{},
-				Password:   "123456",
+				LoginID:  "john.doe",
+				Password: "123456",
 			}
-			err := payload.Validate()
-			errResponse := err.(skyerr.Error)
-			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
+			So(payload.Validate(), ShouldBeNil)
+		})
+
+		Convey("validate valid payload with realm", func() {
+			payload := LoginRequestPayload{
+				LoginID:  "john.doe",
+				Realm:    "admin",
+				Password: "123456",
+			}
+			So(payload.Validate(), ShouldBeNil)
 		})
 	})
 
@@ -85,14 +86,17 @@ func TestLoginHandler(t *testing.T) {
 			},
 		)
 		loginIDsKeyWhitelist := []string{"email", "username"}
+		allowedRealms := []string{password.DefaultRealm, "admin"}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id1": password.Principal{
 					ID:             "john.doe.principal.id1",
 					UserID:         "john.doe.id",
 					LoginIDKey:     "email",
 					LoginID:        "john.doe@example.com",
+					Realm:          password.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id2": password.Principal{
@@ -100,6 +104,15 @@ func TestLoginHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "username",
 					LoginID:        "john.doe",
+					Realm:          password.DefaultRealm,
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
+				},
+				"john.doe.principal.id3": password.Principal{
+					ID:             "john.doe.principal.id3",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe+1@example.com",
+					Realm:          "admin",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -114,13 +127,10 @@ func TestLoginHandler(t *testing.T) {
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 
 		Convey("login user with login_id", func() {
-			loginID := map[string]string{
-				"email": "john.doe@example.com",
-			}
 			payload := LoginRequestPayload{
-				RawLoginID: loginID,
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
+				Realm:      password.DefaultRealm,
 				Password:   "123456",
 			}
 			userID := "john.doe.id"
@@ -146,14 +156,44 @@ func TestLoginHandler(t *testing.T) {
 			So(!token.IsExpired(), ShouldBeTrue)
 		})
 
-		Convey("login user with incorrect password", func() {
-			loginID := map[string]string{
-				"email": "john.doe@example.com",
-			}
+		Convey("login user without login ID key", func() {
 			payload := LoginRequestPayload{
-				RawLoginID: loginID,
+				LoginID:  "john.doe@example.com",
+				Realm:    password.DefaultRealm,
+				Password: "123456",
+			}
+
+			_, err := h.Handle(payload)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("login user with login_id and realm", func() {
+			payload := LoginRequestPayload{
+				LoginID:  "john.doe+1@example.com",
+				Realm:    "admin",
+				Password: "123456",
+			}
+
+			_, err := h.Handle(payload)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("login user with incorrect realm", func() {
+			payload := LoginRequestPayload{
+				LoginID:  "john.doe+1@example.com",
+				Realm:    password.DefaultRealm,
+				Password: "123456",
+			}
+
+			_, err := h.Handle(payload)
+			So(err.Error(), ShouldEqual, "ResourceNotFound: user not found")
+		})
+
+		Convey("login user with incorrect password", func() {
+			payload := LoginRequestPayload{
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
+				Realm:      password.DefaultRealm,
 				Password:   "wrong_password",
 			}
 
@@ -162,27 +202,31 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("login with incorrect login_id", func() {
-			loginID := map[string]string{
-				"phone": "202-111-2222",
-			}
 			payload := LoginRequestPayload{
-				RawLoginID: loginID,
 				LoginIDKey: "phone",
 				LoginID:    "202-111-2222",
+				Realm:      password.DefaultRealm,
 				Password:   "123456",
 			}
 			_, err := h.Handle(payload)
 			So(err.Error(), ShouldEqual, "InvalidArgument: invalid login_id, check your LOGIN_IDS_KEY_WHITELIST setting")
 		})
 
-		Convey("log audit trail when login success", func() {
-			loginID := map[string]string{
-				"email": "john.doe@example.com",
-			}
+		Convey("login with disallowed realm", func() {
 			payload := LoginRequestPayload{
-				RawLoginID: loginID,
+				LoginID:  "john.doe+1@example.com",
+				Realm:    "test",
+				Password: "123456",
+			}
+			_, err := h.Handle(payload)
+			So(err.Error(), ShouldEqual, "InvalidArgument: realm is not allowed")
+		})
+
+		Convey("log audit trail when login success", func() {
+			payload := LoginRequestPayload{
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
+				Realm:      password.DefaultRealm,
 				Password:   "123456",
 			}
 			h.Handle(payload)
@@ -192,13 +236,10 @@ func TestLoginHandler(t *testing.T) {
 		})
 
 		Convey("log audit trail when login fail", func() {
-			loginID := map[string]string{
-				"email": "john.doe@example.com",
-			}
 			payload := LoginRequestPayload{
-				RawLoginID: loginID,
 				LoginIDKey: "email",
 				LoginID:    "john.doe@example.com",
+				Realm:      password.DefaultRealm,
 				Password:   "wrong_password",
 			}
 			h.Handle(payload)
@@ -227,14 +268,17 @@ func TestLoginHandler(t *testing.T) {
 			},
 		)
 		loginIDsKeyWhitelist := []string{"email", "username"}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{
 				"john.doe.principal.id1": password.Principal{
 					ID:             "john.doe.principal.id1",
 					UserID:         "john.doe.id",
 					LoginIDKey:     "email",
 					LoginID:        "john.doe@example.com",
+					Realm:          password.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id2": password.Principal{
@@ -242,6 +286,7 @@ func TestLoginHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "username",
 					LoginID:        "john.doe",
+					Realm:          password.DefaultRealm,
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
@@ -263,9 +308,8 @@ func TestLoginHandler(t *testing.T) {
 		Convey("should contains multiple loginIDs", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"login_id": {
-					"email": "john.doe@example.com"
-				},
+				"login_id_key": "email",
+				"login_id": "john.doe@example.com",
 				"password": "123456"
 			}`))
 			resp := httptest.NewRecorder()
@@ -283,10 +327,6 @@ func TestLoginHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					},
 					"metadata": {}
 				}
 			}`,

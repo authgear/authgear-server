@@ -88,8 +88,10 @@ func TestLoginHandler(t *testing.T) {
 		mockTokenStore := authtoken.NewMockStore()
 		sh.TokenStore = mockTokenStore
 		loginIDsKeyWhitelist := []string{}
+		allowedRealms := []string{password.DefaultRealm}
 		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
 			loginIDsKeyWhitelist,
+			allowedRealms,
 			map[string]password.Principal{},
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider

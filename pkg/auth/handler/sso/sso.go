@@ -20,6 +20,7 @@ type respHandler struct {
 	PasswordAuthProvider password.Provider
 	UserProfileStore     userprofile.Store
 	UserID               string
+	Settings             sso.Setting
 }
 
 func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
@@ -151,10 +152,6 @@ func (h respHandler) handleLogin(
 			return
 		}
 
-		err = h.createEmptyPasswordPrincipal(info.ID, oauthAuthInfo)
-		if err == skydb.ErrUserDuplicated {
-			err = signUpHandler.ErrUserDuplicated
-		}
 	} else {
 		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
 		principal.UserProfile = oauthAuthInfo.ProviderUserProfile
@@ -189,14 +186,16 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 	}
 
 	// if oauth principal doesn't exist, try to link existed password principal
-	if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
-		// provider authData matches app's loginIDsKeyWhitelist,
-		// then it starts auto-link procedure.
-		//
-		// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
-		// it will be a valid authData if loginIDsKeyWhitelist is [](empty), ["username", "email"] or ["email"]
-		// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
-		return h.authLinkUser(oauthAuthInfo)
+	if h.Settings.AutoLinkEnabled && h.PasswordAuthProvider.IsDefaultAllowedRealms() {
+		if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
+			// provider authData matches app's loginIDsKeyWhitelist,
+			// then it starts auto-link procedure.
+			//
+			// for example, if oauthAuthInfo.ProviderAuthData is {"email", "john.doe@example.com"},
+			// it will be a valid authData if loginIDsKeyWhitelist is [](empty), ["username", "email"] or ["email"]
+			// so, the oauthAuthInfo.ProviderAuthDat can be used as a password principal authData
+			return h.authLinkUser(oauthAuthInfo)
+		}
 	}
 
 	return nil, nil
@@ -205,8 +204,9 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	passwordPrincipal := password.Principal{}
 	var e error
+	// TODO(login-id): use login ID key config
 	if email, ok := oauthAuthInfo.ProviderAuthData["email"]; ok {
-		e = h.PasswordAuthProvider.GetPrincipalByLoginID("email", email, &passwordPrincipal)
+		e = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", email, password.DefaultRealm, &passwordPrincipal)
 	}
 	if e == nil {
 		userID := passwordPrincipal.UserID
@@ -235,14 +235,4 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 	principal.UpdatedAt = &now
 	err := h.OAuthAuthProvider.CreatePrincipal(principal)
 	return principal, err
-}
-
-func (h respHandler) createEmptyPasswordPrincipal(userID string, oauthAuthInfo sso.AuthInfo) error {
-	if valid := h.PasswordAuthProvider.IsLoginIDValid(oauthAuthInfo.ProviderAuthData); valid {
-		// if ProviderAuthData matches loginIDsKeyWhitelist, and it can't be link with current account,
-		// we also creates an empty password principal for later the user can set password to it
-		return h.PasswordAuthProvider.CreatePrincipalsByLoginID(userID, "", oauthAuthInfo.ProviderAuthData)
-	}
-
-	return nil
 }

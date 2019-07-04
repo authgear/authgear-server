@@ -53,6 +53,7 @@ func TestChangePasswordHandler(t *testing.T) {
 		}
 		lh.PasswordAuthProvider = password.NewMockProviderWithPrincipalMap(
 			[]string{},
+			[]string{password.DefaultRealm},
 			map[string]password.Principal{
 				"john.doe.principal.id0": password.Principal{
 					ID:             "john.doe.principal.id0",
@@ -95,11 +96,7 @@ func TestChangePasswordHandler(t *testing.T) {
 					"created_by": "%s",
 					"updated_at": "0001-01-01T00:00:00Z",
 					"updated_by": "%s",
-					"metadata": {},
-					"login_ids": {
-						"email":"john.doe@example.com",
-						"username":"john.doe"
-					}
+					"metadata": {}
 				}
 			}`,
 				userID,
