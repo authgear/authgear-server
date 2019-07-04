@@ -106,14 +106,14 @@ func (payload VerifyRequestPayload) Validate() error {
 //  EOF
 //
 type VerifyRequestHandler struct {
-	TxContext            db.TxContext                    `dependency:"TxContext"`
-	AuthContext          coreAuth.ContextGetter          `dependency:"AuthContextGetter"`
-	CodeSenderFactory    userverify.CodeSenderFactory    `dependency:"UserVerifyCodeSenderFactory"`
-	CodeGeneratorFactory userverify.CodeGeneratorFactory `dependency:"VerifyCodeCodeGeneratorFactory"`
-	UserProfileStore     userprofile.Store               `dependency:"UserProfileStore"`
-	VerifyCodeStore      userverify.Store                `dependency:"VerifyCodeStore"`
-	Logger               *logrus.Entry                   `dependency:"HandlerLogger"`
-	PasswordAuthProvider password.Provider               `dependency:"PasswordAuthProvider"`
+	TxContext            db.TxContext                 `dependency:"TxContext"`
+	AuthContext          coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
+	CodeSenderFactory    userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
+	CodeGenerator        userverify.CodeGenerator     `dependency:"VerifyCodeCodeGenerator"`
+	UserProfileStore     userprofile.Store            `dependency:"UserProfileStore"`
+	VerifyCodeStore      userverify.Store             `dependency:"VerifyCodeStore"`
+	Logger               *logrus.Entry                `dependency:"HandlerLogger"`
+	PasswordAuthProvider password.Provider            `dependency:"PasswordAuthProvider"`
 }
 
 func (h VerifyRequestHandler) WithTx() bool {
@@ -173,8 +173,7 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	codeGenerator := h.CodeGeneratorFactory.NewCodeGenerator(userPrincipal.LoginIDKey)
-	code := codeGenerator.Generate()
+	code := h.CodeGenerator.Generate(userPrincipal.LoginIDKey)
 
 	verifyCode := userverify.NewVerifyCode()
 	verifyCode.UserID = authInfo.ID

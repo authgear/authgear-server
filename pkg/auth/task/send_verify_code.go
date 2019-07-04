@@ -40,11 +40,11 @@ func (c *VerifyCodeSendTaskFactory) NewTask(ctx context.Context, taskCtx async.T
 }
 
 type VerifyCodeSendTask struct {
-	CodeSenderFactory    userverify.CodeSenderFactory    `dependency:"UserVerifyCodeSenderFactory"`
-	CodeGeneratorFactory userverify.CodeGeneratorFactory `dependency:"VerifyCodeCodeGeneratorFactory"`
-	VerifyCodeStore      userverify.Store                `dependency:"VerifyCodeStore"`
-	TxContext            db.TxContext                    `dependency:"TxContext"`
-	Logger               *logrus.Entry                   `dependency:"HandlerLogger"`
+	CodeSenderFactory userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
+	CodeGenerator     userverify.CodeGenerator     `dependency:"VerifyCodeCodeGenerator"`
+	VerifyCodeStore   userverify.Store             `dependency:"VerifyCodeStore"`
+	TxContext         db.TxContext                 `dependency:"TxContext"`
+	Logger            *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
 type VerifyCodeSendTaskParam struct {
@@ -65,8 +65,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 		"userID": taskParam.User.UserID,
 	}).Info("start sending user verify requests")
 
-	codeGenerator := v.CodeGeneratorFactory.NewCodeGenerator(taskParam.Key)
-	code := codeGenerator.Generate()
+	code := v.CodeGenerator.Generate(taskParam.Key)
 
 	verifyCode := userverify.NewVerifyCode()
 	verifyCode.UserID = taskParam.User.UserID

@@ -150,8 +150,8 @@ func (m DependencyMap) Provide(
 			logging.CreateLoggerWithRequestID(requestID, "verify_code", createLoggerMaskFormatter(tConfig)),
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
-	case "VerifyCodeCodeGeneratorFactory":
-		return userverify.NewDefaultCodeGeneratorFactory(tConfig)
+	case "VerifyCodeCodeGenerator":
+		return userverify.NewCodeGenerator(tConfig)
 	case "UserVerifyCodeSenderFactory":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, templateEngine)

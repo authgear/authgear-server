@@ -24,7 +24,7 @@ import (
 )
 
 func mockCreateUpdateVerifiedFlagFunc(keys []string) userverify.UpdateVerifiedFlagFunc {
-	verifyConfigs :=map[string]config.UserVerificationKeyConfiguration{}
+	verifyConfigs := map[string]config.UserVerificationKeyConfiguration{}
 	for _, key := range keys {
 		verifyConfigs[key] = config.UserVerificationKeyConfiguration{}
 	}
