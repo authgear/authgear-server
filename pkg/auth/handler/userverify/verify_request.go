@@ -278,8 +278,8 @@ func (payload VerifyRequestTestPayload) Validate() error {
 //  EOF
 //
 type VerifyRequestTestHandler struct {
-	TestCodeSenderFactory userverify.TestCodeSenderFactory `dependency:"UserVerifyTestCodeSenderFactory"`
-	Logger                *logrus.Entry                    `dependency:"HandlerLogger"`
+	CodeSenderFactory userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
+	Logger            *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
 func (h VerifyRequestTestHandler) WithTx() bool {
@@ -297,16 +297,8 @@ func (h VerifyRequestTestHandler) DecodeRequest(request *http.Request) (handler.
 }
 
 func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err error) {
-	payload := req.(VerifyRequestTestPayload)
-	codeSender := h.TestCodeSenderFactory.NewTestCodeSender(payload.RecordKey, payload.ProviderSettings, payload.Templates)
-	if codeSender == nil {
-		err = skyerr.NewInvalidArgument("invalid provider name", []string{"provider_settings.name"})
-		return
-	}
-
-	if err = codeSender.Send(payload.RecordKey, payload.RecordValue); err == nil {
-		resp = "OK"
-	}
+	// TODO: implement test sending
+	resp = "OK"
 
 	return
 }
