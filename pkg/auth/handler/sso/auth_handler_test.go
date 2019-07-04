@@ -86,11 +86,11 @@ func TestAuthHandler(t *testing.T) {
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
-		mockProvider := sso.MockSSOProverImpl{
-			BaseURL: "http://mock/auth",
-			Setting: setting,
-			Config:  config,
-			UserID:  providerUserID,
+		mockProvider := sso.MockSSOProvider{
+			BaseURL:  "http://mock/auth",
+			Setting:  setting,
+			Config:   config,
+			UserInfo: sso.ProviderUserInfo{ID: providerUserID},
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(
@@ -303,7 +303,7 @@ func TestAuthHandler(t *testing.T) {
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
-		mockProvider := sso.MockSSOProverImpl{
+		mockProvider := sso.MockSSOProvider{
 			BaseURL: "http://mock/auth",
 			Setting: setting,
 			Config:  config,
@@ -502,14 +502,12 @@ func TestAuthHandler(t *testing.T) {
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
-		mockProvider := sso.MockSSOProverImpl{
+		mockProvider := sso.MockSSOProvider{
 			BaseURL: "http://mock/auth",
 			Setting: setting,
 			Config:  config,
-			UserID:  providerUserID,
-			AuthData: sso.ProviderAuthKeys{
-				Email: "john.doe@example.com",
-			},
+			UserInfo: sso.ProviderUserInfo{ID: providerUserID,
+				Email: "john.doe@example.com"},
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(
@@ -612,14 +610,12 @@ func TestAuthHandler(t *testing.T) {
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
-		mockProvider := sso.MockSSOProverImpl{
+		mockProvider := sso.MockSSOProvider{
 			BaseURL: "http://mock/auth",
 			Setting: setting,
 			Config:  config,
-			UserID:  providerUserID,
-			AuthData: sso.ProviderAuthKeys{
-				Email: "john.doe@example.com",
-			},
+			UserInfo: sso.ProviderUserInfo{ID: providerUserID,
+				Email: "john.doe@example.com"},
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(

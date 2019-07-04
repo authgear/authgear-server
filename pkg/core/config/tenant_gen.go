@@ -5156,6 +5156,15 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
+		case "destination":
+			{
+				var zyco string
+				zyco, err = dc.ReadString()
+				z.Destination = WelcomeEmailDestination(zyco)
+			}
+			if err != nil {
+				return
+			}
 		default:
 			err = dc.Skip()
 			if err != nil {
@@ -5168,9 +5177,9 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 9
+	// map header, size 10
 	// write "enabled"
-	err = en.Append(0x89, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	err = en.Append(0x8a, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	if err != nil {
 		return err
 	}
@@ -5250,15 +5259,24 @@ func (z *WelcomeEmailConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
+	// write "destination"
+	err = en.Append(0xab, 0x64, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e)
+	if err != nil {
+		return err
+	}
+	err = en.WriteString(string(z.Destination))
+	if err != nil {
+		return
+	}
 	return
 }
 
 // MarshalMsg implements msgp.Marshaler
 func (z *WelcomeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 9
+	// map header, size 10
 	// string "enabled"
-	o = append(o, 0x89, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	o = append(o, 0x8a, 0xa7, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64)
 	o = msgp.AppendBool(o, z.Enabled)
 	// string "url_prefix"
 	o = append(o, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
@@ -5284,6 +5302,9 @@ func (z *WelcomeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "html_url"
 	o = append(o, 0xa8, 0x68, 0x74, 0x6d, 0x6c, 0x5f, 0x75, 0x72, 0x6c)
 	o = msgp.AppendString(o, z.HTMLURL)
+	// string "destination"
+	o = append(o, 0xab, 0x64, 0x65, 0x73, 0x74, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e)
+	o = msgp.AppendString(o, string(z.Destination))
 	return
 }
 
@@ -5291,13 +5312,13 @@ func (z *WelcomeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zyco uint32
-	zyco, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zhgh uint32
+	zhgh, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zyco > 0 {
-		zyco--
+	for zhgh > 0 {
+		zhgh--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -5348,6 +5369,15 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 			if err != nil {
 				return
 			}
+		case "destination":
+			{
+				var zovg string
+				zovg, bts, err = msgp.ReadStringBytes(bts)
+				z.Destination = WelcomeEmailDestination(zovg)
+			}
+			if err != nil {
+				return
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -5361,6 +5391,55 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *WelcomeEmailConfiguration) Msgsize() (s int) {
-	s = 1 + 8 + msgp.BoolSize + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 12 + msgp.StringPrefixSize + len(z.SenderName) + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 14 + msgp.StringPrefixSize + len(z.ReplyToName) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 9 + msgp.StringPrefixSize + len(z.TextURL) + 9 + msgp.StringPrefixSize + len(z.HTMLURL)
+	s = 1 + 8 + msgp.BoolSize + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 12 + msgp.StringPrefixSize + len(z.SenderName) + 7 + msgp.StringPrefixSize + len(z.Sender) + 8 + msgp.StringPrefixSize + len(z.Subject) + 14 + msgp.StringPrefixSize + len(z.ReplyToName) + 9 + msgp.StringPrefixSize + len(z.ReplyTo) + 9 + msgp.StringPrefixSize + len(z.TextURL) + 9 + msgp.StringPrefixSize + len(z.HTMLURL) + 12 + msgp.StringPrefixSize + len(string(z.Destination))
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *WelcomeEmailDestination) DecodeMsg(dc *msgp.Reader) (err error) {
+	{
+		var zsey string
+		zsey, err = dc.ReadString()
+		(*z) = WelcomeEmailDestination(zsey)
+	}
+	if err != nil {
+		return
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z WelcomeEmailDestination) EncodeMsg(en *msgp.Writer) (err error) {
+	err = en.WriteString(string(z))
+	if err != nil {
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z WelcomeEmailDestination) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	o = msgp.AppendString(o, string(z))
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *WelcomeEmailDestination) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	{
+		var zcjp string
+		zcjp, bts, err = msgp.ReadStringBytes(bts)
+		(*z) = WelcomeEmailDestination(zcjp)
+	}
+	if err != nil {
+		return
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z WelcomeEmailDestination) Msgsize() (s int) {
+	s = msgp.StringPrefixSize + len(string(z))
 	return
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -117,21 +118,22 @@ func (p SignupRequestPayload) isAnonymous() bool {
 
 // SignupHandler handles signup request
 type SignupHandler struct {
-	PasswordChecker        *authAudit.PasswordChecker                `dependency:"PasswordChecker"`
-	UserProfileStore       userprofile.Store                         `dependency:"UserProfileStore"`
-	TokenStore             authtoken.Store                           `dependency:"TokenStore"`
-	AuthInfoStore          authinfo.Store                            `dependency:"AuthInfoStore"`
-	PasswordAuthProvider   password.Provider                         `dependency:"PasswordAuthProvider"`
-	AnonymousAuthProvider  anonymous.Provider                        `dependency:"AnonymousAuthProvider"`
-	AuditTrail             audit.Trail                               `dependency:"AuditTrail"`
-	WelcomeEmailEnabled    bool                                      `dependency:"WelcomeEmailEnabled"`
-	AutoSendUserVerifyCode bool                                      `dependency:"AutoSendUserVerifyCodeOnSignup"`
-	UserVerifyKeys         []config.UserVerificationKeyConfiguration `dependency:"UserVerifyKeys"`
-	VerifyCodeStore        userverify.Store                          `dependency:"VerifyCodeStore"`
-	TxContext              db.TxContext                              `dependency:"TxContext"`
-	Logger                 *logrus.Entry                             `dependency:"HandlerLogger"`
-	TaskQueue              async.Queue                               `dependency:"AsyncTaskQueue"`
-	HookStore              hook.Store                                `dependency:"HookStore"`
+	PasswordChecker         *authAudit.PasswordChecker                `dependency:"PasswordChecker"`
+	UserProfileStore        userprofile.Store                         `dependency:"UserProfileStore"`
+	TokenStore              authtoken.Store                           `dependency:"TokenStore"`
+	AuthInfoStore           authinfo.Store                            `dependency:"AuthInfoStore"`
+	PasswordAuthProvider    password.Provider                         `dependency:"PasswordAuthProvider"`
+	AnonymousAuthProvider   anonymous.Provider                        `dependency:"AnonymousAuthProvider"`
+	AuditTrail              audit.Trail                               `dependency:"AuditTrail"`
+	WelcomeEmailEnabled     bool                                      `dependency:"WelcomeEmailEnabled"`
+	WelcomeEmailDestination config.WelcomeEmailDestination            `dependency:"WelcomeEmailDestination"`
+	AutoSendUserVerifyCode  bool                                      `dependency:"AutoSendUserVerifyCodeOnSignup"`
+	UserVerifyKeys          []config.UserVerificationKeyConfiguration `dependency:"UserVerifyKeys"`
+	VerifyCodeStore         userverify.Store                          `dependency:"VerifyCodeStore"`
+	TxContext               db.TxContext                              `dependency:"TxContext"`
+	Logger                  *logrus.Entry                             `dependency:"HandlerLogger"`
+	TaskQueue               async.Queue                               `dependency:"AsyncTaskQueue"`
+	HookStore               hook.Store                                `dependency:"HookStore"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -298,15 +300,28 @@ func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo au
 }
 
 func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs []password.LoginID) {
+	supportedLoginIDs := []password.LoginID{}
 	for _, loginID := range loginIDs {
-		// TODO(login-id): use primary login IDs
-		if loginID.Key == "email" {
-			email := loginID.Value
-			h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
-				Email: email,
-				User:  user,
-			}, nil)
+		if h.PasswordAuthProvider.CheckLoginIDKeyType(loginID.Key, metadata.Email) {
+			supportedLoginIDs = append(supportedLoginIDs, loginID)
 		}
+	}
+
+	var destinationLoginIDs []password.LoginID
+	if h.WelcomeEmailDestination == config.WelcomeEmailDestinationAll {
+		destinationLoginIDs = supportedLoginIDs
+	} else if h.WelcomeEmailDestination == config.WelcomeEmailDestinationFirst {
+		if len(supportedLoginIDs) > 0 {
+			destinationLoginIDs = supportedLoginIDs[:1]
+		}
+	}
+
+	for _, loginID := range destinationLoginIDs {
+		email := loginID.Value
+		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
+			Email: email,
+			User:  user,
+		}, nil)
 	}
 }
 

@@ -9,8 +9,7 @@ import (
 type AuthInfoProcessor interface {
 	DecodeAccessTokenResp(r io.Reader) (AccessTokenResp, error)
 	ValidateAccessTokenResp(accessTokenResp AccessTokenResp) error
-	DecodeUserID(p map[string]interface{}) string
-	DecodeAuthData(p map[string]interface{}) ProviderAuthKeys
+	DecodeUserInfo(p map[string]interface{}) ProviderUserInfo
 }
 
 type defaultAuthInfoProcessor struct{}
@@ -41,19 +40,12 @@ func (d defaultAuthInfoProcessor) ValidateAccessTokenResp(accessTokenResp Access
 	return nil
 }
 
-func (d defaultAuthInfoProcessor) DecodeUserID(userProfile map[string]interface{}) string {
-	id, ok := userProfile["id"].(string)
-	if !ok {
-		return ""
-	}
-	return id
-}
+func (d defaultAuthInfoProcessor) DecodeUserInfo(userProfile map[string]interface{}) ProviderUserInfo {
+	id, _ := userProfile["id"].(string)
+	email, _ := userProfile["email"].(string)
 
-func (d defaultAuthInfoProcessor) DecodeAuthData(userProfile map[string]interface{}) (authData ProviderAuthKeys) {
-	authData = ProviderAuthKeys{}
-	email, ok := userProfile["email"].(string)
-	if ok {
-		authData.Email = email
+	return ProviderUserInfo{
+		ID:    id,
+		Email: email,
 	}
-	return
 }

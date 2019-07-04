@@ -31,6 +31,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
@@ -102,10 +103,18 @@ func TestSingupHandler(t *testing.T) {
 		}()
 
 		zero := 0
-		one := 1
+		two := 2
 		loginIDsKeys := map[string]config.LoginIDKeyConfiguration{
-			"email":    config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
-			"username": config.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
+			"email": config.LoginIDKeyConfiguration{
+				Type:    config.LoginIDKeyType(metadata.Email),
+				Minimum: &zero,
+				Maximum: &two,
+			},
+			"username": config.LoginIDKeyConfiguration{
+				Type:    config.LoginIDKeyTypeRaw,
+				Minimum: &zero,
+				Maximum: &two,
+			},
 		}
 		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
@@ -294,12 +303,14 @@ func TestSingupHandler(t *testing.T) {
 			`)
 		})
 
-		Convey("signup with email, send welcome email", func() {
+		Convey("signup with email, send welcome email to first login ID", func() {
+			sh.WelcomeEmailDestination = config.WelcomeEmailDestinationFirst
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_ids": [
+					{ "key": "email", "value": "john.doe+1@example.com" },
 					{ "key": "username", "value": "john.doe" },
-					{ "key": "email", "value": "john.doe@example.com" }
+					{ "key": "email", "value": "john.doe+2@example.com" }
 				],
 				"password": "12345678"
 			}`))
@@ -310,7 +321,32 @@ func TestSingupHandler(t *testing.T) {
 			So(mockTaskQueue.TasksName, ShouldResemble, []string{task.WelcomeEmailSendTaskName})
 			So(mockTaskQueue.TasksParam, ShouldHaveLength, 1)
 			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
-			So(param.Email, ShouldEqual, "john.doe@example.com")
+			So(param.Email, ShouldEqual, "john.doe+1@example.com")
+			So(param.User, ShouldNotBeNil)
+		})
+
+		Convey("signup with email, send welcome email to all login IDs", func() {
+			sh.WelcomeEmailDestination = config.WelcomeEmailDestinationAll
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"login_ids": [
+					{ "key": "email", "value": "john.doe+1@example.com" },
+					{ "key": "username", "value": "john.doe" },
+					{ "key": "email", "value": "john.doe+2@example.com" }
+				],
+				"password": "12345678"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 200)
+
+			So(mockTaskQueue.TasksName, ShouldResemble, []string{task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskName})
+			So(mockTaskQueue.TasksParam, ShouldHaveLength, 2)
+			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
+			So(param.Email, ShouldEqual, "john.doe+1@example.com")
+			So(param.User, ShouldNotBeNil)
+			param, _ = mockTaskQueue.TasksParam[1].(task.WelcomeEmailSendTaskParam)
+			So(param.Email, ShouldEqual, "john.doe+2@example.com")
 			So(param.User, ShouldNotBeNil)
 		})
 

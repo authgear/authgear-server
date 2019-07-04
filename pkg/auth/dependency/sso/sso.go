@@ -94,14 +94,14 @@ type Config struct {
 // AuthInfo contains auth info from HandleAuthzResp
 type AuthInfo struct {
 	ProviderName            string
-	ProviderUserID          string
-	ProviderUserProfile     map[string]interface{}
+	ProviderRawProfile      map[string]interface{}
 	ProviderAccessTokenResp interface{}
-	ProviderAuthData        ProviderAuthKeys
+	ProviderUserInfo        ProviderUserInfo
 	State                   State
 }
 
-type ProviderAuthKeys struct {
+type ProviderUserInfo struct {
+	ID    string
 	Email string
 }
 

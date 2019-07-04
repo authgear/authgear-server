@@ -64,7 +64,7 @@ func defaultUserConfiguration() UserConfiguration {
 		Auth: AuthConfiguration{
 			// Default to email and username
 			LoginIDKeys: map[string]LoginIDKeyConfiguration{
-				"username": LoginIDKeyConfiguration{Type: loginIDKeyTypeRaw},
+				"username": LoginIDKeyConfiguration{Type: LoginIDKeyTypeRaw},
 				"email":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Email)},
 				"phone":    LoginIDKeyConfiguration{Type: LoginIDKeyType(metadata.Phone)},
 			},
@@ -77,9 +77,10 @@ func defaultUserConfiguration() UserConfiguration {
 			ResetURLLifetime: 43200,
 		},
 		WelcomeEmail: WelcomeEmailConfiguration{
-			Enabled: false,
-			Sender:  "no-reply@skygeario.com",
-			Subject: "Welcome!",
+			Enabled:     false,
+			Sender:      "no-reply@skygeario.com",
+			Subject:     "Welcome!",
+			Destination: WelcomeEmailDestinationFirst,
 		},
 		SSO: SSOConfiguration{
 			JSSDKCDNURL: "https://code.skygear.io/js/skygear/latest/skygear.min.js",
@@ -307,9 +308,12 @@ func (c *TenantConfiguration) Validate() error {
 		return err
 	}
 
-	if c.UserConfig.UserVerification.Criteria != UserVerificationCriteriaAny &&
-		c.UserConfig.UserVerification.Criteria != UserVerificationCriteriaAll {
+	if !c.UserConfig.UserVerification.Criteria.IsValid() {
 		return errors.New("Invalid user verification criteria")
+	}
+
+	if !c.UserConfig.WelcomeEmail.Destination.IsValid() {
+		return errors.New("Invalid welcome email destination")
 	}
 
 	return nil
@@ -367,6 +371,11 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	// Set default user verification settings
 	if c.UserConfig.UserVerification.Criteria == "" {
 		c.UserConfig.UserVerification.Criteria = UserVerificationCriteriaAny
+	}
+
+	// Set default welcome email destination
+	if c.UserConfig.WelcomeEmail.Destination == "" {
+		c.UserConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
 	}
 }
 
@@ -431,7 +440,7 @@ type AuthConfiguration struct {
 
 type LoginIDKeyType string
 
-const loginIDKeyTypeRaw LoginIDKeyType = "raw"
+const LoginIDKeyTypeRaw LoginIDKeyType = "raw"
 
 func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
 	for _, key := range metadata.AllKeys() {
@@ -444,7 +453,7 @@ func (t LoginIDKeyType) MetadataKey() (metadata.StandardKey, bool) {
 
 func (t LoginIDKeyType) IsValid() bool {
 	_, validKey := t.MetadataKey()
-	return t == loginIDKeyTypeRaw || validKey
+	return t == LoginIDKeyTypeRaw || validKey
 }
 
 type LoginIDKeyConfiguration struct {
@@ -499,16 +508,28 @@ type ForgotPasswordConfiguration struct {
 	ResetErrorHTMLURL   string `json:"reset_error_html_url" yaml:"reset_error_html_url" msg:"reset_error_html_url"`
 }
 
+type WelcomeEmailDestination string
+
+const (
+	WelcomeEmailDestinationFirst WelcomeEmailDestination = "first"
+	WelcomeEmailDestinationAll   WelcomeEmailDestination = "all"
+)
+
+func (destination WelcomeEmailDestination) IsValid() bool {
+	return destination == WelcomeEmailDestinationFirst || destination == WelcomeEmailDestinationAll
+}
+
 type WelcomeEmailConfiguration struct {
-	Enabled     bool   `json:"enabled" yaml:"enabled" msg:"enabled"`
-	URLPrefix   string `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	SenderName  string `json:"sender_name" yaml:"sender_name" msg:"sender_name"`
-	Sender      string `json:"sender" yaml:"sender" msg:"sender"`
-	Subject     string `json:"subject" yaml:"subject" msg:"subject"`
-	ReplyToName string `json:"reply_to_name" yaml:"reply_to_name" msg:"reply_to_name"`
-	ReplyTo     string `json:"reply_to" yaml:"reply_to" msg:"reply_to"`
-	TextURL     string `json:"text_url" yaml:"text_url" msg:"text_url"`
-	HTMLURL     string `json:"html_url" yaml:"html_url" msg:"html_url"`
+	Enabled     bool                    `json:"enabled" yaml:"enabled" msg:"enabled"`
+	URLPrefix   string                  `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	SenderName  string                  `json:"sender_name" yaml:"sender_name" msg:"sender_name"`
+	Sender      string                  `json:"sender" yaml:"sender" msg:"sender"`
+	Subject     string                  `json:"subject" yaml:"subject" msg:"subject"`
+	ReplyToName string                  `json:"reply_to_name" yaml:"reply_to_name" msg:"reply_to_name"`
+	ReplyTo     string                  `json:"reply_to" yaml:"reply_to" msg:"reply_to"`
+	TextURL     string                  `json:"text_url" yaml:"text_url" msg:"text_url"`
+	HTMLURL     string                  `json:"html_url" yaml:"html_url" msg:"html_url"`
+	Destination WelcomeEmailDestination `json:"destination" yaml:"destination" msg:"destination"`
 }
 
 type SSOConfiguration struct {
@@ -547,6 +568,10 @@ const (
 	UserVerificationCriteriaAny UserVerificationCriteria = "any"
 	UserVerificationCriteriaAll UserVerificationCriteria = "all"
 )
+
+func (criteria UserVerificationCriteria) IsValid() bool {
+	return criteria == UserVerificationCriteriaAny || criteria == UserVerificationCriteriaAll
+}
 
 type UserVerificationConfiguration struct {
 	URLPrefix        string                             `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`

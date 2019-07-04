@@ -134,6 +134,8 @@ func (m DependencyMap) Provide(
 		return forgotpwdemail.NewResetPasswordHTMLProvider(tConfig.UserConfig.ForgotPassword, templateEngine)
 	case "WelcomeEmailEnabled":
 		return tConfig.UserConfig.WelcomeEmail.Enabled
+	case "WelcomeEmailDestination":
+		return tConfig.UserConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), templateEngine)
