@@ -48,9 +48,9 @@ type VerifyCodeSendTask struct {
 }
 
 type VerifyCodeSendTaskParam struct {
-	Key   string
-	Value string
-	User  response.User
+	LoginIDKey string
+	LoginID    string
+	User       response.User
 }
 
 func (v *VerifyCodeSendTask) WithTx() bool {
@@ -59,18 +59,18 @@ func (v *VerifyCodeSendTask) WithTx() bool {
 
 func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	taskParam := param.(VerifyCodeSendTaskParam)
-	codeSender := v.CodeSenderFactory.NewCodeSender(taskParam.Key)
+	codeSender := v.CodeSenderFactory.NewCodeSender(taskParam.LoginIDKey)
 
 	v.Logger.WithFields(logrus.Fields{
-		"userID": taskParam.User.UserID,
+		"user_id": taskParam.User.UserID,
 	}).Info("start sending user verify requests")
 
-	code := v.CodeGenerator.Generate(taskParam.Key)
+	code := v.CodeGenerator.Generate(taskParam.LoginIDKey)
 
 	verifyCode := userverify.NewVerifyCode()
 	verifyCode.UserID = taskParam.User.UserID
-	verifyCode.RecordKey = taskParam.Key
-	verifyCode.RecordValue = taskParam.Value
+	verifyCode.LoginIDKey = taskParam.LoginIDKey
+	verifyCode.LoginID = taskParam.LoginID
 	verifyCode.Code = code
 	verifyCode.Consumed = false
 	verifyCode.CreatedAt = time.Now()
@@ -82,8 +82,8 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	if err = codeSender.Send(verifyCode, taskParam.User); err != nil {
 		v.Logger.WithFields(logrus.Fields{
 			"error":        err,
-			"record_key":   taskParam.Key,
-			"record_value": taskParam.Value,
+			"login_id_key": taskParam.LoginIDKey,
+			"login_id":     taskParam.LoginID,
 		}).Error("fail to send verify request")
 		return
 	}

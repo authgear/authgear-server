@@ -330,9 +330,9 @@ func (h SignupHandler) sendUserVerifyRequest(user response.User, loginIDs []pass
 		for key := range h.UserVerifyKeys {
 			if key == loginID.Key {
 				h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
-					Key:   loginID.Key,
-					Value: loginID.Value,
-					User:  user,
+					LoginIDKey: loginID.Key,
+					LoginID:    loginID.Value,
+					User:       user,
 				}, nil)
 			}
 		}

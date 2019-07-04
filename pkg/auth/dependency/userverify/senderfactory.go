@@ -10,7 +10,7 @@ import (
 )
 
 type CodeSenderFactory interface {
-	NewCodeSender(key string) CodeSender
+	NewCodeSender(loginIDKey string) CodeSender
 }
 
 type DefaultCodeSenderFactory struct {
@@ -55,6 +55,6 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templat
 	return &f
 }
 
-func (d *DefaultCodeSenderFactory) NewCodeSender(key string) CodeSender {
-	return d.CodeSenderMap[key]
+func (d *DefaultCodeSenderFactory) NewCodeSender(loginIDKey string) CodeSender {
+	return d.CodeSenderMap[loginIDKey]
 }

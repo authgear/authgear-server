@@ -27,12 +27,14 @@ func (s *safeStoreImpl) CreateVerifyCode(code *VerifyCode) error {
 	return s.impl.CreateVerifyCode(code)
 }
 
-func (s *safeStoreImpl) UpdateVerifyCode(code *VerifyCode) error {
+func (s *safeStoreImpl) MarkConsumed(codeID string) error {
 	s.txContext.EnsureTx()
-	return s.impl.UpdateVerifyCode(code)
+	return s.impl.MarkConsumed(codeID)
 }
 
-func (s *safeStoreImpl) GetVerifyCodeByCode(code string, vCode *VerifyCode) error {
+func (s *safeStoreImpl) GetVerifyCodeByCode(userID string, code string) (VerifyCode, error) {
 	s.txContext.EnsureTx()
-	return s.impl.GetVerifyCodeByCode(code, vCode)
+	return s.impl.GetVerifyCodeByCode(userID, code)
 }
+
+var _ Store = &safeStoreImpl{}

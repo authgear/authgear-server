@@ -4,46 +4,63 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type getAndValidateCodeRequest struct {
-	VerifyCodeStore userverify.Store
-	Logger          *logrus.Entry
+	VerifyCodeStore      userverify.Store
+	PasswordAuthProvider password.Provider
+	Logger               *logrus.Entry
 }
 
 func (g *getAndValidateCodeRequest) execute(
-	codeStr string,
-	userProfile userprofile.UserProfile,
-) (code userverify.VerifyCode, err error) {
-	if err = g.VerifyCodeStore.GetVerifyCodeByCode(codeStr, &code); err != nil {
+	userID string,
+	code string,
+) (verifyCode userverify.VerifyCode, err error) {
+	if verifyCode, err = g.VerifyCodeStore.GetVerifyCodeByCode(userID, code); err != nil {
 		g.Logger.WithFields(map[string]interface{}{
-			"code":  codeStr,
-			"error": err,
+			"user_id": userID,
+			"code":    code,
+			"error":   err,
 		}).Error("failed to get verify code")
-		err = g.invalidCodeError(codeStr, userProfile.ID)
+		err = g.invalidCodeError(code, userID)
 		return
 	}
-	if code.Consumed {
-		g.Logger.WithField("code", codeStr).Error("code has been consumed")
-		err = g.invalidCodeError(codeStr, userProfile.ID)
+	if verifyCode.Consumed {
+		g.Logger.WithField("code", code).Error("code has been consumed")
+		err = g.invalidCodeError(code, userID)
 		return
 	}
 
-	if userProfile.Data[code.RecordKey] != code.RecordValue {
+	principals, err := g.PasswordAuthProvider.GetPrincipalsByLoginID(verifyCode.LoginIDKey, verifyCode.LoginID)
+	if err == nil {
+		// filter principals belonging to the user
+		userPrincipals := []*password.Principal{}
+		for _, principal := range principals {
+			if principal.UserID == userID {
+				userPrincipals = append(userPrincipals, principal)
+			}
+		}
+		principals = userPrincipals
+	}
+
+	if err != nil || len(principals) == 0 {
 		err = skyerr.NewError(
 			skyerr.InvalidArgument,
-			"the user data has since been modified, a new verification is required",
+			"the login ID to verify does not belong to the user",
 		)
 		return
 	}
 
-	if code.ExpireAt() != nil && timeNow().After(*code.ExpireAt()) {
-		err = skyerr.NewError(skyerr.InvalidArgument, "the code has expired")
-		return
-	}
+	// TODO: code expiry
+	/*
+		if code.ExpireAt() != nil && timeNow().After(*code.ExpireAt()) {
+			err = skyerr.NewError(skyerr.InvalidArgument, "the code has expired")
+			return
+		}
+	*/
 
 	return
 }

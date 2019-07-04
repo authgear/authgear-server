@@ -7,7 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -79,7 +78,6 @@ func (payload VerifyCodePayload) Validate() error {
 type VerifyCodeHandler struct {
 	TxContext              db.TxContext                      `dependency:"TxContext"`
 	AuthContext            coreAuth.ContextGetter            `dependency:"AuthContextGetter"`
-	UserProfileStore       userprofile.Store                 `dependency:"UserProfileStore"`
 	VerifyCodeStore        userverify.Store                  `dependency:"VerifyCodeStore"`
 	AuthInfoStore          authinfo.Store                    `dependency:"AuthInfoStore"`
 	PasswordAuthProvider   password.Provider                 `dependency:"PasswordAuthProvider"`
@@ -105,26 +103,20 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 	payload := req.(VerifyCodePayload)
 
 	authInfo := h.AuthContext.AuthInfo()
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
-		h.Logger.WithField("user_id", authInfo.ID).Error("unexpected user not found")
-		err = skyerr.NewError(skyerr.UnexpectedUserNotFound, "user not found")
-		return
-	}
 
 	verifyCodeReq := getAndValidateCodeRequest{
-		VerifyCodeStore: h.VerifyCodeStore,
-		Logger:          h.Logger,
+		VerifyCodeStore:      h.VerifyCodeStore,
+		PasswordAuthProvider: h.PasswordAuthProvider,
+		Logger:               h.Logger,
 	}
 
 	var code userverify.VerifyCode
-	if code, err = verifyCodeReq.execute(payload.Code, userProfile); err != nil {
+	if code, err = verifyCodeReq.execute(authInfo.ID, payload.Code); err != nil {
 		return
 	}
 
 	// Update code
-	code.Consumed = true
-	if err = h.VerifyCodeStore.UpdateVerifyCode(&code); err != nil {
+	if err = h.VerifyCodeStore.MarkConsumed(code.ID); err != nil {
 		return
 	}
 
@@ -134,7 +126,7 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 	}
 
 	// Update user
-	authInfo.VerifyInfo[code.RecordValue] = true
+	authInfo.VerifyInfo[code.LoginID] = true
 	h.UpdateVerifiedFlagFunc(authInfo, principals)
 
 	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {

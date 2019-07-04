@@ -28,8 +28,8 @@ type EmailCodeSender struct {
 func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err error) {
 	var config config.UserVerificationKeyConfiguration
 	var ok bool
-	if config, ok = e.Config.LoginIDKeys[verifyCode.RecordKey]; !ok {
-		return errors.New("provider for " + verifyCode.RecordKey + " not found")
+	if config, ok = e.Config.LoginIDKeys[verifyCode.LoginIDKey]; !ok {
+		return errors.New("provider for " + verifyCode.LoginIDKey + " not found")
 	}
 
 	context := prepareVerifyRequestContext(
@@ -43,7 +43,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err e
 
 	var textBody string
 	if textBody, err = e.TemplateEngine.ParseTextTemplate(
-		authTemplate.VerifyTextTemplateNameForKey(verifyCode.RecordKey),
+		authTemplate.VerifyTextTemplateNameForKey(verifyCode.LoginIDKey),
 		context,
 		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailText},
 	); err != nil {
@@ -52,7 +52,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err e
 
 	var htmlBody string
 	if htmlBody, err = e.TemplateEngine.ParseTextTemplate(
-		authTemplate.VerifyHTMLTemplateNameForKey(verifyCode.RecordKey),
+		authTemplate.VerifyHTMLTemplateNameForKey(verifyCode.LoginIDKey),
 		context,
 		template.ParseOption{Required: false, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailHTML},
 	); err != nil {
@@ -63,7 +63,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err e
 		Dialer:      e.Dialer,
 		Sender:      providerConfig.Sender,
 		SenderName:  providerConfig.SenderName,
-		Recipient:   verifyCode.RecordValue,
+		Recipient:   verifyCode.LoginID,
 		Subject:     providerConfig.Subject,
 		ReplyTo:     providerConfig.ReplyTo,
 		ReplyToName: providerConfig.ReplyToName,
@@ -92,14 +92,14 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user response.User) (err err
 
 	var textBody string
 	if textBody, err = t.TemplateEngine.ParseTextTemplate(
-		authTemplate.VerifyTextTemplateNameForKey(verifyCode.RecordKey),
+		authTemplate.VerifyTextTemplateNameForKey(verifyCode.LoginIDKey),
 		context,
 		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifySMSText},
 	); err != nil {
 		return
 	}
 
-	err = t.SMSClient.Send(verifyCode.RecordValue, textBody)
+	err = t.SMSClient.Send(verifyCode.LoginID, textBody)
 	return
 }
 
@@ -111,8 +111,8 @@ func prepareVerifyRequestContext(
 ) map[string]interface{} {
 	return map[string]interface{}{
 		"appname":      appName,
-		"record_key":   verifyCode.RecordKey,
-		"record_value": verifyCode.RecordValue,
+		"login_id_key": verifyCode.LoginIDKey,
+		"login_id":     verifyCode.LoginID,
 		"user_id":      user.UserID,
 		"user":         user,
 		"code":         verifyCode.Code,

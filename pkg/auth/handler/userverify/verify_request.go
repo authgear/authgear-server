@@ -177,8 +177,8 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 
 	verifyCode := userverify.NewVerifyCode()
 	verifyCode.UserID = authInfo.ID
-	verifyCode.RecordKey = userPrincipal.LoginIDKey
-	verifyCode.RecordValue = userPrincipal.LoginID
+	verifyCode.LoginIDKey = userPrincipal.LoginIDKey
+	verifyCode.LoginID = userPrincipal.LoginID
 	verifyCode.Code = code
 	verifyCode.Consumed = false
 	verifyCode.CreatedAt = time.Now()
