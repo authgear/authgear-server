@@ -372,6 +372,11 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.UserConfig.UserVerification.Criteria == "" {
 		c.UserConfig.UserVerification.Criteria = UserVerificationCriteriaAny
 	}
+
+	// Set default welcome email destination
+	if c.UserConfig.WelcomeEmail.Destination == "" {
+		c.UserConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
+	}
 }
 
 func GetTenantConfig(r *http.Request) TenantConfiguration {
