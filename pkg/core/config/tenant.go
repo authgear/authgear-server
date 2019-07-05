@@ -116,7 +116,7 @@ func NewTenantConfigurationFromScratch(options FromScratchOptions) (*TenantConfi
 	return &c, nil
 }
 
-func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
+func loadTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
 	decoder := yaml.NewDecoder(r)
 	config := TenantConfiguration{
 		AppConfig:  defaultAppConfiguration(),
@@ -126,12 +126,21 @@ func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
 	if err != nil {
 		return nil, err
 	}
+	return &config, nil
+}
+
+func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
+	config, err := loadTenantConfigurationFromYAML(r)
+	if err != nil {
+		return nil, err
+	}
+
 	config.AfterUnmarshal()
 	err = config.Validate()
 	if err != nil {
 		return nil, err
 	}
-	return &config, nil
+	return config, nil
 }
 
 func NewTenantConfigurationFromEnv() (*TenantConfiguration, error) {
@@ -161,7 +170,7 @@ func NewTenantConfigurationFromYAMLAndEnv(open func() (io.Reader, error)) (*Tena
 		}
 	}()
 
-	c, err := NewTenantConfigurationFromYAML(r)
+	c, err := loadTenantConfigurationFromYAML(r)
 	if err != nil {
 		return nil, err
 	}
@@ -180,6 +189,11 @@ func NewTenantConfigurationFromYAMLAndEnv(open func() (io.Reader, error)) (*Tena
 		c.UserConfig.MasterKey = options.MasterKey
 	}
 
+	c.AfterUnmarshal()
+	err = c.Validate()
+	if err != nil {
+		return nil, err
+	}
 	return c, nil
 }
 
