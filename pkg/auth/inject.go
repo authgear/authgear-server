@@ -147,7 +147,11 @@ func (m DependencyMap) Provide(
 		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.APIEndpoint(), tConfig.UserConfig.SSO.JSSDKCDNURL)
 	case "UserVerifyCodeSenderFactory":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, templateEngine)
+		return userverify.NewDefaultUserVerifyCodeSenderFactory(
+			tConfig,
+			templateEngine,
+			logging.CreateLoggerWithRequestID(requestID, "code_sender", createLoggerMaskFormatter(tConfig)),
+		)
 	case "AutoSendUserVerifyCodeOnSignup":
 		return tConfig.UserConfig.UserVerification.AutoSendOnSignupDisabled
 	case "UserVerifyKeys":

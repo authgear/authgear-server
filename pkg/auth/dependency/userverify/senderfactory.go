@@ -3,6 +3,7 @@ package userverify
 import (
 	"errors"
 
+	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -17,7 +18,7 @@ type DefaultCodeSenderFactory struct {
 	CodeSenderMap map[string]CodeSender
 }
 
-func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templateEngine *template.Engine) CodeSenderFactory {
+func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templateEngine *template.Engine, logger *logrus.Entry) CodeSenderFactory {
 	userVerifyConfig := c.UserConfig.UserVerification
 	f := DefaultCodeSenderFactory{
 		CodeSenderMap: map[string]CodeSender{},
@@ -45,6 +46,13 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templat
 				Config:         userVerifyConfig,
 				SMSClient:      sms.NewNexmoClient(c.AppConfig.Nexmo),
 				TemplateEngine: templateEngine,
+			}
+		case "debug":
+			codeSender = &DebugCodeSender{
+				AppName:        c.AppName,
+				Config:         userVerifyConfig,
+				TemplateEngine: templateEngine,
+				Logger:         logger,
 			}
 		default:
 			panic(errors.New("invalid user verify provider: " + config.Provider))
