@@ -76,13 +76,12 @@ func (payload VerifyCodePayload) Validate() error {
 //  EOF
 //
 type VerifyCodeHandler struct {
-	TxContext              db.TxContext                      `dependency:"TxContext"`
-	AuthContext            coreAuth.ContextGetter            `dependency:"AuthContextGetter"`
-	VerifyCodeStore        userverify.Store                  `dependency:"VerifyCodeStore"`
-	AuthInfoStore          authinfo.Store                    `dependency:"AuthInfoStore"`
-	PasswordAuthProvider   password.Provider                 `dependency:"PasswordAuthProvider"`
-	UpdateVerifiedFlagFunc userverify.UpdateVerifiedFlagFunc `dependency:"UpdateVerifiedFlagFunc"`
-	Logger                 *logrus.Entry                     `dependency:"HandlerLogger"`
+	TxContext                db.TxContext           `dependency:"TxContext"`
+	AuthContext              coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	UserVerificationProvider userverify.Provider    `dependency:"UserVerificationProvider"`
+	AuthInfoStore            authinfo.Store         `dependency:"AuthInfoStore"`
+	PasswordAuthProvider     password.Provider      `dependency:"PasswordAuthProvider"`
+	Logger                   *logrus.Entry          `dependency:"HandlerLogger"`
 }
 
 func (h VerifyCodeHandler) WithTx() bool {
@@ -101,35 +100,10 @@ func (h VerifyCodeHandler) DecodeRequest(request *http.Request) (handler.Request
 
 func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyCodePayload)
-
 	authInfo := h.AuthContext.AuthInfo()
 
-	verifyCodeReq := getAndValidateCodeRequest{
-		VerifyCodeStore:      h.VerifyCodeStore,
-		PasswordAuthProvider: h.PasswordAuthProvider,
-		Logger:               h.Logger,
-	}
-
-	var code userverify.VerifyCode
-	if code, err = verifyCodeReq.execute(authInfo.ID, payload.Code); err != nil {
-		return
-	}
-
-	// Update code
-	if err = h.VerifyCodeStore.MarkConsumed(code.ID); err != nil {
-		return
-	}
-
-	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID)
+	_, err = h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, authInfo, payload.Code)
 	if err != nil {
-		return
-	}
-
-	// Update user
-	authInfo.VerifyInfo[code.LoginID] = true
-	h.UpdateVerifiedFlagFunc(authInfo, principals)
-
-	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
 		return
 	}
 

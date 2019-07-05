@@ -3,7 +3,6 @@ package userverify
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/core/utils"
 
@@ -106,14 +105,13 @@ func (payload VerifyRequestPayload) Validate() error {
 //  EOF
 //
 type VerifyRequestHandler struct {
-	TxContext            db.TxContext                 `dependency:"TxContext"`
-	AuthContext          coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
-	CodeSenderFactory    userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
-	CodeGenerator        userverify.CodeGenerator     `dependency:"VerifyCodeCodeGenerator"`
-	UserProfileStore     userprofile.Store            `dependency:"UserProfileStore"`
-	VerifyCodeStore      userverify.Store             `dependency:"VerifyCodeStore"`
-	Logger               *logrus.Entry                `dependency:"HandlerLogger"`
-	PasswordAuthProvider password.Provider            `dependency:"PasswordAuthProvider"`
+	TxContext                db.TxContext                 `dependency:"TxContext"`
+	AuthContext              coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
+	CodeSenderFactory        userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
+	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
+	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
+	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
+	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
 func (h VerifyRequestHandler) WithTx() bool {
@@ -167,26 +165,12 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
+	verifyCode, err := h.UserVerificationProvider.GenerateVerifyCode(userPrincipal)
+	if err != nil {
+		return
+	}
+
 	codeSender := h.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
-	if codeSender == nil {
-		err = skyerr.NewError(skyerr.UnexpectedError, "User verification not configured for login ID key")
-		return
-	}
-
-	code := h.CodeGenerator.Generate(userPrincipal.LoginIDKey)
-
-	verifyCode := userverify.NewVerifyCode()
-	verifyCode.UserID = authInfo.ID
-	verifyCode.LoginIDKey = userPrincipal.LoginIDKey
-	verifyCode.LoginID = userPrincipal.LoginID
-	verifyCode.Code = code
-	verifyCode.Consumed = false
-	verifyCode.CreatedAt = time.Now()
-
-	if err = h.VerifyCodeStore.CreateVerifyCode(&verifyCode); err != nil {
-		return
-	}
-
 	if err = codeSender.Send(verifyCode, user); err != nil {
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,

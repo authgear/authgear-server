@@ -143,15 +143,6 @@ func (m DependencyMap) Provide(
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.APIEndpoint(), tConfig.UserConfig.SSO.JSSDKCDNURL)
-	case "VerifyCodeStore":
-		return userverify.NewSafeStore(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-			logging.CreateLoggerWithRequestID(requestID, "verify_code", createLoggerMaskFormatter(tConfig)),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
-		)
-	case "VerifyCodeCodeGenerator":
-		return userverify.NewCodeGenerator(tConfig)
 	case "UserVerifyCodeSenderFactory":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, templateEngine)
@@ -159,8 +150,17 @@ func (m DependencyMap) Provide(
 		return tConfig.UserConfig.UserVerification.AutoSendOnSignupDisabled
 	case "UserVerifyKeys":
 		return tConfig.UserConfig.UserVerification.LoginIDKeys
-	case "UpdateVerifiedFlagFunc":
-		return userverify.CreateUpdateVerifiedFlagFunc(tConfig)
+	case "UserVerificationProvider":
+		return userverify.NewProvider(
+			userverify.NewCodeGenerator(tConfig),
+			userverify.NewSafeStore(
+				db.NewSQLBuilder("auth", tConfig.AppName),
+				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+				logging.CreateLoggerWithRequestID(requestID, "verify_code", createLoggerMaskFormatter(tConfig)),
+				db.NewSafeTxContextWithContext(ctx, tConfig),
+			),
+			tConfig.UserConfig.UserVerification,
+		)
 	case "VerifyHTMLProvider":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return userverify.NewVerifyHTMLProvider(tConfig.UserConfig.UserVerification, templateEngine)

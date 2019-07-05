@@ -45,13 +45,3 @@ func IsUserVerified(
 	}
 	return
 }
-
-type UpdateVerifiedFlagFunc func(*authinfo.AuthInfo, []*password.Principal)
-
-func CreateUpdateVerifiedFlagFunc(tConfig config.TenantConfiguration) UpdateVerifiedFlagFunc {
-	criteria := tConfig.UserConfig.UserVerification.Criteria
-	verifyConfigs := tConfig.UserConfig.UserVerification.LoginIDKeys
-	return func(authInfo *authinfo.AuthInfo, principals []*password.Principal) {
-		authInfo.Verified = IsUserVerified(authInfo, principals, criteria, verifyConfigs)
-	}
-}

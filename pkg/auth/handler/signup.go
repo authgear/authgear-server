@@ -9,7 +9,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 
 	"github.com/sirupsen/logrus"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
@@ -129,7 +128,6 @@ type SignupHandler struct {
 	WelcomeEmailDestination config.WelcomeEmailDestination                     `dependency:"WelcomeEmailDestination"`
 	AutoSendUserVerifyCode  bool                                               `dependency:"AutoSendUserVerifyCodeOnSignup"`
 	UserVerifyKeys          map[string]config.UserVerificationKeyConfiguration `dependency:"UserVerifyKeys"`
-	VerifyCodeStore         userverify.Store                                   `dependency:"VerifyCodeStore"`
 	TxContext               db.TxContext                                       `dependency:"TxContext"`
 	Logger                  *logrus.Entry                                      `dependency:"HandlerLogger"`
 	TaskQueue               async.Queue                                        `dependency:"AsyncTaskQueue"`
@@ -330,9 +328,8 @@ func (h SignupHandler) sendUserVerifyRequest(user response.User, loginIDs []pass
 		for key := range h.UserVerifyKeys {
 			if key == loginID.Key {
 				h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
-					LoginIDKey: loginID.Key,
-					LoginID:    loginID.Value,
-					User:       user,
+					LoginID: loginID.Value,
+					UserID:  user.UserID,
 				}, nil)
 			}
 		}
