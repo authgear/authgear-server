@@ -73,8 +73,13 @@ func (provider *providerImpl) VerifyUser(
 	authInfo *authinfo.AuthInfo,
 	code string,
 ) (verifyCode VerifyCode, err error) {
-	verifyCode, err = provider.store.GetVerifyCodeByCode(authInfo.ID, code)
+	verifyCode, err = provider.store.GetVerifyCodeByUser(authInfo.ID)
 	if err != nil {
+		err = skyerr.NewError(skyerr.InvalidArgument, "invalid verification code")
+		return
+	}
+
+	if !verifyCode.Check(code) {
 		err = skyerr.NewError(skyerr.InvalidArgument, "invalid verification code")
 		return
 	}

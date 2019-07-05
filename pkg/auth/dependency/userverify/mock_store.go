@@ -2,34 +2,33 @@ package userverify
 
 import (
 	"errors"
-	"strings"
 )
 
 type MockStore struct {
-	CodeByID map[string]VerifyCode
+	CodeByID []VerifyCode
 }
 
 func (m *MockStore) CreateVerifyCode(code *VerifyCode) error {
-	m.CodeByID[code.ID] = *code
+	m.CodeByID = append(m.CodeByID, *code)
 	return nil
 }
 
 func (m *MockStore) MarkConsumed(codeID string) error {
-	code, found := m.CodeByID[codeID]
-	if !found {
-		return errors.New("code not found")
+	for i, code := range m.CodeByID {
+		if code.ID != codeID {
+			continue
+		}
+		code.Consumed = true
+		m.CodeByID[i] = code
+		return nil
 	}
-
-	code.Consumed = true
-	m.CodeByID[codeID] = code
-
-	return nil
+	return errors.New("code not found")
 }
 
-func (m *MockStore) GetVerifyCodeByCode(userID string, code string) (VerifyCode, error) {
-	for _, c := range m.CodeByID {
-		if strings.ToLower(c.Code) == strings.ToLower(code) {
-			return c, nil
+func (m *MockStore) GetVerifyCodeByUser(userID string) (VerifyCode, error) {
+	for _, code := range m.CodeByID {
+		if code.UserID == userID {
+			return code, nil
 		}
 	}
 

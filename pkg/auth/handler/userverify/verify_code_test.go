@@ -90,8 +90,8 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			},
 		}
 		store := userverify.MockStore{
-			CodeByID: map[string]userverify.VerifyCode{
-				"code": userverify.VerifyCode{
+			CodeByID: []userverify.VerifyCode{
+				userverify.VerifyCode{
 					ID:         "code",
 					UserID:     "faseng.cat.id",
 					LoginIDKey: "email",
@@ -100,31 +100,22 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 					Consumed:   false,
 					CreatedAt:  time.Now(),
 				},
-				"code-old": userverify.VerifyCode{
-					ID:         "code-old",
+				userverify.VerifyCode{
+					ID:         "code",
 					UserID:     "faseng.cat.id",
 					LoginIDKey: "email",
 					LoginID:    "faseng.cat.id@example.com",
 					Code:       "code2",
 					Consumed:   false,
-					CreatedAt:  time.Now().Add(-gotime.Duration(24) * gotime.Hour),
+					CreatedAt:  time.Now().Add(-gotime.Duration(1) * gotime.Hour),
 				},
-				"code-someoneelse": userverify.VerifyCode{
+				userverify.VerifyCode{
 					ID:         "code1",
 					UserID:     "chima.cat.id",
 					LoginIDKey: "email",
-					LoginID:    "faseng.cat.id@example.com",
+					LoginID:    "chima.cat.id@example.com",
 					Code:       "code3",
 					Consumed:   false,
-					CreatedAt:  time.Now(),
-				},
-				"code-consumed": userverify.VerifyCode{
-					ID:         "code-consumed",
-					UserID:     "faseng.cat.id",
-					LoginIDKey: "email",
-					LoginID:    "faseng.cat.id@example.com",
-					Code:       "code4",
-					Consumed:   true,
 					CreatedAt:  time.Now(),
 				},
 			},
@@ -170,6 +161,27 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		})
 
 		Convey("verify with expired code", func() {
+			code := store.CodeByID[0]
+			code.CreatedAt = time.Now().Add(-gotime.Duration(100) * gotime.Hour)
+			store.CodeByID[0] = code
+
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"code": "code1"
+			}`))
+			resp := httptest.NewRecorder()
+			h := handler.APIHandlerToHandler(vh, vh.TxContext)
+			h.ServeHTTP(resp, req)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 108,
+					"message": "the code has expired",
+					"name": "InvalidArgument"
+				}
+			}`)
+			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
+		})
+
+		Convey("verify with past generated code", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code2"
 			}`))
@@ -179,7 +191,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"code": 108,
-					"message": "the code has expired",
+					"message": "invalid verification code",
 					"name": "InvalidArgument"
 				}
 			}`)
@@ -195,17 +207,21 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
-					"code": 10000,
-					"message": "code not found",
-					"name": "UnexpectedError"
+					"code": 108,
+					"message": "invalid verification code",
+					"name": "InvalidArgument"
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
 		})
 
 		Convey("verify with consumed code", func() {
+			code := store.CodeByID[0]
+			code.Consumed = true
+			store.CodeByID[0] = code
+
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"code": "code4"
+				"code": "code1"
 			}`))
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
@@ -220,9 +236,9 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
 		})
 
-		Convey("verify with random code", func() {
+		Convey("verify with incorrect code", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
-				"code": "random"
+				"code": "incorrect"
 			}`))
 			resp := httptest.NewRecorder()
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)

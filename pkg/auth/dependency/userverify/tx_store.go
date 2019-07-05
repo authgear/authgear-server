@@ -32,9 +32,9 @@ func (s *safeStoreImpl) MarkConsumed(codeID string) error {
 	return s.impl.MarkConsumed(codeID)
 }
 
-func (s *safeStoreImpl) GetVerifyCodeByCode(userID string, code string) (VerifyCode, error) {
+func (s *safeStoreImpl) GetVerifyCodeByUser(userID string) (VerifyCode, error) {
 	s.txContext.EnsureTx()
-	return s.impl.GetVerifyCodeByCode(userID, code)
+	return s.impl.GetVerifyCodeByUser(userID)
 }
 
 var _ Store = &safeStoreImpl{}

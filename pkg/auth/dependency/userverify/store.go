@@ -8,7 +8,7 @@ import (
 type Store interface {
 	CreateVerifyCode(code *VerifyCode) error
 	MarkConsumed(codeID string) error
-	GetVerifyCodeByCode(userID string, code string) (VerifyCode, error)
+	GetVerifyCodeByUser(userID string) (VerifyCode, error)
 }
 
 type storeImpl struct {
@@ -60,9 +60,10 @@ func (s *storeImpl) MarkConsumed(codeID string) (err error) {
 	return
 }
 
-func (s *storeImpl) GetVerifyCodeByCode(userID string, code string) (VerifyCode, error) {
+func (s *storeImpl) GetVerifyCodeByUser(userID string) (VerifyCode, error) {
 	builder := s.sqlBuilder.Select(
 		"id",
+		"code",
 		"user_id",
 		"login_id_key",
 		"login_id",
@@ -70,7 +71,7 @@ func (s *storeImpl) GetVerifyCodeByCode(userID string, code string) (VerifyCode,
 		"created_at",
 	).
 		From(s.sqlBuilder.FullTableName("verify_code")).
-		Where("LOWER(code) = LOWER(?) AND user_id = ?", code, userID).
+		Where("user_id = ?", userID).
 		OrderBy("created_at desc")
 	scanner := s.sqlExecutor.QueryRowWith(builder)
 
@@ -78,6 +79,7 @@ func (s *storeImpl) GetVerifyCodeByCode(userID string, code string) (VerifyCode,
 	err := scanner.Scan(
 		&verifyCode.ID,
 		&verifyCode.Code,
+		&verifyCode.UserID,
 		&verifyCode.LoginIDKey,
 		&verifyCode.LoginID,
 		&verifyCode.Consumed,
