@@ -14,43 +14,45 @@ type CodeSenderFactory interface {
 	NewCodeSender(loginIDKey string) CodeSender
 }
 
-type DefaultCodeSenderFactory struct {
+type defaultCodeSenderFactory struct {
 	CodeSenderMap map[string]CodeSender
 }
 
 func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templateEngine *template.Engine, logger *logrus.Entry) CodeSenderFactory {
 	userVerifyConfig := c.UserConfig.UserVerification
-	f := DefaultCodeSenderFactory{
+	f := defaultCodeSenderFactory{
 		CodeSenderMap: map[string]CodeSender{},
 	}
+
 	for key, config := range userVerifyConfig.LoginIDKeys {
 		var codeSender CodeSender
 		switch config.Provider {
 		case "smtp":
 			codeSender = &EmailCodeSender{
 				AppName:        c.AppName,
-				Config:         userVerifyConfig,
+				URLPrefix:      userVerifyConfig.URLPrefix,
+				ProviderConfig: config.ProviderConfig,
 				Dialer:         mail.NewDialer(c.AppConfig.SMTP),
 				TemplateEngine: templateEngine,
 			}
 		case "twilio":
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
-				Config:         userVerifyConfig,
+				URLPrefix:      userVerifyConfig.URLPrefix,
 				SMSClient:      sms.NewTwilioClient(c.AppConfig.Twilio),
 				TemplateEngine: templateEngine,
 			}
 		case "nexmo":
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
-				Config:         userVerifyConfig,
+				URLPrefix:      userVerifyConfig.URLPrefix,
 				SMSClient:      sms.NewNexmoClient(c.AppConfig.Nexmo),
 				TemplateEngine: templateEngine,
 			}
 		case "debug":
 			codeSender = &DebugCodeSender{
 				AppName:        c.AppName,
-				Config:         userVerifyConfig,
+				URLPrefix:      userVerifyConfig.URLPrefix,
 				TemplateEngine: templateEngine,
 				Logger:         logger,
 			}
@@ -63,6 +65,6 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templat
 	return &f
 }
 
-func (d *DefaultCodeSenderFactory) NewCodeSender(loginIDKey string) CodeSender {
+func (d *defaultCodeSenderFactory) NewCodeSender(loginIDKey string) CodeSender {
 	return d.CodeSenderMap[loginIDKey]
 }

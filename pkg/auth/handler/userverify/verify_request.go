@@ -3,7 +3,9 @@ package userverify
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/utils"
 
 	"github.com/sirupsen/logrus"
@@ -204,23 +206,26 @@ func (f VerifyRequestTestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type VerifyRequestTestPayload struct {
-	RecordKey        string            `json:"record_key"`
-	RecordValue      string            `json:"record_value"`
-	ProviderSettings map[string]string `json:"provider_settings"`
-	Templates        map[string]string `json:"templates"`
+	LoginIDKey     string                                       `json:"login_id_key"`
+	LoginID        string                                       `json:"login_id"`
+	User           response.User                                `json:"user"`
+	Provider       string                                       `json:"provider"`
+	ProviderConfig map[string]string                            `json:"provider_config"`
+	MessageConfig  config.UserVerificationProviderConfiguration `json:"message_config"`
+	Templates      map[string]string                            `json:"templates"`
 }
 
 func (payload VerifyRequestTestPayload) Validate() error {
-	if payload.RecordKey == "" {
-		return skyerr.NewInvalidArgument("empty record_key", []string{"record_key"})
+	if payload.LoginIDKey == "" {
+		return skyerr.NewInvalidArgument("empty login_id_key", []string{"login_id_key"})
 	}
 
-	if payload.RecordValue == "" {
-		return skyerr.NewInvalidArgument("empty record_value", []string{"record_value"})
+	if payload.LoginID == "" {
+		return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
 	}
 
-	if payload.ProviderSettings == nil || payload.ProviderSettings["name"] == "" {
-		return skyerr.NewInvalidArgument("missing provider name", []string{"provider_settings.name"})
+	if payload.Provider == "" {
+		return skyerr.NewInvalidArgument("missing provider name", []string{"provider"})
 	}
 
 	return nil
@@ -231,38 +236,31 @@ func (payload VerifyRequestTestPayload) Validate() error {
 //  curl -X POST -H "Content-Type: application/json" \
 //    -d @- http://localhost:3000/verify_request/test <<EOF
 //  {
-//    "record_key": "email",
-//    "record_value": "test@example.com",
-//    "provider_settings": {
-//      "name": "smtp"
+//    "login_id_key": "email",
+//    "login_id": "user@example.com",
+//    "user":  {
+//      "user_id": "5bf1e4d2-e1c4-4517-93c7-7dae89261da6",
+//      "metadata": {
+//        "email": "user@example.com"
+//      }
+//    },
+//    "provider": "smtp",
+//    "provider_config": {
+//      "host": "localhost"
 //    },
 //    "templates": {
 //      "text": "testing",
 //      "html": "testing html"
-//    }
-//  }
-//  EOF
-//
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/verify_request/test <<EOF
-//  {
-//    "record_key": "phone",
-//    "record_value": "+15005550009",
-//    "provider_settings": {
-//      "name": "twilio",
-//      "twilio_from": "+15005550009",
-//      "twilio_account_sid": "",
-//      "twilio_auth_token": ""
 //    },
-//    "templates": {
-//      "text": "testing sms"
-//    }
+//    "message_config": {
+//      "subject": "Test"
+//    },
 //  }
 //  EOF
 //
 type VerifyRequestTestHandler struct {
-	CodeSenderFactory userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
-	Logger            *logrus.Entry                `dependency:"HandlerLogger"`
+	TestCodeSenderFactory userverify.TestCodeSenderFactory `dependency:"UserVerifyTestCodeSenderFactory"`
+	Logger                *logrus.Entry                    `dependency:"HandlerLogger"`
 }
 
 func (h VerifyRequestTestHandler) WithTx() bool {
@@ -280,7 +278,33 @@ func (h VerifyRequestTestHandler) DecodeRequest(request *http.Request) (handler.
 }
 
 func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err error) {
-	// TODO: implement test sending
+	payload := req.(VerifyRequestTestPayload)
+	sender := h.TestCodeSenderFactory.NewTestCodeSender(
+		payload.Provider,
+		payload.ProviderConfig,
+		payload.MessageConfig,
+		payload.LoginIDKey,
+		payload.Templates,
+	)
+
+	user := payload.User
+	if user.UserID == "" {
+		user.UserID = "test-user-id"
+	}
+
+	verifyCode := userverify.NewVerifyCode()
+	verifyCode.UserID = user.UserID
+	verifyCode.LoginIDKey = payload.LoginIDKey
+	verifyCode.LoginID = payload.LoginID
+	verifyCode.Code = "TEST1234"
+	verifyCode.Consumed = false
+	verifyCode.CreatedAt = time.Now()
+
+	err = sender.Send(verifyCode, user)
+	if err != nil {
+		return
+	}
+
 	resp = "OK"
 
 	return

@@ -1,7 +1,6 @@
 package userverify
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
@@ -21,26 +20,21 @@ type CodeSender interface {
 
 type EmailCodeSender struct {
 	AppName        string
-	Config         config.UserVerificationConfiguration
+	URLPrefix      string
+	ProviderConfig config.UserVerificationProviderConfiguration
 	Dialer         *gomail.Dialer
 	TemplateEngine *template.Engine
 }
 
 func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err error) {
-	var config config.UserVerificationKeyConfiguration
-	var ok bool
-	if config, ok = e.Config.LoginIDKeys[verifyCode.LoginIDKey]; !ok {
-		return errors.New("provider for " + verifyCode.LoginIDKey + " not found")
-	}
-
 	context := prepareVerifyRequestContext(
 		verifyCode,
 		e.AppName,
-		e.Config,
+		e.URLPrefix,
 		user,
 	)
 
-	providerConfig := config.ProviderConfig
+	providerConfig := e.ProviderConfig
 
 	var textBody string
 	if textBody, err = e.TemplateEngine.ParseTextTemplate(
@@ -78,7 +72,7 @@ func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err e
 
 type SMSCodeSender struct {
 	AppName        string
-	Config         config.UserVerificationConfiguration
+	URLPrefix      string
 	SMSClient      sms.Client
 	TemplateEngine *template.Engine
 }
@@ -87,7 +81,7 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user response.User) (err err
 	context := prepareVerifyRequestContext(
 		verifyCode,
 		t.AppName,
-		t.Config,
+		t.URLPrefix,
 		user,
 	)
 
@@ -106,7 +100,7 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user response.User) (err err
 
 type DebugCodeSender struct {
 	AppName        string
-	Config         config.UserVerificationConfiguration
+	URLPrefix      string
 	TemplateEngine *template.Engine
 	Logger         *logrus.Entry
 }
@@ -115,7 +109,7 @@ func (t *DebugCodeSender) Send(verifyCode VerifyCode, user response.User) (err e
 	context := prepareVerifyRequestContext(
 		verifyCode,
 		t.AppName,
-		t.Config,
+		t.URLPrefix,
 		user,
 	)
 
@@ -138,7 +132,7 @@ func (t *DebugCodeSender) Send(verifyCode VerifyCode, user response.User) (err e
 func prepareVerifyRequestContext(
 	verifyCode VerifyCode,
 	appName string,
-	config config.UserVerificationConfiguration,
+	urlPrefix string,
 	user response.User,
 ) map[string]interface{} {
 	return map[string]interface{}{
@@ -150,7 +144,7 @@ func prepareVerifyRequestContext(
 		"code":         verifyCode.Code,
 		"link": fmt.Sprintf(
 			"%s/verify_code_form?code=%s&user_id=%s",
-			config.URLPrefix,
+			urlPrefix,
 			verifyCode.Code,
 			user.UserID,
 		),

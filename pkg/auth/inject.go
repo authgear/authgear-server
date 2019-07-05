@@ -152,6 +152,13 @@ func (m DependencyMap) Provide(
 			templateEngine,
 			logging.CreateLoggerWithRequestID(requestID, "code_sender", createLoggerMaskFormatter(tConfig)),
 		)
+	case "UserVerifyTestCodeSenderFactory":
+		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
+		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(
+			tConfig,
+			templateEngine,
+			logging.CreateLoggerWithRequestID(requestID, "test_code_sender", createLoggerMaskFormatter(tConfig)),
+		)
 	case "AutoSendUserVerifyCodeOnSignup":
 		return tConfig.UserConfig.UserVerification.AutoSendOnSignupDisabled
 	case "UserVerifyKeys":
