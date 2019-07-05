@@ -5,7 +5,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
+	gotime "time"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -22,13 +24,9 @@ import (
 )
 
 func TestForgotPasswordResetHandler(t *testing.T) {
-	realTime := timeNow
-	timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
-	defer func() {
-		timeNow = realTime
-	}()
-
 	Convey("Test VerifyCodeHandler", t, func() {
+		time := time.MockProvider{TimeNow: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
+
 		vh := &VerifyCodeHandler{}
 		logger, _ := test.NewNullLogger()
 		vh.Logger = logrus.NewEntry(logger)
@@ -84,56 +82,54 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		vh.AuthInfoStore = authInfoStore
 
 		verifyConfig := config.UserVerificationConfiguration{
+			Criteria: config.UserVerificationCriteriaAll,
 			LoginIDKeys: map[string]config.UserVerificationKeyConfiguration{
 				"email": config.UserVerificationKeyConfiguration{
 					Expiry: 12 * 60 * 60,
 				},
 			},
 		}
-		vh.UserVerificationProvider = userverify.NewProvider(
-			nil,
-			&userverify.MockStore{
-				CodeByID: map[string]userverify.VerifyCode{
-					"code": userverify.VerifyCode{
-						ID:         "code",
-						UserID:     "faseng.cat.id",
-						LoginIDKey: "email",
-						LoginID:    "faseng.cat.id@example.com",
-						Code:       "code1",
-						Consumed:   false,
-						CreatedAt:  timeNow(),
-					},
-					"code-old": userverify.VerifyCode{
-						ID:         "code-old",
-						UserID:     "faseng.cat.id",
-						LoginIDKey: "email",
-						LoginID:    "faseng.cat.id@example.com",
-						Code:       "code2",
-						Consumed:   false,
-						CreatedAt:  timeNow().Add(-time.Duration(24) * time.Hour),
-					},
-					"code-someoneelse": userverify.VerifyCode{
-						ID:         "code1",
-						UserID:     "chima.cat.id",
-						LoginIDKey: "email",
-						LoginID:    "faseng.cat.id@example.com",
-						Code:       "code3",
-						Consumed:   false,
-						CreatedAt:  timeNow(),
-					},
-					"code-consumed": userverify.VerifyCode{
-						ID:         "code-consumed",
-						UserID:     "faseng.cat.id",
-						LoginIDKey: "email",
-						LoginID:    "faseng.cat.id@example.com",
-						Code:       "code4",
-						Consumed:   true,
-						CreatedAt:  timeNow(),
-					},
+		store := userverify.MockStore{
+			CodeByID: map[string]userverify.VerifyCode{
+				"code": userverify.VerifyCode{
+					ID:         "code",
+					UserID:     "faseng.cat.id",
+					LoginIDKey: "email",
+					LoginID:    "faseng.cat.id@example.com",
+					Code:       "code1",
+					Consumed:   false,
+					CreatedAt:  time.Now(),
+				},
+				"code-old": userverify.VerifyCode{
+					ID:         "code-old",
+					UserID:     "faseng.cat.id",
+					LoginIDKey: "email",
+					LoginID:    "faseng.cat.id@example.com",
+					Code:       "code2",
+					Consumed:   false,
+					CreatedAt:  time.Now().Add(-gotime.Duration(24) * gotime.Hour),
+				},
+				"code-someoneelse": userverify.VerifyCode{
+					ID:         "code1",
+					UserID:     "chima.cat.id",
+					LoginIDKey: "email",
+					LoginID:    "faseng.cat.id@example.com",
+					Code:       "code3",
+					Consumed:   false,
+					CreatedAt:  time.Now(),
+				},
+				"code-consumed": userverify.VerifyCode{
+					ID:         "code-consumed",
+					UserID:     "faseng.cat.id",
+					LoginIDKey: "email",
+					LoginID:    "faseng.cat.id@example.com",
+					Code:       "code4",
+					Consumed:   true,
+					CreatedAt:  time.Now(),
 				},
 			},
-			verifyConfig,
-		)
+		}
+		vh.UserVerificationProvider = userverify.NewProvider(nil, &store, verifyConfig, time)
 
 		Convey("verify with correct code and auto update", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
@@ -149,10 +145,18 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 		})
 
 		Convey("verify with correct code but not all verified", func() {
-			verifyConfig.LoginIDKeys = map[string]config.UserVerificationKeyConfiguration{
+			newVerifyConfig := verifyConfig
+			newVerifyConfig.LoginIDKeys = map[string]config.UserVerificationKeyConfiguration{
 				"email": config.UserVerificationKeyConfiguration{Expiry: 12 * 60 * 60},
 				"phone": config.UserVerificationKeyConfiguration{Expiry: 12 * 60 * 60},
 			}
+			provider := userverify.NewProvider(nil, &store, newVerifyConfig, time)
+			oldProvider := vh.UserVerificationProvider
+			vh.UserVerificationProvider = provider
+			defer func() {
+				vh.UserVerificationProvider = oldProvider
+			}()
+
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
 				"code": "code1"
 			}`))
@@ -209,11 +213,8 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"code": 108,
-					"message": "the code `+"`code4`"+` is not valid for user `+"`faseng.cat.id`"+`",
-					"name": "InvalidArgument",
-					"info": {
-						"arguments": ["code"]
-					}
+					"message": "invalid verification code",
+					"name": "InvalidArgument"
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
@@ -229,11 +230,8 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
 				"error": {
 					"code": 108,
-					"message": "the code `+"`random`"+` is not valid for user `+"`faseng.cat.id`"+`",
-					"name": "InvalidArgument",
-					"info": {
-						"arguments": ["code"]
-					}
+					"message": "invalid verification code",
+					"name": "InvalidArgument"
 				}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)

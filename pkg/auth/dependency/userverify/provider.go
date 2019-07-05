@@ -1,8 +1,9 @@
 package userverify
 
 import (
-	"time"
+	gotime "time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 
@@ -25,17 +26,20 @@ type providerImpl struct {
 	codeGenerator CodeGenerator
 	store         Store
 	config        config.UserVerificationConfiguration
+	time          time.Provider
 }
 
 func NewProvider(
 	codeGenerator CodeGenerator,
 	store Store,
 	config config.UserVerificationConfiguration,
+	time time.Provider,
 ) Provider {
 	return &providerImpl{
 		codeGenerator: codeGenerator,
 		store:         store,
 		config:        config,
+		time:          time,
 	}
 }
 
@@ -54,7 +58,7 @@ func (provider *providerImpl) GenerateVerifyCode(principal *password.Principal) 
 	verifyCode.LoginID = principal.LoginID
 	verifyCode.Code = code
 	verifyCode.Consumed = false
-	verifyCode.CreatedAt = time.Now()
+	verifyCode.CreatedAt = provider.time.Now()
 
 	if err = provider.store.CreateVerifyCode(&verifyCode); err != nil {
 		return
@@ -104,8 +108,8 @@ func (provider *providerImpl) VerifyUser(
 	}
 
 	expiryTime := provider.config.LoginIDKeys[verifyCode.LoginIDKey].Expiry
-	expireAt := verifyCode.CreatedAt.Add(time.Duration(expiryTime) * time.Second)
-	if time.Now().After(expireAt) {
+	expireAt := verifyCode.CreatedAt.Add(gotime.Duration(expiryTime) * gotime.Second)
+	if provider.time.Now().After(expireAt) {
 		err = skyerr.NewError(skyerr.InvalidArgument, "the code has expired")
 		return
 	}

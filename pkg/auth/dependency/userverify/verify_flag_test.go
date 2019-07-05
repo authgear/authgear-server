@@ -81,7 +81,7 @@ func TestIsUserVerified(t *testing.T) {
 				}),
 				criteria, verifyConfigs,
 			)
-			So(isVerified, ShouldEqual, true)
+			So(isVerified, ShouldEqual, false)
 		})
 
 		Convey("With criteria = any", func() {
@@ -126,6 +126,30 @@ func TestIsUserVerified(t *testing.T) {
 					"username": "test",
 				}),
 				criteria, verifyConfigs,
+			)
+			So(isVerified, ShouldEqual, false)
+		})
+
+		Convey("With no key to verify", func() {
+			var isVerified bool
+
+			isVerified = IsUserVerified(
+				makeAuthInfo([]string{}),
+				makePrincipals(map[string]string{
+					"email": "test+1@example.com",
+				}),
+				config.UserVerificationCriteriaAny,
+				map[string]config.UserVerificationKeyConfiguration{},
+			)
+			So(isVerified, ShouldEqual, true)
+
+			isVerified = IsUserVerified(
+				makeAuthInfo([]string{}),
+				makePrincipals(map[string]string{
+					"email": "test+1@example.com",
+				}),
+				config.UserVerificationCriteriaAll,
+				map[string]config.UserVerificationKeyConfiguration{},
 			)
 			So(isVerified, ShouldEqual, true)
 		})

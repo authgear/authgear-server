@@ -3,6 +3,8 @@ package auth
 import (
 	"context"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
@@ -160,6 +162,7 @@ func (m DependencyMap) Provide(
 				db.NewSafeTxContextWithContext(ctx, tConfig),
 			),
 			tConfig.UserConfig.UserVerification,
+			time.NewProvider(),
 		)
 	case "VerifyHTMLProvider":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
