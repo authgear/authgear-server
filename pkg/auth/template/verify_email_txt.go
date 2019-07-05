@@ -1,6 +1,6 @@
 package template
 
-var templateVerifyEmailTxt = `Dear {{ record_value }},
+var templateVerifyEmailTxt = `Dear {{ login_id }},
 
 You received this email because {{ appname }} would like to verify your email address. If you have recently signed up for this app or if you have recently made changes to your account, click the following link:
 
