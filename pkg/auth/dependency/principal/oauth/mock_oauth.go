@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
@@ -82,4 +83,13 @@ func (m *MockProvider) GetPrincipalsByUserID(userID string) ([]*Principal, error
 		}
 	}
 	return principals, nil
+}
+
+func (m *MockProvider) ID() string {
+	return providerName
+}
+
+func (m *MockProvider) DeriveClaims(_ principal.Principal) principal.Claims {
+	// TODO(sso): return processed user profile info
+	return principal.Claims{}
 }

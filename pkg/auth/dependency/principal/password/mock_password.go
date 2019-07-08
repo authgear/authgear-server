@@ -1,6 +1,7 @@
 package password
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
@@ -155,4 +156,27 @@ func (m *MockProvider) UpdatePassword(principal *Principal, password string) (er
 	principal.setPassword(password)
 	m.PrincipalMap[principal.ID] = *principal
 	return nil
+}
+
+func (m *MockProvider) ID() string {
+	return providerPassword
+}
+
+func (m *MockProvider) GetPrincipalByID(principalID string) (principal.Principal, error) {
+	for _, p := range m.PrincipalMap {
+		if p.ID == principalID {
+			return &p, nil
+		}
+	}
+	return nil, skydb.ErrUserNotFound
+}
+
+func (m *MockProvider) DeriveClaims(genericPrincipal principal.Principal) principal.Claims {
+	passwordPrincipal := genericPrincipal.(*Principal)
+	standardKey, hasStandardKey := m.loginIDChecker.standardKey(passwordPrincipal.LoginIDKey)
+	metadata := principal.Claims{}
+	if hasStandardKey {
+		metadata[string(standardKey)] = passwordPrincipal.LoginID
+	}
+	return metadata
 }

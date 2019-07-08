@@ -2,8 +2,10 @@ package customtoken
 
 import (
 	"errors"
+
 	"github.com/dgrijalva/jwt-go"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
@@ -64,4 +66,13 @@ func (p MockProvider) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*
 	}
 
 	return nil, skydb.ErrUserNotFound
+}
+
+func (p MockProvider) ID() string {
+	return providerName
+}
+
+func (p MockProvider) DeriveClaims(_ principal.Principal) principal.Claims {
+	// TODO(sso): return custom token email
+	return principal.Claims{}
 }

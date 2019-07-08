@@ -1,6 +1,9 @@
 package anonymous
 
-import "github.com/skygeario/skygear-server/pkg/core/skydb"
+import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/core/skydb"
+)
 
 // MockProvider is the memory implementation of password provider
 type MockProvider struct {
@@ -23,4 +26,12 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 
 	m.Principals = append(m.Principals, principal)
 	return nil
+}
+
+func (m *MockProvider) ID() string {
+	return providerAnonymous
+}
+
+func (m *MockProvider) DeriveClaims(_ principal.Principal) principal.Claims {
+	return principal.Claims{}
 }
