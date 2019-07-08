@@ -10,9 +10,6 @@ type Principal struct {
 	UserID string
 }
 
-type attributes struct {
-}
-
 func NewPrincipal() Principal {
 	return Principal{
 		ID: uuid.New(),
@@ -32,5 +29,5 @@ func (p *Principal) ProviderID() string {
 }
 
 func (p *Principal) Attributes() principal.Attributes {
-	return attributes{}
+	return principal.Attributes{}
 }

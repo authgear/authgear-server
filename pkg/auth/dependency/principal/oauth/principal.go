@@ -18,12 +18,6 @@ type Principal struct {
 	UpdatedAt       *time.Time
 }
 
-type attributes struct {
-	ProviderID     string      `json:"provider_id"`
-	ProviderUserID string      `json:"provider_user_id"`
-	RawProfile     interface{} `json:"raw_profile"`
-}
-
 func NewPrincipal() Principal {
 	return Principal{
 		ID: uuid.New(),
@@ -43,9 +37,9 @@ func (p *Principal) ProviderID() string {
 }
 
 func (p *Principal) Attributes() principal.Attributes {
-	return attributes{
-		ProviderID:     p.ProviderName,
-		ProviderUserID: p.ProviderUserID,
-		RawProfile:     p.UserProfile,
+	return principal.Attributes{
+		"provider_id":      p.ProviderName,
+		"provider_user_id": p.ProviderUserID,
+		"raw_profile":      p.UserProfile,
 	}
 }

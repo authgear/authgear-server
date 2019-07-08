@@ -16,12 +16,6 @@ type Principal struct {
 	HashedPassword []byte
 }
 
-type attributes struct {
-	LoginIDKey string `json:"login_id_key"`
-	LoginID    string `json:"login_id"`
-	Realm      string `json:"realm"`
-}
-
 func NewPrincipal() Principal {
 	return Principal{
 		ID: uuid.New(),
@@ -50,9 +44,9 @@ func (p *Principal) ProviderID() string {
 }
 
 func (p *Principal) Attributes() principal.Attributes {
-	return attributes{
-		LoginIDKey: p.LoginIDKey,
-		LoginID:    p.LoginID,
-		Realm:      p.Realm,
+	return principal.Attributes{
+		"login_id_key": p.LoginIDKey,
+		"login_id":     p.LoginID,
+		"realm":        p.Realm,
 	}
 }

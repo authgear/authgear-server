@@ -7,6 +7,6 @@ type Principal interface {
 	Attributes() Attributes
 }
 
-type Attributes interface{}
+type Attributes map[string]interface{}
 
 type Claims map[string]interface{}
