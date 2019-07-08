@@ -84,7 +84,7 @@ func (h MeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload,
 func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	authInfo := h.AuthContext.AuthInfo()
 
-	token, err := h.TokenStore.NewToken(authInfo.ID)
+	token, err := h.TokenStore.NewToken(authInfo.ID, h.AuthContext.Token().PrincipalID)
 	if err != nil {
 		panic(err)
 	}

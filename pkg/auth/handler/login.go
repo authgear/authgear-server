@@ -137,12 +137,12 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	userID, err := h.getUserID(payload.Password, payload.LoginIDKey, payload.LoginID, payload.Realm)
+	principal, err := h.getPrincipal(payload.Password, payload.LoginIDKey, payload.LoginID, payload.Realm)
 	if err != nil {
 		return
 	}
 
-	if err = h.AuthInfoStore.GetAuth(userID, &fetchedAuthInfo); err != nil {
+	if err = h.AuthInfoStore.GetAuth(principal.UserID, &fetchedAuthInfo); err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			return
@@ -157,7 +157,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	// generate access-token
-	token, err := h.TokenStore.NewToken(fetchedAuthInfo.ID)
+	token, err := h.TokenStore.NewToken(fetchedAuthInfo.ID, principal.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -192,8 +192,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	return
 }
 
-func (h LoginHandler) getUserID(pwd string, loginIDKey string, loginID string, realm string) (userID string, err error) {
-	principal := password.Principal{}
+func (h LoginHandler) getPrincipal(pwd string, loginIDKey string, loginID string, realm string) (principal password.Principal, err error) {
 	err = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, &principal)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
@@ -209,8 +208,6 @@ func (h LoginHandler) getUserID(pwd string, loginIDKey string, loginID string, r
 		err = skyerr.NewError(skyerr.InvalidCredentials, "login_id or password incorrect")
 		return
 	}
-
-	userID = principal.UserID
 
 	return
 }

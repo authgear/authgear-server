@@ -22,6 +22,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/uuid"
 )
 
+type authTokenClaims struct {
+	jwt.StandardClaims
+	PrincipalID string `json:"skygear:principal_id"`
+}
+
 // JWTStore implements TokenStore by encoding user information into
 // the access token string. This store does not keep state.
 type JWTStore struct {
@@ -44,12 +49,15 @@ func NewJWTStore(appName string, secret string, expiry int64) *JWTStore {
 }
 
 // NewToken creates a new token for this token store.
-func (r *JWTStore) NewToken(authInfoID string) (Token, error) {
-	claims := jwt.StandardClaims{
-		Id:       uuid.New(),
-		IssuedAt: time.Now().Unix(),
-		Issuer:   r.appName,
-		Subject:  authInfoID,
+func (r *JWTStore) NewToken(authInfoID string, principalID string) (Token, error) {
+	claims := authTokenClaims{
+		StandardClaims: jwt.StandardClaims{
+			Id:       uuid.New(),
+			IssuedAt: time.Now().Unix(),
+			Issuer:   r.appName,
+			Subject:  authInfoID,
+		},
+		PrincipalID: principalID,
 	}
 
 	if r.expiry > 0 {
@@ -71,7 +79,7 @@ func (r *JWTStore) NewToken(authInfoID string) (Token, error) {
 // Get decodes and verifies the access token for user information. It returns
 // the access token containing information about the user.
 func (r *JWTStore) Get(accessToken string, token *Token) error {
-	claims := jwt.StandardClaims{}
+	claims := authTokenClaims{}
 	jwtToken, err := jwt.ParseWithClaims(accessToken, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, &NotFoundError{accessToken, errors.New("unexpected algorithm in token")}
@@ -100,7 +108,7 @@ func (r *JWTStore) Get(accessToken string, token *Token) error {
 	return nil
 }
 
-func (r *JWTStore) setTokenFromClaims(claims jwt.StandardClaims, token *Token) {
+func (r *JWTStore) setTokenFromClaims(claims authTokenClaims, token *Token) {
 	if claims.ExpiresAt > 0 {
 		token.ExpiredAt = time.Unix(claims.ExpiresAt, 0)
 	} else {
@@ -113,6 +121,7 @@ func (r *JWTStore) setTokenFromClaims(claims jwt.StandardClaims, token *Token) {
 	}
 	token.AppName = claims.Issuer
 	token.AuthInfoID = claims.Subject
+	token.PrincipalID = claims.PrincipalID
 }
 
 // Put does nothing because the JWT token store does not store token.

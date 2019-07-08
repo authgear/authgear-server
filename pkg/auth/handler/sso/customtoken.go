@@ -173,7 +173,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		})
 	}()
 
-	createNewUser, err = h.handleLogin(payload, &info, &userProfile)
+	createNewUser, principal, err := h.handleLogin(payload, &info, &userProfile)
 	if err != nil {
 		return
 	}
@@ -181,7 +181,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 	// TODO: check disable
 
 	// Create auth token
-	tkn, err := h.TokenStore.NewToken(info.ID)
+	tkn, err := h.TokenStore.NewToken(info.ID, principal.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -211,9 +211,13 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 	return
 }
 
-func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, info *authinfo.AuthInfo, userProfile *userprofile.UserProfile) (createNewUser bool, err error) {
+func (h CustomTokenLoginHandler) handleLogin(
+	payload customTokenLoginPayload,
+	info *authinfo.AuthInfo,
+	userProfile *userprofile.UserProfile,
+) (createNewUser bool, principal *customtoken.Principal, err error) {
 	createNewUser = false
-	principal, err := h.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID(payload.Claims.Subject)
+	principal, err = h.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID(payload.Claims.Subject)
 	if err != nil {
 		if err != skydb.ErrUserNotFound {
 			return
@@ -241,10 +245,11 @@ func (h CustomTokenLoginHandler) handleLogin(payload customTokenLoginPayload, in
 			return
 		}
 
-		principal := customtoken.NewPrincipal()
+		p := customtoken.NewPrincipal()
+		principal = &p
 		principal.TokenPrincipalID = payload.Claims.Subject
 		principal.UserID = info.ID
-		err = h.CustomTokenAuthProvider.CreatePrincipal(principal)
+		err = h.CustomTokenAuthProvider.CreatePrincipal(*principal)
 		// TODO:
 		// return proper error
 		if err != nil {

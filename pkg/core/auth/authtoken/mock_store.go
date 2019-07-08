@@ -17,8 +17,8 @@ func NewMockStore() *MockStore {
 	}
 }
 
-func (s *MockStore) NewToken(authInfoID string) (Token, error) {
-	return New("mockAppName", authInfoID, time.Time{}), nil
+func (s *MockStore) NewToken(authInfoID string, principalID string) (Token, error) {
+	return New("mockAppName", authInfoID, principalID, time.Time{}), nil
 }
 
 func (s *MockStore) Get(accessToken string, token *Token) error {

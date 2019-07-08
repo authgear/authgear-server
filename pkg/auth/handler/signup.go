@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+
 	"github.com/skygeario/skygear-server/pkg/core/utils"
 
 	"github.com/skygeario/skygear-server/pkg/auth/task"
@@ -202,12 +204,13 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 	}
 
 	// Create Principal
-	if err = h.createPrincipal(payload, info); err != nil {
+	loginPrincipal, err := h.createPrincipals(payload, info)
+	if err != nil {
 		return
 	}
 
 	// Create auth token
-	tkn, err := h.TokenStore.NewToken(info.ID)
+	tkn, err := h.TokenStore.NewToken(info.ID, loginPrincipal.PrincipalID())
 	if err != nil {
 		panic(err)
 	}
@@ -281,19 +284,27 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 	return
 }
 
-func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (err error) {
+func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (principal principal.Principal, err error) {
 	if !payload.isAnonymous() {
-		err = h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs, payload.Realm)
-		if err == skydb.ErrUserDuplicated {
-			err = ErrUserDuplicated
+		principals, createError := h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs, payload.Realm)
+
+		if createError != nil {
+			if createError == skydb.ErrUserDuplicated {
+				err = ErrUserDuplicated
+			} else {
+				err = createError
+			}
+		}
+		if err == nil {
+			principal = principals[0]
 		}
 	} else {
-		principal := anonymous.NewPrincipal()
-		principal.UserID = authInfo.ID
+		anonymousPrincipal := anonymous.NewPrincipal()
+		anonymousPrincipal.UserID = authInfo.ID
 
-		err = h.AnonymousAuthProvider.CreatePrincipal(principal)
+		err = h.AnonymousAuthProvider.CreatePrincipal(anonymousPrincipal)
+		principal = &anonymousPrincipal
 	}
-
 	return
 }
 

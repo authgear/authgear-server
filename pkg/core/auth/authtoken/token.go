@@ -28,6 +28,7 @@ type Token struct {
 	ExpiredAt   time.Time `json:"expiredAt" redis:"expiredAt"`
 	AppName     string    `json:"appName" redis:"appName"`
 	AuthInfoID  string    `json:"authInfoID" redis:"authInfoID"`
+	PrincipalID string    `json:"principalID" redis:"principalID"`
 	IssuedAt    time.Time `json:"issuedAt" redis:"issuedAt"`
 }
 
@@ -107,7 +108,7 @@ func (t *jsonStamp) UnmarshalJSON(data []byte) (err error) {
 // New creates a new Token ready for use given a authInfoID and
 // expiredAt date. If expiredAt is passed an empty Time, the token
 // does not expire.
-func New(appName string, authInfoID string, expiredAt time.Time) Token {
+func New(appName string, authInfoID string, principalID string, expiredAt time.Time) Token {
 	return Token{
 		// NOTE(limouren): I am not sure if it is good to use UUID
 		// as access token.
@@ -115,6 +116,7 @@ func New(appName string, authInfoID string, expiredAt time.Time) Token {
 		ExpiredAt:   expiredAt,
 		AppName:     appName,
 		AuthInfoID:  authInfoID,
+		PrincipalID: principalID,
 		IssuedAt:    time.Now().UTC(),
 	}
 }

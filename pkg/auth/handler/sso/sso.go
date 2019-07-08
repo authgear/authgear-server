@@ -27,7 +27,7 @@ type respHandler struct {
 func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
 	// action => login
 	var info authinfo.AuthInfo
-	createNewUser, err := h.handleLogin(oauthAuthInfo, &info)
+	createNewUser, principal, err := h.handleLogin(oauthAuthInfo, &info)
 	if err != nil {
 		return
 	}
@@ -49,7 +49,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 
 	// Create auth token
 	var token authtoken.Token
-	token, err = h.TokenStore.NewToken(info.ID)
+	token, err = h.TokenStore.NewToken(info.ID, principal.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -114,8 +114,8 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 func (h respHandler) handleLogin(
 	oauthAuthInfo sso.AuthInfo,
 	info *authinfo.AuthInfo,
-) (createNewUser bool, err error) {
-	principal, err := h.findPrincipal(oauthAuthInfo)
+) (createNewUser bool, principal *oauth.Principal, err error) {
+	principal, err = h.findPrincipal(oauthAuthInfo)
 	if err != nil {
 		return
 	}
@@ -140,7 +140,7 @@ func (h respHandler) handleLogin(
 			return
 		}
 
-		_, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
+		principal, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
 		if err != nil {
 			return
 		}
@@ -212,10 +212,10 @@ func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal,
 	if err != nil {
 		return nil, err
 	}
-	return &oauthPrincipal, nil
+	return oauthPrincipal, nil
 }
 
-func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (oauth.Principal, error) {
+func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	now := timeNow()
 	principal := oauth.NewPrincipal()
 	principal.UserID = userID
@@ -226,5 +226,5 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 	principal.CreatedAt = &now
 	principal.UpdatedAt = &now
 	err := h.OAuthAuthProvider.CreatePrincipal(principal)
-	return principal, err
+	return &principal, err
 }

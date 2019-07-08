@@ -83,15 +83,15 @@ func (p *providerImpl) IsDefaultAllowedRealms() bool {
 	return len(p.allowedRealms) == 1 && p.allowedRealms[0] == DefaultRealm
 }
 
-func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (err error) {
+func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (principals []*Principal, err error) {
 	// do not create principal when there is login ID belongs to another user.
 	for _, loginID := range loginIDs {
-		principals, principalErr := p.GetPrincipalsByLoginID("", loginID.Value)
+		loginIDPrincipals, principalErr := p.GetPrincipalsByLoginID("", loginID.Value)
 		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
 			err = principalErr
 			return
 		}
-		for _, principal := range principals {
+		for _, principal := range loginIDPrincipals {
 			if principal.UserID != authInfoID {
 				err = skydb.ErrUserDuplicated
 				return
@@ -111,6 +111,7 @@ func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password stri
 		if err != nil {
 			return
 		}
+		principals = append(principals, &principal)
 	}
 
 	return

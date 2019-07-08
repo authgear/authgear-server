@@ -52,15 +52,15 @@ func (m *MockProvider) IsDefaultAllowedRealms() bool {
 }
 
 // CreatePrincipalsByLoginID creates principals by loginID
-func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (err error) {
+func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password string, loginIDs []LoginID, realm string) (principals []*Principal, err error) {
 	// do not create principal when there is login ID belongs to another user.
 	for _, loginID := range loginIDs {
-		principals, principalErr := m.GetPrincipalsByLoginID("", loginID.Value)
+		loginIDPrincipals, principalErr := m.GetPrincipalsByLoginID("", loginID.Value)
 		if principalErr != nil && principalErr != skydb.ErrUserNotFound {
 			err = principalErr
 			return
 		}
-		for _, principal := range principals {
+		for _, principal := range loginIDPrincipals {
 			if principal.UserID != authInfoID {
 				err = skydb.ErrUserDuplicated
 				return
@@ -80,6 +80,7 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 		if err != nil {
 			return
 		}
+		principals = append(principals, &principal)
 	}
 
 	return

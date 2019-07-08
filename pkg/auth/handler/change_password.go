@@ -152,7 +152,7 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 	}
 
 	// generate access-token
-	token, err := h.TokenStore.NewToken(authinfo.ID)
+	token, err := h.TokenStore.NewToken(authinfo.ID, h.AuthContext.Token().PrincipalID)
 	if err != nil {
 		panic(err)
 	}
