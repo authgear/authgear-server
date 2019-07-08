@@ -13,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
@@ -184,6 +185,42 @@ func (m DependencyMap) Provide(
 			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
 			logging.CreateLoggerWithRequestID(requestID, "provider_oauth", createLoggerMaskFormatter(tConfig)),
 			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
+	case "IdentityProvider":
+		// TODO:
+		// from tConfig
+		passwordHistoryEnabled := tConfig.UserConfig.UserAudit.Password.HistorySize > 0 || tConfig.UserConfig.UserAudit.Password.HistoryDays > 0
+		return principal.NewIdentityProvider(
+			db.NewSQLBuilder("auth", tConfig.AppName),
+			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+			anonymous.NewSafeProvider(
+				db.NewSQLBuilder("auth", tConfig.AppName),
+				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+				logging.CreateLoggerWithRequestID(requestID, "provider_anonymous", createLoggerMaskFormatter(tConfig)),
+				db.NewSafeTxContextWithContext(ctx, tConfig),
+			),
+			customtoken.NewSafeProvider(
+				db.NewSQLBuilder("auth", tConfig.AppName),
+				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+				logging.CreateLoggerWithRequestID(requestID, "provider_custom_token", createLoggerMaskFormatter(tConfig)),
+				tConfig.UserConfig.Auth.CustomTokenSecret,
+				db.NewSafeTxContextWithContext(ctx, tConfig),
+			),
+			oauth.NewSafeProvider(
+				db.NewSQLBuilder("auth", tConfig.AppName),
+				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+				logging.CreateLoggerWithRequestID(requestID, "provider_oauth", createLoggerMaskFormatter(tConfig)),
+				db.NewSafeTxContextWithContext(ctx, tConfig),
+			),
+			password.NewSafeProvider(
+				db.NewSQLBuilder("auth", tConfig.AppName),
+				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+				logging.CreateLoggerWithRequestID(requestID, "provider_password", createLoggerMaskFormatter(tConfig)),
+				tConfig.UserConfig.Auth.LoginIDKeys,
+				tConfig.UserConfig.Auth.AllowedRealms,
+				passwordHistoryEnabled,
+				db.NewSafeTxContextWithContext(ctx, tConfig),
+			),
 		)
 	case "AuthHandlerHTMLProvider":
 		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.APIEndpoint(), tConfig.UserConfig.SSO.JSSDKCDNURL)
