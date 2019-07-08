@@ -87,15 +87,6 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	authInfo := h.AuthContext.AuthInfo()
 	principalID := h.AuthContext.Token().PrincipalID
 
-	token, err := h.TokenStore.NewToken(authInfo.ID, principalID)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = h.TokenStore.Put(&token); err != nil {
-		panic(err)
-	}
-
 	// Get Profile
 	var userProfile userprofile.UserProfile
 	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
@@ -114,14 +105,8 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	user := model.NewUser(*authInfo, userProfile, model.NewIdentity(h.IdentityProvider, principal))
-	resp = model.NewAuthResponse(user, token.AccessToken)
 
-	now := timeNow()
-	authInfo.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
-		err = skyerr.MakeError(err)
-		return
-	}
+	resp = user
 
 	return
 }
