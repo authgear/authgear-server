@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
@@ -287,6 +288,56 @@ func (p *providerImpl) GetPrincipalsByUserID(userID string) (principals []*Princ
 	}
 
 	return
+}
+
+func (p providerImpl) ID() string {
+	return providerName
+}
+
+func (p providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
+	builder := p.sqlBuilder.Select("p.user_id", "oauth.oauth_provider", "oauth.provider_user_id", "oauth.profile").
+		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
+		Join(p.sqlBuilder.FullTableName("provider_oauth")+" AS oauth ON p.id = oauth.principal_id").
+		Where("p.id = ? AND p.provider = 'oauth'", principalID)
+	scanner := p.sqlExecutor.QueryRowWith(builder)
+
+	var profileDataBytes []byte
+	principal := Principal{ID: principalID}
+	err := scanner.Scan(
+		&principal.UserID,
+		&principal.ProviderName,
+		&principal.ProviderUserID,
+		&profileDataBytes,
+	)
+
+	if err == sql.ErrNoRows {
+		err = skydb.ErrUserNotFound
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(profileDataBytes, &principal.UserProfile)
+	if err != nil {
+		return nil, err
+	}
+
+	return &principal, nil
+}
+
+func (p providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
+	principals, err := p.GetPrincipalsByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	genericPrincipals := []principal.Principal{}
+	for _, principal := range principals {
+		genericPrincipals = append(genericPrincipals, principal)
+	}
+
+	return genericPrincipals, nil
 }
 
 // this ensures that our structure conform to certain interfaces.

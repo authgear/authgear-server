@@ -2,6 +2,7 @@ package password
 
 import (
 	"database/sql"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -341,6 +342,64 @@ func (p providerImpl) UpdatePassword(principal *Principal, password string) (err
 	}
 
 	return
+}
+
+func (p providerImpl) ID() string {
+	return providerPassword
+}
+
+func (p providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
+	builder := p.sqlBuilder.Select("login_id", "login_id_key", "realm", "password").
+		From(p.sqlBuilder.FullTableName("provider_password")).
+		Where(`principal_id = ?`, principalID)
+	scanner := p.sqlExecutor.QueryRowWith(builder)
+
+	principal := Principal{ID: principalID}
+	err := scanner.Scan(
+		&principal.LoginID,
+		&principal.LoginIDKey,
+		&principal.Realm,
+		&principal.HashedPassword,
+	)
+
+	if err == sql.ErrNoRows {
+		err = skydb.ErrUserNotFound
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	builder = p.sqlBuilder.Select("user_id").
+		From(p.sqlBuilder.FullTableName("principal")).
+		Where("id = ? AND provider = 'password'", principal.ID)
+	scanner = p.sqlExecutor.QueryRowWith(builder)
+	err = scanner.Scan(&principal.UserID)
+
+	if err == sql.ErrNoRows {
+		p.logger.Warnf("Missing principal for provider_password: %v", principal.ID)
+		err = skydb.ErrUserNotFound
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &principal, nil
+}
+
+func (p providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Principal, error) {
+	principals, err := p.GetPrincipalsByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	genericPrincipals := []principal.Principal{}
+	for _, principal := range principals {
+		genericPrincipals = append(genericPrincipals, principal)
+	}
+
+	return genericPrincipals, nil
 }
 
 // this ensures that our structure conform to certain interfaces.
