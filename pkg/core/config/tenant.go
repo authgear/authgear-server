@@ -607,7 +607,7 @@ func (criteria UserVerificationCriteria) IsValid() bool {
 
 type UserVerificationConfiguration struct {
 	URLPrefix                string                                      `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	AutoSendOnSignupDisabled bool                                        `json:"auto_send_on_signup" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
+	AutoSendOnSignupDisabled bool                                        `json:"auto_send_on_signup_disabled" yaml:"auto_send_on_signup_disabled" msg:"auto_send_on_signup_disabled"`
 	Criteria                 UserVerificationCriteria                    `json:"criteria" yaml:"criteria" msg:"criteria"`
 	ErrorRedirect            string                                      `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
 	ErrorHTMLURL             string                                      `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
