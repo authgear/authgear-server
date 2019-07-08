@@ -395,5 +395,55 @@ user_config:
 			So(google.ID, ShouldEqual, OAuthProviderTypeGoogle)
 			So(google.Scope, ShouldEqual, "profile email")
 		})
+		Convey("should validate Custom Token", func() {
+			c := fullTenantConfig
+			c.UserConfig.SSO.CustomToken.Enabled = true
+			c.UserConfig.SSO.CustomToken.Issuer = ""
+			c.UserConfig.SSO.CustomToken.Secret = ""
+
+			err := c.Validate()
+			So(err, ShouldBeError, "Must set Custom Token Issuer")
+
+			c.UserConfig.SSO.CustomToken.Issuer = "customtokenissuer"
+			err = c.Validate()
+			So(err, ShouldBeError, "Must set Custom Token Secret")
+		})
+		Convey("should validate OAuth Provider", func() {
+			c := fullTenantConfig
+			c.UserConfig.SSO.OAuth.Providers = []OAuthProviderConfiguration{
+				OAuthProviderConfiguration{
+					Type: OAuthProviderTypeAzureADv2,
+				},
+				OAuthProviderConfiguration{
+					Type: OAuthProviderTypeAzureADv2,
+				},
+			}
+
+			So(c.Validate(), ShouldBeError, "Missing OAuth Provider ID")
+
+			c.UserConfig.SSO.OAuth.Providers[0].ID = "azure"
+
+			So(c.Validate(), ShouldBeError, "Must set Azure Tenant")
+
+			c.UserConfig.SSO.OAuth.Providers[0].Tenant = "mytenant"
+
+			So(c.Validate(), ShouldBeError, "OAuth Provider azure: missing client id")
+			c.UserConfig.SSO.OAuth.Providers[0].ClientID = "clientid"
+
+			So(c.Validate(), ShouldBeError, "OAuth Provider azure: missing client secret")
+
+			c.UserConfig.SSO.OAuth.Providers[0].ClientSecret = "clientsecret"
+
+			So(c.Validate(), ShouldBeError, "OAuth Provider azure: missing scope")
+
+			c.UserConfig.SSO.OAuth.Providers[0].Scope = "profile email"
+			c.UserConfig.SSO.OAuth.Providers[1] = c.UserConfig.SSO.OAuth.Providers[0]
+
+			So(c.Validate(), ShouldBeError, "Duplicate OAuth Provider: azure")
+
+			c.UserConfig.SSO.OAuth.Providers[1].ID = "azure1"
+
+			So(c.Validate(), ShouldBeNil)
+		})
 	})
 }

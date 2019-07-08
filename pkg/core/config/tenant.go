@@ -343,6 +343,60 @@ func (c *TenantConfiguration) Validate() error {
 		return errors.New("Invalid SMTP mode")
 	}
 
+	// Validate CustomToken
+	if c.UserConfig.SSO.CustomToken.Enabled {
+		if c.UserConfig.SSO.CustomToken.Issuer == "" {
+			return errors.New("Must set Custom Token Issuer")
+		}
+		if c.UserConfig.SSO.CustomToken.Secret == "" {
+			return errors.New("Must set Custom Token Secret")
+		}
+	}
+
+	// Validate OAuth
+	seenOAuthProviderID := map[string]struct{}{}
+	for _, provider := range c.UserConfig.SSO.OAuth.Providers {
+		// Ensure ID is set
+		if provider.ID == "" {
+			return fmt.Errorf("Missing OAuth Provider ID")
+		}
+
+		// Ensure ID is not duplicate.
+		if _, ok := seenOAuthProviderID[provider.ID]; ok {
+			return fmt.Errorf("Duplicate OAuth Provider: %s", provider.ID)
+		}
+		seenOAuthProviderID[provider.ID] = struct{}{}
+
+		switch provider.Type {
+		case OAuthProviderTypeGoogle:
+			break
+		case OAuthProviderTypeFacebook:
+			break
+		case OAuthProviderTypeInstagram:
+			break
+		case OAuthProviderTypeLinkedIn:
+			break
+		case OAuthProviderTypeAzureADv2:
+			// Ensure tenant is set
+			if provider.Tenant == "" {
+				return errors.New("Must set Azure Tenant")
+			}
+		default:
+			// Ensure Type is recognized
+			return fmt.Errorf("Unknown OAuth Provider: %s", provider.Type)
+		}
+
+		if provider.ClientID == "" {
+			return fmt.Errorf("OAuth Provider %s: missing client id", provider.ID)
+		}
+		if provider.ClientSecret == "" {
+			return fmt.Errorf("OAuth Provider %s: missing client secret", provider.ID)
+		}
+		if provider.Scope == "" {
+			return fmt.Errorf("OAuth Provider %s: missing scope", provider.ID)
+		}
+	}
+
 	return nil
 }
 
