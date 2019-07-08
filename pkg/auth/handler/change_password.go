@@ -138,8 +138,7 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 			err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
 			return
 		}
-		p.PlainPassword = payload.NewPassword
-		err = h.PasswordAuthProvider.UpdatePrincipal(*p)
+		err = h.PasswordAuthProvider.UpdatePassword(p, payload.NewPassword)
 		if err != nil {
 			return
 		}

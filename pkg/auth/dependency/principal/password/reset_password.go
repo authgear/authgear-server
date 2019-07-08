@@ -19,8 +19,7 @@ func (r *ResetPasswordRequestContext) ExecuteWithPrincipals(newPassword string, 
 	}
 
 	for _, p := range principals {
-		p.PlainPassword = newPassword
-		err = r.PasswordAuthProvider.UpdatePrincipal(*p)
+		err = r.PasswordAuthProvider.UpdatePassword(p, newPassword)
 		if err != nil {
 			return
 		}

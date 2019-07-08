@@ -4,7 +4,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // MockProvider is the memory implementation of password provider
@@ -75,7 +74,7 @@ func (m *MockProvider) CreatePrincipalsByLoginID(authInfoID string, password str
 		principal.LoginIDKey = loginID.Key
 		principal.LoginID = loginID.Value
 		principal.Realm = realm
-		principal.PlainPassword = password
+		principal.setPassword(password)
 		err = m.CreatePrincipal(principal)
 
 		if err != nil {
@@ -97,12 +96,6 @@ func (m *MockProvider) CreatePrincipal(principal Principal) error {
 			return skydb.ErrUserDuplicated
 		}
 	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(principal.PlainPassword), bcrypt.DefaultCost)
-	if err != nil {
-		panic("provider_password: Failed to hash password")
-	}
-	principal.HashedPassword = hashedPassword
 
 	m.PrincipalMap[principal.ID] = principal
 	return nil
@@ -153,17 +146,12 @@ func (m *MockProvider) GetPrincipalsByLoginID(loginIDKey string, loginID string)
 }
 
 // UpdatePrincipal update principal in PrincipalMap
-func (m *MockProvider) UpdatePrincipal(principal Principal) error {
+func (m *MockProvider) UpdatePassword(principal *Principal, password string) (err error) {
 	if _, existed := m.PrincipalMap[principal.ID]; !existed {
 		return skydb.ErrUserNotFound
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(principal.PlainPassword), bcrypt.DefaultCost)
-	if err != nil {
-		panic("provider_password: Failed to hash password")
-	}
-
-	principal.HashedPassword = hashedPassword
-	m.PrincipalMap[principal.ID] = principal
+	principal.setPassword(password)
+	m.PrincipalMap[principal.ID] = *principal
 	return nil
 }

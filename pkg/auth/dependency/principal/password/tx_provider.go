@@ -72,7 +72,7 @@ func (p *safeProviderImpl) GetPrincipalsByLoginID(loginIDKey string, loginID str
 	return p.impl.GetPrincipalsByLoginID(loginIDKey, loginID)
 }
 
-func (p *safeProviderImpl) UpdatePrincipal(principal Principal) error {
+func (p *safeProviderImpl) UpdatePassword(principal *Principal, password string) error {
 	p.txContext.EnsureTx()
-	return p.impl.UpdatePrincipal(principal)
+	return p.impl.UpdatePassword(principal, password)
 }

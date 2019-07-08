@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
@@ -105,7 +104,7 @@ func (p providerImpl) CreatePrincipalsByLoginID(authInfoID string, password stri
 		principal.LoginIDKey = loginID.Key
 		principal.LoginID = loginID.Value
 		principal.Realm = realm
-		principal.PlainPassword = password
+		principal.setPassword(password)
 		err = p.CreatePrincipal(principal)
 
 		if err != nil {
@@ -135,11 +134,6 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(principal.PlainPassword), bcrypt.DefaultCost)
-	if err != nil {
-		panic("provider_password: Failed to hash password")
-	}
-
 	builder = p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("provider_password")).Columns(
 		"principal_id",
 		"login_id_key",
@@ -151,7 +145,7 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 		principal.LoginIDKey,
 		principal.LoginID,
 		principal.Realm,
-		hashedPassword,
+		principal.HashedPassword,
 	)
 
 	_, err = p.sqlExecutor.ExecWith(builder)
@@ -163,7 +157,7 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 
 	if p.passwordHistoryEnabled {
 		p.passwordHistoryStore.CreatePasswordHistory(
-			principal.UserID, hashedPassword, timeNow(),
+			principal.UserID, principal.HashedPassword, timeNow(),
 		)
 	}
 
@@ -317,18 +311,18 @@ func (p providerImpl) GetPrincipalsByLoginID(loginIDKey string, loginID string) 
 	return
 }
 
-func (p providerImpl) UpdatePrincipal(principal Principal) (err error) {
+func (p providerImpl) UpdatePassword(principal *Principal, password string) (err error) {
 	// TODO: log
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(principal.PlainPassword), bcrypt.DefaultCost)
+	var isPasswordChanged = !principal.IsSamePassword(password)
+
+	err = principal.setPassword(password)
 	if err != nil {
 		panic("provider_password: Failed to hash password")
 	}
 
 	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_password")).
-		Set("login_id_key", principal.LoginIDKey).
-		Set("login_id", principal.LoginID).
-		Set("password", hashedPassword).
+		Set("password", principal.HashedPassword).
 		Where("principal_id = ?", principal.ID)
 
 	_, err = p.sqlExecutor.ExecWith(builder)
@@ -340,12 +334,9 @@ func (p providerImpl) UpdatePrincipal(principal Principal) (err error) {
 		return
 	}
 
-	var isPasswordChanged = !principal.IsSamePassword(principal.PlainPassword)
-	principal.HashedPassword = hashedPassword
-
 	if p.passwordHistoryEnabled && isPasswordChanged {
 		err = p.passwordHistoryStore.CreatePasswordHistory(
-			principal.UserID, hashedPassword, timeNow(),
+			principal.UserID, principal.HashedPassword, timeNow(),
 		)
 	}
 

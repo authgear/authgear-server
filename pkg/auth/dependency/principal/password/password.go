@@ -14,5 +14,5 @@ type Provider interface {
 	GetPrincipalByLoginIDWithRealm(loginIDKey string, loginID string, realm string, principal *Principal) (err error)
 	GetPrincipalsByUserID(userID string) ([]*Principal, error)
 	GetPrincipalsByLoginID(loginIDKey string, loginID string) ([]*Principal, error)
-	UpdatePrincipal(principal Principal) error
+	UpdatePassword(principal *Principal, password string) error
 }
