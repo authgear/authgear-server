@@ -402,6 +402,16 @@ func (p providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Princip
 	return genericPrincipals, nil
 }
 
+func (p providerImpl) DeriveClaims(genericPrincipal principal.Principal) principal.Claims {
+	passwordPrincipal := genericPrincipal.(*Principal)
+	standardKey, hasStandardKey := p.loginIDChecker.standardKey(passwordPrincipal.LoginIDKey)
+	claims := principal.Claims{}
+	if hasStandardKey {
+		claims[string(standardKey)] = passwordPrincipal.LoginID
+	}
+	return claims
+}
+
 // this ensures that our structure conform to certain interfaces.
 var (
 	_ Provider = &providerImpl{}

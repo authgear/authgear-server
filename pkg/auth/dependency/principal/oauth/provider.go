@@ -340,6 +340,11 @@ func (p providerImpl) ListPrincipalsByUserID(userID string) ([]principal.Princip
 	return genericPrincipals, nil
 }
 
+func (p providerImpl) DeriveClaims(_ principal.Principal) principal.Claims {
+	// TODO(sso): return processed user profile info
+	return principal.Claims{}
+}
+
 // this ensures that our structure conform to certain interfaces.
 var (
 	_ Provider = &providerImpl{}

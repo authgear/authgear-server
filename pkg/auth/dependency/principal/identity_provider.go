@@ -6,17 +6,23 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
-type IdentityProvider struct {
+type IdentityProvider interface {
+	ListPrincipalsByUserID(userID string) ([]Principal, error)
+	GetPrincipalByID(principalID string) (Principal, error)
+	DeriveClaims(principal Principal) Claims
+}
+
+type identityProviderImpl struct {
 	sqlBuilder  db.SQLBuilder
 	sqlExecutor db.SQLExecutor
 	providers   []Provider
 }
 
-func NewIdentityProvider(builder db.SQLBuilder, executor db.SQLExecutor, providers ...Provider) *IdentityProvider {
-	return &IdentityProvider{builder, executor, providers}
+func NewIdentityProvider(builder db.SQLBuilder, executor db.SQLExecutor, providers ...Provider) IdentityProvider {
+	return &identityProviderImpl{builder, executor, providers}
 }
 
-func (p *IdentityProvider) ListPrincipalsByUserID(userID string) ([]Principal, error) {
+func (p *identityProviderImpl) ListPrincipalsByUserID(userID string) ([]Principal, error) {
 	principals := []Principal{}
 	for _, provider := range p.providers {
 		providerPrincipals, err := provider.ListPrincipalsByUserID(userID)
@@ -28,7 +34,7 @@ func (p *IdentityProvider) ListPrincipalsByUserID(userID string) ([]Principal, e
 	return principals, nil
 }
 
-func (p *IdentityProvider) GetPrincipalByID(principalID string) (Principal, error) {
+func (p *identityProviderImpl) GetPrincipalByID(principalID string) (Principal, error) {
 	var providerID string
 
 	builder := p.sqlBuilder.Select("provider").
@@ -53,4 +59,14 @@ func (p *IdentityProvider) GetPrincipalByID(principalID string) (Principal, erro
 	}
 
 	return nil, skydb.ErrUserNotFound
+}
+
+func (p *identityProviderImpl) DeriveClaims(principal Principal) Claims {
+	for _, provider := range p.providers {
+		if provider.ID() == principal.ProviderID() {
+			return provider.DeriveClaims(principal)
+		}
+	}
+
+	return Claims{}
 }

@@ -174,6 +174,11 @@ func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []princi
 	return
 }
 
+func (p providerImpl) DeriveClaims(_ principal.Principal) principal.Claims {
+	// TODO(sso): return custom token email
+	return principal.Claims{}
+}
+
 // this ensures that our structure conform to certain interfaces.
 var (
 	_ Provider = &providerImpl{}

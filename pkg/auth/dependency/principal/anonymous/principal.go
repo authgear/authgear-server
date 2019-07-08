@@ -27,7 +27,7 @@ func (p *Principal) PrincipalUserID() string {
 	return p.UserID
 }
 
-func (p *Principal) ProviderType() string {
+func (p *Principal) ProviderID() string {
 	return providerAnonymous
 }
 

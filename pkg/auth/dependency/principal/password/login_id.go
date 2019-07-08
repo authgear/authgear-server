@@ -18,6 +18,7 @@ func (loginID LoginID) IsValid() bool {
 type loginIDChecker interface {
 	validate(loginIDs []LoginID) error
 	checkType(loginIDKey string, standardKey metadata.StandardKey) bool
+	standardKey(loginIDKey string) (metadata.StandardKey, bool)
 }
 
 type defaultLoginIDChecker struct {
@@ -52,14 +53,19 @@ func (c defaultLoginIDChecker) validate(loginIDs []LoginID) error {
 	return nil
 }
 
-func (c defaultLoginIDChecker) checkType(loginIDKey string, standardKey metadata.StandardKey) bool {
+func (c defaultLoginIDChecker) standardKey(loginIDKey string) (key metadata.StandardKey, ok bool) {
 	config, ok := c.loginIDsKeys[loginIDKey]
 	if !ok {
-		return false
+		return
 	}
 
-	configStandardKey, ok := config.Type.MetadataKey()
-	return ok && configStandardKey == standardKey
+	key, ok = config.Type.MetadataKey()
+	return
+}
+
+func (c defaultLoginIDChecker) checkType(loginIDKey string, standardKey metadata.StandardKey) bool {
+	loginIDKeyStandardKey, ok := c.standardKey(loginIDKey)
+	return ok && loginIDKeyStandardKey == standardKey
 }
 
 // this ensures that our structure conform to certain interfaces.
