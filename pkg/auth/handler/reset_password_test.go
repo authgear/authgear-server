@@ -5,8 +5,6 @@ import (
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -95,7 +93,6 @@ func TestResetPasswordHandler(t *testing.T) {
 		h.PasswordChecker = passwordChecker
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.AuditTrail = audit.NewMockTrail(t)
-		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.TaskQueue = mockTaskQueue
 
 		Convey("should reset password by user id", func() {
@@ -108,17 +105,7 @@ func TestResetPasswordHandler(t *testing.T) {
 
 			resp, err := h.Handle(payload)
 			So(err, ShouldBeNil)
-
-			authResp, ok := resp.(response.AuthResponse)
-			So(ok, ShouldBeTrue)
-			So(err, ShouldBeNil)
-
-			// check the token
-			tokenStr := authResp.AccessToken
-			token := authtoken.Token{}
-			tokenStore.Get(tokenStr, &token)
-			So(token.AuthInfoID, ShouldEqual, userID)
-			So(!token.IsExpired(), ShouldBeTrue)
+			So(resp, ShouldEqual, "OK")
 
 			// should update all principals of a user
 			principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)
