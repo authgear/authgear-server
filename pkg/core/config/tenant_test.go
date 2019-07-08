@@ -379,5 +379,21 @@ user_config:
 			So(c.UserConfig.APIKey, ShouldEqual, "your_api_key")
 			So(c.UserConfig.MasterKey, ShouldEqual, "your_master_key")
 		})
+		Convey("should set OAuth provider id and default scope", func() {
+			c := fullTenantConfig
+			c.UserConfig.SSO.OAuth.Providers = []OAuthProviderConfiguration{
+				OAuthProviderConfiguration{
+					Type:         OAuthProviderTypeGoogle,
+					ClientID:     "googleclientid",
+					ClientSecret: "googleclientsecret",
+				},
+			}
+			c.AfterUnmarshal()
+
+			google := c.UserConfig.SSO.OAuth.Providers[0]
+
+			So(google.ID, ShouldEqual, OAuthProviderTypeGoogle)
+			So(google.Scope, ShouldEqual, "profile email")
+		})
 	})
 }

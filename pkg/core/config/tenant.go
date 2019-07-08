@@ -425,6 +425,43 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.AppConfig.SMTP.Mode == "" {
 		c.AppConfig.SMTP.Mode = SMTPModeNormal
 	}
+
+	// Set type to id
+	// Set default scope for OAuth Provider
+	for i, provider := range c.UserConfig.SSO.OAuth.Providers {
+		if provider.ID == "" {
+			c.UserConfig.SSO.OAuth.Providers[i].ID = string(provider.Type)
+		}
+		switch provider.Type {
+		case OAuthProviderTypeGoogle:
+			if provider.Scope == "" {
+				// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "profile email"
+			}
+		case OAuthProviderTypeFacebook:
+			if provider.Scope == "" {
+				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
+				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "default email"
+			}
+		case OAuthProviderTypeInstagram:
+			if provider.Scope == "" {
+				// https://www.instagram.com/developer/authorization/
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "basic"
+			}
+		case OAuthProviderTypeLinkedIn:
+			if provider.Scope == "" {
+				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context
+				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "r_liteprofile r_emailaddress"
+			}
+		case OAuthProviderTypeAzureADv2:
+			if provider.Scope == "" {
+				// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "profile email"
+			}
+		}
+	}
 }
 
 func GetTenantConfig(r *http.Request) TenantConfiguration {
