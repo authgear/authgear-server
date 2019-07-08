@@ -12,6 +12,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
+	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -57,23 +58,24 @@ func TestLinkHandler(t *testing.T) {
 		sh := &LinkHandler{}
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
-		setting := sso.Setting{
+		oauthConfig := coreconfig.OAuthConfiguration{
 			URLPrefix:      "http://localhost:3000",
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
 			},
 		}
-		config := sso.Config{
-			Name:         providerName,
+		providerConfig := coreconfig.OAuthProviderConfiguration{
+			ID:           providerName,
+			Type:         "google",
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
-			BaseURL:  "http://mock/auth",
-			Setting:  setting,
-			Config:   config,
-			UserInfo: providerUserInfo,
+			BaseURL:        "http://mock/auth",
+			OAuthConfig:    oauthConfig,
+			ProviderConfig: providerConfig,
+			UserInfo:       providerUserInfo,
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(

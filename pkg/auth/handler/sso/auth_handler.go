@@ -22,6 +22,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -46,9 +47,8 @@ func (f AuthHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &AuthHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
-	h.ProviderName = vars["provider"]
-	h.Provider = h.ProviderFactory.NewProvider(h.ProviderName)
-	h.SSOSetting = h.ProviderFactory.Setting()
+	h.ProviderID = vars["provider"]
+	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
 	return h
 }
 
@@ -59,7 +59,7 @@ func (f AuthHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 // AuthRequestPayload login handler request payload
 type AuthRequestPayload struct {
 	Code         string
-	Scope        sso.Scope
+	Scope        string
 	EncodedState string
 }
 
@@ -102,16 +102,16 @@ type AuthHandler struct {
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
 	ProviderFactory         *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
 	UserProfileStore        userprofile.Store           `dependency:"UserProfileStore"`
+	OAuthConfiguration      config.OAuthConfiguration   `dependency:"OAuthConfiguration"`
 	Provider                sso.Provider
-	SSOSetting              sso.Setting
-	ProviderName            string
+	ProviderID              string
 }
 
 func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := AuthRequestPayload{}
 	q := request.URL.Query()
 	payload.Code = q.Get("code")
-	payload.Scope = strings.Split(q.Get("scope"), " ")
+	payload.Scope = q.Get("scope")
 	payload.EncodedState = q.Get("state")
 
 	return payload, nil
@@ -123,7 +123,7 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	var resp interface{}
 
 	if h.Provider == nil {
-		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
+		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -199,7 +199,6 @@ func (h AuthHandler) getResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err 
 		IdentityProvider:     h.IdentityProvider,
 		UserProfileStore:     h.UserProfileStore,
 		UserID:               oauthAuthInfo.State.UserID,
-		Settings:             h.SSOSetting,
 	}
 
 	if oauthAuthInfo.State.Action == "login" {
@@ -316,7 +315,7 @@ func (c authHandlerRespContext) generateResp() interface{} {
 }
 
 func (h AuthHandler) sendResp(rw http.ResponseWriter, r *http.Request, c authHandlerRespContext) (err error) {
-	if err = h.validateCallbackURL(h.SSOSetting.AllowedCallbackURLs, c.callbackURL); err != nil {
+	if err = h.validateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, c.callbackURL); err != nil {
 		// there is no callback url for redirect, send 400 bad request instead
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return

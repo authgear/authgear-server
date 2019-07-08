@@ -1,44 +1,38 @@
 package sso
 
 import (
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 type LinkedInImpl struct {
-	Setting Setting
-	Config  Config
+	OAuthConfig    config.OAuthConfiguration
+	ProviderConfig config.OAuthProviderConfiguration
 }
 
 func (f *LinkedInImpl) GetAuthURL(params GetURLParams) (string, error) {
-	if f.Config.ClientID == "" {
+	if f.ProviderConfig.ClientID == "" {
 		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
 		return "", skyErr
 	}
 	p := authURLParams{
-		providerName:   f.Config.Name,
-		clientID:       f.Config.ClientID,
-		urlPrefix:      f.Setting.URLPrefix,
-		scope:          GetScope(params.Scope, f.Config.Scope),
+		oauthConfig:    f.OAuthConfig,
+		providerConfig: f.ProviderConfig,
 		options:        params.Options,
-		stateJWTSecret: f.Setting.StateJWTSecret,
 		state:          NewState(params),
-		baseURL:        BaseURL(f.Config.Name),
+		baseURL:        BaseURL(f.ProviderConfig),
 	}
 	return authURL(p)
 }
 
-func (f *LinkedInImpl) GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error) {
+func (f *LinkedInImpl) GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		providerName:   f.Config.Name,
-		clientID:       f.Config.ClientID,
-		clientSecret:   f.Config.ClientSecret,
-		urlPrefix:      f.Setting.URLPrefix,
+		oauthConfig:    f.OAuthConfig,
+		providerConfig: f.ProviderConfig,
 		code:           code,
-		scope:          scope,
-		stateJWTSecret: f.Setting.StateJWTSecret,
 		encodedState:   encodedState,
-		accessTokenURL: AccessTokenURL(f.Config.Name),
-		userProfileURL: UserProfileURL(f.Config.Name),
+		accessTokenURL: AccessTokenURL(f.ProviderConfig),
+		userProfileURL: UserProfileURL(f.ProviderConfig),
 		processor:      newDefaultAuthInfoProcessor(),
 	}
 	return h.getAuthInfo()
@@ -46,13 +40,10 @@ func (f *LinkedInImpl) GetAuthInfo(code string, scope Scope, encodedState string
 
 func (f *LinkedInImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
-		providerName:   f.Config.Name,
-		clientID:       f.Config.ClientID,
-		clientSecret:   f.Config.ClientSecret,
-		urlPrefix:      f.Setting.URLPrefix,
-		stateJWTSecret: f.Setting.StateJWTSecret,
-		accessTokenURL: AccessTokenURL(f.Config.Name),
-		userProfileURL: UserProfileURL(f.Config.Name),
+		oauthConfig:    f.OAuthConfig,
+		providerConfig: f.ProviderConfig,
+		accessTokenURL: AccessTokenURL(f.ProviderConfig),
+		userProfileURL: UserProfileURL(f.ProviderConfig),
 		processor:      newDefaultAuthInfoProcessor(),
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)

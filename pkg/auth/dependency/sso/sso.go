@@ -1,13 +1,8 @@
 package sso
 
 import (
-	"strings"
-
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
-
-// Scope parameter allows the application to express the desired scope of the access request.
-type Scope []string
 
 // Options parameter allows additional options for getting auth url
 type Options map[string]interface{}
@@ -66,7 +61,6 @@ func UXModeFromString(input string) (u UXMode) {
 
 // GetURLParams structs parameters for GetLoginAuthURL
 type GetURLParams struct {
-	Scope       Scope
 	Options     Options
 	CallbackURL string
 	UXMode      UXMode
@@ -74,26 +68,9 @@ type GetURLParams struct {
 	Action      string
 }
 
-// Setting is the base settings for SSO
-type Setting struct {
-	URLPrefix           string
-	JSSDKCDNURL         string
-	StateJWTSecret      string
-	AutoLinkEnabled     bool
-	AllowedCallbackURLs []string
-}
-
-// Config is the base config of a SSO provider
-type Config struct {
-	Name         string
-	ClientID     string
-	ClientSecret string
-	Scope        Scope
-}
-
 // AuthInfo contains auth info from HandleAuthzResp
 type AuthInfo struct {
-	ProviderName            string
+	ProviderConfig          config.OAuthProviderConfiguration
 	ProviderRawProfile      map[string]interface{}
 	ProviderAccessTokenResp interface{}
 	ProviderUserInfo        ProviderUserInfo
@@ -108,7 +85,8 @@ type ProviderUserInfo struct {
 // Provider defines SSO interface
 type Provider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
-	GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error)
+	// TODO: Remove scope
+	GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error)
 	GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error)
 }
 
@@ -122,58 +100,32 @@ func NewProviderFactory(tenantConfig config.TenantConfiguration) *ProviderFactor
 	}
 }
 
-func (p *ProviderFactory) NewProvider(name string) Provider {
-	SSOConf, ok := p.tenantConfig.GetSSOProviderByName(name)
+func (p *ProviderFactory) NewProvider(id string) Provider {
+	providerConfig, ok := p.tenantConfig.GetOAuthProviderByID(id)
 	if !ok {
 		return nil
 	}
-	SSOSetting := p.tenantConfig.UserConfig.SSO
-	setting := Setting{
-		URLPrefix:           SSOSetting.URLPrefix,
-		JSSDKCDNURL:         SSOSetting.JSSDKCDNURL,
-		StateJWTSecret:      SSOSetting.StateJWTSecret,
-		AutoLinkEnabled:     SSOSetting.AutoLinkEnabled,
-		AllowedCallbackURLs: SSOSetting.AllowedCallbackURLs,
-	}
-	config := Config{
-		Name:         SSOConf.Name,
-		ClientID:     SSOConf.ClientID,
-		ClientSecret: SSOConf.ClientSecret,
-		Scope:        strings.Split(SSOConf.Scope, ","),
-	}
-
-	switch name {
-	case "google":
+	switch providerConfig.Type {
+	case config.OAuthProviderTypeGoogle:
 		return &GoogleImpl{
-			Setting: setting,
-			Config:  config,
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
 		}
-	case "facebook":
+	case config.OAuthProviderTypeFacebook:
 		return &FacebookImpl{
-			Setting: setting,
-			Config:  config,
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
 		}
-	case "instagram":
+	case config.OAuthProviderTypeInstagram:
 		return &InstagramImpl{
-			Setting: setting,
-			Config:  config,
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
 		}
-	case "linkedin":
+	case config.OAuthProviderTypeLinkedIn:
 		return &LinkedInImpl{
-			Setting: setting,
-			Config:  config,
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
 		}
 	}
 	return nil
-}
-
-func (p *ProviderFactory) Setting() Setting {
-	SSOSetting := p.tenantConfig.UserConfig.SSO
-	return Setting{
-		URLPrefix:           SSOSetting.URLPrefix,
-		JSSDKCDNURL:         SSOSetting.JSSDKCDNURL,
-		StateJWTSecret:      SSOSetting.StateJWTSecret,
-		AutoLinkEnabled:     SSOSetting.AutoLinkEnabled,
-		AllowedCallbackURLs: SSOSetting.AllowedCallbackURLs,
-	}
 }

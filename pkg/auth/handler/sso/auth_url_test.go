@@ -7,6 +7,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -68,28 +69,25 @@ func TestAuthURLHandler(t *testing.T) {
 	Convey("Test TestAuthURLHandler", t, func() {
 		h := &AuthURLHandler{}
 		h.AuthContext = auth.NewMockContextGetterWithDefaultUser()
-		setting := sso.Setting{
+		oauthConfig := coreconfig.OAuthConfiguration{
 			URLPrefix:      "http://localhost:3000/auth",
 			StateJWTSecret: "secret",
 		}
-		config := sso.Config{
-			Name:         "mock",
+		providerConfig := coreconfig.OAuthProviderConfiguration{
+			ID:           "mock",
+			Type:         "google",
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
+			Scope:        "openid profile email",
 		}
 		mockProvider := sso.MockSSOProvider{
-			BaseURL: "http://mock/auth",
-			Setting: setting,
-			Config:  config,
+			BaseURL:        "http://mock/auth",
+			OAuthConfig:    oauthConfig,
+			ProviderConfig: providerConfig,
 		}
 		h.Provider = &mockProvider
 		h.Action = "login"
 		payload := AuthURLRequestPayload{
-			Scope: []string{
-				"openid",
-				"profile",
-				"email",
-			},
 			CallbackURL: "callbackURL",
 			UXMode:      sso.WebRedirect,
 			Options: map[string]interface{}{
@@ -147,25 +145,6 @@ func TestAuthURLHandler(t *testing.T) {
 				return []byte("secret"), nil
 			})
 			So(claims.State.Action, ShouldEqual, "link")
-		})
-
-		Convey("should use default scope when param scope is empty", func() {
-			config.Scope = []string{
-				"huasheng",
-				"zhima",
-			}
-			mockProvider.Config = config
-			// remove payload scope
-			payload.Scope = []string{}
-
-			resp, err := h.Handle(payload)
-			So(resp, ShouldNotBeNil)
-			So(err, ShouldBeNil)
-
-			// check querys
-			u, _ := url.Parse(resp.(string))
-			q := u.Query()
-			So(q.Get("scope"), ShouldEqual, "huasheng zhima")
 		})
 	})
 }

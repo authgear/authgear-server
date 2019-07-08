@@ -3,31 +3,29 @@ package sso
 import (
 	"fmt"
 	"net/url"
-	"strings"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type authURLParams struct {
-	providerName   string
-	clientID       string
-	urlPrefix      string
-	scope          Scope
+	oauthConfig    config.OAuthConfiguration
+	providerConfig config.OAuthProviderConfiguration
 	options        Options
-	stateJWTSecret string
 	state          State
 	baseURL        string
 }
 
 func authURL(params authURLParams) (string, error) {
-	encodedState, err := EncodeState(params.stateJWTSecret, params.state)
+	encodedState, err := EncodeState(params.oauthConfig.StateJWTSecret, params.state)
 	if err != nil {
 		return "", err
 	}
 	v := url.Values{}
 	v.Set("response_type", "code")
-	v.Add("client_id", params.clientID)
-	v.Add("redirect_uri", RedirectURI(params.urlPrefix, params.providerName))
+	v.Add("client_id", params.providerConfig.ClientID)
+	v.Add("redirect_uri", RedirectURI(params.oauthConfig, params.providerConfig))
 	v.Add("state", encodedState)
-	v.Add("scope", strings.Join(params.scope, " "))
+	v.Add("scope", params.providerConfig.Scope)
 	for k, o := range params.options {
 		v.Add(k, fmt.Sprintf("%v", o))
 	}

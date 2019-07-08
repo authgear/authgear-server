@@ -23,7 +23,6 @@ type respHandler struct {
 	IdentityProvider     principal.IdentityProvider
 	UserProfileStore     userprofile.Store
 	UserID               string
-	Settings             sso.Setting
 }
 
 func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
@@ -78,7 +77,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
 	// action => link
 	// check if provider user is already linked
-	_, err = h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserInfo.ID)
+	_, err = h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderConfig.ID, oauthAuthInfo.ProviderUserInfo.ID)
 	if err == nil {
 		err = skyerr.NewError(skyerr.InvalidArgument, "user linked to the provider already")
 		return resp, err
@@ -90,7 +89,7 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 	}
 
 	// check if user is already linked
-	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(oauthAuthInfo.ProviderName, h.UserID)
+	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(oauthAuthInfo.ProviderConfig.ID, h.UserID)
 	if err == nil {
 		err = skyerr.NewError(skyerr.InvalidArgument, "provider account already linked with existing user")
 		return resp, err
@@ -178,7 +177,7 @@ func (h respHandler) handleLogin(
 
 func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	// find oauth principal from principal_oauth
-	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderName, oauthAuthInfo.ProviderUserInfo.ID)
+	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderConfig.ID, oauthAuthInfo.ProviderUserInfo.ID)
 	if err != nil {
 		if err != skydb.ErrUserNotFound {
 			return nil, err
@@ -187,10 +186,11 @@ func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal
 		return principal, nil
 	}
 
+	// TODO(sso-duplicate)
 	// if oauth principal doesn't exist, try to link existed password principal
-	if h.Settings.AutoLinkEnabled && h.PasswordAuthProvider.IsDefaultAllowedRealms() {
-		return h.authLinkUser(oauthAuthInfo)
-	}
+	// if h.Settings.AutoLinkEnabled && h.PasswordAuthProvider.IsDefaultAllowedRealms() {
+	// 	return h.authLinkUser(oauthAuthInfo)
+	// }
 
 	return nil, nil
 }
@@ -228,7 +228,7 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 	now := timeNow()
 	principal := oauth.NewPrincipal()
 	principal.UserID = userID
-	principal.ProviderName = oauthAuthInfo.ProviderName
+	principal.ProviderName = oauthAuthInfo.ProviderConfig.ID
 	principal.ProviderUserID = oauthAuthInfo.ProviderUserInfo.ID
 	principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
 	principal.UserProfile = oauthAuthInfo.ProviderRawProfile

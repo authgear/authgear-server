@@ -5,6 +5,8 @@ import (
 	"net/url"
 
 	"github.com/franela/goreq"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 type AccessTokenResp struct {
@@ -13,25 +15,22 @@ type AccessTokenResp struct {
 	ExpiresIn   int    `json:"expires_in,omitempty"`
 	// Facebook uses "expires" instead of "expires_in"
 	RawExpires   int    `json:"expires,omitempty"`
-	Scope        Scope  `json:"-"`
-	RawScope     string `json:"scope"`
+	Scope        string `json:"scope"`
 	RefreshToken string `json:"refresh_token"`
 }
 
 func fetchAccessTokenResp(
 	code string,
-	clientID string,
-	urlPrefix string,
-	providerName string,
-	clientSecret string,
 	accessTokenURL string,
+	oauthConfig config.OAuthConfiguration,
+	providerConfig config.OAuthProviderConfiguration,
 ) (r io.Reader, err error) {
 	v := url.Values{}
 	v.Set("grant_type", "authorization_code")
 	v.Add("code", code)
-	v.Add("redirect_uri", RedirectURI(urlPrefix, providerName))
-	v.Add("client_id", clientID)
-	v.Add("client_secret", clientSecret)
+	v.Add("redirect_uri", RedirectURI(oauthConfig, providerConfig))
+	v.Add("client_id", providerConfig.ClientID)
+	v.Add("client_secret", providerConfig.ClientSecret)
 
 	res, err := goreq.Request{
 		Uri:         accessTokenURL,

@@ -9,28 +9,29 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skydb"
 )
 
 type providerImpl struct {
-	sqlBuilder  db.SQLBuilder
-	sqlExecutor db.SQLExecutor
-	logger      *logrus.Entry
-	secret      string
+	sqlBuilder        db.SQLBuilder
+	sqlExecutor       db.SQLExecutor
+	logger            *logrus.Entry
+	customTokenConfig config.CustomTokenConfiguration
 }
 
 func newProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	secret string,
+	customTokenConfig config.CustomTokenConfiguration,
 ) *providerImpl {
 	return &providerImpl{
-		sqlBuilder:  builder,
-		sqlExecutor: executor,
-		logger:      logger,
-		secret:      secret,
+		sqlBuilder:        builder,
+		sqlExecutor:       executor,
+		logger:            logger,
+		customTokenConfig: customTokenConfig,
 	}
 }
 
@@ -38,9 +39,9 @@ func NewProvider(
 	builder db.SQLBuilder,
 	executor db.SQLExecutor,
 	logger *logrus.Entry,
-	secret string,
+	customTokenConfig config.CustomTokenConfiguration,
 ) Provider {
-	return newProvider(builder, executor, logger, secret)
+	return newProvider(builder, executor, logger, customTokenConfig)
 }
 
 func (p providerImpl) Decode(tokenString string) (claims SSOCustomTokenClaims, err error) {
@@ -51,7 +52,7 @@ func (p providerImpl) Decode(tokenString string) (claims SSOCustomTokenClaims, e
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, errors.New("fails to parse token")
 			}
-			return []byte(p.secret), nil
+			return []byte(p.customTokenConfig.Secret), nil
 		},
 	)
 

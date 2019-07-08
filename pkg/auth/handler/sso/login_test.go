@@ -59,23 +59,24 @@ func TestLoginHandler(t *testing.T) {
 		sh := &LoginHandler{}
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
-		setting := sso.Setting{
+		oauthConfig := coreconfig.OAuthConfiguration{
 			URLPrefix:      "http://localhost:3000",
 			StateJWTSecret: stateJWTSecret,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
 			},
 		}
-		config := sso.Config{
-			Name:         providerName,
+		providerConfig := coreconfig.OAuthProviderConfiguration{
+			ID:           providerName,
+			Type:         "google",
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
-			BaseURL:  "http://mock/auth",
-			Setting:  setting,
-			Config:   config,
-			UserInfo: sso.ProviderUserInfo{ID: providerUserID},
+			BaseURL:        "http://mock/auth",
+			OAuthConfig:    oauthConfig,
+			ProviderConfig: providerConfig,
+			UserInfo:       sso.ProviderUserInfo{ID: providerUserID},
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(

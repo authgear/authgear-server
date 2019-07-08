@@ -3,7 +3,6 @@ package sso
 import (
 	"encoding/json"
 	"io"
-	"strings"
 )
 
 type AuthInfoProcessor interface {
@@ -24,7 +23,6 @@ func (d defaultAuthInfoProcessor) DecodeAccessTokenResp(r io.Reader) (AccessToke
 	if err != nil {
 		return accessTokenResp, err
 	}
-	accessTokenResp.Scope = strings.Split(accessTokenResp.RawScope, " ")
 	return accessTokenResp, err
 }
 

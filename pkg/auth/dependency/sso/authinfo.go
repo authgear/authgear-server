@@ -1,25 +1,25 @@
 package sso
 
+import (
+	"github.com/skygeario/skygear-server/pkg/core/config"
+)
+
 type getAuthInfoRequest struct {
-	providerName   string
-	clientID       string
-	clientSecret   string
-	urlPrefix      string
+	oauthConfig    config.OAuthConfiguration
+	providerConfig config.OAuthProviderConfiguration
 	code           string
-	scope          Scope
-	stateJWTSecret string
-	encodedState   string
 	accessTokenURL string
+	encodedState   string
 	userProfileURL string
 	processor      AuthInfoProcessor
 }
 
 func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{
-		ProviderName: h.providerName,
+		ProviderConfig: h.providerConfig,
 	}
 
-	state, err := DecodeState(h.stateJWTSecret, h.encodedState)
+	state, err := DecodeState(h.oauthConfig.StateJWTSecret, h.encodedState)
 	if err != nil {
 		return
 	}
@@ -27,11 +27,9 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 
 	r, err := fetchAccessTokenResp(
 		h.code,
-		h.clientID,
-		h.urlPrefix,
-		h.providerName,
-		h.clientSecret,
 		h.accessTokenURL,
+		h.oauthConfig,
+		h.providerConfig,
 	)
 	if err != nil {
 		return
@@ -53,14 +51,14 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 
 func (h getAuthInfoRequest) getAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{
-		ProviderName: h.providerName,
+		ProviderConfig: h.providerConfig,
 		// validated accessTokenResp
 		ProviderAccessTokenResp: accessTokenResp,
 	}
 
 	var state State
 	if h.encodedState != "" {
-		state, err = DecodeState(h.stateJWTSecret, h.encodedState)
+		state, err = DecodeState(h.oauthConfig.StateJWTSecret, h.encodedState)
 		if err != nil {
 			return
 		}
