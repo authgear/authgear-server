@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
