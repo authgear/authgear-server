@@ -1,12 +1,13 @@
 package sso
 
 import (
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
@@ -19,6 +20,7 @@ type respHandler struct {
 	AuthInfoStore        authinfo.Store
 	OAuthAuthProvider    oauth.Provider
 	PasswordAuthProvider password.Provider
+	IdentityProvider     principal.IdentityProvider
 	UserProfileStore     userprofile.Store
 	UserID               string
 	Settings             sso.Setting
@@ -57,11 +59,12 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 		panic(err)
 	}
 
-	respFactory := response.AuthResponseFactory{}
-	resp = respFactory.NewAuthResponse(info, userProfile, token.AccessToken)
+	user := model.NewUser(info, userProfile, model.NewIdentity(h.IdentityProvider, principal))
+	resp = model.NewAuthResponse(user, token.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()
+	info.LastLoginAt = &now
 	info.LastSeenAt = &now
 	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
 		err = skyerr.MakeError(err)
@@ -161,6 +164,11 @@ func (h respHandler) handleLogin(
 				return
 			}
 			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
+			return
+		}
+		info.LastLoginAt = &now
+		if e := h.AuthInfoStore.UpdateAuth(info); e != nil {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "Unable to update user")
 			return
 		}
 	}

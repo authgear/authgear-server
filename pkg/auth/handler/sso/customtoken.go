@@ -2,13 +2,14 @@ package sso
 
 import (
 	"encoding/json"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -104,14 +105,15 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type CustomTokenLoginHandler struct {
-	TxContext               db.TxContext         `dependency:"TxContext"`
-	UserProfileStore        userprofile.Store    `dependency:"UserProfileStore"`
-	TokenStore              authtoken.Store      `dependency:"TokenStore"`
-	AuthInfoStore           authinfo.Store       `dependency:"AuthInfoStore"`
-	CustomTokenAuthProvider customtoken.Provider `dependency:"CustomTokenAuthProvider"`
-	WelcomeEmailEnabled     bool                 `dependency:"WelcomeEmailEnabled"`
-	AuditTrail              audit.Trail          `dependency:"AuditTrail"`
-	TaskQueue               async.Queue          `dependency:"AsyncTaskQueue"`
+	TxContext               db.TxContext               `dependency:"TxContext"`
+	UserProfileStore        userprofile.Store          `dependency:"UserProfileStore"`
+	TokenStore              authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore           authinfo.Store             `dependency:"AuthInfoStore"`
+	CustomTokenAuthProvider customtoken.Provider       `dependency:"CustomTokenAuthProvider"`
+	IdentityProvider        principal.IdentityProvider `dependency:"IdentityProvider"`
+	WelcomeEmailEnabled     bool                       `dependency:"WelcomeEmailEnabled"`
+	AuditTrail              audit.Trail                `dependency:"AuditTrail"`
+	TaskQueue               async.Queue                `dependency:"AsyncTaskQueue"`
 }
 
 func (h CustomTokenLoginHandler) WithTx() bool {
@@ -190,8 +192,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		panic(err)
 	}
 
-	userFactory := response.UserFactory{}
-	user := userFactory.NewUser(info, userProfile)
+	user := model.NewUser(info, userProfile, model.NewIdentity(h.IdentityProvider, principal))
 
 	// Populate the activity time to user
 	now := timeNow()
@@ -206,7 +207,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		h.sendWelcomeEmail(user)
 	}
 
-	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
+	resp = model.NewAuthResponse(user, tkn.AccessToken)
 
 	return
 }
@@ -227,8 +228,8 @@ func (h CustomTokenLoginHandler) handleLogin(
 		createNewUser = true
 	}
 
+	now := timeNow()
 	if createNewUser {
-		now := timeNow()
 		*info = authinfo.NewAuthInfo()
 		info.LastLoginAt = &now
 
@@ -265,6 +266,11 @@ func (h CustomTokenLoginHandler) handleLogin(
 			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
 			return
 		}
+		info.LastLoginAt = &now
+		if e := h.AuthInfoStore.UpdateAuth(info); e != nil {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "Unable to update user")
+			return
+		}
 	}
 
 	// Create Profile
@@ -286,7 +292,7 @@ func (h CustomTokenLoginHandler) handleLogin(
 	return
 }
 
-func (h CustomTokenLoginHandler) sendWelcomeEmail(user response.User) {
+func (h CustomTokenLoginHandler) sendWelcomeEmail(user model.User) {
 	if email, ok := user.Metadata["email"].(string); ok {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
 			Email: email,

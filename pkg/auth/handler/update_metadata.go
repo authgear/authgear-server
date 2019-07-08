@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -81,11 +82,12 @@ func (p UpdateMetadataRequestPayload) Validate() error {
 //   "metadata": {}
 // }
 type UpdateMetadataHandler struct {
-	AuthContext          coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	AuthInfoStore        authinfo.Store         `dependency:"AuthInfoStore"`
-	TxContext            db.TxContext           `dependency:"TxContext"`
-	UserProfileStore     userprofile.Store      `dependency:"UserProfileStore"`
-	PasswordAuthProvider password.Provider      `dependency:"PasswordAuthProvider"`
+	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	TxContext            db.TxContext               `dependency:"TxContext"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 }
 
 func (h UpdateMetadataHandler) WithTx() bool {
@@ -129,12 +131,17 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	token := h.AuthContext.Token().AccessToken
-
-	respFactory := response.AuthResponseFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
+	if currentUserID == updateUserID {
+		var principal principal.Principal
+		if principal, err = h.IdentityProvider.GetPrincipalByID(h.AuthContext.Token().PrincipalID); err != nil {
+			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to get user identity")
+			return
+		}
+		identity := authModel.NewIdentity(h.IdentityProvider, principal)
+		resp = authModel.NewUser(authInfo, profile, identity)
+	} else {
+		resp = authModel.NewUserWithoutIdentity(authInfo, profile)
 	}
-	resp = respFactory.NewAuthResponse(authInfo, profile, token)
 
 	return
 }

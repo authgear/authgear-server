@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -14,7 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 )
 
 const (
@@ -48,6 +49,7 @@ type VerifyCodeSendTask struct {
 	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
 	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
 	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
+	IdentityProvider         principal.IdentityProvider   `dependency:"IdentityProvider"`
 	TxContext                db.TxContext                 `dependency:"TxContext"`
 	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
 }
@@ -84,11 +86,6 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 		return
 	}
 
-	userFactory := response.UserFactory{
-		PasswordAuthProvider: v.PasswordAuthProvider,
-	}
-	user := userFactory.NewUser(authInfo, userProfile)
-
 	// We don't check realms. i.e. Verifying a email means every email login IDs
 	// of that email is verified, regardless the realm.
 	principals, err := v.PasswordAuthProvider.GetPrincipalsByLoginID("", loginID)
@@ -114,6 +111,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	}
 
 	codeSender := v.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
+	user := model.NewUser(authInfo, userProfile, model.NewIdentity(v.IdentityProvider, userPrincipal))
 	if err = codeSender.Send(*verifyCode, user); err != nil {
 		v.Logger.WithFields(logrus.Fields{
 			"error":        err,

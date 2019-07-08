@@ -19,16 +19,16 @@ func NewMockContextGetter() ContextGetter {
 
 // NewMockContextGetterWithDefaultUser creates auth context with default user
 func NewMockContextGetterWithDefaultUser() ContextGetter {
-	return NewMockContextGetterWithUser("faseng.cat.id", true, map[string]bool{})
+	return NewMockContextGetterWithUser("faseng.cat.id", "faseng.cat.principal.id", true, map[string]bool{})
 }
 
 // NewMockContextGetterWithUnverifiedUser creates auth context with unverified user
 func NewMockContextGetterWithUnverifiedUser(verifyInfo map[string]bool) ContextGetter {
-	return NewMockContextGetterWithUser("faseng.cat.id", false, verifyInfo)
+	return NewMockContextGetterWithUser("faseng.cat.id", "faseng.cat.principal.id", false, verifyInfo)
 }
 
 // NewMockContextGetterWithUser creates auth context with user
-func NewMockContextGetterWithUser(userID string, verified bool, verifyInfo map[string]bool) ContextGetter {
+func NewMockContextGetterWithUser(userID string, principalID string, verified bool, verifyInfo map[string]bool) ContextGetter {
 	container := &contextContainer{
 		accessKeyType: model.APIAccessKey,
 		authInfo: &authinfo.AuthInfo{
@@ -38,6 +38,7 @@ func NewMockContextGetterWithUser(userID string, verified bool, verifyInfo map[s
 		},
 		token: &authtoken.Token{
 			AccessToken: "faseng_access_token",
+			PrincipalID: principalID,
 		},
 	}
 	return &MockContext{container: container}

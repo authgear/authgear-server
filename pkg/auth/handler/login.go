@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -71,12 +72,13 @@ func (p LoginRequestPayload) Validate() error {
 
 // LoginHandler handles login request
 type LoginHandler struct {
-	TokenStore           authtoken.Store   `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store    `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider `dependency:"PasswordAuthProvider"`
-	UserProfileStore     userprofile.Store `dependency:"UserProfileStore"`
-	AuditTrail           audit.Trail       `dependency:"AuditTrail"`
-	TxContext            db.TxContext      `dependency:"TxContext"`
+	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
+	TxContext            db.TxContext               `dependency:"TxContext"`
 }
 
 func (h LoginHandler) WithTx() bool {
@@ -175,11 +177,6 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	respFactory := response.AuthResponseFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-	resp = respFactory.NewAuthResponse(fetchedAuthInfo, userProfile, token.AccessToken)
-
 	// Populate the activity time to user
 	now := timeNow()
 	fetchedAuthInfo.LastLoginAt = &now
@@ -188,6 +185,9 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		err = skyerr.MakeError(err)
 		return
 	}
+
+	user := model.NewUser(fetchedAuthInfo, userProfile, model.NewIdentity(h.IdentityProvider, &principal))
+	resp = model.NewAuthResponse(user, token.AccessToken)
 
 	return
 }

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
@@ -32,7 +33,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		userID := "john.doe.id"
 
 		uh := &UpdateMetadataHandler{}
-		uh.AuthContext = auth.NewMockContextGetterWithUser(userID, true, map[string]bool{})
+		uh.AuthContext = auth.NewMockContextGetterWithUser(userID, "john.doe.principal.id0", true, map[string]bool{})
 		uh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				userID: authinfo.AuthInfo{
@@ -61,6 +62,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "username",
 					LoginID:        "john.doe",
+					Realm:          "default",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 				"john.doe.principal.id1": password.Principal{
@@ -68,11 +70,13 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					UserID:         "john.doe.id",
 					LoginIDKey:     "email",
 					LoginID:        "john.doe@example.com",
+					Realm:          "default",
 					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
 			},
 		)
 		uh.PasswordAuthProvider = passwordAuthProvider
+		uh.IdentityProvider = principal.NewMockIdentityProvider(uh.PasswordAuthProvider)
 		uh.TxContext = db.NewMockTxContext()
 		h := handler.APIHandlerToHandler(uh, uh.TxContext)
 
@@ -93,24 +97,26 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "faseng_access_token",
-					"verified":true,
-					"verify_info":{},
+					"id": "%s",
+					"is_verified": true,
+					"is_disabled": false,
 					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
+					"verify_info": {},
 					"metadata": {
 						"username": "john.doe",
 						"email": "john.doe@example.com",
 						"age": 24
+					},
+					"identity": {
+						"id": "john.doe.principal.id0",
+						"type": "password",
+						"login_id_key": "username",
+						"login_id": "john.doe",
+						"realm": "default",
+						"claims": {}
 					}
 				}
-			}`,
-				userID,
-				userID,
-				userID))
+			}`, userID))
 		})
 
 		Convey("should allow to delete attributes in metadata", func() {
@@ -123,33 +129,34 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"age":      30,
 					"love":     "cat"
 				}
-			}`,
-				userID)))
+			}`, userID)))
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "faseng_access_token",
-					"verified":true,
-					"verify_info":{},
+					"id": "%s",
+					"is_verified": true,
+					"is_disabled": false,
 					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
+					"verify_info": {},
 					"metadata": {
 						"username": "john.doe",
 						"email": "john.doe@example.com",
 						"age": 30,
 						"love": "cat"
+					},
+					"identity": {
+						"id": "john.doe.principal.id0",
+						"type": "password",
+						"login_id_key": "username",
+						"login_id": "john.doe",
+						"realm": "default",
+						"claims": {}
 					}
 				}
-			}`,
-				userID,
-				userID,
-				userID))
+			}`, userID))
 
 			req, _ = http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
 			{
@@ -158,31 +165,32 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"username": "john.doe",
 					"email":    "john.doe@example.com"
 				}
-			}`,
-				userID)))
+			}`, userID)))
 			resp = httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "faseng_access_token",
-					"verified":true,
-					"verify_info":{},
+					"id": "%s",
+					"is_verified": true,
+					"is_disabled": false,
 					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
+					"verify_info": {},
 					"metadata": {
 						"username": "john.doe",
 						"email": "john.doe@example.com"
+					},
+					"identity": {
+						"id": "john.doe.principal.id0",
+						"type": "password",
+						"login_id_key": "username",
+						"login_id": "john.doe",
+						"realm": "default",
+						"claims": {}
 					}
 				}
-			}`,
-				userID,
-				userID,
-				userID))
+			}`, userID))
 		})
 
 		Convey("shouldn't update another user's metadata", func() {
@@ -276,24 +284,19 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "faseng_access_token",
-					"verified":true,
-					"verify_info":{},
+					"id": "%s",
+					"is_verified": true,
+					"is_disabled": false,
 					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
+					"verify_info": {},
 					"metadata": {
 						"username": "john.doe",
 						"email": "john.doe@example.com",
 						"age": 25
-					}
+					},
+					"identity": null
 				}
-			}`,
-				userID,
-				userID,
-				userID))
+			}`, userID))
 		})
 	})
 }

@@ -2,6 +2,7 @@ package forgotpwd
 
 import (
 	"encoding/json"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
@@ -9,7 +10,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -74,12 +75,13 @@ func (payload ForgotPasswordPayload) Validate() error {
 //  }
 //  EOF
 type ForgotPasswordHandler struct {
-	TxContext                 db.TxContext          `dependency:"TxContext"`
-	ForgotPasswordEmailSender forgotpwdemail.Sender `dependency:"ForgotPasswordEmailSender"`
-	PasswordAuthProvider      password.Provider     `dependency:"PasswordAuthProvider"`
-	AuthInfoStore             authinfo.Store        `dependency:"AuthInfoStore"`
-	UserProfileStore          userprofile.Store     `dependency:"UserProfileStore"`
-	SecureMatch               bool                  `dependency:"ForgotPasswordSecureMatch"`
+	TxContext                 db.TxContext               `dependency:"TxContext"`
+	ForgotPasswordEmailSender forgotpwdemail.Sender      `dependency:"ForgotPasswordEmailSender"`
+	PasswordAuthProvider      password.Provider          `dependency:"PasswordAuthProvider"`
+	IdentityProvider          principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore             authinfo.Store             `dependency:"AuthInfoStore"`
+	UserProfileStore          userprofile.Store          `dependency:"UserProfileStore"`
+	SecureMatch               bool                       `dependency:"ForgotPasswordSecureMatch"`
 }
 
 func (h ForgotPasswordHandler) WithTx() bool {
@@ -155,10 +157,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 			return
 		}
 
-		userFactory := response.UserFactory{
-			PasswordAuthProvider: h.PasswordAuthProvider,
-		}
-		user := userFactory.NewUser(fetchedAuthInfo, userProfile)
+		user := model.NewUser(fetchedAuthInfo, userProfile, model.NewIdentity(h.IdentityProvider, principal))
 
 		if err = h.ForgotPasswordEmailSender.Send(
 			payload.Email,

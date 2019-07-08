@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 )
 
 type AuthPayload struct {
@@ -15,7 +15,7 @@ type AuthPayload struct {
 
 func NewDefaultAuthPayload(
 	event string,
-	user response.User,
+	user model.User,
 	requestID string,
 	path string,
 	reqPayload interface{},
@@ -57,7 +57,7 @@ func (a AuthPayload) Encode() interface{} {
 }
 
 type AuthRespPayload struct {
-	User *response.User
+	User *model.User
 }
 
 func (a *AuthRespPayload) Decode(r io.Reader) error {

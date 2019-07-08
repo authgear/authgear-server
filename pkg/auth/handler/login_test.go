@@ -2,19 +2,21 @@ package handler
 
 import (
 	"fmt"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/core/config"
+
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -130,6 +132,7 @@ func TestLoginHandler(t *testing.T) {
 		h.AuthInfoStore = authInfoStore
 		h.TokenStore = tokenStore
 		h.PasswordAuthProvider = passwordAuthProvider
+		h.IdentityProvider = principal.NewMockIdentityProvider(h.PasswordAuthProvider)
 		h.AuditTrail = coreAudit.NewMockTrail(t)
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 
@@ -145,7 +148,7 @@ func TestLoginHandler(t *testing.T) {
 			resp, err := h.Handle(payload)
 			So(err, ShouldBeNil)
 
-			authResp, ok := resp.(response.AuthResponse)
+			authResp, ok := resp.(model.AuthResponse)
 			So(ok, ShouldBeTrue)
 			So(err, ShouldBeNil)
 
@@ -309,6 +312,7 @@ func TestLoginHandler(t *testing.T) {
 		mockTokenStore := authtoken.NewMockStore()
 		lh.TokenStore = mockTokenStore
 		lh.PasswordAuthProvider = passwordAuthProvider
+		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.AuditTrail = coreAudit.NewMockTrail(t)
 		profileData := map[string]map[string]interface{}{
 			userID: map[string]interface{}{},
@@ -317,7 +321,7 @@ func TestLoginHandler(t *testing.T) {
 		lh.TxContext = db.NewMockTxContext()
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
-		Convey("should contains multiple loginIDs", func() {
+		Convey("should contains current identity", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"login_id_key": "email",
@@ -331,21 +335,29 @@ func TestLoginHandler(t *testing.T) {
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "%s",
-					"verified": true,
-					"verify_info": {},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {}
+					"user": {
+						"id": "%s",
+						"is_verified": true,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {},
+						"identity": {
+							"id": "john.doe.principal.id1",
+							"type": "password",
+							"login_id_key": "email",
+							"login_id": "john.doe@example.com",
+							"realm": "default",
+							"claims": {}
+						}
+					},
+					"access_token": "%s"
 				}
 			}`,
 				userID,
 				token.AccessToken,
-				userID,
-				userID))
+			))
 		})
 	})
 }

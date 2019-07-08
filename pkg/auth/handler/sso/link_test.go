@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
@@ -80,6 +81,7 @@ func TestLinkHandler(t *testing.T) {
 			map[string]oauth.Principal{},
 		)
 		sh.OAuthAuthProvider = mockOAuthProvider
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				"faseng.cat.id": authinfo.AuthInfo{

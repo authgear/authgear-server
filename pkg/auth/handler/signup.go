@@ -19,7 +19,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -125,6 +125,7 @@ type SignupHandler struct {
 	AuthInfoStore           authinfo.Store                                     `dependency:"AuthInfoStore"`
 	PasswordAuthProvider    password.Provider                                  `dependency:"PasswordAuthProvider"`
 	AnonymousAuthProvider   anonymous.Provider                                 `dependency:"AnonymousAuthProvider"`
+	IdentityProvider        principal.IdentityProvider                         `dependency:"IdentityProvider"`
 	AuditTrail              audit.Trail                                        `dependency:"AuditTrail"`
 	WelcomeEmailEnabled     bool                                               `dependency:"WelcomeEmailEnabled"`
 	WelcomeEmailDestination config.WelcomeEmailDestination                     `dependency:"WelcomeEmailDestination"`
@@ -158,14 +159,14 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, nil
 }
 
-func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User) error {
+func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *model.User) error {
 	payload := req.(SignupRequestPayload)
 	inputUser.Metadata = payload.Metadata
 	err := h.HookStore.ExecBeforeHooksByEvent(hook.BeforeSignup, req, inputUser, "")
 	return err
 }
 
-func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) (resp interface{}, err error) {
+func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
 	err = h.verifyPayload(payload)
@@ -219,10 +220,7 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 		panic(err)
 	}
 
-	userFactory := response.UserFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-	user := userFactory.NewUser(info, userProfile)
+	user := model.NewUser(info, userProfile, model.NewIdentity(h.IdentityProvider, loginPrincipal))
 
 	// Populate the activity time to user
 	info.LastSeenAt = &now
@@ -238,14 +236,14 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 
 	*inputUser = user
 
-	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
+	resp = model.NewAuthResponse(user, tkn.AccessToken)
 
 	return
 }
 
-func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user response.User) error {
+func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user model.User) error {
 	reqPayload := req.(SignupRequestPayload)
-	respPayload := resp.(response.AuthResponse)
+	respPayload := resp.(model.AuthResponse)
 	err := h.HookStore.ExecAfterHooksByEvent(hook.AfterSignup, req, user, respPayload.AccessToken)
 	if err != nil {
 		return err
@@ -308,7 +306,7 @@ func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo a
 	return
 }
 
-func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs []password.LoginID) {
+func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []password.LoginID) {
 	supportedLoginIDs := []password.LoginID{}
 	for _, loginID := range loginIDs {
 		if h.PasswordAuthProvider.CheckLoginIDKeyType(loginID.Key, metadata.Email) {
@@ -334,13 +332,13 @@ func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs []password.
 	}
 }
 
-func (h SignupHandler) sendUserVerifyRequest(user response.User, loginIDs []password.LoginID) {
+func (h SignupHandler) sendUserVerifyRequest(user model.User, loginIDs []password.LoginID) {
 	for _, loginID := range loginIDs {
 		for key := range h.UserVerifyLoginIDKeys {
 			if key == loginID.Key {
 				h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
 					LoginID: loginID.Value,
-					UserID:  user.UserID,
+					UserID:  user.ID,
 				}, nil)
 			}
 		}

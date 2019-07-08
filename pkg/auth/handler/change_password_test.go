@@ -12,7 +12,6 @@ import (
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -41,13 +40,9 @@ func TestChangePasswordHandler(t *testing.T) {
 
 		lh := &ChangePasswordHandler{}
 		lh.AuditTrail = audit.NewMockTrail(t)
-		lh.AuthContext = auth.NewMockContextGetterWithUser(userID, true, map[string]bool{})
+		lh.AuthContext = auth.NewMockContextGetterWithUser(userID, "john.doe.principal.id0", true, map[string]bool{})
 		lh.AuthInfoStore = authinfo.NewMockStoreWithUser(userID)
 		lh.TokenStore = mockTokenStore
-		profileData := map[string]map[string]interface{}{
-			"john.doe.id": map[string]interface{}{},
-		}
-		lh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 		lh.TxContext = db.NewMockTxContext()
 		lh.PasswordChecker = &authAudit.PasswordChecker{
 			PwMinLength: 6,
@@ -89,21 +84,9 @@ func TestChangePasswordHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "%s",
-					"verified":true,
-					"verify_info":{},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {}
+					"access_token": "%s"
 				}
-			}`,
-				userID,
-				token.AccessToken,
-				userID,
-				userID))
+			}`, token.AccessToken))
 
 			// should enqueue pw housekeeper task
 			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)
