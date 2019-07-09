@@ -13,13 +13,13 @@ import (
 )
 
 type Provider interface {
-	GenerateVerifyCode(principal *password.Principal) (VerifyCode, error)
+	CreateVerifyCode(principal *password.Principal) (*VerifyCode, error)
 	VerifyUser(
 		passwordProvider password.Provider,
 		authStore authinfo.Store,
 		authInfo *authinfo.AuthInfo,
 		code string,
-	) (VerifyCode, error)
+	) (*VerifyCode, error)
 }
 
 type providerImpl struct {
@@ -43,16 +43,15 @@ func NewProvider(
 	}
 }
 
-func (provider *providerImpl) GenerateVerifyCode(principal *password.Principal) (verifyCode VerifyCode, err error) {
+func (provider *providerImpl) CreateVerifyCode(principal *password.Principal) (*VerifyCode, error) {
 	_, isValid := provider.config.LoginIDKeys[principal.LoginIDKey]
 	if !isValid {
-		err = skyerr.NewError(skyerr.InvalidArgument, "invalid login ID")
-		return
+		return nil, skyerr.NewError(skyerr.InvalidArgument, "invalid login ID")
 	}
 
 	code := provider.codeGenerator.Generate(principal.LoginIDKey)
 
-	verifyCode = NewVerifyCode()
+	verifyCode := NewVerifyCode()
 	verifyCode.UserID = principal.UserID
 	verifyCode.LoginIDKey = principal.LoginIDKey
 	verifyCode.LoginID = principal.LoginID
@@ -60,11 +59,11 @@ func (provider *providerImpl) GenerateVerifyCode(principal *password.Principal) 
 	verifyCode.Consumed = false
 	verifyCode.CreatedAt = provider.time.NowUTC()
 
-	if err = provider.store.CreateVerifyCode(&verifyCode); err != nil {
-		return
+	if err := provider.store.CreateVerifyCode(&verifyCode); err != nil {
+		return nil, err
 	}
 
-	return
+	return &verifyCode, nil
 }
 
 func (provider *providerImpl) VerifyUser(
@@ -72,21 +71,18 @@ func (provider *providerImpl) VerifyUser(
 	authStore authinfo.Store,
 	authInfo *authinfo.AuthInfo,
 	code string,
-) (verifyCode VerifyCode, err error) {
-	verifyCode, err = provider.store.GetVerifyCodeByUser(authInfo.ID)
+) (*VerifyCode, error) {
+	verifyCode, err := provider.store.GetVerifyCodeByUser(authInfo.ID)
 	if err != nil {
-		err = skyerr.NewError(skyerr.InvalidArgument, "invalid verification code")
-		return
+		return nil, skyerr.NewError(skyerr.InvalidArgument, "invalid verification code")
 	}
 
 	if !verifyCode.Check(code) {
-		err = skyerr.NewError(skyerr.InvalidArgument, "invalid verification code")
-		return
+		return nil, skyerr.NewError(skyerr.InvalidArgument, "invalid verification code")
 	}
 
 	if verifyCode.Consumed {
-		err = skyerr.NewError(skyerr.InvalidArgument, "invalid verification code")
-		return
+		return nil, skyerr.NewError(skyerr.InvalidArgument, "invalid verification code")
 	}
 
 	principals, err := passwordProvider.GetPrincipalsByLoginID(
@@ -105,29 +101,31 @@ func (provider *providerImpl) VerifyUser(
 	}
 
 	if err != nil || len(principals) == 0 {
-		err = skyerr.NewError(
+		return nil, skyerr.NewError(
 			skyerr.InvalidArgument,
 			"the login ID does not belong to the user",
 		)
-		return
 	}
 
 	expiryTime := provider.config.LoginIDKeys[verifyCode.LoginIDKey].Expiry
 	expireAt := verifyCode.CreatedAt.Add(gotime.Duration(expiryTime) * gotime.Second)
 	if provider.time.NowUTC().After(expireAt) {
-		err = skyerr.NewError(skyerr.InvalidArgument, "the code has expired")
-		return
+		return nil, skyerr.NewError(skyerr.InvalidArgument, "the code has expired")
 	}
 
 	err = provider.markUserVerified(passwordProvider, authStore, authInfo, verifyCode)
-	return
+	if err != nil {
+		return nil, err
+	}
+
+	return verifyCode, nil
 }
 
 func (provider *providerImpl) markUserVerified(
 	passwordProvider password.Provider,
 	authStore authinfo.Store,
 	authInfo *authinfo.AuthInfo,
-	verifyCode VerifyCode,
+	verifyCode *VerifyCode,
 ) (err error) {
 	if err = provider.store.MarkConsumed(verifyCode.ID); err != nil {
 		return

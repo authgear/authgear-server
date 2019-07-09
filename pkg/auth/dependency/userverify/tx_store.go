@@ -32,7 +32,7 @@ func (s *safeStoreImpl) MarkConsumed(codeID string) error {
 	return s.impl.MarkConsumed(codeID)
 }
 
-func (s *safeStoreImpl) GetVerifyCodeByUser(userID string) (VerifyCode, error) {
+func (s *safeStoreImpl) GetVerifyCodeByUser(userID string) (*VerifyCode, error) {
 	s.txContext.EnsureTx()
 	return s.impl.GetVerifyCodeByUser(userID)
 }

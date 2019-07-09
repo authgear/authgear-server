@@ -116,7 +116,7 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 		return
 	}
 
-	ctx.verifyCode = verifyCode
+	ctx.verifyCode = *verifyCode
 	return
 }
 

@@ -8,7 +8,7 @@ import (
 type Store interface {
 	CreateVerifyCode(code *VerifyCode) error
 	MarkConsumed(codeID string) error
-	GetVerifyCodeByUser(userID string) (VerifyCode, error)
+	GetVerifyCodeByUser(userID string) (*VerifyCode, error)
 }
 
 type storeImpl struct {
@@ -60,7 +60,7 @@ func (s *storeImpl) MarkConsumed(codeID string) (err error) {
 	return
 }
 
-func (s *storeImpl) GetVerifyCodeByUser(userID string) (VerifyCode, error) {
+func (s *storeImpl) GetVerifyCodeByUser(userID string) (*VerifyCode, error) {
 	builder := s.sqlBuilder.Select(
 		"id",
 		"code",
@@ -86,7 +86,7 @@ func (s *storeImpl) GetVerifyCodeByUser(userID string) (VerifyCode, error) {
 		&verifyCode.CreatedAt,
 	)
 
-	return verifyCode, err
+	return &verifyCode, err
 }
 
 var _ Store = &storeImpl{}

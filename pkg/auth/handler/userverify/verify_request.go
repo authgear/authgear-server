@@ -167,13 +167,13 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	verifyCode, err := h.UserVerificationProvider.GenerateVerifyCode(userPrincipal)
+	verifyCode, err := h.UserVerificationProvider.CreateVerifyCode(userPrincipal)
 	if err != nil {
 		return
 	}
 
 	codeSender := h.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
-	if err = codeSender.Send(verifyCode, user); err != nil {
+	if err = codeSender.Send(*verifyCode, user); err != nil {
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,
 			"login_id_key": userPrincipal.LoginIDKey,

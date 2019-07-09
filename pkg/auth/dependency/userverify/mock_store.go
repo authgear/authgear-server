@@ -25,14 +25,14 @@ func (m *MockStore) MarkConsumed(codeID string) error {
 	return errors.New("code not found")
 }
 
-func (m *MockStore) GetVerifyCodeByUser(userID string) (VerifyCode, error) {
+func (m *MockStore) GetVerifyCodeByUser(userID string) (*VerifyCode, error) {
 	for _, code := range m.CodeByID {
 		if code.UserID == userID {
-			return code, nil
+			return &code, nil
 		}
 	}
 
-	return VerifyCode{}, errors.New("code not found")
+	return nil, errors.New("code not found")
 }
 
 var _ Store = &MockStore{}
