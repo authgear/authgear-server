@@ -37,13 +37,10 @@ func IsValidUXMode(mode UXMode) bool {
 	return false
 }
 
-// GetURLParams structs parameters for GetLoginAuthURL
+// GetURLParams is the argument of getAuthURL
 type GetURLParams struct {
-	Options     Options
-	CallbackURL string
-	UXMode      UXMode
-	UserID      string
-	Action      string
+	Options Options
+	State   State
 }
 
 // AuthInfo contains auth info from HandleAuthzResp

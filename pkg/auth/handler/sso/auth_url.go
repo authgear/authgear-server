@@ -143,13 +143,15 @@ func (h AuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 	payload := req.(AuthURLRequestPayload)
 	params := sso.GetURLParams{
-		Options:     payload.Options,
-		CallbackURL: payload.CallbackURL,
-		UXMode:      payload.UXMode,
-		Action:      h.Action,
+		Options: payload.Options,
+		State: sso.State{
+			CallbackURL: payload.CallbackURL,
+			UXMode:      payload.UXMode,
+			Action:      h.Action,
+		},
 	}
 	if h.AuthContext.AuthInfo() != nil {
-		params.UserID = h.AuthContext.AuthInfo().ID
+		params.State.UserID = h.AuthContext.AuthInfo().ID
 	}
 	url, err := h.Provider.GetAuthURL(params)
 	if err != nil {

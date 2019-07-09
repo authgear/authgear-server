@@ -26,7 +26,7 @@ func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
 		return "", skyErr
 	}
-	if params.UXMode == UXModeWebPopup {
+	if params.State.UXMode == UXModeWebPopup {
 		// https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow
 		params.Options["display"] = "popup"
 	}
