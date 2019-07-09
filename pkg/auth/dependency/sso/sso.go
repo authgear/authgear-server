@@ -61,6 +61,17 @@ func IsValidOnUserDuplicate(input OnUserDuplicate) bool {
 	return false
 }
 
+// IsAllowedOnUserDuplicate checks if input is allowed
+func IsAllowedOnUserDuplicate(c config.OAuthConfiguration, input OnUserDuplicate) bool {
+	if !c.OnUserDuplicateAllowMerge && input == OnUserDuplicateMerge {
+		return false
+	}
+	if !c.OnUserDuplicateAllowCreate && input == OnUserDuplicateCreate {
+		return false
+	}
+	return true
+}
+
 // GetURLParams is the argument of getAuthURL
 type GetURLParams struct {
 	Options Options

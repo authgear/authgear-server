@@ -3,6 +3,8 @@ package sso
 import (
 	"testing"
 
+	"github.com/skygeario/skygear-server/pkg/core/config"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -27,5 +29,34 @@ func TestIsValidOnUserDuplicate(t *testing.T) {
 		So(IsValidOnUserDuplicate(OnUserDuplicateAbort), ShouldBeTrue)
 		So(IsValidOnUserDuplicate(OnUserDuplicateMerge), ShouldBeTrue)
 		So(IsValidOnUserDuplicate(OnUserDuplicateCreate), ShouldBeTrue)
+	})
+}
+
+func TestIsAllowedOnUserDuplicate(t *testing.T) {
+	Convey("Test IsAllowedOnUserDuplicate", t, func() {
+		c := config.OAuthConfiguration{}
+		f := IsAllowedOnUserDuplicate
+
+		So(f(c, OnUserDuplicateAbort), ShouldBeTrue)
+		So(f(c, OnUserDuplicateMerge), ShouldBeFalse)
+		So(f(c, OnUserDuplicateCreate), ShouldBeFalse)
+
+		c.OnUserDuplicateAllowMerge = true
+
+		So(f(c, OnUserDuplicateAbort), ShouldBeTrue)
+		So(f(c, OnUserDuplicateMerge), ShouldBeTrue)
+		So(f(c, OnUserDuplicateCreate), ShouldBeFalse)
+
+		c.OnUserDuplicateAllowCreate = true
+
+		So(f(c, OnUserDuplicateAbort), ShouldBeTrue)
+		So(f(c, OnUserDuplicateMerge), ShouldBeTrue)
+		So(f(c, OnUserDuplicateCreate), ShouldBeTrue)
+
+		c.OnUserDuplicateAllowMerge = false
+
+		So(f(c, OnUserDuplicateAbort), ShouldBeTrue)
+		So(f(c, OnUserDuplicateMerge), ShouldBeFalse)
+		So(f(c, OnUserDuplicateCreate), ShouldBeTrue)
 	})
 }
