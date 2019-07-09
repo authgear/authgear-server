@@ -7,12 +7,16 @@ import (
 // Options parameter allows additional options for getting auth url
 type Options map[string]interface{}
 
-// State parameter refers parameter of auth url
+// State is an opaque value used by the client to maintain
+// state between the request and callback.
+// See https://tools.ietf.org/html/rfc6749#section-4.1.1
 type State struct {
-	UXMode      UXMode `json:"ux_mode"`
-	CallbackURL string `json:"callback_url"`
-	Action      string `json:"action"`
-	UserID      string `json:"user_id,omitempty"`
+	UXMode          UXMode          `json:"ux_mode"`
+	CallbackURL     string          `json:"callback_url"`
+	Action          string          `json:"action"`
+	UserID          string          `json:"user_id,omitempty"`
+	MergeRealm      string          `json:"merge_realm,omitempty"`
+	OnUserDuplicate OnUserDuplicate `json:"on_user_duplicate,omitempty"`
 }
 
 // UXMode indicates how the URL is used

@@ -175,9 +175,11 @@ func (h AuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
 	params := sso.GetURLParams{
 		Options: payload.Options,
 		State: sso.State{
-			CallbackURL: payload.CallbackURL,
-			UXMode:      payload.UXMode,
-			Action:      h.Action,
+			CallbackURL:     payload.CallbackURL,
+			UXMode:          payload.UXMode,
+			Action:          h.Action,
+			MergeRealm:      payload.MergeRealm,
+			OnUserDuplicate: payload.OnUserDuplicate,
 		},
 	}
 	if h.AuthContext.AuthInfo() != nil {
