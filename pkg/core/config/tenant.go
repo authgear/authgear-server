@@ -319,6 +319,9 @@ func (c *TenantConfiguration) Validate() error {
 		if !verifyConfig.CodeFormat.IsValid() {
 			return errors.New("Invalid verify code format for login ID key: " + key)
 		}
+		if !verifyConfig.Provider.IsValid() {
+			return errors.New("Invalid verify code provider for login ID key: " + key)
+		}
 	}
 
 	if err := name.ValidateAppName(c.AppName); err != nil {
@@ -627,6 +630,26 @@ func (format UserVerificationCodeFormat) IsValid() bool {
 	return format == UserVerificationCodeFormatNumeric || format == UserVerificationCodeFormatComplex
 }
 
+type UserVerificationProvider string
+
+const (
+	UserVerificationProviderSMTP   UserVerificationProvider = "smtp"
+	UserVerificationProviderTwilio UserVerificationProvider = "twilio"
+	UserVerificationProviderNexmo  UserVerificationProvider = "nexmo"
+)
+
+func (format UserVerificationProvider) IsValid() bool {
+	switch format {
+	case UserVerificationProviderSMTP:
+		return true
+	case UserVerificationProviderTwilio:
+		return true
+	case UserVerificationProviderNexmo:
+		return true
+	}
+	return false
+}
+
 type UserVerificationKeyConfiguration struct {
 	CodeFormat      UserVerificationCodeFormat            `json:"code_format" yaml:"code_format" msg:"code_format"`
 	Expiry          int64                                 `json:"expiry" yaml:"expiry" msg:"expiry"`
@@ -634,7 +657,7 @@ type UserVerificationKeyConfiguration struct {
 	SuccessHTMLURL  string                                `json:"success_html_url" yaml:"success_html_url" msg:"success_html_url"`
 	ErrorRedirect   string                                `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
 	ErrorHTMLURL    string                                `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
-	Provider        string                                `json:"provider" yaml:"provider" msg:"provider"`
+	Provider        UserVerificationProvider              `json:"provider" yaml:"provider" msg:"provider"`
 	ProviderConfig  UserVerificationProviderConfiguration `json:"provider_config" yaml:"provider_config" msg:"provider_config"`
 }
 

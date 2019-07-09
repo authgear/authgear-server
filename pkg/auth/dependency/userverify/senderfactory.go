@@ -1,8 +1,6 @@
 package userverify
 
 import (
-	"errors"
-
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
@@ -23,33 +21,31 @@ func NewDefaultUserVerifyCodeSenderFactory(c config.TenantConfiguration, templat
 		CodeSenderMap: map[string]CodeSender{},
 	}
 
-	for key, config := range userVerifyConfig.LoginIDKeys {
+	for key, verifyConfig := range userVerifyConfig.LoginIDKeys {
 		var codeSender CodeSender
-		switch config.Provider {
-		case "smtp":
+		switch verifyConfig.Provider {
+		case config.UserVerificationProviderSMTP:
 			codeSender = &EmailCodeSender{
 				AppName:        c.AppName,
 				URLPrefix:      userVerifyConfig.URLPrefix,
-				ProviderConfig: config.ProviderConfig,
+				ProviderConfig: verifyConfig.ProviderConfig,
 				Dialer:         mail.NewDialer(c.AppConfig.SMTP),
 				TemplateEngine: templateEngine,
 			}
-		case "twilio":
+		case config.UserVerificationProviderTwilio:
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
 				URLPrefix:      userVerifyConfig.URLPrefix,
 				SMSClient:      sms.NewTwilioClient(c.AppConfig.Twilio),
 				TemplateEngine: templateEngine,
 			}
-		case "nexmo":
+		case config.UserVerificationProviderNexmo:
 			codeSender = &SMSCodeSender{
 				AppName:        c.AppName,
 				URLPrefix:      userVerifyConfig.URLPrefix,
 				SMSClient:      sms.NewNexmoClient(c.AppConfig.Nexmo),
 				TemplateEngine: templateEngine,
 			}
-		default:
-			panic(errors.New("invalid user verify provider: " + config.Provider))
 		}
 		f.CodeSenderMap[key] = codeSender
 	}

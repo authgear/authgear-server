@@ -4658,7 +4658,11 @@ func (z *UserVerificationKeyConfiguration) DecodeMsg(dc *msgp.Reader) (err error
 				return
 			}
 		case "provider":
-			z.Provider, err = dc.ReadString()
+			{
+				var zyco string
+				zyco, err = dc.ReadString()
+				z.Provider = UserVerificationProvider(zyco)
+			}
 			if err != nil {
 				return
 			}
@@ -4739,7 +4743,7 @@ func (z *UserVerificationKeyConfiguration) EncodeMsg(en *msgp.Writer) (err error
 	if err != nil {
 		return err
 	}
-	err = en.WriteString(z.Provider)
+	err = en.WriteString(string(z.Provider))
 	if err != nil {
 		return
 	}
@@ -4779,7 +4783,7 @@ func (z *UserVerificationKeyConfiguration) MarshalMsg(b []byte) (o []byte, err e
 	o = msgp.AppendString(o, z.ErrorHTMLURL)
 	// string "provider"
 	o = append(o, 0xa8, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72)
-	o = msgp.AppendString(o, z.Provider)
+	o = msgp.AppendString(o, string(z.Provider))
 	// string "provider_config"
 	o = append(o, 0xaf, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67)
 	o, err = z.ProviderConfig.MarshalMsg(o)
@@ -4793,13 +4797,13 @@ func (z *UserVerificationKeyConfiguration) MarshalMsg(b []byte) (o []byte, err e
 func (z *UserVerificationKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zyco uint32
-	zyco, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zhgh uint32
+	zhgh, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zyco > 0 {
-		zyco--
+	for zhgh > 0 {
+		zhgh--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -4807,9 +4811,9 @@ func (z *UserVerificationKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 		switch msgp.UnsafeString(field) {
 		case "code_format":
 			{
-				var zhgh string
-				zhgh, bts, err = msgp.ReadStringBytes(bts)
-				z.CodeFormat = UserVerificationCodeFormat(zhgh)
+				var zovg string
+				zovg, bts, err = msgp.ReadStringBytes(bts)
+				z.CodeFormat = UserVerificationCodeFormat(zovg)
 			}
 			if err != nil {
 				return
@@ -4840,7 +4844,11 @@ func (z *UserVerificationKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 				return
 			}
 		case "provider":
-			z.Provider, bts, err = msgp.ReadStringBytes(bts)
+			{
+				var zsey string
+				zsey, bts, err = msgp.ReadStringBytes(bts)
+				z.Provider = UserVerificationProvider(zsey)
+			}
 			if err != nil {
 				return
 			}
@@ -4862,7 +4870,56 @@ func (z *UserVerificationKeyConfiguration) UnmarshalMsg(bts []byte) (o []byte, e
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserVerificationKeyConfiguration) Msgsize() (s int) {
-	s = 1 + 12 + msgp.StringPrefixSize + len(string(z.CodeFormat)) + 7 + msgp.Int64Size + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 17 + msgp.StringPrefixSize + len(z.SuccessHTMLURL) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorHTMLURL) + 9 + msgp.StringPrefixSize + len(z.Provider) + 16 + z.ProviderConfig.Msgsize()
+	s = 1 + 12 + msgp.StringPrefixSize + len(string(z.CodeFormat)) + 7 + msgp.Int64Size + 17 + msgp.StringPrefixSize + len(z.SuccessRedirect) + 17 + msgp.StringPrefixSize + len(z.SuccessHTMLURL) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorHTMLURL) + 9 + msgp.StringPrefixSize + len(string(z.Provider)) + 16 + z.ProviderConfig.Msgsize()
+	return
+}
+
+// DecodeMsg implements msgp.Decodable
+func (z *UserVerificationProvider) DecodeMsg(dc *msgp.Reader) (err error) {
+	{
+		var zcjp string
+		zcjp, err = dc.ReadString()
+		(*z) = UserVerificationProvider(zcjp)
+	}
+	if err != nil {
+		return
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z UserVerificationProvider) EncodeMsg(en *msgp.Writer) (err error) {
+	err = en.WriteString(string(z))
+	if err != nil {
+		return
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z UserVerificationProvider) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	o = msgp.AppendString(o, string(z))
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *UserVerificationProvider) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	{
+		var zjhy string
+		zjhy, bts, err = msgp.ReadStringBytes(bts)
+		(*z) = UserVerificationProvider(zjhy)
+	}
+	if err != nil {
+		return
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z UserVerificationProvider) Msgsize() (s int) {
+	s = msgp.StringPrefixSize + len(string(z))
 	return
 }
 
@@ -4870,13 +4927,13 @@ func (z *UserVerificationKeyConfiguration) Msgsize() (s int) {
 func (z *UserVerificationProviderConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
-	var zovg uint32
-	zovg, err = dc.ReadMapHeader()
+	var znuf uint32
+	znuf, err = dc.ReadMapHeader()
 	if err != nil {
 		return
 	}
-	for zovg > 0 {
-		zovg--
+	for znuf > 0 {
+		znuf--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -5028,13 +5085,13 @@ func (z *UserVerificationProviderConfiguration) MarshalMsg(b []byte) (o []byte, 
 func (z *UserVerificationProviderConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var zsey uint32
-	zsey, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var znjj uint32
+	znjj, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for zsey > 0 {
-		zsey--
+	for znjj > 0 {
+		znjj--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -5096,13 +5153,13 @@ func (z *UserVerificationProviderConfiguration) Msgsize() (s int) {
 func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 	var field []byte
 	_ = field
-	var zcjp uint32
-	zcjp, err = dc.ReadMapHeader()
+	var zhhj uint32
+	zhhj, err = dc.ReadMapHeader()
 	if err != nil {
 		return
 	}
-	for zcjp > 0 {
-		zcjp--
+	for zhhj > 0 {
+		zhhj--
 		field, err = dc.ReadMapKeyPtr()
 		if err != nil {
 			return
@@ -5155,9 +5212,9 @@ func (z *WelcomeEmailConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			}
 		case "destination":
 			{
-				var zjhy string
-				zjhy, err = dc.ReadString()
-				z.Destination = WelcomeEmailDestination(zjhy)
+				var zuvr string
+				zuvr, err = dc.ReadString()
+				z.Destination = WelcomeEmailDestination(zuvr)
 			}
 			if err != nil {
 				return
@@ -5309,13 +5366,13 @@ func (z *WelcomeEmailConfiguration) MarshalMsg(b []byte) (o []byte, err error) {
 func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	var field []byte
 	_ = field
-	var znuf uint32
-	znuf, bts, err = msgp.ReadMapHeaderBytes(bts)
+	var zusq uint32
+	zusq, bts, err = msgp.ReadMapHeaderBytes(bts)
 	if err != nil {
 		return
 	}
-	for znuf > 0 {
-		znuf--
+	for zusq > 0 {
+		zusq--
 		field, bts, err = msgp.ReadMapKeyZC(bts)
 		if err != nil {
 			return
@@ -5368,9 +5425,9 @@ func (z *WelcomeEmailConfiguration) UnmarshalMsg(bts []byte) (o []byte, err erro
 			}
 		case "destination":
 			{
-				var znjj string
-				znjj, bts, err = msgp.ReadStringBytes(bts)
-				z.Destination = WelcomeEmailDestination(znjj)
+				var zfgq string
+				zfgq, bts, err = msgp.ReadStringBytes(bts)
+				z.Destination = WelcomeEmailDestination(zfgq)
 			}
 			if err != nil {
 				return
@@ -5395,9 +5452,9 @@ func (z *WelcomeEmailConfiguration) Msgsize() (s int) {
 // DecodeMsg implements msgp.Decodable
 func (z *WelcomeEmailDestination) DecodeMsg(dc *msgp.Reader) (err error) {
 	{
-		var zhhj string
-		zhhj, err = dc.ReadString()
-		(*z) = WelcomeEmailDestination(zhhj)
+		var zvml string
+		zvml, err = dc.ReadString()
+		(*z) = WelcomeEmailDestination(zvml)
 	}
 	if err != nil {
 		return
@@ -5424,9 +5481,9 @@ func (z WelcomeEmailDestination) MarshalMsg(b []byte) (o []byte, err error) {
 // UnmarshalMsg implements msgp.Unmarshaler
 func (z *WelcomeEmailDestination) UnmarshalMsg(bts []byte) (o []byte, err error) {
 	{
-		var zuvr string
-		zuvr, bts, err = msgp.ReadStringBytes(bts)
-		(*z) = WelcomeEmailDestination(zuvr)
+		var zpyv string
+		zpyv, bts, err = msgp.ReadStringBytes(bts)
+		(*z) = WelcomeEmailDestination(zpyv)
 	}
 	if err != nil {
 		return

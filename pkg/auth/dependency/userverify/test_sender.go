@@ -1,8 +1,6 @@
 package userverify
 
 import (
-	"errors"
-
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -12,7 +10,7 @@ import (
 
 type TestCodeSenderFactory interface {
 	NewTestCodeSender(
-		provider string,
+		provider config.UserVerificationProvider,
 		keyConfig config.UserVerificationProviderConfiguration,
 		loginIDKey string,
 		templates map[string]string,
@@ -32,7 +30,7 @@ func NewDefaultUserVerifyTestCodeSenderFactory(c config.TenantConfiguration, tem
 }
 
 func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
-	provider string,
+	provider config.UserVerificationProvider,
 	keyConfig config.UserVerificationProviderConfiguration,
 	loginIDKey string,
 	templates map[string]string,
@@ -45,7 +43,7 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	templateEngine.PrependLoader(loader)
 
 	switch provider {
-	case "smtp":
+	case config.UserVerificationProviderSMTP:
 		codeSender = &EmailCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
@@ -54,7 +52,7 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 			TemplateEngine: templateEngine,
 		}
 
-	case "twilio":
+	case config.UserVerificationProviderTwilio:
 		codeSender = &SMSCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
@@ -62,16 +60,13 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 			TemplateEngine: templateEngine,
 		}
 
-	case "nexmo":
+	case config.UserVerificationProviderNexmo:
 		codeSender = &SMSCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
 			SMSClient:      sms.NewNexmoClient(d.Config.AppConfig.Nexmo),
 			TemplateEngine: templateEngine,
 		}
-
-	default:
-		panic(errors.New("invalid user verify provider: " + provider))
 	}
 
 	return

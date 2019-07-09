@@ -209,7 +209,7 @@ type VerifyRequestTestPayload struct {
 	LoginIDKey    string                                       `json:"login_id_key"`
 	LoginID       string                                       `json:"login_id"`
 	User          response.User                                `json:"user"`
-	Provider      string                                       `json:"provider"`
+	Provider      config.UserVerificationProvider              `json:"provider"`
 	MessageConfig config.UserVerificationProviderConfiguration `json:"message_config"`
 	Templates     map[string]string                            `json:"templates"`
 }
@@ -223,8 +223,8 @@ func (payload VerifyRequestTestPayload) Validate() error {
 		return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
 	}
 
-	if payload.Provider == "" {
-		return skyerr.NewInvalidArgument("missing provider name", []string{"provider"})
+	if !payload.Provider.IsValid() {
+		return skyerr.NewInvalidArgument("invalid provider", []string{"provider"})
 	}
 
 	return nil
