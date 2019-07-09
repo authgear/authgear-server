@@ -206,13 +206,12 @@ func (f VerifyRequestTestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type VerifyRequestTestPayload struct {
-	LoginIDKey     string                                       `json:"login_id_key"`
-	LoginID        string                                       `json:"login_id"`
-	User           response.User                                `json:"user"`
-	Provider       string                                       `json:"provider"`
-	ProviderConfig map[string]string                            `json:"provider_config"`
-	MessageConfig  config.UserVerificationProviderConfiguration `json:"message_config"`
-	Templates      map[string]string                            `json:"templates"`
+	LoginIDKey    string                                       `json:"login_id_key"`
+	LoginID       string                                       `json:"login_id"`
+	User          response.User                                `json:"user"`
+	Provider      string                                       `json:"provider"`
+	MessageConfig config.UserVerificationProviderConfiguration `json:"message_config"`
+	Templates     map[string]string                            `json:"templates"`
 }
 
 func (payload VerifyRequestTestPayload) Validate() error {
@@ -245,9 +244,6 @@ func (payload VerifyRequestTestPayload) Validate() error {
 //      }
 //    },
 //    "provider": "smtp",
-//    "provider_config": {
-//      "host": "localhost"
-//    },
 //    "templates": {
 //      "text": "testing",
 //      "html": "testing html"
@@ -281,7 +277,6 @@ func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err
 	payload := req.(VerifyRequestTestPayload)
 	sender := h.TestCodeSenderFactory.NewTestCodeSender(
 		payload.Provider,
-		payload.ProviderConfig,
 		payload.MessageConfig,
 		payload.LoginIDKey,
 		payload.Templates,

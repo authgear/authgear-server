@@ -2,7 +2,6 @@ package userverify
 
 import (
 	"errors"
-	"strconv"
 
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -14,7 +13,6 @@ import (
 type TestCodeSenderFactory interface {
 	NewTestCodeSender(
 		provider string,
-		providerConfig map[string]string,
 		keyConfig config.UserVerificationProviderConfiguration,
 		loginIDKey string,
 		templates map[string]string,
@@ -35,7 +33,6 @@ func NewDefaultUserVerifyTestCodeSenderFactory(c config.TenantConfiguration, tem
 
 func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 	provider string,
-	providerConfig map[string]string,
 	keyConfig config.UserVerificationProviderConfiguration,
 	loginIDKey string,
 	templates map[string]string,
@@ -49,68 +46,27 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 
 	switch provider {
 	case "smtp":
-		smtpConfig := d.Config.AppConfig.SMTP
-		for key, value := range providerConfig {
-			switch key {
-			case "host":
-				smtpConfig.Host = value
-			case "port":
-				port, err := strconv.Atoi(value)
-				if err != nil {
-					panic(errors.New("invalid smtp_port in provider settings"))
-				}
-				smtpConfig.Port = port
-			case "mode":
-				smtpConfig.Mode = value
-			case "login":
-				smtpConfig.Login = value
-			case "password":
-				smtpConfig.Password = value
-			}
-		}
 		codeSender = &EmailCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
 			ProviderConfig: keyConfig,
-			Dialer:         mail.NewDialer(smtpConfig),
+			Dialer:         mail.NewDialer(d.Config.AppConfig.SMTP),
 			TemplateEngine: templateEngine,
 		}
 
 	case "twilio":
-		twilioConfig := d.Config.AppConfig.Twilio
-		for key, value := range providerConfig {
-			switch key {
-			case "account_sid":
-				twilioConfig.AccountSID = value
-			case "auth_token":
-				twilioConfig.AuthToken = value
-			case "from":
-				twilioConfig.From = value
-			}
-		}
 		codeSender = &SMSCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
-			SMSClient:      sms.NewTwilioClient(twilioConfig),
+			SMSClient:      sms.NewTwilioClient(d.Config.AppConfig.Twilio),
 			TemplateEngine: templateEngine,
 		}
 
 	case "nexmo":
-		nexmoConfig := d.Config.AppConfig.Nexmo
-		for key, value := range providerConfig {
-			switch key {
-			case "api_key":
-				nexmoConfig.APIKey = value
-			case "secret":
-				nexmoConfig.APISecret = value
-			case "from":
-				nexmoConfig.From = value
-			}
-		}
 		codeSender = &SMSCodeSender{
 			AppName:        d.Config.AppName,
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
-			SMSClient:      sms.NewNexmoClient(nexmoConfig),
+			SMSClient:      sms.NewNexmoClient(d.Config.AppConfig.Nexmo),
 			TemplateEngine: templateEngine,
 		}
 
