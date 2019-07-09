@@ -33,8 +33,5 @@ func (code VerifyCode) Check(inputCode string) bool {
 	input := []byte(normalizedInputCode)
 	expected := []byte(code.Code)
 
-	if len(input) != len(expected) {
-		return false
-	}
 	return subtle.ConstantTimeCompare(input, expected) == 1
 }
