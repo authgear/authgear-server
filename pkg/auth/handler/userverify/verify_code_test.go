@@ -25,7 +25,7 @@ import (
 
 func TestForgotPasswordResetHandler(t *testing.T) {
 	Convey("Test VerifyCodeHandler", t, func() {
-		time := time.MockProvider{TimeNow: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
+		time := time.MockProvider{TimeNowUTC: gotime.Date(2006, 1, 2, 15, 4, 5, 0, gotime.UTC)}
 
 		vh := &VerifyCodeHandler{}
 		logger, _ := test.NewNullLogger()
@@ -98,7 +98,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 					LoginID:    "faseng.cat.id@example.com",
 					Code:       "code1",
 					Consumed:   false,
-					CreatedAt:  time.Now(),
+					CreatedAt:  time.NowUTC(),
 				},
 				userverify.VerifyCode{
 					ID:         "code",
@@ -107,7 +107,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 					LoginID:    "faseng.cat.id@example.com",
 					Code:       "code2",
 					Consumed:   false,
-					CreatedAt:  time.Now().Add(-gotime.Duration(1) * gotime.Hour),
+					CreatedAt:  time.NowUTC().Add(-gotime.Duration(1) * gotime.Hour),
 				},
 				userverify.VerifyCode{
 					ID:         "code1",
@@ -116,7 +116,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 					LoginID:    "chima.cat.id@example.com",
 					Code:       "code3",
 					Consumed:   false,
-					CreatedAt:  time.Now(),
+					CreatedAt:  time.NowUTC(),
 				},
 			},
 		}
@@ -162,7 +162,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 
 		Convey("verify with expired code", func() {
 			code := store.CodeByID[0]
-			code.CreatedAt = time.Now().Add(-gotime.Duration(100) * gotime.Hour)
+			code.CreatedAt = time.NowUTC().Add(-gotime.Duration(100) * gotime.Hour)
 			store.CodeByID[0] = code
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{

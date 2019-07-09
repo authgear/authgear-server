@@ -298,7 +298,7 @@ func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err
 	verifyCode.LoginID = payload.LoginID
 	verifyCode.Code = "TEST1234"
 	verifyCode.Consumed = false
-	verifyCode.CreatedAt = time.Now()
+	verifyCode.CreatedAt = time.Now().UTC()
 
 	err = sender.Send(verifyCode, user)
 	if err != nil {

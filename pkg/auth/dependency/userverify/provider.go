@@ -58,7 +58,7 @@ func (provider *providerImpl) GenerateVerifyCode(principal *password.Principal) 
 	verifyCode.LoginID = principal.LoginID
 	verifyCode.Code = code
 	verifyCode.Consumed = false
-	verifyCode.CreatedAt = provider.time.Now()
+	verifyCode.CreatedAt = provider.time.NowUTC()
 
 	if err = provider.store.CreateVerifyCode(&verifyCode); err != nil {
 		return
@@ -114,7 +114,7 @@ func (provider *providerImpl) VerifyUser(
 
 	expiryTime := provider.config.LoginIDKeys[verifyCode.LoginIDKey].Expiry
 	expireAt := verifyCode.CreatedAt.Add(gotime.Duration(expiryTime) * gotime.Second)
-	if provider.time.Now().After(expireAt) {
+	if provider.time.NowUTC().After(expireAt) {
 		err = skyerr.NewError(skyerr.InvalidArgument, "the code has expired")
 		return
 	}

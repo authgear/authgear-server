@@ -3,11 +3,11 @@ package time
 import "time"
 
 type MockProvider struct {
-	TimeNow time.Time
+	TimeNowUTC time.Time
 }
 
-func (provider MockProvider) Now() time.Time {
-	return provider.TimeNow
+func (provider MockProvider) NowUTC() time.Time {
+	return provider.TimeNowUTC
 }
 
 var _ Provider = MockProvider{}

@@ -32,7 +32,7 @@ var (
 )
 
 func init() {
-	baseTimestamp = time.Now()
+	baseTimestamp = time.Now().UTC()
 }
 
 type ValueFormatter interface {

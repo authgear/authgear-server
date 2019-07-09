@@ -115,13 +115,13 @@ func New(appName string, authInfoID string, expiredAt time.Time) Token {
 		ExpiredAt:   expiredAt,
 		AppName:     appName,
 		AuthInfoID:  authInfoID,
-		IssuedAt:    time.Now(),
+		IssuedAt:    time.Now().UTC(),
 	}
 }
 
 // IsExpired determines whether the Token has expired now or not.
 func (t *Token) IsExpired() bool {
-	return !t.ExpiredAt.IsZero() && t.ExpiredAt.Before(time.Now())
+	return !t.ExpiredAt.IsZero() && t.ExpiredAt.Before(time.Now().UTC())
 }
 
 // NotFoundError is the error returned by Get if a TokenStore

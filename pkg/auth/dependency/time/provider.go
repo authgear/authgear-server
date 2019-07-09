@@ -3,7 +3,7 @@ package time
 import "time"
 
 type Provider interface {
-	Now() time.Time
+	NowUTC() time.Time
 }
 
 type providerImpl struct{}
@@ -12,6 +12,6 @@ func NewProvider() Provider {
 	return providerImpl{}
 }
 
-func (provider providerImpl) Now() time.Time {
-	return time.Now()
+func (provider providerImpl) NowUTC() time.Time {
+	return time.Now().UTC()
 }
