@@ -15,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -87,14 +88,15 @@ func (p LinkRequestPayload) Validate() error {
 // }
 //
 type LinkHandler struct {
-	TxContext         db.TxContext               `dependency:"TxContext"`
-	AuthContext       coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
-	OAuthAuthProvider oauth.Provider             `dependency:"OAuthAuthProvider"`
-	IdentityProvider  principal.IdentityProvider `dependency:"IdentityProvider"`
-	AuthInfoStore     authinfo.Store             `dependency:"AuthInfoStore"`
-	ProviderFactory   *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
-	Provider          sso.Provider
-	ProviderID        string
+	TxContext          db.TxContext               `dependency:"TxContext"`
+	AuthContext        coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	OAuthAuthProvider  oauth.Provider             `dependency:"OAuthAuthProvider"`
+	IdentityProvider   principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore      authinfo.Store             `dependency:"AuthInfoStore"`
+	ProviderFactory    *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	OAuthConfiguration config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
+	Provider           sso.Provider
+	ProviderID         string
 }
 
 func (h LinkHandler) WithTx() bool {
@@ -111,6 +113,10 @@ func (h LinkHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 }
 
 func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
+	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
+		err = skyerr.NewError(skyerr.UndefinedOperation, "External access token flow is disabled")
+		return
+	}
 	if h.Provider == nil {
 		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
 		return

@@ -60,8 +60,9 @@ func TestLoginHandler(t *testing.T) {
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		oauthConfig := coreconfig.OAuthConfiguration{
-			URLPrefix:      "http://localhost:3000",
-			StateJWTSecret: stateJWTSecret,
+			URLPrefix:                      "http://localhost:3000",
+			StateJWTSecret:                 stateJWTSecret,
+			ExternalAccessTokenFlowEnabled: true,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
 			},
@@ -100,6 +101,7 @@ func TestLoginHandler(t *testing.T) {
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sh.OAuthConfiguration = oauthConfig
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should get auth response", func() {
@@ -136,6 +138,25 @@ func TestLoginHandler(t *testing.T) {
 				p.UserID,
 				p.ID,
 				token.AccessToken))
+		})
+
+		sh.OAuthConfiguration.ExternalAccessTokenFlowEnabled = false
+		h = handler.APIHandlerToHandler(sh, sh.TxContext)
+
+		Convey("should return error if disabled", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"access_token": "token"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 404)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 117,
+					"message": "External access token flow is disabled",
+					"name": "UndefinedOperation"
+				}
+			}`)
 		})
 	})
 }
