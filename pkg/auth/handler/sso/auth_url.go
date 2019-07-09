@@ -9,9 +9,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -54,9 +56,11 @@ func (f AuthURLHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // AuthURLRequestPayload login handler request payload
 type AuthURLRequestPayload struct {
-	Options     map[string]interface{} `json:"options"`
-	CallbackURL string                 `json:"callback_url"`
-	UXMode      sso.UXMode             `json:"ux_mode"`
+	Options         map[string]interface{} `json:"options"`
+	CallbackURL     string                 `json:"callback_url"`
+	UXMode          sso.UXMode             `json:"ux_mode"`
+	MergeRealm      string                 `json:"merge_realm"`
+	OnUserDuplicate sso.OnUserDuplicate    `json:"on_user_duplicate"`
 }
 
 // Validate request payload
@@ -67,6 +71,10 @@ func (p AuthURLRequestPayload) Validate() error {
 
 	if !sso.IsValidUXMode(p.UXMode) {
 		return skyerr.NewInvalidArgument("Invalid UX mode", []string{"ux_mode"})
+	}
+
+	if !sso.IsValidOnUserDuplicate(p.OnUserDuplicate) {
+		return skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
 	}
 
 	return nil
@@ -114,12 +122,14 @@ func (p AuthURLRequestPayload) Validate() error {
 //     "result": "<auth_url>"
 // }
 type AuthURLHandler struct {
-	TxContext       db.TxContext           `dependency:"TxContext"`
-	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	ProviderFactory *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
-	Provider        sso.Provider
-	ProviderID      string
-	Action          string
+	TxContext            db.TxContext              `dependency:"TxContext"`
+	AuthContext          coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
+	ProviderFactory      *sso.ProviderFactory      `dependency:"SSOProviderFactory"`
+	PasswordAuthProvider password.Provider         `dependency:"PasswordAuthProvider"`
+	OAuthConfiguration   config.OAuthConfiguration `dependency:"OAuthConfiguration"`
+	Provider             sso.Provider
+	ProviderID           string
+	Action               string
 }
 
 func (h AuthURLHandler) WithTx() bool {
@@ -133,6 +143,14 @@ func (h AuthURLHandler) DecodeRequest(request *http.Request) (handler.RequestPay
 	}
 	err := json.NewDecoder(request.Body).Decode(&payload)
 
+	if payload.MergeRealm == "" {
+		payload.MergeRealm = password.DefaultRealm
+	}
+
+	if payload.OnUserDuplicate == "" {
+		payload.OnUserDuplicate = sso.OnUserDuplicateDefault
+	}
+
 	return payload, err
 }
 
@@ -141,7 +159,19 @@ func (h AuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
 		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
 		return
 	}
+
 	payload := req.(AuthURLRequestPayload)
+
+	if !h.PasswordAuthProvider.IsRealmValid(payload.MergeRealm) {
+		err = skyerr.NewInvalidArgument("Invalid MergeRealm", []string{payload.MergeRealm})
+		return
+	}
+
+	if !sso.IsAllowedOnUserDuplicate(h.OAuthConfiguration, payload.OnUserDuplicate) {
+		err = skyerr.NewInvalidArgument("Disallowed OnUserDuplicate", []string{string(payload.OnUserDuplicate)})
+		return
+	}
+
 	params := sso.GetURLParams{
 		Options: payload.Options,
 		State: sso.State{
