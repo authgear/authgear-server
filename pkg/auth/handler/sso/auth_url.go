@@ -42,8 +42,8 @@ func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &AuthURLHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
-	h.ProviderName = vars["provider"]
-	h.Provider = h.ProviderFactory.NewProvider(h.ProviderName)
+	h.ProviderID = vars["provider"]
+	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
 	h.Action = f.Action
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
@@ -118,7 +118,7 @@ type AuthURLHandler struct {
 	AuthContext     coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	ProviderFactory *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
 	Provider        sso.Provider
-	ProviderName    string
+	ProviderID      string
 	Action          string
 }
 
@@ -138,7 +138,7 @@ func (h AuthURLHandler) DecodeRequest(request *http.Request) (handler.RequestPay
 
 func (h AuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if h.Provider == nil {
-		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
+		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
 		return
 	}
 	payload := req.(AuthURLRequestPayload)
