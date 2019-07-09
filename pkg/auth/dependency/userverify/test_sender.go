@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/sirupsen/logrus"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -25,14 +24,12 @@ type TestCodeSenderFactory interface {
 type defaultTestCodeSenderFactory struct {
 	Config         config.TenantConfiguration
 	TemplateEngine *template.Engine
-	Logger         *logrus.Entry
 }
 
-func NewDefaultUserVerifyTestCodeSenderFactory(c config.TenantConfiguration, templateEngine *template.Engine, logger *logrus.Entry) TestCodeSenderFactory {
+func NewDefaultUserVerifyTestCodeSenderFactory(c config.TenantConfiguration, templateEngine *template.Engine) TestCodeSenderFactory {
 	return &defaultTestCodeSenderFactory{
 		Config:         c,
 		TemplateEngine: templateEngine,
-		Logger:         logger,
 	}
 }
 
@@ -115,14 +112,6 @@ func (d *defaultTestCodeSenderFactory) NewTestCodeSender(
 			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
 			SMSClient:      sms.NewNexmoClient(nexmoConfig),
 			TemplateEngine: templateEngine,
-		}
-
-	case "debug":
-		codeSender = &DebugCodeSender{
-			AppName:        d.Config.AppName,
-			URLPrefix:      d.Config.UserConfig.UserVerification.URLPrefix,
-			TemplateEngine: templateEngine,
-			Logger:         d.Logger,
 		}
 
 	default:

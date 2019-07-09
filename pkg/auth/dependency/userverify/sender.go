@@ -3,7 +3,6 @@ package userverify
 import (
 	"fmt"
 
-	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 
 	"github.com/go-gomail/gomail"
@@ -95,37 +94,6 @@ func (t *SMSCodeSender) Send(verifyCode VerifyCode, user response.User) (err err
 	}
 
 	err = t.SMSClient.Send(verifyCode.LoginID, textBody)
-	return
-}
-
-type DebugCodeSender struct {
-	AppName        string
-	URLPrefix      string
-	TemplateEngine *template.Engine
-	Logger         *logrus.Entry
-}
-
-func (t *DebugCodeSender) Send(verifyCode VerifyCode, user response.User) (err error) {
-	context := prepareVerifyRequestContext(
-		verifyCode,
-		t.AppName,
-		t.URLPrefix,
-		user,
-	)
-
-	var textBody string
-	if textBody, err = t.TemplateEngine.ParseTextTemplate(
-		authTemplate.VerifyTextTemplateNameForKey(verifyCode.LoginIDKey),
-		context,
-		template.ParseOption{Required: true, FallbackTemplateName: authTemplate.TemplateNameVerifyEmailText},
-	); err != nil {
-		return
-	}
-
-	t.Logger.WithFields(logrus.Fields{
-		"body": textBody,
-	}).Info("Send verification code")
-
 	return
 }
 
