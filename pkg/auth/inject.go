@@ -231,6 +231,8 @@ func (m DependencyMap) Provide(
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	case "HookStore":
 		return hook.NewHookProvider(tConfig.Hooks, hook.ExecutorImpl{}, newLogger("auth_hook"), requestID)
+	case "CustomTokenConfiguration":
+		return tConfig.UserConfig.SSO.CustomToken
 	case "OAuthConfiguration":
 		return tConfig.UserConfig.SSO.OAuth
 	default:

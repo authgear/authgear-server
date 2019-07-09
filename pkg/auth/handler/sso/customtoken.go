@@ -17,6 +17,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -105,15 +106,16 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type CustomTokenLoginHandler struct {
-	TxContext               db.TxContext               `dependency:"TxContext"`
-	UserProfileStore        userprofile.Store          `dependency:"UserProfileStore"`
-	TokenStore              authtoken.Store            `dependency:"TokenStore"`
-	AuthInfoStore           authinfo.Store             `dependency:"AuthInfoStore"`
-	CustomTokenAuthProvider customtoken.Provider       `dependency:"CustomTokenAuthProvider"`
-	IdentityProvider        principal.IdentityProvider `dependency:"IdentityProvider"`
-	WelcomeEmailEnabled     bool                       `dependency:"WelcomeEmailEnabled"`
-	AuditTrail              audit.Trail                `dependency:"AuditTrail"`
-	TaskQueue               async.Queue                `dependency:"AsyncTaskQueue"`
+	TxContext                db.TxContext                    `dependency:"TxContext"`
+	UserProfileStore         userprofile.Store               `dependency:"UserProfileStore"`
+	TokenStore               authtoken.Store                 `dependency:"TokenStore"`
+	AuthInfoStore            authinfo.Store                  `dependency:"AuthInfoStore"`
+	CustomTokenAuthProvider  customtoken.Provider            `dependency:"CustomTokenAuthProvider"`
+	IdentityProvider         principal.IdentityProvider      `dependency:"IdentityProvider"`
+	CustomTokenConfiguration config.CustomTokenConfiguration `dependency:"CustomTokenConfiguration"`
+	WelcomeEmailEnabled      bool                            `dependency:"WelcomeEmailEnabled"`
+	AuditTrail               audit.Trail                     `dependency:"AuditTrail"`
+	TaskQueue                async.Queue                     `dependency:"AsyncTaskQueue"`
 }
 
 func (h CustomTokenLoginHandler) WithTx() bool {
@@ -149,6 +151,11 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (handler.R
 
 // Handle function handle custom token login
 func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err error) {
+	if !h.CustomTokenConfiguration.Enabled {
+		err = skyerr.NewError(skyerr.UndefinedOperation, "Custom Token is disabled")
+		return
+	}
+
 	payload := req.(customTokenLoginPayload)
 	var info authinfo.AuthInfo
 	var userProfile userprofile.UserProfile

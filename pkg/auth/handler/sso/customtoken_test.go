@@ -19,6 +19,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -34,6 +35,9 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 	Convey("Test CustomTokenLoginHandler", t, func() {
 		mockTokenStore := authtoken.NewMockStore()
 		lh := &CustomTokenLoginHandler{}
+		lh.CustomTokenConfiguration = config.CustomTokenConfiguration{
+			Enabled: true,
+		}
 		lh.TxContext = db.NewMockTxContext()
 		lh.CustomTokenAuthProvider = customtoken.NewMockProviderWithPrincipalMap("ssosecret", map[string]customtoken.Principal{
 			"uuid-chima-token": customtoken.Principal{
@@ -195,6 +199,47 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			mockTrail, _ := lh.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")
 			So(mockTrail.Hook.LastEntry().Data["event"], ShouldEqual, "login_failure")
+		})
+
+		Convey("should return error if disabled", func() {
+			tokenString, err := jwt.NewWithClaims(
+				jwt.SigningMethodHS256,
+				customtoken.SSOCustomTokenClaims{
+					StandardClaims: jwt.StandardClaims{
+						IssuedAt:  time.Now().Unix(),
+						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
+						Subject:   "otherid1",
+					},
+					RawProfile: map[string]interface{}{
+						"name":  "John Doe",
+						"email": "John@skygear.io",
+					},
+				},
+			).SignedString([]byte("ssosecret"))
+			So(err, ShouldBeNil)
+
+			req, _ := http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
+			{
+				"token": "%s"
+			}`, tokenString)))
+			resp := httptest.NewRecorder()
+
+			lhh := lh
+			lhh.CustomTokenConfiguration = config.CustomTokenConfiguration{
+				Enabled: false,
+			}
+			h = handler.APIHandlerToHandler(lhh, lhh.TxContext)
+
+			h.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 404)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 117,
+					"message": "Custom Token is disabled",
+					"name": "UndefinedOperation"
+				}
+			}`)
 		})
 	})
 }
