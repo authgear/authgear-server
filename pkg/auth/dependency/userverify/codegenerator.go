@@ -1,6 +1,7 @@
 package userverify
 
 import (
+	"github.com/skygeario/skygear-server/pkg/core/base32"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/rand"
 )
@@ -17,7 +18,7 @@ var codeFormats = map[config.UserVerificationCodeFormat]codeFormat{
 	},
 	config.UserVerificationCodeFormatComplex: codeFormat{
 		Length:   8,
-		Alphabet: "2345679ACDEFGHJKMNPQRSTUVWXYZ", // omit 018OILB for clarity
+		Alphabet: base32.Alphabet,
 	},
 }
 
