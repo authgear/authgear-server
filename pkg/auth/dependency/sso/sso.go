@@ -26,11 +26,35 @@ const (
 	UXModeAndroid     UXMode = "android"
 )
 
-// IsValidUXMode converts string to UXMode
+// IsValidUXMode validates UXMode
 func IsValidUXMode(mode UXMode) bool {
 	allModes := []UXMode{UXModeWebRedirect, UXModeWebPopup, UXModeIOS, UXModeAndroid}
 	for _, v := range allModes {
 		if mode == v {
+			return true
+		}
+	}
+	return false
+}
+
+// OnUserDuplicate is the strategy to handle user duplicate
+type OnUserDuplicate string
+
+// OnUserDuplicate constants
+const (
+	OnUserDuplicateAbort  OnUserDuplicate = "abort"
+	OnUserDuplicateMerge  OnUserDuplicate = "merge"
+	OnUserDuplicateCreate OnUserDuplicate = "create"
+)
+
+// OnUserDuplicateDefault is OnUserDuplicateAbort
+const OnUserDuplicateDefault = OnUserDuplicateAbort
+
+// IsValidOnUserDuplicate validates OnUserDuplicate
+func IsValidOnUserDuplicate(input OnUserDuplicate) bool {
+	allVariants := []OnUserDuplicate{OnUserDuplicateAbort, OnUserDuplicateMerge, OnUserDuplicateCreate}
+	for _, v := range allVariants {
+		if input == v {
 			return true
 		}
 	}

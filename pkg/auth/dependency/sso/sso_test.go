@@ -17,3 +17,15 @@ func TestIsValidUXmode(t *testing.T) {
 		So(IsValidUXMode(UXModeAndroid), ShouldBeTrue)
 	})
 }
+
+func TestIsValidOnUserDuplicate(t *testing.T) {
+	Convey("Test IsValidOnUserDuplicate", t, func() {
+		So(IsValidOnUserDuplicate(""), ShouldBeFalse)
+		So(IsValidOnUserDuplicate("nonsense"), ShouldBeFalse)
+
+		So(IsValidOnUserDuplicate(OnUserDuplicateDefault), ShouldBeTrue)
+		So(IsValidOnUserDuplicate(OnUserDuplicateAbort), ShouldBeTrue)
+		So(IsValidOnUserDuplicate(OnUserDuplicateMerge), ShouldBeTrue)
+		So(IsValidOnUserDuplicate(OnUserDuplicateCreate), ShouldBeTrue)
+	})
+}
