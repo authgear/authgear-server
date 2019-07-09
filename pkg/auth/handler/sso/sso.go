@@ -117,14 +117,31 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 func (h respHandler) handleLogin(
 	oauthAuthInfo sso.AuthInfo,
 	info *authinfo.AuthInfo,
-) (createNewUser bool, principal *oauth.Principal, err error) {
-	principal, err = h.findPrincipal(oauthAuthInfo)
+) (createNewUser bool, oauthPrincipal *oauth.Principal, err error) {
+	oauthPrincipal, err = h.findExistingOAuthPrincipal(oauthAuthInfo)
 	if err != nil {
 		return
 	}
 
 	now := timeNow()
-	if principal == nil {
+
+	// Two func that closes over the arguments and the return value
+	// and need to be reused.
+
+	// populateInfo sets the argument info to non-nil value
+	populateInfo := func(userID string) {
+		if e := h.AuthInfoStore.GetAuth(userID, info); e != nil {
+			if e == skydb.ErrUserNotFound {
+				err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
+				return
+			}
+			err = skyerr.MakeError(e)
+			return
+		}
+	}
+
+	// createFunc creates a new user.
+	createFunc := func() {
 		createNewUser = true
 		// if there is no existed user
 		// signup a new user
@@ -143,85 +160,91 @@ func (h respHandler) handleLogin(
 			return
 		}
 
-		principal, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
+		oauthPrincipal, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
 		if err != nil {
 			return
 		}
+	}
 
-	} else {
-		principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
-		principal.UserProfile = oauthAuthInfo.ProviderRawProfile
-		principal.UpdatedAt = &now
-
-		if err = h.OAuthAuthProvider.UpdatePrincipal(principal); err != nil {
+	// Case: OAuth principal was found
+	// => Simple update case
+	// We do not need to consider password principal
+	if oauthPrincipal != nil {
+		oauthPrincipal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
+		oauthPrincipal.UserProfile = oauthAuthInfo.ProviderRawProfile
+		oauthPrincipal.UpdatedAt = &now
+		if err = h.OAuthAuthProvider.UpdatePrincipal(oauthPrincipal); err != nil {
 			err = skyerr.MakeError(err)
 			return
 		}
-
-		if e := h.AuthInfoStore.GetAuth(principal.UserID, info); e != nil {
-			if err == skydb.ErrUserNotFound {
-				err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
-				return
-			}
-			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
-			return
-		}
-		info.LastLoginAt = &now
-		if e := h.AuthInfoStore.UpdateAuth(info); e != nil {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "Unable to update user")
-			return
-		}
+		populateInfo(oauthPrincipal.UserID)
+		// Always return here because we are done with this case.
+		return
 	}
+
+	// Case: OAuth principal was not found
+	// We need to consider password principal
+	passwordPrincipal, err := h.findExistingPasswordPrincipal(oauthAuthInfo)
+	if err != nil {
+		return
+	}
+
+	// Case: OAuth principal was not found and Password principal was not found
+	// => Simple create case
+	if passwordPrincipal == nil {
+		createFunc()
+		return
+	}
+
+	// Case: OAuth principal was not found and Password principal was found
+	// => Complex case
+	switch oauthAuthInfo.State.OnUserDuplicate {
+	case sso.OnUserDuplicateAbort:
+		err = skyerr.NewError(skyerr.Duplicated, "Aborted due to duplicate user")
+	case sso.OnUserDuplicateCreate:
+		createFunc()
+	case sso.OnUserDuplicateMerge:
+		// Associate the provider to the existing user
+		oauthPrincipal, err = h.createPrincipalByOAuthInfo(
+			passwordPrincipal.UserID,
+			oauthAuthInfo,
+		)
+		populateInfo(passwordPrincipal.UserID)
+	}
+
 	return
 }
 
-func (h respHandler) findPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
-	// find oauth principal from principal_oauth
+func (h respHandler) findExistingOAuthPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
+	// Find oauth principal from by (provider_id, provider_user_id)
 	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderConfig.ID, oauthAuthInfo.ProviderUserInfo.ID)
-	if err != nil {
-		if err != skydb.ErrUserNotFound {
-			return nil, err
-		}
-	} else {
-		return principal, nil
+	if err == skydb.ErrUserNotFound {
+		return nil, nil
 	}
-
-	// TODO(sso-duplicate)
-	// if oauth principal doesn't exist, try to link existed password principal
-	// if h.Settings.AutoLinkEnabled && h.PasswordAuthProvider.IsDefaultAllowedRealms() {
-	// 	return h.authLinkUser(oauthAuthInfo)
-	// }
-
-	return nil, nil
+	if err != nil {
+		return nil, err
+	}
+	return principal, nil
 }
 
-func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
+func (h respHandler) findExistingPasswordPrincipal(oauthAuthInfo sso.AuthInfo) (*password.Principal, error) {
+	// Find password principal by provider primary email
 	email := oauthAuthInfo.ProviderUserInfo.Email
 	if email == "" {
 		return nil, nil
 	}
-
-	var err error
 	passwordPrincipal := password.Principal{}
-	err = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", email, password.DefaultRealm, &passwordPrincipal)
+	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", email, oauthAuthInfo.State.MergeRealm, &passwordPrincipal)
+	if err == skydb.ErrUserNotFound {
+		return nil, nil
+	}
 	if err != nil {
-		if err == skydb.ErrUserNotFound {
-			return nil, nil
-		}
 		return nil, err
 	}
-
 	if !h.PasswordAuthProvider.CheckLoginIDKeyType(passwordPrincipal.LoginIDKey, metadata.Email) {
 		return nil, nil
 	}
-
-	userID := passwordPrincipal.UserID
-	// link password principal to oauth principal
-	oauthPrincipal, err := h.createPrincipalByOAuthInfo(userID, oauthAuthInfo)
-	if err != nil {
-		return nil, err
-	}
-	return oauthPrincipal, nil
+	return &passwordPrincipal, nil
 }
 
 func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
