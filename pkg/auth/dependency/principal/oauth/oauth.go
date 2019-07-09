@@ -13,5 +13,4 @@ type Provider interface {
 	CreatePrincipal(principal Principal) error
 	UpdatePrincipal(principal *Principal) error
 	DeletePrincipal(principal *Principal) error
-	GetPrincipalsByUserID(userID string) ([]*Principal, error)
 }

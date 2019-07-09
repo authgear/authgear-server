@@ -72,3 +72,7 @@ func (p *safeProviderImpl) DeriveClaims(principal principal.Principal) principal
 	p.txContext.EnsureTx()
 	return p.impl.DeriveClaims(principal)
 }
+
+var (
+	_ Provider = &safeProviderImpl{}
+)
