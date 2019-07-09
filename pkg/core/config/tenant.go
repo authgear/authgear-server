@@ -597,7 +597,9 @@ type SSOProviderConfiguration struct {
 type UserVerificationCriteria string
 
 const (
+	// Some login ID need to verified belonging to the user is verified
 	UserVerificationCriteriaAny UserVerificationCriteria = "any"
+	// All login IDs need to verified belonging to the user is verified
 	UserVerificationCriteriaAll UserVerificationCriteria = "all"
 )
 
