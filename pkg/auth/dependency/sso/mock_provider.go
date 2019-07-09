@@ -35,12 +35,16 @@ func (f *MockSSOProvider) GetAuthInfo(code string, scope string, encodedState st
 
 	authInfo = AuthInfo{
 		ProviderConfig:          f.ProviderConfig,
-		State:                   state,
+		State:                   *state,
 		ProviderAccessTokenResp: map[string]interface{}{},
 		ProviderRawProfile:      map[string]interface{}{},
 		ProviderUserInfo:        f.UserInfo,
 	}
 	return
+}
+
+func (f *MockSSOProvider) DecodeState(encodedState string) (*State, error) {
+	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
 func (f *MockSSOProvider) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
@@ -52,3 +56,7 @@ func (f *MockSSOProvider) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTok
 	}
 	return
 }
+
+var (
+	_ Provider = &MockSSOProvider{}
+)

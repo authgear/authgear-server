@@ -54,6 +54,10 @@ func (f *FacebookImpl) GetAuthInfo(code string, scope string, encodedState strin
 	return h.getAuthInfo()
 }
 
+func (f *FacebookImpl) DecodeState(encodedState string) (*State, error) {
+	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
+}
+
 func (f facebookAuthInfoProcessor) DecodeAccessTokenResp(r io.Reader) (AccessTokenResp, error) {
 	accessTokenResp, err := f.defaultAuthInfoProcessor.DecodeAccessTokenResp(r)
 	if err != nil {
@@ -81,3 +85,7 @@ func (f *FacebookImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenR
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }
+
+var (
+	_ Provider = &FacebookImpl{}
+)

@@ -23,7 +23,7 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 	if err != nil {
 		return
 	}
-	authInfo.State = state
+	authInfo.State = *state
 
 	r, err := fetchAccessTokenResp(
 		h.code,
@@ -56,14 +56,14 @@ func (h getAuthInfoRequest) getAuthInfoByAccessTokenResp(accessTokenResp AccessT
 		ProviderAccessTokenResp: accessTokenResp,
 	}
 
-	var state State
+	var state *State
 	if h.encodedState != "" {
 		state, err = DecodeState(h.oauthConfig.StateJWTSecret, h.encodedState)
 		if err != nil {
 			return
 		}
 	}
-	authInfo.State = state
+	authInfo.State = *state
 
 	userProfile, err := fetchUserProfile(accessTokenResp, h.userProfileURL)
 	if err != nil {

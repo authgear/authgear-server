@@ -101,6 +101,7 @@ type Provider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
 	// TODO: Remove scope
 	GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error)
+	DecodeState(encodedState string) (*State, error)
 	GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error)
 }
 

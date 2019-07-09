@@ -25,6 +25,10 @@ func (f *LinkedInImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
+func (f *LinkedInImpl) DecodeState(encodedState string) (*State, error) {
+	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
+}
+
 func (f *LinkedInImpl) GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
@@ -48,3 +52,7 @@ func (f *LinkedInImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenR
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }
+
+var (
+	_ Provider = &LinkedInImpl{}
+)

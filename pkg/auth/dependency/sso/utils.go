@@ -75,7 +75,7 @@ func EncodeState(secret string, state State) (string, error) {
 }
 
 // DecodeState decodes state by JWT
-func DecodeState(secret string, encoded string) (State, error) {
+func DecodeState(secret string, encoded string) (*State, error) {
 	claims := CustomClaims{}
 	_, err := jwt.ParseWithClaims(encoded, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -83,7 +83,10 @@ func DecodeState(secret string, encoded string) (State, error) {
 		}
 		return []byte(secret), nil
 	})
-	return claims.State, err
+	if err != nil {
+		return nil, err
+	}
+	return &claims.State, nil
 }
 
 // RedirectURI generates redirect uri from URLPrefix and provider name

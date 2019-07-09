@@ -46,6 +46,10 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return BaseURL(f.ProviderConfig) + "?" + v.Encode(), nil
 }
 
+func (f *InstagramImpl) DecodeState(encodedState string) (*State, error) {
+	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
+}
+
 func (f *InstagramImpl) GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error) {
 	p := newInstagramAuthInfoProcessor()
 	h := getAuthInfoRequest{
@@ -84,3 +88,7 @@ func (f *InstagramImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessToken
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }
+
+var (
+	_ Provider = &InstagramImpl{}
+)

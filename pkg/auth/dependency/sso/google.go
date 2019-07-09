@@ -27,6 +27,10 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
+func (f *GoogleImpl) DecodeState(encodedState string) (*State, error) {
+	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
+}
+
 func (f *GoogleImpl) GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
@@ -50,3 +54,7 @@ func (f *GoogleImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenRes
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }
+
+var (
+	_ Provider = &GoogleImpl{}
+)
