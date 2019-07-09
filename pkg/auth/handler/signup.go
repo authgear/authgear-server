@@ -127,7 +127,7 @@ type SignupHandler struct {
 	WelcomeEmailEnabled     bool                                               `dependency:"WelcomeEmailEnabled"`
 	WelcomeEmailDestination config.WelcomeEmailDestination                     `dependency:"WelcomeEmailDestination"`
 	AutoSendUserVerifyCode  bool                                               `dependency:"AutoSendUserVerifyCodeOnSignup"`
-	UserVerifyKeys          map[string]config.UserVerificationKeyConfiguration `dependency:"UserVerifyKeys"`
+	UserVerifyLoginIDKeys   map[string]config.UserVerificationKeyConfiguration `dependency:"UserVerifyLoginIDKeys"`
 	TxContext               db.TxContext                                       `dependency:"TxContext"`
 	Logger                  *logrus.Entry                                      `dependency:"HandlerLogger"`
 	TaskQueue               async.Queue                                        `dependency:"AsyncTaskQueue"`
@@ -325,7 +325,7 @@ func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs []password.
 
 func (h SignupHandler) sendUserVerifyRequest(user response.User, loginIDs []password.LoginID) {
 	for _, loginID := range loginIDs {
-		for key := range h.UserVerifyKeys {
+		for key := range h.UserVerifyLoginIDKeys {
 			if key == loginID.Key {
 				h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
 					LoginID: loginID.Value,

@@ -160,8 +160,8 @@ func (m DependencyMap) Provide(
 			logging.CreateLoggerWithRequestID(requestID, "test_code_sender", createLoggerMaskFormatter(tConfig)),
 		)
 	case "AutoSendUserVerifyCodeOnSignup":
-		return !tConfig.UserConfig.UserVerification.AutoSendOnSignupDisabled
-	case "UserVerifyKeys":
+		return tConfig.UserConfig.UserVerification.AutoSendOnSignup
+	case "UserVerifyLoginIDKeys":
 		return tConfig.UserConfig.UserVerification.LoginIDKeys
 	case "UserVerificationProvider":
 		return userverify.NewProvider(

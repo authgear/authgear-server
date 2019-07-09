@@ -4300,8 +4300,8 @@ func (z *UserVerificationConfiguration) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
-		case "auto_send_on_signup_disabled":
-			z.AutoSendOnSignupDisabled, err = dc.ReadBool()
+		case "auto_send_on_signup":
+			z.AutoSendOnSignup, err = dc.ReadBool()
 			if err != nil {
 				return
 			}
@@ -4373,12 +4373,12 @@ func (z *UserVerificationConfiguration) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
-	// write "auto_send_on_signup_disabled"
-	err = en.Append(0xbc, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70, 0x5f, 0x64, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64)
+	// write "auto_send_on_signup"
+	err = en.Append(0xb3, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70)
 	if err != nil {
 		return err
 	}
-	err = en.WriteBool(z.AutoSendOnSignupDisabled)
+	err = en.WriteBool(z.AutoSendOnSignup)
 	if err != nil {
 		return
 	}
@@ -4438,9 +4438,9 @@ func (z *UserVerificationConfiguration) MarshalMsg(b []byte) (o []byte, err erro
 	// string "url_prefix"
 	o = append(o, 0x86, 0xaa, 0x75, 0x72, 0x6c, 0x5f, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78)
 	o = msgp.AppendString(o, z.URLPrefix)
-	// string "auto_send_on_signup_disabled"
-	o = append(o, 0xbc, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70, 0x5f, 0x64, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64)
-	o = msgp.AppendBool(o, z.AutoSendOnSignupDisabled)
+	// string "auto_send_on_signup"
+	o = append(o, 0xb3, 0x61, 0x75, 0x74, 0x6f, 0x5f, 0x73, 0x65, 0x6e, 0x64, 0x5f, 0x6f, 0x6e, 0x5f, 0x73, 0x69, 0x67, 0x6e, 0x75, 0x70)
+	o = msgp.AppendBool(o, z.AutoSendOnSignup)
 	// string "criteria"
 	o = append(o, 0xa8, 0x63, 0x72, 0x69, 0x74, 0x65, 0x72, 0x69, 0x61)
 	o = msgp.AppendString(o, string(z.Criteria))
@@ -4484,8 +4484,8 @@ func (z *UserVerificationConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 			if err != nil {
 				return
 			}
-		case "auto_send_on_signup_disabled":
-			z.AutoSendOnSignupDisabled, bts, err = msgp.ReadBoolBytes(bts)
+		case "auto_send_on_signup":
+			z.AutoSendOnSignup, bts, err = msgp.ReadBoolBytes(bts)
 			if err != nil {
 				return
 			}
@@ -4548,7 +4548,7 @@ func (z *UserVerificationConfiguration) UnmarshalMsg(bts []byte) (o []byte, err 
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserVerificationConfiguration) Msgsize() (s int) {
-	s = 1 + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 29 + msgp.BoolSize + 9 + msgp.StringPrefixSize + len(string(z.Criteria)) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorHTMLURL) + 14 + msgp.MapHeaderSize
+	s = 1 + 11 + msgp.StringPrefixSize + len(z.URLPrefix) + 20 + msgp.BoolSize + 9 + msgp.StringPrefixSize + len(string(z.Criteria)) + 15 + msgp.StringPrefixSize + len(z.ErrorRedirect) + 15 + msgp.StringPrefixSize + len(z.ErrorHTMLURL) + 14 + msgp.MapHeaderSize
 	if z.LoginIDKeys != nil {
 		for zbgy, zrao := range z.LoginIDKeys {
 			_ = zrao
