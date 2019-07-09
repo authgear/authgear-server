@@ -18,21 +18,21 @@ import (
 
 func TestUnlinkHandler(t *testing.T) {
 	Convey("Test UnlinkHandler", t, func() {
-		providerName := "mock"
+		providerID := "mock"
 		providerUserID := "mock_user_id"
 
 		sh := &UnlinkHandler{}
-		sh.ProviderName = providerName
+		sh.ProviderID = providerID
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
-		mockOAuthProviderKey := oauth.NewMockProviderKey(providerName, providerUserID)
+		mockOAuthProviderKey := oauth.NewMockProviderKey(providerID, providerUserID)
 		mockOAuthProvider := oauth.NewMockProvider(
 			map[string]string{
 				"faseng.cat.id": mockOAuthProviderKey,
 			},
 			map[string]oauth.Principal{
 				mockOAuthProviderKey: oauth.Principal{
-					ProviderName:   providerName,
+					ProviderName:   providerID,
 					UserID:         "faseng.cat.id",
 					ProviderUserID: providerUserID,
 				},
@@ -52,7 +52,7 @@ func TestUnlinkHandler(t *testing.T) {
 				"result": {}
 			}`)
 
-			p, e := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			p, e := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerID, providerUserID)
 			So(e, ShouldEqual, skydb.ErrUserNotFound)
 			So(p, ShouldBeNil)
 		})
