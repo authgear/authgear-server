@@ -9,54 +9,32 @@ type Options map[string]interface{}
 
 // State parameter refers parameter of auth url
 type State struct {
-	UXMode      string `json:"ux_mode"`
+	UXMode      UXMode `json:"ux_mode"`
 	CallbackURL string `json:"callback_url"`
 	Action      string `json:"action"`
 	UserID      string `json:"user_id,omitempty"`
 }
 
 // UXMode indicates how the URL is used
-type UXMode int
+type UXMode string
 
+// UXMode constants
 const (
-	// Undefined for undefined uxmode
-	Undefined UXMode = iota
-	// WebRedirect for web url redirect
-	WebRedirect
-	// WebPopup for web popup window
-	WebPopup
-	// IOS for device iOS
-	IOS
-	// Android for device Android
-	Android
+	UXModeWebRedirect UXMode = "web_redirect"
+	UXModeWebPopup    UXMode = "web_popup"
+	UXModeIOS         UXMode = "ios"
+	UXModeAndroid     UXMode = "android"
 )
 
-func (m UXMode) String() string {
-	names := [...]string{
-		"web_redirect",
-		"web_popup",
-		"ios",
-		"android",
-	}
-
-	if m < WebRedirect || m > Android {
-		return "undefined"
-	}
-
-	return names[m-1]
-}
-
-// UXModeFromString converts string to UXMode
-func UXModeFromString(input string) (u UXMode) {
-	UXModes := [...]UXMode{WebRedirect, WebPopup, IOS, Android}
-	for _, v := range UXModes {
-		if input == v.String() {
-			u = v
-			return
+// IsValidUXMode converts string to UXMode
+func IsValidUXMode(mode UXMode) bool {
+	allModes := []UXMode{UXModeWebRedirect, UXModeWebPopup, UXModeIOS, UXModeAndroid}
+	for _, v := range allModes {
+		if mode == v {
+			return true
 		}
 	}
-
-	return
+	return false
 }
 
 // GetURLParams structs parameters for GetLoginAuthURL

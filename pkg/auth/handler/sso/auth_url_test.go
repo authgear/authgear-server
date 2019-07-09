@@ -18,14 +18,14 @@ func TestAuthURLPayload(t *testing.T) {
 		Convey("validate valid payload", func() {
 			payload := AuthURLRequestPayload{
 				CallbackURL: "callbackURL",
-				UXMode:      sso.WebRedirect,
+				UXMode:      sso.UXModeWebRedirect,
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
 
 		Convey("validate payload without callback url", func() {
 			payload := AuthURLRequestPayload{
-				UXMode: sso.WebRedirect,
+				UXMode: sso.UXModeWebRedirect,
 			}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
@@ -39,28 +39,6 @@ func TestAuthURLPayload(t *testing.T) {
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)
 			So(errResponse.Code(), ShouldEqual, skyerr.InvalidArgument)
-		})
-	})
-}
-
-func TestSSOUXModeConvertor(t *testing.T) {
-	Convey("Test UXModeFromString", t, func() {
-		Convey("should convert string to sso.UXMode", func() {
-			modes := []sso.UXMode{
-				sso.WebRedirect,
-				sso.WebPopup,
-				sso.IOS,
-				sso.Android,
-			}
-			for _, m := range modes {
-				modeFromStr := sso.UXModeFromString(m.String())
-				So(modeFromStr, ShouldEqual, m)
-			}
-		})
-
-		Convey("should convert unknown string to sso.Undefined", func() {
-			modeFromStr := sso.UXModeFromString("some_string")
-			So(modeFromStr, ShouldEqual, sso.Undefined)
 		})
 	})
 }
@@ -89,7 +67,7 @@ func TestAuthURLHandler(t *testing.T) {
 		h.Action = "login"
 		payload := AuthURLRequestPayload{
 			CallbackURL: "callbackURL",
-			UXMode:      sso.WebRedirect,
+			UXMode:      sso.UXModeWebRedirect,
 			Options: map[string]interface{}{
 				"number": 1,
 			},
@@ -124,7 +102,7 @@ func TestAuthURLHandler(t *testing.T) {
 				return []byte("secret"), nil
 			})
 			So(err, ShouldBeNil)
-			So(claims.State.UXMode, ShouldEqual, sso.WebRedirect.String())
+			So(claims.State.UXMode, ShouldEqual, sso.UXModeWebRedirect)
 			So(claims.State.CallbackURL, ShouldEqual, "callbackURL")
 			So(claims.State.Action, ShouldEqual, "login")
 			So(claims.State.UserID, ShouldEqual, "faseng.cat.id")

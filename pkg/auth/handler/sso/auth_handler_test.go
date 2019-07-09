@@ -126,12 +126,12 @@ func TestAuthHandler(t *testing.T) {
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
-			UXMode := "web_redirect"
+			uxMode := sso.UXModeWebRedirect
 
 			// oauth state
 			state := sso.State{
 				CallbackURL: "http://localhost:3000",
-				UXMode:      UXMode,
+				UXMode:      uxMode,
 				Action:      action,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
@@ -215,12 +215,12 @@ func TestAuthHandler(t *testing.T) {
 		})
 
 		Convey("should return html page when ux_mode is web_popup", func() {
-			UXMode := "web_popup"
+			uxMode := sso.UXModeWebPopup
 
 			// oauth state
 			state := sso.State{
 				CallbackURL: "http://localhost:3000",
-				UXMode:      UXMode,
+				UXMode:      uxMode,
 				Action:      action,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
@@ -245,12 +245,12 @@ func TestAuthHandler(t *testing.T) {
 		})
 
 		Convey("should return callback url with result query parameter when ux_mode is ios or android", func() {
-			UXMode := "ios"
+			uxMode := sso.UXModeIOS
 
 			// oauth state
 			state := sso.State{
 				CallbackURL: "http://localhost:3000",
-				UXMode:      UXMode,
+				UXMode:      uxMode,
 				Action:      action,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
@@ -370,12 +370,12 @@ func TestAuthHandler(t *testing.T) {
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
-			UXMode := "web_redirect"
+			uxMode := sso.UXModeWebRedirect
 
 			// oauth state
 			state := sso.State{
 				CallbackURL: "http://localhost:3000",
-				UXMode:      UXMode,
+				UXMode:      uxMode,
 				Action:      action,
 				UserID:      "john.doe.id",
 			}
@@ -435,12 +435,12 @@ func TestAuthHandler(t *testing.T) {
 		})
 
 		Convey("should get err if user is already linked", func() {
-			UXMode := "web_redirect"
+			uxMode := sso.UXModeWebRedirect
 
 			// oauth state
 			state := sso.State{
 				CallbackURL: "http://localhost:3000",
-				UXMode:      UXMode,
+				UXMode:      uxMode,
 				Action:      action,
 				UserID:      "jane.doe.id",
 			}

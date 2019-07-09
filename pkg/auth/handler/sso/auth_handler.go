@@ -232,7 +232,7 @@ func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackU
 	return
 }
 
-func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, resp interface{}) (err error) {
+func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, uxMode sso.UXMode, callbackURL string, resp interface{}) (err error) {
 	/*
 	   In JS oauth flow, result send through cookies and handler by js script
 
@@ -254,7 +254,7 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 		Path:  "/",
 	}
 	http.SetCookie(rw, &cookie)
-	if UXMode == sso.WebRedirect.String() {
+	if uxMode == sso.UXModeWebRedirect {
 		http.Redirect(rw, r, callbackURL, http.StatusFound)
 	} else {
 		html, err := h.AuthHandlerHTMLProvider.HTML()
@@ -267,7 +267,7 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 	return
 }
 
-func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, resp interface{}) (err error) {
+func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request, UXMode sso.UXMode, callbackURL string, resp interface{}) (err error) {
 	/*
 	   In ios and android oauth flow, after auth flow complete will redirect
 	   client back to the app with custom scheme
@@ -294,7 +294,7 @@ func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request,
 
 type authHandlerRespContext struct {
 	callbackURL string
-	UXMode      string
+	UXMode      sso.UXMode
 	succ        interface{}
 	err         error
 }
@@ -322,12 +322,12 @@ func (h AuthHandler) sendResp(rw http.ResponseWriter, r *http.Request, c authHan
 	}
 
 	// handle authResp by UXMode
-	type authRespHandlerFunc func(rw http.ResponseWriter, r *http.Request, UXMode string, callbackURL string, resp interface{}) (err error)
+	type authRespHandlerFunc func(rw http.ResponseWriter, r *http.Request, UXMode sso.UXMode, callbackURL string, resp interface{}) (err error)
 	var authRespHandler authRespHandlerFunc
 	switch c.UXMode {
-	case sso.WebRedirect.String(), sso.WebPopup.String():
+	case sso.UXModeWebRedirect, sso.UXModeWebPopup:
 		authRespHandler = h.handleSessionResp
-	case sso.IOS.String(), sso.Android.String():
+	case sso.UXModeIOS, sso.UXModeAndroid:
 		authRespHandler = h.handleRedirectResp
 	}
 

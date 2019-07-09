@@ -62,7 +62,7 @@ func UserProfileURL(providerConfig config.OAuthProviderConfiguration) (u string)
 // NewState constructs a new state
 func NewState(params GetURLParams) State {
 	return State{
-		UXMode:      params.UXMode.String(),
+		UXMode:      params.UXMode,
 		CallbackURL: params.CallbackURL,
 		Action:      params.Action,
 		UserID:      params.UserID,

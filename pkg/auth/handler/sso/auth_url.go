@@ -56,8 +56,7 @@ func (f AuthURLHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 type AuthURLRequestPayload struct {
 	Options     map[string]interface{} `json:"options"`
 	CallbackURL string                 `json:"callback_url"`
-	RawUXMode   string                 `json:"ux_mode"`
-	UXMode      sso.UXMode
+	UXMode      sso.UXMode             `json:"ux_mode"`
 }
 
 // Validate request payload
@@ -66,8 +65,8 @@ func (p AuthURLRequestPayload) Validate() error {
 		return skyerr.NewInvalidArgument("Callback url is required", []string{"callback_url"})
 	}
 
-	if p.UXMode == sso.Undefined {
-		return skyerr.NewInvalidArgument("UX mode is required", []string{"ux_mode"})
+	if !sso.IsValidUXMode(p.UXMode) {
+		return skyerr.NewInvalidArgument("Invalid UX mode", []string{"ux_mode"})
 	}
 
 	return nil
@@ -133,7 +132,6 @@ func (h AuthURLHandler) DecodeRequest(request *http.Request) (handler.RequestPay
 		Options: make(sso.Options),
 	}
 	err := json.NewDecoder(request.Body).Decode(&payload)
-	payload.UXMode = sso.UXModeFromString(payload.RawUXMode)
 
 	return payload, err
 }
