@@ -33,13 +33,13 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 		return
 	}
 
-	// Create or update user profile
+	// Create empty user profile or get the existing one
 	var userProfile userprofile.UserProfile
-	data := oauthAuthInfo.ProviderRawProfile
+	emptyProfile := map[string]interface{}{}
 	if createNewUser {
-		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, data)
+		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, emptyProfile)
 	} else {
-		userProfile, err = h.UserProfileStore.UpdateUserProfile(info.ID, &info, data)
+		userProfile, err = h.UserProfileStore.GetUserProfile(info.ID)
 	}
 	if err != nil {
 		// TODO:
