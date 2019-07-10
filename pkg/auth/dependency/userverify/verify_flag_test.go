@@ -82,13 +82,13 @@ func TestIsUserVerified(t *testing.T) {
 					LoginIDs:          map[string]string{},
 					VerifiedLoginIDs:  []string{},
 					VerifyLoginIDKeys: []string{"email"},
-				}), ShouldResemble, verifyResult{All: true, Any: false})
+				}), ShouldResemble, verifyResult{All: false, Any: false})
 
 				So(isUserVerified(verifyRequest{
 					LoginIDs:          map[string]string{"username": "test"},
 					VerifiedLoginIDs:  []string{},
 					VerifyLoginIDKeys: []string{"email"},
-				}), ShouldResemble, verifyResult{All: true, Any: false})
+				}), ShouldResemble, verifyResult{All: false, Any: false})
 			})
 			Convey("should check single email login ID", func() {
 				So(isUserVerified(verifyRequest{
@@ -136,7 +136,7 @@ func TestIsUserVerified(t *testing.T) {
 					LoginIDs:          map[string]string{},
 					VerifiedLoginIDs:  []string{},
 					VerifyLoginIDKeys: []string{"email", "phone"},
-				}), ShouldResemble, verifyResult{All: true, Any: false})
+				}), ShouldResemble, verifyResult{All: false, Any: false})
 			})
 			Convey("should check email/phone login ID", func() {
 				So(isUserVerified(verifyRequest{

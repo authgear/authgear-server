@@ -21,20 +21,24 @@ func IsUserVerified(
 
 	switch criteria {
 	case config.UserVerificationCriteriaAll:
+		// Login IDs to verify exist and all are verified
+		loginIDToVerify := 0
 		for _, principal := range principals {
 			for key := range verifyConfigs {
 				if principal.LoginIDKey != key {
 					continue
 				}
+				loginIDToVerify++
 				if !authInfo.VerifyInfo[principal.LoginID] {
 					verified = false
 					return
 				}
 			}
 		}
-		verified = true
+		verified = loginIDToVerify > 0
 
 	case config.UserVerificationCriteriaAny:
+		// Login IDs to verify exist and some are verified
 		for _, principal := range principals {
 			for key := range verifyConfigs {
 				if principal.LoginIDKey != key {
