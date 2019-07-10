@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/utils"
 
 	"github.com/sirupsen/logrus"
@@ -106,14 +107,13 @@ func (payload VerifyRequestPayload) Validate() error {
 //  EOF
 //
 type VerifyRequestHandler struct {
-	TxContext            db.TxContext                    `dependency:"TxContext"`
-	AuthContext          coreAuth.ContextGetter          `dependency:"AuthContextGetter"`
-	CodeSenderFactory    userverify.CodeSenderFactory    `dependency:"UserVerifyCodeSenderFactory"`
-	CodeGeneratorFactory userverify.CodeGeneratorFactory `dependency:"VerifyCodeCodeGeneratorFactory"`
-	UserProfileStore     userprofile.Store               `dependency:"UserProfileStore"`
-	VerifyCodeStore      userverify.Store                `dependency:"VerifyCodeStore"`
-	Logger               *logrus.Entry                   `dependency:"HandlerLogger"`
-	PasswordAuthProvider password.Provider               `dependency:"PasswordAuthProvider"`
+	TxContext                db.TxContext                 `dependency:"TxContext"`
+	AuthContext              coreAuth.ContextGetter       `dependency:"AuthContextGetter"`
+	CodeSenderFactory        userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
+	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
+	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
+	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
+	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
 func (h VerifyRequestHandler) WithTx() bool {
@@ -167,28 +167,13 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
+	verifyCode, err := h.UserVerificationProvider.CreateVerifyCode(userPrincipal)
+	if err != nil {
+		return
+	}
+
 	codeSender := h.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
-	if codeSender == nil {
-		err = skyerr.NewError(skyerr.UnexpectedError, "User verification not configured for login ID key")
-		return
-	}
-
-	codeGenerator := h.CodeGeneratorFactory.NewCodeGenerator(userPrincipal.LoginIDKey)
-	code := codeGenerator.Generate()
-
-	verifyCode := userverify.NewVerifyCode()
-	verifyCode.UserID = authInfo.ID
-	verifyCode.RecordKey = userPrincipal.LoginIDKey
-	verifyCode.RecordValue = userPrincipal.LoginID
-	verifyCode.Code = code
-	verifyCode.Consumed = false
-	verifyCode.CreatedAt = time.Now()
-
-	if err = h.VerifyCodeStore.CreateVerifyCode(&verifyCode); err != nil {
-		return
-	}
-
-	if err = codeSender.Send(verifyCode, user); err != nil {
+	if err = codeSender.Send(*verifyCode, user); err != nil {
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,
 			"login_id_key": userPrincipal.LoginIDKey,
@@ -221,23 +206,25 @@ func (f VerifyRequestTestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type VerifyRequestTestPayload struct {
-	RecordKey        string            `json:"record_key"`
-	RecordValue      string            `json:"record_value"`
-	ProviderSettings map[string]string `json:"provider_settings"`
-	Templates        map[string]string `json:"templates"`
+	LoginIDKey    string                                       `json:"login_id_key"`
+	LoginID       string                                       `json:"login_id"`
+	User          response.User                                `json:"user"`
+	Provider      config.UserVerificationProvider              `json:"provider"`
+	MessageConfig config.UserVerificationProviderConfiguration `json:"message_config"`
+	Templates     map[string]string                            `json:"templates"`
 }
 
 func (payload VerifyRequestTestPayload) Validate() error {
-	if payload.RecordKey == "" {
-		return skyerr.NewInvalidArgument("empty record_key", []string{"record_key"})
+	if payload.LoginIDKey == "" {
+		return skyerr.NewInvalidArgument("empty login_id_key", []string{"login_id_key"})
 	}
 
-	if payload.RecordValue == "" {
-		return skyerr.NewInvalidArgument("empty record_value", []string{"record_value"})
+	if payload.LoginID == "" {
+		return skyerr.NewInvalidArgument("empty login_id", []string{"login_id"})
 	}
 
-	if payload.ProviderSettings == nil || payload.ProviderSettings["name"] == "" {
-		return skyerr.NewInvalidArgument("missing provider name", []string{"provider_settings.name"})
+	if !payload.Provider.IsValid() {
+		return skyerr.NewInvalidArgument("invalid provider", []string{"provider"})
 	}
 
 	return nil
@@ -248,32 +235,22 @@ func (payload VerifyRequestTestPayload) Validate() error {
 //  curl -X POST -H "Content-Type: application/json" \
 //    -d @- http://localhost:3000/verify_request/test <<EOF
 //  {
-//    "record_key": "email",
-//    "record_value": "test@example.com",
-//    "provider_settings": {
-//      "name": "smtp"
+//    "login_id_key": "email",
+//    "login_id": "user@example.com",
+//    "user":  {
+//      "user_id": "5bf1e4d2-e1c4-4517-93c7-7dae89261da6",
+//      "metadata": {
+//        "email": "user@example.com"
+//      }
 //    },
+//    "provider": "smtp",
 //    "templates": {
 //      "text": "testing",
 //      "html": "testing html"
-//    }
-//  }
-//  EOF
-//
-//  curl -X POST -H "Content-Type: application/json" \
-//    -d @- http://localhost:3000/verify_request/test <<EOF
-//  {
-//    "record_key": "phone",
-//    "record_value": "+15005550009",
-//    "provider_settings": {
-//      "name": "twilio",
-//      "twilio_from": "+15005550009",
-//      "twilio_account_sid": "",
-//      "twilio_auth_token": ""
 //    },
-//    "templates": {
-//      "text": "testing sms"
-//    }
+//    "message_config": {
+//      "subject": "Test"
+//    },
 //  }
 //  EOF
 //
@@ -298,15 +275,32 @@ func (h VerifyRequestTestHandler) DecodeRequest(request *http.Request) (handler.
 
 func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyRequestTestPayload)
-	codeSender := h.TestCodeSenderFactory.NewTestCodeSender(payload.RecordKey, payload.ProviderSettings, payload.Templates)
-	if codeSender == nil {
-		err = skyerr.NewInvalidArgument("invalid provider name", []string{"provider_settings.name"})
+	sender := h.TestCodeSenderFactory.NewTestCodeSender(
+		payload.Provider,
+		payload.MessageConfig,
+		payload.LoginIDKey,
+		payload.Templates,
+	)
+
+	user := payload.User
+	if user.UserID == "" {
+		user.UserID = "test-user-id"
+	}
+
+	verifyCode := userverify.NewVerifyCode()
+	verifyCode.UserID = user.UserID
+	verifyCode.LoginIDKey = payload.LoginIDKey
+	verifyCode.LoginID = payload.LoginID
+	verifyCode.Code = "TEST1234"
+	verifyCode.Consumed = false
+	verifyCode.CreatedAt = time.Now().UTC()
+
+	err = sender.Send(verifyCode, user)
+	if err != nil {
 		return
 	}
 
-	if err = codeSender.Send(payload.RecordKey, payload.RecordValue); err == nil {
-		resp = "OK"
-	}
+	resp = "OK"
 
 	return
 }

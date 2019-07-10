@@ -7,7 +7,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -77,14 +76,12 @@ func (payload VerifyCodePayload) Validate() error {
 //  EOF
 //
 type VerifyCodeHandler struct {
-	TxContext                db.TxContext                        `dependency:"TxContext"`
-	AuthContext              coreAuth.ContextGetter              `dependency:"AuthContextGetter"`
-	UserProfileStore         userprofile.Store                   `dependency:"UserProfileStore"`
-	VerifyCodeStore          userverify.Store                    `dependency:"VerifyCodeStore"`
-	AuthInfoStore            authinfo.Store                      `dependency:"AuthInfoStore"`
-	PasswordAuthProvider     password.Provider                   `dependency:"PasswordAuthProvider"`
-	AutoUpdateUserVerifyFunc userverify.AutoUpdateUserVerifyFunc `dependency:"AutoUpdateUserVerifyFunc,optional"`
-	Logger                   *logrus.Entry                       `dependency:"HandlerLogger"`
+	TxContext                db.TxContext           `dependency:"TxContext"`
+	AuthContext              coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	UserVerificationProvider userverify.Provider    `dependency:"UserVerificationProvider"`
+	AuthInfoStore            authinfo.Store         `dependency:"AuthInfoStore"`
+	PasswordAuthProvider     password.Provider      `dependency:"PasswordAuthProvider"`
+	Logger                   *logrus.Entry          `dependency:"HandlerLogger"`
 }
 
 func (h VerifyCodeHandler) WithTx() bool {
@@ -103,43 +100,10 @@ func (h VerifyCodeHandler) DecodeRequest(request *http.Request) (handler.Request
 
 func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(VerifyCodePayload)
-
 	authInfo := h.AuthContext.AuthInfo()
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
-		h.Logger.WithField("user_id", authInfo.ID).Error("unexpected user not found")
-		err = skyerr.NewError(skyerr.UnexpectedUserNotFound, "user not found")
-		return
-	}
 
-	verifyCodeReq := getAndValidateCodeRequest{
-		VerifyCodeStore: h.VerifyCodeStore,
-		Logger:          h.Logger,
-	}
-
-	var code userverify.VerifyCode
-	if code, err = verifyCodeReq.execute(payload.Code, userProfile); err != nil {
-		return
-	}
-
-	// Update code
-	code.Consumed = true
-	if err = h.VerifyCodeStore.UpdateVerifyCode(&code); err != nil {
-		return
-	}
-
-	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID)
+	_, err = h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, authInfo, payload.Code)
 	if err != nil {
-		return
-	}
-
-	// Update user
-	authInfo.VerifyInfo[code.RecordValue] = true
-	if h.AutoUpdateUserVerifyFunc != nil {
-		h.AutoUpdateUserVerifyFunc(authInfo, principals)
-	}
-
-	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
 		return
 	}
 

@@ -45,22 +45,22 @@ func NewEngineWithConfig(engine *template.Engine, tConfig config.TenantConfigura
 		loader.URLMap[TemplateNameVerifyErrorHTML] = tConfig.UserConfig.UserVerification.ErrorHTMLURL
 	}
 
-	for _, keyConfig := range tConfig.UserConfig.UserVerification.Keys {
-		if keyConfig.SuccessHTMLURL != "" {
-			loader.URLMap[VerifySuccessHTMLTemplateNameForKey(keyConfig.Key)] = keyConfig.SuccessHTMLURL
+	for key, config := range tConfig.UserConfig.UserVerification.LoginIDKeys {
+		if config.SuccessHTMLURL != "" {
+			loader.URLMap[VerifySuccessHTMLTemplateNameForKey(key)] = config.SuccessHTMLURL
 		}
 
-		if keyConfig.ErrorHTMLURL != "" {
-			loader.URLMap[VerifyErrorHTMLTemplateNameForKey(keyConfig.Key)] = keyConfig.ErrorHTMLURL
+		if config.ErrorHTMLURL != "" {
+			loader.URLMap[VerifyErrorHTMLTemplateNameForKey(key)] = config.ErrorHTMLURL
 		}
 
-		providerConfig := keyConfig.ProviderConfig
+		providerConfig := config.ProviderConfig
 		if providerConfig.TextURL != "" {
-			loader.URLMap[VerifyTextTemplateNameForKey(keyConfig.Key)] = providerConfig.TextURL
+			loader.URLMap[VerifyTextTemplateNameForKey(key)] = providerConfig.TextURL
 		}
 
 		if providerConfig.HTMLURL != "" {
-			loader.URLMap[VerifyHTMLTemplateNameForKey(keyConfig.Key)] = providerConfig.HTMLURL
+			loader.URLMap[VerifyHTMLTemplateNameForKey(key)] = providerConfig.HTMLURL
 		}
 	}
 

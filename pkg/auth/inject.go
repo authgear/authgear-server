@@ -3,6 +3,8 @@ package auth
 import (
 	"context"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
+
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
@@ -143,15 +145,6 @@ func (m DependencyMap) Provide(
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.APIEndpoint(), tConfig.UserConfig.SSO.JSSDKCDNURL)
-	case "VerifyCodeStore":
-		return userverify.NewSafeStore(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-			logging.CreateLoggerWithRequestID(requestID, "verify_code", createLoggerMaskFormatter(tConfig)),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
-		)
-	case "VerifyCodeCodeGeneratorFactory":
-		return userverify.NewDefaultCodeGeneratorFactory(tConfig)
 	case "UserVerifyCodeSenderFactory":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, templateEngine)
@@ -160,12 +153,20 @@ func (m DependencyMap) Provide(
 		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(tConfig, templateEngine)
 	case "AutoSendUserVerifyCodeOnSignup":
 		return tConfig.UserConfig.UserVerification.AutoSendOnSignup
-	case "UserVerifyKeys":
-		return tConfig.UserConfig.UserVerification.Keys
-	case "AutoUpdateUserVerifyFunc":
-		return userverify.CreateAutoUpdateUserVerifyfunc(tConfig)
-	case "AutoUpdateUserVerified":
-		return tConfig.UserConfig.UserVerification.AutoUpdate
+	case "UserVerifyLoginIDKeys":
+		return tConfig.UserConfig.UserVerification.LoginIDKeys
+	case "UserVerificationProvider":
+		return userverify.NewProvider(
+			userverify.NewCodeGenerator(tConfig),
+			userverify.NewSafeStore(
+				db.NewSQLBuilder("auth", tConfig.AppName),
+				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
+				logging.CreateLoggerWithRequestID(requestID, "verify_code", createLoggerMaskFormatter(tConfig)),
+				db.NewSafeTxContextWithContext(ctx, tConfig),
+			),
+			tConfig.UserConfig.UserVerification,
+			time.NewProvider(),
+		)
 	case "VerifyHTMLProvider":
 		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
 		return userverify.NewVerifyHTMLProvider(tConfig.UserConfig.UserVerification, templateEngine)

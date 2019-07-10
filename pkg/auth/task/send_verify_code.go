@@ -2,14 +2,17 @@ package task
 
 import (
 	"context"
-	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/core/async"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/sirupsen/logrus"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 	"github.com/skygeario/skygear-server/pkg/auth/response"
 )
@@ -40,17 +43,18 @@ func (c *VerifyCodeSendTaskFactory) NewTask(ctx context.Context, taskCtx async.T
 }
 
 type VerifyCodeSendTask struct {
-	CodeSenderFactory    userverify.CodeSenderFactory    `dependency:"UserVerifyCodeSenderFactory"`
-	CodeGeneratorFactory userverify.CodeGeneratorFactory `dependency:"VerifyCodeCodeGeneratorFactory"`
-	VerifyCodeStore      userverify.Store                `dependency:"VerifyCodeStore"`
-	TxContext            db.TxContext                    `dependency:"TxContext"`
-	Logger               *logrus.Entry                   `dependency:"HandlerLogger"`
+	CodeSenderFactory        userverify.CodeSenderFactory `dependency:"UserVerifyCodeSenderFactory"`
+	AuthInfoStore            authinfo.Store               `dependency:"AuthInfoStore"`
+	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
+	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
+	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
+	TxContext                db.TxContext                 `dependency:"TxContext"`
+	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
 type VerifyCodeSendTaskParam struct {
-	Key   string
-	Value string
-	User  response.User
+	LoginID string
+	UserID  string
 }
 
 func (v *VerifyCodeSendTask) WithTx() bool {
@@ -59,35 +63,65 @@ func (v *VerifyCodeSendTask) WithTx() bool {
 
 func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	taskParam := param.(VerifyCodeSendTaskParam)
-	codeSender := v.CodeSenderFactory.NewCodeSender(taskParam.Key)
+	loginID := taskParam.LoginID
+	userID := taskParam.UserID
 
 	v.Logger.WithFields(logrus.Fields{
-		"userID": taskParam.User.UserID,
-	}).Info("start sending user verify requests")
+		"login_id": loginID,
+		"user_id":  userID,
+	}).Info("start sending user verify message")
 
-	codeGenerator := v.CodeGeneratorFactory.NewCodeGenerator(taskParam.Key)
-	code := codeGenerator.Generate()
-
-	verifyCode := userverify.NewVerifyCode()
-	verifyCode.UserID = taskParam.User.UserID
-	verifyCode.RecordKey = taskParam.Key
-	verifyCode.RecordValue = taskParam.Value
-	verifyCode.Code = code
-	verifyCode.Consumed = false
-	verifyCode.CreatedAt = time.Now()
-
-	if err = v.VerifyCodeStore.CreateVerifyCode(&verifyCode); err != nil {
+	authInfo := authinfo.AuthInfo{}
+	err = v.AuthInfoStore.GetAuth(userID, &authInfo)
+	if err != nil {
+		err = skyerr.NewError(skyerr.UnexpectedError, "unable to fetch user")
 		return
 	}
 
-	if err = codeSender.Send(verifyCode, taskParam.User); err != nil {
+	userProfile, err := v.UserProfileStore.GetUserProfile(userID)
+	if err != nil {
+		err = skyerr.NewError(skyerr.UnexpectedError, "unable to fetch user profile")
+		return
+	}
+
+	userFactory := response.UserFactory{
+		PasswordAuthProvider: v.PasswordAuthProvider,
+	}
+	user := userFactory.NewUser(authInfo, userProfile)
+
+	// We don't check realms. i.e. Verifying a email means every email login IDs
+	// of that email is verified, regardless the realm.
+	principals, err := v.PasswordAuthProvider.GetPrincipalsByLoginID("", loginID)
+	if err != nil {
+		return
+	}
+
+	var userPrincipal *password.Principal
+	for _, principal := range principals {
+		if principal.UserID == authInfo.ID {
+			userPrincipal = principal
+			break
+		}
+	}
+	if userPrincipal == nil {
+		err = skyerr.NewError(skyerr.UnexpectedError, "Value of "+loginID+" doesn't exist.")
+		return
+	}
+
+	verifyCode, err := v.UserVerificationProvider.CreateVerifyCode(userPrincipal)
+	if err != nil {
+		return
+	}
+
+	codeSender := v.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
+	if err = codeSender.Send(*verifyCode, user); err != nil {
 		v.Logger.WithFields(logrus.Fields{
 			"error":        err,
-			"record_key":   taskParam.Key,
-			"record_value": taskParam.Value,
+			"login_id_key": userPrincipal.LoginIDKey,
+			"login_id":     userPrincipal.LoginID,
 		}).Error("fail to send verify request")
 		return
 	}
 
-	return
+	return nil
 }

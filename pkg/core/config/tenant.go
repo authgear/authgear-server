@@ -116,7 +116,7 @@ func NewTenantConfigurationFromScratch(options FromScratchOptions) (*TenantConfi
 	return &c, nil
 }
 
-func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
+func loadTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
 	decoder := yaml.NewDecoder(r)
 	config := TenantConfiguration{
 		AppConfig:  defaultAppConfiguration(),
@@ -126,12 +126,21 @@ func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
 	if err != nil {
 		return nil, err
 	}
+	return &config, nil
+}
+
+func NewTenantConfigurationFromYAML(r io.Reader) (*TenantConfiguration, error) {
+	config, err := loadTenantConfigurationFromYAML(r)
+	if err != nil {
+		return nil, err
+	}
+
 	config.AfterUnmarshal()
 	err = config.Validate()
 	if err != nil {
 		return nil, err
 	}
-	return &config, nil
+	return config, nil
 }
 
 func NewTenantConfigurationFromEnv() (*TenantConfiguration, error) {
@@ -161,7 +170,7 @@ func NewTenantConfigurationFromYAMLAndEnv(open func() (io.Reader, error)) (*Tena
 		}
 	}()
 
-	c, err := NewTenantConfigurationFromYAML(r)
+	c, err := loadTenantConfigurationFromYAML(r)
 	if err != nil {
 		return nil, err
 	}
@@ -180,6 +189,11 @@ func NewTenantConfigurationFromYAMLAndEnv(open func() (io.Reader, error)) (*Tena
 		c.UserConfig.MasterKey = options.MasterKey
 	}
 
+	c.AfterUnmarshal()
+	err = c.Validate()
+	if err != nil {
+		return nil, err
+	}
 	return c, nil
 }
 
@@ -294,13 +308,19 @@ func (c *TenantConfiguration) Validate() error {
 		}
 	}
 
-	for _, verifyConfig := range c.UserConfig.UserVerification.Keys {
-		keyConfig, ok := c.UserConfig.Auth.LoginIDKeys[verifyConfig.Key]
+	for key, verifyConfig := range c.UserConfig.UserVerification.LoginIDKeys {
+		keyConfig, ok := c.UserConfig.Auth.LoginIDKeys[key]
 		if !ok {
-			return errors.New("Cannot verify disallowed login ID key: " + verifyConfig.Key)
+			return errors.New("Cannot verify disallowed login ID key: " + key)
 		}
 		if metadataKey, valid := keyConfig.Type.MetadataKey(); !valid || (metadataKey != metadata.Email && metadataKey != metadata.Phone) {
-			return errors.New("Cannot verify login ID key with unknown type: " + verifyConfig.Key)
+			return errors.New("Cannot verify login ID key with unknown type: " + key)
+		}
+		if !verifyConfig.CodeFormat.IsValid() {
+			return errors.New("Invalid verify code format for login ID key: " + key)
+		}
+		if !verifyConfig.Provider.IsValid() {
+			return errors.New("Invalid verify code provider for login ID key: " + key)
 		}
 	}
 
@@ -314,6 +334,10 @@ func (c *TenantConfiguration) Validate() error {
 
 	if !c.UserConfig.WelcomeEmail.Destination.IsValid() {
 		return errors.New("Invalid welcome email destination")
+	}
+
+	if !c.AppConfig.SMTP.Mode.IsValid() {
+		return errors.New("Invalid SMTP mode")
 	}
 
 	return nil
@@ -372,10 +396,30 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.UserConfig.UserVerification.Criteria == "" {
 		c.UserConfig.UserVerification.Criteria = UserVerificationCriteriaAny
 	}
+	for key, config := range c.UserConfig.UserVerification.LoginIDKeys {
+		if config.CodeFormat == "" {
+			config.CodeFormat = UserVerificationCodeFormatComplex
+		}
+		if config.Expiry == 0 {
+			config.Expiry = 3600 // 1 hour
+		}
+		if config.ProviderConfig.Sender == "" {
+			config.ProviderConfig.Sender = "no-reply@skygeario.com"
+		}
+		if config.ProviderConfig.Subject == "" {
+			config.ProviderConfig.Subject = "Verification instruction"
+		}
+		c.UserConfig.UserVerification.LoginIDKeys[key] = config
+	}
 
 	// Set default welcome email destination
 	if c.UserConfig.WelcomeEmail.Destination == "" {
 		c.UserConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
+	}
+
+	// Set default smtp mode
+	if c.AppConfig.SMTP.Mode == "" {
+		c.AppConfig.SMTP.Mode = SMTPModeNormal
 	}
 }
 
@@ -565,7 +609,9 @@ type SSOProviderConfiguration struct {
 type UserVerificationCriteria string
 
 const (
+	// Some login ID need to verified belonging to the user is verified
 	UserVerificationCriteriaAny UserVerificationCriteria = "any"
+	// All login IDs need to verified belonging to the user is verified
 	UserVerificationCriteriaAll UserVerificationCriteria = "all"
 )
 
@@ -574,35 +620,53 @@ func (criteria UserVerificationCriteria) IsValid() bool {
 }
 
 type UserVerificationConfiguration struct {
-	URLPrefix        string                             `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	AutoUpdate       bool                               `json:"auto_update" yaml:"auto_update" msg:"auto_update"`
-	AutoSendOnSignup bool                               `json:"auto_send_on_signup" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
-	AutoSendOnUpdate bool                               `json:"auto_send_on_update" yaml:"auto_send_on_update" msg:"auto_send_on_update"`
-	Required         bool                               `json:"required" yaml:"required" msg:"required"`
-	Criteria         UserVerificationCriteria           `json:"criteria" yaml:"criteria" msg:"criteria"`
-	ErrorRedirect    string                             `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
-	ErrorHTMLURL     string                             `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
-	Keys             []UserVerificationKeyConfiguration `json:"keys" yaml:"keys" msg:"keys"`
+	URLPrefix        string                                      `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	AutoSendOnSignup bool                                        `json:"auto_send_on_signup" yaml:"auto_send_on_signup" msg:"auto_send_on_signup"`
+	Criteria         UserVerificationCriteria                    `json:"criteria" yaml:"criteria" msg:"criteria"`
+	ErrorRedirect    string                                      `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
+	ErrorHTMLURL     string                                      `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
+	LoginIDKeys      map[string]UserVerificationKeyConfiguration `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
 }
 
-func (c *UserVerificationConfiguration) ConfigForKey(key string) (UserVerificationKeyConfiguration, bool) {
-	for _, keyConfig := range c.Keys {
-		if keyConfig.Key == key {
-			return keyConfig, true
-		}
+type UserVerificationCodeFormat string
+
+const (
+	UserVerificationCodeFormatNumeric UserVerificationCodeFormat = "numeric"
+	UserVerificationCodeFormatComplex UserVerificationCodeFormat = "complex"
+)
+
+func (format UserVerificationCodeFormat) IsValid() bool {
+	return format == UserVerificationCodeFormatNumeric || format == UserVerificationCodeFormatComplex
+}
+
+type UserVerificationProvider string
+
+const (
+	UserVerificationProviderSMTP   UserVerificationProvider = "smtp"
+	UserVerificationProviderTwilio UserVerificationProvider = "twilio"
+	UserVerificationProviderNexmo  UserVerificationProvider = "nexmo"
+)
+
+func (format UserVerificationProvider) IsValid() bool {
+	switch format {
+	case UserVerificationProviderSMTP:
+		return true
+	case UserVerificationProviderTwilio:
+		return true
+	case UserVerificationProviderNexmo:
+		return true
 	}
-	return UserVerificationKeyConfiguration{}, false
+	return false
 }
 
 type UserVerificationKeyConfiguration struct {
-	Key             string                                `json:"key" yaml:"key" msg:"key"`
-	CodeFormat      string                                `json:"code_format" yaml:"code_format" msg:"code_format"`
+	CodeFormat      UserVerificationCodeFormat            `json:"code_format" yaml:"code_format" msg:"code_format"`
 	Expiry          int64                                 `json:"expiry" yaml:"expiry" msg:"expiry"`
 	SuccessRedirect string                                `json:"success_redirect" yaml:"success_redirect" msg:"success_redirect"`
 	SuccessHTMLURL  string                                `json:"success_html_url" yaml:"success_html_url" msg:"success_html_url"`
 	ErrorRedirect   string                                `json:"error_redirect" yaml:"error_redirect" msg:"error_redirect"`
 	ErrorHTMLURL    string                                `json:"error_html_url" yaml:"error_html_url" msg:"error_html_url"`
-	Provider        string                                `json:"provider" yaml:"provider" msg:"provider"`
+	Provider        UserVerificationProvider              `json:"provider" yaml:"provider" msg:"provider"`
 	ProviderConfig  UserVerificationProviderConfiguration `json:"provider_config" yaml:"provider_config" msg:"provider_config"`
 }
 
@@ -624,12 +688,29 @@ type AppConfiguration struct {
 	Nexmo       NexmoConfiguration  `json:"nexmo" yaml:"nexmo" msg:"nexmo"`
 }
 
+type SMTPMode string
+
+const (
+	SMTPModeNormal SMTPMode = "normal"
+	SMTPModeSSL    SMTPMode = "ssl"
+)
+
+func (mode SMTPMode) IsValid() bool {
+	switch mode {
+	case SMTPModeNormal:
+		return true
+	case SMTPModeSSL:
+		return true
+	}
+	return false
+}
+
 type SMTPConfiguration struct {
-	Host     string `json:"host" yaml:"host" msg:"host"`
-	Port     int    `json:"port" yaml:"port" msg:"port"`
-	Mode     string `json:"mode" yaml:"mode" msg:"mode"`
-	Login    string `json:"login" yaml:"login" msg:"login"`
-	Password string `json:"password" yaml:"password" msg:"password"`
+	Host     string   `json:"host" yaml:"host" msg:"host"`
+	Port     int      `json:"port" yaml:"port" msg:"port"`
+	Mode     SMTPMode `json:"mode" yaml:"mode" msg:"mode"`
+	Login    string   `json:"login" yaml:"login" msg:"login"`
+	Password string   `json:"password" yaml:"password" msg:"password"`
 }
 
 type TwilioConfiguration struct {

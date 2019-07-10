@@ -18,7 +18,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
-	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -59,11 +58,6 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh.UserProfileStore = userProfileStore
 		lh.TokenStore = mockTokenStore
 		lh.AuditTrail = audit.NewMockTrail(t)
-		lh.UserVerifyKeys = []config.UserVerificationKeyConfiguration{
-			config.UserVerificationKeyConfiguration{
-				Key: "email",
-			},
-		}
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
 		lh.TaskQueue = mockTaskQueue

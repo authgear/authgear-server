@@ -65,14 +65,13 @@ func (payload *VerifyCodeFormPayload) Validate() error {
 
 // VerifyCodeFormHandler reset user password with given code from email.
 type VerifyCodeFormHandler struct {
-	VerifyHTMLProvider       *userverify.VerifyHTMLProvider      `dependency:"VerifyHTMLProvider"`
-	VerifyCodeStore          userverify.Store                    `dependency:"VerifyCodeStore"`
-	UserProfileStore         userprofile.Store                   `dependency:"UserProfileStore"`
-	AuthInfoStore            authinfo.Store                      `dependency:"AuthInfoStore"`
-	PasswordAuthProvider     password.Provider                   `dependency:"PasswordAuthProvider"`
-	AutoUpdateUserVerifyFunc userverify.AutoUpdateUserVerifyFunc `dependency:"AutoUpdateUserVerifyFunc,optional"`
-	TxContext                db.TxContext                        `dependency:"TxContext"`
-	Logger                   *logrus.Entry                       `dependency:"HandlerLogger"`
+	VerifyHTMLProvider       *userverify.VerifyHTMLProvider `dependency:"VerifyHTMLProvider"`
+	UserVerificationProvider userverify.Provider            `dependency:"UserVerificationProvider"`
+	AuthInfoStore            authinfo.Store                 `dependency:"AuthInfoStore"`
+	PasswordAuthProvider     password.Provider              `dependency:"PasswordAuthProvider"`
+	UserProfileStore         userprofile.Store              `dependency:"UserProfileStore"`
+	TxContext                db.TxContext                   `dependency:"TxContext"`
+	Logger                   *logrus.Entry                  `dependency:"HandlerLogger"`
 }
 
 type resultTemplateContext struct {
@@ -95,24 +94,29 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 
 	ctx.payload = payload
 
-	// Get Profile
-	if ctx.userProfile, err = h.UserProfileStore.GetUserProfile(payload.UserID); err != nil {
+	authInfo := authinfo.AuthInfo{}
+	if err = h.AuthInfoStore.GetAuth(payload.UserID, &authInfo); err != nil {
+		h.Logger.WithFields(map[string]interface{}{
+			"user_id": payload.UserID,
+		}).WithError(err).Error("unable to get user")
+		return
+	}
+
+	userProfile, err := h.UserProfileStore.GetUserProfile(authInfo.ID)
+	if err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(err).Error("unable to get user profile")
 		return
 	}
+	ctx.userProfile = userProfile
 
-	// Get verify code
-	verifyCodeReq := getAndValidateCodeRequest{
-		VerifyCodeStore: h.VerifyCodeStore,
-		Logger:          h.Logger,
-	}
-
-	if ctx.verifyCode, err = verifyCodeReq.execute(payload.Code, ctx.userProfile); err != nil {
+	verifyCode, err := h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, &authInfo, payload.Code)
+	if err != nil {
 		return
 	}
 
+	ctx.verifyCode = *verifyCode
 	return
 }
 
@@ -130,7 +134,7 @@ func (h VerifyCodeFormHandler) HandleVerifyError(rw http.ResponseWriter, templat
 		context["user_id"] = templateCtx.payload.UserID
 	}
 
-	url := h.VerifyHTMLProvider.ErrorRedirect(templateCtx.verifyCode.RecordKey, context)
+	url := h.VerifyHTMLProvider.ErrorRedirect(templateCtx.verifyCode.LoginIDKey, context)
 	if url != nil {
 		rw.Header().Set("Location", url.String())
 		rw.WriteHeader(http.StatusFound)
@@ -141,7 +145,7 @@ func (h VerifyCodeFormHandler) HandleVerifyError(rw http.ResponseWriter, templat
 		context["user"] = templateCtx.userProfile
 	}
 
-	html, htmlErr := h.VerifyHTMLProvider.ErrorHTML(templateCtx.verifyCode.RecordKey, context)
+	html, htmlErr := h.VerifyHTMLProvider.ErrorHTML(templateCtx.verifyCode.LoginIDKey, context)
 	if htmlErr != nil {
 		panic(htmlErr)
 	}
@@ -156,7 +160,7 @@ func (h VerifyCodeFormHandler) HandleVerifySuccess(rw http.ResponseWriter, templ
 		"user_id": templateCtx.payload.UserID,
 	}
 
-	url := h.VerifyHTMLProvider.SuccessRedirect(templateCtx.verifyCode.RecordKey, context)
+	url := h.VerifyHTMLProvider.SuccessRedirect(templateCtx.verifyCode.LoginIDKey, context)
 	if url != nil {
 		rw.Header().Set("Location", url.String())
 		rw.WriteHeader(http.StatusFound)
@@ -165,7 +169,7 @@ func (h VerifyCodeFormHandler) HandleVerifySuccess(rw http.ResponseWriter, templ
 
 	context["user"] = templateCtx.userProfile
 
-	html, htmlErr := h.VerifyHTMLProvider.SuccessHTML(templateCtx.verifyCode.RecordKey, context)
+	html, htmlErr := h.VerifyHTMLProvider.SuccessHTML(templateCtx.verifyCode.LoginIDKey, context)
 	if htmlErr != nil {
 		panic(htmlErr)
 	}
@@ -201,32 +205,6 @@ func (h VerifyCodeFormHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request
 	}()
 
 	if err = h.prepareResultTemplateContext(r, &templateCtx); err != nil {
-		return
-	}
-
-	// Update code
-	templateCtx.verifyCode.Consumed = true
-	if err = h.VerifyCodeStore.UpdateVerifyCode(&templateCtx.verifyCode); err != nil {
-		return
-	}
-
-	// Update user
-	authInfo := &authinfo.AuthInfo{}
-	if err = h.AuthInfoStore.GetAuth(templateCtx.payload.UserID, authInfo); err != nil {
-		return
-	}
-
-	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID)
-	if err != nil {
-		return
-	}
-
-	authInfo.VerifyInfo[templateCtx.verifyCode.RecordValue] = true
-	if h.AutoUpdateUserVerifyFunc != nil {
-		h.AutoUpdateUserVerifyFunc(authInfo, principals)
-	}
-
-	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
 		return
 	}
 

@@ -1,78 +1,45 @@
 package userverify
 
 import (
-	"math/rand"
-	"time"
-
+	"github.com/skygeario/skygear-server/pkg/core/base32"
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/rand"
 )
 
-const (
-	digits     = "0123456789"
-	asciiLower = "abcdefghijklmnopqrstuvwxyz"
-)
+type codeFormat struct {
+	Length   int
+	Alphabet string
+}
 
-type CodeGeneratorFactory interface {
-	NewCodeGenerator(key string) CodeGenerator
+var codeFormats = map[config.UserVerificationCodeFormat]codeFormat{
+	config.UserVerificationCodeFormatNumeric: codeFormat{
+		Length:   6,
+		Alphabet: "0123456789",
+	},
+	config.UserVerificationCodeFormatComplex: codeFormat{
+		Length:   8,
+		Alphabet: base32.Alphabet,
+	},
 }
 
 type CodeGenerator interface {
-	Generate() string
-}
-
-type DefaultCodeGeneratorFactory struct {
-	CodeFormatMap map[string]string
-}
-
-func NewDefaultCodeGeneratorFactory(c config.TenantConfiguration) CodeGeneratorFactory {
-	userVerifyConfig := c.UserConfig.UserVerification
-	f := DefaultCodeGeneratorFactory{
-		CodeFormatMap: map[string]string{},
-	}
-	for _, keyConfig := range userVerifyConfig.Keys {
-		f.CodeFormatMap[keyConfig.Key] = keyConfig.CodeFormat
-	}
-
-	return &f
-}
-
-func (d *DefaultCodeGeneratorFactory) NewCodeGenerator(key string) CodeGenerator {
-	return NewCodeGenerator(d.CodeFormatMap[key])
+	Generate(loginIDKey string) string
 }
 
 type defaultCodeGenerator struct {
-	length  int
-	charset string
+	LoginIDKeyCodeFormats map[string]config.UserVerificationCodeFormat
 }
 
-func NewCodeGenerator(codeFormat string) CodeGenerator {
-	switch codeFormat {
-	case "numeric":
-		return &defaultCodeGenerator{
-			length:  6,
-			charset: digits,
-		}
-	case "complex":
-		return &defaultCodeGenerator{
-			length:  8,
-			charset: digits + asciiLower,
-		}
+func NewCodeGenerator(c config.TenantConfiguration) CodeGenerator {
+	formats := map[string]config.UserVerificationCodeFormat{}
+	for key, config := range c.UserConfig.UserVerification.LoginIDKeys {
+		formats[key] = config.CodeFormat
 	}
 
-	return nil
+	return &defaultCodeGenerator{LoginIDKeyCodeFormats: formats}
 }
 
-func (d *defaultCodeGenerator) Generate() string {
-	return randomStringWithCharset(d.length, d.charset)
-}
-
-func randomStringWithCharset(length int, charset string) string {
-	seededRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-
-	return string(b)
+func (d *defaultCodeGenerator) Generate(loginIDKey string) string {
+	codeFormat := codeFormats[d.LoginIDKeyCodeFormats[loginIDKey]]
+	return rand.StringWithAlphabet(codeFormat.Length, codeFormat.Alphabet, rand.SecureRand)
 }
