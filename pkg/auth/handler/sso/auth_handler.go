@@ -118,31 +118,32 @@ func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 }
 
 func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	var ok interface{}
 	var err error
 	var oauthAuthInfo sso.AuthInfo
-	var resp interface{}
 
+	// We have to return error by directly writing to response at this stage
+	// because we do not have valid state.
 	if h.Provider == nil {
-		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		http.Error(rw, "Provider is not supported", http.StatusBadRequest)
 		return
 	}
 
 	payload, err := h.DecodeRequest(r)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		http.Error(rw, "Failed to decode request", http.StatusBadRequest)
 		return
 	}
 
 	if err = payload.Validate(); err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		http.Error(rw, "Failed to validate request", http.StatusBadRequest)
 		return
 	}
 
-	if err := h.TxContext.BeginTx(); err != nil {
-		panic(err)
+	if e := h.TxContext.BeginTx(); e != nil {
+		http.Error(rw, "Internal Error", http.StatusInternalServerError)
+		return
 	}
-
 	defer func() {
 		if err != nil {
 			h.TxContext.RollbackTx()
@@ -152,25 +153,38 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}()
 
 	reqPayload := payload.(AuthRequestPayload)
-	oauthAuthInfo, err = h.getAuthInfo(reqPayload)
-	c := authHandlerRespContext{
-		callbackURL: oauthAuthInfo.State.CallbackURL,
-		UXMode:      oauthAuthInfo.State.UXMode,
-		err:         err,
-	}
+
+	state, err := h.Provider.DecodeState(reqPayload.EncodedState)
 	if err != nil {
-		// send back resp depends on different uxmode
-		err = h.sendResp(rw, r, c)
+		http.Error(rw, "Failed to decode state", http.StatusBadRequest)
 		return
 	}
 
-	// get resp depends on different action
-	resp, err = h.getResp(oauthAuthInfo)
-	c.succ = resp
-	c.err = err
+	if err = h.validateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, state.CallbackURL); err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-	// send back resp depends on different uxmode
-	err = h.sendResp(rw, r, c)
+	// From now on, we must return response by respecting CallbackURL and UXMode.
+	defer func() {
+		switch state.UXMode {
+		case sso.UXModeWebRedirect, sso.UXModeWebPopup:
+			_ = h.handleSessionResp(rw, r, state.UXMode, state.CallbackURL, ok, err)
+		case sso.UXModeIOS, sso.UXModeAndroid:
+			_ = h.handleRedirectResp(rw, r, state.CallbackURL, ok, err)
+		default:
+			http.Error(rw, "Invalid UXMode", http.StatusBadRequest)
+		}
+	}()
+
+	oauthAuthInfo, err = h.getAuthInfo(reqPayload)
+	if err != nil {
+		return
+	}
+	ok, err = h.handle(oauthAuthInfo)
+	if err != nil {
+		return
+	}
 }
 
 func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.AuthInfo, err error) {
@@ -190,7 +204,7 @@ func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.
 	return
 }
 
-func (h AuthHandler) getResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
+func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
 	respHandler := respHandler{
 		TokenStore:           h.TokenStore,
 		AuthInfoStore:        h.AuthInfoStore,
@@ -232,16 +246,16 @@ func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackU
 	return
 }
 
-func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, uxMode sso.UXMode, callbackURL string, resp interface{}) (err error) {
-	/*
-	   In JS oauth flow, result send through cookies and handler by js script
-
-	   Session data:
-	   sso_callback_url -- callback url for ux_mode == web_redirect
-	   sso_result       -- response json
-	*/
+func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, uxMode sso.UXMode, callbackURL string, ok interface{}, inputErr error) (err error) {
+	//
+	// In JS oauth flow, result send through cookies and handler by js script
+	//
+	// Session data:
+	// sso_callback_url -- callback url for ux_mode == web_redirect
+	// sso_result       -- response json
+	//
 	data := make(map[string]interface{})
-	data["result"] = resp
+	data["result"] = makeJSONResponse(ok, inputErr)
 	data["callback_url"] = callbackURL
 	msg, err := json.Marshal(data)
 	if err != nil {
@@ -267,79 +281,42 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 	return
 }
 
-func (h AuthHandler) handleRedirectResp(rw http.ResponseWriter, r *http.Request, UXMode sso.UXMode, callbackURL string, resp interface{}) (err error) {
-	/*
-	   In ios and android oauth flow, after auth flow complete will redirect
-	   client back to the app with custom scheme
-	   result will be added to the url by query
-
-	   Example:
-	   myapp://user.skygear.io/sso/{provider}/auth_handler?result=
-	*/
-	authRespBytes, err := json.Marshal(resp)
+func (h AuthHandler) handleRedirectResp(
+	rw http.ResponseWriter,
+	r *http.Request,
+	callbackURL string,
+	ok interface{},
+	inputErr error,
+) error {
+	// In ios and android oauth flow, after auth flow complete will redirect
+	// client back to the app with custom scheme
+	// result will be added to the url by query
+	//
+	// Example:
+	// myapp://user.skygear.io/sso/{provider}/auth_handler?result=
+	authRespBytes, err := json.Marshal(makeJSONResponse(ok, inputErr))
 	if err != nil {
-		return
+		return err
 	}
 	encodedResult := base64.StdEncoding.EncodeToString(authRespBytes)
 	v := url.Values{}
 	v.Set("result", encodedResult)
 	u, err := url.Parse(callbackURL)
 	if err != nil {
-		return
+		return err
 	}
 	u.RawQuery = v.Encode()
 	http.Redirect(rw, r, u.String(), http.StatusFound)
-	return
+	return nil
 }
 
-type authHandlerRespContext struct {
-	callbackURL string
-	UXMode      sso.UXMode
-	succ        interface{}
-	err         error
-}
-
-func (c authHandlerRespContext) generateResp() interface{} {
-	// Redirect the result (both success and error) back to the app,
-	// so that user can go back to the original app.
-	if c.err != nil {
+func makeJSONResponse(ok interface{}, err error) handler.APIResponse {
+	if err != nil {
 		return handler.APIResponse{
-			Err: skyerr.MakeError(c.err),
+			Err: skyerr.MakeError(err),
 		}
 	}
-
-	// re-wrap resp in result attribute
 	return handler.APIResponse{
-		Result: c.succ,
+		Result: ok,
 	}
-}
-
-func (h AuthHandler) sendResp(rw http.ResponseWriter, r *http.Request, c authHandlerRespContext) (err error) {
-	if err = h.validateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, c.callbackURL); err != nil {
-		// there is no callback url for redirect, send 400 bad request instead
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// handle authResp by UXMode
-	type authRespHandlerFunc func(rw http.ResponseWriter, r *http.Request, UXMode sso.UXMode, callbackURL string, resp interface{}) (err error)
-	var authRespHandler authRespHandlerFunc
-	switch c.UXMode {
-	case sso.UXModeWebRedirect, sso.UXModeWebPopup:
-		authRespHandler = h.handleSessionResp
-	case sso.UXModeIOS, sso.UXModeAndroid:
-		authRespHandler = h.handleRedirectResp
-	}
-
-	if authRespHandler == nil {
-		err = skyerr.NewInvalidArgument("UXMode is not supported", []string{"UXMode"})
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if err = authRespHandler(rw, r, c.UXMode, c.callbackURL, c.generateResp()); err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-	}
-
-	return
 }

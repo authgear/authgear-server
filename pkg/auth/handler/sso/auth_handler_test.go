@@ -2,7 +2,7 @@ package sso
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -21,12 +21,27 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func decodeCookie(resp *httptest.ResponseRecorder) ([]byte, error) {
+	cookies := resp.Result().Cookies()
+	for _, c := range cookies {
+		if c.Name == "sso_data" {
+			decoded, err := base64.StdEncoding.DecodeString(c.Value)
+			if err != nil {
+				return nil, err
+			}
+			return decoded, nil
+		}
+	}
+	return nil, errors.New("not_found")
+}
 
 func TestAuthPayload(t *testing.T) {
 	Convey("Test AuthRequestPayload", t, func() {
@@ -151,62 +166,35 @@ func TestAuthHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 302)
 			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
 
-			// check cookies
-			// it should have following format
-			// {
-			// 	"callback_url": "callback_url"
-			// 	"result": authResp
-			// }
-			cookies := resp.Result().Cookies()
-			So(cookies, ShouldNotBeEmpty)
-			var ssoDataCookie *http.Cookie
-			for _, c := range cookies {
-				if c.Name == "sso_data" {
-					ssoDataCookie = c
-					break
-				}
-			}
-			So(ssoDataCookie, ShouldNotBeNil)
-
-			// decoded it first
-			decoded, err := base64.StdEncoding.DecodeString(ssoDataCookie.Value)
-			So(err, ShouldBeNil)
-			So(decoded, ShouldNotBeNil)
-
-			// Unmarshal to map
-			data := make(map[string]interface{})
-			err = json.Unmarshal(decoded, &data)
-			So(err, ShouldBeNil)
-
-			// check callback_url
-			So(data["callback_url"], ShouldEqual, "http://localhost:3000")
-
-			// check result(authResp)
-			authResp, err := json.Marshal(data["result"])
+			actual, err := decodeCookie(resp)
 			So(err, ShouldBeNil)
 			p, err := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
 			So(err, ShouldBeNil)
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
-			So(authResp, ShouldEqualJSON, fmt.Sprintf(`{
+			So(actual, ShouldEqualJSON, fmt.Sprintf(`
+			{
+				"callback_url": "http://localhost:3000",
 				"result": {
-					"user": {
-						"id": "%s",
-						"is_verified": false,
-						"is_disabled": false,
-						"last_login_at": "2006-01-02T15:04:05Z",
-						"created_at": "0001-01-01T00:00:00Z",
-						"verify_info": {},
-						"metadata": {}
-					},
-					"identity": {
-						"id": "%s",
-						"type": "oauth",
-						"provider_id": "mock",
-						"provider_user_id": "mock_user_id",
-						"raw_profile": {},
-						"claims": {}
-					},
-					"access_token": "%s"
+					"result": {
+						"user": {
+							"id": "%s",
+							"is_verified": false,
+							"is_disabled": false,
+							"last_login_at": "2006-01-02T15:04:05Z",
+							"created_at": "0001-01-01T00:00:00Z",
+							"verify_info": {},
+							"metadata": {}
+						},
+						"identity": {
+							"id": "%s",
+							"type": "oauth",
+							"provider_id": "mock",
+							"provider_user_id": "mock_user_id",
+							"raw_profile": {},
+							"claims": {}
+						},
+						"access_token": "%s"
+					}
 				}
 			}`,
 				p.UserID,
@@ -396,42 +384,16 @@ func TestAuthHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 302)
 			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
 
-			// check cookies
-			// it should have following format
-			// {
-			// 	"callback_url": "callback_url"
-			// 	"result": authResp
-			// }
-			cookies := resp.Result().Cookies()
-			So(cookies, ShouldNotBeEmpty)
-			var ssoDataCookie *http.Cookie
-			for _, c := range cookies {
-				if c.Name == "sso_data" {
-					ssoDataCookie = c
-					break
+			actual, err := decodeCookie(resp)
+			So(err, ShouldBeNil)
+			So(actual, ShouldEqualJSON, `
+			{
+				"callback_url": "http://localhost:3000",
+				"result": {
+					"result": {}
 				}
 			}
-			So(ssoDataCookie, ShouldNotBeNil)
-
-			// decoded it first
-			decoded, err := base64.StdEncoding.DecodeString(ssoDataCookie.Value)
-			So(err, ShouldBeNil)
-			So(decoded, ShouldNotBeNil)
-
-			// Unmarshal to map
-			data := make(map[string]interface{})
-			err = json.Unmarshal(decoded, &data)
-			So(err, ShouldBeNil)
-
-			// check callback_url
-			So(data["callback_url"], ShouldEqual, "http://localhost:3000")
-
-			// check result(resp)
-			result, err := json.Marshal(data["result"])
-			So(err, ShouldBeNil)
-			So(string(result), ShouldEqualJSON, `{
-				"result": {}
-			}`)
+			`)
 		})
 
 		Convey("should get err if user is already linked", func() {
@@ -460,268 +422,262 @@ func TestAuthHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 302)
 			So(resp.Header().Get("Location"), ShouldEqual, "http://localhost:3000")
 
-			// check cookies
-			// it should have following format
-			// {
-			// 	"callback_url": "callback_url"
-			// 	"result": errorAuthResp
-			// }
-			cookies := resp.Result().Cookies()
-			So(cookies, ShouldNotBeEmpty)
-			var ssoDataCookie *http.Cookie
-			for _, c := range cookies {
-				if c.Name == "sso_data" {
-					ssoDataCookie = c
-					break
+			actual, err := decodeCookie(resp)
+			So(err, ShouldBeNil)
+			So(actual, ShouldEqualJSON, `
+			{
+				"callback_url": "http://localhost:3000",
+				"result": {
+					"error": {
+						"code": 108,
+						"message": "provider account already linked with existing user",
+						"name": "InvalidArgument"
+					}
 				}
 			}
-			So(ssoDataCookie, ShouldNotBeNil)
-
-			// decoded it first
-			decoded, err := base64.StdEncoding.DecodeString(ssoDataCookie.Value)
-			So(err, ShouldBeNil)
-			So(decoded, ShouldNotBeNil)
-
-			// Unmarshal to map
-			data := make(map[string]interface{})
-			err = json.Unmarshal(decoded, &data)
-			So(err, ShouldBeNil)
-
-			// check callback_url
-			So(data["callback_url"], ShouldEqual, "http://localhost:3000")
-
-			// check result(resp)
-			result, err := json.Marshal(data["result"])
-			So(err, ShouldBeNil)
-			So(string(result), ShouldEqualJSON, `{
-				"error":{"code":108,"message":"provider account already linked with existing user","name":"InvalidArgument"}
-			}`)
+			`)
 		})
 	})
 
-	/*
-		Convey("Test AuthHandler's auto link procedure", t, func() {
-			action := "login"
-			UXMode := "web_redirect"
+	Convey("Test OnUserDuplicate", t, func() {
+		action := "login"
+		UXMode := sso.UXModeWebRedirect
+		stateJWTSecret := "secret"
+		providerName := "mock"
+		providerUserID := "mock_user_id"
 
-			stateJWTSecret := "secret"
-			providerName := "mock"
-			providerUserID := "mock_user_id"
-			sh := &AuthHandler{}
-			sh.TxContext = db.NewMockTxContext()
-			sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
-			oauthConfig := coreconfig.OAuthConfiguration{
-				URLPrefix:      "http://localhost:3000",
-				StateJWTSecret: stateJWTSecret,
-				// AutoLinkEnabled: true,
-				AllowedCallbackURLs: []string{
-					"http://localhost",
+		sh := &AuthHandler{}
+		sh.TxContext = db.NewMockTxContext()
+		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
+		oauthConfig := coreconfig.OAuthConfiguration{
+			URLPrefix:      "http://localhost:3000",
+			StateJWTSecret: stateJWTSecret,
+			AllowedCallbackURLs: []string{
+				"http://localhost",
+			},
+		}
+		providerConfig := coreconfig.OAuthProviderConfiguration{
+			ID:           providerName,
+			Type:         "google",
+			ClientID:     "mock_client_id",
+			ClientSecret: "mock_client_secret",
+		}
+		mockProvider := sso.MockSSOProvider{
+			BaseURL:        "http://mock/auth",
+			OAuthConfig:    oauthConfig,
+			ProviderConfig: providerConfig,
+			UserInfo: sso.ProviderUserInfo{ID: providerUserID,
+				Email: "john.doe@example.com"},
+		}
+		sh.Provider = &mockProvider
+		mockOAuthProvider := oauth.NewMockProvider(
+			map[string]string{},
+			map[string]oauth.Principal{},
+		)
+		sh.OAuthAuthProvider = mockOAuthProvider
+		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
+			map[string]authinfo.AuthInfo{
+				"john.doe.id": authinfo.AuthInfo{
+					ID:         "john.doe.id",
+					VerifyInfo: map[string]bool{},
 				},
-			}
-			providerConfig := coreconfig.OAuthProviderConfiguration{
-				ID:           providerName,
-				Type:         "google",
-				ClientID:     "mock_client_id",
-				ClientSecret: "mock_client_secret",
-			}
-			mockProvider := sso.MockSSOProvider{
-				BaseURL:        "http://mock/auth",
-				OAuthConfig:    oauthConfig,
-				ProviderConfig: providerConfig,
-				UserInfo: sso.ProviderUserInfo{ID: providerUserID,
-					Email: "john.doe@example.com"},
-			}
-			sh.Provider = &mockProvider
-			mockOAuthProvider := oauth.NewMockProvider(
-				map[string]string{},
-				map[string]oauth.Principal{},
-			)
-			sh.OAuthAuthProvider = mockOAuthProvider
-			authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
-				map[string]authinfo.AuthInfo{
-					"john.doe.id": authinfo.AuthInfo{
-						ID: "john.doe.id",
-					},
+			},
+		)
+		sh.AuthInfoStore = authInfoStore
+		mockTokenStore := authtoken.NewMockStore()
+		sh.TokenStore = mockTokenStore
+		profileData := map[string]map[string]interface{}{
+			"john.doe.id": map[string]interface{}{},
+		}
+		sh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
+		sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
+			"https://api.example.com",
+			"https://api.example.com/skygear.js",
+		)
+		sh.OAuthConfiguration = oauthConfig
+		zero := 0
+		one := 1
+		loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
+			"email": coreconfig.LoginIDKeyConfiguration{
+				Type:    coreconfig.LoginIDKeyType(metadata.Email),
+				Minimum: &zero,
+				Maximum: &one,
+			},
+		}
+		allowedRealms := []string{password.DefaultRealm}
+		passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
+			loginIDsKeys,
+			allowedRealms,
+			map[string]password.Principal{
+				"john.doe.principal.id": password.Principal{
+					ID:             "john.doe.principal.id",
+					UserID:         "john.doe.id",
+					LoginIDKey:     "email",
+					LoginID:        "john.doe@example.com",
+					Realm:          "default",
+					HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
 				},
-			)
-			sh.AuthInfoStore = authInfoStore
-			mockTokenStore := authtoken.NewMockStore()
-			sh.TokenStore = mockTokenStore
-			profileData := map[string]map[string]interface{}{
-				"john.doe.id": map[string]interface{}{},
-			}
-			sh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
-			sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
-				"https://api.example.com",
-				"https://api.example.com/skygear.js",
-			)
-			sh.OAuthConfiguration = oauthConfig
-			zero := 0
-			one := 1
-			loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
-				"email": coreconfig.LoginIDKeyConfiguration{
-					Type:    coreconfig.LoginIDKeyType(metadata.Email),
-					Minimum: &zero,
-					Maximum: &one,
-				},
-			}
-			allowedRealms := []string{password.DefaultRealm}
-			passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-				loginIDsKeys,
-				allowedRealms,
-				map[string]password.Principal{
-					"john.doe.principal.id": password.Principal{
-						ID:             "john.doe.principal.id",
-						UserID:         "john.doe.id",
-						LoginIDKey:     "email",
-						LoginID:        "john.doe@example.com",
-						Realm:          "default",
-						HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
-					},
-				},
-			)
-			sh.PasswordAuthProvider = passwordAuthProvider
-			sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
+			},
+		)
+		sh.PasswordAuthProvider = passwordAuthProvider
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
 
-			Convey("should auto-link password principal", func() {
-				// oauth state
-				state := sso.State{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      UXMode,
-					Action:      action,
+		Convey("OnUserDuplicate == abort", func() {
+			state := sso.State{
+				CallbackURL:     "http://localhost:3000",
+				UXMode:          UXMode,
+				Action:          action,
+				MergeRealm:      password.DefaultRealm,
+				OnUserDuplicate: sso.OnUserDuplicateAbort,
+			}
+			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
+			}
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 302)
+
+			actual, err := decodeCookie(resp)
+			So(err, ShouldBeNil)
+			So(actual, ShouldEqualJSON, `
+			{
+				"callback_url": "http://localhost:3000",
+				"result": {
+					"error": {
+						"code": 109,
+						"message": "Aborted due to duplicate user",
+						"name": "Duplicated"
+					}
 				}
-				encodedState, _ := sso.EncodeState(stateJWTSecret, state)
-
-				v := url.Values{}
-				v.Set("code", "code")
-				v.Add("state", encodedState)
-				u := url.URL{
-					RawQuery: v.Encode(),
-				}
-
-				req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-				resp := httptest.NewRecorder()
-
-				sh.ServeHTTP(resp, req)
-
-				oauthPrincipal, err := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
-				So(err, ShouldBeNil)
-				So(oauthPrincipal.UserID, ShouldEqual, "john.doe.id")
-			})
+			}
+			`)
 		})
-	*/
 
-	/*
-		Convey("Test AuthHandler's auto link procedure", t, func() {
-			action := "login"
-			UXMode := "web_redirect"
+		Convey("OnUserDuplicate == merge", func() {
+			state := sso.State{
+				CallbackURL:     "http://localhost:3000",
+				UXMode:          UXMode,
+				Action:          action,
+				MergeRealm:      password.DefaultRealm,
+				OnUserDuplicate: sso.OnUserDuplicateMerge,
+			}
+			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
-			stateJWTSecret := "secret"
-			providerName := "mock"
-			providerUserID := "mock_user_id"
-			sh := &AuthHandler{}
-			sh.TxContext = db.NewMockTxContext()
-			sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
-			oauthConfig := coreconfig.OAuthConfiguration{
-				URLPrefix:      "http://localhost:3000",
-				StateJWTSecret: stateJWTSecret,
-				// AutoLinkEnabled: true,
-				AllowedCallbackURLs: []string{
-					"http://localhost",
-				},
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
 			}
-			providerConfig := coreconfig.OAuthProviderConfiguration{
-				ID:           providerName,
-				Type:         "google",
-				ClientID:     "mock_client_id",
-				ClientSecret: "mock_client_secret",
-			}
-			mockProvider := sso.MockSSOProvider{
-				BaseURL:        "http://mock/auth",
-				OAuthConfig:    oauthConfig,
-				ProviderConfig: providerConfig,
-				UserInfo: sso.ProviderUserInfo{ID: providerUserID,
-					Email: "john.doe@example.com"},
-			}
-			sh.Provider = &mockProvider
-			mockOAuthProvider := oauth.NewMockProvider(
-				map[string]string{},
-				map[string]oauth.Principal{},
-			)
-			sh.OAuthAuthProvider = mockOAuthProvider
-			authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
-				map[string]authinfo.AuthInfo{
-					"john.doe.id": authinfo.AuthInfo{
-						ID: "john.doe.id",
-					},
-				},
-			)
-			sh.AuthInfoStore = authInfoStore
-			mockTokenStore := authtoken.NewMockStore()
-			sh.TokenStore = mockTokenStore
-			profileData := map[string]map[string]interface{}{
-				"john.doe.id": map[string]interface{}{},
-			}
-			sh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
-			sh.AuthHandlerHTMLProvider = sso.NewAuthHandlerHTMLProvider(
-				"https://api.example.com",
-				"https://api.example.com/skygear.js",
-			)
-			sh.OAuthConfiguration = oauthConfig
-			// providerLoginID wouldn't match loginIDsKeys username
-			zero := 0
-			one := 1
-			loginIDsKeys := map[string]coreconfig.LoginIDKeyConfiguration{
-				"username": coreconfig.LoginIDKeyConfiguration{Minimum: &zero, Maximum: &one},
-			}
-			allowedRealms := []string{password.DefaultRealm}
-			passwordAuthProvider := password.NewMockProviderWithPrincipalMap(
-				loginIDsKeys,
-				allowedRealms,
-				map[string]password.Principal{
-					"john.doe.principal.id": password.Principal{
-						ID:             "john.doe.principal.id",
-						UserID:         "john.doe.id",
-						LoginIDKey:     "username",
-						LoginID:        "john.doe",
-						HashedPassword: []byte("$2a$10$/jm/S1sY6ldfL6UZljlJdOAdJojsJfkjg/pqK47Q8WmOLE19tGWQi"), // 123456
-					},
-				},
-			)
-			sh.PasswordAuthProvider = passwordAuthProvider
-			sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
 
-			Convey("shouldn't auto-link password principal if loginIDsKeys not matched", func() {
-				// oauth state
-				state := sso.State{
-					CallbackURL: "http://localhost:3000",
-					UXMode:      UXMode,
-					Action:      action,
+			So(resp.Code, ShouldEqual, 302)
+
+			actual, err := decodeCookie(resp)
+			So(err, ShouldBeNil)
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
+			So(actual, ShouldEqualJSON, fmt.Sprintf(`
+			{
+				"callback_url": "http://localhost:3000",
+				"result": {
+					"result": {
+						"user": {
+							"created_at": "0001-01-01T00:00:00Z",
+							"id": "%s",
+							"is_disabled": false,
+							"is_verified": false,
+							"metadata": {},
+							"verify_info": {}
+						},
+						"identity": {
+							"claims": {},
+							"id": "%s",
+							"provider_id": "%s",
+							"provider_user_id": "%s",
+							"raw_profile": {},
+							"type": "oauth"
+						},
+						"access_token": "%s"
+					}
 				}
-				encodedState, _ := sso.EncodeState(stateJWTSecret, state)
-
-				v := url.Values{}
-				v.Set("code", "code")
-				v.Add("state", encodedState)
-				u := url.URL{
-					RawQuery: v.Encode(),
-				}
-
-				req, _ := http.NewRequest("GET", u.RequestURI(), nil)
-				resp := httptest.NewRecorder()
-
-				sh.ServeHTTP(resp, req)
-
-				oauthPrincipal, err := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
-				So(err, ShouldBeNil)
-				// should signup a new user
-				So(oauthPrincipal.UserID, ShouldNotEqual, "john.doe.id")
-				// empty password should not be created
-				_, err = sh.PasswordAuthProvider.GetPrincipalsByUserID(oauthPrincipal.UserID)
-				So(err, ShouldNotBeNil)
-			})
+			}
+			`, p.UserID,
+				p.ID,
+				providerName,
+				providerUserID,
+				token.AccessToken))
 		})
-	*/
+
+		Convey("OnUserDuplicate == create", func() {
+			state := sso.State{
+				CallbackURL:     "http://localhost:3000",
+				UXMode:          UXMode,
+				Action:          action,
+				MergeRealm:      password.DefaultRealm,
+				OnUserDuplicate: sso.OnUserDuplicateCreate,
+			}
+			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
+
+			v := url.Values{}
+			v.Set("code", "code")
+			v.Add("state", encodedState)
+			u := url.URL{
+				RawQuery: v.Encode(),
+			}
+			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			resp := httptest.NewRecorder()
+			sh.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 302)
+
+			actual, err := decodeCookie(resp)
+			So(err, ShouldBeNil)
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			So(p.UserID, ShouldNotEqual, "john.doe.id")
+			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
+			So(actual, ShouldEqualJSON, fmt.Sprintf(`
+			{
+				"callback_url": "http://localhost:3000",
+				"result": {
+					"result": {
+						"user": {
+							"created_at": "0001-01-01T00:00:00Z",
+							"id": "%s",
+							"is_disabled": false,
+							"is_verified": false,
+							"last_login_at": "2006-01-02T15:04:05Z",
+							"metadata": {},
+							"verify_info": {}
+						},
+						"identity": {
+							"claims": {},
+							"id": "%s",
+							"provider_id": "%s",
+							"provider_user_id": "%s",
+							"raw_profile": {},
+							"type": "oauth"
+						},
+						"access_token": "%s"
+					}
+				}
+			}
+			`, p.UserID,
+				p.ID,
+				providerName,
+				providerUserID,
+				token.AccessToken))
+		})
+	})
 }
 
 func TestValidateCallbackURL(t *testing.T) {
