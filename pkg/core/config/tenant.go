@@ -336,6 +336,10 @@ func (c *TenantConfiguration) Validate() error {
 		return errors.New("Invalid welcome email destination")
 	}
 
+	if !c.AppConfig.SMTP.Mode.IsValid() {
+		return errors.New("Invalid SMTP mode")
+	}
+
 	return nil
 }
 
@@ -411,6 +415,11 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	// Set default welcome email destination
 	if c.UserConfig.WelcomeEmail.Destination == "" {
 		c.UserConfig.WelcomeEmail.Destination = WelcomeEmailDestinationFirst
+	}
+
+	// Set default smtp mode
+	if c.AppConfig.SMTP.Mode == "" {
+		c.AppConfig.SMTP.Mode = SMTPModeNormal
 	}
 }
 
@@ -679,12 +688,29 @@ type AppConfiguration struct {
 	Nexmo       NexmoConfiguration  `json:"nexmo" yaml:"nexmo" msg:"nexmo"`
 }
 
+type SMTPMode string
+
+const (
+	SMTPModeNormal SMTPMode = "normal"
+	SMTPModeSSL    SMTPMode = "ssl"
+)
+
+func (mode SMTPMode) IsValid() bool {
+	switch mode {
+	case SMTPModeNormal:
+		return true
+	case SMTPModeSSL:
+		return true
+	}
+	return false
+}
+
 type SMTPConfiguration struct {
-	Host     string `json:"host" yaml:"host" msg:"host"`
-	Port     int    `json:"port" yaml:"port" msg:"port"`
-	Mode     string `json:"mode" yaml:"mode" msg:"mode"`
-	Login    string `json:"login" yaml:"login" msg:"login"`
-	Password string `json:"password" yaml:"password" msg:"password"`
+	Host     string   `json:"host" yaml:"host" msg:"host"`
+	Port     int      `json:"port" yaml:"port" msg:"port"`
+	Mode     SMTPMode `json:"mode" yaml:"mode" msg:"mode"`
+	Login    string   `json:"login" yaml:"login" msg:"login"`
+	Password string   `json:"password" yaml:"password" msg:"password"`
 }
 
 type TwilioConfiguration struct {
