@@ -108,7 +108,7 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	identity := model.NewIdentity(h.IdentityProvider, principal)
 	user := model.NewUser(*authInfo, userProfile)
 
-	resp = model.UserWithIdentity{User: user, Identity: identity}
+	resp = model.NewAuthResponseWithUserIdentity(user, identity)
 
 	return
 }

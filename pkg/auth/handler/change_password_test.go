@@ -11,7 +11,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -43,6 +45,10 @@ func TestChangePasswordHandler(t *testing.T) {
 		lh.AuthContext = auth.NewMockContextGetterWithUser(userID, "john.doe.principal.id0", true, map[string]bool{})
 		lh.AuthInfoStore = authinfo.NewMockStoreWithUser(userID)
 		lh.TokenStore = mockTokenStore
+		profileData := map[string]map[string]interface{}{
+			"john.doe.id": map[string]interface{}{},
+		}
+		lh.UserProfileStore = userprofile.NewMockUserProfileStoreByData(profileData)
 		lh.TxContext = db.NewMockTxContext()
 		lh.PasswordChecker = &authAudit.PasswordChecker{
 			PwMinLength: 6,
@@ -67,6 +73,7 @@ func TestChangePasswordHandler(t *testing.T) {
 				},
 			},
 		)
+		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.TaskQueue = mockTaskQueue
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
@@ -84,6 +91,22 @@ func TestChangePasswordHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
+					"user": {
+						"id": "john.doe.id",
+						"created_at": "0001-01-01T00:00:00Z",
+						"is_disabled": false,
+						"is_verified": true,
+						"metadata": {},
+						"verify_info": {}
+					},
+					"identity": {
+						"claims": {},
+						"id": "john.doe.principal.id0",
+						"login_id": "john.doe",
+						"login_id_key": "username",
+						"realm": "",
+						"type": "password"
+					},
 					"access_token": "%s"
 				}
 			}`, token.AccessToken))

@@ -131,7 +131,7 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	resp = authModel.NewUser(authInfo, profile)
+	resp = authModel.NewAuthResponseWithUser(authModel.NewUser(authInfo, profile))
 
 	return
 }

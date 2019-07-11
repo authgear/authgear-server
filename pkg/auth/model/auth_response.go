@@ -15,16 +15,28 @@
 package model
 
 type AuthResponse struct {
-	UserWithIdentity
-	AccessTokenResponse
+	User        User      `json:"user"`
+	Identity    *Identity `json:"identity,omitempty"`
+	AccessToken string    `json:"access_token,omitempty"`
+}
+
+func NewAuthResponseWithUser(user User) AuthResponse {
+	return AuthResponse{
+		User: user,
+	}
+}
+
+func NewAuthResponseWithUserIdentity(user User, identity Identity) AuthResponse {
+	return AuthResponse{
+		User:     user,
+		Identity: &identity,
+	}
 }
 
 func NewAuthResponse(user User, identity Identity, accessToken string) AuthResponse {
 	return AuthResponse{
-		UserWithIdentity: UserWithIdentity{
-			User:     user,
-			Identity: identity,
-		},
-		AccessTokenResponse: NewAccessTokenResponse(accessToken),
+		User:        user,
+		Identity:    &identity,
+		AccessToken: accessToken,
 	}
 }

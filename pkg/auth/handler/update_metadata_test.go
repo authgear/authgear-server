@@ -97,15 +97,17 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"id": "%s",
-					"is_verified": true,
-					"is_disabled": false,
-					"created_at": "0001-01-01T00:00:00Z",
-					"verify_info": {},
-					"metadata": {
-						"username": "john.doe",
-						"email": "john.doe@example.com",
-						"age": 24
+					"user": {
+						"id": "%s",
+						"is_verified": true,
+						"is_disabled": false,
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {
+							"username": "john.doe",
+							"email": "john.doe@example.com",
+							"age": 24
+						}
 					}
 				}
 			}`, userID))
@@ -128,16 +130,18 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"id": "%s",
-					"is_verified": true,
-					"is_disabled": false,
-					"created_at": "0001-01-01T00:00:00Z",
-					"verify_info": {},
-					"metadata": {
-						"username": "john.doe",
-						"email": "john.doe@example.com",
-						"age": 30,
-						"love": "cat"
+					"user": {
+						"id": "%s",
+						"is_verified": true,
+						"is_disabled": false,
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {
+							"username": "john.doe",
+							"email": "john.doe@example.com",
+							"age": 30,
+							"love": "cat"
+						}
 					}
 				}
 			}`, userID))
@@ -156,14 +160,16 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"id": "%s",
-					"is_verified": true,
-					"is_disabled": false,
-					"created_at": "0001-01-01T00:00:00Z",
-					"verify_info": {},
-					"metadata": {
-						"username": "john.doe",
-						"email": "john.doe@example.com"
+					"user": {
+						"id": "%s",
+						"is_verified": true,
+						"is_disabled": false,
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {
+							"username": "john.doe",
+							"email": "john.doe@example.com"
+						}
 					}
 				}
 			}`, userID))
@@ -260,15 +266,17 @@ func TestUpdateMetadataHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"id": "%s",
-					"is_verified": true,
-					"is_disabled": false,
-					"created_at": "0001-01-01T00:00:00Z",
-					"verify_info": {},
-					"metadata": {
-						"username": "john.doe",
-						"email": "john.doe@example.com",
-						"age": 25
+					"user": {
+						"id": "%s",
+						"is_verified": true,
+						"is_disabled": false,
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {
+							"username": "john.doe",
+							"email": "john.doe@example.com",
+							"age": 25
+						}
 					}
 				}
 			}`, userID))
