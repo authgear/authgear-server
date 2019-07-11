@@ -14,17 +14,7 @@
 
 package model
 
-type AuthResponse struct {
-	UserWithIdentity
-	AccessTokenResponse
-}
-
-func NewAuthResponse(user User, identity Identity, accessToken string) AuthResponse {
-	return AuthResponse{
-		UserWithIdentity: UserWithIdentity{
-			User:     user,
-			Identity: identity,
-		},
-		AccessTokenResponse: NewAccessTokenResponse(accessToken),
-	}
+type UserWithIdentity struct {
+	User     User     `json:"user"`
+	Identity Identity `json:"identity"`
 }

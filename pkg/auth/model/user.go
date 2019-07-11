@@ -30,20 +30,9 @@ type User struct {
 	Disabled    bool             `json:"is_disabled"`
 	VerifyInfo  map[string]bool  `json:"verify_info"`
 	Metadata    userprofile.Data `json:"metadata"`
-	Identity    *Identity        `json:"identity"`
 }
 
 func NewUser(
-	authInfo authinfo.AuthInfo,
-	userProfile userprofile.UserProfile,
-	identity Identity,
-) User {
-	user := NewUserWithoutIdentity(authInfo, userProfile)
-	user.Identity = &identity
-	return user
-}
-
-func NewUserWithoutIdentity(
 	authInfo authinfo.AuthInfo,
 	userProfile userprofile.UserProfile,
 ) User {
@@ -55,6 +44,5 @@ func NewUserWithoutIdentity(
 		Disabled:    authInfo.Disabled,
 		VerifyInfo:  authInfo.VerifyInfo,
 		Metadata:    userProfile.Data,
-		Identity:    nil,
 	}
 }

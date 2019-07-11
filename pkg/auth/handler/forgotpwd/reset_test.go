@@ -142,7 +142,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			var respBody map[string]interface{}
 			err := json.Unmarshal(resp.Body.Bytes(), &respBody)
 			So(err, ShouldBeNil)
-			So(respBody["result"], ShouldEqual, "OK")
+			So(respBody["result"], ShouldResemble, map[string]interface{}{})
 
 			// should enqueue pw housekeeper task
 			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)

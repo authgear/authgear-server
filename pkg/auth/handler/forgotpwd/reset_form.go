@@ -142,7 +142,7 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 		return
 	}
 
-	user := model.NewUserWithoutIdentity(authInfo, userProfile)
+	user := model.NewUser(authInfo, userProfile)
 	ctx.user = user
 
 	return

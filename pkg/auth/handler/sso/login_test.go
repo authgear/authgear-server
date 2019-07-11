@@ -119,15 +119,15 @@ func TestLoginHandler(t *testing.T) {
 						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "0001-01-01T00:00:00Z",
 						"verify_info": {},
-						"metadata": {},
-						"identity": {
-							"id": "%s",
-							"type": "oauth",
-							"provider_id": "mock",
-							"provider_user_id": "mock_user_id",
-							"raw_profile": {},
-							"claims": {}
-						}
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "oauth",
+						"provider_id": "mock",
+						"provider_user_id": "mock_user_id",
+						"raw_profile": {},
+						"claims": {}
 					},
 					"access_token": "%s"
 				}

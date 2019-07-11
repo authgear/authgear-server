@@ -106,7 +106,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
+				"result": {}
 			}`)
 			So(sender.emails, ShouldResemble, []string{"chima@example.com"})
 			So(sender.userObjects, ShouldHaveLength, 1)
@@ -126,7 +126,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
+				"result": {}
 			}`)
 			So(sender.emails, ShouldResemble, []string{"john.doe@example.com", "john.doe@example.com"})
 			So(sender.userObjects, ShouldHaveLength, 2)

@@ -105,7 +105,7 @@ func TestResetPasswordHandler(t *testing.T) {
 
 			resp, err := h.Handle(payload)
 			So(err, ShouldBeNil)
-			So(resp, ShouldEqual, "OK")
+			So(resp, ShouldResemble, map[string]string{})
 
 			// should update all principals of a user
 			principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(userID)

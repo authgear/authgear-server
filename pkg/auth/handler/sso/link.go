@@ -83,7 +83,7 @@ func (p LinkRequestPayload) Validate() error {
 // EOF
 //
 // {
-//     "result": "OK"
+//     "result": {}
 // }
 //
 type LinkHandler struct {

@@ -342,15 +342,15 @@ func TestLoginHandler(t *testing.T) {
 						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "0001-01-01T00:00:00Z",
 						"verify_info": {},
-						"metadata": {},
-						"identity": {
-							"id": "john.doe.principal.id1",
-							"type": "password",
-							"login_id_key": "email",
-							"login_id": "john.doe@example.com",
-							"realm": "default",
-							"claims": {}
-						}
+						"metadata": {}
+					},
+					"identity": {
+						"id": "john.doe.principal.id1",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
 					},
 					"access_token": "%s"
 				}

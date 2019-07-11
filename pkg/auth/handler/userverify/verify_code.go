@@ -107,6 +107,6 @@ func (h VerifyCodeHandler) Handle(req interface{}) (resp interface{}, err error)
 		return
 	}
 
-	resp = "OK"
+	resp = map[string]string{}
 	return
 }

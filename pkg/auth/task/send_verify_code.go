@@ -111,7 +111,7 @@ func (v *VerifyCodeSendTask) Run(param interface{}) (err error) {
 	}
 
 	codeSender := v.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
-	user := model.NewUser(authInfo, userProfile, model.NewIdentity(v.IdentityProvider, userPrincipal))
+	user := model.NewUser(authInfo, userProfile)
 	if err = codeSender.Send(*verifyCode, user); err != nil {
 		v.Logger.WithFields(logrus.Fields{
 			"error":        err,

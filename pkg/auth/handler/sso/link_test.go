@@ -100,7 +100,7 @@ func TestLinkHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
+				"result": {}
 			}`)
 
 			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserInfo.ID)

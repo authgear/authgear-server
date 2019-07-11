@@ -170,7 +170,7 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	codeSender := h.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
-	user := model.NewUser(*authInfo, userProfile, model.NewIdentity(h.IdentityProvider, userPrincipal))
+	user := model.NewUser(*authInfo, userProfile)
 	if err = codeSender.Send(*verifyCode, user); err != nil {
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,
@@ -180,7 +180,7 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	resp = "OK"
+	resp = map[string]string{}
 	return
 }
 
@@ -298,7 +298,7 @@ func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err
 		return
 	}
 
-	resp = "OK"
+	resp = map[string]string{}
 
 	return
 }

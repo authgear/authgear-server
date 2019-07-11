@@ -220,8 +220,6 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (re
 		panic(err)
 	}
 
-	user := model.NewUser(info, userProfile, model.NewIdentity(h.IdentityProvider, loginPrincipal))
-
 	// Populate the activity time to user
 	info.LastSeenAt = &now
 	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
@@ -234,9 +232,11 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (re
 		Event:  audit.EventSignup,
 	})
 
-	*inputUser = user
+	user := model.NewUser(info, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, loginPrincipal)
 
-	resp = model.NewAuthResponse(user, tkn.AccessToken)
+	*inputUser = user
+	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
 
 	return
 }

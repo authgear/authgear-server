@@ -57,7 +57,7 @@ func (f UnlinkHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 // <<EOF
 //
 // {
-//     "result": "OK"
+//     "result": {}
 // }
 //
 type UnlinkHandler struct {
@@ -87,7 +87,7 @@ func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	resp = "OK"
+	resp = map[string]string{}
 
 	return
 }

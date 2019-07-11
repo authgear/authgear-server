@@ -131,17 +131,7 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	if currentUserID == updateUserID {
-		var principal principal.Principal
-		if principal, err = h.IdentityProvider.GetPrincipalByID(h.AuthContext.Token().PrincipalID); err != nil {
-			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to get user identity")
-			return
-		}
-		identity := authModel.NewIdentity(h.IdentityProvider, principal)
-		resp = authModel.NewUser(authInfo, profile, identity)
-	} else {
-		resp = authModel.NewUserWithoutIdentity(authInfo, profile)
-	}
+	resp = authModel.NewUser(authInfo, profile)
 
 	return
 }

@@ -1,8 +1,9 @@
 package handler
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -104,9 +105,10 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	user := model.NewUser(*authInfo, userProfile, model.NewIdentity(h.IdentityProvider, principal))
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+	user := model.NewUser(*authInfo, userProfile)
 
-	resp = user
+	resp = model.UserWithIdentity{User: user, Identity: identity}
 
 	return
 }

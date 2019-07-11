@@ -59,8 +59,9 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 		panic(err)
 	}
 
-	user := model.NewUser(info, userProfile, model.NewIdentity(h.IdentityProvider, principal))
-	resp = model.NewAuthResponse(user, token.AccessToken)
+	user := model.NewUser(info, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+	resp = model.NewAuthResponse(user, identity, token.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()
@@ -110,7 +111,7 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 	if err != nil {
 		return resp, err
 	}
-	resp = "OK"
+	resp = map[string]string{}
 	return
 }
 

@@ -130,7 +130,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
+				"result": {}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeTrue)
 		})
@@ -155,7 +155,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
+				"result": {}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
 		})

@@ -106,14 +106,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 						"username": "john.doe",
 						"email": "john.doe@example.com",
 						"age": 24
-					},
-					"identity": {
-						"id": "john.doe.principal.id0",
-						"type": "password",
-						"login_id_key": "username",
-						"login_id": "john.doe",
-						"realm": "default",
-						"claims": {}
 					}
 				}
 			}`, userID))
@@ -146,14 +138,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 						"email": "john.doe@example.com",
 						"age": 30,
 						"love": "cat"
-					},
-					"identity": {
-						"id": "john.doe.principal.id0",
-						"type": "password",
-						"login_id_key": "username",
-						"login_id": "john.doe",
-						"realm": "default",
-						"claims": {}
 					}
 				}
 			}`, userID))
@@ -180,14 +164,6 @@ func TestUpdateMetadataHandler(t *testing.T) {
 					"metadata": {
 						"username": "john.doe",
 						"email": "john.doe@example.com"
-					},
-					"identity": {
-						"id": "john.doe.principal.id0",
-						"type": "password",
-						"login_id_key": "username",
-						"login_id": "john.doe",
-						"realm": "default",
-						"claims": {}
 					}
 				}
 			}`, userID))
@@ -293,8 +269,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 						"username": "john.doe",
 						"email": "john.doe@example.com",
 						"age": 25
-					},
-					"identity": null
+					}
 				}
 			}`, userID))
 		})

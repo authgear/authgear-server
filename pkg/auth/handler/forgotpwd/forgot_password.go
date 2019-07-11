@@ -105,7 +105,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 	if principalErr != nil {
 		if principalErr == skydb.ErrUserNotFound {
 			if h.SecureMatch {
-				resp = "OK"
+				resp = map[string]string{}
 			} else {
 				err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			}
@@ -126,7 +126,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 
 	if len(principalMap) == 0 {
 		if h.SecureMatch {
-			resp = "OK"
+			resp = map[string]string{}
 		} else {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		}
@@ -157,7 +157,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 			return
 		}
 
-		user := model.NewUser(fetchedAuthInfo, userProfile, model.NewIdentity(h.IdentityProvider, principal))
+		user := model.NewUser(fetchedAuthInfo, userProfile)
 
 		if err = h.ForgotPasswordEmailSender.Send(
 			payload.Email,
@@ -169,7 +169,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		}
 	}
 
-	resp = "OK"
+	resp = map[string]string{}
 	return
 }
 
@@ -256,7 +256,7 @@ func (h ForgotPasswordTestHandler) Handle(req interface{}) (resp interface{}, er
 		payload.SenderName,
 		payload.ReplyToName,
 	); err == nil {
-		resp = "OK"
+		resp = map[string]string{}
 	}
 
 	return

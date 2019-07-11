@@ -132,7 +132,7 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		AuthID: authinfo.ID,
 	}, nil)
 
-	resp = "OK"
+	resp = map[string]string{}
 
 	return
 }

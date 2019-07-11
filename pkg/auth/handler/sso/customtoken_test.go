@@ -105,14 +105,14 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						"metadata": {
 							"email": "John@skygear.io",
 							"name": "John Doe"
-						},
-						"identity": {
-							"id": "%s",
-							"type": "custom_token",
-							"provider_user_id": "otherid1",
-							"raw_profile": {},
-							"claims": {}
 						}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "custom_token",
+						"provider_user_id": "otherid1",
+						"raw_profile": {},
+						"claims": {}
 					},
 					"access_token": "%s"
 				}

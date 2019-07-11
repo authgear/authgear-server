@@ -195,7 +195,7 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		AuthID: authInfo.ID,
 	}, nil)
 
-	resp = "OK"
+	resp = map[string]string{}
 
 	return
 }

@@ -39,7 +39,7 @@ func TestLogoutHandler(t *testing.T) {
 				AccessToken: token,
 			}
 			resp, err := h.Handle(payload)
-			So(resp, ShouldEqual, "OK")
+			So(resp, ShouldResemble, map[string]string{})
 			So(err, ShouldBeNil)
 		})
 

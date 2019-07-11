@@ -174,16 +174,16 @@ func TestSingupHandler(t *testing.T) {
 						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "0001-01-01T00:00:00Z",
 						"verify_info": {},
-						"metadata": {},
-						"identity": {
-							"id": "%s",
-							"type": "password",
-							"login_id_key": "email",
-							"login_id": "john.doe@example.com",
-							"realm": "default",
-							"claims": {
-								"email": "john.doe@example.com"
-							}
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {
+							"email": "john.doe@example.com"
 						}
 					},
 					"access_token": "%s"
@@ -222,16 +222,16 @@ func TestSingupHandler(t *testing.T) {
 						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "0001-01-01T00:00:00Z",
 						"verify_info": {},
-						"metadata": {},
-						"identity": {
-							"id": "%s",
-							"type": "password",
-							"login_id_key": "email",
-							"login_id": "john.doe@example.com",
-							"realm": "admin",
-							"claims": {
-								"email": "john.doe@example.com"
-							}
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "admin",
+						"claims": {
+							"email": "john.doe@example.com"
 						}
 					},
 					"access_token": "%s"
@@ -260,12 +260,12 @@ func TestSingupHandler(t *testing.T) {
 						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "0001-01-01T00:00:00Z",
 						"verify_info": {},
-						"metadata": {},
-						"identity": {
-							"id": "%s",
-							"type": "anonymous",
-							"claims": {}
-						}
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "anonymous",
+						"claims": {}
 					},
 					"access_token": "%s"
 				}
@@ -600,15 +600,15 @@ func TestSingupHandler(t *testing.T) {
 						"verify_info": {},
 						"metadata": {
 							"name":"john.doe"
-						},
-						"identity": {
-							"id": "%s",
-							"type": "password",
-							"login_id_key": "email",
-							"login_id": "john.doe@example.com",
-							"realm": "default",
-							"claims": {}
 						}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
 					},
 					"access_token": "%s"
 				}
@@ -668,7 +668,7 @@ func TestSingupHandler(t *testing.T) {
 			}
 
 			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-				userID, principalID, accessToken := getAuthInfo()
+				userID, _, accessToken := getAuthInfo()
 				c.So(req.Header.Get(coreHttp.HeaderAccessToken), ShouldEqual, accessToken)
 				body, err := ioutil.ReadAll(req.Body)
 				c.So(err, ShouldBeNil)
@@ -695,21 +695,12 @@ func TestSingupHandler(t *testing.T) {
 						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "0001-01-01T00:00:00Z",
 						"verify_info": {},
-						"metadata": {},
-						"identity": {
-							"id": "%s",
-							"type": "password",
-							"login_id_key": "email",
-							"login_id": "john.doe@example.com",
-							"realm": "default",
-							"claims": {}
-						}
+						"metadata": {}
 					},
 					"event": "after_signup"
 				}`,
 					requestID,
-					userID,
-					principalID))
+					userID))
 
 				rw.WriteHeader(http.StatusOK)
 			}))
@@ -752,15 +743,15 @@ func TestSingupHandler(t *testing.T) {
 						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "0001-01-01T00:00:00Z",
 						"verify_info": {},
-						"metadata": {},
-						"identity": {
-							"id": "%s",
-							"type": "password",
-							"login_id_key": "email",
-							"login_id": "john.doe@example.com",
-							"realm": "default",
-							"claims": {}
-						}
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
 					},
 					"access_token": "%s"
 				}
@@ -812,15 +803,15 @@ func TestSingupHandler(t *testing.T) {
 						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "0001-01-01T00:00:00Z",
 						"verify_info": {},
-						"metadata": {},
-						"identity": {
-							"id": "%s",
-							"type": "password",
-							"login_id_key": "email",
-							"login_id": "john.doe@example.com",
-							"realm": "default",
-							"claims": {}
-						}
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
 					},
 					"access_token": "%s"
 				}
@@ -873,15 +864,15 @@ func TestSingupHandler(t *testing.T) {
 						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "0001-01-01T00:00:00Z",
 						"verify_info": {},
-						"metadata": {},
-						"identity": {
-							"id": "%s",
-							"type": "password",
-							"login_id_key": "email",
-							"login_id": "john.doe@example.com",
-							"realm": "default",
-							"claims": {}
-						}
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
 					},
 					"access_token": "%s"
 				}
@@ -980,15 +971,15 @@ func TestSingupHandler(t *testing.T) {
 						"metadata": {
 							"name": "john.doe",
 							"email": "john.doe@example.com"
-						},
-						"identity": {
-							"id": "%s",
-							"type": "password",
-							"login_id_key": "email",
-							"login_id": "john.doe@example.com",
-							"realm": "default",
-							"claims": {}
 						}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
 					},
 					"access_token": "%s"
 				}

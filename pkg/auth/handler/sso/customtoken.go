@@ -192,7 +192,8 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		panic(err)
 	}
 
-	user := model.NewUser(info, userProfile, model.NewIdentity(h.IdentityProvider, principal))
+	user := model.NewUser(info, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
 
 	// Populate the activity time to user
 	now := timeNow()
@@ -207,7 +208,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		h.sendWelcomeEmail(user)
 	}
 
-	resp = model.NewAuthResponse(user, tkn.AccessToken)
+	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
 
 	return
 }

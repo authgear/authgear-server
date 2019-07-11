@@ -109,7 +109,7 @@ func (h WelcomeEmailHandler) Handle(req interface{}) (resp interface{}, err erro
 		payload.SenderName,
 		payload.ReplyToName,
 	); err == nil {
-		resp = "OK"
+		resp = map[string]string{}
 	}
 
 	return

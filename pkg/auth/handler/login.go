@@ -186,8 +186,9 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	user := model.NewUser(fetchedAuthInfo, userProfile, model.NewIdentity(h.IdentityProvider, &principal))
-	resp = model.NewAuthResponse(user, token.AccessToken)
+	user := model.NewUser(fetchedAuthInfo, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, &principal)
+	resp = model.NewAuthResponse(user, identity, token.AccessToken)
 
 	return
 }

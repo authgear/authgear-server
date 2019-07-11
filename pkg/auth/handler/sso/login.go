@@ -82,7 +82,7 @@ func (p LoginRequestPayload) Validate() error {
 // EOF
 //
 // {
-//     "result": "OK"
+//     "result": {}
 // }
 //
 type LoginHandler struct {
