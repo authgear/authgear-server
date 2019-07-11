@@ -84,9 +84,7 @@ The claims of the custom token is as follows:
       "sub": "id1234567800",
       "iat": 1513316033,
       "exp": 1828676033,
-      "skyprofile": {
-        "name": "John Doe"
-      }
+      "email": "johndoe@oursky.com"
     }
 
 When signing the above claims with the custom token secret `ssosecret` using
@@ -212,7 +210,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 
 	// TODO: audit trail
 	if createNewUser && h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(user)
+		h.sendWelcomeEmail(user, payload.Claims.Email)
 	}
 
 	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
@@ -282,15 +280,15 @@ func (h CustomTokenLoginHandler) handleLogin(
 	}
 
 	// Create Profile
-	userProfileFunc := func(userID string, authInfo *authinfo.AuthInfo, data userprofile.Data) (userprofile.UserProfile, error) {
+	userProfileFunc := func(userID string, authInfo *authinfo.AuthInfo) (userprofile.UserProfile, error) {
 		if createNewUser {
-			return h.UserProfileStore.CreateUserProfile(userID, data)
+			emptyData := map[string]interface{}{}
+			return h.UserProfileStore.CreateUserProfile(userID, emptyData)
 		}
-
-		return h.UserProfileStore.UpdateUserProfile(userID, authInfo, data)
+		return h.UserProfileStore.GetUserProfile(userID)
 	}
 
-	if *userProfile, err = userProfileFunc(info.ID, info, payload.Claims.RawProfile); err != nil {
+	if *userProfile, err = userProfileFunc(info.ID, info); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
@@ -300,8 +298,8 @@ func (h CustomTokenLoginHandler) handleLogin(
 	return
 }
 
-func (h CustomTokenLoginHandler) sendWelcomeEmail(user model.User) {
-	if email, ok := user.Metadata["email"].(string); ok {
+func (h CustomTokenLoginHandler) sendWelcomeEmail(user model.User, email string) {
+	if email != "" {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
 			Email: email,
 			User:  user,

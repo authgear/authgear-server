@@ -6,8 +6,8 @@ import (
 )
 
 type SSOCustomTokenClaims struct {
-	RawProfile map[string]interface{} `json:"skyprofile"`
 	jwt.StandardClaims
+	Email string `json:"email,omitempty"`
 }
 
 func (c *SSOCustomTokenClaims) Validate() error {

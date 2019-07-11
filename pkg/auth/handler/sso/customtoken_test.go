@@ -78,10 +78,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 						Subject:   "otherid1",
 					},
-					RawProfile: map[string]interface{}{
-						"name":  "John Doe",
-						"email": "John@skygear.io",
-					},
+					Email: "John@skygear.io",
 				},
 			).SignedString([]byte("ssosecret"))
 			So(err, ShouldBeNil)
@@ -106,10 +103,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "2006-01-02T15:04:05Z",
 						"verify_info": {},
-						"metadata": {
-							"email": "John@skygear.io",
-							"name": "John Doe"
-						}
+						"metadata": {}
 					},
 					"identity": {
 						"id": "%s",
@@ -133,11 +127,10 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			param, _ := mockTaskQueue.TasksParam[0].(task.WelcomeEmailSendTaskParam)
 			So(param.Email, ShouldEqual, "John@skygear.io")
 			So(param.User, ShouldNotBeNil)
-			So(param.User.Metadata["name"], ShouldEqual, "John Doe")
-			So(param.User.Metadata["email"], ShouldEqual, "John@skygear.io")
+			So(param.User.Metadata, ShouldResemble, userprofile.Data{})
 		})
 
-		Convey("update user account with custom token", func(c C) {
+		Convey("does not update user account with custom token", func(c C) {
 			tokenString, err := jwt.NewWithClaims(
 				jwt.SigningMethodHS256,
 				customtoken.SSOCustomTokenClaims{
@@ -146,10 +139,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 						Subject:   "chima.customtoken.id",
 					},
-					RawProfile: map[string]interface{}{
-						"name":  "John Doe",
-						"email": "John@skygear.io",
-					},
+					Email: "John@skygear.io",
 				},
 			).SignedString([]byte("ssosecret"))
 			So(err, ShouldBeNil)
@@ -166,8 +156,8 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 
 			profile, _ := lh.UserProfileStore.GetUserProfile(p.UserID)
 			So(profile.Data, ShouldResemble, userprofile.Data{
-				"name":  "John Doe",
-				"email": "John@skygear.io",
+				"name":  "chima",
+				"email": "chima@skygear.io",
 			})
 
 			So(mockTaskQueue.TasksParam, ShouldHaveLength, 0)
@@ -210,10 +200,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 						Subject:   "otherid1",
 					},
-					RawProfile: map[string]interface{}{
-						"name":  "John Doe",
-						"email": "John@skygear.io",
-					},
+					Email: "John@skygear.io",
 				},
 			).SignedString([]byte("ssosecret"))
 			So(err, ShouldBeNil)

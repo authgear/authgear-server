@@ -2,6 +2,7 @@ package customtoken
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -76,11 +77,19 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 		return
 	}
 
+	var rawProfileBytes []byte
+	rawProfileBytes, err = json.Marshal(principal.RawProfile)
+	if err != nil {
+		return
+	}
+
 	builder = p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("provider_custom_token")).Columns(
 		"principal_id",
+		"raw_profile",
 		"token_principal_id",
 	).Values(
 		principal.ID,
+		rawProfileBytes,
 		principal.TokenPrincipalID,
 	)
 
@@ -98,21 +107,29 @@ func (p providerImpl) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*
 	principal := Principal{}
 	principal.TokenPrincipalID = tokenPrincipalID
 
-	builder := p.sqlBuilder.Select("p.id", "p.user_id").
+	builder := p.sqlBuilder.Select("p.id", "p.user_id", "ct.raw_profile").
 		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
 		Join(p.sqlBuilder.FullTableName("provider_custom_token")+" AS ct ON p.id = ct.principal_id").
 		Where("ct.token_principal_id = ? AND p.provider = 'custom_token'", tokenPrincipalID)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
+	var rawProfileBytes []byte
+
 	err := scanner.Scan(
 		&principal.ID,
 		&principal.UserID,
+		&rawProfileBytes,
 	)
 
 	if err == sql.ErrNoRows {
 		err = skydb.ErrUserNotFound
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(rawProfileBytes, &principal.RawProfile)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,7 @@ type Principal struct {
 	ID               string
 	TokenPrincipalID string
 	UserID           string
+	RawProfile       SSOCustomTokenClaims
 }
 
 func NewPrincipal() Principal {
