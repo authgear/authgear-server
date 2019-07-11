@@ -187,28 +187,26 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	user := model.NewUser(fetchedAuthInfo, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, &principal)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
 	resp = model.NewAuthResponse(user, identity, token.AccessToken)
 
 	return
 }
 
-func (h LoginHandler) getPrincipal(pwd string, loginIDKey string, loginID string, realm string) (principal password.Principal, err error) {
-	err = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, &principal)
+func (h LoginHandler) getPrincipal(pwd string, loginIDKey string, loginID string, realm string) (*password.Principal, error) {
+	var principal password.Principal
+	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, &principal)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-			return
+			return nil, skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		}
 		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("login_id", loginID)
-		return
+		return nil, skyerr.NewResourceFetchFailureErr("login_id", loginID)
 	}
 
 	if !principal.IsSamePassword(pwd) {
-		err = skyerr.NewError(skyerr.InvalidCredentials, "login_id or password incorrect")
-		return
+		return nil, skyerr.NewError(skyerr.InvalidCredentials, "login_id or password incorrect")
 	}
 
-	return
+	return &principal, nil
 }
