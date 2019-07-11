@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
@@ -44,6 +45,78 @@ func (m DependencyMap) Provide(
 	requestID string,
 	tConfig config.TenantConfiguration,
 ) interface{} {
+	newLogger := func(name string) *logrus.Entry {
+		formatter := logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
+		return logging.CreateLoggerWithRequestID(requestID, name, formatter)
+	}
+
+	newSQLBuilder := func() db.SQLBuilder {
+		return db.NewSQLBuilder("auth", tConfig.AppName)
+	}
+
+	newSQLExecutor := func() db.SQLExecutor {
+		return db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig))
+	}
+
+	newPasswordHistoryStore := func() passwordhistory.Store {
+		return pqPWHistory.NewPasswordHistoryStore(
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newLogger("auth_password_history"),
+		)
+	}
+
+	newTemplateEngine := func() *template.Engine {
+		return authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
+	}
+
+	// TODO:
+	// from tConfig
+	isPasswordHistoryEnabled := func() bool {
+		return tConfig.UserConfig.UserAudit.Password.HistorySize > 0 ||
+			tConfig.UserConfig.UserAudit.Password.HistoryDays > 0
+	}
+
+	newPasswordAuthProvider := func() password.Provider {
+		return password.NewSafeProvider(
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newLogger("provider_password"),
+			tConfig.UserConfig.Auth.LoginIDKeys,
+			tConfig.UserConfig.Auth.AllowedRealms,
+			isPasswordHistoryEnabled(),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
+	}
+
+	newAnonymousAuthProvider := func() anonymous.Provider {
+		return anonymous.NewSafeProvider(
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newLogger("provider_anonymous"),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
+	}
+
+	newCustomTokenAuthProvider := func() customtoken.Provider {
+		return customtoken.NewSafeProvider(
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newLogger("provider_custom_token"),
+			tConfig.UserConfig.Auth.CustomTokenSecret,
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
+	}
+
+	newOAuthAuthProvider := func() oauth.Provider {
+		return oauth.NewSafeProvider(
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newLogger("provider_oauth"),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
+	}
+
 	switch dependencyName {
 	case "AuthContextGetter":
 		return coreAuth.NewContextGetterWithContext(ctx)
@@ -54,11 +127,6 @@ func (m DependencyMap) Provide(
 	case "AuthInfoStore":
 		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
 	case "PasswordChecker":
-		passwordHistoryStore := pqPWHistory.NewPasswordHistoryStore(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-			logging.CreateLoggerWithRequestID(requestID, "auth_password_history", createLoggerMaskFormatter(tConfig)),
-		)
 		return &authAudit.PasswordChecker{
 			PwMinLength:         tConfig.UserConfig.UserAudit.Password.MinLength,
 			PwUppercaseRequired: tConfig.UserConfig.UserAudit.Password.UppercaseRequired,
@@ -71,61 +139,33 @@ func (m DependencyMap) Provide(
 			PwHistorySize:          tConfig.UserConfig.UserAudit.Password.HistorySize,
 			PwHistoryDays:          tConfig.UserConfig.UserAudit.Password.HistoryDays,
 			PasswordHistoryEnabled: tConfig.UserConfig.UserAudit.Password.HistorySize > 0 || tConfig.UserConfig.UserAudit.Password.HistoryDays > 0,
-			PasswordHistoryStore:   passwordHistoryStore,
+			PasswordHistoryStore:   newPasswordHistoryStore(),
 		}
 	case "PwHousekeeper":
-		passwordHistoryStore := pqPWHistory.NewPasswordHistoryStore(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-			logging.CreateLoggerWithRequestID(requestID, "auth_password_history", createLoggerMaskFormatter(tConfig)),
-		)
 		return authAudit.NewPwHousekeeper(
-			passwordHistoryStore,
-			logging.CreateLoggerWithRequestID(requestID, "audit", createLoggerMaskFormatter(tConfig)),
+			newPasswordHistoryStore(),
+			newLogger("audit"),
 			tConfig.UserConfig.UserAudit.Password.HistorySize,
 			tConfig.UserConfig.UserAudit.Password.HistoryDays,
-			tConfig.UserConfig.UserAudit.Password.HistorySize > 0 || tConfig.UserConfig.UserAudit.Password.HistoryDays > 0,
+			isPasswordHistoryEnabled(),
 		)
 	case "PasswordAuthProvider":
-		// TODO:
-		// from tConfig
-		passwordHistoryEnabled := tConfig.UserConfig.UserAudit.Password.HistorySize > 0 || tConfig.UserConfig.UserAudit.Password.HistoryDays > 0
-		return password.NewSafeProvider(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-			logging.CreateLoggerWithRequestID(requestID, "provider_password", createLoggerMaskFormatter(tConfig)),
-			tConfig.UserConfig.Auth.LoginIDKeys,
-			tConfig.UserConfig.Auth.AllowedRealms,
-			passwordHistoryEnabled,
-			db.NewSafeTxContextWithContext(ctx, tConfig),
-		)
+		return newPasswordAuthProvider()
 	case "AnonymousAuthProvider":
-		return anonymous.NewSafeProvider(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-			logging.CreateLoggerWithRequestID(requestID, "provider_anonymous", createLoggerMaskFormatter(tConfig)),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
-		)
+		return newAnonymousAuthProvider()
 	case "CustomTokenAuthProvider":
-		return customtoken.NewSafeProvider(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-			logging.CreateLoggerWithRequestID(requestID, "provider_custom_token", createLoggerMaskFormatter(tConfig)),
-			tConfig.UserConfig.Auth.CustomTokenSecret,
-			db.NewSafeTxContextWithContext(ctx, tConfig),
-		)
+		return newCustomTokenAuthProvider()
 	case "HandlerLogger":
-		return logging.CreateLoggerWithRequestID(requestID, "handler", createLoggerMaskFormatter(tConfig))
+		return newLogger("handler")
 	case "UserProfileStore":
 		return userprofile.NewSafeProvider(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-			logging.CreateLoggerWithRequestID(requestID, "auth_user_profile", createLoggerMaskFormatter(tConfig)),
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newLogger("auth_user_profile"),
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	case "ForgotPasswordEmailSender":
-		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), templateEngine)
+		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), newTemplateEngine())
 	case "TestForgotPasswordEmailSender":
 		return forgotpwdemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
 	case "ForgotPasswordCodeGenerator":
@@ -133,25 +173,21 @@ func (m DependencyMap) Provide(
 	case "ForgotPasswordSecureMatch":
 		return tConfig.UserConfig.ForgotPassword.SecureMatch
 	case "ResetPasswordHTMLProvider":
-		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return forgotpwdemail.NewResetPasswordHTMLProvider(tConfig.UserConfig.ForgotPassword, templateEngine)
+		return forgotpwdemail.NewResetPasswordHTMLProvider(tConfig.UserConfig.ForgotPassword, newTemplateEngine())
 	case "WelcomeEmailEnabled":
 		return tConfig.UserConfig.WelcomeEmail.Enabled
 	case "WelcomeEmailDestination":
 		return tConfig.UserConfig.WelcomeEmail.Destination
 	case "WelcomeEmailSender":
-		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), templateEngine)
+		return welcemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), newTemplateEngine())
 	case "TestWelcomeEmailSender":
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
 	case "IFrameHTMLProvider":
 		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.APIEndpoint(), tConfig.UserConfig.SSO.JSSDKCDNURL)
 	case "UserVerifyCodeSenderFactory":
-		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, templateEngine)
+		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, newTemplateEngine())
 	case "UserVerifyTestCodeSenderFactory":
-		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(tConfig, templateEngine)
+		return userverify.NewDefaultUserVerifyTestCodeSenderFactory(tConfig, newTemplateEngine())
 	case "AutoSendUserVerifyCodeOnSignup":
 		return tConfig.UserConfig.UserVerification.AutoSendOnSignup
 	case "UserVerifyLoginIDKeys":
@@ -160,17 +196,16 @@ func (m DependencyMap) Provide(
 		return userverify.NewProvider(
 			userverify.NewCodeGenerator(tConfig),
 			userverify.NewSafeStore(
-				db.NewSQLBuilder("auth", tConfig.AppName),
-				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-				logging.CreateLoggerWithRequestID(requestID, "verify_code", createLoggerMaskFormatter(tConfig)),
+				newSQLBuilder(),
+				newSQLExecutor(),
+				newLogger("verify_code"),
 				db.NewSafeTxContextWithContext(ctx, tConfig),
 			),
 			tConfig.UserConfig.UserVerification,
 			time.NewProvider(),
 		)
 	case "VerifyHTMLProvider":
-		templateEngine := authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
-		return userverify.NewVerifyHTMLProvider(tConfig.UserConfig.UserVerification, templateEngine)
+		return userverify.NewVerifyHTMLProvider(tConfig.UserConfig.UserVerification, newTemplateEngine())
 	case "AuditTrail":
 		trail, err := audit.NewTrail(tConfig.UserConfig.UserAudit.Enabled, tConfig.UserConfig.UserAudit.TrailHandlerURL)
 		if err != nil {
@@ -180,60 +215,23 @@ func (m DependencyMap) Provide(
 	case "SSOProviderFactory":
 		return sso.NewProviderFactory(tConfig)
 	case "OAuthAuthProvider":
-		return oauth.NewSafeProvider(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-			logging.CreateLoggerWithRequestID(requestID, "provider_oauth", createLoggerMaskFormatter(tConfig)),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
-		)
+		return newOAuthAuthProvider()
 	case "IdentityProvider":
-		// TODO:
-		// from tConfig
-		passwordHistoryEnabled := tConfig.UserConfig.UserAudit.Password.HistorySize > 0 || tConfig.UserConfig.UserAudit.Password.HistoryDays > 0
 		return principal.NewIdentityProvider(
-			db.NewSQLBuilder("auth", tConfig.AppName),
-			db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-			anonymous.NewSafeProvider(
-				db.NewSQLBuilder("auth", tConfig.AppName),
-				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-				logging.CreateLoggerWithRequestID(requestID, "provider_anonymous", createLoggerMaskFormatter(tConfig)),
-				db.NewSafeTxContextWithContext(ctx, tConfig),
-			),
-			customtoken.NewSafeProvider(
-				db.NewSQLBuilder("auth", tConfig.AppName),
-				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-				logging.CreateLoggerWithRequestID(requestID, "provider_custom_token", createLoggerMaskFormatter(tConfig)),
-				tConfig.UserConfig.Auth.CustomTokenSecret,
-				db.NewSafeTxContextWithContext(ctx, tConfig),
-			),
-			oauth.NewSafeProvider(
-				db.NewSQLBuilder("auth", tConfig.AppName),
-				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-				logging.CreateLoggerWithRequestID(requestID, "provider_oauth", createLoggerMaskFormatter(tConfig)),
-				db.NewSafeTxContextWithContext(ctx, tConfig),
-			),
-			password.NewSafeProvider(
-				db.NewSQLBuilder("auth", tConfig.AppName),
-				db.NewSQLExecutor(ctx, db.NewContextWithContext(ctx, tConfig)),
-				logging.CreateLoggerWithRequestID(requestID, "provider_password", createLoggerMaskFormatter(tConfig)),
-				tConfig.UserConfig.Auth.LoginIDKeys,
-				tConfig.UserConfig.Auth.AllowedRealms,
-				passwordHistoryEnabled,
-				db.NewSafeTxContextWithContext(ctx, tConfig),
-			),
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newAnonymousAuthProvider(),
+			newCustomTokenAuthProvider(),
+			newOAuthAuthProvider(),
+			newPasswordAuthProvider(),
 		)
 	case "AuthHandlerHTMLProvider":
 		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.APIEndpoint(), tConfig.UserConfig.SSO.JSSDKCDNURL)
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	case "HookStore":
-		l := logging.CreateLoggerWithRequestID(requestID, "auth_hook", createLoggerMaskFormatter(tConfig))
-		return hook.NewHookProvider(tConfig.Hooks, hook.ExecutorImpl{}, l, requestID)
+		return hook.NewHookProvider(tConfig.Hooks, hook.ExecutorImpl{}, newLogger("auth_hook"), requestID)
 	default:
 		return nil
 	}
-}
-
-func createLoggerMaskFormatter(tConfig config.TenantConfiguration) logrus.Formatter {
-	return logging.CreateMaskFormatter(tConfig.DefaultSensitiveLoggerValues(), &logrus.TextFormatter{})
 }
