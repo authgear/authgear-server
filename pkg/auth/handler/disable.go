@@ -137,7 +137,7 @@ func (h SetDisableHandler) Handle(req interface{}) (resp interface{}, err error)
 
 	h.logAuditTrail(p)
 
-	resp = "OK"
+	resp = map[string]string{}
 
 	return
 }

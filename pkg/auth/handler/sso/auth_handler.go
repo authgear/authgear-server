@@ -9,8 +9,9 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -95,6 +96,7 @@ type AuthHandler struct {
 	AuthContext             coreAuth.ContextGetter      `dependency:"AuthContextGetter"`
 	OAuthAuthProvider       oauth.Provider              `dependency:"OAuthAuthProvider"`
 	PasswordAuthProvider    password.Provider           `dependency:"PasswordAuthProvider"`
+	IdentityProvider        principal.IdentityProvider  `dependency:"IdentityProvider"`
 	AuthInfoStore           authinfo.Store              `dependency:"AuthInfoStore"`
 	TokenStore              authtoken.Store             `dependency:"TokenStore"`
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
@@ -194,6 +196,7 @@ func (h AuthHandler) getResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err 
 		AuthInfoStore:        h.AuthInfoStore,
 		OAuthAuthProvider:    h.OAuthAuthProvider,
 		PasswordAuthProvider: h.PasswordAuthProvider,
+		IdentityProvider:     h.IdentityProvider,
 		UserProfileStore:     h.UserProfileStore,
 		UserID:               oauthAuthInfo.State.UserID,
 		Settings:             h.SSOSetting,

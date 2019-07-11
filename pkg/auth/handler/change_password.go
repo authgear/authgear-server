@@ -6,9 +6,10 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -95,6 +96,7 @@ type ChangePasswordHandler struct {
 	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
 	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	PasswordChecker      *authAudit.PasswordChecker `dependency:"PasswordChecker"`
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
@@ -133,13 +135,16 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
+	principal := principals[0]
 	for _, p := range principals {
+		if p.ID == h.AuthContext.Token().PrincipalID {
+			principal = p
+		}
 		if !p.IsSamePassword(payload.OldPassword) {
 			err = skyerr.NewError(skyerr.InvalidCredentials, "Incorrect old password")
 			return
 		}
-		p.PlainPassword = payload.NewPassword
-		err = h.PasswordAuthProvider.UpdatePrincipal(*p)
+		err = h.PasswordAuthProvider.UpdatePassword(p, payload.NewPassword)
 		if err != nil {
 			return
 		}
@@ -153,7 +158,7 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 	}
 
 	// generate access-token
-	token, err := h.TokenStore.NewToken(authinfo.ID)
+	token, err := h.TokenStore.NewToken(authinfo.ID, h.AuthContext.Token().PrincipalID)
 	if err != nil {
 		panic(err)
 	}
@@ -171,10 +176,9 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		return
 	}
 
-	respFactory := response.AuthResponseFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-	resp = respFactory.NewAuthResponse(*authinfo, userProfile, token.AccessToken)
+	user := model.NewUser(*authinfo, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+	resp = model.NewAuthResponse(user, identity, token.AccessToken)
 
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authinfo.ID,

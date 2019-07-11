@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -13,9 +13,9 @@ type HookHandler interface {
 	DecodeRequest(request *http.Request) (handler.RequestPayload, error)
 	WithTx() bool
 
-	ExecBeforeHooks(payload interface{}, user *response.User) error
-	HandleRequest(payload interface{}, user *response.User) (interface{}, error)
-	ExecAfterHooks(payload interface{}, resp interface{}, user response.User) error
+	ExecBeforeHooks(payload interface{}, user *model.User) error
+	HandleRequest(payload interface{}, user *model.User) (interface{}, error)
+	ExecAfterHooks(payload interface{}, resp interface{}, user model.User) error
 }
 
 type hookExecutor struct {
@@ -38,7 +38,7 @@ func (h hookExecutor) DecodeRequest(request *http.Request) (handler.RequestPaylo
 }
 
 func (h hookExecutor) Handle(req interface{}) (interface{}, error) {
-	var user response.User
+	var user model.User
 	err := h.handler.ExecBeforeHooks(req, &user)
 	if err != nil {
 		return nil, err

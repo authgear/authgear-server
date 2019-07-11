@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -49,7 +49,7 @@ func TestUnlinkHandler(t *testing.T) {
 			h.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
+				"result": {}
 			}`)
 
 			p, e := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)

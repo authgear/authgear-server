@@ -6,7 +6,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -48,7 +48,7 @@ type WelcomeEmailSendTask struct {
 
 type WelcomeEmailSendTaskParam struct {
 	Email string
-	User  response.User
+	User  model.User
 }
 
 func (w *WelcomeEmailSendTask) WithTx() bool {
@@ -66,7 +66,7 @@ func (w *WelcomeEmailSendTask) Run(param interface{}) (err error) {
 		w.Logger.WithFields(logrus.Fields{
 			"error":  err,
 			"email":  taskParam.Email,
-			"userID": taskParam.User.UserID,
+			"userID": taskParam.User.ID,
 		}).Error("fail to send welcome email")
 		return
 	}

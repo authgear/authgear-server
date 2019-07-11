@@ -13,8 +13,7 @@ import (
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -74,12 +73,6 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				"john.doe.id": authInfo,
 			},
 		)
-		userProfileStore := userprofile.NewMockUserProfileStore()
-		userProfileStore.Data["john.doe.id"] = map[string]interface{}{
-			"username": "john.doe",
-			"email":    "john.doe@example.com",
-		}
-		fh.UserProfileStore = userProfileStore
 		fh.TokenStore = authtoken.NewJWTStore("myApp", "secret", 0)
 		fh.CodeGenerator = codeGenerator
 		fh.PasswordChecker = &authAudit.PasswordChecker{}
@@ -149,9 +142,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			var respBody map[string]interface{}
 			err := json.Unmarshal(resp.Body.Bytes(), &respBody)
 			So(err, ShouldBeNil)
-			So(respBody, ShouldNotContainKey, "error")
-			So(respBody["result"], ShouldContainKey, "access_token")
-			So(respBody["result"], ShouldContainKey, "user_id")
+			So(respBody["result"], ShouldResemble, map[string]interface{}{})
 
 			// should enqueue pw housekeeper task
 			So(mockTaskQueue.TasksName[0], ShouldEqual, task.PwHousekeeperTaskName)

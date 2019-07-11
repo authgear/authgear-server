@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+
 	"github.com/skygeario/skygear-server/pkg/core/utils"
 
 	"github.com/skygeario/skygear-server/pkg/auth/task"
@@ -11,13 +13,13 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/anonymous"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -123,6 +125,7 @@ type SignupHandler struct {
 	AuthInfoStore           authinfo.Store                                     `dependency:"AuthInfoStore"`
 	PasswordAuthProvider    password.Provider                                  `dependency:"PasswordAuthProvider"`
 	AnonymousAuthProvider   anonymous.Provider                                 `dependency:"AnonymousAuthProvider"`
+	IdentityProvider        principal.IdentityProvider                         `dependency:"IdentityProvider"`
 	AuditTrail              audit.Trail                                        `dependency:"AuditTrail"`
 	WelcomeEmailEnabled     bool                                               `dependency:"WelcomeEmailEnabled"`
 	WelcomeEmailDestination config.WelcomeEmailDestination                     `dependency:"WelcomeEmailDestination"`
@@ -156,14 +159,14 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, nil
 }
 
-func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *response.User) error {
+func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *model.User) error {
 	payload := req.(SignupRequestPayload)
 	inputUser.Metadata = payload.Metadata
 	err := h.HookStore.ExecBeforeHooksByEvent(hook.BeforeSignup, req, inputUser, "")
 	return err
 }
 
-func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) (resp interface{}, err error) {
+func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
 	err = h.verifyPayload(payload)
@@ -202,12 +205,13 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 	}
 
 	// Create Principal
-	if err = h.createPrincipal(payload, info); err != nil {
+	loginPrincipal, err := h.createPrincipals(payload, info)
+	if err != nil {
 		return
 	}
 
 	// Create auth token
-	tkn, err := h.TokenStore.NewToken(info.ID)
+	tkn, err := h.TokenStore.NewToken(info.ID, loginPrincipal.PrincipalID())
 	if err != nil {
 		panic(err)
 	}
@@ -215,11 +219,6 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 	if err = h.TokenStore.Put(&tkn); err != nil {
 		panic(err)
 	}
-
-	userFactory := response.UserFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-	user := userFactory.NewUser(info, userProfile)
 
 	// Populate the activity time to user
 	info.LastSeenAt = &now
@@ -233,16 +232,18 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *response.User) 
 		Event:  audit.EventSignup,
 	})
 
-	*inputUser = user
+	user := model.NewUser(info, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, loginPrincipal)
 
-	resp = response.NewAuthResponseByUser(user, tkn.AccessToken)
+	*inputUser = user
+	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
 
 	return
 }
 
-func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user response.User) error {
+func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user model.User) error {
 	reqPayload := req.(SignupRequestPayload)
-	respPayload := resp.(response.AuthResponse)
+	respPayload := resp.(model.AuthResponse)
 	err := h.HookStore.ExecAfterHooksByEvent(hook.AfterSignup, req, user, respPayload.AccessToken)
 	if err != nil {
 		return err
@@ -281,23 +282,31 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 	return
 }
 
-func (h SignupHandler) createPrincipal(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (err error) {
+func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (principal principal.Principal, err error) {
 	if !payload.isAnonymous() {
-		err = h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs, payload.Realm)
-		if err == skydb.ErrUserDuplicated {
-			err = ErrUserDuplicated
+		principals, createError := h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs, payload.Realm)
+
+		if createError != nil {
+			if createError == skydb.ErrUserDuplicated {
+				err = ErrUserDuplicated
+			} else {
+				err = createError
+			}
+		}
+		if err == nil {
+			principal = principals[0]
 		}
 	} else {
-		principal := anonymous.NewPrincipal()
-		principal.UserID = authInfo.ID
+		anonymousPrincipal := anonymous.NewPrincipal()
+		anonymousPrincipal.UserID = authInfo.ID
 
-		err = h.AnonymousAuthProvider.CreatePrincipal(principal)
+		err = h.AnonymousAuthProvider.CreatePrincipal(anonymousPrincipal)
+		principal = &anonymousPrincipal
 	}
-
 	return
 }
 
-func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs []password.LoginID) {
+func (h SignupHandler) sendWelcomeEmail(user model.User, loginIDs []password.LoginID) {
 	supportedLoginIDs := []password.LoginID{}
 	for _, loginID := range loginIDs {
 		if h.PasswordAuthProvider.CheckLoginIDKeyType(loginID.Key, metadata.Email) {
@@ -323,13 +332,13 @@ func (h SignupHandler) sendWelcomeEmail(user response.User, loginIDs []password.
 	}
 }
 
-func (h SignupHandler) sendUserVerifyRequest(user response.User, loginIDs []password.LoginID) {
+func (h SignupHandler) sendUserVerifyRequest(user model.User, loginIDs []password.LoginID) {
 	for _, loginID := range loginIDs {
 		for key := range h.UserVerifyLoginIDKeys {
 			if key == loginID.Key {
 				h.TaskQueue.Enqueue(task.VerifyCodeSendTaskName, task.VerifyCodeSendTaskParam{
 					LoginID: loginID.Value,
-					UserID:  user.UserID,
+					UserID:  user.ID,
 				}, nil)
 			}
 		}

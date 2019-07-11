@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -71,12 +72,13 @@ func (p LoginRequestPayload) Validate() error {
 
 // LoginHandler handles login request
 type LoginHandler struct {
-	TokenStore           authtoken.Store   `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store    `dependency:"AuthInfoStore"`
-	PasswordAuthProvider password.Provider `dependency:"PasswordAuthProvider"`
-	UserProfileStore     userprofile.Store `dependency:"UserProfileStore"`
-	AuditTrail           audit.Trail       `dependency:"AuditTrail"`
-	TxContext            db.TxContext      `dependency:"TxContext"`
+	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
+	TxContext            db.TxContext               `dependency:"TxContext"`
 }
 
 func (h LoginHandler) WithTx() bool {
@@ -137,12 +139,12 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	userID, err := h.getUserID(payload.Password, payload.LoginIDKey, payload.LoginID, payload.Realm)
+	principal, err := h.getPrincipal(payload.Password, payload.LoginIDKey, payload.LoginID, payload.Realm)
 	if err != nil {
 		return
 	}
 
-	if err = h.AuthInfoStore.GetAuth(userID, &fetchedAuthInfo); err != nil {
+	if err = h.AuthInfoStore.GetAuth(principal.UserID, &fetchedAuthInfo); err != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			return
@@ -157,7 +159,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	// generate access-token
-	token, err := h.TokenStore.NewToken(fetchedAuthInfo.ID)
+	token, err := h.TokenStore.NewToken(fetchedAuthInfo.ID, principal.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -175,11 +177,6 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	respFactory := response.AuthResponseFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-	resp = respFactory.NewAuthResponse(fetchedAuthInfo, userProfile, token.AccessToken)
-
 	// Populate the activity time to user
 	now := timeNow()
 	fetchedAuthInfo.LastLoginAt = &now
@@ -189,28 +186,27 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
+	user := model.NewUser(fetchedAuthInfo, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+	resp = model.NewAuthResponse(user, identity, token.AccessToken)
+
 	return
 }
 
-func (h LoginHandler) getUserID(pwd string, loginIDKey string, loginID string, realm string) (userID string, err error) {
-	principal := password.Principal{}
-	err = h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, &principal)
+func (h LoginHandler) getPrincipal(pwd string, loginIDKey string, loginID string, realm string) (*password.Principal, error) {
+	var principal password.Principal
+	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm(loginIDKey, loginID, realm, &principal)
 	if err != nil {
 		if err == skydb.ErrUserNotFound {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
-			return
+			return nil, skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		}
 		// TODO: more error handling here if necessary
-		err = skyerr.NewResourceFetchFailureErr("login_id", loginID)
-		return
+		return nil, skyerr.NewResourceFetchFailureErr("login_id", loginID)
 	}
 
 	if !principal.IsSamePassword(pwd) {
-		err = skyerr.NewError(skyerr.InvalidCredentials, "login_id or password incorrect")
-		return
+		return nil, skyerr.NewError(skyerr.InvalidCredentials, "login_id or password incorrect")
 	}
 
-	userID = principal.UserID
-
-	return
+	return &principal, nil
 }

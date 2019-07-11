@@ -5,8 +5,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -81,18 +82,19 @@ func (p LoginRequestPayload) Validate() error {
 // EOF
 //
 // {
-//     "result": "OK"
+//     "result": {}
 // }
 //
 type LoginHandler struct {
-	TxContext            db.TxContext           `dependency:"TxContext"`
-	AuthContext          coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	OAuthAuthProvider    oauth.Provider         `dependency:"OAuthAuthProvider"`
-	PasswordAuthProvider password.Provider      `dependency:"PasswordAuthProvider"`
-	AuthInfoStore        authinfo.Store         `dependency:"AuthInfoStore"`
-	TokenStore           authtoken.Store        `dependency:"TokenStore"`
-	ProviderFactory      *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
-	UserProfileStore     userprofile.Store      `dependency:"UserProfileStore"`
+	TxContext            db.TxContext               `dependency:"TxContext"`
+	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	OAuthAuthProvider    oauth.Provider             `dependency:"OAuthAuthProvider"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	ProviderFactory      *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	Provider             sso.Provider
 	ProviderName         string
 }
@@ -130,6 +132,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		AuthInfoStore:        h.AuthInfoStore,
 		OAuthAuthProvider:    h.OAuthAuthProvider,
 		PasswordAuthProvider: h.PasswordAuthProvider,
+		IdentityProvider:     h.IdentityProvider,
 		UserProfileStore:     h.UserProfileStore,
 		UserID:               oauthAuthInfo.State.UserID,
 	}

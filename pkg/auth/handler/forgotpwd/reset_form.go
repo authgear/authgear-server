@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -110,7 +110,7 @@ type ForgotPasswordResetFormHandler struct {
 type resultTemplateContext struct {
 	err     skyerr.Error
 	payload ForgotPasswordResetFormPayload
-	user    response.User
+	user    model.User
 }
 
 func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Request) (ctx resultTemplateContext, err error) {
@@ -142,10 +142,7 @@ func (h ForgotPasswordResetFormHandler) prepareResultTemplateContext(r *http.Req
 		return
 	}
 
-	userFactory := response.UserFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-	user := userFactory.NewUser(authInfo, userProfile)
+	user := model.NewUser(authInfo, userProfile)
 	ctx.user = user
 
 	return

@@ -8,11 +8,9 @@ import (
 	"github.com/sirupsen/logrus"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -104,7 +102,6 @@ type ForgotPasswordResetHandler struct {
 	TokenStore           authtoken.Store               `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store                `dependency:"AuthInfoStore"`
 	PasswordAuthProvider password.Provider             `dependency:"PasswordAuthProvider"`
-	UserProfileStore     userprofile.Store             `dependency:"UserProfileStore"`
 	AuditTrail           audit.Trail                   `dependency:"AuditTrail"`
 	TxContext            db.TxContext                  `dependency:"TxContext"`
 	Logger               *logrus.Entry                 `dependency:"HandlerLogger"`
@@ -146,16 +143,6 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		return
 	}
 
-	// Get Profile
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
-		h.Logger.WithFields(map[string]interface{}{
-			"user_id": payload.UserID,
-		}).WithError(err).Error("unable to get user profile")
-		err = genericResetPasswordError()
-		return
-	}
-
 	// Get password auth principals
 	principals, err := h.PasswordAuthProvider.GetPrincipalsByUserID(authInfo.ID)
 	if err != nil {
@@ -188,27 +175,12 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 		return
 	}
 
-	// generate access-token
-	token, err := h.TokenStore.NewToken(authInfo.ID)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = h.TokenStore.Put(&token); err != nil {
-		return
-	}
-
 	// revoke old tokens
 	now := timeNow()
 	authInfo.TokenValidSince = &now
 	if err = h.AuthInfoStore.UpdateAuth(&authInfo); err != nil {
 		return
 	}
-
-	respFactory := response.AuthResponseFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-	resp = respFactory.NewAuthResponse(authInfo, userProfile, token.AccessToken)
 
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authInfo.ID,
@@ -222,6 +194,8 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
 		AuthID: authInfo.ID,
 	}, nil)
+
+	resp = map[string]string{}
 
 	return
 }

@@ -5,7 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
@@ -82,15 +83,16 @@ func (p LinkRequestPayload) Validate() error {
 // EOF
 //
 // {
-//     "result": "OK"
+//     "result": {}
 // }
 //
 type LinkHandler struct {
-	TxContext         db.TxContext           `dependency:"TxContext"`
-	AuthContext       coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	OAuthAuthProvider oauth.Provider         `dependency:"OAuthAuthProvider"`
-	AuthInfoStore     authinfo.Store         `dependency:"AuthInfoStore"`
-	ProviderFactory   *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
+	TxContext         db.TxContext               `dependency:"TxContext"`
+	AuthContext       coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	OAuthAuthProvider oauth.Provider             `dependency:"OAuthAuthProvider"`
+	IdentityProvider  principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore     authinfo.Store             `dependency:"AuthInfoStore"`
+	ProviderFactory   *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
 	Provider          sso.Provider
 	ProviderName      string
 }
@@ -126,6 +128,7 @@ func (h LinkHandler) Handle(req interface{}) (resp interface{}, err error) {
 	handler := respHandler{
 		AuthInfoStore:     h.AuthInfoStore,
 		OAuthAuthProvider: h.OAuthAuthProvider,
+		IdentityProvider:  h.IdentityProvider,
 		UserID:            h.AuthContext.AuthInfo().ID,
 	}
 	resp, err = handler.linkActionResp(oauthAuthInfo)

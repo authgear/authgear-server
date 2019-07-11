@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/sirupsen/logrus"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -51,21 +51,21 @@ func (h hookStoreImpl) WithRequest(request *http.Request) Store {
 	return h
 }
 
-func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, reqPayload interface{}, user *response.User, accessToken string) error {
+func (h hookStoreImpl) ExecBeforeHooksByEvent(event string, reqPayload interface{}, user *model.User, accessToken string) error {
 	respDecoder := AuthRespPayload{
 		User: user,
 	}
 	return h.execHooks(event, reqPayload, user, accessToken, &respDecoder)
 }
 
-func (h hookStoreImpl) ExecAfterHooksByEvent(event string, reqPayload interface{}, user response.User, accessToken string) error {
+func (h hookStoreImpl) ExecAfterHooksByEvent(event string, reqPayload interface{}, user model.User, accessToken string) error {
 	return h.execHooks(event, reqPayload, &user, accessToken, nil)
 }
 
 func (h hookStoreImpl) execHooks(
 	event string,
 	reqPayload interface{},
-	user *response.User,
+	user *model.User,
 	accessToken string,
 	respDecoder *AuthRespPayload,
 ) error {

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 
@@ -23,8 +24,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/anonymous"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/anonymous"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -132,6 +133,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.AnonymousAuthProvider = anonymousAuthProvider
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, sh.AnonymousAuthProvider)
 		sh.AuditTrail = audit.NewMockTrail(t)
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.Logger = logrus.NewEntry(logrus.New())
@@ -165,21 +167,31 @@ func TestSingupHandler(t *testing.T) {
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "%s",
-					"verified": false,
-					"verify_info": {},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {}
+					"user": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {
+							"email": "john.doe@example.com"
+						}
+					},
+					"access_token": "%s"
 				}
 			}`,
 				userID,
-				token.AccessToken,
-				userID,
-				userID))
+				p.ID,
+				token.AccessToken))
 		})
 
 		Convey("signup user with login_id with realm", func() {
@@ -203,21 +215,31 @@ func TestSingupHandler(t *testing.T) {
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "%s",
-					"verified": false,
-					"verify_info": {},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {}
+					"user": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "admin",
+						"claims": {
+							"email": "john.doe@example.com"
+						}
+					},
+					"access_token": "%s"
 				}
 			}`,
 				userID,
-				token.AccessToken,
-				userID,
-				userID))
+				p.ID,
+				token.AccessToken))
 		})
 
 		Convey("support anonymous singup", func() {
@@ -231,21 +253,26 @@ func TestSingupHandler(t *testing.T) {
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "%s",
-					"verified": false,
-					"verify_info": {},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {}
+					"user": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "anonymous",
+						"claims": {}
+					},
+					"access_token": "%s"
 				}
 			}`,
 				userID,
-				token.AccessToken,
-				userID,
-				userID))
+				anonymousAuthProvider.Principals[0].ID,
+				token.AccessToken))
 		})
 
 		Convey("signup with incorrect login_id", func() {
@@ -398,6 +425,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.AnonymousAuthProvider = anonymousAuthProvider
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, sh.AnonymousAuthProvider)
 		sh.AuditTrail = audit.NewMockTrail(t)
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.Logger = logrus.NewEntry(logrus.New())
@@ -517,6 +545,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.AnonymousAuthProvider = anonymousAuthProvider
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, sh.AnonymousAuthProvider)
 		sh.AuditTrail = audit.NewMockTrail(t)
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.Logger = logrus.NewEntry(logrus.New())
@@ -562,23 +591,31 @@ func TestSingupHandler(t *testing.T) {
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "%s",
-					"verified": false,
-					"verify_info": {},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {
-						"name": "john.doe"
-					}
+					"user": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {
+							"name":"john.doe"
+						}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
+					},
+					"access_token": "%s"
 				}
 			}`,
 				userID,
-				token.AccessToken,
-				userID,
-				userID))
+				p.ID,
+				token.AccessToken))
 		})
 
 		Convey("should stop signup if hook throws error", func(c C) {
@@ -619,19 +656,19 @@ func TestSingupHandler(t *testing.T) {
 		})
 
 		Convey("should invoke hook with correct formatted payload", func(c C) {
-			getAuthInfo := func() (string, string) {
+			getAuthInfo := func() (string, string, string) {
 				var p password.Principal
 				err := sh.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("email", "john.doe@example.com", password.DefaultRealm, &p)
 				if err != nil {
-					return "", ""
+					return "", "", ""
 				}
 				userID := p.UserID
 				token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
-				return userID, token.AccessToken
+				return userID, p.ID, token.AccessToken
 			}
 
 			server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-				userID, accessToken := getAuthInfo()
+				userID, _, accessToken := getAuthInfo()
 				c.So(req.Header.Get(coreHttp.HeaderAccessToken), ShouldEqual, accessToken)
 				body, err := ioutil.ReadAll(req.Body)
 				c.So(err, ShouldBeNil)
@@ -652,20 +689,17 @@ func TestSingupHandler(t *testing.T) {
 						}
 					},
 					"data": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
 						"created_at": "0001-01-01T00:00:00Z",
-						"created_by": "%s",
-						"metadata": {},
-						"updated_at": "0001-01-01T00:00:00Z",
-						"updated_by": "%s",
-						"user_id": "%s",
-						"verified":false,
-						"verify_info": {}
+						"verify_info": {},
+						"metadata": {}
 					},
 					"event": "after_signup"
 				}`,
 					requestID,
-					userID,
-					userID,
 					userID))
 
 				rw.WriteHeader(http.StatusOK)
@@ -699,24 +733,32 @@ func TestSingupHandler(t *testing.T) {
 
 			So(resp.Code, ShouldEqual, 200)
 
-			userID, accessToken := getAuthInfo()
+			userID, principalID, accessToken := getAuthInfo()
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-								"result": {
-									"user_id": "%s",
-									"access_token": "%s",
-									"verified": false,
-									"verify_info": {},
-									"created_at": "0001-01-01T00:00:00Z",
-									"created_by": "%s",
-									"updated_at": "0001-01-01T00:00:00Z",
-									"updated_by": "%s",
-									"metadata": {}
-								}
-							}`,
+				"result": {
+					"user": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
+					},
+					"access_token": "%s"
+				}
+			}`,
 				userID,
-				accessToken,
-				userID,
-				userID))
+				principalID,
+				accessToken))
 		})
 
 		Convey("should not stop signup if async hook throws error", func(c C) {
@@ -754,21 +796,29 @@ func TestSingupHandler(t *testing.T) {
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "%s",
-					"verified": false,
-					"verify_info": {},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {}
+					"user": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
+					},
+					"access_token": "%s"
 				}
 			}`,
 				userID,
-				token.AccessToken,
-				userID,
-				userID))
+				p.ID,
+				token.AccessToken))
 		})
 
 		Convey("should not update metadata", func(c C) {
@@ -807,21 +857,29 @@ func TestSingupHandler(t *testing.T) {
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "%s",
-					"verified": false,
-					"verify_info": {},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {}
+					"user": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
+					},
+					"access_token": "%s"
 				}
 			}`,
 				userID,
-				token.AccessToken,
-				userID,
-				userID))
+				p.ID,
+				token.AccessToken))
 		})
 
 		Convey("should invoke multiple before signup hook", func(c C) {
@@ -903,24 +961,32 @@ func TestSingupHandler(t *testing.T) {
 			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "%s",
-					"verified": false,
-					"verify_info": {},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {
-						"name": "john.doe",
-						"email": "john.doe@example.com"
-					}
+					"user": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {
+							"name": "john.doe",
+							"email": "john.doe@example.com"
+						}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "password",
+						"login_id_key": "email",
+						"login_id": "john.doe@example.com",
+						"realm": "default",
+						"claims": {}
+					},
+					"access_token": "%s"
 				}
 			}`,
 				userID,
-				token.AccessToken,
-				userID,
-				userID))
+				p.ID,
+				token.AccessToken))
 		})
 	})
 }

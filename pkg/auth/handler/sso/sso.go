@@ -1,12 +1,13 @@
 package sso
 
 import (
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
@@ -19,6 +20,7 @@ type respHandler struct {
 	AuthInfoStore        authinfo.Store
 	OAuthAuthProvider    oauth.Provider
 	PasswordAuthProvider password.Provider
+	IdentityProvider     principal.IdentityProvider
 	UserProfileStore     userprofile.Store
 	UserID               string
 	Settings             sso.Setting
@@ -27,7 +29,7 @@ type respHandler struct {
 func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
 	// action => login
 	var info authinfo.AuthInfo
-	createNewUser, err := h.handleLogin(oauthAuthInfo, &info)
+	createNewUser, principal, err := h.handleLogin(oauthAuthInfo, &info)
 	if err != nil {
 		return
 	}
@@ -49,7 +51,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 
 	// Create auth token
 	var token authtoken.Token
-	token, err = h.TokenStore.NewToken(info.ID)
+	token, err = h.TokenStore.NewToken(info.ID, principal.ID)
 	if err != nil {
 		panic(err)
 	}
@@ -57,11 +59,13 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 		panic(err)
 	}
 
-	respFactory := response.AuthResponseFactory{}
-	resp = respFactory.NewAuthResponse(info, userProfile, token.AccessToken)
+	user := model.NewUser(info, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+	resp = model.NewAuthResponse(user, identity, token.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()
+	info.LastLoginAt = &now
 	info.LastSeenAt = &now
 	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
 		err = skyerr.MakeError(err)
@@ -107,15 +111,15 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 	if err != nil {
 		return resp, err
 	}
-	resp = "OK"
+	resp = map[string]string{}
 	return
 }
 
 func (h respHandler) handleLogin(
 	oauthAuthInfo sso.AuthInfo,
 	info *authinfo.AuthInfo,
-) (createNewUser bool, err error) {
-	principal, err := h.findPrincipal(oauthAuthInfo)
+) (createNewUser bool, principal *oauth.Principal, err error) {
+	principal, err = h.findPrincipal(oauthAuthInfo)
 	if err != nil {
 		return
 	}
@@ -140,7 +144,7 @@ func (h respHandler) handleLogin(
 			return
 		}
 
-		_, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
+		principal, err = h.createPrincipalByOAuthInfo(info.ID, oauthAuthInfo)
 		if err != nil {
 			return
 		}
@@ -161,6 +165,11 @@ func (h respHandler) handleLogin(
 				return
 			}
 			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
+			return
+		}
+		info.LastLoginAt = &now
+		if e := h.AuthInfoStore.UpdateAuth(info); e != nil {
+			err = skyerr.NewError(skyerr.ResourceNotFound, "Unable to update user")
 			return
 		}
 	}
@@ -212,10 +221,10 @@ func (h respHandler) authLinkUser(oauthAuthInfo sso.AuthInfo) (*oauth.Principal,
 	if err != nil {
 		return nil, err
 	}
-	return &oauthPrincipal, nil
+	return oauthPrincipal, nil
 }
 
-func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (oauth.Principal, error) {
+func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	now := timeNow()
 	principal := oauth.NewPrincipal()
 	principal.UserID = userID
@@ -226,5 +235,5 @@ func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso
 	principal.CreatedAt = &now
 	principal.UpdatedAt = &now
 	err := h.OAuthAuthProvider.CreatePrincipal(principal)
-	return principal, err
+	return &principal, err
 }

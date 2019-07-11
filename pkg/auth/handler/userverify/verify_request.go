@@ -2,6 +2,7 @@ package userverify
 
 import (
 	"encoding/json"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"net/http"
 	"time"
 
@@ -10,10 +11,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -113,6 +114,7 @@ type VerifyRequestHandler struct {
 	UserVerificationProvider userverify.Provider          `dependency:"UserVerificationProvider"`
 	UserProfileStore         userprofile.Store            `dependency:"UserProfileStore"`
 	PasswordAuthProvider     password.Provider            `dependency:"PasswordAuthProvider"`
+	IdentityProvider         principal.IdentityProvider   `dependency:"IdentityProvider"`
 	Logger                   *logrus.Entry                `dependency:"HandlerLogger"`
 }
 
@@ -143,11 +145,6 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	userFactory := response.UserFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-	user := userFactory.NewUser(*authInfo, userProfile)
-
 	// We don't check realms. i.e. Verifying a email means every email login IDs
 	// of that email is verified, regardless the realm.
 	principals, err := h.PasswordAuthProvider.GetPrincipalsByLoginID("", payload.LoginID)
@@ -173,6 +170,7 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 	}
 
 	codeSender := h.CodeSenderFactory.NewCodeSender(userPrincipal.LoginIDKey)
+	user := model.NewUser(*authInfo, userProfile)
 	if err = codeSender.Send(*verifyCode, user); err != nil {
 		h.Logger.WithFields(logrus.Fields{
 			"error":        err,
@@ -182,7 +180,7 @@ func (h VerifyRequestHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	resp = "OK"
+	resp = map[string]string{}
 	return
 }
 
@@ -208,7 +206,7 @@ func (f VerifyRequestTestHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 type VerifyRequestTestPayload struct {
 	LoginIDKey    string                                       `json:"login_id_key"`
 	LoginID       string                                       `json:"login_id"`
-	User          response.User                                `json:"user"`
+	User          model.User                                   `json:"user"`
 	Provider      config.UserVerificationProvider              `json:"provider"`
 	MessageConfig config.UserVerificationProviderConfiguration `json:"message_config"`
 	Templates     map[string]string                            `json:"templates"`
@@ -283,12 +281,12 @@ func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err
 	)
 
 	user := payload.User
-	if user.UserID == "" {
-		user.UserID = "test-user-id"
+	if user.ID == "" {
+		user.ID = "test-user-id"
 	}
 
 	verifyCode := userverify.NewVerifyCode()
-	verifyCode.UserID = user.UserID
+	verifyCode.UserID = user.ID
 	verifyCode.LoginIDKey = payload.LoginIDKey
 	verifyCode.LoginID = payload.LoginID
 	verifyCode.Code = "TEST1234"
@@ -300,7 +298,7 @@ func (h VerifyRequestTestHandler) Handle(req interface{}) (resp interface{}, err
 		return
 	}
 
-	resp = "OK"
+	resp = map[string]string{}
 
 	return
 }

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
@@ -67,7 +67,7 @@ func TestProviderProfilesHandler(t *testing.T) {
 
 		Convey("should return multiple profiles if user connected to multiple providers", func() {
 			ph.AuthContext = auth.NewMockContextGetterWithUser(
-				"faseng.cat.id", true, map[string]bool{},
+				"faseng.cat.id", "1", true, map[string]bool{},
 			)
 
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))
@@ -91,7 +91,7 @@ func TestProviderProfilesHandler(t *testing.T) {
 
 		Convey("should return empty profiles if user has not connected to provider", func() {
 			ph.AuthContext = auth.NewMockContextGetterWithUser(
-				"milktea.cat.id", true, map[string]bool{},
+				"milktea.cat.id", "1", true, map[string]bool{},
 			)
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`{}`))
 			resp := httptest.NewRecorder()

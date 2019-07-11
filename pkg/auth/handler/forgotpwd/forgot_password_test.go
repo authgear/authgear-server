@@ -6,9 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -65,6 +67,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 				},
 			},
 		)
+		fh.IdentityProvider = principal.NewMockIdentityProvider(fh.PasswordAuthProvider)
 		fh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				"john.doe.id": authinfo.AuthInfo{
@@ -103,7 +106,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
+				"result": {}
 			}`)
 			So(sender.emails, ShouldResemble, []string{"chima@example.com"})
 			So(sender.userObjects, ShouldHaveLength, 1)
@@ -123,7 +126,7 @@ func TestForgotPasswordHandler(t *testing.T) {
 			h := handler.APIHandlerToHandler(fh, fh.TxContext)
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
+				"result": {}
 			}`)
 			So(sender.emails, ShouldResemble, []string{"john.doe@example.com", "john.doe@example.com"})
 			So(sender.userObjects, ShouldHaveLength, 2)
@@ -195,7 +198,7 @@ type MockForgotPasswordEmailSender struct {
 	emails          []string
 	authInfos       []authinfo.AuthInfo
 	authInfoIDs     []string
-	userObjects     []response.User
+	userObjects     []model.User
 	userObjectIDs   []string
 	hashedPasswords [][]byte
 }
@@ -203,14 +206,14 @@ type MockForgotPasswordEmailSender struct {
 func (m *MockForgotPasswordEmailSender) Send(
 	email string,
 	authInfo authinfo.AuthInfo,
-	user response.User,
+	user model.User,
 	hashedPassword []byte,
 ) (err error) {
 	m.emails = append(m.emails, email)
 	m.authInfos = append(m.authInfos, authInfo)
 	m.authInfoIDs = append(m.authInfoIDs, authInfo.ID)
 	m.userObjects = append(m.userObjects, user)
-	m.userObjectIDs = append(m.userObjectIDs, user.UserID)
+	m.userObjectIDs = append(m.userObjectIDs, user.ID)
 	m.hashedPasswords = append(m.hashedPasswords, hashedPassword)
 	return nil
 }

@@ -96,7 +96,7 @@ func (h LogoutHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if err != nil {
 		err = skyerr.MakeError(err)
 	} else {
-		resp = "OK"
+		resp = map[string]string{}
 	}
 
 	h.AuditTrail.Log(audit.Entry{

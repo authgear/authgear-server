@@ -11,7 +11,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/customtoken"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -25,7 +26,7 @@ import (
 
 func TestCustomTokenLoginHandler(t *testing.T) {
 	realTime := timeNow
-	timeNow = func() time.Time { return zeroTime }
+	timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 	defer func() {
 		timeNow = realTime
 	}()
@@ -41,6 +42,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				UserID:           "chima",
 			},
 		})
+		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.CustomTokenAuthProvider)
 		lh.AuthInfoStore = authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
 				"chima": authinfo.AuthInfo{
@@ -93,24 +95,31 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			So(resp.Code, ShouldEqual, 200)
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"metadata": {
-						"email":"John@skygear.io",
-						"name":"John Doe"
+					"user": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "2006-01-02T15:04:05Z",
+						"verify_info": {},
+						"metadata": {
+							"email": "John@skygear.io",
+							"name": "John Doe"
+						}
 					},
-					"access_token": "%s",
-					"verified": false,
-					"verify_info": {},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s"
+					"identity": {
+						"id": "%s",
+						"type": "custom_token",
+						"provider_user_id": "otherid1",
+						"raw_profile": {},
+						"claims": {}
+					},
+					"access_token": "%s"
 				}
 			}`,
 				p.UserID,
-				token.AccessToken,
-				p.UserID,
-				p.UserID))
+				p.ID,
+				token.AccessToken))
 
 			mockTrail, _ := lh.AuditTrail.(*audit.MockTrail)
 			So(mockTrail.Hook.LastEntry().Message, ShouldEqual, "audit_trail")

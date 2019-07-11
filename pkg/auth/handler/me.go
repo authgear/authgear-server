@@ -3,10 +3,12 @@ package handler
 import (
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -65,12 +67,13 @@ func (f MeHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 //   "last_seen_at": "2016-09-08T07:15:18.026567355Z",
 // }
 type MeHandler struct {
-	AuthContext          coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	TxContext            db.TxContext           `dependency:"TxContext"`
-	TokenStore           authtoken.Store        `dependency:"TokenStore"`
-	AuthInfoStore        authinfo.Store         `dependency:"AuthInfoStore"`
-	UserProfileStore     userprofile.Store      `dependency:"UserProfileStore"`
-	PasswordAuthProvider password.Provider      `dependency:"PasswordAuthProvider"`
+	AuthContext          coreAuth.ContextGetter     `dependency:"AuthContextGetter"`
+	TxContext            db.TxContext               `dependency:"TxContext"`
+	TokenStore           authtoken.Store            `dependency:"TokenStore"`
+	AuthInfoStore        authinfo.Store             `dependency:"AuthInfoStore"`
+	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
+	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 }
 
 func (h MeHandler) WithTx() bool {
@@ -83,15 +86,7 @@ func (h MeHandler) DecodeRequest(request *http.Request) (handler.RequestPayload,
 
 func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 	authInfo := h.AuthContext.AuthInfo()
-
-	token, err := h.TokenStore.NewToken(authInfo.ID)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = h.TokenStore.Put(&token); err != nil {
-		panic(err)
-	}
+	principalID := h.AuthContext.Token().PrincipalID
 
 	// Get Profile
 	var userProfile userprofile.UserProfile
@@ -102,17 +97,18 @@ func (h MeHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	respFactory := response.AuthResponseFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-	resp = respFactory.NewAuthResponse(*authInfo, userProfile, token.AccessToken)
-
-	now := timeNow()
-	authInfo.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(authInfo); err != nil {
-		err = skyerr.MakeError(err)
+	var principal principal.Principal
+	if principal, err = h.IdentityProvider.GetPrincipalByID(principalID); err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user identity")
 		return
 	}
+
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+	user := model.NewUser(*authInfo, userProfile)
+
+	resp = model.NewAuthResponseWithUserIdentity(user, identity)
 
 	return
 }

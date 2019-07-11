@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
@@ -80,7 +78,6 @@ type ResetPasswordHandler struct {
 	PasswordAuthProvider password.Provider          `dependency:"PasswordAuthProvider"`
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
-	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
 }
 
@@ -125,30 +122,6 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 		return
 	}
 
-	// generate access-token
-	token, err := h.TokenStore.NewToken(authinfo.ID)
-	if err != nil {
-		panic(err)
-	}
-
-	if err = h.TokenStore.Put(&token); err != nil {
-		panic(err)
-	}
-
-	// Get Profile
-	var userProfile userprofile.UserProfile
-	if userProfile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to fetch user profile")
-		return
-	}
-
-	respFactory := response.AuthResponseFactory{
-		PasswordAuthProvider: h.PasswordAuthProvider,
-	}
-	resp = respFactory.NewAuthResponse(authinfo, userProfile, token.AccessToken)
-
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authinfo.ID,
 		Event:  audit.EventResetPassword,
@@ -158,6 +131,8 @@ func (h ResetPasswordHandler) Handle(req interface{}) (resp interface{}, err err
 	h.TaskQueue.Enqueue(task.PwHousekeeperTaskName, task.PwHousekeeperTaskParam{
 		AuthID: authinfo.ID,
 	}, nil)
+
+	resp = map[string]string{}
 
 	return
 }

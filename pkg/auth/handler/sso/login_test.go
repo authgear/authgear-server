@@ -8,8 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/oauth"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
@@ -45,7 +46,7 @@ func TestLoginPayload(t *testing.T) {
 
 func TestLoginHandler(t *testing.T) {
 	realTime := timeNow
-	timeNow = func() time.Time { return zeroTime }
+	timeNow = func() time.Time { return time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC) }
 	defer func() {
 		timeNow = realTime
 	}()
@@ -82,6 +83,7 @@ func TestLoginHandler(t *testing.T) {
 			map[string]oauth.Principal{},
 		)
 		sh.OAuthAuthProvider = mockOAuthProvider
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{},
 		)
@@ -110,21 +112,29 @@ func TestLoginHandler(t *testing.T) {
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
-					"user_id": "%s",
-					"access_token": "%s",
-					"verified": false,
-					"verify_info": {},
-					"created_at": "0001-01-01T00:00:00Z",
-					"created_by": "%s",
-					"updated_at": "0001-01-01T00:00:00Z",
-					"updated_by": "%s",
-					"metadata": {}
+					"user": {
+						"id": "%s",
+						"is_verified": false,
+						"is_disabled": false,
+						"last_login_at": "2006-01-02T15:04:05Z",
+						"created_at": "0001-01-01T00:00:00Z",
+						"verify_info": {},
+						"metadata": {}
+					},
+					"identity": {
+						"id": "%s",
+						"type": "oauth",
+						"provider_id": "mock",
+						"provider_user_id": "mock_user_id",
+						"raw_profile": {},
+						"claims": {}
+					},
+					"access_token": "%s"
 				}
 			}`,
 				p.UserID,
-				token.AccessToken,
-				p.UserID,
-				p.UserID))
+				p.ID,
+				token.AccessToken))
 		})
 	})
 }

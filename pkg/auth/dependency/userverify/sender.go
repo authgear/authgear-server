@@ -6,7 +6,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/sms"
 
 	"github.com/go-gomail/gomail"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	authTemplate "github.com/skygeario/skygear-server/pkg/auth/template"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/mail"
@@ -14,7 +14,7 @@ import (
 )
 
 type CodeSender interface {
-	Send(verifyCode VerifyCode, user response.User) error
+	Send(verifyCode VerifyCode, user model.User) error
 }
 
 type EmailCodeSender struct {
@@ -25,7 +25,7 @@ type EmailCodeSender struct {
 	TemplateEngine *template.Engine
 }
 
-func (e *EmailCodeSender) Send(verifyCode VerifyCode, user response.User) (err error) {
+func (e *EmailCodeSender) Send(verifyCode VerifyCode, user model.User) (err error) {
 	context := prepareVerifyRequestContext(
 		verifyCode,
 		e.AppName,
@@ -76,7 +76,7 @@ type SMSCodeSender struct {
 	TemplateEngine *template.Engine
 }
 
-func (t *SMSCodeSender) Send(verifyCode VerifyCode, user response.User) (err error) {
+func (t *SMSCodeSender) Send(verifyCode VerifyCode, user model.User) (err error) {
 	context := prepareVerifyRequestContext(
 		verifyCode,
 		t.AppName,
@@ -101,20 +101,19 @@ func prepareVerifyRequestContext(
 	verifyCode VerifyCode,
 	appName string,
 	urlPrefix string,
-	user response.User,
+	user model.User,
 ) map[string]interface{} {
 	return map[string]interface{}{
 		"appname":      appName,
 		"login_id_key": verifyCode.LoginIDKey,
 		"login_id":     verifyCode.LoginID,
-		"user_id":      user.UserID,
 		"user":         user,
 		"code":         verifyCode.Code,
 		"link": fmt.Sprintf(
 			"%s/verify_code_form?code=%s&user_id=%s",
 			urlPrefix,
 			verifyCode.Code,
-			user.UserID,
+			user.ID,
 		),
 	}
 }

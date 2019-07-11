@@ -3,7 +3,7 @@ package hook
 import (
 	"net/http"
 
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 )
 
 type Hook struct {
@@ -21,8 +21,8 @@ const (
 
 type Store interface {
 	WithRequest(request *http.Request) Store
-	ExecBeforeHooksByEvent(event string, reqPayload interface{}, user *response.User, accessToken string) error
-	ExecAfterHooksByEvent(event string, reqPayload interface{}, user response.User, accessToken string) error
+	ExecBeforeHooksByEvent(event string, reqPayload interface{}, user *model.User, accessToken string) error
+	ExecAfterHooksByEvent(event string, reqPayload interface{}, user model.User, accessToken string) error
 }
 
 type Executor interface {

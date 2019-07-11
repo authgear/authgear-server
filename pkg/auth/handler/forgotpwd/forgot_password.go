@@ -2,14 +2,15 @@ package forgotpwd
 
 import (
 	"encoding/json"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/welcemail"
-	"github.com/skygeario/skygear-server/pkg/auth/response"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -74,12 +75,13 @@ func (payload ForgotPasswordPayload) Validate() error {
 //  }
 //  EOF
 type ForgotPasswordHandler struct {
-	TxContext                 db.TxContext          `dependency:"TxContext"`
-	ForgotPasswordEmailSender forgotpwdemail.Sender `dependency:"ForgotPasswordEmailSender"`
-	PasswordAuthProvider      password.Provider     `dependency:"PasswordAuthProvider"`
-	AuthInfoStore             authinfo.Store        `dependency:"AuthInfoStore"`
-	UserProfileStore          userprofile.Store     `dependency:"UserProfileStore"`
-	SecureMatch               bool                  `dependency:"ForgotPasswordSecureMatch"`
+	TxContext                 db.TxContext               `dependency:"TxContext"`
+	ForgotPasswordEmailSender forgotpwdemail.Sender      `dependency:"ForgotPasswordEmailSender"`
+	PasswordAuthProvider      password.Provider          `dependency:"PasswordAuthProvider"`
+	IdentityProvider          principal.IdentityProvider `dependency:"IdentityProvider"`
+	AuthInfoStore             authinfo.Store             `dependency:"AuthInfoStore"`
+	UserProfileStore          userprofile.Store          `dependency:"UserProfileStore"`
+	SecureMatch               bool                       `dependency:"ForgotPasswordSecureMatch"`
 }
 
 func (h ForgotPasswordHandler) WithTx() bool {
@@ -103,7 +105,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 	if principalErr != nil {
 		if principalErr == skydb.ErrUserNotFound {
 			if h.SecureMatch {
-				resp = "OK"
+				resp = map[string]string{}
 			} else {
 				err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 			}
@@ -124,7 +126,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 
 	if len(principalMap) == 0 {
 		if h.SecureMatch {
-			resp = "OK"
+			resp = map[string]string{}
 		} else {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		}
@@ -155,10 +157,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 			return
 		}
 
-		userFactory := response.UserFactory{
-			PasswordAuthProvider: h.PasswordAuthProvider,
-		}
-		user := userFactory.NewUser(fetchedAuthInfo, userProfile)
+		user := model.NewUser(fetchedAuthInfo, userProfile)
 
 		if err = h.ForgotPasswordEmailSender.Send(
 			payload.Email,
@@ -170,7 +169,7 @@ func (h ForgotPasswordHandler) Handle(req interface{}) (resp interface{}, err er
 		}
 	}
 
-	resp = "OK"
+	resp = map[string]string{}
 	return
 }
 
@@ -257,7 +256,7 @@ func (h ForgotPasswordTestHandler) Handle(req interface{}) (resp interface{}, er
 		payload.SenderName,
 		payload.ReplyToName,
 	); err == nil {
-		resp = "OK"
+		resp = map[string]string{}
 	}
 
 	return

@@ -11,7 +11,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/provider/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
 
 	"github.com/skygeario/skygear-server/pkg/core/auth"
@@ -130,7 +130,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
+				"result": {}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeTrue)
 		})
@@ -155,7 +155,7 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			h := handler.APIHandlerToHandler(vh, vh.TxContext)
 			h.ServeHTTP(resp, req)
 			So(resp.Body.Bytes(), ShouldEqualJSON, `{
-				"result": "OK"
+				"result": {}
 			}`)
 			So(authInfoStore.AuthInfoMap["faseng.cat.id"].Verified, ShouldBeFalse)
 		})
