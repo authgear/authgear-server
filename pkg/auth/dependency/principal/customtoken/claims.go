@@ -5,29 +5,48 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-type SSOCustomTokenClaims struct {
-	jwt.StandardClaims
-	Email string `json:"email,omitempty"`
+type SSOCustomTokenClaims jwt.MapClaims
+
+func (c SSOCustomTokenClaims) Subject() string {
+	sub, ok := c["sub"].(string)
+	if !ok {
+		return ""
+	}
+	return sub
 }
 
-func (c *SSOCustomTokenClaims) Validate(issuer string, audience string) error {
-	if c.Subject == "" {
+func (c SSOCustomTokenClaims) Email() string {
+	sub, ok := c["email"].(string)
+	if !ok {
+		return ""
+	}
+	return sub
+}
+
+func (c SSOCustomTokenClaims) Valid() error {
+	return jwt.MapClaims(c).Valid()
+}
+
+func (c SSOCustomTokenClaims) Validate(issuer string, audience string) error {
+	mapClaims := jwt.MapClaims(c)
+
+	if c.Subject() == "" {
 		return errors.New("invalid token: subject (sub) not specified")
 	}
 
-	if c.ExpiresAt == 0 {
+	if _, ok := c["exp"]; !ok {
 		return errors.New("invalid token: expires at (exp) not specified")
 	}
 
-	if c.IssuedAt == 0 {
+	if _, ok := c["iat"]; !ok {
 		return errors.New("invalid token: issued at (iat) not specified")
 	}
 
-	if c.Issuer != issuer {
+	if !mapClaims.VerifyIssuer(issuer, true) {
 		return errors.New("invalid token: issuer not matched")
 	}
 
-	if audience != "" && c.Audience != "" && c.Audience != audience {
+	if !mapClaims.VerifyAudience(audience, false) {
 		return errors.New("invalid token: audience not matched")
 	}
 

@@ -77,14 +77,12 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			tokenString, err := jwt.NewWithClaims(
 				jwt.SigningMethodHS256,
 				customtoken.SSOCustomTokenClaims{
-					StandardClaims: jwt.StandardClaims{
-						Issuer:    issuer,
-						Audience:  audience,
-						IssuedAt:  time.Now().Unix(),
-						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
-						Subject:   "otherid1",
-					},
-					Email: "John@skygear.io",
+					"iss":   issuer,
+					"aud":   audience,
+					"iat":   time.Now().Unix(),
+					"exp":   time.Now().Add(time.Hour * 1).Unix(),
+					"sub":   "otherid1",
+					"email": "John@skygear.io",
 				},
 			).SignedString([]byte("ssosecret"))
 			So(err, ShouldBeNil)
@@ -140,12 +138,12 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			tokenString, err := jwt.NewWithClaims(
 				jwt.SigningMethodHS256,
 				customtoken.SSOCustomTokenClaims{
-					StandardClaims: jwt.StandardClaims{
-						IssuedAt:  time.Now().Unix(),
-						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
-						Subject:   "chima.customtoken.id",
-					},
-					Email: "John@skygear.io",
+					"iss":   issuer,
+					"aud":   audience,
+					"iat":   time.Now().Unix(),
+					"exp":   time.Now().Add(time.Hour * 1).Unix(),
+					"sub":   "chima.customtoken.id",
+					"email": "John@skygear.io",
 				},
 			).SignedString([]byte("ssosecret"))
 			So(err, ShouldBeNil)
@@ -173,11 +171,11 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			tokenString, err := jwt.NewWithClaims(
 				jwt.SigningMethodHS256,
 				customtoken.SSOCustomTokenClaims{
-					StandardClaims: jwt.StandardClaims{
-						IssuedAt:  time.Now().Add(-time.Hour * 1).Unix(),
-						ExpiresAt: time.Now().Add(-time.Minute * 30).Unix(),
-						Subject:   "otherid1",
-					},
+					"iss": issuer,
+					"aud": audience,
+					"iat": time.Now().Add(-time.Hour * 1).Unix(),
+					"exp": time.Now().Add(-time.Minute * 30).Unix(),
+					"sub": "otherid1",
 				},
 			).SignedString([]byte("ssosecret"))
 			So(err, ShouldBeNil)
@@ -201,12 +199,12 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			tokenString, err := jwt.NewWithClaims(
 				jwt.SigningMethodHS256,
 				customtoken.SSOCustomTokenClaims{
-					StandardClaims: jwt.StandardClaims{
-						IssuedAt:  time.Now().Unix(),
-						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
-						Subject:   "otherid1",
-					},
-					Email: "John@skygear.io",
+					"iss":   issuer,
+					"aud":   audience,
+					"iat":   time.Now().Unix(),
+					"exp":   time.Now().Add(time.Hour * 1).Unix(),
+					"sub":   "otherid1",
+					"email": "John@skygear.io",
 				},
 			).SignedString([]byte("ssosecret"))
 			So(err, ShouldBeNil)
@@ -218,9 +216,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 
 			lhh := lh
-			lhh.CustomTokenConfiguration = config.CustomTokenConfiguration{
-				Enabled: false,
-			}
+			lhh.CustomTokenConfiguration.Enabled = false
 			h = handler.APIHandlerToHandler(lhh, lhh.TxContext)
 
 			h.ServeHTTP(resp, req)

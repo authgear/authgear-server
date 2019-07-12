@@ -215,7 +215,7 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 
 	// TODO: audit trail
 	if createNewUser && h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(user, payload.Claims.Email)
+		h.sendWelcomeEmail(user, payload.Claims.Email())
 	}
 
 	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
@@ -229,7 +229,7 @@ func (h CustomTokenLoginHandler) handleLogin(
 	userProfile *userprofile.UserProfile,
 ) (createNewUser bool, principal *customtoken.Principal, err error) {
 	createNewUser = false
-	principal, err = h.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID(payload.Claims.Subject)
+	principal, err = h.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID(payload.Claims.Subject())
 	if err != nil {
 		if err != skydb.ErrUserNotFound {
 			return
@@ -259,7 +259,7 @@ func (h CustomTokenLoginHandler) handleLogin(
 
 		p := customtoken.NewPrincipal()
 		principal = &p
-		principal.TokenPrincipalID = payload.Claims.Subject
+		principal.TokenPrincipalID = payload.Claims.Subject()
 		principal.UserID = info.ID
 		err = h.CustomTokenAuthProvider.CreatePrincipal(*principal)
 		// TODO:
