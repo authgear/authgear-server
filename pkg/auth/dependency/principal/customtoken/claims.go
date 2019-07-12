@@ -10,7 +10,7 @@ type SSOCustomTokenClaims struct {
 	Email string `json:"email,omitempty"`
 }
 
-func (c *SSOCustomTokenClaims) Validate() error {
+func (c *SSOCustomTokenClaims) Validate(issuer string, audience string) error {
 	if c.Subject == "" {
 		return errors.New("invalid token: subject (sub) not specified")
 	}
@@ -21,6 +21,14 @@ func (c *SSOCustomTokenClaims) Validate() error {
 
 	if c.IssuedAt == 0 {
 		return errors.New("invalid token: issued at (iat) not specified")
+	}
+
+	if c.Issuer != issuer {
+		return errors.New("invalid token: issuer not matched")
+	}
+
+	if audience != "" && c.Audience != "" && c.Audience != audience {
+		return errors.New("invalid token: audience not matched")
 	}
 
 	if c.Valid() != nil {

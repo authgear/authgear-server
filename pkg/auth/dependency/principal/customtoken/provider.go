@@ -50,8 +50,13 @@ func (p providerImpl) Decode(tokenString string) (claims SSOCustomTokenClaims, e
 		tokenString,
 		&claims,
 		func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, errors.New("fails to parse token")
+			err := errors.New("invalid token: invalid signature method")
+			method, ok := token.Method.(*jwt.SigningMethodHMAC)
+			if !ok {
+				return nil, err
+			}
+			if method != jwt.SigningMethodHS256 {
+				return nil, err
 			}
 			return []byte(p.customTokenConfig.Secret), nil
 		},

@@ -35,8 +35,12 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 	Convey("Test CustomTokenLoginHandler", t, func() {
 		mockTokenStore := authtoken.NewMockStore()
 		lh := &CustomTokenLoginHandler{}
+		issuer := "myissuer"
+		audience := "myaudience"
 		lh.CustomTokenConfiguration = config.CustomTokenConfiguration{
-			Enabled: true,
+			Enabled:  true,
+			Issuer:   issuer,
+			Audience: audience,
 		}
 		lh.TxContext = db.NewMockTxContext()
 		lh.CustomTokenAuthProvider = customtoken.NewMockProviderWithPrincipalMap("ssosecret", map[string]customtoken.Principal{
@@ -74,6 +78,8 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				jwt.SigningMethodHS256,
 				customtoken.SSOCustomTokenClaims{
 					StandardClaims: jwt.StandardClaims{
+						Issuer:    issuer,
+						Audience:  audience,
 						IssuedAt:  time.Now().Unix(),
 						ExpiresAt: time.Now().Add(time.Hour * 1).Unix(),
 						Subject:   "otherid1",

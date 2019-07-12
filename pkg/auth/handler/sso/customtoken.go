@@ -55,12 +55,14 @@ func (f CustomTokenLoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type customTokenLoginPayload struct {
-	TokenString string                           `json:"token"`
-	Claims      customtoken.SSOCustomTokenClaims `json:"-"`
+	TokenString      string                           `json:"token"`
+	Claims           customtoken.SSOCustomTokenClaims `json:"-"`
+	ExpectedIssuer   string                           `json:"-"`
+	ExpectedAudience string                           `json:"-"`
 }
 
 func (payload customTokenLoginPayload) Validate() error {
-	if err := payload.Claims.Validate(); err != nil {
+	if err := payload.Claims.Validate(payload.ExpectedIssuer, payload.ExpectedAudience); err != nil {
 		return skyerr.NewError(
 			skyerr.InvalidCredentials,
 			err.Error(),
@@ -139,6 +141,9 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (handler.R
 	if err = json.NewDecoder(request.Body).Decode(&payload); err != nil {
 		return nil, err
 	}
+
+	payload.ExpectedIssuer = h.CustomTokenConfiguration.Issuer
+	payload.ExpectedAudience = h.CustomTokenConfiguration.Audience
 
 	payload.Claims, err = h.CustomTokenAuthProvider.Decode(payload.TokenString)
 	if err != nil {
