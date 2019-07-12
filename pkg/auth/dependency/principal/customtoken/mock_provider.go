@@ -43,7 +43,7 @@ func (p MockProvider) Decode(tokenString string) (claims SSOCustomTokenClaims, e
 	return
 }
 
-func (p MockProvider) CreatePrincipal(principal Principal) error {
+func (p MockProvider) CreatePrincipal(principal *Principal) error {
 	if _, existed := p.PrincipalMap[principal.ID]; existed {
 		return skydb.ErrUserDuplicated
 	}
@@ -54,7 +54,12 @@ func (p MockProvider) CreatePrincipal(principal Principal) error {
 		}
 	}
 
-	p.PrincipalMap[principal.ID] = principal
+	p.PrincipalMap[principal.ID] = *principal
+	return nil
+}
+
+func (p MockProvider) UpdatePrincipal(principal *Principal) error {
+	p.PrincipalMap[principal.ID] = *principal
 	return nil
 }
 

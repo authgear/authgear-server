@@ -65,7 +65,7 @@ func (p providerImpl) Decode(tokenString string) (claims SSOCustomTokenClaims, e
 	return
 }
 
-func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
+func (p providerImpl) CreatePrincipal(principal *Principal) (err error) {
 	// Create principal
 	builder := p.sqlBuilder.Insert(p.sqlBuilder.FullTableName("principal")).Columns(
 		"id",
@@ -106,6 +106,33 @@ func (p providerImpl) CreatePrincipal(principal Principal) (err error) {
 	}
 
 	return
+}
+
+func (p providerImpl) UpdatePrincipal(principal *Principal) (err error) {
+	rawProfileBytes, err := json.Marshal(principal.RawProfile)
+	if err != nil {
+		return
+	}
+
+	builder := p.sqlBuilder.Update(p.sqlBuilder.FullTableName("provider_custom_token")).Set("raw_profile", rawProfileBytes).
+		Where("principal_id = ?", principal.ID)
+
+	result, err := p.sqlExecutor.ExecWith(builder)
+	if err != nil {
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return skydb.ErrUserNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Errorf("want 1 rows updated, got %v", rowsAffected))
+	}
+
+	return nil
 }
 
 func (p providerImpl) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*Principal, error) {

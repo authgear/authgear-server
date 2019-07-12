@@ -30,9 +30,14 @@ func (p *safeProviderImpl) Decode(tokenString string) (SSOCustomTokenClaims, err
 	return p.impl.Decode(tokenString)
 }
 
-func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
+func (p *safeProviderImpl) CreatePrincipal(principal *Principal) error {
 	p.txContext.EnsureTx()
 	return p.impl.CreatePrincipal(principal)
+}
+
+func (p *safeProviderImpl) UpdatePrincipal(principal *Principal) error {
+	p.txContext.EnsureTx()
+	return p.impl.UpdatePrincipal(principal)
 }
 
 func (p *safeProviderImpl) GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*Principal, error) {
