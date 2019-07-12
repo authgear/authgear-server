@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 const (
@@ -28,10 +27,6 @@ func newInstagramAuthInfoProcessor() instagramAuthInfoProcessor {
 }
 
 func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
-	if f.ProviderConfig.ClientID == "" {
-		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
-		return "", skyErr
-	}
 	encodedState, err := EncodeState(f.OAuthConfig.StateJWTSecret, NewState(params))
 	if err != nil {
 		return "", err

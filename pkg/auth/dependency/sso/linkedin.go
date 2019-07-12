@@ -2,7 +2,6 @@ package sso
 
 import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 const (
@@ -17,10 +16,6 @@ type LinkedInImpl struct {
 }
 
 func (f *LinkedInImpl) GetAuthURL(params GetURLParams) (string, error) {
-	if f.ProviderConfig.ClientID == "" {
-		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
-		return "", skyErr
-	}
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,

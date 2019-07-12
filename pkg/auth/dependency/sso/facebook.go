@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 const (
@@ -28,10 +27,6 @@ func newFacebookAuthInfoProcessor() facebookAuthInfoProcessor {
 }
 
 func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
-	if f.ProviderConfig.ClientID == "" {
-		skyErr := skyerr.NewError(skyerr.InvalidArgument, "ClientID is required")
-		return "", skyErr
-	}
 	if params.State.UXMode == UXModeWebPopup {
 		// https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow
 		params.Options["display"] = "popup"
