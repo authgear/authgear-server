@@ -167,7 +167,11 @@ func (h AuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	if !sso.IsAllowedOnUserDuplicate(h.OAuthConfiguration, payload.OnUserDuplicate) {
+	if !sso.IsAllowedOnUserDuplicate(
+		h.OAuthConfiguration.OnUserDuplicateAllowMerge,
+		h.OAuthConfiguration.OnUserDuplicateAllowCreate,
+		payload.OnUserDuplicate,
+	) {
 		err = skyerr.NewInvalidArgument("Disallowed OnUserDuplicate", []string{string(payload.OnUserDuplicate)})
 		return
 	}

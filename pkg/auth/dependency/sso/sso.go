@@ -66,11 +66,11 @@ func IsValidOnUserDuplicate(input OnUserDuplicate) bool {
 }
 
 // IsAllowedOnUserDuplicate checks if input is allowed
-func IsAllowedOnUserDuplicate(c config.OAuthConfiguration, input OnUserDuplicate) bool {
-	if !c.OnUserDuplicateAllowMerge && input == OnUserDuplicateMerge {
+func IsAllowedOnUserDuplicate(onUserDuplicateAllowMerge bool, onUserDuplicateAllowCreate bool, input OnUserDuplicate) bool {
+	if !onUserDuplicateAllowMerge && input == OnUserDuplicateMerge {
 		return false
 	}
-	if !c.OnUserDuplicateAllowCreate && input == OnUserDuplicateCreate {
+	if !onUserDuplicateAllowCreate && input == OnUserDuplicateCreate {
 		return false
 	}
 	return true
