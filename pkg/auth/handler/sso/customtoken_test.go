@@ -13,6 +13,7 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
 	"github.com/skygeario/skygear-server/pkg/core/async"
@@ -37,6 +38,11 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh := &CustomTokenLoginHandler{}
 		issuer := "myissuer"
 		audience := "myaudience"
+		mockPasswordProvider := password.NewMockProvider(
+			nil,
+			[]string{password.DefaultRealm},
+		)
+		lh.PasswordAuthProvider = mockPasswordProvider
 		lh.CustomTokenConfiguration = config.CustomTokenConfiguration{
 			Enabled:  true,
 			Issuer:   issuer,

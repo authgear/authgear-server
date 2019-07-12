@@ -7,6 +7,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -56,6 +58,8 @@ func (f CustomTokenLoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 type customTokenLoginPayload struct {
 	TokenString      string                           `json:"token"`
+	MergeRealm       string                           `json:"merge_realm"`
+	OnUserDuplicate  sso.OnUserDuplicate              `json:"on_user_duplicate"`
 	Claims           customtoken.SSOCustomTokenClaims `json:"-"`
 	ExpectedIssuer   string                           `json:"-"`
 	ExpectedAudience string                           `json:"-"`
@@ -68,6 +72,11 @@ func (payload customTokenLoginPayload) Validate() error {
 			err.Error(),
 		)
 	}
+
+	if !sso.IsValidOnUserDuplicate(payload.OnUserDuplicate) {
+		return skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
+	}
+
 	return nil
 }
 
@@ -112,6 +121,7 @@ type CustomTokenLoginHandler struct {
 	AuthInfoStore            authinfo.Store                  `dependency:"AuthInfoStore"`
 	CustomTokenAuthProvider  customtoken.Provider            `dependency:"CustomTokenAuthProvider"`
 	IdentityProvider         principal.IdentityProvider      `dependency:"IdentityProvider"`
+	PasswordAuthProvider     password.Provider               `dependency:"PasswordAuthProvider"`
 	CustomTokenConfiguration config.CustomTokenConfiguration `dependency:"CustomTokenConfiguration"`
 	WelcomeEmailEnabled      bool                            `dependency:"WelcomeEmailEnabled"`
 	AuditTrail               audit.Trail                     `dependency:"AuditTrail"`
@@ -145,6 +155,14 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (handler.R
 	payload.ExpectedIssuer = h.CustomTokenConfiguration.Issuer
 	payload.ExpectedAudience = h.CustomTokenConfiguration.Audience
 
+	if payload.MergeRealm == "" {
+		payload.MergeRealm = password.DefaultRealm
+	}
+
+	if payload.OnUserDuplicate == "" {
+		payload.OnUserDuplicate = sso.OnUserDuplicateDefault
+	}
+
 	payload.Claims, err = h.CustomTokenAuthProvider.Decode(payload.TokenString)
 	if err != nil {
 		return nil, skyerr.NewError(skyerr.BadRequest, err.Error())
@@ -160,6 +178,21 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 	}
 
 	payload := req.(customTokenLoginPayload)
+
+	if !h.PasswordAuthProvider.IsRealmValid(payload.MergeRealm) {
+		err = skyerr.NewInvalidArgument("Invalid MergeRealm", []string{payload.MergeRealm})
+		return
+	}
+
+	if !sso.IsAllowedOnUserDuplicate(
+		h.CustomTokenConfiguration.OnUserDuplicateAllowMerge,
+		h.CustomTokenConfiguration.OnUserDuplicateAllowCreate,
+		payload.OnUserDuplicate,
+	) {
+		err = skyerr.NewInvalidArgument("Disallowed OnUserDuplicate", []string{string(payload.OnUserDuplicate)})
+		return
+	}
+
 	var info authinfo.AuthInfo
 	var userProfile userprofile.UserProfile
 	var createNewUser bool
