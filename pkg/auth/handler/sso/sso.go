@@ -209,6 +209,9 @@ func (h respHandler) handleLogin(
 			passwordPrincipal.UserID,
 			oauthAuthInfo,
 		)
+		if err != nil {
+			return
+		}
 		populateInfo(passwordPrincipal.UserID)
 	}
 
