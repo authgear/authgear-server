@@ -5,6 +5,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
+const (
+	googleAuthorizationURL string = "https://accounts.google.com/o/oauth2/v2/auth"
+	googleTokenURL         string = "https://www.googleapis.com/oauth2/v4/token"
+	googleUserInfoURL      string = "https://www.googleapis.com/oauth2/v1/userinfo"
+)
+
 type GoogleImpl struct {
 	OAuthConfig    config.OAuthConfiguration
 	ProviderConfig config.OAuthProviderConfiguration
@@ -22,7 +28,7 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 		providerConfig: f.ProviderConfig,
 		options:        params.Options,
 		state:          NewState(params),
-		baseURL:        BaseURL(f.ProviderConfig),
+		baseURL:        googleAuthorizationURL,
 	}
 	return authURL(p)
 }
@@ -37,8 +43,8 @@ func (f *GoogleImpl) GetAuthInfo(code string, scope string, encodedState string)
 		providerConfig: f.ProviderConfig,
 		code:           code,
 		encodedState:   encodedState,
-		accessTokenURL: AccessTokenURL(f.ProviderConfig),
-		userProfileURL: UserProfileURL(f.ProviderConfig),
+		accessTokenURL: googleTokenURL,
+		userProfileURL: googleUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
 	}
 	return h.getAuthInfo()
@@ -48,8 +54,8 @@ func (f *GoogleImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenRes
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		accessTokenURL: AccessTokenURL(f.ProviderConfig),
-		userProfileURL: UserProfileURL(f.ProviderConfig),
+		accessTokenURL: googleTokenURL,
+		userProfileURL: googleUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)

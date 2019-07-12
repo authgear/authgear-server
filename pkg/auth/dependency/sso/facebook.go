@@ -8,6 +8,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
+const (
+	facebookAuthorizationURL string = "https://www.facebook.com/dialog/oauth"
+	facebookTokenURL         string = "https://graph.facebook.com/v2.10/oauth/access_token"
+	facebookUserInfoURL      string = "https://graph.facebook.com/v2.10/me"
+)
+
 type FacebookImpl struct {
 	OAuthConfig    config.OAuthConfiguration
 	ProviderConfig config.OAuthProviderConfiguration
@@ -35,7 +41,7 @@ func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 		providerConfig: f.ProviderConfig,
 		options:        params.Options,
 		state:          NewState(params),
-		baseURL:        BaseURL(f.ProviderConfig),
+		baseURL:        facebookAuthorizationURL,
 	}
 	return authURL(p)
 }
@@ -47,8 +53,8 @@ func (f *FacebookImpl) GetAuthInfo(code string, scope string, encodedState strin
 		providerConfig: f.ProviderConfig,
 		code:           code,
 		encodedState:   encodedState,
-		accessTokenURL: AccessTokenURL(f.ProviderConfig),
-		userProfileURL: UserProfileURL(f.ProviderConfig),
+		accessTokenURL: facebookTokenURL,
+		userProfileURL: facebookUserInfoURL,
 		processor:      p,
 	}
 	return h.getAuthInfo()
@@ -79,8 +85,8 @@ func (f *FacebookImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenR
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		accessTokenURL: AccessTokenURL(f.ProviderConfig),
-		userProfileURL: UserProfileURL(f.ProviderConfig),
+		accessTokenURL: facebookTokenURL,
+		userProfileURL: facebookUserInfoURL,
 		processor:      p,
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)

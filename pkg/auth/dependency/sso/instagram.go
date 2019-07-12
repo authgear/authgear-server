@@ -8,6 +8,12 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
+const (
+	instagramAuthorizationURL string = "https://api.instagram.com/oauth/authorize"
+	instagramTokenURL         string = "https://api.instagram.com/oauth/access_token"
+	instagramUserInfoURL      string = "https://api.instagram.com/v1/users/self"
+)
+
 type InstagramImpl struct {
 	OAuthConfig    config.OAuthConfiguration
 	ProviderConfig config.OAuthProviderConfiguration
@@ -43,7 +49,7 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 	// instagram will convert the state value to lower case
 	// when redirecting user to login page if user has not logged in before
 	v.Add("state", encodedState)
-	return BaseURL(f.ProviderConfig) + "?" + v.Encode(), nil
+	return instagramAuthorizationURL + "?" + v.Encode(), nil
 }
 
 func (f *InstagramImpl) DecodeState(encodedState string) (*State, error) {
@@ -57,8 +63,8 @@ func (f *InstagramImpl) GetAuthInfo(code string, scope string, encodedState stri
 		providerConfig: f.ProviderConfig,
 		code:           code,
 		encodedState:   encodedState,
-		accessTokenURL: AccessTokenURL(f.ProviderConfig),
-		userProfileURL: UserProfileURL(f.ProviderConfig),
+		accessTokenURL: instagramTokenURL,
+		userProfileURL: instagramUserInfoURL,
 		processor:      p,
 	}
 	return h.getAuthInfo()
@@ -82,8 +88,8 @@ func (f *InstagramImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessToken
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		accessTokenURL: AccessTokenURL(f.ProviderConfig),
-		userProfileURL: UserProfileURL(f.ProviderConfig),
+		accessTokenURL: instagramTokenURL,
+		userProfileURL: instagramUserInfoURL,
 		processor:      p,
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
