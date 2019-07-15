@@ -60,8 +60,8 @@ type AuthRequestPayload sso.OAuthAuthorizationResponse
 
 // Validate request payload
 func (p AuthRequestPayload) Validate() error {
-	if p.Code == "" && p.IDToken == "" {
-		return skyerr.NewInvalidArgument("Either code or id_token is required", []string{"code", "id_token"})
+	if p.Code == "" {
+		return skyerr.NewInvalidArgument("code is required", []string{"code"})
 	}
 
 	if p.State == "" {
@@ -111,7 +111,6 @@ func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 	payload.Code = request.Form.Get("code")
 	payload.Scope = request.Form.Get("scope")
 	payload.State = request.Form.Get("state")
-	payload.IDToken = request.Form.Get("id_token")
 
 	return payload, nil
 }

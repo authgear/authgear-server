@@ -100,10 +100,9 @@ type ProviderUserInfo struct {
 }
 
 type OAuthAuthorizationResponse struct {
-	IDToken string
-	Code    string
-	State   string
-	Scope   string
+	Code  string
+	State string
+	Scope string
 }
 
 // OAuthProvider is OAuth 2.0 based provider.
