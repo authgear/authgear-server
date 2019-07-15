@@ -55,21 +55,17 @@ func (f AuthHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 	return policy.AllOf()
 }
 
-// AuthRequestPayload login handler request payload
-type AuthRequestPayload struct {
-	Code         string
-	Scope        string
-	EncodedState string
-}
+// AuthRequestPayload is sso.OAuthAuthorizationResponse
+type AuthRequestPayload sso.OAuthAuthorizationResponse
 
 // Validate request payload
 func (p AuthRequestPayload) Validate() error {
-	if p.Code == "" {
-		return skyerr.NewInvalidArgument("Authorization Code is required", []string{"code"})
+	if p.Code == "" && p.IDToken == "" {
+		return skyerr.NewInvalidArgument("Either code or id_token is required", []string{"code", "id_token"})
 	}
 
-	if p.EncodedState == "" {
-		return skyerr.NewInvalidArgument("EncodedState is required", []string{"state"})
+	if p.State == "" {
+		return skyerr.NewInvalidArgument("State is required", []string{"state"})
 	}
 
 	return nil
@@ -102,7 +98,7 @@ type AuthHandler struct {
 	ProviderFactory         *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
 	UserProfileStore        userprofile.Store           `dependency:"UserProfileStore"`
 	OAuthConfiguration      config.OAuthConfiguration   `dependency:"OAuthConfiguration"`
-	Provider                sso.Provider
+	Provider                sso.OAuthProvider
 	ProviderID              string
 }
 
@@ -111,7 +107,8 @@ func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 	q := request.URL.Query()
 	payload.Code = q.Get("code")
 	payload.Scope = q.Get("scope")
-	payload.EncodedState = q.Get("state")
+	payload.State = q.Get("state")
+	payload.IDToken = q.Get("id_token")
 
 	return payload, nil
 }
@@ -153,7 +150,7 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	reqPayload := payload.(AuthRequestPayload)
 
-	state, err := h.Provider.DecodeState(reqPayload.EncodedState)
+	state, err := h.Provider.DecodeState(reqPayload.State)
 	if err != nil {
 		http.Error(rw, "Failed to decode state", http.StatusBadRequest)
 		return
@@ -187,7 +184,7 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.AuthInfo, err error) {
-	oauthAuthInfo, err = h.Provider.GetAuthInfo(payload.Code, payload.Scope, payload.EncodedState)
+	oauthAuthInfo, err = h.Provider.GetAuthInfo(sso.OAuthAuthorizationResponse(payload))
 	if err != nil {
 		if ssoErr, ok := err.(sso.Error); ok {
 			switch ssoErr.Code() {

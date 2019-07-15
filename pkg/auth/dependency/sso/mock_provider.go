@@ -27,8 +27,8 @@ func (f *MockSSOProvider) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
-func (f *MockSSOProvider) GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error) {
-	state, err := DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
+func (f *MockSSOProvider) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+	state, err := DecodeState(f.OAuthConfig.StateJWTSecret, r.State)
 	if err != nil {
 		return
 	}
@@ -43,11 +43,19 @@ func (f *MockSSOProvider) GetAuthInfo(code string, scope string, encodedState st
 	return
 }
 
+func (f *MockSSOProvider) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+	return f.GetAuthInfo(r)
+}
+
+func (f *MockSSOProvider) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+	return f.GetAuthInfo(r)
+}
+
 func (f *MockSSOProvider) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
-func (f *MockSSOProvider) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{
 		ProviderConfig:          f.ProviderConfig,
 		ProviderAccessTokenResp: map[string]interface{}{},
@@ -58,5 +66,8 @@ func (f *MockSSOProvider) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTok
 }
 
 var (
-	_ Provider = &MockSSOProvider{}
+	_ OAuthProvider                   = &MockSSOProvider{}
+	_ NonOpenIDConnectProvider        = &MockSSOProvider{}
+	_ OpenIDConnectProvider           = &MockSSOProvider{}
+	_ ExternalAccessTokenFlowProvider = &MockSSOProvider{}
 )

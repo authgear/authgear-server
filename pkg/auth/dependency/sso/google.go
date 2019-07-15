@@ -33,12 +33,16 @@ func (f *GoogleImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
-func (f *GoogleImpl) GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error) {
+func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+	return f.NonOpenIDConnectGetAuthInfo(r)
+}
+
+func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		code:           code,
-		encodedState:   encodedState,
+		code:           r.Code,
+		encodedState:   r.State,
 		accessTokenURL: googleTokenURL,
 		userProfileURL: googleUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
@@ -46,7 +50,7 @@ func (f *GoogleImpl) GetAuthInfo(code string, scope string, encodedState string)
 	return h.getAuthInfo()
 }
 
-func (f *GoogleImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
@@ -58,5 +62,7 @@ func (f *GoogleImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenRes
 }
 
 var (
-	_ Provider = &GoogleImpl{}
+	_ OAuthProvider                   = &GoogleImpl{}
+	_ NonOpenIDConnectProvider        = &GoogleImpl{}
+	_ ExternalAccessTokenFlowProvider = &GoogleImpl{}
 )

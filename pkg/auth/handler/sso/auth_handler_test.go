@@ -48,15 +48,15 @@ func TestAuthPayload(t *testing.T) {
 		// callback URL and ux_mode is required
 		Convey("validate valid payload", func() {
 			payload := AuthRequestPayload{
-				Code:         "code",
-				EncodedState: "state",
+				Code:  "code",
+				State: "state",
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
 
 		Convey("validate payload without code", func() {
 			payload := AuthRequestPayload{
-				EncodedState: "state",
+				State: "state",
 			}
 			err := payload.Validate()
 			errResponse := err.(skyerr.Error)

@@ -97,7 +97,7 @@ type LoginHandler struct {
 	ProviderFactory      *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	OAuthConfiguration   config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
-	Provider             sso.Provider
+	Provider             sso.OAuthProvider
 	ProviderID           string
 }
 
@@ -119,13 +119,15 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		err = skyerr.NewError(skyerr.UndefinedOperation, "External access token flow is disabled")
 		return
 	}
-	if h.Provider == nil {
+
+	provider, ok := h.Provider.(sso.ExternalAccessTokenFlowProvider)
+	if !ok {
 		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
 		return
 	}
 
 	payload := req.(LoginRequestPayload)
-	oauthAuthInfo, err := h.Provider.GetAuthInfoByAccessTokenResp(sso.NewBearerAccessTokenResp(payload.AccessToken))
+	oauthAuthInfo, err := provider.ExternalAccessTokenGetAuthInfo(sso.NewBearerAccessTokenResp(payload.AccessToken))
 	if err != nil {
 		return
 	}

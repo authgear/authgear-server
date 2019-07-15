@@ -31,12 +31,16 @@ func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 	return authURL(p)
 }
 
-func (f *FacebookImpl) GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error) {
+func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+	return f.NonOpenIDConnectGetAuthInfo(r)
+}
+
+func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		code:           code,
-		encodedState:   encodedState,
+		code:           r.Code,
+		encodedState:   r.State,
 		accessTokenURL: facebookTokenURL,
 		userProfileURL: facebookUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
@@ -48,7 +52,7 @@ func (f *FacebookImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
-func (f *FacebookImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
@@ -60,5 +64,7 @@ func (f *FacebookImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenR
 }
 
 var (
-	_ Provider = &FacebookImpl{}
+	_ OAuthProvider                   = &FacebookImpl{}
+	_ NonOpenIDConnectProvider        = &FacebookImpl{}
+	_ ExternalAccessTokenFlowProvider = &FacebookImpl{}
 )

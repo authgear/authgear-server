@@ -127,7 +127,7 @@ type AuthURLHandler struct {
 	ProviderFactory      *sso.ProviderFactory      `dependency:"SSOProviderFactory"`
 	PasswordAuthProvider password.Provider         `dependency:"PasswordAuthProvider"`
 	OAuthConfiguration   config.OAuthConfiguration `dependency:"OAuthConfiguration"`
-	Provider             sso.Provider
+	Provider             sso.OAuthProvider
 	ProviderID           string
 	Action               string
 }

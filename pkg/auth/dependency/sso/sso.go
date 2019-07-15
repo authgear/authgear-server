@@ -99,13 +99,39 @@ type ProviderUserInfo struct {
 	Email string
 }
 
-// Provider defines SSO interface
-type Provider interface {
+type OAuthAuthorizationResponse struct {
+	IDToken string
+	Code    string
+	State   string
+	Scope   string
+}
+
+// OAuthProvider is OAuth 2.0 based provider.
+type OAuthProvider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
-	// TODO: Remove scope
-	GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error)
 	DecodeState(encodedState string) (*State, error)
-	GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error)
+	GetAuthInfo(r OAuthAuthorizationResponse) (AuthInfo, error)
+}
+
+// NonOpenIDConnectProvider are OAuth 2.0 provider that does not
+// implement OpenID Connect or we do not implement yet.
+// They are Google, Facebook, Instagram and LinkedIn.
+type NonOpenIDConnectProvider interface {
+	NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error)
+}
+
+// ExternalAccessTokenFlowProvider is provider that the developer
+// can somehow acquire an access token and that access token
+// can be used to fetch user info.
+// They are Google, Facebook, Instagram and LinkedIn.
+type ExternalAccessTokenFlowProvider interface {
+	ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error)
+}
+
+// OpenIDConnectProvider are OpenID Connect provider.
+// They are Azure AD v2.
+type OpenIDConnectProvider interface {
+	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error)
 }
 
 type ProviderFactory struct {
@@ -118,7 +144,7 @@ func NewProviderFactory(tenantConfig config.TenantConfiguration) *ProviderFactor
 	}
 }
 
-func (p *ProviderFactory) NewProvider(id string) Provider {
+func (p *ProviderFactory) NewProvider(id string) OAuthProvider {
 	providerConfig, ok := p.tenantConfig.GetOAuthProviderByID(id)
 	if !ok {
 		return nil
@@ -141,6 +167,11 @@ func (p *ProviderFactory) NewProvider(id string) Provider {
 		}
 	case config.OAuthProviderTypeLinkedIn:
 		return &LinkedInImpl{
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
+		}
+	case config.OAuthProviderTypeAzureADv2:
+		return &Azureadv2Impl{
 			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
 			ProviderConfig: providerConfig,
 		}
