@@ -2,13 +2,8 @@ package sso
 
 import (
 	"errors"
-	"fmt"
-	"net/url"
-	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
-
-	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 // CustomClaims is the type for jwt encoded
@@ -45,13 +40,4 @@ func DecodeState(secret string, encoded string) (*State, error) {
 		return nil, err
 	}
 	return &claims.State, nil
-}
-
-// RedirectURI generates redirect uri from URLPrefix and provider name
-func RedirectURI(oauthConfig config.OAuthConfiguration, providerConfig config.OAuthProviderConfiguration) string {
-	u, _ := url.Parse(oauthConfig.URLPrefix)
-	orgPath := strings.TrimRight(u.Path, "/")
-	path := fmt.Sprintf("%s/sso/%s/auth_handler", orgPath, providerConfig.ID)
-	u.Path = path
-	return u.String()
 }

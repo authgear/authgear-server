@@ -35,7 +35,7 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 	v := url.Values{}
 	v.Set("response_type", "code")
 	v.Add("client_id", f.ProviderConfig.ClientID)
-	v.Add("redirect_uri", RedirectURI(f.OAuthConfig, f.ProviderConfig))
+	v.Add("redirect_uri", redirectURI(f.OAuthConfig, f.ProviderConfig))
 	for k, o := range params.Options {
 		v.Add(k, fmt.Sprintf("%v", o))
 	}

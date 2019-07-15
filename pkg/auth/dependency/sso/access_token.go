@@ -91,7 +91,7 @@ func fetchAccessTokenResp(
 	v := url.Values{}
 	v.Set("grant_type", "authorization_code")
 	v.Add("code", code)
-	v.Add("redirect_uri", RedirectURI(oauthConfig, providerConfig))
+	v.Add("redirect_uri", redirectURI(oauthConfig, providerConfig))
 	v.Add("client_id", providerConfig.ClientID)
 	v.Add("client_secret", providerConfig.ClientSecret)
 
