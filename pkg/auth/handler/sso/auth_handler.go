@@ -34,7 +34,7 @@ func AttachAuthHandler(
 ) *server.Server {
 	server.Handle("/sso/{provider}/auth_handler", &AuthHandlerFactory{
 		Dependency: authDependency,
-	}).Methods("OPTIONS", "GET")
+	}).Methods("OPTIONS", "GET", "POST")
 	return server
 }
 
@@ -104,11 +104,14 @@ type AuthHandler struct {
 
 func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
 	payload := AuthRequestPayload{}
-	q := request.URL.Query()
-	payload.Code = q.Get("code")
-	payload.Scope = q.Get("scope")
-	payload.State = q.Get("state")
-	payload.IDToken = q.Get("id_token")
+	err := request.ParseForm()
+	if err != nil {
+		return nil, err
+	}
+	payload.Code = request.Form.Get("code")
+	payload.Scope = request.Form.Get("scope")
+	payload.State = request.Form.Get("state")
+	payload.IDToken = request.Form.Get("id_token")
 
 	return payload, nil
 }
