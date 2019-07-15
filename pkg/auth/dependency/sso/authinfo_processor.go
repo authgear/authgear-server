@@ -27,7 +27,7 @@ func (d defaultAuthInfoProcessor) DecodeAccessTokenResp(r io.Reader) (AccessToke
 }
 
 func (d defaultAuthInfoProcessor) ValidateAccessTokenResp(accessTokenResp AccessTokenResp) error {
-	if accessTokenResp.AccessToken == "" {
+	if accessTokenResp.AccessToken() == "" {
 		err := ssoError{
 			code:    MissingAccessToken,
 			message: "Missing access token parameter",

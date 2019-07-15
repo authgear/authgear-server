@@ -125,10 +125,7 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	payload := req.(LoginRequestPayload)
-	oauthAuthInfo, err := h.Provider.GetAuthInfoByAccessTokenResp(sso.AccessTokenResp{
-		AccessToken: payload.AccessToken,
-		TokenType:   "Bearer",
-	})
+	oauthAuthInfo, err := h.Provider.GetAuthInfoByAccessTokenResp(sso.NewBearerAccessTokenResp(payload.AccessToken))
 	if err != nil {
 		return
 	}

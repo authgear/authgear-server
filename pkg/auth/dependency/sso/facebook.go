@@ -1,9 +1,6 @@
 package sso
 
 import (
-	"io"
-	"strings"
-
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -17,14 +14,6 @@ const (
 type FacebookImpl struct {
 	OAuthConfig    config.OAuthConfiguration
 	ProviderConfig config.OAuthProviderConfiguration
-}
-
-type facebookAuthInfoProcessor struct {
-	defaultAuthInfoProcessor
-}
-
-func newFacebookAuthInfoProcessor() facebookAuthInfoProcessor {
-	return facebookAuthInfoProcessor{}
 }
 
 func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
@@ -43,7 +32,6 @@ func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *FacebookImpl) GetAuthInfo(code string, scope string, encodedState string) (authInfo AuthInfo, err error) {
-	p := newFacebookAuthInfoProcessor()
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
@@ -51,7 +39,7 @@ func (f *FacebookImpl) GetAuthInfo(code string, scope string, encodedState strin
 		encodedState:   encodedState,
 		accessTokenURL: facebookTokenURL,
 		userProfileURL: facebookUserInfoURL,
-		processor:      p,
+		processor:      newDefaultAuthInfoProcessor(),
 	}
 	return h.getAuthInfo()
 }
@@ -60,30 +48,13 @@ func (f *FacebookImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
-func (f facebookAuthInfoProcessor) DecodeAccessTokenResp(r io.Reader) (AccessTokenResp, error) {
-	accessTokenResp, err := f.defaultAuthInfoProcessor.DecodeAccessTokenResp(r)
-	if err != nil {
-		return accessTokenResp, err
-	}
-
-	// special handling for facebook access token
-	if accessTokenResp.ExpiresIn == 0 && accessTokenResp.RawExpires != 0 {
-		accessTokenResp.ExpiresIn = accessTokenResp.RawExpires
-	}
-	if strings.ToLower(accessTokenResp.TokenType) == "bearer" {
-		accessTokenResp.TokenType = "Bearer"
-	}
-	return accessTokenResp, nil
-}
-
 func (f *FacebookImpl) GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
-	p := newFacebookAuthInfoProcessor()
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: facebookTokenURL,
 		userProfileURL: facebookUserInfoURL,
-		processor:      p,
+		processor:      newDefaultAuthInfoProcessor(),
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }

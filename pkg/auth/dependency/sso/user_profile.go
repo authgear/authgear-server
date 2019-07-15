@@ -11,8 +11,8 @@ func fetchUserProfile(
 	accessTokenResp AccessTokenResp,
 	userProfileURL string,
 ) (userProfile map[string]interface{}, err error) {
-	tokenType := accessTokenResp.TokenType
-	accessTokenValue := accessTokenResp.AccessToken
+	tokenType := accessTokenResp.TokenType()
+	accessTokenValue := accessTokenResp.AccessToken()
 	authorizationHeader := fmt.Sprintf("%s %s", tokenType, accessTokenValue)
 
 	req := goreq.Request{
