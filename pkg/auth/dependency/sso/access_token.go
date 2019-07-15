@@ -19,6 +19,14 @@ func NewBearerAccessTokenResp(accessToken string) AccessTokenResp {
 	}
 }
 
+func (r AccessTokenResp) IDToken() string {
+	idToken, ok := r["id_token"].(string)
+	if ok {
+		return idToken
+	}
+	return ""
+}
+
 func (r AccessTokenResp) AccessToken() string {
 	accessToken, ok := r["access_token"].(string)
 	if ok {

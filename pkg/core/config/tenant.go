@@ -522,7 +522,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 		case OAuthProviderTypeAzureADv2:
 			if provider.Scope == "" {
 				// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
-				c.UserConfig.SSO.OAuth.Providers[i].Scope = "profile email"
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
 			}
 		}
 	}

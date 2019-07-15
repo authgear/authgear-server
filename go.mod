@@ -28,6 +28,7 @@ require (
 	github.com/lann/builder v0.0.0-20150808151131-f22ce00fd939 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/lann/squirrel v0.0.0-20150302165045-e13dbacee404
+	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v0.0.0-20171113044440-8c6ee72f3e6b
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/mitchellh/gox v1.0.1
@@ -36,6 +37,7 @@ require (
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/rifflock/lfshook v0.0.0-20171219153109-1fdc019a3514
 	github.com/sfreiberg/gotwilio v0.0.0-20181012193634-a13e5b0d458a
 	github.com/sirupsen/logrus v1.0.3
