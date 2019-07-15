@@ -25,7 +25,7 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 	}
 	authInfo.State = *state
 
-	r, err := fetchAccessTokenResp(
+	accessTokenResp, err := fetchAccessTokenResp(
 		h.code,
 		h.accessTokenURL,
 		h.oauthConfig,
@@ -35,16 +35,11 @@ func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
 		return
 	}
 
-	accessTokenResp, err := h.processor.DecodeAccessTokenResp(r)
+	err = accessTokenResp.Validate()
 	if err != nil {
 		return
 	}
 	authInfo.ProviderAccessTokenResp = accessTokenResp
-
-	err = h.processor.ValidateAccessTokenResp(accessTokenResp)
-	if err != nil {
-		return
-	}
 
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }

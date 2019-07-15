@@ -1,12 +1,11 @@
 package sso
 
 import (
-	"io"
+	"encoding/json"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
-
-	"github.com/franela/goreq"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
@@ -71,12 +70,24 @@ func (r AccessTokenResp) TokenType() string {
 	}
 }
 
+func (r AccessTokenResp) Validate() error {
+	if r.AccessToken() == "" {
+		err := ssoError{
+			code:    MissingAccessToken,
+			message: "Missing access token parameter",
+		}
+		return err
+	}
+
+	return nil
+}
+
 func fetchAccessTokenResp(
 	code string,
 	accessTokenURL string,
 	oauthConfig config.OAuthConfiguration,
 	providerConfig config.OAuthProviderConfiguration,
-) (r io.Reader, err error) {
+) (r AccessTokenResp, err error) {
 	v := url.Values{}
 	v.Set("grant_type", "authorization_code")
 	v.Add("code", code)
@@ -84,22 +95,20 @@ func fetchAccessTokenResp(
 	v.Add("client_id", providerConfig.ClientID)
 	v.Add("client_secret", providerConfig.ClientSecret)
 
-	res, err := goreq.Request{
-		Uri:         accessTokenURL,
-		Method:      "POST",
-		Body:        v.Encode(),
-		ContentType: "application/x-www-form-urlencoded; charset=UTF-8",
-	}.Do()
-
+	resp, err := http.PostForm(accessTokenURL, v)
 	if err != nil {
 		return
 	}
+	defer resp.Body.Close()
 
-	if res.StatusCode == 200 {
-		r = res.Body
+	if resp.StatusCode == 200 {
+		err = json.NewDecoder(resp.Body).Decode(&r)
+		if err != nil {
+			return
+		}
 	} else { // normally 400 Bad Request
 		var errResp ErrorResp
-		err = res.Body.FromJsonTo(&errResp)
+		err = json.NewDecoder(resp.Body).Decode(&errResp)
 		if err != nil {
 			return
 		}
