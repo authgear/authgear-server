@@ -79,3 +79,30 @@ func WriteResponse(rw http.ResponseWriter, response APIResponse) {
 	rw.WriteHeader(httpStatus)
 	encoder.Encode(response)
 }
+
+// Transactional runs f within a transaction.
+// If err is non-nil, the transaction is rolled back.
+// Otherwise the transaction is committed.
+// It is a lightweight and flexible alternative to APIHandler
+// because it is not coupled with http.
+func Transactional(txContext db.TxContext, f func() (interface{}, error)) (interface{}, error) {
+	if e := txContext.BeginTx(); e != nil {
+		panic(e)
+	}
+	defer func() {
+		if txContext.HasTx() {
+			txContext.RollbackTx()
+		}
+	}()
+	result, err := f()
+	if err != nil {
+		if e := txContext.RollbackTx(); e != nil {
+			panic(e)
+		}
+	} else {
+		if e := txContext.CommitTx(); e != nil {
+			panic(e)
+		}
+	}
+	return result, err
+}

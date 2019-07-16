@@ -1,6 +1,8 @@
 package sso
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -15,7 +17,6 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
-	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -97,23 +98,28 @@ func TestAuthURLHandler(t *testing.T) {
 		h.PasswordAuthProvider = mockPasswordProvider
 		h.Action = "login"
 		h.OAuthConfiguration = oauthConfig
-		payload := AuthURLRequestPayload{
-			MergeRealm:      password.DefaultRealm,
-			OnUserDuplicate: sso.OnUserDuplicateAbort,
-			CallbackURL:     "callbackURL",
-			UXMode:          sso.UXModeWebRedirect,
-			Options: map[string]interface{}{
-				"number": 1,
-			},
-		}
 
 		Convey("should return login_auth_url", func() {
-			resp, err := h.Handle(payload)
-			So(err, ShouldBeNil)
-			So(resp, ShouldNotBeNil)
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"callback_url": "callbackURL",
+				"ux_mode": "web_redirect",
+				"options": {
+					"number": 1
+				}
+			}
+			`))
+			resp := httptest.NewRecorder()
+			httpHandler := h
+			httpHandler.ServeHTTP(resp, req)
+
+			So(resp.Code, ShouldEqual, 200)
+
+			body := map[string]interface{}{}
+			_ = json.NewDecoder(bytes.NewReader(resp.Body.Bytes())).Decode(&body)
 
 			// check base url
-			u, _ := url.Parse(resp.(string))
+			u, _ := url.Parse(body["result"].(string))
 			So(u.Host, ShouldEqual, "mock")
 			So(u.Path, ShouldEqual, "/auth")
 
@@ -132,7 +138,7 @@ func TestAuthURLHandler(t *testing.T) {
 			// check encoded state
 			s := q.Get("state")
 			claims := sso.CustomClaims{}
-			_, err = jwt.ParseWithClaims(s, &claims, func(token *jwt.Token) (interface{}, error) {
+			_, err := jwt.ParseWithClaims(s, &claims, func(token *jwt.Token) (interface{}, error) {
 				return []byte("secret"), nil
 			})
 			So(err, ShouldBeNil)
@@ -144,11 +150,26 @@ func TestAuthURLHandler(t *testing.T) {
 
 		Convey("should return link_auth_url", func() {
 			h.Action = "link"
-			resp, err := h.Handle(payload)
-			So(resp, ShouldNotBeNil)
-			So(err, ShouldBeNil)
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
+			{
+				"callback_url": "callbackURL",
+				"ux_mode": "web_redirect",
+				"options": {
+					"number": 1
+				}
+			}
+			`))
+			resp := httptest.NewRecorder()
+			httpHandler := h
+			httpHandler.ServeHTTP(resp, req)
 
-			u, _ := url.Parse(resp.(string))
+			So(resp.Code, ShouldEqual, 200)
+
+			body := map[string]interface{}{}
+			_ = json.NewDecoder(bytes.NewReader(resp.Body.Bytes())).Decode(&body)
+
+			// check base url
+			u, _ := url.Parse(body["result"].(string))
 			q := u.Query()
 			// check encoded state
 			s := q.Get("state")
@@ -168,7 +189,7 @@ func TestAuthURLHandler(t *testing.T) {
 			}
 			`))
 			resp := httptest.NewRecorder()
-			httpHandler := handler.APIHandlerToHandler(h, h.TxContext)
+			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 400)
@@ -197,7 +218,7 @@ func TestAuthURLHandler(t *testing.T) {
 			}
 			`))
 			resp := httptest.NewRecorder()
-			httpHandler := handler.APIHandlerToHandler(h, h.TxContext)
+			httpHandler := h
 			httpHandler.ServeHTTP(resp, req)
 
 			So(resp.Code, ShouldEqual, 400)

@@ -47,7 +47,7 @@ func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h.ProviderID = vars["provider"]
 	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
 	h.Action = f.Action
-	return handler.APIHandlerToHandler(h, h.TxContext)
+	return h
 }
 
 func (f AuthURLHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -63,21 +63,21 @@ type AuthURLRequestPayload struct {
 	OnUserDuplicate sso.OnUserDuplicate    `json:"on_user_duplicate"`
 }
 
-// Validate request payload
-func (p AuthURLRequestPayload) Validate() error {
+func (p AuthURLRequestPayload) Validate() (err error) {
 	if p.CallbackURL == "" {
-		return skyerr.NewInvalidArgument("Callback url is required", []string{"callback_url"})
+		err = skyerr.NewInvalidArgument("Callback url is required", []string{"callback_url"})
+		return
 	}
-
 	if !sso.IsValidUXMode(p.UXMode) {
-		return skyerr.NewInvalidArgument("Invalid UX mode", []string{"ux_mode"})
+		err = skyerr.NewInvalidArgument("Invalid UX mode", []string{"ux_mode"})
+		return
 	}
 
 	if !sso.IsValidOnUserDuplicate(p.OnUserDuplicate) {
-		return skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
+		err = skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
+		return
 	}
-
-	return nil
+	return
 }
 
 // AuthURLHandler returns the SSO auth url by provider.
@@ -132,16 +132,26 @@ type AuthURLHandler struct {
 	Action               string
 }
 
-func (h AuthURLHandler) WithTx() bool {
-	return true
+func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	result, err := handler.Transactional(h.TxContext, func() (interface{}, error) {
+		return h.Handle(w, r)
+	})
+	if err != nil {
+		handler.WriteResponse(w, handler.APIResponse{Err: skyerr.MakeError(err)})
+		return
+	}
+	handler.WriteResponse(w, handler.APIResponse{Result: result})
 }
 
-func (h AuthURLHandler) DecodeRequest(request *http.Request) (handler.RequestPayload, error) {
+func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
 	payload := AuthURLRequestPayload{
 		// avoid nil pointer
 		Options: make(sso.Options),
 	}
-	err := json.NewDecoder(request.Body).Decode(&payload)
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		return
+	}
 
 	if payload.MergeRealm == "" {
 		payload.MergeRealm = password.DefaultRealm
@@ -151,16 +161,15 @@ func (h AuthURLHandler) DecodeRequest(request *http.Request) (handler.RequestPay
 		payload.OnUserDuplicate = sso.OnUserDuplicateDefault
 	}
 
-	return payload, err
-}
+	err = payload.Validate()
+	if err != nil {
+		return
+	}
 
-func (h AuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if h.Provider == nil {
 		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
 		return
 	}
-
-	payload := req.(AuthURLRequestPayload)
 
 	if !h.PasswordAuthProvider.IsRealmValid(payload.MergeRealm) {
 		err = skyerr.NewInvalidArgument("Invalid MergeRealm", []string{payload.MergeRealm})
@@ -198,6 +207,6 @@ func (h AuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
 	if err != nil {
 		return
 	}
-	resp = url
+	result = url
 	return
 }
