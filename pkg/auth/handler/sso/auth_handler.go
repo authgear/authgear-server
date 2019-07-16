@@ -24,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
@@ -246,7 +247,7 @@ func (h AuthHandler) handleSessionResp(rw http.ResponseWriter, r *http.Request, 
 	}
 	encoded := base64.StdEncoding.EncodeToString([]byte(msg))
 	cookie := http.Cookie{
-		Name:  "sso_data",
+		Name:  coreHttp.CookieNameSSOData,
 		Value: encoded,
 		Path:  "/",
 	}
