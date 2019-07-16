@@ -28,11 +28,11 @@ func AttachAuthURLHandler(
 	server.Handle("/sso/{provider}/login_auth_url", &AuthURLHandlerFactory{
 		Dependency: authDependency,
 		Action:     "login",
-	}).Methods("OPTIONS", "POST")
+	}).Methods("OPTIONS", "POST", "GET")
 	server.Handle("/sso/{provider}/link_auth_url", &AuthURLHandlerFactory{
 		Dependency: authDependency,
 		Action:     "link",
-	}).Methods("OPTIONS", "POST")
+	}).Methods("OPTIONS", "POST", "GET")
 	return server
 }
 
@@ -52,7 +52,7 @@ func (f AuthURLHandlerFactory) NewHandler(request *http.Request) http.Handler {
 }
 
 func (f AuthURLHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return authz.PolicyFunc(policy.DenyNoAccessKey)
+	return policy.Everybody{Allow: true}
 }
 
 // AuthURLRequestPayload login handler request payload
@@ -122,6 +122,10 @@ func (p AuthURLRequestPayload) Validate() (err error) {
 // {
 //     "result": "<auth_url>"
 // }
+// The handler also supports GET method. If you are experimenting
+// with an OpenID Connect provider, you should construct an URL
+// and visit it in a browser. In this way, nonce is set in the session
+// cookie and automatically redirected to the provider authorization URL.
 type AuthURLHandler struct {
 	TxContext            db.TxContext              `dependency:"TxContext"`
 	AuthContext          coreAuth.ContextGetter    `dependency:"AuthContextGetter"`
@@ -141,7 +145,11 @@ func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		handler.WriteResponse(w, handler.APIResponse{Err: skyerr.MakeError(err)})
 		return
 	}
-	handler.WriteResponse(w, handler.APIResponse{Result: result})
+	if r.Method == http.MethodPost {
+		handler.WriteResponse(w, handler.APIResponse{Result: result})
+		return
+	}
+	http.Redirect(w, r, result.(string), http.StatusFound)
 }
 
 func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
@@ -149,9 +157,20 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		// avoid nil pointer
 		Options: make(sso.Options),
 	}
-	err = json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		return
+	if r.Method == http.MethodPost {
+		err = json.NewDecoder(r.Body).Decode(&payload)
+		if err != nil {
+			return
+		}
+	} else {
+		err = r.ParseForm()
+		if err != nil {
+			return
+		}
+		payload.CallbackURL = r.Form.Get("callback_url")
+		payload.UXMode = sso.UXMode(r.Form.Get("ux_mode"))
+		payload.MergeRealm = r.Form.Get("merge_realm")
+		payload.OnUserDuplicate = sso.OnUserDuplicate(r.Form.Get("on_user_duplicate"))
 	}
 
 	if payload.MergeRealm == "" {
