@@ -113,6 +113,11 @@ func (h AuthHandler) DecodeRequest(request *http.Request) (handler.RequestPayloa
 	payload.Scope = request.Form.Get("scope")
 	payload.State = request.Form.Get("state")
 
+	cookie, cookieErr := request.Cookie(coreHttp.CookieNameOpenIDConnectNonce)
+	if cookieErr != http.ErrNoCookie {
+		payload.Nonce = cookie.Value
+	}
+
 	return payload, nil
 }
 

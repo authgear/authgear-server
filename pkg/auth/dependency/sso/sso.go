@@ -5,6 +5,11 @@ import (
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/rand"
+)
+
+const (
+	nonceAlphabet string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
 // Options parameter allows additional options for getting auth url
@@ -83,6 +88,7 @@ func IsAllowedOnUserDuplicate(onUserDuplicateAllowMerge bool, onUserDuplicateAll
 type GetURLParams struct {
 	Options Options
 	State   State
+	Nonce   string
 }
 
 // AuthInfo contains auth info from HandleAuthzResp
@@ -103,6 +109,16 @@ type OAuthAuthorizationResponse struct {
 	Code  string
 	State string
 	Scope string
+	// Nonce is required when the underlying provider is OpenID connect compliant.
+	// The implementation is based on the suggestion in the spec.
+	// See https://openid.net/specs/openid-connect-core-1_0.html#NonceNotes
+	//
+	// The nonce is a cryptographically random string.
+	// The nonce passed to the provider is SHA256 hash of it.
+	// The get-authorization URL endpoint ensures the nonce in session cookie.
+	// The callback endpoint expect the user agent to include the nonce in session cookie.
+	// The nonce in session cookie will be validated against the hashed nonce in the ID token.
+	Nonce string
 }
 
 // OAuthProvider is OAuth 2.0 based provider.
@@ -194,4 +210,9 @@ func ValidateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err 
 
 	err = fmt.Errorf("callback URL is not whitelisted")
 	return
+}
+
+func GenerateOpenIDConnectNonce() string {
+	nonce := rand.StringWithAlphabet(32, nonceAlphabet, rand.SecureRand)
+	return nonce
 }

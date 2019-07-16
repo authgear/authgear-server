@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,11 +11,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
-	"github.com/skygeario/skygear-server/pkg/core/rand"
-)
-
-const (
-	nonceAlphabet string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	"github.com/skygeario/skygear-server/pkg/core/hash"
 )
 
 const (
@@ -31,11 +28,6 @@ type azureadv2OpenIDConfiguration struct {
 	TokenEndpoint         string `json:"token_endpoint"`
 	JWKSUri               string `json:"jwks_uri"`
 	UserInfoEndpoint      string `json:"userinfo_endpoint"`
-}
-
-func secureRandomNonce() string {
-	nonce := rand.StringWithAlphabet(32, nonceAlphabet, rand.SecureRand)
-	return nonce
 }
 
 func (f *Azureadv2Impl) getOpenIDConfiguration() (c azureadv2OpenIDConfiguration, err error) {
@@ -67,11 +59,14 @@ func (f *Azureadv2Impl) getKeys(endpoint string) (*jwk.Set, error) {
 }
 
 func (f *Azureadv2Impl) GetAuthURL(params GetURLParams) (string, error) {
+	nonce := params.Nonce
+	if nonce == "" {
+		return "", fmt.Errorf("missing nonce")
+	}
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return "", err
 	}
-	nonce := secureRandomNonce()
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
@@ -79,7 +74,7 @@ func (f *Azureadv2Impl) GetAuthURL(params GetURLParams) (string, error) {
 		state:          NewState(params),
 		baseURL:        c.AuthorizationEndpoint,
 		responseMode:   "form_post",
-		nonce:          nonce,
+		nonce:          hash.SHA256String(nonce),
 	}
 	return authURL(p)
 }
@@ -148,7 +143,6 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 		return nil, fmt.Errorf("unable to find key")
 	}
 
-	// TODO: Validate nonce
 	mapClaims := jwt.MapClaims{}
 	_, err = jwt.ParseWithClaims(idToken, mapClaims, keyFunc)
 	if err != nil {
@@ -157,6 +151,15 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 
 	if !mapClaims.VerifyAudience(f.ProviderConfig.ClientID, true) {
 		err = fmt.Errorf("invalid audience")
+		return
+	}
+	hashedNonce, ok := mapClaims["nonce"].(string)
+	if !ok {
+		err = fmt.Errorf("no nonce")
+		return
+	}
+	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(hash.SHA256String(r.Nonce))) != 1 {
+		err = fmt.Errorf("invalid nonce")
 		return
 	}
 

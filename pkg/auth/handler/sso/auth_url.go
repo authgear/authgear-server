@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
 )
@@ -190,6 +191,19 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 		return
 	}
 
+	cookie, cookieErr := r.Cookie(coreHttp.CookieNameOpenIDConnectNonce)
+	if cookieErr == http.ErrNoCookie {
+		// Set nonce
+		nonce := sso.GenerateOpenIDConnectNonce()
+		cookie = &http.Cookie{
+			Name:     coreHttp.CookieNameOpenIDConnectNonce,
+			Value:    nonce,
+			Path:     "/",
+			HttpOnly: true,
+		}
+		http.SetCookie(w, cookie)
+	}
+
 	params := sso.GetURLParams{
 		Options: payload.Options,
 		State: sso.State{
@@ -199,6 +213,7 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 			MergeRealm:      payload.MergeRealm,
 			OnUserDuplicate: payload.OnUserDuplicate,
 		},
+		Nonce: cookie.Value,
 	}
 	if h.AuthContext.AuthInfo() != nil {
 		params.State.UserID = h.AuthContext.AuthInfo().ID
