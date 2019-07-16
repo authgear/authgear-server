@@ -6,8 +6,9 @@ import (
 
 const (
 	googleAuthorizationURL string = "https://accounts.google.com/o/oauth2/v2/auth"
-	googleTokenURL         string = "https://www.googleapis.com/oauth2/v4/token"
-	googleUserInfoURL      string = "https://www.googleapis.com/oauth2/v1/userinfo"
+	// nolint: gosec
+	googleTokenURL    string = "https://www.googleapis.com/oauth2/v4/token"
+	googleUserInfoURL string = "https://www.googleapis.com/oauth2/v1/userinfo"
 )
 
 type GoogleImpl struct {

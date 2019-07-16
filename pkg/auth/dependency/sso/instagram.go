@@ -9,8 +9,9 @@ import (
 
 const (
 	instagramAuthorizationURL string = "https://api.instagram.com/oauth/authorize"
-	instagramTokenURL         string = "https://api.instagram.com/oauth/access_token"
-	instagramUserInfoURL      string = "https://api.instagram.com/v1/users/self"
+	// nolint: gosec
+	instagramTokenURL    string = "https://api.instagram.com/oauth/access_token"
+	instagramUserInfoURL string = "https://api.instagram.com/v1/users/self"
 )
 
 type InstagramImpl struct {

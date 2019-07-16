@@ -6,8 +6,9 @@ import (
 
 const (
 	linkedinAuthorizationURL string = "https://www.linkedin.com/oauth/v2/authorization"
-	linkedinTokenURL         string = "https://www.linkedin.com/oauth/v2/accessToken"
-	linkedinUserInfoURL      string = "https://www.linkedin.com/v1/people/~?format=json"
+	// nolint: gosec
+	linkedinTokenURL    string = "https://www.linkedin.com/oauth/v2/accessToken"
+	linkedinUserInfoURL string = "https://www.linkedin.com/v1/people/~?format=json"
 )
 
 type LinkedInImpl struct {
