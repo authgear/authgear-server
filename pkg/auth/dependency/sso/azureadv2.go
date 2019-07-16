@@ -33,6 +33,8 @@ type azureadv2OpenIDConfiguration struct {
 func (f *Azureadv2Impl) getOpenIDConfiguration() (c azureadv2OpenIDConfiguration, err error) {
 	// TODO(sso): Cache OpenID configuration
 	endpoint := fmt.Sprintf(azureadv2ConfigurationURLFormat, f.ProviderConfig.Tenant)
+
+	// nolint: gosec
 	resp, err := http.Get(endpoint)
 	if err != nil {
 		return
@@ -47,6 +49,7 @@ func (f *Azureadv2Impl) getOpenIDConfiguration() (c azureadv2OpenIDConfiguration
 
 func (f *Azureadv2Impl) getKeys(endpoint string) (*jwk.Set, error) {
 	// TODO(sso): Cache JWKs
+	// nolint: gosec
 	resp, err := http.Get(endpoint)
 	if err != nil {
 		return nil, err

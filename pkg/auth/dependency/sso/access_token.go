@@ -103,6 +103,7 @@ func fetchAccessTokenResp(
 	v.Add("client_id", providerConfig.ClientID)
 	v.Add("client_secret", providerConfig.ClientSecret)
 
+	// nolint: gosec
 	resp, err := http.PostForm(accessTokenURL, v)
 	if err != nil {
 		return
