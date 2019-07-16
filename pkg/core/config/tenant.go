@@ -412,6 +412,10 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.UserConfig.TokenStore.Secret == "" {
 		c.UserConfig.TokenStore.Secret = c.UserConfig.MasterKey
 	}
+	// Default oauth state secret to master key
+	if c.UserConfig.SSO.OAuth.StateJWTSecret == "" {
+		c.UserConfig.SSO.OAuth.StateJWTSecret = c.UserConfig.MasterKey
+	}
 
 	// Propagate AppName
 	if c.UserConfig.ForgotPassword.AppName == "" {
