@@ -72,6 +72,9 @@ func TestAuthURLHandler(t *testing.T) {
 		oauthConfig := coreconfig.OAuthConfiguration{
 			URLPrefix:      "http://localhost:3000/auth",
 			StateJWTSecret: "secret",
+			AllowedCallbackURLs: []string{
+				"callbackURL",
+			},
 		}
 		providerConfig := coreconfig.OAuthProviderConfiguration{
 			ID:           "mock",
@@ -93,6 +96,7 @@ func TestAuthURLHandler(t *testing.T) {
 		h.Provider = &mockProvider
 		h.PasswordAuthProvider = mockPasswordProvider
 		h.Action = "login"
+		h.OAuthConfiguration = oauthConfig
 		payload := AuthURLRequestPayload{
 			MergeRealm:      password.DefaultRealm,
 			OnUserDuplicate: sso.OnUserDuplicateAbort,

@@ -1,6 +1,9 @@
 package sso
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -143,4 +146,22 @@ func (p *ProviderFactory) NewProvider(id string) Provider {
 		}
 	}
 	return nil
+}
+
+func ValidateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
+	if callbackURL == "" {
+		err = fmt.Errorf("missing callback URL")
+		return
+	}
+
+	lowerCallbackURL := strings.ToLower(callbackURL)
+	for _, v := range allowedCallbackURLs {
+		lowerAllowed := strings.ToLower(v)
+		if strings.HasPrefix(lowerCallbackURL, lowerAllowed) {
+			return nil
+		}
+	}
+
+	err = fmt.Errorf("callback URL is not whitelisted")
+	return
 }

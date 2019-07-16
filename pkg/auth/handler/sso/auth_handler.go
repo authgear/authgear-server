@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
@@ -223,26 +222,11 @@ func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo) (resp interface{}, err e
 }
 
 func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
-	if callbackURL == "" {
-		err = skyerr.NewError(skyerr.BadRequest, "Missing callback url")
+	err = sso.ValidateCallbackURL(allowedCallbackURLs, callbackURL)
+	if err != nil {
+		err = skyerr.NewError(skyerr.BadRequest, err.Error())
 		return
 	}
-	if len(allowedCallbackURLs) != 0 {
-		found := false
-		lowerCallbackURL := strings.ToLower(callbackURL)
-		for _, v := range allowedCallbackURLs {
-			lowerAllowed := strings.ToLower(v)
-			if strings.HasPrefix(lowerCallbackURL, lowerAllowed) {
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			err = skyerr.NewError(skyerr.BadRequest, "The callback url is not whitelisted in the social login setting")
-		}
-	}
-
 	return
 }
 

@@ -444,6 +444,10 @@ user_config:
 			c.UserConfig.SSO.OAuth.Providers[1].ID = "azure1"
 
 			So(c.Validate(), ShouldBeNil)
+
+			c.UserConfig.SSO.OAuth.AllowedCallbackURLs = nil
+
+			So(c.Validate(), ShouldBeError, "Must specify OAuth callback URLs")
 		})
 	})
 }

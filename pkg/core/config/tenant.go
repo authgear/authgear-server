@@ -396,6 +396,12 @@ func (c *TenantConfiguration) Validate() error {
 			return fmt.Errorf("OAuth Provider %s: missing scope", provider.ID)
 		}
 	}
+	oauthIsEffective := len(c.UserConfig.SSO.OAuth.Providers) > 0
+	if oauthIsEffective {
+		if len(c.UserConfig.SSO.OAuth.AllowedCallbackURLs) <= 0 {
+			return fmt.Errorf("Must specify OAuth callback URLs")
+		}
+	}
 
 	return nil
 }

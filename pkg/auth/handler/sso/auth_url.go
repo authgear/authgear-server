@@ -176,6 +176,11 @@ func (h AuthURLHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
+	if e := sso.ValidateCallbackURL(h.OAuthConfiguration.AllowedCallbackURLs, payload.CallbackURL); e != nil {
+		err = skyerr.NewInvalidArgument(e.Error(), []string{string(payload.CallbackURL)})
+		return
+	}
+
 	params := sso.GetURLParams{
 		Options: payload.Options,
 		State: sso.State{
