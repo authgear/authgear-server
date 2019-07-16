@@ -5,6 +5,13 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+// SSOCustomTokenClaims is just an alias of jwt.MapClaims,
+// which in turn is just map[string]interface{}.
+// Representing the claims with map allows us
+// to preserve the original claims, not just the
+// claims we currently recognize. We can always
+// add more getter methods to expose new
+// recognized claims.
 type SSOCustomTokenClaims jwt.MapClaims
 
 func (c SSOCustomTokenClaims) Subject() string {
