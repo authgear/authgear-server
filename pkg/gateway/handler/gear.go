@@ -31,7 +31,18 @@ func newGearReverseProxy() *httputil.ReverseProxy {
 		req.URL.RawQuery = query
 		req.URL.Fragment = fragment
 	}
-	return &httputil.ReverseProxy{Director: director}
+	modifyResponse := func(r *http.Response) error {
+		// Remove CORS headers because they are managed by this gateway.
+		// Auth gear in standalone mode mounts CORS middleware.
+		// If we do not remove CORS headers, then the headers will duplicate.
+		r.Header.Del("Access-Control-Allow-Origin")
+		r.Header.Del("Access-Control-Allow-Credentials")
+		r.Header.Del("Access-Control-Allow-Methods")
+		r.Header.Del("Access-Control-Allow-Headers")
+		return nil
+	}
+
+	return &httputil.ReverseProxy{Director: director, ModifyResponse: modifyResponse}
 }
 
 func rewriteHandler(p *httputil.ReverseProxy, restPathIdentifier string) func(http.ResponseWriter, *http.Request) {
