@@ -83,11 +83,16 @@ func (i instagramAuthInfoProcessor) DecodeUserInfo(userProfile map[string]interf
 	return
 }
 
-func (f *InstagramImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+func (f *InstagramImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp, state State) (authInfo AuthInfo, err error) {
+	encodedState, err := EncodeState(f.OAuthConfig.StateJWTSecret, state)
+	if err != nil {
+		return
+	}
 	p := newInstagramAuthInfoProcessor()
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
+		encodedState:   encodedState,
 		accessTokenURL: instagramTokenURL,
 		userProfileURL: instagramUserInfoURL,
 		processor:      p,

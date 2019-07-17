@@ -54,16 +54,24 @@ func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
-	AccessToken string `json:"access_token"`
+	AccessToken     string              `json:"access_token"`
+	MergeRealm      string              `json:"merge_realm"`
+	OnUserDuplicate sso.OnUserDuplicate `json:"on_user_duplicate"`
 }
 
 // Validate request payload
-func (p LoginRequestPayload) Validate() error {
+func (p LoginRequestPayload) Validate() (err error) {
 	if p.AccessToken == "" {
-		return skyerr.NewInvalidArgument("empty access token", []string{"access_token"})
+		err = skyerr.NewInvalidArgument("empty access token", []string{"access_token"})
+		return
 	}
 
-	return nil
+	if !sso.IsValidOnUserDuplicate(p.OnUserDuplicate) {
+		err = skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
+		return
+	}
+
+	return
 }
 
 // LoginHandler decodes code response and fetch access token from provider.
@@ -111,6 +119,12 @@ func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPaylo
 	if err != nil {
 		return payload, err
 	}
+	if payload.MergeRealm == "" {
+		payload.MergeRealm = password.DefaultRealm
+	}
+	if payload.OnUserDuplicate == "" {
+		payload.OnUserDuplicate = sso.OnUserDuplicateDefault
+	}
 	return payload, nil
 }
 
@@ -127,7 +141,17 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	payload := req.(LoginRequestPayload)
-	oauthAuthInfo, err := provider.ExternalAccessTokenGetAuthInfo(sso.NewBearerAccessTokenResp(payload.AccessToken))
+
+	// Construct state from payload
+	// Many of the fields are omitted because they are meaningful only
+	// in the OAuth 2.0 flow.
+	// UserID can be omitted because it is meaningful for link action.
+	state := sso.State{
+		MergeRealm:      payload.MergeRealm,
+		OnUserDuplicate: payload.OnUserDuplicate,
+	}
+
+	oauthAuthInfo, err := provider.ExternalAccessTokenGetAuthInfo(sso.NewBearerAccessTokenResp(payload.AccessToken), state)
 	if err != nil {
 		return
 	}

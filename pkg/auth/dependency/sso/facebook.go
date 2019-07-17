@@ -52,10 +52,15 @@ func (f *FacebookImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
-func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp, state State) (authInfo AuthInfo, err error) {
+	encodedState, err := EncodeState(f.OAuthConfig.StateJWTSecret, state)
+	if err != nil {
+		return
+	}
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
+		encodedState:   encodedState,
 		accessTokenURL: facebookTokenURL,
 		userProfileURL: facebookUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),

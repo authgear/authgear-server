@@ -55,7 +55,7 @@ func (f *MockSSOProvider) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
-func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp, state State) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{
 		ProviderConfig:          f.ProviderConfig,
 		ProviderAccessTokenResp: map[string]interface{}{},

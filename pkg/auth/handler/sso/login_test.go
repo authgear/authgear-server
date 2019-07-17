@@ -27,10 +27,10 @@ import (
 
 func TestLoginPayload(t *testing.T) {
 	Convey("Test LoginRequestPayload", t, func() {
-		// callback URL and ux_mode is required
 		Convey("validate valid payload", func() {
 			payload := LoginRequestPayload{
-				AccessToken: "token",
+				AccessToken:     "token",
+				OnUserDuplicate: sso.OnUserDuplicateDefault,
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})

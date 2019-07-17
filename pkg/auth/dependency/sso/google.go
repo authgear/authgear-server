@@ -50,10 +50,15 @@ func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 	return h.getAuthInfo()
 }
 
-func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp, state State) (authInfo AuthInfo, err error) {
+	encodedState, err := EncodeState(f.OAuthConfig.StateJWTSecret, state)
+	if err != nil {
+		return
+	}
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
+		encodedState:   encodedState,
 		accessTokenURL: googleTokenURL,
 		userProfileURL: googleUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),

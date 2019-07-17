@@ -140,7 +140,7 @@ type NonOpenIDConnectProvider interface {
 // can be used to fetch user info.
 // They are Google, Facebook, Instagram and LinkedIn.
 type ExternalAccessTokenFlowProvider interface {
-	ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error)
+	ExternalAccessTokenGetAuthInfo(AccessTokenResp, State) (AuthInfo, error)
 }
 
 // OpenIDConnectProvider are OpenID Connect provider.

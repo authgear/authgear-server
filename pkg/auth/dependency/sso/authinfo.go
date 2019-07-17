@@ -57,8 +57,8 @@ func (h getAuthInfoRequest) getAuthInfoByAccessTokenResp(accessTokenResp AccessT
 		if err != nil {
 			return
 		}
+		authInfo.State = *state
 	}
-	authInfo.State = *state
 
 	userProfile, err := fetchUserProfile(accessTokenResp, h.userProfileURL)
 	if err != nil {
