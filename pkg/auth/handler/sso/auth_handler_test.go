@@ -23,6 +23,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/hash"
+	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
@@ -45,11 +47,11 @@ func decodeCookie(resp *httptest.ResponseRecorder) ([]byte, error) {
 
 func TestAuthPayload(t *testing.T) {
 	Convey("Test AuthRequestPayload", t, func() {
-		// callback URL and ux_mode is required
 		Convey("validate valid payload", func() {
 			payload := AuthRequestPayload{
 				Code:  "code",
 				State: "state",
+				Nonce: "nonce",
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
@@ -139,6 +141,12 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
+		nonce := "nonce"
+		hashedNonce := hash.SHA256String(nonce)
+		nonceCookie := &http.Cookie{
+			Name:  coreHttp.CookieNameOpenIDConnectNonce,
+			Value: nonce,
+		}
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
 			uxMode := sso.UXModeWebRedirect
@@ -150,6 +158,7 @@ func TestAuthHandler(t *testing.T) {
 					UXMode:      uxMode,
 					Action:      action,
 				},
+				Nonce: hashedNonce,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -161,6 +170,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -214,6 +224,7 @@ func TestAuthHandler(t *testing.T) {
 					UXMode:      uxMode,
 					Action:      action,
 				},
+				Nonce: hashedNonce,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -225,6 +236,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -246,6 +258,7 @@ func TestAuthHandler(t *testing.T) {
 					UXMode:      uxMode,
 					Action:      action,
 				},
+				Nonce: hashedNonce,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -257,6 +270,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -362,6 +376,12 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
+		nonce := "nonce"
+		hashedNonce := hash.SHA256String(nonce)
+		nonceCookie := &http.Cookie{
+			Name:  coreHttp.CookieNameOpenIDConnectNonce,
+			Value: nonce,
+		}
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
 			uxMode := sso.UXModeWebRedirect
@@ -376,6 +396,7 @@ func TestAuthHandler(t *testing.T) {
 				LinkState: sso.LinkState{
 					UserID: "john.doe.id",
 				},
+				Nonce: hashedNonce,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -387,6 +408,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -419,6 +441,7 @@ func TestAuthHandler(t *testing.T) {
 				LinkState: sso.LinkState{
 					UserID: "jane.doe.id",
 				},
+				Nonce: hashedNonce,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -430,6 +453,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
@@ -535,6 +559,12 @@ func TestAuthHandler(t *testing.T) {
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider, sh.PasswordAuthProvider)
+		nonce := "nonce"
+		hashedNonce := hash.SHA256String(nonce)
+		nonceCookie := &http.Cookie{
+			Name:  coreHttp.CookieNameOpenIDConnectNonce,
+			Value: nonce,
+		}
 
 		Convey("OnUserDuplicate == abort", func() {
 			state := sso.State{
@@ -547,6 +577,7 @@ func TestAuthHandler(t *testing.T) {
 					MergeRealm:      password.DefaultRealm,
 					OnUserDuplicate: sso.OnUserDuplicateAbort,
 				},
+				Nonce: hashedNonce,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -557,6 +588,7 @@ func TestAuthHandler(t *testing.T) {
 				RawQuery: v.Encode(),
 			}
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -589,6 +621,7 @@ func TestAuthHandler(t *testing.T) {
 					MergeRealm:      password.DefaultRealm,
 					OnUserDuplicate: sso.OnUserDuplicateMerge,
 				},
+				Nonce: hashedNonce,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -599,6 +632,7 @@ func TestAuthHandler(t *testing.T) {
 				RawQuery: v.Encode(),
 			}
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 
@@ -651,6 +685,7 @@ func TestAuthHandler(t *testing.T) {
 					MergeRealm:      password.DefaultRealm,
 					OnUserDuplicate: sso.OnUserDuplicateCreate,
 				},
+				Nonce: hashedNonce,
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -661,6 +696,7 @@ func TestAuthHandler(t *testing.T) {
 				RawQuery: v.Encode(),
 			}
 			req, _ := http.NewRequest("GET", u.RequestURI(), nil)
+			req.AddCookie(nonceCookie)
 			resp := httptest.NewRecorder()
 			sh.ServeHTTP(resp, req)
 

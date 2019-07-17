@@ -1,25 +1,39 @@
 package sso
 
 import (
+	"crypto/subtle"
+	"fmt"
+
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/hash"
 )
 
 type getAuthInfoRequest struct {
 	oauthConfig    config.OAuthConfiguration
 	providerConfig config.OAuthProviderConfiguration
-	code           string
 	accessTokenURL string
 	userProfileURL string
 	processor      AuthInfoProcessor
 }
 
-func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
+func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+	state, err := DecodeState(h.oauthConfig.StateJWTSecret, r.State)
+	if err != nil {
+		return
+	}
+
+	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(hash.SHA256String(r.Nonce))) != 1 {
+		err = fmt.Errorf("invalid nonce")
+		return
+	}
+
+	// compare nonce
 	authInfo = AuthInfo{
 		ProviderConfig: h.providerConfig,
 	}
 
 	accessTokenResp, err := fetchAccessTokenResp(
-		h.code,
+		r.Code,
 		h.accessTokenURL,
 		h.oauthConfig,
 		h.providerConfig,

@@ -16,6 +16,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
+	"github.com/skygeario/skygear-server/pkg/core/hash"
 	coreHttp "github.com/skygeario/skygear-server/pkg/core/http"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
@@ -224,8 +225,8 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 				UXMode:      payload.UXMode,
 				Action:      h.Action,
 			},
+			Nonce: hash.SHA256String(nonce),
 		},
-		Nonce: cookie.Value,
 	}
 	if h.AuthContext.AuthInfo() != nil {
 		params.State.UserID = h.AuthContext.AuthInfo().ID

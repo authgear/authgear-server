@@ -39,12 +39,11 @@ func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		code:           r.Code,
 		accessTokenURL: googleTokenURL,
 		userProfileURL: googleUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
 	}
-	return h.getAuthInfo()
+	return h.getAuthInfo(r)
 }
 
 func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {

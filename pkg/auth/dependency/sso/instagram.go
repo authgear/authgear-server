@@ -47,12 +47,11 @@ func (f *InstagramImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		code:           r.Code,
 		accessTokenURL: instagramTokenURL,
 		userProfileURL: instagramUserInfoURL,
 		processor:      p,
 	}
-	return h.getAuthInfo()
+	return h.getAuthInfo(r)
 }
 
 func (i instagramAuthInfoProcessor) DecodeUserInfo(userProfile map[string]interface{}) (info ProviderUserInfo) {

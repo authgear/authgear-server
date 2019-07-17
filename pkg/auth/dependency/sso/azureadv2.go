@@ -62,10 +62,6 @@ func (f *Azureadv2Impl) getKeys(endpoint string) (*jwk.Set, error) {
 }
 
 func (f *Azureadv2Impl) GetAuthURL(params GetURLParams) (string, error) {
-	nonce := params.Nonce
-	if nonce == "" {
-		return "", fmt.Errorf("missing nonce")
-	}
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return "", err
@@ -76,7 +72,7 @@ func (f *Azureadv2Impl) GetAuthURL(params GetURLParams) (string, error) {
 		state:          NewState(params),
 		baseURL:        c.AuthorizationEndpoint,
 		responseMode:   "form_post",
-		nonce:          hash.SHA256String(nonce),
+		nonce:          params.State.Nonce,
 	}
 	return authURL(p)
 }
@@ -90,6 +86,16 @@ func (f *Azureadv2Impl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo Auth
 }
 
 func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+	state, err := DecodeState(f.OAuthConfig.StateJWTSecret, r.State)
+	if err != nil {
+		return
+	}
+
+	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(hash.SHA256String(r.Nonce))) != 1 {
+		err = fmt.Errorf("invalid nonce")
+		return
+	}
+
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return

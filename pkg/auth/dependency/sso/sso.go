@@ -37,6 +37,7 @@ type State struct {
 	LoginState
 	LinkState
 	OAuthAuthorizationCodeFlowState
+	Nonce string `json:"nonce,omitempty"`
 }
 
 // UXMode indicates how the URL is used
@@ -98,7 +99,6 @@ func IsAllowedOnUserDuplicate(onUserDuplicateAllowMerge bool, onUserDuplicateAll
 // GetURLParams is the argument of getAuthURL
 type GetURLParams struct {
 	State State
-	Nonce string
 }
 
 // AuthInfo contains auth info from HandleAuthzResp
@@ -118,15 +118,18 @@ type OAuthAuthorizationResponse struct {
 	Code  string
 	State string
 	Scope string
-	// Nonce is required when the underlying provider is OpenID connect compliant.
+	// Nonce is required when the provider supports OpenID connect or OAuth Authorization Code Flow.
 	// The implementation is based on the suggestion in the spec.
 	// See https://openid.net/specs/openid-connect-core-1_0.html#NonceNotes
 	//
 	// The nonce is a cryptographically random string.
-	// The nonce passed to the provider is SHA256 hash of it.
-	// The get-authorization URL endpoint ensures the nonce in session cookie.
-	// The callback endpoint expect the user agent to include the nonce in session cookie.
+	// The nonce is stored in the session cookie when auth URL is called.
+	// The nonce is hashed with SHA256.
+	// The hashed nonce is given to the OIDC provider
+	// The hashed nonce is stored in the state.
+	// The callback endpoint expect the user agent to include the nonce in the session cookie.
 	// The nonce in session cookie will be validated against the hashed nonce in the ID token.
+	// The nonce in session cookie will be validated against the hashed nonce in the state.
 	Nonce string
 }
 

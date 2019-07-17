@@ -38,12 +38,11 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		code:           r.Code,
 		accessTokenURL: facebookTokenURL,
 		userProfileURL: facebookUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
 	}
-	return h.getAuthInfo()
+	return h.getAuthInfo(r)
 }
 
 func (f *FacebookImpl) DecodeState(encodedState string) (*State, error) {

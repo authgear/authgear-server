@@ -38,12 +38,11 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		code:           r.Code,
 		accessTokenURL: linkedinTokenURL,
 		userProfileURL: linkedinUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
 	}
-	return h.getAuthInfo()
+	return h.getAuthInfo(r)
 }
 
 func (f *LinkedInImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {

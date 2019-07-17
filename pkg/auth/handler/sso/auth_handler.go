@@ -66,7 +66,11 @@ func (p AuthRequestPayload) Validate() error {
 	}
 
 	if p.State == "" {
-		return skyerr.NewInvalidArgument("State is required", []string{"state"})
+		return skyerr.NewInvalidArgument("state is required", []string{"state"})
+	}
+
+	if p.Nonce == "" {
+		return skyerr.NewInvalidArgument("nonce is required", []string{"nonce"})
 	}
 
 	return nil
