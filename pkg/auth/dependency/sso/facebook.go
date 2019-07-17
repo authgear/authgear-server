@@ -17,16 +17,15 @@ type FacebookImpl struct {
 }
 
 func (f *FacebookImpl) GetAuthURL(params GetURLParams) (string, error) {
-	if params.State.UXMode == UXModeWebPopup {
-		// https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow
-		params.Options["display"] = "popup"
-	}
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		options:        params.Options,
 		state:          NewState(params),
 		baseURL:        facebookAuthorizationURL,
+	}
+	if params.State.UXMode == UXModeWebPopup {
+		// https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow
+		p.display = "popup"
 	}
 	return authURL(p)
 }

@@ -11,11 +11,13 @@ import (
 type authURLParams struct {
 	oauthConfig    config.OAuthConfiguration
 	providerConfig config.OAuthProviderConfiguration
-	options        Options
 	state          State
 	baseURL        string
 	nonce          string
 	responseMode   string
+	display        string
+	accessType     string
+	prompt         string
 }
 
 func redirectURI(oauthConfig config.OAuthConfiguration, providerConfig config.OAuthProviderConfiguration) string {
@@ -33,12 +35,6 @@ func authURL(params authURLParams) (string, error) {
 	}
 
 	v := url.Values{}
-	// Add user-specified options first
-	// to avoid important params being overridden
-	for k, o := range params.options {
-		v.Add(k, fmt.Sprintf("%v", o))
-	}
-
 	v.Set("response_type", "code")
 	v.Set("client_id", params.providerConfig.ClientID)
 	v.Set("redirect_uri", redirectURI(params.oauthConfig, params.providerConfig))
@@ -49,6 +45,15 @@ func authURL(params authURLParams) (string, error) {
 	}
 	if params.responseMode != "" {
 		v.Set("response_mode", params.responseMode)
+	}
+	if params.display != "" {
+		v.Set("display", params.display)
+	}
+	if params.accessType != "" {
+		v.Set("access_type", params.accessType)
+	}
+	if params.prompt != "" {
+		v.Set("prompt", params.prompt)
 	}
 
 	return params.baseURL + "?" + v.Encode(), nil

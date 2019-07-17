@@ -20,7 +20,6 @@ func (f *MockSSOProvider) GetAuthURL(params GetURLParams) (string, error) {
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		options:        params.Options,
 		state:          NewState(params),
 		baseURL:        f.BaseURL,
 	}

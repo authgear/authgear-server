@@ -12,9 +12,6 @@ const (
 	nonceAlphabet string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 )
 
-// Options parameter allows additional options for getting auth url
-type Options map[string]interface{}
-
 // LoginState stores login specific state.
 type LoginState struct {
 	MergeRealm      string          `json:"merge_realm,omitempty"`
@@ -100,9 +97,8 @@ func IsAllowedOnUserDuplicate(onUserDuplicateAllowMerge bool, onUserDuplicateAll
 
 // GetURLParams is the argument of getAuthURL
 type GetURLParams struct {
-	Options Options
-	State   State
-	Nonce   string
+	State State
+	Nonce string
 }
 
 // AuthInfo contains auth info from HandleAuthzResp

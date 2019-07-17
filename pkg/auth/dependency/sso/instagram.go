@@ -1,7 +1,6 @@
 package sso
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
@@ -36,9 +35,6 @@ func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
 	v.Set("response_type", "code")
 	v.Add("client_id", f.ProviderConfig.ClientID)
 	v.Add("redirect_uri", redirectURI(f.OAuthConfig, f.ProviderConfig))
-	for k, o := range params.Options {
-		v.Add(k, fmt.Sprintf("%v", o))
-	}
 	v.Add("scope", f.ProviderConfig.Scope)
 	// Instagram non-compliance fix
 	// if we don't put state as the last parameter

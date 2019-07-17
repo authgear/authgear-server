@@ -57,11 +57,10 @@ func (f AuthURLHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // AuthURLRequestPayload login handler request payload
 type AuthURLRequestPayload struct {
-	Options         map[string]interface{} `json:"options"`
-	CallbackURL     string                 `json:"callback_url"`
-	UXMode          sso.UXMode             `json:"ux_mode"`
-	MergeRealm      string                 `json:"merge_realm"`
-	OnUserDuplicate sso.OnUserDuplicate    `json:"on_user_duplicate"`
+	CallbackURL     string              `json:"callback_url"`
+	UXMode          sso.UXMode          `json:"ux_mode"`
+	MergeRealm      string              `json:"merge_realm"`
+	OnUserDuplicate sso.OnUserDuplicate `json:"on_user_duplicate"`
 }
 
 func (p AuthURLRequestPayload) Validate() (err error) {
@@ -91,9 +90,6 @@ func (p AuthURLRequestPayload) Validate() (err error) {
 //   http://localhost:3000/sso/<provider>/login_auth_url \
 // <<EOF
 // {
-//     "options": {
-//       "prompt": "select_account"
-//     },
 //     callback_url: <url>,
 //     ux_mode: <ux_mode>
 // }
@@ -111,9 +107,6 @@ func (p AuthURLRequestPayload) Validate() (err error) {
 //   http://localhost:3000/sso/<provider>/link_auth_url \
 // <<EOF
 // {
-//     "options": {
-//       "prompt": "select_account"
-//     },
 //     callback_url: <url>,
 //     ux_mode: <ux_mode>
 // }
@@ -153,10 +146,7 @@ func (h *AuthURLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result interface{}, err error) {
-	payload := AuthURLRequestPayload{
-		// avoid nil pointer
-		Options: make(sso.Options),
-	}
+	payload := AuthURLRequestPayload{}
 	if r.Method == http.MethodPost {
 		err = json.NewDecoder(r.Body).Decode(&payload)
 		if err != nil {
@@ -224,7 +214,6 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	}
 
 	params := sso.GetURLParams{
-		Options: payload.Options,
 		State: sso.State{
 			LoginState: sso.LoginState{
 				MergeRealm:      payload.MergeRealm,

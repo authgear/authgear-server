@@ -17,14 +17,13 @@ type GoogleImpl struct {
 }
 
 func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
-	params.Options["access_type"] = "offline"
-	params.Options["prompt"] = "select_account"
 	p := authURLParams{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		options:        params.Options,
 		state:          NewState(params),
 		baseURL:        googleAuthorizationURL,
+		prompt:         "select_account",
+		accessType:     "offline",
 	}
 	return authURL(p)
 }

@@ -103,10 +103,7 @@ func TestAuthURLHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"callback_url": "callbackURL",
-				"ux_mode": "web_redirect",
-				"options": {
-					"number": 1
-				}
+				"ux_mode": "web_redirect"
 			}
 			`))
 			resp := httptest.NewRecorder()
@@ -128,7 +125,6 @@ func TestAuthURLHandler(t *testing.T) {
 			So(q.Get("response_type"), ShouldEqual, "code")
 			So(q.Get("client_id"), ShouldEqual, "mock_client_id")
 			So(q.Get("scope"), ShouldEqual, "openid profile email")
-			So(q.Get("number"), ShouldEqual, "1")
 
 			// check redirect_uri
 			r, _ := url.Parse(q.Get("redirect_uri"))
@@ -153,10 +149,7 @@ func TestAuthURLHandler(t *testing.T) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
 				"callback_url": "callbackURL",
-				"ux_mode": "web_redirect",
-				"options": {
-					"number": 1
-				}
+				"ux_mode": "web_redirect"
 			}
 			`))
 			resp := httptest.NewRecorder()
