@@ -8,6 +8,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
+	"github.com/skygeario/skygear-server/pkg/auth/task"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
@@ -22,6 +24,8 @@ type respHandler struct {
 	PasswordAuthProvider password.Provider
 	IdentityProvider     principal.IdentityProvider
 	UserProfileStore     userprofile.Store
+	TaskQueue            async.Queue
+	WelcomeEmailEnabled  bool
 }
 
 func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.LoginState) (resp interface{}, err error) {
@@ -68,6 +72,16 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
 		err = skyerr.MakeError(err)
 		return
+	}
+
+	if createNewUser &&
+		h.WelcomeEmailEnabled &&
+		oauthAuthInfo.ProviderUserInfo.Email != "" &&
+		h.TaskQueue != nil {
+		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
+			Email: oauthAuthInfo.ProviderUserInfo.Email,
+			User:  user,
+		}, nil)
 	}
 
 	return

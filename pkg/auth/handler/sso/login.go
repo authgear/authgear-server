@@ -13,6 +13,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -105,6 +106,8 @@ type LoginHandler struct {
 	ProviderFactory      *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	OAuthConfiguration   config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
+	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
+	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
 	Provider             sso.OAuthProvider
 	ProviderID           string
 }
@@ -159,6 +162,8 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		PasswordAuthProvider: h.PasswordAuthProvider,
 		IdentityProvider:     h.IdentityProvider,
 		UserProfileStore:     h.UserProfileStore,
+		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
+		TaskQueue:            h.TaskQueue,
 	}
 	resp, err = handler.loginActionResp(oauthAuthInfo, loginState)
 
