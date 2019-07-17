@@ -23,7 +23,6 @@ func (f *GoogleImpl) GetAuthURL(params GetURLParams) (string, error) {
 		state:          NewState(params),
 		baseURL:        googleAuthorizationURL,
 		prompt:         "select_account",
-		accessType:     "offline",
 	}
 	return authURL(p)
 }
