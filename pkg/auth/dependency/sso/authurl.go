@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	coreUrl "github.com/skygeario/skygear-server/pkg/core/url"
 )
 
 type authURLParams struct {
@@ -34,27 +35,31 @@ func authURL(params authURLParams) (string, error) {
 		return "", err
 	}
 
-	v := url.Values{}
-	v.Set("response_type", "code")
-	v.Set("client_id", params.providerConfig.ClientID)
-	v.Set("redirect_uri", redirectURI(params.oauthConfig, params.providerConfig))
-	v.Set("state", encodedState)
-	v.Set("scope", params.providerConfig.Scope)
+	v := coreUrl.Query{}
+	v.Add("response_type", "code")
+	v.Add("client_id", params.providerConfig.ClientID)
+	v.Add("redirect_uri", redirectURI(params.oauthConfig, params.providerConfig))
+	v.Add("scope", params.providerConfig.Scope)
 	if params.nonce != "" {
-		v.Set("nonce", params.nonce)
+		v.Add("nonce", params.nonce)
 	}
 	if params.responseMode != "" {
-		v.Set("response_mode", params.responseMode)
+		v.Add("response_mode", params.responseMode)
 	}
 	if params.display != "" {
-		v.Set("display", params.display)
+		v.Add("display", params.display)
 	}
 	if params.accessType != "" {
-		v.Set("access_type", params.accessType)
+		v.Add("access_type", params.accessType)
 	}
 	if params.prompt != "" {
-		v.Set("prompt", params.prompt)
+		v.Add("prompt", params.prompt)
 	}
+	// Instagram quirk
+	// state must be the last parameter otherwise
+	// it will be converted to lowercase when
+	// redirecting user to login page if user has not logged in before
+	v.Add("state", encodedState)
 
 	return params.baseURL + "?" + v.Encode(), nil
 }

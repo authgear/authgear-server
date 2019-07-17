@@ -1,8 +1,6 @@
 package sso
 
 import (
-	"net/url"
-
 	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
@@ -27,21 +25,13 @@ func newInstagramAuthInfoProcessor() instagramAuthInfoProcessor {
 }
 
 func (f *InstagramImpl) GetAuthURL(params GetURLParams) (string, error) {
-	encodedState, err := EncodeState(f.OAuthConfig.StateJWTSecret, NewState(params))
-	if err != nil {
-		return "", err
+	p := authURLParams{
+		oauthConfig:    f.OAuthConfig,
+		providerConfig: f.ProviderConfig,
+		state:          NewState(params),
+		baseURL:        instagramAuthorizationURL,
 	}
-	v := url.Values{}
-	v.Set("response_type", "code")
-	v.Add("client_id", f.ProviderConfig.ClientID)
-	v.Add("redirect_uri", redirectURI(f.OAuthConfig, f.ProviderConfig))
-	v.Add("scope", f.ProviderConfig.Scope)
-	// Instagram non-compliance fix
-	// if we don't put state as the last parameter
-	// instagram will convert the state value to lower case
-	// when redirecting user to login page if user has not logged in before
-	v.Add("state", encodedState)
-	return instagramAuthorizationURL + "?" + v.Encode(), nil
+	return authURL(p)
 }
 
 func (f *InstagramImpl) DecodeState(encodedState string) (*State, error) {
