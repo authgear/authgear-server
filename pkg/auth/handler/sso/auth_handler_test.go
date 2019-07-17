@@ -236,8 +236,8 @@ func TestAuthHandler(t *testing.T) {
 			So(matched, ShouldBeTrue)
 		})
 
-		Convey("should return callback url with result query parameter when ux_mode is ios or android", func() {
-			uxMode := sso.UXModeIOS
+		Convey("should return callback url with result query parameter when ux_mode is mobile_app", func() {
+			uxMode := sso.UXModeMobileApp
 
 			// oauth state
 			state := sso.State{
@@ -260,7 +260,7 @@ func TestAuthHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 
 			sh.ServeHTTP(resp, req)
-			// for ios or android, it should redirect to original callback url
+			// for mobile app, it should redirect to original callback url
 			So(resp.Code, ShouldEqual, 302)
 			// check location result query parameter
 			location, _ := url.Parse(resp.Header().Get("Location"))

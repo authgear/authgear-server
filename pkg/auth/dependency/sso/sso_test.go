@@ -13,8 +13,7 @@ func TestIsValidUXmode(t *testing.T) {
 
 		So(IsValidUXMode(UXModeWebRedirect), ShouldBeTrue)
 		So(IsValidUXMode(UXModeWebPopup), ShouldBeTrue)
-		So(IsValidUXMode(UXModeIOS), ShouldBeTrue)
-		So(IsValidUXMode(UXModeAndroid), ShouldBeTrue)
+		So(IsValidUXMode(UXModeMobileApp), ShouldBeTrue)
 	})
 }
 

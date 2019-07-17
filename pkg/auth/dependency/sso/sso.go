@@ -49,13 +49,12 @@ type UXMode string
 const (
 	UXModeWebRedirect UXMode = "web_redirect"
 	UXModeWebPopup    UXMode = "web_popup"
-	UXModeIOS         UXMode = "ios"
-	UXModeAndroid     UXMode = "android"
+	UXModeMobileApp   UXMode = "mobile_app"
 )
 
 // IsValidUXMode validates UXMode
 func IsValidUXMode(mode UXMode) bool {
-	allModes := []UXMode{UXModeWebRedirect, UXModeWebPopup, UXModeIOS, UXModeAndroid}
+	allModes := []UXMode{UXModeWebRedirect, UXModeWebPopup, UXModeMobileApp}
 	for _, v := range allModes {
 		if mode == v {
 			return true

@@ -76,7 +76,7 @@ func (p AuthRequestPayload) Validate() error {
 //
 // curl http://localhost:3000/sso/<provider>/auth_handler?code=<code>&state=<state>
 //
-// For ux_mode is 'ios' or 'android',
+// For ux_mode is 'mobile_app',
 // it creates a 302 response, and Location points to:
 // myapp://user.skygear.io/sso/{provider}/auth_handler?result=
 //
@@ -174,7 +174,7 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		switch state.UXMode {
 		case sso.UXModeWebRedirect, sso.UXModeWebPopup:
 			_ = h.handleSessionResp(rw, r, state.UXMode, state.CallbackURL, ok, err)
-		case sso.UXModeIOS, sso.UXModeAndroid:
+		case sso.UXModeMobileApp:
 			_ = h.handleRedirectResp(rw, r, state.CallbackURL, ok, err)
 		default:
 			http.Error(rw, "Invalid UXMode", http.StatusBadRequest)
@@ -276,7 +276,7 @@ func (h AuthHandler) handleRedirectResp(
 	ok interface{},
 	inputErr error,
 ) error {
-	// In ios and android oauth flow, after auth flow complete will redirect
+	// In mobile app oauth flow, after auth flow complete will redirect
 	// client back to the app with custom scheme
 	// result will be added to the url by query
 	//
