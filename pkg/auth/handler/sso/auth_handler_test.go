@@ -145,9 +145,11 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
-				CallbackURL: "http://localhost:3000",
-				UXMode:      uxMode,
-				Action:      action,
+				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+					CallbackURL: "http://localhost:3000",
+					UXMode:      uxMode,
+					Action:      action,
+				},
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -207,9 +209,11 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
-				CallbackURL: "http://localhost:3000",
-				UXMode:      uxMode,
-				Action:      action,
+				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+					CallbackURL: "http://localhost:3000",
+					UXMode:      uxMode,
+					Action:      action,
+				},
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -237,9 +241,11 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
-				CallbackURL: "http://localhost:3000",
-				UXMode:      uxMode,
-				Action:      action,
+				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+					CallbackURL: "http://localhost:3000",
+					UXMode:      uxMode,
+					Action:      action,
+				},
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -362,10 +368,14 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
-				CallbackURL: "http://localhost:3000",
-				UXMode:      uxMode,
-				Action:      action,
-				UserID:      "john.doe.id",
+				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+					CallbackURL: "http://localhost:3000",
+					UXMode:      uxMode,
+					Action:      action,
+				},
+				LinkState: sso.LinkState{
+					UserID: "john.doe.id",
+				},
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -401,10 +411,14 @@ func TestAuthHandler(t *testing.T) {
 
 			// oauth state
 			state := sso.State{
-				CallbackURL: "http://localhost:3000",
-				UXMode:      uxMode,
-				Action:      action,
-				UserID:      "jane.doe.id",
+				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+					CallbackURL: "http://localhost:3000",
+					UXMode:      uxMode,
+					Action:      action,
+				},
+				LinkState: sso.LinkState{
+					UserID: "jane.doe.id",
+				},
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -524,11 +538,15 @@ func TestAuthHandler(t *testing.T) {
 
 		Convey("OnUserDuplicate == abort", func() {
 			state := sso.State{
-				CallbackURL:     "http://localhost:3000",
-				UXMode:          UXMode,
-				Action:          action,
-				MergeRealm:      password.DefaultRealm,
-				OnUserDuplicate: sso.OnUserDuplicateAbort,
+				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+					CallbackURL: "http://localhost:3000",
+					UXMode:      UXMode,
+					Action:      action,
+				},
+				LoginState: sso.LoginState{
+					MergeRealm:      password.DefaultRealm,
+					OnUserDuplicate: sso.OnUserDuplicateAbort,
+				},
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -562,11 +580,15 @@ func TestAuthHandler(t *testing.T) {
 
 		Convey("OnUserDuplicate == merge", func() {
 			state := sso.State{
-				CallbackURL:     "http://localhost:3000",
-				UXMode:          UXMode,
-				Action:          action,
-				MergeRealm:      password.DefaultRealm,
-				OnUserDuplicate: sso.OnUserDuplicateMerge,
+				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+					CallbackURL: "http://localhost:3000",
+					UXMode:      UXMode,
+					Action:      action,
+				},
+				LoginState: sso.LoginState{
+					MergeRealm:      password.DefaultRealm,
+					OnUserDuplicate: sso.OnUserDuplicateMerge,
+				},
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 
@@ -620,11 +642,15 @@ func TestAuthHandler(t *testing.T) {
 
 		Convey("OnUserDuplicate == create", func() {
 			state := sso.State{
-				CallbackURL:     "http://localhost:3000",
-				UXMode:          UXMode,
-				Action:          action,
-				MergeRealm:      password.DefaultRealm,
-				OnUserDuplicate: sso.OnUserDuplicateCreate,
+				OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+					CallbackURL: "http://localhost:3000",
+					UXMode:      UXMode,
+					Action:      action,
+				},
+				LoginState: sso.LoginState{
+					MergeRealm:      password.DefaultRealm,
+					OnUserDuplicate: sso.OnUserDuplicateCreate,
+				},
 			}
 			encodedState, _ := sso.EncodeState(stateJWTSecret, state)
 

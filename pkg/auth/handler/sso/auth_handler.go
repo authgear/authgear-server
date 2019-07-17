@@ -185,7 +185,7 @@ func (h AuthHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	ok, err = h.handle(oauthAuthInfo)
+	ok, err = h.handle(oauthAuthInfo, *state)
 	if err != nil {
 		return
 	}
@@ -208,7 +208,7 @@ func (h AuthHandler) getAuthInfo(payload AuthRequestPayload) (oauthAuthInfo sso.
 	return
 }
 
-func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
+func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (resp interface{}, err error) {
 	respHandler := respHandler{
 		TokenStore:           h.TokenStore,
 		AuthInfoStore:        h.AuthInfoStore,
@@ -216,14 +216,13 @@ func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo) (resp interface{}, err e
 		PasswordAuthProvider: h.PasswordAuthProvider,
 		IdentityProvider:     h.IdentityProvider,
 		UserProfileStore:     h.UserProfileStore,
-		UserID:               oauthAuthInfo.State.UserID,
 	}
 
-	if oauthAuthInfo.State.Action == "login" {
-		return respHandler.loginActionResp(oauthAuthInfo)
+	if state.Action == "login" {
+		return respHandler.loginActionResp(oauthAuthInfo, state.LoginState)
 	}
 
-	return respHandler.linkActionResp(oauthAuthInfo)
+	return respHandler.linkActionResp(oauthAuthInfo, state.LinkState)
 }
 
 func (h AuthHandler) validateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {

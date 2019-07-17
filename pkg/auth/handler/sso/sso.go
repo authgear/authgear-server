@@ -22,13 +22,12 @@ type respHandler struct {
 	PasswordAuthProvider password.Provider
 	IdentityProvider     principal.IdentityProvider
 	UserProfileStore     userprofile.Store
-	UserID               string
 }
 
-func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
+func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.LoginState) (resp interface{}, err error) {
 	// action => login
 	var info authinfo.AuthInfo
-	createNewUser, principal, err := h.handleLogin(oauthAuthInfo, &info)
+	createNewUser, principal, err := h.handleLogin(oauthAuthInfo, &info, loginState)
 	if err != nil {
 		return
 	}
@@ -74,7 +73,7 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo) (resp interface
 	return
 }
 
-func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{}, err error) {
+func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo, linkState sso.LinkState) (resp interface{}, err error) {
 	// action => link
 	// check if provider user is already linked
 	_, err = h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderConfig.ID, oauthAuthInfo.ProviderUserInfo.ID)
@@ -89,7 +88,7 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 	}
 
 	// check if user is already linked
-	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(oauthAuthInfo.ProviderConfig.ID, h.UserID)
+	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(oauthAuthInfo.ProviderConfig.ID, linkState.UserID)
 	if err == nil {
 		err = skyerr.NewError(skyerr.InvalidArgument, "provider account already linked with existing user")
 		return resp, err
@@ -101,7 +100,7 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 	}
 
 	var info authinfo.AuthInfo
-	if err = h.AuthInfoStore.GetAuth(h.UserID, &info); err != nil {
+	if err = h.AuthInfoStore.GetAuth(linkState.UserID, &info); err != nil {
 		err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
 		return resp, err
 	}
@@ -117,6 +116,7 @@ func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo) (resp interface{
 func (h respHandler) handleLogin(
 	oauthAuthInfo sso.AuthInfo,
 	info *authinfo.AuthInfo,
+	loginState sso.LoginState,
 ) (createNewUser bool, oauthPrincipal *oauth.Principal, err error) {
 	oauthPrincipal, err = h.findExistingOAuthPrincipal(oauthAuthInfo)
 	if err != nil {
@@ -184,7 +184,7 @@ func (h respHandler) handleLogin(
 
 	// Case: OAuth principal was not found
 	// We need to consider password principal
-	passwordPrincipal, err := h.findExistingPasswordPrincipal(oauthAuthInfo)
+	passwordPrincipal, err := h.findExistingPasswordPrincipal(oauthAuthInfo, loginState.MergeRealm)
 	if err != nil {
 		return
 	}
@@ -198,7 +198,7 @@ func (h respHandler) handleLogin(
 
 	// Case: OAuth principal was not found and Password principal was found
 	// => Complex case
-	switch oauthAuthInfo.State.OnUserDuplicate {
+	switch loginState.OnUserDuplicate {
 	case sso.OnUserDuplicateAbort:
 		err = skyerr.NewError(skyerr.Duplicated, "Aborted due to duplicate user")
 	case sso.OnUserDuplicateCreate:
@@ -230,14 +230,14 @@ func (h respHandler) findExistingOAuthPrincipal(oauthAuthInfo sso.AuthInfo) (*oa
 	return principal, nil
 }
 
-func (h respHandler) findExistingPasswordPrincipal(oauthAuthInfo sso.AuthInfo) (*password.Principal, error) {
+func (h respHandler) findExistingPasswordPrincipal(oauthAuthInfo sso.AuthInfo, mergeRealm string) (*password.Principal, error) {
 	// Find password principal by provider primary email
 	email := oauthAuthInfo.ProviderUserInfo.Email
 	if email == "" {
 		return nil, nil
 	}
 	passwordPrincipal := password.Principal{}
-	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", email, oauthAuthInfo.State.MergeRealm, &passwordPrincipal)
+	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", email, mergeRealm, &passwordPrincipal)
 	if err == skydb.ErrUserNotFound {
 		return nil, nil
 	}

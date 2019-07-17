@@ -15,16 +15,31 @@ const (
 // Options parameter allows additional options for getting auth url
 type Options map[string]interface{}
 
+// LoginState stores login specific state.
+type LoginState struct {
+	MergeRealm      string          `json:"merge_realm,omitempty"`
+	OnUserDuplicate OnUserDuplicate `json:"on_user_duplicate,omitempty"`
+}
+
+// LinkState stores link specific state.
+type LinkState struct {
+	UserID string `json:"user_id,omitempty"`
+}
+
+// OAuthAuthorizationCodeFlowState stores OAuth Authorization Code flow state.
+type OAuthAuthorizationCodeFlowState struct {
+	UXMode      UXMode `json:"ux_mode,omitempty"`
+	CallbackURL string `json:"callback_url,omitempty"`
+	Action      string `json:"action,omitempty"`
+}
+
 // State is an opaque value used by the client to maintain
 // state between the request and callback.
 // See https://tools.ietf.org/html/rfc6749#section-4.1.1
 type State struct {
-	UXMode          UXMode          `json:"ux_mode"`
-	CallbackURL     string          `json:"callback_url"`
-	Action          string          `json:"action"`
-	UserID          string          `json:"user_id,omitempty"`
-	MergeRealm      string          `json:"merge_realm,omitempty"`
-	OnUserDuplicate OnUserDuplicate `json:"on_user_duplicate,omitempty"`
+	LoginState
+	LinkState
+	OAuthAuthorizationCodeFlowState
 }
 
 // UXMode indicates how the URL is used
@@ -97,7 +112,6 @@ type AuthInfo struct {
 	ProviderRawProfile      map[string]interface{}
 	ProviderAccessTokenResp interface{}
 	ProviderUserInfo        ProviderUserInfo
-	State                   State
 }
 
 type ProviderUserInfo struct {
@@ -140,7 +154,7 @@ type NonOpenIDConnectProvider interface {
 // can be used to fetch user info.
 // They are Google, Facebook, Instagram and LinkedIn.
 type ExternalAccessTokenFlowProvider interface {
-	ExternalAccessTokenGetAuthInfo(AccessTokenResp, State) (AuthInfo, error)
+	ExternalAccessTokenGetAuthInfo(AccessTokenResp) (AuthInfo, error)
 }
 
 // OpenIDConnectProvider are OpenID Connect provider.

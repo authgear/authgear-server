@@ -28,14 +28,8 @@ func (f *MockSSOProvider) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *MockSSOProvider) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
-	state, err := DecodeState(f.OAuthConfig.StateJWTSecret, r.State)
-	if err != nil {
-		return
-	}
-
 	authInfo = AuthInfo{
 		ProviderConfig:          f.ProviderConfig,
-		State:                   *state,
 		ProviderAccessTokenResp: map[string]interface{}{},
 		ProviderRawProfile:      map[string]interface{}{},
 		ProviderUserInfo:        f.UserInfo,
@@ -55,7 +49,7 @@ func (f *MockSSOProvider) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
-func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp, state State) (authInfo AuthInfo, err error) {
+func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{
 		ProviderConfig:          f.ProviderConfig,
 		ProviderAccessTokenResp: map[string]interface{}{},

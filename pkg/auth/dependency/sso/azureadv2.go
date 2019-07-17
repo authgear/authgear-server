@@ -91,11 +91,6 @@ func (f *Azureadv2Impl) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo Auth
 }
 
 func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
-	state, err := DecodeState(f.OAuthConfig.StateJWTSecret, r.State)
-	if err != nil {
-		return
-	}
-
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
 		return
@@ -184,7 +179,6 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 		ID:    oid,
 		Email: email,
 	}
-	authInfo.State = *state
 
 	return
 }

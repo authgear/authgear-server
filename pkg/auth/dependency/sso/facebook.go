@@ -40,7 +40,6 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		code:           r.Code,
-		encodedState:   r.State,
 		accessTokenURL: facebookTokenURL,
 		userProfileURL: facebookUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
@@ -52,15 +51,10 @@ func (f *FacebookImpl) DecodeState(encodedState string) (*State, error) {
 	return DecodeState(f.OAuthConfig.StateJWTSecret, encodedState)
 }
 
-func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp, state State) (authInfo AuthInfo, err error) {
-	encodedState, err := EncodeState(f.OAuthConfig.StateJWTSecret, state)
-	if err != nil {
-		return
-	}
+func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		encodedState:   encodedState,
 		accessTokenURL: facebookTokenURL,
 		userProfileURL: facebookUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),

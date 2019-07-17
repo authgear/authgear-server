@@ -42,7 +42,6 @@ func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		code:           r.Code,
-		encodedState:   r.State,
 		accessTokenURL: googleTokenURL,
 		userProfileURL: googleUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
@@ -50,15 +49,10 @@ func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 	return h.getAuthInfo()
 }
 
-func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp, state State) (authInfo AuthInfo, err error) {
-	encodedState, err := EncodeState(f.OAuthConfig.StateJWTSecret, state)
-	if err != nil {
-		return
-	}
+func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		encodedState:   encodedState,
 		accessTokenURL: googleTokenURL,
 		userProfileURL: googleUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),

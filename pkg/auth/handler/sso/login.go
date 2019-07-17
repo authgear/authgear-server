@@ -142,16 +142,12 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	payload := req.(LoginRequestPayload)
 
-	// Construct state from payload
-	// Many of the fields are omitted because they are meaningful only
-	// in the OAuth 2.0 flow.
-	// UserID can be omitted because it is meaningful for link action.
-	state := sso.State{
+	loginState := sso.LoginState{
 		MergeRealm:      payload.MergeRealm,
 		OnUserDuplicate: payload.OnUserDuplicate,
 	}
 
-	oauthAuthInfo, err := provider.ExternalAccessTokenGetAuthInfo(sso.NewBearerAccessTokenResp(payload.AccessToken), state)
+	oauthAuthInfo, err := provider.ExternalAccessTokenGetAuthInfo(sso.NewBearerAccessTokenResp(payload.AccessToken))
 	if err != nil {
 		return
 	}
@@ -163,9 +159,8 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		PasswordAuthProvider: h.PasswordAuthProvider,
 		IdentityProvider:     h.IdentityProvider,
 		UserProfileStore:     h.UserProfileStore,
-		UserID:               oauthAuthInfo.State.UserID,
 	}
-	resp, err = handler.loginActionResp(oauthAuthInfo)
+	resp, err = handler.loginActionResp(oauthAuthInfo, loginState)
 
 	return
 }

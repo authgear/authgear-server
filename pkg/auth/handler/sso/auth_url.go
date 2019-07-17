@@ -226,11 +226,15 @@ func (h *AuthURLHandler) Handle(w http.ResponseWriter, r *http.Request) (result 
 	params := sso.GetURLParams{
 		Options: payload.Options,
 		State: sso.State{
-			CallbackURL:     payload.CallbackURL,
-			UXMode:          payload.UXMode,
-			Action:          h.Action,
-			MergeRealm:      payload.MergeRealm,
-			OnUserDuplicate: payload.OnUserDuplicate,
+			LoginState: sso.LoginState{
+				MergeRealm:      payload.MergeRealm,
+				OnUserDuplicate: payload.OnUserDuplicate,
+			},
+			OAuthAuthorizationCodeFlowState: sso.OAuthAuthorizationCodeFlowState{
+				CallbackURL: payload.CallbackURL,
+				UXMode:      payload.UXMode,
+				Action:      h.Action,
+			},
 		},
 		Nonce: cookie.Value,
 	}

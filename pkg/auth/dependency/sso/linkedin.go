@@ -40,7 +40,6 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
 		code:           r.Code,
-		encodedState:   r.State,
 		accessTokenURL: linkedinTokenURL,
 		userProfileURL: linkedinUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
@@ -48,15 +47,10 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 	return h.getAuthInfo()
 }
 
-func (f *LinkedInImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp, state State) (authInfo AuthInfo, err error) {
-	encodedState, err := EncodeState(f.OAuthConfig.StateJWTSecret, state)
-	if err != nil {
-		return
-	}
+func (f *LinkedInImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	h := getAuthInfoRequest{
 		oauthConfig:    f.OAuthConfig,
 		providerConfig: f.ProviderConfig,
-		encodedState:   encodedState,
 		accessTokenURL: linkedinTokenURL,
 		userProfileURL: linkedinUserInfoURL,
 		processor:      newDefaultAuthInfoProcessor(),
