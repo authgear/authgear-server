@@ -40,7 +40,7 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: facebookTokenURL,
 		userProfileURL: facebookUserInfoURL,
-		processor:      newDefaultAuthInfoProcessor(),
+		processor:      NewDefaultUserInfoDecoder(),
 	}
 	return h.getAuthInfo(r)
 }
@@ -55,7 +55,7 @@ func (f *FacebookImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessToke
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: facebookTokenURL,
 		userProfileURL: facebookUserInfoURL,
-		processor:      newDefaultAuthInfoProcessor(),
+		processor:      NewDefaultUserInfoDecoder(),
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }

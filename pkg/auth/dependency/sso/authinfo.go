@@ -13,7 +13,7 @@ type getAuthInfoRequest struct {
 	providerConfig config.OAuthProviderConfiguration
 	accessTokenURL string
 	userProfileURL string
-	processor      AuthInfoProcessor
+	processor      UserInfoDecoder
 }
 
 func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {

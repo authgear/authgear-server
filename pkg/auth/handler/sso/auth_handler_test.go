@@ -108,7 +108,10 @@ func TestAuthHandler(t *testing.T) {
 			BaseURL:        "http://mock/auth",
 			OAuthConfig:    oauthConfig,
 			ProviderConfig: providerConfig,
-			UserInfo:       sso.ProviderUserInfo{ID: providerUserID},
+			UserInfo: sso.ProviderUserInfo{
+				ID:    providerUserID,
+				Email: "mock@example.com",
+			},
 		}
 		sh.Provider = &mockProvider
 		mockOAuthProvider := oauth.NewMockProvider(nil)
@@ -202,8 +205,13 @@ func TestAuthHandler(t *testing.T) {
 							"type": "oauth",
 							"provider_type": "google",
 							"provider_user_id": "mock_user_id",
-							"raw_profile": {},
-							"claims": {}
+							"raw_profile": {
+								"id": "mock_user_id",
+								"email": "mock@example.com"
+							},
+							"claims": {
+								"email": "mock@example.com"
+							}
 						},
 						"access_token": "%s"
 					}
@@ -302,8 +310,13 @@ func TestAuthHandler(t *testing.T) {
 						"type": "oauth",
 						"provider_type": "google",
 						"provider_user_id": "mock_user_id",
-						"raw_profile": {},
-						"claims": {}
+						"raw_profile": {
+							"id": "mock_user_id",
+							"email": "mock@example.com"
+						},
+						"claims": {
+							"email": "mock@example.com"
+						}
 					},
 					"access_token": "%s"
 				}
@@ -670,12 +683,17 @@ func TestAuthHandler(t *testing.T) {
 							"verify_info": {}
 						},
 						"identity": {
-							"claims": {},
+							"type": "oauth",
 							"id": "%s",
 							"provider_type": "google",
 							"provider_user_id": "%s",
-							"raw_profile": {},
-							"type": "oauth"
+							"raw_profile": {
+								"id": "%s",
+								"email": "john.doe@example.com"
+							},
+							"claims": {
+								"email": "john.doe@example.com"
+							}
 						},
 						"access_token": "%s"
 					}
@@ -683,6 +701,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 			`, p.UserID,
 				p.ID,
+				providerUserID,
 				providerUserID,
 				token.AccessToken))
 		})
@@ -738,12 +757,17 @@ func TestAuthHandler(t *testing.T) {
 							"verify_info": {}
 						},
 						"identity": {
-							"claims": {},
+							"type": "oauth",
 							"id": "%s",
 							"provider_type": "google",
 							"provider_user_id": "%s",
-							"raw_profile": {},
-							"type": "oauth"
+							"raw_profile": {
+								"id": "%s",
+								"email": "john.doe@example.com"
+							},
+							"claims": {
+								"email": "john.doe@example.com"
+							}
 						},
 						"access_token": "%s"
 					}
@@ -751,6 +775,7 @@ func TestAuthHandler(t *testing.T) {
 			}
 			`, p.UserID,
 				p.ID,
+				providerUserID,
 				providerUserID,
 				token.AccessToken))
 		})

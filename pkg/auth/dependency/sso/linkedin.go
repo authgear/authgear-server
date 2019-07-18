@@ -40,7 +40,7 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse)
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: linkedinTokenURL,
 		userProfileURL: linkedinUserInfoURL,
-		processor:      newDefaultAuthInfoProcessor(),
+		processor:      NewDefaultUserInfoDecoder(),
 	}
 	return h.getAuthInfo(r)
 }
@@ -51,7 +51,7 @@ func (f *LinkedInImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessToke
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: linkedinTokenURL,
 		userProfileURL: linkedinUserInfoURL,
-		processor:      newDefaultAuthInfoProcessor(),
+		processor:      NewDefaultUserInfoDecoder(),
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }

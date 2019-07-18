@@ -27,10 +27,16 @@ func (f *MockSSOProvider) GetAuthURL(params GetURLParams) (string, error) {
 }
 
 func (f *MockSSOProvider) GetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+	rawProfile := map[string]interface{}{
+		"id": f.UserInfo.ID,
+	}
+	if f.UserInfo.Email != "" {
+		rawProfile["email"] = f.UserInfo.Email
+	}
 	authInfo = AuthInfo{
 		ProviderConfig:          f.ProviderConfig,
 		ProviderAccessTokenResp: map[string]interface{}{},
-		ProviderRawProfile:      map[string]interface{}{},
+		ProviderRawProfile:      rawProfile,
 		ProviderUserInfo:        f.UserInfo,
 	}
 	return
@@ -49,10 +55,16 @@ func (f *MockSSOProvider) DecodeState(encodedState string) (*State, error) {
 }
 
 func (f *MockSSOProvider) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
+	rawProfile := map[string]interface{}{
+		"id": f.UserInfo.ID,
+	}
+	if f.UserInfo.Email != "" {
+		rawProfile["email"] = f.UserInfo.Email
+	}
 	authInfo = AuthInfo{
 		ProviderConfig:          f.ProviderConfig,
 		ProviderAccessTokenResp: map[string]interface{}{},
-		ProviderRawProfile:      map[string]interface{}{},
+		ProviderRawProfile:      rawProfile,
 		ProviderUserInfo:        f.UserInfo,
 	}
 	return

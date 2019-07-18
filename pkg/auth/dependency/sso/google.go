@@ -41,7 +41,7 @@ func (f *GoogleImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: googleTokenURL,
 		userProfileURL: googleUserInfoURL,
-		processor:      newDefaultAuthInfoProcessor(),
+		processor:      NewDefaultUserInfoDecoder(),
 	}
 	return h.getAuthInfo(r)
 }
@@ -52,7 +52,7 @@ func (f *GoogleImpl) ExternalAccessTokenGetAuthInfo(accessTokenResp AccessTokenR
 		providerConfig: f.ProviderConfig,
 		accessTokenURL: googleTokenURL,
 		userProfileURL: googleUserInfoURL,
-		processor:      newDefaultAuthInfoProcessor(),
+		processor:      NewDefaultUserInfoDecoder(),
 	}
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }
