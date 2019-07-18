@@ -79,10 +79,7 @@ func TestLinkHandler(t *testing.T) {
 			UserInfo:       providerUserInfo,
 		}
 		sh.Provider = &mockProvider
-		mockOAuthProvider := oauth.NewMockProvider(
-			map[string]string{},
-			map[string]oauth.Principal{},
-		)
+		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
@@ -107,7 +104,10 @@ func TestLinkHandler(t *testing.T) {
 				"result": {}
 			}`)
 
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserInfo.ID)
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+				ProviderType:   "google",
+				ProviderUserID: providerUserInfo.ID,
+			})
 			So(p.UserID, ShouldEqual, "faseng.cat.id")
 		})
 

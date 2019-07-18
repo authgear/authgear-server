@@ -80,10 +80,7 @@ func TestLoginHandler(t *testing.T) {
 			UserInfo:       sso.ProviderUserInfo{ID: providerUserID},
 		}
 		sh.Provider = &mockProvider
-		mockOAuthProvider := oauth.NewMockProvider(
-			map[string]string{},
-			map[string]oauth.Principal{},
-		)
+		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
@@ -111,7 +108,10 @@ func TestLoginHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+				ProviderType:   "google",
+				ProviderUserID: providerUserID,
+			})
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
@@ -127,7 +127,7 @@ func TestLoginHandler(t *testing.T) {
 					"identity": {
 						"id": "%s",
 						"type": "oauth",
-						"provider_id": "mock",
+						"provider_type": "google",
 						"provider_user_id": "mock_user_id",
 						"raw_profile": {},
 						"claims": {}

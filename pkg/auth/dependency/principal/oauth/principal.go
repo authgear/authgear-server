@@ -8,9 +8,11 @@ import (
 )
 
 type Principal struct {
-	ID              string
-	UserID          string
-	ProviderName    string
+	ID     string
+	UserID string
+	// (ProviderType, ProviderKeys, ProviderUserID) together form a unique index.
+	ProviderType    string
+	ProviderKeys    map[string]interface{}
 	ProviderUserID  string
 	AccessTokenResp interface{}
 	UserProfile     interface{}
@@ -18,9 +20,13 @@ type Principal struct {
 	UpdatedAt       *time.Time
 }
 
-func NewPrincipal() Principal {
-	return Principal{
-		ID: uuid.New(),
+func NewPrincipal(providerKeys map[string]interface{}) *Principal {
+	if providerKeys == nil {
+		providerKeys = map[string]interface{}{}
+	}
+	return &Principal{
+		ID:           uuid.New(),
+		ProviderKeys: providerKeys,
 	}
 }
 
@@ -37,8 +43,9 @@ func (p *Principal) ProviderID() string {
 }
 
 func (p *Principal) Attributes() principal.Attributes {
+	// TODO: promote tenant
 	return principal.Attributes{
-		"provider_id":      p.ProviderName,
+		"provider_type":    p.ProviderType,
 		"provider_user_id": p.ProviderUserID,
 		"raw_profile":      p.UserProfile,
 	}

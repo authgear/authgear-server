@@ -7,6 +7,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -14,6 +15,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
 	"github.com/skygeario/skygear-server/pkg/core/server"
+	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 )
 
 func AttachUnlinkHandler(
@@ -64,6 +66,7 @@ type UnlinkHandler struct {
 	TxContext         db.TxContext           `dependency:"TxContext"`
 	AuthContext       coreAuth.ContextGetter `dependency:"AuthContextGetter"`
 	OAuthAuthProvider oauth.Provider         `dependency:"OAuthAuthProvider"`
+	ProviderFactory   *sso.ProviderFactory   `dependency:"SSOProviderFactory"`
 	ProviderID        string
 }
 
@@ -76,8 +79,18 @@ func (h UnlinkHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 }
 
 func (h UnlinkHandler) Handle(req interface{}) (resp interface{}, err error) {
+	providerConfig, ok := h.ProviderFactory.GetProviderConfig(h.ProviderID)
+	if !ok {
+		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
+		return
+	}
+
 	userID := h.AuthContext.AuthInfo().ID
-	principal, err := h.OAuthAuthProvider.GetPrincipalByUserID(h.ProviderID, userID)
+	principal, err := h.OAuthAuthProvider.GetPrincipalByUser(oauth.GetByUserOptions{
+		ProviderType: string(providerConfig.Type),
+		ProviderKeys: oauth.ProviderKeysFromProviderConfig(providerConfig),
+		UserID:       userID,
+	})
 	if err != nil {
 		return
 	}

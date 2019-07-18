@@ -111,10 +111,7 @@ func TestAuthHandler(t *testing.T) {
 			UserInfo:       sso.ProviderUserInfo{ID: providerUserID},
 		}
 		sh.Provider = &mockProvider
-		mockOAuthProvider := oauth.NewMockProvider(
-			map[string]string{},
-			map[string]oauth.Principal{},
-		)
+		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{},
@@ -180,7 +177,10 @@ func TestAuthHandler(t *testing.T) {
 
 			actual, err := decodeCookie(resp)
 			So(err, ShouldBeNil)
-			p, err := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			p, err := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+				ProviderType:   "google",
+				ProviderUserID: providerUserID,
+			})
 			So(err, ShouldBeNil)
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(actual, ShouldEqualJSON, fmt.Sprintf(`
@@ -200,7 +200,7 @@ func TestAuthHandler(t *testing.T) {
 						"identity": {
 							"id": "%s",
 							"type": "oauth",
-							"provider_id": "mock",
+							"provider_type": "google",
 							"provider_user_id": "mock_user_id",
 							"raw_profile": {},
 							"claims": {}
@@ -281,7 +281,10 @@ func TestAuthHandler(t *testing.T) {
 			q := location.Query()
 			result := q.Get("result")
 			decoded, _ := base64.StdEncoding.DecodeString(result)
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+				ProviderType:   "google",
+				ProviderUserID: providerUserID,
+			})
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(decoded, ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
@@ -297,7 +300,7 @@ func TestAuthHandler(t *testing.T) {
 					"identity": {
 						"id": "%s",
 						"type": "oauth",
-						"provider_id": "mock",
+						"provider_type": "google",
 						"provider_user_id": "mock_user_id",
 						"raw_profile": {},
 						"claims": {}
@@ -336,14 +339,14 @@ func TestAuthHandler(t *testing.T) {
 			ProviderConfig: providerConfig,
 		}
 		sh.Provider = &mockProvider
-		mockOAuthProvider := oauth.NewMockProvider(
-			map[string]string{
-				"jane.doe.id": "jane.doe.id",
+		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
+			&oauth.Principal{
+				ID:           "jane.doe.id",
+				UserID:       "jane.doe.id",
+				ProviderType: "google",
+				ProviderKeys: map[string]interface{}{},
 			},
-			map[string]oauth.Principal{
-				"jane.doe.id": oauth.Principal{},
-			},
-		)
+		})
 		sh.OAuthAuthProvider = mockOAuthProvider
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
@@ -384,6 +387,8 @@ func TestAuthHandler(t *testing.T) {
 		}
 
 		Convey("should return callback url when ux_mode is web_redirect", func() {
+			mockOAuthProvider := oauth.NewMockProvider(nil)
+			sh.OAuthAuthProvider = mockOAuthProvider
 			uxMode := sso.UXModeWebRedirect
 
 			// oauth state
@@ -430,6 +435,15 @@ func TestAuthHandler(t *testing.T) {
 
 		Convey("should get err if user is already linked", func() {
 			uxMode := sso.UXModeWebRedirect
+			mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
+				&oauth.Principal{
+					ID:           "jane.doe.id",
+					UserID:       "jane.doe.id",
+					ProviderType: "google",
+					ProviderKeys: map[string]interface{}{},
+				},
+			})
+			sh.OAuthAuthProvider = mockOAuthProvider
 
 			// oauth state
 			state := sso.State{
@@ -468,7 +482,7 @@ func TestAuthHandler(t *testing.T) {
 				"result": {
 					"error": {
 						"code": 108,
-						"message": "provider account already linked with existing user",
+						"message": "the provider user is already linked",
 						"name": "InvalidArgument"
 					}
 				}
@@ -508,10 +522,7 @@ func TestAuthHandler(t *testing.T) {
 				Email: "john.doe@example.com"},
 		}
 		sh.Provider = &mockProvider
-		mockOAuthProvider := oauth.NewMockProvider(
-			map[string]string{},
-			map[string]oauth.Principal{},
-		)
+		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
 			map[string]authinfo.AuthInfo{
@@ -640,7 +651,10 @@ func TestAuthHandler(t *testing.T) {
 
 			actual, err := decodeCookie(resp)
 			So(err, ShouldBeNil)
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+				ProviderType:   "google",
+				ProviderUserID: providerUserID,
+			})
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(actual, ShouldEqualJSON, fmt.Sprintf(`
 			{
@@ -658,7 +672,7 @@ func TestAuthHandler(t *testing.T) {
 						"identity": {
 							"claims": {},
 							"id": "%s",
-							"provider_id": "%s",
+							"provider_type": "google",
 							"provider_user_id": "%s",
 							"raw_profile": {},
 							"type": "oauth"
@@ -669,7 +683,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 			`, p.UserID,
 				p.ID,
-				providerName,
 				providerUserID,
 				token.AccessToken))
 		})
@@ -704,7 +717,10 @@ func TestAuthHandler(t *testing.T) {
 
 			actual, err := decodeCookie(resp)
 			So(err, ShouldBeNil)
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+				ProviderType:   "google",
+				ProviderUserID: providerUserID,
+			})
 			So(p.UserID, ShouldNotEqual, "john.doe.id")
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(actual, ShouldEqualJSON, fmt.Sprintf(`
@@ -724,7 +740,7 @@ func TestAuthHandler(t *testing.T) {
 						"identity": {
 							"claims": {},
 							"id": "%s",
-							"provider_id": "%s",
+							"provider_type": "google",
 							"provider_user_id": "%s",
 							"raw_profile": {},
 							"type": "oauth"
@@ -735,7 +751,6 @@ func TestAuthHandler(t *testing.T) {
 			}
 			`, p.UserID,
 				p.ID,
-				providerName,
 				providerUserID,
 				token.AccessToken))
 		})

@@ -206,6 +206,10 @@ func (p *ProviderFactory) NewProvider(id string) OAuthProvider {
 	return nil
 }
 
+func (p *ProviderFactory) GetProviderConfig(id string) (config.OAuthProviderConfiguration, bool) {
+	return p.tenantConfig.GetOAuthProviderByID(id)
+}
+
 func ValidateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
 	if callbackURL == "" {
 		err = fmt.Errorf("missing callback URL")

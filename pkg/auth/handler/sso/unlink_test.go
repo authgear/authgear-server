@@ -7,7 +7,9 @@ import (
 	"testing"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 
@@ -18,26 +20,35 @@ import (
 
 func TestUnlinkHandler(t *testing.T) {
 	Convey("Test UnlinkHandler", t, func() {
-		providerID := "mock"
+		providerID := "google"
 		providerUserID := "mock_user_id"
 
 		sh := &UnlinkHandler{}
 		sh.ProviderID = providerID
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
-		mockOAuthProviderKey := oauth.NewMockProviderKey(providerID, providerUserID)
-		mockOAuthProvider := oauth.NewMockProvider(
-			map[string]string{
-				"faseng.cat.id": mockOAuthProviderKey,
-			},
-			map[string]oauth.Principal{
-				mockOAuthProviderKey: oauth.Principal{
-					ProviderName:   providerID,
-					UserID:         "faseng.cat.id",
-					ProviderUserID: providerUserID,
+		sh.ProviderFactory = sso.NewProviderFactory(config.TenantConfiguration{
+			UserConfig: config.UserConfiguration{
+				SSO: config.SSOConfiguration{
+					OAuth: config.OAuthConfiguration{
+						Providers: []config.OAuthProviderConfiguration{
+							config.OAuthProviderConfiguration{
+								Type: "google",
+								ID:   "google",
+							},
+						},
+					},
 				},
 			},
-		)
+		})
+		mockOAuthProvider := oauth.NewMockProvider([]*oauth.Principal{
+			&oauth.Principal{
+				ProviderType:   "google",
+				ProviderKeys:   map[string]interface{}{},
+				ProviderUserID: providerUserID,
+				UserID:         "faseng.cat.id",
+			},
+		})
 		sh.OAuthAuthProvider = mockOAuthProvider
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
@@ -52,7 +63,10 @@ func TestUnlinkHandler(t *testing.T) {
 				"result": {}
 			}`)
 
-			p, e := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerID, providerUserID)
+			p, e := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+				ProviderType:   "google",
+				ProviderUserID: providerUserID,
+			})
 			So(e, ShouldEqual, skydb.ErrUserNotFound)
 			So(p, ShouldBeNil)
 		})

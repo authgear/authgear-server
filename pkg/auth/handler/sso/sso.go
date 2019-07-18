@@ -89,22 +89,18 @@ func (h respHandler) loginActionResp(oauthAuthInfo sso.AuthInfo, loginState sso.
 
 func (h respHandler) linkActionResp(oauthAuthInfo sso.AuthInfo, linkState sso.LinkState) (resp interface{}, err error) {
 	// action => link
-	// check if provider user is already linked
-	_, err = h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderConfig.ID, oauthAuthInfo.ProviderUserInfo.ID)
+	// We only need to check if we can find such principal.
+	// If such principal exists, it does not matter whether the principal
+	// is associated with the user.
+	// We do not allow the same provider user to be associated with an user
+	// more than once.
+	_, err = h.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+		ProviderType:   string(oauthAuthInfo.ProviderConfig.Type),
+		ProviderKeys:   oauth.ProviderKeysFromProviderConfig(oauthAuthInfo.ProviderConfig),
+		ProviderUserID: oauthAuthInfo.ProviderUserInfo.ID,
+	})
 	if err == nil {
-		err = skyerr.NewError(skyerr.InvalidArgument, "user linked to the provider already")
-		return resp, err
-	}
-
-	if err != skydb.ErrUserNotFound {
-		// some other error
-		return resp, err
-	}
-
-	// check if user is already linked
-	_, err = h.OAuthAuthProvider.GetPrincipalByUserID(oauthAuthInfo.ProviderConfig.ID, linkState.UserID)
-	if err == nil {
-		err = skyerr.NewError(skyerr.InvalidArgument, "provider account already linked with existing user")
+		err = skyerr.NewError(skyerr.InvalidArgument, "the provider user is already linked")
 		return resp, err
 	}
 
@@ -234,7 +230,11 @@ func (h respHandler) handleLogin(
 
 func (h respHandler) findExistingOAuthPrincipal(oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	// Find oauth principal from by (provider_id, provider_user_id)
-	principal, err := h.OAuthAuthProvider.GetPrincipalByProviderUserID(oauthAuthInfo.ProviderConfig.ID, oauthAuthInfo.ProviderUserInfo.ID)
+	principal, err := h.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+		ProviderType:   string(oauthAuthInfo.ProviderConfig.Type),
+		ProviderKeys:   oauth.ProviderKeysFromProviderConfig(oauthAuthInfo.ProviderConfig),
+		ProviderUserID: oauthAuthInfo.ProviderUserInfo.ID,
+	})
 	if err == skydb.ErrUserNotFound {
 		return nil, nil
 	}
@@ -266,14 +266,15 @@ func (h respHandler) findExistingPasswordPrincipal(oauthAuthInfo sso.AuthInfo, m
 
 func (h respHandler) createPrincipalByOAuthInfo(userID string, oauthAuthInfo sso.AuthInfo) (*oauth.Principal, error) {
 	now := timeNow()
-	principal := oauth.NewPrincipal()
+	providerKeys := oauth.ProviderKeysFromProviderConfig(oauthAuthInfo.ProviderConfig)
+	principal := oauth.NewPrincipal(providerKeys)
 	principal.UserID = userID
-	principal.ProviderName = oauthAuthInfo.ProviderConfig.ID
+	principal.ProviderType = string(oauthAuthInfo.ProviderConfig.Type)
 	principal.ProviderUserID = oauthAuthInfo.ProviderUserInfo.ID
 	principal.AccessTokenResp = oauthAuthInfo.ProviderAccessTokenResp
 	principal.UserProfile = oauthAuthInfo.ProviderRawProfile
 	principal.CreatedAt = &now
 	principal.UpdatedAt = &now
 	err := h.OAuthAuthProvider.CreatePrincipal(principal)
-	return &principal, err
+	return principal, err
 }
