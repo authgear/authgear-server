@@ -176,15 +176,18 @@ func (p providerImpl) ID() string {
 func (p providerImpl) GetPrincipalByID(principalID string) (principal.Principal, error) {
 	principal := Principal{ID: principalID}
 
-	builder := p.sqlBuilder.Select("ct.token_principal_id", "p.user_id").
+	builder := p.sqlBuilder.Select("p.user_id", "ct.token_principal_id", "ct.raw_profile").
 		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
 		Join(p.sqlBuilder.FullTableName("provider_custom_token")+" AS ct ON p.id = ct.principal_id").
 		Where("p.id = ? AND p.provider = 'custom_token'", principalID)
 	scanner := p.sqlExecutor.QueryRowWith(builder)
 
+	var rawProfileBytes []byte
+
 	err := scanner.Scan(
-		&principal.TokenPrincipalID,
 		&principal.UserID,
+		&principal.TokenPrincipalID,
+		&rawProfileBytes,
 	)
 
 	if err == sql.ErrNoRows {
@@ -195,11 +198,16 @@ func (p providerImpl) GetPrincipalByID(principalID string) (principal.Principal,
 		return nil, err
 	}
 
+	err = json.Unmarshal(rawProfileBytes, &principal.RawProfile)
+	if err != nil {
+		return nil, err
+	}
+
 	return &principal, nil
 }
 
 func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []principal.Principal, err error) {
-	builder := p.sqlBuilder.Select("p.id", "ct.token_principal_id").
+	builder := p.sqlBuilder.Select("p.id", "ct.token_principal_id", "ct.raw_profile").
 		From(fmt.Sprintf("%s as p", p.sqlBuilder.FullTableName("principal"))).
 		Join(p.sqlBuilder.FullTableName("provider_custom_token")+" AS ct ON p.id = ct.principal_id").
 		Where("p.user_id = ? AND p.provider = 'custom_token'", userID)
@@ -211,10 +219,16 @@ func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []princi
 
 	for rows.Next() {
 		principal := Principal{UserID: userID}
+		var rawProfileBytes []byte
 		if err = rows.Scan(
 			&principal.ID,
 			&principal.TokenPrincipalID,
+			&rawProfileBytes,
 		); err != nil {
+			return
+		}
+		err = json.Unmarshal(rawProfileBytes, &principal.RawProfile)
+		if err != nil {
 			return
 		}
 
