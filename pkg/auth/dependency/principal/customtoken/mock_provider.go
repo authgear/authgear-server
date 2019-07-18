@@ -77,7 +77,13 @@ func (p MockProvider) ID() string {
 	return providerName
 }
 
-func (p MockProvider) DeriveClaims(_ principal.Principal) principal.Claims {
-	// TODO(sso): return custom token email
-	return principal.Claims{}
+func (p MockProvider) DeriveClaims(pp principal.Principal) (claims principal.Claims) {
+	claims = principal.Claims{}
+	attrs := pp.Attributes()
+	rawProfile, ok := attrs["raw_profile"].(SSOCustomTokenClaims)
+	if !ok {
+		return
+	}
+	claims["email"] = rawProfile.Email()
+	return
 }

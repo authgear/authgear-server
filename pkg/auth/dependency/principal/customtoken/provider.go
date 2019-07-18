@@ -238,9 +238,18 @@ func (p providerImpl) ListPrincipalsByUserID(userID string) (principals []princi
 	return
 }
 
-func (p providerImpl) DeriveClaims(_ principal.Principal) principal.Claims {
-	// TODO(sso): return custom token email
-	return principal.Claims{}
+func (p providerImpl) DeriveClaims(pp principal.Principal) (claims principal.Claims) {
+	claims = principal.Claims{}
+	attrs := pp.Attributes()
+	rawProfile, ok := attrs["raw_profile"].(SSOCustomTokenClaims)
+	if !ok {
+		return
+	}
+	email := rawProfile.Email()
+	if email != "" {
+		claims["email"] = email
+	}
+	return
 }
 
 // this ensures that our structure conform to certain interfaces.

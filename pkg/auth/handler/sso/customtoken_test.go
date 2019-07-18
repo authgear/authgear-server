@@ -81,13 +81,15 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("create user account with custom token", func(c C) {
+			iat := time.Now().UTC()
+			exp := iat.Add(time.Hour * 1)
 			tokenString, err := jwt.NewWithClaims(
 				jwt.SigningMethodHS256,
 				customtoken.SSOCustomTokenClaims{
 					"iss":   issuer,
 					"aud":   audience,
-					"iat":   time.Now().Unix(),
-					"exp":   time.Now().Add(time.Hour * 1).Unix(),
+					"iat":   iat.Unix(),
+					"exp":   exp.Unix(),
 					"sub":   "otherid1",
 					"email": "John@skygear.io",
 				},
@@ -120,14 +122,25 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						"id": "%s",
 						"type": "custom_token",
 						"provider_user_id": "otherid1",
-						"raw_profile": {},
-						"claims": {}
+						"raw_profile": {
+							"aud": "myaudience",
+							"email": "John@skygear.io",
+							"iat": %d,
+							"exp": %d,
+							"iss": "myissuer",
+							"sub": "otherid1"
+						},
+						"claims": {
+							"email": "John@skygear.io"
+						}
 					},
 					"access_token": "%s"
 				}
 			}`,
 				p.UserID,
 				p.ID,
+				iat.Unix(),
+				exp.Unix(),
 				token.AccessToken))
 
 			mockTrail, _ := lh.AuditTrail.(*audit.MockTrail)
@@ -298,13 +311,16 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh.TaskQueue = mockTaskQueue
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
+		iat := time.Now().UTC()
+		exp := iat.Add(time.Hour * 1)
+
 		tokenString, err := jwt.NewWithClaims(
 			jwt.SigningMethodHS256,
 			customtoken.SSOCustomTokenClaims{
 				"iss":   issuer,
 				"aud":   audience,
-				"iat":   time.Now().Unix(),
-				"exp":   time.Now().Add(time.Hour * 1).Unix(),
+				"iat":   iat.Unix(),
+				"exp":   exp.Unix(),
 				"sub":   "otherid1",
 				"email": "john.doe@example.com",
 			},
@@ -357,16 +373,28 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						"verify_info": {}
 					},
 					"identity": {
-						"claims": {},
+						"claims": {
+							"email": "john.doe@example.com"
+						},
 						"id": "%s",
 						"provider_user_id": "otherid1",
-						"raw_profile": {},
+						"raw_profile": {
+							"iss": "myissuer",
+							"aud": "myaudience",
+							"sub": "otherid1",
+							"iat": %d,
+							"exp": %d,
+							"email": "john.doe@example.com"
+						},
 						"type": "custom_token"
 					},
 					"access_token": "%s"
 				}
 			}
-			`, p.ID, token.AccessToken))
+			`, p.ID,
+				iat.Unix(),
+				exp.Unix(),
+				token.AccessToken))
 		})
 
 		Convey("OnUserDuplicate == create", func() {
@@ -396,16 +424,25 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 						"verify_info": {}
 					},
 					"identity": {
-						"claims": {},
+						"claims": {
+							"email": "john.doe@example.com"
+						},
 						"id": "%s",
 						"provider_user_id": "otherid1",
-						"raw_profile": {},
+						"raw_profile": {
+							"iss": "myissuer",
+							"aud": "myaudience",
+							"sub": "otherid1",
+							"iat": %d,
+							"exp": %d,
+							"email": "john.doe@example.com"
+						},
 						"type": "custom_token"
 					},
 					"access_token": "%s"
 				}
 			}
-			`, p.UserID, p.ID, token.AccessToken))
+			`, p.UserID, p.ID, iat.Unix(), exp.Unix(), token.AccessToken))
 		})
 	})
 }
