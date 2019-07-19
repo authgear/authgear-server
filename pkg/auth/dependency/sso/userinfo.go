@@ -46,13 +46,13 @@ func (d InstagramUserInfoDecoder) DecodeUserInfo(userProfile map[string]interfac
 	return
 }
 
-type Azureadv2UserInfoDecoder struct{}
+type AzureADv2UserInfoDecoder struct{}
 
-func NewAzureadv2UserInfoDecoder() Azureadv2UserInfoDecoder {
-	return Azureadv2UserInfoDecoder{}
+func NewAzureADv2UserInfoDecoder() AzureADv2UserInfoDecoder {
+	return AzureADv2UserInfoDecoder{}
 }
 
-func (d Azureadv2UserInfoDecoder) DecodeUserInfo(userProfile map[string]interface{}) ProviderUserInfo {
+func (d AzureADv2UserInfoDecoder) DecodeUserInfo(userProfile map[string]interface{}) ProviderUserInfo {
 
 	id, _ := userProfile["oid"].(string)
 	email, _ := userProfile["email"].(string)
@@ -74,7 +74,7 @@ func GetUserInfoDecoder(providerType config.OAuthProviderType) UserInfoDecoder {
 	case config.OAuthProviderTypeLinkedIn:
 		return NewDefaultUserInfoDecoder()
 	case config.OAuthProviderTypeAzureADv2:
-		return NewAzureadv2UserInfoDecoder()
+		return NewAzureADv2UserInfoDecoder()
 	}
 	panic(fmt.Errorf("unknown provider type: %v", providerType))
 }
