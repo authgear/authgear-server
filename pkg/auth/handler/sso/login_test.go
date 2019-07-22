@@ -27,10 +27,10 @@ import (
 
 func TestLoginPayload(t *testing.T) {
 	Convey("Test LoginRequestPayload", t, func() {
-		// callback URL and ux_mode is required
 		Convey("validate valid payload", func() {
 			payload := LoginRequestPayload{
-				AccessToken: "token",
+				AccessToken:     "token",
+				OnUserDuplicate: sso.OnUserDuplicateDefault,
 			}
 			So(payload.Validate(), ShouldBeNil)
 		})
@@ -59,29 +59,31 @@ func TestLoginHandler(t *testing.T) {
 		sh := &LoginHandler{}
 		sh.TxContext = db.NewMockTxContext()
 		sh.AuthContext = auth.NewMockContextGetterWithDefaultUser()
-		setting := sso.Setting{
-			URLPrefix:      "http://localhost:3000",
-			StateJWTSecret: stateJWTSecret,
+		oauthConfig := coreconfig.OAuthConfiguration{
+			URLPrefix:                      "http://localhost:3000",
+			StateJWTSecret:                 stateJWTSecret,
+			ExternalAccessTokenFlowEnabled: true,
 			AllowedCallbackURLs: []string{
 				"http://localhost",
 			},
 		}
-		config := sso.Config{
-			Name:         providerName,
+		providerConfig := coreconfig.OAuthProviderConfiguration{
+			ID:           providerName,
+			Type:         "google",
 			ClientID:     "mock_client_id",
 			ClientSecret: "mock_client_secret",
 		}
 		mockProvider := sso.MockSSOProvider{
-			BaseURL:  "http://mock/auth",
-			Setting:  setting,
-			Config:   config,
-			UserInfo: sso.ProviderUserInfo{ID: providerUserID},
+			BaseURL:        "http://mock/auth",
+			OAuthConfig:    oauthConfig,
+			ProviderConfig: providerConfig,
+			UserInfo: sso.ProviderUserInfo{
+				ID:    providerUserID,
+				Email: "mock@example.com",
+			},
 		}
 		sh.Provider = &mockProvider
-		mockOAuthProvider := oauth.NewMockProvider(
-			map[string]string{},
-			map[string]oauth.Principal{},
-		)
+		mockOAuthProvider := oauth.NewMockProvider(nil)
 		sh.OAuthAuthProvider = mockOAuthProvider
 		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.OAuthAuthProvider)
 		authInfoStore := authinfo.NewMockStoreWithAuthInfoMap(
@@ -99,6 +101,7 @@ func TestLoginHandler(t *testing.T) {
 		)
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sh.OAuthConfiguration = oauthConfig
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should get auth response", func() {
@@ -108,7 +111,10 @@ func TestLoginHandler(t *testing.T) {
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 			So(resp.Code, ShouldEqual, 200)
-			p, _ := sh.OAuthAuthProvider.GetPrincipalByProviderUserID(providerName, providerUserID)
+			p, _ := sh.OAuthAuthProvider.GetPrincipalByProvider(oauth.GetByProviderOptions{
+				ProviderType:   "google",
+				ProviderUserID: providerUserID,
+			})
 			token := mockTokenStore.GetTokensByAuthInfoID(p.UserID)[0]
 			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
 				"result": {
@@ -124,10 +130,15 @@ func TestLoginHandler(t *testing.T) {
 					"identity": {
 						"id": "%s",
 						"type": "oauth",
-						"provider_id": "mock",
+						"provider_type": "google",
 						"provider_user_id": "mock_user_id",
-						"raw_profile": {},
-						"claims": {}
+						"raw_profile": {
+							"id": "mock_user_id",
+							"email": "mock@example.com"
+						},
+						"claims": {
+							"email": "mock@example.com"
+						}
 					},
 					"access_token": "%s"
 				}
@@ -135,6 +146,25 @@ func TestLoginHandler(t *testing.T) {
 				p.UserID,
 				p.ID,
 				token.AccessToken))
+		})
+
+		sh.OAuthConfiguration.ExternalAccessTokenFlowEnabled = false
+		h = handler.APIHandlerToHandler(sh, sh.TxContext)
+
+		Convey("should return error if disabled", func() {
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`{
+				"access_token": "token"
+			}`))
+			resp := httptest.NewRecorder()
+			h.ServeHTTP(resp, req)
+			So(resp.Code, ShouldEqual, 404)
+			So(resp.Body.Bytes(), ShouldEqualJSON, `{
+				"error": {
+					"code": 117,
+					"message": "External access token flow is disabled",
+					"name": "UndefinedOperation"
+				}
+			}`)
 		})
 	})
 }

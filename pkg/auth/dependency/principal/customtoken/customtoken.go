@@ -9,6 +9,7 @@ const providerName string = "custom_token"
 type Provider interface {
 	principal.Provider
 	Decode(tokenString string) (SSOCustomTokenClaims, error)
-	CreatePrincipal(principal Principal) error
+	CreatePrincipal(principal *Principal) error
+	UpdatePrincipal(principal *Principal) error
 	GetPrincipalByTokenPrincipalID(tokenPrincipalID string) (*Principal, error)
 }

@@ -7,6 +7,8 @@ import (
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	signUpHandler "github.com/skygeario/skygear-server/pkg/auth/handler"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
@@ -17,6 +19,8 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/auth/metadata"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -54,17 +58,26 @@ func (f CustomTokenLoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 }
 
 type customTokenLoginPayload struct {
-	TokenString string                           `json:"token"`
-	Claims      customtoken.SSOCustomTokenClaims `json:"-"`
+	TokenString      string                           `json:"token"`
+	MergeRealm       string                           `json:"merge_realm"`
+	OnUserDuplicate  sso.OnUserDuplicate              `json:"on_user_duplicate"`
+	Claims           customtoken.SSOCustomTokenClaims `json:"-"`
+	ExpectedIssuer   string                           `json:"-"`
+	ExpectedAudience string                           `json:"-"`
 }
 
 func (payload customTokenLoginPayload) Validate() error {
-	if err := payload.Claims.Validate(); err != nil {
+	if err := payload.Claims.Validate(payload.ExpectedIssuer, payload.ExpectedAudience); err != nil {
 		return skyerr.NewError(
 			skyerr.InvalidCredentials,
 			err.Error(),
 		)
 	}
+
+	if !sso.IsValidOnUserDuplicate(payload.OnUserDuplicate) {
+		return skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
+	}
+
 	return nil
 }
 
@@ -83,9 +96,7 @@ The claims of the custom token is as follows:
       "sub": "id1234567800",
       "iat": 1513316033,
       "exp": 1828676033,
-      "skyprofile": {
-        "name": "John Doe"
-      }
+      "email": "johndoe@oursky.com"
     }
 
 When signing the above claims with the custom token secret `ssosecret` using
@@ -105,15 +116,17 @@ curl -X POST -H "Content-Type: application/json" \
 EOF
 */
 type CustomTokenLoginHandler struct {
-	TxContext               db.TxContext               `dependency:"TxContext"`
-	UserProfileStore        userprofile.Store          `dependency:"UserProfileStore"`
-	TokenStore              authtoken.Store            `dependency:"TokenStore"`
-	AuthInfoStore           authinfo.Store             `dependency:"AuthInfoStore"`
-	CustomTokenAuthProvider customtoken.Provider       `dependency:"CustomTokenAuthProvider"`
-	IdentityProvider        principal.IdentityProvider `dependency:"IdentityProvider"`
-	WelcomeEmailEnabled     bool                       `dependency:"WelcomeEmailEnabled"`
-	AuditTrail              audit.Trail                `dependency:"AuditTrail"`
-	TaskQueue               async.Queue                `dependency:"AsyncTaskQueue"`
+	TxContext                db.TxContext                    `dependency:"TxContext"`
+	UserProfileStore         userprofile.Store               `dependency:"UserProfileStore"`
+	TokenStore               authtoken.Store                 `dependency:"TokenStore"`
+	AuthInfoStore            authinfo.Store                  `dependency:"AuthInfoStore"`
+	CustomTokenAuthProvider  customtoken.Provider            `dependency:"CustomTokenAuthProvider"`
+	IdentityProvider         principal.IdentityProvider      `dependency:"IdentityProvider"`
+	PasswordAuthProvider     password.Provider               `dependency:"PasswordAuthProvider"`
+	CustomTokenConfiguration config.CustomTokenConfiguration `dependency:"CustomTokenConfiguration"`
+	WelcomeEmailEnabled      bool                            `dependency:"WelcomeEmailEnabled"`
+	AuditTrail               audit.Trail                     `dependency:"AuditTrail"`
+	TaskQueue                async.Queue                     `dependency:"AsyncTaskQueue"`
 }
 
 func (h CustomTokenLoginHandler) WithTx() bool {
@@ -140,6 +153,17 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (handler.R
 		return nil, err
 	}
 
+	payload.ExpectedIssuer = h.CustomTokenConfiguration.Issuer
+	payload.ExpectedAudience = h.CustomTokenConfiguration.Audience
+
+	if payload.MergeRealm == "" {
+		payload.MergeRealm = password.DefaultRealm
+	}
+
+	if payload.OnUserDuplicate == "" {
+		payload.OnUserDuplicate = sso.OnUserDuplicateDefault
+	}
+
 	payload.Claims, err = h.CustomTokenAuthProvider.Decode(payload.TokenString)
 	if err != nil {
 		return nil, skyerr.NewError(skyerr.BadRequest, err.Error())
@@ -149,9 +173,28 @@ func (h CustomTokenLoginHandler) DecodeRequest(request *http.Request) (handler.R
 
 // Handle function handle custom token login
 func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err error) {
+	if !h.CustomTokenConfiguration.Enabled {
+		err = skyerr.NewError(skyerr.UndefinedOperation, "Custom Token is disabled")
+		return
+	}
+
 	payload := req.(customTokenLoginPayload)
+
+	if !h.PasswordAuthProvider.IsRealmValid(payload.MergeRealm) {
+		err = skyerr.NewInvalidArgument("Invalid MergeRealm", []string{payload.MergeRealm})
+		return
+	}
+
+	if !sso.IsAllowedOnUserDuplicate(
+		h.CustomTokenConfiguration.OnUserDuplicateAllowMerge,
+		h.CustomTokenConfiguration.OnUserDuplicateAllowCreate,
+		payload.OnUserDuplicate,
+	) {
+		err = skyerr.NewInvalidArgument("Disallowed OnUserDuplicate", []string{string(payload.OnUserDuplicate)})
+		return
+	}
+
 	var info authinfo.AuthInfo
-	var userProfile userprofile.UserProfile
 	var createNewUser bool
 
 	defer func() {
@@ -175,8 +218,23 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		})
 	}()
 
-	createNewUser, principal, err := h.handleLogin(payload, &info, &userProfile)
+	createNewUser, principal, err := h.handleLogin(payload, &info)
 	if err != nil {
+		return
+	}
+
+	// Create empty user profile
+	var userProfile userprofile.UserProfile
+	emptyProfile := map[string]interface{}{}
+	if createNewUser {
+		userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, emptyProfile)
+	} else {
+		userProfile, err = h.UserProfileStore.GetUserProfile(info.ID)
+	}
+	if err != nil {
+		// TODO:
+		// return proper error
+		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
 		return
 	}
 
@@ -194,9 +252,11 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 
 	user := model.NewUser(info, userProfile)
 	identity := model.NewIdentity(h.IdentityProvider, principal)
+	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
 
 	// Populate the activity time to user
 	now := timeNow()
+	info.LastLoginAt = &now
 	info.LastSeenAt = &now
 	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
 		err = skyerr.MakeError(err)
@@ -205,10 +265,8 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 
 	// TODO: audit trail
 	if createNewUser && h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(user)
+		h.sendWelcomeEmail(user, payload.Claims.Email())
 	}
-
-	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
 
 	return
 }
@@ -216,21 +274,27 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 func (h CustomTokenLoginHandler) handleLogin(
 	payload customTokenLoginPayload,
 	info *authinfo.AuthInfo,
-	userProfile *userprofile.UserProfile,
-) (createNewUser bool, principal *customtoken.Principal, err error) {
-	createNewUser = false
-	principal, err = h.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID(payload.Claims.Subject)
+) (createNewUser bool, customTokenPrincipal *customtoken.Principal, err error) {
+	customTokenPrincipal, err = h.findExistingCustomTokenPrincipal(payload.Claims.Subject())
 	if err != nil {
-		if err != skydb.ErrUserNotFound {
-			return
-		}
-
-		err = nil
-		createNewUser = true
+		return
 	}
 
 	now := timeNow()
-	if createNewUser {
+
+	populateInfo := func(userID string) {
+		if e := h.AuthInfoStore.GetAuth(userID, info); e != nil {
+			if e == skydb.ErrUserNotFound {
+				err = skyerr.NewError(skyerr.ResourceNotFound, "user not found")
+				return
+			}
+			return
+		}
+	}
+
+	createFunc := func() {
+		createNewUser = true
+
 		*info = authinfo.NewAuthInfo()
 		info.LastLoginAt = &now
 
@@ -247,57 +311,105 @@ func (h CustomTokenLoginHandler) handleLogin(
 			return
 		}
 
-		p := customtoken.NewPrincipal()
-		principal = &p
-		principal.TokenPrincipalID = payload.Claims.Subject
-		principal.UserID = info.ID
-		err = h.CustomTokenAuthProvider.CreatePrincipal(*principal)
-		// TODO:
-		// return proper error
+		customTokenPrincipal, err = h.createCustomTokenPrincipal(info.ID, payload.Claims)
 		if err != nil {
-			err = skyerr.NewError(skyerr.UnexpectedError, "Unable to create principal")
-			return
-		}
-	} else {
-		if e := h.AuthInfoStore.GetAuth(principal.UserID, info); e != nil {
-			if err == skydb.ErrUserNotFound {
-				err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
-				return
-			}
-			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
-			return
-		}
-		info.LastLoginAt = &now
-		if e := h.AuthInfoStore.UpdateAuth(info); e != nil {
-			err = skyerr.NewError(skyerr.ResourceNotFound, "Unable to update user")
 			return
 		}
 	}
 
-	// Create Profile
-	userProfileFunc := func(userID string, authInfo *authinfo.AuthInfo, data userprofile.Data) (userprofile.UserProfile, error) {
-		if createNewUser {
-			return h.UserProfileStore.CreateUserProfile(userID, data)
+	// Case: Custom Token principal was found
+	// => Simple update case
+	// We do not need to consider password principal
+	if customTokenPrincipal != nil {
+		customTokenPrincipal.RawProfile = payload.Claims
+		err = h.CustomTokenAuthProvider.UpdatePrincipal(customTokenPrincipal)
+		if err != nil {
+			return
 		}
 
-		return h.UserProfileStore.UpdateUserProfile(userID, authInfo, data)
-	}
-
-	if *userProfile, err = userProfileFunc(info.ID, info, payload.Claims.RawProfile); err != nil {
-		// TODO:
-		// return proper error
-		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to save user profile")
+		populateInfo(customTokenPrincipal.UserID)
 		return
+	}
+
+	// Case: Custom Token principal was not found
+	// We need to consider password principal
+	passwordPrincipal, err := h.findExistingPasswordPrincipal(payload.Claims.Email(), payload.MergeRealm)
+	if err != nil {
+		return
+	}
+
+	// Case: Custom Token principal was not found and Password principal was not found
+	// => Simple create case
+	if passwordPrincipal == nil {
+		createFunc()
+		return
+	}
+
+	// Case: Custom Token principal was not found and Password principal was found
+	// => Complex case
+	switch payload.OnUserDuplicate {
+	case sso.OnUserDuplicateAbort:
+		err = skyerr.NewError(skyerr.Duplicated, "Aborted due to duplicate user")
+	case sso.OnUserDuplicateCreate:
+		createFunc()
+	case sso.OnUserDuplicateMerge:
+		// Associate the provider to the existing user
+		customTokenPrincipal, err = h.createCustomTokenPrincipal(
+			passwordPrincipal.UserID,
+			payload.Claims,
+		)
+		if err != nil {
+			return
+		}
+		populateInfo(passwordPrincipal.UserID)
 	}
 
 	return
 }
 
-func (h CustomTokenLoginHandler) sendWelcomeEmail(user model.User) {
-	if email, ok := user.Metadata["email"].(string); ok {
+func (h CustomTokenLoginHandler) findExistingCustomTokenPrincipal(subject string) (*customtoken.Principal, error) {
+	principal, err := h.CustomTokenAuthProvider.GetPrincipalByTokenPrincipalID(subject)
+	if err == skydb.ErrUserNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return principal, nil
+}
+
+func (h CustomTokenLoginHandler) sendWelcomeEmail(user model.User, email string) {
+	if email != "" {
 		h.TaskQueue.Enqueue(task.WelcomeEmailSendTaskName, task.WelcomeEmailSendTaskParam{
 			Email: email,
 			User:  user,
 		}, nil)
 	}
+}
+
+func (h CustomTokenLoginHandler) findExistingPasswordPrincipal(email string, realm string) (*password.Principal, error) {
+	if email == "" {
+		return nil, nil
+	}
+	passwordPrincipal := password.Principal{}
+	err := h.PasswordAuthProvider.GetPrincipalByLoginIDWithRealm("", email, realm, &passwordPrincipal)
+	if err == skydb.ErrUserNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if !h.PasswordAuthProvider.CheckLoginIDKeyType(passwordPrincipal.LoginIDKey, metadata.Email) {
+		return nil, nil
+	}
+	return &passwordPrincipal, nil
+}
+
+func (h CustomTokenLoginHandler) createCustomTokenPrincipal(userID string, claims customtoken.SSOCustomTokenClaims) (*customtoken.Principal, error) {
+	customTokenPrincipal := customtoken.NewPrincipal()
+	customTokenPrincipal.TokenPrincipalID = claims.Subject()
+	customTokenPrincipal.UserID = userID
+	customTokenPrincipal.RawProfile = claims
+	err := h.CustomTokenAuthProvider.CreatePrincipal(&customTokenPrincipal)
+	return &customTokenPrincipal, err
 }

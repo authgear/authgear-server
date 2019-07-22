@@ -19,7 +19,9 @@ var (
 	sampleConfig = config.TenantConfiguration{
 		UserConfig: config.UserConfiguration{
 			SSO: config.SSOConfiguration{
-				AllowedCallbackURLs: allowedCallbackURLs,
+				OAuth: config.OAuthConfiguration{
+					AllowedCallbackURLs: allowedCallbackURLs,
+				},
 			},
 		},
 	}

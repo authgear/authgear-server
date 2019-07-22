@@ -108,7 +108,6 @@ func main() {
 	ssohandler.AttachIFrameHandlerFactory(&srv, authDependency)
 	ssohandler.AttachCustomTokenLoginHandler(&srv, authDependency)
 	ssohandler.AttachAuthHandler(&srv, authDependency)
-	ssohandler.AttachProviderProfilesHandler(&srv, authDependency)
 	ssohandler.AttachLoginHandler(&srv, authDependency)
 	ssohandler.AttachLinkHandler(&srv, authDependency)
 	ssohandler.AttachUnlinkHandler(&srv, authDependency)

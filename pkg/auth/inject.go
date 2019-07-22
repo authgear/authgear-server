@@ -103,7 +103,7 @@ func (m DependencyMap) Provide(
 			newSQLBuilder(),
 			newSQLExecutor(),
 			newLogger("provider_custom_token"),
-			tConfig.UserConfig.Auth.CustomTokenSecret,
+			tConfig.UserConfig.SSO.CustomToken,
 			db.NewSafeTxContextWithContext(ctx, tConfig),
 		)
 	}
@@ -183,7 +183,7 @@ func (m DependencyMap) Provide(
 	case "TestWelcomeEmailSender":
 		return welcemail.NewDefaultTestSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP))
 	case "IFrameHTMLProvider":
-		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.APIEndpoint(), tConfig.UserConfig.SSO.JSSDKCDNURL)
+		return sso.NewIFrameHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint(), tConfig.UserConfig.SSO.OAuth.JSSDKCDNURL)
 	case "UserVerifyCodeSenderFactory":
 		return userverify.NewDefaultUserVerifyCodeSenderFactory(tConfig, newTemplateEngine())
 	case "UserVerifyTestCodeSenderFactory":
@@ -226,11 +226,15 @@ func (m DependencyMap) Provide(
 			newPasswordAuthProvider(),
 		)
 	case "AuthHandlerHTMLProvider":
-		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.APIEndpoint(), tConfig.UserConfig.SSO.JSSDKCDNURL)
+		return sso.NewAuthHandlerHTMLProvider(tConfig.UserConfig.SSO.OAuth.APIEndpoint(), tConfig.UserConfig.SSO.OAuth.JSSDKCDNURL)
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	case "HookStore":
 		return hook.NewHookProvider(tConfig.Hooks, hook.ExecutorImpl{}, newLogger("auth_hook"), requestID)
+	case "CustomTokenConfiguration":
+		return tConfig.UserConfig.SSO.CustomToken
+	case "OAuthConfiguration":
+		return tConfig.UserConfig.SSO.OAuth
 	default:
 		return nil
 	}

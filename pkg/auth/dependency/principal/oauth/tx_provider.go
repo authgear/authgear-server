@@ -23,17 +23,17 @@ func NewSafeProvider(
 	}
 }
 
-func (p *safeProviderImpl) GetPrincipalByProviderUserID(providerName string, providerUserID string) (*Principal, error) {
+func (p *safeProviderImpl) GetPrincipalByProvider(options GetByProviderOptions) (*Principal, error) {
 	p.txContext.EnsureTx()
-	return p.impl.GetPrincipalByProviderUserID(providerName, providerUserID)
+	return p.impl.GetPrincipalByProvider(options)
 }
 
-func (p *safeProviderImpl) GetPrincipalByUserID(providerName string, userID string) (*Principal, error) {
+func (p *safeProviderImpl) GetPrincipalByUser(options GetByUserOptions) (*Principal, error) {
 	p.txContext.EnsureTx()
-	return p.impl.GetPrincipalByUserID(providerName, userID)
+	return p.impl.GetPrincipalByUser(options)
 }
 
-func (p *safeProviderImpl) CreatePrincipal(principal Principal) error {
+func (p *safeProviderImpl) CreatePrincipal(principal *Principal) error {
 	p.txContext.EnsureTx()
 	return p.impl.CreatePrincipal(principal)
 }
@@ -72,3 +72,7 @@ func (p *safeProviderImpl) DeriveClaims(principal principal.Principal) principal
 	p.txContext.EnsureTx()
 	return p.impl.DeriveClaims(principal)
 }
+
+var (
+	_ Provider = &safeProviderImpl{}
+)

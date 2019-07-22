@@ -83,7 +83,9 @@ func defaultUserConfiguration() UserConfiguration {
 			Destination: WelcomeEmailDestinationFirst,
 		},
 		SSO: SSOConfiguration{
-			JSSDKCDNURL: "https://code.skygear.io/js/skygear/latest/skygear.min.js",
+			OAuth: OAuthConfiguration{
+				JSSDKCDNURL: "https://code.skygear.io/js/skygear/latest/skygear.min.js",
+			},
 		},
 	}
 }
@@ -260,13 +262,13 @@ func (c *TenantConfiguration) StdBase64Msgpack() (string, error) {
 	return base64.StdEncoding.EncodeToString(bytes), nil
 }
 
-func (c *TenantConfiguration) GetSSOProviderByName(name string) (SSOProviderConfiguration, bool) {
-	for _, provider := range c.UserConfig.SSO.Providers {
-		if provider.Name == name {
+func (c *TenantConfiguration) GetOAuthProviderByID(id string) (OAuthProviderConfiguration, bool) {
+	for _, provider := range c.UserConfig.SSO.OAuth.Providers {
+		if provider.ID == id {
 			return provider, true
 		}
 	}
-	return SSOProviderConfiguration{}, false
+	return OAuthProviderConfiguration{}, false
 }
 
 func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
@@ -276,6 +278,7 @@ func (c *TenantConfiguration) DefaultSensitiveLoggerValues() []string {
 	}
 }
 
+// nolint: gocyclo
 func (c *TenantConfiguration) Validate() error {
 	if c.Version != "1" {
 		return errors.New("Only version 1 is supported")
@@ -340,13 +343,78 @@ func (c *TenantConfiguration) Validate() error {
 		return errors.New("Invalid SMTP mode")
 	}
 
+	// Validate CustomToken
+	if c.UserConfig.SSO.CustomToken.Enabled {
+		if c.UserConfig.SSO.CustomToken.Issuer == "" {
+			return errors.New("Must set Custom Token Issuer")
+		}
+		if c.UserConfig.SSO.CustomToken.Secret == "" {
+			return errors.New("Must set Custom Token Secret")
+		}
+	}
+
+	// Validate OAuth
+	seenOAuthProviderID := map[string]struct{}{}
+	for _, provider := range c.UserConfig.SSO.OAuth.Providers {
+		// Ensure ID is set
+		if provider.ID == "" {
+			return fmt.Errorf("Missing OAuth Provider ID")
+		}
+
+		// Ensure ID is not duplicate.
+		if _, ok := seenOAuthProviderID[provider.ID]; ok {
+			return fmt.Errorf("Duplicate OAuth Provider: %s", provider.ID)
+		}
+		seenOAuthProviderID[provider.ID] = struct{}{}
+
+		switch provider.Type {
+		case OAuthProviderTypeGoogle:
+			break
+		case OAuthProviderTypeFacebook:
+			break
+		case OAuthProviderTypeInstagram:
+			break
+		case OAuthProviderTypeLinkedIn:
+			break
+		case OAuthProviderTypeAzureADv2:
+			// Ensure tenant is set
+			if provider.Tenant == "" {
+				return errors.New("Must set Azure Tenant")
+			}
+		default:
+			// Ensure Type is recognized
+			return fmt.Errorf("Unknown OAuth Provider: %s", provider.Type)
+		}
+
+		if provider.ClientID == "" {
+			return fmt.Errorf("OAuth Provider %s: missing client id", provider.ID)
+		}
+		if provider.ClientSecret == "" {
+			return fmt.Errorf("OAuth Provider %s: missing client secret", provider.ID)
+		}
+		if provider.Scope == "" {
+			return fmt.Errorf("OAuth Provider %s: missing scope", provider.ID)
+		}
+	}
+	oauthIsEffective := len(c.UserConfig.SSO.OAuth.Providers) > 0
+	if oauthIsEffective {
+		if len(c.UserConfig.SSO.OAuth.AllowedCallbackURLs) <= 0 {
+			return fmt.Errorf("Must specify OAuth callback URLs")
+		}
+	}
+
 	return nil
 }
 
+// nolint: gocyclo
 func (c *TenantConfiguration) AfterUnmarshal() {
 	// Default token secret to master key
 	if c.UserConfig.TokenStore.Secret == "" {
 		c.UserConfig.TokenStore.Secret = c.UserConfig.MasterKey
+	}
+	// Default oauth state secret to master key
+	if c.UserConfig.SSO.OAuth.StateJWTSecret == "" {
+		c.UserConfig.SSO.OAuth.StateJWTSecret = c.UserConfig.MasterKey
 	}
 
 	// Propagate AppName
@@ -361,8 +429,8 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	if c.UserConfig.WelcomeEmail.URLPrefix == "" {
 		c.UserConfig.WelcomeEmail.URLPrefix = c.UserConfig.URLPrefix
 	}
-	if c.UserConfig.SSO.URLPrefix == "" {
-		c.UserConfig.SSO.URLPrefix = c.UserConfig.URLPrefix
+	if c.UserConfig.SSO.OAuth.URLPrefix == "" {
+		c.UserConfig.SSO.OAuth.URLPrefix = c.UserConfig.URLPrefix
 	}
 	if c.UserConfig.UserVerification.URLPrefix == "" {
 		c.UserConfig.UserVerification.URLPrefix = c.UserConfig.URLPrefix
@@ -373,7 +441,7 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	c.UserConfig.ForgotPassword.URLPrefix = removeTrailingSlash(c.UserConfig.ForgotPassword.URLPrefix)
 	c.UserConfig.WelcomeEmail.URLPrefix = removeTrailingSlash(c.UserConfig.WelcomeEmail.URLPrefix)
 	c.UserConfig.UserVerification.URLPrefix = removeTrailingSlash(c.UserConfig.UserVerification.URLPrefix)
-	c.UserConfig.SSO.URLPrefix = removeTrailingSlash(c.UserConfig.SSO.URLPrefix)
+	c.UserConfig.SSO.OAuth.URLPrefix = removeTrailingSlash(c.UserConfig.SSO.OAuth.URLPrefix)
 
 	// Set default value for login ID keys config
 	for key, config := range c.UserConfig.Auth.LoginIDKeys {
@@ -420,6 +488,43 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 	// Set default smtp mode
 	if c.AppConfig.SMTP.Mode == "" {
 		c.AppConfig.SMTP.Mode = SMTPModeNormal
+	}
+
+	// Set type to id
+	// Set default scope for OAuth Provider
+	for i, provider := range c.UserConfig.SSO.OAuth.Providers {
+		if provider.ID == "" {
+			c.UserConfig.SSO.OAuth.Providers[i].ID = string(provider.Type)
+		}
+		switch provider.Type {
+		case OAuthProviderTypeGoogle:
+			if provider.Scope == "" {
+				// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "profile email"
+			}
+		case OAuthProviderTypeFacebook:
+			if provider.Scope == "" {
+				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
+				// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "default email"
+			}
+		case OAuthProviderTypeInstagram:
+			if provider.Scope == "" {
+				// https://www.instagram.com/developer/authorization/
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "basic"
+			}
+		case OAuthProviderTypeLinkedIn:
+			if provider.Scope == "" {
+				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context
+				// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "r_liteprofile r_emailaddress"
+			}
+		case OAuthProviderTypeAzureADv2:
+			if provider.Scope == "" {
+				// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
+				c.UserConfig.SSO.OAuth.Providers[i].Scope = "openid profile email"
+			}
+		}
 	}
 }
 
@@ -477,9 +582,8 @@ type CORSConfiguration struct {
 }
 
 type AuthConfiguration struct {
-	LoginIDKeys       map[string]LoginIDKeyConfiguration `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
-	AllowedRealms     []string                           `json:"allowed_realms" yaml:"allowed_realms" msg:"allowed_realms"`
-	CustomTokenSecret string                             `json:"custom_token_secret" yaml:"custom_token_secret" msg:"custom_token_secret"`
+	LoginIDKeys   map[string]LoginIDKeyConfiguration `json:"login_id_keys" yaml:"login_id_keys" msg:"login_id_keys"`
+	AllowedRealms []string                           `json:"allowed_realms" yaml:"allowed_realms" msg:"allowed_realms"`
 }
 
 type LoginIDKeyType string
@@ -577,15 +681,31 @@ type WelcomeEmailConfiguration struct {
 }
 
 type SSOConfiguration struct {
-	URLPrefix           string                     `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
-	JSSDKCDNURL         string                     `json:"js_sdk_cdn_url" yaml:"js_sdk_cdn_url" msg:"js_sdk_cdn_url"`
-	StateJWTSecret      string                     `json:"state_jwt_secret" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
-	AutoLinkEnabled     bool                       `json:"auto_link_enabled" yaml:"auto_link_enabled" msg:"auto_link_enabled"`
-	AllowedCallbackURLs []string                   `json:"allowed_callback_urls" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
-	Providers           []SSOProviderConfiguration `json:"providers" yaml:"providers" msg:"providers"`
+	CustomToken CustomTokenConfiguration `json:"custom_token" yaml:"custom_token" msg:"custom_token"`
+	OAuth       OAuthConfiguration       `json:"oauth" yaml:"oauth" msg:"oauth"`
 }
 
-func (s *SSOConfiguration) APIEndpoint() string {
+type CustomTokenConfiguration struct {
+	Enabled                    bool   `json:"enabled" yaml:"enabled" msg:"enabled"`
+	Issuer                     string `json:"issuer" yaml:"issuer" msg:"issuer"`
+	Audience                   string `json:"audience" yaml:"audience" msg:"audience"`
+	Secret                     string `json:"secret" yaml:"secret" msg:"secret"`
+	OnUserDuplicateAllowMerge  bool   `json:"on_user_duplicate_allow_merge" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
+	OnUserDuplicateAllowCreate bool   `json:"on_user_duplicate_allow_create" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
+}
+
+type OAuthConfiguration struct {
+	URLPrefix                      string                       `json:"url_prefix" yaml:"url_prefix" msg:"url_prefix"`
+	JSSDKCDNURL                    string                       `json:"js_sdk_cdn_url" yaml:"js_sdk_cdn_url" msg:"js_sdk_cdn_url"`
+	StateJWTSecret                 string                       `json:"state_jwt_secret" yaml:"state_jwt_secret" msg:"state_jwt_secret"`
+	AllowedCallbackURLs            []string                     `json:"allowed_callback_urls" yaml:"allowed_callback_urls" msg:"allowed_callback_urls"`
+	ExternalAccessTokenFlowEnabled bool                         `json:"external_access_token_flow_enabled" yaml:"external_access_token_flow_enabled" msg:"external_access_token_flow_enabled"`
+	OnUserDuplicateAllowMerge      bool                         `json:"on_user_duplicate_allow_merge" yaml:"on_user_duplicate_allow_merge" msg:"on_user_duplicate_allow_merge"`
+	OnUserDuplicateAllowCreate     bool                         `json:"on_user_duplicate_allow_create" yaml:"on_user_duplicate_allow_create" msg:"on_user_duplicate_allow_create"`
+	Providers                      []OAuthProviderConfiguration `json:"providers" yaml:"providers" msg:"providers"`
+}
+
+func (s *OAuthConfiguration) APIEndpoint() string {
 	// URLPrefix can't be seen as skygear endpoint.
 	// Consider URLPrefix = http://localhost:3001/auth
 	// and skygear SDK use is as base endpint URL (in iframe_html and auth_handler_html).
@@ -599,11 +719,24 @@ func (s *SSOConfiguration) APIEndpoint() string {
 	return u.String()
 }
 
-type SSOProviderConfiguration struct {
-	Name         string `json:"name" yaml:"name" msg:"name"`
-	ClientID     string `json:"client_id" yaml:"client_id" msg:"client_id"`
-	ClientSecret string `json:"client_secret" yaml:"client_secret" msg:"client_secret"`
-	Scope        string `json:"scope" yaml:"scope" msg:"scope"`
+type OAuthProviderType string
+
+const (
+	OAuthProviderTypeGoogle    OAuthProviderType = "google"
+	OAuthProviderTypeFacebook  OAuthProviderType = "facebook"
+	OAuthProviderTypeInstagram OAuthProviderType = "instagram"
+	OAuthProviderTypeLinkedIn  OAuthProviderType = "linkedin"
+	OAuthProviderTypeAzureADv2 OAuthProviderType = "azureadv2"
+)
+
+type OAuthProviderConfiguration struct {
+	ID           string            `json:"id" yaml:"id" msg:"id"`
+	Type         OAuthProviderType `json:"type" yaml:"type" msg:"type"`
+	ClientID     string            `json:"client_id" yaml:"client_id" msg:"client_id"`
+	ClientSecret string            `json:"client_secret" yaml:"client_secret" msg:"client_secret"`
+	Scope        string            `json:"scope" yaml:"scope" msg:"scope"`
+	// Type specific fields
+	Tenant string `json:"tenant" yaml:"tenant" msg:"tenant"`
 }
 
 type UserVerificationCriteria string

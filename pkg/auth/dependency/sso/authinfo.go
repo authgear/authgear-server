@@ -1,71 +1,62 @@
 package sso
 
+import (
+	"crypto/subtle"
+	"fmt"
+
+	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/hash"
+)
+
 type getAuthInfoRequest struct {
-	providerName   string
-	clientID       string
-	clientSecret   string
-	urlPrefix      string
-	code           string
-	scope          Scope
-	stateJWTSecret string
-	encodedState   string
+	oauthConfig    config.OAuthConfiguration
+	providerConfig config.OAuthProviderConfiguration
 	accessTokenURL string
 	userProfileURL string
-	processor      AuthInfoProcessor
+	processor      UserInfoDecoder
 }
 
-func (h getAuthInfoRequest) getAuthInfo() (authInfo AuthInfo, err error) {
-	authInfo = AuthInfo{
-		ProviderName: h.providerName,
-	}
-
-	state, err := DecodeState(h.stateJWTSecret, h.encodedState)
+func (h getAuthInfoRequest) getAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error) {
+	state, err := DecodeState(h.oauthConfig.StateJWTSecret, r.State)
 	if err != nil {
 		return
 	}
-	authInfo.State = state
 
-	r, err := fetchAccessTokenResp(
-		h.code,
-		h.clientID,
-		h.urlPrefix,
-		h.providerName,
-		h.clientSecret,
+	if subtle.ConstantTimeCompare([]byte(state.Nonce), []byte(hash.SHA256String(r.Nonce))) != 1 {
+		err = fmt.Errorf("invalid nonce")
+		return
+	}
+
+	// compare nonce
+	authInfo = AuthInfo{
+		ProviderConfig: h.providerConfig,
+	}
+
+	accessTokenResp, err := fetchAccessTokenResp(
+		r.Code,
 		h.accessTokenURL,
+		h.oauthConfig,
+		h.providerConfig,
 	)
 	if err != nil {
 		return
 	}
 
-	accessTokenResp, err := h.processor.DecodeAccessTokenResp(r)
+	err = accessTokenResp.Validate()
 	if err != nil {
 		return
 	}
 	authInfo.ProviderAccessTokenResp = accessTokenResp
-
-	err = h.processor.ValidateAccessTokenResp(accessTokenResp)
-	if err != nil {
-		return
-	}
 
 	return h.getAuthInfoByAccessTokenResp(accessTokenResp)
 }
 
 func (h getAuthInfoRequest) getAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error) {
 	authInfo = AuthInfo{
-		ProviderName: h.providerName,
+		ProviderConfig: h.providerConfig,
 		// validated accessTokenResp
 		ProviderAccessTokenResp: accessTokenResp,
 	}
-
-	var state State
-	if h.encodedState != "" {
-		state, err = DecodeState(h.stateJWTSecret, h.encodedState)
-		if err != nil {
-			return
-		}
-	}
-	authInfo.State = state
 
 	userProfile, err := fetchUserProfile(accessTokenResp, h.userProfileURL)
 	if err != nil {

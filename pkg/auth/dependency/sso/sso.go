@@ -1,103 +1,112 @@
 package sso
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
+	"github.com/skygeario/skygear-server/pkg/core/rand"
 )
 
-// Scope parameter allows the application to express the desired scope of the access request.
-type Scope []string
+const (
+	nonceAlphabet string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+)
 
-// Options parameter allows additional options for getting auth url
-type Options map[string]interface{}
+// LoginState stores login specific state.
+type LoginState struct {
+	MergeRealm      string          `json:"merge_realm,omitempty"`
+	OnUserDuplicate OnUserDuplicate `json:"on_user_duplicate,omitempty"`
+}
 
-// State parameter refers parameter of auth url
+// LinkState stores link specific state.
+type LinkState struct {
+	UserID string `json:"user_id,omitempty"`
+}
+
+// OAuthAuthorizationCodeFlowState stores OAuth Authorization Code flow state.
+type OAuthAuthorizationCodeFlowState struct {
+	UXMode      UXMode `json:"ux_mode,omitempty"`
+	CallbackURL string `json:"callback_url,omitempty"`
+	Action      string `json:"action,omitempty"`
+}
+
+// State is an opaque value used by the client to maintain
+// state between the request and callback.
+// See https://tools.ietf.org/html/rfc6749#section-4.1.1
 type State struct {
-	UXMode      string `json:"ux_mode"`
-	CallbackURL string `json:"callback_url"`
-	Action      string `json:"action"`
-	UserID      string `json:"user_id,omitempty"`
+	LoginState
+	LinkState
+	OAuthAuthorizationCodeFlowState
+	Nonce string `json:"nonce,omitempty"`
 }
 
 // UXMode indicates how the URL is used
-type UXMode int
+type UXMode string
 
+// UXMode constants
 const (
-	// Undefined for undefined uxmode
-	Undefined UXMode = iota
-	// WebRedirect for web url redirect
-	WebRedirect
-	// WebPopup for web popup window
-	WebPopup
-	// IOS for device iOS
-	IOS
-	// Android for device Android
-	Android
+	UXModeWebRedirect UXMode = "web_redirect"
+	UXModeWebPopup    UXMode = "web_popup"
+	UXModeMobileApp   UXMode = "mobile_app"
 )
 
-func (m UXMode) String() string {
-	names := [...]string{
-		"web_redirect",
-		"web_popup",
-		"ios",
-		"android",
-	}
-
-	if m < WebRedirect || m > Android {
-		return "undefined"
-	}
-
-	return names[m-1]
-}
-
-// UXModeFromString converts string to UXMode
-func UXModeFromString(input string) (u UXMode) {
-	UXModes := [...]UXMode{WebRedirect, WebPopup, IOS, Android}
-	for _, v := range UXModes {
-		if input == v.String() {
-			u = v
-			return
+// IsValidUXMode validates UXMode
+func IsValidUXMode(mode UXMode) bool {
+	allModes := []UXMode{UXModeWebRedirect, UXModeWebPopup, UXModeMobileApp}
+	for _, v := range allModes {
+		if mode == v {
+			return true
 		}
 	}
-
-	return
+	return false
 }
 
-// GetURLParams structs parameters for GetLoginAuthURL
+// OnUserDuplicate is the strategy to handle user duplicate
+type OnUserDuplicate string
+
+// OnUserDuplicate constants
+const (
+	OnUserDuplicateAbort  OnUserDuplicate = "abort"
+	OnUserDuplicateMerge  OnUserDuplicate = "merge"
+	OnUserDuplicateCreate OnUserDuplicate = "create"
+)
+
+// OnUserDuplicateDefault is OnUserDuplicateAbort
+const OnUserDuplicateDefault = OnUserDuplicateAbort
+
+// IsValidOnUserDuplicate validates OnUserDuplicate
+func IsValidOnUserDuplicate(input OnUserDuplicate) bool {
+	allVariants := []OnUserDuplicate{OnUserDuplicateAbort, OnUserDuplicateMerge, OnUserDuplicateCreate}
+	for _, v := range allVariants {
+		if input == v {
+			return true
+		}
+	}
+	return false
+}
+
+// IsAllowedOnUserDuplicate checks if input is allowed
+func IsAllowedOnUserDuplicate(onUserDuplicateAllowMerge bool, onUserDuplicateAllowCreate bool, input OnUserDuplicate) bool {
+	if !onUserDuplicateAllowMerge && input == OnUserDuplicateMerge {
+		return false
+	}
+	if !onUserDuplicateAllowCreate && input == OnUserDuplicateCreate {
+		return false
+	}
+	return true
+}
+
+// GetURLParams is the argument of getAuthURL
 type GetURLParams struct {
-	Scope       Scope
-	Options     Options
-	CallbackURL string
-	UXMode      UXMode
-	UserID      string
-	Action      string
-}
-
-// Setting is the base settings for SSO
-type Setting struct {
-	URLPrefix           string
-	JSSDKCDNURL         string
-	StateJWTSecret      string
-	AutoLinkEnabled     bool
-	AllowedCallbackURLs []string
-}
-
-// Config is the base config of a SSO provider
-type Config struct {
-	Name         string
-	ClientID     string
-	ClientSecret string
-	Scope        Scope
+	State State
 }
 
 // AuthInfo contains auth info from HandleAuthzResp
 type AuthInfo struct {
-	ProviderName            string
+	ProviderConfig          config.OAuthProviderConfiguration
 	ProviderRawProfile      map[string]interface{}
 	ProviderAccessTokenResp interface{}
 	ProviderUserInfo        ProviderUserInfo
-	State                   State
 }
 
 type ProviderUserInfo struct {
@@ -105,11 +114,51 @@ type ProviderUserInfo struct {
 	Email string
 }
 
-// Provider defines SSO interface
-type Provider interface {
+type OAuthAuthorizationResponse struct {
+	Code  string
+	State string
+	Scope string
+	// Nonce is required when the provider supports OpenID connect or OAuth Authorization Code Flow.
+	// The implementation is based on the suggestion in the spec.
+	// See https://openid.net/specs/openid-connect-core-1_0.html#NonceNotes
+	//
+	// The nonce is a cryptographically random string.
+	// The nonce is stored in the session cookie when auth URL is called.
+	// The nonce is hashed with SHA256.
+	// The hashed nonce is given to the OIDC provider
+	// The hashed nonce is stored in the state.
+	// The callback endpoint expect the user agent to include the nonce in the session cookie.
+	// The nonce in session cookie will be validated against the hashed nonce in the ID token.
+	// The nonce in session cookie will be validated against the hashed nonce in the state.
+	Nonce string
+}
+
+// OAuthProvider is OAuth 2.0 based provider.
+type OAuthProvider interface {
 	GetAuthURL(params GetURLParams) (url string, err error)
-	GetAuthInfo(code string, scope Scope, encodedState string) (authInfo AuthInfo, err error)
-	GetAuthInfoByAccessTokenResp(accessTokenResp AccessTokenResp) (authInfo AuthInfo, err error)
+	DecodeState(encodedState string) (*State, error)
+	GetAuthInfo(r OAuthAuthorizationResponse) (AuthInfo, error)
+}
+
+// NonOpenIDConnectProvider are OAuth 2.0 provider that does not
+// implement OpenID Connect or we do not implement yet.
+// They are Google, Facebook, Instagram and LinkedIn.
+type NonOpenIDConnectProvider interface {
+	NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error)
+}
+
+// ExternalAccessTokenFlowProvider is provider that the developer
+// can somehow acquire an access token and that access token
+// can be used to fetch user info.
+// They are Google, Facebook, Instagram and LinkedIn.
+type ExternalAccessTokenFlowProvider interface {
+	ExternalAccessTokenGetAuthInfo(AccessTokenResp) (AuthInfo, error)
+}
+
+// OpenIDConnectProvider are OpenID Connect provider.
+// They are Azure AD v2.
+type OpenIDConnectProvider interface {
+	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse) (authInfo AuthInfo, err error)
 }
 
 type ProviderFactory struct {
@@ -122,58 +171,64 @@ func NewProviderFactory(tenantConfig config.TenantConfiguration) *ProviderFactor
 	}
 }
 
-func (p *ProviderFactory) NewProvider(name string) Provider {
-	SSOConf, ok := p.tenantConfig.GetSSOProviderByName(name)
+func (p *ProviderFactory) NewProvider(id string) OAuthProvider {
+	providerConfig, ok := p.tenantConfig.GetOAuthProviderByID(id)
 	if !ok {
 		return nil
 	}
-	SSOSetting := p.tenantConfig.UserConfig.SSO
-	setting := Setting{
-		URLPrefix:           SSOSetting.URLPrefix,
-		JSSDKCDNURL:         SSOSetting.JSSDKCDNURL,
-		StateJWTSecret:      SSOSetting.StateJWTSecret,
-		AutoLinkEnabled:     SSOSetting.AutoLinkEnabled,
-		AllowedCallbackURLs: SSOSetting.AllowedCallbackURLs,
-	}
-	config := Config{
-		Name:         SSOConf.Name,
-		ClientID:     SSOConf.ClientID,
-		ClientSecret: SSOConf.ClientSecret,
-		Scope:        strings.Split(SSOConf.Scope, ","),
-	}
-
-	switch name {
-	case "google":
+	switch providerConfig.Type {
+	case config.OAuthProviderTypeGoogle:
 		return &GoogleImpl{
-			Setting: setting,
-			Config:  config,
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
 		}
-	case "facebook":
+	case config.OAuthProviderTypeFacebook:
 		return &FacebookImpl{
-			Setting: setting,
-			Config:  config,
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
 		}
-	case "instagram":
+	case config.OAuthProviderTypeInstagram:
 		return &InstagramImpl{
-			Setting: setting,
-			Config:  config,
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
 		}
-	case "linkedin":
+	case config.OAuthProviderTypeLinkedIn:
 		return &LinkedInImpl{
-			Setting: setting,
-			Config:  config,
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
+		}
+	case config.OAuthProviderTypeAzureADv2:
+		return &Azureadv2Impl{
+			OAuthConfig:    p.tenantConfig.UserConfig.SSO.OAuth,
+			ProviderConfig: providerConfig,
 		}
 	}
 	return nil
 }
 
-func (p *ProviderFactory) Setting() Setting {
-	SSOSetting := p.tenantConfig.UserConfig.SSO
-	return Setting{
-		URLPrefix:           SSOSetting.URLPrefix,
-		JSSDKCDNURL:         SSOSetting.JSSDKCDNURL,
-		StateJWTSecret:      SSOSetting.StateJWTSecret,
-		AutoLinkEnabled:     SSOSetting.AutoLinkEnabled,
-		AllowedCallbackURLs: SSOSetting.AllowedCallbackURLs,
+func (p *ProviderFactory) GetProviderConfig(id string) (config.OAuthProviderConfiguration, bool) {
+	return p.tenantConfig.GetOAuthProviderByID(id)
+}
+
+func ValidateCallbackURL(allowedCallbackURLs []string, callbackURL string) (err error) {
+	if callbackURL == "" {
+		err = fmt.Errorf("missing callback URL")
+		return
 	}
+
+	lowerCallbackURL := strings.ToLower(callbackURL)
+	for _, v := range allowedCallbackURLs {
+		lowerAllowed := strings.ToLower(v)
+		if strings.HasPrefix(lowerCallbackURL, lowerAllowed) {
+			return nil
+		}
+	}
+
+	err = fmt.Errorf("callback URL is not whitelisted")
+	return
+}
+
+func GenerateOpenIDConnectNonce() string {
+	nonce := rand.StringWithAlphabet(32, nonceAlphabet, rand.SecureRand)
+	return nonce
 }

@@ -43,7 +43,7 @@ func (p MockProvider) Decode(tokenString string) (claims SSOCustomTokenClaims, e
 	return
 }
 
-func (p MockProvider) CreatePrincipal(principal Principal) error {
+func (p MockProvider) CreatePrincipal(principal *Principal) error {
 	if _, existed := p.PrincipalMap[principal.ID]; existed {
 		return skydb.ErrUserDuplicated
 	}
@@ -54,7 +54,12 @@ func (p MockProvider) CreatePrincipal(principal Principal) error {
 		}
 	}
 
-	p.PrincipalMap[principal.ID] = principal
+	p.PrincipalMap[principal.ID] = *principal
+	return nil
+}
+
+func (p MockProvider) UpdatePrincipal(principal *Principal) error {
+	p.PrincipalMap[principal.ID] = *principal
 	return nil
 }
 
@@ -72,7 +77,13 @@ func (p MockProvider) ID() string {
 	return providerName
 }
 
-func (p MockProvider) DeriveClaims(_ principal.Principal) principal.Claims {
-	// TODO(sso): return custom token email
-	return principal.Claims{}
+func (p MockProvider) DeriveClaims(pp principal.Principal) (claims principal.Claims) {
+	claims = principal.Claims{}
+	attrs := pp.Attributes()
+	rawProfile, ok := attrs["raw_profile"].(SSOCustomTokenClaims)
+	if !ok {
+		return
+	}
+	claims["email"] = rawProfile.Email()
+	return
 }

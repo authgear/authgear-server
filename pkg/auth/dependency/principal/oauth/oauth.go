@@ -2,16 +2,37 @@ package oauth
 
 import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 )
 
 const providerName string = "oauth"
 
+type GetByProviderOptions struct {
+	ProviderType   string
+	ProviderKeys   map[string]interface{}
+	ProviderUserID string
+}
+
+type GetByUserOptions struct {
+	ProviderType string
+	ProviderKeys map[string]interface{}
+	UserID       string
+}
+
 type Provider interface {
 	principal.Provider
-	GetPrincipalByProviderUserID(providerName string, providerUserID string) (*Principal, error)
-	GetPrincipalByUserID(providerName string, userID string) (*Principal, error)
-	CreatePrincipal(principal Principal) error
+	GetPrincipalByProvider(options GetByProviderOptions) (*Principal, error)
+
+	GetPrincipalByUser(options GetByUserOptions) (*Principal, error)
+	CreatePrincipal(principal *Principal) error
 	UpdatePrincipal(principal *Principal) error
 	DeletePrincipal(principal *Principal) error
-	GetPrincipalsByUserID(userID string) ([]*Principal, error)
+}
+
+func ProviderKeysFromProviderConfig(c config.OAuthProviderConfiguration) map[string]interface{} {
+	m := map[string]interface{}{}
+	if c.Tenant != "" {
+		m["tenant"] = c.Tenant
+	}
+	return m
 }

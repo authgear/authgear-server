@@ -13,11 +13,13 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/core/async"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
+	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/handler"
 	"github.com/skygeario/skygear-server/pkg/core/inject"
@@ -42,8 +44,8 @@ func (f LoginHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &LoginHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	vars := mux.Vars(request)
-	h.ProviderName = vars["provider"]
-	h.Provider = h.ProviderFactory.NewProvider(h.ProviderName)
+	h.ProviderID = vars["provider"]
+	h.Provider = h.ProviderFactory.NewProvider(h.ProviderID)
 	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
@@ -53,16 +55,24 @@ func (f LoginHandlerFactory) ProvideAuthzPolicy() authz.Policy {
 
 // LoginRequestPayload login handler request payload
 type LoginRequestPayload struct {
-	AccessToken string `json:"access_token"`
+	AccessToken     string              `json:"access_token"`
+	MergeRealm      string              `json:"merge_realm"`
+	OnUserDuplicate sso.OnUserDuplicate `json:"on_user_duplicate"`
 }
 
 // Validate request payload
-func (p LoginRequestPayload) Validate() error {
+func (p LoginRequestPayload) Validate() (err error) {
 	if p.AccessToken == "" {
-		return skyerr.NewInvalidArgument("empty access token", []string{"access_token"})
+		err = skyerr.NewInvalidArgument("empty access token", []string{"access_token"})
+		return
 	}
 
-	return nil
+	if !sso.IsValidOnUserDuplicate(p.OnUserDuplicate) {
+		err = skyerr.NewInvalidArgument("Invalid OnUserDuplicate", []string{"on_user_duplicate"})
+		return
+	}
+
+	return
 }
 
 // LoginHandler decodes code response and fetch access token from provider.
@@ -95,8 +105,11 @@ type LoginHandler struct {
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	ProviderFactory      *sso.ProviderFactory       `dependency:"SSOProviderFactory"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
-	Provider             sso.Provider
-	ProviderName         string
+	OAuthConfiguration   config.OAuthConfiguration  `dependency:"OAuthConfiguration"`
+	WelcomeEmailEnabled  bool                       `dependency:"WelcomeEmailEnabled"`
+	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
+	Provider             sso.OAuthProvider
+	ProviderID           string
 }
 
 func (h LoginHandler) WithTx() bool {
@@ -109,20 +122,35 @@ func (h LoginHandler) DecodeRequest(request *http.Request) (handler.RequestPaylo
 	if err != nil {
 		return payload, err
 	}
+	if payload.MergeRealm == "" {
+		payload.MergeRealm = password.DefaultRealm
+	}
+	if payload.OnUserDuplicate == "" {
+		payload.OnUserDuplicate = sso.OnUserDuplicateDefault
+	}
 	return payload, nil
 }
 
 func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
-	if h.Provider == nil {
-		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderName})
+	if !h.OAuthConfiguration.ExternalAccessTokenFlowEnabled {
+		err = skyerr.NewError(skyerr.UndefinedOperation, "External access token flow is disabled")
+		return
+	}
+
+	provider, ok := h.Provider.(sso.ExternalAccessTokenFlowProvider)
+	if !ok {
+		err = skyerr.NewInvalidArgument("Provider is not supported", []string{h.ProviderID})
 		return
 	}
 
 	payload := req.(LoginRequestPayload)
-	oauthAuthInfo, err := h.Provider.GetAuthInfoByAccessTokenResp(sso.AccessTokenResp{
-		AccessToken: payload.AccessToken,
-		TokenType:   "Bearer",
-	})
+
+	loginState := sso.LoginState{
+		MergeRealm:      payload.MergeRealm,
+		OnUserDuplicate: payload.OnUserDuplicate,
+	}
+
+	oauthAuthInfo, err := provider.ExternalAccessTokenGetAuthInfo(sso.NewBearerAccessTokenResp(payload.AccessToken))
 	if err != nil {
 		return
 	}
@@ -134,9 +162,10 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 		PasswordAuthProvider: h.PasswordAuthProvider,
 		IdentityProvider:     h.IdentityProvider,
 		UserProfileStore:     h.UserProfileStore,
-		UserID:               oauthAuthInfo.State.UserID,
+		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
+		TaskQueue:            h.TaskQueue,
 	}
-	resp, err = handler.loginActionResp(oauthAuthInfo)
+	resp, err = handler.loginActionResp(oauthAuthInfo, loginState)
 
 	return
 }
