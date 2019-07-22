@@ -26,10 +26,11 @@ func NewHookProvider(
 ) Store {
 	hookStore := make(map[string][]Hook)
 	for _, v := range hooks {
+		// FIXME(webhook): hook config
 		hook := Hook{
-			Async:   v.Async,
+			Async:   true,
 			URL:     v.URL,
-			TimeOut: v.Timeout,
+			TimeOut: 60,
 		}
 
 		if hooks, ok := hookStore[v.Event]; ok {

@@ -211,16 +211,12 @@ var fullTenantConfig = TenantConfiguration{
 	},
 	Hooks: []Hook{
 		Hook{
-			Async:   true,
-			Event:   "after_signup",
-			URL:     "http://localhost:3000/after_signup",
-			Timeout: 60,
+			Event: "after_signup",
+			URL:   "http://localhost:3000/after_signup",
 		},
 		Hook{
-			Async:   false,
-			Event:   "after_signup",
-			URL:     "http://localhost:3000/after_signup",
-			Timeout: 60,
+			Event: "after_signup",
+			URL:   "http://localhost:3000/after_signup",
 		},
 	},
 	DeploymentRoutes: []DeploymentRoute{

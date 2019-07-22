@@ -33,10 +33,8 @@ type TenantConfiguration struct {
 }
 
 type Hook struct {
-	Async   bool   `json:"async" yaml:"async" msg:"async"`
-	Event   string `json:"event" yaml:"event" msg:"event"`
-	URL     string `json:"url" yaml:"url" msg:"url"`
-	Timeout int    `json:"timeout" yaml:"timeout" msg:"timeout"`
+	Event string `json:"event" yaml:"event" msg:"event"`
+	URL   string `json:"url" yaml:"url" msg:"url"`
 }
 
 type DeploymentRoute struct {
