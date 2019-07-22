@@ -24,7 +24,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/task"
@@ -120,7 +119,6 @@ func TestSingupHandler(t *testing.T) {
 		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
-		anonymousAuthProvider := anonymous.NewMockProvider()
 
 		passwordChecker := &authAudit.PasswordChecker{
 			PwMinLength: 6,
@@ -132,8 +130,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.TokenStore = mockTokenStore
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
-		sh.AnonymousAuthProvider = anonymousAuthProvider
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, sh.AnonymousAuthProvider)
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider)
 		sh.AuditTrail = audit.NewMockTrail(t)
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.Logger = logrus.NewEntry(logrus.New())
@@ -239,39 +236,6 @@ func TestSingupHandler(t *testing.T) {
 			}`,
 				userID,
 				p.ID,
-				token.AccessToken))
-		})
-
-		Convey("support anonymous singup", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader("{}"))
-			resp := httptest.NewRecorder()
-			h.ServeHTTP(resp, req)
-
-			So(resp.Code, ShouldEqual, 200)
-
-			userID := anonymousAuthProvider.Principals[0].UserID
-			token := mockTokenStore.GetTokensByAuthInfoID(userID)[0]
-			So(resp.Body.Bytes(), ShouldEqualJSON, fmt.Sprintf(`{
-				"result": {
-					"user": {
-						"id": "%s",
-						"is_verified": false,
-						"is_disabled": false,
-						"last_login_at": "2006-01-02T15:04:05Z",
-						"created_at": "0001-01-01T00:00:00Z",
-						"verify_info": {},
-						"metadata": {}
-					},
-					"identity": {
-						"id": "%s",
-						"type": "anonymous",
-						"claims": {}
-					},
-					"access_token": "%s"
-				}
-			}`,
-				userID,
-				anonymousAuthProvider.Principals[0].ID,
 				token.AccessToken))
 		})
 
@@ -412,7 +376,6 @@ func TestSingupHandler(t *testing.T) {
 		allowedRealms := []string{password.DefaultRealm, "admin"}
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
-		anonymousAuthProvider := anonymous.NewMockProvider()
 		tokenStore := authtoken.NewJWTStore("myApp", "secret", 0)
 
 		passwordChecker := &authAudit.PasswordChecker{
@@ -424,8 +387,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.TokenStore = tokenStore
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
-		sh.AnonymousAuthProvider = anonymousAuthProvider
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, sh.AnonymousAuthProvider)
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider)
 		sh.AuditTrail = audit.NewMockTrail(t)
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.Logger = logrus.NewEntry(logrus.New())
@@ -532,7 +494,6 @@ func TestSingupHandler(t *testing.T) {
 		allowedRealms := []string{password.DefaultRealm}
 		authInfoStore := authinfo.NewMockStore()
 		passwordAuthProvider := password.NewMockProvider(loginIDsKeys, allowedRealms)
-		anonymousAuthProvider := anonymous.NewMockProvider()
 
 		passwordChecker := &authAudit.PasswordChecker{
 			PwMinLength: 6,
@@ -544,8 +505,7 @@ func TestSingupHandler(t *testing.T) {
 		sh.TokenStore = mockTokenStore
 		sh.PasswordChecker = passwordChecker
 		sh.PasswordAuthProvider = passwordAuthProvider
-		sh.AnonymousAuthProvider = anonymousAuthProvider
-		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider, sh.AnonymousAuthProvider)
+		sh.IdentityProvider = principal.NewMockIdentityProvider(sh.PasswordAuthProvider)
 		sh.AuditTrail = audit.NewMockTrail(t)
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.Logger = logrus.NewEntry(logrus.New())
