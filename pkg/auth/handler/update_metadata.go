@@ -44,10 +44,13 @@ func (f UpdateMetadataHandlerFactory) NewHandler(request *http.Request) http.Han
 }
 
 func (f UpdateMetadataHandlerFactory) ProvideAuthzPolicy() authz.Policy {
-	return policy.AllOf(
-		authz.PolicyFunc(policy.DenyNoAccessKey),
-		authz.PolicyFunc(policy.RequireAuthenticated),
-		authz.PolicyFunc(policy.DenyDisabledUser),
+	return policy.AnyOf(
+		authz.PolicyFunc(policy.RequireMasterKey),
+		policy.AllOf(
+			authz.PolicyFunc(policy.DenyNoAccessKey),
+			authz.PolicyFunc(policy.RequireAuthenticated),
+			authz.PolicyFunc(policy.DenyDisabledUser),
+		),
 	)
 }
 
@@ -57,10 +60,6 @@ type UpdateMetadataRequestPayload struct {
 }
 
 func (p UpdateMetadataRequestPayload) Validate() error {
-	if p.UserID == "" {
-		return skyerr.NewInvalidArgument("empty user_id", []string{"user_id"})
-	}
-
 	return nil
 }
 
@@ -103,17 +102,26 @@ func (h UpdateMetadataHandler) DecodeRequest(request *http.Request) (handler.Req
 func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(UpdateMetadataRequestPayload)
 	keyType := h.AuthContext.AccessKeyType()
-	currentUserID := h.AuthContext.AuthInfo().ID
-	updateUserID := payload.UserID
-	inMetadata := payload.Metadata
 
-	if keyType == model.APIAccessKey && currentUserID != payload.UserID {
-		err = skyerr.NewError(skyerr.PermissionDenied, "Unable to update another user's metadata")
-		return
+	var targetUserID string
+	if keyType == model.MasterAccessKey {
+		if payload.UserID == "" {
+			err = skyerr.NewInvalidArgument("empty user_id", []string{"user_id"})
+			return
+		}
+		targetUserID = payload.UserID
+	} else {
+		if payload.UserID != "" {
+			err = skyerr.NewError(skyerr.PermissionDenied, "must not specify user_id")
+			return
+		}
+		targetUserID = h.AuthContext.AuthInfo().ID
 	}
 
+	newMetadata := payload.Metadata
+
 	authInfo := authinfo.AuthInfo{}
-	if e := h.AuthInfoStore.GetAuth(updateUserID, &authInfo); e != nil {
+	if e := h.AuthInfoStore.GetAuth(targetUserID, &authInfo); e != nil {
 		if err == skydb.ErrUserNotFound {
 			err = skyerr.NewError(skyerr.ResourceNotFound, "User not found")
 			return
@@ -124,7 +132,7 @@ func (h UpdateMetadataHandler) Handle(req interface{}) (resp interface{}, err er
 	}
 
 	var profile userprofile.UserProfile
-	if profile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, &authInfo, inMetadata); err != nil {
+	if profile, err = h.UserProfileStore.UpdateUserProfile(authInfo.ID, &authInfo, newMetadata); err != nil {
 		// TODO:
 		// return proper error
 		err = skyerr.NewError(skyerr.UnexpectedError, "Unable to update user profile")
