@@ -13,5 +13,8 @@ type GatewayStore interface {
 	// GetLastDeploymentRoutes return all routes of last deployment
 	GetLastDeploymentRoutes(app model.App) ([]*model.DeploymentRoute, error)
 
+	// GetLastDeploymentHooks return all hooks of last deployment
+	GetLastDeploymentHooks(app model.App) (*model.DeploymentHooks, error)
+
 	Close() error
 }

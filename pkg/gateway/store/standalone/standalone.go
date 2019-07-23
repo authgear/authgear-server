@@ -34,6 +34,20 @@ func (s *Store) GetLastDeploymentRoutes(app model.App) ([]*model.DeploymentRoute
 	return routes, nil
 }
 
+func (s *Store) GetLastDeploymentHooks(app model.App) (*model.DeploymentHooks, error) {
+	var hooks = model.DeploymentHooks{
+		AppID:            app.ID,
+		IsLastDeployment: true,
+	}
+	for _, hook := range s.TenantConfig.Hooks {
+		hooks.Hooks = append(hooks.Hooks, model.DeploymentHook{
+			Event: hook.Event,
+			URL:   hook.URL,
+		})
+	}
+	return &hooks, nil
+}
+
 func (s *Store) Close() error {
 	return nil
 }
