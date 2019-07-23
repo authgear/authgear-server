@@ -81,16 +81,14 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		h := handler.APIHandlerToHandler(uh, uh.TxContext)
 
 		Convey("should update metadata", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"user_id": "%s",
 				"metadata": {
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 					"age": 24
 				}
-			}`,
-				userID)))
+			}`))
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
@@ -114,16 +112,15 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		})
 
 		Convey("should allow to delete attributes in metadata", func() {
-			req, _ := http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
+			req, _ := http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"user_id": "%s",
 				"metadata": {
 					"username": "john.doe",
 					"email":    "john.doe@example.com",
 					"age":      30,
 					"love":     "cat"
 				}
-			}`, userID)))
+			}`))
 			resp := httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
@@ -146,14 +143,13 @@ func TestUpdateMetadataHandler(t *testing.T) {
 				}
 			}`, userID))
 
-			req, _ = http.NewRequest("POST", "", strings.NewReader(fmt.Sprintf(`
+			req, _ = http.NewRequest("POST", "", strings.NewReader(`
 			{
-				"user_id": "%s",
 				"metadata": {
 					"username": "john.doe",
 					"email":    "john.doe@example.com"
 				}
-			}`, userID)))
+			}`))
 			resp = httptest.NewRecorder()
 			h.ServeHTTP(resp, req)
 
@@ -194,7 +190,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 				"error":{
 					"name": "PermissionDenied",
 					"code": 102,
-					"message": "Unable to update another user's metadata"
+					"message": "must not specify user_id"
 				}
 			}`)
 		})
