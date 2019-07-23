@@ -36,6 +36,28 @@ func (f FindAppMiddleware) Handle(next http.Handler) http.Handler {
 			})
 		}
 
+		for _, route := range routes {
+			app.Config.DeploymentRoutes = append(app.Config.DeploymentRoutes, config.DeploymentRoute{
+				Version:    route.Version,
+				Path:       route.Path,
+				Type:       string(route.Type),
+				TypeConfig: route.TypeConfig,
+			})
+		}
+
+		hooks, err := f.Store.GetLastDeploymentHooks(app)
+		if err != nil {
+			http.Error(w, "Fail to get deployment hooks", http.StatusInternalServerError)
+			return
+		}
+
+		for _, hook := range hooks.Hooks {
+			app.Config.Hooks = append(app.Config.Hooks, config.Hook{
+				Event: hook.Event,
+				URL:   hook.URL,
+			})
+		}
+
 		ctx := gatewayModel.GatewayContextFromContext(r.Context())
 		ctx.App = app
 

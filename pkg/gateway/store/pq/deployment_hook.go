@@ -33,6 +33,8 @@ func (s *Store) GetLastDeploymentHooks(app model.App) (hooks *model.DeploymentHo
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			// in case no rows exist: deployment has no hooks
+			// ignore the error and return empty hooks
 			err = nil
 		}
 		return
