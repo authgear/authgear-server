@@ -23,3 +23,11 @@ type SessionCreateEvent struct {
 func (SessionCreateEvent) Version() int32 {
 	return 1
 }
+
+func (SessionCreateEvent) BeforeEventType() Type {
+	return BeforeSessionCreate
+}
+
+func (SessionCreateEvent) AfterEventType() Type {
+	return AfterSessionCreate
+}

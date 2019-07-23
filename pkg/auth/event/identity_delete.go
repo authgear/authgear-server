@@ -15,3 +15,11 @@ type IdentityDeleteEvent struct {
 func (IdentityDeleteEvent) Version() int32 {
 	return 1
 }
+
+func (IdentityDeleteEvent) BeforeEventType() Type {
+	return BeforeIdentityDelete
+}
+
+func (IdentityDeleteEvent) AfterEventType() Type {
+	return AfterIdentityDelete
+}

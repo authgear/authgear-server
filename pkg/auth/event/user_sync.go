@@ -15,3 +15,7 @@ type UserSyncEvent struct {
 func (UserSyncEvent) Version() int32 {
 	return 1
 }
+
+func (UserSyncEvent) EventType() Type {
+	return UserSync
+}

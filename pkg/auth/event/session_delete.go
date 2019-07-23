@@ -22,3 +22,11 @@ type SessionDeleteEvent struct {
 func (SessionDeleteEvent) Version() int32 {
 	return 1
 }
+
+func (SessionDeleteEvent) BeforeEventType() Type {
+	return BeforeSessionDelete
+}
+
+func (SessionDeleteEvent) AfterEventType() Type {
+	return AfterSessionDelete
+}

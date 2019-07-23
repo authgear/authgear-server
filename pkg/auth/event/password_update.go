@@ -23,3 +23,11 @@ type PasswordUpdateEvent struct {
 func (PasswordUpdateEvent) Version() int32 {
 	return 1
 }
+
+func (PasswordUpdateEvent) BeforeEventType() Type {
+	return BeforePasswordUpdate
+}
+
+func (PasswordUpdateEvent) AfterEventType() Type {
+	return AfterPasswordUpdate
+}

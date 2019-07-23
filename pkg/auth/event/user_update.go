@@ -33,3 +33,11 @@ type UserUpdateEvent struct {
 func (UserUpdateEvent) Version() int32 {
 	return 1
 }
+
+func (UserUpdateEvent) BeforeEventType() Type {
+	return BeforeUserUpdate
+}
+
+func (UserUpdateEvent) AfterEventType() Type {
+	return AfterUserUpdate
+}

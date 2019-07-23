@@ -12,7 +12,7 @@ func NewMockProvider() *MockProvider {
 	return &MockProvider{}
 }
 
-func (MockProvider) DispatchEvent(eventType event.Type, payload event.Payload, user *model.User) error {
+func (MockProvider) DispatchEvent(payload event.Payload, user *model.User) error {
 	// TODO(webhook): test impl
 	return nil
 }

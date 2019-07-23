@@ -15,3 +15,11 @@ type IdentityCreateEvent struct {
 func (IdentityCreateEvent) Version() int32 {
 	return 1
 }
+
+func (IdentityCreateEvent) BeforeEventType() Type {
+	return BeforeIdentityCreate
+}
+
+func (IdentityCreateEvent) AfterEventType() Type {
+	return AfterIdentityCreate
+}

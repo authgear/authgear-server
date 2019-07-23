@@ -8,10 +8,18 @@ const (
 )
 
 type UserCreateEvent struct {
-	User       *model.User       `json:"user"`
-	Identities []*model.Identity `json:"identities"`
+	User       *model.User      `json:"user"`
+	Identities []model.Identity `json:"identities"`
 }
 
 func (UserCreateEvent) Version() int32 {
 	return 1
+}
+
+func (UserCreateEvent) BeforeEventType() Type {
+	return BeforeUserCreate
+}
+
+func (UserCreateEvent) AfterEventType() Type {
+	return AfterUserCreate
 }

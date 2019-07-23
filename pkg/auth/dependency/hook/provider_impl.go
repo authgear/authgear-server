@@ -12,7 +12,7 @@ func NewProvider() Provider {
 	return &providerImpl{}
 }
 
-func (providerImpl) DispatchEvent(eventType event.Type, payload event.Payload, user *model.User) error {
+func (providerImpl) DispatchEvent(payload event.Payload, user *model.User) error {
 	// TODO(webhook): real impl
 	return nil
 }
