@@ -7,9 +7,11 @@ const (
 	AfterUserCreate  Type = "after_user_create"
 )
 
-const UserCreateEventVersion int32 = 1
-
 type UserCreateEvent struct {
 	User       *model.User       `json:"user"`
 	Identities []*model.Identity `json:"identities"`
+}
+
+func (UserCreateEvent) Version() int32 {
+	return 1
 }

@@ -7,9 +7,11 @@ const (
 	AfterIdentityDelete  Type = "after_identity_delete"
 )
 
-const IdentityDeleteEventVersion int32 = 1
-
 type IdentityDeleteEvent struct {
 	User     *model.User     `json:"user"`
 	Identity *model.Identity `json:"identity"`
+}
+
+func (IdentityDeleteEvent) Version() int32 {
+	return 1
 }

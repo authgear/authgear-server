@@ -7,8 +7,6 @@ const (
 	AfterPasswordUpdate  Type = "after_password_udpate"
 )
 
-const PasswordUpdateEventVersion int32 = 1
-
 type PasswordUpdateReason string
 
 const (
@@ -20,4 +18,8 @@ const (
 type PasswordUpdateEvent struct {
 	Reason PasswordUpdateReason `json:"reason"`
 	User   *model.User          `json:"user"`
+}
+
+func (PasswordUpdateEvent) Version() int32 {
+	return 1
 }

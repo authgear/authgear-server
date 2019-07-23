@@ -7,8 +7,6 @@ const (
 	AfterSessionDelete  Type = "after_session_delete"
 )
 
-const SessionDeleteEventVersion int32 = 1
-
 type SessionDeleteReason string
 
 const (
@@ -19,4 +17,8 @@ type SessionDeleteEvent struct {
 	Reason   SessionDeleteReason `json:"reason"`
 	User     *model.User         `json:"user"`
 	Identity *model.Identity     `json:"identity"`
+}
+
+func (SessionDeleteEvent) Version() int32 {
+	return 1
 }

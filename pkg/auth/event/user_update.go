@@ -29,3 +29,7 @@ type UserUpdateEvent struct {
 	Metadata   *userprofile.Data `json:"metadata,omitempty"`
 	User       *model.User       `json:"user"`
 }
+
+func (UserUpdateEvent) Version() int32 {
+	return 1
+}

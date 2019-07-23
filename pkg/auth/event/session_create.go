@@ -7,8 +7,6 @@ const (
 	AfterSessionCreate  Type = "after_session_create"
 )
 
-const SessionCreateEventVersion int32 = 1
-
 type SessionCreateReason string
 
 const (
@@ -20,4 +18,8 @@ type SessionCreateEvent struct {
 	Reason   SessionCreateReason `json:"reason"`
 	User     *model.User         `json:"user"`
 	Identity *model.Identity     `json:"identity"`
+}
+
+func (SessionCreateEvent) Version() int32 {
+	return 1
 }
