@@ -13,7 +13,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
@@ -72,26 +71,22 @@ type SignupRequestPayload struct {
 }
 
 func (p SignupRequestPayload) Validate() error {
-	if p.isAnonymous() {
-		//no validation logic for anonymous sign up
-	} else {
-		if len(p.LoginIDs) == 0 {
-			return skyerr.NewInvalidArgument("empty login_ids", []string{"login_ids"})
-		}
+	if len(p.LoginIDs) == 0 {
+		return skyerr.NewInvalidArgument("empty login_ids", []string{"login_ids"})
+	}
 
-		if p.Password == "" {
-			return skyerr.NewInvalidArgument("empty password", []string{"password"})
-		}
+	if p.Password == "" {
+		return skyerr.NewInvalidArgument("empty password", []string{"password"})
+	}
 
-		for _, loginID := range p.LoginIDs {
-			if !loginID.IsValid() {
-				return skyerr.NewInvalidArgument("invalid login_ids", []string{"login_ids"})
-			}
+	for _, loginID := range p.LoginIDs {
+		if !loginID.IsValid() {
+			return skyerr.NewInvalidArgument("invalid login_ids", []string{"login_ids"})
 		}
+	}
 
-		if p.duplicatedLoginIDs() {
-			return skyerr.NewInvalidArgument("duplicated login_ids", []string{"login_ids"})
-		}
+	if p.duplicatedLoginIDs() {
+		return skyerr.NewInvalidArgument("duplicated login_ids", []string{"login_ids"})
 	}
 
 	return nil
@@ -113,10 +108,6 @@ func (p SignupRequestPayload) duplicatedLoginIDs() bool {
 	return false
 }
 
-func (p SignupRequestPayload) isAnonymous() bool {
-	return len(p.LoginIDs) == 0 && p.Password == ""
-}
-
 // SignupHandler handles signup request
 type SignupHandler struct {
 	PasswordChecker         *authAudit.PasswordChecker                         `dependency:"PasswordChecker"`
@@ -124,7 +115,6 @@ type SignupHandler struct {
 	TokenStore              authtoken.Store                                    `dependency:"TokenStore"`
 	AuthInfoStore           authinfo.Store                                     `dependency:"AuthInfoStore"`
 	PasswordAuthProvider    password.Provider                                  `dependency:"PasswordAuthProvider"`
-	AnonymousAuthProvider   anonymous.Provider                                 `dependency:"AnonymousAuthProvider"`
 	IdentityProvider        principal.IdentityProvider                         `dependency:"IdentityProvider"`
 	AuditTrail              audit.Trail                                        `dependency:"AuditTrail"`
 	WelcomeEmailEnabled     bool                                               `dependency:"WelcomeEmailEnabled"`
@@ -261,10 +251,6 @@ func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user mo
 }
 
 func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
-	if payload.isAnonymous() {
-		return
-	}
-
 	if err = h.PasswordAuthProvider.ValidateLoginIDs(payload.LoginIDs); err != nil {
 		return
 	}
@@ -283,25 +269,17 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 }
 
 func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (principal principal.Principal, err error) {
-	if !payload.isAnonymous() {
-		principals, createError := h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs, payload.Realm)
+	principals, createError := h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs, payload.Realm)
 
-		if createError != nil {
-			if createError == skydb.ErrUserDuplicated {
-				err = ErrUserDuplicated
-			} else {
-				err = createError
-			}
+	if createError != nil {
+		if createError == skydb.ErrUserDuplicated {
+			err = ErrUserDuplicated
+		} else {
+			err = createError
 		}
-		if err == nil {
-			principal = principals[0]
-		}
-	} else {
-		anonymousPrincipal := anonymous.NewPrincipal()
-		anonymousPrincipal.UserID = authInfo.ID
-
-		err = h.AnonymousAuthProvider.CreatePrincipal(anonymousPrincipal)
-		principal = &anonymousPrincipal
+	}
+	if err == nil {
+		principal = principals[0]
 	}
 	return
 }

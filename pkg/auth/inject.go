@@ -15,7 +15,6 @@ import (
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	pqPWHistory "github.com/skygeario/skygear-server/pkg/auth/dependency/passwordhistory/pq"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/anonymous"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -89,15 +88,6 @@ func (m DependencyMap) Provide(
 		)
 	}
 
-	newAnonymousAuthProvider := func() anonymous.Provider {
-		return anonymous.NewSafeProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
-			newLogger("provider_anonymous"),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
-		)
-	}
-
 	newCustomTokenAuthProvider := func() customtoken.Provider {
 		return customtoken.NewSafeProvider(
 			newSQLBuilder(),
@@ -151,8 +141,6 @@ func (m DependencyMap) Provide(
 		)
 	case "PasswordAuthProvider":
 		return newPasswordAuthProvider()
-	case "AnonymousAuthProvider":
-		return newAnonymousAuthProvider()
 	case "CustomTokenAuthProvider":
 		return newCustomTokenAuthProvider()
 	case "HandlerLogger":
@@ -220,7 +208,6 @@ func (m DependencyMap) Provide(
 		return principal.NewIdentityProvider(
 			newSQLBuilder(),
 			newSQLExecutor(),
-			newAnonymousAuthProvider(),
 			newCustomTokenAuthProvider(),
 			newOAuthAuthProvider(),
 			newPasswordAuthProvider(),
