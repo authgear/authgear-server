@@ -2,8 +2,11 @@ package sso
 
 import (
 	"encoding/json"
-	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"net/http"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
@@ -122,6 +125,7 @@ type CustomTokenLoginHandler struct {
 	AuthInfoStore            authinfo.Store                  `dependency:"AuthInfoStore"`
 	CustomTokenAuthProvider  customtoken.Provider            `dependency:"CustomTokenAuthProvider"`
 	IdentityProvider         principal.IdentityProvider      `dependency:"IdentityProvider"`
+	HookProvider             hook.Provider                   `dependency:"HookProvider"`
 	PasswordAuthProvider     password.Provider               `dependency:"PasswordAuthProvider"`
 	CustomTokenConfiguration config.CustomTokenConfiguration `dependency:"CustomTokenConfiguration"`
 	WelcomeEmailEnabled      bool                            `dependency:"WelcomeEmailEnabled"`
@@ -240,6 +244,31 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 
 	// TODO: check disable
 
+	// Populate the activity time to user
+	now := timeNow()
+	info.LastLoginAt = &now
+	info.LastSeenAt = &now
+	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
+		err = skyerr.MakeError(err)
+		return
+	}
+
+	user := model.NewUser(info, userProfile)
+	identity := model.NewIdentity(h.IdentityProvider, principal)
+
+	if createNewUser {
+		err = h.HookProvider.DispatchEvent(
+			event.UserCreateEvent{
+				User:       &user,
+				Identities: []model.Identity{identity},
+			},
+			&user,
+		)
+		if err != nil {
+			return
+		}
+	}
+
 	// Create auth token
 	tkn, err := h.TokenStore.NewToken(info.ID, principal.ID)
 	if err != nil {
@@ -250,18 +279,25 @@ func (h CustomTokenLoginHandler) Handle(req interface{}) (resp interface{}, err 
 		panic(err)
 	}
 
-	user := model.NewUser(info, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, principal)
-	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
-
-	// Populate the activity time to user
-	now := timeNow()
-	info.LastLoginAt = &now
-	info.LastSeenAt = &now
-	if err = h.AuthInfoStore.UpdateAuth(&info); err != nil {
-		err = skyerr.MakeError(err)
+	var sessionCreateReason event.SessionCreateReason
+	if createNewUser {
+		sessionCreateReason = event.SessionCreateReasonSignup
+	} else {
+		sessionCreateReason = event.SessionCreateReasonLogin
+	}
+	err = h.HookProvider.DispatchEvent(
+		event.SessionCreateEvent{
+			Reason:   sessionCreateReason,
+			User:     &user,
+			Identity: &identity,
+		},
+		&user,
+	)
+	if err != nil {
 		return
 	}
+
+	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
 
 	// TODO: audit trail
 	if createNewUser && h.WelcomeEmailEnabled {

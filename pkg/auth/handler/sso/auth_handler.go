@@ -8,6 +8,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -103,6 +104,7 @@ type AuthHandler struct {
 	AuthHandlerHTMLProvider sso.AuthHandlerHTMLProvider `dependency:"AuthHandlerHTMLProvider"`
 	ProviderFactory         *sso.ProviderFactory        `dependency:"SSOProviderFactory"`
 	UserProfileStore        userprofile.Store           `dependency:"UserProfileStore"`
+	HookProvider            hook.Provider               `dependency:"HookProvider"`
 	OAuthConfiguration      config.OAuthConfiguration   `dependency:"OAuthConfiguration"`
 	WelcomeEmailEnabled     bool                        `dependency:"WelcomeEmailEnabled"`
 	TaskQueue               async.Queue                 `dependency:"AsyncTaskQueue"`
@@ -223,6 +225,7 @@ func (h AuthHandler) handle(oauthAuthInfo sso.AuthInfo, state sso.State) (resp i
 		PasswordAuthProvider: h.PasswordAuthProvider,
 		IdentityProvider:     h.IdentityProvider,
 		UserProfileStore:     h.UserProfileStore,
+		HookProvider:         h.HookProvider,
 		WelcomeEmailEnabled:  h.WelcomeEmailEnabled,
 		TaskQueue:            h.TaskQueue,
 	}

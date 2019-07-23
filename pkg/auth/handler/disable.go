@@ -6,6 +6,10 @@ import (
 	"time"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
@@ -69,9 +73,11 @@ func (payload setDisableUserPayload) Validate() error {
 
 // SetDisableHandler handles set disable request
 type SetDisableHandler struct {
-	AuthInfoStore authinfo.Store `dependency:"AuthInfoStore"`
-	AuditTrail    audit.Trail    `dependency:"AuditTrail"`
-	TxContext     db.TxContext   `dependency:"TxContext"`
+	AuthInfoStore    authinfo.Store    `dependency:"AuthInfoStore"`
+	UserProfileStore userprofile.Store `dependency:"UserProfileStore"`
+	AuditTrail       audit.Trail       `dependency:"AuditTrail"`
+	HookProvider     hook.Provider     `dependency:"HookProvider"`
+	TxContext        db.TxContext      `dependency:"TxContext"`
 }
 
 func (h SetDisableHandler) WithTx() bool {
@@ -112,6 +118,13 @@ func (h SetDisableHandler) Handle(req interface{}) (resp interface{}, err error)
 		return
 	}
 
+	var profile userprofile.UserProfile
+	if profile, err = h.UserProfileStore.GetUserProfile(authinfo.ID); err != nil {
+		return
+	}
+
+	oldUser := authModel.NewUser(authinfo, profile)
+
 	authinfo.Disabled = p.Disabled
 	if !authinfo.Disabled {
 		authinfo.DisabledMessage = ""
@@ -121,19 +134,24 @@ func (h SetDisableHandler) Handle(req interface{}) (resp interface{}, err error)
 		authinfo.DisabledExpiry = p.expiry
 	}
 
-	// logger.WithFields(logrus.Fields{
-	// 	"disabled": authinfo.Disabled,
-	// 	"message":  authinfo.DisabledMessage,
-	// 	"expiry":   authinfo.DisabledExpiry,
-	// }).Debug("Will set disabled user status")
-
 	if e := h.AuthInfoStore.UpdateAuth(&authinfo); e != nil {
-		// logger.WithError(err).Error("Unable to update auth info when setting disabled user status")
 		err = skyerr.MakeError(err)
 		return
 	}
 
-	// logger.Info("Successfully set disabled user status")
+	user := authModel.NewUser(authinfo, profile)
+
+	err = h.HookProvider.DispatchEvent(
+		event.UserUpdateEvent{
+			Reason:     event.UserUpdateReasonAdministrative,
+			User:       &oldUser,
+			IsDisabled: &p.Disabled,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
 
 	h.logAuditTrail(p)
 

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -77,6 +78,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		)
 		uh.PasswordAuthProvider = passwordAuthProvider
 		uh.IdentityProvider = principal.NewMockIdentityProvider(uh.PasswordAuthProvider)
+		uh.HookProvider = hook.NewMockProvider()
 		uh.TxContext = db.NewMockTxContext()
 		h := handler.APIHandlerToHandler(uh, uh.TxContext)
 
@@ -243,6 +245,7 @@ func TestUpdateMetadataHandler(t *testing.T) {
 		)
 		uh.PasswordAuthProvider = passwordAuthProvider
 		uh.TxContext = db.NewMockTxContext()
+		uh.HookProvider = hook.NewMockProvider()
 		h := handler.APIHandlerToHandler(uh, uh.TxContext)
 
 		Convey("able to update another user's metadata", func() {

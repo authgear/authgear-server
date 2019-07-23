@@ -5,9 +5,11 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
@@ -78,6 +80,7 @@ type LoginHandler struct {
 	IdentityProvider     principal.IdentityProvider `dependency:"IdentityProvider"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
 	AuditTrail           audit.Trail                `dependency:"AuditTrail"`
+	HookProvider         hook.Provider              `dependency:"HookProvider"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 }
 
@@ -188,6 +191,18 @@ func (h LoginHandler) Handle(req interface{}) (resp interface{}, err error) {
 
 	user := model.NewUser(fetchedAuthInfo, userProfile)
 	identity := model.NewIdentity(h.IdentityProvider, principal)
+	err = h.HookProvider.DispatchEvent(
+		event.SessionCreateEvent{
+			Reason:   event.SessionCreateReasonLogin,
+			User:     &user,
+			Identity: &identity,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
+
 	resp = model.NewAuthResponse(user, identity, token.AccessToken)
 
 	return

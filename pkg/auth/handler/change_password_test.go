@@ -11,6 +11,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -75,6 +76,7 @@ func TestChangePasswordHandler(t *testing.T) {
 		)
 		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.TaskQueue = mockTaskQueue
+		lh.HookProvider = hook.NewMockProvider()
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("change password success", func(c C) {

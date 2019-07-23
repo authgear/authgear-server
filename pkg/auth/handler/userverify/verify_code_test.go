@@ -7,7 +7,9 @@ import (
 	"testing"
 	gotime "time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/time"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -80,6 +82,8 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 			},
 		)
 		vh.AuthInfoStore = authInfoStore
+		vh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		vh.HookProvider = hook.NewMockProvider()
 
 		verifyConfig := config.UserVerificationConfiguration{
 			Criteria: config.UserVerificationCriteriaAll,

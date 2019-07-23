@@ -7,9 +7,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	coreconfig "github.com/skygeario/skygear-server/pkg/core/config"
@@ -91,6 +93,8 @@ func TestLinkHandler(t *testing.T) {
 		)
 		sh.AuthInfoStore = authInfoStore
 		sh.OAuthConfiguration = oauthConfig
+		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sh.HookProvider = hook.NewMockProvider()
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should link user id with oauth principal", func() {

@@ -6,8 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/sso"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
@@ -49,7 +52,10 @@ func TestUnlinkHandler(t *testing.T) {
 				UserID:         "faseng.cat.id",
 			},
 		})
+		sh.IdentityProvider = principal.NewMockIdentityProvider(mockOAuthProvider)
 		sh.OAuthAuthProvider = mockOAuthProvider
+		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
+		sh.HookProvider = hook.NewMockProvider()
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should unlink user id with oauth principal", func() {

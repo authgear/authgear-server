@@ -4,6 +4,10 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	authModel "github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -65,10 +69,12 @@ func (p LogoutRequestPayload) Validate() error {
 
 // LogoutHandler handles logout request
 type LogoutHandler struct {
-	AuthContext coreAuth.ContextGetter `dependency:"AuthContextGetter"`
-	TokenStore  authtoken.Store        `dependency:"TokenStore"`
-	AuditTrail  audit.Trail            `dependency:"AuditTrail"`
-	TxContext   db.TxContext           `dependency:"TxContext"`
+	AuthContext      coreAuth.ContextGetter `dependency:"AuthContextGetter"`
+	UserProfileStore userprofile.Store      `dependency:"UserProfileStore"`
+	TokenStore       authtoken.Store        `dependency:"TokenStore"`
+	AuditTrail       audit.Trail            `dependency:"AuditTrail"`
+	HookProvider     hook.Provider          `dependency:"HookProvider"`
+	TxContext        db.TxContext           `dependency:"TxContext"`
 }
 
 func (h LogoutHandler) WithTx() bool {
@@ -97,6 +103,24 @@ func (h LogoutHandler) Handle(req interface{}) (resp interface{}, err error) {
 		err = skyerr.MakeError(err)
 	} else {
 		resp = map[string]string{}
+	}
+
+	var profile userprofile.UserProfile
+	if profile, err = h.UserProfileStore.GetUserProfile(h.AuthContext.AuthInfo().ID); err != nil {
+		return
+	}
+
+	user := authModel.NewUser(*h.AuthContext.AuthInfo(), profile)
+
+	err = h.HookProvider.DispatchEvent(
+		event.SessionDeleteEvent{
+			Reason: event.SessionDeleteReasonLogout,
+			User:   &user,
+		},
+		&user,
+	)
+	if err != nil {
+		return
 	}
 
 	h.AuditTrail.Log(audit.Entry{

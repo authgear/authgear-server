@@ -8,6 +8,9 @@ import (
 	"testing"
 	"time"
 
+	authHook "github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+
 	"github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
@@ -73,10 +76,12 @@ func TestForgotPasswordResetHandler(t *testing.T) {
 				"john.doe.id": authInfo,
 			},
 		)
+		fh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		fh.TokenStore = authtoken.NewJWTStore("myApp", "secret", 0)
 		fh.CodeGenerator = codeGenerator
 		fh.PasswordChecker = &authAudit.PasswordChecker{}
 		fh.TaskQueue = mockTaskQueue
+		fh.HookProvider = authHook.NewMockProvider()
 
 		Convey("reset password after expiry", func() {
 			// expireAt := time.Date(2005, 1, 2, 15, 4, 5, 0, time.UTC)                                // 1104678245

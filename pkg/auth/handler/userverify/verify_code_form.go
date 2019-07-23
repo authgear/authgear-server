@@ -6,9 +6,12 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/skygeario/skygear-server/pkg/auth"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userverify"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authz/policy"
@@ -70,15 +73,16 @@ type VerifyCodeFormHandler struct {
 	AuthInfoStore            authinfo.Store                 `dependency:"AuthInfoStore"`
 	PasswordAuthProvider     password.Provider              `dependency:"PasswordAuthProvider"`
 	UserProfileStore         userprofile.Store              `dependency:"UserProfileStore"`
+	HookProvider             hook.Provider                  `dependency:"HookProvider"`
 	TxContext                db.TxContext                   `dependency:"TxContext"`
 	Logger                   *logrus.Entry                  `dependency:"HandlerLogger"`
 }
 
 type resultTemplateContext struct {
-	err         skyerr.Error
-	payload     VerifyCodeFormPayload
-	verifyCode  userverify.VerifyCode
-	userProfile userprofile.UserProfile
+	err        skyerr.Error
+	payload    VerifyCodeFormPayload
+	verifyCode userverify.VerifyCode
+	user       model.User
 }
 
 func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx *resultTemplateContext) (err error) {
@@ -102,20 +106,36 @@ func (h VerifyCodeFormHandler) prepareResultTemplateContext(r *http.Request, ctx
 		return
 	}
 
-	userProfile, err := h.UserProfileStore.GetUserProfile(authInfo.ID)
+	var userProfile userprofile.UserProfile
+	userProfile, err = h.UserProfileStore.GetUserProfile(authInfo.ID)
 	if err != nil {
 		h.Logger.WithFields(map[string]interface{}{
 			"user_id": payload.UserID,
 		}).WithError(err).Error("unable to get user profile")
 		return
 	}
-	ctx.userProfile = userProfile
+
+	oldUser := model.NewUser(authInfo, userProfile)
+	ctx.user = oldUser
 
 	verifyCode, err := h.UserVerificationProvider.VerifyUser(h.PasswordAuthProvider, h.AuthInfoStore, &authInfo, payload.Code)
 	if err != nil {
 		return
 	}
 
+	user := model.NewUser(authInfo, userProfile)
+
+	err = h.HookProvider.DispatchEvent(
+		event.UserUpdateEvent{
+			Reason:     event.UserUpdateReasonVerification,
+			User:       &oldUser,
+			VerifyInfo: &authInfo.VerifyInfo,
+			IsVerified: &authInfo.Verified,
+		},
+		&user,
+	)
+
+	ctx.user = user
 	ctx.verifyCode = *verifyCode
 	return
 }
@@ -141,8 +161,8 @@ func (h VerifyCodeFormHandler) HandleVerifyError(rw http.ResponseWriter, templat
 		return
 	}
 
-	if templateCtx.userProfile.ID != "" {
-		context["user"] = templateCtx.userProfile
+	if templateCtx.user.ID != "" {
+		context["user"] = templateCtx.user
 	}
 
 	html, htmlErr := h.VerifyHTMLProvider.ErrorHTML(templateCtx.verifyCode.LoginIDKey, context)
@@ -167,7 +187,7 @@ func (h VerifyCodeFormHandler) HandleVerifySuccess(rw http.ResponseWriter, templ
 		return
 	}
 
-	context["user"] = templateCtx.userProfile
+	context["user"] = templateCtx.user
 
 	html, htmlErr := h.VerifyHTMLProvider.SuccessHTML(templateCtx.verifyCode.LoginIDKey, context)
 	if htmlErr != nil {

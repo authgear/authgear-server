@@ -8,6 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/forgotpwdemail"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+	"github.com/skygeario/skygear-server/pkg/auth/model"
 
 	"github.com/skygeario/skygear-server/pkg/auth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -101,6 +105,8 @@ type ForgotPasswordResetHandler struct {
 	PasswordChecker      *authAudit.PasswordChecker    `dependency:"PasswordChecker"`
 	TokenStore           authtoken.Store               `dependency:"TokenStore"`
 	AuthInfoStore        authinfo.Store                `dependency:"AuthInfoStore"`
+	UserProfileStore     userprofile.Store             `dependency:"UserProfileStore"`
+	HookProvider         hook.Provider                 `dependency:"HookProvider"`
 	PasswordAuthProvider password.Provider             `dependency:"PasswordAuthProvider"`
 	AuditTrail           audit.Trail                   `dependency:"AuditTrail"`
 	TxContext            db.TxContext                  `dependency:"TxContext"`
@@ -181,6 +187,21 @@ func (h ForgotPasswordResetHandler) Handle(req interface{}) (resp interface{}, e
 	if err = h.AuthInfoStore.UpdateAuth(&authInfo); err != nil {
 		return
 	}
+
+	var profile userprofile.UserProfile
+	if profile, err = h.UserProfileStore.GetUserProfile(authInfo.ID); err != nil {
+		return
+	}
+
+	user := model.NewUser(authInfo, profile)
+
+	err = h.HookProvider.DispatchEvent(
+		event.PasswordUpdateEvent{
+			Reason: event.PasswordUpdateReasonResetPassword,
+			User:   &user,
+		},
+		&user,
+	)
 
 	h.AuditTrail.Log(audit.Entry{
 		AuthID: authInfo.ID,

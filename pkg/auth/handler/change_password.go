@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/skygeario/skygear-server/pkg/auth/event"
+
 	"github.com/skygeario/skygear-server/pkg/auth"
 	authAudit "github.com/skygeario/skygear-server/pkg/auth/dependency/audit"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
@@ -101,6 +104,7 @@ type ChangePasswordHandler struct {
 	TokenStore           authtoken.Store            `dependency:"TokenStore"`
 	TxContext            db.TxContext               `dependency:"TxContext"`
 	UserProfileStore     userprofile.Store          `dependency:"UserProfileStore"`
+	HookProvider         hook.Provider              `dependency:"HookProvider"`
 	TaskQueue            async.Queue                `dependency:"AsyncTaskQueue"`
 }
 
@@ -178,6 +182,18 @@ func (h ChangePasswordHandler) Handle(req interface{}) (resp interface{}, err er
 
 	user := model.NewUser(*authinfo, userProfile)
 	identity := model.NewIdentity(h.IdentityProvider, principal)
+
+	err = h.HookProvider.DispatchEvent(
+		event.PasswordUpdateEvent{
+			Reason: event.PasswordUpdateReasonChangePassword,
+			User:   &user,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
+
 	resp = model.NewAuthResponse(user, identity, token.AccessToken)
 
 	h.AuditTrail.Log(audit.Entry{

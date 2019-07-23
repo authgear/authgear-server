@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/oauth"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -102,6 +103,7 @@ func TestLoginHandler(t *testing.T) {
 		sh.PasswordAuthProvider = passwordAuthProvider
 		sh.UserProfileStore = userprofile.NewMockUserProfileStore()
 		sh.OAuthConfiguration = oauthConfig
+		sh.HookProvider = hook.NewMockProvider()
 		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("should get auth response", func() {

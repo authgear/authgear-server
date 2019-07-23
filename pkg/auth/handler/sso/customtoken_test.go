@@ -11,6 +11,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/customtoken"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal/password"
@@ -78,6 +79,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
 		lh.TaskQueue = mockTaskQueue
+		lh.HookProvider = hook.NewMockProvider()
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		Convey("create user account with custom token", func(c C) {
@@ -309,6 +311,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 		lh.WelcomeEmailEnabled = true
 		mockTaskQueue := async.NewMockQueue()
 		lh.TaskQueue = mockTaskQueue
+		lh.HookProvider = hook.NewMockProvider()
 		h := handler.APIHandlerToHandler(lh, lh.TxContext)
 
 		iat := time.Now().UTC()
@@ -366,6 +369,7 @@ func TestCustomTokenLoginHandler(t *testing.T) {
 				"result": {
 					"user": {
 						"created_at": "2006-01-02T15:04:05Z",
+						"last_login_at":"2006-01-02T15:04:05Z",
 						"id": "john.doe.id",
 						"is_disabled": false,
 						"is_verified": false,

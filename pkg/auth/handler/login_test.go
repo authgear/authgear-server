@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 
@@ -134,6 +135,7 @@ func TestLoginHandler(t *testing.T) {
 		h.PasswordAuthProvider = passwordAuthProvider
 		h.IdentityProvider = principal.NewMockIdentityProvider(h.PasswordAuthProvider)
 		h.AuditTrail = coreAudit.NewMockTrail(t)
+		h.HookProvider = hook.NewMockProvider()
 		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 
 		Convey("login user with login_id", func() {
@@ -314,6 +316,7 @@ func TestLoginHandler(t *testing.T) {
 		lh.PasswordAuthProvider = passwordAuthProvider
 		lh.IdentityProvider = principal.NewMockIdentityProvider(lh.PasswordAuthProvider)
 		lh.AuditTrail = coreAudit.NewMockTrail(t)
+		lh.HookProvider = hook.NewMockProvider()
 		profileData := map[string]map[string]interface{}{
 			userID: map[string]interface{}{},
 		}

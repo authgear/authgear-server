@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
+	"github.com/skygeario/skygear-server/pkg/auth/event"
 
 	"github.com/skygeario/skygear-server/pkg/core/utils"
 
@@ -184,10 +185,38 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	}
 
 	// Create Principal
-	loginPrincipal, err := h.createPrincipals(payload, info)
+	principals, err := h.createPrincipals(payload, info)
 	if err != nil {
 		return
 	}
+	loginPrincipal := principals[0]
+
+	user := model.NewUser(info, userProfile)
+	identities := []model.Identity{}
+	var loginIdentity model.Identity
+	for _, principal := range principals {
+		identity := model.NewIdentity(h.IdentityProvider, principal)
+		identities = append(identities, identity)
+		if principal == loginPrincipal {
+			loginIdentity = identity
+		}
+	}
+
+	err = h.HookProvider.DispatchEvent(
+		event.UserCreateEvent{
+			User:       &user,
+			Identities: identities,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
+
+	h.AuditTrail.Log(audit.Entry{
+		AuthID: info.ID,
+		Event:  audit.EventSignup,
+	})
 
 	// Create auth token
 	tkn, err := h.TokenStore.NewToken(info.ID, loginPrincipal.PrincipalID())
@@ -206,15 +235,19 @@ func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 		return
 	}
 
-	h.AuditTrail.Log(audit.Entry{
-		AuthID: info.ID,
-		Event:  audit.EventSignup,
-	})
+	err = h.HookProvider.DispatchEvent(
+		event.SessionCreateEvent{
+			Reason:   event.SessionCreateReasonSignup,
+			User:     &user,
+			Identity: &loginIdentity,
+		},
+		&user,
+	)
+	if err != nil {
+		return
+	}
 
-	user := model.NewUser(info, userProfile)
-	identity := model.NewIdentity(h.IdentityProvider, loginPrincipal)
-
-	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
+	resp = model.NewAuthResponse(user, loginIdentity, tkn.AccessToken)
 
 	if h.WelcomeEmailEnabled {
 		h.sendWelcomeEmail(user, payload.LoginIDs)
@@ -245,8 +278,13 @@ func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {
 	return
 }
 
-func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (principal principal.Principal, err error) {
-	principals, createError := h.PasswordAuthProvider.CreatePrincipalsByLoginID(authInfo.ID, payload.Password, payload.LoginIDs, payload.Realm)
+func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo authinfo.AuthInfo) (principals []principal.Principal, err error) {
+	passwordPrincipals, createError := h.PasswordAuthProvider.CreatePrincipalsByLoginID(
+		authInfo.ID,
+		payload.Password,
+		payload.LoginIDs,
+		payload.Realm,
+	)
 
 	if createError != nil {
 		if createError == skydb.ErrUserDuplicated {
@@ -256,7 +294,9 @@ func (h SignupHandler) createPrincipals(payload SignupRequestPayload, authInfo a
 		}
 	}
 	if err == nil {
-		principal = principals[0]
+		for _, principal := range passwordPrincipals {
+			principals = append(principals, principal)
+		}
 	}
 	return
 }

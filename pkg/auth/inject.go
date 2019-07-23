@@ -24,6 +24,7 @@ import (
 	"github.com/skygeario/skygear-server/pkg/core/async"
 	"github.com/skygeario/skygear-server/pkg/core/audit"
 	coreAuth "github.com/skygeario/skygear-server/pkg/core/auth"
+	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
 	"github.com/skygeario/skygear-server/pkg/core/logging"
@@ -67,6 +68,23 @@ func (m DependencyMap) Provide(
 
 	newTemplateEngine := func() *template.Engine {
 		return authTemplate.NewEngineWithConfig(m.TemplateEngine, tConfig)
+	}
+
+	newAuthInfoStore := func() authinfo.Store {
+		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
+	}
+
+	newUserProfileStore := func() userprofile.Store {
+		return userprofile.NewSafeProvider(
+			newSQLBuilder(),
+			newSQLExecutor(),
+			newLogger("auth_user_profile"),
+			db.NewSafeTxContextWithContext(ctx, tConfig),
+		)
+	}
+
+	newHookProvider := func() hook.Provider {
+		return hook.NewProvider()
 	}
 
 	// TODO:
@@ -115,7 +133,7 @@ func (m DependencyMap) Provide(
 	case "TokenStore":
 		return coreAuth.NewDefaultTokenStore(ctx, tConfig)
 	case "AuthInfoStore":
-		return coreAuth.NewDefaultAuthInfoStore(ctx, tConfig)
+		return newAuthInfoStore()
 	case "PasswordChecker":
 		return &authAudit.PasswordChecker{
 			PwMinLength:         tConfig.UserConfig.UserAudit.Password.MinLength,
@@ -146,12 +164,7 @@ func (m DependencyMap) Provide(
 	case "HandlerLogger":
 		return newLogger("handler")
 	case "UserProfileStore":
-		return userprofile.NewSafeProvider(
-			newSQLBuilder(),
-			newSQLExecutor(),
-			newLogger("auth_user_profile"),
-			db.NewSafeTxContextWithContext(ctx, tConfig),
-		)
+		return newUserProfileStore()
 	case "ForgotPasswordEmailSender":
 		return forgotpwdemail.NewDefaultSender(tConfig, mail.NewDialer(tConfig.AppConfig.SMTP), newTemplateEngine())
 	case "TestForgotPasswordEmailSender":
@@ -217,7 +230,7 @@ func (m DependencyMap) Provide(
 	case "AsyncTaskQueue":
 		return async.NewQueue(ctx, requestID, tConfig, m.AsyncTaskExecutor)
 	case "HookProvider":
-		return hook.NewProvider()
+		return newHookProvider()
 	case "CustomTokenConfiguration":
 		return tConfig.UserConfig.SSO.CustomToken
 	case "OAuthConfiguration":

@@ -8,6 +8,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authinfo"
 	"github.com/skygeario/skygear-server/pkg/core/skyerr"
@@ -43,7 +45,9 @@ func TestSetDisableHandler(t *testing.T) {
 		)
 		h := &SetDisableHandler{}
 		h.AuthInfoStore = authInfoStore
+		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.AuditTrail = coreAudit.NewMockTrail(t)
+		h.HookProvider = hook.NewMockProvider()
 
 		Convey("decode valid request", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`

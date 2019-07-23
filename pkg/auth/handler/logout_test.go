@@ -1,9 +1,12 @@
 package handler
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 
+	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
+	"github.com/skygeario/skygear-server/pkg/auth/dependency/userprofile"
 	coreAudit "github.com/skygeario/skygear-server/pkg/core/audit"
 	"github.com/skygeario/skygear-server/pkg/core/auth"
 	"github.com/skygeario/skygear-server/pkg/core/auth/authtoken"
@@ -31,7 +34,9 @@ func TestLogoutHandler(t *testing.T) {
 		h := &LogoutHandler{}
 		h.AuthContext = auth.NewMockContextGetterWithDefaultUser()
 		h.TokenStore = authtoken.NewJWTStore("myApp", "secret", 0)
+		h.UserProfileStore = userprofile.NewMockUserProfileStore()
 		h.AuditTrail = coreAudit.NewMockTrail(t)
+		h.HookProvider = hook.NewMockProvider()
 
 		Convey("logout user successfully", func() {
 			token := "test_token"
