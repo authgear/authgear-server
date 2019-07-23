@@ -55,8 +55,7 @@ func (f SignupHandlerFactory) NewHandler(request *http.Request) http.Handler {
 	h := &SignupHandler{}
 	inject.DefaultRequestInject(h, f.Dependency, request)
 	h.AuditTrail = h.AuditTrail.WithRequest(request)
-	h.HookStore = h.HookStore.WithRequest(request)
-	return auth.HookHandlerToHandler(h, h.TxContext)
+	return handler.APIHandlerToHandler(h, h.TxContext)
 }
 
 func (f SignupHandlerFactory) ProvideAuthzPolicy() authz.Policy {
@@ -124,7 +123,7 @@ type SignupHandler struct {
 	TxContext               db.TxContext                                       `dependency:"TxContext"`
 	Logger                  *logrus.Entry                                      `dependency:"HandlerLogger"`
 	TaskQueue               async.Queue                                        `dependency:"AsyncTaskQueue"`
-	HookStore               hook.Store                                         `dependency:"HookStore"`
+	HookProvider            hook.Provider                                      `dependency:"HookProvider"`
 }
 
 func (h SignupHandler) WithTx() bool {
@@ -149,14 +148,7 @@ func (h SignupHandler) DecodeRequest(request *http.Request) (handler.RequestPayl
 	return payload, nil
 }
 
-func (h SignupHandler) ExecBeforeHooks(req interface{}, inputUser *model.User) error {
-	payload := req.(SignupRequestPayload)
-	inputUser.Metadata = payload.Metadata
-	err := h.HookStore.ExecBeforeHooksByEvent(hook.BeforeSignup, req, inputUser, "")
-	return err
-}
-
-func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (resp interface{}, err error) {
+func (h SignupHandler) Handle(req interface{}) (resp interface{}, err error) {
 	payload := req.(SignupRequestPayload)
 
 	err = h.verifyPayload(payload)
@@ -184,9 +176,6 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (re
 	// Create Profile
 	var userProfile userprofile.UserProfile
 	metadata := payload.Metadata
-	if inputUser != nil {
-		metadata = inputUser.Metadata
-	}
 	if userProfile, err = h.UserProfileStore.CreateUserProfile(info.ID, metadata); err != nil {
 		// TODO:
 		// return proper error
@@ -225,29 +214,17 @@ func (h SignupHandler) HandleRequest(req interface{}, inputUser *model.User) (re
 	user := model.NewUser(info, userProfile)
 	identity := model.NewIdentity(h.IdentityProvider, loginPrincipal)
 
-	*inputUser = user
 	resp = model.NewAuthResponse(user, identity, tkn.AccessToken)
 
-	return
-}
-
-func (h SignupHandler) ExecAfterHooks(req interface{}, resp interface{}, user model.User) error {
-	reqPayload := req.(SignupRequestPayload)
-	respPayload := resp.(model.AuthResponse)
-	err := h.HookStore.ExecAfterHooksByEvent(hook.AfterSignup, req, user, respPayload.AccessToken)
-	if err != nil {
-		return err
-	}
-
 	if h.WelcomeEmailEnabled {
-		h.sendWelcomeEmail(user, reqPayload.LoginIDs)
+		h.sendWelcomeEmail(user, payload.LoginIDs)
 	}
 
 	if h.AutoSendUserVerifyCode {
-		h.sendUserVerifyRequest(user, reqPayload.LoginIDs)
+		h.sendUserVerifyRequest(user, payload.LoginIDs)
 	}
 
-	return nil
+	return
 }
 
 func (h SignupHandler) verifyPayload(payload SignupRequestPayload) (err error) {

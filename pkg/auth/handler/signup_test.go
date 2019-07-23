@@ -11,12 +11,11 @@ import (
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/hook"
 	"github.com/skygeario/skygear-server/pkg/auth/dependency/principal"
 
-	"github.com/skygeario/skygear-server/pkg/auth"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/skygeario/skygear-server/pkg/core/config"
 	"github.com/skygeario/skygear-server/pkg/core/db"
+	"github.com/skygeario/skygear-server/pkg/core/handler"
 	. "github.com/skygeario/skygear-server/pkg/core/skytest"
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -134,10 +133,8 @@ func TestSingupHandler(t *testing.T) {
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
 		sh.WelcomeEmailEnabled = true
-		executor := hook.ExecutorImpl{}
-		hooks := []config.Hook{}
-		sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), "")
-		h := auth.HookHandlerToHandler(sh, sh.TxContext)
+		sh.HookProvider = hook.NewMockProvider()
+		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("signup user with login_id", func() {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
@@ -390,10 +387,8 @@ func TestSingupHandler(t *testing.T) {
 		mockTaskQueue := async.NewMockQueue()
 		sh.TaskQueue = mockTaskQueue
 		sh.TxContext = db.NewMockTxContext()
-		executor := hook.ExecutorImpl{}
-		hooks := []config.Hook{}
-		sh.HookStore = hook.NewHookProvider(hooks, executor, logrus.NewEntry(logrus.New()), "")
-		h := auth.HookHandlerToHandler(sh, sh.TxContext)
+		sh.HookProvider = hook.NewMockProvider()
+		h := handler.APIHandlerToHandler(sh, sh.TxContext)
 
 		Convey("duplicated user error format", func(c C) {
 			req, _ := http.NewRequest("POST", "", strings.NewReader(`
