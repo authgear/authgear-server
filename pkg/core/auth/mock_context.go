@@ -12,7 +12,7 @@ type MockContext struct {
 }
 
 // NewMockContextGetter create empty auth context
-func NewMockContextGetter() ContextGetter {
+func NewMockContextGetter() *MockContext {
 	container := &contextContainer{}
 	return &MockContext{container: container}
 }
@@ -94,4 +94,9 @@ func (m *MockContext) AuthInfo() *authinfo.AuthInfo {
 // Token returns token from mock context
 func (m *MockContext) Token() *authtoken.Token {
 	return m.container.token
+}
+
+func (m *MockContext) Set(authInfo *authinfo.AuthInfo, token *authtoken.Token) {
+	m.container.authInfo = authInfo
+	m.container.token = token
 }
