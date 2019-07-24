@@ -64,6 +64,10 @@ var fullTenantConfig = TenantConfiguration{
 			APISecret: "mynexmoapisecret",
 			From:      "mynexmo",
 		},
+		Hook: HookAppConfiguration{
+			SyncHookTimeout:      10,
+			SyncHookTotalTimeout: 60,
+		},
 	},
 	UserConfig: UserConfiguration{
 		APIKey:    "myapikey",
@@ -207,6 +211,9 @@ var fullTenantConfig = TenantConfiguration{
 					},
 				},
 			},
+		},
+		Hook: HookUserConfiguration{
+			Secret: "hook-secret",
 		},
 	},
 	Hooks: []Hook{

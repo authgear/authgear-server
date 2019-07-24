@@ -524,6 +524,19 @@ func (c *TenantConfiguration) AfterUnmarshal() {
 			}
 		}
 	}
+
+	// Set default hook secret
+	if c.UserConfig.Hook.Secret == "" {
+		c.UserConfig.Hook.Secret = c.UserConfig.MasterKey
+	}
+
+	// Set default hook timeout
+	if c.AppConfig.Hook.SyncHookTimeout == 0 {
+		c.AppConfig.Hook.SyncHookTimeout = 5
+	}
+	if c.AppConfig.Hook.SyncHookTotalTimeout == 0 {
+		c.AppConfig.Hook.SyncHookTotalTimeout = 10
+	}
 }
 
 func GetTenantConfig(r *http.Request) TenantConfiguration {
@@ -568,6 +581,7 @@ type UserConfiguration struct {
 	WelcomeEmail     WelcomeEmailConfiguration     `json:"welcome_email" yaml:"welcome_email" msg:"welcome_email"`
 	SSO              SSOConfiguration              `json:"sso" yaml:"sso" msg:"sso"`
 	UserVerification UserVerificationConfiguration `json:"user_verification" yaml:"user_verification" msg:"user_verification"`
+	Hook             HookUserConfiguration         `json:"hook" yaml:"hook" msg:"hook"`
 }
 
 // CORSConfiguration represents CORS configuration.
@@ -811,12 +825,17 @@ type UserVerificationProviderConfiguration struct {
 	HTMLURL     string `json:"html_url" yaml:"html_url" msg:"html_url"`
 }
 
+type HookUserConfiguration struct {
+	Secret string `json:"secret" yaml:"secret" msg:"secret"`
+}
+
 // AppConfiguration is configuration kept secret from the developer.
 type AppConfiguration struct {
-	DatabaseURL string              `json:"database_url" yaml:"database_url" msg:"database_url"`
-	SMTP        SMTPConfiguration   `json:"smtp" yaml:"smtp" msg:"smtp"`
-	Twilio      TwilioConfiguration `json:"twilio" yaml:"twilio" msg:"twilio"`
-	Nexmo       NexmoConfiguration  `json:"nexmo" yaml:"nexmo" msg:"nexmo"`
+	DatabaseURL string               `json:"database_url" yaml:"database_url" msg:"database_url"`
+	SMTP        SMTPConfiguration    `json:"smtp" yaml:"smtp" msg:"smtp"`
+	Twilio      TwilioConfiguration  `json:"twilio" yaml:"twilio" msg:"twilio"`
+	Nexmo       NexmoConfiguration   `json:"nexmo" yaml:"nexmo" msg:"nexmo"`
+	Hook        HookAppConfiguration `json:"hook" yaml:"hook" msg:"hook"`
 }
 
 type SMTPMode string
@@ -854,6 +873,11 @@ type NexmoConfiguration struct {
 	APIKey    string `json:"api_key" yaml:"api_key" msg:"api_key"`
 	APISecret string `json:"secret" yaml:"secret" msg:"secret"`
 	From      string `json:"from" yaml:"from" msg:"from"`
+}
+
+type HookAppConfiguration struct {
+	SyncHookTimeout      int `json:"sync_hook_timeout_second" yaml:"sync_hook_timeout_second" msg:"sync_hook_timeout_second"`
+	SyncHookTotalTimeout int `json:"sync_hook_total_timeout_second" yaml:"sync_hook_total_timeout_second" msg:"sync_hook_total_timeout_second"`
 }
 
 var (
